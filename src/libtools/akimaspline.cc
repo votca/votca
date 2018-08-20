@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
  */
 
 #include <votca/tools/akimaspline.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/linalg.h>
 #include <iostream>
 
@@ -26,7 +23,7 @@ namespace votca { namespace tools {
 
 using namespace std;
 
-void AkimaSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
+void AkimaSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y)
 {    
     if(x.size() != y.size())
         throw std::invalid_argument("error in AkimaSpline::Interpolate : sizes of vectors x and y do not match");
@@ -37,18 +34,16 @@ void AkimaSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
 
     const int N = x.size();
     
-    // adjust the grid
-    _r.resize(N);
     
     // copy the grid points into f
     _r = x;
     
     // initialize vectors p1,p2,p3,p4 and t
-    p0 = ub::zero_vector<double>(N);
-    p1 = ub::zero_vector<double>(N);
-    p2 = ub::zero_vector<double>(N);
-    p3 = ub::zero_vector<double>(N);
-    t = ub::zero_vector<double>(N);
+    p0 = Eigen::VectorXd::Zero(N);
+    p1 = Eigen::VectorXd::Zero(N);
+    p2 = Eigen::VectorXd::Zero(N);
+    p3 = Eigen::VectorXd::Zero(N);
+    t = Eigen::VectorXd::Zero(N);
 
     double m1,m2,m3,m4;
 
@@ -141,7 +136,7 @@ void AkimaSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
     }
 }
 
-void AkimaSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
+void AkimaSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y)
 {
     throw std::runtime_error("Akima fit not implemented.");
 }

@@ -50,11 +50,7 @@ class Elements {
   /// potential is calculated. The electrostatic potential within the radius
   /// is not calculated. For more information see the reference paper CHELPG
   /// paper [Journal of Computational Chemistry 11, 361, 1990]
-  const double &getVdWChelpG(std::string name) const {
-    if (_VdWChelpG.count(name) == 0)
-      throw std::invalid_argument("Element not found in VdWChelpG map " + name);
-    return _VdWChelpG.at(name);
-  }
+  const double &getVdWChelpG(std::string name) const;
 
   /// Merz-Singh-Kollman MK method is a similar method for calculating the
   /// electrostatic potential outside of a molecule. Details of the method can
@@ -62,53 +58,51 @@ class Elements {
   /// electrostatic charges for molecules". Journal of computational chemistry
   /// 5 (2), 129, 1984]. The VdWMK method will return the radii used to define
   /// where the electrostatic grid starts.
-  const double &getVdWMK(std::string name) const {
-    if (_VdWMK.count(name) == 0)
-      throw std::invalid_argument("Element not found in VdWMP map " + name);
-    return _VdWMK.at(name);
-  }
+  const double &getVdWMK(std::string name) const;
 
   /// This method is now deprecated but was originally used for determining
   /// the effective nuclear potential of an atom. There are now more
   /// appropriate methods for doing this in the basisset.h and aobasis.h file
   /// in xtp.
-  const double &getNucCrgECP(std::string name) const {
-    throw std::invalid_argument("CrgECP map is deprecated");
-  }
+  const double &getNucCrgECP(std::string name) const;
 
   /// Return the Nuclear charges of each atom. H - 1, He - 2, Na - 3 etc...
   const double &getNucCrg(std::string name) const { return _NucCrg.at(name); }
+
   /// Similar to the Nuclear charges but returns in integer form represents
   /// the id of the atom in the periodic table, the id starts at 1
   const int &getEleNum(std::string name) const { return _EleNum.at(name); }
+
   /// Returns the mass of each atom in a.u.
   const double &getMass(std::string name) const { return _Mass.at(name); }
+
+  /// Returns the atomic polarisability of atom 
+  // All polarizabilities in nm**3
+  // Isotropic polarizability volume is evaluated from the tensor
+  // as (a_xx * a_yy * a_zz )^(1/3) for eigenvalues of the polarizability tensor
+  const double &getPolarizability(std::string name) const;
+
   /// Returns the covalent Radii of the atom 
-  const double getCovRad(std::string name,std::string unit ) const 
-  { 
-    //TODO - This should be replaced with an object, an object that should
-    //       auto recognise the units and return it in a standard type
-    if(!unit.compare("bohr")) return votca::tools::conv::ang2bohr*_CovRad.find(name)->second;
-    if(!unit.compare("nm"))   return votca::tools::conv::ang2nm*_CovRad.find(name)->second;
-    if(!unit.compare("ang"))  return _CovRad.find(name)->second; 
-    
-    throw std::invalid_argument("Must specify appropriate units " + unit + " is not known");
-  }
+  double getCovRad(std::string name,std::string unit ) const;
+
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
-  const std::string &getEleName(int elenum) const {
-    return _EleName.at(elenum);
-  }
+  const std::string &getEleName(int elenum) const;
+
   /// Provided the full element name returns the element symbol
   /// "Hydrogen" = "H", "HELIUM" = "He",...
-  const std::string &getEleShort(std::string elefull) const {
-    return _EleShort.at(elefull);
-  }
+  const std::string &getEleShort(std::string elefull) const; 
+
+  bool isMassAssociatedWithElement(double mass, double tolerance);
+
+	/// Get the shortened element name given a mass similar in size to one of 
+	/// the elements. Provided the mass is within the specified tolerance of 
+	/// the match.  
+	std::string getEleShortClosestInMass(double mass,double tolerance);
+
   /// Provided the element symbol returns the element name
   /// "Pb" = "LEAD", "Na" = "SODIUM", ....
-  const std::string &getEleFull(std::string eleshort) const {
-    return _EleFull.at(eleshort);
-  }
+  const std::string &getEleFull(std::string eleshort) const;
 
  private:
   std::map<std::string, double> _VdWChelpG;
@@ -119,9 +113,16 @@ class Elements {
   std::map<std::string, double> _Mass;
   std::map<std::string, int>    _EleNum;
   std::map<int, std::string>    _EleName;
+  
+  std::map<std::string,double> _ElPolarizability;
 
   std::map<std::string, std::string> _EleShort;
   std::map<std::string, std::string> _EleFull;
+
+  /// Finds the element closest in mass and returns the difference as well as 
+  /// the string of elements short name
+  std::pair<std::string,double> 
+    findShortNameOfElementClosestInMass_(double Mass);
 
   inline void FillMaps() {
 
@@ -135,6 +136,7 @@ class Elements {
     FillEleShort();
     FillEleFull();
     FillMass();
+    FillPolarizability();
   };
 
   inline void FillMass() {
@@ -737,6 +739,18 @@ class Elements {
     _VdWMK["Cl"] = 1.7;
     _VdWMK["Ag"] = 2.0;
   };
+  
+  inline void FillPolarizability(){
+    _ElPolarizability["H"] = 0.496e-3;
+    _ElPolarizability["C"] = 1.334e-3;
+    _ElPolarizability["N"] = 1.073e-3;
+    _ElPolarizability["O"] = 0.837e-3;
+    _ElPolarizability["S"] = 2.926e-3;
+    _ElPolarizability["F"] = 0.440e-3;
+    _ElPolarizability["Si"] = 3.962e-3;   // B3LYP/6-311+g(2d,2p)
+    _ElPolarizability["Zn"] = 5.962e-3;   // B3LYP/6-311+g(2d,2p)
+    _ElPolarizability["Al"] = 5.80e-3;   //[1]P. Fuentealba, “The static dipole polarizability of aluminium atom: discrepancy between theory and experiment,” Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
+    };
 };
 }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@
 #define	_LINSPLINE_H
 
 #include "spline.h"
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/vector_expression.hpp>
+#include <votca/tools/eigen.h>
 #include <iostream>
 
 namespace votca { namespace tools {
 
-namespace ub = boost::numeric::ublas;
+
 
 /**
  * \brief A Linear Spline Class
@@ -47,11 +45,11 @@ public:
 
     // construct an interpolation spline
     // x, y are the the points to construct interpolation, both vectors must be of same size
-    void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
+    void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
 
     // fit spline through noisy data
     // x,y are arrays with noisy data, both vectors must be of same size
-    void Fit(ub::vector<double> &x, ub::vector<double> &y);
+    void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
 
     // Calculate the function value
     double Calculate(const double &x);
@@ -70,8 +68,8 @@ public:
 
 protected:
     // a,b for piecewise splines: ax+b
-    ub::vector<double> a;
-    ub::vector<double> b;
+    Eigen::VectorXd a;
+    Eigen::VectorXd b;
 };
 
 inline double LinSpline::Calculate(const double &r)

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@
 #include <unistd.h>
 
 namespace votca { namespace tools {
-
+    using namespace std;
 // ostream modifier defines the output format, level, indentation
 const int Property::IOindex = std::ios_base::xalloc(); 
    
@@ -160,6 +160,7 @@ bool load_property_from_xml(Property &p, string filename)
           XML_ErrorString(XML_GetErrorCode(parser)));
   }
   fl.close();
+  XML_ParserFree(parser);
   return true;
 }
 

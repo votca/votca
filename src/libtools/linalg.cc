@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,223 +19,142 @@
 #include <iostream>
 #include <sstream>
 namespace votca { namespace tools {
-
-using namespace std;
-namespace ub = boost::numeric::ublas;
-int linalg_invert_svd(const ub::matrix<double> &A, ub::matrix<double> &V,double limitCN){
-    int dimensions=0;
-    
-    if(A.size1()!=A.size2()){
-        throw runtime_error("You cannot invert a non quadratic matrix!. linalg_invert_svd");
-    }
-     if(A.size1()==0){
-        throw runtime_error("Matrix has size 0. linalg_invert_svd");
-    }
-    //make local copy because svd destroys A
-    ub::matrix<double> work=A;
-    ub::matrix<double>VT=ub::zero_matrix<double>(A.size1(),A.size2());
-    ub::vector<double>S=ub::zero_vector<double>(A.size1());
-    
-    bool check=linalg_singular_value_decomposition(work, VT,S );
-    if (check){
-        throw runtime_error("Svd Calculation failed. linalg_invert_svd");
-    }
-    /*
-    cout << "Hallo"<<endl;
-    for(int i=0;i<work.size1();i++){
-        for(int j=0;j<work.size2();j++){
-            cout << "U["<<i<<":"<<j<<"]="<<work(i,j)<<endl;
-    }
-    }
-   */
-   
-
-    //invert S
-    ub::matrix<double>Sinverse=ub::zero_matrix<double>(S.size());
-    for (unsigned i=0;i<S.size();i++){
-        if (S(i)==0){
-            break;
-        }
-        double CN=S(0)/S(i);
-        //cout<< CN<<endl;
-        //cout << limitCN << endl;
-        if(CN>limitCN){
-            break;
-        }
-        else{
-            Sinverse(i,i)=1.0/S(i);
-            dimensions++;
+  
+void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A, const Eigen::VectorXd &b,const Eigen::MatrixXd &constr)
+{
+    // check matrix for zero column
+  
+    bool nonzero_found =false;
+    for(int j=0; j<A.cols(); j++) {
+        nonzero_found = A.col(j).isApproxToConstant(0.0,1e-9);
+        if(nonzero_found) {
+            throw std::runtime_error("constrained_qrsolve_zero_column_in_matrix");
         }
     }
+
+    const int NoVariables = x.size();
+    const int NoConstrains = constr.rows(); //number of constraints is number of rows of constr
     
-    
-    ub::matrix<double> _temp=ub::prod(ub::trans(VT),Sinverse);
-    V=ub::prod(_temp,ub::trans(work));
-    
-    return S.size()-dimensions;
-}
-
-
-
-
-double linalg_loewdin(ub::matrix<double> &J, ub::matrix<double> &S){
-    if (J.size1()!=J.size2() ||S.size1()!=S.size2() || J.size1()!=S.size1() ){
-        cerr << " \n Loewdin transformation only works for quadratic matrices " << endl;
-        return -1;
-    }
-  
-    ub::vector<double> S_eigenvalues;
-    linalg_eigenvalues( S_eigenvalues, S);
-    if ( S_eigenvalues[0] < 0.0 ) {
-        cerr << " \n Negative eigenvalues in Loewdin transformation " << endl;
-        return -1;
-    }
-
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(J.size1(),J.size2() );
-     for ( unsigned _i =0; _i < J.size1() ; _i++){
-
-         _diagS(_i,_i) = 1.0/sqrt(S_eigenvalues[_i]);
-     }
-    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(S));
-    S = ub::prod( S,_temp );
-    
-    _temp = ub::prod(J, S);
-    J = ub::prod( S, _temp);
-    return S_eigenvalues[0];
-    
-}
-
-
-
-int linalg_matrixsqrt(ub::matrix<double> &S){
-    if (S.size1()!=S.size2()) {
-        cerr << " \nMatrix sqrt only works for quadratic matrices " << endl;
-        return -1;
-    }
-  
-    ub::vector<double> S_eigenvalues;
-    linalg_eigenvalues( S_eigenvalues, S);
-    if ( S_eigenvalues[0] < 0.0 ) {
-        cerr << " \n Negative eigenvalues in matrix_sqrt transformation " << endl;
-        return -1;
-    }
-
-    ub::matrix<double> _diagS = ub::zero_matrix<double>(S.size1(),S.size2() );
-     for ( unsigned _i =0; _i < S.size1() ; _i++){
-
-         _diagS(_i,_i) = sqrt(S_eigenvalues[_i]);
-     }
-    ub::matrix<double> _temp = ub::prod( _diagS, ub::trans(S));
-    S = ub::prod( S,_temp );
-    
-  
-    return 1;
-} 
-    
-    double linalg_getMax( const ub::matrix<double>& _matrix, bool absolut ){
-
-   double _maximum = 0.0;
-   if(absolut){
-   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
-       if ( std::abs(_matrix(_i,_j)) > _maximum ) {
-	 _maximum = std::abs(_matrix(_i,_j));
-       }				   
-     }
-   }
-   }
-   else{
-      for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
-       if ( _matrix(_i,_j) > _maximum ) {
-	 _maximum = _matrix(_i,_j);
-       }				   
-     }
-   } 
-   }
-   return _maximum;
-   }
-    
-    
-    ub::matrix<double> linalg_abs( const ub::matrix<double>& _matrix ){
-
-        ub::matrix<double> A=ub::matrix<double>(_matrix.size1(),_matrix.size2());
-
-   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
-         A(_i,_j)=std::abs(_matrix(_i,_j));
-       }				   
-     }
-   
-
-   return A;
-   }
-    
-   double linalg_getRMS(const ub::matrix<double>& _matrix ){
-
-   double _rms = 0.0;
-   int _n = 0;
-
-   for ( unsigned _i = 0; _i < _matrix.size1(); _i++ ){
-     for ( unsigned _j = 0; _j < _matrix.size2(); _j++ ){
-       _rms += _matrix(_i,_j) * _matrix(_i,_j);
-       _n++;
-     }
-   }
-
-   _rms = sqrt(_rms/_n);
-
-   return _rms;
-   }
-   
-   double linalg_traceofProd(const ub::matrix<double>& A,const ub::matrix<double>& B ){
-       double trace=0.0;
-       const ub::vector<double>& Aarray=A.data();
-       const ub::vector<double>& Barray=B.data();
-        if (Aarray.size()!=Barray.size() || A.size1()!=B.size2() || A.size2()!=B.size1()) {
-        cerr << " \ntraceofProd Matrcies have different number of indexes " << endl;
-        return -1;
-       }
-       for (unsigned i=0;i<Aarray.size();i++){
-           trace+=Aarray(i)*Barray(i);
-       }
-       return trace;
-   }
-   
-   
-   ub::vector<double> linalg_abs(const ub::vector<double>& a){
-       ub::vector<double> b=ub::zero_vector<double>(a.size());
-       for (unsigned i=0;i<a.size();i++){
-           b(i)=std::abs(a(i));
-       }
-               
-       return b;
-   }
-   
-    double linalg_getMax( const ub::vector<double>& a, bool absolut ){
-
-   double _maximum = 0.0;
-   if(absolut){
-   for ( unsigned _i = 0; _i < a.size(); _i++ ){
-       if ( std::abs(a(_i)) > _maximum ) {
-	 _maximum = std::abs(a(_i));
-       }				   
-     
-   }
-   }
-   else{
-     for ( unsigned _i = 0; _i < a.size(); _i++ ){
-       if ( a(_i) > _maximum ) {
-	 _maximum = a(_i);
-       }				   
-     
-   }
-   }
-   return _maximum;
-   }
+    Eigen::HouseholderQR<Eigen::MatrixXd> QR(constr.transpose());
+    Eigen::MatrixXd Q=QR.householderQ();
  
+    // Calculate A * Q and store the result in A
+    A = A*Q;
+    // A = [A1 A2], so A2 is just a block of A
+    // [A1 A2] has N rows. A1 has ysize columns 
+    //A2 has 2*ngrid-ysize columns 
+    Eigen::MatrixXd A2 = A.block(0,NoConstrains,A.rows(),NoVariables-NoConstrains);
+    //now perform QR-decomposition of A2 to solve the least-squares problem A2 * z = b
+    //A2 has N rows and (2*ngrid-ysize) columns -> 
+    Eigen::HouseholderQR<Eigen::MatrixXd> QR2(A2);
+    Eigen::VectorXd z=QR2.solve(b);
     
+    // Next two steps assemble vector from y (which is zero-vector) and z
+    Eigen::VectorXd result=Eigen::VectorXd::Zero(NoVariables);
+    for (int i = NoConstrains; i < NoVariables; i++ ) {
+           result[i] = z(i - NoConstrains);
+    }  
+    // To get the final answer this vector should be multiplied by matrix Q
+    x = Q*result;  
+    return;
+}
 
+    bool linalg_eigenvalues(Eigen::MatrixXd&A, Eigen::VectorXd &E, Eigen::MatrixXd&V , int nmax ){
+      #if defined(MKL)
+    double wkopt;
+    double* work;
+    double abstol, vl, vu;
+     
+    MKL_INT lda;
+    MKL_INT info;
+    MKL_INT lwork;
+    MKL_INT il, iu, m, ldz ;
+    
+    int n = A.rows();
+    MKL_INT ifail[n];
+    lda = n;
+    ldz = nmax;
+     
+    // make sure that containers for eigenvalues and eigenvectors are of correct size
+    E.resize(nmax);
+    V.resize(n,nmax);
+    
+    lwork = -1;
+    il = 1;
+    iu = nmax;
+    abstol = 0.0; // use default
+    vl = 0.0;
+    vu = 0.0;
+    // make a pointer to the EIGEN matrix so that LAPACK understands it
+    double * pA = A.data();   
+    double * pV = V.data();
+    double * pE = E.data();
+    
+    // call LAPACK via C interface
+    info = LAPACKE_dsyevx( LAPACK_COL_MAJOR, 'V', 'I', 'U', n, pA , lda, vl, vu, il, iu, abstol, &m, pE, pV, n,  ifail );
+
+   
+#else
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+      V =  es.eigenvectors().block(0,0,A.rows(),nmax);
+      E = es.eigenvalues().segment(0,nmax);
+      int info=es.info();
+#endif
+       if( info != 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+    }
+    
+     
+    bool linalg_eigenvalues(Eigen::MatrixXf&A, Eigen::VectorXf &E, Eigen::MatrixXf&V , int nmax ){
+       #if defined(MKL)
+ 
+    float wkopt;
+    float* work;
+    float abstol, vl, vu;
+    MKL_INT lda;
+    MKL_INT info;
+    MKL_INT lwork;
+    MKL_INT il, iu, m, ldz ;
+    
+    int n = A.rows();
+    MKL_INT ifail[n];
+    lda = n;
+    ldz = nmax;
+    
+    // make sure that containers for eigenvalues and eigenvectors are of correct size
+    E.resize(nmax);
+    V.resize(n,nmax);
+
+    lwork = -1;
+    il = 1;
+    iu = nmax;
+    abstol = 0.0; // use default
+    vl = 0.0;
+    vu = 0.0;
+    // make a pointer to the eigen matrix so that LAPACK understands it
+    float * pA = A.data();   
+    float * pV = V.data();
+    float * pE = E.data();
+    // call LAPACK via C interface
+    info = LAPACKE_ssyevx( LAPACK_COL_MAJOR, 'V', 'I', 'U', n, pA , lda, vl, vu, il, iu, abstol, &m, pE, pV, n,  ifail );
+
+   
+#else
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXf> es(A);
+      V =  es.eigenvectors().block(0,0,A.rows(),nmax);
+      E = es.eigenvalues().segment(0,nmax);
+      int info=es.info();
+#endif
+    
+ if( info != 0 ) {
+        return false;
+    } else {
+        return true;
+    }
+    }
 
 
 }}

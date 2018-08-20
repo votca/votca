@@ -23,11 +23,9 @@
 #include <votca/tools/edge.h>
 #include <votca/tools/edgecontainer.h>
 #include <algorithm>
-#include <boost/lexical_cast.hpp>
 
 using namespace votca::tools;
 using namespace std;
-using namespace boost;
 
 EdgeContainer::EdgeContainer(Edge ed) { addEdge(ed); }
 
@@ -37,9 +35,29 @@ EdgeContainer::EdgeContainer(vector<Edge> eds) {
   }
 }
 
+int EdgeContainer::getMaxDegree(void){
+  int max = 0;
+  for(auto const& it : adj_list_) {
+    if(it.second.size()>static_cast<size_t>(max)) {
+      max = static_cast<int>(it.second.size());
+    }
+  }
+  return max;
+}
+
 int EdgeContainer::getDegree(int vert){
   if(!adj_list_.count(vert)) throw invalid_argument("vertex is not defined");
-  return lexical_cast<int>(adj_list_[vert].size());
+  return static_cast<int>(adj_list_[vert].size());
+}
+
+vector<int> EdgeContainer::getVerticesDegree(int degree){
+  vector<int> verts;
+  for(auto v_list : adj_list_){
+    if(static_cast<int>(v_list.second.size())==degree){
+      verts.push_back(v_list.first);
+    }
+  }
+  return verts;
 }
 
 bool EdgeContainer::edgeExist(Edge ed) {

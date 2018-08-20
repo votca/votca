@@ -56,6 +56,14 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(round_(ele.getCovRad("Cl","ang"),3),1.02);
   BOOST_CHECK_EQUAL(round_(ele.getCovRad("Cl","nm"),3),0.102);
   BOOST_CHECK_THROW(round_(ele.getCovRad("Cl","Blah"),3),invalid_argument);
+  
+  BOOST_CHECK_EQUAL(ele.getPolarizability("F"), 0.440e-3);
+  BOOST_CHECK_THROW(ele.getPolarizability("Pb"), invalid_argument);
+
+	BOOST_CHECK(ele.isMassAssociatedWithElement(12.01,0.01));
+	BOOST_CHECK(!ele.isMassAssociatedWithElement(12.51,0.01));
+	BOOST_CHECK_EQUAL("C",ele.getEleShortClosestInMass(12.01,0.01));
+  
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -1,0 +1,113 @@
+#! /usr/bin/env python
+#
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from __future__ import print_function
+import sys
+import os
+import argparse
+VERSION = '@PROJECT_VERSION@ #TOOLS_GIT_ID#'
+
+PROGTITLE = 'THE VOTCA::TOOLS FILE COMPARISON'
+PROGDESCR = 'COMPARES TWO FILES TO EACH OTHER'
+VOTCAHEADER = '''
+==================================================
+========   VOTCA (http://www.votca.org)   ========
+==================================================
+
+{progtitle}
+
+please submit bugs to bugs@votca.org 
+votca_compare, version {version}
+
+'''.format(version=VERSION, progtitle=PROGTITLE)
+
+def xxquit(what=''):
+    if what != '':
+        print("ERROR: {what}".format(what=what))
+    sys.exit(1)
+
+def RepresentsFloat(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+# =============================================================================
+# PROGRAM OPTIONS
+# =============================================================================
+
+class ToolsHelpFormatter(argparse.HelpFormatter):
+    def _format_usage(self, usage, action, group, prefix):
+        return VOTCAHEADER
+
+progargs = argparse.ArgumentParser(prog='votca_compare',
+                                   formatter_class=lambda prog:
+                                   ToolsHelpFormatter(prog,
+                                                      max_help_position=70),
+                                   description=PROGDESCR)
+
+progargs.add_argument('-f1', '--file1',
+                      dest='file1',
+                      action='store',
+                      required=True,
+                      type=argparse.FileType('r'),
+                      help='File1 to compare.')
+
+progargs.add_argument('-f2', '--file2',
+                      dest='file2',
+                      action='store',
+                      required=True,
+                      type=argparse.FileType('r'),
+                      help='File2 to compare')
+
+progargs.add_argument('--etol',
+                      dest='etol',
+                      action='store',
+                      type=float,
+                      default=1e-5,
+                      help='Tolerance for floats to be regarded equal,default=1e-5')
+
+OPTIONS = progargs.parse_args()
+
+# =============================================================================
+# Compare Execution
+# =============================================================================
+
+print("Comparing {} and {} to a tolerance of {}".format(OPTIONS.file1.name,
+                                                        OPTIONS.file2.name, OPTIONS.etol))
+logs = []
+for i, (line1, line2) in enumerate(zip(OPTIONS.file1, OPTIONS.file2)):
+    if line1.startswith('#') or line2.startswith('#'):
+        continue
+    for j, (entry1, entry2) in enumerate(zip(line1.split(), line2.split())):
+        if RepresentsFloat(entry1) and RepresentsFloat(entry2):
+            if abs(float(entry1) - float(entry2)) > OPTIONS.etol:
+                logs.append([i, j, entry1, entry2])
+        elif entry1 != entry2:
+            logs.append([i, j, entry1, entry2])
+
+if not logs:
+    sys.exit(0)
+else:
+    print("Diff:")
+    for diff in logs:
+        print("row {} col {}:\t{} vs {}".format(diff[0], diff[1], diff[2], diff[3]))
+    sys.exit(1)
+
+
+
+

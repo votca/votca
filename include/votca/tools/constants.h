@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ namespace votca { namespace tools {
     const double kB = 8.617332478E-5; // double eV/K
     const double hbar = 6.5821192815E-16; // double eV*s
     const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
-        
         //length conversions
    //votca xtp-uses for any conversions the following scheme unitA2unitB 
     const double bohr2nm =0.052917721092; // double 0.052917721092

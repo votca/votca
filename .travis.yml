@@ -11,56 +11,58 @@ services:
 
 env:
   matrix:
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=Debug
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=Debug
-    - TESTING=OFF CMAKE_BUILD_TYPE=Debug   WERROR=yes
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release DOCKERHUB=yes
-    - DISTRO=fedora_gmx2016 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=fedora_gmx2016_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=fedora_gmx2018 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=fedora_gmx2018_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=fedora_gmx9999 TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=fedora_gmx9999_d TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - DISTRO=ubuntu TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)" CMAKE_BUILD_TYPE=Release
-    - TESTING=OFF CMAKE_BUILD_TYPE=Release WERROR=yes
-#useless for votca/votca, but for coverage of individual modules
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
-    - TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=None COVERAGE=yes
-    - TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes
-    - TESTING=OFF CMAKE_BUILD_TYPE=Release MINIMAL=yes
+    - ENV=1
+    - ENV=2
+    - ENV=3
+    - ENV=4
+    - ENV=5
+    - ENV=6
+    - ENV=7
+    - ENV=8
+    - ENV=9
+    - ENV=10
+    - ENV=11
+    - ENV=12
+    - ENV=13
+    - ENV=14
+    - ENV=15
+    - ENV=16
+    - ENV=17
+    - ENV=18
+    - ENV=19
+    - ENV=20
 
-matrix:
-  exclude:
-  - compiler: clang #taking too long
-    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)" CMAKE_BUILD_TYPE=None COVERAGE=yes
-  - compiler: clang #taking too long
-    env: TESTING=ON TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re" CMAKE_BUILD_TYPE=None COVERAGE=yes
-  - compiler: clang #no new info when using clang
-    env: TESTING=OFF CMAKE_BUILD_TYPE=Release DOXYGEN=yes 
-
-script:
+before_script:
  - git checkout -b current_commit
  - cd ../../
  - if [[ ${TRAVIS_REPO_SLUG} = */votca ]]; then
+     if [[ ${TRAVIS_BRANCH} = next ]]; then
+       git -C ${TRAVIS_REPO_SLUG} submodule foreach git checkout master;
+       git -C ${TRAVIS_REPO_SLUG} submodule foreach git pull;
+     fi;
      cp -vr ${TRAVIS_REPO_SLUG}/docker ${HOME};
      mv -v ${TRAVIS_REPO_SLUG} $HOME/docker;
    else
-     git clone --recursive --recursive https://github.com/votca/votca.git $HOME/docker/votca;
+     git clone --recursive https://github.com/votca/votca.git $HOME/docker/votca;
      if [[ ${TRAVIS_BRANCH} != master ]]; then
-       git -C ${HOME}/docker/votca checkout ${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
+       git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} origin/${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
      fi;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} fetch ${PWD}/${TRAVIS_REPO_SLUG} current_commit;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} checkout -f FETCH_HEAD;
      cp -vr ${HOME}/docker/votca/docker/* ${HOME}/docker;
      if [[ -d ${TRAVIS_REPO_SLUG}/docker ]]; then cp -vr ${TRAVIS_REPO_SLUG}/docker/* ${HOME}/docker; fi;
    fi
+ - source ${HOME}/docker/set_env.sh
  - cp -r $HOME/.ccache ${HOME}/docker/ccache
  - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
- - travis_retry timeout 540 docker pull $(sed -n '1s/from //p' ${HOME}/docker/Dockerfile)
- - travis_retry docker build  --build-arg TESTOPTS="${TESTOPTS}" --build-arg COVERAGE=${COVERAGE}
-                 --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                 --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
-                 --build-arg TESTING=${TESTING} --build-arg DOXYGEN=${DOXYGEN} --build-arg MINIMAL=${MINIMAL}
+ - if [[ ! ${SKIP} ]]; then 
+     travis_retry timeout 540 docker pull $(sed -n '1s/FROM //p' ${HOME}/docker/Dockerfile);
+   fi
+
+script:
+ - if [[ ! ${SKIP} ]]; then
+     travis_retry docker build "${docker_opts[@]}"
+                 --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
                  --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=${DISTRO:-fedora}
                  --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
                  --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_JOB_ID=${TRAVIS_JOB_ID}
@@ -68,18 +70,19 @@ script:
                  --build-arg TRAVIS_COMMIT=${TRAVIS_COMMIT}
                  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
                  -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} ${HOME}/docker/ &&
-   rm -rf $HOME/.ccache &&
-   CON=$(docker run -d votca/votca:${TRAVIS_BRANCH} /bin/bash) &&
-   docker cp ${CON}:/home/votca/.ccache ${HOME}/
+     rm -rf $HOME/.ccache &&
+     CON=$(docker run -d votca/votca:${TRAVIS_BRANCH} /bin/bash) &&
+     docker cp ${CON}:/home/votca/.ccache ${HOME}/;
+   fi
 
 after_success:
-  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${CC} = *gcc* && ${DOCKERHUB} = yes ]] && DEPLOY=yes
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${CC} = *gcc* && ${DOCKERHUB} = yes && ! ${SKIP} ]] && DEPLOY=yes
   - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "${TRAVIS_REPO_SLUG}:${DOCKER_TAG}";
     fi
-  - if [[ ${DOXYGEN} = yes ]]; then
+  - if [[ ${DOXYGEN} = yes && ! ${SKIP} ]]; then
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       rm -f *;
@@ -87,6 +90,7 @@ after_success:
       docker cp ${CON}:/home/votca/votca/build/share/doc/html . ;
       mv html/* .; rmdir html;
       docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
+      docker cp ${CON}:/home/votca/votca/build/ctp/manual/ctp-manual.pdf . ;
       docker cp ${CON}:/home/votca/votca/build/xtp/manual/xtp-manual.pdf . ;
       git add --all .;
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_7abbb71c3ba6_key} && ${encrypted_7abbb71c3ba6_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then

@@ -19,10 +19,11 @@
 
 #define BOOST_TEST_MODULE graphnode_test
 #include <boost/test/unit_test.hpp>
-#include <exception>
 #include <cmath>
-#include <votca/tools/graphnode.h>
+#include <exception>
 #include <iostream>
+#include <iostream>
+#include <votca/tools/graphnode.h>
 using namespace std;
 using namespace votca::tools;
 
@@ -79,6 +80,35 @@ BOOST_AUTO_TEST_CASE(setters_test) {
   gn2.setStr(str_vals2);
   str = "First1Second2Height159.32Weight101.43AddressKoogler StNameGeorge";
   BOOST_CHECK_EQUAL(gn2.getStringId(), str);
+}
+
+BOOST_AUTO_TEST_CASE(comparisontest) {
+  unordered_map<string, int> int_vals1 = {{"a", 134}};
+  unordered_map<string, int> int_vals2 = {{"b", 134}};
+
+  unordered_map<string, double> double_vals;
+  unordered_map<string, string> str_vals;
+
+  GraphNode gn1(int_vals1, double_vals, str_vals);
+  GraphNode gn2(int_vals2, double_vals, str_vals);
+
+  BOOST_CHECK_EQUAL(cmpNode(gn1, gn2), true);
+  BOOST_CHECK_EQUAL(cmpNode(gn2, gn1), false);
+
+  vector<GraphNode> vec_gn = {gn1, gn2};
+  sort(vec_gn.begin(), vec_gn.end(), cmpNode);
+
+  string str1{"a134"};
+  string str2{"b134"};
+
+  BOOST_CHECK_EQUAL(vec_gn.at(0).getStringId(), str1);
+  BOOST_CHECK_EQUAL(vec_gn.at(1).getStringId(), str2);
+
+  vector<GraphNode> vec_gn2 = {gn2, gn1};
+  sort(vec_gn2.begin(), vec_gn2.end(), cmpNode);
+
+  BOOST_CHECK_EQUAL(vec_gn2.at(0).getStringId(), str1);
+  BOOST_CHECK_EQUAL(vec_gn2.at(1).getStringId(), str2);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

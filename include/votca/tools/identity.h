@@ -29,22 +29,24 @@ namespace tools {
     an object it primariy meant to be used in child classes and provides a more
     safety than other imlementations.
 */
+template<typename T>
 class Identity {
  private:
-  long int id_;
+  T id_;
   bool id_set_;
 
  public:
   /// Constructor
   Identity() : id_set_(false) {}
   /// Constructor that takes initial id
-  Identity(long int id) : id_(id), id_set_(true) {};
+  Identity(const T &id) : id_(id), id_set_(true) {};
   /// Gets the id returns error of the id has not been set
-  long int getId() {
-    return (id_set_ ? id_ : throw std::runtime_error("ID not set"));
+  const T &getId() const {
+    if(!id_set_) throw std::runtime_error("ID not set");
+    return id_;
   }
   /// Set the id
-  void setId(long int id) { id_ = id; }
+  void setId(const T & id) { id_set_ = true; id_ = id; }
 };
 }
 }

@@ -162,4 +162,20 @@ BOOST_AUTO_TEST_CASE(getneighedges) {
   BOOST_CHECK(edge2_found);
 }
 
+BOOST_AUTO_TEST_CASE(getmaxdegree) {
+  Edge ed(1,2);
+  Edge ed1(2,3);
+  Edge ed2(2,4);
+  Edge ed3(3,5);
+  
+  EdgeContainer edCo;
+  edCo.addEdge(ed);
+  edCo.addEdge(ed1);
+  edCo.addEdge(ed2);
+  edCo.addEdge(ed3);
+  
+  int maxD = edCo.getMaxDegree();
+  BOOST_CHECK_EQUAL(maxD,3);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

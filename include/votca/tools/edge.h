@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <utility>
+#include <limits>
 
 #ifndef _VOTCA_TOOLS_EDGE_H
 #define _VOTCA_TOOLS_EDGE_H
@@ -75,6 +76,10 @@ class Edge {
   /// Print the contents of the edge
   friend std::ostream& operator<<(std::ostream& os, const Edge ed);
 };
+
+// Value used as a dummy object
+const Edge DUMMY_EDGE(std::numeric_limits<int>::max(),
+                      std::numeric_limits<int>::max());
 }
 }
 

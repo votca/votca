@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
  */
 
 #include <votca/tools/linspline.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
 #include <votca/tools/linalg.h>
 #include <iostream>
 
@@ -26,7 +23,7 @@ namespace votca { namespace tools {
 
 using namespace std;
 
-void LinSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
+void LinSpline::Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y)
 {
     if(x.size() != y.size())
         throw std::invalid_argument("error in LinSpline::Interpolate : sizes of vectors x and y do not match");
@@ -46,8 +43,8 @@ void LinSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
     // where i=number of interval
 
     // initialize vectors a,b
-    a = ub::zero_vector<double>(N);
-    b = ub::zero_vector<double>(N);
+    a = Eigen::VectorXd::Zero(N);
+    b = Eigen::VectorXd::Zero(N);
 
     // boundary conditions not applicable
     
@@ -60,7 +57,7 @@ void LinSpline::Interpolate(ub::vector<double> &x, ub::vector<double> &y)
     }
 }
 
-void LinSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
+void LinSpline::Fit(Eigen::VectorXd &x, Eigen::VectorXd &y)
 {
     if(x.size() != y.size())
         throw std::invalid_argument("error in LinSpline::Fit : sizes of vectors x and y do not match");
@@ -76,8 +73,7 @@ void LinSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     // the condition y=s_i(x) is to be satisfied at all input points:
     // therefore b=y and u=vector of all unknown y(i)
     
-    ub::matrix<double> A(N, ngrid);
-    A = ub::zero_matrix<double>(N, ngrid);
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(N, ngrid);
     int interval;
 
     // construct matrix A
@@ -88,14 +84,14 @@ void LinSpline::Fit(ub::vector<double> &x, ub::vector<double> &y)
     }
 
     // now do a qr solve
-    ub::vector<double> sol(ngrid);
-    votca::tools::linalg_qrsolve(sol, A, y);
+    Eigen::HouseholderQR<Eigen::MatrixXd> QR(A);
+    Eigen::VectorXd sol=QR.solve(y);
 
     // vector "sol" contains all y-values of fitted linear splines at each
     // interval border
     // get a(i) and b(i) for piecewise splines out of solution vector "sol"
-    a = ub::zero_vector<double>(ngrid-1);
-    b = ub::zero_vector<double>(ngrid-1);
+    a = Eigen::VectorXd::Zero(ngrid-1);
+    b = Eigen::VectorXd::Zero(ngrid-1);
     for (int i=0; i<ngrid-1; i++) {
         a(i) = (sol(i+1)-sol(i))/(_r(i+1)-_r(i));
         b(i) = -a(i)*_r(i) + sol(i);

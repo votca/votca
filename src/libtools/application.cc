@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace tools {
-
+    using namespace std;
 Application::Application()
     : _op_desc("Allowed options"), _continue_execution(true)
 {
@@ -196,7 +196,7 @@ void Application::ParseCommandLine(int argc, char **argv)
         po::store(po::parse_command_line(argc, argv, _op_desc), _op_vm);
         po::notify(_op_vm);
     }
-    catch(boost::program_options::error err) {
+    catch(boost::program_options::error& err) {
         throw runtime_error(string("error parsing command line: ") + err.what());
     }
 }

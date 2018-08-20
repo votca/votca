@@ -77,38 +77,17 @@ add_custom_target(manpages ALL)
 # Checks what linear algebra packages are installed                    #
 ########################################################################
 
-find_package(GSL)
 find_package(MKL)
-
 if (MKL_FOUND)
-  message("-- MKL found, overloading uBLAS prod()")
-  set(MKL TRUE) #used in votca_config.h
-elseif(GSL_FOUND)
-  message("-- GSL found, overloading uBLAS prod()")
-  include_directories(${GSL_INCLUDE_DIRS})
-  set(GSL_PKG "gsl")
-  set(GSL TRUE) #used in votca_config.h
+  include_directories(${MKL_INCLUDE_DIRS})
+  set (MKL TRUE )
+else()
+  set(MKL_LIBRARIES)
 endif()
 
-if(MKL_FOUND)
-  set(MKL_URL "http://software.intel.com/sites/default/files/managed/76/8c/intel-mkl-and-boost-example.zip")
-  set(MKL_MD5 b957ee63a2167ad21b650b47726cd55c )
-  set(MKL_FILE "intel-mkl-and-boost-example.zip")
-
-  include(ExternalProject)
-  ExternalProject_add(intel
-          PREFIX intel
-          URL "${MKL_URL}" URL_MD5 "${MKL_MD5}"
-          CONFIGURE_COMMAND ""
-          BUILD_COMMAND ""
-          INSTALL_COMMAND ""
-          )
-  set(MKL_BOOST_INCLUDE_DIR "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel/MKL_and_boost_example/headers")
-  set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "${CMAKE_CURRENT_BINARY_DIR}/intel/src/intel")
-  include_directories(${MKL_BOOST_INCLUDE_DIR})
-  set(MKL_HEADERS "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_matrix_prod.hpp" "${MKL_BOOST_INCLUDE_DIR}/mkl_boost_ublas_gemm.hpp"  )
-  install(FILES ${MKL_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/votca/tools)
-endif(MKL_FOUND)
+find_package(EIGEN3 3.3.0 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
+set(EIGEN3_PKG eigen3)
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
 if (WITH_FFTW)
@@ -165,7 +144,7 @@ add_subdirectory(share/doc)
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   include(FeatureSummary)
   feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
-endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

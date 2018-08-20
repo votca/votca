@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,144 +15,163 @@
  *
  */
 
-#ifndef _TABLE_H
-#define	_TABLE_H
+#ifndef _VOTCA_TOOLS_TABLE_H
+#define _VOTCA_TOOLS_TABLE_H
 
 #include <iostream>
-#include <boost/numeric/ublas/vector.hpp>
+#include <votca/tools/eigen.h>
+#include <vector>
 #include <string>
 
-namespace votca { namespace tools {
-
-using namespace std;
-namespace ub = boost::numeric::ublas;
-
+namespace votca {
+namespace tools {
 
 // the entry is invalid, e.g. could not be calculated (ln(0), ...)
-#define TBL_INVALID    1
+#define TBL_INVALID 1
 
 /**
     \brief class to store tables like rdfs, tabulated potentials, etc
- 
+
     \think about weather to make this a template, can be used in histogram
-    as well, of for counting with integeers...
- 
+    as well, of for counting with integers...
+
  */
-class Table
-{
-public:       
-    Table() ;
-    Table(Table &tbl);
-        
-    ~Table() {};
-    
-    void clear(void);
-    
-    void GenerateGridSpacing(double min, double max, double spacing);
-//    void resize(int N, bool preserve=true) { _x.resize(N, preserve); _y.resize(N, preserve); _flags.resize(N, preserve); }
-    void resize(int N, bool preserve=true);
-    unsigned int size() const {return _x.size(); }
+class Table {
+ public:
+  Table();
+  Table(Table &tbl);
 
-    double &x(int i) { return _x[i]; }
-    double &y(int i) { return _y[i]; }
-    char &flags(int i) { return _flags[i]; }
-    double &yerr(int i) { return _yerr[i]; }
+  ~Table() {};
 
-    void set(const int &i, const double &x, const double &y) { _x[i] = x; _y[i]=y; }
-    void set(const int &i, const double &x, const double &y, const char &flags) { _x[i] = x; _y[i]=y; _flags[i] = flags; }
-    void set(const int &i, const double &x, const double &y, const char &flags, const double &yerr) { _x[i] = x;
-                                                                                            _y[i]=y; _flags[i] = flags; _yerr[i] = yerr; }
+  void clear();
 
-    void set_comment(const string comment) {_has_comment=true; _comment_line = comment;}
+  void GenerateGridSpacing(double min, double max, double spacing);
+  void resize(int N);
+   int size() const { return _x.size(); }
 
-    void Load(string filename);
-    void Save(string filename) const;       
-    
-    void Smooth(int Nsmooth);
+  double &x(int i) { return _x[i]; }
+  double &y(int i) { return _y[i]; }
+  char &flags(int i) { return _flags[i]; }
+  double &yerr(int i) { return _yerr[i]; }
 
-    bool GetHasYErr() { return _has_yerr; }
-    void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }
-    
-    ub::vector<double> &x() { return _x; }
-    ub::vector<double> &y() { return _y; }
-    ub::vector<char> &flags() { return _flags; }
-    ub::vector<double> &yerr() { return _yerr; }
-    
-    void push_back(double x, double y, char flags);
+  void set(const int &i, const double &x, const double &y) {
+    _x[i] = x;
+    _y[i] = y;
+  }
+  void set(const int &i, const double &x, const double &y, const char &flags) {
+    _x[i] = x;
+    _y[i] = y;
+    _flags[i] = flags;
+  }
+  void set(const int &i, const double &x, const double &y, const char &flags,
+           const double &yerr) {
+    _x[i] = x;
+    _y[i] = y;
+    _flags[i] = flags;
+    _yerr[i] = yerr;
+  }
 
-    const string &getErrorDetails() {
-        return _error_details;
-    }
+  void set_comment(const std::string comment) {
+    _has_comment = true;
+    _comment_line = comment;
+  }
 
-    void setErrorDetails(string str) {
-        _error_details = str;
-    }
+  void Load(std::string filename);
+  void Save(std::string filename) const;
 
-private:
-    ub::vector<double> _x;
-    ub::vector<double> _y;       
-    ub::vector<char>   _flags;
-    ub::vector<double> _yerr;
-    string _error_details;
+  void Smooth(int Nsmooth);
 
-    bool _has_yerr;
-    bool _has_comment;
+  bool GetHasYErr() { return _has_yerr; }
+  void SetHasYErr(bool has_yerr) { _has_yerr = has_yerr; }
 
-    friend ostream &operator<<(ostream &out, const Table& v);
-    friend istream &operator>>(istream &out, Table& v);
+  /**
+   * \brief Gets the maximum value in the y column
+   * \return - max value
+   */
+  double getMaxY() const;
+  /**
+   * \brief Gets the minimum value in the y column
+   * \return - min value
+   */
+  double getMinY() const;
+  /**
+   * \brief Gets the maximum value in the x column
+   * \return - max value
+   */
+  double getMaxX() const;
+  /**
+   * \brief Gets the minimum value in the x column
+   * \return - min value
+   */
+  double getMinX() const;
 
-    string _comment_line;
+  Eigen::VectorXd &x() { return _x; }
+  Eigen::VectorXd &y() { return _y; }
+  std::vector<char> &flags() { return _flags; }
+  Eigen::VectorXd &yerr() { return _yerr; }
 
+  void push_back(double x, double y, char flags = ' ');
+
+  const std::string &getErrorDetails() { return _error_details; }
+
+  void setErrorDetails(std::string str) { _error_details = str; }
+
+ private:
+  Eigen::VectorXd _x;
+  Eigen::VectorXd _y;
+  std::vector<char> _flags;
+  Eigen::VectorXd _yerr;
+  std::string _error_details;
+
+  bool _has_yerr;
+  bool _has_comment;
+
+  friend std::ostream &operator<<(std::ostream &out, const Table &v);
+  friend std::istream &operator>>(std::istream &in , Table &t);
+
+  std::string _comment_line;
 };
 
-inline Table::Table()
-{
-    _has_yerr = false;
-    _error_details = "";
+inline Table::Table() {
+  _has_yerr = false;
+  _has_comment = false;
+  _error_details = "";
 }
 
-inline Table::Table(Table &tbl)
-{
-    resize(tbl.size());
-    _x = tbl._x;
-    _y = tbl._y;
-    _flags = tbl._flags;
-    _has_yerr = tbl._has_yerr;
-    if (_has_yerr) _yerr = tbl._yerr;
-    _has_comment = false;
-    _error_details = "";
+inline Table::Table(Table &tbl) {
+  resize(tbl.size());
+  _x = tbl._x;
+  _y = tbl._y;
+  _flags = tbl._flags;
+  _has_yerr = tbl._has_yerr;
+  if (_has_yerr) _yerr = tbl._yerr;
+  _has_comment = false;
+  _error_details = "";
 }
 
-inline ostream &operator<<(ostream &out, const Table& t)
-{
-    //TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
-    out.precision(10);
-    if ( t._has_yerr ) {
-        for(size_t i=0; i<t._x.size(); ++i) {
-            out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " " << t._flags[i] << endl;
-        }
+inline std::ostream &operator<<(std::ostream &out, const Table &t) {
+  // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
+  out.precision(10);
+  if (t._has_yerr) {
+    for (int i = 0; i < t._x.size(); ++i) {
+      out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " "
+          << t._flags[i] << std::endl;
     }
-    else {
-        //out << t.size() << endl;
-        for(size_t i=0; i<t._x.size(); ++i) {
-            out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << endl;
-        }
+  } else {
+    for (int i = 0; i < t._x.size(); ++i) {
+      out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << std::endl;
     }
-    return out;
+  }
+  return out;
 }
 // TODO: modify this function to be able to treat _has_yerr == true
-inline void Table::push_back(double x, double y, char flags)
-{
-    size_t n=size();
-    resize(n+1);
-    _x[n] = x;
-    _y[n] = y;
-    _flags[n] = flags;
+inline void Table::push_back(double x, double y, char flags) {
+  int n = size();
+  resize(n + 1);
+  _x[n] = x;
+  _y[n] = y;
+  _flags[n] = flags;
 }
-
-istream &operator>>(istream &in, Table& t);
-
-}}
-
-#endif	/* _TABLE_H */
-
+}
+}
+#endif  // _VOTCA_TOOLS_TABLE_H
