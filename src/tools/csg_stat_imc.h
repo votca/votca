@@ -66,11 +66,6 @@ protected:
         Property *_p;
         HistogramNew _average;
         HistogramNew _average_force;
-        /*HistogramNew _average_force_perp;
-        HistogramNew _average_force_perp_dot;        
-        HistogramNew _average_force_perp_x;
-        HistogramNew _average_force_perp_y;
-        HistogramNew _average_force_perp_z;*/
         double _min, _max, _step;
         double _norm;
         double _cut;
