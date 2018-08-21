@@ -186,11 +186,6 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     i->_average.Initialize(i->_min, i->_max, n);
     if (i->_force){
         i->_average_force.Initialize(i->_min, i->_max, n);
-        /*i->_average_force_perp.Initialize(i->_min, i->_max, n);
-        i->_average_force_perp_dot.Initialize(i->_min, i->_max, n);        
-        i->_average_force_perp_x.Initialize(i->_min, i->_max, n);
-        i->_average_force_perp_y.Initialize(i->_min, i->_max, n);
-        i->_average_force_perp_z.Initialize(i->_min, i->_max, n);*/
     }
     
     return i;
