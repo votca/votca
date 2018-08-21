@@ -406,7 +406,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
         }
     } else {
-        cerr << "\nERROR in csg_fmatch::EvalConfiguration - No forces in figuration!\n" << endl;
+        cerr << "\nERROR in csg_fmatch::EvalConfiguration - No forces in configuration!\n" << endl;
         exit(-1);
     }
     // update the frame counter
