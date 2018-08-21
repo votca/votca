@@ -155,13 +155,11 @@ namespace votca {
             }
 
             // access to DFT molecular orbital energy of a specific level (in eV)
-
             double getEnergy(int level) const{
                 return ( hasMOEnergies()) ? votca::tools::conv::hrt2ev * _mo_energies[level] : 0;
             }
 
             // access to DFT molecular orbital coefficients, new, tested
-
             bool hasMOCoefficients() const{
                 return ( _mo_coefficients.cols() > 0) ? true : false;
             }
@@ -191,7 +189,6 @@ namespace votca {
             }
 
             // access to classical self-energy in MM environment, new, tested
-
             bool hasSelfEnergy() const{
                 return ( _self_energy != 0.0) ? true : false;
             }
@@ -205,7 +202,6 @@ namespace votca {
             }
 
             // access to QM total energy, new, tested
-
             bool hasQMEnergy() const{
                 return ( _qm_energy != 0.0) ? true : false;
             }
@@ -498,11 +494,10 @@ namespace votca {
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
             Eigen::MatrixXd CalculateQParticleAORepresentation()const;
 
-            double getTotalExcitedStateEnergy (const std::string& spintype, int opt_state)const;
+            double getTotalExcitedStateEnergy (const std::string& exstate_type, int opt_state)const;//zero indexed
 
 
             // access to fragment charges of singlet excitations
-
             bool hasFragmentChargesSingEXC() const{
                 return (_DqS_frag.size() > 0) ? true : false;
             }
@@ -518,7 +513,6 @@ namespace votca {
 
 
             // access to fragment charges of triplet excitations
-
             bool hasFragmentChargesTripEXC() const{
                 return (_DqT_frag.size() > 0) ? true : false;
             }
@@ -576,14 +570,6 @@ namespace votca {
 
             // returns indeces of a re-sorted vector of energies from lowest to highest
             std::vector<int> SortEnergies();
-
-            /** Adds a QM atom to the atom list */
-            QMAtom* AddAtom(int AtomID,std::string type,double x, double y, double z,
-                    double charge = 0) {
-                QMAtom* pAtom = new QMAtom(AtomID,type, x, y, z);
-                _atoms.push_back(pAtom);
-                return pAtom;
-            }
 
             QMAtom* AddAtom(int AtomID,std::string type, tools::vec pos) {
                 QMAtom* pAtom = new QMAtom(AtomID,type, pos);

@@ -182,7 +182,7 @@ namespace votca {
             string _logger_file = "gwbse_iteration_" + (boost::format("%1%") % _iteration).str() + ".log";
             _gwbse_engine.setLoggerFile(_logger_file);
             _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
-            double _energy = _orbitals.getTotalExcitedStateEnergy(_spintype, _opt_state); // in Hartree
+            double _energy = _orbitals.getTotalExcitedStateEnergy(_spintype, _opt_state-1); // in Hartree
             _gwbse_engine.setRedirectLogger(false);
             return _energy;
 

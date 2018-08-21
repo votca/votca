@@ -54,7 +54,7 @@ private:
     bool RunDFT(string& runFolder, std::vector<std::shared_ptr<ctp::PolarSeg> >& MultipolesBackground);
     void RunGWBSE(string& runFolder);
     void RunGDMA(QMMIter* thisIter, string& runFolder);
-    void Density2Charges( std::vector<int> state_index ={});
+    void Density2Charges( int excitedstate_index=-1);
     
     QMMIter *CreateNewIter();
     bool hasConverged();
@@ -70,7 +70,6 @@ private:
 
     Property _gdma_options;
     bool _do_gdma;
-
 
     Property _gwbse_options;
     int      _state;

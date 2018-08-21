@@ -1292,6 +1292,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -2191,6 +2196,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sqlapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/statefilter.h"
             ex="false"
             tool="3"
             flavor2="0">

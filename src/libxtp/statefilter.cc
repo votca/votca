@@ -22,7 +22,13 @@
 namespace votca {
     namespace xtp {
       
-   
+   void Statefilter::Initialize(tools::Property& options){
+     
+     
+     
+     
+     
+   }
 
     }
 }

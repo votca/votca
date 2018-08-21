@@ -112,7 +112,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state);
+                double energy_displaced = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state-1);
 
                 // calculate force and put into matrix
                 force(i_cart) = (energy - energy_displaced) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
@@ -146,7 +146,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced_plus = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state);
+                double energy_displaced_plus = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state-1);
 
                 // get displacement vector in negative direction
 
@@ -157,7 +157,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage,_orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced_minus = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state);
+                double energy_displaced_minus = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state-1);
                 // calculate force and put into matrix
                 force(i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
                 atom->setPos(current_pos); // restore original coordinate into segment

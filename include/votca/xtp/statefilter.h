@@ -21,22 +21,33 @@
 #define _VOTCA_XTP_STATEFILTER_H
 
 #include <votca/xtp/orbitals.h>
-
+#include <votca/ctp/logger.h>
 
 
 namespace votca {
 namespace xtp {
-
-
-
+/**
+ *  \brief  Filters from a spectrum of states the state, which fullfills certain criteria
+ *
+ *
+ */
 
 class Statefilter {
 
 public:
+    void Initialize(tools::Property& options);
     
- private:
+    void setType(const std::string& type){_type=type;}
+    
+    void Filter(const Orbitals& orbital);
+    
+    int getStateIndex(){return _state_index;}// zero indexed;
+    
+private:
  
-      
+std::string type;
+int _initial_state_index;
+int _state_index;    
 ctp::Logger *_log;
  
 

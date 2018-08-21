@@ -489,7 +489,7 @@ namespace votca {
         }
 
         if (!_static_qmmm) {
-          Density2Charges(state_index);
+          Density2Charges(_state);
         }
 
       } //_do_gwbse
@@ -572,21 +572,20 @@ namespace votca {
     }
 
 
-    void QMMachine::Density2Charges(std::vector<int> state_index) {
+    void QMMachine::Density2Charges(int excitedstate_index) {
 
       Eigen::MatrixXd DMATGS = orb_iter_input.DensityMatrixGroundState();
 
       Eigen::MatrixXd DMAT_tot = DMATGS; // Ground state + hole_contribution + electron contribution
 
-      if (_state > 0) {
+      if (excitedstate_index > 0) {
         if (_type == "singlet" && _type == "triplet") {
-          std::vector<Eigen::MatrixXd > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, state_index[_state - 1]);
+          std::vector<Eigen::MatrixXd > DMAT = orb_iter_input.DensityMatrixExcitedState(_type, excitedstate_index);
           DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
         } else if (_type == "quasiparticle") {
 
-          Eigen::MatrixXd DMATQP = orb_iter_input.DensityMatrixQuasiParticle(state_index[_state - 1 - orb_iter_input.getGWAmin()]);
-
-          if (_state > orb_iter_input.getNumberOfElectrons()) {
+          Eigen::MatrixXd DMATQP = orb_iter_input.DensityMatrixQuasiParticle(excitedstate_index);
+          if (excitedstate_index > orb_iter_input.getHomo()) {
             DMAT_tot = DMAT_tot + DMATQP;
           } else {
             DMAT_tot = DMAT_tot - DMATQP;
