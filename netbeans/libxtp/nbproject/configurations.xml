@@ -121,6 +121,7 @@
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpair.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmstate.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
@@ -128,6 +129,7 @@
       <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
+      <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
@@ -240,6 +242,8 @@
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
+      <itemPath>../../src/libxtp/qmstate.cc</itemPath>
+      <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
@@ -267,12 +271,14 @@
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
+      <itemPath>../../src/tests/test_qmstate.cc</itemPath>
       <itemPath>../../src/tests/test_radial_euler_maclaurin_rule.cc</itemPath>
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
       <itemPath>../../src/tests/test_sigma.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
+      <itemPath>../../src/tests/test_statefilter.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -1294,6 +1300,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -1800,6 +1811,8 @@
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
             tool="1"
@@ -1910,6 +1923,8 @@
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
             ex="false"
             tool="1"
@@ -1927,6 +1942,11 @@
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_statefilter.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -2195,6 +2215,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sqlapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/statefilter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2705,6 +2730,8 @@
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
             tool="1"
@@ -2815,6 +2842,8 @@
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
             ex="false"
             tool="1"
@@ -2832,6 +2861,11 @@
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_statefilter.cc"
             ex="false"
             tool="1"
             flavor2="0">

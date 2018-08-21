@@ -570,7 +570,7 @@ namespace votca {
                         nfields = row.size();
                         QMAtom* pAtom;
                         if (!orbitals.hasQMAtoms()) {
-                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type, tools::vec(0.0);
+                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type, tools::vec(0.0));
                         } else {
                             pAtom = orbitals.QMAtoms().at(atom_id - 1);
                         }

@@ -1,0 +1,78 @@
+/*
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+#define BOOST_TEST_MAIN
+
+#define BOOST_TEST_MODULE qmstate_test
+#include <boost/test/unit_test.hpp>
+#include <votca/xtp/qmstate.h>
+
+#include <fstream>
+
+using namespace votca::xtp;
+
+BOOST_AUTO_TEST_SUITE(qmstate_test)
+
+BOOST_AUTO_TEST_CASE(QMStatetype_test) {
+QMStateType type;
+type.FromString("S");
+    
+BOOST_CHECK_EQUAL(type.Type()==QMStateType::Singlet,true);
+BOOST_CHECK_EQUAL(type.ToString(), "S");
+BOOST_CHECK_EQUAL(type.ToLongString(), "singlet");
+
+QMStateType type2;
+type2.FromString("Singlet");
+BOOST_CHECK_EQUAL(type2.Type()==QMStateType::Singlet,true);
+
+BOOST_CHECK_EQUAL(type==type2, true);
+
+QMStateType type3;
+type3.FromString("N");
+BOOST_CHECK_EQUAL(type3==type2,false);
+BOOST_CHECK_EQUAL(type3==QMStateType::Gstate,true);
+}
+
+
+BOOST_AUTO_TEST_CASE(QMState_test) {
+    QMState state;
+    state.FromString("S1");
+    BOOST_CHECK_EQUAL(state.Type()==QMStateType::Singlet,true);
+    BOOST_CHECK_EQUAL(state.Index(),0);
+    
+    QMState state2;
+    state.FromString("N");
+    BOOST_CHECK_EQUAL(state.Index(),-1);
+    
+    QMState state3;
+    state3.FromString("n2s12");
+    BOOST_CHECK_EQUAL(state3.isTransition(),true);
+    
+    BOOST_CHECK_EQUAL(state3.Type()==QMStateType::Singlet,true);
+    BOOST_CHECK_EQUAL(state3.Index(),11);
+    
+    QMState state4;
+    state4.FromString("n2s16");
+    QMState state5;
+    state5.FromString("groundstate to singlet 16");
+    
+    
+    BOOST_CHECK_EQUAL(state4==state5,true);
+    std::string result=state4.ToLongString();
+    BOOST_CHECK_EQUAL(result,"Groundstate to singlet 16");
+   
+}
+
+BOOST_AUTO_TEST_SUITE_END()

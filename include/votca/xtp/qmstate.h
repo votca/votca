@@ -22,7 +22,6 @@
 
 #include<string>
 
-
 namespace votca {
 namespace xtp {
     
@@ -43,8 +42,16 @@ namespace xtp {
             return _type==rhs.Type();
         }
         
-        bool operator==(const QMStateType::statetype& rhs){
+        bool operator !=(const QMStateType& rhs) const{
+            return _type!=rhs.Type();
+        }
+        
+        bool operator==(const QMStateType::statetype& rhs)const{
             return _type==rhs;
+        }
+        
+         bool operator!=(const QMStateType::statetype& rhs)const{
+            return _type!=rhs;
         }
     
     private:
@@ -75,8 +82,14 @@ public:
         return (_type==rhs.Type() && _index==rhs.Index());
         }
     
+    bool operator !=(const QMState& rhs) const{
+    return (_type!=rhs.Type() || _index!=rhs.Index());
+    }
+    
 private:
  
+    int DetermineIndex(const std::string& statestring);
+    QMStateType DetermineType(const std::string& statestring);
     QMStateType _type;
     
     int _index;

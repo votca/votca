@@ -25,13 +25,9 @@
  * Clears all engine template ('type') containers.
  */
 Md2QmEngine::~Md2QmEngine() {
-
-    vector < CTP::Molecule* > :: iterator molecule;
-
     // Clean up list of molecule types
-    for (molecule = _molecule_types.begin();
-         molecule < _molecule_types.end(); ++molecule){
-         delete *molecule;
+    for (CTP::Molecule* mol:_molecule_types){
+         delete mol;
     }
     _molecule_types.clear();
 
@@ -63,30 +59,26 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
     int molecule_id = 1;
     int qmunit_id  = 1; // Counts segment types
 
-    for ( it_molecule = molecules.begin();
-          it_molecule != molecules.end();
-          ++it_molecule ) {
+    for ( TOOLS::Property* mol:molecules) {
 
-       CTP::Molecule *molecule = AddMoleculeType(molecule_id++, *it_molecule);
-       string molMdName = (*it_molecule)->get("mdname").as<string>();
+       CTP::Molecule *molecule = AddMoleculeType(molecule_id++, mol);
+       string molMdName = mol->get("mdname").as<string>();
 
        // +++++++++++++ //
        // Load segments //
        // +++++++++++++ //
 
        key = "segments.segment";
-       list<Property *> segments = (*it_molecule)->Select(key);
-       list<Property *>::iterator it_segment;
+       list<Property *> segments = mol->Select(key);
+
        int segment_id = 1;       
        int md_atom_id = 1; // <- atom id count with respect to molecule
 
-       for ( it_segment = segments.begin();
-             it_segment != segments.end();
-             ++it_segment ) {
+       for ( TOOLS::Property* segprop:segments) {
 
          // Create new segment + associated type (QM Unit)
-         CTP::Segment *segment = AddSegmentType(segment_id++, *it_segment );
-         CTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, *it_segment );
+         CTP::Segment *segment = AddSegmentType(segment_id++, segprop );
+         CTP::SegmentType *qmUnit = AddQMUnit(qmunit_id, segprop );
          ++qmunit_id;
 
          segment->setType(qmUnit);
@@ -95,8 +87,8 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          // Load internal (i.e. QM-) coord.s and MOO-related properties
          string qmcoordsFile = "";
          map<int, pair<string, vec> > intCoords;
-         if ( (*it_segment)->exists("qmcoords") ) {
-            qmcoordsFile = (*it_segment)->get("qmcoords").as<string>();            
+         if (segprop->exists("qmcoords") ) {
+            qmcoordsFile = segprop->get("qmcoords").as<string>();            
             //  QM ID    Element   Position
             this->getIntCoords(qmcoordsFile, intCoords);
          }
@@ -108,16 +100,13 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          map<string,bool> fragname_isTaken;
          
          key = "fragments.fragment";
-         list<Property *> fragments = (*it_segment)->Select(key);
-         list<Property *>::iterator it_fragment;
+         list<Property *> fragments = segprop->Select(key);
          int fragment_id = 1;
 
-         for ( it_fragment = fragments.begin();
-               it_fragment != fragments.end();
-               ++it_fragment ) {
+         for ( TOOLS::Property* fragmentprop:fragments) {
 
             // Create new fragment
-            CTP::Fragment* fragment=AddFragmentType(fragment_id++,*it_fragment);
+            CTP::Fragment* fragment=AddFragmentType(fragment_id++,fragmentprop);
             segment->AddFragment( fragment );
             
             // Verify that this fragment name is not taken already
@@ -135,7 +124,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
             }
             
             // Load local-frame definition
-            vector<int> trihedron = (*it_fragment)->get("localframe")
+            vector<int> trihedron =fragmentprop->get("localframe")
                                                 .as< vector<int> >();
             while (trihedron.size() < 3) {
                 trihedron.push_back(-1);
@@ -147,9 +136,9 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
              // Load atoms //
              // ++++++++++ //
 
-             string mdatoms = (*it_fragment)->get("mdatoms").as<string>();
-             string qmatoms = (*it_fragment)->get("qmatoms").as<string>();
-             string weights = (*it_fragment)->get("weights").as<string>();
+             string mdatoms = fragmentprop->get("mdatoms").as<string>();
+             string qmatoms = fragmentprop->get("qmatoms").as<string>();
+             string weights = fragmentprop->get("weights").as<string>();
 
              Tokenizer tok_md_atoms(mdatoms, " \t\n");
              Tokenizer tok_qm_atoms(qmatoms, " \t\n");
@@ -163,8 +152,6 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
              tok_qm_atoms.ToVector(qm_atoms_info);
              tok_weights.ToVector(atom_weights);
 
-             //assert(md_atoms_info.size() == qm_atoms_info.size());
-             //assert(md_atoms_info.size() == atom_weights.size());
 
              if ( (md_atoms_info.size() != qm_atoms_info.size()) ||
                   (md_atoms_info.size() != atom_weights.size() ) ) {

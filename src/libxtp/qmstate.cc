@@ -23,6 +23,7 @@
 #include <boost/regex.hpp>
 #include <regex>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
 
 namespace votca {
     namespace xtp {
@@ -49,15 +50,15 @@ namespace votca {
     std::string QMStateType::ToLongString() {
       std::string identifier="";
       switch (_type) {
-        case QMStateType::Singlet: identifier = "singlet state";
+        case QMStateType::Singlet: identifier = "singlet";
           break;
-        case QMStateType::Triplet: identifier = "triplet state";
+        case QMStateType::Triplet: identifier = "triplet";
           break;
-        case QMStateType::PQPstate: identifier = "perturbative quasiparticle state";
+        case QMStateType::PQPstate: identifier = "perturbative-quasiparticle";
           break;
-        case QMStateType::DQPstate: identifier = "diagonalised quasiparticle state";
+        case QMStateType::DQPstate: identifier = "diagonalised-quasiparticle";
           break;
-        case QMStateType::KSstate: identifier = "Kohn Sham orbital";
+        case QMStateType::KSstate: identifier = "Kohn-Sham-orbital";
           break;
         case QMStateType::Gstate: identifier = "Groundstate";
           break;
@@ -68,20 +69,20 @@ namespace votca {
     void QMStateType::FromString(const std::string& statetypestring){
       std::string lower = boost::algorithm::to_lower_copy(statetypestring);
       boost::trim(lower);
-      if(lower=="s" || lower=="singlet" ){
-        _type==QMStateType::Singlet;
-      }else if(lower=="t" || lower=="triplet"){
-        _type==QMStateType::Triplet;
-      }else if(lower=="pqp" || lower=="perturbative quasiparticle state"){
-        _type==QMStateType::PQPstate;
-      }else if(lower=="dqp" || lower=="diagonalised quasiparticle state"){
-        _type==QMStateType::DQPstate;
-      }else if(lower=="ks" || lower=="kohn sham orbital"){
-        _type==QMStateType::KSstate;
+      if(lower=="s" || lower=="singlet"){
+        _type=QMStateType::Singlet;
+      }else if(lower=="t" || lower=="triplet" ){
+        _type=QMStateType::Triplet;
+      }else if(lower=="pqp" || lower=="perturbative-quasiparticle"){
+        _type=QMStateType::PQPstate;
+      }else if(lower=="dqp" || lower=="diagonalised-quasiparticle"){
+        _type=QMStateType::DQPstate;
+      }else if(lower=="ks" || lower=="kohn-sham-orbital"){
+        _type=QMStateType::KSstate;
       }else if(lower=="n" || lower=="groundstate" || lower=="gs"){
-        _type==QMStateType::Gstate;
+        _type=QMStateType::Gstate;
       }else{
-        throw runtime_error("Statetype:"+statetypestring+" not recognized");
+        throw std::runtime_error("Statetype:"+statetypestring+" not recognized");
       }
     }
     
@@ -92,7 +93,7 @@ namespace votca {
       }else if(_type==QMStateType::Gstate){
         return _type.ToLongString();
       }
-      std::string result=_type.ToLongString()+(boost::format(" %i") % _index ).str();
+      std::string result=_type.ToLongString()+(boost::format(" %i") % index ).str();
       if(_transition){
         result="Groundstate to "+result;
       }
@@ -106,11 +107,50 @@ namespace votca {
       }else if(_type==QMStateType::Gstate){
         return _type.ToString();
       }
-      std::string result=_type.ToString()+(boost::format("%i") % _index ).str();
+      std::string result=_type.ToString()+(boost::format("%i") % index ).str();
       if(_transition){
         result="N2"+result;
       }
       return result;
+    }
+    
+    
+    int QMState::DetermineIndex(const std::string& statestring){
+     
+      std::smatch search;
+      std::regex reg("[0-9]+");
+      
+      bool found_integer=std::regex_search(statestring,search,reg);
+      if(!found_integer){
+        throw std::runtime_error("Found no index in string: "+statestring);
+      }
+      if(search.size()>1){
+        throw std::runtime_error("Found more than 1 index in string: "+statestring);
+      }
+      
+      int index=boost::lexical_cast<int>(search.str(0));
+        if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
+        index--;
+      }
+      return index;
+    }
+    
+    
+    QMStateType QMState::DetermineType(const std::string& statestring){
+         std::regex reg("[^0-9]+");
+         std::smatch search;
+         
+       bool found_typestring=std::regex_search(statestring,search,reg);
+      if(!found_typestring){
+        throw std::runtime_error("Found no type in string: "+statestring);
+      }
+      if(search.size()>1){
+        throw std::runtime_error("Found more than one type in string: "+statestring);
+      }
+        QMStateType type;
+        type.FromString(search.str(0));
+        
+        return type;
     }
 
     void QMState::FromString(const std::string& statestring){
@@ -128,28 +168,14 @@ namespace votca {
         _transition=false;
       }
       boost::trim(rest);
-      std::smatch integersearch;
-      std::regex integer("(\\+|-)?[[:digit:]]+");
       
-      bool found_integer=std::regex_search(rest,integersearch,integer);
-      if(!found_integer){
-        throw std::runtime_error("Found no index in string: "+rest);
-      }
-      if(integersearch.size()>1){
-        throw std::runtime_error("Found more than 1 index in string: "+rest);
-      }
-      int index=0;
-      for (auto& x:integersearch){
-        index= boost::lexical_cast<int>(x);
-      }
+      _type=DetermineType(rest);
       
-      
-      
-      
-      if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
-        index--;
-      }
-      _index=index;
+      if(_type!=QMStateType::Gstate){
+        _index=DetermineIndex(rest);
+     }else{
+          _index=-1;
+     }
     }
    
  

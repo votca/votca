@@ -45,7 +45,7 @@ public:
     
 private:
  
-std::string type;
+std::string _type;
 int _initial_state_index;
 int _state_index;    
 ctp::Logger *_log;
