@@ -1266,6 +1266,8 @@
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
             ex="false"
             tool="3"
@@ -1288,11 +1290,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sqlapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/statefilter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1799,9 +1796,9 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
@@ -2174,6 +2171,8 @@
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
             ex="false"
             tool="3"
@@ -2196,11 +2195,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sqlapplication.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/statefilter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2707,9 +2701,9 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
