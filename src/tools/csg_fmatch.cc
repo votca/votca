@@ -443,8 +443,8 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
 
 void CGForceMatching::FmatchAccumulateData() 
 {
-    if (_constr_least_sq) { // Constrained Least Squares        
-        // Solving linear equations system   
+    if (_constr_least_sq) { // Constrained Least Squares
+        // Solving linear equations system
         votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
     } else { // Simple Least Squares
         
