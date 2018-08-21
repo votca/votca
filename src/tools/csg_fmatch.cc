@@ -400,7 +400,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom)
     if (conf->getBead(0)->HasF()) {
         vec Force(0., 0., 0.);
         for (int iatom = 0; iatom < _nbeads; ++iatom) {
-            Force = conf->getBead(iatom)->getF();               
+            Force = conf->getBead(iatom)->getF();
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + iatom) = Force.x();
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom) = Force.y();
             _b(_least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom) = Force.z();
