@@ -96,8 +96,7 @@ namespace votca {
           AmB(i,j)=0;
           }
         }
-            
-      std::string success="successful";
+
       if(L.info()!=0){
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
         throw std::runtime_error("Cholesky decompostion failed");

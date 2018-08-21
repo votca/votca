@@ -20,12 +20,9 @@
 
 #include "eqm.h"
 #include <votca/xtp/esp2multipole.h>
-
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-
-
-
+#include <votca/xtp/qminterface.h>
 #include <boost/math/constants/constants.hpp>
 
 

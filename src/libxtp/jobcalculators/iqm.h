@@ -45,38 +45,22 @@ namespace votca { namespace xtp {
 class IQM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
 {
 public:
-
    
-    void    Initialize(tools::Property *options );
-    
-    string  Identify() { return "iqm"; }
-    
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);
-    
-
-
+    void    Initialize(tools::Property *options ); 
+    string  Identify() { return "iqm"; }   
+    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);  
     void WriteJobFile(ctp::Topology *top);
-
     void ReadJobFile( ctp::Topology *top );
-    
-
-    
-
-    
-
 
 private:
+    
     double GetBSECouplingFromProp(tools::Property& bseprop, int stateA, int stateB);
     double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
-    
     void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
-    
     void addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top);
     bool isLinker(const std::string& name);
     void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
-    
-     void ParseOptionsXML( tools::Property &opt);    
-    
+    void ParseOptionsXML( tools::Property &opt);    
     std::map<std::string, int> FillParseMaps(const string& Mapstring);
     
     string              _package;
@@ -93,7 +77,6 @@ private:
     bool                _do_gwbse;
     bool                _do_bsecoupling;
     
-    
     std::vector< std::string > _linker_names;
     
     // what to write in the storage
@@ -106,8 +89,7 @@ private:
     //double              _energy_difference;    
         
     string              _outParent;
-    
-    
+      
     // parsing options
     std::map<std::string, int> _singlet_levels;
     std::map<std::string, int> _triplet_levels;
@@ -115,9 +97,8 @@ private:
     std::map<std::string, int> _hole_levels;
     std::map<std::string, int> _electron_levels;
 
-   
         
 };
 
 }}
-#endif	/* _CALC_INTEGRALS_BSE_H */
+#endif	

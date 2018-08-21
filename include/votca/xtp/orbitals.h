@@ -51,7 +51,7 @@ namespace votca {
             Orbitals();
             ~Orbitals();
 
-            static void PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB, Orbitals& orbitalsAB);
+            
              // functions for analyzing fragment charges via Mulliken populations
             static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& densitymatrix, const Eigen::MatrixXd& overlapmatrix, int frag);
 
@@ -496,7 +496,7 @@ namespace votca {
             Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0)const;
             
             Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
-            Eigen::MatrixXd LambdaMatrixQuasiParticle()const;
+            Eigen::MatrixXd CalculateQParticleAORepresentation()const;
 
             double getTotalExcitedStateEnergy (const std::string& spintype, int opt_state)const;
 
@@ -570,21 +570,23 @@ namespace votca {
                 return _popH_t;
             }
 
-            Eigen::VectorXd FragmentNuclearCharges(int _frag)const;
+            void PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB);
+            
+            Eigen::VectorXd FragmentNuclearCharges(int frag)const;
 
             // returns indeces of a re-sorted vector of energies from lowest to highest
             std::vector<int> SortEnergies();
 
             /** Adds a QM atom to the atom list */
-            QMAtom* AddAtom(int AtomID,std::string _type,double _x, double _y, double _z,
-                    double _charge = 0) {
-                QMAtom* pAtom = new QMAtom(AtomID,_type, _x, _y, _z);
+            QMAtom* AddAtom(int AtomID,std::string type,double x, double y, double z,
+                    double charge = 0) {
+                QMAtom* pAtom = new QMAtom(AtomID,type, x, y, z);
                 _atoms.push_back(pAtom);
                 return pAtom;
             }
 
-            QMAtom* AddAtom(int AtomID,std::string _type, tools::vec pos) {
-                QMAtom* pAtom = new QMAtom(AtomID,_type, pos);
+            QMAtom* AddAtom(int AtomID,std::string type, tools::vec pos) {
+                QMAtom* pAtom = new QMAtom(AtomID,type, pos);
                 _atoms.push_back(pAtom);
                 return pAtom;
             }

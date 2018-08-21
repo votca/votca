@@ -59,25 +59,19 @@ namespace votca {
             if ( ! _noisy_output ){
                 _pLog->setReportLevel(ctp::logERROR); // go silent for force calculations
             }
-
             std::vector<QMAtom*>& atoms=_orbitals.QMAtoms();
             for (unsigned atom_index=0;atom_index<atoms.size();atom_index++) {
-                QMAtom* atom=atoms[atom_index];
                 if ( _noisy_output ){
                     CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG working on atom " << atom_index<< flush;
                 }
                 Eigen::Vector3d atom_force;
                 // Calculate Force on this atom
-                
                 if (_force_method == "forward") atom_force=NumForceForward(energy, atom_index);
                 if (_force_method == "central") atom_force=NumForceCentral(energy, atom_index);
-                
                 _forces.row(atom_index)=atom_force.transpose();
             }
             _pLog->setReportLevel(ReportLevel); // 
             if (_remove_total_force) RemoveTotalForce();
-            //Report();
-
             return;
         }
 

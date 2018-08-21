@@ -20,14 +20,10 @@
 #ifndef _CALC_XTP_EQM_H
 #define _CALC_XTP_EQM_H
 
-
 #include <votca/xtp/gwbse.h> // including GWBSE functionality
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/ctp/parallelxjobcalc.h>
 #include <votca/ctp/segment.h>
-
-
-
 
 namespace votca {
     namespace xtp {
@@ -50,11 +46,7 @@ namespace votca {
             void Initialize(Property *options);
             ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *thread);
             
-
-
-            void CleanUp() {
-                ;
-            }
+            void CleanUp() {;}
             void WriteJobFile(ctp::Topology *top);
         private:
             
@@ -66,17 +58,12 @@ namespace votca {
             Property _gwbse_options;
             Property _esp_options;
 
-
-
             // what to do
             bool _do_dft_input;
             bool _do_dft_run;
             bool _do_dft_parse;
             bool _do_gwbse;
             bool _do_esp;
-
-
-
 
         };
 

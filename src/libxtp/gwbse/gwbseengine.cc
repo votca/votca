@@ -109,7 +109,7 @@ namespace votca {
                     Orbitals orbitalsA, orbitalsB;
                     orbitalsA.ReadFromCpt(_guess_archiveA);
                     orbitalsB.ReadFromCpt(_guess_archiveB);
-                    Orbitals::PrepareDimerGuess(orbitalsA, orbitalsB, orbitals);
+                    orbitals.PrepareDimerGuess(orbitalsA, orbitalsB);
                 }  
                 qmpackage->WriteInputFile(orbitals);
             }

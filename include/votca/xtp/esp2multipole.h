@@ -26,8 +26,9 @@
 #include <votca/xtp/lowdin.h>
 #include <votca/xtp/nbo.h>
 #include <votca/ctp/logger.h>
-#include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
+#include <votca/tools/property.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca { namespace xtp {
 
@@ -45,11 +46,11 @@ public:
 
     std::string Identify() { return "esp2multipole"; }
 
-    void   Initialize(Property &options);
+    void   Initialize(tools::Property &options);
     
    
-    void Extractingcharges( Orbitals& _orbitals );
-    void WritetoFile(std::string _output_file,  std::string identifier="esp2multipole");
+    void Extractingcharges( Orbitals& orbitals );
+    void WritetoFile(std::string output_file,  std::string identifier="esp2multipole");
     std::string GetIdentifier();
 
 private:

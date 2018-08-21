@@ -37,9 +37,7 @@ namespace votca { namespace xtp {
 
 
 
-template< class QMPackage >
-class QMMachine
-{
+class QMMachine{
 
 public:
 
@@ -49,13 +47,14 @@ public:
 
     int Evaluate(ctp::XJob *job);
 
-    
-    
-
     void setLog(ctp::Logger *log) { _log = log; }
 
 private:
     bool Iterate(string jobFolder, int iterCnt);
+    bool RunDFT(string& runFolder, std::vector<std::shared_ptr<ctp::PolarSeg> >& MultipolesBackground);
+    void RunGWBSE(string& runFolder);
+    void RunGDMA(QMMIter* thisIter, string& runFolder);
+    void Density2Charges( std::vector<int> state_index ={});
     
     QMMIter *CreateNewIter();
     bool hasConverged();
@@ -69,14 +68,8 @@ private:
     bool _isConverged;
     int _maxIter;
 
-    // GDMA object
-    // GDMA _gdma;
     Property _gdma_options;
     bool _do_gdma;
-    QMInterface qminterface;
-
-
-
 
 
     Property _gwbse_options;
@@ -95,12 +88,6 @@ private:
     double _crit_dE_QM;
     double _crit_dE_MM;
 
-    bool _convg_dR;
-    bool _convg_dQ;
-    bool _convg_dE_QM;
-    bool _convg_dE_MM;
-
-
     bool _do_gwbse; // needs to be set by options!!!
     bool _do_archive;
     bool _static_qmmm;
@@ -109,7 +96,7 @@ private:
     double _alpha;
     Eigen::MatrixXd _DMAT_old;
 
-    void Density2Charges( std::vector<int> state_index ={});
+    
 
 };
 

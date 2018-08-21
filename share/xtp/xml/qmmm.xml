@@ -4,18 +4,9 @@
 <qmmm help="QM/MM with the Thole MM model for excited states" section="sec:qmmm">
 
 	<mapping help="XML file with multipole moments and polarizabilities" default="system.xml"></mapping>
-
-
-		<job_file help="Job control file" default="job.xml"></job_file>
-		<emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template" default="mps.tab"></emp_file>
-		<pdb_check help="PDB file of polar sites">mps.pdb</pdb_check>
-		<write_chk help="XYZ file with dipoles split onto point charges" default="dipoles.xyz">dipoles.xyz</write_chk>
-		<format_chk help="format, gaussian or xyz" default="xyz">xyz</format_chk>
-		<split_dpl help="'0' do not split dipoles onto point charges, '1' do split" default="1">1</split_dpl>
-		<dpl_spacing help="Spacing to be used when splitting dipole onto point charges: d = q * a" unit="nm" default="1e-3">1e-3</dpl_spacing>
-
-
-		<dftpackage help="DFT package to use for the QM region">gaussian.xml</dftpackage>
+        <job_file help="Job control file" default="job.xml"></job_file>
+        <emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template" default="mps.tab"></emp_file>
+        <dftpackage help="DFT package to use for the QM region">gaussian.xml</dftpackage>
 
 
     <gwbse help="Specify if GW/BSE excited state calculation ist needed">

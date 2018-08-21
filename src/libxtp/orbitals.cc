@@ -135,14 +135,14 @@ namespace votca {
             return dmatGS;
         }
 
-        Eigen::MatrixXd Orbitals::LambdaMatrixQuasiParticle() const{
+        Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const{
             return _QPdiag_coefficients * _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal);
         }
 
         // Determine QuasiParticle Density Matrix
 
         Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(int state) const{
-            Eigen::MatrixXd lambda = LambdaMatrixQuasiParticle();
+            Eigen::MatrixXd lambda = CalculateQParticleAORepresentation();
             Eigen::MatrixXd dmatQP = lambda.col(state) * lambda.col(state).transpose();
             return dmatQP;
         }
@@ -458,7 +458,7 @@ namespace votca {
          * orbitals: | A 0 | and energies: [EA, EB]
          *           | 0 B |
          */
-        void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB, Orbitals& orbitalsAB) {
+        void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB) {
 
             // constructing the direct product orbA x orbB
             int basisA = orbitalsA.getBasisSetSize();
@@ -470,34 +470,34 @@ namespace votca {
             int electronsA = orbitalsA.getNumberOfElectrons();
             int electronsB = orbitalsB.getNumberOfElectrons();
 
-            Eigen::MatrixXd& mo_coefficients = orbitalsAB.MOCoefficients();
-            mo_coefficients = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
+            
+            this->MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
             if(orbitalsA.getDFTbasis()!=orbitalsB.getDFTbasis()){
               throw std::runtime_error("Basissets of Orbitals A and B differ "+orbitalsA.getDFTbasis()+":"+orbitalsB.getDFTbasis());
             }
-            orbitalsAB.setDFTbasis(orbitalsA.getDFTbasis());
+            this->setDFTbasis(orbitalsA.getDFTbasis());
             if(orbitalsA.getECP()!=orbitalsB.getECP()){
               throw std::runtime_error("ECPs of Orbitals A and B differ "+orbitalsA.getECP()+":"+orbitalsB.getECP());
             }
-            orbitalsAB.setECP(orbitalsA.getECP());
-            orbitalsAB.setBasisSetSize(basisA + basisB);
-            orbitalsAB.setNumberOfLevels(electronsA + electronsB,
+            this->setECP(orbitalsA.getECP());
+            this->setBasisSetSize(basisA + basisB);
+            this->setNumberOfLevels(electronsA + electronsB,
                     levelsA + levelsB - electronsA - electronsB);
-            orbitalsAB.setNumberOfElectrons(electronsA + electronsB);
+            this->setNumberOfElectrons(electronsA + electronsB);
 
-            mo_coefficients.block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients();
-            mo_coefficients.block(basisA, levelsA, basisB, levelsB) = orbitalsB.MOCoefficients();
+            this->MOCoefficients().block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients();
+            this->MOCoefficients().block(basisA, levelsA, basisB, levelsB) = orbitalsB.MOCoefficients();
 
-            Eigen::VectorXd& energies = orbitalsAB.MOEnergies();
+            Eigen::VectorXd& energies = this->MOEnergies();
             energies.resize(levelsA + levelsB);
 
             energies.segment(0, levelsA) = orbitalsA.MOEnergies();
             energies.segment(levelsA, levelsB) = orbitalsB.MOEnergies();
             
-            orbitalsAB.OrderMOsbyEnergy();
+            this->OrderMOsbyEnergy();
             
             return;
         }

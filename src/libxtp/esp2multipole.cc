@@ -21,12 +21,14 @@
 #include <votca/xtp/esp2multipole.h>
 #include <boost/format.hpp>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/qminterface.h>
 
 namespace votca {
     namespace xtp {
+      using std::flush;
 
-        void Esp2multipole::Initialize(Property& options) {
-            string key = Identify();
+        void Esp2multipole::Initialize(tools::Property& options) {
+            std::string key = Identify();
             _use_ecp = false;
             _do_svd = false;
 
@@ -38,14 +40,14 @@ namespace votca {
             _use_lowdin = false;
             _use_NBO = false;
 
-            _state = options.get(key + ".state").as<string> ();
+            _state = options.get(key + ".state").as<std::string> ();
             _state_no = options.get(key + ".statenumber").as<int> ();
-            _spin = options.get(key + ".spin").as<string> ();
+            _spin = options.get(key + ".spin").as<std::string> ();
             if (options.exists(key + ".ecp")) {
                 _use_ecp = options.get(key + ".ecp").as<bool> ();
             }
             if (options.exists(key + ".method")) {
-                _method = options.get(key + ".method").as<string> ();
+                _method = options.get(key + ".method").as<std::string> ();
                 if (_method == "Mulliken" || _method == "mulliken")_use_mulliken = true;
                 else if (_method == "loewdin" || _method == "Loewdin") _use_lowdin = true;
                 else if (_method == "CHELPG")_use_CHELPG = true;
@@ -56,18 +58,18 @@ namespace votca {
             } else _use_CHELPG = true;
 
             if (_use_CHELPG) {
-                _integrationmethod = options.get(key + ".integrationmethod").as<string> ();
+                _integrationmethod = options.get(key + ".integrationmethod").as<std::string> ();
             }
             
             if (options.exists(key + ".constraints")) {
                  if (options.exists(key + ".constraints.regions")) {
-                     std::list<Property*> prop_region = options.Select(key + ".constraints.regions.region");
-                     for (std::list<Property*> ::iterator it = prop_region.begin(); it != prop_region.end(); ++it) {
-                         std::string indices=(*it)->get("indices").as<std::string>();
+                     std::list<tools::Property*> prop_region = options.Select(key + ".constraints.regions.region");
+                     for (tools::Property* prop:prop_region) {
+                         std::string indices=prop->get("indices").as<std::string>();
                          tools::Tokenizer tok(indices,"\n\t ,");
                          Espfit::region reg;
                          tok.ConvertToVector<int>(reg.atomindices);
-                         reg.charge=(*it)->get("charge").as<double>();
+                         reg.charge=prop->get("charge").as<double>();
                          _regionconstraint.push_back(reg);
                          CTP_LOG(ctp::logDEBUG, *_log) << "Fit constrained by SUM(";
                          for(int i:reg.atomindices){
@@ -77,9 +79,9 @@ namespace votca {
                      }
                  }
                  if (options.exists(key + ".constraints.pairs")) {
-                     std::list<Property*> prop_pair = options.Select(key + ".constraints.pairs.pair");
-                     for (std::list<Property*> ::iterator it = prop_pair.begin(); it != prop_pair.end(); ++it) {
-                         std::string pairstring=(*it)->as<std::string>();
+                     std::list<tools::Property*> prop_pair = options.Select(key + ".constraints.pairs.pair");
+                     for (tools::Property* prop:prop_pair) {
+                         std::string pairstring=prop->as<std::string>();
                         tools::Tokenizer tok(pairstring,"\n\t ,");
                         std::vector<int> pairvec;
                         tok.ConvertToVector<int>(pairvec);
@@ -97,7 +99,7 @@ namespace votca {
                 std::runtime_error("Method not recognized. Only numeric and analytic available");
             }
             if (options.exists(key + ".gridsize")) {
-                _gridsize = options.get(key + ".gridsize").as<string>();
+                _gridsize = options.get(key + ".gridsize").as<std::string>();
             } else _gridsize = "medium";
             if (options.exists(key + ".openmp")) {
                 _openmp_threads = options.get(key + ".openmp").as<int>();
@@ -113,8 +115,8 @@ namespace votca {
             return;
         }
 
-        string Esp2multipole::GetIdentifier() {
-            string identifier;
+        std::string Esp2multipole::GetIdentifier() {
+            std::string identifier;
             if (_state == "transition" && _spin == "singlet") {
                 identifier = (boost::format("n2s%i") % _state_no).str();
             }
@@ -139,18 +141,18 @@ namespace votca {
             return identifier;
         }
 
-        void Esp2multipole::WritetoFile(string _output_file, string identifier) {
+        void Esp2multipole::WritetoFile(std::string output_file, std::string identifier) {
 
-            string data_format = boost::filesystem::extension(_output_file);
+            std::string data_format = boost::filesystem::extension(output_file);
             if (!(data_format == ".mps")) {
                 throw std::runtime_error("Outputfile format not recognized. Export only to .mps");
             }
-            string tag = "TOOL:" + Identify() + "_" + GetIdentifier() + "_" + _spin;
+            std::string tag = "TOOL:" + Identify() + "_" + GetIdentifier() + "_" + _spin;
 
             QMInterface Converter;
             ctp::PolarSeg result = Converter.Convert(_Atomlist);
 
-            result.WriteMPS(_output_file, tag);
+            result.WriteMPS(output_file, tag);
             return;
         }
 
