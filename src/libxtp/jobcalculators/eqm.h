@@ -39,7 +39,7 @@ namespace votca {
 
         class EQM : public ctp::ParallelXJobCalc< vector< ctp::Job*>, ctp::Job*, ctp::Job::JobResult > {
         public:
-
+            void WriteLoggerToFile(const std::string& logfile, ctp::Logger& logger);
             std::string Identify() {
                 return "eqm";
             }
@@ -50,7 +50,7 @@ namespace votca {
             void WriteJobFile(ctp::Topology *top);
         private:
             
-            void WriteLoggerToFile(const std::string& logfile, ctp::Logger& logger);
+           
             void ParseOptionsXML(Property *options);
 
             std::string _package;

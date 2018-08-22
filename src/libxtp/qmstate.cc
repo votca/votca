@@ -83,7 +83,7 @@ namespace votca {
         _type=QMStateType::Triplet;
       }else if(lower=="pqp" || lower=="perturbative-quasiparticle"){
         _type=QMStateType::PQPstate;
-      }else if(lower=="dqp" || lower=="diagonalised-quasiparticle"){
+      }else if(lower=="dqp" || lower=="diagonalised-quasiparticle" || lower=="qpdiag"){
         _type=QMStateType::DQPstate;
       }else if(lower=="ks" || lower=="kohn-sham-orbital"){
         _type=QMStateType::KSstate;
@@ -182,7 +182,7 @@ namespace votca {
       boost::trim(rest);
       
       _type=DetermineType(rest);
-      if(_type!=QMStateType::Singlet && _transition=true){
+      if(_type!=QMStateType::Singlet && _transition==true){
           throw std::runtime_error("Transition states only exist for singlets.");
       }
       if(_type!=QMStateType::Gstate){

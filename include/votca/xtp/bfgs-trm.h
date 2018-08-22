@@ -82,7 +82,7 @@ namespace votca {
             bool _update_hessian;
             bool _restart_opt;
 
-            int _opt_state;
+            QMState _opt_state;
             double _displacement;
             double _convergence;
             double _RMSForce_convergence;
@@ -93,7 +93,6 @@ namespace votca {
             double _trust_radius_max;
             double _delta_energy_estimate;
             double _norm_delta_pos;
-            std::string _spintype;
             std::string _forces;
             std::string _opt_type;
             std::string _optimizer;

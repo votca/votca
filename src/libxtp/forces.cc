@@ -112,7 +112,7 @@ namespace votca {
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
 
                 // get total energy for this excited state
-                double energy_displaced = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state-1);
+                double energy_displaced = _orbitals.getTotalStateEnergy(_opt_state);
 
                 // calculate force and put into matrix
                 force(i_cart) = (energy - energy_displaced) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
@@ -124,41 +124,31 @@ namespace votca {
         /* Calculate forces on atoms numerically by central differences */
         Eigen::Vector3d Forces::NumForceCentral(double energy,int atom_index) {
 
-
             QMAtom* atom= _orbitals.QMAtoms()[atom_index];
             const tools::vec current_pos =atom->getPos();
             Eigen::Vector3d force=Eigen::Vector3d::Zero();
             // go through all cartesian components
             for (unsigned i_cart = 0; i_cart < 3; i_cart++) {
-
                 if ( _noisy_output ){
                     CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << i_cart << flush;
                 }
-                
                 tools::vec displacement_vec(0, 0, 0);          
                 displacement_vec[i_cart]=_displacement * tools::conv::ang2bohr; //  _displacement in Angstrom
-
                 // update the coordinate
                 tools::vec pos_displaced = current_pos + displacement_vec;
 
                 atom->setPos(pos_displaced); 
                 // run DFT and GW-BSE for this geometry
                 _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
-
                 // get total energy for this excited state
-                double energy_displaced_plus = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state-1);
-
-                // get displacement vector in negative direction
-
+                double energy_displaced_plus = _orbitals.getTotalStateEnergy(_opt_state);
                 // update the coordinate
                 pos_displaced = current_pos - displacement_vec;
                 atom->setPos(pos_displaced); 
                 // run DFT and GW-BSE for this geometry
                 _gwbse_engine.ExcitationEnergies(_qmpackage,_orbitals);
-
                 // get total energy for this excited state
-                double energy_displaced_minus = _orbitals.getTotalExcitedStateEnergy(_spin_type, _opt_state-1);
-                // calculate force and put into matrix
+                double energy_displaced_minus = _orbitals.getTotalStateEnergy(_opt_state);
                 force(i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / (_displacement * votca::tools::conv::ang2bohr); // force a.u./a.u.
                 atom->setPos(current_pos); // restore original coordinate into segment
             }

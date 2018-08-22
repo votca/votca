@@ -54,14 +54,14 @@ public:
 
 private:
     
-    double GetBSECouplingFromProp(tools::Property& bseprop, int stateA, int stateB);
+    double GetBSECouplingFromProp(tools::Property& bseprop,const QMState& stateA,const QMState& stateB);
     double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
     void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
     void addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top);
     bool isLinker(const std::string& name);
     void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
     void ParseOptionsXML( tools::Property &opt);    
-    std::map<std::string, int> FillParseMaps(const string& Mapstring);
+    std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
     
     string              _package;
     Property            _dftpackage_options; 

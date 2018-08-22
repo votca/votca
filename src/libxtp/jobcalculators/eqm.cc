@@ -253,11 +253,11 @@ namespace votca {
         string mps_file = "";
         Esp2multipole esp2multipole = Esp2multipole(pLog);
         esp2multipole.Initialize(_esp_options);
-        string ESPDIR = "MP_FILES/" + frame_dir + "/" + esp2multipole.GetIdentifier();
+        string ESPDIR = "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
         esp2multipole.Extractingcharges(orbitals);
-        mps_file = (format("%1%_%2%_%3%.mps") % segType % segId % esp2multipole.GetIdentifier()).str();
+        mps_file = (format("%1%_%2%_%3%.mps") % segType % segId % esp2multipole.GetStateString()).str();
         boost::filesystem::create_directories(ESPDIR);
-        esp2multipole.WritetoFile((ESPDIR + "/" + mps_file).c_str(), Identify());
+        esp2multipole.WritetoFile(ESPDIR + "/" + mps_file);
         CTP_LOG(ctp::logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
         segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
       }

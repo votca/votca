@@ -20,6 +20,8 @@
 
 #include <votca/xtp/bse.h>
 #include <votca/tools/linalg.h>
+
+#include "votca/xtp/qmstate.h"
 using boost::format;
 using std::flush;
 
@@ -363,18 +365,18 @@ template <typename T>
       return;
     }
 
-    void BSE::printFragInfo(Population& pop, int i){
-      CTP_LOG(ctp::logINFO, *_log) << (format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
-              % (100.0 * pop.popH[i](0)) % (100.0 * pop.popE[i](0)) % (pop.Crgs[i](0)) % (pop.Crgs[i](0) + pop.popGs(0))).str() << flush;
-      CTP_LOG(ctp::logINFO, *_log) << (format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
-              % (100.0 * pop.popH[i](1)) % (100.0 * pop.popE[i](1)) % (pop.Crgs[i](1)) % (pop.Crgs[i](1) + pop.popGs(1))).str() << flush;
+    void BSE::printFragInfo(const Population& pop, int i){
+      CTP_LOG(ctp::logINFO, *_log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+              % (100.0 * pop.popH[i](0)) % (100.0 * pop.popE[i](0)) % (pop.Crgs[i](0)) % (pop.Crgs[i](0) + pop.popGs(0)) << flush;
+      CTP_LOG(ctp::logINFO, *_log) << format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+              % (100.0 * pop.popH[i](1)) % (100.0 * pop.popE[i](1)) % (pop.Crgs[i](1)) % (pop.Crgs[i](1) + pop.popGs(1)) << flush;
       return;
     }
 
     void BSE::printWeights(int i_bse, double weight){
       if (weight > _min_print_weight) {
-        CTP_LOG(ctp::logINFO, *_log) << (format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
-                % (_homo - _index2v[i_bse]) % (_index2c[i_bse] - _homo - 1) % (100.0 * weight)).str() << flush;
+        CTP_LOG(ctp::logINFO, *_log) << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+                % (_homo - _index2v[i_bse]) % (_index2c[i_bse] - _homo - 1) % (100.0 * weight) << flush;
       }
       return;
     }
@@ -383,16 +385,16 @@ template <typename T>
 
       Interaction act;
       Population pop;
-      
+      QMStateType singlet=QMStateType(QMStateType::Singlet);
       std::vector< tools::vec > transition_dipoles=CalcCoupledTransition_Dipoles(dftbasis);
       _orbitals.TransitionDipoles()=transition_dipoles;
       std::vector<double> oscs = _orbitals.Oscillatorstrengths();
       
       if(tools::globals::verbose){
-        act = Analyze_eh_interaction("singlet");
+        act = Analyze_eh_interaction(singlet);
       }
       if(dftbasis.getAOBasisFragA()>0){
-        pop=FragmentPopulations("singlet",dftbasis);
+        pop=FragmentPopulations(singlet,dftbasis);
         _orbitals.setFragmentChargesSingEXC(pop.Crgs);
         _orbitals.setFragment_E_localisation_singlet(pop.popE);
         _orbitals.setFragment_H_localisation_singlet(pop.popH);
@@ -400,26 +402,26 @@ template <typename T>
       }
       
       double hrt2ev = tools::conv::hrt2ev;
-      CTP_LOG(ctp::logINFO, *_log) << (format("  ====== singlet energies (eV) ====== ")).str() << flush;
+      CTP_LOG(ctp::logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {     
         const tools::vec& trdip = transition_dipoles[i];
         double osc = oscs[i];
         if (tools::globals::verbose) {
-          CTP_LOG(ctp::logINFO, *_log) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+          CTP_LOG(ctp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
                   % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i)))
-                  % (hrt2ev * act.qp_contrib(i)) % (hrt2ev * act.exchange_contrib(i)) % (hrt2ev * act.direct_contrib(i))).str() << flush;
+                  % (hrt2ev * act.qp_contrib(i)) % (hrt2ev * act.exchange_contrib(i)) % (hrt2ev * act.direct_contrib(i)) << flush;
         } else {
-          CTP_LOG(ctp::logINFO, *_log) << (format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                  % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i)))).str() << flush;
+          CTP_LOG(ctp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                  % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i))) << flush;
         }
-        CTP_LOG(ctp::logINFO, *_log) << (format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
-                % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip * trdip) % osc).str() << flush;
+        CTP_LOG(ctp::logINFO, *_log) << format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
+                % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip * trdip) % osc << flush;
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
-          double weight = pow(_bse_singlet_coefficients(i_bse, i), 2);
+          double weight = std::pow(_bse_singlet_coefficients(i_bse, i), 2);
           if (_bse_singlet_coefficients_AR.rows()>0){
-               weight-= pow(_bse_singlet_coefficients_AR(i_bse, i), 2);
+               weight-= std::pow(_bse_singlet_coefficients_AR(i_bse, i), 2);
           }
           printWeights(i_bse, weight);
         }
@@ -440,27 +442,27 @@ template <typename T>
 
       Interaction act;
       Population pop;
-            
+      QMStateType triplet=QMStateType(QMStateType::Triplet);
       if(tools::globals::verbose){
-        act = Analyze_eh_interaction("triplet");
+        act = Analyze_eh_interaction(triplet);
       }
       if(dftbasis.getAOBasisFragA()>0){
-        pop=FragmentPopulations("triplet",dftbasis);
+        pop=FragmentPopulations(triplet,dftbasis);
         _orbitals.setFragmentChargesTripEXC(pop.Crgs);
         _orbitals.setFragment_E_localisation_triplet(pop.popE);
         _orbitals.setFragment_H_localisation_triplet(pop.popH);
         _orbitals.setFragmentChargesGS(pop.popGs);
       }
-      CTP_LOG(ctp::logINFO, *_log) << (format("  ====== triplet energies (eV) ====== ")).str() << flush;
+      CTP_LOG(ctp::logINFO, *_log) << "  ====== triplet energies (eV) ====== " << flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {    
         if (tools::globals::verbose) {
-          CTP_LOG(ctp::logINFO, *_log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
+          CTP_LOG(ctp::logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))
-                  % (tools::conv::hrt2ev * act.qp_contrib(i)) % (tools::conv::hrt2ev *act.direct_contrib(i))).str() << flush;
+                  % (tools::conv::hrt2ev * act.qp_contrib(i)) % (tools::conv::hrt2ev *act.direct_contrib(i)) << flush;
         } else {
-          CTP_LOG(ctp::logINFO, *_log) << (format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
-                  % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))).str() << flush;
+          CTP_LOG(ctp::logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+                  % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i))) << flush;
         }
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
@@ -471,16 +473,16 @@ template <typename T>
         if (dftbasis.getAOBasisFragA() > 0) {
           printFragInfo(pop, i);
         }
-        CTP_LOG(ctp::logINFO, *_log) << (format("   ")).str() << flush;
+        CTP_LOG(ctp::logINFO, *_log) << format("   ") << flush;
       }
       // storage to orbitals object
 
       return;
     }
 
-    Eigen::VectorXd BSE::Analyze_IndividualContribution(const std::string& spin,const MatrixXfd& H){
+    Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type,const MatrixXfd& H){
         Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_bse_nmax);
-        if (spin == "singlet") {
+        if (type == QMStateType::Singlet) {
             for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
                 MatrixXfd _slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
                 contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
@@ -490,7 +492,7 @@ template <typename T>
                     contrib(i_exc)-= (_slice_AR.transpose()*H * _slice_AR).value();           
                 }
             }
-        } else if (spin == "triplet") {
+        } else if (type == QMStateType::Triplet) {
             for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
                 MatrixXfd _slice_R = _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
                 contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
@@ -501,20 +503,20 @@ template <typename T>
         return contrib;
     }
 
-    BSE::Interaction BSE::Analyze_eh_interaction(const std::string& spin) {
+    BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type) {
 
       Interaction analysis;
       MatrixXfd H = MatrixXfd::Zero(_bse_size, _bse_size);
       Add_Hqp(H); 
-      analysis.qp_contrib=Analyze_IndividualContribution(spin,H);
+      analysis.qp_contrib=Analyze_IndividualContribution(type,H);
       
       H = MatrixXfd::Zero(_bse_size, _bse_size);
       Add_Hd(H);
-      analysis.direct_contrib=Analyze_IndividualContribution(spin,H);
-      if (spin == "singlet") {
+      analysis.direct_contrib=Analyze_IndividualContribution(type,H);
+      if (type == QMStateType::Singlet) {
           H = MatrixXfd::Zero(_bse_size, _bse_size);
           Add_Hx(H,2.0);
-          analysis.exchange_contrib=Analyze_IndividualContribution(spin,H);
+          analysis.exchange_contrib=Analyze_IndividualContribution(type,H);
       }else{
             analysis.exchange_contrib=Eigen::VectorXd::Zero(0);
       }
@@ -522,7 +524,7 @@ template <typename T>
       return analysis;
     }
 
-    BSE::Population BSE::FragmentPopulations(const std::string& spin, const AOBasis& dftbasis) {
+    BSE::Population BSE::FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis) {
       Population pop;
       // Mulliken fragment population analysis
         AOOverlap dftoverlap;
@@ -535,9 +537,9 @@ template <typename T>
         pop.popGs=nuccharges - pops;
         // population to electron charges and add nuclear charges         
         for (int i_state = 0; i_state < _bse_nmax; i_state++) {
-
+          QMState state=QMState(type,i_state,false);
           // checking Density Matrices
-          std::vector< Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(spin, i_state);
+          std::vector< Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(state);
           // hole part
           Eigen::VectorXd popsH = _orbitals.LoewdinPopulation(DMAT[0], dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
           pop.popH.push_back(popsH);
@@ -577,9 +579,8 @@ template <typename T>
       double sqrt2 = sqrt(2.0);
       for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
         tools::vec tdipole = tools::vec(0, 0, 0);
-
-        for (int v = 0; v < _bse_vtotal; v++) {
-          for (int c = 0; c < _bse_ctotal; c++) {
+        for (int c = 0; c < _bse_ctotal; c++) {
+          for (int v = 0; v < _bse_vtotal; v++) {
             int index_vc = _bse_ctotal * v + c;
             double factor = sqrt2 * _bse_singlet_coefficients(index_vc, i_exc);
             if (_bse_singlet_coefficients_AR.rows()>0) {
@@ -590,10 +591,8 @@ template <typename T>
             tdipole.y() += factor * interlevel_dipoles[1](v, c);
             tdipole.z() += factor * interlevel_dipoles[2](v, c);
           }
-
         }
-        dipols.push_back(tdipole);
-       
+        dipols.push_back(tdipole);     
       }
       return dipols;
     }

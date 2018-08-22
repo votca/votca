@@ -22,6 +22,7 @@
 
 #include <votca/xtp/orbitals.h>
 #include <votca/ctp/logger.h>
+#include <votca/xtp/qmstate.h>
 
 
 namespace votca {
@@ -36,22 +37,42 @@ class Statefilter {
 
 public:
     void Initialize(tools::Property& options);
-    
-    void setType(const std::string& type){_type=type;}
-    
-    void Filter(const Orbitals& orbital);
-    
-    int getStateIndex(){return _state_index;}// zero indexed;
+    void setLogger(ctp::Logger* log){_log=log;}
+    void setInitialState(const QMState& state ){_statehist.push_back(state);}
+    void PrintInfo()const;
+    void Filter(const Orbitals& orbitals);
+    const QMState& getState(){return _state;}// zero indexed;
     
 private:
  
-std::string _type;
-int _initial_state_index;
-int _state_index;    
+    std::vector<int> OscFilter(const Orbitals& orbitals);
+    std::vector<int> LocFilter(const Orbitals& orbitals);
+    std::vector<int> DeltaQFilter(const Orbitals& orbitals);
+    std::vector<int> OverlapFilter(const Orbitals& orbitals);
+    
+    std::vector<int> CollapseResults(std::vector< std::vector<int> >& results)const;
+    std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
+
+QMState _initial_state;
+QMState _state;    
 ctp::Logger *_log;
  
+std::vector<QMState> _statehist;
 
+Eigen::VectorXd _laststatecoeff;
 
+bool _use_oscfilter=false;
+double _oscthreshold=0.0;
+
+bool _use_overlapfilter=false;
+double _overlapthreshold;
+
+bool _use_localisationfilter=false;
+bool _localiseonA;
+double _loc_threshold;
+
+bool _use_dQfilter=false;
+double _dQ_threshold=true;
 
 
 };

@@ -26,7 +26,7 @@
 #include <votca/ctp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
-
+#include <votca/xtp/qmstate.h>
 
 
 namespace votca {
@@ -59,9 +59,7 @@ namespace votca {
 
         private:
 
-      
-            int _opt_state;
-            std::string _spintype;
+            QMState _opt_state;
             std::string _forces;
             std::string _opt_type;
             std::string _optimizer;

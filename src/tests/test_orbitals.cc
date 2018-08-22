@@ -20,9 +20,10 @@
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
 #include <fstream>
+#include "votca/xtp/aomatrix.h"
 
 using namespace votca::xtp;
-
+using std::endl;
 BOOST_AUTO_TEST_SUITE(orbitals_test)
 BOOST_AUTO_TEST_CASE(readxyztest){
   std::ofstream xyzfile("molecule.xyz");
@@ -99,28 +100,76 @@ BOOST_AUTO_TEST_CASE(densmatgs_test) {
 -0.147466802,-1.89398582,0.599314142,-0.599314142,0.599314142,-2.47288528,0.99951947,-0.99951947,0.99951947,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-0.512094198,-1.30279378,-2.29509192,-2.99604761;
 Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
  
-  overlap_ref<<
-1,0.191448,0,0,0,0.180314,0,0,0,0.0189724,0.0808612,0.0189724,0.0808612,0.0189724,0.0808612,0.0189724,0.0808612,
-0.191448,1.00001,0,0,0,0.761361,0,0,0,0.194748,0.401447,0.194748,0.401447,0.194748,0.401447,0.194748,0.401447,
-0,0,1,0,0,0,0.528959,0,0,0.169584,0.135615,0.169584,0.135615,-0.169584,-0.135615,-0.169584,-0.135615,
-0,0,0,1,0,0,0,0.528959,0,0.169584,0.135615,-0.169584,-0.135615,-0.169584,-0.135615,0.169584,0.135615,
-0,0,0,0,1,0,0,0,0.528959,0.169584,0.135615,-0.169584,-0.135615,0.169584,0.135615,-0.169584,-0.135615,
-0.180314,0.761361,0,0,0,1,0,0,0,0.338796,0.668849,0.338796,0.668849,0.338796,0.668849,0.338796,0.668849,
-0,0,0.528959,0,0,0,1,0,0,0.290649,0.340149,0.290649,0.340149,-0.290649,-0.340149,-0.290649,-0.340149,
-0,0,0,0.528959,0,0,0,1,0,0.290649,0.340149,-0.290649,-0.340149,-0.290649,-0.340149,0.290649,0.340149,
-0,0,0,0,0.528959,0,0,0,1,0.290649,0.340149,-0.290649,-0.340149,0.290649,0.340149,-0.290649,-0.340149,
-0.0189724,0.194748,0.169584,0.169584,0.169584,0.338796,0.290649,0.290649,0.290649,1,0.645899,0.00778321,0.116994,0.00778321,0.116994,0.00778321,0.116994,
-0.0808612,0.401447,0.135615,0.135615,0.135615,0.668849,0.340149,0.340149,0.340149,0.645899,1,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,
-0.0189724,0.194748,0.169584,-0.169584,-0.169584,0.338796,0.290649,-0.290649,-0.290649,0.00778321,0.116994,1,0.645899,0.00778321,0.116994,0.00778321,0.116994,
-0.0808612,0.401447,0.135615,-0.135615,-0.135615,0.668849,0.340149,-0.340149,-0.340149,0.116994,0.354983,0.645899,1,0.116994,0.354983,0.116994,0.354983,
-0.0189724,0.194748,-0.169584,-0.169584,0.169584,0.338796,-0.290649,-0.290649,0.290649,0.00778321,0.116994,0.00778321,0.116994,1,0.645899,0.00778321,0.116994,
-0.0808612,0.401447,-0.135615,-0.135615,0.135615,0.668849,-0.340149,-0.340149,0.340149,0.116994,0.354983,0.116994,0.354983,0.645899,1,0.116994,0.354983,
-0.0189724,0.194748,-0.169584,0.169584,-0.169584,0.338796,-0.290649,0.290649,-0.290649,0.00778321,0.116994,0.00778321,0.116994,0.00778321,0.116994,1,0.645899,
-0.0808612,0.401447,-0.135615,0.135615,-0.135615,0.668849,-0.340149,0.340149,-0.340149,0.116994,0.354983,0.116994,0.354983,0.116994,0.354983,0.645899,1;
+ std::ofstream xyzfile("molecule.xyz");
+  xyzfile << " C" << std::endl;
+  xyzfile << " methane" << std::endl;
+  xyzfile << " C            .000000     .000000     .000000" << std::endl;
+  xyzfile << " H            .629118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
+  xyzfile.close();
+
+  std::ofstream basisfile("3-21G.xml");
+  basisfile <<"<basis name=\"3-21G\">" << endl;
+  basisfile << "  <element name=\"H\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+  basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "  <element name=\"C\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+  basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+  basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+  basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+  basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>" << endl;
+  basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>" << endl;
+  basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>" << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "</basis>" << endl;
+  basisfile.close();
+  
+  orb.LoadFromXYZ("molecule.xyz");
+  BasisSet basis;
+  basis.LoadBasisSet("3-21G.xml");
+  AOBasis aobasis;
+  aobasis.AOBasisFill(basis,orb.QMAtoms());
+  AOOverlap overlap;
+  overlap.Fill(aobasis);
   
   ConvergenceAcc d;
   d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,8,0);
-  d.setOverlap(&overlap_ref,1e-8);
+  d.setOverlap(&overlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   Eigen::VectorXd MOEnergies_ref=Eigen::VectorXd::Zero(17);
   MOEnergies_ref<<-4.29332753,-3.99146858,-3.99146858,-3.99146858,-2.69172222,-2.69172222,-2.69172222,-2.61521973,-2.19277057,-2.19277057,-2.19277057,-1.75923211,-1.46241535,-1.46241535,-1.46241535,-1.21150295,14.6697624;

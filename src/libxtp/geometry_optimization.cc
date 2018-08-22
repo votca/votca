@@ -25,10 +25,10 @@ namespace votca {
     namespace xtp {
 
         void GeometryOptimization::Initialize(tools::Property &options) {
-
-            _opt_state = options.ifExistsReturnElseReturnDefault<int>(".state", 1);
-            _spintype = options.ifExistsReturnElseReturnDefault<std::string>(".spintype", "singlet");
-
+          
+            
+            std::string statestring= options.ifExistsReturnElseReturnDefault<std::string>(".optstate", "S1");
+            _opt_state.FromString(statestring);
             // pre-check optimizer method
             std::vector<std::string> choices = {"BFGS-TRM"};
             _optimizer = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".optimizer.method", choices);
@@ -46,14 +46,13 @@ namespace votca {
         void GeometryOptimization::Evaluate() {
 
 
-            CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " << _spintype << " " << _opt_state << std::flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << "Requested geometry optimization of excited state " <<  _opt_state.ToString() << std::flush;
 
             // get a force object
             Forces _force_engine(_gwbse_engine, _qmpackage,_orbitals);
             _force_engine.Initialize(_force_options);
             _force_engine.setLog(_pLog);
             _force_engine.SetOptState(_opt_state);
-            _force_engine.SetSpinType(_spintype);
 
 
             // get the optimizer

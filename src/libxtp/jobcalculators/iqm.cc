@@ -562,13 +562,16 @@ namespace votca {
       return J;
     }
 
-    double IQM::GetBSECouplingFromProp(tools::Property& bseprop, int stateA, int stateB) {
+    double IQM::GetBSECouplingFromProp(tools::Property& bseprop,const QMState& stateA,const QMState& stateB) {
       double J = 0;
+      std::string algorithm=bseprop.getAttribute<std::string>("algorithm");
       for (Property* state : bseprop.Select("coupling")) {
-        int state1 = state->getAttribute<int>("excitonA");
-        int state2 = state->getAttribute<int>("excitonB");
+        QMState state1;
+        state1.FromString(state->getAttribute<std::string>("excitonA"));
+        QMState state2;
+        state2.FromString(state->getAttribute<std::string>("excitonB"));
         if (state1 == stateA && state2 == stateB) {
-          J = boost::lexical_cast<double>(state->value());
+          J = state->getAttribute<double>(algorithm);
           break;
         }
       }
@@ -652,21 +655,21 @@ namespace votca {
           int homoB = dftprop.getAttribute<int>("homoB");
           if (dftprop.exists("holes")) {
             tools::Property& holes = dftprop.get("holes");
-            int stateA = _hole_levels[segmentA->getName()];
-            int stateB = _hole_levels[segmentB->getName()];
-            int levelA = homoA - stateA + 1; //h1 is is homo;
-            int levelB = homoB - stateB + 1;
-            double J = GetDFTCouplingFromProp(holes, stateA, stateB);
+            QMState stateA = _hole_levels[segmentA->getName()];
+            QMState stateB = _hole_levels[segmentB->getName()];
+            int levelA = homoA - stateA.Index() + 1; //h1 is is homo;
+            int levelB = homoB - stateB.Index() + 1;
+            double J = GetDFTCouplingFromProp(holes, levelA, levelB);
             pair->setJeff2(J*J, 1);
             pair->setIsPathCarrier(true, 1);
           }
           if (dftprop.exists("electrons")) {
             tools::Property& electrons = dftprop.get("electrons");
-            int stateA = _electron_levels[segmentA->getName()];
-            int stateB = _electron_levels[segmentB->getName()];
-            int levelA = homoA + stateA; //e1 is homo+1 state starts at 1;
-            int levelB = homoB + stateB;
-            double J = GetDFTCouplingFromProp(electrons, stateA, stateB);
+            QMState stateA = _electron_levels[segmentA->getName()];
+            QMState stateB = _electron_levels[segmentB->getName()];
+            int levelA = homoA + stateA.Index(); //e1 is homo+1 state starts at 1;
+            int levelB = homoB + stateB.Index();
+            double J = GetDFTCouplingFromProp(electrons, levelA, levelB);
             pair->setJeff2(J*J, -1);
             pair->setIsPathCarrier(true, -1);
           }
@@ -677,16 +680,16 @@ namespace votca {
 
           if (bseprop.exists("singlets")) {
             tools::Property& singlets = bseprop.get("singlets");
-            int stateA = _singlet_levels[segmentA->getName()];
-            int stateB = _singlet_levels[segmentB->getName()];
+            QMState stateA = _singlet_levels[segmentA->getName()];
+            QMState stateB = _singlet_levels[segmentB->getName()];
             double J = GetBSECouplingFromProp(singlets, stateA, stateB);
             pair->setJeff2(J*J, 2);
             pair->setIsPathCarrier(true, 2);
           }
           if (bseprop.exists("triplets")) {
             tools::Property& triplets = bseprop.get("triplets");
-            int stateA = _triplet_levels[segmentA->getName()];
-            int stateB = _triplet_levels[segmentB->getName()];
+            QMState stateA = _triplet_levels[segmentA->getName()];
+            QMState stateB = _triplet_levels[segmentB->getName()];
             double J = GetBSECouplingFromProp(triplets, stateA, stateB);
             pair->setJeff2(J*J, 3);
             pair->setIsPathCarrier(true, 3);

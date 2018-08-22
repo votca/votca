@@ -77,6 +77,9 @@ public:
     QMState(const QMStateType::statetype& type,int index,bool transition):_type(QMStateType(type)),_index(index),_transition(transition){;}
     QMState(const QMStateType & type,int index,bool transition):_type(type),_index(index),_transition(transition){;}
     QMState(){;}
+    QMState(const std::string& statestring){
+        FromString(statestring);
+    }
     void FromString(const std::string& statestring);
     
     std::string ToString()const;

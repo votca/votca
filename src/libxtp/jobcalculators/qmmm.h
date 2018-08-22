@@ -257,7 +257,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     
 
     QMMachine machine = QMMachine(&xjob, &xind, qmpack,
-        &_options, "options."+Identify(), _subthreads, _maverick);
+        &_options, "options."+Identify());
     machine.setLog(thread->getLogger());
 
     // EVALUATE: ITERATE UNTIL CONVERGED

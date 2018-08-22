@@ -571,15 +571,39 @@ namespace votca {
             for (unsigned j = 0; j < matrix.cols(); j++) {
                             matrix(i, j) += _ol_sph(i + shell_row->getOffset(), j + shell_col->getOffset());
                         }
-                    }
-
-
-        
+                    }       
                 } // shell_col Gaussians
             } // shell_row Gaussians
         }
 
-
+ Eigen::MatrixXd AOOverlap::FillShell(const AOShell* shell){
+            Eigen::MatrixXd block=Eigen::MatrixXd::Zero(shell->getNumFunc(),shell->getNumFunc());
+            Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,shell->getNumFunc(),shell->getNumFunc());
+            FillBlock(submatrix,shell,shell);
+            return block;
+        }
+ 
+   Eigen::MatrixXd AOOverlap::Pseudo_InvSqrt(double etol){
+       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
+       smallestEigenvalue=es.eigenvalues()(0);
+       Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+      removedfunctions=0;
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
+          }
+      }
+           
+     return es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
+    }
+   
+   Eigen::MatrixXd AOOverlap::Sqrt(){
+     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_aomatrix);
+    smallestEigenvalue=es.eigenvalues()(0);
+     return es.operatorSqrt();
+    }
 
 
     }

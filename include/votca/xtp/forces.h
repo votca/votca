@@ -55,19 +55,15 @@ namespace votca {
                 _pLog = pLog;
             }
 
-            void SetSpinType(const std::string spin_type) {
-                _spin_type = spin_type;
-            };
+            
 
-            void SetOptState(const int opt_state) {
+            void SetOptState(const QMState& opt_state) {
                 _opt_state = opt_state;
             };
 
-            std::string GetSpinType() {
-                return _spin_type;
-            };
+           
 
-            int GetOptState() {
+            const QMState& GetOptState() const{
                 return _opt_state;
             };
 
@@ -80,13 +76,12 @@ namespace votca {
 
             double _displacement;
             std::string _force_method;
-            std::string _spin_type;
 
             bool _noisy_output;
 
             int _nsegments;
             unsigned _natoms;
-            int _opt_state;
+            QMState _opt_state;
 
             GWBSEEngine _gwbse_engine;
             QMPackage* _qmpackage;

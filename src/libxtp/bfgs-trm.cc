@@ -52,7 +52,6 @@ namespace votca {
             // fix units from Ang to Bohr
             _trust_radius = _trust_radius * tools::conv::ang2bohr; // initial trust radius in a.u.
             _trust_radius_max = 0.1;
-            _spintype = _force_engine.GetSpinType();
             _opt_state = _force_engine.GetOptState();
 
             _natoms =_orbitals.QMAtoms().size();
@@ -177,16 +176,13 @@ namespace votca {
 
         /* Get the energy for the current configuration */
         double BFGSTRM::GetEnergy() {
-
             _gwbse_engine.setRedirectLogger(true);
             string _logger_file = "gwbse_iteration_" + (boost::format("%1%") % _iteration).str() + ".log";
             _gwbse_engine.setLoggerFile(_logger_file);
             _gwbse_engine.ExcitationEnergies(_qmpackage, _orbitals);
-            double _energy = _orbitals.getTotalExcitedStateEnergy(_spintype, _opt_state-1); // in Hartree
+            double energy = _orbitals.getTotalStateEnergy(_opt_state); // in Hartree
             _gwbse_engine.setRedirectLogger(false);
-            return _energy;
-
-
+            return energy;
         }
 
         /* Report results of accepted step*/
