@@ -111,6 +111,7 @@ branches:
   - master
   - development
   - stable
+  - next
 
 cache:
   - ccache
