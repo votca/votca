@@ -28,7 +28,7 @@
 namespace votca {
     namespace xtp {
 
-    std::string QMStateType::ToString() {
+    std::string QMStateType::ToString() const{
       std::string identifier="";
       switch (_type) {
         case QMStateType::Singlet: identifier = "S";
@@ -43,11 +43,15 @@ namespace votca {
           break;
         case QMStateType::Gstate: identifier = "N";
           break;
+        case QMStateType::Hole: identifier = "H";
+          break;
+        case QMStateType::Electron: identifier = "E";
+          break;
       }
       return identifier;
     }
     
-    std::string QMStateType::ToLongString() {
+    std::string QMStateType::ToLongString() const{
       std::string identifier="";
       switch (_type) {
         case QMStateType::Singlet: identifier = "singlet";
@@ -60,7 +64,11 @@ namespace votca {
           break;
         case QMStateType::KSstate: identifier = "Kohn-Sham-orbital";
           break;
-        case QMStateType::Gstate: identifier = "Groundstate";
+        case QMStateType::Gstate: identifier = "groundstate";
+          break;
+          case QMStateType::Hole: identifier = "hole";
+          break;
+        case QMStateType::Electron: identifier = "electron";
           break;
       }
       return identifier;
@@ -81,12 +89,16 @@ namespace votca {
         _type=QMStateType::KSstate;
       }else if(lower=="n" || lower=="groundstate" || lower=="gs"){
         _type=QMStateType::Gstate;
+       }else if(lower=="h" || lower=="hole" ){
+        _type=QMStateType::Hole;
+       }else if(lower=="e" || lower=="electron"){
+        _type=QMStateType::Electron;
       }else{
         throw std::runtime_error("Statetype:"+statetypestring+" not recognized");
       }
     }
     
-    std::string QMState::ToLongString(){
+    std::string QMState::ToLongString()const{
       int index=_index;
       if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
         index++;
@@ -100,7 +112,7 @@ namespace votca {
       return result;
     }
     
-    std::string QMState::ToString(){
+    std::string QMState::ToString()const{
       int index=_index;
       if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
         index++;
@@ -170,22 +182,15 @@ namespace votca {
       boost::trim(rest);
       
       _type=DetermineType(rest);
-      
+      if(_type!=QMStateType::Singlet && _transition=true){
+          throw std::runtime_error("Transition states only exist for singlets.");
+      }
       if(_type!=QMStateType::Gstate){
         _index=DetermineIndex(rest);
      }else{
           _index=-1;
      }
     }
-   
- 
-   
-     
-     
- 
-     
-     
-     
   
 
     }

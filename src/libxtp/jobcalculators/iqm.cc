@@ -142,9 +142,9 @@ namespace votca {
       return;
     }
 
-    std::map<std::string, int> IQM::FillParseMaps(const string& Mapstring) {
+    std::map<std::string, QMState> IQM::FillParseMaps(const string& Mapstring) {
       Tokenizer split_options(Mapstring, ", \t\n");
-      std::map<std::string, int> type2level;
+      std::map<std::string, QMState> type2level;
       for (const string& substring : split_options) {
         std::vector<string> segmentpnumber;
         Tokenizer tok(substring, ":");
@@ -152,12 +152,10 @@ namespace votca {
         if (segmentpnumber.size() != 2) {
           throw runtime_error("Parser iqm: Segment and exciton labels:" + substring + "are not separated properly");
         }
-        if (segmentpnumber[1].size() != 2) {
-          throw runtime_error("State identifier " + segmentpnumber[1] + " unknown, right now only states up to number 9 are parsed. s1,s2,t1,h1,e1 etc..");
-        }
-        int number = boost::lexical_cast<int>(segmentpnumber[1].at(1)) - 1;
+        QMState state;
+        state.FromString(segmentpnumber[1]);
         string type = boost::lexical_cast<string>(segmentpnumber[0]);
-        type2level[type] = number;
+        type2level[type] = state;
       }
       return type2level;
     }

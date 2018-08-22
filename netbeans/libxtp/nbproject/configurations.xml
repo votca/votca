@@ -285,21 +285,18 @@
     </logicalFolder>
     <logicalFolder name="ResourceFiles" displayName="XMLfiles" projectFiles="true">
       <itemPath>../../share/xtp/xml/coupling.xml</itemPath>
-      <itemPath>../../share/xtp/xml/dft.xml</itemPath>
       <itemPath>../../share/xtp/xml/dftgwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/eanalyze.xml</itemPath>
-      <itemPath>../../share/xtp/xml/edft.xml</itemPath>
-      <itemPath>../../share/xtp/xml/egwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/einternal.xml</itemPath>
       <itemPath>../../share/xtp/xml/energy2xml.xml</itemPath>
+      <itemPath>../../share/xtp/xml/eqm.xml</itemPath>
       <itemPath>../../share/xtp/xml/excitoncoupling.xml</itemPath>
       <itemPath>../../share/xtp/xml/gencube.xml</itemPath>
       <itemPath>../../share/xtp/xml/ianalyze.xml</itemPath>
-      <itemPath>../../share/xtp/xml/idft.xml</itemPath>
       <itemPath>../../share/xtp/xml/iexcitoncl.xml</itemPath>
-      <itemPath>../../share/xtp/xml/igwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/iimport.xml</itemPath>
       <itemPath>../../share/xtp/xml/integrals2xml.xml</itemPath>
+      <itemPath>../../share/xtp/xml/iqm.xml</itemPath>
       <itemPath>../../share/xtp/xml/jobwriter.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmclifetime.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmcmultiple.xml</itemPath>
@@ -1354,6 +1351,8 @@
       </item>
       <item path="../../share/xtp/xml/energy2xml.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../share/xtp/xml/eqm.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/excitoncoupling.xml"
             ex="false"
             tool="3"
@@ -1371,6 +1370,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/jobwriter.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -2273,6 +2274,8 @@
       </item>
       <item path="../../share/xtp/xml/energy2xml.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../share/xtp/xml/eqm.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/excitoncoupling.xml"
             ex="false"
             tool="3"
@@ -2290,6 +2293,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/jobwriter.xml" ex="false" tool="3" flavor2="0">
       </item>

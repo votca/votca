@@ -91,11 +91,11 @@ private:
     string              _outParent;
       
     // parsing options
-    std::map<std::string, int> _singlet_levels;
-    std::map<std::string, int> _triplet_levels;
+    std::map<std::string, QMState> _singlet_levels;
+    std::map<std::string, QMState> _triplet_levels;
     
-    std::map<std::string, int> _hole_levels;
-    std::map<std::string, int> _electron_levels;
+    std::map<std::string, QMState> _hole_levels;
+    std::map<std::string, QMState> _electron_levels;
 
         
 };

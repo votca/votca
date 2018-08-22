@@ -18,6 +18,7 @@
  */
 
 #include <votca/xtp/couplingbase.h>
+#include <votca/xtp/qmstate.h>
 
 #ifndef _VOTCA_XTP_BSECOUPLING_H
 #define	_VOTCA_XTP_BSECOUPLING_H
@@ -59,15 +60,12 @@ public:
     
 private:
     
-    void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                        tools::Property& summary, int stateA, int stateB, double JAB);
+    void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
+                        tools::Property& summary, const QMState& stateA, const QMState& stateB);
     
     double getSingletCouplingElement( int levelA, int levelB, int methodindex);
     
     double getTripletCouplingElement( int levelA, int levelB, int methodindex);
-    
-   
-  
     
     std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& bseA_T,const Eigen::MatrixXd& bseB_T, 
                          Eigen::MatrixXd& H);

@@ -29,7 +29,7 @@ namespace xtp {
     class QMStateType{
     public:
         
-        enum statetype {Singlet,Triplet,PQPstate,DQPstate,KSstate,Gstate};
+        enum statetype {Singlet,Triplet,PQPstate,DQPstate,KSstate,Gstate,Electron,Hole};
         
         QMStateType(const statetype& type):_type(type){;}
         QMStateType(){;}
@@ -40,9 +40,9 @@ namespace xtp {
         
         void FromString(const std::string& statetypestring);
         
-        std::string ToString();
+        std::string ToString()const;
     
-        std::string ToLongString();
+        std::string ToLongString()const;
         
         bool operator ==(const QMStateType& rhs) const{
             return _type==rhs.Type();
@@ -75,12 +75,13 @@ class QMState {
 public:
     
     QMState(const QMStateType::statetype& type,int index,bool transition):_type(QMStateType(type)),_index(index),_transition(transition){;}
+    QMState(const QMStateType & type,int index,bool transition):_type(type),_index(index),_transition(transition){;}
     QMState(){;}
     void FromString(const std::string& statestring);
     
-    std::string ToString();
+    std::string ToString()const;
     
-    std::string ToLongString();
+    std::string ToLongString()const;
     
     const QMStateType& Type()const{return _type;}
     
