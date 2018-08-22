@@ -43,6 +43,10 @@ QMStateType type3;
 type3.FromString("N");
 BOOST_CHECK_EQUAL(type3==type2,false);
 BOOST_CHECK_EQUAL(type3==QMStateType::Gstate,true);
+
+QMStateType type4=QMStateType(QMStateType::KSstate);
+BOOST_CHECK_EQUAL(type4==QMStateType::KSstate,true);
+
 }
 
 
@@ -72,6 +76,9 @@ BOOST_AUTO_TEST_CASE(QMState_test) {
     BOOST_CHECK_EQUAL(state4==state5,true);
     std::string result=state4.ToLongString();
     BOOST_CHECK_EQUAL(result,"Groundstate to singlet 16");
+    
+    QMState state6=QMState(QMStateType::Singlet,15,true);
+    BOOST_CHECK_EQUAL(state6==state5,true);
    
 }
 
