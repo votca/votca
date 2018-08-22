@@ -197,7 +197,7 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
     
     // SILENT LOGGER FOR QMPACKAGE
     ctp::Logger* log = thread->getLogger();    
-    ctp::Logger qlog = ctp::Logger();
+    ctp::Logger qlog;
     qlog.setReportLevel(ctp::logDEBUG);
     qlog.setMultithreading(_maverick);
     qlog.setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
