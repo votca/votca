@@ -119,15 +119,20 @@ changeoption openmp 0 OPTIONFILES/mbgft_pair.xml
 changeoption openmp 0 OPTIONFILES/bsecoupling.xml
 changeoption openmp 0 OPTIONFILES/bsecoupling.xml
 
+changeoption singlet "Methane:s1" OPTIONFILES/iqm.xml
+changeoption triplet "Methane:t1" OPTIONFILES/iqm.xml
+changeoption electron "Methane:e1" OPTIONFILES/iqm.xml
+changeoption hole "Methane:h1" OPTIONFILES/iqm.xml
+
 changeoption tasks "singlets,triplets,iqm" OPTIONFILES/mbgft_pair.xml
-
-
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -s 0 -j "write"
 sed -i "s/AVAILABLE/COMPLETE/g" iqm.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -s 0 -j run -c 1 -t 1
+
+xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -j "read"
 
 
 
