@@ -605,7 +605,6 @@ namespace votca {
         state1.FromString(state->getAttribute<std::string>("stateA"));
         QMState state2;
         state2.FromString(state->getAttribute<std::string>("stateB"));
-        std::cout<<state1.ToString()<<":"<<stateA.ToString()<<" "<<state1.ToString()<<":"<<stateA.ToString()<<endl;
         if (state1 == stateA && state2 == stateB) {
           J = state->getAttribute<double>(algorithm);
           found=true;
