@@ -166,8 +166,6 @@ bool load_property_from_xml(Property &p, string filename)
 
 void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int level=0, string prefix="", string offset="")
 {
-    
-    list<Property>::iterator iter;
         
     if((p.value() != "") || p.HasChilds() ) {
         
@@ -179,90 +177,87 @@ void PrintNodeTXT(std::ostream &out, Property &p, const int start_level, int lev
         }
     }
         
-    for(iter = p.begin(); iter!=p.end(); ++iter) {
+    for(Property& prop:p) {
         if(prefix=="") {
             level++;
-            PrintNodeTXT(out, (*iter), start_level, level, prefix + (*iter).name(), offset );
+            PrintNodeTXT(out,prop, start_level, level, prefix +prop.name(), offset );
             level--;
         } else {
             level++;
-            PrintNodeTXT(out, (*iter), start_level, level, prefix + "." + (*iter).name(), offset );
+            PrintNodeTXT(out,prop, start_level, level, prefix + "." + prop.name(), offset );
             level--;
         }
     }
     
-}
-
-void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, int level=0, string offset="")
-{
-    list<Property>::iterator iter;       
-    Property::AttributeIterator ia;
-    bool _endl = true;
-    bool has_value = false;
-    
-    const ColorSchemeBase *color = &DEFAULT_COLORS;
-     
-    string indent("");
-    int start_level(0);
-
-    if ( piom ) {
-        start_level = piom->getLevel();
-        indent   = piom->getIndentation();
-        color = piom->getColorScheme();
     }
 
-    string cKey = color->Magenta();
-    string cAttribute = color->Blue();
-    string cAttributeValue = color->Green();
-    string cReset = color->Reset();
-        
-    // print starting only from the start_level (the first node (level 0) can be <> </>)
-        if ( level >= start_level )  {
-            // print the node name
-            out << indent << offset << "<" << cKey << p.name() << cReset;
-            // print the node attributes 
-            for(ia = p.firstAttribute(); ia!=p.lastAttribute(); ++ia) 
-                out << " " 
-                    << cAttribute << ia->first << cReset
-                    << "=\""
-                    << cAttributeValue << ia->second << cReset << "\"" ;
-            out << ">";
-            
-            // print node value if it is not empty
-            has_value = (p.value().size()>0 && (p.value()).find_first_not_of("\t\n ") != std::string::npos );
-            if( has_value ) { 
-                out <<  cAttributeValue <<  p.value() << cReset;
-                _endl = false; 
-            }
-            
-            // check if we need the end of the line or not
-            if( !has_value &&  p.HasChilds() ) out << endl;
-            if( !has_value &&  !p.HasChilds() ) _endl = false;
+    void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, int level = 0, string offset = "") {
+      Property::AttributeIterator ia;
+      bool linebreak = true;
+      bool has_value = false;
+
+      const ColorSchemeBase *color = &DEFAULT_COLORS;
+
+      string indent("");
+      int start_level(0);
+
+      if (piom) {
+        start_level = piom->getLevel();
+        indent = piom->getIndentation();
+        color = piom->getColorScheme();
+      }
+
+      string cKey = color->Magenta();
+      string cAttribute = color->Blue();
+      string cAttributeValue = color->Green();
+      string cReset = color->Reset();
+
+      // print starting only from the start_level (the first node (level 0) can be <> </>)
+      if (level >= start_level) {
+        // print the node name
+        out << indent << offset << "<" << cKey << p.name() << cReset;
+        // print the node attributes 
+        for (ia = p.firstAttribute(); ia != p.lastAttribute(); ++ia) {
+          out << " "
+                  << cAttribute << ia->first << cReset
+                  << "=\""
+                  << cAttributeValue << ia->second << cReset << "\"";
         }
-    
-        // continue iteratively through the rest of the nodes
-        for(iter = p.begin(); iter!=p.end(); ++iter) {
-            level++; 
-            if (  level > start_level ) offset += "\t"; 
-            PrintNodeXML(out, (*iter), piom, level, offset);
-            if (  level > start_level ) offset.resize(offset.size()-1); 
-            level--;           
+        // print node value if it is not empty
+        has_value =  ((p.value()).find_first_not_of("\t\n ") != std::string::npos);
+        if (has_value || p.HasChilds()) {
+          out << ">";
+        } else {
+          out << "/>"<<std::endl;
         }
-        
-        if ( level >= start_level ) {
-            if ( _endl ) {
-                         out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
-            } else {
-                if (has_value) { // avoid indent after the value
-                        out << "</" << cKey << p.name() << cReset << ">" << endl;
-                } else if(!p.HasChilds()){
-                  out << "</" << cKey << p.name() << cReset << ">" << endl;
-                }else {
-                        out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
-                }
-            }
-        } 
-}
+        if (has_value) {
+          out << cAttributeValue << p.value() << cReset;
+          linebreak = false;
+        }
+
+        // check if we need the end of the line or not
+        if (!has_value && p.HasChilds()) out << std::endl;
+        if (!has_value && !p.HasChilds()) linebreak = false;
+      }
+
+      // continue iteratively through the rest of the nodes
+      for (Property& prop : p) {
+        level++;
+        if (level > start_level) offset += "\t";
+        PrintNodeXML(out, prop, piom, level, offset);
+        if (level > start_level) offset.resize(offset.size() - 1);
+        level--;
+      }
+
+      if (level >= start_level) {
+        if (linebreak) {
+          out << indent << offset << "</" << cKey << p.name() << cReset << ">" << std::endl;
+        } else if (has_value) {
+          out << "</" << cKey << p.name() << cReset << ">" << std::endl;
+        }
+      }
+    }
+  
     
 void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom, int level=0, string prefix="") {
 
