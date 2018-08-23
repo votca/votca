@@ -773,6 +773,7 @@ namespace votca {
       CTP_LOG_SAVE(ctp::logINFO, log) << "Pairs [total:updated(e,h,s,t)] "
               << number_of_pairs << ":(" << dft_e << ","<< dft_h << "," << bse_s<< "," << bse_t
               << ") Incomplete jobs: " << incomplete_jobs << flush;
+      cout<<std::endl;
       cout << log;
       return;
     }
