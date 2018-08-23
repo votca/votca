@@ -227,7 +227,7 @@ namespace votca {
        QMStateType type=_statehist[0].Type();
        Eigen::MatrixXd ortho_coeffs=CalcOrthoCoeffs(orbitals);
        int offset=0;
-        if(_statehist[0].Type().isGWState()){
+        if(_statehist[0].Type()==QMStateType::DQPstate){
             offset=orbitals.getGWAmin();
         }
        _laststatecoeff=ortho_coeffs.col(_state.Index()-offset); 
@@ -248,7 +248,7 @@ namespace votca {
         });
 
         int offset=0;
-        if(_statehist[0].Type().isGWState()){
+        if(_statehist[0].Type()==QMStateType::DQPstate){
             offset=orbitals.getGWAmin();
         }
 
