@@ -93,7 +93,7 @@ namespace votca {
 
             std::string statestring=options->get(key + ".state").as<string> ();
             _state.FromString(statestring);
-            _dostateonly = options->ifExistsReturnElseReturnDefault<bool>(key + ".difference_to_groundstate",false);
+            _dostateonly = options->ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs",false);
 
             _mode = options->get(key + ".mode").as<string> ();
             if (_mode == "subtract") {
@@ -115,8 +115,6 @@ namespace votca {
             CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
             orbitals.ReadFromCpt(_orbfile);
 
-            // load the QM data from serialized orbitals object
-            // get atoms
             std::vector<QMAtom*> atoms = orbitals.QMAtoms();
 
             // determine min and max in each cartesian direction
@@ -152,14 +150,12 @@ namespace votca {
             double yincr = (ystop - ystart) / double(_ysteps);
             double zincr = (zstop - zstart) / double(_zsteps);
 
-
             std::ofstream out(_output_file);
             if (!out.is_open()) {
                 throw std::runtime_error("Bad file handle: " + _output_file);
             }
 
             // write cube header
-            
             if(_state.isTransition()){
                 out<<boost::format("Transition state: %1$s \n")% _state.ToString();
             }

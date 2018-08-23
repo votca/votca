@@ -79,7 +79,7 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
   const std::vector<QMAtom*>& atomsA=orbitalsA.QMAtoms();
   const std::vector<QMAtom*>& atomsB=orbitalsB.QMAtoms();
   const std::vector<QMAtom*>& atomsAll = orbitalsAB.QMAtoms();
-  
+  bool coordinates_agree=true;
   for (unsigned i = 0; i < atomsAll.size(); i++) {
     QMAtom* dimer = atomsAll[i];
     QMAtom* monomer = NULL;
@@ -96,13 +96,17 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
     }
     
     if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
-      CTP_LOG(ctp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
-              "and dimer atoms do not agree" << std::flush;
+        coordinates_agree=false;
     }
     
     if (monomer->getType() != dimer->getType()) {
       throw std::runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
     }
+  }
+  
+  if(!coordinates_agree){
+        CTP_LOG(ctp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
+              "and dimer atoms do not agree" << std::flush;
   }
 }
 

@@ -27,8 +27,11 @@ namespace votca {
         void GeometryOptimization::Initialize(tools::Property &options) {
           
             
-            std::string statestring= options.ifExistsReturnElseReturnDefault<std::string>(".optstate", "S1");
+            std::string statestring= options.ifExistsReturnElseThrowRuntimeError<std::string>(".state");
             _opt_state.FromString(statestring);
+            if(!_opt_state.Type().isExciton()){
+              throw std::runtime_error("At the moment only excitonic states can be optimized");
+            }
             // pre-check optimizer method
             std::vector<std::string> choices = {"BFGS-TRM"};
             _optimizer = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".optimizer.method", choices);

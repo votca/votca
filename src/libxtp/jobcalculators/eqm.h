@@ -50,7 +50,7 @@ namespace votca {
             void WriteJobFile(ctp::Topology *top);
         private:
             
-           
+           void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
             void ParseOptionsXML(Property *options);
 
             std::string _package;

@@ -19,8 +19,8 @@
         </gwbse_engine>
 
         <geometry_optimization>
-            <state>1</state>
-            <spintype>singlet</spintype>
+            <state>S1</state>
+           
             <restart>0</restart>
             <optimizer>
                 <method>BFGS-TRM</method>

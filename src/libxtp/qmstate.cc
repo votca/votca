@@ -141,7 +141,7 @@ namespace votca {
       }
       
       int index=boost::lexical_cast<int>(search.str(0));
-        if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
+        if(_type.isExciton() || _type==QMStateType::Electron || _type==QMStateType::Hole){
         index--;
       }
       return index;

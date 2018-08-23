@@ -18,8 +18,6 @@
  */
 
 #include <votca/xtp/statefilter.h>
-#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
-
 #include "votca/xtp/aomatrix.h"
 
 namespace votca {
@@ -33,7 +31,7 @@ namespace votca {
         }
         if (options.exists("overlap")) {
           _use_overlapfilter = true;
-          _overlapthreshold = options.ifExistsReturnElseThrowRuntimeError<double>("overlap");
+          _overlapthreshold = options.ifExistsReturnElseReturnDefault<double>("overlap",0.0);
         }
         if (options.exists("localisation")) {
           _use_localisationfilter = true;
@@ -79,7 +77,11 @@ namespace votca {
        CTP_LOG(ctp::logDEBUG, *_log) << " Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
      }
      if(_use_overlapfilter){
+       if(_overlapthreshold==0.0){
+         CTP_LOG(ctp::logDEBUG, *_log) << " Using overlap filer with no cutoff "<< flush;
+       }else{
        CTP_LOG(ctp::logDEBUG, *_log) << " Using overlap filer with cutoff "<<_overlapthreshold << flush;
+       }
      }
      if(_use_localisationfilter){
        std::string fragment="A";
@@ -241,6 +243,13 @@ namespace votca {
         }
         
         Eigen::VectorXd Overlap=CalculateOverlap(orbitals);
+        int validelements=Overlap.size();
+        for(int i=0;i<Overlap.size();i++){
+          if(Overlap(i)<_overlapthreshold){
+            validelements--;
+          }
+        }
+        
         std::vector<int>index = std::vector<int>(Overlap.size());
         std::iota(index.begin(), index.end(), 0);
         std::stable_sort(index.begin(), index.end(), [&Overlap](int i1, int i2) {
@@ -253,7 +262,10 @@ namespace votca {
         }
 
         for (int i:index){
-            indexes.push_back(i+offset);
+          if(int(indexes.size())==validelements){
+            break;
+          }
+          indexes.push_back(i+offset); 
         }
         return indexes;
       }

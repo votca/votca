@@ -99,25 +99,25 @@ void BSECoupling::WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orb
       JAB_pert=getTripletCouplingElement(stateA.Index(),stateB.Index(),0);
       JAB_diag=getTripletCouplingElement(stateA.Index(),stateB.Index(),1);
   }
-  coupling_summary.setAttribute("excitonA", stateA.ToString());
-  coupling_summary.setAttribute("excitonB", stateB.ToString());
-  coupling_summary.setAttribute("energyA", (format("%1$1.6e") % energyA).str());
-  coupling_summary.setAttribute("energyB", (format("%1$1.6e") % energyB).str());
-  coupling_summary.setAttribute("pert", (format("%1$1.6e") % JAB_pert).str());
-  coupling_summary.setAttribute("diag", (format("%1$1.6e") % JAB_diag).str());
+  coupling_summary.setAttribute("stateA", stateA.ToString());
+  coupling_summary.setAttribute("stateB", stateB.ToString());
+  coupling_summary.setAttribute("eA", (format("%1$1.6e") % energyA).str());
+  coupling_summary.setAttribute("eB", (format("%1$1.6e") % energyB).str());
+  coupling_summary.setAttribute("j_pert", (format("%1$1.6e") % JAB_pert).str());
+  coupling_summary.setAttribute("j_diag", (format("%1$1.6e") % JAB_diag).str());
 }
 
 void BSECoupling::Addoutput(Property &type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB){
     tools::Property& bsecoupling= type_summary.add(Identify(),"");
-    string algorithm="full_diag";
+    string algorithm="j_diag";
     if (_output_perturbation){
-        algorithm="perturbation";
+        algorithm="j_pert";
     }
-    bsecoupling.setAttribute("algorithm",algorithm);
     if (_doSinglets){
         QMStateType singlet=QMStateType(QMStateType::Singlet);
         Property &singlet_summary = bsecoupling.add(singlet.ToLongString(),"");
+        singlet_summary.setAttribute("algorithm",algorithm);
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
              QMState qmstateA=QMState(singlet,stateA,false);
            for (int stateB = 0; stateB <_levB ; ++stateB ) {             
@@ -130,6 +130,7 @@ void BSECoupling::Addoutput(Property &type_summary,const Orbitals& orbitalsA,
     if ( _doTriplets){
         QMStateType triplet=QMStateType(QMStateType::Triplet);
         Property &triplet_summary = bsecoupling.add(triplet.ToLongString(),"");
+        triplet_summary.setAttribute("algorithm",algorithm);
         for (int stateA = 0; stateA < _levA ; ++stateA ) {
                QMState qmstateA=QMState(triplet,stateA,false);
            for (int stateB = 0; stateB <_levB ; ++stateB ) {             
@@ -509,16 +510,16 @@ std::vector< Eigen::MatrixXd > BSECoupling::ProjectExcitons(const Eigen::MatrixX
         ct_states -= correction;
         correction.resize(0, 0);
         //normalize
-
+        Eigen::VectorXd norm=ct_states.rowwise().norm();
         for (int i = 0; i < _ct; i++) {
-          double norm = ct_states.row(i).norm();
-          if (norm < 0.95) {
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: CT-state " << i << " norm is only" << norm << flush;
-          }
-          ct_states.row(i) /= norm;
+          ct_states.row(i) /= norm(i);
         }
-      }
-      
+        int minstateindex=0;
+        double minnorm=norm.minCoeff(&minstateindex);
+        if(minnorm<0.95){
+          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: CT-state " << minstateindex << " norm is only " << minnorm << flush;
+        }
+        }
      Eigen::MatrixXd projection(_bse_exc+_ct,nobasisfunc);
      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()  << " merging projections into one vector  " << flush;
   projection.block(0 ,0, _bse_exc,nobasisfunc)=fe_states;

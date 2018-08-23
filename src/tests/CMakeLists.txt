@@ -1,5 +1,5 @@
 if(ENABLE_TESTING)  
-find_package(Boost 1.39.0 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
   list(APPEND test_cases test_apolarsite)
   list(APPEND test_cases test_atom)
   list(APPEND test_cases test_fragment)
