@@ -47,15 +47,10 @@ public:
     Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
     void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB);
-    
 
-    
     void CalculateCouplings(const Orbitals& orbitalsA,const Orbitals& orbitalsB, 
                                Orbitals& orbitalsAB);
      
-   
-    
-    
 private:
     
     void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
@@ -84,8 +79,7 @@ private:
     int _unoccA;
     int _occB;
     int _unoccB;
-    int         _openmp_threads;
-    
+    int _openmp_threads;
     
     int _bse_exc;
     
@@ -95,7 +89,6 @@ private:
      Eigen::MatrixXd ctBA;
      Eigen::MatrixXd _kap;
      Eigen::MatrixXd _kbp;
-    
     
 };
 

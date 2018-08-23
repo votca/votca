@@ -497,7 +497,6 @@ namespace votca {
             double getTotalStateEnergy(const QMState& state)const;//Hartree
             double getExcitedStateEnergy (const QMState& state)const;//Hartree
             
-            Eigen::VectorXd getStateCoefficients(const QMState& state)const;
 
 
             // access to fragment charges of singlet excitations

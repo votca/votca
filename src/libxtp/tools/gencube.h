@@ -80,12 +80,6 @@ namespace votca {
 
 
             string key = "options." + Identify();
-            // _jobfile = options->get(key + ".file").as<string>();
-
-            // key = "options." + Identify();
-
-
-            // orbitals file or pure DFT output
             _orbfile = options->get(key + ".input").as<string> ();
             _output_file = options->get(key + ".output").as<string> ();
 
@@ -170,7 +164,7 @@ namespace votca {
                 out<<boost::format("Transition state: %1$s \n")% _state.ToString();
             }
             
-            bool do_amplitude=(_state.Type()==QMStateType::DQPstate || _state.Type()==QMStateType::KSstate ||_state.Type()==QMStateType::PQPstate);
+            bool do_amplitude=(_state.Type().isSingleParticleState());
             
             if(do_amplitude){
                 out<<boost::format("%1$s with energy %2$f eV \n") %_state.ToLongString() % (orbitals.getExcitedStateEnergy(_state)*tools::conv::hrt2ev);
@@ -221,7 +215,7 @@ namespace votca {
 
             Eigen::MatrixXd mat=Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
             if(_dostateonly){
-                if(_state.Type()==QMStateType::Singlet || _state.Type()==QMStateType::Triplet){
+                if(_state.Type().isExciton()){
                      std::vector< Eigen::MatrixXd > DMAT=orbitals.DensityMatrixExcitedState(_state);
                      mat=DMAT[1] - DMAT[0];
                 }

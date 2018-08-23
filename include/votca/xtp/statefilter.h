@@ -40,7 +40,7 @@ public:
     void setLogger(ctp::Logger* log){_log=log;}
     void setInitialState(const QMState& state ){_statehist.push_back(state);}
     void PrintInfo()const;
-    void Filter(const Orbitals& orbitals);
+    void Filter(Orbitals& orbitals);
     const QMState& getState(){return _state;}// zero indexed;
     
 private:
@@ -48,8 +48,13 @@ private:
     std::vector<int> OscFilter(const Orbitals& orbitals);
     std::vector<int> LocFilter(const Orbitals& orbitals);
     std::vector<int> DeltaQFilter(const Orbitals& orbitals);
-    std::vector<int> OverlapFilter(const Orbitals& orbitals);
+    std::vector<int> OverlapFilter(Orbitals& orbitals);
     
+    Eigen::VectorXd CalculateOverlap(Orbitals & orbitals);
+    
+    void UpdateLastCoeff(Orbitals& orbitals);
+    Eigen::MatrixXd CalcOrthoCoeffs(Orbitals& orbitals);
+
     std::vector<int> CollapseResults(std::vector< std::vector<int> >& results)const;
     std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
 
@@ -60,6 +65,7 @@ ctp::Logger *_log;
 std::vector<QMState> _statehist;
 
 Eigen::VectorXd _laststatecoeff;
+Eigen::MatrixXd _S_onehalf;
 
 bool _use_oscfilter=false;
 double _oscthreshold=0.0;

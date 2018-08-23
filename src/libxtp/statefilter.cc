@@ -18,6 +18,9 @@
  */
 
 #include <votca/xtp/statefilter.h>
+#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
+
+#include "votca/xtp/aomatrix.h"
 
 namespace votca {
     namespace xtp {
@@ -65,8 +68,6 @@ namespace votca {
         if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_oscthreshold<1){
           throw std::runtime_error("No filter is used.");
         }
-     
-   
    }
    
    void Statefilter::PrintInfo()const{
@@ -116,7 +117,9 @@ namespace votca {
      }
    }
    
-   void Statefilter::Filter(const Orbitals& orbitals){
+   
+   
+   void Statefilter::Filter(Orbitals& orbitals){
       
      std::vector< std::vector<int> > results;
      if(_use_oscfilter){
@@ -141,6 +144,11 @@ namespace votca {
       _state=QMState(_initial_state.Type(),result[0],false);
       CTP_LOG(ctp::logDEBUG, *_log) << " Next State is "<<_state.ToString()<< flush;
     }
+    
+    if(_use_overlapfilter){
+        UpdateLastCoeff(orbitals);
+    }
+    
    }
    
    std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals){
@@ -182,129 +190,74 @@ namespace votca {
     }
      return indexes;
    }
+   
+   
+   Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals & orbitals){
+    
+    BasisSet dftbs;
+    dftbs.LoadBasisSet(orbitals.getDFTbasis());
+    AOBasis dftbasis;
+    dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
+    AOOverlap dftoverlap;
+    dftoverlap.Fill(dftbasis);
+    _S_onehalf=dftoverlap.Pseudo_InvSqrt(1e-8);
+    Eigen::MatrixXd ortho_coeffs=CalcOrthoCoeffs(orbitals);
+    Eigen::VectorXd overlap=(ortho_coeffs*_laststatecoeff).cwiseAbs2();
+    return overlap;   
+   }
 
-      std::vector<int> Statefilter::OverlapFilter(const Orbitals & orbitals) {
+   Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals){
+       QMStateType type=_statehist[0].Type();
+       Eigen::MatrixXd ortho_coeffs;
+       if(type.isSingleParticleState()){
+           Eigen::MatrixXd coeffs; 
+           if(type==QMStateType::DQPstate){
+               coeffs=orbitals.CalculateQParticleAORepresentation();
+           }else{
+               coeffs=orbitals.MOCoefficients();
+           }
+           ortho_coeffs=_S_onehalf*coeffs;
+       }else{
+           throw std::runtime_error("Overlap for excitons not implemented yet");
+       }
+       return ortho_coeffs;
+   }
+   
+   void Statefilter::UpdateLastCoeff(Orbitals& orbitals){
+       QMStateType type=_statehist[0].Type();
+       Eigen::MatrixXd ortho_coeffs=CalcOrthoCoeffs(orbitals);
+       int offset=0;
+        if(_statehist[0].Type().isGWState()){
+            offset=orbitals.getGWAmin();
+        }
+       _laststatecoeff=ortho_coeffs.col(_state.Index()-offset); 
+   }
+
+      std::vector<int> Statefilter::OverlapFilter(Orbitals & orbitals) {
         std::vector<int> indexes;
         if (_statehist.size() <= 1) {
-          _laststatecoeff = orbitals.getStateCoefficients(_statehist[0]);
           indexes=std::vector<int>{_statehist[0].Index()};
           return indexes;
         }
+        
+        Eigen::VectorXd Overlap=CalculateOverlap(orbitals);
+        std::vector<int>index = std::vector<int>(Overlap.size());
+        std::iota(index.begin(), index.end(), 0);
+        std::stable_sort(index.begin(), index.end(), [&Overlap](int i1, int i2) {
+            return Overlap[i1] > Overlap[i2];
+        });
 
+        int offset=0;
+        if(_statehist[0].Type().isGWState()){
+            offset=orbitals.getGWAmin();
+        }
+
+        for (int i:index){
+            indexes.push_back(i+offset);
+        }
         return indexes;
       }
    
-   /*
-     
-
-          // quasiparticle filter
-          if (_has_overlap_filter) {
-            if (iter == 0) {
-
-              // One - to - One LIST in 0th iteration
-              for (unsigned i = 0; i < orb_iter_input.QPdiagEnergies().size(); i++) {
-                state_index.push_back(i);
-              }
-
-            } else {
-
-              BasisSet dftbs;
-              dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
-              CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
-              AOBasis dftbasis;
-              dftbasis.AOBasisFill(dftbs, orb_iter_input.QMAtoms());
-              CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Basis of size " << dftbasis.AOBasisSize() << flush;
-
-              AOOverlap dftoverlap;
-              dftoverlap.Fill(dftbasis);
-              CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
-
-              // 'LAMBDA' matrix of the present iteration
-              Eigen::MatrixXd lambda_N = orb_iter_input.CalculateQParticleAORepresentation();
-
-              // 'LAMBDA' matrix of the previous iteration
-              string runFolder_N_1 = jobFolder + "/iter_" + boost::lexical_cast<string>(iter - 1);
-              string orbfile_N_1 = runFolder_N_1 + "/system.orb";
-              Orbitals orbitals_N_1;
-              // load the QM data from serialized orbitals object
-
-              CTP_LOG(ctp::logDEBUG, *_log) << " Loading QM data from " << orbfile_N_1 << flush;
-              orbitals_N_1.ReadFromCpt(orbfile_N_1);
-
-              Eigen::MatrixXd lambda_N_1 = orbitals_N_1.CalculateQParticleAORepresentation();
-              // calculate QP overlaps
-              Eigen::MatrixXd qpoverlaps = lambda_N * dftoverlap.Matrix() * lambda_N_1.transpose();
-
-              // filter for max absolute value (hopefully close to 1)
-              for (unsigned j = 0; j < qpoverlaps.cols(); j++) {             
-                int maxi = 0;
-                double maximumoverlap=qpoverlaps.col(j).maxCoeff(&maxi);
-                state_index.push_back(maxi);
-                CTP_LOG(ctp::logDEBUG, *_log) << " [" << maxi << " , " << j << "]: " <<maximumoverlap << flush;
-              }
-            }
-          }
-
-          if (_has_osc_filter) {
-            // go through list of singlets
-            const std::vector<double>oscs = orb_iter_input.Oscillatorstrengths();
-            for (unsigned i = 0; i < oscs.size(); i++) {
-              if (oscs[i] > _osc_threshold) state_index.push_back(i);
-            }
-          } else {
-            const VectorXfd & energies = (_type == "singlet")
-                    ? orb_iter_input.BSESingletEnergies() : orb_iter_input.BSETripletEnergies();
-            for (unsigned i = 0; i < energies.size(); i++) {
-              state_index.push_back(i);
-            }
-          }
-
-
-          // filter according to charge transfer, go through list of excitations in _state_index
-          if (_has_dQ_filter) {
-            std::vector<int> state_index_copy;
-            const std::vector< Eigen::VectorXd >& dQ_frag = (_type == "singlet")
-                    ? orb_iter_input.getFragmentChargesSingEXC() : orb_iter_input.getFragmentChargesTripEXC();
-            for (unsigned i = 0; i < state_index.size(); i++) {
-              if (std::abs(dQ_frag[state_index[i]](0)) > _dQ_threshold) {
-                state_index_copy.push_back(state_index[i]);
-              }
-            }
-            state_index = state_index_copy;
-          } else if (_has_loc_filter) {
-            std::vector<int> state_index_copy;
-            const std::vector< Eigen::VectorXd >& popE = (_type == "singlet")
-                    ? orb_iter_input.getFragment_E_localisation_singlet() : orb_iter_input.getFragment_E_localisation_triplet();
-            const std::vector< Eigen::VectorXd >& popH = (_type == "singlet")
-                    ? orb_iter_input.getFragment_H_localisation_singlet() : orb_iter_input.getFragment_H_localisation_triplet();
-            if (_localiseonA) {
-              for (unsigned i = 0; i < state_index.size(); i++) {
-                if (popE[state_index[i]](0) > _loc_threshold && popH[state_index[i]](0) > _loc_threshold) {
-                  state_index_copy.push_back(state_index[i]);
-                }
-              }
-            } else {
-              for (unsigned i = 0; i < state_index.size(); i++) {
-                if (popE[state_index[i]](1) > _loc_threshold && popH[state_index[i]](1) > _loc_threshold) {
-                  state_index_copy.push_back(state_index[i]);
-                }
-              }
-            }
-            state_index = state_index_copy;
-          }
-
-
-          if (state_index.size() < 1) {
-            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " WARNING: FILTER yielded no state. Taking lowest excitation" << flush;
-            state_index.push_back(0);
-          } else {
-            if (_type == "quasiparticle") {
-              CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded QP index: " << state_index[_state - 1 - orb_iter_input.getGWAmin()] << flush;
-            } else {
-              CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Filter yielded state" << _type << ":" << state_index[_state - 1] + 1 << flush;
-            }
-          }
-    */
 
     }
 }

@@ -132,7 +132,7 @@ namespace votca {
             return this->TransitionDensityMatrix(state);
           }
           Eigen::MatrixXd result=this->DensityMatrixGroundState();
-          if(state.Type()==QMStateType::Singlet || state.Type()==QMStateType::Triplet){
+          if(state.Type().isExciton()){
              std::vector< Eigen::MatrixXd > DMAT = DensityMatrixExcitedState(state);
              result=result- DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
           }else if(state.Type()==QMStateType::DQPstate){
@@ -152,7 +152,7 @@ namespace votca {
 
         Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const{
             if (!hasMOCoefficients()) {
-                throw std::runtime_error("Orbitals file does not contain QP coefficients");
+                throw std::runtime_error("Orbitals file does not contain MO coefficients");
             }
             Eigen::MatrixXd occstates = _mo_coefficients.block(0, 0, _mo_coefficients.rows(), _occupied_levels);
             Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
@@ -163,7 +163,7 @@ namespace votca {
           if (!hasQPdiag()) {
                 throw std::runtime_error("Orbitals file does not contain QP coefficients");
             }
-            return _QPdiag_coefficients * _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal);
+            return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal)*_QPdiag_coefficients;
         }
 
         // Determine QuasiParticle Density Matrix
@@ -173,7 +173,7 @@ namespace votca {
             throw std::runtime_error("State:"+state.ToString()+" is not a quasiparticle state");
           }
             Eigen::MatrixXd lambda = CalculateQParticleAORepresentation();
-            Eigen::MatrixXd dmatQP = lambda.col(state.Index()) * lambda.col(state.Index()).transpose();
+            Eigen::MatrixXd dmatQP = lambda.col(state.Index()-_qpmin) * lambda.col(state.Index()-_qpmin).transpose();
             return dmatQP;
         }
 
@@ -248,7 +248,7 @@ namespace votca {
         // Excited state density matrix
 
         std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(const QMState& state) const{
-            if (!(state.Type() == QMStateType::Singlet || state.Type() == QMStateType::Triplet)) {
+            if (!state.Type().isExciton()) {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
 
@@ -464,13 +464,6 @@ namespace votca {
             return  omega; //  e.g. hartree
         }
         
-        Eigen::VectorXd Orbitals::getStateCoefficients(const QMState& state)const{
-          Eigen::VectorXd coeffs;
-          
-          
-          
-          return coeffs;
-        }
 
         Eigen::VectorXd Orbitals::FragmentNuclearCharges(int frag) const{
          

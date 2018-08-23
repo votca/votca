@@ -34,8 +34,6 @@ namespace xtp {
         QMStateType(const statetype& type):_type(type){;}
         QMStateType(){;}
         
-        
-        
         statetype Type()const{return _type;}
         
         void FromString(const std::string& statetypestring);
@@ -59,6 +57,18 @@ namespace xtp {
          bool operator!=(const QMStateType::statetype& rhs)const{
             return _type!=rhs;
         }
+         
+         bool isExciton()const{
+             return (_type==statetype::Singlet || _type==statetype::Triplet);
+         }
+         
+         bool isSingleParticleState()const{
+             return (_type==statetype::PQPstate || _type==statetype::DQPstate || _type==KSstate);
+         }
+         
+        bool isGWState()const{
+            return (_type==statetype::PQPstate || _type==statetype::DQPstate);
+         }
     
     private:
         
