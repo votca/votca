@@ -29,7 +29,6 @@
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
       <itemPath>../../include/votca/tools/property.h</itemPath>
-      <itemPath>../../include/votca/tools/random.h</itemPath>
       <itemPath>../../include/votca/tools/rangeparser.h</itemPath>
       <itemPath>../../include/votca/tools/spline.h</itemPath>
       <itemPath>../../include/votca/tools/statement.h</itemPath>
@@ -40,7 +39,6 @@
       <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
       <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
-      <itemPath>../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -231,8 +229,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/tools/rangeparser.h"
             ex="false"
             tool="3"
@@ -264,11 +260,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/votca_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -503,8 +494,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/tools/rangeparser.h"
             ex="false"
             tool="3"
@@ -536,11 +525,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/votca_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -775,8 +759,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/tools/rangeparser.h"
             ex="false"
             tool="3"
@@ -808,11 +790,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/votca_config.h.in"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/votca_gsl_boost_ublas_matrix_prod.h"
             ex="false"
             tool="3"
             flavor2="0">

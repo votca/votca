@@ -229,7 +229,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
             out << ">";
             
             // print node value if it is not empty
-            has_value = ( (p.value()).find_first_not_of("\t\n ") != std::string::npos );
+            has_value = (p.value().size()>0 && (p.value()).find_first_not_of("\t\n ") != std::string::npos );
             if( has_value ) { 
                 out <<  cAttributeValue <<  p.value() << cReset;
                 _endl = false; 
@@ -255,7 +255,9 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom, i
             } else {
                 if (has_value) { // avoid indent after the value
                         out << "</" << cKey << p.name() << cReset << ">" << endl;
-                } else {
+                } else if(!p.HasChilds()){
+                  out << "</" << cKey << p.name() << cReset << ">" << endl;
+                }else {
                         out << indent << offset << "</" << cKey << p.name() << cReset << ">" << endl;
                 }
             }
