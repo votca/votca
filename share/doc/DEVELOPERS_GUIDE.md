@@ -8,6 +8,7 @@
  - [CPP Resoures](#cpp-resources)
  - [CPP Tips](#cpp-tips)
  - [Testing](#testing)
+ - [Failed Travis Builds](#failed-travis-builds)
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
  - [Updating Git Submodules](#updating-git-submodules)
@@ -175,6 +176,25 @@ make test
 ```
 
 Ensure you have an up to date version of cmake or use cmake3 
+
+## Failed Travis Builds
+
+There may come a time where one of the docker builds fails. It may be the case
+that the error message is clear and it can be reproduced on your host os.
+However, in the case that the error is specific to the enviorment used in the
+build the local enviornment can be simulated using a docker container. 
+
+Before you can use this approach docker must be installed on your host OS. Begin
+by running a docker image the default is:
+
+
+```
+docker run -it votca/buildenv:fedora /bin/bash
+```
+
+This will run an interative docker container which you can interact with in bash
+. The next commands will need to be adjusted to whatever local environment you 
+need to reproduce to test the error in the travis build.
 
 ## CPP Codeing Style Guide
 
