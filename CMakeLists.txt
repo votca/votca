@@ -14,6 +14,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
 
+include(GNUInstallDirs)
 ########################################################################
 # User input options                                                   #
 ########################################################################
@@ -45,6 +46,12 @@ option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport
 if(NOT WITH_SQLITE3 AND ( BUILD_CTP OR BUILD_XTP) )
   message(FATAL_ERROR "ctp needs tools to be build with sqlite3")
 endif()
+
+option(ENABLE_RPATH_INJECT "Inject link and install libdir into executables" OFF)
+if(ENABLE_RPATH_INJECT)
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+endif(ENABLE_RPATH_INJECT)
 
 ########################################################################
 #Find external packages
