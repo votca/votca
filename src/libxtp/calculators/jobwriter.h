@@ -39,19 +39,13 @@ public:
     bool EvaluateFrame(ctp::Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void mps_ct(ctp::Topology *top);
-    void mps_chrg(ctp::Topology *top);
-    void mps_kmc(ctp::Topology *top);
+    void mps_dimer(ctp::Topology *top);
+    void mps_monomer(ctp::Topology *top);
     void mps_background(ctp::Topology *top);
-    void mps_single(ctp::Topology *top);
-    
-
-    
 
 private:
 
     tools::Property *_options;
-    std::vector<std::string> _keys;
     std::map<std::string,WriteFunct> _key_funct;
 };
 

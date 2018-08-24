@@ -188,13 +188,11 @@ namespace votca {
             std::vector< std::vector<double> > rJ2;
             rJ2.resize(pointsR);
 
-
             // Loop over distance
             for (int i = 0; i < pointsR; ++i) {
                 double thisMINR = MINR + i*_resolution_space;
                 double thisMAXR = MINR + (i + 1) * _resolution_space;
-                // now count Js that lie within this R range, calculate mean and sigma
- 
+                // now count Js that lie within this R range
                 for (unsigned j=0;j<J2s.size();++j) {
                     if (thisMINR < distances[j] && distances[j] < thisMAXR) {
                         rJ2[i].push_back(J2s[j]);
@@ -222,8 +220,6 @@ namespace votca {
            tab.Save(filename);
 
         }
-
-
 
     }
 }
