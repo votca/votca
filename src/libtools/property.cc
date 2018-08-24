@@ -428,7 +428,6 @@ std::ostream &operator<<(std::ostream &out, Property &p) {
         PrintNodeHLP(out, p, _level, 0, "", _indentation);
         break;
     }
-    // out << endl;
   }
 
   return out;
