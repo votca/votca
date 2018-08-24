@@ -148,8 +148,7 @@ namespace votca {
         if (segmentpnumber.size() != 2) {
           throw runtime_error("Parser iqm: Segment and exciton labels:" + substring + "are not separated properly");
         }
-        QMState state;
-        state.FromString(segmentpnumber[1]);
+        QMState state=QMState(segmentpnumber[1]);
         string segmentname = segmentpnumber[0];
         type2level[segmentname] = state;
       }

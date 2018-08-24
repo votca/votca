@@ -33,12 +33,17 @@ namespace xtp {
         
         QMStateType(const statetype& type):_type(type){;}
         QMStateType(){;}
+        QMStateType(const std::string& s){
+            FromString(s);
+        }
         
         statetype Type()const{return _type;}
         
         void FromString(const std::string& statetypestring);
         
         std::string ToString()const;
+        
+        int ToCTPIndex()const;//returns ctp::segment id for statetype
     
         std::string ToLongString()const;
         

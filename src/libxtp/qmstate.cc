@@ -28,6 +28,23 @@
 namespace votca {
     namespace xtp {
 
+    int QMStateType::ToCTPIndex()const {
+      if (_type == QMStateType::Singlet) {
+        return 2;
+      } else if (_type == QMStateType::Triplet) {
+        return 3;
+      } else if (_type == QMStateType::Hole) {
+        return 1;
+      } else if (_type == QMStateType::Electron) {
+        return 3;
+      } else if (_type == QMStateType::Gstate) {
+        return 0;
+      } else {
+        throw std::runtime_error("For state " + this->ToString() + " no conversion to ctp exists");
+      }
+      return 0;
+    }
+
     std::string QMStateType::ToString() const{
       std::string identifier="";
       switch (_type) {
@@ -58,9 +75,9 @@ namespace votca {
           break;
         case QMStateType::Triplet: identifier = "triplet";
           break;
-        case QMStateType::PQPstate: identifier = "perturbative-quasiparticle";
+        case QMStateType::PQPstate: identifier = "pert-qparticle";
           break;
-        case QMStateType::DQPstate: identifier = "diagonalised-quasiparticle";
+        case QMStateType::DQPstate: identifier = "diag-qparticle";
           break;
         case QMStateType::KSstate: identifier = "Kohn-Sham-orbital";
           break;
@@ -81,9 +98,9 @@ namespace votca {
         _type=QMStateType::Singlet;
       }else if(lower=="t" || lower=="triplet" ){
         _type=QMStateType::Triplet;
-      }else if(lower=="pqp" || lower=="perturbative-quasiparticle"){
+      }else if(lower=="pqp" || lower=="pert-qparticle"){
         _type=QMStateType::PQPstate;
-      }else if(lower=="dqp" || lower=="diagonalised-quasiparticle" || lower=="qpdiag"){
+      }else if(lower=="dqp" || lower=="diag-qparticle" || lower=="qpdiag"){
         _type=QMStateType::DQPstate;
       }else if(lower=="ks" || lower=="kohn-sham-orbital"){
         _type=QMStateType::KSstate;
