@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,38 +16,38 @@
  */
 
 #ifndef _VOTCA_CSG_MOLECULEITEM_H
-#define	_VOTCA_CSG_MOLECULEITEM_H
+#define _VOTCA_CSG_MOLECULEITEM_H
 
 #include <cassert>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 class Molecule;
 
-class MoleculeItem
-{
-public:    
-    virtual ~MoleculeItem() {}
+class MoleculeItem {
+public:
+  virtual ~MoleculeItem() {}
 
-    /**
-     * Returns the molecule the pointer points at
-     */
-    Molecule *getMolecule() { assert(mol!=nullptr); return _mol; }
+  /**
+   * Returns the molecule the pointer points at
+   */
+  Molecule *getMolecule() {
+    assert(mol != nullptr);
+    return _mol;
+  }
 
-    /**
-     * stores a pointer to a molecule
-     */
-    void setMolecule(Molecule *mol) { _mol = mol; }
+  /**
+   * stores a pointer to a molecule
+   */
+  void setMolecule(Molecule *mol) { _mol = mol; }
 
 protected:
-    MoleculeItem(Molecule *mol)
-        : _mol(mol) {}
-    
-    Molecule *_mol = nullptr;
-    
+  MoleculeItem(Molecule *mol) : _mol(mol) {}
+
+  Molecule *_mol = nullptr;
 };
+}
+}
 
-}}
-
-#endif	// _VOTCA_CSG_MOLECULEITEM_H
-
+#endif // _VOTCA_CSG_MOLECULEITEM_H
