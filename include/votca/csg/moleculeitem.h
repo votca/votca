@@ -18,6 +18,8 @@
 #ifndef _VOTCA_CSG_MOLECULEITEM_H
 #define	_VOTCA_CSG_MOLECULEITEM_H
 
+#include <cassert>
+
 namespace votca { namespace csg {
 
 class Molecule;
@@ -26,14 +28,22 @@ class MoleculeItem
 {
 public:    
     virtual ~MoleculeItem() {}
-    Molecule *getMolecule() { return _mol; }
+
+    /**
+     * Returns the molecule the pointer points at
+     */
+    Molecule *getMolecule() { assert(mol!=nullptr); return _mol; }
+
+    /**
+     * stores a pointer to a molecule
+     */
     void setMolecule(Molecule *mol) { _mol = mol; }
 
 protected:
     MoleculeItem(Molecule *mol)
         : _mol(mol) {}
     
-    Molecule *_mol;
+    Molecule *_mol = nullptr;
     
 };
 
