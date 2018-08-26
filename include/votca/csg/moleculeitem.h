@@ -33,7 +33,7 @@ public:
    * Returns the molecule the pointer points at
    */
   Molecule *getMolecule() {
-    assert(mol != nullptr);
+    assert(_mol != nullptr);
     return _mol;
   }
 
