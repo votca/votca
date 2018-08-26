@@ -106,6 +106,13 @@ after_success:
       fi;
     fi
 
+branches:
+  only:
+  - master
+  - development
+  - stable
+  - next
+
 cache:
   - ccache
 
