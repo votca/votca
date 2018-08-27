@@ -152,14 +152,24 @@ inline Table::Table(Table &tbl) {
 inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
   out.precision(10);
+  
   if (t._has_yerr) {
     for (int i = 0; i < t._x.size(); ++i) {
-      out << t._x[i] << " " << t._y[i] << " " << t._yerr[i] << " "
-          << t._flags[i] << std::endl;
+      out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
+      if(t._flags[i]!=' '){
+        out  << " "<< t._flags[i] << std::endl;
+      }else{
+        out<<std::endl;  
+      }
     }
   } else {
     for (int i = 0; i < t._x.size(); ++i) {
-      out << t._x[i] << " " << t._y[i] << " " << t._flags[i] << std::endl;
+      out << t._x[i] << " " << t._y[i];
+       if(t._flags[i]!=' '){
+        out  << " "<< t._flags[i] << std::endl;
+      }else{
+        out<<std::endl;  
+      }
     }
   }
   return out;
