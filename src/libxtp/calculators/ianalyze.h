@@ -70,6 +70,7 @@ namespace votca {
                 _states.push_back(QMStateType(QMStateType::Electron));
                 _states.push_back(QMStateType(QMStateType::Hole));
             }
+
             _resolution_logJ2 = opt->get(key + ".resolution_logJ2").as< double >();
             if (opt->exists(key + ".pairtype")) {
                 _do_pairtype = true;
@@ -95,7 +96,6 @@ namespace votca {
             }
             if (_do_pairtype) {
                 bool pairs_exist = false;
-                ctp::QMNBList::iterator nit;
                 for (ctp::QMPair* pair:nblist) {
                     ctp::QMPair::PairType pairtype = pair->getType();
                     if (std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()) {
@@ -109,6 +109,7 @@ namespace votca {
                 }
             }
             for (QMStateType state:_states) {
+                std::cout<<"Calculating for state "<<state.ToString()<<" now."<<std::endl;
                 this->IHist(top, state);
                 if (_do_IRdependence) {
                     this->IRdependence(top, state);
@@ -138,7 +139,7 @@ namespace votca {
             }
 
             if (J2s.size() < 1) {
-                throw std::runtime_error("Error: Couplings are all zero. You have not yet imported them! ");
+                throw std::runtime_error("Error:"+state.ToLongString()+" Couplings are all zero. You have not yet imported them! ");
             }
             
             double MAX = *std::max_element(J2s.begin(), J2s.end());
@@ -157,6 +158,7 @@ namespace votca {
             std::string comment = (boost::format("IANALYZE: PAIR-INTEGRAL J2 HISTOGRAM \n # AVG %1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") % AVG % STD % MIN % MAX).str();
             std::string filename = "ianalyze.ihist_" + state.ToString() + ".out";
             tab.set_comment(comment);
+            tab.flags()= std::vector<char>(tab.size(), ' ');
             tab.Save(filename);
 
         }
@@ -212,7 +214,7 @@ namespace votca {
                 double thisR = MINR + (i + 0.5) * _resolution_space;
                 double sq_sum = std::inner_product(vec.begin(), vec.end(), vec.begin(), 0.0);
                 double STD = std::sqrt(sq_sum / vec.size() - AVG * AVG);
-                tab.set(i,thisR,AVG,'\0',STD);
+                tab.set(i,thisR,AVG,' ',STD);
             }
            std::string filename = "ianalyze.ispatial_" + state.ToString() + ".out";
            std::string comment ="# IANALYZE: SPATIAL DEPENDENCE OF log10(J2) [r,log10(J),error]";

@@ -206,6 +206,7 @@ namespace votca {
             hist.Initialize(MIN, MAX, BIN);
             hist.ProcessRange<std::vector<double>::iterator>(Es.begin(), Es.end());
             tools::Table& tab = hist.data();
+            tab.flags()= std::vector<char>(tab.size(), ' ');
             std::string comment = (boost::format("EANALYZE: SITE-ENERGY HISTOGRAM \n # AVG %1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") % AVG % STD % MIN % MAX).str();
             std::string filename = "eanalyze.sitehist_" + state.ToString() + ".out";
             tab.set_comment(comment);
@@ -273,6 +274,7 @@ namespace votca {
             tools::Table& tab = hist.data();
             std::string comment = (boost::format("EANALYZE: PAIR-ENERGY HISTOGRAM \n # AVG %1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") % AVG % STD % MIN % MAX).str();
             tab.set_comment(comment);
+            tab.flags()= std::vector<char>(tab.size(), ' ');
             tab.Save(filename2);
         }
 
@@ -353,7 +355,7 @@ namespace votca {
                 // error on mean value
                 dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size() - 1);
                 double R = MIN + bin*_resolution_space;
-                histC.set(bin, R, corr, '\0', std::sqrt(dcorr2));
+                histC.set(bin, R, corr, ' ', std::sqrt(dcorr2));
             }
 
             std::string filename = "eanalyze.sitecorr_" + state.ToString() + ".out";
