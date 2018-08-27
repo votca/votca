@@ -39,6 +39,9 @@ namespace votca {
 
     void HistogramNew::Initialize_(double min, double max) {
       _step = (_max - _min) / (_nbins - 1.0);
+      if(_nbins==1){
+        _step=1;
+      }
       _data.resize(_nbins);
       for (double v = _min, i = 0; i < _nbins; v += _step, ++i) {
         _data.x(i) = v;
@@ -50,6 +53,9 @@ namespace votca {
 
     void HistogramNew::InitializeP_(double min, double max) {
       _step_p = (_max - _min) / (_nbins);
+      if(_nbins==1){
+        _step_p=1;
+      }
       _data_p.resize(_nbins);
       for (double v_p = _min, i = 0; i < _nbins; v_p += _step_p, ++i) {
         _data_p.x(i) = v_p;
@@ -69,10 +75,12 @@ namespace votca {
     }
 
     void HistogramNew::Process_(const double &v, double scale) {
+      
       int i = (int) floor((v - _min) / _step + 0.5);
       if (i < 0 || i >= _nbins) {
         return;
       }
+      std::cout<<i<<" "<<_data_p.size()<<std::endl;
       _data.y(i) += _weight * scale;
     }
 
@@ -84,6 +92,7 @@ namespace votca {
         else
           i = i % _nbins;
       }
+      std::cout<<i<<" "<<_data_p.size()<<std::endl;
       _data_p.y(i) += _weight * scale;
     }
 
