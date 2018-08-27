@@ -80,7 +80,6 @@ namespace votca {
       if (i < 0 || i >= _nbins) {
         return;
       }
-      std::cout<<i<<" "<<_data_p.size()<<std::endl;
       _data.y(i) += _weight * scale;
     }
 
@@ -92,7 +91,6 @@ namespace votca {
         else
           i = i % _nbins;
       }
-      std::cout<<i<<" "<<_data_p.size()<<std::endl;
       _data_p.y(i) += _weight * scale;
     }
 
