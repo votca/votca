@@ -48,21 +48,21 @@ namespace votca {
     std::string QMStateType::ToString() const{
       std::string identifier="";
       switch (_type) {
-        case QMStateType::Singlet: identifier = "S";
+        case QMStateType::Singlet: identifier = "s";
           break;
-        case QMStateType::Triplet: identifier = "T";
+        case QMStateType::Triplet: identifier = "t";
           break;
-        case QMStateType::PQPstate: identifier = "PQP";
+        case QMStateType::PQPstate: identifier = "pqp";
           break;
-        case QMStateType::DQPstate: identifier = "DQP";
+        case QMStateType::DQPstate: identifier = "dqp";
           break;
-        case QMStateType::KSstate: identifier = "KS";
+        case QMStateType::KSstate: identifier = "ks";
           break;
-        case QMStateType::Gstate: identifier = "N";
+        case QMStateType::Gstate: identifier = "n";
           break;
-        case QMStateType::Hole: identifier = "H";
+        case QMStateType::Hole: identifier = "h";
           break;
-        case QMStateType::Electron: identifier = "E";
+        case QMStateType::Electron: identifier = "e";
           break;
       }
       return identifier;
@@ -119,7 +119,7 @@ namespace votca {
       int index=_index;
       if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
         index++;
-      }else if(_type==QMStateType::Gstate){
+      }else if(_type==QMStateType::Gstate || _type==QMStateType::Electron || _type==QMStateType::Hole){
         return _type.ToLongString();
       }
       std::string result=_type.ToLongString()+(boost::format(" %i") % index ).str();
@@ -133,7 +133,7 @@ namespace votca {
       int index=_index;
       if(_type==QMStateType::Singlet || _type==QMStateType::Triplet){
         index++;
-      }else if(_type==QMStateType::Gstate){
+      }else if(_type==QMStateType::Gstate || _type==QMStateType::Electron || _type==QMStateType::Hole){
         return _type.ToString();
       }
       std::string result=_type.ToString()+(boost::format("%i") % index ).str();
@@ -202,10 +202,10 @@ namespace votca {
       if(_type!=QMStateType::Singlet && _transition==true){
           throw std::runtime_error("Transition states only exist for singlets.");
       }
-      if(_type!=QMStateType::Gstate){
+      if(_type!=QMStateType::Gstate && _type!=QMStateType::Electron && _type!=QMStateType::Hole){
         _index=DetermineIndex(rest);
      }else{
-          _index=-1;
+        _index=0;
      }
     }
   

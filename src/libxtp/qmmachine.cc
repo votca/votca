@@ -85,23 +85,14 @@ namespace votca {
       // GWBSE options
       key = sfx + ".gwbse";
       if (opt->exists(key)) {
-        _do_gwbse = true;
-
         string _gwbse_xml = opt->get(key + ".gwbse_options").as<string> ();
         load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-        std::string statestring= opt->ifExistsReturnElseReturnDefault<string>(key+".state","s1");
-        _initialstate.FromString(statestring);	         
          key = sfx + ".gwbse.filter";
          if(opt->exists(key)){
-           tools::Property filterprop=opt->get(key);
+           tools::Property& filterprop=opt->get(key);
            _filter.Initialize(filterprop);
-           _filter.setInitialState(_initialstate);
          }
-     
-        
-      } else {
-        _do_gwbse = false;
-      }
+      } 
 
       return;
     }
@@ -132,13 +123,26 @@ namespace votca {
 
 
       // PREPARE JOB DIRECTORY
-      string jobFolder = "xjob_" + boost::lexical_cast<string>(_job->getId())
+      boost::filesystem::path arg_path;
+      string frame_dir = "frame_" + boost::lexical_cast<string>(_job->getTop()->getDatabaseId());
+      string jobFolder = "job_" + boost::lexical_cast<string>(_job->getId())
               + "_" + _job->getTag();
-      bool created = boost::filesystem::create_directory(jobFolder);
+      string work_dir = (arg_path / "QMMM" / frame_dir / jobFolder).c_str();
+      bool created = boost::filesystem::create_directories(work_dir);
       if (created) {
-        CTP_LOG(ctp::logINFO, *_log) << "Created directory " << jobFolder << flush;
+        CTP_LOG(ctp::logINFO, *_log) << "Created directory " << work_dir << flush;
       }
-
+      
+      vector<string> split;
+      Tokenizer toker(_job->getTag(), ":");
+      toker.ToVector(split);
+      _initialstate=QMState(split.back());
+      if(_initialstate.Type().isExciton() || _initialstate.Type().isGWState()){
+       _filter.setInitialState(_initialstate);
+       _filter.setLogger(_log);
+       _do_gwbse=true;
+      }
+      
       _qmpack->setCharge(chrg);
       _qmpack->setSpin(spin);
 
@@ -147,7 +151,7 @@ namespace votca {
       for (; iterCnt < iterMax; ++iterCnt) {
 
         // check for polarized QM/MM convergence
-        int info = Iterate(jobFolder, iterCnt);
+        int info = Iterate(work_dir, iterCnt);
         if (info != 0) {
           CTP_LOG(ctp::logERROR, *_log)
                   << format("Iterating job failed!") << flush;
@@ -190,6 +194,7 @@ namespace votca {
 
 
     void QMMachine::RunGWBSE(string& runFolder){
+      CTP_LOG(ctp::logDEBUG, *_log) << "Running GWBSE "<< flush;
       GWBSE gwbse = GWBSE(orb_iter_input);
       // define own logger for GW-BSE that is written into a runFolder logfile
       ctp::Logger gwbse_logger(ctp::logDEBUG);
@@ -218,12 +223,21 @@ namespace votca {
 
 
     bool QMMachine::RunDFT(string& runFolder, std::vector<std::shared_ptr<ctp::PolarSeg> >& MultipolesBackground){
+      ctp::Logger dft_logger(ctp::logDEBUG);
+      dft_logger.setMultithreading(false);
+      dft_logger.setPreface(ctp::logINFO, (format("\nGWBSE INF ...")).str());
+      dft_logger.setPreface(ctp::logERROR, (format("\nGWBSE ERR ...")).str());
+      dft_logger.setPreface(ctp::logWARNING, (format("\nGWBSE WAR ...")).str());
+      dft_logger.setPreface(ctp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+      _qmpack->setLog(&dft_logger);
+      
       _qmpack->setMultipoleBackground(MultipolesBackground);
       
       // setting RUNDIR for the external QMPackages, dummy for internal
       _qmpack->setRunDir(runFolder);
       
       CTP_LOG(ctp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
+      CTP_LOG(ctp::logDEBUG, *_log) << "Running DFT " << flush;
       _qmpack->WriteInputFile(orb_iter_input);
       
       orb_iter_input.WriteXYZ(runFolder + "/system_qm.xyz");
@@ -238,13 +252,21 @@ namespace votca {
        * IF the internal ESPFITs should be used, the MOcoefficients
        * need to be parsed too.
        */
-      bool success= _qmpack->ParseLogFile(orb_iter_input);
-      if(!success){
-        return false;
-      }
-      success=_qmpack->ParseOrbitalsFile(orb_iter_input);
+      bool success1= _qmpack->ParseLogFile(orb_iter_input);
+   
+      bool success2=_qmpack->ParseOrbitalsFile(orb_iter_input);
       _qmpack->CleanUp();
-        return success;
+      
+      ofstream ofs;
+      string dft_logfile = runFolder + "/dft.log";
+      ofs.open(dft_logfile.c_str(), ofstream::out);
+      if (!ofs.is_open()) {
+        throw runtime_error("Bad file handle: " + dft_logfile);
+      }
+      ofs << dft_logger << endl;
+      ofs.close();
+      _qmpack->setLog(_log);
+        return success1&&success2;
     }
 
     bool QMMachine::Iterate(string jobFolder, int iterCnt) {
@@ -299,17 +321,15 @@ namespace votca {
 double energy_ex=0.0;
       if (_do_gwbse) {
         if (_initialstate.Type()==QMStateType::Gstate) {
-          throw std::runtime_error("QMAPEMachine no GWBSE necessary for " + _initialstate.ToLongString());
+         CTP_LOG(ctp::logDEBUG, *_log) <<"QMMMachine no GWBSE necessary for " + _initialstate.ToLongString();
         }
         RunGWBSE(runFolder);
         CTP_LOG(ctp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "  --- state:              " << _initialstate.ToLongString() << flush;
-        _filter.setLogger(_log);
+        CTP_LOG(ctp::logDEBUG, *_log) << "state:" << _initialstate.ToLongString() << flush;
         _filter.PrintInfo();
        
         _filter.Filter(orb_iter_input);
         QMState newstate=_filter.getState();
-        
         energy_ex=orb_iter_input.getExcitedStateEnergy(newstate)* tools::conv::hrt2ev;    
 
         if (!_static_qmmm) {

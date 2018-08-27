@@ -36,6 +36,9 @@ namespace xtp {
 class Statefilter {
 
 public:
+    
+    Statefilter():_use_oscfilter(false),_use_overlapfilter(false),
+            _use_localisationfilter(false),_use_dQfilter(false){;}
     void Initialize(tools::Property& options);
     void setLogger(ctp::Logger* log){_log=log;}
     void setInitialState(const QMState& state ){_statehist.push_back(state);}
@@ -58,7 +61,6 @@ private:
     std::vector<int> CollapseResults(std::vector< std::vector<int> >& results)const;
     std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
 
-QMState _initial_state;
 QMState _state;    
 ctp::Logger *_log;
  
@@ -67,18 +69,18 @@ std::vector<QMState> _statehist;
 Eigen::VectorXd _laststatecoeff;
 Eigen::MatrixXd _S_onehalf;
 
-bool _use_oscfilter=false;
-double _oscthreshold=0.0;
+bool _use_oscfilter;
+double _oscthreshold;
 
-bool _use_overlapfilter=false;
+bool _use_overlapfilter;
 double _overlapthreshold;
 
-bool _use_localisationfilter=false;
+bool _use_localisationfilter;
 bool _localiseonA;
 double _loc_threshold;
 
-bool _use_dQfilter=false;
-double _dQ_threshold=true;
+bool _use_dQfilter;
+double _dQ_threshold;
 
 
 };

@@ -184,11 +184,9 @@ void DFTEngine::CalcElDipole(){
       Eigen::MatrixXd H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed independent particle hamiltonian " << flush;
       NuclearRepulsion();
-
       if(_with_ecp){
           H0+=_dftAOECP.Matrix();
       }
-
       if (_addexternalsites) {
         H0 += _dftAOESP.getExternalpotential();
         H0 += _dftAODipole_Potential.getExternalpotential();

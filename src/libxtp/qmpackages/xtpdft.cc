@@ -79,13 +79,11 @@ namespace votca {
           DFTEngine xtpdft;
           xtpdft.Initialize(_xtpdft_options);
           xtpdft.setLogger(_pLog);
-          xtpdft.Prepare( orbitals );
-            
+           
           if(_write_charges){
             xtpdft.setExternalcharges(_PolarSegments);
           }
-
-           
+          xtpdft.Prepare( orbitals );
           xtpdft.Evaluate( orbitals );
           _basisset_name = xtpdft.getDFTBasisName();
           orbitals.WriteToCpt(_log_file_name);

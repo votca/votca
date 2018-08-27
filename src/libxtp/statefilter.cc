@@ -54,33 +54,27 @@ namespace votca {
 
         if (options.exists("charge_transfer")) {
           _use_dQfilter = true;
-          _dQ_threshold = options.get("charge_transfer").as<double> ();
+          _dQ_threshold = options.ifExistsReturnElseThrowRuntimeError<double>("charge_transfer");
         }
         if (_use_dQfilter && _use_localisationfilter) {
           throw std::runtime_error("Cannot use localisation and charge_transfer filter at the same time.");
         }
-        if (_use_oscfilter && _use_dQfilter) {
-            CTP_LOG(ctp::logDEBUG, *_log) << "  --- WARNING: filtering for optically active CT transition - might not make sense... " << flush;
-          }
-        
-        if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_oscthreshold<1){
-          throw std::runtime_error("No filter is used.");
-        }
+       
    }
    
    void Statefilter::PrintInfo()const{
-     CTP_LOG(ctp::logDEBUG, *_log) << " Initial state "<<_statehist[0].ToString() << flush;
+     CTP_LOG(ctp::logDEBUG, *_log) << "Initial state: "<<_statehist[0].ToString() << flush;
      if(_statehist.size()>1){
-     CTP_LOG(ctp::logDEBUG, *_log) << " Last state "<<_state.ToString() << flush;
+     CTP_LOG(ctp::logDEBUG, *_log) << "Last state: "<<_state.ToString() << flush;
      }
      if(_use_oscfilter){
-       CTP_LOG(ctp::logDEBUG, *_log) << " Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
+       CTP_LOG(ctp::logDEBUG, *_log) << "Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
      }
      if(_use_overlapfilter){
        if(_overlapthreshold==0.0){
-         CTP_LOG(ctp::logDEBUG, *_log) << " Using overlap filer with no cutoff "<< flush;
+         CTP_LOG(ctp::logDEBUG, *_log) << "Using overlap filer with no cutoff "<< flush;
        }else{
-       CTP_LOG(ctp::logDEBUG, *_log) << " Using overlap filer with cutoff "<<_overlapthreshold << flush;
+       CTP_LOG(ctp::logDEBUG, *_log) << "Using overlap filer with cutoff "<<_overlapthreshold << flush;
        }
      }
      if(_use_localisationfilter){
@@ -88,11 +82,17 @@ namespace votca {
        if(!_localiseonA){
          fragment="B";
        }
-       CTP_LOG(ctp::logDEBUG, *_log) << " Using localisation filter for fragment"<<fragment<<" with cutoff "<<_loc_threshold << flush;
+       CTP_LOG(ctp::logDEBUG, *_log) << "Using localisation filter for fragment"<<fragment<<" with cutoff "<<_loc_threshold << flush;
      }
      if(_use_dQfilter){
-       CTP_LOG(ctp::logDEBUG, *_log) << " Using Delta Q filter with cutoff "<<_dQ_threshold << flush;
+       CTP_LOG(ctp::logDEBUG, *_log) << "Using Delta Q filter with cutoff "<<_dQ_threshold << flush;
      }
+    if (_use_oscfilter && _use_dQfilter) {
+          CTP_LOG(ctp::logDEBUG, *_log) << "WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+        }
+      if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_use_oscfilter<1){
+         CTP_LOG(ctp::logDEBUG, *_log) << "WARNING: No filter is used " << flush;
+      }
      
    }
    
@@ -136,21 +136,21 @@ namespace votca {
      if(_use_dQfilter){
        results.push_back(DeltaQFilter(orbitals));
      }
-    _statehist.push_back(_state);
+
      
     std::vector<int> result=CollapseResults(results);
     if(result.size()<1){
-      CTP_LOG(ctp::logDEBUG, *_log) << " No State found by filter using last state"<<_statehist.back().ToString()<< flush;
+      CTP_LOG(ctp::logDEBUG, *_log) << "No State found by filter using last state: "<<_statehist.back().ToString()<< flush;
       _state=_statehist.back();
     }else{
-      _state=QMState(_initial_state.Type(),result[0],false);
-      CTP_LOG(ctp::logDEBUG, *_log) << " Next State is "<<_state.ToString()<< flush;
+      _state=QMState(_statehist.back().Type(),result[0],false);
+      CTP_LOG(ctp::logDEBUG, *_log) << "Next State is: "<<_state.ToString()<< flush;
     }
     
     if(_use_overlapfilter){
         UpdateLastCoeff(orbitals);
     }
-    
+    _statehist.push_back(_state);
    }
    
    std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals){

@@ -71,6 +71,8 @@ private:
 
     Property _gwbse_options;
     QMState  _initialstate;
+    
+    bool _use_filter;
     Statefilter _filter;
    
     
@@ -79,7 +81,7 @@ private:
     double _crit_dE_QM;
     double _crit_dE_MM;
 
-    bool _do_gwbse; // needs to be set by options!!!
+    bool _do_gwbse=false; 
     bool _do_archive;
     bool _static_qmmm;
     Orbitals orb_iter_input;

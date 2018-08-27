@@ -44,7 +44,7 @@ public:
     void mps_background(ctp::Topology *top);
 
 private:
-
+    std::vector<std::string> _keys;
     tools::Property *_options;
     std::map<std::string,WriteFunct> _key_funct;
 };

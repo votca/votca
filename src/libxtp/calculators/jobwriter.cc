@@ -42,12 +42,11 @@ void JobWriter::Initialize(Property *options) {
     string key="options."+Identify();
     std::string keys = options->get(key+".keys").as<string>();    
     Tokenizer tok_keys(keys, " ,\t\n");
-    std::vector<std::string> keyvec;
-    tok_keys.ToVector(keyvec);
+    tok_keys.ToVector(_keys);
     
     // VALIDATE KEYS
     std::vector<std::string> ::iterator vsit;
-    for (const std::string& key:keyvec) {
+    for (const std::string& key:_keys) {
         std::map<std::string,WriteFunct>::iterator it = _key_funct.find(key);
         if (it == _key_funct.end()) {
             cout << endl << "... ... ERROR: Bad key '" << key << "'" << endl;
@@ -66,9 +65,9 @@ void JobWriter::Initialize(Property *options) {
 
 bool JobWriter::EvaluateFrame(ctp::Topology *top) {
     
-    for (const auto& key:_key_funct) {
-            cout << endl << "... ... " << key.first << flush;
-            WriteFunct write = key.second;
+    for (const auto& key:_keys) {
+            cout << endl << "... ... " << key<< flush;
+            WriteFunct write = _key_funct.at(key);
             ((*this).*write)(top);
     }
     return 0;
@@ -79,7 +78,7 @@ void JobWriter::mps_monomer(ctp::Topology *top) {
     
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = Identify()+".mps.chrg.xml";
+    std::string jobFile = Identify()+".mps.monomer.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -92,15 +91,15 @@ void JobWriter::mps_monomer(ctp::Topology *top) {
     
     std::vector<string> ::iterator vit;
 
-    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.states","n e h");
-    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.pattern","*");
+    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","n e h");
+    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
   
     Tokenizer tok_states(str_states, " ,\t\n");
     std::vector<string> statesstring;
     tok_states.ToVector(statesstring);
-    std::vector<QMStateType> states;
+    std::vector<QMState> states;
     for(const std::string& s:statesstring){
-      states.push_back(QMStateType(s));
+      states.push_back(QMState(s));
     }
     
     
@@ -124,7 +123,7 @@ void JobWriter::mps_monomer(ctp::Topology *top) {
         }
         if(do_continue){continue;}
         
-        for (QMStateType& state: states) {
+        for (QMState& state: states) {
             int id = ++jobCount;
             std::string tag = (format("%1$d:%3$s:%2$s") % id1 % state.ToString() % name1).str();                
             std::string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps")
@@ -145,7 +144,7 @@ void JobWriter::mps_dimer(ctp::Topology *top) {
 
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = Identify()+".mps.ct.xml";
+    std::string jobFile = Identify()+".mps.dimer.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
@@ -160,8 +159,8 @@ void JobWriter::mps_dimer(ctp::Topology *top) {
     }
     
     
-    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.states","nn eh");
-    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.pattern","*");
+  std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","nn eh");
+  std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
   std::vector<string> statesstring;
    
     Tokenizer tok_states(str_states, " ,\t\n");
@@ -173,8 +172,6 @@ void JobWriter::mps_dimer(ctp::Topology *top) {
     
     // DEFINE PAIR CHARGE STATES
     std::map< string, vector<string> > state1_state2;
-    std::map< string, vector<string> > ::iterator mit;
-    std::vector<string> ::iterator vit;
     
     for (auto & state : statesstring){
         if(state=="nn"){

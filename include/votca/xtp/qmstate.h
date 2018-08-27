@@ -73,7 +73,8 @@ namespace xtp {
          
         bool isGWState()const{
             return (_type==statetype::PQPstate || _type==statetype::DQPstate);
-         }
+        }
+        
     
     private:
         
