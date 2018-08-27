@@ -49,11 +49,12 @@ xtp_run -e einternal -o OPTIONFILES/einternal.xml -f state.sql
 
 cp $VOTCASHARE/xtp/xml/jobwriter.xml OPTIONFILES/
 
-changeoption keys "mps.chrg mps.background" OPTIONFILES/jobwriter.xml 
+changeoption keys "mps.monomer mps.background" OPTIONFILES/jobwriter.xml 
+changeoption states "n e h" OPTIONFILES/jobwriter.xml 
 
 xtp_run -e jobwriter -o OPTIONFILES/jobwriter.xml -f state.sql -s 0
 mv jobwriter.mps.background.tab mps.tab
-mv jobwriter.mps.chrg.xml xqmultipole.jobs
+mv jobwriter.mps.monomer.xml xqmultipole.jobs
 #Only run the first 3 jobs and set the rest to complete
 sed -i "s/AVAILABLE/COMPLETE/g" xqmultipole.jobs
 sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' xqmultipole.jobs
@@ -79,6 +80,9 @@ xtp_parallel -e xqmultipole -f state.sql -o OPTIONFILES/xqmultipole.xml -s 0 -t 
 
 
 #running eqm
+#eqm runs qm calculations for each segment in the sql file, it consists of three stages first writing a jobfile, then running the calculations, if necessary 
+# on multiple machines and then reading them into the .sql file
+echo "Running eQM"
 
 cp $VOTCASHARE/xtp/xml/eqm.xml OPTIONFILES/
 cp $VOTCASHARE/xtp/packages/mbgft.xml OPTIONFILES/
@@ -101,6 +105,9 @@ sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' eqm.jobs
 xtp_parallel -e eqm -o OPTIONFILES/eqm.xml -f state.sql -s 0 -j run -c 1 -t 1
 
 #running iqm
+#iqm runs qm calculations for each pair in the sql file, it consists of three stages first writing a jobfile, then running the calculations, if necessary 
+# on multiple machines and then reading them into the .sql file
+echo "Running iQM"
 
 cp $VOTCASHARE/xtp/xml/iqm.xml OPTIONFILES/
 cp $VOTCASHARE/xtp/packages/mbgft.xml OPTIONFILES/mbgft_pair.xml
@@ -133,6 +140,43 @@ sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -s 0 -j run -c 1 -t 1
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -j "read"
+
+#running qmmm 
+
+cp $VOTCASHARE/xtp/xml/qmmm.xml OPTIONFILES/
+cp $VOTCASHARE/xtp/packages/mbgft.xml OPTIONFILES/mbgft_qmmm.xml
+cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_qmmm.xml
+
+
+#writing jobfile
+cp $VOTCASHARE/xtp/xml/jobwriter.xml OPTIONFILES/jobwriter_qmmm.xml
+
+changeoption keys "mps.monomer mps.background" OPTIONFILES/jobwriter_qmmm.xml 
+
+xtp_run -e jobwriter -o OPTIONFILES/jobwriter_qmmm.xml -f state.sql -s 0
+mv jobwriter.mps.background.tab mps.tab
+mv jobwriter.mps.monomer.xml qmmm.jobs
+sed -i "s/AVAILABLE/COMPLETE/g" qmmm.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm.jobs
+sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm.jobs
+
+#config options
+changeoption archiving iterations OPTIONFILES/qmmm.xml
+changeoption dftpackage OPTIONFILES/xtpdft_qmmm.xml OPTIONFILES/qmmm.xml
+changeoption gwbse_options OPTIONFILES/mbgft_qmmm.xml OPTIONFILES/qmmm.xml
+changeoption cutoff1 1 OPTIONFILES/qmmm.xml
+changeoption cutoff2 1.2 OPTIONFILES/qmmm.xml
+
+changeoption threads 0 OPTIONFILES/xtpdft_qmmm.xml
+changeoption openmp 0 OPTIONFILES/mbgft_qmmm.xml
+changeoption ranges full OPTIONFILES/mbgft_qmmm.xml
+echo "Running qmmm, rerouting output to qmmm.log"
+xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.sql -s 0 >qmmm.log
+
+
+
+
+
 
 
 
