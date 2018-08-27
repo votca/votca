@@ -53,6 +53,7 @@ namespace votca {
         };
 
         void IAnalyze::Initialize(tools::Property *opt) {
+            std::cout<<std::endl;
             _do_pairtype = false;
             _do_IRdependence = false;
             // update options with the VOTCASHARE defaults   
@@ -89,6 +90,7 @@ namespace votca {
         }
 
         bool IAnalyze::EvaluateFrame(ctp::Topology *top) {
+            std::cout<<std::endl;
             ctp::QMNBList &nblist = top->NBList();
             if (!nblist.size()) {
                 std::cout << std::endl << "... ... No pairs in topology. Skip...";
@@ -139,7 +141,8 @@ namespace votca {
             }
 
             if (J2s.size() < 1) {
-                throw std::runtime_error("Error:"+state.ToLongString()+" Couplings are all zero. You have not yet imported them! ");
+                std::cout<<"WARNING:"+state.ToLongString()+" Couplings are all zero. You have not yet imported them! "<<std::endl;
+                return;
             }
             
             double MAX = *std::max_element(J2s.begin(), J2s.end());

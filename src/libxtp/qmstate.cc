@@ -36,7 +36,7 @@ namespace votca {
       } else if (_type == QMStateType::Hole) {
         return 1;
       } else if (_type == QMStateType::Electron) {
-        return 3;
+        return -1;
       } else if (_type == QMStateType::Gstate) {
         return 0;
       } else {
