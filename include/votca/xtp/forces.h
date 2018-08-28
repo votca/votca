@@ -27,9 +27,7 @@
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/qminterface.h>
-
-
-
+#include <votca/xtp/statefilter.h>
 
 namespace votca {
     namespace xtp {
@@ -38,67 +36,41 @@ namespace votca {
         class Forces {
         public:
 
-            Forces(GWBSEEngine& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
-            };
-
-            ~Forces() {
+            Forces(GWBSEEngine& gwbse_engine,const Statefilter& filter, Orbitals& orbitals)
+            : _gwbse_engine(gwbse_engine),_filter(filter),_orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
             };
 
             void Initialize(tools::Property &options);
             void Calculate(double energy);
 
-            Eigen::Vector3d NumForceForward(double energy, int atom_index);
-            Eigen::Vector3d NumForceCentral(double energy, int atom_index);
-
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
             }
 
-            
-
-            void SetOptState(const QMState& opt_state) {
-                _opt_state = opt_state;
-            };
-
-           
-
-            const QMState& GetOptState() const{
-                return _opt_state;
-            };
-
-            Eigen::MatrixXd GetForces() {
+            const Eigen::MatrixX3d& GetForces() const{
                 return _forces;
             };
-            void Report();
+            void Report()const;
 
         private:
+            
+            Eigen::Vector3d NumForceForward(double energy, int atom_index);
+            Eigen::Vector3d NumForceCentral(double energy, int atom_index);
+            void RemoveTotalForce();
 
             double _displacement;
             std::string _force_method;
-
+            const Statefilter& _filter;
             bool _noisy_output;
 
-            int _nsegments;
             unsigned _natoms;
-            QMState _opt_state;
 
-            GWBSEEngine _gwbse_engine;
-            QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
+            GWBSEEngine& _gwbse_engine;
             Orbitals& _orbitals;
             bool _remove_total_force;
             bool _remove_CoM_force;
 
             Eigen::MatrixX3d _forces;
-
-            tools::Property _force_options;
-
-            void RemoveTotalForce();
-            void RemoveCoMForce();
-            Eigen::Vector3d TotalForce();
-
-            QMInterface _qminterface;
             ctp::Logger *_pLog;
         };
 

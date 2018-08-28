@@ -17,14 +17,10 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-
-
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/gwbse.h>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/math/constants/constants.hpp>
 #include <votca/ctp/logger.h>
 #include <votca/xtp/qmpackage.h>
 
@@ -35,7 +31,7 @@ using namespace boost::filesystem;
 using std::flush;
 namespace votca {
     namespace xtp {
-      
+
         // +++++++++++++++++++++++++++++ //
         // GWBSEENGINE MEMBER FUNCTIONS  //
         // +++++++++++++++++++++++++++++ //
@@ -56,7 +52,7 @@ namespace votca {
 
             if (_tasks_string.find("guess") != std::string::npos) _do_guess = true;
             if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-            if (_tasks_string.find("dft") != std::string::npos)   _do_dft_run = true;
+            if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
             if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
 
@@ -71,9 +67,9 @@ namespace votca {
             // Logger redirection
             _redirect_logger = options.ifExistsReturnElseReturnDefault<bool>(".redirect_logger", false);
             _logger_file = "gwbse.log";
-            
+
             // for requested merged guess, two archived orbitals objects are needed
-            if ( _do_guess ){
+            if (_do_guess) {
                 _guess_archiveA = options.ifExistsReturnElseThrowRuntimeError<std::string>(".archiveA");
                 _guess_archiveB = options.ifExistsReturnElseThrowRuntimeError<std::string>(".archiveB");
             }
@@ -87,47 +83,46 @@ namespace votca {
          */
 
 
-        void GWBSEEngine::ExcitationEnergies(QMPackage* qmpackage, Orbitals& orbitals) {
+        void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
             //redirect log, if required
             // define own logger for GW-BSE that is written into a runFolder logfile
             ctp::Logger gwbse_engine_logger(_pLog->getReportLevel());
-            ctp::Logger* logger=_pLog;
+            ctp::Logger* logger = _pLog;
             if (_redirect_logger) {
                 gwbse_engine_logger.setMultithreading(false);
                 gwbse_engine_logger.setPreface(ctp::logINFO, (format("\n ...")).str());
                 gwbse_engine_logger.setPreface(ctp::logERROR, (format("\n ...")).str());
                 gwbse_engine_logger.setPreface(ctp::logWARNING, (format("\n ...")).str());
                 gwbse_engine_logger.setPreface(ctp::logDEBUG, (format("\n ...")).str());
-                logger=&gwbse_engine_logger;
+                logger = &gwbse_engine_logger;
             }
-            qmpackage->setLog(logger);
+            _qmpackage->setLog(logger);
             if (_do_dft_input) {
                 // required for merged guess
-                if (qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer
-                    CTP_LOG_SAVE(ctp::logINFO,*logger) << "Guess requested, reading molecular orbitals" << flush;
+                if (_qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer
+                    CTP_LOG_SAVE(ctp::logINFO, *logger) << "Guess requested, reading molecular orbitals" << flush;
                     Orbitals orbitalsA, orbitalsB;
                     orbitalsA.ReadFromCpt(_guess_archiveA);
                     orbitalsB.ReadFromCpt(_guess_archiveB);
                     orbitals.PrepareDimerGuess(orbitalsA, orbitalsB);
-                }  
-                qmpackage->WriteInputFile(orbitals);
+                }
+                _qmpackage->WriteInputFile(orbitals);
             }
             if (_do_dft_run) {
-                bool run_success = qmpackage->Run( orbitals );
+                bool run_success = _qmpackage->Run(orbitals);
                 if (!run_success) {
                     throw std::runtime_error(std::string("\n DFT-run failed. Stopping!"));
                 }
             }
 
             // parse DFT data, if required
-            if (_do_dft_parse && qmpackage->getPackageName()!="xtp") {
-                  
-                     CTP_LOG_SAVE(ctp::logINFO,*logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
-                    qmpackage->setLogFileName(_dftlog_file);
-                    qmpackage->setOrbitalsFileName(_MO_file);
-                    qmpackage->ParseLogFile(orbitals);
-                    qmpackage->ParseOrbitalsFile(orbitals);
+            if (_do_dft_parse && _qmpackage->getPackageName() != "xtp") {
+                CTP_LOG_SAVE(ctp::logINFO, *logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                _qmpackage->setLogFileName(_dftlog_file);
+                _qmpackage->setOrbitalsFileName(_MO_file);
+                _qmpackage->ParseLogFile(orbitals);
+                _qmpackage->ParseOrbitalsFile(orbitals);
             }
 
             // if no parsing of DFT data is requested, reload serialized orbitals object

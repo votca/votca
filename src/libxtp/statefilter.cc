@@ -119,9 +119,7 @@ namespace votca {
      }
    }
    
-   
-   
-   void Statefilter::Filter(Orbitals& orbitals){
+   QMState Statefilter::CalcState(Orbitals& orbitals)const{
       
      std::vector< std::vector<int> > results;
      if(_use_oscfilter){
@@ -137,23 +135,31 @@ namespace votca {
        results.push_back(DeltaQFilter(orbitals));
      }
 
-     
     std::vector<int> result=CollapseResults(results);
+    QMState state;
     if(result.size()<1){
-      CTP_LOG(ctp::logDEBUG, *_log) << "No State found by filter using last state: "<<_statehist.back().ToString()<< flush;
-      _state=_statehist.back();
+      state=_statehist.back();  
+      CTP_LOG(ctp::logDEBUG, *_log) << "No State found by filter using last state: "<<state.ToString()<< flush;
     }else{
-      _state=QMState(_statehist.back().Type(),result[0],false);
-      CTP_LOG(ctp::logDEBUG, *_log) << "Next State is: "<<_state.ToString()<< flush;
+      state=QMState(_statehist.back().Type(),result[0],false);
+      CTP_LOG(ctp::logDEBUG, *_log) << "Next State is: "<<state.ToString()<< flush;
     }
+    return state;
+   }
+   
+   
+   QMState Statefilter::CalcStateAndUpdate(Orbitals& orbitals){
+      
+    QMState result=CalcState(orbitals);
     
+    _statehist.push_back(result);
     if(_use_overlapfilter){
         UpdateLastCoeff(orbitals);
     }
-    _statehist.push_back(_state);
+    return result;
    }
    
-   std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals){
+   std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals)const{
      const std::vector<double>oscs = orbitals.Oscillatorstrengths();
      std::vector<int> indexes;
      for (unsigned i = 0; i < oscs.size(); i++) {
@@ -163,7 +169,7 @@ namespace votca {
    }
    
    
-   std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals){
+   std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals)const{
      std::vector<int> indexes;
     const std::vector< Eigen::VectorXd >& popE = (_statehist[0].Type()== QMStateType::Singlet)
                    ? orbitals.getFragment_E_localisation_singlet() : orbitals.getFragment_E_localisation_triplet();
@@ -181,7 +187,7 @@ namespace votca {
      return indexes;
    }
    
-   std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals){
+   std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals)const{
     std::vector<int> indexes;
     const std::vector< Eigen::VectorXd >& dQ_frag = (_statehist[0].Type()== QMStateType::Singlet)
                     ? orbitals.getFragmentChargesSingEXC() : orbitals.getFragmentChargesTripEXC();
@@ -194,8 +200,7 @@ namespace votca {
    }
    
    
-   Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals & orbitals){
-    
+   Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals & orbitals)const{
     BasisSet dftbs;
     dftbs.LoadBasisSet(orbitals.getDFTbasis());
     AOBasis dftbasis;
@@ -208,7 +213,7 @@ namespace votca {
     return overlap;   
    }
 
-   Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals){
+   Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals)const{
        QMStateType type=_statehist[0].Type();
        Eigen::MatrixXd ortho_coeffs;
        if(type.isSingleParticleState()){
@@ -232,10 +237,10 @@ namespace votca {
         if(_statehist[0].Type()==QMStateType::DQPstate){
             offset=orbitals.getGWAmin();
         }
-       _laststatecoeff=ortho_coeffs.col(_state.Index()-offset); 
+       _laststatecoeff=ortho_coeffs.col(_statehist.back().Index()-offset); 
    }
 
-      std::vector<int> Statefilter::OverlapFilter(Orbitals & orbitals) {
+      std::vector<int> Statefilter::OverlapFilter(Orbitals & orbitals)const{
         std::vector<int> indexes;
         if (_statehist.size() <= 1) {
           indexes=std::vector<int>{_statehist[0].Index()};

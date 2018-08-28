@@ -266,8 +266,8 @@ QMMIter *QMAPEMachine::CreateNewIter() {
 
       // PROCESSING the GW-BSE result
       // - find the excited state of interest
-      _filter.Filter(orb);
-      QMState nextState = _filter.getState();
+      
+      QMState nextState = _filter.CalcStateAndUpdate(orb);
       // load DFT basis set (element-wise information) from xml file
       BasisSet dftbs;
       dftbs.LoadBasisSet(orb.getDFTbasis());

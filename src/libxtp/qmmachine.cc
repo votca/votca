@@ -328,8 +328,7 @@ double energy_ex=0.0;
         CTP_LOG(ctp::logDEBUG, *_log) << "state:" << _initialstate.ToLongString() << flush;
         _filter.PrintInfo();
        
-        _filter.Filter(orb_iter_input);
-        QMState newstate=_filter.getState();
+        QMState newstate= _filter.CalcStateAndUpdate(orb_iter_input);
         energy_ex=orb_iter_input.getExcitedStateEnergy(newstate)* tools::conv::hrt2ev;    
 
         if (!_static_qmmm) {

@@ -39,19 +39,14 @@ namespace votca {
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEEngine& gwbse_engine, QMPackage* qmpackage, Orbitals& orbitals, Forces& force_engine)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
+            BFGSTRM(GWBSEEngine& gwbse_engine, Statefilter& filter, Orbitals& orbitals, Forces& force_engine)
+            : _gwbse_engine(gwbse_engine), _filter(filter), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
             };
 
-            ~BFGSTRM() {
-            };
-
-            int Iteration() {
+            int Iteration() const{
                 return _iteration;
             };
             void Initialize(tools::Property &options);
-            void Checkpoint(std::vector<ctp::Segment* >& _molecule);
-            void WriteIteration(FILE* out, ctp::Segment* _segment);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
@@ -59,30 +54,39 @@ namespace votca {
 
             void Optimize();
 
-
-
         private:
             
-            GWBSEEngine& _gwbse_engine;
-            QMPackage* _qmpackage;
-            Orbitals& _orbitals;
-            Forces _force_engine;
+            void BFGSStep();
+            void WriteMatrixToVector();
+            void WriteCoordinates2Matrices();
+            void UpdateHessian();
+            Eigen::VectorXd PredictDisplacement();
+            void RegularizeStep();
+            double QuadraticEnergy();
+            void Vector2QMAtoms();
+            void Report();
+            Eigen::VectorXd QMAtomsToVector(std::vector<QMAtoms*>& vec);
+            Eigen::VectorXd Write3XMatrixToVector(const Eigen::MatrixX3d& matrix);
+            bool AcceptRejectStep();
+            void WriteTrajectory();
 
-            unsigned _natoms;
+            double GetEnergy();
+
+            bool OutsideTrustRegion(double step);
+            bool CheckConvergence();
+
+            std::string Converged(bool converged);
+            
+            GWBSEEngine& _gwbse_engine;
+            Statefilter& _filter;
+            Orbitals& _orbitals;
+            Forces& _force_engine;
+
             unsigned _iteration;
-            Eigen::MatrixX3d _force;
-            Eigen::MatrixX3d _force_old;
-            Eigen::MatrixX3d _xyz_shift;
-            Eigen::MatrixX3d _current_xyz;
-            Eigen::MatrixX3d _old_xyz;
-            Eigen::MatrixX3d _trial_xyz;
             Eigen::MatrixXd _hessian;
 
-            bool _step_accepted;
             bool _update_hessian;
-            bool _restart_opt;
 
-            QMState _opt_state;
             double _displacement;
             double _convergence;
             double _RMSForce_convergence;
@@ -90,45 +94,11 @@ namespace votca {
             double _RMSStep_convergence;
             double _MaxStep_convergence;
             double _trust_radius;
-            double _trust_radius_max;
-            double _delta_energy_estimate;
-            double _norm_delta_pos;
-            std::string _forces;
-            std::string _opt_type;
-            std::string _optimizer;
-            std::string _force_method;
+
             unsigned _max_iteration;
-
-            
-
-            tools::Property _optimizer_options;
-            tools::Property _force_options;
 
             ctp::Logger *_pLog;
 
-            void BFGSStep();
-            void Rewrite2Vectors();
-            void Rewrite2Matrices();
-            void UpdateHessian();
-            void PredictDisplacement();
-            void RegularizeStep();
-            void QuadraticEnergy();
-            void UpdateCoordinatesOrbitals();
-            void Report();
-            void OrbitalsToMatrix();
-            void AcceptReject();
-            void WriteTrajectory();
-
-            double GetEnergy();
-
-            bool OutsideTrustRegion(const double& _step);
-            bool GeometryConverged();
-
-            std::string Converged(bool converged);
-
-
-            // vector storage for steps, let's rethink that later
-            unsigned _dim;
             Eigen::VectorXd _previous_pos;
             Eigen::VectorXd _current_pos;
             Eigen::VectorXd _previous_gradient;

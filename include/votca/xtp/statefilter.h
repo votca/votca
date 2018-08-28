@@ -43,20 +43,20 @@ public:
     void setLogger(ctp::Logger* log){_log=log;}
     void setInitialState(const QMState& state ){_statehist.push_back(state);}
     void PrintInfo()const;
-    void Filter(Orbitals& orbitals);
-    const QMState& getState(){return _state;}// zero indexed;
+    QMState CalcStateAndUpdate(Orbitals& orbitals);
+   QMState CalcState(Orbitals& orbitals)const;
     
 private:
  
-    std::vector<int> OscFilter(const Orbitals& orbitals);
-    std::vector<int> LocFilter(const Orbitals& orbitals);
-    std::vector<int> DeltaQFilter(const Orbitals& orbitals);
-    std::vector<int> OverlapFilter(Orbitals& orbitals);
+    std::vector<int> OscFilter(const Orbitals& orbitals)const;
+    std::vector<int> LocFilter(const Orbitals& orbitals)const;
+    std::vector<int> DeltaQFilter(const Orbitals& orbitals)const;
+    std::vector<int> OverlapFilter(Orbitals& orbitals)const;
     
-    Eigen::VectorXd CalculateOverlap(Orbitals & orbitals);
+    Eigen::VectorXd CalculateOverlap(Orbitals & orbitals)const;
     
     void UpdateLastCoeff(Orbitals& orbitals);
-    Eigen::MatrixXd CalcOrthoCoeffs(Orbitals& orbitals);
+    Eigen::MatrixXd CalcOrthoCoeffs(Orbitals& orbitals)const;
 
     std::vector<int> CollapseResults(std::vector< std::vector<int> >& results)const;
     std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
@@ -67,7 +67,7 @@ ctp::Logger *_log;
 std::vector<QMState> _statehist;
 
 Eigen::VectorXd _laststatecoeff;
-Eigen::MatrixXd _S_onehalf;
+mutable Eigen::MatrixXd _S_onehalf;//only used in one iteration, do not want to introduce more function arguments
 
 bool _use_oscfilter;
 double _oscthreshold;

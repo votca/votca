@@ -50,10 +50,14 @@ namespace votca {
             }
 
             void Initialize(tools::Property &options, std::string archive_filename);
-            void ExcitationEnergies(QMPackage* qmpackage, Orbitals& orbitals);
+            void ExcitationEnergies(Orbitals& orbitals);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
+            }
+            
+            void setQMPackage(QMPackage* qmpackage){
+                _qmpackage=qmpackage;
             }
 
             std::string GetDFTLog() {
@@ -73,6 +77,8 @@ namespace votca {
 
 
         private:
+            
+            QMPackage* _qmpackage;
 
             ctp::Logger *_pLog;
 

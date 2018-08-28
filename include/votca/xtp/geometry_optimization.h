@@ -43,10 +43,6 @@ namespace votca {
                 
             };
 
-            ~GeometryOptimization() {
-            };
-
-
             void Initialize(tools::Property& options);
 
             void setLog(ctp::Logger* pLog) {
@@ -55,20 +51,16 @@ namespace votca {
 
             void Evaluate();
 
-
-
         private:
 
             QMState _opt_state;
-            std::string _forces;
-            std::string _opt_type;
             std::string _optimizer;
-            std::string _force_method;
 
             GWBSEEngine _gwbse_engine;
             QMPackage* _qmpackage;
             Orbitals& _orbitals;
 
+            tools::Property _filter_options;
             tools::Property _optimizer_options;
             tools::Property _force_options;
 
