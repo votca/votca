@@ -41,11 +41,7 @@ namespace votca {
         public:
 
             static std::vector<std::string> FindUniqueElements(const std::vector<QMAtom*> atoms);
-            
-            QMPackage() {
-                
-            };
-
+   
             virtual ~QMPackage() {
             };
 

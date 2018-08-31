@@ -125,7 +125,7 @@ namespace votca {
 
             if ( _do_optimize ) {
                 // Run Geometry Optimization
-                GeometryOptimization geoopt(gwbse_engine, orbitals);
+                GeometryOptimization geoopt(gwbse_engine,qmpackage, orbitals);
                 geoopt.setLog(&_log);
                 geoopt.Initialize(_geoopt_options);
                 geoopt.Evaluate();

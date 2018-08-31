@@ -20,17 +20,9 @@
 #ifndef __XTP_BFGSTRM__H
 #define __XTP_BFGSTRM__H
 
-
+#include <votca/xtp/optimiser_costfunction.h>
 #include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
-#include <stdio.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/forces.h>
-
-
-
-
-
+#include <functional>
 
 namespace votca {
     namespace xtp {
@@ -39,85 +31,64 @@ namespace votca {
         class BFGSTRM {
         public:
 
-            BFGSTRM(GWBSEEngine& gwbse_engine, Statefilter& filter, Orbitals& orbitals, Forces& force_engine)
-            : _gwbse_engine(gwbse_engine), _filter(filter), _orbitals(orbitals), _force_engine(force_engine), _iteration(0) {
-            };
-
-            int Iteration() const{
-                return _iteration;
-            };
-            void Initialize(tools::Property &options);
+            BFGSTRM(Optimiser_costfunction& costfunction):_costfunction(costfunction),_logging(false){
+            _hessian=Eigen::MatrixXd::Identity(costfunction.NumParameters(),costfunction.NumParameters());}
 
             void setLog(ctp::Logger* pLog) {
+                _logging=true;
                 _pLog = pLog;
             }
+            
+            void setTrustRadius(double trust_radius){_trust_radius=trust_radius;}
+            
+            double getTrustRadius()const{return _trust_radius;}
+            
+            void setCallbacks(const std::vector<std::function<void()> >& callbacks){_callbacks=callbacks;}
+            
+            void setNumofIterations(int iterations){_max_iteration=iterations;}
 
-            void Optimize();
+            void Optimize(const Eigen::VectorXd& initialparameters);
+            
+            bool Success()const{return _success;}
+            std::string getErrorMessage()const{return _errormessage;}
+            
+            double getCost()const{return _cost;}
+            
+            int getIteration()const{return _iteration;}
+            
+            const Eigen::VectorXd getParameters()const{return _parameters;}
+            
+            void setInitialHessian(const Eigen::MatrixXd& hessian){_hessian=hessian;}
+            
 
         private:
             
-            void BFGSStep();
-            void WriteMatrixToVector();
-            void WriteCoordinates2Matrices();
-            void UpdateHessian();
-            Eigen::VectorXd PredictDisplacement();
-            void RegularizeStep();
-            double QuadraticEnergy();
-            void Vector2QMAtoms();
-            void Report();
-            Eigen::VectorXd QMAtomsToVector(std::vector<QMAtoms*>& vec);
-            Eigen::VectorXd Write3XMatrixToVector(const Eigen::MatrixX3d& matrix);
-            bool AcceptRejectStep();
-            void WriteTrajectory();
+            Optimiser_costfunction& _costfunction;
+        
+            void UpdateHessian(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& delta_gradient);
+            Eigen::VectorXd CalculateInitialStep(const Eigen::MatrixXd& gradient)const;
+            Eigen::VectorXd CalculateRegularizedStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient)const;
+            double QuadraticEnergy(const Eigen::VectorXd& gradient, const Eigen::VectorXd& delta_pos)const;
 
-            double GetEnergy();
-
-            bool OutsideTrustRegion(double step);
-            bool CheckConvergence();
-
-            std::string Converged(bool converged);
+            bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient,double energy_delta);
             
-            GWBSEEngine& _gwbse_engine;
-            Statefilter& _filter;
-            Orbitals& _orbitals;
-            Forces& _force_engine;
+            std::string _errormessage;
+            bool _success=true;
+            bool _logging;
+            int _iteration=0;
+            
+            std::vector<std::function<void()> > _callbacks;
 
-            unsigned _iteration;
             Eigen::MatrixXd _hessian;
+            Eigen::VectorXd _parameters;
+            
+            double _cost=std::numeric_limits<double>::max();
 
-            bool _update_hessian;
+            double _trust_radius=0.1;
 
-            double _displacement;
-            double _convergence;
-            double _RMSForce_convergence;
-            double _MaxForce_convergence;
-            double _RMSStep_convergence;
-            double _MaxStep_convergence;
-            double _trust_radius;
-
-            unsigned _max_iteration;
+            int _max_iteration=50;
 
             ctp::Logger *_pLog;
-
-            Eigen::VectorXd _previous_pos;
-            Eigen::VectorXd _current_pos;
-            Eigen::VectorXd _previous_gradient;
-            Eigen::VectorXd _current_gradient;
-            Eigen::VectorXd _delta_pos;
-            double _new_energy;
-            double _last_energy;
-            double _energy_delta;
-
-            // convergence
-            bool _energy_converged;
-            bool _RMSForce_converged;
-            bool _MaxForce_converged;
-            bool _RMSStep_converged;
-            bool _MaxStep_converged;
-            double _RMSForce;
-            double _MaxForce;
-            double _RMSStep;
-            double _MaxStep;
 
 
         };

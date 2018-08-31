@@ -36,7 +36,7 @@ namespace votca {
             if ((_force_method == "forward") || (_force_method == "central")) {
                 _displacement = options.ifExistsReturnElseReturnDefault<double>(".displacement", 0.001); // Angstrom
             }
-            _displacement*=tools::conv::ang2bohr
+            _displacement*=tools::conv::ang2bohr;
 
             // check for force removal options
             choices = {"total", "none"};
@@ -75,7 +75,7 @@ namespace votca {
 
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % _displacement*tools::conv::bohr2ang).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % (_displacement*tools::conv::bohr2ang)).str() << flush;
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
 
             for (unsigned _i = 0; _i < _forces.rows(); _i++) {
@@ -99,7 +99,7 @@ namespace votca {
                 tools::vec pos_displaced = current_pos + displacement_vec;
                 atom->setPos(pos_displaced); 
                 _gwbse_engine.ExcitationEnergies(_orbitals);
-                double energy_displaced = _orbitals.getTotalStateEnergy(_filter.CalcState());
+                double energy_displaced = _orbitals.getTotalStateEnergy(_filter.CalcState(_orbitals));
                 force(i_cart) = (energy - energy_displaced) / _displacement;
                  atom->setPos(current_pos); // restore original coordinate into segment
             } // Cartesian directions
@@ -121,12 +121,12 @@ namespace votca {
                 tools::vec pos_displaced = current_pos + displacement_vec;
                 atom->setPos(pos_displaced); 
                 _gwbse_engine.ExcitationEnergies(_orbitals);
-                double energy_displaced_plus = _orbitals.getTotalStateEnergy(_filter.CalcState());
+                double energy_displaced_plus = _orbitals.getTotalStateEnergy(_filter.CalcState(_orbitals));
                 // update the coordinate
                 pos_displaced = current_pos - displacement_vec;
                 atom->setPos(pos_displaced); 
                 _gwbse_engine.ExcitationEnergies(_orbitals);
-                double energy_displaced_minus = _orbitals.getTotalStateEnergy(_filter.CalcState());
+                double energy_displaced_minus = _orbitals.getTotalStateEnergy(_filter.CalcState(_orbitals));
                 force(i_cart) = 0.5 * (energy_displaced_minus - energy_displaced_plus) / _displacement;
                 atom->setPos(current_pos); // restore original coordinate into orbital
             }

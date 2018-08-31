@@ -205,7 +205,7 @@ namespace votca {
       if(_type!=QMStateType::Gstate && _type!=QMStateType::Electron && _type!=QMStateType::Hole){
         _index=DetermineIndex(rest);
      }else{
-        _index=0;
+        _index=-1;
      }
     }
   

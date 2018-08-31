@@ -1171,6 +1171,11 @@
       </item>
       <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/energy_costfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
             tool="3"
@@ -1245,6 +1250,11 @@
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/optimiser_costfunction.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1669,6 +1679,11 @@
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/energy_costfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
@@ -1960,6 +1975,8 @@
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
@@ -2154,6 +2171,11 @@
       </item>
       <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/energy_costfunction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
             tool="3"
@@ -2228,6 +2250,11 @@
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/optimiser_costfunction.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2652,6 +2679,11 @@
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/energy_costfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
@@ -2942,6 +2974,8 @@
       <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>

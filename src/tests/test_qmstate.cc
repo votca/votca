@@ -30,7 +30,7 @@ QMStateType type;
 type.FromString("S");
     
 BOOST_CHECK_EQUAL(type.Type()==QMStateType::Singlet,true);
-BOOST_CHECK_EQUAL(type.ToString(), "S");
+BOOST_CHECK_EQUAL(type.ToString(), "s");
 BOOST_CHECK_EQUAL(type.ToLongString(), "singlet");
 
 QMStateType type2;
