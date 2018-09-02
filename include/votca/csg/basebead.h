@@ -80,18 +80,6 @@ public:
   virtual void setMass(const double &m) { _mass = m; }
 
   /**
-   * get the charge of the base bead
-   * \return - base bead charge
-   */
-  virtual const double &getQ() const { return _q; }
-
-  /**
-   * set the charge of the base bead
-   * \param - base bead charge
-   */
-  virtual void setQ(const double &q) { _q = q; }
-
-  /**
    * set the position of the base bead
    * \param - base bead position
    */
@@ -121,12 +109,12 @@ public:
 protected:
   BaseBead()
       : TopologyItem(nullptr), MoleculeItem(nullptr), _type(nullptr), 
-      _mass(0.0), _q(0.0), _bPos(false){};
+      _mass(0.0), _bPos(false){};
+
 
   BeadType *_type;
 
   double _mass;
-  double _q;
   vec _pos;
 
   bool _bPos;
