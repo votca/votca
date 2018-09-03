@@ -234,7 +234,7 @@ bool EInternal::EvaluateFrame(ctp::Topology *top) {
         std::string segName = seg->getName();
         
         try {
-            bool has_seg = _has_seg.at(segName);
+            _has_seg.at(segName);
         }
         catch (const std::exception& out_of_range) {
             std::cout << std::endl << "... ... WARNING: No energy information for seg ["

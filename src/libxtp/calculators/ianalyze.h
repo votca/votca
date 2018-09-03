@@ -25,6 +25,7 @@
 #include <votca/ctp/qmpair.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/xtp/qmstate.h>
+#include <numeric>
 
 namespace votca {
     namespace xtp {
@@ -183,8 +184,6 @@ namespace votca {
                 J2s.push_back(J2);
             }
             
-            double MAX = *std::max_element(J2s.begin(), J2s.end());
-            double MIN = *std::min_element(J2s.begin(), J2s.end());
             double MAXR = *std::max_element(distances.begin(), distances.end());
             double MINR = *std::min_element(distances.begin(), distances.end());
 

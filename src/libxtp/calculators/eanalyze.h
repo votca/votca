@@ -26,7 +26,7 @@
 #include <votca/xtp/qmstate.h>
 #include <votca/tools/histogramnew.h>
 #include <fstream>
-
+#include <numeric>
 
 namespace votca {
     namespace xtp {

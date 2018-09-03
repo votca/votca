@@ -149,9 +149,7 @@ namespace votca {
    
    
    QMState Statefilter::CalcStateAndUpdate(Orbitals& orbitals){
-      
     QMState result=CalcState(orbitals);
-    
     _statehist.push_back(result);
     if(_use_overlapfilter){
         UpdateLastCoeff(orbitals);

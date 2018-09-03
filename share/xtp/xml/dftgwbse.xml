@@ -19,23 +19,25 @@
         </gwbse_engine>
 
         <geometry_optimization>
-            <state>S1</state>
-           
-            <restart>0</restart>
-            <optimizer>
-                <method>BFGS-TRM</method>
-                <trust>0.01</trust>
-                <convergence help="Convergence criteria for geometry optimization">
+            <state>s1</state>
+            <filter>
+                <oscillator_strength>0.001</oscillator_strength>
+            </filter>
+            <convergence help="Convergence criteria for geometry optimization">
                     <energy help="default: 1.e-6 Hartree">0.01</energy>
                     <RMSForce help="default: 3.e-5 Hartree/Bohr">0.01</RMSForce>
                     <MaxForce help="default: 1.e-4 Hartree/Bohr">0.01</MaxForce>
                     <RMSStep help="default: 6.e-4 Bohr">0.01</RMSStep>
                     <MaxStep help="default: 1.e-3 Bohr">0.01</MaxStep>
-                </convergence>
+            </convergence>
+
+            <optimizer>
+                <method>BFGS-TRM</method>
+                <trust>0.01</trust>
             </optimizer>
             <forces>
                 <method>central</method>
-                <removal>none</removal>
+                <removal>total</removal>
                 <displacement help="default: 0.001 Angstrom">0.01</displacement>
             </forces>
         </geometry_optimization>

@@ -71,12 +71,20 @@ namespace votca {
             void setConvergenceParameters(const conv_paras& convergence) {
                 _convpara = convergence;
             }
+            
+            void setLog(ctp::Logger* pLog) {
+                _pLog = pLog;
+            }
 
+            
+            void Report();
             static void Vector2QMAtoms(const Eigen::VectorXd& pos, std::vector<QMAtom*>& atoms);
             static Eigen::VectorXd QMAtoms2Vector(std::vector<QMAtom*>& atoms);
             static Eigen::VectorXd Write3XMatrixToVector(const Eigen::MatrixX3d& matrix);
 
         private:
+            
+            static std::string Converged(double val, double limit);
             GWBSEEngine& _gwbse_engine;
             Statefilter& _filter;
             Orbitals& _orbitals;
@@ -86,6 +94,8 @@ namespace votca {
             
             conv_paras _convpara;
             conv_paras _convval;
+            
+            ctp::Logger *_pLog;
 
             
             

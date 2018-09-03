@@ -52,16 +52,16 @@ namespace votca {
 
         private:
 
-            static std::string Converged(double val, double limit);
+        
 
-            static void Report(const BFGSTRM& bfgstrm, const Energy_costfunction& c_func,ctp::Logger* pLog);
+            static void Report(const BFGSTRM& bfgstrm, ctp::Logger* pLog);
             static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms
                     , const BFGSTRM& bfgstrm);
 
             QMState _opt_state;
             std::string _optimizer;
             std::string _trajfile;
-            GWBSEEngine _gwbse_engine;
+            GWBSEEngine& _gwbse_engine;
             QMPackage* _qmpackage;
             Orbitals& _orbitals;
 

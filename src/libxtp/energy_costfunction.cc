@@ -39,6 +39,7 @@ namespace votca {
       Vector2QMAtoms(parameters, _orbitals.QMAtoms());
       _force_engine.Calculate(_energy);
       Eigen::VectorXd gradient = Write3XMatrixToVector(-_force_engine.GetForces());
+      std::cout<<gradient<<std::endl;
       return gradient;
     }
     
@@ -63,12 +64,35 @@ namespace votca {
       if (_convval.MaxForce < _convpara.MaxForce) MaxForce_converged = true;
       if (_convval.RMSStep < _convpara.RMSStep) RMSStep_converged = true;
       if (_convval.MaxStep < _convpara.MaxStep) MaxStep_converged = true;
-
+      Report();
       if (energy_converged && RMSForce_converged && MaxForce_converged && RMSStep_converged && MaxStep_converged) {
         return true;
       }
       return false;
     }
+    
+   void Energy_costfunction::Report(){
+     _force_engine.Report();
+     const Energy_costfunction::conv_paras& val = getConvValues();
+      const Energy_costfunction::conv_paras& paras = getConvParas();
+     CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   energy change:    %1$12.8f Hartree      %2$s") % val.deltaE % Converged(val.deltaE, paras.deltaE)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s") % val.RMSForce % Converged(val.RMSForce, paras.RMSForce)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s") % val.MaxForce % Converged(val.MaxForce, paras.MaxForce)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s") % val.RMSStep % Converged(val.RMSStep, paras.RMSStep)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max step:         %1$12.8f Bohr         %2$s") % val.MaxStep % Converged(val.MaxStep, paras.MaxStep)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ")).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << std::flush;
+   }
+   
+   std::string Energy_costfunction::Converged(double val, double limit){
+      if (std::abs(val) < limit) {
+        return (boost::format("Converged (%1%)") % limit).str();
+      } else {
+        return (boost::format("Not converged (%1%)") % limit).str();
+      }
+    }
+    
+    
 
     void Energy_costfunction::Vector2QMAtoms(const Eigen::VectorXd& pos, std::vector<QMAtom*>& atoms) {
       for (unsigned i = 0; i < atoms.size(); i++) {
@@ -91,7 +115,7 @@ namespace votca {
     Eigen::VectorXd Energy_costfunction::Write3XMatrixToVector(const Eigen::MatrixX3d& matrix) {
       Eigen::VectorXd vec = Eigen::VectorXd::Zero(matrix.rows() * matrix.cols());
       for (int i_cart = 0; i_cart < 3; i_cart++) {
-        for (int i_atom = 0; i_atom < matrix.cols(); i_atom++) {
+        for (int i_atom = 0; i_atom < matrix.rows(); i_atom++) {
           int idx = 3 * i_atom + i_cart;
           vec(idx) = matrix(i_atom, i_cart);
         }

@@ -87,13 +87,14 @@ namespace votca {
 
       Energy_costfunction e_cost = Energy_costfunction(_gwbse_engine, filter, _orbitals, force_engine);
       e_cost.setConvergenceParameters(_conv);
+      e_cost.setLog(_pLog);
       // get the optimizer
       if (_optimizer == "BFGS-TRM") {
         BFGSTRM bfgstrm(e_cost);
         std::vector<std::function<void()> > callbacks;
-        std::function<void()> reporting=std::bind(Report,bfgstrm, e_cost,_pLog);
+        std::function<void()> reporting=std::bind(Report,std::cref(bfgstrm),std::cref(_pLog));
         callbacks.push_back(reporting);
-        std::function<void()> filewrite=std::bind(WriteTrajectory,_trajfile, _orbitals.QMAtoms(), bfgstrm);
+        std::function<void()> filewrite=std::bind(WriteTrajectory,_trajfile, _orbitals.QMAtoms(), std::cref(bfgstrm));
         callbacks.push_back(filewrite);
         bfgstrm.setCallbacks(callbacks);
         bfgstrm.setNumofIterations(_max_iteration);
@@ -104,41 +105,24 @@ namespace votca {
       return;
     }
 
-    void GeometryOptimization::Report(const BFGSTRM& bfgstrm, const Energy_costfunction& e_cost,ctp::Logger* pLog){
+    void GeometryOptimization::Report(const BFGSTRM& bfgstrm,ctp::Logger* pLog){
 
       CTP_LOG(ctp::logINFO, *pLog) << std::flush;
       CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
       CTP_LOG(ctp::logINFO, *pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
-      e_cost.ForcesReport();
-
       CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
       CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
       const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
       for (unsigned i = 0; i < atomvec.size(); i += 3) {
         CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
-                % i % (atomvec(i) * votca::tools::conv::bohr2ang) % (atomvec(i + 1) * votca::tools::conv::bohr2ang) % (atomvec(i + 2) * votca::tools::conv::bohr2ang)).str() << std::flush;
+                % (i/3) % (atomvec(i) * votca::tools::conv::bohr2ang) % (atomvec(i + 1) * votca::tools::conv::bohr2ang) % (atomvec(i + 2) * votca::tools::conv::bohr2ang)).str() << std::flush;
       }
-      const Energy_costfunction::conv_paras& val = e_cost.getConvValues();
-      const Energy_costfunction::conv_paras& paras = e_cost.getConvParas();
       CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   energy change:    %1$12.8f Hartree      %2$s") % val.deltaE % Converged(val.deltaE, paras.deltaE)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s") % val.RMSForce % Converged(val.RMSForce, paras.RMSForce)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s") % val.MaxForce % Converged(val.MaxForce, paras.MaxForce)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s") % val.RMSStep % Converged(val.RMSStep, paras.RMSStep)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Max step:         %1$12.8f Bohr         %2$s") % val.MaxStep % Converged(val.MaxStep, paras.MaxStep)).str() << std::flush;
       CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ")).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << std::flush;
       return;
     }
 
-    std::string GeometryOptimization::Converged(double val, double limit){
-      if (std::abs(val) < limit) {
-        return (boost::format("Converged (%1%)") % limit).str();
-      } else {
-        return (boost::format("Not converged (%1%)") % limit).str();
-      }
-    }
+    
 
     void GeometryOptimization::WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms, const BFGSTRM& bfgstrm){
       std::ofstream ofs;

@@ -34,7 +34,6 @@ namespace votca {
             double delta_cost=0;
             
             for(_iteration=0;_iteration<_max_iteration;_iteration++){
-
                gradient=_costfunction.EvaluateGradient(_parameters);
                 bool step_accepted = false;
                 for (int i=0;i<100;i++){
@@ -46,22 +45,21 @@ namespace votca {
                     delta_cost=trialcost-lastcost;
                     step_accepted=AcceptRejectStep(delta_p_trial,gradient,delta_cost);
                     if(step_accepted){
+                      std::cout<<delta_p_trial<<std::endl;
                       _cost=trialcost;
                       _parameters+=delta_p_trial;
                       break;
                     }
+                    
                 } 
                 if(_iteration>0){
                   UpdateHessian(delta_p_trial,gradient-last_gradient);
                 }
-
                 lastcost=_cost;
                 last_gradient=gradient;
-
                 for(auto& func:_callbacks){
                  func();
                 }
-                
                 if(_costfunction.Converged(delta_p_trial,delta_cost,gradient)){
                   break;
                 } else if(_iteration == _max_iteration-1) {
@@ -85,7 +83,7 @@ namespace votca {
                 if(_logging){
                   CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step rejected ")
                           % _iteration).str() << std::flush;
-                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f Bohr") 
+                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f") 
                           % _iteration % _trust_radius).str() << std::flush;
                 }
             } else {
@@ -93,8 +91,8 @@ namespace votca {
                 step_accepted = true;
                 // adjust trust radius, if required
                 double tr_check = cost_delta / QuadraticEnergy(gradient,delta_p);
-                double norm_delta_p=delta_p.norm();
-                if (tr_check > 0.75 && 1.25 * norm_delta_p > _trust_radius) {
+                double norm_delta_p=delta_p.squaredNorm();
+                if (tr_check > 0.75 && 1.25 * norm_delta_p > _trust_radius*_trust_radius) {
                     _trust_radius = 2.0 * _trust_radius;
                 } else if (tr_check < 0.25) {
                     _trust_radius = 0.25 * _trust_radius;
@@ -102,7 +100,7 @@ namespace votca {
                 if(_logging){
                   CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step accepted ")
                           % _iteration).str() << std::flush;
-                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f Bohr")
+                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f")
                           % _iteration % _trust_radius).str() << std::flush;
                 }
             }
@@ -126,7 +124,6 @@ namespace votca {
 
         /* Regularize step in case of prediction outside of Trust Region */
         Eigen::VectorXd BFGSTRM::CalculateRegularizedStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient) const{
-
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_hessian);
             // start value for lambda  a bit lower than lowest eigenvalue of Hessian
             double lambda= 1.05 * es.eigenvalues()(0);
@@ -137,11 +134,9 @@ namespace votca {
             double max_step_squared =delta_pos.squaredNorm();
             while (max_step_squared>(_trust_radius * _trust_radius)) {
               lambda -= 0.05 * std::abs(es.eigenvalues()(0));
-              max_step_squared = 0.0;
-              for (int i = 0; i < delta_pos.size(); i++) {
-                double temp = es.eigenvectors().col(i).transpose()* gradient;
-                max_step_squared += temp * temp / (es.eigenvalues()(i) - lambda) / (es.eigenvalues()(i) - lambda);
-              }
+              Eigen::VectorXd quotient=(es.eigenvalues().array()-lambda).cwiseAbs2();
+              auto factor=(es.eigenvectors().transpose()*gradient).cwiseAbs2();
+              max_step_squared = (factor.cwiseQuotient(quotient)).sum();
             }
                 
             Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(delta_pos.size());
