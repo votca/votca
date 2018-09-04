@@ -19,6 +19,20 @@ At the moment we are also working on a manual:
 
 The tutorial is organised as follows:
 
+the folder 'methane' contains a molecular dynamics data and a mapping file system.xml
+using the 'run.sh' script you can calculate all data necessary to run kmc simulations.
+For some more expensive parts the parameters are calculated only for one pair.
+The KMC calculators are thus not tested
+
+In the folder 'tools' are calculators which are independent of '.sql' files:
+
+'dftgwbse_CH4' runs a DFT and GWBSE on CH4 and then performs an espfit on it, outputting a '.mps' file
+additionally a '.cube' file is produced for visualisation. 
+
+'dftgwbse_CO_geoopt'  performs an excited state geometry optimisation using numerical derivatives, it is a bit more expensive
+
+
+
 
 
 
