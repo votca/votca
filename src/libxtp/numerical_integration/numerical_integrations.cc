@@ -90,7 +90,8 @@ namespace votca {
 
       Vxc_Functionals map;
       std::vector<std::string> strs;
-      boost::split(strs, functional, boost::is_any_of(" "));
+      tools::Tokenizer tok(functional," ,\n\t");
+      tok.ToVector(strs);
       xfunc_id = 0;
       _use_separate = false;
       cfunc_id = 0;
@@ -108,7 +109,6 @@ namespace votca {
       if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
         throw std::runtime_error((boost::format("Functional %s not found\n") %strs[0]).str());
       }
-      xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
       if (xfunc.info->kind != 2 && !_use_separate) {
         throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
       }
@@ -116,8 +116,6 @@ namespace votca {
         if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
           throw std::runtime_error((boost::format("Functional %s not found\n") %strs[1]).str());
         }
-        xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
-        xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
         if ((xfunc.info->kind + cfunc.info->kind) != 1) {
           throw std::runtime_error("Your functionals are not one exchange and one correlation");
         }
