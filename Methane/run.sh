@@ -79,6 +79,13 @@ xtp_parallel -e xqmultipole -f state.sql -o OPTIONFILES/xqmultipole.xml -s 0 -t 
 # xqmultipole has no parser to read the siteenergies into the sql file, write a python script or look at https://github.com/JensWehner/votca-scripts/blob/master/xtp/xtp_parseewald.py
 
 
+#running eanalyze
+
+cp $VOTCASHARE/xtp/xml/eanalyze.xml OPTIONFILES/
+
+xtp_run -e eanalyze -o OPTIONFILES/eanalyze.xml -f state.sql
+
+
 #running eqm
 #eqm runs qm calculations for each segment in the sql file, it consists of three stages first writing a jobfile, then running the calculations, if necessary 
 # on multiple machines and then reading them into the .sql file
@@ -140,6 +147,13 @@ sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' iqm.jobs
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -s 0 -j run -c 1 -t 1
 
 xtp_parallel -e iqm -o OPTIONFILES/iqm.xml -f state.sql -j "read"
+
+#running ianalyze
+
+cp $VOTCASHARE/xtp/xml/ianalyze.xml OPTIONFILES/
+
+xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.sql
+
 
 #running qmmm 
 
