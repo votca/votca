@@ -45,7 +45,6 @@ namespace votca {
                     delta_cost=trialcost-lastcost;
                     step_accepted=AcceptRejectStep(delta_p_trial,gradient,delta_cost);
                     if(step_accepted){
-                      std::cout<<delta_p_trial<<std::endl;
                       _cost=trialcost;
                       _parameters+=delta_p_trial;
                       break;

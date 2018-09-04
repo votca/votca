@@ -39,7 +39,6 @@ namespace votca {
       Vector2QMAtoms(parameters, _orbitals.QMAtoms());
       _force_engine.Calculate(_energy);
       Eigen::VectorXd gradient = Write3XMatrixToVector(-_force_engine.GetForces());
-      std::cout<<gradient<<std::endl;
       return gradient;
     }
     
