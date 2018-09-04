@@ -45,7 +45,7 @@ void Lowdin::EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const Eigen::Matri
          // a little messy, have to use basis set to find out which entries in dmat belong to each atom.
          
          
-         int nooffunc=basis.getFuncperAtom((*atom)->getAtomID());
+         int nooffunc=basis.getFuncOfAtom((*atom)->getAtomID());
          
          for ( int _i = id ; _i < id+nooffunc; _i++){
                 charge -= _prodmat(_i,_i);

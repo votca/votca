@@ -64,20 +64,20 @@ namespace votca {
 
 
       // job tasks
-      string _tasks_string = opt.get(key + ".tasks").as<string> ();
-      if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-      if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-      if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-      if (_tasks_string.find("dftcoupling") != std::string::npos) _do_dftcoupling = true;
-      if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
-      if (_tasks_string.find("bsecoupling") != std::string::npos) _do_bsecoupling = true;
+      string tasks_string = opt.get(key + ".tasks").as<string> ();
+      if (tasks_string.find("input") != std::string::npos) _do_dft_input = true;
+      if (tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
+      if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
+      if (tasks_string.find("dftcoupling") != std::string::npos) _do_dftcoupling = true;
+      if (tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+      if (tasks_string.find("bsecoupling") != std::string::npos) _do_bsecoupling = true;
 
       // storage options
-      string _store_string = opt.get(key + ".store").as<string> ();
-      if (_store_string.find("dft") != std::string::npos) _store_dft = true;
-      if (_store_string.find("singlets") != std::string::npos) _store_singlets = true;
-      if (_store_string.find("triplets") != std::string::npos) _store_triplets = true;
-      if (_store_string.find("ehint") != std::string::npos) _store_ehint = true;
+      string store_string = opt.get(key + ".store").as<string> ();
+      if (store_string.find("dft") != std::string::npos) _store_dft = true;
+      if (store_string.find("singlets") != std::string::npos) _store_singlets = true;
+      if (store_string.find("triplets") != std::string::npos) _store_triplets = true;
+      if (store_string.find("ehint") != std::string::npos) _store_ehint = true;
 
 
       if (_do_dft_input || _do_dft_run || _do_dft_parse) {
@@ -109,21 +109,21 @@ namespace votca {
       //options for parsing data into sql file   
       key = "options." + Identify() + ".readjobfile";
       if (opt.exists(key + ".singlet")) {
-        string _parse_string_s = opt.get(key + ".singlet").as<string> ();
-        _singlet_levels = FillParseMaps(_parse_string_s);
+        string parse_string_s = opt.get(key + ".singlet").as<string> ();
+        _singlet_levels = FillParseMaps(parse_string_s);
       }
       if (opt.exists(key + ".triplet")) {
-        string _parse_string_t = opt.get(key + ".triplet").as<string> ();
-        _triplet_levels = FillParseMaps(_parse_string_t);
+        string parse_string_t = opt.get(key + ".triplet").as<string> ();
+        _triplet_levels = FillParseMaps(parse_string_t);
       }
 
       if (opt.exists(key + ".hole")) {
-        string _parse_string_h = opt.get(key + ".hole").as<string> ();
-        _hole_levels = FillParseMaps(_parse_string_h);
+        string parse_string_h = opt.get(key + ".hole").as<string> ();
+        _hole_levels = FillParseMaps(parse_string_h);
       }
       if (opt.exists(key + ".electron")) {
-        string _parse_string_e = opt.get(key + ".electron").as<string> ();
-        _electron_levels = FillParseMaps(_parse_string_e);
+        string parse_string_e = opt.get(key + ".electron").as<string> ();
+        _electron_levels = FillParseMaps(parse_string_e);
       }
 
       // job file specification

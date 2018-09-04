@@ -65,8 +65,6 @@ public:
     
     const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
-    int getFuncperAtom(int AtomId) const;
-    
     unsigned getNumofShells() const{return _aoshells.size();}
    
     int getAOBasisFragA() const{return _AOBasisFragA;}

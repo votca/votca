@@ -87,7 +87,7 @@ void BSECoupling::WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orb
   double energyA =0; 
    double energyB =0; 
   double JAB_pert=0;
-  double JAB_diag;
+  double JAB_diag=0;
   if(stateA.Type()==QMStateType::Singlet){
       energyA=orbitalsA.BSESingletEnergies()(stateA.Index())*conv::hrt2ev;
       energyB=orbitalsB.BSESingletEnergies()(stateB.Index())*conv::hrt2ev;
