@@ -17,7 +17,7 @@
  *
  */
 #include "votca/xtp/adiis.h"
-#include "ceres/ceres.h"
+#include <votca/xtp/bfgs-trm.h>
 #include <votca/xtp/adiis_costfunction.h>
 
 
@@ -46,21 +46,15 @@ namespace votca { namespace xtp {
       }   
      
  
-   ceres::GradientProblem problem(new ADIIS_costfunction(DiF,DiFj));
+      ADIIS_costfunction a_cost=ADIIS_costfunction(DiF,DiFj);
+      BFGSTRM optimizer=BFGSTRM(a_cost);
+      optimizer.setNumofIterations(1000);
+      optimizer.setTrustRadius(0.01);
    // Starting point: equal weights on all matrices
    Eigen::VectorXd coeffs=Eigen::VectorXd::Constant(size,1.0/size);
-
-   ceres::GradientProblemSolver::Options options;
-   options.minimizer_progress_to_stdout=false;
-   options.logging_type=ceres::LoggingType::SILENT;
-   options.gradient_tolerance=1e-8;
-   options.max_num_iterations=1000;
-   ceres::GradientProblemSolver::Summary summary;
-   ceres::Solve(options,problem,coeffs.data(),&summary);
-   //std::cout << summary.FullReport() << "\n";
-  success=summary.IsSolutionUsable();
-    
-  coeffs=coeffs.cwiseAbs2();
+   optimizer.Optimize(coeffs);
+  success=optimizer.Success();
+  coeffs=optimizer.getParameters().cwiseAbs2();
   double xnorm=coeffs.sum();
   coeffs/=xnorm;
 
