@@ -91,7 +91,7 @@ namespace votca { namespace xtp {
                                         GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
                                         unsigned i_rad,unsigned i_sph);
            
-           Eigen::VectorXd SSWpartition(int igrid, int ncenters ,const Eigen::MatrixXd& rq,const Eigen::MatrixXd& Rij );
+           Eigen::VectorXd SSWpartition(int igrid, const Eigen::MatrixXd& rq,const Eigen::MatrixXd& Rij );
             void SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom,const Eigen::MatrixXd& Rij);
             Eigen::MatrixXd CalcDistanceAtomsGridpoints(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
             

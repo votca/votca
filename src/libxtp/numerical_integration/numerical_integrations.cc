@@ -692,8 +692,7 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
       
 #pragma omp parallel for schedule(guided)
       for (unsigned i_grid = 0; i_grid < atomgrid.size(); i_grid++) {
-        // call some shit called grid_ssw0 in NWChem
-        Eigen::VectorXd p = SSWpartition(i_grid, atoms.size(), AtomGridDist,Rij);
+        Eigen::VectorXd p = SSWpartition(i_grid, AtomGridDist,Rij);
         // check weight sum
         double wsum = p.sum();
         if (wsum != 0.0) {
@@ -770,14 +769,14 @@ void NumericalIntegration::GridSetup(const std::string& type, std::vector<QMAtom
       return;
     }
 
-    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, int ncenters,const Eigen::MatrixXd & rq,const Eigen::MatrixXd& Rij) {
+    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, const Eigen::MatrixXd & rq,const Eigen::MatrixXd& Rij) {
       const double ass = 0.725;
       // initialize partition vector to 1.0
-      Eigen::VectorXd p=Eigen::VectorXd::Ones(ncenters);
+      Eigen::VectorXd p=Eigen::VectorXd::Ones(rq.rows());
       const double tol_scr = 1e-10;
       const double leps = 1e-6;
       // go through centers
-      for (int i = 1; i < ncenters; i++) {
+      for (int i = 1; i < rq.rows(); i++) {
         double rag = rq(i,igrid);
         // through all other centers (one-directional)
         for (int j = 0; j < i; j++) {

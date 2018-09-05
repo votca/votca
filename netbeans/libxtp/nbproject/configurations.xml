@@ -220,6 +220,7 @@
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
+      <itemPath>../../src/libxtp/Md2QmEngine.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
@@ -1655,6 +1656,8 @@
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
@@ -2606,6 +2609,8 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
