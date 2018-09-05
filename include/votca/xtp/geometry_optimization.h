@@ -36,9 +36,8 @@ namespace votca {
         class GeometryOptimization {
         public:
 
-            GeometryOptimization(GWBSEEngine& gwbse_engine, QMPackage *qmpackage,
-                    Orbitals& orbitals) :
-            _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals) {
+            GeometryOptimization(GWBSEEngine& gwbse_engine,Orbitals& orbitals) :
+            _gwbse_engine(gwbse_engine), _orbitals(orbitals) {
 
             };
 
@@ -52,17 +51,14 @@ namespace votca {
 
         private:
 
-        
-
             static void Report(const BFGSTRM& bfgstrm, ctp::Logger* pLog);
-            static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms
-                    , const BFGSTRM& bfgstrm);
+            static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms,
+                                        const BFGSTRM& bfgstrm);
 
             QMState _opt_state;
             std::string _optimizer;
             std::string _trajfile;
             GWBSEEngine& _gwbse_engine;
-            QMPackage* _qmpackage;
             Orbitals& _orbitals;
 
             Energy_costfunction::conv_paras _conv;

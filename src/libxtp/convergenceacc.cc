@@ -37,7 +37,7 @@ namespace votca { namespace xtp {
     Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
       Eigen::MatrixXd H_guess=Eigen::MatrixXd::Zero(H.rows(),H.cols());    
     
-      if(_mathist.size()>_histlength){
+      if(int(_mathist.size())>_histlength){
           delete _mathist[_maxerrorindex];
           delete _dmatHist[_maxerrorindex];
                _totE.erase(_totE.begin()+_maxerrorindex);

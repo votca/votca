@@ -18,24 +18,20 @@
         <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
-        <itemPath>../../src/libxtp/jobcalculators/dma.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/dma.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/idft.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/idft.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/eqm.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/eqm.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/igwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/igwbse.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/iqm.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmape.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
-        <itemPath>../../src/libxtp/tools/dft.h</itemPath>
-        <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
-        <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
+        <itemPath>../../src/libxtp/tools/densityanalysis.h</itemPath>
+        <itemPath>../../src/libxtp/tools/dftgwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/tools/dftgwbse.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
@@ -133,6 +129,7 @@
       <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
+      <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
@@ -223,6 +220,7 @@
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
+      <itemPath>../../src/libxtp/Md2QmEngine.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
@@ -246,6 +244,7 @@
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
+      <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
@@ -1449,6 +1448,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -1651,6 +1655,8 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1889,12 +1895,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
+      <item path="../../src/libxtp/jobcalculators/eqm.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
+      <item path="../../src/libxtp/jobcalculators/eqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1905,6 +1911,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iexcitoncl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2000,6 +2016,8 @@
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
             tool="1"
@@ -2026,6 +2044,17 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
             ex="false"
@@ -2373,6 +2402,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -2575,6 +2609,8 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2813,12 +2849,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
+      <item path="../../src/libxtp/jobcalculators/eqm.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
+      <item path="../../src/libxtp/jobcalculators/eqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2829,6 +2865,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iexcitoncl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2924,6 +2970,8 @@
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
             tool="1"
@@ -2950,6 +2998,17 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
             ex="false"
