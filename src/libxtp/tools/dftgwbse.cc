@@ -102,7 +102,6 @@ namespace votca {
                 orbitals.LoadFromXYZ(_xyzfile);
             }
 
-            // Get and initialize QMPackage for DFT ground state
             QMPackage *qmpackage = QMPackages().Create(_package);
             qmpackage->setLog(&_log);
             qmpackage->Initialize(_package_options);
@@ -117,23 +116,19 @@ namespace votca {
                 qmpackage->setWithPolarization(true);
             }
 
-            // Get GWBSEENGINE Object and initialize
             GWBSEEngine gwbse_engine;
             gwbse_engine.setLog(&_log);
             gwbse_engine.setQMPackage(qmpackage);
             gwbse_engine.Initialize(_gwbseengine_options, _archive_file);
 
             if ( _do_optimize ) {
-                // Run Geometry Optimization
-                GeometryOptimization geoopt(gwbse_engine,qmpackage, orbitals);
+                GeometryOptimization geoopt(gwbse_engine, orbitals);
                 geoopt.setLog(&_log);
                 geoopt.Initialize(_geoopt_options);
                 geoopt.Evaluate();
             } else {
-                // Run GWBSE
                 gwbse_engine.ExcitationEnergies(orbitals);
             }
-            
             
             CTP_LOG(ctp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             orbitals.WriteToCpt(_archive_file);

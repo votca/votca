@@ -18,24 +18,20 @@
         <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
-        <itemPath>../../src/libxtp/jobcalculators/dma.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/dma.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/edft.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/egwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/egwbse.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/idft.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/idft.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/eqm.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/eqm.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/igwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/igwbse.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/iqm.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmape.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
-        <itemPath>../../src/libxtp/tools/dft.h</itemPath>
-        <itemPath>../../src/libxtp/tools/exciton.cc</itemPath>
-        <itemPath>../../src/libxtp/tools/exciton.h</itemPath>
+        <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
+        <itemPath>../../src/libxtp/tools/densityanalysis.h</itemPath>
+        <itemPath>../../src/libxtp/tools/dftgwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/tools/dftgwbse.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
@@ -1896,12 +1892,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
+      <item path="../../src/libxtp/jobcalculators/eqm.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
+      <item path="../../src/libxtp/jobcalculators/eqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1912,6 +1908,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iexcitoncl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2035,6 +2041,17 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
             ex="false"
@@ -2827,12 +2844,12 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
+      <item path="../../src/libxtp/jobcalculators/eqm.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
+      <item path="../../src/libxtp/jobcalculators/eqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2843,6 +2860,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iexcitoncl.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/iqm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2966,6 +2993,17 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/excitoncoupling.h"
             ex="false"
