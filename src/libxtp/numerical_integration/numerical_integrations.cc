@@ -32,6 +32,7 @@
 #include <cmath>
 #include <iterator>
 #include <string>
+#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
 
 
 
@@ -391,6 +392,8 @@ namespace votca {
           Eigen::VectorXd grad =Eigen::VectorXd::Zero(box.Matrixsize());
           //iterate over gridpoints
           for (unsigned p = 0; p < box.size(); p++) {
+            ao.setZero(box.Matrixsize());
+            ao_grad.setZero(box.Matrixsize(),3);
             for (unsigned j = 0; j < box.Shellsize(); ++j) {
               Eigen::Block<Eigen::MatrixX3d> grad_block=ao_grad.block(aoranges[j].start,0,aoranges[j].size,3);
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
