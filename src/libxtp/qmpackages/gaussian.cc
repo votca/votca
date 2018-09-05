@@ -220,7 +220,7 @@ namespace votca {
 
             for (const std::string& element_name:UniqueElements) {
                        try{    
-                        const Element& element = ecp.getElement(element_name);
+                        ecp.getElement(element_name);
                        }catch(std::runtime_error& error){
                          CTP_LOG(ctp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name<<" available" << flush;
                          continue;

@@ -27,7 +27,7 @@ namespace votca {
 
     void TCMatrix_dft::Fill(AOBasis& auxbasis, AOBasis& dftbasis, const Eigen::MatrixXd& V_sqrtm1) {
 
-      for (unsigned int i = 0; i < auxbasis.AOBasisSize(); i++) {
+      for (int i = 0; i < auxbasis.AOBasisSize(); i++) {
         try {
           _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
         } catch (std::bad_alloc& ba) {

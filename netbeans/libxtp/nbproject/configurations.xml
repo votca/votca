@@ -109,9 +109,7 @@
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
-      <itemPath>../../include/votca/xtp/linalg.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
-      <itemPath>../../include/votca/xtp/mixing.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
@@ -135,6 +133,7 @@
       <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
+      <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
@@ -193,7 +192,6 @@
         <itemPath>../../src/libxtp/convergenceacc.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
         <itemPath>../../src/libxtp/diis.cc</itemPath>
-        <itemPath>../../src/libxtp/mixing.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libxtp/calculatorfactory.cc</itemPath>
@@ -249,6 +247,7 @@
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
+      <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
@@ -1452,6 +1451,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -2003,6 +2007,8 @@
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
             tool="1"
@@ -2372,6 +2378,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sqlapplication.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/statefilter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2926,6 +2937,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"

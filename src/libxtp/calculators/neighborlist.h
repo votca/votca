@@ -188,12 +188,9 @@ namespace votca {
                     ctp::Segment *seg1 = *segit1;
 
                     std::vector< ctp::Segment* > ::iterator segit2;
-                    std::vector< ctp::Fragment* > ::iterator fragit1;
-                    std::vector< ctp::Fragment* > ::iterator fragit2;
                     double cutoff;
                     tools::vec r1;
                     tools::vec r2;
-
 
                     if (tools::globals::verbose) {
                         std::cout << "\r ... ... NB List Seg " << seg1->getId() << std::flush;

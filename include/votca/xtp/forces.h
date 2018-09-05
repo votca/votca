@@ -37,8 +37,7 @@ namespace votca {
         public:
 
             Forces(GWBSEEngine& gwbse_engine,const Statefilter& filter, Orbitals& orbitals)
-            : _gwbse_engine(gwbse_engine),_filter(filter),_orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
-            };
+            : _gwbse_engine(gwbse_engine),_filter(filter),_orbitals(orbitals), _remove_total_force(false){};
 
             void Initialize(tools::Property &options);
             void Calculate(double energy);
@@ -60,15 +59,15 @@ namespace votca {
 
             double _displacement;
             std::string _force_method;
-            const Statefilter& _filter;
+            
             bool _noisy_output;
 
             unsigned _natoms;
 
             GWBSEEngine& _gwbse_engine;
+            const Statefilter& _filter;
             Orbitals& _orbitals;
             bool _remove_total_force;
-            bool _remove_CoM_force;
 
             Eigen::MatrixX3d _forces;
             ctp::Logger *_pLog;

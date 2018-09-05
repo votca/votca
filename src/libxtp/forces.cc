@@ -60,7 +60,7 @@ namespace votca {
                 if ( _noisy_output ){
                     CTP_LOG(ctp::logINFO, *_pLog) << "FORCES--DEBUG working on atom " << atom_index<< flush;
                 }
-                Eigen::Vector3d atom_force;
+                Eigen::Vector3d atom_force=Eigen::Vector3d::Zero();
                 // Calculate Force on this atom
                 if (_force_method == "forward") atom_force=NumForceForward(energy, atom_index);
                 if (_force_method == "central") atom_force=NumForceCentral(energy, atom_index);

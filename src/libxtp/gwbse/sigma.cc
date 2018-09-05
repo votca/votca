@@ -42,7 +42,6 @@ namespace votca {
     }
 
     void Sigma::X_diag(const TCMatrix_gwbse& Mmn){
-      int levelsum = Mmn.get_ntot(); // total number of bands
       int gwsize = Mmn.getAuxDimension(); // size of the GW basis
       _sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
       #pragma omp parallel for
@@ -62,7 +61,6 @@ namespace votca {
     void Sigma::C_diag(const TCMatrix_gwbse& Mmn, const PPM& ppm, const Eigen::VectorXd& qp_old){
       int levelsum = Mmn.get_ntot(); // total number of bands
       int gwsize = Mmn.getAuxDimension(); // size of the GW basis
-      const double fourpi = 4*boost::math::constants::pi<double>();
       
       // loop over all GW levels
 #pragma omp parallel for
@@ -104,8 +102,6 @@ namespace votca {
             throw std::runtime_error("Sigma gwa_energies not set!");
         }
       _sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
-      
-
 
       // initial _qp_energies are dft energies
       Eigen::VectorXd qp_old = _gwa_energies;

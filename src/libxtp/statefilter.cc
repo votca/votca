@@ -229,7 +229,6 @@ namespace votca {
    }
    
    void Statefilter::UpdateLastCoeff(Orbitals& orbitals){
-       QMStateType type=_statehist[0].Type();
        Eigen::MatrixXd ortho_coeffs=CalcOrthoCoeffs(orbitals);
        int offset=0;
         if(_statehist[0].Type()==QMStateType::DQPstate){

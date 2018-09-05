@@ -51,7 +51,7 @@ public:
     void AOBasisFill( const BasisSet& bs , std::vector<QMAtom* >& segments, int fragbreak = -1);
     void ECPFill( const BasisSet& bs , std::vector<QMAtom* >& segments); 
     
-    unsigned AOBasisSize() const {return _AOBasisSize; }
+    int AOBasisSize() const {return _AOBasisSize; }
     
     typedef std::vector< AOShell* >::const_iterator AOShellIterator;
     AOShellIterator begin() const{ return _aoshells.begin(); }

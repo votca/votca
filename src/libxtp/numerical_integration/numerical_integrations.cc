@@ -708,7 +708,6 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
         
 void NumericalIntegration::GridSetup(const std::string& type, std::vector<QMAtom*> atoms,const AOBasis& basis) {
       _AOBasisSize=basis.AOBasisSize();
-      const double pi = boost::math::constants::pi<double>();
       GridContainers initialgrids;
       // get radial grid per element
       EulerMaclaurinGrid radialgridofElement;

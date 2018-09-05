@@ -48,7 +48,6 @@ namespace votca {
       _alpha = opt->ifExistsReturnElseReturnDefault<double>(key + ".mixing", 0.0);
 
       key = sfx;
-      bool split_dpl = opt->ifExistsReturnElseReturnDefault<bool>(key + ".split_dpl", true);
       double dpl_spacing = opt->ifExistsReturnElseReturnDefault<double>(key + ".dpl_spacing", 1e-3);
 
       // check for archiving
