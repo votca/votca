@@ -32,9 +32,6 @@
 #include <cmath>
 #include <iterator>
 #include <string>
-#include <eigen3/Eigen/src/Core/PlainObjectBase.h>
-
-
 
 
 namespace votca {
