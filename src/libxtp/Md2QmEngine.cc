@@ -89,7 +89,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          if (segprop->exists("qmcoords") ) {
             qmcoordsFile = segprop->get("qmcoords").as<string>();            
             //  QM ID    Element   Position
-            this->getIntCoords(qmcoordsFile, intCoords);
+            this->ReadXYZFile(qmcoordsFile, intCoords);
          }
          
          // ++++++++++++++ //
@@ -534,8 +534,8 @@ CTP::Atom *Md2QmEngine::getAtomType(const string &molMdName,
                                            .at(resNr)
                                            .at(mdAtomName);
 }
-
-void Md2QmEngine::getIntCoords(string &file,
+//TODO move to filereader
+void Md2QmEngine::ReadXYZFile(string &file,
                                map<int, pair<string,vec> > &intCoords) {
 
     std::string line;

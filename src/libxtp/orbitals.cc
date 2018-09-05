@@ -553,7 +553,6 @@ namespace votca {
             return;
         }
         //TODO move to Filereader
-
         void Orbitals::LoadFromXYZ(const std::string& filename) {
 
             string line;
