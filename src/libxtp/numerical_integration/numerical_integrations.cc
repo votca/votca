@@ -265,7 +265,7 @@ namespace votca {
           for (const auto& point : box.getGridPoints()) {
             tools::vec dist = shellpos - point;
             double distsq = dist*dist;
-            // if contribution is smaller than -ln(1e-10), add atom to list
+            // if contribution is smaller than -ln(1e-10), add shell to list
             if ((decay * distsq) < 20.7) {
               box.addShell(store);
               break;
@@ -382,15 +382,13 @@ namespace votca {
           Eigen::MatrixXd Vxc_here = Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
-          Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
-          Eigen::MatrixX3d ao_grad= Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
           const std::vector<GridboxRange>& aoranges = box.getAOranges();
           const std::vector<const AOShell* >& shells = box.getShells();
-          Eigen::VectorXd grad =Eigen::VectorXd::Zero(box.Matrixsize());
+          
           //iterate over gridpoints
           for (unsigned p = 0; p < box.size(); p++) {
-            ao.setZero(box.Matrixsize());
-            ao_grad.setZero(box.Matrixsize(),3);
+            Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
+            Eigen::MatrixX3d ao_grad= Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
             for (unsigned j = 0; j < box.Shellsize(); ++j) {
               Eigen::Block<Eigen::MatrixX3d> grad_block=ao_grad.block(aoranges[j].start,0,aoranges[j].size,3);
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
@@ -400,8 +398,8 @@ namespace votca {
             const double weight = weights[p];
             if (rho*weight < 1.e-20) continue; // skip the rest, if density is very small
             const Eigen::Vector3d rho_grad = ao.transpose()*DMAT_symm*ao_grad;
-            grad=ao_grad*rho_grad;
             const double sigma = (rho_grad.transpose()*rho_grad).value();
+            const Eigen::VectorXd grad =ao_grad*rho_grad;
             double f_xc; // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
             double df_drho; // v_xc_rho(r) = df/drho
             double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
