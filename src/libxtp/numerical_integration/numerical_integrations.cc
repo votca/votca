@@ -279,19 +279,20 @@ namespace votca {
 
       std::vector< GridBox > grid_boxes_copy;
       int combined = 0;
-      std::vector<bool> Compared = std::vector<bool>(_grid_boxes.size(), false);
+      //use vecot of bool to indicate if a gridbox has already been merged into another
+      std::vector<bool> Merged = std::vector<bool>(_grid_boxes.size(), false);
       for (unsigned i = 0; i < _grid_boxes.size(); i++) {
-        if (Compared[i]) {
+        if (Merged[i]) {
           continue;
         }
         GridBox box = _grid_boxes[i];
         if (box.Shellsize() < 1) {
           continue;
         }
-        Compared[i] = true;
+        Merged[i] = true;
         for (unsigned j = i + 1; j < _grid_boxes.size(); j++) {
           if (GridBox::compareGridboxes(_grid_boxes[i], _grid_boxes[j])) {
-            Compared[j] = true;
+            Merged[j] = true;
             box.addGridBox(_grid_boxes[j]);
             combined++;
           }
