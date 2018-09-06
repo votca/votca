@@ -79,7 +79,7 @@ namespace votca { namespace xtp {
         private:
             
            void FindSignificantShells(const AOBasis& basis);
-           void EvaluateXC(const double rho,const Eigen::Vector3d& grad_rho,double& f_xc, double& df_drho, double& df_dsigma);          
+           void EvaluateXC(const double rho,const double sigma,double& f_xc, double& df_drho, double& df_dsigma);          
            double erf1c(double x);
            
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::Cartesian_gridpoint > >& grid);

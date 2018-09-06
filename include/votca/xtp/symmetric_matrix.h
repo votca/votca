@@ -47,72 +47,28 @@ Symmetric_Matrix(size_t dim) {
         
     Symmetric_Matrix(const Eigen::MatrixXd& full);
     
-    int size() {
-            return dimension;
-        }
+    int size() const{return dimension;}
 
-    double TraceofProd(const Symmetric_Matrix& a) const{
-        assert(data.size()==a.data.size()&&"Matrices do not have same size");
-        double result=0.0;
-        
-        for (size_t i=0;i<dimension;++i){
-            result+=this->operator ()(i,i)*a.operator ()(i,i);
-        }
-        
-        for (size_t i=0;i<dimension;++i){
-            for (size_t j=0;j<i;++j){
-                result+=2*this->operator ()(i,j)*a.operator ()(i,j);
-        }
-        }
-        return result;
-    }
+    double TraceofProd(const Symmetric_Matrix& a) const;
 
-    void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const{
-        for (int j = 0; j < full.cols(); ++j) {
-            for (int i = 0; i < full.rows(); ++i) {
-                full(i, j) += factor * this->operator ()(i,j);
-            }
-        }
-        return;
-    }
+    void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const;
     
-    Eigen::MatrixXd FullMatrix(){
-        Eigen::MatrixXd result=Eigen::MatrixXd(dimension,dimension); 
-            for (int j = 0; j < result.cols(); ++j) {
-                for (int i = 0; i < result.rows(); ++i) {
-                    result(i, j) =this->operator ()(i,j);
-            }
-        }
-        return result;
-    }
+    Eigen::MatrixXd FullMatrix()const;
 
     double &operator()(const size_t i,const size_t j) {
-        size_t index;
-
-        if (i >= j) {
-            index = (i * (i + 1)) / 2 + j;
-        } else {
-            index = (j * (j + 1)) / 2 + i;
-        }
-
-        return data[index];
+        return data[Index(i,j)];
     };
     
     
     const double &operator()(const size_t i,const size_t j) const{
-        size_t index;
-
-        if (i >= j) {
-            index = (i * (i + 1)) / 2 + j;
-        } else {
-            index = (j * (j + 1)) / 2 + i;
-        }
-        return data[index];
+        return data[Index(i,j)];
     };
     
     
     friend std::ostream &operator<<(std::ostream &out, const Symmetric_Matrix& a);
 private:
+    
+    size_t Index(const size_t i,const size_t j)const;
        
     std::vector<double> data;
     size_t dimension;
