@@ -87,11 +87,6 @@ private:
     bool                _store_singlets;
     bool                _store_triplets;
     bool                _store_ehint;
-    bool                _write_orbfile;
-    
-    //double              _energy_difference;    
-        
-    string              _outParent;
       
     // parsing options
     std::map<std::string, QMState> _singlet_levels;
