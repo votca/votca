@@ -536,7 +536,6 @@ namespace votca {
       ofs.open(_jobfile.c_str(), std::ofstream::out);
       if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-      ctp::QMNBList::iterator pit;
       ctp::QMNBList &nblist = top->NBList();
 
       int jobCount = 0;
