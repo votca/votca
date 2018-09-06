@@ -71,10 +71,8 @@ private:
 
     Property _gwbse_options;
     QMState  _initialstate;
-    
-    bool _use_filter;
+
     Statefilter _filter;
-   
     
     double _crit_dR;
     double _crit_dQ;
