@@ -553,7 +553,6 @@ namespace votca {
             return;
         }
         //TODO move to Filereader
-
         void Orbitals::LoadFromXYZ(const std::string& filename) {
 
             string line;
@@ -580,14 +579,8 @@ namespace votca {
                     vector< string > split;
                     Tokenizer toker(line, " \t");
                     toker.ToVector(split);
-                    if (!split.size() ||
-                            split.size() != 4 ||
-                            split[0] == "#" ||
-                            split[0].substr(0, 1) == "#") {
-                        continue;
-                    }
+                    if(split.size()<4){continue;}
                     // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-
                     string element = split[0];
                     double x = boost::lexical_cast<double>(split[1]);
                     double y = boost::lexical_cast<double>(split[2]);
@@ -595,7 +588,6 @@ namespace votca {
                     tools::vec pos = tools::vec(x, y, z);
                     AddAtom(atomCount, element, pos * tools::conv::ang2bohr);
                     atomCount++;
-
                 }
             } else {
                 throw std::runtime_error("No such file: '" + filename + "'.");

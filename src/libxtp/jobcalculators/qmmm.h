@@ -209,13 +209,13 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
 
     // SILENT LOGGER FOR QMPACKAGE
     ctp::Logger* log = thread->getLogger();
-    ctp::Logger* qlog = new ctp::Logger();
-    qlog->setReportLevel(ctp::logDEBUG);
-    qlog->setMultithreading(_maverick);
-    qlog->setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+    ctp::Logger qlog;
+    qlog.setReportLevel(ctp::logDEBUG);
+    qlog.setMultithreading(_maverick);
+    qlog.setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog.setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog.setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog.setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
     CTP_LOG(ctp::logINFO,*log)
@@ -253,7 +253,7 @@ ctp::Job::JobResult QMMM::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThre
     // get the corresponding object from the QMPackageFactory
     QMPackage *qmpack =  QMPackages().Create( _package );
     qmpack->Initialize( _qmpack_opt );
-    qmpack->setLog(qlog);
+    qmpack->setLog(&qlog);
     
 
     QMMachine machine = QMMachine(&xjob, &xind, qmpack,

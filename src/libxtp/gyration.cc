@@ -103,7 +103,6 @@ void Density2Gyration::Initialize( tools::Property& options) {
         double mass=0.0;
         tools::vec centroid = tools::vec(0.0);
         tools::matrix gyration = tools::matrix(0.0);
-        std::vector< QMAtom* >::iterator at;
         for (QMAtom* atom:atoms){
             double m = elements.getMass(atom->getType());
             const tools::vec & pos =atom->getPos();

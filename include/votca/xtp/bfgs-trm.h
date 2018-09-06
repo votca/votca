@@ -23,6 +23,7 @@
 #include <votca/xtp/optimiser_costfunction.h>
 #include <votca/ctp/logger.h>
 #include <functional>
+#include <vector>
 
 namespace votca {
     namespace xtp {

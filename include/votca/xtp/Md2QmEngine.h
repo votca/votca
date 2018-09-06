@@ -88,7 +88,7 @@ private:
     CTP::Molecule  *getMoleculeType(const string &name);
     CTP::Atom      *getAtomType(const string &molMdName,
                                 int resNr, const string &mdAtomName);
-    void            getIntCoords(string &file,
+    void            ReadXYZFile(string &file,
                                  map<int, pair<string,vec> > &intCoords);
 
 

@@ -55,7 +55,6 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
 
     string key = "topology.molecules.molecule";
     list<Property *> molecules = typology.Select(key);
-    list<Property *>::iterator it_molecule;
     int molecule_id = 1;
     int qmunit_id  = 1; // Counts segment types
 
@@ -90,7 +89,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          if (segprop->exists("qmcoords") ) {
             qmcoordsFile = segprop->get("qmcoords").as<string>();            
             //  QM ID    Element   Position
-            this->getIntCoords(qmcoordsFile, intCoords);
+            this->ReadXYZFile(qmcoordsFile, intCoords);
          }
          
          // ++++++++++++++ //
@@ -309,16 +308,13 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
     qmtop->setCanRigidify(true);
 
     // Add types (=> Segment types / QM units)
-    vector< CTP::SegmentType* > ::iterator typeit;
-    for (typeit = this->_qmUnits.begin();
-         typeit != this->_qmUnits.end();
-         typeit++) {
+    for (CTP::SegmentType* type:_qmUnits) {
 
-        string name = (*typeit)->getName();
-        string basis = (*typeit)->getBasisName();
-        string orbitals = (*typeit)->getOrbitalsFile();
-        string qmcoords = (*typeit)->getQMCoordsFile();
-        bool canRigidify = (*typeit)->canRigidify();
+        string name = type->getName();
+        string basis = type->getBasisName();
+        string orbitals = type->getOrbitalsFile();
+        string qmcoords = type->getQMCoordsFile();
+        bool canRigidify = type->canRigidify();
         CTP::SegmentType *segType = qmtop->AddSegmentType(name);
         segType->setBasisName(basis);
         segType->setOrbitalsFile(orbitals);
@@ -329,13 +325,9 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, CTP::Topology *qmtop) {
 
     // Populate topology in a trickle-down manner
     // (i.e. molecules => ... ... => atoms)
-    CSG::MoleculeContainer::iterator mit;
-    for (mit = mdtop->Molecules().begin();
-         mit != mdtop->Molecules().end();
-         mit++ ) {
+    for (CSG::Molecule *molMD:mdtop->Molecules()) {
 
          // MD molecule + name
-         CSG::Molecule *molMD = *mit;
          string nameMolMD = molMD->getName();
 
          // Find QM counterpart
@@ -400,30 +392,18 @@ CTP::Molecule *Md2QmEngine::ExportMolecule(CTP::Molecule *refMol,
     // Note: The topology is responsible for allocating IDs to
     //       molecules, segments, ...
     
-    vector<CTP::Segment *> ::iterator segIt;
-    for (segIt = refMol->Segments().begin();
-         segIt < refMol->Segments().end();
-         segIt++) {
+    for (CTP::Segment * refSeg:refMol->Segments()) {
 
-        CTP::Segment *refSeg = *segIt;
         CTP::Segment *newSeg = qmtop->AddSegment(refSeg->getName());
         newSeg->setType( qmtop->getSegmentType(refSeg->getType()->getId()) );
 
-        vector<CTP::Fragment *> ::iterator fragIt;
-        for (fragIt = refSeg->Fragments().begin();
-             fragIt < refSeg->Fragments().end();
-             fragIt++) {
+        for (CTP::Fragment *refFrag:refSeg->Fragments()) {
 
-            CTP::Fragment *refFrag = *fragIt;
             CTP::Fragment *newFrag = qmtop->AddFragment(refFrag->getName());
             newFrag->setTrihedron(refFrag->getTrihedron());
 
-            vector<CTP::Atom *> ::iterator atomIt;
-            for (atomIt = refFrag->Atoms().begin();
-                 atomIt < refFrag->Atoms().end();
-                 atomIt++) {
+            for (CTP::Atom *refAtom :refFrag->Atoms()) {
 
-                CTP::Atom *refAtom = *atomIt;
                 CTP::Atom *newAtom = qmtop->AddAtom(refAtom->getName());
 
                 newAtom->setWeight(refAtom->getWeight());
@@ -554,43 +534,41 @@ CTP::Atom *Md2QmEngine::getAtomType(const string &molMdName,
                                            .at(resNr)
                                            .at(mdAtomName);
 }
-
-void Md2QmEngine::getIntCoords(string &file,
+//TODO move to filereader
+void Md2QmEngine::ReadXYZFile(string &file,
                                map<int, pair<string,vec> > &intCoords) {
-
-
-    int atomCount = 0;
-    int linecount = 0;
 
     std::string line;
     std::ifstream intt;
     intt.open(file.c_str());
-
+    if (!intt) throw runtime_error(string("Error reading coordinates from: ")
+                    + file);
+    std::getline(intt, line);
+    Tokenizer tok1(line," \t");
+    std::vector<std::string> line1;
+    tok1.ToVector(line1);
+    if(line1.size()!=1){
+      throw std::runtime_error("First line of xyz file should contain number of atoms, nothing else.");
+    }
+    std::getline(intt, line);//Comment line
+    
+    int atomCount = 0;
     if (intt.is_open() ) {
         while ( intt.good() ) {
             std::getline(intt, line);
-
-            if ( linecount > 1 ) {
-              vector< string > split;
-              Tokenizer toker(line, " \t");
-              toker.ToVector(split);
-              if ( !split.size()      ||
-                    split.size() != 4 ||
-                    split[0] == "#"   ||
-                    split[0].substr(0,1) == "#" ) { continue; }
-
-              // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-              atomCount++;
-              string element = split[0];
-              double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
-              double y = boost::lexical_cast<double>( split[2] ) / 10.;
-              double z = boost::lexical_cast<double>( split[3] ) / 10.;
-              vec qmPos = vec(x,y,z);
-
-              pair<string, vec> qmTypePos(element, qmPos);
-              intCoords[atomCount] = qmTypePos;
-            }
-            linecount += 1;
+            vector< string > split;
+            Tokenizer toker(line, " \t");
+            toker.ToVector(split);
+            if(split.size()<4){continue;}
+            // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
+            atomCount++;
+            string element = split[0];
+            double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
+            double y = boost::lexical_cast<double>( split[2] ) / 10.;
+            double z = boost::lexical_cast<double>( split[3] ) / 10.;
+            vec qmPos = vec(x,y,z);
+            pair<string, vec> qmTypePos(element, qmPos);
+            intCoords[atomCount] = qmTypePos;
         }
     }
     else {
@@ -601,49 +579,31 @@ void Md2QmEngine::getIntCoords(string &file,
 
 void Md2QmEngine::PrintInfo() {
 
-    vector<CTP::Molecule*>::iterator mit;
-    vector<CTP::Segment*>::iterator sit;
-    vector<CTP::Fragment*>::iterator fit;
-
     cout << "Summary ~~~~~"
             "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
     cout << "Created "
          << _molecule_types.size() << " molecule type(s): ";
-    for (mit = _molecule_types.begin();
-         mit != _molecule_types.end();
-         mit++) {
-         cout << "[ " << (*mit)->getName() << " ]";
+    for (CTP::Molecule* mol:_molecule_types) {
+         cout << "[ " << mol->getName() << " ]";
     }
     cout << endl <<  "with a total of "
          << _segment_types.size()  << " segment(s), "
          << _fragment_types.size() << " fragments, "
          << _atom_types.size() << " atoms. \n" << endl;
 
-    map < string, string > ::iterator mssit;
-    for (mssit = this->_map_MoleculeMDName_MoleculeName.begin();
-         mssit != this->_map_MoleculeMDName_MoleculeName.end();
-         mssit ++) {
-         cout << "MD [ " << mssit->first << " ] mapped to "
-              << "QM [ " << mssit->second << " ] \n" << endl;
+    for (const std::pair<string,string>& mssit : _map_MoleculeMDName_MoleculeName) {
+         cout << "MD [ " << mssit.first << " ] mapped to "
+              << "QM [ " << mssit.second << " ] \n" << endl;
     }
 
-    for (mit = _molecule_types.begin();
-         mit != _molecule_types.end();
-         mit++) {
-         CTP::Molecule *mol = *mit;
+    for (CTP::Molecule* mol: _molecule_types) {
          cout << "[ " << mol->getName() << " ]" << endl;
 
-         for (sit = mol->Segments().begin();
-              sit != mol->Segments().end();
-              sit++) {
-              CTP::Segment *seg = *sit;
+         for (CTP::Segment *seg:mol->Segments()) {
               cout << " - Segment [ " << seg->getName() << " ]"
                    << " ID " << seg->getId() << endl;
 
-              for (fit = seg->Fragments().begin();
-                   fit != seg->Fragments().end();
-                   fit++ ) {
-                   CTP::Fragment *frag = *fit;
+              for (CTP::Fragment *frag:seg->Fragments()) {
                    cout << "   - Fragment [ " << frag->getName() << " ]"
                         << " ID " << frag->getId() << ": "
                         << frag->Atoms().size() << " atoms " << endl;
@@ -656,26 +616,17 @@ void Md2QmEngine::PrintInfo() {
     cout << endl << "Mapping table"
                     " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                  << endl;
-    map < string, map < int, map < string, CTP::Atom* > > > ::iterator it0;
-    for (it0 = this->_map_mol_resNr_atm_atmType.begin();
-         it0 != this->_map_mol_resNr_atm_atmType.end();
-         it0 ++) {
-         map < int, map < string, CTP::Atom* > > ::iterator it1;
-         for (it1 = it0->second.begin();
-              it1 != it0->second.end();
-              it1++) {
-              map < string, CTP::Atom* > ::iterator it2;
-              for (it2 = it1->second.begin();
-                   it2 != it1->second.end();
-                   it2++) {
+    for (auto& map0:this->_map_mol_resNr_atm_atmType) {
+         for (auto& map1:map0.second) {
+              for (auto& map2:map1.second){
 
        printf( "MD Molecule %4s | Residue %2d | Atom %3s "
                                "| ID %3d => QM ID %3d \n",
-               it0->first.c_str(),
-               it2->second->getResnr(),
-               it2->first.c_str(),
-               it2->second->getId(),
-               it2->second->getQMId());
+              map2.first.c_str(),
+              map2.second->getResnr(),
+              map2.first.c_str(),
+              map2.second->getId(),
+              map2.second->getQMId());
              }
          }
     }
@@ -691,39 +642,28 @@ void Md2QmEngine::CheckProduct(CTP::Topology *outtop, const string &pdbfile) {
     // Atomistic PDB
     outPDB = fopen(md_pdb.c_str(), "w");
 
-    vector<CTP::Molecule*> ::iterator molIt;
-    for (molIt = outtop->Molecules().begin();
-         molIt < outtop->Molecules().end();
-         molIt++) {
-        CTP::Molecule *mol = *molIt;
+    for (CTP::Molecule *mol:outtop->Molecules()) {
         mol->WritePDB(outPDB);
     }
 
     fprintf(outPDB, "\n");
     fclose(outPDB);
-
-
+    
     // Fragment PDB
     outPDB = fopen(qm1_pdb.c_str(), "w");
 
-    vector<CTP::Segment*> ::iterator segIt;
-    for (segIt = outtop->Segments().begin();
-         segIt < outtop->Segments().end();
-         segIt++) {
-        CTP::Segment *seg = *segIt;
+    for (CTP::Segment *seg:outtop->Segments()) {
         seg->WritePDB(outPDB);
     }
 
     fprintf(outPDB, "\n");
     fclose(outPDB);
 
-
     // Segment PDB
     outPDB = fopen(qm2_pdb.c_str(), "w");
     outtop->WritePDB(outPDB);
     fprintf(outPDB, "\n");
     fclose(outPDB);
-
 
     if (TOOLS::globals::verbose) {
         cout << endl;

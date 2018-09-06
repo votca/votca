@@ -45,7 +45,6 @@ void JobWriter::Initialize(Property *options) {
     tok_keys.ToVector(_keys);
     
     // VALIDATE KEYS
-    std::vector<std::string> ::iterator vsit;
     for (const std::string& key:_keys) {
         std::map<std::string,WriteFunct>::iterator it = _key_funct.find(key);
         if (it == _key_funct.end()) {
@@ -85,11 +84,6 @@ void JobWriter::mps_monomer(ctp::Topology *top) {
     ofs << "<jobs>" << endl;
     
     int jobCount = 0;    
-    std::vector<ctp::Segment*>::iterator sit1;
-    
-    // DEFINE PAIR CHARGE STATES
-    
-    std::vector<string> ::iterator vit;
 
     std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","n e h");
     std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
@@ -149,8 +143,6 @@ void JobWriter::mps_dimer(ctp::Topology *top) {
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
     ofs << "<jobs>" << endl;
-    
-    ctp::QMNBList::iterator pit;
     ctp::QMNBList &nblist = top->NBList();    
     int jobCount = 0;
     if (nblist.size() == 0) {
@@ -242,14 +234,13 @@ void JobWriter::mps_background(ctp::Topology *top) {
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + tabFile);
     
     ofs << "# ID   TYPE    _n.mps    _e.mps    _h.mps \n";
-    vector< ctp::Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+    for (ctp::Segment* seg:top->Segments()) {
         ofs << (format("%1$4d %2$15s %3$-30s %4$-30s %5$-30s\n")
-                % (*sit)->getId() 
-                % (*sit)->getName()
-                % ("MP_FILES/"+(*sit)->getName()+"_n.mps")
-                % ("MP_FILES/"+(*sit)->getName()+"_e.mps")
-                % ("MP_FILES/"+(*sit)->getName()+"_h.mps"));
+                % seg->getId() 
+                % seg->getName()
+                % ("MP_FILES/"+seg->getName()+"_n.mps")
+                % ("MP_FILES/"+seg->getName()+"_e.mps")
+                % ("MP_FILES/"+seg->getName()+"_h.mps"));
     }
     ofs.close();
     return;
