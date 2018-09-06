@@ -29,15 +29,6 @@ namespace votca { namespace tools {
 using namespace std;
 
 /**
-    The REGISTER_OBJECT macro allows to easily register an object in an object factory.
- */
-#define REGISTER_OBJECT(factory, object, key) \
-    namespace { \
-        ObjectFactoryRegister<object> \
-            _register_##object(factory, key); \
-    }
-
-/**
     \brief template class for object factory
 
     This class is a template for an object factory. The factory creates an instance of an derived class,
