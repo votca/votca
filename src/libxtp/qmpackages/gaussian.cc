@@ -354,7 +354,6 @@ namespace votca {
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
                             << endl;
-               
             }
             com_file << endl;
             return;
