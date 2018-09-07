@@ -55,15 +55,14 @@ orbitals.LoadFromXYZ("Al.xyz");
 BasisSet basis;
 basis.LoadBasisSet("notnormalized.xml");
 AOBasis aobasis;
-aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 
 const AOShell* shell=aobasis.getShell(0);
-AOShell::GaussianIterator it;
 std::vector<double> ref_results={0.1831079647,0.9155398233};
 int i=0;
 bool check_norm=true;
-for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
-  if(std::abs(ref_results[i]-it->getContraction()[2])>1e-7){
+for(const AOGaussianPrimitive& gaussian:*shell){
+  if(std::abs(ref_results[i]-gaussian.getContraction()[2])>1e-7){
    check_norm=false;
    break;
   }
@@ -73,8 +72,8 @@ for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
 
 i=0;
 if(!check_norm){
-  for(it=shell->firstGaussian();it<shell->lastGaussian();++it){
-  std::cout<<"Ref:"<<ref_results[i]<<" result:"<<it->getContraction()[2]<<std::endl;
+  for(const AOGaussianPrimitive& gaussian:*shell){
+  std::cout<<"Ref:"<<ref_results[i]<<" result:"<<gaussian.getContraction()[2]<<std::endl;
    i++;
   }
  
@@ -154,7 +153,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
     
@@ -168,8 +167,8 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels=5;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,occlevels,0);
-  d.setOverlap(&overlap.Matrix(),1e-8);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,2*occlevels,0);
+  d.setOverlap(&overlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   
   Eigen::MatrixXd ref=orb.MOCoefficients();

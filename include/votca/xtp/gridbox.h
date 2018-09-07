@@ -35,8 +35,6 @@ namespace votca { namespace xtp {
             
         public: 
             
-            
-            
             const std::vector<tools::vec>& getGridPoints() const{return grid_pos;}
             
             const std::vector<double>& getGridWeights() const{return weights;}
@@ -62,7 +60,7 @@ namespace votca { namespace xtp {
                 return;
             }
             
-            void addGridPoint(const GridContainers::integration_grid& point){
+            void addGridPoint(const GridContainers::Cartesian_gridpoint& point){
                 grid_pos.push_back(point.grid_pos);
                 weights.push_back(point.grid_weight);
             };
@@ -84,9 +82,9 @@ namespace votca { namespace xtp {
             
             void PrepareForIntegration();
             
-            Eigen::MatrixXd ReadFromBigMatrix(const Eigen::MatrixXd& bigmatrix);
+            Eigen::MatrixXd ReadFromBigMatrix (const Eigen::MatrixXd& bigmatrix)const;
             
-            void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,const Eigen::MatrixXd& smallmatrix);
+            void AddtoBigMatrix(Eigen::MatrixXd& bigmatrix,const Eigen::MatrixXd& smallmatrix)const;
             
             void setIndexoffirstgridpoint(unsigned indexoffirstgridpoint){_indexoffirstgridpoint=indexoffirstgridpoint;}
             unsigned getIndexoffirstgridpoint() const{return _indexoffirstgridpoint;}

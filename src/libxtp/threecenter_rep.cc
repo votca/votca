@@ -42,61 +42,59 @@ namespace votca {
          */
         
       
-        bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell_3, const AOShell* _shell_1, const AOShell* _shell_2) {
+        bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* shell_3, const AOShell* shell_1, const AOShell* shell_2) {
 
             const double pi = boost::math::constants::pi<double>();
             const double gwaccuracy = 1.e-11;
             
-            bool _does_contribute=false;
+            bool does_contribute=false;
             
 
             // shell info, only lmax tells how far to go
             
-            int _lmax_1 = _shell_1->getLmax();
-            int _lmax_2 = _shell_2->getLmax();
-            int _lmax_3 = _shell_3->getLmax();
+            int lmax_1 = shell_1->getLmax();
+            int lmax_2 = shell_2->getLmax();
+            int lmax_3 = shell_3->getLmax();
             
-            int _mmax = _lmax_1+_lmax_2+_lmax_3;
+            int mmax = lmax_1+lmax_2+lmax_3;
 
 
             // set size of internal block for recursion
            
-            const AOShell* _shell_alpha;
-            const AOShell* _shell_beta;
-            const AOShell* _shell_gamma;
+            const AOShell* shell_alpha;
+            const AOShell* shell_beta;
+            const AOShell* shell_gamma;
             bool alphabetaswitch=false;
 
             // We need lmax_alpha > lmax_beta, so instead of calculating (sp,s) we calculate (ps,s), due to symmetry they are the same. 
             
-            if (_lmax_1 < _lmax_2){
-                _shell_alpha=_shell_2;
-                _shell_beta =_shell_1;
+            if (lmax_1 < lmax_2){
+                shell_alpha=shell_2;
+                shell_beta =shell_1;
                 alphabetaswitch=true;
-//               cout << "switched" << endl;   
-
                 
             }
             else{
-                _shell_alpha=_shell_1;
-                _shell_beta =_shell_2;
+                shell_alpha=shell_1;
+                shell_beta =shell_2;
             }
-            _shell_gamma=_shell_3;
+            shell_gamma=shell_3;
             
-            const tools::vec& _pos_alpha = _shell_alpha->getPos();
-            const tools::vec& _pos_beta = _shell_beta->getPos();
-            const tools::vec& _pos_gamma = _shell_gamma->getPos();
+            const tools::vec& pos_alpha = shell_alpha->getPos();
+            const tools::vec& pos_beta = shell_beta->getPos();
+            const tools::vec& pos_gamma = shell_gamma->getPos();
             
-            int _lmax_alpha = _shell_alpha->getLmax();
-            int _lmax_beta  = _shell_beta->getLmax();
-            int _lmax_gamma = _shell_gamma->getLmax();
+            int lmax_alpha = shell_alpha->getLmax();
+            int lmax_beta  = shell_beta->getLmax();
+            int lmax_gamma = shell_gamma->getLmax();
             
-            int _ngamma = AOSuperMatrix::getBlockSize(_lmax_gamma);
-            int _nbeta = AOSuperMatrix::getBlockSize(_lmax_beta);
-            int _ncombined =AOSuperMatrix::getBlockSize(_lmax_alpha+_lmax_beta);
+            int ngamma = AOSuperMatrix::getBlockSize(lmax_gamma);
+            int nbeta = AOSuperMatrix::getBlockSize(lmax_beta);
+            int ncombined =AOSuperMatrix::getBlockSize(lmax_alpha+lmax_beta);
             
                        
 
-            //int n_orb = ((_lmax_gamma + 1)*(_lmax_gamma + 2)*(_lmax_gamma + 3))/6;
+            //int n_orb = ((lmax_gamma + 1)*(lmax_gamma + 2)*(lmax_gamma + 3))/6;
             int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84, 120, 165};
             
             int nx[] = { 0,
@@ -191,61 +189,52 @@ namespace votca {
                     86, 88, 89, 91, 92, 93, 95, 96, 97, 98,100,101,102,103,104,106,107,108,109,110,111,113,114,115,116,117,118,119,
                    122,124,125,127,128,129,131,132,133,134,136,137,138,139,140,142,143,144,145,146,147,149,150,151,152,153,154,155,157,158,159,160,161,162,163,164 };
 
-
             
-                    
-            
-
-            
-            tools::vec amb=_pos_alpha-_pos_beta;
+            tools::vec amb=pos_alpha-pos_beta;
             double amb0=amb.getX();
             double amb1=amb.getY();
             double amb2=amb.getZ();
-            double _dist3 = amb * amb;
-         
+            double dist3 = amb * amb;
 
-
+            for ( AOShell::GaussianIterator italpha = shell_alpha->begin(); italpha != shell_alpha->end(); ++italpha){
+                const double decay_alpha = italpha->getDecay();
             
-
-            for ( AOShell::GaussianIterator italpha = _shell_alpha->firstGaussian(); italpha != _shell_alpha->lastGaussian(); ++italpha){
-                const double _decay_alpha = italpha->getDecay();
-            
-                for ( AOShell::GaussianIterator itbeta = _shell_beta->firstGaussian(); itbeta != _shell_beta->lastGaussian(); ++itbeta){
-                    const double _decay_beta = itbeta->getDecay();
-                    double rzeta = 0.5 / (_decay_alpha+_decay_beta);
-                    tools::vec _P = 2.0 * (_decay_alpha*_pos_alpha+_decay_beta*_pos_beta) * rzeta;
-                    tools::vec pma = _P - _pos_alpha;
+                for ( AOShell::GaussianIterator itbeta = shell_beta->begin(); itbeta != shell_beta->end(); ++itbeta){
+                    const double decay_beta = itbeta->getDecay();
+                    double rzeta = 0.5 / (decay_alpha+decay_beta);
+                    tools::vec P = 2.0 * (decay_alpha*pos_alpha+decay_beta*pos_beta) * rzeta;
+                    tools::vec pma = P - pos_alpha;
                     double pma0 = pma.getX();
                     double pma1 = pma.getY();
                     double pma2 = pma.getZ();
-                    double xi = 2.0 * _decay_alpha * _decay_beta * rzeta;
-                    double fact_alpha_beta = 16.0 * xi * pow(pi / (_decay_alpha * _decay_beta), 0.25) * exp(-xi * _dist3);
+                    double xi = 2.0 * decay_alpha * decay_beta * rzeta;
+                    double fact_alpha_beta = 16.0 * xi * pow(pi / (decay_alpha * decay_beta), 0.25) * exp(-xi * dist3);
                     
-                    for ( AOShell::GaussianIterator itgamma = _shell_gamma->firstGaussian(); itgamma != _shell_gamma->lastGaussian(); ++itgamma){
-                        const double _decay_gamma = itgamma->getDecay();
+                    for ( AOShell::GaussianIterator itgamma = shell_gamma->begin(); itgamma != shell_gamma->end(); ++itgamma){
+                        const double decay_gamma = itgamma->getDecay();
             
     
 
 
       
             
-            double _decay=_decay_alpha + _decay_beta + _decay_gamma;
-            double rgamma = 0.5/_decay_gamma; 
-            double rdecay = 0.5/_decay; 
+            double decay=decay_alpha + decay_beta + decay_gamma;
+            double rgamma = 0.5/decay_gamma; 
+            double rdecay = 0.5/decay; 
 
             double sss = fact_alpha_beta * pow(rdecay * rdecay * rgamma, 0.25);
 
             if (sss < gwaccuracy) { continue; }
 
-            _does_contribute = true;
+            does_contribute = true;
 
-            double gfak=_decay_gamma/_decay;
-            double cfak= (_decay_alpha + _decay_beta)/_decay;         
-            tools::vec _W=(_decay_alpha*_pos_alpha+_decay_beta*_pos_beta+_decay_gamma*_pos_gamma)/_decay;
-            double _T = (_decay_alpha+_decay_beta)*_decay_gamma/_decay*(_P-_pos_gamma)*(_P-_pos_gamma);
+            double gfak=decay_gamma/decay;
+            double cfak= (decay_alpha + decay_beta)/decay;         
+            tools::vec W=(decay_alpha*pos_alpha+decay_beta*pos_beta+decay_gamma*pos_gamma)/decay;
+            double U = (decay_alpha+decay_beta)*decay_gamma/decay*(P-pos_gamma)*(P-pos_gamma);
 
-            tools::vec wmp = _W - _P; 
-            tools::vec wmc = _W - _pos_gamma;
+            tools::vec wmp = W - P; 
+            tools::vec wmc = W - pos_gamma;
 
             double wmp0 = wmp.getX();
             double wmc0 = wmc.getX();
@@ -259,43 +248,42 @@ namespace votca {
           
             tensor3d::extent_gen extents;
             tensor3d R_temp;
-            R_temp.resize(extents[ range(0, _ncombined ) ][ range(0, _ngamma ) ][ range(0, max(2,_mmax+1))]);
+            R_temp.resize(extents[ range(0, ncombined ) ][ range(0, ngamma ) ][ range(0, max(2,mmax+1))]);
             //initialize to zero
-            for (index3d i = 0; i != _ncombined; ++i) {
-                for (index3d j = 0; j != _ngamma; ++j) { 
-                    for (index3d k = 0; k != _mmax+1; ++k) { 
+            for (index3d i = 0; i != ncombined; ++i) {
+                for (index3d j = 0; j != ngamma; ++j) { 
+                    for (index3d k = 0; k != mmax+1; ++k) { 
                                        R_temp[i][j][k] = 0.0;
                                    }
                                }
                            }
             
             tensor3d R;
-            R.resize(extents[ range(0, _ncombined ) ][ range(0, _nbeta ) ][ range(0, _ngamma)]);
+            R.resize(extents[ range(0, ncombined ) ][ range(0, nbeta ) ][ range(0, ngamma)]);
             //initialize to zero
-            for (index3d i = 0; i != _ncombined; ++i) {
-                for (index3d j = 0; j != _nbeta; ++j) {
-                    for (index3d k = 0; k != _ngamma; ++k) {
+            for (index3d i = 0; i != ncombined; ++i) {
+                            for (index3d j = 0; j != nbeta; ++j) {
+                                for (index3d k = 0; k != ngamma; ++k) {
+                                    R[i][j][k] = 0.0;
+                                }
+                            }
+                        }
 
-                                       R[i][j][k] = 0.0;
-                                   }
-                               }
-                           }
 
-
-            const std::vector<double> _FmT=AOMatrix<double>::XIntegrate(_mmax+1, _T);
+            const std::vector<double> FmT=AOMatrix<double>::XIntegrate(mmax+1, U);
 
             //ss integrals
 
-            for (int _i=0;_i<_mmax+1;_i++){
-                R_temp[0][0][_i]=sss*_FmT[_i];
+            for (int i=0;i<mmax+1;i++){
+                R_temp[0][0][i]=sss*FmT[i];
             }
 
-int _lmax_alpha_beta = _lmax_alpha + _lmax_beta;
+int lmax_alpha_beta = lmax_alpha + lmax_beta;
 
 
 //Integral  p - s - s
-if (_lmax_alpha_beta > 0) {
-  for (int m = 0; m < _mmax; m++) {
+if (lmax_alpha_beta > 0) {
+  for (int m = 0; m < mmax; m++) {
     R_temp[Cart::x][0][m] = pma0*R_temp[0][0][m] + wmp0*R_temp[0][0][m+1];
     R_temp[Cart::y][0][m] = pma1*R_temp[0][0][m] + wmp1*R_temp[0][0][m+1];
     R_temp[Cart::z][0][m] = pma2*R_temp[0][0][m] + wmp2*R_temp[0][0][m+1];
@@ -304,8 +292,8 @@ if (_lmax_alpha_beta > 0) {
 //------------------------------------------------------
 
 //Integral  d - s - s
-if (_lmax_alpha_beta > 1) {
-  for (int m = 0; m < _mmax-1; m++) {
+if (lmax_alpha_beta > 1) {
+  for (int m = 0; m < mmax-1; m++) {
     double term = rzeta*(R_temp[0][0][m]-gfak*R_temp[0][0][m+1]);
     R_temp[Cart::xx][0][m] = pma0*R_temp[Cart::x][0][m] + wmp0*R_temp[Cart::x][0][m+1] + term;
     R_temp[Cart::xy][0][m] = pma0*R_temp[Cart::y][0][m] + wmp0*R_temp[Cart::y][0][m+1];
@@ -318,8 +306,8 @@ if (_lmax_alpha_beta > 1) {
 //------------------------------------------------------
 
 //Integral  f - s - s
-if (_lmax_alpha_beta > 2) {
-  for (int m = 0; m < _mmax-2; m++) {
+if (lmax_alpha_beta > 2) {
+  for (int m = 0; m < mmax-2; m++) {
     R_temp[Cart::xxx][0][m] = pma0*R_temp[Cart::xx][0][m] + wmp0*R_temp[Cart::xx][0][m+1] + 2*rzeta*(R_temp[Cart::x][0][m]-gfak*R_temp[Cart::x][0][m+1]);
     R_temp[Cart::xxy][0][m] = pma1*R_temp[Cart::xx][0][m] + wmp1*R_temp[Cart::xx][0][m+1];
     R_temp[Cart::xxz][0][m] = pma2*R_temp[Cart::xx][0][m] + wmp2*R_temp[Cart::xx][0][m+1];
@@ -335,8 +323,8 @@ if (_lmax_alpha_beta > 2) {
 //------------------------------------------------------
 
 //Integral  g - s - s
-if (_lmax_alpha_beta > 3) {
-  for (int m = 0; m < _mmax-3; m++) {
+if (lmax_alpha_beta > 3) {
+  for (int m = 0; m < mmax-3; m++) {
     double term_xx = rzeta*(R_temp[Cart::xx][0][m]-gfak*R_temp[Cart::xx][0][m+1]);
     double term_yy = rzeta*(R_temp[Cart::yy][0][m]-gfak*R_temp[Cart::yy][0][m+1]);
     double term_zz = rzeta*(R_temp[Cart::zz][0][m]-gfak*R_temp[Cart::zz][0][m+1]);
@@ -360,8 +348,8 @@ if (_lmax_alpha_beta > 3) {
 //------------------------------------------------------
 
 //Integral  h - s - s
-if (_lmax_alpha_beta > 4) {
-  for (int m = 0; m < _mmax-4; m++) {
+if (lmax_alpha_beta > 4) {
+  for (int m = 0; m < mmax-4; m++) {
     double term_xxx = rzeta*(R_temp[Cart::xxx][0][m]-gfak*R_temp[Cart::xxx][0][m+1]);
     double term_yyy = rzeta*(R_temp[Cart::yyy][0][m]-gfak*R_temp[Cart::yyy][0][m+1]);
     double term_zzz = rzeta*(R_temp[Cart::zzz][0][m]-gfak*R_temp[Cart::zzz][0][m+1]);
@@ -391,8 +379,8 @@ if (_lmax_alpha_beta > 4) {
 //------------------------------------------------------
 
 //Integral  i - s - s
-if (_lmax_alpha_beta > 5) {
-  for (int m = 0; m < _mmax-5; m++) {
+if (lmax_alpha_beta > 5) {
+  for (int m = 0; m < mmax-5; m++) {
     double term_xxxx = rzeta*(R_temp[Cart::xxxx][0][m]-gfak*R_temp[Cart::xxxx][0][m+1]);
     double term_xyyy = rzeta*(R_temp[Cart::xyyy][0][m]-gfak*R_temp[Cart::xyyy][0][m+1]);
     double term_xzzz = rzeta*(R_temp[Cart::xzzz][0][m]-gfak*R_temp[Cart::xzzz][0][m+1]);
@@ -433,8 +421,8 @@ if (_lmax_alpha_beta > 5) {
 //------------------------------------------------------
 
 //Integral  j - s - s
-if (_lmax_alpha_beta > 6) {
-  for (int m = 0; m < _mmax-6; m++) {
+if (lmax_alpha_beta > 6) {
+  for (int m = 0; m < mmax-6; m++) {
     double term_xxxxx = rzeta*(R_temp[Cart::xxxxx][0][m]-gfak*R_temp[Cart::xxxxx][0][m+1]);
     double term_xxxxy = rzeta*(R_temp[Cart::xxxxy][0][m]-gfak*R_temp[Cart::xxxxy][0][m+1]);
     double term_xxxxz = rzeta*(R_temp[Cart::xxxxz][0][m]-gfak*R_temp[Cart::xxxxz][0][m+1]);
@@ -488,8 +476,8 @@ if (_lmax_alpha_beta > 6) {
 //------------------------------------------------------
 
 //Integral  k - s - s
-if (_lmax_alpha_beta > 7) {
-  for (int m = 0; m < _mmax-7; m++) {
+if (lmax_alpha_beta > 7) {
+  for (int m = 0; m < mmax-7; m++) {
     double term_xxxxxx = rzeta*(R_temp[Cart::xxxxxx][0][m]-gfak*R_temp[Cart::xxxxxx][0][m+1]);
     double term_xxxxxy = rzeta*(R_temp[Cart::xxxxxy][0][m]-gfak*R_temp[Cart::xxxxxy][0][m+1]);
     double term_xxxxxz = rzeta*(R_temp[Cart::xxxxxz][0][m]-gfak*R_temp[Cart::xxxxxz][0][m+1]);
@@ -562,10 +550,10 @@ if (_lmax_alpha_beta > 7) {
 
 
 
-if (_lmax_gamma > 0) {
+if (lmax_gamma > 0) {
 
   //Integral  s - s - p
-  for (int m = 0; m < _lmax_gamma; m++) {
+  for (int m = 0; m < lmax_gamma; m++) {
     R_temp[0][Cart::x][m] = wmc0*R_temp[0][0][m+1];
     R_temp[0][Cart::y][m] = wmc1*R_temp[0][0][m+1];
     R_temp[0][Cart::z][m] = wmc2*R_temp[0][0][m+1];
@@ -573,35 +561,35 @@ if (_lmax_gamma > 0) {
   //------------------------------------------------------
 
   //Integral  p - s - p
-  if (_lmax_alpha_beta > 0) {
-    for (int m = 0; m < _lmax_gamma; m++) {
+  if (lmax_alpha_beta > 0) {
+    for (int m = 0; m < lmax_gamma; m++) {
       double term = rdecay*R_temp[0][0][m+1];
-      for (int _i =  1; _i < 4; _i++) {
-        R_temp[_i][Cart::x][m] = wmc0*R_temp[_i][0][m+1] + nx[_i]*term;
-        R_temp[_i][Cart::y][m] = wmc1*R_temp[_i][0][m+1] + ny[_i]*term;
-        R_temp[_i][Cart::z][m] = wmc2*R_temp[_i][0][m+1] + nz[_i]*term;
+      for (int i =  1; i < 4; i++) {
+        R_temp[i][Cart::x][m] = wmc0*R_temp[i][0][m+1] + nx[i]*term;
+        R_temp[i][Cart::y][m] = wmc1*R_temp[i][0][m+1] + ny[i]*term;
+        R_temp[i][Cart::z][m] = wmc2*R_temp[i][0][m+1] + nz[i]*term;
       }
     }
   }
   //------------------------------------------------------
 
   //Integrals     d - s - p     f - s - p     g - s - p     h - s - p     i - s - p     j - s - p     k - s - p
-  for (int m = 0; m < _lmax_gamma; m++) {
-    for (int _i =  4; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-      R_temp[_i][Cart::x][m] = wmc0*R_temp[_i][0][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][0][m+1];
-      R_temp[_i][Cart::y][m] = wmc1*R_temp[_i][0][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][0][m+1];
-      R_temp[_i][Cart::z][m] = wmc2*R_temp[_i][0][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][0][m+1];
+  for (int m = 0; m < lmax_gamma; m++) {
+    for (int i =  4; i < n_orbitals[lmax_alpha_beta]; i++) {
+      R_temp[i][Cart::x][m] = wmc0*R_temp[i][0][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][0][m+1];
+      R_temp[i][Cart::y][m] = wmc1*R_temp[i][0][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][0][m+1];
+      R_temp[i][Cart::z][m] = wmc2*R_temp[i][0][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][0][m+1];
     }
   }
   //------------------------------------------------------
 
-} // end if (_lmax_gamma > 0)
+} // end if (lmax_gamma > 0)
 
 
-if (_lmax_gamma > 1) {
+if (lmax_gamma > 1) {
 
   //Integral  s - s - d
-  for (int m = 0; m < _lmax_gamma-1; m++) {
+  for (int m = 0; m < lmax_gamma-1; m++) {
     double term = rgamma*(R_temp[0][0][m]-cfak*R_temp[0][0][m+1]);
     R_temp[0][Cart::xx][m] = wmc0*R_temp[0][Cart::x][m+1] + term;
     R_temp[0][Cart::xy][m] = wmc0*R_temp[0][Cart::y][m+1];
@@ -613,26 +601,26 @@ if (_lmax_gamma > 1) {
   //------------------------------------------------------
 
   //Integrals     p - s - d     d - s - d     f - s - d     g - s - d     h - s - d     i - s - d     j - s - d     k - s - d
-  for (int m = 0; m < _lmax_gamma-1; m++) {
-    for (int _i =  1; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-      double term = rgamma*(R_temp[_i][0][m]-cfak*R_temp[_i][0][m+1]);
-      R_temp[_i][Cart::xx][m] = wmc0*R_temp[_i][Cart::x][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::x][m+1] + term;
-      R_temp[_i][Cart::xy][m] = wmc0*R_temp[_i][Cart::y][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::y][m+1];
-      R_temp[_i][Cart::xz][m] = wmc0*R_temp[_i][Cart::z][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::z][m+1];
-      R_temp[_i][Cart::yy][m] = wmc1*R_temp[_i][Cart::y][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::y][m+1] + term;
-      R_temp[_i][Cart::yz][m] = wmc1*R_temp[_i][Cart::z][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::z][m+1];
-      R_temp[_i][Cart::zz][m] = wmc2*R_temp[_i][Cart::z][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::z][m+1] + term;
+  for (int m = 0; m < lmax_gamma-1; m++) {
+    for (int i =  1; i < n_orbitals[lmax_alpha_beta]; i++) {
+      double term = rgamma*(R_temp[i][0][m]-cfak*R_temp[i][0][m+1]);
+      R_temp[i][Cart::xx][m] = wmc0*R_temp[i][Cart::x][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::x][m+1] + term;
+      R_temp[i][Cart::xy][m] = wmc0*R_temp[i][Cart::y][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::y][m+1];
+      R_temp[i][Cart::xz][m] = wmc0*R_temp[i][Cart::z][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::z][m+1];
+      R_temp[i][Cart::yy][m] = wmc1*R_temp[i][Cart::y][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::y][m+1] + term;
+      R_temp[i][Cart::yz][m] = wmc1*R_temp[i][Cart::z][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::z][m+1];
+      R_temp[i][Cart::zz][m] = wmc2*R_temp[i][Cart::z][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::z][m+1] + term;
     }
   }
   //------------------------------------------------------
 
-} // end if (_lmax_gamma > 1)
+} // end if (lmax_gamma > 1)
 
 
-if (_lmax_gamma > 2) {
+if (lmax_gamma > 2) {
 
   //Integral  s - s - f
-  for (int m = 0; m < _lmax_gamma-2; m++) {
+  for (int m = 0; m < lmax_gamma-2; m++) {
     R_temp[0][Cart::xxx][m] = wmc0*R_temp[0][Cart::xx][m+1] + 2*rgamma*(R_temp[0][Cart::x][m]-cfak*R_temp[0][Cart::x][m+1]);
     R_temp[0][Cart::xxy][m] = wmc1*R_temp[0][Cart::xx][m+1];
     R_temp[0][Cart::xxz][m] = wmc2*R_temp[0][Cart::xx][m+1];
@@ -647,32 +635,32 @@ if (_lmax_gamma > 2) {
   //------------------------------------------------------
 
   //Integrals     p - s - f     d - s - f     f - s - f     g - s - f     h - s - f     i - s - f     j - s - f     k - s - f
-  for (int m = 0; m < _lmax_gamma-2; m++) {
-    for (int _i =  1; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-      double term_x = 2*rgamma*(R_temp[_i][Cart::x][m]-cfak*R_temp[_i][Cart::x][m+1]);
-      double term_y = 2*rgamma*(R_temp[_i][Cart::y][m]-cfak*R_temp[_i][Cart::y][m+1]);
-      double term_z = 2*rgamma*(R_temp[_i][Cart::z][m]-cfak*R_temp[_i][Cart::z][m+1]);
-      R_temp[_i][Cart::xxx][m] = wmc0*R_temp[_i][Cart::xx][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xx][m+1] + term_x;
-      R_temp[_i][Cart::xxy][m] = wmc1*R_temp[_i][Cart::xx][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xx][m+1];
-      R_temp[_i][Cart::xxz][m] = wmc2*R_temp[_i][Cart::xx][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xx][m+1];
-      R_temp[_i][Cart::xyy][m] = wmc0*R_temp[_i][Cart::yy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yy][m+1];
-      R_temp[_i][Cart::xyz][m] = wmc0*R_temp[_i][Cart::yz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yz][m+1];
-      R_temp[_i][Cart::xzz][m] = wmc0*R_temp[_i][Cart::zz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::zz][m+1];
-      R_temp[_i][Cart::yyy][m] = wmc1*R_temp[_i][Cart::yy][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yy][m+1] + term_y;
-      R_temp[_i][Cart::yyz][m] = wmc2*R_temp[_i][Cart::yy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::yy][m+1];
-      R_temp[_i][Cart::yzz][m] = wmc1*R_temp[_i][Cart::zz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::zz][m+1];
-      R_temp[_i][Cart::zzz][m] = wmc2*R_temp[_i][Cart::zz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::zz][m+1] + term_z;
+  for (int m = 0; m < lmax_gamma-2; m++) {
+    for (int i =  1; i < n_orbitals[lmax_alpha_beta]; i++) {
+      double term_x = 2*rgamma*(R_temp[i][Cart::x][m]-cfak*R_temp[i][Cart::x][m+1]);
+      double term_y = 2*rgamma*(R_temp[i][Cart::y][m]-cfak*R_temp[i][Cart::y][m+1]);
+      double term_z = 2*rgamma*(R_temp[i][Cart::z][m]-cfak*R_temp[i][Cart::z][m+1]);
+      R_temp[i][Cart::xxx][m] = wmc0*R_temp[i][Cart::xx][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xx][m+1] + term_x;
+      R_temp[i][Cart::xxy][m] = wmc1*R_temp[i][Cart::xx][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xx][m+1];
+      R_temp[i][Cart::xxz][m] = wmc2*R_temp[i][Cart::xx][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xx][m+1];
+      R_temp[i][Cart::xyy][m] = wmc0*R_temp[i][Cart::yy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yy][m+1];
+      R_temp[i][Cart::xyz][m] = wmc0*R_temp[i][Cart::yz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yz][m+1];
+      R_temp[i][Cart::xzz][m] = wmc0*R_temp[i][Cart::zz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::zz][m+1];
+      R_temp[i][Cart::yyy][m] = wmc1*R_temp[i][Cart::yy][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yy][m+1] + term_y;
+      R_temp[i][Cart::yyz][m] = wmc2*R_temp[i][Cart::yy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::yy][m+1];
+      R_temp[i][Cart::yzz][m] = wmc1*R_temp[i][Cart::zz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::zz][m+1];
+      R_temp[i][Cart::zzz][m] = wmc2*R_temp[i][Cart::zz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::zz][m+1] + term_z;
     }
   }
   //------------------------------------------------------
 
-} // end if (_lmax_gamma > 2)
+} // end if (lmax_gamma > 2)
 
 
-if (_lmax_gamma > 3) {
+if (lmax_gamma > 3) {
 
   //Integral  s - s - g
-  for (int m = 0; m < _lmax_gamma-3; m++) {
+  for (int m = 0; m < lmax_gamma-3; m++) {
     double term_xx = rgamma*(R_temp[0][Cart::xx][m]-cfak*R_temp[0][Cart::xx][m+1]);
     double term_yy = rgamma*(R_temp[0][Cart::yy][m]-cfak*R_temp[0][Cart::yy][m+1]);
     double term_zz = rgamma*(R_temp[0][Cart::zz][m]-cfak*R_temp[0][Cart::zz][m+1]);
@@ -695,37 +683,37 @@ if (_lmax_gamma > 3) {
   //------------------------------------------------------
 
   //Integrals     p - s - g     d - s - g     f - s - g     g - s - g     h - s - g     i - s - g     j - s - g     k - s - g
-  for (int m = 0; m < _lmax_gamma-3; m++) {
-    for (int _i =  1; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-      double term_xx = rgamma*(R_temp[_i][Cart::xx][m]-cfak*R_temp[_i][Cart::xx][m+1]);
-      double term_yy = rgamma*(R_temp[_i][Cart::yy][m]-cfak*R_temp[_i][Cart::yy][m+1]);
-      double term_zz = rgamma*(R_temp[_i][Cart::zz][m]-cfak*R_temp[_i][Cart::zz][m+1]);
-      R_temp[_i][Cart::xxxx][m] = wmc0*R_temp[_i][Cart::xxx][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xxx][m+1] + 3*term_xx;
-      R_temp[_i][Cart::xxxy][m] = wmc1*R_temp[_i][Cart::xxx][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxx][m+1];
-      R_temp[_i][Cart::xxxz][m] = wmc2*R_temp[_i][Cart::xxx][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxx][m+1];
-      R_temp[_i][Cart::xxyy][m] = wmc0*R_temp[_i][Cart::xyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xyy][m+1] + term_yy;
-      R_temp[_i][Cart::xxyz][m] = wmc1*R_temp[_i][Cart::xxz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxz][m+1];
-      R_temp[_i][Cart::xxzz][m] = wmc0*R_temp[_i][Cart::xzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xzz][m+1] + term_zz;
-      R_temp[_i][Cart::xyyy][m] = wmc0*R_temp[_i][Cart::yyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyy][m+1];
-      R_temp[_i][Cart::xyyz][m] = wmc0*R_temp[_i][Cart::yyz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyz][m+1];
-      R_temp[_i][Cart::xyzz][m] = wmc0*R_temp[_i][Cart::yzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yzz][m+1];
-      R_temp[_i][Cart::xzzz][m] = wmc0*R_temp[_i][Cart::zzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::zzz][m+1];
-      R_temp[_i][Cart::yyyy][m] = wmc1*R_temp[_i][Cart::yyy][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yyy][m+1] + 3*term_yy;
-      R_temp[_i][Cart::yyyz][m] = wmc2*R_temp[_i][Cart::yyy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::yyy][m+1];
-      R_temp[_i][Cart::yyzz][m] = wmc1*R_temp[_i][Cart::yzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yzz][m+1] + term_zz;
-      R_temp[_i][Cart::yzzz][m] = wmc1*R_temp[_i][Cart::zzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::zzz][m+1];
-      R_temp[_i][Cart::zzzz][m] = wmc2*R_temp[_i][Cart::zzz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::zzz][m+1] + 3*term_zz;
+  for (int m = 0; m < lmax_gamma-3; m++) {
+    for (int i =  1; i < n_orbitals[lmax_alpha_beta]; i++) {
+      double term_xx = rgamma*(R_temp[i][Cart::xx][m]-cfak*R_temp[i][Cart::xx][m+1]);
+      double term_yy = rgamma*(R_temp[i][Cart::yy][m]-cfak*R_temp[i][Cart::yy][m+1]);
+      double term_zz = rgamma*(R_temp[i][Cart::zz][m]-cfak*R_temp[i][Cart::zz][m+1]);
+      R_temp[i][Cart::xxxx][m] = wmc0*R_temp[i][Cart::xxx][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xxx][m+1] + 3*term_xx;
+      R_temp[i][Cart::xxxy][m] = wmc1*R_temp[i][Cart::xxx][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxx][m+1];
+      R_temp[i][Cart::xxxz][m] = wmc2*R_temp[i][Cart::xxx][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxx][m+1];
+      R_temp[i][Cart::xxyy][m] = wmc0*R_temp[i][Cart::xyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xyy][m+1] + term_yy;
+      R_temp[i][Cart::xxyz][m] = wmc1*R_temp[i][Cart::xxz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxz][m+1];
+      R_temp[i][Cart::xxzz][m] = wmc0*R_temp[i][Cart::xzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xzz][m+1] + term_zz;
+      R_temp[i][Cart::xyyy][m] = wmc0*R_temp[i][Cart::yyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyy][m+1];
+      R_temp[i][Cart::xyyz][m] = wmc0*R_temp[i][Cart::yyz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyz][m+1];
+      R_temp[i][Cart::xyzz][m] = wmc0*R_temp[i][Cart::yzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yzz][m+1];
+      R_temp[i][Cart::xzzz][m] = wmc0*R_temp[i][Cart::zzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::zzz][m+1];
+      R_temp[i][Cart::yyyy][m] = wmc1*R_temp[i][Cart::yyy][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yyy][m+1] + 3*term_yy;
+      R_temp[i][Cart::yyyz][m] = wmc2*R_temp[i][Cart::yyy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::yyy][m+1];
+      R_temp[i][Cart::yyzz][m] = wmc1*R_temp[i][Cart::yzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yzz][m+1] + term_zz;
+      R_temp[i][Cart::yzzz][m] = wmc1*R_temp[i][Cart::zzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::zzz][m+1];
+      R_temp[i][Cart::zzzz][m] = wmc2*R_temp[i][Cart::zzz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::zzz][m+1] + 3*term_zz;
     }
   }
   //------------------------------------------------------
 
-} // end if (_lmax_gamma > 3)
+} // end if (lmax_gamma > 3)
 
 
-if (_lmax_gamma > 4) {
+if (lmax_gamma > 4) {
 
   //Integral  s - s - h
-  for (int m = 0; m < _lmax_gamma-4; m++) {
+  for (int m = 0; m < lmax_gamma-4; m++) {
     double term_xxx = rgamma*(R_temp[0][Cart::xxx][m]-cfak*R_temp[0][Cart::xxx][m+1]);
     double term_yyy = rgamma*(R_temp[0][Cart::yyy][m]-cfak*R_temp[0][Cart::yyy][m+1]);
     double term_zzz = rgamma*(R_temp[0][Cart::zzz][m]-cfak*R_temp[0][Cart::zzz][m+1]);
@@ -754,43 +742,43 @@ if (_lmax_gamma > 4) {
   //------------------------------------------------------
 
   //Integrals     p - s - h     d - s - h     f - s - h     g - s - h     h - s - h     i - s - h     j - s - h     k - s - h
-  for (int m = 0; m < _lmax_gamma-4; m++) {
-    for (int _i =  1; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-      double term_xxx = rgamma*(R_temp[_i][Cart::xxx][m]-cfak*R_temp[_i][Cart::xxx][m+1]);
-      double term_yyy = rgamma*(R_temp[_i][Cart::yyy][m]-cfak*R_temp[_i][Cart::yyy][m+1]);
-      double term_zzz = rgamma*(R_temp[_i][Cart::zzz][m]-cfak*R_temp[_i][Cart::zzz][m+1]);
-      R_temp[_i][Cart::xxxxx][m] = wmc0*R_temp[_i][Cart::xxxx][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xxxx][m+1] + 4*term_xxx;
-      R_temp[_i][Cart::xxxxy][m] = wmc1*R_temp[_i][Cart::xxxx][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxx][m+1];
-      R_temp[_i][Cart::xxxxz][m] = wmc2*R_temp[_i][Cart::xxxx][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxxx][m+1];
-      R_temp[_i][Cart::xxxyy][m] = wmc1*R_temp[_i][Cart::xxxy][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxy][m+1] + term_xxx;
-      R_temp[_i][Cart::xxxyz][m] = wmc1*R_temp[_i][Cart::xxxz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxz][m+1];
-      R_temp[_i][Cart::xxxzz][m] = wmc2*R_temp[_i][Cart::xxxz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxxz][m+1] + term_xxx;
-      R_temp[_i][Cart::xxyyy][m] = wmc0*R_temp[_i][Cart::xyyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xyyy][m+1] + term_yyy;
-      R_temp[_i][Cart::xxyyz][m] = wmc2*R_temp[_i][Cart::xxyy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxyy][m+1];
-      R_temp[_i][Cart::xxyzz][m] = wmc1*R_temp[_i][Cart::xxzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxzz][m+1];
-      R_temp[_i][Cart::xxzzz][m] = wmc0*R_temp[_i][Cart::xzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xzzz][m+1] + term_zzz;
-      R_temp[_i][Cart::xyyyy][m] = wmc0*R_temp[_i][Cart::yyyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyyy][m+1];
-      R_temp[_i][Cart::xyyyz][m] = wmc0*R_temp[_i][Cart::yyyz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyyz][m+1];
-      R_temp[_i][Cart::xyyzz][m] = wmc0*R_temp[_i][Cart::yyzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyzz][m+1];
-      R_temp[_i][Cart::xyzzz][m] = wmc0*R_temp[_i][Cart::yzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yzzz][m+1];
-      R_temp[_i][Cart::xzzzz][m] = wmc0*R_temp[_i][Cart::zzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::zzzz][m+1];
-      R_temp[_i][Cart::yyyyy][m] = wmc1*R_temp[_i][Cart::yyyy][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yyyy][m+1] + 4*term_yyy;
-      R_temp[_i][Cart::yyyyz][m] = wmc2*R_temp[_i][Cart::yyyy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::yyyy][m+1];
-      R_temp[_i][Cart::yyyzz][m] = wmc2*R_temp[_i][Cart::yyyz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::yyyz][m+1] + term_yyy;
-      R_temp[_i][Cart::yyzzz][m] = wmc1*R_temp[_i][Cart::yzzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yzzz][m+1] + term_zzz;
-      R_temp[_i][Cart::yzzzz][m] = wmc1*R_temp[_i][Cart::zzzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::zzzz][m+1];
-      R_temp[_i][Cart::zzzzz][m] = wmc2*R_temp[_i][Cart::zzzz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::zzzz][m+1] + 4*term_zzz;
+  for (int m = 0; m < lmax_gamma-4; m++) {
+    for (int i =  1; i < n_orbitals[lmax_alpha_beta]; i++) {
+      double term_xxx = rgamma*(R_temp[i][Cart::xxx][m]-cfak*R_temp[i][Cart::xxx][m+1]);
+      double term_yyy = rgamma*(R_temp[i][Cart::yyy][m]-cfak*R_temp[i][Cart::yyy][m+1]);
+      double term_zzz = rgamma*(R_temp[i][Cart::zzz][m]-cfak*R_temp[i][Cart::zzz][m+1]);
+      R_temp[i][Cart::xxxxx][m] = wmc0*R_temp[i][Cart::xxxx][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xxxx][m+1] + 4*term_xxx;
+      R_temp[i][Cart::xxxxy][m] = wmc1*R_temp[i][Cart::xxxx][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxx][m+1];
+      R_temp[i][Cart::xxxxz][m] = wmc2*R_temp[i][Cart::xxxx][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxxx][m+1];
+      R_temp[i][Cart::xxxyy][m] = wmc1*R_temp[i][Cart::xxxy][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxy][m+1] + term_xxx;
+      R_temp[i][Cart::xxxyz][m] = wmc1*R_temp[i][Cart::xxxz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxz][m+1];
+      R_temp[i][Cart::xxxzz][m] = wmc2*R_temp[i][Cart::xxxz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxxz][m+1] + term_xxx;
+      R_temp[i][Cart::xxyyy][m] = wmc0*R_temp[i][Cart::xyyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xyyy][m+1] + term_yyy;
+      R_temp[i][Cart::xxyyz][m] = wmc2*R_temp[i][Cart::xxyy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxyy][m+1];
+      R_temp[i][Cart::xxyzz][m] = wmc1*R_temp[i][Cart::xxzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxzz][m+1];
+      R_temp[i][Cart::xxzzz][m] = wmc0*R_temp[i][Cart::xzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xzzz][m+1] + term_zzz;
+      R_temp[i][Cart::xyyyy][m] = wmc0*R_temp[i][Cart::yyyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyyy][m+1];
+      R_temp[i][Cart::xyyyz][m] = wmc0*R_temp[i][Cart::yyyz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyyz][m+1];
+      R_temp[i][Cart::xyyzz][m] = wmc0*R_temp[i][Cart::yyzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyzz][m+1];
+      R_temp[i][Cart::xyzzz][m] = wmc0*R_temp[i][Cart::yzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yzzz][m+1];
+      R_temp[i][Cart::xzzzz][m] = wmc0*R_temp[i][Cart::zzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::zzzz][m+1];
+      R_temp[i][Cart::yyyyy][m] = wmc1*R_temp[i][Cart::yyyy][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yyyy][m+1] + 4*term_yyy;
+      R_temp[i][Cart::yyyyz][m] = wmc2*R_temp[i][Cart::yyyy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::yyyy][m+1];
+      R_temp[i][Cart::yyyzz][m] = wmc2*R_temp[i][Cart::yyyz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::yyyz][m+1] + term_yyy;
+      R_temp[i][Cart::yyzzz][m] = wmc1*R_temp[i][Cart::yzzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yzzz][m+1] + term_zzz;
+      R_temp[i][Cart::yzzzz][m] = wmc1*R_temp[i][Cart::zzzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::zzzz][m+1];
+      R_temp[i][Cart::zzzzz][m] = wmc2*R_temp[i][Cart::zzzz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::zzzz][m+1] + 4*term_zzz;
     }
   }
   //------------------------------------------------------
 
-} // end if (_lmax_gamma > 4)
+} // end if (lmax_gamma > 4)
 
 
-if (_lmax_gamma > 5) {
+if (lmax_gamma > 5) {
 
   //Integral  s - s - i
-  for (int m = 0; m < _lmax_gamma-5; m++) {
+  for (int m = 0; m < lmax_gamma-5; m++) {
     double term_xxxx = rgamma*(R_temp[0][Cart::xxxx][m]-cfak*R_temp[0][Cart::xxxx][m+1]);
     double term_xyyy = rgamma*(R_temp[0][Cart::xyyy][m]-cfak*R_temp[0][Cart::xyyy][m+1]);
     double term_xzzz = rgamma*(R_temp[0][Cart::xzzz][m]-cfak*R_temp[0][Cart::xzzz][m+1]);
@@ -830,274 +818,274 @@ if (_lmax_gamma > 5) {
   //------------------------------------------------------
 
   //Integrals     p - s - i     d - s - i     f - s - i     g - s - i     h - s - i     i - s - i     j - s - i     k - s - i
-  for (int m = 0; m < _lmax_gamma-5; m++) {
-    for (int _i =  1; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-      double term_xxxx = rgamma*(R_temp[_i][Cart::xxxx][m]-cfak*R_temp[_i][Cart::xxxx][m+1]);
-      double term_xyyy = rgamma*(R_temp[_i][Cart::xyyy][m]-cfak*R_temp[_i][Cart::xyyy][m+1]);
-      double term_xzzz = rgamma*(R_temp[_i][Cart::xzzz][m]-cfak*R_temp[_i][Cart::xzzz][m+1]);
-      double term_yyyy = rgamma*(R_temp[_i][Cart::yyyy][m]-cfak*R_temp[_i][Cart::yyyy][m+1]);
-      double term_yyzz = rgamma*(R_temp[_i][Cart::yyzz][m]-cfak*R_temp[_i][Cart::yyzz][m+1]);
-      double term_yzzz = rgamma*(R_temp[_i][Cart::yzzz][m]-cfak*R_temp[_i][Cart::yzzz][m+1]);
-      double term_zzzz = rgamma*(R_temp[_i][Cart::zzzz][m]-cfak*R_temp[_i][Cart::zzzz][m+1]);
-      R_temp[_i][Cart::xxxxxx][m] = wmc0*R_temp[_i][Cart::xxxxx][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xxxxx][m+1] + 5*term_xxxx;
-      R_temp[_i][Cart::xxxxxy][m] = wmc1*R_temp[_i][Cart::xxxxx][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxxx][m+1];
-      R_temp[_i][Cart::xxxxxz][m] = wmc2*R_temp[_i][Cart::xxxxx][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxxxx][m+1];
-      R_temp[_i][Cart::xxxxyy][m] = wmc1*R_temp[_i][Cart::xxxxy][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxxy][m+1] + term_xxxx;
-      R_temp[_i][Cart::xxxxyz][m] = wmc1*R_temp[_i][Cart::xxxxz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxxz][m+1];
-      R_temp[_i][Cart::xxxxzz][m] = wmc2*R_temp[_i][Cart::xxxxz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxxxz][m+1] + term_xxxx;
-      R_temp[_i][Cart::xxxyyy][m] = wmc0*R_temp[_i][Cart::xxyyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xxyyy][m+1] + 2*term_xyyy;
-      R_temp[_i][Cart::xxxyyz][m] = wmc2*R_temp[_i][Cart::xxxyy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxxyy][m+1];
-      R_temp[_i][Cart::xxxyzz][m] = wmc1*R_temp[_i][Cart::xxxzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxxzz][m+1];
-      R_temp[_i][Cart::xxxzzz][m] = wmc0*R_temp[_i][Cart::xxzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xxzzz][m+1] + 2*term_xzzz;
-      R_temp[_i][Cart::xxyyyy][m] = wmc0*R_temp[_i][Cart::xyyyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xyyyy][m+1] + term_yyyy;
-      R_temp[_i][Cart::xxyyyz][m] = wmc2*R_temp[_i][Cart::xxyyy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::xxyyy][m+1];
-      R_temp[_i][Cart::xxyyzz][m] = wmc0*R_temp[_i][Cart::xyyzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xyyzz][m+1] + term_yyzz;
-      R_temp[_i][Cart::xxyzzz][m] = wmc1*R_temp[_i][Cart::xxzzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::xxzzz][m+1];
-      R_temp[_i][Cart::xxzzzz][m] = wmc0*R_temp[_i][Cart::xzzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::xzzzz][m+1] + term_zzzz;
-      R_temp[_i][Cart::xyyyyy][m] = wmc0*R_temp[_i][Cart::yyyyy][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyyyy][m+1];
-      R_temp[_i][Cart::xyyyyz][m] = wmc0*R_temp[_i][Cart::yyyyz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyyyz][m+1];
-      R_temp[_i][Cart::xyyyzz][m] = wmc0*R_temp[_i][Cart::yyyzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyyzz][m+1];
-      R_temp[_i][Cart::xyyzzz][m] = wmc0*R_temp[_i][Cart::yyzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yyzzz][m+1];
-      R_temp[_i][Cart::xyzzzz][m] = wmc0*R_temp[_i][Cart::yzzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::yzzzz][m+1];
-      R_temp[_i][Cart::xzzzzz][m] = wmc0*R_temp[_i][Cart::zzzzz][m+1] + nx[_i]*rdecay*R_temp[i_less_x[_i]][Cart::zzzzz][m+1];
-      R_temp[_i][Cart::yyyyyy][m] = wmc1*R_temp[_i][Cart::yyyyy][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yyyyy][m+1] + 5*term_yyyy;
-      R_temp[_i][Cart::yyyyyz][m] = wmc2*R_temp[_i][Cart::yyyyy][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::yyyyy][m+1];
-      R_temp[_i][Cart::yyyyzz][m] = wmc2*R_temp[_i][Cart::yyyyz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::yyyyz][m+1] + term_yyyy;
-      R_temp[_i][Cart::yyyzzz][m] = wmc1*R_temp[_i][Cart::yyzzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yyzzz][m+1] + 2*term_yzzz;
-      R_temp[_i][Cart::yyzzzz][m] = wmc1*R_temp[_i][Cart::yzzzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::yzzzz][m+1] + term_zzzz;
-      R_temp[_i][Cart::yzzzzz][m] = wmc1*R_temp[_i][Cart::zzzzz][m+1] + ny[_i]*rdecay*R_temp[i_less_y[_i]][Cart::zzzzz][m+1];
-      R_temp[_i][Cart::zzzzzz][m] = wmc2*R_temp[_i][Cart::zzzzz][m+1] + nz[_i]*rdecay*R_temp[i_less_z[_i]][Cart::zzzzz][m+1] + 5*term_zzzz;
+  for (int m = 0; m < lmax_gamma-5; m++) {
+    for (int i =  1; i < n_orbitals[lmax_alpha_beta]; i++) {
+      double term_xxxx = rgamma*(R_temp[i][Cart::xxxx][m]-cfak*R_temp[i][Cart::xxxx][m+1]);
+      double term_xyyy = rgamma*(R_temp[i][Cart::xyyy][m]-cfak*R_temp[i][Cart::xyyy][m+1]);
+      double term_xzzz = rgamma*(R_temp[i][Cart::xzzz][m]-cfak*R_temp[i][Cart::xzzz][m+1]);
+      double term_yyyy = rgamma*(R_temp[i][Cart::yyyy][m]-cfak*R_temp[i][Cart::yyyy][m+1]);
+      double term_yyzz = rgamma*(R_temp[i][Cart::yyzz][m]-cfak*R_temp[i][Cart::yyzz][m+1]);
+      double term_yzzz = rgamma*(R_temp[i][Cart::yzzz][m]-cfak*R_temp[i][Cart::yzzz][m+1]);
+      double term_zzzz = rgamma*(R_temp[i][Cart::zzzz][m]-cfak*R_temp[i][Cart::zzzz][m+1]);
+      R_temp[i][Cart::xxxxxx][m] = wmc0*R_temp[i][Cart::xxxxx][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xxxxx][m+1] + 5*term_xxxx;
+      R_temp[i][Cart::xxxxxy][m] = wmc1*R_temp[i][Cart::xxxxx][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxxx][m+1];
+      R_temp[i][Cart::xxxxxz][m] = wmc2*R_temp[i][Cart::xxxxx][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxxxx][m+1];
+      R_temp[i][Cart::xxxxyy][m] = wmc1*R_temp[i][Cart::xxxxy][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxxy][m+1] + term_xxxx;
+      R_temp[i][Cart::xxxxyz][m] = wmc1*R_temp[i][Cart::xxxxz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxxz][m+1];
+      R_temp[i][Cart::xxxxzz][m] = wmc2*R_temp[i][Cart::xxxxz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxxxz][m+1] + term_xxxx;
+      R_temp[i][Cart::xxxyyy][m] = wmc0*R_temp[i][Cart::xxyyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xxyyy][m+1] + 2*term_xyyy;
+      R_temp[i][Cart::xxxyyz][m] = wmc2*R_temp[i][Cart::xxxyy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxxyy][m+1];
+      R_temp[i][Cart::xxxyzz][m] = wmc1*R_temp[i][Cart::xxxzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxxzz][m+1];
+      R_temp[i][Cart::xxxzzz][m] = wmc0*R_temp[i][Cart::xxzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xxzzz][m+1] + 2*term_xzzz;
+      R_temp[i][Cart::xxyyyy][m] = wmc0*R_temp[i][Cart::xyyyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xyyyy][m+1] + term_yyyy;
+      R_temp[i][Cart::xxyyyz][m] = wmc2*R_temp[i][Cart::xxyyy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::xxyyy][m+1];
+      R_temp[i][Cart::xxyyzz][m] = wmc0*R_temp[i][Cart::xyyzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xyyzz][m+1] + term_yyzz;
+      R_temp[i][Cart::xxyzzz][m] = wmc1*R_temp[i][Cart::xxzzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::xxzzz][m+1];
+      R_temp[i][Cart::xxzzzz][m] = wmc0*R_temp[i][Cart::xzzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::xzzzz][m+1] + term_zzzz;
+      R_temp[i][Cart::xyyyyy][m] = wmc0*R_temp[i][Cart::yyyyy][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyyyy][m+1];
+      R_temp[i][Cart::xyyyyz][m] = wmc0*R_temp[i][Cart::yyyyz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyyyz][m+1];
+      R_temp[i][Cart::xyyyzz][m] = wmc0*R_temp[i][Cart::yyyzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyyzz][m+1];
+      R_temp[i][Cart::xyyzzz][m] = wmc0*R_temp[i][Cart::yyzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yyzzz][m+1];
+      R_temp[i][Cart::xyzzzz][m] = wmc0*R_temp[i][Cart::yzzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::yzzzz][m+1];
+      R_temp[i][Cart::xzzzzz][m] = wmc0*R_temp[i][Cart::zzzzz][m+1] + nx[i]*rdecay*R_temp[i_less_x[i]][Cart::zzzzz][m+1];
+      R_temp[i][Cart::yyyyyy][m] = wmc1*R_temp[i][Cart::yyyyy][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yyyyy][m+1] + 5*term_yyyy;
+      R_temp[i][Cart::yyyyyz][m] = wmc2*R_temp[i][Cart::yyyyy][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::yyyyy][m+1];
+      R_temp[i][Cart::yyyyzz][m] = wmc2*R_temp[i][Cart::yyyyz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::yyyyz][m+1] + term_yyyy;
+      R_temp[i][Cart::yyyzzz][m] = wmc1*R_temp[i][Cart::yyzzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yyzzz][m+1] + 2*term_yzzz;
+      R_temp[i][Cart::yyzzzz][m] = wmc1*R_temp[i][Cart::yzzzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::yzzzz][m+1] + term_zzzz;
+      R_temp[i][Cart::yzzzzz][m] = wmc1*R_temp[i][Cart::zzzzz][m+1] + ny[i]*rdecay*R_temp[i_less_y[i]][Cart::zzzzz][m+1];
+      R_temp[i][Cart::zzzzzz][m] = wmc2*R_temp[i][Cart::zzzzz][m+1] + nz[i]*rdecay*R_temp[i_less_z[i]][Cart::zzzzz][m+1] + 5*term_zzzz;
     }
   }
   //------------------------------------------------------
 
-} // end if (_lmax_gamma > 5)
+} // end if (lmax_gamma > 5)
 
 
 
 
-const std::vector<double>& _contractions_gamma = itgamma->getContraction();
+const std::vector<double>& contractions_gamma = itgamma->getContraction();
 
   // s-functions
-double factor = _contractions_gamma[0];
-for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-  R_temp[_i][0][1] = factor * R_temp[_i][0][0]; /// Y 0,0
+double factor = contractions_gamma[0];
+for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+  R_temp[i][0][1] = factor * R_temp[i][0][0]; /// Y 0,0
 }
 
-if (_lmax_gamma > 0) {
+if (lmax_gamma > 0) {
   // p-functions
-  factor = 2.*sqrt(_decay_gamma)*_contractions_gamma[1];
-  for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-    R_temp[_i][1][1] = factor * R_temp[_i][3][0]; /// Y 1,0
-    R_temp[_i][2][1] = factor * R_temp[_i][2][0]; /// Y 1,-1
-    R_temp[_i][3][1] = factor * R_temp[_i][1][0]; /// Y 1,1
+  factor = 2.*sqrt(decay_gamma)*contractions_gamma[1];
+  for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+    R_temp[i][1][1] = factor * R_temp[i][3][0]; /// Y 1,0
+    R_temp[i][2][1] = factor * R_temp[i][2][0]; /// Y 1,-1
+    R_temp[i][3][1] = factor * R_temp[i][1][0]; /// Y 1,1
   }
 }
 
-if (_lmax_gamma > 1) {
+if (lmax_gamma > 1) {
   // d-functions
-  factor = 2.0*_decay_gamma*_contractions_gamma[2];
+  factor = 2.0*decay_gamma*contractions_gamma[2];
   double factor_1 =  factor/sqrt(3.0);
-  for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-    R_temp[_i][4][1] = factor_1 * ( 2.0*R_temp[_i][Cart::zz][0] - R_temp[_i][Cart::xx][0] - R_temp[_i][Cart::yy][0] );  /// d3z2-r2  Y 2,0
-    R_temp[_i][5][1] = 2.*factor * R_temp[_i][Cart::yz][0];  /// dyz  Y 2,-1
-    R_temp[_i][6][1] = 2.*factor * R_temp[_i][Cart::xz][0];  /// dxz  Y 2,1
-    R_temp[_i][7][1] = 2.*factor * R_temp[_i][Cart::xy][0];  /// dxy  Y 2,-2
-    R_temp[_i][8][1] = factor * ( R_temp[_i][Cart::xx][0] - R_temp[_i][Cart::yy][0] );  /// dx2-y2  Y 2,2
+  for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+    R_temp[i][4][1] = factor_1 * ( 2.0*R_temp[i][Cart::zz][0] - R_temp[i][Cart::xx][0] - R_temp[i][Cart::yy][0] );  /// d3z2-r2  Y 2,0
+    R_temp[i][5][1] = 2.*factor * R_temp[i][Cart::yz][0];  /// dyz  Y 2,-1
+    R_temp[i][6][1] = 2.*factor * R_temp[i][Cart::xz][0];  /// dxz  Y 2,1
+    R_temp[i][7][1] = 2.*factor * R_temp[i][Cart::xy][0];  /// dxy  Y 2,-2
+    R_temp[i][8][1] = factor * ( R_temp[i][Cart::xx][0] - R_temp[i][Cart::yy][0] );  /// dx2-y2  Y 2,2
   }
 }
 
-if (_lmax_gamma > 2) {
+if (lmax_gamma > 2) {
   // f-functions
-  factor = 2.0*pow(_decay_gamma,1.5)*_contractions_gamma[3];
+  factor = 2.0*pow(decay_gamma,1.5)*contractions_gamma[3];
   double factor_1 = factor*2./sqrt(15.);
   double factor_2 = factor*sqrt(2.)/sqrt(5.);
   double factor_3 = factor*sqrt(2.)/sqrt(3.);
-  for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-    R_temp[_i][9][1] = factor_1 * ( 2.*R_temp[_i][Cart::zzz][0] - 3.*R_temp[_i][Cart::xxz][0] - 3.* R_temp[_i][Cart::yyz][0] ); /// Y 3,0
-    R_temp[_i][10][1] = factor_2 * ( 4.*R_temp[_i][Cart::yzz][0] - R_temp[_i][Cart::xxy][0] - R_temp[_i][Cart::yyy][0] ); /// Y 3,-1
-    R_temp[_i][11][1] = factor_2 * ( 4.*R_temp[_i][Cart::xzz][0] - R_temp[_i][Cart::xxx][0] - R_temp[_i][Cart::xyy][0] ); /// Y 3,1
-    R_temp[_i][12][1] = 4.*factor * R_temp[_i][Cart::xyz][0]; /// Y 3,-2
-    R_temp[_i][13][1] = 2.*factor * ( R_temp[_i][Cart::xxz][0] - R_temp[_i][Cart::yyz][0] ); /// Y 3,2
-    R_temp[_i][14][1] = factor_3 * ( 3.*R_temp[_i][Cart::xxy][0] - R_temp[_i][Cart::yyy][0] ); /// Y 3,-3
-    R_temp[_i][15][1] = factor_3 * ( R_temp[_i][Cart::xxx][0] - 3.*R_temp[_i][Cart::xyy][0] ); /// Y 3,3
+  for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+    R_temp[i][9][1] = factor_1 * ( 2.*R_temp[i][Cart::zzz][0] - 3.*R_temp[i][Cart::xxz][0] - 3.* R_temp[i][Cart::yyz][0] ); /// Y 3,0
+    R_temp[i][10][1] = factor_2 * ( 4.*R_temp[i][Cart::yzz][0] - R_temp[i][Cart::xxy][0] - R_temp[i][Cart::yyy][0] ); /// Y 3,-1
+    R_temp[i][11][1] = factor_2 * ( 4.*R_temp[i][Cart::xzz][0] - R_temp[i][Cart::xxx][0] - R_temp[i][Cart::xyy][0] ); /// Y 3,1
+    R_temp[i][12][1] = 4.*factor * R_temp[i][Cart::xyz][0]; /// Y 3,-2
+    R_temp[i][13][1] = 2.*factor * ( R_temp[i][Cart::xxz][0] - R_temp[i][Cart::yyz][0] ); /// Y 3,2
+    R_temp[i][14][1] = factor_3 * ( 3.*R_temp[i][Cart::xxy][0] - R_temp[i][Cart::yyy][0] ); /// Y 3,-3
+    R_temp[i][15][1] = factor_3 * ( R_temp[i][Cart::xxx][0] - 3.*R_temp[i][Cart::xyy][0] ); /// Y 3,3
   }
 }
 
-if (_lmax_gamma > 3) {
+if (lmax_gamma > 3) {
   // g-functions
-  factor = 2./sqrt(3.)*_decay_gamma*_decay_gamma*_contractions_gamma[4];
+  factor = 2./sqrt(3.)*decay_gamma*decay_gamma*contractions_gamma[4];
   double factor_1 = factor/sqrt(35.);
   double factor_2 = factor*4./sqrt(14.);
   double factor_3 = factor*2./sqrt(7.);
   double factor_4 = factor*2.*sqrt(2.);
-  for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-    R_temp[_i][16][1] = factor_1 * (    3.*(R_temp[_i][Cart::xxxx][0] + R_temp[_i][Cart::yyyy][0])
-                                       + 6.*R_temp[_i][Cart::xxyy][0]
-                                     - 24.*(R_temp[_i][Cart::xxzz][0] + R_temp[_i][Cart::yyzz][0])
-                                       + 8.*R_temp[_i][Cart::zzzz][0] );                               /// Y 4,0
-    R_temp[_i][17][1] = factor_2 * ( -3.*(R_temp[_i][Cart::xxyz][0] + R_temp[_i][Cart::yyyz][0])
-                                     + 4.*R_temp[_i][Cart::yzzz][0] );                                 /// Y 4,-1
-    R_temp[_i][18][1] = factor_2 * ( -3.*(R_temp[_i][Cart::xxxz][0] + R_temp[_i][Cart::xyyz][0])
-                                     + 4.*R_temp[_i][Cart::xzzz][0] );                                 /// Y 4,1
-    R_temp[_i][19][1] = 2.*factor_3 * (    -R_temp[_i][Cart::xxxy][0]
-                                           - R_temp[_i][Cart::xyyy][0]
-                                        + 6.*R_temp[_i][Cart::xyzz][0] );                              /// Y 4,-2
-    R_temp[_i][20][1] = factor_3 * (      -R_temp[_i][Cart::xxxx][0]
-                                     + 6.*(R_temp[_i][Cart::xxzz][0] - R_temp[_i][Cart::yyzz][0])
-                                        + R_temp[_i][Cart::yyyy][0] );                                 /// Y 4,2
-    R_temp[_i][21][1] = factor_4 * ( 3.*R_temp[_i][Cart::xxyz][0] 
-                                      - R_temp[_i][Cart::yyyz][0] );                                   /// Y 4,-3
-    R_temp[_i][22][1] = factor_4 * (      R_temp[_i][Cart::xxxz][0] 
-                                     - 3.*R_temp[_i][Cart::xyyz][0] );                                 /// Y 4,3
-    R_temp[_i][23][1] = 4.*factor * (   R_temp[_i][Cart::xxxy][0]
-                                      - R_temp[_i][Cart::xyyy][0] );                                   /// Y 4,-4
-    R_temp[_i][24][1] = factor * (      R_temp[_i][Cart::xxxx][0] 
-                                   - 6.*R_temp[_i][Cart::xxyy][0]
-                                      + R_temp[_i][Cart::yyyy][0] );                                   /// Y 4,4
+  for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+    R_temp[i][16][1] = factor_1 * (    3.*(R_temp[i][Cart::xxxx][0] + R_temp[i][Cart::yyyy][0])
+                                       + 6.*R_temp[i][Cart::xxyy][0]
+                                     - 24.*(R_temp[i][Cart::xxzz][0] + R_temp[i][Cart::yyzz][0])
+                                       + 8.*R_temp[i][Cart::zzzz][0] );                               /// Y 4,0
+    R_temp[i][17][1] = factor_2 * ( -3.*(R_temp[i][Cart::xxyz][0] + R_temp[i][Cart::yyyz][0])
+                                     + 4.*R_temp[i][Cart::yzzz][0] );                                 /// Y 4,-1
+    R_temp[i][18][1] = factor_2 * ( -3.*(R_temp[i][Cart::xxxz][0] + R_temp[i][Cart::xyyz][0])
+                                     + 4.*R_temp[i][Cart::xzzz][0] );                                 /// Y 4,1
+    R_temp[i][19][1] = 2.*factor_3 * (    -R_temp[i][Cart::xxxy][0]
+                                           - R_temp[i][Cart::xyyy][0]
+                                        + 6.*R_temp[i][Cart::xyzz][0] );                              /// Y 4,-2
+    R_temp[i][20][1] = factor_3 * (      -R_temp[i][Cart::xxxx][0]
+                                     + 6.*(R_temp[i][Cart::xxzz][0] - R_temp[i][Cart::yyzz][0])
+                                        + R_temp[i][Cart::yyyy][0] );                                 /// Y 4,2
+    R_temp[i][21][1] = factor_4 * ( 3.*R_temp[i][Cart::xxyz][0] 
+                                      - R_temp[i][Cart::yyyz][0] );                                   /// Y 4,-3
+    R_temp[i][22][1] = factor_4 * (      R_temp[i][Cart::xxxz][0] 
+                                     - 3.*R_temp[i][Cart::xyyz][0] );                                 /// Y 4,3
+    R_temp[i][23][1] = 4.*factor * (   R_temp[i][Cart::xxxy][0]
+                                      - R_temp[i][Cart::xyyy][0] );                                   /// Y 4,-4
+    R_temp[i][24][1] = factor * (      R_temp[i][Cart::xxxx][0] 
+                                   - 6.*R_temp[i][Cart::xxyy][0]
+                                      + R_temp[i][Cart::yyyy][0] );                                   /// Y 4,4
   }
 }
 
-if (_lmax_gamma > 4) {
+if (lmax_gamma > 4) {
   // h-functions
-  factor = (2./3.)*pow(_decay_gamma,2.5)*_contractions_gamma[5];
+  factor = (2./3.)*pow(decay_gamma,2.5)*contractions_gamma[5];
   double factor_1 = factor*2./sqrt(105.);
   double factor_2 = factor*2./sqrt(7.);
   double factor_3 = factor*sqrt(6.)/3.;
   double factor_4 = factor*2.*sqrt(3.);
   double factor_5 = factor*.2*sqrt(30.);
-  for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-    R_temp[_i][25][1] = factor_1 * (   15.*(R_temp[_i][Cart::xxxxz][0] + R_temp[_i][Cart::yyyyz][0])
-                                      + 30.*R_temp[_i][Cart::xxyyz][0]
-                                     - 40.*(R_temp[_i][Cart::xxzzz][0] + R_temp[_i][Cart::yyzzz][0])
-                                       + 8.*R_temp[_i][Cart::zzzzz][0] );                              /// Y 5,0
+  for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+    R_temp[i][25][1] = factor_1 * (   15.*(R_temp[i][Cart::xxxxz][0] + R_temp[i][Cart::yyyyz][0])
+                                      + 30.*R_temp[i][Cart::xxyyz][0]
+                                     - 40.*(R_temp[i][Cart::xxzzz][0] + R_temp[i][Cart::yyzzz][0])
+                                       + 8.*R_temp[i][Cart::zzzzz][0] );                              /// Y 5,0
 
-    R_temp[_i][26][1] = factor_2 * (        R_temp[_i][Cart::xxxxy][0]
-                                       + 2.*R_temp[_i][Cart::xxyyy][0]
-                                     - 12.*(R_temp[_i][Cart::xxyzz][0] + R_temp[_i][Cart::yyyzz][0])
-                                          + R_temp[_i][Cart::yyyyy][0]
-                                       + 8.*R_temp[_i][Cart::yzzzz][0] );                              /// Y 5,-1
+    R_temp[i][26][1] = factor_2 * (        R_temp[i][Cart::xxxxy][0]
+                                       + 2.*R_temp[i][Cart::xxyyy][0]
+                                     - 12.*(R_temp[i][Cart::xxyzz][0] + R_temp[i][Cart::yyyzz][0])
+                                          + R_temp[i][Cart::yyyyy][0]
+                                       + 8.*R_temp[i][Cart::yzzzz][0] );                              /// Y 5,-1
 
-    R_temp[_i][27][1] = factor_2 * (        R_temp[_i][Cart::xxxxx][0]
-                                       + 2.*R_temp[_i][Cart::xxxyy][0]
-                                     - 12.*(R_temp[_i][Cart::xxxzz][0] + R_temp[_i][Cart::xyyzz][0])
-                                          + R_temp[_i][Cart::xyyyy][0]
-                                       + 8.*R_temp[_i][Cart::xzzzz][0] );                              /// Y 5,1
+    R_temp[i][27][1] = factor_2 * (        R_temp[i][Cart::xxxxx][0]
+                                       + 2.*R_temp[i][Cart::xxxyy][0]
+                                     - 12.*(R_temp[i][Cart::xxxzz][0] + R_temp[i][Cart::xyyzz][0])
+                                          + R_temp[i][Cart::xyyyy][0]
+                                       + 8.*R_temp[i][Cart::xzzzz][0] );                              /// Y 5,1
 
-    R_temp[_i][28][1] = 8.*factor * (     -R_temp[_i][Cart::xxxyz][0]
-                                         - R_temp[_i][Cart::xyyyz][0]
-                                      + 2.*R_temp[_i][Cart::xyzzz][0] );                               /// Y 5,-2
+    R_temp[i][28][1] = 8.*factor * (     -R_temp[i][Cart::xxxyz][0]
+                                         - R_temp[i][Cart::xyyyz][0]
+                                      + 2.*R_temp[i][Cart::xyzzz][0] );                               /// Y 5,-2
 
-    R_temp[_i][29][1] = 4.*factor * (      -R_temp[_i][Cart::xxxxz][0]
-                                      + 2.*(R_temp[_i][Cart::xxzzz][0] - R_temp[_i][Cart::yyzzz][0])
-                                          + R_temp[_i][Cart::yyyyz][0] );                              /// Y 5,2
+    R_temp[i][29][1] = 4.*factor * (      -R_temp[i][Cart::xxxxz][0]
+                                      + 2.*(R_temp[i][Cart::xxzzz][0] - R_temp[i][Cart::yyzzz][0])
+                                          + R_temp[i][Cart::yyyyz][0] );                              /// Y 5,2
 
-    R_temp[_i][30][1] = factor_3 * (   -3.*R_temp[_i][Cart::xxxxy][0]
-                                      - 2.*R_temp[_i][Cart::xxyyy][0]
-                                     + 24.*R_temp[_i][Cart::xxyzz][0]
-                                         + R_temp[_i][Cart::yyyyy][0]
-                                      - 8.*R_temp[_i][Cart::yyyzz][0] );                               /// Y 5,-3
+    R_temp[i][30][1] = factor_3 * (   -3.*R_temp[i][Cart::xxxxy][0]
+                                      - 2.*R_temp[i][Cart::xxyyy][0]
+                                     + 24.*R_temp[i][Cart::xxyzz][0]
+                                         + R_temp[i][Cart::yyyyy][0]
+                                      - 8.*R_temp[i][Cart::yyyzz][0] );                               /// Y 5,-3
 
-    R_temp[_i][31][1] = factor_3 * (      -R_temp[_i][Cart::xxxxx][0]
-                                      + 2.*R_temp[_i][Cart::xxxyy][0]
-                                      + 8.*R_temp[_i][Cart::xxxzz][0]
-                                      + 3.*R_temp[_i][Cart::xyyyy][0]
-                                     - 24.*R_temp[_i][Cart::xyyzz][0] );                               /// Y 5,3
+    R_temp[i][31][1] = factor_3 * (      -R_temp[i][Cart::xxxxx][0]
+                                      + 2.*R_temp[i][Cart::xxxyy][0]
+                                      + 8.*R_temp[i][Cart::xxxzz][0]
+                                      + 3.*R_temp[i][Cart::xyyyy][0]
+                                     - 24.*R_temp[i][Cart::xyyzz][0] );                               /// Y 5,3
 
-    R_temp[_i][32][1] = 4.*factor_4 * (   R_temp[_i][Cart::xxxyz][0]
-                                        - R_temp[_i][Cart::xyyyz][0] );                                /// Y 5,-4
+    R_temp[i][32][1] = 4.*factor_4 * (   R_temp[i][Cart::xxxyz][0]
+                                        - R_temp[i][Cart::xyyyz][0] );                                /// Y 5,-4
 
-    R_temp[_i][33][1] = factor_4 * (      R_temp[_i][Cart::xxxxz][0]
-                                     - 6.*R_temp[_i][Cart::xxyyz][0]
-                                        + R_temp[_i][Cart::yyyyz][0] );                                /// Y 5,4
+    R_temp[i][33][1] = factor_4 * (      R_temp[i][Cart::xxxxz][0]
+                                     - 6.*R_temp[i][Cart::xxyyz][0]
+                                        + R_temp[i][Cart::yyyyz][0] );                                /// Y 5,4
 
-    R_temp[_i][34][1] = factor_5 * (    5.*R_temp[_i][Cart::xxxxy][0]
-                                     - 10.*R_temp[_i][Cart::xxyyy][0]
-                                         + R_temp[_i][Cart::yyyyy][0] );                               /// Y 5,-5
+    R_temp[i][34][1] = factor_5 * (    5.*R_temp[i][Cart::xxxxy][0]
+                                     - 10.*R_temp[i][Cart::xxyyy][0]
+                                         + R_temp[i][Cart::yyyyy][0] );                               /// Y 5,-5
 
-    R_temp[_i][35][1] = factor_5 * (       R_temp[_i][Cart::xxxxx][0]
-                                     - 10.*R_temp[_i][Cart::xxxyy][0]
-                                      + 5.*R_temp[_i][Cart::xyyyy][0] );                               /// Y 5,5
+    R_temp[i][35][1] = factor_5 * (       R_temp[i][Cart::xxxxx][0]
+                                     - 10.*R_temp[i][Cart::xxxyy][0]
+                                      + 5.*R_temp[i][Cart::xyyyy][0] );                               /// Y 5,5
   }
 }
 
 
-if (_lmax_gamma > 5) {
+if (lmax_gamma > 5) {
   // i-functions
-  factor = (2./3.)*_decay_gamma*_decay_gamma*_decay_gamma*_contractions_gamma[6];
+  factor = (2./3.)*decay_gamma*decay_gamma*decay_gamma*contractions_gamma[6];
   double factor_1 = factor*2./sqrt(1155.);
   double factor_2 = factor*4./sqrt(55.);
   double factor_3 = factor*sqrt(22.)/11.;
   double factor_4 = factor*2.*sqrt(165.)/55.;
   double factor_5 = factor*.4*sqrt(30.);
   double factor_6 = factor*.2*sqrt(10.);
-  for (int _i =  0; _i < n_orbitals[_lmax_alpha_beta]; _i++) {
-    R_temp[_i][36][1] = factor_1 * (    -5.*(R_temp[_i][Cart::xxxxxx][0] + R_temp[_i][Cart::yyyyyy][0])
-                                      - 15.*(R_temp[_i][Cart::xxxxyy][0] + R_temp[_i][Cart::xxyyyy][0])
-                                      + 90.*(R_temp[_i][Cart::xxxxzz][0] + R_temp[_i][Cart::yyyyzz][0])
-                                      + 180.*R_temp[_i][Cart::xxyyzz][0]
-                                     - 120.*(R_temp[_i][Cart::xxzzzz][0] + R_temp[_i][Cart::yyzzzz][0])
-                                       + 16.*R_temp[_i][Cart::zzzzzz][0] );                                /// Y 6,0
+  for (int i =  0; i < n_orbitals[lmax_alpha_beta]; i++) {
+    R_temp[i][36][1] = factor_1 * (    -5.*(R_temp[i][Cart::xxxxxx][0] + R_temp[i][Cart::yyyyyy][0])
+                                      - 15.*(R_temp[i][Cart::xxxxyy][0] + R_temp[i][Cart::xxyyyy][0])
+                                      + 90.*(R_temp[i][Cart::xxxxzz][0] + R_temp[i][Cart::yyyyzz][0])
+                                      + 180.*R_temp[i][Cart::xxyyzz][0]
+                                     - 120.*(R_temp[i][Cart::xxzzzz][0] + R_temp[i][Cart::yyzzzz][0])
+                                       + 16.*R_temp[i][Cart::zzzzzz][0] );                                /// Y 6,0
 
-    R_temp[_i][37][1] = factor_2 * (    5.*(R_temp[_i][Cart::xxxxyz][0] + R_temp[_i][Cart::yyyyyz][0])
-                                      + 10.*R_temp[_i][Cart::xxyyyz][0]
-                                     - 20.*(R_temp[_i][Cart::xxyzzz][0] + R_temp[_i][Cart::yyyzzz][0])
-                                       + 8.*R_temp[_i][Cart::yzzzzz][0] );                                 /// Y 6,-1
+    R_temp[i][37][1] = factor_2 * (    5.*(R_temp[i][Cart::xxxxyz][0] + R_temp[i][Cart::yyyyyz][0])
+                                      + 10.*R_temp[i][Cart::xxyyyz][0]
+                                     - 20.*(R_temp[i][Cart::xxyzzz][0] + R_temp[i][Cart::yyyzzz][0])
+                                       + 8.*R_temp[i][Cart::yzzzzz][0] );                                 /// Y 6,-1
 
-    R_temp[_i][38][1] = factor_2 * (    5.*(R_temp[_i][Cart::xxxxxz][0] + R_temp[_i][Cart::xyyyyz][0])
-                                      + 10.*R_temp[_i][Cart::xxxyyz][0]
-                                     - 20.*(R_temp[_i][Cart::xxxzzz][0] + R_temp[_i][Cart::xyyzzz][0])
-                                       + 8.*R_temp[_i][Cart::xzzzzz][0] );                                 /// Y 6,1
+    R_temp[i][38][1] = factor_2 * (    5.*(R_temp[i][Cart::xxxxxz][0] + R_temp[i][Cart::xyyyyz][0])
+                                      + 10.*R_temp[i][Cart::xxxyyz][0]
+                                     - 20.*(R_temp[i][Cart::xxxzzz][0] + R_temp[i][Cart::xyyzzz][0])
+                                       + 8.*R_temp[i][Cart::xzzzzz][0] );                                 /// Y 6,1
 
-    R_temp[_i][39][1] = 2.*factor_3 * (        R_temp[_i][Cart::xxxxxy][0]
-                                          + 2.*R_temp[_i][Cart::xxxyyy][0]
-                                        - 16.*(R_temp[_i][Cart::xxxyzz][0] + R_temp[_i][Cart::xyyyzz][0] - R_temp[_i][Cart::xyzzzz][0])
-                                             + R_temp[_i][Cart::xyyyyy][0] );                              /// Y 6,-2
+    R_temp[i][39][1] = 2.*factor_3 * (        R_temp[i][Cart::xxxxxy][0]
+                                          + 2.*R_temp[i][Cart::xxxyyy][0]
+                                        - 16.*(R_temp[i][Cart::xxxyzz][0] + R_temp[i][Cart::xyyyzz][0] - R_temp[i][Cart::xyzzzz][0])
+                                             + R_temp[i][Cart::xyyyyy][0] );                              /// Y 6,-2
 
-    R_temp[_i][40][1] = factor_3 * (        R_temp[_i][Cart::xxxxxy][0]
-                                          + R_temp[_i][Cart::xxxxyy][0]
-                                     - 16.*(R_temp[_i][Cart::xxxxzz][0] - R_temp[_i][Cart::xxzzzz][0]
-                                                                        - R_temp[_i][Cart::yyyyzz][0] + R_temp[_i][Cart::yyzzzz][0])
-                                          - R_temp[_i][Cart::xxyyyy][0]
-                                          - R_temp[_i][Cart::yyyyyy][0] );                                 /// Y 6,2
+    R_temp[i][40][1] = factor_3 * (        R_temp[i][Cart::xxxxxy][0]
+                                          + R_temp[i][Cart::xxxxyy][0]
+                                     - 16.*(R_temp[i][Cart::xxxxzz][0] - R_temp[i][Cart::xxzzzz][0]
+                                                                        - R_temp[i][Cart::yyyyzz][0] + R_temp[i][Cart::yyzzzz][0])
+                                          - R_temp[i][Cart::xxyyyy][0]
+                                          - R_temp[i][Cart::yyyyyy][0] );                                 /// Y 6,2
 
-    R_temp[_i][41][1] = 2.*factor_3 * (   -9.*R_temp[_i][Cart::xxxxyz][0]
-                                         - 6.*R_temp[_i][Cart::xxyyyz][0]
-                                        + 24.*R_temp[_i][Cart::xxyzzz][0]
-                                         + 3.*R_temp[_i][Cart::yyyyyz][0]
-                                         - 8.*R_temp[_i][Cart::yyyzzz][0] );                               /// Y 6,-3
+    R_temp[i][41][1] = 2.*factor_3 * (   -9.*R_temp[i][Cart::xxxxyz][0]
+                                         - 6.*R_temp[i][Cart::xxyyyz][0]
+                                        + 24.*R_temp[i][Cart::xxyzzz][0]
+                                         + 3.*R_temp[i][Cart::yyyyyz][0]
+                                         - 8.*R_temp[i][Cart::yyyzzz][0] );                               /// Y 6,-3
 
-    R_temp[_i][42][1] = 2.*factor_3 * (   -3.*R_temp[_i][Cart::xxxxxz][0]
-                                         + 6.*R_temp[_i][Cart::xxxyyz][0]
-                                         + 8.*R_temp[_i][Cart::xxxzzz][0]
-                                         + 9.*R_temp[_i][Cart::xyyyyz][0]
-                                        - 24.*R_temp[_i][Cart::xyyzzz][0] );                               /// Y 6,3
+    R_temp[i][42][1] = 2.*factor_3 * (   -3.*R_temp[i][Cart::xxxxxz][0]
+                                         + 6.*R_temp[i][Cart::xxxyyz][0]
+                                         + 8.*R_temp[i][Cart::xxxzzz][0]
+                                         + 9.*R_temp[i][Cart::xyyyyz][0]
+                                        - 24.*R_temp[i][Cart::xyyzzz][0] );                               /// Y 6,3
 
-    R_temp[_i][43][1] = 4.*factor_4 * (       -R_temp[_i][Cart::xxxxxy][0]
-                                        + 10.*(R_temp[_i][Cart::xxxyzz][0] - R_temp[_i][Cart::xyyyzz][0])
-                                             + R_temp[_i][Cart::xyyyyy][0] );                              /// Y 6,-4
+    R_temp[i][43][1] = 4.*factor_4 * (       -R_temp[i][Cart::xxxxxy][0]
+                                        + 10.*(R_temp[i][Cart::xxxyzz][0] - R_temp[i][Cart::xyyyzz][0])
+                                             + R_temp[i][Cart::xyyyyy][0] );                              /// Y 6,-4
 
-    R_temp[_i][44][1] = factor_4 * (       -R_temp[_i][Cart::xxxxxx][0]
-                                      + 5.*(R_temp[_i][Cart::xxxxyy][0] + R_temp[_i][Cart::xxyyyy][0])
-                                     + 10.*(R_temp[_i][Cart::xxxxzz][0] + R_temp[_i][Cart::yyyyzz][0])
-                                      - 60.*R_temp[_i][Cart::xxyyzz][0]
-                                         -  R_temp[_i][Cart::yyyyyy][0] );                                 /// Y 6,4
+    R_temp[i][44][1] = factor_4 * (       -R_temp[i][Cart::xxxxxx][0]
+                                      + 5.*(R_temp[i][Cart::xxxxyy][0] + R_temp[i][Cart::xxyyyy][0])
+                                     + 10.*(R_temp[i][Cart::xxxxzz][0] + R_temp[i][Cart::yyyyzz][0])
+                                      - 60.*R_temp[i][Cart::xxyyzz][0]
+                                         -  R_temp[i][Cart::yyyyyy][0] );                                 /// Y 6,4
 
-    R_temp[_i][45][1] = factor_5 * (    5.*R_temp[_i][Cart::xxxxyz][0]
-                                     - 10.*R_temp[_i][Cart::xxyyyz][0]
-                                         + R_temp[_i][Cart::yyyyyz][0] );                                  /// Y 6,-5
+    R_temp[i][45][1] = factor_5 * (    5.*R_temp[i][Cart::xxxxyz][0]
+                                     - 10.*R_temp[i][Cart::xxyyyz][0]
+                                         + R_temp[i][Cart::yyyyyz][0] );                                  /// Y 6,-5
 
-    R_temp[_i][46][1] = factor_5 * (       R_temp[_i][Cart::xxxxxz][0]
-                                     - 10.*R_temp[_i][Cart::xxxyyz][0]
-                                      + 5.*R_temp[_i][Cart::xyyyyz][0] );                                  /// Y 6,5
+    R_temp[i][46][1] = factor_5 * (       R_temp[i][Cart::xxxxxz][0]
+                                     - 10.*R_temp[i][Cart::xxxyyz][0]
+                                      + 5.*R_temp[i][Cart::xyyyyz][0] );                                  /// Y 6,5
 
-    R_temp[_i][47][1] = 2.*factor_6 * (    3.*R_temp[_i][Cart::xxxxxy][0]
-                                        - 10.*R_temp[_i][Cart::xxxyyy][0]
-                                         + 3.*R_temp[_i][Cart::xyyyyy][0] );                               /// Y 6,-6
+    R_temp[i][47][1] = 2.*factor_6 * (    3.*R_temp[i][Cart::xxxxxy][0]
+                                        - 10.*R_temp[i][Cart::xxxyyy][0]
+                                         + 3.*R_temp[i][Cart::xyyyyy][0] );                               /// Y 6,-6
 
-    R_temp[_i][48][1] = factor_6 * (        R_temp[_i][Cart::xxxxxx][0]
-                                     - 15.*(R_temp[_i][Cart::xxxxyy][0] - R_temp[_i][Cart::xxyyyy][0])
-                                          - R_temp[_i][Cart::yyyyyy][0] );                                 /// Y 6,6
+    R_temp[i][48][1] = factor_6 * (        R_temp[i][Cart::xxxxxx][0]
+                                     - 15.*(R_temp[i][Cart::xxxxyy][0] - R_temp[i][Cart::xxyyyy][0])
+                                          - R_temp[i][Cart::yyyyyy][0] );                                 /// Y 6,6
 
   }
 }
@@ -1106,84 +1094,81 @@ if (_lmax_gamma > 5) {
 
 //copy into new array for 3D use.
 
-for (index3d i = 0; i < n_orbitals[_lmax_alpha_beta]; ++i) {
-
-         for (index3d k = 0; k < (_lmax_gamma+1)*(_lmax_gamma+1); ++k) {
-
+for (index3d i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
+         for (index3d k = 0; k < (lmax_gamma+1)*(lmax_gamma+1); ++k) {
                             R[i][0][k] = R_temp[i][k][1];
                         }
-
                 }
 
             
 
 
 
-if (_lmax_beta > 0) {
+if (lmax_beta > 0) {
   //Integrals    s - p - *    p - p - *    d - p - *    f - p - *    g - p - *    h - p - *    i - p - *    j - p - *
-  for (int _i = 0; _i < (_lmax_gamma+1)*(_lmax_gamma+1); _i++) {
-    for (int _j = 0; _j < n_orbitals[_lmax_alpha_beta-1]; _j++) {
-      R[_j][Cart::x][_i] = R[i_more_x[_j]][0][_i] + amb0*R[_j][0][_i];
-      R[_j][Cart::y][_i] = R[i_more_y[_j]][0][_i] + amb1*R[_j][0][_i];
-      R[_j][Cart::z][_i] = R[i_more_z[_j]][0][_i] + amb2*R[_j][0][_i];
+  for (int i = 0; i < (lmax_gamma+1)*(lmax_gamma+1); i++) {
+    for (int j = 0; j < n_orbitals[lmax_alpha_beta-1]; j++) {
+      R[j][Cart::x][i] = R[i_more_x[j]][0][i] + amb0*R[j][0][i];
+      R[j][Cart::y][i] = R[i_more_y[j]][0][i] + amb1*R[j][0][i];
+      R[j][Cart::z][i] = R[i_more_z[j]][0][i] + amb2*R[j][0][i];
     }
   }
   //------------------------------------------------------
 }
 
-if (_lmax_beta > 1) {
+if (lmax_beta > 1) {
   //Integrals    s - d - *    p - d - *    d - d - *    f - d - *    g - d - *    h - d - *    i - d - *
-  for (int _i = 0; _i < (_lmax_gamma+1)*(_lmax_gamma+1); _i++) {
-    for (int _j = 0; _j < n_orbitals[_lmax_alpha_beta-2]; _j++) {
-      R[_j][Cart::xx][_i] = R[i_more_x[_j]][Cart::x][_i] + amb0*R[_j][Cart::x][_i];
-      R[_j][Cart::xy][_i] = R[i_more_x[_j]][Cart::y][_i] + amb0*R[_j][Cart::y][_i];
-      R[_j][Cart::xz][_i] = R[i_more_x[_j]][Cart::z][_i] + amb0*R[_j][Cart::z][_i];
-      R[_j][Cart::yy][_i] = R[i_more_y[_j]][Cart::y][_i] + amb1*R[_j][Cart::y][_i];
-      R[_j][Cart::yz][_i] = R[i_more_y[_j]][Cart::z][_i] + amb1*R[_j][Cart::z][_i];
-      R[_j][Cart::zz][_i] = R[i_more_z[_j]][Cart::z][_i] + amb2*R[_j][Cart::z][_i];
+  for (int i = 0; i < (lmax_gamma+1)*(lmax_gamma+1); i++) {
+    for (int j = 0; j < n_orbitals[lmax_alpha_beta-2]; j++) {
+      R[j][Cart::xx][i] = R[i_more_x[j]][Cart::x][i] + amb0*R[j][Cart::x][i];
+      R[j][Cart::xy][i] = R[i_more_x[j]][Cart::y][i] + amb0*R[j][Cart::y][i];
+      R[j][Cart::xz][i] = R[i_more_x[j]][Cart::z][i] + amb0*R[j][Cart::z][i];
+      R[j][Cart::yy][i] = R[i_more_y[j]][Cart::y][i] + amb1*R[j][Cart::y][i];
+      R[j][Cart::yz][i] = R[i_more_y[j]][Cart::z][i] + amb1*R[j][Cart::z][i];
+      R[j][Cart::zz][i] = R[i_more_z[j]][Cart::z][i] + amb2*R[j][Cart::z][i];
     }
   }
   //------------------------------------------------------
 }
 
-if (_lmax_beta > 2) {
+if (lmax_beta > 2) {
   //Integrals    s - f - *    p - f - *    d - f - *    f - f - *    g - f - *    h - f - *
-  for (int _i = 0; _i < (_lmax_gamma+1)*(_lmax_gamma+1); _i++) {
-    for (int _j = 0; _j < n_orbitals[_lmax_alpha_beta-3]; _j++) {
-      R[_j][Cart::xxx][_i] = R[i_more_x[_j]][Cart::xx][_i] + amb0*R[_j][Cart::xx][_i];
-      R[_j][Cart::xxy][_i] = R[i_more_x[_j]][Cart::xy][_i] + amb0*R[_j][Cart::xy][_i];
-      R[_j][Cart::xxz][_i] = R[i_more_x[_j]][Cart::xz][_i] + amb0*R[_j][Cart::xz][_i];
-      R[_j][Cart::xyy][_i] = R[i_more_x[_j]][Cart::yy][_i] + amb0*R[_j][Cart::yy][_i];
-      R[_j][Cart::xyz][_i] = R[i_more_x[_j]][Cart::yz][_i] + amb0*R[_j][Cart::yz][_i];
-      R[_j][Cart::xzz][_i] = R[i_more_x[_j]][Cart::zz][_i] + amb0*R[_j][Cart::zz][_i];
-      R[_j][Cart::yyy][_i] = R[i_more_y[_j]][Cart::yy][_i] + amb1*R[_j][Cart::yy][_i];
-      R[_j][Cart::yyz][_i] = R[i_more_y[_j]][Cart::yz][_i] + amb1*R[_j][Cart::yz][_i];
-      R[_j][Cart::yzz][_i] = R[i_more_y[_j]][Cart::zz][_i] + amb1*R[_j][Cart::zz][_i];
-      R[_j][Cart::zzz][_i] = R[i_more_z[_j]][Cart::zz][_i] + amb2*R[_j][Cart::zz][_i];
+  for (int i = 0; i < (lmax_gamma+1)*(lmax_gamma+1); i++) {
+    for (int j = 0; j < n_orbitals[lmax_alpha_beta-3]; j++) {
+      R[j][Cart::xxx][i] = R[i_more_x[j]][Cart::xx][i] + amb0*R[j][Cart::xx][i];
+      R[j][Cart::xxy][i] = R[i_more_x[j]][Cart::xy][i] + amb0*R[j][Cart::xy][i];
+      R[j][Cart::xxz][i] = R[i_more_x[j]][Cart::xz][i] + amb0*R[j][Cart::xz][i];
+      R[j][Cart::xyy][i] = R[i_more_x[j]][Cart::yy][i] + amb0*R[j][Cart::yy][i];
+      R[j][Cart::xyz][i] = R[i_more_x[j]][Cart::yz][i] + amb0*R[j][Cart::yz][i];
+      R[j][Cart::xzz][i] = R[i_more_x[j]][Cart::zz][i] + amb0*R[j][Cart::zz][i];
+      R[j][Cart::yyy][i] = R[i_more_y[j]][Cart::yy][i] + amb1*R[j][Cart::yy][i];
+      R[j][Cart::yyz][i] = R[i_more_y[j]][Cart::yz][i] + amb1*R[j][Cart::yz][i];
+      R[j][Cart::yzz][i] = R[i_more_y[j]][Cart::zz][i] + amb1*R[j][Cart::zz][i];
+      R[j][Cart::zzz][i] = R[i_more_z[j]][Cart::zz][i] + amb2*R[j][Cart::zz][i];
     }
   }
   //------------------------------------------------------
 }
 
-if (_lmax_beta > 3) {
+if (lmax_beta > 3) {
   //Integrals    s - g - *    p - g - *    d - g - *    f - g - *    g - g - *
-  for (int _i = 0; _i < (_lmax_gamma+1)*(_lmax_gamma+1); _i++) {
-    for (int _j = 0; _j < n_orbitals[_lmax_alpha_beta-4]; _j++) {
-      R[_j][Cart::xxxx][_i] = R[i_more_x[_j]][Cart::xxx][_i] + amb0*R[_j][Cart::xxx][_i];
-      R[_j][Cart::xxxy][_i] = R[i_more_x[_j]][Cart::xxy][_i] + amb0*R[_j][Cart::xxy][_i];
-      R[_j][Cart::xxxz][_i] = R[i_more_x[_j]][Cart::xxz][_i] + amb0*R[_j][Cart::xxz][_i];
-      R[_j][Cart::xxyy][_i] = R[i_more_x[_j]][Cart::xyy][_i] + amb0*R[_j][Cart::xyy][_i];
-      R[_j][Cart::xxyz][_i] = R[i_more_x[_j]][Cart::xyz][_i] + amb0*R[_j][Cart::xyz][_i];
-      R[_j][Cart::xxzz][_i] = R[i_more_x[_j]][Cart::xzz][_i] + amb0*R[_j][Cart::xzz][_i];
-      R[_j][Cart::xyyy][_i] = R[i_more_x[_j]][Cart::yyy][_i] + amb0*R[_j][Cart::yyy][_i];
-      R[_j][Cart::xyyz][_i] = R[i_more_x[_j]][Cart::yyz][_i] + amb0*R[_j][Cart::yyz][_i];
-      R[_j][Cart::xyzz][_i] = R[i_more_x[_j]][Cart::yzz][_i] + amb0*R[_j][Cart::yzz][_i];
-      R[_j][Cart::xzzz][_i] = R[i_more_x[_j]][Cart::zzz][_i] + amb0*R[_j][Cart::zzz][_i];
-      R[_j][Cart::yyyy][_i] = R[i_more_y[_j]][Cart::yyy][_i] + amb1*R[_j][Cart::yyy][_i];
-      R[_j][Cart::yyyz][_i] = R[i_more_y[_j]][Cart::yyz][_i] + amb1*R[_j][Cart::yyz][_i];
-      R[_j][Cart::yyzz][_i] = R[i_more_y[_j]][Cart::yzz][_i] + amb1*R[_j][Cart::yzz][_i];
-      R[_j][Cart::yzzz][_i] = R[i_more_y[_j]][Cart::zzz][_i] + amb1*R[_j][Cart::zzz][_i];
-      R[_j][Cart::zzzz][_i] = R[i_more_z[_j]][Cart::zzz][_i] + amb2*R[_j][Cart::zzz][_i];
+  for (int i = 0; i < (lmax_gamma+1)*(lmax_gamma+1); i++) {
+    for (int j = 0; j < n_orbitals[lmax_alpha_beta-4]; j++) {
+      R[j][Cart::xxxx][i] = R[i_more_x[j]][Cart::xxx][i] + amb0*R[j][Cart::xxx][i];
+      R[j][Cart::xxxy][i] = R[i_more_x[j]][Cart::xxy][i] + amb0*R[j][Cart::xxy][i];
+      R[j][Cart::xxxz][i] = R[i_more_x[j]][Cart::xxz][i] + amb0*R[j][Cart::xxz][i];
+      R[j][Cart::xxyy][i] = R[i_more_x[j]][Cart::xyy][i] + amb0*R[j][Cart::xyy][i];
+      R[j][Cart::xxyz][i] = R[i_more_x[j]][Cart::xyz][i] + amb0*R[j][Cart::xyz][i];
+      R[j][Cart::xxzz][i] = R[i_more_x[j]][Cart::xzz][i] + amb0*R[j][Cart::xzz][i];
+      R[j][Cart::xyyy][i] = R[i_more_x[j]][Cart::yyy][i] + amb0*R[j][Cart::yyy][i];
+      R[j][Cart::xyyz][i] = R[i_more_x[j]][Cart::yyz][i] + amb0*R[j][Cart::yyz][i];
+      R[j][Cart::xyzz][i] = R[i_more_x[j]][Cart::yzz][i] + amb0*R[j][Cart::yzz][i];
+      R[j][Cart::xzzz][i] = R[i_more_x[j]][Cart::zzz][i] + amb0*R[j][Cart::zzz][i];
+      R[j][Cart::yyyy][i] = R[i_more_y[j]][Cart::yyy][i] + amb1*R[j][Cart::yyy][i];
+      R[j][Cart::yyyz][i] = R[i_more_y[j]][Cart::yyz][i] + amb1*R[j][Cart::yyz][i];
+      R[j][Cart::yyzz][i] = R[i_more_y[j]][Cart::yzz][i] + amb1*R[j][Cart::yzz][i];
+      R[j][Cart::yzzz][i] = R[i_more_y[j]][Cart::zzz][i] + amb1*R[j][Cart::zzz][i];
+      R[j][Cart::zzzz][i] = R[i_more_z[j]][Cart::zzz][i] + amb2*R[j][Cart::zzz][i];
     }
   }
   //------------------------------------------------------
@@ -1197,26 +1182,26 @@ if (_lmax_beta > 3) {
 
         
             // which ones do we want to store
-            int _offset_beta = _shell_beta->getOffset();
-            int _offset_alpha = _shell_alpha->getOffset();
-            int _offset_gamma = _shell_gamma->getOffset();
+            int offset_beta = shell_beta->getOffset();
+            int offset_alpha = shell_alpha->getOffset();
+            int offset_gamma = shell_gamma->getOffset();
 
-            const Eigen::MatrixXd _trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
-            const Eigen::MatrixXd _trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
+            const Eigen::MatrixXd trafo_beta=AOSuperMatrix::getTrafo(*itbeta);
+            const Eigen::MatrixXd trafo_alpha=AOSuperMatrix::getTrafo(*italpha);
             
        
 
             if (alphabetaswitch == true) {
 
-              for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                int _i_alpha_off = _i_alpha + _offset_alpha;
-                for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
-                  int _i_beta_off = _i_beta + _offset_beta;
-                  for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-                    int _i_gamma_off = _i_gamma + _offset_gamma;
-                    for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
-                      for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
-                        threec_block[_i_gamma][_i_beta][_i_alpha] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+              for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc(); i_alpha++) {
+                int i_alpha_off = i_alpha + offset_alpha;
+                for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
+                  int i_beta_off = i_beta + offset_beta;
+                  for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc(); i_gamma++) {
+                    int i_gamma_off = i_gamma + offset_gamma;
+                    for (int i_beta_t = istart[ i_beta_off ]; i_beta_t <= istop[ i_beta_off ]; i_beta_t++) {
+                      for (int i_alpha_t = istart[ i_alpha_off ]; i_alpha_t <= istop[i_alpha_off ]; i_alpha_t++) {
+                        threec_block[i_gamma][i_beta][i_alpha] += R[ i_alpha_t ][ i_beta_t][ i_gamma_off] * trafo_alpha(i_alpha_t, i_alpha_off) * trafo_beta(i_beta_t, i_beta_off);
                       }
                     }
                   }
@@ -1224,15 +1209,15 @@ if (_lmax_beta > 3) {
               }
             }
             else {
-              for (int _i_alpha = 0; _i_alpha < _shell_alpha->getNumFunc(); _i_alpha++) {
-                int _i_alpha_off = _i_alpha + _offset_alpha;
-                for (int _i_beta = 0; _i_beta < _shell_beta->getNumFunc(); _i_beta++) {
-                  int _i_beta_off = _i_beta + _offset_beta;
-                  for (int _i_gamma = 0; _i_gamma < _shell_gamma->getNumFunc(); _i_gamma++) {
-                    int _i_gamma_off = _i_gamma + _offset_gamma;
-                    for (int _i_beta_t = istart[ _i_beta_off ]; _i_beta_t <= istop[ _i_beta_off ]; _i_beta_t++) {
-                      for (int _i_alpha_t = istart[ _i_alpha_off ]; _i_alpha_t <= istop[_i_alpha_off ]; _i_alpha_t++) {
-                        threec_block[_i_gamma][_i_alpha][_i_beta] += R[ _i_alpha_t ][ _i_beta_t][ _i_gamma_off] * _trafo_alpha(_i_alpha_off, _i_alpha_t) * _trafo_beta(_i_beta_off, _i_beta_t);
+              for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc(); i_alpha++) {
+                int i_alpha_off = i_alpha + offset_alpha;
+                for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
+                  int i_beta_off = i_beta + offset_beta;
+                  for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc(); i_gamma++) {
+                    int i_gamma_off = i_gamma + offset_gamma;
+                    for (int i_beta_t = istart[ i_beta_off ]; i_beta_t <= istop[ i_beta_off ]; i_beta_t++) {
+                      for (int i_alpha_t = istart[ i_alpha_off ]; i_alpha_t <= istop[i_alpha_off ]; i_alpha_t++) {
+                        threec_block[i_gamma][i_alpha][i_beta] += R[ i_alpha_t ][ i_beta_t][ i_gamma_off] * trafo_alpha(i_alpha_t, i_alpha_off) * trafo_beta(i_beta_t, i_beta_off);
                       }
                     }
                   }
@@ -1248,7 +1233,7 @@ if (_lmax_beta > 3) {
 
  
     
-       return _does_contribute;     
+       return does_contribute;     
     }  
         
         

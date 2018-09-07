@@ -1,0 +1,27 @@
+<options>
+
+<iqm help="QM calculator for pairs" section="sec:iqm">
+		<job_file>iqm.jobs</job_file>
+		<tasks>input,dft,parse,dftcoupling,gwbse,bsecoupling</tasks>
+		<store></store>
+        <gwbse_options></gwbse_options>
+        <bsecoupling_options>bsecoupling.xml</bsecoupling_options>
+        <dftcoupling_options>
+            <degeneracy>0.0</degeneracy>
+            <levA>1</levA>
+            <levB>1</levB>
+        </dftcoupling_options>
+        <dftpackage>gaussian_pair_bse.xml</dftpackage>
+        <readjobfile>
+            <singlet>DCV5T:s1, C60:s2</singlet>
+            <triplet>DCV5T:t2, C60:t1</triplet>
+            <electron>DCV5T:e1, C60:e1</electron>
+            <hole>DCV5T:h1, C60:h1</hole>
+        </readjobfile>
+</iqm>
+
+
+
+</options>
+
+

@@ -42,34 +42,28 @@ public:
 
    std::string getPackageName() { return "gaussian"; }
 
-   void Initialize( tools::Property *options );
+   void Initialize( tools::Property &options );
 
-   /* Writes Gaussian input file with coordinates of segments
-    * and a guess for the dimer (if requested) constructed from the
-    * monomer orbitals
-    */
-   bool WriteInputFile( std::vector< ctp::Segment* > segments, Orbitals* orbitals_guess = NULL);
+   bool WriteInputFile( Orbitals& orbitals);
 
-   bool WriteShellScript();
-
-   bool Run( Orbitals* _orbitals = NULL );
+   bool Run( Orbitals& orbitals );
 
    void CleanUp();
 
-   bool CheckLogFile();
+   bool ParseLogFile( Orbitals& orbitals );
 
+   bool ParseOrbitalsFile( Orbitals& orbitals );
    
-   
-   bool ParseLogFile( Orbitals* _orbitals );
-
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
-   
-
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
+    
+    bool WriteShellScript();
 
+
+    bool CheckLogFile();
+    
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
     std::string                              _scratch_dir;
@@ -77,17 +71,16 @@ private:
     std::string                              _cleanup;
     std::string                              _vdWfooter;
 
-    int NumberOfElectrons( std::string _line );
-    int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
+    bool ReadESPCharges(Orbitals& orbitals, std::string& line, std::ifstream& input_file);
+    
     std::string FortranFormat(double number);
-    void WriteBasisset(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);   
-    void WriteBackgroundCharges(std::ofstream& _com_file);
-    void WriteGuess(Orbitals* orbitals_guess, std::ofstream& _com_file);
+    void WriteBasisset(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBackgroundCharges(std::ofstream& com_file);
+    void WriteGuess(Orbitals& orbitals_guess, std::ofstream& com_file);
     void WriteVXCRunInputFile();
-    void WriteCoordinates(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteHeader(std::ofstream& _com_file);
+    void WriteCoordinates(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteHeader(std::ofstream& com_file);
 
     void WriteChargeOption();
     

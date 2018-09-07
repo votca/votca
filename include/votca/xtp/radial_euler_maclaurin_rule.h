@@ -34,8 +34,10 @@ namespace votca { namespace xtp {
             
             EulerMaclaurinGrid() { FillGrids(); };
             
-            void getRadialGrid(const AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& type, GridContainers& _grids );
-            std::vector<double> getPruningIntervals( const std::string& element );
+            std::map<std::string, GridContainers::radial_grid> CalculateAtomicRadialGrids(const AOBasis& aobasis,
+                                                        std::vector<QMAtom* > atoms , const std::string& type);
+            
+            std::vector<double> CalculatePruningIntervals( const std::string& element );
             
         private:
             
@@ -44,26 +46,24 @@ namespace votca { namespace xtp {
                 int l;
                 double range;
             };
-            
-            struct grid_element {
-                std::vector<double> gridpoint;
-                std::vector<double> weight;
-            };
        
             std::map<std::string,min_exp> _element_ranges;
-            std::map<std::string,grid_element> _element_grids;
             std::map<std::string,int> _pruning_set;
             
             std::map<std::string,double> _BraggSlaterRadii;
             
-            int getGrid(const std::string& element, const std::string& type);
+            int getGridParameters(const std::string& element, const std::string& type);
             
             double DetermineCutoff( double alpha, int l, double eps );
-            double getNeglected( double alpha, int l, double cutoff);
+            double CalcResidual( double alpha, int l, double cutoff);
             double RadialIntegral(double alpha, int l, double cutoff);
             
-            void getRadialCutoffs(const AOBasis* aobasis, std::vector<QMAtom* > _atoms , const std::string& gridtype );
-            void setGrid(int numberofpoints, double cutoff, std::vector<double>& point, std::vector<double>& weight );
+            void CalculateRadialCutoffs(const AOBasis& aobasis, std::vector<QMAtom* > _atoms , const std::string& gridtype );
+            void RefineElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps);
+
+            void FillElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps);
+
+            GridContainers::radial_grid CalculateRadialGridforAtom(const std::string& type,const std::pair<std::string,min_exp>& element);
             
             std::map<std::string, int>    MediumGrid;
             std::map<std::string, int>    CoarseGrid;
@@ -85,8 +85,7 @@ namespace votca { namespace xtp {
 
             
             inline void FillBraggSlaterRadii(){
-                const double ang2bohr=votca::tools::conv::ang2bohr;
-                
+                const double ang2bohr=votca::tools::conv::ang2bohr; 
                 // 
                 _BraggSlaterRadii["H"] = 0.35 * ang2bohr ;
                 _BraggSlaterRadii["He"] = 0.35 * ang2bohr ;
@@ -110,7 +109,6 @@ namespace votca { namespace xtp {
                 _BraggSlaterRadii["S"] = 1.0* ang2bohr ;
                 _BraggSlaterRadii["Cl"] = 1.0* ang2bohr ;
                 _BraggSlaterRadii["Ar"] = 1.0* ang2bohr ;
-
 
                 // row of period system  for 3rd row elements taken from NWChem
                 _BraggSlaterRadii["K"] = 2.2* ang2bohr ;
@@ -137,7 +135,6 @@ namespace votca { namespace xtp {
                 
                 /* Copied from grid_atom_type_info.F of NWChem
                  
-                 
                  * VALUES are in ANGSTROM
                        Data BSrad/0.35,0.35,1.45,1.05,0.85,0.70,0.65,0.60,0.50,0.50,
 c                  Na   Mg   Al   Si    P    S   Cl   Ar    K   Ca
@@ -163,8 +160,7 @@ c                  Md   No   Lr  Unq  Unp
                  
                  
                  
-                 */
-                
+                 */         
             }
             
             
@@ -196,7 +192,6 @@ c                  Md   No   Lr  Unq  Unp
                 _pruning_set["Cl"] = 3;
                 _pruning_set["Ar"] = 3;
 
-
                 // row of period system  for 3rd row elements taken from NWChem
                 _pruning_set["K"] = 3;
                 _pruning_set["Ca"] = 3;
@@ -219,8 +214,6 @@ c                  Md   No   Lr  Unq  Unp
                 
                 // row of period system for 4th row elements taken from NWChem
                 _pruning_set["Ag"] = 3;
-
-
             }
             
             inline void FillAccuracy(){
@@ -228,8 +221,7 @@ c                  Md   No   Lr  Unq  Unp
                 Accuracy["coarse"]  = 1e-5;             
                 Accuracy["medium"]  = 1e-6;
                 Accuracy["fine"]    = 1e-7;
-                Accuracy["xfine"]   = 1e-8;
-                
+                Accuracy["xfine"]   = 1e-8;             
             }
             
     inline void FillMediumGrid(){
@@ -258,7 +250,6 @@ c                  Md   No   Lr  Unq  Unp
             MediumGrid["Cl"] = 88;
             MediumGrid["Ar"] = 88;
             
-           
         // orders for 3rd row elements taken from NWChem
             MediumGrid["K"] = 112;
             MediumGrid["Ca"] = 112;
@@ -280,9 +271,7 @@ c                  Md   No   Lr  Unq  Unp
             MediumGrid["Kr"] = 112;
             
             // orders for 4th row elements (selected)
-            MediumGrid["Ag"] = 123;
-            
-            
+            MediumGrid["Ag"] = 123;   
     }            
     
     inline void FillFineGrid(){
@@ -311,7 +300,6 @@ c                  Md   No   Lr  Unq  Unp
             FineGrid["Cl"] = 123;
             FineGrid["Ar"] = 123;
             
-           
         // orders for 3rd row elements taken from NWChem
             FineGrid["K"] = 130;
             FineGrid["Ca"] = 130;
@@ -362,7 +350,6 @@ c                  Md   No   Lr  Unq  Unp
             XfineGrid["Cl"] = 125;
             XfineGrid["Ar"] = 125;
             
-           
         // orders for 3rd row elements taken from NWChem
             XfineGrid["K"] = 160;
             XfineGrid["Ca"] = 160;
@@ -383,10 +370,8 @@ c                  Md   No   Lr  Unq  Unp
             XfineGrid["Br"] = 160;
             XfineGrid["Kr"] = 160;
             
-            
             // 4th row (selection)
-            XfineGrid["Ag"] = 205 ;
-            
+            XfineGrid["Ag"] = 205 ;  
     }            
     
     inline void FillCoarseGrid(){
@@ -414,8 +399,7 @@ c                  Md   No   Lr  Unq  Unp
             CoarseGrid["S"] = 70;
             CoarseGrid["Cl"] = 70;
             CoarseGrid["Ar"] = 70;
-            
-           
+             
         // orders for 3rd row elements taken from NWChem
             CoarseGrid["K"] = 95;
             CoarseGrid["Ca"] = 95;
@@ -435,11 +419,9 @@ c                  Md   No   Lr  Unq  Unp
             CoarseGrid["Se"] = 95;
             CoarseGrid["Br"] = 95;
             CoarseGrid["Kr"] = 95;
-            
-            
+                      
             // 4th row (selection)
-            CoarseGrid["Ag"] = 104 ;
-            
+            CoarseGrid["Ag"] = 104 ;    
     }          
     
     inline void FillXcoarseGrid(){
@@ -467,8 +449,7 @@ c                  Md   No   Lr  Unq  Unp
             XcoarseGrid["S"] = 42;
             XcoarseGrid["Cl"] = 42;
             XcoarseGrid["Ar"] = 42;
-            
-           
+                     
         // orders for 3rd row elements taken from NWChem
             XcoarseGrid["K"] = 75;
             XcoarseGrid["Ca"] = 75;
@@ -488,14 +469,10 @@ c                  Md   No   Lr  Unq  Unp
             XcoarseGrid["Se"] = 75;
             XcoarseGrid["Br"] = 75;
             XcoarseGrid["Kr"] = 75;
-            
-            
+                   
             // 4th row (selection)
-            XcoarseGrid["Ag"] = 84 ;
-            
+            XcoarseGrid["Ag"] = 84 ;  
     }            
-            
-            
 
         };
 

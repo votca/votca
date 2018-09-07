@@ -108,29 +108,26 @@ void SqlApplication::AddCalculator(ctp::QMCalculator* calculator) {
 
 
 void SqlApplication::BeginEvaluate(int nThreads = 1) {
-    list< ctp::QMCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
-        (*it)->setnThreads(nThreads);
-        (*it)->Initialize(&_options); 
+    for (ctp::QMCalculator* calculator:_calculators) {
+        cout << "... " << calculator->Identify() << " ";
+        calculator->setnThreads(nThreads);
+        calculator->Initialize(&_options); 
         cout << endl;
     }
 }
 
 bool SqlApplication::EvaluateFrame() {
-    list< ctp::QMCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " " << flush;
-        (*it)->EvaluateFrame(&_top);
+     for (ctp::QMCalculator* calculator:_calculators) {
+        cout << "... " << calculator->Identify() << " " << flush;
+        calculator->EvaluateFrame(&_top);
         cout << endl;
     }
     return true;
 }
 
 void SqlApplication::EndEvaluate() {
-    list< ctp::QMCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        (*it)->EndEvaluate(&_top);
+    for (ctp::QMCalculator* calculator:_calculators) {
+        calculator->EndEvaluate(&_top);
     }
 }
 

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_EXCITON_H
-#define _VOTCA_XTP_EXCITON_H
+#ifndef _VOTCA_XTP_DFTGWBSE_H
+#define _VOTCA_XTP_DFTGWBSE_H
 
 #include <stdio.h>
 
@@ -36,17 +36,17 @@ namespace votca {
     namespace xtp {
        
 
-        class Exciton : public ctp::QMTool {
+        class DftGwBse : public ctp::QMTool {
         public:
 
-            Exciton() {
+            DftGwBse() {
             };
 
-            ~Exciton() {
+            ~DftGwBse() {
             };
 
             std::string Identify() {
-                return "exciton";
+                return "dftgwbse";
             }
 
             void Initialize(tools::Property *options);
@@ -57,6 +57,12 @@ namespace votca {
 
         private:
 
+            std::string _guess_file;
+            bool _do_guess;
+            
+            std::string _mpsfile;
+            bool _do_external;
+            double _dipole_spacing;
 
             std::string _xyzfile;
             std::string _xml_output;    // .xml output

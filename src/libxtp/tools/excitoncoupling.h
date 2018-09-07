@@ -106,8 +106,7 @@ void ExcitonCoupling::Initialize(Property* options)
 }
 
 bool ExcitonCoupling::Evaluate() {
-    Property *_job_output=NULL;
-    Property _summary; 
+   
     _log.setReportLevel(  ctp::logDEBUG );
     _log.setMultithreading( true );
     
@@ -115,43 +114,33 @@ bool ExcitonCoupling::Evaluate() {
     _log.setPreface( ctp::logERROR,   "\n... ...");
     _log.setPreface( ctp::logWARNING, "\n... ...");
     _log.setPreface( ctp::logDEBUG,   "\n... ..."); 
-
+    Property summary;
+    Property& job_output = summary.add("output","");
     // get the corresponding object from the QMPackageFactory
     if(!_classical){
-    Orbitals _orbitalsA, _orbitalsB, _orbitalsAB;
+    Orbitals orbitalsA, orbitalsB, orbitalsAB;
     // load the QM data from serialized orbitals objects
 
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
-    _orbitalsA.ReadFromCpt(_orbA);
+    orbitalsA.ReadFromCpt(_orbA);
     
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
-    _orbitalsB.ReadFromCpt(_orbB);
+    orbitalsB.ReadFromCpt(_orbB);
 
     CTP_LOG( ctp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
-    _orbitalsAB.ReadFromCpt(_orbAB);
+    orbitalsAB.ReadFromCpt(_orbAB);
    
-     BSECoupling _bsecoupling; 
-     _bsecoupling.setLogger(&_log);
-     _bsecoupling.Initialize(&_coupling_options);
-     //bool _doSinglets=_bsecoupling.get_doSinglets();   
-     //bool _dotriplets=_bsecoupling.get_doTriplets();   
-     
-
-     //bool _calculate_integrals = _bsecoupling.CalculateCouplings_OLD( &_orbitalsA, &_orbitalsB, &_orbitalsAB, &_JAB_singlet );   
-     bool _calculate_integrals = _bsecoupling.CalculateCouplings( &_orbitalsA, &_orbitalsB, &_orbitalsAB );   
+     BSECoupling bsecoupling; 
+     bsecoupling.setLogger(&_log);
+     bsecoupling.Initialize(_coupling_options);
+  
+     bsecoupling.CalculateCouplings( orbitalsA,orbitalsB, orbitalsAB );   
      std::cout << _log;
- 
-    if ( _calculate_integrals ){ 
-     // output the results
-    
-    _job_output = &_summary.add("output","");
-    Property *_pair_summary = &_job_output->add("pair","");
-    Property *_type_summary = &_pair_summary->add("type","");
-    _bsecoupling.addoutput(_type_summary,&_orbitalsA, & _orbitalsB);
-    
-   
-   
-    }
+
+    Property& pair_summary = job_output.add("pair","");
+    Property& type_summary = pair_summary.add("type","");
+    bsecoupling.Addoutput(type_summary,orbitalsA,  orbitalsB);
+
     }
     
     else if (_classical){
@@ -159,46 +148,36 @@ bool ExcitonCoupling::Evaluate() {
         std::vector< ctp::APolarSite*> seg1= ctp::APS_FROM_MPS(_mpsA, 0);
         std::vector< ctp::APolarSite*> seg2= ctp::APS_FROM_MPS(_mpsB, 0);
         
-        ctp::PolarSeg* Seg1 = new  ctp::PolarSeg(1,seg1);
-         ctp::PolarSeg* Seg2 = new  ctp::PolarSeg(2,seg2);
+        ctp::PolarSeg Seg1 = ctp::PolarSeg(1,seg1);
+        ctp::PolarSeg Seg2 =  ctp::PolarSeg(2,seg2);
          ctp::XInteractor actor;
         actor.ResetEnergy();
         vec s = vec(0,0,0);
-        
-        //CTP_LOG(logINFO, *pLog) << "Evaluate pair for debugging " << Seg1->getId() << ":" <<Seg2->getId() << " Distance "<< abs(s) << flush; 
-         ctp::PolarSeg::iterator pit1;
-         ctp::PolarSeg::iterator pit2;
         double E = 0.0;
-        for (pit1 = Seg1->begin(); pit1 < Seg1->end(); ++pit1) {
-            for (pit2 = Seg2->begin(); pit2 < Seg2->end(); ++pit2) {
-                
-                actor.BiasIndu(*(*pit1), *(*pit2), s);
-                (*pit1)->Depolarize();
-                (*pit2)->Depolarize();
-               
-                E += actor.E_f(*(*pit1), *(*pit2));
-
-                               
+        for (ctp::APolarSite* site1:Seg1) {
+            for (ctp::APolarSite* site2:Seg2) {            
+                actor.BiasIndu(*site1, *site2, s);
+                site1->Depolarize();
+                site2->Depolarize();
+                E += actor.E_f(*site1, *site2);             
                 }
             }
         
     double J=E*conv::int2eV;  
 
-    
-    _job_output = &_summary.add("output","");
-    Property *_pair_summary = &_job_output->add("pair","");
-    _pair_summary->setAttribute("idA", 1);
-    _pair_summary->setAttribute("idB", 2);
-    _pair_summary->setAttribute("typeA", _mpsA);
-    _pair_summary->setAttribute("typeB", _mpsB);
-    Property *_coupling_summary = &_pair_summary->add("Coupling",""); 
-    _coupling_summary->setAttribute("jABstatic", J);
+    Property &pair_summary = job_output.add("pair","");
+    pair_summary.setAttribute("idA", 1);
+    pair_summary.setAttribute("idB", 2);
+    pair_summary.setAttribute("typeA", _mpsA);
+    pair_summary.setAttribute("typeB", _mpsB);
+    Property & coupling_summary =pair_summary.add("Coupling",""); 
+    coupling_summary.setAttribute("jABstatic", J);
     }
     
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
      
     std::ofstream ofs (_output_file.c_str(), std::ofstream::out);
-    ofs << *_job_output;    
+    ofs << job_output;    
     ofs.close();
     return true;
 }
