@@ -21,7 +21,7 @@
 #define __XTP_ADIIS_COSTFUNCTION__H
 
 
-#include <votca/xtp/basisset.h>
+#include <votca/xtp/optimiser_costfunction.h>
 
 
 namespace votca {
@@ -64,7 +64,7 @@ namespace votca {
             
             bool Converged(const Eigen::VectorXd& delta_parameters,
                     double delta_cost, const Eigen::VectorXd& gradient){
-                return gradient.cwiseAbs().sum()<1.e-9;
+                return gradient.cwiseAbs().maxCoeff()<1.e-9;
             }
 
 

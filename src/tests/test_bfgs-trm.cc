@@ -21,6 +21,7 @@
 #include <votca/xtp/bfgs-trm.h>
 #include <votca/ctp/logger.h>
 #include <iostream>
+#include <votca/xtp/adiis_costfunction.h>
 #include <boost/format.hpp>
 using namespace votca::xtp;
 using namespace votca;
@@ -72,6 +73,56 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
    cout<<ref<<endl;
  }else{
    cout<<bfgstrm.getIteration()<<endl;
+ }
+  BOOST_CHECK_EQUAL(equal, 1);
+}
+
+
+BOOST_AUTO_TEST_CASE(adiis_test) {
+  int size=5;
+  
+  Eigen::VectorXd DiF=Eigen::VectorXd::Zero(size);
+  DiF<<  0.679243,0.562675,0.39399,-0.0258519,0;
+  Eigen::MatrixXd DiFj=Eigen::MatrixXd::Zero(size,size);
+  DiFj<<0.613998,0.192684,0.0326914,-0.193661,0,
+       0.192371,0.0653754,0.0131825,-0.0631915,0,
+       0.032739,0.0131883,0.0038493,-0.0110991,0,
+      -0.192873,-0.0631203,-0.0111063,0.0633221,0,
+       0,0,0,0,0;
+
+      
+      ctp::Logger log;
+      log.setPreface(ctp::logINFO, (boost::format("\nGWBSE INF ...")).str());
+      log.setPreface(ctp::logERROR, (boost::format("\nGWBSE ERR ...")).str());
+      log.setPreface(ctp::logWARNING, (boost::format("\nGWBSE WAR ...")).str());
+      log.setPreface(ctp::logDEBUG, (boost::format("\nGWBSE DBG ...")).str());
+      log.setReportLevel(ctp::logDEBUG); // output only log messages starting from a DEBUG level
+      std::cout << log; // output logger content to standard output
+  
+  ADIIS_costfunction a_cost=ADIIS_costfunction(DiF,DiFj);
+  BFGSTRM optimizer=BFGSTRM(a_cost);
+  optimizer.setNumofIterations(1000);
+  optimizer.setTrustRadius(0.01);
+   optimizer.setLog(&log);
+   // Starting point: equal weights on all matrices
+   Eigen::VectorXd coeffs=Eigen::VectorXd::Constant(size,1.0/size);
+   optimizer.Optimize(coeffs);
+  bool success=optimizer.Success();
+  coeffs=optimizer.getParameters().cwiseAbs2();
+  double xnorm=coeffs.sum();
+  coeffs/=xnorm;
+
+  
+  Eigen::VectorXd ref=Eigen::VectorXd::Zero(size);
+  
+  bool equal=coeffs.isApprox(ref,0.00001);
+ if(!equal){
+   cout<<"minimum found:"<<endl;
+   cout<<coeffs<<endl;
+   cout<<"minimum ref:"<<endl;
+   cout<<ref<<endl;
+ }else{
+   cout<<optimizer.getIteration()<<endl;
  }
   BOOST_CHECK_EQUAL(equal, 1);
 }

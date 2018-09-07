@@ -39,7 +39,7 @@ namespace votca {
                 for (int i=0;i<100;i++){
                     delta_p_trial=CalculateInitialStep(gradient);
                     if (delta_p_trial.norm()>_trust_radius){
-                       delta_p_trial=CalculateRegularizedStep(delta_p_trial,gradient);
+                       delta_p_trial=CalculateRegularizedStep(gradient);
                     }
                     double trialcost=_costfunction.EvaluateCost(_parameters+delta_p_trial);
                     delta_cost=trialcost-lastcost;
@@ -82,7 +82,7 @@ namespace votca {
                 if(_logging){
                   CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step rejected ")
                           % _iteration).str() << std::flush;
-                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f") 
+                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.10e") 
                           % _iteration % _trust_radius).str() << std::flush;
                 }
             } else {
@@ -99,7 +99,7 @@ namespace votca {
                 if(_logging){
                   CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step accepted ")
                           % _iteration).str() << std::flush;
-                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f")
+                  CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.10e")
                           % _iteration % _trust_radius).str() << std::flush;
                 }
             }
@@ -122,24 +122,25 @@ namespace votca {
         }
 
         /* Regularize step in case of prediction outside of Trust Region */
-        Eigen::VectorXd BFGSTRM::CalculateRegularizedStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient) const{
+        Eigen::VectorXd BFGSTRM::CalculateRegularizedStep(const Eigen::VectorXd& gradient) const{
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_hessian);
+            const Eigen::VectorXd factor =(es.eigenvectors().transpose()*gradient).cwiseAbs2();
+            const double trust_radius_squared=_trust_radius * _trust_radius;
+            TrustRegionFunction TRF=TrustRegionFunction(factor,es,trust_radius_squared);
+            
             // start value for lambda  a bit lower than lowest eigenvalue of Hessian
-            double lambda= 1.05 * es.eigenvalues()(0);
-            if (es.eigenvalues()(0) > 0.0) {
-              lambda = -0.05 * std::abs(es.eigenvalues()(0));
-            } 
-            // for constrained step, we expect
-            double max_step_squared =delta_pos.squaredNorm();
-            while (max_step_squared>(_trust_radius * _trust_radius)) {
-              lambda -= 0.05 * std::abs(es.eigenvalues()(0));
-              Eigen::VectorXd quotient=(es.eigenvalues().array()-lambda).cwiseAbs2();
-              auto factor=(es.eigenvectors().transpose()*gradient).cwiseAbs2();
-              max_step_squared = (factor.cwiseQuotient(quotient)).sum();
-            }
+            double lambda= es.eigenvalues()(0)-std::sqrt(factor(0))/_trust_radius;
+            double func_value=0;
+            
+            do {
+             std::pair<double,double> result=TRF.Evaluate(lambda);
+             func_value=result.first;
+             double gradient=result.second;
+             lambda-=func_value/gradient;
+            }while (std::abs(func_value)>(trust_radius_squared*1e-6));
                 
-            Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(delta_pos.size());
-            for (unsigned i = 0; i < delta_pos.size(); i++) {
+            Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(gradient.size());
+            for (int i = 0; i < gradient.size(); i++) {
                 new_delta_pos -= es.eigenvectors().col(i) * (es.eigenvectors().col(i).transpose()*gradient) / (es.eigenvalues()(i) - lambda);
             }
             return new_delta_pos;

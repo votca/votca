@@ -166,8 +166,8 @@ Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
   ppm.PPM_construct_parameters(rpa);
   Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
   
-   votca::ctp::Logger _log;
-  Sigma sigma=Sigma(&_log);
+  votca::ctp::Logger log;
+  Sigma sigma=Sigma(&log);
   sigma.configure(4,0,16,20,1e-5);
   sigma.setDFTdata(0.0,&vxc,&mo_energy);
   sigma.setGWAEnergies(mo_energy);
@@ -175,7 +175,7 @@ Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
   sigma.CalcOffDiagElements(Mmn,ppm);
   Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian();
   Mmn.Prune(0, 16); 
-BSE bse=BSE(orbitals,&_log,0.1);
+BSE bse=BSE(orbitals,&log,0.1);
 bse.setBSEindices(4,0,16,1);
 bse.setGWData(&Mmn,&ppm,&Hqp);
 

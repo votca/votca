@@ -64,11 +64,31 @@ namespace votca {
 
         private:
             
+            class TrustRegionFunction{
+                public:
+                TrustRegionFunction(const Eigen::VectorXd& factor,const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,double trust_radius_squared)
+                :_factor(factor),_hessian(hessian),_trust_radius_squared(trust_radius_squared){;}
+                    
+                std::pair<double,double> Evaluate(double lambda){
+                    Eigen::VectorXd quotient=(_hessian.eigenvalues().array()-lambda);
+                    std::pair<double,double> result;
+                    result.second=2*(_factor.array()/(quotient.array().pow(3))).sum();
+                    result.first=(_factor.cwiseQuotient(quotient.cwiseAbs2())).sum()-_trust_radius_squared; 
+                    return result;
+                }
+                        
+            private:
+                
+                const Eigen::VectorXd& _factor;
+                const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& _hessian;
+                double _trust_radius_squared;
+            };
+            
             Optimiser_costfunction& _costfunction;
         
             void UpdateHessian(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& delta_gradient);
             Eigen::VectorXd CalculateInitialStep(const Eigen::MatrixXd& gradient)const;
-            Eigen::VectorXd CalculateRegularizedStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient)const;
+            Eigen::VectorXd CalculateRegularizedStep(const Eigen::VectorXd& gradient)const;
             double QuadraticEnergy(const Eigen::VectorXd& gradient, const Eigen::VectorXd& delta_pos)const;
 
             bool AcceptRejectStep(const Eigen::VectorXd& delta_pos,const Eigen::VectorXd& gradient,double energy_delta);
