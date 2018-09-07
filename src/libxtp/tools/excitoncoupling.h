@@ -153,8 +153,6 @@ bool ExcitonCoupling::Evaluate() {
          ctp::XInteractor actor;
         actor.ResetEnergy();
         vec s = vec(0,0,0);
-         ctp::PolarSeg::iterator pit1;
-         ctp::PolarSeg::iterator pit2;
         double E = 0.0;
         for (ctp::APolarSite* site1:Seg1) {
             for (ctp::APolarSite* site2:Seg2) {            

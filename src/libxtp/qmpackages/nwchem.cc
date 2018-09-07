@@ -398,9 +398,6 @@ namespace votca {
                 tools::Tokenizer tok_cleanup(_cleanup, ",");
                 std::vector <std::string> cleanup_info;
                 tok_cleanup.ToVector(cleanup_info);
-
-                std::vector<std::string> ::iterator it;
-
                 for (const std::string& substring:cleanup_info) {
                     if (substring== "nw") {
                         std::string file_name = _run_dir + "/" + _input_file_name;

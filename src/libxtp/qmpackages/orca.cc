@@ -123,7 +123,6 @@ namespace votca {
 
       el_file.open(el_file_name.c_str());
       el_file << "$DATA" << endl;
-      std::vector< QMAtom* >::iterator it;
 
         for (const std::string& element_name:UniqueElements) {
           const Element& element = bs.getElement(element_name);
