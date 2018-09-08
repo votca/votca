@@ -30,7 +30,6 @@ Dependencies for Manual
 
      dnf install ghostscript texlive doxygen texlive-appendix texlive-wrapfig texlive-a4wide texlive-xstring inkscape transfig texlive-units texlive-sidecap texlive-bclogo texlive-mdframed texlive-braket graphviz ImageMagick ghostscript-tools-dvipdf
 
-
 ## General (Source) Installation Instructions 
 
 To install the full package:
@@ -45,6 +44,12 @@ To install the full package:
     make -j5
     make install
 
+### Working out the 'not found' dependency errors
+
+If any of the installed dependencies is not found upon configuring with cmake (see above), then you will need to find out and add the non-standard path for that dependency (normally a dynamically loaded library, e.g. libgromacs.so.3,  libhdf5.so.101) to the environment variable LD_LIBRARY_PATH, and rerun cmake (also possibly re-build and re-install VOTCA). For example:
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/gromacs/lib:$HOME/anaconda/lib
+    
 ### Common CMake Flags
 
 * `BUILD_CSGAPPS` - Build the extra csg applications repo (ON/OFF, Default OFF)
@@ -59,7 +64,8 @@ To install the full package:
  * `BUILD_CTP_MANUAL` - Build ctp pdf manual
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
  * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
-
+ * `CMAKE_DISABLE_FIND_PACKAGE_HDF5` - Disable using optional library `libhdf5.so.101` (ON/OFF, Default OFF; relevant only for the `master` branch)
+ 
 ## Legacy (Source) Installation Instructions
 
 Check [dependencies](#dependency-installation) first. Do **NOT** download anything yourself, this is done by `build.sh` below.
