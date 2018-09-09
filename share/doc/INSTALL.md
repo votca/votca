@@ -46,9 +46,9 @@ To install the full package:
 
 ### Resolving the 'not found' dependency errors
 
-Assuming all the [dependencies](#dependency-installation) have been correctly installed, one or more might still appear 'not found' upon configuring with `cmake` command (see above). In this case you will need to find out the 'non-standard' location for each missed out dependency (most often a shared or dynamically loaded library, e.g. `libgromacs.so.*`,  `libhdf5.so.*` etc). 
+Assuming all the [dependencies](#dependency-installation) have been correctly installed, one or more might still appear 'not found' upon configuring with `cmake` command (see above). In this case you will need to find out the 'non-standard' location for each missed dependency (most often a shared or dynamically loaded library, e.g. `libgromacs.so.*`,  `libhdf5.so.*` etc). 
 
-Error messages produced by Cmake usually provide instructive suggestions for resolving dependency issues. In particular, an appropriate extra `-D` flag is necessary to specify the path to a missed out package. You will have to rerun the `cmake` command with the relevant flag(s) added. For example, in the case of a locally installed version of Gromacs:
+Error messages produced by Cmake usually provide instructive suggestions for resolving dependency issues. In particular, an appropriate extra `-D` flag is necessary to specify the path to a missed package. You will have to rerun the `cmake` command with the relevant flag(s) added. For example, in the case of a locally installed version of Gromacs:
 
     cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DWITH_GMX=ON -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
 
