@@ -44,9 +44,17 @@ To install the full package:
     make -j5
     make install
 
-### Working out the 'not found' dependency errors
+### Resolving the 'not found' dependency errors
 
-If any of the installed dependencies is not found upon configuring with cmake (see above), then you will need to find out and add the non-standard path for that dependency (normally a dynamically loaded library, e.g. libgromacs.so.3,  libhdf5.so.101) to the environment variable LD_LIBRARY_PATH, and rerun cmake (also possibly re-build and re-install VOTCA). For example:
+Assuming all the [dependencies](#dependency-installation) have been correctly installed, one or more might still appear 'not found' upon configuring with `cmake` command (see above). In this case you will need to find out the 'non-standard' location for each missed out dependency (most often a shared or dynamically loaded library, e.g. libgromacs.so.\*,  libhdf5.so.\* etc). 
+
+Error messages produced by Cmake are quite instructive and usually give appropriate suggestions for resolving dependency issues. In particular, an appropriate extra `-D` option is necessary to specify the path to a missed out package. You will have to rerun the `cmake` command with the relevant option(s) added. For example, in the case of a locally installed version of Gromacs:
+
+    cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DWITH_GMX=ON -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
+
+Be careful to use exactly the option suggested in the error message! You can also add `-LH` or `-LAH` options to the `cmake` command in order to see the available options with brief explanations (note that *changing some of the variables may result in more variables being created*; run `man cmake` for more info).
+
+For each dependency package not found by Cmake initially, it is normally also necessary to add the location of its `lib` directory to the environment variable LD_LIBRARY_PATH, **before** building and installing VOTCA, i.e. before running any `make` command. For example:
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/gromacs/lib:$HOME/anaconda/lib
     
@@ -64,8 +72,9 @@ If any of the installed dependencies is not found upon configuring with cmake (s
  * `BUILD_CTP_MANUAL` - Build ctp pdf manual
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
  * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
- * `CMAKE_DISABLE_FIND_PACKAGE_HDF5` - Disable using optional library `libhdf5.so.101` (ON/OFF, Default OFF; relevant only for the `master` branch)
- 
+ * `CMAKE_DISABLE_FIND_PACKAGE_<name>` - Disable using an optional package called `<name>` (ON/OFF)
+ * `CMAKE_DISABLE_FIND_PACKAGE_HDF5` - Disable using the optional package `HDF5` (ON/OFF, Default OFF; relevant only for the `master` branch)
+
 ## Legacy (Source) Installation Instructions
 
 Check [dependencies](#dependency-installation) first. Do **NOT** download anything yourself, this is done by `build.sh` below.
