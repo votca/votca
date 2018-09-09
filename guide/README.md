@@ -6,13 +6,14 @@ Please pick topics you are most interested in, since finishing the tutorial migh
 
 # Installation
 
-## Building executables
+## Building VOTCA
 
-The simplest way is to use the build script which can be downloaded from github project
+The simplest way is to use CMake:
 
 ```bash
-prefix=~/votca # installation folder (executables will be in the $prefix/bin)
-git clone --recursive https://github.com/votca/votca.git
+prefix=~/votca
+version=master # or 'stable' or 'v1.4.1'
+git clone -b ${version} --recursive https://github.com/votca/votca.git
 cd votca
 mkdir build
 cd build
@@ -22,12 +23,13 @@ make install
 ```
 
 The following option might be needed to disable sqlite3 libraries `-DWITH_SQLITE3=OFF`. 
-To build a gromacs version use
+
+To build a gromacs version for VOTCA use
 
 ```bash
 cmake -DBUILD_OWN_GROMACS=ON ..
 make -j5
-make innstall
+make install
 ```
 
 ## Using the tutorials
@@ -36,8 +38,7 @@ All the tutorials are in the installation folder, i.e. `${prefix}/share/votca/cs
 
 ## Downloading the manual
 
-The corresponding version of the manual can be found on [github](https://github.com/votca/csg-manual/releases) (development version [here](http://doc.votca.org/manual.pdf)), also have a look at the online reference:
-http://www.votca.org/Documentation/coarse-graining
+The corresponding version of the manual can be found on [github](https://github.com/votca/csg-manual/releases) (development version [here](http://doc.votca.org/manual.pdf)).
 
 # Running GROMACS
 
