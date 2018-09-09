@@ -46,7 +46,7 @@ To install the full package:
 
 ### Resolving the 'not found' dependency errors
 
-Assuming all the [dependencies](#dependency-installation) have been correctly installed, one or more might still appear 'not found' upon configuring with `cmake` command (see above). In this case you will need to find out the 'non-standard' location for each missed out dependency (most often a shared or dynamically loaded library, e.g. libgromacs.so.\*,  libhdf5.so.\* etc). 
+Assuming all the [dependencies](#dependency-installation) have been correctly installed, one or more might still appear 'not found' upon configuring with `cmake` command (see above). In this case you will need to find out the 'non-standard' location for each missed out dependency (most often a shared or dynamically loaded library, e.g. `libgromacs.so.*`,  `libhdf5.so.*` etc). 
 
 Error messages produced by Cmake are quite instructive and usually give appropriate suggestions for resolving dependency issues. In particular, an appropriate extra `-D` option is necessary to specify the path to a missed out package. You will have to rerun the `cmake` command with the relevant option(s) added. For example, in the case of a locally installed version of Gromacs:
 
@@ -54,10 +54,12 @@ Error messages produced by Cmake are quite instructive and usually give appropri
 
 Be careful to use exactly the option suggested in the error message! You can also add `-LH` or `-LAH` options to the `cmake` command in order to see the available options with brief explanations (note that *changing some of the variables may result in more variables being created*; run `man cmake` for more info).
 
-For each dependency package not found by Cmake initially, it is normally also necessary to add the location of its `lib` directory to the environment variable LD_LIBRARY_PATH, **before** building and installing VOTCA, i.e. before running any `make` command. For example:
+_Only for Linux_: For each dependency package not found by Cmake initially, it might be necessary to add the location of its `lib` directory to the environment variable `LD_LIBRARY_PATH`, **before** building and installing VOTCA, i.e. before running any `make` command. For example:
 
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/gromacs/lib:$HOME/anaconda/lib
     
+Note that `LD_LIBRARY_PATH` also needs to be set every time when running an executable from the VOTCA installation afterwards. Alternatively, CMake has options to _remember_ whenre libraries came from a link time, which can be enabled by setting `CMAKE_INSTALL_RPATH_USE_LINK_PATH` to `ON`. VOTCA has enabled this option and a couple of other rpath related tweaks when setting `ENABLE_RPATH_INJECT` to `ON`.
+
 ### Common CMake Flags
 
 * `BUILD_CSGAPPS` - Build the extra csg applications repo (ON/OFF, Default OFF)
