@@ -101,7 +101,7 @@ if ($sim_prog eq "espresso") {
   # espresso specific header - no other starting comments
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$pot_deriv[$i]/$r[$i]:-$pot_deriv[$i], $pot[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],-$pot_deriv[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
   if ($type eq "non-bonded"){
