@@ -30,7 +30,6 @@ Dependencies for Manual
 
      dnf install ghostscript texlive doxygen texlive-appendix texlive-wrapfig texlive-a4wide texlive-xstring inkscape transfig texlive-units texlive-sidecap texlive-bclogo texlive-mdframed texlive-braket graphviz ImageMagick ghostscript-tools-dvipdf
 
-
 ## General (Source) Installation Instructions 
 
 To install the full package:
@@ -44,6 +43,22 @@ To install the full package:
     cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j5
     make install
+
+### Resolving the 'not found' dependency errors
+
+Assuming all the [dependencies](#dependency-installation) have been correctly installed, one or more might still appear 'not found' upon configuring with `cmake` command (see above). In this case you will need to find out the 'non-standard' location for each missed dependency (most often a shared or dynamically loaded library, e.g. `libgromacs.so.*`,  `libhdf5.so.*` etc). 
+
+Error messages produced by Cmake usually provide instructive suggestions for resolving dependency issues. In particular, an appropriate extra `-D` flag is necessary to specify the path to a missed package. You will have to rerun the `cmake` command with the relevant flag(s) added. For example, in the case of a locally installed version of Gromacs:
+
+    cmake -DBUILD_CSGAPPS=ON -DCMAKE_INSTALL_PREFIX=${prefix} -DWITH_GMX=ON -DGROMACS_INCLUDE_DIR=$HOME/gromacs/include -DGROMACS_LIBRARY=$HOME/gromacs/lib/libgromacs.so ..
+
+Be careful to use exactly the option suggested in the error message! You can also add `-LH` or `-LAH` options to the `cmake` command in order to see the available options with brief explanations (note that *changing some of the variables may result in more variables being created*; run `man cmake` for more info).
+
+_Only for Linux_: For each dependency package not found by Cmake initially, it might be necessary to add the location of its `lib` directory to the environment variable `LD_LIBRARY_PATH`, **before** building and installing VOTCA, i.e. before running any `make` command. For example:
+
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/gromacs/lib:$HOME/anaconda/lib
+    
+Note that `LD_LIBRARY_PATH` also needs to be set every time when running an executable from the VOTCA installation afterwards (which can be automated via user's login profile, e.g. in .bashrc). Alternatively, CMake has options to _remember_ where libraries came from at link time, which can be enabled by setting `CMAKE_INSTALL_RPATH_USE_LINK_PATH` to `ON`. VOTCA has enabled this option and a couple of other rpath related tweaks when setting `ENABLE_RPATH_INJECT` to `ON`.
 
 ### Common CMake Flags
 
@@ -59,6 +74,8 @@ To install the full package:
  * `BUILD_CTP_MANUAL` - Build ctp pdf manual
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
  * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
+ * `CMAKE_DISABLE_FIND_PACKAGE_<name>` - Disable using an optional package called `<name>` (ON/OFF)
+ * `CMAKE_DISABLE_FIND_PACKAGE_HDF5` - Disable using the optional package `HDF5` (ON/OFF, Default OFF; relevant only for the `master` branch)
 
 ## Legacy (Source) Installation Instructions
 
