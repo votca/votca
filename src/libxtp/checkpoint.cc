@@ -63,7 +63,6 @@ CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
       }
       
   } catch (H5::Exception& error) {
-    error.printError();
     throw std::runtime_error(error.getDetailMsg());
   }
 };

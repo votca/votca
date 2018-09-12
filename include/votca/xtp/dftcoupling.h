@@ -20,10 +20,7 @@
 #ifndef _VOTCA_XTP_DFTCOUPLING_H
 #define	_VOTCA_XTP_DFTCOUPLING_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
-
-
+#include <votca/xtp/couplingbase.h>
 
 namespace votca { namespace xtp {
 
@@ -36,32 +33,43 @@ namespace votca { namespace xtp {
 * 
 */
 
-class DFTcoupling 
+class DFTcoupling : public CouplingBase
 {
 public:
 
-    DFTcoupling() {};
-   ~DFTcoupling() {};
+    std::string  Identify() { return "dftcoupling"; }
+    DFTcoupling():
+    _degeneracy(0.0),_numberofstatesA(0),_numberofstatesB(0){;}
 
-
-
-    bool CalculateIntegrals(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               Eigen::MatrixXd* _JAB);
+    void CalculateCouplings(const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB, 
+                               Orbitals& orbitalsAB);
     
-    double getCouplingElement( int levelA, int levelB,  
-                               Orbitals* _orbitalsA,  
-                               Orbitals* _orbitalsB, 
-                               Eigen::MatrixXd* _JAB,
-                               double _energy_difference = 0
-                                );
+    void Initialize(tools::Property&);
     
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
-    
+    void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB);
+   
 private:
     
-    ctp::Logger *_pLog;
+    void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
+            const Orbitals& orbitalsB, int a, int b);
+    double getCouplingElement( int levelA, int levelB,  
+                               const Orbitals& orbitalsA,  
+                               const Orbitals& orbitalsB
+                                )const;
+
+    std::pair<int,int> DetermineRangeOfStates(const Orbitals& orbital, int numberofstates)const;
+    
+    Eigen::MatrixXd JAB;
+    
+    double _degeneracy;
+    int _numberofstatesA;
+    int _numberofstatesB;
+    
+    
+    std::pair<int,int> Range_orbA;
+    std::pair<int,int> Range_orbB;
     
   
 

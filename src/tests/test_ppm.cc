@@ -18,7 +18,9 @@
 #define BOOST_TEST_MODULE ppm_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ppm.h>
-
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/threecenter.h>
 
 using namespace votca::xtp;
 using namespace std;
@@ -91,7 +93,7 @@ BOOST_AUTO_TEST_CASE(ppm_full){
   basis.LoadBasisSet("3-21G.xml");
   
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
   Orbitals orb;
   orb.setBasisSetSize(17);

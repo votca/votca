@@ -29,20 +29,23 @@
 namespace votca { namespace xtp {
 
  AOBasis::~AOBasis() {
-        for (std::vector< AOShell* >::iterator it = _aoshells.begin(); it != _aoshells.end() ; it++ ) delete (*it);
+        for (AOShell* shell:_aoshells) delete shell;
         _aoshells.clear();
          }
 
-AOShell* AOBasis::addShell( std::string shellType,int Lmax,int Lmin, double shellScale, int shellFunc, int startIndex, int offset, tools::vec pos, std::string name, int index )
-    {
-        AOShell* aoshell = new AOShell( shellType,Lmax,Lmin, shellScale, shellFunc, startIndex, offset, pos, name, index, this );
+AOShell* AOBasis::addShell( const Shell& shell, const QMAtom& atom, int startIndex ){
+        AOShell* aoshell = new AOShell( shell, atom, startIndex );
+        _aoshells.push_back(aoshell);
+        return aoshell;
+        }
+
+AOShell* AOBasis::addECPShell( const Shell& shell, const QMAtom& atom, int startIndex, bool nonlocal ){
+        AOShell* aoshell = new AOShell( shell, atom, startIndex,nonlocal );
         _aoshells.push_back(aoshell);
         return aoshell;
         }
 
 void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std::string& target) {
-
-    // cout << " Reordering MOs from " << start << " to " << target << endl;
 
     if (start == target) {
         return;
@@ -55,7 +58,6 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
     }
 
     // get reordering vector _start -> target
-
     std::vector<int> order = getReorderVector(start, target);
     
     // Sanity check
@@ -76,14 +78,10 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd &v, const std::string& start, const std
 
     // NWChem has some strange minus in d-functions
     if (start == "nwchem" || start == "orca") {
-        
         std::vector<int> multiplier = getMultiplierVector(start, target);
         // and reorder rows of _orbitals->_mo_coefficients() accordingly
         MultiplyMOs(v, multiplier);
-
     }
-
-
     return;
 }
 
@@ -116,7 +114,6 @@ void AOBasis::ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const st
         }
     }
     
-    
     return;
 }
 
@@ -133,117 +130,85 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier
                }
            }
           return;
-       }
+    }
 
 
-//this is for gaussian only to transform from gaussian ordering cartesian to spherical in gaussian ordering not more
-Eigen::MatrixXd AOBasis::getTransformationCartToSpherical(const std::string& package){
-    Eigen::MatrixXd _trafomatrix;
-    if ( package != "gaussian" ){
+    //this is for gaussian only to transform from gaussian ordering cartesian to gaussian spherical
+    Eigen::MatrixXd AOBasis::getTransformationCartToSpherical(const std::string& package) {
+      Eigen::MatrixXd _trafomatrix;
+      if (package != "gaussian") {
         std::cout << " I should not have been called, will do nothing! " << std::endl;
-    } else {
+      } else {
         // go through basisset, determine function sizes
         int _dim_sph = 0;
         int _dim_cart = 0;
-        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-            const AOShell* _shell = getShell( _is );
-            const std::string& _type =  _shell->getType();
+        for (const AOShell* shell:(*this)) {
+          const std::string& _type = shell->getType();
 
-            _dim_sph  += NumFuncShell( _type );
-            _dim_cart +=NumFuncShell_cartesian( _type );
+          _dim_sph += NumFuncShell(_type);
+          _dim_cart += NumFuncShell_cartesian(_type);
 
         }
+        _trafomatrix = Eigen::MatrixXd::Zero(_dim_sph, _dim_cart);
 
-     _trafomatrix= Eigen::MatrixXd::Zero( _dim_sph , _dim_cart );
-        // initialize _trafomatrix
-        
-
-        // now fill it
         int _row_start = 0;
         int _col_start = 0;
-        for (AOShellIterator _is = this->firstShell(); _is != this->lastShell() ; _is++ ) {
-            const AOShell* _shell = getShell( _is );
-            const std::string& _type =  _shell->getType();
-            int _row_end = _row_start +NumFuncShell( _type );
-            int _col_end = _col_start +NumFuncShell_cartesian( _type );
-            Eigen::Block<Eigen::MatrixXd> block=_trafomatrix.block(_row_start,_col_start,NumFuncShell( _type ),NumFuncShell_cartesian( _type ));
-            addTrafoCartShell(_shell,block);
-            _row_start = _row_end;
-            _col_start = _col_end;
+         for (const AOShell* shell:(*this)) {
+          const std::string& _type = shell->getType();
+          int _row_end = _row_start + NumFuncShell(_type);
+          int _col_end = _col_start + NumFuncShell_cartesian(_type);
+          Eigen::Block<Eigen::MatrixXd> block = _trafomatrix.block(_row_start, _col_start, NumFuncShell(_type), NumFuncShell_cartesian(_type));
+          addTrafoCartShell(shell, block);
+          _row_start = _row_end;
+          _col_start = _col_end;
 
         }
+      }
+      return _trafomatrix;
     }
-    return _trafomatrix;
-}
 
 
-void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix ){
-
+void AOBasis::addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& submatrix ){
 
     // fill _local according to _lmax;
-    int _lmax = shell->getLmax();
-    std::string _type = shell->getType();
+    int lmax = shell->getLmax();
+    std::string type = shell->getType();
 
-    int _sph_size =NumFuncShell( _type ) + OffsetFuncShell( _type );
-    int _cart_size = NumFuncShell_cartesian( _type ) + OffsetFuncShell_cartesian( _type )  ;
-
-    // cout << "    local size : " << _sph_size << " : " << _cart_size << endl;
-
-    Eigen::MatrixXd _local = Eigen::MatrixXd::Zero(_sph_size,_cart_size);
+    int sph_size =NumFuncShell( type ) + OffsetFuncShell( type );
+    int cart_size = NumFuncShell_cartesian( type ) + OffsetFuncShell_cartesian( type )  ;
+    Eigen::MatrixXd local = Eigen::MatrixXd::Zero(sph_size,cart_size);
 
     // s-functions
-    _local(0,0) = 1.0; // s
-
+    local(0,0) = 1.0; // s
     // p-functions
-    if ( _lmax > 0 ){
-        _local(1,1) = 1.0;
-        _local(2,2) = 1.0;
-        _local(3,3) = 1.0;
+    if ( lmax > 0 ){
+        local(1,1) = 1.0;
+        local(2,2) = 1.0;
+        local(3,3) = 1.0;
     }
-
     // d-functions
-    if ( _lmax > 1 ){
-        _local(4,4) = -0.5;             // d3z2-r2 (dxx)
-        _local(4,5) = -0.5;             // d3z2-r2 (dyy)
-        _local(4,6) =  1.0;             // d3z2-r2 (dzz)
-        _local(5,8) =  1.0;             // dxz
-        _local(6,9) =  1.0;             // dyz
-        _local(7,4) = 0.5*sqrt(3.0);    // dx2-y2 (dxx)
-        _local(7,5) = -_local(7,4);      // dx2-y2 (dyy)
-        _local(8,7) = 1.0;              // dxy
+    if ( lmax > 1 ){
+        local(4,4) = -0.5;             // d3z2-r2 (dxx)
+        local(4,5) = -0.5;             // d3z2-r2 (dyy)
+        local(4,6) =  1.0;             // d3z2-r2 (dzz)
+        local(5,8) =  1.0;             // dxz
+        local(6,9) =  1.0;             // dyz
+        local(7,4) = 0.5*sqrt(3.0);    // dx2-y2 (dxx)
+        local(7,5) = -local(7,4);      // dx2-y2 (dyy)
+        local(8,7) = 1.0;              // dxy
      }
-
-    if ( _lmax > 2 ){
+    if ( lmax > 2 ){
         std::cerr << " Gaussian input with f- functions or higher not yet supported!" << std::endl;
         exit(1);
     }
-
     // now copy to _trafo
-    for ( int _i_sph = 0 ; _i_sph < NumFuncShell( _type ) ; _i_sph++ ){
-        for  ( int _i_cart = 0 ; _i_cart < NumFuncShell_cartesian( _type ) ; _i_cart++ ){
-
-
-            _submatrix( _i_sph , _i_cart ) = _local( _i_sph + OffsetFuncShell( _type ) , _i_cart +  OffsetFuncShell_cartesian( _type ) );
-
+    for ( int i_sph = 0 ; i_sph < NumFuncShell( type ) ; i_sph++ ){
+        for  ( int i_cart = 0 ; i_cart < NumFuncShell_cartesian( type ) ; i_cart++ ){
+            submatrix( i_sph , i_cart ) = local( i_sph + OffsetFuncShell( type ) , i_cart +  OffsetFuncShell_cartesian( type ) );
         }
     }
     return;
 }
-
-
-int AOBasis::getMaxFunctions () {
-
-    int _maxfunc = 0;
-
-    // go through basisset
-    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
-        const AOShell* _shell = this->getShell( _is );
-        int _func_here = _shell->getNumFunc();
-        if ( _func_here > _maxfunc ) _maxfunc = _func_here;
-    }
-    return _maxfunc;
-}
-
 
 std::vector<int> AOBasis::getMultiplierVector( const std::string& start, const std::string& target){
     std::vector<int> multiplier;
@@ -258,9 +223,8 @@ std::vector<int> AOBasis::getMultiplierVector( const std::string& start, const s
       t=target;
     }
     // go through basisset
-    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
-        const AOShell* _shell = this->getShell( _is );
-        addMultiplierShell(  s, t, _shell->getType(), multiplier );
+    for (const AOShell* shell:(*this)) { 
+        addMultiplierShell(  s, t, shell->getType(), multiplier );
     }
     return multiplier;
     }
@@ -376,15 +340,12 @@ std::vector<int>  AOBasis::getReorderVector(const std::string& start,const std::
       t=target;
     }
     // go through basisset
-    for (AOShellIterator _is = firstShell(); _is != lastShell() ; _is++ ) {
-        const AOShell* _shell = getShell( _is );
-        addReorderShell( s, t, _shell->getType(), neworder );
+     for (const AOShell* shell:(*this)) {
+        addReorderShell( s, t, shell->getType(), neworder );
     }
-    
      if(start=="xtp"){
        neworder=invertOrder(neworder);
-     }
-    
+     } 
     return neworder;
 }
 
@@ -402,34 +363,32 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
         
       // current length of vector
 
-      int _cur_pos = order.size() - 1;
+      int cur_pos = order.size() - 1;
 
       if (target == "xtp") {
-
         // single type shells defined here
         if (shell_type.length() == 1) {
           if (shell_type == "S") {
-            order.push_back(_cur_pos + 1);
+            order.push_back(cur_pos + 1);
           }//for S
-
 
             //votca order is z,y,x e.g. Y1,0 Y1,-1 Y1,1
           else if (shell_type == "P") {
             if (start == "orca") {
                 //orca order is z,x,y Y1,0,Y1,1,Y1,-1
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
             } else if (start == "gaussian" || start == "nwchem") {
                 //nwchem gaussian x,y,z Y1,1 Y1,-1 Y1,0
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
             } else if (start == "votca") {//for usage with old orb files
                  //old votca x,y,z Y1,1 Y1,-1 Y1,0
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
             } else {
               std::cerr << "Tried to reorder p-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -439,24 +398,24 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           else if (shell_type == "D") {
             //orca order is d3z2-r2 dxz dyz dx2-y2 dxy e.g. Y2,0 Y2,1 Y2,-1 Y2,2 Y2,-2
             if (start == "gaussian" || start == "orca") {
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 4);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 4);
             } else if (start == "nwchem") {
               // nwchem order is dxy dyz d3z2-r2 -dxz dx2-y2, e.g. Y2,-2 Y2,-1 Y2,0 Y2,1 Y2,2 
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 5);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 5);
             } else if (start == "votca") { //for usage with old orb files
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 5);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 5);
             } else {
               std::cerr << "Tried to reorder d-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -465,23 +424,23 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
                //ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
             if (start == "gaussian" || start == "orca") {
                 //ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 7);
-              order.push_back(_cur_pos + 6);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 7);
+              order.push_back(cur_pos + 6);
             } else if (start == "nwchem") {
                 //ordering for nwchem is fxxy-yyy, fxyz,fyzz-xxy-yyy,fzzz-xxz-yyz,f-xzz+xxx+xyy,fxxz-yyz,fxyy-xxx
                 // e.g. Y3,-3 Y3,-2 Y3,-1 Y3,0 Y3,1 Y3,2 Y3,3
-              order.push_back(_cur_pos + 6);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 7);
+              order.push_back(cur_pos + 6);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 7);
             } else {
               std::cerr << "Tried to reorder f-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented yet!");
@@ -490,15 +449,15 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
                //ordering for votca is Yl,0 Yl,-1 Yl,1 ......Yl,-m Yl,m
             if (start == "gaussian" || start == "orca") {
                  //ordering for gaussian and orca is Yl,0 Yl,1 Yl,-1 ......Yl,m Yl,-m
-              order.push_back(_cur_pos + 1);
-              order.push_back(_cur_pos + 3);
-              order.push_back(_cur_pos + 2);
-              order.push_back(_cur_pos + 5);
-              order.push_back(_cur_pos + 4);
-              order.push_back(_cur_pos + 7);
-              order.push_back(_cur_pos + 6);
-              order.push_back(_cur_pos + 9);
-              order.push_back(_cur_pos + 8);
+              order.push_back(cur_pos + 1);
+              order.push_back(cur_pos + 3);
+              order.push_back(cur_pos + 2);
+              order.push_back(cur_pos + 5);
+              order.push_back(cur_pos + 4);
+              order.push_back(cur_pos + 7);
+              order.push_back(cur_pos + 6);
+              order.push_back(cur_pos + 9);
+              order.push_back(cur_pos + 8);
             }else  {
               std::cerr << "Tried to reorder g-functions from package " << start << ".";
               throw std::runtime_error("Reordering not implemented");
@@ -523,135 +482,87 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return;
     }
 
-
-const std::vector<const AOShell*> AOBasis::getShellsperAtom(int AtomId)const{
-  std::vector<const AOShell*> result;
-  for(const auto& aoshell:_aoshells){
-    if(aoshell->_atomindex==AtomId){
-      result.push_back(aoshell);
+    const std::vector<const AOShell*> AOBasis::getShellsofAtom(int AtomId)const {
+      std::vector<const AOShell*> result;
+      for (const auto& aoshell : _aoshells) {
+        if (aoshell->getAtomIndex() == AtomId) {
+          result.push_back(aoshell);
+        }
+      }
+      return result;
     }
-  }
-  return result;
-}
-
-int AOBasis::getFuncperAtom(int AtomId) const{
-  int number=0;
-  for(const auto& aoshell:_aoshells){
-    if(aoshell->_atomindex==AtomId){
-      number+=aoshell->_numFunc;
-    }
-  }
-  
-  return number;
-}
-
-
-void AOBasis::AOBasisFill(BasisSet* bs , std::vector<QMAtom* > _atoms, int _fragbreak  ) {
-  tools::Elements elementinfo;
-  std::vector<QMAtom* > :: iterator ait;
-
- _AOBasisSize =0;
- _AOBasisFragA=0;
- _AOBasisFragB=0;
- // loop over atoms
- for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-    
-    const tools::vec& pos=(*ait)->getPos();
-    
-    // get element type of the atom
-    std::string  name = (*ait)->getType();
-    //assign its nuclear charge
-    (*ait)->nuccharge=elementinfo.getNucCrg(name);
-    // get the basis set entry for this element
-    Element* element = bs->getElement(name);
-    
-              // and loop over all shells
-    for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
-              Shell* shell = (*its);
-              int numfuncshell=NumFuncShell(shell->getType());
-              AOShell* aoshell = addShell(shell->getType(), shell->getLmax(), shell->getLmin(), shell->getScale(),
-                      numfuncshell, _AOBasisSize, OffsetFuncShell(shell->getType()), pos, name, (*ait)->getAtomID());
-              _AOBasisSize += numfuncshell;
-              for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                  GaussianPrimitive* gaussian = *itg;
-                  aoshell->addGaussian(gaussian->_decay, gaussian->_contraction);
-              }
-              aoshell->CalcMinDecay();
-              aoshell->normalizeContraction();
-              
-          }
-    if ( (*ait)->getAtomID() < _fragbreak ) _AOBasisFragA = _AOBasisSize;
 
    
-}
 
- if ( _fragbreak < 0 ) {
-     _AOBasisFragA = _AOBasisSize;
-     _AOBasisFragB = 0;
- } else {
-     _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
- }
- return;
-}
-
-
-
-
-
-void AOBasis::ECPFill(BasisSet* bs , std::vector<QMAtom* > _atoms  ) {
-        
-        std::vector< QMAtom* > :: iterator ait;
-       _AOBasisSize = 0;
-      
-       // loop over atoms
-       for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-          
-          // get coordinates of this atom and convert from Angstrom to Bohr
-          const tools::vec &pos=(*ait)->getPos();
-          // get element type of the atom
-          std::string  name = (*ait)->getType();
-          // get the basis set entry for this element
-          if(name=="H" || name=="He"){continue;}
-            Element* element = bs->getElement(name);
-            //update nuclear charge of QMAtom
-           
-            (*ait)->ecpcharge=element->getNcore();
-          // and loop over all shells
-           
-          int lmax=0;
-          for (Element::ShellIterator its = element->begin(); its != element->end(); its++) {
-               Shell* shell = (*its);
-               if(shell->getType().size()>1){
-                   throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
-               }
-               int l=FindLmax(shell->getType() );
-               if (its == element->begin()) lmax = l;
-               // first shell is local component, identification my negative angular momentum
-
-                //why is the shell not properly used, apparently it is only used in aoecp.cc and there it is iterated over so l and l make no difference CHECK!!
-                   AOShell* aoshell = addShell( shell->getType(),l,l, shell->getScale(), lmax, l, l, pos, name, (*ait)->getAtomID() );
-                   _AOBasisSize += NumFuncShell( shell->getType() );
-                   for (Shell::GaussianIterator itg = shell->firstGaussian(); itg != shell->lastGaussian(); itg++) {
-                      GaussianPrimitive* gaussian = *itg;
-                      aoshell->addGaussian(gaussian->_power, gaussian->_decay, gaussian->_contraction);
-               }
-                   aoshell->CalcMinDecay();
-                 
+    void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int fragbreak) {
+      tools::Elements elementinfo;
+      _AOBasisSize = 0;
+      _AOBasisFragA = 0;
+      _AOBasisFragB = 0;
+      _FuncperAtom=std::vector<int>(0);
+      // loop over atoms
+      for (QMAtom* atom : atoms) {
+        int atomfunc=0;
+        const std::string& name = atom->getType();
+        atom->_nuccharge = elementinfo.getNucCrg(name);
+        const Element& element = bs.getElement(name);
+        for (const Shell& shell:element) {
+          int numfuncshell = NumFuncShell(shell.getType());
+          AOShell* aoshell = addShell(shell, *atom, _AOBasisSize);
+          _AOBasisSize += numfuncshell;
+          atomfunc+=numfuncshell;
+          for (const GaussianPrimitive& gaussian:shell) {
+            aoshell->addGaussian(gaussian);
           }
-
-         
+          aoshell->CalcMinDecay();
+          aoshell->normalizeContraction();
+        }
+        if (atom->getAtomID() < fragbreak) _AOBasisFragA = _AOBasisSize;
+        _FuncperAtom.push_back(atomfunc);
       }
-       return;
-}
 
+      if (fragbreak < 0) {
+        _AOBasisFragA = _AOBasisSize;
+        _AOBasisFragB = 0;
+      } else {
+        _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
+      }
+      return;
+    }
 
-
-
-
-
-
-
-
-
+    void AOBasis::ECPFill(const BasisSet& bs, std::vector<QMAtom* >& atoms) {
+      _FuncperAtom=std::vector<int>(0);
+      _AOBasisSize = 0;
+      for (QMAtom* atom : atoms) {
+        int atomfunc=0;
+        std::string name = atom->getType();
+        if (name == "H" || name == "He") {
+          _FuncperAtom.push_back(0);
+          continue;
+        }
+        const Element& element = bs.getElement(name);
+        atom->_ecpcharge = element.getNcore();
+        int lmax = element.getLmax();
+        for (const Shell& shell:element) {
+          if (shell.getType().size() > 1) {
+            throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
+          }
+          //Local part is with L=Lmax
+          bool nonlocal = false;
+          if (shell.getLmax() < lmax) {
+            nonlocal = true;
+          }
+          AOShell* aoshell = addECPShell(shell, *atom, _AOBasisSize, nonlocal);
+          _AOBasisSize += NumFuncShell(shell.getType());
+          atomfunc+=NumFuncShell(shell.getType());
+         for (const GaussianPrimitive& gaussian:shell) {
+            aoshell->addGaussian(gaussian);
+          }
+          aoshell->CalcMinDecay();
+        }
+        _FuncperAtom.push_back(atomfunc);
+      }
+      return;
+    }
 
 }}

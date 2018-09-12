@@ -27,8 +27,7 @@
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
 #include <votca/xtp/qminterface.h>
-
-
+#include <votca/xtp/statefilter.h>
 
 namespace votca {
     namespace xtp {
@@ -37,77 +36,40 @@ namespace votca {
         class Forces {
         public:
 
-            Forces(GWBSEENGINE& gwbse_engine, QMPackage* qmpackage, std::vector<ctp::Segment*> segments, Orbitals* orbitals)
-            : _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _segments(segments), _orbitals(orbitals), _remove_total_force(false), _remove_CoM_force(false) {
-            };
+            Forces(GWBSEEngine& gwbse_engine,const Statefilter& filter, Orbitals& orbitals)
+            : _gwbse_engine(gwbse_engine),_filter(filter),_orbitals(orbitals), _remove_total_force(false){};
 
-            ~Forces() {
-            };
-
-            void Initialize(tools::Property *options);
-            void Calculate(const double& energy);
-
-            Eigen::Vector3d NumForceForward(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
-            Eigen::Vector3d NumForceCentral(double energy, std::vector< ctp::Atom* > ::iterator ait,std::vector<ctp::Segment*> _molecule);
+            void Initialize(tools::Property &options);
+            void Calculate(double energy);
 
             void setLog(ctp::Logger* pLog) {
                 _pLog = pLog;
             }
 
-            void SetSpinType(const std::string spin_type) {
-                _spin_type = spin_type;
-            };
-
-            void SetOptState(const int opt_state) {
-                _opt_state = opt_state;
-            };
-
-            std::string GetSpinType() {
-                return _spin_type;
-            };
-
-            int GetOptState() {
-                return _opt_state;
-            };
-
-            Eigen::MatrixXd GetForces() {
+            const Eigen::MatrixX3d& GetForces() const{
                 return _forces;
             };
-            void Report();
-
-
-
+            void Report()const;
 
         private:
+            
+            Eigen::Vector3d NumForceForward(double energy, int atom_index);
+            Eigen::Vector3d NumForceCentral(double energy, int atom_index);
+            void RemoveTotalForce();
 
             double _displacement;
             std::string _force_method;
-            std::string _spin_type;
-
-            
             
             bool _noisy_output;
 
-            int _nsegments;
             unsigned _natoms;
-            int _opt_state;
 
-            GWBSEENGINE _gwbse_engine;
-            QMPackage* _qmpackage;
-            std::vector<ctp::Segment*> _segments;
-            Orbitals* _orbitals;
+            GWBSEEngine& _gwbse_engine;
+            const Statefilter& _filter;
+            Orbitals& _orbitals;
             bool _remove_total_force;
-            bool _remove_CoM_force;
 
             Eigen::MatrixX3d _forces;
-
-            tools::Property _force_options;
-
-            void RemoveTotalForce();
-            void RemoveCoMForce();
-            Eigen::Vector3d TotalForce();
-
-            QMMInterface _qminterface;
             ctp::Logger *_pLog;
         };
 

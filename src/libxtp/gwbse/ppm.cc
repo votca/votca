@@ -40,7 +40,7 @@ namespace votca {
            // determine PPM frequencies
              _ppm_freq.resize(es.eigenvalues().size());
             #pragma omp parallel for 
-            for (unsigned i = 0; i < es.eigenvalues().size(); i++) {
+            for (int i = 0; i < es.eigenvalues().size(); i++) {
                     if (_ppm_weight(i) < 1.e-5) {
                         _ppm_weight(i) = 0.0;
                         _ppm_freq(i) = 0.5;//Hartree

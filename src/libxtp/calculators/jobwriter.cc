@@ -18,6 +18,7 @@
  */
 
 #include "jobwriter.h"
+#include "votca/xtp/qmstate.h"
 #include <votca/ctp/job.h>
 #include <fstream>
 #include <boost/format.hpp>
@@ -33,12 +34,9 @@ void JobWriter::Initialize(Property *options) {
     UpdateWithDefaults( options, "xtp" );
 
     // REGISTER FUNCTIONS
-    _key_funct["mps.single"] = &JobWriter::mps_single;
-    _key_funct["mps.ct"] = &JobWriter::mps_ct;
-    _key_funct["mps.chrg"] = &JobWriter::mps_chrg;
-    _key_funct["mps.kmc"] = &JobWriter::mps_kmc;
+    _key_funct["mps.dimer"] = &JobWriter::mps_dimer;
+    _key_funct["mps.monomer"] = &JobWriter::mps_monomer;
     _key_funct["mps.background"] = &JobWriter::mps_background;
-
     
     // SPLIT KEYS
     string key="options."+Identify();
@@ -47,14 +45,13 @@ void JobWriter::Initialize(Property *options) {
     tok_keys.ToVector(_keys);
     
     // VALIDATE KEYS
-    std::vector<std::string> ::iterator vsit;
-    for (vsit = _keys.begin(); vsit != _keys.end(); ++vsit) {
-        std::map<std::string,WriteFunct>::iterator it = _key_funct.find(*vsit);
+    for (const std::string& key:_keys) {
+        std::map<std::string,WriteFunct>::iterator it = _key_funct.find(key);
         if (it == _key_funct.end()) {
-            cout << endl << "... ... ERROR: Bad key '" << *vsit << "'" << endl;
+            cout << endl << "... ... ERROR: Bad key '" << key << "'" << endl;
             cout << endl << "Allowed keys: " << flush;
-            for (it = _key_funct.begin(); it != _key_funct.end(); ++it)                
-                cout << endl << "... " << it->first << flush;
+            for (auto& keyfunc:_key_funct)                
+                cout << endl << "... " << keyfunc.first << flush;
             cout << endl << endl;
             throw runtime_error("No match for input key.");
         }
@@ -67,41 +64,37 @@ void JobWriter::Initialize(Property *options) {
 
 bool JobWriter::EvaluateFrame(ctp::Topology *top) {
     
-    std::vector<string> ::iterator vsit;
-    for (vsit = _keys.begin(); vsit != _keys.end(); ++vsit) {
-        std::map<string,WriteFunct>::iterator it = _key_funct.find(*vsit);
-        if (it != _key_funct.end()) {
-            cout << endl << "... ... " << it->first << flush;
-            WriteFunct write = it->second;
+    for (const auto& key:_keys) {
+            cout << endl << "... ... " << key<< flush;
+            WriteFunct write = _key_funct.at(key);
             ((*this).*write)(top);
-        }
     }
     return 0;
 }
 
 
-void JobWriter::mps_chrg(ctp::Topology *top) {
+void JobWriter::mps_monomer(ctp::Topology *top) {
     
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = Identify()+".mps.chrg.xml";
+    std::string jobFile = Identify()+".mps.monomer.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
     ofs << "<jobs>" << endl;
     
     int jobCount = 0;    
-    std::vector<ctp::Segment*>::iterator sit1;
-    
-    // DEFINE PAIR CHARGE STATES
-    std::vector<string> states;
-    std::vector<string> ::iterator vit;
 
-    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.states","n e h");
-    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.pattern","*");
+    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","n e h");
+    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
   
     Tokenizer tok_states(str_states, " ,\t\n");
-    tok_states.ToVector(states);
+    std::vector<string> statesstring;
+    tok_states.ToVector(statesstring);
+    std::vector<QMState> states;
+    for(const std::string& s:statesstring){
+      states.push_back(QMState(s));
+    }
     
     
     std::vector<string> seg_patterns;
@@ -111,13 +104,10 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
     cout << endl;    
-    for (sit1 = top->Segments().begin(); sit1 < top->Segments().end(); ++sit1) {
-        ctp::Segment *seg1 = *sit1;
-
+    for (ctp::Segment*seg1:top->Segments()) {
         int id1 = seg1->getId();
         std::string name1 = seg1->getName();
-        
-        
+
         bool do_continue=true;
         for (auto & pattern : seg_patterns){
             if (votca::tools::wildcmp(pattern.c_str(), name1.c_str())){
@@ -127,108 +117,32 @@ void JobWriter::mps_chrg(ctp::Topology *top) {
         }
         if(do_continue){continue;}
         
-        for (vit = states.begin(); vit != states.end(); ++vit) {
+        for (QMState& state: states) {
             int id = ++jobCount;
-            std::string s1 = *vit;
-            std::string tag = (format("%1$d:%3$s:%2$s") % id1 % s1 % name1).str();                
+            std::string tag = (format("%1$d:%3$s:%2$s") % id1 % state.ToString() % name1).str();                
             std::string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps")
-                % id1 % name1 % s1).str();
+                % id1 % name1 % state.ToString()).str();
             std::string stat = "AVAILABLE";
-
             ctp::Job job(id, tag, input, stat);
             job.ToStream(ofs,"xml");
-
             cout << "\r... ... # = " << jobCount << flush;
         }
     }
-    
-    // CLOSE STREAM
-    ofs << "</jobs>" << endl;    
-    ofs.close();
-}
-
-    
-void JobWriter::mps_kmc(ctp::Topology *top) {
-
-    double cutoff = _options->get("options.xjobwriter.kmc_cutoff").as<double>();
-    
-    // SET UP FILE STREAM
-    ofstream ofs;
-    std::string jobFile = Identify()+".mps.kmc.xml";    
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
-    
-    ofs << "<jobs>" << endl;
-    
-    int jobCount = 0;
-    
-    std::vector<ctp::Segment*>::iterator sit1;
-    std::vector<ctp::Segment*>::iterator sit2;
-    
-    // DEFINE PAIR CHARGE STATES
-    std::map< string, vector<string> > state1_state2;
-    std::map< string, vector<string> > ::iterator mit;
-    std::vector<string> ::iterator vit;
-    state1_state2["n"] = vector<string>(1,"n");
-    state1_state2["h"] = vector<string>(1,"h");
-    state1_state2["h"].push_back("e");
-    state1_state2["e"] = vector<string>(1,"e");
-    state1_state2["e"].push_back("h");
-    
-    // CREATE JOBS FOR ALL PAIRS AND STATES
-    cout << endl;    
-    for (sit1 = top->Segments().begin(); sit1 < top->Segments().end(); ++sit1) {
-        ctp::Segment *seg1 = *sit1;
-        
-        for (sit2 = sit1+1; sit2 < top->Segments().end(); ++sit2) {
-            ctp::Segment *seg2 = *sit2;
-            
-            double dR = abs(top->PbShortestConnect(seg1->getPos(),seg2->getPos()));
-            if (dR > cutoff) continue;
-            
-            int id1 = seg1->getId();
-            std::string name1 = seg1->getName();
-            int id2 = seg2->getId();
-            std::string name2 = seg2->getName();        
-
-            for (mit = state1_state2.begin(); mit != state1_state2.end(); ++mit) {
-                for (vit = mit->second.begin(); vit != mit->second.end(); ++vit) {
-                    int id = ++jobCount;
-                    std::string s1 = mit->first;
-                    std::string s2 = *vit;
-                    std::string tag = (format("%1$d%2$s:%3$d%4$s:%5$1.2fnm")
-                        % id1 % s1 % id2 % s2 % dR).str();                
-                    std::string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps "
-                        "%4$d:%5$s:MP_FILES/%5$s_%6$s.mps")
-                        % id1 % name1 % s1 % id2 % name2 % s2).str();
-                    std::string stat = "AVAILABLE";
-
-                    ctp::Job job(id, tag, input, stat);
-                    job.ToStream(ofs,"xml");
-                    
-                    cout << "\r... ... # = " << jobCount << flush;
-                }
-            }
-        }
-    }
-    
     // CLOSE STREAM
     ofs << "</jobs>" << endl;    
     ofs.close();
 }
 
 
-void JobWriter::mps_ct(ctp::Topology *top) {
+void JobWriter::mps_dimer(ctp::Topology *top) {
 
     // SET UP FILE STREAM
     ofstream ofs;
-    std::string jobFile = Identify()+".mps.ct.xml";
+    std::string jobFile = Identify()+".mps.dimer.xml";
     ofs.open(jobFile.c_str(), ofstream::out);
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
     ofs << "<jobs>" << endl;
-    
-    ctp::QMNBList::iterator pit;
     ctp::QMNBList &nblist = top->NBList();    
     int jobCount = 0;
     if (nblist.size() == 0) {
@@ -237,24 +151,21 @@ void JobWriter::mps_ct(ctp::Topology *top) {
     }
     
     
-    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.states","nn eh");
-    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options.xjobwriter.pattern","*");
-  std::vector<string> states;
+  std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","nn eh");
+  std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
+  std::vector<string> statesstring;
    
     Tokenizer tok_states(str_states, " ,\t\n");
-    tok_states.ToVector(states);
+    tok_states.ToVector(statesstring);
     std::vector<string> seg_patterns;
     Tokenizer tok_pattern(seg_pattern, " ,\t\n");
     tok_pattern.ToVector(seg_patterns);
     
     
-    
     // DEFINE PAIR CHARGE STATES
     std::map< string, vector<string> > state1_state2;
-    std::map< string, vector<string> > ::iterator mit;
-    std::vector<string> ::iterator vit;
     
-    for (auto & state : states){
+    for (auto & state : statesstring){
         if(state=="nn"){
             state1_state2["n"] = vector<string>(1,"n");
         }
@@ -266,12 +177,12 @@ void JobWriter::mps_ct(ctp::Topology *top) {
     
     // CREATE JOBS FOR ALL PAIRS AND STATES
     cout << endl;
-    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
+    for (ctp::QMPair* pair:nblist) {
         
-        int id1 = (*pit)->Seg1()->getId();
-        string name1 = (*pit)->Seg1()->getName();
-        int id2 = (*pit)->Seg2()->getId();
-        string name2 = (*pit)->Seg2()->getName(); 
+        int id1 = pair->Seg1()->getId();
+        string name1 = pair->Seg1()->getName();
+        int id2 = pair->Seg2()->getId();
+        string name2 = pair->Seg2()->getName(); 
         
         
         bool do_continue1=true;
@@ -290,11 +201,11 @@ void JobWriter::mps_ct(ctp::Topology *top) {
         }
         if(do_continue1 || do_continue2){continue;}
         
-        for (mit = state1_state2.begin(); mit != state1_state2.end(); ++mit) {
-            for (vit = mit->second.begin(); vit != mit->second.end(); ++vit) {
+        for (auto& state1:state1_state2) {
+            for (auto&  state2:state1.second) {
                 int id = ++jobCount;
-                string s1 = mit->first;
-                string s2 = *vit;
+                string s1 = state1.first;
+                string s2 = state2;
                 string tag = (format("%1$d%2$s:%3$d%4$s") % id1 % s1 % id2 % s2).str();                
                 string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps "
                         "%4$d:%5$s:MP_FILES/%5$s_%6$s.mps")
@@ -323,77 +234,17 @@ void JobWriter::mps_background(ctp::Topology *top) {
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + tabFile);
     
     ofs << "# ID   TYPE    _n.mps    _e.mps    _h.mps \n";
-    vector< ctp::Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+    for (ctp::Segment* seg:top->Segments()) {
         ofs << (format("%1$4d %2$15s %3$-30s %4$-30s %5$-30s\n")
-                % (*sit)->getId() 
-                % (*sit)->getName()
-                % ("MP_FILES/"+(*sit)->getName()+"_n.mps")
-                % ("MP_FILES/"+(*sit)->getName()+"_e.mps")
-                % ("MP_FILES/"+(*sit)->getName()+"_h.mps"));
+                % seg->getId() 
+                % seg->getName()
+                % ("MP_FILES/"+seg->getName()+"_n.mps")
+                % ("MP_FILES/"+seg->getName()+"_e.mps")
+                % ("MP_FILES/"+seg->getName()+"_h.mps"));
     }
     ofs.close();
     return;
 }
-
-
-void JobWriter::mps_single(ctp::Topology *top) {
-    
-    // SET UP FILE STREAM
-    ofstream ofs;
-    std::string jobFile = Identify()+".mps.single.xml";
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
-    
-    ofs << "<jobs>" << endl;
-    
-    int jobCount = 0;    
    
-    // DEFINE PAIR CHARGE STATES
-    std::vector<std::string > states;
-    std::vector<std::string> ::iterator vit;
-    std::string str_states = _options->get("options.xjobwriter.states").as<std::string>();
-    Tokenizer tok_states(str_states, " ,\t\n");
-    tok_states.ToVector(states);
-    
-    // CREATE JOBS FOR ALL SEGMENTS AND STATES
-    unsigned int single_id = _options->get("options.xjobwriter.single_id").as<int>();
-    bool proceed = true;
-    if (single_id < 1 || single_id > top->Segments().size()) {
-        cout << endl 
-             << "... ... ERROR Corrupt value in options.xjobwriter.single_id: "
-             << "No such segment ID = " << single_id << ". Return." 
-             << flush;
-        ofs << "ERROR Corrupt value in options.xjobwriter.single_id" << endl;
-        proceed = false;
-    }
-    
-    if (proceed) {
-        ctp::Segment *seg1 = top->getSegment(single_id);
-
-        int id1 = seg1->getId();
-        std::string name1 = seg1->getName();
-
-        for (vit = states.begin(); vit != states.end(); ++vit) {
-            int id = ++jobCount;
-            std::string s1 = *vit;
-            std::string tag = (format("%1$d:%3$s:%2$s") % id1 % s1 % name1).str();                
-            std::string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps")
-                % id1 % name1 % s1).str();
-            std::string stat = "AVAILABLE";
-
-            ctp::Job job(id, tag, input, stat);
-            job.ToStream(ofs,"xml");
-        }
-    }
-
-    // CLOSE STREAM
-    ofs << "</jobs>" << endl;    
-    ofs.close();
-    return;
-}
-    
-    
-
 
 }}

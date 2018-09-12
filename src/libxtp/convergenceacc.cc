@@ -17,34 +17,19 @@
  *
  */
 #include "votca/xtp/convergenceacc.h"
-
-
-
+#include "votca/xtp/aomatrix.h"
 
 namespace votca { namespace xtp {
 
   
-  void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* _S,double etol){
-       S=_S;
-       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es((*S));
+  void ConvergenceAcc::setOverlap(AOOverlap* S,double etol){
+       _S=S;
+       Sminusahalf=S->Pseudo_InvSqrt(etol);
        if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
-            }
-      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
-      int removedfunctions=0;
-      for (unsigned i=0;i<diagonal.size();++i){
-          if(es.eigenvalues()(i)<etol){
-              removedfunctions++;
-          }else{
-              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
-          }
-      }
-      if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << std::flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
         }
-       Sminusahalf =es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
-       Sonehalf=es.operatorSqrt();
-       mix.Configure(_mixingparameter,S);
+       Sonehalf=S->Sqrt();
        return;
    }
    
@@ -52,26 +37,23 @@ namespace votca { namespace xtp {
     Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
       Eigen::MatrixXd H_guess=Eigen::MatrixXd::Zero(H.rows(),H.cols());    
     
-      if(_mathist.size()>_histlength){
+      if(int(_mathist.size())>_histlength){
           delete _mathist[_maxerrorindex];
           delete _dmatHist[_maxerrorindex];
                _totE.erase(_totE.begin()+_maxerrorindex);
               _mathist.erase(_mathist.begin()+_maxerrorindex);
               _dmatHist.erase(_dmatHist.begin()+_maxerrorindex);
-              
           }
           
       _totE.push_back(totE);
-      
-    double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
-      
-    if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
-      if(_mode!=KSmode::fractional){
-        Levelshift(H);
+     if(_mode!=KSmode::fractional){ 
+        double gap=MOenergies(_nocclevels)-MOenergies(_nocclevels-1);
+        if((_diiserror>_levelshiftend && _levelshift>0.0) || gap<1e-6){
+          Levelshift(H);
+        }
       }
-    }
-      
-      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*S)-(*S)*dmat*H)*Sminusahalf;
+      const Eigen::MatrixXd& S=_S->Matrix();
+      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*S-S*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
      
       Eigen::MatrixXd* old=new Eigen::MatrixXd;     
@@ -88,7 +70,7 @@ namespace votca { namespace xtp {
         }
       } 
        
-    diis.Update(_maxerrorindex,errormatrix);
+    _diis.Update(_maxerrorindex,errormatrix);
     bool diis_error=false; 
    
        
@@ -97,15 +79,15 @@ namespace votca { namespace xtp {
         //use ADIIs if energy has risen a lot in current iteration
 
         if(_diiserror>_diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
-            coeffs=adiis.CalcCoeff(_dmatHist,_mathist);
-            diis_error=!adiis.Info();
+            coeffs=_adiis.CalcCoeff(_dmatHist,_mathist);
+            diis_error=!_adiis.Info();
             if(_noisy){
             CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using ADIIS" << std::flush;
             }
         }
         else{
-             coeffs=diis.CalcCoeff();
-             diis_error=!diis.Info();
+             coeffs=_diis.CalcCoeff();
+             diis_error=!_diis.Info();
              if(_noisy){
              CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using DIIS" << std::flush;
              }
@@ -114,7 +96,7 @@ namespace votca { namespace xtp {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
-        for (unsigned i=0;i<coeffs.size();i++){  
+        for (int i=0;i<coeffs.size();i++){  
             if(std::abs(coeffs(i))<1e-8){ continue;}
             H_guess+=coeffs(i)*(*_mathist[i]);
             }
@@ -129,12 +111,12 @@ namespace votca { namespace xtp {
     SolveFockmatrix( MOenergies,MOs,H_guess);
     Eigen::MatrixXd dmatout=DensityMatrix(MOs,MOenergies);
     
-    mix.Updatemix(dmat,dmatout);
+    
     if(_diiserror>_adiis_start ||!_usediis || diis_error ||_mathist.size()<=2 ){
       _usemixing=true;
-      dmatout=mix.MixDmat(dmat,dmatout);
+      dmatout=_mixingparameter*dmat+(1.0-_mixingparameter)*dmatout;
       if(_noisy){
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<mix.getAlpha() << std::flush;
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Using Mixing with alpha="<<_mixingparameter << std::flush;
         }
     }else{
       _usemixing=false;
@@ -147,8 +129,10 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd H_ortho=Sminusahalf.transpose()*H*Sminusahalf;
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
         if(es.info()!=Eigen::ComputationInfo::Success){
-          throw std::runtime_error("SolveFockmatrix: Matrix Diagonalisation failed!");
+          std::cerr<<"DiagInfo "<<es.info()<<std::endl;
+          throw std::runtime_error("Matrix Diagonalisation failed");
         }
+        
         MOsinv=es.eigenvectors().transpose()*Sonehalf;
         MOenergies=es.eigenvalues();
         
@@ -164,8 +148,8 @@ namespace votca { namespace xtp {
         throw std::runtime_error("ConvergenceAcc::Levelshift: Call SolveFockmatrix before Levelshift, MOsinv not initialized");
       }
         Eigen::MatrixXd virt = Eigen::MatrixXd::Zero(H.rows(),H.cols());
-        for (unsigned _i = _nocclevels; _i < H.rows(); _i++) {
-                        virt(_i, _i) = _levelshift; 
+        for (int i = _nocclevels; i < H.rows(); i++) {
+                        virt(i, i) = _levelshift; 
             }
 
         if(_noisy){
@@ -207,29 +191,37 @@ namespace votca { namespace xtp {
         }
 
         Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) {
-            if (_nocclevels == 0) {
+            if (_numberofelectrons == 0) {
                 return Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
             }
-            unsigned numofelec=2*_nocclevels;
+            int numofelec=_numberofelectrons;
             Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOEnergies.size());
 
-            double buffer = 0.0001;
-            double homo_energy = MOEnergies(numofelec - 1);
-            std::vector<unsigned> degeneracies;
-
-            for (unsigned _level = 0; _level < occupation.size(); _level++) {
-                if (MOEnergies(_level)<(homo_energy - buffer)) {
-                    occupation(_level) = 1.0;
-                    numofelec--;
-                } else if (std::abs(MOEnergies(_level) - homo_energy) < buffer) {
-                    degeneracies.push_back(_level);
-                } else if (MOEnergies(_level)>(homo_energy + buffer)) {
-                    occupation(_level) = 0.0;
-                }
+            std::vector< std::vector<int> > degeneracies;
+            double buffer=1e-4;
+            degeneracies.push_back(std::vector<int>{0});
+            for (int i=1;i<occupation.size();i++){
+              if(MOEnergies(i)<MOEnergies(degeneracies[degeneracies.size()-1][0])+buffer){
+                degeneracies[degeneracies.size()-1].push_back(i);
+              }
+              else{
+                degeneracies.push_back(std::vector<int>{i});
+              }    
             }
-            double deg_occupation = double(numofelec) / double(degeneracies.size());
-            for (unsigned _level = 0; _level < degeneracies.size(); _level++) {
-                occupation(degeneracies[_level]) = deg_occupation;
+            for (const std::vector<int>& deglevel:degeneracies){
+              int numofpossibleelectrons=2*deglevel.size();
+              if(numofpossibleelectrons<=numofelec){
+                for (const int& i:deglevel){
+                  occupation(i)=2;
+                }
+                numofelec-=numofpossibleelectrons;
+              }else if(numofpossibleelectrons>numofelec){
+                double occ=double(numofelec)/double(deglevel.size());
+                for (const int& i:deglevel){
+                  occupation(i)=occ;
+                }
+                break;
+              }
             }
             Eigen::MatrixXd _dmatGS =MOs*occupation.asDiagonal()*MOs.transpose();
             return _dmatGS;

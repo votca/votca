@@ -9,9 +9,7 @@
         <bsemax></bsemax> <!-- needed, if ranges is factor or explicit -->
 	<vxc>
 		<dovxc>1</dovxc>
-		<functional>XC_HYB_GGA_XC_B3LYP</functional>
-		<!--<functional>XC_HYB_GGA_XC_PBEH</functional>-->
-		<!--functional>XC_GGA_X_PBE XC_GGA_C_PBE</functional-->
+		<functional>XC_HYB_GGA_XC_PBEH</functional>
 		<grid>medium</grid>
 </vxc>
 	    <shift>0.2</shift> <!-- preshift of DFT energies in Rydberg -->

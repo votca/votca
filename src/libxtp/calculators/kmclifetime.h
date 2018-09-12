@@ -41,8 +41,7 @@ public:
        }
         for(auto& carrier:_carriers){
            delete carrier;
-       }
-    delete _RandomVariable;};
+       }};
    std::string Identify() { return "kmclifetime"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(ctp::Topology *top);
