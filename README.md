@@ -10,7 +10,7 @@ cd votca
 mkdir build
 cd build
 cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
-make -j5
+make -j<number of cores>
 make install
 ```
 
