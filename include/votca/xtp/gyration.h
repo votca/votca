@@ -34,36 +34,22 @@ class Density2Gyration
 public:
 
     Density2Gyration (ctp::Logger* log) {_log=log; }
-   ~Density2Gyration () { 
-   
-    std::vector< QMAtom* >::iterator it;
-    for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
 
     std::string Identify() { return "density2gyration"; }
 
-    void   Initialize( tools::Property *options);
-    
-    Eigen::Quaterniond get_quaternion( const tools::matrix::eigensystem_t& system );
-   
-    void ReportAnalysis( std::string label,Gyrationtensor gyro, tools::matrix::eigensystem_t system );
-    
-    void AnalyzeDensity( Orbitals& _orbitals );
-    void AnalyzeGeometry( std::vector< QMAtom* > _atoms );
+    void  Initialize( tools::Property &options);
 
-private:
+    void AnalyzeDensity( Orbitals& orbitals );
     
-    int         _state_no;  
+private:
+    void ReportAnalysis( std::string label,Gyrationtensor gyro, tools::matrix::eigensystem_t system );
+    void AnalyzeGeometry( std::vector< QMAtom* > atoms );
+      
     int         _openmp_threads;
-    std::string      _state;
-    std::string      _method;
-    std::string      _spin;
+    QMState      _state;
+    bool _dostateonly;
     std::string      _integrationmethod;
     std::string      _gridsize;
-
-
-
-   std::vector< QMAtom* > _Atomlist;
-    
     ctp::Logger*      _log;
     
     

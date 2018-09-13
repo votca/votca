@@ -29,7 +29,7 @@
 #include <votca/ctp/apolarsite.h>
 #include <votca/ctp/polarseg.h>
 /**
-* \brief Takes a list of atoms, and creates different grids for it. Right now only CHELPG grid.
+* \brief Takes a list of atoms, and creates CHELPG grid.
 *
 * 
 * 
@@ -40,88 +40,36 @@ namespace votca { namespace xtp {
    
   class Grid{
     public:
-        
-        
-        Grid( bool createpolarsites, bool useVdWcutoff, bool useVdWcutoff_inside)
-            :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
-             _useVdWcutoff(useVdWcutoff),_useVdWcutoff_inside(useVdWcutoff_inside),_cubegrid(false),_padding(3.0),
-             _createpolarsites(createpolarsites), _atomlist(NULL), 
-            _lowerbound(tools::vec(0,0,0)), _xsteps(0),_ysteps(0),_zsteps(0) {};
-           
-        
-        Grid()
-            :_cutoff(3),_gridspacing(0.3),_cutoff_inside(1.5),_shift_cutoff(0.0),_shift_cutoff_inside(0.0),
-             _useVdWcutoff(false),_useVdWcutoff_inside(false),_cubegrid(false),_padding(3.0),
-             _createpolarsites(false), _atomlist(NULL),
-             _lowerbound(tools::vec(0,0,0)),_xsteps(0),_ysteps(0),_zsteps(0) {};
-             
-        Grid(std::vector< tools::vec > points)
-             :_gridpoints(points){};
-           
-        
-        ~Grid();
-        
-        Grid(const Grid &obj);
-        
-        Grid& operator=(const Grid &obj);
-        
+               
         const std::vector< tools::vec > &getGridPositions() const {return _gridpoints;}
+        
         Eigen::VectorXd &getGridValues(){return _gridvalues;}
         const Eigen::VectorXd &getGridValues() const{return _gridvalues;}
-        std::vector< ctp::APolarSite* > &Sites() {return _gridsites;}
-        
-        void setCutoffs(double cutoff, double cutoff_inside){_cutoff=cutoff;_cutoff_inside=cutoff_inside;}
-        
-        void setAtomlist(std::vector< QMAtom* >* Atomlist){_atomlist=Atomlist;}
+
         unsigned getsize(){return _gridpoints.size();}
         
-        int getTotalSize(){
-            int size=0.0;
-            if(_cubegrid){size=_all_gridsites.size();}
-            else{size=_gridpoints.size();}
-            return size; 
-        }
-
         void printGridtoxyzfile(std::string filename);
-        
-        void readgridfromCubeFile(std::string filename, bool ignore_zeros=true);
        
-        void printgridtoCubefile(std::string filename);
         
-        
-        void setupgrid();
        
-        void setupCHELPgrid(){
+        void setupCHELPGGrid(std::vector< QMAtom* >& Atomlist){
             _padding=3*tools::conv::ang2bohr; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
             _gridspacing=0.3*tools::conv::ang2bohr; // Grid spacing according to same paper 
             _cutoff=2.8*tools::conv::ang2bohr;
-            _useVdWcutoff_inside=true;
-            _shift_cutoff_inside=0.0;
-            _useVdWcutoff=false;
-            setupgrid();
+            setupgrid(Atomlist);
         }
        
       
   private:
      
+      
+      void setupgrid(std::vector< QMAtom* >& Atomlist);
       std::vector< tools::vec > _gridpoints;
       Eigen::VectorXd _gridvalues;
-      std::vector< ctp::APolarSite* > _gridsites;
-      std::vector< ctp::APolarSite* > _all_gridsites;
       
       double _cutoff;
       double _gridspacing;
-      double _cutoff_inside;
-      double _shift_cutoff;
-      double _shift_cutoff_inside;
-      bool   _useVdWcutoff;
-      bool   _useVdWcutoff_inside;
-      bool   _cubegrid;
       double _padding;
-      bool   _createpolarsites; 
-      std::vector< QMAtom* >* _atomlist;
-      tools::vec _lowerbound;
-      int _xsteps, _ysteps, _zsteps;
       
  
     };   

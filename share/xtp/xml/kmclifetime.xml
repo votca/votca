@@ -1,20 +1,20 @@
 <options>
-<kmclifetime>
-<numberofinsertions>4000</numberofinsertions>
-<seed>23</seed>
-<numberofcharges>1</numberofcharges>
-<injectionpattern>*</injectionpattern>
-<lifetimefile>lifetimes.xml</lifetimefile>
-<carriertype>s</carriertype>
-<temperature>300</temperature>
-<rates>calculate</rates>
-<jumplengthdist>10</jumplengthdist>
-<trajectoryfile>run1.csv</trajectoryfile>
-<carrierenergy>
-	<run>0</run>
-	<outputfile>energies.csv</outputfile>
-	<alpha>0.05</alpha>
-	<outputsteps>10</outputsteps>
-</carrierenergy>
-</kmclifetime>
+    <kmclifetime>
+        <numberofinsertions>4000</numberofinsertions>
+        <seed>23</seed>
+        <numberofcharges>1</numberofcharges>
+        <injectionpattern>*</injectionpattern>
+        <lifetimefile>lifetimes.xml</lifetimefile>
+        <carriertype>s</carriertype>
+        <temperature>300</temperature>
+        <rates>calculate</rates>
+        <jumplengthdist>10</jumplengthdist>
+        <trajectoryfile>run1.csv</trajectoryfile>
+        <carrierenergy>
+	        <run>0</run>
+	        <outputfile>energies.csv</outputfile>
+	        <alpha>0.05</alpha>
+	        <outputsteps>10</outputsteps>
+        </carrierenergy>
+    </kmclifetime>
 </options>

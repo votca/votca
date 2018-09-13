@@ -24,7 +24,6 @@
 #include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
 #include <votca/xtp/qminterface.h>
-// add gwbse header for excited state support
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/orbitals.h>
@@ -39,14 +38,10 @@ class QMMIter
 
 public:
 
-    QMMIter(int id) : _id(id), _hasdRdQ(false), _hasQM(false), _hasMM(false)  { ; }
-   ~QMMIter() { ; }
+    QMMIter(int id) : _id(id){ ; }
 
-   void ConvertPSitesToQMAtoms(std::vector< ctp::PolarSeg* > &, std::vector< QMAtom* > &);
-   void ConvertQMAtomsToPSites(std::vector< QMAtom* > &, std::vector< ctp::PolarSeg* > &);
    void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< ctp::PolarSeg* > &);  
-   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< ctp::PolarSeg* > &psegs);
-   void GenerateQMAtomsFromPolarSegs(ctp::PolarTop *ptop, Orbitals &orb, bool split_dpl, double dpl_spacing);   
+   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< ctp::PolarSeg* > &psegs); 
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF, double energy_GWBSE);
@@ -59,10 +54,10 @@ public:
    double getSUMdQ() { return _dQ_SUM; }
    int getId() { return _id;}
 
-   double getSFEnergy() { assert(_hasQM); return _e_SF; }
-   double getFMEnergy() { assert(_hasMM); return _e_fm_; }
-   double getQMEnergy() { assert(_hasQM); return _e_QM; }
-   double getGWBSEEnergy() { assert(_hasGWBSE); return _e_GWBSE; }
+   double getSFEnergy() {return _e_SF; }
+   double getFMEnergy() {return _e_fm_; }
+   double getQMEnergy() {return _e_QM; }
+   double getGWBSEEnergy() {return _e_GWBSE; }
    double getMMEnergy();
    double getQMMMEnergy();
 
@@ -71,28 +66,28 @@ private:
 
     int    _id;
 
-    bool   _hasdRdQ;
-    bool   _hasQM;
-    bool   _hasMM;
-    bool   _hasGWBSE;
+    bool   _hasdRdQ=false;
+    bool   _hasQM=false;
+    bool   _hasMM=false;
+    bool   _hasGWBSE=false;
 
-    double _dR_RMS;
-    double _dQ_RMS;
-    double _dQ_SUM;       
+    double _dR_RMS=0.0;
+    double _dQ_RMS=0.0;
+    double _dQ_SUM=0.0;    
 
-    double _e_QM;
-    double _e_SF;
-    double _e_GWBSE;
+    double _e_QM=0.0;
+    double _e_SF=0.0;
+    double _e_GWBSE=0.0;
 
-    double _ef_00;
-    double _ef_01;
-    double _ef_02;
-    double _ef_11;
-    double _ef_12;
-    double _em_0_;
-    double _em_1_;
-    double _em_2_;
-    double _e_fm_;
+    double _ef_00=0.0;
+    double _ef_01=0.0;
+    double _ef_02=0.0;
+    double _ef_11=0.0;
+    double _ef_12=0.0;
+    double _em_0_=0.0;
+    double _em_1_=0.0;
+    double _em_2_=0.0;
+    double _e_fm_=0.0;
 
 
 };

@@ -75,9 +75,9 @@ namespace votca {
 
             string _spectrum_type;
             // lineshape functions
-            double Gaussian(double _x, double _center, double _fwhm);
-            double Lorentzian(double _x, double _center, double _fwhm);
-            double TruncatedLorentzian(double _x, double _center, double _fwhm);
+            double Gaussian(double x, double center, double fwhm);
+            double Lorentzian(double x, double center, double fwhm);
+            double TruncatedLorentzian(double x, double center, double fwhm);
 
         };
 
@@ -258,14 +258,14 @@ namespace votca {
             return 0.5 * _fwhm * _result / boost::math::constants::pi<double>();
         }
 
-        double Spectrum::Lorentzian(double _x, double _center, double _fwhm) {
-            return 0.5 * _fwhm / (pow(_x - _center, 2) + 0.25 * _fwhm * _fwhm) / boost::math::constants::pi<double>();
+        double Spectrum::Lorentzian(double x, double center, double fwhm) {
+            return 0.5 * fwhm / (pow(x - center, 2) + 0.25 * fwhm * fwhm) / boost::math::constants::pi<double>();
         }
 
-        double Spectrum::Gaussian(double _x, double _center, double _fwhm) {
+        double Spectrum::Gaussian(double x, double center, double fwhm) {
             // FWHM = 2*sqrt(2 ln2) sigma = 2.3548 sigma
-            double _sigma = _fwhm / 2.3548;
-            return exp(-0.5 * pow((_x - _center) / _sigma, 2)) / _sigma / sqrt(2.0 * boost::math::constants::pi<double>());
+            double sigma = fwhm / 2.3548;
+            return exp(-0.5 * pow((x - center) / sigma, 2)) / sigma / sqrt(2.0 * boost::math::constants::pi<double>());
         }
 
         double Spectrum::evtonm(double eV) {

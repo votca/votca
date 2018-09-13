@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian){
   basis.LoadBasisSet("3-21G.xml");
   
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
   Orbitals orb;
   orb.setBasisSetSize(17);
@@ -175,7 +175,7 @@ Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
   sigma.CalcOffDiagElements(Mmn,ppm);
   Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian();
   Mmn.Prune(0, 16); 
-BSE bse=BSE(&orbitals,&_log,0.1);
+BSE bse=BSE(orbitals,&_log,0.1);
 bse.setBSEindices(4,0,16,1);
 bse.setGWData(&Mmn,&ppm,&Hqp);
 

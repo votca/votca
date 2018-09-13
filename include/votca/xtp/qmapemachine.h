@@ -34,6 +34,7 @@
 
 #include <votca/xtp/qminterface.h>
 #include <votca/xtp/qmiter.h>
+#include <votca/xtp/statefilter.h>
 
 namespace votca { namespace xtp {
 
@@ -44,22 +45,27 @@ class QMAPEMachine
     
 public:
 
-	QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, 
-              Property *opt, std::string sfx, int nst);
+    QMAPEMachine(ctp::XJob *job, ctp::Ewald3DnD *cape, 
+              Property *opt, std::string sfx);
    ~QMAPEMachine();
     
     void Evaluate(ctp::XJob *job);
-    bool Iterate(std::string jobFolder, int iterCnt);
-    bool EvaluateGWBSE(Orbitals &orb, std::string runFolder);
-    QMMIter *CreateNewIter();
-    bool hasConverged();
+ 
     bool AssertConvergence() { return _isConverged; }
     
     void setLog(ctp::Logger *log) { _log = log; }
     
-private:    
+private:
+    QMMIter *CreateNewIter();
+    bool EvaluateGWBSE(Orbitals &orb, std::string runFolder);
+    bool hasConverged();
+    bool Iterate(std::string jobFolder, int iterCnt);
+    void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< QMAtom* >& atoms);
+    std::vector<double> ExtractNucGrid_fromPolarsites();
+    std::vector<double> ExtractElGrid_fromPolarsites();
     
-    QMMInterface qminterface;
+    Statefilter _filter;
+    QMInterface qminterface;
     ctp::Logger *_log;
 
     bool _run_ape;
@@ -68,13 +74,6 @@ private:
 
     ctp::XJob *_job;
     ctp::Ewald3DnD *_cape;
-    
-    DFTENGINE dftengine;
-    
-    void SetupPolarSiteGrids( const std::vector< const vec *>& gridpoints,const std::vector< QMAtom* >& atoms);
-    
-    std::vector<double> ExtractNucGrid_fromPolarsites();
-    std::vector<double> ExtractElGrid_fromPolarsites();
 
     std::vector<QMMIter*> _iters;
     int _maxIter;
@@ -85,26 +84,12 @@ private:
     
     Property _gwbse_options;
     Property _dft_options;
-    int      _state;
-    std::string   _type;
-    bool     _has_osc_filter=false;
-    double   _osc_threshold;
-    bool     _has_dQ_filter=false;
-    bool     _has_loc_filter=false;
-    double   _dQ_threshold;
-    double   _loc_threshold;
-    bool     _localiseonA=false;
+    QMState  _initialstate;
     
     double _crit_dR;
     double _crit_dQ;
     double _crit_dE_QM;
-    double _crit_dE_MM;
-    
-    bool _convg_dR;
-    bool _convg_dQ;
-    bool _convg_dE_QM;
-    bool _convg_dE_MM;
-    
+    double _crit_dE_MM;   
     
     std::vector< ctp::PolarSeg* > target_bg;     
     std::vector< ctp::PolarSeg* > target_fg;     

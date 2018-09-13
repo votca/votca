@@ -48,8 +48,8 @@ namespace votca {
         protected:
             
             
-            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
-            bool FillThreeCenterOLBlock(Eigen::MatrixXd & _subvector, const AOShell* _shell, const AOShell* _shell_row, const AOShell* _shell_col);
+            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* shell, const AOShell* shell_row, const AOShell* shell_col);
+            
 
         };
 
@@ -76,7 +76,7 @@ namespace votca {
         private:
             std::vector< Symmetric_Matrix > _matrix;
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& _block,int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis);
+            void FillBlock(std::vector< Eigen::MatrixXd >& block,int shellindex, const AOBasis& dftbasis, const AOBasis& auxbasis);
 
         };
 
@@ -127,8 +127,8 @@ namespace votca {
             void Initialize(int _basissize, int mmin, int mmax, int nmin, int nmax);
 
             void Prune(int min, int max);
-            void Print(std::string _ident);
-            void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
+            void Print(std::string ident);
+            void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
             void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
 
@@ -148,7 +148,7 @@ namespace votca {
             int _mtotal;
             int basissize;
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& _matrix, const AOShell* _auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& _dft_orbitals);
+            void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
         };
     

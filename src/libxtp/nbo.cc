@@ -43,9 +43,7 @@ void NBO::EvaluateNBO(std::vector< QMAtom* >& _atomlist,const  Eigen::MatrixXd &
 
 
 Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::MatrixXd &overlap,std::vector< QMAtom* >& _atomlist , BasisSet &bs){
-    
-    
-    std::vector< QMAtom* >::iterator atom;
+
 
 // make an array which stores for each atom the the starting point for all s functions, p functions, d functions etc...   
     
@@ -54,14 +52,14 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
     std::vector< std::map< int,std::vector< int > > >sorting;
     
     int functionindex=0;
-    for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
+    for (QMAtom* atom :_atomlist){
         std::map< int,std::vector< int > > shellsort;
-        Element* element = bs.getElement((*atom)->getType());
-        for (Element::ShellIterator its = element->firstShell(); its != element->lastShell(); its++) {
+        const Element& element = bs.getElement(atom->getType());
+        for (const Shell& shell:element) {
             
            // for loop because shells can also consist of SP shells or alike
-            for(unsigned i = 0; i <(*its)->getType().length(); ++i) {
-            std::string local_shell = std::string( (*its)->getType(), i, 1 );
+            for(unsigned i = 0; i <shell.getType().length(); ++i) {
+            std::string local_shell = std::string( shell.getType(), i, 1 );
             int l=FindLmax(local_shell);
             std::vector< int >& index =shellsort[l];
            

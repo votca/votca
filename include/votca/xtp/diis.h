@@ -45,10 +45,10 @@ public:
     _Diis_Bs.clear(); 
    };
    
-    void Update(unsigned _maxerrorindex, const Eigen::MatrixXd& errormatrix);
+    void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
     Eigen::VectorXd CalcCoeff();
     
-    void setHistLength(unsigned length){_histlength=length;}
+    void setHistLength(int length){_histlength=length;}
    
     bool Info(){return success;}
     
@@ -58,7 +58,7 @@ public:
      
      
      bool success;
-     unsigned _histlength;
+     int _histlength;
      std::vector< std::vector<double>* >  _Diis_Bs;
      std::vector< Eigen::MatrixXd* >   _errormatrixhist;
   

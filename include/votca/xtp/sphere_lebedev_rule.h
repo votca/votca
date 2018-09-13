@@ -39,21 +39,20 @@ namespace votca {
                 FillIndex2Order();
             };
 
-            void getSphericalGrid(std::vector<QMAtom* > _atoms, std::string type, GridContainers& _grids);
-            void getUnitSphereGrid(std::string element, std::string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
-            void getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight);
+        std::map<std::string,GridContainers::spherical_grid> CalculateSphericalGrids(std::vector<QMAtom* > atoms, const std::string& type);
+        GridContainers::spherical_grid CalculateUnitSphereGrid(const std::string& element,const std::string& type);
+        GridContainers::spherical_grid CalculateUnitSphereGrid(int order);
 
-            int Type2MaxOrder( std::string element, std::string type );
+            int Type2MaxOrder(const std::string& element,const std::string& type );
             int getIndexFromOrder( int order ) { return Order2Index.at(order); }
             int getOrderFromIndex( int index ) { return Index2Order.at(index); }
             
 
         private:
-            //const double pi = 3.1415926535897932384626433832795028841971693993751058209;
             int available_table(int rule);
             int gen_oh(int code, double a, double b, double v, double *x,
                     double *y, double *z, double *w);
-            void ld_by_order(int order, double *x, double *y, double *z, double *w);
+            Eigen::Matrix4Xd ld_by_order(int order);
             void ld0006(double *x, double *y, double *z, double *w);
             void ld0014(double *x, double *y, double *z, double *w);
             void ld0026(double *x, double *y, double *z, double *w);
@@ -86,14 +85,9 @@ namespace votca {
             void ld4802(double *x, double *y, double *z, double *w);
             void ld5294(double *x, double *y, double *z, double *w);
             void ld5810(double *x, double *y, double *z, double *w);
-            int order_table(int rule);
             int precision_table(int rule);
-            void timestamp();
-            void xyz_to_tp(double x, double y, double z, double *t, double *p);
-
-            int getOrder(const std::string& element, const std::string& type);
-
-
+            int order_table ( int rule );
+            Eigen::Vector2d Cartesian2SphericalAngle(const Eigen::Vector3d& r);//phi=Vector[0] theta=Vector[1]
 
             std::map<std::string, int> MediumOrder;
             std::map<std::string, int> CoarseOrder;
@@ -104,8 +98,7 @@ namespace votca {
             std::map<int,int>          Index2Order;
 
             
-            inline void FillOrder2Index(){
-                
+            inline void FillOrder2Index(){  
                 Order2Index[38] = 1;
                 Order2Index[50] = 2;
                 Order2Index[74] = 3;
@@ -134,12 +127,10 @@ namespace votca {
                 Order2Index[4334] = 26;
                 Order2Index[4802] = 27;
                 Order2Index[5294] = 28;
-                Order2Index[5810] = 29;
-                
+                Order2Index[5810] = 29;    
             }
             
-            inline void FillIndex2Order(){
-                
+            inline void FillIndex2Order(){  
                 Index2Order[1] = 38;
                 Index2Order[2] = 50;
                 Index2Order[3] = 74;
@@ -169,28 +160,17 @@ namespace votca {
                 Index2Order[27] = 4802;
                 Index2Order[28] = 5294;
                 Index2Order[29] = 5810;
-                
             }
             
-            
-            
-            
-            
-            
-            
-            
             inline void FillOrders() {
-
                 FillMediumOrder();
                 FillCoarseOrder();
                 FillXcoarseOrder();
                 FillFineOrder();
                 FillXfineOrder();
-
             }
 
             inline void FillMediumOrder() {
-
                 // order for H, He (not given in NWChem, assuming same as 1st row)
                 MediumOrder["H"] = 434;
                 MediumOrder["He"] = 434;
@@ -215,7 +195,6 @@ namespace votca {
                 MediumOrder["Cl"] = 434;
                 MediumOrder["Ar"] = 434;
 
-
                 // orders for 3rd row elements taken from NWChem
                 MediumOrder["K"] = 590;
                 MediumOrder["Ca"] = 590;
@@ -238,13 +217,10 @@ namespace votca {
                 
                 // 4th row (selection) 
                 MediumOrder["Ag"] = 590;
-
-
             }
             
             inline void FillFineOrder() {
-
-                // order for H, He (not given in NWChem, assuming same as 1st row)
+              // order for H, He (not given in NWChem, assuming same as 1st row)
                 FineOrder["H"] = 590;
                 FineOrder["He"] = 590;
 
@@ -268,7 +244,6 @@ namespace votca {
                 FineOrder["Cl"] = 770;
                 FineOrder["Ar"] = 770;
 
-
                 // orders for 3rd row elements taken from NWChem
                 FineOrder["K"] = 974;
                 FineOrder["Ca"] = 974;
@@ -291,10 +266,8 @@ namespace votca {
 
                 // 4th row
                 FineOrder["Ag"] = 974;
-
             }
             inline void FillXfineOrder() {
-
                 // order for H, He (not given in NWChem, assuming same as 1st row)
                 XfineOrder["H"] = 1202;
                 XfineOrder["He"] = 1202;
@@ -319,7 +292,6 @@ namespace votca {
                 XfineOrder["Cl"] = 1454 ;
                 XfineOrder["Ar"] = 1454 ;
 
-
                 // orders for 3rd row elements taken from NWChem
                 XfineOrder["K"] = 1454;
                 XfineOrder["Ca"] = 1454;
@@ -342,11 +314,9 @@ namespace votca {
                 
                 // 4th row
                 XfineOrder["Ag"] = 1454;
-
             }
             
             inline void FillCoarseOrder() {
-
                 // order for H, He (not given in NWChem, assuming same as 1st row)
                 CoarseOrder["H"] = 302;
                 CoarseOrder["He"] = 302;
@@ -371,7 +341,6 @@ namespace votca {
                 CoarseOrder["Cl"] = 302;
                 CoarseOrder["Ar"] = 302;
 
-
                 // orders for 3rd row elements taken from NWChem
                 CoarseOrder["K"] = 302;
                 CoarseOrder["Ca"] = 302;
@@ -394,11 +363,9 @@ namespace votca {
                 
                 // 4th row
                 CoarseOrder["Ag"] = 302;
-
-
             }
+            
             inline void FillXcoarseOrder() {
-
                 // order for H, He (not given in NWChem, assuming same as 1st row)
                 XcoarseOrder["H"] = 194;
                 XcoarseOrder["He"] = 194;
@@ -423,7 +390,6 @@ namespace votca {
                 XcoarseOrder["Cl"] = 194;
                 XcoarseOrder["Ar"] = 194;
 
-
                 // orders for 3rd row elements taken from NWChem
                 XcoarseOrder["K"] = 194;
                 XcoarseOrder["Ca"] = 194;
@@ -446,10 +412,7 @@ namespace votca {
 
                 // 4th row
                 XcoarseOrder["Ag"] = 194;
-
             }
-
-
 
         };
 

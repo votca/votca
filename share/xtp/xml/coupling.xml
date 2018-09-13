@@ -1,7 +1,7 @@
 <options>
 
 <!-- xtp_tools -e coupling options.xml -->
-<coupling help="Electronic couplings from log and orbital files (GAUSSAIN, TURBOMOLE, NWChem)" section="sec:overlap">
+<coupling help="Electronic couplings from log and orbital files (GAUSSAIN, ORCA, NWChem)" section="sec:coupling">
 
         <dftpackage help="First-principles package">gaussian</dftpackage>
 

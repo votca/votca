@@ -5,7 +5,7 @@
 	<resolution_sites help="Bin size for site energy histogram" unit="eV">0.01</resolution_sites>
 	<resolution_pairs help="Bin size for pair energy histogram" unit="eV">0.01</resolution_pairs>
 	<resolution_space help="Bin size for site energy correlation" unit="eV">0.01</resolution_space>
-	<states help="?">0 +1 -1</states>
+	<states help="?">e h s t</states>
 	<!--do_atomic_xyze help="?">0</do_atomic_xyze-->
 	<!--atomic_first>1</atomic_first-->
 	<!--atomic_last>-1</atomic_last-->
