@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_AOSHELL__H
-#define	__XTP_AOSHELL__H
+#ifndef VOTCA_XTP_AOSHELL_H
+#define	VOTCA_XTP_AOSHELL_H
 
 
 #include <boost/math/constants/constants.hpp>
@@ -163,5 +163,6 @@ private:
     
 }}
 
-#endif	/* AOSHELL_H */
+#endif	// VOTCA_XTP_AOSHELL_H
+
 

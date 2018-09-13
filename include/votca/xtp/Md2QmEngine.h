@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _MD2QMENGINE_H
-#define _MD2QMENGINE_H
+#ifndef VOTCA_XTP_MD2QMENGINE_H
+#define VOTCA_XTP_MD2QMENGINE_H
 
 #include <votca/xtp/calculatorfactory.h>
 #include <votca/tools/property.h>
@@ -90,4 +90,4 @@ private:
 
 };
 
-#endif /* _MD2QMENGINE_H */
+#endif // VOTCA_XTP_MD2QMENGINE_H

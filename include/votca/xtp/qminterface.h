@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_QMMINTERFACE__H
-#define	__VOTCA_XTP_QMMINTERFACE__H
+#ifndef VOTCA_XTP_QMMINTERFACE_H
+#define	VOTCA_XTP_QMMINTERFACE_H
 
 #include <votca/tools/elements.h>
 
@@ -64,4 +64,4 @@ private:
 
 }}
 
-#endif
+#endif // VOTCA_XTP_QMMINTERFACE_H

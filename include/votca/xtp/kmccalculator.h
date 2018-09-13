@@ -16,8 +16,8 @@
  * author: Kordt
  */
 
-#ifndef __VOTCA_KMC_CALCULATOR_H
-#define	__VOTCA_KMC_CALCULATOR_H
+#ifndef VOTCA_XTP_CALCULATOR_H
+#define	VOTCA_XTP_CALCULATOR_H
 
 // #include <votca/xtp/vssmgroup.h>
 #include <vector>
@@ -113,4 +113,4 @@ protected:
 }}
 
 
-#endif	/* __VOTCA_KMC_MULTIPLE_H */
+#endif	// VOTCA_XTP_CALCULATOR_H

@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_XMAPPER_H
-#define	__VOTCA_XTP_XMAPPER_H
+#ifndef VOTCA_XTP_XMAPPER_H
+#define	VOTCA_XTP_XMAPPER_H
 
 #include <votca/tools/mutex.h>
 #include <votca/xtp/xjob.h>
@@ -94,5 +94,5 @@ private:
 }}
 
 
-#endif // __VOTCA_XTP_XMAPPER_H
+#endif // VOTCA_XTP_XMAPPER_H
 

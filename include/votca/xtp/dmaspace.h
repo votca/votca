@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_DMASPACE_H
-#define __VOTCA_XTP_DMASPACE_H
+#ifndef VOTCA_XTP_DMASPACE_H
+#define VOTCA_XTP_DMASPACE_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/ewdspace.h>
@@ -330,4 +330,4 @@ public:
 
 }}}
 
-#endif // __VOTCA_XTP_DMASPACE_H
+#endif // VOTCA_XTP_DMASPACE_H

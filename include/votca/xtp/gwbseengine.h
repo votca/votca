@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_GWBSEENGINE_H
-#define _VOTCA_XTP_GWBSEENGINE_H
+#ifndef VOTCA_XTP_GWBSEENGINE_H
+#define VOTCA_XTP_GWBSEENGINE_H
 
 #include <votca/xtp/segment.h>
 #include <votca/xtp/polarseg.h>
@@ -107,4 +107,4 @@ namespace votca {
     }
 }
 
-#endif /* _VOTCA_XTP_GWBSEENGINE_H */
+#endif // VOTCA_XTP_GWBSEENGINE_H 

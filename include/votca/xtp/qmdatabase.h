@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __VOTCA_XTP_QMDATABASE2_H
-#define	__VOTCA_XTP_QMDATABASE2_H
+#ifndef VOTCA_XTP_QMDATABASE2_H
+#define	VOTCA_XTP_QMDATABASE2_H
 
 #include <votca/tools/database.h>
 
@@ -48,5 +48,6 @@ public:
 
 }}
 
-#endif	/* QMDATABASE2_H */
+#endif	// VOTCA_XTP_QMDATABASE2_H
+
 

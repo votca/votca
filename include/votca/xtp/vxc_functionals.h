@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_VXCFUNCTIONALS_H
-#define	__VOTCA_XTP_VXCFUNCTIONALS_H
+#ifndef VOTCA_XTP_VXCFUNCTIONALS_H
+#define	VOTCA_XTP_VXCFUNCTIONALS_H
 
 #include <string>
 #include <map>
@@ -396,5 +396,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_XTP_ATOM_H */
+#endif	// VOTCA_XTP_VXCFUNCTIONALS_H
 

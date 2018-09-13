@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_EULER_MACLAURIN__H
-#define	__XTP_EULER_MACLAURIN__H
+#ifndef VOTCA_XTP_EULER_MACLAURIN_H
+#define	VOTCA_XTP_EULER_MACLAURIN_H
 
 
 #include <votca/xtp/basisset.h>
@@ -477,4 +477,5 @@ c                  Md   No   Lr  Unq  Unp
         };
 
     }}
-#endif	/* EULER_MACLAURIN_H */
+#endif	// VOTCA_XTP_EULER_MACLAURIN_H
+

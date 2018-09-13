@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_EWDSPACE_H
-#define __VOTCA_XTP_EWDSPACE_H
+#ifndef VOTCA_XTP_EWDSPACE_H
+#define VOTCA_XTP_EWDSPACE_H
 
 #include <cmath>
 #include <votca/tools/vec.h>
@@ -274,4 +274,4 @@ inline bool VectorSort<Norm,V>::operator() (const V *v1,
 
 }}}
 
-#endif // __VOTCA_XTP_EWDSPACE_H
+#endif // VOTCA_XTP_EWDSPACE_H

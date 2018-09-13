@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_AOBASIS__H
-#define	__XTP_AOBASIS__H
+#ifndef VOTCA_XTP_AOBASIS_H
+#define	VOTCA_XTP_AOBASIS_H
 
 
 #include <boost/math/constants/constants.hpp>
@@ -111,5 +111,5 @@ private:
  
 }}
 
-#endif	/* AOBASIS_H */
+#endif	// VOTCA_XTP_AOBASIS_H
 

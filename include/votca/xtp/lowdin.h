@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_LOWDIN__H
-#define	__XTP_LOWDIN__H
+#ifndef VOTCA_XTP_LOWDIN_H
+#define	VOTCA_XTP_LOWDIN_H
 
 
 #include <votca/tools/elements.h>
@@ -57,4 +57,4 @@ private:
 
 }}
 
-#endif	/* ESPFIT_H */
+#endif	// VOTCA_XTP_LOWDIN_H

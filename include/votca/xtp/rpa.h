@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_RPA_H
-#define _VOTCA_XTP_RPA_H
+#ifndef VOTCA_XTP_RPA_H
+#define VOTCA_XTP_RPA_H
 #include <votca/xtp/eigen.h>
 #include <vector>
 
@@ -97,4 +97,4 @@ namespace votca {
     }
 }
 
-#endif /* _VOTCA_RPA_RPA_H */
+#endif // VOTCA_RPA_RPA_H 

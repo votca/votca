@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_ERIS_H
-#define	_VOTCA_XTP_ERIS_H
+#ifndef VOTCA_XTP_ERIS_H
+#define	VOTCA_XTP_ERIS_H
 
 
 #include <votca/xtp/threecenter.h>
@@ -92,5 +92,5 @@ namespace votca { namespace xtp {
 
 }}
 
-#endif	/* ERIS_H */
+#endif	// VOTCA_XTP_ERIS_H
 

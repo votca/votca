@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_AOMATRIX__H
-#define	__XTP_AOMATRIX__H
+#ifndef VOTCA_XTP_AOMATRIX_H
+#define VOTCA_XTP_AOMATRIX_H
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
@@ -234,5 +234,5 @@ namespace votca { namespace xtp {
     
 }}
 
-#endif	/* AOMATRIX_H */
+#endif	// VOTCA_XTP_AOMATRIX_H
 

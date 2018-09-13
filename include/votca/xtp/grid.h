@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_GRID__H
-#define	__XTP_GRID__H
+#ifndef VOTCA_XTP_GRID_H
+#define	VOTCA_XTP_GRID_H
 
 
 #include <votca/tools/elements.h>
@@ -74,4 +74,4 @@ namespace votca { namespace xtp {
     
 }}
 
-#endif	/* GRID_H */
+#endif	// VOTCA_XTP_GRID_H

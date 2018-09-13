@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_MULLIKEN__H
-#define	__XTP_MULLIKEN__H
+#ifndef VOTCA_XTP_MULLIKEN_H
+#define VOTCA_XTP_MULLIKEN_H
 
 
 #include <votca/tools/elements.h>
@@ -58,4 +58,4 @@ public:
 
 }}
 
-#endif	/* ESPFIT_H */
+#endif	// VOTCA_XTP_MULLIKEN_H

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_SIGMA_H
-#define _VOTCA_XTP_SIGMA_H
+#ifndef VOTCA_XTP_SIGMA_H
+#define VOTCA_XTP_SIGMA_H
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 
@@ -106,4 +106,4 @@ const Eigen::VectorXd* _dftenergies;
 }
 }
 
-#endif /* _VOTCA_XTP_SIGMA_H */
+#endif // VOTCA_XTP_SIGMA_H 

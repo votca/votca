@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_ADIIS_COSTFUNCTION__H
-#define __XTP_ADIIS_COSTFUNCTION__H
+#ifndef VOTCA_XTP_ADIIS_COSTFUNCTION_H
+#define VOTCA_XTP_ADIIS_COSTFUNCTION_H
 
 
 #include <votca/xtp/basisset.h>
@@ -77,4 +77,4 @@ namespace votca {
 
     }
 }
-#endif /* FORCES_H */
+#endif // VOTCA_XTP_ADIIS_COSTFUNCTION_H

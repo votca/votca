@@ -18,8 +18,8 @@
  */
 /// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef _VOTCA_XTP_QMNBList_H
-#define	_VOTCA_XTP_QMNBList_H
+#ifndef VOTCA_XTP_QMNBList_H
+#define	VOTCA_XTP_QMNBList_H
 
 #include <string>
 #include <vector>
@@ -149,5 +149,5 @@ protected:
 }}
 
 
-#endif	/* _VOTCA_XTP_QMNBLIST_H */
+#endif	// VOTCA_XTP_QMNBLIST_H 
 

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_BFGSTRM__H
-#define __XTP_BFGSTRM__H
+#ifndef VOTCA_XTP_BFGSTRM_H
+#define VOTCA_XTP_BFGSTRM_H
 
 #include <votca/xtp/optimiser_costfunction.h>
 #include <votca/xtp/logger.h>
@@ -96,4 +96,4 @@ namespace votca {
 
     }
 }
-#endif /* BFGSTRM_H */
+#endif // VOTCA_XTP_BFGSTRM_H

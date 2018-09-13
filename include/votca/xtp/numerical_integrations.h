@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_NUMERICAL_INTEGRATION__H
-#define	__XTP_NUMERICAL_INTEGRATION__H
+#ifndef XTP_NUMERICAL_INTEGRATION_H
+#define	XTP_NUMERICAL_INTEGRATION_H
 
 
 
@@ -115,4 +115,4 @@ namespace votca { namespace xtp {
         };
 
     }}
-#endif	/* NUMERICAL_INTEGRATION_H */
+#endif	// XTP_NUMERICAL_INTEGRATION_H

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_GEOMETRY_OPTIMIZATION__H
-#define __XTP_GEOMETRY_OPTIMIZATION__H
+#ifndef XTP_GEOMETRY_OPTIMIZATION_H
+#define XTP_GEOMETRY_OPTIMIZATION_H
 
 
 #include <votca/xtp/qmatom.h>
@@ -73,4 +73,4 @@ namespace votca {
 
     }
 }
-#endif /* GEOMETRY_OPTIMIZATION_H */
+#endif // VOTCA_XTP_GEOMETRY_OPTIMIZATION_H 

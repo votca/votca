@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CONVERGENCEACC__H
-#define _VOTCA_XTP_CONVERGENCEACC__H
+#ifndef VOTCA_XTP_CONVERGENCEACC_H
+#define VOTCA_XTP_CONVERGENCEACC_H
 
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/logger.h>
@@ -137,5 +137,5 @@ class ConvergenceAcc{
  
 }}
 
-#endif	
+#endif // VOTCA_XTP_CONVERGENCEACC_H	
 

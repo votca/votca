@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_GRIDBOX__H
-#define	__XTP_GRIDBOX__H
+#ifndef VOTCA_XTP_GRIDBOX_H
+#define	VOTCA_XTP_GRIDBOX_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/grid_containers.h>
@@ -125,4 +125,5 @@ namespace votca { namespace xtp {
        
 
     }}
-#endif	/* NUMERICAL_INTEGRATION_H */
+#endif	// VOTCA_XTP_GRIDBOX_H
+

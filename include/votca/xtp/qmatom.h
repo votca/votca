@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_QMATOM_H
-#define	__VOTCA_XTP_QMATOM_H
+#ifndef VOTCA_XTP_QMATOM_H
+#define	VOTCA_XTP_QMATOM_H
 
 #include <votca/tools/vec.h> 
 #include <votca/xtp/checkpointwriter.h>
@@ -101,5 +101,5 @@ private:
     
 }}
 
-#endif	/* __VOTCA_XTP_QMATOM_H */
+#endif	// VOTCA_XTP_QMATOM_H 
 

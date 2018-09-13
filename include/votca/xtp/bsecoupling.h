@@ -20,8 +20,8 @@
 #include <votca/xtp/couplingbase.h>
 #include <votca/xtp/qmstate.h>
 
-#ifndef _VOTCA_XTP_BSECOUPLING_H
-#define	_VOTCA_XTP_BSECOUPLING_H
+#ifndef VOTCA_XTP_BSECOUPLING_H
+#define	VOTCA_XTP_BSECOUPLING_H
 
 namespace votca { namespace xtp {
 
@@ -94,6 +94,6 @@ private:
 
 }}
 
-#endif	/* _VOTCA_XTP_BSECOUPLING_H */
+#endif	// VOTCA_XTP_BSECOUPLING_H
 
 

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_COUPLINGBASE_H
-#define	_VOTCA_XTP_COUPLINGBASE_H
+#ifndef VOTCA_XTP_COUPLINGBASE_H
+#define	VOTCA_XTP_COUPLINGBASE_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/logger.h>
@@ -113,6 +113,7 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
 
 }}
 
-#endif	/* _VOTCA_XTP_DFTCOUPLING_H */
+#endif	// VOTCA_XTP_COUPLINGBASE_H
+
 
 

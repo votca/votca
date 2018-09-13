@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_POISSONGRID_H
-#define __VOTCA_XTP_POISSONGRID_H
+#ifndef VOTCA_XTP_POISSONGRID_H
+#define VOTCA_XTP_POISSONGRID_H
 
 #include <votca/tools/vec.h>
 
@@ -59,4 +59,4 @@ class PoissonCell
     
 }}}
 
-#endif // __VOTCA_XTP_POISSONGRID_H
+#endif // VOTCA_XTP_POISSONGRID_H

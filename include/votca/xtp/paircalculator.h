@@ -1,5 +1,5 @@
-#ifndef _PAIRCALCULATOR2_H
-#define	_PAIRCALCULATOR2_H
+#ifndef VOTCA_XTP_PAIRCALCULATOR2_H
+#define	VOTCA_XTP_PAIRCALCULATOR2_H
 
 #include <votca/xtp/qmcalculator.h>
 
@@ -46,6 +46,6 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
 
 }}
 
-#endif	/* _PAIRCALCULATOR2_H */
+#endif	// VOTCA_XTP_PAIRCALCULATOR2_H
 
  

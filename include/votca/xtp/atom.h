@@ -18,8 +18,8 @@
  */
 /// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_ATOM_H
-#define __VOTCA_XTP_ATOM_H
+#ifndef VOTCA_XTP_ATOM_H
+#define VOTCA_XTP_ATOM_H
 
 #include <string>
 #include <map>
@@ -199,4 +199,4 @@ inline void Atom::setQMPart(const int &qmid, tools::vec qmPos) {
 }
 }
 
-#endif /* __VOTCA_XTP_ATOM_H */
+#endif // VOTCA_XTP_ATOM_H 

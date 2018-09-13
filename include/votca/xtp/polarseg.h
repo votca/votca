@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_POLARSEG_H
-#define	__VOTCA_XTP_POLARSEG_H
+#ifndef VOTCA_XTP_POLARSEG_H
+#define	VOTCA_XTP_POLARSEG_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/apolarsite.h>
@@ -127,4 +127,4 @@ private:
 
 }}
 
-#endif // __VOTCA_XTP_POLARSEG_H
+#endif // VOTCA_XTP_POLARSEG_H

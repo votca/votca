@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DFTENGINE_H
-#define _VOTCA_XTP_DFTENGINE_H
+#ifndef VOTCA_XTP_DFTENGINE_H
+#define VOTCA_XTP_DFTENGINE_H
 
 #include <votca/xtp/numerical_integrations.h>
 #include <boost/filesystem.hpp>
@@ -209,4 +209,4 @@ namespace votca {
     }
 }
 
-#endif /* _VOTCA_XTP_DFTENGINE_H */
+#endif // VOTCA_XTP_DFTENGINE_H

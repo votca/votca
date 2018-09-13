@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_BASISSET__H
-#define	__XTP_BASISSET__H
+#ifndef VOTCA_XTP_BASISSET_H
+#define	VOTCA_XTP_BASISSET_H
 
 #include <string>
 #include <map>
@@ -204,5 +204,6 @@ private:
 
 }}
 
-#endif	/* BASISSET_H */
+#endif	// VOTCA_XTP_BASISSET_H
+
 

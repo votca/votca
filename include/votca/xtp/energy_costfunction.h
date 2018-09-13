@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_ENERGY_COSTFUNCTION__H
-#define __XTP_ENERGY_COSTFUNCTION__H
+#ifndef VOTCA_XTP_ENERGY_COSTFUNCTION_H
+#define VOTCA_XTP_ENERGY_COSTFUNCTION_H
 
 #include <votca/xtp/optimiser_costfunction.h>
 
@@ -105,4 +105,4 @@ namespace votca {
 
     }
 }
-#endif /* FORCES_H */
+#endif // VOTCA_XTP_ENERGY_COSTFUNCTION_H

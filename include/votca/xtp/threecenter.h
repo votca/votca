@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_THREECENTER__H
-#define	__XTP_THREECENTER__H
+#ifndef VOTCA_XTP_THREECENTER_H
+#define	VOTCA_XTP_THREECENTER_H
 
 
 
@@ -155,5 +155,5 @@ namespace votca {
 
 }}
 
-#endif	/* AOMATRIX_H */
+#endif	// VOTCA_XTP_THREECENTER_H
 

@@ -17,8 +17,8 @@
  */
 
 
-#ifndef _VOTCA_XTP_GYRATION_H
-#define _VOTCA_XTP_GYRATION_H
+#ifndef VOTCA_XTP_GYRATION_H
+#define VOTCA_XTP_GYRATION_H
 
 
 #include <stdio.h>
@@ -60,5 +60,6 @@ private:
 
 
 
-#endif /* _MUSCET_XTP_GYRATION_H */
+#endif // VOTCA_XTP_GYRATION_H
+
 

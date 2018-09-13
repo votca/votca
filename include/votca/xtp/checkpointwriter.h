@@ -14,8 +14,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CHECKPOINT_WRITER_H
-#define _VOTCA_XTP_CHECKPOINT_WRITER_H
+#ifndef VOTCA_XTP_CHECKPOINT_WRITER_H
+#define VOTCA_XTP_CHECKPOINT_WRITER_H
 
 #include <votca/xtp/eigen.h>
 #include <map>
@@ -174,4 +174,4 @@ private:
 };
 }  // namespace xtp
 }  // namespace votca
-#endif  // _VOTCA_XTP_CHECKPOINT_WRITER_H
+#endif  // VOTCA_XTP_CHECKPOINT_WRITER_H

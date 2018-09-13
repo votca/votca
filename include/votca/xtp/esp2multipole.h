@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_ESP2MULTIPOLE_H
-#define _VOTCA_XTP_ESP2MULTIPOLE_H
+#ifndef VOTCA_XTP_ESP2MULTIPOLE_H
+#define VOTCA_XTP_ESP2MULTIPOLE_H
 
 #include <stdio.h>
 #include <votca/xtp/espfit.h>
@@ -79,4 +79,4 @@ private:
 }}
 
 
-#endif
+#endif // VOTCA_XTP_ESP2MULTIPOLE_H

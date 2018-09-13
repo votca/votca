@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _XTP_QM_PACKAGE_H
-#define _XTP_QM_PACKAGE_H
+#ifndef VOTCA_XTP_QM_PACKAGE_H
+#define VOTCA_XTP_QM_PACKAGE_H
 
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
@@ -186,4 +186,5 @@ namespace votca {
     }
 }
 
-#endif /* _XTP_QM_PACKAGE_H */
+#endif // VOTCA_XTP_QM_PACKAGE_H
+

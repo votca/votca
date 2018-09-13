@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __VOTCA_XTP_TOPOLOGY_H
-#define	__VOTCA_XTP_TOPOLOGY_H
+#ifndef VOTCA_XTP_TOPOLOGY_H
+#define	VOTCA_XTP_TOPOLOGY_H
 
 #include <vector>
 #include <string>
@@ -139,5 +139,5 @@ protected:
 
 }}
 
-#endif	/* __VOTCA_XTP_TOPOLOGY_H */
+#endif	// VOTCA_XTP_TOPOLOGY_H 
 

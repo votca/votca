@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_PEWALD3D_H
-#define __VOTCA_XTP_PEWALD3D_H
+#ifndef VOTCA_XTP_PEWALD3D_H
+#define VOTCA_XTP_PEWALD3D_H
 
 #include <votca/csg/boundarycondition.h>
 #include <votca/xtp/xjob.h>
@@ -88,5 +88,5 @@ namespace votca { namespace xtp {
 }}
 
 
-#endif // __VOTCA_XTP_PEWALD3D_H
+#endif // VOTCA_XTP_PEWALD3D_H
 

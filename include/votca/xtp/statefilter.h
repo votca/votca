@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_STATEFILTER_H
-#define _VOTCA_XTP_STATEFILTER_H
+#ifndef VOTCA_XTP_STATEFILTER_H
+#define VOTCA_XTP_STATEFILTER_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/logger.h>
@@ -87,4 +87,4 @@ double _dQ_threshold;
 }
 }
 
-#endif /* _VOTCA_XTP_STATEFILTER_H */
+#endif // VOTCA_XTP_STATEFILTER_H 

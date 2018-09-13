@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_NBO__H
-#define	__VOTCA_XTP_NBO__H
+#ifndef VOTCA_XTP_NBO_H
+#define	VOTCA_XTP_NBO_H
 
 
 #include <votca/tools/elements.h>
@@ -56,6 +56,6 @@ private:
 };
 }}
 
-#endif /* __VOTCA_XTP_NBO_H */
+#endif // VOTCA_XTP_NBO_H 
 
 
