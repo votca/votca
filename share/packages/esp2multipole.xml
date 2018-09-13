@@ -1,9 +1,6 @@
 <esp2multipole>
 
-<state help="ground-,excited or transitionstate (ground,excited,transition)">transition</state>
-        <spin help="singlet or triplet">singlet</spin>
-        <statenumber help="Number of the state to be used (not needed for groundstate)">1</statenumber> 
-        
+<state help="ground-,excited or transitionstate (ground,excited,transition)">n2S1</state>
         <integrationmethod help="How to integrate potential, etiher numeric or analytic for CHELPG" >numeric</integrationmethod>
 	<method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
 	<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine">fine</gridsize>

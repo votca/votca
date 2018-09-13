@@ -23,14 +23,10 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
-
-
+#include <votca/xtp/qmstate.h>
 
 namespace votca {
 namespace xtp {
-
-
-
 
 class BSE {
  private:
@@ -50,7 +46,6 @@ struct Population {
     
  public:
  
-    
   BSE(Orbitals& orbitals,ctp::Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
@@ -62,14 +57,11 @@ struct Population {
         _bse_triplet_energies(orbitals.BSETripletEnergies()),
         _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
         _min_print_weight(min_print_weight){};
-
-  ~BSE(){};
   
   void setGWData(const TCMatrix_gwbse* Mmn,const PPM* ppm,const Eigen::MatrixXd* Hqp){
       _Mmn=Mmn;
       _ppm=ppm;
-      _Hqp=Hqp;
-      
+      _Hqp=Hqp;   
   }
   
   void setBSEindices(int homo,int vmin, int cmax, int nmax) {
@@ -117,12 +109,11 @@ struct Population {
       _bse_singlet_coefficients_AR.resize(0,0);
   }
  
-
  private:
  
       
 ctp::Logger *_log;
-  int _homo;
+  int  _homo;
   int  _bse_vmin;
   int  _bse_vmax;
   int  _bse_cmin;
@@ -163,19 +154,16 @@ ctp::Logger *_log;
    template <typename T>
   void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
   
-  
-  
   std::vector<int> _index2v;
   std::vector<int> _index2c;
 
- void printFragInfo(Population& pop, int i);
+ void printFragInfo(const Population& pop, int i);
  void printWeights(int i_bse, double weight);
  
-  
-  Interaction Analyze_eh_interaction(const std::string& spin);
-  Eigen::VectorXd Analyze_IndividualContribution(const std::string& spin, const MatrixXfd& H);
+  Interaction Analyze_eh_interaction(const QMStateType& type);
+  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
 
-  Population FragmentPopulations(const std::string& spin, const AOBasis& dftbasis);
+  Population FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis);
 
   std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
 

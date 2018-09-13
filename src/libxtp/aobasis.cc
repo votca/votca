@@ -492,15 +492,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return result;
     }
 
-    int AOBasis::getFuncperAtom(int AtomId) const {
-      int number = 0;
-      for (const auto& aoshell : _aoshells) {
-        if (aoshell->getAtomIndex() == AtomId) {
-          number += aoshell->_numFunc;
-        }
-      }
-      return number;
-    }
+   
 
     void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int fragbreak) {
       tools::Elements elementinfo;

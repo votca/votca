@@ -38,7 +38,7 @@ namespace votca {
 
         void XTPDFT::Initialize(tools::Property &options) {
             _xtpdft_options=options;
-
+            _log_file_name="system.orb";
             std::string key = "package";
             std::string packagename = _xtpdft_options.get(key + ".name").as<std::string> ();
 
@@ -79,26 +79,34 @@ namespace votca {
           DFTEngine xtpdft;
           xtpdft.Initialize(_xtpdft_options);
           xtpdft.setLogger(_pLog);
-          xtpdft.Prepare( orbitals );
-            
+           
           if(_write_charges){
             xtpdft.setExternalcharges(_PolarSegments);
           }
-
-           
+          xtpdft.Prepare( orbitals );
           xtpdft.Evaluate( orbitals );
           _basisset_name = xtpdft.getDFTBasisName();
-          orbitals.WriteToCpt("system.orb");
+          orbitals.WriteToCpt(_log_file_name);
             return true;
 
-        }
+    }
 
-        /**
-         * Clean up dummy, may be required if use of scratch will be added
-         */
-        void XTPDFT::CleanUp() {    
-            return;
+    void XTPDFT::CleanUp() {
+      if (_cleanup.size() != 0) {
+        CTP_LOG(ctp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
+        tools::Tokenizer tok_cleanup(_cleanup, ", ");
+        std::vector <std::string> cleanup_info;
+        tok_cleanup.ToVector(cleanup_info);
+        for (const std::string& substring : cleanup_info) {
+          if (substring == "log") {
+            std::string file_name = _run_dir + "/" + _log_file_name;
+            remove(file_name.c_str());
+          }
         }
+      }
+
+      return;
+    }
 
         /**
          * Dummy, because XTPDFT adds info to orbitals directly

@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmstate.h"
 #include <votca/xtp/version.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/basisset.h>
@@ -126,24 +127,53 @@ namespace votca {
           return;
         }
 
+        Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const{
+          if(state.isTransition()){
+            return this->TransitionDensityMatrix(state);
+          }
+          Eigen::MatrixXd result=this->DensityMatrixGroundState();
+          if(state.Type().isExciton()){
+             std::vector< Eigen::MatrixXd > DMAT = DensityMatrixExcitedState(state);
+             result=result- DMAT[0] + DMAT[1]; // Ground state + hole_contribution + electron contribution
+          }else if(state.Type()==QMStateType::DQPstate){
+            Eigen::MatrixXd DMATQP=DensityMatrixQuasiParticle(state);
+            if (state.Index() > getHomo()) {
+              result+= DMATQP;
+            } else {
+              result-= DMATQP;
+            }
+          }else if(state.Type()!=QMStateType::Gstate){
+            throw std::runtime_error("DensityMatrixFull does not yet implement QMStateType:"+state.Type().ToLongString());
+          }
+          return result;
+        }
+        
         // Determine ground state density matrix
 
         Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const{
-
+            if (!hasMOCoefficients()) {
+                throw std::runtime_error("Orbitals file does not contain MO coefficients");
+            }
             Eigen::MatrixXd occstates = _mo_coefficients.block(0, 0, _mo_coefficients.rows(), _occupied_levels);
             Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
             return dmatGS;
         }
 
         Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const{
-            return _QPdiag_coefficients * _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal);
+          if (!hasQPdiag()) {
+                throw std::runtime_error("Orbitals file does not contain QP coefficients");
+            }
+            return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal)*_QPdiag_coefficients;
         }
 
         // Determine QuasiParticle Density Matrix
 
-        Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(int state) const{
+        Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(const QMState& state) const{
+          if(state.Type()!=QMStateType::PQPstate){
+            throw std::runtime_error("State:"+state.ToString()+" is not a quasiparticle state");
+          }
             Eigen::MatrixXd lambda = CalculateQParticleAORepresentation();
-            Eigen::MatrixXd dmatQP = lambda.col(state) * lambda.col(state).transpose();
+            Eigen::MatrixXd dmatQP = lambda.col(state.Index()-_qpmin) * lambda.col(state.Index()-_qpmin).transpose();
             return dmatQP;
         }
 
@@ -158,12 +188,12 @@ namespace votca {
           return result;
         }
 
-        Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const string& spin, int state) const{
-            if (!(spin == "singlet" || spin == "triplet")) {
-                throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
+        Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const{
+            if (state.Type() != QMStateType::Singlet) {
+                throw runtime_error("Spin type not known for transition density matrix. Available only for singlet");
             }
-            const MatrixXfd& _BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-            if(_BSECoefs.cols()<state || _BSECoefs.rows()<2){
+            const MatrixXfd& BSECoefs = _BSE_singlet_coefficients;
+            if(BSECoefs.cols()<state.Index()+1 || BSECoefs.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
             Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
@@ -176,7 +206,7 @@ namespace votca {
             // indexing info BSE vector index to occupied/virtual orbital
             Index2MO index=BSEIndex2MOIndex();
 
-            if (_bsetype == "full" && spin == "singlet") {
+            if (_bsetype == "full") {
                 const MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
 #pragma omp parallel for
                 for (int a = 0; a < dmatTS.rows(); a++) {
@@ -184,7 +214,7 @@ namespace votca {
                         for (int i = 0; i < _bse_size; i++) {
                             int occ = index.I2v[i];
                             int virt =index.I2c[i];
-                            dmatTS(a, b) += sqrt2 * (_BSECoefs(i, state) + _BSECoefs_AR(i, state)) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
+                            dmatTS(a, b) += sqrt2 * (BSECoefs(i, state.Index()) + _BSECoefs_AR(i, state.Index())) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
                         }
                     }
                 }
@@ -196,7 +226,7 @@ namespace votca {
                         for (int i = 0; i < _bse_size; i++) {
                             int occ = index.I2v[i];
                             int virt =index.I2c[i];
-                            dmatTS(a, b) += sqrt2 * _BSECoefs(i, state) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
+                            dmatTS(a, b) += sqrt2 * BSECoefs(i, state.Index()) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
                         }
                     }
                 }
@@ -205,10 +235,10 @@ namespace votca {
             return dmatTS;
         }
 
-        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState(const string& spin, int state) const{
-            std::vector<Eigen::MatrixXd > dmat = DensityMatrixExcitedState_R(spin, state);
-            if (_bsetype == "full" && spin == "singlet") {
-                std::vector<Eigen::MatrixXd > dmat_AR = DensityMatrixExcitedState_AR(spin, state);
+        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState(const QMState& state) const{
+            std::vector<Eigen::MatrixXd > dmat = DensityMatrixExcitedState_R(state);
+            if (_bsetype == "full" && state.Type() == QMStateType::Singlet) {
+                std::vector<Eigen::MatrixXd > dmat_AR = DensityMatrixExcitedState_AR(state);
                 dmat[0] -= dmat_AR[0];
                 dmat[1] -= dmat_AR[1];
             }
@@ -217,13 +247,13 @@ namespace votca {
 
         // Excited state density matrix
 
-        std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(const string& spin, int state) const{
-            if (!(spin == "singlet" || spin == "triplet")) {
+        std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(const QMState& state) const{
+            if (!state.Type().isExciton()) {
                 throw runtime_error("Spin type not known for density matrix. Available are singlet and triplet");
             }
 
-            const MatrixXfd & BSECoefs = (spin == "singlet") ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
-            if(BSECoefs.cols()<state || BSECoefs.rows()<2){
+            const MatrixXfd & BSECoefs = (state.Type() == QMStateType::Singlet) ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
+            if(BSECoefs.cols()<state.Index()+1 || BSECoefs.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
             /******
@@ -265,14 +295,14 @@ namespace votca {
 #pragma omp parallel for
                 for (int c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
                     int idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
-                    Acc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs(idx1, state) * BSECoefs(idx2, state);
+                    Acc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs(idx1, state.Index()) * BSECoefs(idx2, state.Index());
                 }
 
                 // hole assist matrix A_{vv'}
 #pragma omp parallel for
                 for (int v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
                     int idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
-                    Avv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs(idx1, state) * BSECoefs(idx2, state);
+                    Avv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs(idx1, state.Index()) * BSECoefs(idx2, state.Index());
                 }
             }
 
@@ -288,13 +318,13 @@ namespace votca {
 
         // Excited state density matrix
 
-        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState_AR(const string& spin, int state) const{
-            if (!(spin == "singlet")) {
+        std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState_AR(const QMState& state) const{
+            if (state.Type() != QMStateType::Singlet) {
                 throw runtime_error("Spin type not known for density matrix. Available is singlet");
             }
             
             const MatrixXfd& BSECoefs_AR = _BSE_singlet_coefficients_AR;
-            if(BSECoefs_AR.cols()<state || BSECoefs_AR.rows()<2){
+            if(BSECoefs_AR.cols()<state.Index()+1 || BSECoefs_AR.rows()<2){
                 throw runtime_error("Orbitals object has no information about that state");
             }
             /******
@@ -336,14 +366,14 @@ namespace votca {
 #pragma omp parallel for
                 for (int c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
                     int idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
-                    Bcc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs_AR(idx1, state) * BSECoefs_AR(idx2, state);
+                    Bcc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs_AR(idx1, state.Index()) * BSECoefs_AR(idx2, state.Index());
                 }
 
                 // electron assist matrix B_{vv'}
 #pragma omp parallel for
                 for (int v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
                     int idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
-                    Bvv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs_AR(idx1, state) * BSECoefs_AR(idx2, state);
+                    Bvv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs_AR(idx1, state.Index()) * BSECoefs_AR(idx2, state.Index());
                 }
             }
 
@@ -387,32 +417,53 @@ namespace votca {
             return oscs;
         }
 
-        double Orbitals::getTotalExcitedStateEnergy(const string& spintype, int opt_state) const{
+        double Orbitals::getTotalStateEnergy(const QMState& state)const{
+          double total_energy=getQMEnergy()* tools::conv::ev2hrt;
+          if (state.Type()==QMStateType::Gstate){
+            return total_energy;
+          }
+          total_energy+=getExcitedStateEnergy(state);
+          return total_energy;
+        }
+        
+        double Orbitals::getExcitedStateEnergy(const QMState& state) const{
 
-            // total energy of the excited state
-            double total_energy;
             double omega = 0.0;
-
-            double dft_energy = getQMEnergy();
-
-            if (spintype == "singlet") {
-              if(BSESingletEnergies().size()<opt_state){
-                throw std::runtime_error("Orbitals::getTotalEnergy You want a singlet which has not been calculated");
-              }
-                omega = BSESingletEnergies()[opt_state - 1];
-            } else if (spintype == "triplet") {
-               if(BSETripletEnergies().size()<opt_state){
-                throw std::runtime_error("Orbitals::getTotalEnergy You want a triplet which has not been calculated");
-              }
-                omega = BSETripletEnergies()[opt_state - 1];
-            } else {
-                throw std::runtime_error("GetTotalEnergy only knows spintypes:singlet,triplet");
+            if(state.isTransition()){
+              throw std::runtime_error("Total Energy does not exist for transition state");
             }
 
-            // DFT total energy is stored in eV
-            // singlet energies are stored in Hrt...
-            return total_energy = dft_energy * tools::conv::ev2hrt + omega; //  e.g. hartree
+            if (state.Type() == QMStateType::Singlet) {
+              if(BSESingletEnergies().size()<state.Index()+1){
+                throw std::runtime_error("Orbitals::getTotalEnergy You want "+ state.ToString()+" which has not been calculated");
+              }
+                omega = BSESingletEnergies()[state.Index()];
+            } else if (state.Type() == QMStateType::Triplet) {
+               if(BSETripletEnergies().size()<state.Index()+1){
+                  throw std::runtime_error("Orbitals::getTotalEnergy You want "+ state.ToString()+" which has not been calculated");
+              }
+                omega = BSETripletEnergies()[state.Index()];
+            } else if (state.Type() == QMStateType::DQPstate) {
+               if(this->QPdiagEnergies().size()<state.Index()+1-getGWAmin()){
+                  throw std::runtime_error("Orbitals::getTotalEnergy You want "+ state.ToString()+" which has not been calculated");
+              }
+               return QPdiagEnergies()[state.Index()-getGWAmin()];
+            }else if (state.Type() == QMStateType::KSstate) {
+               if(this->MOEnergies().size()<state.Index()+1){
+                  throw std::runtime_error("Orbitals::getTotalEnergy You want "+ state.ToString()+" which has not been calculated");
+              }
+               return QPdiagEnergies()[state.Index()];
+            }else if (state.Type() == QMStateType::PQPstate) {
+               if(this->_QPpert_energies.rows()<state.Index()+1-getGWAmin()){
+                  throw std::runtime_error("Orbitals::getTotalEnergy You want "+ state.ToString()+" which has not been calculated");
+              }
+               return _QPpert_energies(state.Index()-getGWAmin(),3);
+            } else {
+                throw std::runtime_error("GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP");
+            }
+            return  omega; //  e.g. hartree
         }
+        
 
         Eigen::VectorXd Orbitals::FragmentNuclearCharges(int frag) const{
          
@@ -502,7 +553,6 @@ namespace votca {
             return;
         }
         //TODO move to Filereader
-
         void Orbitals::LoadFromXYZ(const std::string& filename) {
 
             string line;
@@ -529,14 +579,8 @@ namespace votca {
                     vector< string > split;
                     Tokenizer toker(line, " \t");
                     toker.ToVector(split);
-                    if (!split.size() ||
-                            split.size() != 4 ||
-                            split[0] == "#" ||
-                            split[0].substr(0, 1) == "#") {
-                        continue;
-                    }
+                    if(split.size()<4){continue;}
                     // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-
                     string element = split[0];
                     double x = boost::lexical_cast<double>(split[1]);
                     double y = boost::lexical_cast<double>(split[2]);
@@ -544,7 +588,6 @@ namespace votca {
                     tools::vec pos = tools::vec(x, y, z);
                     AddAtom(atomCount, element, pos * tools::conv::ang2bohr);
                     atomCount++;
-
                 }
             } else {
                 throw std::runtime_error("No such file: '" + filename + "'.");

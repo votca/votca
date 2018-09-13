@@ -38,9 +38,6 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-// +++++++++++++++++++++++++++++ //
-// GWBSE MEMBER FUNCTIONS        //
-// +++++++++++++++++++++++++++++ //
 
 void GWBSE::Initialize(tools::Property& options) {
 

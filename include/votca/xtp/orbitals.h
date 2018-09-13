@@ -32,7 +32,7 @@
 #include <votca/ctp/logger.h>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
-
+#include <votca/xtp/qmstate.h>
 
 
 namespace votca {
@@ -155,13 +155,11 @@ namespace votca {
             }
 
             // access to DFT molecular orbital energy of a specific level (in eV)
-
             double getEnergy(int level) const{
                 return ( hasMOEnergies()) ? votca::tools::conv::hrt2ev * _mo_energies[level] : 0;
             }
 
             // access to DFT molecular orbital coefficients, new, tested
-
             bool hasMOCoefficients() const{
                 return ( _mo_coefficients.cols() > 0) ? true : false;
             }
@@ -191,7 +189,6 @@ namespace votca {
             }
 
             // access to classical self-energy in MM environment, new, tested
-
             bool hasSelfEnergy() const{
                 return ( _self_energy != 0.0) ? true : false;
             }
@@ -205,7 +202,6 @@ namespace votca {
             }
 
             // access to QM total energy, new, tested
-
             bool hasQMEnergy() const{
                 return ( _qm_energy != 0.0) ? true : false;
             }
@@ -490,19 +486,20 @@ namespace votca {
 
             std::vector<double> Oscillatorstrengths()const;
         
+            //Calculates full electron density for state or transition density, if you want to calculate only the density contribution of hole or electron use DensityMatrixExcitedState
+            Eigen::MatrixXd DensityMatrixFull(const QMState& state)const;
+            
             // functions for calculating density matrices
             Eigen::MatrixXd DensityMatrixGroundState() const;
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const std::string& spin,int state = 0)const;
-            Eigen::MatrixXd TransitionDensityMatrix(const std::string& spin,int state = 0)const;
-            
-            Eigen::MatrixXd DensityMatrixQuasiParticle(int state = 0)const;
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState(const QMState& state)const;         
+            Eigen::MatrixXd DensityMatrixQuasiParticle(const QMState& state)const;
             Eigen::MatrixXd CalculateQParticleAORepresentation()const;
-
-            double getTotalExcitedStateEnergy (const std::string& spintype, int opt_state)const;
+            double getTotalStateEnergy(const QMState& state)const;//Hartree
+            double getExcitedStateEnergy (const QMState& state)const;//Hartree
+            
 
 
             // access to fragment charges of singlet excitations
-
             bool hasFragmentChargesSingEXC() const{
                 return (_DqS_frag.size() > 0) ? true : false;
             }
@@ -518,7 +515,6 @@ namespace votca {
 
 
             // access to fragment charges of triplet excitations
-
             bool hasFragmentChargesTripEXC() const{
                 return (_DqT_frag.size() > 0) ? true : false;
             }
@@ -577,14 +573,6 @@ namespace votca {
             // returns indeces of a re-sorted vector of energies from lowest to highest
             std::vector<int> SortEnergies();
 
-            /** Adds a QM atom to the atom list */
-            QMAtom* AddAtom(int AtomID,std::string type,double x, double y, double z,
-                    double charge = 0) {
-                QMAtom* pAtom = new QMAtom(AtomID,type, x, y, z);
-                _atoms.push_back(pAtom);
-                return pAtom;
-            }
-
             QMAtom* AddAtom(int AtomID,std::string type, tools::vec pos) {
                 QMAtom* pAtom = new QMAtom(AtomID,type, pos);
                 _atoms.push_back(pAtom);
@@ -623,8 +611,11 @@ namespace votca {
             
             void ReadFromCpt(CheckpointFile f);
             void ReadFromCpt(CptLoc parent);
-            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const std::string& spin,int state = 0)const;
-            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const std::string& spin,int state = 0)const;
+            
+            
+            Eigen::MatrixXd TransitionDensityMatrix(const QMState& state)const;
+            std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const QMState& state)const;
+            std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const QMState& state)const;
 
             int _basis_set_size;
             int _occupied_levels;

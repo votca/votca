@@ -49,10 +49,8 @@ public:
     
     void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB);
-    
-
+   
 private:
-    
     
     void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
             const Orbitals& orbitalsB, int a, int b);
@@ -60,8 +58,7 @@ private:
                                const Orbitals& orbitalsA,  
                                const Orbitals& orbitalsB
                                 )const;
-    
-    
+
     std::pair<int,int> DetermineRangeOfStates(const Orbitals& orbital, int numberofstates)const;
     
     Eigen::MatrixXd JAB;

@@ -184,11 +184,9 @@ void DFTEngine::CalcElDipole(){
       Eigen::MatrixXd H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Constructed independent particle hamiltonian " << flush;
       NuclearRepulsion();
-
       if(_with_ecp){
           H0+=_dftAOECP.Matrix();
       }
-
       if (_addexternalsites) {
         H0 += _dftAOESP.getExternalpotential();
         H0 += _dftAODipole_Potential.getExternalpotential();
@@ -220,7 +218,7 @@ void DFTEngine::CalcElDipole(){
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Reading guess from orbitals object/file" << flush;
         orbitals.MOCoefficients()=OrthogonalizeGuess(orbitals.MOCoefficients() );
-        _dftAOdmat = orbitals.DensityMatrixGroundState();
+        _dftAOdmat = _conv_accelerator.DensityMatrix(MOCoeff,MOEnergies);
       } else {
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Setup Initial Guess using: " << _initial_guess << flush;
@@ -435,7 +433,7 @@ void DFTEngine::CalcElDipole(){
               true, _histlength, _maxout, _adiis_start, _diis_start,
               _levelshift, _levelshiftend, _numofelectrons, _mixingparameter);
       _conv_accelerator.setLogger(_pLog);
-      _conv_accelerator.setOverlap(&_dftAOoverlap.Matrix(), 1e-8);
+      _conv_accelerator.setOverlap(&_dftAOoverlap, 1e-8);
 
       if (_with_RI) {
 
@@ -530,11 +528,11 @@ void DFTEngine::CalcElDipole(){
         Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 
                 20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, _mixingparameter);
         Convergence_alpha.setLogger(_pLog);
-        Convergence_alpha.setOverlap(&dftAOoverlap.Matrix(), 1e-8);
+        Convergence_alpha.setOverlap(&dftAOoverlap, 1e-8);
         Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 
                 20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, _mixingparameter);
         Convergence_beta.setLogger(_pLog);
-        Convergence_beta.setOverlap(&dftAOoverlap.Matrix(), 1e-8);
+        Convergence_beta.setOverlap(&dftAOoverlap, 1e-8);
         /**** Construct initial density  ****/
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();

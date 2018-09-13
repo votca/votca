@@ -58,7 +58,6 @@ AOBasis aobasis;
 aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 
 const AOShell* shell=aobasis.getShell(0);
-AOShell::GaussianIterator it;
 std::vector<double> ref_results={0.1831079647,0.9155398233};
 int i=0;
 bool check_norm=true;
@@ -169,7 +168,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   Orbitals orb;
   int occlevels=5;
   d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,2*occlevels,0);
-  d.setOverlap(&overlap.Matrix(),1e-8);
+  d.setOverlap(&overlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   
   Eigen::MatrixXd ref=orb.MOCoefficients();

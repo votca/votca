@@ -29,6 +29,9 @@
 
 namespace votca { namespace xtp {
  // shell type (S, P, D))
+    
+    
+    
     int FindLmax(const std::string& _type);
 
     int FindLmin(const std::string& _type);

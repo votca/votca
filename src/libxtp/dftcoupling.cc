@@ -44,14 +44,14 @@ void DFTcoupling::Initialize(tools::Property& options){
 void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
                                   const Orbitals& orbitalsB, int a, int b){
   double J = getCouplingElement(a,b, orbitalsA, orbitalsB);
-  tools::Property& coupling = type_summary.add("coupling", boost::lexical_cast<std::string>(J));
+  tools::Property& coupling = type_summary.add("coupling","");
   double energyA = orbitalsA.getEnergy(a);
   double energyB = orbitalsB.getEnergy(b);
   coupling.setAttribute("levelA", a);
   coupling.setAttribute("levelB", b);
-  coupling.setAttribute("jAB", J);
-  coupling.setAttribute("eA", energyA);
-  coupling.setAttribute("eB", energyB);
+  coupling.setAttribute("j",(format("%1$1.6e") % J).str());
+  coupling.setAttribute("eA",(format("%1$1.6e") % energyA).str());
+  coupling.setAttribute("eB",(format("%1$1.6e") % energyB).str());
 }
 
  void DFTcoupling::Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
@@ -59,14 +59,14 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary, const Orbitals&
   tools::Property& dftcoupling= type_summary.add(Identify(),"");
   dftcoupling.setAttribute("homoA",orbitalsA.getHomo());
   dftcoupling.setAttribute("homoB",orbitalsB.getHomo());
-   tools::Property &hole_summary = dftcoupling.add("holes","");
+   tools::Property &hole_summary = dftcoupling.add("hole","");
    //hole hole
    for (int a=Range_orbA.first;a<=orbitalsA.getHomo();++a){
      for (int b=Range_orbB.first;b<=orbitalsB.getHomo();++b){
           WriteToProperty(hole_summary, orbitalsA, orbitalsB, a, b);
     }
    }
-   tools::Property &electron_summary = dftcoupling.add("electrons","");
+   tools::Property &electron_summary = dftcoupling.add("electron","");
    //electron-//electron
    for (int a=orbitalsA.getLumo();a<=Range_orbA.first+Range_orbA.second;++a){
      for (int b=orbitalsB.getLumo();b<=Range_orbB.first+Range_orbB.second;++b){
@@ -214,18 +214,10 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
                     <<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
-    // J = psi_AxB_dimer_basis * FAB * psi_AxB_dimer_basis^T
-    CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;   
-      
+    CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;         
     Eigen::MatrixXd JAB_dimer = psi_AxB_dimer_basis*orbitalsAB.MOEnergies().asDiagonal()*psi_AxB_dimer_basis.transpose();  
-    // S = psi_AxB_dimer_basis * psi_AxB_dimer_basis^T
     CTP_LOG(ctp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
-    Eigen::MatrixXd S_AxB = psi_AxB_dimer_basis*psi_AxB_dimer_basis.transpose();  
-     
-   CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating the effective overlap JAB [" 
-              << JAB_dimer.rows() << "x" 
-              << JAB_dimer.cols() << "]" << flush;  
-   
+    Eigen::MatrixXd S_AxB = psi_AxB_dimer_basis*psi_AxB_dimer_basis.transpose();    
    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_AxB);
    Eigen::MatrixXd Sm1=es.operatorInverseSqrt();
    CTP_LOG(ctp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< flush;    

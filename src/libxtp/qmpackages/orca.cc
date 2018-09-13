@@ -123,7 +123,6 @@ namespace votca {
 
       el_file.open(el_file_name.c_str());
       el_file << "$DATA" << endl;
-      std::vector< QMAtom* >::iterator it;
 
         for (const std::string& element_name:UniqueElements) {
           const Element& element = bs.getElement(element_name);
@@ -185,7 +184,7 @@ namespace votca {
 
       for (const std::string& element_name:UniqueElements) {
           try{    
-           const Element& element = ecp.getElement(element_name);
+           ecp.getElement(element_name);
           }catch(std::runtime_error& error){
             CTP_LOG(ctp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name<<" available" << flush;
             continue;
@@ -570,7 +569,7 @@ namespace votca {
                         nfields = row.size();
                         QMAtom* pAtom;
                         if (!orbitals.hasQMAtoms()) {
-                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
+                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type, tools::vec(0.0));
                         } else {
                             pAtom = orbitals.QMAtoms().at(atom_id - 1);
                         }

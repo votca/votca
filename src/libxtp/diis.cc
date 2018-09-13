@@ -27,7 +27,7 @@ namespace votca { namespace xtp {
    void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix){
      
      
-     if(_errormatrixhist.size()>_histlength){
+     if(int(_errormatrixhist.size())>_histlength){
        delete _errormatrixhist[maxerrorindex];
        delete _Diis_Bs[maxerrorindex];
        _errormatrixhist.erase(_errormatrixhist.begin()+maxerrorindex);

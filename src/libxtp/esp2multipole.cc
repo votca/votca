@@ -29,36 +29,28 @@ namespace votca {
 
         void Esp2multipole::Initialize(tools::Property& options) {
             std::string key = Identify();
-            _use_ecp = false;
             _do_svd = false;
 
             _use_mulliken = false;
             _use_CHELPG = false;
-            _use_bulkESP = false;
-            _use_GDMA = false;
-            _use_CHELPG_SVD = false;
             _use_lowdin = false;
-            _use_NBO = false;
 
-            _state = options.get(key + ".state").as<std::string> ();
-            _state_no = options.get(key + ".statenumber").as<int> ();
-            _spin = options.get(key + ".spin").as<std::string> ();
-            if (options.exists(key + ".ecp")) {
-                _use_ecp = options.get(key + ".ecp").as<bool> ();
-            }
-            if (options.exists(key + ".method")) {
-                _method = options.get(key + ".method").as<std::string> ();
-                if (_method == "Mulliken" || _method == "mulliken")_use_mulliken = true;
-                else if (_method == "loewdin" || _method == "Loewdin") _use_lowdin = true;
-                else if (_method == "CHELPG")_use_CHELPG = true;
-                else if (_method == "GDMA") throw std::runtime_error("GDMA not implemented yet");
-                else if (_method == "CHELPG_SVD") throw std::runtime_error("CHELPG_SVD not implemented yet");
-                else if (_method == "NBO") _use_NBO = true;
-                else throw std::runtime_error("Method not recognized. Mulliken, Lowdin and CHELPG implemented");
-            } else _use_CHELPG = true;
+            std::string statestring = options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".state");
+            _state.FromString(statestring);
+          
+            std::vector<std::string> choices={"mulliken","loewdin","CHELPG"};
+            _method=options.ifExistsAndinListReturnElseThrowRuntimeError(key+".method",choices);
+
+            if (_method == "mulliken")_use_mulliken = true;
+            else if (_method == "loewdin" ) _use_lowdin = true;
+            else if (_method == "CHELPG")_use_CHELPG = true;
+              
 
             if (_use_CHELPG) {
-                _integrationmethod = options.get(key + ".integrationmethod").as<std::string> ();
+                _integrationmethod = options.ifExistsReturnElseReturnDefault<std::string>(key + ".integrationmethod","numeric");
+            }
+            if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
+                std::runtime_error("Method not recognized. Only numeric and analytic available");
             }
             
             if (options.exists(key + ".constraints")) {
@@ -94,16 +86,9 @@ namespace votca {
                  }
             }
 
+          _gridsize =options.ifExistsReturnElseReturnDefault<std::string>(key + ".gridsize","medium");
+          _openmp_threads = options.ifExistsReturnElseReturnDefault<int>(key + ".openmp",1);
 
-            if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
-                std::runtime_error("Method not recognized. Only numeric and analytic available");
-            }
-            if (options.exists(key + ".gridsize")) {
-                _gridsize = options.get(key + ".gridsize").as<std::string>();
-            } else _gridsize = "medium";
-            if (options.exists(key + ".openmp")) {
-                _openmp_threads = options.get(key + ".openmp").as<int>();
-            } else _openmp_threads = 0;
             if (options.exists(key + ".svd")) {
                 _do_svd = options.get(key + ".svd.do_svd").as<bool>();
                 _conditionnumber = options.get(key + ".svd.conditionnumber").as<double>();
@@ -115,39 +100,15 @@ namespace votca {
             return;
         }
 
-        std::string Esp2multipole::GetIdentifier() {
-            std::string identifier;
-            if (_state == "transition" && _spin == "singlet") {
-                identifier = (boost::format("n2s%i") % _state_no).str();
-            }
-            else if (_state == "transition" && _spin == "triplet") {
-                identifier = (boost::format("n2t%i") % _state_no).str();
-            }
-            else if (_state == "excited" && _spin == "triplet") {
-                identifier = (boost::format("t%i") % _state_no).str();
-            }
-            else if (_state == "excited" && _spin == "singlet") {
-                identifier = (boost::format("s%i") % _state_no).str();
-            }
-            else if (_state == "excited" && _spin == "singlet") {
-                identifier = (boost::format("s%i") % _state_no).str();
-            }
-            else if (_state == "ground") {
-                identifier = "n";
-            }
-            else {
-                throw std::runtime_error("Esp2multipole::GetIdentifier did not recognize config");
-            }
-            return identifier;
-        }
+        
 
-        void Esp2multipole::WritetoFile(std::string output_file, std::string identifier) {
+        void Esp2multipole::WritetoFile(std::string output_file) {
 
             std::string data_format = boost::filesystem::extension(output_file);
             if (!(data_format == ".mps")) {
                 throw std::runtime_error("Outputfile format not recognized. Export only to .mps");
             }
-            std::string tag = "TOOL:" + Identify() + "_" + GetIdentifier() + "_" + _spin;
+            std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
 
             QMInterface Converter;
             ctp::PolarSeg result = Converter.Convert(_Atomlist);
@@ -156,7 +117,7 @@ namespace votca {
             return;
         }
 
-        void Esp2multipole::Extractingcharges(Orbitals & _orbitals) {
+        void Esp2multipole::Extractingcharges(Orbitals & orbitals) {
             int threads = 1;
 #ifdef _OPENMP
             if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
@@ -164,36 +125,20 @@ namespace votca {
 #endif
             CTP_LOG(ctp::logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
 
-            _Atomlist = _orbitals.QMAtoms();
-            Eigen::MatrixXd DMAT_tot;
+            _Atomlist = orbitals.QMAtoms();
             BasisSet bs;
-            bs.LoadBasisSet(_orbitals.getDFTbasis());
+            bs.LoadBasisSet(orbitals.getDFTbasis());
             AOBasis basis;
             basis.AOBasisFill(bs, _Atomlist);
-
-            bool _do_transition = false;
-            if (_state == "transition") {
-              
-                _do_transition = true;
-                DMAT_tot = _orbitals.TransitionDensityMatrix(_spin, _state_no - 1);
-
-            } else if (_state == "ground" || _state == "excited") {
-                Eigen::MatrixXd DMATGS = _orbitals.DensityMatrixGroundState();
-                DMAT_tot = DMATGS;
-                if (_state_no > 0 && _state == "excited") {
-                    std::vector<Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(_spin, _state_no - 1);
-                    DMAT_tot = DMAT_tot - DMAT[0] + DMAT[1];
-                }
-                // Ground state + hole_contribution + electron contribution
-            } else throw std::runtime_error("State entry not recognized");
+            Eigen::MatrixXd DMAT=orbitals.DensityMatrixFull(_state);
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.EvaluateMulliken(_Atomlist, DMAT_tot, basis, _do_transition);
+                mulliken.EvaluateMulliken(_Atomlist, DMAT, basis, _state.isTransition());
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.EvaluateLowdin(_Atomlist, DMAT_tot, basis, _do_transition);
+                lowdin.EvaluateLowdin(_Atomlist, DMAT, basis, _state.isTransition());
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){
@@ -207,16 +152,9 @@ namespace votca {
                     esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
-                    esp.Fit2Density(_Atomlist, DMAT_tot, basis, _gridsize);
-                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(_Atomlist, DMAT_tot, basis);
-            } else if (_use_NBO) {
-                std::cout << "WARNING: NBO analysis isn't fully implemented yet." << std::endl;
-                //CTP_LOG(logDEBUG, _log) << "Initializing NBO" << flush;
-                NBO nbo = NBO(_log);
-                nbo.EvaluateNBO(_Atomlist, DMAT_tot, basis, bs);
-            } else {
-                std::cout << "Method not recognized." << std::endl;
-            }
+                    esp.Fit2Density(_Atomlist, DMAT, basis, _gridsize);
+                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(_Atomlist, DMAT, basis);
+            } 
         }
 
     }

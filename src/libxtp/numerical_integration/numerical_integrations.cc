@@ -34,8 +34,6 @@
 #include <string>
 
 
-
-
 namespace votca {
     namespace xtp {
 
@@ -90,7 +88,8 @@ namespace votca {
 
       Vxc_Functionals map;
       std::vector<std::string> strs;
-      boost::split(strs, functional, boost::is_any_of(" "));
+      tools::Tokenizer tok(functional," ,\n\t");
+      tok.ToVector(strs);
       xfunc_id = 0;
       _use_separate = false;
       cfunc_id = 0;
@@ -108,7 +107,6 @@ namespace votca {
       if (xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED) != 0) {
         throw std::runtime_error((boost::format("Functional %s not found\n") %strs[0]).str());
       }
-      xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
       if (xfunc.info->kind != 2 && !_use_separate) {
         throw std::runtime_error("Your functional misses either correlation or exchange, please specify another functional, separated by whitespace");
       }
@@ -116,8 +114,6 @@ namespace votca {
         if (xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED) != 0) {
           throw std::runtime_error((boost::format("Functional %s not found\n") %strs[1]).str());
         }
-        xc_func_init(&cfunc, cfunc_id, XC_UNPOLARIZED);
-        xc_func_init(&xfunc, xfunc_id, XC_UNPOLARIZED);
         if ((xfunc.info->kind + cfunc.info->kind) != 1) {
           throw std::runtime_error("Your functionals are not one exchange and one correlation");
         }
@@ -127,9 +123,8 @@ namespace votca {
     }
 
         
-        void NumericalIntegration::EvaluateXC(const double rho, const Eigen::Vector3d& grad_rho, double& f_xc, double& df_drho, double& df_dsigma) {
+        void NumericalIntegration::EvaluateXC(const double rho, const double sigma, double& f_xc, double& df_drho, double& df_dsigma) {
 
-        double sigma = (grad_rho.transpose()*grad_rho).value();
         double exc[1];
         double vsigma[1]; // libxc 
         double vrho[1]; // libxc df/drho
@@ -270,7 +265,7 @@ namespace votca {
           for (const auto& point : box.getGridPoints()) {
             tools::vec dist = shellpos - point;
             double distsq = dist*dist;
-            // if contribution is smaller than -ln(1e-10), add atom to list
+            // if contribution is smaller than -ln(1e-10), add shell to list
             if ((decay * distsq) < 20.7) {
               box.addShell(store);
               break;
@@ -281,19 +276,20 @@ namespace votca {
 
       std::vector< GridBox > grid_boxes_copy;
       int combined = 0;
-      std::vector<bool> Compared = std::vector<bool>(_grid_boxes.size(), false);
+      //use vecot of bool to indicate if a gridbox has already been merged into another
+      std::vector<bool> Merged = std::vector<bool>(_grid_boxes.size(), false);
       for (unsigned i = 0; i < _grid_boxes.size(); i++) {
-        if (Compared[i]) {
+        if (Merged[i]) {
           continue;
         }
         GridBox box = _grid_boxes[i];
         if (box.Shellsize() < 1) {
           continue;
         }
-        Compared[i] = true;
+        Merged[i] = true;
         for (unsigned j = i + 1; j < _grid_boxes.size(); j++) {
           if (GridBox::compareGridboxes(_grid_boxes[i], _grid_boxes[j])) {
-            Compared[j] = true;
+            Merged[j] = true;
             box.addGridBox(_grid_boxes[j]);
             combined++;
           }
@@ -386,30 +382,31 @@ namespace votca {
           Eigen::MatrixXd Vxc_here = Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
           const std::vector<tools::vec>& points = box.getGridPoints();
           const std::vector<double>& weights = box.getGridWeights();
-
+          const std::vector<GridboxRange>& aoranges = box.getAOranges();
+          const std::vector<const AOShell* >& shells = box.getShells();
+          
           //iterate over gridpoints
           for (unsigned p = 0; p < box.size(); p++) {
             Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
             Eigen::MatrixX3d ao_grad= Eigen::MatrixX3d::Zero(box.Matrixsize(),3);
-            const std::vector<GridboxRange>& aoranges = box.getAOranges();
-            const std::vector<const AOShell* >& shells = box.getShells();
-                        
             for (unsigned j = 0; j < box.Shellsize(); ++j) {
               Eigen::Block<Eigen::MatrixX3d> grad_block=ao_grad.block(aoranges[j].start,0,aoranges[j].size,3);
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
               shells[j]->EvalAOspace(ao_block,grad_block,points[p]);             
             }
-            double rho = (ao.transpose()*DMAT_here*ao).value();
-            Eigen::Vector3d rho_grad = ao.transpose()*DMAT_symm*ao_grad;
-            double weight = weights[p];
+            const double rho =0.5* (ao.transpose()*DMAT_symm*ao).value();
+            const double weight = weights[p];
             if (rho*weight < 1.e-20) continue; // skip the rest, if density is very small
+            const Eigen::Vector3d rho_grad = ao.transpose()*DMAT_symm*ao_grad;
+            const double sigma = (rho_grad.transpose()*rho_grad).value();
+            const Eigen::VectorXd grad =ao_grad*rho_grad;
             double f_xc; // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r }
             double df_drho; // v_xc_rho(r) = df/drho
             double df_dsigma; // df/dsigma ( df/dgrad(rho) = df/dsigma * dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
-            EvaluateXC(rho, rho_grad, f_xc, df_drho, df_dsigma);          
-            auto addXC = weight * (0.5*df_drho * ao+ 2.0 * df_dsigma *ao_grad*rho_grad);
-            // Exchange correlation energy
+            EvaluateXC(rho, sigma, f_xc, df_drho, df_dsigma); 
             EXC_box += weight * rho * f_xc;
+            auto addXC = weight * (0.5*df_drho * ao+ 2.0 * df_dsigma *grad);
+            // Exchange correlation energy
             Vxc_here.noalias() += addXC* ao.transpose();
           }
           box.AddtoBigMatrix(vxc_thread[thread], Vxc_here);
@@ -694,8 +691,7 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
       
 #pragma omp parallel for schedule(guided)
       for (unsigned i_grid = 0; i_grid < atomgrid.size(); i_grid++) {
-        // call some shit called grid_ssw0 in NWChem
-        Eigen::VectorXd p = SSWpartition(i_grid, atoms.size(), AtomGridDist,Rij);
+        Eigen::VectorXd p = SSWpartition(i_grid, AtomGridDist,Rij);
         // check weight sum
         double wsum = p.sum();
         if (wsum != 0.0) {
@@ -710,7 +706,6 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
         
 void NumericalIntegration::GridSetup(const std::string& type, std::vector<QMAtom*> atoms,const AOBasis& basis) {
       _AOBasisSize=basis.AOBasisSize();
-      const double pi = boost::math::constants::pi<double>();
       GridContainers initialgrids;
       // get radial grid per element
       EulerMaclaurinGrid radialgridofElement;
@@ -773,14 +768,14 @@ void NumericalIntegration::GridSetup(const std::string& type, std::vector<QMAtom
       return;
     }
 
-    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, int ncenters,const Eigen::MatrixXd & rq,const Eigen::MatrixXd& Rij) {
+    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, const Eigen::MatrixXd & rq,const Eigen::MatrixXd& Rij) {
       const double ass = 0.725;
       // initialize partition vector to 1.0
-      Eigen::VectorXd p=Eigen::VectorXd::Ones(ncenters);
+      Eigen::VectorXd p=Eigen::VectorXd::Ones(rq.rows());
       const double tol_scr = 1e-10;
       const double leps = 1e-6;
       // go through centers
-      for (int i = 1; i < ncenters; i++) {
+      for (int i = 1; i < rq.rows(); i++) {
         double rag = rq(i,igrid);
         // through all other centers (one-directional)
         for (int j = 0; j < i; j++) {

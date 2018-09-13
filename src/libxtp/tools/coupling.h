@@ -46,8 +46,6 @@ private:
     
     std::string      _orbA, _orbB, _orbAB;
     std::string      _logA, _logB, _logAB;
-    int         _levA, _levB;
-    int         _trimA, _trimB;
     double      _degeneracy;
 
     std::string      _package;

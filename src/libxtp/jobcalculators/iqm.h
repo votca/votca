@@ -54,14 +54,17 @@ public:
 
 private:
     
-    double GetBSECouplingFromProp(tools::Property& bseprop, int stateA, int stateB);
+    double GetBSECouplingFromProp(tools::Property& bseprop,const QMState& stateA,const QMState& stateB);
     double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
     void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
+    void WriteLoggerToFile(const string& logfile, ctp::Logger& logger);
     void addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top);
     bool isLinker(const std::string& name);
     void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
     void ParseOptionsXML( tools::Property &opt);    
-    std::map<std::string, int> FillParseMaps(const string& Mapstring);
+    std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
+    
+    QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,const std::string& elementname )const;
     
     string              _package;
     Property            _dftpackage_options; 
@@ -84,18 +87,13 @@ private:
     bool                _store_singlets;
     bool                _store_triplets;
     bool                _store_ehint;
-    bool                _write_orbfile;
-    
-    //double              _energy_difference;    
-        
-    string              _outParent;
       
     // parsing options
-    std::map<std::string, int> _singlet_levels;
-    std::map<std::string, int> _triplet_levels;
+    std::map<std::string, QMState> _singlet_levels;
+    std::map<std::string, QMState> _triplet_levels;
     
-    std::map<std::string, int> _hole_levels;
-    std::map<std::string, int> _electron_levels;
+    std::map<std::string, QMState> _hole_levels;
+    std::map<std::string, QMState> _electron_levels;
 
         
 };

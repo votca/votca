@@ -18,8 +18,6 @@
         <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
-        <itemPath>../../src/libxtp/jobcalculators/dma.cc</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/dma.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/eqm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/eqm.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.cc</itemPath>
@@ -30,6 +28,8 @@
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
+        <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
+        <itemPath>../../src/libxtp/tools/densityanalysis.h</itemPath>
         <itemPath>../../src/libxtp/tools/dftgwbse.cc</itemPath>
         <itemPath>../../src/libxtp/tools/dftgwbse.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
@@ -43,6 +43,8 @@
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="f5" displayName="Executables" projectFiles="true">
+      <itemPath>../../src/tools/Md2QmEngine.cc</itemPath>
+      <itemPath>../../src/tools/Md2QmEngine.h</itemPath>
       <itemPath>../../src/tools/xtp_dump.cc</itemPath>
       <itemPath>../../src/tools/xtp_map.cc</itemPath>
       <itemPath>../../src/tools/xtp_parallel.cc</itemPath>
@@ -62,7 +64,6 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
-      <itemPath>../../include/votca/xtp/Md2QmEngine.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
@@ -128,6 +129,7 @@
       <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
+      <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
@@ -160,6 +162,7 @@
         <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_dft.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_gwbse.cc</itemPath>
+        <itemPath>../../src/libxtp/threecenter_ol.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
@@ -194,7 +197,7 @@
         <itemPath>../../src/libxtp/toolfactory.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f8" displayName="geometryopt" projectFiles="true">
-        <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
+        <itemPath>../../src/libxtp/energy_costfunction.cc</itemPath>
         <itemPath>../../src/libxtp/forces.cc</itemPath>
         <itemPath>../../src/libxtp/geometry_optimization.cc</itemPath>
       </logicalFolder>
@@ -222,6 +225,7 @@
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/apolarsite.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
+      <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
@@ -240,6 +244,7 @@
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
+      <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
@@ -253,7 +258,6 @@
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
-      <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
@@ -261,39 +265,52 @@
       <itemPath>../../src/tests/test_fragment.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
+      <itemPath>../../src/tests/test_linalg_xtp.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
-      <itemPath>../../src/tests/test_radial_euler_maclaurin_rule.cc</itemPath>
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
       <itemPath>../../src/tests/test_sigma.cc</itemPath>
-      <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles" displayName="XMLfiles" projectFiles="true">
+      <logicalFolder name="f1" displayName="packages" projectFiles="true">
+        <itemPath>../../share/packages/bsecoupling.xml</itemPath>
+        <itemPath>../../share/packages/esp2multipole.xml</itemPath>
+        <itemPath>../../share/packages/gaussian_edft_molecule.xml</itemPath>
+        <itemPath>../../share/packages/gaussian_egwbse_molecule.xml</itemPath>
+        <itemPath>../../share/packages/gaussian_idft_molecule.xml</itemPath>
+        <itemPath>../../share/packages/gaussian_idft_pair.xml</itemPath>
+        <itemPath>../../share/packages/gaussian_igwbse_pair.xml</itemPath>
+        <itemPath>../../share/packages/gwbse_egwbse_molecule.xml</itemPath>
+        <itemPath>../../share/packages/gwbse_igwbse_pair.xml</itemPath>
+        <itemPath>../../share/packages/mbgft.xml</itemPath>
+        <itemPath>../../share/packages/nwchem.xml</itemPath>
+        <itemPath>../../share/packages/orca_edft.xml</itemPath>
+        <itemPath>../../share/packages/orca_gwbse.xml</itemPath>
+        <itemPath>../../share/packages/orca_idft.xml</itemPath>
+        <itemPath>../../share/packages/xtpdft.xml</itemPath>
+      </logicalFolder>
       <itemPath>../../share/xtp/xml/coupling.xml</itemPath>
-      <itemPath>../../share/xtp/xml/dft.xml</itemPath>
       <itemPath>../../share/xtp/xml/dftgwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/eanalyze.xml</itemPath>
-      <itemPath>../../share/xtp/xml/edft.xml</itemPath>
-      <itemPath>../../share/xtp/xml/egwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/einternal.xml</itemPath>
       <itemPath>../../share/xtp/xml/energy2xml.xml</itemPath>
+      <itemPath>../../share/xtp/xml/eqm.xml</itemPath>
       <itemPath>../../share/xtp/xml/excitoncoupling.xml</itemPath>
       <itemPath>../../share/xtp/xml/gencube.xml</itemPath>
       <itemPath>../../share/xtp/xml/ianalyze.xml</itemPath>
-      <itemPath>../../share/xtp/xml/idft.xml</itemPath>
       <itemPath>../../share/xtp/xml/iexcitoncl.xml</itemPath>
-      <itemPath>../../share/xtp/xml/igwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/iimport.xml</itemPath>
       <itemPath>../../share/xtp/xml/integrals2xml.xml</itemPath>
+      <itemPath>../../share/xtp/xml/iqm.xml</itemPath>
       <itemPath>../../share/xtp/xml/jobwriter.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmclifetime.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmcmultiple.xml</itemPath>
@@ -1040,6 +1057,150 @@
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
+    <Elem>../../include</Elem>
+    <Elem>../../../../include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -1065,11 +1226,6 @@
         </archiverTool>
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/Md2QmEngine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1292,6 +1448,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -1331,6 +1492,66 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../share/packages/bsecoupling.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/esp2multipole.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_edft_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_egwbse_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_idft_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_idft_pair.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_igwbse_pair.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gwbse_egwbse_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gwbse_igwbse_pair.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/mbgft.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/nwchem.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/orca_edft.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/orca_gwbse.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/orca_idft.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/xtpdft.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/coupling.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/dftgwbse.xml" ex="false" tool="3" flavor2="0">
@@ -1340,6 +1561,8 @@
       <item path="../../share/xtp/xml/einternal.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/energy2xml.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/eqm.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/excitoncoupling.xml"
             ex="false"
@@ -1358,6 +1581,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/jobwriter.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -1578,6 +1803,11 @@
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/energy_costfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
@@ -1663,16 +1893,6 @@
       <item path="../../src/libxtp/jobcalculatorfactory.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/eqm.cc"
@@ -1825,6 +2045,13 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
@@ -1874,11 +2101,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_dftcoupling.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
@@ -1908,11 +2130,6 @@
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
@@ -1923,11 +2140,6 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_sphere_lebedev_rule.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -1968,11 +2180,6 @@
         </archiverTool>
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/Md2QmEngine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2195,6 +2402,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/statefilter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
             ex="false"
             tool="3"
@@ -2234,6 +2446,66 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../share/packages/bsecoupling.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/esp2multipole.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_edft_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_egwbse_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_idft_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_idft_pair.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_igwbse_pair.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gwbse_egwbse_molecule.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/gwbse_igwbse_pair.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/mbgft.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/nwchem.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/orca_edft.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/orca_gwbse.xml"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../share/packages/orca_idft.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/xtpdft.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/coupling.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/dftgwbse.xml" ex="false" tool="3" flavor2="0">
@@ -2243,6 +2515,8 @@
       <item path="../../share/xtp/xml/einternal.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/energy2xml.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/eqm.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/excitoncoupling.xml"
             ex="false"
@@ -2261,6 +2535,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/jobwriter.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -2481,6 +2757,11 @@
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/energy_costfunction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/esp2multipole.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/espfit.cc" ex="false" tool="1" flavor2="0">
@@ -2566,16 +2847,6 @@
       <item path="../../src/libxtp/jobcalculatorfactory.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/dma.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/dma.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/eqm.cc"
@@ -2728,6 +2999,13 @@
       </item>
       <item path="../../src/libxtp/toolfactory.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/coupling.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/densityanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/dftgwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/dftgwbse.h" ex="false" tool="3" flavor2="0">
@@ -2777,11 +3055,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_dftcoupling.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
@@ -2811,11 +3084,6 @@
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
@@ -2826,11 +3094,6 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_sphere_lebedev_rule.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"

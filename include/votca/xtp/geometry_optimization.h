@@ -23,29 +23,23 @@
 
 #include <votca/xtp/qmatom.h>
 #include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
-
+#include <votca/xtp/qmstate.h>
+#include <votca/xtp/bfgs-trm.h>
+#include <votca/xtp/energy_costfunction.h>
 
 
 namespace votca {
     namespace xtp {
 
-
-
         class GeometryOptimization {
         public:
 
-            GeometryOptimization(GWBSEEngine& gwbse_engine, QMPackage *qmpackage, 
-                   Orbitals& orbitals) : 
-            _gwbse_engine(gwbse_engine), _qmpackage(qmpackage), _orbitals(orbitals) {
-                
-            };
+            GeometryOptimization(GWBSEEngine& gwbse_engine,Orbitals& orbitals) :
+            _gwbse_engine(gwbse_engine), _orbitals(orbitals) {
 
-            ~GeometryOptimization() {
             };
-
 
             void Initialize(tools::Property& options);
 
@@ -55,23 +49,23 @@ namespace votca {
 
             void Evaluate();
 
-
-
         private:
 
-      
-            int _opt_state;
-            std::string _spintype;
-            std::string _forces;
-            std::string _opt_type;
-            std::string _optimizer;
-            std::string _force_method;
+            static void Report(const BFGSTRM& bfgstrm, ctp::Logger* pLog);
+            static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms,
+                                        const BFGSTRM& bfgstrm);
 
-            GWBSEEngine _gwbse_engine;
-            QMPackage* _qmpackage;
+            QMState _opt_state;
+            std::string _optimizer;
+            std::string _trajfile;
+            GWBSEEngine& _gwbse_engine;
             Orbitals& _orbitals;
 
-            tools::Property _optimizer_options;
+            Energy_costfunction::conv_paras _conv;
+            int _max_iteration;
+            double _trust_radius;
+
+            tools::Property _filter_options;
             tools::Property _force_options;
 
             ctp::Logger *_pLog;

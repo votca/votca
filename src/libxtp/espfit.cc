@@ -223,7 +223,10 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
       svd.setThreshold(_conditionnumber);
       svd.compute(Amat,Eigen::ComputeThinU | Eigen::ComputeThinV);
       charges=svd.solve(Bvec);
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " SVD Done. "<<Bvec.size()-svd.nonzeroSingularValues()<<" Sites could not be fitted and are set to zero."<< flush;
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " SVD Done. "<<flush;
+      if((Bvec.size()-svd.nonzeroSingularValues())!=0){
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() <<Bvec.size()-svd.nonzeroSingularValues()<<" Sites could not be fitted and are set to zero."<< flush;
+      }
     }
     else{
       Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR(Amat);

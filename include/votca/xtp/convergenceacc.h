@@ -24,15 +24,13 @@
 #include <votca/ctp/logger.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/diis.h>
-
-
-
+#include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
 
  
- class ConvergenceAcc{
-public:
+class ConvergenceAcc{
+    public:
     
     enum KSmode { closed, open, fractional };
 
@@ -80,7 +78,7 @@ public:
        }
    }
    
-   void setOverlap(const Eigen::MatrixXd* S, double etol);
+   void setOverlap(AOOverlap* S, double etol);
    
    double getDIIsError(){return _diiserror;}
    
@@ -101,9 +99,8 @@ public:
     Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
      
     bool                                _usemixing;
-     
     ctp::Logger *                       _pLog;
-    const Eigen::MatrixXd* _S;
+    const AOOverlap* _S;
     
     bool                              _usediis;
     bool                              _noisy;

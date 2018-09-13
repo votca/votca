@@ -50,26 +50,19 @@ public:
     
    
     void Extractingcharges( Orbitals& orbitals );
-    void WritetoFile(std::string output_file,  std::string identifier="esp2multipole");
-    std::string GetIdentifier();
+    void WritetoFile(std::string output_file);
+    std::string GetStateString()const{return _state.ToString();}
 
 private:
     
-    int         _state_no;  
+    QMState      _state;  
     int         _openmp_threads;
-    std::string      _state;
     std::string      _method;
-    std::string      _spin;
     std::string      _integrationmethod;
     std::string      _gridsize;
     bool        _use_mulliken;
     bool        _use_lowdin;
     bool        _use_CHELPG;
-    bool        _use_bulkESP;
-    bool        _use_GDMA;
-    bool        _use_CHELPG_SVD;
-    bool        _use_NBO;
-    bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
     std::vector< QMAtom* > _Atomlist;

@@ -398,9 +398,6 @@ namespace votca {
                 tools::Tokenizer tok_cleanup(_cleanup, ",");
                 std::vector <std::string> cleanup_info;
                 tok_cleanup.ToVector(cleanup_info);
-
-                std::vector<std::string> ::iterator it;
-
                 for (const std::string& substring:cleanup_info) {
                     if (substring== "nw") {
                         std::string file_name = _run_dir + "/" + _input_file_name;
@@ -743,7 +740,7 @@ namespace votca {
                         nfields = row.size();
                         QMAtom* pAtom;
                         if (orbitals.hasQMAtoms() == false) {
-                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
+                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type,tools::vec(0.0));
                         } else {
                             pAtom = orbitals.QMAtoms().at(atom_id - 1);
                         }
@@ -1016,7 +1013,7 @@ namespace votca {
 
       for (const std::string& element_name : UniqueElements) {
         try {
-          const Element& element = ecp.getElement(element_name);
+          ecp.getElement(element_name);
         } catch (std::runtime_error& error) {
           CTP_LOG(ctp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name << " available" << flush;
           continue;

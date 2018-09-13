@@ -13,8 +13,10 @@
         </dftcoupling_options>
         <dftpackage>gaussian_pair_bse.xml</dftpackage>
         <readjobfile>
-            <singlets>DCV5T:s1, C60:s2</singlets>
-            <triplets>DCV5T:t2, C60:t1</triplets>
+            <singlet>DCV5T:s1, C60:s2</singlet>
+            <triplet>DCV5T:t2, C60:t1</triplet>
+            <electron>DCV5T:e1, C60:e1</electron>
+            <hole>DCV5T:h1, C60:h1</hole>
         </readjobfile>
 </iqm>
 

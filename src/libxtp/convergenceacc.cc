@@ -17,30 +17,19 @@
  *
  */
 #include "votca/xtp/convergenceacc.h"
+#include "votca/xtp/aomatrix.h"
 
 namespace votca { namespace xtp {
 
   
-  void ConvergenceAcc::setOverlap(const Eigen::MatrixXd* S,double etol){
+  void ConvergenceAcc::setOverlap(AOOverlap* S,double etol){
        _S=S;
-       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(*_S);
+       Sminusahalf=S->Pseudo_InvSqrt(etol);
        if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<es.eigenvalues()(0) << std::flush;
-            }
-      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
-      int removedfunctions=0;
-      for (int i=0;i<diagonal.size();++i){
-          if(es.eigenvalues()(i)<etol){
-              removedfunctions++;
-          }else{
-              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
-          }
-      }
-      if(_noisy){
-            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<removedfunctions<<" basisfunction from inverse overlap matrix" << std::flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
+            CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
         }
-       Sminusahalf =es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
-       Sonehalf=es.operatorSqrt();
+       Sonehalf=S->Sqrt();
        return;
    }
    
@@ -48,7 +37,7 @@ namespace votca { namespace xtp {
     Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
       Eigen::MatrixXd H_guess=Eigen::MatrixXd::Zero(H.rows(),H.cols());    
     
-      if(_mathist.size()>_histlength){
+      if(int(_mathist.size())>_histlength){
           delete _mathist[_maxerrorindex];
           delete _dmatHist[_maxerrorindex];
                _totE.erase(_totE.begin()+_maxerrorindex);
@@ -63,8 +52,8 @@ namespace votca { namespace xtp {
           Levelshift(H);
         }
       }
-      
-      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*(*_S)-(*_S)*dmat*H)*Sminusahalf;
+      const Eigen::MatrixXd& S=_S->Matrix();
+      Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*S-S*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
      
       Eigen::MatrixXd* old=new Eigen::MatrixXd;     

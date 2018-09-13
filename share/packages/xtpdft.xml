@@ -16,9 +16,9 @@
 <dftbasis>ubecppol</dftbasis>
 <ecp>ecp</ecp>
 <auxbasis>aux-ubecppol</auxbasis>  
-<integration_grid>fine</integration_grid>
+<integration_grid>medium</integration_grid>
 <integration_grid_small>0</integration_grid_small>
-<xc_functional>XC_HYB_GGA_XC_B3LYP</xc_functional>
+<xc_functional>XC_HYB_GGA_XC_PBEH</xc_functional>
 <max_iterations>200</max_iterations>
 <read_guess>0</read_guess>
 <cleanup></cleanup>

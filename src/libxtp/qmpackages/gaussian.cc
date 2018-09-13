@@ -158,50 +158,50 @@ namespace votca {
 
             for (const std::string& element_name:UniqueElements) {
                
-                        const Element& element = bs.getElement(element_name);
-                        /* Write each basis set to a element_name.gbs file
-                         * and include the gbs file in the com-file via Gaussian's @ function
-                         */
-                        std::ofstream el_file;
-                        std::string el_file_name = _run_dir + "/" + element_name + ".gbs";
+                const Element& element = bs.getElement(element_name);
+                /* Write each basis set to a element_name.gbs file
+                 * and include the gbs file in the com-file via Gaussian's @ function
+                 */
+                std::ofstream el_file;
+                std::string el_file_name = _run_dir + "/" + element_name + ".gbs";
 
-                        el_file.open(el_file_name.c_str());
-                        // element name, [possibly indeces of centers], zero to indicate the end    
-                        com_file << "@" << element_name << ".gbs" << endl;
-                        el_file << element_name << " 0" << endl;
-                        for (const Shell& shell:element) {
-                            //gaussian can only use S,P,SP,D,F,G shells so we split them up if not SP
-                            if (shell.getType() == "SP" || !shell.isCombined()) {
-                                // shell type, number primitives, scale factor
-                                el_file << shell.getType() << " " << shell.getSize() << " " << FortranFormat(shell.getScale()) << endl;
-                                for (const GaussianPrimitive& gaussian:shell) {
-                                    el_file << FortranFormat(gaussian._decay);
-                                    for (const double& contraction:gaussian._contraction) {
-                                        if (contraction!= 0.0) {
-                                            el_file << " " << FortranFormat(contraction);
-                                        }
-                                    }
-                                    el_file << endl;
-                                }                              
-                            } else {
-                                string type = shell.getType();
-                                for (unsigned i = 0; i < type.size(); ++i) {
-                                    string subtype = string(type, i, 1);
-                                    el_file << subtype << " " << shell.getSize() << " " << FortranFormat(shell.getScale()) << endl;
-
-                                    for (const GaussianPrimitive& gaussian:shell) {
-                                        el_file << FortranFormat(gaussian._decay);
-                                        el_file << " " << FortranFormat(gaussian._contraction[FindLmax(subtype)]);
-                                    }
-                                    el_file << endl;  
+                el_file.open(el_file_name.c_str());
+                // element name, [possibly indeces of centers], zero to indicate the end    
+                com_file << "@" << element_name << ".gbs" << endl;
+                el_file << element_name << " 0" << endl;
+                for (const Shell& shell:element) {
+                    //gaussian can only use S,P,SP,D,F,G shells so we split them up if not SP
+                    if (shell.getType() == "SP" || !shell.isCombined()) {
+                        // shell type, number primitives, scale factor
+                        el_file << shell.getType() << " " << shell.getSize() << " " << FortranFormat(shell.getScale()) << endl;
+                        for (const GaussianPrimitive& gaussian:shell) {
+                            el_file << FortranFormat(gaussian._decay);
+                            for (const double& contraction:gaussian._contraction) {
+                                if (contraction!= 0.0) {
+                                    el_file << " " << FortranFormat(contraction);
                                 }
                             }
+                            el_file << endl;
+                        }                              
+                    } else {
+                        string type = shell.getType();
+                        for (unsigned i = 0; i < type.size(); ++i) {
+                            string subtype = string(type, i, 1);
+                            el_file << subtype << " " << shell.getSize() << " " << FortranFormat(shell.getScale()) << endl;
+
+                            for (const GaussianPrimitive& gaussian:shell) {
+                                el_file << FortranFormat(gaussian._decay);
+                                el_file << " " << FortranFormat(gaussian._contraction[FindLmax(subtype)]);
+                            }
+                            el_file << endl;  
                         }
-
-                        el_file << "****\n";
-                        el_file.close();
-
                     }
+                }
+
+                el_file << "****\n";
+                el_file.close();
+
+            }
                 
             com_file << endl;
             return;
@@ -220,7 +220,7 @@ namespace votca {
 
             for (const std::string& element_name:UniqueElements) {
                        try{    
-                        const Element& element = ecp.getElement(element_name);
+                        ecp.getElement(element_name);
                        }catch(std::runtime_error& error){
                          CTP_LOG(ctp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name<<" available" << flush;
                          continue;
@@ -347,15 +347,13 @@ namespace votca {
          * input file.
          */
         void Gaussian::WriteCoordinates(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms) {
-            std::vector< QMAtom* >::iterator it;
-            for (it = qmatoms.begin(); it < qmatoms.end(); it++) {
-              tools::vec pos=(*it)->getPos()*tools::conv::bohr2ang;
-                    com_file << setw(3) << (*it)->getType().c_str()
+            for (QMAtom* atom:qmatoms) {
+              tools::vec pos=atom->getPos()*tools::conv::bohr2ang;
+                    com_file << setw(3) << atom->getType().c_str()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
                             << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
                             << endl;
-               
             }
             com_file << endl;
             return;
@@ -760,7 +758,7 @@ namespace votca {
               nfields = row.size();
               QMAtom* pAtom;
               if (_has_atoms == false) {
-                pAtom =orbitals.AddAtom(atom_id - 1,atom_type, 0, 0, 0);
+                pAtom =orbitals.AddAtom(atom_id - 1,atom_type, tools::vec(0.0));
               } else {
                 pAtom = orbitals.QMAtoms().at(atom_id - 1);
               }
