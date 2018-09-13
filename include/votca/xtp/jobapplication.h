@@ -71,7 +71,8 @@ protected:
 
 
 
-#endif /* _QMApplication_H */
+#endif // VOTCA_XTP_JOBAPPLICATION
+
 
 
 

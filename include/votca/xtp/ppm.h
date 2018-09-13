@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_PPM_H
-#define _VOTCA_XTP_PPM_H
+#ifndef VOTCA_XTP_PPM_H
+#define VOTCA_XTP_PPM_H
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/rpa.h>
 
@@ -78,4 +78,4 @@ double getScreening_i()const{return screening_i;}
 }
 }
 
-#endif /* _VOTCA_XTP_GWBSE_H */
+#endif // VOTCA_XTP_GWBSE_H 

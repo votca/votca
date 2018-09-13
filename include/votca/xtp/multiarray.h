@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_MULTIARRAY__H
-#define	__XTP_MULTIARRAY__H
+#ifndef VOTCA_XTP_MULTIARRAY_H
+#define	VOTCA_XTP_MULTIARRAY_H
 
 #define BOOST_DISABLE_ASSERTS 
 #include <boost/multi_array.hpp>
@@ -38,5 +38,5 @@ typedef tensor4d::index index4d; /////////////////////
 
 
 
-#endif	/*XTP_MULTIARRAY__H */
+#endif	// VOTCA_XTP_MULTIARRAY_H
 

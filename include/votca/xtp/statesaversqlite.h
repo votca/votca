@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __VOTCA_MD2QM_StateSaverSQLite_H
-#define	__VOTCA_MD2QM_StateSaverSQLite_H
+#ifndef VOTCA_MD2QM_STATE_SAVER_SQLITE_H
+#define	VOTCA_MD2QM_STATE_SAVER_SQLITE_H
 
 #include <stdio.h>
 #include <map>
@@ -85,5 +85,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_MD2QM_StateSaverSQLite2_H */
+#endif	// VOTCA_MD2QM_STATE_SAVER_SQLITE_H
 

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_BSE_H
-#define _VOTCA_XTP_BSE_H
+#ifndef VOTCA_XTP_BSE_H
+#define VOTCA_XTP_BSE_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
@@ -172,4 +172,4 @@ xtp::Logger *_log;
 }
 }
 
-#endif /* _VOTCA_XTP_BSE_H */
+#endif // VOTCA_XTP_BSE_H

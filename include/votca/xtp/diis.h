@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DIIS__H
-#define _VOTCA_XTP_DIIS__H
+#ifndef VOTCA_XTP_DIIS_H
+#define VOTCA_XTP_DIIS_H
 
 
 
@@ -68,5 +68,5 @@ public:
     
 }}
 
-#endif	
+#endif // VOTCA_XTP_DIIS_H	
 

@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_EWALDND_H
-#define __VOTCA_XTP_EWALDND_H
+#ifndef VOTCA_XTP_EWALDND_H
+#define VOTCA_XTP_EWALDND_H
 
 #include <votca/xtp/ewaldactor.h>
 #include <votca/xtp/xjob.h>
@@ -301,4 +301,4 @@ protected:
 }}
 
 
-#endif // __VOTCA_XTP_EWALDND_H
+#endif // VOTCA_XTP_EWALDND_H

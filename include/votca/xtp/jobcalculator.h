@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_JOBCALCULATOR_H
-#define __VOTCA_XTP_JOBCALCULATOR_H
+#ifndef VOTCA_XTP_JOBCALCULATOR_H
+#define VOTCA_XTP_JOBCALCULATOR_H
 
 
 #include <votca/xtp/qmcalculator.h>
@@ -55,5 +55,5 @@ protected:
 
 }}
 
-#endif // __VOTCA_XTP_JOBCALCULATOR_H
+#endif // VOTCA_XTP_JOBCALCULATOR_H
 

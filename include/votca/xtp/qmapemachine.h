@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMAPEMACHINE__H
-#define	__QMAPEMACHINE__H
+#ifndef VOTCA_XTP_QMAPEMACHINE_H
+#define	VOTCA_XTP_QMAPEMACHINE_H
 
 
 
@@ -99,4 +99,5 @@ private:
 
 }}
 
-#endif
+#endif // VOTCA_XTP_QMAPEMACHINE_H
+

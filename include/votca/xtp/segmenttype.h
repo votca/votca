@@ -18,8 +18,8 @@
  */
 /// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_SEGMENT_TYPE_H
-#define	__VOTCA_XTP_SEGMENT_TYPE_H
+#ifndef VOTCA_XTP_SEGMENT_TYPE_H
+#define	VOTCA_XTP_SEGMENT_TYPE_H
 
 #include <string>
 
@@ -79,5 +79,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_XTP_SEGMENT_TYPE_H */
+#endif	// VOTCA_XTP_SEGMENT_TYPE_H 
 

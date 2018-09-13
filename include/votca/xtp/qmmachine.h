@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMMACHINE__H
-#define	__QMMACHINE__H
+#ifndef VOTCA_XTP_QMMACHINE_H
+#define	VOTCA_XTP_QMMACHINE_H
 
 #include <votca/xtp/xjob.h>
 #include <votca/xtp/xinductor.h>
@@ -91,4 +91,5 @@ private:
 
 }}
 
-#endif
+#endif //  VOTCA_XTP_QMMACHINE_H
+

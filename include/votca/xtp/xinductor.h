@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_XINDUCTOR_H
-#define	__VOTCA_XTP_XINDUCTOR_H
+#ifndef VOTCA_XTP_XINDUCTOR_H
+#define	VOTCA_XTP_XINDUCTOR_H
 
 #include <votca/xtp/topology.h>
 #include <votca/xtp/polarseg.h>
@@ -529,5 +529,5 @@ private:
 }}
 
 
-#endif // __VOTCA_XTP_XINDUCTOR_H
+#endif // VOTCA_XTP_XINDUCTOR_H
 

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_ORBITALS_H
-#define __VOTCA_XTP_ORBITALS_H
+#ifndef VOTCA_XTP_ORBITALS_H
+#define VOTCA_XTP_ORBITALS_H
 
 #include <votca/xtp/eigen.h>
 
@@ -695,4 +695,4 @@ namespace votca {
 }
 
 
-#endif /* __VOTCA_XTP_ORBITALS_H */
+#endif // VOTCA_XTP_ORBITALS_H 

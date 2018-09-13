@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_EIGEN__H
-#define	__XTP_EIGEN__H
+#ifndef VOTCA_XTP_EIGEN_H
+#define	VOTCA_XTP_EIGEN_H
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
 #if (GWBSE_DOUBLE)
@@ -41,5 +41,5 @@ namespace votca {
 
 
 
-#endif	/*XTP_EIGEN__H */
+#endif	// VOTCA_XTP_EIGEN_H 
 

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_KMC_GLINK_H
-#define _VOTCA_KMC_GLINK_H
+#ifndef VOTCA_XTP_GLINK_H
+#define VOTCA_XTP_GLINK_H
 #include <votca/tools/vec.h>
 
 namespace votca {
@@ -35,4 +35,4 @@ struct GLink {
 }
 }
 
-#endif  // _VOTCA_KMC_GLINK_H
+#endif  // VOTCA_XTP_GLINK_H

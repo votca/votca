@@ -66,5 +66,5 @@ inline QMCalculator* ExtractorFactory::Create(const std::string &key)
 
 }}
 
-#endif	/* VOTCA_XTP_EXTRACTORFACTORY_H.h */
+#endif	// VOTCA_XTP_EXTRACTORFACTORY_H
 

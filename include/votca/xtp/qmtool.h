@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_QMTOOL_H
-#define __VOTCA_XTP_QMTOOL_H
+#ifndef VOTCA_XTP_QMTOOL_H
+#define VOTCA_XTP_QMTOOL_H
 
 #include <votca/tools/property.h>
 #include <votca/xtp/qmcalculator.h>
@@ -48,4 +48,4 @@ private:
 
 }}
 
-#endif // __VOTCA_XTP_QMTOOL_H 
+#endif // VOTCA_XTP_QMTOOL_H 

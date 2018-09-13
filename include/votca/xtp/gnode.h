@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_KMC_GNODE_H
-#define	_VOTCA_KMC_GNODE_H
+#ifndef VOTCA_XTP_GNODE_H
+#define	VOTCA_XTP_GNODE_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/glink.h>
@@ -61,5 +61,5 @@ class GNode
 
 }}
 
-#endif	/* _VOTCA_KMC_GNODE_H */
+#endif	// VOTCA_XTP_GNODE_H
 

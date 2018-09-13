@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_PROGRESSOBSERVER_H
-#define __VOTCA_XTP_PROGRESSOBSERVER_H
+#ifndef VOTCA_XTP_PROGRESSOBSERVER_H
+#define VOTCA_XTP_PROGRESSOBSERVER_H
 
 #include <vector>
 #include <iostream>
@@ -111,5 +111,5 @@ void UPDATE_JOBS(JobContainer &from, JobContainer &to, std::string thisHost);
 }}
 
 
-#endif // __VOTCA_XTP_PROGRESSOBSERVER_H
+#endif // VOTCA_XTP_PROGRESSOBSERVER_H
 

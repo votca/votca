@@ -16,8 +16,8 @@
  * author: Kordt
  */
 
-#ifndef __VOTCA_CHARGECARRIER_H
-#define	__VOTCA_CHARGECARRIER_H
+#ifndef VOTCA_XTP_CHARGECARRIER_H
+#define	VOTCA_XTP_CHARGECARRIER_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/gnode.h>
@@ -73,4 +73,4 @@ namespace votca { namespace xtp {
 }}
 
 
-#endif	/* __VOTCA_CHARGECARRIER_H */
+#endif	// VOTCA_XTP_CHARGECARRIER_H

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_FORCES__H
-#define __XTP_FORCES__H
+#ifndef VOTCA_XTP_FORCES_H
+#define VOTCA_XTP_FORCES_H
 
 
 #include <votca/xtp/qmatom.h>
@@ -75,4 +75,4 @@ namespace votca {
 
     }
 }
-#endif /* FORCES_H */
+#endif // VOTCA_XTP_FORCES_H

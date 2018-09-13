@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __QMITER__H
-#define	__QMITER__H
+#ifndef VOTCA_XTP_QMITER_H
+#define	VOTCA_XTP_QMITER_H
 
 namespace votca { namespace xtp {
 
@@ -85,4 +85,4 @@ private:
     
 }}
 
-#endif
+#endif // VOTCA_XTP_QMITER_H

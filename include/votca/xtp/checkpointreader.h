@@ -13,8 +13,8 @@
  * limitations under the License.
  *
  */
-#ifndef _VOTCA_XTP_CHECKPOINT_READER_H
-#define _VOTCA_XTP_CHECKPOINT_READER_H
+#ifndef VOTCA_XTP_CHECKPOINT_READER_H
+#define VOTCA_XTP_CHECKPOINT_READER_H
 
 #include <votca/xtp/eigen.h>
 #include <H5Cpp.h>
@@ -163,4 +163,4 @@ private:
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // _VOTCA_XTP_CHECKPOINT_READER_H
+#endif  // VOTCA_XTP_CHECKPOINT_READER_H

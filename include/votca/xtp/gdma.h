@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_GDMA_H
-#define	__VOTCA_XTP_GDMA_H
+#ifndef VOTCA_XTP_GDMA_H
+#define	VOTCA_XTP_GDMA_H
 
 #include <string>
 #include <map>
@@ -77,5 +77,5 @@ private:
 };
 }}
 
-#endif	/* __VOTCA_XTP_GDMA_H */
+#endif	// VOTCA_XTP_GDMA_H 
 

@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_FOURCENTER__H
-#define	__XTP_FOURCENTER__H
+#ifndef VOTCA_XTP_FOURCENTER_H
+#define	VOTCA_XTP_FOURCENTER_H
 
 
 #include <votca/xtp/eigen.h>
@@ -50,5 +50,5 @@ namespace votca { namespace xtp {
 
 }}
 
-#endif	/* FOURCENTER_H */
+#endif	// VOTCA_XTP_FOURCENTER_H
 

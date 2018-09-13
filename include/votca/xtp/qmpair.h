@@ -18,8 +18,8 @@
  */
 /// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef _VOTCA_XTP_QMPAIR_H
-#define _VOTCA_XTP_QMPAIR_H
+#ifndef VOTCA_XTP_QMPAIR_H
+#define VOTCA_XTP_QMPAIR_H
 
 #include <vector>
 #include <votca/tools/vec.h>
@@ -169,4 +169,4 @@ protected:
 }}
 
 
-#endif // _VOTCA_XTP_QMPAIR_H
+#endif // VOTCA_XTP_QMPAIR_H

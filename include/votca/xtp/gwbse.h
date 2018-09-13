@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_GWBSE_H
-#define _VOTCA_XTP_GWBSE_H
+#ifndef VOTCA_XTP_GWBSE_H
+#define VOTCA_XTP_GWBSE_H
 #include <votca/xtp/logger.h>
 #include <votca/tools/property.h>
 #include <fstream>
@@ -125,4 +125,4 @@ class GWBSE {
 }
 }
 
-#endif /* _VOTCA_XTP_GWBSE_H */
+#endif // VOTCA_XTP_GWBSE_H 

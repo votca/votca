@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_QMTOOLFACTORY__H
-#define	__VOTCA_XTP_QMTOOLFACTORY__H
+#ifndef VOTCA_XTP_QMTOOLFACTORY_H
+#define	VOTCA_XTP_QMTOOLFACTORY_H
 
 #include <votca/tools/objectfactory.h>
 #include <votca/xtp/qmtool.h>
@@ -46,5 +46,5 @@ inline QMToolFactory &QMTools()
 
 }}
 
-#endif	/* __VOTCA_XTP_QMTOOLFACTORY__H */
+#endif	// VOTCA_XTP_QMTOOLFACTORY_H 
 

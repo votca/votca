@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_MD2QM_VERSION_H
-#define	__VOTCA_MD2QM_VERSION_H
+#ifndef VOTCA_MD2QM_VERSION_H
+#define	VOTCA_MD2QM_VERSION_H
 
 #include <string>
 /**
@@ -30,5 +30,6 @@ namespace votca { namespace xtp {
     void HelpTextHeader(const std::string &tool_name);
 }}
 
-#endif
+#endif //  VOTCA_MD2QM_VERSION_H
+
 

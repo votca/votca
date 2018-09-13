@@ -66,5 +66,5 @@ inline xtp::JobCalculator* JobCalculatorfactory::Create(const std::string &key)
 
 }}
 
-#endif	/* _Calculatorfactory_H */
+#endif	// VOTCA_XTP_JOBCALCULATORFACTORY_H
 

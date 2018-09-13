@@ -19,8 +19,8 @@
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 
-#ifndef __VOTCA_XTP_POLARTOP_H
-#define	__VOTVA_XTP_POLARTOP_H
+#ifndef VOTCA_XTP_POLARTOP_H
+#define	VOTVA_XTP_POLARTOP_H
 
 #include <votca/xtp/polarseg.h>
 #include <votca/xtp/topology.h>
@@ -138,4 +138,4 @@ private:
 
 }}
 
-#endif // __VOTCA_XTP_POLARTOP_H
+#endif // VOTCA_XTP_POLARTOP_H

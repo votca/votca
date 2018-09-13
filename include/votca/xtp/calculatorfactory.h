@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_CALCULATORFACTORY_H
-#define	__VOTCA_XTP_CALCULATORFACTORY_H
+#ifndef VOTCA_XTP_CALCULATORFACTORY_H
+#define	VOTCA_XTP_CALCULATORFACTORY_H
 
 #include <map>
 #include <votca/tools/objectfactory.h>
@@ -64,5 +64,6 @@ inline xtp::QMCalculator* Calculatorfactory::Create(const std::string &key){
 
 }}
 
-#endif	/* _Calculatorfactory_H */
+#endif // VOTCA_XTP_CALCULATORFACTORY_H
+
 

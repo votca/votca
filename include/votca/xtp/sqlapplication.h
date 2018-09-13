@@ -72,7 +72,7 @@ protected:
 
 
 
-#endif /* _QMApplication_H */
+#endif // VOTCA_XTP_SQLAPPLICATION_H
 
 
 

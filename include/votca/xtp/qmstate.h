@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_QMSTATE_H
-#define _VOTCA_XTP_QMSTATE_H
+#ifndef VOTCA_XTP_QMSTATE_H
+#define VOTCA_XTP_QMSTATE_H
 
 #include<string>
 
@@ -132,4 +132,4 @@ private:
 }
 }
 
-#endif /* _VOTCA_XTP_QMSTATE_H */
+#endif // VOTCA_XTP_QMSTATE_H 

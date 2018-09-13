@@ -18,8 +18,8 @@
  */
 /// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __VOTCA_XTP_XJOB_H
-#define	__VOTCA_XTP_XJOB_H
+#ifndef VOTCA_XTP_XJOB_H
+#define	VOTCA_XTP_XJOB_H
 
 #include <votca/xtp/topology.h>
 #include <votca/xtp/job.h>
@@ -238,5 +238,5 @@ JobContainer XJOBS_FROM_TABLE(const std::string &job_file, Topology *top);
     
 }}
 
-#endif // __VOTCA_XTP_XJOB_H
+#endif // VOTCA_XTP_XJOB_H
 

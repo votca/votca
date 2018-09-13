@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_SYMMETRIC_MATRIX__H
-#define	__XTP_SYMMETRIC_MATRIX__H
+#ifndef VOTCA_XTP_SYMMETRIC_MATRIX_H
+#define	VOTCA_XTP_SYMMETRIC_MATRIX_H
 
 
 
@@ -83,5 +83,5 @@ private:
  
 }}
 
-#endif	/* AOBASIS_H */
+#endif	// VOTCA_XTP_SYMMETRIC_MATRIX_H
 

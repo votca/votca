@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __XTP_LEBEDEV__H
-#define	__XTP_LEBEDEV__H
+#ifndef VOTCA_XTP_LEBEDEV_H
+#define	VOTCA_XTP_LEBEDEV_H
 
 
 #include <votca/tools/property.h>
@@ -418,4 +418,4 @@ namespace votca {
 
     }
 }
-#endif	/* LEBEDEV_H */
+#endif	// VOTCA_XTP_LEBEDEV_H
