@@ -39,7 +39,7 @@ class JobApplication : public XtpApplication
 public:
     JobApplication();
    ~JobApplication() {
-       for (ctp::JobCalculator* calculator : _calculators) {
+       for (xtp::JobCalculator* calculator : _calculators) {
             delete calculator;
         } 
    };

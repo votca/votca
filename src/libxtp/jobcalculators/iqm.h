@@ -22,7 +22,7 @@
 
 #include <votca/tools/property.h>
 
-#include <votca/ctp/parallelxjobcalc.h>
+#include <votca/xtp/parallelxjobcalc.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/gwbse.h>
@@ -42,25 +42,25 @@ namespace votca { namespace xtp {
 * Callname: iqm
 */
 
-class IQM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
+class IQM : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
 public:
    
     void    Initialize(tools::Property *options ); 
     string  Identify() { return "iqm"; }   
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);  
-    void WriteJobFile(ctp::Topology *top);
-    void ReadJobFile( ctp::Topology *top );
+    xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *Thread);  
+    void WriteJobFile(xtp::Topology *top);
+    void ReadJobFile( xtp::Topology *top );
 
 private:
     
     double GetBSECouplingFromProp(tools::Property& bseprop,const QMState& stateA,const QMState& stateB);
     double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
-    void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
-    void WriteLoggerToFile(const string& logfile, ctp::Logger& logger);
-    void addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top);
+    void SetJobToFailed(xtp::Job::JobResult& jres, xtp::Logger* pLog, const string& errormessage);
+    void WriteLoggerToFile(const string& logfile, xtp::Logger& logger);
+    void addLinkers(std::vector< xtp::Segment* > &segments, xtp::Topology *top);
     bool isLinker(const std::string& name);
-    void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
+    void WriteCoordinatesToOrbitalsPBC(xtp::QMPair& pair, Orbitals& orbitals);
     void ParseOptionsXML( tools::Property &opt);    
     std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
     

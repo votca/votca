@@ -228,14 +228,6 @@ void XtpMap::Save(string mode) {
 
     _statsav.WriteFrame();
 
-    if (TOOLS::globals::verbose) {
-        XTP::Topology *TopSQL = NULL;
-        TopSQL = _statsav.getTopology();
-        cout << endl << "Checking topology read from SQL file." << endl;
-        string pdbfile = "system.pdb";
-        _md2qm.CheckProduct(TopSQL, pdbfile);
-    }
-
     _statsav.Close();
 
 }

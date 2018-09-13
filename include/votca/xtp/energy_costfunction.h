@@ -72,7 +72,7 @@ namespace votca {
                 _convpara = convergence;
             }
             
-            void setLog(ctp::Logger* pLog) {
+            void setLog(xtp::Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -95,7 +95,7 @@ namespace votca {
             conv_paras _convpara;
             conv_paras _convval;
             
-            ctp::Logger *_pLog;
+            xtp::Logger *_pLog;
 
             
             

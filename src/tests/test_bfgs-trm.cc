@@ -19,7 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/optimiser_costfunction.h>
 #include <votca/xtp/bfgs-trm.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <iostream>
 #include <boost/format.hpp>
 using namespace votca::xtp;

@@ -21,7 +21,7 @@
 #define _VOTCA_XTP_STATEFILTER_H
 
 #include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmstate.h>
 
 
@@ -40,7 +40,7 @@ public:
     Statefilter():_use_oscfilter(false),_use_overlapfilter(false),
             _use_localisationfilter(false),_use_dQfilter(false){;}
     void Initialize(tools::Property& options);
-    void setLogger(ctp::Logger* log){_log=log;}
+    void setLogger(xtp::Logger* log){_log=log;}
     void setInitialState(const QMState& state ){_statehist.push_back(state);}
     void PrintInfo()const;
     QMState CalcStateAndUpdate(Orbitals& orbitals);
@@ -62,7 +62,7 @@ private:
     std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
 
 QMState _state;    
-ctp::Logger *_log;
+xtp::Logger *_log;
  
 std::vector<QMState> _statehist;
 

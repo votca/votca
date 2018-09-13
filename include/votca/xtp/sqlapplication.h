@@ -40,7 +40,7 @@ public:
     SqlApplication();
 
     ~SqlApplication() {
-        for (ctp::QMCalculator* calculator : _calculators) {
+        for (xtp::QMCalculator* calculator : _calculators) {
             delete calculator;
         }
     };

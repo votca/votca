@@ -28,7 +28,7 @@
 namespace votca {
     namespace xtp {
 
-    int QMStateType::ToCTPIndex()const {
+    int QMStateType::ToXTPIndex()const {
       if (_type == QMStateType::Singlet) {
         return 2;
       } else if (_type == QMStateType::Triplet) {

@@ -113,43 +113,14 @@ bool XtpTools::EvaluateOptions() {
     for (const std::string& n :tok) {
       // loop over tools
       bool printerror = true;
-<<<<<<< HEAD
-      for (xtp::QMToolFactory::assoc_map::const_iterator iter = xtp::QMTools().getObjects().begin();
-          iter != xtp::QMTools().getObjects().end(); ++iter) {
-
-        if ((*n).compare((iter->first).c_str()) == 0) {
-          PrintDescription(std::cout, iter->first, helpdir, Application::HelpLong);
-=======
       for ( const auto& tool:xtp::QMTools().getObjects()) {
         if (n.compare(tool.first.c_str()) == 0) {
           PrintDescription(std::cout, tool.first, helpdir, Application::HelpLong);
->>>>>>> development
           printerror = false;
           break;
         }
       }
-<<<<<<< HEAD
-      if (printerror) cout << "Tool " << *n << " does not exist\n";
-=======
-      for (const auto& tool:ctp::QMTools().getObjects()) {
-        if (n.compare(tool.first.c_str()) == 0) {
-          bool printctp = true;
-          std::string ctpcalc = tool.first.c_str();
-          for (const auto& xtptool:xtp::QMTools().getObjects()) {
-            if (ctpcalc.compare(xtptool.first.c_str()) == 0) {
-              printctp = false;
-              break;
-            }
-          }
-          if (printctp) {
-            PrintDescription(std::cout, tool.first, "ctp/xml", Application::HelpLong);
-            printerror = false;
-            break;
-          }
-        }
-      }
       if (printerror) cout << "Tool " << n << " does not exist\n";
->>>>>>> development
     }
     StopExecution();
     return true;
@@ -162,35 +133,15 @@ bool XtpTools::EvaluateOptions() {
   tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string& n :xtools) {
     bool _found_calc = false;
-<<<<<<< HEAD
-    for (xtp::QMToolFactory::assoc_map::const_iterator iter = xtp::QMTools().getObjects().begin();
-        iter != xtp::QMTools().getObjects().end(); ++iter) {
-      if ((*it).compare((iter->first).c_str()) == 0) {
-=======
     for (const auto& tool:xtp::QMTools().getObjects()) {
       if (n.compare(tool.first.c_str()) == 0) {
->>>>>>> development
         cout << " This is a XTP app" << endl;
         this->AddTool(xtp::QMTools().Create(n.c_str()));
         _found_calc = true;
       }
     }
     if (!_found_calc) {
-<<<<<<< HEAD
-      cout << "Tool " << *it << " does not exist\n";
-=======
-      for (const auto& tool:ctp::QMTools().getObjects()) {
-
-        if (n.compare(tool.first.c_str()) == 0) {
-          cout << " This is a CTP app" << endl;
-           this->AddTool(ctp::QMTools().Create(n.c_str()));
-            _found_calc = true;
-        }
-      }
-    }
-    if (!_found_calc) {
       cout << "Tool " << n << " does not exist\n";
->>>>>>> development
       StopExecution();
     }else{
       cout << "Registered " << n << endl;
@@ -218,33 +169,19 @@ void XtpTools::Run() {
 }
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
-<<<<<<< HEAD
-  list< xtp::QMTool* > ::iterator it;
-  for (it = _tools.begin(); it != _tools.end(); it++) {
-    cout << "... " << (*it)->Identify() << " " << flush;
-    (*it)->setnThreads(nThreads);
-    (*it)->Initialize(&_options);
-=======
-  for (ctp::QMTool* tool: _tools) {
+  for (xtp::QMTool* tool: _tools) {
     cout << "... " << tool->Identify() << " " << flush;
     tool->setnThreads(nThreads);
     tool->Initialize(&_options);
->>>>>>> development
     cout << endl;
   }
 }
 
 bool XtpTools::Evaluate() {
-<<<<<<< HEAD
-  list< xtp::QMTool* > ::iterator it;
-  for (it = _tools.begin(); it != _tools.end(); it++) {
-    cout << "... " << (*it)->Identify() << " " << flush;
-    (*it)->Evaluate();
-=======
-for (ctp::QMTool* tool: _tools) {
+
+  for (xtp::QMTool* tool: _tools) {
     cout << "... " << tool->Identify() << " " << flush;
     tool->Evaluate();
->>>>>>> development
     cout << endl;
   }
 
@@ -252,14 +189,8 @@ for (ctp::QMTool* tool: _tools) {
 }
 
 void XtpTools::EndEvaluate() {
-<<<<<<< HEAD
-  list< xtp::QMTool* > ::iterator it;
-  for (it = _tools.begin(); it != _tools.end(); it++) {
-    (*it)->EndEvaluate();
-=======
-for (ctp::QMTool* tool: _tools) {
+  for (xtp::QMTool* tool: _tools) {
     tool->EndEvaluate();
->>>>>>> development
   }
 }
 
