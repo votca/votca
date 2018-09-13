@@ -34,52 +34,49 @@ namespace votca {
 
 
         // ========================================================================== //
-        // QMPackage base class for wrappers of TURBOMOLE, GAUSSIAN, etc              //
+        // QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc              //
         // ========================================================================== //
 
         class QMPackage {
         public:
 
-            QMPackage() {
-            };
-
+            static std::vector<std::string> FindUniqueElements(const std::vector<QMAtom*> atoms);
+   
             virtual ~QMPackage() {
             };
 
             virtual std::string getPackageName() = 0;
 
 
-            virtual void Initialize(tools::Property *options) = 0;
+            virtual void Initialize(tools::Property &options) = 0;
 
             /// writes a coordinate file WITHOUT taking into account PBCs
-            virtual bool WriteInputFile(std::vector< xtp::Segment* > segments, Orbitals* orbitals = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {}) = 0;
+            virtual bool WriteInputFile(Orbitals& orbitals) = 0;
 
-            /// writes a coordinate file of a pair WITH PBCs and the orbital guess [if needed]
-            bool WriteInputFilePBC(xtp::QMPair* pair, Orbitals* orbitals = NULL, std::vector<std::string> linker_names ={});
+            virtual bool Run(Orbitals& orbitals) = 0;
 
-            virtual bool Run(Orbitals* _orbitals = NULL) = 0;
+            virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
-            virtual bool ParseLogFile(Orbitals* _orbitals) = 0;
-
-            virtual bool ParseOrbitalsFile(Orbitals* _orbitals) = 0;
-
-            virtual bool setMultipoleBackground( std::vector<xtp::PolarSeg*> PolarSegments) = 0;
+            virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
 
             virtual void CleanUp() = 0;
+            
+            
+            void setMultipoleBackground( std::vector<std::shared_ptr<xtp::PolarSeg> > PolarSegments);
 
-            void setRunDir(std::string run_dir) {
+            void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
             }
 
-            void setInputFileName(std::string input_file_name) {
+            void setInputFileName(const std::string& input_file_name) {
                 _input_file_name = input_file_name;
             }
 
-            void setLogFileName(std::string log_file_name) {
+            void setLogFileName(const std::string& log_file_name) {
                 _log_file_name = log_file_name;
             }
 
-            void setOrbitalsFileName(std::string orb_file) {
+            void setOrbitalsFileName(const std::string& orb_file) {
                 _orb_file_name = orb_file;
             }
 
@@ -115,11 +112,11 @@ namespace votca {
                 _get_charges = do_get_charges;
             }
 
-            std::string getBasisSetName() {
+            const std::string& getBasisSetName() {
                 return _basisset_name;
             }
 
-            std::string getExecutable() {
+            const std::string& getExecutable() {
                 return _executable;
             };
 
@@ -134,7 +131,16 @@ namespace votca {
             }
 
         protected:
-
+            virtual void WriteChargeOption() =0;
+             std::vector<std::vector<double> > SplitMultipoles(xtp::APolarSite* site);
+            void ReorderOutput(Orbitals& _orbitals);
+            void ReorderMOsBack(Orbitals& _orbitals);
+            void addLinkers(std::vector< xtp::Segment* > &segments, xtp::QMPair* pair, std::vector< std::string> linker_names );
+            bool isLinker( std::string name, std::vector< std::string> linker_names );
+            
+            
+            std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,const std::string separators );
+            
             int _charge;
             int _spin; // 2S+1
             int _threads;
@@ -144,7 +150,6 @@ namespace votca {
             std::string _executable;
             std::string _input_file_name;
             std::string _log_file_name;
-            std::string _xyz_file_name;
             std::string _orb_file_name;
 
             std::string _run_dir;
@@ -158,7 +163,7 @@ namespace votca {
             bool _get_orbitals;
             bool _get_overlap;
             bool _get_charges;
-            bool _get_self_energy;
+            
 
             bool _write_guess;
             bool _write_charges;
@@ -169,14 +174,10 @@ namespace votca {
 
             xtp::Logger* _pLog;
 
+            
+            std::vector<std::shared_ptr<xtp::PolarSeg>  >_PolarSegments;
             double _dpl_spacing;
             bool _with_polarization;
-            std::vector<std::vector<double> > SplitMultipoles(xtp::APolarSite* site);
-            void ReorderOutput(Orbitals* _orbitals);
-            void ReorderMOsBack(Orbitals* _orbitals);
-            void addLinkers(std::vector< xtp::Segment* > &segments, xtp::QMPair* pair, std::vector< std::string> linker_names );
-            bool isLinker( std::string name, std::vector< std::string> linker_names );
-
             
         };
         

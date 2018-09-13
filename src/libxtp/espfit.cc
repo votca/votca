@@ -37,8 +37,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& atomlist,const Eigen::MatrixXd 
 
     // setting up grid
     Grid grid;
-    grid.setAtomlist(&atomlist);
-    grid.setupCHELPgrid();
+    grid.setupCHELPGGrid(atomlist);
     XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<  " Done setting up CHELPG grid with " << grid.getsize() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
@@ -48,7 +47,7 @@ void Espfit::Fit2Density(std::vector< QMAtom* >& atomlist,const Eigen::MatrixXd 
    
     NumericalIntegration numway;
 
-    numway.GridSetup(gridsize,atomlist,&basis);
+    numway.GridSetup(gridsize,atomlist,basis);
     XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Setup "<<gridsize<<" Numerical Grid with "<<numway.getGridSize()<<" gridpoints."<< flush;
     double N=numway.IntegrateDensity(dmat);
     XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculated Densities at Numerical Grid, Number of electrons is "<< N << flush;
@@ -128,8 +127,7 @@ double Espfit::getNetcharge(const std::vector< QMAtom* >& atoms, double N ){
 void Espfit::Fit2Density_analytic(std::vector< QMAtom* >& atomlist,const Eigen::MatrixXd &dmat,const AOBasis &basis) {
     // setting up grid
     Grid grid;
-    grid.setAtomlist(&atomlist);
-    grid.setupCHELPgrid();
+    grid.setupCHELPGGrid(atomlist);
 
     XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<  " Done setting up CHELPG grid with " << grid.getsize() << " points " << std::endl;
     // Calculating nuclear potential at gridpoints
@@ -181,6 +179,7 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
             Amat(_j,_i) = Amat(_i,_j);
         }
     }
+
      // setting up Bvec
     #pragma omp parallel for
     for ( unsigned _i =0 ; _i < atomlist.size(); _i++){
@@ -189,7 +188,6 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
                 Bvec(_i) += potential(_k)/dist_i;
         }
        }
-    
     //Total charge constraint
     for ( unsigned _i =0 ; _i < atomlist.size()+1; _i++){
       Amat(_i,atomlist.size()) = 1.0;
@@ -219,20 +217,16 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
      }
 
     XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Solving linear Equation "<< flush;
-    std::cout<<Amat<<std::endl;
-    std::cout<<Bvec<<std::endl;
     Eigen::VectorXd charges;
     if(_do_svd){
-      std::cout<<"hello"<<std::endl;
       Eigen::JacobiSVD<Eigen::MatrixXd> svd;
-      std::cout<<"hello2"<<std::endl;
-      //svd.setThreshold(_conditionnumber);
-      std::cout<<"hello3"<<std::endl;
+      svd.setThreshold(_conditionnumber);
       svd.compute(Amat,Eigen::ComputeThinU | Eigen::ComputeThinV);
-      std::cout<<"hello4"<<std::endl;
       charges=svd.solve(Bvec);
-      std::cout<<"hello5"<<std::endl;
-      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << "SVD Done. "<<Bvec.size()-svd.nonzeroSingularValues()<<" could not be fitted and are set to zero."<< flush;
+      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " SVD Done. "<<flush;
+      if((Bvec.size()-svd.nonzeroSingularValues())!=0){
+        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<Bvec.size()-svd.nonzeroSingularValues()<<" Sites could not be fitted and are set to zero."<< flush;
+      }
     }
     else{
       Eigen::ColPivHouseholderQR<Eigen::MatrixXd> QR(Amat);
@@ -240,11 +234,10 @@ void Espfit::FitPartialCharges( std::vector< QMAtom* >& atomlist,const Grid& gri
         throw std::runtime_error("Espfit: Solving the constrained equation failed. Maybe try SVD.");
       }
       charges=QR.solve(Bvec);
+      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Solved linear least square fit ."<< flush;
     }
-
     //remove constraint
     charges.conservativeResize(atomlist.size());
-    XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Inverting Matrices done."<< flush;
    
     XTP_LOG(xtp::logDEBUG, *_log) << " Sum of fitted charges: " << charges.sum() << flush;
     for (unsigned i=0;i<atomlist.size();i++){

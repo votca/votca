@@ -18,7 +18,7 @@
  */
 
 #ifndef _CALC_COUPLING_EXCL_H
-#define	_CALC_COUPLING_EXCL_H
+#define _CALC_COUPLING_EXCL_H
 
 #include <votca/tools/property.h>
 
@@ -27,61 +27,48 @@
 #include <boost/filesystem.hpp>
 #include <votca/xtp/xmapper.h>
 #include <votca/xtp/xjob.h>
+#include <votca/xtp/qmstate.h>
 
-namespace votca { namespace xtp {
-    
-/**
-* \brief Evaluates Transition Charge distributions classically
-*
-* Evaluates the electrostatic classical coupling between molecules in 
-* their excited states.
-* 
+namespace votca {
+    namespace xtp {
 
-* 
-* Callname: iexcitoncl
-*/
+        /**
+         * \brief Evaluates Transition Charge distributions classically
+         *
+         * Evaluates the electrostatic classical coupling between molecules in 
+         * their excited states.
+         * Callname: iexcitoncl
+         */
 
-class IEXCITON : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
-{
-public:
+        class IEXCITON : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult > {
+        public:
 
-    IEXCITON() {};
-   ~IEXCITON() {};
-   
-    void    Initialize(tools::Property *options );
-    
-    string  Identify() { return "iexcitoncl"; }
-    
-    xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *Thread);
+            void Initialize(tools::Property *options);
 
-    void WriteJobFile(xtp::Topology *top);
-    void ReadJobFile(xtp::Topology *top);
+            string Identify() {
+                return "iexcitoncl";
+            }
 
-    
+            xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *Thread);
 
-private:
+            void WriteJobFile(xtp::Topology *top);
+            void ReadJobFile(xtp::Topology *top);
 
-    
-    double                              _cutoff;
-    double                              _epsilon;
-    xtp::XMpsMap                        _mps_mapper;
-    bool                           _induce;
-    int                           _statenumber;
-    string                         _emp_file;
-    string                         _xml_file;
+        private:
+            QMState GetElementFromMap(const std::string& elementname )const;
+            std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
+            double _cutoff;
+            double _epsilon;
+            xtp::XMpsMap _mps_mapper;
+            bool _induce;
+            std::map<std::string,QMState> _statemap;
+            string _emp_file;
+            string _xml_file;
+            void PreProcess(xtp::Topology *top);
+            double EvaluatePair(xtp::Topology *top, xtp::PolarSeg* Seg1, xtp::PolarSeg* Seg2, xtp::Logger* pLog);
 
-        
+        };
 
-        
-    
-    void PreProcess(xtp::Topology *top);
-    void CustomizeLogger(xtp::QMThread *thread);
-    double EvaluatePair(xtp::Topology *top,xtp::PolarSeg* Seg1,xtp::PolarSeg* Seg2, xtp::Logger* pLog);
- 
-    
- 
-        
-};
-
-}}
-#endif	/* _CALC_INTEGRALS_DFT_H */
+    }
+}
+#endif /* _CALC_INTEGRALS_DFT_H */

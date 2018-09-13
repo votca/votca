@@ -1,0 +1,48 @@
+<options>
+
+<!-- xtp_tools -e exciton options.xml -->
+<dftgwbse help="Electronic Excitations using GW-BSE">
+
+        <dftpackage help="Package for DFT ground state">orca_gwbse.xml</dftpackage>
+
+        <mode help="Calculator mode: energy or optimize">energy</mode>
+        <reporting>noisy</reporting>
+        <archive>system.orb</archive>
+        <molecule>system.xyz</molecule>
+
+        <gwbse_engine>
+            <tasks help="guess,input,dft,parse,gwbse">input,dft,parse,gwbse</tasks>
+            <dftlog>system.log</dftlog>
+            <mofile>system.gbw</mofile>
+            <gwbse_options>mbgft.xml</gwbse_options>
+            <redirect_logger>0</redirect_logger>
+        </gwbse_engine>
+
+        <geometry_optimization>
+            <state>s1</state>
+            <filter>
+                <oscillator_strength>0.001</oscillator_strength>
+            </filter>
+            <convergence help="Convergence criteria for geometry optimization">
+                    <energy help="default: 1.e-6 Hartree">0.01</energy>
+                    <RMSForce help="default: 3.e-5 Hartree/Bohr">0.01</RMSForce>
+                    <MaxForce help="default: 1.e-4 Hartree/Bohr">0.01</MaxForce>
+                    <RMSStep help="default: 6.e-4 Bohr">0.01</RMSStep>
+                    <MaxStep help="default: 1.e-3 Bohr">0.01</MaxStep>
+            </convergence>
+
+            <optimizer>
+                <method>BFGS-TRM</method>
+                <trust>0.01</trust>
+            </optimizer>
+            <forces>
+                <method>central</method>
+                <removal>total</removal>
+                <displacement help="default: 0.001 Angstrom">0.01</displacement>
+            </forces>
+        </geometry_optimization>
+
+
+</dftgwbse>
+
+</options>

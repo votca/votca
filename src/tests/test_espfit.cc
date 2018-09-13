@@ -22,7 +22,6 @@
 
 #include "votca/xtp/orbitals.h"
 
-
 using namespace votca::xtp;
 using namespace std;
 
@@ -94,7 +93,7 @@ BOOST_AUTO_TEST_CASE(esp_charges){
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
  Eigen::MatrixXd dmat=Eigen::MatrixXd::Zero(17,17);       
  dmat<<0.00157507,0.0337454,4.48905e-16,-5.93152e-16,7.87133e-17,0.030876,2.51254e-16,-1.49094e-16,5.77899e-17,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,
@@ -116,9 +115,10 @@ BOOST_AUTO_TEST_CASE(esp_charges){
 -0.00445632,-0.095475,0.0402359,-0.0402359,0.0402359,-0.0873567,0.00569686,-0.00569686,0.00569686,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.00801753,0.0115445,-0.0230264,0.0157992;
   
   
-  Logger _log;
-  
-  Espfit esp=Espfit(&_log);
+  Logger log;
+ 
+  Espfit esp=Espfit(&log);
+  esp.setUseSVD(1e-8);
   esp.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
   Eigen::VectorXd pcharges=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
   int index=0;
@@ -165,7 +165,8 @@ std::pair<int,int> p2;
 p2.first=3;
 p2.second=4;
 pairconstraint.push_back(p2);
-Espfit esp2=Espfit(&_log);
+Espfit esp2=Espfit(&log);
+esp2.setUseSVD(1e-8);
 esp2.setPairConstraint(pairconstraint);
 esp2.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
 Eigen::VectorXd pcharges_equal=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
@@ -185,9 +186,9 @@ Espfit::region reg;
 reg.atomindices={1,2,3};
 reg.charge=1.0;
 regionconstraint.push_back(reg);
-Espfit esp3=Espfit(&_log);
+Espfit esp3=Espfit(&log);
 esp3.setRegionConstraint(regionconstraint);
-esp3.setUseSVD(1e8);
+esp3.setUseSVD(1e-8);
 esp3.Fit2Density(orbitals.QMAtoms(),dmat,aobasis,"medium");
 Eigen::VectorXd pcharges_reg=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
 index=0;

@@ -46,7 +46,8 @@ public:
          double charge;
      };
     
-    Espfit(xtp::Logger *log):_do_Transition(false),_do_svd(false) {_log = log;
+    Espfit(xtp::Logger *log):_do_Transition(false),_do_svd(true) {_log = log;
+    _conditionnumber=1e-8;
     _pairconstraint.resize(0);
     _regionconstraint.resize(0);
     }

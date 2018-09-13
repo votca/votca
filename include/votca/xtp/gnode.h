@@ -50,7 +50,7 @@ class GNode
         void AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out);
         const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
-        void AddDecayEvent(double _decayrate);
+        void AddDecayEvent(double decayrate);
         void ReadfromSegment(xtp::Segment* seg, int carriertype);
         void AddEventfromQmPair(xtp::QMPair* pair,int carriertype);
 };

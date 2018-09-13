@@ -24,17 +24,13 @@
 #include <votca/xtp/xjob.h>
 #include <votca/xtp/xinductor.h>
 #include <votca/xtp/xinteractor.h>
-// add gwbse header of excited state support
 #include <votca/xtp/gwbse.h>
-// --------
 #include <votca/xtp/qmmachine.h>
+#include <votca/xtp/polartop.h>
 #include <boost/format.hpp>
 
-
-using boost::format;
-
 namespace votca { namespace xtp {
-
+using boost::format;
 
 class QMMM : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
 {
@@ -63,23 +59,14 @@ private:
     // Polar-site mapping
     string                         _emp_file;
     string                         _xml_file;
-    xtp::XMpsMap                        _mps_mapper;
-
-    // Control over induction-state output
-    string                          _pdb_check;
-    bool                            _write_chk;
-    string                          _write_chk_suffix;
-    string                          _chk_format;
-
+    xtp::XMpsMap                   _mps_mapper;
 
     // ======================================== //
     // INDUCTION + ENERGY EVALUATION            //
     // ======================================== //
-
   
     // Multipole Interaction parameters
     string                          _method;
-    bool                            _useCutoff;
     double                          _cutoff1;
     double                          _cutoff2;
 
@@ -90,10 +77,6 @@ private:
     // GWBSE options
     string                          _gwbse;
     Property                        _gwbse_opt;
-
-    // XJob logbook (file output)
-    string                          _outFile;
-    bool                            _energies2File;
 
     Property                        _options;
 
@@ -118,94 +101,31 @@ void QMMM::Initialize(Property *options) {
     _maverick = (_nThreads == 1) ? true : false;
 
 
-    string key = "options."+Identify()+".mapping";
-
-        if ( options->exists(key) ) {
-            _xml_file = options->get(key).as< string >();
-        }
-
-    key = "options."+Identify();
-
-        if ( options->exists(key+".job_file")) {
-            _jobfile = options->get(key+".job_file").as<string>();
-        }
-        else {
-            throw std::runtime_error("Job-file not set. Abort.");
-        }
-
-        if ( options->exists(key+".emp_file")) {
-            _emp_file   = options->get(key+".emp_file").as<string>();
-        }
-        else {
-            _emp_file   = options->get(key+".emp_file").as<string>();
-        }
-
-        if ( options->exists(key+".output") ) {
-            _outFile = options->get(key+".output").as< string >();
-            _energies2File = true;
-        }
-        else { _energies2File = false; }
-
-        if ( options->exists(key+".pdb_check")) {
-            _pdb_check = options->get(key+".pdb_check").as<string>();
-        }
-        else { _pdb_check = ""; }
-
-        if ( options->exists(key+".write_chk")) {
-            _write_chk_suffix = options->get(key+".write_chk").as<string>();
-            _write_chk = true;
-        }
-        else { _write_chk = false; }
-
-        if ( options->exists(key+".format_chk")) {
-            _chk_format = options->get(key+".format_chk").as<string>();
-        }
-        else { _chk_format = "xyz"; }
-
-        
-
-
+    string key = "options."+Identify();
+    _xml_file= options->ifExistsReturnElseThrowRuntimeError<string>(key+".mapping"); 
+    _jobfile = options->ifExistsReturnElseThrowRuntimeError<string>(key+".job_file"); 
+    _emp_file   = options->ifExistsReturnElseThrowRuntimeError<string>(key+".emp_file"); 
+    
     key = "options."+Identify()+".coulombmethod";
 
-        if ( options->exists(key+".method") ) {
-            _method = options->get(key+".method").as< string >();
-            if (_method != "cut-off" && _method != "cutoff") {
-                throw runtime_error("Method " + _method + " not recognised.");
-            }
-        }
-        else {
-            _method = "cut-off";
-        }
-        if ( options->exists(key+".cutoff1") ) {
-            _cutoff1 = options->get(key+".cutoff1").as< double >();
-            if (_cutoff1) { _useCutoff = true; }
-        }
-        if ( options->exists(key+".cutoff2") ) {
-            _cutoff2 = options->get(key+".cutoff2").as< double >();
-        }
-        else {
-            _cutoff2 = _cutoff1;
-        }
+    std::vector<string> choices={"cutoff","cut-off"};
+    _method = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(key+".method",choices);
+    _cutoff1 = options->ifExistsReturnElseThrowRuntimeError<double>(key+".cutoff1");
+    _cutoff2 = options->ifExistsReturnElseReturnDefault<double>(key+".cutoff2",_cutoff1);
+    
     if(_cutoff1>_cutoff2){
         throw runtime_error("Cutoff1 must be smaller or equal Cutoff2");
     }
-        if ( options->exists(key+".subthreads") ) {
-            _subthreads = options->get(key+".subthreads").as< int >();
-        }
-        else {
-            _subthreads = 1;
-        }
+ 
+    _subthreads = options->ifExistsReturnElseReturnDefault<int>(key+".subthreads",1);
+      
 
     key = "options."+Identify();
 
-        if ( options->exists(key+".dftpackage")) {
-            string package_xml = options->get(key+".dftpackage").as< string >();
-            load_property_from_xml(_qmpack_opt, package_xml.c_str());
-            _package = _qmpack_opt.get("package.name").as< string >();
-        }
-        else {
-            throw runtime_error("No QM package specified.");
-        }
+     string package_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".dftpackage");
+    load_property_from_xml(_qmpack_opt, package_xml.c_str());
+    _package = _qmpack_opt.get("package.name").as< string >();
+       
 
 
     // GWBSE options, depending on whether it is there, decide for ground
@@ -213,14 +133,8 @@ void QMMM::Initialize(Property *options) {
     key = "options."+Identify()+".gwbse";
 
     if ( options->exists(key)) {
-         if ( options->exists(key+".gwbse_options")) {
-            string gwbse_xml = options->get(key+".gwbse_options").as< string >();
+            string gwbse_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".gwbse_options");
             load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
-        }
-        else {
-            throw runtime_error("GWBSE options not specified.");
-        }
-
     }
 
     // register all QM packages (Gaussian, turbomole, etc))
@@ -296,13 +210,13 @@ xtp::Job::JobResult QMMM::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
 
     // SILENT LOGGER FOR QMPACKAGE
     xtp::Logger* log = thread->getLogger();
-    xtp::Logger* qlog = new xtp::Logger();
-    qlog->setReportLevel(xtp::logDEBUG);
-    qlog->setMultithreading(_maverick);
-    qlog->setPreface(xtp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
-    qlog->setPreface(xtp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
-    qlog->setPreface(xtp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(xtp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+    xtp::Logger qlog;
+    qlog.setReportLevel(xtp::logDEBUG);
+    qlog.setMultithreading(_maverick);
+    qlog.setPreface(xtp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog.setPreface(xtp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog.setPreface(xtp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog.setPreface(xtp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
     XTP_LOG(xtp::logINFO,*log)
@@ -313,9 +227,6 @@ xtp::Job::JobResult QMMM::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
     double co1 = _cutoff1;
     double co2 = _cutoff2;
     _mps_mapper.Gen_QM_MM1_MM2(top, &xjob, co1, co2, thread);
-
-
-
 
     const matrix box=xjob.getTop()->getBox();
     //check if box is non orthogonal
@@ -340,18 +251,14 @@ xtp::Job::JobResult QMMM::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
         _subthreads, _maverick);
     xind.setLog(thread->getLogger());
 
-    //Gaussian qmpack = Gaussian(&_qmpack_opt);
-
     // get the corresponding object from the QMPackageFactory
     QMPackage *qmpack =  QMPackages().Create( _package );
-
-    qmpack->Initialize( &_qmpack_opt );
-
-    qmpack->setLog(qlog);
+    qmpack->Initialize( _qmpack_opt );
+    qmpack->setLog(&qlog);
     
 
-    QMMachine<QMPackage> machine = QMMachine<QMPackage>(&xjob, &xind, qmpack,
-        &_options, "options."+Identify(), _subthreads, _maverick);
+    QMMachine machine = QMMachine(&xjob, &xind, qmpack,
+        &_options, "options."+Identify());
     machine.setLog(thread->getLogger());
 
     // EVALUATE: ITERATE UNTIL CONVERGED

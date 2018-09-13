@@ -72,6 +72,9 @@ bool JobApplication::EvaluateOptions(void) {
 
 
 void JobApplication::Run() {
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    votca::xtp::HelpTextHeader(name);
 
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
@@ -127,32 +130,30 @@ void JobApplication::AddCalculator(xtp::JobCalculator* calculator) {
 
 void JobApplication::BeginEvaluate(int nThreads = 1, 
         xtp::ProgObserver< std::vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult > *obs = NULL) {
-    list< xtp::JobCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
-        (*it)->setnThreads(nThreads);
-        (*it)->setProgObserver(obs);
-        (*it)->Initialize(&_options);  
+
+    for (xtp::JobCalculator* calculator:_calculators) {
+        cout << "... " << calculator->Identify() << " ";
+        calculator->setnThreads(nThreads);
+        calculator->setProgObserver(obs);
+        calculator->Initialize(&_options);  
         cout << endl;
     }
 }
 
 bool JobApplication::EvaluateFrame() {
-    list< xtp::JobCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " " << flush;
-        if (_generate_input) (*it)->WriteJobFile(&_top);
-        if (_run) (*it)->EvaluateFrame(&_top);
-        if (_import) (*it)->ReadJobFile(&_top);
+    for (xtp::JobCalculator* calculator:_calculators) {
+        cout << "... " << calculator->Identify() << " " << flush;
+        if (_generate_input) calculator->WriteJobFile(&_top);
+        if (_run) calculator->EvaluateFrame(&_top);
+        if (_import) calculator->ReadJobFile(&_top);
         cout << endl;
     }
     return true;
 }
 
 void JobApplication::EndEvaluate() {
-    list< xtp::JobCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        (*it)->EndEvaluate(&_top);
+   for (xtp::JobCalculator* calculator:_calculators) {
+        calculator->EndEvaluate(&_top);
     }
 }
 

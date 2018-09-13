@@ -42,32 +42,28 @@ public:
 
    std::string getPackageName() { return "nwchem"; }
 
-   void Initialize( tools::Property *options );
+   void Initialize( tools::Property &options );
 
-   /* Writes Gaussian input file with coordinates of segments
-    * and a guess for the dimer (if requested) constructed from the
-    * monomer orbitals
-    */
-   bool WriteInputFile( std::vector< xtp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {});
+   bool WriteInputFile( Orbitals& orbitals);
 
-   bool WriteShellScript();
-
-   bool Run( Orbitals* _orbitals = NULL );
+   bool Run( Orbitals& orbitals );
 
    void CleanUp();
 
-   bool CheckLogFile();
+   bool ParseLogFile( Orbitals& orbitals );
 
-   bool ParseLogFile( Orbitals* _orbitals );
-
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
-
-   bool setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles){ return true; };
-
+   bool ParseOrbitalsFile( Orbitals& orbitals );
+   
 
    std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
+    bool CheckLogFile();
+    bool WriteShellScript();
+    bool WriteGuess(Orbitals& orbitals);
+  
+    
+    
 
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
@@ -76,15 +72,12 @@ private:
 
     std::string                              _cleanup;
     
-    void WriteBasisset(std::ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& _nw_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBasisset(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);
+    void WriteECP(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);   
 
-    int NumberOfElectrons( std::string _line );
-    int BasisSetSize( std::string _line );
-    int EnergiesFromLog( std::string _line, std::ifstream inputfile );
     std::string FortranFormat( const double &number );
-    int WriteBackgroundCharges(std::ofstream& _nw_file,std::vector<xtp::PolarSeg*> PolarSegments);
-
+    int WriteBackgroundCharges(std::ofstream& nw_file);
+    void WriteChargeOption();
 };
 
 

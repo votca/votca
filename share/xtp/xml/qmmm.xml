@@ -3,47 +3,40 @@
 <!-- xtp_run -e qmmm -f state.db -o options.xml -t 1 -c 1 -->
 <qmmm help="QM/MM with the Thole MM model for excited states" section="sec:qmmm">
 
-	<mapping help="XML file with multipole moments and polarizabilities" default="system.xml"></mapping>
-
-
-		<job_file help="Job control file" default="job.xml"></job_file>
-		<emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template" default="mps.tab"></emp_file>
-		<pdb_check help="PDB file of polar sites">mps.pdb</pdb_check>
-		<write_chk help="XYZ file with dipoles split onto point charges" default="dipoles.xyz">dipoles.xyz</write_chk>
-		<format_chk help="format, gaussian or xyz" default="xyz">xyz</format_chk>
-		<split_dpl help="'0' do not split dipoles onto point charges, '1' do split" default="1">1</split_dpl>
-		<dpl_spacing help="Spacing to be used when splitting dipole onto point charges: d = q * a" unit="nm" default="1e-3">1e-3</dpl_spacing>
-
-
-		<dftpackage help="DFT package to use for the QM region">gaussian.xml</dftpackage>
+	<mapping help="XML file with multipole moments and polarizabilities" default="system.xml">system.xml</mapping>
+        <job_file help="Job control file" default="job.xml">qmmm.jobs</job_file>
+        <emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template" default="mps.tab">mps.tab</emp_file>
+        <dftpackage help="DFT package to use for the QM region">gaussian.xml</dftpackage>
 
 
     <gwbse help="Specify if GW/BSE excited state calculation ist needed">
           <gwbse_options help="GW/BSE options file">mbgft.xml</gwbse_options>
-          <state  help="Number of excited state, which is to be calculated">1</state>
-          <type  help="Character of the excited state to be calculated">singlet</type>
           <filter  help="Filter with which to find the excited state after each calculation">
             <oscillator_strength help="Oscillator strength filter, only states with higher oscillator strength are considered">0.5</oscillator_strength>
             <charge_transfer help="Charge transfer filter , only states with charge transfer above threshold are consdered">0.5</charge_transfer>
           </filter>
     </gwbse>
 
+    <split_dpl>true</split_dpl>
+    <dipole_spacing>0.01</dipole_spacing>
+    <archiving></archiving>
 	<qmmmconvg help="convergence criteria for the QM/MM">
 		<dR help="RMS of coordinates" default="0.001" unit="nm">0.001</dR>
 		<dQ help="RMS of charges" default="0.001" unit="e">0.001</dQ>
 		<dE_QM help="Energy change of the QM region" unit="eV" default="0.0001">0.0001</dE_QM>
 		<dE_MM help="Energy change of the MM region" unit="eV" default="0.0001">0.0001</dE_MM>
 		<max_iter help="Number of iterations" default="10">32</max_iter>
+                <alpha help="Mixing parameter to accelerate convergence" >0.0</alpha>
 	</qmmmconvg>
 
 	<coulombmethod help="Options for the MM embedding">
 		<method help="Method for evaluation of electrostatics" default="cut-off">cut-off</method>
 		<cutoff1 help="Cut-off for the polarizable MM1 shell">3.0</cutoff1>
 		<cutoff2 help="Cut-off for the static MM2 shell">5.0</cutoff2>
-                        <!--subthreads>1</subthreads-->
+                <subthreads>1</subthreads>
 	</coulombmethod>
 
-	<tholemodel help="Parameters for teh Thole model">
+	<tholemodel help="Parameters for the Thole model">
 		<induce help="'1' - induce '0' - no induction">1</induce>
 		<induce_intra_pair help="'1' - include mutual interaction of induced dipoles in the QM region. '0' - do not">1</induce_intra_pair>
 		<exp_damp help="Sharpness parameter" default="0.39">0.39</exp_damp>

@@ -22,12 +22,12 @@ using namespace std;
 
 namespace votca {
     namespace xtp {
-void GNode::AddDecayEvent(double _decayrate)
+void GNode::AddDecayEvent(double decayrate)
 {
     GLink newEvent;
     newEvent.destination = -1;
-    newEvent.rate = _decayrate;
-    newEvent.initialrate = _decayrate;
+    newEvent.rate = decayrate;
+    newEvent.initialrate = decayrate;
     newEvent.dr = votca::tools::vec(0.0);
     newEvent.Jeff2 = 0.0;
     newEvent.decayevent=true;

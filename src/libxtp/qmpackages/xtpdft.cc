@@ -36,35 +36,28 @@ namespace votca {
     namespace xtp {
       using namespace std;
 
-        void XTPDFT::Initialize(tools::Property *options) {
-
-            // GAUSSIAN file names
-            std::string fileName = "system";
-
-            _xyz_file_name = fileName + ".xyz";
-
+        void XTPDFT::Initialize(tools::Property &options) {
+            _xtpdft_options=options;
+            _log_file_name="system.orb";
             std::string key = "package";
-            std::string _name = options->get(key + ".name").as<std::string> ();
+            std::string packagename = _xtpdft_options.get(key + ".name").as<std::string> ();
 
-            if (_name != "xtp") {
-                cerr << "Tried to use " << _name << " package. ";
+            if (packagename != "xtp") {
+                cerr << "Tried to use " << packagename << " package. ";
                 throw std::runtime_error("Wrong options file");
             }
 
-            _charge = options->get(key + ".charge").as<int> ();
-            _spin = options->get(key + ".spin").as<int> ();
-            _options = options->get(key + ".options").as<std::string> ();
-            _threads = options->get(key + ".threads").as<int> ();
-            _cleanup = options->get(key + ".cleanup").as<std::string> ();
-
-            // pass the information about the dftengine options and init
-            load_property_from_xml(_xtpdft_options, _options.c_str());
-            _xtpdft.Initialize( &_xtpdft_options );
-
+            _charge = _xtpdft_options.get(key + ".charge").as<int> ();
+            _spin = _xtpdft_options.get(key + ".spin").as<int> ();
+            _threads = _xtpdft_options.get(key + ".threads").as<int> ();
+            _cleanup = _xtpdft_options.get(key + ".cleanup").as<std::string> ();
+           
+            _write_guess=_xtpdft_options.ifExistsReturnElseReturnDefault<bool>(key + ".read_guess", false);
+            
             // check if ECPs are used in xtpdft
             _write_pseudopotentials=false;
-            if (_xtpdft_options.exists("dftengine.ecp")){
-                if (_xtpdft_options.get("dftengine.ecp").as<std::string> () !="") {
+            if (_xtpdft_options.exists(key + ".ecp")){
+                if (_xtpdft_options.get(key + ".ecp").as<std::string> () !="") {
                     _write_pseudopotentials=true;
                 }
             }
@@ -74,80 +67,64 @@ namespace votca {
         /**
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
-        bool XTPDFT::WriteInputFile(std::vector<xtp::Segment* > segments, Orbitals* orbitals_guess, std::vector<xtp::PolarSeg* > polar_segments ) {
-
-            //if ( orbitals_guess != NULL )  {
-            //    XTP_LOG(xtp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
-            //    _orbitals.Load(_guess_file);
-
-            //} else {
-
-           // }
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Preparing XTP DFTENGINE "  << flush;
-            _xtpdft.setLogger(_pLog);
-            _xtpdft.Prepare( orbitals_guess );
-            XTP_LOG(xtp::logDEBUG, *_pLog) << " done "  << flush;
-
+        bool XTPDFT::WriteInputFile(Orbitals& orbitals) {
             return true;
         }
 
-
-        bool XTPDFT::setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles){
-
-            _xtpdft.setExternalcharges(multipoles);
-
-            return true;
-        }
-
-
-
+    
         /**
          * Run calls DFTENGINE
          */
-        bool XTPDFT::Run( Orbitals* _orbitals ) {
-
-            if ( !_orbitals->hasQMAtoms() ){
-                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading structure from " << _xyz_file_name << flush;
-                _orbitals->LoadFromXYZ(_xyz_file_name);
-            }
-
-
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Running XTP DFT " << flush;
-            //
-
-            _xtpdft.Evaluate( _orbitals );
-            _basisset_name = _xtpdft.GetDFTBasisName();
-
-            return true;
+        bool XTPDFT::Run( Orbitals& orbitals ) {
+          DFTEngine xtpdft;
+          xtpdft.Initialize(_xtpdft_options);
+          xtpdft.setLogger(_pLog);
+           
+          if(_write_charges){
+            xtpdft.setExternalcharges(_PolarSegments);
+          }
+          xtpdft.Prepare( orbitals );
+          xtpdft.Evaluate( orbitals );
+          _basisset_name = xtpdft.getDFTBasisName();
+          orbitals.WriteToCpt(_log_file_name);
+          return true;
 
         }
 
-        /**
-         * Clean up dummy, may be required if use of scratch will be added
-         */
-        void XTPDFT::CleanUp() {
-
-            return;
+    void XTPDFT::CleanUp() {
+      if (_cleanup.size() != 0) {
+        XTP_LOG(xtp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
+        tools::Tokenizer tok_cleanup(_cleanup, ", ");
+        std::vector <std::string> cleanup_info;
+        tok_cleanup.ToVector(cleanup_info);
+        for (const std::string& substring : cleanup_info) {
+          if (substring == "log") {
+            std::string file_name = _run_dir + "/" + _log_file_name;
+            remove(file_name.c_str());
+          }
         }
+      }
+
+      return;
+    }
 
         /**
          * Dummy, because XTPDFT adds info to orbitals directly
          */
-        bool XTPDFT::ParseOrbitalsFile(Orbitals * _orbitals) {
-            return true;
-        }
-
-        /* DON'T THINK THIS IS NEEDED */
-        bool XTPDFT::CheckLogFile() {
-
+        bool XTPDFT::ParseOrbitalsFile(Orbitals & orbitals) {
             return true;
         }
 
         /**
          * Dummy, because information is directly stored in orbitals
          */
-        bool XTPDFT::ParseLogFile(Orbitals * _orbitals) {
-
+        bool XTPDFT::ParseLogFile(Orbitals & orbitals) {
+          try{
+          orbitals.ReadFromCpt(_log_file_name);
+          }catch(std::runtime_error& error){
+            XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
+            return false;
+          }
             return true;
         }
 

@@ -17,13 +17,13 @@
  *
  */
 
-
-#include <votca/xtp/qmiter.h>
-#include <sys/stat.h>
-#include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+
 #include <votca/tools/constants.h>
-#include <votca/xtp/apolarsite.h>
+
+#include <votca/xtp/polarseg.h>
+#include <votca/xtp/qmatom.h>
+#include <votca/xtp/qmiter.h>
 
 using boost::format;
 
@@ -33,17 +33,13 @@ namespace votca {
      
 void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< xtp::PolarSeg* > &psegs) {
 
-
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
                 xtp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
-
                     // Retrieve multipole info of this atom
                     std::vector<double> update = multipoles[qac];
                     while (update.size() < 9) update.push_back(0.0);
-
                     // Convert e*(a_0)^k to e*(nm)^k where k = rank
-                   
                     for (int m = 1; m < 4; m++) {
                         update[m] *= pow(tools::conv::bohr2nm, 1);
                     }
@@ -52,18 +48,14 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                     }
 
                     xtp::APolarSite *aps = (*pseg)[j];
-                   
                     aps->setQs(update, 0);
-
                 }
             }
-
             return;
         }
 
         void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
                 std::vector< xtp::PolarSeg* > &psegs) {
-
 
             double dR_RMS = 0.0;
             double dQ_RMS = 0.0;
@@ -72,19 +64,16 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
                 xtp::PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
-
                     // Retrieve info from QMAtom
                     QMAtom *qmatm = qmatoms[qac];
-                    vec upd_r = qmatm->getPos();
-                    upd_r *= tools::conv::bohr2nm;
+                    tools::vec upd_r = qmatm->getPos()*tools::conv::bohr2nm;
                     double upd_Q00 = qmatm->getPartialcharge();
-
-
                     // Compare to previous r, Q00
+
                     xtp::APolarSite *aps = (*pseg)[j];
-                    vec old_r = aps->getPos();
+                    tools::vec old_r = aps->getPos();
                     double old_Q00 = aps->getQ00();
-                    double dR = abs(upd_r - old_r);
+                    double dR = tools::abs(upd_r - old_r);
                     double dQ00 = upd_Q00 - old_Q00;
 
                     dR_RMS += dR*dR;
@@ -97,15 +86,10 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                 }
             }
 
-
-            // cout << " dR_RMS " << dR_RMS << "dQ RMS " << dQ_RMS << endl;
             dR_RMS /= qmatoms.size();
             dQ_RMS /= qmatoms.size();
             dR_RMS = sqrt(dR_RMS);
             dQ_RMS = sqrt(dQ_RMS);
-
-            // cout << " dR_RMS " << dR_RMS << "dQ RMS " << dQ_RMS << endl;
-
 
             this->setdRdQ(dR_RMS, dQ_RMS, dQ_SUM);
             return;
@@ -114,7 +98,6 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
         
 
         void QMMIter::setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM) {
-
             _hasdRdQ = true;
             _dR_RMS = dR_RMS;
             _dQ_RMS = dQ_RMS;
@@ -123,11 +106,9 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
         }
 
         void QMMIter::setQMSF(double energy_QM, double energy_SF, double energy_GWBSE) {
-
             _hasQM = true;
             _e_QM = energy_QM;
             _e_SF = energy_SF;
-
             _hasGWBSE = true;
             _e_GWBSE = energy_GWBSE;
 
@@ -151,14 +132,10 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
         }
 
         double QMMIter::getMMEnergy() {
-
-            assert(_hasMM);
             return _ef_11 + _ef_12 + _em_1_ + _em_2_;
         }
 
         double QMMIter::getQMMMEnergy() {
-
-            assert(_hasQM && _hasMM && _hasGWBSE);
             return _e_QM + + _e_GWBSE + _ef_11 + _ef_12 + _em_1_ + _em_2_;
         }
 

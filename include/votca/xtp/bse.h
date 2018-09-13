@@ -19,18 +19,14 @@
 
 #ifndef _VOTCA_XTP_BSE_H
 #define _VOTCA_XTP_BSE_H
-#include <votca/tools/linalg.h>
+
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
-
-
+#include <votca/xtp/qmstate.h>
 
 namespace votca {
 namespace xtp {
-
-
-
 
 class BSE {
  private:
@@ -50,29 +46,25 @@ struct Population {
     
  public:
  
-    
-  BSE(Orbitals* orbitals,xtp::Logger *log,double min_print_weight):
+  BSE(Orbitals& orbitals,xtp::Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
-        _eh_s(orbitals->eh_s()),
-        _eh_t(orbitals->eh_t()),
-        _bse_singlet_energies(orbitals->BSESingletEnergies()),
-        _bse_singlet_coefficients(orbitals->BSESingletCoefficients()),
-        _bse_singlet_coefficients_AR(orbitals->BSESingletCoefficientsAR()),
-        _bse_triplet_energies(orbitals->BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals->BSETripletCoefficients()),
+        _eh_s(orbitals.eh_s()),
+        _eh_t(orbitals.eh_t()),
+        _bse_singlet_energies(orbitals.BSESingletEnergies()),
+        _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
+        _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
+        _bse_triplet_energies(orbitals.BSETripletEnergies()),
+        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
         _min_print_weight(min_print_weight){};
-
-  ~BSE(){};
   
   void setGWData(const TCMatrix_gwbse* Mmn,const PPM* ppm,const Eigen::MatrixXd* Hqp){
       _Mmn=Mmn;
       _ppm=ppm;
-      _Hqp=Hqp;
-      
+      _Hqp=Hqp;   
   }
   
-  void setBSEindices(unsigned homo,int vmin, int cmax, int nmax) {
+  void setBSEindices(int homo,int vmin, int cmax, int nmax) {
                 _homo=homo;
                 _bse_vmin = vmin;
                 _bse_vmax = homo;
@@ -83,10 +75,10 @@ struct Population {
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
                 _bse_size = _bse_vtotal * _bse_ctotal;
                 // indexing info BSE vector index to occupied/virtual orbital
-                for (unsigned _v = 0; _v < _bse_vtotal; _v++) {
-                    for (unsigned _c = 0; _c < _bse_ctotal; _c++) {
-                        _index2v.push_back(_bse_vmin + _v);
-                        _index2c.push_back(_bse_cmin + _c);
+                for (int v = 0; v < _bse_vtotal; v++) {
+                    for (int c = 0; c < _bse_ctotal; c++) {
+                        _index2v.push_back(_bse_vmin + v);
+                        _index2c.push_back(_bse_cmin + c);
                     }
                 }
                 return;
@@ -117,22 +109,21 @@ struct Population {
       _bse_singlet_coefficients_AR.resize(0,0);
   }
  
-
  private:
  
       
 xtp::Logger *_log;
-  unsigned _homo;
-  unsigned  _bse_vmin;
-  unsigned  _bse_vmax;
-  unsigned  _bse_cmin;
-  unsigned  _bse_cmax;
-  unsigned  _bse_size;
-  unsigned  _bse_vtotal;
-  unsigned  _bse_ctotal;
+  int  _homo;
+  int  _bse_vmin;
+  int  _bse_vmax;
+  int  _bse_cmin;
+  int  _bse_cmax;
+  int  _bse_size;
+  int  _bse_vtotal;
+  int  _bse_ctotal;
   int _bse_nmax;
   
-  Orbitals* _orbitals;
+  Orbitals& _orbitals;
   
   const TCMatrix_gwbse* _Mmn;
   const PPM* _ppm;
@@ -163,19 +154,16 @@ xtp::Logger *_log;
    template <typename T>
   void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
   
-  
-  
   std::vector<int> _index2v;
   std::vector<int> _index2c;
 
- void printFragInfo(Population& pop, int i);
- void printWeights(unsigned i_bse, double weight);
+ void printFragInfo(const Population& pop, int i);
+ void printWeights(int i_bse, double weight);
  
-  
-  Interaction Analyze_eh_interaction(const std::string& spin);
-  Eigen::VectorXd Analyze_IndividualContribution(const std::string& spin, const MatrixXfd& H);
+  Interaction Analyze_eh_interaction(const QMStateType& type);
+  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
 
-  Population FragmentPopulations(const std::string& spin, const AOBasis& dftbasis);
+  Population FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis);
 
   std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
 

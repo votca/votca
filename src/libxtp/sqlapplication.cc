@@ -58,8 +58,9 @@ bool SqlApplication::EvaluateOptions(void) {
 
 void SqlApplication::Run() {
 
-    // load_property_from_xml(_options, _op_vm["options"].as<string>());
-
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    votca::xtp::HelpTextHeader(name);
     // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();
     int nframes = OptionsMap()["nframes"].as<int>();
@@ -107,29 +108,26 @@ void SqlApplication::AddCalculator(xtp::QMCalculator* calculator) {
 
 
 void SqlApplication::BeginEvaluate(int nThreads = 1) {
-    list< xtp::QMCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
-        (*it)->setnThreads(nThreads);
-        (*it)->Initialize(&_options); 
+    for (xtp::QMCalculator* calculator:_calculators) {
+        cout << "... " << calculator->Identify() << " ";
+        calculator->setnThreads(nThreads);
+        calculator->Initialize(&_options); 
         cout << endl;
     }
 }
 
 bool SqlApplication::EvaluateFrame() {
-    list< xtp::QMCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " " << flush;
-        (*it)->EvaluateFrame(&_top);
+     for (xtp::QMCalculator* calculator:_calculators) {
+        cout << "... " << calculator->Identify() << " " << flush;
+        calculator->EvaluateFrame(&_top);
         cout << endl;
     }
     return true;
 }
 
 void SqlApplication::EndEvaluate() {
-    list< xtp::QMCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        (*it)->EndEvaluate(&_top);
+    for (xtp::QMCalculator* calculator:_calculators) {
+        calculator->EndEvaluate(&_top);
     }
 }
 

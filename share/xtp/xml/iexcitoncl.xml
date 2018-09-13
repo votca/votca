@@ -1,9 +1,9 @@
 <options>
-<iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
-<mapping>system.xml</mapping>
-<job_file>exciton.jobs</job_file>
-<emp_file>mps.tab</emp_file>
+    <iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
+        <mapping>system.xml</mapping>
+        <job_file>exciton.jobs</job_file>
+        <emp_file>mps.tab</emp_file>
         <induce>0</induce>
         <spin>singlet</spin>
-</iexcitoncl>
+    </iexcitoncl>
 </options>

@@ -23,565 +23,349 @@
 #include <votca/xtp/qmcalculator.h>
 #include <math.h>
 #include <votca/tools/tokenizer.h>
+#include <votca/xtp/qmstate.h>
+#include <votca/tools/histogramnew.h>
+#include <fstream>
+#include <numeric>
+
+namespace votca {
+    namespace xtp {
+
+        class EAnalyze : public xtp::QMCalculator {
+        public:
+
+            EAnalyze() {
+            };
+
+            ~EAnalyze() {
+            };
+
+            std::string Identify() {
+                return "eanalyze";
+            }
+
+            void Initialize(tools::Property *opt);
+            bool EvaluateFrame(xtp::Topology *top);
+            void SiteHist(xtp::Topology *top, QMStateType state);
+            void PairHist(xtp::Topology *top, QMStateType state);
+            void SiteCorr(xtp::Topology *top, QMStateType state);
+
+        private:
+
+            double _resolution_pairs;
+            double _resolution_sites;
+            double _resolution_space;
+            std::string _distancemode;
+
+            std::vector<QMStateType> _states;
+
+            bool _skip_corr;
+            bool _skip_sites;
+            bool _skip_pairs;
+
+            bool _doenergy_landscape;
+            int _first_seg;
+            int _last_seg;
+
+            std::string _seg_pattern;
+            std::vector<xtp::Segment*> _seg_shortlist;
+
+        };
+
+        void EAnalyze::Initialize(tools::Property *opt) {
+            _skip_corr = false;
+            _skip_sites = false;
+            _skip_pairs = false;
+            // update options with the VOTCASHARE defaults   
+            UpdateWithDefaults(opt, "xtp");
+            std::string key = "options." + Identify();
+            if (opt->exists(key + ".resolution_pairs")) {
+                _resolution_pairs = opt->get(key + ".resolution_pairs").as< double >();
+            } else {
+                _skip_pairs = true;
+            }
+            if (opt->exists(key + ".resolution_sites")) {
+                _resolution_sites = opt->get(key + ".resolution_sites").as< double >();
+            } else {
+                _skip_sites = true;
+            }
+            if (opt->exists(key + ".resolution_space")) {
+                _resolution_space = opt->get(key + ".resolution_space").as< double >();
+            } else {
+                _skip_corr = true;
+            }
+
+            if (opt->exists(key + ".pattern")) {
+                _seg_pattern = opt->get(key + ".pattern").as<std::string>();
+            } else _seg_pattern = "*";
+
+            if (opt->exists(key + ".states")) {
+                std::string statestrings = opt->get(key + ".states").as< std::string>();
+                tools::Tokenizer tok(statestrings, ",\n\t ");
+                std::vector<std::string> string_vec;
+                tok.ToVector(string_vec);
+                for (std::string& state : string_vec) {
+                    _states.push_back(QMStateType(state));
+                }
+            } else {
+                _states.push_back(QMStateType(QMStateType::Electron));
+                _states.push_back(QMStateType(QMStateType::Hole));
+            }
+
+            _doenergy_landscape = opt->ifExistsReturnElseReturnDefault<bool>(key + ".energy_landscape", false);
 
 
-namespace votca { namespace xtp {
+            if (opt->exists(key + ".distancemode")) {
+                std::vector<std::string> choices = {"segment", "centerofmass"};
+                _distancemode = opt->ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".distancemode", choices);
+            } else {
+                _distancemode = "segment";
+            }
 
-class EAnalyze : public xtp::QMCalculator
-{
-public:
+        }
 
-    EAnalyze() { };
-   ~EAnalyze() { };
+        bool EAnalyze::EvaluateFrame(xtp::Topology *top) {
 
-    std::string Identify() { return "eanalyze"; }
+            // Short-list segments according to pattern
+            for (xtp::Segment* seg : top->Segments()) {
+                std::string seg_name = seg->getName();
+                if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
+                    _seg_shortlist.push_back(seg);
+                }
+            }
+            std::cout << std::endl << "... ... Short-listed " << _seg_shortlist.size()
+                    << " segments (pattern='" << _seg_pattern << "')" << std::flush;
+            std::cout << std::endl << "... ... ... NOTE Statistics of site energies and spatial"
+                    << " correlations thereof are based on the short-listed segments only. "
+                    << std::flush;
+            std::cout << std::endl << "... ... ...      "
+                    << "Statistics of site-energy differences operate on the full list."
+                    << std::flush;
 
-    void Initialize(tools::Property *opt);
-    bool EvaluateFrame(xtp::Topology *top);
-    void SiteHist(xtp::Topology *top, int state);
-    void PairHist(xtp::Topology *top, int state);
-    void SiteCorr(xtp::Topology *top, int state);
+            // Calculate
+            // ... Site-energy histogram, mean, width
+            // ... Pair-energy histogram, mean, width
+            // ... Site-energy correlation
 
-private:
+            xtp::QMNBList &nblist = top->NBList();
 
-    double _resolution_pairs;
-    double _resolution_sites;
-    double _resolution_space;
-    std::string _distancemode;
+            for (QMStateType state : _states) {
+                std::cout << std::endl << "... ... excited state " << state.ToString() << std::flush;
 
-    std::vector<int> _states;
+                if (!_seg_shortlist.size()) {
+                    std::cout << std::endl << "... ... ... No segments short-listed. Skip ... "
+                            << std::flush;
+                } else {
+                    if (_skip_sites) {
+                        std::cout << std::endl << "... ... ... Skip site-energy hist." << std::flush;
+                    } else {
+                        SiteHist(top, state);
+                    }
+                    if (_skip_corr) {
+                        std::cout << std::endl << "... ... ... Skip correlation ..." << std::flush;
+                    } else {
+                        SiteCorr(top, state);
+                    }
+                }
 
-    double _site_avg;
-    
-    bool _skip_corr;
-    bool _skip_sites;
-    bool _skip_pairs;
-    
-    bool _do_atomic_xyze;
-    int  _atomic_first;
-    int  _atomic_last;
-    
-    std::string _seg_pattern;
-    std::vector<xtp::Segment*> _seg_shortlist;
+                if (!nblist.size()) {
+                    std::cout << std::endl << "... ... ... No pairs in topology. Skip ... "
+                            << std::flush;
+                } else {
+                    if (_skip_pairs) {
+                        std::cout << std::endl << "... ... ... Skip pair-energy hist." << std::flush;
+                    } else {
+                        PairHist(top, state);
+                    }
+                }
+            }
 
-};
+            return true;
+        }
 
+        void EAnalyze::SiteHist(xtp::Topology *top, QMStateType state) {
 
+            std::vector< double > Es;
+            Es.reserve(_seg_shortlist.size());
+            for (xtp::Segment* seg : _seg_shortlist) {
+                double E = seg->getSiteEnergy(state.ToXTPIndex());
+                Es.push_back(E);
+            }
 
-void EAnalyze::Initialize( tools::Property *opt ) {
-    _skip_corr=false;
-    _skip_sites=false;
-    _skip_pairs=false;
-    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( opt, "xtp" );
-    std::string key = "options." + Identify();
-    if (opt->exists(key+".resolution_pairs")) {
-    _resolution_pairs = opt->get(key+".resolution_pairs").as< double >();
+            double MAX = *std::max_element(Es.begin(), Es.end());
+            double MIN = *std::min_element(Es.begin(), Es.end());
+            double sum = std::accumulate(Es.begin(), Es.end(), 0.0);
+            double AVG = sum / Es.size();
+            double sq_sum = std::inner_product(Es.begin(), Es.end(), Es.begin(), 0.0);
+            double STD = std::sqrt(sq_sum / Es.size() - AVG * AVG);
+
+            // Prepare bins
+            int BIN = int( (MAX - MIN) / _resolution_sites + 0.5) + 1;
+
+            tools::HistogramNew hist;
+            hist.Initialize(MIN, MAX, BIN);
+            hist.ProcessRange<std::vector<double>::iterator>(Es.begin(), Es.end());
+            tools::Table& tab = hist.data();
+            tab.flags()= std::vector<char>(tab.size(), ' ');
+            std::string comment = (boost::format("EANALYZE: SITE-ENERGY HISTOGRAM \n # AVG %1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") % AVG % STD % MIN % MAX).str();
+            std::string filename = "eanalyze.sitehist_" + state.ToString() + ".out";
+            tab.set_comment(comment);
+            tab.Save(filename);
+
+            // Write "seg x y z energy" with atomic {x,y,z}
+            if (_doenergy_landscape) {
+                std::string filename = "eanalyze.landscape_" + state.ToString() + ".out";
+                std::ofstream out;
+                out.open(filename.c_str());
+                if (!out) throw std::runtime_error("error, cannot open file " + filename);
+                for (xtp::Segment* seg : _seg_shortlist) {
+                    if (seg->getId() < _first_seg) {
+                        continue;
+                    }
+                    if (seg->getId() == _last_seg) {
+                        break;
+                    }
+                    double E = seg->getSiteEnergy(state.ToXTPIndex());
+                    for (xtp::Atom *atm : seg->Atoms()) {
+                        out << boost::format("%1$3s %2$4.7f %3$4.7f %4$4.7f %5$4.7f\n")
+                                % seg->getName()
+                                % atm->getPos().getX() % atm->getPos().getY() % atm->getPos().getZ()
+                                % E;
+                    }
+                }
+                out.close();
+            }
+        }
+
+        void EAnalyze::PairHist(xtp::Topology *top, QMStateType state) {
+
+            xtp::QMNBList &nblist = top->NBList();
+
+            std::string filenamelist = "eanalyze.pairlist_" + state.ToString() + ".out";
+
+            // Collect site-energy differences from neighbourlist
+            std::vector< double > dE;
+            dE.reserve(2 * nblist.size());
+            std::ofstream out;
+            out.open(filenamelist.c_str());
+            if (!out) throw std::runtime_error("error, cannot open file " + filenamelist);
+            for (xtp::QMPair *pair : nblist) {
+                xtp::Segment *seg1 = pair->Seg1();
+                xtp::Segment *seg2 = pair->Seg2();
+                double deltaE = seg2->getSiteEnergy(state.ToXTPIndex()) - seg1->getSiteEnergy(state.ToXTPIndex());
+                dE.push_back(deltaE);
+                dE.push_back(-deltaE);
+                out << boost::format("%1$5d %2$5d %3$4.7f \n") % seg1->getId() % seg2->getId() % deltaE;
+            }
+            out.close();
+
+            double MAX = *std::max_element(dE.begin(), dE.end());
+            double MIN = *std::min_element(dE.begin(), dE.end());
+            double sum = std::accumulate(dE.begin(), dE.end(), 0.0);
+            double AVG = sum / dE.size();
+            double sq_sum = std::inner_product(dE.begin(), dE.end(), dE.begin(), 0.0);
+            double STD = std::sqrt(sq_sum / dE.size() - AVG * AVG);
+            int BIN = int( (MAX - MIN) / _resolution_pairs + 0.5) + 1;
+
+            std::string filename2 = "eanalyze.pairhist_" + state.ToString() + ".out";
+            tools::HistogramNew hist;
+            hist.Initialize(MIN, MAX, BIN);
+            hist.ProcessRange<std::vector<double>::iterator>(dE.begin(), dE.end());
+            tools::Table& tab = hist.data();
+            std::string comment = (boost::format("EANALYZE: PAIR-ENERGY HISTOGRAM \n # AVG %1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") % AVG % STD % MIN % MAX).str();
+            tab.set_comment(comment);
+            tab.flags()= std::vector<char>(tab.size(), ' ');
+            tab.Save(filename2);
+        }
+
+        void EAnalyze::SiteCorr(xtp::Topology *top, QMStateType state) {
+
+            std::vector< double > Es;
+            Es.reserve(_seg_shortlist.size());
+            for (xtp::Segment* seg : _seg_shortlist) {
+                double E = seg->getSiteEnergy(state.ToXTPIndex());
+                Es.push_back(E);
+            }
+
+            double sum = std::accumulate(Es.begin(), Es.end(), 0.0);
+            double AVG = sum / Es.size();
+            double sq_sum = std::inner_product(Es.begin(), Es.end(), Es.begin(), 0.0);
+            double VAR = sq_sum / Es.size() - AVG * AVG;
+            double STD = std::sqrt(VAR);
+
+            // Collect inter-site distances, correlation product
+            std::vector< xtp::Segment* > ::iterator sit1;
+            std::vector< xtp::Segment* > ::iterator sit2;
+
+            tools::Table tabcorr;
+            int length = _seg_shortlist.size()*(_seg_shortlist.size() - 1) / 2;
+            tabcorr.resize(length);
+            int index = 0;
+            for (sit1 = _seg_shortlist.begin(); sit1 < _seg_shortlist.end(); ++sit1) {
+                for (sit2 = sit1 + 1; sit2 < _seg_shortlist.end(); ++sit2) {
+                    double R = abs(top->PbShortestConnect((*sit1)->getPos(),
+                            (*sit2)->getPos()));
+                    if (_distancemode == "segment") {
+                        for (xtp::Fragment* frag1 : (*sit1)->Fragments()) {
+                            for (xtp::Fragment* frag2 : (*sit2)->Fragments()) {
+                                double R_FF = tools::abs(top->PbShortestConnect(frag1->getPos(),
+                                        frag2->getPos()));
+                                if (R_FF < R) {
+                                    R = R_FF;
+                                }
+                            }
+                        }
+                    }
+                    double C = ((*sit1)->getSiteEnergy(state.ToXTPIndex()) - AVG)
+                            * ((*sit2)->getSiteEnergy(state.ToXTPIndex()) - AVG);
+                    tabcorr.set(index, R, C);
+                    index++;
+                }
+            }
+
+            double MIN = tabcorr.x().minCoeff();
+            double MAX = tabcorr.x().maxCoeff();
+            std::string corrfile = "eanalyze.sitecorr.atomic_" + state.ToString() + ".out";
+            tabcorr.Save(corrfile);
+
+            // Prepare bins
+            int BIN = int( (MAX - MIN) / _resolution_space + 0.5) + 1;
+            std::vector< std::vector<double> > histCs;
+            histCs.resize(BIN);
+
+            for (int i = 0; i < tabcorr.size(); ++i) {
+                int bin = int((tabcorr.x()[i] - MIN) / _resolution_space + 0.5);
+                histCs[bin].push_back(tabcorr.y()[i]);
+            }
+
+            tools::Table histC;
+            histC.SetHasYErr(true);
+            // Calculate spatial correlation
+            histC.resize(BIN);
+            for (int bin = 0; bin < BIN; ++bin) {
+                double corr = 0.0;
+                double dcorr2 = 0.0;
+                for (unsigned i = 0; i < histCs[bin].size(); ++i) {
+                    corr += histCs[bin][i] / VAR;
+                }
+                corr = corr / histCs[bin].size();
+                for (unsigned i = 0; i < histCs[bin].size(); ++i) {
+                    dcorr2 += (histCs[bin][i] / VAR / histCs[bin].size() - corr)*(histCs[bin][i] / VAR / histCs[bin].size() - corr);
+                }
+                // error on mean value
+                dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size() - 1);
+                double R = MIN + bin*_resolution_space;
+                histC.set(bin, R, corr, ' ', std::sqrt(dcorr2));
+            }
+
+            std::string filename = "eanalyze.sitecorr_" + state.ToString() + ".out";
+            std::string comment = (boost::format("EANALYZE:  SPATIAL SITE-ENERGY CORRELATION \n # AVG %1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") % AVG % STD % MIN % MAX).str();
+            histC.set_comment(comment);
+            histC.Save(filename);
+
+        }
+
     }
-    else{
-    _skip_pairs=true;
-    }
-    if (opt->exists(key+".resolution_sites")) {
-    _resolution_sites = opt->get(key+".resolution_sites").as< double >();
-    }
-    else {
-        _skip_sites=true;
-    }
-    if (opt->exists(key+".resolution_space")) {
-    _resolution_space = opt->get(key+".resolution_space").as< double >();
-    }
-    else{
-        _skip_corr=true;
-    }
-
-    if (opt->exists(key+".pattern")) {
-        _seg_pattern = opt->get(key+".pattern").as<std::string>();
-    }
-    else _seg_pattern = "*";
-    
-    if (opt->exists(key+".states")) {
-        _states = opt->get(key+".states").as< std::vector<int> >();
-    }
-    else {
-        _states.push_back(-1);
-        _states.push_back(+1);
-    }
-    
-    if (opt->exists(key+".do_atomic_xyze")) {
-        int do_xyze = opt->get(key+".do_atomic_xyze").as< int >();
-        _do_atomic_xyze = (do_xyze == 1) ? true : false;
-        _atomic_first = opt->get(key+".atomic_first").as< int >();
-        _atomic_last  = opt->get(key+".atomic_last").as< int >();
-    }
-    else {
-        _do_atomic_xyze = false;
-    }
-    
-    if (opt->exists(key+".distancemode")) {
-        // distancemode = segment / centreofmass
-        _distancemode = opt->get(key+".distancemode").as< std::string >();
-    }
-    else{
-         _distancemode = "segment";
-    }
-    if(_distancemode != "segment" && _distancemode != "centreofmass"){
-        std::cout << "WARNING: distancemode has to be set to either 'segment' or to 'centreofmass'. Setting it to 'segment' now." << std::endl;
-        _distancemode = "segment";
-    }
-    
-    //_skip_corr = opt->exists(key+".skip_correlation");
-    //_skip_sites = opt->exists(key+".skip_sites");
-    //_skip_pairs = opt->exists(key+".skip_pairs");
-
 }
-
-bool EAnalyze::EvaluateFrame(xtp::Topology *top) {
-    
-    // Short-list segments according to pattern
-    std::vector<xtp::Segment*>::iterator sit;
-    for (sit=top->Segments().begin(); sit!=top->Segments().end(); ++sit) {
-        std::string seg_name = (*sit)->getName();
-        if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
-            _seg_shortlist.push_back(*sit);
-        }
-    }
-    std::cout << std::endl << "... ... Short-listed " << _seg_shortlist.size() 
-         << " segments (pattern='" << _seg_pattern << "')" << std::flush;
-    std::cout << std::endl << "... ... ... NOTE Statistics of site energies and spatial"
-         << " correlations thereof are based on the short-listed segments only. "
-         << std::flush;
-    std::cout << std::endl << "... ... ...      "
-         << "Statistics of site-energy differences operate on the full list." 
-         << std::flush;
-
-    // Calculate
-    // ... Site-energy histogram, mean, width
-    // ... Pair-energy histogram, mean, width
-    // ... Site-energy correlation
-
-    xtp::QMNBList &nblist = top->NBList();
-
-    for (unsigned i = 0; i < _states.size(); ++i) {
-
-        int state = _states[i];
-        std::cout << std::endl << "... ... Charge state " << state << std::flush;
-
-        if (!_seg_shortlist.size()) {            
-            std::cout << std::endl << "... ... ... No segments short-listed. Skip ... "
-                 << std::flush;
-        }
-        else {
-            // Site-energy histogram <> DOS
-            if (_skip_sites) {
-                std::cout << std::endl << "... ... ... Skip site-energy hist." << std::flush;
-            }
-            else {
-                SiteHist(top, state);
-            }
-            
-            // Site-energy correlation function
-            if (_skip_corr) {
-                std::cout << std::endl << "... ... ... Skip correlation ..." << std::flush;
-            }
-            else {
-                SiteCorr(top, state);
-            }
-        }
-
-        if (!nblist.size()) {
-            std::cout << std::endl << "... ... ... No pairs in topology. Skip ... "
-                 << std::flush;
-        }
-        else {
-            // Site-energy-difference histogram <> Pair DOS
-            if (_skip_pairs) {
-                std::cout << std::endl << "... ... ... Skip pair-energy hist." << std::flush;
-            }
-            else {
-                PairHist(top, state);
-            }
-        }
-    }
-    
-    return true;
-}
-
-void EAnalyze::SiteHist(xtp::Topology *top, int state) {
-
-    std::vector< double > Es;
-    Es.reserve(_seg_shortlist.size());
-
-    double MIN = _seg_shortlist[0]->getSiteEnergy(state);
-    double MAX = _seg_shortlist[0]->getSiteEnergy(state);
-    double AVG = 0.0;
-    double VAR = 0.0;
-    double STD = 0.0;
-
-    // Collect energies from segments, calc AVG
-    std::vector< xtp::Segment* > ::iterator sit;
-    for (sit = _seg_shortlist.begin(); 
-         sit < _seg_shortlist.end();
-         ++sit) {
-
-        double E = (*sit)->getSiteEnergy(state);
-
-        MIN = (E < MIN) ? E : MIN;
-        MAX = (E > MAX) ? E : MAX;
-        AVG += E / _seg_shortlist.size();
-        
-        Es.push_back(E);
-    }
-
-    _site_avg = AVG;
-
-    // Prepare bins
-    int BIN = int( (MAX-MIN)/_resolution_sites + 0.5 ) + 1;
-    std::vector< std::vector<double> > histE;
-    histE.resize(BIN);
-
-    // Execute binning, calc VAR
-    std::vector< double > ::iterator eit;
-    for (eit = Es.begin(); eit < Es.end(); ++eit) {
-
-        int bin = int( (*eit-MIN)/_resolution_sites + 0.5 );
-        histE[bin].push_back(*eit);
-        VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
-    }
-
-    std::vector< int > histN;
-    histN.resize(BIN);
-    for (int bin = 0; bin < BIN; ++bin) {
-        histN[bin] = histE[bin].size();
-    }
-
-    STD = sqrt(VAR);
-
-    FILE *out;
-    std::string statename;
-    if (state==-1){
-        statename="e";
-    }
-    else if (state==1){
-        statename="h";
-    }
-    else if (state==2){
-        statename="s";
-    }
-    else if (state==3){
-        statename="t";
-    }
-    
-    
-    std::string tag = boost::lexical_cast<std::string>("eanalyze.sitehist_") +statename+ ".out";
-    out = fopen(tag.c_str(), "w");
-
-    fprintf(out, "# EANALYZE: SITE-ENERGY HISTOGRAM \n");
-    fprintf(out, "# AVG %4.7f STD %4.7f MIN %4.7f MAX %4.7f \n", 
-                    AVG,      STD,      MIN,      MAX);
-
-    for (int bin = 0; bin < BIN; ++bin) {
-        double E = MIN + bin*_resolution_sites;
-        fprintf(out, "%4.7f %4d \n", E, histN[bin]);
-    }
-    fclose(out);
-    
-    // Write "seg x y z energy" with atomic {x,y,z}
-    if (_do_atomic_xyze) {
-        tag = (state == -1) ? "eanalyze.landscape_e.out" : "eanalyze.landscape_h.out";
-        out = fopen(tag.c_str(), "w");
-
-        for (sit = _seg_shortlist.begin(); 
-             sit < _seg_shortlist.end();
-             ++sit) {
-
-            if ((*sit)->getId() < _atomic_first) { continue; }
-            if ((*sit)->getId() == _atomic_last) { break; }
-            double E = (*sit)->getSiteEnergy(state);
-
-            std::vector< xtp::Atom* > ::iterator ait;
-            for (ait = (*sit)->Atoms().begin();
-                 ait < (*sit)->Atoms().end();
-                 ++ait) {
-
-                xtp::Atom *atm = *ait;
-
-                fprintf(out, "%3s %4.7f %4.7f %4.7f %4.7f\n",
-                              (*sit)->getName().c_str(),
-                              atm->getPos().getX(),
-                              atm->getPos().getY(),
-                              atm->getPos().getZ(),
-                              E);            
-            }
-        }
-        fclose(out);    
-    }
-}
-
-
-void EAnalyze::PairHist(xtp::Topology *top, int state) {
-
-    xtp::QMNBList &nblist = top->NBList();
-    xtp::QMNBList::iterator pit;
-
-    double MIN = nblist.front()->Seg1()->getSiteEnergy(state)
-               - nblist.front()->Seg2()->getSiteEnergy(state);
-    double MAX = nblist.front()->Seg1()->getSiteEnergy(state)
-               - nblist.front()->Seg2()->getSiteEnergy(state);
-    double AVG = 0.0;
-    double VAR = 0.0;
-    double STD = 0.0;
-
-    FILE *out_dEs;
-    std::string tag_dEs = boost::lexical_cast<std::string>("eanalyze.pairlist_") + ( (state == -1) ? "e" : "h" ) + ".out";
-    out_dEs = fopen(tag_dEs.c_str(), "w");
-
-    // Collect site-energy differences from neighbourlist
-    std::vector< double > dEs;    
-    for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
-
-        xtp::Segment *seg1 = (*pit)->Seg1();
-        xtp::Segment *seg2 = (*pit)->Seg2();
-
-        double dE = seg2->getSiteEnergy(state) - seg1->getSiteEnergy(state);
-
-        MIN = (dE < MIN) ? dE : MIN;
-        MIN = (-dE < MIN) ? -dE : MIN;
-        MAX = (dE > MAX) ? dE : MAX;
-        MAX = (-dE > MAX) ? -dE : MAX;
-        AVG += dE / nblist.size();
-        
-        dEs.push_back(dE);
-        dEs.push_back(-dE);
-
-        fprintf(out_dEs, "%5d %5d %4.7f \n", seg1->getId(), seg2->getId(), dE);
-    }
-    fclose(out_dEs);
-    
-    // Prepare bins
-    int BIN = int( (MAX-MIN)/_resolution_pairs + 0.5 ) + 1;
-    std::vector< std::vector<double> > histE;
-    histE.resize(BIN);
-    
-    // Execute binning, calc VAR
-    std::vector< double > ::iterator eit;
-    for (eit = dEs.begin(); eit < dEs.end(); ++eit) {
-
-        int bin = int( ((*eit)-MIN)/_resolution_pairs + 0.5 );
-
-        histE[bin].push_back((*eit));
-        VAR += ((*eit) - AVG)*((*eit) - AVG) / nblist.size();
-    }
-
-    std::vector< int > histN;
-    histN.resize(BIN);
-    for (int bin = 0; bin < BIN; ++bin) {
-        histN[bin] = histE[bin].size();
-    }
-
-    STD = sqrt(VAR);
-
-    FILE *out;
-    std::string statename;
-    if (state==-1){
-        statename="e";
-    }
-    else if (state==1){
-        statename="h";
-    }
-    else if (state==2){
-        statename="s";
-    }
-    else if (state==3){
-        statename="t";
-    }
-    std::string tag = boost::lexical_cast<std::string>("eanalyze.pairhist_") + statename + ".out";
-    out = fopen(tag.c_str(), "w");
-
-    fprintf(out, "# EANALYZE: PAIR-ENERGY HISTOGRAM \n");
-    fprintf(out, "# AVG %4.7f STD %4.7f MIN %4.7f MAX %4.7f \n",
-                    AVG,      STD,      MIN,      MAX);
-
-    for (int bin = 0; bin < BIN; ++bin) {
-        double E = MIN + bin*_resolution_pairs;
-        fprintf(out, "%4.7f %4d \n", E, histN[bin]);
-    }
-    fclose(out);
-}
-
-
-void EAnalyze::SiteCorr(xtp::Topology *top, int state) {
-
-    double AVG = 0.0;
-    double AVGESTATIC = 0.0;
-    double VAR = 0.0;
-    double STD = 0.0;
-
-    std::vector< xtp::Segment* > ::iterator sit1;
-    std::vector< xtp::Segment* > ::iterator sit2;    
-
-    // Calculate mean site energy
-    std::vector< double > Es;
-
-    std::vector< xtp::Segment* > ::iterator sit;
-    for (sit = _seg_shortlist.begin();
-         sit < _seg_shortlist.end();
-         ++sit) {
-
-        double E = (*sit)->getSiteEnergy(state);
-        AVG += E / _seg_shortlist.size();
-        
-        AVGESTATIC += (*sit)->getEMpoles(state) / top->Segments().size();
-
-        Es.push_back(E);
-    }
-    
-    // Calculate variance
-    std::vector< double > ::iterator eit;
-    for (eit = Es.begin(); eit < Es.end(); ++eit) {
-
-        VAR += ((*eit) - AVG)*((*eit) - AVG) / _seg_shortlist.size();
-    }
-    
-    STD = sqrt(VAR);
-
-    // Collect inter-site distances, correlation product
-    std::vector< double > Rs;
-    std::vector< double > Cs;
-
-    double MIN = +1e15;
-    double MAX = -1e15;
-
-    std::vector< xtp::Fragment* > ::iterator fit1;
-    std::vector< xtp::Fragment* > ::iterator fit2;
-
-    std::cout << std::endl;
-    
-    FILE *corr_out;
-    std::string statename;
-    if (state==-1){
-        statename="e";
-    }
-    else if (state==1){
-        statename="h";
-    }
-    else if (state==2){
-        statename="s";
-    }
-    else if (state==3){
-        statename="t";
-    }
-    std::string corrfile = boost::lexical_cast<std::string>("eanalyze.sitecorr.atomic_") + statename+ ".out";
-    corr_out = fopen(corrfile.c_str(), "w");
-    
-    for (sit1 = _seg_shortlist.begin(); sit1 < _seg_shortlist.end(); ++sit1) {
-
-        std::cout << "\r... ... ..." << " Correlating segment ID = "
-             << (*sit1)->getId() << std::flush;
-
-    for (sit2 = sit1 + 1;                sit2 < _seg_shortlist.end(); ++sit2) {
-
-        double R = abs(top->PbShortestConnect((*sit1)->getPos(),
-                                              (*sit2)->getPos()));
-
-        if(_distancemode == "segment"){
-            for (fit1 = (*sit1)->Fragments().begin();
-                 fit1 < (*sit1)->Fragments().end();
-                 ++fit1) {
-             for (fit2 = (*sit2)->Fragments().begin();
-                 fit2 < (*sit2)->Fragments().end();
-                 ++fit2) {
- 
-                double R_FF = abs(top->PbShortestConnect((*fit1)->getPos(),
-                                                         (*fit2)->getPos()));
-
-                if (R_FF < R) { R = R_FF; }
-            }}
-        }
-    
-
-        MIN = (R < MIN) ? R : MIN;
-        MAX = (R > MAX) ? R : MAX;
-
-        double C = ((*sit1)->getSiteEnergy(state) - AVG)
-                 * ((*sit2)->getSiteEnergy(state) - AVG);
-
-        Rs.push_back(R);
-        Cs.push_back(C);
-        
-        fprintf(corr_out, "%+1.7f %+1.7f\n", R, C);
-
-    }}
-    
-    fclose(corr_out);
-
-    // Prepare bins
-    int BIN = int( (MAX-MIN)/_resolution_space + 0.5 ) + 1;
-    std::vector< std::vector<double> > histCs;
-    histCs.resize(BIN);
-
-    for (unsigned i = 0; i < Rs.size(); ++i) {
-
-        int bin = int((Rs[i] - MIN)/_resolution_space + 0.5);
-        histCs[bin].push_back(Cs[i]);
-    }
-
-    // Calculate spatial correlation
-    std::vector< double > histC;
-    std::vector< double > histC_error;
-    histC.resize(BIN);
-    histC_error.resize(BIN);
-    for (int bin = 0; bin < BIN; ++bin) {
-
-        double corr = 0.0;
-        double dcorr2 = 0.0;
-        for (unsigned i = 0; i < histCs[bin].size(); ++i) {
-            corr += histCs[bin][i] / VAR;
-            //corr2 += (histCs[bin][i] / VAR)*(histCs[bin][i] / VAR);
-        }
-
-        corr  = corr / histCs[bin].size();
-        //corr2 = corr2 / histCs[bin].size();
-
-        for (unsigned i = 0; i < histCs[bin].size(); ++i) {
-            dcorr2 += (histCs[bin][i]/VAR/histCs[bin].size() - corr)*(histCs[bin][i]/VAR/histCs[bin].size() - corr);
-        }
-
-
-        histC[bin] = corr;
-        
-        // error on mean value
-        dcorr2 = dcorr2 / histCs[bin].size() / (histCs[bin].size()-1);
-        histC_error[bin] = sqrt(dcorr2);
-    }
-
-    FILE *out;
-    
-    if (state==-1){
-        statename="e";
-    }
-    else if (state==1){
-        statename="h";
-    }
-    else if (state==2){
-        statename="s";
-    }
-    else if (state==3){
-        statename="t";
-    }
-    std::string tag = boost::lexical_cast<std::string>("eanalyze.sitecorr_") + statename + ".out";
-    out = fopen(tag.c_str(), "w");
-
-    fprintf(out, "# EANALYZE: SPATIAL SITE-ENERGY CORRELATION \n");
-    fprintf(out, "# AVG %4.7f STD %4.7f MIN_R %4.7f MAX_R %4.7f  AVGESTATIC %4.7f\n",
-                    AVG,      STD,      MIN,      MAX,      AVGESTATIC);
-
-    for (int bin = 0; bin < BIN; ++bin) {
-        double R = MIN + bin*_resolution_space;
-        fprintf(out, "%4.7f %4.7f %4.7f\n", R, histC[bin], histC_error[bin]);
-    }
-    fclose(out);
-}
-
-}}
 
 #endif // _VOTCA_XTP_EANALYZE_H

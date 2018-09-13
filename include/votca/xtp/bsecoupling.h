@@ -17,15 +17,15 @@
  *
  */
 
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/logger.h>
+#include <votca/xtp/couplingbase.h>
+#include <votca/xtp/qmstate.h>
 
 #ifndef _VOTCA_XTP_BSECOUPLING_H
 #define	_VOTCA_XTP_BSECOUPLING_H
 
 namespace votca { namespace xtp {
 
-
+    
 /**
 * \brief Evaluates electronic coupling elements
 *
@@ -34,49 +34,38 @@ namespace votca { namespace xtp {
 * 
 */
 
-class BSECoupling 
+class BSECoupling : public CouplingBase
 {
 public:
-
-    BSECoupling() {};
-   ~BSECoupling() {};
    
-   void    Initialize( tools::Property *options);
+   void    Initialize( tools::Property &options);
    std::string  Identify() { return "bsecoupling"; }
   
     
     Eigen::MatrixXd getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
        
     Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
-    void addoutput(tools::Property *_type_summary,Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB);
-    
-    bool CalculateCouplings(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB 
-                             );  
-    
-  
-    
+    void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB);
 
+    void CalculateCouplings(const Orbitals& orbitalsA,const Orbitals& orbitalsB, 
+                               Orbitals& orbitalsAB);
      
+private:
+    
+    void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
+                        tools::Property& summary, const QMState& stateA, const QMState& stateB);
+    
     double getSingletCouplingElement( int levelA, int levelB, int methodindex);
     
     double getTripletCouplingElement( int levelA, int levelB, int methodindex);
-   
-    void setLogger( xtp::Logger* pLog ) { _pLog = pLog; }
     
-private:
+    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& bseA_T,const Eigen::MatrixXd& bseB_T, 
+                         Eigen::MatrixXd& H);
     
-    xtp::Logger *_pLog;
-  
+    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
     
-    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& _bseA_T,const Eigen::MatrixXd& _bseB_T, 
-                         Eigen::MatrixXd& _H);
-    
-    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& _J_dimer);
-    
-    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& _J_dimer);
+    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer);
     
     std::vector< Eigen::MatrixXd > JAB_singlet;
     std::vector< Eigen::MatrixXd > JAB_triplet;
@@ -90,24 +79,16 @@ private:
     int _unoccA;
     int _occB;
     int _unoccB;
-    double      _degeneracy;
-    int         _openmp_threads;
+    int _openmp_threads;
     
+    int _bse_exc;
     
-    //_levA und _bseA_exc are the same but the stupid int unsigned conversion stuff, so leave it for now
-    
-    unsigned _bse_exc;
-    
-    unsigned _bseA_exc;
-    unsigned _bseB_exc;
-    
-    unsigned _ct;
+    int _ct;
     
      Eigen::MatrixXd ctAB;
      Eigen::MatrixXd ctBA;
      Eigen::MatrixXd _kap;
      Eigen::MatrixXd _kbp;
-    
     
 };
 

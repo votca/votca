@@ -44,27 +44,25 @@ namespace votca {
                 return "xtp";
             }
 
-            void Initialize(tools::Property *options);
+            void Initialize(tools::Property &options);
 
-            bool WriteInputFile(std::vector< xtp::Segment* > segments, Orbitals* orbitals_guess = NULL, std::vector<xtp::PolarSeg*> PolarSegments = {});
+            bool WriteInputFile( Orbitals& orbitals);
 
-            bool Run(Orbitals* _orbitals = NULL);
+            bool Run(Orbitals& orbitals);
 
             void CleanUp();
 
             bool CheckLogFile();
 
-            bool ParseLogFile(Orbitals* _orbitals);
+            bool ParseLogFile(Orbitals& orbitals);
 
-            bool ParseOrbitalsFile(Orbitals* _orbitals);
+            bool ParseOrbitalsFile(Orbitals& orbitals);
             
-            bool setMultipoleBackground( std::vector<xtp::PolarSeg*> multipoles);
+            void setMultipoleBackground( std::vector<std::shared_ptr<xtp::PolarSeg> > multipoles);
 
         private:
-
-            DFTENGINE _xtpdft;
+            void WriteChargeOption() { return ;}
             tools::Property _xtpdft_options;
-
             std::string _cleanup;
 
             

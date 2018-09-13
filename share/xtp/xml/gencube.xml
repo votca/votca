@@ -1,9 +1,6 @@
 <options>
 
-<gencube help="Tool to generate cube files from .orb file" section="sec:overlap">
-
-
-
+<gencube help="Tool to generate cube files from .orb file" section="sec:gencube">
 
         <output help="Output file" default="state.cube">H2O.cube</output>
         <input help="Input file" default="system.orb">system.orb</input>
@@ -11,9 +8,8 @@
         <xsteps help="Gridpoints in x-direction" default="25">50</xsteps>
         <ysteps help="Gridpoints in y-direction" default="25">50</ysteps>
         <zsteps help="Gridpoints in z-direction" default="25">50</zsteps>
-        <state help="State to generate cube file for" default="1">5</state>
-        <spin help="Singlet or Triplet" >singlet</spin>
-        <type help="qp:quasiparticle,ground:groundstate,transition:transitionstate,excited/excited-gs:excitedstate density/density excited-ground state" default="ground">transition</type>
+        <state help="State to generate cube file for" default="N">n2S1</state>
+        <diff2gs help="For excited states output difference to groundstate" default="false">false</diff2gs>
         <mode help="new: generate new cube file, substract: substract to cube files specified below" default="new">new</mode>
 <infile1 help="Cubefile to substract infile2 from" >test_S1.cube</infile1>
 <infile2 help="Cubefile to substract from infile1">test_S2.cube</infile2>

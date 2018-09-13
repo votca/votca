@@ -39,15 +39,10 @@ class GDMA
 {
 public:   
 
-  
-
-    GDMA() { };
-   ~GDMA() { };
-
-   void WriteInputFile( );
+   void WriteInputFile();
    void RunExternal();
    void ParseOutputFile();
-   void Initialize( tools::Property *options  ); 
+   void Initialize( tools::Property &options  ); 
    
    // functions to override Initialize
    void SetLimit( double rank  ) { _limit = rank; } ;
@@ -76,7 +71,7 @@ private:
     double  _radius; 
     double  _switch; 
     std::string  _outFile; 
-    xtp::Logger*                             _log;
+    xtp::Logger* _log;
     
  
 };

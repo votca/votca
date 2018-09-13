@@ -31,16 +31,10 @@ class DensityAnalysis : public xtp::QMTool
 {
 public:
 
-    DensityAnalysis () { };
-   ~DensityAnalysis () { };
-
     string Identify() { return "densityanalysis"; }
 
     void   Initialize(Property *options);
     bool   Evaluate();
-    // two access functions for egwbse interface
-    
-
 
 private:
     
@@ -77,17 +71,13 @@ bool DensityAnalysis::Evaluate() {
     _log.setPreface(xtp::logWARNING, "\n... ...");
     _log.setPreface(xtp::logDEBUG,   "\n... ..."); 
 
-    XTP_LOG(xtp::logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
-
-    Orbitals _orbitals;
-    // load the QM data from serialized orbitals object
-
+    Orbitals orbitals;
     XTP_LOG(xtp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    _orbitals.ReadFromCpt(_orbfile);
+    orbitals.ReadFromCpt(_orbfile);
 
     Density2Gyration density2gyration=Density2Gyration(&_log);
-    density2gyration.Initialize(&_gyration_options);
-    density2gyration.AnalyzeDensity(_orbitals);
+    density2gyration.Initialize(_gyration_options);
+    density2gyration.AnalyzeDensity(orbitals);
      
     return true;
 }

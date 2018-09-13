@@ -17,36 +17,32 @@
  *
  */
 
+#include <votca/tools/elements.h>                                                
 
-
-
-#include <sys/stat.h>
-#include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
-#include <boost/filesystem.hpp>
-#include <votca/tools/elements.h>
-#include <votca/xtp/espfit.h>
+#include <votca/xtp/apolarsite.h>                                                
+#include <votca/xtp/atom.h>
+#include <votca/xtp/qmatom.h>                                                    
+#include <votca/xtp/orbitals.h>   
+#include <votca/xtp/polarseg.h>                                                  
+#include <votca/xtp/polartop.h>                                                  
 #include <votca/xtp/qminterface.h>
-
-#include "votca/xtp/qmatom.h"
-#include "votca/xtp/atom.h"
+#include <votca/xtp/segment.h>                                                   
 
 using boost::format;
 
 namespace votca {
     namespace xtp {
 
-        xtp::APolarSite *QMMInterface::Convert(QMAtom *atm, int id) {
-          
-            
+        xtp::APolarSite *QMInterface::Convert(QMAtom *atm, int id) {
+                
             std::string elem = atm->getType();
             xtp::APolarSite *new_aps = new xtp::APolarSite(id, elem);
             
             double pol = 0.0;
             try {
-                pol = _polar_table.at(elem);
-            } catch (const std::exception& out_of_range) {
-                std::cout << std::endl << "QMMInterface - no default polarizability given "
+                pol = _element.getPolarizability(elem);
+            } catch (const std::invalid_argument& out_of_range) {
+                std::cout << std::endl << "QMInterface - no default polarizability given "
                         << "for element type '" << elem << "'. Defaulting to 1A**3" << std::flush;
                 pol = 1e-3;
             }
@@ -61,7 +57,7 @@ namespace votca {
             return new_aps;
         }
 
-        xtp::PolarSeg QMMInterface::Convert(std::vector<QMAtom*> &atms) {
+        xtp::PolarSeg QMInterface::Convert(std::vector<QMAtom*> &atms) {
             xtp::PolarSeg new_pseg = xtp::PolarSeg();
             std::vector<QMAtom*>::iterator it;
             for (it = atms.begin(); it < atms.end(); ++it) {
@@ -71,34 +67,26 @@ namespace votca {
             return new_pseg;
         }
 
-        std::vector<QMAtom *> QMMInterface::Convert(std::vector<xtp::Segment* > segments) {
-
+        std::vector<QMAtom *> QMInterface::Convert(std::vector<xtp::Segment* > segments) {
             std::vector<QMAtom *> qmatoms;
-
-            std::vector< xtp::Atom* > ::iterator ait;
-            std::vector< xtp::Segment* >::iterator sit;
             int AtomId=0;
-            for (sit = segments.begin(); sit != segments.end(); ++sit) {
-                std::vector < xtp::Atom* >& _atoms = (*sit)->Atoms();
-
-                for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-                    if(!(*ait)->HasQMPart()){
+            for (xtp::Segment* segment:segments) {
+                std::vector < xtp::Atom* >& atoms = segment->Atoms();
+                for (xtp::Atom* atom: atoms) {
+                    if(!atom->HasQMPart()){
                       continue;
                     }
-
-                    tools::vec pos = (*ait)->getQMPos() * tools::conv::nm2bohr;
-                    std::string name = (*ait)->getElement();
-                    //be careful charges are set to zero because most of the time xtp::Atom has getQ not set, the construct is very weird, xtp is shit
+                    tools::vec pos = atom->getQMPos() * tools::conv::nm2bohr;
+                    std::string name = atom->getElement();
                     QMAtom* qmatom = new QMAtom(AtomId,name, pos);
                     AtomId++;
                     qmatoms.push_back(qmatom);
-
                 }
             }
             return qmatoms;
         }
 
-        void QMMInterface::GenerateQMAtomsFromPolarSegs(xtp::PolarTop *ptop, Orbitals &orb) {
+        void QMInterface::GenerateQMAtomsFromPolarSegs(xtp::PolarTop *ptop, Orbitals &orb) {
           int AtomID=0;
             // INNER SHELL QM0
             for (unsigned int i = 0; i < ptop->QM0().size(); ++i) {
@@ -115,45 +103,36 @@ namespace votca {
         }
 
 
-        std::vector<xtp::PolarSeg*> QMMInterface::GenerateMultipoleList(xtp::PolarTop *ptop  ) {
-
-            std::vector<xtp::PolarSeg*> MultipoleList;
+        std::vector<std::shared_ptr<xtp::PolarSeg> > QMInterface::GenerateMultipoleList(xtp::PolarTop *ptop  ) {
+            std::vector<std::shared_ptr<xtp::PolarSeg> > MultipoleList;
 
             // MIDDLE SHELL MM1
             for (unsigned int i = 0; i < ptop->MM1().size(); ++i) {
-                xtp::PolarSeg *pseg = new xtp::PolarSeg(ptop->MM1()[i],false);
+                std::shared_ptr<xtp::PolarSeg>  pseg ( new xtp::PolarSeg(ptop->MM1()[i],false));
                 MultipoleList.push_back(pseg);
             }
 
             // OUTER SHELL MM2
             for (unsigned int i = 0; i < ptop->MM2().size(); ++i) {
-                xtp::PolarSeg *pseg = new xtp::PolarSeg(ptop->MM2()[i],false);
+                std::shared_ptr<xtp::PolarSeg>  pseg (new xtp::PolarSeg(ptop->MM2()[i],false));
                 MultipoleList.push_back(pseg);
             }
-
             return MultipoleList;
         }
 
+        void QMInterface::Orbitals2Segment(xtp::Segment& segment, const Orbitals& orbitals) {
 
-        void QMMInterface::Orbitals2Segment(xtp::Segment* _segment, Orbitals* _orbitals) {
-
-            
-            std::vector<QMAtom* > ::iterator ait;
-            std::vector< QMAtom* >_atoms = _orbitals->QMAtoms();
-
+            std::vector< QMAtom* >_atoms = orbitals.QMAtoms();
             std::string type;
             int id = 1;
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-
-                type = (*ait)->getType();
-                
+            for (QMAtom* atom: _atoms) {
+                type = atom->getType();
                 xtp::Atom *pAtom = new xtp::Atom(id++, type);
-                tools::vec position= (*ait)->getPos()*votca::tools::conv::bohr2nm;
+                tools::vec position= atom->getPos()*votca::tools::conv::bohr2nm;
                 pAtom->setPos(position);
                 pAtom->setQMPart(id, position);
                 pAtom->setElement(type);
-                _segment->AddAtom(pAtom);
+                segment.AddAtom(pAtom);
             }
             return;
         }

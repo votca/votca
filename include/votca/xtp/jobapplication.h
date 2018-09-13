@@ -38,7 +38,11 @@ class JobApplication : public XtpApplication
 {
 public:
     JobApplication();
-   ~JobApplication() { };
+   ~JobApplication() {
+       for (ctp::JobCalculator* calculator : _calculators) {
+            delete calculator;
+        } 
+   };
 
    void Initialize();
    bool EvaluateOptions();

@@ -66,12 +66,9 @@ bool XtpDump::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     cout << "Available XTP extractors: \n";
-    for (xtp::ExtractorFactory::assoc_map::const_iterator iter =
-            xtp::Extractors().getObjects().begin();
-            iter != xtp::Extractors().getObjects().end(); ++iter) {
-      PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort);
+    for (const auto& extract:xtp::Extractors().getObjects()) {
+      PrintDescription(std::cout, extract.first, "xtp/xml", Application::HelpShort);
     }
-
     StopExecution();
   
     return true;
@@ -82,20 +79,19 @@ bool XtpDump::EvaluateOptions() {
     CheckRequired("description", "no extractor is given");
     tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
-    for (tools::Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
+    for (const string& n:tok) {
       // loop over calculators
       bool printerror = true;
-      for (xtp::ExtractorFactory::assoc_map::const_iterator iter = xtp::Extractors().getObjects().begin();
-          iter != xtp::Extractors().getObjects().end(); ++iter) {
 
-        if ((*n).compare((iter->first).c_str()) == 0) {
-          PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong);
+      for (const auto& extract:xtp::Extractors().getObjects()) {
+        if (n.compare(extract.first.c_str()) == 0) {
+          PrintDescription(std::cout,extract.first, "xtp/xml", Application::HelpLong);
           printerror = false;
           break;
         }
       }
 
-      if (printerror) cout << "Extractor " << *n << " does not exist\n";
+      if (printerror) cout << "Extractor " << n << " does not exist\n";
     }
     StopExecution();
     return true;
@@ -105,22 +101,20 @@ bool XtpDump::EvaluateOptions() {
   CheckRequired("extract", "Nothing to do here: Abort.");
 
   tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
-  tools::Tokenizer::iterator it;
-  for (it = calcs.begin(); it != calcs.end(); it++) {
+  for (const string& n:calcs) {
 
     bool _found_calc = false;
-    for (xtp::ExtractorFactory::assoc_map::const_iterator iter = xtp::Extractors().getObjects().begin();
-        iter != xtp::Extractors().getObjects().end(); ++iter) {
-
-      if ((*it).compare((iter->first).c_str()) == 0) {
+    for (const auto& extract:xtp::Extractors().getObjects()) {
+      if (n.compare(extract.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
-        xtp::SqlApplication::AddCalculator(xtp::Extractors().Create((*it).c_str()));
+        xtp::SqlApplication::AddCalculator(xtp::Extractors().Create(n.c_str()));
         _found_calc = true;
+
       }
     }
 
     if (!_found_calc) {
-      cout << "Extractor " << *it << " does not exist\n";
+      cout << "Extractor " << n << " does not exist\n";
       StopExecution();
     }
 

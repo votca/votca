@@ -63,12 +63,9 @@ bool XtpParallel::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
-    for (xtp::JobCalculatorfactory::assoc_map::const_iterator iter =
-        xtp::JobCalculators().getObjects().begin();
-        iter != xtp::JobCalculators().getObjects().end(); ++iter) {
-      PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpShort);
+    for (const auto& jobcalc:xtp::JobCalculators().getObjects()) {
+      PrintDescription(std::cout, jobcalc.first, "xtp/xml", Application::HelpShort);
     }
-
     StopExecution();
     return true;
   }
@@ -78,20 +75,17 @@ bool XtpParallel::EvaluateOptions() {
     CheckRequired("description", "no calculator is given");
     Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
-    for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
+    for (const std::string &n: tok) {
       // loop over calculators
       bool printerror = true;
-      for (xtp::JobCalculatorfactory::assoc_map::const_iterator iter = xtp::JobCalculators().getObjects().begin();
-          iter != xtp::JobCalculators().getObjects().end(); ++iter) {
-
-        if ((*n).compare((iter->first).c_str()) == 0) {
-          PrintDescription(std::cout, iter->first, "xtp/xml", Application::HelpLong);
+      for (const auto& jobcalc:xtp::JobCalculators().getObjects()) {
+        if (n.compare(jobcalc.first.c_str()) == 0) {
+          PrintDescription(std::cout, jobcalc.first, "xtp/xml", Application::HelpLong);
           printerror = false;
           break;
         }
       }
-
-      if (printerror) cout << "Calculator " << *n << " does not exist\n";
+      if (printerror) cout << "Calculator " << n << " does not exist\n";
     }
     StopExecution();
     return true;
@@ -101,21 +95,19 @@ bool XtpParallel::EvaluateOptions() {
   CheckRequired("execute", "Nothing to do here: Abort.");
 
   Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
-  Tokenizer::iterator it;
-
-  for (it = calcs.begin(); it != calcs.end(); it++) {
+  for (const std::string &n: calcs) {
     bool _found_calc = false;
-    for(xtp::JobCalculatorfactory::assoc_map::const_iterator iter=xtp::JobCalculators().getObjects().begin(); 
-        iter != xtp::JobCalculators().getObjects().end(); ++iter) {
+    for(const auto& jobcalc:xtp::JobCalculators().getObjects()) {
 
-      if ( (*it).compare( (iter->first).c_str() ) == 0 ) {
+      if ( n.compare( jobcalc.first.c_str() ) == 0 ) {
         cout << " This is a XTP app" << endl;
-        xtp::JobApplication::AddCalculator(xtp::JobCalculators().Create((*it).c_str()));
+        xtp::JobApplication::AddCalculator(xtp::JobCalculators().Create(n.c_str()));
         _found_calc = true;
       } 
     }
+
     if (!_found_calc) {
-      cout << "Jobcalculator " << *it << " does not exist\n";
+      cout << "Jobcalculator " << n << " does not exist\n";
       StopExecution();
     }
   }

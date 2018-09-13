@@ -42,7 +42,6 @@ public:
         for(auto& carrier:_carriers){
            delete carrier;
        }
-    delete _RandomVariable;
    };
    std::string Identify() { return "kmcmultiple"; }
     void Initialize(tools::Property *options);

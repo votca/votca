@@ -47,15 +47,13 @@ public:
     
 };
 
-inline Calculatorfactory &Calculators()
-{
-    static Calculatorfactory _instance;
-    return _instance;
+inline Calculatorfactory &Calculators(){
+    static Calculatorfactory instance;
+    return instance;
 }
 
-inline xtp::QMCalculator* Calculatorfactory::Create(const std::string &key)
-{
-     assoc_map::const_iterator it(getObjects().find(key));
+inline xtp::QMCalculator* Calculatorfactory::Create(const std::string &key){
+    assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
         xtp::QMCalculator* calc = (it->second)();
         calc->LoadDefaults();

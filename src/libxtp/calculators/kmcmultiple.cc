@@ -57,7 +57,7 @@ void KMCMultiple::Initialize(tools::Property *options){
          double mtonm=1E9;
        _field /=mtonm ;//Converting from V/m to V/nm 
       
-	_outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
+        _outputtime = options->ifExistsReturnElseReturnDefault<double>(key+".outputtime",0);
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");
 	
         std::string carriertype=options->ifExistsReturnElseReturnDefault<std::string>(key+".carriertype","e");
@@ -451,8 +451,8 @@ bool KMCMultiple::EvaluateFrame(xtp::Topology *top){
     // Initialise random number generator
     if(tools::globals::verbose) { cout << endl << "Initialising random number generator" << endl; }
     srand(_seed); // srand expects any integer in order to initialise the random number generator
-    _RandomVariable = new tools::Random2();
-    _RandomVariable->init(rand(), rand(), rand(), rand());
+    _RandomVariable = tools::Random2();
+    _RandomVariable.init(rand(), rand(), rand(), rand());
     
     LoadGraph(top);
     

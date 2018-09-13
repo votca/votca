@@ -22,52 +22,53 @@
 #include "votca/xtp/aomatrix.h"
 #include <votca/xtp/molecule.h>
 #include <votca/xtp/atom.h>
+#include <boost/algorithm/string.hpp>
+
 namespace votca {
     namespace xtp {
       using std::flush;
-        void QMPackage::ReorderOutput(Orbitals* _orbitals) {
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals->hasQMAtoms()) {
+        void QMPackage::ReorderOutput(Orbitals& orbitals) {
+            BasisSet dftbasisset;
+            dftbasisset.LoadBasisSet(_basisset_name);
+            if (!orbitals.hasQMAtoms()) {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
 
-
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
+            AOBasis dftbasis;
+            dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
             //necessary to update nuclear charges on qmatoms
             if (_write_pseudopotentials) {
-                BasisSet _ecps;
-                _ecps.LoadPseudopotentialSet(_ecp_name);
-                AOBasis _ecpbasis;
-                _ecpbasis.ECPFill(&_ecps, _orbitals->QMAtoms());
+                BasisSet ecps;
+                ecps.LoadPseudopotentialSet(_ecp_name);
+                AOBasis ecpbasis;
+                ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
             }
 
-            if (_orbitals->hasAOOverlap()) {
-                _dftbasis.ReorderMatrix(_orbitals->AOOverlap(), getPackageName(), "xtp");
+            if (orbitals.hasAOOverlap()) {
+                dftbasis.ReorderMatrix(orbitals.AOOverlap(), getPackageName(), "xtp");
                 XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
             }
-            if (_orbitals->hasAOVxc()) {
-                _dftbasis.ReorderMatrix(_orbitals->AOVxc(), getPackageName(), "xtp");
+            if (orbitals.hasAOVxc()) {
+                dftbasis.ReorderMatrix(orbitals.AOVxc(), getPackageName(), "xtp");
                 XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
             }
-            if (_orbitals->hasMOCoefficients()) {
-                _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), getPackageName(), "xtp");
+            if (orbitals.hasMOCoefficients()) {
+                dftbasis.ReorderMOs(orbitals.MOCoefficients(), getPackageName(), "xtp");
                 XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
             }
 
             return;
         }
 
-        void QMPackage::ReorderMOsBack(Orbitals* _orbitals) {
-            BasisSet _dftbasisset;
-            _dftbasisset.LoadBasisSet(_basisset_name);
-            if (!_orbitals->hasQMAtoms()) {
+        void QMPackage::ReorderMOsBack(Orbitals& orbitals) {
+            BasisSet dftbasisset;
+            dftbasisset.LoadBasisSet(_basisset_name);
+            if (!orbitals.hasQMAtoms()) {
                 throw std::runtime_error("Orbitals object has no QMAtoms");
             }
-            AOBasis _dftbasis;
-            _dftbasis.AOBasisFill(&_dftbasisset, _orbitals->QMAtoms());
-            _dftbasis.ReorderMOs(_orbitals->MOCoefficients(), "xtp", getPackageName());
+            AOBasis dftbasis;
+            dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
+            dftbasis.ReorderMOs(orbitals.MOCoefficients(), "xtp", getPackageName());
             return;
         }
 
@@ -96,7 +97,6 @@ namespace votca {
                 multipoles_split.push_back({B.getX(), B.getY(), B.getZ(), qB});
             }
 
-
             if (aps->getRank() > 1) {
                 tools::matrix components = aps->getQ2cartesian();
                 tools::matrix::eigensystem_t system;
@@ -115,101 +115,52 @@ namespace votca {
                     multipoles_split.push_back({vec2.getX(), vec2.getY(), vec2.getZ(), q});
 
                 }
-
             }
-
             return multipoles_split;
         }
-
-        void QMPackage::addLinkers(std::vector< xtp::Segment* > &segments, xtp::QMPair* pair, std::vector<std::string> linker_names) {
-            xtp::Segment* seg1 = pair->Seg1();
-            xtp::Segment* seg2 = pair->Seg2();
-            xtp::Topology* _top = seg1->getTopology();
-            std::vector<xtp::Segment*> segmentsInMolecule = _top->Segments();
-            xtp::Molecule* moleculeSeg1 = seg1->getMolecule();
-            xtp::Molecule* moleculeSeg2 = seg2->getMolecule();
-            int moleculeIdSeg1 = moleculeSeg1-> getId();
-            int moleculeIdSeg2 = moleculeSeg2-> getId();
-
-            if (moleculeIdSeg1 == moleculeIdSeg2) {
-
-                int idSeg1 = seg1->getId();
-                int idSeg2 = seg2->getId();
-
-                std::cout << "\n\nsegment size before addLinker: " << segments.size() << "\n";
-
-                std::vector<xtp::Segment*>::iterator it;
-                for (it = segmentsInMolecule.begin(); it != segmentsInMolecule.end(); ++it) {
-                    xtp::Molecule* moleculeSegIt = (*it)->getMolecule();
-                    int moleculeIdOfSegIt = moleculeSegIt-> getId();
-                    int idIterator = (*it)->getId();
-                    if (moleculeIdOfSegIt == moleculeIdSeg1 && idIterator != idSeg1 && idIterator != idSeg2
-                            && isLinker((*it)->getName(), linker_names)) {
-                        segments.push_back((*it));
-                    }
-                }
-
-                std::cout << "\n\nsegment size after addLinker: " << segments.size() << "\n";
-
-            }
-            return;
+        
+      void QMPackage::setMultipoleBackground(std::vector<std::shared_ptr<xtp::PolarSeg> > PolarSegments) {
+        if(PolarSegments.size()==0){
+          std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
+          return;
         }
-
-        bool QMPackage::isLinker(std::string name, std::vector< std::string> linker_names) {
-            return (std::find(linker_names.begin(), linker_names.end(), name) != linker_names.end());
+      _PolarSegments = PolarSegments;
+      _write_charges = true;
+      
+      WriteChargeOption();
+    }
+      
+      std::vector<std::string> QMPackage::GetLineAndSplit(std::ifstream& input_file,const std::string separators ){
+          std::string line;
+          getline(input_file, line);
+          boost::trim(line);
+          std::vector<std::string> row;
+          boost::algorithm::split(row, line, boost::is_any_of(separators), boost::algorithm::token_compress_on);
+          return row;
         }
-
-        bool QMPackage::WriteInputFilePBC(xtp::QMPair* pair, Orbitals* orbitals, std::vector<std::string> linker_names) {
-
-            //std::cout << "IDFT writes input with PBC" << std::endl;
-
-            xtp::Segment* seg1 = pair->Seg1();
-            xtp::Segment* seg2 = pair->Seg2();
-            xtp::Segment* ghost = NULL;
-
-            xtp::Topology* _top = seg1->getTopology();
-
-            xtp::vec r1 = seg1->getPos();
-            xtp::vec r2 = seg2->getPos();
-
-            xtp::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
-
-            // Check whether pair formed across periodic boundary
-            if (abs(r2 - r1 - _R) > 1e-8) {
-                ghost = new xtp::Segment(seg2);
-                //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-                std::vector<xtp::Atom*>::iterator ait;
-                for (ait = ghost->Atoms().begin(); ait != ghost->Atoms().end(); ++ait) {
-                    (*ait)->setQMPos((*ait)->getQMPos() + r1 - r2 + _R);
-                }
+      
+      
+std::vector<std::string> QMPackage::FindUniqueElements(const std::vector<QMAtom*> atoms){
+        std::vector<std::string> result;
+        for (QMAtom* atom:atoms) {
+        bool exists = false;
+        if (result.size() == 0) {
+          exists = false;
+        } else {
+          for (const std::string& type:result){
+            if (atom->getType() == type) {
+              exists = true;
+              break;
             }
-
-            std::vector< xtp::Segment* > segments;
-            segments.push_back(seg1);
-
-            if (ghost) {
-                segments.push_back(ghost);
-            } else {
-                segments.push_back(seg2);
-            }
-
-
-            std::cout << "Number of linker names " << linker_names.size() << std::endl;
-            for (size_t i = 0; i < linker_names.size(); i++) {
-                std::cout << linker_names[i] << std::endl;
-            }
-
-            addLinkers(segments, pair, linker_names);
-
-            std::cout << "\n\nBefore writing: " << segments.size() << "\n";
-
-            WriteInputFile(segments, orbitals);
-
-            delete ghost;
-            return true;
+          }
         }
-
-
+        if (!exists) {
+          result.push_back(atom->getType());
+        }
+      }
+        return result;
+      }
+      
 
     }
 }

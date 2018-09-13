@@ -25,6 +25,7 @@
 #include <votca/xtp/qmtool.h>
 #include <votca/xtp/xtpapplication.h>
 #include <stdio.h>
+#include <votca/xtp/version.h>
 
 
 
@@ -35,6 +36,12 @@ class XtpTools : public xtp::XtpApplication {
 public:
 
   XtpTools() {
+  }
+  
+  ~XtpTools(){
+    for (auto* tool:_tools){
+      delete tool;
+    }
   }
 
   string ProgramName() {
@@ -90,12 +97,10 @@ bool XtpTools::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     cout << "Available XTP tools: \n";
-    for (xtp::QMToolFactory::assoc_map::const_iterator iter =
-        xtp::QMTools().getObjects().begin();
-        iter != xtp::QMTools().getObjects().end(); ++iter) {
-      PrintDescription(std::cout, iter->first, helpdir, Application::HelpShort);
-    }
 
+    for (const auto& tool:xtp::QMTools().getObjects()) {
+      PrintDescription(std::cout, tool.first, helpdir, Application::HelpShort);
+    }
     StopExecution();
     return true;
   }
@@ -105,44 +110,90 @@ bool XtpTools::EvaluateOptions() {
     CheckRequired("description", "no tool is given");
     tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
-    for (tools::Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
+    for (const std::string& n :tok) {
       // loop over tools
       bool printerror = true;
+<<<<<<< HEAD
       for (xtp::QMToolFactory::assoc_map::const_iterator iter = xtp::QMTools().getObjects().begin();
           iter != xtp::QMTools().getObjects().end(); ++iter) {
 
         if ((*n).compare((iter->first).c_str()) == 0) {
           PrintDescription(std::cout, iter->first, helpdir, Application::HelpLong);
+=======
+      for ( const auto& tool:xtp::QMTools().getObjects()) {
+        if (n.compare(tool.first.c_str()) == 0) {
+          PrintDescription(std::cout, tool.first, helpdir, Application::HelpLong);
+>>>>>>> development
           printerror = false;
           break;
         }
       }
+<<<<<<< HEAD
       if (printerror) cout << "Tool " << *n << " does not exist\n";
+=======
+      for (const auto& tool:ctp::QMTools().getObjects()) {
+        if (n.compare(tool.first.c_str()) == 0) {
+          bool printctp = true;
+          std::string ctpcalc = tool.first.c_str();
+          for (const auto& xtptool:xtp::QMTools().getObjects()) {
+            if (ctpcalc.compare(xtptool.first.c_str()) == 0) {
+              printctp = false;
+              break;
+            }
+          }
+          if (printctp) {
+            PrintDescription(std::cout, tool.first, "ctp/xml", Application::HelpLong);
+            printerror = false;
+            break;
+          }
+        }
+      }
+      if (printerror) cout << "Tool " << n << " does not exist\n";
+>>>>>>> development
     }
     StopExecution();
     return true;
   }
+  
   Application::EvaluateOptions();
   CheckRequired("execute", "Nothing to do here: Abort.");
   CheckRequired("options", "Please provide an xml file with tool options");
 
   tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
-  tools::Tokenizer::iterator it;
-  for (it = xtools.begin(); it != xtools.end(); it++) {
+  for (const std::string& n :xtools) {
     bool _found_calc = false;
+<<<<<<< HEAD
     for (xtp::QMToolFactory::assoc_map::const_iterator iter = xtp::QMTools().getObjects().begin();
         iter != xtp::QMTools().getObjects().end(); ++iter) {
       if ((*it).compare((iter->first).c_str()) == 0) {
+=======
+    for (const auto& tool:xtp::QMTools().getObjects()) {
+      if (n.compare(tool.first.c_str()) == 0) {
+>>>>>>> development
         cout << " This is a XTP app" << endl;
-        this->AddTool(xtp::QMTools().Create((*it).c_str()));
+        this->AddTool(xtp::QMTools().Create(n.c_str()));
         _found_calc = true;
       }
     }
     if (!_found_calc) {
+<<<<<<< HEAD
       cout << "Tool " << *it << " does not exist\n";
+=======
+      for (const auto& tool:ctp::QMTools().getObjects()) {
+
+        if (n.compare(tool.first.c_str()) == 0) {
+          cout << " This is a CTP app" << endl;
+           this->AddTool(ctp::QMTools().Create(n.c_str()));
+            _found_calc = true;
+        }
+      }
+    }
+    if (!_found_calc) {
+      cout << "Tool " << n << " does not exist\n";
+>>>>>>> development
       StopExecution();
     }else{
-      cout << "Registered " << (*it).c_str() << endl;
+      cout << "Registered " << n << endl;
     }
   }
   return 1;
@@ -154,31 +205,46 @@ void XtpTools::Run() {
   tools::load_property_from_xml(_options, optionsFile);
 
   int nThreads = OptionsMap()["nthreads"].as<int>();
-
+  std::string name = ProgramName();
+  if (VersionString() != "") name = name + ", version " + VersionString();
+  votca::xtp::HelpTextHeader(name);
   cout << "Initializing tools " << endl;
   BeginEvaluate(nThreads);
 
   cout << "Evaluating tools " << endl;
+  
   Evaluate();
-
   EndEvaluate();
 }
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
+<<<<<<< HEAD
   list< xtp::QMTool* > ::iterator it;
   for (it = _tools.begin(); it != _tools.end(); it++) {
     cout << "... " << (*it)->Identify() << " " << flush;
     (*it)->setnThreads(nThreads);
     (*it)->Initialize(&_options);
+=======
+  for (ctp::QMTool* tool: _tools) {
+    cout << "... " << tool->Identify() << " " << flush;
+    tool->setnThreads(nThreads);
+    tool->Initialize(&_options);
+>>>>>>> development
     cout << endl;
   }
 }
 
 bool XtpTools::Evaluate() {
+<<<<<<< HEAD
   list< xtp::QMTool* > ::iterator it;
   for (it = _tools.begin(); it != _tools.end(); it++) {
     cout << "... " << (*it)->Identify() << " " << flush;
     (*it)->Evaluate();
+=======
+for (ctp::QMTool* tool: _tools) {
+    cout << "... " << tool->Identify() << " " << flush;
+    tool->Evaluate();
+>>>>>>> development
     cout << endl;
   }
 
@@ -186,9 +252,14 @@ bool XtpTools::Evaluate() {
 }
 
 void XtpTools::EndEvaluate() {
+<<<<<<< HEAD
   list< xtp::QMTool* > ::iterator it;
   for (it = _tools.begin(); it != _tools.end(); it++) {
     (*it)->EndEvaluate();
+=======
+for (ctp::QMTool* tool: _tools) {
+    tool->EndEvaluate();
+>>>>>>> development
   }
 }
 

@@ -60,6 +60,10 @@ void Log2Mps::Initialize(Property *opt) {
     
     string key = "options.log2mps";
     _package = opt->get(key+".package").as<string>();
+    
+    if(_package=="xtp"){
+        throw std::runtime_error("XTP has no log file. For xtp package just run the partialcharges tool on you .orb file");
+    }
     _logfile = opt->get(key+".logfile").as<string>();
     
 
@@ -82,6 +86,7 @@ bool Log2Mps::Evaluate() {
     
     // Set-up QM package
     XTP_LOG_SAVE(xtp::logINFO,log) << "Using package <" << _package << ">" << flush;
+
     QMPackage *qmpack = QMPackages().Create(_package);    
     qmpack->doGetCharges(true);
     qmpack->setLog(&log);
@@ -90,7 +95,7 @@ bool Log2Mps::Evaluate() {
     
     // Create orbitals, fill with life & extract QM atoms
     Orbitals orbs;
-    int cdx = qmpack->ParseLogFile(&orbs);
+    int cdx = qmpack->ParseLogFile(orbs);
     if (!cdx) {
         cout << "\nERROR Parsing " << _logfile << "failed. Abort." << endl;
         throw std::runtime_error("(see above, parsing error)");
@@ -114,8 +119,8 @@ bool Log2Mps::Evaluate() {
     
     
     // Convert to polar segment & write mps-file
-    QMMInterface qmmface;
-    xtp::PolarSeg pseg = qmmface.Convert(qmatoms);
+    QMInterface qmface;
+    xtp::PolarSeg pseg = qmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")

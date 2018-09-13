@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache){
   basis.LoadBasisSet("3-21G.xml");
   
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
   Eigen::MatrixXd dmat=Eigen::MatrixXd::Zero(17,17);       
   dmat<<0.00157507,0.0337454,4.48905e-16,-5.93152e-16,7.87133e-17,0.030876,2.51254e-16,-1.49094e-16,5.77899e-17,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,
@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE(threecenter){
   basis.LoadBasisSet("3-21G.xml");
  
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
  
   Orbitals orb;
   orb.setBasisSetSize(17);
@@ -261,8 +261,8 @@ BOOST_AUTO_TEST_CASE(threecenter){
   aoverlap.Fill(aobasis);
   
   ConvergenceAcc d;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,4,0);
-  d.setOverlap(&aoverlap.Matrix(),1e-8);
+  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,8,0);
+  d.setOverlap(&aoverlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   Eigen::MatrixXd dmat=orb.DensityMatrixGroundState();
   ERIs eris;
@@ -344,7 +344,7 @@ BOOST_AUTO_TEST_CASE(fourcenter_direct){
   basis.LoadBasisSet("3-21G.xml");
   
   AOBasis aobasis;
-  aobasis.AOBasisFill(&basis,orbitals.QMAtoms());
+  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
   Eigen::MatrixXd dmat=Eigen::MatrixXd::Zero(17,17);       
   dmat<<0.00157507,0.0337454,4.48905e-16,-5.93152e-16,7.87133e-17,0.030876,2.51254e-16,-1.49094e-16,5.77899e-17,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,0.00415998,-0.00445632,
