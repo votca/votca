@@ -28,7 +28,7 @@
 #include <votca/xtp/statesaversqlite.h>
 #include <votca/xtp/version.h>
 #include <votca/tools/globals.h>
-#include "Md2QmEngine.h"
+#include <votca/xtp/Md2QmEngine.h>
 
 using namespace std;
 
@@ -97,6 +97,10 @@ bool XtpMap::EvaluateOptions() {
 }
 
 void XtpMap::Run() {
+  
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    votca::xtp::HelpTextHeader(name);
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Initialize MD2QM Engine and SQLite Db //

@@ -129,16 +129,13 @@ void EInternal::ParseEnergiesXML(tools::Property *opt) {
 
     key = "topology.molecules.molecule";
     std::list<tools::Property*> mols = alloc.Select(key);
-    std::list<tools::Property*> ::iterator molit;
-    for (molit = mols.begin(); molit != mols.end(); ++molit) {
+    for (tools::Property* molprop:mols) {
 
         key = "segments.segment";
-        std::list<tools::Property*> segs = (*molit)->Select(key);
-        std::list<tools::Property*> ::iterator segit;
+        std::list<tools::Property*> segs = molprop->Select(key);
+        for (tools::Property* segprop:segs) {
 
-        for (segit = segs.begin(); segit != segs.end(); ++segit) {
-
-            std::string segName = (*segit)->get("name").as<std::string> ();
+            std::string segName =segprop->get("name").as<std::string> ();
 
             bool has_seg = true;
             bool has_e = false;
@@ -161,49 +158,48 @@ void EInternal::ParseEnergiesXML(tools::Property *opt) {
             double U_xN_xX_t = 0.0;
             
 
-            if ( (*segit)->exists("U_cC_nN_e") &&
-                 (*segit)->exists("U_nC_nN_e") &&
-                 (*segit)->exists("U_cN_cC_e")    ) {
+            if ( segprop->exists("U_cC_nN_e") &&
+                segprop->exists("U_nC_nN_e") &&
+                 segprop->exists("U_cN_cC_e")    ) {
 
-                U_cC_nN_e = (*segit)->get("U_cC_nN_e").as< double > ();
-                U_nC_nN_e = (*segit)->get("U_nC_nN_e").as< double > ();
-                U_cN_cC_e = (*segit)->get("U_cN_cC_e").as< double > ();
+                U_cC_nN_e = segprop->get("U_cC_nN_e").as< double > ();
+                U_nC_nN_e = segprop->get("U_nC_nN_e").as< double > ();
+                U_cN_cC_e = segprop->get("U_cN_cC_e").as< double > ();
 
                 has_e = true;
             }
             
-            if ( (*segit)->exists("U_cC_nN_h") &&
-                 (*segit)->exists("U_nC_nN_h") &&
-                 (*segit)->exists("U_cN_cC_h")    ) {
+            if ( segprop->exists("U_cC_nN_h") &&
+                 segprop->exists("U_nC_nN_h") &&
+                 segprop->exists("U_cN_cC_h")    ) {
 
-                U_cC_nN_h = (*segit)->get("U_cC_nN_h").as< double > ();
-                U_nC_nN_h = (*segit)->get("U_nC_nN_h").as< double > ();
-                U_cN_cC_h = (*segit)->get("U_cN_cC_h").as< double > ();
+                U_cC_nN_h = segprop->get("U_cC_nN_h").as< double > ();
+                U_nC_nN_h = segprop->get("U_nC_nN_h").as< double > ();
+                U_cN_cC_h = segprop->get("U_cN_cC_h").as< double > ();
 
                 has_h = true;
             }
             
-            if ( (*segit)->exists("U_xX_nN_s") &&
-                 (*segit)->exists("U_nX_nN_s") &&
-                 (*segit)->exists("U_xN_xX_s")    ) {
+            if ( segprop->exists("U_xX_nN_s") &&
+                 segprop->exists("U_nX_nN_s") &&
+                 segprop->exists("U_xN_xX_s")    ) {
 
-                U_xX_nN_s = (*segit)->get("U_xX_nN_s").as< double > ();
-                U_nX_nN_s = (*segit)->get("U_nX_nN_s").as< double > ();
-                U_xN_xX_s = (*segit)->get("U_xN_xX_s").as< double > ();
+                U_xX_nN_s = segprop->get("U_xX_nN_s").as< double > ();
+                U_nX_nN_s = segprop->get("U_nX_nN_s").as< double > ();
+                U_xN_xX_s = segprop->get("U_xN_xX_s").as< double > ();
 
                 has_s = true;
             }
-            if ( (*segit)->exists("U_xX_nN_t") &&
-                 (*segit)->exists("U_nX_nN_t") &&
-                 (*segit)->exists("U_xN_xX_t")    ) {
+            if ( segprop->exists("U_xX_nN_t") &&
+                 segprop->exists("U_nX_nN_t") &&
+                 segprop->exists("U_xN_xX_t")    ) {
 
-                U_xX_nN_t = (*segit)->get("U_xX_nN_t").as< double > ();
-                U_nX_nN_t = (*segit)->get("U_nX_nN_t").as< double > ();
-                U_xN_xX_t = (*segit)->get("U_xN_xX_t").as< double > ();
+                U_xX_nN_t = segprop->get("U_xX_nN_t").as< double > ();
+                U_nX_nN_t = segprop->get("U_nX_nN_t").as< double > ();
+                U_xN_xX_t = segprop->get("U_xN_xX_t").as< double > ();
 
                 has_t = true;
             }
-            //std::cout <<  U_xX_nN_s << U_nX_nN_s << U_xN_xX_s << std::endl;
             _seg_U_cC_nN_e[segName] = U_cC_nN_e;
             _seg_U_nC_nN_e[segName] = U_nC_nN_e;
             _seg_U_cN_cC_e[segName] = U_cN_cC_e;
@@ -232,14 +228,13 @@ void EInternal::ParseEnergiesXML(tools::Property *opt) {
 
 bool EInternal::EvaluateFrame(ctp::Topology *top) {
 
-    std::vector< ctp::Segment* > ::iterator sit;
     int count = 0;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+    for (ctp::Segment* seg:top->Segments()) {
 
-        std::string segName = (*sit)->getName();
+        std::string segName = seg->getName();
         
         try {
-            //bool has_seg = _has_seg.at(segName);
+            _has_seg.at(segName);
         }
         catch (const std::exception& out_of_range) {
             std::cout << std::endl << "... ... WARNING: No energy information for seg ["
@@ -256,10 +251,10 @@ bool EInternal::EvaluateFrame(ctp::Topology *top) {
             double l2 = _seg_U_cN_cC_e[segName];
             bool has_e = true;
 
-            (*sit)->setU_cC_nN(u, -1);
-            (*sit)->setU_nC_nN(l1, -1);
-            (*sit)->setU_cN_cC(l2, -1);
-            (*sit)->setHasState(has_e, -1);
+            seg->setU_cC_nN(u, -1);
+            seg->setU_nC_nN(l1, -1);
+            seg->setU_cN_cC(l2, -1);
+            seg->setHasState(has_e, -1);
         }
 
         if (_seg_has_h[segName]) {
@@ -269,10 +264,10 @@ bool EInternal::EvaluateFrame(ctp::Topology *top) {
             double l2 = _seg_U_cN_cC_h[segName];
             bool has_h = true;
 
-            (*sit)->setU_cC_nN(u, +1);
-            (*sit)->setU_nC_nN(l1, +1);
-            (*sit)->setU_cN_cC(l2, +1);
-            (*sit)->setHasState(has_h, +1);
+            seg->setU_cC_nN(u, +1);
+            seg->setU_nC_nN(l1, +1);
+            seg->setU_cN_cC(l2, +1);
+            seg->setHasState(has_h, +1);
         }
          if (_seg_has_s[segName]) {
 
@@ -280,11 +275,11 @@ bool EInternal::EvaluateFrame(ctp::Topology *top) {
             double l1 = _seg_U_nX_nN_s[segName];
             double l2 = _seg_U_xN_xX_s[segName];
             bool has_s = true;
-            //std::cout << u << l1 << l2<<std::endl;
-            (*sit)->setU_xX_nN(u, +2);
-            (*sit)->setU_nX_nN(l1, +2);
-            (*sit)->setU_xN_xX(l2, +2);
-            (*sit)->setHasState(has_s, +2);
+            
+            seg->setU_xX_nN(u, +2);
+            seg->setU_nX_nN(l1, +2);
+            seg->setU_xN_xX(l2, +2);
+            seg->setHasState(has_s, +2);
         }
         if (_seg_has_t[segName]) {
 
@@ -293,10 +288,10 @@ bool EInternal::EvaluateFrame(ctp::Topology *top) {
             double l2 = _seg_U_xN_xX_t[segName];
             bool has_t = true;
 
-            (*sit)->setU_xX_nN(u, +3);
-            (*sit)->setU_nX_nN(l1, +3);
-            (*sit)->setU_xN_xX(l2, +3);
-            (*sit)->setHasState(has_t, +3);
+            seg->setU_xX_nN(u, +3);
+            seg->setU_nX_nN(l1, +3);
+            seg->setU_xN_xX(l2, +3);
+            seg->setHasState(has_t, +3);
         }
     }
 

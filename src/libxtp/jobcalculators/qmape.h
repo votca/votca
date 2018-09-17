@@ -64,25 +64,13 @@ private:
 	bool                           _pdb_check;
 	bool                           _ptop_check;
     
-    // ======================================== //
-    // INDUCTION + ENERGY EVALUATION            //
-    // ======================================== //
-
-    // Induction, subthreading (-> base class)
-
 
     // Multipole Interaction parameters
     string                          _method;
-   
-    
-  
     Property                        _dft_opt;
-    
     // GWBSE options
     string                          _gwbse;
     Property                        _gwbse_opt;
-    int                             _state;
-
     // XJob logbook (file output)
     string                          _outFile;
    
@@ -130,8 +118,6 @@ void QMAPE::Initialize(Property *options) {
     	cout << endl << "... ... Configure for excited states (DFT+GWBSE)" << flush;
         string gwbse_xml = options->ifExistsReturnElseThrowRuntimeError<string>(key+".gwbse_options");
         load_property_from_xml(_gwbse_opt, gwbse_xml.c_str());
-     
-        _state = options->ifExistsReturnElseReturnDefault<int>(key+".state",1);
     }
     else {
         cout << endl << "... ... Configure for ground states (DFT)" << flush;
@@ -211,13 +197,13 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
     
     // SILENT LOGGER FOR QMPACKAGE
     ctp::Logger* log = thread->getLogger();    
-    ctp::Logger* qlog = new ctp::Logger();
-    qlog->setReportLevel(ctp::logDEBUG);
-    qlog->setMultithreading(_maverick);
-    qlog->setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog->setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+    ctp::Logger qlog;
+    qlog.setReportLevel(ctp::logDEBUG);
+    qlog.setMultithreading(_maverick);
+    qlog.setPreface(ctp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog.setPreface(ctp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog.setPreface(ctp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog.setPreface(ctp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
     CTP_LOG(ctp::logINFO,*log)
@@ -242,10 +228,8 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
 	if (_pdb_check)
 		cape.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
 
-   
-    
     // SETUP QMAPE
-    QMAPEMachine machine = QMAPEMachine(&xjob, &cape, _options, "options.qmape", _subthreads);
+    QMAPEMachine machine = QMAPEMachine(&xjob, &cape, _options, "options.qmape");
     machine.setLog(thread->getLogger());
     
     // EVALUATE: ITERATE UNTIL CONVERGED
@@ -255,9 +239,6 @@ ctp::Job::JobResult QMAPE::EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThr
     ctp::Job::JobResult jres = ctp::Job::JobResult();
     jres.setOutput(xjob.getInfoLine());
     jres.setStatus(ctp::Job::COMPLETE);
-    
- 
-    delete qlog;
 
     return jres;
 }

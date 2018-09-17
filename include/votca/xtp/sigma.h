@@ -20,12 +20,12 @@
 #ifndef _VOTCA_XTP_SIGMA_H
 #define _VOTCA_XTP_SIGMA_H
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/ppm.h>
 #include <votca/ctp/logger.h>
 
 namespace votca {
 namespace xtp {
-
+    class PPM;
+    class TCMatrix_gwbse;
 
 class Sigma {
  public:
@@ -34,7 +34,7 @@ _log = log;
 _gwa_energies.resize(0);
   }
   
-  void configure(unsigned homo, unsigned qpmin,unsigned qpmax,unsigned g_sc_max_iterations,
+  void configure(int homo, int qpmin,int qpmax,int g_sc_max_iterations,
                 double g_sc_limit){
       _homo=homo;
       _qpmin=qpmin;
@@ -51,8 +51,9 @@ _gwa_energies.resize(0);
       _dftenergies=dftenergies;
   }
   
-void CalcdiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
-void CalcOffDiagElements(const TCMatrix_gwbse& _Mmn,const PPM & ppm );
+void CalcdiagElements(const TCMatrix_gwbse& Mmn,const PPM & ppm );
+
+void CalcOffDiagElements(const TCMatrix_gwbse& Mmn,const PPM & ppm );
 
 Eigen::MatrixXd SetupFullQPHamiltonian();
 
@@ -69,16 +70,24 @@ void FreeMatrices(){
 }
 
  private:
-  void C_offdiag(const TCMatrix_gwbse& _Mmn, const PPM& ppm);
-  void X_offdiag(const TCMatrix_gwbse& _Mmn);   
+     
+  void C_diag(const TCMatrix_gwbse& Mmn, const PPM& ppm, const Eigen::VectorXd& qp_old);
+  void C_offdiag(const TCMatrix_gwbse& Mmn, const PPM& ppm);
+  
+  inline double SumSymmetric(real_gwbse Mmn1xMmn2, double qpmin1, double qpmin2, const double gwa_energy);
+  inline double Stabilize(double denom);
+
+
+  void X_offdiag(const TCMatrix_gwbse& Mmn);   
+  void X_diag(const TCMatrix_gwbse& Mmn);
 ctp::Logger *_log;
-  unsigned _homo;   // HOMO index
-  unsigned _qpmin;
-  unsigned _qpmax;
-  unsigned _qptotal;
+  int _homo;   // HOMO index
+  int _qpmin;
+  int _qpmax;
+  int _qptotal;
 
   double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  unsigned int _g_sc_max_iterations;
+  int _g_sc_max_iterations;
   
   double _ScaHFX;
   // Sigma related variables and functions

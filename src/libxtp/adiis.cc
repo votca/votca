@@ -25,33 +25,31 @@ namespace votca { namespace xtp {
   
       
       
-   Eigen::VectorXd ADIIS::CalcCoeff(const std::vector< Eigen::MatrixXd* >& _dmathist,const std::vector< Eigen::MatrixXd* >& _mathist){
+   Eigen::VectorXd ADIIS::CalcCoeff(const std::vector< Eigen::MatrixXd* >& dmathist,const std::vector< Eigen::MatrixXd* >& mathist){
       success=true;
-      unsigned size=_dmathist.size();
+      int size=dmathist.size();
       
-      const Eigen::MatrixXd& dmat=*_dmathist[size-1];
-      const Eigen::MatrixXd& H=*_mathist[size-1];
-      Eigen::VectorXd _DiF = Eigen::VectorXd::Zero(size);
-      Eigen::MatrixXd _DiFj = Eigen::MatrixXd::Zero(size, size);
+      const Eigen::MatrixXd& dmat=*dmathist[size-1];
+      const Eigen::MatrixXd& H=*mathist[size-1];
+      Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
+      Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
 
 
-      for (unsigned i = 0; i < _dmathist.size(); i++) {
-        _DiF(i) = ((*_dmathist[i]) - dmat).cwiseProduct(H).sum();
+      for (int i = 0; i < size; i++) {
+        DiF(i) = ((*dmathist[i]) - dmat).cwiseProduct(H).sum();
       }
 
-      for (unsigned i = 0; i < _dmathist.size(); i++) {
-        for (unsigned j = 0; j < _dmathist.size(); j++) {
-          _DiFj(i, j) = ((*_dmathist[i]) - dmat).cwiseProduct((*_mathist[j]) - H).sum();
+      for (int i = 0; i < size; i++) {
+        for (int j = 0; j < size; j++) {
+          DiFj(i, j) = ((*dmathist[i]) - dmat).cwiseProduct((*mathist[j]) - H).sum();
         }
       }   
      
  
-   ceres::GradientProblem problem(new ADIIS_costfunction(_DiF,_DiFj));
+   ceres::GradientProblem problem(new ADIIS_costfunction(DiF,DiFj));
    // Starting point: equal weights on all matrices
    Eigen::VectorXd coeffs=Eigen::VectorXd::Constant(size,1.0/size);
-   
-   
-   
+
    ceres::GradientProblemSolver::Options options;
    options.minimizer_progress_to_stdout=false;
    options.logging_type=ceres::LoggingType::SILENT;

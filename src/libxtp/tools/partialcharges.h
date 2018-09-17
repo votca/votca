@@ -88,7 +88,7 @@ bool Partialcharges::Evaluate() {
     _orbitals.ReadFromCpt(_orbfile);
 
     Esp2multipole esp2multipole=Esp2multipole(&_log);
-    esp2multipole.Initialize(&_esp_options);
+    esp2multipole.Initialize(_esp_options);
     esp2multipole.Extractingcharges(_orbitals);
     
     esp2multipole.WritetoFile(_output_file);

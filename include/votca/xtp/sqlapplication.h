@@ -38,7 +38,12 @@ class SqlApplication : public XtpApplication
 {
 public:
     SqlApplication();
-   ~SqlApplication() { };
+
+    ~SqlApplication() {
+        for (ctp::QMCalculator* calculator : _calculators) {
+            delete calculator;
+        }
+    };
 
    void Initialize();
    bool EvaluateOptions();
