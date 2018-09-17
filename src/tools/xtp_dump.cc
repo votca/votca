@@ -103,17 +103,17 @@ bool XtpDump::EvaluateOptions() {
   tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
   for (const string& n:calcs) {
 
-    bool _found_calc = false;
+    bool found_calc = false;
     for (const auto& extract:xtp::Extractors().getObjects()) {
       if (n.compare(extract.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
         xtp::SqlApplication::AddCalculator(xtp::Extractors().Create(n.c_str()));
-        _found_calc = true;
+        found_calc = true;
 
       }
     }
 
-    if (!_found_calc) {
+    if (!found_calc) {
       cout << "Extractor " << n << " does not exist\n";
       StopExecution();
     }

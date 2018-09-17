@@ -132,15 +132,15 @@ bool XtpTools::EvaluateOptions() {
 
   tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string& n :xtools) {
-    bool _found_calc = false;
+    bool found_calc = false;
     for (const auto& tool:xtp::QMTools().getObjects()) {
       if (n.compare(tool.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
         this->AddTool(xtp::QMTools().Create(n.c_str()));
-        _found_calc = true;
+        found_calc = true;
       }
     }
-    if (!_found_calc) {
+    if (!found_calc) {
       cout << "Tool " << n << " does not exist\n";
       StopExecution();
     }else{

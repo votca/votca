@@ -30,10 +30,7 @@
 
 namespace votca { namespace xtp {
 /**
-    \brief information about an element
- 
-    The Atom class stores atom id, name, type, mass, charge, residue number
-    
+    \brief provides interface to external GDMA code
 */
 class GDMA
 {

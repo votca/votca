@@ -43,8 +43,6 @@
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="f5" displayName="Executables" projectFiles="true">
-      <itemPath>../../src/tools/Md2QmEngine.cc</itemPath>
-      <itemPath>../../src/tools/Md2QmEngine.h</itemPath>
       <itemPath>../../src/tools/xtp_dump.cc</itemPath>
       <itemPath>../../src/tools/xtp_map.cc</itemPath>
       <itemPath>../../src/tools/xtp_parallel.cc</itemPath>

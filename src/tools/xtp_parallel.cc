@@ -96,17 +96,17 @@ bool XtpParallel::EvaluateOptions() {
 
   Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string &n: calcs) {
-    bool _found_calc = false;
+    bool found_calc = false;
     for(const auto& jobcalc:xtp::JobCalculators().getObjects()) {
 
       if ( n.compare( jobcalc.first.c_str() ) == 0 ) {
         cout << " This is a XTP app" << endl;
         xtp::JobApplication::AddCalculator(xtp::JobCalculators().Create(n.c_str()));
-        _found_calc = true;
+        found_calc = true;
       } 
     }
 
-    if (!_found_calc) {
+    if (!found_calc) {
       cout << "Jobcalculator " << n << " does not exist\n";
       StopExecution();
     }

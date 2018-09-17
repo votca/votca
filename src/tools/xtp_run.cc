@@ -104,17 +104,17 @@ bool XtpRun::EvaluateOptions() {
 
   Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string &n: calcs) {
-    bool _found_calc = false;
+    bool found_calc = false;
     for (const auto& calc:xtp::Calculators().getObjects()) {
 
       if (n.compare(calc.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
         xtp::SqlApplication::AddCalculator(xtp::Calculators().Create(n.c_str()));
-        _found_calc = true;
+        found_calc = true;
       }
     }
 
-    if(!_found_calc){
+    if(!found_calc){
       cout << "Calculator " << n << " does not exist\n";
       StopExecution();
     }
