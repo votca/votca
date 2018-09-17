@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include <string>
 #include <votca/tools/floatingpointcomparison.h>
+#include <votca/tools/eigen.h>
 #include "tokenizer.h"
 
 namespace votca { namespace tools {
@@ -46,6 +47,9 @@ public:
     vec(const double r[3]);
     vec(const double x, const double y, const double z);
     vec(const std::string &str);
+    vec(const Eigen::Vector3d &vec);
+    
+    Eigen::Vector3d toEigen()const;
     
     
     double operator[](std::size_t i) const;
@@ -175,6 +179,20 @@ inline vec::vec(const std::string &str)
     {
         throw std::runtime_error("\n\n\t error, string to vec, can't convert string to double\n\n");
     }
+}
+
+inline vec::vec(const Eigen::Vector3d &vec){
+    for (int i=0;i<3;i++){
+        xyz[i]=vec[i];
+    }
+}
+
+inline Eigen::Vector3d vec::toEigen() const{
+    Eigen::Vector3d result;
+    for (int i=0;i<3;i++){
+        result[i]=xyz[i];
+    }
+    return result;
 }
 
 inline vec::vec(const double x, const double y, const double z)

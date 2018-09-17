@@ -39,6 +39,19 @@ BOOST_AUTO_TEST_CASE(overloadoperator_test) {
     BOOST_CHECK(!v1.isClose(v3,0.001)); 
   }
 
+BOOST_AUTO_TEST_CASE(Eigenconv_test) {
+
+  vec v1(1,0,0);
+  Eigen::Vector3d unit=Eigen::Vector3d::UnitX();
+ 
+  Eigen::Vector3d conv=vec(unit).toEigen();
+  
+    BOOST_CHECK(v1.toEigen().isApprox(unit,0.001)); 
+    
+    BOOST_CHECK(conv.isApprox(unit,0.0001)); 
+  }
+
+
 
 
 BOOST_AUTO_TEST_SUITE_END()

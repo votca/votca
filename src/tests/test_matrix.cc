@@ -28,7 +28,6 @@ using namespace votca::tools;
 BOOST_AUTO_TEST_SUITE(matrix_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) {
-  matrix mat;
   vec v1(1,2,3);
   vec v2(4,5,6);
   vec v3(7,8,9);
@@ -37,6 +36,18 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   matrix mat4 = mat2;
   std::cout<<"mat2"<< mat2 << std::endl;
   std::cout<<"mat4"<< mat4 << std::endl;
+}
+
+BOOST_AUTO_TEST_CASE(eigen_test) {
+  vec v1(1,2,3);
+  vec v2(4,5,6);
+  vec v3(7,8,9);
+  matrix mat(v1,v2,v3);
+  matrix mat2(mat.ToEigenMatrix());
+          
+  BOOST_CHECK(mat.isClose(mat2,0.01));
+  std::cout<<"mat"<< mat << std::endl;
+  std::cout<<"mat eigen"<<mat.ToEigenMatrix() << std::endl;
 }
 
 BOOST_AUTO_TEST_CASE(overloadoperator_test) {
