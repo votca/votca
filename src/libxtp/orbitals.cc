@@ -19,6 +19,7 @@
 
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmstate.h"
+#include "votca/xtp/aomatrix.h"
 #include <votca/xtp/version.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/basisset.h>
@@ -45,7 +46,7 @@ namespace votca {
             _self_energy = 0.0;
             _qm_energy = 0.0;
             _ECP = "";
-            _bsetype = "";
+            _useTDA = false;
 
             // GW-BSE
             _qpmin = 0;
@@ -69,8 +70,7 @@ namespace votca {
         };
 
         Orbitals::~Orbitals() {
-            std::vector< QMAtom* >::iterator it;
-            for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
+            for (QMAtom* atom:_atoms) delete atom;
         };
 
         void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
@@ -187,6 +187,35 @@ namespace votca {
           }
           return result;
         }
+        
+        
+        Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) {
+          Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
+          if (!state.isTransition()) {
+            Eigen::Vector3d CoM = Eigen::Vector3d::Zero();
+            for (QMAtom* atom : _atoms) {
+              CoM += atom->getPos().toEigen();
+            }
+            CoM /= double(_atoms.size());
+            for (QMAtom* atom : _atoms) {
+              nuclei_dip += (atom->getPos().toEigen() - CoM) * atom->getNuccharge();
+            }
+          }
+
+          BasisSet basis;
+          basis.LoadBasisSet(this->getDFTbasis());
+          AOBasis aobasis;
+          aobasis.AOBasisFill(basis, _atoms);
+          AODipole dipole;
+          dipole.Fill(aobasis);
+
+          Eigen::MatrixXd dmat = this->DensityMatrixFull(state);
+          Eigen::Vector3d electronic_dip;
+          for (int i = 0; i < 3; ++i) {
+            electronic_dip(i) = dmat.cwiseProduct(dipole.Matrix()[i]).sum();
+          }
+          return nuclei_dip - electronic_dip;
+        }
 
         Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const{
             if (state.Type() != QMStateType::Singlet) {
@@ -194,7 +223,7 @@ namespace votca {
             }
             const MatrixXfd& BSECoefs = _BSE_singlet_coefficients;
             if(BSECoefs.cols()<state.Index()+1 || BSECoefs.rows()<2){
-                throw runtime_error("Orbitals object has no information about that state");
+                throw runtime_error("Orbitals object has no information about state:"+state.ToString());
             }
             Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
@@ -206,15 +235,15 @@ namespace votca {
             // indexing info BSE vector index to occupied/virtual orbital
             Index2MO index=BSEIndex2MOIndex();
 
-            if (_bsetype == "full") {
-                const MatrixXfd& _BSECoefs_AR = _BSE_singlet_coefficients_AR;
+            if (!_useTDA) {
+                const MatrixXfd& BSECoefs_AR = _BSE_singlet_coefficients_AR;
 #pragma omp parallel for
                 for (int a = 0; a < dmatTS.rows(); a++) {
                     for (int b = 0; b < dmatTS.cols(); b++) {
                         for (int i = 0; i < _bse_size; i++) {
                             int occ = index.I2v[i];
                             int virt =index.I2c[i];
-                            dmatTS(a, b) += sqrt2 * (BSECoefs(i, state.Index()) + _BSECoefs_AR(i, state.Index())) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
+                            dmatTS(a, b) += sqrt2 * (BSECoefs(i, state.Index()) + BSECoefs_AR(i, state.Index())) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
                         }
                     }
                 }
@@ -237,7 +266,7 @@ namespace votca {
 
         std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState(const QMState& state) const{
             std::vector<Eigen::MatrixXd > dmat = DensityMatrixExcitedState_R(state);
-            if (_bsetype == "full" && state.Type() == QMStateType::Singlet) {
+            if (!_useTDA && state.Type() == QMStateType::Singlet) {
                 std::vector<Eigen::MatrixXd > dmat_AR = DensityMatrixExcitedState_AR(state);
                 dmat[0] -= dmat_AR[0];
                 dmat[1] -= dmat_AR[1];
@@ -254,7 +283,7 @@ namespace votca {
 
             const MatrixXfd & BSECoefs = (state.Type() == QMStateType::Singlet) ? _BSE_singlet_coefficients : _BSE_triplet_coefficients;
             if(BSECoefs.cols()<state.Index()+1 || BSECoefs.rows()<2){
-                throw runtime_error("Orbitals object has no information about that state");
+                throw runtime_error("Orbitals object has no information about state:"+state.ToString());
             }
             /******
              *
@@ -325,7 +354,7 @@ namespace votca {
             
             const MatrixXfd& BSECoefs_AR = _BSE_singlet_coefficients_AR;
             if(BSECoefs_AR.cols()<state.Index()+1 || BSECoefs_AR.rows()<2){
-                throw runtime_error("Orbitals object has no information about that state");
+                throw runtime_error("Orbitals object has no information about state:"+state.ToString());
             }
             /******
              *
@@ -649,7 +678,7 @@ namespace votca {
 
                 w(_ScaHFX, "ScaHFX");
 
-                w(_bsetype, "bsetype");
+                w(int(_useTDA), "useTDA");
                 w(_ECP, "ECP");
 
                 w(_QPpert_energies, "QPpert_energies");
@@ -736,8 +765,9 @@ namespace votca {
                 _bse_size = _bse_vtotal * _bse_ctotal;
 
                 r(_ScaHFX, "ScaHFX");
-
-                r(_bsetype, "bsetype");
+                int temp;
+                r(temp, "useTDA");
+                _useTDA=bool(temp);
                 r(_ECP, "ECP");
 
                 r(_QPpert_energies, "QPpert_energies");

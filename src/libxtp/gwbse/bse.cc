@@ -391,7 +391,7 @@ template <typename T>
       if(tools::globals::verbose){
         act = Analyze_eh_interaction(singlet);
       }
-      if(dftbasis.getAOBasisFragA()>0){
+      if(dftbasis.getAOBasisFragA() > 0 && dftbasis.getAOBasisFragB()>0){
         pop=FragmentPopulations(singlet,dftbasis);
         _orbitals.setFragmentChargesSingEXC(pop.Crgs);
         _orbitals.setFragment_E_localisation_singlet(pop.popE);
@@ -574,15 +574,15 @@ template <typename T>
     std::vector<tools::vec > BSE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
     std::vector<Eigen::MatrixXd > interlevel_dipoles= CalcFreeTransition_Dipoles(dftbasis);
     std::vector<tools::vec > dipols;
-      double sqrt2 = sqrt(2.0);
+    const double sqrt2 = sqrt(2.0);
       for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
         tools::vec tdipole = tools::vec(0, 0, 0);
         for (int c = 0; c < _bse_ctotal; c++) {
           for (int v = 0; v < _bse_vtotal; v++) {
             int index_vc = _bse_ctotal * v + c;
-            double factor = sqrt2 * _bse_singlet_coefficients(index_vc, i_exc);
+            double factor = _bse_singlet_coefficients(index_vc, i_exc);
             if (_bse_singlet_coefficients_AR.rows()>0) {
-              factor += sqrt2 * _bse_singlet_coefficients_AR(index_vc, i_exc);
+              factor += _bse_singlet_coefficients_AR(index_vc, i_exc);
             }
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
             tdipole.x() += factor * interlevel_dipoles[0](v, c);
@@ -590,7 +590,8 @@ template <typename T>
             tdipole.z() += factor * interlevel_dipoles[2](v, c);
           }
         }
-        dipols.push_back(tdipole);     
+        
+        dipols.push_back(-sqrt2 *tdipole);     //- because electrons are negative
       }
       return dipols;
     }

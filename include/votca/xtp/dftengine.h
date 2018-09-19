@@ -93,7 +93,7 @@ namespace votca {
             
             Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs );
             void PrintMOs(const Eigen::VectorXd& MOEnergies);
-            void CalcElDipole();
+            void CalcElDipole(Orbitals& orbitals)const;
             void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
             void ConfigOrbfile(Orbitals& orbitals);
             void SetupInvariantMatrices();

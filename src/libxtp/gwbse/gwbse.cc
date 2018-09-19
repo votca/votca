@@ -647,13 +647,13 @@ bool GWBSE::Evaluate() {
    // store information in _orbitals for later use
   _orbitals.setRPAindices(_rpamin, _rpamax);
   _orbitals.setGWAindices(_qpmin, _qpmax);
-  _orbitals.setBSEindices(_bse_vmin, _bse_vmax, _bse_cmin, _bse_cmax,
+  _orbitals.setBSEindices(_bse_vmin, _bse_cmax,
                            _bse_maxeigenvectors);
   
     if (_do_full_BSE)
-    _orbitals.setBSEtype("full");
+    _orbitals.setTDAApprox(false);
   else {
-    _orbitals.setBSEtype("TDA");
+    _orbitals.setTDAApprox(true);
   }
 
 

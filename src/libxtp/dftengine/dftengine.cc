@@ -17,8 +17,6 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/qminterface.h"
 #include "votca/xtp/qmatom.h"
@@ -151,20 +149,17 @@ void DFTEngine::PrintMOs(const Eigen::VectorXd& MOEnergies){
     }
 
 
-void DFTEngine::CalcElDipole(){
-  AODipole dipole;
-  dipole.Fill(_dftbasis);
+void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
+  QMState state=QMState("n");
+  Eigen::Vector3d result=orbitals.CalcElDipole(state);
   XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Electric Dipole is[e*bohr]:\n\t\t dx=" 
-                          << _dftAOdmat.cwiseProduct(dipole.Matrix()[0]).sum()
-          << "\n\t\t dy=" << _dftAOdmat.cwiseProduct(dipole.Matrix()[1]).sum()
-          << "\n\t\t dz=" << _dftAOdmat.cwiseProduct(dipole.Matrix()[2]).sum()<<flush;
+                          << result[0]
+          << "\n\t\t dy=" << result[1]
+          << "\n\t\t dz=" << result[2]<<flush;
   return;
 }
 
-   /*
-     *    Density Functional theory implementation
-     *
-     */
+
     bool DFTEngine::Evaluate(Orbitals& orbitals) {
       // set the parallelization
 #ifdef _OPENMP
@@ -340,9 +335,9 @@ void DFTEngine::CalcElDipole(){
           XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " MO Energies  [Ha]" << flush;
           
           PrintMOs(MOEnergies);
-           CalcElDipole();
           // orbitals saves total energies in [eV]
           orbitals.setQMEnergy(totenergy * tools::conv::hrt2ev);
+          CalcElDipole(orbitals);
           break;
         } else {
           energyold = totenergy;
@@ -354,11 +349,6 @@ void DFTEngine::CalcElDipole(){
       }
       return true;
     }
-
-
-
-
-    // SETUP INVARIANT AOMatrices
 
     void DFTEngine::SetupInvariantMatrices() {
       
@@ -623,9 +613,6 @@ void DFTEngine::CalcElDipole(){
                 << std::setprecision(9) << avgmatrix.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons." << flush;
         return avgmatrix;
     }
-    
-    
-  
 
     Eigen::MatrixXd DFTEngine::AtomicGuess(Orbitals& orbitals) {
 
@@ -724,7 +711,6 @@ void DFTEngine::CalcElDipole(){
     }
 
 
-    // PREPARATION
 void DFTEngine::Prepare(Orbitals& orbitals) {
 #ifdef _OPENMP
 
@@ -916,7 +902,6 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
 
 
     //average atom densities matrices, for SP and other combined shells average each subshell separately.
-
     Eigen::MatrixXd DFTEngine::SphericalAverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis) {
       Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
       int start = 0.0;
