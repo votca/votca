@@ -19,6 +19,7 @@
 
 #include <votca/xtp/bfgs-trm.h>
 #include <boost/format.hpp>
+#include <votca/xtp/trustregion.h>
 
 namespace votca {
     namespace xtp {
@@ -37,18 +38,16 @@ namespace votca {
                gradient=_costfunction.EvaluateGradient(_parameters);
                 bool step_accepted = false;
                 for (int i=0;i<100;i++){
-                    delta_p_trial=CalculateInitialStep(gradient);
-                    if (delta_p_trial.norm()>_trust_radius){
-                       delta_p_trial=CalculateRegularizedStep(gradient);
-                    }
-                    double trialcost=_costfunction.EvaluateCost(_parameters+delta_p_trial);
-                    delta_cost=trialcost-lastcost;
-                    step_accepted=AcceptRejectStep(delta_p_trial,gradient,delta_cost);
-                    if(step_accepted){
-                      _cost=trialcost;
-                      _parameters+=delta_p_trial;
-                      break;
-                    }
+                  TrustRegion subproblem;
+                  delta_p_trial=subproblem.CalculateStep(gradient,_hessian,_trust_radius);
+                  double trialcost=_costfunction.EvaluateCost(_parameters+delta_p_trial);
+                  delta_cost=trialcost-lastcost;
+                  step_accepted=AcceptRejectStep(delta_p_trial,gradient,delta_cost);
+                  if(step_accepted){
+                    _cost=trialcost;
+                    _parameters+=delta_p_trial;
+                    break;
+                  }
                     
                 } 
                 if(_iteration>0){
@@ -116,44 +115,10 @@ namespace votca {
             return;
         }
 
-        /* Predict displacement of atom coordinates */
-        Eigen::VectorXd BFGSTRM::CalculateInitialStep(const Eigen::MatrixXd& gradient)const{
-            return _hessian.colPivHouseholderQr().solve(-gradient);
-        }
-
-        /* Regularize step in case of prediction outside of Trust Region */
-        Eigen::VectorXd BFGSTRM::CalculateRegularizedStep(const Eigen::VectorXd& gradient) const{
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(_hessian);
-            const Eigen::VectorXd factor =(es.eigenvectors().transpose()*gradient).cwiseAbs2();
-            const double trust_radius_squared=_trust_radius * _trust_radius;
-            TrustRegionFunction TRF=TrustRegionFunction(factor,es,trust_radius_squared);
-            
-            // start value for lambda  a bit lower than lowest eigenvalue of Hessian
-            double lambda= es.eigenvalues()(0)-std::sqrt(factor(0))/_trust_radius;
-            double func_value=0;
-            
-            do {
-             std::pair<double,double> result=TRF.Evaluate(lambda);
-             func_value=result.first;
-             double gradient=result.second;
-             lambda-=func_value/gradient;
-            }while (std::abs(func_value)>(trust_radius_squared*1e-6));
-                
-            Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(gradient.size());
-            for (int i = 0; i < gradient.size(); i++) {
-                new_delta_pos -= es.eigenvectors().col(i) * (es.eigenvectors().col(i).transpose()*gradient) / (es.eigenvalues()(i) - lambda);
-            }
-            return new_delta_pos;
-        }
-
         /* Estimate energy change based on quadratic approximation */
         double BFGSTRM::QuadraticEnergy(const Eigen::VectorXd& gradient, const Eigen::VectorXd& delta_pos) const{
             return (gradient.transpose()* delta_pos).value() + 0.5*(delta_pos.transpose()*_hessian*delta_pos).value();
         }
-        
-        
-
-        
 
     }
 }
