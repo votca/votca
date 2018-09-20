@@ -16,11 +16,13 @@ if [[ $ENV -eq 1 ]]; then
   # Debug build with half the tests (due to timing constraints)
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
 elif [[ $ENV -eq 2 ]]; then
   # Debug build with second half of the tests
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
 elif [[ $ENV -eq 3 ]]; then
   # Debug build with -Werror, build tests as well, but exclude all tests
@@ -29,9 +31,10 @@ elif [[ $ENV -eq 3 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
   export WERROR=yes
 elif [[ $ENV -eq 4 ]]; then
-  # Release build, which gets push to dockerhun
+  # Release build, which gets push to dockerhub
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   export DOCKERHUB=yes
 elif [[ $ENV -eq 5 ]]; then
@@ -39,6 +42,7 @@ elif [[ $ENV -eq 5 ]]; then
   export DISTRO=fedora_gmx2016
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 6 ]]; then
@@ -46,6 +50,7 @@ elif [[ $ENV -eq 6 ]]; then
   export DISTRO=fedora_gmx2016_d
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 7 ]]; then
@@ -53,6 +58,7 @@ elif [[ $ENV -eq 7 ]]; then
   export DISTRO=fedora_gmx2018
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 8 ]]; then
@@ -60,6 +66,7 @@ elif [[ $ENV -eq 8 ]]; then
   export DISTRO=fedora_gmx2018_d
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 9 ]]; then
@@ -67,6 +74,7 @@ elif [[ $ENV -eq 9 ]]; then
   export DISTRO=fedora_gmx9999
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 10 ]]; then
@@ -74,6 +82,7 @@ elif [[ $ENV -eq 10 ]]; then
   export DISTRO=fedora_gmx9999_d
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 11 ]]; then
@@ -81,6 +90,7 @@ elif [[ $ENV -eq 11 ]]; then
   export DISTRO=ubuntu
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
 elif [[ $ENV -eq 12 ]]; then
   # Release build with -Werror, build tests as well, but exclude all tests
@@ -93,6 +103,7 @@ elif [[ $ENV -eq 13 ]]; then
   # superbuild has no code, so no coverage, but test None build type
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=None
   add_to_docker_opts COVERAGE=yes
   export SKIP=yes # bug #67
@@ -102,6 +113,7 @@ elif [[ $ENV -eq 14 ]]; then
   # superbuild has no code, so no coverage, but test None build type
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=None
   add_to_docker_opts COVERAGE=yes
   export SKIP=yes # bug #67
@@ -126,12 +138,14 @@ elif [[ $ENV -eq 17 ]]; then
   add_to_docker_opts MODULE_BUILD=ON
   [[ $CC = clang ]] && add_to_docker_opts TESTING=ON || add_to_docker_opts TESTING=OFF
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
 elif [[ $ENV -eq 18 ]]; then
   # build internal gromacs
   export DISTRO=fedora_nogmx
   add_to_docker_opts BUILD_GROMACS=ON
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\|_re\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
