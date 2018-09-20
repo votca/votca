@@ -118,12 +118,8 @@ namespace votca {
         }
 
         void Esp2multipole::PrintDipoles(Orbitals& orbitals){
-          Eigen::Vector3d CoM = Eigen::Vector3d::Zero();
+          Eigen::Vector3d CoM =orbitals.CalcCoM();
           
-          for (QMAtom* atom : _atomlist) {
-            CoM += atom->getPos().toEigen();
-          }
-          CoM /= double(_atomlist.size());
           Eigen::Vector3d classical_dip = Eigen::Vector3d::Zero();
           for (QMAtom* atom : _atomlist) {
             classical_dip += (atom->getPos().toEigen() - CoM) * atom->getPartialcharge();

@@ -188,10 +188,9 @@ namespace votca {
           return result;
         }
         
-        
-        Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) {
+        Eigen::Vector3d Orbitals::CalcCoM()const{
           tools::Elements elements;
-          Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
+          
           Eigen::Vector3d CoM = Eigen::Vector3d::Zero();
           double totalmass=0.0;
           for (QMAtom* atom : _atoms) {
@@ -200,7 +199,12 @@ namespace votca {
             CoM += mass* atom->getPos().toEigen();
           }
           CoM /= totalmass;
-
+          return CoM;
+        }
+        
+        Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) {
+          Eigen::Vector3d CoM=CalcCoM();
+          Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
           if (!state.isTransition()) {
             for (QMAtom* atom : _atoms) {
               nuclei_dip += (atom->getPos().toEigen() - CoM) * atom->getNuccharge();
