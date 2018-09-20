@@ -92,15 +92,14 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian){
   orbitals.LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
-  
+  orbitals.setDFTbasis("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
-  
-  Orbitals orb;
-  orb.setBasisSetSize(17);
-  orb.setNumberOfLevels(4,13);
-  
-Eigen::MatrixXd MOs=Eigen::MatrixXd::Zero(17,17);
+
+  orbitals.setBasisSetSize(17);
+  orbitals.setNumberOfLevels(4,13);
+ Eigen::MatrixXd& MOs=orbitals.MOCoefficients();
+MOs=Eigen::MatrixXd::Zero(17,17);
 MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15, 2.89043e-13, -0.00949189, 1.95787e-12, 1.22168e-14, -2.63092e-15, -0.22227, 1.00844,
 0.233602, -3.18103e-12, 4.05093e-14, -4.70943e-14, 0.1578, 4.75897e-11, -1.87447e-13, -1.02418e-14, 6.44484e-14, -2.6602e-14, 6.5906e-12, -0.281033, -6.67755e-12, 2.70339e-14, -9.78783e-14, -1.94373, -0.36629,
 -1.63678e-13, -0.22745, -0.054851, 0.30351, 3.78688e-11, -0.201627, -0.158318, -0.233561, -0.0509347, -0.650424, 0.452606, -5.88565e-11, 0.453936, -0.165715, -0.619056, 7.0149e-12, 2.395e-14,
@@ -166,8 +165,8 @@ Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
   ppm.PPM_construct_parameters(rpa);
   Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
   
-   votca::ctp::Logger _log;
-  Sigma sigma=Sigma(&_log);
+  votca::ctp::Logger log;
+  Sigma sigma=Sigma(&log);
   sigma.configure(4,0,16,20,1e-5);
   sigma.setDFTdata(0.0,&vxc,&mo_energy);
   sigma.setGWAEnergies(mo_energy);
@@ -175,11 +174,14 @@ Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
   sigma.CalcOffDiagElements(Mmn,ppm);
   Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian();
   Mmn.Prune(0, 16); 
-BSE bse=BSE(orbitals,&_log,0.1);
+BSE bse=BSE(orbitals,&log,0.1);
+orbitals.setBSEindices(0,16,1);
+orbitals.setTDAApprox(true);
 bse.setBSEindices(4,0,16,1);
 bse.setGWData(&Mmn,&ppm,&Hqp);
 
 bse.Solve_singlets();
+bse.Analyze_singlets(aobasis);
 
 VectorXfd se_ref=VectorXfd::Zero(1);
 se_ref<<0.111378;
@@ -200,17 +202,15 @@ spsi_ref<<-0.000150849,0.00516987,0.0511522,0.00428958,-0.00966668,-0.000155227,
         -8.17254e-05,-0.00290157,0.0994541,0.984029,0.017835,-0.0401912,-0.000645537,-7.54896e-08,-5.91055e-05,0.00219348,-0.00920484,1.82832e-08,5.56223e-11;
 bool check_spsi=spsi_ref.cwiseAbs2().isApprox(orbitals.BSESingletCoefficients().cwiseAbs2(),0.1);
 check_spsi=true;
-if(!check_spsi){
+if(!check_spsi || true){
     cout<<"Singlets psi"<<endl;
     cout<<orbitals.BSESingletCoefficients()<<endl;
     cout<<"Singlets psi ref"<<endl;
     cout<<spsi_ref<<endl;
 }
 
-
-
 BOOST_CHECK_EQUAL(check_spsi, true);
-
+orbitals.setTDAApprox(false);
 bse.Solve_singlets_BTDA();
 VectorXfd se_ref_btda=VectorXfd::Zero(1);
 se_ref_btda<<0.0800487;
@@ -259,7 +259,7 @@ if(!check_spsi_AR){
 }
 
 BOOST_CHECK_EQUAL(check_spsi_AR, true);
-
+orbitals.setTDAApprox(true);
 bse.Solve_triplets();;
 
 VectorXfd te_ref=VectorXfd::Zero(1);
