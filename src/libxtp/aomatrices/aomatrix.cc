@@ -45,26 +45,20 @@ namespace votca {
             // loop row
 #pragma omp parallel for schedule(guided)
             for (unsigned row = 0; row < aobasis.getNumofShells(); row++) {
-
                 const AOShell* shell_row = aobasis.getShell(row);
                 int row_start = shell_row->getStartIndex();
-      
 
                 // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
                 for (unsigned col = row; col <  aobasis.getNumofShells(); col++) {
-
                     const AOShell* shell_col = aobasis.getShell(col);
-
                     // figure out the submatrix
                     int col_start = shell_col->getStartIndex();
                     Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block=
                             _aomatrix.block(row_start,col_start, shell_row->getNumFunc(),shell_col->getNumFunc());
                     // Fill block
                     FillBlock(block, shell_row, shell_col);
-
                 }
             }
-
             // Fill whole matrix by copying
         for ( unsigned i=0; i < _aomatrix.rows(); i++){
                 for (unsigned j = 0; j < i; j++) {
@@ -85,10 +79,8 @@ namespace votca {
             // loop row
 #pragma omp parallel for
             for (unsigned row = 0; row < aobasis.getNumofShells(); row++) {
-
                 const AOShell* shell_row = aobasis.getShell(row);
                 int row_start = shell_row->getStartIndex();
-
                 // loop column
                 for (const AOShell* shell_col:aobasis) {
                     // figure out the submatrix
@@ -100,7 +92,6 @@ namespace votca {
                     }
                     // Fill block
                     FillBlock(submatrix, shell_row, shell_col);
-
                 }
             }
             return;

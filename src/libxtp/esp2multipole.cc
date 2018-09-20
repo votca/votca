@@ -111,10 +111,26 @@ namespace votca {
             std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
 
             QMInterface Converter;
-            ctp::PolarSeg result = Converter.Convert(_Atomlist);
+            ctp::PolarSeg result = Converter.Convert(_atomlist);
 
             result.WriteMPS(output_file, tag);
             return;
+        }
+
+        void Esp2multipole::PrintDipoles(Orbitals& orbitals){
+          Eigen::Vector3d CoM =orbitals.CalcCoM();
+          
+          Eigen::Vector3d classical_dip = Eigen::Vector3d::Zero();
+          for (QMAtom* atom : _atomlist) {
+            classical_dip += (atom->getPos().toEigen() - CoM) * atom->getPartialcharge();
+          }
+          CTP_LOG(ctp::logDEBUG, *_log) << "El Dipole from fitted charges [e*bohr]:\n\t\t" 
+                  << boost::format(" dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f")
+                  % classical_dip[0] % classical_dip[1] % classical_dip[2] % classical_dip.squaredNorm()<< flush;
+          Eigen::Vector3d qm_dip=orbitals.CalcElDipole(_state);
+          CTP_LOG(ctp::logDEBUG, *_log) << "El Dipole from exact qm density [e*bohr]:\n\t\t"   
+                  << boost::format(" dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f")
+                  % qm_dip[0] % qm_dip[1] % qm_dip[2] % qm_dip.squaredNorm()<< flush;
         }
 
         void Esp2multipole::Extractingcharges(Orbitals & orbitals) {
@@ -125,20 +141,21 @@ namespace votca {
 #endif
             CTP_LOG(ctp::logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
 
-            _Atomlist = orbitals.QMAtoms();
+            _atomlist = orbitals.QMAtoms();
             BasisSet bs;
             bs.LoadBasisSet(orbitals.getDFTbasis());
             AOBasis basis;
-            basis.AOBasisFill(bs, _Atomlist);
+            basis.AOBasisFill(bs, _atomlist);
             Eigen::MatrixXd DMAT=orbitals.DensityMatrixFull(_state);
+            
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.EvaluateMulliken(_Atomlist, DMAT, basis, _state.isTransition());
+                mulliken.EvaluateMulliken(_atomlist, DMAT, basis, _state.isTransition());
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.EvaluateLowdin(_Atomlist, DMAT, basis, _state.isTransition());
+                lowdin.EvaluateLowdin(_atomlist, DMAT, basis, _state.isTransition());
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){
@@ -152,9 +169,12 @@ namespace votca {
                     esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
-                    esp.Fit2Density(_Atomlist, DMAT, basis, _gridsize);
-                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(_Atomlist, DMAT, basis);
+                    esp.Fit2Density(_atomlist, DMAT, basis, _gridsize);
+                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(_atomlist, DMAT, basis);
             } 
+
+            PrintDipoles(orbitals);
+            
         }
 
     }

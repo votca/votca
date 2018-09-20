@@ -70,8 +70,8 @@ namespace votca { namespace xtp {
     class AOMatrix : public AOSuperMatrix {
     public: 
 	// Access functions
-	int Dimension(){ return  _aomatrix.rows();};
-        const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;};       
+	int Dimension(){ return  _aomatrix.rows();}
+        const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;}      
         void Fill(const AOBasis& aobasis);
         void Print( std::string ident);
         void FreeMatrix(){
@@ -80,7 +80,7 @@ namespace votca { namespace xtp {
         // integrate F
         static std::vector<double> XIntegrate( int size, double U );
     protected:
-        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&matrix,const  AOShell* shell_row,const AOShell* shell_col) {} ;
+        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&matrix,const  AOShell* shell_row,const AOShell* shell_col)=0 ;
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;   
     };
     
@@ -91,14 +91,14 @@ namespace votca { namespace xtp {
      */
     class AOMatrix3D : public AOSuperMatrix {
     public:
-        const std::vector<Eigen::MatrixXd > &Matrix() const{ return _aomatrix ;};
+        const std::vector<Eigen::MatrixXd > &Matrix() const{ return _aomatrix ;}
         void Print( std::string _ident);
         void Fill(const AOBasis& aobasis );
         // block fill prototype
         void FreeMatrix();
     protected:
         std::vector<Eigen::MatrixXd > _aomatrix; 
-        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col) {} ;
+        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col)=0 ;
     };
     
     
@@ -115,8 +115,12 @@ namespace votca { namespace xtp {
      * electical transition dipoles
      */
     class AODipole : public AOMatrix3D { 
+    public:
+        void setCenter(const tools::vec& r){ _r=r;}// definition of a center around which the moment should be calculated
     protected:   
         void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col);
+    private:
+        tools::vec _r=tools::vec(0.0);
     };
     
     // derived class for atomic orbital nuclear potential
