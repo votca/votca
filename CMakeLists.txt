@@ -9,8 +9,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
 include(GNUInstallDirs)
 
-option(ENABLE_TESTING "Build and copy testing stuff" OFF)
-if(ENABLE_TESTING)
+option(ENABLE_REGRESSION_TESTING "Build and copy regression testing stuff" OFF)
+if(ENABLE_REGRESSION_TESTING)
   enable_testing()
   find_package(LMP)
   find_package(MDRUN_MPI)
@@ -86,6 +86,12 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/ DESTINATION ${CMAKE_INSTALL_DATAD
 	PATTERN "inverse.log" EXCLUDE)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
+option(ENABLE_TESTING "Test if cmake worked" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+  add_test(UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+           -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+endif(ENABLE_TESTING)
 add_custom_target(uninstall-csg-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
   add_custom_target(uninstall)
