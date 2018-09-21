@@ -19,6 +19,8 @@
 
 #include <votca/xtp/trustregion.h>
 #include <iostream>
+#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
+#include <iomanip>
 
 namespace votca {
     namespace xtp {
@@ -26,49 +28,43 @@ namespace votca {
        Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient, const Eigen::MatrixXd& Hessian, double delta)const{
          //calculate unrestricted step
          Eigen::VectorXd freestep=Hessian.colPivHouseholderQr().solve(-gradient);
-         
-         const double delta_squared=delta*delta;
+
          //if inside use the step;
-         if(freestep.squaredNorm()<delta_squared){
+         if(freestep.norm()<delta){
            return freestep;
          }
          
          //calculate step on the boundary
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(Hessian);
         const Eigen::VectorXd factor =(es.eigenvectors().transpose()*gradient).cwiseAbs2();
+        double lambda=0;
+        //hard case
+        if(std::abs(factor[0])<0){
+            lambda=-es.eigenvalues()(0);
+            int size=factor.size()-1;
+            Eigen::ArrayXd factor_small=factor.tail(size).array();
+            Eigen::ArrayXd quotient=es.eigenvalues().tail(size).array()+lambda;
+            const double p2=(factor_small/(quotient.pow(2))).sum();
+            const double tau=std::sqrt(delta*delta-p2);
+            Eigen::VectorXd new_delta_pos = -tau*es.eigenvectors().col(0);
+             for (int i = 1; i < gradient.size(); i++) {
+                new_delta_pos -= es.eigenvectors().col(i) * (es.eigenvectors().col(i).transpose()*gradient) / (es.eigenvalues()(i) + lambda);
+            }
+            
+            return new_delta_pos; 
+        }
+
         
-        double lambda_s=-es.eigenvalues()(0);
-        const double g=gradient.norm();
-        const double B1=Hessian.cwiseAbs().maxCoeff();
-        double lambda_l=std::max(0.0,std::max(lambda_s,g/delta_squared-B1));
-        double lambda_u=g/delta_squared+B1;
-         
-          // start value for lambda  a bit lower than lowest eigenvalue of Hessian
-        double lambda= -es.eigenvalues()(0)+std::sqrt(factor(0))/delta;
-        TrustRegionFunction TRF=TrustRegionFunction(factor,es,delta_squared);
+          // start value for lambda  a bit higher than lowest eigenvalue of Hessian
+        lambda= -es.eigenvalues()(0)+std::sqrt(factor(0))/delta;
+        TrustRegionFunction TRF=TrustRegionFunction(factor,es,delta);
         double func_value=0;
         do {
-          
-           lambda=std::max(lambda,lambda_l);
-             lambda=std::min(lambda,lambda_u);
-             if(lambda<=lambda_s){
-               lambda=std::max(0.001*lambda_u,std::sqrt(lambda_l*lambda_u));
-             }
-             std::pair<double,double> result=TRF.Evaluate(lambda);
+            std::pair<double,double> result=TRF.Evaluate(lambda);
              func_value=result.first;
-             
              double update=result.second;
              lambda+=update;
-             if(lambda>lambda_s && func_value<0){
-               lambda_u=std::min(lambda_u,lambda);
-             }else{
-               lambda_l=std::max(lambda_l,lambda);
-             }
-             
-             lambda_l=std::max(lambda_l,lambda_s);
-            
-            }while (std::abs(func_value)>(delta_squared*1e-5));
-                
+            }while (std::abs(func_value)>(1/delta*1e-9));
             
             //this is effectively the solution of (H+I\lambda)*\Delta p=-g with \lambda adjusted so that ||p||=delta 
             Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(gradient.size());
@@ -78,8 +74,5 @@ namespace votca {
             return new_delta_pos;
         }
          
-       }
-      
-
-     
+    } 
 }

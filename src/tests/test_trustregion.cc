@@ -40,10 +40,13 @@ hessian<<1.0835,0.139166,0.139166,0.139166,0.139166,
 double radius=0.1;
 TrustRegion trf;
 Eigen::VectorXd newstep=trf.CalculateStep(gradient,hessian,radius);
- std::cout<<newstep.norm()<<" "<<radius<<std::endl; 
+
+bool equal=std::abs(newstep.norm()-radius)<1e-9;
+if(!equal){
+ std::cout<<"newstep_norm:"<<newstep.norm()<<" trust_radius:"<<radius<<std::endl; 
+}
   
   
-bool equal=false;
   BOOST_CHECK_EQUAL(equal, 1);
   
   

@@ -90,14 +90,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
       -0.192873,-0.0631203,-0.0111063,0.0633221,0,
        0,0,0,0,0;
 
-      
       ctp::Logger log;
-      log.setPreface(ctp::logINFO, (boost::format("\nGWBSE INF ...")).str());
-      log.setPreface(ctp::logERROR, (boost::format("\nGWBSE ERR ...")).str());
-      log.setPreface(ctp::logWARNING, (boost::format("\nGWBSE WAR ...")).str());
-      log.setPreface(ctp::logDEBUG, (boost::format("\nGWBSE DBG ...")).str());
-      log.setReportLevel(ctp::logDEBUG); // output only log messages starting from a DEBUG level
-      std::cout << log; // output logger content to standard output
   
   ADIIS_costfunction a_cost=ADIIS_costfunction(DiF,DiFj);
   BFGSTRM optimizer=BFGSTRM(a_cost);
@@ -114,7 +107,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
 
   
   Eigen::VectorXd ref=Eigen::VectorXd::Zero(size);
-  
+  ref<<0,0,0,0.40826075912352,0.59173924087648;
   bool equal=coeffs.isApprox(ref,0.00001);
  if(!equal){
    cout<<"minimum found:"<<endl;

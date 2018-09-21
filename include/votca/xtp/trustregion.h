@@ -21,7 +21,7 @@
 #define __XTP_TRUSTREGION__H
 
 #include <votca/xtp/eigen.h>
-
+#include <iostream>
 
 // Solves the trustregion subproblem g^T*s+0.5*s^T H s = min with ||s||<=delta
 
@@ -38,27 +38,28 @@ namespace votca {
             
             class TrustRegionFunction{
                 public:
-                TrustRegionFunction(const Eigen::VectorXd& factor,const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,double trust_radius_squared)
-                :_factor(factor.array()),_hessian(hessian),_trust_radius_squared(trust_radius_squared){;}
+                TrustRegionFunction(const Eigen::VectorXd& factor,const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,double trust_radius)
+                :_factor(factor),_hessian(hessian),_trust_radius(trust_radius){;}
                     
                 //Calculates \phi and \phi/\phi'
                 std::pair<double,double> Evaluate(double lambda){
                     
-                    Eigen::ArrayXd quotient=(_hessian.eigenvalues().array()+lambda);
-                    const double B=(_factor/(quotient.pow(2))).sum();
-                    const double C=(_factor/(quotient.pow(3))).sum();
+                    Eigen::ArrayXd quotient=_hessian.eigenvalues().array()+lambda;
+                    const double p2=(_factor.array()/(quotient.pow(2))).sum();
+                    const double p=std::sqrt(p2);
+                    const double q2=(_factor.array()/(quotient.pow(3))).sum();
                     
                     std::pair<double,double> result;
-                    result.first=1/_trust_radius_squared-1/B; 
-                    result.second=0.5*B/C*(B/_trust_radius_squared-1);
+                    result.first=1/_trust_radius-1/p; 
+                    result.second=p2/q2*(p-_trust_radius)/_trust_radius;
                     return result;
                 }
                         
             private:
                 
-                const Eigen::ArrayXd& _factor;
+                const Eigen::VectorXd& _factor;
                 const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& _hessian;
-                double _trust_radius_squared;
+                double _trust_radius;
 };
             
         
