@@ -49,7 +49,7 @@ CheckpointReader(const CptLoc& loc) : _loc(loc){};
     void operator()(bool& v, const std::string& name){
         int temp;
         ReadScalar(_loc, temp, name);
-        v = bool{temp};
+        v = static_cast<bool>(temp);
     }
 
     void operator()(std::string& var, const std::string& name){
