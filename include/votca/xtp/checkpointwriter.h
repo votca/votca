@@ -53,7 +53,7 @@ CheckpointWriter(const CptLoc& loc) : _loc(loc){};
     }
 
     void operator()(const bool& v, const std::string& name){
-        int temp{v};
+        int temp=static_cast<int>(v);
         WriteScalar(_loc, temp, name);
     }
 
