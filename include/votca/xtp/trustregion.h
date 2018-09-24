@@ -38,17 +38,16 @@ namespace votca {
             
             class TrustRegionFunction{
                 public:
-                TrustRegionFunction(const Eigen::VectorXd& factor,const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,double trust_radius)
-                :_factor(factor),_hessian(hessian),_trust_radius(trust_radius){;}
+                TrustRegionFunction(const Eigen::VectorXd& factor,const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& hessian,double trust_radius,int startindex)
+                :_factor(factor),_hessian(hessian),_trust_radius(trust_radius),_startindex(startindex){;}
                     
                 //Calculates \phi and \phi/\phi'
                 std::pair<double,double> Evaluate(double lambda){
-                    
-                    Eigen::ArrayXd quotient=_hessian.eigenvalues().array()+lambda;
-                    const double p2=(_factor.array()/(quotient.pow(2))).sum();
+                    int size=_factor.size()-_startindex;
+                    Eigen::ArrayXd quotient=(_hessian.eigenvalues().array()+lambda).tail(size);
+                    const double p2=(_factor.array().tail(size)/(quotient.pow(2))).sum();
                     const double p=std::sqrt(p2);
-                    const double q2=(_factor.array()/(quotient.pow(3))).sum();
-                    
+                    const double q2=(_factor.array().tail(size)/(quotient.pow(3))).sum();
                     std::pair<double,double> result;
                     result.first=1/_trust_radius-1/p; 
                     result.second=p2/q2*(p-_trust_radius)/_trust_radius;
@@ -56,10 +55,11 @@ namespace votca {
                 }
                         
             private:
-                
+
                 const Eigen::VectorXd& _factor;
                 const Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>& _hessian;
                 double _trust_radius;
+                int _startindex;
 };
             
         

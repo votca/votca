@@ -78,6 +78,60 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
 }
 
 
+BOOST_AUTO_TEST_CASE(booth_test) {
+  class booth : public Optimiser_costfunction{
+
+     double EvaluateCost(const Eigen::VectorXd& parameters) {
+      double x=parameters[0];
+      double y=parameters[1];
+     
+      return (x+2*y-7)*(x+2*y-7)+(2*x+y-5)*(2*x+y-5);
+    }
+     
+     Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters){
+      double x=parameters[0];
+      double y=parameters[1];
+      Eigen::VectorXd gradient=Eigen::VectorXd::Zero(2);
+      gradient[0]=2*(5*x+4*y-17);
+      gradient[1]=2*(4*x+5*y-19);
+       return gradient;
+     }
+
+    bool Converged(const Eigen::VectorXd& delta_parameters,
+            double delta_cost, const Eigen::VectorXd& gradient){
+      if (gradient.cwiseAbs().maxCoeff() < 1e-9)return true;
+      else return false;
+    }
+
+    int NumParameters()const {
+      return 2;
+    }
+    
+  };
+  
+  booth p2;
+  BFGSTRM bfgstrm(p2);
+  bfgstrm.setNumofIterations(1000);
+  bfgstrm.setTrustRadius(0.1);
+  bfgstrm.Optimize(5*Eigen::VectorXd::Ones(2));
+  
+  Eigen::VectorXd ref=Eigen::VectorXd::Zero(2);
+  ref<<1,3;
+ bool equal= bfgstrm.getParameters().isApprox(ref,0.00001);
+ if(!equal){
+   cout<<"minimum found:"<<endl;
+   cout<<bfgstrm.getParameters()<<endl;
+   cout<<"minimum ref:"<<endl;
+   cout<<ref<<endl;
+ }else{
+   cout<<bfgstrm.getIteration()<<endl;
+ }
+  BOOST_CHECK_EQUAL(equal, 1);
+}
+
+
+
+
 BOOST_AUTO_TEST_CASE(adiis_test) {
   int size=5;
   
