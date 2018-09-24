@@ -45,11 +45,16 @@ CheckpointWriter(const CptLoc& loc) : _loc(loc){};
     }
 
     // Use this overload iff T is a fundamental type
-    // int, double, unsigned int, etc.
+    // int, double, unsigned int, etc, but not bool
     template<typename T>
-        typename std::enable_if<std::is_fundamental<T>::value>::type
+        typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
         operator()(const T& v, const std::string& name){
         WriteScalar(_loc, v, name);
+    }
+
+    void operator()(const bool& v, const std::string& name){
+        int temp{v};
+        WriteScalar(_loc, temp, name);
     }
 
     void operator()(const std::string& v, const std::string& name){

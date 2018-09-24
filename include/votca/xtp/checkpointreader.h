@@ -41,9 +41,15 @@ CheckpointReader(const CptLoc& loc) : _loc(loc){};
     }
 
     template<typename T>
-    typename std::enable_if<std::is_fundamental<T>::value>::type
+    typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
     operator()(T& var, const std::string& name){
         ReadScalar(_loc, var, name);
+    }
+
+    void operator()(bool& v, const std::string& name){
+        int temp;
+        ReadScalar(_loc, temp, name);
+        v = bool{temp};
     }
 
     void operator()(std::string& var, const std::string& name){
