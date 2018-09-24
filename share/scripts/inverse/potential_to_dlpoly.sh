@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,8 @@ fi
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: missing argument"
 input="$1"
-trunc="${1%%.*}"
+trunc=${1##*/}
+trunc="${trunc%%.*}"
 [[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
 output="$2"
 echo "Convert $input to $output"
