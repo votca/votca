@@ -84,7 +84,7 @@ namespace votca {
 
             double _trust_radius=0.1;
 
-            int _max_iteration=50;
+            int _max_iteration=200;
 
             ctp::Logger *_pLog;
 

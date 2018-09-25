@@ -27,7 +27,6 @@ namespace votca {
     Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient, const Eigen::MatrixXd& Hessian, double delta)const {
       //calculate unrestricted step
       Eigen::VectorXd freestep = Hessian.colPivHouseholderQr().solve(-gradient);
-      std::cout << "freestep" << std::endl;
       //if inside use the step;
       if (freestep.norm() < delta) {
         return freestep;
@@ -38,7 +37,6 @@ namespace votca {
       const Eigen::VectorXd factor = (es.eigenvectors().transpose() * gradient).cwiseAbs2();
       double lambda = 0;
       //hard case
-      std::cout << "hardcase" << std::endl;
       if (std::abs(factor[0]) < 1e-18) {
         std::vector<int> index;
         Eigen::VectorXd diag = Eigen::VectorXd::Zero(factor.size());
@@ -60,7 +58,6 @@ namespace votca {
           return step;
         }
       }
-      std::cout << "iterate" << std::endl;
       //sort out all the factors for the small eigenvalues, 
       int start_index = 0;
       for (; start_index < factor.size(); start_index++) {

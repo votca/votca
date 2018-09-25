@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
   double xnorm=coeffs.sum();
   coeffs/=xnorm;
 
-  
+  BOOST_CHECK_EQUAL(success,true);
   Eigen::VectorXd ref=Eigen::VectorXd::Zero(size);
   ref<<0,0,0,0.40826075912352,0.59173924087648;
   bool equal=coeffs.isApprox(ref,0.00001);

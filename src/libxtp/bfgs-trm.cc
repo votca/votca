@@ -33,31 +33,24 @@ namespace votca {
       double lastcost = _costfunction.EvaluateCost(_parameters);
       Eigen::VectorXd last_gradient = Eigen::VectorXd::Zero(_parameters.size());
       double delta_cost = 0;
-      std::cout << "here1" << std::endl;
       for (_iteration = 0; _iteration < _max_iteration; _iteration++) {
         gradient = _costfunction.EvaluateGradient(_parameters);
-        std::cout << "here3" << std::endl;
         bool step_accepted = false;
         for (int i = 0; i < 100; i++) {
           TrustRegion subproblem;
           delta_p_trial = subproblem.CalculateStep(gradient, _hessian, _trust_radius);
-          std::cout << "here2" << std::endl;
           double trialcost = _costfunction.EvaluateCost(_parameters + delta_p_trial);
           delta_cost = trialcost - lastcost;
           step_accepted = AcceptRejectStep(delta_p_trial, gradient, delta_cost);
-          std::cout << "here4" << std::endl;
           if (step_accepted) {
             _cost = trialcost;
             _parameters += delta_p_trial;
             break;
           }
-          std::cout << "here4a" << std::endl;
         }
-        std::cout << "here5" << std::endl;
         if (_iteration > 0) {
           UpdateHessian(delta_p_trial, gradient - last_gradient);
         }
-        std::cout << "here6" << std::endl;
         lastcost = _cost;
         last_gradient = gradient;
         for (auto& func : _callbacks) {
@@ -72,7 +65,6 @@ namespace votca {
                     % _iteration % _max_iteration).str() << std::flush;
           }
         }
-        std::cout << "here6" << std::endl;
       }
       return;
     }
