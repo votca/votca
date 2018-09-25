@@ -31,11 +31,11 @@ class QMMolecule : public AtomContainer<QMAtom>
 public:
     QMMolecule(const string& name,int id):_id(id),_name(name){};
     
-    
-    
     void WriteToCpt(CptLoc parent)const;
 
     void ReadFromCpt(CptLoc parent);
+
+    void 
     
     
     

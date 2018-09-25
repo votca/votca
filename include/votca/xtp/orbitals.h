@@ -182,11 +182,11 @@ namespace votca {
                 return ( _atoms.size() > 0) ? true : false;
             }
 
-            const std::vector< QMAtom* > &QMAtoms() const {
+            const QMMolecule &QMAtoms() const {
                 return _atoms;
             }
 
-            std::vector< QMAtom* > &QMAtoms() {
+            QMMolecule &QMAtoms() {
                 return _atoms;
             }
 
@@ -582,12 +582,6 @@ namespace votca {
                 _atoms.push_back(pAtom);
                 return pAtom;
             }
-
-            QMAtom* AddAtom(QMAtom atom) {
-                QMAtom* pAtom = new QMAtom(atom);
-                _atoms.push_back(pAtom);
-                return pAtom;
-            }
             
             void OrderMOsbyEnergy();
 
@@ -635,7 +629,7 @@ namespace votca {
             Eigen::MatrixXd _overlap;
             Eigen::MatrixXd _vxc;
 
-            std::vector< QMAtom* > _atoms;
+            QMMolecule _atoms;
 
             double _qm_energy;
             double _self_energy;

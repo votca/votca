@@ -20,6 +20,7 @@
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/qmmolecule.h"
 #include <votca/xtp/version.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/basisset.h>
@@ -67,10 +68,6 @@ namespace votca {
             _bse_size = 0;
             _bse_nmax = 0;
 
-        };
-
-        Orbitals::~Orbitals() {
-            for (QMAtom* atom:_atoms) delete atom;
         };
 
         void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
@@ -192,13 +189,8 @@ namespace votca {
         Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) {
           Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
           if (!state.isTransition()) {
-            Eigen::Vector3d CoM = Eigen::Vector3d::Zero();
-            for (QMAtom* atom : _atoms) {
-              CoM += atom->getPos().toEigen();
-            }
-            CoM /= double(_atoms.size());
-            for (QMAtom* atom : _atoms) {
-              nuclei_dip += (atom->getPos().toEigen() - CoM) * atom->getNuccharge();
+            for (const QMAtom& atom : _atoms) {
+              nuclei_dip += (atom.getPos() - _atoms.getPos()) * atom.getNuccharge();
             }
           }
 
@@ -207,6 +199,7 @@ namespace votca {
           AOBasis aobasis;
           aobasis.AOBasisFill(basis, _atoms);
           AODipole dipole;
+          dipole.setCenter(_atoms.getPos());
           dipole.Fill(aobasis);
 
           Eigen::MatrixXd dmat = this->DensityMatrixFull(state);
@@ -502,10 +495,10 @@ namespace votca {
 
             Eigen::VectorXd fragmentNuclearCharges = Eigen::VectorXd::Zero(2);
             int id = 0;
-            for (const QMAtom* atom :_atoms) {
+            for (const QMAtom& atom :_atoms) {
                 id++;
                 // get element type and determine its nuclear charge
-                double crg = atom->getNuccharge();
+                double crg = atom.getNuccharge();
                 // add to either fragment
                 if (id <= frag) {
                     fragmentNuclearCharges(0) += crg;
@@ -647,18 +640,8 @@ namespace votca {
                 w(_mo_energies, "mo_energies");
                 w(_mo_coefficients, "mo_coefficients");
 
-                // write qmatoms
-
-                {
-                    CptLoc qmAtomsGr = parent.createGroup("qmatoms");
-                    size_t count = 0;
-                    for (const auto& qma : _atoms) {
-                        CptLoc tempLoc = qmAtomsGr.createGroup("atom" + std::to_string(count));
-                        qma->WriteToCpt(tempLoc);
-                        ++count;
-                    }
-
-                }
+                CptLoc molgroup = parent.createGroup("molecule");
+                _atoms.WriteToCpt(molgroup);
 
                 w(_qm_energy, "qm_energy");
                 w(_qm_package, "qm_package");
@@ -728,7 +711,8 @@ namespace votca {
                 r(_mo_energies, "mo_energies");
                 r(_mo_coefficients, "mo_coefficients");
                 // Read qmatoms
-        
+                CptLoc molgroup = parent.openGroup("molecule");
+                _atoms.ReadFromCpt(molgroup);
 
                 r(_qm_energy, "qm_energy");
                 r(_qm_package, "qm_package");

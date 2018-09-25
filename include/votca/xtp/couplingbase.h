@@ -94,8 +94,9 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
               "atom %s on line %u. Hence, this atom is part of a linker.") %dimer->getType() %(i+1) ).str()<<std::flush;
       continue;
     }
-    
-    if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
+
+        if (!monomer->getPos().isApprox(dimer->getPos(), 0.001))
+        {
         coordinates_agree=false;
     }
     

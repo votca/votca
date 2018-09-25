@@ -39,7 +39,9 @@ public:
     
    QMAtom (int index,std::string element, double x, double y, double z)
             :_index(index), _type( element), _nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=tools::vec(x,y,z);}
+    {
+        _pos = Eigen::Vector3d{x, y, z};
+    }
             
    QMAtom (int index,std::string element,Eigen::Vector3d& pos)
             :_index(index), _type(element ),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)

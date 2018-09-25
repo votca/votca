@@ -40,9 +40,12 @@ template<class T>  class AtomContainer{
         
         int getId()const{return _id;}
         
-        int Size()const{return _atomlist.size();}
+        int size()const{return _atomlist.size();}
         
-        
+        void push_back(const T& atom){_atomlist.push_back(atom);}
+
+        const T& at(int index)const{return _atomlist.at(index);}
+        T& at(int index){return _atomlist.at(index);}
         
         std::vector<T>::iterator begin(){return _atomlist.begin();}
         std::vector<T>::iterator end(){return _atomlist.end();}
