@@ -41,19 +41,29 @@ public:
             :_index(index), _type( element), _nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
             {_pos=tools::vec(x,y,z);}
             
-   QMAtom (int index,std::string element,const tools::vec& pos)
+   QMAtom (int index,std::string element,Eigen::Vector3d& pos)
             :_index(index), _type(element ),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
             {_pos=pos;}
    
    
    QMAtom ()
             :_index(0), _type(""),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=tools::vec(0.0);}
+            {_pos=Eigen::Vector3d::Zero();}
        
-   const tools::vec & getPos() const {return _pos;}
+   const Eigen::Vector3d& getPos() const {return _pos;}
    
   
-   void setPos(tools::vec position){_pos=position;}
+   void Translate(const Eigen::Vector3d& shift){
+       _pos+=shift;
+   }
+   
+    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d &refPos) {
+      Translate(-refPos);
+      _pos = R*_pos;
+      Translate(refPos); //Rotated Position
+    }
+   
+   void setPos(const Eigen::Vector3d& position){_pos=position;}
 
    const std::string & getType() const { return _type;}
    
@@ -68,7 +78,7 @@ private:
     
    int _index;
    std::string _type;
-   tools::vec _pos;// Bohr
+   Eigen::Vector3d _pos;// Bohr
    int _nuccharge;//nuc charge is set in aobasis fill and ecpfill
    int _ecpcharge;
    double _partialcharge;
@@ -76,7 +86,7 @@ private:
    
  public: 
    
-   void WriteToCpt(CptLoc parent){
+   void WriteToCpt(CptLoc parent)const{
        CheckpointWriter w(parent);
 
        w(_index, "index");

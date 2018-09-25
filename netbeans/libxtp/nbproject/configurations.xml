@@ -68,6 +68,7 @@
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
       <itemPath>../../include/votca/xtp/atom.h</itemPath>
+      <itemPath>../../include/votca/xtp/atomcontainer.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
       <itemPath>../../include/votca/xtp/bfgs-trm.h</itemPath>
       <itemPath>../../include/votca/xtp/bse.h</itemPath>
@@ -116,6 +117,7 @@
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
       <itemPath>../../include/votca/xtp/qmiter.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmachine.h</itemPath>
+      <itemPath>../../include/qmmolecule.h</itemPath>
       <itemPath>../../include/votca/xtp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
@@ -241,6 +243,7 @@
       <itemPath>../../src/libxtp/qminterface.cc</itemPath>
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
+      <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
@@ -253,6 +256,7 @@
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
+      <itemPath>../../src/tests/test_atomcontainer.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
@@ -1222,6 +1226,8 @@
           <output>../../src/libxtp/libxtp.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/qmmolecule.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
@@ -1238,6 +1244,11 @@
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/atomcontainer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1969,6 +1980,8 @@
       </item>
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackagefactory.cc"
@@ -2091,6 +2104,11 @@
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_atomcontainer.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
@@ -2178,6 +2196,8 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../include/qmmolecule.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
@@ -2194,6 +2214,11 @@
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/atomcontainer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2925,6 +2950,8 @@
       </item>
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackagefactory.cc"
@@ -3046,6 +3073,11 @@
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_atomcontainer.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>

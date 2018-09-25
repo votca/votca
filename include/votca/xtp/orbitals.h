@@ -478,11 +478,11 @@ namespace votca {
                 return (_transition_dipoles.size() > 0) ? true : false;
             }
 
-            const std::vector< tools::vec > &TransitionDipoles() const {
+            const std::vector< Eigen::Vector3d > &TransitionDipoles() const {
                 return _transition_dipoles;
             }
 
-            std::vector< tools::vec > &TransitionDipoles() {
+            std::vector< Eigen::Vector3d > &TransitionDipoles() {
                 return _transition_dipoles;
             }
 
@@ -577,7 +577,7 @@ namespace votca {
             // returns indeces of a re-sorted vector of energies from lowest to highest
             std::vector<int> SortEnergies();
 
-            QMAtom* AddAtom(int AtomID,std::string type, tools::vec pos) {
+            QMAtom* AddAtom(int AtomID,std::string type, Eigen::Vector3d pos) {
                 QMAtom* pAtom = new QMAtom(AtomID,type, pos);
                 _atoms.push_back(pAtom);
                 return pAtom;
@@ -678,7 +678,7 @@ namespace votca {
             MatrixXfd _BSE_singlet_coefficients;
             MatrixXfd _BSE_singlet_coefficients_AR;
 
-            std::vector< tools::vec > _transition_dipoles;
+            std::vector< Eigen::Vector3d > _transition_dipoles;
             VectorXfd _BSE_triplet_energies;
             MatrixXfd _BSE_triplet_coefficients;
 

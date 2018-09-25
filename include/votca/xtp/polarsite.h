@@ -34,11 +34,9 @@ class PolarSite
 {
 
 public:
-    
 
-
-    PolarSite(int id, const std::string& name, const Eigen::Vector3d& pos)
-            : _id(id), _name(name),_pos(pos),_isPolarisable(false),
+    PolarSite(int id, const std::string& type, const Eigen::Vector3d& pos)
+            : _id(id), _type(type),_pos(pos),_isPolarisable(false),
             _Ps(Eigen::Matrix3d::Zero()),
             _localpermanetField(Eigen::Vector3d::Zero()),
             _localinducedField(Eigen::Vector3d::Zero()),
@@ -51,7 +49,7 @@ public:
 
     int getId() const{ return _id; }
     int getRank()const{return _rank;}
-    const std::string &getName() const{ return _name; }
+    const std::string &getType() const{ return _type; }
     const Eigen::Vector3d &getPos() const{ return _pos; }
     
     bool isPolarisable() const{ return _isPolarisable;}
@@ -70,17 +68,6 @@ public:
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
         es.computeDirect(_Ps,Eigen::EigenvaluesOnly);
         _eigendamp=es.eigenvalues().maxCoeff();
-    }
-   
-    void setSegment(Segment* seg){
-        _segment=seg;
-    }
-    void setFragment(Fragment* frag){
-        _fragment=frag;
-    }
-    
-    void setTopology(Topology* top){
-        _top=top;
     }
     
     void ResetInduction(){
@@ -126,15 +113,19 @@ public:
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
     
+    void WriteToCpt(CptLoc parent)const;
+
+   void ReadFromCpt(CptLoc parent);
+    
+    
 private:
-    
-    
+       
     void calcRank(); 
     Eigen::MatrixXd FillTholeInteraction(const PolarSite& otherSite, double a);
     Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
-    std::string  _name;
+    std::string  _type;
     Eigen::Vector3d _pos;
     int     _rank;
     Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
@@ -148,9 +139,6 @@ private:
     Eigen::Vector3d _inducedDipole_old;
     double _eigendamp;
     
-    Segment* _segment;
-    Fragment* _fragment;
-    Topology* _top;
     double PhiP;                            // Electric potential (due to perm.)
     double PhiU;                            // Electric potential (due to indu.)
 

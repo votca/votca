@@ -393,7 +393,7 @@ namespace votca {
       } else assert(false); // Units error
 
       out << (boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n")
-              % _name % (_pos(0) * conv_pos)
+              % _type % (_pos(0) * conv_pos)
               % (_pos(1) * conv_pos) % (_pos(2) * conv_pos)
               % _rank);
       out << (boost::format("    %1$+1.7f\n") % getCharge());
@@ -412,6 +412,44 @@ namespace votca {
       out << (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f \n")
               % _Ps(0, 0) % _Ps(1, 0) % _Ps(2, 0) % _Ps(1, 1) % _Ps(1, 2) % _Ps(2, 2));
     }
+    
+    
+    void PolarSite::WriteToCpt(CptLoc parent)const{
+       CheckpointWriter w(parent);
+
+       w(_id, "index");
+       w(_type, "type");
+       w(_pos, "pos");
+       w(_rank, "rank");
+       w(_multipole, "multipoles");
+       w(_isPolarisable, "isPolarisable");
+       w(_localpermanetField,"localpermanentField");
+       w(_localinducedField,"localinducedField");
+       w(_inducedDipole,"inducedDipole");
+       w(_inducedDipole_old,"inducedDipole_old")
+       w(_eigendamp,"eigendamp");
+       w(PhiP,"PhiP");
+       w(PhiU,"PhiU");
+       
+   }
+
+   void PolarSite::ReadFromCpt(CptLoc parent){
+       CheckpointReader r(parent);
+
+      r(_id, "index");
+      r(_type, "type");
+      r(_pos, "pos");
+      r(_rank, "rank");
+      r(_multipole, "multipoles");
+      r(_isPolarisable, "isPolarisable");
+      r(_localpermanetField,"localpermanentField");
+      r(_localinducedField,"localinducedField");
+      r(_inducedDipole,"inducedDipole");
+      r(_inducedDipole_old,"inducedDipole_old")
+      r(_eigendamp,"eigendamp");
+      r(PhiP,"PhiP");
+      r(PhiU,"PhiU");
+   }
 
 
 

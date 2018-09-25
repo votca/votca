@@ -120,7 +120,7 @@ namespace votca {
           out<<_atoms.size()<<endl;
           out<<header<<endl;
           for (const QMAtom* atom:_atoms) {
-                const tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
+                const Eigen::Vector3d pos = atom->getPos() * tools::conv::bohr2ang;
                 out<<atom->getType()<<" "<<pos.getX()<<" "<<pos.getY()<<" "<<pos.getZ()<<endl;
           }
           out.close();
@@ -614,7 +614,7 @@ namespace votca {
                     double x = boost::lexical_cast<double>(split[1]);
                     double y = boost::lexical_cast<double>(split[2]);
                     double z = boost::lexical_cast<double>(split[3]);
-                    tools::vec pos = tools::vec(x, y, z);
+                    Eigen::Vector3d pos = {x, y, z};
                     AddAtom(atomCount, element, pos * tools::conv::ang2bohr);
                     atomCount++;
                 }
@@ -728,22 +728,7 @@ namespace votca {
                 r(_mo_energies, "mo_energies");
                 r(_mo_coefficients, "mo_coefficients");
                 // Read qmatoms
-                {
-                    CptLoc qmAtomsGr = parent.openGroup("qmatoms");
-                    size_t count = qmAtomsGr.getNumObjs();
-                    if(this->QMAtoms().size()>0){
-                      std::vector< QMAtom* >::iterator it;
-                      for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
-                      _atoms.clear();
-                    }
-
-                    for (size_t i = 0; i < count; ++i) {
-                        CptLoc tempLoc = qmAtomsGr.openGroup("atom" + std::to_string(i));
-                        QMAtom temp;
-                        temp.ReadFromCpt(tempLoc);
-                        AddAtom(temp);
-                    }
-                }
+        
 
                 r(_qm_energy, "qm_energy");
                 r(_qm_package, "qm_package");
