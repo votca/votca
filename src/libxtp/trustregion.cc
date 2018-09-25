@@ -20,7 +20,6 @@
 #include <votca/xtp/trustregion.h>
 #include <iostream>
 #include <vector>
-#include <iomanip>
 
 namespace votca {
   namespace xtp {
@@ -28,7 +27,7 @@ namespace votca {
     Eigen::VectorXd TrustRegion::CalculateStep(const Eigen::VectorXd& gradient, const Eigen::MatrixXd& Hessian, double delta)const {
       //calculate unrestricted step
       Eigen::VectorXd freestep = Hessian.colPivHouseholderQr().solve(-gradient);
-
+      std::cout << "freestep" << std::endl;
       //if inside use the step;
       if (freestep.norm() < delta) {
         return freestep;
@@ -39,13 +38,14 @@ namespace votca {
       const Eigen::VectorXd factor = (es.eigenvectors().transpose() * gradient).cwiseAbs2();
       double lambda = 0;
       //hard case
+      std::cout << "hardcase" << std::endl;
       if (std::abs(factor[0]) < 1e-18) {
         std::vector<int> index;
         Eigen::VectorXd diag = Eigen::VectorXd::Zero(factor.size());
         //construct pseudo inverse
         for (int i = 0; i < factor.size(); i++) {
           double entry = es.eigenvalues()(i) - es.eigenvalues()(0);
-          if (entry < 1e-14) {
+          if (std::abs(entry) < 1e-14) {
             index.push_back(i);
             continue;
           } else {
@@ -54,13 +54,13 @@ namespace votca {
         }
         Eigen::MatrixXd pseudo_inv = es.eigenvectors() * diag.asDiagonal() * es.eigenvectors().transpose();
         Eigen::VectorXd step = -pseudo_inv*gradient;
-        if (step.norm() <= delta) {
+        if (step.norm() < delta) {
           double tau = std::sqrt(delta * delta - step.squaredNorm());
           step += tau * es.eigenvectors().col(index[0]);
           return step;
         }
       }
-
+      std::cout << "iterate" << std::endl;
       //sort out all the factors for the small eigenvalues, 
       int start_index = 0;
       for (; start_index < factor.size(); start_index++) {
@@ -68,6 +68,10 @@ namespace votca {
           continue;
         }
         break;
+      }
+
+      if (start_index == factor.size()) {
+        throw std::runtime_error("trustregion.cc: all the factors are close to zero trust region method will not converge further.");
       }
 
       // start value for lambda  a bit higher than lowest eigenvalue of Hessian

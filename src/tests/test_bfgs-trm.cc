@@ -46,8 +46,8 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
      }
 
     bool Converged(const Eigen::VectorXd& delta_parameters,
-            double delta_cost, const Eigen::VectorXd& gradient){
-      if (gradient.cwiseAbs().maxCoeff() < 1e-9)return true;
+            double delta_cost, const Eigen::VectorXd& gradient) {
+      if (gradient.cwiseAbs().maxCoeff() < 1e-8)return true;
       else return false;
     }
 
@@ -79,27 +79,27 @@ BOOST_AUTO_TEST_CASE(parabola_test) {
 
 
 BOOST_AUTO_TEST_CASE(booth_test) {
-  class booth : public Optimiser_costfunction{
+  class booth : public Optimiser_costfunction {
 
-     double EvaluateCost(const Eigen::VectorXd& parameters) {
+    double EvaluateCost(const Eigen::VectorXd& parameters) {
       double x=parameters[0];
       double y=parameters[1];
      
       return (x+2*y-7)*(x+2*y-7)+(2*x+y-5)*(2*x+y-5);
     }
-     
-     Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters){
+
+    Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters) {
       double x=parameters[0];
       double y=parameters[1];
       Eigen::VectorXd gradient=Eigen::VectorXd::Zero(2);
       gradient[0]=2*(5*x+4*y-17);
       gradient[1]=2*(4*x+5*y-19);
-       return gradient;
+      return gradient;
      }
 
     bool Converged(const Eigen::VectorXd& delta_parameters,
-            double delta_cost, const Eigen::VectorXd& gradient){
-      if (gradient.cwiseAbs().maxCoeff() < 1e-9)return true;
+            double delta_cost, const Eigen::VectorXd& gradient) {
+      if (gradient.cwiseAbs().maxCoeff() < 1e-8)return true;
       else return false;
     }
 
