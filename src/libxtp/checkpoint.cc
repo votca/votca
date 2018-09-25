@@ -37,9 +37,7 @@ namespace xtp {
 
 using namespace checkpoint_utils;
 
-CheckpointFile::CheckpointFile(std::string fN){
-    CheckpointFile(fN, true);
-}
+CheckpointFile::CheckpointFile(std::string fN): CheckpointFile(fN, true) {};
 
 CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
     : _fileName(fN){
