@@ -108,13 +108,7 @@ namespace votca { namespace xtp {
                      0,  0,  4,  0,  5,  6,  0,  7,  8,  9,
                      0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19 };
 
-
-
-        // some helpers
        
-        // definition of a center around which the moment should be calculated
-        tools::vec center(0.0); // here: origin, can be changed later
-        tools::vec pmc(0.0);
         
         
         // iterate over Gaussians in this shell_row
@@ -144,7 +138,7 @@ namespace votca { namespace xtp {
         const double PmB2 = fak2*( decay_row * pos_row.getZ() + decay_col * pos_col.getZ() ) - pos_col.getZ();        
         
         
-        pmc= fak2*(decay_row * pos_row + decay_col * pos_col)-center;
+        tools::vec pmc= fak2*(decay_row * pos_row + decay_col * pos_col)-_r;
    
         // calculate s-s- overlap matrix element
         ol(0,0) = pow(4.0*decay_row*decay_col,0.75) * pow(fak2,1.5)*exp(-fak2 * decay_row * decay_col *distsq); // s-s element

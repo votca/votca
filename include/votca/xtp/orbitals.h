@@ -34,6 +34,8 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/qmstate.h>
 
+#include "basisset.h"
+
 
 namespace votca {
     namespace xtp {
@@ -308,18 +310,18 @@ namespace votca {
 
             // access to list of indices used in BSE
 
-            void setBSEtype(std::string bsetype){_bsetype=bsetype;}
-            const std::string& getBSEtype() const{return _bsetype;}
+            void setTDAApprox(bool usedTDA){_useTDA=usedTDA;}
+            bool getTDAApprox() const{return _useTDA;}
 
 
             bool hasBSEindices() const{
                 return ( _bse_cmax > 0) ? true : false;
             }
 
-            void setBSEindices(int vmin, int vmax, int cmin, int cmax, int nmax) {
+            void setBSEindices(int vmin, int cmax, int nmax){
                 _bse_vmin = vmin;
-                _bse_vmax = vmax;
-                _bse_cmin = cmin;
+                _bse_vmax = this->getHomo();
+                _bse_cmin = this->getLumo();
                 _bse_cmax = cmax;
                 _bse_nmax = nmax;
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
@@ -485,6 +487,10 @@ namespace votca {
             }
 
             std::vector<double> Oscillatorstrengths()const;
+            
+            Eigen::Vector3d CalcCoM()const;
+            
+            Eigen::Vector3d CalcElDipole(const QMState& state);
         
             //Calculates full electron density for state or transition density, if you want to calculate only the density contribution of hole or electron use DensityMatrixExcitedState
             Eigen::MatrixXd DensityMatrixFull(const QMState& state)const;
@@ -622,7 +628,7 @@ namespace votca {
             int _unoccupied_levels;
             int _number_of_electrons;
             std::string _ECP;
-            std::string _bsetype;
+            bool _useTDA;
 
 
             Eigen::VectorXd _mo_energies;

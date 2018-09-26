@@ -51,14 +51,11 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     int rpaMax = 1e3;
 
     unsigned int bseVmin = -6019386;
-    unsigned int bseVmax = 1092581;
-
-    unsigned int bseCmin = 2718L;
     unsigned int bseCmax = 42;
 
     double scaHfx = 3.14159;
 
-    std::string bseType = "A+";
+    bool useTDA = true;
 
 
     Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Random(200,200);
@@ -105,9 +102,9 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.setAuxbasis(auxBasis);
         orbWrite.setRPAindices(rpaMin, rpaMax);
         // no need to write qpmin, qpmax
-        orbWrite.setBSEindices(bseVmin, bseVmax, bseCmin, bseCmax, 3);
+        orbWrite.setBSEindices(bseVmin, bseCmax, 3);
         orbWrite.setScaHFX(scaHfx);
-        orbWrite.setBSEtype(bseType);
+        orbWrite.setTDAApprox(useTDA);
         orbWrite.setECP(someECP);
         orbWrite.QPpertEnergies() = QPpertEnergiesTest;
         orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
@@ -144,12 +141,10 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     BOOST_CHECK_EQUAL(orbRead.getRPAmax(), rpaMax);
 
     BOOST_CHECK_EQUAL(orbRead.getBSEvmin(), bseVmin);
-    BOOST_CHECK_EQUAL(orbRead.getBSEvmax(), bseVmax);
-    BOOST_CHECK_EQUAL(orbRead.getBSEcmin(), bseCmin);
     BOOST_CHECK_EQUAL(orbRead.getBSEcmax(), bseCmax);
 
     BOOST_CHECK_CLOSE(orbRead.getScaHFX(), scaHfx, tol);
-    BOOST_CHECK_EQUAL(orbRead.getBSEtype(), bseType);
+    BOOST_CHECK_EQUAL(orbRead.getTDAApprox(), useTDA);
     BOOST_CHECK_EQUAL(orbRead.getECP(), someECP);
     BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
     BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));

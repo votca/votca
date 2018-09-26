@@ -504,7 +504,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       for (QMAtom* atom : atoms) {
         int atomfunc=0;
         const std::string& name = atom->getType();
-        atom->_nuccharge = elementinfo.getNucCrg(name);
+        atom->_nuccharge = elementinfo.getNucCrg(name);//TODO remove this 
         const Element& element = bs.getElement(name);
         for (const Shell& shell:element) {
           int numfuncshell = NumFuncShell(shell.getType());
