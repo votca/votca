@@ -43,8 +43,6 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getVdWChelpG("H"), 1.45);
   BOOST_CHECK_THROW(ele.getVdWChelpG("Blah"), invalid_argument);
 
-  BOOST_CHECK_THROW(ele.getNucCrgECP("He"), invalid_argument);
-
   BOOST_CHECK_EQUAL(ele.getMass("K"), 39.098);
   BOOST_CHECK_EQUAL(ele.getEleNum("Li"), 3);
 
