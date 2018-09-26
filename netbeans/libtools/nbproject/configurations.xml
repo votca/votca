@@ -55,7 +55,9 @@
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/database.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/elements.cc</itemPath>
       <itemPath>../../src/libtools/globals.cc</itemPath>
+      <itemPath>../../src/libtools/graphnode.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
@@ -290,7 +292,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -560,7 +566,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -830,7 +840,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
