@@ -50,7 +50,7 @@ public:
    void SetRadius( double radius ) { _radius = radius;};
    void SetSwitch( double sw ) { _switch = sw; };
    
-   void setLog( xtp::Logger* pLog ) { _log = pLog; };
+   void setLog( Logger* pLog ) { _log = pLog; };
    std::vector< std::vector<double> > &GetMultipoles() { return _multipoles; };
    
    
@@ -68,7 +68,7 @@ private:
     double  _radius; 
     double  _switch; 
     std::string  _outFile; 
-    xtp::Logger* _log;
+    Logger* _log;
     
  
 };

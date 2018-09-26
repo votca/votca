@@ -31,34 +31,34 @@ namespace votca {
         
         KMCCalculator::KMCCalculator(){};
 
-    void KMCCalculator::LoadGraph(xtp::Topology *top) {
+    void KMCCalculator::LoadGraph(Topology *top) {
 
-        std::vector< xtp::Segment* >& segs = top->Segments();
+        std::vector< Segment* >& segs = top->Segments();
         
         if(segs.size()<1){
           throw std::runtime_error("Your sql file contains no segments!");
         }
-        
-        for (xtp::Segment* seg:segs) {
-            GNode *newNode = new GNode();
-            newNode->ReadfromSegment(seg, _carriertype.ToXTPIndex());
+        _nodes.reserve(segs.size());
+        for (Segment* seg:segs) {
+            GNode newNode;
+            newNode.ReadfromSegment(seg, _carriertype.ToXTPIndex());
             if (tools::wildcmp(_injection_name.c_str(), seg->getName().c_str())) {
-                newNode->injectable = true;
+                newNode.injectable = true;
             } else {
-                newNode->injectable = false;
+                newNode.injectable = false;
             }
             _nodes.push_back(newNode);
         }
 
-        xtp::QMNBList &nblist = top->NBList();
+        QMNBList &nblist = top->NBList();
         if(nblist.size()<1){
           throw std::runtime_error("Your sql file contains no pairs!");    
         }
         
         
         for (QMPair* pair:nblist) {
-            _nodes[pair->Seg1()->getId()-1]->AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
-            _nodes[pair->Seg2()->getId()-1]->AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
+            _nodes[pair->Seg1()->getId()-1].AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
+            _nodes[pair->Seg2()->getId()-1].AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
         }
         
         unsigned events=0;
@@ -68,8 +68,8 @@ namespace votca {
         double maxlength=0;
         for(const auto& node:_nodes){
             
-            unsigned size=node->events.size();
-            for( const auto& event:node->events){
+            unsigned size=node.events.size();
+            for( const auto& event:node.events){
                 if(event.decayevent){continue;}
                 double dist=abs(event.dr);
                 if(dist>maxlength){
@@ -81,7 +81,7 @@ namespace votca {
             
             events+=size;
             if(size==0){
-                cout<<"Node "<<node->id<<" has 0 jumps"<<endl;
+                cout<<"Node "<<node.id<<" has 0 jumps"<<endl;
             }
             else if(size<min){
                 min=size;
@@ -93,7 +93,7 @@ namespace votca {
         double avg=double(events)/double(_nodes.size());
         double deviation=0.0;
         for(const auto& node:_nodes){
-            double size=node->events.size();
+            double size=node.events.size();
             deviation+=(size-avg)*(size-avg);
         }
         deviation=std::sqrt(deviation/double(_nodes.size()));
@@ -111,8 +111,8 @@ namespace votca {
        
         cout << "spatial density: " << _numberofcharges / top->BoxVolume() << " nm^-3" << endl;
 
-        for (unsigned int i = 0; i < _nodes.size(); i++) {
-            _nodes[i]->InitEscapeRate();
+          for(auto& node:_nodes){
+            node.InitEscapeRate();
         }
             
         return;
@@ -140,12 +140,12 @@ namespace votca {
             return forbidden;
         }
 
-        bool KMCCalculator::CheckSurrounded(GNode* node,const std::vector<int> & forbiddendests) {
+        bool KMCCalculator::CheckSurrounded(const GNode& node,const std::vector<int> & forbiddendests) {
             bool surrounded = true;
-            for (unsigned  i = 0; i < node->events.size(); i++) {
+            for (unsigned  i = 0; i < node.events.size(); i++) {
                 bool thisevent_possible = true;
                 for (unsigned int j = 0; j < forbiddendests.size(); j++) {
-                    if (node->events[i].destination == forbiddendests[j]) {
+                    if (node.events[i].destination == forbiddendests[j]) {
                         thisevent_possible = false;
                         break;
                     }
@@ -161,28 +161,28 @@ namespace votca {
          void KMCCalculator::RandomlyCreateCharges(){
                 
         cout << "looking for injectable nodes..." << endl;
-        for (unsigned int i = 0; i < _numberofcharges; i++) {
-            Chargecarrier *newCharge = new Chargecarrier;
-            newCharge->id = i;
+        for (int i = 0; i < _numberofcharges; i++) {
+            Chargecarrier newCharge;
+            newCharge.id = i;
             RandomlyAssignCarriertoSite(newCharge);
             
-            cout << "starting position for charge " << i + 1 << ": segment " << newCharge->getCurrentNodeId()+1 << endl;
+            cout << "starting position for charge " << i + 1 << ": segment " << newCharge.getCurrentNodeId()+1 << endl;
             _carriers.push_back(newCharge);
         }
         return;
          }
          
-         void KMCCalculator::RandomlyAssignCarriertoSite(Chargecarrier* Charge){
+         void KMCCalculator::RandomlyAssignCarriertoSite(Chargecarrier& Charge){
             int nodeId_guess=-1;
             do{
             nodeId_guess=_RandomVariable.rand_uniform_int(_nodes.size());   
             }
-            while (_nodes[nodeId_guess]->occupied || _nodes[nodeId_guess]->injectable==false ); // maybe already occupied? or maybe not injectable?
-            if (Charge->hasNode()){
-                Charge->jumpfromCurrentNodetoNode(_nodes[nodeId_guess]);
+            while (_nodes[nodeId_guess].occupied || _nodes[nodeId_guess].injectable==false ); // maybe already occupied? or maybe not injectable?
+            if (Charge.hasNode()){
+                Charge.jumpfromCurrentNodetoNode(&_nodes[nodeId_guess]);
             }
             else{
-            Charge->settoNote(_nodes[nodeId_guess]);
+            Charge.settoNote(&_nodes[nodeId_guess]);
             }
              return;
          }
@@ -208,43 +208,43 @@ namespace votca {
             double minrate=std::numeric_limits<double>::max();
             int totalnumberofrates = 0;
             for (unsigned int i = 0; i < numberofsites; i++) {
-                unsigned numberofneighbours = _nodes[i]->events.size();
+                unsigned numberofneighbours = _nodes[i].events.size();
                 for (unsigned int j = 0; j < numberofneighbours; j++) {
-                    if(_nodes[i]->events[j].decayevent){
+                    if(_nodes[i].events[j].decayevent){
                         //if event is a decay event there is no point in calculating its rate, because it already has that from the reading in.
                         continue;
                     }
 
-                    double destindex = _nodes[i]->events[j].destination;
-                    double reorg = _nodes[i]->reorg_intorig + _nodes[destindex]->reorg_intdest + _nodes[i]->events[j].reorg_out;
+                    double destindex = _nodes[i].events[j].destination;
+                    double reorg = _nodes[i].reorg_intorig + _nodes[destindex].reorg_intdest + _nodes[i].events[j].reorg_out;
                      if(std::abs(reorg)<1e-12){
                         throw std::runtime_error("Reorganisation energy for a pair is extremly close to zero,\n"
                                 " you probably forgot to import reorganisation energies into your sql file.");
                     }
                     double dG_Field =0.0;
                     if(charge!=0.0){
-                        dG_Field=charge * (_nodes[i]->events[j].dr.transpose()*_field);
+                        dG_Field=charge * (_nodes[i].events[j].dr.transpose()*_field);
                     }
-                    double dG_Site = _nodes[destindex]->siteenergy - _nodes[i]->siteenergy;
+                    double dG_Site = _nodes[destindex].siteenergy - _nodes[i].siteenergy;
                     double dG=dG_Site-dG_Field;
-                    double J2 = _nodes[i]->events[j].Jeff2;
+                    double J2 = _nodes[i].events[j].Jeff2;
 
                     double rate = 2 * tools::conv::Pi / tools::conv::hbar * J2 / sqrt(4 * tools::conv::Pi * reorg * tools::conv::kB * _temperature) 
                     * exp(-(dG + reorg)*(dG + reorg) / (4 * reorg * tools::conv::kB * _temperature));
 
                     // calculate relative difference compared to values in the table
-                    double reldiff = (_nodes[i]->events[j].rate - rate) / _nodes[i]->events[j].rate;
+                    double reldiff = (_nodes[i].events[j].rate - rate) / _nodes[i].events[j].rate;
                     if (reldiff > maxreldiff) {
                         maxreldiff = reldiff;
                     }
-                    reldiff = (_nodes[i]->events[j].rate - rate) / rate;
+                    reldiff = (_nodes[i].events[j].rate - rate) / rate;
                     if (reldiff > maxreldiff) {
                         maxreldiff = reldiff;
                     }
 
                     // set rates to calculated values
-                    _nodes[i]->events[j].rate = rate;
-                    _nodes[i]->events[j].initialrate = rate;
+                    _nodes[i].events[j].rate = rate;
+                    _nodes[i].events[j].initialrate = rate;
                     
                     if(rate>maxrate){
                         maxrate=rate;
@@ -258,7 +258,7 @@ namespace votca {
 
                 // Initialise escape rates
                 for (unsigned int i = 0; i < _nodes.size(); i++) {
-                    _nodes[i]->InitEscapeRate();
+                    _nodes[i].InitEscapeRate();
                 }
 
             }
@@ -289,7 +289,7 @@ namespace votca {
         }
         
         
-        GLink* KMCCalculator::ChooseHoppingDest(GNode* node){
+        const GLink* KMCCalculator::ChooseHoppingDest(const GNode* node){
             double u = 1 - _RandomVariable.rand_uniform();
             
             for (unsigned int j = 0; j < node->events.size(); j++) {
@@ -315,7 +315,6 @@ namespace votca {
 
                     carrier = _carriers[i];
                     break;}  
-
             }
             return carrier;
         }

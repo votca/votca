@@ -54,7 +54,7 @@ class GWBSE {
 
   std::string Identify() { return "gwbse"; }
 
-  void setLogger(xtp::Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
     
@@ -66,7 +66,7 @@ class GWBSE {
  void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& dft_energies);    
  
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
- xtp::Logger* _pLog;
+ Logger* _pLog;
  Orbitals& _orbitals;
   
   // program tasks

@@ -42,7 +42,7 @@ namespace votca {
             void Initialize(tools::Property &options);
             void Calculate(double energy);
 
-            void setLog(xtp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -70,7 +70,7 @@ namespace votca {
             bool _remove_total_force;
 
             Eigen::MatrixX3d _forces;
-            xtp::Logger *_pLog;
+            Logger *_pLog;
         };
 
     }

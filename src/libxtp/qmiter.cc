@@ -31,10 +31,10 @@ namespace votca {
     namespace xtp {
 
      
-void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< xtp::PolarSeg* > &psegs) {
+void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, std::vector< PolarSeg* > &psegs) {
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
-                xtp::PolarSeg *pseg = psegs[i];
+                PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
                     // Retrieve multipole info of this atom
                     std::vector<double> update = multipoles[qac];
@@ -47,7 +47,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                         update[m] *= pow(tools::conv::bohr2nm, 2);
                     }
 
-                    xtp::APolarSite *aps = (*pseg)[j];
+                    APolarSite *aps = (*pseg)[j];
                     aps->setQs(update, 0);
                 }
             }
@@ -55,14 +55,14 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
         }
 
         void QMMIter::UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &qmatoms,
-                std::vector< xtp::PolarSeg* > &psegs) {
+                std::vector< PolarSeg* > &psegs) {
 
             double dR_RMS = 0.0;
             double dQ_RMS = 0.0;
             double dQ_SUM = 0.0;
 
             for (unsigned int i = 0, qac = 0; i < psegs.size(); ++i) {
-                xtp::PolarSeg *pseg = psegs[i];
+                PolarSeg *pseg = psegs[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j, ++qac) {
                     // Retrieve info from QMAtom
                     QMAtom *qmatm = qmatoms[qac];
@@ -70,7 +70,7 @@ void QMMIter::UpdateMPSFromGDMA(std::vector<std::vector<double> > &multipoles, s
                     double upd_Q00 = qmatm->getPartialcharge();
                     // Compare to previous r, Q00
 
-                    xtp::APolarSite *aps = (*pseg)[j];
+                    APolarSite *aps = (*pseg)[j];
                     tools::vec old_r = aps->getPos();
                     double old_Q00 = aps->getQ00();
                     double dR = tools::abs(upd_r - old_r);

@@ -128,7 +128,7 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const std::vector<QMAtom*>& atoms);
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<xtp::PolarSeg> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const tools::vec& r){ _r=r;};
@@ -185,28 +185,28 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<xtp::PolarSeg> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
     private:
-        void setAPolarSite(xtp::APolarSite* site){apolarsite=site;};
-        xtp::APolarSite* apolarsite;
+        void setAPolarSite(APolarSite* site){apolarsite=site;};
+        APolarSite* apolarsite;
         Eigen::MatrixXd _externalpotential;
     };
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<xtp::PolarSeg> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
     private:
-        void setAPolarSite(xtp::APolarSite* site){apolarsite=site;};
+        void setAPolarSite(APolarSite* site){apolarsite=site;};
         
-        xtp::APolarSite* apolarsite;
+        APolarSite* apolarsite;
         Eigen::MatrixXd _externalpotential;
     };
 

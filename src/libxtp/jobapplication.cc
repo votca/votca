@@ -74,7 +74,7 @@ bool JobApplication::EvaluateOptions(void) {
 void JobApplication::Run() {
     std::string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::xtp::HelpTextHeader(name);
+    votca::HelpTextHeader(name);
 
     load_property_from_xml(_options, _op_vm["options"].as<string>());
 
@@ -91,8 +91,8 @@ void JobApplication::Run() {
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);    
 
-    xtp::ProgObserver< std::vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult > progObs
-        = xtp::ProgObserver< std::vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >();
+    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > progObs
+        = ProgObserver< std::vector<Job*>, Job*, Job::JobResult >();
     progObs.InitCmdLineOpts(OptionsMap());
     
     // INITIALIZE & RUN CALCULATORS
@@ -123,15 +123,15 @@ void JobApplication::Run() {
 
 
 
-void JobApplication::AddCalculator(xtp::JobCalculator* calculator) {
+void JobApplication::AddCalculator(JobCalculator* calculator) {
     _calculators.push_back(calculator);
 }
 
 
 void JobApplication::BeginEvaluate(int nThreads = 1, 
-        xtp::ProgObserver< std::vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult > *obs = NULL) {
+        ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
 
-    for (xtp::JobCalculator* calculator:_calculators) {
+    for (JobCalculator* calculator:_calculators) {
         cout << "... " << calculator->Identify() << " ";
         calculator->setnThreads(nThreads);
         calculator->setProgObserver(obs);
@@ -141,7 +141,7 @@ void JobApplication::BeginEvaluate(int nThreads = 1,
 }
 
 bool JobApplication::EvaluateFrame() {
-    for (xtp::JobCalculator* calculator:_calculators) {
+    for (JobCalculator* calculator:_calculators) {
         cout << "... " << calculator->Identify() << " " << flush;
         if (_generate_input) calculator->WriteJobFile(&_top);
         if (_run) calculator->EvaluateFrame(&_top);
@@ -152,7 +152,7 @@ bool JobApplication::EvaluateFrame() {
 }
 
 void JobApplication::EndEvaluate() {
-   for (xtp::JobCalculator* calculator:_calculators) {
+   for (JobCalculator* calculator:_calculators) {
         calculator->EndEvaluate(&_top);
     }
 }

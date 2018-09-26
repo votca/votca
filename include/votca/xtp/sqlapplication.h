@@ -40,7 +40,7 @@ public:
     SqlApplication();
 
     ~SqlApplication() {
-        for (xtp::QMCalculator* calculator : _calculators) {
+        for (QMCalculator* calculator : _calculators) {
             delete calculator;
         }
     };
@@ -53,12 +53,12 @@ public:
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
 
-   void AddCalculator(xtp::QMCalculator *calculator);
+   void AddCalculator(QMCalculator *calculator);
 
 protected:
 
-    xtp::Topology           _top;
-    list< xtp::QMCalculator* >   _calculators;
+    Topology           _top;
+    list< QMCalculator* >   _calculators;
 
 };
 

@@ -126,8 +126,8 @@ namespace votca {
 
       int numberofcharges=0;
       boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-      for (std::shared_ptr<xtp::PolarSeg> seg:_PolarSegments) {
-        for (xtp::APolarSite* site:*seg) {
+      for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
+        for (APolarSite* site:*seg) {
           string sitestring=boost::str(fmt % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
               % (site->getPos().getY()*votca::tools::conv::nm2ang) 
               % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
@@ -229,9 +229,9 @@ namespace votca {
       command = "cd " + _run_dir + "; asc2mov 5000 system.mos system.movecs > convert.log";
       int i = std::system(command.c_str());
       if (i == 0) {
-        XTP_LOG(xtp::logDEBUG, *_pLog) << "Converted MO file from ascii to binary" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "Converted MO file from ascii to binary" << flush;
       } else {
-        XTP_LOG(xtp::logERROR, *_pLog) << "Conversion of binary MO file to binary failed. " << flush;
+        XTP_LOG(logERROR, *_pLog) << "Conversion of binary MO file to binary failed. " << flush;
         return false;
       }
       return true;
@@ -319,7 +319,7 @@ namespace votca {
       nw_file << endl;
       nw_file.close();
       // and now generate a shell script to run both jobs, if neccessary
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
 
       _scratch_dir = scratch_dir_backup + temp_suffix;
 
@@ -349,7 +349,7 @@ namespace votca {
      */
     bool NWChem::Run( Orbitals& orbitals ) {
 
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Running NWChem job" << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Running NWChem job" << flush;
 
       if (std::system(NULL)) {
 
@@ -364,19 +364,19 @@ namespace votca {
 
         int check = std::system(command.c_str());
         if (check == -1) {
-          XTP_LOG(xtp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+          XTP_LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
           return false;
         }
 
         if (CheckLogFile()) {
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Finished NWChem job" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "Finished NWChem job" << flush;
           return true;
         } else {
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "NWChem job failed" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "NWChem job failed" << flush;
           return false;
         }
       } else {
-        XTP_LOG(xtp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+        XTP_LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
         return false;
       }
 
@@ -444,9 +444,9 @@ namespace votca {
       command = "cd " + _run_dir + "; mov2asc 10000 system.movecs system.mos > convert.log";
       int i = std::system(command.c_str());
       if (i == 0) {
-        XTP_LOG(xtp::logDEBUG, *_pLog) << "Converted MO file from binary to ascii" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "Converted MO file from binary to ascii" << flush;
       } else {
-        XTP_LOG(xtp::logERROR, *_pLog) << "Conversion of binary MO file to ascii failed. " << flush;
+        XTP_LOG(logERROR, *_pLog) << "Conversion of binary MO file to ascii failed. " << flush;
         return false;
       }
 
@@ -455,10 +455,10 @@ namespace votca {
       std::ifstream input_file(orb_file_name_full.c_str());
 
       if (input_file.fail()) {
-        XTP_LOG(xtp::logERROR, *_pLog) << "File " << orb_file_name_full << " with molecular orbitals is not found " << flush;
+        XTP_LOG(logERROR, *_pLog) << "File " << orb_file_name_full << " with molecular orbitals is not found " << flush;
         return false;
       } else {
-        XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading MOs from " << orb_file_name_full << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "Reading MOs from " << orb_file_name_full << flush;
       }
 
       // the first 12 lines are garbage info
@@ -467,12 +467,12 @@ namespace votca {
       }
       // next line has basis set size
       input_file >> basis_size;
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Basis set size: " << basis_size << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Basis set size: " << basis_size << flush;
 
 
       // next line has number of stored MOs
       input_file >> levels;
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
 
       /* next lines contain information about occupation of the MOs
        *  - each line has 3 numbers
@@ -497,12 +497,12 @@ namespace votca {
         }
       }
 
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
 
       int occupied_levels = number_of_electrons;
       int unoccupied_levels = levels - occupied_levels;
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
 
       // reset index and read MO energies the same way
       imo = 0;
@@ -565,7 +565,7 @@ namespace votca {
       remove(file_name.c_str());
 
       ReorderOutput(orbitals);
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Done reading MOs" << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
 
       return true;
     }
@@ -577,12 +577,12 @@ namespace votca {
       ifstream input_file((_run_dir + "/" + _log_file_name).c_str());
 
       if (input_file.fail()) {
-        XTP_LOG(xtp::logERROR, *_pLog) << "NWChem LOG is not found" << flush;
+        XTP_LOG(logERROR, *_pLog) << "NWChem LOG is not found" << flush;
         return false;
       };
 
       if (input_file.peek() == std::ifstream::traits_type::eof()) {
-        XTP_LOG(xtp::logERROR, *_pLog) << "NWChem run failed. Check OpenMPI version!" << flush;
+        XTP_LOG(logERROR, *_pLog) << "NWChem run failed. Check OpenMPI version!" << flush;
         return false;
       };
 
@@ -614,7 +614,7 @@ namespace votca {
         if (total_energy_pos != std::string::npos) {
           return true;
         } else if (diis_pos != std::string::npos) {
-          XTP_LOG(xtp::logERROR, *_pLog) << "NWChem LOG is incomplete" << flush;
+          XTP_LOG(logERROR, *_pLog) << "NWChem LOG is incomplete" << flush;
           return false;
         } else {
           // go to previous line
@@ -653,7 +653,7 @@ namespace votca {
       bool found_optimization = false;
       int basis_set_size = 0;
 
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
       std::string log_file_name_full = _run_dir + "/" + _log_file_name;
       // check if LOG file is complete
       if (!CheckLogFile()) return false;
@@ -692,7 +692,7 @@ namespace votca {
           boost::trim(bf);
           basis_set_size = boost::lexical_cast<int>(bf);
           orbitals.setBasisSetSize(basis_set_size);
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Basis functions: " << basis_set_size << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "Basis functions: " << basis_set_size << flush;
         }
 
         /*
@@ -704,7 +704,7 @@ namespace votca {
           std::string energy = results.back();
           boost::trim(energy);
           orbitals.setQMEnergy(conv_Hrt_eV * boost::lexical_cast<double>(energy));
-          XTP_LOG(xtp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+          XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
           has_qm_energy = true;
           // _orbitals._has_qm_energy = true;
 
@@ -715,7 +715,7 @@ namespace votca {
          */
         std::string::size_type charge_pos = line.find("ESP");
         if (charge_pos != std::string::npos && _get_charges) {
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Getting charges" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
           has_charges = true;
           // two empty lines
           getline(input_file, line);
@@ -761,7 +761,7 @@ namespace votca {
         std::string::size_type coordinates_pos = line.find("Output coordinates");
 
         if (found_optimization && coordinates_pos != std::string::npos) {
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
 
           //_has_coordinates = true;
           bool has_QMAtoms = orbitals.hasQMAtoms();
@@ -853,7 +853,7 @@ namespace votca {
             } // end of the blocks
 
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Read the Vxc matrix" << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Read the Vxc matrix" << flush;
 
           }
         }
@@ -865,7 +865,7 @@ namespace votca {
           boost::algorithm::split(results, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
           double ScaHFX = boost::lexical_cast<double>(results.back());
           orbitals.setScaHFX(ScaHFX);
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "DFT with " << ScaHFX << " of HF exchange!" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "DFT with " << ScaHFX << " of HF exchange!" << flush;
         }
 
 
@@ -923,7 +923,7 @@ namespace votca {
             j_indeces.clear();
           } // end of the blocks
 
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
         } // end of the if "Overlap" found
 
         /*
@@ -932,7 +932,7 @@ namespace votca {
         std::string::size_type self_energy_pos = line.find("Self energy of the charges");
 
         if (self_energy_pos != std::string::npos) {
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Getting the self energy\n";
+          XTP_LOG(logDEBUG, *_pLog) << "Getting the self energy\n";
           std::vector<std::string> block;
           std::vector<std::string> energy;
           boost::algorithm::split(block, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
@@ -940,7 +940,7 @@ namespace votca {
 
           orbitals.setSelfEnergy(conv_Hrt_eV * boost::lexical_cast<double> (energy[1]));
 
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "Self energy " << orbitals.getSelfEnergy() << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "Self energy " << orbitals.getSelfEnergy() << flush;
 
         }
 
@@ -954,7 +954,7 @@ namespace votca {
 
       } // end of reading the file line-by-line
 
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Done parsing" << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
       return true;
     }
 
@@ -964,7 +964,7 @@ namespace votca {
       std::vector<std::string> UniqueElements = FindUniqueElements(qmatoms);
       BasisSet bs;
       bs.LoadBasisSet(_basisset_name);
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
       nw_file << "basis spherical" << endl;
       for (const std::string& element_name : UniqueElements) {
         const Element& element = bs.getElement(element_name);
@@ -1006,13 +1006,13 @@ namespace votca {
       BasisSet ecp;
       ecp.LoadPseudopotentialSet(_ecp_name);
 
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
       for (const std::string& element_name : UniqueElements) {
         try {
           ecp.getElement(element_name);
         } catch (std::runtime_error& error) {
-          XTP_LOG(xtp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name << " available" << flush;
+          XTP_LOG(logDEBUG, *_pLog) << "No pseudopotential for " << element_name << " available" << flush;
           continue;
         }
         const Element& element = ecp.getElement(element_name);

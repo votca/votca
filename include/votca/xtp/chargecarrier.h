@@ -43,13 +43,13 @@ namespace votca { namespace xtp {
                     void updateOccupationtime(double dt) { node->occupationtime+=dt;}
                     void updateSteps(unsigned t) { steps+=t;}
                     void resetCarrier() { lifetime=0;steps=0; dr_travelled=Eigen::Vector3d::Zero();}
-                    const double& getLifetime(){return lifetime;}
-                    const unsigned& getSteps(){return steps;}
-                    const int& getCurrentNodeId(){return node->id;}
-                    double getCurrentEnergy(){return node->siteenergy;}
-                    Eigen::Vector3d getCurrentPosition(){return node->position;}
-                    double getCurrentEscapeRate(){return node->escape_rate;}
-                    GNode * getCurrentNode(){return node;}
+                    double getLifetime()const{return lifetime;}
+                    unsigned getSteps()const{return steps;}
+                    int getCurrentNodeId()const{return node->id;}
+                    double getCurrentEnergy()const{return node->siteenergy;}
+                    const Eigen::Vector3d& getCurrentPosition()const{return node->position;}
+                    double getCurrentEscapeRate()const{return node->escape_rate;}
+                    const GNode* getCurrentNode()const{return node;}
                     void settoNote(GNode *newnode){node=newnode;
                         node->occupied=true;}
 

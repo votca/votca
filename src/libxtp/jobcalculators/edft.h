@@ -46,7 +46,7 @@ namespace votca { namespace xtp {
 * Callname: edft
 */
 
-class EDFT : public xtp::ParallelXJobCalc< vector<xtp::Job*>,xtp::Job*, xtp::Job::JobResult >
+class EDFT : public ParallelXJobCalc< vector<Job*>,Job*, Job::JobResult >
 {
 public:
 
@@ -55,9 +55,9 @@ public:
 
     string   Identify() { return "edft"; }
     void     Initialize(Property *options);
-    void     WriteJobFile(xtp::Topology *top);
+    void     WriteJobFile(Topology *top);
     
-    xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread);
+    Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
 
 private:
 
@@ -129,7 +129,7 @@ void EDFT::Initialize(Property *options) {
 
 }
 
-void EDFT::WriteJobFile(xtp::Topology *top) {
+void EDFT::WriteJobFile(Topology *top) {
 
     cout << endl << "... ... Writing job file: " << flush;
     ofstream ofs;
@@ -138,8 +138,8 @@ void EDFT::WriteJobFile(xtp::Topology *top) {
  
     ofs << "<jobs>" << endl;   
 
-    xtp::QMNBList::iterator pit;
-    xtp::QMNBList &nblist = top->NBList();    
+    QMNBList::iterator pit;
+    QMNBList &nblist = top->NBList();    
     
             
     int jobCount = 0;
@@ -152,8 +152,8 @@ void EDFT::WriteJobFile(xtp::Topology *top) {
     // (Donor - Bridge1 - Bridge2 - ... - Acceptor) type
     nblist.GenerateSuperExchange();
     
-    map< int,xtp::Segment* > segments;
-    map< int,xtp::Segment* >::iterator sit;
+    map< int,Segment* > segments;
+    map< int,Segment* >::iterator sit;
 
     for (pit = nblist.begin(); pit != nblist.end(); ++pit) {
         
@@ -166,8 +166,8 @@ void EDFT::WriteJobFile(xtp::Topology *top) {
            this in principle is not needed since all pairs between 
            donors, acceptors, and bridges are already in the list 
          */
-        vector<xtp::Segment*> bridges = (*pit)->getBridgingSegments();
-        for ( vector<xtp::Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
+        vector<Segment*> bridges = (*pit)->getBridgingSegments();
+        for ( vector<Segment*>::const_iterator bsit = bridges.begin(); bsit != bridges.end(); bsit++ ) {
             //cout << "Bridging segment " << (*bsit)->getId() << " : " <<  (*bsit)->getName() << endl;
             segments[ (*bsit)->getId() ] = (*bsit);
         }
@@ -186,7 +186,7 @@ void EDFT::WriteJobFile(xtp::Topology *top) {
         Property *pSegment =  &pInput->add("segment" , (format("%1$s") % sit->first).str() );
         pSegment->setAttribute<string>("type", sit->second->getName() );
         pSegment->setAttribute<int>("id", sit->second->getId() );
-        xtp::Job job(id, tag, Input, xtp::Job::AVAILABLE );
+        Job job(id, tag, Input, Job::AVAILABLE );
         job.ToStream(ofs,"xml");
     }
      
@@ -200,7 +200,7 @@ void EDFT::WriteJobFile(xtp::Topology *top) {
 }
 
 
-xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *opThread) {
+Job::JobResult EDFT::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
     string output;
     
@@ -211,18 +211,18 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
    
     
     Orbitals _orbitals;
-    xtp::Job::JobResult jres = xtp::Job::JobResult();
+    Job::JobResult jres = Job::JobResult();
     Property _job_input = job->getInput();  
     list<Property*> lSegments = _job_input.Select( "segment" );  
-    vector < xtp::Segment* > segments;    
+    vector < Segment* > segments;    
     int segId = lSegments.front()->getAttribute<int>( "id" );
     string segType = lSegments.front()->getAttribute<string>( "type" );
 
-    xtp::Segment *seg = top->getSegment( segId );
+    Segment *seg = top->getSegment( segId );
     assert( seg->getName() == segType ); 
     segments.push_back( seg );
-    xtp::Logger* pLog = opThread->getLogger();
-    XTP_LOG(xtp::logINFO,*pLog) << xtp::TimeStamp() << " Evaluating site " << seg->getId() << flush; 
+    Logger* pLog = opThread->getLogger();
+    XTP_LOG(logINFO,*pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush; 
 
     // log, com, and orbital files will be stored in ORB_FILES/package_name/frame_x/mol_ID/
     // extracted information will be stored in  ORB_FILES/molecules/frame_x/molecule_ID.orb
@@ -261,9 +261,9 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
         _run_status = _qmpackage->Run( );
         if ( !_run_status ) {
             output += "run failed; " ;
-            XTP_LOG(xtp::logERROR,*pLog) << _package << " run failed" << flush;
+            XTP_LOG(logERROR,*pLog) << _package << " run failed" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(xtp::Job::FAILED);
+            jres.setStatus(Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -276,9 +276,9 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
         _parse_log_status = _qmpackage->ParseLogFile( &_orbitals );
         if ( !_parse_log_status ) {
             output += "log incomplete; ";
-            XTP_LOG(xtp::logERROR,*pLog) << "QM log incomplete" << flush;
+            XTP_LOG(logERROR,*pLog) << "QM log incomplete" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(xtp::Job::FAILED);
+            jres.setStatus(Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -289,9 +289,9 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
        _parse_orbitals_status = _qmpackage->ParseOrbitalsFile( &_orbitals );
         if ( !_parse_orbitals_status ) {
             output += "orbitals failed; " ;
-            XTP_LOG(xtp::logERROR,*pLog) << "QM orbitals not parsed" << flush;
+            XTP_LOG(logERROR,*pLog) << "QM orbitals not parsed" << flush;
             jres.setOutput( output ); 
-            jres.setStatus(xtp::Job::FAILED);
+            jres.setStatus(Job::FAILED);
             delete _qmpackage;
             return jres;
         } else {
@@ -306,15 +306,15 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
        if ( !_do_parse ) { // orbitals must be loaded from a file
            boost::filesystem::path arg_path;
            string ORB_FILE = ( arg_path / ORB_DIR / (format("molecule_%1%.orb") % ID ).str() ).c_str() ;
-           XTP_LOG(xtp::logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
+           XTP_LOG(logDEBUG,*pLog) << "Loading orbitals from " << ORB_FILE << flush;  
            try{
                _orbitals.ReadFromCpt(ORB_FILE);
            }
            catch(std::runtime_error& error){
-               XTP_LOG(xtp::logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
+               XTP_LOG(logERROR,*pLog) << "Failed loading orbitals from " << ORB_FILE << flush; 
                output += "failed loading " + ORB_FILE;
                jres.setOutput( output ); 
-               jres.setStatus(xtp::Job::FAILED);
+               jres.setStatus(Job::FAILED);
                delete _qmpackage;
                return jres;
            }
@@ -322,7 +322,7 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
         }        
        
        _orbitals.Trim(factor);   
-        XTP_LOG(xtp::logDEBUG,*pLog) << "Trimming virtual orbitals from " 
+        XTP_LOG(logDEBUG,*pLog) << "Trimming virtual orbitals from " 
          << _orbitals.getNumberOfLevels() - _orbitals.getNumberOfElectrons() << " to " 
          << _orbitals.getNumberOfElectrons()*factor << flush;   
        output += "orbitals trimmed; " ;
@@ -333,18 +333,18 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
     // save orbitals
     
     string ORB_FILE = "molecule_" + ID + ".orb";
-    XTP_LOG(xtp::logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
+    XTP_LOG(logDEBUG,*pLog) << "Serializing to " <<  ORB_FILE << flush;
     _orbitals.WriteToCpt(ORB_DIR+"/"+ORB_FILE);
     // ofs.close();
     
      if(_qmpackage->getPackageName()=="orca"){
-            XTP_LOG(xtp::logINFO,*pLog) << "Copying monomer .gbw file to orb folder" << flush;
+            XTP_LOG(logINFO,*pLog) << "Copying monomer .gbw file to orb folder" << flush;
             string   qmpackage_gbw_dir  = edft_work_dir + "/" + _package + "/" + frame_dir + "/mol_" + ID+"/system.gbw";           
             string gbwFile  = ORB_DIR+"/"+(format("%1%_%2%%3%") % "molecule" % ID % ".gbw").str();
             boost::filesystem::copy_file(qmpackage_gbw_dir, gbwFile,boost::filesystem::copy_option::overwrite_if_exists);
     }
     
-    XTP_LOG(xtp::logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
+    XTP_LOG(logDEBUG,*pLog) << "Done serializing " <<  ORB_FILE << flush;
    }
    
   
@@ -353,7 +353,7 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
    _qmpackage->CleanUp();
    delete _qmpackage;
         
-    XTP_LOG(xtp::logINFO,*pLog) << xtp::TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
+    XTP_LOG(logINFO,*pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush; 
  
     Property _job_summary;
         Property *_output_summary = &_job_summary.add("output","");
@@ -367,7 +367,7 @@ xtp::Job::JobResult EDFT::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThre
     
     // output of the JOB 
     jres.setOutput( _job_summary );
-    jres.setStatus(xtp::Job::COMPLETE);
+    jres.setStatus(Job::COMPLETE);
 
     // dump the LOG
     //cout << *pLog;

@@ -29,7 +29,7 @@ namespace votca { namespace xtp {
 
 
 class Calculatorfactory
-: public tools::ObjectFactory< std::string, xtp::QMCalculator >
+: public tools::ObjectFactory< std::string, QMCalculator >
 {
 private:
     Calculatorfactory() {}
@@ -41,7 +41,7 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    xtp::QMCalculator *Create(const std::string &key);
+    QMCalculator *Create(const std::string &key);
 
     friend Calculatorfactory &Calculators();
     
@@ -52,10 +52,10 @@ inline Calculatorfactory &Calculators(){
     return instance;
 }
 
-inline xtp::QMCalculator* Calculatorfactory::Create(const std::string &key){
+inline QMCalculator* Calculatorfactory::Create(const std::string &key){
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
-        xtp::QMCalculator* calc = (it->second)();
+        QMCalculator* calc = (it->second)();
         calc->LoadDefaults();
         return calc;
     } else

@@ -32,8 +32,8 @@ public:
 
     QMMIter(int id) : _id(id){ ; }
 
-   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< xtp::PolarSeg* > &);  
-   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< xtp::PolarSeg* > &psegs); 
+   void UpdatePosChrgFromQMAtoms(std::vector< QMAtom* > &, std::vector< PolarSeg* > &);  
+   void UpdateMPSFromGDMA( std::vector<std::vector<double> > &multipoles,  std::vector< PolarSeg* > &psegs); 
 
    void setdRdQ(double dR_RMS, double dQ_RMS, double dQ_SUM);
    void setQMSF(double energy_QM, double energy_SF, double energy_GWBSE);

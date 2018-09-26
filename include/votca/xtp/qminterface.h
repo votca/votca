@@ -42,18 +42,18 @@ class QMInterface
 public:
     
     // CONVERSION QM -> MM
-    xtp::APolarSite *Convert(QMAtom *atm, int id = -1);
+    APolarSite *Convert(QMAtom *atm, int id = -1);
     
-    xtp::PolarSeg Convert(std::vector<QMAtom*> &atms);
+    PolarSeg Convert(std::vector<QMAtom*> &atms);
     
-    std::vector<QMAtom *> Convert( std::vector<xtp::Segment* > segments);
+    std::vector<QMAtom *> Convert( std::vector<Segment* > segments);
     
-    void GenerateQMAtomsFromPolarSegs(xtp::PolarTop *ptop, Orbitals &orb);
-    std::vector<std::shared_ptr<xtp::PolarSeg> > GenerateMultipoleList(xtp::PolarTop *ptop  );
-    void Orbitals2Segment(xtp::Segment& segment, const Orbitals& orbitals);
+    void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb);
+    std::vector<std::shared_ptr<PolarSeg> > GenerateMultipoleList(PolarTop *ptop  );
+    void Orbitals2Segment(Segment& segment, const Orbitals& orbitals);
      
 private:
-    void addMMAtomtoOrb(xtp::APolarSite * aps,Orbitals &orb, bool with_polarisation);
+    void addMMAtomtoOrb(APolarSite * aps,Orbitals &orb, bool with_polarisation);
     // Allocates polarizabilities in A**3 to element types
     tools::Elements _element;
    

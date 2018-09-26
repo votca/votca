@@ -54,14 +54,14 @@ namespace votca {
 
         void Forces::Calculate(double energy) {
 
-            xtp::TLogLevel ReportLevel = _pLog->getReportLevel(); // backup report level
+            TLogLevel ReportLevel = _pLog->getReportLevel(); // backup report level
             if ( ! _noisy_output ){
-                _pLog->setReportLevel(xtp::logERROR); // go silent for force calculations
+                _pLog->setReportLevel(logERROR); // go silent for force calculations
             }
             std::vector<QMAtom*>& atoms=_orbitals.QMAtoms();
             for (unsigned atom_index=0;atom_index<atoms.size();atom_index++) {
                 if ( _noisy_output ){
-                    XTP_LOG(xtp::logINFO, *_pLog) << "FORCES--DEBUG working on atom " << atom_index<< flush;
+                    XTP_LOG(logINFO, *_pLog) << "FORCES--DEBUG working on atom " << atom_index<< flush;
                 }
                 Eigen::Vector3d atom_force=Eigen::Vector3d::Zero();
                 // Calculate Force on this atom
@@ -76,13 +76,13 @@ namespace votca {
 
         void Forces::Report() const{
 
-            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
-            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
-            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % (_displacement*tools::conv::bohr2ang)).str() << flush;
-            XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
+            XTP_LOG(logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
+            XTP_LOG(logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
+            XTP_LOG(logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % (_displacement*tools::conv::bohr2ang)).str() << flush;
+            XTP_LOG(logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
 
             for (unsigned _i = 0; _i < _forces.rows(); _i++) {
-                XTP_LOG(xtp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+                XTP_LOG(logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                         % _i % _forces(_i, 0) % _forces(_i, 1) % _forces(_i, 2)).str() << flush;
             }
             return;
@@ -116,7 +116,7 @@ namespace votca {
             Eigen::Vector3d force=Eigen::Vector3d::Zero();
             for (unsigned i_cart = 0; i_cart < 3; i_cart++) {
                 if ( _noisy_output ){
-                    XTP_LOG(xtp::logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << i_cart << flush;
+                    XTP_LOG(logINFO, *_pLog) << "FORCES--DEBUG           Cartesian component " << i_cart << flush;
                 }
                 tools::vec displacement_vec(0, 0, 0);          
                 displacement_vec[i_cart]=_displacement;

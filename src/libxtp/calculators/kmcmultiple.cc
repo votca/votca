@@ -78,7 +78,7 @@ void KMCMultiple::Initialize(tools::Property *options){
         
 
 
-void KMCMultiple::RunVSSM(xtp::Topology *top)
+void KMCMultiple::RunVSSM(Topology *top)
 {
 
     int realtime_start = time(NULL);
@@ -302,8 +302,8 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
                 cout << endl << "Mobilities (nm^2/Vs): " << endl;
                 for (unsigned int i = 0; i < _numberofcharges; i++) {
                     Eigen::Vector3d velocity= _carriers[i]->dr_travelled / simtime;
-                    cout << std::scientific << "    charge " << i + 1 << ": mu=" << (velocity.transpose() * _field) / (absolute_field * absolute_field) << endl;
-                    average_mobility += (velocity.transpose() * _field) / (absolute_field * absolute_field);
+                    cout << std::scientific << "    charge " << i + 1 << ": mu=" << velocity.dot(_field) / (absolute_field * absolute_field) << endl;
+                    average_mobility += velocity.dot(_field) / (absolute_field * absolute_field);
                 }
                 average_mobility /= _numberofcharges;
                 cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " nm^2/Vs  " << endl;
@@ -346,8 +346,8 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
                     dr_travelled_current /= _numberofcharges;
                     currentenergy /= _numberofcharges;
                     avgvelocity_current = dr_travelled_current/simtime; 
-                    currentmobility = (avgvelocity_current*_field) /absolute_field/absolute_field;
-                    dr_travelled_field=(dr_travelled_current*_field)/absolute_field;
+                    currentmobility = avgvelocity_current.dot(_field) /(absolute_field*absolute_field);
+                    dr_travelled_field=dr_travelled_current.dot(_field)/absolute_field;
                 }
                 
                 tfile << simtime << "\t"<< step << "\t"<< currentenergy << "\t" << currentmobility << "\t" <<
@@ -367,7 +367,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     }
 
     
-    vector< xtp::Segment* >& seg = top->Segments();
+    vector< Segment* >& seg = top->Segments();
     for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i]->occupationtime / simtime;
             seg[i]->setOcc(occupationprobability,_carriertype.ToXTPIndex());
@@ -400,8 +400,8 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
         cout << endl << "Mobilities (nm^2/Vs): " << endl;
         for(unsigned int i=0; i<_numberofcharges; i++){
             Eigen::Vector3d velocity = _carriers[i]->dr_travelled/simtime;
-            cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/(absolute_field*absolute_field) << endl;
-            average_mobility += (velocity*_field) /(absolute_field*absolute_field);
+            cout << std::scientific << "    charge " << i+1 << ": mu=" << velocity.dot(_field)/(absolute_field*absolute_field) << endl;
+            average_mobility += velocity.dot(_field) /(absolute_field*absolute_field);
         }
         average_mobility /= _numberofcharges;
         cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " nm^2/Vs  " << endl;
@@ -415,22 +415,21 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     
   
 
-    tools::matrix::eigensystem_t diff_tensor_eigensystem;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+    es.computeDirect(avgdiffusiontensor);
+    
     cout<<endl<<"Eigenvalues: "<<endl<<endl;
-    avgdiffusiontensor.SolveEigensystem(diff_tensor_eigensystem);
-    for(int i=0; i<=2; i++)
-    {
-        cout<<"Eigenvalue: "<<diff_tensor_eigensystem.eigenvalues[i]<<endl<<"Eigenvector: ";
-               
-        cout<<diff_tensor_eigensystem.eigenvecs[i].x()<<"   ";
-        cout<<diff_tensor_eigensystem.eigenvecs[i].y()<<"   ";
-        cout<<diff_tensor_eigensystem.eigenvecs[i].z()<<endl<<endl;
+    for(int i=0; i<3; i++){
+        cout<<"Eigenvalue: "<<es.eigenvalues()(i)<<endl<<"Eigenvector: ";
+        cout<<es.eigenvectors().col(i)(0)<<"   ";
+        cout<<es.eigenvectors().col(i)(1)<<"   ";
+        cout<<es.eigenvectors().col(i)(2)<<endl<<endl;
     }
     
     // calculate average mobility from the Einstein relation
     if (absolute_field == 0){
         cout << "The following value is calculated using the Einstein relation and assuming an isotropic medium" << endl;
-       double avgD  = 1./3. * (diff_tensor_eigensystem.eigenvalues[0] + diff_tensor_eigensystem.eigenvalues[1] + diff_tensor_eigensystem.eigenvalues[2] );
+       double avgD  = 1./3. * es.eigenvalues().sum();
        double average_mobility = std::abs(avgD / tools::conv::kB / _temperature);
        cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " nm^2/Vs "  << endl;
     }
@@ -445,7 +444,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
 
 
 
-bool KMCMultiple::EvaluateFrame(xtp::Topology *top){
+bool KMCMultiple::EvaluateFrame(Topology *top){
     std::cout << std::endl;      
     std::cout << "-----------------------------------" << std::endl;      
     std::cout << "      KMC FOR MULTIPLE CHARGES" << std::endl;

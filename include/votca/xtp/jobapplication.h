@@ -39,7 +39,7 @@ class JobApplication : public XtpApplication
 public:
     JobApplication();
    ~JobApplication() {
-       for (xtp::JobCalculator* calculator : _calculators) {
+       for (JobCalculator* calculator : _calculators) {
             delete calculator;
         } 
    };
@@ -48,16 +48,16 @@ public:
    bool EvaluateOptions();
    void Run(void);
 
-   virtual void BeginEvaluate(int nThreads, xtp::ProgObserver< std::vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult> *obs);
+   virtual void BeginEvaluate(int nThreads, ProgObserver< std::vector<Job*>, Job*, Job::JobResult> *obs);
    virtual bool EvaluateFrame();
    virtual void EndEvaluate();
-   void AddCalculator(xtp::JobCalculator *calculator);
+   void AddCalculator(JobCalculator *calculator);
 
 protected:
     
     bool _generate_input, _run, _import;
-    xtp::Topology           _top;
-    std::list< xtp::JobCalculator* >   _calculators;
+    Topology           _top;
+    std::list< JobCalculator* >   _calculators;
 
 };
 

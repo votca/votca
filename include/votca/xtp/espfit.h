@@ -46,7 +46,7 @@ public:
          double charge;
      };
     
-    Espfit(xtp::Logger *log):_do_Transition(false),_do_svd(true) {_log = log;
+    Espfit(Logger *log):_do_Transition(false),_do_svd(true) {_log = log;
     _conditionnumber=1e-8;
     _pairconstraint.resize(0);
     _regionconstraint.resize(0);
@@ -68,7 +68,7 @@ public:
     void Fit2Density_analytic(std::vector< QMAtom* >& atomlist, const Eigen::MatrixXd &dmat,const AOBasis &basis);
 private:
     
-     xtp::Logger *_log;
+     Logger *_log;
      votca::tools::Elements _elements; 
      bool _do_Transition;
      bool _do_svd;

@@ -28,7 +28,7 @@
 namespace votca { namespace xtp {
     using namespace std;
     
-class Partialcharges : public xtp::QMTool
+class Partialcharges : public QMTool
 {
 public:
 
@@ -48,7 +48,7 @@ private:
     string      _output_file;
     Property    _esp_options;
     
-    xtp::Logger      _log;
+    Logger      _log;
     
     
 };
@@ -71,20 +71,20 @@ void Partialcharges::Initialize(Property* options) {
 
 bool Partialcharges::Evaluate() {
     
-    _log.setReportLevel( xtp::logDEBUG );
+    _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(xtp::logINFO,    "\n... ...");
-    _log.setPreface(xtp::logERROR,   "\n... ...");
-    _log.setPreface(xtp::logWARNING, "\n... ...");
-    _log.setPreface(xtp::logDEBUG,   "\n... ..."); 
+    _log.setPreface(logINFO,    "\n... ...");
+    _log.setPreface(logERROR,   "\n... ...");
+    _log.setPreface(logWARNING, "\n... ...");
+    _log.setPreface(logDEBUG,   "\n... ..."); 
 
-    XTP_LOG(xtp::logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
+    XTP_LOG(logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
 
     Orbitals _orbitals;
     // load the QM data from serialized orbitals object
 
-    XTP_LOG(xtp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     _orbitals.ReadFromCpt(_orbfile);
 
     Esp2multipole esp2multipole=Esp2multipole(&_log);
@@ -93,7 +93,7 @@ bool Partialcharges::Evaluate() {
     
     esp2multipole.WritetoFile(_output_file);
     
-    XTP_LOG(xtp::logDEBUG, _log) << "Written charges to " << _output_file << flush;
+    XTP_LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
     
     return true;
 }

@@ -27,21 +27,21 @@
 namespace votca { namespace xtp {
     
   
-class JobWriter : public xtp::QMCalculator
+class JobWriter : public QMCalculator
 {
 
 public:
 
-    typedef void (JobWriter::*WriteFunct)(xtp::Topology*);
+    typedef void (JobWriter::*WriteFunct)(Topology*);
     
     std::string Identify() { return "jobwriter"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(xtp::Topology *top);    
+    bool EvaluateFrame(Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void mps_dimer(xtp::Topology *top);
-    void mps_monomer(xtp::Topology *top);
-    void mps_background(xtp::Topology *top);
+    void mps_dimer(Topology *top);
+    void mps_monomer(Topology *top);
+    void mps_background(Topology *top);
 
 private:
     std::vector<std::string> _keys;

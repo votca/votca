@@ -31,7 +31,7 @@
 namespace votca { namespace xtp {
 
 
-class Log2Mps : public xtp::QMTool
+class Log2Mps : public QMTool
 {
 public:
 
@@ -78,14 +78,14 @@ void Log2Mps::Initialize(Property *opt) {
 bool Log2Mps::Evaluate() {
     
     // Logger (required for QM package, so we can just as well use it)
-    xtp::Logger log;
-    log.setPreface(xtp::logINFO, "\n... ...");
-    log.setPreface(xtp::logDEBUG, "\n... ...");
-    log.setReportLevel(xtp::logDEBUG);
+    Logger log;
+    log.setPreface(logINFO, "\n... ...");
+    log.setPreface(logDEBUG, "\n... ...");
+    log.setReportLevel(logDEBUG);
     log.setMultithreading(true);  
     
     // Set-up QM package
-    XTP_LOG_SAVE(xtp::logINFO,log) << "Using package <" << _package << ">" << flush;
+    XTP_LOG_SAVE(logINFO,log) << "Using package <" << _package << ">" << flush;
 
     QMPackage *qmpack = QMPackages().Create(_package);    
     qmpack->doGetCharges(true);
@@ -114,13 +114,13 @@ bool Log2Mps::Evaluate() {
             << ". Abort.\n" << flush;
         throw std::runtime_error("(see above, input or parsing error)");
     }
-    XTP_LOG_SAVE(xtp::logINFO,log) 
+    XTP_LOG_SAVE(logINFO,log) 
         << qmatoms.size() << " QM atoms, total charge Q = " << Q << flush;    
     
     
     // Convert to polar segment & write mps-file
     QMInterface qmface;
-    xtp::PolarSeg pseg = qmface.Convert(qmatoms);
+    PolarSeg pseg = qmface.Convert(qmatoms);
     
     string tag = "::LOG2MPS " 
         + (boost::format("(log-file='%1$s' : %2$d QM atoms)")

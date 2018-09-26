@@ -84,7 +84,7 @@ class ConvergenceAcc{
    
     bool getUseMixing(){return _usemixing;}
    
-    void setLogger(xtp::Logger *pLog){_pLog=pLog;}
+    void setLogger(Logger *pLog){_pLog=pLog;}
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
     void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H);
     void Levelshift(Eigen::MatrixXd& H);
@@ -99,7 +99,7 @@ class ConvergenceAcc{
     Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
      
     bool                                _usemixing;
-    xtp::Logger *                       _pLog;
+    Logger *                       _pLog;
     const AOOverlap* _S;
     
     bool                              _usediis;

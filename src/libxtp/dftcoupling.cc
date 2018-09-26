@@ -145,7 +145,7 @@ double DFTcoupling::getCouplingElement( int levelA, int levelB, const Orbitals&o
 void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
     Orbitals& orbitalsAB) {
 
-    XTP_LOG(xtp::logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
+    XTP_LOG(logDEBUG,*_pLog) << "Calculating electronic couplings" << flush;
     
     CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
     
@@ -163,7 +163,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     int levelsA = Range_orbA.second;
     int levelsB = Range_orbB.second;
     
-    XTP_LOG(xtp::logDEBUG,*_pLog) << "Levels:Basis A[" << levelsA << ":" << basisA << "]"
+    XTP_LOG(logDEBUG,*_pLog) << "Levels:Basis A[" << levelsA << ":" << basisA << "]"
                                      << " B[" << levelsB << ":" << basisB << "]" << flush;
     
     if ( ( levelsA == 0 ) || (levelsB == 0) ) {
@@ -176,7 +176,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     
     Eigen::MatrixXd psi_AxB=Eigen::MatrixXd::Zero( basisA + basisB, levelsA + levelsB  );
     
-    XTP_LOG(xtp::logDEBUG,*_pLog) << "Constructing direct product AxB [" 
+    XTP_LOG(logDEBUG,*_pLog) << "Constructing direct product AxB [" 
             << psi_AxB.rows() << "x" 
             << psi_AxB.cols() << "]" << flush;    
     
@@ -186,13 +186,13 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
    
     Eigen::MatrixXd overlap;
     if ( orbitalsAB.hasAOOverlap() ) {
-            XTP_LOG(xtp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
+            XTP_LOG(logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
            overlap= orbitalsAB.AOOverlap();
     }else{
-        XTP_LOG(xtp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasis()<< flush; 
+        XTP_LOG(logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasis()<< flush; 
         overlap=CalculateOverlapMatrix(orbitalsAB);
     }
-     XTP_LOG(xtp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
+     XTP_LOG(logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 
     Eigen::MatrixXd psi_AxB_dimer_basis =psi_AxB.transpose()*overlap*orbitalsAB.MOCoefficients(); 
 
     unsigned int LevelsA = levelsA;
@@ -209,20 +209,20 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
                 level   = i -levelsA;
                 
             }
-            XTP_LOG(xtp::logERROR,*_pLog) << "\nWarning: " << i << " Projection of orbital " << level 
+            XTP_LOG(logERROR,*_pLog) << "\nWarning: " << i << " Projection of orbital " << level 
                     << " of monomer " << monomer << " on dimer is insufficient,mag="<<mag
                     <<" maybe the orbital order is screwed up, otherwise increase dimer basis.\n"<<flush;
         }
     }
-    XTP_LOG(xtp::logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;         
+    XTP_LOG(logDEBUG,*_pLog) << "Projecting the Fock matrix onto the dimer basis" << flush;         
     Eigen::MatrixXd JAB_dimer = psi_AxB_dimer_basis*orbitalsAB.MOEnergies().asDiagonal()*psi_AxB_dimer_basis.transpose();  
-    XTP_LOG(xtp::logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
+    XTP_LOG(logDEBUG,*_pLog) << "Constructing Overlap matrix" << flush;    
     Eigen::MatrixXd S_AxB = psi_AxB_dimer_basis*psi_AxB_dimer_basis.transpose();    
    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(S_AxB);
    Eigen::MatrixXd Sm1=es.operatorInverseSqrt();
-   XTP_LOG(xtp::logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< flush;    
+   XTP_LOG(logDEBUG,*_pLog) << "Smallest eigenvalue of overlap matrix is "<<es.eigenvalues()(0)<< flush;    
    JAB = Sm1*JAB_dimer*Sm1;
-    XTP_LOG(xtp::logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
+    XTP_LOG(logDEBUG,*_pLog) << "Done with electronic couplings" << flush;
 
 }
 

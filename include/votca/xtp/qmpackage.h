@@ -62,7 +62,7 @@ namespace votca {
             virtual void CleanUp() = 0;
             
             
-            void setMultipoleBackground( std::vector<std::shared_ptr<xtp::PolarSeg> > PolarSegments);
+            void setMultipoleBackground( std::vector<std::shared_ptr<PolarSeg> > PolarSegments);
 
             void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
@@ -80,7 +80,7 @@ namespace votca {
                 _orb_file_name = orb_file;
             }
 
-            void setLog(xtp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -132,10 +132,10 @@ namespace votca {
 
         protected:
             virtual void WriteChargeOption() =0;
-             std::vector<std::vector<double> > SplitMultipoles(xtp::APolarSite* site);
+             std::vector<std::vector<double> > SplitMultipoles(APolarSite* site);
             void ReorderOutput(Orbitals& _orbitals);
             void ReorderMOsBack(Orbitals& _orbitals);
-            void addLinkers(std::vector< xtp::Segment* > &segments, xtp::QMPair* pair, std::vector< std::string> linker_names );
+            void addLinkers(std::vector< Segment* > &segments, QMPair* pair, std::vector< std::string> linker_names );
             bool isLinker( std::string name, std::vector< std::string> linker_names );
             
             
@@ -172,10 +172,10 @@ namespace votca {
 
             bool _output_Vxc;
 
-            xtp::Logger* _pLog;
+            Logger* _pLog;
 
             
-            std::vector<std::shared_ptr<xtp::PolarSeg>  >_PolarSegments;
+            std::vector<std::shared_ptr<PolarSeg>  >_PolarSegments;
             double _dpl_spacing;
             bool _with_polarization;
             

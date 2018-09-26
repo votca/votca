@@ -65,7 +65,7 @@ namespace votca {
                 } else if(_iteration == _max_iteration-1) {
                   _success=false;
                   if(_logging){
-                    XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: not converged after %2$d iterations ")
+                    XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: not converged after %2$d iterations ")
                             % _iteration % _max_iteration).str() << std::flush;
                   }
                 }
@@ -81,9 +81,9 @@ namespace votca {
                 // total energy has unexpectedly increased, half the trust radius
                 _trust_radius = 0.25 * _trust_radius;
                 if(_logging){
-                  XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step rejected ")
+                  XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step rejected ")
                           % _iteration).str() << std::flush;
-                  XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f") 
+                  XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f") 
                           % _iteration % _trust_radius).str() << std::flush;
                 }
             } else {
@@ -98,9 +98,9 @@ namespace votca {
                     _trust_radius = 0.25 * _trust_radius;
                 }
                 if(_logging){
-                  XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step accepted ")
+                  XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step accepted ")
                           % _iteration).str() << std::flush;
-                  XTP_LOG(xtp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f")
+                  XTP_LOG(logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.6f")
                           % _iteration % _trust_radius).str() << std::flush;
                 }
             }

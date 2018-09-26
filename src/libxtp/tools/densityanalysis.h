@@ -27,7 +27,7 @@
 namespace votca { namespace xtp {
     using namespace std;
     
-class DensityAnalysis : public xtp::QMTool
+class DensityAnalysis : public QMTool
 {
 public:
 
@@ -42,7 +42,7 @@ private:
     string      _output_file;
     Property    _gyration_options;
     
-    xtp::Logger      _log;
+    Logger      _log;
     
     
 };
@@ -63,16 +63,16 @@ void DensityAnalysis::Initialize(Property* options) {
 
 bool DensityAnalysis::Evaluate() {
     
-    _log.setReportLevel( xtp::logDEBUG );
+    _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface(xtp::logINFO,    "\n... ...");
-    _log.setPreface(xtp::logERROR,   "\n... ...");
-    _log.setPreface(xtp::logWARNING, "\n... ...");
-    _log.setPreface(xtp::logDEBUG,   "\n... ..."); 
+    _log.setPreface(logINFO,    "\n... ...");
+    _log.setPreface(logERROR,   "\n... ...");
+    _log.setPreface(logWARNING, "\n... ...");
+    _log.setPreface(logDEBUG,   "\n... ..."); 
 
     Orbitals orbitals;
-    XTP_LOG(xtp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     orbitals.ReadFromCpt(_orbfile);
 
     Density2Gyration density2gyration=Density2Gyration(&_log);

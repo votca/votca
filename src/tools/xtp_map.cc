@@ -106,7 +106,7 @@ void XtpMap::Run() {
   
     std::string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::xtp::HelpTextHeader(name);
+    votca::HelpTextHeader(name);
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Initialize MD2QM Engine and SQLite Db //
@@ -235,7 +235,7 @@ void XtpMap::Save(string mode) {
 void XtpMap::ShowHelpText(std::ostream &out) {
     string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::xtp::HelpTextHeader(name);
+    votca::HelpTextHeader(name);
     HelpText(out);
     //out << "\n\n" << OptionsDesc() << endl;
     out << "\n\n" << VisibleOptions() << endl;

@@ -118,7 +118,7 @@ namespace votca {
       tools::Elements elementInfo;
       BasisSet bs;
       bs.LoadBasisSet(bs_name);
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
       ofstream el_file;
 
       el_file.open(el_file_name.c_str());
@@ -179,13 +179,13 @@ namespace votca {
       BasisSet ecp;
       ecp.LoadPseudopotentialSet(_ecp_name);
 
-      XTP_LOG(xtp::logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
       for (const std::string& element_name:UniqueElements) {
           try{    
            ecp.getElement(element_name);
           }catch(std::runtime_error& error){
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "No pseudopotential for " << element_name<<" available" << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "No pseudopotential for " << element_name<<" available" << flush;
             continue;
           }
           const Element& element = ecp.getElement(element_name);
@@ -231,8 +231,8 @@ namespace votca {
             crg_file.open(_crg_file_name_full.c_str());
             int total_background = 0;
 
-            for (std::shared_ptr<xtp::PolarSeg> seg:_PolarSegments) {
-                for (xtp::APolarSite* site:*seg) {
+            for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
+                for (APolarSite* site:*seg) {
                     if (site->getQ00() != 0.0) total_background++;
                     if (site->getRank() > 0 || _with_polarization ) {
                         std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(site);
@@ -244,8 +244,8 @@ namespace votca {
             crg_file << total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
-            for (std::shared_ptr<xtp::PolarSeg> seg:_PolarSegments) {
-                for (xtp::APolarSite* site:*seg) {
+            for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
+                for (APolarSite* site:*seg) {
                     string sitestring=boost::str(fmt % site->getQ00() % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
                             % (site->getPos().getY()*votca::tools::conv::nm2ang) 
                             % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
@@ -313,7 +313,7 @@ namespace votca {
             inp_file.close();
             // and now generate a shell script to run both jobs, if neccessary
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
             _scratch_dir = scratch_dir_backup + temp_suffix;
             WriteShellScript();
             _scratch_dir = scratch_dir_backup;
@@ -343,24 +343,24 @@ namespace votca {
          */
         bool Orca::Run( Orbitals& orbitals ) {
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Running Orca job" << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Running Orca job" << flush;
 
             if (std::system(NULL)) {
 
                 std::string _command = "cd " + _run_dir + "; sh " + _shell_file_name;
                 int check = std::system(_command.c_str());
                 if (check == -1) {
-                    XTP_LOG(xtp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                    XTP_LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                     return false;
                 }
                 if (CheckLogFile()) {
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "Finished Orca job" << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Finished Orca job" << flush;
                     return true;
                 } else {
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "Orca job failed" << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Orca job failed" << flush;
                 }
             } else {
-                XTP_LOG(xtp::logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
+                XTP_LOG(logERROR, *_pLog) << _input_file_name << " failed to start" << flush;
                 return false;
             }
 
@@ -425,7 +425,7 @@ namespace votca {
                 orbitals.setECP(_ecp_name);
             } 
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
             std::string log_file_name_full = _run_dir + "/" + _log_file_name;
             // check if LOG file is complete
             if (!CheckLogFile()) return false;
@@ -440,10 +440,10 @@ namespace votca {
             std::ifstream input_file(log_file_name_full.c_str());
 
             if (input_file.fail()) {
-                XTP_LOG(xtp::logERROR, *_pLog) << "File " << log_file_name_full << " not found " << flush;
+                XTP_LOG(logERROR, *_pLog) << "File " << log_file_name_full << " not found " << flush;
                 return false;
             } else {
-                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << log_file_name_full << flush;
+                XTP_LOG(logDEBUG, *_pLog) << "Reading Coordinates and occupationnumbers and energies from " << log_file_name_full << flush;
             }
             //Coordinates of the final configuration depending on whether it is an optimization or not
             while (input_file) {
@@ -457,7 +457,7 @@ namespace votca {
                 std::string::size_type coordinates_pos = line.find("CARTESIAN COORDINATES (ANGSTROEM)");
 
                 if (found_optimization && coordinates_pos != std::string::npos) {
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
                     bool has_QMAtoms = orbitals.hasQMAtoms();
                     // three garbage lines
                     getline(input_file, line);
@@ -492,7 +492,7 @@ namespace votca {
                     std::string energy = results[3];
                     boost::trim(energy);
                     orbitals.setQMEnergy(conv_Hrt_eV * boost::lexical_cast<double>(energy));
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
                 }
 
                 std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
@@ -500,7 +500,7 @@ namespace votca {
                     boost::algorithm::split(results, line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
                     double ScaHFX = boost::lexical_cast<double>(results.back());
                     orbitals.setScaHFX(ScaHFX);
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "DFT with " << ScaHFX << " of HF exchange!" << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "DFT with " << ScaHFX << " of HF exchange!" << flush;
                 }
 
                 std::string::size_type dim_pos = line.find("Basis Dimension");
@@ -509,8 +509,8 @@ namespace votca {
                     std::string dim = results[4]; //The 4th element of results vector is the Basis Dim
                     boost::trim(dim);
                     levels = boost::lexical_cast<int>(dim);
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "Basis Dimension: " << levels << flush;
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Basis Dimension: " << levels << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
                 }
 
                 std::string::size_type OE_pos = line.find("ORBITAL ENERGIES");
@@ -521,7 +521,7 @@ namespace votca {
                     getline(input_file, line);
                     getline(input_file, line);
                     if (line.find("E(Eh)") == std::string::npos) {
-                        XTP_LOG(xtp::logDEBUG, *_pLog) << "Warning: Orbital Energies not found in log file" << flush;
+                        XTP_LOG(logDEBUG, *_pLog) << "Warning: Orbital Energies not found in log file" << flush;
                     }
                     for (unsigned i = 0; i < levels; i++) {
                         results=GetLineAndSplit(input_file, " ");
@@ -529,7 +529,7 @@ namespace votca {
                         boost::trim(no);
                         unsigned levelnumber = boost::lexical_cast<unsigned>(no);
                         if (levelnumber != i) {
-                            XTP_LOG(xtp::logDEBUG, *_pLog) << "Have a look at the orbital energies something weird is going on" << flush;
+                            XTP_LOG(logDEBUG, *_pLog) << "Have a look at the orbital energies something weird is going on" << flush;
                         }
                         std::string oc = results[1];
                         boost::trim(oc);
@@ -542,7 +542,7 @@ namespace votca {
                             occupancy[i] = occ;
                         } else {
                             if (occ == 1){
-                                XTP_LOG(xtp::logDEBUG, *_pLog) << "Watch out! No distinction between alpha and beta electrons. Check if occ = 1 is suitable for your calculation " << flush;
+                                XTP_LOG(logDEBUG, *_pLog) << "Watch out! No distinction between alpha and beta electrons. Check if occ = 1 is suitable for your calculation " << flush;
                                 number_of_electrons++;
                                 occupancy[i] = occ;
                             } else {
@@ -560,7 +560,7 @@ namespace votca {
                 std::string::size_type charge_pos = line.find("CHELPG Charges");
 
                 if (charge_pos != std::string::npos && _get_charges) {
-                    XTP_LOG(xtp::logDEBUG, *_pLog) << "Getting charges" << flush;
+                    XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
                     getline(input_file, line);
                     std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
                     int nfields = row.size();
@@ -582,11 +582,11 @@ namespace votca {
                 }
             }
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
             int occupied_levels = number_of_electrons;
             int unoccupied_levels = levels - occupied_levels;
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
 
             /************************************************************/
 
@@ -604,7 +604,7 @@ namespace votca {
                 orbitals.MOEnergies()[i] = energies[ i ];
             }
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Done reading Log file" << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Done reading Log file" << flush;
             return true;
         }
 
@@ -613,7 +613,7 @@ namespace votca {
             ifstream input_file((_run_dir + "/" + _log_file_name).c_str());
 
             if (input_file.fail()) {
-                XTP_LOG(xtp::logERROR, *_pLog) << "Orca LOG is not found" << flush;
+                XTP_LOG(logERROR, *_pLog) << "Orca LOG is not found" << flush;
                 return false;
             };
 
@@ -623,12 +623,12 @@ namespace votca {
                 boost::trim(line);
                 std::string::size_type error = line.find("FATAL ERROR ENCOUNTERED");
                 if (error != std::string::npos) {
-                    XTP_LOG(xtp::logERROR, *_pLog) << "ORCA encountered a fatal error, maybe a look in the log file may help." << flush;
+                    XTP_LOG(logERROR, *_pLog) << "ORCA encountered a fatal error, maybe a look in the log file may help." << flush;
                     return false;
                 }
                 error = line.find("mpirun detected that one or more processes exited with non-zero status");
                 if (error != std::string::npos) {
-                    XTP_LOG(xtp::logERROR, *_pLog) << "ORCA had an mpi problem, maybe your openmpi version is not good." << flush;
+                    XTP_LOG(logERROR, *_pLog) << "ORCA had an mpi problem, maybe your openmpi version is not good." << flush;
                     return false;
                 }
             }
@@ -646,7 +646,7 @@ namespace votca {
                 throw runtime_error("Basis size not set, calculator does not parse log file first");
             }
 
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading the gbw file, this may or may not work so be careful: " << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Reading the gbw file, this may or may not work so be careful: " << flush;
             ifstream infile;
             infile.open((_run_dir + "/" + _orb_file_name).c_str(), ios::binary | ios::in);
             if (!infile) {
@@ -664,7 +664,7 @@ namespace votca {
             infile.read(buffer, 4);
             int dim_read = *((int*) buffer);
             infile.seekg(offset + 8, ios::beg);
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Number of operators: " << op_read << " Basis dimension: " << dim_read << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Number of operators: " << op_read << " Basis dimension: " << dim_read << flush;
             int n = op_read * dim_read*dim_read;
             delete[] buffer;
             buffer = new char [8];
@@ -686,7 +686,7 @@ namespace votca {
                 }
             }  
             ReorderOutput(orbitals);
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Done parsing" << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
             return true;
         }
 

@@ -61,7 +61,7 @@ void GNode::InitEscapeRate()
     // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
 }
 
- void GNode::ReadfromSegment(xtp::Segment* seg,int carriertype){
+ void GNode::ReadfromSegment(Segment* seg,int carriertype){
      
      position=seg->getPos();
      id=seg->getId()-1;
@@ -80,9 +80,9 @@ void GNode::InitEscapeRate()
  }
  
  
- void GNode::AddEventfromQmPair(xtp::QMPair* pair,int carriertype){
+ void GNode::AddEventfromQmPair(QMPair* pair,int carriertype){
      double Jeff2=pair->getJeff2(carriertype);
-     if(pair->getType()==xtp::QMPair::PairType::Excitoncl && carriertype!=2){
+     if(pair->getType()==QMPair::PairType::Excitoncl && carriertype!=2){
          return;
      }
      int destination=0;

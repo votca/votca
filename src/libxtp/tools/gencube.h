@@ -32,7 +32,7 @@ namespace votca {
 
     using namespace std;
 
-    class GenCube : public xtp::QMTool {
+    class GenCube : public QMTool {
       public:
 
         GenCube() {
@@ -69,7 +69,7 @@ namespace votca {
         int _zsteps;
         QMState _state;
         string _mode;
-        xtp::Logger _log;
+        Logger _log;
 
     };
 
@@ -109,10 +109,10 @@ namespace votca {
 
     void GenCube::calculateCube() {
 
-      XTP_LOG(xtp::logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
+      XTP_LOG(logDEBUG, _log) << "Reading serialized QM data from " << _orbfile << flush;
 
       Orbitals orbitals;
-      XTP_LOG(xtp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+      XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
       orbitals.ReadFromCpt(_orbfile);
 
       std::vector<QMAtom*> atoms = orbitals.QMAtoms();
@@ -203,7 +203,7 @@ namespace votca {
       // load DFT basis set (element-wise information) from xml file
       BasisSet dftbs;
       dftbs.LoadBasisSet(orbitals.getDFTbasis());
-      XTP_LOG(xtp::logDEBUG, _log) << " Loaded DFT Basis Set " << orbitals.getDFTbasis() << flush;
+      XTP_LOG(logDEBUG, _log) << " Loaded DFT Basis Set " << orbitals.getDFTbasis() << flush;
 
       // fill DFT AO basis by going through all atoms 
       AOBasis dftbasis;
@@ -230,8 +230,8 @@ namespace votca {
       }
 
 
-      XTP_LOG(xtp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
-      _log.setPreface(xtp::logDEBUG, (format(" ... ...")).str());
+      XTP_LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+      _log.setPreface(logDEBUG, (format(" ... ...")).str());
 
       boost::progress_display progress(_xsteps);
       // eval density at cube grid points
@@ -264,7 +264,7 @@ namespace votca {
 
 
       out.close();
-      XTP_LOG(xtp::logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+      XTP_LOG(logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
       return;
     }
 
@@ -290,10 +290,10 @@ namespace votca {
 
       // open infiles for reading
       ifstream in1;
-      XTP_LOG(xtp::logDEBUG, _log) << " Reading first cube from " << _infile1 << flush;
+      XTP_LOG(logDEBUG, _log) << " Reading first cube from " << _infile1 << flush;
       in1.open(_infile1.c_str(), ios::in);
       ifstream in2;
-      XTP_LOG(xtp::logDEBUG, _log) << " Reading second cube from " << _infile2 << flush;
+      XTP_LOG(logDEBUG, _log) << " Reading second cube from " << _infile2 << flush;
       in2.open(_infile2.c_str(), ios::in);
       string s;
 
@@ -492,18 +492,18 @@ namespace votca {
       }
 
       fclose(out);
-      XTP_LOG(xtp::logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file << flush;
+      XTP_LOG(logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file << flush;
     }
 
     bool GenCube::Evaluate() {
 
-      _log.setReportLevel(xtp::logDEBUG);
+      _log.setReportLevel(logDEBUG);
       _log.setMultithreading(true);
 
-      _log.setPreface(xtp::logINFO, "\n... ...");
-      _log.setPreface(xtp::logERROR, "\n... ...");
-      _log.setPreface(xtp::logWARNING, "\n... ...");
-      _log.setPreface(xtp::logDEBUG, "\n... ...");
+      _log.setPreface(logINFO, "\n... ...");
+      _log.setPreface(logERROR, "\n... ...");
+      _log.setPreface(logWARNING, "\n... ...");
+      _log.setPreface(logDEBUG, "\n... ...");
 
       // calculate new cube
       if (_mode == "new") {

@@ -35,7 +35,7 @@ namespace votca {
             BFGSTRM(Optimiser_costfunction& costfunction):_costfunction(costfunction),_logging(false){
             _hessian=Eigen::MatrixXd::Identity(costfunction.NumParameters(),costfunction.NumParameters());}
 
-            void setLog(xtp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _logging=true;
                 _pLog = pLog;
             }
@@ -89,7 +89,7 @@ namespace votca {
 
             int _max_iteration=50;
 
-            xtp::Logger *_pLog;
+            Logger *_pLog;
 
 
         };

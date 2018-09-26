@@ -50,7 +50,7 @@ namespace votca {
             void Initialize(tools::Property &options, std::string archive_filename);
             void ExcitationEnergies(Orbitals& orbitals);
 
-            void setLog(xtp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _pLog = pLog;
             }
             
@@ -78,7 +78,7 @@ namespace votca {
             
             QMPackage* _qmpackage;
 
-            xtp::Logger *_pLog;
+            Logger *_pLog;
 
             // task options
             bool _do_guess;
@@ -100,7 +100,7 @@ namespace votca {
             tools::Property _gwbse_options;
             tools::Property _summary;
 
-            void WriteLoggerToFile(xtp::Logger* pLog);
+            void WriteLoggerToFile(Logger* pLog);
         };
 
 

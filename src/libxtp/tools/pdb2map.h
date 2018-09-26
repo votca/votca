@@ -33,7 +33,7 @@
 
 namespace votca { namespace xtp {
     namespace ba = boost::algorithm;
-class PDB2Map : public xtp::QMTool
+class PDB2Map : public QMTool
 {
 public:
 
@@ -76,8 +76,8 @@ private:
     bool        _can_convert_md2qm;
     bool        _QM2MDcompatible;
     
-    xtp::Topology    _MDtop;
-    xtp::Topology    _QMtop;
+    Topology    _MDtop;
+    Topology    _QMtop;
 
    // element:mass std::map
     std::map <std::string,int> el2mass;
@@ -221,26 +221,26 @@ void PDB2Map::adaptQM2MD(){
     
     // if so, proceed
     if (_QM2MDcompatible){
-        xtp::Molecule * MDmolecule = _MDtop.getMolecule(1);
-        xtp::Molecule * QMmolecule = _QMtop.getMolecule(1);
+        Molecule * MDmolecule = _MDtop.getMolecule(1);
+        Molecule * QMmolecule = _QMtop.getMolecule(1);
         
-        std::vector<xtp::Segment*> MDsegments = MDmolecule->Segments();
-        std::vector<xtp::Segment*> QMsegments = QMmolecule->Segments();
+        std::vector<Segment*> MDsegments = MDmolecule->Segments();
+        std::vector<Segment*> QMsegments = QMmolecule->Segments();
         
-        std::vector<xtp::Segment*>::iterator MDSegIt;
-        std::vector<xtp::Segment*>::iterator QMSegIt;
+        std::vector<Segment*>::iterator MDSegIt;
+        std::vector<Segment*>::iterator QMSegIt;
         
         for(MDSegIt = MDsegments.begin(), QMSegIt = QMsegments.begin();
                 MDSegIt < MDsegments.end();
                 MDSegIt++, QMSegIt++  )
         {
-            xtp::Fragment * QMfragment = 0;
+            Fragment * QMfragment = 0;
             
-            std::vector<xtp::Atom*> MDSegAtoms = (*MDSegIt)->Atoms();
-            std::vector<xtp::Atom*> QMSegAtoms = (*QMSegIt)->Atoms();
+            std::vector<Atom*> MDSegAtoms = (*MDSegIt)->Atoms();
+            std::vector<Atom*> QMSegAtoms = (*QMSegIt)->Atoms();
             
-            std::vector<xtp::Atom*>::iterator MDSegAtIt;
-            std::vector<xtp::Atom*>::iterator QMSegAtIt;
+            std::vector<Atom*>::iterator MDSegAtIt;
+            std::vector<Atom*>::iterator QMSegAtIt;
             
             int old_res_num(-1),new_res_num(-1);
             std::string res_name = "bad_wolf";
@@ -289,16 +289,16 @@ void PDB2Map::readPDB(){
     
     // set molecule >> segment >> fragment
     // reconnect them all
-    xtp::Topology * _topPtr = 0;
+    Topology * _topPtr = 0;
     _topPtr = &_MDtop;
     
-    xtp::Molecule * _molPtr = 0;
+    Molecule * _molPtr = 0;
     // direct
     _molPtr = _topPtr->AddMolecule("M1");
               // inverse
               _molPtr->setTopology(_topPtr);
     
-    xtp::Segment  * _segPtr  = 0;
+    Segment  * _segPtr  = 0;
     // direct
     _segPtr = _topPtr->AddSegment("S1");
               _molPtr->AddSegment(_segPtr);
@@ -399,7 +399,7 @@ void PDB2Map::readPDB(){
 
             // set fragment
             // reconnect to topology, molecule, segment
-            xtp::Fragment * _fragPtr = 0;
+            Fragment * _fragPtr = 0;
             // make new frag for new res number
             // otherwise use last created
             if ( _newResNum != _resNumInt ){
@@ -423,7 +423,7 @@ void PDB2Map::readPDB(){
                         
             // set atom
             // reconnect to topology, molecule, segment, fragment
-            xtp::Atom * _atmPtr = 0;
+            Atom * _atmPtr = 0;
             // direct
             _atmPtr = _topPtr->AddAtom(_atName);
                       _molPtr->AddAtom(_atmPtr);
@@ -454,16 +454,16 @@ void PDB2Map::readGRO(){
 
     // set molecule >> segment >> fragment
     // reconnect them all
-    xtp::Topology * _topPtr = 0;
+    Topology * _topPtr = 0;
     _topPtr = &_MDtop;
     
-    xtp::Molecule * _molPtr = 0;
+    Molecule * _molPtr = 0;
     // direct
     _molPtr = _topPtr->AddMolecule("M1");
                 // inverse
                 _molPtr->setTopology(_topPtr);
     
-    xtp::Segment  * _segPtr  = 0;
+    Segment  * _segPtr  = 0;
     // direct
     _segPtr = _topPtr->AddSegment("S1");
                _molPtr->AddSegment(_segPtr);
@@ -553,7 +553,7 @@ void PDB2Map::readGRO(){
                 
             // set fragment
             // reconnect to topology, molecule, segment
-            xtp::Fragment * _fragPtr = 0;
+            Fragment * _fragPtr = 0;
             // make new frag for new res number
             // otherwise use last created
             if ( _newResNum != _resNumInt ){
@@ -577,7 +577,7 @@ void PDB2Map::readGRO(){
                         
             // set atom
             // reconnect to topology, molecule, segment, fragment
-            xtp::Atom * _atmPtr = 0;
+            Atom * _atmPtr = 0;
             // direct
             _atmPtr = _topPtr->AddAtom(_atName);
                       _molPtr->AddAtom(_atmPtr);
@@ -605,16 +605,16 @@ void PDB2Map::readXYZ(){
     
     // set molecule >> segment >> fragment
     // reconnect them all
-    xtp::Topology * _topPtr = 0;
+    Topology * _topPtr = 0;
     _topPtr = &_QMtop;
     
-    xtp::Molecule * _molPtr = 0;
+    Molecule * _molPtr = 0;
     // direct
     _molPtr = _topPtr->AddMolecule("M1");
                 // inverse
                 _molPtr->setTopology(_topPtr);
     
-    xtp::Segment  * _segPtr  = 0;
+    Segment  * _segPtr  = 0;
     // direct
     _segPtr = _topPtr->AddSegment("S1");
                _molPtr->AddSegment(_segPtr);
@@ -699,7 +699,7 @@ void PDB2Map::readXYZ(){
         
         // set atom
         // reconnect to topology, molecule, segment, fragment
-        xtp::Atom * _atmPtr = 0;
+        Atom * _atmPtr = 0;
         // direct
         _atmPtr = _topPtr->AddAtom(_atName);
                 _molPtr->AddAtom(_atmPtr);
@@ -729,8 +729,8 @@ void PDB2Map::topMdQm2xml(){
     {
         error1("... ... Error from topMdQm2xml(). MD top is missing.");   
     }
-    xtp::Molecule * MDmolecule = _MDtop.getMolecule(1);
-    xtp::Molecule * QMmolecule = _QMtop.getMolecule(1);
+    Molecule * MDmolecule = _MDtop.getMolecule(1);
+    Molecule * QMmolecule = _QMtop.getMolecule(1);
     
     //
     // xml stuff
@@ -773,11 +773,11 @@ void PDB2Map::topMdQm2xml(){
     // main body 
     tools::Property *pfragments_p = &psegment_p->add("fragments","");
                                         
-    std::vector < xtp::Segment * > allMdSegments = MDmolecule->Segments();
-    std::vector < xtp::Segment * > allQmSegments = QMmolecule->Segments();
+    std::vector < Segment * > allMdSegments = MDmolecule->Segments();
+    std::vector < Segment * > allQmSegments = QMmolecule->Segments();
   
-    std::vector < xtp::Segment * >::iterator segMdIt;
-    std::vector < xtp::Segment * >::iterator segQmIt;
+    std::vector < Segment * >::iterator segMdIt;
+    std::vector < Segment * >::iterator segQmIt;
                                         
     for ( segMdIt = allMdSegments.begin(), 
                 segQmIt = allQmSegments.begin();
@@ -789,11 +789,11 @@ void PDB2Map::topMdQm2xml(){
           segMdIt++, segQmIt++)
     {
         
-        std::vector < xtp::Fragment * > allMdFragments = (*segMdIt)->Fragments();
-        std::vector < xtp::Fragment * > allQmFragments = (*segQmIt)->Fragments();
+        std::vector < Fragment * > allMdFragments = (*segMdIt)->Fragments();
+        std::vector < Fragment * > allQmFragments = (*segQmIt)->Fragments();
                                         
-        std::vector < xtp::Fragment * >::iterator fragMdIt;
-        std::vector < xtp::Fragment * >::iterator fragQmIt;
+        std::vector < Fragment * >::iterator fragMdIt;
+        std::vector < Fragment * >::iterator fragQmIt;
                                         
         for ( fragMdIt = allMdFragments.begin() , 
                 fragQmIt = allQmFragments.begin();
@@ -814,11 +814,11 @@ void PDB2Map::topMdQm2xml(){
             mapName      = (*fragMdIt)->getName() ;
             
             unsigned int localCounter = 0;
-            std::vector < xtp::Atom * > allMdAtoms = (*fragMdIt)->Atoms();
-            std::vector < xtp::Atom * > allQmAtoms = (*fragQmIt)->Atoms();
+            std::vector < Atom * > allMdAtoms = (*fragMdIt)->Atoms();
+            std::vector < Atom * > allQmAtoms = (*fragQmIt)->Atoms();
 
-            std::vector < xtp::Atom * >::iterator atomMdIt;
-            std::vector < xtp::Atom * >::iterator atomQmIt;
+            std::vector < Atom * >::iterator atomMdIt;
+            std::vector < Atom * >::iterator atomQmIt;
             for ( atomMdIt = allMdAtoms.begin(),
                     atomQmIt = allQmAtoms.begin();
                     

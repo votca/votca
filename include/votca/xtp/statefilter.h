@@ -40,7 +40,7 @@ public:
     Statefilter():_use_oscfilter(false),_use_overlapfilter(false),
             _use_localisationfilter(false),_use_dQfilter(false){;}
     void Initialize(tools::Property& options);
-    void setLogger(xtp::Logger* log){_log=log;}
+    void setLogger(Logger* log){_log=log;}
     void setInitialState(const QMState& state ){_statehist.push_back(state);}
     void PrintInfo()const;
     QMState CalcStateAndUpdate(Orbitals& orbitals);
@@ -62,7 +62,7 @@ private:
     std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
 
 QMState _state;    
-xtp::Logger *_log;
+Logger *_log;
  
 std::vector<QMState> _statehist;
 

@@ -35,7 +35,7 @@
 namespace votca {
     namespace xtp {
        
-        class DftGwBse : public xtp::QMTool {
+        class DftGwBse : public QMTool {
         public:
 
             DftGwBse() {
@@ -75,7 +75,7 @@ namespace votca {
             tools::Property _gwbseengine_options;
             tools::Property _geoopt_options;
 
-            xtp::Logger _log;
+            Logger _log;
 
             bool _do_optimize;
 

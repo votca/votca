@@ -62,7 +62,7 @@ void JobWriter::Initialize(Property *options) {
 }
 
 
-bool JobWriter::EvaluateFrame(xtp::Topology *top) {
+bool JobWriter::EvaluateFrame(Topology *top) {
     
     for (const auto& key:_keys) {
             cout << endl << "... ... " << key<< flush;
@@ -73,7 +73,7 @@ bool JobWriter::EvaluateFrame(xtp::Topology *top) {
 }
 
 
-void JobWriter::mps_monomer(xtp::Topology *top) {
+void JobWriter::mps_monomer(Topology *top) {
     
     // SET UP FILE STREAM
     ofstream ofs;
@@ -104,7 +104,7 @@ void JobWriter::mps_monomer(xtp::Topology *top) {
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
     cout << endl;    
-    for (xtp::Segment*seg1:top->Segments()) {
+    for (Segment*seg1:top->Segments()) {
         int id1 = seg1->getId();
         std::string name1 = seg1->getName();
 
@@ -123,7 +123,7 @@ void JobWriter::mps_monomer(xtp::Topology *top) {
             std::string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps")
                 % id1 % name1 % state.ToString()).str();
             std::string stat = "AVAILABLE";
-            xtp::Job job(id, tag, input, stat);
+            Job job(id, tag, input, stat);
             job.ToStream(ofs,"xml");
             cout << "\r... ... # = " << jobCount << flush;
         }
@@ -134,7 +134,7 @@ void JobWriter::mps_monomer(xtp::Topology *top) {
 }
 
 
-void JobWriter::mps_dimer(xtp::Topology *top) {
+void JobWriter::mps_dimer(Topology *top) {
 
     // SET UP FILE STREAM
     ofstream ofs;
@@ -143,7 +143,7 @@ void JobWriter::mps_dimer(xtp::Topology *top) {
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
     
     ofs << "<jobs>" << endl;
-    xtp::QMNBList &nblist = top->NBList();    
+    QMNBList &nblist = top->NBList();    
     int jobCount = 0;
     if (nblist.size() == 0) {
         cout << endl << "... ... No pairs in neighbor list, skip." << flush;
@@ -177,7 +177,7 @@ void JobWriter::mps_dimer(xtp::Topology *top) {
     
     // CREATE JOBS FOR ALL PAIRS AND STATES
     cout << endl;
-    for (xtp::QMPair* pair:nblist) {
+    for (QMPair* pair:nblist) {
         
         int id1 = pair->Seg1()->getId();
         string name1 = pair->Seg1()->getName();
@@ -212,7 +212,7 @@ void JobWriter::mps_dimer(xtp::Topology *top) {
                         % id1 % name1 % s1 % id2 % name2 % s2).str();
                 string stat = "AVAILABLE";
                 
-                xtp::Job job(id, tag, input, stat);
+                Job job(id, tag, input, stat);
                 job.ToStream(ofs,"xml");
                 
                 cout << "\r... ... # = " << jobCount << flush;
@@ -226,7 +226,7 @@ void JobWriter::mps_dimer(xtp::Topology *top) {
 }
 
 
-void JobWriter::mps_background(xtp::Topology *top) {
+void JobWriter::mps_background(Topology *top) {
     
     ofstream ofs;
     string tabFile = Identify()+".mps.background.tab";
@@ -234,7 +234,7 @@ void JobWriter::mps_background(xtp::Topology *top) {
     if (!ofs.is_open()) throw runtime_error("Bad file handle: " + tabFile);
     
     ofs << "# ID   TYPE    _n.mps    _e.mps    _h.mps \n";
-    for (xtp::Segment* seg:top->Segments()) {
+    for (Segment* seg:top->Segments()) {
         ofs << (format("%1$4d %2$15s %3$-30s %4$-30s %5$-30s\n")
                 % seg->getId() 
                 % seg->getName()

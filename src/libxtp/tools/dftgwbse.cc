@@ -81,24 +81,24 @@ namespace votca {
         bool DftGwBse::Evaluate() {
 
 
-            if (_reporting == "silent")  _log.setReportLevel(xtp::logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
-            if (_reporting == "noisy")   _log.setReportLevel(xtp::logDEBUG); // OUTPUT ALL THE THINGS
-            if (_reporting == "default") _log.setReportLevel(xtp::logINFO); // 
+            if (_reporting == "silent")  _log.setReportLevel(logERROR); // only output ERRORS, GEOOPT info, and excited state info for trial geometry
+            if (_reporting == "noisy")   _log.setReportLevel(logDEBUG); // OUTPUT ALL THE THINGS
+            if (_reporting == "default") _log.setReportLevel(logINFO); // 
 
             _log.setMultithreading(true);
-            _log.setPreface(xtp::logINFO,    "\n... ...");
-            _log.setPreface(xtp::logERROR,   "\n... ...");
-            _log.setPreface(xtp::logWARNING, "\n... ...");
-            _log.setPreface(xtp::logDEBUG,   "\n... ...");
+            _log.setPreface(logINFO,    "\n... ...");
+            _log.setPreface(logERROR,   "\n... ...");
+            _log.setPreface(logWARNING, "\n... ...");
+            _log.setPreface(logDEBUG,   "\n... ...");
             
             // Get orbitals object
             Orbitals orbitals;
 
             if (_do_guess) {
-                XTP_LOG(xtp::logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+                XTP_LOG(logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
                 orbitals.ReadFromCpt(_guess_file);
             } else {
-                XTP_LOG(xtp::logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
+                XTP_LOG(logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
                 orbitals.LoadFromXYZ(_xyzfile);
             }
 
@@ -106,10 +106,10 @@ namespace votca {
             qmpackage->setLog(&_log);
             qmpackage->Initialize(_package_options);
             qmpackage->setRunDir(".");
-            std::vector<std::shared_ptr<xtp::PolarSeg> > polar_segments;
+            std::vector<std::shared_ptr<PolarSeg> > polar_segments;
             if (_do_external) {
-                vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_mpsfile, 0);
-                std::shared_ptr<xtp::PolarSeg> newPolarSegment (new xtp::PolarSeg(0, sites));
+                vector<APolarSite*> sites = APS_FROM_MPS(_mpsfile, 0);
+                std::shared_ptr<PolarSeg> newPolarSegment (new PolarSeg(0, sites));
                 polar_segments.push_back(newPolarSegment);
                 qmpackage->setMultipoleBackground(polar_segments);
                 qmpackage->setDipoleSpacing(_dipole_spacing);
@@ -130,13 +130,13 @@ namespace votca {
                 gwbse_engine.ExcitationEnergies(orbitals);
             }
             
-            XTP_LOG(xtp::logDEBUG, _log) << "Saving data to " << _archive_file << flush;
+            XTP_LOG(logDEBUG, _log) << "Saving data to " << _archive_file << flush;
             orbitals.WriteToCpt(_archive_file);
             
             tools::Property summary = gwbse_engine.ReportSummary();
             if(summary.exists("output")){  //only do gwbse summary output if we actually did gwbse
                 tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
-                XTP_LOG(xtp::logDEBUG, _log) << "Writing output to " << _xml_output << flush;
+                XTP_LOG(logDEBUG, _log) << "Writing output to " << _xml_output << flush;
                 std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
                 ofout << (summary.get("output"));
                 ofout.close();

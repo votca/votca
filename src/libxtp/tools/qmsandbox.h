@@ -31,7 +31,7 @@
 namespace votca { namespace xtp {
 
     
-class QMSandbox : public xtp::QMTool
+class QMSandbox : public QMTool
 {
 public:
 
@@ -46,7 +46,7 @@ public:
 
 private:
     
-    double CalcEnergy(xtp::PolarSeg& nuclei,xtp::PolarSeg& other);
+    double CalcEnergy(PolarSeg& nuclei,PolarSeg& other);
     
     std::string      _orbfile;
     std::string      _espfile;
@@ -58,8 +58,8 @@ private:
 };
 
 
-double QMSandbox::CalcEnergy(xtp::PolarSeg& nuclei,xtp::PolarSeg& other){
-    xtp::XInteractor actor;
+double QMSandbox::CalcEnergy(PolarSeg& nuclei,PolarSeg& other){
+    XInteractor actor;
     actor.ResetEnergy();
     double E_ext = 0.0;
     nuclei.CalcPos();
@@ -104,10 +104,10 @@ bool QMSandbox::Evaluate() {
     orbitals.ReadFromCpt(_orbfile);
     
     QMInterface qmminter;
-    xtp::PolarSeg nuclei = qmminter.Convert(orbitals.QMAtoms());
+    PolarSeg nuclei = qmminter.Convert(orbitals.QMAtoms());
     
     for (unsigned i = 0; i < nuclei.size(); ++i) {
-        xtp::APolarSite* nucleus = nuclei[i];
+        APolarSite* nucleus = nuclei[i];
         nucleus->setIsoP(0.0);
         double Q = orbitals.QMAtoms()[i]->getNuccharge();
         nucleus->setQ00(Q, 0);
@@ -123,36 +123,36 @@ bool QMSandbox::Evaluate() {
   
 #endif
 
-    std::vector<std::shared_ptr<xtp::PolarSeg> > polar_segments_mol;
+    std::vector<std::shared_ptr<PolarSeg> > polar_segments_mol;
     
-    std::vector<std::shared_ptr<xtp::PolarSeg> > polar_segments_dipole;
-    std::vector<std::shared_ptr<xtp::PolarSeg> > polar_segments_dipole_split;
-    std::vector<std::shared_ptr<xtp::PolarSeg> > polar_segments_quadrupole;
-    std::vector<std::shared_ptr<xtp::PolarSeg> > polar_segments_quadrupole_split;
+    std::vector<std::shared_ptr<PolarSeg> > polar_segments_dipole;
+    std::vector<std::shared_ptr<PolarSeg> > polar_segments_dipole_split;
+    std::vector<std::shared_ptr<PolarSeg> > polar_segments_quadrupole;
+    std::vector<std::shared_ptr<PolarSeg> > polar_segments_quadrupole_split;
     {
-        vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_espfile, 0);
-        std::shared_ptr<xtp::PolarSeg>  newPolarSegment (new xtp::PolarSeg(0, sites));
+        vector<APolarSite*> sites = APS_FROM_MPS(_espfile, 0);
+        std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
         polar_segments_mol.push_back(newPolarSegment);
     }   
 
     {
-        vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_mpsfiled, 0);
-        std::shared_ptr<xtp::PolarSeg>  newPolarSegment (new xtp::PolarSeg(0, sites));
+        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfiled, 0);
+        std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
         polar_segments_dipole.push_back(newPolarSegment);
     }   
     {
-        vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_mpsfileds, 0);
-        std::shared_ptr<xtp::PolarSeg>  newPolarSegment (new xtp::PolarSeg(0, sites));
+        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfileds, 0);
+        std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
         polar_segments_dipole_split.push_back(newPolarSegment);
     }        
     {
-        vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_mpsfileq, 0);
-         std::shared_ptr<xtp::PolarSeg>  newPolarSegment (new xtp::PolarSeg(0, sites));
+        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfileq, 0);
+         std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
         polar_segments_quadrupole.push_back(newPolarSegment);
     }        
     {
-        vector<xtp::APolarSite*> sites = xtp::APS_FROM_MPS(_mpsfileqs, 0);
-         std::shared_ptr<xtp::PolarSeg>  newPolarSegment (new xtp::PolarSeg(0, sites));
+        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfileqs, 0);
+         std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
         polar_segments_quadrupole_split.push_back(newPolarSegment);
     }        
   

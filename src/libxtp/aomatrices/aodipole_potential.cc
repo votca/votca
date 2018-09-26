@@ -762,11 +762,11 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
-        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<xtp::PolarSeg> > & sites) {
+        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> > & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
             for (unsigned int i = 0; i < sites.size(); i++) {
-                for (xtp::APolarSite* site:*(sites[i])) {
+                for (APolarSite* site:*(sites[i])) {
 
                     if (site->getRank() > 0 || site->IsPolarizable()) {  
                         if(tools::abs(site->getU1()+site->getQ1())<1e-12){continue;}

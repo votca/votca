@@ -25,7 +25,7 @@
 
 namespace votca { namespace xtp {
 
-class Sandbox : public xtp::ParallelPairCalculator
+class Sandbox : public ParallelPairCalculator
 {
 
 public:
@@ -35,8 +35,8 @@ public:
 
     string  Identify() { return "Sandbox"; }
     void    Initialize(Property *options);
-    using xtp::ParallelPairCalculator::EvalPair;
-    void    EvalPair(xtp::Topology *top, xtp::QMPair *qmpair, int slot);
+    using ParallelPairCalculator::EvalPair;
+    void    EvalPair(Topology *top, QMPair *qmpair, int slot);
 
 };
 
@@ -53,7 +53,7 @@ void Sandbox::Initialize(Property *options) {
 }
 
 
-void Sandbox::EvalPair(xtp::Topology *top, xtp::QMPair *qmpair, int slot) {
+void Sandbox::EvalPair(Topology *top, QMPair *qmpair, int slot) {
   
     this->LockCout();
     cout << "\r... ... Overloading pair " << qmpair->getId() << ". " << flush;
@@ -66,11 +66,11 @@ void Sandbox::EvalPair(xtp::Topology *top, xtp::QMPair *qmpair, int slot) {
         }
     }
 
-    vector<xtp::Segment*> ::iterator sit;
+    vector<Segment*> ::iterator sit;
     for (sit = top->Segments().begin(); sit != top->Segments().end(); sit++) {
         //Segment *seg = *sit;
 
-        vector<xtp::Atom*> ::iterator ait;
+        vector<Atom*> ::iterator ait;
         for (ait= top->Atoms().begin(); ait != top->Atoms().end(); ait++) {
             //Atom *atm = *ait;
 

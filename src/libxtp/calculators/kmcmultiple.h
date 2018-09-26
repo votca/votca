@@ -35,23 +35,16 @@ class KMCMultiple : public KMCCalculator
 {
 public:
     KMCMultiple() {};
-   ~KMCMultiple() {
-       for(auto& node:_nodes){
-           delete node;
-       }
-        for(auto& carrier:_carriers){
-           delete carrier;
-       }
-   };
+   ~KMCMultiple() {};
    std::string Identify() { return "kmcmultiple"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(xtp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 
 
 private:
             
-            void  RunVSSM(xtp::Topology *top);
+            void  RunVSSM(Topology *top);
             double _runtime;
             double _outputtime;
             std::string _trajectoryfile;

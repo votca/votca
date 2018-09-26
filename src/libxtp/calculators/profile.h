@@ -23,13 +23,13 @@
 
 namespace votca { namespace xtp {
 
-class Profile : public xtp::QMCalculator
+class Profile : public QMCalculator
 {
 public:
 
     string      Identify() { return "profile"; }
     void        Initialize(tools::Property *options);
-    bool        EvaluateFrame(xtp::Topology *top);
+    bool        EvaluateFrame(Topology *top);
 
 private:
     
@@ -87,15 +87,15 @@ void Profile::Initialize(tools::Property *options) {
 
 
 
-bool Profile::EvaluateFrame(xtp::Topology *top) {
+bool Profile::EvaluateFrame(Topology *top) {
 
     map< string, vector< double > > map_seg_zs; // for atomistic number density
     map< string, vector< double > > map_com_zs; // for segment number density
-    map< string, vector< xtp::Segment* > > map_com_seg;
+    map< string, vector< Segment* > > map_com_seg;
     map< string, bool > set_seg;
 
-    vector< xtp::Segment* > ::iterator sit;
-    vector< xtp::Atom* > ::iterator ait;
+    vector< Segment* > ::iterator sit;
+    vector< Atom* > ::iterator ait;
 
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
     // Collect profile positions from atoms in system, order by segment name //
@@ -109,7 +109,7 @@ bool Profile::EvaluateFrame(xtp::Topology *top) {
          sit < top->Segments().end();
          ++sit) {
 
-        xtp::Segment *seg = *sit;
+        Segment *seg = *sit;
 
         // Within specified segment range?
         if (seg->getId() < _firstSegId) { continue; }
@@ -166,7 +166,7 @@ bool Profile::EvaluateFrame(xtp::Topology *top) {
         string segName = setit->first;
         vector< double > seg_zs = map_seg_zs[segName];
         vector< double > com_zs = map_com_zs[segName];
-        vector< xtp::Segment* > com_seg = map_com_seg[segName];
+        vector< Segment* > com_seg = map_com_seg[segName];
         vector< vector< double > > hist_zs;
         vector< vector< double > > hist_zs_com;
         vector< vector< double > > binned_ea; // anion site energies  (<> EA)
@@ -178,7 +178,7 @@ bool Profile::EvaluateFrame(xtp::Topology *top) {
         
         // Perform binning
         vector< double > ::iterator zit;
-        vector< xtp::Segment* > ::iterator sit;
+        vector< Segment* > ::iterator sit;
         for (zit = seg_zs.begin(); zit < seg_zs.end(); ++zit) {
 
             int bin = int( ((*zit)-MIN)/_resolution + 0.5 );

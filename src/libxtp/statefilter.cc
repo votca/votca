@@ -63,18 +63,18 @@ namespace votca {
    }
    
    void Statefilter::PrintInfo()const{
-     XTP_LOG(xtp::logDEBUG, *_log) << "Initial state: "<<_statehist[0].ToString() << flush;
+     XTP_LOG(logDEBUG, *_log) << "Initial state: "<<_statehist[0].ToString() << flush;
      if(_statehist.size()>1){
-     XTP_LOG(xtp::logDEBUG, *_log) << "Last state: "<<_state.ToString() << flush;
+     XTP_LOG(logDEBUG, *_log) << "Last state: "<<_state.ToString() << flush;
      }
      if(_use_oscfilter){
-       XTP_LOG(xtp::logDEBUG, *_log) << "Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
+       XTP_LOG(logDEBUG, *_log) << "Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
      }
      if(_use_overlapfilter){
        if(_overlapthreshold==0.0){
-         XTP_LOG(xtp::logDEBUG, *_log) << "Using overlap filer with no cutoff "<< flush;
+         XTP_LOG(logDEBUG, *_log) << "Using overlap filer with no cutoff "<< flush;
        }else{
-       XTP_LOG(xtp::logDEBUG, *_log) << "Using overlap filer with cutoff "<<_overlapthreshold << flush;
+       XTP_LOG(logDEBUG, *_log) << "Using overlap filer with cutoff "<<_overlapthreshold << flush;
        }
      }
      if(_use_localisationfilter){
@@ -82,16 +82,16 @@ namespace votca {
        if(!_localiseonA){
          fragment="B";
        }
-       XTP_LOG(xtp::logDEBUG, *_log) << "Using localisation filter for fragment"<<fragment<<" with cutoff "<<_loc_threshold << flush;
+       XTP_LOG(logDEBUG, *_log) << "Using localisation filter for fragment"<<fragment<<" with cutoff "<<_loc_threshold << flush;
      }
      if(_use_dQfilter){
-       XTP_LOG(xtp::logDEBUG, *_log) << "Using Delta Q filter with cutoff "<<_dQ_threshold << flush;
+       XTP_LOG(logDEBUG, *_log) << "Using Delta Q filter with cutoff "<<_dQ_threshold << flush;
      }
     if (_use_oscfilter && _use_dQfilter) {
-          XTP_LOG(xtp::logDEBUG, *_log) << "WARNING: filtering for optically active CT transition - might not make sense... " << flush;
+          XTP_LOG(logDEBUG, *_log) << "WARNING: filtering for optically active CT transition - might not make sense... " << flush;
         }
       if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_use_oscfilter<1){
-         XTP_LOG(xtp::logDEBUG, *_log) << "WARNING: No filter is used " << flush;
+         XTP_LOG(logDEBUG, *_log) << "WARNING: No filter is used " << flush;
       }
      
    }
@@ -139,10 +139,10 @@ namespace votca {
     QMState state;
     if(result.size()<1){
       state=_statehist.back();  
-      XTP_LOG(xtp::logDEBUG, *_log) << "No State found by filter using last state: "<<state.ToString()<< flush;
+      XTP_LOG(logDEBUG, *_log) << "No State found by filter using last state: "<<state.ToString()<< flush;
     }else{
       state=QMState(_statehist.back().Type(),result[0],false);
-      XTP_LOG(xtp::logDEBUG, *_log) << "Next State is: "<<state.ToString()<< flush;
+      XTP_LOG(logDEBUG, *_log) << "Next State is: "<<state.ToString()<< flush;
     }
     return state;
    }

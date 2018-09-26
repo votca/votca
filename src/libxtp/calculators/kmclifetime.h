@@ -35,13 +35,7 @@ class KMCLifetime : public KMCCalculator
 {
 public:
     KMCLifetime() {};
-   ~KMCLifetime() {
-       for(auto& node:_nodes){
-           delete node;
-       }
-        for(auto& carrier:_carriers){
-           delete carrier;
-       }};
+   ~KMCLifetime() {};
    std::string Identify() { return "kmclifetime"; }
     void Initialize(tools::Property *options);
     bool EvaluateFrame(Topology *top);

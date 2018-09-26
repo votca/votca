@@ -27,7 +27,7 @@
 using namespace std;
 using namespace votca;
 
-class XtpRun : public xtp::SqlApplication {
+class XtpRun : public SqlApplication {
 public:
 
   string ProgramName() {
@@ -53,8 +53,8 @@ private:
 namespace propt = boost::program_options;
 
 void XtpRun::Initialize() {
-  xtp::Calculatorfactory::RegisterAll();
-  xtp::SqlApplication::Initialize();
+  Calculatorfactory::RegisterAll();
+  SqlApplication::Initialize();
 
   AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
           "List of calculators separated by ',' or ' '");
@@ -69,7 +69,7 @@ bool XtpRun::EvaluateOptions() {
   string helpdir = "xtp/xml";
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
-    for (const auto& calc:xtp::Calculators().getObjects()) {
+    for (const auto& calc:Calculators().getObjects()) {
       PrintDescription(std::cout, calc.first, helpdir, Application::HelpShort);
     }
     StopExecution();
@@ -84,7 +84,7 @@ bool XtpRun::EvaluateOptions() {
     for (const std::string &n: tok) {
       // loop over calculators
       bool printerror = true;
-      for (const auto& calc:xtp::Calculators().getObjects()) {
+      for (const auto& calc:Calculators().getObjects()) {
 
         if (n.compare(calc.first.c_str()) == 0) {
           PrintDescription(std::cout,calc.first, helpdir, Application::HelpLong);
@@ -98,18 +98,18 @@ bool XtpRun::EvaluateOptions() {
     return true;
   }
 
-  xtp::SqlApplication::EvaluateOptions();
+  SqlApplication::EvaluateOptions();
   CheckRequired("options", "Please provide an xml file with calculator options");
   CheckRequired("execute", "Nothing to do here: Abort.");
 
   Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string &n: calcs) {
     bool found_calc = false;
-    for (const auto& calc:xtp::Calculators().getObjects()) {
+    for (const auto& calc:Calculators().getObjects()) {
 
       if (n.compare(calc.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
-        xtp::SqlApplication::AddCalculator(xtp::Calculators().Create(n.c_str()));
+        SqlApplication::AddCalculator(Calculators().Create(n.c_str()));
         found_calc = true;
       }
     }

@@ -58,7 +58,7 @@ namespace votca {
 
             bool ParseOrbitalsFile(Orbitals& orbitals);
             
-            void setMultipoleBackground( std::vector<std::shared_ptr<xtp::PolarSeg> > multipoles);
+            void setMultipoleBackground( std::vector<std::shared_ptr<PolarSeg> > multipoles);
 
         private:
             void WriteChargeOption() { return ;}

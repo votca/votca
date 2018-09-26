@@ -36,7 +36,7 @@
 namespace votca { namespace xtp {
     using namespace std;
     
-class ExcitonCoupling : public  xtp::QMTool
+class ExcitonCoupling : public  QMTool
 {
 public:
 
@@ -63,7 +63,7 @@ private:
     //bool        _doTriplets;
     string      _mpsA;
     string      _mpsB;  
-    xtp::Logger      _log;
+    Logger      _log;
 
 };
 
@@ -107,13 +107,13 @@ void ExcitonCoupling::Initialize(Property* options)
 
 bool ExcitonCoupling::Evaluate() {
    
-    _log.setReportLevel(  xtp::logDEBUG );
+    _log.setReportLevel(  logDEBUG );
     _log.setMultithreading( true );
     
-    _log.setPreface( xtp::logINFO,    "\n... ...");
-    _log.setPreface( xtp::logERROR,   "\n... ...");
-    _log.setPreface( xtp::logWARNING, "\n... ...");
-    _log.setPreface( xtp::logDEBUG,   "\n... ..."); 
+    _log.setPreface( logINFO,    "\n... ...");
+    _log.setPreface( logERROR,   "\n... ...");
+    _log.setPreface( logWARNING, "\n... ...");
+    _log.setPreface( logDEBUG,   "\n... ..."); 
     Property summary;
     Property& job_output = summary.add("output","");
     // get the corresponding object from the QMPackageFactory
@@ -121,13 +121,13 @@ bool ExcitonCoupling::Evaluate() {
     Orbitals orbitalsA, orbitalsB, orbitalsAB;
     // load the QM data from serialized orbitals objects
 
-    XTP_LOG( xtp::logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
+    XTP_LOG( logDEBUG, _log) << " Loading QM data for molecule A from " << _orbA << flush;
     orbitalsA.ReadFromCpt(_orbA);
     
-    XTP_LOG( xtp::logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
+    XTP_LOG( logDEBUG, _log) << " Loading QM data for molecule B from " << _orbB << flush;
     orbitalsB.ReadFromCpt(_orbB);
 
-    XTP_LOG( xtp::logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
+    XTP_LOG( logDEBUG, _log) << " Loading QM data for dimer AB from " << _orbAB << flush;
     orbitalsAB.ReadFromCpt(_orbAB);
    
      BSECoupling bsecoupling; 
@@ -144,18 +144,18 @@ bool ExcitonCoupling::Evaluate() {
     }
     
     else if (_classical){
-        XTP_LOG( xtp::logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
-        std::vector< xtp::APolarSite*> seg1= xtp::APS_FROM_MPS(_mpsA, 0);
-        std::vector< xtp::APolarSite*> seg2= xtp::APS_FROM_MPS(_mpsB, 0);
+        XTP_LOG( logDEBUG, _log) << "Calculating electronic coupling using classical transition charges." << _orbB << flush;
+        std::vector< APolarSite*> seg1= APS_FROM_MPS(_mpsA, 0);
+        std::vector< APolarSite*> seg2= APS_FROM_MPS(_mpsB, 0);
         
-        xtp::PolarSeg Seg1 = xtp::PolarSeg(1,seg1);
-        xtp::PolarSeg Seg2 = xtp::PolarSeg(2,seg2);
-        xtp::XInteractor actor;
+        PolarSeg Seg1 = PolarSeg(1,seg1);
+        PolarSeg Seg2 = PolarSeg(2,seg2);
+        XInteractor actor;
         actor.ResetEnergy();
         vec s = vec(0,0,0);
         double E = 0.0;
-        for (xtp::APolarSite* site1:Seg1) {
-          for (xtp::APolarSite* site2:Seg2) {            
+        for (APolarSite* site1:Seg1) {
+          for (APolarSite* site2:Seg2) {            
             actor.BiasIndu(*site1, *site2, s);
             site1->Depolarize();
             site2->Depolarize();

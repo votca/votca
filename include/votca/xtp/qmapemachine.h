@@ -45,15 +45,15 @@ class QMAPEMachine
     
 public:
 
-    QMAPEMachine(xtp::XJob *job, xtp::Ewald3DnD *cape, 
+    QMAPEMachine(XJob *job, Ewald3DnD *cape, 
               Property *opt, std::string sfx);
    ~QMAPEMachine();
     
-    void Evaluate(xtp::XJob *job);
+    void Evaluate(XJob *job);
  
     bool AssertConvergence() { return _isConverged; }
     
-    void setLog(xtp::Logger *log) { _log = log; }
+    void setLog(Logger *log) { _log = log; }
     
 private:
     QMMIter *CreateNewIter();
@@ -66,14 +66,14 @@ private:
     
     Statefilter _filter;
     QMInterface qminterface;
-    xtp::Logger *_log;
+    Logger *_log;
 
     bool _run_ape;
     bool _run_dft;
     bool _run_gwbse;
 
-    xtp::XJob *_job;
-    xtp::Ewald3DnD *_cape;
+    XJob *_job;
+    Ewald3DnD *_cape;
 
     std::vector<QMMIter*> _iters;
     int _maxIter;
@@ -91,8 +91,8 @@ private:
     double _crit_dE_QM;
     double _crit_dE_MM;   
     
-    std::vector< xtp::PolarSeg* > target_bg;     
-    std::vector< xtp::PolarSeg* > target_fg;     
+    std::vector< PolarSeg* > target_bg;     
+    std::vector< PolarSeg* > target_fg;     
 
 };
 

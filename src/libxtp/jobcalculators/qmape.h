@@ -35,7 +35,7 @@ using boost::format;
 namespace votca { namespace xtp {
 
    
-class QMAPE : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult >
+class QMAPE : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
 {
 
 public:
@@ -46,10 +46,10 @@ public:
     string          Identify() { return "qmape"; }
     void            Initialize(Property *);
 
-    void            CustomizeLogger(xtp::QMThread *thread);
-    void            PreProcess(xtp::Topology *top);
-    xtp::Job::JobResult  EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread);
-    xtp::XJob            ProcessInputString(xtp::Job *job, xtp::Topology *top, xtp::QMThread *thread);
+    void            CustomizeLogger(QMThread *thread);
+    void            PreProcess(Topology *top);
+    Job::JobResult  EvalJob(Topology *top, Job *job, QMThread *thread);
+    XJob            ProcessInputString(Job *job, Topology *top, QMThread *thread);
 
 private:
     
@@ -60,7 +60,7 @@ private:
 	string                         _xml_file;
 	string                         _mps_table;
 	string                         _polar_bg_arch;
-	xtp::XMpsMap                   _mps_mapper;
+	XMpsMap                   _mps_mapper;
 	bool                           _pdb_check;
 	bool                           _ptop_check;
     
@@ -126,7 +126,7 @@ void QMAPE::Initialize(Property *options) {
 }
 
 
-void QMAPE::PreProcess(xtp::Topology *top) {
+void QMAPE::PreProcess(Topology *top) {
     // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
     cout << endl << "... ... Initialize MPS-mapper: " << flush;
     _mps_mapper.GenerateMap(_xml_file, _mps_table, top);
@@ -134,17 +134,17 @@ void QMAPE::PreProcess(xtp::Topology *top) {
 }
 
 
-void QMAPE::CustomizeLogger(xtp::QMThread *thread) {
+void QMAPE::CustomizeLogger(QMThread *thread) {
     
     // CONFIGURE LOGGER
-    xtp::Logger* log = thread->getLogger();
-    log->setReportLevel(xtp::logDEBUG);
+    Logger* log = thread->getLogger();
+    log->setReportLevel(logDEBUG);
     log->setMultithreading(_maverick);
 
-    log->setPreface(xtp::logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
-    log->setPreface(xtp::logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
-    log->setPreface(xtp::logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
-    log->setPreface(xtp::logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str()); 
+    log->setPreface(logINFO,    (format("\nT%1$02d INF ...") % thread->getId()).str());
+    log->setPreface(logERROR,   (format("\nT%1$02d ERR ...") % thread->getId()).str());
+    log->setPreface(logWARNING, (format("\nT%1$02d WAR ...") % thread->getId()).str());
+    log->setPreface(logDEBUG,   (format("\nT%1$02d DBG ...") % thread->getId()).str()); 
     return;
 }
 
@@ -154,13 +154,13 @@ void QMAPE::CustomizeLogger(xtp::QMThread *thread) {
 // ========================================================================== //
 
 
-xtp::XJob QMAPE::ProcessInputString(xtp::Job *job,xtp::Topology *top, xtp::QMThread *thread) {
+XJob QMAPE::ProcessInputString(Job *job,Topology *top, QMThread *thread) {
 
     // Input string looks like this:
     // <id1>:<name1>:<mpsfile1> <id2>:<name2>: ... ... ...
 
     string input = job->getInput().as<string>();
-    vector<xtp::Segment*> qmSegs;
+    vector<Segment*> qmSegs;
     vector<string>   qmSegMps;
     vector<string> split;
     Tokenizer toker(input, " \t\n");
@@ -177,9 +177,9 @@ xtp::XJob QMAPE::ProcessInputString(xtp::Job *job,xtp::Topology *top, xtp::QMThr
         string segName = split_id_seg_mps[1];
         string mpsFile = split_id_seg_mps[2];
 
-        xtp::Segment *seg = top->getSegment(segId);
+        Segment *seg = top->getSegment(segId);
         if (seg->getName() != segName) {
-            XTP_LOG(xtp::logERROR,*(thread->getLogger()))
+            XTP_LOG(logERROR,*(thread->getLogger()))
                 << "ERROR: Seg " << segId << ":" << seg->getName() << " "
                 << " maltagged as " << segName << ". Skip job ..." << flush;
             throw std::runtime_error("Input does not match topology.");
@@ -189,41 +189,41 @@ xtp::XJob QMAPE::ProcessInputString(xtp::Job *job,xtp::Topology *top, xtp::QMThr
         qmSegMps.push_back(mpsFile);
     }
 
-    return xtp::XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
+    return XJob(job->getId(), job->getTag(), qmSegs, qmSegMps, top);
 }
 
 
-xtp::Job::JobResult QMAPE::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *thread) {
+Job::JobResult QMAPE::EvalJob(Topology *top, Job *job, QMThread *thread) {
     
     // SILENT LOGGER FOR QMPACKAGE
-    xtp::Logger* log = thread->getLogger();    
-    xtp::Logger qlog;
-    qlog.setReportLevel(xtp::logDEBUG);
+    Logger* log = thread->getLogger();    
+    Logger qlog;
+    qlog.setReportLevel(logDEBUG);
     qlog.setMultithreading(_maverick);
-    qlog.setPreface(xtp::logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
-    qlog.setPreface(xtp::logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
-    qlog.setPreface(xtp::logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
-    qlog.setPreface(xtp::logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
+    qlog.setPreface(logINFO,    (format("\nQ%1$02d ... ...") % thread->getId()).str());
+    qlog.setPreface(logERROR,   (format("\nQ%1$02d ERR ...") % thread->getId()).str());
+    qlog.setPreface(logWARNING, (format("\nQ%1$02d WAR ...") % thread->getId()).str());
+    qlog.setPreface(logDEBUG,   (format("\nQ%1$02d DBG ...") % thread->getId()).str());
 
     // CREATE XJOB FROM JOB INPUT STRING
-    XTP_LOG(xtp::logINFO,*log)
+    XTP_LOG(logINFO,*log)
         << "Job input = " << job->getInput().as<string>() << flush;
-    xtp::XJob xjob = this->ProcessInputString(job, top, thread);  
+    XJob xjob = this->ProcessInputString(job, top, thread);  
 
 	// SETUP POLAR TOPOLOGY (GENERATE VS LOAD IF PREPOLARIZED)
 	if (_polar_bg_arch == "") {
-		XTP_LOG(xtp::logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
+		XTP_LOG(logINFO,*log) << "Mps-Mapper: Generate FGC FGN BGN" << flush;
 		_mps_mapper.Gen_FGC_FGN_BGN(top, &xjob, thread);
 	}
 	else {
-		XTP_LOG(xtp::logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
+		XTP_LOG(logINFO,*log) << "Mps-Mapper: Generate FGC, load FGN BGN from '"
 				<< _polar_bg_arch << "'" << flush;
 		_mps_mapper.Gen_FGC_Load_FGN_BGN(top, &xjob, _polar_bg_arch, thread);
 	}
-    XTP_LOG(xtp::logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
+    XTP_LOG(logINFO,*log) << xjob.getPolarTop()->ShellInfoStr() << flush;
 
     // SETUP MM METHOD
-    xtp::PEwald3D3D cape = xtp::PEwald3D3D(top, xjob.getPolarTop(), _options,
+    PEwald3D3D cape = PEwald3D3D(top, xjob.getPolarTop(), _options,
 		thread->getLogger());
 	if (_pdb_check)
 		cape.WriteDensitiesPDB(xjob.getTag()+".densities.pdb");
@@ -236,9 +236,9 @@ xtp::Job::JobResult QMAPE::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThr
     machine.Evaluate(&xjob);
 
     // GENERATE OUTPUT AND FORWARD TO PROGRESS OBSERVER (RETURN)
-    xtp::Job::JobResult jres = xtp::Job::JobResult();
+    Job::JobResult jres = Job::JobResult();
     jres.setOutput(xjob.getInfoLine());
-    jres.setStatus(xtp::Job::COMPLETE);
+    jres.setStatus(Job::COMPLETE);
 
     return jres;
 }

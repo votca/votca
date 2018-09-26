@@ -39,27 +39,27 @@ class QMMachine{
 
 public:
 
-    QMMachine(xtp::XJob *job, xtp::XInductor *xind, QMPackage *qmpack,
+    QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
               Property *opt, string sfx);
    ~QMMachine();
 
-    int Evaluate(xtp::XJob *job);
+    int Evaluate(XJob *job);
 
-    void setLog(xtp::Logger *log) { _log = log; }
+    void setLog(Logger *log) { _log = log; }
 
 private:
     bool Iterate(string jobFolder, int iterCnt);
-    bool RunDFT(string& runFolder, std::vector<std::shared_ptr<xtp::PolarSeg> >& MultipolesBackground);
+    bool RunDFT(string& runFolder, std::vector<std::shared_ptr<PolarSeg> >& MultipolesBackground);
     void RunGWBSE(string& runFolder);
     void RunGDMA(QMMIter* thisIter, string& runFolder);
     void Density2Charges(const QMState& state);
     
     QMMIter *CreateNewIter();
     bool hasConverged();
-    xtp::XJob *_job;
-    xtp::XInductor *_xind;
+    XJob *_job;
+    XInductor *_xind;
     QMPackage *_qmpack;
-    xtp::Logger *_log;
+    Logger *_log;
 
     std::vector<QMMIter*> _iters;
     bool _isConverged;

@@ -33,7 +33,7 @@ class Density2Gyration
 {
 public:
 
-    Density2Gyration (xtp::Logger* log) {_log=log; }
+    Density2Gyration (Logger* log) {_log=log; }
 
     std::string Identify() { return "density2gyration"; }
 
@@ -50,7 +50,7 @@ private:
     bool _dostateonly;
     std::string      _integrationmethod;
     std::string      _gridsize;
-    xtp::Logger*      _log;
+    Logger*      _log;
 
 };
 

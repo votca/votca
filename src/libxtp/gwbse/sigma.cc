@@ -121,16 +121,16 @@ namespace votca {
         if (tools::globals::verbose) {
           double _DFTgap = (*_dftenergies)(_homo + 1) - (*_dftenergies)(_homo);
           double _QPgap = _gwa_energies(_homo + 1) - _gwa_energies(_homo);
-          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " G_Iteration: " << g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << std::flush;
+          XTP_LOG(logDEBUG, *_log) << TimeStamp() << " G_Iteration: " << g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << std::flush;
         }
         double alpha = 0.0;
         _gwa_energies = (1 - alpha) * _gwa_energies + alpha*qp_old;
 
         if (energies_converged) {
-          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Converged after " << g_iter + 1 << " G iterations." << std::flush;
+          XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Converged after " << g_iter + 1 << " G iterations." << std::flush;
           break;
         } else if (g_iter == _g_sc_max_iterations - 1) {
-          XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << std::flush;
+          XTP_LOG(logDEBUG, *_log) << TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << std::flush;
           break;
 
         } else {

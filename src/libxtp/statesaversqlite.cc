@@ -29,7 +29,7 @@
 
 namespace votca { namespace xtp {
 
-void StateSaverSQLite::Open(xtp::Topology& qmtop, const string &file, bool lock) {
+void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
     _sqlfile = file;
     if (lock) this->LockStateFile();
     _db.OpenHelper(file.c_str());
@@ -156,12 +156,12 @@ void StateSaverSQLite::WriteMolecules(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    std::vector < xtp::Molecule* > ::iterator mit;
+    std::vector < Molecule* > ::iterator mit;
     for (mit = _qmtop->Molecules().begin();
             mit < _qmtop->Molecules().end();
             mit++) {
 
-        xtp::Molecule *mol = *mit;
+        Molecule *mol = *mit;
 
         stmt->Bind(2, mol->getTopology()->getDatabaseId());
         stmt->Bind(3, mol->getId());
@@ -195,12 +195,12 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
         return; // nothing to do here
     }
 
-    std::vector < xtp::SegmentType* > ::iterator typeit;
+    std::vector < SegmentType* > ::iterator typeit;
     for (typeit = _qmtop->SegmentTypes().begin();
             typeit < _qmtop->SegmentTypes().end();
             typeit++) {
 
-        xtp::SegmentType *type = *typeit;
+        SegmentType *type = *typeit;
 
         if (!update) {
             stmt->Bind(1, _qmtop->getDatabaseId());
@@ -283,7 +283,7 @@ void StateSaverSQLite::WriteSegments(bool update) {
                            "?, ?, ?, ? "
                            ")");
    
-    for (xtp::Segment *seg: _qmtop->Segments()) {
+    for (Segment *seg: _qmtop->Segments()) {
     
             stmt->Bind(1, _qmtop->getDatabaseId());
             stmt->Bind(2, seg->getTopology()->getDatabaseId());
@@ -361,7 +361,7 @@ void StateSaverSQLite::WriteFragments(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    for (xtp::Fragment *frag: _qmtop->Fragments()) {
+    for (Fragment *frag: _qmtop->Fragments()) {
 
         stmt->Bind(2, frag->getTopology()->getDatabaseId());
         stmt->Bind(3, frag->getId());
@@ -415,7 +415,7 @@ void StateSaverSQLite::WriteAtoms(bool update) {
 
     stmt->Bind(1, _qmtop->getDatabaseId());
 
-    for (xtp::Atom *atm:_qmtop->Atoms()) {
+    for (Atom *atm:_qmtop->Atoms()) {
         stmt->Bind(2, atm->getTopology()->getDatabaseId());
         stmt->Bind(3, atm->getId());
         stmt->Bind(4, atm->getName());
@@ -490,7 +490,7 @@ void StateSaverSQLite::WritePairs(bool update) {
                            "?, ?, ?, ?, "
                            "? "
                            ")");
-    for (xtp::QMPair *pair: _qmtop->NBList()) {
+    for (QMPair *pair: _qmtop->NBList()) {
 
             int has_e = (pair->isPathCarrier(-1)) ? 1 : 0;
             int has_h = (pair->isPathCarrier(+1)) ? 1 : 0;
@@ -570,13 +570,13 @@ void StateSaverSQLite::WriteSuperExchange(bool update) {
                            "?, ?, ?"
                            ")");
 
-    list< xtp::QMNBList::SuperExchangeType* >::const_iterator seit;
+    list< QMNBList::SuperExchangeType* >::const_iterator seit;
 
     for (seit = _qmtop->NBList().getSuperExchangeTypes().begin();
          seit != _qmtop->NBList().getSuperExchangeTypes().end();
          seit++) {
 
-        xtp::QMNBList::SuperExchangeType *seType = *seit;
+        QMNBList::SuperExchangeType *seType = *seit;
 
         stmt->Bind(1, _qmtop->getDatabaseId());
         stmt->Bind(2, _qmtop->getDatabaseId());
@@ -696,7 +696,7 @@ void StateSaverSQLite::ReadSegTypes(int topId) {
 
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
-        xtp::SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
+        SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
         type->setBasisName(stmt->Column<string>(1));
         type->setOrbitalsFile(stmt->Column<string>(2));
         type->setQMCoordsFile(stmt->Column<string>(4));
@@ -771,7 +771,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
         bool has_s = (hs == 1) ? true : false;
         bool has_t = (ht == 1) ? true : false;
 
-        xtp::Segment *seg = _qmtop->AddSegment(name);
+        Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
         seg->setType(_qmtop->getSegmentType(type));
         seg->setPos(vec(X, Y, Z));
@@ -844,7 +844,7 @@ void StateSaverSQLite::ReadFragments(int topId) {
         if (leg2 >= 0) {trihedron.push_back(leg2);}
         if (leg3 >= 0) {trihedron.push_back(leg3);}
 
-        xtp::Fragment *frag = _qmtop->AddFragment(name);
+        Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
         frag->setPos(vec(posX, posY, posZ));
@@ -893,7 +893,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
         double  qmPosZ = stmt->Column<double>(13);
         string  element = stmt->Column<string>(14);
 
-        xtp::Atom *atm = _qmtop->AddAtom(name);
+        Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
         atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
         atm->setElement(element);
@@ -929,7 +929,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
                                   "WHERE top = ?;");
 
     stmt->Bind(1, topId);
-    xtp::QMNBList & nblist=_qmtop->NBList();
+    QMNBList & nblist=_qmtop->NBList();
 
     while (stmt->Step() != SQLITE_DONE) {
         
@@ -958,7 +958,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         double  jt  = stmt->Column<double>(21);
         int     tp  = stmt->Column<int>(22);
         
-        xtp::QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
+        QMPair *newPair = nblist.Add(_qmtop->getSegment(s1),
                                                 _qmtop->getSegment(s2),false);
         
         bool has_e = (he == 0) ? false : true;
@@ -1019,7 +1019,7 @@ void StateSaverSQLite::ReadSuperExchange(int topId) {
 }
 
 
-bool StateSaverSQLite::HasTopology(xtp::Topology *top) {
+bool StateSaverSQLite::HasTopology(Topology *top) {
 
     // Determine from topology ID whether database already stores a
     // (previous) copy

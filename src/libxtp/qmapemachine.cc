@@ -33,7 +33,7 @@ using boost::format;
 
 namespace votca { namespace xtp {
 
-QMAPEMachine::QMAPEMachine(xtp::XJob *job, xtp::Ewald3DnD *cape,
+QMAPEMachine::QMAPEMachine(XJob *job, Ewald3DnD *cape,
 	 Property *opt, string sfx)
    : _job(job), _cape(cape),_isConverged(false) {
     
@@ -83,7 +83,7 @@ QMAPEMachine::~QMAPEMachine() {
     }
     _iters.clear();
     
-    std::vector<xtp::PolarSeg*> ::iterator pit;
+    std::vector<PolarSeg*> ::iterator pit;
     for (pit = target_bg.begin(); pit < target_bg.end(); ++pit) {
         delete *pit;
     }
@@ -97,19 +97,19 @@ QMAPEMachine::~QMAPEMachine() {
 }
 
 
-void QMAPEMachine::Evaluate(xtp::XJob *job) {
+void QMAPEMachine::Evaluate(XJob *job) {
     
 	// PREPARE JOB DIRECTORY
 	string jobFolder = "qmapejob_" + boost::lexical_cast<string>(_job->getId())
 					 + "_" + _job->getTag();
 	bool created = boost::filesystem::create_directory(jobFolder);
 
-	XTP_LOG(xtp::logINFO,*_log) << flush;
+	XTP_LOG(logINFO,*_log) << flush;
 	if (created) {
-		XTP_LOG(xtp::logINFO,*_log) << "Created directory " << jobFolder << flush;
+		XTP_LOG(logINFO,*_log) << "Created directory " << jobFolder << flush;
         }
 
-    XTP_LOG(xtp::logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
        << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
        % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
     
@@ -120,7 +120,7 @@ void QMAPEMachine::Evaluate(xtp::XJob *job) {
     }
     int chrg = round(dQ);
     int spin = ( (chrg < 0) ? -chrg:chrg ) % 2 + 1;
-    XTP_LOG(xtp::logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+    XTP_LOG(logINFO,*_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
     
     if(chrg!=0){
         throw runtime_error("Charged DFT calculations are not possible at the moment");
@@ -131,17 +131,17 @@ void QMAPEMachine::Evaluate(xtp::XJob *job) {
     int iterCnt = 0;
     int iterMax = _maxIter;
     for ( ; iterCnt < iterMax; ++iterCnt) {
-        XTP_LOG(xtp::logINFO,*_log) << "QMMM ITERATION:" << iterCnt+1<<" of "<<iterMax << flush;
+        XTP_LOG(logINFO,*_log) << "QMMM ITERATION:" << iterCnt+1<<" of "<<iterMax << flush;
         //bool code = Iterate(jobFolder, iterCnt);
         Iterate(jobFolder, iterCnt);
         if (hasConverged()) {
-            XTP_LOG(xtp::logINFO,*_log) << "QMMM CONVERGED after:" << iterCnt+1<<" iterations."<< flush;
+            XTP_LOG(logINFO,*_log) << "QMMM CONVERGED after:" << iterCnt+1<<" iterations."<< flush;
         
         break; }
     }
     
     if (iterCnt == iterMax-1 && !_isConverged) {
-        XTP_LOG(xtp::logWARNING,*_log)
+        XTP_LOG(logWARNING,*_log)
             << format("Not converged within %1$d iterations.") % iterMax;
     }
     
@@ -156,12 +156,12 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     int iter = iterCnt;
     string runFolder = jobFolder + "/iter_" + boost::lexical_cast<string>(iter);
        
-    XTP_LOG(xtp::logINFO,*_log) << flush;
+    XTP_LOG(logINFO,*_log) << flush;
     bool created = boost::filesystem::create_directory(runFolder);
     if (created) 
-        XTP_LOG(xtp::logDEBUG,*_log) << "Created directory " << runFolder << flush;
+        XTP_LOG(logDEBUG,*_log) << "Created directory " << runFolder << flush;
     else
-        XTP_LOG(xtp::logWARNING,*_log) << "Could not create directory " << runFolder << flush;
+        XTP_LOG(logWARNING,*_log) << "Could not create directory " << runFolder << flush;
     
     Orbitals orb_iter_input;
     
@@ -237,15 +237,15 @@ QMMIter *QMAPEMachine::CreateNewIter() {
         throw std::runtime_error("QMAPEMachine no GWBSE necessary for " + _initialstate.ToLongString());
       }
       GWBSE gwbse(orb);
-      XTP_LOG(xtp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-      XTP_LOG(xtp::logDEBUG, *_log) << "  --- state:              " << _initialstate.ToLongString() << flush;
+      XTP_LOG(logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+      XTP_LOG(logDEBUG, *_log) << "  --- state:              " << _initialstate.ToLongString() << flush;
       // define own logger for GW-BSE that is written into a runFolder logfile
-      xtp::Logger gwbse_logger(xtp::logDEBUG);
+      Logger gwbse_logger(logDEBUG);
       gwbse_logger.setMultithreading(false);
-      //gwbse_logger.setPreface(xtp::logINFO, (format("\nGWBSE INF ...")).str());
-      gwbse_logger.setPreface(xtp::logERROR, (format("\nGWBSE ERR ...")).str());
-      gwbse_logger.setPreface(xtp::logWARNING, (format("\nGWBSE WAR ...")).str());
-      gwbse_logger.setPreface(xtp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+      //gwbse_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
+      gwbse_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
+      gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
+      gwbse_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
       _filter.setLogger(&gwbse_logger);
       gwbse.setLogger(&gwbse_logger);
        _filter.PrintInfo();
@@ -274,7 +274,7 @@ QMMIter *QMAPEMachine::CreateNewIter() {
       BasisSet dftbs;
       dftbs.LoadBasisSet(orb.getDFTbasis());
 
-      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
 
       // fill DFT AO basis by going through all atoms
       AOBasis dftbasis;
@@ -289,8 +289,8 @@ QMMIter *QMAPEMachine::CreateNewIter() {
 void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoints,const std::vector<QMAtom*>& atoms){
     NumberofAtoms=0;
     std::vector<QMAtom*>::const_iterator qmt;
-    std::vector<xtp::APolarSite*> sites1;
-    std::vector<xtp::APolarSite*> sites2;
+    std::vector<APolarSite*> sites1;
+    std::vector<APolarSite*> sites2;
     
     for(qmt=atoms.begin();qmt!=atoms.end();++qmt){
         NumberofAtoms++;
@@ -301,8 +301,8 @@ void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoint
     
     std::vector<const vec *>::const_iterator grt;
     for (grt=gridpoints.begin();grt<gridpoints.end();++grt){
-        xtp::APolarSite* site1=new xtp::APolarSite();
-        xtp::APolarSite* site2=new xtp::APolarSite();
+        APolarSite* site1=new APolarSite();
+        APolarSite* site2=new APolarSite();
         tools::vec pos=*(*grt)*tools::conv::bohr2nm;
         site1->setPos(pos);
         site2->setPos(pos);
@@ -311,8 +311,8 @@ void QMAPEMachine::SetupPolarSiteGrids(const std::vector<const vec *>& gridpoint
     }
     
     
-    target_bg.push_back( new xtp::PolarSeg(0, sites1));
-    target_fg.push_back( new xtp::PolarSeg(0, sites2));
+    target_bg.push_back( new PolarSeg(0, sites1));
+    target_fg.push_back( new PolarSeg(0, sites2));
     
     return;
         }
@@ -322,10 +322,10 @@ std::vector<double> QMAPEMachine::ExtractNucGrid_fromPolarsites() {
     double int2hrt = tools::conv::int2V * tools::conv::ev2hrt;
     for (unsigned i = 0; i < target_bg.size(); ++i) {
         for (unsigned j = 0; j < NumberofAtoms; ++j) {
-            xtp::PolarSeg* seg1 = target_bg[i];
-            xtp::PolarSeg* seg2 = target_fg[i];
-            xtp::APolarSite* site1 = (*seg1)[j];
-            xtp::APolarSite* site2 = (*seg2)[j];
+            PolarSeg* seg1 = target_bg[i];
+            PolarSeg* seg2 = target_fg[i];
+            APolarSite* site1 = (*seg1)[j];
+            APolarSite* site2 = (*seg2)[j];
             double value = (site1->getPhi() + site2->getPhi()) * int2hrt;
             gridpoints.push_back(value);
         }
@@ -338,10 +338,10 @@ std::vector<double> QMAPEMachine::ExtractElGrid_fromPolarsites() {
     double int2hrt = tools::conv::int2V * tools::conv::ev2hrt;
     for (unsigned i = 0; i < target_bg.size(); ++i) {
         for (unsigned j = NumberofAtoms; j < target_bg[i]->size(); ++j) {
-            xtp::PolarSeg* seg1 = target_bg[i];
-            xtp::PolarSeg* seg2 = target_fg[i];
-            xtp::APolarSite* site1 = (*seg1)[j];
-            xtp::APolarSite* site2 = (*seg2)[j];
+            PolarSeg* seg1 = target_bg[i];
+            PolarSeg* seg2 = target_fg[i];
+            APolarSite* site1 = (*seg1)[j];
+            APolarSite* site2 = (*seg2)[j];
             double value = (site1->getPhi() + site2->getPhi()) * int2hrt;
             gridpoints.push_back(value);
         }
@@ -377,15 +377,15 @@ bool QMAPEMachine::hasConverged() {
     
     _isConverged = ((convg_dR && convg_dQ) && (convg_dE_QM && convg_dE_MM));
     
-    XTP_LOG(xtp::logINFO,*_log) 
+    XTP_LOG(logINFO,*_log) 
         << (format("Convergence check")) << flush;
-    XTP_LOG(xtp::logINFO,*_log)
+    XTP_LOG(logINFO,*_log)
         << format("  o Converged dR ? %s") % (convg_dR ? "True" : "False") << flush;
-    XTP_LOG(xtp::logINFO,*_log) 
+    XTP_LOG(logINFO,*_log) 
         << format("  o Converged dQ ? %s") % (convg_dQ ? "True" : "False") << flush;
-    XTP_LOG(xtp::logINFO,*_log) 
+    XTP_LOG(logINFO,*_log) 
         << format("  o Converged QM ? %s") % (convg_dE_QM ? "True" : "False") << flush;
-    XTP_LOG(xtp::logINFO,*_log) 
+    XTP_LOG(logINFO,*_log) 
         << format("  o Converged MM ? %s") % (convg_dE_MM ? "True" : "False") << flush;
     
     return _isConverged;

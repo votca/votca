@@ -34,7 +34,7 @@ namespace votca {
   namespace xtp {
 
 
-    QMMachine::QMMachine(xtp::XJob *job, xtp::XInductor *xind, QMPackage *qmpack,
+    QMMachine::QMMachine(XJob *job, XInductor *xind, QMPackage *qmpack,
             Property *opt, string sfx)
     : _job(job), _xind(xind), _qmpack(qmpack), 
     _isConverged(false) {
@@ -104,9 +104,9 @@ namespace votca {
       _iters.clear();
     }
 
-    int QMMachine::Evaluate(xtp::XJob *job) {
+    int QMMachine::Evaluate(XJob *job) {
 
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... dR %1$1.4f dQ %2$1.4f QM %3$1.4f MM %4$1.4f IT %5$d")
               % _crit_dR % _crit_dQ % _crit_dE_QM % _crit_dE_MM % _maxIter << flush;
 
@@ -117,7 +117,7 @@ namespace votca {
       }
       int chrg = std::round(dQ);
       int spin = ((chrg < 0) ? -chrg : chrg) % 2 + 1;
-      XTP_LOG(xtp::logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
+      XTP_LOG(logINFO, *_log) << "... Q = " << chrg << ", 2S+1 = " << spin << flush;
 
 
       // PREPARE JOB DIRECTORY
@@ -128,7 +128,7 @@ namespace votca {
       string work_dir = (arg_path / "QMMM" / frame_dir / jobFolder).c_str();
       bool created = boost::filesystem::create_directories(work_dir);
       if (created) {
-        XTP_LOG(xtp::logINFO, *_log) << "Created directory " << work_dir << flush;
+        XTP_LOG(logINFO, *_log) << "Created directory " << work_dir << flush;
       }
       
       vector<string> split;
@@ -151,7 +151,7 @@ namespace votca {
         // check for polarized QM/MM convergence
         int info = Iterate(work_dir, iterCnt);
         if (info != 0) {
-          XTP_LOG(xtp::logERROR, *_log)
+          XTP_LOG(logERROR, *_log)
                   << format("Iterating job failed!") << flush;
           return 1;
         }
@@ -165,7 +165,7 @@ namespace votca {
       }
 
       if (iterCnt == iterMax - 1 && !_isConverged) {
-        XTP_LOG(xtp::logWARNING, *_log)
+        XTP_LOG(logWARNING, *_log)
                 << format("Not converged within %1$d iterations.") % iterMax;
         return 2;
       }
@@ -182,7 +182,7 @@ namespace votca {
         gdma.Initialize(_gdma_options);
         gdma.setLog(_log);
         gdma.SetRunDir(runFolder);
-        XTP_LOG(xtp::logINFO, *_log) << "Running GDMA " << flush;
+        XTP_LOG(logINFO, *_log) << "Running GDMA " << flush;
         gdma.WriteInputFile();
         gdma.RunExternal();
         gdma.ParseOutputFile();
@@ -192,16 +192,16 @@ namespace votca {
 
 
     void QMMachine::RunGWBSE(string& runFolder){
-      XTP_LOG(xtp::logDEBUG, *_log) << "Running GWBSE "<< flush;
+      XTP_LOG(logDEBUG, *_log) << "Running GWBSE "<< flush;
       GWBSE gwbse = GWBSE(orb_iter_input);
       // define own logger for GW-BSE that is written into a runFolder logfile
-      xtp::Logger gwbse_logger(xtp::logDEBUG);
+      Logger gwbse_logger(logDEBUG);
       gwbse_logger.setMultithreading(false);
       gwbse.setLogger(&gwbse_logger);
-      gwbse_logger.setPreface(xtp::logINFO, (format("\nGWBSE INF ...")).str());
-      gwbse_logger.setPreface(xtp::logERROR, (format("\nGWBSE ERR ...")).str());
-      gwbse_logger.setPreface(xtp::logWARNING, (format("\nGWBSE WAR ...")).str());
-      gwbse_logger.setPreface(xtp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+      gwbse_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
+      gwbse_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
+      gwbse_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
+      gwbse_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
       
       // Initialize with options
       gwbse.Initialize(_gwbse_options);
@@ -220,13 +220,13 @@ namespace votca {
     }
 
 
-    bool QMMachine::RunDFT(string& runFolder, std::vector<std::shared_ptr<xtp::PolarSeg> >& MultipolesBackground){
-      xtp::Logger dft_logger(xtp::logDEBUG);
+    bool QMMachine::RunDFT(string& runFolder, std::vector<std::shared_ptr<PolarSeg> >& MultipolesBackground){
+      Logger dft_logger(logDEBUG);
       dft_logger.setMultithreading(false);
-      dft_logger.setPreface(xtp::logINFO, (format("\nGWBSE INF ...")).str());
-      dft_logger.setPreface(xtp::logERROR, (format("\nGWBSE ERR ...")).str());
-      dft_logger.setPreface(xtp::logWARNING, (format("\nGWBSE WAR ...")).str());
-      dft_logger.setPreface(xtp::logDEBUG, (format("\nGWBSE DBG ...")).str());
+      dft_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
+      dft_logger.setPreface(logERROR, (format("\nGWBSE ERR ...")).str());
+      dft_logger.setPreface(logWARNING, (format("\nGWBSE WAR ...")).str());
+      dft_logger.setPreface(logDEBUG, (format("\nGWBSE DBG ...")).str());
       _qmpack->setLog(&dft_logger);
       
       _qmpack->setMultipoleBackground(MultipolesBackground);
@@ -234,8 +234,8 @@ namespace votca {
       // setting RUNDIR for the external QMPackages, dummy for internal
       _qmpack->setRunDir(runFolder);
       
-      XTP_LOG(xtp::logDEBUG, *_log) << "Writing input file " << runFolder << flush;
-      XTP_LOG(xtp::logDEBUG, *_log) << "Running DFT " << flush;
+      XTP_LOG(logDEBUG, *_log) << "Writing input file " << runFolder << flush;
+      XTP_LOG(logDEBUG, *_log) << "Running DFT " << flush;
       _qmpack->WriteInputFile(orb_iter_input);
       
       orb_iter_input.WriteXYZ(runFolder + "/system_qm.xyz");
@@ -276,9 +276,9 @@ namespace votca {
 
       bool created = boost::filesystem::create_directory(runFolder);
       if (created)
-        XTP_LOG(xtp::logDEBUG, *_log) << "Created directory " << runFolder << flush;
+        XTP_LOG(logDEBUG, *_log) << "Created directory " << runFolder << flush;
       else
-        XTP_LOG(xtp::logWARNING, *_log) << "Could not create directory " << runFolder << flush;
+        XTP_LOG(logWARNING, *_log) << "Could not create directory " << runFolder << flush;
 
       // RUN CLASSICAL INDUCTION & SAVE
       _job->getPolarTop()->PrintPDB(runFolder + "/QM0_MM1_MM2.pdb");
@@ -308,7 +308,7 @@ namespace votca {
        * in the external QMPackages or in the direct evaluation
        * in the internal DFT engine.
        */
-      std::vector<std::shared_ptr<xtp::PolarSeg> > MultipolesBackground = qminterface.GenerateMultipoleList(_job->getPolarTop());
+      std::vector<std::shared_ptr<PolarSeg> > MultipolesBackground = qminterface.GenerateMultipoleList(_job->getPolarTop());
 
       bool success=RunDFT(runFolder, MultipolesBackground);
       if (!success) {
@@ -319,11 +319,11 @@ namespace votca {
 double energy_ex=0.0;
       if (_do_gwbse) {
         if (_initialstate.Type()==QMStateType::Gstate) {
-         XTP_LOG(xtp::logDEBUG, *_log) <<"QMMMachine no GWBSE necessary for " + _initialstate.ToLongString();
+         XTP_LOG(logDEBUG, *_log) <<"QMMMachine no GWBSE necessary for " + _initialstate.ToLongString();
         }
         RunGWBSE(runFolder);
-        XTP_LOG(xtp::logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
-        XTP_LOG(xtp::logDEBUG, *_log) << "state:" << _initialstate.ToLongString() << flush;
+        XTP_LOG(logDEBUG, *_log) << "Excited state via GWBSE: " << flush;
+        XTP_LOG(logDEBUG, *_log) << "state:" << _initialstate.ToLongString() << flush;
         _filter.PrintInfo();
        
         QMState newstate= _filter.CalcStateAndUpdate(orb_iter_input);
@@ -347,9 +347,9 @@ double energy_ex=0.0;
       } // for polarized QMMM
 
       if (tools::globals::verbose) {
-        XTP_LOG(xtp::logDEBUG, *_log) << "Calculated partial charges" << flush;
+        XTP_LOG(logDEBUG, *_log) << "Calculated partial charges" << flush;
         for (const QMAtom* atom : orb_iter_input.QMAtoms()) {
-          XTP_LOG(xtp::logDEBUG, *_log) << atom->getElement() << " " << atom->getPartialcharge() << flush;
+          XTP_LOG(logDEBUG, *_log) << atom->getElement() << " " << atom->getPartialcharge() << flush;
         }
       }
       
@@ -374,32 +374,32 @@ double energy_ex=0.0;
       if (_do_archive) {
         // save orbitals
         std::string orb_file = runFolder + "/system.orb";
-        XTP_LOG(xtp::logDEBUG, *_log) << "Archiving data to " << orb_file << flush;
+        XTP_LOG(logDEBUG, *_log) << "Archiving data to " << orb_file << flush;
         orb_iter_input.WriteToCpt(orb_file);
       }
 
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("Summary - iteration %1$d:") % (iterCnt + 1) << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... QM Size  = %1$d atoms") % int(atoms.size()) << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... E(QM)    = %1$+4.9e") % thisIter->getQMEnergy() << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... E(GWBSE) = %1$+4.9e") % thisIter->getGWBSEEnergy() << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... E(SF)    = %1$+4.9e") % thisIter->getSFEnergy() << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... E(FM)    = %1$+4.9e") % thisIter->getFMEnergy() << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... E(MM)    = %1$+4.9e") % thisIter->getMMEnergy() << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... E(QMMM)  = %1$+4.9e") % thisIter->getQMMMEnergy() << flush;
       if (!_static_qmmm) {
-        XTP_LOG(xtp::logINFO, *_log)
+        XTP_LOG(logINFO, *_log)
                 << format("... RMS(dR)  = %1$+4.9e") % thisIter->getRMSdR() << flush;
-        XTP_LOG(xtp::logINFO, *_log)
+        XTP_LOG(logINFO, *_log)
                 << format("... RMS(dQ)  = %1$+4.9e") % thisIter->getRMSdQ() << flush;
-        XTP_LOG(xtp::logINFO, *_log)
+        XTP_LOG(logINFO, *_log)
                 << format("... SUM(dQ)  = %1$+4.9e") % thisIter->getSUMdQ() << flush;
       }
       // CLEAN DIRECTORY
@@ -425,7 +425,7 @@ double energy_ex=0.0;
       BasisSet dftbs;
       if (orb_iter_input.getDFTbasis() != "") {
         dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
       }else{
         throw std::runtime_error("Basisset in orb_iter_input not set");
       }
@@ -464,9 +464,9 @@ double energy_ex=0.0;
         double dE_QM = iter_1->getQMEnergy() - iter_0->getQMEnergy();
         double dE_MM = iter_1->getMMEnergy() - iter_0->getMMEnergy();
 
-        XTP_LOG(xtp::logINFO, *_log)
+        XTP_LOG(logINFO, *_log)
                 << format("... dE_QM  = %1$+4.9e") % dE_QM << flush;
-        XTP_LOG(xtp::logINFO, *_log)
+        XTP_LOG(logINFO, *_log)
                 << format("... dE_MM  = %1$+4.9e") % dE_MM << flush;
 
         if (dR <= _crit_dR) convg_dR = true;
@@ -477,13 +477,13 @@ double energy_ex=0.0;
 
       _isConverged = ((convg_dR && convg_dQ) && (convg_dE_QM && convg_dE_MM));
 
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... Convg dR = %s") % (convg_dR ? "true" : "false") << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... Convg dQ = %s") % (convg_dQ ? "true" : "false") << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... Convg QM = %s") % (convg_dE_QM ? "true" : "false") << flush;
-      XTP_LOG(xtp::logINFO, *_log)
+      XTP_LOG(logINFO, *_log)
               << format("... Convg MM = %s") % (convg_dE_MM ? "true" : "false") << flush;
 
       return _isConverged;

@@ -30,7 +30,7 @@
 namespace votca {
     namespace xtp {
 
-        class IAnalyze : public xtp::QMCalculator {
+        class IAnalyze : public QMCalculator {
         public:
 
             std::string Identify() {
@@ -38,16 +38,16 @@ namespace votca {
             }
 
             void Initialize(tools::Property *options);
-            bool EvaluateFrame(xtp::Topology *top);
-            void IHist(xtp::Topology *top, QMStateType state);
-            void IRdependence(xtp::Topology *top, QMStateType state);
+            bool EvaluateFrame(Topology *top);
+            void IHist(Topology *top, QMStateType state);
+            void IRdependence(Topology *top, QMStateType state);
 
         private:
 
             double _resolution_logJ2;
             std::vector<QMStateType> _states;
             double _resolution_space;
-            std::vector<xtp::QMPair::PairType> _pairtype;
+            std::vector<QMPair::PairType> _pairtype;
             bool _do_pairtype;
             bool _do_IRdependence;
 
@@ -77,8 +77,8 @@ namespace votca {
             if (opt->exists(key + ".pairtype")) {
                 _do_pairtype = true;
                 std::string _store_stdstring = opt->get(key + ".pairtype").as<std::string> ();
-                if (_store_stdstring.find("Hopping") != std::string::npos) _pairtype.push_back(xtp::QMPair::Hopping);
-                if (_store_stdstring.find("Excitoncl") != std::string::npos) _pairtype.push_back(xtp::QMPair::Excitoncl);
+                if (_store_stdstring.find("Hopping") != std::string::npos) _pairtype.push_back(QMPair::Hopping);
+                if (_store_stdstring.find("Excitoncl") != std::string::npos) _pairtype.push_back(QMPair::Excitoncl);
                 if (!_pairtype.size()) {
                     std::cout << std::endl << "... ... No pairtypes recognized will output all pairs. ";
                     _do_pairtype = false;
@@ -90,17 +90,17 @@ namespace votca {
             }
         }
 
-        bool IAnalyze::EvaluateFrame(xtp::Topology *top) {
+        bool IAnalyze::EvaluateFrame(Topology *top) {
             std::cout<<std::endl;
-            xtp::QMNBList &nblist = top->NBList();
+            QMNBList &nblist = top->NBList();
             if (!nblist.size()) {
                 std::cout << std::endl << "... ... No pairs in topology. Skip...";
                 return 0;
             }
             if (_do_pairtype) {
                 bool pairs_exist = false;
-                for (xtp::QMPair* pair:nblist) {
-                    xtp::QMPair::PairType pairtype = pair->getType();
+                for (QMPair* pair:nblist) {
+                    QMPair::PairType pairtype = pair->getType();
                     if (std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end()) {
                         pairs_exist = true;
                         break;
@@ -121,14 +121,14 @@ namespace votca {
             return true;
         }
 
-        void IAnalyze::IHist(xtp::Topology *top, QMStateType state) {
-            xtp::QMNBList &nblist = top->NBList();
+        void IAnalyze::IHist(Topology *top, QMStateType state) {
+            QMNBList &nblist = top->NBList();
 
             // Collect J2s from pairs
             std::vector< double > J2s;
-            for (xtp::QMPair* pair:nblist) {
+            for (QMPair* pair:nblist) {
                 if (_do_pairtype) {
-                    xtp::QMPair::PairType pairtype =pair->getType();
+                    QMPair::PairType pairtype =pair->getType();
                     if (!(std::find(_pairtype.begin(), _pairtype.end(), pairtype) != _pairtype.end())) {
                         continue;
                     }
@@ -167,9 +167,9 @@ namespace votca {
 
         }
 
-        void IAnalyze::IRdependence(xtp::Topology *top, QMStateType state) {
+        void IAnalyze::IRdependence(Topology *top, QMStateType state) {
 
-            xtp::QMNBList &nblist = top->NBList();
+            QMNBList &nblist = top->NBList();
 
             // Collect J2s from pairs
             std::vector< double > J2s;
@@ -177,7 +177,7 @@ namespace votca {
             std::vector< double > distances;
             distances.reserve(nblist.size());
 
-            for (xtp::QMPair* pair:nblist) {
+            for (QMPair* pair:nblist) {
                 double J2 = std::log10(pair->getJeff2(state.ToXTPIndex()));
                 double distance = tools::abs(pair->getR());
                 distances.push_back(distance);

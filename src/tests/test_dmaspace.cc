@@ -24,7 +24,7 @@
 
 using namespace std;
 using namespace votca::tools;
-using namespace votca::xtp::DMA;
+using namespace votca::DMA;
 
 BOOST_AUTO_TEST_SUITE(dmaspace_test)
 

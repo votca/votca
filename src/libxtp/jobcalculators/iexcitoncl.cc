@@ -115,7 +115,7 @@ namespace votca {
       return type2level;
     }
 
-        void IEXCITON::PreProcess(xtp::Topology *top) {
+        void IEXCITON::PreProcess(Topology *top) {
 
             // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
             cout << endl << "... ... Initialize MPS-mapper: " << flush;
@@ -124,13 +124,13 @@ namespace votca {
         }
 
        
-        xtp::Job::JobResult IEXCITON::EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *opThread) {
+        Job::JobResult IEXCITON::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
             // report back to the progress observer
-            xtp::Job::JobResult jres = xtp::Job::JobResult();
+            Job::JobResult jres = Job::JobResult();
 
             // get the logger from the thread
-            xtp::Logger* pLog = opThread->getLogger();
+            Logger* pLog = opThread->getLogger();
 
             // get the information about the job executed by the thread
             int job_ID = job->getId();
@@ -143,25 +143,25 @@ namespace votca {
             string type_B = segment_list.back()->getAttribute<string>("type");
             string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
 
-            xtp::Segment *seg_A = top->getSegment(ID_A);
-            xtp::Segment *seg_B = top->getSegment(ID_B);
+            Segment *seg_A = top->getSegment(ID_A);
+            Segment *seg_B = top->getSegment(ID_B);
 
-            XTP_LOG(xtp::logINFO, *pLog) << xtp::TimeStamp() << " Evaluating pair "
+            XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair "
                     << job_ID << " [" << ID_A << ":" << ID_B << "]" << flush;
 
-            vector<xtp::APolarSite*> seg_A_raw = xtp::APS_FROM_MPS(mps_fileA, 0, opThread);
-            vector<xtp::APolarSite*> seg_B_raw = xtp::APS_FROM_MPS(mps_fileB, 0, opThread);
+            vector<APolarSite*> seg_A_raw = APS_FROM_MPS(mps_fileA, 0, opThread);
+            vector<APolarSite*> seg_B_raw = APS_FROM_MPS(mps_fileB, 0, opThread);
 
-            xtp::PolarSeg seg_A_polar = *(_mps_mapper.MapPolSitesToSeg(seg_A_raw, seg_A));
-            xtp::PolarSeg seg_B_polar = *(_mps_mapper.MapPolSitesToSeg(seg_B_raw, seg_B));
+            PolarSeg seg_A_polar = *(_mps_mapper.MapPolSitesToSeg(seg_A_raw, seg_A));
+            PolarSeg seg_B_polar = *(_mps_mapper.MapPolSitesToSeg(seg_B_raw, seg_B));
 
             double JAB = EvaluatePair(top, &seg_A_polar, &seg_B_polar, pLog);
 
-            for (xtp::APolarSite* site : seg_A_raw) {
+            for (APolarSite* site : seg_A_raw) {
                 delete site;
             }
             seg_A_raw.clear();
-            for (xtp::APolarSite* site : seg_B_raw) {
+            for (APolarSite* site : seg_B_raw) {
                 delete site;
             }
             seg_B_raw.clear();
@@ -179,7 +179,7 @@ namespace votca {
             coupling_summary.setAttribute("jABstatic", JAB);
 
             jres.setOutput(job_summary);
-            jres.setStatus(xtp::Job::COMPLETE);
+            jres.setStatus(Job::COMPLETE);
 
             return jres;
         }
@@ -200,17 +200,17 @@ namespace votca {
       return state;
     }
 
-        double IEXCITON::EvaluatePair(xtp::Topology *top, xtp::PolarSeg* Seg1, xtp::PolarSeg* Seg2, xtp::Logger* pLog) {
+        double IEXCITON::EvaluatePair(Topology *top, PolarSeg* Seg1, PolarSeg* Seg2, Logger* pLog) {
 
-            xtp::XInteractor actor;
+            XInteractor actor;
             actor.ResetEnergy();
             Seg1->CalcPos();
             Seg2->CalcPos();
             vec s = top->PbShortestConnect(Seg1->getPos(), Seg2->getPos()) + Seg1->getPos() - Seg2->getPos();
 
             double E = 0.0;
-            for (xtp::APolarSite* site1 : *Seg1) {
-                for (xtp::APolarSite* site2 : *Seg2) {
+            for (APolarSite* site1 : *Seg1) {
+                for (APolarSite* site2 : *Seg2) {
                     actor.BiasIndu(*site1, *site2, s);
                     site1->Depolarize();
                     site2->Depolarize();
@@ -226,13 +226,13 @@ namespace votca {
             return E * conv::int2eV;
         }
 
-        void IEXCITON::WriteJobFile(xtp::Topology *top) {
+        void IEXCITON::WriteJobFile(Topology *top) {
 
             cout << endl << "... ... Writing job file " << flush;
             std::ofstream ofs;
             ofs.open(_jobfile.c_str(), std::ofstream::out);
             if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
-            xtp::QMNBList &nblist = top->NBList();
+            QMNBList &nblist = top->NBList();
             int jobCount = 0;
             if (nblist.size() == 0) {
                 cout << endl << "... ... No pairs in neighbor list, skip." << flush;
@@ -242,7 +242,7 @@ namespace votca {
             ofs << "<jobs>" << endl;
             string tag = "";
 
-            for (xtp::QMPair* pair:nblist) {
+            for (QMPair* pair:nblist) {
                 if (pair->getType() == 3) {
                     int id1 = pair->Seg1()->getId();
                     string name1 = pair->Seg1()->getName();
@@ -266,7 +266,7 @@ namespace votca {
                     pSegment2.setAttribute<int>("id", id2);
                     pSegment2.setAttribute<string>("mps_file", mps_file2);
 
-                    xtp::Job job(id, tag, Input, xtp::Job::AVAILABLE);
+                    Job job(id, tag, Input, Job::AVAILABLE);
                     job.ToStream(ofs, "xml");
                 }
             }
@@ -279,16 +279,16 @@ namespace votca {
 
         }
 
-        void IEXCITON::ReadJobFile(xtp::Topology *top) {
+        void IEXCITON::ReadJobFile(Topology *top) {
 
             Property xml;
             vector<Property*> records;
             // gets the neighborlist from the topology
-            xtp::QMNBList &nblist = top->NBList();
+            QMNBList &nblist = top->NBList();
             int number_of_pairs = nblist.size();
             int current_pairs = 0;
-            xtp::Logger log;
-            log.setReportLevel(xtp::logINFO);
+            Logger log;
+            log.setReportLevel(logINFO);
 
             // load the QC results in a vector indexed by the pair ID
             load_property_from_xml(xml, _jobfile);
@@ -307,12 +307,12 @@ namespace votca {
                     Property& poutput = prop->get("output.pair");
                     int idA = poutput.getAttribute<int>("idA");
                     int idB = poutput.getAttribute<int>("idB");      
-                    xtp::Segment *segA = top->getSegment(idA);
-                    xtp::Segment *segB = top->getSegment(idB);
-                    xtp::QMPair *qmp = nblist.FindPair(segA, segB);
+                    Segment *segA = top->getSegment(idA);
+                    Segment *segB = top->getSegment(idB);
+                    QMPair *qmp = nblist.FindPair(segA, segB);
 
                     if (qmp == NULL) { 
-                        XTP_LOG_SAVE(xtp::logINFO, log) << "No pair " << idA << ":" << idB << " found in the neighbor list. Ignoring" << flush;
+                        XTP_LOG_SAVE(logINFO, log) << "No pair " << idA << ":" << idB << " found in the neighbor list. Ignoring" << flush;
                     } else {
                         records[qmp->getId()] = &(prop->get("output.pair"));
                     }
@@ -324,13 +324,13 @@ namespace votca {
 
 
             // loop over all pairs in the neighbor list
-            XTP_LOG_SAVE(xtp::logINFO, log) << "Neighborlist size " << top->NBList().size() << flush;
-            for (xtp::QMPair *pair: top->NBList()) {
+            XTP_LOG_SAVE(logINFO, log) << "Neighborlist size " << top->NBList().size() << flush;
+            for (QMPair *pair: top->NBList()) {
 
                 if (records[ pair->getId() ] == NULL) continue; //skip pairs which are not in the jobfile
                 double Jeff2 = 0.0;
                 double jAB = 0.0;
-                if (pair->getType() == xtp::QMPair::Excitoncl) {
+                if (pair->getType() == QMPair::Excitoncl) {
                     Property* pair_property = records[ pair->getId() ];
                     list<Property*> pCoupling = pair_property->Select("Coupling");
                     for (Property* coup:pCoupling) {
@@ -341,7 +341,7 @@ namespace votca {
                     pair->setIsPathCarrier(true, 2);
                 }
             }
-            XTP_LOG_SAVE(xtp::logINFO, log) << "Pairs [total:updated] " << number_of_pairs << ":" << current_pairs << flush;
+            XTP_LOG_SAVE(logINFO, log) << "Pairs [total:updated] " << number_of_pairs << ":" << current_pairs << flush;
             cout << log;
         }
 

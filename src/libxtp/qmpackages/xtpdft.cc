@@ -93,7 +93,7 @@ namespace votca {
 
     void XTPDFT::CleanUp() {
       if (_cleanup.size() != 0) {
-        XTP_LOG(xtp::logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "Removing " << _cleanup << " files" << flush;
         tools::Tokenizer tok_cleanup(_cleanup, ", ");
         std::vector <std::string> cleanup_info;
         tok_cleanup.ToVector(cleanup_info);
@@ -122,7 +122,7 @@ namespace votca {
           try{
           orbitals.ReadFromCpt(_log_file_name);
           }catch(std::runtime_error& error){
-            XTP_LOG(xtp::logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
+            XTP_LOG(logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
             return false;
           }
             return true;

@@ -63,11 +63,11 @@ namespace votca {
                          tok.ConvertToVector<int>(reg.atomindices);
                          reg.charge=prop->get("charge").as<double>();
                          _regionconstraint.push_back(reg);
-                         XTP_LOG(xtp::logDEBUG, *_log) << "Fit constrained by SUM(";
+                         XTP_LOG(logDEBUG, *_log) << "Fit constrained by SUM(";
                          for(int i:reg.atomindices){
-                             XTP_LOG(xtp::logDEBUG, *_log)<<i<<" ";
+                             XTP_LOG(logDEBUG, *_log)<<i<<" ";
                          }
-                        XTP_LOG(xtp::logDEBUG, *_log)<<")="<<reg.charge<< flush;
+                        XTP_LOG(logDEBUG, *_log)<<")="<<reg.charge<< flush;
                      }
                  }
                  if (options.exists(key + ".constraints.pairs")) {
@@ -81,7 +81,7 @@ namespace votca {
                         pair.first=pairvec[0];
                         pair.second=pairvec[1];
                         _pairconstraint.push_back(pair);
-                        XTP_LOG(xtp::logDEBUG, *_log) << "Charge "<<pair.first<<" "<<pair.second<<" constrained to be equal."<<flush;
+                        XTP_LOG(logDEBUG, *_log) << "Charge "<<pair.first<<" "<<pair.second<<" constrained to be equal."<<flush;
                      }
                  }
             }
@@ -111,7 +111,7 @@ namespace votca {
             std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
 
             QMInterface Converter;
-            xtp::PolarSeg result = Converter.Convert(_Atomlist);
+            PolarSeg result = Converter.Convert(_Atomlist);
 
             result.WriteMPS(output_file, tag);
             return;
@@ -143,7 +143,7 @@ namespace votca {
             if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
             threads = omp_get_max_threads();
 #endif
-            XTP_LOG(xtp::logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
+            XTP_LOG(logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
 
             _atomlist = orbitals.QMAtoms();
             BasisSet bs;

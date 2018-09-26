@@ -88,9 +88,9 @@ namespace votca {
         Eigen::VectorXd decayrates=Eigen::VectorXd::Ones(_nodes.size());
         
         for (unsigned i=0;i<_nodes.size();i++){
-            GNode* node=_nodes[i];
-            if(node->hasdecay){
-                for(const GLink& event:node->events){
+            GNode& node=_nodes[i];
+            if(node.hasdecay){
+                for(const GLink& event:node.events){
                     if(event.decayevent){
                         decayrates[i]=event.rate;
                     }else{
@@ -107,7 +107,7 @@ namespace votca {
         probs.open ( filename.c_str(), fstream::out);
         probs<<"#SiteID, Relative Prob outgoing, Relative Prob ingoing"<<endl;
         for (unsigned i=0;i<_nodes.size();i++){
-            probs<<_nodes[i]->id<<" "<<outrates[i]<<" "<<inrates[i]<<endl;
+            probs<<_nodes[i].id<<" "<<outrates[i]<<" "<<inrates[i]<<endl;
         }
         probs.close();
         return;
@@ -127,13 +127,13 @@ namespace votca {
             int site_id =prop->getAttribute<int>("id")-1;
             double lifetime=boost::lexical_cast<double>(prop->value());
             bool check=false;
-            for (unsigned i=0;i<_nodes.size();i++){
-                if (_nodes[i]->id==site_id && !(_nodes[i]->hasdecay)){
-                    _nodes[i]->AddDecayEvent(1.0/lifetime);
+            for (auto& node:_nodes){
+                if (node.id==site_id && !(node.hasdecay)){
+                    node.AddDecayEvent(1.0/lifetime);
                     check=true;
                     break;
                 }
-                else if(_nodes[i]->id==site_id && _nodes[i]->hasdecay){
+                else if(node.id==site_id && node.hasdecay){
                     throw runtime_error((boost::format("Node %i appears twice in your list") %site_id).str());
                 } 
             }
@@ -189,10 +189,10 @@ namespace votca {
 
         double avlifetime=0.0;
         double meanfreepath=0.0;
-        Eigen::Vector3d difflength=Eigen::Vector3d::Zero();
+        Eigen::Vector3d difflength_squared=Eigen::Vector3d::Zero();
     
-        double avgenergy=_carriers[0]->getCurrentEnergy();
-        int     carrieridold=_carriers[0]->id;
+        double avgenergy=_carriers[0].getCurrentEnergy();
+        int    carrieridold=_carriers[0].id;
 
         while (insertioncount < _insertions) {
             if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
@@ -203,8 +203,8 @@ namespace votca {
      
             double cumulated_rate = 0;
 
-            for (unsigned int i = 0; i < _carriers.size(); i++) {
-                cumulated_rate += _carriers[i]->getCurrentEscapeRate();
+            for (const auto& carrier:_carriers) {
+                cumulated_rate += carrier.getCurrentEscapeRate();
             }
             if (cumulated_rate == 0) { // this should not happen: no possible jumps defined for a node
                 throw runtime_error("ERROR in kmclifetime: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
@@ -214,26 +214,26 @@ namespace votca {
 
             if(_do_carrierenergy){
                 bool print=false;
-                if (_carriers[0]->id>carrieridold){
-                    avgenergy=_carriers[0]->getCurrentEnergy();
+                if (_carriers[0].id>carrieridold){
+                    avgenergy=_carriers[0].getCurrentEnergy();
                     print=true;
-                    carrieridold=_carriers[0]->id;
+                    carrieridold=_carriers[0].id;
                 }
                 else if(step%_outputsteps==0){
-                    avgenergy=_alpha*_carriers[0]->getCurrentEnergy()+(1-_alpha)*avgenergy;
+                    avgenergy=_alpha*_carriers[0].getCurrentEnergy()+(1-_alpha)*avgenergy;
                     print=true;
                 }
                 if(print){
-                    energyfile << simtime<<"\t"<<step <<"\t"<<_carriers[0]->id<<"\t"<<avgenergy<<endl;                  
+                    energyfile << simtime<<"\t"<<step <<"\t"<<_carriers[0].id<<"\t"<<avgenergy<<endl;
                 }
             }
 
             simtime += dt;
             step++;
-            for (unsigned int i = 0; i < _carriers.size(); i++) {
-                _carriers[i]->updateLifetime(dt);
-                _carriers[i]->updateSteps(1);
-                _carriers[i]->updateOccupationtime(dt);
+            for (auto& carrier:_carriers) {
+               carrier.updateLifetime(dt);
+               carrier.updateSteps(1);
+               carrier.updateOccupationtime(dt);
             }
 
             ResetForbiddenlist(forbiddennodes);
@@ -255,13 +255,13 @@ namespace votca {
                     // LEVEL 2
 
                     newnode = NULL;
-                    GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
+                   const GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
                     if (event->decayevent){
                        
                         avlifetime+=affectedcarrier->getLifetime();
                         meanfreepath+=affectedcarrier->dr_travelled.norm();
-                        difflength+=affectedcarrier->dr_travelled.cwiseAbs2();
+                        difflength_squared+=affectedcarrier->dr_travelled.cwiseAbs2();
                         traj << simtime<<"\t"<<insertioncount<< "\t"<< 
                                 affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()
                                 <<"\t"<<affectedcarrier->getSteps()<<"\t"<< affectedcarrier->getCurrentNodeId()+1
@@ -278,7 +278,7 @@ namespace votca {
                         break;
                             }
                     else{
-                    newnode = _nodes[event->destination];
+                    newnode = &_nodes[event->destination];
                     }
 
                     // check after the event if this was allowed
@@ -316,7 +316,7 @@ namespace votca {
         cout << "Total KMC steps:\t\t\t\t"<< step << endl;
         cout << "Average lifetime:\t\t\t\t"<<avlifetime/insertioncount<< " s"<<endl;
         cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"<<(meanfreepath/insertioncount)<< " nm"<<endl;
-        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<sqrt(abs(difflength)/insertioncount)<< " nm"<<endl;
+        cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<std::sqrt(difflength_squared.norm()/insertioncount)<< " nm"<<endl;
         cout<<endl;
 
         PrintJumplengthdistro();
@@ -324,7 +324,7 @@ namespace votca {
         vector< Segment* >& seg = top->Segments();
 
         for (unsigned i = 0; i < seg.size(); i++) {
-            double occupationprobability=_nodes[i]->occupationtime / simtime;
+            double occupationprobability=_nodes[i].occupationtime / simtime;
             seg[i]->setOcc(occupationprobability,_carriertype.ToXTPIndex());
         }
         traj.close();

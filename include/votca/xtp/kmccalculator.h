@@ -47,12 +47,10 @@ namespace votca { namespace xtp {
    
 
 
-class KMCCalculator : public xtp::QMCalculator 
+class KMCCalculator : public QMCalculator 
 {
 public:
-    
-    
-   KMCCalculator();
+
    virtual ~KMCCalculator() {};
    
    
@@ -64,8 +62,8 @@ protected:
        
             QMStateType _carriertype;
             
-	    void LoadGraph(xtp::Topology *top);
-            virtual void  RunVSSM(xtp::Topology *top){};
+	    void LoadGraph(Topology *top);
+            virtual void  RunVSSM(Topology *top){};
             void InitialRates();
             
             double Promotetime(double cumulated_rate);
@@ -73,7 +71,7 @@ protected:
             void AddtoForbiddenlist(int id, std::vector<int> &forbiddenid);
             bool CheckForbidden(int id,const std::vector<int> &forbiddenlist);
             bool CheckSurrounded(GNode* node,const std::vector<int> &forbiddendests);
-            GLink* ChooseHoppingDest(GNode* node);
+            const GLink* ChooseHoppingDest(const GNode* node);
             Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
             
             
@@ -81,8 +79,8 @@ protected:
             void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
             void AddtoJumplengthdistro(const GLink* event, double dt);
             void PrintJumplengthdistro();
-            std::vector<GNode*> _nodes;
-            std::vector< Chargecarrier* > _carriers;
+            std::vector<GNode> _nodes;
+            std::vector< Chargecarrier > _carriers;
             tools::Random2 _RandomVariable;
            
             std::string _injection_name;
@@ -95,7 +93,7 @@ protected:
             double lengthresolution;
             double minlength;
             int _seed;
-            unsigned _numberofcharges;
+            int _numberofcharges;
             Eigen::Vector3d _field;
             
             double _temperature;

@@ -55,7 +55,7 @@ namespace votca {
 
             void CleanUp();
 
-            void setLogger(xtp::Logger* pLog) {
+            void setLogger(Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -64,7 +64,7 @@ namespace votca {
                 _do_externalfield = true;
             }
 
-            void setExternalcharges(std::vector<std::shared_ptr<xtp::PolarSeg> > externalsites) {
+            void setExternalcharges(std::vector<std::shared_ptr<PolarSeg> > externalsites) {
                 _externalsites = externalsites;           
                 _addexternalsites = true;
             }
@@ -106,11 +106,11 @@ namespace votca {
             Eigen::MatrixXd RunAtomicDFT_fractional(QMAtom* uniqueAtom);
             
             void NuclearRepulsion();
-            double ExternalRepulsion(xtp::Topology* top = NULL);
+            double ExternalRepulsion(Topology* top = NULL);
             double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
             Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat, AOBasis& dftbasis);
 
-            xtp::Logger *_pLog;
+            Logger *_pLog;
 
             int _openmp_threads;
 
@@ -191,7 +191,7 @@ namespace votca {
             ERIs _ERIs;
 
             // external charges
-            std::vector<std::shared_ptr<xtp::PolarSeg> > _externalsites;
+            std::vector<std::shared_ptr<PolarSeg> > _externalsites;
             bool _addexternalsites;
 
             // exchange and correlation

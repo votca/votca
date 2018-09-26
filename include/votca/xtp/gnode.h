@@ -51,8 +51,8 @@ class GNode
         const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
         void AddDecayEvent(double decayrate);
-        void ReadfromSegment(xtp::Segment* seg, int carriertype);
-        void AddEventfromQmPair(xtp::QMPair* pair,int carriertype);
+        void ReadfromSegment(Segment* seg, int carriertype);
+        void AddEventfromQmPair(QMPair* pair,int carriertype);
 };
 
 

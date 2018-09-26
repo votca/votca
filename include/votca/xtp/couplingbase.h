@@ -52,10 +52,10 @@ public:
     virtual void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
                                const Orbitals& orbitalsB)=0;
     
-    void setLogger( xtp::Logger* pLog ) { _pLog = pLog; }
+    void setLogger( Logger* pLog ) { _pLog = pLog; }
     
 protected:
-    xtp::Logger *_pLog;
+    Logger *_pLog;
     void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
    
    Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB);
@@ -90,7 +90,7 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
       monomer = &atomsB[i - atomsA.size()];
     } else {
       // Linker
-      XTP_LOG(xtp::logERROR, *_pLog) << (boost::format("Neither Monomer A nor Monomer B contains "
+      XTP_LOG(logERROR, *_pLog) << (boost::format("Neither Monomer A nor Monomer B contains "
               "atom %s on line %u. Hence, this atom is part of a linker.") %dimer.getElement() %(i+1) ).str()<<std::flush;
       continue;
     }
@@ -105,7 +105,7 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
   }
   
   if(!coordinates_agree){
-        XTP_LOG(xtp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
+        XTP_LOG(logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
               "and dimer atoms do not agree" << std::flush;
   }
 }

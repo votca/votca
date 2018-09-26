@@ -46,7 +46,7 @@ struct Population {
     
  public:
  
-  BSE(Orbitals& orbitals,xtp::Logger *log,double min_print_weight):
+  BSE(Orbitals& orbitals,Logger *log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -112,7 +112,7 @@ struct Population {
  private:
  
       
-xtp::Logger *_log;
+Logger *_log;
   int  _homo;
   int  _bse_vmin;
   int  _bse_vmax;

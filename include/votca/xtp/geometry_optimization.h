@@ -43,7 +43,7 @@ namespace votca {
 
             void Initialize(tools::Property& options);
 
-            void setLog(xtp::Logger* pLog) {
+            void setLog(Logger* pLog) {
                 _pLog = pLog;
             }
 
@@ -51,7 +51,7 @@ namespace votca {
 
         private:
 
-            static void Report(const BFGSTRM& bfgstrm, xtp::Logger* pLog);
+            static void Report(const BFGSTRM& bfgstrm, Logger* pLog);
             static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms,
                                         const BFGSTRM& bfgstrm);
 
@@ -68,7 +68,7 @@ namespace votca {
             tools::Property _filter_options;
             tools::Property _force_options;
 
-            xtp::Logger *_pLog;
+            Logger *_pLog;
         };
 
     }

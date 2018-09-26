@@ -72,7 +72,7 @@ namespace votca {
             // check if the input file exists
             string fullInput = _runFolder + "/gdma.in";
             if (!boost::filesystem::exists(fullInput)) {
-                XTP_LOG(xtp::logINFO, *_log) << "GDMA input file has not been found!" << flush;
+                XTP_LOG(logINFO, *_log) << "GDMA input file has not been found!" << flush;
                 throw runtime_error(" GDMA cannot be run! ");
             }
 
@@ -90,12 +90,12 @@ namespace votca {
                     }
                     // check again for fchk
                     if (!boost::filesystem::exists(fullFChk)) {
-                        XTP_LOG(xtp::logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
+                        XTP_LOG(logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
                         throw runtime_error(" GDMA cannot be run! ");
 
                     }
                 } else {
-                    XTP_LOG(xtp::logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
+                    XTP_LOG(logINFO, *_log) << "Formatted Checkpoint file has not been found and cannot be created!" << flush;
                     throw runtime_error(" GDMA cannot be run! ");
                 }
             }

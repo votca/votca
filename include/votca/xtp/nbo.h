@@ -41,14 +41,14 @@ namespace votca { namespace xtp {
 class NBO{
 public:
     
-    NBO(xtp::Logger *log){_log = log;}
+    NBO(Logger *log){_log = log;}
    ~NBO(){};
        
    void EvaluateNBO(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat,const AOBasis &_basis, BasisSet &bs);
   
 private:
     
-     xtp::Logger *_log;
+     Logger *_log;
      votca::tools::Elements _elements; 
     
     Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd  &P,Eigen::MatrixXd  &Overlap,std::vector< QMAtom* >& _atomlist, BasisSet &bs);

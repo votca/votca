@@ -40,7 +40,7 @@ namespace votca {
          * Callname: iexcitoncl
          */
 
-        class IEXCITON : public xtp::ParallelXJobCalc< vector<xtp::Job*>, xtp::Job*, xtp::Job::JobResult > {
+        class IEXCITON : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult > {
         public:
 
             void Initialize(tools::Property *options);
@@ -49,23 +49,23 @@ namespace votca {
                 return "iexcitoncl";
             }
 
-            xtp::Job::JobResult EvalJob(xtp::Topology *top, xtp::Job *job, xtp::QMThread *Thread);
+            Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);
 
-            void WriteJobFile(xtp::Topology *top);
-            void ReadJobFile(xtp::Topology *top);
+            void WriteJobFile(Topology *top);
+            void ReadJobFile(Topology *top);
 
         private:
             QMState GetElementFromMap(const std::string& elementname )const;
             std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
             double _cutoff;
             double _epsilon;
-            xtp::XMpsMap _mps_mapper;
+            XMpsMap _mps_mapper;
             bool _induce;
             std::map<std::string,QMState> _statemap;
             string _emp_file;
             string _xml_file;
-            void PreProcess(xtp::Topology *top);
-            double EvaluatePair(xtp::Topology *top, xtp::PolarSeg* Seg1, xtp::PolarSeg* Seg2, xtp::Logger* pLog);
+            void PreProcess(Topology *top);
+            double EvaluatePair(Topology *top, PolarSeg* Seg1, PolarSeg* Seg2, Logger* pLog);
 
         };
 

@@ -28,7 +28,7 @@
 
 namespace votca { namespace xtp {
    
-class Rates : public xtp::PairCalculator2
+class Rates : public PairCalculator2
 {
 public:
 
@@ -38,9 +38,9 @@ public:
     std::string Identify() { return "rates"; }
 
     void Initialize(tools::Property *options);
-    void ParseEnergiesXML(xtp::Topology *top, tools::Property *opt);
-    void EvaluatePair(xtp::Topology *top, xtp::QMPair *pair);
-    void CalculateRate(xtp::Topology *top, xtp::QMPair *pair, int state);
+    void ParseEnergiesXML(Topology *top, tools::Property *opt);
+    void EvaluatePair(Topology *top, QMPair *pair);
+    void CalculateRate(Topology *top, QMPair *pair, int state);
 
 
 private:
@@ -252,7 +252,7 @@ void Rates::Initialize(tools::Property *options) {
 }
 
 
-void Rates::ParseEnergiesXML(xtp::Topology *top, tools::Property *opt) {
+void Rates::ParseEnergiesXML(Topology *top, tools::Property *opt) {
 
     std::string key = "options.rates";
     std::string energiesXML = opt->get(key+".energiesXML").as<std::string> ();
@@ -354,7 +354,7 @@ void Rates::ParseEnergiesXML(xtp::Topology *top, tools::Property *opt) {
 }
 
 
-void Rates::EvaluatePair(xtp::Topology *top, xtp::QMPair *qmpair) {
+void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
 
     std::cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << ". " << std::flush;
 
@@ -398,13 +398,13 @@ void Rates::EvaluatePair(xtp::Topology *top, xtp::QMPair *qmpair) {
 }
 
 
-void Rates::CalculateRate(xtp::Topology *top, xtp::QMPair *qmpair, int state) {
+void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 
     const double NM2M    = 1.e-9;
     const double hbar_eV = 6.58211899e-16;
 
-    xtp::Segment *seg1 = qmpair->first;
-    xtp::Segment *seg2 = qmpair->second;
+    Segment *seg1 = qmpair->first;
+    Segment *seg2 = qmpair->second;
 
     double rate12 = 0.;                                       // 1->2
 

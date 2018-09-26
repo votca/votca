@@ -32,10 +32,10 @@ namespace votca {
       MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
-      XTP_LOG(xtp::logDEBUG, *_log)
-        << xtp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
-      XTP_LOG(xtp::logDEBUG, *_log)
-        << xtp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
       return;
     }
@@ -45,10 +45,10 @@ namespace votca {
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
       Add_Hx<real_gwbse>(H,2.0);
-      XTP_LOG(xtp::logDEBUG, *_log)
-        << xtp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
-      XTP_LOG(xtp::logDEBUG, *_log)
-        << xtp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
       return;
     }
@@ -84,12 +84,12 @@ namespace votca {
  
         Add_Hx<double>(ApB,4.0);
         Add_Hd2<double>(ApB,1.0);
-        XTP_LOG(xtp::logDEBUG, *_log)
-        << xtp::TimeStamp() << " Setup singlet hamiltonian " << flush;
+        XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Setup singlet hamiltonian " << flush;
      
       // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
       //(A-B) is not needed any longer and can be overwritten
-      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(AmB);
       
        for (int i=0;i<AmB.rows();++i){
@@ -99,24 +99,24 @@ namespace votca {
         }
 
       if(L.info()!=0){
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
         throw std::runtime_error("Cholesky decompostion failed");
       }else{
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was successful"<<flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() <<" Cholesky decomposition of KAA-KAB was successful"<<flush;
       }
       Eigen::MatrixXd temp= ApB*AmB;
       ApB.noalias() =AmB.transpose()*temp;
       temp.resize(0,0);
-      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;     
-      XTP_LOG(xtp::logDEBUG, *_log)
-        << xtp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
+      XTP_LOG(logDEBUG, *_log)
+        << TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
       bool success_diag=tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors ,_bse_nmax);
       if(!success_diag){
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Could not solve problem" << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Could not solve problem" << flush;
       }else{
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
       }
       ApB.resize(0,0);
       eigenvalues=eigenvalues.cwiseSqrt();
@@ -364,16 +364,16 @@ template <typename T>
     }
 
     void BSE::printFragInfo(const Population& pop, int i){
-      XTP_LOG(xtp::logINFO, *_log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+      XTP_LOG(logINFO, *_log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
               % (100.0 * pop.popH[i](0)) % (100.0 * pop.popE[i](0)) % (pop.Crgs[i](0)) % (pop.Crgs[i](0) + pop.popGs(0)) << flush;
-      XTP_LOG(xtp::logINFO, *_log) << format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
+      XTP_LOG(logINFO, *_log) << format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
               % (100.0 * pop.popH[i](1)) % (100.0 * pop.popE[i](1)) % (pop.Crgs[i](1)) % (pop.Crgs[i](1) + pop.popGs(1)) << flush;
       return;
     }
 
     void BSE::printWeights(int i_bse, double weight){
       if (weight > _min_print_weight) {
-        XTP_LOG(xtp::logINFO, *_log) << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
+        XTP_LOG(logINFO, *_log) << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
                 % (_homo - _index2v[i_bse]) % (_index2c[i_bse] - _homo - 1) % (100.0 * weight) << flush;
       }
       return;
@@ -400,20 +400,20 @@ template <typename T>
       }
       
       double hrt2ev = tools::conv::hrt2ev;
-      XTP_LOG(xtp::logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
+      XTP_LOG(logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {     
         const Eigen::Vector3d& trdip = transition_dipoles[i];
         double osc = oscs[i];
         if (tools::globals::verbose) {
-          XTP_LOG(xtp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
+          XTP_LOG(logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
                   % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i)))
                   % (hrt2ev * act.qp_contrib(i)) % (hrt2ev * act.exchange_contrib(i)) % (hrt2ev * act.direct_contrib(i)) << flush;
         } else {
-          XTP_LOG(xtp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+          XTP_LOG(logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                   % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i))) << flush;
         }
-        XTP_LOG(xtp::logINFO, *_log) << format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
+        XTP_LOG(logINFO, *_log) << format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
                 % trdip[0] % trdip[1] % trdip[2] % (trdip.squaredNorm()) % osc << flush;
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
@@ -428,7 +428,7 @@ template <typename T>
           printFragInfo(pop, i);
         }
 
-        XTP_LOG(xtp::logINFO, *_log) << flush;
+        XTP_LOG(logINFO, *_log) << flush;
       }
       return;
     }
@@ -451,15 +451,15 @@ template <typename T>
         _orbitals.setFragment_H_localisation_triplet(pop.popH);
         _orbitals.setFragmentChargesGS(pop.popGs);
       }
-      XTP_LOG(xtp::logINFO, *_log) << "  ====== triplet energies (eV) ====== " << flush;
+      XTP_LOG(logINFO, *_log) << "  ====== triplet energies (eV) ====== " << flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {    
         if (tools::globals::verbose) {
-          XTP_LOG(xtp::logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
+          XTP_LOG(logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))
                   % (tools::conv::hrt2ev * act.qp_contrib(i)) % (tools::conv::hrt2ev *act.direct_contrib(i)) << flush;
         } else {
-          XTP_LOG(xtp::logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
+          XTP_LOG(logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i))) << flush;
         }
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
@@ -471,7 +471,7 @@ template <typename T>
         if (dftbasis.getAOBasisFragA() > 0) {
           printFragInfo(pop, i);
         }
-        XTP_LOG(xtp::logINFO, *_log) << format("   ") << flush;
+        XTP_LOG(logINFO, *_log) << format("   ") << flush;
       }
       // storage to orbitals object
 
@@ -527,7 +527,7 @@ template <typename T>
       // Mulliken fragment population analysis
         AOOverlap dftoverlap;
         dftoverlap.Fill(dftbasis);
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
         // ground state populations
         Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
         Eigen::VectorXd nuccharges = _orbitals.FragmentNuclearCharges(dftbasis.getAOBasisFragA());
@@ -548,7 +548,7 @@ template <typename T>
           Eigen::VectorXd diff = popsH - popsE;
           pop.Crgs.push_back(diff);
         }
-        XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Ran Excitation fragment population analysis " << flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Ran Excitation fragment population analysis " << flush;
      
       return pop;
     }
@@ -567,7 +567,7 @@ template <typename T>
       for (int i_comp = 0; i_comp < 3; i_comp++) {
         interlevel_dipoles.push_back(occ.transpose() * dft_dipole.Matrix()[i_comp] * empty);
       }
-      XTP_LOG(xtp::logDEBUG, *_log) << xtp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
       return interlevel_dipoles;
     }
 

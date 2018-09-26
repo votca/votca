@@ -46,15 +46,15 @@ namespace votca {
 
             if (orbitals.hasAOOverlap()) {
                 dftbasis.ReorderMatrix(orbitals.AOOverlap(), getPackageName(), "xtp");
-                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
+                XTP_LOG(logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
             }
             if (orbitals.hasAOVxc()) {
                 dftbasis.ReorderMatrix(orbitals.AOVxc(), getPackageName(), "xtp");
-                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
+                XTP_LOG(logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
             }
             if (orbitals.hasMOCoefficients()) {
                 dftbasis.ReorderMOs(orbitals.MOCoefficients(), getPackageName(), "xtp");
-                XTP_LOG(xtp::logDEBUG, *_pLog) << "Reordered MOs" << flush;
+                XTP_LOG(logDEBUG, *_pLog) << "Reordered MOs" << flush;
             }
 
             return;
@@ -72,7 +72,7 @@ namespace votca {
             return;
         }
 
-        std::vector<std::vector<double> > QMPackage::SplitMultipoles(xtp::APolarSite* aps) {
+        std::vector<std::vector<double> > QMPackage::SplitMultipoles(APolarSite* aps) {
 
             std::vector< std::vector<double> > multipoles_split;
 
@@ -119,7 +119,7 @@ namespace votca {
             return multipoles_split;
         }
         
-      void QMPackage::setMultipoleBackground(std::vector<std::shared_ptr<xtp::PolarSeg> > PolarSegments) {
+      void QMPackage::setMultipoleBackground(std::vector<std::shared_ptr<PolarSeg> > PolarSegments) {
         if(PolarSegments.size()==0){
           std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
           return;

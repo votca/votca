@@ -85,21 +85,21 @@ namespace votca {
 
             //redirect log, if required
             // define own logger for GW-BSE that is written into a runFolder logfile
-            xtp::Logger gwbse_engine_logger(_pLog->getReportLevel());
-            xtp::Logger* logger = _pLog;
+            Logger gwbse_engine_logger(_pLog->getReportLevel());
+            Logger* logger = _pLog;
             if (_redirect_logger) {
                 gwbse_engine_logger.setMultithreading(false);
-                gwbse_engine_logger.setPreface(xtp::logINFO, (format("\n ...")).str());
-                gwbse_engine_logger.setPreface(xtp::logERROR, (format("\n ...")).str());
-                gwbse_engine_logger.setPreface(xtp::logWARNING, (format("\n ...")).str());
-                gwbse_engine_logger.setPreface(xtp::logDEBUG, (format("\n ...")).str());
+                gwbse_engine_logger.setPreface(logINFO, (format("\n ...")).str());
+                gwbse_engine_logger.setPreface(logERROR, (format("\n ...")).str());
+                gwbse_engine_logger.setPreface(logWARNING, (format("\n ...")).str());
+                gwbse_engine_logger.setPreface(logDEBUG, (format("\n ...")).str());
                 logger = &gwbse_engine_logger;
             }
             _qmpackage->setLog(logger);
             if (_do_dft_input) {
                 // required for merged guess
                 if (_qmpackage->GuessRequested() && _do_guess) { // do not want to do an SCF loop for a dimer
-                    XTP_LOG_SAVE(xtp::logINFO, *logger) << "Guess requested, reading molecular orbitals" << flush;
+                    XTP_LOG_SAVE(logINFO, *logger) << "Guess requested, reading molecular orbitals" << flush;
                     Orbitals orbitalsA, orbitalsB;
                     orbitalsA.ReadFromCpt(_guess_archiveA);
                     orbitalsB.ReadFromCpt(_guess_archiveB);
@@ -116,7 +116,7 @@ namespace votca {
 
             // parse DFT data, if required
             if (_do_dft_parse && _qmpackage->getPackageName() != "xtp") {
-                XTP_LOG_SAVE(xtp::logINFO, *logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
+                XTP_LOG_SAVE(logINFO, *logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
                 _qmpackage->setLogFileName(_dftlog_file);
                 _qmpackage->setOrbitalsFileName(_MO_file);
                 _qmpackage->ParseLogFile(orbitals);
@@ -125,7 +125,7 @@ namespace votca {
 
             // if no parsing of DFT data is requested, reload serialized orbitals object
             if (!_do_dft_parse && _do_gwbse) {
-                XTP_LOG_SAVE(xtp::logINFO, *logger) << "Loading serialized data from " << _archive_file << flush;
+                XTP_LOG_SAVE(logINFO, *logger) << "Loading serialized data from " << _archive_file << flush;
                 orbitals.ReadFromCpt(_archive_file);
             }
             tools::Property &output_summary = _summary.add("output", "");
@@ -140,7 +140,7 @@ namespace votca {
             return;
         }
 
-        void GWBSEEngine::WriteLoggerToFile(xtp::Logger* pLog) {
+        void GWBSEEngine::WriteLoggerToFile(Logger* pLog) {
             std::ofstream ofs;
             ofs.open(_logger_file.c_str(), std::ofstream::out);
             if (!ofs.is_open()) {
