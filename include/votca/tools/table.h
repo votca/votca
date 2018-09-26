@@ -15,10 +15,9 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_TABLE_H
-#define _VOTCA_TOOLS_TABLE_H
+#ifndef VOTCA_TOOLS_TABLE_H
+#define VOTCA_TOOLS_TABLE_H
 
-#include <iostream>
 #include <votca/tools/eigen.h>
 #include <vector>
 #include <string>
@@ -139,7 +138,6 @@ inline Table::Table() {
 }
 
 inline Table::Table(Table &tbl) {
-  resize(tbl.size());
   _x = tbl._x;
   _y = tbl._y;
   _flags = tbl._flags;
@@ -184,4 +182,4 @@ inline void Table::push_back(double x, double y, char flags) {
 }
 }
 }
-#endif  // _VOTCA_TOOLS_TABLE_H
+#endif  // VOTCA_TOOLS_TABLE_H
