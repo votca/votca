@@ -21,7 +21,7 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
-#include "qmmolecule.h"
+
 
 
 using namespace votca::tools;

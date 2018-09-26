@@ -58,12 +58,12 @@ protected:
     xtp::Logger *_pLog;
     void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
    
-   Eigen::MatrixXd CalculateOverlapMatrix( Orbitals& orbitalsAB); 
+   Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB);
   
 
 };
 
-inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(Orbitals& orbitalsAB){
+inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(const Orbitals& orbitalsAB){
   BasisSet dftbasisset;
   AOBasis dftbasis;
   dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasis());
@@ -76,31 +76,30 @@ inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(Orbitals& orbitalsAB
 
 inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA, 
                           const Orbitals& orbitalsB, const Orbitals& orbitalsAB){
-  const std::vector<QMAtom*>& atomsA=orbitalsA.QMAtoms();
-  const std::vector<QMAtom*>& atomsB=orbitalsB.QMAtoms();
-  const std::vector<QMAtom*>& atomsAll = orbitalsAB.QMAtoms();
+  const QMMolecule& atomsA=orbitalsA.QMAtoms();
+  const QMMolecule& atomsB=orbitalsB.QMAtoms();
+  const QMMolecule& atomsAll = orbitalsAB.QMAtoms();
   bool coordinates_agree=true;
   for (unsigned i = 0; i < atomsAll.size(); i++) {
-    QMAtom* dimer = atomsAll[i];
-    QMAtom* monomer = NULL;
+    const QMAtom& dimer = atomsAll[i];
+    const QMAtom* monomer = NULL;
     
     if (i < atomsA.size()) {
-      monomer = atomsA[i];
+      monomer = &atomsA[i];
     } else if (i < atomsB.size() + atomsA.size()) {
-      monomer = atomsB[i - atomsA.size()]; 
+      monomer = &atomsB[i - atomsA.size()];
     } else {
       // Linker
       XTP_LOG(xtp::logERROR, *_pLog) << (boost::format("Neither Monomer A nor Monomer B contains "
-              "atom %s on line %u. Hence, this atom is part of a linker.") %dimer->getType() %(i+1) ).str()<<std::flush;
+              "atom %s on line %u. Hence, this atom is part of a linker.") %dimer.getElement() %(i+1) ).str()<<std::flush;
       continue;
     }
 
-        if (!monomer->getPos().isApprox(dimer->getPos(), 0.001))
-        {
+    if (!monomer->getPos().isApprox(dimer.getPos(), 0.001)){
         coordinates_agree=false;
     }
     
-    if (monomer->getType() != dimer->getType()) {
+    if (monomer->getElement() != dimer.getElement()) {
       throw std::runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
     }
   }

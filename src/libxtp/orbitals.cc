@@ -118,7 +118,7 @@ namespace votca {
           out<<header<<endl;
           for (const QMAtom* atom:_atoms) {
                 const Eigen::Vector3d pos = atom->getPos() * tools::conv::bohr2ang;
-                out<<atom->getType()<<" "<<pos.getX()<<" "<<pos.getY()<<" "<<pos.getZ()<<endl;
+                out<<atom->getElement()<<" "<<pos.getX()<<" "<<pos.getY()<<" "<<pos.getZ()<<endl;
           }
           out.close();
           return;

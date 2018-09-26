@@ -66,6 +66,11 @@ namespace xtp {
          bool isExciton()const{
              return (_type==statetype::Singlet || _type==statetype::Triplet);
          }
+
+         bool isKMCState()const{
+             return (_type==statetype::Singlet || _type==statetype::Triplet 
+                     || _type==statetype::Hole || _type==statetype::Electron);
+         }
          
          bool isSingleParticleState()const{
              return (_type==statetype::PQPstate || _type==statetype::DQPstate || _type==KSstate);

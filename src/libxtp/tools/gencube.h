@@ -190,7 +190,7 @@ namespace votca {
         double x = pos.getX();
         double y = pos.getY();
         double z = pos.getZ();
-        string element = atom->getType();
+        string element = atom->getElement();
         int atnum = _elements.getEleNum(element);
         double crg = atom->getNuccharge();
         out<<boost::format( "%1$d %2$f %3$f %4$f %5$f\n") %atnum %crg %x %y %z;

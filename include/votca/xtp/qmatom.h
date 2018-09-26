@@ -20,7 +20,7 @@
 #ifndef VOTCA_XTP_QMATOM_H
 #define	VOTCA_XTP_QMATOM_H
 
-#include <votca/tools/vec.h> 
+#include <votca/tools/elements.h>
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
 
@@ -37,24 +37,23 @@ class QMAtom
      friend class AOBasis;
 public:
     
-   QMAtom (int index,std::string element, double x, double y, double z)
-            :_index(index), _type( element), _nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-    {
-        _pos = Eigen::Vector3d{x, y, z};
-    }
+   
             
-   QMAtom (int index,std::string element,Eigen::Vector3d& pos)
-            :_index(index), _type(element ),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=pos;}
+   QMAtom (int index,std::string element,const Eigen::Vector3d pos)
+            :_index(index), _element(element ),_pos(pos),_nuccharge(0)
+            , _ecpcharge(0),_partialcharge(0.0)
+            {
+                tools::Elements elements;
+                _nuccharge=elements.getNucCrg(element);
+            }
+
+  QMAtom (int index,std::string element, double x, double y, double z):
+            QMAtom(index,element,Eigen::Vector3d{x,y,z}){};
+       
    
-   
-   QMAtom ()
-            :_index(0), _type(""),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=Eigen::Vector3d::Zero();}
        
    const Eigen::Vector3d& getPos() const {return _pos;}
    
-  
    void Translate(const Eigen::Vector3d& shift){
        _pos+=shift;
    }
@@ -67,7 +66,7 @@ public:
    
    void setPos(const Eigen::Vector3d& position){_pos=position;}
 
-   const std::string & getType() const { return _type;}
+   const std::string & getElement() const { return _element;}
    
   int getAtomID()const{ return _index;}
    
@@ -79,7 +78,7 @@ public:
 private:
     
    int _index;
-   std::string _type;
+   std::string _element;
    Eigen::Vector3d _pos;// Bohr
    int _nuccharge;//nuc charge is set in aobasis fill and ecpfill
    int _ecpcharge;
@@ -92,7 +91,7 @@ private:
        CheckpointWriter w(parent);
 
        w(_index, "index");
-       w(_type, "type");
+       w(_element, "element");
        w(_pos, "pos");
        w(_nuccharge, "nuccharge");
        w(_ecpcharge, "ecpcharge");
@@ -103,7 +102,7 @@ private:
        CheckpointReader r(parent);
 
        r(_index, "index");
-       r(_type, "type");
+       r(_element, "element");
        r(_pos, "pos");
        r(_nuccharge, "nuccharge");
        r(_ecpcharge, "ecpcharge");

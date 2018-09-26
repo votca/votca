@@ -140,7 +140,7 @@ namespace votca {
       Energy_costfunction::Vector2QMAtoms(bfgstrm.getParameters(), atoms);
       for (const QMAtom* atom : atoms) {
         tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        ofs << atom->getType() << " " << pos.getX() << " " << pos.getY() << " " << pos.getZ() << std::endl;
+        ofs << atom->getElement() << " " << pos.getX() << " " << pos.getY() << " " << pos.getZ() << std::endl;
       }
       ofs.close();
       return;

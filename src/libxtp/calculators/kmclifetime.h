@@ -44,14 +44,14 @@ public:
        }};
    std::string Identify() { return "kmclifetime"; }
     void Initialize(tools::Property *options);
-    bool EvaluateFrame(xtp::Topology *top);
+    bool EvaluateFrame(Topology *top);
 
 private:
        
     void WriteDecayProbability(string filename);
             
 	    
-            void  RunVSSM(xtp::Topology *top);
+            void  RunVSSM(Topology *top);
             
             
             void ReadLifetimeFile( string filename);

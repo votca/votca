@@ -23,7 +23,7 @@
 
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
-#include <votca/tools/vec.h>
+#include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/eigen.h>
 
 
@@ -31,7 +31,6 @@
 namespace votca { namespace xtp {
 
 class AOShell;
-class QMAtom;
 
 
 /**
@@ -48,8 +47,8 @@ public:
        
     void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
 
-    void AOBasisFill( const BasisSet& bs , std::vector<QMAtom* >& atoms, int fragbreak = -1);
-    void ECPFill( const BasisSet& bs , std::vector<QMAtom* >& atoms); 
+    void AOBasisFill( const BasisSet& bs , const QMMolecule& atoms, int fragbreak = -1);
+    void ECPFill( const BasisSet& bs , QMMolecule& atoms);
     
     int AOBasisSize() const {return _AOBasisSize; }
     

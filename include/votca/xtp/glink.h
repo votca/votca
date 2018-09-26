@@ -17,7 +17,7 @@
 
 #ifndef VOTCA_XTP_GLINK_H
 #define VOTCA_XTP_GLINK_H
-#include <votca/tools/vec.h>
+#include <votca/xtp/eigen.h>
 
 namespace votca {
 namespace xtp {
@@ -25,7 +25,7 @@ namespace xtp {
 struct GLink {
   int destination;
   double rate;
-  votca::tools::vec dr;
+  Eigen::Vector3d dr;
   bool decayevent;
   // new stuff for Coulomb interaction
   double Jeff2;

@@ -34,7 +34,7 @@ namespace votca { namespace xtp {
                 public:
                     Chargecarrier(): lifetime(0.0),steps(0) 
                     {
-                        dr_travelled=tools::vec(0.0,0.0,0.0);
+                        dr_travelled=Eigen::Vector3d::Zero();
                         node=NULL;
                     }
                     ~Chargecarrier(){};
@@ -42,12 +42,12 @@ namespace votca { namespace xtp {
                     void updateLifetime(double dt) { lifetime+=dt;}
                     void updateOccupationtime(double dt) { node->occupationtime+=dt;}
                     void updateSteps(unsigned t) { steps+=t;}
-                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=tools::vec(0.0,0.0,0.0);}
+                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=Eigen::Vector3d::Zero();}
                     const double& getLifetime(){return lifetime;}
                     const unsigned& getSteps(){return steps;}
                     const int& getCurrentNodeId(){return node->id;}
                     double getCurrentEnergy(){return node->siteenergy;}
-                    tools::vec getCurrentPosition(){return node->position;}
+                    Eigen::Vector3d getCurrentPosition(){return node->position;}
                     double getCurrentEscapeRate(){return node->escape_rate;}
                     GNode * getCurrentNode(){return node;}
                     void settoNote(GNode *newnode){node=newnode;
@@ -59,7 +59,7 @@ namespace votca { namespace xtp {
                     }
                     int id;
                     
-                    tools::vec dr_travelled;
+                    Eigen::Vector3d dr_travelled;
                     
                 private:
                     GNode *node;

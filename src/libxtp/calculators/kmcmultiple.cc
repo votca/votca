@@ -16,6 +16,7 @@
  */
 
 #include "kmcmultiple.h"
+#include "votca/xtp/qmstate.h"
 #include <votca/xtp/gnode.h>
 #include <votca/tools/property.h>
 #include <votca/tools/constants.h>
@@ -53,7 +54,7 @@ void KMCMultiple::Initialize(tools::Property *options){
 	    cout << "WARNING in kmcmultiple: Unknown injection method. It will be set to random injection." << endl;
             _injectionmethod = "random";
         }
-         _field = options->ifExistsReturnElseReturnDefault<tools::vec>(key+".field",tools::vec(0,0,0));
+         _field = options->ifExistsReturnElseReturnDefault<Eigen::Vector3d>(key+".field",Eigen::Vector3d::Zero());
          double mtonm=1E9;
        _field /=mtonm ;//Converting from V/m to V/nm 
       
@@ -61,7 +62,10 @@ void KMCMultiple::Initialize(tools::Property *options){
         _timefile = options->ifExistsReturnElseReturnDefault<std::string>(key+".timefile","timedependence.csv");
 	
         std::string carriertype=options->ifExistsReturnElseReturnDefault<std::string>(key+".carriertype","e");
-        _carriertype=StringtoCarriertype(carriertype);
+        _carriertype=QMStateType(carriertype);
+        if (!_carriertype.isKMCState()){
+            throw runtime_error("KMC cannot be run for state:"+_carriertype.ToLongString());
+        }
      
         
         lengthdistribution = options->ifExistsReturnElseReturnDefault<double>(key+".jumplengthdist",0);
@@ -146,7 +150,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     double absolute_field = tools::abs(_field);
 
     RandomlyCreateCharges();
-    vector<tools::vec> startposition(_numberofcharges,tools::vec(0.0));
+    vector<Eigen::Vector3d> startposition(_numberofcharges,Eigen::Vector3d::Zero());
     for(unsigned int i=0; i<_numberofcharges; i++) {
         startposition[i]=_carriers[i]->getCurrentPosition();
     }
@@ -155,9 +159,9 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     traj << 0 << "\t";
     traj << 0 << "\t";
     for(unsigned int i=0; i<_numberofcharges; i++) {
-        traj << startposition[i].getX()  << "\t";
-        traj << startposition[i].getY() << "\t";
-        traj << startposition[i].getZ();
+        traj << startposition[i][0]  << "\t";
+        traj << startposition[i][1] << "\t";
+        traj << startposition[i][2];
         if (i<_numberofcharges-1) {
             traj << "\t";
         }
@@ -169,8 +173,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     vector<int> forbiddennodes;
     vector<int> forbiddendests;
     
-    tools::matrix avgdiffusiontensor;
-    avgdiffusiontensor.ZeroMatrix();
+    Eigen::Matrix3d avgdiffusiontensor=Eigen::Matrix3d::Zero();
     
     unsigned long diffusionresolution=1000;
     double simtime = 0.0;
@@ -284,7 +287,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
         
         if(step%diffusionresolution==0){     
             for(unsigned int i=0; i<_numberofcharges; i++){
-                avgdiffusiontensor += (_carriers[i]->dr_travelled)|(_carriers[i]->dr_travelled);
+                avgdiffusiontensor += (_carriers[i]->dr_travelled)*(_carriers[i]->dr_travelled).transpose();
             }
         }
         
@@ -292,15 +295,15 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
 
             if (absolute_field == 0) {
                 unsigned long diffusionsteps = step / diffusionresolution;
-                tools::matrix result = avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcharges);
+                Eigen::Matrix3d result = avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcharges);
                 cout << endl << "Step: " << step << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl << result << endl;
             } else {
                 double average_mobility = 0;
                 cout << endl << "Mobilities (nm^2/Vs): " << endl;
                 for (unsigned int i = 0; i < _numberofcharges; i++) {
-                    tools::vec velocity = _carriers[i]->dr_travelled / simtime;
-                    cout << std::scientific << "    charge " << i + 1 << ": mu=" << (velocity * _field) / (absolute_field * absolute_field) << endl;
-                    average_mobility += (velocity * _field) / (absolute_field * absolute_field);
+                    Eigen::Vector3d velocity= _carriers[i]->dr_travelled / simtime;
+                    cout << std::scientific << "    charge " << i + 1 << ": mu=" << (velocity.transpose() * _field) / (absolute_field * absolute_field) << endl;
+                    average_mobility += (velocity.transpose() * _field) / (absolute_field * absolute_field);
                 }
                 average_mobility /= _numberofcharges;
                 cout << std::scientific << "  Overall average mobility in field direction <mu>=" << average_mobility << " nm^2/Vs  " << endl;
@@ -318,9 +321,9 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
                 traj << simtime << "\t";
             traj << step << "\t";
                 for(unsigned int i=0; i<_numberofcharges; i++) {
-                    traj << startposition[i].getX() + _carriers[i]->dr_travelled.getX() << "\t";
-                    traj << startposition[i].getY() + _carriers[i]->dr_travelled.getY() << "\t";
-                    traj << startposition[i].getZ() + _carriers[i]->dr_travelled.getZ();
+                    traj << startposition[i][0] + _carriers[i]->dr_travelled[0] << "\t";
+                    traj << startposition[i][1] + _carriers[i]->dr_travelled[1] << "\t";
+                    traj << startposition[i][2] + _carriers[i]->dr_travelled[2];
                     if (i<_numberofcharges-1) {
                         traj << "\t";
                     }
@@ -332,9 +335,9 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
               
                 double currentenergy = 0;
                 double currentmobility = 0;
-                tools::vec dr_travelled_current = tools::vec (0,0,0);
+                Eigen::Vector3d dr_travelled_current = Eigen::Vector3d::Zero();
                 double dr_travelled_field=0.0;
-                tools::vec avgvelocity_current = tools::vec(0,0,0);
+                Eigen::Vector3d avgvelocity_current =Eigen::Vector3d::Zero();
                 if(absolute_field != 0){
                     for(unsigned int i=0; i<_numberofcharges; i++){
                         dr_travelled_current += _carriers[i]->dr_travelled;
@@ -367,7 +370,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     vector< xtp::Segment* >& seg = top->Segments();
     for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i]->occupationtime / simtime;
-            seg[i]->setOcc(occupationprobability,_carriertype);
+            seg[i]->setOcc(occupationprobability,_carriertype.ToXTPIndex());
         }
 
     cout << endl << "finished KMC simulation after " << step << " steps." << endl;
@@ -375,14 +378,14 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
     cout << "runtime: ";
     cout << endl << endl;
     
-    tools::vec avg_dr_travelled = tools::vec (0,0,0);
+    Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
     for(unsigned int i=0; i<_numberofcharges; i++){
         cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i]->dr_travelled/simtime << endl;
         avg_dr_travelled += _carriers[i]->dr_travelled;
     }
     avg_dr_travelled /= _numberofcharges;
     
-    tools::vec avgvelocity = avg_dr_travelled/simtime; 
+    Eigen::Vector3d avgvelocity = avg_dr_travelled/simtime;
     cout << std::scientific << "  Overall average velocity (nm/s): " << avgvelocity << endl;
 
     cout << endl << "Distances travelled (nm): " << endl;
@@ -396,7 +399,7 @@ void KMCMultiple::RunVSSM(xtp::Topology *top)
         double average_mobility = 0;
         cout << endl << "Mobilities (nm^2/Vs): " << endl;
         for(unsigned int i=0; i<_numberofcharges; i++){
-            tools::vec velocity = _carriers[i]->dr_travelled/simtime;
+            Eigen::Vector3d velocity = _carriers[i]->dr_travelled/simtime;
             cout << std::scientific << "    charge " << i+1 << ": mu=" << (velocity*_field)/(absolute_field*absolute_field) << endl;
             average_mobility += (velocity*_field) /(absolute_field*absolute_field);
         }

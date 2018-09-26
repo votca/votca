@@ -158,7 +158,7 @@ namespace votca {
 
       for (QMAtom* atom : qmatoms) {
         tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        inp_file << setw(3) << atom->getType().c_str()
+        inp_file << setw(3) << atom->getElement().c_str()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
                 << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()

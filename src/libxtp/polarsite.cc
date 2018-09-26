@@ -393,7 +393,7 @@ namespace votca {
       } else assert(false); // Units error
 
       out << (boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n")
-              % _type % (_pos(0) * conv_pos)
+              % _element % (_pos(0) * conv_pos)
               % (_pos(1) * conv_pos) % (_pos(2) * conv_pos)
               % _rank);
       out << (boost::format("    %1$+1.7f\n") % getCharge());
@@ -418,7 +418,7 @@ namespace votca {
        CheckpointWriter w(parent);
 
        w(_id, "index");
-       w(_type, "type");
+       w(_element, "type");
        w(_pos, "pos");
        w(_rank, "rank");
        w(_multipole, "multipoles");
@@ -437,7 +437,7 @@ namespace votca {
        CheckpointReader r(parent);
 
       r(_id, "index");
-      r(_type, "type");
+      r(_element, "type");
       r(_pos, "pos");
       r(_rank, "rank");
       r(_multipole, "multipoles");

@@ -34,6 +34,7 @@
 #include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
+#include <votca/xtp/qmstate.h>
 #include <votca/tools/random2.h>
 #include <votca/xtp/chargecarrier.h>
 
@@ -61,11 +62,7 @@ public:
 
 protected:
        
-       int _carriertype;
-            
-            std::string CarrierInttoLongString(int carriertype);
-            std::string CarrierInttoShortString(int carriertype);
-            int StringtoCarriertype(std::string name);
+            QMStateType _carriertype;
             
 	    void LoadGraph(xtp::Topology *top);
             virtual void  RunVSSM(xtp::Topology *top){};
@@ -99,7 +96,7 @@ protected:
             double minlength;
             int _seed;
             unsigned _numberofcharges;
-            tools::vec _field;
+            Eigen::Vector3d _field;
             
             double _temperature;
             std::string _rates;

@@ -40,14 +40,14 @@ class GNode
         double occupationtime;
         double escape_rate;
         bool hasdecay;
-        tools::vec position;
+        Eigen::Vector3d position;
         std::vector<GLink> events;
         // stuff for Coulomb interaction:
         double siteenergy;
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
     
-        void AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out);
+        void AddEvent(int seg2, double rate12, Eigen::Vector3d dr, double Jeff2, double reorg_out);
         const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
         void AddDecayEvent(double decayrate);

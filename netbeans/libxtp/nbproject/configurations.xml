@@ -1439,6 +1439,8 @@
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
             ex="false"
             tool="3"
@@ -2416,6 +2418,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
             ex="false"

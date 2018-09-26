@@ -54,7 +54,7 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(Eigen::MatrixXd &P, Eigen::Mat
     int functionindex=0;
     for (QMAtom* atom :_atomlist){
         std::map< int,std::vector< int > > shellsort;
-        const Element& element = bs.getElement(atom->getType());
+        const Element& element = bs.getElement(atom->getElement());
         for (const Shell& shell:element) {
             
            // for loop because shells can also consist of SP shells or alike

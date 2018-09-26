@@ -135,15 +135,7 @@ private:
         dataset.write(&(v[0]), *dataType);
     }
 
-    void WriteData(const CptLoc& loc, const votca::tools::vec& v,
-                   const std::string& name) {
-
-        // store tools::vec as n vector of three elements
-        std::vector<double> data = {v.getX(), v.getY(), v.getZ()};
-        WriteData(loc, data, name);
-    }
-
-    void WriteData(const CptLoc& loc, const std::vector<votca::tools::vec>& v,
+    void WriteData(const CptLoc& loc, const std::vector<Eigen::Vector3d>& v,
                    const std::string& name) {
 
         size_t c = 0;

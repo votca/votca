@@ -74,7 +74,7 @@ public:
     int    getStartIndex() const{ return _startIndex ;}
     int    getOffset() const{ return _offset ;}
     int    getAtomIndex() const{ return _qmatom->getAtomID();}
-    const std::string& getAtomType() const{ return _qmatom->getType();}
+    const std::string& getAtomType() const{ return _qmatom->getElement();}
     
     int getLmax(  ) const{ return _Lmax;}
     
@@ -84,7 +84,7 @@ public:
     
     bool isNonLocal(  ) const{ return _nonlocal;}
     
-    const tools::vec& getPos() const{ return _pos; }
+    const Eigen::Vector3d& getPos() const{ return _pos; }
     double getScale() const{ return _scale; }
     
     int getSize() const{ return _gaussians.size(); }
@@ -102,8 +102,8 @@ public:
     double getMinDecay() const{return _mindecay;}
     
     
-  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const tools::vec& grid_pos ) const;
-  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const tools::vec& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues, const Eigen::Vector3d& grid_pos ) const;
+  void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>&  AOvalues,Eigen::Block< Eigen::MatrixX3d >& AODervalues, const Eigen::Vector3d& grid_pos ) const;
 
     // iterator over pairs (decay constant; contraction coefficient)
     typedef std::vector< AOGaussianPrimitive >::const_iterator GaussianIterator;
@@ -150,7 +150,7 @@ private:
     double _mindecay;
     int _startIndex;
     int _offset;
-    tools::vec _pos;
+    Eigen::Vector3d _pos;
     const QMAtom* _qmatom;
     //used for ecp calculations
     bool _nonlocal;

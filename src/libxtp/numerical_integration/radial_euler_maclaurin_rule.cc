@@ -59,7 +59,7 @@ namespace votca { namespace xtp {
     void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis, std::vector<QMAtom*>& atoms, double eps){
       std::map<std::string, min_exp>::iterator it;
       for (QMAtom* atom:atoms) {
-        std::string name = atom->getType();
+        std::string name = atom->getElement();
         // is this element already in map?
         it = _element_ranges.find(name);
         // only proceed, if element data does not exist yet
@@ -108,8 +108,8 @@ namespace votca { namespace xtp {
         int a_size = idxsize[i];
         double range_max = std::numeric_limits<double>::min();
         // get preset values for this atom type
-        double alpha_a = _element_ranges.at(atom_a->getType()).alpha;
-        int l_a = _element_ranges.at(atom_a->getType()).l;
+        double alpha_a = _element_ranges.at(atom_a->getElement()).alpha;
+        int l_a = _element_ranges.at(atom_a->getElement()).l;
         const tools::vec& pos_a = atom_a->getPos();
         // Cannot iterate only over j<i because it is not symmetric due to shift_2g
         for (unsigned j = 0; j < atoms.size(); ++j) {
@@ -126,18 +126,18 @@ namespace votca { namespace xtp {
           double s_max = overlapblock.cwiseAbs().maxCoeff();
           
           if (s_max > 1e-5) {
-            double range = DetermineCutoff(alpha_a + _element_ranges.at(atom_b->getType()).alpha, l_a + _element_ranges.at(atom_b->getType()).l + 2, eps);
+            double range = DetermineCutoff(alpha_a + _element_ranges.at(atom_b->getElement()).alpha, l_a + _element_ranges.at(atom_b->getElement()).l + 2, eps);
             // now do some update trickery from Gaussian product formula
             double dist = tools::abs(pos_b - pos_a);
-            double shift_2g = dist * alpha_a / (alpha_a + _element_ranges.at(atom_b->getType()).alpha);
+            double shift_2g = dist * alpha_a / (alpha_a + _element_ranges.at(atom_b->getElement()).alpha);
             range += (shift_2g + dist);
             if (range > range_max) {
               range_max = range;
             }
           }
         }
-        if (std::round(range_max) > _element_ranges.at(atom_a->getType()).range) {
-          _element_ranges.at(atom_a->getType()).range = std::round(range_max);
+        if (std::round(range_max) > _element_ranges.at(atom_a->getElement()).range) {
+          _element_ranges.at(atom_a->getElement()).range = std::round(range_max);
         }
       }
     }

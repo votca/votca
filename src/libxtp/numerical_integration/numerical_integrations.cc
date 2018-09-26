@@ -722,7 +722,7 @@ void NumericalIntegration::GridSetup(const std::string& type, std::vector<QMAtom
         QMAtom* atom=atoms[i_atom];
 
         const tools::vec & atomA_pos =atom->getPos();
-        const std::string & name = atom->getType();
+        const std::string & name = atom->getElement();
         GridContainers::radial_grid radial_grid = initialgrids.radial_grids.at(name);
         GridContainers::spherical_grid spherical_grid = initialgrids.spherical_grids.at(name);
                 

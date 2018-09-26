@@ -21,6 +21,7 @@
 #define	VOTCA_XTP_ATOMCONTAINER_H
 #include <votca/xtp/eigen.h>
 #include <votca/tools/elements.h>
+#include <votca/xtp/checkpoint.h>
 
 /**
 * \brief Basic Container for QMAtoms,PolarSites and Atoms
@@ -34,7 +35,7 @@ namespace votca { namespace xtp {
 template<class T>  class AtomContainer{
     public:
                
-      
+        AtomContainer(const std::string& name,int id):_name(name),_id(id){};
         
         const std::string& getName()const{return _name;}
         
@@ -46,12 +47,14 @@ template<class T>  class AtomContainer{
 
         const T& at(int index)const{return _atomlist.at(index);}
         T& at(int index){return _atomlist.at(index);}
+
+        const T& operator[](int index)const{return _atomlist[index];}
         
-        std::vector<T>::iterator begin(){return _atomlist.begin();}
-        std::vector<T>::iterator end(){return _atomlist.end();}
+        typename std::vector<T>::iterator begin(){return _atomlist.begin();}
+        typename std::vector<T>::iterator end(){return _atomlist.end();}
         
-        std::vector<T>::const_iterator begin()const{return _atomlist.begin();}
-        std::vector<T>::const_iterator end()const{return _atomlist.end();}
+        typename std::vector<T>::const_iterator begin()const{return _atomlist.begin();}
+        typename std::vector<T>::const_iterator end()const{return _atomlist.end();}
         
         void calcPos(){
             tools::Elements element;
@@ -88,13 +91,11 @@ template<class T>  class AtomContainer{
       virtual void ReadFromCpt(CptLoc parent)=0;
             
   protected:
-      
-      Eigen::Vector3d _pos;
-     
-      int _id;
-      std::vector<T> _atomlist;
-      std::string _name;
-  
+
+    std::vector<T> _atomlist;
+    std::string _name;
+    int _id;
+    Eigen::Vector3d _pos;
  
     };   
     

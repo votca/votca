@@ -35,7 +35,7 @@ namespace votca {
 
         xtp::APolarSite *QMInterface::Convert(QMAtom *atm, int id) {
                 
-            std::string elem = atm->getType();
+            std::string elem = atm->getElement();
             xtp::APolarSite *new_aps = new xtp::APolarSite(id, elem);
             
             double pol = 0.0;

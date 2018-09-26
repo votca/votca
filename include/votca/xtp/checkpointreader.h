@@ -135,16 +135,7 @@ private:
         dataset.read(&(v[0]), *dataType);
     }
 
-    void ReadData(const CptLoc& loc, votca::tools::vec& v,
-                  const std::string& name){
-
-        // read tools::vec as a vector of three elements
-        std::vector<double> data = {0,0,0};
-        ReadData(loc, data, name);
-        v = votca::tools::vec(data[0], data[1], data[2]);
-    }
-
-    void ReadData(const CptLoc& loc, std::vector<votca::tools::vec>& v,
+    void ReadData(const CptLoc& loc, std::vector<Eigen::Vector3d>& v,
                   const std::string& name){
 
         CptLoc parent = loc.openGroup(name);

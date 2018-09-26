@@ -22,6 +22,8 @@
 #include <votca/xtp/topology.h>
 #include <locale>
 
+#include "votca/xtp/qmstate.h"
+
 using namespace std;
 
 namespace votca {
@@ -31,16 +33,16 @@ namespace votca {
 
     void KMCCalculator::LoadGraph(xtp::Topology *top) {
 
-        std::vector< xtp::Segment* >& seg = top->Segments();
+        std::vector< xtp::Segment* >& segs = top->Segments();
         
-        if(seg.size()<1){
+        if(segs.size()<1){
           throw std::runtime_error("Your sql file contains no segments!");
         }
         
-        for (unsigned i = 0; i < seg.size(); i++) {
+        for (xtp::Segment* seg:segs) {
             GNode *newNode = new GNode();
-            newNode->ReadfromSegment(seg[i], _carriertype);
-            if (tools::wildcmp(_injection_name.c_str(), seg[i]->getName().c_str())) {
+            newNode->ReadfromSegment(seg, _carriertype.ToXTPIndex());
+            if (tools::wildcmp(_injection_name.c_str(), seg->getName().c_str())) {
                 newNode->injectable = true;
             } else {
                 newNode->injectable = false;
@@ -54,9 +56,9 @@ namespace votca {
         }
         
         
-        for (xtp::QMNBList::iterator it = nblist.begin(); it < nblist.end(); ++it) {
-            _nodes[(*it)->Seg1()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
-            _nodes[(*it)->Seg2()->getId()-1]->AddEventfromQmPair(*it, _carriertype);
+        for (QMPair* pair:nblist) {
+            _nodes[pair->Seg1()->getId()-1]->AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
+            _nodes[pair->Seg2()->getId()-1]->AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
         }
         
         unsigned events=0;
@@ -128,12 +130,10 @@ namespace votca {
         }
 
         bool KMCCalculator::CheckForbidden(int id,const std::vector<int> &forbiddenlist) {
-            // cout << "forbidden list has " << forbiddenlist.size() << " entries" << endl;
             bool forbidden = false;
             for (unsigned int i = 0; i < forbiddenlist.size(); i++) {
                 if (id == forbiddenlist[i]) {
                     forbidden = true;
-                    //cout << "ID " << id << " has been found as element " << i << " (" << forbiddenlist[i]<< ") in the forbidden list." << endl;
                     break;
                 }
             }
@@ -157,75 +157,9 @@ namespace votca {
             }
             return surrounded;
         }
-
-        
-        
-        
-        std::string KMCCalculator::CarrierInttoLongString(int carriertype){
-            std::string name="";
-            if (carriertype==-1){
-                name="electron";
-            }
-            else if(carriertype==1){
-                name="hole";
-            }
-            else if(carriertype==2){
-                name="singlet";
-            }
-            else if(carriertype==3){
-                name="triplet";
-            }
-            else{
-                throw runtime_error((boost::format("Carriertype %i not known") % carriertype).str());
-            }
-            return name;
-        }
-        
-        std::string KMCCalculator::CarrierInttoShortString(int carriertype){
-            std::string name="";
-            if (carriertype==-1){
-                name="e";
-            }
-            else if(carriertype==1){
-                name="h";
-            }
-            else if(carriertype==2){
-                name="s";
-            }
-            else if(carriertype==3){
-                name="t";
-            }
-            else{
-                throw runtime_error((boost::format("Carriertype %i not known") % carriertype).str());
-            }
-            return name;
-        }
-        
-         int KMCCalculator::StringtoCarriertype(std::string name){
-             char firstcharacter=std::tolower(name.at(0), std::locale());
-             int carriertype=0;
-            if (firstcharacter=='e'){
-                carriertype=-1;
-            }
-            else if(firstcharacter=='h'){
-                carriertype=1;
-            }
-            else if(firstcharacter=='s'){
-                carriertype=2;
-            }
-            else if(firstcharacter=='t'){
-                carriertype=3;
-            }
-            else{
-                throw runtime_error((boost::format("Carriername %s not known") % name).str());
-            }
-            return carriertype;
-        }
-         
          
          void KMCCalculator::RandomlyCreateCharges(){
-         
-        
+                
         cout << "looking for injectable nodes..." << endl;
         for (unsigned int i = 0; i < _numberofcharges; i++) {
             Chargecarrier *newCharge = new Chargecarrier;
@@ -258,19 +192,16 @@ namespace votca {
             cout << endl << "Calculating initial Marcus rates." << endl;
             cout << "    Temperature T = " << _temperature << " K." << endl;
            
-            cout << "    carriertype: " << CarrierInttoLongString(_carriertype) << endl;
+            cout << "    carriertype: " << _carriertype.ToLongString() << endl;
             unsigned numberofsites = _nodes.size();
             cout << "    Rates for " << numberofsites << " sites are computed." << endl;
             double charge=0.0;
-            if (_carriertype == -1)
-            {
+            if (_carriertype == QMStateType::Electron){
                 charge = -1.0;
-            }
-            else if (_carriertype == 1)
-            {
+            }else if (_carriertype == QMStateType::Hole){
                 charge = 1.0;
             }
-            cout<<"electric field ="<<_field<<" V/nm"<<endl;
+            cout<<"electric field[V/nm] ="<<_field[0]<<" "<<_field[1]<<" "<<_field[2]<<endl;
             
             double maxreldiff = 0;
             double maxrate=0;
@@ -292,7 +223,7 @@ namespace votca {
                     }
                     double dG_Field =0.0;
                     if(charge!=0.0){
-                        dG_Field=charge * (_nodes[i]->events[j].dr*_field);
+                        dG_Field=charge * (_nodes[i]->events[j].dr.transpose()*_field);
                     }
                     double dG_Site = _nodes[destindex]->siteenergy - _nodes[i]->siteenergy;
                     double dG=dG_Site-dG_Field;

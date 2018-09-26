@@ -35,8 +35,8 @@ class PolarSite
 
 public:
 
-    PolarSite(int id, const std::string& type, const Eigen::Vector3d& pos)
-            : _id(id), _type(type),_pos(pos),_isPolarisable(false),
+    PolarSite(int id, const std::string& element, const Eigen::Vector3d& pos)
+            : _id(id), _element(element),_pos(pos),_isPolarisable(false),
             _Ps(Eigen::Matrix3d::Zero()),
             _localpermanetField(Eigen::Vector3d::Zero()),
             _localinducedField(Eigen::Vector3d::Zero()),
@@ -49,7 +49,7 @@ public:
 
     int getId() const{ return _id; }
     int getRank()const{return _rank;}
-    const std::string &getType() const{ return _type; }
+    const std::string &getElement() const{ return _element; }
     const Eigen::Vector3d &getPos() const{ return _pos; }
     
     bool isPolarisable() const{ return _isPolarisable;}
@@ -125,7 +125,7 @@ private:
     Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
-    std::string  _type;
+    std::string  _element;
     Eigen::Vector3d _pos;
     int     _rank;
     Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s

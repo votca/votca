@@ -384,7 +384,7 @@ template <typename T>
       Interaction act;
       Population pop;
       QMStateType singlet=QMStateType(QMStateType::Singlet);
-      std::vector< tools::vec > transition_dipoles=CalcCoupledTransition_Dipoles(dftbasis);
+      std::vector< Eigen::Vector3d > transition_dipoles=CalcCoupledTransition_Dipoles(dftbasis);
       _orbitals.TransitionDipoles()=transition_dipoles;
       std::vector<double> oscs = _orbitals.Oscillatorstrengths();
       
@@ -403,7 +403,7 @@ template <typename T>
       XTP_LOG(xtp::logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
       int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
       for (int i = 0; i < maxoutput; ++i) {     
-        const tools::vec& trdip = transition_dipoles[i];
+        const Eigen::Vector3d& trdip = transition_dipoles[i];
         double osc = oscs[i];
         if (tools::globals::verbose) {
           XTP_LOG(xtp::logINFO, *_log) << format("  S = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_x> = %5$+1.4f <K_d> = %6$+1.4f")
@@ -414,7 +414,7 @@ template <typename T>
                   % (i + 1) % (hrt2ev * _bse_singlet_energies(i)) % (1240.0 / (hrt2ev * _bse_singlet_energies(i))) << flush;
         }
         XTP_LOG(xtp::logINFO, *_log) << format("           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f")
-                % trdip.getX() % trdip.getY() % trdip.getZ() % (trdip * trdip) % osc << flush;
+                % trdip[0] % trdip[1] % trdip[2] % (trdip.squaredNorm()) % osc << flush;
         for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
           // if contribution is larger than 0.2, print
           double weight = std::pow(_bse_singlet_coefficients(i_bse, i), 2);
@@ -571,12 +571,12 @@ template <typename T>
       return interlevel_dipoles;
     }
 
-    std::vector<tools::vec > BSE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
+    std::vector<Eigen::Vector3d > BSE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
     std::vector<Eigen::MatrixXd > interlevel_dipoles= CalcFreeTransition_Dipoles(dftbasis);
-    std::vector<tools::vec > dipols;
+    std::vector<Eigen::Vector3d > dipols;
     const double sqrt2 = sqrt(2.0);
       for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
-        tools::vec tdipole = tools::vec(0, 0, 0);
+        Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
         for (int c = 0; c < _bse_ctotal; c++) {
           for (int v = 0; v < _bse_vtotal; v++) {
             int index_vc = _bse_ctotal * v + c;
@@ -584,10 +584,11 @@ template <typename T>
             if (_bse_singlet_coefficients_AR.rows()>0) {
               factor += _bse_singlet_coefficients_AR(index_vc, i_exc);
             }
-            // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
-            tdipole.x() += factor * interlevel_dipoles[0](v, c);
-            tdipole.y() += factor * interlevel_dipoles[1](v, c);
-            tdipole.z() += factor * interlevel_dipoles[2](v, c);
+            for(int i=0;i<3;i++){
+                // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+            tdipole[i] += factor * interlevel_dipoles[i](v, c);
+            }
+
           }
         }
         

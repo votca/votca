@@ -148,14 +148,14 @@ std::vector<std::string> QMPackage::FindUniqueElements(const std::vector<QMAtom*
           exists = false;
         } else {
           for (const std::string& type:result){
-            if (atom->getType() == type) {
+            if (atom->getElement() == type) {
               exists = true;
               break;
             }
           }
         }
         if (!exists) {
-          result.push_back(atom->getType());
+          result.push_back(atom->getElement());
         }
       }
         return result;

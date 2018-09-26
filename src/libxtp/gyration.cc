@@ -103,7 +103,7 @@ void Density2Gyration::Initialize( tools::Property& options) {
         tools::vec centroid = tools::vec(0.0);
         tools::matrix gyration = tools::matrix(0.0);
         for (QMAtom* atom:atoms){
-            double m = elements.getMass(atom->getType());
+            double m = elements.getMass(atom->getElement());
             const tools::vec & pos =atom->getPos();
             mass+= m;
             centroid+=m*pos;

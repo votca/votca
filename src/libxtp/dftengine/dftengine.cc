@@ -460,7 +460,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
     
     Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(QMAtom* uniqueAtom){
       bool with_ecp = _with_ecp;
-      if (uniqueAtom->getType() == "H" || uniqueAtom->getType() == "He") {
+      if (uniqueAtom->getElement() == "H" || uniqueAtom->getElement() == "He") {
         with_ecp = false;
       }
       
@@ -531,7 +531,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
 
         Eigen::MatrixXd dftAOdmat_alpha = Convergence_alpha.DensityMatrix(MOCoeff_alpha, MOEnergies_alpha);
-        if (uniqueAtom->getType() == "H") {
+        if (uniqueAtom->getElement() == "H") {
           return dftAOdmat_alpha;
         }
         Convergence_beta.SolveFockmatrix(MOEnergies_beta, MOCoeff_beta, H0);
@@ -609,7 +609,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
           }
         }
         Eigen::MatrixXd avgmatrix=SphericalAverageShells(dftAOdmat_alpha + dftAOdmat_beta,dftbasis);
-        XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Atomic density Matrix for " << uniqueAtom->getType() << " gives N="
+        XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Atomic density Matrix for " << uniqueAtom->getElement() << " gives N="
                 << std::setprecision(9) << avgmatrix.cwiseProduct(dftAOoverlap.Matrix()).sum() << " electrons." << flush;
         return avgmatrix;
     }
@@ -625,7 +625,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
           exists = false;
         } else {
           for (const QMAtom* unique_atom:uniqueelements){
-            if (atom->getType() == unique_atom->getType()) {
+            if (atom->getElement() == unique_atom->getElement()) {
               exists = true;
               break;
             }
@@ -639,7 +639,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
       XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " " << uniqueelements.size() << " unique elements found" << flush;
       std::vector< Eigen::MatrixXd > uniqueatom_guesses;
       for ( QMAtom* unique_atom:uniqueelements) {
-        XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Calculating atom density for " << unique_atom->getType() << flush;
+        XTP_LOG(xtp::logDEBUG, *_pLog) << xtp::TimeStamp() << " Calculating atom density for " << unique_atom->getElement() << flush;
         Eigen::MatrixXd dmat_unrestricted=RunAtomicDFT_unrestricted(unique_atom);
         uniqueatom_guesses.push_back(dmat_unrestricted);
       }
@@ -649,7 +649,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
       for (QMAtom* atom:_atoms) {
         unsigned index = 0;
         for (index = 0; index < uniqueelements.size(); index++) {
-          if (atom->getType() == uniqueelements[index]->getType()) {
+          if (atom->getElement() == uniqueelements[index]->getElement()) {
             break;
           }
         }
@@ -735,7 +735,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
         
       std::string output=(boost::format("  %1$s"
                                          "   %2$+1.4f %3$+1.4f %4$+1.4f")
-                         %atom->getType() %(atom->getPos().getX()*tools::conv::bohr2ang)
+                         %atom->getElement() %(atom->getPos().getX()*tools::conv::bohr2ang)
                          %(atom->getPos().getY()*tools::conv::bohr2ang)
                          %(atom->getPos().getZ()*tools::conv::bohr2ang) ).str();
         

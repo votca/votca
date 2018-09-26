@@ -91,7 +91,7 @@ void Grid::setupgrid(std::vector< QMAtom* >& Atomlist){
                     for (const QMAtom* atom : Atomlist){
                         vec atompos=atom->getPos();
                         double distance2=(gridpos-atompos)*(gridpos-atompos);
-                        double atomcutoff=elements.getVdWChelpG(atom->getType())*tools::conv::ang2bohr;
+                        double atomcutoff=elements.getVdWChelpG(atom->getElement())*tools::conv::ang2bohr;
                         if ( distance2<(atomcutoff*atomcutoff)){
                             is_valid = false;
                             break;

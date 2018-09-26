@@ -40,14 +40,14 @@ namespace votca { namespace xtp {
   }
   
   
-  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const tools::vec& grid_pos)const {
+  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const Eigen::Vector3d& grid_pos)const {
 
       // need position of shell
-      const tools::vec center = grid_pos - _pos;
-      const double center_x = center.getX();
-      const double center_y = center.getY();
-      const double center_z = center.getZ();
-      const double distsq = center*center;
+      const Eigen::Vector3d center = grid_pos - _pos;
+      const double center_x = center[0];
+      const double center_y = center[1];
+      const double center_z = center[2];
+      const double distsq = center.squaredNorm();
 
       // iterate over Gaussians in this shell
       for (const AOGaussianPrimitive& gaussian:_gaussians) {
@@ -295,15 +295,14 @@ namespace votca { namespace xtp {
 
            
      
-void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const tools::vec& grid_pos )const{
+void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const Eigen::Vector3d& grid_pos )const{
 
             // need position of shell
-             const tools::vec center=grid_pos-_pos;
-             const double center_x = center.getX();
-             const double center_y = center.getY();
-             const double center_z = center.getZ();
-             const double distsq =  center*center;
-
+            const Eigen::Vector3d center = grid_pos - _pos;
+            const double center_x = center[0];
+            const double center_y = center[1];
+            const double center_z = center[2];
+            const double distsq = center.squaredNorm();
             
             // iterate over Gaussians in this shell
              for (const AOGaussianPrimitive& gaussian:_gaussians) {

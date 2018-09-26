@@ -27,8 +27,6 @@
 #include <votca/xtp/checkpoint.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
-#include <votca/tools/vec.h>
-
 #include <votca/xtp/logger.h>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
@@ -576,12 +574,6 @@ namespace votca {
 
             // returns indeces of a re-sorted vector of energies from lowest to highest
             std::vector<int> SortEnergies();
-
-            QMAtom* AddAtom(int AtomID,std::string type, Eigen::Vector3d pos) {
-                QMAtom* pAtom = new QMAtom(AtomID,type, pos);
-                _atoms.push_back(pAtom);
-                return pAtom;
-            }
             
             void OrderMOsbyEnergy();
 

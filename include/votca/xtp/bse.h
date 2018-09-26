@@ -167,7 +167,7 @@ xtp::Logger *_log;
 
   std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
 
-  std::vector<tools::vec > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
+  std::vector<Eigen::Vector3d > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
 };
 }
 }

@@ -19,7 +19,6 @@
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
 #include "votca/xtp/qmatom.h"
-#include "votca/tools/elements.h"
 #include "votca/xtp/aomatrix.h"
 #include <votca/tools/constants.h>
 
@@ -494,21 +493,19 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
 
    
 
-    void AOBasis::AOBasisFill(const BasisSet& bs, std::vector<QMAtom* >& atoms, int fragbreak) {
-      tools::Elements elementinfo;
+    void AOBasis::AOBasisFill(const BasisSet& bs,  const QMMolecule& atoms, int fragbreak) {
       _AOBasisSize = 0;
       _AOBasisFragA = 0;
       _AOBasisFragB = 0;
       _FuncperAtom=std::vector<int>(0);
       // loop over atoms
-      for (QMAtom* atom : atoms) {
+      for (const QMAtom& atom : atoms) {
         int atomfunc=0;
-        const std::string& name = atom->getType();
-        atom->_nuccharge = elementinfo.getNucCrg(name);//TODO remove this 
+        const std::string& name = atom.getElement();
         const Element& element = bs.getElement(name);
         for (const Shell& shell:element) {
           int numfuncshell = NumFuncShell(shell.getType());
-          AOShell* aoshell = addShell(shell, *atom, _AOBasisSize);
+          AOShell* aoshell = addShell(shell, atom, _AOBasisSize);
           _AOBasisSize += numfuncshell;
           atomfunc+=numfuncshell;
           for (const GaussianPrimitive& gaussian:shell) {
@@ -517,7 +514,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           aoshell->CalcMinDecay();
           aoshell->normalizeContraction();
         }
-        if (atom->getAtomID() < fragbreak) _AOBasisFragA = _AOBasisSize;
+        if (atom.getAtomID() < fragbreak) _AOBasisFragA = _AOBasisSize;
         _FuncperAtom.push_back(atomfunc);
       }
 
@@ -530,18 +527,18 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return;
     }
 
-    void AOBasis::ECPFill(const BasisSet& bs, std::vector<QMAtom* >& atoms) {
+    void AOBasis::ECPFill(const BasisSet& bs,  QMMolecule& atoms) {
       _FuncperAtom=std::vector<int>(0);
       _AOBasisSize = 0;
-      for (QMAtom* atom : atoms) {
+      for (QMAtom& atom : atoms) {
         int atomfunc=0;
-        std::string name = atom->getType();
+        std::string name = atom.getElement();
         if (name == "H" || name == "He") {
           _FuncperAtom.push_back(0);
           continue;
         }
         const Element& element = bs.getElement(name);
-        atom->_ecpcharge = element.getNcore();
+        atom._ecpcharge = element.getNcore();
         int lmax = element.getLmax();
         for (const Shell& shell:element) {
           if (shell.getType().size() > 1) {
@@ -552,7 +549,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           if (shell.getLmax() < lmax) {
             nonlocal = true;
           }
-          AOShell* aoshell = addECPShell(shell, *atom, _AOBasisSize, nonlocal);
+          AOShell* aoshell = addECPShell(shell, atom, _AOBasisSize, nonlocal);
           _AOBasisSize += NumFuncShell(shell.getType());
           atomfunc+=NumFuncShell(shell.getType());
          for (const GaussianPrimitive& gaussian:shell) {

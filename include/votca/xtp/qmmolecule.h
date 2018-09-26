@@ -21,6 +21,7 @@
 #define VOTCA_XTP_QMMOLECULE_H
 
 #include <votca/xtp/atomcontainer.h>
+#include <votca/xtp/qmatom.h>
 
 
 namespace votca {
@@ -29,16 +30,12 @@ namespace votca {
 class QMMolecule : public AtomContainer<QMAtom>
 {
 public:
-    QMMolecule(const string& name,int id):_id(id),_name(name){};
+    QMMolecule(const std::string& name,int id):AtomContainer<QMAtom>(name,id){};
     
     void WriteToCpt(CptLoc parent)const;
 
     void ReadFromCpt(CptLoc parent);
-
-    void 
-    
-    
-    
+   
     
 };
         

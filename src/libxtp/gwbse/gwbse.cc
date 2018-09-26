@@ -628,7 +628,7 @@ bool GWBSE::Evaluate() {
   for (QMAtom* atom:_orbitals.QMAtoms()) {
     std::string output=(boost::format("  %1$s"
                                          "   %2$+1.4f %3$+1.4f %4$+1.4f")
-                         %atom->getType() %(atom->getPos().getX()*tools::conv::bohr2ang)
+                         %atom->getElement() %(atom->getPos().getX()*tools::conv::bohr2ang)
                          %(atom->getPos().getY()*tools::conv::bohr2ang)
                          %(atom->getPos().getZ()*tools::conv::bohr2ang) ).str();
         

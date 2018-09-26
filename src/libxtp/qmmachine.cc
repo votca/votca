@@ -349,7 +349,7 @@ double energy_ex=0.0;
       if (tools::globals::verbose) {
         XTP_LOG(xtp::logDEBUG, *_log) << "Calculated partial charges" << flush;
         for (const QMAtom* atom : orb_iter_input.QMAtoms()) {
-          XTP_LOG(xtp::logDEBUG, *_log) << atom->getType() << " " << atom->getPartialcharge() << flush;
+          XTP_LOG(xtp::logDEBUG, *_log) << atom->getElement() << " " << atom->getPartialcharge() << flush;
         }
       }
       
