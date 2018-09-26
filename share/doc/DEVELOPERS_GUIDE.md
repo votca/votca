@@ -52,19 +52,29 @@
   * each class goes into a separate file
   * filename is name of class in lowercase
 
-### Header Files ###
- * One class, one header.
- * When creating header gruards use the following form, where "VOTCA-REPO-NAME" is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where "CLASS-NAME" is replaced by the name of the class described in the header file:
+### Includes ###
+  * When including a header file from within the same repo that you are working use the relative includes. This consists of using quotation marks i.e. 
 ```
-#ifndef _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
-#define _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+#include "molecule.h"
+```
+  * When including from another repository, for instance you are working in the csg repostory and want to include a file from the tools repo use the anglular brackets i.e.
+```
+#include <votca/tools/table.h>
+```
+
+### Header Files ###
+  * One class, one header.
+  * When creating header gruards use the following form, where "VOTCA-REPO-NAME" is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where "CLASS-NAME" is replaced by the name of the class described in the header file:
+```
+#ifndef VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+#define VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
 :
 Code
 :
-#endif // _VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+#endif // VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
 ```
- * Never use the "using namespace" in a header file.
- * Avoid using includes in header files. If possible forward declare a class instead.
+  * Never use the "using namespace" in a header file.
+  * Avoid using includes in header files. If possible forward declare a class instead.
  
 ### Braces ###
   * in functions/classes, the { is in the next line
@@ -93,19 +103,19 @@ Code
   * set only sets the member, e.g. `void setId(const int &id) {_id=id;}`
  
 ### Functions ###
- * Make functions short.
- * Functions should not have more than one use. So use boolean arguments sparingly.
+  * Make functions short.
+  * Functions should not have more than one use. So use boolean arguments sparingly.
  
 ### General ###
- * Do not comment out code, if you do not use it delete it.
- * Variables should have clear and explicit names.
- * Do not duplicate code.
- * Functions should have no more than 3 arguments. Otherwise create a class.
- * XYZ positions should be described using tools::vec, 3x3 matrices tools::matrix, or classes and or functions in the eigen library.
- * Readability is more important the elegant design.
- * Leave the code better than you found it.
- * Use pointers sparingly and especially try not to pass them around objects. Prefer references.
- * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
+  * Do not comment out code, if you do not use it delete it.
+  * Variables should have clear and explicit names.
+  * Do not duplicate code.
+  * Functions should have no more than 3 arguments. Otherwise create a class.
+  * XYZ positions should be described using tools::vec, 3x3 matrices tools::matrix, or classes and or functions in the eigen library.
+  * Readability is more important the elegant design.
+  * Leave the code better than you found it.
+  * Use pointers sparingly and especially try not to pass them around objects. Prefer references.
+  * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
   
 ## Testing
 
