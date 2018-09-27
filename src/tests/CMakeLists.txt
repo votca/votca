@@ -20,7 +20,8 @@ foreach(PROG test_cubicspline
     test_name
     test_table
     test_typeconverter
-    test_vec)
+    test_vec
+    test_property)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})

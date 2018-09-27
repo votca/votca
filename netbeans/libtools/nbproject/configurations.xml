@@ -87,6 +87,7 @@
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
+      <itemPath>../../src/tests/test_property.cc</itemPath>
       <itemPath>../../src/tests/test_typeconverter.cc</itemPath>
       <itemPath>../../src/tests/test_vec.cc</itemPath>
     </logicalFolder>
@@ -360,6 +361,8 @@
       <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
@@ -635,6 +638,8 @@
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
             tool="1"
@@ -908,6 +913,8 @@
       <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
