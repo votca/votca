@@ -78,16 +78,23 @@ namespace votca {
         std::pair<double, double> result = TRF.Evaluate(lambda);
         double func_value = result.first;
         double update = result.second;
-        lambda += update;
+        
         if (update < 1e-14 || std::abs(func_value) < 1e-12) {
           break;
         }
+        lambda += update;
       }
+
 
       //this is effectively the solution of (H+I\lambda)*\Delta p=-g with \lambda adjusted so that ||p||=delta 
       Eigen::VectorXd new_delta_pos = Eigen::VectorXd::Zero(gradient.size());
       for (int i = start_index; i < gradient.size(); i++) {
         new_delta_pos -= es.eigenvectors().col(i) * (es.eigenvectors().col(i).transpose() * gradient) / (es.eigenvalues()(i) + lambda);
+      }
+
+      //this is for safety
+      if(new_delta_pos.norm()>delta){
+          new_delta_pos*=(delta/new_delta_pos.norm());
       }
       return new_delta_pos;
     }
