@@ -22,10 +22,9 @@ using namespace std;
 
 namespace votca {
     namespace xtp {
-void GNode::AddDecayEvent(double decayrate)
-{
+void GNode::AddDecayEvent(double decayrate){
     GLink newEvent;
-    newEvent.destination = -1;
+    newEvent.destination = NULL;
     newEvent.rate = decayrate;
     newEvent.initialrate = decayrate;
     newEvent.dr = votca::tools::vec(0.0);
@@ -36,8 +35,7 @@ void GNode::AddDecayEvent(double decayrate)
     hasdecay=true;
 }
 
-void GNode::AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out)
-{
+void GNode::AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out){
     GLink newEvent;
     newEvent.destination = seg2;
     newEvent.rate = rate12;
@@ -50,15 +48,11 @@ void GNode::AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, doubl
 }
 
 
-void GNode::InitEscapeRate()
-{
-    double newEscapeRate = 0.0;
-    for(unsigned int i=0; i<this->events.size();i++)
-    {
-        newEscapeRate += this->events[i].rate;
+void GNode::InitEscapeRate(){
+    escape_rate = 0.0;
+    for(const auto& event:events){
+        escape_rate += event.rate;
     }
-    this->escape_rate = newEscapeRate;
-    // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
 }
 
  void GNode::ReadfromSegment(Segment* seg,int carriertype){

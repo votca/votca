@@ -40,7 +40,7 @@ namespace votca { namespace xtp {
                     ~Chargecarrier(){};
                     bool hasNode(){return (node!=NULL);}
                     void updateLifetime(double dt) { lifetime+=dt;}
-                    void updateOccupationtime(double dt) { node->occupationtime+=dt;}
+                    void updateOccupationtime(double dt){ node->occupationtime+=dt;}
                     void updateSteps(unsigned t) { steps+=t;}
                     void resetCarrier() { lifetime=0;steps=0; dr_travelled=Eigen::Vector3d::Zero();}
                     double getLifetime()const{return lifetime;}

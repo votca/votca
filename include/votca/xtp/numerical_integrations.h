@@ -32,6 +32,7 @@
 #include <votca/xtp/gridbox.h>
 #include <votca/xtp/qmatom.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/qmmolecule.h>
 
 #include <xc.h>
 #undef LOG
@@ -45,8 +46,8 @@ namespace votca { namespace xtp {
     
     struct Gyrationtensor{
         double mass;
-        tools::vec centroid;
-        tools::matrix gyration;
+        Eigen::Vector3d centroid;
+        Eigen::Matrix3d gyration;
     };
 
         class NumericalIntegration {
@@ -56,17 +57,17 @@ namespace votca { namespace xtp {
 
             ~NumericalIntegration();
             
-            void GridSetup(const std::string& type, std::vector<QMAtom* > atoms,const AOBasis& basis);
+            void GridSetup(const std::string& type, const QMMolecule& atoms,const AOBasis& basis);
            
             double getExactExchange(const std::string& functional);
-            std::vector<const tools::vec*> getGridpoints()const;
+            std::vector<const Eigen::Vector3d*> getGridpoints()const;
             std::vector<double> getWeightedDensities() const;
             int getGridSize() const{return _totalgridsize;}
             unsigned getBoxesSize() const{return _grid_boxes.size();}
             
-            void setXCfunctional(const std::string & functional);
+            void setXCfunctional(const std::string& functional);
             double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
-            double IntegratePotential(const tools::vec& rvector);
+            double IntegratePotential(const Eigen::Vector3d& rvector);
             Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis);
 
             
@@ -84,16 +85,16 @@ namespace votca { namespace xtp {
            
            void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::Cartesian_gridpoint > >& grid);
            
-           Eigen::MatrixXd CalcInverseAtomDist(std::vector<QMAtom*>& atoms);
+           Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms);
            int UpdateOrder(LebedevGrid& sphericalgridofElement, int maxorder, std::vector<double>& PruningIntervals,double r);
            
-           GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(const tools::vec& atomA_pos, 
+           GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(const Eigen::Vector3d& atomA_pos,
                                         GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
                                         unsigned i_rad,unsigned i_sph);
            
            Eigen::VectorXd SSWpartition(int igrid, const Eigen::MatrixXd& rq,const Eigen::MatrixXd& Rij );
-            void SSWpartitionAtom(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom,const Eigen::MatrixXd& Rij);
-            Eigen::MatrixXd CalcDistanceAtomsGridpoints(std::vector<QMAtom*>& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
+            void SSWpartitionAtom(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom,const Eigen::MatrixXd& Rij);
+            Eigen::MatrixXd CalcDistanceAtomsGridpoints(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
             
             int  _totalgridsize;
             std::vector< GridBox > _grid_boxes;

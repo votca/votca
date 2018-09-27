@@ -89,11 +89,11 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd ol = Eigen::MatrixXd::Zero(nrows_ol,ncols_ol); //////////////
         
         // get shell positions
-        const tools::vec& pos_row = shell_row->getPos();
-        const tools::vec& pos_col = shell_col->getPos();
-        const tools::vec  diff    = pos_row - pos_col;
+        const Eigen::Vector3d& pos_row = shell_row->getPos();
+        const Eigen::Vector3d& pos_col = shell_col->getPos();
+        const Eigen::Vector3d  diff    = pos_row - pos_col;
 
-        double distsq = (diff*diff);
+        double distsq = diff.squaredNorm();
 
 
 

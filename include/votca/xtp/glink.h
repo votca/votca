@@ -27,7 +27,6 @@ struct GLink {
   double rate;
   Eigen::Vector3d dr;
   bool decayevent;
-  // new stuff for Coulomb interaction
   double Jeff2;
   double reorg_out;
   double initialrate;

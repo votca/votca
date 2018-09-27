@@ -53,11 +53,9 @@ namespace votca {
              */
 
             // get shell positions
-            const tools::vec& pos_row = shell_row->getPos();
-            const tools::vec& pos_col = shell_col->getPos();
-            const tools::vec diff = pos_row - pos_col;
-            std::vector<double> _pma(3, 0.0);
-            std::vector<double> _pmb(3, 0.0);
+            const Eigen::Vector3d& pos_row = shell_row->getPos();
+            const Eigen::Vector3d& pos_col = shell_col->getPos();
+            const Eigen::Vector3d diff = pos_row - pos_col;
 
             double distsq = (diff * diff);
             int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};

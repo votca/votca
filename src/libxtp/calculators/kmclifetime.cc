@@ -255,9 +255,9 @@ namespace votca {
                     // LEVEL 2
 
                     newnode = NULL;
-                   const GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
+                   const GLink& event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
-                    if (event->decayevent){
+                    if (event.decayevent){
                        
                         avlifetime+=affectedcarrier->getLifetime();
                         meanfreepath+=affectedcarrier->dr_travelled.norm();
@@ -278,7 +278,7 @@ namespace votca {
                         break;
                             }
                     else{
-                    newnode = &_nodes[event->destination];
+                    newnode = &_nodes[event.destination];
                     }
 
                     // check after the event if this was allowed
@@ -296,7 +296,7 @@ namespace votca {
                         continue; // select new destination
                     } else {
                         affectedcarrier->jumpfromCurrentNodetoNode(newnode);
-                        affectedcarrier->dr_travelled += event->dr;
+                        affectedcarrier->dr_travelled += event.dr;
                         AddtoJumplengthdistro(event,dt);
                         secondlevel=false;
 

@@ -47,11 +47,11 @@ namespace votca { namespace xtp {
 
 
 
-            const tools::vec& pos_row = shell_row->getPos();
-            const tools::vec& pos_col = shell_col->getPos();
-            const tools::vec diff = pos_row - pos_col;
+            const Eigen::Vector3d& pos_row = shell_row->getPos();
+            const Eigen::Vector3d& pos_col = shell_col->getPos();
+            const Eigen::Vector3d diff = pos_row - pos_col;
             // initialize some helper
-            double distsq = diff*diff;
+            double distsq = diff.squaredNorm();
 
 
             // iterate over Gaussians in this shell_row
@@ -101,12 +101,12 @@ namespace votca { namespace xtp {
 
                     AOBasis::AOShellIterator final_iter = _ecp->end();
                     --final_iter;
-                    tools::vec ecp_eval_pos = tools::vec(0.0);
+                    Eigen::Vector3d ecp_eval_pos = Eigen::Vector3d(0.0);
                     int lmax_ecp = 0;
                     for (AOBasis::AOShellIterator ecpit = _ecp->begin(); ecpit != _ecp->end(); ++ecpit) {
 
                         const AOShell* shell_ecp = *ecpit;
-                        const tools::vec& ecp_pos = shell_ecp->getPos();
+                        const Eigen::Vector3d& ecp_pos = shell_ecp->getPos();
 
                         int this_atom = shell_ecp->getAtomIndex();
 
@@ -174,7 +174,7 @@ namespace votca { namespace xtp {
             return;
         }
 
-        Eigen::MatrixXd AOECP::calcVNLmatrix(int lmax_ecp, const tools::vec& posC, 
+        Eigen::MatrixXd AOECP::calcVNLmatrix(int lmax_ecp, const Eigen::Vector3d& posC,
                 const AOGaussianPrimitive& g_row, const AOGaussianPrimitive& g_col,
                 const  Eigen::Matrix<int,4,5>& power_ecp, const Eigen::Matrix<double,4,5>& gamma_ecp,
                 const Eigen::Matrix<double,4,5>& pref_ecp) {
@@ -201,8 +201,8 @@ namespace votca { namespace xtp {
 
             double alpha = g_row.getDecay();
             double beta = g_col.getDecay();
-            const tools::vec& posA = g_row.getShell()->getPos();
-            const tools::vec& posB = g_col.getShell()->getPos();
+            const Eigen::Vector3d& posA = g_row.getShell()->getPos();
+            const Eigen::Vector3d& posB = g_col.getShell()->getPos();
             int lmax_row = g_row.getShell()->getLmax();
             int lmax_col = g_col.getShell()->getLmax();
             int lmin = std::min({lmax_row, lmax_col, lmax_ecp});
@@ -210,8 +210,8 @@ namespace votca { namespace xtp {
             int nsph_row = (lmax_row + 1) * (lmax_row + 1);
             int nsph_col = (lmax_col + 1) * (lmax_col + 1);
 
-            tools::vec AVS = posA - posC;
-            tools::vec BVS = posB - posC;
+            Eigen::Vector3d AVS = posA - posC;
+            Eigen::Vector3d BVS = posB - posC;
             double AVS2 = AVS * AVS;
             double BVS2 = BVS * BVS;     
 
@@ -883,7 +883,7 @@ namespace votca { namespace xtp {
             return Norms;
         }
 
-        void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos, tensor3d& BLC, tensor3d& C) {
+        void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos, tensor3d& BLC, tensor3d& C) {
 
            
             tensor3d::extent_gen extents;

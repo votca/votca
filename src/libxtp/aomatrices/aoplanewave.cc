@@ -37,9 +37,9 @@ namespace votca {
                 exit(1);
             }
             // get shell positions
-            const tools::vec& pos_row = shell_row->getPos(); //get position R_{i}
-            const tools::vec& pos_col = shell_col->getPos(); //get position R_{j}
-            const tools::vec diff = pos_row - pos_col; //get difference r_{ij}
+            const Eigen::Vector3d& pos_row = shell_row->getPos(); //get position R_{i}
+            const Eigen::Vector3d& pos_col = shell_col->getPos(); //get position R_{j}
+            const Eigen::Vector3d diff = pos_row - pos_col; //get difference r_{ij}
             double distsq = (diff * diff); //get |R_{ij}|^2
             // get kvector modulus
             double kmodulus = (_k * _k); //get |k|^2
@@ -563,7 +563,7 @@ namespace votca {
         
         
         
-        void AOPlanewave::Fillextpotential(const AOBasis& aobasis, const std::vector< tools::vec>& kpoints) {
+        void AOPlanewave::Fillextpotential(const AOBasis& aobasis, const std::vector< Eigen::Vector3d>& kpoints) {
             
             _externalpotential = Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 

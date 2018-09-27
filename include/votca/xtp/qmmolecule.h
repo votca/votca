@@ -35,7 +35,10 @@ public:
     void WriteToCpt(CptLoc parent)const;
 
     void ReadFromCpt(CptLoc parent);
-   
+    
+    void LoadFromXYZ(const std::string& filename);
+
+    void WriteXYZ(const std::string& filename, std::string header) const;
     
 };
         

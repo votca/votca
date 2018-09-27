@@ -22,7 +22,7 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 #include <votca/xtp/polarseg.h>
 #include <votca/xtp/multiarray.h>
 
@@ -116,27 +116,27 @@ namespace votca { namespace xtp {
      */
     class AODipole : public AOMatrix3D { 
     public:
-        void setCenter(const tools::vec& r){ _r=r;}// definition of a center around which the moment should be calculated
+        void setCenter(const Eigen::Vector3d& r){ _r=r;}// definition of a center around which the moment should be calculated
     protected:   
         void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col);
     private:
-        tools::vec _r=tools::vec(0.0);
+        Eigen::Vector3d _r=Eigen::Vector3d::Zero();
     };
     
     // derived class for atomic orbital nuclear potential
     class AOESP : public AOMatrix<double>{
     public:
      
-        void Fillnucpotential(const AOBasis& aobasis,const std::vector<QMAtom*>& atoms);
+        void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
         void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
-        void setPosition(const tools::vec& r){ _r=r;};
+        void setPosition(const Eigen::Vector3d& r){ _r=r;};
     protected:   
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix ,const AOShell* shell_row,const AOShell* shell_col);
     private:
         
-        tools::vec _r;
+        Eigen::Vector3d _r;
         Eigen::MatrixXd _nuclearpotential;
         Eigen::MatrixXd _externalpotential;
     };
@@ -150,12 +150,12 @@ namespace votca { namespace xtp {
     private:
         
         const AOBasis* _ecp;
-        Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const tools::vec& posC,
+        Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const Eigen::Vector3d& posC,
                 const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,
                 const  Eigen::Matrix<int,4,5>& power_ecp,const Eigen::Matrix<double,4,5>& gamma_ecp,
                 const Eigen::Matrix<double,4,5>& pref_ecp   );
         
-        void getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos, tensor3d& BLC, tensor3d& C  );
+        void getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos, tensor3d& BLC, tensor3d& C  );
         Eigen::VectorXd CalcNorms( double decay,int size);
         Eigen::VectorXd CalcInt_r_exp( int nmax, double decay );
     };
@@ -191,8 +191,8 @@ namespace votca { namespace xtp {
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
     private:
-        void setAPolarSite(APolarSite* site){apolarsite=site;};
-        APolarSite* apolarsite;
+        void setPolarSite(PolarSite* site){polarsite=site;};
+        PolarSite* polarsite;
         Eigen::MatrixXd _externalpotential;
     };
     
@@ -224,14 +224,14 @@ namespace votca { namespace xtp {
     
     class AOPlanewave : public AOMatrix<std::complex<double> >{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector< tools::vec>& kpoints);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector< Eigen::Vector3d>& kpoints);
         Eigen::MatrixXd getExternalpotential(){ return _externalpotential.real();}
     protected:
         void FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
                 const AOShell* shell_row, const AOShell* shell_col);
     private:
-        void setkVector(const tools::vec& k){_k=k;};
-        tools::vec _k;
+        void setkVector(const Eigen::Vector3d& k){_k=k;};
+        Eigen::Vector3d _k;
         Eigen::MatrixXcd _externalpotential;
 };
     

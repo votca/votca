@@ -67,17 +67,17 @@ protected:
             void InitialRates();
             
             double Promotetime(double cumulated_rate);
-            void ResetForbiddenlist(std::vector<int> &forbiddenid);
-            void AddtoForbiddenlist(int id, std::vector<int> &forbiddenid);
-            bool CheckForbidden(int id,const std::vector<int> &forbiddenlist);
-            bool CheckSurrounded(GNode* node,const std::vector<int> &forbiddendests);
-            const GLink* ChooseHoppingDest(const GNode* node);
+            void ResetForbiddenlist(std::vector<int> &forbiddenid)const;
+            void AddtoForbiddenlist(int id, std::vector<int> &forbiddenid)const;
+            bool CheckForbidden(int id,const std::vector<int> &forbiddenlist)const;
+            bool CheckSurrounded(const GNode* node,const std::vector<int> &forbiddendests)const;
+            const GLink& ChooseHoppingDest(const GNode* node);
             Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
             
             
             void RandomlyCreateCharges();
             void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
-            void AddtoJumplengthdistro(const GLink* event, double dt);
+            void AddtoJumplengthdistro(const GLink& event, double dt);
             void PrintJumplengthdistro();
             std::vector<GNode> _nodes;
             std::vector< Chargecarrier > _carriers;

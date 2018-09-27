@@ -104,25 +104,7 @@ namespace votca {
             });
             return index;
         }
-
-        /// Writes a PDB file
-        //TODO move to filewriter PDB
-
-        void Orbitals::WriteXYZ(const std::string& filename, string header) const{
-            
-          std::ofstream out(filename);
-          if (!out.is_open()) {
-                throw std::runtime_error("Bad file handle: " + filename);
-            }
-          out<<_atoms.size()<<endl;
-          out<<header<<endl;
-          for (const QMAtom* atom:_atoms) {
-                const Eigen::Vector3d pos = atom->getPos() * tools::conv::bohr2ang;
-                out<<atom->getElement()<<" "<<pos.getX()<<" "<<pos.getY()<<" "<<pos.getZ()<<endl;
-          }
-          out.close();
-          return;
-        }
+     
 
         Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const{
           if(state.isTransition()){
@@ -574,48 +556,8 @@ namespace votca {
             
             return;
         }
-        //TODO move to Filereader
-        void Orbitals::LoadFromXYZ(const std::string& filename) {
 
-            string line;
-            std::ifstream in;
-            string type;
-            in.open(filename.c_str(), std::ios::in);
-            if (!in) throw runtime_error(string("Error reading coordinates from: ")
-                    + filename);
-            int atomCount = 0;
-            std::getline(in, line);
-            
-            Tokenizer tok1(line," \t");
-            std::vector<std::string> line1;
-            tok1.ToVector(line1);
-            if(line1.size()!=1){
-              throw std::runtime_error("First line of xyz file should contain number of atoms, nothing else.");
-            }
-            std::getline(in, line);//Comment line
-            
-            if (in.is_open()) {
-                while (in.good()) {
-                    std::getline(in, line);
-
-                    vector< string > split;
-                    Tokenizer toker(line, " \t");
-                    toker.ToVector(split);
-                    if(split.size()<4){continue;}
-                    // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-                    string element = split[0];
-                    double x = boost::lexical_cast<double>(split[1]);
-                    double y = boost::lexical_cast<double>(split[2]);
-                    double z = boost::lexical_cast<double>(split[3]);
-                    Eigen::Vector3d pos = {x, y, z};
-                    AddAtom(atomCount, element, pos * tools::conv::ang2bohr);
-                    atomCount++;
-                }
-            } else {
-                throw std::runtime_error("No such file: '" + filename + "'.");
-            }
-            return;
-        }
+       
 
         void Orbitals::WriteToCpt(const std::string& filename) const{
             CheckpointFile cpf(filename, true);

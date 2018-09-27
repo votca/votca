@@ -38,7 +38,7 @@ namespace votca { namespace xtp {
         
         
         std::vector<double> quadrupole=apolarsite->getQ2();
-        tools::vec position=apolarsite->getPos()*tools::conv::nm2bohr;
+        Eigen::Vector3d position=apolarsite->getPos()*tools::conv::nm2bohr;
         double nm22bohr2=tools::conv::nm2bohr*tools::conv::nm2bohr;
         for(double & entry:quadrupole){
             entry*=-nm22bohr2;
@@ -114,12 +114,12 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const tools::vec& pos_row = shell_row->getPos();
-        const tools::vec& pos_col = shell_col->getPos();
-        const tools::vec  diff    = pos_row - pos_col;
+        const Eigen::Vector3d& pos_row = shell_row->getPos();
+        const Eigen::Vector3d& pos_col = shell_col->getPos();
+        const Eigen::Vector3d  diff    = pos_row - pos_col;
         // initialize some helper
       
-        double distsq = (diff*diff); 
+        double distsq = diff.squaredNorm();
         
      
         // iterate over Gaussians in this shell_row

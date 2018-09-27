@@ -152,7 +152,7 @@ void KMCMultiple::RunVSSM(Topology *top)
     RandomlyCreateCharges();
     vector<Eigen::Vector3d> startposition(_numberofcharges,Eigen::Vector3d::Zero());
     for(unsigned int i=0; i<_numberofcharges; i++) {
-        startposition[i]=_carriers[i]->getCurrentPosition();
+        startposition[i]=_carriers[i].getCurrentPosition();
     }
     
     
@@ -188,12 +188,10 @@ void KMCMultiple::RunVSSM(Topology *top)
         }
         
         double cumulated_rate = 0;
-        for(unsigned int i=0; i<_numberofcharges; i++)
-        {
-            cumulated_rate += _carriers[i]->getCurrentEscapeRate();
+        for(const auto& carrier:_carriers){
+            cumulated_rate += carrier.getCurrentEscapeRate();
         }
-        if(cumulated_rate == 0)
-        {   // this should not happen: no possible jumps defined for a node
+        if(cumulated_rate == 0){   // this should not happen: no possible jumps defined for a node
             throw runtime_error("ERROR in kmcmultiple: Incorrect rates in the database file. All the escape rates for the current setting are 0.");
         }
         
@@ -206,9 +204,8 @@ void KMCMultiple::RunVSSM(Topology *top)
         
         
         
-        for(unsigned int i=0; i<_numberofcharges; i++)
-        {
-            _carriers[i]->updateOccupationtime(dt);
+        for(auto& carrier:_carriers){
+            carrier.updateOccupationtime(dt);
         }
 
         
@@ -230,10 +227,10 @@ void KMCMultiple::RunVSSM(Topology *top)
                 if(tools::globals::verbose) {cout << "There are " <<affectedcarrier->getCurrentNode()->events.size() << " possible jumps for this charge:"; }
               
 
-                GLink* event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
-                newnode = _nodes[event->destination];
+                const GLink& event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
+                newnode = &_nodes[event.destination];
                 if(newnode==affectedcarrier->getCurrentNode()){
-                    cout<<event->dr<<endl;
+                    cout<<event.dr<<endl;
                 }
 
                 if(newnode == NULL){
@@ -269,7 +266,7 @@ void KMCMultiple::RunVSSM(Topology *top)
                 }
                 else{
                     affectedcarrier->jumpfromCurrentNodetoNode(newnode);
-                    affectedcarrier->dr_travelled +=event->dr;
+                    affectedcarrier->dr_travelled +=event.dr;
                     AddtoJumplengthdistro(event,dt);
                     level1step = false;
                     if(tools::globals::verbose) {cout << "Charge has jumped to segment: " << newnode->id+1 << "." << endl;}
@@ -286,8 +283,8 @@ void KMCMultiple::RunVSSM(Topology *top)
         //outputstuff
         
         if(step%diffusionresolution==0){     
-            for(unsigned int i=0; i<_numberofcharges; i++){
-                avgdiffusiontensor += (_carriers[i]->dr_travelled)*(_carriers[i]->dr_travelled).transpose();
+            for(const auto& carrier:_carriers){
+                avgdiffusiontensor += (carrier.dr_travelled)*(carrier.dr_travelled).transpose();
             }
         }
         
@@ -301,7 +298,7 @@ void KMCMultiple::RunVSSM(Topology *top)
                 double average_mobility = 0;
                 cout << endl << "Mobilities (nm^2/Vs): " << endl;
                 for (unsigned int i = 0; i < _numberofcharges; i++) {
-                    Eigen::Vector3d velocity= _carriers[i]->dr_travelled / simtime;
+                    Eigen::Vector3d velocity= _carriers[i].dr_travelled / simtime;
                     cout << std::scientific << "    charge " << i + 1 << ": mu=" << velocity.dot(_field) / (absolute_field * absolute_field) << endl;
                     average_mobility += velocity.dot(_field) / (absolute_field * absolute_field);
                 }
@@ -321,9 +318,9 @@ void KMCMultiple::RunVSSM(Topology *top)
                 traj << simtime << "\t";
             traj << step << "\t";
                 for(unsigned int i=0; i<_numberofcharges; i++) {
-                    traj << startposition[i][0] + _carriers[i]->dr_travelled[0] << "\t";
-                    traj << startposition[i][1] + _carriers[i]->dr_travelled[1] << "\t";
-                    traj << startposition[i][2] + _carriers[i]->dr_travelled[2];
+                    traj << startposition[i][0] + _carriers[i].dr_travelled[0] << "\t";
+                    traj << startposition[i][1] + _carriers[i].dr_travelled[1] << "\t";
+                    traj << startposition[i][2] + _carriers[i].dr_travelled[2];
                     if (i<_numberofcharges-1) {
                         traj << "\t";
                     }
@@ -339,9 +336,9 @@ void KMCMultiple::RunVSSM(Topology *top)
                 double dr_travelled_field=0.0;
                 Eigen::Vector3d avgvelocity_current =Eigen::Vector3d::Zero();
                 if(absolute_field != 0){
-                    for(unsigned int i=0; i<_numberofcharges; i++){
-                        dr_travelled_current += _carriers[i]->dr_travelled;
-                        currentenergy += _carriers[i]->getCurrentEnergy();
+                    for(const auto& carrier:_carriers){
+                        dr_travelled_current += carrier.dr_travelled;
+                        currentenergy += carrier.getCurrentEnergy();
                     }
                     dr_travelled_current /= _numberofcharges;
                     currentenergy /= _numberofcharges;
@@ -355,13 +352,11 @@ void KMCMultiple::RunVSSM(Topology *top)
               
             }
         }
-      
     }//KMC 
     
     
     
-    if(checkifoutput)
-    {   
+    if(checkifoutput){   
         traj.close();
         tfile.close();
     }
@@ -369,7 +364,7 @@ void KMCMultiple::RunVSSM(Topology *top)
     
     vector< Segment* >& seg = top->Segments();
     for (unsigned i = 0; i < seg.size(); i++) {
-            double occupationprobability=_nodes[i]->occupationtime / simtime;
+            double occupationprobability=_nodes[i].occupationtime / simtime;
             seg[i]->setOcc(occupationprobability,_carriertype.ToXTPIndex());
         }
 
@@ -380,8 +375,8 @@ void KMCMultiple::RunVSSM(Topology *top)
     
     Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
     for(unsigned int i=0; i<_numberofcharges; i++){
-        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i]->dr_travelled/simtime << endl;
-        avg_dr_travelled += _carriers[i]->dr_travelled;
+        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i].dr_travelled/simtime << endl;
+        avg_dr_travelled += _carriers[i].dr_travelled;
     }
     avg_dr_travelled /= _numberofcharges;
     
@@ -390,7 +385,7 @@ void KMCMultiple::RunVSSM(Topology *top)
 
     cout << endl << "Distances travelled (nm): " << endl;
     for(unsigned int i=0; i<_numberofcharges; i++){
-        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i]->dr_travelled << endl;
+        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i].dr_travelled << endl;
     }
     
     // calculate mobilities
@@ -399,7 +394,7 @@ void KMCMultiple::RunVSSM(Topology *top)
         double average_mobility = 0;
         cout << endl << "Mobilities (nm^2/Vs): " << endl;
         for(unsigned int i=0; i<_numberofcharges; i++){
-            Eigen::Vector3d velocity = _carriers[i]->dr_travelled/simtime;
+            Eigen::Vector3d velocity = _carriers[i].dr_travelled/simtime;
             cout << std::scientific << "    charge " << i+1 << ": mu=" << velocity.dot(_field)/(absolute_field*absolute_field) << endl;
             average_mobility += velocity.dot(_field) /(absolute_field*absolute_field);
         }

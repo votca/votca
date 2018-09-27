@@ -47,12 +47,12 @@ namespace votca { namespace xtp {
         int ncols = this->getBlockSize( lmax_col ); 
         
              // get shell positions
-        const tools::vec& pos_row = shell_row->getPos();
-        const tools::vec& _pos_col = shell_col->getPos();
-        const tools::vec  diff    = pos_row - _pos_col;
+        const Eigen::Vector3d& pos_row = shell_row->getPos();
+        const Eigen::Vector3d& _pos_col = shell_col->getPos();
+        const Eigen::Vector3d  diff    = pos_row - _pos_col;
        
           
-        double distsq = (diff*diff);   
+        double distsq = diff.squaredNorm();
         
      
         

@@ -96,12 +96,12 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const tools::vec& pos_row = shell_row->getPos();
-        const tools::vec& pos_col = shell_col->getPos();
-        const tools::vec  diff    = pos_row - pos_col;
+        const Eigen::Vector3d& pos_row = shell_row->getPos();
+        const Eigen::Vector3d& pos_col = shell_col->getPos();
+        const Eigen::Vector3d  diff    = pos_row - pos_col;
         // initialize some helper
       
-        double distsq = (diff*diff); 
+        double distsq = diff.squaredNorm());
         
          
         // iterate over Gaussians in this shell_row
@@ -446,7 +446,7 @@ if (lmax_col > 3) {
 
             for (unsigned int i = 0; i < sites.size(); i++) {
                  for (APolarSite* site:*(sites[i])) {
-                    tools::vec positionofsite = site->getPos() * tools::conv::nm2bohr;
+                    Eigen::Vector3d positionofsite = site->getPos() * tools::conv::nm2bohr;
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                     setPosition(positionofsite);
                     Fill(aobasis);

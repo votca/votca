@@ -458,14 +458,14 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
       return;
     }
     
-    Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(QMAtom* uniqueAtom){
+    Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom){
       bool with_ecp = _with_ecp;
       if (uniqueAtom->getElement() == "H" || uniqueAtom->getElement() == "He") {
         with_ecp = false;
       }
-      
-       std::vector<QMAtom*> atom;
-        atom.push_back(uniqueAtom);
+
+      QMMolecule atom;
+      atom.push_back(uniqueAtom);
 
         AOBasis dftbasis;
         NumericalIntegration gridIntegration;

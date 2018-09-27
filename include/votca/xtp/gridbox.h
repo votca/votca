@@ -35,7 +35,7 @@ namespace votca { namespace xtp {
             
         public: 
             
-            const std::vector<tools::vec>& getGridPoints() const{return grid_pos;}
+            const std::vector<Eigen::Vector3d>& getGridPoints() const{return grid_pos;}
             
             const std::vector<double>& getGridWeights() const{return weights;}
             
@@ -51,7 +51,7 @@ namespace votca { namespace xtp {
             
             
             void addGridBox(const GridBox& box){
-                const std::vector<tools::vec>& p=box.getGridPoints();
+                const std::vector<Eigen::Vector3d>& p=box.getGridPoints();
                 const std::vector<double>& w=box.getGridWeights();
                 for (unsigned i=0;i<w.size();++i){
                     grid_pos.push_back(p[i]);
@@ -114,7 +114,7 @@ namespace votca { namespace xtp {
                 std::vector<GridboxRange> aoranges;
                 std::vector<GridboxRange> ranges;
                 std::vector<GridboxRange> inv_ranges;
-                std::vector< tools::vec > grid_pos;//bohr
+                std::vector< Eigen::Vector3d > grid_pos;//bohr
                 std::vector<const AOShell* > significant_shells;
                 std::vector< double > weights;
                 std::vector< double > densities;

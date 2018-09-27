@@ -119,17 +119,17 @@ namespace votca {
     }
     
 
-        void KMCCalculator::ResetForbiddenlist(std::vector<int> &forbiddenid) {
+        void KMCCalculator::ResetForbiddenlist(std::vector<int> &forbiddenid) const{
             forbiddenid.clear();
             return;
         }
 
-        void KMCCalculator::AddtoForbiddenlist(int id, std::vector<int> &forbiddenid) {
+        void KMCCalculator::AddtoForbiddenlist(int id, std::vector<int> &forbiddenid) const{
             forbiddenid.push_back(id);
             return;
         }
 
-        bool KMCCalculator::CheckForbidden(int id,const std::vector<int> &forbiddenlist) {
+        bool KMCCalculator::CheckForbidden(int id,const std::vector<int> &forbiddenlist) const{
             bool forbidden = false;
             for (unsigned int i = 0; i < forbiddenlist.size(); i++) {
                 if (id == forbiddenlist[i]) {
@@ -207,44 +207,43 @@ namespace votca {
             double maxrate=0;
             double minrate=std::numeric_limits<double>::max();
             int totalnumberofrates = 0;
-            for (unsigned int i = 0; i < numberofsites; i++) {
-                unsigned numberofneighbours = _nodes[i].events.size();
-                for (unsigned int j = 0; j < numberofneighbours; j++) {
-                    if(_nodes[i].events[j].decayevent){
+            for (auto& node:_nodes) {
+                for (auto& event:node.events) {
+                    if(event.decayevent){
                         //if event is a decay event there is no point in calculating its rate, because it already has that from the reading in.
                         continue;
                     }
 
-                    double destindex = _nodes[i].events[j].destination;
-                    double reorg = _nodes[i].reorg_intorig + _nodes[destindex].reorg_intdest + _nodes[i].events[j].reorg_out;
+                    double destindex = event.destination;
+                    double reorg = node.reorg_intorig + _nodes[destindex].reorg_intdest + event.reorg_out;
                      if(std::abs(reorg)<1e-12){
                         throw std::runtime_error("Reorganisation energy for a pair is extremly close to zero,\n"
                                 " you probably forgot to import reorganisation energies into your sql file.");
                     }
                     double dG_Field =0.0;
                     if(charge!=0.0){
-                        dG_Field=charge * (_nodes[i].events[j].dr.transpose()*_field);
+                        dG_Field=charge * (event.dr.transpose()*_field);
                     }
-                    double dG_Site = _nodes[destindex].siteenergy - _nodes[i].siteenergy;
+                    double dG_Site = _nodes[destindex].siteenergy - node.siteenergy;
                     double dG=dG_Site-dG_Field;
-                    double J2 = _nodes[i].events[j].Jeff2;
+                    double J2 = event.Jeff2;
 
                     double rate = 2 * tools::conv::Pi / tools::conv::hbar * J2 / sqrt(4 * tools::conv::Pi * reorg * tools::conv::kB * _temperature) 
                     * exp(-(dG + reorg)*(dG + reorg) / (4 * reorg * tools::conv::kB * _temperature));
 
                     // calculate relative difference compared to values in the table
-                    double reldiff = (_nodes[i].events[j].rate - rate) / _nodes[i].events[j].rate;
+                    double reldiff = (event.rate - rate) / event.rate;
                     if (reldiff > maxreldiff) {
                         maxreldiff = reldiff;
                     }
-                    reldiff = (_nodes[i].events[j].rate - rate) / rate;
+                    reldiff = (event.rate - rate) / rate;
                     if (reldiff > maxreldiff) {
                         maxreldiff = reldiff;
                     }
 
                     // set rates to calculated values
-                    _nodes[i].events[j].rate = rate;
-                    _nodes[i].events[j].initialrate = rate;
+                    event.rate = rate;
+                    event.initialrate = rate;
                     
                     if(rate>maxrate){
                         maxrate=rate;
@@ -257,8 +256,8 @@ namespace votca {
                 }
 
                 // Initialise escape rates
-                for (unsigned int i = 0; i < _nodes.size(); i++) {
-                    _nodes[i].InitEscapeRate();
+                for (auto& node:_nodes) {
+                    node.InitEscapeRate();
                 }
 
             }
@@ -289,17 +288,17 @@ namespace votca {
         }
         
         
-        const GLink* KMCCalculator::ChooseHoppingDest(const GNode* node){
+        const GLink& KMCCalculator::ChooseHoppingDest(const GNode* node){
             double u = 1 - _RandomVariable.rand_uniform();
             
-            for (unsigned int j = 0; j < node->events.size(); j++) {
+            for (unsigned j = 0; j < node->events.size(); j++) {
                 u -= node->events[j].rate / node->getEscapeRate();
                 if (u <= 0 || j==node->events.size()-1) {    
-                    return &(node->events[j]);
+                    return (node->events[j]);
                 }
             }
             throw runtime_error("Choose Hopping Destination, somehow no event was found");
-            return NULL;
+            return node->events[0];
         }
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
@@ -319,15 +318,12 @@ namespace votca {
             return carrier;
         }
         
-        void KMCCalculator::AddtoJumplengthdistro(const GLink* event,double dt){
+        void KMCCalculator::AddtoJumplengthdistro(const GLink& event,double dt){
             if(dolengthdistributon){
-            double dist=abs(event->dr)-minlength;
-            int index=int(dist/lengthresolution);
-           
-            _jumplengthdistro[index]++;
-            _jumplengthdistro_weighted[index]+=dt;
-           
-            
+                double dist=event.dr.norm()-minlength;
+                int index=int(dist/lengthresolution);
+                _jumplengthdistro[index]++;
+                _jumplengthdistro_weighted[index]+=dt;
             }
             return; 
         }
