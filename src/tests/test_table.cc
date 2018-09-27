@@ -28,7 +28,10 @@ using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(table_test)
 
-BOOST_AUTO_TEST_CASE(create_test) { Table tb; }
+BOOST_AUTO_TEST_CASE(create_test) { 
+  Table tb;
+  Table tb2(tb);
+}
 
 BOOST_AUTO_TEST_CASE(size_test) {
   Table tb;
@@ -42,6 +45,20 @@ BOOST_AUTO_TEST_CASE(pushback_test) {
     tb.push_back(x, y);
   }
   BOOST_CHECK_EQUAL(tb.size(), 10);
+}
+
+BOOST_AUTO_TEST_CASE(resize_test){
+  Table tb;
+  tb.resize(0);
+  tb.resize(10);
+
+  bool error_thrown = false;
+  try {
+    tb.resize(-5);
+  }catch(...){
+    error_thrown = true;
+  }
+  BOOST_CHECK(error_thrown);
 }
 
 BOOST_AUTO_TEST_CASE(xy_test) {
@@ -78,6 +95,18 @@ BOOST_AUTO_TEST_CASE(getMinMax_test) {
   BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxX()), 9);
   BOOST_CHECK_EQUAL(static_cast<int>(tb.getMinY()), 0);
   BOOST_CHECK_EQUAL(static_cast<int>(tb.getMaxY()), 18);
+}
+
+BOOST_AUTO_TEST_CASE(generate_grid_spacing_test){
+  Table tb;
+  double min_v = 1.2;
+  double max_v = 2.0;
+
+  tb.GenerateGridSpacing(min_v,max_v,0.2);
+
+  BOOST_CHECK_EQUAL(tb.size(),5);
+  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMinX()*10)),12);  
+  BOOST_CHECK_EQUAL(static_cast<int>(round(tb.getMaxX()*10)),20);  
 }
 
 BOOST_AUTO_TEST_SUITE_END()

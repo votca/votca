@@ -123,6 +123,11 @@ void char_hndl(void *data, const char *txt, int txtlen) {
 }
 
 bool load_property_from_xml(Property &p, string filename) {
+  ifstream fl;
+  fl.open(filename.c_str());
+  if (!fl.is_open())
+    throw std::ios_base::failure("Error on open xml file: " + filename);
+  
   XML_Parser parser = XML_ParserCreate(NULL);
   if (!parser)
     throw std::runtime_error("Couldn't allocate memory for xml parser");
@@ -130,11 +135,6 @@ bool load_property_from_xml(Property &p, string filename) {
   XML_UseParserAsHandlerArg(parser);
   XML_SetElementHandler(parser, start_hndl, end_hndl);
   XML_SetCharacterDataHandler(parser, char_hndl);
-
-  ifstream fl;
-  fl.open(filename.c_str());
-  if (!fl.is_open())
-    throw std::ios_base::failure("Error on open xml file: " + filename);
 
   stack<Property *> pstack;
   pstack.push(&p);
