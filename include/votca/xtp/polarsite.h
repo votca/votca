@@ -35,16 +35,11 @@ class PolarSite
 
 public:
 
-    PolarSite(int id, const std::string& element, const Eigen::Vector3d& pos)
-            : _id(id), _element(element),_pos(pos),_isPolarisable(false),
-            _Ps(Eigen::Matrix3d::Zero()),
-            _localpermanetField(Eigen::Vector3d::Zero()),
-            _localinducedField(Eigen::Vector3d::Zero()),
-            _eigendamp(0.0),
-            PhiP(0.0),PhiU(0.0){};
+    PolarSite(int id, const std::string& element, const Eigen::Vector3d& pos);
             
-    PolarSite(int id, const std::string& name)
-                    :PolarSite(id,name,Eigen::Vector3d::Zero()){};
+    PolarSite(int id, const std::string& element)
+                    :PolarSite(id,element,Eigen::Vector3d::Zero()){
+                };
       
 
     int getId() const{ return _id; }

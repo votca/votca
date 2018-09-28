@@ -35,13 +35,9 @@ class QMPair : public std::pair< Segment*, Segment* >
 {
 public:
     
-    enum PairType 
-    { 
+    enum PairType{ 
         Hopping,
-        SuperExchange,
-        SuperExchangeAndHopping,
-        Excitoncl,
-        
+        Excitoncl,  
     };
 
     QMPair() :  _R(0,0,0),
@@ -121,8 +117,6 @@ public:
    // superexchange pairs have a list of bridging segments
    void     setType( PairType pair_type ) { _pair_type = pair_type; }
    void     setType( int pair_type ) { _pair_type = (PairType) pair_type; }
-   void     AddBridgingSegment( Segment* _segment ){ _bridging_segments.push_back(_segment); }
-   const std::vector<Segment*> &getBridgingSegments() const { return _bridging_segments; }
    PairType &getType(){return _pair_type;}
 
 protected:
@@ -162,7 +156,6 @@ protected:
     double          _Jeff2_t;
 
     PairType _pair_type;
-    std::vector<Segment*> _bridging_segments;
     
 };
 

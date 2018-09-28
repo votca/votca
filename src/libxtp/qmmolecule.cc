@@ -49,7 +49,7 @@ namespace votca { namespace xtp {
       size_t count = 0;
       for (const auto& qma : _atomlist) {
         CptLoc tempLoc = qmAtomsGr.createGroup("atom" + std::to_string(count));
-        qma->WriteToCpt(tempLoc);
+        qma.WriteToCpt(tempLoc);
         ++count;
       }
     }

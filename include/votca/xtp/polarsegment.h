@@ -16,33 +16,39 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#include <iostream>
-#include <votca/xtp/qmnblist.h>
-#include <votca/tools/globals.h>
-#include <votca/xtp/topology.h>
+#ifndef VOTCA_XTP_POLARSEG_H
+#define VOTCA_XTP_POLARSEG_H
 
-using namespace std;
+#include <votca/xtp/atomcontainer.h>
+#include <votca/xtp/polarsite.h>
 
-namespace votca { namespace xtp {
 
-  QMPair *QMNBList::Add(Segment* seg1, Segment* seg2,bool safe) {
+namespace votca {
+    namespace xtp {
 
-    if (safe){
-      if (this->FindPair(seg1, seg2) != NULL) {
-        throw std::runtime_error("Critical bug: pair already exists");
-      }
+class PolarSegment : public AtomContainer<PolarSite>
+{
+public:
+    PolarSegment(const std::string& name,int id):AtomContainer<PolarSite>(name,id){};
+    
+    void WriteToCpt(CptLoc parent)const;
+
+    void ReadFromCpt(CptLoc parent);
+    
+    void LoadFromMPS(const std::string& filename);
+
+    void WriteMPS(const std::string& filename, std::string header) const;
+
+    double CalcTotalQ()const;
+    
+};
+        
+        
+        
+        
     }
-    // POTENTIAL BUGS : +1 added to start from 1;
-    int id = this->size()+1;
+}
 
-    QMPair *pair = new QMPair(id, seg1, seg2);
+#endif /* VOTCA_XTP_QMMOLECULE_H */
 
-    this->AddPair(pair);
-
-    return pair;
-
-  }
-
-}}

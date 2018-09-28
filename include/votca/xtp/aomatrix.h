@@ -22,8 +22,7 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/polarsite.h>
-#include <votca/xtp/polarseg.h>
+#include <votca/xtp/polarsegment.h>
 #include <votca/xtp/multiarray.h>
 
 
@@ -128,7 +127,7 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> >& sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
@@ -185,28 +184,28 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> >& sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
     private:
-        void setPolarSite(PolarSite* site){polarsite=site;};
-        PolarSite* polarsite;
+        void setPolarSite(const PolarSite* site){polarsite=site;};
+        const PolarSite* polarsite;
         Eigen::MatrixXd _externalpotential;
     };
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> >& sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
     private:
-        void setAPolarSite(APolarSite* site){apolarsite=site;};
+        void setPolarSite(const PolarSite* site){polarsite=site;};
         
-        APolarSite* apolarsite;
+        const PolarSite* polarsite;
         Eigen::MatrixXd _externalpotential;
     };
 

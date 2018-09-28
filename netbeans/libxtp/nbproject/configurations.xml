@@ -110,6 +110,7 @@
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
       <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
@@ -238,6 +239,7 @@
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
+      <itemPath>../../src/libxtp/polarsegment.cc</itemPath>
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/qmapemachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
@@ -245,7 +247,9 @@
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmachine.cc</itemPath>
       <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
+      <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
+      <itemPath>../../src/libxtp/qmpair.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
@@ -1394,6 +1398,11 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/polarsegment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/polarsite.h"
             ex="false"
             tool="3"
@@ -1438,8 +1447,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
             ex="false"
@@ -1979,6 +1986,8 @@
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
@@ -1992,6 +2001,8 @@
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2036,6 +2047,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2374,6 +2387,11 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/polarsegment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/polarsite.h"
             ex="false"
             tool="3"
@@ -2418,8 +2436,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
             ex="false"
@@ -2959,6 +2975,8 @@
       </item>
       <item path="../../src/libxtp/orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmapemachine.cc" ex="false" tool="1" flavor2="0">
@@ -2972,6 +2990,8 @@
       <item path="../../src/libxtp/qmmachine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3016,6 +3036,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>

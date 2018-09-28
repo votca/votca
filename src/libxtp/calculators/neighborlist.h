@@ -51,8 +51,6 @@ namespace votca {
             bool EvaluateFrame(Topology *top);
             void DetClassicalPairs(Topology* top);
 
-            void GenerateFromFile(Topology *top, std::string filename);
-
         private:
 
             std::vector<std::string> _included_segments;
@@ -148,10 +146,6 @@ namespace votca {
         bool Neighborlist::EvaluateFrame(Topology *top) {
             top->NBList().Cleanup();
 
-            if (_generate_from_file) {
-                GenerateFromFile(top, _pairfilename);
-            }
-            else {
                 if (tools::globals::verbose) {
                     std::cout << std::endl << "... ..." << std::flush;
                 }
@@ -266,66 +260,8 @@ namespace votca {
                 if (_useExcitonCutoff) {
                     DetClassicalPairs(top);
                 }
-            }
             return true;
         }
-
-        void Neighborlist::GenerateFromFile(Topology *top, std::string filename) {
-
-            std::string line;
-            std::ifstream intt;
-            intt.open(filename.c_str());
-
-            if (intt.is_open()) {
-                while (intt.good()) {
-
-                    std::getline(intt, line);
-                    std::vector< std::string> split;
-                    tools::Tokenizer toker(line, " \t");
-                    toker.ToVector(split);
-
-                    if (!split.size() ||
-                            split[0] == "!" ||
-                            split[0].substr(0, 1) == "!") {
-                        continue;
-                    }
-
-                    int seg1id = boost::lexical_cast<int>(split[1]);
-                    int seg2id = boost::lexical_cast<int>(split[2]);
-
-                    std::string seg1name = boost::lexical_cast<std::string>(split[7]);
-                    std::string seg2name = boost::lexical_cast<std::string>(split[8]);
-
-                    Segment* seg1 = top->getSegment(seg1id);
-                    Segment* seg2 = top->getSegment(seg2id);
-                    if (seg1->getName() == seg1name && seg2->getName() == seg2name) {
-                        top->NBList().Add(seg1, seg2);
-                    } else {
-                        throw std::runtime_error("Segment names in file do not match segments names in .sql file");
-                    }
-
-                    /*       
-                    1  1000 1010 2.4292699e-03 1.61313482160154 -1.05173043628102 0.759048038980236 DCV DCV
-                    2  1000 1020 1.0551418e-03 1.4977782788484 -0.466982612402543 0.876438986736797 DCV DCV
-                    3  1000 1023 5.9645622e-03 1.51684342052626 0.189056522949882 0.763447935684869 DCV DCV
-                    4  1000 1027 2.1161184e-02 -0.121730375289917 0.483095637611721 0.078926185939622 DCV DCV
-                    5  1000 1034 1.5198626e-03 0.586534707442574 -1.59841490776642 0.695082730832308 DCV DCV
-                    6  1000 1048 1.0121481e-03 -0.296308693678482 -1.02535652660805 0.347373638982358 DCV DCV
-                    7  1000 1050 9.3073820e-04 1.34660870303278 -1.49037826725322 0.571647867949114 DCV DCV
-                    8  1000 1052 1.0803526e-03 -0.337469581935717 -0.853313051455695 0.592304403885553 DCV DCV
-                    9  1000 1065 4.6567327e-04 0.45481307817542 -1.44727391982856 1.05151722120202 DCV DCV
-                   10  1000 1073 5.7739082e-03 -0.388582683646161 -0.221439142589984 0.731973764170771 DCV DCV
-                     */
-
-
-                } /* Exit loop over lines */
-            } else {
-                throw std::runtime_error("ERROR: No such file " + filename + " Supply input file.");
-            }
-
-        }
-
-
 
     }
 }

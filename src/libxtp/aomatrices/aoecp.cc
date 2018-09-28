@@ -101,7 +101,7 @@ namespace votca { namespace xtp {
 
                     AOBasis::AOShellIterator final_iter = _ecp->end();
                     --final_iter;
-                    Eigen::Vector3d ecp_eval_pos = Eigen::Vector3d(0.0);
+                    Eigen::Vector3d ecp_eval_pos = Eigen::Vector3d::Zero();
                     int lmax_ecp = 0;
                     for (AOBasis::AOShellIterator ecpit = _ecp->begin(); ecpit != _ecp->end(); ++ecpit) {
 
@@ -212,8 +212,8 @@ namespace votca { namespace xtp {
 
             Eigen::Vector3d AVS = posA - posC;
             Eigen::Vector3d BVS = posB - posC;
-            double AVS2 = AVS * AVS;
-            double BVS2 = BVS * BVS;     
+            double AVS2 = AVS.squaredNorm();
+            double BVS2 = BVS.squaredNorm();
 
             int INULL = 0;
             if (AVS2 > 0.01) INULL = 2;
@@ -918,9 +918,9 @@ namespace votca { namespace xtp {
                 }
             }
 
-            double BVS_X = pos.getX();
-            double BVS_Y = pos.getY(); 
-            double BVS_Z = pos.getZ();
+            double BVS_X = pos(0);
+            double BVS_Y = pos(1);
+            double BVS_Z = pos(2);
             double BVS_XX = BVS_X * BVS_X;
             double BVS_YY = BVS_Y * BVS_Y;
             double BVS_ZZ = BVS_Z * BVS_Z;

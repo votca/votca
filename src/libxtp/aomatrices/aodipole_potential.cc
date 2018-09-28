@@ -19,12 +19,9 @@
 
 
 #include <votca/xtp/aomatrix.h>
-
 #include <votca/xtp/aobasis.h>
-
 #include <votca/tools/elements.h>
 #include <votca/tools/constants.h>
-
 #include "votca/xtp/polarsite.h"
 
 namespace votca { namespace xtp {
@@ -93,8 +90,8 @@ namespace votca { namespace xtp {
         
         // get shell positions
         const Eigen::Vector3d& pos_row = shell_row->getPos();
-        const Eigen::Vector3d& _pos_col = shell_col->getPos();
-        const Eigen::Vector3d  diff    = pos_row - _pos_col;
+        const Eigen::Vector3d& pos_col = shell_col->getPos();
+        const Eigen::Vector3d  diff    = pos_row - pos_col;
         // initialize some helper
       
         double distsq = diff.squaredNorm();
@@ -120,9 +117,9 @@ namespace votca { namespace xtp {
                 if ( exparg > 30.0 ) { continue; }
 
         // some helpers
-        const Eigen::Vector3d PmA=fak2*( decay_row * pos_row + decay_col * _pos_col ) - pos_row;
-        const Eigen::Vector3d PmB=fak2*( decay_row * pos_row + decay_col * _pos_col ) - _pos_col;
-        const Eigen::Vector3d PmC=fak2*( decay_row * pos_row + decay_col * _pos_col ) - position;
+        const Eigen::Vector3d PmA=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_row;
+        const Eigen::Vector3d PmB=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_col;
+        const Eigen::Vector3d PmC=fak2*( decay_row * pos_row + decay_col * pos_col ) - position;
 
         const double U = zeta*PmC.squaredNorm();
 
@@ -737,7 +734,7 @@ if (lmax_col > 3) {
 //votca dipoles are spherical in ordering z,y,x
 for (int i = 0; i < nrows; i++) {
   for (int j = 0; j < ncols; j++) {
-    dip(i,j) = dipole.getX() * dip4[i][j][0][0] +dipole.getY() * dip4[i][j][1][0] + dipole.getZ() * dip4[i][j][2][0];
+    dip(i,j) = dipole(0) * dip4[i][j][0][0] +dipole(1) * dip4[i][j][1][0] + dipole(2) * dip4[i][j][2][0];
   }
 }                         
 
@@ -756,16 +753,15 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
-        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSeg> > & sites) {
+        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> > & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (unsigned int i = 0; i < sites.size(); i++) {
-                for (APolarSite* site:*(sites[i])) {
-
-                    if (site->getRank() > 0 || site->IsPolarizable()) {  
-                        if(tools::abs(site->getU1()+site->getQ1())<1e-12){continue;}
+            for (const auto& Seg:sites) {
+                for (const PolarSite& site:*Seg) {
+                    if (site.getRank() > 0 || site.isPolarisable()) {
+                        if(site.getDipole().norm()<1e-12){continue;}
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setPolarSite(site);
+                        setPolarSite(&site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
                     }

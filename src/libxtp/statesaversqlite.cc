@@ -86,7 +86,6 @@ void StateSaverSQLite::WriteFrame() {
     this->WriteFragments(hasAlready);
     this->WriteAtoms(hasAlready);
     this->WritePairs(hasAlready);
-    this->WriteSuperExchange(hasAlready);
 
     _db.EndTransaction();
 
@@ -536,65 +535,6 @@ void StateSaverSQLite::WritePairs(bool update) {
     stmt = NULL;
 }
 
-void StateSaverSQLite::WriteSuperExchange(bool update) {
-    if ( ! _qmtop->NBList().getSuperExchangeTypes().size() ) { return; }
-    
-    cout << ", super-exchange" << flush;
-
-    Statement *stmt;
-    
-    // Find out whether pairs for this topology have already been created
-    stmt = _db.Prepare("SELECT frame FROM superExchange WHERE top = ?;");
-    stmt->Bind(1, _qmtop->getDatabaseId());
-    if (stmt->Step() == SQLITE_DONE) {        
-        cout << " (create)" << flush;
-        delete stmt;
-    }
-    else { 
-        cout << " (recreate)" << flush;        
-        stmt = _db.Prepare("DELETE FROM superExchange;");
-        stmt->Step();
-        delete stmt;
-        stmt = NULL;
-        stmt = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='pairs' ;");
-        stmt->Step();
-        delete stmt;
-    }
-    
-    stmt = NULL;
-
-
-    stmt = _db.Prepare("INSERT INTO superExchange ("
-                           "frame, top, type"
-                           ") VALUES ("
-                           "?, ?, ?"
-                           ")");
-
-    list< QMNBList::SuperExchangeType* >::const_iterator seit;
-
-    for (seit = _qmtop->NBList().getSuperExchangeTypes().begin();
-         seit != _qmtop->NBList().getSuperExchangeTypes().end();
-         seit++) {
-
-        QMNBList::SuperExchangeType *seType = *seit;
-
-        stmt->Bind(1, _qmtop->getDatabaseId());
-        stmt->Bind(2, _qmtop->getDatabaseId());
-        stmt->Bind(3, seType->asString());
-
-        stmt->InsertStep();
-        stmt->Reset();
-    }
-
-    delete stmt;
-    stmt = NULL;    
-    
-    return;
-}
-
-
-
-
 bool StateSaverSQLite::NextFrame() {
     this->LockStateFile();
     bool hasNextFrame = false;
@@ -629,9 +569,7 @@ void StateSaverSQLite::ReadFrame() {
     this->ReadSegments(topId);
     this->ReadFragments(topId);
     this->ReadAtoms(topId);    
-    this->ReadPairs(topId);
-    this->ReadSuperExchange(topId);
-    
+    this->ReadPairs(topId);    
     cout << ". " << endl;
 }
 
@@ -995,29 +933,6 @@ void StateSaverSQLite::ReadPairs(int topId) {
     stmt = NULL;
 
 }
-
-
-void StateSaverSQLite::ReadSuperExchange(int topId) {
-    
-    cout << ", super-exchange" << flush;
-
-    Statement *stmt = _db.Prepare("SELECT "
-                                  "type "
-                                  "FROM superExchange "
-                                  "WHERE top = ?;");
-
-    stmt->Bind(1, topId);
-    
-    while (stmt->Step() != SQLITE_DONE) {
-        string type = stmt->Column<string>(0);        
-        _qmtop->NBList().AddSuperExchangeType(type);
-    }
-    delete stmt;
-    stmt = NULL;    
-    
-    return;
-}
-
 
 bool StateSaverSQLite::HasTopology(Topology *top) {
 
