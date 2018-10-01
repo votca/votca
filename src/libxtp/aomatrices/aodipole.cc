@@ -30,7 +30,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col) {
+    void AODipole::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -39,8 +39,8 @@ namespace votca { namespace xtp {
          */
 
         // shell info, only lmax tells how far to go
-        int lmax_row = shell_row->getLmax();
-        int lmax_col = shell_col->getLmax();
+        int lmax_row = shell_row.getLmax();
+        int lmax_col = shell_col.getLmax();
         
         if ( lmax_col > 4 ) {
             std::cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << std::flush;
@@ -63,8 +63,8 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd ol =Eigen::MatrixXd::Zero(nrows,ncols);
         
          // get shell positions
-        const Eigen::Vector3d& pos_row = shell_row->getPos();
-        const Eigen::Vector3d& pos_col = shell_col->getPos();
+        const Eigen::Vector3d& pos_row = shell_row.getPos();
+        const Eigen::Vector3d& pos_col = shell_col.getPos();
         const Eigen::Vector3d  diff    = pos_row - pos_col;
         double distsq = diff.squaredNorm();
 
@@ -112,19 +112,17 @@ namespace votca { namespace xtp {
         
         
         // iterate over Gaussians in this shell_row
-        for (AOShell::GaussianIterator itr=shell_row->begin(); itr != shell_row->end(); ++itr){
-            const double decay_row = itr->getDecay();
+        for (const auto& gaussian_row:shell_row){
+            const double decay_row = gaussian_row.getDecay();
             
-            for ( AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc){
-                //get decay constant
-                const double decay_col = itc->getDecay();
+            for (const auto&  gaussian_col:shell_col){
+                const double decay_col = gaussian_col.getDecay();
         
                 const double fak  = 0.5/(decay_row + decay_col);
                 const double fak2 = 2.0 * fak;
 
                 double exparg = fak2 * decay_row * decay_col *distsq;
                 // check if distance between postions is big, then skip step   
-       
                 if ( exparg > 30.0 ) { continue; }
         
 
@@ -551,8 +549,8 @@ if (lmax_col > 3) {
 
        
         
-        Eigen::MatrixXd trafo_row = getTrafo(*itr);
-        Eigen::MatrixXd trafo_col= getTrafo(*itc);       
+        Eigen::MatrixXd trafo_row = getTrafo(gaussian_row);
+        Eigen::MatrixXd trafo_col= getTrafo(gaussian_col);
        
         // cartesian -> spherical
        
@@ -563,7 +561,7 @@ if (lmax_col > 3) {
             // save to matrix
             for ( unsigned i = 0; i< matrix[0].rows(); i++ ) {
                 for (unsigned j = 0; j < matrix[0].cols(); j++){
-                    matrix[ i_comp ](i,j) += dip_sph(i+shell_row->getOffset(),j+shell_col->getOffset());
+                    matrix[ i_comp ](i,j) += dip_sph(i+shell_row.getOffset(),j+shell_col.getOffset());
                 }
             }
         }

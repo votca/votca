@@ -24,6 +24,8 @@
 #include <votca/xtp/topology.h>
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/segment.h>
+
+#include "qmatom.h"
 namespace votca { namespace xtp {
     /**
     \brief Class to represent Atom/Site in electrostatic+polarisation 
@@ -40,6 +42,12 @@ public:
     PolarSite(int id, const std::string& element)
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
+
+    PolarSite(const QMAtom& atom):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
+        Eigen::VectorXd m=Eigen::VectorXd::Zero(1);
+        m<<atom.getNuccharge();
+        setMultipole(m);
+    }
       
 
     int getId() const{ return _id; }
@@ -104,7 +112,7 @@ public:
        
     double InteractStatic(PolarSite& otherSite);
     
-    double InteractInduction(PolarSite& otherSite, double a);
+    double InteractInduction(PolarSite& otherSite, double a=0.39);
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
     

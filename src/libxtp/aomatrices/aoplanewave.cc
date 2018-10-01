@@ -24,11 +24,11 @@ namespace votca {
     namespace xtp {
        
 
-        void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix, const AOShell* shell_row, const AOShell* shell_col) {
+        void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix, const AOShell& shell_row, const AOShell& shell_col) {
 
             // shell info, only lmax tells how far to go
-            int lmax_row = shell_row->getLmax();
-            int lmax_col = shell_col->getLmax();
+            int lmax_row = shell_row.getLmax();
+            int lmax_col = shell_col.getLmax();
             // set size of internal block for recursion
             int nrows = this->getBlockSize(lmax_row);
             int ncols = this->getBlockSize(lmax_col);
@@ -37,8 +37,8 @@ namespace votca {
                 exit(1);
             }
             // get shell positions
-            const Eigen::Vector3d& pos_row = shell_row->getPos(); //get position R_{i}
-            const Eigen::Vector3d& pos_col = shell_col->getPos(); //get position R_{j}
+            const Eigen::Vector3d& pos_row = shell_row.getPos(); //get position R_{i}
+            const Eigen::Vector3d& pos_col = shell_col.getPos(); //get position R_{j}
             const Eigen::Vector3d diff = pos_row - pos_col; //get difference r_{ij}
             const double distsq = diff.squaredNorm(); //get |R_{ij}|^2
             // get kvector modulus
@@ -95,14 +95,14 @@ namespace votca {
                 0, 0, 20, 0, 21, 22, 0, 23, 24, 25, 0, 26, 27, 28, 29, 0, 30, 31, 32, 33, 34,
                 0, 0, 35, 0, 36, 37, 0, 38, 39, 40, 0, 41, 42, 43, 44, 0, 45, 46, 47, 48, 49, 0, 50, 51, 52, 53, 54, 55};
             // iterate over Gaussians in this shell_row   
-            for (AOShell::GaussianIterator itr = shell_row->begin(); itr != shell_row->end(); ++itr) {
+                  for (const auto& gaussian_row:shell_row){
                 // iterate over Gaussians in this shell_col
                 // get decay constant
-                const double decay_row = itr->getDecay();
+                const double decay_row = gaussian_row.getDecay();
 
-                for (AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc) {
+                  for (const auto&  gaussian_col:shell_col){
                     //get decay constant
-                    const double decay_col = itc->getDecay();
+                    const double decay_col = gaussian_col.getDecay();
 
                     // some helpers
 
@@ -537,8 +537,8 @@ namespace votca {
 
                     } // end if (lmax_col > 5)        
 
-                    Eigen::MatrixXd trafo_row = getTrafo(*itr);
-                    Eigen::MatrixXd trafo_col = getTrafo(*itc);
+                    Eigen::MatrixXd trafo_row = getTrafo(gaussian_row);
+                    Eigen::MatrixXd trafo_col = getTrafo(gaussian_col);
 
                     // cartesian -> spherical
                     Eigen::MatrixXcd olk_sph=trafo_row.transpose()*olk*trafo_col;
@@ -547,7 +547,7 @@ namespace votca {
                     // save to matrix
                     for (int i = 0; i < matrix.rows(); i++) {
                         for (int j = 0; j < matrix.cols(); j++) {
-                            matrix(i, j) += olk_sph(i + shell_row->getOffset(), j + shell_col->getOffset());
+                            matrix(i, j) += olk_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
                         }
                     }
 

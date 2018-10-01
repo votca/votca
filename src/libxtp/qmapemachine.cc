@@ -192,7 +192,7 @@ bool QMAPEMachine::Iterate(string jobFolder, int iterCnt) {
     dftengine.setExternalGrid(ExtractElGrid_fromPolarsites(),ExtractNucGrid_fromPolarsites());
     
     if (_run_dft) {
-    dftengine.Evaluate(orb_iter_input);
+        dftengine.Evaluate(orb_iter_input);
     }
   
 	orb_iter_input.WriteXYZ(runFolder + "/Fullstructure.xyz","Full structure");

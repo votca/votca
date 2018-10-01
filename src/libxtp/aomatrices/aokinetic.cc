@@ -29,12 +29,12 @@ namespace votca { namespace xtp {
 
 
     
-    void AOKinetic::FillBlock( Eigen::Block<Eigen::MatrixXd> & matrix,const AOShell* shell_row,const AOShell* shell_col) {
+    void AOKinetic::FillBlock( Eigen::Block<Eigen::MatrixXd> & matrix,const AOShell& shell_row,const AOShell& shell_col) {
        
        
         // shell info, only lmax tells how far to go
-        int lmax_row = shell_row->getLmax();
-        int lmax_col = shell_col->getLmax();
+        int lmax_row = shell_row.getLmax();
+        int lmax_col = shell_col.getLmax();
         
         
         if (lmax_col >4 || lmax_row >4){
@@ -47,8 +47,8 @@ namespace votca { namespace xtp {
         int ncols = this->getBlockSize( lmax_col ); 
         
              // get shell positions
-        const Eigen::Vector3d& pos_row = shell_row->getPos();
-        const Eigen::Vector3d& _pos_col = shell_col->getPos();
+        const Eigen::Vector3d& pos_row = shell_row.getPos();
+        const Eigen::Vector3d& _pos_col = shell_col.getPos();
         const Eigen::Vector3d  diff    = pos_row - _pos_col;
        
           
@@ -95,22 +95,13 @@ namespace votca { namespace xtp {
                      0,  0,  4,  0,  5,  6,  0,  7,  8,  9,
                      0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19 };
 
-       // cout << "row shell is " << shell_row->getSize() << " -fold contracted!" << endl;
-        //cout << "col shell is " << shell_col->getSize() << " -fold contracted!" << endl;
-        
-       
-        // iterate over Gaussians in this shell_row
-        for ( AOShell::GaussianIterator itr = shell_row->begin(); itr != shell_row->end(); ++itr){
-            // iterate over Gaussians in this shell_col
-            const double decay_row = itr->getDecay();
-            
-            for ( AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc){
-           
-            
-           
+          for (const auto& gaussian_row:shell_row){
 
-            // get decay constants 
-            const double decay_col = itc->getDecay();
+            const double decay_row = gaussian_row.getDecay();
+            
+            for (const auto&  gaussian_col:shell_col){
+
+            const double decay_col = gaussian_col.getDecay();
             
             // some helpers
             const double fak  = 0.5/(decay_row + decay_col);
@@ -526,12 +517,12 @@ if (lmax_col > 3) {
 } // end if (lmax_col > 3)
 
                 // normalization and cartesian -> spherical factors
-             Eigen::MatrixXd kin_sph = getTrafo(*itr).transpose()*kin*getTrafo(*itc);
+             Eigen::MatrixXd kin_sph = getTrafo(gaussian_row).transpose()*kin*getTrafo(gaussian_col);
         // save to matrix
         
         for ( unsigned i = 0; i< matrix.rows(); i++ ) {
             for (unsigned j = 0; j < matrix.cols(); j++) {
-                matrix(i,j) += kin_sph(i+shell_row->getOffset(),j+shell_col->getOffset());
+                matrix(i,j) += kin_sph(i+shell_row.getOffset(),j+shell_col.getOffset());
             }
         }
         

@@ -31,12 +31,12 @@ namespace votca {
 
 
     
-    void AOOverlap::FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col) {
+    void AOOverlap::FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col) {
 
 
             // shell info, only lmax tells how far to go
-            int lmax_row = shell_row->getLmax();
-            int lmax_col = shell_col->getLmax();
+            int lmax_row = shell_row.getLmax();
+            int lmax_col = shell_col.getLmax();
 
             // set size of internal block for recursion
             int nrows = this->getBlockSize(lmax_row);
@@ -53,8 +53,8 @@ namespace votca {
              */
 
             // get shell positions
-            const Eigen::Vector3d& pos_row = shell_row->getPos();
-            const Eigen::Vector3d& pos_col = shell_col->getPos();
+            const Eigen::Vector3d& pos_row = shell_row.getPos();
+            const Eigen::Vector3d& pos_col = shell_col.getPos();
             const Eigen::Vector3d diff = pos_row - pos_col;
 
             double distsq = diff.squaredNorm();
@@ -113,15 +113,13 @@ namespace votca {
 
 
             // iterate over Gaussians in this shell_row
-            for (AOShell::GaussianIterator itr = shell_row->begin(); itr != shell_row->end(); ++itr) {
+            for (const auto& gaussian_row:shell_row){
                 // iterate over Gaussians in this shell_col
-                const double decay_row = itr->getDecay();
+                const double decay_row = gaussian_row.getDecay();
 
-                for (AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc) {
+                for (const auto&  gaussian_col:shell_col){
 
-
-                    // get decay constants 
-                    const double decay_col = itc->getDecay();
+                    const double decay_col = gaussian_col.getDecay();
 
                     // some helpers
                     const double fak = 0.5 / (decay_row + decay_col);
@@ -141,11 +139,8 @@ namespace votca {
                     const Eigen::Vector3d PmA=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_row;
                     const Eigen::Vector3d PmB=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_col;
 
-
-
                     // calculate matrix elements
                     ol(0, 0) = pow(4.0 * decay_row*decay_col, 0.75) * pow(fak2, 1.5) * exp(-exparg); // s-s element
-                    //cout << "\t setting s-s: " << _ol(0,0) << endl;
 
 
                     //Integrals     p - s
@@ -557,21 +552,21 @@ namespace votca {
 
                     //cout << "Done with unnormalized matrix " << endl;
 
-        Eigen::MatrixXd ol_sph = getTrafo(*itr).transpose()*ol*getTrafo(*itc);
+        Eigen::MatrixXd ol_sph = getTrafo(gaussian_row).transpose()*ol*getTrafo(gaussian_col);
                     // save to matrix
         
         for ( unsigned i = 0; i< matrix.rows(); i++ ) {
             for (unsigned j = 0; j < matrix.cols(); j++) {
-                            matrix(i, j) += ol_sph(i + shell_row->getOffset(), j + shell_col->getOffset());
+                            matrix(i, j) += ol_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
                         }
                     }       
                 } // shell_col Gaussians
             } // shell_row Gaussians
         }
 
- Eigen::MatrixXd AOOverlap::FillShell(const AOShell* shell){
-            Eigen::MatrixXd block=Eigen::MatrixXd::Zero(shell->getNumFunc(),shell->getNumFunc());
-            Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,shell->getNumFunc(),shell->getNumFunc());
+ Eigen::MatrixXd AOOverlap::FillShell(const AOShell& shell){
+            Eigen::MatrixXd block=Eigen::MatrixXd::Zero(shell.getNumFunc(),shell.getNumFunc());
+            Eigen::Block<Eigen::MatrixXd> submatrix=block.block(0,0,shell.getNumFunc(),shell.getNumFunc());
             FillBlock(submatrix,shell,shell);
             return block;
         }

@@ -29,11 +29,11 @@ namespace votca { namespace xtp {
 
  
 
-    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,const  AOShell* shell_row,const AOShell* shell_col) {
+    void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,const  AOShell& shell_row,const AOShell& shell_col) {
       
             // shell info, only lmax tells how far to go
-            const int lmax_row = shell_row->getLmax();
-            const int lmax_col = shell_col->getLmax();
+            const int lmax_row = shell_row.getLmax();
+            const int lmax_col = shell_col.getLmax();
 
             // set size of internal block for recursion
             int nrows = this->getBlockSize(lmax_row);
@@ -42,8 +42,8 @@ namespace votca { namespace xtp {
             const int nextra = mmax +1;
 
             // get shell positions
-            const Eigen::Vector3d& pos_row = shell_row->getPos();
-            const Eigen::Vector3d& pos_col = shell_col->getPos();
+            const Eigen::Vector3d& pos_row = shell_row.getPos();
+            const Eigen::Vector3d& pos_col = shell_col.getPos();
             const Eigen::Vector3d diff = pos_row - pos_col;
             double distsq =diff.squaredNorm();
             
@@ -120,17 +120,17 @@ namespace votca { namespace xtp {
             
           
         // iterate over Gaussians in this shell_row
-            for ( AOShell::GaussianIterator itr = shell_row->begin(); itr != shell_row->end(); ++itr){
+            for ( const auto& gaussian_row:shell_row){
             // iterate over Gaussians in this shell_col
-                const double decay_row = itr->getDecay();
+                const double decay_row = gaussian_row.getDecay();
                 const double rdecay_row = 0.5/decay_row;
-                const double powfactor_row=itr->getPowfactor();
-                for ( AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc){
+                const double powfactor_row=gaussian_row.getPowfactor();
+                for ( const auto& gaussian_col:shell_col){
                     
                      // get decay constants 
-                        const double decay_col = itc->getDecay();
+                        const double decay_col = gaussian_col.getDecay();
                         const double rdecay_col = 0.5/decay_col; 
-                       const double powfactor_col=itc->getPowfactor();
+                       const double powfactor_col=gaussian_col.getPowfactor();
                       
                          
                          tensor3d cou(boost::extents[nrows][ncols][nextra]);
@@ -626,14 +626,14 @@ if (lmax_col > 5) {
  
          
             // normalization and cartesian -> spherical factors
-            int ntrafo_row = shell_row->getNumFunc() + shell_row->getOffset();
-            int ntrafo_col = shell_col->getNumFunc() + shell_col->getOffset();
+            int ntrafo_row = shell_row.getNumFunc() + shell_row.getOffset();
+            int ntrafo_col = shell_col.getNumFunc() + shell_col.getOffset();
 
             
 
             // get transformation matrices including contraction coefficients
-          const std::vector<double>& contractions_row = itr->getContraction();
-          const std::vector<double>& contractions_col = itc->getContraction();
+          const std::vector<double>& contractions_row = gaussian_row.getContraction();
+          const std::vector<double>& contractions_col = gaussian_col.getContraction();
 
           
 
@@ -1108,7 +1108,7 @@ if (lmax_col > 5) {
             // save to matrix
             for (unsigned i = 0; i < matrix.rows(); i++) {
                 for (unsigned j = 0; j < matrix.cols(); j++) {
-                    matrix(i, j) += cou_sph(i + shell_row->getOffset(), j + shell_col->getOffset());
+                    matrix(i, j) += cou_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
                 }
             }
 

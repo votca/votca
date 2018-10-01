@@ -96,20 +96,20 @@ namespace votca {
       // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)//private(_block)
       for (unsigned is = 0; is < gwbasis.getNumofShells(); is++) {
-        const AOShell* shell = gwbasis.getShell(is);
+        const AOShell& shell = gwbasis.getShell(is);
         std::vector< Eigen::MatrixXd > block;
         for (int i = 0; i < _mtotal; i++) {
-          block.push_back(Eigen::MatrixXd::Zero(_ntotal,shell->getNumFunc()));
+          block.push_back(Eigen::MatrixXd::Zero(_ntotal,shell.getNumFunc()));
         }
         // Fill block for this shell (3-center overlap with _dft_basis + multiplication with _dft_orbitals )
         FillBlock(block, shell, dftbasis, dft_orbitals);
 
         // put into correct position
         for (int m_level = 0; m_level < this->get_mtot(); m_level++) {
-          for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
+          for (int i_gw = 0; i_gw < shell.getNumFunc(); i_gw++) {
             for (int n_level = 0; n_level < this->get_ntot(); n_level++) {
 
-              _matrix[m_level]( n_level,shell->getStartIndex() + i_gw) = block[m_level](n_level,i_gw);
+              _matrix[m_level]( n_level,shell.getStartIndex() + i_gw) = block[m_level](n_level,i_gw);
 
             } // n-th DFT orbital
           } // GW basis function in shell
@@ -128,25 +128,25 @@ namespace votca {
     void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& block, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals) {
       tensor3d::extent_gen extents;
       std::vector<Eigen::MatrixXd> symmstorage;
-      for (int i = 0; i < auxshell->getNumFunc(); ++i) {
+      for (int i = 0; i < auxshell.getNumFunc(); ++i) {
         symmstorage.push_back(Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize()));
       }
       const Eigen::MatrixXd dftm = dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
       const Eigen::MatrixXd dftn = dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
       // alpha-loop over the "left" DFT basis function
-      for (unsigned row = 0; row < dftbasis.getNumofShells(); row++) {
+      for (int row = 0; row < dftbasis.getNumofShells(); row++) {
 
-        const AOShell* shell_row = dftbasis.getShell(row);
-        const int row_start = shell_row->getStartIndex();
+        const AOShell& shell_row = dftbasis.getShell(row);
+        const int row_start = shell_row.getStartIndex();
         // ThreecMatrix is symmetric, restrict explicit calculation to triangular matrix
-        for (unsigned col = 0; col <= row; col++) {
-          const AOShell* shell_col = dftbasis.getShell(col);
-          const int col_start = shell_col->getStartIndex();
+        for (int col = 0; col <= row; col++) {
+          const AOShell& shell_col = dftbasis.getShell(col);
+          const int col_start = shell_col.getStartIndex();
 
-          tensor3d threec_block(extents[ range(0, auxshell->getNumFunc()) ][ range(0, shell_row->getNumFunc()) ][ range(0, shell_col->getNumFunc())]);
-          for (int i = 0; i < auxshell->getNumFunc(); ++i) {
-            for (int j = 0; j < shell_row->getNumFunc(); ++j) {
-              for (int k = 0; k < shell_col->getNumFunc(); ++k) {
+          tensor3d threec_block(extents[ range(0, auxshell.getNumFunc()) ][ range(0, shell_row.getNumFunc()) ][ range(0, shell_col.getNumFunc())]);
+          for (int i = 0; i < auxshell.getNumFunc(); ++i) {
+            for (int j = 0; j < shell_row.getNumFunc(); ++j) {
+              for (int k = 0; k < shell_col.getNumFunc(); ++k) {
                 threec_block[i][j][k] = 0.0;
               }
             }
@@ -154,21 +154,21 @@ namespace votca {
 
           bool nonzero = FillThreeCenterRepBlock(threec_block, auxshell, shell_row, shell_col);
           if (nonzero) {
-            for (int _aux = 0; _aux < auxshell->getNumFunc(); _aux++) {
-              for (int _row = 0; _row < shell_row->getNumFunc(); _row++) {
-                for (int _col = 0; _col < shell_col->getNumFunc(); _col++) {
+            for (int aux_c = 0; aux_c < auxshell.getNumFunc(); aux_c++) {
+              for (int row_c = 0; row_c < shell_row.getNumFunc(); row_c++) {
+                for (int col_c = 0; col_c < shell_col.getNumFunc(); col_c++) {
                   //symmetry
-                  if ((col_start + _col)>(row_start + _row)) {
+                  if ((col_start + col_c)>(row_start + row_c)) {
                     continue;
                   }
-                  symmstorage[_aux](row_start + _row, col_start + _col) = threec_block[_aux][_row][_col];
+                  symmstorage[aux_c](row_start + row_c, col_start + col_c) = threec_block[aux_c][row_c][col_c];
                 } // ROW copy
               } // COL copy
             } // AUX copy
           }
         } // gamma-loop
       } // alpha-loop
-      for (int k = 0; k < auxshell->getNumFunc(); ++k) {
+      for (int k = 0; k < auxshell.getNumFunc(); ++k) {
         Eigen::MatrixXd& matrix = symmstorage[k];
         for (int i = 0; i < matrix.rows(); ++i) {
           for (int j = 0; j < i; ++j) {
@@ -183,11 +183,10 @@ namespace votca {
         }
       }
       return;
-    } // TCMatrix::FillBlock
+    } 
 
     void TCMatrix_gwbse::Prune(int min, int max) {
         
-
       _matrix.resize(max + 1);
       // entries until min can be freed
       for (int i = 0; i < min; i++) {

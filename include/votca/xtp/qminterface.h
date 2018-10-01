@@ -27,11 +27,10 @@ namespace votca {
   namespace xtp {
 
     class QMAtom;
-    class APolarSite;
-    class PolarSeg;
+    class PolarSite;
     class Segment;
-    class PolarTop;
     class Orbitals;
+    class QMMolecule;
 
 // ========================================================================== //
 // QM-MM INTERFACE CLASS - CONVERTS BETWEEN QMATOMS <> POLAR OBJECTS          //
@@ -41,12 +40,9 @@ class QMInterface
 {
 public:
     
-    // CONVERSION QM -> MM
-    APolarSite *Convert(QMAtom *atm, int id = -1);
+
     
-    PolarSeg Convert(std::vector<QMAtom*> &atms);
-    
-    std::vector<QMAtom *> Convert( std::vector<Segment* > segments);
+    QMMolecule Convert( std::vector<Segment* > segments);
     
     void GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb);
     std::vector<std::shared_ptr<PolarSeg> > GenerateMultipoleList(PolarTop *ptop  );

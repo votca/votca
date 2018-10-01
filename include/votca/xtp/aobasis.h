@@ -42,7 +42,6 @@ class AOBasis
 {   
 public:
     
-    ~AOBasis();//has to be declared, deletes std::vector<*Shell>_aoshells
     void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
        
     void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
@@ -52,19 +51,19 @@ public:
     
     int AOBasisSize() const {return _AOBasisSize; }
     
-    typedef std::vector< AOShell* >::const_iterator AOShellIterator;
+    typedef std::vector< AOShell >::const_iterator AOShellIterator;
     AOShellIterator begin() const{ return _aoshells.begin(); }
     AOShellIterator end() const{ return _aoshells.end(); }
 
     Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
     
-    const AOShell* getShell( int idx )const{ return _aoshells[idx] ;}
+    const AOShell& getShell( int idx )const{ return _aoshells[idx] ;}
 
-    const std::vector<AOShell*>& getShells() const{ return _aoshells; }
+    const std::vector<AOShell>& getShells() const{ return _aoshells; }
     
     const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
-    unsigned getNumofShells() const{return _aoshells.size();}
+    int getNumofShells() const{return _aoshells.size();}
    
     int getAOBasisFragA() const{return _AOBasisFragA;}
     
@@ -73,18 +72,19 @@ public:
    int getFuncOfAtom(int AtomIndex)const{return _FuncperAtom[AtomIndex];}
    
    const std::vector<int>& getFuncPerAtom()const {return _FuncperAtom;}
-  
+
+   const AOShell& back()const{return _aoshells.back();}
 
 private:
     
-  AOShell* addShell( const Shell& shell, const QMAtom& atom, int startIndex );  
+  AOShell& addShell( const Shell& shell, const QMAtom& atom, int startIndex );
   
-  AOShell* addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);  
+  AOShell& addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);
     
        
   void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
-    std::vector<AOShell*> _aoshells;
+    std::vector<AOShell> _aoshells;
 
     std::vector<int> invertOrder(const std::vector<int>& order );
     
@@ -96,7 +96,7 @@ private:
     
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
   
-    void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
+    void addTrafoCartShell( const AOShell& shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
     std::vector<int> _FuncperAtom;
     

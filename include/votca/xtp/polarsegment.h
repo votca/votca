@@ -30,7 +30,7 @@ namespace votca {
 class PolarSegment : public AtomContainer<PolarSite>
 {
 public:
-    PolarSegment(const std::string& name,int id):AtomContainer<PolarSite>(name,id){};
+    PolarSegment(std::string name,int id):AtomContainer<PolarSite>(name,id){};
     
     void WriteToCpt(CptLoc parent)const;
 

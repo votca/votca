@@ -136,9 +136,7 @@ private:
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
                     _qmatom(&atom),_nonlocal(nonlocal) { ; }
             
-    
-    // only class aobasis can destruct shells
-    ~AOShell(){};
+
     
     // shell type (S, P, D))
     std::string _type;

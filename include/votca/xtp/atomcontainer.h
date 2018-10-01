@@ -35,7 +35,7 @@ namespace votca { namespace xtp {
 template<class T>  class AtomContainer{
     public:
                
-        AtomContainer(const std::string& name,int id):_name(name),_id(id){};
+        AtomContainer(std::string name,int id):_name(name),_id(id),_position_valid(false){};
         
         const std::string& getName()const{return _name;}
         
@@ -43,7 +43,7 @@ template<class T>  class AtomContainer{
         
         int size()const{return _atomlist.size();}
         
-        void push_back(const T& atom){_atomlist.push_back(atom);}
+        void push_back(const T& atom){_atomlist.push_back(atom);_position_valid=false;}
 
         const T& at(int index)const{return _atomlist.at(index);}
         T& at(int index){return _atomlist.at(index);}
@@ -66,24 +66,26 @@ template<class T>  class AtomContainer{
                 _pos+=mass*atom.getPos()
             }
             _pos/=totalmass;
+            _position_valid=true;
         }
        
-        const Eigen::Vector3d& getPos()const{return _pos;}
+        const Eigen::Vector3d& getPos()const{
+            if(!_position_valid){calcPos();}
+            return _pos;
+        }
         
         void Translate(const Eigen::Vector3d& shift){
             for(const T& atom:_atomlist){
                 atom.Translate(shift);
             }
-            _pos+=shift;
+            calcPos();
         }
         
         void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos){
             for(const T& atom:_atomlist){
                 atom.Rotate(R,ref_pos);
             }
-            _pos-=ref_pos;
-            _pos=R*_pos;
-            _pos+=ref_pos;
+            calcPos();
         }
         
       virtual void WriteToCpt(CptLoc parent)const=0;
@@ -95,12 +97,12 @@ template<class T>  class AtomContainer{
     std::vector<T> _atomlist;
     std::string _name;
     int _id;
-    Eigen::Vector3d _pos;
- 
-    };   
     
-    
-    
+    private:
+    mutable bool _position_valid;
+    mutable Eigen::Vector3d _pos;
+        
+      };   
     
     
 }}

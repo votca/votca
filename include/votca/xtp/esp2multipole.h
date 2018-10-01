@@ -42,7 +42,6 @@ public:
         _pairconstraint.resize(0);
         _regionconstraint.resize(0);
         }
-   ~Esp2multipole () {};
 
     std::string Identify() { return "esp2multipole"; }
 
@@ -69,7 +68,7 @@ private:
     bool        _use_CHELPG;
     bool        _do_svd;
     double      _conditionnumber;
-    std::vector< QMAtom* > _atomlist;
+    QMMolecule _atomlist;
     
     Logger*      _log;
     std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     

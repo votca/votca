@@ -46,7 +46,7 @@ namespace votca {
                     << "polar site type '" << element << "'. Defaulting to 1 A**3. "
                     << std::flush;
                 }
-                _Ps=default_pol*Eigen::Matrix3d::Identity();
+                setPolarisation(default_pol*Eigen::Matrix3d::Identity());
             };
 
 

@@ -30,7 +30,7 @@ namespace votca {
 class QMMolecule : public AtomContainer<QMAtom>
 {
 public:
-    QMMolecule(const std::string& name,int id):AtomContainer<QMAtom>(name,id){};
+    QMMolecule(std::string name,int id):AtomContainer<QMAtom>(name,id){};
     
     void WriteToCpt(CptLoc parent)const;
 

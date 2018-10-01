@@ -76,15 +76,15 @@ namespace votca {
          * Run calls DFTENGINE
          */
         bool XTPDFT::Run( Orbitals& orbitals ) {
-          DFTEngine xtpdft;
+          DFTEngine xtpdft=DFTEngine(orbitals);
           xtpdft.Initialize(_xtpdft_options);
           xtpdft.setLogger(_pLog);
            
           if(_write_charges){
             xtpdft.setExternalcharges(_PolarSegments);
           }
-          xtpdft.Prepare( orbitals );
-          xtpdft.Evaluate( orbitals );
+          xtpdft.Prepare();
+          xtpdft.Evaluate();
           _basisset_name = xtpdft.getDFTBasisName();
           orbitals.WriteToCpt(_log_file_name);
           return true;

@@ -24,7 +24,7 @@ namespace votca { namespace xtp {
     
   void AOShell::normalizeContraction(){   
     AOOverlap overlap;
-    Eigen::MatrixXd block=overlap.FillShell(this);
+    Eigen::MatrixXd block=overlap.FillShell(*this);
     std::vector<int> numsubshells=NumFuncSubShell(_type);
     int contraction_index=FindLmin(_type);
     int aoindex=0;
@@ -281,12 +281,9 @@ namespace votca { namespace xtp {
 
             i_func += 9;
             ;
-          } else if (single_shell == 'H') {
-            std::cerr << "H functions not implemented in AOeval at the moment!" << std::endl;
-            exit(1);
-          } else {
-            std::cerr << "Single shell type" << single_shell << " not known " << std::endl;
-            exit(1);
+          }
+          else {
+              throw std::runtime_error("Shell type:"+std::string(1,single_shell)+" not known");
           }
         }
       } // contractions

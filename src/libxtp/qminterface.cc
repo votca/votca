@@ -86,9 +86,8 @@ namespace votca {
             return qmatoms;
         }
 
-        void QMInterface::GenerateQMAtomsFromPolarSegs(PolarTop *ptop, Orbitals &orb) {
+        QMMolecule QMInterface::GenerateQMAtomsFromPolarSegs(PolarTop *ptop) {
           int AtomID=0;
-            // INNER SHELL QM0
             for (unsigned int i = 0; i < ptop->QM0().size(); ++i) {
                 PolarSeg *pseg = ptop->QM0()[i];
                 for (unsigned int j = 0; j < pseg->size(); ++j) {

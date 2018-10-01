@@ -79,7 +79,7 @@ namespace votca { namespace xtp {
         // integrate F
         static std::vector<double> XIntegrate( int size, double U );
     protected:
-        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&matrix,const  AOShell* shell_row,const AOShell* shell_col)=0 ;
+        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&matrix,const  AOShell& shell_row,const AOShell& shell_col)=0 ;
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;   
     };
     
@@ -97,7 +97,7 @@ namespace votca { namespace xtp {
         void FreeMatrix();
     protected:
         std::vector<Eigen::MatrixXd > _aomatrix; 
-        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col)=0 ;
+        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col)=0 ;
     };
     
     
@@ -107,7 +107,7 @@ namespace votca { namespace xtp {
      */
     class AOMomentum : public AOMatrix3D { 
     protected:  
-        void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col);
     };
     
     /* derived class for atomic orbital electrical dipole matrices, required for
@@ -117,7 +117,7 @@ namespace votca { namespace xtp {
     public:
         void setCenter(const Eigen::Vector3d& r){ _r=r;}// definition of a center around which the moment should be calculated
     protected:   
-        void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
         Eigen::Vector3d _r=Eigen::Vector3d::Zero();
     };
@@ -132,7 +132,7 @@ namespace votca { namespace xtp {
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
     protected:   
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix ,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix ,const AOShell& shell_row,const AOShell& shell_col);
     private:
         
         Eigen::Vector3d _r;
@@ -145,7 +145,7 @@ namespace votca { namespace xtp {
     public:
         void setECP(const AOBasis* ecp){_ecp=ecp;}
     protected: 
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
         
         const AOBasis* _ecp;
@@ -162,21 +162,21 @@ namespace votca { namespace xtp {
     // derived class for kinetic energy
     class AOKinetic : public AOMatrix<double>{
     protected:
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix , const AOShell* shell_row, const AOShell* shell_col);  
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix , const AOShell& shell_row, const AOShell& shell_col);
     };
     
     
     // derived class for atomic orbital overlap
     class AOOverlap : public AOMatrix<double>{
     public:
-        Eigen::MatrixXd FillShell(const AOShell* shell);
+        Eigen::MatrixXd FillShell(const AOShell& shell);
         int Removedfunctions()const{return removedfunctions;}
         double SmallestEigenValue()const{return smallestEigenvalue;}
         
         Eigen::MatrixXd Pseudo_InvSqrt(double etol);
         Eigen::MatrixXd Sqrt();
     protected:
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col); 
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
          int removedfunctions;
          double smallestEigenvalue;
@@ -188,7 +188,7 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
         void setPolarSite(const PolarSite* site){polarsite=site;};
         const PolarSite* polarsite;
@@ -201,7 +201,7 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
         void setPolarSite(const PolarSite* site){polarsite=site;};
         
@@ -216,7 +216,7 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd Pseudo_InvSqrt(double etol);
         int Removedfunctions(){return removedfunctions;}
     protected:
-        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col);
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
         int removedfunctions;
     };
@@ -227,7 +227,7 @@ namespace votca { namespace xtp {
         Eigen::MatrixXd getExternalpotential(){ return _externalpotential.real();}
     protected:
         void FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
-                const AOShell* shell_row, const AOShell* shell_col);
+                const AOShell& shell_row, const AOShell& shell_col);
     private:
         void setkVector(const Eigen::Vector3d& k){_k=k;};
         Eigen::Vector3d _k;

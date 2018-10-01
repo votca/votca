@@ -31,7 +31,7 @@ namespace votca { namespace xtp {
     
 
     
-    void AOQuadrupole_Potential::FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell* shell_row,const AOShell* shell_col) {
+    void AOQuadrupole_Potential::FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col) {
 
         const double pi = boost::math::constants::pi<double>();
 
@@ -41,8 +41,8 @@ namespace votca { namespace xtp {
         // not sure about unit conversion
         Eigen::Matrix3d quadrupole=2*polarsite->CalculateCartesianMultipole();
         // shell info, only lmax tells how far to go
-        int lmax_row = shell_row->getLmax();
-        int lmax_col = shell_col->getLmax();
+        int lmax_row = shell_row.getLmax();
+        int lmax_col = shell_col.getLmax();
         int lsum = lmax_row + lmax_col;
         // set size of internal block for recursion
         int nrows = this->getBlockSize( lmax_row ); 
@@ -98,8 +98,8 @@ namespace votca { namespace xtp {
       
         
         // get shell positions
-        const Eigen::Vector3d& pos_row = shell_row->getPos();
-        const Eigen::Vector3d& pos_col = shell_col->getPos();
+        const Eigen::Vector3d& pos_row = shell_row.getPos();
+        const Eigen::Vector3d& pos_col = shell_col.getPos();
         const Eigen::Vector3d  diff    = pos_row - pos_col;
         // initialize some helper
       
@@ -107,14 +107,14 @@ namespace votca { namespace xtp {
         
      
         // iterate over Gaussians in this shell_row
-        for ( AOShell::GaussianIterator itr = shell_row->begin(); itr != shell_row->end(); ++itr) {
+      for (const auto& gaussian_row:shell_row){
             // iterate over Gaussians in this shell_col
             // get decay constant
-            const double decay_row = itr->getDecay();
+            const double decay_row = gaussian_row.getDecay();
             
-            for ( AOShell::GaussianIterator itc = shell_col->begin(); itc != shell_col->end(); ++itc) {
+           for (const auto&  gaussian_col:shell_col){
                 //get decay constant
-                const double decay_col = itc->getDecay();
+                const double decay_col = gaussian_col.getDecay();
 
                 const double zeta = decay_row + decay_col;
                 const double fak  = 0.5/zeta;
@@ -1095,12 +1095,12 @@ for (int i = 0; i < nrows; i++) {
 }                         
 
         
-        Eigen::MatrixXd quad_sph = getTrafo(*itr).transpose()*quad*getTrafo(*itc);
+        Eigen::MatrixXd quad_sph = getTrafo(gaussian_row).transpose()*quad*getTrafo(gaussian_col);
         // save to matrix
         
         for ( unsigned i = 0; i< matrix.rows(); i++ ) {
             for (unsigned j = 0; j < matrix.cols(); j++) {
-                matrix(i,j) += quad_sph(i+shell_row->getOffset(),j+shell_col->getOffset());
+                matrix(i,j) += quad_sph(i+shell_row.getOffset(),j+shell_col.getOffset());
             }
         }
         

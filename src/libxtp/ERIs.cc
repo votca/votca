@@ -254,16 +254,16 @@ namespace votca {
             
             #pragma omp for
             for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
-              const AOShell& shell_3 = *dftbasis.getShell(iShell_3);
+              const AOShell& shell_3 = dftbasis.getShell(iShell_3);
               int numFunc_3 = shell_3.getNumFunc();
               for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
-                const AOShell& shell_4 = *dftbasis.getShell(iShell_4);
+                const AOShell& shell_4 = dftbasis.getShell(iShell_4);
                 int numFunc_4 = shell_4.getNumFunc();    
                 for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
-                  const AOShell& shell_1 = *dftbasis.getShell(iShell_1);
+                  const AOShell& shell_1 = dftbasis.getShell(iShell_1);
                   int numFunc_1 = shell_1.getNumFunc();
                   for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-                    const AOShell& shell_2 = *dftbasis.getShell(iShell_2);
+                    const AOShell& shell_2 = dftbasis.getShell(iShell_2);
                     int numFunc_2 = shell_2.getNumFunc();
 
                     // Pre-screening
@@ -408,10 +408,10 @@ namespace votca {
           _diagonals = Eigen::MatrixXd::Zero(dftBasisSize,dftBasisSize);
           
           for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
-            const AOShell& shell_1 = *dftbasis.getShell(iShell_1);
+            const AOShell& shell_1 = dftbasis.getShell(iShell_1);
             int numFunc_1 = shell_1.getNumFunc();
             for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
-              const AOShell& shell_2 = *dftbasis.getShell(iShell_2);
+              const AOShell& shell_2 = dftbasis.getShell(iShell_2);
               int numFunc_2 = shell_2.getNumFunc();
               
               // Get the current 4c block

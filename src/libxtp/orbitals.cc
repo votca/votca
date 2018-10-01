@@ -168,7 +168,7 @@ namespace votca {
         }
         
         
-        Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) {
+        Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state)const{
           Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
           if (!state.isTransition()) {
             for (const QMAtom& atom : _atoms) {
