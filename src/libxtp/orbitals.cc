@@ -687,7 +687,7 @@ namespace votca {
 
                 w(_ScaHFX, "ScaHFX");
 
-                w(int(_useTDA), "useTDA");
+                w(_useTDA, "useTDA");
                 w(_ECP, "ECP");
 
                 w(_QPpert_energies, "QPpert_energies");
@@ -774,9 +774,7 @@ namespace votca {
                 _bse_size = _bse_vtotal * _bse_ctotal;
 
                 r(_ScaHFX, "ScaHFX");
-                int temp;
-                r(temp, "useTDA");
-                _useTDA=bool(temp);
+                r(_useTDA, "useTDA");
                 r(_ECP, "ECP");
 
                 r(_QPpert_energies, "QPpert_energies");
