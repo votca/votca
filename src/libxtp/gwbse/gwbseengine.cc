@@ -57,9 +57,10 @@ namespace votca {
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
 
             // XML option file for GWBSE
-            std::string _gwbse_xml = options.get(".gwbse_options").as<std::string> ();
-            load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-
+            if(_do_gwbse){
+              std::string _gwbse_xml = options.get(".gwbse_options").as<std::string> ();
+              load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+            }
             // DFT log and MO file names
             _MO_file = options.get(".mofile").as<std::string> ();
             _dftlog_file = options.get(".dftlog").as<std::string> ();
@@ -112,7 +113,7 @@ namespace votca {
             if (_do_dft_run) {
                 bool run_success = _qmpackage->Run(orbitals);
                 if (!run_success) {
-                    throw std::runtime_error(std::string("\n DFT-run failed. Stopping!"));
+                    throw std::runtime_error("\n DFT-run failed. Stopping!");
                 }
             }
 
@@ -121,8 +122,15 @@ namespace votca {
                 CTP_LOG_SAVE(ctp::logINFO, *logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
                 _qmpackage->setLogFileName(_dftlog_file);
                 _qmpackage->setOrbitalsFileName(_MO_file);
-                _qmpackage->ParseLogFile(orbitals);
-                _qmpackage->ParseOrbitalsFile(orbitals);
+                 
+                bool Logfile_parse=_qmpackage->ParseLogFile(orbitals);
+                if (!Logfile_parse) {
+                    throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
+                }
+                bool Orbfile_parse=_qmpackage->ParseOrbitalsFile(orbitals);
+                 if (!Orbfile_parse) {
+                    throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
+                }
             }
 
             // if no parsing of DFT data is requested, reload serialized orbitals object

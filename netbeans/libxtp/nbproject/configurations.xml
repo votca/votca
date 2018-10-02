@@ -135,6 +135,7 @@
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/topology.h</itemPath>
+      <itemPath>../../include/votca/xtp/trustregion.h</itemPath>
       <itemPath>../../include/votca/xtp/version.h</itemPath>
       <itemPath>../../include/votca/xtp/votca_config.h.in</itemPath>
       <itemPath>../../include/votca/xtp/vxc_functionals.h</itemPath>
@@ -247,6 +248,7 @@
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
+      <itemPath>../../src/libxtp/trustregion.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
@@ -256,6 +258,7 @@
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
       <itemPath>../../src/tests/test_apolarsite.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
+      <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
@@ -278,6 +281,7 @@
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
+      <itemPath>../../src/tests/test_trustregion.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles" displayName="XMLfiles" projectFiles="true">
       <logicalFolder name="f1" displayName="packages" projectFiles="true">
@@ -1474,6 +1478,11 @@
       </item>
       <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/trustregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/votca_config.h.in"
@@ -2077,6 +2086,8 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
@@ -2092,6 +2103,8 @@
       <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2151,6 +2164,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_trustregion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2427,6 +2445,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/trustregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -3031,6 +3054,8 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version_nb.cc" ex="false" tool="1" flavor2="0">
@@ -3046,6 +3071,8 @@
       <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3105,6 +3132,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_trustregion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
     </conf>
   </confs>
