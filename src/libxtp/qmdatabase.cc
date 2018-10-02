@@ -187,13 +187,6 @@ void QMDatabase::onCreate()
         "Jeff2t     REAL DEFAULT 0,"
         "type       INT  DEFAULT 0)");
     
-    
-    // Super-exchange types
-    Exec("CREATE TABLE superExchange ("
-            "_id INTEGER PRIMARY KEY AUTOINCREMENT,"\
-            "frame      INT NOT NULL,"
-            "top        INT NOT NULL,"
-            "type      TEXT NOT NULL)");
 
 
 }
