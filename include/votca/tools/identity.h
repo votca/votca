@@ -18,7 +18,7 @@
  */
 #ifndef __VOTCA_TOOLS_IDENTITY_H
 #define __VOTCA_TOOLS_IDENTITY_H
-#include <stdexception>
+#include <stdexcept>
 namespace votca {
 namespace tools {
 
