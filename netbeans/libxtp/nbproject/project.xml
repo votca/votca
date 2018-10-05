@@ -887,7 +887,10 @@
                 </confElem>
             </confList>
             <formatting>
-                <project-formatting-style>false</project-formatting-style>
+                <project-formatting-style>true</project-formatting-style>
+                <c-style>ANSI|ANSI</c-style>
+                <cpp-style>Default_0|Google</cpp-style>
+                <header-style>ANSI|ANSI</header-style>
             </formatting>
         </data>
     </configuration>

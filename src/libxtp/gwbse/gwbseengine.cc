@@ -57,9 +57,10 @@ namespace votca {
             if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
 
             // XML option file for GWBSE
-            std::string _gwbse_xml = options.get(".gwbse_options").as<std::string> ();
-            load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
-
+            if(_do_gwbse){
+              std::string _gwbse_xml = options.get(".gwbse_options").as<std::string> ();
+              load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+            }
             // DFT log and MO file names
             _MO_file = options.get(".mofile").as<std::string> ();
             _dftlog_file = options.get(".dftlog").as<std::string> ();
