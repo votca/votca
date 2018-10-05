@@ -215,12 +215,11 @@ void Application::PrintDescription(std::ostream &out, const string &calculator_n
     string help_string;
     boost::filesystem::path arg_path;  
     Property options;
-    string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path / (boost::format("%1%.%2%") % calculator_name % "xml").str()).string().c_str();
-    
-    // loading the documentation xml file from VOTCASHARE
+   // loading the documentation xml file from VOTCASHARE
     char *votca_share = getenv("VOTCASHARE");
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-
+    string xmlFile = (arg_path / string(getenv("VOTCASHARE")) / help_path / (boost::format("%1%.%2%") % calculator_name % "xml").str()).string().c_str();
+    
     try {
 
                 load_property_from_xml(options, xmlFile);

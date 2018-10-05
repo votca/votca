@@ -41,6 +41,15 @@ class matrix {
   matrix(const double &v) { *this = v; }
   matrix(const matrix &m) { *this = m; }
   matrix(double arr[9]) { *this = arr; }
+  
+  matrix(const Eigen::Matrix3d& mat){
+        // clang-format off
+        _m[0]=mat(0,0); _m[1]=mat(0,1); _m[2]=mat(0,2);
+        _m[3]=mat(1,0); _m[4]=mat(1,1); _m[5]=mat(1,2);
+        _m[6]=mat(2,0); _m[7]=mat(2,1); _m[8]=mat(2,2);
+    // clang-format on
+  }
+  
   matrix(const vec &a, const vec &b, const vec &c) {
     // clang-format off
         _m[0]=a.getX(); _m[1]=b.getX(); _m[2]=c.getX();
@@ -87,6 +96,8 @@ class matrix {
     for (size_t i = 0; i < 9; ++i) _m[i] += v._m[i];
     return *this;
   }
+  
+  Eigen::Matrix3d ToEigenMatrix()const;
 
   /**
    * \brief initialize the matrix with zeros
@@ -271,6 +282,16 @@ inline matrix &matrix::operator=(const matrix &m) {
 inline matrix &matrix::operator=(double arr[9]) {
   for (size_t i = 0; i < 9; ++i) _m[i] = arr[i];
   return *this;
+}
+
+inline Eigen::Matrix3d matrix::ToEigenMatrix()const{
+    Eigen::Matrix3d mat=Eigen::Matrix3d::Zero();
+    // clang-format off
+     mat(0,0)=_m[0]; mat(0,1)=_m[1]; mat(0,2)=_m[2];
+     mat(1,0)=_m[3]; mat(1,1)=_m[4]; mat(1,2)=_m[5];
+     mat(2,0)=_m[6]; mat(2,1)=_m[7]; mat(2,2)=_m[8];
+     // clang-format on
+     return mat;
 }
 
 inline void matrix::UnitMatrix() {

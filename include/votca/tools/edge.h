@@ -92,5 +92,5 @@ class hash<votca::tools::Edge> {
     return hash<int>()(ed.getV1()) ^ hash<int>()(ed.getV2());
   }
 };
-};
+}
 #endif  // _VOTCA_TOOLS_EDGE_H

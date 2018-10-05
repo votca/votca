@@ -312,6 +312,32 @@ inline vec Property::as<vec>() const {
     return vec(tmp[0], tmp[1], tmp[2]);
 }
 
+template <>
+inline Eigen::VectorXd Property::as< Eigen::VectorXd >() const {
+    std::vector<double> tmp;
+    Tokenizer tok(as<std::string > (), " ,");
+    tok.ConvertToVector<double>(tmp);
+    Eigen::VectorXd result;
+    result.resize(tmp.size());
+    for(int i=0;i<result.size();i++){
+        result(i)=tmp[i];
+    }
+    return result;
+}
+
+template <>
+inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
+    std::vector<double> tmp;
+    Tokenizer tok(as<std::string > (), " ,");
+    tok.ConvertToVector<double>(tmp);
+    Eigen::Vector3d result;
+    if(int(tmp.size())!=result.size()){
+         throw std::runtime_error("Vector has " + boost::lexical_cast<std::string > (tmp.size()) + " instead of three entries");
+    }
+    result<<tmp[0],tmp[1],tmp[2];
+    return result;
+}
+
 template<>
 inline std::vector<unsigned int> Property::as<std::vector <unsigned int> >() const {
     std::vector<unsigned int> tmp;

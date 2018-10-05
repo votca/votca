@@ -55,7 +55,9 @@
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/database.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/elements.cc</itemPath>
       <itemPath>../../src/libtools/globals.cc</itemPath>
+      <itemPath>../../src/libtools/graphnode.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
@@ -85,6 +87,7 @@
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
+      <itemPath>../../src/tests/test_property.cc</itemPath>
       <itemPath>../../src/tests/test_typeconverter.cc</itemPath>
       <itemPath>../../src/tests/test_vec.cc</itemPath>
     </logicalFolder>
@@ -290,7 +293,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -354,6 +361,8 @@
       <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
@@ -560,7 +569,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -624,6 +637,8 @@
       <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
@@ -830,7 +845,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -894,6 +913,8 @@
       <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
