@@ -11,17 +11,33 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. 
  *
  */
 
 #include "votca/xtp/gnode.h"
 #include <boost/format.hpp>
+#include <vector>
+#include "votca/xtp/glink.h"
+#include <queue>
 
 using namespace std;
 
+
+
+
 namespace votca {
     namespace xtp {
+
+        struct Comparer
+{
+    bool operator() (hnode * a, hnode * b)
+    {
+        return (a->prob>b->prob);
+    }
+};
+
+
 void GNode::AddDecayEvent(double decayrate)
 {
     GLink newEvent;
@@ -60,6 +76,77 @@ void GNode::InitEscapeRate()
     this->escape_rate = newEscapeRate;
     // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
 }
+
+GLink* GNode::findHoppingDestination(double p){
+    hnode * node=root;
+    while (node->leftId!=-1){
+        if (p>node->prob) node=&(htree[node->leftId]);
+        else node=&(htree[node->rightId]);
+    }
+    return &events[node->id];
+}
+
+void GNode::MakeHuffTree(){
+    //queue of the nodes, sorted by probability
+    priority_queue<hnode *,vector<hnode *>,Comparer> queue;
+    htree=vector<hnode>(events.size()*2-1);
+    //first, make a leaf for every GLink
+    int index=0;
+    for (GLink L:events){
+        htree[index].prob=L.rate/escape_rate;
+        htree[index].leftId=-1;
+        htree[index].rightId=-1;
+        htree[index].id=index;
+        queue.push(&(htree[index]));
+        index++;
+    }
+
+     //now connect the hnodes, making a new one for every connection:
+     //always take the two nodes with the smallest probability and "combine" them, repeat, until just one node (the root) is left.
+     hnode * h1;
+     hnode * h2;
+     while (queue.size()>1){
+         h1=queue.top();
+         queue.pop();
+         h2=queue.top();
+         queue.pop();
+         htree[index].prob=h1->prob+h2->prob;
+         htree[index].leftId=h1->id;
+         htree[index].rightId=h2->id;
+         htree[index].id=index;
+         queue.push(&(htree[index]));
+         index++;
+     }
+     //save the root
+     root=&(htree[index-1]);
+     //reorganize the probabilities: in every node, add the probability of one subtree ("small")
+     //to all nodes of the other subtree.
+     organizeProbabilities(index-1,0);
+    moveProbabilities(index-1);
+}
+
+void GNode::organizeProbabilities(int id,double add){
+
+    //adds "add" to the probability, then calls itself recursively.
+    //this calculates the probabilities needed to traverse the tree quickly
+    htree[id].prob+=add;
+    //if leftId=-1 (=> node is leaf), returns
+    if (htree[id].leftId==-1) return;
+
+    organizeProbabilities(htree[id].leftId,add+htree[htree[id].rightId].prob);
+    organizeProbabilities(htree[id].rightId,add);
+}
+
+void GNode::moveProbabilities(int id){
+    //moves the probabilities "one up" so that htree[id].prob can be checked instead of htree[htree[id].rightId].prob
+    if (htree[id].rightId!=-1){
+        htree[id].prob=htree[htree[id].rightId].prob;
+        moveProbabilities(htree[id].rightId);
+        moveProbabilities(htree[id].leftId);
+    }
+    else htree[id].prob=-1;
+}
+
 
  void GNode::ReadfromSegment(ctp::Segment* seg,int carriertype){
      
