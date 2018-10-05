@@ -325,12 +325,14 @@ namespace votca {
                     totalnumberofrates++;
                 }
 
-                // Initialise escape rates
-                for (unsigned int i = 0; i < _nodes.size(); i++) {
-                    _nodes[i]->InitEscapeRate();
-                }
+                
 
             }
+            
+            // Initialise escape rates
+                for (auto* node:_nodes) {
+                    node->InitEscapeRate();
+                }
             
             cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
             cout<< " Largest rate="<<maxrate<<" 1/s  Smallest rate="<<minrate<<" 1/s"<<endl;
