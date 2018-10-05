@@ -21,7 +21,7 @@
 #define _VOTCA_TOOLS_NAME_H
 
 #include <string>
-#include <exception>
+#include <stdexcept>
 
 namespace votca {
 namespace tools {
