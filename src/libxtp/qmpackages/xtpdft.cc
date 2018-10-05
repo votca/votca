@@ -120,7 +120,8 @@ namespace votca {
          */
         bool XTPDFT::ParseLogFile(Orbitals & orbitals) {
           try{
-          orbitals.ReadFromCpt(_log_file_name);
+        std::string file_name = _run_dir + "/" + _log_file_name;
+          orbitals.ReadFromCpt(file_name);
           }catch(std::runtime_error& error){
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
             return false;
