@@ -122,7 +122,7 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       } else {
 
 	_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1;
-	_fl << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
+	_fl << setprecision(6) << setw(12) << bead->getMass() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
 
       }
 
