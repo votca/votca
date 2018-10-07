@@ -20,7 +20,6 @@
 #include <boost/test/unit_test.hpp>
 #include <cassert>
 #include <exception>
-#include <iostream>
 #include <memory>
 #include <vector>
 #include <votca/tools/thread.h>
@@ -63,7 +62,7 @@ BOOST_AUTO_TEST_CASE(multiple_start_to_finish_test) {
 
   vector<shared_ptr<ThreadTest>> threads;
 
-  int numberThreads = 1;
+  int numberThreads = 6;
 
   // Placing threads in a vector and initializing them
   for (int count = 0; count < numberThreads; ++count) {
@@ -80,7 +79,6 @@ BOOST_AUTO_TEST_CASE(multiple_start_to_finish_test) {
 
   // Wait until each of the threads is done
   for (int count = (numberThreads - 1); count >= 0; --count) {
-    cout << "count " << count << endl;
     threads.at(count)->WaitDone();
   }
 
