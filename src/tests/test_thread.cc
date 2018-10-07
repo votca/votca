@@ -37,7 +37,7 @@ class ThreadTest : public Thread {
   void setFactorial(long factorial) { factorial_ = factorial; }
 
  protected:
-  void _Run(void) {
+  void Run(void) {
     sum_ = 1;
     for (long val = 2; val <= factorial_; ++val) {
       sum_ *= val;

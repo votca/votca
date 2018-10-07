@@ -63,7 +63,7 @@ class Thread {
    * any work. This method should never be called by the user, it is
    * called internally by the Start method.
    */
-  virtual void _Run(void) = 0;
+  virtual void Run(void) = 0;
   friend void *runwrapper(void *arg);
 
  private:
