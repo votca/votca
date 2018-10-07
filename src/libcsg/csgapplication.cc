@@ -125,7 +125,7 @@ namespace votca {
             //out << "\n\n" << OptionsDesc() << endl;
         }
 
-        void CsgApplication::Worker::_Run(void) {
+        void CsgApplication::Worker::Run(void) {
             while (_app->ProcessData(this)) {
                 if (_app->SynchronizeThreads()) {
                     int id = getId();

@@ -129,7 +129,7 @@ namespace votca {
                 TopologyMap * _map;
                 int _id;
 
-                void _Run(void);
+                void Run(void);
 
                 void setApplication(CsgApplication *app) {
                     _app = app;
