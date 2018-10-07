@@ -137,7 +137,7 @@ void Topology::Add(Topology *top)
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
         BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
-        CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getM(), bi->getQ());
+        CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
     }
     
     for(res=top->_residues.begin();res!=top->_residues.end(); ++res) {
@@ -175,7 +175,7 @@ void Topology::CopyTopologyData(Topology *top)
     for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
         Bead *bi = *it_bead;
         BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
-        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getM(), bi->getQ());
+        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getMass(), bi->getQ());
         bn->setOptions(bi->Options());
     }
 
@@ -224,7 +224,7 @@ void Topology::SetBeadTypeMass(string name, double value)
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
       if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
-	(*bead)->setM(value);
+	(*bead)->setMass(value);
       }
     }
 
