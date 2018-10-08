@@ -179,27 +179,25 @@ namespace votca {
     }
 
     void IQM::WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals) {
+
       ctp::Segment* seg1 = pair.Seg1();
       ctp::Segment* seg2 = pair.Seg2();
       ctp::Segment* ghost = NULL;
-      ctp::Topology* _top = seg1->getTopology();
+      ctp::Topology* top = seg1->getTopology();
       ctp::vec r1 = seg1->getPos();
       ctp::vec r2 = seg2->getPos();
-      ctp::vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
-
-      // Check whether pair formed across periodic boundary
-      if (abs(r2 - r1 - _R) > 1e-8) {
-        ghost = new ctp::Segment(seg2);
-        //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-        for (ctp::Atom* atom : ghost->Atoms()) {
-          atom->setQMPos(atom->getQMPos() + r1 - r2 + _R);
-        }
-      }
+      ctp::vec R = top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
       std::vector< ctp::Segment* > segments;
       segments.push_back(seg1);
-      if (ghost) {
+      // Check whether pair formed across periodic boundary
+      if (abs(r2 - r1 - R) > 1e-8) {
+        ghost= new ctp::Segment(seg2);
+        //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
+        for (ctp::Atom* atom : ghost->Atoms()) {
+          atom->setQMPos(atom->getQMPos() + r1 - r2 + R);
+        }
         segments.push_back(ghost);
-      } else {
+      }else{
         segments.push_back(seg2);
       }
       QMInterface interface;
@@ -407,7 +405,6 @@ namespace votca {
           SetJobToFailed(jres, pLog, "Do input: failed loading orbitals from " + orbFileB);
           return jres;
         }
-
         try {
           dftcoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
           dftcoupling.Addoutput(job_output, orbitalsA, orbitalsB);
