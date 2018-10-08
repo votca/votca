@@ -22,7 +22,7 @@
 #include <exception>
 #include <memory>
 #include <vector>
-#include <votca/tools/thread.h>
+#include "../../include/votca/tools/thread.h"
 
 using namespace std;
 using namespace votca::tools;

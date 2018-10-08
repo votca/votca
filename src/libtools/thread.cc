@@ -16,8 +16,8 @@
  */
 
 #include <stdexcept>
-#include "../../votca/tools/lexical_cast.h"
-#include "../../votca/tools/thread.h"
+#include "../../include/votca/tools/lexical_cast.h"
+#include "../../include/votca/tools/thread.h"
 
 using namespace std;
 
