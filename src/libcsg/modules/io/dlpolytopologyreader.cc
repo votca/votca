@@ -292,7 +292,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	    Bead *bead=mi->getBead(i);
 	    BeadType *type = top.GetOrCreateBeadType(bead->Type()->getName());
 	    string beadname=mi->getBeadName(i);
-	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getM(), bead->getQ());
+	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getMass(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
 	  }
 	  matoms+=mi->BeadCount();

@@ -140,7 +140,7 @@ void Map_Sphere::Apply()
     for(iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
         Bead *bead = iter->_in;
         _out->ParentBeads().push_back(bead->getId());
-        M+=bead->getM();
+        M+=bead->getMass();
         if(bead->HasPos()) {
             vec r = top->BCShortestConnection(r0, bead->getPos());
             if(abs(r) > max_dist) {
@@ -161,7 +161,7 @@ void Map_Sphere::Apply()
             bF = true;
         }
     }
-    _out->setM(M);
+    _out->setMass(M);
     if(bPos)
         _out->setPos(cg);
     if(bVel)
