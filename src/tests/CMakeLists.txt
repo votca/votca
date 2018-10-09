@@ -19,6 +19,7 @@ foreach(PROG test_cubicspline
     test_matrix
     test_name
     test_table
+    test_thread
     test_typeconverter
     test_vec
     test_property)
