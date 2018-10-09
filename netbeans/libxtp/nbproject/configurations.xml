@@ -163,7 +163,6 @@
         <itemPath>../../src/libxtp/fourcenter_rep.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_dft.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_gwbse.cc</itemPath>
-        <itemPath>../../src/libxtp/threecenter_ol.cc</itemPath>
         <itemPath>../../src/libxtp/threecenter_rep.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f5" displayName="aomatrices" projectFiles="true">
