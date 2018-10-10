@@ -29,10 +29,11 @@ void huffmanTree::makeTree(){
         return e1->rate>e2->rate;
     };
     priority_queue<GLink *, vector<GLink *>, decltype(comp2)> eventQueue(comp2);
-
+    escape_rate=0.0;
     int i=0;
     for (GLink &e:*events){
         eventQueue.push(&e);
+        escape_rate+=e.rate;
      }
     while (eventQueue.size()>1){
         htree[i].isOnLastLevel=true;
