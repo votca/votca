@@ -23,33 +23,13 @@
 #include <votca/ctp/segment.h>
 #include <votca/ctp/qmpair.h>
 #include <vector>
+#include <votca/xtp/huffmantree.h>
 
 
 using namespace std;
 
 
 namespace votca { namespace xtp {
-
-
-//hnode as huffman-node
-struct hnode{
-    //id's of the child nodes
-    //if node is a leaf, both are null
-    //hnode * small;
-    //hnode * big;
-
-    //own index/id
-    int id;
-    //id's (indexes) of the children
-    int leftId;
-    int rightId;
-    //probability of this node being chosen
-    double prob;
-    //pointer to the gnode, if hnode is a leaf
-    //GLink * edge; not needed, as the index in the edge list is the same as the hnodes index
-    //in the htree vector
-};
-
 
 
 class GNode
@@ -82,10 +62,9 @@ class GNode
         void ReadfromSegment(ctp::Segment* seg, int carriertype);
         void AddEventfromQmPair(ctp::QMPair* pair,int carriertype);
         
+        huffmanTree hTree;
         GLink* findHoppingDestination(double p);
-        hnode * root;
         void MakeHuffTree();
-        std::vector <hnode> htree;
 };
 
 
