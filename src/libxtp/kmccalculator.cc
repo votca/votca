@@ -128,10 +128,12 @@ namespace votca {
         }
 
         bool KMCCalculator::CheckForbidden(int id,const std::vector<int> &forbiddenlist) {
+            // cout << "forbidden list has " << forbiddenlist.size() << " entries" << endl;
             bool forbidden = false;
             for (unsigned int i = 0; i < forbiddenlist.size(); i++) {
                 if (id == forbiddenlist[i]) {
                     forbidden = true;
+                    //cout << "ID " << id << " has been found as element " << i << " (" << forbiddenlist[i]<< ") in the forbidden list." << endl;
                     break;
                 }
             }
