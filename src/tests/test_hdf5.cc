@@ -22,11 +22,13 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmatom.h>
+#include <votca/xtp/checkpointwriter.h>
+#include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpoint.h>
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
-   
 
     int basisSetSize = 17;
     int occupiedLevels = 4;
@@ -117,12 +119,21 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.TransitionDipoles() = transitionDipolesTest;
         orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
         orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
-        orbWrite.WriteToCpt("xtp_testing.hdf5");
+
+        try{
+            orbWrite.WriteToCpt("xtp_testing.hdf5");
+        } catch (std::runtime_error& e){
+            std::cout << e.what() << std::endl;
+        }
     }
     // Read Orbitals
     Orbitals orbRead;
+    try{
+        orbRead.ReadFromCpt("xtp_testing.hdf5");
+    } catch (std::runtime_error& e){
+        std::cout << e.what() << std::endl;
+    }
 
-    orbRead.ReadFromCpt("xtp_testing.hdf5");
     double tol = 1e-6;
 
     // Test the read values
@@ -176,5 +187,65 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         BOOST_CHECK_EQUAL(atomRead.getPartialcharge(), atomTest.getPartialcharge());
         // no way to get qmatom index
     }
+}
 
-    BOOST_AUTO_TEST_SUITE_END()}
+BOOST_AUTO_TEST_CASE(open_file_error){
+    bool success = false;
+    try{
+        CheckpointFile cpf("/bin/mr/root/man.pls", CheckpointAccessLevel::READ);
+    } catch (std::runtime_error& e){
+        std::cout << e.what();
+        success = true;
+    }
+
+    BOOST_CHECK(success);
+}
+
+BOOST_AUTO_TEST_CASE(checkpoint_open_non_existing_loc) {
+    CheckpointFile cpf ("testin_yo.ab", CheckpointAccessLevel::APPEND);
+    bool success = false;
+    try{
+        CheckpointReader r = cpf.getReader("/some/bulshit");
+    } catch (std::runtime_error& e){
+        std::cout << e.what();
+        success = true;
+    }
+
+    BOOST_CHECK(success);
+}
+
+BOOST_AUTO_TEST_CASE(read_non_exisiting_matrix){
+    bool success = false;
+
+    CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
+    CheckpointReader r = cpf.getReader("/QMdata");
+
+    Eigen::MatrixXd someMatrix;
+    try{
+        r(someMatrix, "someMatrix012'5915.jb");
+    } catch (std::runtime_error& e){
+        std::cout << e.what();
+        success = true;
+    }
+
+    BOOST_CHECK(success);
+
+}
+
+BOOST_AUTO_TEST_CASE(read_non_existing_scalar){
+    bool success = false;
+    CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
+    CheckpointReader r = cpf.getReader("/QMdata");
+
+    float someThing = 0;
+    try{
+        r(someThing, "someThing");
+    } catch (std::runtime_error& e){
+        std::cout << e.what();
+        success = true;
+    }
+
+    BOOST_CHECK(success);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
