@@ -22,6 +22,10 @@ class huffmanTree
     bool isOnLastLevel=false;
 };
 
+public:
+    void makeTree();
+    GLink *findHoppingDestination(double p);
+    void setEvents(std::vector<GLink> * v);
 
 private:
     void addProbabilityFromRightSubtreeToLeftSubtree(huffmanNode *n, double add);
@@ -31,10 +35,6 @@ private:
     double escape_rate;
     vector <GLink> * events=nullptr;
 
-public:
-    void makeTree();
-    GLink *findHoppingDestination(double p);
-    void setEvents(std::vector<GLink> * v);
 };
 
 }}
