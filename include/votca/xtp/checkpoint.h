@@ -32,19 +32,7 @@ enum class CheckpointAccessLevel{
         WRITE = 2
 };
 
-std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l){
-
-    switch(l){
-    case CheckpointAccessLevel::READ:
-        s << "read"; break;
-    case CheckpointAccessLevel::APPEND:
-        s << "append"; break;
-    case CheckpointAccessLevel::WRITE:
-        s << "write"; break;
-    }
-
-    return s;
-}
+std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);
 
 class CheckpointFile {
  public:

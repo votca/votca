@@ -39,6 +39,20 @@ namespace xtp {
 using namespace checkpoint_utils;
 namespace bfs = boost::filesystem;
 
+std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l){
+
+    switch(l){
+    case CheckpointAccessLevel::READ:
+        s << "read"; break;
+    case CheckpointAccessLevel::APPEND:
+        s << "append"; break;
+    case CheckpointAccessLevel::WRITE:
+        s << "write"; break;
+    }
+
+    return s;
+}
+
 bool FileExists(const std::string& fileName){
     return bfs::exists(fileName);
 }
