@@ -34,10 +34,6 @@ namespace votca { namespace xtp {
 
 class GNode
 {
-    private:
-        void organizeProbabilities(int id, double add);
-        void moveProbabilities(int id);
-
     public:
         GNode():occupied(false),occupationtime(0.0),escape_rate(0.0),hasdecay(false){};
         
