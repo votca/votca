@@ -77,7 +77,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
 
             throw std::runtime_error(message.str());
         }
-        v = bool{temp};
+        v = static_cast<bool>(temp);
     }
 
     void operator()(std::string& var, const std::string& name){

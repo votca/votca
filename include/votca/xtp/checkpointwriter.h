@@ -74,7 +74,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
     }
 
     void operator()(const bool& v, const std::string& name){
-        int temp{v};
+        int temp=static_cast<int>(v);
         try{
             WriteScalar(_loc, temp, name);
         } catch (H5::Exception& error){

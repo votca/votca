@@ -17,9 +17,10 @@
  *
  */
 #include "votca/xtp/adiis.h"
-#include "ceres/ceres.h"
+#include <votca/xtp/bfgs-trm.h>
 #include <votca/xtp/adiis_costfunction.h>
-
+#include <votca/ctp/logger.h>
+#include <boost/format.hpp>
 
 namespace votca { namespace xtp {
   
@@ -29,12 +30,11 @@ namespace votca { namespace xtp {
       success=true;
       int size=dmathist.size();
       
-      const Eigen::MatrixXd& dmat=*dmathist[size-1];
-      const Eigen::MatrixXd& H=*mathist[size-1];
+      const Eigen::MatrixXd& dmat=*dmathist.back();
+      const Eigen::MatrixXd& H=*mathist.back();
       Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
       Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
-
-
+      
       for (int i = 0; i < size; i++) {
         DiF(i) = ((*dmathist[i]) - dmat).cwiseProduct(H).sum();
       }
@@ -43,28 +43,21 @@ namespace votca { namespace xtp {
         for (int j = 0; j < size; j++) {
           DiFj(i, j) = ((*dmathist[i]) - dmat).cwiseProduct((*mathist[j]) - H).sum();
         }
-      }   
-     
- 
-   ceres::GradientProblem problem(new ADIIS_costfunction(DiF,DiFj));
+      }  
+
+
+      ADIIS_costfunction a_cost=ADIIS_costfunction(DiF,DiFj);
+      BFGSTRM optimizer=BFGSTRM(a_cost);
+      optimizer.setNumofIterations(1000);
+      optimizer.setTrustRadius(0.01);
    // Starting point: equal weights on all matrices
    Eigen::VectorXd coeffs=Eigen::VectorXd::Constant(size,1.0/size);
-
-   ceres::GradientProblemSolver::Options options;
-   options.minimizer_progress_to_stdout=false;
-   options.logging_type=ceres::LoggingType::SILENT;
-   options.gradient_tolerance=1e-8;
-   options.max_num_iterations=1000;
-   ceres::GradientProblemSolver::Summary summary;
-   ceres::Solve(options,problem,coeffs.data(),&summary);
-   //std::cout << summary.FullReport() << "\n";
-  success=summary.IsSolutionUsable();
-    
-  coeffs=coeffs.cwiseAbs2();
+   optimizer.Optimize(coeffs);
+  success=optimizer.Success();
+  coeffs=optimizer.getParameters().cwiseAbs2();
   double xnorm=coeffs.sum();
   coeffs/=xnorm;
 
-  
   if(std::abs(coeffs.tail(1).value())<0.001){     
         success=false;
       }
