@@ -23,7 +23,8 @@ void huffmanTree::makeTree(){
     auto compare = [](huffmanNode * n1, huffmanNode * n2)
     { return n1->probability>n2->probability;};
 
-    //priority queues, because the algorithm always needs the element with the smallest probability. Also, it keep adding nodes to it, so it would we very inefficient to sort it in every iteration.
+    //priority queues, because the algorithm always needs the element with the smallest probability. 
+    //Also, it keep adding nodes to it, so it would we very inefficient to sort it in every iteration.
     priority_queue<huffmanNode *,vector<huffmanNode *>, decltype(compare)> queue(compare);
 
     htree=vector<huffmanNode>(events->size()%2?events->size():events->size()-1);
@@ -45,7 +46,8 @@ void huffmanTree::makeTree(){
         eventQueue.pop();
         htree[firstEmptyFieldIndex].rightLeaf=eventQueue.top();
         eventQueue.pop();
-        htree[firstEmptyFieldIndex].probability=(htree[firstEmptyFieldIndex].leftLeaf->rate+htree[firstEmptyFieldIndex].rightLeaf->rate)/escape_rate;
+        htree[firstEmptyFieldIndex].probability=(htree[firstEmptyFieldIndex].leftLeaf->rate+
+                                                 htree[firstEmptyFieldIndex].rightLeaf->rate)/escape_rate;
         queue.push(&(htree[firstEmptyFieldIndex]));
         firstEmptyFieldIndex++;
     }
@@ -140,7 +142,7 @@ void huffmanTree::moveProbabilitiesFromRightSubtreesOneLevelUp(huffmanNode * n){
     //       |    |
     //      0.75 0.65 
     //then it would look like this after calling it
-    //           0.6
+    //           0.
     //       ____||____
     //      |          |
     //     0.75      0.25
