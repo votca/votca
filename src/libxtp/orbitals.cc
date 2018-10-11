@@ -639,9 +639,7 @@ namespace votca {
         }
 
         void Orbitals::WriteToCpt(CheckpointFile f) const{
-            std::string name = "QMdata";
-            CptLoc orbGr = f.getHandle().createGroup("/" + name);
-            WriteToCpt(orbGr);
+            WriteToCpt(f.getWriter("/QMdata"));
         }
 
         void Orbitals::WriteToCpt(CptLoc parent) const{

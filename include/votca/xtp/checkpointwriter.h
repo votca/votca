@@ -34,14 +34,27 @@ using namespace checkpoint_utils;
 
 class CheckpointWriter {
 public:
-CheckpointWriter(const CptLoc& loc) : _loc(loc){};
+CheckpointWriter(const CptLoc& loc): CheckpointWriter(loc, "/"){};
+
+CheckpointWriter(const CptLoc& loc, const std::string& path):
+    _loc(loc), _path(path){};
 
     // see the following links for details
     // https://stackoverflow.com/a/8671617/1186564
     template <typename T>
         typename std::enable_if<!std::is_fundamental<T>::value>::type
         operator()(const T& data, const std::string& name){
-        WriteData(_loc, data, name);
+        try {
+            WriteData(_loc, data, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name
+                    << " to " << _loc.getFileName() << ":" << _path;
+
+            message << "HDF5 Error:" << std::endl
+                    << error.getDetailMsg();
+            throw std::runtime_error(message.str());
+        }
     }
 
     // Use this overload iff T is a fundamental type
@@ -49,20 +62,66 @@ CheckpointWriter(const CptLoc& loc) : _loc(loc){};
     template<typename T>
         typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
         operator()(const T& v, const std::string& name){
-        WriteScalar(_loc, v, name);
+        try{
+            WriteScalar(_loc, v, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name << " to "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
     }
 
     void operator()(const bool& v, const std::string& name){
         int temp{v};
-        WriteScalar(_loc, temp, name);
+        try{
+            WriteScalar(_loc, temp, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name << " to "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+
+        }
     }
 
     void operator()(const std::string& v, const std::string& name){
-        WriteScalar(_loc, v, name);
+        try{
+            WriteScalar(_loc, v, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name << " to "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+
+        }
+    }
+
+    CheckpointWriter openChild(const std::string& childName){
+        try{
+            return CheckpointWriter(_loc.openGroup(childName), _path+"/"+childName);
+        } catch (H5::Exception& e){
+            try{
+                return CheckpointWriter(_loc.createGroup(childName), _path+"/"+childName);
+            } catch (H5::Exception& e){
+                std::stringstream message;
+                message << "Could not open or create child " << childName << " in "
+                        << _loc.getFileName() << std::endl;
+
+                message << "HDF5 error:" << std::endl
+                        << e.getDetailMsg();
+
+                throw std::runtime_error(message.str());
+            }
+        }
     }
 
 private:
     CptLoc _loc;
+    const std::string _path;
     template <typename T>
         void WriteScalar(const CptLoc& loc, const T& value,
                          const std::string& name) {
