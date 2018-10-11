@@ -140,7 +140,7 @@ void huffmanTree::moveProbabilitiesFromRightSubtreesOneLevelUp(huffmanNode * n){
     //       |    |
     //      0.75 0.65 
     //then it would look like this after calling it
-    //           0.
+    //           0.6
     //       ____||____
     //      |          |
     //     0.75      0.25
