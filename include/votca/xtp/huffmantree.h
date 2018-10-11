@@ -7,7 +7,12 @@ using namespace std;
 namespace votca { namespace xtp {
 
 
-struct huffmanNode{
+
+
+class huffmanTree
+{
+
+    struct huffmanNode{
     //huffmanNode * for the inner nodes, GLink * for the nodes on the last level before the leafs (The GLinks themselves represent the "leaf" level)
     huffmanNode * leftChild;
     huffmanNode * rightChild;
@@ -17,19 +22,19 @@ struct huffmanNode{
     bool isOnLastLevel=false;
 };
 
-class huffmanTree
-{
+
 private:
-    void organizeProbabilities(huffmanNode *n, double add);
-    void moveProbabilities(huffmanNode *n);
+    void addProbabilityFromRightSubtreeToLeftSubtree(huffmanNode *n, double add);
+    void moveProbabilitiesFromRightSubtreesOneLevelUp(huffmanNode *n);
     vector <huffmanNode> htree;
     bool treeIsMade=false;
-public:
-    double escape_rate=0.0;
+    double escape_rate;
     vector <GLink> * events=nullptr;
+
+public:
     void makeTree();
     GLink *findHoppingDestination(double p);
-    huffmanTree();
+    void setEvents(std::vector<GLink> * v);
 };
 
 }}
