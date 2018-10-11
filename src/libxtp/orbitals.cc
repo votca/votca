@@ -634,7 +634,7 @@ namespace votca {
         }
 
         void Orbitals::WriteToCpt(const std::string& filename) const{
-            CheckpointFile cpf(filename, true);
+            CheckpointFile cpf(filename, CheckpointAccessLevel::WRITE);
             WriteToCpt(cpf);
         }
 
@@ -708,7 +708,7 @@ namespace votca {
         }
 
         void Orbitals::ReadFromCpt(const std::string& filename) {
-            CheckpointFile cpf(filename, false);
+            CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
             ReadFromCpt(cpf);
         }
 
