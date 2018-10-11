@@ -58,9 +58,15 @@ class GNode
         void ReadfromSegment(ctp::Segment* seg, int carriertype);
         void AddEventfromQmPair(ctp::QMPair* pair,int carriertype);
         
-        huffmanTree hTree;
+ 
         GLink* findHoppingDestination(double p);
         void MakeHuffTree();
+
+    private:
+        huffmanTree hTree;
+        void organizeProbabilities(int id, double add);
+        void moveProbabilities(int id);
+
 };
 
 
