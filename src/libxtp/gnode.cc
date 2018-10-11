@@ -75,7 +75,7 @@ GLink* GNode::findHoppingDestination(double p){
 }
 
 void GNode::MakeHuffTree(){
-   hTree.events=&events;
+   hTree.setEvents(&events);
    hTree.makeTree();
 }
 
