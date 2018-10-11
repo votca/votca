@@ -27,7 +27,7 @@
 
 BOOST_AUTO_TEST_SUITE(gnode_test)
 
-BOOST_AUTO_TEST_CASE(deterministic_test) {
+BOOST_AUTO_TEST_CASE(chosen_id_test) {
   votca::xtp::GNode g;
   g.events=std::vector<votca::xtp::GLink>(6);
   g.events[0].destination=0;
@@ -58,43 +58,68 @@ BOOST_AUTO_TEST_CASE(deterministic_test) {
   BOOST_CHECK_EQUAL(g.findHoppingDestination(0.65)->destination,5);
 }
 
-BOOST_AUTO_TEST_CASE(statistical_test) {
+BOOST_AUTO_TEST_CASE(count_test) {
       srand( (unsigned)time( NULL ) );
   votca::xtp::GNode g;
-  g.events=std::vector<votca::xtp::GLink>(6);
+  g.events=std::vector<votca::xtp::GLink>(11);
   g.events[0].destination=0;
-  g.events[0].rate =10;
+  g.events[0].rate =15;
   g.events[1].destination=1;
-  g.events[1].rate =20;
+  g.events[1].rate =9;
   g.events[2].destination=2;
-  g.events[2].rate =15;
+  g.events[2].rate =11;
   g.events[3].destination=3;
-  g.events[3].rate =22;
+  g.events[3].rate =8;
   g.events[4].destination=4;
-  g.events[4].rate =8;
+  g.events[4].rate =12;
   g.events[5].destination=5;
-  g.events[5].rate =25;
+  g.events[5].rate =7;
+  g.events[6].destination=6;
+  g.events[6].rate =13;
+  g.events[7].destination=7;
+  g.events[7].rate =6;
+  g.events[8].destination=8;
+  g.events[8].rate =14;
+  g.events[9].destination=9;
+  g.events[9].rate =5;
+  g.events[10].destination=10;
+  g.events[10].rate =100;
   g.MakeHuffTree();  
-  vector<int> count(6);
-  srand( (unsigned)time( NULL ) );
-  double d;
+  vector<int> count(11);
+  double d=0;
 
-    for (int i=0;i<6;i++){
+    for (int i=0;i<11;i++){
         count[i]=0;
     }
     int ind;
-    long max=1e6;
-    for (long l=0;l<max;l++){
-       d=(double)rand()/RAND_MAX;
+    while(d<1){
        votca::xtp::GLink * L=g.findHoppingDestination(d);
        ind=L->destination;
        count[ind]++;
+       d+=0.000001;
     }
-  BOOST_CHECK_EQUAL(abs(count[0]-100000)<5000,true);
-  BOOST_CHECK_EQUAL(abs(count[1]-200000)<5000,true);
-  BOOST_CHECK_EQUAL(abs(count[2]-150000)<5000,true);
-  BOOST_CHECK_EQUAL(abs(count[3]-220000)<5000,true);
-  BOOST_CHECK_EQUAL(abs(count[4]-80000)<5000,true);
-  BOOST_CHECK_EQUAL(abs(count[5]-250000)<5000,true);
+    std::cout<<count[0]<<endl;
+    std::cout<<count[1]<<endl;
+    std::cout<<count[2]<<endl;
+    std::cout<<count[3]<<endl;
+    std::cout<<count[4]<<endl;
+    std::cout<<count[5]<<endl;
+    std::cout<<count[6]<<endl;
+    std::cout<<count[7]<<endl;
+    std::cout<<count[8]<<endl;
+    std::cout<<count[9]<<endl;
+    std::cout<<count[10]<<endl;
+  BOOST_CHECK_EQUAL(count[0],75000);
+  BOOST_CHECK_EQUAL(count[1],45000);
+  BOOST_CHECK_EQUAL(count[2],55000);
+  BOOST_CHECK_EQUAL(count[3],40000);
+  BOOST_CHECK_EQUAL(count[4],60000);
+  BOOST_CHECK_EQUAL(count[5],35000);
+  BOOST_CHECK_EQUAL(count[6],65000);
+  BOOST_CHECK_EQUAL(count[7],30000);
+  BOOST_CHECK_EQUAL(count[8],70000);
+  BOOST_CHECK_EQUAL(count[9],25001);
+  BOOST_CHECK_EQUAL(count[10],499999);
+
 }
 BOOST_AUTO_TEST_SUITE_END()
