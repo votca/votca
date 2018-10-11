@@ -642,75 +642,69 @@ namespace votca {
             WriteToCpt(f.getWriter("/QMdata"));
         }
 
-        void Orbitals::WriteToCpt(CptLoc parent) const{
-            try {
-                CheckpointWriter w(parent);
-                w(XtpVersionStr(), "Version");
-                w(_basis_set_size, "basis_set_size");
-                w(_occupied_levels, "occupied_levels");
-                w(_unoccupied_levels, "unoccupied_levels");
-                w(_number_of_electrons, "number_of_electrons");
+        void Orbitals::WriteToCpt(CheckpointWriter w) const{
+            w(XtpVersionStr(), "Version");
+            w(_basis_set_size, "basis_set_size");
+            w(_occupied_levels, "occupied_levels");
+            w(_unoccupied_levels, "unoccupied_levels");
+            w(_number_of_electrons, "number_of_electrons");
 
-                w(_mo_energies, "mo_energies");
-                w(_mo_coefficients, "mo_coefficients");
+            w(_mo_energies, "mo_energies");
+            w(_mo_coefficients, "mo_coefficients");
 
-                // write qmatoms
+            // write qmatoms
 
-                {
-                    CptLoc qmAtomsGr = parent.createGroup("qmatoms");
-                    size_t count = 0;
-                    for (const auto& qma : _atoms) {
-                        CptLoc tempLoc = qmAtomsGr.createGroup("atom" + std::to_string(count));
-                        qma->WriteToCpt(tempLoc);
-                        ++count;
-                    }
-
+            {
+                size_t count = 0;
+                CheckpointWriter qmasWriter = w.openChild("qmatoms");
+                for (const auto& qma : _atoms) {
+                    auto qmaWriter =
+                        qmasWriter.openChild("atom" + std::to_string(count));
+                    qma->WriteToCpt(qmaWriter);
+                    ++count;
                 }
 
-                w(_qm_energy, "qm_energy");
-                w(_qm_package, "qm_package");
-                w(_self_energy, "self_energy");
-
-                w(_dftbasis, "dftbasis");
-                w(_auxbasis, "auxbasis");
-
-                w(_rpamin, "rpamin");
-                w(_rpamax, "rpamax");
-                w(_qpmin, "qpmin");
-                w(_qpmax, "qpmax");
-                w(_bse_vmin, "bse_vmin");
-                w(_bse_vmax, "bse_vmax");
-                w(_bse_cmin, "bse_cmin");
-                w(_bse_cmax, "bse_cmax");
-
-                w(_ScaHFX, "ScaHFX");
-
-                w(_useTDA, "useTDA");
-                w(_ECP, "ECP");
-
-                w(_QPpert_energies, "QPpert_energies");
-                w(_QPdiag_energies, "QPdiag_energies");
-
-                w(_QPdiag_coefficients, "QPdiag_coefficients");
-                w(_eh_t, "eh_t");
-
-                w(_eh_s, "eh_s");
-
-                w(_BSE_singlet_energies, "BSE_singlet_energies");
-
-                w(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
-
-                w(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
-
-                w(_transition_dipoles, "transition_dipoles");
-
-                w(_BSE_triplet_energies, "BSE_triplet_energies");
-                w(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
-
-            } catch (H5::Exception& error) {
-                throw std::runtime_error(error.getDetailMsg());
             }
 
+            w(_qm_energy, "qm_energy");
+            w(_qm_package, "qm_package");
+            w(_self_energy, "self_energy");
+
+            w(_dftbasis, "dftbasis");
+            w(_auxbasis, "auxbasis");
+
+            w(_rpamin, "rpamin");
+            w(_rpamax, "rpamax");
+            w(_qpmin, "qpmin");
+            w(_qpmax, "qpmax");
+            w(_bse_vmin, "bse_vmin");
+            w(_bse_vmax, "bse_vmax");
+            w(_bse_cmin, "bse_cmin");
+            w(_bse_cmax, "bse_cmax");
+
+            w(_ScaHFX, "ScaHFX");
+
+            w(_useTDA, "useTDA");
+            w(_ECP, "ECP");
+
+            w(_QPpert_energies, "QPpert_energies");
+            w(_QPdiag_energies, "QPdiag_energies");
+
+            w(_QPdiag_coefficients, "QPdiag_coefficients");
+            w(_eh_t, "eh_t");
+
+            w(_eh_s, "eh_s");
+
+            w(_BSE_singlet_energies, "BSE_singlet_energies");
+
+            w(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
+
+            w(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
+
+            w(_transition_dipoles, "transition_dipoles");
+
+            w(_BSE_triplet_energies, "BSE_triplet_energies");
+            w(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
         }
 
         void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -719,84 +713,78 @@ namespace votca {
         }
 
         void Orbitals::ReadFromCpt(CheckpointFile f) {
-            std::string name = "QMdata";
-            CptLoc orbGr = f.getHandle().openGroup("/" + name);
-            ReadFromCpt(orbGr);
+            ReadFromCpt(f.getReader("/QMdata"));
         }
 
-        void Orbitals::ReadFromCpt(CptLoc parent) {
-            try {
-                CheckpointReader r(parent);
-                r(_basis_set_size, "basis_set_size");
-                r(_occupied_levels, "occupied_levels");
-                r(_unoccupied_levels, "unoccupied_levels");
-                r(_number_of_electrons, "number_of_electrons");
+        void Orbitals::ReadFromCpt(CheckpointReader r) {
+            r(_basis_set_size, "basis_set_size");
+            r(_occupied_levels, "occupied_levels");
+            r(_unoccupied_levels, "unoccupied_levels");
+            r(_number_of_electrons, "number_of_electrons");
 
-                r(_mo_energies, "mo_energies");
-                r(_mo_coefficients, "mo_coefficients");
-                // Read qmatoms
-                {
-                    CptLoc qmAtomsGr = parent.openGroup("qmatoms");
-                    size_t count = qmAtomsGr.getNumObjs();
-                    if(this->QMAtoms().size()>0){
-                      std::vector< QMAtom* >::iterator it;
-                      for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
-                      _atoms.clear();
-                    }
+            r(_mo_energies, "mo_energies");
+            r(_mo_coefficients, "mo_coefficients");
 
-                    for (size_t i = 0; i < count; ++i) {
-                        CptLoc tempLoc = qmAtomsGr.openGroup("atom" + std::to_string(i));
-                        QMAtom temp;
-                        temp.ReadFromCpt(tempLoc);
-                        AddAtom(temp);
-                    }
+            // Read qmatoms
+            {
+                CheckpointReader qmasReader = r.openChild("qmatoms");
+                size_t count = qmasReader.getNumDataSets();
+                if(this->QMAtoms().size()>0){
+                    std::vector< QMAtom* >::iterator it;
+                    for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
+                    _atoms.clear();
                 }
 
-                r(_qm_energy, "qm_energy");
-                r(_qm_package, "qm_package");
-                r(_self_energy, "self_energy");
-
-                r(_dftbasis, "dftbasis");
-                r(_auxbasis, "auxbasis");
-
-                r(_rpamin, "rpamin");
-                r(_rpamax, "rpamax");
-                r(_qpmin, "qpmin");
-                r(_qpmax, "qpmax");
-                r(_bse_vmin, "bse_vmin");
-                r(_bse_vmax, "bse_vmax");
-                r(_bse_cmin, "bse_cmin");
-                r(_bse_cmax, "bse_cmax");
-                _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-                _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-                _bse_size = _bse_vtotal * _bse_ctotal;
-
-                r(_ScaHFX, "ScaHFX");
-                r(_useTDA, "useTDA");
-                r(_ECP, "ECP");
-
-                r(_QPpert_energies, "QPpert_energies");
-                r(_QPdiag_energies, "QPdiag_energies");
-
-                r(_QPdiag_coefficients, "QPdiag_coefficients");
-                r(_eh_t, "eh_t");
-
-                r(_eh_s, "eh_s");
-
-                r(_BSE_singlet_energies, "BSE_singlet_energies");
-
-                r(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
-
-                r(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
-
-                r(_transition_dipoles, "transition_dipoles");
-
-                r(_BSE_triplet_energies, "BSE_triplet_energies");
-                r(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
-
-            } catch (H5::Exception& error) {
-                throw std::runtime_error(error.getDetailMsg());
+                for (size_t i = 0; i < count; ++i) {
+                    CheckpointReader qmaReader =
+                        qmasReader.openChild("atom" + std::to_string(i));
+                    QMAtom temp;
+                    temp.ReadFromCpt(qmaReader);
+                    AddAtom(temp);
+                }
             }
+
+            r(_qm_energy, "qm_energy");
+            r(_qm_package, "qm_package");
+            r(_self_energy, "self_energy");
+
+            r(_dftbasis, "dftbasis");
+            r(_auxbasis, "auxbasis");
+
+            r(_rpamin, "rpamin");
+            r(_rpamax, "rpamax");
+            r(_qpmin, "qpmin");
+            r(_qpmax, "qpmax");
+            r(_bse_vmin, "bse_vmin");
+            r(_bse_vmax, "bse_vmax");
+            r(_bse_cmin, "bse_cmin");
+            r(_bse_cmax, "bse_cmax");
+            _bse_vtotal = _bse_vmax - _bse_vmin + 1;
+            _bse_ctotal = _bse_cmax - _bse_cmin + 1;
+            _bse_size = _bse_vtotal * _bse_ctotal;
+
+            r(_ScaHFX, "ScaHFX");
+            r(_useTDA, "useTDA");
+            r(_ECP, "ECP");
+
+            r(_QPpert_energies, "QPpert_energies");
+            r(_QPdiag_energies, "QPdiag_energies");
+
+            r(_QPdiag_coefficients, "QPdiag_coefficients");
+            r(_eh_t, "eh_t");
+
+            r(_eh_s, "eh_s");
+
+            r(_BSE_singlet_energies, "BSE_singlet_energies");
+
+            r(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
+
+            r(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
+
+            r(_transition_dipoles, "transition_dipoles");
+
+            r(_BSE_triplet_energies, "BSE_triplet_energies");
+            r(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
         }
     }
 }
