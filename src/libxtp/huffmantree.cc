@@ -38,7 +38,7 @@ void huffmanTree::makeTree(){
     for (GLink &e:*events){
         eventQueue.push(&e);
         escape_rate+=e.rate;
-     }
+     } 
     while (eventQueue.size()>1){
         htree[firstEmptyFieldIndex].isOnLastLevel=true;
         htree[firstEmptyFieldIndex].leftLeaf=eventQueue.top();
@@ -53,7 +53,7 @@ void huffmanTree::makeTree(){
         htree[firstEmptyFieldIndex].isOnLastLevel=true;
         htree[firstEmptyFieldIndex].rightLeaf=eventQueue.top();
         htree[firstEmptyFieldIndex].leftLeaf=eventQueue.top();
-        htree[firstEmptyFieldIndex].probability=2*htree[firstEmptyFieldIndex].leftLeaf->rate/escape_rate;
+        htree[firstEmptyFieldIndex].probability=htree[firstEmptyFieldIndex].leftLeaf->rate/escape_rate;
         queue.push(&(htree[firstEmptyFieldIndex]));
         firstEmptyFieldIndex++;
     }
@@ -78,6 +78,7 @@ void huffmanTree::makeTree(){
     addProbabilityFromRightSubtreeToLeftSubtree(&htree[htree.size()-1],0);
     moveProbabilitiesFromRightSubtreesOneLevelUp(&htree[htree.size()-1]);
     treeIsMade=true;
+
 }
 
 
@@ -87,32 +88,26 @@ void huffmanTree::addProbabilityFromRightSubtreeToLeftSubtree(huffmanNode * n,do
     //if the Tree would look like this (with the Numbers representing the probability of every node) before calling this function
 
     //           1.0
-    //           /\
-    //          /  \
-    //         /    \
-    //        /      \
-    //       /        \
-    //     0.4       0.6
-    //     / \       / \
-    //    /   \     /   \
-    //  0.25 0.15 0.35 0.25
-    //        /\
-    //       /  \
-    //     0.1 0.05
+    //       ____||____
+    //      |          |
+    //     0.4        0.6
+    //     _||_      _||_ 
+    //    |    |    |    |
+    //  0.25 0.15  0.35 0.25
+    //        _||_
+    //       |    |
+    //      0.1  0.05
     //then it would look like this after calling it
     //           1.0
-    //           /\
-    //          /  \
-    //         /    \
-    //        /      \
-    //       /        \
-    //     1.0       0.6
-    //     / \       / \
-    //    /   \     /   \
-    //   1.0 0.75 0.6  0.25
-    //        /\
-    //       /  \
-    //     0.75 0.65
+    //       ____||____
+    //      |          |
+    //     1.0        0.6
+    //     _||_      _||_ 
+    //    |    |    |    |
+    //   1.0 0.75  0.6  0.25
+    //        _||_
+    //       |    |
+    //      0.75 0.65
     //now the tree could be traversed with "while (!n.isLeaf()) n=p>n.right.p?n.left:n.right"
     //so in the function moveProbabilitiesFromRightSubtreesOneLevelUp the numbers are moved one level up to call n.p instead of n.right.p
 
@@ -135,32 +130,26 @@ void huffmanTree::moveProbabilitiesFromRightSubtreesOneLevelUp(huffmanNode * n){
     //moves the Probabilities on the right subtrees one level up.
     //if the Tree would look like this (with the Numbers representing the probability of every node) before calling this function
     //           1.0
-    //           /\
-    //          /  \
-    //         /    \
-    //        /      \
-    //       /        \
-    //     1.0       0.6
-    //     / \       / \
-    //    /   \     /   \
-    //   1.0 0.75 0.6  0.25
-    //        /\
-    //       /  \
-    //     0.75 0.65
+    //       ____||____
+    //      |          |
+    //     1.0        0.6
+    //     _||_      _||_ 
+    //    |    |    |    |
+    //   1.0 0.75  0.6  0.25
+    //        _||_
+    //       |    |
+    //      0.75 0.65 
     //then it would look like this after calling it
-    //           0.6
-    //           /\
-    //          /  \
-    //         /    \
-    //        /      \
-    //       /        \
+    //           0.
+    //       ____||____
+    //      |          |
     //     0.75      0.25
-    //     / \       / \
-    //    /   \     /   \
-    //   1.0 0.65 0.6  0.25
-    //        /\
-    //       /  \
-    //     0.75 0.65
+    //     _||_      _||_ 
+    //    |    |    |    |
+    //   1.0 0.65  0.6  0.25
+    //        _||_
+    //       |    |
+    //     0.75  0.65
     //note, that now the probabilities on the leaf level are not needed anymore to traverse the tree; the algorithm now is "while (!n.isLeaf()) n=p>n.p?n.left:n.right"
     if (n->isOnLastLevel){
         n->probability-=n->leftLeaf->rate/escape_rate;
