@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -125,6 +125,7 @@
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpair.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
+      <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
@@ -1455,6 +1456,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
@@ -2449,6 +2452,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>

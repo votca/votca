@@ -368,7 +368,7 @@ Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
     for (int i = 0; i < molMDTemplate->BeadCount(); i++) {
         CSG::Bead *atomMD = molMDTemplate->getBead(i);
         try {
-            H *counterpart =
+            Atom *counterpart =
                  this->getAtomType(molMDTemplate->getName(),
                                    atomMD->getResnr()-resnrOffset+1,
                                    atomMD->getName());
