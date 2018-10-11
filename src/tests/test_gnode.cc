@@ -59,7 +59,6 @@ BOOST_AUTO_TEST_CASE(chosen_id_test) {
 }
 
 BOOST_AUTO_TEST_CASE(count_test) {
-      srand( (unsigned)time( NULL ) );
   votca::xtp::GNode g;
   g.events=std::vector<votca::xtp::GLink>(11);
   g.events[0].destination=0;
@@ -87,7 +86,6 @@ BOOST_AUTO_TEST_CASE(count_test) {
   g.MakeHuffTree();  
   vector<int> count(11);
   double d=0;
-
     for (int i=0;i<11;i++){
         count[i]=0;
     }
