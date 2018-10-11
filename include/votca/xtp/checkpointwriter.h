@@ -111,9 +111,6 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
                 message << "Could not open or create child " << childName << " in "
                         << _loc.getFileName() << std::endl;
 
-                message << "HDF5 error:" << std::endl
-                        << e.getDetailMsg();
-
                 throw std::runtime_error(message.str());
             }
         }

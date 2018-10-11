@@ -45,10 +45,8 @@ CheckpointReader(const CptLoc& loc, const std::string path):
         } catch (H5::Exception& error){
             std::stringstream message;
 
-            message << "Could not read dataset " << _loc.getFileName()
-                    << ":" << _path << "/" << name;
-
-            message << std::endl;
+            message << "Could not read " << name << " from "
+                    << _loc.getFileName() << ":" << _path << std::endl;
 
             throw std::runtime_error(message.str());
         }
@@ -101,9 +99,6 @@ CheckpointReader(const CptLoc& loc, const std::string path):
             std::stringstream message;
             message << "Could not open " << _loc.getFileName() << ":/"
                     << _path << "/" << childName << std::endl;
-
-            message << "HDF5 error:" << std::endl
-                    << e.getDetailMsg();
 
             throw std::runtime_error(message.str());
         }
