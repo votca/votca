@@ -108,9 +108,9 @@ namespace votca {
        
         cout << "spatial density: " << _numberofcharges / top->BoxVolume() << " nm^-3" << endl;
 
-        for (unsigned int i = 0; i < _nodes.size(); i++) {
-            _nodes[i]->InitEscapeRate();
-            _nodes[i]->MakeHuffTree();
+        for (auto* node:_nodes) {
+            node->InitEscapeRate();
+            node->MakeHuffTree();
         }
             
         return;
