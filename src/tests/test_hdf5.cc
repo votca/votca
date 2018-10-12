@@ -190,46 +190,27 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 }
 
 BOOST_AUTO_TEST_CASE(open_file_error){
-    bool success = false;
-    try{
-        CheckpointFile cpf("/bin/mr/root/man.pls", CheckpointAccessLevel::READ);
-    } catch (std::runtime_error& e){
-        std::cout << e.what();
-        success = true;
-    }
-
-    BOOST_CHECK(success);
+    BOOST_REQUIRE_THROW(CheckpointFile cpf("/bin/mr/root/man.pls",
+                                           CheckpointAccessLevel::READ),
+                        std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(checkpoint_open_non_existing_loc) {
     CheckpointFile cpf ("testin_yo.ab", CheckpointAccessLevel::EDIT);
-    bool success = false;
-    try{
-        CheckpointReader r = cpf.getReader("/some/bulshit");
-    } catch (std::runtime_error& e){
-        std::cout << e.what();
-        success = true;
-    }
+    BOOST_REQUIRE_THROW(CheckpointReader r = cpf.getReader("/some/bulshit"),
+                        std::runtime_error);
 
-    BOOST_CHECK(success);
 }
 
 BOOST_AUTO_TEST_CASE(read_non_exisiting_matrix){
-    bool success = false;
 
     CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
     CheckpointReader r = cpf.getReader("/QMdata");
 
     Eigen::MatrixXd someMatrix;
-    try{
-        r(someMatrix, "someMatrix012'5915.jb");
-    } catch (std::runtime_error& e){
-        std::cout << e.what();
-        success = true;
-    }
 
-    BOOST_CHECK(success);
-
+    BOOST_REQUIRE_THROW(r(someMatrix, "someMatrix012'5915.jb"),
+                        std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(read_non_existing_scalar){
@@ -238,14 +219,8 @@ BOOST_AUTO_TEST_CASE(read_non_existing_scalar){
     CheckpointReader r = cpf.getReader("/QMdata");
 
     float someThing = 0;
-    try{
-        r(someThing, "someThing");
-    } catch (std::runtime_error& e){
-        std::cout << e.what();
-        success = true;
-    }
+    BOOST_REQUIRE_THROW(r(someThing, "someThing"), std::runtime_error);
 
-    BOOST_CHECK(success);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
