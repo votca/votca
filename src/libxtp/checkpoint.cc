@@ -116,18 +116,18 @@ CheckpointWriter CheckpointFile::getWriter(const std::string _path){
         throw std::runtime_error("Checkpoint file opened as read only.");
     }
 
-    if (_accessLevel == CheckpointAccessLevel::EDIT && FileExists(_fileName)){
-        Backup(_fileName);
-    }
-
     try{
         return CheckpointWriter(_fileHandle.createGroup(_path), _path);
     } catch(H5::Exception& error) {
-        std::stringstream message;
-        message << "Could not create " << _fileName << ":" << _path
-                << std::endl;
+        try {
+            return CheckpointWriter(_fileHandle.openGroup(_path), _path);
+        } catch (H5::Exception& error) {
+            std::stringstream message;
+            message << "Could not create or open " << _fileName << ":" << _path
+                    << std::endl;
 
-        throw std::runtime_error(message.str());
+            throw std::runtime_error(message.str());
+        }
     }
 };
 
