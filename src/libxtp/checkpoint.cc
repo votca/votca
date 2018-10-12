@@ -44,10 +44,10 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l){
     switch(l){
     case CheckpointAccessLevel::READ:
         s << "read"; break;
-    case CheckpointAccessLevel::APPEND:
-        s << "append"; break;
-    case CheckpointAccessLevel::WRITE:
-        s << "write"; break;
+    case CheckpointAccessLevel::EDIT:
+        s << "edit"; break;
+    case CheckpointAccessLevel::CREATE:
+        s << "create"; break;
     }
 
     return s;
@@ -74,7 +74,7 @@ void Backup(const std::string& fileName){
 }
 
 CheckpointFile::CheckpointFile(std::string fN):
-    CheckpointFile(fN, CheckpointAccessLevel::APPEND) {};
+    CheckpointFile(fN, CheckpointAccessLevel::EDIT) {};
 
 CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     : _fileName(fN), _accessLevel(access){
@@ -86,7 +86,7 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
         case CheckpointAccessLevel::READ:
             _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);
             break;
-        case CheckpointAccessLevel::WRITE:
+        case CheckpointAccessLevel::CREATE:
             if (FileExists(_fileName)) Backup(_fileName);
             _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
             break;
@@ -113,7 +113,7 @@ CheckpointWriter CheckpointFile::getWriter(const std::string _path){
         throw std::runtime_error("Checkpoint file opened as read only.");
     }
 
-    if (_accessLevel == CheckpointAccessLevel::APPEND && FileExists(_fileName)){
+    if (_accessLevel == CheckpointAccessLevel::EDIT && FileExists(_fileName)){
         Backup(_fileName);
     }
 

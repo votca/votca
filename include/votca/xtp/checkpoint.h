@@ -28,8 +28,8 @@ namespace xtp {
 
 enum class CheckpointAccessLevel{
         READ = 0,
-        APPEND = 1,
-        WRITE = 2
+        EDIT = 1,
+        CREATE = 2
 };
 
 std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);

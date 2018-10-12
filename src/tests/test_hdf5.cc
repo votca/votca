@@ -202,7 +202,7 @@ BOOST_AUTO_TEST_CASE(open_file_error){
 }
 
 BOOST_AUTO_TEST_CASE(checkpoint_open_non_existing_loc) {
-    CheckpointFile cpf ("testin_yo.ab", CheckpointAccessLevel::APPEND);
+    CheckpointFile cpf ("testin_yo.ab", CheckpointAccessLevel::EDIT);
     bool success = false;
     try{
         CheckpointReader r = cpf.getReader("/some/bulshit");
