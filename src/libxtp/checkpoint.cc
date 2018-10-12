@@ -90,9 +90,12 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
             if (FileExists(_fileName)) Backup(_fileName);
             _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
             break;
-        default:
-            _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
-            break;
+        case CheckpointAccessLevel::EDIT:
+            if (!FileExists(_fileName))
+                _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+            else
+                _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
+
         }
 
     } catch (H5::Exception& error) {
