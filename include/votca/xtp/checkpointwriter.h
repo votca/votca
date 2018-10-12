@@ -227,7 +227,7 @@ private:
         CptLoc parent;
         try{
             parent = loc.createGroup(name);
-        } catch (H5::GroupIException){
+        } catch (H5::GroupIException& error){
             parent = loc.openGroup(name);
         }
         for (auto const& x: v){
@@ -249,7 +249,7 @@ private:
             CptLoc tempGr;
             try{
                 tempGr = loc.createGroup(name);
-            } catch (H5::GroupIException){
+            } catch (H5::GroupIException& error){
                 tempGr = loc.openGroup(name);
             }
             WriteData(tempGr, x.second, "index" + r);
