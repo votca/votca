@@ -655,13 +655,11 @@ namespace votca {
             // write qmatoms
 
             {
-                size_t count = 0;
                 CheckpointWriter qmasWriter = w.openChild("qmatoms");
-                for (const auto& qma : _atoms) {
+                for (size_t idx = 0; idx < _atoms.size(); ++idx) {
                     auto qmaWriter =
-                        qmasWriter.openChild("atom" + std::to_string(count));
-                    qma->WriteToCpt(qmaWriter);
-                    ++count;
+                        qmasWriter.openChild("atom" + std::to_string(idx));
+                    _atoms[idx]->WriteToCpt(qmaWriter);
                 }
 
             }
