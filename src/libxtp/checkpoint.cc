@@ -57,7 +57,7 @@ bool FileExists(const std::string& fileName){
     return bfs::exists(fileName);
 }
 
-void Backup(const std::string& fileName, const int& num){
+void Backup(const std::string& fileName, int num){
     std::string backupName = fileName+"."+std::to_string(num);
 
     if (FileExists(backupName)){

@@ -49,10 +49,8 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
         } catch (H5::Exception& error){
             std::stringstream message;
             message << "Could not write " << name
-                    << " to " << _loc.getFileName() << ":" << _path;
+                    << " to " << _loc.getFileName() << ":/" << _path;
 
-            message << "HDF5 Error:" << std::endl
-                    << error.getDetailMsg();
             throw std::runtime_error(message.str());
         }
     }
@@ -108,8 +106,8 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
                 return CheckpointWriter(_loc.createGroup(childName), _path+"/"+childName);
             } catch (H5::Exception& e){
                 std::stringstream message;
-                message << "Could not open or create child " << childName << " in "
-                        << _loc.getFileName() << std::endl;
+                message << "Could not open or create" << _loc.getFileName()
+                        << ":/" << _path << "/" << childName << std::endl;
 
                 throw std::runtime_error(message.str());
             }
