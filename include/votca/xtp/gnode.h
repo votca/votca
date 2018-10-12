@@ -63,7 +63,7 @@ class GNode
         void MakeHuffTree();
 
     private:
-        huffmanTree hTree;
+        huffmanTree<GLink> hTree;
         void organizeProbabilities(int id, double add);
         void moveProbabilities(int id);
 
