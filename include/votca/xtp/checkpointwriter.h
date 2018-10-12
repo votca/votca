@@ -49,7 +49,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
         } catch (H5::Exception& error){
             std::stringstream message;
             message << "Could not write " << name
-                    << " to " << _loc.getFileName() << ":/" << _path;
+                    << " to " << _loc.getFileName() << ":" << _path;
 
             throw std::runtime_error(message.str());
         }
@@ -124,8 +124,12 @@ private:
         hsize_t dims[1] = {1};
         H5::DataSpace dp(1, dims);
         const H5::DataType* dataType = InferDataType<T>::get();
-
-        H5::Attribute attr = loc.createAttribute(name, *dataType, dp);
+        H5::Attribute attr;
+        try{
+            attr = loc.createAttribute(name, *dataType, dp);
+        } catch (H5::AttributeIException& error){
+            attr = loc.openAttribute(name);
+        }
         attr.write(*dataType, &value);
     }
 
@@ -136,7 +140,13 @@ private:
         H5::DataSpace dp(1, dims);
         const H5::DataType* strType = InferDataType<std::string>::get();
 
-        H5::Attribute attr = loc.createAttribute(name, *strType, StrScalar());
+        H5::Attribute attr;
+
+        try{
+            attr = loc.createAttribute(name, *strType, dp);
+        } catch (H5::AttributeIException& error){
+            attr = loc.openAttribute(name);
+        }
         attr.write(*strType, &value);
     }
 
@@ -154,7 +164,11 @@ private:
         H5::DataSpace dp(2, dims);
         const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
         H5::DataSet dataset;
-        dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        try{
+            dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        } catch (H5::GroupIException& error){
+            dataset = loc.openDataSet(name.c_str());
+        }
 
         hsize_t matColSize = matrix.derived().outerStride();
 
@@ -189,8 +203,11 @@ private:
         const H5::DataType* dataType = InferDataType<T>::get();
         H5::DataSet dataset;
         H5::DataSpace dp(2, dims);
-
-        dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        try{
+            dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        } catch (H5::GroupIException& error){
+            dataset = loc.openDataSet(name.c_str());
+        }
         dataset.write(&(v[0]), *dataType);
     }
 
@@ -207,7 +224,12 @@ private:
 
         size_t c = 0;
         std::string r;
-        CptLoc parent = loc.createGroup(name);
+        CptLoc parent;
+        try{
+            parent = loc.createGroup(name);
+        } catch (H5::GroupIException){
+            parent = loc.openGroup(name);
+        }
         for (auto const& x: v){
             r = std::to_string(c);
             WriteData(parent, x, "ind"+r);
@@ -224,7 +246,12 @@ private:
         // Iterate over the map and write map as a number of vectors with T1 as index
         for (auto const& x : map) {
             r = std::to_string(c);
-            CptLoc tempGr = loc.createGroup("/" + name);
+            CptLoc tempGr;
+            try{
+                tempGr = loc.createGroup(name);
+            } catch (H5::GroupIException){
+                tempGr = loc.openGroup(name);
+            }
             WriteData(tempGr, x.second, "index" + r);
             ++c;
         }
