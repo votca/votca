@@ -16,16 +16,21 @@
  */
 
 #ifndef _VOTCA_KMC_GNODE_H
-#define	_VOTCA_KMC_GNODE_H
+#define _VOTCA_KMC_GNODE_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/glink.h>
 #include <votca/ctp/segment.h>
 #include <votca/ctp/qmpair.h>
+#include <vector>
+#include <votca/xtp/huffmantree.h>
 
+
+using namespace std;
 
 
 namespace votca { namespace xtp {
+
 
 class GNode
 {
@@ -46,13 +51,22 @@ class GNode
         double siteenergy;
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
-    
         void AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out);
         const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
         void AddDecayEvent(double decayrate);
         void ReadfromSegment(ctp::Segment* seg, int carriertype);
         void AddEventfromQmPair(ctp::QMPair* pair,int carriertype);
+        
+ 
+        GLink* findHoppingDestination(double p);
+        void MakeHuffTree();
+
+    private:
+        huffmanTree<GLink> hTree;
+        void organizeProbabilities(int id, double add);
+        void moveProbabilities(int id);
+
 };
 
 
@@ -61,5 +75,5 @@ class GNode
 
 }}
 
-#endif	/* _VOTCA_KMC_GNODE_H */
+#endif  /* _VOTCA_KMC_GNODE_H */
 
