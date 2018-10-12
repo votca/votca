@@ -120,19 +120,12 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
         orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
 
-        try{
-            orbWrite.WriteToCpt("xtp_testing.hdf5");
-        } catch (std::runtime_error& e){
-            std::cout << e.what() << std::endl;
-        }
+        orbWrite.WriteToCpt("xtp_testing.hdf5");
+
     }
     // Read Orbitals
     Orbitals orbRead;
-    try{
-        orbRead.ReadFromCpt("xtp_testing.hdf5");
-    } catch (std::runtime_error& e){
-        std::cout << e.what() << std::endl;
-    }
+    orbRead.ReadFromCpt("xtp_testing.hdf5");
 
     double tol = 1e-6;
 
