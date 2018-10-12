@@ -28,7 +28,7 @@ namespace xtp {
 
 enum class CheckpointAccessLevel{
         READ = 0,
-        EDIT = 1,
+        MODIFY = 1,
         CREATE = 2
 };
 

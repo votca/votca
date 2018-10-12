@@ -44,8 +44,8 @@ std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l){
     switch(l){
     case CheckpointAccessLevel::READ:
         s << "read"; break;
-    case CheckpointAccessLevel::EDIT:
-        s << "edit"; break;
+    case CheckpointAccessLevel::MODIFY:
+        s << "modify"; break;
     case CheckpointAccessLevel::CREATE:
         s << "create"; break;
     }
@@ -58,7 +58,7 @@ bool FileExists(const std::string& fileName){
 }
 
 CheckpointFile::CheckpointFile(std::string fN):
-    CheckpointFile(fN, CheckpointAccessLevel::EDIT) {};
+    CheckpointFile(fN, CheckpointAccessLevel::MODIFY) {};
 
 CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     : _fileName(fN), _accessLevel(access){
@@ -73,7 +73,7 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
         case CheckpointAccessLevel::CREATE:
             _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
             break;
-        case CheckpointAccessLevel::EDIT:
+        case CheckpointAccessLevel::MODIFY:
             if (!FileExists(_fileName))
                 _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
             else
