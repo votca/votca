@@ -57,22 +57,6 @@ bool FileExists(const std::string& fileName){
     return bfs::exists(fileName);
 }
 
-void Backup(const std::string& fileName, int num){
-    std::string backupName = fileName+"."+std::to_string(num);
-
-    if (FileExists(backupName)){
-        Backup(fileName, num+1);
-    } else {
-        bfs::path src(fileName);
-        bfs::path dst(backupName);
-        bfs::rename(src, dst);
-    }
-}
-
-void Backup(const std::string& fileName){
-    Backup(fileName, 1);
-}
-
 CheckpointFile::CheckpointFile(std::string fN):
     CheckpointFile(fN, CheckpointAccessLevel::EDIT) {};
 
@@ -87,7 +71,6 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
             _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);
             break;
         case CheckpointAccessLevel::CREATE:
-            if (FileExists(_fileName)) Backup(_fileName);
             _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
             break;
         case CheckpointAccessLevel::EDIT:
