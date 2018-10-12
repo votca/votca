@@ -28,7 +28,6 @@ using namespace std;
 
 namespace votca {
     namespace xtp {
-        
         KMCCalculator::KMCCalculator(){};
 
     void KMCCalculator::LoadGraph(Topology *top) {
@@ -111,8 +110,9 @@ namespace votca {
        
         cout << "spatial density: " << _numberofcharges / top->BoxVolume() << " nm^-3" << endl;
 
-          for(auto& node:_nodes){
-            node.InitEscapeRate();
+        for (auto* node:_nodes) {
+            node->InitEscapeRate();
+            node->MakeHuffTree();
         }
             
         return;
@@ -255,13 +255,15 @@ namespace votca {
                     totalnumberofrates++;
                 }
 
-                // Initialise escape rates
-                for (auto& node:_nodes) {
-                    node.InitEscapeRate();
-                }
+               
 
             }
-            
+             // Initialise escape rates
+                for (auto* node:_nodes) {
+                    node->InitEscapeRate();
+                    node->MakeHuffTree();
+                }
+
             cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
             cout<< " Largest rate="<<maxrate<<" 1/s  Smallest rate="<<minrate<<" 1/s"<<endl;
             if (maxreldiff < 0.01) {
@@ -290,15 +292,7 @@ namespace votca {
         
         const GLink& KMCCalculator::ChooseHoppingDest(const GNode* node){
             double u = 1 - _RandomVariable.rand_uniform();
-            
-            for (unsigned j = 0; j < node->events.size(); j++) {
-                u -= node->events[j].rate / node->getEscapeRate();
-                if (u <= 0 || j==node->events.size()-1) {    
-                    return (node->events[j]);
-                }
-            }
-            throw runtime_error("Choose Hopping Destination, somehow no event was found");
-            return node->events[0];
+            return node->findHoppingDestination(u);
         }
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){

@@ -1124,7 +1124,7 @@ if (lmax_col > 5) {
         
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eo(auxoverlap.Matrix());
     Eigen::MatrixXd Ssqrt=eo.operatorSqrt();
-    //This converts V into (S1/2 V S1/2)-1/2 S1/2, which is needed to construct 4c integrals,
+    //This converts V into ((S1/2 V S1/2)-1/2 S1/2)T, which is needed to construct 4c integrals,
        
       Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 

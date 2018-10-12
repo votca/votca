@@ -38,7 +38,7 @@ namespace votca {
 
         void XTPDFT::Initialize(tools::Property &options) {
             _xtpdft_options=options;
-            _log_file_name="system.orb";
+            _log_file_name="system_dft.orb";
             std::string key = "package";
             std::string packagename = _xtpdft_options.get(key + ".name").as<std::string> ();
 
@@ -86,9 +86,9 @@ namespace votca {
           xtpdft.Prepare();
           xtpdft.Evaluate();
           _basisset_name = xtpdft.getDFTBasisName();
-          orbitals.WriteToCpt(_log_file_name);
+          std::string file_name = _run_dir + "/" + _log_file_name;
+          orbitals.WriteToCpt(file_name);
           return true;
-
         }
 
     void XTPDFT::CleanUp() {
@@ -120,7 +120,8 @@ namespace votca {
          */
         bool XTPDFT::ParseLogFile(Orbitals & orbitals) {
           try{
-          orbitals.ReadFromCpt(_log_file_name);
+        std::string file_name = _run_dir + "/" + _log_file_name;
+          orbitals.ReadFromCpt(file_name);
           }catch(std::runtime_error& error){
             XTP_LOG(logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
             return false;

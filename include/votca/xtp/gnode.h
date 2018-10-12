@@ -22,10 +22,15 @@
 #include <votca/xtp/glink.h>
 #include <votca/xtp/segment.h>
 #include <votca/xtp/qmpair.h>
+#include <vector>
+#include <votca/xtp/huffmantree.h>
 
+
+using namespace std;
 
 
 namespace votca { namespace xtp {
+
 
 class GNode
 {
@@ -46,13 +51,22 @@ class GNode
         double siteenergy;
         double reorg_intorig; // UnCnN
         double reorg_intdest; // UcNcC
-    
         void AddEvent(int seg2, double rate12, Eigen::Vector3d dr, double Jeff2, double reorg_out);
         const double &getEscapeRate(){return escape_rate;}
         void InitEscapeRate();
         void AddDecayEvent(double decayrate);
         void ReadfromSegment(Segment* seg, int carriertype);
         void AddEventfromQmPair(QMPair* pair,int carriertype);
+        
+ 
+        GLink* findHoppingDestination(double p);
+        void MakeHuffTree();
+
+    private:
+        huffmanTree<GLink> hTree;
+        void organizeProbabilities(int id, double add);
+        void moveProbabilities(int id);
+
 };
 
 

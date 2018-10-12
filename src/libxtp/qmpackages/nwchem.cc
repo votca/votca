@@ -420,7 +420,6 @@ namespace votca {
           }
         }
       }
-
     }
 
     /**
@@ -661,9 +660,6 @@ namespace votca {
       // save qmpackage name
       orbitals.setQMpackage("nwchem");
       orbitals.setDFTbasis(_basisset_name);
-
-
-
       if (_write_pseudopotentials) {
         orbitals.setECP(_ecp_name);
       } 
@@ -675,10 +671,8 @@ namespace votca {
       // Start parsing the file line by line
       ifstream input_file(log_file_name_full.c_str());
       while (input_file) {
-
         getline(input_file, line);
         boost::trim(line);
-
         /*
          * basis set size (is only required for overlap matrix reading, rest is
          * in orbitals file and could be skipped
@@ -695,9 +689,6 @@ namespace votca {
           XTP_LOG(logDEBUG, *_pLog) << "Basis functions: " << basis_set_size << flush;
         }
 
-        /*
-         * Total DFT energy
-         */
         std::string::size_type energy_pos = line.find("Total DFT energy");
         if (energy_pos != std::string::npos) {
           boost::algorithm::split(results, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
@@ -706,13 +697,8 @@ namespace votca {
           orbitals.setQMEnergy(conv_Hrt_eV * boost::lexical_cast<double>(energy));
           XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
           has_qm_energy = true;
-          // _orbitals._has_qm_energy = true;
-
         }
 
-        /*
-         *  Partial charges from the input file
-         */
         std::string::size_type charge_pos = line.find("ESP");
         if (charge_pos != std::string::npos && _get_charges) {
           XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
@@ -743,29 +729,20 @@ namespace votca {
           }
         }
 
-
-        /*
-         * Coordinates of the final configuration
-         * depending on whether it is an optimization or not
-         */
-
-
+                 // Coordinates of the final configuration
+                 //depending on whether it is an optimization or not
         if (_is_optimization) {
           std::string::size_type optimize_pos = line.find("Optimization converged");
           if (optimize_pos != std::string::npos) {
             found_optimization = true;
           }
-        }
-
+                } 
 
         std::string::size_type coordinates_pos = line.find("Output coordinates");
-
         if (found_optimization && coordinates_pos != std::string::npos) {
           XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
-
           //_has_coordinates = true;
           bool has_QMAtoms = orbitals.hasQMAtoms();
-
           // three garbage lines
           getline(input_file, line);
           getline(input_file, line);
@@ -802,18 +779,10 @@ namespace votca {
         if(_output_Vxc){
           std::string::size_type vxc_pos = line.find("global array: g vxc");
           if (vxc_pos != std::string::npos) {
-
-
-            // prepare the container
             Eigen::MatrixXd vxc = orbitals.AOVxc();
             vxc.resize(basis_set_size,basis_set_size);
-
-
-            //_has_vxc_matrix = true;
             std::vector<int> j_indeces;
-
             int n_blocks = 1 + ((basis_set_size - 1) / 6);
-            //cout << _n_blocks;
 
             for (int block = 0; block < n_blocks; block++) {
               // first line is garbage
@@ -833,32 +802,22 @@ namespace votca {
                 std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
                 int i_index = boost::lexical_cast<int>(row.front());
                 row.erase(row.begin());
-
                 std::vector<int>::iterator j_iter = j_indeces.begin();
-
                 for (std::string& coefficient: row) {
-
                   int j_index = *j_iter;
                   vxc(i_index - 1, j_index - 1) = boost::lexical_cast<double>(coefficient);
                   vxc(j_index - 1, i_index - 1) = boost::lexical_cast<double>(coefficient);
                   j_iter++;
-
                 }
-
-
               }
-
               // clear the index for the next block
               j_indeces.clear();
             } // end of the blocks
-
-
             XTP_LOG(logDEBUG, *_pLog) << "Read the Vxc matrix" << flush;
-
           }
         }
 
-        /* Check for ScaHFX = factor of HF exchange included in functional */
+                // Check for ScaHFX = factor of HF exchange included in functional
         std::string::size_type HFX_pos = line.find("Hartree-Fock (Exact) Exchange");
         if (HFX_pos != std::string::npos) {
 
@@ -868,19 +827,12 @@ namespace votca {
           XTP_LOG(logDEBUG, *_pLog) << "DFT with " << ScaHFX << " of HF exchange!" << flush;
         }
 
-
-
-
-        /*
-         * overlap matrix
-         * stored after the global array: Temp Over line
-         */
+                 // overlap matrix
+                 // stored after the global array: Temp Over line
         std::string::size_type overlap_pos = line.find("global array: Temp Over");
         if (overlap_pos != std::string::npos) {
-
           // prepare the container
           (orbitals.AOOverlap()).resize(basis_set_size,basis_set_size);
-
           has_overlap_matrix = true;
           std::vector<int> j_indeces;
 
@@ -902,27 +854,19 @@ namespace votca {
             // read the block of max _basis_size lines + the following header
             for (int i = 0; i < basis_set_size; i++) {
               std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
-
-
               int i_index = boost::lexical_cast<int>(row.front());
               row.erase(row.begin());
-
               std::vector<int>::iterator j_iter = j_indeces.begin();
-
               for (std::string& coefficient: row) {
                 int j_index = *j_iter;
                 orbitals.AOOverlap()(i_index - 1, j_index - 1) = boost::lexical_cast<double>(coefficient);
                 orbitals.AOOverlap()(j_index - 1, i_index - 1) = boost::lexical_cast<double>(coefficient);
                 j_iter++;
               }
-
-
             }
-
             // clear the index for the next block
             j_indeces.clear();
           } // end of the blocks
-
           XTP_LOG(logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
         } // end of the if "Overlap" found
 
@@ -930,18 +874,14 @@ namespace votca {
          * TODO Self-energy of external charges
          */
         std::string::size_type self_energy_pos = line.find("Self energy of the charges");
-
         if (self_energy_pos != std::string::npos) {
           XTP_LOG(logDEBUG, *_pLog) << "Getting the self energy\n";
           std::vector<std::string> block;
           std::vector<std::string> energy;
           boost::algorithm::split(block, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
           boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-
           orbitals.setSelfEnergy(conv_Hrt_eV * boost::lexical_cast<double> (energy[1]));
-
           XTP_LOG(logDEBUG, *_pLog) << "Self energy " << orbitals.getSelfEnergy() << flush;
-
         }
 
         // check if all information has been accumulated and quit

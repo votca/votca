@@ -202,7 +202,7 @@ spsi_ref<<-0.000150849,0.00516987,0.0511522,0.00428958,-0.00966668,-0.000155227,
         -8.17254e-05,-0.00290157,0.0994541,0.984029,0.017835,-0.0401912,-0.000645537,-7.54896e-08,-5.91055e-05,0.00219348,-0.00920484,1.82832e-08,5.56223e-11;
 bool check_spsi=spsi_ref.cwiseAbs2().isApprox(orbitals.BSESingletCoefficients().cwiseAbs2(),0.1);
 check_spsi=true;
-if(!check_spsi || true){
+if(!check_spsi){
     cout<<"Singlets psi"<<endl;
     cout<<orbitals.BSESingletCoefficients()<<endl;
     cout<<"Singlets psi ref"<<endl;

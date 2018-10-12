@@ -21,50 +21,50 @@
 #define VOTCA_XTP_ADIIS_COSTFUNCTION_H
 
 
-#include <votca/xtp/basisset.h>
-#include "ceres/ceres.h"
+#include <votca/xtp/optimiser_costfunction.h>
 
 
 namespace votca {
     namespace xtp {
 
-        class ADIIS_costfunction : public ceres::FirstOrderFunction {
+        class ADIIS_costfunction :  public Optimiser_costfunction {
         public:
 
             ADIIS_costfunction(Eigen::VectorXd DiF, Eigen::MatrixXd DiFj) {
                 _DiF = DiF;
                 _DiFj = DiFj;
             }
-
-            virtual bool Evaluate(const double* parameters,
-                    double* cost,
-                    double* gradient) const {
-                Eigen::Map<const Eigen::VectorXd> x(parameters, _DiF.size());
-                Eigen::VectorXd c = x.cwiseAbs2();
+            
+             double EvaluateCost(const Eigen::VectorXd& parameters){
+                 Eigen::VectorXd c = parameters.cwiseAbs2();
                 double xnorm = c.sum();
                 c /= xnorm;
-
-                cost[0] = (2 * c.transpose() * _DiF + c.transpose() * _DiFj * c).value();
-                if (gradient != NULL) {
-                    Eigen::VectorXd dEdc = 2.0 * _DiF + _DiFj * c + _DiFj.transpose() * c;
-                    Eigen::MatrixXd jac = Eigen::MatrixXd::Zero(c.size(), c.size());
-                    for (int i = 0; i < jac.rows(); i++) {
-                        for (int j = 0; j < jac.cols(); j++) {
-                            jac(i, j) = -c(i)*2.0 * x(j) / xnorm;
-                        }
-                        // Extra term on diagonal
-                        jac(i, i) += 2.0 * x(i) / xnorm;
+                return (2 * c.transpose() * _DiF + c.transpose() * _DiFj * c).value();
+             }
+            
+            Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters){
+                Eigen::VectorXd c = parameters.cwiseAbs2();
+                double xnorm = c.sum();
+                c /= xnorm;
+                Eigen::VectorXd dEdc = 2.0 * _DiF + _DiFj * c + _DiFj.transpose() * c;
+                Eigen::MatrixXd jac = Eigen::MatrixXd::Zero(c.size(), c.size());
+                for (int i = 0; i < jac.rows(); i++) {
+                    for (int j = 0; j < jac.cols(); j++) {
+                        jac(i, j) = -c(i)*2.0 * parameters(j) / xnorm;
                     }
-                    Eigen::VectorXd dEdxv = jac.transpose() * dEdc;
-                    for (int i = 0; i < dEdxv.size(); ++i) {
-                        gradient[i] = dEdxv(i);
-                    }
+                    // Extra term on diagonal
+                    jac(i, i) += 2.0 * parameters(i) / xnorm;
                 }
-                return true;
+                return jac.transpose() * dEdc; 
             }
 
-            virtual int NumParameters() const {
+            int NumParameters() const {
                 return _DiF.size();
+            }
+            
+            bool Converged(const Eigen::VectorXd& delta_parameters,
+                    double delta_cost, const Eigen::VectorXd& gradient){
+                return gradient.cwiseAbs().maxCoeff()<1.e-7;
             }
 
 

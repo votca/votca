@@ -6,7 +6,7 @@
 	    <outputtime help="Time difference between outputs into the trajectory file. Set to 0 if you wish to have no trajectory written out." unit="seconds" default="1E-8">1E-8</outputtime>
 	    <trajectoryfile help="Name of the trajectory file" unit="" default="trajectory.csv">trajectory.csv</trajectoryfile>
 	    <seed help="Integer to initialise the random number generator" unit="integer" default="123">123</seed>
-	    <injection help="Name pattern that specifies on which sites injection is possible. Before injecting on a site it is checked whether the column 'name' in the table 'segments' of the state file matches this pattern. Use the wildcard '*' to inject on any site." unit="" default="*">*</injection>
+	    <injectionpattern help="Name pattern that specifies on which sites injection is possible. Before injecting on a site it is checked whether the column 'name' in the table 'segments' of the state file matches this pattern. Use the wildcard '*' to inject on any site." unit="" default="*">*</injectionpattern>
 	    <injectionmethod help="Options: random/equilibrated. random: injection sites are selected randomly (generally the recommended option); equilibrated: sites are chosen such that the expected energy per carrier is matched, possibly speeding up convergence" unit="" default="random">random</injectionmethod>
 	    <numberofcharges help="Number of electrons/holes in the simulation box" unit="integer" default="1">1</numberofcharges>
 	    <field help="external electric field" unit="V/m" default="0">0 0 1e6</field>

@@ -487,6 +487,7 @@ namespace votca {
             std::vector<double> Oscillatorstrengths()const;
             
             Eigen::Vector3d CalcElDipole(const QMState& state)const;
+            
         
             //Calculates full electron density for state or transition density, if you want to calculate only the density contribution of hole or electron use DensityMatrixExcitedState
             Eigen::MatrixXd DensityMatrixFull(const QMState& state)const;

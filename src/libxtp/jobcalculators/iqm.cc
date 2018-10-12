@@ -191,18 +191,18 @@ namespace votca {
       vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
 
       // Check whether pair formed across periodic boundary
-      if (abs(r2 - r1 - _R) > 1e-8) {
+      if (abs(r2 - r1 - R) > 1e-8) {
         ghost = new Segment(seg2);
         //ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
         for (Atom* atom : ghost->Atoms()) {
-          atom->setQMPos(atom->getQMPos() + r1 - r2 + _R);
+          atom->setQMPos(atom->getQMPos() + r1 - r2 + R);
         }
       }
       std::vector< Segment* > segments;
       segments.push_back(seg1);
       if (ghost) {
         segments.push_back(ghost);
-      } else {
+      }else{
         segments.push_back(seg2);
       }
       QMInterface interface;
@@ -410,7 +410,6 @@ namespace votca {
           SetJobToFailed(jres, pLog, "Do input: failed loading orbitals from " + orbFileB);
           return jres;
         }
-
         try {
           dftcoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
           dftcoupling.Addoutput(job_output, orbitalsA, orbitalsB);

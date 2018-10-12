@@ -30,6 +30,9 @@ struct GLink {
   double Jeff2;
   double reorg_out;
   double initialrate;
+  double getValue(){
+  	return rate;
+  }
 };
 }
 }
