@@ -41,7 +41,7 @@ public:
             
    QMAtom (int index,std::string element,const Eigen::Vector3d pos)
             :_index(index), _element(element ),_pos(pos),_nuccharge(0)
-            , _ecpcharge(0),_partialcharge(0.0)
+            , _ecpcharge(0)
             {
                 tools::Elements elements;
                 _nuccharge=elements.getNucCrg(element);
@@ -71,9 +71,6 @@ public:
   int getAtomID()const{ return _index;}
    
    int getNuccharge() const{ return _nuccharge-_ecpcharge;}
-       
-   void setPartialcharge(double q){_partialcharge=q;}
-   const double & getPartialcharge() const { return _partialcharge;}
 
 private:
     
@@ -82,7 +79,6 @@ private:
    Eigen::Vector3d _pos;// Bohr
    int _nuccharge;//nuc charge is set in aobasis fill and ecpfill
    int _ecpcharge;
-   double _partialcharge;
 
    
  public: 
@@ -95,7 +91,6 @@ private:
        w(_pos, "pos");
        w(_nuccharge, "nuccharge");
        w(_ecpcharge, "ecpcharge");
-       w(_partialcharge, "partialcharge");
    }
 
    void ReadFromCpt(CptLoc parent){
@@ -106,7 +101,6 @@ private:
        r(_pos, "pos");
        r(_nuccharge, "nuccharge");
        r(_ecpcharge, "ecpcharge");
-       r(_partialcharge, "partialcharge");
    }
 };
     

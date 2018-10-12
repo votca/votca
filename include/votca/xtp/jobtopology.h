@@ -17,35 +17,32 @@
  *
  */
 
-#ifndef VOTCA_XTP_QMMINTERFACE_H
-#define	VOTCA_XTP_QMMINTERFACE_H
-
+#ifndef VOTCA_XTP_JOBTOPOLOGY_H
+#define	VOTCA_XTP_JOBTOPOLOGY_H
+#include <votca/xtp/region.h>
 #include <votca/tools/elements.h>
+#include <votca/xtp/checkpoint.h>
 
-namespace votca { 
-  
-  namespace xtp {
+/**
+* \brief Class to set up the toplogy, e.g division of molecules into different regions for a specific job.
+ *
+*
+* 
+* 
+*/
 
-    class Segment;
-    class QMMolecule;
+namespace votca { namespace xtp {
+   
+class JobTopology{
+    public:
+               
+   
+            
+  protected:
 
-// ========================================================================== //
-// QM-MM INTERFACE CLASS - CONVERTS BETWEEN QMATOMS <> POLAR OBJECTS          //
-// ========================================================================== //
+      std::vector<std::shared_ptr<Region> > _regions;
     
-class QMInterface
-{
-public:
-
-    QMMolecule Convert( std::vector<Segment* > segments);
-     
-private:
-
-};
-
-
-
-
+    
 }}
 
-#endif // VOTCA_XTP_QMMINTERFACE_H
+#endif	// VOTCA_XTP_ATOMCONTAINER_H

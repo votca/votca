@@ -17,11 +17,13 @@
  *
  */
 
-#ifndef VOTCA_XTP_REGION_H
-#define	VOTCA_XTP_REGION_H
+#ifndef VOTCA_XTP_POLARREGION_H
+#define	VOTCA_XTP_POLARREGION_H
+
+#include <votca/xtp/polarsegment.h>
 
 /**
-* \brief base class to derive regions from
+* \brief region which consists of polarsegments
 *
 * 
 * 
@@ -29,20 +31,28 @@
 
 namespace votca { namespace xtp {
    
-class Region{
+class PolarRegion: public Region{
     public:
                
-        virtual void Interact()=0;
+        void Interact();
 
-        virtual void Print(std::string filename)=0;
+        void Print(std::string filename);
 
-        virtual void WriteToCpt(CptLoc parent)const=0;
+        void WriteToCpt(CptLoc parent)const;
 
-        virtual void ReadFromCpt(CptLoc parent)=0;
+        void ReadFromCpt(CptLoc parent);
+
+        int size()const{return _segments.size();}
+
+       std::vector< PolarSegment>::iterator begin(){return _segments.begin();}
+       std::vector< PolarSegment>::iterator end(){return _segments.end();}
+
+       std::vector< PolarSegment>::const_iterator begin()const{return _segments.begin();}
+       std::vector< PolarSegment>::const_iterator end()const{return _segments.end();}
             
-  protected:
+  private:
 
-    
+      std::vector< PolarSegment> _segments;
 }
     
 }}

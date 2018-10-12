@@ -49,8 +49,6 @@ namespace votca {
         public:
 
             Orbitals();
-            ~Orbitals();
-
             
              // functions for analyzing fragment charges via Mulliken populations
             static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& densitymatrix, const Eigen::MatrixXd& overlapmatrix, int frag);
@@ -175,7 +173,6 @@ namespace votca {
             // determine (pseudo-)degeneracy of a DFT molecular orbital
             std::vector<int> CheckDegeneracy(int level, double energy_difference)const;
 
-            // access to QM atoms
             bool hasQMAtoms() {
                 return ( _atoms.size() > 0) ? true : false;
             }
@@ -186,6 +183,18 @@ namespace votca {
 
             QMMolecule &QMAtoms() {
                 return _atoms;
+            }
+
+             bool hasMultipoles() {
+                return ( _multipoles.size() > 0) ? true : false;
+            }
+
+            PolarSegment& Multipoles(){
+                return _multipoles;
+            }
+
+            const PolarSegment& Multipoles()const{
+                return _multipoles;
             }
 
             // access to classical self-energy in MM environment, new, tested
@@ -619,6 +628,8 @@ namespace votca {
             Eigen::MatrixXd _vxc;
 
             QMMolecule _atoms;
+
+            PolarSegment _multipoles;
 
             double _qm_energy;
             double _self_energy;

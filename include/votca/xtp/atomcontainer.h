@@ -73,6 +73,24 @@ template<class T>  class AtomContainer{
             if(!_position_valid){calcPos();}
             return _pos;
         }
+
+        std::vector<std::string> FindUniqueElements()const{
+            std::vector<std::string> result;
+            for (const T& atom : _atomlist){
+                bool exists = false;
+                for (const std::string& type : result){
+                    if (atom->getElement() == type){
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists){
+                    result.push_back(atom.getElement());
+                }
+            }
+            return result;
+        }
+
         
         void Translate(const Eigen::Vector3d& shift){
             for(const T& atom:_atomlist){

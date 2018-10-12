@@ -235,8 +235,8 @@ namespace votca {
                 for (APolarSite* site:*seg) {
                     if (site->getQ00() != 0.0) total_background++;
                     if (site->getRank() > 0 || _with_polarization ) {
-                        std::vector<std::vector<double>> _split_multipoles = SplitMultipoles(site);
-                        total_background+= _split_multipoles.size();
+                        std::vector<std::vector<double>> split_multipoles = SplitMultipoles(site);
+                        total_background+= split_multipoles.size();
                     }
                 }
             } //counting only
@@ -252,8 +252,8 @@ namespace votca {
                             );
                     if (site->getQ00() != 0.0) crg_file << sitestring << endl;
                     if (site->getRank() > 0 || _with_polarization ) {
-                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(site);
-                        for (const auto& mpoles:_split_multipoles){
+                        std::vector< std::vector<double> > split_multipoles = SplitMultipoles(site);
+                        for (const auto& mpoles:split_multipoles){
                            string multipole=boost::str( fmt % mpoles[3] % mpoles[0] % mpoles[1] % mpoles[2] );
                             crg_file << multipole << endl;
                         }

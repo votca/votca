@@ -24,7 +24,6 @@
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/qmape.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
@@ -103,6 +102,7 @@
       <itemPath>../../include/votca/xtp/gyration.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
+      <itemPath>../../include/votca/xtp/jobtopology.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
@@ -110,10 +110,10 @@
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarregion.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
-      <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
@@ -1381,6 +1381,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/jobtopology.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/kmccalculator.h"
             ex="false"
             tool="3"
@@ -1401,6 +1406,11 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/polarregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/polarsegment.h"
             ex="false"
             tool="3"
@@ -1412,11 +1422,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmapemachine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1958,11 +1963,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/qmape.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -2378,6 +2378,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/jobtopology.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/kmccalculator.h"
             ex="false"
             tool="3"
@@ -2398,6 +2403,11 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/polarregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/polarsegment.h"
             ex="false"
             tool="3"
@@ -2409,11 +2419,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmapemachine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2951,11 +2956,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iqm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/jobcalculators/qmape.h"
             ex="false"
             tool="3"
             flavor2="0">

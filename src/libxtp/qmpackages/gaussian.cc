@@ -265,8 +265,8 @@ namespace votca {
 
                     if (site->getRank() > 0 || _with_polarization ) {
 
-                        std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(site);
-                        for (const auto& mpoles:_split_multipoles){
+                        std::vector< std::vector<double> > split_multipoles = SplitMultipoles(site);
+                        for (const auto& mpoles:split_multipoles){
                            string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
                             com_file << multipole << endl;
 
@@ -381,19 +381,19 @@ namespace votca {
          * Prepares the com file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied
          */
-        bool Gaussian::WriteInputFile(Orbitals& orbitals) {
+        bool Gaussian::WriteInputFile(const Orbitals& orbitals) {
 
             std::string temp_suffix = "/id";
             std::string scratch_dir_backup = _scratch_dir;
 
             std::ofstream com_file;
-            std::string _com_file_name_full = _run_dir + "/" + _input_file_name;
-            com_file.open(_com_file_name_full.c_str());
+            std::string com_file_name_full = _run_dir + "/" + _input_file_name;
+            com_file.open(com_file_name_full.c_str());
 
             // header
             WriteHeader(com_file);
 
-            std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
+            const QMMolecule& qmatoms = orbitals.QMAtoms();
 
             WriteCoordinates(com_file, qmatoms);
 
@@ -410,7 +410,6 @@ namespace votca {
                 if (_write_pseudopotentials) WriteECP(com_file, qmatoms);
 
                 // write the background charges
-                //if (_write_charges) WriteBackgroundCharges(_com_file, qmatoms);
                 if (_write_charges) WriteBackgroundCharges(com_file);
 
                 // write inital guess

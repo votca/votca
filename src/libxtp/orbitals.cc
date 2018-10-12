@@ -585,6 +585,9 @@ namespace votca {
                 CptLoc molgroup = parent.createGroup("molecule");
                 _atoms.WriteToCpt(molgroup);
 
+                CptLoc multigroup = parent.createGroup("multipoles");
+                _multipoles.WriteToCpt(multigroup);
+
                 w(_qm_energy, "qm_energy");
                 w(_qm_package, "qm_package");
                 w(_self_energy, "self_energy");
@@ -655,6 +658,9 @@ namespace votca {
                 // Read qmatoms
                 CptLoc molgroup = parent.openGroup("molecule");
                 _atoms.ReadFromCpt(molgroup);
+
+                CptLoc multigroup = parent.openGroup("multipoles");
+                _multipoles.ReadFromCpt(multigroup);
 
                 r(_qm_energy, "qm_energy");
                 r(_qm_package, "qm_package");

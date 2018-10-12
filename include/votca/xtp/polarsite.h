@@ -37,9 +37,9 @@ class PolarSite
 
 public:
 
-    PolarSite(int id, const std::string& element, const Eigen::Vector3d& pos);
+    PolarSite(int id, std::string element, const Eigen::Vector3d& pos);
             
-    PolarSite(int id, const std::string& element)
+    PolarSite(int id, std::string element)
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
 
@@ -134,7 +134,7 @@ private:
     Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
     
     //required for polarisation
-    bool _isPolarisable;
+    bool _isPolarisable=false;
     Eigen::Matrix3d _Ps;
     Eigen::Vector3d _localpermanetField;
     Eigen::Vector3d _localinducedField;

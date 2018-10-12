@@ -72,47 +72,34 @@ namespace votca {
             return;
         }
 
-        std::vector<std::vector<double> > QMPackage::SplitMultipoles(APolarSite* aps) {
+        std::vector<std::vector<double> > QMPackage::SplitMultipoles(const PolarSite& aps) {
 
             std::vector< std::vector<double> > multipoles_split;
 
-            const tools::vec pos = aps->getPos() * tools::conv::nm2ang;
-            tools::vec tot_dpl = tools::vec(0.0);
-            if (_with_polarization) {
-                tot_dpl += aps->getU1();
-            }
-            if (aps->getRank() > 0) {
-                tot_dpl += aps->getQ1();
-            }
             // Calculate virtual charge positions
-            double a = _dpl_spacing; // this is in nm
-            double mag_d = abs(tot_dpl); // this is in e * nm
-            if (mag_d > 1e-9) {
-                tools::vec dir_d = tot_dpl.normalize();
-                tools::vec A = pos + 0.5 * a * dir_d * tools::conv::nm2ang; // converted to AA
-                tools::vec B = pos - 0.5 * a * dir_d * tools::conv::nm2ang;
-                double qA = mag_d / a;
-                double qB = -qA;
-                multipoles_split.push_back({A.getX(), A.getY(), A.getZ(), qA});
-                multipoles_split.push_back({B.getX(), B.getY(), B.getZ(), qB});
-            }
+            double a = _dpl_spacing; // this is in a0
+            double mag_d = aps.getDipole().norm();// this is in e * a0
+            const Eigen::Vector3d dir_d = aps.getDipole().normalized();
+            const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d; // converted to AA
+            const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
+            double qA = mag_d / a;
+            double qB = -qA;
+            multipoles_split.push_back({A.x(), A.y(), A.z(), qA});
+            multipoles_split.push_back({B.x(), B.y(), B.z(), qB});
 
-            if (aps->getRank() > 1) {
-                tools::matrix components = aps->getQ2cartesian();
-                tools::matrix::eigensystem_t system;
-                components.SolveEigensystem(system);
+
+            if (aps.getRank() > 1) {
+                const Eigen::Matrix3d components = aps.CalculateCartesianMultipole();
+                Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+                es.computeDirect(components);
                 double a = 2 * _dpl_spacing;
-                for (unsigned i = 0; i < 3; i++) {
+                for (int i = 0; i < 3; i++) {
+                    double q = es.eigenvalues()[i] / (a * a);
+                    const Eigen::Vector3d vec1 = aps.getPos() + 0.5 * a * es.eigenvectors().col(i);
+                    const Eigen::Vector3d vec2 = aps.getPos() - 0.5 * a * es.eigenvectors().col(i);
 
-                    double q = system.eigenvalues[i] / (a * a);
-                    if (std::abs(q) < 1e-9) {
-                        continue;
-                    }
-                    tools::vec vec1 = pos + 0.5 * a * system.eigenvecs[i] * tools::conv::nm2ang;
-                    tools::vec vec2 = pos - 0.5 * a * system.eigenvecs[i] * tools::conv::nm2ang;
-
-                    multipoles_split.push_back({vec1.getX(), vec1.getY(), vec1.getZ(), q});
-                    multipoles_split.push_back({vec2.getX(), vec2.getY(), vec2.getZ(), q});
+                    multipoles_split.push_back({vec1.x(), vec1.y(), vec1.z(), q});
+                    multipoles_split.push_back({vec2.x(), vec2.y(), vec2.z(), q});
 
                 }
             }

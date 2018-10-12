@@ -137,8 +137,8 @@ namespace votca {
             numberofcharges++;
           }
           if (site->getRank() > 0 || _with_polarization ) {
-            std::vector< std::vector<double> > _split_multipoles = SplitMultipoles(site);
-            for (const auto& mpoles:_split_multipoles){
+            std::vector< std::vector<double> > split_multipoles = SplitMultipoles(site);
+            for (const auto& mpoles:split_multipoles){
               string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
               nw_file << multipole << endl;
               numberofcharges++;
