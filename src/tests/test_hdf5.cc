@@ -207,7 +207,6 @@ BOOST_AUTO_TEST_CASE(read_non_exisiting_matrix){
 }
 
 BOOST_AUTO_TEST_CASE(read_non_existing_scalar){
-    bool success = false;
     CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
     CheckpointReader r = cpf.getReader("/QMdata");
 
