@@ -26,6 +26,7 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
+#include <boost/filesystem.hpp>
 #include <type_traits>
 #include <votca/tools/vec.h>
 #include <votca/xtp/checkpoint_utils.h>
@@ -36,40 +37,102 @@ namespace votca {
 namespace xtp {
 
 using namespace checkpoint_utils;
+namespace bfs = boost::filesystem;
 
-CheckpointFile::CheckpointFile(std::string fN){
-    CheckpointFile(fN, true);
+std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l){
+
+    switch(l){
+    case CheckpointAccessLevel::READ:
+        s << "read"; break;
+    case CheckpointAccessLevel::MODIFY:
+        s << "modify"; break;
+    case CheckpointAccessLevel::CREATE:
+        s << "create"; break;
+    }
+
+    return s;
 }
 
-CheckpointFile::CheckpointFile(std::string fN, bool overWrite)
-    : _fileName(fN){
+bool FileExists(const std::string& fileName){
+    return bfs::exists(fileName);
+}
 
-  try {
-      bool fileExists = false;
+CheckpointFile::CheckpointFile(std::string fN):
+    CheckpointFile(fN, CheckpointAccessLevel::MODIFY) {};
 
-      if (!overWrite){
-      // Check if file exists
-          std::ifstream file(_fileName);
-          fileExists = (bool)file;
-      }
+CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
+    : _fileName(fN), _accessLevel(access){
 
-      H5::Exception::dontPrint();
+    try {
+        H5::Exception::dontPrint();
 
-      if (fileExists){
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
-      }
-      else {
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
-      }
-      
-  } catch (H5::Exception& error) {
-    throw std::runtime_error(error.getDetailMsg());
-  }
+        switch (_accessLevel){
+        case CheckpointAccessLevel::READ:
+            _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);
+            break;
+        case CheckpointAccessLevel::CREATE:
+            _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+            break;
+        case CheckpointAccessLevel::MODIFY:
+            if (!FileExists(_fileName))
+                _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+            else
+                _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
+
+        }
+
+    } catch (H5::Exception& error) {
+        std::stringstream message;
+        message << "Could not access file " << _fileName;
+        message << " with permission to " << _accessLevel << "." << std::endl;
+
+        throw std::runtime_error(message.str());
+    }
 };
 
 std::string CheckpointFile::getFileName() { return _fileName; };
 
 H5::H5File CheckpointFile::getHandle() { return _fileHandle; };
+
+CheckpointWriter CheckpointFile::getWriter(const std::string _path){
+    if (_accessLevel == CheckpointAccessLevel::READ){
+        throw std::runtime_error("Checkpoint file opened as read only.");
+    }
+
+    try{
+        return CheckpointWriter(_fileHandle.createGroup(_path), _path);
+    } catch(H5::Exception& error) {
+        try {
+            return CheckpointWriter(_fileHandle.openGroup(_path), _path);
+        } catch (H5::Exception& error) {
+            std::stringstream message;
+            message << "Could not create or open " << _fileName << ":" << _path
+                    << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
+    }
+};
+
+CheckpointWriter CheckpointFile::getWriter(){
+    return getWriter("/");
+};
+
+CheckpointReader CheckpointFile::getReader(const std::string _path){
+    try{
+        return CheckpointReader(_fileHandle.openGroup(_path), _path);
+    } catch (H5::Exception& error){
+        std::stringstream message;
+        message << "Could not open " << _fileName << ":" << _path
+                << std::endl;
+
+        throw std::runtime_error(message.str());
+    }
+};
+
+CheckpointReader CheckpointFile::getReader(){
+    return getReader("/");
+};
 
 }  // namespace xtp
 }  // namespace votca

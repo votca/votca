@@ -613,12 +613,12 @@ namespace votca {
 
 
             void WriteToCpt(CheckpointFile f)const;
-            void WriteToCpt(CptLoc parent)const;
-            
+            void WriteToCpt(CheckpointWriter w)const;
+
             void ReadFromCpt(CheckpointFile f);
-            void ReadFromCpt(CptLoc parent);
-            
-            
+            void ReadFromCpt(CheckpointReader parent);
+
+
             Eigen::MatrixXd TransitionDensityMatrix(const QMState& state)const;
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const QMState& state)const;
             std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const QMState& state)const;

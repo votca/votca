@@ -32,32 +32,85 @@ namespace votca {
 
 class CheckpointReader{
 public:
-CheckpointReader(const CptLoc& loc) : _loc(loc){};
+CheckpointReader(const CptLoc& loc): CheckpointReader(loc, "/"){};
+
+CheckpointReader(const CptLoc& loc, const std::string path):
+    _loc(loc), _path(path){};
 
     template<typename T>
     typename std::enable_if<!std::is_fundamental<T>::value>::type
     operator()(T& var, const std::string& name){
-        ReadData(_loc, var, name);
+        try{
+            ReadData(_loc, var, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+
+            message << "Could not read " << name << " from "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
     }
 
     template<typename T>
     typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
     operator()(T& var, const std::string& name){
-        ReadScalar(_loc, var, name);
+        try{
+            ReadScalar(_loc, var, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not read " << name << " from "
+                    << _loc.getFileName() << ":" << _path << "/" << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
     }
 
     void operator()(bool& v, const std::string& name){
-        int temp;
-        ReadScalar(_loc, temp, name);
+        int temp = int(v);
+        try{
+            ReadScalar(_loc, temp, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not read " << name << " from "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
         v = static_cast<bool>(temp);
     }
 
     void operator()(std::string& var, const std::string& name){
-        ReadScalar(_loc, var,  name);
+        try{
+            ReadScalar(_loc, var, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not read " << name << " from "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
     }
+
+    CheckpointReader openChild(const std::string& childName){
+        try{
+            return CheckpointReader(_loc.openGroup(childName), _path+"/"+childName);
+        } catch (H5::Exception& e){
+            std::stringstream message;
+            message << "Could not open " << _loc.getFileName() << ":/"
+                    << _path << "/" << childName << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
+    }
+
+    int getNumDataSets(){
+        return _loc.getNumObjs();
+    }
+
 private:
     CptLoc _loc;
-
+    const std::string _path;
     void ReadScalar(const CptLoc& loc, std::string& var, const std::string& name){
         const H5::DataType* strType = InferDataType<std::string>::get();
 

@@ -73,12 +73,10 @@ private:
    int _ecpcharge;
    double _partialcharge;
 
-   
- public: 
-   
-   void WriteToCpt(CptLoc parent){
-       CheckpointWriter w(parent);
 
+ public:
+
+   void WriteToCpt(CheckpointWriter& w){
        w(_index, "index");
        w(_type, "type");
        w(_pos, "pos");
@@ -87,9 +85,7 @@ private:
        w(_partialcharge, "partialcharge");
    }
 
-   void ReadFromCpt(CptLoc parent){
-       CheckpointReader r(parent);
-
+   void ReadFromCpt(CheckpointReader& r){
        r(_index, "index");
        r(_type, "type");
        r(_pos, "pos");
