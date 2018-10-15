@@ -11,17 +11,26 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. 
  *
  */
 
-#include "votca/xtp/gnode.h"
+#include <votca/xtp/gnode.h>
 #include <boost/format.hpp>
+#include <vector>
+#include <votca/xtp/glink.h>
+#include <votca/xtp/huffmantree.h>
+#include <queue>
 
 using namespace std;
 
+
+
+
 namespace votca {
     namespace xtp {
+
+
 void GNode::AddDecayEvent(double decayrate)
 {
     GLink newEvent;
@@ -59,6 +68,15 @@ void GNode::InitEscapeRate()
     }
     this->escape_rate = newEscapeRate;
     // cout << "Escape rate for segment " << this->id << " was set to " << newEscapeRate << endl;
+}
+
+GLink* GNode::findHoppingDestination(double p){
+    return hTree.findHoppingDestination(p);
+}
+
+void GNode::MakeHuffTree(){
+   hTree.setEvents(&events);
+   hTree.makeTree();
 }
 
  void GNode::ReadfromSegment(ctp::Segment* seg,int carriertype){
