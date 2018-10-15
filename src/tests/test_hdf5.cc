@@ -22,11 +22,13 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmatom.h>
+#include <votca/xtp/checkpointwriter.h>
+#include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpoint.h>
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
-   
 
     int basisSetSize = 17;
     int occupiedLevels = 4;
@@ -117,12 +119,14 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.TransitionDipoles() = transitionDipolesTest;
         orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
         orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
+
         orbWrite.WriteToCpt("xtp_testing.hdf5");
+
     }
     // Read Orbitals
     Orbitals orbRead;
-
     orbRead.ReadFromCpt("xtp_testing.hdf5");
+
     double tol = 1e-6;
 
     // Test the read values
@@ -176,5 +180,39 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         BOOST_CHECK_EQUAL(atomRead.getPartialcharge(), atomTest.getPartialcharge());
         // no way to get qmatom index
     }
+}
 
-    BOOST_AUTO_TEST_SUITE_END()}
+BOOST_AUTO_TEST_CASE(open_file_error){
+    BOOST_REQUIRE_THROW(CheckpointFile cpf("/bin/mr/root/man.pls",
+                                           CheckpointAccessLevel::READ),
+                        std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(checkpoint_open_non_existing_loc) {
+    CheckpointFile cpf ("testin_yo.ab", CheckpointAccessLevel::MODIFY);
+    BOOST_REQUIRE_THROW(CheckpointReader r = cpf.getReader("/some/bulshit"),
+                        std::runtime_error);
+
+}
+
+BOOST_AUTO_TEST_CASE(read_non_exisiting_matrix){
+
+    CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
+    CheckpointReader r = cpf.getReader("/QMdata");
+
+    Eigen::MatrixXd someMatrix;
+
+    BOOST_REQUIRE_THROW(r(someMatrix, "someMatrix012'5915.jb"),
+                        std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(read_non_existing_scalar){
+    CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
+    CheckpointReader r = cpf.getReader("/QMdata");
+
+    float someThing = 0;
+    BOOST_REQUIRE_THROW(r(someThing, "someThing"), std::runtime_error);
+
+}
+
+BOOST_AUTO_TEST_SUITE_END()

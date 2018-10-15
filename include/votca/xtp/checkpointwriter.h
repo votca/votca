@@ -34,14 +34,25 @@ using namespace checkpoint_utils;
 
 class CheckpointWriter {
 public:
-CheckpointWriter(const CptLoc& loc) : _loc(loc){};
+CheckpointWriter(const CptLoc& loc): CheckpointWriter(loc, "/"){};
+
+CheckpointWriter(const CptLoc& loc, const std::string& path):
+    _loc(loc), _path(path){};
 
     // see the following links for details
     // https://stackoverflow.com/a/8671617/1186564
     template <typename T>
         typename std::enable_if<!std::is_fundamental<T>::value>::type
         operator()(const T& data, const std::string& name){
-        WriteData(_loc, data, name);
+        try {
+            WriteData(_loc, data, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name
+                    << " to " << _loc.getFileName() << ":" << _path;
+
+            throw std::runtime_error(message.str());
+        }
     }
 
     // Use this overload iff T is a fundamental type
@@ -49,20 +60,63 @@ CheckpointWriter(const CptLoc& loc) : _loc(loc){};
     template<typename T>
         typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
         operator()(const T& v, const std::string& name){
-        WriteScalar(_loc, v, name);
+        try{
+            WriteScalar(_loc, v, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name << " to "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+        }
     }
 
     void operator()(const bool& v, const std::string& name){
         int temp=static_cast<int>(v);
-        WriteScalar(_loc, temp, name);
+        try{
+            WriteScalar(_loc, temp, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name << " to "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+
+        }
     }
 
     void operator()(const std::string& v, const std::string& name){
-        WriteScalar(_loc, v, name);
+        try{
+            WriteScalar(_loc, v, name);
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not write " << name << " to "
+                    << _loc.getFileName() << ":" << _path << std::endl;
+
+            throw std::runtime_error(message.str());
+
+        }
+    }
+
+    CheckpointWriter openChild(const std::string& childName){
+        try{
+            return CheckpointWriter(_loc.openGroup(childName), _path+"/"+childName);
+        } catch (H5::Exception& e){
+            try{
+                return CheckpointWriter(_loc.createGroup(childName), _path+"/"+childName);
+            } catch (H5::Exception& e){
+                std::stringstream message;
+                message << "Could not open or create" << _loc.getFileName()
+                        << ":/" << _path << "/" << childName << std::endl;
+
+                throw std::runtime_error(message.str());
+            }
+        }
     }
 
 private:
     CptLoc _loc;
+    const std::string _path;
     template <typename T>
         void WriteScalar(const CptLoc& loc, const T& value,
                          const std::string& name) {
@@ -70,8 +124,12 @@ private:
         hsize_t dims[1] = {1};
         H5::DataSpace dp(1, dims);
         const H5::DataType* dataType = InferDataType<T>::get();
-
-        H5::Attribute attr = loc.createAttribute(name, *dataType, dp);
+        H5::Attribute attr;
+        try{
+            attr = loc.createAttribute(name, *dataType, dp);
+        } catch (H5::AttributeIException& error){
+            attr = loc.openAttribute(name);
+        }
         attr.write(*dataType, &value);
     }
 
@@ -82,7 +140,13 @@ private:
         H5::DataSpace dp(1, dims);
         const H5::DataType* strType = InferDataType<std::string>::get();
 
-        H5::Attribute attr = loc.createAttribute(name, *strType, StrScalar());
+        H5::Attribute attr;
+
+        try{
+            attr = loc.createAttribute(name, *strType, dp);
+        } catch (H5::AttributeIException& error){
+            attr = loc.openAttribute(name);
+        }
         attr.write(*strType, &value);
     }
 
@@ -100,7 +164,11 @@ private:
         H5::DataSpace dp(2, dims);
         const H5::DataType* dataType = InferDataType<typename T::Scalar>::get();
         H5::DataSet dataset;
-        dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        try{
+            dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        } catch (H5::GroupIException& error){
+            dataset = loc.openDataSet(name.c_str());
+        }
 
         hsize_t matColSize = matrix.derived().outerStride();
 
@@ -135,8 +203,11 @@ private:
         const H5::DataType* dataType = InferDataType<T>::get();
         H5::DataSet dataset;
         H5::DataSpace dp(2, dims);
-
-        dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        try{
+            dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+        } catch (H5::GroupIException& error){
+            dataset = loc.openDataSet(name.c_str());
+        }
         dataset.write(&(v[0]), *dataType);
     }
 
@@ -145,7 +216,12 @@ private:
 
         size_t c = 0;
         std::string r;
-        CptLoc parent = loc.createGroup(name);
+        CptLoc parent;
+        try{
+            parent = loc.createGroup(name);
+        } catch (H5::GroupIException& error){
+            parent = loc.openGroup(name);
+        }
         for (auto const& x: v){
             r = std::to_string(c);
             WriteData(parent, x, "ind"+r);
@@ -162,7 +238,12 @@ private:
         // Iterate over the map and write map as a number of vectors with T1 as index
         for (auto const& x : map) {
             r = std::to_string(c);
-            CptLoc tempGr = loc.createGroup("/" + name);
+            CptLoc tempGr;
+            try{
+                tempGr = loc.createGroup(name);
+            } catch (H5::GroupIException& error){
+                tempGr = loc.openGroup(name);
+            }
             WriteData(tempGr, x.second, "index" + r);
             ++c;
         }

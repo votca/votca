@@ -80,12 +80,10 @@ private:
    int _nuccharge;//nuc charge is set in aobasis fill and ecpfill
    int _ecpcharge;
 
-   
- public: 
-   
-   void WriteToCpt(CptLoc parent)const{
-       CheckpointWriter w(parent);
 
+ public:
+
+   void WriteToCpt(CheckpointWriter& w){
        w(_index, "index");
        w(_element, "element");
        w(_pos, "pos");
@@ -93,9 +91,7 @@ private:
        w(_ecpcharge, "ecpcharge");
    }
 
-   void ReadFromCpt(CptLoc parent){
-       CheckpointReader r(parent);
-
+   void ReadFromCpt(CheckpointReader& r){
        r(_index, "index");
        r(_element, "element");
        r(_pos, "pos");
