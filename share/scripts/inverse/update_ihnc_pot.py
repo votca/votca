@@ -44,11 +44,12 @@ def calculate_dpot(r, rdf_target_g, rdf_target_flag,
                    rdf_current_g, rdf_current_flag,
                    pot_current_U, pot_current_flag,
                    kBT):
+    # prepare dpot
     dpot_dU = np.zeros_like(pot_current_U)
     dpot_flag = np.array([''] * len(dpot_dU))
 
     # calculate dpot
-    for i in range(len(rdf_target_r)):
+    for i in range(len(r)):
         if rdf_target_g[i] > 1e-10 and rdf_current_g[i] > 1e-10:
             dpot_dU[i] = np.log(rdf_current_g[i] / rdf_target_g[i]) * kBT
             dpot_flag[i] = 'i'
@@ -95,10 +96,6 @@ if __name__ == '__main__':
     # sanity checks on grid
     compare_grids(rdf_target_r, rdf_current_r)
     r = rdf_target_r
-
-    # prepare dpot
-    dpot_dU = np.zeros_like(pot_current_U)
-    dpot_flag = np.array([''] * len(dpot_dU))
 
     # calculate dpot
     dpot_dU, dpot_flag = calculate_dpot(r, rdf_target_g, rdf_target_flag,
