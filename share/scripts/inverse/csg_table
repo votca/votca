@@ -118,7 +118,7 @@ update ibi_pot update_ibi_pot.pl
 # ihnc specific stuff
 update ihnc update_ihnc.sh
 update ihnc_single update_ihnc_single.sh
-update ihnc_pot update_ihnc_pot.pl
+update ihnc_pot update_ihnc_pot.py
 
 # imc specific stuff
 update imc update_imc.sh
