@@ -29,29 +29,22 @@ using namespace votca::tools;
 namespace votca { namespace xtp {
 
     QMMolecule::ReadFromCpt(CptLoc parent) {
-
-        CptLoc qmAtomsGr = parent.openGroup("qmatoms");
-        size_t count = qmAtomsGr.getNumObjs();
-      _atomlist.resize(0);
-      _atomlist.reserve(count);
-        for (size_t i = 0; i < count; ++i) {
-        CptLoc tempLoc = qmAtomsGr.openGroup("atom" + std::to_string(i));
-        QMAtom temp;
-        temp.ReadFromCpt(tempLoc);
-        _atomlist.push_back(temp);
-      }
-      
-
+    size_t count = r.getNumDataSets();
+    _atomlist.resize(0);
+    _atomlist.reserve(count);
+    for (size_t i = 0; i < count; ++i) {
+       CheckpointReader c = r.openChild("atom" + std::to_string(i));
+        QMAtom temp=QMAtom("",0);
+        temp.ReadFromCpt(c);
+        _atomlist.emplace_back(temp);
     }
+}
 
-    QMMolecule::WriteToCpt(CptLoc parent) const {
-      CptLoc qmAtomsGr = parent.createGroup("qmatoms");
-      size_t count = 0;
-      for (const auto& qma : _atomlist) {
-        CptLoc tempLoc = qmAtomsGr.createGroup("atom" + std::to_string(count));
-        qma.WriteToCpt(tempLoc);
-        ++count;
-      }
+    QMMolecule::WriteToCpt(CheckpointWriter& w) const {
+      for (unsigned i=0;i<_atomlist.size();i++) {
+        CheckpointWriter s = w.openChild("atom" + std::to_string(i));
+        _atomlist[i].WriteToCpt(s);
+    }
     }
 
       void QMMolecule::WriteXYZ(const std::string& filename, std::string header) const{

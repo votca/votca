@@ -25,34 +25,33 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    using namespace std;
     
 class DensityAnalysis : public QMTool
 {
 public:
 
-    string Identify() { return "densityanalysis"; }
+    std::string Identify() { return "densityanalysis"; }
 
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property *options);
     bool   Evaluate();
 
 private:
     
-    string      _orbfile;
-    string      _output_file;
-    Property    _gyration_options;
+    std::string      _orbfile;
+    std::string      _output_file;
+    tools::Property    _gyration_options;
     
     Logger      _log;
     
     
 };
 
-void DensityAnalysis::Initialize(Property* options) {
+void DensityAnalysis::Initialize(tools::Property* options) {
     
-    string key = "options." + Identify(); 
-    _orbfile      = options->get(key + ".input").as<string> ();
+    std::string key = "options." + Identify(); 
+    _orbfile      = options->get(key + ".input").as<std::string> ();
 
-    string _gyration_xml = options->get(key + ".gyration_options").as<string> ();
+    std::string _gyration_xml = options->get(key + ".gyration_options").as<std::string> ();
     load_property_from_xml(_gyration_options,_gyration_xml.c_str());
 
     // get the path to the shared folders with xml files

@@ -83,8 +83,8 @@ namespace votca {
             const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
             double qA = mag_d / a;
             double qB = -qA;
-            multipoles_split.push_back((A, qA));
-            multipoles_split.push_back((B, qB);
+            multipoles_split.push_back(MinimalMMCharge(A, qA));
+            multipoles_split.push_back(MinimalMMCharge(B, qB));
 
 
             if (aps.getRank() > 1) {
@@ -96,8 +96,8 @@ namespace votca {
                     double q = es.eigenvalues()[i] / (a * a);
                     const Eigen::Vector3d vec1 = aps.getPos() + 0.5 * a * es.eigenvectors().col(i);
                     const Eigen::Vector3d vec2 = aps.getPos() - 0.5 * a * es.eigenvectors().col(i);
-                    multipoles_split.push_back((vec1, q));
-                    multipoles_split.push_back((vec2, q);
+                    multipoles_split.push_back(MinimalMMCharge(vec1, q));
+                    multipoles_split.push_back(MinimalMMCharge(vec2, q));
                 }
             }
             return multipoles_split;

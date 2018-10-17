@@ -21,6 +21,7 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
+#include <vector>
 
 #include "votca/xtp/polarsegment.h"
 
@@ -30,30 +31,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
-PolarSegment::ReadFromCpt(CheckpointReader r) {
 
-    size_t count = r.getNumDataSets();
-    _atomlist.resize(0);
-    _atomlist.reserve(count);
-    for (size_t i = 0; i < count; ++i) {
-       CheckpointReader c = r.openChild("site" + std::to_string(i));
-        QMAtom temp=QMAtom("",0);
-        temp.ReadFromCpt(c);
-        _atomlist.push_back(temp);
-    }
-
-
-}
-
-PolarSegment::WriteToCpt(CheckpointWriter w) const {
-    CptLoc polarSiteGr = parent.createGroup("polarsites");
-    size_t count = 0;
-    for (const auto& s : _atomlist) {
-        CptLoc tempLoc = polarSiteGr.createGroup("site" + std::to_string(count));
-        s.WriteToCpt(tempLoc);
-        ++count;
-    }
-}
 //MPS files have a weird format positions can be in bohr or angstroem,
 //multipoles are in q*bohr^k, with k rank of multipole and polarisabilities are in angstroem^3
 void PolarSegment::LoadFromMPS(const std::string& filename){

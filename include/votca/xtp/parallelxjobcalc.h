@@ -99,7 +99,7 @@ protected:
     JobContainer             _XJobs;
     Mutex                    _coutMutex;
     Mutex                    _logMutex;
-    std::string                   _jobfile;
+    std::string              _jobfile;
     int                      _subthreads;
     
     // ProgObserver< JobContainer, pJob > *_progObs;

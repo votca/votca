@@ -28,7 +28,7 @@
 namespace votca {
     namespace xtp {
 
-    int QMStateType::ToXTPIndex()const {
+    int QMStateType::ToSegIndex()const {
       if (_type == QMStateType::Singlet) {
         return 2;
       } else if (_type == QMStateType::Triplet) {
@@ -40,7 +40,7 @@ namespace votca {
       } else if (_type == QMStateType::Gstate) {
         return 0;
       } else {
-        throw std::runtime_error("For state " + this->ToString() + " no conversion to ctp exists");
+        throw std::runtime_error("For state " + this->ToString() + " no conversion to segment exists");
       }
       return 0;
     }

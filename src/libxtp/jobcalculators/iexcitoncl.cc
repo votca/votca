@@ -25,10 +25,7 @@
 #include <votca/tools/constants.h>
 #include <votca/tools/propertyiomanipulator.h>
 
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/polarseg.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/xinteractor.h>
 
 using namespace boost::filesystem;
 using namespace votca::tools;
@@ -117,10 +114,7 @@ namespace votca {
 
         void IEXCITON::PreProcess(Topology *top) {
 
-            // INITIALIZE MPS-MAPPER (=> POLAR TOP PREP)
-            cout << endl << "... ... Initialize MPS-mapper: " << flush;
-
-            _mps_mapper.GenerateMap(_xml_file, _emp_file, top);
+            
         }
 
        
@@ -149,22 +143,7 @@ namespace votca {
             XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair "
                     << job_ID << " [" << ID_A << ":" << ID_B << "]" << flush;
 
-            vector<APolarSite*> seg_A_raw = APS_FROM_MPS(mps_fileA, 0, opThread);
-            vector<APolarSite*> seg_B_raw = APS_FROM_MPS(mps_fileB, 0, opThread);
-
-            PolarSeg seg_A_polar = *(_mps_mapper.MapPolSitesToSeg(seg_A_raw, seg_A));
-            PolarSeg seg_B_polar = *(_mps_mapper.MapPolSitesToSeg(seg_B_raw, seg_B));
-
-            double JAB = EvaluatePair(top, &seg_A_polar, &seg_B_polar, pLog);
-
-            for (APolarSite* site : seg_A_raw) {
-                delete site;
-            }
-            seg_A_raw.clear();
-            for (APolarSite* site : seg_B_raw) {
-                delete site;
-            }
-            seg_B_raw.clear();
+            double JAB=0;
 
             Property job_summary;
             Property& job_output = job_summary.add("output", "");
@@ -200,31 +179,7 @@ namespace votca {
       return state;
     }
 
-        double IEXCITON::EvaluatePair(Topology *top, PolarSeg* Seg1, PolarSeg* Seg2, Logger* pLog) {
-
-            XInteractor actor;
-            actor.ResetEnergy();
-            Seg1->CalcPos();
-            Seg2->CalcPos();
-            vec s = top->PbShortestConnect(Seg1->getPos(), Seg2->getPos()) + Seg1->getPos() - Seg2->getPos();
-
-            double E = 0.0;
-            for (APolarSite* site1 : *Seg1) {
-                for (APolarSite* site2 : *Seg2) {
-                    actor.BiasIndu(*site1, *site2, s);
-                    site1->Depolarize();
-                    site2->Depolarize();
-                    E += actor.E_f(*site1, *site2);
-                }
-            }
-
-            if (_cutoff >= 0) {
-                if (abs(s) > _cutoff) {
-                    E = E / _epsilon;
-                }
-            }
-            return E * conv::int2eV;
-        }
+    
 
         void IEXCITON::WriteJobFile(Topology *top) {
 

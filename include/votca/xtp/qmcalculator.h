@@ -23,13 +23,12 @@
 
 #include <votca/tools/calculator.h>
 
-namespace TOOLS = votca::tools;
 
 namespace votca { namespace xtp {
 
 class Topology;
 
-class QMCalculator : public TOOLS::Calculator{
+class QMCalculator : public tools::Calculator{
 public:
 
                     QMCalculator() {}
@@ -37,7 +36,7 @@ public:
 
     virtual std::string  Identify() = 0;
 
-    virtual void    Initialize(TOOLS::Property *options) = 0;
+    virtual void    Initialize(tools::Property *options) = 0;
     virtual bool    EvaluateFrame(Topology *top) { return true; }
     virtual void    EndEvaluate(Topology *top) { }
 

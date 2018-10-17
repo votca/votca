@@ -26,7 +26,6 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    using namespace std;
     
 class Partialcharges : public QMTool
 {
@@ -35,33 +34,33 @@ public:
     Partialcharges () { };
    ~Partialcharges () { };
 
-    string Identify() { return "partialcharges"; }
+    std::string Identify() { return "partialcharges"; }
 
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property *options);
     bool   Evaluate();
     // two access functions for egwbse interface
     
 
 private:
     
-    string      _orbfile;
-    string      _output_file;
-    Property    _esp_options;
+    std::string      _orbfile;
+    std::string      _output_file;
+    tools::Property    _esp_options;
     
     Logger      _log;
     
     
 };
 
-void Partialcharges::Initialize(Property* options) {
+void Partialcharges::Initialize(tools::Property* options) {
     
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
-    string key = "options." + Identify();
+    std::string key = "options." + Identify();
  
-    _orbfile      = options->get(key + ".input").as<string> ();
-    _output_file  = options->get(key + ".output").as<string> ();
-    string _esp2multipole_xml = options->get(key + ".esp_options").as<string> ();
+    _orbfile      = options->get(key + ".input").as<std::string> ();
+    _output_file  = options->get(key + ".output").as<std::string> ();
+    std::string _esp2multipole_xml = options->get(key + ".esp_options").as<std::string> ();
     load_property_from_xml(_esp_options,_esp2multipole_xml.c_str());
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    

@@ -20,11 +20,7 @@
 #ifndef VOTCA_XTP_GWBSEENGINE_H
 #define VOTCA_XTP_GWBSEENGINE_H
 
-#include <votca/xtp/segment.h>
-#include <votca/xtp/polarseg.h>
-#include <votca/xtp/topology.h>
-#include <votca/xtp/apolarsite.h>
-#include <boost/filesystem.hpp>
+#include <votca/tools/property.h>
 #include <votca/xtp/logger.h>
 
 namespace votca {

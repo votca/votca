@@ -61,7 +61,7 @@ private:
     void addLinkers(std::vector< Segment* > &segments, Topology *top);
     bool isLinker(const std::string& name);
     void WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals);
-    void ParseOptionsXML( tools::Property &opt);    
+    void ParseOptionsXML(tools::Property &opt);    
     std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
     
     QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,const std::string& elementname )const;

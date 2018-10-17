@@ -48,7 +48,7 @@ namespace votca {
         protected:
             
             
-            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* shell, const AOShell* shell_row, const AOShell* shell_col);
+            bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell, const AOShell& shell_row, const AOShell& shell_col);
             
 
         };

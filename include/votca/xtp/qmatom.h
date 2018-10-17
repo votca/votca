@@ -50,7 +50,7 @@ public:
   QMAtom (int index,std::string element, double x, double y, double z):
             QMAtom(index,element,Eigen::Vector3d{x,y,z}){};
        
-   
+   static std::string Identify(){return "qmatom";}
        
    const Eigen::Vector3d& getPos() const {return _pos;}
    

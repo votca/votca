@@ -46,8 +46,6 @@ public:
 
 private:
     
-    double CalcEnergy(PolarSeg& nuclei,PolarSeg& other);
-    
     std::string      _orbfile;
     std::string      _espfile;
     std::string      _mpsfiled;
@@ -58,27 +56,7 @@ private:
 };
 
 
-double QMSandbox::CalcEnergy(PolarSeg& nuclei,PolarSeg& other){
-    XInteractor actor;
-    actor.ResetEnergy();
-    double E_ext = 0.0;
-    nuclei.CalcPos();
-    other.CalcPos();
 
-        for (auto nucleus : nuclei) {
-          nucleus->Depolarize();
-          nucleus->Charge(0);
-          for (auto site : other) {
-            site->Charge(0);
-            actor.BiasIndu(*nucleus, *site);
-            E_ext += actor.E_f(*nucleus, *site);
-          }
-        }
-      
-      double E=E_ext * tools::conv::int2eV * tools::conv::ev2hrt;
-    
-      return E;
-}
 
 void QMSandbox::Initialize(tools::Property* options) {
 
@@ -100,107 +78,7 @@ void QMSandbox::Initialize(tools::Property* options) {
 }
 
 bool QMSandbox::Evaluate() {
-     Orbitals orbitals;
-    orbitals.ReadFromCpt(_orbfile);
-    
-    QMInterface qmminter;
-    PolarSeg nuclei = qmminter.Convert(orbitals.QMAtoms());
-    
-    for (unsigned i = 0; i < nuclei.size(); ++i) {
-        APolarSite* nucleus = nuclei[i];
-        nucleus->setIsoP(0.0);
-        double Q = orbitals.QMAtoms()[i]->getNuccharge();
-        nucleus->setQ00(Q, 0);
-      }
-      
-    
-  #ifdef _OPENMP
- 
-    omp_set_num_threads(1);
-    std::cout<< " Using "
-                                   << omp_get_max_threads() << " threads"
-                                   << std::endl;
-  
-#endif
-
-    std::vector<std::shared_ptr<PolarSeg> > polar_segments_mol;
-    
-    std::vector<std::shared_ptr<PolarSeg> > polar_segments_dipole;
-    std::vector<std::shared_ptr<PolarSeg> > polar_segments_dipole_split;
-    std::vector<std::shared_ptr<PolarSeg> > polar_segments_quadrupole;
-    std::vector<std::shared_ptr<PolarSeg> > polar_segments_quadrupole_split;
-    {
-        vector<APolarSite*> sites = APS_FROM_MPS(_espfile, 0);
-        std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
-        polar_segments_mol.push_back(newPolarSegment);
-    }   
-
-    {
-        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfiled, 0);
-        std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
-        polar_segments_dipole.push_back(newPolarSegment);
-    }   
-    {
-        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfileds, 0);
-        std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
-        polar_segments_dipole_split.push_back(newPolarSegment);
-    }        
-    {
-        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfileq, 0);
-         std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
-        polar_segments_quadrupole.push_back(newPolarSegment);
-    }        
-    {
-        vector<APolarSite*> sites = APS_FROM_MPS(_mpsfileqs, 0);
-         std::shared_ptr<PolarSeg>  newPolarSegment (new PolarSeg(0, sites));
-        polar_segments_quadrupole_split.push_back(newPolarSegment);
-    }        
-  
-    Eigen::MatrixXd dmat=orbitals.DensityMatrixGroundState();
-    
-    BasisSet basis;
-    basis.LoadBasisSet(orbitals.getDFTbasis());
-    
-    AOBasis aobasis;
-    aobasis.AOBasisFill(basis,orbitals.QMAtoms());
-    
-    
-    AOESP esp1;
-    esp1.Fillextpotential(aobasis,polar_segments_dipole_split);
-    
-    double edipole_split=esp1.getExternalpotential().cwiseProduct(dmat).sum();
-    
-    AODipole_Potential dip;
-    dip.Fillextpotential(aobasis,polar_segments_dipole);
-    
-    double edipole=dip.getExternalpotential().cwiseProduct(dmat).sum();
-    
-    
-    
-    AOESP esp2;
-    esp2.Fillextpotential(aobasis,polar_segments_quadrupole_split);
-    
-    double equadrupole_split=esp2.getExternalpotential().cwiseProduct(dmat).sum();
-    
-     AOQuadrupole_Potential quad;
-    quad.Fillextpotential(aobasis,polar_segments_quadrupole);
-    
-    double equadrupole=quad.getExternalpotential().cwiseProduct(dmat).sum();  
-    cout<<""<<endl;
-    cout<<"dipole: "<<edipole<<endl;
-    cout<<"dipole_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_dipole[0])<<endl;
-    cout<<"dipole_nuc: "<<CalcEnergy(nuclei,*polar_segments_dipole[0])<<endl;
-    cout<<"dipole_split: "<<edipole_split<<endl;
-    cout<<"dipole_split_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_dipole_split[0])<<endl;
-    cout<<"dipole_split_nuc: "<<CalcEnergy(nuclei,*polar_segments_dipole_split[0])<<endl;
-    cout<<"quadrupole: "<<equadrupole<<endl;
-    cout<<"quadrupole_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_quadrupole[0])<<endl;
-    cout<<"quadrupole_nuc: "<<CalcEnergy(nuclei,*polar_segments_quadrupole[0])<<endl;
-    cout<<"quadrupole_split: "<<equadrupole_split<<endl;
-    cout<<"quadrupole_split_classic: "<<CalcEnergy(*polar_segments_mol[0],*polar_segments_quadrupole_split[0])<<endl;
-    cout<<"quadrupole_split_nuc: "<<CalcEnergy(nuclei,*polar_segments_quadrupole_split[0])<<endl;
-    
-    return true;
+     
 }
 
 

@@ -45,13 +45,13 @@ namespace votca {
           return "gencube";
         }
 
-        void Initialize(Property *options);
+        void Initialize(tools::Property *options);
         bool Evaluate();
 
 
       private:
 
-        Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,const tools::vec& pos);
+        Eigen::VectorXd EvaluateBasisAtPosition(const AOBasis& dftbasis,const Eigen::Vector3d& pos);
 
         void calculateCube();
         void subtractCubes();
@@ -73,7 +73,7 @@ namespace votca {
 
     };
 
-    void GenCube::Initialize(Property* options) {
+    void GenCube::Initialize(tools::Property* options) {
 
       // update options with the VOTCASHARE defaults   
       UpdateWithDefaults(options, "xtp");
@@ -115,36 +115,17 @@ namespace votca {
       XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
       orbitals.ReadFromCpt(_orbfile);
 
-      std::vector<QMAtom*> atoms = orbitals.QMAtoms();
+      const QMMolecule& atoms = orbitals.QMAtoms();
 
-      // determine min and max in each cartesian direction
-      double xmin = std::numeric_limits<double>::max();
-      double xmax = std::numeric_limits<double>::min();
-      double ymin = xmin;
-      double ymax = xmax;
-      double zmin = xmin;
-      double zmax = xmax;
+      std::pair<Eigen::Vector3d ,Eigen::Vector3d > minmax=atoms.CalcSpatialMinMax();
 
-      for (const QMAtom* atom:atoms) {
-        const tools::vec& pos = atom->getPos();
-        // get center coordinates in Bohr
-        double x = pos.getX();
-        double y = pos.getY();
-        double z = pos.getZ();
-        if (x > xmax) xmax = x;
-        if (x < xmin) xmin = x;
-        if (y > ymax) ymax = y;
-        if (y < ymin) ymin = y;
-        if (z > zmax) zmax = z;
-        if (z < zmin) zmin = z;
-      }
       // generate cube grid
-      double xstart = xmin - _padding;
-      double xstop = xmax + _padding;
-      double ystart = ymin - _padding;
-      double ystop = ymax + _padding;
-      double zstart = zmin - _padding;
-      double zstop = zmax + _padding;
+      double xstart = minmax.first.x() - _padding;
+      double xstop = minmax.second.x() + _padding;
+      double ystart = minmax.first.y() - _padding;
+      double ystop = minmax.second.y() + _padding;
+      double zstart = minmax.first.z() - _padding;
+      double zstop = minmax.second.z() + _padding;
 
       double xincr = (xstop - xstart) / double(_xsteps);
       double yincr = (ystop - ystart) / double(_ysteps);
@@ -183,16 +164,14 @@ namespace votca {
       out<<boost::format( "%1$d %2$f 0.0 0.0 \n") %(_xsteps + 1) % xincr;
       out<<boost::format( "%1$d 0.0 %2$f 0.0 \n") %(_ysteps + 1) % yincr;
       out<<boost::format( "%1$d 0.0 0.0 %2$f \n") %(_zsteps + 1) % zincr;
-      Elements _elements;
-      for (const QMAtom* atom:atoms) {
-        const tools::vec& pos = atom->getPos();
-        // get center coordinates in Bohr
-        double x = pos.getX();
-        double y = pos.getY();
-        double z = pos.getZ();
-        string element = atom->getElement();
-        int atnum = _elements.getEleNum(element);
-        double crg = atom->getNuccharge();
+      tools::Elements elements;
+      for (const QMAtom& atom:atoms) {
+        double x = atom.getPos().x();
+        double y = atom.getPos().y();
+        double z = atom.getPos().z();
+        string element = atom.getElement();
+        int atnum = elements.getEleNum(element);
+        double crg = atom.getNuccharge();
         out<<boost::format( "%1$d %2$f %3$f %4$f %5$f\n") %atnum %crg %x %y %z;
       }
 
@@ -243,7 +222,7 @@ namespace votca {
           for (int iz = 0; iz <= _zsteps; iz++) {
             double z = zstart + double(iz) * zincr;
             Nrecord++;
-            vec pos = vec(x, y, z);
+            Eigen::Vector3d pos(x,y,z);
             Eigen::VectorXd tmat=EvaluateBasisAtPosition(dftbasis,pos);
             double value=0.0;
             if(do_amplitude){
@@ -268,19 +247,19 @@ namespace votca {
       return;
     }
 
-    Eigen::VectorXd GenCube::EvaluateBasisAtPosition(const AOBasis& dftbasis,const tools::vec& pos){
+    Eigen::VectorXd GenCube::EvaluateBasisAtPosition(const AOBasis& dftbasis,const Eigen::Vector3d& pos){
 
       // get value of orbitals at each gridpoint
       Eigen::VectorXd tmat = Eigen::VectorXd::Zero(dftbasis.AOBasisSize());
-      for (const AOShell* shell:dftbasis) {
-        const double decay =shell->getMinDecay();
-        const tools::vec& shellpos = shell->getPos();
-        tools::vec dist = shellpos - pos;
-        double distsq = dist*dist;
+      for (const AOShell& shell:dftbasis) {
+        const double decay =shell.getMinDecay();
+        const Eigen::Vector3d& shellpos = shell.getPos();
+        Eigen::Vector3d dist = shellpos - pos;
+        double distsq = dist.squaredNorm();
         // if contribution is smaller than -ln(1e-10), calc density
         if ((decay * distsq) < 20.7) {
-          Eigen::VectorBlock<Eigen::VectorXd> tmat_block = tmat.segment(shell->getStartIndex(), shell->getNumFunc());
-          shell->EvalAOspace(tmat_block, pos);
+          Eigen::VectorBlock<Eigen::VectorXd> tmat_block = tmat.segment(shell.getStartIndex(), shell.getNumFunc());
+          shell.EvalAOspace(tmat_block, pos);
         }
       }
       return tmat;
@@ -474,14 +453,14 @@ namespace votca {
       // now read data
       double val1;
       double val2;
-      for (int _ix = 0; _ix < _xsteps; _ix++) {
-        for (int _iy = 0; _iy < _ysteps; _iy++) {
+      for (int ix = 0; ix < _xsteps; ix++) {
+        for (int iy = 0; iy < _ysteps; iy++) {
           int Nrecord = 0;
-          for (int _iz = 0; _iz < _zsteps; _iz++) {
+          for (int iz = 0; iz < _zsteps; iz++) {
             Nrecord++;
             in1 >> val1;
             in2 >> val2;
-            if (Nrecord == 6 || _iz == _zsteps - 1) {
+            if (Nrecord == 6 || iz == _zsteps - 1) {
               fprintf(out, "%E \n", val1 - val2);
               Nrecord = 0;
             } else {

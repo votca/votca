@@ -52,9 +52,9 @@ namespace votca {
 
             // shell info, only lmax tells how far to go
             
-            int lmax_1 = shell_1->getLmax();
-            int lmax_2 = shell_2->getLmax();
-            int lmax_3 = shell_3->getLmax();
+            int lmax_1 = shell_1.getLmax();
+            int lmax_2 = shell_2.getLmax();
+            int lmax_3 = shell_3.getLmax();
             
             int mmax = lmax_1+lmax_2+lmax_3;
 
@@ -220,7 +220,7 @@ namespace votca {
             double gfak=decay_gamma/decay;
             double cfak= (decay_alpha + decay_beta)/decay;         
             const Eigen::Vector3d W=(decay_alpha*pos_alpha+decay_beta*pos_beta+decay_gamma*pos_gamma)/decay;
-            double U = (decay_alpha+decay_beta)*decay_gamma/decay*(P-pos_gamma)*(P-pos_gamma);
+            double U = (decay_alpha+decay_beta)*decay_gamma/decay*(P-pos_gamma).squaredNorm();
 
             const Eigen::Vector3d wmp = W - P;
             const Eigen::Vector3d wmc = W - pos_gamma;

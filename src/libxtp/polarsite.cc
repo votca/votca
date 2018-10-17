@@ -19,7 +19,6 @@
 
 
 #include <votca/xtp/polarsite.h>
-#include <boost/math/special_functions/round.hpp>
 #include <boost/format.hpp>
 #include <fstream>
 #include <string>
@@ -31,7 +30,7 @@ using namespace std;
 namespace votca {
   namespace xtp {
 
-   PolarSite::PolarSite(int id, const std::string& element, const Eigen::Vector3d& pos)
+   PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
             : _id(id), _element(element),_pos(pos),_rank(0),_multipole(Eigen::VectorXd::Zero(1)),
            _isPolarisable(false),_localpermanetField(Eigen::Vector3d::Zero()),
             _localinducedField(Eigen::Vector3d::Zero()),_eigendamp(0.0),
@@ -433,8 +432,7 @@ namespace votca {
     }
     
     
-    void PolarSite::WriteToCpt(CptLoc parent)const{
-       CheckpointWriter w(parent);
+    void PolarSite::WriteToCpt(CheckpointWriter& w)const{
 
        w(_id, "index");
        w(_element, "type");
@@ -445,15 +443,14 @@ namespace votca {
        w(_localpermanetField,"localpermanentField");
        w(_localinducedField,"localinducedField");
        w(_inducedDipole,"inducedDipole");
-       w(_inducedDipole_old,"inducedDipole_old")
+       w(_inducedDipole_old,"inducedDipole_old");
        w(_eigendamp,"eigendamp");
        w(PhiP,"PhiP");
        w(PhiU,"PhiU");
        
    }
 
-   void PolarSite::ReadFromCpt(CptLoc parent){
-       CheckpointReader r(parent);
+   void PolarSite::ReadFromCpt(CheckpointReader& r){
 
       r(_id, "index");
       r(_element, "type");
@@ -464,7 +461,7 @@ namespace votca {
       r(_localpermanetField,"localpermanentField");
       r(_localinducedField,"localinducedField");
       r(_inducedDipole,"inducedDipole");
-      r(_inducedDipole_old,"inducedDipole_old")
+      r(_inducedDipole_old,"inducedDipole_old");
       r(_eigendamp,"eigendamp");
       r(PhiP,"PhiP");
       r(PhiU,"PhiU");

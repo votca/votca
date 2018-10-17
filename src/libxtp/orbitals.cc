@@ -577,11 +577,11 @@ namespace votca {
             w(_mo_energies, "mo_energies");
             w(_mo_coefficients, "mo_coefficients");
 
-            CheckpointWriter molgroup = w.openChild("molecule");
-            _atoms.WriteToCpt(w);
+            CheckpointWriter molgroup = w.openChild("qmmolecule");
+            _atoms.WriteToCpt(molgroup);
 
             CheckpointWriter multigroup = w.openChild("multipoles");
-            _multipoles.WriteToCpt(w);
+            _multipoles.WriteToCpt(multigroup);
 
             w(_qm_energy, "qm_energy");
             w(_qm_package, "qm_package");
@@ -643,7 +643,7 @@ namespace votca {
             r(_mo_coefficients, "mo_coefficients");
 
             // Read qmatoms
-            CheckpointReader molgroup = r.openChild("molecule");
+            CheckpointReader molgroup = r.openChild("qmmolecule");
             _atoms.ReadFromCpt(molgroup);
 
             CheckpointReader multigroup = r.openChild("multipoles");

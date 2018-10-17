@@ -25,8 +25,6 @@
 #include <votca/xtp/parallelxjobcalc.h>
 #include <sys/stat.h>
 #include <boost/filesystem.hpp>
-#include <votca/xtp/xmapper.h>
-#include <votca/xtp/xjob.h>
 #include <votca/xtp/qmstate.h>
 
 namespace votca {
@@ -58,14 +56,12 @@ namespace votca {
             QMState GetElementFromMap(const std::string& elementname )const;
             std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
             double _cutoff;
-            double _epsilon;
-            XMpsMap _mps_mapper;
             bool _induce;
             std::map<std::string,QMState> _statemap;
             string _emp_file;
             string _xml_file;
             void PreProcess(Topology *top);
-            double EvaluatePair(Topology *top, PolarSeg* Seg1, PolarSeg* Seg2, Logger* pLog);
+            
 
         };
 

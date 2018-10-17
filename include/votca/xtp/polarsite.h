@@ -34,16 +34,14 @@ class PolarSite
 
 public:
 
-    PolarSite(int id, std::string element, const Eigen::Vector3d& pos);
+    PolarSite(int id, std::string element, Eigen::Vector3d pos);
             
     PolarSite(int id, std::string element)
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
 
     PolarSite(const QMAtom& atom):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
-        Eigen::VectorXd m=Eigen::VectorXd::Zero(1);
-        m<<atom.getNuccharge();
-        setMultipole(m);
+        setCharge(atom.getNuccharge());
     }
       
 
@@ -118,9 +116,11 @@ public:
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
     
-    void WriteToCpt(CptLoc parent)const;
+    void WriteToCpt(CheckpointWriter& w)const;
 
-   void ReadFromCpt(CptLoc parent);
+   void ReadFromCpt(CheckpointReader& r);
+   
+   static std::string Identify(){return "polarsite";}
     
     
 private:

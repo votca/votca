@@ -32,9 +32,9 @@ class PolarSegment : public AtomContainer<PolarSite>
 public:
     PolarSegment(std::string name,int id):AtomContainer<PolarSite>(name,id){};
     
-    void WriteToCpt(CptLoc parent)const;
+   void WriteToCpt(CheckpointWriter& w)const;
 
-    void ReadFromCpt(CptLoc parent);
+   void ReadFromCpt(CheckpointReader& r);
     
     void LoadFromMPS(const std::string& filename);
 
