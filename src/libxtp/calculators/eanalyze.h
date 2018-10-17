@@ -188,7 +188,7 @@ namespace votca {
             std::vector< double > Es;
             Es.reserve(_seg_shortlist.size());
             for (Segment* seg : _seg_shortlist) {
-                double E = seg->getSiteEnergy(state.ToXTPIndex());
+                double E = seg->getSiteEnergy(state.ToSegIndex());
                 Es.push_back(E);
             }
 
@@ -225,7 +225,7 @@ namespace votca {
                     if (seg->getId() == _last_seg) {
                         break;
                     }
-                    double E = seg->getSiteEnergy(state.ToXTPIndex());
+                    double E = seg->getSiteEnergy(state.ToSegIndex());
                     for (Atom *atm : seg->Atoms()) {
                         out << boost::format("%1$3s %2$4.7f %3$4.7f %4$4.7f %5$4.7f\n")
                                 % seg->getName()
@@ -252,7 +252,7 @@ namespace votca {
             for (QMPair *pair : nblist) {
                 Segment *seg1 = pair->Seg1();
                 Segment *seg2 = pair->Seg2();
-                double deltaE = seg2->getSiteEnergy(state.ToXTPIndex()) - seg1->getSiteEnergy(state.ToXTPIndex());
+                double deltaE = seg2->getSiteEnergy(state.ToSegIndex()) - seg1->getSiteEnergy(state.ToSegIndex());
                 dE.push_back(deltaE);
                 dE.push_back(-deltaE);
                 out << boost::format("%1$5d %2$5d %3$4.7f \n") % seg1->getId() % seg2->getId() % deltaE;
@@ -283,7 +283,7 @@ namespace votca {
             std::vector< double > Es;
             Es.reserve(_seg_shortlist.size());
             for (Segment* seg : _seg_shortlist) {
-                double E = seg->getSiteEnergy(state.ToXTPIndex());
+                double E = seg->getSiteEnergy(state.ToSegIndex());
                 Es.push_back(E);
             }
 
@@ -316,8 +316,8 @@ namespace votca {
                             }
                         }
                     }
-                    double C = ((*sit1)->getSiteEnergy(state.ToXTPIndex()) - AVG)
-                            * ((*sit2)->getSiteEnergy(state.ToXTPIndex()) - AVG);
+                    double C = ((*sit1)->getSiteEnergy(state.ToSegIndex()) - AVG)
+                            * ((*sit2)->getSiteEnergy(state.ToSegIndex()) - AVG);
                     tabcorr.set(index, R, C);
                     index++;
                 }

@@ -54,7 +54,7 @@ namespace votca {
         private:
             
             Eigen::Vector3d NumForceForward(double energy, int atom_index);
-            Eigen::Vector3d NumForceCentral(double energy, int atom_index);
+            Eigen::Vector3d NumForceCentral(int atom_index);
             void RemoveTotalForce();
 
             double _displacement;

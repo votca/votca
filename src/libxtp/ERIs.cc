@@ -143,37 +143,37 @@ namespace votca {
         }
 
         
-        void ERIs::CalculateERIs_4c_small_molecule(const Eigen::MatrixXd  &DMAT) {
+        void ERIs::CalculateERIs_4c_small_molecule(const Eigen::MatrixXd &DMAT) {
 
           _ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
           
-          const Eigen::VectorXd& _4c_vector = _fourcenter.get_4c_vector();
+          const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
           int dftBasisSize = DMAT.rows();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           #pragma omp parallel for
-          for (int _i = 0; _i < dftBasisSize; _i++) {
-            int sum_i = (_i*(_i+1))/2;
-            for (int _j = _i; _j < dftBasisSize; _j++) {
-              int _index_ij = dftBasisSize * _i - sum_i + _j;
-              int _index_ij_kl_a = vectorSize * _index_ij - (_index_ij*(_index_ij+1))/2;
-              for (int _k = 0; _k < dftBasisSize; _k++) {
-                int sum_k = (_k*(_k+1))/2;
-                for (int _l = _k; _l < dftBasisSize; _l++) {
-                  int _index_kl = dftBasisSize * _k - sum_k + _l;
+          for (int i = 0; i < dftBasisSize; i++) {
+            int sum_i = (i*(i+1))/2;
+            for (int j = i; j < dftBasisSize; j++) {
+              int index_ij = dftBasisSize * i - sum_i + j;
+              int index_ij_kl_a = vectorSize * index_ij - (index_ij*(index_ij+1))/2;
+              for (int k = 0; k < dftBasisSize; k++) {
+                int sum_k = (k*(k+1))/2;
+                for (int l = k; l < dftBasisSize; l++) {
+                  int index_kl = dftBasisSize * k - sum_k + l;
 
-                  unsigned _index_ij_kl = _index_ij_kl_a + _index_kl;
-                  if (_index_ij > _index_kl) _index_ij_kl = vectorSize * _index_kl - (_index_kl*(_index_kl+1))/2 + _index_ij;
+                  int index_ij_kl = index_ij_kl_a + index_kl;
+                  if (index_ij > index_kl) index_ij_kl = vectorSize * index_kl - (index_kl*(index_kl+1))/2 + index_ij;
 
-                  if (_l == _k) {
-                    _ERIs(_i, _j) += DMAT(_k, _l) * _4c_vector(_index_ij_kl);
+                  if (l == k) {
+                    _ERIs(i, j) += DMAT(k, l) * fourc_vector(index_ij_kl);
                   } else {
-                    _ERIs(_i, _j) += 2. * DMAT(_k, _l) * _4c_vector(_index_ij_kl);
+                    _ERIs(i, j) += 2. * DMAT(k, l) * fourc_vector(index_ij_kl);
                   }
 
                 }
               }
-              _ERIs(_j, _i) = _ERIs(_i, _j);
+              _ERIs(j, i) = _ERIs(i, j);
             }
           }
 
@@ -195,33 +195,33 @@ namespace votca {
             EXX_thread.push_back(thread);
           }
 
-          const Eigen::VectorXd& _4c_vector = _fourcenter.get_4c_vector();
+          const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
           int dftBasisSize = DMAT.rows();
           int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
           #pragma omp parallel for
           for (int thread = 0; thread < nthreads; ++thread) {
-            for (int _i = thread; _i < dftBasisSize; _i+= nthreads) {
-              int sum_i = (_i*(_i+1))/2;
-              for (int _j = _i; _j < dftBasisSize; _j++) {
-                int _index_ij = DMAT.cols() * _i - sum_i + _j;
-                int _index_ij_kl_a = vectorSize * _index_ij - (_index_ij*(_index_ij+1))/2;
-                for (int _k = 0; _k < dftBasisSize; _k++) {
-                  int sum_k = (_k*(_k+1))/2;
-                  for (int _l = _k; _l < dftBasisSize; _l++) {
-                    int _index_kl = DMAT.cols() * _k - sum_k + _l;
+            for (int i = thread; i < dftBasisSize; i+= nthreads) {
+              int sum_i = (i*(i+1))/2;
+              for (int j = i; j < dftBasisSize; j++) {
+                int index_ij = DMAT.cols() * i - sum_i + j;
+                int index_ij_kl_a = vectorSize * index_ij - (index_ij*(index_ij+1))/2;
+                for (int k = 0; k < dftBasisSize; k++) {
+                  int sum_k = (k*(k+1))/2;
+                  for (int l = k; l < dftBasisSize; l++) {
+                    int index_kl = DMAT.cols() * k - sum_k + l;
 
-                    int _index_ij_kl = _index_ij_kl_a + _index_kl;
-                    if (_index_ij > _index_kl) _index_ij_kl = vectorSize * _index_kl - (_index_kl*(_index_kl+1))/2 + _index_ij;
+                    int _index_ij_kl = index_ij_kl_a + index_kl;
+                    if (index_ij > index_kl) _index_ij_kl = vectorSize * index_kl - (index_kl*(index_kl+1))/2 + index_ij;
                     double factorij=1;
-                    if(_i==_j){factorij=0.5;}
+                    if(i==j){factorij=0.5;}
                     double factorkl=1;
-                    if(_l==_k){factorkl=0.5;}
+                    if(l==k){factorkl=0.5;}
                     double factor=factorij*factorkl;
-                    EXX_thread[thread](_i, _l) +=factor*DMAT(_j, _k) * _4c_vector(_index_ij_kl);
-                    EXX_thread[thread](_j, _l) +=factor*DMAT(_i, _k) * _4c_vector(_index_ij_kl);
-                    EXX_thread[thread](_i, _k) +=factor*DMAT(_j, _l) * _4c_vector(_index_ij_kl);
-                    EXX_thread[thread](_j, _k) +=factor*DMAT(_i, _l) * _4c_vector(_index_ij_kl);
+                    EXX_thread[thread](i, l) +=factor*DMAT(j, k) * fourc_vector(_index_ij_kl);
+                    EXX_thread[thread](j, l) +=factor*DMAT(i, k) * fourc_vector(_index_ij_kl);
+                    EXX_thread[thread](i, k) +=factor*DMAT(j, l) * fourc_vector(_index_ij_kl);
+                    EXX_thread[thread](j, k) +=factor*DMAT(i, l) * fourc_vector(_index_ij_kl);
                   }
                 }
               }
@@ -281,7 +281,7 @@ namespace votca {
                         }
                       }
                     }
-                    bool nonzero=_fourcenter.FillFourCenterRepBlock(block, &shell_1, &shell_2, &shell_3, &shell_4);
+                    bool nonzero=_fourcenter.FillFourCenterRepBlock(block, shell_1, shell_2, shell_3, shell_4);
                     
                     // If there are only zeros, we don't need to put anything in the ERIs matrix
                     if (!nonzero)
@@ -425,7 +425,7 @@ namespace votca {
                   }
                 }
               }
-              bool nonzero=_fourcenter.FillFourCenterRepBlock(block, &shell_1, &shell_2, &shell_1, &shell_2);
+              bool nonzero=_fourcenter.FillFourCenterRepBlock(block, shell_1, shell_2, shell_1, shell_2);
               
               if (!nonzero) {
                 continue;

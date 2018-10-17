@@ -93,20 +93,21 @@ namespace votca {
     
     
 
-    void Energy_costfunction::Vector2QMAtoms(const Eigen::VectorXd& pos, std::vector<QMAtom*>& atoms) {
-      for (unsigned i = 0; i < atoms.size(); i++) {
-        tools::vec pos_displaced(pos(3 * i), pos(3 * i + 1), pos(3 * i + 2));
-        atoms[i]->setPos(pos_displaced);
+    void Energy_costfunction::Vector2QMAtoms(const Eigen::VectorXd& pos,QMMolecule& atoms) {
+      for (int i = 0; i < atoms.size(); i++) {
+        Eigen::Vector3d pos_displaced;
+        pos_displaced<<pos(3 * i), pos(3 * i + 1), pos(3 * i + 2);
+        atoms[i].setPos(pos_displaced);
       }
     }
 
-    Eigen::VectorXd Energy_costfunction::QMAtoms2Vector(std::vector<QMAtom*>& atoms) {
+    Eigen::VectorXd Energy_costfunction::QMAtoms2Vector(QMMolecule& atoms) {
       Eigen::VectorXd result = Eigen::VectorXd::Zero(3 * atoms.size());
 
-      for (unsigned i = 0; i < atoms.size(); i++) {
-        result(3 * i) = atoms[i]->getPos().getX();
-        result(3 * i + 1) = atoms[i]->getPos().getY();
-        result(3 * i + 2) = atoms[i]->getPos().getZ();
+      for (int i = 0; i < atoms.size(); i++) {
+        result(3 * i) = atoms[i].getPos().x();
+        result(3 * i + 1) = atoms[i].getPos().y();
+        result(3 * i + 2) = atoms[i].getPos().z();
       }
       return result;
     }

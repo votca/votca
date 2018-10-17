@@ -66,12 +66,6 @@ void KMCMultiple::Initialize(tools::Property *options){
         if (!_carriertype.isKMCState()){
             throw runtime_error("KMC cannot be run for state:"+_carriertype.ToLongString());
         }
-     
-        
-        lengthdistribution = options->ifExistsReturnElseReturnDefault<double>(key+".jumplengthdist",0);
-        if(lengthdistribution>0){
-            dolengthdistributon=true;
-        }
 
         return;
 }      
@@ -170,8 +164,8 @@ void KMCMultiple::RunVSSM(Topology *top)
         }
     }
   
-    vector<int> forbiddennodes;
-    vector<int> forbiddendests;
+    vector<GNode*> forbiddennodes;
+    vector<GNode*> forbiddendests;
     
     Eigen::Matrix3d avgdiffusiontensor=Eigen::Matrix3d::Zero();
     
@@ -224,20 +218,11 @@ void KMCMultiple::RunVSSM(Topology *top)
             ResetForbiddenlist(forbiddendests);
             while(true){
             // LEVEL 2
-                if(tools::globals::verbose) {cout << "There are " <<affectedcarrier->getCurrentNode()->events.size() << " possible jumps for this charge:"; }
-              
-
-                const GLink& event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
-                newnode = &_nodes[event.destination];
-                if(newnode==affectedcarrier->getCurrentNode()){
-                    cout<<event.dr<<endl;
-                }
+               
+                const GLink& event=ChooseHoppingDest(*affectedcarrier->getCurrentNode());
+                newnode = event.destination;
 
                 if(newnode == NULL){
-                    if(tools::globals::verbose) {
-                        cout << endl << "Node " << affectedcarrier->getCurrentNodeId()+1  << " is SURROUNDED by forbidden destinations and zero rates. "
-                                "Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; 
-                    }
                     AddtoForbiddenlist(affectedcarrier->getCurrentNodeId(), forbiddennodes);
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
@@ -251,7 +236,7 @@ void KMCMultiple::RunVSSM(Topology *top)
 
                 // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
                 if(newnode->occupied){
-                    if(CheckSurrounded(affectedcarrier->getCurrentNode(), forbiddendests)){
+                    if(CheckSurrounded(*affectedcarrier->getCurrentNode(), forbiddendests)){
                         if(tools::globals::verbose) {
                             cout << "Node " << affectedcarrier->getCurrentNodeId()+1  << " is SURROUNDED by forbidden destinations. "
                                     "Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; 
@@ -267,7 +252,6 @@ void KMCMultiple::RunVSSM(Topology *top)
                 else{
                     affectedcarrier->jumpfromCurrentNodetoNode(newnode);
                     affectedcarrier->dr_travelled +=event.dr;
-                    AddtoJumplengthdistro(event,dt);
                     level1step = false;
                     if(tools::globals::verbose) {cout << "Charge has jumped to segment: " << newnode->id+1 << "." << endl;}
                     
@@ -365,7 +349,7 @@ void KMCMultiple::RunVSSM(Topology *top)
     vector< Segment* >& seg = top->Segments();
     for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i].occupationtime / simtime;
-            seg[i]->setOcc(occupationprobability,_carriertype.ToXTPIndex());
+            seg[i]->setOcc(occupationprobability,_carriertype.ToSegIndex());
         }
 
     cout << endl << "finished KMC simulation after " << step << " steps." << endl;
@@ -428,11 +412,7 @@ void KMCMultiple::RunVSSM(Topology *top)
        double average_mobility = std::abs(avgD / tools::conv::kB / _temperature);
        cout << std::scientific << "  Overall average mobility <mu>=" << average_mobility << " nm^2/Vs "  << endl;
     }
-    
-  PrintJumplengthdistro();
-    
 
-    
     return;
 }
 

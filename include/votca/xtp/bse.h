@@ -24,6 +24,7 @@
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
 namespace xtp {

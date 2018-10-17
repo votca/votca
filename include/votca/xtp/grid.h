@@ -21,13 +21,11 @@
 #define	VOTCA_XTP_GRID_H
 
 
-#include <votca/tools/elements.h>
 #include <string>
 #include <vector>
 #include <votca/xtp/qmatom.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/polarseg.h>
+#include <votca/xtp/qmmolecule.h>
 /**
 * \brief Takes a list of atoms, and creates CHELPG grid.
 *
@@ -41,7 +39,7 @@ namespace votca { namespace xtp {
   class Grid{
     public:
                
-        const std::vector< tools::vec > &getGridPositions() const {return _gridpoints;}
+        const std::vector< Eigen::Vector3d > &getGridPositions() const {return _gridpoints;}
         
         Eigen::VectorXd &getGridValues(){return _gridvalues;}
         const Eigen::VectorXd &getGridValues() const{return _gridvalues;}
@@ -51,7 +49,7 @@ namespace votca { namespace xtp {
        
         
        
-        void setupCHELPGGrid(std::vector< QMAtom* >& Atomlist){
+        void setupCHELPGGrid(const QMMolecule& Atomlist){
             _padding=3*tools::conv::ang2bohr; // Additional distance from molecule to set up grid according to CHELPG paper [Journal of Computational Chemistry 11, 361, 1990]
             _gridspacing=0.3*tools::conv::ang2bohr; // Grid spacing according to same paper 
             _cutoff=2.8*tools::conv::ang2bohr;
@@ -62,8 +60,8 @@ namespace votca { namespace xtp {
   private:
      
       
-      void setupgrid(std::vector< QMAtom* >& Atomlist);
-      std::vector< tools::vec > _gridpoints;
+      void setupgrid(const QMMolecule& Atomlist);
+      std::vector< Eigen::Vector3d > _gridpoints;
       Eigen::VectorXd _gridvalues;
      
       double _cutoff;

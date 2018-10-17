@@ -258,7 +258,7 @@ namespace votca {
         esp2multipole.Extractingcharges(orbitals);
         mps_file = (format("%1%_%2%_%3%.mps") % segType % segId % esp2multipole.GetStateString()).str();
         boost::filesystem::create_directories(ESPDIR);
-        esp2multipole.WritetoFile(ESPDIR + "/" + mps_file);
+        esp2multipole.WritetoFile(ESPDIR + "/" + mps_file,orbitals);
         XTP_LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
         segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
         }catch (std::runtime_error& error) {

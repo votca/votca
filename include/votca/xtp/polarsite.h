@@ -21,11 +21,8 @@
 #define __VOTCA_XTP_POLARSITE_H
 
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/topology.h>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/segment.h>
+#include <votca/xtp/qmatom.h>
 
-#include "qmatom.h"
 namespace votca { namespace xtp {
     /**
     \brief Class to represent Atom/Site in electrostatic+polarisation 
@@ -63,6 +60,11 @@ public:
     
     void setMultipole(const Eigen::VectorXd& multipole){
         _multipole=multipole;
+        calcRank();
+    }
+
+    void setCharge(double q){
+        _multipole(0)=q;
         calcRank();
     }
     

@@ -17,7 +17,6 @@
  *
  */
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/aoshell.h"
 #include "votca/xtp/qmatom.h"
 #include "votca/xtp/aomatrix.h"
 #include <votca/tools/constants.h>

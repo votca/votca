@@ -19,21 +19,17 @@
 #include <list>
 #include <stdlib.h>
 #include <queue>
-#include <votca/xtp/huffmantree.h>
-using namespace std;
 
 namespace votca { namespace xtp {
-
 
 
 
 template <class T> class huffmanTree
 {
 
-    
 public:
     void makeTree(){
-        if (!events) throw runtime_error("Error in Huffmantree::makeTree : Pointer to Events not set!");
+        if (!events) throw std::runtime_error("Error in Huffmantree::makeTree : Pointer to Events not set!");
 
         //queue of the nodes, sorted by probability
         auto compare = [](huffmanNode<T> * n1, huffmanNode<T> * n2)
@@ -41,14 +37,14 @@ public:
 
         //priority queues, because the algorithm always needs the element with the smallest probability. 
         //Also, it keep adding nodes to it, so it would we very inefficient to sort it in every iteration.
-        priority_queue<huffmanNode<T> *,vector<huffmanNode<T> *>, decltype(compare)> queue(compare);
+        std::priority_queue<huffmanNode<T> *,std::vector<huffmanNode<T> *>, decltype(compare)> queue(compare);
 
-        htree=vector<huffmanNode<T>>(events->size()%2?events->size():events->size()-1);
+        htree=std::vector<huffmanNode<T>>(events->size()%2?events->size():events->size()-1);
 
         auto comp2 = [](T * e1, T * e2){
-            return e1->rate>e2->rate;
+            return e1->getValue()>e2->getValue();
         };
-        priority_queue<T *, vector<T *>, decltype(comp2)> eventQueue(comp2);
+        std::priority_queue<T *, std::vector<T *>, decltype(comp2)> eventQueue(comp2);
         sum_of_values=0.0;
 
         int firstEmptyFieldIndex=0;
@@ -99,15 +95,16 @@ public:
 
     }
 
-    T * findHoppingDestination(double p){
-        if (!treeIsMade) throw runtime_error("Tried to find Hopping Destination without initializing the Huffmantree first!");
-        huffmanNode<T> * node=&htree.back();
+    T * findHoppingDestination(double p)const{
+        if (!treeIsMade) throw std::runtime_error("Tried to find Hopping Destination without initializing the Huffmantree first!");
+        const huffmanNode<T> * node=&htree.back();
         while (!node->isOnLastLevel){
             if (p>node->probability) node=node->leftChild;
             else node=node->rightChild;
         }
         return (p>node->probability?node->leftLeaf:node->rightLeaf);
     }
+    
     void setEvents(std::vector<T> * v){
         this->events=v;
     }
@@ -199,10 +196,11 @@ private:
             moveProbabilitiesFromRightSubtreesOneLevelUp(n->leftChild);
         }
     }
-    vector <huffmanNode<T>> htree;
+    
+    std::vector <huffmanNode<T> > htree;
     bool treeIsMade=false;
     double sum_of_values;
-    vector <T> * events=nullptr;
+    std::vector <T> * events=nullptr;
 
 
 };

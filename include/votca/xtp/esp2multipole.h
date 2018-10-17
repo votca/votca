@@ -51,12 +51,12 @@ public:
     void Extractingcharges( Orbitals& orbitals );
  
 
-    void WritetoFile(std::string output_file);
+    void WritetoFile(std::string output_file,const Orbitals& orbitals);
     std::string GetStateString()const{return _state.ToString();}
 
 private:
     
-       void PrintDipoles(Orbitals& orbitals);
+    void PrintDipoles(Orbitals& orbitals);
     
     QMState      _state;  
     int         _openmp_threads;
@@ -68,11 +68,10 @@ private:
     bool        _use_CHELPG;
     bool        _do_svd;
     double      _conditionnumber;
-    QMMolecule _atomlist;
     
     Logger*      _log;
     std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
-    std::vector< Espfit::region > _regionconstraint; 
+    std::vector< Espfit::ConstraintRegion > _regionconstraint;
     
 
 };

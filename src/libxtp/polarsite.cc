@@ -32,11 +32,11 @@ namespace votca {
   namespace xtp {
 
    PolarSite::PolarSite(int id, const std::string& element, const Eigen::Vector3d& pos)
-            : _id(id), _element(element),_pos(pos),_isPolarisable(false),
-            _localpermanetField(Eigen::Vector3d::Zero()),
-            _localinducedField(Eigen::Vector3d::Zero()),
-            _eigendamp(0.0),
+            : _id(id), _element(element),_pos(pos),_rank(0),_multipole(Eigen::VectorXd::Zero(1)),
+           _isPolarisable(false),_localpermanetField(Eigen::Vector3d::Zero()),
+            _localinducedField(Eigen::Vector3d::Zero()),_eigendamp(0.0),
             PhiP(0.0),PhiU(0.0){
+               
                 tools::Elements e;
                 double default_pol=std::pow(tools::conv::ang2bohr,3);
                 try{

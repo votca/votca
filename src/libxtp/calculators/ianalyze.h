@@ -133,7 +133,7 @@ namespace votca {
                         continue;
                     }
                 }
-                double test = pair->getJeff2(state.ToXTPIndex());
+                double test = pair->getJeff2(state.ToSegIndex());
                 if (test <= 0) {
                     continue;
                 } // avoid -inf in output
@@ -178,8 +178,8 @@ namespace votca {
             distances.reserve(nblist.size());
 
             for (QMPair* pair:nblist) {
-                double J2 = std::log10(pair->getJeff2(state.ToXTPIndex()));
-                double distance = tools::abs(pair->getR());
+                double J2 = std::log10(pair->getJeff2(state.ToSegIndex()));
+                double distance = tools::abs(pair->R());
                 distances.push_back(distance);
                 J2s.push_back(J2);
             }

@@ -28,7 +28,6 @@ using namespace std;
 
 namespace votca {
     namespace xtp {
-        KMCCalculator::KMCCalculator(){};
 
     void KMCCalculator::LoadGraph(Topology *top) {
 
@@ -40,7 +39,7 @@ namespace votca {
         _nodes.reserve(segs.size());
         for (Segment* seg:segs) {
             GNode newNode;
-            newNode.ReadfromSegment(seg, _carriertype.ToXTPIndex());
+            newNode.ReadfromSegment(*seg, _carriertype.ToSegIndex());
             if (tools::wildcmp(_injection_name.c_str(), seg->getName().c_str())) {
                 newNode.injectable = true;
             } else {
@@ -55,22 +54,22 @@ namespace votca {
         }
         
         
-        for (QMPair* pair:nblist) {
-            _nodes[pair->Seg1()->getId()-1].AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
-            _nodes[pair->Seg2()->getId()-1].AddEventfromQmPair(pair, _carriertype.ToXTPIndex());
+        for (const QMPair* pair:nblist) {
+            _nodes[pair->Seg1()->getId()-1].AddEventfromQmPair(*pair, _carriertype.ToSegIndex(), _nodes);
+            _nodes[pair->Seg2()->getId()-1].AddEventfromQmPair(*pair, _carriertype.ToSegIndex(),_nodes);
         }
         
         unsigned events=0;
         unsigned max=std::numeric_limits<unsigned>::min();
         unsigned min=std::numeric_limits<unsigned>::max();
-        minlength=std::numeric_limits<double>::max();
+        double minlength=std::numeric_limits<double>::max();
         double maxlength=0;
         for(const auto& node:_nodes){
             
             unsigned size=node.events.size();
             for( const auto& event:node.events){
                 if(event.decayevent){continue;}
-                double dist=abs(event.dr);
+                double dist=event.dr.norm();
                 if(dist>maxlength){
                     maxlength=dist;
                 } else if(dist<minlength){
@@ -100,39 +99,31 @@ namespace votca {
         cout<<"Nblist has "<<nblist.size()<<" pairs. Nodes contain "<<events<<" jump events"<<endl;
         cout<<"with avg="<<avg<<" std="<<deviation<<" max="<<max<<" min="<<min<<endl;
         cout<<"Minimum jumpdistance ="<<minlength<<" nm Maximum distance ="<<maxlength<<" nm"<<endl;
-        cout<<"Grouping into "<<lengthdistribution<<" boxes"<<endl;
-        lengthresolution=(1.00001*maxlength-minlength)/double(lengthdistribution);
-        cout<<"Resolution is "<<lengthresolution<<" nm"<<endl;   
-       
-        _jumplengthdistro=std::vector<long unsigned>(lengthdistribution,0);
-        _jumplengthdistro_weighted=std::vector<double>(lengthdistribution,0);
 
-       
         cout << "spatial density: " << _numberofcharges / top->BoxVolume() << " nm^-3" << endl;
 
-        for (auto* node:_nodes) {
-            node->InitEscapeRate();
-            node->MakeHuffTree();
+        for (auto& node:_nodes) {
+            node.InitEscapeRate();
+            node.MakeHuffTree();
         }
-            
         return;
     }
     
 
-        void KMCCalculator::ResetForbiddenlist(std::vector<int> &forbiddenid) const{
-            forbiddenid.clear();
+        void KMCCalculator::ResetForbiddenlist(std::vector<GNode *> &forbiddenlist) const{
+            forbiddenlist.clear();
             return;
         }
 
-        void KMCCalculator::AddtoForbiddenlist(int id, std::vector<int> &forbiddenid) const{
-            forbiddenid.push_back(id);
+        void KMCCalculator::AddtoForbiddenlist(const GNode& node, std::vector<GNode *> &forbiddenlist) const{
+            forbiddenlist.push_back(&node);
             return;
         }
 
-        bool KMCCalculator::CheckForbidden(int id,const std::vector<int> &forbiddenlist) const{
+        bool KMCCalculator::CheckForbidden(const GNode& node,const std::vector<GNode *> &forbiddenlist) const{
             bool forbidden = false;
-            for (unsigned int i = 0; i < forbiddenlist.size(); i++) {
-                if (id == forbiddenlist[i]) {
+            for (const GNode* fnode:forbiddenlist) {
+                if (&node==fnode) {
                     forbidden = true;
                     break;
                 }
@@ -140,12 +131,12 @@ namespace votca {
             return forbidden;
         }
 
-        bool KMCCalculator::CheckSurrounded(const GNode& node,const std::vector<int> & forbiddendests) {
+        bool KMCCalculator::CheckSurrounded(const GNode& node,const std::vector<GNode *> & forbiddendests) const{
             bool surrounded = true;
-            for (unsigned  i = 0; i < node.events.size(); i++) {
+            for (const auto& event:node.events) {
                 bool thisevent_possible = true;
-                for (unsigned int j = 0; j < forbiddendests.size(); j++) {
-                    if (node.events[i].destination == forbiddendests[j]) {
+                for (const GNode* fnode:forbiddendests) {
+                    if (event.destination == fnode) {
                         thisevent_possible = false;
                         break;
                     }
@@ -251,15 +242,11 @@ namespace votca {
                     else if(rate<minrate){
                         minrate=rate;
                     }
-
                     totalnumberofrates++;
                 }
-
-               
-
             }
              // Initialise escape rates
-                for (auto* node:_nodes) {
+                for (auto& node:_nodes) {
                     node->InitEscapeRate();
                     node->MakeHuffTree();
                 }
@@ -290,9 +277,9 @@ namespace votca {
         }
         
         
-        const GLink& KMCCalculator::ChooseHoppingDest(const GNode* node){
+        const GLink& KMCCalculator::ChooseHoppingDest(const GNode& node){
             double u = 1 - _RandomVariable.rand_uniform();
-            return node->findHoppingDestination(u);
+            return node.findHoppingDestination(u);
         }
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
@@ -303,50 +290,14 @@ namespace votca {
             double u = 1 - _RandomVariable.rand_uniform();
             for (unsigned int i = 0; i < _numberofcharges; i++) {
                 u -= _carriers[i]->getCurrentEscapeRate() / cumulated_rate;
-
                 if (u <= 0 || i==_numberofcharges-1) {
-
                     carrier = _carriers[i];
                     break;}  
             }
             return carrier;
         }
         
-        void KMCCalculator::AddtoJumplengthdistro(const GLink& event,double dt){
-            if(dolengthdistributon){
-                double dist=event.dr.norm()-minlength;
-                int index=int(dist/lengthresolution);
-                _jumplengthdistro[index]++;
-                _jumplengthdistro_weighted[index]+=dt;
-            }
-            return; 
-        }
-        
-        void KMCCalculator::PrintJumplengthdistro(){
-            if(dolengthdistributon){
-            long unsigned noofjumps=0;
-            
-            double weightedintegral=0;
-            for(unsigned i=0;i<_jumplengthdistro.size();++i){
-                noofjumps+=_jumplengthdistro[i];   
-                weightedintegral+=_jumplengthdistro_weighted[i];
-            }
-            double noofjumps_double=double(noofjumps);
-            cout<<"Total number of jumps: "<<noofjumps<<endl;
-            cout<<" distance[nm] |   # of jumps   | # of jumps [%] | .w. by dist [nm] | w. by timestep [%]"<<endl;
-            cout<<"------------------------------------------------------------------------------------"<<endl;
-            for(unsigned i=0;i<_jumplengthdistro.size();++i){
-                double dist=lengthresolution*(i+0.5)+minlength;
-                double percent=_jumplengthdistro[i]/noofjumps_double;
-                double rtimespercent=percent*dist;
-                cout<<(boost::format("    %4.3f    | %15d |    %04.2f    |     %4.3e     |     %04.2f")
-                            % (dist) % (_jumplengthdistro[i]) % (percent*100) %(rtimespercent) % (_jumplengthdistro_weighted[i]/weightedintegral*100)).str()<<endl;                
-            }
-            cout<<"------------------------------------------------------------------------------------"<<endl;
-           
-            }
-            return;
-        }
+   
  
         
     }

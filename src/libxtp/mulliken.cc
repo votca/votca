@@ -19,37 +19,32 @@
 
 
 #include <votca/xtp/mulliken.h>
-#include <votca/xtp/aomatrix.h>
 
-#include "votca/xtp/qmatom.h"
 namespace votca { namespace xtp {
 
-void Mulliken::EvaluateMulliken(std::vector<QMAtom* >& _atomlist,const Eigen::MatrixXd  &_dmat, const AOBasis &basis,bool _do_transition){
-    AOOverlap _overlap;
+void Mulliken::EvaluateMulliken(Orbitals& orbitals,const AOBasis &basis,const QMState& state){
+    AOOverlap overlap;
     // Fill overlap
-    _overlap.Fill(basis);
+    overlap.Fill(basis);
     
-    Eigen::MatrixXd _prodmat = _dmat* _overlap.Matrix();
-    
-    std::vector <QMAtom* > :: iterator atom;
+    Eigen::MatrixXd prodmat = orbitals.DensityMatrixFull(state)* overlap.Matrix();
 
     int id =0;
-    for (atom = _atomlist.begin(); atom < _atomlist.end(); ++atom){
-         double charge=0.0;           
+    for (const QMAtom& atom:orbitals.QMAtoms()){
+        double charge=0.0;
          // get element type and determine its nuclear charge
-         if (!_do_transition){
-            charge=(*atom)->getNuccharge(); 
+         if (!state.isTransition()){
+            charge=atom.getNuccharge();
          }
+
+         int nooffunc=basis.getFuncOfAtom(atom.getAtomID());
          
-         // a little messy, have to use basis set to find out which entries in dmat belong to each atom.
-         
-         
-         int nooffunc=basis.getFuncOfAtom((*atom)->getAtomID());
-         
-         for ( int _i = id ; _i < id+nooffunc; _i++){
-                charge -= _prodmat(_i,_i);
+         for ( int i = id ; i < id+nooffunc; i++){
+                charge -= prodmat(i,i);
         }
-         (*atom)->setPartialcharge(charge);
+         PolarSite site=PolarSite(atom);
+         site.setCharge(charge);
+         orbitals.Multipoles().push_back(site);
          id+=nooffunc;
     }
 

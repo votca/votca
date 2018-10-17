@@ -35,15 +35,15 @@ void GNode::AddDecayEvent(double decayrate){
     newEvent.destination = NULL;
     newEvent.rate = decayrate;
     newEvent.initialrate = decayrate;
-    newEvent.dr = votca::tools::vec(0.0);
+    newEvent.dr = Eigen::Vector3d::Zero();
     newEvent.Jeff2 = 0.0;
     newEvent.decayevent=true;
     newEvent.reorg_out = 0.0;
-    this->events.push_back(newEvent);
+    events.push_back(newEvent);
     hasdecay=true;
 }
 
-void GNode::AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, double reorg_out){
+void GNode::AddEvent(GNode* seg2, double rate12,const Eigen::Vector3d& dr, double Jeff2, double reorg_out){
     GLink newEvent;
     newEvent.destination = seg2;
     newEvent.rate = rate12;
@@ -52,7 +52,7 @@ void GNode::AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2, doubl
     newEvent.Jeff2 = Jeff2;
     newEvent.decayevent=false;
     newEvent.reorg_out = reorg_out;
-    this->events.push_back(newEvent);
+    events.push_back(newEvent);
 }
 
 
@@ -72,46 +72,46 @@ void GNode::MakeHuffTree(){
    hTree.makeTree();
 }
 
- void GNode::ReadfromSegment(Segment* seg,int carriertype){
+ void GNode::ReadfromSegment(const Segment& seg,int carriertype){
      
-     position=seg->getPos();
-     id=seg->getId()-1;
-     siteenergy=seg->getSiteEnergy(carriertype);
+     position=seg.getPos().toEigen();
+     id=seg.getId()-1;
+     siteenergy=seg.getSiteEnergy(carriertype);
      
      if (carriertype<2){
-         reorg_intorig=seg->getU_nC_nN(carriertype);
-         reorg_intdest=seg->getU_cN_cC(carriertype);
+         reorg_intorig=seg.getU_nC_nN(carriertype);
+         reorg_intdest=seg.getU_cN_cC(carriertype);
      }
      else{
-         reorg_intorig=seg->getU_nX_nN(carriertype);
-         reorg_intdest=seg->getU_xN_xX(carriertype);
+         reorg_intorig=seg.getU_nX_nN(carriertype);
+         reorg_intdest=seg.getU_xN_xX(carriertype);
      }
      
     return; 
  }
  
  
- void GNode::AddEventfromQmPair(QMPair* pair,int carriertype){
-     double Jeff2=pair->getJeff2(carriertype);
-     if(pair->getType()==QMPair::PairType::Excitoncl && carriertype!=2){
+ void GNode::AddEventfromQmPair(const QMPair& pair,int carriertype,std::vector<GNode>& nodes){
+     double Jeff2=pair.getJeff2(carriertype);
+     if(pair.getType()==QMPair::PairType::Excitoncl && carriertype!=2){
          return;
      }
      int destination=0;
      double rate12=0.0;
-     tools::vec dr=tools::vec(0.0);
-     if(id==pair->Seg1()->getId()-1){
-        destination=pair->Seg2()->getId()-1;
-        rate12=pair->getRate12(carriertype);
-        dr=pair->getR();
+     Eigen::Vector3d dr=Eigen::Vector3d::Zero();
+     if(id==pair.Seg1()->getId()-1){
+        destination=pair.Seg2()->getId()-1;
+        rate12=pair.getRate12(carriertype);
+        dr=pair.R().toEigen();
      }
      else{
-         destination=pair->Seg1()->getId()-1;
-         rate12=pair->getRate21(carriertype);
-         dr=-pair->getR();
+         destination=pair.Seg1()->getId()-1;
+         rate12=pair.getRate21(carriertype);
+         dr=-pair.R().toEigen();
      }
     
-    double reorg_out=pair->getLambdaO(carriertype);
-    AddEvent(destination,rate12,dr,Jeff2,reorg_out);
+    double reorg_out=pair.getLambdaO(carriertype);
+    AddEvent(&nodes[destination],rate12,dr,Jeff2,reorg_out);
      
     return; 
  }

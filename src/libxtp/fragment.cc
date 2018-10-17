@@ -57,11 +57,6 @@ void Fragment::AddAtom(Atom* atom) {
     _weights.push_back( atom->getWeight() );
 }
 
-void Fragment::AddPolarSite(PolarSite *pole) {
-    _polarSites.push_back(pole);
-    pole->setFragment(this);
-}
-
 
 void Fragment::Rotate(matrix spin, vec refPos) {
     vector <Atom*> ::iterator ait;

@@ -42,7 +42,9 @@ namespace votca { namespace xtp {
 
         const Eigen::VectorXd& get_4c_vector() { return _4c_vector;}
 
-        bool FillFourCenterRepBlock(tensor4d& block, const AOShell* _shell_1, const AOShell* _shell_2, const AOShell* _shell_3,const AOShell* _shell_4);
+        bool FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1, 
+                                const AOShell& shell_2, const AOShell& shell_3,
+                                const AOShell& shell_4);
 
       private:
         Eigen::VectorXd _4c_vector;

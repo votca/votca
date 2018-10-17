@@ -124,7 +124,7 @@ namespace votca {
 
     
 
-    void GeometryOptimization::WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms, const BFGSTRM& bfgstrm){
+    void GeometryOptimization::WriteTrajectory(const std::string& filename, QMMolecule& atoms, const BFGSTRM& bfgstrm){
       std::ofstream ofs;
       if (bfgstrm.getIteration() == 0) {
         ofs.open(filename.c_str(), std::ofstream::out);
@@ -138,9 +138,9 @@ namespace votca {
       ofs << atoms.size() << std::endl;
       ofs << "iteration " << bfgstrm.getIteration() << " energy " << bfgstrm.getCost() << " Hartree" << std::endl;
       Energy_costfunction::Vector2QMAtoms(bfgstrm.getParameters(), atoms);
-      for (const QMAtom* atom : atoms) {
-        tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        ofs << atom->getElement() << " " << pos.getX() << " " << pos.getY() << " " << pos.getZ() << std::endl;
+      for (const QMAtom& atom : atoms) {
+        const Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
+        ofs << atom.getElement() << " " << pos.x() << " " << pos.y() << " " << pos.z() << std::endl;
       }
       ofs.close();
       return;

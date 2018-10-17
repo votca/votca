@@ -36,8 +36,7 @@ namespace votca { namespace xtp {
 
 class Topology;
 class Molecule;
-class Segment;
-class PolarSite;    
+class Segment;  
 
 /**
     \brief Rigid fragment. One conjugated segment contains several rigid fragments.
@@ -64,13 +63,11 @@ public:
     inline void setMolecule(Molecule *container) { _mol = container; }
     inline void setSegment(Segment *container)   { _seg = container; }
     void        AddAtom( Atom* atom );
-    void        AddPolarSite(PolarSite *pole);
 
     Topology            *getTopology() { return _top; }
     Molecule            *getMolecule() { return _mol; }
     Segment             *getSegment()  { return _seg; }
     std::vector< Atom* >     &Atoms() { return _atoms; }
-    std::vector<PolarSite*> &PolarSites() { return _polarSites; }
 
     const int    &getId() const { return _id; }
     const std::string &getName() const { return _name; }
@@ -104,7 +101,6 @@ private:
     Segment     *_seg;
 
     std::vector < Atom* > _atoms;
-    std::vector <PolarSite*> _polarSites;
     std::vector< double > _weights;
 
     int         _id;

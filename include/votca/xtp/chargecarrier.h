@@ -32,12 +32,7 @@ namespace votca { namespace xtp {
             class Chargecarrier
             {
                 public:
-                    Chargecarrier(): lifetime(0.0),steps(0) 
-                    {
-                        dr_travelled=Eigen::Vector3d::Zero();
-                        node=NULL;
-                    }
-                    ~Chargecarrier(){};
+                    Chargecarrier(): lifetime(0.0),steps(0),dr_travelled(Eigen::Vector3d::Zero()),node(NULL){};
                     bool hasNode(){return (node!=NULL);}
                     void updateLifetime(double dt) { lifetime+=dt;}
                     void updateOccupationtime(double dt){ node->occupationtime+=dt;}

@@ -753,9 +753,9 @@ if (lmax_delta > 0) {
     int imz_i = i_more_z[i];
     for (int j = 0; j < ntrafo_alpha; j++) {
       for (int k= 0; k < ntrafo_beta; k++) {
-        R4_ab_sph[j][k][i][Cart::x] = R4_ab_sph[j][k][imx_i][0] + cmd0*R4_ab_sph[j][k][i][0];
-        R4_ab_sph[j][k][i][Cart::y] = R4_ab_sph[j][k][imy_i][0] + cmd1*R4_ab_sph[j][k][i][0];
-        R4_ab_sph[j][k][i][Cart::z] = R4_ab_sph[j][k][imz_i][0] + cmd2*R4_ab_sph[j][k][i][0];
+        R4_ab_sph[j][k][i][Cart::x] = R4_ab_sph[j][k][imx_i][0] + cmd(0)*R4_ab_sph[j][k][i][0];
+        R4_ab_sph[j][k][i][Cart::y] = R4_ab_sph[j][k][imy_i][0] + cmd(1)*R4_ab_sph[j][k][i][0];
+        R4_ab_sph[j][k][i][Cart::z] = R4_ab_sph[j][k][imz_i][0] + cmd(2)*R4_ab_sph[j][k][i][0];
       }
     }
   }
@@ -770,12 +770,12 @@ if (lmax_delta > 1) {
     int imz_i = i_more_z[i];
     for (int j = 0; j < ntrafo_alpha; j++) {
       for (int k= 0; k < ntrafo_beta; k++) {
-        R4_ab_sph[j][k][i][Cart::xx] = R4_ab_sph[j][k][imx_i][Cart::x] + cmd0*R4_ab_sph[j][k][i][Cart::x];
-        R4_ab_sph[j][k][i][Cart::xy] = R4_ab_sph[j][k][imx_i][Cart::y] + cmd0*R4_ab_sph[j][k][i][Cart::y];
-        R4_ab_sph[j][k][i][Cart::xz] = R4_ab_sph[j][k][imx_i][Cart::z] + cmd0*R4_ab_sph[j][k][i][Cart::z];
-        R4_ab_sph[j][k][i][Cart::yy] = R4_ab_sph[j][k][imy_i][Cart::y] + cmd1*R4_ab_sph[j][k][i][Cart::y];
-        R4_ab_sph[j][k][i][Cart::yz] = R4_ab_sph[j][k][imy_i][Cart::z] + cmd1*R4_ab_sph[j][k][i][Cart::z];
-        R4_ab_sph[j][k][i][Cart::zz] = R4_ab_sph[j][k][imz_i][Cart::z] + cmd2*R4_ab_sph[j][k][i][Cart::z];
+        R4_ab_sph[j][k][i][Cart::xx] = R4_ab_sph[j][k][imx_i][Cart::x] + cmd(0)*R4_ab_sph[j][k][i][Cart::x];
+        R4_ab_sph[j][k][i][Cart::xy] = R4_ab_sph[j][k][imx_i][Cart::y] + cmd(0)*R4_ab_sph[j][k][i][Cart::y];
+        R4_ab_sph[j][k][i][Cart::xz] = R4_ab_sph[j][k][imx_i][Cart::z] + cmd(0)*R4_ab_sph[j][k][i][Cart::z];
+        R4_ab_sph[j][k][i][Cart::yy] = R4_ab_sph[j][k][imy_i][Cart::y] + cmd(1)*R4_ab_sph[j][k][i][Cart::y];
+        R4_ab_sph[j][k][i][Cart::yz] = R4_ab_sph[j][k][imy_i][Cart::z] + cmd(1)*R4_ab_sph[j][k][i][Cart::z];
+        R4_ab_sph[j][k][i][Cart::zz] = R4_ab_sph[j][k][imz_i][Cart::z] + cmd(2)*R4_ab_sph[j][k][i][Cart::z];
       }
     }
   }
@@ -790,16 +790,16 @@ if (lmax_delta > 2) {
     int imz_i = i_more_z[i];
     for (int j = 0; j < ntrafo_alpha; j++) {
       for (int k= 0; k < ntrafo_beta; k++) {
-        R4_ab_sph[j][k][i][Cart::xxx] = R4_ab_sph[j][k][imx_i][Cart::xx] + cmd0*R4_ab_sph[j][k][i][Cart::xx];
-        R4_ab_sph[j][k][i][Cart::xxy] = R4_ab_sph[j][k][imx_i][Cart::xy] + cmd0*R4_ab_sph[j][k][i][Cart::xy];
-        R4_ab_sph[j][k][i][Cart::xxz] = R4_ab_sph[j][k][imx_i][Cart::xz] + cmd0*R4_ab_sph[j][k][i][Cart::xz];
-        R4_ab_sph[j][k][i][Cart::xyy] = R4_ab_sph[j][k][imx_i][Cart::yy] + cmd0*R4_ab_sph[j][k][i][Cart::yy];
-        R4_ab_sph[j][k][i][Cart::xyz] = R4_ab_sph[j][k][imx_i][Cart::yz] + cmd0*R4_ab_sph[j][k][i][Cart::yz];
-        R4_ab_sph[j][k][i][Cart::xzz] = R4_ab_sph[j][k][imx_i][Cart::zz] + cmd0*R4_ab_sph[j][k][i][Cart::zz];
-        R4_ab_sph[j][k][i][Cart::yyy] = R4_ab_sph[j][k][imy_i][Cart::yy] + cmd1*R4_ab_sph[j][k][i][Cart::yy];
-        R4_ab_sph[j][k][i][Cart::yyz] = R4_ab_sph[j][k][imy_i][Cart::yz] + cmd1*R4_ab_sph[j][k][i][Cart::yz];
-        R4_ab_sph[j][k][i][Cart::yzz] = R4_ab_sph[j][k][imy_i][Cart::zz] + cmd1*R4_ab_sph[j][k][i][Cart::zz];
-        R4_ab_sph[j][k][i][Cart::zzz] = R4_ab_sph[j][k][imz_i][Cart::zz] + cmd2*R4_ab_sph[j][k][i][Cart::zz];
+        R4_ab_sph[j][k][i][Cart::xxx] = R4_ab_sph[j][k][imx_i][Cart::xx] + cmd(0)*R4_ab_sph[j][k][i][Cart::xx];
+        R4_ab_sph[j][k][i][Cart::xxy] = R4_ab_sph[j][k][imx_i][Cart::xy] + cmd(0)*R4_ab_sph[j][k][i][Cart::xy];
+        R4_ab_sph[j][k][i][Cart::xxz] = R4_ab_sph[j][k][imx_i][Cart::xz] + cmd(0)*R4_ab_sph[j][k][i][Cart::xz];
+        R4_ab_sph[j][k][i][Cart::xyy] = R4_ab_sph[j][k][imx_i][Cart::yy] + cmd(0)*R4_ab_sph[j][k][i][Cart::yy];
+        R4_ab_sph[j][k][i][Cart::xyz] = R4_ab_sph[j][k][imx_i][Cart::yz] + cmd(0)*R4_ab_sph[j][k][i][Cart::yz];
+        R4_ab_sph[j][k][i][Cart::xzz] = R4_ab_sph[j][k][imx_i][Cart::zz] + cmd(0)*R4_ab_sph[j][k][i][Cart::zz];
+        R4_ab_sph[j][k][i][Cart::yyy] = R4_ab_sph[j][k][imy_i][Cart::yy] + cmd(1)*R4_ab_sph[j][k][i][Cart::yy];
+        R4_ab_sph[j][k][i][Cart::yyz] = R4_ab_sph[j][k][imy_i][Cart::yz] + cmd(1)*R4_ab_sph[j][k][i][Cart::yz];
+        R4_ab_sph[j][k][i][Cart::yzz] = R4_ab_sph[j][k][imy_i][Cart::zz] + cmd(1)*R4_ab_sph[j][k][i][Cart::zz];
+        R4_ab_sph[j][k][i][Cart::zzz] = R4_ab_sph[j][k][imz_i][Cart::zz] + cmd(2)*R4_ab_sph[j][k][i][Cart::zz];
       }
     }
   }
@@ -822,14 +822,14 @@ for (int l = 4; l < lmax_delta+1; l++) {
     for (int j = 0; j < ntrafo_alpha; j++) {
       for (int k= 0; k < ntrafo_beta; k++) {
         for (int m = 0; m < ncart_2; m++) {
-          R4_ab_sph[j][k][i][norb_1 + m] = R4_ab_sph[j][k][imx_i][norb_2 + m] + cmd0*R4_ab_sph[j][k][i][norb_2 + m];
+          R4_ab_sph[j][k][i][norb_1 + m] = R4_ab_sph[j][k][imx_i][norb_2 + m] + cmd(0)*R4_ab_sph[j][k][i][norb_2 + m];
         }
         for (int m = 0; m < l; m++) {
           int n = norb_2 + ncart_2 + m;
-          R4_ab_sph[j][k][i][norb_1 + ncart_2 + m] = R4_ab_sph[j][k][imx_i][n] + cmd0*R4_ab_sph[j][k][i][n];
-          R4_ab_sph[j][k][i][norb_1 + ncart_1 + m] = R4_ab_sph[j][k][imy_i][n] + cmd1*R4_ab_sph[j][k][i][n];
+          R4_ab_sph[j][k][i][norb_1 + ncart_2 + m] = R4_ab_sph[j][k][imx_i][n] + cmd(0)*R4_ab_sph[j][k][i][n];
+          R4_ab_sph[j][k][i][norb_1 + ncart_1 + m] = R4_ab_sph[j][k][imy_i][n] + cmd(1)*R4_ab_sph[j][k][i][n];
         }
-        R4_ab_sph[j][k][i][norb-1] = R4_ab_sph[j][k][imz_i][norb_1-1] + cmd2*R4_ab_sph[j][k][i][norb_1-1];
+        R4_ab_sph[j][k][i][norb-1] = R4_ab_sph[j][k][imz_i][norb_1-1] + cmd(2)*R4_ab_sph[j][k][i][norb_1-1];
       }
     }
   }

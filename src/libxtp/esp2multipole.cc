@@ -23,6 +23,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qminterface.h>
 
+
 namespace votca {
     namespace xtp {
       using std::flush;
@@ -59,7 +60,7 @@ namespace votca {
                      for (tools::Property* prop:prop_region) {
                          std::string indices=prop->get("indices").as<std::string>();
                          tools::Tokenizer tok(indices,"\n\t ,");
-                         Espfit::region reg;
+                         Espfit::ConstraintRegion reg;
                          tok.ConvertToVector<int>(reg.atomindices);
                          reg.charge=prop->get("charge").as<double>();
                          _regionconstraint.push_back(reg);
@@ -102,7 +103,7 @@ namespace votca {
 
         
 
-        void Esp2multipole::WritetoFile(std::string output_file) {
+        void Esp2multipole::WritetoFile(std::string output_file,const Orbitals& orbitals) {
 
             std::string data_format = boost::filesystem::extension(output_file);
             if (!(data_format == ".mps")) {
@@ -110,25 +111,18 @@ namespace votca {
             }
             std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
 
-            QMInterface Converter;
-            PolarSeg result = Converter.Convert(_Atomlist);
-
-            result.WriteMPS(output_file, tag);
+            orbitals.Multipoles().WriteMPS(output_file, tag);
             return;
         }
 
         void Esp2multipole::PrintDipoles(Orbitals& orbitals){
-          Eigen::Vector3d CoM = _atomlist.getPos();
+          Eigen::Vector3d classical_dip = orbitals.Multipoles().CalcDipole();
           
-          Eigen::Vector3d classical_dip = Eigen::Vector3d::Zero();
-          for (const QMAtom& atom : _atomlist) {
-            classical_dip += (atom.getPos()- CoM) * atom.getPartialcharge();
-          }
-          CTP_LOG(ctp::logDEBUG, *_log) << "El Dipole from fitted charges [e*bohr]:\n\t\t" 
+          XTP_LOG(logDEBUG, *_log) << "El Dipole from fitted charges [e*bohr]:\n\t\t"
                   << boost::format(" dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f")
                   % classical_dip[0] % classical_dip[1] % classical_dip[2] % classical_dip.squaredNorm()<< flush;
           Eigen::Vector3d qm_dip=orbitals.CalcElDipole(_state);
-          CTP_LOG(ctp::logDEBUG, *_log) << "El Dipole from exact qm density [e*bohr]:\n\t\t"   
+          XTP_LOG(logDEBUG, *_log) << "El Dipole from exact qm density [e*bohr]:\n\t\t"
                   << boost::format(" dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f")
                   % qm_dip[0] % qm_dip[1] % qm_dip[2] % qm_dip.squaredNorm()<< flush;
         }
@@ -140,22 +134,18 @@ namespace votca {
             threads = omp_get_max_threads();
 #endif
             XTP_LOG(logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
-
-            _atomlist = orbitals.QMAtoms();
             BasisSet bs;
             bs.LoadBasisSet(orbitals.getDFTbasis());
             AOBasis basis;
-            basis.AOBasisFill(bs, _atomlist);
-            Eigen::MatrixXd DMAT=orbitals.DensityMatrixFull(_state);
-            
+            basis.AOBasisFill(bs, orbitals.QMAtoms());   
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.EvaluateMulliken(_atomlist, DMAT, basis, _state.isTransition());
+                mulliken.EvaluateMulliken(orbitals, basis, _state);
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.EvaluateLowdin(_atomlist, DMAT, basis, _state.isTransition());
+                lowdin.EvaluateLowdin(orbitals, basis, _state);
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){
@@ -169,8 +159,8 @@ namespace votca {
                     esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
-                    esp.Fit2Density(_atomlist, DMAT, basis, _gridsize);
-                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(_atomlist, DMAT, basis);
+                    esp.Fit2Density(orbitals, _state, basis, _gridsize);
+                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(orbitals, _state, basis);
             } 
 
             PrintDipoles(orbitals);

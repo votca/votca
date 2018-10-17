@@ -25,13 +25,10 @@
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/eigen.h>
-
+#include <votca/xtp/aoshell.h>
 
 
 namespace votca { namespace xtp {
-
-class AOShell;
-
 
 /**
  * \brief Container to hold Basisfunctions for all atoms 

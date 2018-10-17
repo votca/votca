@@ -1108,11 +1108,11 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
     }
 
-        void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> > & sites) {
+        void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (const auto& Seg:sites) {
-               for (const PolarSite& site:*Seg) {
+            for (const auto& Seg:*sites) {
+               for (const PolarSite& site:Seg) {
                     if (site.getRank() > 1) {
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                         setPolarSite(&site);

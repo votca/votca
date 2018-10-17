@@ -21,29 +21,23 @@
 #define	VOTCA_XTP_LOWDIN_H
 
 
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/xtp/orbitals.h>
 
 
 /**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of mulliken partial charges
+* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of lowdin partial charges
 *
 * 
 * 
 */
 
-
-
 namespace votca { namespace xtp {
     
 class Lowdin{
 public:
-    
-    Lowdin(){}
-   ~Lowdin(){};
 
-    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,AOBasis &basis, bool _do_transition);
+
+    void EvaluateLowdin(Orbitals& orbitals,const AOBasis &basis,const QMState& state);
   
    
 private:

@@ -40,24 +40,24 @@ namespace votca {
           for(int i=0;i<shellsize;++i){
           
             const AOShell& shell_3 = dftbasis.getShell(i);
-            int start_3 = shell_3->getStartIndex();
-            int NumFunc_3 = shell_3->getNumFunc();
+            int start_3 = shell_3.getStartIndex();
+            int NumFunc_3 = shell_3.getNumFunc();
    
 
             for (int j=i;j<shellsize;++j) {
               const AOShell& shell_4 = dftbasis.getShell(j);
-              int start_4 = shell_4->getStartIndex();
-              int NumFunc_4 = shell_4->getNumFunc();
+              int start_4 = shell_4.getStartIndex();
+              int NumFunc_4 = shell_4.getNumFunc();
        
               for (int k=i;k<shellsize;++k) {
                 const AOShell& shell_1 = dftbasis.getShell(k);
-                int start_1 = shell_1->getStartIndex();
-                int NumFunc_1 = shell_1->getNumFunc();
+                int start_1 = shell_1.getStartIndex();
+                int NumFunc_1 = shell_1.getNumFunc();
          
                for (int l=k;l<shellsize;++l)  {
                   const AOShell& shell_2 = dftbasis.getShell(l);
-                  int start_2 = shell_2->getStartIndex();
-                  int NumFunc_2 = shell_2->getNumFunc();
+                  int start_2 = shell_2.getStartIndex();
+                  int NumFunc_2 = shell_2.getNumFunc();
                   
                   tensor4d block(extents[ range(0, NumFunc_1) ][ range(0, NumFunc_2) ][ range(0, NumFunc_3)][ range(0, NumFunc_4)]);
                   for (int i = 0; i < shell_1.getNumFunc(); ++i) {

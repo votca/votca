@@ -180,7 +180,7 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
       basis.LoadPseudopotentialSet("corelevels");//
       int coreElectrons=0;
       for(const auto& atom:_orbitals.QMAtoms()){
-        coreElectrons+=basis.getElement(atom->getType()).getNcore();   
+        coreElectrons+=basis.getElement(atom.getElement()).getNcore();
       }
        ignored_corelevels = coreElectrons/2;
     }
@@ -625,12 +625,12 @@ bool GWBSE::Evaluate() {
   }
   
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Molecule Coordinates [A] " << flush;
-  for (QMAtom* atom:_orbitals.QMAtoms()) {
+  for (QMAtom& atom:_orbitals.QMAtoms()) {
     std::string output=(boost::format("  %1$s"
                                          "   %2$+1.4f %3$+1.4f %4$+1.4f")
-                         %atom->getElement() %(atom->getPos().getX()*tools::conv::bohr2ang)
-                         %(atom->getPos().getY()*tools::conv::bohr2ang)
-                         %(atom->getPos().getZ()*tools::conv::bohr2ang) ).str();
+                         %atom.getElement() %(atom.getPos().x()*tools::conv::bohr2ang)
+                         %(atom.getPos().y()*tools::conv::bohr2ang)
+                         %(atom.getPos().z()*tools::conv::bohr2ang) ).str();
         
         XTP_LOG(logDEBUG, *_pLog) <<output<< flush;
   }

@@ -171,12 +171,23 @@ void PolarSegment::LoadFromMPS(const std::string& filename){
 }
 
 
-double CalcTotalQ()const{
+double PolarSegment::CalcTotalQ()const{
     double Q=0;
     for(const PolarSite& site:_atomlist){
         Q+=site.getCharge();
     }
     return Q;
+}
+
+Eigen::Vector3d PolarSegment::CalcDipole()const{
+    Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
+
+    Eigen::Vector3d CoM=this->getPos();
+    for(const PolarSite& site:_atomlist){
+            dipole += (site.getPos()- CoM) * site.getCharge();
+            dipole+=site.getDipole();
+    }
+    return dipole;
 }
 
 void PolarSegment::WriteMPS(const std::string& filename, std::string header) const{

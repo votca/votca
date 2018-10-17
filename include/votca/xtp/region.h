@@ -36,14 +36,13 @@ class Region{
 
         virtual void Print(std::string filename)=0;
 
-        virtual void WriteToCpt(CptLoc parent)const=0;
+        virtual void WriteToCpt(CptLoc parent)const =0 ;
 
         virtual void ReadFromCpt(CptLoc parent)=0;
-            
-  protected:
 
+        virtual int size()const=0;
     
-}
+};
     
 }}
 

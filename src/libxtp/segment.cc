@@ -115,7 +115,7 @@ void Segment::setHasState(bool yesno, int state) {
   }
 }
 
-bool Segment::hasState(int state) {
+bool Segment::hasState(int state) const{
   bool result;
   if (state == -1) {
     result = _has_e;
@@ -146,7 +146,7 @@ void Segment::setOcc(double occ, int e_h_s_t) {
   }
 }
 
-double Segment::getOcc(int e_h_s_t) {
+double Segment::getOcc(int e_h_s_t) const{
   double result;
   if (e_h_s_t == -1) {
     result = _occ_e;
@@ -232,37 +232,37 @@ void Segment::setU_xN_xX(double dU, int state) {
   }
 }
 
-const double &Segment::getU_xX_nN(int state) {
+double Segment::getU_xX_nN(int state) const{
 
   return (state == +3) ? _U_xX_nN_t : _U_xX_nN_s;
 }
 
-const double &Segment::getU_nX_nN(int state) {
+double Segment::getU_nX_nN(int state) const{
 
   return (state == +3) ? _U_nX_nN_t : _U_nX_nN_s;
 }
 
-const double &Segment::getU_xN_xX(int state) {
+double Segment::getU_xN_xX(int state) const{
 
   return (state == +3) ? _U_xN_xX_t : _U_xN_xX_s;
 }
 
-const double &Segment::getU_cC_nN(int state) {
+double Segment::getU_cC_nN(int state) const{
 
   return (state == -1) ? _U_cC_nN_e : _U_cC_nN_h;
 }
 
-const double &Segment::getU_nC_nN(int state) {
+double Segment::getU_nC_nN(int state) const{
 
   return (state == -1) ? _U_nC_nN_e : _U_nC_nN_h;
 }
 
-const double &Segment::getU_cN_cC(int state) {
+double Segment::getU_cN_cC(int state) const{
 
   return (state == -1) ? _U_cN_cC_e : _U_cN_cC_h;
 }
 
-double Segment::getSiteEnergy(int state) {
+double Segment::getSiteEnergy(int state) const{
 
   double result;
   if (state == -1) {
@@ -287,8 +287,7 @@ void Segment::setEMpoles(int state, double energy) {
   _eMpoles[state + 1] = energy;
 }
 
-double Segment::getEMpoles(int state) {
-
+double Segment::getEMpoles(int state) const{
   return _eMpoles[state + 1] - _eMpoles[1];
 }
 
@@ -300,12 +299,6 @@ void Segment::AddFragment(Fragment *fragment) {
 void Segment::AddAtom(Atom *atom) {
   _atoms.push_back(atom);
   atom->setSegment(this);
-}
-
-void Segment::AddPolarSite(PolarSite *pole) {
-
-  _polarSites.push_back(pole);
-  pole->setSegment(this);
 }
 
 void Segment::calcPos() {

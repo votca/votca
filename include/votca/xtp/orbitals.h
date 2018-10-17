@@ -21,23 +21,17 @@
 #define VOTCA_XTP_ORBITALS_H
 
 #include <votca/xtp/eigen.h>
-
-#include <votca/xtp/qmatom.h>
-
 #include <votca/xtp/checkpoint.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/logger.h>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
+#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/qmstate.h>
-#include "qmmolecule.h"
-#include "basisset.h"
-
 
 namespace votca {
     namespace xtp {
-       
 
         /**
          * \brief container for molecular orbitals

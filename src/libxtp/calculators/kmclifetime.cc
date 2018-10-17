@@ -72,10 +72,6 @@ namespace votca {
         _rates = "statefile";
     }
     
-    lengthdistribution = options->ifExistsReturnElseReturnDefault<double>(key+".jumplengthdist",0);
-    if(lengthdistribution>0){
-        dolengthdistributon=true;
-    }
     
     return;
     }
@@ -94,7 +90,7 @@ namespace votca {
                     if(event.decayevent){
                         decayrates[i]=event.rate;
                     }else{
-                        inrates[event.destination]+=event.rate;
+                        inrates[event.destination->id]+=event.rate;
                         outrates[i]+=event.rate;
                     }   
                 }
@@ -180,8 +176,8 @@ namespace votca {
         unsigned long step=0;
         double simtime=0.0;
 
-        std::vector<int> forbiddennodes;
-        std::vector<int> forbiddendests;
+        std::vector<GNode*> forbiddennodes;
+        std::vector<GNode*> forbiddendests;
 
         time_t now = time(0);
         tm* localtm = localtime(&now);
@@ -244,7 +240,7 @@ namespace votca {
                 GNode* newnode=NULL;
                 Chargecarrier* affectedcarrier=ChooseAffectedCarrier(cumulated_rate);
 
-                if (CheckForbidden(affectedcarrier->getCurrentNodeId(), forbiddennodes)) {
+                if (CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {
                     continue;
                 }
 
@@ -255,7 +251,7 @@ namespace votca {
                     // LEVEL 2
 
                     newnode = NULL;
-                   const GLink& event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
+                   const GLink& event=ChooseHoppingDest(*affectedcarrier->getCurrentNode());
 
                     if (event.decayevent){
                        
@@ -278,7 +274,7 @@ namespace votca {
                         break;
                             }
                     else{
-                    newnode = &_nodes[event.destination];
+                        newnode = event.destination;
                     }
 
                     // check after the event if this was allowed
@@ -288,7 +284,7 @@ namespace votca {
 
                     // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
                     if (newnode->occupied) {
-                        if (CheckSurrounded(affectedcarrier->getCurrentNode(), forbiddendests)) {     
+                        if (CheckSurrounded(*affectedcarrier->getCurrentNode(), forbiddendests)) {
                             AddtoForbiddenlist(affectedcarrier->getCurrentNodeId(), forbiddennodes);
                             break; // select new escape node (ends level 2 but without setting level1step to 1)
                         }
@@ -297,7 +293,6 @@ namespace votca {
                     } else {
                         affectedcarrier->jumpfromCurrentNodetoNode(newnode);
                         affectedcarrier->dr_travelled += event.dr;
-                        AddtoJumplengthdistro(event,dt);
                         secondlevel=false;
 
                         break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
@@ -319,13 +314,12 @@ namespace votca {
         cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"<<std::sqrt(difflength_squared.norm()/insertioncount)<< " nm"<<endl;
         cout<<endl;
 
-        PrintJumplengthdistro();
         
         vector< Segment* >& seg = top->Segments();
 
         for (unsigned i = 0; i < seg.size(); i++) {
             double occupationprobability=_nodes[i].occupationtime / simtime;
-            seg[i]->setOcc(occupationprobability,_carriertype.ToXTPIndex());
+            seg[i]->setOcc(occupationprobability,_carriertype.ToSegIndex());
         }
         traj.close();
         if(_do_carrierenergy){

@@ -29,7 +29,6 @@
 namespace votca { namespace xtp {
 
 class Atom;
-class PolarSite;
 class Fragment;
 class SegmentType;
 class Topology;
@@ -43,8 +42,8 @@ public:
     Segment(Segment *stencil);
    ~Segment();
 
-    const int       &getId() { return _id; }
-    const std::string    &getName() { return _name; }
+    int       getId() const{ return _id; }
+    const std::string& getName() const{ return _name; }
 
     const tools::vec       &getPos() const { return _CoM; }
     void             setPos(tools::vec pos) { _CoM = pos; }
@@ -53,12 +52,12 @@ public:
     void             TranslateBy(const tools::vec &shift);
     
     void            calcApproxSize();
-    double          getApproxSize(){return _approxsize;}
+    double          getApproxSize()const{return _approxsize;}
 
     void             setHasState(bool yesno, int state);
-    bool             hasState(int state);
+    bool             hasState(int state)const;
 
-    double           getOcc(int e_h_s_t);
+    double           getOcc(int e_h_s_t)const;
     void             setOcc(double occ, int e_h_s_t);
 
     // state: -1 electron +1 hole +2 singlet +3 triplet
@@ -86,17 +85,17 @@ public:
     void             setU_nX_nN(double dU, int state);
     /// UxN - UxX
     void             setU_xN_xX(double dU, int state);
-    const double    &getU_cC_nN(int state);
-    const double    &getU_nC_nN(int state);
-    const double    &getU_cN_cC(int state);
-    const double    &getU_xX_nN(int state);
-    const double    &getU_nX_nN(int state);
-    const double    &getU_xN_xX(int state);
-    double           getSiteEnergy(int state);
+    double    getU_cC_nN(int state)const;
+    double    getU_nC_nN(int state)const;
+    double    getU_cN_cC(int state)const;
+    double    getU_xX_nN(int state)const;
+    double    getU_nX_nN(int state)const;
+    double    getU_xN_xX(int state)const;
+    double    getSiteEnergy(int state)const;
 
-    double           getEMpoles(int state);
+    double           getEMpoles(int state)const;
     void             setEMpoles(int state, double energy);
-    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
+    bool             hasChrgState(int state) const{ return _hasChrgState[state+1]; }
     void             setChrgStates(std::vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
@@ -108,10 +107,8 @@ public:
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
-    void             AddPolarSite(PolarSite *pole);
     std::vector< Fragment* > &Fragments() { return _fragments; }
     std::vector < Atom* >    &Atoms() { return _atoms; }
-    std::vector<PolarSite*> &PolarSites() { return _polarSites; }
 
 
     void Rigidify();
@@ -126,7 +123,6 @@ private:
 
     std::vector < Fragment* >    _fragments;
     std::vector < Atom* >        _atoms;
-    std::vector < PolarSite* >  _polarSites;
 
     tools::vec         _CoM;
     double   _approxsize;
@@ -169,10 +165,6 @@ private:
     double _U_xN_xX_s;   
     double _U_xN_xX_t;
     
-    //double _ePolar_s;
-    //double _ePolar_t;
-
-
     std::vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)

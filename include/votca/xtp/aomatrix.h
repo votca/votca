@@ -22,11 +22,8 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/mmregion.h>
 #include <votca/xtp/multiarray.h>
-
-
-
 
 namespace votca { namespace xtp {
     
@@ -127,7 +124,7 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
@@ -184,7 +181,7 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
@@ -197,7 +194,7 @@ namespace votca { namespace xtp {
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::shared_ptr<PolarSegment> >& sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 

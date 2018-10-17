@@ -131,10 +131,10 @@ namespace votca {
                         r1 = frag1->getPos();
                         r2 = frag2->getPos();
                         if (tools::abs(top->PbShortestConnect(r1, r2)) > _excitonqmCutoff) {
-                            pair->setType(3);
+                            pair->setType(QMPair::PairType::Excitoncl);
                             continue;
                         } else {
-                            pair->setType(0);
+                            pair->setType(QMPair::PairType::Hopping);
                             stopLoop = true;
                             break;
                         }

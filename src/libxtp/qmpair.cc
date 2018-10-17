@@ -68,7 +68,7 @@ namespace votca { namespace xtp {
     }
 
 
-  double QMPair::getLambdaO(int state) {
+  double QMPair::getLambdaO(int state)const {
     double result;
     if (state ==-1) result=_lambdaO_e;
     else if (state ==+1) result=_lambdaO_h;
@@ -78,7 +78,7 @@ namespace votca { namespace xtp {
     return result;
   }
 
-  double QMPair::getRate12(int state) {
+  double QMPair::getRate12(int state) const{
     double result;
     if (state ==-1) result=_rate12_e;
     else if (state ==+1) result=_rate12_h;
@@ -88,7 +88,7 @@ namespace votca { namespace xtp {
     return result;
   }
 
-  double QMPair::getRate21(int state) {
+  double QMPair::getRate21(int state) const{
     double result;
     if (state ==-1) result=_rate21_e;
     else if (state ==+1) result=_rate21_h;
@@ -98,13 +98,7 @@ namespace votca { namespace xtp {
     return result;
   }
 
-  vec QMPair::getR() {
-
-    return _R;
-  }
-
-
-  void QMPair::setLambdaO(double lO, int state) {  
+  void QMPair::setLambdaO(double lO, int state) {
     if (state ==-1) _lambdaO_e = lO;
     else if (state ==+1) _lambdaO_h = lO;
     else if (state ==+2) _lambdaO_s = lO;
@@ -136,7 +130,7 @@ namespace votca { namespace xtp {
     else throw std::runtime_error(" ERROR CODE whx__01p1r__");
   }
 
-  bool QMPair::isPathCarrier(int carrier) {
+  bool QMPair::isPathCarrier(int carrier) const{
     bool result;
     if (carrier==-1) result=_has_e;
     else if (carrier==+1) result=_has_h;
@@ -190,7 +184,7 @@ namespace votca { namespace xtp {
     }
   }
 
-  double QMPair::getJeff2(int state) {
+  double QMPair::getJeff2(int state) const{
     double result;
     if (state == -1) result =_Jeff2_e;
     else if (state == +1) result =_Jeff2_h;

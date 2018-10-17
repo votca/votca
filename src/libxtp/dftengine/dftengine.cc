@@ -18,8 +18,8 @@
  */
 
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/qminterface.h"
-#include "votca/xtp/qmatom.h"
+#include "votca/xtp/qmmolecule.h"
+#include "votca/xtp/mmregion.h"
 #include <votca/xtp/dftengine.h>
 
 #include <boost/format.hpp>
@@ -30,8 +30,6 @@
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
-
-#include <votca/xtp/xinteractor.h>
 #include <votca/xtp/logger.h>
 
 using boost::format;
@@ -385,8 +383,8 @@ void DFTEngine::CalcElDipole()const{
                                         "              quadrupole[e*a0^2]         " << flush;
 
 
-        for (const auto& segment:_externalsites) {
-          for (const PolarSite& site:*segment){
+        for (const auto& segment:*_externalsites) {
+          for (const PolarSite& site:segment){
             std::string output=(boost::format("  %1$s"
                                             "   %2$+1.4f %3$+1.4f %4$+1.4f"
                                             "   %5$+1.4f")
@@ -824,15 +822,15 @@ void DFTEngine::Prepare() {
 
     double DFTEngine::ExternalRepulsion() {
 
-      if (_externalsites.size() == 0) {
+      if (_externalsites->size() == 0) {
         return 0;
       }
 
       double E_ext=0;
       for (const QMAtom& atom:_orbitals.QMAtoms()){
           PolarSite nucleus=PolarSite(atom);
-          for (std::shared_ptr<PolarSegment>&  seg : _externalsites) {
-              for (const auto& site : (*seg)) {
+          for (auto&  seg : *_externalsites) {
+              for (auto& site : seg) {
                   E_ext+=nucleus.InteractStatic(site);
                   E_ext+=nucleus.InteractInduction(site);
               }

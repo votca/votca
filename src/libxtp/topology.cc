@@ -269,9 +269,6 @@ namespace votca { namespace xtp {
           QMPair *qmpair = *pit;
           if (qmpair->HasGhost()) {
             count++;
-
-
-
             qmpair->Seg2PbCopy()->Rigidify();
           }
         }

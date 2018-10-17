@@ -72,10 +72,9 @@ namespace votca {
             return;
         }
 
-        std::vector<std::vector<double> > QMPackage::SplitMultipoles(const PolarSite& aps) {
+        std::vector<QMPackage::MinimalMMCharge > QMPackage::SplitMultipoles(const PolarSite& aps) {
 
-            std::vector< std::vector<double> > multipoles_split;
-
+            std::vector< QMPackage::MinimalMMCharge > multipoles_split;
             // Calculate virtual charge positions
             double a = _dpl_spacing; // this is in a0
             double mag_d = aps.getDipole().norm();// this is in e * a0
@@ -84,8 +83,8 @@ namespace votca {
             const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
             double qA = mag_d / a;
             double qB = -qA;
-            multipoles_split.push_back({A.x(), A.y(), A.z(), qA});
-            multipoles_split.push_back({B.x(), B.y(), B.z(), qB});
+            multipoles_split.push_back((A, qA));
+            multipoles_split.push_back((B, qB);
 
 
             if (aps.getRank() > 1) {
@@ -97,17 +96,15 @@ namespace votca {
                     double q = es.eigenvalues()[i] / (a * a);
                     const Eigen::Vector3d vec1 = aps.getPos() + 0.5 * a * es.eigenvectors().col(i);
                     const Eigen::Vector3d vec2 = aps.getPos() - 0.5 * a * es.eigenvectors().col(i);
-
-                    multipoles_split.push_back({vec1.x(), vec1.y(), vec1.z(), q});
-                    multipoles_split.push_back({vec2.x(), vec2.y(), vec2.z(), q});
-
+                    multipoles_split.push_back((vec1, q));
+                    multipoles_split.push_back((vec2, q);
                 }
             }
             return multipoles_split;
         }
         
-      void QMPackage::setMultipoleBackground(std::vector<std::shared_ptr<PolarSeg> > PolarSegments) {
-        if(PolarSegments.size()==0){
+      void QMPackage::setMultipoleBackground(const std::shared_ptr<MMRegion>& PolarSegments ) {
+        if(PolarSegments->size()==0){
           std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
           return;
         }
@@ -125,29 +122,7 @@ namespace votca {
           boost::algorithm::split(row, line, boost::is_any_of(separators), boost::algorithm::token_compress_on);
           return row;
         }
-      
-      
-std::vector<std::string> QMPackage::FindUniqueElements(const std::vector<QMAtom*> atoms){
-        std::vector<std::string> result;
-        for (QMAtom* atom:atoms) {
-        bool exists = false;
-        if (result.size() == 0) {
-          exists = false;
-        } else {
-          for (const std::string& type:result){
-            if (atom->getElement() == type) {
-              exists = true;
-              break;
-            }
-          }
-        }
-        if (!exists) {
-          result.push_back(atom->getElement());
-        }
-      }
-        return result;
-      }
-      
+
 
     }
 }

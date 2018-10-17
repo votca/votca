@@ -61,7 +61,7 @@ namespace votca {
                 _do_externalfield = true;
             }
 
-            void setExternalcharges(std::vector<std::shared_ptr<PolarSegment> >& externalsites) {
+            void setExternalcharges(std::shared_ptr<MMRegion>& externalsites) {
                 _externalsites = externalsites;           
                 _addexternalsites = true;
             }
@@ -186,7 +186,7 @@ namespace votca {
             ERIs _ERIs;
 
             // external charges
-            std::vector<std::shared_ptr<PolarSegment> > _externalsites;
+            std::shared_ptr<MMRegion> _externalsites;
             bool _addexternalsites;
 
             // exchange and correlation

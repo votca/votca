@@ -78,8 +78,8 @@ namespace votca {
 
             
             void Report();
-            static void Vector2QMAtoms(const Eigen::VectorXd& pos, std::vector<QMAtom*>& atoms);
-            static Eigen::VectorXd QMAtoms2Vector(std::vector<QMAtom*>& atoms);
+            static void Vector2QMAtoms(const Eigen::VectorXd& pos, QMMolecule& atoms);
+            static Eigen::VectorXd QMAtoms2Vector(QMMolecule& atoms);
             static Eigen::VectorXd Write3XMatrixToVector(const Eigen::MatrixX3d& matrix);
 
         private:

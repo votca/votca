@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef VOTCA_XTP_POLARSEG_H
-#define VOTCA_XTP_POLARSEG_H
+#ifndef VOTCA_XTP_POLARSEGMENT_H
+#define VOTCA_XTP_POLARSEGMENT_H
 
 #include <votca/xtp/atomcontainer.h>
 #include <votca/xtp/polarsite.h>
@@ -41,6 +41,9 @@ public:
     void WriteMPS(const std::string& filename, std::string header) const;
 
     double CalcTotalQ()const;
+
+    Eigen::Vector3d CalcDipole()const;
+
     
 };
         
@@ -50,5 +53,5 @@ public:
     }
 }
 
-#endif /* VOTCA_XTP_QMMOLECULE_H */
+#endif /* VOTCA_XTP_POLARSEGMENT_H */
 

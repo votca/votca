@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/logger.h>
-#include <boost/filesystem.hpp>
 #include <votca/xtp/numerical_integrations.h>
 namespace votca { namespace xtp {
     
@@ -39,17 +38,17 @@ public:
 
     void  Initialize( tools::Property &options);
 
-    void AnalyzeDensity( Orbitals& orbitals );
+    void AnalyzeDensity( const Orbitals& orbitals );
     
 private:
-    void ReportAnalysis( std::string label,Gyrationtensor gyro, tools::matrix::eigensystem_t system );
-    void AnalyzeGeometry( std::vector< QMAtom* > atoms );
+    void ReportAnalysis( std::string label,const Gyrationtensor& gyro, const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>& es );
+    void AnalyzeGeometry( const QMMolecule& atoms );
       
-    int         _openmp_threads;
+    int          _openmp_threads;
     QMState      _state;
-    bool _dostateonly;
-    std::string      _integrationmethod;
-    std::string      _gridsize;
+    bool         _dostateonly;
+    std::string  _integrationmethod;
+    std::string  _gridsize;
     Logger*      _log;
 
 };

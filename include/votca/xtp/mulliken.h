@@ -20,10 +20,7 @@
 #ifndef VOTCA_XTP_MULLIKEN_H
 #define VOTCA_XTP_MULLIKEN_H
 
-
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/xtp/orbitals.h>
 
 
 /**
@@ -33,23 +30,13 @@
 * 
 */
 
-
-
 namespace votca { namespace xtp {
     
 class Mulliken{
-public:
-    
-    Mulliken(){}
-   ~Mulliken(){};
-    
+public:   
   
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &basis,bool _do_transition);
-  
+    void EvaluateMulliken(Orbitals& orbitals,const AOBasis &basis,const QMState& state);
 
-   
-     
- 
     
 };
 

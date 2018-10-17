@@ -43,7 +43,7 @@ namespace xtp {
         
         std::string ToString()const;
         
-        int ToXTPIndex()const;//returns segment id for statetype
+        int ToSegIndex()const;//returns segment id for statetype
     
         std::string ToLongString()const;
         
