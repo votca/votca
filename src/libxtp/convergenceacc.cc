@@ -128,6 +128,7 @@ namespace votca { namespace xtp {
         //transform to orthogonal for
         Eigen::MatrixXd H_ortho=Sminusahalf.transpose()*H*Sminusahalf;
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
+
         if(es.info()!=Eigen::ComputationInfo::Success){
           std::cerr<<"DiagInfo "<<es.info()<<std::endl;
           throw std::runtime_error("Matrix Diagonalisation failed");

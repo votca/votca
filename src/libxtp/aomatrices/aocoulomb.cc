@@ -1131,22 +1131,31 @@ if (lmax_col > 5) {
     
     Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap, double etol){
         
-        
+    removedfunctions=0;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eo(auxoverlap.Matrix());
-    Eigen::MatrixXd Ssqrt=eo.operatorSqrt();
-    //This converts V into ((S1/2 V S1/2)-1/2 S1/2)T, which is needed to construct 4c integrals,
-       
-      Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
-      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
-      removedfunctions=0;
-      for (unsigned i=0;i<diagonal.size();++i){
-          if(es.eigenvalues()(i)<etol){
-              removedfunctions++;
-          }else{
-              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
-          }
-      }
+    Eigen::VectorXd diagonalo=Eigen::VectorXd::Zero(eo.eigenvalues().size());
+    for (unsigned i=0;i<diagonalo.size();++i){
+        if(eo.eigenvalues()(i)<etol){
+            removedfunctions++;
+        }else{
+            diagonalo(i)=1.0/std::sqrt(eo.eigenvalues()(i));
+        }
+    }
+
+    Eigen::MatrixXd Ssqrt=eo.eigenvectors() * diagonalo.asDiagonal() * eo.eigenvectors().transpose();
+  //This converts V into ((S1/2 V S1/2)-1/2 S1/2)T, which is needed to construct 4c integrals,
+
+    Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
+    Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+
+    for (unsigned i=0;i<diagonal.size();++i){
+        if(es.eigenvalues()(i)<etol){
+            removedfunctions++;
+        }else{
+            diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
+        }
+    }
       
       Eigen::MatrixXd Vm1=es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
       Eigen::MatrixXd result=(Vm1*Ssqrt).transpose();
