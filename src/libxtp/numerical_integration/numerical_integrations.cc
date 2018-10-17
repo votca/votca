@@ -170,7 +170,7 @@ namespace votca {
         const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
         const std::vector<double>& densities = _grid_boxes[i].getGridDensities();
         for (unsigned j = 0; j < points.size(); j++) {
-          double dist = abs(points[j] - rvector);
+          double dist = (points[j] - rvector).norm();
           result -= weights[j] * densities[j] / dist;
         }
       }
@@ -259,15 +259,15 @@ namespace votca {
   void NumericalIntegration::FindSignificantShells(const AOBasis& basis) {
       for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
         GridBox & box = _grid_boxes[i];
-        for (const AOShell* store:basis) {
-          const double decay = store->getMinDecay();
-          const Eigen::Vector3d& shellpos =store->getPos();
+        for (const AOShell& store:basis) {
+          const double decay = store.getMinDecay();
+          const Eigen::Vector3d& shellpos =store.getPos();
           for (const auto& point : box.getGridPoints()) {
             Eigen::Vector3d dist = shellpos - point;
-            double distsq = dist*dist;
+            double distsq = dist.squaredNorm();
             // if contribution is smaller than -ln(1e-10), add shell to list
             if ((decay * distsq) < 20.7) {
-              box.addShell(store);
+              box.addShell(&store);
               break;
             }
           }
@@ -546,11 +546,11 @@ namespace votca {
               Eigen::VectorBlock<Eigen::VectorXd> ao_block=ao.segment(aoranges[j].start,aoranges[j].size);
               shells[j]->EvalAOspace(ao_block, points[p]);
             }
-            double rho =(ao.transpose()*DMAT_here*ao)(0, 0);
+            double rho =(ao.transpose()*DMAT_here*ao).value();
             box.addDensity(rho);
             N_box += rho * weights[p];
             centroid_box+=rho * weights[p] * points[p];
-            gyration_box += rho * weights[p] * (points[p]|points[p]); 
+            gyration_box += rho * weights[p] * points[p]*points[p].transpose();
           }
           N_thread[thread] += N_box;
           centroid_thread[thread] += centroid_box;

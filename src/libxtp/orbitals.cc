@@ -36,7 +36,7 @@ using namespace votca::tools;
 namespace votca {
     namespace xtp {
 
-        Orbitals::Orbitals() {
+        Orbitals::Orbitals():_atoms("",0),_multipoles("",0) {
 
             _basis_set_size = 0;
             _occupied_levels = 0;
@@ -65,6 +65,7 @@ namespace votca {
             _bse_ctotal = 0;
             _bse_size = 0;
             _bse_nmax = 0;
+
 
         };
 
@@ -576,11 +577,11 @@ namespace votca {
             w(_mo_energies, "mo_energies");
             w(_mo_coefficients, "mo_coefficients");
 
-                CptLoc molgroup = parent.createGroup("molecule");
-                _atoms.WriteToCpt(molgroup);
+            CheckpointWriter molgroup = w.openChild("molecule");
+            _atoms.WriteToCpt(w);
 
-                CptLoc multigroup = parent.createGroup("multipoles");
-                _multipoles.WriteToCpt(multigroup);
+            CheckpointWriter multigroup = w.openChild("multipoles");
+            _multipoles.WriteToCpt(w);
 
             w(_qm_energy, "qm_energy");
             w(_qm_package, "qm_package");
@@ -642,11 +643,11 @@ namespace votca {
             r(_mo_coefficients, "mo_coefficients");
 
             // Read qmatoms
-                CptLoc molgroup = parent.openGroup("molecule");
-                _atoms.ReadFromCpt(molgroup);
+            CheckpointReader molgroup = r.openChild("molecule");
+            _atoms.ReadFromCpt(molgroup);
 
-                CptLoc multigroup = parent.openGroup("multipoles");
-                _multipoles.ReadFromCpt(multigroup);
+            CheckpointReader multigroup = r.openChild("multipoles");
+            _multipoles.ReadFromCpt(multigroup);
 
             r(_qm_energy, "qm_energy");
             r(_qm_package, "qm_package");

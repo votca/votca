@@ -59,7 +59,7 @@ class GNode
         void AddEventfromQmPair(const QMPair& pair,int carriertype,std::vector<GNode>& nodes);
         
  
-        GLink* findHoppingDestination(double p);
+        GLink* findHoppingDestination(double p)const;
         void MakeHuffTree();
 
     private:

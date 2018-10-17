@@ -41,6 +41,7 @@
       </logicalFolder>
     </logicalFolder>
     <logicalFolder name="f5" displayName="Executables" projectFiles="true">
+      <itemPath>../../src/tools/xtp_dump.cc</itemPath>
       <itemPath>../../src/tools/xtp_map.cc</itemPath>
       <itemPath>../../src/tools/xtp_parallel.cc</itemPath>
       <itemPath>../../src/tools/xtp_run.cc</itemPath>
@@ -68,12 +69,10 @@
       <itemPath>../../include/votca/xtp/checkpointreader.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointwriter.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
-      <itemPath>../../include/votca/xtp/couplingbase.h</itemPath>
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
       <itemPath>../../include/votca/xtp/eigen.h</itemPath>
-      <itemPath>../../include/votca/xtp/energy_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
       <itemPath>../../include/votca/xtp/espfit.h</itemPath>
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
@@ -90,33 +89,26 @@
       <itemPath>../../include/votca/xtp/gwbse.h</itemPath>
       <itemPath>../../include/votca/xtp/gwbseengine.h</itemPath>
       <itemPath>../../include/votca/xtp/gyration.h</itemPath>
-      <itemPath>../../include/votca/xtp/huffmantree.h</itemPath>
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
-      <itemPath>../../include/votca/xtp/jobtopology.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
-      <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
-      <itemPath>../../include/votca/xtp/polarregion.h</itemPath>
-      <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
-      <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
       <itemPath>../../include/votca/xtp/qmiter.h</itemPath>
-      <itemPath>../../include/votca/xtp/qmmolecule.h</itemPath>
       <itemPath>../../include/votca/xtp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpair.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
-      <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
@@ -129,6 +121,7 @@
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/topology.h</itemPath>
+      <itemPath>../../include/votca/xtp/trustregion.h</itemPath>
       <itemPath>../../include/votca/xtp/version.h</itemPath>
       <itemPath>../../include/votca/xtp/votca_config.h.in</itemPath>
       <itemPath>../../include/votca/xtp/vxc_functionals.h</itemPath>
@@ -223,29 +216,22 @@
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
-      <itemPath>../../src/libxtp/fragment.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/lowdin.cc</itemPath>
-      <itemPath>../../src/libxtp/molecule.cc</itemPath>
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/polarsegment.cc</itemPath>
-      <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libxtp/qminterface.cc</itemPath>
       <itemPath>../../src/libxtp/qmiter.cc</itemPath>
-      <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
-      <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
-      <itemPath>../../src/libxtp/qmpair.cc</itemPath>
-      <itemPath>../../src/libxtp/segment.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
-      <itemPath>../../src/libxtp/topology.cc</itemPath>
+      <itemPath>../../src/libxtp/trustregion.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
     </logicalFolder>
@@ -253,8 +239,9 @@
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
+      <itemPath>../../src/tests/test_apolarsite.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
-      <itemPath>../../src/tests/test_atomcontainer.cc</itemPath>
+      <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
@@ -267,7 +254,6 @@
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
-      <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
@@ -278,6 +264,7 @@
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
+      <itemPath>../../src/tests/test_trustregion.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles" displayName="XMLfiles" projectFiles="true">
       <logicalFolder name="f1" displayName="packages" projectFiles="true">
@@ -1292,11 +1279,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/couplingbase.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftcoupling.h"
             ex="false"
             tool="3"
@@ -1310,11 +1292,6 @@
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/energy_costfunction.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
@@ -1366,11 +1343,6 @@
       </item>
       <item path="../../include/votca/xtp/gyration.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/huffmantree.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
             tool="3"
@@ -1381,19 +1353,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/jobtopology.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/kmccalculator.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1408,22 +1373,12 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/polarregion.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/polarsegment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/polarsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmapemachine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1438,11 +1393,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmmolecule.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmnblist.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1462,8 +1412,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1512,6 +1460,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/trustregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1861,8 +1814,6 @@
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/geometry_optimization.cc"
@@ -1934,8 +1885,6 @@
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
@@ -1959,17 +1908,11 @@
       </item>
       <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmiter.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2014,10 +1957,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2083,7 +2022,7 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/topology.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2097,12 +2036,11 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_atomcontainer.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2134,8 +2072,6 @@
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
@@ -2164,6 +2100,13 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_trustregion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2257,11 +2200,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/couplingbase.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/dftcoupling.h"
             ex="false"
             tool="3"
@@ -2275,11 +2213,6 @@
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/energy_costfunction.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
@@ -2331,11 +2264,6 @@
       </item>
       <item path="../../include/votca/xtp/gyration.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/huffmantree.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/jobapplication.h"
             ex="false"
             tool="3"
@@ -2346,19 +2274,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/jobtopology.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/kmccalculator.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2373,22 +2294,12 @@
       </item>
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/polarregion.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/polarsegment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/polarsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmapemachine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2403,11 +2314,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmmolecule.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmnblist.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2427,8 +2333,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2477,6 +2381,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/topology.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/trustregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2826,8 +2735,6 @@
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/geometry_optimization.cc"
@@ -2899,8 +2806,6 @@
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
@@ -2924,17 +2829,11 @@
       </item>
       <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmiter.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2979,10 +2878,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3048,7 +2943,7 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/topology.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3062,12 +2957,11 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_atomcontainer.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
+      <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3099,8 +2993,6 @@
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
@@ -3129,6 +3021,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_trustregion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
     </conf>
   </confs>

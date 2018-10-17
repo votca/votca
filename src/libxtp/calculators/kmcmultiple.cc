@@ -193,11 +193,7 @@ void KMCMultiple::RunVSSM(Topology *top)
         
         simtime += dt;
         step++;
-        if(tools::globals::verbose) {cout << "simtime += " << dt << endl << endl;}
-        
-        
-        
-        
+
         for(auto& carrier:_carriers){
             carrier.updateOccupationtime(dt);
         }
@@ -207,57 +203,43 @@ void KMCMultiple::RunVSSM(Topology *top)
         bool level1step = true;
         while(level1step){
 
-            // determine which electron will escape
-            
+            // determine which electron will escape     
             GNode* newnode= NULL;
             Chargecarrier* affectedcarrier=ChooseAffectedCarrier(cumulated_rate); 
             
-            if(CheckForbidden(affectedcarrier->getCurrentNodeId(), forbiddennodes)) {continue;}
-            
-            // determine where it will jump to
+            if(CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {continue;}
             ResetForbiddenlist(forbiddendests);
             while(true){
             // LEVEL 2
                
-                const GLink& event=ChooseHoppingDest(*affectedcarrier->getCurrentNode());
+                const GLink& event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
                 newnode = event.destination;
 
                 if(newnode == NULL){
-                    AddtoForbiddenlist(affectedcarrier->getCurrentNodeId(), forbiddennodes);
+                    AddtoForbiddenlist(affectedcarrier->getCurrentNode(), forbiddennodes);
                     break; // select new escape node (ends level 2 but without setting level1step to 1)
                 }
-                if(tools::globals::verbose) {cout << endl << "Selected jump: " << newnode->id+1 << endl; }
-                
+ 
                 // check after the event if this was allowed
-                if(CheckForbidden(newnode->id, forbiddendests)){
-                    if(tools::globals::verbose) {cout << "Node " << newnode->id+1  << " is FORBIDDEN. Now selection new hopping destination." << endl; }
+                if(CheckForbidden(*newnode, forbiddendests)){
                     continue;
                 }
 
                 // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
                 if(newnode->occupied){
-                    if(CheckSurrounded(*affectedcarrier->getCurrentNode(), forbiddendests)){
-                        if(tools::globals::verbose) {
-                            cout << "Node " << affectedcarrier->getCurrentNodeId()+1  << " is SURROUNDED by forbidden destinations. "
-                                    "Adding it to the list of forbidden nodes. After that: selection of a new escape node." << endl; 
-                        }
-                        AddtoForbiddenlist(affectedcarrier->getCurrentNodeId(), forbiddennodes);
+                    if(CheckSurrounded(affectedcarrier->getCurrentNode(), forbiddendests)){
+                        AddtoForbiddenlist(affectedcarrier->getCurrentNode(), forbiddennodes);
                         break; // select new escape node (ends level 2 but without setting level1step to 1)
                     }
-                    if(tools::globals::verbose) {cout << "Selected segment: " << newnode->id+1 << " is already OCCUPIED. Added to forbidden list." << endl << endl;}
-                    AddtoForbiddenlist(newnode->id, forbiddendests);
-                    if(tools::globals::verbose) {cout << "Now choosing different hopping destination." << endl; }
+                    AddtoForbiddenlist(*newnode, forbiddendests);
                     continue; // select new destination
                 }
                 else{
                     affectedcarrier->jumpfromCurrentNodetoNode(newnode);
                     affectedcarrier->dr_travelled +=event.dr;
-                    level1step = false;
-                    if(tools::globals::verbose) {cout << "Charge has jumped to segment: " << newnode->id+1 << "." << endl;}
-                    
+                    level1step = false;                   
                     break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                 }
-
                 if(tools::globals::verbose) {cout << "." << endl;}
             // END LEVEL 2
             }

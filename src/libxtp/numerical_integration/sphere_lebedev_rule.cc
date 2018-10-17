@@ -26,8 +26,8 @@
 namespace votca { namespace xtp { 
 
     
-     std::map<std::string,GridContainers::spherical_grid> LebedevGrid::CalculateSphericalGrids(std::vector<QMAtom*> atoms,const std::string& type){
-       std::vector<std::string> unique_atoms=QMPackage::FindUniqueElements(atoms);
+     std::map<std::string,GridContainers::spherical_grid> LebedevGrid::CalculateSphericalGrids(const QMMolecule& atoms,const std::string& type){
+       std::vector<std::string> unique_atoms=atoms.FindUniqueElements();
        std::map<std::string,GridContainers::spherical_grid> result;
             for (const std::string& atomname:unique_atoms) {
               result[atomname]=CalculateUnitSphereGrid(atomname,type);

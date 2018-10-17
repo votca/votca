@@ -188,7 +188,7 @@ namespace votca {
       Topology* _top = seg1->getTopology();
       vec r1 = seg1->getPos();
       vec r2 = seg2->getPos();
-      vec _R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
+      vec R = _top->PbShortestConnect(r1, r2); // => _R points from 1 to 2
 
       // Check whether pair formed across periodic boundary
       if (abs(r2 - r1 - R) > 1e-8) {
@@ -698,10 +698,9 @@ namespace votca {
         Segment* segmentB = pair->Seg2();
 
         QMPair::PairType ptype = pair->getType();
-        if (ptype != QMPair::PairType::Hopping
-                && ptype != QMPair::PairType::SuperExchangeAndHopping) {
+        if (ptype != QMPair::PairType::Hopping) {
           cout << "WARNING Pair " << pair->getId() << " is not of any of the "
-                  "Hopping or SuperExchangeAndHopping type. Skipping pair" << flush;
+                  "Hopping type. Skipping pair" << flush;
           continue;
         }
         

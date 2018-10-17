@@ -30,23 +30,22 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
-PolarSegment::ReadFromCpt(CptLoc parent) {
+PolarSegment::ReadFromCpt(CheckpointReader r) {
 
-    CptLoc polarSiteGr = parent.openGroup("polarsites");
-    size_t count = polarSiteGr.getNumObjs();
+    size_t count = r.getNumDataSets();
     _atomlist.resize(0);
     _atomlist.reserve(count);
     for (size_t i = 0; i < count; ++i) {
-        CptLoc tempLoc = polarSiteGr.openGroup("site" + std::to_string(i));
-        QMAtom temp;
-        temp.ReadFromCpt(tempLoc);
+       CheckpointReader c = r.openChild("site" + std::to_string(i));
+        QMAtom temp=QMAtom("",0);
+        temp.ReadFromCpt(c);
         _atomlist.push_back(temp);
     }
 
 
 }
 
-PolarSegment::WriteToCpt(CptLoc parent) const {
+PolarSegment::WriteToCpt(CheckpointWriter w) const {
     CptLoc polarSiteGr = parent.createGroup("polarsites");
     size_t count = 0;
     for (const auto& s : _atomlist) {

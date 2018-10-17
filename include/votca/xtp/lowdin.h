@@ -22,7 +22,7 @@
 
 
 #include <votca/xtp/orbitals.h>
-
+#include <votca/xtp/aobasis.h>
 
 /**
 * \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of lowdin partial charges

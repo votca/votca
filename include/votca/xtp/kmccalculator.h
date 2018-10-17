@@ -65,7 +65,7 @@ protected:
             
             double Promotetime(double cumulated_rate);
             void ResetForbiddenlist(std::vector<GNode*> &forbiddenid)const;
-            void AddtoForbiddenlist(const GNode& node, std::vector<GNode*> &forbiddenid)const;
+            void AddtoForbiddenlist(GNode& node, std::vector<GNode*> &forbiddenid)const;
             bool CheckForbidden(const GNode& node,const std::vector<GNode*> &forbiddenlist)const;
             bool CheckSurrounded(const GNode& node,const std::vector<GNode*> &forbiddendests)const;
             const GLink& ChooseHoppingDest(const GNode& node);
@@ -73,7 +73,7 @@ protected:
             
             
             void RandomlyCreateCharges();
-            void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
+            void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
             std::vector<GNode> _nodes;
             std::vector< Chargecarrier > _carriers;
             tools::Random2 _RandomVariable;

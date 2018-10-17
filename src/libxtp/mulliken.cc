@@ -19,6 +19,7 @@
 
 
 #include <votca/xtp/mulliken.h>
+#include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
 

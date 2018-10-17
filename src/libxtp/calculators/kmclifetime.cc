@@ -251,7 +251,7 @@ namespace votca {
                     // LEVEL 2
 
                     newnode = NULL;
-                   const GLink& event=ChooseHoppingDest(*affectedcarrier->getCurrentNode());
+                   const GLink& event=ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
                     if (event.decayevent){
                        
@@ -266,7 +266,7 @@ namespace votca {
                             std::cout << "\rInsertion " << insertioncount+1<<" of "<<_insertions;
                             std::cout << std::flush;
                         }
-                        RandomlyAssignCarriertoSite(affectedcarrier);
+                        RandomlyAssignCarriertoSite(*affectedcarrier);
                         affectedcarrier->resetCarrier();
                         insertioncount++;
                         affectedcarrier->id=_numberofcharges-1+insertioncount;
@@ -278,17 +278,17 @@ namespace votca {
                     }
 
                     // check after the event if this was allowed
-                    if (CheckForbidden(newnode->id, forbiddendests)) {
+                    if (CheckForbidden(*newnode, forbiddendests)) {
                         continue;
                     }
 
                     // if the new segment is unoccupied: jump; if not: add to forbidden list and choose new hopping destination
                     if (newnode->occupied) {
-                        if (CheckSurrounded(*affectedcarrier->getCurrentNode(), forbiddendests)) {
-                            AddtoForbiddenlist(affectedcarrier->getCurrentNodeId(), forbiddennodes);
+                        if (CheckSurrounded(affectedcarrier->getCurrentNode(), forbiddendests)) {
+                            AddtoForbiddenlist(affectedcarrier->getCurrentNode(), forbiddennodes);
                             break; // select new escape node (ends level 2 but without setting level1step to 1)
                         }
-                        AddtoForbiddenlist(newnode->id, forbiddendests);
+                        AddtoForbiddenlist(*newnode, forbiddendests);
                         continue; // select new destination
                     } else {
                         affectedcarrier->jumpfromCurrentNodetoNode(newnode);

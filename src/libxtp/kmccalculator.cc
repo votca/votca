@@ -115,7 +115,7 @@ namespace votca {
             return;
         }
 
-        void KMCCalculator::AddtoForbiddenlist(const GNode& node, std::vector<GNode *> &forbiddenlist) const{
+        void KMCCalculator::AddtoForbiddenlist(GNode& node, std::vector<GNode *> &forbiddenlist) const{
             forbiddenlist.push_back(&node);
             return;
         }
@@ -205,17 +205,16 @@ namespace votca {
                         continue;
                     }
 
-                    double destindex = event.destination;
-                    double reorg = node.reorg_intorig + _nodes[destindex].reorg_intdest + event.reorg_out;
+                    double reorg = node.reorg_intorig + event.destination->reorg_intdest + event.reorg_out;
                      if(std::abs(reorg)<1e-12){
                         throw std::runtime_error("Reorganisation energy for a pair is extremly close to zero,\n"
                                 " you probably forgot to import reorganisation energies into your sql file.");
                     }
                     double dG_Field =0.0;
                     if(charge!=0.0){
-                        dG_Field=charge * (event.dr.transpose()*_field);
+                        dG_Field=charge * event.dr.dot(_field);
                     }
-                    double dG_Site = _nodes[destindex].siteenergy - node.siteenergy;
+                    double dG_Site = event.destination->siteenergy - node.siteenergy;
                     double dG=dG_Site-dG_Field;
                     double J2 = event.Jeff2;
 
@@ -247,8 +246,8 @@ namespace votca {
             }
              // Initialise escape rates
                 for (auto& node:_nodes) {
-                    node->InitEscapeRate();
-                    node->MakeHuffTree();
+                    node.InitEscapeRate();
+                    node.MakeHuffTree();
                 }
 
             cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
@@ -279,19 +278,19 @@ namespace votca {
         
         const GLink& KMCCalculator::ChooseHoppingDest(const GNode& node){
             double u = 1 - _RandomVariable.rand_uniform();
-            return node.findHoppingDestination(u);
+            return *(node.findHoppingDestination(u));
         }
         
         Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate){
             if(_carriers.size()==1){
-                return _carriers[0];
+                return &_carriers[0];
             }
             Chargecarrier* carrier=NULL;
             double u = 1 - _RandomVariable.rand_uniform();
             for (unsigned int i = 0; i < _numberofcharges; i++) {
-                u -= _carriers[i]->getCurrentEscapeRate() / cumulated_rate;
+                u -= _carriers[i].getCurrentEscapeRate() / cumulated_rate;
                 if (u <= 0 || i==_numberofcharges-1) {
-                    carrier = _carriers[i];
+                    carrier = &_carriers[i];
                     break;}  
             }
             return carrier;

@@ -21,6 +21,7 @@
 #define VOTCA_XTP_MULLIKEN_H
 
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/aobasis.h>
 
 
 /**

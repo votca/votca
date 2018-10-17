@@ -118,7 +118,6 @@ namespace votca { namespace xtp {
                 std::vector<const AOShell* > significant_shells;
                 std::vector< double > weights;
                 std::vector< double > densities;
-                std::vector< Eigen::MatrixXd > dens_grad;
                 
             };
 

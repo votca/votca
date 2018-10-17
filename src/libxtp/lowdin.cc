@@ -18,6 +18,7 @@
  */
 
 #include <votca/xtp/lowdin.h>
+#include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
 
@@ -49,5 +50,6 @@ void Lowdin::EvaluateLowdin(Orbitals& orbitals,const AOBasis &basis,const QMStat
     }
 
     return;
+}
 
 }}

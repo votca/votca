@@ -44,7 +44,7 @@ namespace votca { namespace xtp {
                     double getCurrentEnergy()const{return node->siteenergy;}
                     const Eigen::Vector3d& getCurrentPosition()const{return node->position;}
                     double getCurrentEscapeRate()const{return node->escape_rate;}
-                    const GNode* getCurrentNode()const{return node;}
+                    GNode& getCurrentNode()const{return *node;}
                     void settoNote(GNode *newnode){node=newnode;
                         node->occupied=true;}
 

@@ -63,7 +63,7 @@ void GNode::InitEscapeRate(){
     }
 }
 
-GLink* GNode::findHoppingDestination(double p){
+GLink* GNode::findHoppingDestination(double p)const{
     return hTree.findHoppingDestination(p);
 }
 
