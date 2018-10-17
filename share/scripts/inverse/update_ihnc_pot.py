@@ -34,6 +34,43 @@ def saveto_table(filename, x, y, y_flag, comment=""):
     np.savetxt(filename, data, header=comment, fmt=format_string)
 
 
+def compare_grids(grid_a, grid_b):
+    if np.any(grid_a - grid_b > 0.0001):
+        print("Different grids!")
+        sys.exit(1)
+
+
+def calculate_dpot(r, rdf_target_g, rdf_target_flag,
+                   rdf_current_g, rdf_current_flag,
+                   pot_current_U, pot_current_flag,
+                   kBT):
+    dpot_dU = np.zeros_like(pot_current_U)
+    dpot_flag = np.array([''] * len(dpot_dU))
+
+    # calculate dpot
+    for i in range(len(rdf_target_r)):
+        if rdf_target_g[i] > 1e-10 and rdf_current_g[i] > 1e-10:
+            dpot_dU[i] = np.log(rdf_current_g[i] / rdf_target_g[i]) * kBT
+            dpot_flag[i] = 'i'
+        else:
+            dpot_dU[i] = np.nan
+            dpot_flag[i] = 'o'
+        # check for unset value in current potential
+        if 'u' in str(pot_current_flag[i]):
+            dpot_dU[i] = np.nan
+            dpot_flag[i] = 'o'
+
+    # find first in range dU value
+    first_dU_index = np.where(dpot_flag == 'i')[0][0]
+    first_dU = dpot_dU[first_dU_index]
+    first_dU_array = np.ones_like(dpot_dU) * first_dU
+
+    # replace out of range dU values
+    dpot_dU = np.where(dpot_flag == 'i', dpot_dU, first_dU_array)
+
+    return dpot_dU, dpot_flag
+
+
 description = """\
 This script calculatess dU out of two rdfs with the rules of inverse boltzmann.
 In addition, it does some magic tricks:
@@ -47,45 +84,28 @@ parser.add_argument('pot_current', type=argparse.FileType('r'))
 parser.add_argument('dpot', type=argparse.FileType('w'))
 parser.add_argument('kBT', type=float)
 
-args = parser.parse_args()
+if __name__ == '__main__':
+    args = parser.parse_args()
 
-# load rdf and potential
-rdf_target_r, rdf_target_g, rdf_target_flag = readin_table(args.rdf_target)
-rdf_current_r, rdf_current_g, rdf_current_flag = readin_table(args.rdf_current)
-pot_current_r, pot_current_U, pot_current_flag = readin_table(args.pot_current)
+    # load rdf and potential
+    rdf_target_r, rdf_target_g, rdf_target_flag = readin_table(args.rdf_target)
+    rdf_current_r, rdf_current_g, rdf_current_flag = readin_table(args.rdf_current)
+    pot_current_r, pot_current_U, pot_current_flag = readin_table(args.pot_current)
 
-# sanity checks on grid
-if np.any(rdf_target_r - rdf_current_r > 0.0001):
-    print("Different grids in {} and {}!".format(args.rdf_target.name,
-                                                 args.rdf_current.name))
-    sys.exit(1)
+    # sanity checks on grid
+    compare_grids(rdf_target_r, rdf_current_r)
+    r = rdf_target_r
 
-# prepare dpot
-dpot_r = rdf_target_r
-dpot_dU = np.zeros_like(pot_current_U)
-dpot_flag = np.array([''] * len(dpot_dU))
+    # prepare dpot
+    dpot_dU = np.zeros_like(pot_current_U)
+    dpot_flag = np.array([''] * len(dpot_dU))
 
-# calculate dpot
-for i in range(len(rdf_target_r)):
-    if rdf_target_g[i] > 1e-10 and rdf_current_g[i] > 1e-10:
-        dpot_dU[i] = np.log(rdf_current_g[i] / rdf_target_g[i]) * args.kBT
-        dpot_flag[i] = 'i'
-    else:
-        dpot_dU[i] = np.nan
-        dpot_flag[i] = 'o'
-    # check for unset value in current potential
-    if 'u' in str(pot_current_flag[i]):
-        dpot_dU[i] = np.nan
-        dpot_flag[i] = 'o'
+    # calculate dpot
+    dpot_dU, dpot_flag = calculate_dpot(r, rdf_target_g, rdf_target_flag,
+                                        rdf_current_g, rdf_current_flag,
+                                        pot_current_U, pot_current_flag,
+                                        args.kBT)
 
-# find first in range dU value
-first_dU_index = np.where(dpot_flag == 'i')[0][0]
-first_dU = dpot_dU[first_dU_index]
-first_dU_array = np.ones_like(dpot_dU) * first_dU
-
-# replace out of range dU values
-dpot_dU = np.where(dpot_flag == 'i', dpot_dU, first_dU_array)
-
-# save dpot
-comment = "created by: {}".format(" ".join(sys.argv))
-saveto_table(args.dpot, dpot_r, dpot_dU, dpot_flag, comment)
+    # save dpot
+    comment = "created by: {}".format(" ".join(sys.argv))
+    saveto_table(args.dpot, r, dpot_dU, dpot_flag, comment)
