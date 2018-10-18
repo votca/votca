@@ -60,7 +60,7 @@ void SqlApplication::Run() {
 
     std::string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::HelpTextHeader(name);
+    HelpTextHeader(name);
     // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();
     int nframes = OptionsMap()["nframes"].as<int>();

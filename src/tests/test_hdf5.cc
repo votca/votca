@@ -39,7 +39,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
     Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17,17);
 
-    std::vector<QMAtom> atomsTest(1000);
+    QMMolecule atoms=QMMolecule(" ",0);
+    atoms.push_back(QMAtom("O",0));
 
     double qmEnergy = -2.1025e-3;
 
@@ -78,9 +79,9 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Random(33,31);
 
 
-    std::vector <votca::tools::vec> transitionDipolesTest;
+    std::vector <Eigen::Vector3d> transitionDipolesTest;
     for (size_t i =0; i < 1000; ++i){
-        transitionDipolesTest.push_back(votca::tools::vec(1,2,3));
+        transitionDipolesTest.push_back(Eigen::Vector3d::Ones());
     }
 
     {
@@ -93,9 +94,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.MOEnergies() = moeTest;
         orbWrite.MOCoefficients() = mocTest;
 
-        for (auto const& qma:atomsTest){
-            orbWrite.AddAtom(qma);
-        }
+        orbWrite.QMAtoms()=atoms;
 
         orbWrite.setQMEnergy(qmEnergy);
         orbWrite.setQMpackage(qmPackage);
@@ -165,15 +164,15 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     for (size_t c = 0; c<transitionDipolesTest.size(); ++c){
         BOOST_CHECK(
-            orbRead.TransitionDipoles()[c].isClose(transitionDipolesTest[c], tol));
+            orbRead.TransitionDipoles()[c].isApprox(transitionDipolesTest[c], tol));
 
     }
 
     BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atomsTest.size());
 
-    for (size_t i = 0; i<atomsTest.size(); ++i){
-        auto atomRead = *(orbRead.QMAtoms()[i]);
-        auto atomTest = atomsTest[i];
+    for (size_t i = 0; i<atoms.size(); ++i){
+        auto atomRead = orbRead.QMAtoms()[i];
+        auto atomTest = atoms[i];
         BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
         BOOST_CHECK(atomRead.getPos().isClose(atomTest.getPos(), tol));
         BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());

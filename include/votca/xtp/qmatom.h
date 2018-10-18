@@ -21,9 +21,7 @@
 #define	VOTCA_XTP_QMATOM_H
 
 #include <votca/tools/elements.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/checkpointreader.h>
-
+#include <votca/xtp/checkpoint.h>
 
 namespace votca { namespace xtp {
     
@@ -49,6 +47,8 @@ public:
 
   QMAtom (int index,std::string element, double x, double y, double z):
             QMAtom(index,element,Eigen::Vector3d{x,y,z}){};
+
+            QMAtom ():QMAtom(0,"",Eigen::Vector3d::Zero()){};
        
    static std::string Identify(){return "qmatom";}
        
@@ -83,7 +83,7 @@ private:
 
  public:
 
-   void WriteToCpt(CheckpointWriter& w){
+   void WriteToCpt(CheckpointWriter& w)const{
        w(_index, "index");
        w(_element, "element");
        w(_pos, "pos");

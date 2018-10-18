@@ -43,9 +43,7 @@ void Lowdin::EvaluateLowdin(Orbitals& orbitals,const AOBasis &basis,const QMStat
          for ( int i = id ; i < id+nooffunc; i++){
                 charge -= prodmat(i,i);
         }
-         PolarSite site=PolarSite(atom);
-         site.setCharge(charge);
-         orbitals.Multipoles().push_back(site);
+         orbitals.Multipoles().push_back(PolarSite(atom,charge));
          id+=nooffunc;
     }
 

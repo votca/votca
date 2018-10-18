@@ -18,17 +18,12 @@
  */
 
 #include "xtpdft.h"
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qminterface.h>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
 #include <stdio.h>
 #include <iomanip>
-#include <sys/stat.h>
-#include <vector>
 
 
 
@@ -67,7 +62,7 @@ namespace votca {
         /**
          * Dummy for use of XTPDFT as QMPackage, needs no input file
          */
-        bool XTPDFT::WriteInputFile(Orbitals& orbitals) {
+        bool XTPDFT::WriteInputFile(const Orbitals& orbitals){
             return true;
         }
 

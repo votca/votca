@@ -28,25 +28,7 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
-    QMMolecule::ReadFromCpt(CptLoc parent) {
-    size_t count = r.getNumDataSets();
-    _atomlist.resize(0);
-    _atomlist.reserve(count);
-    for (size_t i = 0; i < count; ++i) {
-       CheckpointReader c = r.openChild("atom" + std::to_string(i));
-        QMAtom temp=QMAtom("",0);
-        temp.ReadFromCpt(c);
-        _atomlist.emplace_back(temp);
-    }
-}
-
-    QMMolecule::WriteToCpt(CheckpointWriter& w) const {
-      for (unsigned i=0;i<_atomlist.size();i++) {
-        CheckpointWriter s = w.openChild("atom" + std::to_string(i));
-        _atomlist[i].WriteToCpt(s);
-    }
-    }
-
+  
       void QMMolecule::WriteXYZ(const std::string& filename, std::string header) const{
 
           std::ofstream out(filename);
@@ -97,8 +79,7 @@ namespace votca { namespace xtp {
                     double y = boost::lexical_cast<double>(split[2]);
                     double z = boost::lexical_cast<double>(split[3]);
                     Eigen::Vector3d pos = {x, y, z};
-                    QMAtom(atomCount, element, pos * tools::conv::ang2bohr);
-                    _atomlist.push_back(QMAtom);
+                    _atomlist.push_back(QMAtom(atomCount, element, pos * tools::conv::ang2bohr));
                     atomCount++;
                 }
             } else {

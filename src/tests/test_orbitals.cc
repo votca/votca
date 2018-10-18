@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(readxyztest){
   bool errorhappen=false;
   Orbitals orb;
   try{
-    orb.LoadFromXYZ("molecule.xyz");
+    orb.QMAtoms().LoadFromXYZ("molecule.xyz");
   }catch (const std::runtime_error& error)
 {
     std::cout<<error.what()<<std::endl;
@@ -156,7 +156,7 @@ Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
   basisfile << "</basis>" << endl;
   basisfile.close();
   
-  orb.LoadFromXYZ("molecule.xyz");
+  orb.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -265,7 +265,7 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasis("3-21G.xml");

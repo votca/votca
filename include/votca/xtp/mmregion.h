@@ -25,19 +25,14 @@
 #include <votca/xtp/region.h>
 #include <votca/xtp/polarsegment.h>
 
-
 namespace votca { namespace xtp {
 
 class MMRegion: public Region{
     public:
 
-        void Interact();
+        void WriteToCpt(CheckpointWriter& w)const;
 
-        void Print(std::string filename);
-
-        void WriteToCpt(CptLoc parent)const;
-
-        void ReadFromCpt(CptLoc parent);
+        void ReadFromCpt(CheckpointReader& r);
 
         int size()const{return _segments.size();}
 
@@ -47,10 +42,11 @@ class MMRegion: public Region{
         std::vector<PolarSegment>::const_iterator begin()const{return _segments.begin();}
         std::vector<PolarSegment>::const_iterator end()const{return _segments.end();}
 
-
+        void push_back(const PolarSegment& seg){
+            _segments.push_back(seg);
+        }
         
     private:
-
 
         std::vector<PolarSegment> _segments;
 

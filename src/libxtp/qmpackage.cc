@@ -17,11 +17,8 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
 #include "votca/xtp/qmpackage.h"
-#include "votca/xtp/aomatrix.h"
-#include <votca/xtp/molecule.h>
-#include <votca/xtp/atom.h>
+
 #include <boost/algorithm/string.hpp>
 
 namespace votca {
@@ -60,7 +57,7 @@ namespace votca {
             return;
         }
 
-        void QMPackage::ReorderMOsBack(Orbitals& orbitals) {
+        Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const{
             BasisSet dftbasisset;
             dftbasisset.LoadBasisSet(_basisset_name);
             if (!orbitals.hasQMAtoms()) {
@@ -68,8 +65,9 @@ namespace votca {
             }
             AOBasis dftbasis;
             dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
-            dftbasis.ReorderMOs(orbitals.MOCoefficients(), "xtp", getPackageName());
-            return;
+            Eigen::MatrixXd result=orbitals.MOCoefficients();
+            dftbasis.ReorderMOs(result, "xtp", getPackageName());
+            return result;
         }
 
         std::vector<QMPackage::MinimalMMCharge > QMPackage::SplitMultipoles(const PolarSite& aps) {
@@ -79,7 +77,7 @@ namespace votca {
             double a = _dpl_spacing; // this is in a0
             double mag_d = aps.getDipole().norm();// this is in e * a0
             const Eigen::Vector3d dir_d = aps.getDipole().normalized();
-            const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d; // converted to AA
+            const Eigen::Vector3d A = aps.getPos() + 0.5 * a * dir_d;
             const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
             double qA = mag_d / a;
             double qB = -qA;

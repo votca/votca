@@ -24,6 +24,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/mmregion.h>
+#include "votca/xtp/aobasis.h"
 #include <boost/format.hpp>
 
 namespace votca {
@@ -40,7 +41,7 @@ namespace votca {
             virtual ~QMPackage() {
             };
 
-            virtual std::string getPackageName() = 0;
+            virtual std::string getPackageName()const = 0;
 
             virtual void Initialize(tools::Property &options) = 0;
 
@@ -54,7 +55,6 @@ namespace votca {
             virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
 
             virtual void CleanUp() = 0;
-            
             
             void setMultipoleBackground(const std::shared_ptr<MMRegion>& PolarSegments);
 
@@ -134,8 +134,8 @@ namespace votca {
 
             virtual void WriteChargeOption() =0;
             std::vector<MinimalMMCharge > SplitMultipoles(const PolarSite& site);
-            void ReorderOutput(Orbitals& _orbitals);
-            void ReorderMOsBack(Orbitals& _orbitals);
+            void ReorderOutput(Orbitals& orbitals);
+            Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals)const;
             bool isLinker( std::string name, std::vector< std::string> linker_names );
             
             

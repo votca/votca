@@ -20,6 +20,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/ERIs.h>
+#include <votca/xtp/aomatrix.h>
 
 using namespace votca::xtp;
 using namespace std;
@@ -88,7 +89,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -149,7 +150,7 @@ BOOST_CHECK_EQUAL(check_threec, 1);
 
 BOOST_AUTO_TEST_CASE(threecenter_gwbse){
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;

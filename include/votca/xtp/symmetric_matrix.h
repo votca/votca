@@ -20,15 +20,9 @@
 #ifndef VOTCA_XTP_SYMMETRIC_MATRIX_H
 #define	VOTCA_XTP_SYMMETRIC_MATRIX_H
 
-
-
 #include <votca/xtp/eigen.h>
 #include <iostream>
 #include <vector>
-
-
-
-
 
 namespace votca { namespace xtp {
 

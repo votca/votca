@@ -89,7 +89,7 @@ template<class T>  class AtomContainer{
             for (const T& atom : _atomlist){
                 bool exists = false;
                 for (const std::string& type : result){
-                    if (atom->getElement() == type){
+                    if (atom.getElement() == type){
                         exists = true;
                         break;
                     }
@@ -117,6 +117,8 @@ template<class T>  class AtomContainer{
         }
         
     void WriteToCpt(CheckpointWriter& w)const{
+        w(_name,"name");
+        w(_id,"id");
     for (unsigned i=0;i<_atomlist.size();i++) {
         CheckpointWriter s = w.openChild( T::Identify() + std::to_string(i));
         _atomlist[i].WriteToCpt(s);
@@ -124,12 +126,14 @@ template<class T>  class AtomContainer{
     }
 
     void ReadFromCpt(CheckpointReader& r){
+        r(_name,"name");
+        r(_id,"id");
     size_t count = r.getNumDataSets();
     _atomlist.resize(0);
     _atomlist.reserve(count);
     for (size_t i = 0; i < count; ++i) {
        CheckpointReader c = r.openChild( T::Identify() + std::to_string(i));
-        T temp=T("",0);
+        T temp;
         temp.ReadFromCpt(c);
         _atomlist.emplace_back(temp);
     }      
@@ -145,12 +149,12 @@ private:
     mutable bool _position_valid;
     mutable Eigen::Vector3d _pos;
 
-    void calcPos(){
+    void calcPos() const{
         tools::Elements element;
         _pos=Eigen::Vector3d::Zero();
         double totalmass=0.0;
         for (const T& atom:_atomlist){
-            double mass=element.getMass(atom.getType());
+            double mass=element.getMass(atom.getElement());
             totalmass+=mass;
             _pos+=mass*atom.getPos();
         }

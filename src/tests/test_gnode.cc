@@ -25,74 +25,86 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(gnode_test)
 
 BOOST_AUTO_TEST_CASE(chosen_id_test) {
-  votca::xtp::GNode g;
-  g.events=std::vector<votca::xtp::GLink>(6);
-  g.events[0].destination=0;
+    vector<GNode> dests;
+    for(int i=0;i<6;i++){
+        GNode temp;
+        temp.id=i;
+        dests.push_back(temp);
+    }
+
+  GNode g;
+  g.events=std::vector<GLink>(6);
+  g.events[0].destination=&dests[0];
   g.events[0].rate =10;
-  g.events[1].destination=1;  
+  g.events[1].destination=&dests[1];
   g.events[1].rate =20;
-  g.events[2].destination=2;
+  g.events[2].destination=&dests[2];
   g.events[2].rate =15;
-  g.events[3].destination=3;
+  g.events[3].destination=&dests[3];
   g.events[3].rate =18;
-  g.events[4].destination=4;
+  g.events[4].destination=&dests[4];
   g.events[4].rate =12;
-  g.events[5].destination=5;
+  g.events[5].destination=&dests[5];
   g.events[5].rate =25;
   g.escape_rate=100;  
   g.MakeHuffTree();
-  std::cout<<g.findHoppingDestination(0.55)->destination<<std::endl;
-  std::cout<<g.findHoppingDestination(0.85)->destination<<std::endl;
-  std::cout<<g.findHoppingDestination(0.25)->destination<<std::endl;
-  std::cout<<g.findHoppingDestination(0.15)->destination<<std::endl;
-  std::cout<<g.findHoppingDestination(0.35)->destination<<std::endl;
-  std::cout<<g.findHoppingDestination(0.65)->destination<<std::endl;
-  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.55)->destination,0);
-  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.85)->destination,1);
-  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.25)->destination,2);
-  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.15)->destination,3);
-  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.35)->destination,4);
-  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.65)->destination,5);
+  std::cout<<g.findHoppingDestination(0.55)->destination->id<<std::endl;
+  std::cout<<g.findHoppingDestination(0.85)->destination->id<<std::endl;
+  std::cout<<g.findHoppingDestination(0.25)->destination->id<<std::endl;
+  std::cout<<g.findHoppingDestination(0.15)->destination->id<<std::endl;
+  std::cout<<g.findHoppingDestination(0.35)->destination->id<<std::endl;
+  std::cout<<g.findHoppingDestination(0.65)->destination->id<<std::endl;
+  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.55)->destination->id,0);
+  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.85)->destination->id,1);
+  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.25)->destination->id,2);
+  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.15)->destination->id,3);
+  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.35)->destination->id,4);
+  BOOST_CHECK_EQUAL(g.findHoppingDestination(0.65)->destination->id,5);
 }
 
 BOOST_AUTO_TEST_CASE(count_test) {
-  votca::xtp::GNode g;
-  g.events=std::vector<votca::xtp::GLink>(11);
-  g.events[0].destination=0;
+  GNode g;
+  vector<GNode> dests;
+    for(int i=0;i<11;i++){
+        GNode temp;
+        temp.id=i;
+        dests.push_back(temp);
+    }
+
+
+  g.events=std::vector<GLink>(11);
+  g.events[0].destination=&dests[0];
   g.events[0].rate =15;
-  g.events[1].destination=1;
+  g.events[1].destination=&dests[1];
   g.events[1].rate =9;
-  g.events[2].destination=2;
+  g.events[2].destination=&dests[2];
   g.events[2].rate =11;
-  g.events[3].destination=3;
+  g.events[3].destination=&dests[3];
   g.events[3].rate =8;
-  g.events[4].destination=4;
+  g.events[4].destination=&dests[4];
   g.events[4].rate =12;
-  g.events[5].destination=5;
+  g.events[5].destination=&dests[5];
   g.events[5].rate =7;
-  g.events[6].destination=6;
+  g.events[6].destination=&dests[6];
   g.events[6].rate =13;
-  g.events[7].destination=7;
+  g.events[7].destination=&dests[7];
   g.events[7].rate =6;
-  g.events[8].destination=8;
+  g.events[8].destination=&dests[8];
   g.events[8].rate =14;
-  g.events[9].destination=9;
+  g.events[9].destination=&dests[9];
   g.events[9].rate =5;
-  g.events[10].destination=10;
+  g.events[10].destination=&dests[10];
   g.events[10].rate =100;
   g.MakeHuffTree();  
-  vector<int> count(11);
+  vector<int> count(11,0);
   double d=0;
-    for (int i=0;i<11;i++){
-        count[i]=0;
-    }
-    int ind;
     while(d<1){
-       votca::xtp::GLink * L=g.findHoppingDestination(d);
-       ind=L->destination;
+       GLink * L=g.findHoppingDestination(d);
+       int ind=L->destination->id;
        count[ind]++;
        d+=0.000001;
     }

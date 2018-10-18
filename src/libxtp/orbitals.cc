@@ -414,7 +414,7 @@ namespace votca {
                 size = _BSE_singlet_energies.size();
             }
             for (int i = 0; i < size; ++i) {
-                double osc = (_transition_dipoles[i] * _transition_dipoles[i]) * 2.0 / 3.0 * (_BSE_singlet_energies(i));
+                double osc = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 * (_BSE_singlet_energies(i));
                 oscs.push_back(osc);
             }
             return oscs;

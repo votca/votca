@@ -16,6 +16,7 @@
  * limitations under the License.
  *
  */
+#include <votca/xtp/checkpoint.h>
 
 #ifndef VOTCA_XTP_REGION_H
 #define	VOTCA_XTP_REGION_H
@@ -31,14 +32,13 @@ namespace votca { namespace xtp {
    
 class Region{
     public:
+
+        virtual ~Region() {};
                
-        virtual void Interact()=0;
 
-        virtual void Print(std::string filename)=0;
+        virtual void WriteToCpt(CheckpointWriter& w)const =0 ;
 
-        virtual void WriteToCpt(CptLoc parent)const =0 ;
-
-        virtual void ReadFromCpt(CptLoc parent)=0;
+        virtual void ReadFromCpt(CheckpointReader& r)=0;
 
         virtual int size()const=0;
     

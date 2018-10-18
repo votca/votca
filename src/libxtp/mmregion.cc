@@ -1,4 +1,4 @@
-/*
+/* 
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -17,37 +17,22 @@
  *
  */
 
-#ifndef VOTCA_XTP_POLARSEGMENT_H
-#define VOTCA_XTP_POLARSEGMENT_H
-
-#include <votca/xtp/atomcontainer.h>
-#include <votca/xtp/polarsite.h>
+#include <votca/xtp/mmregion.h>
 
 
 namespace votca {
     namespace xtp {
 
-class PolarSegment : public AtomContainer<PolarSite>
-{
-public:
-    PolarSegment(std::string name,int id):AtomContainer<PolarSite>(name,id){};
-    
-    void LoadFromMPS(const std::string& filename);
 
-    void WriteMPS(const std::string& filename, std::string header) const;
+        void MMRegion::WriteToCpt(CheckpointWriter& w)const{
 
-    double CalcTotalQ()const;
+            
+        }
 
-    Eigen::Vector3d CalcDipole()const;
+        void MMRegion::ReadFromCpt(CheckpointReader& r){
+            
+        }
+  
 
-    
-};
-        
-        
-        
-        
     }
 }
-
-#endif /* VOTCA_XTP_POLARSEGMENT_H */
-

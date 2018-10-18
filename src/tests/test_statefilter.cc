@@ -23,7 +23,7 @@
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(statefilter_test)
-BOOST_AUTO_TEST_CASE(readxyztest){
+BOOST_AUTO_TEST_CASE(calcstate){
   
   
    BOOST_CHECK_EQUAL(true, true);

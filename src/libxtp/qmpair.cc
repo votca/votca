@@ -140,31 +140,7 @@ namespace votca { namespace xtp {
     return result;
   }
 
-  //only izindo uses this 
-  void QMPair::setJs(const std::vector<double> Js, int state) {
-    std::vector <double> ::const_iterator it;
-    double Jeff2 = 0.0;
-    if (state == -1) {
-      for (it = Js.begin(); it < Js.end(); ++it) {
-        Jeff2 += (*it)*(*it);
-      }
-      Jeff2 /= double(Js.size());
-      _Jeff2_e = Jeff2; 
-    }
-    else if (state == +1) {
-      for (it = Js.begin(); it < Js.end(); ++it) {
-        Jeff2 += (*it)*(*it);
-      }
-      Jeff2 /= double(Js.size());
-      _Jeff2_h = Jeff2;
-    }
-    else {
-      throw std::runtime_error(" ERROR CODE whx__01x1u__");
-    }
-  }
-
-
-
+  
   void QMPair::setJeff2(double Jeff2, int state) {
 
     if (state == -1) {

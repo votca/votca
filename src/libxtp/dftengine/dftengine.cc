@@ -828,7 +828,7 @@ void DFTEngine::Prepare() {
 
       double E_ext=0;
       for (const QMAtom& atom:_orbitals.QMAtoms()){
-          PolarSite nucleus=PolarSite(atom);
+          PolarSite nucleus=PolarSite(atom,atom.getNuccharge());
           for (auto&  seg : *_externalsites) {
               for (auto& site : seg) {
                   E_ext+=nucleus.InteractStatic(site);

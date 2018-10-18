@@ -18,11 +18,7 @@
  */
 
 #include "gaussian.h"
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qminterface.h>
-#include <votca/xtp/aobasis.h>
 #include <boost/algorithm/string.hpp>
-
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
 #include <votca/tools/constants.h>
@@ -148,10 +144,10 @@ namespace votca {
          * 'elementname'.gbs files, which are then included in the
          * Gaussian input file using @'elementname'.gbs
          */
-        void Gaussian::WriteBasisset(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms) {
+        void Gaussian::WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms) {
 
 
-          std::vector<std::string> UniqueElements= FindUniqueElements(qmatoms);
+          std::vector<std::string> UniqueElements= qmatoms.FindUniqueElements();
             BasisSet bs;
             bs.LoadBasisSet(_basisset_name);
             XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
@@ -210,8 +206,8 @@ namespace votca {
         /* If custom ECPs are used, they need to be specified in the input file
          * in a section following the basis set includes.
          */
-        void Gaussian::WriteECP(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms) {
-            std::vector<std::string> UniqueElements= FindUniqueElements(qmatoms);
+        void Gaussian::WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms) {
+            std::vector<std::string> UniqueElements= qmatoms.FindUniqueElements();
            
             BasisSet ecp;
             ecp.LoadPseudopotentialSet(_ecp_name);
@@ -254,20 +250,19 @@ namespace votca {
         void Gaussian::WriteBackgroundCharges(std::ofstream& com_file) {
             
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-            for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
-                for (APolarSite* site:*seg) {
-                    
-                    string sitestring=boost::str(fmt % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
-                            % (site->getPos().getY()*votca::tools::conv::nm2ang) 
-                            % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
-                            % site->getQ00());
-                    if (site->getQ00() != 0.0) com_file << sitestring << endl;
+            for (const PolarSegment& seg:*_PolarSegments) {
+                for (const PolarSite& site:seg) {
+                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
+                    string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z()
+                            % site.getCharge());
+                    if (site.getCharge() != 0.0) com_file << sitestring << endl;
 
-                    if (site->getRank() > 0 || _with_polarization ) {
+                    if (site.getRank() > 0 || _with_polarization ) {
 
-                        std::vector< std::vector<double> > split_multipoles = SplitMultipoles(site);
+                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
                         for (const auto& mpoles:split_multipoles){
-                           string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
+                           Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+                           string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
                             com_file << multipole << endl;
 
                         }
@@ -284,14 +279,14 @@ namespace votca {
          * Fortran fixed format 5D15.8. The information about the guess
          * itself is taken from a prepared orbitals object.
          */
-        void Gaussian::WriteGuess(Orbitals& orbitals_guess, std::ofstream& com_file) {
-            ReorderMOsBack(orbitals_guess);
+        void Gaussian::WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file) {
+            Eigen::MatrixXd MOs=ReorderMOsBack(orbitals_guess);
             com_file << "(5D15.8)" << endl;
             int level = 1;
             int ncolumns = 5;
-            for (int i=0;i<orbitals_guess.MOCoefficients().cols();++i) {
+            for (int i=0;i<MOs.cols();++i) {
                 com_file << setw(5) << level << endl;
-                Eigen::VectorXd mr = orbitals_guess.MOCoefficients().col(i);
+                Eigen::VectorXd mr = MOs.col(i);
                 int column = 1;
                 for (unsigned j = 0; j < mr.size(); ++j) {
                     com_file << FortranFormat(mr[j]);
@@ -346,13 +341,13 @@ namespace votca {
         /* Coordinates are written in standard Element,x,y,z format to the
          * input file.
          */
-        void Gaussian::WriteCoordinates(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms) {
-            for (QMAtom* atom:qmatoms) {
-              tools::vec pos=atom->getPos()*tools::conv::bohr2ang;
-                    com_file << setw(3) << atom->getElement().c_str()
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
-                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
+        void Gaussian::WriteCoordinates(std::ofstream& com_file,const QMMolecule& qmatoms) {
+            for (const QMAtom& atom:qmatoms) {
+              Eigen::Vector3d pos=atom.getPos()*tools::conv::bohr2ang;
+                    com_file << setw(3) << atom.getElement().c_str()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.x()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.y()
+                            << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.z()
                             << endl;
             }
             com_file << endl;
@@ -632,10 +627,8 @@ namespace votca {
 
                     std::vector<std::string> results;
                     boost::trim(line);
-
                     boost::algorithm::split(results, line, boost::is_any_of("\t ="),
                             boost::algorithm::token_compress_on);
-                    //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
 
                     level = boost::lexical_cast<int>(results.front());
                     boost::replace_first(results.back(), "D", "e");
@@ -658,7 +651,6 @@ namespace votca {
 
             // some sanity checks
             XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
-
             std::map< int, std::vector<double> >::iterator iter = coefficients.begin();
             basis_size = iter->second.size();
 
@@ -744,24 +736,24 @@ namespace votca {
             getline(input_file, line);
             getline(input_file, line);
             
-            bool _has_atoms = orbitals.hasQMAtoms();
+            bool has_atoms = orbitals.hasQMAtoms();
             
             std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
             int nfields = row.size();
             
             while (nfields == 3) {
-              int atom_id = boost::lexical_cast< int >(row.at(0));
+              int atom_id = boost::lexical_cast< int >(row.at(0))-1;
               std::string atom_type = row.at(1);
               double atom_charge = boost::lexical_cast< double >(row.at(2));
               row=GetLineAndSplit(input_file, "\t ");
               nfields = row.size();
-              QMAtom* pAtom;
-              if (_has_atoms == false) {
-                pAtom =orbitals.AddAtom(atom_id - 1,atom_type, tools::vec(0.0));
-              } else {
-                pAtom = orbitals.QMAtoms().at(atom_id - 1);
-              }
-              pAtom->setPartialcharge(atom_charge);
+                if (!has_atoms) {
+                    PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                    temp.setCharge(atom_charge);
+                    orbitals.Multipoles().push_back(temp);
+                } else {
+                    orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
+                }
             }
           }
           return has_charges;
@@ -861,34 +853,27 @@ namespace votca {
                  */
                 std::string::size_type eigenvalues_pos = line.find("Alpha");
                 if (eigenvalues_pos != std::string::npos) {
-
                     std::list<std::string> stringList;
-
                     while (eigenvalues_pos != std::string::npos && !has_occupied_levels && !has_unoccupied_levels) {
 
                         boost::iter_split(stringList, line, boost::first_finder("--"));
-
                         std::vector<std::string> energies;
                         boost::trim(stringList.back());
-
                         boost::algorithm::split(energies, stringList.back(), boost::is_any_of("\t "), boost::algorithm::token_compress_on);
 
                         if (stringList.front().find("virt.") != std::string::npos) {
                             unoccupied_levels += energies.size();
                             energies.clear();
                         }
-
                         if (stringList.front().find("occ.") != std::string::npos) {
                             occupied_levels += energies.size();
                             energies.clear();
                         }
-
                         getline(input_file, line);
                         eigenvalues_pos = line.find("Alpha");
                         boost::trim(line);
 
                         if (eigenvalues_pos == std::string::npos) {
-
                             has_occupied_levels = true;
                             has_unoccupied_levels = true;
                             orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
@@ -934,7 +919,6 @@ namespace votca {
 
                     std::vector<std::string>::iterator atom_block_it;
                     int aindex = 0;
-
                     for (atom_block_it = ++atom_block.begin(); atom_block_it != atom_block.end(); ++atom_block_it) {
                         std::vector<std::string> atom;
                         boost::algorithm::split(atom, *atom_block_it, boost::is_any_of(","), boost::algorithm::token_compress_on);
@@ -944,15 +928,13 @@ namespace votca {
                         double z = boost::lexical_cast<double>(*(--it_atom));
                         double y = boost::lexical_cast<double>(*(--it_atom));
                         double x = boost::lexical_cast<double>(*(--it_atom));
-                        tools::vec pos=tools::vec(x,y,z);
+                        Eigen::Vector3d pos(x,y,z);
                         pos*=tools::conv::ang2bohr;
-
                         if (has_atoms == false) {
-                            orbitals.AddAtom(aindex,atom_type, pos);
+                            orbitals.QMAtoms().push_back(QMAtom(aindex,atom_type, pos));
                         } else {
-                            QMAtom* pAtom = orbitals.QMAtoms().at(aindex);
-                            pAtom->setPos(pos);
-                            
+                            QMAtom& pAtom = orbitals.QMAtoms().at(aindex);
+                            pAtom.setPos(pos);
                         }
                         aindex++;
                     }

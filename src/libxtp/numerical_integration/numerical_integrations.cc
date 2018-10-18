@@ -509,8 +509,8 @@ namespace votca {
         
       Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix) {
       double N = 0;
-      Eigen::Vector3d centroid = Eigen::Vector3d(0.0);
-      tools::matrix gyration = tools::matrix(0.0);
+      Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
+      Eigen::Matrix3d gyration = Eigen::Matrix3d::Zero();
       unsigned nthreads = 1;
 #ifdef _OPENMP
       nthreads = omp_get_max_threads();
@@ -518,11 +518,11 @@ namespace votca {
       std::vector<double> N_thread = std::vector<double>(nthreads, 0.0);
       // centroid
       std::vector<Eigen::Vector3d> centroid_thread;
-      std::vector<tools::matrix> gyration_thread;
+      std::vector<Eigen::Matrix3d> gyration_thread;
       for (unsigned thread = 0; thread < nthreads; ++thread) {
-        Eigen::Vector3d tempvec = Eigen::Vector3d(0.0);
+        Eigen::Vector3d tempvec = Eigen::Vector3d::Zero();
         centroid_thread.push_back(tempvec);
-        tools::matrix tempmatrix = tools::matrix(0.0);
+        Eigen::Matrix3d tempmatrix = Eigen::Matrix3d::Zero();
         gyration_thread.push_back(tempmatrix);
       }
 
@@ -530,8 +530,8 @@ namespace votca {
       for (unsigned thread = 0; thread < nthreads; ++thread) {
         for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
           double N_box = 0.0;
-          Eigen::Vector3d centroid_box = Eigen::Vector3d(0.0);
-          tools::matrix gyration_box = tools::matrix(0.0);
+          Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
+          Eigen::Matrix3d gyration_box = Eigen::Matrix3d::Zero();
           GridBox& box = _grid_boxes[i];
           const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
           const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
@@ -566,7 +566,7 @@ namespace votca {
       // Normalize
       centroid = centroid / N;
       gyration = gyration / N;
-      gyration=gyration-(centroid|centroid);
+      gyration=gyration-centroid*centroid.transpose();
       Gyrationtensor gyro;
       gyro.mass=N;
       gyro.centroid=centroid;

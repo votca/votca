@@ -27,7 +27,7 @@ using namespace std;
 using namespace votca;
 
 
-class XtpParallel : public JobApplication
+class XtpParallel : public xtp::JobApplication
 {
 public:
 
@@ -48,8 +48,8 @@ private:
 namespace propt = boost::program_options;
 
 void XtpParallel::Initialize() {
-    JobCalculatorfactory::RegisterAll();
-    JobApplication::Initialize();
+    xtp::JobCalculatorfactory::RegisterAll();
+    xtp::JobApplication::Initialize();
 
     AddProgramOptions("Calculators") ("execute,e", propt::value<string>(),
                       "List of calculators separated by ',' or ' '");
@@ -63,7 +63,7 @@ bool XtpParallel::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
-    for (const auto& jobcalc:JobCalculators().getObjects()) {
+    for (const auto& jobcalc:xtp::JobCalculators().getObjects()) {
       PrintDescription(std::cout, jobcalc.first, "xtp/xml", Application::HelpShort);
     }
     StopExecution();
@@ -78,7 +78,7 @@ bool XtpParallel::EvaluateOptions() {
     for (const std::string &n: tok) {
       // loop over calculators
       bool printerror = true;
-      for (const auto& jobcalc:JobCalculators().getObjects()) {
+      for (const auto& jobcalc:xtp::JobCalculators().getObjects()) {
         if (n.compare(jobcalc.first.c_str()) == 0) {
           PrintDescription(std::cout, jobcalc.first, "xtp/xml", Application::HelpLong);
           printerror = false;
@@ -91,17 +91,17 @@ bool XtpParallel::EvaluateOptions() {
     return true;
   }
 
-  JobApplication::EvaluateOptions();
+  xtp::JobApplication::EvaluateOptions();
   CheckRequired("execute", "Nothing to do here: Abort.");
 
   Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string &n: calcs) {
     bool found_calc = false;
-    for(const auto& jobcalc:JobCalculators().getObjects()) {
+    for(const auto& jobcalc:xtp::JobCalculators().getObjects()) {
 
       if ( n.compare( jobcalc.first.c_str() ) == 0 ) {
         cout << " This is a XTP app" << endl;
-        JobApplication::AddCalculator(JobCalculators().Create(n.c_str()));
+        xtp::JobApplication::AddCalculator(xtp::JobCalculators().Create(n.c_str()));
         found_calc = true;
       } 
     }

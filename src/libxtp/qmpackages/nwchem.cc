@@ -18,9 +18,6 @@
  */
 
 #include "nwchem.h"
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qminterface.h>
-#include <votca/xtp/basisset.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 #include <boost/filesystem.hpp>
@@ -126,20 +123,19 @@ namespace votca {
 
       int numberofcharges=0;
       boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-      for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
-        for (APolarSite* site:*seg) {
-          string sitestring=boost::str(fmt % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
-              % (site->getPos().getY()*votca::tools::conv::nm2ang) 
-              % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
-              % site->getQ00());
-          if (site->getQ00() != 0.0){
+       for (const PolarSegment& seg:*_PolarSegments) {
+                for (const PolarSite& site:seg) {
+                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
+          string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z() % site.getCharge());
+          if (site.getCharge() != 0.0){
             nw_file << sitestring << endl;
             numberofcharges++;
           }
-          if (site->getRank() > 0 || _with_polarization ) {
-            std::vector< std::vector<double> > split_multipoles = SplitMultipoles(site);
+          if (site.getRank() > 0 || _with_polarization ) {
+            std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
             for (const auto& mpoles:split_multipoles){
-              string multipole=boost::str( fmt % mpoles[0] % mpoles[1] % mpoles[2] % mpoles[3]);
+              Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+              string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
               nw_file << multipole << endl;
               numberofcharges++;
 
@@ -152,7 +148,7 @@ namespace votca {
     }
 
 
-    bool NWChem::WriteGuess(Orbitals& orbitals){
+    bool NWChem::WriteGuess(const Orbitals& orbitals){
       ofstream orb_file;
       std::string orb_file_name_full = _run_dir + "/" + _orb_file_name;
       // get name of temporary ascii file and open it
@@ -166,7 +162,7 @@ namespace votca {
       int size_of_basis = (orbitals.MOEnergies()).size();
       orb_file << size_of_basis << endl;
       orb_file << size_of_basis << endl;
-      ReorderMOsBack(orbitals);
+      Eigen::MatrixXd MOs=ReorderMOsBack(orbitals);
       int level = 1;
       int ncolumns = 3;
       // write occupations as double in three columns
@@ -208,8 +204,8 @@ namespace votca {
       if (column != 1) orb_file << endl;
 
       // write coefficients in same format
-      for (int i=0;i<orbitals.MOCoefficients().cols();++i) {
-        Eigen::VectorXd mr=orbitals.MOCoefficients().col(i);
+      for (int i=0;i<MOs.cols();++i) {
+        Eigen::VectorXd mr=MOs.col(i);
         column = 1;
         for (unsigned j = 0; j < mr.size(); ++j) {
           orb_file << FortranFormat(mr[j]);
@@ -241,8 +237,7 @@ namespace votca {
      * Prepares the *.nw file from a vector of segments
      * Appends a guess constructed from monomer orbitals if supplied
      */
-    bool NWChem::WriteInputFile(Orbitals& orbitals){
-
+    bool NWChem::WriteInputFile(const Orbitals& orbitals){
 
       std::string temp_suffix = "/id";
       std::string scratch_dir_backup = _scratch_dir;
@@ -256,14 +251,14 @@ namespace votca {
       // header
       nw_file << "geometry noautoz noautosym" << endl;
 
-      std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
+      const QMMolecule& qmatoms = orbitals.QMAtoms();
 
-      for (const QMAtom* atom:qmatoms) {
-        tools::vec pos=atom->getPos()*tools::conv::bohr2ang;
-        nw_file << setw(3) << atom->getElement().c_str()
-          << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
-          << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
-          << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
+      for (const QMAtom& atom:qmatoms) {
+        Eigen::Vector3d pos=atom.getPos()*tools::conv::bohr2ang;
+        nw_file << setw(3) << atom.getElement().c_str()
+          << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.x()
+          << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.y()
+          << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.z()
           << endl;      
       }
       nw_file << "end\n";
@@ -468,7 +463,6 @@ namespace votca {
       input_file >> basis_size;
       XTP_LOG(logDEBUG, *_pLog) << "Basis set size: " << basis_size << flush;
 
-
       // next line has number of stored MOs
       input_file >> levels;
       XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
@@ -518,7 +512,6 @@ namespace votca {
         }
       }
 
-
       // Now, the same for the coefficients
       double coef;
       for (unsigned imo = 0; imo < levels; imo++) {
@@ -536,9 +529,6 @@ namespace votca {
         }
       }
 
-
-
-
       // copying information to the orbitals object
       orbitals.setBasisSetSize(basis_size);
       orbitals.setNumberOfElectrons(number_of_electrons);
@@ -549,7 +539,6 @@ namespace votca {
       for (int i = 0; i < orbitals.MOEnergies().size(); i++) {
         orbitals.MOEnergies()[i] = energies[ i ];
       }
-
 
       // copying orbitals to the matrix
       (orbitals.MOCoefficients()).resize(levels, basis_size);
@@ -712,20 +701,20 @@ namespace votca {
 
           std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
           int nfields = row.size();
-
+          bool hasAtoms=orbitals.hasQMAtoms();
           while (nfields == 6) {
-            int atom_id = boost::lexical_cast< int >(row.at(0));
+            int atom_id = boost::lexical_cast< int >(row.at(0))-1;
             std::string atom_type = row.at(1);
             double atom_charge = boost::lexical_cast< double >(row.at(5));
             row=GetLineAndSplit(input_file, "\t ");
             nfields = row.size();
-            QMAtom* pAtom;
-            if (orbitals.hasQMAtoms() == false) {
-              pAtom =orbitals.AddAtom(atom_id - 1,atom_type,tools::vec(0.0));
+            if (!hasAtoms) {
+                PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                temp.setCharge(atom_charge);
+                orbitals.Multipoles().push_back(temp);
             } else {
-              pAtom = orbitals.QMAtoms().at(atom_id - 1);
+                orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
             }
-            pAtom->setPartialcharge(atom_charge);
           }
         }
 
@@ -754,17 +743,17 @@ namespace votca {
 
           while (nfields == 6) {
             int atom_id = boost::lexical_cast< int >(row.at(0))-1;
-            std::string _atom_type = row.at(1);
+            std::string atom_type = row.at(1);
             double x = boost::lexical_cast<double>(row.at(3));
             double y = boost::lexical_cast<double>(row.at(4));
             double z = boost::lexical_cast<double>(row.at(5));
-            tools::vec pos=tools::vec(x,y,z);
+            Eigen::Vector3d pos(x,y,z);
             pos*=tools::conv::ang2bohr;
             if (has_QMAtoms == false) {
-              orbitals.AddAtom(atom_id,_atom_type, pos);
-            } else{
-              QMAtom* pAtom = orbitals.QMAtoms().at(atom_id);
-              pAtom->setPos(pos); 
+                orbitals.QMAtoms().push_back(QMAtom(atom_id,atom_type, pos));
+            } else {
+                QMAtom& pAtom = orbitals.QMAtoms().at(atom_id);
+                pAtom.setPos(pos);
             }
             atom_id++;
             row=GetLineAndSplit(input_file, "\t ");
@@ -899,9 +888,9 @@ namespace votca {
     }
 
 
-    void NWChem::WriteBasisset(ofstream& nw_file, std::vector<QMAtom*>& qmatoms) {
+    void NWChem::WriteBasisset(ofstream& nw_file, const QMMolecule& qmatoms) {
 
-      std::vector<std::string> UniqueElements = FindUniqueElements(qmatoms);
+      std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
       BasisSet bs;
       bs.LoadBasisSet(_basisset_name);
       XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
@@ -939,9 +928,9 @@ namespace votca {
       return;
     }
 
-    void NWChem::WriteECP(ofstream& nw_file, std::vector<QMAtom*>& qmatoms) {
+    void NWChem::WriteECP(ofstream& nw_file, const QMMolecule& qmatoms) {
 
-      std::vector<std::string> UniqueElements = FindUniqueElements(qmatoms);
+      std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
       BasisSet ecp;
       ecp.LoadPseudopotentialSet(_ecp_name);

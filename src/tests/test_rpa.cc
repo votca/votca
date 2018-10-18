@@ -21,6 +21,7 @@
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
+#include <votca/xtp/aomatrix.h>
 
 
 using namespace votca::xtp;
@@ -90,7 +91,7 @@ BOOST_AUTO_TEST_CASE(rpa_full){
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   

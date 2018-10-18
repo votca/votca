@@ -753,7 +753,7 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
-        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const const std::shared_ptr<MMRegion> & sites) {
+        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
             for (const auto& Seg:*sites) {

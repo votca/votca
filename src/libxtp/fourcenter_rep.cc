@@ -18,7 +18,7 @@
  */
 
 #include <votca/xtp/fourcenter.h>
-
+#include <votca/xtp/aomatrix.h>
 
 
 namespace votca {
@@ -117,9 +117,6 @@ namespace votca {
 
             } 
 
-
-
-
             const Eigen::Vector3d& pos_alpha = shell_alpha->getPos();
             const Eigen::Vector3d& pos_beta = shell_beta->getPos();
             const Eigen::Vector3d& pos_gamma = shell_gamma->getPos();
@@ -131,7 +128,6 @@ namespace votca {
             int lmax_delta = shell_delta->getLmax();
 
             int n_orbitals[] = { 1, 4, 10, 20, 35, 56, 84, 120, 165 };     //   n_orbitals[n] = ( (n + 1) * (n + 2) * (n + 3) ) / 6
-
 
  int nx[] = { 0,
               1, 0, 0,
@@ -162,7 +158,6 @@ namespace votca {
               0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6,
               0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 7,
               0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-
 
  int i_less_x[] = {
   0,
@@ -197,7 +192,6 @@ namespace votca {
   0,  0, 56,  0, 57, 58,  0, 59, 60, 61,  0, 62, 63, 64, 65,  0, 66, 67, 68, 69, 70,  0, 71, 72, 73, 74, 75, 76,  0, 77, 78, 79, 80, 81, 82, 83,
   0,  0, 84,  0, 85, 86,  0, 87, 88, 89,  0, 90, 91, 92, 93,  0, 94, 95, 96, 97, 98,  0, 99,100,101,102,103,104,  0,105,106,107,108,109,110,111,  0,112,113,114,115,116,117,118,119 };
 
-
  int i_more_x[] = {  1,
                      4,  5,  6,
                     10, 11, 12, 13, 14, 15,
@@ -224,8 +218,6 @@ namespace votca {
                     58, 60, 61, 63, 64, 65, 67, 68, 69, 70, 72, 73, 74, 75, 76, 78, 79, 80, 81, 82, 83,
                     86, 88, 89, 91, 92, 93, 95, 96, 97, 98,100,101,102,103,104,106,107,108,109,110,111,113,114,115,116,117,118,119,
                    122,124,125,127,128,129,131,132,133,134,136,137,138,139,140,142,143,144,145,146,147,149,150,151,152,153,154,155,157,158,159,160,161,162,163,164 };
-
-
 
             int nbeta = AOSuperMatrix::getBlockSize(lmax_beta);
             int ndelta = AOSuperMatrix::getBlockSize(lmax_delta);
@@ -255,8 +247,6 @@ namespace votca {
                   for ( const auto& gaussian_delta:*shell_delta) {
                       const double decay_delta = gaussian_delta.getDecay();
 
-
-          
             double zeta = decay_alpha + decay_beta;    
             double eta = decay_gamma + decay_delta;     
             double decay = zeta + eta;
@@ -287,7 +277,6 @@ namespace votca {
               }
              }
 
-
             tensor3d R;
             R.resize(extents[ range(0, ncombined_ab ) ][ range(0, nbeta ) ][ range(0, ncombined_cd)]);
             //initialize to zero
@@ -299,7 +288,6 @@ namespace votca {
               }
             }
             
-
             const std::vector<double> FmT=AOMatrix<double>::XIntegrate(mmax+1, U);
 
             double exp_AB = exp( -2. * decay_alpha * decay_beta * rzeta * dist_AB );
@@ -314,7 +302,6 @@ namespace votca {
 
 int lmax_alpha_beta = lmax_alpha + lmax_beta;
 int lmax_gamma_delta = lmax_gamma + lmax_delta;
-
 
 //Integrals     p-s - s-s
 if (lmax_alpha_beta > 0) {
@@ -393,9 +380,6 @@ for (int l = 4; l < lmax_alpha_beta+1; l++) {
 }
 //------------------------------------------------------
 
-
-
-
 if (lmax_gamma_delta > 0) {
 
   //Integrals     s-s - p-s
@@ -431,7 +415,6 @@ if (lmax_gamma_delta > 0) {
 
 } // end if (lmax_gamma_delta > 0)
 
-
 if (lmax_gamma_delta > 1) {
 
   //Integrals     s-s - d-s
@@ -459,9 +442,7 @@ if (lmax_gamma_delta > 1) {
     }
   }
   //------------------------------------------------------
-
 } // end if (lmax_gamma_delta > 1)
-
 
 if (lmax_gamma_delta > 2) {
 
@@ -499,9 +480,7 @@ if (lmax_gamma_delta > 2) {
     }
   }
   //------------------------------------------------------
-
 } // end if (lmax_gamma_delta > 2)
-
 
 //Integrals     s-s - g-s     p-s - g-s     d-s - g-s     f-s - g-s     g-s - g-s     h-s - g-s     i-s - g-s     j-s - g-s     k-s - g-s     . . .
 //              s-s - h-s     p-s - h-s     d-s - h-s     f-s - h-s     g-s - h-s     h-s - h-s     i-s - h-s     j-s - h-s     k-s - h-s     . . .
@@ -583,12 +562,6 @@ for (int l = 4; l < lmax_gamma_delta+1; l++) {
 }
 //------------------------------------------------------
 
-
-
-
-
-
-
 //copy into new array for 3D use.
 
 for (index3d i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
@@ -596,8 +569,6 @@ for (index3d i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
     R[i][0][k] = R_temp[i][k][0];
   }
 }
-
-
 
 if (lmax_beta > 0) {
   //Integrals     s-p - *-s     p-p - *-s     d-p - *-s     f-p - *-s     g-p - *-s     h-p - *-s     i-p - *-s     j-p - *-s     . . .
@@ -654,9 +625,6 @@ if (lmax_beta > 2) {
   //------------------------------------------------------
 }
 
-
-
-
 //Integrals     s-g - *-s     p-g - *-s     d-g - *-s     f-g - *-s     g-g - *-s     . . .
 //              s-h - *-s     p-h - *-s     d-h - *-s     f-h - *-s     . . .
 //              s-i - *-s     p-i - *-s     d-i - *-s     . . .
@@ -684,11 +652,6 @@ for (int l = 4; l < lmax_beta+1; l++) {
   }
 }
 //------------------------------------------------------
-
-
-
-
-
 
 // Transforming alpha and beta functions to sphericals
 
@@ -722,8 +685,6 @@ for (int l = 4; l < lmax_beta+1; l++) {
 
                       R3_ab_sph[ i_alpha ][ i_beta ][ j ] += R[ i_alpha_t ][ i_beta_t][ j]
                                                                 * trafo_alpha(i_alpha_t, i_alpha) * trafo_beta(i_beta_t, i_beta);
-
-
                     }
                   }
                 }
@@ -759,7 +720,6 @@ if (lmax_delta > 0) {
       }
     }
   }
-  //------------------------------------------------------
 }
 
 if (lmax_delta > 1) {
@@ -779,7 +739,6 @@ if (lmax_delta > 1) {
       }
     }
   }
-  //------------------------------------------------------
 }
 
 if (lmax_delta > 2) {
@@ -803,7 +762,6 @@ if (lmax_delta > 2) {
       }
     }
   }
-  //------------------------------------------------------
 }
 
 //Integrals     *-* - s-g     *-* - p-g     *-* - d-g     *-* - f-g     *-* - g-g     . . .
@@ -834,10 +792,6 @@ for (int l = 4; l < lmax_delta+1; l++) {
     }
   }
 }
-//------------------------------------------------------
-
-
-
 
 // Transforming gamma and delta functions to sphericals
 
@@ -850,7 +804,6 @@ for (int l = 4; l < lmax_delta+1; l++) {
 
             const Eigen::MatrixXd trafo_gamma = AOSuperMatrix::getTrafo(gaussian_gamma);
             const Eigen::MatrixXd trafo_delta = AOSuperMatrix::getTrafo(gaussian_delta);
-
 
             tensor4d R4_sph;
             R4_sph.resize(extents4[ ntrafo_alpha ][ ntrafo_beta ][ ntrafo_gamma ][ ntrafo_delta ]);
@@ -879,7 +832,6 @@ for (int l = 4; l < lmax_delta+1; l++) {
             int NumFunc_gamma = shell_gamma->getNumFunc();
             int NumFunc_delta = shell_delta->getNumFunc();
             
-            
             for (int i_alpha = 0; i_alpha < NumFunc_alpha; i_alpha++) {
                 for (int i_beta = 0; i_beta < NumFunc_beta; i_beta++) {
                   int a=i_alpha;
@@ -907,14 +859,11 @@ for (int l = 4; l < lmax_delta+1; l++) {
                 }
               }
 
-           
                  } // GaussianIterator itdelta
               } // GaussianIterator itgamma
            } // GaussianIterator itbeta
         } // GaussianIterator italpha
 
-                        
-    
        return does_contribute;     
     } // TCrawMatrix::FillFourCenterRepBlock
 

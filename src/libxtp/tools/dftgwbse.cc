@@ -15,10 +15,7 @@
  *
  */
 
-#include <votca/tools/elements.h>
-
 #include "dftgwbse.h"
-#include "votca/xtp/qminterface.h"
 #include <votca/xtp/gwbseengine.h>
 
 using namespace std;
@@ -99,18 +96,20 @@ namespace votca {
                 orbitals.ReadFromCpt(_guess_file);
             } else {
                 XTP_LOG(logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
-                orbitals.LoadFromXYZ(_xyzfile);
+                orbitals.QMAtoms().LoadFromXYZ(_xyzfile);
             }
 
             QMPackage *qmpackage = QMPackages().Create(_package);
             qmpackage->setLog(&_log);
             qmpackage->Initialize(_package_options);
             qmpackage->setRunDir(".");
-            std::vector<std::shared_ptr<PolarSeg> > polar_segments;
+            
+
             if (_do_external) {
-                vector<APolarSite*> sites = APS_FROM_MPS(_mpsfile, 0);
-                std::shared_ptr<PolarSeg> newPolarSegment (new PolarSeg(0, sites));
-                polar_segments.push_back(newPolarSegment);
+                auto polar_segments = std::make_shared<MMRegion>();
+                PolarSegment seg=PolarSegment("",0);
+                seg.LoadFromMPS(_mpsfile);
+                polar_segments->push_back(seg);
                 qmpackage->setMultipoleBackground(polar_segments);
                 qmpackage->setDipoleSpacing(_dipole_spacing);
                 qmpackage->setWithPolarization(true);

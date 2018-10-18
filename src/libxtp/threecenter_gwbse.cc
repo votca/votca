@@ -95,7 +95,7 @@ namespace votca {
 
       // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)//private(_block)
-      for (unsigned is = 0; is < gwbasis.getNumofShells(); is++) {
+      for (int is = 0; is < gwbasis.getNumofShells(); is++) {
         const AOShell& shell = gwbasis.getShell(is);
         std::vector< Eigen::MatrixXd > block;
         for (int i = 0; i < _mtotal; i++) {
@@ -125,7 +125,7 @@ namespace votca {
      * followed by a convolution of those with the DFT orbital coefficients 
      */
 
-    void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& block, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals) {
+    void TCMatrix_gwbse::FillBlock(std::vector< Eigen::MatrixXd >& block, const AOShell& auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals) {
       tensor3d::extent_gen extents;
       std::vector<Eigen::MatrixXd> symmstorage;
       for (int i = 0; i < auxshell.getNumFunc(); ++i) {

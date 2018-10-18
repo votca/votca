@@ -25,6 +25,7 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
+#include <votca/tools/globals.h>
 
 
 namespace votca {

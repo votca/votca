@@ -20,8 +20,6 @@
 #ifndef __VOTCA_XTP_GAUSSIAN_H
 #define	__VOTCA_XTP_GAUSSIAN_H
 
-
-#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string>
@@ -40,11 +38,11 @@ class Gaussian : public QMPackage
 {
 public:
 
-   std::string getPackageName() { return "gaussian"; }
+   std::string getPackageName() const{ return "gaussian"; }
 
    void Initialize( tools::Property &options );
 
-   bool WriteInputFile( Orbitals& orbitals);
+   bool WriteInputFile(const Orbitals& orbitals);
 
    bool Run( Orbitals& orbitals );
 
@@ -60,7 +58,6 @@ private:
     
     bool WriteShellScript();
 
-
     bool CheckLogFile();
     
     std::string                              _shell_file_name;
@@ -74,12 +71,12 @@ private:
     
     std::string FortranFormat(double number);
 
-    void WriteBasisset(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
+    void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
     void WriteBackgroundCharges(std::ofstream& com_file);
-    void WriteGuess(Orbitals& orbitals_guess, std::ofstream& com_file);
+    void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
     void WriteVXCRunInputFile();
-    void WriteCoordinates(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+    void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
     void WriteHeader(std::ofstream& com_file);
 
     void WriteChargeOption();

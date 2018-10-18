@@ -45,10 +45,6 @@ namespace votca {
 
             _maverick = (_nThreads == 1) ? true : false;
 
-            _induce = false;
-            _epsilon = 1;
-            _cutoff = -1;
-
             string key = "options." + Identify();
 
             if (options->exists(key + ".job_file")) {
@@ -73,21 +69,7 @@ namespace votca {
                 string parse_string = options->get(key + ".states").as<string>();
                 _statemap = FillParseMaps(parse_string);    
             } 
-            if (options->exists(key + ".epsilon")) {
-                _epsilon = options->get(key + ".epsilon").as<double>();
-            } else {
-                _epsilon = 1;
-            }
-            if (options->exists(key + ".cutoff")) {
-                _cutoff = options->get(key + ".cutoff").as<double>();
-            } else {
-                _cutoff = -1;
-            }
-
-            if (options->exists(key + ".induce")) {
-                _induce = options->get(key + ".induce").as<bool>();
-            }
-
+         
             cout << "done" << endl;
         }
         

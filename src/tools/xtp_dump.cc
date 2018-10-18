@@ -28,7 +28,7 @@ using namespace std;
 using namespace votca;
 
 
-class XtpDump : public SqlApplication
+class XtpDump : public xtp::SqlApplication
 {
 public:
 
@@ -49,8 +49,8 @@ private:
 namespace propt = boost::program_options;
 
 void XtpDump::Initialize() {
-    ExtractorFactory::RegisterAll();
-    SqlApplication::Initialize();
+    xtp::ExtractorFactory::RegisterAll();
+    xtp::SqlApplication::Initialize();
    
 
     AddProgramOptions("Extractors") ("extract,e", propt::value<string>(),
@@ -66,7 +66,7 @@ bool XtpDump::EvaluateOptions() {
 
   if (OptionsMap().count("list")) {
     cout << "Available XTP extractors: \n";
-    for (const auto& extract:Extractors().getObjects()) {
+    for (const auto& extract:xtp::Extractors().getObjects()) {
       PrintDescription(std::cout, extract.first, "xtp/xml", Application::HelpShort);
     }
     StopExecution();
@@ -83,7 +83,7 @@ bool XtpDump::EvaluateOptions() {
       // loop over calculators
       bool printerror = true;
 
-      for (const auto& extract:Extractors().getObjects()) {
+      for (const auto& extract:xtp::Extractors().getObjects()) {
         if (n.compare(extract.first.c_str()) == 0) {
           PrintDescription(std::cout,extract.first, "xtp/xml", Application::HelpLong);
           printerror = false;
@@ -97,17 +97,17 @@ bool XtpDump::EvaluateOptions() {
     return true;
   }
 
-  SqlApplication::EvaluateOptions();
+  xtp::SqlApplication::EvaluateOptions();
   CheckRequired("extract", "Nothing to do here: Abort.");
 
   tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
   for (const string& n:calcs) {
 
     bool found_calc = false;
-    for (const auto& extract:Extractors().getObjects()) {
+    for (const auto& extract:xtp::Extractors().getObjects()) {
       if (n.compare(extract.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
-        SqlApplication::AddCalculator(Extractors().Create(n.c_str()));
+        xtp::SqlApplication::AddCalculator(xtp::Extractors().Create(n.c_str()));
         found_calc = true;
 
       }

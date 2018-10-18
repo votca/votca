@@ -219,10 +219,8 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
     charges.conservativeResize(atomlist.size());
    
     XTP_LOG(logDEBUG, *_log) << " Sum of fitted charges: " << charges.sum() << flush;
-    for (unsigned i=0;i<atomlist.size();i++){
-        PolarSite site=PolarSite(atomlist[i]);
-        site.setCharge(charges(i));
-        orbitals.Multipoles().push_back(site);
+    for (int i=0;i<atomlist.size();i++){
+        orbitals.Multipoles().push_back(PolarSite(atomlist[i],charges(i)));
     }
     
     // get RMSE

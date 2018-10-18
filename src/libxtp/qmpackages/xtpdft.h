@@ -40,13 +40,11 @@ namespace votca {
         class XTPDFT : public QMPackage {
         public:
 
-            std::string getPackageName() {
-                return "xtp";
-            }
+            std::string getPackageName() const{return "xtp";}
 
             void Initialize(tools::Property &options);
 
-            bool WriteInputFile( Orbitals& orbitals);
+            bool WriteInputFile(const Orbitals& orbitals);
 
             bool Run(Orbitals& orbitals);
 
@@ -57,8 +55,6 @@ namespace votca {
             bool ParseLogFile(Orbitals& orbitals);
 
             bool ParseOrbitalsFile(Orbitals& orbitals);
-            
-            void setMultipoleBackground( std::vector<std::shared_ptr<PolarSeg> > multipoles);
 
         private:
             void WriteChargeOption() { return ;}

@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -214,7 +214,7 @@ BOOST_CHECK_EQUAL(check_ecp, 1);
 
 BOOST_AUTO_TEST_CASE(externalmatrices_test){
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -230,10 +230,11 @@ mpsfile<<"10 0 0"<<endl;
 mpsfile<<"     100 0 0 0 0"<<endl;
 mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<<endl;
 
-std::vector<APolarSite*> sites = APS_FROM_MPS("polarsite.mps", 0);
-std::vector<std::shared_ptr<PolarSeg> > polar_segments;
-std::shared_ptr<PolarSeg>  newPolarSegment(new PolarSeg(0, sites));
-polar_segments.push_back(newPolarSegment);
+auto polar_segments = std::make_shared<MMRegion>();
+                PolarSegment seg=PolarSegment("",0);
+                seg.LoadFromMPS("polarsite.mps");
+                polar_segments->push_back(seg);
+
 AODipole_Potential dip;
 dip.Fillextpotential(aobasis,polar_segments);
   
@@ -512,7 +513,7 @@ xyzfile << " O            1.000000     .000000     .000000" << std::endl;
 xyzfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("CO.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("CO.xyz");
   BasisSet basis;
   basis.LoadBasisSet("contracted.xml");
   AOBasis aobasis;
@@ -602,7 +603,7 @@ BOOST_CHECK_EQUAL(check_overlap, 1);
 
 BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
  Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;

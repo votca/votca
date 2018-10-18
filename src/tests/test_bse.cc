@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian){
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasis("3-21G.xml");
@@ -165,7 +165,7 @@ Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
   ppm.PPM_construct_parameters(rpa);
   Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
   
-   votca::Logger _log;
+  Logger _log;
   Sigma sigma=Sigma(&log);
   sigma.configure(4,0,16,20,1e-5);
   sigma.setDFTdata(0.0,&vxc,&mo_energy);

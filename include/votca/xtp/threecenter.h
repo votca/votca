@@ -20,17 +20,10 @@
 #ifndef VOTCA_XTP_THREECENTER_H
 #define	VOTCA_XTP_THREECENTER_H
 
-
-
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/multiarray.h>
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aobasis.h>
 #include <votca/xtp/symmetric_matrix.h>
-#include <votca/xtp/orbitals.h>
-
-
-
-
 
 /**
  * \brief Calculates three electron overlap integrals for GW and DFT.
@@ -43,13 +36,10 @@ namespace votca {
     namespace xtp {
 
         // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
-
         class TCMatrix {    
         protected:
             
-            
             bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell, const AOShell& shell_row, const AOShell& shell_col);
-            
 
         };
 
@@ -58,13 +48,7 @@ namespace votca {
 
             void Fill(AOBasis& auxbasis, AOBasis& dftbasis,const Eigen::MatrixXd& V_sqrtm1);
 
-            int getSize() {
-                return _matrix.size();
-            }
-
-            std::vector< Symmetric_Matrix >& getData() {
-                return _matrix;
-            }
+            int size() const{return _matrix.size();}
 
             Symmetric_Matrix& getDatamatrix(int i) {
                 return _matrix[i];
@@ -84,7 +68,6 @@ namespace votca {
         public:
 
             /// returns one level as a constant reference
-
             const MatrixXfd& operator[](int i) const {
                 return _matrix[i];
             }
@@ -148,7 +131,7 @@ namespace votca {
             int _mtotal;
             int basissize;
 
-            void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
+            void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell& auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
         };
     

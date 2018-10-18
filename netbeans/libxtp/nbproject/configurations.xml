@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -93,6 +93,7 @@
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
+      <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
@@ -101,11 +102,9 @@
       <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
-      <itemPath>../../include/votca/xtp/qmapemachine.h</itemPath>
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
-      <itemPath>../../include/votca/xtp/qmiter.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmolecule.h</itemPath>
       <itemPath>../../include/votca/xtp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
@@ -113,6 +112,7 @@
       <itemPath>../../include/votca/xtp/qmpair.h</itemPath>
       <itemPath>../../include/votca/xtp/qmstate.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
+      <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
@@ -224,6 +224,7 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/lowdin.cc</itemPath>
+      <itemPath>../../src/libxtp/mmregion.cc</itemPath>
       <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
@@ -231,13 +232,14 @@
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libxtp/qminterface.cc</itemPath>
-      <itemPath>../../src/libxtp/qmiter.cc</itemPath>
       <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
+      <itemPath>../../src/libxtp/qmpair.cc</itemPath>
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
+      <itemPath>../../src/libxtp/topology.cc</itemPath>
       <itemPath>../../src/libxtp/trustregion.cc</itemPath>
       <itemPath>../../src/libxtp/version.cc</itemPath>
       <itemPath>../../src/libxtp/version_nb.cc</itemPath>
@@ -246,28 +248,35 @@
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
-      <itemPath>../../src/tests/test_apolarsite.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
+      <itemPath>../../src/tests/test_basisset.cc</itemPath>
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
+      <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
       <itemPath>../../src/tests/test_espfit.cc</itemPath>
       <itemPath>../../src/tests/test_fragment.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
+      <itemPath>../../src/tests/test_gnode.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
+      <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
+      <itemPath>../../src/tests/test_qmstate.cc</itemPath>
+      <itemPath>../../src/tests/test_radial_euler_maclaurin_rule.cc</itemPath>
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
       <itemPath>../../src/tests/test_sigma.cc</itemPath>
+      <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
+      <itemPath>../../src/tests/test_statefilter.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -1367,6 +1376,8 @@
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
@@ -1392,11 +1403,6 @@
       </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/qmapemachine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
@@ -1408,8 +1414,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmmolecule.h"
             ex="false"
@@ -1436,6 +1440,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1909,6 +1915,8 @@
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
@@ -1937,8 +1945,6 @@
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmiter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1985,6 +1991,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2052,6 +2060,8 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
@@ -2066,15 +2076,20 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dftcoupling.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -2091,6 +2106,8 @@
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -2102,11 +2119,20 @@
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2118,6 +2144,16 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sphere_lebedev_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_statefilter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -2311,6 +2347,8 @@
       </item>
       <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
@@ -2336,11 +2374,6 @@
       </item>
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/qmapemachine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
@@ -2352,8 +2385,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmmolecule.h"
             ex="false"
@@ -2380,6 +2411,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2853,6 +2886,8 @@
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
@@ -2881,8 +2916,6 @@
       <item path="../../src/libxtp/qmdatabase.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/qmiter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2929,6 +2962,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2996,6 +3031,8 @@
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../src/libxtp/topology.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/trustregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/version.cc" ex="false" tool="1" flavor2="0">
@@ -3010,15 +3047,20 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_apolarsite.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dftcoupling.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -3035,6 +3077,8 @@
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gnode.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -3046,11 +3090,20 @@
       </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3062,6 +3115,16 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sphere_lebedev_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_statefilter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"

@@ -32,7 +32,7 @@
 using namespace std;
 using namespace votca;
 
-class XtpTools : public XtpApplication {
+class XtpTools : public xtp::XtpApplication {
 public:
 
   XtpTools() {
@@ -52,7 +52,7 @@ public:
     out << "Runs excitation/charge transport tools" << endl;
   }
 
-  void AddTool(votca::QMTool *tool) {
+  void AddTool(xtp::QMTool *tool) {
     _tools.push_back(tool);
   }
   void Initialize();
@@ -66,7 +66,7 @@ public:
 private:
 
   tools::Property _options;
-  list< QMTool* > _tools;
+  list< xtp::QMTool* > _tools;
 
 };
 
@@ -74,9 +74,8 @@ namespace propt = boost::program_options;
 
 void XtpTools::Initialize() {
 
-  QMToolFactory::RegisterAll();
-  QMToolFactory::RegisterAll();
-  XtpApplication::Initialize();
+  xtp::QMToolFactory::RegisterAll();
+  xtp::XtpApplication::Initialize();
 
   // Tools-related
   AddProgramOptions("Tools") ("execute,e", propt::value<string>(),
@@ -98,7 +97,7 @@ bool XtpTools::EvaluateOptions() {
   if (OptionsMap().count("list")) {
     cout << "Available XTP tools: \n";
 
-    for (const auto& tool:QMTools().getObjects()) {
+    for (const auto& tool:xtp::QMTools().getObjects()) {
       PrintDescription(std::cout, tool.first, helpdir, Application::HelpShort);
     }
     StopExecution();
@@ -113,7 +112,7 @@ bool XtpTools::EvaluateOptions() {
     for (const std::string& n :tok) {
       // loop over tools
       bool printerror = true;
-      for ( const auto& tool:QMTools().getObjects()) {
+      for ( const auto& tool:xtp::QMTools().getObjects()) {
         if (n.compare(tool.first.c_str()) == 0) {
           PrintDescription(std::cout, tool.first, helpdir, Application::HelpLong);
           printerror = false;
@@ -133,10 +132,10 @@ bool XtpTools::EvaluateOptions() {
   tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string& n :xtools) {
     bool found_calc = false;
-    for (const auto& tool:QMTools().getObjects()) {
+    for (const auto& tool:xtp::QMTools().getObjects()) {
       if (n.compare(tool.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
-        this->AddTool(QMTools().Create(n.c_str()));
+        this->AddTool(xtp::QMTools().Create(n.c_str()));
         found_calc = true;
       }
     }
@@ -158,7 +157,7 @@ void XtpTools::Run() {
   int nThreads = OptionsMap()["nthreads"].as<int>();
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
-  votca::HelpTextHeader(name);
+  xtp::HelpTextHeader(name);
   cout << "Initializing tools " << endl;
   BeginEvaluate(nThreads);
 
@@ -169,7 +168,7 @@ void XtpTools::Run() {
 }
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
-  for (QMTool* tool: _tools) {
+  for (xtp::QMTool* tool: _tools) {
     cout << "... " << tool->Identify() << " " << flush;
     tool->setnThreads(nThreads);
     tool->Initialize(&_options);
@@ -179,7 +178,7 @@ void XtpTools::BeginEvaluate(int nThreads = 1) {
 
 bool XtpTools::Evaluate() {
 
-  for (QMTool* tool: _tools) {
+  for (xtp::QMTool* tool: _tools) {
     cout << "... " << tool->Identify() << " " << flush;
     tool->Evaluate();
     cout << endl;
@@ -189,7 +188,7 @@ bool XtpTools::Evaluate() {
 }
 
 void XtpTools::EndEvaluate() {
-  for (QMTool* tool: _tools) {
+  for (xtp::QMTool* tool: _tools) {
     tool->EndEvaluate();
   }
 }

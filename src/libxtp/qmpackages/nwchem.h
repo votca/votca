@@ -40,11 +40,11 @@ class NWChem : public QMPackage
 {
 public:
 
-   std::string getPackageName() { return "nwchem"; }
+   std::string getPackageName() const{ return "nwchem"; }
 
    void Initialize( tools::Property &options );
 
-   bool WriteInputFile( Orbitals& orbitals);
+   bool WriteInputFile(const Orbitals& orbitals);
 
    bool Run( Orbitals& orbitals );
 
@@ -60,7 +60,7 @@ public:
 private:
     bool CheckLogFile();
     bool WriteShellScript();
-    bool WriteGuess(Orbitals& orbitals);
+    bool WriteGuess(const Orbitals& orbitals);
   
     
     
@@ -72,8 +72,8 @@ private:
 
     std::string                              _cleanup;
     
-    void WriteBasisset(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);
-    void WriteECP(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);   
+    void WriteBasisset(std::ofstream& nw_file, const QMMolecule& qmatoms);
+    void WriteECP(std::ofstream& nw_file, const QMMolecule& qmatoms);
 
     std::string FortranFormat( const double &number );
     int WriteBackgroundCharges(std::ofstream& nw_file);

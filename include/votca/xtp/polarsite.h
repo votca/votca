@@ -40,8 +40,12 @@ public:
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
 
-    PolarSite(const QMAtom& atom):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
-        setCharge(atom.getNuccharge());
+    PolarSite()
+                    :PolarSite(0,"",Eigen::Vector3d::Zero()){
+                };
+
+    PolarSite(const QMAtom& atom, double charge):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
+        setCharge(charge);
     }
       
 

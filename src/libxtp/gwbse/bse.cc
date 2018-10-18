@@ -20,7 +20,7 @@
 
 #include <votca/xtp/bse.h>
 #include <votca/tools/linalg.h>
-
+#include <votca/xtp/aomatrix.h>
 #include "votca/xtp/qmstate.h"
 using boost::format;
 using std::flush;

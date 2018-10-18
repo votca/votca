@@ -18,7 +18,7 @@
  */
 
 #include <votca/xtp/threecenter.h>
-
+#include <votca/xtp/aomatrix.h>
 using namespace std;
 
 

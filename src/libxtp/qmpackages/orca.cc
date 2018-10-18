@@ -18,9 +18,6 @@
  */
 
 #include "orca.h"
-#include <votca/xtp/qminterface.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/basisset.h>
 #include <votca/tools/elements.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -110,10 +107,10 @@ namespace votca {
      * the system.bas/aux file(s), which are then included in the
      * Orca input file using GTOName = "system.bas/aux"
      */
-    void Orca::WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& bs_name, std::string& el_file_name) {
+    void Orca::WriteBasisset(const QMMolecule& qmatoms , std::string& bs_name, std::string& el_file_name) {
 
       
-      std::vector<std::string> UniqueElements= FindUniqueElements(qmatoms);
+      std::vector<std::string> UniqueElements= qmatoms.FindUniqueElements();
       
       tools::Elements elementInfo;
       BasisSet bs;
@@ -154,14 +151,14 @@ namespace votca {
 /* Coordinates are written in standard Element,x,y,z format to the
      * input file.
      */
-    void Orca::WriteCoordinates(std::ofstream& inp_file, std::vector<QMAtom*>& qmatoms) {
+    void Orca::WriteCoordinates(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 
-      for (QMAtom* atom : qmatoms) {
-        tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-        inp_file << setw(3) << atom->getElement().c_str()
-                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getX()
-                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getY()
-                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.getZ()
+      for (const QMAtom& atom : qmatoms) {
+        Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
+        inp_file << setw(3) << atom.getElement().c_str()
+                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.x()
+                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.y()
+                << setw(12) << setiosflags(ios::fixed) << setprecision(5) << pos.z()
                 << endl;
       }
       inp_file << "* \n" << endl;
@@ -171,10 +168,10 @@ namespace votca {
     /* If custom ECPs are used, they need to be specified in the input file
      * in a section following the basis set includes.
      */
-    void Orca::WriteECP(std::ofstream& inp_file, std::vector<QMAtom*>& qmatoms) {
+    void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
 
       inp_file << endl;
-      std::vector<std::string> UniqueElements= FindUniqueElements(qmatoms);
+      std::vector<std::string> UniqueElements= qmatoms.FindUniqueElements();
            
       BasisSet ecp;
       ecp.LoadPseudopotentialSet(_ecp_name);
@@ -231,11 +228,11 @@ namespace votca {
             crg_file.open(_crg_file_name_full.c_str());
             int total_background = 0;
 
-            for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
-                for (APolarSite* site:*seg) {
-                    if (site->getQ00() != 0.0) total_background++;
-                    if (site->getRank() > 0 || _with_polarization ) {
-                        std::vector<std::vector<double>> split_multipoles = SplitMultipoles(site);
+            for (const PolarSegment& seg:*_PolarSegments) {
+                for (const PolarSite& site:seg) {
+                    if (site.getCharge() != 0.0) total_background++;
+                    if (site.getRank() > 0 || _with_polarization ) {
+                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
                         total_background+= split_multipoles.size();
                     }
                 }
@@ -244,17 +241,17 @@ namespace votca {
             crg_file << total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
-            for (std::shared_ptr<PolarSeg> seg:_PolarSegments) {
-                for (APolarSite* site:*seg) {
-                    string sitestring=boost::str(fmt % site->getQ00() % ((site->getPos().getX())*votca::tools::conv::nm2ang) 
-                            % (site->getPos().getY()*votca::tools::conv::nm2ang) 
-                            % (site->getPos().getZ()*votca::tools::conv::nm2ang) 
-                            );
-                    if (site->getQ00() != 0.0) crg_file << sitestring << endl;
-                    if (site->getRank() > 0 || _with_polarization ) {
-                        std::vector< std::vector<double> > split_multipoles = SplitMultipoles(site);
+            for (const PolarSegment& seg:*_PolarSegments) {
+                for (const PolarSite& site:seg) {
+                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
+                    string sitestring=boost::str(fmt % site.getCharge() % pos.x()
+                            % pos.y() % pos.z());
+                    if (site.getCharge() != 0.0) crg_file << sitestring << endl;
+                    if (site.getRank() > 0 || _with_polarization ) {
+                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
                         for (const auto& mpoles:split_multipoles){
-                           string multipole=boost::str( fmt % mpoles[3] % mpoles[0] % mpoles[1] % mpoles[2] );
+                            Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+                           string multipole=boost::str( fmt % mpoles._q % pos.x() % pos.y() % pos.z() );
                             crg_file << multipole << endl;
                         }
                     }
@@ -268,7 +265,7 @@ namespace votca {
          * Prepares the *.inp file from a vector of segments
          * Appends a guess constructed from monomer orbitals if supplied, Not implemented yet
          */
-        bool Orca::WriteInputFile(Orbitals& orbitals) {
+        bool Orca::WriteInputFile(const Orbitals& orbitals) {
 
             std::vector<std::string> results;
             std::string temp_suffix = "/id";
@@ -279,7 +276,7 @@ namespace votca {
             // header
             inp_file << "* xyz  " << _charge << " " << _spin << endl;
 
-            std::vector< QMAtom* > qmatoms = orbitals.QMAtoms();
+            const QMMolecule& qmatoms = orbitals.QMAtoms();
             // put coordinates
             WriteCoordinates(inp_file, qmatoms);
             // add parallelization info
@@ -473,13 +470,13 @@ namespace votca {
                         double z = boost::lexical_cast<double>(row.at(3));
                         row=GetLineAndSplit(input_file, "\t ");
                         nfields = row.size();
-                        tools::vec pos=tools::vec(x,y,z);
+                        Eigen::Vector3d pos(x,y,z);
                         pos*=tools::conv::ang2bohr;
                         if (has_QMAtoms == false) {
-                            orbitals.AddAtom(atom_id,atom_type, pos);
+                            orbitals.QMAtoms().push_back(QMAtom(atom_id,atom_type, pos));
                         } else {
-                            QMAtom* pAtom = orbitals.QMAtoms().at(atom_id);
-                            pAtom->setPos(pos);
+                            QMAtom& pAtom = orbitals.QMAtoms().at(atom_id);
+                            pAtom.setPos(pos);
                         }
                         atom_id++;
                     }
@@ -564,20 +561,20 @@ namespace votca {
                     getline(input_file, line);
                     std::vector<std::string> row=GetLineAndSplit(input_file, "\t ");
                     int nfields = row.size();
+                    bool hasAtoms=orbitals.hasQMAtoms();
                     while (nfields == 4) {
                         int atom_id = boost::lexical_cast< int >(row.at(0));
-                        atom_id++;
                         std::string atom_type = row.at(1);
                         double atom_charge = boost::lexical_cast< double >(row.at(3));
                         row=GetLineAndSplit(input_file, "\t ");
                         nfields = row.size();
-                        QMAtom* pAtom;
-                        if (!orbitals.hasQMAtoms()) {
-                            pAtom =orbitals.AddAtom(atom_id - 1,atom_type, tools::vec(0.0));
+                        if (!hasAtoms) {
+                            PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                            temp.setCharge(atom_charge);
+                            orbitals.Multipoles().push_back(temp);
                         } else {
-                            pAtom = orbitals.QMAtoms().at(atom_id - 1);
+                            orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
                         }
-                        pAtom->setPartialcharge(atom_charge);
                     }
                 }
 

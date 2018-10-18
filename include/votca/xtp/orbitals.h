@@ -167,7 +167,7 @@ namespace votca {
             // determine (pseudo-)degeneracy of a DFT molecular orbital
             std::vector<int> CheckDegeneracy(int level, double energy_difference)const;
 
-            bool hasQMAtoms() {
+            bool hasQMAtoms() const{
                 return ( _atoms.size() > 0) ? true : false;
             }
 
@@ -179,7 +179,7 @@ namespace votca {
                 return _atoms;
             }
 
-             bool hasMultipoles() {
+             bool hasMultipoles() const{
                 return ( _multipoles.size() > 0) ? true : false;
             }
 

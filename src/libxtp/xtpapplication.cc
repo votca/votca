@@ -52,7 +52,7 @@ bool XtpApplication::EvaluateOptions(void) {
 void XtpApplication::ShowHelpText(std::ostream &out) {
     std::string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::HelpTextHeader(name);
+    HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << VisibleOptions() << std::endl;
     //out << "\n\n" << OptionsDesc() << endl;

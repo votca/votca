@@ -17,11 +17,10 @@
  *
  */
 
-
-
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/symmetric_matrix.h>
 #include <votca/xtp/eigen.h>
+
 namespace votca {
   namespace xtp {
 
