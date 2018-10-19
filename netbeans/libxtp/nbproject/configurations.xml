@@ -92,15 +92,14 @@
       <itemPath>../../include/votca/xtp/jobapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/jobcalculatorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
-      <itemPath>../../include/votca/xtp/lowdin.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/molecule.h</itemPath>
-      <itemPath>../../include/votca/xtp/mulliken.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
+      <itemPath>../../include/votca/xtp/populationanalysis.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
@@ -223,9 +222,7 @@
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
-      <itemPath>../../src/libxtp/lowdin.cc</itemPath>
       <itemPath>../../src/libxtp/mmregion.cc</itemPath>
-      <itemPath>../../src/libxtp/mulliken.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/polarsegment.cc</itemPath>
@@ -1374,13 +1371,9 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -1397,6 +1390,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/polarsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/populationanalysis.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1913,11 +1911,7 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -2345,13 +2339,9 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -2368,6 +2358,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/polarsite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/populationanalysis.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -2884,11 +2879,7 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -154,6 +154,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
+
   AOOverlap overlap;
   overlap.Fill(aobasis);
     

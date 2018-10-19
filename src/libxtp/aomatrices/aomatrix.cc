@@ -43,7 +43,7 @@ namespace votca {
         void AOMatrix<T>::Fill(const AOBasis& aobasis) {
             _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
             // loop row
-#pragma omp parallel for schedule(guided)
+            #pragma omp parallel for schedule(guided)
             for (int row = 0; row < aobasis.getNumofShells(); row++) {
                 const AOShell& shell_row = aobasis.getShell(row);
                 int row_start = shell_row.getStartIndex();
@@ -126,10 +126,10 @@ namespace votca {
        Eigen::MatrixXd AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian){
             ///         0    1  2  3    4  5  6  7  8  9   10  11  12  13  14  15  16  17  18  19       20    21    22    23    24    25    26    27    28    29    30    31    32    33    34 
             ///         s,   x, y, z,   xy xz yz xx yy zz, xxy xyy xyz xxz xzz yyz yzz xxx yyy zzz,    xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyz, yyzz, yzzz, xxxx, yyyy, zzzz,
-            const AOShell* shell = gaussian.getShell();
-            const int ntrafo = shell->getNumFunc() + shell->getOffset();
+            const AOShell& shell = gaussian.getShell();
+            const int ntrafo = shell.getNumFunc() + shell.getOffset();
             const double decay = gaussian.getDecay();
-            const int lmax = shell->getLmax();
+            const int lmax = shell.getLmax();
             const int n = getBlockSize(lmax);
          Eigen::MatrixXd trafo=Eigen::MatrixXd::Zero(n,ntrafo); 
             const std::vector<double>& contractions = gaussian.getContraction();

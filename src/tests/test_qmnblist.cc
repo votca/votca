@@ -24,19 +24,7 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(qmnblist_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { 
-  QMNBList qmnb; 
-  QMNBList::SuperExchangeType sext("Seg1 Seg2 Seg3");
-}
-
-
-BOOST_AUTO_TEST_CASE(superexchange_test) { 
-  QMNBList::SuperExchangeType sext("seg2 seg3 seg4");
-
-  BOOST_CHECK_EQUAL(sext.isOfBridge("seg1"),false);
-  BOOST_CHECK_EQUAL(sext.isOfDonorAcceptor("seg1"),false);
-  BOOST_CHECK_EQUAL(sext.isOfBridge("seg3"),true);
-  BOOST_CHECK_EQUAL(sext.isOfDonorAcceptor("seg2"),true);
-  BOOST_CHECK_EQUAL(sext.isOfDonorAcceptor("seg4"),true);
+  QMNBList qmnb;
 }
 
 BOOST_AUTO_TEST_CASE(cutoff_test){

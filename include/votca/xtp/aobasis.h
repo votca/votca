@@ -44,7 +44,9 @@ public:
     void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
 
     void AOBasisFill( const BasisSet& bs , const QMMolecule& atoms, int fragbreak = -1);
-    void ECPFill( const BasisSet& bs , QMMolecule& atoms);
+    
+//returns element names for which no ecp was found
+    std::vector<std::string> ECPFill( const BasisSet& bs , QMMolecule& atoms);
     
     int AOBasisSize() const {return _AOBasisSize; }
     
@@ -78,7 +80,7 @@ private:
   
   AOShell& addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);
     
-       
+  void ReserveShells(const BasisSet& bs, const QMMolecule& atoms);
   void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
     std::vector<AOShell> _aoshells;
@@ -93,7 +95,7 @@ private:
     
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
   
-    void addTrafoCartShell( const AOShell& shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
+    void addTrafoCartShell( const AOShell& shell , Eigen::Block<Eigen::MatrixXd>& submatrix );
     
     std::vector<int> _FuncperAtom;
     

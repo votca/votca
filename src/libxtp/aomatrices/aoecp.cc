@@ -106,28 +106,28 @@ namespace votca { namespace xtp {
 
                         // only do the non-local parts
                         if (shell_ecp.isNonLocal()) {
-                            int _lmax_ecp_old = lmax_ecp;
+                            int lmax_ecp_old = lmax_ecp;
                             lmax_ecp = shell_ecp.getNumFunc() - 1;
                             int i_fit = -1;
                             for (const auto& gaussian_ecp:shell_ecp) {
                                 i_fit++;
 
                                 // get info for this angular momentum shell
-                                const int _power_ecp = gaussian_ecp.getPower();
-                                const double _decay_ecp = gaussian_ecp.getDecay();
-                                const double _contraction_ecp = gaussian_ecp.getContraction()[0];
+                                const int power_ecp = gaussian_ecp.getPower();
+                                const double decay_ecp = gaussian_ecp.getDecay();
+                                const double contraction_ecp = gaussian_ecp.getContraction()[0];
 
                                 // collect atom ECP
                                 if (this_atom == atomidx) {
                                     ecp_eval_pos = ecp_pos;
-                                    powermatrix(i_fit, ecp_l ) = _power_ecp;
-                                    decaymatrix(i_fit, ecp_l ) = _decay_ecp;
-                                    coefmatrix(i_fit, ecp_l )  = _contraction_ecp;
+                                    powermatrix(i_fit, ecp_l ) = power_ecp;
+                                    decaymatrix(i_fit, ecp_l ) = decay_ecp;
+                                    coefmatrix(i_fit, ecp_l )  = contraction_ecp;
                                 }
                                 
                                 if ((this_atom != atomidx ) || ( &shell_ecp == &(_ecp->back()))) {
                                     if (this_atom != atomidx) {
-                                       lmax_ecp = _lmax_ecp_old;
+                                       lmax_ecp = lmax_ecp_old;
                                     }
 
                                     // evaluate collected data, returns a (10x10) matrix of already normalized matrix elements
@@ -150,9 +150,9 @@ namespace votca { namespace xtp {
                                     coefmatrix  = Eigen::Matrix<double,4,5>::Zero();
                                     atomidx++;
                                     i_fit = 0;
-                                    powermatrix(i_fit, ecp_l ) = _power_ecp;
-                                    decaymatrix(i_fit, ecp_l ) = _decay_ecp;
-                                    coefmatrix(i_fit, ecp_l )  = _contraction_ecp;
+                                    powermatrix(i_fit, ecp_l ) = power_ecp;
+                                    decaymatrix(i_fit, ecp_l ) = decay_ecp;
+                                    coefmatrix(i_fit, ecp_l )  = contraction_ecp;
                                 } // evaluate if new atom is found
 
                             } // all Gaussians in ecp_shell
@@ -193,10 +193,10 @@ namespace votca { namespace xtp {
 
             double alpha = g_row.getDecay();
             double beta = g_col.getDecay();
-            const Eigen::Vector3d& posA = g_row.getShell()->getPos();
-            const Eigen::Vector3d& posB = g_col.getShell()->getPos();
-            int lmax_row = g_row.getShell()->getLmax();
-            int lmax_col = g_col.getShell()->getLmax();
+            const Eigen::Vector3d& posA = g_row.getShell().getPos();
+            const Eigen::Vector3d& posB = g_col.getShell().getPos();
+            int lmax_row = g_row.getShell().getLmax();
+            int lmax_col = g_col.getShell().getLmax();
             int lmin = std::min({lmax_row, lmax_col, lmax_ecp});
             int lmax = std::max({lmax_row, lmax_col, lmax_ecp});
             int nsph_row = (lmax_row + 1) * (lmax_row + 1);

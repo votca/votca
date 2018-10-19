@@ -380,8 +380,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const E
                       i_func += 9;
                     }
                     else{
-                        std::cerr << "Single shell type"<<single_shell<<" not known " << std::endl;
-                        exit(1);
+                        throw std::runtime_error( "Single shell type "+std::string(1,single_shell)+" not known ");
                     }
                 }
             } // contractions
@@ -391,7 +390,8 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const E
 std::ostream &operator<<(std::ostream &out, const AOShell& shell) {
     out <<"AtomIndex:"<<shell.getAtomIndex() <<" Atomtype:"<<shell.getAtomType();
     out <<" Shelltype:"<<shell.getType() <<" Scale:"<<shell.getScale()
-            << " Func: "<<shell.getNumFunc()<<"\n";
+        <<" Lmax:"<<shell.getLmax()<<" MinDecay:"<<shell.getMinDecay()
+        << " Func:"<<shell.getNumFunc()<<"\n";
     for (const auto& gaussian:shell){
       out<<" Gaussian Decay: "<<gaussian.getDecay();
       out<<" Contractions:";

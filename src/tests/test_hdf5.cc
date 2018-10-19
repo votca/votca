@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17,17);
 
     QMMolecule atoms=QMMolecule(" ",0);
-    atoms.push_back(QMAtom("O",0));
+    atoms.push_back(QMAtom(0,"O",Eigen::Vector3d::Zero()));
 
     double qmEnergy = -2.1025e-3;
 
@@ -168,15 +168,14 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     }
 
-    BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atomsTest.size());
+    BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
 
     for (size_t i = 0; i<atoms.size(); ++i){
         auto atomRead = orbRead.QMAtoms()[i];
         auto atomTest = atoms[i];
         BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
-        BOOST_CHECK(atomRead.getPos().isClose(atomTest.getPos(), tol));
+        BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
         BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
-        BOOST_CHECK_EQUAL(atomRead.getPartialcharge(), atomTest.getPartialcharge());
         // no way to get qmatom index
     }
 }

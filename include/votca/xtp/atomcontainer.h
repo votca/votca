@@ -87,14 +87,7 @@ template<class T>  class AtomContainer{
         std::vector<std::string> FindUniqueElements()const{
             std::vector<std::string> result;
             for (const T& atom : _atomlist){
-                bool exists = false;
-                for (const std::string& type : result){
-                    if (atom.getElement() == type){
-                        exists = true;
-                        break;
-                    }
-                }
-                if (!exists){
+                if(std::find(result.begin(), result.end(), atom.getElement()) == result.end()) {
                     result.push_back(atom.getElement());
                 }
             }

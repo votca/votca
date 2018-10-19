@@ -487,7 +487,20 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
 
    
 
+    void AOBasis::ReserveShells(const BasisSet& bs, const QMMolecule& atoms){
+        int numberofshells=0;
+        for (const QMAtom& atom : atoms) {
+            try{
+                 numberofshells+=bs.getElement(atom.getElement()).NumOfShells();
+            }catch(std::runtime_error& error){
+                ;
+            }
+        }
+        _aoshells.reserve(numberofshells);
+    }
+
     void AOBasis::AOBasisFill(const BasisSet& bs,  const QMMolecule& atoms, int fragbreak) {
+      ReserveShells(bs, atoms);
       _AOBasisSize = 0;
       _AOBasisFragA = 0;
       _AOBasisFragB = 0;
@@ -521,39 +534,54 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return;
     }
 
-    void AOBasis::ECPFill(const BasisSet& bs,  QMMolecule& atoms) {
+    std::vector<std::string> AOBasis::ECPFill(const BasisSet& bs,  QMMolecule& atoms) {
+    ReserveShells(bs, atoms);
+
       _FuncperAtom=std::vector<int>(0);
       _AOBasisSize = 0;
+
+      std::vector<std::string> non_ecp_elements;
       for (QMAtom& atom : atoms) {
-        int atomfunc=0;
         std::string name = atom.getElement();
-        if (name == "H" || name == "He") {
-          _FuncperAtom.push_back(0);
-          continue;
+        int atomfunc=0;
+        bool element_exists=true;
+        
+        try{
+            const Element& element = bs.getElement(name);
+        }catch(std::runtime_error& error){
+            _FuncperAtom.push_back(0);
+            element_exists=false;
+            if(std::find(non_ecp_elements.begin(), non_ecp_elements.end(), name) != non_ecp_elements.end()) {
+            non_ecp_elements.push_back(name);
+            }
         }
-        const Element& element = bs.getElement(name);
-        atom._ecpcharge = element.getNcore();
-        int lmax = element.getLmax();
-        for (const Shell& shell:element) {
-          if (shell.getType().size() > 1) {
-            throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
-          }
-          //Local part is with L=Lmax
-          bool nonlocal = false;
-          if (shell.getLmax() < lmax) {
-            nonlocal = true;
-          }
-          AOShell& aoshell = addECPShell(shell, atom, _AOBasisSize, nonlocal);
-          _AOBasisSize += NumFuncShell(shell.getType());
-          atomfunc+=NumFuncShell(shell.getType());
-         for (const GaussianPrimitive& gaussian:shell) {
-            aoshell.addGaussian(gaussian);
-          }
-          aoshell.CalcMinDecay();
+        
+
+        if(element_exists){
+            const Element& element = bs.getElement(name);
+            atom._ecpcharge = element.getNcore();
+            int lmax = element.getLmax();
+            for (const Shell& shell:element) {
+              if (shell.getType().size() > 1) {
+                throw std::runtime_error("In ecps no combined shells e.g. SP are allowed");
+              }
+              //Local part is with L=Lmax
+              bool nonlocal = false;
+              if (shell.getLmax() < lmax) {
+                nonlocal = true;
+              }
+              AOShell& aoshell = addECPShell(shell, atom, _AOBasisSize, nonlocal);
+              _AOBasisSize += NumFuncShell(shell.getType());
+              atomfunc+=NumFuncShell(shell.getType());
+             for (const GaussianPrimitive& gaussian:shell) {
+                aoshell.addGaussian(gaussian);
+              }
+              aoshell.CalcMinDecay();
+            }
+            _FuncperAtom.push_back(atomfunc);
         }
-        _FuncperAtom.push_back(atomfunc);
       }
-      return;
+      return non_ecp_elements;
     }
 
 }}

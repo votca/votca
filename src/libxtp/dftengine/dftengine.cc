@@ -756,9 +756,17 @@ void DFTEngine::Prepare() {
         XTP_LOG(logDEBUG, *_pLog) << TimeStamp()
                 << " Loaded ECP library " << _ecp_name << flush;
 
-        _ecp.ECPFill(_ecpbasisset, _orbitals.QMAtoms());
+        std::vector<std::string> results=_ecp.ECPFill(_ecpbasisset, _orbitals.QMAtoms());
         XTP_LOG(logDEBUG, *_pLog) << TimeStamp()
                 << " Filled ECP Basis of size " << _ecp.getNumofShells() << flush;
+        if(results.size()>0){
+            std::string message="";
+            for(const std::string& element:results){
+                message+=" "+element;
+            }
+            XTP_LOG(logDEBUG, *_pLog) << TimeStamp()
+                << " Found no ECPs for elements" << message << flush;
+        }
       }
 
       _gridIntegration.GridSetup(_grid_name, _orbitals.QMAtoms(), _dftbasis);

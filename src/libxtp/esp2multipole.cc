@@ -20,9 +20,9 @@
 
 #include <votca/xtp/esp2multipole.h>
 #include <boost/format.hpp>
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qminterface.h>
-
+#include <votca/xtp/espfit.h>
+#include <votca/xtp/nbo.h>
+#include <votca/xtp/populationanalysis.h>
 
 namespace votca {
     namespace xtp {
@@ -141,11 +141,11 @@ namespace votca {
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.EvaluateMulliken(orbitals, basis, _state);
+                mulliken.Evaluate(orbitals, basis, _state);
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.EvaluateLowdin(orbitals, basis, _state);
+                lowdin.Evaluate(orbitals, basis, _state);
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){

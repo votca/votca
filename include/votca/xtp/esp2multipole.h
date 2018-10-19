@@ -21,15 +21,11 @@
 #define VOTCA_XTP_ESP2MULTIPOLE_H
 
 #include <stdio.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/mulliken.h>
-#include <votca/xtp/lowdin.h>
-#include <votca/xtp/nbo.h>
 #include <votca/xtp/logger.h>
 #include <boost/filesystem.hpp>
 #include <votca/tools/property.h>
 #include <votca/xtp/orbitals.h>
-
+#include <votca/xtp/espfit.h>
 namespace votca { namespace xtp {
 
     

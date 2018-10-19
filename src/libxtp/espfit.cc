@@ -69,6 +69,7 @@ void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis 
        for (const QMAtom& atom:orbitals.QMAtoms()) {
           Znuc += atom.getNuccharge();
         }
+      std::cout<<Znuc<<std::endl;
       netcharge=Znuc-N;
     }
     netcharge = std::round(netcharge);
@@ -173,7 +174,7 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
       Amat(atomlist.size(),i) = 1.0;
     }
     Amat(atomlist.size(),atomlist.size()) = 0.0;
-     Bvec(atomlist.size()) = netcharge; //netcharge!!!!
+    Bvec(atomlist.size()) = netcharge; //netcharge!!!!
      
      
     // Pairconstraint
@@ -217,12 +218,14 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
     }
     //remove constraints from charges
     charges.conservativeResize(atomlist.size());
-   
+    std::cout<<charges<<std::endl;
+    PolarSegment seg=PolarSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
+
     XTP_LOG(logDEBUG, *_log) << " Sum of fitted charges: " << charges.sum() << flush;
     for (int i=0;i<atomlist.size();i++){
-        orbitals.Multipoles().push_back(PolarSite(atomlist[i],charges(i)));
+        seg.push_back(PolarSite(atomlist[i],charges(i)));
     }
-    
+    orbitals.Multipoles()=seg;
     // get RMSE
     double rmse = 0.0;
     double totalPotSq = 0.0;

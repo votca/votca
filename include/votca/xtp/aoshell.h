@@ -44,16 +44,16 @@ public:
     int    getPower()const{return _power;}
     double getDecay()const {return _decay;}
     const std::vector<double>& getContraction()const {return _contraction;}
-    const AOShell* getShell() const{return _aoshell;}
+    const AOShell& getShell() const{return _aoshell;}
 private:
      
     int _power; // used in pseudopotenials only
     double _decay;
     std::vector<double> _contraction;
-    AOShell* _aoshell;
+    AOShell& _aoshell;
     double _powfactor;//used in evalspace to speed up DFT
     // private constructor, only a shell can create a primitive
-    AOGaussianPrimitive( const GaussianPrimitive& gaussian, AOShell *aoshell ) 
+    AOGaussianPrimitive( const GaussianPrimitive& gaussian, AOShell& aoshell )
     : _power(gaussian._power),
     _decay(gaussian._decay),
     _contraction(gaussian._contraction),
@@ -73,10 +73,10 @@ public:
     int    getNumFunc() const{ return _numFunc ;}
     int    getStartIndex() const{ return _startIndex ;}
     int    getOffset() const{ return _offset ;}
-    int    getAtomIndex() const{ return _qmatom->getAtomID();}
-    const std::string& getAtomType() const{ return _qmatom->getElement();}
+    int    getAtomIndex() const{ return _qmatom.getAtomID();}
+    const std::string& getAtomType() const{ return _qmatom.getElement();}
     
-    int getLmax(  ) const{ return _Lmax;}
+    int getLmax() const{ return _Lmax;}
     
     bool isCombined()const{
         return _type.length()>1;
@@ -112,8 +112,8 @@ public:
    
     // adds a Gaussian 
     void  addGaussian( const GaussianPrimitive& gaussian ){
-        AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, this);
-        _gaussians.push_back( aogaussian );
+        AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, *this);
+        _gaussians.emplace_back( aogaussian );
         return;
     }                                                                  
 
@@ -128,13 +128,13 @@ private:
             : _type(shell.getType()),_Lmax(shell.getLmax()),
                     _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
-                    _qmatom(&atom) { ; }
+                    _qmatom(atom) { ; }
     // for ECPs
     AOShell( const Shell& shell, const QMAtom & atom, int startIndex, bool nonlocal)
             : _type(shell.getType()),_Lmax(shell.getLmax()),
                     _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
-                    _qmatom(&atom),_nonlocal(nonlocal) { ; }
+                    _qmatom(atom),_nonlocal(nonlocal) { ; }
             
 
     
@@ -149,7 +149,7 @@ private:
     int _startIndex;
     int _offset;
     Eigen::Vector3d _pos;
-    const QMAtom* _qmatom;
+    const QMAtom& _qmatom;
     //used for ecp calculations
     bool _nonlocal;
      
