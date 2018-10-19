@@ -15,66 +15,61 @@
  *
  */
 
-#include <votca/tools/thread.h>
-#include <votca/tools/lexical_cast.h>
 #include <stdexcept>
+#include "../../include/votca/tools/lexical_cast.h"
+#include "../../include/votca/tools/thread.h"
+
+using namespace std;
 
 namespace votca {
-    namespace tools {
+namespace tools {
 
-        static void *runwrapper(void *arg) {
-            Thread *thread = (Thread*) (arg);
-            thread->Run();
-            pthread_exit(NULL);
-            return NULL; 
-        }
-
-        Thread::Thread() {
-
-        }
-
-        Thread::~Thread() {
-
-        }
-
-        void Thread::Start() {
-            pthread_attr_t attr;
-
-            pthread_attr_init(&attr);
-            /*
-             * according to the POSIX standard, threads are created in the joinable state
-             * by default
-             * however, some platforms do not obey
-             *
-             * explicitly create the thread in the joinable state
-             * the main program can then wait for the thread by calling pthread_join(thread)
-             *
-             */
-            pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-            _finished = false;
-
-            int rc = pthread_create(&_thread, &attr, runwrapper, (void *) this);
-            if (rc) {
-                throw std::runtime_error("ERROR; return code from pthread_create() is "
-                        + boost::lexical_cast<std::string>(rc));
-            }
-
-        }
-
-        void Thread::WaitDone() {
-            void * status;
-            int rc = pthread_join(_thread, &status);
-            if (rc) {
-                throw std::runtime_error("ERROR; return code from pthread_join() is "
-                        + boost::lexical_cast<std::string>(rc));
-            }
-            _finished = true;
-        }
-
-        bool Thread::IsFinished() const {
-            return _finished;
-        }
-
-    }
+void *runwrapper(void *arg) {
+  Thread *thread = (Thread *)(arg);
+  thread->Run();
+  pthread_exit(NULL);
+  return NULL;
 }
 
+Thread::Thread() {}
+
+Thread::~Thread() {}
+
+void Thread::Start() {
+
+  pthread_attr_init(&_attr);
+  /*
+   * according to the POSIX standard, threads are created in the joinable state
+   * by default
+   * however, some platforms do not obey
+   *
+   * explicitly create the thread in the joinable state
+   * the main program can then wait for the thread by calling
+   * pthread_join(thread)
+   *
+   */
+  pthread_attr_setdetachstate(&_attr, PTHREAD_CREATE_JOINABLE);
+  _finished = false;
+
+  int rc =
+      pthread_create(&_thread, &_attr, runwrapper, static_cast<void *>(this));
+  if (rc) {
+    throw std::runtime_error("ERROR; return code from pthread_create() is " +
+                             boost::lexical_cast<std::string>(rc));
+  }
+}
+
+void Thread::WaitDone() {
+  void *status;
+  int rc = pthread_join(_thread, &status);
+  if (rc) {
+    throw std::runtime_error("ERROR; return code from pthread_join() is " +
+                             boost::lexical_cast<std::string>(rc));
+  }
+  _finished = true;
+  pthread_attr_destroy(&_attr);
+}
+
+bool Thread::IsFinished() const { return _finished; }
+}
+}
