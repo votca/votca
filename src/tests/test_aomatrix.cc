@@ -19,8 +19,6 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/polarseg.h>
-#include <votca/tools/vec.h>
 
 using namespace votca::xtp;
 using namespace votca;

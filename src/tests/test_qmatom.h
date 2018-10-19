@@ -15,30 +15,21 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE dmaspace_test
-#include <vector>
-
+#define BOOST_TEST_MODULE qmatom_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/dmaspace.h>
-#include <votca/tools/vec.h>
+#include <votca/xtp/qmatom.h>
 
-using namespace std;
-using namespace votca::tools;
-using namespace votca::DMA;
 
-BOOST_AUTO_TEST_SUITE(dmaspace_test)
+using namespace votca::xtp;
 
-BOOST_AUTO_TEST_CASE(constructors_test) { 
-  vec r(1.0,2.0,3.0);
-  RegularSphericalHarmonics RegSph(r);
-  BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R00()),1);
-  BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R10()),3);
-  BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R11c()),1);
-  BOOST_CHECK_EQUAL(static_cast<int>(RegSph.R11s()),2);
+BOOST_AUTO_TEST_SUITE(qmatom_test)
 
-  vector<double> r2 = {1.0, 2.0, 3.0,4.0,5.0,6.0,7.0,8.0,9.0};
-  ComplexSphericalMoments CompSph(r2);
+BOOST_AUTO_TEST_CASE(constructors_test) { QMAtom a("C",1,Eigen::Vector3d::Zero()); }
+
+BOOST_AUTO_TEST_CASE(translaterotate_test) {
   
 }
+
+
 
 BOOST_AUTO_TEST_SUITE_END()
