@@ -40,9 +40,9 @@ public:
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
 
-    PolarSite()
-                    :PolarSite(0,"",Eigen::Vector3d::Zero()){
-                };
+    PolarSite(const CheckpointReader& r){
+        ReadFromCpt(r);
+    }
 
     PolarSite(const QMAtom& atom, double charge):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
         setCharge(charge);
@@ -120,9 +120,9 @@ public:
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
     
-    void WriteToCpt(CheckpointWriter& w)const;
+    void WriteToCpt(const CheckpointWriter& w)const;
 
-   void ReadFromCpt(CheckpointReader& r);
+   void ReadFromCpt(const CheckpointReader& r);
    
    static std::string Identify(){return "polarsite";}
     

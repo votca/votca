@@ -45,6 +45,7 @@ template<class T>  class AtomContainer{
         int size()const{return _atomlist.size();}
         
         void push_back(const T& atom){_atomlist.push_back(atom);_position_valid=false;}
+        void push_back(T&& atom){_atomlist.push_back(atom);_position_valid=false;}
 
         const T& at(int index)const{return _atomlist.at(index);}
         T& at(int index){return _atomlist.at(index);}
@@ -112,24 +113,22 @@ template<class T>  class AtomContainer{
     void WriteToCpt(CheckpointWriter& w)const{
         w(_name,"name");
         w(_id,"id");
-    for (unsigned i=0;i<_atomlist.size();i++) {
-        CheckpointWriter s = w.openChild( T::Identify() + std::to_string(i));
-        _atomlist[i].WriteToCpt(s);
-    }    
+        for (unsigned i=0;i<_atomlist.size();i++) {
+            CheckpointWriter s = w.openChild( T::Identify() + std::to_string(i));
+            _atomlist[i].WriteToCpt(s);
+        }    
     }
 
     void ReadFromCpt(CheckpointReader& r){
         r(_name,"name");
         r(_id,"id");
-    size_t count = r.getNumDataSets();
-    _atomlist.resize(0);
-    _atomlist.reserve(count);
-    for (size_t i = 0; i < count; ++i) {
-       CheckpointReader c = r.openChild( T::Identify() + std::to_string(i));
-        T temp;
-        temp.ReadFromCpt(c);
-        _atomlist.emplace_back(temp);
-    }      
+        size_t count = r.getNumDataSets();
+        _atomlist.clear();
+        _atomlist.reserve(count);
+        for (size_t i = 0; i < count; ++i) {
+           CheckpointReader c = r.openChild( T::Identify() + std::to_string(i));
+            _atomlist.emplace_back(T(c));
+        }      
     }
             
 protected:

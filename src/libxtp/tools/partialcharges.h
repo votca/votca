@@ -78,14 +78,14 @@ bool Partialcharges::Evaluate() {
     _log.setPreface(logWARNING, "\n... ...");
     _log.setPreface(logDEBUG,   "\n... ..."); 
 
-    XTP_LOG(logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
+    
 
     Orbitals orbitals;
     // load the QM data from serialized orbitals object
 
     XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
     orbitals.ReadFromCpt(_orbfile);
-
+    XTP_LOG(logDEBUG, _log) << "Loaded QM data from " << _orbfile << flush;
     Esp2multipole esp2multipole=Esp2multipole(&_log);
     esp2multipole.Initialize(_esp_options);
     esp2multipole.Extractingcharges(orbitals);

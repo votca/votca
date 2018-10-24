@@ -218,7 +218,6 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
     }
     //remove constraints from charges
     charges.conservativeResize(atomlist.size());
-    std::cout<<charges<<std::endl;
     PolarSegment seg=PolarSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
 
     XTP_LOG(logDEBUG, *_log) << " Sum of fitted charges: " << charges.sum() << flush;

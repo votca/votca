@@ -988,7 +988,7 @@ void DFTEngine::Prepare() {
         _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
     }
     
-    Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs ){
+    Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs )const{
       Eigen::MatrixXd nonortho=GuessMOs.transpose()*_dftAOoverlap.Matrix()*GuessMOs;
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(nonortho);
       Eigen::MatrixXd result=GuessMOs*es.operatorInverseSqrt();

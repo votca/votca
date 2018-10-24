@@ -432,7 +432,7 @@ namespace votca {
     }
     
     
-    void PolarSite::WriteToCpt(CheckpointWriter& w)const{
+    void PolarSite::WriteToCpt(const CheckpointWriter& w)const{
 
        w(_id, "index");
        w(_element, "type");
@@ -450,7 +450,7 @@ namespace votca {
        
    }
 
-   void PolarSite::ReadFromCpt(CheckpointReader& r){
+   void PolarSite::ReadFromCpt(const CheckpointReader& r){
 
       r(_id, "index");
       r(_element, "type");

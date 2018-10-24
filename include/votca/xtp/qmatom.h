@@ -45,11 +45,11 @@ public:
                 _nuccharge=elements.getNucCrg(element);
             }
 
-  QMAtom (int index,std::string element, double x, double y, double z):
-            QMAtom(index,element,Eigen::Vector3d{x,y,z}){};
+    QMAtom(const CheckpointReader& r){
+        ReadFromCpt(r);
+    }
 
-            QMAtom ():QMAtom(0,"",Eigen::Vector3d::Zero()){};
-       
+
    static std::string Identify(){return "qmatom";}
        
    const Eigen::Vector3d& getPos() const {return _pos;}
@@ -83,7 +83,7 @@ private:
 
  public:
 
-   void WriteToCpt(CheckpointWriter& w)const{
+   void WriteToCpt(const CheckpointWriter& w)const{
        w(_index, "index");
        w(_element, "element");
        w(_pos, "pos");
@@ -91,7 +91,7 @@ private:
        w(_ecpcharge, "ecpcharge");
    }
 
-   void ReadFromCpt(CheckpointReader& r){
+   void ReadFromCpt(const CheckpointReader& r){
        r(_index, "index");
        r(_element, "element");
        r(_pos, "pos");

@@ -43,7 +43,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
     // https://stackoverflow.com/a/8671617/1186564
     template <typename T>
         typename std::enable_if<!std::is_fundamental<T>::value>::type
-        operator()(const T& data, const std::string& name){
+        operator()(const T& data, const std::string& name)const{
         try {
             WriteData(_loc, data, name);
         } catch (H5::Exception& error){
@@ -59,7 +59,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
     // int, double, unsigned int, etc, but not bool
     template<typename T>
         typename std::enable_if<std::is_fundamental<T>::value && !std::is_same<T, bool>::value>::type
-        operator()(const T& v, const std::string& name){
+        operator()(const T& v, const std::string& name)const{
         try{
             WriteScalar(_loc, v, name);
         } catch (H5::Exception& error){
@@ -71,7 +71,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
         }
     }
 
-    void operator()(const bool& v, const std::string& name){
+    void operator()(const bool& v, const std::string& name)const{
         int temp=static_cast<int>(v);
         try{
             WriteScalar(_loc, temp, name);
@@ -85,7 +85,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
         }
     }
 
-    void operator()(const std::string& v, const std::string& name){
+    void operator()(const std::string& v, const std::string& name)const{
         try{
             WriteScalar(_loc, v, name);
         } catch (H5::Exception& error){
@@ -98,7 +98,7 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
         }
     }
 
-    CheckpointWriter openChild(const std::string& childName){
+    CheckpointWriter openChild(const std::string& childName)const{
         try{
             return CheckpointWriter(_loc.openGroup(childName), _path+"/"+childName);
         } catch (H5::Exception& e){
@@ -115,11 +115,11 @@ CheckpointWriter(const CptLoc& loc, const std::string& path):
     }
 
 private:
-    CptLoc _loc;
+    const CptLoc _loc;
     const std::string _path;
     template <typename T>
         void WriteScalar(const CptLoc& loc, const T& value,
-                         const std::string& name) {
+                         const std::string& name) const{
 
         hsize_t dims[1] = {1};
         H5::DataSpace dp(1, dims);
@@ -134,7 +134,7 @@ private:
     }
 
     void WriteScalar(const CptLoc& loc, const std::string& value,
-                     const std::string& name) {
+                     const std::string& name) const{
 
         hsize_t dims[1] = {1};
         H5::DataSpace dp(1, dims);
@@ -152,7 +152,7 @@ private:
 
     template <typename T>
         void WriteData(const CptLoc& loc, const Eigen::MatrixBase<T>& matrix,
-                       const std::string& name) {
+                       const std::string& name) const{
 
         hsize_t matRows = hsize_t(matrix.rows());
         hsize_t matCols = hsize_t(matrix.cols());
@@ -197,7 +197,7 @@ private:
     template <typename T>
         typename std::enable_if<std::is_fundamental<T>::value>::type
         WriteData(const CptLoc& loc, const std::vector<T> v,
-                  const std::string& name) {
+                  const std::string& name) const{
         hsize_t dims[2] = {(hsize_t)v.size(), 1};
 
         const H5::DataType* dataType = InferDataType<T>::get();
@@ -212,7 +212,7 @@ private:
     }
 
     void WriteData(const CptLoc& loc, const std::vector<Eigen::Vector3d>& v,
-                   const std::string& name) {
+                   const std::string& name) const{
 
         size_t c = 0;
         std::string r;
@@ -231,7 +231,7 @@ private:
 
     template <typename T1, typename T2>
         void WriteData(const CptLoc& loc, const std::map<T1, std::vector<T2>> map,
-                       const std::string& name) {
+                       const std::string& name) const{
 
         size_t c = 0;
         std::string r;

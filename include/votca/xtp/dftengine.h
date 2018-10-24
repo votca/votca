@@ -87,7 +87,7 @@ namespace votca {
 
         private:
             
-            Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs );
+            Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs )const;
             void PrintMOs(const Eigen::VectorXd& MOEnergies);
             void CalcElDipole()const;
             void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT);
