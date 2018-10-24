@@ -20,8 +20,6 @@
 #ifndef VOTCA_XTP_QMMINTERFACE_H
 #define	VOTCA_XTP_QMMINTERFACE_H
 
-#include <votca/tools/elements.h>
-
 namespace votca { 
   
   namespace xtp {

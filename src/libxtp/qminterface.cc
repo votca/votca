@@ -16,17 +16,12 @@
  * limitations under the License.
  *
  */
-
-#include <votca/tools/elements.h>                                                
-
-#include <votca/xtp/apolarsite.h>                                                
-#include <votca/xtp/atom.h>
-#include <votca/xtp/qmatom.h>                                                    
-#include <votca/xtp/orbitals.h>   
-#include <votca/xtp/polarseg.h>                                                  
-#include <votca/xtp/polartop.h>                                                  
+                                                                                           
+#include <votca/xtp/qmatom.h>                                                                                                      
 #include <votca/xtp/qminterface.h>
-#include <votca/xtp/segment.h>                                                   
+#include <votca/xtp/segment.h>  
+#include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/atom.h>
 
 using boost::format;
 
