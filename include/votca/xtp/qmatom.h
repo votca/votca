@@ -37,7 +37,7 @@ public:
     
    
             
-   QMAtom (int index,std::string element,const Eigen::Vector3d pos)
+   QMAtom (int index,std::string element,Eigen::Vector3d pos)
             :_index(index), _element(element ),_pos(pos),_nuccharge(0)
             , _ecpcharge(0)
             {

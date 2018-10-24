@@ -22,6 +22,7 @@
 using namespace votca::xtp;
 using namespace std;
 
+
 BOOST_AUTO_TEST_SUITE(polarsegment_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { PolarSegment("seg1",0); }
@@ -40,15 +41,24 @@ mpsfile<<"     100 0 0 0 0"<<endl;
 mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<<endl;
 
 seg.LoadFromMPS("polarsite.mps");
-Eigen::Vector3d ref_pos=Eigen::Vector3d(0,0,3);
-BOOST_CHECK_EQUAL(seg.getPos().isApprox(ref_pos,0.0001),true);
+Eigen::Vector3d ref_pos=Eigen::Vector3d(0,0,3*votca::tools::conv::ang2bohr);
+bool is_equal=seg.getPos().isApprox(ref_pos,0.0001);
+if(!is_equal){
+    std::cout<<"result"<<std::endl;
+    std::cout<<seg.getPos()<<std::endl;
+    std::cout<<"reference"<<std::endl;
+    std::cout<<ref_pos<<std::endl;   
+}
+
+BOOST_CHECK_EQUAL(is_equal,true);
 
  
 }
 
 BOOST_AUTO_TEST_CASE(add_atom_test){
 PolarSegment seg=   PolarSegment("seg1",0);
-PolarSite site=PolarSite("C",0);
+Eigen::Vector3d pos=Eigen::Vector3d::Zero();
+PolarSite site=PolarSite(0,"C",pos);
 Eigen::VectorXd poles=Eigen::VectorXd::Ones(9);
 site.setMultipole(poles);
 seg.push_back(site);

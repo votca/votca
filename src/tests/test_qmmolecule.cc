@@ -25,7 +25,7 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(qmmolecule_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) { QMMolecule seg(1, "seg1"); }
+BOOST_AUTO_TEST_CASE(constructors_test) { QMMolecule seg("seg1",1); }
 
 BOOST_AUTO_TEST_CASE(load_xyz_test) {
   ofstream xyzfile("molecule.xyz");
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(load_xyz_test) {
   xyzfile << " H           -.629118     .629118    -.629118" << endl;
   xyzfile.close();
   
-  QMMolecule seg(1, "seg1"); 
+  QMMolecule seg( "seg1",1);
   seg.LoadFromXYZ("molecule.xyz");
   
   
