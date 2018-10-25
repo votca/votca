@@ -69,7 +69,6 @@ void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis 
        for (const QMAtom& atom:orbitals.QMAtoms()) {
           Znuc += atom.getNuccharge();
         }
-      std::cout<<Znuc<<std::endl;
       netcharge=Znuc-N;
     }
     netcharge = std::round(netcharge);
@@ -87,7 +86,7 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
     XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP of nuclei at CHELPG grid points" << flush;
 
     for (unsigned i = 0; i < gridpoints.size(); i++) {
-        for (unsigned j = 0; j < atoms.size(); j++) {
+        for (int j = 0; j < atoms.size(); j++) {
             const Eigen::Vector3d& posatom=atoms[j].getPos();
             double Znuc=atoms[j].getNuccharge();
             double dist_j = (gridpoints[i]-posatom).norm();

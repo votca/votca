@@ -45,20 +45,20 @@ void Grid::setupgrid(const QMMolecule& Atomlist){
             
     tools::Elements elements;
     std::pair<Eigen::Vector3d,Eigen::Vector3d> extension=Atomlist.CalcSpatialMinMax();
-    Eigen::Array3d min=extension.first.array()-_padding;
-    Eigen::Array3d max=extension.second.array()+_padding;
-    Eigen::Array3d doublesteps=(max-min)/_gridspacing;
-    Eigen::Array3d steps=doublesteps.ceil();
+    Eigen::Array3d min=extension.first.array();
+    Eigen::Array3d max=extension.second.array();
+    Eigen::Array3d doublesteps=(max-min+2*_padding)/_gridspacing;
+    Eigen::Array3i steps=(doublesteps.ceil()).cast<int>();
 
     // needed to symmetrize grid around molecule
-    Eigen::Array3d padding=(doublesteps-steps)*_gridspacing*0.5+_padding;
-
+    Eigen::Array3d padding=(doublesteps-steps.cast<double>())*_gridspacing*0.5+_padding;
+    Eigen::Array3d minpos=min-padding;
     for(int i=0;i<=steps.x();i++){
-        double x=min.x()-padding.x()+i*_gridspacing;
+        double x=minpos.x()+i*_gridspacing;
         for(int j=0;j<=steps.y();j++){
-            double y=min.y()-padding.y()+j*_gridspacing;
+            double y=minpos.y()+j*_gridspacing;
             for(int k=0;k<=steps.z();k++){
-                double z=min.z()-padding.z()+k*_gridspacing;
+                double z=minpos.z()+k*_gridspacing;
                 bool is_valid = false;
                 Eigen::Vector3d gridpos(x,y,z);
                     for (const QMAtom& atom : Atomlist){

@@ -258,15 +258,16 @@
       <itemPath>../../src/tests/test_fragment.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_gnode.cc</itemPath>
+      <itemPath>../../src/tests/test_grid.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
-      <itemPath>../../src/tests/test_polarsegment.h</itemPath>
+      <itemPath>../../src/tests/test_polarsegment.cc</itemPath>
       <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
-      <itemPath>../../src/tests/test_qmatom.h</itemPath>
-      <itemPath>../../src/tests/test_qmmolecule.h</itemPath>
+      <itemPath>../../src/tests/test_qmatom.cc</itemPath>
+      <itemPath>../../src/tests/test_qmmolecule.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
       <itemPath>../../src/tests/test_qmstate.cc</itemPath>
@@ -2969,6 +2970,8 @@
       </item>
       <item path="../../src/tests/test_gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -2985,22 +2988,13 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_polarsegment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmatom.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_qmatom.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_qmmolecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3955,6 +3949,8 @@
       </item>
       <item path="../../src/tests/test_gnode.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_grid.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -3971,22 +3967,13 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_polarsegment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmatom.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/tests/test_qmatom.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_qmmolecule.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -168,6 +168,7 @@ Eigen::MatrixXd overlap_ref=Eigen::MatrixXd::Zero(17,17);
   d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,0.0,0,8,0);
   d.setOverlap(&overlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
+
   Eigen::VectorXd MOEnergies_ref=Eigen::VectorXd::Zero(17);
   MOEnergies_ref<<-4.29332753,-3.99146858,-3.99146858,-3.99146858,-2.69172222,-2.69172222,-2.69172222,-2.61521973,-2.19277057,-2.19277057,-2.19277057,-1.75923211,-1.46241535,-1.46241535,-1.46241535,-1.21150295,14.6697624;
   bool check_moenergies=orb.MOEnergies().isApprox(MOEnergies_ref,00001);

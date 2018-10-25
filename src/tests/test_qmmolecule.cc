@@ -28,19 +28,44 @@ BOOST_AUTO_TEST_SUITE(qmmolecule_test)
 BOOST_AUTO_TEST_CASE(constructors_test) { QMMolecule seg("seg1",1); }
 
 BOOST_AUTO_TEST_CASE(load_xyz_test) {
-  ofstream xyzfile("molecule.xyz");
-  xyzfile << " 5" << endl;
-  xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
-  xyzfile.close();
-  
-  QMMolecule seg( "seg1",1);
-  seg.LoadFromXYZ("molecule.xyz");
-  
+    ofstream xyzfile("molecule.xyz");
+    xyzfile << " 5" << endl;
+    xyzfile << " methane" << endl;
+    xyzfile << " C            .000000     .000000     .000000" << endl;
+    xyzfile << " H            .629118     .629118     .629118" << endl;
+    xyzfile << " H           -.629118    -.629118     .629118" << endl;
+    xyzfile << " H            .629118    -.629118    -.629118" << endl;
+    xyzfile << " H           -.629118     .629118    -.629118" << endl;
+    xyzfile.close();
+
+    QMMolecule seg( "seg1",1);
+    seg.LoadFromXYZ("molecule.xyz");
+
+    auto extension=seg.CalcSpatialMinMax();
+    Eigen::Vector3d max(0.629118,0.629118,0.629118);
+    max*=votca::tools::conv::ang2bohr;
+    Eigen::Vector3d min=-max;
+
+    bool check_min=extension.first.isApprox(min,0.00001);
+
+     if(!check_min){
+        std::cout<<"ref"<<std::endl;
+        std::cout<<min<<std::endl;
+        std::cout<<"result"<<std::endl;
+        std::cout<<extension.first<<std::endl;
+    }
+BOOST_CHECK_EQUAL(check_min,true);
+    bool check_max=extension.second.isApprox(max,0.00001);
+
+      if(!check_max){
+        std::cout<<"ref"<<std::endl;
+        std::cout<<max<<std::endl;
+        std::cout<<"result"<<std::endl;
+        std::cout<<extension.second<<std::endl;
+    }
+ BOOST_CHECK_EQUAL(check_max,true);
+
+
   
  
 }
