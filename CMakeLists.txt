@@ -85,7 +85,7 @@ else()
   set(MKL_LIBRARIES)
 endif()
 
-find_package(EIGEN3 3.3.0 REQUIRED)
+find_package(Eigen3 3.3.0 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 set(EIGEN3_PKG eigen3)
 
