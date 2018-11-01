@@ -160,7 +160,7 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref)
                     r = b->getPos() *  _axis;
                 }
                 if (_dens_type=="mass") {
-                  _dist.Process(r, b->getMass());
+                  _dist.Process(r, b->getM());
                 } else {
                   _dist.Process(r, 1.0);
                 }

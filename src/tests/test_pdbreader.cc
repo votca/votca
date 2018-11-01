@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
     BOOST_CHECK_EQUAL(bd->getId(),i);
     BOOST_CHECK_EQUAL(bd->getResnr(),resnr.at(i));
     BOOST_CHECK_EQUAL(bd->getName(),bd_name.at(i));
-  //BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
+  //BOOST_CHECK_EQUAL(bd->getM(),ele.getMass(bd->getName()));
     v = bd->getPos();
     BOOST_CHECK_EQUAL(bd->getQ(), 0);
     BOOST_CHECK_EQUAL(round_(v.getX(), 3), round_(x.at(i), 3));

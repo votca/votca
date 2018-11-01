@@ -26,7 +26,7 @@ find_package(PkgConfig)
 pkg_check_modules(PC_VOTCA_TOOLS libvotca_tools)
 find_path(VOTCA_TOOLS_INCLUDE_DIR votca/tools/version.h HINTS ${PC_VOTCA_TOOLS_INCLUDE_DIRS})
 
-find_package(Eigen3 3.3.0 REQUIRED)
+find_package(EIGEN3 3.3.0 REQUIRED)
 find_package(MKL)
 if (NOT MKL_FOUND)
 	set(MKL_LIBRARIES)

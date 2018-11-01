@@ -224,8 +224,8 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg)
         btype = btype.substr(0,btype.find_first_of("#")); // skip #index of atom from its type
 
         out << format("%8s  %10f  %10f     1     0     1 %10d  %8s  %8s %10d \n")
-            % btype % b->getMass() % b->getQ() % (i+1) % btype % bname % (i+1);
-	//% b->getType()->getName() % b->getMass() % b->getQ() % (i+1) % b->getType()->getName() % b->getName() % (i+1);
+            % btype % b->getM() % b->getQ() % (i+1) % btype % bname % (i+1);
+	//% b->getType()->getName() % b->getM() % b->getQ() % (i+1) % b->getType()->getName() % b->getName() % (i+1);
     }
 }
 

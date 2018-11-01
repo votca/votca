@@ -78,7 +78,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg)
         Bead *b=cg.getBead(i);
        
         out << format("%d %s 1 RES %s %d %f %f\n")
-            % (i+1) % b->getType()->getName() % b->getName() % (i+1) % b->getQ() % b->getMass();
+            % (i+1) % b->getType()->getName() % b->getName() % (i+1) % b->getQ() % b->getM();
     }
     out << endl;
 }
