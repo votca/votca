@@ -68,7 +68,7 @@ if [[ ! ${multidir} && $1 != "--pre" ]]; then
   check_temp || die "${0##*/}: check of tempertures failed"
   if [[ $traj == *.xtc ]]; then
     #XXX is returned if nstxout-compressed is not in mdp file
-    nstxtcout=$(get_simulation_setting nstxout-compressed XXX)
+    nstxtcout=$(get_simulation_setting "nstxout[-_]compressed" XXX)
     [[ ${nstxtcout} = XXX ]] && nstxtcout=$(get_simulation_setting nstxtcout 0)
     [[ ${nstxtcout} -eq 0 ]] && die "${0##*/}: trajectory type (cg.inverse.gromacs.traj) is '${traj##*.}', but nstxtcout is 0 in $mdp. Please check the setting again and remove the current step."
   elif [[ $traj == *.trr ]]; then
@@ -131,7 +131,7 @@ if [[ ${multidir} ]]; then
       [[ -f ${f} ]] || die "${0##*/}: file '$f' not found (make sure it is in cg.inverse.filelist)"
       read ${j}_x <<< "${f}" # set ${j}_x (e.g. topol_x) to ${f}
     done
-    if [[ $(get_simulation_setting --file "${mdp_x}" cutoff-scheme XXX) = XXX ]]; then 
+    if [[ $(get_simulation_setting --file "${mdp_x}" "cutoff[-_]scheme" XXX) = XXX ]]; then 
       echo "cutoff-scheme = Group" >> "${mdp_x}"
       msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to ${mdp_x}, tabulated interactions only work with Group cutoff-scheme!"
     fi
@@ -142,7 +142,7 @@ if [[ ${multidir} ]]; then
 else
   #support for older mdp file, cutoff-scheme = Verlet is default for >=gmx-5 now, but does not work with tabulated interactions
   #XXX is returned if cutoff-scheme is not in mdp file
-  if [[ $(get_simulation_setting cutoff-scheme XXX) = XXX ]]; then
+  if [[ $(get_simulation_setting "cutoff[-_]scheme" XXX) = XXX ]]; then
     echo "cutoff-scheme = Group" >> $mdp
     msg --color blue --to-stderr "Automatically added 'cutoff-scheme = Group' to $mdp, tabulated interactions only work with Group cutoff-scheme!"
   fi

@@ -92,7 +92,7 @@ if [[ $tabtype = "non-bonded" ]]; then
   if [[ -f ${mdp} ]]; then
     echo "Found setting file '$mdp' now trying to check options in there"
     rlist=$(get_simulation_setting rlist)
-    tabext=$(get_simulation_setting table-extension)
+    tabext=$(get_simulation_setting "table[-_]extension")
     # if we have all 3 numbers do this checks
     tabl=$(csg_calc "$rlist" + "$tabext")
     [[ -n $tablend  ]] &&  csg_calc "$tablend" "<" "$tabl" && \
