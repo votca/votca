@@ -21,17 +21,14 @@ import sys
 
 
 def readin_table(filename):
-    data = np.loadtxt(filename, dtype=np.str, comments=['#', '@'])
-    x = data[:, 0].astype(np.float)
-    y = data[:, 1].astype(np.float)
-    y_flag = data[:, 2].astype('S1')
+    table_dtype = {'names': ('x', 'y', 'y_flag'),
+                   'formats': ('f', 'f', 'S1')}
+    x, y, y_flag = np.loadtxt(filename, dtype=table_dtype, comments=['#', '@'], unpack=True)
     return x, y, y_flag
 
 
 def saveto_table(filename, x, y, y_flag, comment=""):
-    data = np.column_stack((x.T, y.T, y_flag.T))
-    format_string = '%s'
-    np.savetxt(filename, data, header=comment, fmt=format_string)
+    np.savetxt(filename, (x, y, y_flag), header=comment, fmt='%s')
 
 
 def compare_grids(grid_a, grid_b):
@@ -128,7 +125,7 @@ def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density):
     # first order dU
     dU_order_1 = kBT * phi
 
-    print(dU_order_0, dU_order_1)
+    #print(dU_order_0, dU_order_1)
 
     dU = dU_order_0 + dU_order_1
     return dU
@@ -181,7 +178,7 @@ parser = argparse.ArgumentParser(description=description)
 parser.add_argument('rdf_target', type=argparse.FileType('r'))
 parser.add_argument('rdf_current', type=argparse.FileType('r'))
 parser.add_argument('pot_current', type=argparse.FileType('r'))
-parser.add_argument('dpot', type=argparse.FileType('w'))
+parser.add_argument('dpot', type=argparse.FileType('wb'))
 parser.add_argument('kBT', type=float)
 
 if __name__ == '__main__':
