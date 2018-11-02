@@ -28,7 +28,8 @@ def readin_table(filename):
 
 
 def saveto_table(filename, x, y, y_flag, comment=""):
-    np.savetxt(filename, (x, y, y_flag), header=comment, fmt='%s')
+    data = np.column_stack((x.T, y.T, y_flag.T))
+    np.savetxt(filename, data, header=comment, fmt='%s')
 
 
 def compare_grids(grid_a, grid_b):
