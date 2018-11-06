@@ -181,6 +181,7 @@ parser.add_argument('rdf_current', type=argparse.FileType('r'))
 parser.add_argument('pot_current', type=argparse.FileType('r'))
 parser.add_argument('dpot', type=argparse.FileType('wb'))
 parser.add_argument('kBT', type=float)
+parser.add_argument('density', type=float)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -198,7 +199,7 @@ if __name__ == '__main__':
     dpot_dU, dpot_flag = calc_dpot_ihnc(r, rdf_target_g, rdf_target_flag,
                                         rdf_current_g, rdf_current_flag,
                                         pot_current_U, pot_current_flag,
-                                        args.kBT, 33.3, 1e-10)
+                                        args.kBT, args.density, 1e-10)
 
     # save dpot
     comment = "created by: {}".format(" ".join(sys.argv))

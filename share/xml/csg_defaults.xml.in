@@ -374,8 +374,8 @@
     <average>
       <steps>1
         <DESC>number of steps to be used for average computation. For relative
-        entropy method, these many last iteration steps are used to compute average
-        CG potentials or parameters or both.</DESC>
+          entropy method, these many last iteration steps are used to compute average
+          CG potentials or parameters or both.</DESC>
       </steps>
     </average>
     <initial_configuration>maindir
@@ -387,6 +387,9 @@
     <kBT>
       <DESC> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</DESC>
     </kBT>
+    <density>
+      <DESC> number density</DESC>
+    </density>>
     <log_file>inverse.log
       <DESC>name of the log file</DESC>
     </log_file>
@@ -435,8 +438,8 @@
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
     <dlpoly><header>
-      <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-    </header>
+        <DESC>Header of the interaction in dlpoly TABBND or TABANG file. The header should be a unique set of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
     </dlpoly>
     <name>
       <DESC>Name of the bonded interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
@@ -448,8 +451,8 @@
   <non-bonded>
     <DESC>Interaction specific option for non-bonded interactions</DESC>
     <dlpoly><header>
-      <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
-    </header>
+        <DESC>Header of the interaction in dlpoly TABLE file. The header should be a unique pair of the interaction-site names, and these should match the corresponding names specified in the mapping file.</DESC>
+      </header>
     </dlpoly>
     <name>
       <DESC>Name of the interaction. The name can be arbitrary but should be unique. For bonded interactions, this should match the name specified in the mapping file.</DESC>
@@ -724,7 +727,7 @@
         <density>
           <DESC>Contains all options for the density calculation of the optimizer</DESC>
           <axis>x
-          <DESC>Axis along which the density is calculated</DESC>
+            <DESC>Axis along which the density is calculated</DESC>
           </axis>
           <min>
             <DESC>Lower bound of interval in which density calculation is performed.</DESC>
@@ -735,9 +738,9 @@
           <step>
             <DESC>Step size of interval in which density calculation is performed.</DESC>
           </step>
-               <scale>1.0
-                 <DESC>Scaling factor for density</DESC>
-               </scale>
+          <scale>1.0
+            <DESC>Scaling factor for density</DESC>
+          </scale>
           <molname>*
             <DESC>The molname of this interaction</DESC>
           </molname>
