@@ -126,7 +126,7 @@ def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density):
     # first order dU
     dU_order_1 = kBT * phi
 
-    #print(dU_order_0, dU_order_1)
+    print(dU_order_0, dU_order_1)
 
     dU = dU_order_0 + dU_order_1
     return dU
@@ -135,7 +135,7 @@ def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density):
 def calc_dpot_ihnc(r, rdf_target_g, rdf_target_flag,
                    rdf_current_g, rdf_current_flag,
                    pot_current_U, pot_current_flag,
-                   kBT, density, g_min):
+                   kBT, density, cut_off, g_min):
     # allways raise an error
     np.seterr(all='raise')
 
@@ -166,6 +166,12 @@ def calc_dpot_ihnc(r, rdf_target_g, rdf_target_flag,
     # replace out of range dU values
     dpot_dU = np.where(dpot_flag == 'i', dpot_dU, first_dU)
 
+    # shift dU to be zero at cut_off and beyond
+    index_cut_off = np.searchsorted(r, cut_off)
+    U_cut_off = pot_current_U[index_cut_off] + dpot_dU[index_cut_off]
+    dpot_dU -= U_cut_off
+    dpot_dU[index_cut_off:] = - pot_current_U[index_cut_off:]
+
     return dpot_dU, dpot_flag
 
 
@@ -182,6 +188,7 @@ parser.add_argument('pot_current', type=argparse.FileType('r'))
 parser.add_argument('dpot', type=argparse.FileType('wb'))
 parser.add_argument('kBT', type=float)
 parser.add_argument('density', type=float)
+parser.add_argument('cut_off', type=float)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -199,7 +206,7 @@ if __name__ == '__main__':
     dpot_dU, dpot_flag = calc_dpot_ihnc(r, rdf_target_g, rdf_target_flag,
                                         rdf_current_g, rdf_current_flag,
                                         pot_current_U, pot_current_flag,
-                                        args.kBT, args.density, 1e-10)
+                                        args.kBT, args.density, args.cut_off, 1e-10)
 
     # save dpot
     comment = "created by: {}".format(" ".join(sys.argv))
