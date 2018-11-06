@@ -388,8 +388,11 @@
       <DESC> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</DESC>
     </kBT>
     <density>
-      <DESC> number density</DESC>
-    </density>>
+      <DESC> IHNC only. Number density</DESC>
+    </density>
+    <cut_off>
+      <DESC> IHNC only. Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
+    </cut_off>
     <log_file>inverse.log
       <DESC>name of the log file</DESC>
     </log_file>
