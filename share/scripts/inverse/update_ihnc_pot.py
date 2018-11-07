@@ -176,9 +176,9 @@ def calc_dpot_ihnc(r, rdf_target_g, rdf_target_flag,
 
 
 description = """\
-This script calculatess dU out of two rdfs with the rules of inverse boltzmann.
-In addition, it does some magic tricks:
-- do not update if one of the two rdf is undefined
+This script calculatess dU with the IHNC scheme.
+It uses some magic tricks:
+- beyond the cut_off dU is set to -U such that U becomes zero.
 """
 
 parser = argparse.ArgumentParser(description=description)
