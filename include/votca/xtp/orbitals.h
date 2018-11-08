@@ -51,6 +51,11 @@ namespace votca {
         public:
 
             Orbitals();
+
+            Orbitals(const Orbitals& orbital);
+
+            Orbitals& operator=(const Orbitals& orbital);
+
             ~Orbitals();
 
             
@@ -602,6 +607,9 @@ namespace votca {
             void ReadFromCpt(const std::string& filename);
             
         private:
+
+
+            void copy(const Orbitals& orbital);
 
             struct Index2MO{
                 std::vector<int> I2v;

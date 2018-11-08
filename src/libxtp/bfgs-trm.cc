@@ -40,7 +40,13 @@ namespace votca {
           TrustRegion subproblem;
           delta_p_trial = subproblem.CalculateStep(gradient, _hessian, _trust_radius);
           double trialcost = _costfunction.EvaluateCost(_parameters + delta_p_trial);
+           if (_logging) {
+          std::cout<<"trialcost "<<trialcost<<std::endl;
+           }
           delta_cost = trialcost - lastcost;
+           if (_logging) {
+          std::cout<<"deltacost "<<delta_cost<<std::endl;
+           }
           step_accepted = AcceptRejectStep(delta_p_trial, gradient, delta_cost);
           if (step_accepted) {
             _cost = trialcost;

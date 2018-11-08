@@ -347,7 +347,7 @@ namespace votca {
 
         if (_do_dft_run) {
           CTP_LOG(ctp::logDEBUG, *pLog) << "Running DFT" << flush;
-          bool _run_dft_status = qmpackage->Run(orbitalsAB);
+          bool _run_dft_status = qmpackage->Run();
           if (!_run_dft_status) {
             SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
             delete qmpackage;

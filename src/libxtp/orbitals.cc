@@ -48,7 +48,6 @@ namespace votca {
             _ECP = "";
             _useTDA = false;
 
-            // GW-BSE
             _qpmin = 0;
             _qpmax = 0;
             _qptotal = 0;
@@ -69,9 +68,95 @@ namespace votca {
 
         };
 
+        
+        
+        Orbitals& Orbitals::operator=(const Orbitals& orbital) {
+            copy(orbital);
+            return *this;
+        }
+
+        Orbitals::Orbitals(const Orbitals& orbital){
+            copy(orbital);
+        }
+
         Orbitals::~Orbitals() {
             for (QMAtom* atom:_atoms) delete atom;
         };
+
+
+        void Orbitals::copy(const Orbitals& orbital){
+            _basis_set_size=orbital._basis_set_size;
+            _occupied_levels=orbital._occupied_levels;
+            _unoccupied_levels=orbital._unoccupied_levels;
+            _number_of_electrons=orbital._number_of_electrons;
+            _ECP=orbital._ECP;
+            _useTDA=orbital._useTDA;
+
+            _mo_energies=orbital._mo_energies;
+            _mo_coefficients=orbital._mo_coefficients;
+
+            _overlap=orbital._overlap;
+            _vxc=orbital._vxc;
+            for (QMAtom* atom:_atoms) delete atom;
+            _atoms.clear();
+            _atoms.reserve(orbital._atoms.size());
+            for(const QMAtom* atom:orbital._atoms){
+                QMAtom* copy=new QMAtom(*atom);
+                _atoms.push_back(copy);
+            }
+            _qm_energy=orbital._qm_energy;
+            _self_energy=orbital._self_energy;
+
+            // new variables for GW-BSE storage
+            _rpamin=orbital._rpamin;
+            _rpamax=orbital._rpamax;
+
+            _qpmin=orbital._qpmin;
+            _qpmax=orbital._qpmax;
+            _qptotal=orbital._qptotal;
+
+            _bse_vmin=orbital._bse_vmin;
+            _bse_vmax=orbital._bse_vmax;
+            _bse_cmin=orbital._bse_cmin;
+            _bse_cmax=orbital._bse_cmax;
+            _bse_size=orbital._bse_size;
+            _bse_vtotal=orbital._bse_vtotal;
+            _bse_ctotal=orbital._bse_ctotal;
+            _bse_nmax=orbital._bse_nmax;
+
+            _ScaHFX=orbital._ScaHFX;
+
+            _dftbasis=orbital._dftbasis;
+            _auxbasis=orbital._auxbasis;
+            _qm_package=orbital._qm_package;
+
+            // perturbative quasiparticle energies
+            _QPpert_energies=orbital._QPpert_energies;
+
+            // quasiparticle energies and coefficients after diagonalization
+            _QPdiag_energies=orbital._QPdiag_energies;
+            _QPdiag_coefficients=orbital._QPdiag_coefficients;
+            // excitons
+
+            _eh_t=orbital._eh_t;
+            _eh_s=orbital._eh_s;
+            _BSE_singlet_energies=orbital._BSE_singlet_energies;
+            _BSE_singlet_coefficients=orbital._BSE_singlet_coefficients;
+            _BSE_singlet_coefficients_AR=orbital._BSE_singlet_coefficients_AR;
+
+            _transition_dipoles=orbital._transition_dipoles;
+            _BSE_triplet_energies=orbital._BSE_triplet_energies;
+            _BSE_triplet_coefficients=orbital._BSE_triplet_coefficients;
+
+            _DqS_frag=orbital._DqS_frag; // fragment charge changes in exciton
+            _DqT_frag=orbital._DqT_frag;
+            _GSq_frag=orbital._GSq_frag; // ground state effective fragment charges
+
+            _popE_s=orbital._popE_s;
+            _popE_t=orbital._popE_t;
+            _popH_s=orbital._popH_s;
+            _popH_t=orbital._popH_t;
+        }
 
         void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
             _occupied_levels = occupied_levels;
@@ -456,7 +541,7 @@ namespace votca {
         }
 
         double Orbitals::getTotalStateEnergy(const QMState& state)const{
-          double total_energy=getQMEnergy()* tools::conv::ev2hrt;
+          double total_energy=getQMEnergy();
           if (state.Type()==QMStateType::Gstate){
             return total_energy;
           }
@@ -634,7 +719,7 @@ namespace votca {
         }
 
         void Orbitals::WriteToCpt(const std::string& filename) const{
-            CheckpointFile cpf(filename, CheckpointAccessLevel::MODIFY);
+            CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
             WriteToCpt(cpf);
         }
 
@@ -727,18 +812,28 @@ namespace votca {
             {
                 CheckpointReader qmasReader = r.openChild("qmatoms");
                 size_t count = qmasReader.getNumDataSets();
-                if(this->QMAtoms().size()>0){
-                    std::vector< QMAtom* >::iterator it;
-                    for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
-                    _atoms.clear();
+                if(count==QMAtoms().size()){
+                     for (size_t i = 0; i < count; ++i) {
+                          CheckpointReader qmaReader =
+                            qmasReader.openChild("atom" + std::to_string(i));
+                          QMAtoms()[i]->ReadFromCpt(qmaReader);
+                     }
                 }
+                else{
 
-                for (size_t i = 0; i < count; ++i) {
-                    CheckpointReader qmaReader =
-                        qmasReader.openChild("atom" + std::to_string(i));
-                    QMAtom temp;
-                    temp.ReadFromCpt(qmaReader);
-                    AddAtom(temp);
+                    if(this->QMAtoms().size()>0){
+                        std::vector< QMAtom* >::iterator it;
+                        for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
+                        _atoms.clear();
+                    }
+
+                    for (size_t i = 0; i < count; ++i) {
+                        CheckpointReader qmaReader =
+                            qmasReader.openChild("atom" + std::to_string(i));
+                        QMAtom temp;
+                        temp.ReadFromCpt(qmaReader);
+                        AddAtom(temp);
+                    }
                 }
             }
 

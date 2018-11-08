@@ -48,7 +48,7 @@ public:
 
    bool WriteShellScript();
 
-   bool Run( Orbitals &orbitals );
+   bool Run();
 
    void CleanUp();
 

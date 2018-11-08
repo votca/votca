@@ -46,7 +46,7 @@ public:
 
    bool WriteInputFile( Orbitals& orbitals);
 
-   bool Run( Orbitals& orbitals );
+   bool Run();
 
    void CleanUp();
 

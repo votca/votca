@@ -64,10 +64,8 @@ namespace votca {
 
         }
 
-        /**
-         * Dummy for use of XTPDFT as QMPackage, needs no input file
-         */
         bool XTPDFT::WriteInputFile(Orbitals& orbitals) {
+            _orbitals=orbitals;
             return true;
         }
 
@@ -75,7 +73,7 @@ namespace votca {
         /**
          * Run calls DFTENGINE
          */
-        bool XTPDFT::Run( Orbitals& orbitals ) {
+        bool XTPDFT::Run() {
           DFTEngine xtpdft;
           xtpdft.Initialize(_xtpdft_options);
           xtpdft.setLogger(_pLog);
@@ -83,11 +81,11 @@ namespace votca {
           if(_write_charges){
             xtpdft.setExternalcharges(_PolarSegments);
           }
-          xtpdft.Prepare( orbitals );
-          xtpdft.Evaluate( orbitals );
+          xtpdft.Prepare( _orbitals );
+          xtpdft.Evaluate( _orbitals );
           _basisset_name = xtpdft.getDFTBasisName();
           std::string file_name = _run_dir + "/" + _log_file_name;
-          orbitals.WriteToCpt(file_name);
+          _orbitals.WriteToCpt(file_name);
             return true;
     }
 

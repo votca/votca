@@ -27,9 +27,9 @@ namespace votca {
 namespace xtp {
 
 enum class CheckpointAccessLevel{
-        READ = 0,
-        MODIFY = 1,
-        CREATE = 2
+        READ = 0,//only read no write access
+        MODIFY = 1,//if file exists, change it
+        CREATE = 2//create new file
 };
 
 std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);

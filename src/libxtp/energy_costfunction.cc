@@ -37,7 +37,7 @@ namespace votca {
             
     Eigen::VectorXd Energy_costfunction::EvaluateGradient(const Eigen::VectorXd& parameters){
       Vector2QMAtoms(parameters, _orbitals.QMAtoms());
-      _force_engine.Calculate(_energy);
+      _force_engine.Calculate(_orbitals);
       Eigen::VectorXd gradient = Write3XMatrixToVector(-_force_engine.GetForces());
       return gradient;
     }

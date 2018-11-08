@@ -41,7 +41,7 @@ namespace votca {
       _conv.RMSStep = options.ifExistsReturnElseReturnDefault<double>(".convergence.RMSStep", 6.e-4); // Bohr
       _conv.MaxStep = options.ifExistsReturnElseReturnDefault<double>(".convergence.MaxStep", 1.e-3); // Bohr
       _trust_radius = options.ifExistsReturnElseReturnDefault<double>(".trust", 0.01); // Angstrom
-      _trust_radius = _trust_radius * tools::conv::ang2bohr; // initial trust radius in a.u.
+      _trust_radius *= tools::conv::ang2bohr; // initial trust radius in a.u.
 
       _max_iteration = options.ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
 
@@ -75,7 +75,7 @@ namespace votca {
       filter.PrintInfo();
 
       // get a force object
-      Forces force_engine(_gwbse_engine, filter, _orbitals);
+      Forces force_engine(_gwbse_engine, filter);
       force_engine.Initialize(_force_options);
       force_engine.setLog(_pLog);
       CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("Convergence of total energy: %1$8.6f Hartree ") % _conv.deltaE).str() << std::flush;
