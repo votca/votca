@@ -38,61 +38,17 @@ def compare_grids(grid_a, grid_b):
         sys.exit(1)
 
 
-def fft_paper(r, y):
-    r = r[1:]
-    y = y[1:]
-
-    m = len(r)
+def fourier(r, y, omega):
     Delta_r = r[1] - r[0]
-    l_range = range(-m, m+1, 1)
-    j_range = l_range
-
-    omega = np.array(l_range) / (m + 1) * 1 / (2 * Delta_r)
-
-    r_pm = np.concatenate((-r[::-1], [0], r))
-    y_pm = np.concatenate((y[::-1], [0], y))
-    psi_pm = r_pm * y_pm
-
-    y_hat = np.zeros_like(omega, dtype=np.complex128)
-
-    for l_index, l in enumerate(l_range):
-        omega_l = omega[l_index]
-        for j_index, j in enumerate(j_range):
-            y_hat[l_index] += psi_pm[j_index] * np.exp(-2 * np.pi * 1j * omega_l * r_pm[j_index])
-        np.seterr(divide='ignore', invalid='ignore')
-        y_hat[l_index] *= Delta_r / (1j * omega_l)
-        np.seterr(all='raise')
-
-    return omega, y_hat
+    y_hat = np.zeros_like(omega)
+    np.seterr(divide='ignore', invalid='ignore')
+    for i, omega_i in enumerate(omega):
+        y_hat[i] = 2 / omega_i * Delta_r * np.sum(r * y * np.sin(2 * np.pi * omega_i * r))
+    np.seterr(all='raise')
+    return y_hat
 
 
-def ifft_paper(omega, y_hat):
-
-    zero_frequency_index = (len(omega) - 1) // 2
-    y_hat[zero_frequency_index] = 0
-
-    Delta_omega = omega[1] - omega[0]
-    m = (len(omega) - 1) // 2
-    l_range = range(-m, m+1, 1)
-    j_range = l_range
-
-    r_pm = np.array(l_range) / (m + 1) * 1 / (2 * Delta_omega)
-    psi_pm = omega * y_hat
-
-    y = np.zeros_like(r_pm, dtype=np.complex128)
-
-    for l_index, l in enumerate(l_range):
-        r_pm_l = r_pm[l_index]
-        for j_index, j in enumerate(j_range):
-            y[l_index] += psi_pm[j_index] * np.exp(-2 * np.pi * 1j * r_pm_l * omega[j_index])
-        np.seterr(divide='ignore', invalid='ignore')
-        y[l_index] *= Delta_omega / (1j * r_pm_l)
-        np.seterr(all='raise')
-
-    return r_pm[zero_frequency_index:], y[zero_frequency_index:]
-
-
-def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density):
+def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density, dump_steps=False):
     """calculates dU for all r (full width)"""
 
     # density 'ρ0'
@@ -105,18 +61,17 @@ def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density):
     h = rdf_current_g - 1
 
     # special Fourier of h
-    omega, h_hat = fft_paper(r, h)
+    omega = np.arange(1, len(r)) / (2 * max(r))
+    h_hat = fourier(r, h, omega)
 
     # special Fourier of f
-    omega, f_hat = fft_paper(r, f)
+    f_hat = fourier(r, f, omega)
 
     # special Fourier of φ
-    np.seterr(divide='ignore', invalid='ignore')
     phi_hat = (2 + rho * h_hat) / (1 + rho * h_hat)**2 * rho * h_hat * f_hat
-    np.seterr(all='raise')
 
     # φ
-    r_, phi = ifft_paper(omega, phi_hat)
+    phi = fourier(omega, phi_hat, r)
 
     # zero order dU (similar IBI)
     np.seterr(divide='ignore', invalid='ignore')
@@ -126,9 +81,15 @@ def calc_dpot_ihnc_core(r, rdf_current_g, rdf_target_g, kBT, density):
     # first order dU
     dU_order_1 = kBT * phi
 
-    print(dU_order_0, dU_order_1)
-
+    # total dU
     dU = dU_order_0 + dU_order_1
+
+    # dump files
+    if dump_steps:
+        np.savetxt("ihnc_f_hat.xvg", (omega, f_hat), header="omega, f_hat")
+        np.savetxt("ihnc_h_hat.xvg", (omega, h_hat), header="omega, h_hat")
+        np.savetxt("ihnc_phi_hat.xvg", (omega, phi_hat), header="omega, phi_hat")
+
     return dU
 
 
