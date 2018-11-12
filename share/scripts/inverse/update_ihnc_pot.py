@@ -41,7 +41,7 @@ def compare_grids(grid_a, grid_b):
 def fourier(r, y, omega):
     Delta_r = r[1] - r[0]
     y_hat = np.zeros_like(omega)
-    np.seterr(divide='ignore', invalid='ignore')
+    np.seterr(divide='ignore', invalid='ignore', under='ignore')
     for i, omega_i in enumerate(omega):
         y_hat[i] = 2 / omega_i * Delta_r * np.sum(r * y * np.sin(2 * np.pi * omega_i * r))
     np.seterr(all='raise')
