@@ -342,7 +342,7 @@ namespace votca {
     /**
      * Runs the NWChem job.
      */
-    bool NWChem::Run( Orbitals& orbitals ) {
+        bool NWChem::Run() {
 
       XTP_LOG(logDEBUG, *_pLog) << "Running NWChem job" << flush;
 
@@ -683,8 +683,8 @@ namespace votca {
           boost::algorithm::split(results, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
           std::string energy = results.back();
           boost::trim(energy);
-          orbitals.setQMEnergy(conv_Hrt_eV * boost::lexical_cast<double>(energy));
-          XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+                    orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
+                    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
           has_qm_energy = true;
         }
 
@@ -869,7 +869,7 @@ namespace votca {
           std::vector<std::string> energy;
           boost::algorithm::split(block, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
           boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-          orbitals.setSelfEnergy(conv_Hrt_eV * boost::lexical_cast<double> (energy[1]));
+                    orbitals.setSelfEnergy(boost::lexical_cast<double> (energy[1]));
           XTP_LOG(logDEBUG, *_pLog) << "Self energy " << orbitals.getSelfEnergy() << flush;
         }
 

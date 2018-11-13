@@ -21,7 +21,7 @@
 #define __VOTCA_XTP_XTPDFT_H
 
 
-#include <votca/xtp/apolarsite.h>
+#include <votca/xtp/polarsite.h>
 #include <votca/xtp/qmpackage.h>
 #include <votca/xtp/dftengine.h>
 
@@ -46,7 +46,7 @@ namespace votca {
 
             bool WriteInputFile(const Orbitals& orbitals);
 
-            bool Run(Orbitals& orbitals);
+            bool Run();
 
             void CleanUp();
 
@@ -60,6 +60,8 @@ namespace votca {
             void WriteChargeOption() { return ;}
             tools::Property _xtpdft_options;
             std::string _cleanup;
+
+            Orbitals _orbitals;
 
             
         };

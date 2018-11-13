@@ -41,7 +41,7 @@ namespace votca {
       _conv.RMSStep = options.ifExistsReturnElseReturnDefault<double>(".convergence.RMSStep", 6.e-4); // Bohr
       _conv.MaxStep = options.ifExistsReturnElseReturnDefault<double>(".convergence.MaxStep", 1.e-3); // Bohr
       _trust_radius = options.ifExistsReturnElseReturnDefault<double>(".trust", 0.01); // Angstrom
-      _trust_radius = _trust_radius * tools::conv::ang2bohr; // initial trust radius in a.u.
+      _trust_radius *= tools::conv::ang2bohr; // initial trust radius in a.u.
 
       _max_iteration = options.ifExistsReturnElseReturnDefault<unsigned>(".maxiter", 50);
 
@@ -75,7 +75,7 @@ namespace votca {
       filter.PrintInfo();
 
       // get a force object
-      Forces force_engine(_gwbse_engine, filter, _orbitals);
+      Forces force_engine(_gwbse_engine, filter);
       force_engine.Initialize(_force_options);
       force_engine.setLog(_pLog);
       XTP_LOG(logINFO, *_pLog) << (boost::format("Convergence of total energy: %1$8.6f Hartree ") % _conv.deltaE).str() << std::flush;
@@ -92,7 +92,7 @@ namespace votca {
       if (_optimizer == "BFGS-TRM") {
         BFGSTRM bfgstrm(e_cost);
         std::vector<std::function<void()> > callbacks;
-        std::function<void()> reporting=std::bind(Report,std::cref(bfgstrm),std::cref(_pLog));
+        std::function<void()> reporting=std::bind(Report,std::cref(bfgstrm),std::cref(force_engine),std::ref(*_pLog));
         callbacks.push_back(reporting);
         std::function<void()> filewrite=std::bind(WriteTrajectory,_trajfile, _orbitals.QMAtoms(), std::cref(bfgstrm));
         callbacks.push_back(filewrite);
@@ -105,20 +105,21 @@ namespace votca {
       return;
     }
 
-    void GeometryOptimization::Report(const BFGSTRM& bfgstrm,Logger* pLog){
+    void GeometryOptimization::Report(const BFGSTRM& bfgstrm,const Forces& forces,Logger& pLog){
 
-      XTP_LOG(logINFO, *pLog) << std::flush;
-      XTP_LOG(logINFO, *pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
-      XTP_LOG(logINFO, *pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
-      XTP_LOG(logINFO, *pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
-      XTP_LOG(logINFO, *pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
       const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
       for (unsigned i = 0; i < atomvec.size(); i += 3) {
-        XTP_LOG(logINFO, *pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+        XTP_LOG(logINFO, pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                 % (i/3) % (atomvec(i) * votca::tools::conv::bohr2ang) % (atomvec(i + 1) * votca::tools::conv::bohr2ang) % (atomvec(i + 2) * votca::tools::conv::bohr2ang)).str() << std::flush;
       }
-      XTP_LOG(logINFO, *pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
-      XTP_LOG(logINFO, *pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
+      forces.Report();
       return;
     }
 

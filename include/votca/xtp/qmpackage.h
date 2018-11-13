@@ -48,7 +48,7 @@ namespace votca {
             /// writes a coordinate file WITHOUT taking into account PBCs
             virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
-            virtual bool Run(Orbitals& orbitals) = 0;
+            virtual bool Run() = 0;
 
             virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 

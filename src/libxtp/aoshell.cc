@@ -21,7 +21,8 @@
 #include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
-    
+
+  
   void AOShell::normalizeContraction(){   
     AOOverlap overlap;
     Eigen::MatrixXd block=overlap.FillShell(*this);
@@ -388,7 +389,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const E
         }
 
 std::ostream &operator<<(std::ostream &out, const AOShell& shell) {
-    out <<"AtomIndex:"<<shell.getAtomIndex() <<" Atomtype:"<<shell.getAtomType();
+    out <<"AtomIndex:"<<shell.getAtomIndex();
     out <<" Shelltype:"<<shell.getType() <<" Scale:"<<shell.getScale()
         <<" Lmax:"<<shell.getLmax()<<" MinDecay:"<<shell.getMinDecay()
         << " Func:"<<shell.getNumFunc()<<"\n";

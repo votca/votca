@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/orbitals.h"
+#include "votca/xtp/qmstate.h"
 #include "votca/xtp/aomatrix.h"
 #include <votca/xtp/version.h>
 #include <votca/tools/elements.h>

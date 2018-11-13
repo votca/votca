@@ -587,6 +587,9 @@ namespace votca {
             
         private:
 
+
+            void copy(const Orbitals& orbital);
+
             struct Index2MO{
                 std::vector<int> I2v;
                 std::vector<int> I2c;

@@ -379,7 +379,7 @@ void GWBSE::addoutput(tools::Property& summary) {
                                (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
 
   gwbse_summary.setAttribute(
-      "DFTEnergy", (format("%1$+1.6f ") % _orbitals.getQMEnergy()).str());
+      "DFTEnergy", (format("%1$+1.6f ") % (_orbitals.getQMEnergy()*hrt2ev)).str());
   int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
