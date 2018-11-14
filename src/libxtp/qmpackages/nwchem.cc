@@ -700,7 +700,7 @@ namespace votca {
                     std::string energy = results.back();
                     boost::trim(energy);
                     orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy()).str() << flush;
                     has_qm_energy = true;
                 }
 

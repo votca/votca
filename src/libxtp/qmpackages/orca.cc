@@ -489,7 +489,7 @@ namespace votca {
                     std::string energy = results[3];
                     boost::trim(energy);
                     orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
-                    CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+                    CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy()).str() << flush;
                 }
 
                 std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
