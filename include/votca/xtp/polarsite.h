@@ -105,7 +105,7 @@ public:
     }
     
     Eigen::Matrix3d CalculateCartesianMultipole()const; 
-    static Eigen::VectorXd CalculateSphericalMultipole(const Eigen::Matrix3d& _quadrupole_cartesian);
+    static Eigen::VectorXd CalculateSphericalMultipole(const Eigen::Matrix3d& quadrupole_cartesian);
     
     Eigen::Vector3d getField()const{return _localpermanetField+_localinducedField;}
     
@@ -134,13 +134,14 @@ private:
     Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
-    std::string  _element;
-    Eigen::Vector3d _pos;
     int     _rank;
+    std::string  _element;
+    bool _isPolarisable=false;
+    Eigen::Vector3d _pos;
     Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
     
     //required for polarisation
-    bool _isPolarisable=false;
+    
     Eigen::Matrix3d _Ps;
     Eigen::Vector3d _localpermanetField;
     Eigen::Vector3d _localinducedField;

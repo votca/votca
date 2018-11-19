@@ -493,16 +493,15 @@ namespace votca {
         
         
         void Orbitals::OrderMOsbyEnergy(){
-          std::vector<int> sort_index = this->SortEnergies();
-          
-          Eigen::MatrixXd MOcopy=this->MOCoefficients();
-          Eigen::VectorXd Energy=this->MOEnergies();
+          std::vector<int> sort_index = SortEnergies();
+          Eigen::MatrixXd MOcopy=MOCoefficients();
+          Eigen::VectorXd Energy=MOEnergies();
           
           for(int i=0;i<Energy.size();++i){
-            this->MOEnergies()(i)=Energy(sort_index[i]);
+            MOEnergies()(i)=Energy(sort_index[i]);
           }
           for(int i=0;i<Energy.size();++i){
-            this->MOCoefficients().col(i)=MOcopy.col(sort_index[i]);
+            MOCoefficients().col(i)=MOcopy.col(sort_index[i]);
           }
         }
 
@@ -526,7 +525,7 @@ namespace votca {
             int electronsB = orbitalsB.getNumberOfElectrons();
 
             
-            this->MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
+            MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
@@ -552,7 +551,7 @@ namespace votca {
             energies.segment(0, levelsA) = orbitalsA.MOEnergies();
             energies.segment(levelsA, levelsB) = orbitalsB.MOEnergies();
             
-            this->OrderMOsbyEnergy();
+            OrderMOsbyEnergy();
             
             return;
         }
@@ -560,7 +559,7 @@ namespace votca {
        
 
         void Orbitals::WriteToCpt(const std::string& filename) const{
-            CheckpointFile cpf(filename, CheckpointAccessLevel::MODIFY);
+            CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
             WriteToCpt(cpf);
         }
 

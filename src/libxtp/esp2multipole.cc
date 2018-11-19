@@ -141,11 +141,11 @@ namespace votca {
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.Evaluate(orbitals, basis, _state);
+                mulliken.CalcChargeperAtom(orbitals, basis, _state);
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.Evaluate(orbitals, basis, _state);
+                lowdin.CalcChargeperAtom(orbitals, basis, _state);
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){

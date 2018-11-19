@@ -60,8 +60,6 @@ namespace votca {
                 return _epsilon_i;
             }
 
-            void prepare_threecenters(const TCMatrix_gwbse& Mmn_full);
-
             void calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
 
             void FreeMatrices() {

@@ -401,8 +401,7 @@ template <typename T>
       
       double hrt2ev = tools::conv::hrt2ev;
       XTP_LOG(logINFO, *_log) << "  ====== singlet energies (eV) ====== "<< flush;
-      int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
-      for (int i = 0; i < maxoutput; ++i) {     
+      for (int i = 0; i < _bse_nmax; ++i) {
         const Eigen::Vector3d& trdip = transition_dipoles[i];
         double osc = oscs[i];
         if (tools::globals::verbose) {
@@ -452,8 +451,7 @@ template <typename T>
         _orbitals.setFragmentChargesGS(pop.popGs);
       }
       XTP_LOG(logINFO, *_log) << "  ====== triplet energies (eV) ====== " << flush;
-      int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
-      for (int i = 0; i < maxoutput; ++i) {    
+      for (int i = 0; i < _bse_nmax; ++i) {
         if (tools::globals::verbose) {
           XTP_LOG(logINFO, *_log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))

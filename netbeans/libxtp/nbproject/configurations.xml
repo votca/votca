@@ -2276,6 +2276,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmfragment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qminterface.h"
             ex="false"
             tool="3"
@@ -3251,6 +3256,11 @@
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmfragment.h"
             ex="false"
             tool="3"
             flavor2="0">

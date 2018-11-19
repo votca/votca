@@ -44,7 +44,6 @@ namespace votca {
 
             Orbitals();
             
-             // functions for analyzing fragment charges via Mulliken populations
             static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& densitymatrix, const Eigen::MatrixXd& overlapmatrix, int frag);
 
             bool hasBasisSetSize() const{
@@ -264,7 +263,6 @@ namespace votca {
             const std::string& getAuxbasis() const {
                 return _auxbasis;
             }
-
 
             // access to list of indices used in GWA
 
@@ -571,15 +569,11 @@ namespace votca {
             const std::vector< Eigen::VectorXd >& getFragment_H_localisation_triplet()const{
                 return _popH_t;
             }
+            void OrderMOsbyEnergy();
 
             void PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB);
             
             Eigen::VectorXd FragmentNuclearCharges(int frag)const;
-
-            // returns indeces of a re-sorted vector of energies from lowest to highest
-            std::vector<int> SortEnergies();
-            
-            void OrderMOsbyEnergy();
 
             void WriteToCpt (const std::string& filename)const;
             
@@ -587,8 +581,11 @@ namespace votca {
             
         private:
 
+            // returns indeces of a re-sorted vector of energies from lowest to highest
+            std::vector<int> SortEnergies();
 
-            void copy(const Orbitals& orbital);
+            
+
 
             struct Index2MO{
                 std::vector<int> I2v;

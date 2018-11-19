@@ -22,7 +22,7 @@
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aomatrix.h>
-
+#include <votca/xtp/qmfragment.h>
 
 
 /**
@@ -37,40 +37,66 @@ namespace votca { namespace xtp {
 
 template <bool T>
 class Populationanalysis{
-public:   
-  
-    void Evaluate(Orbitals& orbitals,const AOBasis &basis,const QMState& state){
-        AOOverlap overlap;
-            // Fill overlap
-        overlap.Fill(basis);
-        Eigen::MatrixXd prodmat;
-        if(T){
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(overlap.Matrix());
-            Eigen::MatrixXd Smsqrt=es.operatorSqrt();
-            prodmat=Smsqrt*orbitals.DensityMatrixFull(state)*Smsqrt;
-        }else{
-            prodmat = orbitals.DensityMatrixFull(state)* overlap.Matrix();
+public:
+    
+    void CalcChargeperAtom(Orbitals& orbitals,const AOBasis &basis,const QMState& state)const{
+        Eigen::MatrixXd dmat=orbitals.DensityMatrixFull(state);
+        Eigen::VectorXd charges=CalcElecChargeperAtom(dmat,basis);
+        if(!state.isTransition()){
+            charges+=CalcNucChargeperAtom(orbitals.QMAtoms());
         }
-        int id =0;
+
         PolarSegment seg=PolarSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
-        for (const QMAtom& atom:orbitals.QMAtoms()){
-            double charge=0.0;
-             // get element type and determine its nuclear charge
-             if (!state.isTransition()){
-                charge=atom.getNuccharge();
-             }
-
-             int nooffunc=basis.getFuncOfAtom(atom.getAtomID());
-
-             for ( int i = id ; i < id+nooffunc; i++){
-                    charge -= prodmat(i,i);
-            }
-             seg.push_back(PolarSite(atom,charge));
-             id+=nooffunc;
+        for (int i=0;i<orbitals.QMAtoms().size();++i){
+             seg.push_back(PolarSite(orbitals.QMAtoms()[i],charges(i)));
         }
         orbitals.Multipoles()=seg;
         return;
     }
+    template< typename S >
+    Eigen::VectorXd CalcChargeperFragment(const std::vector<QMFragment<S> >& frags, const Eigen::VectorXd& atomcharges){
+        Eigen::VectorXd result=Eigen::VectorXd::Zero(frags.size());
+
+        return result;
+    }
+
+
+    private:
+
+        Eigen::VectorXd CalcNucChargeperAtom(const QMMolecule& mol)const{
+            Eigen::VectorXd result=Eigen::VectorXd::Zero(mol.size());
+            for( int i=0;i<mol.size();i++){
+                result(i)=mol[i].getNuccharge();
+            }
+            return result;
+        }
+
+        Eigen::VectorXd CalcElecChargeperAtom(const Eigen::MatrixXd& dmat,const AOBasis &basis)const{
+            AOOverlap overlap;
+            // Fill overlap
+            overlap.Fill(basis);
+            Eigen::MatrixXd prodmat;
+            if(T){
+                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(overlap.Matrix());
+                Eigen::MatrixXd Smsqrt=es.operatorSqrt();
+                prodmat=Smsqrt*dmat*Smsqrt;
+            }else{
+                prodmat =dmat* overlap.Matrix();
+            }
+            int noofatoms=basis.getFuncPerAtom().size();
+            Eigen::VectorXd charges=Eigen::VectorXd::Zero(noofatoms);
+            int start=0;
+            for(int i=0;i<charges.size();++i){
+                int nofunc=basis.getFuncPerAtom()[i];
+                charges(i)=prodmat.diagonal().segment(start,nofunc).sum();
+                start+=nofunc;
+            }
+            return charges;
+        }
+        
+
+        
+        
 
     
 };
