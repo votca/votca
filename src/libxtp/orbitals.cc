@@ -415,12 +415,12 @@ namespace votca {
                 }
             }
 
-            // hole part as matrix products
-            Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
-            dmatAR[0] = occlevels * Bvv * occlevels.transpose();
             // electron part as matrix products
+            Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
+            dmatAR[1] = occlevels * Bvv * occlevels.transpose();
+            // hole part as matrix products
             Eigen::MatrixXd virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
-            dmatAR[1] = virtlevels * Bcc * virtlevels.transpose();
+            dmatAR[0] = virtlevels * Bcc * virtlevels.transpose();
             return dmatAR;
         }
 
