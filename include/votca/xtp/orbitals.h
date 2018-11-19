@@ -622,6 +622,9 @@ namespace votca {
             Eigen::MatrixXd TransitionDensityMatrix(const QMState& state)const;
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const QMState& state)const;
             std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const QMState& state)const;
+            Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const;
+            Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd& coeffs)const;
+
 
             int _basis_set_size;
             int _occupied_levels;
