@@ -72,6 +72,32 @@ BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   
 }
 
+BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
+    
+  CubicSpline cspline;   
+  cspline.setBCInt(0);
+  cspline.GenerateGrid(0.4,0.6,0.1);
+  Eigen::MatrixXd A=Eigen::VectorXd::Zero(1,6);
+  Eigen::MatrixXd Aref=Eigen::VectorXd::Zero(1,6);
+  
+  Aref(0,0)=-4.5;
+  Aref(0,1)=5.5;
+  Aref(0,2)=0.0;
+  Aref(0,3)=0.0058333333333;
+  Aref(0,4)=-0.010833333333;
+  Aref(0,5)=0.0;
+  
+  cspline.AddToFitMatrix(A,0.5,0,0,1.0,1.0);
+  
+  bool equalMatrix=Aref.isApprox(A,1e-5);
+  if(!equalMatrix){
+    std::cout<<"result A"<<std::endl;  
+    std::cout<<A<<std::endl;
+    std::cout<<"ref A"<<std::endl;
+    std::cout<<Aref<<std::endl;
+  }
+  BOOST_CHECK_EQUAL(equalMatrix, true);  
+}
 
 
 BOOST_AUTO_TEST_SUITE_END()
