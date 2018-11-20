@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
   
 }
 
-BOOST_AUTO_TEST_CASE(cubicspline_fit_test) {
+BOOST_AUTO_TEST_CASE(cubicspline_matrix_test) {
     
   CubicSpline cspline;   
   cspline.setBCInt(0);

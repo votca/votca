@@ -101,11 +101,11 @@ public:
 
     /**
      * \brief Add a point (one entry) to fitting matrix
-     * \param pointer to matrix
-     * \param value x
-     * \param offsets relative to getInterval(x)
-     * \param scale1 parameters for terms "A,B,C,D"
-     * \param scale2 parameters for terms "AA,BB,CC,DD"
+     * \param pointer to matrix [in] [out]
+     * \param value x [in]
+     * \param offsets relative to getInterval(x) [in]
+     * \param scale1 parameters for terms "A,B,C,D" [in]
+     * \param scale2 parameters for terms "AA,BB,CC,DD" [in]
      * When creating a matrix to fit data with a spline, this function creates
      * one entry in that fitting matrix.
     */
