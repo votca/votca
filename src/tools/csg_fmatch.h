@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _CSG_FMATCH_H
-#define	_CSG_FMATCH_H
+#ifndef _VOTCA_CSG_FMATCH_H
+#define	_VOTCA_CSG_FMATCH_H
 
 #include <votca/tools/property.h>
 #include <votca/tools/cubicspline.h>
@@ -189,5 +189,5 @@ protected:
   TrajectoryReader *_trjreader_force;
 };
 
-#endif	/* _CSG_FMATCH_H */
+#endif	/* _VOTCA_CSG_FMATCH_H */
 

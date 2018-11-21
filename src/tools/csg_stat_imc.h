@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _IMC_H
-#define	_IMC_H
+#ifndef _VOTCA_CSG_IMC_H
+#define	_VOTCA_CSG_IMC_H
 
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/property.h>
@@ -168,5 +168,5 @@ public:
 
 }}
 
-#endif	/* _IMC_H */
+#endif	/* _VOTCA_CSG_IMC_H */
 
