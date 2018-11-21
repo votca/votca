@@ -31,7 +31,7 @@ using namespace votca::tools;
  
  */
 
-class BeadTriple   
+class BeadTriple
     : public std::tuple<Bead *, Bead *, Bead *>
 {
 public:
