@@ -141,11 +141,6 @@ protected:
 
         vector<HistogramNew> _current_hists;
         vector<HistogramNew> _current_hists_force;
-        /*vector<HistogramNew> _current_hists_force_perp;
-        vector<HistogramNew> _current_hists_force_perp_dot;        
-        vector<HistogramNew> _current_hists_force_perp_x;
-        vector<HistogramNew> _current_hists_force_perp_y;
-        vector<HistogramNew> _current_hists_force_perp_z;*/
         Imc *_imc;
         double _cur_vol;
 

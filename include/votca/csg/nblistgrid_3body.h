@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef NBLISTGRID_3BODY_H
-#define	NBLISTGRID_3BODY_H
+#ifndef _VOTCA_CSG_NBLISTGRID_3BODY_H
+#define	_VOTCA_CSG_NBLISTGRID_3BODY_H
 
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
@@ -64,5 +64,5 @@ inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const int &a, const i
 
 }}
 
-#endif	/* NBLISTGRID_3BODY_H */
+#endif	/* _VOTCA_CSG_NBLISTGRID_3BODY_H */
 

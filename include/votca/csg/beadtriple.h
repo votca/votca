@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef BEADTRIPLE_H
-#define	BEADTRIPLE_H
+#ifndef _VOTCA_CSG_BEADTRIPLE_H
+#define	_VOTCA_CSG_BEADTRIPLE_H
 
 #include <tuple>
 
@@ -66,5 +66,5 @@ protected:
 
 }}
 
-#endif	/* BEADTRIPLE_H */
+#endif	/* _VOTCA_CSG_BEADTRIPLE_H */
 

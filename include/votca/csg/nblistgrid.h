@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _NBLISTGRID_H
-#define	_NBLISTGRID_H
+#ifndef _VOTCA_CSG_NBLISTGRID_H
+#define	_VOTCA_CSG_NBLISTGRID_H
 
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
@@ -62,5 +62,5 @@ inline NBListGrid::cell_t &NBListGrid::getCell(const int &a, const int &b, const
 
 }}
 
-#endif	/* _NBLISTGRID_H */
+#endif	/* _VOTCA_CSG_NBLISTGRID_H */
 

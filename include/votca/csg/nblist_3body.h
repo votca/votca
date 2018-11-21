@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _NBLIST_3BODY_H
-#define	_NBLIST_3BODY_H
+#ifndef _VOTCA_CSG_NBLIST_3BODY_H
+#define	_VOTCA_CSG_NBLIST_3BODY_H
 
 #include "beadlist.h"
 #include "beadtriple.h"
@@ -171,5 +171,5 @@ inline void NBList_3Body::SetMatchFunction(bool (*fkt)(Bead *, Bead *, Bead *, c
 
 }}
 
-#endif	/* _NBLIST_3BODY_H */
+#endif	/* _VOTCA_CSG_NBLIST_3BODY_H */
 

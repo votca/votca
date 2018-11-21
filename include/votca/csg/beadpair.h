@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _BEADPAIR_H
-#define	_BEADPAIR_H
+#ifndef _VOTCA_CSG_BEADPAIR_H
+#define	_VOTCA_CSG_BEADPAIR_H
 
 namespace votca { namespace csg {
 using namespace votca::tools;
@@ -51,5 +51,5 @@ protected:
 
 }}
 
-#endif	/* _PAIR_H */
+#endif	/* _VOTCA_CSG_BEADPAIR_H */
 

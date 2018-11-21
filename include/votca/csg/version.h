@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,8 +48,8 @@
  */
 
 
-#ifndef _csg_version_H
-#define	_csg_version_H
+#ifndef _VOTCA_CSG_VERSION_H
+#define	_VOTCA_CSG_VERSION_H
 
 #include <string>
 
@@ -58,5 +58,5 @@ namespace votca { namespace csg {
     void HelpTextHeader(const std::string &tool_name);
 }}
 
-#endif	/* _tools_version_H */
+#endif	/* _VOTCA_CSG_VERSION_H */
 

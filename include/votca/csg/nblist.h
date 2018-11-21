@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _NBLIST_H
-#define	_NBLIST_H
+#ifndef _VOTCA_CSG_NBLIST_H
+#define	_VOTCA_CSG_NBLIST_H
 
 #include "beadlist.h"
 #include "beadpair.h"
@@ -164,5 +164,5 @@ inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &, co
 
 }}
 
-#endif	/* _NBLIST_H */
+#endif	/* _VOTCA_CSG_NBLIST_H */
 

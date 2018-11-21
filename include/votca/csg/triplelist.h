@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _TRIPLELIST_H
-#define	_TRIPLELIST_H
+#ifndef _VOTCA_CSG_TRIPLELIST_H
+#define	_VOTCA_CSG_TRIPLELIST_H
 
 #include <vector>
 #include <map>
@@ -61,16 +61,6 @@ inline void TripleList<element_type, triple_type>::AddTriple(triple_type *t)
 {
     //experimental: be careful, if same triple object is used, some values might change (e.g. sign of distance vectors)
     //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
-    //there are 6 possible permutations of e1,e2,e3 -> still the same triple of elements
-    /*_triple_map[ (*t)[0] ][ (*t)[1] ][ (*t)[2] ] = t;
-    _triple_map[ (*t)[0] ][ (*t)[2] ][ (*t)[1] ] = t;
-    _triple_map[ (*t)[1] ][ (*t)[0] ][ (*t)[2] ] = t;
-    _triple_map[ (*t)[1] ][ (*t)[2] ][ (*t)[0] ] = t;
-    _triple_map[ (*t)[2] ][ (*t)[0] ][ (*t)[1] ] = t;
-    _triple_map[ (*t)[2] ][ (*t)[1] ][ (*t)[0] ] = t;*/
-    
-    //experimental: be careful, if same triple object is used, some values might change (e.g. sign of distance vectors)
-    //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
     //only consider the permutations of elements (1,2) of the tuple object -> 
     //tuple objects of the form (*,1,2) and (*,2,1) are considered to be the same    
     _triple_map[ std::get<0>(*t) ][ std::get<1>(*t) ][ std::get<2>(*t) ] = t;
@@ -109,5 +99,5 @@ inline triple_type *TripleList<element_type, triple_type>::FindTriple(element_ty
 
 }}
 
-#endif	/* _TRIPLELIST_H */
+#endif	/* _VOTCA_CSG_TRIPLELIST_H */
 
