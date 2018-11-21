@@ -150,11 +150,19 @@ elif [[ $ENV -eq 18 ]]; then
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
   [[ $CC = clang ]] && export SKIP=yes # no new info when using clang
 elif [[ $ENV -eq 19 ]]; then
-  # for future use
-  export SKIP=yes
+  export DISTRO=fedora_gmx2019
+  add_to_docker_opts TESTING=ON
+  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
+  add_to_docker_opts CMAKE_BUILD_TYPE=Release
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 elif [[ $ENV -eq 20 ]]; then
-  # for future use
-  export SKIP=yes
+  export DISTRO=fedora_gmx2019_d
+  add_to_docker_opts TESTING=ON
+  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E \(_imc\|spce_cma_simple\)"
+  [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
+  add_to_docker_opts CMAKE_BUILD_TYPE=Release
+  [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
 else
   die "Unknown environment"
 fi
