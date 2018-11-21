@@ -1,6 +1,7 @@
 find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
 foreach(PROG
   test_bead
+  test_beadtriple
   test_basebead
   test_beadstructure
   test_interaction

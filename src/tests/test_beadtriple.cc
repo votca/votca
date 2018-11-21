@@ -74,36 +74,13 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
     double d13ref=0.5385165;
     double d23ref=0.2236068;
     
-    d12 = testtriple.dist12();
-    d13 = testtriple.dist12();
-    d23 = testtriple.dist12();    
+    double d12 = testtriple.dist12();
+    double d13 = testtriple.dist13();
+    double d23 = testtriple.dist23();    
 
-    bool equald12=d12ref.isApprox(d12,1e-5);
-    if(!equald12){
-        std::cout<<"result d12"<<std::endl;  
-        std::cout<<d12<<std::endl;
-        std::cout<<"ref d12"<<std::endl;
-        std::cout<<d12ref<<std::endl;
-    }
-    BOOST_CHECK_EQUAL(equald12, true);
-
-    bool equald13=d12ref.isApprox(d13,1e-5);
-    if(!equald13){
-        std::cout<<"result d13"<<std::endl;
-        std::cout<<d13<<std::endl;
-        std::cout<<"ref d13"<<std::endl;
-        std::cout<<d13ref<<std::endl;
-    }
-    BOOST_CHECK_EQUAL(equald13, true);
-
-    bool equald23=d23ref.isApprox(d23,1e-5);
-    if(!equald23){
-        std::cout<<"result d23"<<std::endl;
-        std::cout<<d23<<std::endl;
-        std::cout<<"ref d23"<<std::endl;
-        std::cout<<d23ref<<std::endl;
-    }
-    BOOST_CHECK_EQUAL(equald23, true);
+    BOOST_CHECK_CLOSE(d12,d12ref,1e-4);
+    BOOST_CHECK_CLOSE(d13,d13ref,1e-4);
+    BOOST_CHECK_CLOSE(d23,d23ref,1e-4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
