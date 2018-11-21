@@ -80,12 +80,12 @@ BOOST_AUTO_TEST_CASE(cubicspline_matrix_test) {
   Eigen::MatrixXd A=Eigen::MatrixXd::Zero(1,6);
   Eigen::MatrixXd Aref=Eigen::MatrixXd::Zero(1,6);
   
-  Aref(0,0)=-4.5;
-  Aref(0,1)=5.5;
-  Aref(0,2)=0.0;
-  Aref(0,3)=0.0058333333333;
-  Aref(0,4)=-0.010833333333;
-  Aref(0,5)=0.0;
+  Aref(0,0)=0.0;
+  Aref(0,1)=-9.0;
+  Aref(0,2)=10.0;
+  Aref(0,3)=0.0;
+  Aref(0,4)=-0.03333333;
+  Aref(0,5)=-0.01666667;
   
   cspline.AddToFitMatrix(A,0.5,0,0,1.0,1.0);
   
