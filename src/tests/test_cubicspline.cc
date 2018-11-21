@@ -77,8 +77,8 @@ BOOST_AUTO_TEST_CASE(cubicspline_matrix_test) {
   CubicSpline cspline;   
   cspline.setBCInt(0);
   cspline.GenerateGrid(0.4,0.6,0.1);
-  Eigen::MatrixXd A=Eigen::VectorXd::Zero(1,6);
-  Eigen::MatrixXd Aref=Eigen::VectorXd::Zero(1,6);
+  Eigen::MatrixXd A=Eigen::MatrixXd::Zero(1,6);
+  Eigen::MatrixXd Aref=Eigen::MatrixXd::Zero(1,6);
   
   Aref(0,0)=-4.5;
   Aref(0,1)=5.5;
