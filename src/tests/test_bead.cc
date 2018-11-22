@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
 
 	Bead * b = top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
 
-	BOOST_CHECK_EQUAL(round_(b->getM(),3),round_(mass,3));
+	BOOST_CHECK_EQUAL(round_(b->getMass(),3),round_(mass,3));
 	BOOST_CHECK_EQUAL(round_(b->getQ(),3),round_(charge,3));
 	BOOST_CHECK_EQUAL(b->getId(),0);
 	BOOST_CHECK_EQUAL(b->getName(),name);
@@ -112,7 +112,7 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 
 	b->setMolecule(mol);
 	
-	BOOST_CHECK_EQUAL(round_(b->getM(),3),round_(newMass,3));
+	BOOST_CHECK_EQUAL(round_(b->getMass(),3),round_(newMass,3));
 	BOOST_CHECK_EQUAL(round_(b->getQ(),3),round_(newCharge,3));
 
 	auto new_xyz = b->getPos();

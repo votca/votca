@@ -35,7 +35,6 @@ shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead *basebead) {
   unordered_map<string, string> attributes2;
 
   attributes1["Mass"] = basebead->getMass();
-  attributes1["Charge"] = basebead->getQ();
   attributes2["Name"] = basebead->getName();
 
   /// Add graphnodes

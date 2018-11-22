@@ -368,7 +368,8 @@ namespace votca {
 
 
                 } else {
-                    master->Run();
+                    master->Start();
+                    master->WaitDone();
                     delete master;
                 }
 

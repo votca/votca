@@ -122,13 +122,13 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       } else {
 
 	_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1;
-	_fl << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
+	_fl << setprecision(6) << setw(12) << bead->getMass() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
 
       }
 
       // alternative with atom NAME & fixed floating point format (in case the need arises)
       //_fl << setw(8) << left << bead->getName() << right << setw(10) << i+1;
-      //_fl << fixed << setprecision(6) << setw(12) << bead->getM() << setw(12) << bead->getQ() << "   0.0" << endl;
+      //_fl << fixed << setprecision(6) << setw(12) << bead->getMass() << setw(12) << bead->getQ() << "   0.0" << endl;
 
       //nm -> Angs
       _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20) << bead->getPos().getX()*scale;
