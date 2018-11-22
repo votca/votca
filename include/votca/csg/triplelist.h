@@ -48,7 +48,7 @@ public:
     typedef element_type element_t;
     typedef triple_type triple_t;
 
-protected:
+private:
     vector<triple_type *> _triples;
       
     map< element_type , map<element_type, map<element_type, triple_type *> > > _triple_map;
