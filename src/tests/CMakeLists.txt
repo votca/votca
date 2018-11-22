@@ -7,6 +7,7 @@ foreach(PROG
   test_interaction
   test_lammpsdatareader 
   test_lammpsdumpreaderwriter
+  test_nblist_3body
   test_pdbreader
   test_triplelist )
 

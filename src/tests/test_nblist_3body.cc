@@ -35,7 +35,7 @@ using namespace votca::csg;
 BOOST_AUTO_TEST_SUITE(nblist_3body_test)
 
 BOOST_AUTO_TEST_CASE(test_nblist_3body_constructor) {
-    NBList_3Body 3bodylist;
+    NBList_3Body nb;
 }
 
 BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
@@ -81,17 +81,18 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     
     top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
     
-    Bead *b = top.getBead(0);
+    Bead *b;
+    b  = top.getBead(0);
     b->Pos().x() = 0.0;
     b->Pos().y() = 0.0;
     b->Pos().z() = 0.0;
     
-    Bead *b = top.getBead(1);
+    b = top.getBead(1);
     b->Pos().x() = 1.0;
     b->Pos().y() = 0.0;
     b->Pos().z() = 0.0;
 
-    Bead *b = top.getBead(2);
+    b = top.getBead(2);
     b->Pos().x() = 1.0;
     b->Pos().y() = 1.0;
     b->Pos().z() = 0.0;
@@ -110,10 +111,25 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     BOOST_CHECK_EQUAL((*triple_iter)->bead3()->getId(), 2);
     BOOST_CHECK_CLOSE((*triple_iter)->dist12(), 1.0, 1e-4);
     BOOST_CHECK_CLOSE((*triple_iter)->dist13(), 1.414214, 1e-4);
-    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.0, 1e-4);    
+    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.0, 1e-4); 
     
     ++triple_iter;
-    
+ 
+    BOOST_CHECK_EQUAL((*triple_iter)->bead1()->getId(), 1);
+    BOOST_CHECK_EQUAL((*triple_iter)->bead2()->getId(), 0);
+    BOOST_CHECK_EQUAL((*triple_iter)->bead3()->getId(), 2);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist12(), 1.0, 1e-4);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist13(), 1.0, 1e-4);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.414214, 1e-4);
+
+    ++triple_iter;
+
+    BOOST_CHECK_EQUAL((*triple_iter)->bead1()->getId(), 2);
+    BOOST_CHECK_EQUAL((*triple_iter)->bead2()->getId(), 0);
+    BOOST_CHECK_EQUAL((*triple_iter)->bead3()->getId(), 1);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist12(), 1.414214, 1e-4);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist13(), 1.0, 1e-4);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.0, 1e-4);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
