@@ -371,18 +371,10 @@ void Imc::Worker::DoNonbonded(Topology *top)
             if((*iter)->get("type1").value() == (*iter)->get("type2").value())
                 nb->Generate(beads1);
             else
-                nb->Generate(beads1, beads2);                      
-                                     
-            
-            // process all pairs
-            /*NBList::iterator pair_iter;
-            for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
-                    _current_hists[i._index].Process((*pair_iter)->dist());
-            }*/
-            
+                nb->Generate(beads1, beads2);
+
             delete nb;
 
-            //preliminary! 
             //if one wants to calculate the mean force
             if (i._force){
                 if(gridsearch)
@@ -398,7 +390,7 @@ void Imc::Worker::DoNonbonded(Topology *top)
                 else
                     nb->Generate(beads1, beads2);            
 
-                //preliminary: process all pairs to calculate the projection of the 
+                //process all pairs to calculate the projection of the 
                 //mean force on bead 1 on the pair distance: F1 * r12
                 NBList::iterator pair_iter;
                 for(pair_iter = nb->begin(); pair_iter!=nb->end();++pair_iter) {
@@ -530,9 +522,8 @@ void Imc::WriteDist(const string &suffix)
         Table &t = iter->second->_average.data();            
         Table dist(t);
         
-        //preliminary, if no average force calculation, dummy table
+        //if no average force calculation, dummy table
         Table force;
-        //Table force_perp,force_perp_dot,force_perp_x,force_perp_y,force_perp_z;        
         //if average force calculation, table force contains force data
         if (iter->second->_force){
             Table &f = iter->second->_average_force.data();
@@ -540,7 +531,7 @@ void Imc::WriteDist(const string &suffix)
         }    
         
         if(!iter->second->_is_bonded) {
-            //Preleminary: Quickest way to incorporate 3 body correlations
+            //Quickest way to incorporate 3 body correlations
             if (iter->second->_threebody){
 	        // \TODO normalize bond and angle differently....
                 double norm=dist.y().cwiseAbs().sum();
@@ -552,7 +543,7 @@ void Imc::WriteDist(const string &suffix)
             
             //2body
             if (!iter->second->_threebody){
-                //preliminary: force normalization
+                //force normalization
                 //normalize by number of pairs found at a specific distance
                 for(unsigned int i=0; i<force.y().size(); ++i) {
                     //check if any number of pairs has been found at this distance, then normalize
