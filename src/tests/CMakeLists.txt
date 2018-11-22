@@ -7,7 +7,8 @@ foreach(PROG
   test_interaction
   test_lammpsdatareader 
   test_lammpsdumpreaderwriter
-  test_pdbreader )
+  test_pdbreader
+  test_triplelist )
 
   file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})

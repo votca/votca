@@ -34,11 +34,11 @@ using namespace votca::csg;
 BOOST_AUTO_TEST_SUITE(triplelist_test)
 
 BOOST_AUTO_TEST_CASE(triplelist_constructor) {
-    TripleList triplelist;
+    TripleList<Bead*, BeadTriple> triplelist;
 }
 
 BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
-    TripleList triplelist;
+    TripleList<Bead*, BeadTriple> triplelist;
     
     Topology top;
 
@@ -73,20 +73,30 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
     vec dist13(0.2,0.4,0.3);
     vec dist23(0.1,0.2,0.0);
 
-    BeadTriple *testtriple(top.getBead(0),top.getBead(1),top.getBead(2),dist12,dist13,dist23);
+    BeadTriple *testtriple = new BeadTriple(top.getBead(0),top.getBead(1),top.getBead(2),dist12,dist13,dist23);
     
+
     triplelist.AddTriple(testtriple);
     
-    BeadTriple *triplefront, tripleback;
+    BeadTriple *triplefront, *tripleback;
     
-    *triplefront = triplelist.front();
-    BOOST_CHECK(triplefront->bead1->mass,1.0);
-    BOOST_CHECK(triplefront->bead2->mass,2.0);
-    BOOST_CHECK(triplefront->bead3->mass,3.0);
-    BOOST_CHECK(triplefront->bead1->name,"dummy1");
-    BOOST_CHECK(triplefront->bead2->name,"dummy2");
-    BOOST_CHECK(triplefront->bead3->name,"dummy3");
-    
+    triplefront = triplelist.front();
+    BOOST_CHECK_EQUAL(triplefront->bead1()->getMass(),1.0);
+    BOOST_CHECK_EQUAL(triplefront->bead2()->getMass(),2.0);
+    BOOST_CHECK_EQUAL(triplefront->bead3()->getMass(),3.0);
+    BOOST_CHECK_EQUAL(triplefront->bead1()->getResnr(),0);
+    BOOST_CHECK_EQUAL(triplefront->bead2()->getResnr(),0);
+    BOOST_CHECK_EQUAL(triplefront->bead3()->getResnr(),0);
+    BOOST_CHECK_EQUAL(triplelist.size(),1);
+   
+    tripleback = triplelist.back();
+    BOOST_CHECK_EQUAL(tripleback->bead1()->getMass(),1.0);
+    BOOST_CHECK_EQUAL(tripleback->bead2()->getMass(),2.0);
+    BOOST_CHECK_EQUAL(tripleback->bead3()->getMass(),3.0);
+    BOOST_CHECK_EQUAL(tripleback->bead1()->getResnr(),0);
+    BOOST_CHECK_EQUAL(tripleback->bead2()->getResnr(),0);
+    BOOST_CHECK_EQUAL(tripleback->bead3()->getResnr(),0);
+ 
 }
 
 BOOST_AUTO_TEST_SUITE_END()
