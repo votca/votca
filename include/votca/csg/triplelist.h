@@ -22,7 +22,6 @@
 #include <map>
 
 namespace votca { namespace csg {
-using namespace std;
 
 template<typename element_type, typename triple_type>
 class TripleList {

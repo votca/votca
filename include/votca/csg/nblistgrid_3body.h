@@ -24,7 +24,6 @@
 #include <vector>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
 class NBListGrid_3Body
     : public NBList_3Body

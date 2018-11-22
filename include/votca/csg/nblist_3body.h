@@ -24,7 +24,6 @@
 #include "exclusionlist.h"
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
 /**
  * \brief Neighbour list class for 3 body interactions

@@ -21,7 +21,6 @@
 #include <tuple>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
 /**
    \brief A particle pair
