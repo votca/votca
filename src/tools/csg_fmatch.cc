@@ -646,7 +646,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
     // generate the neighbour list    
     NBList_3Body *nb; 
     
-    bool gridsearch=false;    
+    bool gridsearch=false;
     
     if(_options.exists("cg.nbsearch")) {
     if(_options.get("cg.nbsearch").as<string>() == "grid")
@@ -659,7 +659,6 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         nb = new NBListGrid_3Body();
     else
         nb = new NBList_3Body();
-    //nb = new NBList_3Body();    
     
     nb->setCutoff(sinfo->a); // implement different cutoffs for different interactions!
     //Here, a is the distance between two beads of a triple, where the 3-body interaction is zero

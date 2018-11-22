@@ -17,27 +17,44 @@
 
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE beadtriple_test
+#define BOOST_TEST_MODULE nblist_3body_test
 #include <boost/test/unit_test.hpp>
 
-#include <tuple>
 #include <string>
+#include <vector>
 #include <votca/csg/bead.h>
 #include <votca/csg/beadtype.h>
-#include <votca/csg/beadtriple.h>
+#include <votca/csg/beadlist.h>
+#include <votca/csg/nblist_3body.h>
 #include <votca/csg/topology.h>
 #include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
 
-BOOST_AUTO_TEST_SUITE(beadtriple_test)
+BOOST_AUTO_TEST_SUITE(nblist_3body_test)
 
-BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
+BOOST_AUTO_TEST_CASE(test_nblist_3body_constructor) {
+    NBList_3Body 3bodylist;
+}
 
+BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
+    NBList_3Body *nb;
+    nb = new NBList_3Body();
+    
+    nb->setCutoff(2.0);    
+    
     Topology top;
+    
+    matrix m;
+    m.ZeroMatrix();
+    m[0][0] = 5.0;
+    m[1][1] = 5.0;
+    m[2][2] = 5.0;    
 
-    string bead_type_name = "C1";
+    top.setBox(m);    
+
+    string bead_type_name = "CG";
     BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
 
     int symmetry = 1;
@@ -51,36 +68,52 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
     symmetry = 1;
     name = "dummy2";
     resnr = 0;
-    mass = 1.0;
-    charge = -1.0;
+    mass = 2.0;
+    charge = -2.0;
     
     top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
 
     symmetry = 1;
     name = "dummy3";
     resnr = 0;
-    mass = 1.0;
-    charge = -1.0;
+    mass = 3.0;
+    charge = -3.0;
     
     top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
-
-    vec dist12(0.1,0.2,0.3);
-    vec dist13(0.2,0.4,0.3);
-    vec dist23(0.1,0.2,0.0);
-
-    BeadTriple testtriple(top.getBead(0),top.getBead(1),top.getBead(2),dist12,dist13,dist23);
-
-    double d12ref=0.3741657;
-    double d13ref=0.5385165;
-    double d23ref=0.2236068;
     
-    double d12 = testtriple.dist12();
-    double d13 = testtriple.dist13();
-    double d23 = testtriple.dist23();    
+    Bead *b = top.getBead(0);
+    b->Pos().x() = 0.0;
+    b->Pos().y() = 0.0;
+    b->Pos().z() = 0.0;
+    
+    Bead *b = top.getBead(1);
+    b->Pos().x() = 1.0;
+    b->Pos().y() = 0.0;
+    b->Pos().z() = 0.0;
 
-    BOOST_CHECK_CLOSE(d12,d12ref,1e-4);
-    BOOST_CHECK_CLOSE(d13,d13ref,1e-4);
-    BOOST_CHECK_CLOSE(d23,d23ref,1e-4);
+    Bead *b = top.getBead(2);
+    b->Pos().x() = 1.0;
+    b->Pos().y() = 1.0;
+    b->Pos().z() = 0.0;
+    
+    BeadList beads;
+    beads.Generate(top, "CG");
+    
+    nb->Generate(beads, true);
+    
+    BOOST_CHECK_EQUAL(nb->size(), 3);
+    
+    NBList_3Body::iterator triple_iter;
+    triple_iter = nb->begin();    
+    BOOST_CHECK_EQUAL((*triple_iter)->bead1()->getId(), 0);
+    BOOST_CHECK_EQUAL((*triple_iter)->bead2()->getId(), 1);
+    BOOST_CHECK_EQUAL((*triple_iter)->bead3()->getId(), 2);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist12(), 1.0, 1e-4);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist13(), 1.414214, 1e-4);
+    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.0, 1e-4);    
+    
+    ++triple_iter;
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()
