@@ -79,6 +79,18 @@ public:
   }
 
   /**
+   * get the charge of the bead
+   * \return - base bead charge
+   */
+  virtual const double &getQ() const { return _q; }
+
+  /**
+   * set the charge of the base bead
+   * \param[in] - base bead position
+   */
+  virtual void setQ(const double &q) { _q = q; }
+
+  /**
    * \brief get the symmetry of the bead
    *
    * Returns the number of unique axis of the bead, it can be
@@ -314,6 +326,7 @@ protected:
   Property *_options;
 
   byte_t _symmetry;
+  double _q;
 
   int _resnr;
 
@@ -328,13 +341,12 @@ protected:
   /// constructur
   Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name,
        int resnr, double m, double q)
-      : _symmetry(symmetry), _resnr(resnr) {
+      : _symmetry(symmetry), _q(q), _resnr(resnr) {
     _parent = owner;
     setId(id);
     setType(type);
     setName(name);
     setMass(m);
-    setQ(q);
     _bPos = false;
     _bVel = false;
     _bU = false;

@@ -62,10 +62,8 @@ class Topology
 {
 public:
     /// constructor
-    Topology() {
+    Topology() : _time(0.0), _has_vel(false), _has_force(false) {
         _bc = new OpenBox();
-        _has_vel=false;
-        _has_force=false;
     }
     virtual ~Topology();
     

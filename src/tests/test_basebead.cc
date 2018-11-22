@@ -52,7 +52,6 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
 
   TestBead basebead;
   BOOST_CHECK_EQUAL(round_(basebead.getMass(), 3), round_(0.0, 3));
-  BOOST_CHECK_EQUAL(round_(basebead.getQ(), 3), round_(0.0, 3));
   BOOST_CHECK(!basebead.HasPos());
 
   basebead.setId(0);
@@ -64,9 +63,6 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
 
   basebead.setMass(1.0);
   BOOST_CHECK_EQUAL(round_(basebead.getMass(), 3), round_(1.0, 3));
-
-  basebead.setQ(2.0);
-  BOOST_CHECK_EQUAL(round_(basebead.getQ(), 3), round_(2.0, 3));
 
   vec xyz(-1.3, 2.9, 9.2);
   basebead.setPos(xyz);
