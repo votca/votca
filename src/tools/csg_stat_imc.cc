@@ -163,23 +163,16 @@ Imc::interaction_t *Imc::AddInteraction(Property *p)
     i->_max = p->get("max").as<double>();
     i->_norm = 1.0;
     i->_p=p;
-    i->_threebody=0;
-    i->_force=0;    
-    //check if option threebody exists
-    if (p->exists("threebody")) {
-        i->_threebody = p->get("threebody").as<bool>();            
-    }
-    //check if option force exists
-    if (p->exists("force")) {
-        i->_force = p->get("force").as<bool>();            
-    }    
-    //preliminary. should be changed
-    i->_cut = 0.37; //(0.37 nm)
-    //check if option threebody exists
-    if (p->exists("cut")) {
-        i->_cut = p->get("cut").as<double>();            
-    }    
-    
+
+    //if option threebody does not exist, replace it by default of 0    
+    i->_threebody = p->ifExistsReturnElseReturnDefault<bool>("threebody",0); 	
+	
+    //if option force does not exist, replace it by default of 0	    
+    i->_force = p->ifExistsReturnElseReturnDefault<bool>("force",0);            
+
+    //if option cut does not exist, replace it by default of 0.37 nm
+    i->_cut = p->ifExistsReturnElseReturnDefault<double>("cut",0.37);
+
     // initialize the current and average histogram
     int n = static_cast<int>((i->_max - i->_min) / i->_step + 1.000000001);
 
