@@ -716,8 +716,6 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         double expij = exp(gamma_sigma/denomij);
         double expik = exp(gamma_sigma/denomik);
         
-        //std::cout << "iatom: " << iatom << " , jatom: " << jatom << " , katom: " << katom << std::endl;
-        
         vec gradient1,gradient2;
         
         CubicSpline &SP = sinfo->Spline;
@@ -728,8 +726,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         
         double acos_prime = 1.0 / (sqrt(1 - (rij*rik) * (rij*rik)/( distij * distik * distij * distik ) ));
         
-        //evaluate gradient1 and gradient2 for iatom:        
-        //gradient1 = (-grad_i theta) * exp()*exp()
+        //evaluate gradient1 and gradient2 for iatom:
         gradient1 = acos_prime * ( (rij+rik)/(distij * distik) - (rij * rik) * ((rik*rik) * rij + (rij*rij) * rik ) / ( distij*distij*distij*distik*distik*distik ) ) * expij*expik;
         //gradient2
         gradient2 = ( (rij/distij)*( gamma_sigma/(denomij*denomij) )+ (rik/distik)*( gamma_sigma/(denomik*denomik) ) )*expij*expik;   
@@ -742,8 +739,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         SP.AddToFitMatrix(_A, var,
                 _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom, mpos, -gradient1.z(), -gradient2.z());
         
-        //evaluate gradient1 and gradient2 for jatom:        
-        //gradient1 = (-grad_j theta) * exp()*exp()
+        //evaluate gradient1 and gradient2 for jatom:
         gradient1 = acos_prime * (-rik / ( distij*distik ) +  (rij*rik) * rij / ( distik*distij*distij*distij ) ) * expij*expik;
         //gradient2
         gradient2 = ( (rij/distij)*( -1.0*gamma_sigma/(denomij*denomij) ) )*expij*expik;
@@ -756,8 +752,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo)
         SP.AddToFitMatrix(_A, var,
                 _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom, mpos, -gradient1.z(), -gradient2.z());
         
-        //evaluate gradient1 and gradient2 for katom:        
-        //gradient1 = (-grad_k theta) * exp()*exp()
+        //evaluate gradient1 and gradient2 for katom:
         gradient1 = acos_prime * (-rij / ( distij*distik ) +  (rij*rik) * rik / ( distij*distik*distik*distik ) ) * expij*expik;
         //gradient2
         gradient2 = ( (rik/distik)*( -1.0*gamma_sigma/(denomik*denomik) ) )*expij*expik;    
