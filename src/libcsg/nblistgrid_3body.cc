@@ -243,9 +243,9 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead)
                         if( (_top->getExclusions().IsExcluded(bead, *iter2)) || (_top->getExclusions().IsExcluded(bead, *iter3)) || (_top->getExclusions().IsExcluded(*iter2, *iter3)) ) {
                             continue;
                         }
-                        if((*_match_function)(bead, *iter2, *iter3, r12, r13, r23, d12, d13, d23))
-                            if(!FindTriple(bead, *iter2, *iter3))
-                                AddTriple( _triple_creator(bead, *iter2, *iter3, r12, r13, r23));
+                    if((*_match_function)(bead, *iter2, *iter3, r12, r13, r23, d12, d13, d23))
+                        if(!FindTriple(bead, *iter2, *iter3))
+                            AddTriple( _triple_creator(bead, *iter2, *iter3, r12, r13, r23));
                     }                      
                     
                     
