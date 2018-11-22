@@ -56,16 +56,16 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
     symmetry = 1;
     name = "dummy2";
     resnr = 0;
-    mass = 1.0;
-    charge = -1.0;
+    mass = 2.0;
+    charge = -2.0;
     
     top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
 
     symmetry = 1;
     name = "dummy3";
     resnr = 0;
-    mass = 1.0;
-    charge = -1.0;
+    mass = 3.0;
+    charge = -3.0;
     
     top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
 
@@ -77,7 +77,15 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
     
     triplelist.AddTriple(testtriple);
     
-    triplelist
+    BeadTriple *triplefront, tripleback;
+    
+    *triplefront = triplelist.front();
+    BOOST_CHECK(triplefront->bead1->mass,1.0);
+    BOOST_CHECK(triplefront->bead2->mass,2.0);
+    BOOST_CHECK(triplefront->bead3->mass,3.0);
+    BOOST_CHECK(triplefront->bead1->name,"dummy1");
+    BOOST_CHECK(triplefront->bead2->name,"dummy2");
+    BOOST_CHECK(triplefront->bead3->name,"dummy3");
     
 }
 
