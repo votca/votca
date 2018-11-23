@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   }
 BOOST_CHECK_EQUAL(check_dmat_gs, 1);
 orb.setTDAApprox(false);
-orb.BSESingletCoefficients()=Eigen::MatrixXd::Zero(25,2);
+orb.BSESingletCoefficients()=MatrixXfd::Zero(25,2);
 
 orb.BSESingletCoefficients()<<-9.172325499316926E-6,6.465589452839982E-6,
 3.7017109343430703E-4,-9.603903429750687E-5,
@@ -158,7 +158,7 @@ orb.BSESingletCoefficients()<<-9.172325499316926E-6,6.465589452839982E-6,
 0.016907164519736315,-8.594057567669325E-4,
 -0.01566776126491342,-0.0036991931035359783;
 
-orb.BSESingletCoefficientsAR()=Eigen::MatrixXd::Zero(25,2);
+orb.BSESingletCoefficientsAR()=MatrixXfd::Zero(25,2);
 orb.BSESingletCoefficientsAR()<<8.507035131871254E-6,-7.771078153320694E-6,
 -6.592414632166431E-4,1.8308223920734227E-4,
 1.9536776547437147E-4,6.525900973931339E-4,

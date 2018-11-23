@@ -44,10 +44,10 @@ public:
 
 private:
 
-int _ctotal;
+
 int _vmin;
 int _cmin;
-
+int _ctotal;
     
 };
 }

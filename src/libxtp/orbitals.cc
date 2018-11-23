@@ -258,7 +258,7 @@ namespace votca {
             Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
             
             for (int i = 0; i < _bse_size; i++) {
-                dmatTS.noalias()+= coeffs(i) * _mo_coefficients.col(index.v(i)) * _mo_coefficients.row(index.c(i));
+                dmatTS.noalias()+= coeffs(i) * _mo_coefficients.col(index.v(i)) * _mo_coefficients.col(index.c(i)).transpose();
             }
 
             return dmatTS;
@@ -335,7 +335,7 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_vv(const Eigen::VectorXd& coeffs)const{
         int c = index.c(idx1) - _bse_cmin;
 #pragma omp parallel for
         for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-            int idx2 = index.I(c, v2);
+            int idx2 = index.I(v2+_bse_vmin, c+_bse_cmin);
             Mvv(v, v2) += coeffs(idx1) * coeffs(idx2);
         }
     }
@@ -350,7 +350,7 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
         int c = index.c(idx1) - _bse_cmin;
 #pragma omp parallel for
         for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-            int idx2 = index.I(v, c2);
+            int idx2 = index.I(v+_bse_vmin, c2+_bse_cmin);
             Mcc(c, c2) += coeffs(idx1) * coeffs(idx2);
         }
 
@@ -397,7 +397,6 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
 #endif
 
             std::vector<Eigen::MatrixXd > dmatAR(2);
-            // hole part as matrix products
             Eigen::MatrixXd virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
             dmatAR[0] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
             // electron part as matrix products
