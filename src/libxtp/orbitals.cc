@@ -177,17 +177,6 @@ namespace votca {
             Eigen::MatrixXd dmatQP = lambda.col(state.Index()-_qpmin) * lambda.col(state.Index()-_qpmin).transpose();
             return dmatQP;
         }
-
-        Orbitals::Index2MO Orbitals::BSEIndex2MOIndex()const{
-          Index2MO result;
-          for (int v = 0; v < _bse_vtotal; v++) {
-            for (int c = 0; c < _bse_ctotal; c++) {
-              result.I2v.push_back(_bse_vmin + v);
-              result.I2c.push_back(_bse_cmin + c);
-            }
-          }
-          return result;
-        }
         
         Eigen::Vector3d Orbitals::CalcCoM()const{
           tools::Elements elements;

@@ -603,15 +603,6 @@ namespace votca {
             
         private:
 
-            struct Index2MO{
-                std::vector<int> I2v;
-                std::vector<int> I2c;
-            };
-            
-            
-            Index2MO BSEIndex2MOIndex()const;
-
-
             void WriteToCpt(CheckpointFile f)const;
             void WriteToCpt(CheckpointWriter w)const;
 
