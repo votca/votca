@@ -37,8 +37,8 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
    #update ihnc
    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
    kBT="$(csg_get_property cg.inverse.kBT)"
-   density="$(csg_get_property cg.inverse.density)"
-   cut_off="$(csg_get_property cg.inverse.cut_off)"
+   density="$(csg_get_property cg.inverse.ihnc.density)"
+   cut_off="$(csg_get_property cg.inverse.ihnc.cut_off)"
    is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
    do_external update ihnc_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ihnc "${kBT}" "${density}" "${cut_off}"
    do_external potential shift --type "${bondtype}" ${name}.dpot.pure_ihnc ${name}.dpot.new
