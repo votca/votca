@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -282,6 +282,7 @@
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
       <itemPath>../../src/tests/test_trustregion.cc</itemPath>
+      <itemPath>../../src/tests/test_vc2index.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles" displayName="XMLfiles" projectFiles="true">
       <logicalFolder name="f1" displayName="packages" projectFiles="true">
@@ -2172,6 +2173,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_vc2index.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
@@ -3141,6 +3144,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vc2index.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
