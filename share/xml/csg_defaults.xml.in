@@ -387,12 +387,6 @@
     <kBT>
       <DESC> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</DESC>
     </kBT>
-    <density>
-      <DESC> IHNC only. Number density</DESC>
-    </density>
-    <cut_off>
-      <DESC> IHNC only. Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
-    </cut_off>
     <log_file>inverse.log
       <DESC>name of the log file</DESC>
     </log_file>
@@ -402,6 +396,15 @@
     <method>
       <DESC>method to be performed: ibi/imc/ft/optimizer</DESC>
     </method>
+    <ihnc>
+      <DESC>general options for the ihnc scheme</DESC>
+      <density>
+        <DESC>Number density</DESC>
+      </density>
+      <cut_off>
+        <DESC>Cut-off used in MD. Potential will be set to zero beyond this point.</DESC>
+      </cut_off>
+    </ihnc>
     <optimizer>
       <cma>
         <DESC>general options for the cma optimizer</DESC>
