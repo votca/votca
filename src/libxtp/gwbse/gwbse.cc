@@ -25,7 +25,6 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/sigma.h>
 #include <votca/xtp/bse.h>
