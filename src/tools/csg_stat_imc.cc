@@ -226,11 +226,12 @@ void Imc::ClearAverages()
     map<string, group_t *>::iterator group_iter;
     
     _nframes = 0;
-    for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter)
+    for (ic_iter = _interactions.begin(); ic_iter != _interactions.end(); ++ic_iter){
         ic_iter->second->_average.Clear();
         if (ic_iter->second->_force){
             ic_iter->second->_average_force.Clear();
         }
+    }
     
     for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter){
         group_iter->second->_corr.setZero(); 
@@ -392,7 +393,7 @@ void Imc::Worker::DoNonbonded(Topology *top)
                     vec r12 = (*pair_iter)->r();
                     r12.normalize();
                     double var = (*pair_iter)->dist();
-                    double scale = F2*r12;
+                    double scale = 0.5*(F2-F1)*r12;
                     _current_hists_force[i._index].Process(var,scale);
                 }
                 delete nb;                 
