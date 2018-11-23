@@ -398,6 +398,9 @@
     </method>
     <ihnc>
       <DESC>general options for the ihnc scheme</DESC>
+      <initial_guess>hnc
+        <DESC>Method for the initial potential guess</DESC>
+      </initial_guess>
       <density>
         <DESC>Number density</DESC>
       </density>

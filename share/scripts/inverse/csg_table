@@ -25,13 +25,13 @@ csg master inverse.sh
 # BEGIN: these scripts have to be defined for each method
 # method initialization
 prepare ibi prepare_generic.sh
-prepare ihnc prepare_generic.sh
+prepare ihnc prepare_ihnc.sh
 prepare imc prepare_imc.sh
 prepare generic prepare_generic.sh
 prepare optimizer prepare_optimizer.sh
 prepare re prepare_re.sh
 prepare_single ibi prepare_generic_single.sh
-prepare_single ihnc prepare_generic_single.sh
+prepare_single ihnc prepare_ihnc_single.sh
 prepare_single imc prepare_generic_single.sh
 prepare_single optimizer prepare_optimizer_single.sh
 initstep ibi initialize_step_generic.sh
@@ -119,6 +119,7 @@ update ibi_pot update_ibi_pot.pl
 update ihnc update_ihnc.sh
 update ihnc_single update_ihnc_single.sh
 update ihnc_pot update_ihnc_pot.py
+dist invert_hnc prepare_hnc_single.py
 
 # imc specific stuff
 update imc update_imc.sh
