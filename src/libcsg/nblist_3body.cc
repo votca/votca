@@ -29,7 +29,7 @@ NBList_3Body::NBList_3Body()
 
 NBList_3Body::~NBList_3Body()
 {
-  // TODO: NBList_3Body destructor
+  
 }
 
 void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3, bool do_exclusions)

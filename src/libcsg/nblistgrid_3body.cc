@@ -169,7 +169,6 @@ void NBListGrid_3Body::InitializeGrid(const matrix &box)
                         for(int cc=c+c1; cc<=c+c2; ++cc) {
                             cell_t *c = &getCell(aa%_box_Na, bb%_box_Nb, cc%_box_Nc);
                             //test: for 3body algorithm: each cell is a neighbor of its own !!!
-                            //if(c == &cell) continue; // ignore self
                             cell._neighbours.push_back(
                                 &getCell(aa%_box_Na, bb%_box_Nb, cc%_box_Nc)
                             );

@@ -57,8 +57,7 @@ private:
 
 template<typename element_type, typename triple_type>
 inline void TripleList<element_type, triple_type>::AddTriple(triple_type *t)
-{
-    //experimental: be careful, if same triple object is used, some values might change (e.g. sign of distance vectors)
+{    
     //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
     //only consider the permutations of elements (1,2) of the tuple object -> 
     //tuple objects of the form (*,1,2) and (*,2,1) are considered to be the same    

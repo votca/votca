@@ -41,9 +41,9 @@ public:
     virtual ~BeadTriple() {}
 
     /// \brief return the beads
-    Bead * bead1() { return std::get<0>(*this); }
-    Bead * bead2() { return std::get<1>(*this); }
-    Bead * bead3() { return std::get<2>(*this); }
+    const Bead * bead1() { return std::get<0>(*this); }
+    const Bead * bead2() { return std::get<1>(*this); }
+    const Bead * bead3() { return std::get<2>(*this); }
     
     /// \brief the vector connecting two beads
     vec &r12() { return _r12; }
