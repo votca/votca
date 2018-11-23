@@ -776,7 +776,7 @@ bool GWBSE::Evaluate() {
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
   sigma.setDFTdata(_orbitals.getScaHFX(),&vxc,&_orbitals.MOEnergies());
  
-  // initialize _qp_energies;
+  // initialize _gwa_energies;
   // shift unoccupied levels by the shift
   Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals.getNumberOfLevels());
   for (int i = 0; i < gwa_energies.size(); ++i) {
