@@ -29,24 +29,10 @@ namespace votca {
 namespace xtp {
 
 class BSE {
- private:
-     
-struct Interaction {
-    Eigen::VectorXd exchange_contrib;
-    Eigen::VectorXd direct_contrib;
-    Eigen::VectorXd qp_contrib;
-};
 
-struct Population {
-    std::vector<Eigen::VectorXd> popH;
-    std::vector<Eigen::VectorXd> popE;
-    std::vector<Eigen::VectorXd> Crgs;
-    Eigen::VectorXd popGs;
-};   
-    
  public:
  
-  BSE(Orbitals& orbitals,ctp::Logger *log,double min_print_weight):
+  BSE(Orbitals& orbitals,ctp::Logger &log,double min_print_weight):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -110,9 +96,22 @@ struct Population {
   }
  
  private:
+
+     struct Interaction {
+    Eigen::VectorXd exchange_contrib;
+    Eigen::VectorXd direct_contrib;
+    Eigen::VectorXd qp_contrib;
+};
+
+struct Population {
+    std::vector<Eigen::VectorXd> popH;
+    std::vector<Eigen::VectorXd> popE;
+    std::vector<Eigen::VectorXd> Crgs;
+    Eigen::VectorXd popGs;
+};   
  
       
-ctp::Logger *_log;
+ctp::Logger &_log;
   int  _homo;
   int  _bse_vmin;
   int  _bse_vmax;

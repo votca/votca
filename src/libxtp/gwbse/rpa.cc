@@ -29,7 +29,7 @@ namespace votca {
   namespace xtp {
 
  void RPA::calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full) {
-const int size = Mmn_full.getAuxDimension(); // size of gwbasis
+const int size = Mmn_full.auxsize(); // size of gwbasis
             for (auto& matrix : _epsilon_r) {
                 matrix = Eigen::MatrixXd::Identity(size,size);
             }

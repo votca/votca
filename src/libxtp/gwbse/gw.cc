@@ -19,16 +19,96 @@
 
 
 
-#include <votca/xtp/sigma.h>
-#include <cmath>
-#include <boost/math/constants/constants.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/ppm.h>
-#include <votca/xtp/threecenter.h>
+#include <votca/xtp/gw.h>
+
 
 
 namespace votca {
   namespace xtp {
+
+
+  
+
+  void GWBSE::PrintGWA_Energies(const Eigen::MatrixXd& vxc, const Sigma& sigma,const Eigen::VectorXd& dft_energies){
+  const Eigen::VectorXd& gwa_energies=sigma.getGWAEnergies();
+
+  CTP_LOG(ctp::logINFO, *_pLog)
+          << (format(
+          "  ====== Perturbative quasiparticle energies (Hartree) ====== "))
+          .str()
+          << flush;
+  CTP_LOG(ctp::logINFO, *_pLog)
+          << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
+
+  for (int i = 0; i < _qptotal; i++) {
+    if ((i + _qpmin) == _homo) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
+              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
+              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
+              .str()
+              << flush;
+    } else if ((i + _qpmin) == _homo + 1) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
+              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
+              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
+              .str()
+              << flush;
+
+    } else {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
+              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
+              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
+              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
+              .str()
+              << flush;
+    }
+  }
+  return;
+}
+
+
+  void GWBSE::PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies){
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+          << ctp::TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
+  CTP_LOG(ctp::logINFO, *_pLog)
+          << (format("  ====== Diagonalized quasiparticle energies (Hartree) "
+          "====== "))
+          .str()
+          << flush;
+  for (int _i = 0; _i < _qptotal; _i++) {
+    if ((_i + _qpmin) == _homo) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
+              qp_diag_energies(_i))
+              .str()
+              << flush;
+    } else if ((_i + _qpmin) == _homo + 1) {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
+              qp_diag_energies(_i))
+              .str()
+              << flush;
+
+    } else {
+      CTP_LOG(ctp::logINFO, *_pLog)
+              << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
+              qp_diag_energies(_i))
+              .str()
+              << flush;
+    }
+  }
+  return;
+}
+
+
 
     Eigen::MatrixXd Sigma::SetupFullQPHamiltonian() {
 

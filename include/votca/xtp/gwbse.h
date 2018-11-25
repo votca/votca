@@ -57,13 +57,14 @@ class GWBSE {
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
+  void Rebuild_TCIntegrals(const AOBasis& dftbasis,const AOBasis& auxbasis,const Eigen::MatrixXd& Coulomb_sqrtInv, TCMatrix_gwbse& Mmn);
+
     
   void addoutput(tools::Property& summary);
 
  private:
      
- void PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies);
- void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& dft_energies);    
+ 
  
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
  ctp::Logger* _pLog;

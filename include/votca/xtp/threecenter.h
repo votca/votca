@@ -83,20 +83,18 @@ namespace votca {
         class TCMatrix_gwbse : public TCMatrix {
         public:
 
-            /// returns one level as a constant reference
-
+            // returns one level as a constant reference
             const MatrixXfd& operator[](int i) const {
                 return _matrix[i];
             }
 
-            /// returns one level as a reference
-
+            // returns one level as a reference
             MatrixXfd& operator[](int i) {
                 return _matrix[i];
             }
-
-            int getAuxDimension()const {
-                return basissize;
+            //returns auxbasissize
+            int auxsize()const {
+                return _basissize;
             }
 
             int get_mmin() const {
@@ -115,19 +113,19 @@ namespace votca {
                 return _nmax;
             }
 
-            int get_mtot() const {
+            int msize() const {
                 return _mtotal;
             }
 
-            int get_ntot() const {
+            int nsize() const {
                 return _ntotal;
             }
 
 
-            void Initialize(int _basissize, int mmin, int mmax, int nmin, int nmax);
+            void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
 
             void Prune(int min, int max);
-            void Print(std::string ident);
+            void Print();
             void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
             void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
@@ -146,7 +144,7 @@ namespace votca {
             int _nmax;
             int _ntotal;
             int _mtotal;
-            int basissize;
+            int _basissize;
 
             void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 

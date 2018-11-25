@@ -526,82 +526,14 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
   return vxc;
 }
 
-void GWBSE::PrintGWA_Energies(const Eigen::MatrixXd& vxc, const Sigma& sigma,const Eigen::VectorXd& _dft_energies){
-  const Eigen::VectorXd& gwa_energies=sigma.getGWAEnergies();
 
-  CTP_LOG(ctp::logINFO, *_pLog)
-          << (format(
-          "  ====== Perturbative quasiparticle energies (Hartree) ====== "))
-          .str()
-          << flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-          << (format("   DeltaHLGap = %1$+1.6f Hartree") % _shift).str() << flush;
-  
-  for (int i = 0; i < _qptotal; i++) {
-    if ((i + _qpmin) == _homo) {
-      CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  HOMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
-              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
-              .str()
-              << flush;
-    } else if ((i + _qpmin) == _homo + 1) {
-      CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  LUMO  = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
-              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
-              .str()
-              << flush;
-      
-    } else {
-      CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  Level = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
-              "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-              (i + _qpmin + 1) % _dft_energies(i + _qpmin) % vxc(i, i) %
-              sigma.x(i) % sigma.c(i) % gwa_energies(i + _qpmin))
-              .str()
-              << flush;
-    }
-  }
-  return;
-}
 
-void GWBSE::PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies){
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " Full quasiparticle Hamiltonian  " << flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-          << (format("  ====== Diagonalized quasiparticle energies (Hartree) "
-          "====== "))
-          .str()
-          << flush;
-  for (int _i = 0; _i < _qptotal; _i++) {
-    if ((_i + _qpmin) == _homo) {
-      CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
-              qp_diag_energies(_i))
-              .str()
-              << flush;
-    } else if ((_i + _qpmin) == _homo + 1) {
-      CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
-              qp_diag_energies(_i))
-              .str()
-              << flush;
-      
-    } else {
-      CTP_LOG(ctp::logINFO, *_pLog)
-              << (format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (_i + _qpmin + 1) % gwa_energies(_i + _qpmin) %
-              qp_diag_energies(_i))
-              .str()
-              << flush;
-    }
-  }
-  return;
+
+
+void GWBSE::Rebuild_TCIntegrals(AOBasis& dftbasis, AOBasis& auxbasis, Eigen::MatrixXd& Coulomb_sqrtInv, TCMatrix_gwbse& Mmn){
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
+    Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
+    Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
 }
 
 bool GWBSE::Evaluate() {
@@ -656,9 +588,7 @@ bool GWBSE::Evaluate() {
     _orbitals.setTDAApprox(true);
   }
 
-
-            
-  // load DFT basis set (element-wise information) from xml file
+         
   BasisSet dftbs;
 
   if (_dftbasis_name != _orbitals.getDFTbasis()) {
@@ -781,7 +711,7 @@ bool GWBSE::Evaluate() {
   Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals.getNumberOfLevels());
   for (int i = 0; i < gwa_energies.size(); ++i) {
     gwa_energies(i) = _orbitals.MOEnergies()(i);
-    if (i > int(_homo)) {
+    if (i > _homo) {
       gwa_energies(i) += _shift;
     }
   }
@@ -815,9 +745,7 @@ bool GWBSE::Evaluate() {
     
     
     if(gw_iteration%_reset_3c==0 && gw_iteration!=0){
-      CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
-       Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
-       Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
+      Rebuild_TCIntegrals(dftbasis, auxbasis, Coulomb_sqrtInv, Mmn);
     }
   
     rpa.calculate_epsilon(gwa_energies,Mmn);
@@ -836,9 +764,9 @@ bool GWBSE::Evaluate() {
         << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << flush;
     // iterative refinement of qp energies
     gwa_energies=sigma.getGWAEnergies();
-    double _DFTgap = dft_energies(_homo + 1) - dft_energies(_homo);
-    double _QPgap = gwa_energies(_homo + 1) - gwa_energies(_homo);
-    _shift = _QPgap - _DFTgap;
+    double DFTgap = dft_energies(_homo + 1) - dft_energies(_homo);
+    double QPgap = gwa_energies(_homo + 1) - gwa_energies(_homo);
+    _shift = QPgap - DFTgap;
     
     // qp energies outside the update range are simply shifted.
     for (int i = _qpmax + 1; i < dft_energies.size(); ++i) {
@@ -942,7 +870,7 @@ bool GWBSE::Evaluate() {
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
       
-      BSE bse=BSE(_orbitals,_pLog,_min_print_weight);
+      BSE bse=BSE(_orbitals,*_pLog,_min_print_weight);
       bse.setBSEindices(_homo,_bse_vmin,_bse_cmax,_bse_maxeigenvectors);
       bse.setGWData(&Mmn,&ppm,&Hqp);
        // calculate direct part of eh interaction, needed for singlets and triplets
