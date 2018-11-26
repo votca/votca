@@ -92,8 +92,8 @@ if(ENABLE_TESTING)
                      --options  ${REFPATH}/settings_angular.xml --cg ${REFPATH}/mapping.xml
     WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Run_csg_stat_angular PROPERTIES LABELS "csg;tools;votca")
-  add_test(NAME Compare_csg_stat_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG-CG.dist.new -f2 ${REFPATH}/CG-CG-CG.angular WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Compare_csg_stat_angular_output PROPERTIES DEPENDS Run_csg_stat)
+  add_test(NAME Compare_csg_stat_angular_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG-CG.dist.new -f2 ${REFPATH}/CG-CG-CG.angular WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_stat_angular_output PROPERTIES DEPENDS Run_csg_stat_angular)
   set_tests_properties(Compare_csg_stat_angular_output PROPERTIES LABELS "csg;tools;votca")
 
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat-imc)
