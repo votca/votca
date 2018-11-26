@@ -44,6 +44,23 @@ if(ENABLE_TESTING)
   set_tests_properties(Compare_csg_fmatch_output PROPERTIES DEPENDS Run_csg_fmatch)
   set_tests_properties(Compare_csg_fmatch_output PROPERTIES LABELS "csg;tools;votca")
 
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_fmatch_3body)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME Run_csg_fmatch_3body 
+    COMMAND csg_fmatch --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump --options ${REFPATH}/settings_fmatch_3body.xml
+                      --cg ${REFPATH}/mapping.xml 
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_fmatch_3body PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_fmatch_3body_output1 COMMAND ${VOTCA_COMPARE} -f1 CG-CG.force -f2 ${REFPATH}/CG-CG.force.fmatch_3body WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME Compare_csg_fmatch_3body_output2 COMMAND ${VOTCA_COMPARE} -f1 CG-CG-CG.force -f2 ${REFPATH}/CG-CG-CG.force.fmatch_3body WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME Compare_csg_fmatch_3body_output3 COMMAND ${VOTCA_COMPARE} -f1 CG-CG-CG.pot -f2 ${REFPATH}/CG-CG-CG.pot.fmatch_3body WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_fmatch_3body_output1 PROPERTIES DEPENDS Run_csg_fmatch)
+  set_tests_properties(Compare_csg_fmatch_3body_output1 PROPERTIES LABELS "csg;tools;votca")
+  set_tests_properties(Compare_csg_fmatch_3body_output2 PROPERTIES DEPENDS Run_csg_fmatch)
+  set_tests_properties(Compare_csg_fmatch_3body_output2 PROPERTIES LABELS "csg;tools;votca")
+  set_tests_properties(Compare_csg_fmatch_3body_output3 PROPERTIES DEPENDS Run_csg_fmatch)
+  set_tests_properties(Compare_csg_fmatch_3body_output3 PROPERTIES LABELS "csg;tools;votca")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_map)
   file(MAKE_DIRECTORY ${RUNPATH})
   add_test(NAME Run_csg_map
@@ -61,10 +78,24 @@ if(ENABLE_TESTING)
                      --options  ${REFPATH}/settings_rdf.xml --cg ${REFPATH}/mapping.xml
     WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Run_csg_stat PROPERTIES LABELS "csg;tools;votca")
-  add_test(NAME Compare_csg_stat_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG.dist.new -f2 ${REFPATH}/CG-CG.rdf WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Compare_csg_stat_output PROPERTIES DEPENDS Run_csg_stat)
-  set_tests_properties(Compare_csg_stat_output PROPERTIES LABELS "csg;tools;votca")
-  
+  add_test(NAME Compare_csg_stat_output1 COMMAND ${VOTCA_COMPARE} -f1 CG-CG.dist.new -f2 ${REFPATH}/CG-CG.rdf WORKING_DIRECTORY ${RUNPATH})
+  add_test(NAME Compare_csg_stat_output2 COMMAND ${VOTCA_COMPARE} -f1 CG-CG.force.new -f2 ${REFPATH}/CG-CG.pmf WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_stat_output1 PROPERTIES DEPENDS Run_csg_stat)
+  set_tests_properties(Compare_csg_stat_output1 PROPERTIES LABELS "csg;tools;votca")
+  set_tests_properties(Compare_csg_stat_output2 PROPERTIES DEPENDS Run_csg_stat)
+  set_tests_properties(Compare_csg_stat_output2 PROPERTIES LABELS "csg;tools;votca") 
+
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat_angular)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME Run_csg_stat_angular
+    COMMAND csg_stat --top ${REFPATH}/topol.xml --trj ${REFPATH}/frame.dump
+                     --options  ${REFPATH}/settings_angular.xml --cg ${REFPATH}/mapping.xml
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Run_csg_stat_angular PROPERTIES LABELS "csg;tools;votca")
+  add_test(NAME Compare_csg_stat_output COMMAND ${VOTCA_COMPARE} -f1 CG-CG-CG.dist.new -f2 ${REFPATH}/CG-CG-CG.angular WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(Compare_csg_stat_angular_output PROPERTIES DEPENDS Run_csg_stat)
+  set_tests_properties(Compare_csg_stat_angular_output PROPERTIES LABELS "csg;tools;votca")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_stat-imc)
   file(MAKE_DIRECTORY ${RUNPATH})
   execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${REFPATH}/CG-CG.imc.tgt ${RUNPATH}/CG-CG.dist.tgt)
