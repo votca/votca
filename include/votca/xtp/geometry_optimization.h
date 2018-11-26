@@ -51,7 +51,7 @@ namespace votca {
 
         private:
 
-            static void Report(const BFGSTRM& bfgstrm, ctp::Logger* pLog);
+            static void Report(const BFGSTRM& bfgstrm,const Forces& forces, ctp::Logger* pLog);
             static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms,
                                         const BFGSTRM& bfgstrm);
 
