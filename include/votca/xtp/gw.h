@@ -30,6 +30,18 @@ namespace xtp {
 class GW {     
  public:
     GW(ctp::Logger &log, TCMatrix_gwbse& Mmn):_log(log),_Mmn(Mmn){};
+    
+    struct options{
+        int homo;
+        int qpmin;
+        int qpmax;
+        double g_sc_limit;
+        int g_sc_max_iterations;
+        double gw_sc_limit;
+        int gw_sc_max_iterations;
+        
+        
+    };
 
     void configure(int homo, int qpmin,int qpmax,int g_sc_max_iterations,
                 double g_sc_limit){

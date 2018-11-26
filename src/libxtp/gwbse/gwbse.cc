@@ -81,9 +81,8 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
   } else if (ranges == "full") {
     ranges = "full";
   } else {
-    std::cerr << "\nSpecified range option " << ranges << " invalid. ";
-    throw std::runtime_error(
-        "\nValid options are: default,factor,explicit,full");
+    throw std::runtime_error("\nSpecified range option "+ranges +" invalid."
+            "\nValid options are: default,factor,explicit,full");
   }
   
   
@@ -96,7 +95,7 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
    *  - number of excitations calculates in BSE
    */
 
-  _homo = _orbitals.getNumberOfElectrons() - 1;  // indexed from 0
+  _homo = _orbitals.getHomo();  // indexed from 0
 
  _reset_3c=options.ifExistsReturnElseReturnDefault<int>(
       key + ".rebuild_threecenter_freq", 5);
@@ -262,8 +261,7 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
 
   _shift = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
   _g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".g_sc_limit",
-      0.00001);  // convergence criteria for qp iteration [Hartree]]
+      key + ".g_sc_limit",1e-5);  // convergence criteria for qp iteration [Hartree]]
   _g_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
       key + ".g_sc_max_iterations",
       40);  // convergence criteria for qp iteration [Hartree]]
@@ -273,7 +271,7 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
       20);  // convergence criteria for qp iteration [Hartree]]
 
   _gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".gw_sc_limit", 0.00001);  // convergence criteria for shift it
+      key + ".gw_sc_limit", 1e-5);  // convergence criteria for shift it
   _iterate_gw = false;
   std::string _shift_type =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".shift_type");
@@ -516,10 +514,9 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
           << " Set hybrid exchange factor: " <<  _orbitals.getScaHFX()
           << flush;
   
-  // now get expectation values but only for those in _qpmin:_qpmax range
-  Eigen::MatrixXd _mos = _orbitals.MOCoefficients().block(0,_qpmin,_orbitals.MOCoefficients().rows(),_qptotal);
+  Eigen::MatrixXd mos = _orbitals.MOCoefficients();
   
-  Eigen::MatrixXd vxc =_mos.transpose()*vxc_ao*_mos;
+  Eigen::MatrixXd vxc =mos.transpose()*vxc_ao*mos;
   CTP_LOG(ctp::logDEBUG, *_pLog)
           << ctp::TimeStamp()
           << " Calculated exchange-correlation expectation values " << flush;
@@ -530,7 +527,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis){
 
 
 
-void GWBSE::Rebuild_TCIntegrals(AOBasis& dftbasis, AOBasis& auxbasis, Eigen::MatrixXd& Coulomb_sqrtInv, TCMatrix_gwbse& Mmn){
+void GWBSE::Rebuild_TCIntegrals(const AOBasis& dftbasis, const AOBasis& auxbasis,const Eigen::MatrixXd& Coulomb_sqrtInv, TCMatrix_gwbse& Mmn){
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Rebuilding Mmn_beta (3-center-repulsion x orbitals)" << flush;
     Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
     Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
@@ -578,7 +575,7 @@ bool GWBSE::Evaluate() {
   
    // store information in _orbitals for later use
   _orbitals.setRPAindices(_rpamin, _rpamax);
-  _orbitals.setGWAindices(_qpmin, _qpmax);
+  _orbitals.setGWindices(_qpmin, _qpmax);
   _orbitals.setBSEindices(_bse_vmin, _bse_cmax,
                            _bse_maxeigenvectors);
   

@@ -89,8 +89,8 @@ namespace votca {
 
 
       if (options.exists(key + ".convergence")) {
-        _conv_opt.Econverged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.energy", 1e-7);
-        _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.error", 1e-7);
+        _conv_opt.Econverged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.energy", _conv_opt.Econverged);
+        _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.error",  _conv_opt.error_converged);
         _max_iter = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.max_iterations", 100);
 
         if (options.exists(key + ".convergence.method")) {
@@ -108,13 +108,13 @@ namespace votca {
           _conv_opt.histlength = 1;
           _conv_opt.maxout = false;
         }
-        _conv_opt.mixingparameter = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", 0.7);
-        _conv_opt.levelshift = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
-        _conv_opt.levelshiftend = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
-        _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
-        _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.DIIS_length", 10);
-        _conv_opt.diis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.DIIS_start", 0.01);
-        _conv_opt.adiis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.ADIIS_start", 2);
+        _conv_opt.mixingparameter = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing",  _conv_opt.mixingparameter);
+        _conv_opt.levelshift = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", _conv_opt.levelshift);
+        _conv_opt.levelshiftend = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end",  _conv_opt.levelshiftend);
+        _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout",  _conv_opt.maxout);
+        _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.DIIS_length", _conv_opt.histlength);
+        _conv_opt.diis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.DIIS_start", _conv_opt.diis_start);
+        _conv_opt.adiis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.ADIIS_start", _conv_opt.adiis_start);
       } 
 
       return;

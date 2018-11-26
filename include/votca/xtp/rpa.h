@@ -36,62 +36,14 @@ namespace votca {
                 _rpamax = rpamax;
             }
             
-            void setScreening(Eigen::VectorXd& screen_freq_r,Eigen::VectorXd& screen_freq_i){
-                _screen_freq_r = screen_freq_r;
-                _screen_freq_i = screen_freq_i;
-                _epsilon_r.resize(_screen_freq_r.size());
-                _epsilon_i.resize(_screen_freq_i.size());
-                
-            }
-
-            const Eigen::VectorXd& GetScreening_freq_r() const {
-                return _screen_freq_r;
-            }
-            
-            const Eigen::VectorXd& GetScreening_freq_i() const {
-                return _screen_freq_i;
-            }
-
-            const std::vector<Eigen::MatrixXd>& GetEpsilon_r() const {
-                return _epsilon_r;
-            }
-            
-            const std::vector<Eigen::MatrixXd>& GetEpsilon_i() const {
-                return _epsilon_i;
-            }
-
-            void prepare_threecenters(const TCMatrix_gwbse& Mmn_full);
-
-            void calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
-
-            void FreeMatrices() {
-                for (Eigen::MatrixXd & matrix:_epsilon_r){
-                    matrix.resize(0,0);
-                }
-                for (Eigen::MatrixXd & matrix:_epsilon_i){
-                    matrix.resize(0,0);
-                }
-            
-            }
-
+ Eigen::MatrixXd calculate_epsilon_i(double frequency,const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
+ 
+Eigen::MatrixXd calculate_epsilon_r(double frequency,const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
         private:
 
             int _homo; // HOMO index
             int _rpamin;
             int _rpamax;
-
-            // container for the epsilon matrix
-            std::vector<Eigen::MatrixXd > _epsilon_r;
-            
-            std::vector<Eigen::MatrixXd > _epsilon_i;
-           
-            
-            // We cannot calculate screening at complex frequencies only at real or imaginary points
-            Eigen::VectorXd _screen_freq_r; //real screening frequencies
-            Eigen::VectorXd _screen_freq_i;//imaginary screening frequencies
-
-           
-
 
         };
     }

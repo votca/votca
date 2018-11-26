@@ -23,6 +23,7 @@
 #include <votca/tools/property.h>
 #include <fstream>
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/gw.h>
 
 
 namespace votca {
@@ -47,6 +48,12 @@ namespace xtp {
 
 class GWBSE {
  public:
+     
+     struct options{
+         
+         
+         
+     };
   GWBSE(Orbitals& orbitals)
       : _orbitals(orbitals){};
 
@@ -83,9 +90,6 @@ class GWBSE {
   bool _store_bse_triplets;
   bool _store_eh_interaction;
 
-  // iterate G and W and not only G
-  bool _iterate_gw;
-
   // options for own Vxc calculation
   bool _doVxc;
   std::string _functional;
@@ -98,11 +102,13 @@ class GWBSE {
 
   // BSE variant
   bool _do_full_BSE;
-
+  
+  GW::options _gwopt;
+  
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-  int _reset_3c; //how often the 3c integrals in iterate shoudl be rebuild
+  int _reset_3c; //how often the 3c integrals in iterate should be rebuild
   double _shift;  // pre-shift of DFT energies
   int _homo;   // HOMO index
   int _rpamin;

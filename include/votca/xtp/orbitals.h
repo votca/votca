@@ -271,7 +271,7 @@ namespace votca {
                 return ( _qpmax > 0) ? true : false;
             }
 
-            void setGWAindices(int qpmin, int qpmax) {
+            void setGWindices(int qpmin, int qpmax) {
                 _qpmin = qpmin;
                 _qpmax = qpmax;
                 _qptotal = _qpmax - _qpmin + 1;
