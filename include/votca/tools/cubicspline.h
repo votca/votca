@@ -100,6 +100,20 @@ public:
             int offset1, int offset2=0, double scale=1);
 
     /**
+     * \brief Add a point (one entry) to fitting matrix
+     * \param pointer to matrix [in] [out]
+     * \param value x [in]
+     * \param offsets relative to getInterval(x) [in]
+     * \param scale1 parameters for terms "A,B,C,D" [in]
+     * \param scale2 parameters for terms "AA,BB,CC,DD" [in]
+     * When creating a matrix to fit data with a spline, this function creates
+     * one entry in that fitting matrix.
+    */
+    template<typename matrix_type>
+    void AddToFitMatrix(matrix_type &A, double x,
+            int offset1, int offset2, double scale1, double scale2);    
+    
+    /**
      * \brief Add a vector of points to fitting matrix
      * \param pointer to matrix
      * \param vector of x values
@@ -118,7 +132,7 @@ public:
     template<typename matrix_type>
     void AddBCSumZeroToFitMatrix(matrix_type &A,
             int offset1, int offset2=0);
-
+    
     /**
      * \brief Add boundary conditions to fitting matrix
      * \param pointer to matrix
@@ -181,6 +195,23 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
     M(offset1, offset2 + spi+1) += B(x)*scale;
     M(offset1, offset2 + spi + _r.size()) += C(x)*scale;
     M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale;
+}
+
+//for adding f'(x)*scale1 + f(x)*scale2 as needed for threebody interactions
+template<typename matrix_type>
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, 
+            int offset1, int offset2, double scale1, double scale2)
+{
+    int spi = getInterval(x);
+    M(offset1, offset2 + spi) += Aprime(x)*scale1;
+    M(offset1, offset2 + spi+1) += Bprime(x)*scale1;
+    M(offset1, offset2 + spi + _r.size()) += Cprime(x)*scale1;
+    M(offset1, offset2 + spi + _r.size() + 1) += Dprime(x)*scale1;  
+    
+    M(offset1, offset2 + spi) += A(x)*scale2;
+    M(offset1, offset2 + spi+1) += B(x)*scale2;
+    M(offset1, offset2 + spi + _r.size()) += C(x)*scale2;
+    M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale2;
 }
 
 template<typename matrix_type, typename vector_type>
@@ -280,6 +311,7 @@ inline double CubicSpline::C(const double &r)
     
     return ( 0.5*xxi*xxi - (1.0/6.0)*xxi*xxi*xxi/h - (1.0/3.0)*xxi*h) ;
 }
+
 inline double CubicSpline::Cprime(const double &r)
 {
     double xxi, h;
@@ -288,6 +320,7 @@ inline double CubicSpline::Cprime(const double &r)
 
     return (xxi - 0.5*xxi*xxi/h - h/3);
 }
+
 inline double CubicSpline::D(const double &r)
 {
     double xxi, h;
@@ -296,6 +329,7 @@ inline double CubicSpline::D(const double &r)
     
     return ( (1.0/6.0)*xxi*xxi*xxi/h - (1.0/6.0)*xxi*h ) ;
 }
+
 inline double CubicSpline::Dprime(const double &r)
 {
     double xxi, h;
