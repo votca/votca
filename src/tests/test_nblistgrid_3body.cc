@@ -81,21 +81,26 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     
     top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
     
+    vec pos;
+
     Bead *b;
-    b  = top.getBead(0);
-    b->Pos().x() = 0.0;
-    b->Pos().y() = 0.0;
-    b->Pos().z() = 0.0;
+    b=top.getBead(0);
+    pos[0]=0.0;
+    pos[1]=0.0;
+    pos[2]=0.0;
+    b->setPos(pos);
     
-    b = top.getBead(1);
-    b->Pos().x() = 1.0;
-    b->Pos().y() = 0.0;
-    b->Pos().z() = 0.0;
+    b=top.getBead(1);
+    pos[0]=1.0;
+    pos[1]=0.0;
+    pos[2]=0.0;
+    b->setPos(pos);
 
     b = top.getBead(2);
-    b->Pos().x() = 1.0;
-    b->Pos().y() = 1.0;
-    b->Pos().z() = 0.0;
+    pos[0]=1.0;
+    pos[1]=1.0;
+    pos[2]=0.0;
+    b->setPos(pos);
     
     BeadList beads;
     beads.Generate(top, "CG");
