@@ -83,8 +83,7 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     
     vec pos;
 
-    Bead *b;
-    b=top.getBead(0);
+    Bead *b=top.getBead(0);
     pos[0]=0.0;
     pos[1]=0.0;
     pos[2]=0.0;
