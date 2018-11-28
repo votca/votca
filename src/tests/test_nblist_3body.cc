@@ -41,18 +41,18 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_constructor) {
 BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     NBList_3Body *nb;
     nb=new NBList_3Body();
-    
-    nb->setCutoff(2.0);    
-    
+
+    nb->setCutoff(2.0);
+
     Topology top;
-    
+
     matrix m;
     m.ZeroMatrix();
     m[0][0] = 5.0;
     m[1][1] = 5.0;
-    m[2][2] = 5.0;    
+    m[2][2] = 5.0;
 
-    top.setBox(m);    
+    top.setBox(m);
 
     vec pos;
 
@@ -101,25 +101,25 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     pos[1]=1.0;
     pos[2]=0.0;
     b->setPos(pos);
-  
+
     BeadList beads;
     beads.Generate(top, "CG");
-    
+
     nb->Generate(beads, true);
-    
+
     BOOST_CHECK_EQUAL(nb->size(), 3);
-    
+
     NBList_3Body::iterator triple_iter;
-    triple_iter = nb->begin();    
+    triple_iter = nb->begin();
     BOOST_CHECK_EQUAL((*triple_iter)->bead1()->getId(), 0);
     BOOST_CHECK_EQUAL((*triple_iter)->bead2()->getId(), 1);
     BOOST_CHECK_EQUAL((*triple_iter)->bead3()->getId(), 2);
     BOOST_CHECK_CLOSE((*triple_iter)->dist12(), 1.0, 1e-4);
     BOOST_CHECK_CLOSE((*triple_iter)->dist13(), 1.414214, 1e-4);
-    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.0, 1e-4); 
-    
+    BOOST_CHECK_CLOSE((*triple_iter)->dist23(), 1.0, 1e-4);
+
     ++triple_iter;
- 
+
     BOOST_CHECK_EQUAL((*triple_iter)->bead1()->getId(), 1);
     BOOST_CHECK_EQUAL((*triple_iter)->bead2()->getId(), 0);
     BOOST_CHECK_EQUAL((*triple_iter)->bead3()->getId(), 2);
