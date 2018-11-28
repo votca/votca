@@ -40,7 +40,7 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_constructor) {
 
 BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     NBList_3Body *nb;
-    nb = new NBList_3Body();
+    nb=new NBList_3Body();
     
     nb->setCutoff(2.0);    
     
@@ -54,53 +54,54 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
 
     top.setBox(m);    
 
+    vec pos;
+
+    Molecule *mol;
+    mol=top.CreateMolecule("UNKNOWN");
+
     string bead_type_name = "CG";
-    BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
+    BeadType *b_type=top.GetOrCreateBeadType(bead_type_name);
 
     int symmetry = 1;
     string name = "dummy1";
     int resnr = 0;
     double mass = 1.0;
     double charge = -1.0;
+    Bead *b;
+    b=top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    pos[0]=0.0;
+    pos[1]=0.0;
+    pos[2]=0.0;
+    b->setPos(pos);
+    mol->AddBead(b, bead_type_name);
+    b->setMolecule(mol);
 
-    top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
-    
     symmetry = 1;
     name = "dummy2";
     resnr = 0;
     mass = 2.0;
     charge = -2.0;
-    
-    top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    b=top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    mol->AddBead(b, bead_type_name);
+    b->setMolecule(mol);
+    pos[0]=1.0;
+    pos[1]=0.0;
+    pos[2]=0.0;
+    b->setPos(pos);
 
     symmetry = 1;
     name = "dummy3";
     resnr = 0;
     mass = 3.0;
     charge = -3.0;
-    
-    top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
-    
-    vec pos;
-
-    Bead *b=top.getBead(0);
-    pos[0]=0.0;
-    pos[1]=0.0;
-    pos[2]=0.0;
-    b->setPos(pos);
-    
-    b=top.getBead(1);
-    pos[0]=1.0;
-    pos[1]=0.0;
-    pos[2]=0.0;
-    b->setPos(pos);
-
-    b = top.getBead(2);
+    b=top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    mol->AddBead(b, bead_type_name);
+    b->setMolecule(mol);
     pos[0]=1.0;
     pos[1]=1.0;
     pos[2]=0.0;
     b->setPos(pos);
-
+  
     BeadList beads;
     beads.Generate(top, "CG");
     
