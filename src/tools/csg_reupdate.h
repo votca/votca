@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef CSG_REUPDATE_H
-#define	CSG_REUPDATE_H
+#ifndef _VOTCA_CSG_REUPDATE_H
+#define	_VOTCA_CSG_REUPDATE_H
 #include <boost/program_options.hpp>
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/table.h>
@@ -163,4 +163,4 @@ public:
   
 };
 
-#endif	/* CSG_REUPDATE_H */
+#endif	/* _VOTCA_CSG_REUPDATE_H */

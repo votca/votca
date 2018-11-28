@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _CSG_FMATCH_H
-#define	_CSG_FMATCH_H
+#ifndef _VOTCA_CSG_FMATCH_H
+#define	_VOTCA_CSG_FMATCH_H
 
 #include <votca/tools/property.h>
 #include <votca/tools/cubicspline.h>
@@ -79,6 +79,12 @@ protected:
         bool bonded;
         /// \brief true if tabulated forces are periodic (e.g. for dihedral interactions)
         bool periodic;
+        /// \brief true if non-bonded interaction is threebody interaction
+        bool threebody;
+        /// \brief additional variables for treating cutoff of 
+        double a;
+        double sigma;
+        double gamma;
         /// \brief CubicSpline object
         CubicSpline Spline;
         /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
@@ -101,10 +107,21 @@ protected:
         /// \brief sum of all squares of block_res (used to calculate error)
         Eigen::VectorXd resSum2;
 
+        //only needed for 3body nonbonded interactions as here force and potential are calculated simultaneously        
+        /// \brief Final result of derivatives: average over all blocks
+        Eigen::VectorXd resultDer;
+        /// \brief accuracy of the final result
+        Eigen::VectorXd errorDer;
+        /// \brief sum of all block_res
+        Eigen::VectorXd resSumDer;    
+        /// \brief sum of all squares of block_res (used to calculate error)
+        Eigen::VectorXd resSumDer2;  
+
+        
         /// \brief Spline Name
         string splineName;
-        /// \brief for non-bonded interactions: types of beads involved
-        string type1, type2; // 
+        /// \brief for non-bonded interactions: types of beads involved (type3 only used if threebody interaction)
+        string type1, type2, type3; // 
 
         /// \brief pointer to Property object to hande input options
         Property *_options;
@@ -161,6 +178,8 @@ protected:
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   /// \brief For each trajectory frame writes equations for non-bonded interactions to matrix _A
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
+  /// \brief For each trajectory frame writes equations for non-bonded threebody interactions to matrix _A
+  void EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo);
   /// \brief Write results to output files
   void WriteOutFiles();
 
@@ -170,5 +189,5 @@ protected:
   TrajectoryReader *_trjreader_force;
 };
 
-#endif	/* _CSG_FMATCH_H */
+#endif	/* _VOTCA_CSG_FMATCH_H */
 

@@ -1,12 +1,16 @@
 find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
 foreach(PROG
   test_bead
+  test_beadtriple
   test_basebead
   test_beadstructure
   test_interaction
   test_lammpsdatareader 
   test_lammpsdumpreaderwriter
-  test_pdbreader )
+  test_nblist_3body
+  test_nblistgrid_3body
+  test_pdbreader
+  test_triplelist )
 
   file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})

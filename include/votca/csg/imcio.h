@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _IMCIO_H
-#define	_IMCIO_H
+#ifndef _VOTCA_CSG_IMCIO_H
+#define	_VOTCA_CSG_IMCIO_H
 
 #include <string>
 #include <list>
@@ -38,5 +38,5 @@ void imcio_read_index(const string &file, vector<string> &names, vector<RangePar
 
 }}
 
-#endif	/* _IMCIO_H */
+#endif	/* _VOTCA_CSG_IMCIO_H */
 

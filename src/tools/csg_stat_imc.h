@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _IMC_H
-#define	_IMC_H
+#ifndef _VOTCA_CSG_IMC_H
+#define	_VOTCA_CSG_IMC_H
 
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/property.h>
@@ -65,9 +65,13 @@ protected:
         int _index;
         Property *_p;
         HistogramNew _average;
+        HistogramNew _average_force;
         double _min, _max, _step;
         double _norm;
+        double _cut;
         bool _is_bonded;
+        bool _threebody;
+        bool _force;
     };
     
     // a pair of interactions which are correlated
@@ -136,6 +140,7 @@ protected:
     public:
 
         vector<HistogramNew> _current_hists;
+        vector<HistogramNew> _current_hists_force;
         Imc *_imc;
         double _cur_vol;
 
@@ -163,5 +168,5 @@ public:
 
 }}
 
-#endif	/* _IMC_H */
+#endif	/* _VOTCA_CSG_IMC_H */
 

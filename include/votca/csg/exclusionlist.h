@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _exclusionlist_H
-#define	_exclusionlist_H
+#ifndef _VOTCA_CSG_EXCLUSIONLIST_H
+#define	_VOTCA_CSG_EXCLUSIONLIST_H
 
 #include <iostream>
 #include <list>
@@ -162,7 +162,7 @@ std::ostream &operator<<(std::ostream &out,ExclusionList& ex);
 
 }}
 
-#endif	/* _exclusionlist_H */
+#endif	/* _VOTCA_CSG_EXCLUSIONLIST_H */
 
 
 
