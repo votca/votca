@@ -576,6 +576,17 @@ template <typename T>
         interlevel_dipoles.push_back(occ.transpose() * dft_dipole.Matrix()[i_comp] * empty);
       }
       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
+      if(tools::globals::verbose){
+          CTP_LOG(ctp::logDEBUG, *_log)<< ctp::TimeStamp() << "Free interlevel dipoles v c strength[bohr*e] " << std::flush;
+          Eigen::MatrixXd result=(interlevel_dipoles[0].cwiseAbs2()+interlevel_dipoles[1].cwiseAbs2()+interlevel_dipoles[2].cwiseAbs2()).cwiseSqrt();
+      for (int v = 0; v < _bse_vtotal; v++) {
+          for (int c = 0; c < _bse_ctotal; c++) {
+             CTP_LOG(ctp::logDEBUG, *_log)<< "\t\t" << v << " " << c << " "
+                     <<result(v, c)<< std::flush;
+          }}      
+    }
+      
+      
       return interlevel_dipoles;
     }
 
