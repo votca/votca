@@ -56,7 +56,7 @@ public:
     /// to do: at the moment use only one single cutoff value
     void setCutoff(const double cutoff) { _cutoff = cutoff; }
     /// get the cutoff for the neighbour search
-    const double getCutoff() { return _cutoff; }
+    double getCutoff() { return _cutoff; }
 
     /**
      *  \brief match function for class member functions
