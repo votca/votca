@@ -241,7 +241,7 @@ namespace votca {
       
       orb_iter_input.WriteXYZ(runFolder + "/system_qm.xyz");
       
-      _qmpack->Run(orb_iter_input);
+      _qmpack->Run();
       
       /* Parse information from the LOGFILE into orbitals, if
        * external QMPackage is run. Dummy for internal DFTENGINE.
@@ -355,8 +355,8 @@ double energy_ex=0.0;
       }
       
       // EXTRACT & SAVE QM ENERGIES
-      double energy_sf = orb_iter_input.getSelfEnergy();
-      double energy_qmsf = orb_iter_input.getQMEnergy();
+      double energy_sf = orb_iter_input.getSelfEnergy()*tools::conv::hrt2ev;
+      double energy_qmsf = orb_iter_input.getQMEnergy()*tools::conv::hrt2ev;
       double energy_qm = energy_qmsf - energy_sf;
       thisIter->setQMSF(energy_qm, energy_sf, energy_ex);
       _job->setEnergy_QMMM(thisIter->getQMEnergy(), thisIter->getGWBSEEnergy(), thisIter->getSFEnergy(),

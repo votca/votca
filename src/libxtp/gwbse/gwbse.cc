@@ -25,7 +25,6 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/ppm.h>
 #include <votca/xtp/sigma.h>
 #include <votca/xtp/bse.h>
@@ -379,7 +378,7 @@ void GWBSE::addoutput(tools::Property& summary) {
                                (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
 
   gwbse_summary.setAttribute(
-      "DFTEnergy", (format("%1$+1.6f ") % _orbitals.getQMEnergy()).str());
+      "DFTEnergy", (format("%1$+1.6f ") % (_orbitals.getQMEnergy()*hrt2ev)).str());
   int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
@@ -776,7 +775,7 @@ bool GWBSE::Evaluate() {
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
   sigma.setDFTdata(_orbitals.getScaHFX(),&vxc,&_orbitals.MOEnergies());
  
-  // initialize _qp_energies;
+  // initialize _gwa_energies;
   // shift unoccupied levels by the shift
   Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals.getNumberOfLevels());
   for (int i = 0; i < gwa_energies.size(); ++i) {

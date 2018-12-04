@@ -60,7 +60,7 @@ namespace votca {
                 _qmpackage=qmpackage;
             }
 
-            std::string GetDFTLog() {
+            std::string GetDFTLog() const{
                 return _dftlog_file;
             };
 

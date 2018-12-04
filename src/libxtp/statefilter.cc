@@ -40,7 +40,7 @@ namespace votca {
           std::vector <std::string> strings_vec;
           tok_cleanup.ToVector(strings_vec);
           if (strings_vec.size() != 2) {
-            throw std::runtime_error("qmmmachine: Fragment and localisation threshold are not separated");
+            throw std::runtime_error("statefiler: Fragment and localisation threshold are not separated");
           }
           if (strings_vec[0] == "a" || strings_vec[0] == "A") {
             _localiseonA = true;
@@ -65,7 +65,7 @@ namespace votca {
    void Statefilter::PrintInfo()const{
      CTP_LOG(ctp::logDEBUG, *_log) << "Initial state: "<<_statehist[0].ToString() << flush;
      if(_statehist.size()>1){
-     CTP_LOG(ctp::logDEBUG, *_log) << "Last state: "<<_state.ToString() << flush;
+     CTP_LOG(ctp::logDEBUG, *_log) << "Last state: "<<_statehist.back().ToString() << flush;
      }
      if(_use_oscfilter){
        CTP_LOG(ctp::logDEBUG, *_log) << "Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
@@ -120,6 +120,10 @@ namespace votca {
    }
    
    QMState Statefilter::CalcState(Orbitals& orbitals)const{
+
+     if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_use_oscfilter<1){
+         return _statehist[0];
+     }
       
      std::vector< std::vector<int> > results;
      if(_use_oscfilter){

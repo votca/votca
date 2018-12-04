@@ -1128,34 +1128,32 @@ if (lmax_col > 5) {
             }    
     
 
-    
+    //This converts V into ((S-1/2 V S-1/2)-1/2 S-1/2)T, which is needed to construct 4c integrals,
     Eigen::MatrixXd AOCoulomb::Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap, double etol){
         
-    removedfunctions=0;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> eo(auxoverlap.Matrix());
-    Eigen::VectorXd diagonalo=Eigen::VectorXd::Zero(eo.eigenvalues().size());
-    for (unsigned i=0;i<diagonalo.size();++i){
-        if(eo.eigenvalues()(i)<etol){
-            removedfunctions++;
-        }else{
-            diagonalo(i)=1.0/std::sqrt(eo.eigenvalues()(i));
-        }
-    }
+      removedfunctions=0;
+      Eigen::VectorXd diagonal_overlap=Eigen::VectorXd::Zero(eo.eigenvalues().size());
+     for (unsigned i=0;i<diagonal_overlap.size();++i){
+          if(eo.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal_overlap(i)=1.0/std::sqrt(eo.eigenvalues()(i));
+          }
+      }
+      Eigen::MatrixXd Ssqrt=eo.eigenvectors() * diagonal_overlap.asDiagonal() * eo.eigenvectors().transpose();
 
-    Eigen::MatrixXd Ssqrt=eo.eigenvectors() * diagonalo.asDiagonal() * eo.eigenvectors().transpose();
-  //This converts V into ((S1/2 V S1/2)-1/2 S1/2)T, which is needed to construct 4c integrals,
-
-    Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
-    Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
-
-    for (unsigned i=0;i<diagonal.size();++i){
-        if(es.eigenvalues()(i)<etol){
-            removedfunctions++;
-        }else{
-            diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
-        }
-    }
+      Eigen::MatrixXd ortho=Ssqrt*_aomatrix*Ssqrt;
+      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(ortho); 
+      Eigen::VectorXd diagonal=Eigen::VectorXd::Zero(es.eigenvalues().size());
+    
+      for (unsigned i=0;i<diagonal.size();++i){
+          if(es.eigenvalues()(i)<etol){
+              removedfunctions++;
+          }else{
+              diagonal(i)=1.0/std::sqrt(es.eigenvalues()(i));
+          }
+      }
       
       Eigen::MatrixXd Vm1=es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
       Eigen::MatrixXd result=(Vm1*Ssqrt).transpose();
@@ -1177,9 +1175,6 @@ if (lmax_col > 5) {
      return es.eigenvectors() * diagonal.asDiagonal() * es.eigenvectors().transpose();
     }
     
-    
-    
-
     
 }}
 

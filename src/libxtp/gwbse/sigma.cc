@@ -91,7 +91,7 @@ namespace votca {
           sigma_c+=sigma_c_loc*fac;
         }// GW functions
         _sigma_c(gw_level, gw_level) = sigma_c;
-        // update _qp_energies
+        // update _gwa_energies
         _gwa_energies(gw_level + _qpmin) = (*_dftenergies)(gw_level + _qpmin) + sigma_c + _sigma_x(gw_level, gw_level) - (*_vxc)(gw_level, gw_level);
       }// all bands
     }

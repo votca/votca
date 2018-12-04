@@ -48,7 +48,7 @@ namespace votca {
 
             bool WriteInputFile( Orbitals& orbitals);
 
-            bool Run(Orbitals& orbitals);
+            bool Run();
 
             void CleanUp();
 
@@ -64,6 +64,8 @@ namespace votca {
             void WriteChargeOption() { return ;}
             tools::Property _xtpdft_options;
             std::string _cleanup;
+
+            Orbitals _orbitals;
 
             
         };

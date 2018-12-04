@@ -37,8 +37,6 @@ class AOGaussianPrimitive
 {
     friend class AOShell;
 public:
-    
-    
 
     double getPowfactor()const {return _powfactor;}
     int    getPower()const{return _power;}
@@ -58,6 +56,14 @@ private:
     _decay(gaussian._decay),
     _contraction(gaussian._contraction),
     _aoshell(aoshell) {_powfactor=std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75) ; }
+
+    AOGaussianPrimitive( const AOGaussianPrimitive& gaussian, AOShell *aoshell )
+    : _power(gaussian._power),
+    _decay(gaussian._decay),
+    _contraction(gaussian._contraction),
+    _aoshell(aoshell),
+    _powfactor(gaussian._powfactor){;}
+
 };      
     
 /*
@@ -69,12 +75,30 @@ class AOShell
     friend class AOBasis;
 public:
 
+    AOShell(const AOShell& shell){
+          
+   _type= shell._type;
+    _Lmax= shell._Lmax;
+    _scale= shell._scale;
+    _numFunc= shell._numFunc;
+    _mindecay= shell._mindecay;
+    _startIndex= shell._startIndex;
+    _offset= shell._offset;
+    _pos= shell._pos;
+    _atomindex=shell._atomindex;
+    _nonlocal=shell._nonlocal;
+    _gaussians.reserve(shell._gaussians.size());
+    for(const auto& gaus:shell._gaussians){
+        _gaussians.push_back(AOGaussianPrimitive(gaus,this));
+    }
+        
+    }
+
     const std::string& getType() const{ return _type; }
     int    getNumFunc() const{ return _numFunc ;}
     int    getStartIndex() const{ return _startIndex ;}
     int    getOffset() const{ return _offset ;}
-    int    getAtomIndex() const{ return _qmatom->getAtomID();}
-    const std::string& getAtomType() const{ return _qmatom->getType();}
+    int    getAtomIndex() const{ return _atomindex;}
     
     int getLmax(  ) const{ return _Lmax;}
     
@@ -128,13 +152,13 @@ private:
             : _type(shell.getType()),_Lmax(shell.getLmax()),
                     _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
-                    _qmatom(&atom) { ; }
+                    _atomindex(atom.getAtomID()) { ; }
     // for ECPs
     AOShell( const Shell& shell, const QMAtom & atom, int startIndex, bool nonlocal)
             : _type(shell.getType()),_Lmax(shell.getLmax()),
                     _scale(shell.getScale()), _numFunc(shell.getnumofFunc()),
                     _startIndex(startIndex), _offset(shell.getOffset()), _pos(atom.getPos()) , 
-                    _qmatom(&atom),_nonlocal(nonlocal) { ; }
+                    _atomindex(atom.getAtomID()),_nonlocal(nonlocal) { ; }
             
     
     // only class aobasis can destruct shells
@@ -151,7 +175,7 @@ private:
     int _startIndex;
     int _offset;
     tools::vec _pos;
-    const QMAtom* _qmatom;
+    int _atomindex;
     //used for ecp calculations
     bool _nonlocal;
      

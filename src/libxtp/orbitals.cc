@@ -24,6 +24,7 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/vc2index.h>
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
@@ -48,7 +49,6 @@ namespace votca {
             _ECP = "";
             _useTDA = false;
 
-            // GW-BSE
             _qpmin = 0;
             _qpmax = 0;
             _qptotal = 0;
@@ -69,9 +69,95 @@ namespace votca {
 
         };
 
+        
+        
+        Orbitals& Orbitals::operator=(const Orbitals& orbital) {
+            copy(orbital);
+            return *this;
+        }
+
+        Orbitals::Orbitals(const Orbitals& orbital){
+            copy(orbital);
+        }
+
         Orbitals::~Orbitals() {
             for (QMAtom* atom:_atoms) delete atom;
         };
+
+
+        void Orbitals::copy(const Orbitals& orbital){
+            _basis_set_size=orbital._basis_set_size;
+            _occupied_levels=orbital._occupied_levels;
+            _unoccupied_levels=orbital._unoccupied_levels;
+            _number_of_electrons=orbital._number_of_electrons;
+            _ECP=orbital._ECP;
+            _useTDA=orbital._useTDA;
+
+            _mo_energies=orbital._mo_energies;
+            _mo_coefficients=orbital._mo_coefficients;
+
+            _overlap=orbital._overlap;
+            _vxc=orbital._vxc;
+            for (QMAtom* atom:_atoms) delete atom;
+            _atoms.clear();
+            _atoms.reserve(orbital._atoms.size());
+            for(const QMAtom* atom:orbital._atoms){
+                QMAtom* copy=new QMAtom(*atom);
+                _atoms.push_back(copy);
+            }
+            _qm_energy=orbital._qm_energy;
+            _self_energy=orbital._self_energy;
+
+            // new variables for GW-BSE storage
+            _rpamin=orbital._rpamin;
+            _rpamax=orbital._rpamax;
+
+            _qpmin=orbital._qpmin;
+            _qpmax=orbital._qpmax;
+            _qptotal=orbital._qptotal;
+
+            _bse_vmin=orbital._bse_vmin;
+            _bse_vmax=orbital._bse_vmax;
+            _bse_cmin=orbital._bse_cmin;
+            _bse_cmax=orbital._bse_cmax;
+            _bse_size=orbital._bse_size;
+            _bse_vtotal=orbital._bse_vtotal;
+            _bse_ctotal=orbital._bse_ctotal;
+            _bse_nmax=orbital._bse_nmax;
+
+            _ScaHFX=orbital._ScaHFX;
+
+            _dftbasis=orbital._dftbasis;
+            _auxbasis=orbital._auxbasis;
+            _qm_package=orbital._qm_package;
+
+            // perturbative quasiparticle energies
+            _QPpert_energies=orbital._QPpert_energies;
+
+            // quasiparticle energies and coefficients after diagonalization
+            _QPdiag_energies=orbital._QPdiag_energies;
+            _QPdiag_coefficients=orbital._QPdiag_coefficients;
+            // excitons
+
+            _eh_t=orbital._eh_t;
+            _eh_s=orbital._eh_s;
+            _BSE_singlet_energies=orbital._BSE_singlet_energies;
+            _BSE_singlet_coefficients=orbital._BSE_singlet_coefficients;
+            _BSE_singlet_coefficients_AR=orbital._BSE_singlet_coefficients_AR;
+
+            _transition_dipoles=orbital._transition_dipoles;
+            _BSE_triplet_energies=orbital._BSE_triplet_energies;
+            _BSE_triplet_coefficients=orbital._BSE_triplet_coefficients;
+
+            _DqS_frag=orbital._DqS_frag; // fragment charge changes in exciton
+            _DqT_frag=orbital._DqT_frag;
+            _GSq_frag=orbital._GSq_frag; // ground state effective fragment charges
+
+            _popE_s=orbital._popE_s;
+            _popE_t=orbital._popE_t;
+            _popH_s=orbital._popH_s;
+            _popH_t=orbital._popH_t;
+        }
 
         void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
             _occupied_levels = occupied_levels;
@@ -176,17 +262,6 @@ namespace votca {
             Eigen::MatrixXd dmatQP = lambda.col(state.Index()-_qpmin) * lambda.col(state.Index()-_qpmin).transpose();
             return dmatQP;
         }
-
-        Orbitals::Index2MO Orbitals::BSEIndex2MOIndex()const{
-          Index2MO result;
-          for (int v = 0; v < _bse_vtotal; v++) {
-            for (int c = 0; c < _bse_ctotal; c++) {
-              result.I2v.push_back(_bse_vmin + v);
-              result.I2c.push_back(_bse_cmin + c);
-            }
-          }
-          return result;
-        }
         
         Eigen::Vector3d Orbitals::CalcCoM()const{
           tools::Elements elements;
@@ -234,42 +309,32 @@ namespace votca {
             if(BSECoefs.cols()<state.Index()+1 || BSECoefs.rows()<2){
                 throw runtime_error("Orbitals object has no information about state:"+state.ToString());
             }
-            Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
+            
             // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
-            double sqrt2 = sqrt(2.0);
+            
             /*Trying to implement D_{alpha,beta}= sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)} */
             // c stands for conduction band and thus virtual orbitals
             // v stand for valence band and thus occupied orbitals
-            
-            // indexing info BSE vector index to occupied/virtual orbital
-            Index2MO index=BSEIndex2MOIndex();
-
-            if (!_useTDA) {
-                const MatrixXfd& BSECoefs_AR = _BSE_singlet_coefficients_AR;
-#pragma omp parallel for
-                for (int a = 0; a < dmatTS.rows(); a++) {
-                    for (int b = 0; b < dmatTS.cols(); b++) {
-                        for (int i = 0; i < _bse_size; i++) {
-                            int occ = index.I2v[i];
-                            int virt =index.I2c[i];
-                            dmatTS(a, b) += sqrt2 * (BSECoefs(i, state.Index()) + BSECoefs_AR(i, state.Index())) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
-                        }
-                    }
-                }
-            } else {
-
-#pragma omp parallel for
-                for (int a = 0; a < dmatTS.rows(); a++) {
-                    for (int b = 0; b < dmatTS.cols(); b++) {
-                        for (int i = 0; i < _bse_size; i++) {
-                            int occ = index.I2v[i];
-                            int virt =index.I2c[i];
-                            dmatTS(a, b) += sqrt2 * BSECoefs(i, state.Index()) * _mo_coefficients(a, occ) * _mo_coefficients(b, virt); //check factor 2??
-                        }
-                    }
-                }
-
+#if (GWBSE_DOUBLE)
+            Eigen::VectorXd coeffs= BSECoefs.col(state.Index());
+#else
+            Eigen::VectorXd coeffs= BSECoefs.col(state.Index()).cast<double>();
+#endif
+            if(!_useTDA){
+#if (GWBSE_DOUBLE)
+                coeffs+=_BSE_singlet_coefficients_AR.col(state.Index());
+#else
+            coeffs+=_BSE_singlet_coefficients_AR.col(state.Index()).cast<double>();
+#endif
             }
+            coeffs*=std::sqrt(2.0);
+            vc2index index=vc2index(_bse_vmin,_bse_cmin,_bse_ctotal);
+            Eigen::MatrixXd dmatTS = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
+            
+            for (int i = 0; i < _bse_size; i++) {
+                dmatTS.noalias()+= coeffs(i) * _mo_coefficients.col(index.v(i)) * _mo_coefficients.col(index.c(i)).transpose();
+            }
+
             return dmatTS;
         }
 
@@ -316,45 +381,56 @@ namespace votca {
              *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') A_{vv'}
              *
              */
-            std::vector<Eigen::MatrixXd > dmatEX;
-            dmatEX.resize(2);
-            dmatEX[0] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-            dmatEX[1] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-            Index2MO index=BSEIndex2MOIndex();
 
-            // electron assist matrix A_{cc'}
-            Eigen::MatrixXd Acc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
-            Eigen::MatrixXd Avv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
-
-            for (int idx1 = 0; idx1 < _bse_size; idx1++) {
-                int v = index.I2v[idx1];
-                int c = index.I2c[idx1];
-                // electron assist matrix A_{cc'}
-#pragma omp parallel for
-                for (int c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
-                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
-                    Acc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs(idx1, state.Index()) * BSECoefs(idx2, state.Index());
-                }
-
-                // hole assist matrix A_{vv'}
-#pragma omp parallel for
-                for (int v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
-                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
-                    Avv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs(idx1, state.Index()) * BSECoefs(idx2, state.Index());
-                }
-            }
-
+#if (GWBSE_DOUBLE)
+            Eigen::VectorXd coeffs= BSECoefs.col(state.Index());
+#else
+            Eigen::VectorXd coeffs= BSECoefs.col(state.Index()).cast<double>();
+#endif
+         
+            std::vector<Eigen::MatrixXd > dmatEX(2);
             // hole part as matrix products
             Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
-            dmatEX[0] = occlevels * Avv * occlevels.transpose();
+            dmatEX[0] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
 
             // electron part as matrix products
             Eigen::MatrixXd virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
-            dmatEX[1] = virtlevels * Acc * virtlevels.transpose();
+            dmatEX[1] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
+
             return dmatEX;
         }
 
-        // Excited state density matrix
+   
+Eigen::MatrixXd Orbitals::CalcAuxMat_vv(const Eigen::VectorXd& coeffs)const{
+    Eigen::MatrixXd Mvv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
+    vc2index index = vc2index(_bse_vmin, _bse_cmin, _bse_ctotal);
+    for (int idx1 = 0; idx1 < _bse_size; idx1++) {
+        int v = index.v(idx1) - _bse_vmin;
+        int c = index.c(idx1) - _bse_cmin;
+#pragma omp parallel for
+        for (int v2 = 0; v2 < _bse_vtotal; v2++) {
+            int idx2 = index.I(v2+_bse_vmin, c+_bse_cmin);
+            Mvv(v, v2) += coeffs(idx1) * coeffs(idx2);
+        }
+    }
+    return Mvv;
+}
+
+Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
+    Eigen::MatrixXd Mcc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
+    vc2index index = vc2index(_bse_vmin, _bse_cmin, _bse_ctotal);
+    for (int idx1 = 0; idx1 < _bse_size; idx1++) {
+        int v = index.v(idx1) - _bse_vmin;
+        int c = index.c(idx1) - _bse_cmin;
+#pragma omp parallel for
+        for (int c2 = 0; c2 < _bse_ctotal; c2++) {
+            int idx2 = index.I(v+_bse_vmin, c2+_bse_cmin);
+            Mcc(c, c2) += coeffs(idx1) * coeffs(idx2);
+        }
+
+    }
+    return Mcc;
+}
 
         std::vector<Eigen::MatrixXd > Orbitals::DensityMatrixExcitedState_AR(const QMState& state) const{
             if (state.Type() != QMStateType::Singlet) {
@@ -387,40 +463,21 @@ namespace votca {
              *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') B_{cc'}
              *
              */
-            std::vector<Eigen::MatrixXd > dmatAR;
-            dmatAR.resize(2);
-            dmatAR[0] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-            dmatAR[1] = Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
-            Index2MO index=BSEIndex2MOIndex();
+            
+#if (GWBSE_DOUBLE)
+            Eigen::VectorXd coeffs= BSECoefs_AR.col(state.Index());
+#else
+            Eigen::VectorXd coeffs= BSECoefs_AR.col(state.Index()).cast<double>();
+#endif
 
-            // hole assist matrix B_{cc'}
-            Eigen::MatrixXd Bcc = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_ctotal);
-            Eigen::MatrixXd Bvv = Eigen::MatrixXd::Zero(_bse_vtotal, _bse_vtotal);
-
-            for (int idx1 = 0; idx1 < _bse_size; idx1++) {
-                int v = index.I2v[idx1];
-                int c = index.I2c[idx1];
-                // hole assist matrix B_{cc'}
-#pragma omp parallel for
-                for (int c2 = _bse_cmin; c2 <= _bse_cmax; c2++) {
-                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v - _bse_vmin)+(c2 - _bse_cmin);
-                    Bcc(c - _bse_cmin, c2 - _bse_cmin) += BSECoefs_AR(idx1, state.Index()) * BSECoefs_AR(idx2, state.Index());
-                }
-
-                // electron assist matrix B_{vv'}
-#pragma omp parallel for
-                for (int v2 = _bse_vmin; v2 <= _bse_vmax; v2++) {
-                    int idx2 = (_bse_cmax - _bse_cmin + 1)*(v2 - _bse_vmin)+(c - _bse_cmin);
-                    Bvv(v - _bse_vmin, v2 - _bse_vmin) += BSECoefs_AR(idx1, state.Index()) * BSECoefs_AR(idx2, state.Index());
-                }
-            }
-
-            // hole part as matrix products
-            Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
-            dmatAR[0] = occlevels * Bvv * occlevels.transpose();
-            // electron part as matrix products
+            std::vector<Eigen::MatrixXd > dmatAR(2);
             Eigen::MatrixXd virtlevels = _mo_coefficients.block(0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
-            dmatAR[1] = virtlevels * Bcc * virtlevels.transpose();
+            dmatAR[0] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
+            // electron part as matrix products
+            Eigen::MatrixXd occlevels = _mo_coefficients.block(0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
+            dmatAR[1] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
+
+            
             return dmatAR;
         }
 
@@ -456,7 +513,7 @@ namespace votca {
         }
 
         double Orbitals::getTotalStateEnergy(const QMState& state)const{
-          double total_energy=getQMEnergy()* tools::conv::ev2hrt;
+          double total_energy=getQMEnergy();
           if (state.Type()==QMStateType::Gstate){
             return total_energy;
           }
@@ -634,7 +691,7 @@ namespace votca {
         }
 
         void Orbitals::WriteToCpt(const std::string& filename) const{
-            CheckpointFile cpf(filename, CheckpointAccessLevel::MODIFY);
+            CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
             WriteToCpt(cpf);
         }
 
@@ -727,18 +784,28 @@ namespace votca {
             {
                 CheckpointReader qmasReader = r.openChild("qmatoms");
                 size_t count = qmasReader.getNumDataSets();
-                if(this->QMAtoms().size()>0){
-                    std::vector< QMAtom* >::iterator it;
-                    for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
-                    _atoms.clear();
+                if(count==QMAtoms().size()){
+                     for (size_t i = 0; i < count; ++i) {
+                          CheckpointReader qmaReader =
+                            qmasReader.openChild("atom" + std::to_string(i));
+                          QMAtoms()[i]->ReadFromCpt(qmaReader);
+                     }
                 }
+                else{
 
-                for (size_t i = 0; i < count; ++i) {
-                    CheckpointReader qmaReader =
-                        qmasReader.openChild("atom" + std::to_string(i));
-                    QMAtom temp;
-                    temp.ReadFromCpt(qmaReader);
-                    AddAtom(temp);
+                    if(this->QMAtoms().size()>0){
+                        std::vector< QMAtom* >::iterator it;
+                        for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
+                        _atoms.clear();
+                    }
+
+                    for (size_t i = 0; i < count; ++i) {
+                        CheckpointReader qmaReader =
+                            qmasReader.openChild("atom" + std::to_string(i));
+                        QMAtom temp;
+                        temp.ReadFromCpt(qmaReader);
+                        AddAtom(temp);
+                    }
                 }
             }
 
