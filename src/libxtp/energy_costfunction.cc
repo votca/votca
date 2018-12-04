@@ -61,9 +61,9 @@ namespace votca {
       Energy_costfunction::conv_paras convval;
       convval.deltaE = delta_cost;
       convval.RMSForce =  std::sqrt(gradient.cwiseAbs2().sum()) / gradient.size();
-      convval.MaxForce = gradient.cwiseAbs().maxCoeff();
+      convval.MaxForce = gradient.cwiseAbs().maxCoeff(&convval.maxforceindex);
       convval.RMSStep = std::sqrt(delta_parameters.cwiseAbs2().sum()) / delta_parameters.size();
-      convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff();
+      convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff(&convval.maxstepindex);
 
       if (std::abs(convval.deltaE) < _convpara.deltaE) energy_converged = true;
       if (convval.RMSForce < _convpara.RMSForce) RMSForce_converged = true;
@@ -79,12 +79,12 @@ namespace votca {
     
    void Energy_costfunction::Report(const Energy_costfunction::conv_paras& val){
       const Energy_costfunction::conv_paras& paras = getConvParas();
-     CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   energy change:    %1$12.8f Hartree      %2$s") % val.deltaE % Converged(val.deltaE, paras.deltaE)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s") % val.RMSForce % Converged(val.RMSForce, paras.RMSForce)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s") % val.MaxForce % Converged(val.MaxForce, paras.MaxForce)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s") % val.RMSStep % Converged(val.RMSStep, paras.RMSStep)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Max step:         %1$12.8f Bohr         %2$s") % val.MaxStep % Converged(val.MaxStep, paras.MaxStep)).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ")).str() << std::flush;
+     CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" energy change:    %1$-2.8f Hartree      %2$s") % val.deltaE % Converged(val.deltaE, paras.deltaE)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" RMS force:         %1$2.8f Hartree/Bohr %2$s") % val.RMSForce % Converged(val.RMSForce, paras.RMSForce)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" Max force(atom%1$3i):%2$2.8f Hartree/Bohr %3$s") % val.maxforceindex %val.MaxForce % Converged(val.MaxForce, paras.MaxForce)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" RMS step:          %1$2.8f Bohr         %2$s") % val.RMSStep % Converged(val.RMSStep, paras.RMSStep)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" Max step(atom%1$3i): %2$2.8f Bohr         %3$s") %val.maxstepindex % val.MaxStep % Converged(val.MaxStep, paras.MaxStep)).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ ")).str() << std::flush;
       CTP_LOG(ctp::logINFO, *_pLog) << std::flush;
    }
    

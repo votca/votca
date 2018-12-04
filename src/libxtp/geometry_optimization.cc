@@ -108,17 +108,17 @@ namespace votca {
     void GeometryOptimization::Report(const BFGSTRM& bfgstrm,const Forces& forces,ctp::Logger* pLog){
 
       CTP_LOG(ctp::logINFO, *pLog) << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("=========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *pLog) << "At iteration  " << bfgstrm.getIteration() << std::flush;
+      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" ---- POSITIONS (Angstrom)   ")).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" Atom\t x\t  y\t  z ")).str() << std::flush;
       const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
       for (unsigned i = 0; i < atomvec.size(); i += 3) {
-        CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+        CTP_LOG(ctp::logINFO, *pLog) << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                 % (i/3) % (atomvec(i) * votca::tools::conv::bohr2ang) % (atomvec(i + 1) * votca::tools::conv::bohr2ang) % (atomvec(i + 2) * votca::tools::conv::bohr2ang)).str() << std::flush;
       }
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
-      CTP_LOG(ctp::logINFO, *pLog) << (boost::format("   Trust radius:     %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" Total energy: %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;
+      CTP_LOG(ctp::logINFO, *pLog) << (boost::format(" Trust radius: %1$12.8f Bohr     ") % bfgstrm.getTrustRadius()).str() << std::flush;
       forces.Report();
       return;
     }

@@ -69,13 +69,13 @@ namespace votca {
 
         void Forces::Report() const{
 
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   ---- FORCES (Hartree/Bohr)   ")).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        %1$s differences   ") % _force_method).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("        displacement %1$1.4f Angstrom   ") % (_displacement*tools::conv::bohr2ang)).str() << flush;
-            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" ---- FORCES (Hartree/Bohr)   ")).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("      %1$s differences   ") % _force_method).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("      displacement %1$1.4f Angstrom   ") % (_displacement*tools::conv::bohr2ang)).str() << flush;
+            CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" Atom\t x\t  y\t  z ")).str() << flush;
 
             for (unsigned i = 0; i < _forces.rows(); i++) {
-                CTP_LOG(ctp::logINFO, *_pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+                CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                         % i % _forces(i, 0) % _forces(i, 1) % _forces(i, 2)).str() << flush;
             }
             return;
