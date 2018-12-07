@@ -76,7 +76,7 @@ void FreeMatrices(){
   
   inline double SumSymmetric(real_gwbse Mmn1xMmn2, double qpmin1, double qpmin2, const double gwa_energy);
   inline double Stabilize(double denom);
-
+  inline void Stabilize(Eigen::ArrayXd& denom);
 
   void X_offdiag(const TCMatrix_gwbse& Mmn);   
   void X_diag(const TCMatrix_gwbse& Mmn);
