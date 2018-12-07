@@ -24,22 +24,19 @@
 namespace votca {
     namespace xtp {
 
-        void ERIs::Initialize(AOBasis &dftbasis, AOBasis &auxbasis,const Eigen::MatrixXd &inversesqrt_Coulomb) {
-          
-          _threecenter.Fill( auxbasis, dftbasis,inversesqrt_Coulomb);
+        void ERIs::Initialize(AOBasis &dftbasis, AOBasis &auxbasis) {
+          _threecenter.Fill( auxbasis, dftbasis);
           return;
         }
 
         
         void ERIs::Initialize_4c_small_molecule(AOBasis &dftbasis) {
-          
           _fourcenter.Fill_4c_small_molecule( dftbasis );
           return;
         }
 
         
         void ERIs::Initialize_4c_screening(AOBasis &dftbasis, double eps) {
-          
           _with_screening = true;
           _screening_eps = eps;
           CalculateERIsDiagonals(dftbasis);
@@ -63,8 +60,8 @@ namespace votca {
           #pragma omp parallel for
           for (unsigned thread = 0; thread < nthreads; ++thread) {
             Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
-            for (int _i = thread; _i < _threecenter.getSize(); _i += nthreads) {
-              const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(_i);
+            for (int i = thread; i < _threecenter.getSize(); i += nthreads) {
+              const Symmetric_Matrix &threecenter = _threecenter[i];
               // Trace over prod::DMAT,I(l)=componentwise product over 
               double factor = threecenter.TraceofProd(dmat_sym);
               threecenter.AddtoEigenMatrix(ERIS_thread[thread], factor);
@@ -98,7 +95,7 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd D=DMAT;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
-              const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).FullMatrix();
+              const Eigen::MatrixXd threecenter = _threecenter[i].FullMatrix();
               EXX_thread[thread].noalias()+=threecenter*D*threecenter;
             }
           }
@@ -129,7 +126,7 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd occ=occMos;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
-              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).FullMatrix();
+              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter[i].FullMatrix();
               EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
             }
           }

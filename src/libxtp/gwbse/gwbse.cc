@@ -25,12 +25,9 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/ppm.h>
-#include <votca/xtp/sigma.h>
 #include <votca/xtp/bse.h>
-#include <votca/xtp/sigma.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/gw.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -224,19 +221,19 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
       << ctp::TimeStamp() << " BSE Hamiltonian has size " << bse_size << "x"
       << bse_size << flush;
   
-  _bse_maxeigenvectors =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".exctotal", 25);
-   if (_bse_maxeigenvectors > int(bse_size) || _bse_maxeigenvectors < 0) _bse_maxeigenvectors = bse_size;
+  _bseopt.nmax =
+      options.ifExistsReturnElseReturnDefault<int>(key + ".exctotal",  _bseopt.nmax);
+   if ( _bseopt.nmax  > int(bse_size) ||  _bseopt.nmax  < 0)  _bseopt.nmax  = bse_size;
   _fragA = options.ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
   std::string BSEtype =
       options.ifExistsReturnElseReturnDefault<std::string>(key + ".BSEtype", "TDA");
 
   if (BSEtype == "full") {
-    _do_full_BSE = true;
+    _bseopt.useTDA = false;
     CTP_LOG(ctp::logDEBUG, *_pLog) << " BSE type: full" << flush;
   } else {
-    _do_full_BSE = false;
+    _bseopt.useTDA= true;
     CTP_LOG(ctp::logDEBUG, *_pLog) << " BSE type: TDA" << flush;
   }
 
@@ -259,35 +256,29 @@ std::string ranges = options.ifExistsReturnElseReturnDefault<std::string>(key + 
   _dftbasis_name =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dftbasis");
 
-  _shift = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".shift");
-  _g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".g_sc_limit",1e-5);  // convergence criteria for qp iteration [Hartree]]
-  _g_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
+  _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(key + ".shift", _gwopt.shift);
+  _gwopt.g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".g_sc_limit",_gwopt.g_sc_limit);  // convergence criteria for qp iteration [Hartree]]
+  _gwopt.g_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
       key + ".g_sc_max_iterations",
-      40);  // convergence criteria for qp iteration [Hartree]]
+      _gwopt.g_sc_max_iterations);  // convergence criteria for qp iteration [Hartree]]
 
-  _gw_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
+  _gwopt.gw_sc_max_iterations = options.ifExistsReturnElseReturnDefault<int>(
       key + ".gw_sc_max_iterations",
-      20);  // convergence criteria for qp iteration [Hartree]]
+      _gwopt.gw_sc_max_iterations);  // convergence criteria for qp iteration [Hartree]]
 
-  _gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".gw_sc_limit", 1e-5);  // convergence criteria for shift it
-  _iterate_gw = false;
-  std::string _shift_type =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".shift_type");
-  if (_shift_type != "fixed") {
-    _iterate_gw = true;
-  }
+  _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".gw_sc_limit", _gwopt.gw_sc_limit);  // convergence criteria for shift it
   CTP_LOG(ctp::logDEBUG, *_pLog) << " Shift: " << _shift_type << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog) << " g_sc_limit [Hartree]: " << _g_sc_limit
                                  << flush;
-  if (_iterate_gw) {
+  if (_gwopt.gw_sc_max_iterations>1) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << " gw_sc_limit [Hartree]: " << _gw_sc_limit
                                    << flush;
   }
-  _min_print_weight = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".bse_print_weight",
-      0.2);  // print exciton WF composition weight larger that thin minimum
+  _bseopt.min_print_weight = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".bse_print_weight",_bseopt.min_print_weight);
+  // print exciton WF composition weight larger that thin minimum
 
   // setting some defaults
   _do_qp_diag = false;
@@ -373,11 +364,8 @@ void GWBSE::addoutput(tools::Property& summary) {
   const double hrt2ev = tools::conv::hrt2ev;
   tools::Property& gwbse_summary = summary.add("GWBSE", "");
   gwbse_summary.setAttribute("units", "eV");
-  gwbse_summary.setAttribute("DeltaHLGap",
-                               (format("%1$+1.6f ") % (_shift * hrt2ev)).str());
-
   gwbse_summary.setAttribute(
-      "DFTEnergy", (format("%1$+1.6f ") % _orbitals.getQMEnergy()).str());
+      "DFTEnergy", (format("%1$+1.6f ") % (_orbitals.getQMEnergy()*hrt2ev)).str());
   int printlimit = _bse_maxeigenvectors;  // I use this to determine how much is printed,
                                  // I do not want another option to pipe through
 
@@ -630,64 +618,27 @@ bool GWBSE::Evaluate() {
   // a) form the expectation value of the XC functional in MOs
   Eigen::MatrixXd vxc=CalculateVXC(dftbasis);
 
+  
+
   /*
    * for the representation of 2-point functions with the help of the
    * auxiliary basis, its AO overlap matrix is required.
    * cf. M. Rohlfing, PhD thesis, ch. 3
    */
-  AOOverlap auxoverlap;
-  // Fill overlap
-  auxoverlap.Fill(auxbasis);
-
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Filled Aux Overlap matrix of dimension: "
-                                 << auxoverlap.Matrix().rows() << flush;
-
-  /*
-   *  for the calculation of Coulomb and exchange term in the self
-   *  energy and electron-hole interaction, the Coulomb interaction
-   *  is represented using the auxiliary basis set.
-   *  Here, we need to prepare the Coulomb matrix expressed in
-   *  the AOs of the auxbasis
-   */
-
-  // get Coulomb matrix as AOCoulomb
-  AOCoulomb auxcoulomb;
-
-  // Fill Coulomb matrix
-  auxcoulomb.Fill(auxbasis);
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                                 << " Filled Aux Coulomb matrix of dimension: "
-                                 << auxcoulomb.Matrix().rows() << flush;
  
-
-  Eigen::MatrixXd Coulomb_sqrtInv=auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap,5e-7);
-    auxoverlap.FreeMatrix();
-    auxcoulomb.FreeMatrix();
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Calculated Matrix Sqrt of Aux Coulomb Matrix"
-      << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << auxcoulomb.Removedfunctions()
-      << " functions from Aux Coulomb matrix to avoid near linear dependencies" << flush;
-  
   // container => M_mn
   // prepare 3-center integral object
-
   TCMatrix_gwbse Mmn;
   //rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _rpamin, _qpmax, _rpamin, _rpamax);
   Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
+   CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp() << " Removed " << Mmn.Removedfunctions()
+      << " functions from Aux Coulomb matrix to avoid near linear dependencies" << flush;
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
 
-  // make _Mmn symmetric
-  Mmn.MultiplyRightWithAuxMatrix(Coulomb_sqrtInv);
-  
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp()
-      << " Multiplied Mmn_beta with Coulomb Matrix " << flush;
   PPM ppm;
   RPA rpa;
   rpa.configure(_homo,_rpamin,_rpamax);
@@ -703,15 +654,9 @@ bool GWBSE::Evaluate() {
   sigma.configure(_homo,_qpmin,_qpmax,_g_sc_max_iterations,_g_sc_limit);
   sigma.setDFTdata(_orbitals.getScaHFX(),&vxc,&_orbitals.MOEnergies());
  
-  // initialize _qp_energies;
+  // initialize _gwa_energies;
   // shift unoccupied levels by the shift
-  Eigen::VectorXd gwa_energies = Eigen::VectorXd::Zero(_orbitals.getNumberOfLevels());
-  for (int i = 0; i < gwa_energies.size(); ++i) {
-    gwa_energies(i) = _orbitals.MOEnergies()(i);
-    if (i > _homo) {
-      gwa_energies(i) += _shift;
-    }
-  }
+
   sigma.setGWAEnergies(gwa_energies);
   
    /* for automatic iteration of both G and W, we need to
@@ -761,14 +706,10 @@ bool GWBSE::Evaluate() {
         << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << flush;
     // iterative refinement of qp energies
     gwa_energies=sigma.getGWAEnergies();
-    double DFTgap = dft_energies(_homo + 1) - dft_energies(_homo);
-    double QPgap = gwa_energies(_homo + 1) - gwa_energies(_homo);
-    _shift = QPgap - DFTgap;
+    
     
     // qp energies outside the update range are simply shifted.
-    for (int i = _qpmax + 1; i < dft_energies.size(); ++i) {
-      gwa_energies(i) = dft_energies(i) + _shift;
-    }
+   
     
     if (_iterate_gw) {
       bool gw_converged = true;
@@ -825,14 +766,7 @@ bool GWBSE::Evaluate() {
   // E_qp)
   if (_store_qp_pert) {
     Eigen::MatrixXd &qp_energies_store = _orbitals.QPpertEnergies();
-    qp_energies_store=Eigen::MatrixXd::Zero(_qptotal, 5);
-    for (int i = 0; i < _qptotal; i++) {
-      qp_energies_store(i, 0) = dft_energies(i + _qpmin);
-      qp_energies_store(i, 1) = sigma.x(i);
-      qp_energies_store(i, 2) = sigma.c(i);
-      qp_energies_store(i, 3) = vxc(i, i);
-      qp_energies_store(i, 4) = gwa_energies(i + _qpmin);
-    }
+   
   }
  
   if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
@@ -843,7 +777,7 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
     // free no longer required three-center matrices in _Mmn
   // max required is _bse_cmax (could be smaller than _qpmax)
-  Mmn.Prune(_bse_vmin, _bse_cmax);   
+
     Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian();
  
     if (_do_qp_diag) {
@@ -866,7 +800,7 @@ bool GWBSE::Evaluate() {
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-      
+    Mmn.Prune(_bse_vmin, _bse_cmax);   
       BSE bse=BSE(_orbitals,*_pLog,_min_print_weight);
       bse.setBSEindices(_homo,_bse_vmin,_bse_cmax,_bse_maxeigenvectors);
       bse.setGWData(&Mmn,&ppm,&Hqp);

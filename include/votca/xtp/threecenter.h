@@ -44,33 +44,31 @@ namespace votca {
 
         // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
 
-        class TCMatrix {    
+        class TCMatrix {
+
+        public:
+            int Removedfunctions()const{return _removedfunctions;}
+            
         protected:
-            
-            
+            int _removedfunctions=0;
+            Eigen::MatrixXd _inv_sqrt;
+
             bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* shell, const AOShell* shell_row, const AOShell* shell_col);
-            
 
         };
 
         class TCMatrix_dft : public TCMatrix {
         public:
 
-            void Fill(AOBasis& auxbasis, AOBasis& dftbasis,const Eigen::MatrixXd& V_sqrtm1);
+            void Fill(const AOBasis& auxbasis,const AOBasis& dftbasis);
 
-            int getSize() {
-                return _matrix.size();
-            }
+            int getSize() const{return _matrix.size();}
 
-            std::vector< Symmetric_Matrix >& getData() {
-                return _matrix;
-            }
-
-            Symmetric_Matrix& getDatamatrix(int i) {
+            Symmetric_Matrix& operator[](int i) {
                 return _matrix[i];
             }
 
-            const Symmetric_Matrix& getDatamatrix(int i)const {
+            const Symmetric_Matrix& operator[](int i)const {
                 return _matrix[i];
             }
         private:
@@ -125,12 +123,9 @@ namespace votca {
             void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
 
             void Prune(int min, int max);
-            void Print();
             void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
             void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
-
-            void Cleanup();
 
         private:
 

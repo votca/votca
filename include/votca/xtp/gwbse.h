@@ -25,6 +25,8 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
 
+#include "bse.h"
+
 
 namespace votca {
 namespace xtp {
@@ -49,11 +51,6 @@ namespace xtp {
 class GWBSE {
  public:
      
-     struct options{
-         
-         
-         
-     };
   GWBSE(Orbitals& orbitals)
       : _orbitals(orbitals){};
 
@@ -64,15 +61,11 @@ class GWBSE {
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
-  void Rebuild_TCIntegrals(const AOBasis& dftbasis,const AOBasis& auxbasis,const Eigen::MatrixXd& Coulomb_sqrtInv, TCMatrix_gwbse& Mmn);
 
-    
   void addoutput(tools::Property& summary);
 
  private:
-     
- 
- 
+
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
  ctp::Logger* _pLog;
  Orbitals& _orbitals;
@@ -101,33 +94,15 @@ class GWBSE {
   int _fragA;
 
   // BSE variant
-  bool _do_full_BSE;
   
   GW::options _gwopt;
+  BSE::options _bseopt;
+  
   
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-  int _reset_3c; //how often the 3c integrals in iterate should be rebuild
-  double _shift;  // pre-shift of DFT energies
-  int _homo;   // HOMO index
-  int _rpamin;
-  int _rpamax;
-  int _qpmin;
-  int _qpmax;
-  int _qptotal;
-  double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  int _g_sc_max_iterations;
-  int _gw_sc_max_iterations;
-  double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
-  
-  int _bse_vmin;
-  int _bse_vmax;
-  int _bse_cmin;
-  int _bse_cmax;
-  int _bse_maxeigenvectors;
-  double _min_print_weight;
-
+ 
 };
 }
 }

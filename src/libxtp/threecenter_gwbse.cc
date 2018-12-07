@@ -45,18 +45,6 @@ namespace votca {
     }
 
     /*
-     * Cleaning TCMatrix data and free memory
-     */
-    void TCMatrix_gwbse::Cleanup() {
-
-      for (unsigned i = 0; i < _matrix.size(); i++) {
-        _matrix[i].resize(0, 0);
-      }
-      _matrix.clear();
-      return;
-    } // TCMatrix::Cleanup
-
-    /*
      * Modify 3-center matrix elements consistent with use of symmetrized 
      * Coulomb interaction. 
      */
@@ -75,15 +63,6 @@ namespace votca {
       }
       return;
     } 
-
-    void TCMatrix_gwbse::Print() {
-
-      for (int k = 0; k < _mtotal; k++) {
-        std::cout <<k<<std::endl;
-        std::cout <<this->_matrix[k]<< std::endl;  
-      }
-      return;
-    }
 
     /*
      * Fill the 3-center object by looping over shells of GW basis set and
@@ -113,6 +92,14 @@ namespace votca {
           } // GW basis function in shell
         } // m-th DFT orbital
       } // shells of GW basis set
+
+  AOOverlap auxoverlap;
+  auxoverlap.Fill(gwbasis);
+  AOCoulomb auxcoulomb;
+  auxcoulomb.Fill(gwbasis);
+  Eigen::MatrixXd _inv_sqrt=auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap,5e-7);
+    _removedfunctions=auxcoulomb.Removedfunctions();
+ MultiplyRightWithAuxMatrix(_inv_sqrt);
       return;
     }
 

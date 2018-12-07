@@ -23,30 +23,41 @@
 #include <vector>
 
 
-namespace votca {
-    namespace xtp {
-        class TCMatrix_gwbse;
+namespace votca
+{
+namespace xtp
+{
+class TCMatrix_gwbse;
 
-        class RPA {
-        public:
+class RPA
+{
+public:
 
-            void configure(int homo, int rpamin, int rpamax) {
-                _homo = homo;
-                _rpamin = rpamin;
-                _rpamax = rpamax;
-            }
-            
- Eigen::MatrixXd calculate_epsilon_i(double frequency,const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
- 
-Eigen::MatrixXd calculate_epsilon_r(double frequency,const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
-        private:
-
-            int _homo; // HOMO index
-            int _rpamin;
-            int _rpamax;
-
-        };
+    void configure(int homo, int rpamin, int rpamax){
+        _homo = homo;
+        _rpamin = rpamin;
+        _rpamax = rpamax;
     }
+
+    Eigen::MatrixXd calculate_epsilon_i(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const{
+        return calculate_epsilon<true>(frequency, qp_energies, Mmn);
+    }
+
+    Eigen::MatrixXd calculate_epsilon_r(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const{
+        return calculate_epsilon<false>(frequency, qp_energies, Mmn);
+    }
+
+private:
+
+    int _homo; // HOMO index
+    int _rpamin;
+    int _rpamax;
+
+    template< bool imag>
+    Eigen::MatrixXd calculate_epsilon(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const;
+
+};
+}
 }
 
 #endif /* _VOTCA_RPA_RPA_H */

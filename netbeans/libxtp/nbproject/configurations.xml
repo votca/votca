@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -3215,6 +3215,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/vc2index.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/votca_config.h.in"
@@ -3906,6 +3908,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_vc2index.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/xtp_map.cc" ex="false" tool="1" flavor2="0">
@@ -4188,6 +4192,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/vc2index.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -4879,6 +4885,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vc2index.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

@@ -60,8 +60,7 @@ private:
 
     std::vector<int> CollapseResults(std::vector< std::vector<int> >& results)const;
     std::vector<int> ComparePairofVectors( std::vector<int>& vec1, std::vector<int>& vec2)const;
-
-QMState _state;    
+  
 ctp::Logger *_log;
  
 std::vector<QMState> _statehist;

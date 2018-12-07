@@ -487,7 +487,7 @@ namespace votca {
         /**
          * Runs the Gaussian job.
          */
-        bool Gaussian::Run( Orbitals& orbitals ) {
+        bool Gaussian::Run() {
             CTP_LOG(ctp::logDEBUG, *_pLog) << "GAUSSIAN: running [" << _executable << " " << _input_file_name << "]" << flush;
 
             if (std::system(NULL)) {
@@ -633,11 +633,8 @@ namespace votca {
 
                     std::vector<std::string> results;
                     boost::trim(line);
-
                     boost::algorithm::split(results, line, boost::is_any_of("\t ="),
                             boost::algorithm::token_compress_on);
-                    //cout << results[1] << ":" << results[2] << ":" << results[3] << ":" << results[4] << endl;
-
                     level = boost::lexical_cast<int>(results.front());
                     boost::replace_first(results.back(), "D", "e");
                     energies[ level ] = boost::lexical_cast<double>(results.back());
@@ -970,8 +967,8 @@ namespace votca {
                     }
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-                        orbitals. setQMEnergy(tools::conv::hrt2ev * energy_hartree);
-                        CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+                        orbitals.setQMEnergy(energy_hartree);
+                        CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;
                         throw std::runtime_error("ERROR No energy in archive");
@@ -987,7 +984,7 @@ namespace votca {
                     std::vector<std::string> energy;
                     boost::algorithm::split(block, line, boost::is_any_of("="), boost::algorithm::token_compress_on);
                     boost::algorithm::split(energy, block[1], boost::is_any_of("\t "), boost::algorithm::token_compress_on);
-                    orbitals.setSelfEnergy(tools::conv::hrt2ev * boost::lexical_cast<double> (energy[1]));
+                    orbitals.setSelfEnergy(boost::lexical_cast<double> (energy[1]));
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Self energy " << orbitals.getSelfEnergy() << flush;
 
                 }
