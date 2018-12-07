@@ -32,7 +32,7 @@ class BSE {
 
  public:
  
-  BSE(Orbitals& orbitals,ctp::Logger &log,double min_print_weight):
+  BSE(Orbitals& orbitals,ctp::Logger &log):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -41,27 +41,37 @@ class BSE {
         _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
         _bse_triplet_energies(orbitals.BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
-        _min_print_weight(min_print_weight){};
+        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()){};
+
+
+
+        struct options{
+            bool useTDA=true;
+            int homo;
+            int rpamin;
+            int rpamax;
+            int vmin;
+            int cmax;
+            int nmax;
+            int min_print_weight=0.5;  
+        };
   
-  void setGWData(const TCMatrix_gwbse* Mmn,const PPM* ppm,const Eigen::MatrixXd* Hqp){
+  void setGWData(const TCMatrix_gwbse* Mmn,const Eigen::MatrixXd* Hqp){
       _Mmn=Mmn;
-      _ppm=ppm;
       _Hqp=Hqp;   
   }
-  
-  void setBSEindices(int homo,int vmin, int cmax, int nmax) {
-                _homo=homo;
-                _bse_vmin = vmin;
-                _bse_vmax = homo;
-                _bse_cmin = homo+1;
-                _bse_cmax = cmax;
-                _bse_nmax = nmax;
-                _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-                _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-                _bse_size = _bse_vtotal * _bse_ctotal;
-                return;
-            }
+
+
+   void configure(const options& opt){
+    _opt=opt;
+    _bse_vmax = _opt.homo;
+    _bse_cmin = _opt.homo+1;
+    _bse_vtotal = _bse_vmax - _opt.vmin + 1;
+    _bse_ctotal =_opt.cmax - _bse_cmin + 1;
+    _bse_size = _bse_vtotal * _bse_ctotal;
+  }
+
+ 
 
    
   void Solve_triplets();
@@ -89,6 +99,7 @@ class BSE {
   }
  
  private:
+    options _opt;
 
      struct Interaction {
     Eigen::VectorXd exchange_contrib;
@@ -139,12 +150,12 @@ ctp::Logger &_log;
 
    template <typename T>
   void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T>
-  void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
+   template <typename T,int factor>
+  void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
    template <typename T>
    void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T>
-  void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
+   template <typename T, int factor>
+  void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
 
  void printFragInfo(const Population& pop, int i);
  void printWeights(int i_bse, double weight);

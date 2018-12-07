@@ -54,8 +54,8 @@ namespace votca { namespace xtp {
       Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*S-S*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
 
-       _mathist.push_back(std::unique_ptr(new Eigen::MatrixXd(H));
-       _dmatHist.push_back(std::unique_ptr(new Eigen::MatrixXd(dmat));
+       _mathist.push_back(std::unique_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(H)));
+       _dmatHist.push_back(std::unique_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(dmat)));
              
        if(_opt.maxout){
         if (_diiserror>_maxerror){

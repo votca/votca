@@ -45,7 +45,7 @@ namespace votca {
       MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
-      Add_Hx<real_gwbse>(H,2.0);
+      Add_Hx<real_gwbse,2>(H);
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
@@ -58,7 +58,7 @@ namespace votca {
       _eh_s = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(_eh_s);
       Add_Hqp<real_gwbse>(_eh_s);
-      Add_Hx<real_gwbse>(_eh_s,2.0);
+      Add_Hx<real_gwbse,2>(_eh_s);
      }
   
   void BSE::SetupHt(){
@@ -81,11 +81,11 @@ namespace votca {
         Add_Hqp<double>(ApB);
         
         Eigen::MatrixXd AmB=ApB;
-        Add_Hd2<double>(AmB,-1.0);
+        Add_Hd2<double,-1>(AmB);
  
         
-        Add_Hx<double>(ApB,4.0);
-        Add_Hd2<double>(ApB,1.0);
+        Add_Hx<double,4>(ApB);
+        Add_Hd2<double,1>(ApB);
         CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
      
@@ -267,8 +267,8 @@ template <typename T>
 
       return;
     }
-template <typename T>
-    void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
+template <typename T, int factor>
+    void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
       // gwbasis size
       int auxsize = _Mmn->auxsize();
       int bse_vxc_total=_bse_vtotal * _bse_ctotal;
@@ -345,8 +345,8 @@ template <typename T>
       return;
     }
 
-template <typename T>
-    void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) { 
+template <typename T,int factor>
+    void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) { 
       // gwbasis size
       int auxsize = _Mmn->auxsize();
        vc2index vc=vc2index(0,0,_bse_ctotal);
@@ -490,12 +490,12 @@ template <typename T>
         Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_bse_nmax);
         if (type == QMStateType::Singlet) {
             for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
-                MatrixXfd _slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
-                contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
+                MatrixXfd slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
+                contrib(i_exc) =  (slice_R.transpose()*H * slice_R).value();
                 if (_bse_singlet_coefficients_AR.cols() > 0) {
-                    MatrixXfd _slice_AR = _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
+                    MatrixXfd slice_AR = _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
                     // get anti-resonant contribution from direct Keh 
-                    contrib(i_exc)-= (_slice_AR.transpose()*H * _slice_AR).value();           
+                    contrib(i_exc)-= (slice_AR.transpose()*H * slice_AR).value();           
                 }
             }
         } else if (type == QMStateType::Triplet) {
@@ -513,15 +513,15 @@ template <typename T>
 
       Interaction analysis;
       MatrixXfd H = MatrixXfd::Zero(_bse_size, _bse_size);
-      Add_Hqp(H); 
+      Add_Hqp<real_gwbse>(H);
       analysis.qp_contrib=Analyze_IndividualContribution(type,H);
       
       H = MatrixXfd::Zero(_bse_size, _bse_size);
-      Add_Hd(H);
+      Add_Hd<real_gwbse>(H);
       analysis.direct_contrib=Analyze_IndividualContribution(type,H);
       if (type == QMStateType::Singlet) {
           H = MatrixXfd::Zero(_bse_size, _bse_size);
-          Add_Hx(H,2.0);
+          Add_Hx<real_gwbse,2>(H);
           analysis.exchange_contrib=Analyze_IndividualContribution(type,H);
       }else{
             analysis.exchange_contrib=Eigen::VectorXd::Zero(0);
@@ -577,11 +577,11 @@ template <typename T>
       }
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Calculated free interlevel transition dipole moments " << flush;
       if(tools::globals::verbose){
-          CTP_LOG(ctp::logDEBUG, *_log)<< ctp::TimeStamp() << "Free interlevel dipoles v c strength[bohr*e] " << std::flush;
+          CTP_LOG(ctp::logDEBUG, _log)<< ctp::TimeStamp() << "Free interlevel dipoles v c strength[bohr*e] " << std::flush;
           Eigen::MatrixXd result=(interlevel_dipoles[0].cwiseAbs2()+interlevel_dipoles[1].cwiseAbs2()+interlevel_dipoles[2].cwiseAbs2()).cwiseSqrt();
       for (int v = 0; v < _bse_vtotal; v++) {
           for (int c = 0; c < _bse_ctotal; c++) {
-             CTP_LOG(ctp::logDEBUG, *_log)<< "\t\t" << v << " " << c << " "
+             CTP_LOG(ctp::logDEBUG, _log)<< "\t\t" << v << " " << c << " "
                      <<result(v, c)<< std::flush;
           }}      
     }

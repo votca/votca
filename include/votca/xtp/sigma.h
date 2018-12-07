@@ -29,78 +29,36 @@ namespace xtp {
 
 class Sigma {
  public:
-  Sigma(ctp::Logger *log){
-_log = log;
-_gwa_energies.resize(0);
-  }
+  Sigma(const TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
   
-  void configure(int homo, int qpmin,int qpmax,int g_sc_max_iterations,
-                double g_sc_limit){
+  void configure(int homo, int qpmin,int qpmax){
       _homo=homo;
       _qpmin=qpmin;
       _qpmax=qpmax;
       _qptotal=_qpmax - _qpmin + 1;
-      _g_sc_limit=g_sc_limit;
-      _g_sc_max_iterations=g_sc_max_iterations;
-      if(_g_sc_max_iterations<1) {_g_sc_max_iterations=1;}
   }
   
-  void setDFTdata(double ScaHFX, const Eigen::MatrixXd* vxc, const Eigen::VectorXd* dftenergies){
-      _ScaHFX=ScaHFX;
-      _vxc=vxc;
-      _dftenergies=dftenergies;
-  }
-  
-void CalcdiagElements(const TCMatrix_gwbse& Mmn,const PPM & ppm );
+Eigen::MatrixXd CalcExchange()const;
 
-void CalcOffDiagElements(const TCMatrix_gwbse& Mmn,const PPM & ppm );
+Eigen::VectorXd CalcCorrelationDiag(const PPM & ppm,const Eigen::VectorXd& energies )const;
 
-Eigen::MatrixXd SetupFullQPHamiltonian();
-
-const Eigen::VectorXd& getGWAEnergies()const{return _gwa_energies;}
-
-void setGWAEnergies(const Eigen::VectorXd& gwa_energies){_gwa_energies=gwa_energies;}
-
-double x(int i)const{return _sigma_x(i,i);}
-double c(int i)const{return _sigma_c(i,i);}
-  
-void FreeMatrices(){
-    _sigma_x.resize(0,0);
-    _sigma_c.resize(0,0);
-}
+Eigen::MatrixXd CalcCorrelationOffDiag(const PPM & ppm,const Eigen::VectorXd& energies)const;
+ 
 
  private:
-     
-  void C_diag(const TCMatrix_gwbse& Mmn, const PPM& ppm, const Eigen::VectorXd& qp_old);
-  void C_offdiag(const TCMatrix_gwbse& Mmn, const PPM& ppm);
-  
+
+  const TCMatrix_gwbse& _Mmn;
+
   inline double SumSymmetric(real_gwbse Mmn1xMmn2, double qpmin1, double qpmin2, const double gwa_energy);
   inline double Stabilize(double denom);
   inline void Stabilize(Eigen::ArrayXd& denom);
-
-  void X_offdiag(const TCMatrix_gwbse& Mmn);   
-  void X_diag(const TCMatrix_gwbse& Mmn);
-ctp::Logger *_log;
   int _homo;   // HOMO index
   int _qpmin;
   int _qpmax;
   int _qptotal;
 
-  double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  int _g_sc_max_iterations;
-  
-  double _ScaHFX;
-  // Sigma related variables and functions
-  Eigen::MatrixXd _sigma_x;  // exchange term
-  Eigen::MatrixXd _sigma_c;  // correlation term
+ 
 
-  
-const Eigen::MatrixXd* _vxc;
-const Eigen::VectorXd* _dftenergies;
-  
-
-  // QP variables and functions
-  Eigen::VectorXd _gwa_energies;
   
 };
 }

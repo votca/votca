@@ -400,20 +400,11 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
       _conv_accelerator.setOverlap(&_dftAOoverlap, 1e-8);
 
       if (_with_RI) {
-
-        AOCoulomb auxAOcoulomb;
-        auxAOcoulomb.Fill(_auxbasis);
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Filled auxiliary Coulomb matrix"<< flush;
-
-        Eigen::MatrixXd Inverse=auxAOcoulomb.Pseudo_InvSqrt(1e-8);
-
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Inverted AUX Coulomb matrix, removed " << auxAOcoulomb.Removedfunctions()
-                << " functions from aux basis" << flush;
-
         // prepare invariant part of electron repulsion integrals
-        _ERIs.Initialize(_dftbasis, _auxbasis, Inverse);
+        _ERIs.Initialize(_dftbasis, _auxbasis);
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                << " Inverted AUX Coulomb matrix, removed " << _ERIs.Removedfunctions()
+                << " functions from aux basis" << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Setup invariant parts of Electron Repulsion integrals " << flush;
       } else {
