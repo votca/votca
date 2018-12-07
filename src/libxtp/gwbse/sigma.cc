@@ -174,9 +174,7 @@ namespace votca {
          const double fourpi = 4*boost::math::constants::pi<double>();
          for(int i=0;i<denom.size();++i){
              if (std::abs(denom[i]) < 0.25) {
-                 denom[i]=0.5 * (1.0 - std::cos(fourpi * denom[i]))/denom[i];
-            }else{
-                 denom[i]=1/denom[i];
+                 denom[i]=denom[i]/(0.5 * (1.0 - std::cos(fourpi * denom[i])));
             }
          }
     }
@@ -196,36 +194,38 @@ namespace votca {
         const int gwsize = Mmn.getAuxDimension(); // size of the GW basis
         const Eigen::VectorXd ppm_weight=ppm.getPpm_weight();
         const Eigen::VectorXd ppm_freqs=ppm.getPpm_freq();
+        const Eigen::VectorXd fac=0.25*ppm_weight.cwiseProduct(ppm_freqs);
+        
+        const Eigen::VectorXd gwa_energies=_gwa_energies;
         #pragma omp for schedule(dynamic)
         for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
         const MatrixXfd& Mmn1=Mmn[ gw_level1 + _qpmin ];
-        const double qpmin1 = _gwa_energies(gw_level1 + _qpmin);
+        const double qpmin1 = gwa_energies(gw_level1 + _qpmin);
         for (int gw_level2 = gw_level1+1; gw_level2 < _qptotal; gw_level2++) {
           const MatrixXfd& Mmn2=Mmn[ gw_level2 + _qpmin ];
-          const double qpmin2 = _gwa_energies(gw_level2 + _qpmin);
+          const double qpmin2 = gwa_energies(gw_level2 + _qpmin);
           double sigma_c=0;
           for (int i_gw = 0; i_gw < gwsize; i_gw++) {
             // the ppm_weights smaller 1.e-5 are set to zero in rpa.cc PPM_construct_parameters
             if (ppm_weight(i_gw) < 1.e-9) {
               continue;
-            }
-            
-            
+            }            
             #if (GWBSE_DOUBLE)
      const Eigen::VectorXd Mmn1xMmn2=Mmn1.col(i_gw).cwiseProduct(Mmn2.col(i_gw));
 #else
        const Eigen::VectorXd Mmn1xMmn2=(Mmn1.col(i_gw).cwiseProduct(Mmn2.col(i_gw))).cast<double>();
 #endif
             
-            Eigen::ArrayXd denom1=_gwa_energies;
-            const double fac = 0.25*ppm.getPpm_weight()(i_gw) * ppm_freqs(i_gw);
+            Eigen::ArrayXd denom1=gwa_energies;
+           
             denom1.segment(0,lumo)-=ppm_freqs(i_gw);
             denom1.segment(lumo,levelsum-lumo)+=ppm_freqs(i_gw);
-            Eigen::ArrayXd denom2=qpmin2-denom1;
+          
+            Eigen::ArrayXd denom2=(qpmin2-denom1);
             Stabilize(denom2);
-            denom1=qpmin1-denom1;
-            Stabilize(denom1);  
-            sigma_c += fac*((denom1+denom2)*Mmn1xMmn2.array()).sum();
+            denom1=(qpmin1-denom1);
+            Stabilize(denom1);
+            sigma_c += fac(i_gw)*((denom1.inverse()+denom2.inverse())*Mmn1xMmn2.array()).sum();
             }
           _sigma_c(gw_level1, gw_level2) = sigma_c;
           _sigma_c(gw_level2, gw_level1) = sigma_c;
