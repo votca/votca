@@ -111,26 +111,27 @@ namespace votca {
                 _qmpackage->WriteInputFile(orbitals);
             }
             if (_do_dft_run) {
-                bool run_success = _qmpackage->Run(orbitals);
+                bool run_success = _qmpackage->Run();
                 if (!run_success) {
                     throw std::runtime_error("\n DFT-run failed. Stopping!");
                 }
             }
 
             // parse DFT data, if required
-            if (_do_dft_parse && _qmpackage->getPackageName() != "xtp") {
+            if (_do_dft_parse){
                 CTP_LOG_SAVE(ctp::logINFO, *logger) << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file << flush;
                 _qmpackage->setLogFileName(_dftlog_file);
                 _qmpackage->setOrbitalsFileName(_MO_file);
                  
                 bool Logfile_parse=_qmpackage->ParseLogFile(orbitals);
                 if (!Logfile_parse) {
-                    throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
+                    throw std::runtime_error("\n Parsing DFT logfile "+_dftlog_file+" failed. Stopping!");
                 }
                 bool Orbfile_parse=_qmpackage->ParseOrbitalsFile(orbitals);
                  if (!Orbfile_parse) {
-                    throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
+                    throw std::runtime_error("\n Parsing DFT orbfile "+_MO_file+" failed. Stopping!");
                 }
+                _qmpackage->CleanUp();
             }
 
             // if no parsing of DFT data is requested, reload serialized orbitals object

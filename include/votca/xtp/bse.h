@@ -60,13 +60,6 @@ class BSE {
                 _bse_vtotal = _bse_vmax - _bse_vmin + 1;
                 _bse_ctotal = _bse_cmax - _bse_cmin + 1;
                 _bse_size = _bse_vtotal * _bse_ctotal;
-                // indexing info BSE vector index to occupied/virtual orbital
-                for (int v = 0; v < _bse_vtotal; v++) {
-                    for (int c = 0; c < _bse_ctotal; c++) {
-                        _index2v.push_back(_bse_vmin + v);
-                        _index2c.push_back(_bse_cmin + c);
-                    }
-                }
                 return;
             }
 
@@ -152,9 +145,6 @@ ctp::Logger &_log;
    void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
    template <typename T>
   void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor);
-  
-  std::vector<int> _index2v;
-  std::vector<int> _index2c;
 
  void printFragInfo(const Population& pop, int i);
  void printWeights(int i_bse, double weight);

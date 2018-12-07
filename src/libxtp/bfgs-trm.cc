@@ -26,15 +26,17 @@ namespace votca {
 
     void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
       _parameters = initialparameters;
+      _cost = _costfunction.EvaluateCost(_parameters);
+      double lastcost=_cost;
+      Eigen::VectorXd gradient = _costfunction.EvaluateGradient(_parameters);
+      for (auto& func : _callbacks) {
+          func();
+        }
 
-      Eigen::VectorXd gradient = Eigen::VectorXd::Zero(_parameters.size());
       Eigen::VectorXd delta_p_trial = Eigen::VectorXd::Zero(_parameters.size());
-
-      double lastcost = _costfunction.EvaluateCost(_parameters);
       Eigen::VectorXd last_gradient = Eigen::VectorXd::Zero(_parameters.size());
       double delta_cost = 0;
-      for (_iteration = 0; _iteration < _max_iteration; _iteration++) {
-        gradient = _costfunction.EvaluateGradient(_parameters);
+      for (_iteration = 1; _iteration <= _max_iteration; _iteration++) {
         bool step_accepted = false;
         for (int i = 0; i < 100; i++) {
           TrustRegion subproblem;
@@ -48,7 +50,8 @@ namespace votca {
             break;
           }
         }
-        if (_iteration > 0) {
+        gradient = _costfunction.EvaluateGradient(_parameters);
+        if (_iteration > 1) {
           UpdateHessian(delta_p_trial, gradient - last_gradient);
         }
         lastcost = _cost;
@@ -58,7 +61,7 @@ namespace votca {
         }
         if (_costfunction.Converged(delta_p_trial, delta_cost, gradient)) {
           break;
-        } else if (_iteration == _max_iteration - 1) {
+        } else if (_iteration == _max_iteration) {
           _success = false;
           if (_logging) {
             CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: not converged after %2$d iterations ")
@@ -76,9 +79,9 @@ namespace votca {
         // total energy has unexpectedly increased, half the trust radius
         _trust_radius = 0.25 * _trust_radius;
         if (_logging) {
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step rejected ")
-                  % _iteration).str() << std::flush;
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.10e")
+          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step rejected ")
+                 % _iteration % cost_delta).str() << std::flush;
+          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$2.4e")
                   % _iteration % _trust_radius).str() << std::flush;
         }
       } else {
@@ -93,9 +96,9 @@ namespace votca {
           _trust_radius = 0.25 * _trust_radius;
         }
         if (_logging) {
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: step accepted ")
-                  % _iteration).str() << std::flush;
-          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$8.10e")
+          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f step accepted ")
+                  % _iteration % tr_check).str() << std::flush;
+          CTP_LOG(ctp::logINFO, *_pLog) << (boost::format("BFGS-TRM @iteration %1$d: new trust radius %2$2.4e")
                   % _iteration % _trust_radius).str() << std::flush;
         }
       }
