@@ -57,7 +57,7 @@ namespace votca { namespace xtp {
         const std::vector<double>& contractions = gaussian.getContraction();
 
         const double expofactor = gaussian.getPowfactor() * std::exp(-alpha * distsq);
-
+        const Eigen::Vector3d second_term=-2.0*alpha*center;
         // split combined shells
         int i_func = -1;
         int i_act;
@@ -66,31 +66,30 @@ namespace votca { namespace xtp {
           if (single_shell == 'S') {
            
             i_act = i_func + 1;
-            AOvalues(i_act) += contractions[0] * expofactor; // s-function
-            const double temp = contractions[0] * -2.0 * alpha *expofactor;
-            gradAOvalues.row(i_act) += temp* center; //gradient of s-function
+            double AOvalue=contractions[0] * expofactor;
+            AOvalues(i_act) += AOvalue; // s-function
+            gradAOvalues.row(i_act) += second_term*AOvalue ; //gradient of s-function
             i_func++;
           } else if (single_shell == 'P') {
             const double factor = 2. * sqrt(alpha) * contractions[1]* expofactor;
 
-
             i_act = i_func + 1; // Y 1,0
             double AOvalue = factor * center_z ; // Y 1,0
             AOvalues(i_act) += AOvalue;
-            gradAOvalues.row(i_act) += -2. * center * alpha * AOvalue;
+            gradAOvalues.row(i_act) += second_term* AOvalue;
             gradAOvalues( i_act,2) += factor;
 
             i_act++; // Y 1,-1
             AOvalue = factor * center_y ; // Y 1,-1
             AOvalues(i_act) += AOvalue;
-            gradAOvalues.row(i_act) += -2. * center * alpha * AOvalue;
+            gradAOvalues.row(i_act) += second_term* AOvalue;
             gradAOvalues( i_act,1) += factor;
 
             i_act++; // Y 1,1
             AOvalue = factor * center_x ; // Y 1,1
             AOvalues(i_act) += AOvalue;
             gradAOvalues( i_act,0) += factor;
-            gradAOvalues.row(i_act) += -2. * center * alpha * AOvalue; // y gradient
+            gradAOvalues.row(i_act) += second_term* AOvalue; // y gradient
 
             i_func += 3;
           } else if (single_shell == 'D') {
@@ -102,31 +101,31 @@ namespace votca { namespace xtp {
             double AOvalue = factor_1 * (3. * center_z * center_z - distsq) ; // Y 2,0
             AOvalues(i_act) += AOvalue;
             Eigen::Array3d coeff(-2,-2,4);
-            gradAOvalues.row( i_act) +=(factor_1* coeff* center.array()).matrix()  - 2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) +=(factor_1* coeff* center.array()).matrix()+ second_term* AOvalue;
 
             i_act++; // Y 2,-1
             AOvalue = 2. * factor * (center_y * center_z) ; // Y 2,-1
             AOvalues(i_act) += AOvalue;
             coeff={0,2 * center_z,2 * center_y };
-            gradAOvalues.row( i_act) += factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 2,1
             AOvalue = 2. * factor * (center_x * center_z); // Y 2,1
             AOvalues(i_act) += AOvalue;
             coeff={2*center_z,0,2 * center_x };
-            gradAOvalues.row( i_act) += factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 2,-2
             AOvalue = 2. * factor * (center_x * center_y) ; // Y 2,-2
             AOvalues(i_act) += AOvalue;
             coeff={2*center_y,2*center_x,0};
-            gradAOvalues.row( i_act) += factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 2,2
             AOvalue = factor * (center_x * center_x - center_y * center_y) ; // Y 2,2
             AOvalues(i_act) += AOvalue;
             coeff={2*center_x,-2*center_y,0};
-            gradAOvalues.row( i_act) += factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
 
             i_func += 5;
           } else if (single_shell == 'F') {
@@ -146,43 +145,43 @@ namespace votca { namespace xtp {
             double AOvalue = factor_1 * center_z * (5. * cz_cz - 3. * distsq) ; // Y 3,0
             AOvalues(i_act) += AOvalue;
             Eigen::Array3d coeff={-6. * cx_cz,-6. * cy_cz,3. * (3. * cz_cz - distsq)};
-            gradAOvalues.row( i_act) += factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_1*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 3,-1
             AOvalue = factor_2 * center_y * (5. * cz_cz - distsq) ; // Y 3,-1
             AOvalues(i_act) += AOvalue;
             coeff={-2. * cx_cy,4. * cz_cz - cx_cx - 3. * cy_cy,8. * cy_cz};
-            gradAOvalues.row( i_act) += factor_2*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 3,1
             AOvalue = factor_2 * center_x * (5. * cz_cz - distsq) ; // Y 3,1
             AOvalues(i_act) += AOvalue;
             coeff={4. * cz_cz - cy_cy - 3. * cx_cx,-2. * cx_cy,8. * cx_cz};
-            gradAOvalues.row( i_act) += factor_2*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 3,-2
             AOvalue = 4. * factor * center_x * center_y * center_z ; // Y 3,-2
             AOvalues(i_act) += AOvalue;
             coeff={cy_cz,cx_cz, cx_cy };
-            gradAOvalues.row( i_act) += 4*factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += 4*factor*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 3,2
             AOvalue = 2. * factor * center_z * (cx_cx - cy_cy) ; // Y 3,2
             AOvalues(i_act) += AOvalue;
             coeff={2. * cx_cz,-2. * cy_cz, cx_cx - cy_cy };
-            gradAOvalues.row( i_act) += 2*factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += 2*factor*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 3,-3
             AOvalue = factor_3 * center_y * (3. * cx_cx - cy_cy) ; // Y 3,-3
             AOvalues(i_act) += AOvalue;
             coeff={6. * cx_cy,3. * (cx_cx - cy_cy), 0};
-            gradAOvalues.row( i_act) += factor_3*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_3*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 3,3
             AOvalue = factor_3 * center_x * (cx_cx - 3. * cy_cy) ; // Y 3,3
             AOvalues(i_act) += AOvalue;
             coeff={3. * (cx_cx - cy_cy),-6. * cx_cy, 0};
-            gradAOvalues.row( i_act) += factor_3*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_3*coeff.matrix()+second_term* AOvalue;
 
             i_func += 7;
           } else if (single_shell == 'G') {
@@ -206,7 +205,7 @@ namespace votca { namespace xtp {
                                     12. * center_y * (distsq - 5. * cz_cz),
                                     16. * center_z * (5. * cz_cz - 3. * distsq)};
             
-            gradAOvalues.row( i_act) += factor_1*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_1*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,-1
             AOvalue = factor_2 * cy_cz * (7. * cz_cz - 3. * distsq) ; // Y 4,-1
@@ -214,7 +213,7 @@ namespace votca { namespace xtp {
             coeff={ (-6. * center_x * cy_cz),
                     center_z * (4. * cz_cz - 3. * cx_cx - 9. * cy_cy),
                     3. * center_y * (5. * cz_cz - distsq)};
-            gradAOvalues.row( i_act) += factor_2*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,1
             AOvalue = factor_2 * cx_cz * (7. * cz_cz - 3. * distsq) ; // Y 4,1
@@ -222,7 +221,7 @@ namespace votca { namespace xtp {
             coeff={ center_z * (4. * cz_cz - 9. * cx_cx - 3. * cy_cy),
                     (-6. * center_y * cx_cz),
                     3. * center_x * (5. * cz_cz - distsq)};
-            gradAOvalues.row( i_act) += factor_2*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,-2
             AOvalue = 2. * factor_3 * cx_cy * (7. * cz_cz - distsq); // Y 4,-2
@@ -230,7 +229,7 @@ namespace votca { namespace xtp {
             coeff={ center_y * (6. * cz_cz - 3. * cx_cx - cy_cy),
                     center_x * (6. * cz_cz - cx_cx - 3. * cy_cy) ,
                     12. * center_z * cx_cy };
-            gradAOvalues.row( i_act) += 2*factor_3*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += 2*factor_3*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,2
             AOvalue = factor_3 * (cx_cx - cy_cy) * (7. * cz_cz - distsq); // Y 4,2
@@ -238,7 +237,7 @@ namespace votca { namespace xtp {
             coeff={ 4. * center_x * (3. * cz_cz - cx_cx),
                     4. * center_y * (cy_cy - 3. * cz_cz) ,
                     12. * center_z * (cx_cx - cy_cy)  };
-            gradAOvalues.row( i_act) += factor_3*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_3*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,-3
             AOvalue = factor_4 * cy_cz * (3. * cx_cx - cy_cy); // Y 4,-3
@@ -246,7 +245,7 @@ namespace votca { namespace xtp {
             coeff={ 6. * center_x* cy_cz ,
                     3. * center_z * (cx_cx - cy_cy),
                     center_y * (3. * cx_cx - cy_cy) };
-            gradAOvalues.row( i_act) += factor_4*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_4*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,3
             AOvalue = factor_4 * cx_cz * (cx_cx - 3. * cy_cy); // Y 4,3
@@ -254,7 +253,7 @@ namespace votca { namespace xtp {
             coeff={3. * center_z * (cx_cx - cy_cy),
                    (-6. * center_y * cx_cz),
                    center_x * (cx_cx - 3. * cy_cy) };
-            gradAOvalues.row( i_act) += factor_4*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += factor_4*coeff.matrix()+second_term* AOvalue;
 
 
             i_act++; // Y 4,-4
@@ -263,7 +262,7 @@ namespace votca { namespace xtp {
             coeff={ center_y * (3. * cx_cx - cy_cy) ,
                    center_x * (cx_cx - 3. * cy_cy),
                    0 };
-            
+             gradAOvalues.row( i_act) += 4*factor*coeff.matrix()+second_term* AOvalue;
 
             i_act++; // Y 4,4
             AOvalue = factor * (cx_cx * cx_cx - 6. * cx_cx * cy_cy + cy_cy * cy_cy); // Y 4,4
@@ -271,10 +270,9 @@ namespace votca { namespace xtp {
             coeff={ center_x * (cx_cx - 3. * cy_cy) ,
                   center_y * (cy_cy - 3. * cx_cx) ,
                    0 };
-            gradAOvalues.row( i_act) += 4*factor*coeff.matrix()-2. * center * alpha * AOvalue;
+            gradAOvalues.row( i_act) += 4*factor*coeff.matrix()+second_term* AOvalue;
 
             i_func += 9;
-            ;
           } else if (single_shell == 'H') {
             std::cerr << "H functions not implemented in AOeval at the moment!" << std::endl;
             exit(1);
@@ -320,7 +318,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const t
                         double factor = 2.*sqrt(alpha)*contractions[1];
                       AOvalues( i_func + 1) += factor * center_z* expofactor; // Y 1,0
                       AOvalues( i_func + 2) += factor * center_y* expofactor; // Y 1,-1
-                      AOvalues(i_func + 3) += factor * center_x* expofactor; // Y 1,1
+                      AOvalues( i_func + 3) += factor * center_x* expofactor; // Y 1,1
                       i_func += 3;
                     }
                     else if (single_shell == 'D') {
@@ -330,7 +328,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const t
                       AOvalues( i_func + 2) += 2.*factor * (center_y*center_z) * expofactor; // Y 2,-1
                       AOvalues( i_func + 3) += 2.*factor * (center_x*center_z) * expofactor; // Y 2,1
                       AOvalues( i_func + 4) += 2.*factor * (center_x*center_y) * expofactor; // Y 2,-2
-                      AOvalues(i_func + 5) += factor * (center_x*center_x - center_y*center_y) * expofactor; // Y 2,2
+                      AOvalues( i_func + 5) += factor * (center_x*center_x - center_y*center_y) * expofactor; // Y 2,2
                       i_func += 5;
                     }
                     else if (single_shell == 'F') {
@@ -342,14 +340,13 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const t
                       double cy_cy = center_y*center_y;
                       double cz_cz = center_z*center_z;
 
-                      AOvalues(i_func + 1) += factor_1 * center_z * (5.*cz_cz - 3.*distsq) * expofactor; // Y 3,0
-                      AOvalues(i_func + 2) += factor_2 * center_y * (5.*cz_cz - distsq) * expofactor; // Y 3,-1
+                      AOvalues( i_func + 1) += factor_1 * center_z * (5.*cz_cz - 3.*distsq) * expofactor; // Y 3,0
+                      AOvalues( i_func + 2) += factor_2 * center_y * (5.*cz_cz - distsq) * expofactor; // Y 3,-1
                       AOvalues( i_func + 3) += factor_2 * center_x * (5.*cz_cz - distsq) * expofactor; // Y 3,1
                       AOvalues( i_func + 4) += 4.*factor * center_x * center_y * center_z * expofactor; // Y 3,-2
                       AOvalues( i_func + 5) += 2.*factor * center_z * (cx_cx - cy_cy) * expofactor; // Y 3,2
                       AOvalues( i_func + 6) += factor_3 * center_y * (3.*cx_cx - cy_cy) * expofactor; // Y 3,-3
                       AOvalues( i_func + 7) += factor_3 * center_x * (cx_cx - 3.*cy_cy) * expofactor; // Y 3,3
-
                       i_func += 7;
                     }
                     else if (single_shell == 'G') {
@@ -366,14 +363,14 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const t
                       double cz_cz = center_z*center_z;
 
                       AOvalues( i_func + 1) += factor_1 * (35.*cz_cz*cz_cz - 30.*cz_cz*distsq + 3.*distsq*distsq) * expofactor; // Y 4,0
-                      AOvalues(i_func + 2) += factor_2 * cy_cz * (7.*cz_cz - 3.*distsq) * expofactor; // Y 4,-1
+                      AOvalues( i_func + 2) += factor_2 * cy_cz * (7.*cz_cz - 3.*distsq) * expofactor; // Y 4,-1
                       AOvalues( i_func + 3) += factor_2 * cx_cz * (7.*cz_cz - 3.*distsq) * expofactor; // Y 4,1
                       AOvalues( i_func + 4) += 2.*factor_3 * cx_cy * (7.*cz_cz - distsq) * expofactor; // Y 4,-2
-                      AOvalues(i_func + 5) += factor_3 * (cx_cx - cy_cy) * (7.*cz_cz - distsq) * expofactor; // Y 4,2
+                      AOvalues( i_func + 5) += factor_3 * (cx_cx - cy_cy) * (7.*cz_cz - distsq) * expofactor; // Y 4,2
                       AOvalues( i_func + 6) += factor_4 * cy_cz * (3.*cx_cx - cy_cy) * expofactor; // Y 4,-3
                       AOvalues( i_func + 7) += factor_4 * cx_cz * (cx_cx - 3.*cy_cy) * expofactor; // Y 4,3
                       AOvalues( i_func + 8) += 4.*factor * cx_cy * (cx_cx - cy_cy) * expofactor; // Y 4,-4
-                      AOvalues(i_func + 9) += factor * (cx_cx*cx_cx - 6.*cx_cx*cy_cy + cy_cy*cy_cy) * expofactor; // Y 4,4
+                      AOvalues( i_func + 9) += factor * (cx_cx*cx_cx - 6.*cx_cx*cy_cy + cy_cy*cy_cy) * expofactor; // Y 4,4
 
                       i_func += 9;
                     }
