@@ -1,7 +1,20 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
 ## Version 1.5-dev
-* dropped support for gmx-5.0
+* added support for 3 body distribution
+* allow usage of _ in gmx options
+* support espresso-4.0
+* added LAMMPS data topology reader
+* added LAMMPS dump writer
+* added support for gmx-2019
+* move from gsl to Eigen3
+* added support for running gmx in multidir mode
+* extended pdb reader to read CONECT section
+* reworked perl interface to fix #179
+* make most install locations configureable
+* allow to change pot extrapolation fct for LAMMPS
+* dropped support for gmx-5.1
+* added unit and regression tests
 
 ## Version 1.4.1 (released 02.09.17)
 * fix pkg-config files
