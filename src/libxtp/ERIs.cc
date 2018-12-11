@@ -63,11 +63,12 @@ namespace votca {
           #pragma omp parallel for
           for (unsigned thread = 0; thread < nthreads; ++thread) {
             Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
-            for (int _i = thread; _i < _threecenter.getSize(); _i += nthreads) {
-              const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(_i);
+            for (int i = thread; i < _threecenter.getSize(); i += nthreads) {
+              const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(i);
               // Trace over prod::DMAT,I(l)=componentwise product over 
-              double factor = threecenter.TraceofProd(dmat_sym);
-              threecenter.AddtoEigenMatrix(ERIS_thread[thread], factor);
+              const double factor = threecenter.TraceofProd(dmat_sym);
+              Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper> m=ERIS_thread[thread].selfadjointView<Eigen::Upper>();
+              threecenter.AddtoEigenUpperMatrix(m, factor);
             }
           }
 
@@ -75,6 +76,7 @@ namespace votca {
           for (const auto& thread : ERIS_thread) {
             _ERIs += thread;
           }
+          _ERIs+=_ERIs.triangularView<Eigen::StrictlyUpper>().transpose();
 
           CalculateEnergy(DMAT);
           return;
@@ -98,8 +100,8 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd D=DMAT;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
-              const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).FullMatrix();
-              EXX_thread[thread].noalias()+=threecenter*D*threecenter;
+              const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).UpperMatrix();
+              EXX_thread[thread].noalias()+=threecenter.selfadjointView<Eigen::Upper>()*D*threecenter.selfadjointView<Eigen::Upper>();
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
@@ -129,7 +131,7 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd occ=occMos;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
-              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).FullMatrix();
+              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).UpperMatrix().selfadjointView<Eigen::Upper>();
               EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
             }
           }
