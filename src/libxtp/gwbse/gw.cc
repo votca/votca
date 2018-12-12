@@ -79,7 +79,7 @@ Eigen::MatrixXd GW::getGWAResults()const{
           "====== "))
           .str()
           << std::flush;
-  for (int i = 0; i < _opt; i++) {
+  for (int i = 0; i < _qptotal; i++) {
     if ((i +_opt.qpmin) == _opt.homo) {
       CTP_LOG(ctp::logINFO, _log)
               << (boost::format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
@@ -139,9 +139,7 @@ void GW::CalculateGWPerturbation(){
 
     
 
-    void Sigma::C_diag(const TCMatrix_gwbse& Mmn, const PPM& ppm, const Eigen::VectorXd& qp_old){
-      int levelsum = Mmn.nsize(); // total number of bands
-      int gwsize = Mmn.auxsize(); // size of the GW basis
+   
       
       // loop over all GW levels
 #pragma omp parallel for

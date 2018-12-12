@@ -29,7 +29,7 @@ namespace xtp {
 
 class Sigma {
  public:
-  Sigma(const TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
+  Sigma(TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
   
   void configure(int homo, int qpmin,int qpmax){
       _homo=homo;
@@ -47,15 +47,15 @@ Eigen::MatrixXd CalcCorrelationOffDiag(const PPM & ppm,const Eigen::VectorXd& en
 
  private:
 
-  const TCMatrix_gwbse& _Mmn;
+  TCMatrix_gwbse& _Mmn;
 
-  inline double SumSymmetric(real_gwbse Mmn1xMmn2, double qpmin1, double qpmin2, const double gwa_energy);
-  inline double Stabilize(double denom);
-
+  inline void Stabilize(Eigen::ArrayXd& denom);
   int _homo;   // HOMO index
   int _qpmin;
   int _qpmax;
   int _qptotal;
+
+  PPM _ppm;
 
  
 

@@ -33,18 +33,21 @@ class RPA
 {
 public:
 
+    RPA(const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn):
+        _qp_energies(qp_energies),_Mmn(Mmn){};
+
     void configure(int homo, int rpamin, int rpamax){
         _homo = homo;
         _rpamin = rpamin;
         _rpamax = rpamax;
     }
 
-    Eigen::MatrixXd calculate_epsilon_i(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const{
-        return calculate_epsilon<true>(frequency, qp_energies, Mmn);
+    Eigen::MatrixXd calculate_epsilon_i(double frequency)const{
+        return calculate_epsilon<true>(frequency);
     }
 
-    Eigen::MatrixXd calculate_epsilon_r(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const{
-        return calculate_epsilon<false>(frequency, qp_energies, Mmn);
+    Eigen::MatrixXd calculate_epsilon_r(double frequency)const{
+        return calculate_epsilon<false>(frequency);
     }
 
 private:
@@ -53,8 +56,11 @@ private:
     int _rpamin;
     int _rpamax;
 
+    const Eigen::VectorXd& _qp_energies;
+    const TCMatrix_gwbse& _Mmn;
+
     template< bool imag>
-    Eigen::MatrixXd calculate_epsilon(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const;
+    Eigen::MatrixXd calculate_epsilon(double frequency)const;
 
 };
 }

@@ -65,11 +65,14 @@ class GW {
     void CalculateHQP();
 
     Eigen::MatrixXd getHQP()const{
-        return _dft_energies.segment(_opt.qpmin,_qptotal).asDiagonal()+(1-_opt.ScaHFX)*_Sigma_x+_Sigma_c-_vxc;  
+        //Eigen::VectorXd dft_energies=;
+        return (1-_opt.ScaHFX)*_Sigma_x+_Sigma_c-_vxc+ Eigen::MatrixXd( _dft_energies.segment(_opt.qpmin,_qptotal).asDiagonal());
     }
     //Diagonalize QP particle Hamiltonian
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()const{
-        return Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd>(getHQP());
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> qpdiag(getHQP()) ;
+        PrintQP_Energies(qpdiag.eigenvalues());
+        return qpdiag;
     }
 
  private:
@@ -89,7 +92,7 @@ class GW {
 
     double CalcShift()const;
  Eigen::VectorXd ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const;
- void PrintQP_Energies()const;
+ void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies)const;
  void PrintGWA_Energies()const;
       
 
