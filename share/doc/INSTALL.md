@@ -6,10 +6,9 @@ VOTCA is currently composed of four major repositories:
 
 * TOOLS - general tools 
 * CSG - topographical classes and course graining functionality
-* CTP - charge transport classes and functionality
 * XTP - exciton and excited states functionality GW-BSE and DFT engine
 
-TOOLS -> CSG -> CTP -> XTP
+TOOLS -> CSG -> XTP
 
 ### Dependency Installation
 #### Ubuntu
@@ -40,7 +39,7 @@ To install the full package:
     cd votca
     mkdir build
     cd build
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j5
     make install
 
@@ -64,14 +63,12 @@ Note that `LD_LIBRARY_PATH` also needs to be set every time when running an exec
 
 * `BUILD_CSGAPPS` - Build the extra csg applications repo (ON/OFF, Default OFF)
 * `BUILD_XTP` - Build the xtp repo (ON/OFF, Default OFF)
-* `BUILD_CTP` - Build the ctp repo (ON/OFF, Default OFF)
 * `CMAKE_INSTALL_PREFIX` - where to install the votca executables (Default is /usr/local/bin)
 * `ENABLE_TESTING` - compile tests (ON/OFF, Default OFF)
 
 ### Other CMake Flags
 
  * `BUILD_CSG_MANUAL` - Build csg pdf manual
- * `BUILD_CTP_MANUAL` - Build ctp pdf manual
  * `BUILD_XTP_MANUAL` - Build xtp pdf manual
  * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
  * `CMAKE_DISABLE_FIND_PACKAGE_<name>` - Disable using an optional package called `<name>` (ON/OFF)
@@ -88,7 +85,7 @@ mkdir -p ${prefix}/src
 cd ${prefix}/src
 wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh
 chmod +x build.sh
-./build.sh --prefix ${prefix} --dev tools csg ctp xtp
+./build.sh --prefix ${prefix} --dev tools csg xtp
 ```
 Replace the _WHERE/TO/INSTALL/VOTCA_ with directory where you want to install votca, usually ${HOME}/votca is good choice.
 

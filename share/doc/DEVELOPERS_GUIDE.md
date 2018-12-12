@@ -31,7 +31,6 @@
  - [csgapps](https://github.com/votca/csgapps/issues)
  - [csg-manual](https://github.com/votca/csg-manual/issues)
  - [csg-tutorials](https://github.com/votca/csg-tutorials/issues)
- - [ctp](https://github.com/votca/ctp/issues)
  - [xtp](https://github.com/votca/xtp/issues)
  - [votca](https://github.com/votca/votca/issues)
 
@@ -64,7 +63,7 @@
 
 ### Header Files ###
   * One class, one header.
-  * When creating header gruards use the following form, where "VOTCA-REPO-NAME" is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where "CLASS-NAME" is replaced by the name of the class described in the header file:
+  * When creating header gruards use the following form, where "VOTCA-REPO-NAME" is replaced by whichever repo the header is in tools/csg/xtp, and where "CLASS-NAME" is replaced by the name of the class described in the header file:
 ```
 #ifndef VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
 #define VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
