@@ -21,7 +21,6 @@
 #define __VOTCA_XTP_XTPDFT_H
 
 
-#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 #include <votca/xtp/dftengine.h>
 

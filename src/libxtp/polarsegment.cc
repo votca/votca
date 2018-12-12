@@ -21,6 +21,7 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
+#include <boost/format.hpp>
 #include <vector>
 
 #include "votca/xtp/polarsegment.h"
