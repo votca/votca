@@ -44,7 +44,7 @@ public:
 
    bool WriteInputFile(const Orbitals& orbitals);
 
-   bool Run( Orbitals& orbitals );
+   bool Run();
 
    void CleanUp();
 

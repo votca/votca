@@ -59,10 +59,8 @@ namespace votca {
 
         }
 
-        /**
-         * Dummy for use of XTPDFT as QMPackage, needs no input file
-         */
         bool XTPDFT::WriteInputFile(const Orbitals& orbitals){
+            _orbitals=orbitals;
             return true;
         }
 
@@ -70,8 +68,8 @@ namespace votca {
         /**
          * Run calls DFTENGINE
          */
-        bool XTPDFT::Run( Orbitals& orbitals ) {
-          DFTEngine xtpdft=DFTEngine(orbitals);
+        bool XTPDFT::Run() {
+          DFTEngine xtpdft=DFTEngine(_orbitals);
           xtpdft.Initialize(_xtpdft_options);
           xtpdft.setLogger(_pLog);
            
@@ -79,11 +77,11 @@ namespace votca {
             xtpdft.setExternalcharges(_PolarSegments);
           }
           xtpdft.Prepare();
-          xtpdft.Evaluate();
+          bool success=xtpdft.Evaluate();
           _basisset_name = xtpdft.getDFTBasisName();
           std::string file_name = _run_dir + "/" + _log_file_name;
-          orbitals.WriteToCpt(file_name);
-          return true;
+          _orbitals.WriteToCpt(file_name);
+          return success;
         }
 
     void XTPDFT::CleanUp() {
@@ -117,6 +115,7 @@ namespace votca {
           try{
         std::string file_name = _run_dir + "/" + _log_file_name;
           orbitals.ReadFromCpt(file_name);
+          XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy()).str() << flush;
           }catch(std::runtime_error& error){
             XTP_LOG(logDEBUG, *_pLog) << "Reading"<<_log_file_name<<" failed" << flush;
             return false;

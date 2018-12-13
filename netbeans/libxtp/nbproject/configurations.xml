@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -125,6 +125,7 @@
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/topology.h</itemPath>
       <itemPath>../../include/votca/xtp/trustregion.h</itemPath>
+      <itemPath>../../include/votca/xtp/vc2index.h</itemPath>
       <itemPath>../../include/votca/xtp/version.h</itemPath>
       <itemPath>../../include/votca/xtp/votca_config.h.in</itemPath>
       <itemPath>../../include/votca/xtp/vxc_functionals.h</itemPath>
@@ -245,6 +246,7 @@
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
+      <itemPath>../../src/tests/test_aoshell.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_basisset.cc</itemPath>
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
@@ -282,6 +284,7 @@
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
       <itemPath>../../src/tests/test_trustregion.cc</itemPath>
+      <itemPath>../../src/tests/test_vc2index.cc</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles" displayName="XMLfiles" projectFiles="true">
       <logicalFolder name="f1" displayName="packages" projectFiles="true">
@@ -2362,6 +2365,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/vc2index.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/votca_config.h.in"
@@ -2938,6 +2943,8 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aoshell.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_basisset.cc" ex="false" tool="1" flavor2="0">
@@ -3044,6 +3051,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vc2index.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/xtp_dump.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3340,6 +3349,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/vc2index.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/version.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -3917,6 +3928,8 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aoshell.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_basisset.cc" ex="false" tool="1" flavor2="0">
@@ -4023,6 +4036,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vc2index.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

@@ -186,7 +186,7 @@ namespace votca {
 
         bool run_dft_status = false;
         if (_do_dft_run) {
-          run_dft_status = qmpackage->Run(orbitals);
+          run_dft_status = qmpackage->Run();
           if (!run_dft_status) {
             string output = "DFT run failed";
             SetJobToFailed(jres, pLog, output);

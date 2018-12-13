@@ -338,7 +338,7 @@ namespace votca {
         /**
          * Runs the Orca job.
          */
-        bool Orca::Run( Orbitals& orbitals ) {
+        bool Orca::Run() {
 
             XTP_LOG(logDEBUG, *_pLog) << "Running Orca job" << flush;
 
@@ -414,7 +414,6 @@ namespace votca {
         }
 
         bool Orca::ParseLogFile(Orbitals& orbitals) {
-            const double conv_Hrt_eV = tools::conv::hrt2ev;
             bool found_success=false;
             orbitals.setQMpackage("orca");
             orbitals.setDFTbasis(_basisset_name);
@@ -488,8 +487,8 @@ namespace votca {
                     boost::algorithm::split(results, line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
                     std::string energy = results[3];
                     boost::trim(energy);
-                    orbitals.setQMEnergy(conv_Hrt_eV * boost::lexical_cast<double>(energy));
-                    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[eV]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
+                    orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
+                    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy()).str() << flush;
                 }
 
                 std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");

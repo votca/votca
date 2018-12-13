@@ -333,8 +333,7 @@ void DFTEngine::CalcElDipole()const{
           XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " MO Energies  [Ha]" << flush;
           
           PrintMOs(MOEnergies);
-          // orbitals saves total energies in [eV]
-          _orbitals.setQMEnergy(totenergy * tools::conv::hrt2ev);
+          _orbitals.setQMEnergy(totenergy);
           CalcElDipole();
           break;
         } else {
