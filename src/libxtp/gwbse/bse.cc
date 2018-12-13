@@ -153,39 +153,12 @@ namespace votca {
 
       return;
     }
-
-   
-template <typename T>
-    void BSE::Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
+        
     
-    vc2index vc=vc2index(0,0,_bse_ctotal);
-    
-    const Eigen::MatrixXd& Hqp=*_Hqp;
-#pragma omp parallel for
-      for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-          int index_vc =vc.I(v1,c1);
-          // diagonal
-          H(index_vc, index_vc) += Hqp(c1 + _bse_vtotal, c1 + _bse_vtotal) -Hqp(v1, v1);
-          // v->c
-          for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-            int index_vc2 = vc.I(v1,c2);
-            if (c1 != c2) {
-              H(index_vc, index_vc2) += Hqp(c1 + _bse_vtotal, c2 + _bse_vtotal);
-            }
-          }
-          // c-> v
-          for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-            int index_vc2 = vc.I(v2,c1);
-            if (v1 != v2) {
-              H(index_vc, index_vc2) -= Hqp(v1, v2);
-            }
-          }
-        }
-      }
-      return;
-    }
+        template <typename T>
+        void BSE::Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
 
+<<<<<<< HEAD
 template <typename T>
     void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
       // gwbasis size
@@ -206,65 +179,31 @@ template <typename T>
             }
         }
       }
+=======
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
+>>>>>>> symmrefac
 
-      MatrixXfd storage_c = MatrixXfd::Zero(auxsize,cxc_size);
+            const Eigen::MatrixXd& Hqp = *_Hqp;
 #pragma omp parallel for
-      for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-        const MatrixXfd& Mmn = (*_Mmn)[c1 + _bse_cmin];
-        for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-          for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-            int index_cc = _bse_ctotal * c1 + c2;
-            storage_c(i_gw, index_cc) = Mmn( c2 + _bse_cmin,i_gw);
-          }
-        }
-      }
-
-      // store elements in a vtotal^2 x ctotal^2 matrix
-      MatrixXfd storage_prod = storage_v.transpose() *storage_c;
-
-      // now patch up _storage for screened interaction
-#pragma omp parallel for
-      for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-        if (_ppm->getPpm_weight()(i_gw) < 1.e-9) {
-          for (int v = 0; v < vxv_size; v++) {
-            storage_v(i_gw,v ) = 0;
-          }
-          for (int c = 0; c < cxc_size; c++) {
-            storage_c(i_gw, c) = 0;
-          }
-        } else {
-          double ppm_factor = sqrt(_ppm->getPpm_weight()(i_gw));
-          for (int v = 0; v < vxv_size; v++) {
-            storage_v(i_gw,v ) *= ppm_factor;
-          }
-          for (int c = 0; c < cxc_size; c++) {
-            storage_c(i_gw, c) *= ppm_factor;
-          }
-        }
-      }
-
-      // multiply and subtract from _storage_prod
-      storage_prod -= storage_v.transpose()*storage_c;
-      // free storage_v and storage_c
-      storage_c.resize(0, 0);
-      storage_v.resize(0, 0);
-      // finally resort into _eh_d
-      
-#pragma omp parallel for
-      for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-          int index_vv = _bse_vtotal * v1 + v2;
-          for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-            int index_vc1 = _bse_ctotal * v1 + c1;
-            for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-              int index_vc2 = _bse_ctotal * v2 + c2;
-              int index_cc = _bse_ctotal * c1 + c2;
-              H(index_vc1, index_vc2) -= storage_prod(index_vv, index_cc);
+            for (int v1 = 0; v1 < _bse_vtotal; v1++) {
+                for (int c1 = 0; c1 < _bse_ctotal; c1++) {
+                    int index_vc = vc.I(v1, c1);
+                    // v->c
+                    for (int c2 = 0; c2 < _bse_ctotal; c2++) {
+                        int index_vc2 = vc.I(v1, c2);
+                        H(index_vc2, index_vc) += Hqp(c2 + _bse_vtotal, c1 + _bse_vtotal);
+                    }
+                    // c-> v
+                    for (int v2 = 0; v2 < _bse_vtotal; v2++) {
+                        int index_vc2 = vc.I(v2, c1);
+                        H(index_vc2, index_vc) -= Hqp(v2, v1);
+                    }
+                }
             }
-          }
+            return;
         }
-      }
 
+<<<<<<< HEAD
       return;
     }
 template <typename T, int factor>
@@ -275,76 +214,57 @@ template <typename T, int factor>
       // messy procedure, first get two matrices for occ and empty subbparts
       // store occs directly transposed
       MatrixXfd storage_cv = MatrixXfd::Zero(auxsize,bse_vxc_total);
+=======
+        template <typename T>
+        void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
+            int auxsize = _Mmn->getAuxDimension();
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
+            VectorXfd epsilon_inv = (1 - _ppm->getPpm_weight().array()).cast<real_gwbse>();
+>>>>>>> symmrefac
 #pragma omp parallel for
-      for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-        const MatrixXfd& Mmn = (*_Mmn)[c1 + _bse_cmin ];
-        for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-          for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-            int index_cv = _bse_vtotal * c1 + v2;
-            storage_cv(i_gw,index_cv ) = Mmn( v2 + _bse_vmin,i_gw);
-          }
-        }
-      }
-
-      MatrixXfd storage_vc = MatrixXfd::Zero(auxsize, bse_vxc_total);
-#pragma omp parallel for
-      for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        const MatrixXfd& Mmn = (*_Mmn)[v1 + _bse_vmin];
-        for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-          for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-            int index_vc = _bse_ctotal * v1 + c2;
-            storage_vc(i_gw, index_vc) = Mmn(c2 + _bse_cmin,i_gw);
-          }
-        }
-      }
-
-      // store elements in a vtotal^2 x ctotal^2 matrix
-      MatrixXfd storage_prod = storage_cv.transpose()* storage_vc;
-
-      // now patch up _storage for screened interaction
-#pragma omp parallel for
-      for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-        if (_ppm->getPpm_weight()(i_gw) < 1.e-9) {
-          for (int v = 0; v < bse_vxc_total; v++) {
-            storage_vc(i_gw, v) = 0;
-          }
-          for (int c = 0; c < bse_vxc_total; c++) {
-            storage_cv(i_gw,c ) = 0;
-          }
-        } else {
-          double ppm_factor = sqrt(_ppm->getPpm_weight()(i_gw));
-          for (int v = 0; v < bse_vxc_total; v++) {
-            storage_vc(i_gw, v) *= ppm_factor;
-          }
-          for (int c = 0; c < bse_vxc_total; c++) {
-            storage_cv(i_gw,c ) *= ppm_factor;
-          }
-        }
-      }
-
-      // multiply and subtract from _storage_prod
-      storage_prod -= storage_cv.transpose() * storage_vc;
-      // free storage_v and storage_c
-      storage_cv.resize(0, 0);
-      storage_vc.resize(0, 0);
-  
-#pragma omp parallel for
-      for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-          for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-            int index_v1c1 = _bse_ctotal * v1 + c1;
-            int index_c1v2 = _bse_vtotal * c1 + v2;
-            for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-              int index_v2c2 = _bse_ctotal * v2 + c2;
-              int index_v1c2 = _bse_ctotal * v1 + c2;
-              H(index_v1c1, index_v2c2) -= factor*storage_prod(index_c1v2, index_v1c2);
+            for (int v1 = 0; v1 < _bse_vtotal; v1++) {
+                const MatrixXfd Mmn1T = ((*_Mmn)[v1 + _bse_vmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize) * epsilon_inv.asDiagonal()).transpose();
+                for (int c1 = 0; c1 < _bse_ctotal; c1++) {
+                    const MatrixXfd& Mmn2 = (*_Mmn)[c1 + _bse_cmin];
+                    const MatrixXfd Mmn2xMmn1T = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize)*Mmn1T;
+                    int i1 = vc.I(v1, c1);
+                    for (int v2 = 0; v2 < _bse_vtotal; v2++) {
+                        for (int c2 = 0; c2 < _bse_ctotal; c2++) {
+                            int i2 = vc.I(v2, c2);
+                            H(i2, i1) -= Mmn2xMmn1T(c2, v2);
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
-      return;
-    }
 
+            return;
+        }
+
+        template <typename T>
+        void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
+            int auxsize = _Mmn->getAuxDimension();
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
+            VectorXfd epsilon_inv = (1 - _ppm->getPpm_weight().array()).cast<real_gwbse>();
+#pragma omp parallel for       
+            for (int c1 = 0; c1 < _bse_ctotal; c1++) {
+                const MatrixXfd Mmn2T = ((*_Mmn)[c1 + _bse_cmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize)* epsilon_inv.asDiagonal()).transpose();
+                for (int v1 = 0; v1 < _bse_vtotal; v1++) {
+                    const MatrixXfd& Mmn1 = (*_Mmn)[v1 + _bse_vmin];
+                    MatrixXfd Mmn1xMmn2T = Mmn1.block(_bse_cmin, 0, _bse_ctotal, auxsize)* Mmn2T;
+                    int i1 = vc.I(v1, c1);
+                    for (int v2 = 0; v2 < _bse_vtotal; v2++) {
+                        for (int c2 = 0; c2 < _bse_ctotal; c2++) {
+                            int i2 = vc.I(v2, c2);
+                            H(i2, i1) -= factor * Mmn1xMmn2T(c2, v2);
+                        }
+                    }
+                }
+            }
+            return;
+        }
+        
+
+<<<<<<< HEAD
 template <typename T,int factor>
     void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) { 
       // gwbasis size
@@ -353,21 +273,30 @@ template <typename T,int factor>
       // get a different storage for 3-center integrals we need
       Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> storage = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(auxsize, _bse_size);
       // occupied levels
+=======
+        template <typename T>
+        void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
+            // gwbasis size
+            int auxsize = _Mmn->getAuxDimension();
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
+>>>>>>> symmrefac
 #pragma omp parallel for
-      for (int v = 0; v < _bse_vtotal; v++) {
-        const MatrixXfd& Mmn = (*_Mmn)[v + _bse_vmin];
-        // empty levels
-        for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-          for (int c = 0; c < _bse_ctotal; c++) {
-            int index_vc =vc.I(v,c);
-            storage(i_gw, index_vc) = Mmn(c + _bse_cmin,i_gw);
-          }
+            for (int v1 = 0; v1 < _bse_vtotal; v1++) {
+                const MatrixXfd Mmn1 = factor * ((*_Mmn)[v1 + _bse_vmin].block(_bse_cmin, 0, _bse_ctotal, auxsize)).transpose();
+                for (int c1 = 0; c1 < _bse_ctotal; c1++) {
+                    int i1 = vc.I(v1, c1);
+                    for (int v2 = 0; v2 < _bse_vtotal; v2++) {
+                        const MatrixXfd& Mmn2 = (*_Mmn)[v2 + _bse_vmin];
+                        const VectorXfd Mmnx2 = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
+                        for (int c2 = 0; c2 < _bse_ctotal; c2++) {
+                            int i2 = vc.I(v2, c2);
+                            H(i2, i1) += Mmnx2(c2);
+                        }
+                    }
+                }
+            }
+            return;
         }
-      }
-      // with this storage, _eh_x is obtained by matrix multiplication
-      H += factor*storage.transpose() * storage;
-      return;
-    }
 
     void BSE::printFragInfo(const Population& pop, int i){
       CTP_LOG(ctp::logINFO, _log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")

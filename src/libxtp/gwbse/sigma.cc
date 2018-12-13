@@ -31,6 +31,7 @@ namespace votca {
 
   Eigen::MatrixXd Sigma::CalcExchange()const{
 
+<<<<<<< HEAD
     Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
     int gwsize = _Mmn.auxsize();
       #pragma omp parallel for schedule(dynamic)
@@ -42,6 +43,25 @@ namespace votca {
           result(gw_level1, gw_level2) =  sigma_x;
           result(gw_level2, gw_level1) =  sigma_x;
         }
+=======
+      // constructing full QP Hamiltonian
+      Eigen::MatrixXd Hqp = _sigma_x + _sigma_c - (*_vxc);
+      // diagonal elements are given by _qp_energies
+      for (int m = 0; m < Hqp.rows(); m++) {
+        Hqp(m, m) = _gwa_energies(m + _qpmin);
+      }
+      return Hqp;
+    }
+
+    void Sigma::X_diag(const TCMatrix_gwbse& Mmn){
+      int gwsize = Mmn.getAuxDimension(); // size of the GW basis
+      _sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
+      #pragma omp parallel for
+      for (int gw_level = 0; gw_level < _qptotal; gw_level++) {
+        const MatrixXfd & Mmn1 = Mmn[ gw_level + _qpmin ];
+        double sigma_x=-Mmn1.block(0,0,_homo+1,gwsize).cwiseAbs2().sum();
+        _sigma_x(gw_level, gw_level) = (1.0 - _ScaHFX) * sigma_x;
+>>>>>>> symmrefac
       }
     return result;
   }
@@ -80,8 +100,72 @@ namespace votca {
       }// all bands
         return result;
     }
+<<<<<<< HEAD
    
     void Sigma::Stabilize(Eigen::ArrayXd& denom){
+=======
+
+    void Sigma::CalcdiagElements(const TCMatrix_gwbse& Mmn, const PPM & ppm) {
+        X_diag(Mmn);
+        if(_gwa_energies.size()<1){
+            throw std::runtime_error("Sigma gwa_energies not set!");
+        }
+      _sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
+
+      // initial _qp_energies are dft energies
+      Eigen::VectorXd qp_old = _gwa_energies;
+      // only diagonal elements except for in final iteration
+      for (int g_iter = 0; g_iter < _g_sc_max_iterations; g_iter++) {
+        
+        C_diag(Mmn, ppm, qp_old);
+        Eigen::VectorXd diff = qp_old - _gwa_energies;
+        bool energies_converged = true;
+
+        int state = 0;
+        double diff_max = diff.cwiseAbs().maxCoeff(&state);
+        if (diff_max > _g_sc_limit) {
+          energies_converged = false;
+        }
+
+        if (tools::globals::verbose) {
+          double _DFTgap = (*_dftenergies)(_homo + 1) - (*_dftenergies)(_homo);
+          double _QPgap = _gwa_energies(_homo + 1) - _gwa_energies(_homo);
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " G_Iteration: " << g_iter + 1 << " shift=" << _QPgap - _DFTgap << " E_diff max=" << diff_max << " StateNo:" << state << std::flush;
+        }
+        double alpha = 0.0;
+        _gwa_energies = (1 - alpha) * _gwa_energies + alpha*qp_old;
+
+        if (energies_converged) {
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Converged after " << g_iter + 1 << " G iterations." << std::flush;
+          break;
+        } else if (g_iter == _g_sc_max_iterations - 1) {
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " G-self-consistency cycle not converged after " << _g_sc_max_iterations << " iterations." << std::flush;
+          break;
+
+        } else {
+          qp_old = _gwa_energies;
+        }
+      } // iterations
+      return;
+    }
+
+    void Sigma::X_offdiag(const TCMatrix_gwbse& Mmn){
+      int gwsize = Mmn.getAuxDimension();
+      #pragma omp parallel for schedule(dynamic)
+      for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
+        const MatrixXfd& Mmn1 = Mmn[ gw_level1 + _qpmin ];
+        for (int gw_level2 = gw_level1+1; gw_level2 < _qptotal; gw_level2++) {
+          const MatrixXfd & Mmn2 = Mmn[ gw_level2 + _qpmin ];
+          double sigma_x=-Mmn1.block(0,0,_homo+1,gwsize).cwiseProduct(Mmn2.block(0,0,_homo+1,gwsize)).sum();
+          _sigma_x(gw_level1, gw_level2) = (1.0 - _ScaHFX) * sigma_x;
+          _sigma_x(gw_level2, gw_level1) = (1.0 - _ScaHFX) * sigma_x;
+        }
+      }
+      return;
+    }
+    
+     void Sigma::Stabilize(Eigen::ArrayXd& denom){
+>>>>>>> symmrefac
          const double fourpi = 4*boost::math::constants::pi<double>();
          for(int i=0;i<denom.size();++i){
              if (std::abs(denom[i]) < 0.25) {
