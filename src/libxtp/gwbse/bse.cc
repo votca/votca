@@ -158,31 +158,6 @@ namespace votca {
         template <typename T>
         void BSE::Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
 
-<<<<<<< HEAD
-template <typename T>
-    void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
-      // gwbasis size
-      int auxsize = _Mmn->auxsize();
-      int vxv_size=_bse_vtotal * _bse_vtotal;
-      int cxc_size=_bse_ctotal * _bse_ctotal;
-      
-      // messy procedure, first get two matrices for occ and empty subbparts
-      // store occs directly transposed
-      MatrixXfd storage_v = MatrixXfd::Zero(auxsize, vxv_size);
-#pragma omp parallel for
-      for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        const MatrixXfd& Mmn = (*_Mmn)[v1 + _bse_vmin ];
-        for (int i_gw = 0; i_gw < auxsize; i_gw++) {
-          for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-            int index_vv = _bse_vtotal * v1 + v2;         
-              storage_v(i_gw,index_vv) = Mmn( v2 + _bse_vmin,i_gw);
-            }
-        }
-      }
-=======
-            vc2index vc = vc2index(0, 0, _bse_ctotal);
->>>>>>> symmrefac
-
             const Eigen::MatrixXd& Hqp = *_Hqp;
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
@@ -203,24 +178,11 @@ template <typename T>
             return;
         }
 
-<<<<<<< HEAD
-      return;
-    }
 template <typename T, int factor>
-    void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
-      // gwbasis size
-      int auxsize = _Mmn->auxsize();
-      int bse_vxc_total=_bse_vtotal * _bse_ctotal;
-      // messy procedure, first get two matrices for occ and empty subbparts
-      // store occs directly transposed
-      MatrixXfd storage_cv = MatrixXfd::Zero(auxsize,bse_vxc_total);
-=======
-        template <typename T>
-        void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
-            int auxsize = _Mmn->getAuxDimension();
+    void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
+            int auxsize = _Mmn->auxsize();
             vc2index vc = vc2index(0, 0, _bse_ctotal);
             VectorXfd epsilon_inv = (1 - _ppm->getPpm_weight().array()).cast<real_gwbse>();
->>>>>>> symmrefac
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
                 const MatrixXfd Mmn1T = ((*_Mmn)[v1 + _bse_vmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize) * epsilon_inv.asDiagonal()).transpose();
@@ -240,14 +202,14 @@ template <typename T, int factor>
             return;
         }
 
-        template <typename T>
-        void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
-            int auxsize = _Mmn->getAuxDimension();
+emplate <typename T, int factor>
+        void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
+            int auxsize = _Mmn->auxsize();
             vc2index vc = vc2index(0, 0, _bse_ctotal);
             VectorXfd epsilon_inv = (1 - _ppm->getPpm_weight().array()).cast<real_gwbse>();
 #pragma omp parallel for       
             for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-                const MatrixXfd Mmn2T = ((*_Mmn)[c1 + _bse_cmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize)* epsilon_inv.asDiagonal()).transpose();
+                const MatrixXfd Mmn2T =factor * ((*_Mmn)[c1 + _bse_cmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize)* epsilon_inv.asDiagonal()).transpose();
                 for (int v1 = 0; v1 < _bse_vtotal; v1++) {
                     const MatrixXfd& Mmn1 = (*_Mmn)[v1 + _bse_vmin];
                     MatrixXfd Mmn1xMmn2T = Mmn1.block(_bse_cmin, 0, _bse_ctotal, auxsize)* Mmn2T;
@@ -255,7 +217,7 @@ template <typename T, int factor>
                     for (int v2 = 0; v2 < _bse_vtotal; v2++) {
                         for (int c2 = 0; c2 < _bse_ctotal; c2++) {
                             int i2 = vc.I(v2, c2);
-                            H(i2, i1) -= factor * Mmn1xMmn2T(c2, v2);
+                            H(i2, i1) -=  Mmn1xMmn2T(c2, v2);
                         }
                     }
                 }
@@ -264,22 +226,10 @@ template <typename T, int factor>
         }
         
 
-<<<<<<< HEAD
 template <typename T,int factor>
     void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) { 
-      // gwbasis size
       int auxsize = _Mmn->auxsize();
        vc2index vc=vc2index(0,0,_bse_ctotal);
-      // get a different storage for 3-center integrals we need
-      Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> storage = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(auxsize, _bse_size);
-      // occupied levels
-=======
-        template <typename T>
-        void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H, double factor) {
-            // gwbasis size
-            int auxsize = _Mmn->getAuxDimension();
-            vc2index vc = vc2index(0, 0, _bse_ctotal);
->>>>>>> symmrefac
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
                 const MatrixXfd Mmn1 = factor * ((*_Mmn)[v1 + _bse_vmin].block(_bse_cmin, 0, _bse_ctotal, auxsize)).transpose();
