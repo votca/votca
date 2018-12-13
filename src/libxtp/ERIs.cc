@@ -63,8 +63,9 @@ namespace votca {
             for (int i = thread; i < _threecenter.getSize(); i += nthreads) {
               const Symmetric_Matrix &threecenter = _threecenter[i];
               // Trace over prod::DMAT,I(l)=componentwise product over 
-              double factor = threecenter.TraceofProd(dmat_sym);
-              threecenter.AddtoEigenMatrix(ERIS_thread[thread], factor);
+              const double factor = threecenter.TraceofProd(dmat_sym);
+              Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper> m=ERIS_thread[thread].selfadjointView<Eigen::Upper>();
+              threecenter.AddtoEigenUpperMatrix(m, factor);
             }
           }
 
@@ -72,6 +73,7 @@ namespace votca {
           for (const auto& thread : ERIS_thread) {
             _ERIs += thread;
           }
+          _ERIs+=_ERIs.triangularView<Eigen::StrictlyUpper>().transpose();
 
           CalculateEnergy(DMAT);
           return;
@@ -95,15 +97,15 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd D=DMAT;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
-              const Eigen::MatrixXd threecenter = _threecenter[i].FullMatrix();
-              EXX_thread[thread].noalias()+=threecenter*D*threecenter;
+              const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
+              EXX_thread[thread]+=threecenter.selfadjointView<Eigen::Upper>()*D*threecenter.selfadjointView<Eigen::Upper>();
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
           for (const auto& thread : EXX_thread) {
             _EXXs += thread;
           }
-
+          _EXXs+=_EXXs.triangularView<Eigen::StrictlyUpper>().transpose();
           CalculateEXXEnergy(DMAT);
           return;
         }
@@ -126,15 +128,15 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd occ=occMos;
             for(int i=thread;i<_threecenter.getSize();i+= nthreads){
-              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter[i].FullMatrix();
-              EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
+              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
+              EXX_thread[thread]+=TCxMOs_T.transpose()*TCxMOs_T;
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
           for (const auto& thread : EXX_thread) {
             _EXXs += 2*thread;
           }
-
+          _EXXs+=_EXXs.triangularView<Eigen::StrictlyUpper>().transpose();
           CalculateEXXEnergy(DMAT);
           return;
         }

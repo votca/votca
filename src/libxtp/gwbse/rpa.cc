@@ -29,8 +29,8 @@ namespace votca {
   namespace xtp {
 
  template< bool imag>
-    RPA::Eigen::MatrixXd calculate_epsilon(double frequency, const Eigen::VectorXd& qp_energies, const TCMatrix_gwbse& Mmn)const{
-        const int size = Mmn.auxsize(); // size of gwbasis
+    RPA::Eigen::MatrixXd calculate_epsilon(double frequency)const{
+        const int size = _Mmn.auxsize(); // size of gwbasis
 
         Eigen::MatrixXd result = Eigen::MatrixXd::Zero(size, size);
         const int lumo = _homo + 1;
@@ -40,15 +40,15 @@ namespace votca {
 
 #pragma omp parallel for
         for (int m_level = 0; m_level < n_occ; m_level++)        {
-            const double qp_energy_m = qp_energies(m_level + _rpamin);
+            const double qp_energy_m = _qp_energies(m_level + _rpamin);
 #if (GWBSE_DOUBLE)
-            const Eigen::MatrixXd Mmn_RPA = Mmn[ m_level ].block(n_occ, 0, n_unocc, size);
+            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level ].block(n_occ, 0, n_unocc, size);
 #else
-            const Eigen::MatrixXd Mmn_RPA = Mmn[ m_level ].block(n_occ, 0, n_unocc, size).cast<double>();
+            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level ].block(n_occ, 0, n_unocc, size).cast<double>();
 #endif
             Eigen::MatrixXd denom_x_Mmn_RPA = Mmn_RPA;
             for (int n_level = 0; n_level < n_unocc; n_level++){
-                const double deltaE = qp_energies(n_level + lumo) - qp_energy_m;
+                const double deltaE = _qp_energies(n_level + lumo) - qp_energy_m;
                 double denom = 0.0;
                 if (imag){
                     denom = 4.0 * deltaE / (deltaE * deltaE + freq2);

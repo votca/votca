@@ -71,6 +71,37 @@ BOOST_CHECK_EQUAL(check_matrices2, 1);
 
 }
 
+BOOST_AUTO_TEST_CASE(AddUpper_test) {
+
+   int dim=3;
+Eigen::MatrixXd test=Eigen::MatrixXd::Random(dim,dim);
+ Eigen::MatrixXd trans=test.transpose();
+test+=trans;
+Symmetric_Matrix sym=Symmetric_Matrix(test);
+
+Eigen::MatrixXd rand=Eigen::MatrixXd::Random(dim,dim);
+
+Eigen::MatrixXd result=rand+2*test;
+Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper> m=rand.selfadjointView<Eigen::Upper>();
+sym.AddtoEigenUpperMatrix(m,2.0);
+
+result.triangularView<Eigen::StrictlyLower>()=Eigen::MatrixXd::Zero(dim,dim);
+rand.triangularView<Eigen::StrictlyLower>()=Eigen::MatrixXd::Zero(dim,dim);
+
+bool check_matrices2=rand.isApprox(result,0.000001);
+if(!check_matrices2){
+  std::cout<<"ref"<<std::endl;
+  std::cout<<rand<<std::endl;
+  std::cout<<"sym matrix full"<<std::endl;
+  std::cout<<result<<std::endl;
+}
+BOOST_CHECK_EQUAL(check_matrices2, 1);
+
+
+}
+
+
+
 BOOST_AUTO_TEST_CASE(FullMatrix_test) {
   
 int dim=3;
@@ -83,6 +114,26 @@ bool check_matrices=test.isApprox(result,0.000001);
 
 BOOST_CHECK_EQUAL(check_matrices, 1);
 }
+
+BOOST_AUTO_TEST_CASE(UpperMatrix_test) {
+
+int dim=3;
+Eigen::MatrixXd test=Eigen::MatrixXd::Random(dim,dim);
+ Eigen::MatrixXd trans=test.transpose();
+test+=trans;
+
+Symmetric_Matrix sym=Symmetric_Matrix(test);
+Eigen::MatrixXd result=sym.UpperMatrix();
+
+result.triangularView<Eigen::StrictlyLower>()=Eigen::MatrixXd::Zero(dim,dim);
+test.triangularView<Eigen::StrictlyLower>()=Eigen::MatrixXd::Zero(dim,dim);
+
+bool check_matrices=test.isApprox(result,0.000001);
+
+BOOST_CHECK_EQUAL(check_matrices, 1);
+}
+
+
 
 
 BOOST_AUTO_TEST_CASE(TraceofProd_test) {
