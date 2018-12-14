@@ -74,6 +74,11 @@ Eigen::VectorBlock<Eigen::VectorXd> ao_block=aoval.segment(0,aobasis.AOBasisSize
 
 shell.EvalAOspace(ao_block,grad_block,gridpos);
 
+Eigen::VectorXd aoval_2=Eigen::VectorXd::Zero(aobasis.AOBasisSize());
+Eigen::VectorBlock<Eigen::VectorXd> ao_block_2=aoval_2.segment(0,aobasis.AOBasisSize());
+shell->EvalAOspace(ao_block_2,gridpos);
+
+
 Eigen::VectorXd aoval_ref=Eigen::VectorXd::Zero(aobasis.AOBasisSize());
 aoval_ref<<0.0680316,0.0895832,0.0895832,0.0895832,0,0.126153,0.126153,
 0.126153,0,-0.102376,0.0626925,0.0626925,0.198251,0,0.0809357,-0.0809357,
@@ -122,10 +127,21 @@ bool aograd_check=aograd_ref.isApprox(aograd,1e-5);
   std::cout<<aograd_ref<<std::endl;
     std::cout<<"result"<<std::endl;
  std::cout<<aograd<<std::endl;
-
 }
 
 BOOST_CHECK_EQUAL(aograd_check, 1);
+
+bool ao1vsao2_check=aoval_2.isApprox(aoval,1e-5);
+ if(!ao1vsao2_check){
+     std::cout<<"ref"<<std::endl;
+  std::cout<<aoval<<std::endl;
+    std::cout<<"result"<<std::endl;
+ std::cout<<aoval_2<<std::endl;
+}
+
+BOOST_CHECK_EQUAL(aograd_check, 1);
+
+
 
 }
 

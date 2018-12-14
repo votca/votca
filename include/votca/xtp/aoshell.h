@@ -71,7 +71,6 @@ private:
  */
 class AOShell 
 {
-    //friend class AOElement;
     friend class AOBasis;
 public:
 

@@ -46,8 +46,12 @@ Symmetric_Matrix(size_t dim) {
     double TraceofProd(const Symmetric_Matrix& a) const;
 
     void AddtoEigenMatrix(Eigen::MatrixXd& full, double factor = 1.0) const;
+
+    void AddtoEigenUpperMatrix(Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper>& upper, double factor = 1.0) const;
     
     Eigen::MatrixXd FullMatrix()const;
+    //returns a matrix where only the upper triangle part is filled, rest is set to zero
+    Eigen::MatrixXd UpperMatrix()const;
 
     double &operator()(const size_t i,const size_t j) {
         return data[Index(i,j)];
