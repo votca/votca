@@ -281,7 +281,7 @@ namespace votca {
       }
       if(dftbasis.getAOBasisFragA() > 0 && dftbasis.getAOBasisFragB()>0){
         pop=FragmentPopulations(singlet,dftbasis);
-        _orbitals.setFragmentChargesSingEXC(pop.Crgs);
+        _orbitals.setFragmentChargesSingEXC(popsH - popsE);
         _orbitals.setFragment_E_localisation_singlet(pop.popE);
         _orbitals.setFragment_H_localisation_singlet(pop.popH);
         _orbitals.setFragmentChargesGS(pop.popGs);
@@ -415,20 +415,20 @@ namespace votca {
         dftoverlap.Fill(dftbasis);
         XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
         // ground state populations
-        Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
+        Eigen::MatrixXd dmatgs = _orbitals.DensityMatrixGroundState();
         Eigen::VectorXd nuccharges = _orbitals.FragmentNuclearCharges(dftbasis.getAOBasisFragA());
-        Eigen::VectorXd pops = _orbitals.LoewdinPopulation(DMAT, dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
+        Eigen::VectorXd pops = _orbitals.LoewdinPopulation(dmatgs, dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
         pop.popGs=nuccharges - pops;
         // population to electron charges and add nuclear charges         
         for (int i_state = 0; i_state < _bse_nmax; i_state++) {
           QMState state=QMState(type,i_state,false);
           // checking Density Matrices
-          std::vector< Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(state);
+          std::vector< Eigen::MatrixXd > dmat_ex = _orbitals.DensityMatrixExcitedState(state);
           // hole part
-          Eigen::VectorXd popsH = _orbitals.LoewdinPopulation(DMAT[0], dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
+          Eigen::VectorXd popsH = _orbitals.LoewdinPopulation(dmat_ex[0], dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
           pop.popH.push_back(popsH);
           // electron part
-          Eigen::VectorXd popsE = _orbitals.LoewdinPopulation(DMAT[1], dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
+          Eigen::VectorXd popsE = _orbitals.LoewdinPopulation(dmat_ex[1], dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
           pop.popE.push_back(popsE);
           // update effective charges
           Eigen::VectorXd diff = popsH - popsE;
