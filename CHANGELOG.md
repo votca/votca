@@ -1,5 +1,17 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.5.0 
+* optimized GW-BSE code and integral engine
+* added closed shell DFT code which supports hybrid functionals
+* removed ctp dependency
+* atm no support for site energy calculation
+* CHELPG fit for ground and excited states
+* merged igwbse and idft into one calculator
+* added unit and integration test
+* improved geometry optimiser
+* replaced ublas with Eigen3
+* replaced boost serialisation with hdf5 files
+
 ## Version 1.4.1 (released 02.09.17)
 * fix pkg-config file
 
