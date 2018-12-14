@@ -586,16 +586,6 @@ namespace votca {
 
             
 
-
-            struct Index2MO{
-                std::vector<int> I2v;
-                std::vector<int> I2c;
-            };
-            
-            
-            Index2MO BSEIndex2MOIndex()const;
-
-
             void WriteToCpt(CheckpointFile f)const;
             void WriteToCpt(CheckpointWriter w)const;
 
@@ -606,13 +596,15 @@ namespace votca {
             Eigen::MatrixXd TransitionDensityMatrix(const QMState& state)const;
             std::vector<Eigen::MatrixXd > DensityMatrixExcitedState_R(const QMState& state)const;
             std::vector<Eigen::MatrixXd >DensityMatrixExcitedState_AR(const QMState& state)const;
+            Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const;
+            Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd& coeffs)const;
 
-            int _basis_set_size;
-            int _occupied_levels;
-            int _unoccupied_levels;
-            int _number_of_electrons;
-            std::string _ECP;
-            bool _useTDA;
+            int _basis_set_size=0;
+            int _occupied_levels=0;
+            int _unoccupied_levels=0;
+            int _number_of_electrons=0;
+            std::string _ECP="";
+            bool _useTDA=false;
 
 
             Eigen::VectorXd _mo_energies;
@@ -625,27 +617,27 @@ namespace votca {
 
             PolarSegment _multipoles;
 
-            double _qm_energy;
-            double _self_energy;
+            double _qm_energy=0;
+            double _self_energy=0;
 
             // new variables for GW-BSE storage
-            int _rpamin;
-            int _rpamax;
+            int _rpamin=0;
+            int _rpamax=0;
 
-             int _qpmin;
-             int _qpmax;
-             int _qptotal;
+             int _qpmin=0;
+             int _qpmax=0;
+             int _qptotal=0;
 
-             int _bse_vmin;
-             int _bse_vmax;
-             int _bse_cmin;
-             int _bse_cmax;
-             int _bse_size;
-             int _bse_vtotal;
-             int _bse_ctotal;
-            int _bse_nmax;
+             int _bse_vmin=0;
+             int _bse_vmax=0;
+             int _bse_cmin=0;
+             int _bse_cmax=0;
+             int _bse_size=0;
+             int _bse_vtotal=0;
+             int _bse_ctotal=0;
+            int _bse_nmax=0;
 
-            double _ScaHFX;
+            double _ScaHFX=0;
 
             std::string _dftbasis;
             std::string _auxbasis;

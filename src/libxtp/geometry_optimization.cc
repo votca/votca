@@ -108,13 +108,13 @@ namespace votca {
     void GeometryOptimization::Report(const BFGSTRM& bfgstrm,const Forces& forces,Logger& pLog){
 
       XTP_LOG(logINFO, pLog) << std::flush;
-      XTP_LOG(logINFO, pLog) << (boost::format(" =========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
-      XTP_LOG(logINFO, pLog) << " At iteration  " << bfgstrm.getIteration() << std::flush;
-      XTP_LOG(logINFO, pLog) << (boost::format("   ---- POSITIONS (Angstrom)   ")).str() << std::flush;
-      XTP_LOG(logINFO, pLog) << (boost::format("   Atom\t x\t  y\t  z ")).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format("=========== OPTIMIZATION SUMMARY ================================= ")).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << "At iteration  " << bfgstrm.getIteration() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format(" ---- POSITIONS (Angstrom)   ")).str() << std::flush;
+      XTP_LOG(logINFO, pLog) << (boost::format(" Atom\t x\t  y\t  z ")).str() << std::flush;
       const Eigen::VectorXd& atomvec = bfgstrm.getParameters();
       for (unsigned i = 0; i < atomvec.size(); i += 3) {
-        XTP_LOG(logINFO, pLog) << (boost::format(" %1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
+        XTP_LOG(logINFO, pLog) << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f")
                 % (i/3) % (atomvec(i) * votca::tools::conv::bohr2ang) % (atomvec(i + 1) * votca::tools::conv::bohr2ang) % (atomvec(i + 2) * votca::tools::conv::bohr2ang)).str() << std::flush;
       }
       XTP_LOG(logINFO, pLog) << (boost::format("   Total energy:     %1$12.8f Hartree ") % bfgstrm.getCost()).str() << std::flush;

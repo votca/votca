@@ -188,7 +188,7 @@ namespace votca {
         Eigen::Vector3d difflength_squared=Eigen::Vector3d::Zero();
     
         double avgenergy=_carriers[0].getCurrentEnergy();
-        int    carrieridold=_carriers[0].id;
+        int    carrieridold=_carriers[0].getId();
 
         while (insertioncount < _insertions) {
             if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
@@ -210,17 +210,17 @@ namespace votca {
 
             if(_do_carrierenergy){
                 bool print=false;
-                if (_carriers[0].id>carrieridold){
+                if (_carriers[0].getId()>carrieridold){
                     avgenergy=_carriers[0].getCurrentEnergy();
                     print=true;
-                    carrieridold=_carriers[0].id;
+                    carrieridold=_carriers[0].getId();
                 }
                 else if(step%_outputsteps==0){
                     avgenergy=_alpha*_carriers[0].getCurrentEnergy()+(1-_alpha)*avgenergy;
                     print=true;
                 }
                 if(print){
-                    energyfile << simtime<<"\t"<<step <<"\t"<<_carriers[0].id<<"\t"<<avgenergy<<endl;
+                    energyfile << simtime<<"\t"<<step <<"\t"<<_carriers[0].getId()<<"\t"<<avgenergy<<endl;
                 }
             }
 
@@ -256,12 +256,12 @@ namespace votca {
                     if (event.decayevent){
                        
                         avlifetime+=affectedcarrier->getLifetime();
-                        meanfreepath+=affectedcarrier->dr_travelled.norm();
-                        difflength_squared+=affectedcarrier->dr_travelled.cwiseAbs2();
+                        meanfreepath+=affectedcarrier->get_dRtravelled().norm();
+                        difflength_squared+=affectedcarrier->get_dRtravelled().cwiseAbs2();
                         traj << simtime<<"\t"<<insertioncount<< "\t"<< 
-                                affectedcarrier->id<<"\t"<< affectedcarrier->getLifetime()
+                                affectedcarrier->getId()<<"\t"<< affectedcarrier->getLifetime()
                                 <<"\t"<<affectedcarrier->getSteps()<<"\t"<< affectedcarrier->getCurrentNodeId()+1
-                                <<"\t"<<affectedcarrier->dr_travelled[0]<<"\t"<<affectedcarrier->dr_travelled[1]<<"\t"<<affectedcarrier->dr_travelled[2]<<endl;
+                                <<"\t"<<affectedcarrier->get_dRtravelled()[0]<<"\t"<<affectedcarrier->get_dRtravelled()[1]<<"\t"<<affectedcarrier->get_dRtravelled()[2]<<endl;
                         if( tools::globals::verbose &&(_insertions<1500 ||insertioncount% (_insertions/1000)==0 || insertioncount<0.001*_insertions)){
                             std::cout << "\rInsertion " << insertioncount+1<<" of "<<_insertions;
                             std::cout << std::flush;
@@ -269,7 +269,7 @@ namespace votca {
                         RandomlyAssignCarriertoSite(*affectedcarrier);
                         affectedcarrier->resetCarrier();
                         insertioncount++;
-                        affectedcarrier->id=_numberofcharges-1+insertioncount;
+                        affectedcarrier->setId(_numberofcharges-1+insertioncount);
                         secondlevel=false;
                         break;
                             }
@@ -291,8 +291,7 @@ namespace votca {
                         AddtoForbiddenlist(*newnode, forbiddendests);
                         continue; // select new destination
                     } else {
-                        affectedcarrier->jumpfromCurrentNodetoNode(newnode);
-                        affectedcarrier->dr_travelled += event.dr;
+                        affectedcarrier->jumpAccordingEvent(event);
                         secondlevel=false;
 
                         break; // this ends LEVEL 2 , so that the time is updated and the next MC step started

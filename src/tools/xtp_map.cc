@@ -43,7 +43,7 @@ namespace CSG = votca::csg;
 namespace XTP = votca::xtp;
 namespace TOOLS = votca::tools;
 
-class XtpMap : public Application
+class XtpMap : public TOOLS::Application
 {
 
 public:
@@ -62,7 +62,7 @@ public:
 
 
 protected:
-    Property               _options;
+    TOOLS::Property               _options;
     CSG::Topology          _mdtopol;
     XTP::Topology          _qmtopol;
 
@@ -76,7 +76,7 @@ namespace propt = boost::program_options;
 
 void XtpMap::Initialize() {
 
-    Application::Initialize();
+    TOOLS::Application::Initialize();
     
     CSG::TrajectoryWriter::RegisterPlugins();
     CSG::TrajectoryReader::RegisterPlugins();

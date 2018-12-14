@@ -23,8 +23,6 @@
 
 #include <votca/tools/database.h>
 
-using namespace votca::tools;
-
 namespace votca { namespace xtp {
 
 /**
@@ -33,7 +31,7 @@ namespace votca { namespace xtp {
  * This class contains management of state databases. It creates
  * new databases and opens or upgrades existing ones.
  */
-class QMDatabase : public Database
+class QMDatabase : public tools::Database 
 {
 public:
     

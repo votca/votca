@@ -153,8 +153,7 @@ namespace votca {
                 
         cout << "looking for injectable nodes..." << endl;
         for (int i = 0; i < _numberofcharges; i++) {
-            Chargecarrier newCharge;
-            newCharge.id = i;
+            Chargecarrier newCharge(i);
             RandomlyAssignCarriertoSite(newCharge);
             
             cout << "starting position for charge " << i + 1 << ": segment " << newCharge.getCurrentNodeId()+1 << endl;
@@ -170,12 +169,11 @@ namespace votca {
             }
             while (_nodes[nodeId_guess].occupied || _nodes[nodeId_guess].injectable==false ); // maybe already occupied? or maybe not injectable?
             if (Charge.hasNode()){
-                Charge.jumpfromCurrentNodetoNode(&_nodes[nodeId_guess]);
+                Charge.ReleaseNode();
             }
-            else{
             Charge.settoNote(&_nodes[nodeId_guess]);
-            }
-             return;
+          
+            return;
          }
         
         void KMCCalculator::InitialRates() {

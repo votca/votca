@@ -58,7 +58,7 @@ public:
 protected:
 
     Topology           _top;
-    list< QMCalculator* >   _calculators;
+    std::list< QMCalculator* >   _calculators;
 
 };
 

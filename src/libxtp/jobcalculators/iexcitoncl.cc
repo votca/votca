@@ -126,7 +126,7 @@ namespace votca {
                     << job_ID << " [" << ID_A << ":" << ID_B << "]" << flush;
 
             double JAB=0;
-
+            _cutoff=0;
             Property job_summary;
             Property& job_output = job_summary.add("output", "");
             Property& pair_summary = job_output.add("pair", "");
@@ -180,7 +180,7 @@ namespace votca {
             string tag = "";
 
             for (QMPair* pair:nblist) {
-                if (pair->getType() == 3) {
+                if (pair->getType() == QMPair::PairType::Excitoncl) {
                     int id1 = pair->Seg1()->getId();
                     string name1 = pair->Seg1()->getName();
                     int id2 = pair->Seg2()->getId();

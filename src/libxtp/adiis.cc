@@ -19,7 +19,7 @@
 #include "votca/xtp/adiis.h"
 #include <votca/xtp/bfgs-trm.h>
 #include <votca/xtp/adiis_costfunction.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <boost/format.hpp>
 
 namespace votca { namespace xtp {

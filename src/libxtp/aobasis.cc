@@ -485,22 +485,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return result;
     }
 
-   
-
-    void AOBasis::ReserveShells(const BasisSet& bs, const QMMolecule& atoms){
-        int numberofshells=0;
-        for (const QMAtom& atom : atoms) {
-            try{
-                 numberofshells+=bs.getElement(atom.getElement()).NumOfShells();
-            }catch(std::runtime_error& error){
-                ;
-            }
-        }
-        _aoshells.reserve(numberofshells);
-    }
-
     void AOBasis::AOBasisFill(const BasisSet& bs,  const QMMolecule& atoms, int fragbreak) {
-      ReserveShells(bs, atoms);
       _AOBasisSize = 0;
       _AOBasisFragA = 0;
       _AOBasisFragB = 0;
@@ -535,8 +520,6 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
     }
 
     std::vector<std::string> AOBasis::ECPFill(const BasisSet& bs,  QMMolecule& atoms) {
-    ReserveShells(bs, atoms);
-
       _FuncperAtom=std::vector<int>(0);
       _AOBasisSize = 0;
 
@@ -547,7 +530,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
         bool element_exists=true;
         
         try{
-            const Element& element = bs.getElement(name);
+            bs.getElement(name);
         }catch(std::runtime_error& error){
             _FuncperAtom.push_back(0);
             element_exists=false;

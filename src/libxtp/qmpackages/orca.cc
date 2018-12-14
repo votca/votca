@@ -414,7 +414,6 @@ namespace votca {
         }
 
         bool Orca::ParseLogFile(Orbitals& orbitals) {
-            const double conv_Hrt_eV = tools::conv::hrt2ev;
             bool found_success=false;
             orbitals.setQMpackage("orca");
             orbitals.setDFTbasis(_basisset_name);

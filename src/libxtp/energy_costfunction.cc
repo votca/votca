@@ -61,9 +61,9 @@ namespace votca {
       Energy_costfunction::conv_paras convval;
       convval.deltaE = delta_cost;
       convval.RMSForce =  std::sqrt(gradient.cwiseAbs2().sum()) / gradient.size();
-      convval.MaxForce = gradient.cwiseAbs().maxCoeff();
+      convval.MaxForce = gradient.cwiseAbs().maxCoeff(&convval.maxforceindex);
       convval.RMSStep = std::sqrt(delta_parameters.cwiseAbs2().sum()) / delta_parameters.size();
-      convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff();
+      convval.MaxStep = delta_parameters.cwiseAbs().maxCoeff(&convval.maxstepindex);
 
       if (std::abs(convval.deltaE) < _convpara.deltaE) energy_converged = true;
       if (convval.RMSForce < _convpara.RMSForce) RMSForce_converged = true;

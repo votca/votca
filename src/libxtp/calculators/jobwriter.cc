@@ -28,7 +28,7 @@ using boost::format;
 namespace votca { namespace xtp {
     
     
-void JobWriter::Initialize(Property *options) {   
+void JobWriter::Initialize(tools::Property *options) {   
     
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
@@ -39,21 +39,21 @@ void JobWriter::Initialize(Property *options) {
     _key_funct["mps.background"] = &JobWriter::mps_background;
     
     // SPLIT KEYS
-    string key="options."+Identify();
-    std::string keys = options->get(key+".keys").as<string>();    
-    Tokenizer tok_keys(keys, " ,\t\n");
+    std::string key="options."+Identify();
+    std::string keys = options->get(key+".keys").as<std::string>();    
+    tools::Tokenizer tok_keys(keys, " ,\t\n");
     tok_keys.ToVector(_keys);
     
     // VALIDATE KEYS
     for (const std::string& key:_keys) {
         std::map<std::string,WriteFunct>::iterator it = _key_funct.find(key);
         if (it == _key_funct.end()) {
-            cout << endl << "... ... ERROR: Bad key '" << key << "'" << endl;
-            cout << endl << "Allowed keys: " << flush;
+            std::cout << std::endl << "... ... ERROR: Bad key '" << key << "'" << std::endl;
+            std::cout << std::endl << "Allowed keys: " << std::flush;
             for (auto& keyfunc:_key_funct)                
-                cout << endl << "... " << keyfunc.first << flush;
-            cout << endl << endl;
-            throw runtime_error("No match for input key.");
+                std::cout << std::endl << "... " << keyfunc.first << std::flush;
+            std::cout << std::endl << std::endl;
+            throw std::runtime_error("No match for input key.");
         }
     }
     
@@ -65,7 +65,7 @@ void JobWriter::Initialize(Property *options) {
 bool JobWriter::EvaluateFrame(Topology *top) {
     
     for (const auto& key:_keys) {
-            cout << endl << "... ... " << key<< flush;
+            std::cout << std::endl << "... ... " << key<< std::flush;
             WriteFunct write = _key_funct.at(key);
             ((*this).*write)(top);
     }
@@ -76,20 +76,20 @@ bool JobWriter::EvaluateFrame(Topology *top) {
 void JobWriter::mps_monomer(Topology *top) {
     
     // SET UP FILE STREAM
-    ofstream ofs;
+    std::ofstream ofs;
     std::string jobFile = Identify()+".mps.monomer.xml";
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+    ofs.open(jobFile.c_str(), std::ofstream::out);
+    if (!ofs.is_open()) throw std::runtime_error("Bad file handle: " + jobFile);
     
-    ofs << "<jobs>" << endl;
+    ofs << "<jobs>" << std::endl;
     
     int jobCount = 0;    
 
-    std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","n e h");
-    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
+    std::string str_states = _options->ifExistsReturnElseReturnDefault<std::string>("options."+Identify()+".states","n e h");
+    std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<std::string>("options."+Identify()+".pattern","*");
   
-    Tokenizer tok_states(str_states, " ,\t\n");
-    std::vector<string> statesstring;
+    tools::Tokenizer tok_states(str_states, " ,\t\n");
+    std::vector<std::string> statesstring;
     tok_states.ToVector(statesstring);
     std::vector<QMState> states;
     for(const std::string& s:statesstring){
@@ -97,13 +97,13 @@ void JobWriter::mps_monomer(Topology *top) {
     }
     
     
-    std::vector<string> seg_patterns;
-    Tokenizer tok_pattern(seg_pattern, " ,\t\n");
+    std::vector<std::string> seg_patterns;
+    tools::Tokenizer tok_pattern(seg_pattern, " ,\t\n");
     tok_pattern.ToVector(seg_patterns);
 
     
     // CREATE JOBS FOR ALL SEGMENTS AND STATES
-    cout << endl;    
+    std::cout << std::endl;    
     for (Segment*seg1:top->Segments()) {
         int id1 = seg1->getId();
         std::string name1 = seg1->getName();
@@ -125,11 +125,11 @@ void JobWriter::mps_monomer(Topology *top) {
             std::string stat = "AVAILABLE";
             Job job(id, tag, input, stat);
             job.ToStream(ofs,"xml");
-            cout << "\r... ... # = " << jobCount << flush;
+            std::cout << "\r... ... # = " << jobCount << std::flush;
         }
     }
     // CLOSE STREAM
-    ofs << "</jobs>" << endl;    
+    ofs << "</jobs>" << std::endl;    
     ofs.close();
 }
 
@@ -137,52 +137,52 @@ void JobWriter::mps_monomer(Topology *top) {
 void JobWriter::mps_dimer(Topology *top) {
 
     // SET UP FILE STREAM
-    ofstream ofs;
+    std::ofstream ofs;
     std::string jobFile = Identify()+".mps.dimer.xml";
-    ofs.open(jobFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + jobFile);
+    ofs.open(jobFile.c_str(), std::ofstream::out);
+    if (!ofs.is_open()) throw std::runtime_error("Bad file handle: " + jobFile);
     
-    ofs << "<jobs>" << endl;
+    ofs << "<jobs>" << std::endl;
     QMNBList &nblist = top->NBList();    
     int jobCount = 0;
     if (nblist.size() == 0) {
-        cout << endl << "... ... No pairs in neighbor list, skip." << flush;
+        std::cout << std::endl << "... ... No pairs in neighbor list, skip." << std::flush;
         return;
     }
     
     
-  std::string str_states = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".states","nn eh");
-  std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<string>("options."+Identify()+".pattern","*");
-  std::vector<string> statesstring;
+  std::string str_states = _options->ifExistsReturnElseReturnDefault<std::string>("options."+Identify()+".states","nn eh");
+  std::string seg_pattern = _options->ifExistsReturnElseReturnDefault<std::string>("options."+Identify()+".pattern","*");
+  std::vector<std::string> statesstring;
    
-    Tokenizer tok_states(str_states, " ,\t\n");
+    tools::Tokenizer tok_states(str_states, " ,\t\n");
     tok_states.ToVector(statesstring);
-    std::vector<string> seg_patterns;
-    Tokenizer tok_pattern(seg_pattern, " ,\t\n");
+    std::vector<std::string> seg_patterns;
+    tools::Tokenizer tok_pattern(seg_pattern, " ,\t\n");
     tok_pattern.ToVector(seg_patterns);
     
     
     // DEFINE PAIR CHARGE STATES
-    std::map< string, vector<string> > state1_state2;
+    std::map< std::string, std::vector<std::string> > state1_state2;
     
     for (auto & state : statesstring){
         if(state=="nn"){
-            state1_state2["n"] = vector<string>(1,"n");
+            state1_state2["n"] = std::vector<std::string>(1,"n");
         }
         else if ( state=="eh" || state=="he"){
-            state1_state2["h"] = vector<string>(1,"e");
-            state1_state2["e"] = vector<string>(1,"h");
+            state1_state2["h"] = std::vector<std::string>(1,"e");
+            state1_state2["e"] = std::vector<std::string>(1,"h");
         }
     }
     
     // CREATE JOBS FOR ALL PAIRS AND STATES
-    cout << endl;
+    std::cout << std::endl;
     for (QMPair* pair:nblist) {
         
         int id1 = pair->Seg1()->getId();
-        string name1 = pair->Seg1()->getName();
+        std::string name1 = pair->Seg1()->getName();
         int id2 = pair->Seg2()->getId();
-        string name2 = pair->Seg2()->getName(); 
+        std::string name2 = pair->Seg2()->getName(); 
         
         
         bool do_continue1=true;
@@ -204,34 +204,34 @@ void JobWriter::mps_dimer(Topology *top) {
         for (auto& state1:state1_state2) {
             for (auto&  state2:state1.second) {
                 int id = ++jobCount;
-                string s1 = state1.first;
-                string s2 = state2;
-                string tag = (format("%1$d%2$s:%3$d%4$s") % id1 % s1 % id2 % s2).str();                
-                string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps "
+                std::string s1 = state1.first;
+                std::string s2 = state2;
+                std::string tag = (format("%1$d%2$s:%3$d%4$s") % id1 % s1 % id2 % s2).str();                
+                std::string input = (format("%1$d:%2$s:MP_FILES/%2$s_%3$s.mps "
                         "%4$d:%5$s:MP_FILES/%5$s_%6$s.mps")
                         % id1 % name1 % s1 % id2 % name2 % s2).str();
-                string stat = "AVAILABLE";
+                std::string stat = "AVAILABLE";
                 
                 Job job(id, tag, input, stat);
                 job.ToStream(ofs,"xml");
                 
-                cout << "\r... ... # = " << jobCount << flush;
+                std::cout << "\r... ... # = " << jobCount << std::flush;
             }
         }        
     }
     
     // CLOSE STREAM
-    ofs << "</jobs>" << endl;    
+    ofs << "</jobs>" << std::endl;    
     ofs.close();
 }
 
 
 void JobWriter::mps_background(Topology *top) {
     
-    ofstream ofs;
-    string tabFile = Identify()+".mps.background.tab";
-    ofs.open(tabFile.c_str(), ofstream::out);
-    if (!ofs.is_open()) throw runtime_error("Bad file handle: " + tabFile);
+    std::ofstream ofs;
+    std::string tabFile = Identify()+".mps.background.tab";
+    ofs.open(tabFile.c_str(), std::ofstream::out);
+    if (!ofs.is_open()) throw std::runtime_error("Bad file handle: " + tabFile);
     
     ofs << "# ID   TYPE    _n.mps    _e.mps    _h.mps \n";
     for (Segment* seg:top->Segments()) {

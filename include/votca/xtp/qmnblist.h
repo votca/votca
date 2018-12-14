@@ -29,20 +29,18 @@
 #include <votca/csg/pairlist.h>
 #include <votca/xtp/qmpair.h>
 
-namespace CSG = votca::csg;
-
 namespace votca { namespace xtp {
 
 class Topology;
 
-class QMNBList : public CSG::PairList< Segment*, QMPair >
+class QMNBList : public csg::PairList< Segment*, QMPair >
 {
 public:
   
     QMNBList() : _top(NULL), _cutoff(0) { };
     QMNBList(Topology* top) : _top(top), _cutoff(0) { };
    ~QMNBList() { 
-       CSG::PairList<Segment*, QMPair>::Cleanup();       
+       csg::PairList<Segment*, QMPair>::Cleanup();       
    }
     
    

@@ -38,12 +38,12 @@ namespace votca {
          * Callname: iexcitoncl
          */
 
-        class IEXCITON : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult > {
+        class IEXCITON : public ParallelXJobCalc< std::vector<Job*>, Job*, Job::JobResult > {
         public:
 
             void Initialize(tools::Property *options);
 
-            string Identify() {
+            std::string Identify() {
                 return "iexcitoncl";
             }
 
@@ -54,12 +54,11 @@ namespace votca {
 
         private:
             QMState GetElementFromMap(const std::string& elementname )const;
-            std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
+            std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
             double _cutoff;
-            bool _induce;
             std::map<std::string,QMState> _statemap;
-            string _emp_file;
-            string _xml_file;
+            std::string _emp_file;
+            std::string _xml_file;
             void PreProcess(Topology *top);
             
 

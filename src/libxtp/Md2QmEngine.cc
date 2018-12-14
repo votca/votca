@@ -55,36 +55,36 @@ Md2QmEngine::~Md2QmEngine() {
  * start mapping, except coordinates.
  * @param xmlfile
  */
-void Md2QmEngine::Initialize(const string &xmlfile) {
+void Md2QmEngine::Initialize(const std::string &xmlfile) {
 
-    Property typology;
+    tools::Property typology;
     load_property_from_xml(typology, xmlfile.c_str());
     
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
     // XML to Types: Molecules => Segments => Fragments => Atoms //
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-    string key = "topology.molecules.molecule";
-    list<Property *> molecules = typology.Select(key);
+    std::string key = "topology.molecules.molecule";
+    std::list<tools::Property *> molecules = typology.Select(key);
     int molecule_id = 1;
     int qmunit_id  = 1; // Counts segment types
 
-    for ( TOOLS::Property* mol:molecules) {
+    for ( tools::Property* mol:molecules) {
 
        Molecule *molecule = AddMoleculeType(molecule_id++, mol);
-       string molMdName = mol->get("mdname").as<string>();
+       std::string molMdName = mol->get("mdname").as<std::string>();
 
        // +++++++++++++ //
        // Load segments //
        // +++++++++++++ //
 
        key = "segments.segment";
-       list<Property *> segments = mol->Select(key);
+       std::list<tools::Property *> segments = mol->Select(key);
 
        int segment_id = 1;       
        int md_atom_id = 1; // <- atom id count with respect to molecule
 
-       for ( TOOLS::Property* segprop:segments) {
+       for ( tools::Property* segprop:segments) {
 
          // Create new segment + associated type (QM Unit)
          Segment *segment = AddSegmentType(segment_id++, segprop );
@@ -95,10 +95,10 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          molecule->AddSegment(segment);
 
          // Load internal (i.e. QM-) coord.s and MOO-related properties
-         string qmcoordsFile = "";
-         map<int, pair<string, vec> > intCoords;
+         std::string qmcoordsFile = "";
+         std::map<int, std::pair<std::string, tools::vec> > intCoords;
          if (segprop->exists("qmcoords") ) {
-            qmcoordsFile = segprop->get("qmcoords").as<string>();            
+            qmcoordsFile = segprop->get("qmcoords").as<std::string>();            
             //  QM ID    Element   Position
             this->ReadXYZFile(qmcoordsFile, intCoords);
          }
@@ -107,13 +107,13 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
          // Load fragments //
          // ++++++++++++++ //
          
-         map<string,bool> fragname_isTaken;
+         std::map<std::string,bool> fragname_isTaken;
          
          key = "fragments.fragment";
-         list<Property *> fragments = segprop->Select(key);
+         std::list<tools::Property *> fragments = segprop->Select(key);
          int fragment_id = 1;
 
-         for ( TOOLS::Property* fragmentprop:fragments) {
+         for ( tools::Property* fragmentprop:fragments) {
 
             // Create new fragment
             Fragment* fragment=AddFragmentType(fragment_id++,fragmentprop);
@@ -123,19 +123,19 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
             try {
                 // This should throw
                 bool taken = fragname_isTaken.at(fragment->getName());
-                cout << "ERROR Fragment name '" << fragment->getName()
+                std::cout << "ERROR Fragment name '" << fragment->getName()
                      << "' in segment '" << segment->getName()
-                     << "' occurs more than once." << endl;
+                     << "' occurs more than once." << std::endl;
                 if (taken)
-                    throw runtime_error("(see above, naming collision)");
+                    throw std::runtime_error("(see above, naming collision)");
             }
             catch (const std::exception& out_of_range) {
                 fragname_isTaken[fragment->getName()] = true;
             }
             
             // Load local-frame definition
-            vector<int> trihedron =fragmentprop->get("localframe")
-                                                .as< vector<int> >();
+            std::vector<int> trihedron =fragmentprop->get("localframe")
+                                                .as< std::vector<int> >();
             while (trihedron.size() < 3) {
                 trihedron.push_back(-1);
             }
@@ -146,17 +146,17 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
              // Load atoms //
              // ++++++++++ //
 
-             string mdatoms = fragmentprop->get("mdatoms").as<string>();
-             string qmatoms = fragmentprop->get("qmatoms").as<string>();
-             string weights = fragmentprop->get("weights").as<string>();
+             std::string mdatoms = fragmentprop->get("mdatoms").as<std::string>();
+             std::string qmatoms = fragmentprop->get("qmatoms").as<std::string>();
+             std::string weights = fragmentprop->get("weights").as<std::string>();
 
-             Tokenizer tok_md_atoms(mdatoms, " \t\n");
-             Tokenizer tok_qm_atoms(qmatoms, " \t\n");
-             Tokenizer tok_weights(weights, " \t\n");
+             tools::Tokenizer tok_md_atoms(mdatoms, " \t\n");
+             tools::Tokenizer tok_qm_atoms(qmatoms, " \t\n");
+             tools::Tokenizer tok_weights(weights, " \t\n");
 
-             vector <string> md_atoms_info;
-             vector <string> qm_atoms_info;
-             vector <string> atom_weights;;
+             std::vector <std::string> md_atoms_info;
+             std::vector <std::string> qm_atoms_info;
+             std::vector <std::string> atom_weights;;
 
              tok_md_atoms.ToVector(md_atoms_info);
              tok_qm_atoms.ToVector(qm_atoms_info);
@@ -165,7 +165,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
 
              if ( (md_atoms_info.size() != qm_atoms_info.size()) ||
                   (md_atoms_info.size() != atom_weights.size() ) ) {
-                 cout << "ERROR: "
+                 std::cout << "ERROR: "
                       << "Could not allocate MD atoms to QM atoms or weights"
                       << " in fragment " << fragment->getName()
                       << " in segment " << segment->getName()
@@ -174,18 +174,18 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                       << " (MD: " << md_atoms_info.size() << ","
                       << " QM: " << qm_atoms_info.size() << ")"
                       << " Weights: " << atom_weights.size() << ")."
-                      << endl;
-                 cout << "NOTE: "
+                      << std::endl;
+                 std::cout << "NOTE: "
                       << "To define an MD atom without QM counterpart, insert "
                       << "a single ':' in the associated QM-atoms column and "
                       << "specify a mapping weight of 0."
-                      << endl;
-                 throw runtime_error( "Inconsistency in mapping file." );
+                      << std::endl;
+                 throw std::runtime_error( "Inconsistency in mapping file." );
              }
 
-             vector<string> ::iterator it_md_atom_name;
-             vector<string> ::iterator it_qm_atom_name;
-             vector<string> ::iterator it_atom_weight;
+             std::vector<std::string> ::iterator it_md_atom_name;
+             std::vector<std::string> ::iterator it_qm_atom_name;
+             std::vector<std::string> ::iterator it_atom_weight;
 
              for ( it_md_atom_name = md_atoms_info.begin(),
                    it_qm_atom_name = qm_atoms_info.begin(),
@@ -199,28 +199,28 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                // Create single atom //
                // ++++++++++++++++++ //
 
-               Tokenizer tok_md((*it_md_atom_name), ":");
-               Tokenizer tok_qm((*it_qm_atom_name), ":");
+               tools::Tokenizer tok_md((*it_md_atom_name), ":");
+               tools::Tokenizer tok_qm((*it_qm_atom_name), ":");
 
-               vector<string> md_atom_specs;
-               vector<string> qm_atom_specs;
+               std::vector<std::string> md_atom_specs;
+               std::vector<std::string> qm_atom_specs;
 
                tok_md.ToVector( md_atom_specs );
                tok_qm.ToVector( qm_atom_specs );
 
                // MD atom information
                int residue_number  = boost::lexical_cast<int>(md_atom_specs[0]);
-               string residue_name = md_atom_specs[1];
-               string md_atom_name = md_atom_specs[2];
+               std::string residue_name = md_atom_specs[1];
+               std::string md_atom_name = md_atom_specs[2];
                
                // QM atom information
                bool hasQMPart = false;
                int qm_atom_id = -1;
-               vec qmPos = vec(0,0,0);
+               tools::vec qmPos = tools::vec(0,0,0);
                // The atomic element is first taken as first character of
                // the MD name; for atoms with QM counterpart, the element
                // is read from the coordinates file
-               string element = md_atom_name.substr(0,1);
+               std::string element = md_atom_name.substr(0,1);
                // Check whether MD atom has QM counterpart
                if (qm_atom_specs.size() == 2) {
                    hasQMPart = true;
@@ -233,12 +233,12 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                        // Check whether elements of md and qm match
                        if (intCoords.at(qm_atom_id).first.substr(0,1)
                            != md_atom_name.substr(0,1) ) {
-                           cout << "WARNING: Atom " <<md_atom_name << " in mol. "
+                           std::cout << "WARNING: Atom " <<md_atom_name << " in mol. "
                                 << molMdName << " appears to have element type "
                                 << md_atom_name.substr(0,1)
                                 << ", but QM partner (ID " << qm_atom_id
                                 << ") has element type "
-                                << intCoords.at(qm_atom_id).first << endl;
+                                << intCoords.at(qm_atom_id).first << std::endl;
                        }
                    }
                    catch (const std::exception& out_of_range) {
@@ -249,12 +249,12 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                // Mapping weight
                double weight = boost::lexical_cast<double>(*it_atom_weight);
                if (!hasQMPart && weight != 0) {
-                   cout << "ERROR: "
+                   std::cout << "ERROR: "
                         << "Atom " << md_atom_name << " in residue "
                         << residue_name << " in molecule " << molMdName
                         << " has no QM counterpart despite non-zero weight. "
-                        << endl;
-                   throw runtime_error( "Error in mapping file" );
+                        << std::endl;
+                   throw std::runtime_error( "Error in mapping file" );
                }
 
                // Create atom
@@ -270,13 +270,13 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
                                                    .at(residue_number)
                                                    .at(md_atom_name);
                    // If this succeeded, atom has already been defined:
-                   cout << "ERROR: "
+                   std::cout << "ERROR: "
                         << "Ambiguous atom definition in molecule "
                         << molMdName << ": "
                         << "Atom " << md_atom_name << " in residue "
                         << residue_number << " exists more than once. "
-                        << endl;
-                   throw runtime_error( "Ambiguity in atom definition." );
+                        << std::endl;
+                   throw std::runtime_error( "Ambiguity in atom definition." );
                }
                catch ( const std::exception& out_of_range ) {
                    this->_map_mol_resNr_atm_atmType[molMdName]
@@ -306,7 +306,7 @@ void Md2QmEngine::Initialize(const string &xmlfile) {
  * @param mdtop
  * @param qmtop
  */
-void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, Topology *qmtop) {
+void Md2QmEngine::Md2Qm(csg::Topology *mdtop, Topology *qmtop) {
 
     qmtop->CleanUp();
 
@@ -321,10 +321,10 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, Topology *qmtop) {
     // Add types (=> Segment types / QM units)
     for (SegmentType* type:_qmUnits) {
 
-        string name = type->getName();
-        string basis = type->getBasisName();
-        string orbitals = type->getOrbitalsFile();
-        string qmcoords = type->getQMCoordsFile();
+        std::string name = type->getName();
+        std::string basis = type->getBasisName();
+        std::string orbitals = type->getOrbitalsFile();
+        std::string qmcoords = type->getQMCoordsFile();
         bool canRigidify = type->canRigidify();
         SegmentType *segType = qmtop->AddSegmentType(name);
         segType->setBasisName(basis);
@@ -336,14 +336,14 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, Topology *qmtop) {
 
     // Populate topology in a trickle-down manner
     // (i.e. molecules => ... ... => atoms)
-    for (CSG::Molecule *molMD:mdtop->Molecules()) {
+    for (csg::Molecule *molMD:mdtop->Molecules()) {
 
          // MD molecule + name
-         string nameMolMD = molMD->getName();
+         std::string nameMolMD = molMD->getName();
 
          // Find QM counterpart
          Molecule *molQM = this->MoleculeFactory(molMD);
-         string nameMolQM = molQM->getName();
+         std::string nameMolQM = molQM->getName();
 
          // Generate and export
          //Molecule *product = 
@@ -358,15 +358,15 @@ void Md2QmEngine::Md2Qm(CSG::Topology *mdtop, Topology *qmtop) {
  * @param molMDTemplate
  * @return molQMTemplate
  */
-Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
+Molecule *Md2QmEngine::MoleculeFactory(csg::Molecule *molMDTemplate) {
 
-    string nameMolQM = this->getMoleculeName(molMDTemplate->getName());
+    std::string nameMolQM = this->getMoleculeName(molMDTemplate->getName());
     Molecule *molQMTemplate = this->getMoleculeType(nameMolQM);
 
     int resnrOffset = molMDTemplate->getBead(0)->getResnr();
 
     for (int i = 0; i < molMDTemplate->BeadCount(); i++) {
-        CSG::Bead *atomMD = molMDTemplate->getBead(i);
+        csg::Bead *atomMD = molMDTemplate->getBead(i);
         try {
             Atom *counterpart =
                  this->getAtomType(molMDTemplate->getName(),
@@ -375,11 +375,11 @@ Molecule *Md2QmEngine::MoleculeFactory(CSG::Molecule *molMDTemplate) {
             counterpart->setPos(atomMD->getPos());
         }
         catch (const std::exception& out_of_range) {
-            cout << "WARNING: No mapping instruction found for atom "
+            std::cout << "WARNING: No mapping instruction found for atom "
                  << atomMD->getName() << " in residue number "
                  << atomMD->getResnr() << " in molecule "
                  << molMDTemplate->getName() << ". Skipping..."
-                 << endl;
+                 << std::endl;
         }
     }
     return molQMTemplate;
@@ -445,10 +445,10 @@ Molecule *Md2QmEngine::ExportMolecule(Molecule *refMol,
 
 
 Atom *Md2QmEngine::AddAtomType(Molecule *owner,
-                                    string residue_name,  int residue_number,
-                                    string md_atom_name,  int md_atom_id,
+                                    std::string residue_name,  int residue_number,
+                                    std::string md_atom_name,  int md_atom_id,
                                     bool hasQMPart,       int qm_atom_id,
-                                    vec qmPos,            string element,
+                                    tools::vec qmPos,            std::string element,
                                     double weight) {
     Atom* atom = new Atom(owner,
                                     residue_name,         residue_number,
@@ -461,25 +461,25 @@ Atom *Md2QmEngine::AddAtomType(Molecule *owner,
 }
 
 Fragment *Md2QmEngine::AddFragmentType(int fragment_id,
-                                            Property *property) {
-    string fragment_name = property->get("name").as<string>();
+                                            tools::Property *property) {
+    std::string fragment_name = property->get("name").as<std::string>();
     Fragment* fragment = new Fragment(fragment_id, fragment_name);
     _fragment_types.push_back(fragment);
     return fragment;
 }
 
 Segment  *Md2QmEngine::AddSegmentType(int segment_id,
-                                           Property *property) {
-    string segment_name = property->get("name").as<string>();
+                                           tools::Property *property) {
+    std::string segment_name = property->get("name").as<std::string>();
     Segment* segment = new Segment(segment_id, segment_name);
     _segment_types.push_back(segment);
     return segment;
 }
 
 Molecule *Md2QmEngine::AddMoleculeType(int molecule_id,
-                                            Property *property) {
-    string molecule_name = property->get("name").as<string>();
-    string molecule_mdname = property->get("mdname").as<string>();
+                                            tools::Property *property) {
+    std::string molecule_name = property->get("name").as<std::string>();
+    std::string molecule_mdname = property->get("mdname").as<std::string>();
 
     Molecule *molecule = new Molecule(molecule_id, molecule_name);
     _molecule_types.push_back(molecule);
@@ -489,25 +489,25 @@ Molecule *Md2QmEngine::AddMoleculeType(int molecule_id,
     return molecule;
 }
 
-SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
-    string qmCoordsFile = "nofile";
-    string orbitalsFile = "nofile";
-    string basisSetName = "noname";
-    vector<int> torbNrs;
+SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, tools::Property *property) {
+    std::string qmCoordsFile = "nofile";
+    std::string orbitalsFile = "nofile";
+    std::string basisSetName = "noname";
+    std::vector<int> torbNrs;
 
     bool canRigidify = false;
         
-    string qmunit_name = property->get("name").as<string>();
+    std::string qmunit_name = property->get("name").as<std::string>();
     
     if (property->exists("qmcoords")) {
-        qmCoordsFile = property->get("qmcoords").as<string>();
+        qmCoordsFile = property->get("qmcoords").as<std::string>();
         canRigidify = true;
     }
     if (property->exists("orbitals")) {
-        orbitalsFile = property->get("orbitals").as<string>();
+        orbitalsFile = property->get("orbitals").as<std::string>();
     }
     if (property->exists("basisset")) {
-        basisSetName = property->get("basisset").as<string>();
+        basisSetName = property->get("basisset").as<std::string>();
     }
 
     SegmentType* qmUnit = new SegmentType(qmunit_id,    qmunit_name,
@@ -518,19 +518,19 @@ SegmentType *Md2QmEngine::AddQMUnit(int qmunit_id, Property *property) {
 }
 
 
-Molecule *Md2QmEngine::getMoleculeType(const string &name) {
+Molecule *Md2QmEngine::getMoleculeType(const std::string &name) {
     try {
         return _map_MoleculeName_MoleculeType.at(name);
     }
     catch ( const std::exception& out_of_range ) {
-        cout << "WARNING: Molecule '" << name
+        std::cout << "WARNING: Molecule '" << name
              << "' not included in mapping definition. Skipping... ";
-        cout << endl;
+        std::cout << std::endl;
         return NULL;
     }    
 }
 
-const string &Md2QmEngine::getMoleculeName(const string &mdname) {
+const std::string &Md2QmEngine::getMoleculeName(const std::string &mdname) {
     try {
         return _map_MoleculeMDName_MoleculeName.at(mdname);
     }
@@ -539,23 +539,23 @@ const string &Md2QmEngine::getMoleculeName(const string &mdname) {
     }
 }
 
-Atom *Md2QmEngine::getAtomType(const string &molMdName,
-                                    int resNr, const string &mdAtomName) {
+Atom *Md2QmEngine::getAtomType(const std::string &molMdName,
+                                    int resNr, const std::string &mdAtomName) {
     return this->_map_mol_resNr_atm_atmType.at(molMdName)
                                            .at(resNr)
                                            .at(mdAtomName);
 }
 //TODO move to filereader
-void Md2QmEngine::ReadXYZFile(string &file,
-                               map<int, pair<string,vec> > &intCoords) {
+void Md2QmEngine::ReadXYZFile(std::string &file,
+                               std::map<int, std::pair<std::string,tools::vec> > &intCoords) {
 
     std::string line;
     std::ifstream intt;
     intt.open(file.c_str());
-    if (!intt) throw runtime_error(string("Error reading coordinates from: ")
+    if (!intt) throw std::runtime_error(std::string("Error reading coordinates from: ")
                     + file);
     std::getline(intt, line);
-    Tokenizer tok1(line," \t");
+    tools::Tokenizer tok1(line," \t");
     std::vector<std::string> line1;
     tok1.ToVector(line1);
     if(line1.size()!=1){
@@ -567,18 +567,18 @@ void Md2QmEngine::ReadXYZFile(string &file,
     if (intt.is_open() ) {
         while ( intt.good() ) {
             std::getline(intt, line);
-            vector< string > split;
-            Tokenizer toker(line, " \t");
+            std::vector< std::string > split;
+            tools::Tokenizer toker(line, " \t");
             toker.ToVector(split);
             if(split.size()<4){continue;}
             // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
             atomCount++;
-            string element = split[0];
+            std::string element = split[0];
             double x = boost::lexical_cast<double>( split[1] ) / 10.; //°A to NM
             double y = boost::lexical_cast<double>( split[2] ) / 10.;
             double z = boost::lexical_cast<double>( split[3] ) / 10.;
-            vec qmPos = vec(x,y,z);
-            pair<string, vec> qmTypePos(element, qmPos);
+            tools::vec qmPos = tools::vec(x,y,z);
+            std::pair<std::string, tools::vec> qmTypePos(element, qmPos);
             intCoords[atomCount] = qmTypePos;
         }
     }
@@ -590,43 +590,43 @@ void Md2QmEngine::ReadXYZFile(string &file,
 
 void Md2QmEngine::PrintInfo() {
 
-    cout << "Summary ~~~~~"
-            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << endl;
-    cout << "Created "
+    std::cout << "Summary ~~~~~"
+            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
+    std::cout << "Created "
          << _molecule_types.size() << " molecule type(s): ";
     for (Molecule* mol:_molecule_types) {
-         cout << "[ " << mol->getName() << " ]";
+         std::cout << "[ " << mol->getName() << " ]";
     }
-    cout << endl <<  "with a total of "
+    std::cout << std::endl <<  "with a total of "
          << _segment_types.size()  << " segment(s), "
          << _fragment_types.size() << " fragments, "
-         << _atom_types.size() << " atoms. \n" << endl;
+         << _atom_types.size() << " atoms. \n" << std::endl;
 
-    for (const std::pair<string,string>& mssit : _map_MoleculeMDName_MoleculeName) {
-         cout << "MD [ " << mssit.first << " ] mapped to "
-              << "QM [ " << mssit.second << " ] \n" << endl;
+    for (const std::pair<std::string,std::string>& mssit : _map_MoleculeMDName_MoleculeName) {
+         std::cout << "MD [ " << mssit.first << " ] mapped to "
+              << "QM [ " << mssit.second << " ] \n" << std::endl;
     }
 
     for (Molecule* mol: _molecule_types) {
-         cout << "[ " << mol->getName() << " ]" << endl;
+         std::cout << "[ " << mol->getName() << " ]" << std::endl;
 
          for (Segment *seg:mol->Segments()) {
-              cout << " - Segment [ " << seg->getName() << " ]"
-                   << " ID " << seg->getId() << endl;
+              std::cout << " - Segment [ " << seg->getName() << " ]"
+                   << " ID " << seg->getId() << std::endl;
 
               for (Fragment *frag:seg->Fragments()) {
-                   cout << "   - Fragment [ " << frag->getName() << " ]"
+                   std::cout << "   - Fragment [ " << frag->getName() << " ]"
                         << " ID " << frag->getId() << ": "
-                        << frag->Atoms().size() << " atoms " << endl;
+                        << frag->Atoms().size() << " atoms " << std::endl;
               }
          }
     }
 
     if (! votca::tools::globals::verbose ) { return; }
 
-    cout << endl << "Mapping table"
+    std::cout << std::endl << "Mapping table"
                     " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                 << endl;
+                 << std::endl;
     for (auto& map0:this->_map_mol_resNr_atm_atmType) {
          for (auto& map1:map0.second) {
               for (auto& map2:map1.second){

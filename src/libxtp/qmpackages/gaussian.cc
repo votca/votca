@@ -629,7 +629,6 @@ namespace votca {
                     boost::trim(line);
                     boost::algorithm::split(results, line, boost::is_any_of("\t ="),
                             boost::algorithm::token_compress_on);
-
                     level = boost::lexical_cast<int>(results.front());
                     boost::replace_first(results.back(), "D", "e");
                     energies[ level ] = boost::lexical_cast<double>(results.back());
@@ -952,7 +951,7 @@ namespace votca {
                     }
                     if (properties.count("HF") > 0) {
                         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-                        orbitals. setQMEnergy(energy_hartree);
+                        orbitals.setQMEnergy(energy_hartree);
                         XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") % orbitals.getQMEnergy()).str() << flush;
                     } else {
                         cout << endl;

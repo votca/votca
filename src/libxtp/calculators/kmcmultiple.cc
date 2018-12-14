@@ -235,8 +235,7 @@ void KMCMultiple::RunVSSM(Topology *top)
                     continue; // select new destination
                 }
                 else{
-                    affectedcarrier->jumpfromCurrentNodetoNode(newnode);
-                    affectedcarrier->dr_travelled +=event.dr;
+                    affectedcarrier->jumpAccordingEvent(event);
                     level1step = false;                   
                     break; // this ends LEVEL 2 , so that the time is updated and the next MC step started
                 }
@@ -250,7 +249,7 @@ void KMCMultiple::RunVSSM(Topology *top)
         
         if(step%diffusionresolution==0){     
             for(const auto& carrier:_carriers){
-                avgdiffusiontensor += (carrier.dr_travelled)*(carrier.dr_travelled).transpose();
+                avgdiffusiontensor += (carrier.get_dRtravelled())*(carrier.get_dRtravelled()).transpose();
             }
         }
         
@@ -264,7 +263,7 @@ void KMCMultiple::RunVSSM(Topology *top)
                 double average_mobility = 0;
                 cout << endl << "Mobilities (nm^2/Vs): " << endl;
                 for (unsigned int i = 0; i < _numberofcharges; i++) {
-                    Eigen::Vector3d velocity= _carriers[i].dr_travelled / simtime;
+                    Eigen::Vector3d velocity= _carriers[i].get_dRtravelled() / simtime;
                     cout << std::scientific << "    charge " << i + 1 << ": mu=" << velocity.dot(_field) / (absolute_field * absolute_field) << endl;
                     average_mobility += velocity.dot(_field) / (absolute_field * absolute_field);
                 }
@@ -284,9 +283,9 @@ void KMCMultiple::RunVSSM(Topology *top)
                 traj << simtime << "\t";
             traj << step << "\t";
                 for(unsigned int i=0; i<_numberofcharges; i++) {
-                    traj << startposition[i][0] + _carriers[i].dr_travelled[0] << "\t";
-                    traj << startposition[i][1] + _carriers[i].dr_travelled[1] << "\t";
-                    traj << startposition[i][2] + _carriers[i].dr_travelled[2];
+                    traj << startposition[i][0] + _carriers[i].get_dRtravelled()[0] << "\t";
+                    traj << startposition[i][1] + _carriers[i].get_dRtravelled()[1] << "\t";
+                    traj << startposition[i][2] + _carriers[i].get_dRtravelled()[2];
                     if (i<_numberofcharges-1) {
                         traj << "\t";
                     }
@@ -303,7 +302,7 @@ void KMCMultiple::RunVSSM(Topology *top)
                 Eigen::Vector3d avgvelocity_current =Eigen::Vector3d::Zero();
                 if(absolute_field != 0){
                     for(const auto& carrier:_carriers){
-                        dr_travelled_current += carrier.dr_travelled;
+                        dr_travelled_current += carrier.get_dRtravelled();
                         currentenergy += carrier.getCurrentEnergy();
                     }
                     dr_travelled_current /= _numberofcharges;
@@ -341,8 +340,8 @@ void KMCMultiple::RunVSSM(Topology *top)
     
     Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
     for(unsigned int i=0; i<_numberofcharges; i++){
-        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i].dr_travelled/simtime << endl;
-        avg_dr_travelled += _carriers[i].dr_travelled;
+        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i].get_dRtravelled()/simtime << endl;
+        avg_dr_travelled += _carriers[i].get_dRtravelled();
     }
     avg_dr_travelled /= _numberofcharges;
     
@@ -351,7 +350,7 @@ void KMCMultiple::RunVSSM(Topology *top)
 
     cout << endl << "Distances travelled (nm): " << endl;
     for(unsigned int i=0; i<_numberofcharges; i++){
-        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i].dr_travelled << endl;
+        cout << std::scientific << "    charge " << i+1 << ": " << _carriers[i].get_dRtravelled() << endl;
     }
     
     // calculate mobilities
@@ -360,7 +359,7 @@ void KMCMultiple::RunVSSM(Topology *top)
         double average_mobility = 0;
         cout << endl << "Mobilities (nm^2/Vs): " << endl;
         for(unsigned int i=0; i<_numberofcharges; i++){
-            Eigen::Vector3d velocity = _carriers[i].dr_travelled/simtime;
+            Eigen::Vector3d velocity = _carriers[i].get_dRtravelled()/simtime;
             cout << std::scientific << "    charge " << i+1 << ": mu=" << velocity.dot(_field)/(absolute_field*absolute_field) << endl;
             average_mobility += velocity.dot(_field) /(absolute_field*absolute_field);
         }

@@ -79,7 +79,7 @@ bool XtpRun::EvaluateOptions() {
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no calculator is given");
-    Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
     for (const std::string &n: tok) {
       // loop over calculators
@@ -102,7 +102,7 @@ bool XtpRun::EvaluateOptions() {
   CheckRequired("options", "Please provide an xml file with calculator options");
   CheckRequired("execute", "Nothing to do here: Abort.");
 
-  Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
+  tools::Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
   for (const std::string &n: calcs) {
     bool found_calc = false;
     for (const auto& calc:xtp::Calculators().getObjects()) {

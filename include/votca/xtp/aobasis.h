@@ -57,8 +57,6 @@ public:
     Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
     
     const AOShell& getShell( int idx )const{ return _aoshells[idx] ;}
-
-    const std::vector<AOShell>& getShells() const{ return _aoshells; }
     
     const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
@@ -80,10 +78,9 @@ private:
   
   AOShell& addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);
     
-  void ReserveShells(const BasisSet& bs, const QMMolecule& atoms);
   void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
-    std::vector<AOShell> _aoshells;
+
 
     std::vector<int> invertOrder(const std::vector<int>& order );
     
@@ -96,12 +93,13 @@ private:
     void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
   
     void addTrafoCartShell( const AOShell& shell , Eigen::Block<Eigen::MatrixXd>& submatrix );
+    std::vector<AOShell> _aoshells;
     
     std::vector<int> _FuncperAtom;
     
-   int _AOBasisFragA;
-   int _AOBasisFragB;
-    unsigned int _AOBasisSize;
+    int _AOBasisFragA;
+    int _AOBasisFragB;
+    int _AOBasisSize;
     
 };
 

@@ -29,7 +29,7 @@
 
 namespace votca { namespace xtp {
 
-void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
+void StateSaverSQLite::Open(Topology& qmtop, const std::string &file, bool lock) {
     _sqlfile = file;
     if (lock) this->LockStateFile();
     _db.OpenHelper(file.c_str());
@@ -43,7 +43,7 @@ void StateSaverSQLite::Open(Topology& qmtop, const string &file, bool lock) {
     _was_read = false;
 
     // Query available frames in database
-    Statement *stmt = _db.Prepare("SELECT _id, id FROM frames;");
+    tools::Statement *stmt = _db.Prepare("SELECT _id, id FROM frames;");
     while(stmt->Step() != SQLITE_DONE) {
         _frames.push_back(stmt->Column<int>(0));
         _topIds.push_back(stmt->Column<int>(1));
@@ -61,21 +61,21 @@ void StateSaverSQLite::WriteFrame() {
 
     if ( ! hasAlready ) {
         if (_qmtop->getDatabaseId() >= 0 ) {
-            throw runtime_error ("How was this topology generated? ");
+            throw std::runtime_error ("How was this topology generated? ");
         }
         _qmtop->setDatabaseId(_frames.size());
         _topIds.push_back(_qmtop->getDatabaseId());
-        cout << "Saving ";
+        std::cout << "Saving ";
     }
     else {
-        cout << "Updating ";
+        std::cout << "Updating ";
     }
 
-    cout << "MD+QM topology ID " << _qmtop->getDatabaseId()
+    std::cout << "MD+QM topology ID " << _qmtop->getDatabaseId()
          << " (step = " << _qmtop->getStep()
          << ", time = " << _qmtop->getTime()
-         << ") to " << _sqlfile << endl;
-    cout << "... ";
+         << ") to " << _sqlfile << std::endl;
+    std::cout << "... ";
 
     _db.BeginTransaction();    
 
@@ -89,7 +89,7 @@ void StateSaverSQLite::WriteFrame() {
 
     _db.EndTransaction();
 
-    cout << ". " << endl;
+    std::cout << ". " << std::endl;
     this->UnlockStateFile();
     return;
 }
@@ -97,7 +97,7 @@ void StateSaverSQLite::WriteFrame() {
 
 void StateSaverSQLite::WriteMeta(bool update) {
     
-    Statement *stmt;
+    tools::Statement *stmt;
     if ( update ) {
         return; // Nothing to do here
     }
@@ -137,8 +137,8 @@ void StateSaverSQLite::WriteMeta(bool update) {
 
 
 void StateSaverSQLite::WriteMolecules(bool update) {
-    cout << "Molecules" << flush;
-    Statement *stmt;
+    std::cout << "Molecules" << std::flush;
+    tools::Statement *stmt;
 
     if (!update) {
         stmt = _db.Prepare("INSERT INTO molecules ("
@@ -177,8 +177,8 @@ void StateSaverSQLite::WriteMolecules(bool update) {
 
 
 void StateSaverSQLite::WriteSegTypes(bool update) {
-    cout << ", types" << flush;
-    Statement *stmt;
+    std::cout << ", types" << std::flush;
+    tools::Statement *stmt;
 
     if (!update) {
         stmt = _db.Prepare("INSERT INTO segmentTypes ("
@@ -211,14 +211,14 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
 
             // Process transporting-orbital numbers
             // NOTE Obsolete, now read in only for IZindo calculator
-            // string torbNrs = "";
+            // std::string torbNrs = "";
             // std::vector <int> ::iterator iit;
             // for (int i = 0; i < type->getTOrbNrs().size(); i++) {
             //     int    nrInt = (type->getTOrbNrs())[i];
-            //     string nrStr = boost::lexical_cast<string>(nrInt);
+            //     std::string nrStr = boost::lexical_cast<std::string>(nrInt);
             //     torbNrs += ":" + nrStr;
             // }
-            string torbStr = "NOT_USED";
+            std::string torbStr = "NOT_USED";
             stmt->Bind(7, torbStr);
             stmt->Bind(8, type->getQMCoordsFile());
 
@@ -236,21 +236,21 @@ void StateSaverSQLite::WriteSegTypes(bool update) {
 
 
 void StateSaverSQLite::WriteSegments(bool update) {
-    cout << ", segments" << flush;
-    Statement *stmt;
+    std::cout << ", segments" << std::flush;
+    tools::Statement *stmt;
     
      // Find out whether segments for this topology have already been created
     stmt = _db.Prepare("SELECT id FROM segments WHERE top = ?;");
     stmt->Bind(1, _qmtop->getDatabaseId());
     if (stmt->Step() == SQLITE_DONE) {        
-        cout << " (create)" << flush;
+        std::cout << " (create)" << std::flush;
     }
     else { 
-        cout << " (recreate)" << flush;        
-        Statement *stmt2 = _db.Prepare("DELETE FROM segments;");
+        std::cout << " (recreate)" << std::flush;        
+        tools::Statement *stmt2 = _db.Prepare("DELETE FROM segments;");
         stmt2->Step();
         delete stmt2;
-        Statement *stmt3 = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='segments' ;");
+        tools::Statement *stmt3 = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='segments' ;");
         stmt3->Step();
         delete stmt3;
     }
@@ -336,9 +336,9 @@ void StateSaverSQLite::WriteSegments(bool update) {
 
 
 void StateSaverSQLite::WriteFragments(bool update) {
-    cout << ", fragments" << flush;
+    std::cout << ", fragments" << std::flush;
 
-    Statement *stmt;
+    tools::Statement *stmt;
 
     if (! update) {
         stmt = _db.Prepare("INSERT INTO fragments ("
@@ -387,9 +387,9 @@ void StateSaverSQLite::WriteFragments(bool update) {
 
 void StateSaverSQLite::WriteAtoms(bool update) {
 
-    cout << ", atoms" << flush;
+    std::cout << ", atoms" << std::flush;
 
-    Statement *stmt;
+    tools::Statement *stmt;
     if (! update) {
         stmt = _db.Prepare("INSERT INTO atoms ("
                             "frame, top, id,"
@@ -445,22 +445,22 @@ void StateSaverSQLite::WriteAtoms(bool update) {
 void StateSaverSQLite::WritePairs(bool update) {
     if ( ! _qmtop->NBList().size() ) { return; }
     
-    cout << ", pairs" << flush;
+    std::cout << ", pairs" << std::flush;
 
-    Statement *stmt;
+    tools::Statement *stmt;
     
     // Find out whether pairs for this topology have already been created
     stmt = _db.Prepare("SELECT id FROM pairs WHERE top = ?;");
     stmt->Bind(1, _qmtop->getDatabaseId());
     if (stmt->Step() == SQLITE_DONE) {        
-        cout << " (create)" << flush;
+        std::cout << " (create)" << std::flush;
     }
     else { 
-        cout << " (recreate)" << flush;        
-        Statement* stmt2 = _db.Prepare("DELETE FROM pairs;");
+        std::cout << " (recreate)" << std::flush;        
+        tools::Statement* stmt2 = _db.Prepare("DELETE FROM pairs;");
         stmt2->Step();
         delete stmt2;
-        Statement*stmt3 = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='pairs' ;");
+        tools::Statement*stmt3 = _db.Prepare("UPDATE sqlite_sequence set seq = 0 where name='pairs' ;");
         stmt3->Step();
         delete stmt3;
     }
@@ -554,10 +554,10 @@ void StateSaverSQLite::ReadFrame() {
 
     int topId = _topIds[_current_frame];
 
-    cout << "Import MD+QM Topology ID " << topId
+    std::cout << "Import MD+QM Topology ID " << topId
          << " (i.e. frame " << _current_frame << ")"
-         << " from " << _sqlfile << endl;
-    cout << "...";
+         << " from " << _sqlfile << std::endl;
+    std::cout << "...";
 
     _qmtop->CleanUp();    
     _qmtop->setDatabaseId(topId);
@@ -570,13 +570,13 @@ void StateSaverSQLite::ReadFrame() {
     this->ReadFragments(topId);
     this->ReadAtoms(topId);    
     this->ReadPairs(topId);    
-    cout << ". " << endl;
+    std::cout << ". " << std::endl;
 }
 
 
 void StateSaverSQLite::ReadMeta(int topId) {
 
-    Statement *stmt = _db.Prepare("SELECT "
+    tools::Statement *stmt = _db.Prepare("SELECT "
                                   "time, step, "
                                   "box11, box12, box13, "
                                   "box21, box22, box23, "
@@ -588,12 +588,12 @@ void StateSaverSQLite::ReadMeta(int topId) {
 
     if (stmt->Step() == SQLITE_DONE) {
         // ReadFrame should not have been called in the first place:
-        throw runtime_error("Database appears to be broken. Abort...");
+        throw std::runtime_error("Database appears to be broken. Abort...");
     }
 
     _qmtop->setTime(stmt->Column<double>(0));
     _qmtop->setStep(stmt->Column<int>(1));
-    matrix boxv;
+    tools::matrix boxv;
     for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
             boxv.set(i, j, stmt->Column<double>(2+3*i+j));
@@ -608,14 +608,14 @@ void StateSaverSQLite::ReadMeta(int topId) {
 
 void StateSaverSQLite::ReadMolecules(int topId) {
 
-    cout << " Molecules" << flush;
+    std::cout << " Molecules" << std::flush;
 
-    Statement *stmt = _db.Prepare("SELECT name "
+    tools::Statement *stmt = _db.Prepare("SELECT name "
                                   "FROM molecules "
                                   "WHERE top = ?;");
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
-	(void) _qmtop->AddMolecule(stmt->Column<string>(0));
+	(void) _qmtop->AddMolecule(stmt->Column<std::string>(0));
     }
     delete stmt;
     stmt = NULL;
@@ -624,9 +624,9 @@ void StateSaverSQLite::ReadMolecules(int topId) {
 
 void StateSaverSQLite::ReadSegTypes(int topId) {
 
-    cout << ", types";
+    std::cout << ", types";
 
-    Statement *stmt = _db.Prepare("SELECT "
+    tools::Statement *stmt = _db.Prepare("SELECT "
                                   "name, basis, orbfile, "
                                   "torbnrs, coordfile, canRigid "
                                   "FROM segmentTypes "
@@ -634,10 +634,10 @@ void StateSaverSQLite::ReadSegTypes(int topId) {
 
     stmt->Bind(1, topId);
     while (stmt->Step() != SQLITE_DONE) {
-        SegmentType *type = _qmtop->AddSegmentType(stmt->Column<string>(0));
-        type->setBasisName(stmt->Column<string>(1));
-        type->setOrbitalsFile(stmt->Column<string>(2));
-        type->setQMCoordsFile(stmt->Column<string>(4));
+        SegmentType *type = _qmtop->AddSegmentType(stmt->Column<std::string>(0));
+        type->setBasisName(stmt->Column<std::string>(1));
+        type->setOrbitalsFile(stmt->Column<std::string>(2));
+        type->setQMCoordsFile(stmt->Column<std::string>(4));
         int canRigidify = stmt->Column<int>(5);
         type->setCanRigidify(canRigidify);
 
@@ -651,9 +651,9 @@ void StateSaverSQLite::ReadSegTypes(int topId) {
 
 void StateSaverSQLite::ReadSegments(int topId) {
 
-    cout << ", segments" << flush;
+    std::cout << ", segments" << std::flush;
 
-    Statement *stmt = _db.Prepare("SELECT name, type, mol, "
+    tools::Statement *stmt = _db.Prepare("SELECT name, type, mol, "
                                   "posX, posY, posZ, "
                                   "UnCnNe, UnCnNh, UcNcCe,"
                                   "UcNcCh, UcCnNe , UcCnNh ,"            
@@ -668,7 +668,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
 
     while (stmt->Step() != SQLITE_DONE) {
 
-        string  name = stmt->Column<string>(0);
+        std::string  name = stmt->Column<std::string>(0);
         int     type = stmt->Column<int>(1);
         int     mId  = stmt->Column<int>(2);
         double  X    = stmt->Column<double>(3);
@@ -712,7 +712,7 @@ void StateSaverSQLite::ReadSegments(int topId) {
         Segment *seg = _qmtop->AddSegment(name);
         seg->setMolecule(_qmtop->getMolecule(mId));
         seg->setType(_qmtop->getSegmentType(type));
-        seg->setPos(vec(X, Y, Z));
+        seg->setPos(tools::vec(X, Y, Z));
         seg->setU_nC_nN(l1, -1);
         seg->setU_nC_nN(l2, +1);
         seg->setU_cN_cC(l3, -1);
@@ -753,9 +753,9 @@ void StateSaverSQLite::ReadSegments(int topId) {
 
 void StateSaverSQLite::ReadFragments(int topId) {
 
-    cout << ", fragments" << flush;
+    std::cout << ", fragments" << std::flush;
 
-    Statement *stmt = _db.Prepare("SELECT "
+    tools::Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, "
                                   "posX, posY, posZ, "
                                   "symmetry, leg1, leg2, leg3 "
@@ -766,7 +766,7 @@ void StateSaverSQLite::ReadFragments(int topId) {
 
     while (stmt->Step() != SQLITE_DONE) {
 
-        string  name    = stmt->Column<string>(0);
+        std::string  name    = stmt->Column<std::string>(0);
         int     molid   = stmt->Column<int>(1);
         int     segid   = stmt->Column<int>(2);
         double  posX    = stmt->Column<double>(3);
@@ -785,7 +785,7 @@ void StateSaverSQLite::ReadFragments(int topId) {
         Fragment *frag = _qmtop->AddFragment(name);
         frag->setSegment(_qmtop->getSegment(segid));
         frag->setMolecule(_qmtop->getMolecule(molid));
-        frag->setPos(vec(posX, posY, posZ));
+        frag->setPos(tools::vec(posX, posY, posZ));
         frag->setSymmetry(symm);
         frag->setTrihedron(trihedron);
 
@@ -800,9 +800,9 @@ void StateSaverSQLite::ReadFragments(int topId) {
 
 void StateSaverSQLite::ReadAtoms(int topId) {
 
-    cout << ", atoms" << flush;
+    std::cout << ", atoms" << std::flush;
 
-    Statement *stmt = _db.Prepare("SELECT "
+    tools::Statement *stmt = _db.Prepare("SELECT "
                                   "name, mol, seg, frag, "
                                   "resnr, resname, "
                                   "posX, posY, posZ, "
@@ -815,12 +815,12 @@ void StateSaverSQLite::ReadAtoms(int topId) {
 
     while (stmt->Step() != SQLITE_DONE) {
 
-        string  name = stmt->Column<string>(0);
+        std::string  name = stmt->Column<std::string>(0);
         int     molid = stmt->Column<int>(1);
         int     segid = stmt->Column<int>(2);
         int     fragid = stmt->Column<int>(3);
         int     resnr = stmt->Column<int>(4);
-        string  resname = stmt->Column<string>(5);
+        std::string  resname = stmt->Column<std::string>(5);
         double  posX = stmt->Column<double>(6);
         double  posY = stmt->Column<double>(7);
         double  posZ = stmt->Column<double>(8);
@@ -829,13 +829,13 @@ void StateSaverSQLite::ReadAtoms(int topId) {
         double  qmPosX = stmt->Column<double>(11);
         double  qmPosY = stmt->Column<double>(12);
         double  qmPosZ = stmt->Column<double>(13);
-        string  element = stmt->Column<string>(14);
+        std::string  element = stmt->Column<std::string>(14);
 
         Atom *atm = _qmtop->AddAtom(name);
         atm->setWeight(weight);
-        atm->setQMPart(qmid, vec(qmPosX,qmPosY,qmPosZ));
+        atm->setQMPart(qmid, tools::vec(qmPosX,qmPosY,qmPosZ));
         atm->setElement(element);
-        atm->setPos( vec(posX, posY, posZ) );
+        atm->setPos( tools::vec(posX, posY, posZ) );
         
         atm->setFragment(_qmtop->getFragment(fragid));
         atm->setSegment(_qmtop->getSegment(segid));
@@ -855,7 +855,7 @@ void StateSaverSQLite::ReadAtoms(int topId) {
 
 void StateSaverSQLite::ReadPairs(int topId) {
 
-    Statement *stmt = _db.Prepare("SELECT "
+    tools::Statement *stmt = _db.Prepare("SELECT "
                                   "seg1, seg2,"
                                   "has_e, has_h,has_s,has_t,"
                                   "lOe, lOh, lOs, lOt,"
@@ -928,7 +928,7 @@ void StateSaverSQLite::ReadPairs(int topId) {
         newPair->setJeff2(jt, +3);
         newPair->setType(tp);
     }
-    cout << ", pairs" << flush;       
+    std::cout << ", pairs" << std::flush;       
     delete stmt;
     stmt = NULL;
 
@@ -939,7 +939,7 @@ bool StateSaverSQLite::HasTopology(Topology *top) {
     // Determine from topology ID whether database already stores a
     // (previous) copy
 
-    Statement *stmt = _db.Prepare("SELECT id FROM frames");
+    tools::Statement *stmt = _db.Prepare("SELECT id FROM frames");
 
     while (stmt->Step() != SQLITE_DONE) {
         if ( stmt->Column<int>(0) == top->getDatabaseId() ) { delete stmt;return true; }
@@ -952,7 +952,7 @@ bool StateSaverSQLite::HasTopology(Topology *top) {
 
 
 int StateSaverSQLite::FramesInDatabase() {
-    cout << "Reading file " << this->_sqlfile << ": Found " << _frames.size()
+    std::cout << "Reading file " << this->_sqlfile << ": Found " << _frames.size()
          << " frames stored in database. \n";
     return _frames.size();
 }

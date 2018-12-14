@@ -37,6 +37,8 @@ namespace votca {
                 double MaxForce;
                 double RMSStep;
                 double MaxStep;
+                int maxforceindex=0;
+                int maxstepindex=0;
             };
 
             Energy_costfunction(GWBSEEngine& gwbse_engine, Statefilter& filter,

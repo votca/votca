@@ -21,7 +21,6 @@
 #define	__VOTCA_XTP_NWCHEM_H
 
 
-#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string>

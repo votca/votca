@@ -627,8 +627,6 @@ namespace votca {
      */
     bool NWChem::ParseLogFile(Orbitals& orbitals) {
 
-      double conv_Hrt_eV = tools::conv::hrt2ev;
-
       std::string line;
       std::vector<std::string> results;
 
