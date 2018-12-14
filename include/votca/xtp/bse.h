@@ -39,6 +39,9 @@ struct Interaction {
 };
 
 struct Population {
+
+public:
+    
     std::vector<Eigen::VectorXd> popH;
     std::vector<Eigen::VectorXd> popE;
     std::vector<Eigen::VectorXd> Crgs;
