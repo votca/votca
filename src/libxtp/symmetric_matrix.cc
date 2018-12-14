@@ -56,12 +56,14 @@ namespace votca {
         double result=0.0;
         
         for (size_t i=0;i<dimension;++i){
-            result+=this->operator ()(i,i)*a.operator ()(i,i);
+            const int index=(i * (i + 1)) / 2 + i;
+            result+=+data[index]*a.data[index];
         }
         for (size_t i=0;i<dimension;++i){
+            const int start = (i * (i + 1)) / 2;
             for (size_t j=0;j<i;++j){
-                result+=2*this->operator ()(i,j)*a.operator ()(i,j);
-        }
+                result+=2*data[start+j]*a.data[start +j];
+            }
         }
         return result;
     }
@@ -81,6 +83,17 @@ namespace votca {
       return;
     }
 
+
+    void Symmetric_Matrix::AddtoEigenUpperMatrix(Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper>& upper, double factor) const {
+      for (int j = 0; j < upper.cols(); ++j) {
+        const int start = (j * (j + 1)) / 2;
+        for (int i = 0; i <= j; ++i) {
+          upper(i, j) += factor * data[start + i];
+        }
+      }
+      return;
+    }
+
     Eigen::MatrixXd Symmetric_Matrix::FullMatrix()const{
       Eigen::MatrixXd result = Eigen::MatrixXd(dimension, dimension);
       for (int j = 0; j < result.cols(); ++j) {
@@ -92,6 +105,18 @@ namespace votca {
         for (int i = j + 1; i < result.rows(); ++i) {
           const int index = (i * (i + 1)) / 2 + j;
           result(i, j) = data[index];
+        }
+      }
+      return result;
+    }
+
+
+    Eigen::MatrixXd Symmetric_Matrix::UpperMatrix()const{
+      Eigen::MatrixXd result = Eigen::MatrixXd::Zero(dimension, dimension);
+      for (int j = 0; j < result.cols(); ++j) {
+        const int start = (j * (j + 1)) / 2;
+        for (int i = 0; i <= j; ++i) {
+          result(i, j) = data[start + i];
         }
       }
       return result;

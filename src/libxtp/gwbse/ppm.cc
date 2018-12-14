@@ -32,7 +32,7 @@ namespace votca {
             _ppm_phi=es.eigenvectors();
                    
             // store PPM weights from eigenvalues
-            _ppm_weight=Eigen::VectorXd::Ones(es.eigenvalues().size())-es.eigenvalues().cwiseInverse();
+            _ppm_weight=1-es.eigenvalues().array().inverse();
                                 
             // a) phi^t * epsilon(1) * phi e.g. transform epsilon(1) to the same space as epsilon(0)
            Eigen::MatrixXd ortho=_ppm_phi.transpose()*rpa.GetEpsilon_i()[0]*_ppm_phi;

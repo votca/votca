@@ -47,13 +47,7 @@ namespace votca {
       #pragma omp parallel for
       for (int gw_level = 0; gw_level < _qptotal; gw_level++) {
         const MatrixXfd & Mmn1 = Mmn[ gw_level + _qpmin ];
-        double sigma_x = 0;
-        for (int i_gw = 0; i_gw < gwsize; i_gw++) {
-          // loop over all occupied bands used in screening
-          for (int i_occ = 0; i_occ <= _homo; i_occ++) {
-            sigma_x -= Mmn1( i_occ,i_gw) * Mmn1( i_occ,i_gw);
-          } // occupied bands
-        } // gwbasis functions             
+        double sigma_x=-Mmn1.block(0,0,_homo+1,gwsize).cwiseAbs2().sum();
         _sigma_x(gw_level, gw_level) = (1.0 - _ScaHFX) * sigma_x;
       }
     }
@@ -145,13 +139,7 @@ namespace votca {
         const MatrixXfd& Mmn1 = Mmn[ gw_level1 + _qpmin ];
         for (int gw_level2 = gw_level1+1; gw_level2 < _qptotal; gw_level2++) {
           const MatrixXfd & Mmn2 = Mmn[ gw_level2 + _qpmin ];
-          double sigma_x = 0;
-          for (int i_gw = 0; i_gw < gwsize; i_gw++) {
-            // loop over all occupied bands used in screening
-            for (int i_occ = 0; i_occ <= _homo; i_occ++) {
-              sigma_x -= Mmn1(i_occ,i_gw) * Mmn2(i_occ,i_gw);
-            } // occupied bands
-          } // gwbasis functions
+          double sigma_x=-Mmn1.block(0,0,_homo+1,gwsize).cwiseProduct(Mmn2.block(0,0,_homo+1,gwsize)).sum();
           _sigma_x(gw_level1, gw_level2) = (1.0 - _ScaHFX) * sigma_x;
           _sigma_x(gw_level2, gw_level1) = (1.0 - _ScaHFX) * sigma_x;
         }
