@@ -620,9 +620,8 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 }
 
 int Rates::Factorial(int i) {
-    int k,j;
-    k = 1;
-    for (j=1; j<i; j++) { k = k*(j+1); }
+    int k= 1;
+    for (int j=1; j<i; j++) { k = k*(j+1); }
     return k;
 }
 

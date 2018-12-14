@@ -41,55 +41,55 @@ public:
     Md2QmEngine() { };
    ~Md2QmEngine();
 
-    void Initialize(const string &xmlfile);
+    void Initialize(const std::string &xmlfile);
     void PrintInfo();
 
     // Converts atomistic to QM topology
-    void            Md2Qm(CSG::Topology *mdtop, Topology *qmtop);
-    // Creates an QM molecule container based on MD molecule and the xml map 
-    Molecule  *MoleculeFactory(CSG::Molecule *molMDTemplate);
+    void            Md2Qm(csg::Topology *mdtop, Topology *qmtop);
+    // Creates an QM molecule container based on MD molecule and the xml std::map 
+    Molecule  *MoleculeFactory(csg::Molecule *molMDTemplate);
     // Partitions the QM molecule on segments and fragments
     Molecule  *ExportMolecule(Molecule *molQM, Topology *qmtop);
 
 private:
 
-    Property _typology;
+    tools::Property _typology;
     
-    // Type vectors
-    vector < Molecule* >    _molecule_types;
-    vector < Segment* >     _segment_types;
-    vector < SegmentType* > _qmUnits;
-    vector < Fragment* >    _fragment_types;
-    vector < Atom* >        _atom_types;    
+    // Type std::vectors
+    std::vector < Molecule* >    _molecule_types;
+    std::vector < Segment* >     _segment_types;
+    std::vector < SegmentType* > _qmUnits;
+    std::vector < Fragment* >    _fragment_types;
+    std::vector < Atom* >        _atom_types;    
 
     // MD <-> QM Maps
-    map < string, map < int, map < string, Atom* > > >
+    std::map < std::string, std::map < int, std::map < std::string, Atom* > > >
                                             _map_mol_resNr_atm_atmType;
-    map < string, Molecule* >          _map_MoleculeName_MoleculeType;
-    map < string, string >                  _map_MoleculeMDName_MoleculeName;
-    map < int, Segment* >              _map_id_segment;
+    std::map < std::string, Molecule* >          _map_MoleculeName_MoleculeType;
+    std::map < std::string, std::string >                  _map_MoleculeMDName_MoleculeName;
+    std::map < int, Segment* >              _map_id_segment;
 
 
     // Type Creators
-    Molecule    *AddMoleculeType(int molecule_id, Property *property);
-    Segment     *AddSegmentType(int segment_id, Property *property);
-    SegmentType *AddQMUnit(int unit_id, Property *property);
-    Fragment    *AddFragmentType(int fragment_id, Property *property);
+    Molecule    *AddMoleculeType(int molecule_id, tools::Property *property);
+    Segment     *AddSegmentType(int segment_id, tools::Property *property);
+    SegmentType *AddQMUnit(int unit_id, tools::Property *property);
+    Fragment    *AddFragmentType(int fragment_id, tools::Property *property);
     Atom        *AddAtomType(Molecule *owner,
-                                  string residue_name,    int residue_number,
-                                  string md_atom_name,    int md_atom_id,
+                                  std::string residue_name,    int residue_number,
+                                  std::string md_atom_name,    int md_atom_id,
                                   bool hasQMPart,         int qm_atom_id,
-                                  vec qmpos,              string element,
+                                  tools::vec qmpos,              std::string element,
                                   double weight);
     
     
 
-    const string   &getMoleculeName(const string &mdname);
-    Molecule  *getMoleculeType(const string &name);
-    Atom      *getAtomType(const string &molMdName,
-                                int resNr, const string &mdAtomName);
-    void            ReadXYZFile(string &file,
-                                 map<int, pair<string,vec> > &intCoords);
+    const std::string   &getMoleculeName(const std::string &mdname);
+    Molecule  *getMoleculeType(const std::string &name);
+    Atom      *getAtomType(const std::string &molMdName,
+                                int resNr, const std::string &mdAtomName);
+    void            ReadXYZFile(std::string &file,
+                                 std::map<int, std::pair<std::string,tools::vec> > &intCoords);
 
 
 };

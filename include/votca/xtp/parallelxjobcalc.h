@@ -97,8 +97,8 @@ public:
 protected:
 
     JobContainer             _XJobs;
-    Mutex                    _coutMutex;
-    Mutex                    _logMutex;
+    tools::Mutex                    _coutMutex;
+    tools::Mutex                    _logMutex;
     std::string              _jobfile;
     int                      _subthreads;
     

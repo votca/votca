@@ -24,38 +24,37 @@
 #include <boost/algorithm/string.hpp> 
 
 using boost::format;
-
 namespace votca { namespace xtp {    
     
     
     
-Job::Job(Property *prop)
+Job::Job(tools::Property *prop)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
    
      // DEFINED BY USER
     _id = prop->get("id").as<int>();
-    _tag = prop->get("tag").as<string>();
+    _tag = prop->get("tag").as<std::string>();
     _input = prop->get("input");
     _attemptsCount = 0;
     
     if (prop->exists("status"))
-        _status = ConvertStatus(prop->get("status").as<string>());
+        _status = ConvertStatus(prop->get("status").as<std::string>());
     else 
         _status = AVAILABLE;
     
     if (prop->exists("sqlcmd")) {
-        _sqlcmd = prop->get("sqlcmd").as<string>();
+        _sqlcmd = prop->get("sqlcmd").as<std::string>();
         _has_sqlcmd = true;
     }
 
     // GENERATED DURING RUNTIME
     if (prop->exists("host")) {
-        _host = prop->get("host").as<string>();
+        _host = prop->get("host").as<std::string>();
         _has_host = true;
     }
     if (prop->exists("time")) {
-        _time = prop->get("time").as<string>();
+        _time = prop->get("time").as<std::string>();
         _has_time = true;
     }
     if (prop->exists("output")) {
@@ -63,26 +62,26 @@ Job::Job(Property *prop)
         _has_output = true;
     }
     if (prop->exists("error")) {
-        _error = prop->get("error").as<string>();
+        _error = prop->get("error").as<std::string>();
         _has_error = true;
     }
 }
 
 
-Job::Job(int id, string &tag, string &inputstr, string status)
+Job::Job(int id, std::string &tag, std::string &inputstr, std::string status)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
     
     _id = id;
     _tag = tag;
-    Property input("input",inputstr,"");
+    tools::Property input("input",inputstr,"");
     _input = input;
     _status = ConvertStatus(status);
     _attemptsCount = 0;    
 }
 
 
-Job::Job(int id, string &tag, Property &input, JobStatus status)
+Job::Job(int id, std::string &tag, tools::Property &input, JobStatus status)
   : _has_host(false), _has_time(false), _has_error(false),
     _has_output(false), _has_sqlcmd(false) {
     
@@ -94,33 +93,33 @@ Job::Job(int id, string &tag, Property &input, JobStatus status)
 }
 
 
-string Job::ConvertStatus(JobStatus status) const {
+std::string Job::ConvertStatus(JobStatus status) const {
     
-    string converted;
+    std::string converted;
     switch(status) {
         case AVAILABLE: converted = "AVAILABLE"; break;
         case ASSIGNED: converted = "ASSIGNED"; break;
         case FAILED:   converted = "FAILED"; break;
         case COMPLETE: converted = "COMPLETE"; break;
-        default: throw runtime_error("Incomprehensible status (enum)");
+        default: throw std::runtime_error("Incomprehensible status (enum)");
     }
     return converted;    
 }
 
 
-Job::JobStatus Job::ConvertStatus(string status) const {
+Job::JobStatus Job::ConvertStatus(std::string status) const {
     JobStatus converted;
     if (status == "AVAILABLE") converted = AVAILABLE;
     else if (status == "ASSIGNED") converted = ASSIGNED;
     else if (status == "FAILED") converted = FAILED;
     else if (status == "COMPLETE") converted = COMPLETE;
-    else throw runtime_error("Incomprehensible status: " + status);
+    else throw std::runtime_error("Incomprehensible status: " + status);
     return converted;    
 }
     
 
 void Job::Reset() {    
-    _output = Property();
+    _output = tools::Property();
     _has_output = false;
     _error = "";
     _has_error = false;
@@ -128,19 +127,17 @@ void Job::Reset() {
 }
 
     
-void Job::ToStream(ofstream &ofs, string fileformat) {
+void Job::ToStream(std::ofstream &ofs, std::string fileformat) {
 
-    votca::tools::PropertyIOManipulator iomXML(votca::tools::PropertyIOManipulator::XML, 0, "\t\t");
+    tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 0, "\t\t");
     
     if (fileformat == "xml") {
-        string tab = "\t";
+        std::string tab = "\t";
         
         ofs << tab << "<job>\n";
         ofs << tab << tab << (format("<id>%1$d</id>\n") % _id).str();
         ofs << tab << tab << (format("<tag>%1$s</tag>\n") % _tag).str();
-        //PropertyFormat::PrintNodeXML(ofs, _input, 0, 0, "", "\t\t");
         ofs << iomXML << _input;
-        //ofs << tab << tab << (format("<input>%1$s</input>\n") % _input).str();
         ofs << tab << tab << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
         if (_has_sqlcmd)
@@ -153,7 +150,6 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
             ofs << tab << tab << (format("<time>%1$s</time>\n") 
                 % _time).str();
         if (_has_output)
-            //PropertyFormat::PrintNodeXML(ofs, _output, 0, 0, "",  "\t\t");
             ofs << iomXML << _output;
         if (_has_error)
             ofs << tab << tab << (format("<error>%1$s</error>\n")
@@ -161,14 +157,20 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
         ofs << tab << "</job>\n";     
     }
     else if (fileformat == "tab") {
-        string time = _time;
+        std::string time = _time;
         if (!_has_time) time = "__:__";
-        string host = _host;
+        std::string host = _host;
         if (!_has_host) host = "__:__";
-        string status = ConvertStatus(_status);
+        std::string status = ConvertStatus(_status);
+        
+        std::stringstream input;
+        std::stringstream output;
+        
+        input << iomXML << _input;
+        output << iomXML << _output;
         ofs << (format("%4$10s %5$20s %6$10s %1$5d %2$10s %3$30s %7$s %8$s\n")
-            % _id % _tag % _input % status % host
-            % time % _error % _output).str();
+            % _id % _tag % input.str() % status % host
+            % time % _error % output.str()).str();
     }
     else {
         assert(false);
@@ -180,13 +182,11 @@ void Job::ToStream(ofstream &ofs, string fileformat) {
 
 void Job::UpdateFrom(Job *ext) {
     
-    //if (ext->getStatus() > _status) { // Check now done by observer
         _status = ext->getStatus();
         if (ext->hasHost()) { _has_host = true; _host = ext->getHost(); }
         if (ext->hasTime()) { _has_time = true; _time = ext->getTime(); }
         if (ext->hasOutput()) { _has_output = true; _output = ext->getOutput(); }
         if (ext->hasError()) { _has_error = true; _error = ext->getError(); }
-    //}
     
     return;
 }

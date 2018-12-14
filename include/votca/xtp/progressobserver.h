@@ -79,7 +79,7 @@ private:
     
     JobItVec _nextjit;
     JobItCnt _metajit;
-    Mutex _lockThread;
+    tools::Mutex _lockThread;
     boost::interprocess::file_lock *_flock;
     
     std::map<std::string,bool> _restart_hosts;

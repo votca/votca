@@ -32,7 +32,7 @@ using namespace boost::filesystem;
 namespace votca {
   namespace xtp {
 
-    void EQM::Initialize(Property *options) {
+    void EQM::Initialize(tools::Property *options) {
 
       _do_dft_input = false;
       _do_dft_run = false;
@@ -44,12 +44,12 @@ namespace votca {
       QMPackageFactory::RegisterAll();
     }
 
-    void EQM::ParseOptionsXML(Property* options) {
+    void EQM::ParseOptionsXML(tools::Property* options) {
 
       _maverick = (_nThreads == 1) ? true : false;
-      string key = "options." + Identify();
+      std::string key = "options." + Identify();
       // job tasks
-      string _tasks_string = options->get(key + ".tasks").as<string> ();
+      std::string _tasks_string = options->get(key + ".tasks").as<std::string> ();
       if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
       if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
       if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
@@ -59,26 +59,26 @@ namespace votca {
       key = "options." + Identify();
 
       if (options->exists(key + ".job_file")) {
-        _jobfile = options->get(key + ".job_file").as<string>();
+        _jobfile = options->get(key + ".job_file").as<std::string>();
       } else {
         throw std::runtime_error("Job-file not set. Abort.");
       }
 
       // options for gwbse
       key = "options." + Identify();
-      string _gwbse_xml = options->get(key + ".gwbse_options").as<string> ();
+      std::string _gwbse_xml = options->get(key + ".gwbse_options").as<std::string> ();
       load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
       // options for dft package
-      string _package_xml = options->get(key + ".dftpackage").as<string> ();
+      std::string _package_xml = options->get(key + ".dftpackage").as<std::string> ();
       load_property_from_xml(_package_options, _package_xml.c_str());
       key = "package";
-      _package = _package_options.get(key + ".name").as<string> ();
+      _package = _package_options.get(key + ".name").as<std::string> ();
 
       //options for esp/partialcharges
       if (_do_esp) {
         key = "options." + Identify();
-        string _esp_xml = options->get(key + ".esp_options").as<string> ();
+        std::string _esp_xml = options->get(key + ".esp_options").as<std::string> ();
         load_property_from_xml(_esp_options, _esp_xml.c_str());
       }
 
@@ -86,59 +86,59 @@ namespace votca {
 
     void EQM::WriteJobFile(Topology *top) {
 
-      cout << endl << "... ... Writing job file: " << flush;
+      std::cout << std::endl << "... ... Writing job file: " << std::flush;
       std::ofstream ofs;
       ofs.open(_jobfile.c_str(), std::ofstream::out);
-      if (!ofs.is_open()) throw runtime_error("\nERROR: bad file handle: " + _jobfile);
-      ofs << "<jobs>" << endl;
+      if (!ofs.is_open()) throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+      ofs << "<jobs>" << std::endl;
       int jobCount = 0;
 
       std::vector<Segment*> segments = top->Segments();
       for (Segment* segment : segments) {
         int id = ++jobCount;
-        string tag = "";
-        Property Input;
-        Property &pInput = Input.add("input", "");
-        Property &pSegment = pInput.add("segment", (format("%1$s") % segment->getId()).str());
-        pSegment.setAttribute<string>("type", segment->getName());
+        std::string tag = "";
+        tools::Property Input;
+        tools::Property &pInput = Input.add("input", "");
+        tools::Property &pSegment = pInput.add("segment", (format("%1$s") % segment->getId()).str());
+        pSegment.setAttribute<std::string>("type", segment->getName());
         pSegment.setAttribute<int>("id", segment->getId());
         Job job(id, tag, Input, Job::AVAILABLE);
         job.ToStream(ofs, "xml");
       }
 
-      ofs << "</jobs>" << endl;
+      ofs << "</jobs>" << std::endl;
       ofs.close();
 
-      cout << jobCount << " jobs" << flush;
+      std::cout << jobCount << " jobs" << std::flush;
 
     }
     
     
-    void EQM::SetJobToFailed(Job::JobResult& jres, Logger* pLog, const string& errormessage) {
-      XTP_LOG(logERROR, *pLog) << errormessage << flush;
-      cout << *pLog;
+    void EQM::SetJobToFailed(Job::JobResult& jres, Logger* pLog, const std::string& errormessage) {
+      XTP_LOG(logERROR, *pLog) << errormessage << std::flush;
+      std::cout << *pLog;
       jres.setError(errormessage);
       jres.setStatus(Job::FAILED);
     }
 
-    void EQM::WriteLoggerToFile(const string& logfile, Logger& logger){
+    void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger){
       std::ofstream ofs;
       ofs.open(logfile.c_str(), std::ofstream::out);
       if (!ofs.is_open()) {
-        throw runtime_error("Bad file handle: " + logfile);
+        throw std::runtime_error("Bad file handle: " + logfile);
       }
-      ofs << logger << endl;
+      ofs << logger << std::endl;
       ofs.close();
     }
     Job::JobResult EQM::EvalJob(Topology *top, Job *job, QMThread *opThread) {
 
       Orbitals orbitals;
       Job::JobResult jres = Job::JobResult();
-      Property _job_input = job->getInput();
-      list<Property*> lSegments = _job_input.Select("segment");
-      vector < Segment* > segments;
+      tools::Property _job_input = job->getInput();
+      std::list<tools::Property*> lSegments = _job_input.Select("segment");
+      std::vector < Segment* > segments;
       int segId = lSegments.front()->getAttribute<int>("id");
-      string segType = lSegments.front()->getAttribute<string>("type");
+      std::string segType = lSegments.front()->getAttribute<std::string>("type");
       Segment *seg = top->getSegment(segId);
       segments.push_back(seg);
       QMInterface interface;
@@ -146,26 +146,26 @@ namespace votca {
 
       Logger* pLog = opThread->getLogger();
 
-      XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << flush;
+      XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating site " << seg->getId() << std::flush;
 
       // directories and files
       boost::filesystem::path arg_path;
-      string eqm_work_dir = "OR_FILES";
-      string frame_dir = "frame_" + boost::lexical_cast<string>(top->getDatabaseId());
-      string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
-      string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
-      string package_append = _package + "_"+Identify();
-      string work_dir = (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir).c_str();
+      std::string eqm_work_dir = "OR_FILES";
+      std::string frame_dir = "frame_" + boost::lexical_cast<std::string>(top->getDatabaseId());
+      std::string orb_file = (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
+      std::string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
+      std::string package_append = _package + "_"+Identify();
+      std::string work_dir = (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir).c_str();
 
-      Property job_summary;
-      Property &output_summary = job_summary.add("output", "");
-      Property &segment_summary = output_summary.add("segment", "");
-      string segName = seg->getName();
+      tools::Property job_summary;
+      tools::Property &output_summary = job_summary.add("output", "");
+      tools::Property &segment_summary = output_summary.add("segment", "");
+      std::string segName = seg->getName();
       segId = seg->getId();
       segment_summary.setAttribute("id", segId);
       segment_summary.setAttribute("type", segName);
       if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-        XTP_LOG(logDEBUG, *pLog) << "Running DFT" << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Running DFT" << std::flush;
         Logger dft_logger(logDEBUG);
         dft_logger.setMultithreading(false);
         dft_logger.setPreface(logINFO, (format("\nDFT INF ...")).str());
@@ -188,7 +188,7 @@ namespace votca {
         if (_do_dft_run) {
           run_dft_status = qmpackage->Run();
           if (!run_dft_status) {
-            string output = "DFT run failed";
+            std::string output = "DFT run failed";
             SetJobToFailed(jres, pLog, output);
             delete qmpackage;
             return jres;
@@ -201,14 +201,14 @@ namespace votca {
         if (_do_dft_parse) {
           parse_log_status = qmpackage->ParseLogFile(orbitals);
           if (!parse_log_status) {
-            string output = "log incomplete; ";
+            std::string output = "log incomplete; ";
             SetJobToFailed(jres, pLog, output);
             delete qmpackage;
             return jres;
           }
           parse_orbitals_status = qmpackage->ParseOrbitalsFile(orbitals);
           if (!parse_orbitals_status) {
-            string output = "orbfile failed; ";
+            std::string output = "orbfile failed; ";
             SetJobToFailed(jres, pLog, output);
             delete qmpackage;
             return jres;
@@ -221,13 +221,13 @@ namespace votca {
 
       if (!_do_dft_parse) {
         // load the DFT data from serialized orbitals object
-        string ORB_FILE =eqm_work_dir + "/molecules/" + frame_dir+ "/" + orb_file;
-        XTP_LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << ORB_FILE << flush;
+        std::string ORB_FILE =eqm_work_dir + "/molecules/" + frame_dir+ "/" + orb_file;
+        XTP_LOG(logDEBUG, *pLog) << TimeStamp() << " Loading DFT data from " << ORB_FILE << std::flush;
         orbitals.ReadFromCpt(ORB_FILE);
       }
 
       if (_do_gwbse) {
-        XTP_LOG(logDEBUG, *pLog) << "Running GWBSE" << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Running GWBSE" << std::flush;
         try {
         GWBSE gwbse = GWBSE(orbitals);
         Logger gwbse_logger(logDEBUG);
@@ -249,17 +249,17 @@ namespace votca {
       }
 
       if (_do_esp) {
-        XTP_LOG(logDEBUG, *pLog) << "Running ESPFIT" << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Running ESPFIT" << std::flush;
         try {
-        string mps_file = "";
+        std::string mps_file = "";
         Esp2multipole esp2multipole = Esp2multipole(pLog);
         esp2multipole.Initialize(_esp_options);
-        string ESPDIR = "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
+        std::string ESPDIR = "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
         esp2multipole.Extractingcharges(orbitals);
         mps_file = (format("%1%_%2%_%3%.mps") % segType % segId % esp2multipole.GetStateString()).str();
         boost::filesystem::create_directories(ESPDIR);
         esp2multipole.WritetoFile(ESPDIR + "/" + mps_file,orbitals);
-        XTP_LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << flush;
+        XTP_LOG(logDEBUG, *pLog) << "Written charges to " << (ESPDIR + "/" + mps_file).c_str() << std::flush;
         segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
         }catch (std::runtime_error& error) {
           std::string errormessage(error.what());
@@ -267,13 +267,13 @@ namespace votca {
           return jres;        
         }
       }
-      XTP_LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << flush;
+      XTP_LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating site " << seg->getId() << std::flush;
 
       if (_do_dft_parse || _do_gwbse) {
-        XTP_LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << flush;
-        string DIR = eqm_work_dir + "/molecules/" + frame_dir;
+        XTP_LOG(logDEBUG, *pLog) << "Saving data to " << orb_file << std::flush;
+        std::string DIR = eqm_work_dir + "/molecules/" + frame_dir;
         boost::filesystem::create_directories(DIR);
-        string ORBFILE = DIR + "/" + orb_file;
+        std::string ORBFILE = DIR + "/" + orb_file;
         orbitals.WriteToCpt(ORBFILE);
       }
 

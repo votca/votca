@@ -42,12 +42,12 @@ namespace votca { namespace xtp {
 * Callname: iqm
 */
 
-class IQM : public ParallelXJobCalc< vector<Job*>, Job*, Job::JobResult >
+class IQM : public ParallelXJobCalc< std::vector<Job*>, Job*, Job::JobResult >
 {
 public:
    
     void    Initialize(tools::Property *options ); 
-    string  Identify() { return "iqm"; }   
+    std::string  Identify() { return "iqm"; }   
     Job::JobResult EvalJob(Topology *top, Job *job, QMThread *Thread);  
     void WriteJobFile(Topology *top);
     void ReadJobFile( Topology *top );
@@ -56,21 +56,21 @@ private:
     
     double GetBSECouplingFromProp(tools::Property& bseprop,const QMState& stateA,const QMState& stateB);
     double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
-    void SetJobToFailed(Job::JobResult& jres, Logger* pLog, const string& errormessage);
-    void WriteLoggerToFile(const string& logfile, Logger& logger);
+    void SetJobToFailed(Job::JobResult& jres, Logger* pLog, const std::string& errormessage);
+    void WriteLoggerToFile(const std::string& logfile, Logger& logger);
     void addLinkers(std::vector< Segment* > &segments, Topology *top);
     bool isLinker(const std::string& name);
     void WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals);
     void ParseOptionsXML(tools::Property &opt);    
-    std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
+    std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
     
     QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,const std::string& elementname )const;
     
-    string              _package;
-    Property            _dftpackage_options; 
-    Property            _gwbse_options; 
-    Property            _bsecoupling_options; 
-    Property            _dftcoupling_options; 
+    std::string              _package;
+    tools::Property            _dftpackage_options; 
+    tools::Property            _gwbse_options; 
+    tools::Property            _bsecoupling_options; 
+    tools::Property            _dftcoupling_options; 
 
     // what to do
     bool                _do_dft_input;
