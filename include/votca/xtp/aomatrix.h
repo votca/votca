@@ -87,13 +87,13 @@ namespace votca { namespace xtp {
      */
     class AOMatrix3D : public AOSuperMatrix {
     public:
-        const std::vector<Eigen::MatrixXd > &Matrix() const{ return _aomatrix ;}
+        const std::array<Eigen::MatrixXd,3 > &Matrix() const{ return _aomatrix ;}
         void Print( std::string _ident);
         void Fill(const AOBasis& aobasis );
         // block fill prototype
         void FreeMatrix();
     protected:
-        std::vector<Eigen::MatrixXd > _aomatrix; 
+        std::array<Eigen::MatrixXd,3 > _aomatrix; 
         virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col)=0 ;
     };
     

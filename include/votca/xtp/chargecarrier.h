@@ -65,12 +65,10 @@ namespace votca { namespace xtp {
                     int getId() const {
                         return _id;
                     }
-                   int setId(int id) {
+                   void setId(int id) {
                        _id=id;
                     }
-                    
-                    
-                    
+   
                 private:
                     int _id;
                     double lifetime;

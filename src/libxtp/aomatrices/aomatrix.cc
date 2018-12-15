@@ -71,13 +71,12 @@ namespace votca {
 
 
         void AOMatrix3D::Fill(const AOBasis& aobasis) {
-            _aomatrix.resize(3);
             for (int i = 0; i < 3; i++) {
           _aomatrix[ i ] = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
             }
             // loop row
 #pragma omp parallel for
-            for (unsigned row = 0; row < aobasis.getNumofShells(); row++) {
+            for (int row = 0; row < aobasis.getNumofShells(); row++) {
                 const AOShell& shell_row = aobasis.getShell(row);
                 int row_start = shell_row.getStartIndex();
                 // loop column
@@ -87,7 +86,7 @@ namespace votca {
                 std::vector< Eigen::Block<Eigen::MatrixXd> > submatrix;
                     for (int i = 0; i < 3; i++) {
                    Eigen::Block<Eigen::MatrixXd> block=_aomatrix[i].block( row_start,col_start,shell_row.getNumFunc(),shell_col.getNumFunc());
-                   submatrix.push_back(block );
+                   submatrix.push_back(block);
                     }
                     // Fill block
                     FillBlock(submatrix, shell_row, shell_col);
@@ -100,7 +99,6 @@ namespace votca {
             for (int i = 0; i < 3; i++) {
                 _aomatrix[i].resize(0, 0);
             }
-            _aomatrix.clear();
             return;
         }
 
