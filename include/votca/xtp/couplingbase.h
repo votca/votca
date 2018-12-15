@@ -80,7 +80,7 @@ inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
   const QMMolecule& atomsB=orbitalsB.QMAtoms();
   const QMMolecule& atomsAll = orbitalsAB.QMAtoms();
   bool coordinates_agree=true;
-  for (unsigned i = 0; i < atomsAll.size(); i++) {
+  for (int i = 0; i < atomsAll.size(); i++) {
     const QMAtom& dimer = atomsAll[i];
     const QMAtom* monomer = NULL;
     

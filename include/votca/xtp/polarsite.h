@@ -134,12 +134,12 @@ private:
     Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
-    int     _rank;
     std::string  _element;
-    bool _isPolarisable=false;
     Eigen::Vector3d _pos;
+    int     _rank;
+
     Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
-    
+     bool _isPolarisable=false;
     //required for polarisation
     
     Eigen::Matrix3d _Ps;

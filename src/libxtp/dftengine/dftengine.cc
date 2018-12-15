@@ -644,7 +644,7 @@ void DFTEngine::CalcElDipole()const{
       Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
       int start = 0;
       for (const QMAtom& atom:_orbitals.QMAtoms()) {
-        unsigned index = 0;
+        int index = 0;
         for (index = 0; index < uniqueelements.size(); index++) {
           if (atom.getElement() == uniqueelements[index].getElement()) {
             break;
@@ -815,10 +815,10 @@ void DFTEngine::Prepare() {
     void DFTEngine::NuclearRepulsion() {
       _E_nucnuc = 0.0;
 
-      for (unsigned i = 0; i < _orbitals.QMAtoms().size(); i++) {
+      for (int i = 0; i < _orbitals.QMAtoms().size(); i++) {
         const Eigen::Vector3d& r1 = _orbitals.QMAtoms()[i].getPos();
         double charge1 = _orbitals.QMAtoms()[i].getNuccharge();
-        for (unsigned j = 0; j < i; j++) {
+        for (int j = 0; j < i; j++) {
           const Eigen::Vector3d& r2 = _orbitals.QMAtoms()[j].getPos();
           double charge2 = _orbitals.QMAtoms()[j].getNuccharge();
           _E_nucnuc += charge1 * charge2 / (r1 - r2).norm();
@@ -851,7 +851,7 @@ void DFTEngine::Prepare() {
       if (!_do_externalfield) {
         return 0;
       }
-      for (unsigned i = 0; i < _orbitals.QMAtoms().size(); i++) {
+      for (int i = 0; i < _orbitals.QMAtoms().size(); i++) {
         double Q = _orbitals.QMAtoms()[i].getNuccharge();
         E_ext += Q * externalpotential_nuc[i];
       }

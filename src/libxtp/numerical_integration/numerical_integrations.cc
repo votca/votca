@@ -614,9 +614,9 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(const AOBasis& external
 Eigen::MatrixXd NumericalIntegration::CalcInverseAtomDist(const QMMolecule& atoms){
   Eigen::MatrixXd result=Eigen::MatrixXd::Zero(atoms.size(),atoms.size());
 #pragma omp parallel for
-  for (unsigned i=0;i<atoms.size();++i) {
+  for (int i=0;i<atoms.size();++i) {
     const Eigen::Vector3d& pos_a = atoms[i].getPos();
-   for (unsigned j=0;j<i;++j) {
+   for (int j=0;j<i;++j) {
       const Eigen::Vector3d& pos_b = atoms[j].getPos();
       result(j,i)=1/(pos_a-pos_b).norm();
     } 
@@ -672,7 +672,7 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
     Eigen::MatrixXd NumericalIntegration::CalcDistanceAtomsGridpoints(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid){
       Eigen::MatrixXd result=Eigen::MatrixXd::Zero(atoms.size(),atomgrid.size());
      #pragma omp parallel for
-      for (unsigned i=0;i<atoms.size();++i) {
+      for (int i=0;i<atoms.size();++i) {
         const Eigen::Vector3d& atom_pos =atoms[i].getPos();
         for (unsigned j=0;j<atomgrid.size();++j) {
           const auto& gridpoint=atomgrid[j];
@@ -715,7 +715,7 @@ void NumericalIntegration::GridSetup(const std::string& type,const QMMolecule& a
       _totalgridsize = 0;
       std::vector< std::vector< GridContainers::Cartesian_gridpoint > > grid;
       
-      for (unsigned i_atom=0;i_atom<atoms.size();++i_atom) {
+      for (int i_atom=0;i_atom<atoms.size();++i_atom) {
         const QMAtom& atom=atoms[i_atom];
 
         const Eigen::Vector3d & atomA_pos =atom.getPos();

@@ -69,8 +69,8 @@ namespace votca {
       // spherical_multipoles Q = ( Q00,Q10,Q11c,Q11s,Q20,Q21c,Q21s,Q22c,Q22s )
       // We are trasforming here just quadrupoles
       const Eigen::VectorXd& MP = _multipole;
+      Eigen::Matrix3d theta=Eigen::Matrix3d::Zero();
       if (_rank > 1) {
-        Eigen::Matrix3d theta;
         double sqr3 = std::sqrt(3);
         theta(0, 0) = 0.5 * (-MP(4) + sqr3 * MP(7)); // theta_xx
         theta(1, 1) = 0.5 * (-MP(4) + sqr3 * (-MP(7))); // theta_yy
@@ -78,8 +78,8 @@ namespace votca {
         theta(0, 1) = theta(1, 0) = 0.5 * sqr3 * MP(8); // theta_xy = theta_yx
         theta(0, 2) = theta(2, 0) = 0.5 * sqr3 * MP(5); // theta_xz = theta_zx
         theta(1, 2) = theta(2, 1) = 0.5 * sqr3 * MP(6); //theta_yz = theta_zy 
-        return theta;
       }
+       return theta;
     }
 
     Eigen::VectorXd PolarSite::CalculateSphericalMultipole(const Eigen::Matrix3d& quad_cart) {

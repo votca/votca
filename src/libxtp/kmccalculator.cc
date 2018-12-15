@@ -285,7 +285,7 @@ namespace votca {
             }
             Chargecarrier* carrier=NULL;
             double u = 1 - _RandomVariable.rand_uniform();
-            for (unsigned int i = 0; i < _numberofcharges; i++) {
+            for (int i = 0; i < _numberofcharges; i++) {
                 u -= _carriers[i].getCurrentEscapeRate() / cumulated_rate;
                 if (u <= 0 || i==_numberofcharges-1) {
                     carrier = &_carriers[i];

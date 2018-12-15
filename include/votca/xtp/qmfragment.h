@@ -60,6 +60,7 @@ class QMFragment{
         }
         out<<std::endl;
         out<<"Value:"<<fragment._value;
+        return out;
     };
             
 private:

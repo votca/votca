@@ -154,11 +154,11 @@ BOOST_AUTO_TEST_CASE(induction_test) {
   ps1.setPolarisation(poltensor);
   ps2.setPolarisation(poltensor);
   
-  double Energy= ps1.InteractStatic(ps2);
+  //double Energy= ps1.InteractStatic(ps2);
   ps1.Induce(1);
   ps2.Induce(1);
-  double alpha=0.39;
-  double InductionEnergy=ps1.InteractInduction(ps2,alpha);
+  //double alpha=0.39;
+  //double InductionEnergy=ps1.InteractInduction(ps2,alpha);
  
 }
 

@@ -43,9 +43,7 @@ namespace votca {
         class DFTEngine {
         public:
 
-            DFTEngine(Orbitals& orbitals):_numofelectrons(0),
-                    _addexternalsites(false),_do_externalfield(false),_integrate_ext_density(false)
-            ,_orbitals(orbitals){};
+            DFTEngine(Orbitals& orbitals):_orbitals(orbitals){};
 
          
             void Initialize(tools::Property &options);
@@ -142,7 +140,7 @@ namespace votca {
 
             //numerical integration externalfield;
             //this will not remain here but be moved to qmape
-            bool _do_externalfield;
+            bool _do_externalfield=false;
             std::string _grid_name_ext;
             NumericalIntegration _gridIntegration_ext;
             std::vector<double> _externalgrid;
@@ -167,7 +165,7 @@ namespace votca {
             double _mixingparameter;
             double _Econverged;
             double _error_converged;
-            int _numofelectrons;
+            int _numofelectrons=0;
             int _max_iter;
             
         
@@ -187,13 +185,13 @@ namespace votca {
 
             // external charges
             std::shared_ptr<MMRegion> _externalsites;
-            bool _addexternalsites;
+            bool _addexternalsites=false;
 
             // exchange and correlation
             double _ScaHFX;
             std::string _xc_functional_name;
 
-            bool _integrate_ext_density;
+            bool _integrate_ext_density=false;
             //integrate external density
             std::string _orbfilename;
             std::string _gridquality;

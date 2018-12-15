@@ -78,7 +78,7 @@ void QMSandbox::Initialize(tools::Property* options) {
 }
 
 bool QMSandbox::Evaluate() {
-     
+    return true;
 }
 
 

@@ -149,7 +149,7 @@ namespace votca {
         cout << "number of charges: " << _numberofcharges << endl;
         cout << "number of nodes: " << _nodes.size() << endl;
 
-        if (_numberofcharges > _nodes.size()) {
+        if (_numberofcharges > int(_nodes.size())) {
             throw runtime_error("ERROR in kmclifetime: specified number of charges is greater than the number of nodes. This conflicts with single occupation.");
         }
 

@@ -147,8 +147,8 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
     Eigen::VectorXd Bvec = Eigen::VectorXd::Zero(matrixSize);
     // setting up _Amat
     #pragma omp parallel for
-    for ( unsigned i =0 ; i < atomlist.size(); i++){
-        for ( unsigned j=i; j<atomlist.size(); j++){
+    for ( int i =0 ; i < atomlist.size(); i++){
+        for ( int j=i; j<atomlist.size(); j++){
             for ( unsigned k=0; k < gridpoints.size(); k++){
                 double dist_i = (atomlist[i].getPos()-gridpoints[k]).norm();
                 double dist_j = (atomlist[j].getPos()-gridpoints[k]).norm();
@@ -161,14 +161,14 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
 
      // setting up Bvec
     #pragma omp parallel for
-    for ( unsigned i =0 ; i < atomlist.size(); i++){
+    for ( int i =0 ; i < atomlist.size(); i++){
         for ( unsigned k=0; k < gridpoints.size(); k++){
                 double dist_i = (atomlist[i].getPos()-gridpoints[k]).norm();
                 Bvec(i) += potential(k)/dist_i;
         }
        }
     //Total charge constraint
-    for ( unsigned i =0 ; i < atomlist.size()+1; i++){
+    for ( int i =0 ; i < atomlist.size()+1; i++){
       Amat(i,atomlist.size()) = 1.0;
       Amat(atomlist.size(),i) = 1.0;
     }

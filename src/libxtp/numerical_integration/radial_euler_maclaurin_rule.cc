@@ -102,7 +102,7 @@ namespace votca { namespace xtp {
         start += size;
       }
       // refining by going through all atom combinations
-      for (unsigned i = 0; i < atoms.size(); ++i) {
+      for (int i = 0; i < atoms.size(); ++i) {
         const QMAtom& atom_a = atoms[i];
         int a_start = idxstart[i];
         int a_size = idxsize[i];
@@ -112,7 +112,7 @@ namespace votca { namespace xtp {
         int l_a = _element_ranges.at(atom_a.getElement()).l;
         const Eigen::Vector3d& pos_a = atom_a.getPos();
         // Cannot iterate only over j<i because it is not symmetric due to shift_2g
-        for (unsigned j = 0; j < atoms.size(); ++j) {
+        for (int j = 0; j < atoms.size(); ++j) {
           if (i == j) {
             continue;
           }

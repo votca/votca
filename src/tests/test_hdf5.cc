@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
 
-    for (size_t i = 0; i<atoms.size(); ++i){
+    for (int i = 0; i<atoms.size(); ++i){
         auto atomRead = orbRead.QMAtoms()[i];
         auto atomTest = atoms[i];
         BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
