@@ -21,6 +21,7 @@
 #define	VOTCA_XTP_QMFRAGMENT_H
 #include <votca/xtp/eigen.h>
 #include <limits>
+#include <boost/lexical_cast.hpp>
 
 /**
 * \brief Container to define fragments of QMmolecules, containing atomindices, no pointers to atoms, it also handles the parsing of strings etc..
@@ -77,7 +78,7 @@ private:
                 }
             }
             else{
-                _atomindices.push_back(boost::lexical_cast<int>(index));
+                _atomindices.push_back(boost::lexical_cast<int>(s));
             }
         }
         

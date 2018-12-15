@@ -281,7 +281,7 @@ namespace votca {
       }
       if(dftbasis.getAOBasisFragA() > 0 && dftbasis.getAOBasisFragB()>0){
         pop=FragmentPopulations(singlet,dftbasis);
-        _orbitals.setFragmentChargesSingEXC(popsH - popsE);
+        _orbitals.setFragmentChargesSingEXC(pop.Crgs);
         _orbitals.setFragment_E_localisation_singlet(pop.popE);
         _orbitals.setFragment_H_localisation_singlet(pop.popH);
         _orbitals.setFragmentChargesGS(pop.popGs);

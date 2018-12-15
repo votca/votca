@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -116,6 +116,7 @@
       <itemPath>../../include/votca/xtp/qmatom.h</itemPath>
       <itemPath>../../include/votca/xtp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmfragment.h</itemPath>
       <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmolecule.h</itemPath>
       <itemPath>../../include/votca/xtp/qmnblist.h</itemPath>
@@ -2377,6 +2378,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/qmfragment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/qminterface.h"
             ex="false"
             tool="3"
@@ -3453,6 +3459,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmdatabase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmfragment.h"
             ex="false"
             tool="3"
             flavor2="0">

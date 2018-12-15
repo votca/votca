@@ -63,7 +63,7 @@ namespace votca {
           #pragma omp parallel for
           for (unsigned thread = 0; thread < nthreads; ++thread) {
             Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
-            for (int _i = thread; _i < _threecenter.size(); _i += nthreads) {
+            for (int i = thread; i < _threecenter.size(); i += nthreads) {
               const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(i);
               // Trace over prod::DMAT,I(l)=componentwise product over 
               const double factor = threecenter.TraceofProd(dmat_sym);

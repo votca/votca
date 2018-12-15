@@ -44,7 +44,7 @@ namespace votca { namespace xtp {
   void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const Eigen::Vector3d& grid_pos)const {
 
       // need position of shell
-      const Eigen::Vector3d center = (grid_pos - _pos).toEigen();
+      const Eigen::Vector3d center = (grid_pos - _pos);
       const double& center_x = center.x();
       const double& center_y = center.y();
       const double& center_z = center.z();

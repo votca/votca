@@ -76,7 +76,7 @@ shell.EvalAOspace(ao_block,grad_block,gridpos);
 
 Eigen::VectorXd aoval_2=Eigen::VectorXd::Zero(aobasis.AOBasisSize());
 Eigen::VectorBlock<Eigen::VectorXd> ao_block_2=aoval_2.segment(0,aobasis.AOBasisSize());
-shell->EvalAOspace(ao_block_2,gridpos);
+shell.EvalAOspace(ao_block_2,gridpos);
 
 
 Eigen::VectorXd aoval_ref=Eigen::VectorXd::Zero(aobasis.AOBasisSize());
