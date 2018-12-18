@@ -40,7 +40,7 @@ namespace votca {
                 double default_pol=std::pow(tools::conv::ang2bohr,3);
                 try{
                     default_pol=e.getPolarizability(element)*std::pow(tools::conv::nm2bohr,3);
-                }catch(std::invalid_argument){
+                }catch(const std::invalid_argument& ){
                      std::cout << std::endl << "WARNING No default polarizability given for "
                     << "polar site type '" << element << "'. Defaulting to 1 A**3. "
                     << std::flush;
