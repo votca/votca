@@ -91,12 +91,10 @@ void PolarSegment::LoadFromMPS(const std::string& filename){
             pos[1] = boost::lexical_cast<double>(split[2]);
             pos[2] = boost::lexical_cast<double>(split[3]);
             int rank = boost::lexical_cast<int>(split[5]);
-            for(int i=0;i<=rank;i++){
-                numberofmultipoles+=rank*2+1;
-            }
+            numberofmultipoles=(rank+1)*(rank+1);
             multipoles=Eigen::VectorXd::Zero(numberofmultipoles);
             pos*=unit_conversion;
-            this->_atomlist.push_back(PolarSite(id,name,pos));
+            _atomlist.push_back(PolarSite(id,name,pos));
             }
         // 'P', dipole polarizability
         else if ( split[0] == "P") {
@@ -141,7 +139,6 @@ void PolarSegment::LoadFromMPS(const std::string& filename){
             if(readinmultipoles==numberofmultipoles){
                 _atomlist.back().setMultipole(multipoles);
                 multipoles.resize(0);
-                numberofmultipoles=0;
                 readinmultipoles=0;
             }
         }
@@ -182,7 +179,7 @@ void PolarSegment::WriteMPS(const std::string& filename, std::string header) con
     ofs << boost::format("Units angstrom\n");
 
     for(const PolarSite& site:_atomlist){
-        site.WriteMpsLine(ofs, "angstrom");
+        ofs <<site.WriteMpsLine("angstrom");
     }
     ofs.close();
 

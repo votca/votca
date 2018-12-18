@@ -365,10 +365,7 @@ void WRITE_JOBS(JobContainer &jobs, const std::string &job_file, std::string fil
 
 template<>
 void WRITE_JOBS< std::vector<Job*>, Job*, Job::JobResult >(std::vector<Job*> &jobs, 
-        const std::string &job_file, std::string fileformat) {
-    
-    std::vector<Job*> ::iterator it;
-    
+        const std::string &job_file, std::string fileformat) {    
     std::ofstream ofs;    
     ofs.open(job_file.c_str(), std::ofstream::out);
     if (!ofs.is_open()) {

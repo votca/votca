@@ -111,7 +111,7 @@ public:
     
     double getPotential()const{return PhiP+PhiU;}
     
-    void WriteMpsLine(std::ostream &out, const std::string& unit = "bohr")const;
+    std::string WriteMpsLine(std::string unit = "bohr")const;
     void Induce(double wSOR);
        
     double InteractStatic(PolarSite& otherSite);

@@ -402,33 +402,38 @@ namespace votca {
       return EnergyAB;
     }
 
-    void PolarSite::WriteMpsLine(std::ostream &out, const string& unit) const {
+    std::string PolarSite::WriteMpsLine(string unit) const {
       double conv_pos = 1.;
       if (unit == "angstrom") {
         conv_pos = tools::conv::bohr2ang;
       } else if (unit == "bohr") {
         conv_pos = 1.;
-      } else assert(false); // Units error
-
-      out << (boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n")
+      } else{
+          throw std::runtime_error(" PolarSite::WriteMpsLine: Unit conversion not known");
+      }
+      std::string output="";
+      output+=(boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n")
               % _element % (_pos(0) * conv_pos)
               % (_pos(1) * conv_pos) % (_pos(2) * conv_pos)
-              % _rank);
-      out << (boost::format("    %1$+1.7f\n") % getCharge());
+              % _rank).str();
+      output+=(boost::format("    %1$+1.7f\n") % getCharge()).str();
       if (_rank > 0) {
         // Dipole z x y
-        out << (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n")
-                % _multipole(1) % _multipole(2) % _multipole(3));
+        output+=(boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n")
+                % _multipole(1) % _multipole(2) % _multipole(3)).str();
         if (_rank > 1) {
           // Quadrupole 20 21c 21s 22c 22s
-          out << (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f\n")
+          output+=(boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f\n")
                   % _multipole(4) % _multipole(5) % _multipole(6)
-                  % _multipole(7) % _multipole(8));
+                  % _multipole(7) % _multipole(8)).str();
         }
       }
       // Polarizability
-      out << (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f \n")
-              % _Ps(0, 0) % _Ps(1, 0) % _Ps(2, 0) % _Ps(1, 1) % _Ps(1, 2) % _Ps(2, 2));
+      double conv_pol=std::pow(tools::conv::bohr2ang,3);
+      Eigen::MatrixX3d pol=_Ps*conv_pol;
+      output+=(boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f\n")
+              % pol(0, 0) % pol(1, 0) % pol(2, 0) % pol(1, 1) % pol(1, 2) % pol(2, 2)).str();
+      return output;
     }
     
     

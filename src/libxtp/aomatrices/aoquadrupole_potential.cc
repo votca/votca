@@ -39,7 +39,7 @@ namespace votca { namespace xtp {
         // q_01 etc are cartesian tensor multipole moments according to https://en.wikipedia.org/wiki/Quadrupole
         // so transform apolarsite into cartesian and then multiply by 2 (difference stone definition/wiki definition)
         // not sure about unit conversion
-        Eigen::Matrix3d quadrupole=2*polarsite->CalculateCartesianMultipole();
+        Eigen::Matrix3d quadrupole=-2*polarsite->CalculateCartesianMultipole();
         // shell info, only lmax tells how far to go
         int lmax_row = shell_row.getLmax();
         int lmax_col = shell_col.getLmax();

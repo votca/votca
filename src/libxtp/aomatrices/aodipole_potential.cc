@@ -731,10 +731,9 @@ if (lmax_col > 3) {
   //------------------------------------------------------
 
 } // end if (lmax_col > 3)
-//votca dipoles are spherical in ordering z,y,x
 for (int i = 0; i < nrows; i++) {
   for (int j = 0; j < ncols; j++) {
-    dip(i,j) = dipole(0) * dip4[i][j][0][0] +dipole(1) * dip4[i][j][1][0] + dipole(2) * dip4[i][j][2][0];
+    dip(i,j) = dipole.z() * dip4[i][j][0][0] +dipole.y() * dip4[i][j][1][0] + dipole.x() * dip4[i][j][2][0];
   }
 }                         
 

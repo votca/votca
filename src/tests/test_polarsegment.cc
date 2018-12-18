@@ -42,6 +42,7 @@ mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<
 
 seg.LoadFromMPS("polarsite.mps");
 Eigen::Vector3d ref_pos=Eigen::Vector3d(0,0,3*votca::tools::conv::ang2bohr);
+
 bool is_equal=seg.getPos().isApprox(ref_pos,0.0001);
 if(!is_equal){
     std::cout<<"result"<<std::endl;
@@ -52,7 +53,34 @@ if(!is_equal){
 
 BOOST_CHECK_EQUAL(is_equal,true);
 
- 
+BOOST_CHECK_EQUAL(seg[0].getRank(),2);
+BOOST_CHECK_EQUAL(seg[0].getElement(),"C");
+
+Eigen::VectorXd mul_ref=Eigen::VectorXd::Zero(9);
+mul_ref<<1,10,0,0,100,0,0,0,0;
+bool multipoles_equal=mul_ref.isApprox(seg[0].getPermMultipole(),1e-5);
+if(!multipoles_equal){
+    std::cout<<"result"<<std::endl;
+    std::cout<<seg[0].getPermMultipole()<<std::endl;
+    std::cout<<"reference"<<std::endl;
+    std::cout<<mul_ref<<std::endl;
+}
+
+std::string ref_string="  C +0.0000000 +0.0000000 +3.0000000 Rank 2\n"
+"    +1.0000000\n"
+"    +10.0000000 +0.0000000 +0.0000000\n"
+"    +100.0000000 +0.0000000 +0.0000000 +0.0000000 +0.0000000\n"
+"     P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387\n";
+bool string_equal=(ref_string==seg[0].WriteMpsLine("angstrom"));
+if(!string_equal){
+    std::string result=seg[0].WriteMpsLine("angstrom");
+    std::cout<<"result"<<std::endl;
+    std::cout<<result<<std::endl;
+    std::cout<<"reference"<<std::endl;
+    std::cout<<ref_string<<std::endl;
+}
+
+BOOST_CHECK_EQUAL(string_equal,true);
 }
 
 BOOST_AUTO_TEST_CASE(add_atom_test){
