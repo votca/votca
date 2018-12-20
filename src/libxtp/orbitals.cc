@@ -42,8 +42,7 @@ namespace votca {
 
             _basis_set_size = 0;
             _occupied_levels = 0;
-            _unoccupied_levels = 0;
-            _number_of_electrons = 0;
+            _number_alpha_electrons = 0;
             _self_energy = 0.0;
             _qm_energy = 0.0;
             _ECP = "";
@@ -51,7 +50,6 @@ namespace votca {
 
             _qpmin = 0;
             _qpmax = 0;
-            _qptotal = 0;
 
             _rpamin = 0;
             _rpamax = 0;
@@ -65,7 +63,6 @@ namespace votca {
             _bse_vtotal = 0;
             _bse_ctotal = 0;
             _bse_size = 0;
-            _bse_nmax = 0;
 
         };
 
@@ -88,8 +85,7 @@ namespace votca {
         void Orbitals::copy(const Orbitals& orbital){
             _basis_set_size=orbital._basis_set_size;
             _occupied_levels=orbital._occupied_levels;
-            _unoccupied_levels=orbital._unoccupied_levels;
-            _number_of_electrons=orbital._number_of_electrons;
+            _number_alpha_electrons=orbital._number_alpha_electrons;
             _ECP=orbital._ECP;
             _useTDA=orbital._useTDA;
 
@@ -114,7 +110,6 @@ namespace votca {
 
             _qpmin=orbital._qpmin;
             _qpmax=orbital._qpmax;
-            _qptotal=orbital._qptotal;
 
             _bse_vmin=orbital._bse_vmin;
             _bse_vmax=orbital._bse_vmax;
@@ -123,7 +118,6 @@ namespace votca {
             _bse_size=orbital._bse_size;
             _bse_vtotal=orbital._bse_vtotal;
             _bse_ctotal=orbital._bse_ctotal;
-            _bse_nmax=orbital._bse_nmax;
 
             _ScaHFX=orbital._ScaHFX;
 
@@ -161,7 +155,7 @@ namespace votca {
 
         void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
             _occupied_levels = occupied_levels;
-            _unoccupied_levels = unoccupied_levels;
+            _basis_set_size=occupied_levels+unoccupied_levels;
         }
       
          /**
@@ -249,7 +243,7 @@ namespace votca {
           if (!hasQPdiag()) {
                 throw std::runtime_error("Orbitals file does not contain QP coefficients");
             }
-            return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal)*_QPdiag_coefficients;
+            return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(),  _qpmax - _qpmin + 1)*_QPdiag_coefficients;
         }
 
         // Determine QuasiParticle Density Matrix
@@ -287,7 +281,7 @@ namespace votca {
           }
 
           BasisSet basis;
-          basis.LoadBasisSet(this->getDFTbasis());
+          basis.LoadBasisSet(this->getDFTbasisName());
           AOBasis aobasis;
           aobasis.AOBasisFill(basis, _atoms);
           AODipole dipole;
@@ -610,29 +604,29 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             int basisA = orbitalsA.getBasisSetSize();
             int basisB = orbitalsB.getBasisSetSize();
 
-            int levelsA = orbitalsA.getNumberOfLevels();
-            int levelsB = orbitalsB.getNumberOfLevels();
+            int levelsA = orbitalsA.getBasisSetSize();
+            int levelsB = orbitalsB.getBasisSetSize();
 
-            int electronsA = orbitalsA.getNumberOfElectrons();
-            int electronsB = orbitalsB.getNumberOfElectrons();
+            int electronsA = orbitalsA.getNumberOfAlphaElectrons();
+            int electronsB = orbitalsB.getNumberOfAlphaElectrons();
 
             
             this->MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
-            if(orbitalsA.getDFTbasis()!=orbitalsB.getDFTbasis()){
-              throw std::runtime_error("Basissets of Orbitals A and B differ "+orbitalsA.getDFTbasis()+":"+orbitalsB.getDFTbasis());
+            if(orbitalsA.getDFTbasisName()!=orbitalsB.getDFTbasisName()){
+              throw std::runtime_error("Basissets of Orbitals A and B differ "+orbitalsA.getDFTbasisName()+":"+orbitalsB.getDFTbasisName());
             }
-            this->setDFTbasis(orbitalsA.getDFTbasis());
-            if(orbitalsA.getECP()!=orbitalsB.getECP()){
-              throw std::runtime_error("ECPs of Orbitals A and B differ "+orbitalsA.getECP()+":"+orbitalsB.getECP());
+            this->setDFTbasisName(orbitalsA.getDFTbasisName());
+            if(orbitalsA.getECPName()!=orbitalsB.getECPName()){
+              throw std::runtime_error("ECPs of Orbitals A and B differ "+orbitalsA.getECPName()+":"+orbitalsB.getECPName());
             }
-            this->setECP(orbitalsA.getECP());
+            this->setECPName(orbitalsA.getECPName());
             this->setBasisSetSize(basisA + basisB);
             this->setNumberOfLevels(electronsA + electronsB,
                     levelsA + levelsB - electronsA - electronsB);
-            this->setNumberOfElectrons(electronsA + electronsB);
+            this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
             this->MOCoefficients().block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients();
             this->MOCoefficients().block(basisA, levelsA, basisB, levelsB) = orbitalsB.MOCoefficients();
@@ -703,14 +697,12 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             w(XtpVersionStr(), "Version");
             w(_basis_set_size, "basis_set_size");
             w(_occupied_levels, "occupied_levels");
-            w(_unoccupied_levels, "unoccupied_levels");
-            w(_number_of_electrons, "number_of_electrons");
+            w(_number_alpha_electrons, "number_alpha_electrons");
 
             w(_mo_energies, "mo_energies");
             w(_mo_coefficients, "mo_coefficients");
 
             // write qmatoms
-
             {
                 CheckpointWriter qmasWriter = w.openChild("qmatoms");
                 for (size_t idx = 0; idx < _atoms.size(); ++idx) {
@@ -718,7 +710,6 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
                         qmasWriter.openChild("atom" + std::to_string(idx));
                     _atoms[idx]->WriteToCpt(qmaWriter);
                 }
-
             }
 
             w(_qm_energy, "qm_energy");
@@ -733,8 +724,6 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             w(_qpmin, "qpmin");
             w(_qpmax, "qpmax");
             w(_bse_vmin, "bse_vmin");
-            w(_bse_vmax, "bse_vmax");
-            w(_bse_cmin, "bse_cmin");
             w(_bse_cmax, "bse_cmax");
 
             w(_ScaHFX, "ScaHFX");
@@ -774,8 +763,7 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
         void Orbitals::ReadFromCpt(CheckpointReader r) {
             r(_basis_set_size, "basis_set_size");
             r(_occupied_levels, "occupied_levels");
-            r(_unoccupied_levels, "unoccupied_levels");
-            r(_number_of_electrons, "number_of_electrons");
+            r(_number_alpha_electrons, "number_alpha_electrons");
 
             r(_mo_energies, "mo_energies");
             r(_mo_coefficients, "mo_coefficients");
@@ -821,12 +809,8 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             r(_qpmin, "qpmin");
             r(_qpmax, "qpmax");
             r(_bse_vmin, "bse_vmin");
-            r(_bse_vmax, "bse_vmax");
-            r(_bse_cmin, "bse_cmin");
             r(_bse_cmax, "bse_cmax");
-            _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-            _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-            _bse_size = _bse_vtotal * _bse_ctotal;
+            setBSEindices(_bse_vmin,_bse_cmax);
 
             r(_ScaHFX, "ScaHFX");
             r(_useTDA, "useTDA");

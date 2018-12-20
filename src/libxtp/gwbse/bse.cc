@@ -29,6 +29,20 @@ using std::flush;
 namespace votca {
   namespace xtp {
 
+void BSE::SetupDirectInteractionOperator() {
+    Eigen::VectorXd rpaenergies;
+    RPA rpa = RPA(rpaenergies, _Mmn);
+    rpaenergies = rpa.CalculateRPAEnergies(_orbitals.MOEnergies(), _Hqp.diagonal(), _opt.qpmin);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
+    _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
+    _epsilon_0_inv = VectorXfd::Zero(es.eigenvalues().size());
+    for (int i = 0; i < es.eigenvalues().size(); ++i) {
+        if (es.eigenvalues()(i) > 1e-8) {
+            _epsilon_0_inv(i) = 1 / es.eigenvalues()(i);
+        }
+    }
+}
+
     void BSE::Solve_triplets() {
       MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(H);
@@ -36,12 +50,20 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_bse_nmax );
+        << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
+      tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_opt.nmax );
       return;
     }
 
-    void BSE::Solve_singlets() {
+    void BSE::Solve_singlets(){
+        if(_opt.useTDA){
+            Solve_singlets_TDA();
+        }else{
+            Solve_singlets_BTDA();
+        } 
+    }
+
+    void BSE::Solve_singlets_TDA() {
       MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
       Add_Hd<real_gwbse>(H);
       Add_Hqp<real_gwbse>(H);
@@ -49,8 +71,8 @@ namespace votca {
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _bse_nmax );
+        << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
+      tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _opt.nmax );
       return;
     }
     
@@ -114,8 +136,8 @@ namespace votca {
       Eigen::VectorXd eigenvalues;
       Eigen::MatrixXd eigenvectors;     
       CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Solving for first "<<_bse_nmax<<" eigenvectors"<< flush;
-      bool success_diag=tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors ,_bse_nmax);
+        << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
+      bool success_diag=tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors ,_opt.nmax);
       if(!success_diag){
         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Could not solve problem" << flush;
       }else{
@@ -134,12 +156,11 @@ namespace votca {
       // determine inverse of L^T
      Eigen::MatrixXd LmT = AmB.inverse().transpose();
       int dim = LmT.rows();
-      _bse_singlet_energies.resize(_bse_nmax);
-      _bse_singlet_coefficients.resize(dim, _bse_nmax); // resonant part (_X_evec)
-      _bse_singlet_coefficients_AR.resize(dim, _bse_nmax); // anti-resonant part (_Y_evec)
-      for (int level = 0; level < _bse_nmax; level++) {
-        //real_gwbse sqrt_eval = sqrt(_eigenvalues(_i));
-        double sqrt_eval = sqrt(_bse_singlet_energies(level));
+      _bse_singlet_energies.resize(_opt.nmax);
+      _bse_singlet_coefficients.resize(dim, _opt.nmax); // resonant part (_X_evec)
+      _bse_singlet_coefficients_AR.resize(dim, _opt.nmax); // anti-resonant part (_Y_evec)
+      for (int level = 0; level < _opt.nmax; level++) {
+        double sqrt_eval = std::sqrt(_bse_singlet_energies(level));
         // get l-th reduced EV
 #if (GWBSE_DOUBLE)
         _bse_singlet_coefficients.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT + AmB) * eigenvectors.col(level));
@@ -157,8 +178,7 @@ namespace votca {
     
         template <typename T>
         void BSE::Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
-
-            const Eigen::MatrixXd& Hqp = *_Hqp;
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
                 for (int c1 = 0; c1 < _bse_ctotal; c1++) {
@@ -166,28 +186,27 @@ namespace votca {
                     // v->c
                     for (int c2 = 0; c2 < _bse_ctotal; c2++) {
                         int index_vc2 = vc.I(v1, c2);
-                        H(index_vc2, index_vc) += Hqp(c2 + _bse_vtotal, c1 + _bse_vtotal);
+                        H(index_vc2, index_vc) += _Hqp(c2 + _bse_vtotal-_opt.qpmin, c1 + _bse_vtotal-_opt.qpmin);
                     }
                     // c-> v
                     for (int v2 = 0; v2 < _bse_vtotal; v2++) {
                         int index_vc2 = vc.I(v2, c1);
-                        H(index_vc2, index_vc) -= Hqp(v2, v1);
+                        H(index_vc2, index_vc) -= _Hqp(v2-_opt.qpmin, v1-_opt.qpmin);
                     }
                 }
             }
             return;
         }
 
-template <typename T, int factor>
+template <typename T>
     void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
-            int auxsize = _Mmn->auxsize();
+            int auxsize = _Mmn.auxsize();
             vc2index vc = vc2index(0, 0, _bse_ctotal);
-            VectorXfd epsilon_inv = (1 - _ppm->getPpm_weight().array()).cast<real_gwbse>();
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-                const MatrixXfd Mmn1T = ((*_Mmn)[v1 + _bse_vmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize) * epsilon_inv.asDiagonal()).transpose();
+                const MatrixXfd Mmn1T = (_Mmn[v1 + _opt.vmin ].block(_opt.vmin, 0, _bse_vtotal, auxsize) * _epsilon_0_inv.asDiagonal()).transpose();
                 for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-                    const MatrixXfd& Mmn2 = (*_Mmn)[c1 + _bse_cmin];
+                    const MatrixXfd& Mmn2 = _Mmn[c1 + _bse_cmin];
                     const MatrixXfd Mmn2xMmn1T = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize)*Mmn1T;
                     int i1 = vc.I(v1, c1);
                     for (int v2 = 0; v2 < _bse_vtotal; v2++) {
@@ -202,16 +221,15 @@ template <typename T, int factor>
             return;
         }
 
-emplate <typename T, int factor>
+template <typename T, int factor>
         void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
-            int auxsize = _Mmn->auxsize();
+            int auxsize = _Mmn.auxsize();
             vc2index vc = vc2index(0, 0, _bse_ctotal);
-            VectorXfd epsilon_inv = (1 - _ppm->getPpm_weight().array()).cast<real_gwbse>();
 #pragma omp parallel for       
             for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-                const MatrixXfd Mmn2T =factor * ((*_Mmn)[c1 + _bse_cmin ].block(_bse_vmin, 0, _bse_vtotal, auxsize)* epsilon_inv.asDiagonal()).transpose();
+                const MatrixXfd Mmn2T =factor * (_Mmn[c1 + _bse_cmin ].block(_opt.vmin, 0, _bse_vtotal, auxsize)* _epsilon_0_inv.asDiagonal()).transpose();
                 for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-                    const MatrixXfd& Mmn1 = (*_Mmn)[v1 + _bse_vmin];
+                    const MatrixXfd& Mmn1 = _Mmn[v1 + _opt.vmin];
                     MatrixXfd Mmn1xMmn2T = Mmn1.block(_bse_cmin, 0, _bse_ctotal, auxsize)* Mmn2T;
                     int i1 = vc.I(v1, c1);
                     for (int v2 = 0; v2 < _bse_vtotal; v2++) {
@@ -228,15 +246,15 @@ emplate <typename T, int factor>
 
 template <typename T,int factor>
     void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) { 
-      int auxsize = _Mmn->auxsize();
+      int auxsize = _Mmn.auxsize();
        vc2index vc=vc2index(0,0,_bse_ctotal);
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-                const MatrixXfd Mmn1 = factor * ((*_Mmn)[v1 + _bse_vmin].block(_bse_cmin, 0, _bse_ctotal, auxsize)).transpose();
+                const MatrixXfd Mmn1 = factor * (_Mmn[v1 + _opt.vmin].block(_bse_cmin, 0, _bse_ctotal, auxsize)).transpose();
                 for (int c1 = 0; c1 < _bse_ctotal; c1++) {
                     int i1 = vc.I(v1, c1);
                     for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-                        const MatrixXfd& Mmn2 = (*_Mmn)[v2 + _bse_vmin];
+                        const MatrixXfd& Mmn2 = _Mmn[v2 + _opt.vmin];
                         const VectorXfd Mmnx2 = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
                         for (int c2 = 0; c2 < _bse_ctotal; c2++) {
                             int i2 = vc.I(v2, c2);
@@ -258,10 +276,10 @@ template <typename T,int factor>
 
     void BSE::printWeights(int i_bse, double weight){
         
-      vc2index vc=vc2index(_bse_vmin,_bse_cmin,_bse_ctotal);
-      if (weight > _min_print_weight) {
+      vc2index vc=vc2index(_opt.vmin,_bse_cmin,_bse_ctotal);
+      if (weight > _opt.min_print_weight) {
         CTP_LOG(ctp::logINFO, _log) << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%")
-                % (_homo - vc.v(i_bse)) % (vc.c(i_bse) - _homo - 1) % (100.0 * weight) << flush;
+                % (_opt.homo - vc.v(i_bse)) % (vc.c(i_bse) - _opt.homo - 1) % (100.0 * weight) << flush;
       }
       return;
     }
@@ -288,8 +306,7 @@ template <typename T,int factor>
       
       double hrt2ev = tools::conv::hrt2ev;
       CTP_LOG(ctp::logINFO, _log) << "  ====== singlet energies (eV) ====== "<< flush;
-      int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
-      for (int i = 0; i < maxoutput; ++i) {     
+      for (int i = 0; i < _opt.nmax; ++i) {
         const tools::vec& trdip = transition_dipoles[i];
         double osc = oscs[i];
         if (tools::globals::verbose) {
@@ -339,8 +356,7 @@ template <typename T,int factor>
         _orbitals.setFragmentChargesGS(pop.popGs);
       }
       CTP_LOG(ctp::logINFO, _log) << "  ====== triplet energies (eV) ====== " << flush;
-      int maxoutput=(_bse_nmax>200) ? 200:_bse_nmax;
-      for (int i = 0; i < maxoutput; ++i) {    
+      for (int i = 0; i < _opt.nmax; ++i) {
         if (tools::globals::verbose) {
           CTP_LOG(ctp::logINFO, _log) << format("  T = %1$4d Omega = %2$+1.12f eV  lamdba = %3$+3.2f nm <FT> = %4$+1.4f <K_d> = %5$+1.4f")
                   % (i + 1) % (tools::conv::hrt2ev * _bse_triplet_energies(i)) % (1240.0 / (tools::conv::hrt2ev * _bse_triplet_energies(i)))
@@ -366,9 +382,9 @@ template <typename T,int factor>
     }
 
     Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type,const MatrixXfd& H){
-        Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_bse_nmax);
+        Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_opt.nmax);
         if (type == QMStateType::Singlet) {
-            for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
+            for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
                 MatrixXfd slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
                 contrib(i_exc) =  (slice_R.transpose()*H * slice_R).value();
                 if (_bse_singlet_coefficients_AR.cols() > 0) {
@@ -378,7 +394,7 @@ template <typename T,int factor>
                 }
             }
         } else if (type == QMStateType::Triplet) {
-            for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
+            for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
                 MatrixXfd _slice_R = _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
                 contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
             }
@@ -421,7 +437,7 @@ template <typename T,int factor>
         Eigen::VectorXd pops = _orbitals.LoewdinPopulation(DMAT, dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
         pop.popGs=nuccharges - pops;
         // population to electron charges and add nuclear charges         
-        for (int i_state = 0; i_state < _bse_nmax; i_state++) {
+        for (int i_state = 0; i_state < _opt.nmax; i_state++) {
           QMState state=QMState(type,i_state,false);
           // checking Density Matrices
           std::vector< Eigen::MatrixXd > DMAT = _orbitals.DensityMatrixExcitedState(state);
@@ -450,7 +466,7 @@ template <typename T,int factor>
       std::vector<Eigen::MatrixXd > interlevel_dipoles;
 
       Eigen::MatrixXd empty = dft_orbitals.block(0,_bse_cmin,dftbasis.AOBasisSize() , _bse_ctotal);
-      Eigen::MatrixXd occ = dft_orbitals.block(0,_bse_vmin, dftbasis.AOBasisSize(), _bse_vtotal);
+      Eigen::MatrixXd occ = dft_orbitals.block(0,_opt.vmin, dftbasis.AOBasisSize(), _bse_vtotal);
       for (int i_comp = 0; i_comp < 3; i_comp++) {
         interlevel_dipoles.push_back(occ.transpose() * dft_dipole.Matrix()[i_comp] * empty);
       }
@@ -474,7 +490,7 @@ template <typename T,int factor>
     vc2index vc=vc2index(0,0,_bse_ctotal);
     std::vector<tools::vec > dipols;
     const double sqrt2 = sqrt(2.0);
-      for (int i_exc = 0; i_exc < _bse_nmax; i_exc++) {
+      for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
         tools::vec tdipole = tools::vec(0, 0, 0);
         for (int c = 0; c < _bse_ctotal; c++) {
           for (int v = 0; v < _bse_vtotal; v++) {

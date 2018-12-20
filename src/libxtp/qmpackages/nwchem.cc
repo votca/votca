@@ -175,7 +175,7 @@ namespace votca {
           // write occupations as double in three columns
           // occupied levels
           int column = 1;
-          for (int i = 0; i < orbitals.getNumberOfElectrons(); i++) {
+          for (int i = 0; i < orbitals.getNumberOfAlphaElectrons(); i++) {
             orb_file << FortranFormat(2.0);
             if (column == ncolumns) {
               orb_file << endl;
@@ -184,7 +184,7 @@ namespace votca {
             column++;
           }
           // unoccupied levels
-          for (int i = orbitals.getNumberOfElectrons(); i < size_of_basis; i++) {
+          for (int i = orbitals.getNumberOfAlphaElectrons(); i < size_of_basis; i++) {
             orb_file << FortranFormat(0.0);
             if (column == ncolumns) {
               orb_file << endl;
@@ -545,7 +545,7 @@ namespace votca {
 
             // copying information to the orbitals object
             orbitals.setBasisSetSize(basis_size);
-            orbitals.setNumberOfElectrons(number_of_electrons);
+            orbitals.setNumberOfAlphaElectrons(number_of_electrons);
             orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
             // copying energies to a matrix
             orbitals.MOEnergies().resize(levels);
@@ -662,9 +662,9 @@ namespace votca {
 
             // save qmpackage name
             orbitals.setQMpackage("nwchem");
-            orbitals.setDFTbasis(_basisset_name);
+            orbitals.setDFTbasisName(_basisset_name);
             if (_write_pseudopotentials) {
-                orbitals.setECP(_ecp_name);
+                orbitals.setECPName(_ecp_name);
             } 
             // set _found_optimization to true if this is a run without optimization
             if (!_is_optimization) {

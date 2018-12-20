@@ -202,8 +202,8 @@ namespace votca {
 
             // load DFT basis set (element-wise information) from xml file
             BasisSet dftbs;
-            dftbs.LoadBasisSet(orbitals.getDFTbasis());
-            CTP_LOG(ctp::logDEBUG, _log) << " Loaded DFT Basis Set " << orbitals.getDFTbasis() << flush;
+            dftbs.LoadBasisSet(orbitals.getDFTbasisName());
+            CTP_LOG(ctp::logDEBUG, _log) << " Loaded DFT Basis Set " << orbitals.getDFTbasisName() << flush;
 
             // fill DFT AO basis by going through all atoms 
             AOBasis dftbasis;

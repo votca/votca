@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   orb.setBasisSetSize(17);
   orb.setNumberOfLevels(4,12);
   orb.setBSEindices(0,9,2);
-  orb.setNumberOfElectrons(5);
+  orb.setNumberOfAlphaElectrons(5);
 
   orb.MOCoefficients()=Eigen::MatrixXd::Zero(17,17);
   orb.MOCoefficients()<<0.9907442950821396,0.20551857477099006,1.7023418853572578E-4,9.074399061719398E-5,3.837098252664792E-5,0.16974897759501614,-4.204899244661065E-5,7.615775441246816E-5,4.676066062450439E-5,2.884698428033532E-5,-4.481545968117419E-5,-1.3204180988296866E-4,-0.11680388320125862,1.6189605485598983E-5,-5.371063226647223E-6,-1.2047015045305022E-4,0.023240774591255682,
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   orbitals.LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
-  orbitals.setDFTbasis("3-21G.xml");
+  orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 

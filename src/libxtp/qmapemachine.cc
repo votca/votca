@@ -270,9 +270,9 @@ QMMIter *QMAPEMachine::CreateNewIter() {
       QMState nextState = _filter.CalcStateAndUpdate(orb);
       // load DFT basis set (element-wise information) from xml file
       BasisSet dftbs;
-      dftbs.LoadBasisSet(orb.getDFTbasis());
+      dftbs.LoadBasisSet(orb.getDFTbasisName());
 
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasis() << flush;
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb.getDFTbasisName() << flush;
 
       // fill DFT AO basis by going through all atoms
       AOBasis dftbasis;

@@ -797,11 +797,11 @@ namespace votca {
 
             // save qmpackage name
             orbitals.setQMpackage("gaussian");
-            orbitals.setDFTbasis(_basisset_name);
+            orbitals.setDFTbasisName(_basisset_name);
 
 
             if (_write_pseudopotentials) {
-                orbitals.setECP(_ecp_name);
+                orbitals.setECPName(_ecp_name);
             }
 
             read_vxc = _output_Vxc;
@@ -832,7 +832,7 @@ namespace votca {
                     boost::algorithm::split(results, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     has_number_of_electrons = true;
                     number_of_electrons = boost::lexical_cast<int>(results.front());
-                    orbitals.setNumberOfElectrons(number_of_electrons);
+                    orbitals.setNumberOfAlphaElectrons(number_of_electrons);
                     CTP_LOG(ctp::logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
                 }
 

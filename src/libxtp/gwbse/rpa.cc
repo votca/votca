@@ -29,7 +29,7 @@ namespace votca {
   namespace xtp {
 
  template< bool imag>
-    RPA::Eigen::MatrixXd calculate_epsilon(double frequency)const{
+    Eigen::MatrixXd RPA::calculate_epsilon(double frequency)const{
         const int size = _Mmn.auxsize(); // size of gwbasis
 
         Eigen::MatrixXd result = Eigen::MatrixXd::Zero(size, size);
@@ -40,24 +40,20 @@ namespace votca {
 
 #pragma omp parallel for
         for (int m_level = 0; m_level < n_occ; m_level++)        {
-            const double qp_energy_m = _qp_energies(m_level + _rpamin);
+            const double qp_energy_m = _energies(m_level + _rpamin);
 #if (GWBSE_DOUBLE)
-            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level ].block(n_occ, 0, n_unocc, size);
+            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level].block(n_occ, 0, n_unocc, size);
 #else
-            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level ].block(n_occ, 0, n_unocc, size).cast<double>();
+            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level].block(n_occ, 0, n_unocc, size).cast<double>();
 #endif
-            Eigen::MatrixXd denom_x_Mmn_RPA = Mmn_RPA;
-            for (int n_level = 0; n_level < n_unocc; n_level++){
-                const double deltaE = _qp_energies(n_level + lumo) - qp_energy_m;
-                double denom = 0.0;
-                if (imag){
-                    denom = 4.0 * deltaE / (deltaE * deltaE + freq2);
-                }else{
-                    denom = 2.0 * (1.0 / (deltaE - frequency) + 1.0 / (deltaE + frequency));
-                }
-                denom_x_Mmn_RPA.row(n_level)*= denom; //hartree
+            const Eigen::ArrayXd deltaE=_energies.segment(lumo,n_unocc).array()-qp_energy_m;
+            Eigen::VectorXd denom;
+            if (imag){
+                denom=4*deltaE/(deltaE.square()+freq2);
+            }else{
+                denom=2.0*((deltaE-frequency).inverse()+(deltaE+frequency).inverse());
             }
-            Eigen::MatrixXd tempresult.noalias() = Mmn_RPA.transpose() * denom_x_Mmn_RPA;
+            Eigen::MatrixXd tempresult = Mmn_RPA.transpose() *denom.asDiagonal()* Mmn_RPA;
 
 #pragma omp critical
             {
@@ -68,5 +64,10 @@ namespace votca {
 
         return result;
     }
+
+
+ template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency)const;
+ template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency)const;
+
 
   }}

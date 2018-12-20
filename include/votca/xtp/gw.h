@@ -21,13 +21,10 @@
 #define _VOTCA_XTP_GW_H
 
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/ppm.h>
 #include <votca/xtp/threecenter.h>
-
+#include <votca/xtp/sigma.h>
 namespace votca {
 namespace xtp {
-
-class Sigma;
 
 class GW {     
  public:
@@ -47,13 +44,11 @@ class GW {
         int gw_sc_max_iterations=10;
         double shift=0;
         double ScaHFX=0.0;
-        int _reset_3c=5; //how often the 3c integrals in iterate should be rebuild
+        std::string sigma_integration="ppm";
+        int reset_3c=5; //how often the 3c integrals in iterate should be rebuild
     };
 
-    void configure(const options& opt){
-     _opt=opt;
-     _qptotal=_opt.qpmax-_opt.qpmin+1;
-  }
+    void configure(const options& opt);
 
     Eigen::MatrixXd getGWAResults()const;
     //Calculates the diagonal elements up to self consistency
@@ -76,25 +71,27 @@ class GW {
     }
 
  private:
-     int _qptotal;
+    int _qptotal;
 
-     Eigen::VectorXd _gwa_energies;
+    Eigen::VectorXd _gwa_energies;
 
-     Eigen::MatrixXd _Sigma_x;
-     Eigen::MatrixXd _Sigma_c;
+    Eigen::MatrixXd _Sigma_x;
+    Eigen::MatrixXd _Sigma_c;
 
     options _opt;
 
+    std::unique_ptr<Sigma> _sigma=nullptr;
     ctp::Logger &_log;
-    const Eigen::MatrixXd& _vxc;
+    const Eigen::MatrixXd _vxc;
     const Eigen::VectorXd& _dft_energies;
     TCMatrix_gwbse& _Mmn;
 
-    double CalcShift()const;
- Eigen::VectorXd ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const;
- void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies)const;
- void PrintGWA_Energies()const;
-      
+    double CalcHomoLumoShift()const;
+    Eigen::VectorXd ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const;
+    void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies)const;
+    void PrintGWA_Energies()const;
+    Eigen::VectorXd CalcDiagonalEnergies()const;
+    bool Converged(const Eigen::VectorXd& e1,const Eigen::VectorXd& e2,double epsilon)const;
 
 };
 }

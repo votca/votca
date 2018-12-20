@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian){
   orbitals.LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
-  orbitals.setDFTbasis("3-21G.xml");
+  orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 
@@ -180,7 +180,7 @@ orbitals.setTDAApprox(true);
 bse.setBSEindices(4,0,16,1);
 bse.setGWData(&Mmn,&ppm,&Hqp);
 
-bse.Solve_singlets();
+bse.Solve_singlets_TDA();
 bse.Analyze_singlets(aobasis);
 
 VectorXfd se_ref=VectorXfd::Zero(1);

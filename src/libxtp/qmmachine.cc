@@ -424,9 +424,9 @@ double energy_ex=0.0;
 
       _DMAT_old = DMAT_mixed;
       BasisSet dftbs;
-      if (orb_iter_input.getDFTbasis() != "") {
-        dftbs.LoadBasisSet(orb_iter_input.getDFTbasis());
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasis() << flush;
+      if (orb_iter_input.getDFTbasisName() != "") {
+        dftbs.LoadBasisSet(orb_iter_input.getDFTbasisName());
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Loaded DFT Basis Set " << orb_iter_input.getDFTbasisName() << flush;
       }else{
         throw std::runtime_error("Basisset in orb_iter_input not set");
       }

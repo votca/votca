@@ -56,6 +56,8 @@ class GWBSE {
 
   void Initialize(tools::Property& options);
 
+
+
   std::string Identify() { return "gwbse"; }
 
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
@@ -67,6 +69,7 @@ class GWBSE {
  private:
 
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+ int CountCoreLevels();
  ctp::Logger* _pLog;
  Orbitals& _orbitals;
   

@@ -71,6 +71,10 @@ namespace votca {
      * coefficients
      */
     void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals) {
+        //needed for Rebuild())
+        _auxbasis=&gwbasis;
+        _dftbasis=&dftbasis;
+        _dft_orbitals=&dft_orbitals;
 
       // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)//private(_block)
@@ -166,19 +170,6 @@ namespace votca {
             block[i](j, k) = threec_inMo(j, i);
           }
         }
-      }
-      return;
-    }
-
-    void TCMatrix_gwbse::Prune(int min, int max) {
-        
-      _matrix.resize(max + 1);
-      // entries until min can be freed
-      for (int i = 0; i < min; i++) {
-        _matrix[i].resize(0, 0);
-      }
-      for (unsigned i = min; i < _matrix.size(); i++) {
-        _matrix[i].conservativeResize( max + 1,Eigen::NoChange);
       }
       return;
     }

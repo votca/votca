@@ -21,11 +21,13 @@
 #define _VOTCA_XTP_SIGMA_H
 #include <votca/xtp/eigen.h>
 #include <votca/ctp/logger.h>
+#include <votca/xtp/ppm.h>
 
 namespace votca {
 namespace xtp {
-    class PPM;
+
     class TCMatrix_gwbse;
+    class RPA;
 
 class Sigma {
  public:
@@ -37,19 +39,21 @@ class Sigma {
       _qpmax=qpmax;
       _qptotal=_qpmax - _qpmin + 1;
   }
+
+void PrepareScreening(const RPA& rpa);
   
 Eigen::MatrixXd CalcExchange()const;
 
-Eigen::VectorXd CalcCorrelationDiag(const PPM & ppm,const Eigen::VectorXd& energies )const;
+Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
 
-Eigen::MatrixXd CalcCorrelationOffDiag(const PPM & ppm,const Eigen::VectorXd& energies)const;
+Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
  
 
  private:
 
   TCMatrix_gwbse& _Mmn;
 
-  inline void Stabilize(Eigen::ArrayXd& denom);
+  inline void Stabilize(Eigen::ArrayXd& denom)const;
   int _homo;   // HOMO index
   int _qpmin;
   int _qpmax;

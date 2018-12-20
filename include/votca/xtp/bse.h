@@ -21,7 +21,7 @@
 #define _VOTCA_XTP_BSE_H
 
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/ppm.h>
+#include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 
@@ -32,7 +32,7 @@ class BSE {
 
  public:
  
-  BSE(Orbitals& orbitals,ctp::Logger &log):
+  BSE(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -41,26 +41,22 @@ class BSE {
         _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
         _bse_triplet_energies(orbitals.BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()){};
+        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
+        _Mmn(Mmn),_Hqp(Hqp){};
 
-
-
-        struct options{
-            bool useTDA=true;
-            int homo;
-            int rpamin;
-            int rpamax;
-            int vmin;
-            int cmax;
-            int nmax;
-            int min_print_weight=0.5;  
+    struct options{
+        bool useTDA=true;
+        int homo;
+        int rpamin;
+        int rpamax;
+        int qpmin;
+        int vmin;
+        int cmax;
+        int nmax; //number of eigenvectors to calculate
+        int min_print_weight=0.5;  //minimium contribution for state to print it
         };
   
-  void setGWData(const TCMatrix_gwbse* Mmn,const Eigen::MatrixXd* Hqp){
-      _Mmn=Mmn;
-      _Hqp=Hqp;   
-  }
-
+ 
 
    void configure(const options& opt){
     _opt=opt;
@@ -69,14 +65,11 @@ class BSE {
     _bse_vtotal = _bse_vmax - _opt.vmin + 1;
     _bse_ctotal =_opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
+    SetupDirectInteractionOperator();
   }
-
- 
-
-   
-  void Solve_triplets();
   void Solve_singlets();
-  void Solve_singlets_BTDA();
+  void Solve_triplets();
+
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
    
@@ -116,38 +109,33 @@ struct Population {
  
       
 ctp::Logger &_log;
-  int  _homo;
-  int  _bse_vmin;
   int  _bse_vmax;
   int  _bse_cmin;
-  int  _bse_cmax;
   int  _bse_size;
   int  _bse_vtotal;
   int  _bse_ctotal;
-  int _bse_nmax;
   
   Orbitals& _orbitals;
   
-  const TCMatrix_gwbse* _Mmn;
-  const PPM* _ppm;
-  const Eigen::MatrixXd* _Hqp;
-  
+  TCMatrix_gwbse& _Mmn;
+  const Eigen::MatrixXd& _Hqp;
 
+  VectorXfd _epsilon_0_inv;
+  
   // BSE variables and functions
   MatrixXfd& _eh_s;  // only for storage in orbitals object
   MatrixXfd& _eh_t;  // only for storage in orbitals object
 
-  VectorXfd& _bse_singlet_energies;  // stored in orbitals object
-  MatrixXfd& _bse_singlet_coefficients;  // stored in orbitals
-                                                      // object
-  MatrixXfd& _bse_singlet_coefficients_AR;  // stored in orbitals
-                                                         // object
-  VectorXfd& _bse_triplet_energies;  // stored in orbitals object
-  MatrixXfd& _bse_triplet_coefficients;  // stored in orbitals
-                                                      // object
-  
-  double _min_print_weight;
 
+  // references are stored in orbitals object
+  VectorXfd& _bse_singlet_energies;  
+  MatrixXfd& _bse_singlet_coefficients;                                                 
+  MatrixXfd& _bse_singlet_coefficients_AR;  
+  VectorXfd& _bse_triplet_energies;  
+  MatrixXfd& _bse_triplet_coefficients; 
+
+  void Solve_singlets_TDA();
+  void Solve_singlets_BTDA();
    template <typename T>
   void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
    template <typename T,int factor>
@@ -159,6 +147,8 @@ ctp::Logger &_log;
 
  void printFragInfo(const Population& pop, int i);
  void printWeights(int i_bse, double weight);
+
+ void SetupDirectInteractionOperator();
  
   Interaction Analyze_eh_interaction(const QMStateType& type);
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);

@@ -418,9 +418,9 @@ namespace votca {
         bool Orca::ParseLogFile(Orbitals& orbitals) {
             bool found_success=false;
             orbitals.setQMpackage("orca");
-            orbitals.setDFTbasis(_basisset_name);
+            orbitals.setDFTbasisName(_basisset_name);
             if (_write_pseudopotentials) {
-                orbitals.setECP(_ecp_name);
+                orbitals.setECPName(_ecp_name);
             } 
             CTP_LOG(ctp::logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
             std::string log_file_name_full = _run_dir + "/" + _log_file_name;
@@ -594,7 +594,7 @@ namespace votca {
             // copying information to the orbitals object
        
             orbitals.setBasisSetSize(levels);
-            orbitals.setNumberOfElectrons(number_of_electrons);
+            orbitals.setNumberOfAlphaElectrons(number_of_electrons);
             orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
             orbitals.setSelfEnergy(0.0);
 
@@ -644,7 +644,7 @@ namespace votca {
             if (!CheckLogFile()) return false;
             std::vector<double> coefficients;
             int basis_size = orbitals.getBasisSetSize();
-            int levels = orbitals.getNumberOfLevels();
+            int levels = orbitals.getBasisSetSize();
             if (basis_size == 0 || levels == 0) {
                 throw runtime_error("Basis size not set, calculator does not parse log file first");
             }

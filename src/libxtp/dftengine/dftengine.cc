@@ -635,11 +635,11 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
     void DFTEngine::ConfigOrbfile(Orbitals& orbitals) {
       if (_with_guess) {
 
-        if (orbitals.hasDFTbasis()) {
-          if (orbitals.getDFTbasis() != _dftbasis_name) {
+        if (orbitals.hasDFTbasisName()) {
+          if (orbitals.getDFTbasisName() != _dftbasis_name) {
             throw runtime_error((boost::format("Basisset Name in guess orb file "
                     "and in dftengine option file differ %1% vs %2%") 
-                    % orbitals.getDFTbasis() % _dftbasis_name).str());
+                    % orbitals.getDFTbasisName() % _dftbasis_name).str());
           }
         } else {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: "
@@ -649,33 +649,33 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         }
       }
       orbitals.setQMpackage("xtp");
-      orbitals.setDFTbasis(_dftbasis_name);
+      orbitals.setDFTbasisName(_dftbasis_name);
       orbitals.setBasisSetSize(_dftbasis.AOBasisSize());
       orbitals.setScaHFX(_ScaHFX);
       if (_with_ecp) {
-        orbitals.setECP(_ecp_name);
+        orbitals.setECPName(_ecp_name);
       }
       if (_with_RI) {
-        orbitals.setAuxbasis(_auxbasis_name);
+        orbitals.setAuxbasisName(_auxbasis_name);
       }
 
       if (_with_guess) {
-        if (orbitals.hasECP() || _with_ecp) {
-          if (orbitals.getECP() != _ecp_name) {
+        if (orbitals.hasECPName() || _with_ecp) {
+          if (orbitals.getECPName() != _ecp_name) {
             throw runtime_error((boost::format("ECPs in orb file: %1% and options %2% differ")
-                    % orbitals.getECP() % _ecp_name).str());
+                    % orbitals.getECPName() % _ecp_name).str());
           }
         }
-        if (orbitals.getNumberOfElectrons() != _numofelectrons / 2) {
+        if (orbitals.getNumberOfAlphaElectrons() != _numofelectrons / 2) {
           throw runtime_error((boost::format("Number of electron in guess orb file: %1% and in dftengine: %2% differ.")
-                  % orbitals.getNumberOfElectrons() % (_numofelectrons / 2)).str());
+                  % orbitals.getNumberOfAlphaElectrons() % (_numofelectrons / 2)).str());
         }
-        if (orbitals.getNumberOfLevels() != _dftbasis.AOBasisSize()) {
+        if (orbitals.getBasisSetSize() != _dftbasis.AOBasisSize()) {
           throw runtime_error((boost::format("Number of levels in guess orb file: %1% and in dftengine: %2% differ.") 
-                  % orbitals.getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
+                  % orbitals.getBasisSetSize() % _dftbasis.AOBasisSize()).str());
         }
       } else {
-        orbitals.setNumberOfElectrons(_numofelectrons / 2);
+        orbitals.setNumberOfAlphaElectrons(_numofelectrons / 2);
         orbitals.setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
       }
       return;
@@ -941,7 +941,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
     
     Eigen::MatrixXd DFTEngine::IntegrateExternalDensity(Orbitals& extdensity){
       BasisSet basis;
-      basis.LoadBasisSet(extdensity.getDFTbasis());
+      basis.LoadBasisSet(extdensity.getDFTbasisName());
       AOBasis aobasis;
       aobasis.AOBasisFill(basis,extdensity.QMAtoms());
       NumericalIntegration numint;

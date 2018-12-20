@@ -27,7 +27,7 @@
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/symmetric_matrix.h>
 #include <votca/xtp/orbitals.h>
-
+#include <cstddef>
 
 
 
@@ -122,13 +122,17 @@ namespace votca {
 
             void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
 
-            void Prune(int min, int max);
             void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
+            //Rebuilds ThreeCenterIntegrals, only works if the original basisobjects still exist
+            void Rebuild(){
+                Fill(*_auxbasis,*_dftbasis,*_dft_orbitals);
+            }
 
             void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
 
         private:
 
+            
             // store vector of matrices
             std::vector< MatrixXfd > _matrix;
 
@@ -140,6 +144,10 @@ namespace votca {
             int _ntotal;
             int _mtotal;
             int _basissize;
+
+            const AOBasis* _auxbasis=nullptr;
+            const AOBasis* _dftbasis=nullptr;
+            const Eigen::MatrixXd* _dft_orbitals=nullptr;
 
             void FillBlock(std::vector< Eigen::MatrixXd >& matrix, const AOShell* auxshell, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
