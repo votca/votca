@@ -30,6 +30,9 @@
 using namespace std;
 using namespace boost;
 
+/* Boltzmann constant in units [ kJ/(mol K) ] */
+const double kB = 0.0083109;
+
 TabulatedPotential::TabulatedPotential()
 {
     _tab_smooth1 = _tab_smooth2 = 0;
@@ -173,25 +176,42 @@ void TabulatedPotential::Help(string cmd, vector<string> &args)
 }
 
 bool TabulatedPotential::SetOption(Histogram::options_t &op, const vector<string> &args)
+//bool TabulatedPotential::SetOption(const vector<string> &args)
 {
-    if(args.size() >2) {
+/*  int number_of_bins = 0;
+  double minimum_value = 0.0;
+  double maximum_value = 0.0;
+  bool make_periodic = false;
+  bool auto_interval = false;
+  bool extend_interval = false;
+  bool normalize = false;
+  string scale = "";*/
+  if(args.size() >2) {
         if(args[1] == "n")
             op._n = lexical_cast<int>(args[2]);       
+            //number_of_bins = lexical_cast<int>(args[2]);       
         else if(args[1] == "min") {
             op._min = lexical_cast<double>(args[2]);
+            //minimum_value = lexical_cast<double>(args[2]);
         }
         else if(args[1] == "max")
             op._max = lexical_cast<double>(args[2]);
+            //maximum_value = lexical_cast<double>(args[2]);
         else if(args[1] == "periodic")
             op._periodic = lexical_cast<bool>(args[2]);
+            //make_periodic = lexical_cast<bool>(args[2]);
         else if(args[1] == "auto")
             op._auto_interval = lexical_cast<bool>(args[2]);
+            //auto_interval = lexical_cast<bool>(args[2]);
         else if(args[1] == "extend")
             op._extend_interval = lexical_cast<bool>(args[2]);
+            //extend_interval = lexical_cast<bool>(args[2]);
         else if(args[1] == "normalize")
+            //normalize = lexical_cast<bool>(args[2]);
             op._normalize = lexical_cast<bool>(args[2]);
         else if(args[1] == "scale") {
             if(args[2]=="no" || args[2]=="bond" || args[2]=="angle")
+                //scale = args[2];
                 op._scale = args[2];
             else {
                 cout << "scale can be: no, bond or angle\n";
@@ -202,6 +222,14 @@ bool TabulatedPotential::SetOption(Histogram::options_t &op, const vector<string
         }
     }
     else {
+/*        cout << "n: " << number_of_bins << endl;
+        cout << "min: " << minimum_value << endl;
+        cout << "max: " << maximum_value << endl;
+        cout << "periodic: " << periodic << endl;
+        cout << "auto: " << auto_interval << endl;
+        cout << "extend: " << extend_interval << endl;
+        cout << "scale: " << scale << endl;
+        cout << "normalize: " << normalize << endl;*/
         cout << "n: " << op._n << endl;
         cout << "min: " << op._min << endl;
         cout << "max: " << op._max << endl;
@@ -224,14 +252,6 @@ void TabulatedPotential::WriteHistogram(BondedStatistics &bs, vector<string> &ar
     Histogram h(_hist_options);
     h.ProcessData(sel);
     out.open(args[0].c_str());
-/*    out << "# histogram, created csg version " <<  VERSION_STR  << endl;
-    out << "# n = " << _hist_options._n << endl;
-    out << "# min = " << _hist_options._min << endl;
-    out << "# max = " << _hist_options._max << endl;
-    out << "# periodic = " << _hist_options._periodic << endl;
-    out << "# auto = " << _hist_options._auto_interval << endl;
-    out << "# extend = " << _hist_options._extend_interval << endl;
-    out << "# scale = " << _hist_options._scale << endl;*/
     out << h ;
     out.close();
     cout << "histogram created using " << sel->size() << " data-rows, written to " << args[0] << endl;    
@@ -263,25 +283,15 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &ar
         sel = bs.BondedValues().select(args[i], sel);
     Histogram h(_tab_options);
     h.ProcessData(sel);
-    for(int i=0; i<_tab_smooth1; ++i)
+    for(int i=0; i<_tab_smooth1; ++i){
         Smooth(h.getPdf(), _tab_options._periodic);
-    BoltzmannInvert(h.getPdf(), _T);
-    for(int i=0; i<_tab_smooth2; ++i)
+    }
+    BoltzmannInvert(h.getPdf());
+    for(int i=0; i<_tab_smooth2; ++i){
         Smooth(h.getPdf(), _tab_options._periodic);
+    }
     out.open(args[0].c_str());
     
-/*       out << "# tabulated potential, created csg version " VERSION_STR  << endl;
-    out << "# n = " << _tab_options._n << endl;
-    out << "# min = " << _tab_options._min << endl;
-    out << "# max = " << _tab_options._max << endl;
-    out << "# periodic = " << _tab_options._periodic << endl;
-    out << "# auto = " << _tab_options._auto_interval << endl;
-    out << "# extend = " << _tab_options._extend_interval << endl;
-    out << "# scale = " << _tab_options._scale << endl;
-    out << "# smooth_pdf = " << _tab_smooth1 << endl;
-    out << "# smooth_pot = " << _tab_smooth2 << endl;
-    out << "# T = " << _T << endl;*/
-
     vector<double> F;
     
     CalcForce(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
@@ -325,7 +335,7 @@ void TabulatedPotential::Smooth(vector<double> &data, bool bPeriodic)
     }
 }
 
-void TabulatedPotential::BoltzmannInvert(vector<double> &data, double T)
+void TabulatedPotential::BoltzmannInvert(vector<double> &data)
 {
     double _min, _max;
     
@@ -336,12 +346,12 @@ void TabulatedPotential::BoltzmannInvert(vector<double> &data, double T)
         _max = max(data[i], _max);
         if(data[i] > 0) _min = min(data[i], _min);
     }
-    _max = -8.3109*T*log(_max)*0.001;
-    _min = -8.3109*T*log(_min)*0.001-_max;
+    _max = -kB*T*log(_max);
+    _min = -kB*T*log(_min)-_max;
     
     for(size_t i=0; i<data.size(); i++) {
         if(data[i] == 0) data[i] = _min;
         else
-            data[i] = -8.3109*T*log(data[i])*0.001 - _max;
+            data[i] = -kB*_Temperature*log(data[i]) - _max;
     }
 }
