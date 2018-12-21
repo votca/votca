@@ -112,18 +112,12 @@ Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 
 
-  RPA rpa;
-  rpa.configure(4,0,17-1);
+  RPA rpa=RPA(es.eigenvalues(),Mmn);
+  rpa.configure(4,0,16);
   
   PPM ppm;
-  Eigen::VectorXd screen_r=Eigen::VectorXd::Zero(1);
-  screen_r(0)=ppm.getScreening_r();
-  Eigen::VectorXd screen_i=Eigen::VectorXd::Zero(1);
-  screen_i(0)=ppm.getScreening_i();
-  rpa.setScreening(screen_r,screen_i);
-  rpa.calculate_epsilon(es.eigenvalues(),Mmn);
   ppm.PPM_construct_parameters(rpa);
- 
+
   
   Eigen::VectorXd ppm_freq=Eigen::VectorXd::Zero(17);
   ppm_freq<< 1.94598,0.923413,0.923413, 1.66455, 1.25616, 1.56824,0.939509,0.725025,0.725025, 0.69766, 0.69766,0.789006,0.655588,0.697099, 1.21575, 1.21575, 25.747;

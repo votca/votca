@@ -109,7 +109,7 @@ ofstream xyzfile("molecule.xyz");
   opt.mode=ConvergenceAcc::KSmode::closed;
   opt.levelshift=0.1;
   opt.histlength=10;
-  opt.numberofelectrons=occlevels*2,0
+  opt.numberofelectrons=occlevels*2,0;
   d.Configure(opt);
   d.setOverlap(&overlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);

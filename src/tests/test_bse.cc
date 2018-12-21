@@ -145,14 +145,22 @@ TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,MOs);
  
- 
-BSE bse=BSE(orbitals,&log,0.1);
-orbitals.setBSEindices(0,16,1);
-orbitals.setTDAApprox(true);
-bse.setBSEindices(4,0,16,1);
-bse.setGWData(&Mmn,&ppm,&Hqp);
+BSE::options opt;
+opt.cmax=16;
+opt.rpamax=16;
+opt.rpamin=0;
+opt.vmin=0;
+opt.nmax=1;
+opt.min_print_weight=0.1;
+opt.useTDA=true;
 
-bse.Solve_singlets_TDA();
+votca::ctp::Logger log;
+BSE bse=BSE(orbitals,log,Mmn,vxc);
+orbitals.setBSEindices(0,16);
+orbitals.setTDAApprox(true);
+bse.configure(opt);
+
+bse.Solve_singlets();
 bse.Analyze_singlets(aobasis);
 
 VectorXfd se_ref=VectorXfd::Zero(1);
@@ -182,8 +190,10 @@ if(!check_spsi){
 }
 
 BOOST_CHECK_EQUAL(check_spsi, true);
+opt.useTDA=false;
+bse.configure(opt);
 orbitals.setTDAApprox(false);
-bse.Solve_singlets_BTDA();
+bse.Solve_singlets();
 VectorXfd se_ref_btda=VectorXfd::Zero(1);
 se_ref_btda<<0.0800487;
 bool check_se_btda=se_ref_btda.isApprox(orbitals.BSESingletEnergies(),0.001);

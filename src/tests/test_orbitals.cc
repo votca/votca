@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   Orbitals orb;
   orb.setBasisSetSize(17);
   orb.setNumberOfLevels(4,12);
-  orb.setBSEindices(0,9,2);
+  orb.setBSEindices(0,9);
   orb.setNumberOfAlphaElectrons(5);
 
   orb.MOCoefficients()=Eigen::MatrixXd::Zero(17,17);
@@ -346,7 +346,7 @@ MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e
 0.129798, 0.0953806, 0.243102, -0.0847266, -0.0118465, -0.0475639, -0.132788, 0.00985812, 0.507751, 0.244188, -0.196253, 0.65313, 0.322032, -0.87828, -0.235242, -0.195084, 0.0246232,
 0.0541331, 0.088689, 0.226046, -0.0787824, -0.88576, -0.566373, -1.58119, 0.117387, 0.0916104, 0.0440574, -0.0354087, -0.362701, -0.512321, 1.39726, 0.374248, -0.793844, -0.035336;
 
-orbitals.setBSEindices(0,16,1);
+orbitals.setBSEindices(0,16);
 orbitals.setTDAApprox(true);
 
 MatrixXfd spsi_ref=MatrixXfd::Zero(60,1);
