@@ -18,7 +18,6 @@
 #define BOOST_TEST_MODULE eris_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ERIs.h>
-#include <votca/xtp/convergenceacc.h>
 
 using namespace votca::xtp;
 using namespace std;
@@ -271,7 +270,7 @@ BOOST_AUTO_TEST_CASE(threecenter){
 0.0793899,-0.0227661,0.0116991,-0.0306653,0.0331459,0.368292,-0.040847,0.246325,0.116196,-0.601685,0.616218,-0.412795,1.19897,1.67792,-0.343754,1.14533,-0.0365659;
 
   ERIs eris;
-  eris.Initialize(aobasis,aobasis,Eigen::MatrixXd::Identity(17,17));
+  eris.Initialize(aobasis,aobasis);
   eris.CalculateEXX(dmat);
   Eigen::MatrixXd eri_d=eris.getERIs();
   eris.CalculateEXX(mos.block(0,0,17,4),dmat);

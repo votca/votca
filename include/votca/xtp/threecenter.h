@@ -43,7 +43,6 @@ namespace votca {
     namespace xtp {
 
         // due to different requirements for the data format for DFT and GW we have two different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
-
         class TCMatrix {
 
         public:

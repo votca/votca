@@ -138,42 +138,14 @@ vxc<<-0.431767, -0.131967, -1.18442e-13, -1.26466e-13, -1.02288e-13, -0.10626, -
 -0.0478527, -0.241381, 0.0760583, -0.0760583, 0.0760583, -0.300264, 0.122087, -0.122087, 0.122087, -0.061678, -0.149893, -0.061678, -0.149893, -0.061678, -0.149893, -0.31776, -0.353709;
 
 vxc=MOs.transpose()*vxc*MOs;
-AOOverlap ov;
-ov.Fill(aobasis);
-AOCoulomb cou;
-cou.Fill(aobasis);
 
 Eigen::VectorXd mo_energy=Eigen::VectorXd::Zero(17);
 mo_energy<<-0.612601,-0.341755,-0.341755,-0.341755, 0.137304,  0.16678,  0.16678,  0.16678, 0.671592, 0.671592, 0.671592, 0.974255,  1.01205,  1.01205,  1.01205,  1.64823,  19.4429;
 TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,MOs);
-Mmn.MultiplyRightWithAuxMatrix(cou.Pseudo_InvSqrt_GWBSE(ov,1e-7));
-
-  RPA rpa;
-  rpa.configure(4,0,16);
-  
-  PPM ppm;
-  Eigen::VectorXd screen_r=Eigen::VectorXd::Zero(1);
-  screen_r(0)=ppm.getScreening_r();
-  Eigen::VectorXd screen_i=Eigen::VectorXd::Zero(1);
-  screen_i(0)=ppm.getScreening_i();
-  rpa.setScreening(screen_r,screen_i);
-  
  
-  rpa.calculate_epsilon(mo_energy,Mmn);
-  ppm.PPM_construct_parameters(rpa);
-  Mmn.MultiplyRightWithAuxMatrix(ppm.getPpm_phi());
-  
-  votca::ctp::Logger log;
-  Sigma sigma=Sigma(&log);
-  sigma.configure(4,0,16,20,1e-5);
-  sigma.setDFTdata(0.0,&vxc,&mo_energy);
-  sigma.setGWAEnergies(mo_energy);
-  sigma.CalcdiagElements(Mmn,ppm);
-  sigma.CalcOffDiagElements(Mmn,ppm);
-  Eigen::MatrixXd Hqp=sigma.SetupFullQPHamiltonian();
-  Mmn.Prune(0, 16); 
+ 
 BSE bse=BSE(orbitals,&log,0.1);
 orbitals.setBSEindices(0,16,1);
 orbitals.setTDAApprox(true);
