@@ -52,9 +52,9 @@ void TabulatedPotential::Command(BondedStatistics &bs, string cmd, vector<string
 {
   if(args[0]=="set") {
     if(cmd=="hist") {
-      SetOption(_hist_options, args);
+      SetOption_(_hist_options, args);
     }else if(cmd=="tab") {
-      if(!SetOption(_tab_options, args)) {
+      if(!SetOption_(_tab_options, args)) {
         if(args.size() >2) {
           if(args[1]=="smooth_pdf"){
             _tab_smooth1 = lexical_cast<int>(args[2]);       
@@ -216,18 +216,18 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &ar
     Histogram h(_tab_options);
     h.ProcessData(sel);
     for(int i=0; i<_tab_smooth1; ++i){
-      Smooth(h.getPdf(), _tab_options._periodic);
+      Smooth_(h.getPdf(), _tab_options._periodic);
     }
-    BoltzmannInvert(h.getPdf());
+    BoltzmannInvert_(h.getPdf());
     for(int i=0; i<_tab_smooth2; ++i){
-        Smooth(h.getPdf(), _tab_options._periodic);
+        Smooth_(h.getPdf(), _tab_options._periodic);
     }
     cout << "Writing Potential to file arg0 " << args[0].c_str() << endl;
     out.open(args[0].c_str());
     
     vector<double> F;
     
-    CalcForce(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
+    CalcForce_(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
     for(int i=0; i<h.getN(); i++) {
         out << h.getMin() + h.getInterval()*((double)i) << " " << h.getPdf()[i] << " " << F[i] << endl;
     }
@@ -277,7 +277,6 @@ bool TabulatedPotential::SetOption_(Histogram::options_t &op, const vector<strin
   }
   return true;
 }
-
 
 void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F, double dx, bool bPeriodic)
 {
