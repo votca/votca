@@ -595,7 +595,7 @@ namespace votca {
        
             orbitals.setBasisSetSize(levels);
             orbitals.setNumberOfAlphaElectrons(number_of_electrons);
-            orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
+            orbitals.setNumberOfOccupiedLevels(occupied_levels);
             orbitals.setSelfEnergy(0.0);
 
             // copying energies to a vector

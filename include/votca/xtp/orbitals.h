@@ -84,10 +84,10 @@ namespace votca {
             // access to DFT number of levels, new, tested
 
             bool hasNumberOfLevels() const{
-                return ( (_occupied_levels > 0) && (_basis_set_size > 0) ? true : false);
+                return ( (_occupied_levels > 0) ? true : false);
             }
             
-            void setNumberOfLevels(int occupied_levels, int unoccupied_levels);
+            void setNumberOfOccupiedLevels(int occupied_levels);
 
             // access to DFT number of electrons, new, tested
 

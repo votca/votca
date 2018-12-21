@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(ppm_full){
   
   Orbitals orb;
   orb.setBasisSetSize(17);
-  orb.setNumberOfLevels(4,13);
+  orb.setNumberOfOccupiedLevels(4);
 
 AOKinetic kinetic;
 kinetic.Fill(aobasis);
@@ -117,13 +117,11 @@ rpa.configure(4,0,16);
 PPM ppm;
 ppm.PPM_construct_parameters(rpa);
 
-  
   Eigen::VectorXd ppm_freq=Eigen::VectorXd::Zero(17);
   ppm_freq<< 2.04748,1.90379,0.9627,0.9627,1.36437,1.88394,0.979326,1.01522,1.01522,1.09165,1.09165,0.80298,0.837678,0.282465,1.88758,0.23266,0.23266;
   Eigen::VectorXd ppm_w=Eigen::VectorXd::Zero(17);
   ppm_w<<0.000231545,0.000323424,0.000383456,0.000383456,0.000583222,0.00111183,0.00244362,0.00351714,0.00351714,0.0163704,0.0163704,0.0246761,0.0290079,0.120546,0.406604,0.582834,0.582834;
  
-  
   bool f_check =ppm_freq.isApprox(ppm.getPpm_freq(),0.0001);
   
   bool w_check =ppm_w.isApprox(ppm.getPpm_weight(),0.0001);

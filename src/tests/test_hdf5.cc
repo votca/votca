@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         Orbitals orbWrite;
 
         orbWrite.setBasisSetSize(basisSetSize);
-        orbWrite.setNumberOfLevels(occupiedLevels, unoccupiedLevels);
+        orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
         orbWrite.setNumberOfAlphaElectrons(numElectrons);
         orbWrite.MOEnergies() = moeTest;
         orbWrite.MOCoefficients() = mocTest;

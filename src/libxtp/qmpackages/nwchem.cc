@@ -546,7 +546,7 @@ namespace votca {
             // copying information to the orbitals object
             orbitals.setBasisSetSize(basis_size);
             orbitals.setNumberOfAlphaElectrons(number_of_electrons);
-            orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
+            orbitals.setNumberOfOccupiedLevels(occupied_levels);
             // copying energies to a matrix
             orbitals.MOEnergies().resize(levels);
             //_level = 1;

@@ -888,7 +888,7 @@ namespace votca {
                         if (eigenvalues_pos == std::string::npos) {
                             has_occupied_levels = true;
                             has_unoccupied_levels = true;
-                            orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
+                            orbitals.setNumberOfOccupiedLevels(occupied_levels);
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
                             CTP_LOG(ctp::logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
                         }

@@ -676,7 +676,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         }
       } else {
         orbitals.setNumberOfAlphaElectrons(_numofelectrons / 2);
-        orbitals.setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
+        orbitals.setNumberOfOccupiedLevels(_numofelectrons / 2);
       }
       return;
     }

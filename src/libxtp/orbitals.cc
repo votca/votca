@@ -153,9 +153,8 @@ namespace votca {
             _popH_t=orbital._popH_t;
         }
 
-        void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
+        void Orbitals::setNumberOfOccupiedLevels(int occupied_levels) {
             _occupied_levels = occupied_levels;
-            _basis_set_size=occupied_levels+unoccupied_levels;
         }
       
          /**
@@ -624,8 +623,7 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             }
             this->setECPName(orbitalsA.getECPName());
             this->setBasisSetSize(basisA + basisB);
-            this->setNumberOfLevels(electronsA + electronsB,
-                    levelsA + levelsB - electronsA - electronsB);
+            this->setNumberOfOccupiedLevels(electronsA + electronsB);
             this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
             this->MOCoefficients().block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients();

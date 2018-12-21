@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(sigma_full){
   
   Orbitals orb;
   orb.setBasisSetSize(17);
-  orb.setNumberOfLevels(4,13);
+  orb.setNumberOfOccupiedLevels(4);
 
 Eigen::MatrixXd MOs=Eigen::MatrixXd::Zero(17,17);
 MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15, 2.89043e-13, -0.00949189, 1.95787e-12, 1.22168e-14, -2.63092e-15, -0.22227, 1.00844,
