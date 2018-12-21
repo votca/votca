@@ -188,6 +188,54 @@ pair<int,int> TabulatedPotential::getSmoothIterations() const {
   return pair<int,int>(_tab_smooth1,_tab_smooth2);
 }
 
+void TabulatedPotential::WriteHistogram(BondedStatistics &bs, vector<string> &args)
+{
+    ofstream out;
+    DataCollection<double>::selection *sel = NULL;
+
+    for(size_t i=1; i<args.size(); i++)
+        sel = bs.BondedValues().select(args[i], sel);
+    Histogram h(_hist_options);
+    h.ProcessData(sel);
+    out.open(args[0].c_str());
+    out << h ;
+    out.close();
+    cout << "histogram created using " << sel->size() << " data-rows, written to " << args[0] << endl;    
+    delete sel;
+}
+
+void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &args)
+{
+    cout << "Writing Potential " << endl;
+    ofstream out;
+    DataCollection<double>::selection *sel = NULL;
+
+    for(size_t i=1; i<args.size(); i++){
+      sel = bs.BondedValues().select(args[i], sel);
+    }
+    Histogram h(_tab_options);
+    h.ProcessData(sel);
+    for(int i=0; i<_tab_smooth1; ++i){
+      Smooth(h.getPdf(), _tab_options._periodic);
+    }
+    BoltzmannInvert(h.getPdf());
+    for(int i=0; i<_tab_smooth2; ++i){
+        Smooth(h.getPdf(), _tab_options._periodic);
+    }
+    cout << "Writing Potential to file arg0 " << args[0].c_str() << endl;
+    out.open(args[0].c_str());
+    
+    vector<double> F;
+    
+    CalcForce(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
+    for(int i=0; i<h.getN(); i++) {
+        out << h.getMin() + h.getInterval()*((double)i) << " " << h.getPdf()[i] << " " << F[i] << endl;
+    }
+    out.close();
+    cout << "histogram created using " << sel->size() << " data-rows, written to " << args[0] << endl;
+    delete sel;
+}
+
 /******************************************************************************
  * Private Facing Methods
  ******************************************************************************/
@@ -230,22 +278,6 @@ bool TabulatedPotential::SetOption_(Histogram::options_t &op, const vector<strin
   return true;
 }
 
-void TabulatedPotential::WriteHistogram_(BondedStatistics &bs, vector<string> &args)
-{
-    ofstream out;
-    DataCollection<double>::selection *sel = NULL;
-
-    for(size_t i=1; i<args.size(); i++)
-        sel = bs.BondedValues().select(args[i], sel);
-    Histogram h(_hist_options);
-    h.ProcessData(sel);
-    out.open(args[0].c_str());
-    out << h ;
-    out.close();
-    cout << "histogram created using " << sel->size() << " data-rows, written to " << args[0] << endl;    
-    delete sel;
-}
-
 
 void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F, double dx, bool bPeriodic)
 {
@@ -260,38 +292,6 @@ void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F, double
     }
     for(size_t i=1; i<n-1; i++)
         F[i] = -(U[i+1] - U[i-1])*f;
-}
-
-void TabulatedPotential::WritePotential_(BondedStatistics &bs, vector<string> &args)
-{
-    cout << "Writing Potential " << endl;
-    ofstream out;
-    DataCollection<double>::selection *sel = NULL;
-
-    for(size_t i=1; i<args.size(); i++){
-      sel = bs.BondedValues().select(args[i], sel);
-    }
-    Histogram h(_tab_options);
-    h.ProcessData(sel);
-    for(int i=0; i<_tab_smooth1; ++i){
-      Smooth(h.getPdf(), _tab_options._periodic);
-    }
-    BoltzmannInvert(h.getPdf());
-    for(int i=0; i<_tab_smooth2; ++i){
-        Smooth(h.getPdf(), _tab_options._periodic);
-    }
-    cout << "Writing Potential to file arg0 " << args[0].c_str() << endl;
-    out.open(args[0].c_str());
-    
-    vector<double> F;
-    
-    CalcForce(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
-    for(int i=0; i<h.getN(); i++) {
-        out << h.getMin() + h.getInterval()*((double)i) << " " << h.getPdf()[i] << " " << F[i] << endl;
-    }
-    out.close();
-    cout << "histogram created using " << sel->size() << " data-rows, written to " << args[0] << endl;
-    delete sel;
 }
 
 void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic)
