@@ -28,6 +28,80 @@ using namespace std;
 using namespace votca::tools;
 using namespace votca::csg;
 
+/**
+ * \brief Tabulated Potential calculates histograms of bead interactions
+ *
+ * There are two histograms that can be created:
+ *
+ * * the first is a potential distribution table specified with the 'tab' 
+ * keyword (for table). This uses boltzmann inversion to calculate the 
+ * potential from a selection of bead interactions.
+ *
+ * * the second is a histogram of the beads interactions specified with the 
+ * 'hist' keyword. 
+ *
+ * As an example let us assume we already have a BondedStatistics object named
+ * 'bonded_statistics' with the correct data. We can write a histogram of the 
+ * interactions using the following commands:
+ *
+ *     TabulatedPotential tabulated_potential;
+ *
+ *     map<string,AnalysisTool *> commands;
+ *     tabulated_potential.Register(commands);
+ *
+ *     vector<string> arguments{"set","n","11"};
+ *
+ *     tabulated_potential.Command(bonded_statistics,"hist",arguments);
+ *
+ *     vector<string> interactions{"file1.txt","bond1","bond2","bond3",...};
+ *     tabulated_potential.Command(bonded_statistics,"hist",interactions);
+ *
+ * The above example creates the object it then proceeds to set one of the
+ * properties of the histogram. In this case the number of data points is
+ * specified with the keyword 'n', the 11 indicates we want the histogram to
+ * consist of 11 bins. To actually create the histogram the Command method is 
+ * called a second time but because the 'set' keyword is not the first element
+ * in the vector of strings the tabulated potential object assumes it is a file
+ * name were the histogram will be written. The following labels ("bond1",
+ * "bond2", etc...) specify the interactions to be sorted into the histogram. 
+ * Running this code should produce a file named file1.txt containing two 
+ * columns. 
+ *
+ * column1 = the bin edge, column2 = the contents of the histogram
+ *
+ * If the table potential is printed instead of the historgram of interactions
+ * than 3 columns are printed e.g. in the example below:
+ *
+ *     TabulatedPotential tabulated_potential;
+ *
+ *     map<string,AnalysisTool *> commands;
+ *     tabulated_potential.Register(commands);
+ *
+ *     vector<string> arguments{"set","T","275"};
+ *     vector<string> arguments2{"set","smooth_pot","1"};
+ *     vector<string> arguments3{"set","periodic","1"};
+ *
+ *     tabulated_potential.Command(bonded_statistics,"tab",arguments);
+ *     tabulated_potential.Command(bonded_statistics,"tab",arguments1);
+ *     tabulated_potential.Command(bonded_statistics,"tab",arguments2);
+ *
+ *     vector<string> interactions{"file2.txt","bond1","bond2","bond3",...};
+ *     tabulated_potential.Command(bonded_statistics,"tab",interactions);
+ *
+ * Here, notice we are using the 'tab' keyword to indicate it is for the 
+ * tabulated potential. We are also setting several properities. The temperature
+ * is changed from the default 300 Kelvin to 275 Kelvin. Smooth potential is set
+ * to 1 this has the affect of smoothing the potential after boltzmann inversion
+ * is done. If a value greater than 1 were used it would smooth the data several
+ * times upto the number specified. And the final setting was to make the 
+ * tabulated potential periodic. The value "1" is converted to a boolean which
+ * is interpreted as true. 
+ *
+ * Finally, the data is printed to a file called "file2.txt" which contains 
+ * three columns:
+ * 
+ * column1 = the bin edge, column2 = potential, column3 = the force
+ **/
 class TabulatedPotential
     : public AnalysisTool
 {
