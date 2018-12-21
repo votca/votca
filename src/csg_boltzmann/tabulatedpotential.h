@@ -43,9 +43,28 @@ class TabulatedPotential
         void WriteHistogram(BondedStatistics &bs, vector<string> &args);
         void WritePotential(BondedStatistics &bs, vector<string> &args);
 
+        /**
+         * \brief Returns the temperature used during the bolzmann inversion 
+         *
+         * \return temperature in kelvin
+         **/
+        double getTemperature() const;
+
+        /**
+         * \brief Method returns the number of smoothing iterations used on the
+         * data
+         *
+         * The first integer is the number of smoothing iterations before 
+         * boltzmann inversion is done, and the second interger is the number
+         * of iterations done on the boltzmann inverted histogram. 
+         *
+         * \return pair of integers containing the number of smoothing 
+         * iteratiosn before and after boltzmann inversion.
+         **/
+        std::pair<int,int> getSmoothIterations() const;
     private:
-        bool SetOption(Histogram::options_t &op, const vector<string> &args);
-        bool SetOption(const vector<string> &args);
+        bool SetOption_(Histogram::options_t &op, const vector<string> &args);
+        bool SetOption_(const vector<string> &args);
 
         /**
          * \brief Smooths a vector of doubles
@@ -58,9 +77,9 @@ class TabulatedPotential
          * \param[in] periodic boolean determining if the smoothing will use
          * periodic boundary conditions
          **/
-        void Smooth(vector<double> &data, bool bPeriodic);
-        void BoltzmannInvert(vector<double> &data);
-        void CalcForce(vector<double> &u, vector<double> &du, double dx, bool bPeriodic);
+        void Smooth_(vector<double> &data, bool bPeriodic);
+        void BoltzmannInvert_(vector<double> &data);
+        void CalcForce_(vector<double> &u, vector<double> &du, double dx, bool bPeriodic);
 
         Histogram::options_t _tab_options;
         Histogram::options_t _hist_options;
