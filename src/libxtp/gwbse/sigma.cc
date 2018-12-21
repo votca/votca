@@ -40,7 +40,7 @@ namespace votca {
         const MatrixXfd& Mmn1 = _Mmn[ gw_level1 + _qpmin ];
         for (int gw_level2 = gw_level1; gw_level2 < _qptotal; gw_level2++) {
           const MatrixXfd & Mmn2 = _Mmn[ gw_level2 + _qpmin ];
-          double sigma_x = (Mmn1.block(0,0,_homo+1,gwsize).cwiseProduct(Mmn2.block(0,0,_homo+1,gwsize))).sum();
+          double sigma_x =- (Mmn1.block(0,0,_homo+1,gwsize).cwiseProduct(Mmn2.block(0,0,_homo+1,gwsize))).sum();
           result(gw_level1, gw_level2) =  sigma_x;
           result(gw_level2, gw_level1) =  sigma_x;
         }
