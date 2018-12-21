@@ -101,9 +101,9 @@ namespace votca {
   auxoverlap.Fill(gwbasis);
   AOCoulomb auxcoulomb;
   auxcoulomb.Fill(gwbasis);
-  Eigen::MatrixXd _inv_sqrt=auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap,5e-7);
+  Eigen::MatrixXd inv_sqrt=auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap,5e-7);
     _removedfunctions=auxcoulomb.Removedfunctions();
- MultiplyRightWithAuxMatrix(_inv_sqrt);
+ MultiplyRightWithAuxMatrix(inv_sqrt);
       return;
     }
 

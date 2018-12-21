@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.setAuxbasisName(auxBasis);
         orbWrite.setRPAindices(rpaMin, rpaMax);
         // no need to write qpmin, qpmax
-        orbWrite.setBSEindices(bseVmin, bseCmax, 3);
+        orbWrite.setBSEindices(bseVmin, bseCmax);
         orbWrite.setScaHFX(scaHfx);
         orbWrite.setTDAApprox(useTDA);
         orbWrite.setECPName(someECP);

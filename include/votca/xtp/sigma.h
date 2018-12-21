@@ -39,13 +39,13 @@ class Sigma {
       _qpmax=qpmax;
       _qptotal=_qpmax - _qpmin + 1;
   }
-
+//Sets up the screening parametrisation
 void PrepareScreening(const RPA& rpa);
-  
+  //Calculates Full exchange matrix
 Eigen::MatrixXd CalcExchange()const;
-
+//Calculates Sigma_c diag elements
 Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
-
+//Calculates Sigma_c offdiag elements
 Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
  
 

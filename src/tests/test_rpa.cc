@@ -113,14 +113,9 @@ TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 
-  RPA rpa;
+  RPA rpa(es.eigenvalues(),Mmn);
   rpa.configure(4,0,16);
-  Eigen::VectorXd screen_r=Eigen::VectorXd::Zero(1);
-  screen_r(0)=0;
-  Eigen::VectorXd screen_i=Eigen::VectorXd::Zero(1);
-  screen_i(0)=0.5;
-  rpa.setScreening(screen_r,screen_i);
-  rpa.calculate_epsilon(es.eigenvalues(),Mmn);
+  Eigen::MatrixXd e_i=rpa.calculate_epsilon_i(0.5);
   
   Eigen::MatrixXd i_ref=Eigen::MatrixXd::Zero(17,17);
   i_ref<<1.20514,1.19201,0.13208,-0.13208,0.13208,2.59243,0.360147,-0.360147,0.360147,0.94804,2.53836,0.94804,2.53836,0.94804,2.53836,0.624023,1.97651,
@@ -141,15 +136,17 @@ Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 0.624023,3.63538,0.370614,-0.370614,0.370614,7.95011,0.984063,-0.984063,0.984063,2.88434,7.75321,2.88434,7.75321,2.88434,7.75321,3.00374,6.24909,
 1.97651,11.516,1.2096,-1.2096,1.2096,25.2075,3.25425,-3.25425,3.25425,9.18305,24.6616,9.18305,24.6616,9.18305,24.6616,6.24909,20.6288;
   
-  bool i_check =i_ref.isApprox(rpa.GetEpsilon_i()[0],0.0001);
+  bool i_check =i_ref.isApprox(e_i,0.0001);
   
    if(!i_check){
   cout<<"Epsilon_i"<<endl;
-   cout<<rpa.GetEpsilon_i()[0]<<endl;
+   cout<<e_i<<endl;
    cout<<"Epsilon_i_ref"<<endl;
    cout<<i_ref<<endl;
  }
  BOOST_CHECK_EQUAL(i_check , 1);
+
+  Eigen::MatrixXd e_r=rpa.calculate_epsilon_r(0.0);
    
  Eigen::MatrixXd r_ref=Eigen::MatrixXd::Zero(17,17);
  r_ref<<1.21743,1.26312,0.1442,-0.1442,0.1442,2.74918,0.395553,-0.395553,0.395553,1.00786,2.69762,1.00786,2.69762,1.00786,2.69762,0.655853,2.08334,
@@ -169,12 +166,12 @@ Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 2.69762,15.7118,-3.22344,-4.41399,4.41399,34.4397,-12.0483,-13.7921,13.7921,8.49486,26.3736,8.49486,26.3736,21.1055,50.3046,8.12144,25.9812,
 0.655853,3.8217,0.331895,-0.331895,0.331895,8.37311,0.865854,-0.865854,0.865854,3.01594,8.12144,3.01594,8.12144,3.01594,8.12144,3.17835,6.74615,
 2.08334,12.1415,1.14524,-1.14524,1.14524,26.6357,3.06061,-3.06061,3.06061,9.66101,25.9812,9.66101,25.9812,9.66101,25.9812,6.74615,22.1044;
- bool r_check =r_ref.isApprox(rpa.GetEpsilon_r()[0],0.0001);
+ bool r_check =r_ref.isApprox(e_r,0.0001);
  
  
  if(!r_check){
     cout<<"Epsilon_r"<<endl;
-   cout<<rpa.GetEpsilon_r()[0]<<endl;
+   cout<<e_r<<endl;
     cout<<"Epsilon_r_ref"<<endl;
    cout<<r_ref<<endl;
  }

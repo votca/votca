@@ -54,21 +54,13 @@ class GW {
     //Calculates the diagonal elements up to self consistency
     void CalculateGWPerturbation();
 
-
-
     //Calculated offdiagonal elements as well
     void CalculateHQP();
 
-    Eigen::MatrixXd getHQP()const{
-        //Eigen::VectorXd dft_energies=;
-        return (1-_opt.ScaHFX)*_Sigma_x+_Sigma_c-_vxc+ Eigen::MatrixXd( _dft_energies.segment(_opt.qpmin,_qptotal).asDiagonal());
-    }
+    Eigen::MatrixXd getHQP()const;
+    
     //Diagonalize QP particle Hamiltonian
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()const{
-        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> qpdiag(getHQP()) ;
-        PrintQP_Energies(qpdiag.eigenvalues());
-        return qpdiag;
-    }
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> DiagonalizeQPHamiltonian()const;
 
  private:
     int _qptotal;

@@ -46,6 +46,16 @@ Eigen::VectorXd GW::CalcDiagonalEnergies()const{
 return (1-_opt.ScaHFX)*_Sigma_x.diagonal()+_Sigma_c.diagonal()-_vxc.diagonal()+_dft_energies.segment(_opt.qpmin,_qptotal);
 }
 
+Eigen::MatrixXd GW::getHQP()const{
+    return (1-_opt.ScaHFX)*_Sigma_x+_Sigma_c-_vxc+ Eigen::MatrixXd( _dft_energies.segment(_opt.qpmin,_qptotal).asDiagonal());
+}
+
+Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()const{
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> qpdiag(getHQP()) ;
+        PrintQP_Energies(qpdiag.eigenvalues());
+        return qpdiag;
+    }
+
 
 Eigen::MatrixXd GW::getGWAResults()const{
     Eigen::MatrixXd qp_energies_store=Eigen::MatrixXd::Zero(_qptotal, 5);
