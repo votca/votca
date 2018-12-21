@@ -106,7 +106,7 @@ class DataCollection {
   size_t size() { return _data.size(); }
   bool empty() { return _data.empty(); }
   array &operator[](int i) {
-    assert(i < _data.size());
+    assert(static_cast<size_t>(i) < _data.size());
     return *(_data[i]);
   }
   iterator begin() { return _data.begin(); }
