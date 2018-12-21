@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_CASE(test_createarray) {
   string name_tag2 = "y positions";
   string name_tag3 = "z positions";
 
-  auto xpositions = datacollection.CreateArray(name_tag1);
-  auto ypositions = datacollection.CreateArray(name_tag2);
-  auto zpositions = datacollection.CreateArray(name_tag3);
+  datacollection.CreateArray(name_tag1);
+  datacollection.CreateArray(name_tag2);
+  datacollection.CreateArray(name_tag3);
 
   BOOST_CHECK_EQUAL(datacollection.size(),3);
 }
