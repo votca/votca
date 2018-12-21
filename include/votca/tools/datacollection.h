@@ -129,6 +129,10 @@ class DataCollection {
 
   /**
    * \brief select a set of arrays
+   *
+   * WARNING If attempting to append to an existing selection you must be
+   * careful if there exist more than one array with the same name the 
+   * first array name that matches 'strselection' will be appended.
    */
   selection *select(string strselection, selection *sel_append = NULL);
 
