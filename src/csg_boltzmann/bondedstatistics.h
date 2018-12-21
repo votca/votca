@@ -24,6 +24,15 @@
 using namespace votca::tools;
 using namespace votca::csg;
 
+/**
+ * \brief Class calculates data associated with bond interactions
+ *
+ * This class will essentially calculate and store information related to each
+ * type of interaction. For instance for the IBond which is the interaction
+ * between two beads it will calculate and store the distance between the two
+ * beads involved in the interaction. It will calculate a similar metric for all
+ * other interactions such as IAngle, IDihedral etc...
+ **/
 class BondedStatistics
     : public CGObserver
 {
