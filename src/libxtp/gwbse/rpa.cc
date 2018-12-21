@@ -32,7 +32,7 @@ namespace votca {
     Eigen::MatrixXd RPA::calculate_epsilon(double frequency)const{
         const int size = _Mmn.auxsize(); // size of gwbasis
 
-        Eigen::MatrixXd result = Eigen::MatrixXd::Zero(size, size);
+        Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
         const int lumo = _homo + 1;
         const int n_occ = lumo - _rpamin;
         const int n_unocc = _rpamax - _homo;
