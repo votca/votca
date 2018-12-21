@@ -94,7 +94,6 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   TCMatrix_dft threec;
-  threec.Fill(aobasis,aobasis);
 
   Eigen::MatrixXd Res0=Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
   threec[0].AddtoEigenMatrix(Res0);
@@ -193,6 +192,7 @@ MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e
 TCMatrix_gwbse tc;
 tc.Initialize(aobasis.AOBasisSize(),0,5,0,7);
 tc.Fill(aobasis,aobasis,MOs);
+
 
 MatrixXfd ref0b=MatrixXfd::Zero(8,17);
 ref0b<<0.052453955915,0.26945204403,-4.9641876153e-13,-4.3017169895e-13,-4.5508824269e-13,0.27735882244,-7.0243260325e-13,-6.6612945222e-13,-6.7921572331e-13,0.090104440628,0.28902528964,0.090104440629,0.28902528964,0.090104440629,0.28902528964,0.090104440629,0.28902528964,
