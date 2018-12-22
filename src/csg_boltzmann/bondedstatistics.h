@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _BONDEDSTATISTICS_H
-#define	_BONDEDSTATISTICS_H
+#ifndef VOTCA_CSG_BONDEDSTATISTICS_H
+#define	VOTCA_CSG_BONDEDSTATISTICS_H
 
 #include <votca/csg/cgobserver.h>
 #include <votca/tools/datacollection.h>
@@ -48,5 +48,5 @@ protected:
     DataCollection<double> _bonded_values;
 };
 
-#endif	/* _BOLZMANNINVERSION_H */
+#endif	// VOTCA_CSG_BOLZMANNINVERSION_H 
 
