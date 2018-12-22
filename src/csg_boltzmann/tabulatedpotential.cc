@@ -191,10 +191,11 @@ pair<int,int> TabulatedPotential::getSmoothIterations() const {
 void TabulatedPotential::WriteHistogram(BondedStatistics &bs, vector<string> &args)
 {
     ofstream out;
-    DataCollection<double>::selection *sel = NULL;
+    DataCollection<double>::selection *sel = nullptr;
 
-    for(size_t i=1; i<args.size(); i++)
+    for(size_t i=1; i<args.size(); i++){
         sel = bs.BondedValues().select(args[i], sel);
+    }
     Histogram h(_hist_options);
     h.ProcessData(sel);
     out.open(args[0].c_str());
@@ -206,14 +207,18 @@ void TabulatedPotential::WriteHistogram(BondedStatistics &bs, vector<string> &ar
 
 void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &args)
 {
-    cout << "Writing Potential " << endl;
     ofstream out;
-    DataCollection<double>::selection *sel = NULL;
+    DataCollection<double>::selection *sel = nullptr;
+
+    // Appends all the interactions that are specified in args to selection
+    // pointer given by sel
 
     for(size_t i=1; i<args.size(); i++){
       sel = bs.BondedValues().select(args[i], sel);
     }
-    Histogram h(_tab_options);
+
+    Histogram h(_tab_options);        
+    
     h.ProcessData(sel);
     for(int i=0; i<_tab_smooth1; ++i){
       Smooth_(h.getPdf(), _tab_options._periodic);
@@ -222,11 +227,10 @@ void TabulatedPotential::WritePotential(BondedStatistics &bs, vector<string> &ar
     for(int i=0; i<_tab_smooth2; ++i){
         Smooth_(h.getPdf(), _tab_options._periodic);
     }
-    cout << "Writing Potential to file arg0 " << args[0].c_str() << endl;
     out.open(args[0].c_str());
     
     vector<double> F;
-    
+    assert(h.getInterval()>0 && "Interval for pdf histogram is 0");
     CalcForce_(h.getPdf(), F, h.getInterval(), _tab_options._periodic);
     for(int i=0; i<h.getN(); i++) {
         out << h.getMin() + h.getInterval()*((double)i) << " " << h.getPdf()[i] << " " << F[i] << endl;
