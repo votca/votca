@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
     vec pos_bead3(5.0,6.0,5.0);
     auto bead_ptr3 = top.CreateBead(symmetry,                                      
         bead_name3,bead_type_ptr,residue_number,mass,charge);                      
-    bead_ptr2->setId(2);                                                           
+    bead_ptr3->setId(2);                                                           
     bead_ptr3->setPos(pos_bead3);
 
     // Create two bonded interactions                                              
