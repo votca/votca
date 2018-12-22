@@ -15,13 +15,12 @@
  *
  */
 
-#ifndef _TABULATEDPOTENTIAL_H
-#define	_TABULATEDPOTENTIAL_H
+#ifndef VOTCA_CSG_TABULATEDPOTENTIAL_H
+#define	VOTCA_CSG_TABULATEDPOTENTIAL_H
 
 #include <vector>
 #include "bondedstatistics.h"
 #include "analysistool.h"
-//#include <votca/tools/histogramnew.h>
 #include <votca/tools/histogram.h>
 
 using namespace std;
@@ -167,8 +166,7 @@ class TabulatedPotential
         /// Temperature in units of Kelvin
         double _Temperature;
 
-//        HistogramNew _hist;
 };
 
-#endif	/* _TABULATEDPOTENTIAL_H */
+#endif	// VOTCA_CSG_TABULATEDPOTENTIAL_H
 
