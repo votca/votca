@@ -17,6 +17,9 @@
 
 #include "bondedstatistics.h"
 
+using namespace votca::csg;
+using namespace votca::tools;
+
 void BondedStatistics::BeginCG(Topology *top, Topology *top_atom)
 {
     InteractionContainer &ic = top->BondedInteractions();

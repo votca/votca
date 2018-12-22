@@ -21,6 +21,8 @@
 #include <votca/csg/cgobserver.h>
 #include <votca/tools/datacollection.h>
 
+namespace CSG = votca::csg;
+namespace TOOLS = votca::tools;
 /**
  * \brief Class calculates data associated with bond interactions
  *
@@ -31,18 +33,18 @@
  * other interactions such as IAngle, IDihedral etc...
  **/
 class BondedStatistics
-    : public CGObserver
+    : public votca::csg::CGObserver
 {
 public:
-    void BeginCG(Topology *top, Topology *top_atom = 0);
+    void BeginCG(CSG::Topology *top, CSG::Topology *top_atom = 0);
     void EndCG();
     
-    void EvalConfiguration(Topology *conf, Topology *conf_atom = 0);
+    void EvalConfiguration(CSG::Topology *conf, CSG::Topology *conf_atom = 0);
     
-    DataCollection<double> &BondedValues() { return _bonded_values; }
+    TOOLS::DataCollection<double> &BondedValues() { return _bonded_values; }
 
 protected:
-    DataCollection<double> _bonded_values;
+    TOOLS::DataCollection<double> _bonded_values;
 };
 
 #endif	// VOTCA_CSG_BOLZMANNINVERSION_H 

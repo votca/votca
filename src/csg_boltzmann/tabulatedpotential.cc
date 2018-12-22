@@ -29,6 +29,8 @@
 
 using namespace std;
 using namespace boost;
+using namespace votca::tools;
+using namespace votca::csg;
 
 /* Boltzmann constant in units [ kJ/(mol K) ] */
 const double kB = 0.0083109;

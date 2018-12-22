@@ -23,6 +23,8 @@
 #include <vector>
 #include <votca/tools/histogram.h>
 
+namespace CSG = votca::csg;
+namespace TOOLS = votca::tools;
 /**
  * \brief Tabulated Potential calculates histograms of bead interactions
  *
@@ -102,13 +104,15 @@ public:
   TabulatedPotential();
   ~TabulatedPotential(){};
 
-  void Register(map<string, AnalysisTool *> &lib);
+  void Register(std::map<std::string, AnalysisTool *> &lib);
 
-  void Command(BondedStatistics &bs, string cmd, vector<string> &args);
-  void Help(string cmd, vector<string> &args);
+  void Command(BondedStatistics &bs, std::string cmd, 
+      std::vector<std::string> &args);
 
-  void WriteHistogram(BondedStatistics &bs, vector<string> &args);
-  void WritePotential(BondedStatistics &bs, vector<string> &args);
+  void Help(std::string cmd, std::vector<std::string> &args);
+
+  void WriteHistogram(BondedStatistics &bs, std::vector<std::string> &args);
+  void WritePotential(BondedStatistics &bs, std::vector<std::string> &args);
 
   /**
    * \brief Returns the temperature used during the bolzmann inversion
@@ -131,8 +135,10 @@ public:
   std::pair<int, int> getSmoothIterations() const;
 
 private:
-  bool SetOption_(Histogram::options_t &op, const vector<string> &args);
-  bool SetOption_(const vector<string> &args);
+  bool SetOption_(TOOLS::Histogram::options_t &op, 
+      const std::vector<std::string> &args);
+
+  bool SetOption_(const std::vector<std::string> &args);
 
   /**
    * \brief Smooths a vector of doubles
@@ -145,13 +151,13 @@ private:
    * \param[in] periodic boolean determining if the smoothing will use
    * periodic boundary conditions
    **/
-  void Smooth_(vector<double> &data, bool bPeriodic);
-  void BoltzmannInvert_(vector<double> &data);
-  void CalcForce_(vector<double> &u, vector<double> &du, double dx,
+  void Smooth_(std::vector<double> &data, bool bPeriodic);
+  void BoltzmannInvert_(std::vector<double> &data);
+  void CalcForce_(std::vector<double> &u, std::vector<double> &du, double dx,
                   bool bPeriodic);
 
-  Histogram::options_t _tab_options;
-  Histogram::options_t _hist_options;
+  TOOLS::Histogram::options_t _tab_options;
+  TOOLS::Histogram::options_t _hist_options;
 
   /// How many times the data is smoothed before the histogram is
   /// boltzmann inverted.
