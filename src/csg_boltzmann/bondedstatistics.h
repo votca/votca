@@ -21,9 +21,6 @@
 #include <votca/csg/cgobserver.h>
 #include <votca/tools/datacollection.h>
 
-using namespace votca::tools;
-using namespace votca::csg;
-
 /**
  * \brief Class calculates data associated with bond interactions
  *

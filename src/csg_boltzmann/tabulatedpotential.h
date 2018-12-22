@@ -23,10 +23,6 @@
 #include <vector>
 #include <votca/tools/histogram.h>
 
-using namespace std;
-using namespace votca::tools;
-using namespace votca::csg;
-
 /**
  * \brief Tabulated Potential calculates histograms of bead interactions
  *
