@@ -161,7 +161,6 @@ BOOST_AUTO_TEST_CASE(test_command) {
   DataCollection<double> &bonded_values = bonded_statistics.BondedValues();
   cout << "bonded_values after pulling out of statistics "
        << bonded_values.size() << endl;
-  size_t number_of_interactions = bonded_values.size();
 
   TabulatedPotential tabulatedpotential;
   map<string, AnalysisTool *> commands;
