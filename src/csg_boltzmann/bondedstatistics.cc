@@ -38,9 +38,7 @@ void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom)
     InteractionContainer::iterator ia;
     
     DataCollection<double>::container::iterator is;
-    
     for(ia=ic.begin(), is = _bonded_values.begin(); ia != ic.end(); ++ia, ++is) {
-//        const string &name = (*ia)->getName();        
         (*is)->push_back((*ia)->EvaluateVar(*conf));
     }
 }
