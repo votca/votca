@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(add_bonded_interation_test){
   string bead_name3 = "bead_test3";
   auto bead_ptr3 = top.CreateBead(symmetry,
       bead_name3,bead_type_ptr,residue_number,mass,charge);
-  bead_ptr2->setId(2);
+  bead_ptr3->setId(2);
 
   BOOST_CHECK_EQUAL(top.BeadCount(),3);
 
