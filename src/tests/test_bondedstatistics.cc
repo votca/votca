@@ -46,12 +46,15 @@ BOOST_AUTO_TEST_CASE(test_bondedstatistics_constructor) {
 BOOST_AUTO_TEST_CASE(test_bondedstatistics_begin) {
   Topology top;                                                                  
   // Create two bonded interactions                                              
-  string interaction_group = "covalent_bond";         
-  string interaction_group_compare = ":covalent_bond";  
+  string interaction_group = "covalent_bond1";         
+  string interaction_group_compare = ":covalent_bond1";  
   auto bond1 = new IBond(0,1);                                                   
   bond1->setGroup(interaction_group);                                            
+
+  string interaction_group2 = "covalent_bond2";         
+  string interaction_group_compare2 = ":covalent_bond2";  
   auto bond2 = new IBond(1,2);                                                   
-  bond2->setGroup(interaction_group);                                            
+  bond2->setGroup(interaction_group2);                                            
 
   top.AddBondedInteraction(bond1);                                               
   top.AddBondedInteraction(bond2);                                               
@@ -63,7 +66,7 @@ BOOST_AUTO_TEST_CASE(test_bondedstatistics_begin) {
   vector<DataCollection<double>::array *>& vector_of_arrays = data_collection.Data(); 
   BOOST_CHECK_EQUAL(vector_of_arrays.size(),2);
   BOOST_CHECK_EQUAL(vector_of_arrays.at(0)->getName(),interaction_group_compare);
-  BOOST_CHECK_EQUAL(vector_of_arrays.at(1)->getName(),interaction_group_compare);
+  BOOST_CHECK_EQUAL(vector_of_arrays.at(1)->getName(),interaction_group_compare2);
   // The arrays do not store any numbers at this point
   BOOST_CHECK_EQUAL(vector_of_arrays.at(0)->size(),0);
   BOOST_CHECK_EQUAL(vector_of_arrays.at(1)->size(),0);
@@ -128,11 +131,12 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
     bead_ptr3->setPos(pos_bead3);
 
     // Create two bonded interactions                                              
-    string interaction_group = "covalent_bond";         
+    string interaction_group = "covalent_bond1";         
     auto bond1 = new IBond(0,1);                                                   
     bond1->setGroup(interaction_group);                                            
+    string interaction_group2 = "covalent_bond2";         
     auto bond2 = new IBond(1,2);                                                   
-    bond2->setGroup(interaction_group);                                            
+    bond2->setGroup(interaction_group2);                                            
 
     top.AddBondedInteraction(bond1);                                               
     top.AddBondedInteraction(bond2);                                               
