@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ namespace votca { namespace tools {
         
     const double kB = 8.617332478E-5; // double eV/K
     const double hbar = 6.5821192815E-16; // double eV*s
-        
+    const double eps0 = 8.85418781762E-12/1.602176565E-19; // e**2/eV/m = 8.85418781762E-12 As/Vm
         //length conversions
    //votca xtp-uses for any conversions the following scheme unitA2unitB 
     const double bohr2nm =0.052917721092; // double 0.052917721092
@@ -44,11 +44,8 @@ namespace votca { namespace tools {
     const double bohr2ang =1.0/1.8897259886; //double 
     const double nm2ang=10.0; //double 10.0
     const double ang2nm=0.1; //double 0.1
-    
-    const double ryd2hrt=0.5; //double 0.5
-    const double hrt2ryd=2;  //double 2
-    const double ryd2ev= 13.60569253; //double 13.60569253
-    const double ev2ryd=1.0/13.60569253; //double
+  
+  
     const double hrt2ev=  27.21138602; //double 27.21138602
     const double ev2hrt=1.0/27.21138602; //double
     //ewald internal to eV conversion
@@ -58,9 +55,7 @@ namespace votca { namespace tools {
  
     
     
-    // floats for gwbse
-    
-    const float ryd2ev_f= 13.60569253; //float 13.60569253
+  
     
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,63 @@
  *
  */
 
-#ifndef THREAD_H
-#define	THREAD_H
+#ifndef VOTCA_TOOLS_THREAD_H
+#define VOTCA_TOOLS_THREAD_H
 
 #include <pthread.h>
 
 namespace votca {
-    namespace tools {
+namespace tools {
 
-        /**
-            \brief Framework for threaded execution
+/**
+ * \brief Framework for threaded execution
+ *
+ * The Thread class handles the threaded execution of VOTCA code.
+ * In its current state, it is based on POSIX threads.
+ * It mainly contains a wrapper, a start and a wait function.
+ * This class should not be touched by the user.
+ **/
+class Thread {
+ public:
+  Thread();
+  virtual ~Thread();
 
-         * The Thread class handles the threaded execution of VOTCA code.
-         * In its current state, it is based on POSIX threads.
-         * It mainly contains a wrapper, a start and a wait function.
-         * This class should not be touched by the user.
+  /**
+   * \brief Starts and runs a thread
+   *
+   * This method is responsible for creating and running the thread.
+   **/
+  void Start();
 
-         */
-        class Thread {
-        public:
-            Thread();
-            virtual ~Thread();
+  /**
+   * \brief WaitDone() will not exit until thread ends computation.
+   */
+  void WaitDone();
 
-            void Start();
+  /**
+   * \brief Checks to see if the thread is done
+   *
+   * \return True if thread is done, False otherwise
+   **/
+  bool IsFinished() const;
 
-            /**
-             * \brief Run() executes the actual code. Overload it.
-             */
-            virtual void Run(void) = 0;
+ protected:
+  /**
+   * \brief Run() executes the actual code.
+   *
+   * It is left blank here and must be overloaded, for the thread to do
+   * any work. This method should never be called by the user, it is
+   * called internally by the Start method.
+   */
+  virtual void Run(void) = 0;
+  friend void *runwrapper(void *arg);
 
-            /**
-             * \brief WaitDone() will not exit until thread ends computation.
-             */
-            void WaitDone();
-            bool IsFinished() const;
-
-        private:
-            pthread_t _thread;
-            bool _finished;
-
-        };
-
-    }
+ private:
+  pthread_attr_t _attr;
+  pthread_t _thread;
+  bool _finished;
+};
+}
 }
 
-#endif	/* THREAD_H */
-
+#endif  // VOTCA_TOOLS_THREAD_H

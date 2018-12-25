@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,11 @@
 #define	_CUBICSPLINE_H
 
 #include "spline.h"
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/vector_expression.hpp>
+#include <votca/tools/eigen.h>
 #include <iostream>
 
-using namespace std;
 namespace votca { namespace tools {
 
-namespace ub = boost::numeric::ublas;
 
 /**
     \brief A cubic spline class
@@ -66,11 +62,11 @@ public:
 
     // construct an interpolation spline
     // x, y are the the points to construct interpolation, both vectors must be of same size
-    void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
+    void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
     
     // fit spline through noisy data
     // x,y are arrays with noisy data, both vectors must be of same size
-    void Fit(ub::vector<double> &x, ub::vector<double> &y);
+    void Fit(Eigen::VectorXd &x,Eigen::VectorXd &y);
     
     // Calculate the function value
     double Calculate(const double &x);
@@ -104,6 +100,20 @@ public:
             int offset1, int offset2=0, double scale=1);
 
     /**
+     * \brief Add a point (one entry) to fitting matrix
+     * \param pointer to matrix [in] [out]
+     * \param value x [in]
+     * \param offsets relative to getInterval(x) [in]
+     * \param scale1 parameters for terms "A,B,C,D" [in]
+     * \param scale2 parameters for terms "AA,BB,CC,DD" [in]
+     * When creating a matrix to fit data with a spline, this function creates
+     * one entry in that fitting matrix.
+    */
+    template<typename matrix_type>
+    void AddToFitMatrix(matrix_type &A, double x,
+            int offset1, int offset2, double scale1, double scale2);    
+    
+    /**
      * \brief Add a vector of points to fitting matrix
      * \param pointer to matrix
      * \param vector of x values
@@ -122,7 +132,7 @@ public:
     template<typename matrix_type>
     void AddBCSumZeroToFitMatrix(matrix_type &A,
             int offset1, int offset2=0);
-
+    
     /**
      * \brief Add boundary conditions to fitting matrix
      * \param pointer to matrix
@@ -187,11 +197,28 @@ inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x,
     M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale;
 }
 
+//for adding f'(x)*scale1 + f(x)*scale2 as needed for threebody interactions
+template<typename matrix_type>
+inline void CubicSpline::AddToFitMatrix(matrix_type &M, double x, 
+            int offset1, int offset2, double scale1, double scale2)
+{
+    int spi = getInterval(x);
+    M(offset1, offset2 + spi) += Aprime(x)*scale1;
+    M(offset1, offset2 + spi+1) += Bprime(x)*scale1;
+    M(offset1, offset2 + spi + _r.size()) += Cprime(x)*scale1;
+    M(offset1, offset2 + spi + _r.size() + 1) += Dprime(x)*scale1;  
+    
+    M(offset1, offset2 + spi) += A(x)*scale2;
+    M(offset1, offset2 + spi+1) += B(x)*scale2;
+    M(offset1, offset2 + spi + _r.size()) += C(x)*scale2;
+    M(offset1, offset2 + spi + _r.size() + 1) += D(x)*scale2;
+}
+
 template<typename matrix_type, typename vector_type>
 inline void CubicSpline::AddToFitMatrix(matrix_type &M, vector_type &x, 
             int offset1, int offset2)
 {
-    for(size_t i=0; i<x.size(); ++i) {
+    for(int i=0; i<x.size(); ++i) {
         int spi = getInterval(x(i));
         M(offset1+i, offset2 + spi) = A(x(i));
         M(offset1+i, offset2 + spi+1) = B(x(i));
@@ -204,7 +231,7 @@ template<typename matrix_type>
 inline void CubicSpline::AddBCSumZeroToFitMatrix(matrix_type &M,
             int offset1, int offset2)
 {
-    for(size_t i=0; i<_r.size(); ++i) {
+    for(int i=0; i<_r.size(); ++i) {
             M(offset1, offset2 + i) = 1;
             M(offset1, offset2 + _r.size() + i) = 0;
     }
@@ -215,7 +242,7 @@ template<typename matrix_type>
 inline void CubicSpline::AddBCToFitMatrix(matrix_type &M,
             int offset1, int offset2)
 {
-    for(size_t i=0; i<_r.size() - 2; ++i) {
+    for(int i=0; i<_r.size() - 2; ++i) {
             M(offset1+i+1, offset2 + i) = A_prime_l(i);
             M(offset1+i+1, offset2 + i+1) = B_prime_l(i) - A_prime_r(i);
             M(offset1+i+1, offset2 + i+2) = -B_prime_r(i);
@@ -284,6 +311,7 @@ inline double CubicSpline::C(const double &r)
     
     return ( 0.5*xxi*xxi - (1.0/6.0)*xxi*xxi*xxi/h - (1.0/3.0)*xxi*h) ;
 }
+
 inline double CubicSpline::Cprime(const double &r)
 {
     double xxi, h;
@@ -292,6 +320,7 @@ inline double CubicSpline::Cprime(const double &r)
 
     return (xxi - 0.5*xxi*xxi/h - h/3);
 }
+
 inline double CubicSpline::D(const double &r)
 {
     double xxi, h;
@@ -300,6 +329,7 @@ inline double CubicSpline::D(const double &r)
     
     return ( (1.0/6.0)*xxi*xxi*xxi/h - (1.0/6.0)*xxi*h ) ;
 }
+
 inline double CubicSpline::Dprime(const double &r)
 {
     double xxi, h;

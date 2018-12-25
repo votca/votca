@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,13 +44,13 @@ public:
      *
      * overload this function to set the program name
      */
-    virtual string ProgramName() = 0;
+    virtual std::string ProgramName() = 0;
 
     /**
      * \brief version string of application
      * \return version string
      */
-    virtual string VersionString();
+    virtual std::string VersionString();
 
     /**
      * \brief help text of application without version information
@@ -84,7 +84,7 @@ public:
      * If not, the list of possible options is shown and an exception with
      * the error messig given in error_msg is thrown
      */
-    void CheckRequired(const string &option_name, const string &error_msg="");
+    void CheckRequired(const std::string &option_name, const std::string &error_msg="");
 
     /**
      * \brief Main body of application
@@ -105,7 +105,7 @@ public:
      * is given, a sub group for this set of options will be created.
      */
     boost::program_options::options_description_easy_init
-        AddProgramOptions(const string &group = "");
+        AddProgramOptions(const std::string &group = "");
     
     /**
      * \brief get available program options & descriptions
@@ -139,7 +139,7 @@ public:
      * @param help_path path in VOTCASHARE were xml file with help is stored
      * @param helptype long or short (with options) help
      */
-    void PrintDescription(std::ostream &out, const string &calculator_name, const string help_path, HelpType helptype );
+    void PrintDescription(std::ostream &out, const std::string &calculator_name, const std::string help_path, HelpType helptype );
     
 protected:
     /// Variable map containing all program options
@@ -148,7 +148,7 @@ protected:
     /// program options required by all applications
     boost::program_options::options_description _op_desc;
                        
-    std::map<string, boost::program_options::options_description> _op_groups;
+    std::map<std::string, boost::program_options::options_description> _op_groups;
     
     virtual void ShowHelpText(std::ostream &out);
 

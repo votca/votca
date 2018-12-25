@@ -1,6 +1,6 @@
 #!/usr/bin/env csh
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,26 +16,24 @@
 #
 
 #path is never empty
-setenv PATH "@CMAKE_INSTALL_PREFIX@/bin:${PATH}"
+setenv PATH "@CMAKE_INSTALL_FULL_BINDIR@:${PATH}"
 
 #debian wants to have : at the end
 if (! $?MANPATH) setenv MANPATH ""
-setenv MANPATH "@CMAKE_INSTALL_PREFIX@/@MAN@:${MANPATH}"
+setenv MANPATH "@CMAKE_INSTALL_FULL_MANDIR@:${MANPATH}"
 
 if (! $?@LD_LIBRARY_PATH@) setenv @LD_LIBRARY_PATH@ ""
 if ( "$@LD_LIBRARY_PATH@" != "" ) setenv @LD_LIBRARY_PATH@ ":${@LD_LIBRARY_PATH@}"
-setenv @LD_LIBRARY_PATH@ "@CMAKE_INSTALL_PREFIX@/@LIB@${@LD_LIBRARY_PATH@}"
+setenv @LD_LIBRARY_PATH@ "@CMAKE_INSTALL_FULL_LIBDIR@${@LD_LIBRARY_PATH@}"
 
 if (! $?PKG_CONFIG_PATH) setenv PKG_CONFIG_PATH ""
 if ( "$PKG_CONFIG_PATH" != "") setenv PKG_CONFIG_PATH ":${PKG_CONFIG_PATH}"
-setenv PKG_CONFIG_PATH "@CMAKE_INSTALL_PREFIX@/@LIB@/pkgconfig${PKG_CONFIG_PATH}"
+setenv PKG_CONFIG_PATH "@CMAKE_INSTALL_FULL_LIBDIR@/pkgconfig${PKG_CONFIG_PATH}"
 
-if (! $?VOTCASHARE) setenv VOTCASHARE ""
-if ( "$VOTCASHARE" != "") setenv VOTCASHARE ":${VOTCASHARE}"
-setenv VOTCASHARE "@CMAKE_INSTALL_PREFIX@/@DATA@${VOTCASHARE}"
+setenv VOTCASHARE "@CMAKE_INSTALL_FULL_DATADIR@/votca"
 
 #votca rc files
-foreach rc ( "@CMAKE_INSTALL_PREFIX@/@DATA@"/rc/*rc.csh )
+foreach rc ( "${VOTCASHARE}"/rc/*rc.csh )
   [ -r "$rc" ] && source "$rc"
 end
 unset rc

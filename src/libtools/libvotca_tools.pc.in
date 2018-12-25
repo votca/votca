@@ -1,12 +1,11 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/@LIB@
-includedir=${prefix}/include
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: libvotca_tools
 Description: basic tools of the votca package
 URL: http://www.votca.org
 Version: @PROJECT_VERSION@
-Requires: @SQLITE3_PKG@ @GSL_PKG@ @EIGEN_PKG@ @FFTW3_PKG@
+Requires: @SQLITE3_PKG@ @EIGEN3_PKG@ @FFTW3_PKG@
 Libs: -L${libdir} -lvotca_tools @EXPAT_LIBS_PKG@ @BOOST_LIBS_PKG@ @THREAD_LIBRARIES@
 Libs.private: -lm
 Cflags: -I${includedir} @EXPAT_CFLAGS_PKG@ @BOOST_CFLAGS_PKG@

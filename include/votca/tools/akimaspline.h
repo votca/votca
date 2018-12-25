@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,10 @@
 #define	_AKIMASPLINE_H
 
 #include "spline.h"
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/vector_expression.hpp>
+#include <votca/tools/eigen.h>
 #include <iostream>
 
 namespace votca { namespace tools {
-
-namespace ub = boost::numeric::ublas;
 
 /**
  *
@@ -61,11 +57,11 @@ public:
 
     // construct an interpolation spline
     // x, y are the the points to construct interpolation, both vectors must be of same size
-    void Interpolate(ub::vector<double> &x, ub::vector<double> &y);
+    void Interpolate(Eigen::VectorXd &x, Eigen::VectorXd &y);
     
     // fit spline through noisy data
     // x,y are arrays with noisy data, both vectors must be of same size
-    void Fit(ub::vector<double> &x, ub::vector<double> &y);
+    void Fit(Eigen::VectorXd &x, Eigen::VectorXd &y);
     
     // Calculate the function value
     double Calculate(const double &x);
@@ -84,11 +80,11 @@ public:
 
 protected:
     // p1,p2,p3,p4 and t1,t2 (same identifiers as in Akima paper, page 591)
-    ub::vector<double> p0;
-    ub::vector<double> p1;
-    ub::vector<double> p2;
-    ub::vector<double> p3;
-    ub::vector<double> t;
+    Eigen::VectorXd p0;
+    Eigen::VectorXd p1;
+    Eigen::VectorXd p2;
+    Eigen::VectorXd p3;
+    Eigen::VectorXd t;
 };
 
 inline double AkimaSpline::Calculate(const double &r)

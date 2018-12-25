@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,6 @@
 namespace votca { namespace tools {
 
 using namespace std;
-
-/**
-    The REGISTER_OBJECT macro allows to easily register an object in an object factory.
- */
-#define REGISTER_OBJECT(factory, object, key) \
-    namespace { \
-        ObjectFactoryRegister<object> \
-            _register_##object(factory, key); \
-    }
 
 /**
     \brief template class for object factory

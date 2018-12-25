@@ -28,5 +28,13 @@ cmake_uninstall.cmake
 CMakeCache.txt
 intel/*
 include/votca/tools/votca_config.h
+netbeans/libtools/nbproject/Makefile-Debug.mk
+netbeans/libtools/nbproject/Makefile-Release.mk
+netbeans/libtools/nbproject/Makefile-profile_release.mk
+netbeans/libtools/nbproject/Makefile-variables.mk
+netbeans/libtools/nbproject/Package-Debug.bash
+netbeans/libtools/nbproject/Package-Release.bash
+netbeans/libtools/nbproject/Package-profile_release.bash
+netbeans/libtools/nbproject/private/
 
 

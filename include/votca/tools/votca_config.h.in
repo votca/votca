@@ -29,7 +29,7 @@
 
 /* Linear algebra packages */
 #cmakedefine MKL
-#cmakedefine GSL
+
 
 /* Version number of package */
 #define TOOLS_VERSION "@PROJECT_VERSION@"
