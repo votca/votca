@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.1)
 
 project(csgapps)
 
-set(PROJECT_VERSION "1.4.1")
+set(PROJECT_VERSION "1.5-dev")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
@@ -18,20 +18,29 @@ enable_language(CXX)
 # these need ot be done early (before further tests).
 #####################################################################
 
-#needed by csg
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else()
-	message(FATAL_ERROR "Could not find a C++-11 compiler")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
+  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
 endif()
+
+########################################################################
+# User input options                                                   #
+########################################################################
+include(GNUInstallDirs)
+
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
 
 ########################################################################
 #Find external packages
 ########################################################################
 
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options )
+find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
@@ -51,8 +60,13 @@ foreach(DIR ${DIRS})
   add_executable(${DIR} ${SRC})
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${DIR}) #needed for out-of-source build
   target_link_libraries(${DIR} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
-  install(TARGETS ${DIR} RUNTIME DESTINATION bin)
+  install(TARGETS ${DIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME ${DIR}/csg_${DIR})
+  if(ENABLE_TESTING)
+    add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
+    # run tests for tools and csg as well for coverage
+    set_tests_properties(${DIR}Help PROPERTIES LABELS "csgapps;csg;tools;votca")
+  endif(ENABLE_TESTING)
 endforeach(DIR)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
@@ -62,5 +76,7 @@ if(NOT TARGET uninstall)
 endif()
 add_dependencies(uninstall uninstall-csgapps)
 
-include(FeatureSummary)
-feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  include(FeatureSummary)
+  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

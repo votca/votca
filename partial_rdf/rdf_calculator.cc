@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,7 +199,7 @@ void RDFCalculator::ClearAverages()
         ic_iter->second->_average.Clear();    
     
     for (group_iter = _groups.begin(); group_iter != _groups.end(); ++group_iter)
-        group_iter->second->_corr.clear();      
+        group_iter->second->_corr.setZero();      
 }
 
 class IMCNBSearchHandler {
@@ -370,10 +370,8 @@ void RDFCalculator::WriteDist(const string &suffix)
             // dist.y() = _avg_vol.getAvg()*iter->second->_norm *
             // factor 1/2 if beadlist1==beadlist2 already inclyded in _avg_beadlist_2_count!!
         iter->second->_norm/=(iter->second->_avg_beadlist_1_count.getAvg()*iter->second->_avg_beadlist_2_count.getAvg());
-        dist.y() = _avg_vol.getAvg()*iter->second->_norm *
-            element_div(dist.y(),
-                element_prod(dist.x(), dist.x())
-            );
+        dist.y() = _avg_vol.getAvg()*iter->second->_norm *dist.y().cwiseQuotient(dist.x().cwiseAbs2());
+                
         
  
         dist.Save((iter->first) + suffix + ".dist.new");

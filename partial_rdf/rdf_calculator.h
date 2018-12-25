@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,8 +72,8 @@ protected:
     Average<double> _avg_vol;
 
     
-    typedef ub::matrix<double> group_matrix;
-    typedef ub::matrix_range< group_matrix > pair_matrix;
+    typedef Eigen::MatrixXd group_matrix;
+    typedef Eigen::Block<group_matrix > pair_matrix;
     
     /// struct to store collected information for interactions
     struct interaction_t {

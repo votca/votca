@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 void CsgFluctuations::EvalConfiguration(Topology *conf, Topology*conf_atom = 0)
 {
      vec eR;
-     double r;
+     double r = 0;
      int rbin;
 
      
