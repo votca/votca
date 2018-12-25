@@ -27,6 +27,20 @@
 
 namespace votca {
   namespace xtp {
+      
+  Eigen::VectorXd RPA::CalculateRPAEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin)const{    
+        int dftsize=dftenergies.size();
+        Eigen::VectorXd rpaenergies=dftenergies;
+        int gwsize=gwaenergies.size();
+        int lumo=_homo+1;
+        double DFTgap = dftenergies(lumo) - dftenergies(_homo);
+        double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(_homo-qpmin);
+        double shift=QPgap - DFTgap;
+        int qpmax=qpmin+gwsize-1;
+        rpaenergies.segment(qpmin,gwsize)=gwaenergies;
+        rpaenergies.segment(qpmax+1,dftsize-qpmax).array()+=shift;
+        return rpaenergies;
+    }
 
  template< bool imag>
     Eigen::MatrixXd RPA::calculate_epsilon(double frequency)const{

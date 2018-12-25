@@ -28,6 +28,33 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(rpa_test)
 
+BOOST_AUTO_TEST_CASE(rpa_calcenergies){
+    TCMatrix_gwbse Mmn;
+    Eigen::VectorXd eigenvals;
+    RPA rpa(eigenvals,Mmn);
+    rpa.configure(4,0,0);
+    Eigen::VectorXd dftenergies=Eigen::VectorXd::Zero(10);
+    dftenergies<<-0.5,-0.4,-0.3,-0.2,-0.2,-0.1,0,0.1,0.2,0.3;
+    Eigen::VectorXd gwenergies=Eigen::VectorXd::Zero(7);
+    gwenergies<<-0.15,-0.05,0.05,0.15,0.45,0.55,0.65;
+    int qpmin=1;
+    Eigen::VectorXd rpaenergies=rpa.CalculateRPAEnergies(dftenergies,gwenergies,qpmin);
+    
+    Eigen::VectorXd rpaenergies_ref=Eigen::VectorXd::Zero(10);
+    rpaenergies_ref<<-0.5,-0.15,-0.05,0.05,0.15,0.45,0.55,0.65,0.4,0.5;
+    bool e_check =rpaenergies_ref.isApprox(rpaenergies,0.0001);
+  
+   if(!e_check){
+  cout<<"energy"<<endl;
+   cout<<rpaenergies<<endl;
+   cout<<"energy_ref"<<endl;
+   cout<<rpaenergies_ref<<endl;
+ }
+    
+    
+    
+}
+
 BOOST_AUTO_TEST_CASE(rpa_full){
   
      ofstream xyzfile("molecule.xyz");

@@ -124,9 +124,7 @@ Eigen::MatrixXd GW::getGWAResults()const{
 
   Eigen::VectorXd GW::ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const{
       Eigen::VectorXd RPAenergies=dft_energies;
-      for (int i = _opt.homo+1; i < dft_energies.size(); ++i) {
-          RPAenergies(i) += _opt.shift;
-      }
+      RPAenergies.segment(_opt.homo+1,dft_energies.size()-_opt.homo).array()+=_opt.shift;
       return RPAenergies;
   }
 
