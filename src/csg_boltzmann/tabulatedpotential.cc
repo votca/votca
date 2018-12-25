@@ -26,14 +26,12 @@
 #include <vector>
 #include <votca/csg/version.h>
 #include <votca/tools/histogram.h>
+#include <votca/tools/constants.h>
 
 using namespace std;
 using namespace boost;
 using namespace votca::tools;
 using namespace votca::csg;
-
-/* Boltzmann constant in units [ kJ/(mol K) ] */
-const double kB = 0.0083109;
 
 /******************************************************************************
  * Public Facing Methods
@@ -350,13 +348,13 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
     if (data[i] > 0)
       _min = min(data[i], _min);
   }
-  _max = -kB * _Temperature * log(_max);
-  _min = -kB * _Temperature * log(_min) - _max;
+  _max = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(_max);
+  _min = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
 
   for (size_t i = 0; i < data.size(); i++) {
     if (data[i] == 0)
       data[i] = _min;
     else
-      data[i] = -kB * _Temperature * log(data[i]) - _max;
+      data[i] = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(data[i]) - _max;
   }
 }
