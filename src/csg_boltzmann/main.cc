@@ -33,6 +33,7 @@
 #include <votca/csg/csgapplication.h>
 
 using namespace std;
+using namespace votca::csg;
 
 class CsgBoltzmann
     : public CsgApplication

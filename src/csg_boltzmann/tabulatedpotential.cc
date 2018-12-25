@@ -29,10 +29,10 @@
 #include <votca/tools/constants.h>
 
 using namespace std;
-using namespace boost;
 using namespace votca::tools;
-using namespace votca::csg;
 
+namespace votca {
+  namespace csg {
 /******************************************************************************
  * Public Facing Methods
  ******************************************************************************/
@@ -55,11 +55,11 @@ void TabulatedPotential::Command(BondedStatistics &bs, string cmd,
       if (!SetOption_(_tab_options, args)) {
         if (args.size() > 2) {
           if (args[1] == "smooth_pdf") {
-            _tab_smooth1 = lexical_cast<int>(args[2]);
+            _tab_smooth1 = boost::lexical_cast<int>(args[2]);
           } else if (args[1] == "smooth_pot") {
-            _tab_smooth2 = lexical_cast<int>(args[2]);
+            _tab_smooth2 = boost::lexical_cast<int>(args[2]);
           } else if (args[1] == "T") {
-            _Temperature = lexical_cast<double>(args[2]);
+            _Temperature = boost::lexical_cast<double>(args[2]);
           } else {
             cout << "unknown option " << args[2] << endl;
             return;
@@ -255,19 +255,19 @@ bool TabulatedPotential::SetOption_(Histogram::options_t &op,
                                     const vector<string> &args) {
   if (args.size() > 2) {
     if (args[1] == "n")
-      op._n = lexical_cast<int>(args[2]);
+      op._n = boost::lexical_cast<int>(args[2]);
     else if (args[1] == "min") {
-      op._min = lexical_cast<double>(args[2]);
+      op._min = boost::lexical_cast<double>(args[2]);
     } else if (args[1] == "max") {
-      op._max = lexical_cast<double>(args[2]);
+      op._max = boost::lexical_cast<double>(args[2]);
     } else if (args[1] == "periodic") {
-      op._periodic = lexical_cast<bool>(args[2]);
+      op._periodic = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "auto") {
-      op._auto_interval = lexical_cast<bool>(args[2]);
+      op._auto_interval = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "extend") {
-      op._extend_interval = lexical_cast<bool>(args[2]);
+      op._extend_interval = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "normalize") {
-      op._normalize = lexical_cast<bool>(args[2]);
+      op._normalize = boost::lexical_cast<bool>(args[2]);
     } else if (args[1] == "scale") {
       if (args[2] == "no" || args[2] == "bond" || args[2] == "angle") {
         op._scale = args[2];
@@ -358,3 +358,5 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
       data[i] = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(data[i]) - _max;
   }
 }
+
+}}

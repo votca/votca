@@ -17,8 +17,10 @@
 
 #include "bondedstatistics.h"
 
-using namespace votca::csg;
 using namespace votca::tools;
+
+namespace votca {
+  namespace csg {
 
 void BondedStatistics::BeginCG(Topology *top, Topology *top_atom)
 {
@@ -44,4 +46,7 @@ void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom)
     for(ia=ic.begin(), is = _bonded_values.begin(); ia != ic.end(); ++ia, ++is) {
         (*is)->push_back((*ia)->EvaluateVar(*conf));
     }
+}
+
+}
 }

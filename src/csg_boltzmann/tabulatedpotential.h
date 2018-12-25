@@ -23,8 +23,10 @@
 #include <vector>
 #include <votca/tools/histogram.h>
 
-namespace CSG = votca::csg;
 namespace TOOLS = votca::tools;
+
+namespace votca {
+  namespace csg {
 /**
  * \brief Tabulated Potential calculates histograms of bead interactions
  *
@@ -168,5 +170,5 @@ private:
   /// Temperature in units of Kelvin
   double _Temperature;
 };
-
+}}
 #endif // VOTCA_CSG_TABULATEDPOTENTIAL_H
