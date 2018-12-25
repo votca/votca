@@ -139,7 +139,8 @@ vxc<<-0.431767, -0.131967, -1.18442e-13, -1.26466e-13, -1.02288e-13, -0.10626, -
 
 vxc=MOs.transpose()*vxc*MOs;
 
-Eigen::VectorXd mo_energy=Eigen::VectorXd::Zero(17);
+Eigen::VectorXd& mo_energy=orbitals.MOEnergies();
+mo_energy=Eigen::VectorXd::Zero(17);
 mo_energy<<-0.612601,-0.341755,-0.341755,-0.341755, 0.137304,  0.16678,  0.16678,  0.16678, 0.671592, 0.671592, 0.671592, 0.974255,  1.01205,  1.01205,  1.01205,  1.64823,  19.4429;
 TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
@@ -153,10 +154,13 @@ opt.vmin=0;
 opt.nmax=1;
 opt.min_print_weight=0.1;
 opt.useTDA=true;
+opt.homo=3;
+opt.qpmin=0;
 
+orbitals.setBSEindices(0,16);
 votca::ctp::Logger log;
 BSE bse=BSE(orbitals,log,Mmn,vxc);
-orbitals.setBSEindices(0,16);
+
 orbitals.setTDAApprox(true);
 bse.configure(opt);
 

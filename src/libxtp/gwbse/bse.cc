@@ -32,6 +32,7 @@ namespace votca {
 void BSE::SetupDirectInteractionOperator() {
     Eigen::VectorXd rpaenergies;
     RPA rpa = RPA(rpaenergies, _Mmn);
+    rpa.configure(_opt.homo,_opt.rpamin,_opt.rpamax);
     rpaenergies = rpa.CalculateRPAEnergies(_orbitals.MOEnergies(), _Hqp.diagonal(), _opt.qpmin);
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
     _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());

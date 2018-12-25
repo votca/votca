@@ -33,12 +33,16 @@ namespace votca {
         Eigen::VectorXd rpaenergies=dftenergies;
         int gwsize=gwaenergies.size();
         int lumo=_homo+1;
+
+        int qpmax=qpmin+gwsize-1;
+        rpaenergies.segment(qpmin,gwsize)=gwaenergies;
         double DFTgap = dftenergies(lumo) - dftenergies(_homo);
         double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(_homo-qpmin);
         double shift=QPgap - DFTgap;
-        int qpmax=qpmin+gwsize-1;
-        rpaenergies.segment(qpmin,gwsize)=gwaenergies;
-        rpaenergies.segment(qpmax+1,dftsize-qpmax).array()+=shift;
+        std::cout<<qpmax+1<<std::endl;
+        std::cout<<dftsize<<std::endl;
+        std::cout<<dftsize-qpmax-1<<std::endl;
+        rpaenergies.segment(qpmax+1,dftsize-qpmax-1).array()+=shift;
         return rpaenergies;
     }
 
