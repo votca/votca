@@ -116,23 +116,22 @@ ctp::Logger &_log;
   int  _bse_ctotal;
   
   Orbitals& _orbitals;
+    // BSE variables and functions
+  MatrixXfd& _eh_s;  // only for storage in orbitals object
+  MatrixXfd& _eh_t;  // only for storage in orbitals object
+   // references are stored in orbitals object
+  VectorXfd& _bse_singlet_energies;  
+  MatrixXfd& _bse_singlet_coefficients;                                                 
+  MatrixXfd& _bse_singlet_coefficients_AR;  
+  VectorXfd& _bse_triplet_energies;  
+  MatrixXfd& _bse_triplet_coefficients; 
   
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
 
   VectorXfd _epsilon_0_inv;
   
-  // BSE variables and functions
-  MatrixXfd& _eh_s;  // only for storage in orbitals object
-  MatrixXfd& _eh_t;  // only for storage in orbitals object
 
-
-  // references are stored in orbitals object
-  VectorXfd& _bse_singlet_energies;  
-  MatrixXfd& _bse_singlet_coefficients;                                                 
-  MatrixXfd& _bse_singlet_coefficients_AR;  
-  VectorXfd& _bse_triplet_energies;  
-  MatrixXfd& _bse_triplet_coefficients; 
 
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();

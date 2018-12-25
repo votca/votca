@@ -22,7 +22,7 @@
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
-#include <votca/xtp/sigma.h>
+#include <votca/xtp/sigma_base.h>
 namespace votca {
 namespace xtp {
 
@@ -72,11 +72,12 @@ class GW {
 
     options _opt;
 
-    std::unique_ptr<Sigma> _sigma=nullptr;
+    std::unique_ptr<Sigma_base> _sigma=nullptr;
     ctp::Logger &_log;
-    const Eigen::MatrixXd _vxc;
-    const Eigen::VectorXd& _dft_energies;
     TCMatrix_gwbse& _Mmn;
+    const Eigen::MatrixXd& _vxc;
+    const Eigen::VectorXd& _dft_energies;
+
 
     double CalcHomoLumoShift()const;
     Eigen::VectorXd ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const;

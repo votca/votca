@@ -17,11 +17,10 @@
 
 #define BOOST_TEST_MODULE sigma_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/sigma.h>
+#include <votca/xtp/sigma_ppm.h>
 #include <fstream> 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/ppm.h>
@@ -129,7 +128,7 @@ Mmn.Fill(aobasis,aobasis,MOs);
 RPA rpa(mo_energy,Mmn);
 rpa.configure(4,0,16);
 
-  Sigma sigma=Sigma(Mmn);
+  Sigma_PPM sigma=Sigma_PPM(Mmn);
   sigma.configure(4,0,16);
 
 Eigen::MatrixXd x=sigma.CalcExchange();

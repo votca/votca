@@ -21,7 +21,7 @@
 
 #include <votca/xtp/gw.h>
 #include "votca/xtp/rpa.h"
-
+#include "votca/xtp/sigma_ppm.h"
 
 
 namespace votca {
@@ -31,7 +31,7 @@ namespace votca {
      _opt=opt;
      _qptotal=_opt.qpmax-_opt.qpmin+1;
      if(_opt.sigma_integration=="ppm"){
-         _sigma=std::unique_ptr<Sigma>(new Sigma(_Mmn));
+         _sigma=std::unique_ptr<Sigma_base>(new Sigma_PPM(_Mmn));
      }
   }
 

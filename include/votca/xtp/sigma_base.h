@@ -17,11 +17,10 @@
  *
  */
 
-#ifndef _VOTCA_XTP_SIGMA_H
-#define _VOTCA_XTP_SIGMA_H
+#ifndef _VOTCA_XTP_SIGMA_BASE_H
+#define _VOTCA_XTP_SIGMA_BASE_H
 #include <votca/xtp/eigen.h>
 #include <votca/ctp/logger.h>
-#include <votca/xtp/ppm.h>
 
 namespace votca {
 namespace xtp {
@@ -29,9 +28,9 @@ namespace xtp {
     class TCMatrix_gwbse;
     class RPA;
 
-class Sigma {
+class Sigma_base {
  public:
-  Sigma(TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
+  Sigma_base(TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
   
   void configure(int homo, int qpmin,int qpmax){
       _homo=homo;
@@ -39,27 +38,27 @@ class Sigma {
       _qpmax=qpmax;
       _qptotal=_qpmax - _qpmin + 1;
   }
-//Sets up the screening parametrisation
-void PrepareScreening(const RPA& rpa);
+
   //Calculates Full exchange matrix
 Eigen::MatrixXd CalcExchange()const;
+
+//Sets up the screening parametrisation
+virtual void PrepareScreening(const RPA& rpa)=0;
 //Calculates Sigma_c diag elements
-Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
+virtual Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const=0;
 //Calculates Sigma_c offdiag elements
-Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
+virtual Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const=0;
  
 
- private:
+ protected:
 
   TCMatrix_gwbse& _Mmn;
 
-  inline void Stabilize(Eigen::ArrayXd& denom)const;
   int _homo;   // HOMO index
   int _qpmin;
   int _qpmax;
   int _qptotal;
 
-  PPM _ppm;
 
  
 
@@ -68,4 +67,4 @@ Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const
 }
 }
 
-#endif /* _VOTCA_XTP_SIGMA_H */
+#endif /* _VOTCA_XTP_SIGMA_BASE_H */
