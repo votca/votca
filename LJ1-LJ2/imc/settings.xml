@@ -1,0 +1,139 @@
+<cg>
+  <!-- example for a non-bonded interaction entry -->
+   <non-bonded>
+    <!-- name of the interaction -->
+    <name>LJ1-LJ1</name>
+    <!-- types involved in this interaction -->
+    <type1>LJ1</type1>
+    <type2>LJ1</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.32</min>
+    <max>0.85</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>LJ1-LJ1.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>1 0 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <post_update_options> 
+      <smooth>
+      <iterations>2</iterations>
+      </smooth>
+      </post_update_options>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <reg>1000</reg> 
+       <group>group_1</group>
+       </imc>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_LJ1_LJ1.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>LJ2-LJ2</name>
+    <!-- types involved in this interaction -->
+    <type1>LJ2</type1>
+    <type2>LJ2</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.27</min>
+    <max>0.85</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>LJ2-LJ2.dist.tgt</target>
+     <do_potential>0 1 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <!-- some options for the post update scripts -->
+      <post_update_options>
+      <smooth>
+      <iterations>2</iterations>
+      </smooth>
+      </post_update_options>
+
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <reg>1000</reg> 
+       <group>group_1</group>
+       </imc>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_LJ2_LJ2.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+
+   <non-bonded>
+    <!-- name of the interaction -->
+    <name>LJ1-LJ2</name>
+    <!-- types involved in this interaction -->
+    <type1>LJ1</type1>
+    <type2>LJ2</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.29</min>
+    <max>0.85</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>LJ1-LJ2.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 0 1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update>smooth</post_update>
+      <!-- some options for the post update scripts -->
+      <post_update_options>
+      <smooth>
+      <iterations>2</iterations>
+      </smooth>
+      </post_update_options>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add></post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <imc>
+        <reg>1000</reg> 
+       <group>group_1</group>
+       </imc>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_LJ1_LJ2.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- 85*0.00831451 gromacs units -->
+    <kBT>0.70673335</kBT>
+    <!-- use gromacs as simulation program -->
+    <program>gromacs</program>
+    <!-- gromacs specific options -->
+    <gromacs>
+     <!-- trash 30 many frames at the beginning -->    
+     <equi_time>10</equi_time>
+     <first_frame>10</first_frame>
+      <!-- grid for table*.xvg !-->
+      <table_bins>0.002</table_bins>
+      <!-- cut the potential at this value (gromacs bug) -->
+      <pot_max>1000000</pot_max>
+      <!-- extend the tables to this value -->
+      <table_end>3.0</table_end>
+    </gromacs>
+    <!-- these files are copied for each new run -->
+    <filelist>grompp.mdp topol.top index.ndx table.xvg</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>20</iterations_max>
+    <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
+    <method>imc</method>
+    <imc>		   
+      <solver>numpy</solver>
+    </imc>
+  </inverse>
+</cg>

@@ -1,0 +1,20 @@
+<cg_molecule>
+  <name>methanol</name>
+  <ident>methanol</ident>
+  <topology>
+    <cg_beads>
+      <cg_bead>
+        <name>C0</name>
+        <type>A</type>
+        <mapping>A</mapping>
+        <beads> 1:MeO:C 1:MeO:HA 1:MeO:HB 1:MeO:HC 1:MeO:O 1:MeO:H  </beads>
+      </cg_bead>
+  </cg_beads>
+  </topology>
+  <maps>
+    <map>
+      <name>A</name>
+      <weights> 12 1 1 1 16 1 </weights>
+    </map>
+  </maps>
+</cg_molecule>

@@ -1,0 +1,38 @@
+<cg>
+  <!--fmatch section -->
+  <fmatch>
+    <!-- use constraint LS solver -->
+    <constrainedLS>true</constrainedLS>
+    <!-- Number of frames for block averaging -->
+    <frames_per_block>5</frames_per_block>
+  </fmatch>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>CG-CG</name>
+    <type1>*</type1>
+    <type2>*</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0.24</min>
+    <max>1.00</max>
+    <step>0.01</step>
+    <!-- fmatch specific stuff -->
+    <fmatch>
+      <min>0.24</min>
+      <max>0.9</max>
+      <step>0.02</step>
+      <out_step>0.002</out_step>
+    </fmatch>
+  </non-bonded>
+
+  <!-- settings for gromacs .xvg table -->
+  <inverse>
+    <gromacs>
+      <table_bins>0.001</table_bins>
+      <pot_max>1000000</pot_max>
+      <table_end>2.5</table_end>
+    </gromacs>
+  </inverse>
+
+
+</cg>

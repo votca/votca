@@ -1,0 +1,55 @@
+<cg>
+  <nbsearch>grid</nbsearch>
+  <!--fmatch section -->
+  <fmatch>
+    <!--Number of different CG beads in the system. SHOULD BE KICKED OUT!!! -->
+    <constrainedLS>true</constrainedLS>
+    <!--Number of frames for block averaging -->
+    <frames_per_block>10</frames_per_block>
+  </fmatch>
+  
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <!-- fmatch specific stuff -->
+    <min>0.0</min>
+    <max>1.0</max>
+	<step>0.001</step>
+  </bonded>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <!-- fmatch specific stuff -->
+    <min>0.0</min>
+    <max>3.1415</max>
+	<step>0.01</step>
+  </bonded>
+  
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <name>A-A</name>
+    <type1>A</type1>
+    <type2>A</type2>
+    <min>0</min>
+    <max>2.5</max>
+    <step>0.01</step>
+  </non-bonded>
+  
+  <non-bonded>
+    <name>B-B</name>
+    <type1>B</type1>
+    <type2>B</type2>
+    <min>0</min>
+    <max>2</max>
+    <step>0.01</step>
+  </non-bonded>
+  
+  <non-bonded>
+    <name>A-B</name>
+    <type1>A</type1>
+    <type2>B</type2>
+    <min>0</min>
+    <max>2</max>
+    <step>0.01</step>
+  </non-bonded>
+</cg>

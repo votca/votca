@@ -1,0 +1,4 @@
+hist angle.dist.ib *angle*
+hist bond.dist.ib *bond*
+
+q

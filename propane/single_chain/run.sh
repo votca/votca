@@ -1,6 +1,6 @@
 #! /bin/bash -e
 
-grompp -v
+gmx grompp -v
 
-mdrun -v
+gmx mdrun -v
 

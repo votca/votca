@@ -14,7 +14,7 @@ set title "update"
 plot [:][:] "CG-CG.dpot.new" w l t ""
 
 set title "potential"
-plot [0:0.9][-2.5:3] "../pot.imc" w l t "imc", "../pot.ibm" w l lc 4 t "ibm" ,"CG-CG.pot.new" w l lc 3 t "current"
+plot [0:0.9][-2.5:3] "../pot.imc" w l t "imc", "../pot.ibm" w l lc 4 t "ibm" ,"CG-CG.pot.cur" w l lc 3 t "current"
 
 unset multiplot
 

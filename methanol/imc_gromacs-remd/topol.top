@@ -1,0 +1,21 @@
+[ defaults ]
+; nbfunc	comb-rule	gen-pairs	fudgeLJ	fudgeQQ
+  1		1		no		1.0	1.0
+
+[ atomtypes ]
+;name  at.num      mass        charge   ptype     c6          c12
+   CG    8 	18.01540       0.000       A   0.00000E+00   1.00000E+00 
+
+[ moleculetype ]
+; molname	nrexcl
+SOL		1
+
+[ atoms ]
+; id	at type	res nr 	residu name	at name
+1	CG	1	SOL		 CG		1	 0.000
+
+[ system ]
+CG methanol 
+
+[ molecules ]
+SOL     1000

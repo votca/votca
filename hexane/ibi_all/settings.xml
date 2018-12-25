@@ -1,0 +1,145 @@
+<cg>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>bond</name>
+    <min>0.22</min>
+    <max>0.28</max>
+    <step>0.002</step>
+    <inverse>
+      <!-- target distribution -->
+      <target>bond.dist.tgt</target>
+      <gromacs>
+        <table>table_b1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+  <bonded>
+    <!-- name of the interaction -->
+    <name>angle</name>
+    <min>1.7</min>
+    <max>3.1</max>
+    <step>0.02</step>
+    <inverse>
+      <!-- target distribution -->
+      <target>angle.dist.tgt</target>
+      <gromacs>
+        <table>table_a1.xvg</table>
+      </gromacs>
+    </inverse>
+  </bonded>
+  <!-- example for a non-bonded interaction entry -->
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-A</name>
+    <!-- types involved in this interaction -->
+    <type1>A</type1>
+    <type2>A</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.5</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>A-A.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>1 0 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add>convergence</post_add>
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_A_A.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+  
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>B-B</name>
+    <!-- types involved in this interaction -->
+    <type1>B</type1>
+    <type2>B</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.4</max>
+    <step>0.01</step>
+    
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>B-B.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 1 0</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add>convergence</post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_B_B.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+
+  <non-bonded>
+    <!-- name of the interaction -->
+    <name>A-B</name>
+    <!-- types involved in this interaction -->
+    <type1>A</type1>
+    <type2>B</type2>
+    <!-- dimension + grid spacing of tables for calculations -->
+    <min>0</min>
+    <max>1.35</max>
+    <step>0.01</step>
+    <inverse>
+      <!-- target distribution (rdf), just give gromas rdf.xvg -->
+      <target>A-B.dist.tgt</target>
+      <!-- update cycles -->
+      <do_potential>0 0 1</do_potential>
+      <!-- additional post processing of dU before added to potential -->
+      <post_update></post_update>
+      <!-- additional post processing of U after dU added to potential -->
+      <post_add>convergence</post_add>
+      <!-- inverse monte carlo specific stuff -->
+      <!-- name of the table for gromacs run -->
+      <gromacs>
+        <table>table_A_B.xvg</table>
+      </gromacs>
+    </inverse>
+  </non-bonded>
+
+  <!-- general options for inverse script -->
+  <inverse>
+    <!-- 300*0.00831451 gromacs units -->
+    <kBT>2.49435</kBT>
+    <!-- use gromacs as simulation program -->
+    <program>gromacs</program>
+    <!-- gromacs specific options -->
+    <gromacs>
+      <!-- trash so many frames at the beginning -->
+      <equi_time>20</equi_time>
+      <!-- grid for table*.xvg !-->
+      <table_bins>0.002</table_bins>
+      <!-- cut the potential at this value (gromacs bug) -->
+      <pot_max>1000000</pot_max>
+      <!-- extend the tables to this value -->
+      <table_end>2.5</table_end>
+    </gromacs>
+    <map>hexane_cg.xml</map>
+    <!-- these files are copied for each new run -->
+    <filelist>grompp.mdp topol.top table.xvg index.ndx</filelist>
+    <!-- do so many iterations -->
+    <iterations_max>500</iterations_max>
+    <convergence_check>
+      <type>default</type>
+      <limit>0.001</limit>
+    </convergence_check>
+    <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
+    <method>ibi</method>
+    <!-- write log to this file -->
+    <log_file>inverse.log</log_file>
+    <!-- write restart step to this file -->
+    <restart_file>restart_points.log</restart_file>
+  </inverse>
+</cg>

@@ -18,17 +18,12 @@ comm-grps                =
 nstxout                  = 0
 nstvout                  = 0
 nstfout                  = 0
-; Checkpointing helps you continue after crashes
-nstcheckpoint            = 1000
 ; Output frequency for energies to log file and energy file
 nstlog                   = 100
 nstenergy                = 5000
 ; Output frequency and precision for xtc file
-nstxtcout                = 100
-xtc-precision            = 1000
-; This selects the subset of atoms for the xtc file. You can
-; select multiple groups. By default all atoms will be written.
-xtc-grps                 = 
+nstxout-compressed       = 100
+compressed-x-precision   = 1000
 ; Selection of energy groups
 energygrps               = A  B  
 
@@ -73,7 +68,6 @@ pme_order                = 4
 ewald_rtol               = 1e-05
 ewald_geometry           = 3d
 epsilon_surface          = 0
-optimize_fft             = no
 
 ; IMPLICIT B  VENT ALGORITHM
 implicit_solvent         = No
@@ -115,8 +109,6 @@ compressibility          = 4.5e-5
 ref_p                    = 1.0
 ; Scaling of reference coordinates, No, All or COM
 refcoord_scaling         = No
-; Random seed for Andersen thermostat
-andersen_seed            = 815131
 
 ; GENERATE VELOCITIES FOR STARTUP RUN
 gen-vel                  = no

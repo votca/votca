@@ -7,7 +7,7 @@
     <type1>1</type1>
     <type2>1</type2>
     <!-- dimension + grid spacing of tables for calculations -->
-    <min>0.25</min>
+    <min>0.0</min>
     <max>0.9</max>
     <step>0.01</step>
     <inverse>
@@ -50,8 +50,6 @@
   
   <!-- general options for inverse script -->
   <inverse>
-    <!-- target pressure -->
-    <p_target>1.0</p_target>
     <!-- 300*0.00831451 gromacs units -->
     <kBT>2.49435</kBT>
     <!-- use gromacs as simulation program -->
@@ -61,15 +59,15 @@
       <!-- lammps script to run !-->
       <script>spce.in</script>
       <!-- topology to be used by  csg_stat !-->
-      <topol>topol.xml</topol>
+      <topol>spce.data</topol>
       <!-- traj file created by lammps !-->
       <traj>traj.dump</traj>
     </lammps>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
-    <filelist>spce.data spce.in topol.xml spce.dump</filelist>
+    <filelist>spce.data spce.in</filelist>
     <!-- do so many iterations -->
-    <iterations_max>910</iterations_max>
+    <iterations_max>300</iterations_max>
     <!-- ibm: inverse biltzmann imc: inverse monte carlo -->
     <method>ibi</method>
   </inverse>
