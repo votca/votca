@@ -32,7 +32,132 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
   DataCollection<double> datacollection;
 }
 
-BOOST_AUTO_TEST_CASE(test) {
+/**
+ * Check to see if the arrays are created correctly
+ **/
+BOOST_AUTO_TEST_CASE(test_createarray) {
+
+  DataCollection<int> datacollection;
+
+  string name_tag1 = "x positions";
+  string name_tag2 = "y positions";
+  string name_tag3 = "z positions";
+
+  datacollection.CreateArray(name_tag1);
+  datacollection.CreateArray(name_tag2);
+  datacollection.CreateArray(name_tag3);
+
+  BOOST_CHECK_EQUAL(datacollection.size(),3);
+}
+
+BOOST_AUTO_TEST_CASE(test_getname) {
+
+  DataCollection<int> datacollection;
+
+  string name_tag1 = "x positions";
+  string name_tag2 = "y positions";
+  string name_tag3 = "z positions";
+
+  auto xpositions = datacollection.CreateArray(name_tag1);
+  auto ypositions = datacollection.CreateArray(name_tag2);
+  auto zpositions = datacollection.CreateArray(name_tag3);
+
+  bool x_compare_name = !name_tag1.compare(xpositions->getName());
+  bool y_compare_name = !name_tag2.compare(ypositions->getName());
+  bool z_compare_name = !name_tag3.compare(zpositions->getName());
+
+  BOOST_CHECK(x_compare_name);
+  BOOST_CHECK(y_compare_name);
+  BOOST_CHECK(z_compare_name);
+}
+
+BOOST_AUTO_TEST_CASE(test_data) {
+
+  DataCollection<int> datacollection;
+
+  string name_tag1 = "x positions";
+  string name_tag2 = "y positions";
+  string name_tag3 = "z positions";
+
+  auto xpositions = datacollection.CreateArray(name_tag1);
+  auto ypositions = datacollection.CreateArray(name_tag2);
+  auto zpositions = datacollection.CreateArray(name_tag3);
+
+  bool x_compare_name = !name_tag1.compare(xpositions->getName());
+  bool y_compare_name = !name_tag2.compare(ypositions->getName());
+  bool z_compare_name = !name_tag3.compare(zpositions->getName());
+
+  BOOST_CHECK(x_compare_name);
+  BOOST_CHECK(y_compare_name);
+  BOOST_CHECK(z_compare_name);
+
+  xpositions->push_back(1);
+  xpositions->push_back(3);
+
+  ypositions->push_back(-4);
+  ypositions->push_back(4);
+  ypositions->push_back(4);
+
+  zpositions->push_back(5);
+
+  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->size(),2);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->size(),3);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(2)->size(),1);
+
+  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->at(0),1);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->at(1),3);
+
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(0),-4);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(1),4);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(2),4);
+
+  BOOST_CHECK_EQUAL(datacollection.Data().at(2)->at(0),5);
+}
+
+BOOST_AUTO_TEST_CASE(test_bracket) {
+
+  DataCollection<int> datacollection;
+
+  string name_tag1 = "x positions";
+  string name_tag2 = "y positions";
+  string name_tag3 = "z positions";
+
+  auto xpositions = datacollection.CreateArray(name_tag1);
+  auto ypositions = datacollection.CreateArray(name_tag2);
+  auto zpositions = datacollection.CreateArray(name_tag3);
+
+  bool x_compare_name = !name_tag1.compare(xpositions->getName());
+  bool y_compare_name = !name_tag2.compare(ypositions->getName());
+  bool z_compare_name = !name_tag3.compare(zpositions->getName());
+
+  BOOST_CHECK(x_compare_name);
+  BOOST_CHECK(y_compare_name);
+  BOOST_CHECK(z_compare_name);
+
+  xpositions->push_back(1);
+  xpositions->push_back(3);
+
+  ypositions->push_back(-4);
+  ypositions->push_back(4);
+  ypositions->push_back(4);
+
+  zpositions->push_back(5);
+
+  BOOST_CHECK_EQUAL(datacollection[0].size(),2);
+  BOOST_CHECK_EQUAL(datacollection[1].size(),3);
+  BOOST_CHECK_EQUAL(datacollection[2].size(),1);
+
+  BOOST_CHECK_EQUAL(datacollection[0].at(0),1);
+  BOOST_CHECK_EQUAL(datacollection[0].at(1),3);
+
+  BOOST_CHECK_EQUAL(datacollection[1].at(0),-4);
+  BOOST_CHECK_EQUAL(datacollection[1].at(1),4);
+  BOOST_CHECK_EQUAL(datacollection[1].at(2),4);
+
+  BOOST_CHECK_EQUAL(datacollection[2].at(0),5);
+}
+
+BOOST_AUTO_TEST_CASE(test_arraybyname) {
 
   DataCollection<int> datacollection;
 
@@ -68,10 +193,6 @@ BOOST_AUTO_TEST_CASE(test) {
   y_compare_name = !name_tag2.compare(datacollection.Data().at(1)->getName());
   z_compare_name = !name_tag3.compare(datacollection.Data().at(2)->getName());
 
-  BOOST_CHECK(x_compare_name);
-  BOOST_CHECK(y_compare_name);
-  BOOST_CHECK(z_compare_name);
-
   auto xPosArray = datacollection.ArrayByName(name_tag1);
 
   BOOST_CHECK_EQUAL(xPosArray->at(0), 1);
@@ -90,5 +211,6 @@ BOOST_AUTO_TEST_CASE(test) {
   BOOST_CHECK_EQUAL(zPosArray->at(1), -5);
   BOOST_CHECK_EQUAL(zPosArray->at(2), 5);
 }
+
 
 BOOST_AUTO_TEST_SUITE_END()
