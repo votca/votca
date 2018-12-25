@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,8 +18,11 @@
  */
 
 
-#ifndef __VOTCA_XTP_TOPOLOGY_H
-#define	__VOTCA_XTP_TOPOLOGY_H
+#ifndef VOTCA_XTP_TOPOLOGY_H
+#define	VOTCA_XTP_TOPOLOGY_H
+
+#include <vector>
+#include <string>
 
 #include <votca/tools/property.h>
 
@@ -28,25 +31,17 @@
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
 
-#include <votca/xtp/polarsite.h>
-#include <votca/xtp/apolarsite.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/segmenttype.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/molecule.h>
-
-#include <votca/xtp/qmpair.h>
 #include <votca/xtp/qmnblist.h>
-
-#include <votca/xtp/jcalc.h>
-#include <votca/xtp/mol_and_orb.h>
 
 namespace CSG = votca::csg;
 
-
 namespace votca { namespace xtp {
 
+class Molecule;
+class Segment;
+class SegmentType;
+class Fragment;
+class Atom;
 /**
  * \brief Container for molecules, conjugated segments, rigid fragments,
  * and atoms.
@@ -65,24 +60,18 @@ public:
     Segment     *AddSegment  (std::string segment_name);
     Atom        *AddAtom     (std::string atom_name);
     Fragment    *AddFragment (std::string fragment_name);
-    PolarSite   *AddPolarSite(std::string siteName);
-    APolarSite  *AddAPolarSite(std::string siteName);
     SegmentType *AddSegmentType (std::string typeName);
 
     Molecule    *getMolecule(int id) { return _molecules[id-1]; }
     Segment     *getSegment(int id)  { return _segments[id-1]; }
     Fragment    *getFragment(int id) { return _fragments[id-1]; }
     Atom        *getAtom(int id)     { return _atoms[id-1]; }
-    PolarSite   *getPolarSite(int id) { return _polarSites[id-1]; }
-    APolarSite  *getAPolarSite(int id) { return _apolarSites[id-1]; }
     SegmentType *getSegmentType(int id) { return _segmentTypes[id-1]; }
 
     std::vector< Atom* >         &Atoms() { return _atoms; }
     std::vector< Fragment* >     &Fragments() { return _fragments; }
     std::vector< Segment* >      &Segments() { return _segments; }
     std::vector< Molecule* >     &Molecules() { return _molecules; }
-    std::vector< PolarSite* >    &PolarSites() { return _polarSites; }
-    std::vector< APolarSite* >   &APolarSites() { return _apolarSites; }
     std::vector< SegmentType* >  &SegmentTypes() { return _segmentTypes; }
 
     bool                Rigidify();
@@ -96,11 +85,10 @@ public:
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
 
-    vec              PbShortestConnect(const vec &r1, const vec &r2) const;
-    const matrix    &getBox() { return _bc->getBox(); }
-    
+    votca::tools::vec              PbShortestConnect(const votca::tools::vec &r1, const votca::tools::vec &r2) const;
+    const votca::tools::matrix    &getBox() { return _bc->getBox(); }
     double           BoxVolume() { return _bc->BoxVolume(); }
-    void             setBox(const matrix &box,
+    void             setBox(const votca::tools::matrix &box,
                             CSG::BoundaryCondition::eBoxtype boxtype =
                             CSG::BoundaryCondition::typeAuto);
 
@@ -117,19 +105,12 @@ public:
     void             setDatabaseId(int id) { _db_id = id; }
     void             CleanUp();
 
-    void             PrintInfo(ostream &out);
-    void             PrintInfo(FILE *out);
-    void             WritePDB(FILE *out, std::string tag = "segments");
-
-   
 protected:
 
     std::vector < Molecule* >    _molecules;
     std::vector < Segment* >     _segments;
     std::vector < Fragment* >    _fragments;
     std::vector < Atom* >        _atoms;
-    std::vector < PolarSite* >   _polarSites;
-    std::vector < APolarSite* >   _apolarSites;
     std::vector < SegmentType* > _segmentTypes;
 
 
@@ -147,11 +128,11 @@ protected:
 
 
     CSG::BoundaryCondition::eBoxtype
-    AutoDetectBoxType(const matrix &box);
+    AutoDetectBoxType(const votca::tools::matrix &box);
 
 };
 
 }}
 
-#endif	/* __VOTCA_XTP_TOPOLOGY_H */
+#endif	// VOTCA_XTP_TOPOLOGY_H 
 

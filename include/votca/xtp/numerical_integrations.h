@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,64 +17,103 @@
  *
  */
 
-#ifndef __XTP_NUMERICAL_INTEGRATION__H
-#define	__XTP_NUMERICAL_INTEGRATION__H
+#ifndef XTP_NUMERICAL_INTEGRATION_H
+#define	XTP_NUMERICAL_INTEGRATION_H
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
-#include <boost/numeric/ublas/operation.hpp>
+
+
+
+#include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
+#include <votca/xtp/vxc_functionals.h>
+#include <votca/xtp/gridbox.h>
+#include <votca/xtp/qmatom.h>
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/qmmolecule.h>
+
+#include <xc.h>
+#undef LOG
 
 
 
 namespace votca { namespace xtp {
+    class LebedevGrid;
 
-    namespace ub = boost::numeric::ublas;
+  
     
-    
+    struct Gyrationtensor{
+        double mass;
+        Eigen::Vector3d centroid;
+        Eigen::Matrix3d gyration;
+    };
 
         class NumericalIntegration {
         public: 
             
-            NumericalIntegration():density_set(false) {};
+            NumericalIntegration():_density_set(false),_setXC(false) {};
 
-            void GridSetup(std::string type, BasisSet* bs , std::vector<QMAtom* > _atoms  );
+            ~NumericalIntegration();
+            
+            void GridSetup(const std::string& type, const QMMolecule& atoms,const AOBasis& basis);
+           
+            double getExactExchange(const std::string& functional);
+            std::vector<const Eigen::Vector3d*> getGridpoints()const;
+            std::vector<double> getWeightedDensities() const;
+            int getGridSize() const{return _totalgridsize;}
+            unsigned getBoxesSize() const{return _grid_boxes.size();}
+            
+            void setXCfunctional(const std::string& functional);
+            double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
+            double IntegratePotential(const Eigen::Vector3d& rvector);
+            Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis);
 
-            double StupidIntegrate( std::vector<double>& _data );
             
-            void getGridpoints( ub::matrix<double>& _gridpoints );
-            
-            ub::matrix<double> numAOoverlap ( AOBasis* basis  );
-            double IntegrateDensity(ub::matrix<double>& _density_matrix, AOBasis* basis);
-            double IntegrateDensity_Atomblock(ub::matrix<double>& _density_matrix, AOBasis* basis);
-            double IntegratePotential(ub::vector<double> rvector);
-            
-            double getExactExchange(const std::string _functional);
-            ub::matrix<double> IntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
-            ub::matrix<double> IntegrateVXC_block ( ub::matrix<double>& _density_matrix, AOBasis* basis   );
-            ub::matrix<double> IntegrateVXC_Atomblock ( ub::matrix<double>& _density_matrix, AOBasis* basis,const std::string _functional);
-            
-            // this gives int (e_xc-V_xc)*rho d3r
-            double& getTotEcontribution(){return EXC;}
-            //ub::matrix<double> StupidIntegrateVXC ( ub::matrix<double>& _density_matrix, AOBasis* basis  );
+            Eigen::MatrixXd IntegrateExternalPotential(const std::vector<double>& Potentialvalues);
+            Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);          
+            Eigen::MatrixXd IntegrateVXC (const Eigen::MatrixXd& density_matrix);
+            double getTotEcontribution(){return _EXC;}
+          
             
         private:
             
+           void FindSignificantShells(const AOBasis& basis);
+           void EvaluateXC(const double rho,const double sigma,double& f_xc, double& df_drho, double& df_dsigma);          
+           double erf1c(double x);
            
+           void SortGridpointsintoBlocks(std::vector< std::vector< GridContainers::Cartesian_gridpoint > >& grid);
+           
+           Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms);
+           int UpdateOrder(LebedevGrid& sphericalgridofElement, int maxorder, std::vector<double>& PruningIntervals,double r);
+           
+           GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(const Eigen::Vector3d& atomA_pos,
+                                        GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
+                                        unsigned i_rad,unsigned i_sph);
+           
+           Eigen::VectorXd SSWpartition(int igrid, const Eigen::MatrixXd& rq,const Eigen::MatrixXd& Rij );
+            void SSWpartitionAtom(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom,const Eigen::MatrixXd& Rij);
+            Eigen::MatrixXd CalcDistanceAtomsGridpoints(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
             
-            std::vector<double> SSWpartition( int ngrid, int igrid, int ncenters ,  std::vector< std::vector<double> >& rq, double ass );
-            std::vector<double> Rij;
-            ub::matrix<double> Rij_mat;
-            int _totalgridsize;
-            double erf1c(double x);
-            double erfcc(double x);
-            std::vector< std::vector< GridContainers::integration_grid > > _grid;
-            double EXC;
-            bool density_set;
+            int  _totalgridsize;
+            std::vector< GridBox > _grid_boxes;
+            std::vector<unsigned> thread_start;
+            std::vector<unsigned> thread_stop;
+            int xfunc_id;
+            double _EXC;
+            bool _density_set;
+            bool _setXC;
+            int _AOBasisSize;
+            
+           
+            bool _use_separate;
+            int cfunc_id;
+            xc_func_type xfunc; // handle for exchange functional
+            xc_func_type cfunc; // handle for correlation functional
 
+            
         };
 
     }}
-#endif	/* NUMERICAL_INTEGRATION_H */
+#endif	// XTP_NUMERICAL_INTEGRATION_H

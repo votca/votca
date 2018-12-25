@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -22,13 +22,12 @@
 #define Rates_H
 
 #include <votca/xtp/paircalculator.h>
-#include <math.h>
 #include <cmath>
 #include <complex>
 //#include <boost/math/special_functions/gamma.hpp>
 
 namespace votca { namespace xtp {
-
+   
 class Rates : public PairCalculator2
 {
 public:
@@ -36,30 +35,30 @@ public:
     Rates() { };
    ~Rates() { };
 
-    string Identify() { return "rates"; }
+    std::string Identify() { return "rates"; }
 
-    void Initialize(Property *options);
-    void ParseEnergiesXML(Topology *top, Property *opt);
+    void Initialize(tools::Property *options);
+    void ParseEnergiesXML(Topology *top, tools::Property *opt);
     void EvaluatePair(Topology *top, QMPair *pair);
     void CalculateRate(Topology *top, QMPair *pair, int state);
 
 
 private:
 
-    map<string, double> _seg_U_cC_nN_e;
-    map<string, double> _seg_U_nC_nN_e;
-    map<string, double> _seg_U_cN_cC_e;
+    std::map<std::string, double> _seg_U_cC_nN_e;
+    std::map<std::string, double> _seg_U_nC_nN_e;
+    std::map<std::string, double> _seg_U_cN_cC_e;
 
-    map<string, double> _seg_U_cC_nN_h;
-    map<string, double> _seg_U_nC_nN_h;
-    map<string, double> _seg_U_cN_cC_h;
+    std::map<std::string, double> _seg_U_cC_nN_h;
+    std::map<std::string, double> _seg_U_nC_nN_h;
+    std::map<std::string, double> _seg_U_cN_cC_h;
 
-    map<string, bool>   _seg_has_e;
-    map<string, bool>   _seg_has_h;
+    std::map<std::string, bool>   _seg_has_e;
+    std::map<std::string, bool>   _seg_has_h;
 
 
-    string _rateType;
-    vec    _F;
+    std::string _rateType;
+    tools::vec    _F;
     double _kT;
     double _omegaVib;
     int    _nMaxVib;
@@ -69,11 +68,11 @@ private:
 
 };
 
-/* complex <double> cgamma (complex <double> argument)
-{   // complex result of Gamma(z) with complex z
+/* std::complex <double> cgamma (std::complex <double> argument)
+{   // std::complex result of Gamma(z) with complex z
 
     // calc log(Gamma(z)) then exp^()
-    complex<double> result;
+    std::complex<double> result;
     gsl_sf_result result_logradius;
     gsl_sf_result result_phi;
     gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
@@ -81,16 +80,16 @@ private:
     radius = exp(radius);
     double phi = result_phi.val;
     result  = polar(radius,phi);
-    // cout << "Complex Gamma functions not supported by MKL " << endl;
+    // std::cout << "Complex Gamma functions not supported by MKL " << std::endl;
     // exit(1);
     return result;
 } */
 
 
 
-complex<double> ccgamma(complex<double> z,int OPT)
+std::complex<double> ccgamma(std::complex<double> z,int OPT)
 {
-    complex<double> g,z0,z1;
+    std::complex<double> g;
     double x0,q1,q2,x,y,th,th1,th2,g0,gr,gi,gr1,gi1;
     double na=0,t,x1=0,y1,sr,si;
     //int i,j,k;
@@ -110,9 +109,9 @@ complex<double> ccgamma(complex<double> z,int OPT)
 
     x = real(z);
     y = imag(z);
-    if (x > 171) return complex<double>(1e308,0);
+    if (x > 171) return std::complex<double>(1e308,0);
     if ((y == 0.0) && (x == (int)x) && (x <= 0.0))
-        return complex<double>(1e308,0);
+        return std::complex<double>(1e308,0);
     else if (x < 0.0) {
         x1 = x;
         y1 = y;
@@ -161,13 +160,13 @@ complex<double> ccgamma(complex<double> z,int OPT)
         gr = g0*cos(gi);
         gi = g0*sin(gi);
     }
-    g = complex<double>(gr,gi);
+    g = std::complex<double>(gr,gi);
     return g;
 }
 
 
 
-void Rates::Initialize(Property *options) {
+void Rates::Initialize(tools::Property *options) {
 
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
@@ -192,24 +191,24 @@ void Rates::Initialize(Property *options) {
     double T = options->get(key+".temperature").as<double> ();
     _kT = 8.6173324e-5 * T;
 
-    vec F = options->get(key+".field").as<vec>();
+    tools::vec F = options->get(key+".field").as<tools::vec>();
     _F = F;
 
 
     // Method
     if (options->exists(key+".method")) {
-        _rateType = options->get(key+".method").as<string> ();
+        _rateType = options->get(key+".method").as<std::string> ();
     }
     else {
-        cout << endl 
+        std::cout << std::endl 
              << "... ... ERROR: No method to calculate rates specified. "
-             << endl;
+             << std::endl;
         throw std::runtime_error("Missing input in options file.");
     }
     if (_rateType != "marcus" && _rateType != "jortner" && _rateType != "weissdorsey" && _rateType != "sven") {
-        cout << endl
+        std::cout << std::endl
              << "... ... ERROR: Unknown rate type '" << _rateType << "' "
-             << endl;
+             << std::endl;
         throw std::runtime_error("Faulty input in options file.");
     }
 
@@ -223,7 +222,7 @@ void Rates::Initialize(Property *options) {
         }
         else {
             _nMaxVib = 20;
-            cout << endl << "... ... WARNING: No cut-off number for QM vibrations "
+            std::cout << std::endl << "... ... WARNING: No cut-off number for QM vibrations "
                             "provided, using default 20.";
         }
         if (options->exists(key+".omegavib")) {
@@ -231,7 +230,7 @@ void Rates::Initialize(Property *options) {
         }
         else {
             _omegaVib = 0.2;
-            cout << endl << "... ... WARNING: No QM vibration frequency provided, "
+            std::cout << std::endl << "... ... WARNING: No QM vibration frequency provided, "
                             "using default 0.2eV.";
         }
     }
@@ -244,7 +243,7 @@ void Rates::Initialize(Property *options) {
         }
         else {
             _kondo = 4.0;
-            cout << endl << "... ... WARNING: No Kondo parameter provided. Using default 4.0.";
+            std::cout << std::endl << "... ... WARNING: No Kondo parameter provided. Using default 4.0.";
         }
     }
 
@@ -253,16 +252,16 @@ void Rates::Initialize(Property *options) {
 }
 
 
-void Rates::ParseEnergiesXML(Topology *top, Property *opt) {
+void Rates::ParseEnergiesXML(Topology *top, tools::Property *opt) {
 
-    string key = "options.rates";
-    string energiesXML = opt->get(key+".energiesXML").as<string> ();
+    std::string key = "options.rates";
+    std::string energiesXML = opt->get(key+".energiesXML").as<std::string> ();
 
-    cout << endl
+    std::cout << std::endl
          << "... ... Site, reorg. energies from " << energiesXML << ". "
-         << flush;
+         << std::flush;
 
-    Property alloc;
+    tools::Property alloc;
     load_property_from_xml(alloc, energiesXML.c_str());
 
     /* --- ENERGIES.XML Structure ---
@@ -297,17 +296,17 @@ void Rates::ParseEnergiesXML(Topology *top, Property *opt) {
      */
 
     key = "topology.molecules.molecule";
-    list<Property*> mols = alloc.Select(key);
-    list<Property*> ::iterator molit;
+    std::list<tools::Property*> mols = alloc.Select(key);
+    std::list<tools::Property*> ::iterator molit;
     for (molit = mols.begin(); molit != mols.end(); ++molit) {
 
         key = "segments.segment";
-        list<Property*> segs = (*molit)->Select(key);
-        list<Property*> ::iterator segit;
+        std::list<tools::Property*> segs = (*molit)->Select(key);
+        std::list<tools::Property*> ::iterator segit;
 
         for (segit = segs.begin(); segit != segs.end(); ++segit) {
 
-            string segName = (*segit)->get("name").as<string> ();
+            std::string segName = (*segit)->get("name").as<std::string> ();
 
             bool has_e = false;
             bool has_h = false;
@@ -357,15 +356,15 @@ void Rates::ParseEnergiesXML(Topology *top, Property *opt) {
 
 void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
 
-    cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << ". " << flush;
+    std::cout << "\r... ... Evaluating pair " << qmpair->getId()+1 << ". " << std::flush;
 
     bool pair_has_e = false;
     bool pair_has_h = false;
     bool pair_has_s = false;
     bool pair_has_t = false;
 
-    string segName1 = qmpair->first->getName();
-    string segName2 = qmpair->second->getName();
+    std::string segName1 = qmpair->first->getName();
+    std::string segName2 = qmpair->second->getName();
 
     pair_has_e = qmpair->isPathCarrier(-1);
     pair_has_h = qmpair->isPathCarrier(+1);
@@ -377,9 +376,9 @@ void Rates::EvaluatePair(Topology *top, QMPair *qmpair) {
 //        pair_has_h = _seg_has_h.at(segName1) && _seg_has_h.at(segName2);
 //    }
 //    catch (out_of_range) {
-//        cout << endl << "... ... WARNING: No energy information for pair ["
+//        std::cout << std::endl << "... ... WARNING: No energy information for pair ["
 //                     << segName1 << ", " << segName2 << "]. "
-//                     << "Skipping... " << endl;
+//                     << "Skipping... " << std::endl;
 //
 //        return;
 //    }
@@ -491,19 +490,19 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
     // +++++++++++++ //
 
     if (_rateType == "jortner" && lOut < 0.) {
-        cout << endl
+        std::cout << std::endl
              << "... ... ERROR: Pair " << qmpair->getId() << " has negative "
                 "outer-sphere reorganization energy. Cannot calculate Jortner "
                 "rates. "
-             << endl;
+             << std::endl;
         throw std::runtime_error("");
     }
     else if (_rateType == "jortner" && lOut < 0.01) {
-        cout << endl
+        std::cout << std::endl
              << "... ... WARNING: Pair " << qmpair->getId() << " has small "
                 "outer-sphere reorganization energy (" << lOut << "eV). Could "
                 "lead to over-estimated Jortner rates."
-             << endl;
+             << std::endl;
     }
 
     if (_rateType == "jortner") {
@@ -561,10 +560,10 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq12 = reorg12 /2 /_kondo/hbar_eV;
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
-        complex<double> M_I = complex<double>(0.0,1.0);
-       /* cout << endl;
-       cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << endl;
-       cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << endl;
+        std::complex<double> M_I = std::complex<double>(0.0,1.0);
+       /* std::cout << std::endl;
+       std::cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << std::endl;
+       std::cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << std::endl;
       */
         
        rate12 = J2/pow(hbar_eV,2)/characfreq12
@@ -609,9 +608,9 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double _rate_symm12 = rate12 * exp( -e1 / _kT );
         double _rate_symm21 = rate21 * exp( -e2 / _kT );
         
-        cout << " " << qmpair->Seg1()->getId() << " " << qmpair->Seg2()->getId() <<
+        std::cout << " " << qmpair->Seg1()->getId() << " " << qmpair->Seg2()->getId() <<
                 rate_symm12 << " " << " " << rate_symm21 << " " <<
-                _rate_symm12 << " " <<  _rate_symm21 << endl;
+                _rate_symm12 << " " <<  _rate_symm21 << std::endl;
     }
 
     qmpair->setRate12(rate12, state);
@@ -621,9 +620,8 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
 }
 
 int Rates::Factorial(int i) {
-    int k,j;
-    k = 1;
-    for (j=1; j<i; j++) { k = k*(j+1); }
+    int k= 1;
+    for (int j=1; j<i; j++) { k = k*(j+1); }
     return k;
 }
 

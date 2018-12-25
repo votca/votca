@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,9 +16,10 @@
  * limitations under the License.
  *
  */
+/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef _XTP_QMTHREAD_H
-#define	_XTP_QMTHREAD_H
+#ifndef VOTCA_XTP_QMTHREAD_H
+#define	VOTCA_XTP_QMTHREAD_H
 
 #include "votca/tools/thread.h"
 #include "votca/tools/globals.h"
@@ -28,66 +29,35 @@
 #include <ctime>
 
 namespace votca { namespace xtp {
-    
 
-    // ++++++++++++++++++++++++++++++++++++++ //
-    // Thread class with local string stream //
-    // ++++++++++++++++++++++++++++++++++++++ //
+  // ++++++++++++++++++++++++++++++++++++++ //
+  // Thread class with local string stream //
+  // ++++++++++++++++++++++++++++++++++++++ //
 
-     class QMThread : public Thread
-    {
-
-        /*
-        friend ostream& operator<<( ostream& out, QMThread&  t ) {
-           out << (t._ss).str();
-           t._ss.str( "" );
-           return out;
-       }
-       
-
-        template <class Traits> 
-        friend QMThread& operator<<( QMThread &t,  Traits& inp ) {
-            
-            if ( tools::globals::verbose ) { 
-                if ( t._maverick ) { std::cout << inp ; }
-                else { t._ss << inp ; }
-            }
-            return t;
-        }
-        
-        template <class Traits> 
-        friend QMThread& operator>>( Traits& inp, QMThread & t ) {
-            
-            if ( tools::globals::verbose ) { 
-                if ( t._maverick ) { std::cout << inp ; }
-                else { t._ss << inp ; }
-            }           
-            return t;
-        }        
-        */
-       
+  class QMThread : public tools::Thread
+  {
     public:
-        QMThread() { _maverick = false; }
-        QMThread(bool maverick) { _maverick = maverick; }; 
-       ~QMThread() {};
+      QMThread() { _maverick = false; }
+      QMThread(bool maverick) { _maverick = maverick; }; 
+      ~QMThread() {};
 
-        int  getId() { return _id; }
-        void setId(int id) { _id = id; }
-        bool isMaverick() { return _maverick; }
-       
-        Logger* getLogger() { return &_logger; }
-        virtual void Run(void) { ; }
-       
+      int  getId() { return _id; }
+      void setId(int id) { _id = id; }
+      bool isMaverick() { return _maverick; }
+
+      Logger* getLogger() { return &_logger; }
+      virtual void Run(void) { ; }
+
     protected:
-        
-        int              _id;
-        std::stringstream     _ss;
-        bool             _maverick;
-        Logger           _logger;
 
-    };
-    
-    
+      int              _id;
+      std::stringstream     _ss;
+      bool             _maverick;
+      Logger           _logger;
+
+  };
+
+
 }}
 
-#endif /* _XTP_QMTHREAD_H */
+#endif // VOTCA_XTP_QMTHREAD_H

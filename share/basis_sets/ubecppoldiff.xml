@@ -1,4 +1,4 @@
-<basis name="ubecp">
+<basis name="ubecppoldiff">
 	<element name="C">
 		<shell type="S" scale="1.00">
 			<constant decay="2.263101" >

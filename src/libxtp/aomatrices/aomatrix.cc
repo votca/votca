@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,526 +16,449 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
+
 #include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <boost/multi_array.hpp>
-#include <votca/xtp/logger.h>
-#include <votca/tools/linalg.h>
-// #include <omp.h>
 
 
-using namespace votca::tools;
 
-namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+namespace votca {
+    namespace xtp {
 
-    void AOSuperMatrix::PrintIndexToFunction( AOBasis* aobasis){
-        for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
-            AOShell* _shell_row = aobasis->getShell( _row );
-            int _row_start = _shell_row->getStartIndex();
-            string type = _shell_row->getType();
-            cout << "Shell " << type << "starts at " << _row_start+1 << endl;
-        }
-    }
-    
-    void AOMatrix::Fill( AOBasis* aobasis, ub::vector<double> r, AOBasis* ecp ) {
-        // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
-
-          //      cout << aobasis->_aoshells.size();
-      
-        _gridpoint = r;
-        // loop row
-        #pragma omp parallel for
-        for (unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
-        //for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
-            //cout << " act threads: " << omp_get_thread_num( ) << " total threads " << omp_get_num_threads( ) << " max threads " << omp_get_max_threads( ) <<endl;
-            AOShell* _shell_row = aobasis->getShell( _row );
-            int _row_start = _shell_row->getStartIndex();
-            int _row_end   = _row_start + _shell_row->getNumFunc();
-           
-            // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
-            for ( unsigned _col = 0; _col <= _row ; _col++ ){
-
-                AOShell* _shell_col = aobasis->getShell( _col );
-                
-                // figure out the submatrix
-                int _col_start = _shell_col->getStartIndex();
-                int _col_end   = _col_start + _shell_col->getNumFunc();
-                //cout << _row << ":" << _row_start << ":" << _row_end << "/" << _col << ":" <<  _col_start << ":" << _col_end << endl;
-                ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
-
-                // Fill block
-                FillBlock( _submatrix, _shell_row, _shell_col, ecp );
-
+        void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis) {
+            for ( const AOShell& shell:aobasis) {
+                int row_start = shell.getStartIndex();
+                std::string type = shell.getType();
+                std::cout << "Shell " << type << "starts at " << row_start + 1 << std::endl;
             }
+            return;
         }
+
         
-        // Fill whole matrix by copying
-        for ( unsigned _i=0; _i < _aomatrix.size1(); _i++){
-            for ( unsigned _j=0; _j < _i; _j++){
-               _aomatrix(_j,_i) = _aomatrix(_i,_j); 
-                       
-            }
-        }
-     
- 
-        
-      
-        // check symmetry
-         bool _is_symmetric = true;
-        
-        // Copy stuff to fill lower triangular part
-         for ( unsigned _i=0; _i < this->_aomatrix.size1(); _i++){
-            for (unsigned _j=0; _j <= _i; _j++){
-         
-                if ( std::abs(this->_aomatrix(_i,_j) - this->_aomatrix(_j,_i) ) > 1e-4 ) {
-                    
-                    cerr << _i << ":" << _j << " == " << this->_aomatrix(_i,_j) << " vs " <<  this->_aomatrix(_j,_i) << endl;
-                    _is_symmetric = false;
+        template< class T> 
+        void AOMatrix<T>::Fill(const AOBasis& aobasis) {
+            _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
+            // loop row
+            #pragma omp parallel for schedule(guided)
+            for (int row = 0; row < aobasis.getNumofShells(); row++) {
+                const AOShell& shell_row = aobasis.getShell(row);
+                int row_start = shell_row.getStartIndex();
+
+                // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
+                for (int col = row; col <  aobasis.getNumofShells(); col++) {
+                    const AOShell& shell_col = aobasis.getShell(col);
+                    // figure out the submatrix
+                    int col_start = shell_col.getStartIndex();
+                    Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block=
+                            _aomatrix.block(row_start,col_start, shell_row.getNumFunc(),shell_col.getNumFunc());
+                    // Fill block
+                    FillBlock(block, shell_row, shell_col);
                 }
-                
             }
-        }
-        if ( !_is_symmetric) {cerr << " Error: AOMatrix is not symmetric! "; exit(1);}
-        
-       
-        
-    }
-    
-    
-    void AOMatrix3D::Fill( AOBasis* aobasis ) {
-        // cout << "I'm supposed to fill out the AO overlap matrix" << endl;
-        
-        // loop row
-        #pragma omp parallel for
-        for ( unsigned _row = 0; _row <  aobasis->_aoshells.size() ; _row++ ){
-        // for (vector< AOShell* >::iterator _row = aobasis->firstShell(); _row != aobasis->lastShell() ; _row++ ) {
-            AOShell* _shell_row = aobasis->getShell( _row );
-            int _row_start = _shell_row->getStartIndex();
-            int _row_end   = _row_start + _shell_row->getNumFunc();
-
-            // loop column
-            for (vector< AOShell* >::iterator _col = aobasis->firstShell(); _col != aobasis->lastShell() ; _col++ ) {
-                AOShell* _shell_col = aobasis->getShell( _col );
-                
-                // figure out the submatrix
-                int _col_start = _shell_col->getStartIndex();
-                int _col_end   = _col_start + _shell_col->getNumFunc();
-                std::vector< ub::matrix_range< ub::matrix<double> > > _submatrix;
-                for ( int _i = 0; _i < 3; _i++){
-                   _submatrix.push_back(   ub::subrange(this->_aomatrix[_i], _row_start, _row_end, _col_start, _col_end) );
-                //ub::matrix_range< ub::matrix<double> > _submatrix = ub::subrange(this->_aomatrix, _row_start, _row_end, _col_start, _col_end);
+            // Fill whole matrix by copying
+        for ( int i=0; i < _aomatrix.rows(); i++){
+                for (int j = 0; j < i; j++) {
+                    _aomatrix(i, j) = _aomatrix(j, i);
                 }
-                // Fill block
-                FillBlock( _submatrix, _shell_row, _shell_col);
-
             }
+
+            return;
         }
-    }
-    
-    void AOMatrix3D::Cleanup(){
-        
-        for (int i = 0; i < 3; i++){
-            
-            _aomatrix[i].resize(0,0);
-            
-        }
-        _aomatrix.clear();
-        
-    }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    //    AOMatrix::~AOMatrix() {
-    // ;
-      //_aomatrix.clear();
-    //    _aomatrix.resize(0,0);
-    // };
-    
-    
-    void AOMatrix::Print( string _ident){
-        cout << "\n" << endl;
-        std::cout.precision(12);
-        for ( unsigned i =0; i< this->_aomatrix.size1(); i++){
-            for ( unsigned j =0; j< this->_aomatrix.size2(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " << scientific << this->_aomatrix(i,j) << endl;
+
+
+        void AOMatrix3D::Fill(const AOBasis& aobasis) {
+            for (int i = 0; i < 3; i++) {
+          _aomatrix[ i ] = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
             }
-        }
-    }
-    
-    
-       void AOMatrix3D::Print( string _ident){
-        cout << "\n" << endl;
-        for ( unsigned i =0; i< this->_aomatrix[0].size1(); i++){
-            for ( unsigned j =0; j< this->_aomatrix[0].size2(); j++){
-                cout << _ident << "[" << i+1 << ":" << j+1 << "] " <<  this->_aomatrix[0](i,j) << " : " <<  this->_aomatrix[1](i,j) << " : " <<  this->_aomatrix[2](i,j)  << endl;
+            // loop row
+#pragma omp parallel for
+            for (int row = 0; row < aobasis.getNumofShells(); row++) {
+                const AOShell& shell_row = aobasis.getShell(row);
+                int row_start = shell_row.getStartIndex();
+                // loop column
+                for (const AOShell& shell_col:aobasis) {
+                    // figure out the submatrix
+                    int col_start = shell_col.getStartIndex();
+                std::vector< Eigen::Block<Eigen::MatrixXd> > submatrix;
+                    for (int i = 0; i < 3; i++) {
+                   Eigen::Block<Eigen::MatrixXd> block=_aomatrix[i].block( row_start,col_start,shell_row.getNumFunc(),shell_col.getNumFunc());
+                   submatrix.push_back(block);
+                    }
+                    // Fill block
+                    FillBlock(submatrix, shell_row, shell_col);
+                }
             }
-        }
-    }
-       
-       void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay, std::vector<double> contractions){
-        // s-functions
-        _trafo(0,0) = 1.0*contractions[0]; // s
-       
-        // p-functions
-        if ( _lmax > 0 ){
-            //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
-            _trafo(1,1) = 2.0*sqrt(_decay)*contractions[1];
-            _trafo(2,2) = 2.0*sqrt(_decay)*contractions[1];
-            _trafo(3,3) = 2.0*sqrt(_decay)*contractions[1];
-        }
-        //votca order is dxz dyz dxy d3z2-r2 dx2-y2
-        // d-functions
-        if ( _lmax > 1 ){
-            _trafo(4,5) = 4.0*_decay*contractions[2];             // dxz
-            _trafo(5,6) = _trafo(4,5);            // dyz
-            _trafo(6,4) = _trafo(4,5);            // dxy
-            _trafo(7,7) = -2.0*_decay/sqrt(3.0)*contractions[2];  // d3z2-r2 (dxx)
-            _trafo(7,8) = _trafo(7,7);            // d3z2-r2 (dyy)
-            _trafo(7,9) = -2.0*_trafo(7,7);       // d3z2-r2 (dzz)
-            _trafo(8,7) = 2.0*_decay*contractions[2];             // dx2-y2 (dxx)
-            _trafo(8,8) = -_trafo(8,7);           // dx2-y2 (dzz)
-        }
-        
-        // f-functions
-        if ( _lmax > 2 ){
-            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5)/sqrt(15.)*contractions[3]; // f1 (f??)
-            _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
-            _trafo(9,17) = _trafo(9,15);               // f1 (f??)
-            
-            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0)/sqrt(5.0) * pow(_decay,1.5)*contractions[3]; // f2 (f??)
-            _trafo(10,10) = -0.25 * _trafo(10,16);                             // f2 f(??)
-            _trafo(10,14) = _trafo(10,10);                                     // f2 f(??)
-            
-            _trafo(11,18) = _trafo(10,16);                                     // f3 (f??)
-            _trafo(11,13) = -0.25 * _trafo(11,18);                             // f3 f(??)
-            _trafo(11,11) = _trafo(11,13);                                     // f3 f(??)            
-                   
-            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,1.5)*contractions[3]; // f4 (f??)
-            _trafo(12,11) = -_trafo(12,13)/3.0;                                // f4 (f??)
-            
-            _trafo(13,10) = -_trafo(12,11);                                    // f5 (f??)
-            _trafo(13,14) = -_trafo(12,13);                                    // f5 (f??)
-            
-            _trafo(14,19) = 8.0 * pow(_decay,1.5)*contractions[3];                             // f6 (f??)
-            
-            _trafo(15,15) = 0.5 * _trafo(14,19);                               // f7 (f??)
-            _trafo(15,17) = -_trafo(15,15);                                    // f7 (f??)
-        }
-        
-        // g-functions
-        if ( _lmax > 3 ){
-            _trafo(16,22) = 8.0 * 2.0/sqrt(105.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(16,21) = 3.0 * 2.0/sqrt(105.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(16,20) = _trafo(16,21);
-            _trafo(16,29) = -3.0 * _trafo(16,22);
-            _trafo(16,31) = 2.0 * _trafo(16,21);
-            _trafo(16,30) = _trafo(16,29);
-            _trafo(16,5)  = _trafo(16,31);
-            
-             /* vv(17,:) =  (/   23,  22, 21, 30, 32, 31,   6 /) ! g
-                cc(17,:) =  (/    8,  3, 3, -24, 6, -24,    6 /)
-                normConst(17,:) = (/ 2.d0/sqrt(105.d0) ,2.d0  /)
-              */
-            _trafo(17,26) = 4.0 * 4.0*sqrt(2.0)/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(17,25) = -0.75 * _trafo(17,26);
-            _trafo(17,33) = _trafo(17,25);
-             
-             /* vv(18,:) =  (/   27,  26, 34,  0,  0,  0,   3 /) ! g
-                cc(18,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-                normConst(18,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-              */
-            
-            _trafo(18,28) = _trafo(17,26);
-            _trafo(18,32) = _trafo(17,25);
-            _trafo(18,27) = _trafo(17,25);
-             
-            /* vv(19,:) =  (/   29,  33, 28,  0,  0,  0,   3 /) ! g 
-               cc(19,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-               normConst(19,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-             */
-     
-            _trafo(19,34) = 6.0 * 8.0/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(19,23) = -_trafo(19,34)/6.0;
-            _trafo(19,24) = _trafo(19,23);
-             
-            /* vv(20,:) =  (/   35,  24, 25,  0,  0,  0,   3 /) ! g
-               cc(20,:) =  (/    6,  -1, -1,  0,  0,  0,   3 /)
-               normConst(20,:) = (/ 8.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(20,29) = 6.0 * 4.0/sqrt(21.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(20,20) = -_trafo(20,29)/6.0;
-            _trafo(20,30) = -_trafo(20,29);
-            _trafo(20,21) = -_trafo(20,20);
-
-            /* vv(21,:) =  (/   30,  21, 31, 22,  0,  0,   4 /) ! g
-               cc(21,:) =  (/    6,  -1, -6, 1,  0,  0,    4 /)
-               normConst(21,:) = (/ 4.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(21,25) = 4.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(21,33) = -3.0 * _trafo(21,25);
-             
-            /* vv(22,:) =  (/   26,  34,  0,  0,  0,  0,   2 /) ! g
-               cc(22,:) =  (/    1,  -3,  0,  0,  0,  0,   2 /)
-               normConst(22,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(22,32) = -_trafo(21,33);
-            _trafo(22,27) = -_trafo(21,25);
-            
-            /* vv(23,:) =  (/   33,  28,  0,  0,  0,  0,   2 /) ! g
-               cc(23,:) =  (/    3,  -1,  0,  0,  0,  0,   2 /)
-               normConst(23,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(23,23) = 8.0/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(23,24) = -_trafo(23,23);
-             
-            /* vv(24,:) =  (/   24,  25,  0,  0,  0,  0,   2 /) ! g 
-               cc(24,:) =  (/    1,  -1,  0,  0,  0,  0,   2 /)
-               normConst(24,:) = (/ 8.d0/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(24,20) = 2.0/sqrt(3.0) * pow(_decay,2.0)*contractions[4];
-            _trafo(24,21) = _trafo(24,20);
-            _trafo(24,31) = -6.0 * _trafo(24,20);
-             
-            /* vv(25,:) =  (/   21,  22, 32,  0,  0,  0,   3 /) ! g
-               cc(25,:) =  (/    1,  1, -6,  0,  0,  0,   3  /)
-               normConst(25,:) = (/ 2.d0/sqrt(3.d0) ,2.d0  /)
-             */
-           
-       
-       }
-       }
-       
-    void AOSuperMatrix::getTrafo(ub::matrix<double>& _trafo, int _lmax, const double& _decay) {
-        // s-functions
-        _trafo(0,0) = 1.0; // s
-       
-        // p-functions
-        if ( _lmax > 0 ){
-            //cout << _trafo_row.size1() << ":" << _trafo_row.size2() << endl;
-            _trafo(1,1) = 2.0*sqrt(_decay);
-            _trafo(2,2) = 2.0*sqrt(_decay);
-            _trafo(3,3) = 2.0*sqrt(_decay);
+            return;
         }
 
-        // d-functions
-        if ( _lmax > 1 ){
-            _trafo(4,5) = 4.0*_decay;             // dxz
-            _trafo(5,6) = _trafo(4,5);            // dyz
-            _trafo(6,4) = _trafo(4,5);            // dxy
-            _trafo(7,7) = -2.0*_decay/sqrt(3.0);  // d3z2-r2 (dxx)
-            _trafo(7,8) = _trafo(7,7);            // d3z2-r2 (dyy)
-            _trafo(7,9) = -2.0*_trafo(7,7);       // d3z2-r2 (dzz)
-            _trafo(8,7) = 2.0*_decay;             // dx2-y2 (dxx)
-            _trafo(8,8) = -_trafo(8,7);           // dx2-y2 (dzz)
+        void AOMatrix3D::FreeMatrix() {
+            for (int i = 0; i < 3; i++) {
+                _aomatrix[i].resize(0, 0);
+            }
+            return;
         }
-        
-        // f-functions
-        if ( _lmax > 2 ){
-            _trafo(9,12) = 4.0 * 2.0 *pow(_decay,1.5)/sqrt(15.); // f1 (f??)
-            _trafo(9,15) = -1.5 * _trafo(9,12);        // f1 (f??)
-            _trafo(9,17) = _trafo(9,15);               // f1 (f??)
-            
-            _trafo(10,16) = 4.0 * 2.0 * sqrt(2.0)/sqrt(5.0) * pow(_decay,1.5); // f2 (f??)
-            _trafo(10,10) = -0.25 * _trafo(10,16);                             // f2 f(??)
-            _trafo(10,14) = _trafo(10,10);                                     // f2 f(??)
-            
-            _trafo(11,18) = _trafo(10,16);                                     // f3 (f??)
-            _trafo(11,13) = -0.25 * _trafo(11,18);                             // f3 f(??)
-            _trafo(11,11) = _trafo(11,13);                                     // f3 f(??)            
-                   
-            _trafo(12,13) = 3.0 * 2.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,1.5); // f4 (f??)
-            _trafo(12,11) = -_trafo(12,13)/3.0;                                // f4 (f??)
-            
-            _trafo(13,10) = -_trafo(12,11);                                    // f5 (f??)
-            _trafo(13,14) = -_trafo(12,13);                                    // f5 (f??)
-            
-            _trafo(14,19) = 8.0 * pow(_decay,1.5);                             // f6 (f??)
-            
-            _trafo(15,15) = 0.5 * _trafo(14,19);                               // f7 (f??)
-            _trafo(15,17) = -_trafo(15,15);                                    // f7 (f??)
-        }
-        
-        // g-functions
-        if ( _lmax > 3 ){
-            _trafo(16,22) = 8.0 * 2.0/sqrt(105.0) * pow(_decay,2.0);
-            _trafo(16,21) = 3.0 * 2.0/sqrt(105.0) * pow(_decay,2.0);
-            _trafo(16,20) = _trafo(16,21);
-            _trafo(16,29) = -3.0 * _trafo(16,22);
-            _trafo(16,31) = 2.0 * _trafo(16,21);
-            _trafo(16,30) = _trafo(16,29);
-            _trafo(16,5)  = _trafo(16,31);
-            
-             /* vv(17,:) =  (/   23,  22, 21, 30, 32, 31,   6 /) ! g
-                cc(17,:) =  (/    8,  3, 3, -24, 6, -24,    6 /)
-                normConst(17,:) = (/ 2.d0/sqrt(105.d0) ,2.d0  /)
-              */
-            _trafo(17,26) = 4.0 * 4.0*sqrt(2.0)/sqrt(21.0) * pow(_decay,2.0);
-            _trafo(17,25) = -0.75 * _trafo(17,26);
-            _trafo(17,33) = _trafo(17,25);
-             
-             /* vv(18,:) =  (/   27,  26, 34,  0,  0,  0,   3 /) ! g
-                cc(18,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-                normConst(18,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-              */
-            
-            _trafo(18,28) = _trafo(17,26);
-            _trafo(18,32) = _trafo(17,25);
-            _trafo(18,27) = _trafo(17,25);
-             
-            /* vv(19,:) =  (/   29,  33, 28,  0,  0,  0,   3 /) ! g 
-               cc(19,:) =  (/    4,  -3, -3,  0,  0,  0,   3 /)
-               normConst(19,:) = (/ 4.d0*sqrt(2.d0)/sqrt(21.d0) ,2.d0  /)
-             */
-     
-            _trafo(19,34) = 6.0 * 8.0/sqrt(21.0) * pow(_decay,2.0);
-            _trafo(19,23) = -_trafo(19,34)/6.0;
-            _trafo(19,24) = _trafo(19,23);
-             
-            /* vv(20,:) =  (/   35,  24, 25,  0,  0,  0,   3 /) ! g
-               cc(20,:) =  (/    6,  -1, -1,  0,  0,  0,   3 /)
-               normConst(20,:) = (/ 8.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(20,29) = 6.0 * 4.0/sqrt(21.0) * pow(_decay,2.0);
-            _trafo(20,20) = -_trafo(20,29)/6.0;
-            _trafo(20,30) = -_trafo(20,29);
-            _trafo(20,21) = -_trafo(20,20);
 
-            /* vv(21,:) =  (/   30,  21, 31, 22,  0,  0,   4 /) ! g
-               cc(21,:) =  (/    6,  -1, -6, 1,  0,  0,    4 /)
-               normConst(21,:) = (/ 4.d0/sqrt(21.d0) ,2.d0  /)
-             */
-    
-            _trafo(21,25) = 4.0 * sqrt(2.0)/sqrt(3.0) * pow(_decay,2.0);
-            _trafo(21,33) = -3.0 * _trafo(21,25);
-             
-            /* vv(22,:) =  (/   26,  34,  0,  0,  0,  0,   2 /) ! g
-               cc(22,:) =  (/    1,  -3,  0,  0,  0,  0,   2 /)
-               normConst(22,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(22,32) = -_trafo(21,33);
-            _trafo(22,27) = -_trafo(21,25);
-            
-            /* vv(23,:) =  (/   33,  28,  0,  0,  0,  0,   2 /) ! g
-               cc(23,:) =  (/    3,  -1,  0,  0,  0,  0,   2 /)
-               normConst(23,:) = (/ 4.d0*sqrt(2.d0)/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(23,23) = 8.0/sqrt(3.0) * pow(_decay,2.0);
-            _trafo(23,24) = -_trafo(23,23);
-             
-            /* vv(24,:) =  (/   24,  25,  0,  0,  0,  0,   2 /) ! g 
-               cc(24,:) =  (/    1,  -1,  0,  0,  0,  0,   2 /)
-               normConst(24,:) = (/ 8.d0/sqrt(3.d0) ,2.d0  /)
-             */
-    
-            _trafo(24,20) = 2.0/sqrt(3.0) * pow(_decay,2.0);
-            _trafo(24,21) = _trafo(24,20);
-            _trafo(24,31) = -6.0 * _trafo(24,20);
-             
-            /* vv(25,:) =  (/   21,  22, 32,  0,  0,  0,   3 /) ! g
-               cc(25,:) =  (/    1,  1, -6,  0,  0,  0,   3  /)
-               normConst(25,:) = (/ 2.d0/sqrt(3.d0) ,2.d0  /)
-             */
-               
-        }
-        
-        
-    }
+        template<class T> void AOMatrix<T>::Print(std::string ident) {
+            std::cout << "\n" << std::endl;
+            std::cout.precision(12);
+        for ( int i =0; i< _aomatrix.rows(); i++){
+            for ( int j =0; j< _aomatrix.cols(); j++){
+                std::cout << ident << "[" << i+1 << ":" << j+1 << "] " << std::scientific <<_aomatrix(i,j) << std::endl;
+                }
+            }
+    }   
 
-    void AOMatrix::XIntegrate(vector<double>& _FmT, const double& _T  ){
-        
-        const int _mm = _FmT.size() - 1;
-        const double pi = boost::math::constants::pi<double>();
-        if ( _mm < 0 || _mm > 10){
-            cerr << "mm is: " << _mm << " This should not have happened!" << flush;
-            exit(1);
-        }
-        
-        if ( _T < 0.0 ) {
-            cerr << "T is: " << _T << " This should not have happened!" << flush;
-            exit(1);
-        }
-  
-        if ( _T >= 10.0 ) {
-            // forward iteration
-            _FmT[0]=0.50*sqrt(pi/_T)* erf(sqrt(_T));
-
-            for (unsigned m = 1; m < _FmT.size(); m++ ){
-                _FmT[m] = (2*m-1) * _FmT[m-1]/(2.0*_T) - exp(-_T)/(2.0*_T) ;
+        void AOMatrix3D::Print(std::string ident) {
+            std::cout << "\n" << std::endl;
+        for ( int i =0; i< _aomatrix[0].rows(); i++){
+            for ( int j =0; j< _aomatrix[0].cols(); j++){
+                std::cout << ident << "[" << i+1 << ":" << j+1 << "] " <<  _aomatrix[0](i,j) << " : " <<  _aomatrix[1](i,j) << " : " <<  _aomatrix[2](i,j)  << std::endl;
+                }
             }
         }
 
-        if ( _T < 1e-10 ){
-           for ( unsigned m=0; m < _FmT.size(); m++){
-               _FmT[m] = 1.0/(2.0*m+1.0) - _T/(2.0*m+3.0); 
-           }
-        }
+       Eigen::MatrixXd AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian){
+            ///         0    1  2  3    4  5  6  7  8  9   10  11  12  13  14  15  16  17  18  19       20    21    22    23    24    25    26    27    28    29    30    31    32    33    34 
+            ///         s,   x, y, z,   xy xz yz xx yy zz, xxy xyy xyz xxz xzz yyz yzz xxx yyy zzz,    xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyz, yyzz, yzzz, xxxx, yyyy, zzzz,
+            const AOShell& shell = gaussian.getShell();
+            const int ntrafo = shell.getNumFunc() + shell.getOffset();
+            const double decay = gaussian.getDecay();
+            const int lmax = shell.getLmax();
+            const int n = getBlockSize(lmax);
+         Eigen::MatrixXd trafo=Eigen::MatrixXd::Zero(n,ntrafo); 
+            const std::vector<double>& contractions = gaussian.getContraction();
 
-        
-        if ( _T >= 1e-10 && _T < 10.0 ){
-            // backward iteration
-            double fm = 0.0;
-            for ( int m = 60; m >= _mm; m--){
-                fm = (2.0*_T)/(2.0*m+1.0) * ( fm + exp(-_T)/(2.0*_T));
-            } 
-            _FmT[_mm] = fm;
-            for (int m = _mm-1 ; m >= 0; m--){
-                _FmT[m] = (2.0*_T)/(2.0*m+1.0) * (_FmT[m+1] + exp(-_T)/(2.0*_T));
+            // s-functions
+            trafo(0, 0) = contractions[0]; //  // s  Y 0,0
+            // p-functions
+            if (lmax > 0) { // order of functions changed
+                const double factor = 2. * sqrt(decay) * contractions[1];
+                trafo(3, 1) = factor; // Y 1,0
+                trafo(2, 2) = factor; // Y 1,-1
+                trafo(1, 3) = factor; // Y 1,1
             }
+
+            // d-functions
+            if (lmax > 1) { // order of functions changed
+                const double factor = 2. * decay * contractions[2];
+                const double factor_1 = factor / sqrt(3.);
+                trafo(Cart::xx,4) = -factor_1; // d3z2-r2 (dxx)
+                trafo(Cart::yy,4) = -factor_1; // d3z2-r2 (dyy)  Y 2,0
+                trafo(Cart::zz,4) = 2. * factor_1; // d3z2-r2 (dzz)
+
+                trafo(Cart::yz,5) = 2. * factor; // dyz           Y 2,-1
+
+                trafo(Cart::xz,6) = 2. * factor; // dxz           Y 2,1
+
+                trafo(Cart::xy,7) = 2. * factor; // dxy           Y 2,-2
+
+                trafo(Cart::xx,8) = factor; // dx2-y2 (dxx)   Y 2,2
+                trafo(Cart::yy,8) = -factor; // dx2-y2 (dzz)
+            }
+
+            // f-functions
+            if (lmax > 2) { // order of functions changed
+                const double factor = 2. * pow(decay, 1.5) * contractions[3];
+                const double factor_1 = factor * 2. / sqrt(15.);
+                const double factor_2 = factor * sqrt(2.) / sqrt(5.);
+                const double factor_3 = factor * sqrt(2.) / sqrt(3.);
+
+                trafo(Cart::xxz,9) = -3. * factor_1; // f1 (f??) xxz 13
+                trafo(Cart::yyz,9) = -3. * factor_1; // f1 (f??) yyz 15        Y 3,0
+                trafo(Cart::zzz,9) = 2. * factor_1; // f1 (f??) zzz 19
+
+                trafo(Cart::xxy,10) = -factor_2; // f3 xxy 10
+                trafo(Cart::yyy,10) = -factor_2; // f3 yyy 18   Y 3,-1
+                trafo(Cart::yzz,10) = 4. * factor_2; // f3 yzz 16
+
+                trafo(Cart::xxx,11) = -factor_2; // f2 xxx 17
+                trafo(Cart::xyy,11) = -factor_2; // f2 xyy 11   Y 3,1
+                trafo(Cart::xzz,11) = 4. * factor_2; // f2 xzz 14
+
+                trafo(Cart::xyz,12) = 4. * factor; // f6 xyz 12     Y 3,-2
+
+                trafo(Cart::xxz,13) = 2. * factor; // f7 (f??)   xxz   13
+                trafo(Cart::yyz,13) = -2. * factor; // f7 (f??)   yyz   15   Y 3,2
+
+                trafo(Cart::xxy,14) = 3. * factor_3; // f4 xxy 10
+                trafo(Cart::yyy,14) = -factor_3; // f4 yyy 18   Y 3,-3
+
+                trafo(Cart::xxx,15) = factor_3; // f5 (f??) xxx 17
+                trafo(Cart::xyy,15) = -3. * factor_3; // f5 (f??) xyy 11     Y 3,3
+            }
+
+            // g-functions
+            if (lmax > 3) {
+                const double factor = 2. / sqrt(3.) * decay * decay * contractions[4];
+                const double factor_1 = factor / sqrt(35.);
+                const double factor_2 = factor * 4. / sqrt(14.);
+                const double factor_3 = factor * 2. / sqrt(7.);
+                const double factor_4 = factor * 2. * sqrt(2.);
+
+                trafo(Cart::xxxx,16) = 3. * factor_1; /// Y 4,0
+                trafo(Cart::xxyy,16) = 6. * factor_1;
+                trafo(Cart::xxzz,16) = -24. * factor_1;
+                trafo(Cart::yyyy,16) = 3. * factor_1;
+                trafo(Cart::yyzz,16) = -24. * factor_1;
+                trafo(Cart::zzzz,16) = 8. * factor_1;
+
+                trafo(Cart::xxyz,17) = -3. * factor_2; /// Y 4,-1
+                trafo(Cart::yyyz,17) = -3. * factor_2;
+                trafo(Cart::yzzz,17) = 4. * factor_2;
+
+                trafo(Cart::xxxz,18) = -3. * factor_2; /// Y 4,1
+                trafo(Cart::xyyz,18) = -3. * factor_2;
+                trafo(Cart::xzzz,18) = 4. * factor_2;
+
+                trafo(Cart::xxxy,19) = -2. * factor_3; /// Y 4,-2
+                trafo(Cart::xyyy,19) = -2. * factor_3;
+                trafo(Cart::xyzz,19) = 12. * factor_3;
+
+                trafo(Cart::xxxx,20) = -factor_3; /// Y 4,2
+                trafo(Cart::xxzz,20) = 6. * factor_3;
+                trafo(Cart::yyyy,20) = factor_3;
+                trafo(Cart::yyzz,20) = -6. * factor_3;
+
+                trafo(Cart::xxyz,21) = 3. * factor_4; /// Y 4,-3
+                trafo(Cart::yyyz,21) = -factor_4;
+
+                trafo(Cart::xxxz,22) = factor_4; /// Y 4,3
+                trafo(Cart::xyyz,22) = -3. * factor_4;
+
+                trafo(Cart::xxxy,23) = 4. * factor; /// Y 4,-4
+                trafo(Cart::xyyy,23) = -4. * factor;
+
+                trafo(Cart::xxxx,24) = factor; /// Y 4,4
+                trafo(Cart::xxyy,24) = -6. * factor;
+                trafo(Cart::yyyy,24) = factor;
+            }
+            // h-functions
+            if (lmax > 4) {
+                const double factor = (2. / 3.) * pow(decay, 2.5) * contractions[5];
+                const double factor_1 = factor * 2. / sqrt(105.);
+                const double factor_2 = factor * 2. / sqrt(7.);
+                const double factor_3 = factor * sqrt(6.) / 3.;
+                const double factor_4 = factor * 2. * sqrt(3.);
+                const double factor_5 = factor * .2 * sqrt(30.);
+
+                trafo(Cart::xxxxz,25) = 15. * factor_1; /// Y 5,0
+                trafo(Cart::xxyyz,25) = 30. * factor_1;
+                trafo(Cart::xxzzz,25) = -40. * factor_1;
+                trafo(Cart::yyyyz,25) = 15. * factor_1;
+                trafo(Cart::yyzzz,25) = -40. * factor_1;
+                trafo(Cart::zzzzz,25) = 8. * factor_1;
+
+                trafo(Cart::xxxxy,26) = factor_2; /// Y 5,-1
+                trafo(Cart::xxyyy,26) = 2. * factor_2;
+                trafo(Cart::xxyzz,26) = -12. * factor_2;
+                trafo(Cart::yyyyy,26) = factor_2;
+                trafo(Cart::yyyzz,26) = -12. * factor_2;
+                trafo(Cart::yzzzz,26) = 8. * factor_2;
+
+                trafo(Cart::xxxxx,27) = factor_2; /// Y 5,1
+                trafo(Cart::xxxyy,27) = 2. * factor_2;
+                trafo(Cart::xxxzz,27) = -12. * factor_2;
+                trafo(Cart::xyyyy,27) = factor_2;
+                trafo(Cart::xyyzz,27) = -12. * factor_2;
+                trafo(Cart::xzzzz,27) = 8. * factor_2;
+
+                trafo(Cart::xxxyz,28) = -8. * factor; /// Y 5,-2
+                trafo(Cart::xyyyz,28) = -8. * factor;
+                trafo(Cart::xyzzz,28) = 16. * factor;
+
+                trafo(Cart::xxxxz,29) = -4. * factor; /// Y 5,2
+                trafo(Cart::xxzzz,29) = 8. * factor;
+                trafo(Cart::yyyyz,29) = 4. * factor;
+                trafo(Cart::yyzzz,29) = -8. * factor;
+
+                trafo(Cart::xxxxy,30) = -3. * factor_3; /// Y 5,-3
+                trafo(Cart::xxyyy,30) = -2. * factor_3;
+                trafo(Cart::xxyzz,30) = 24. * factor_3;
+                trafo(Cart::yyyyy,30) = factor_3;
+                trafo(Cart::yyyzz,30) = -8. * factor_3;
+
+                trafo(Cart::xxxxx,31) = -factor_3; /// Y 5,3
+                trafo(Cart::xxxyy,31) = 2. * factor_3;
+                trafo(Cart::xxxzz,31) = 8. * factor_3;
+                trafo(Cart::xyyyy,31) = 3. * factor_3;
+                trafo(Cart::xyyzz,31) = -24. * factor_3;
+
+                trafo(Cart::xxxyz,32) = 4. * factor_4; /// Y 5,-4
+                trafo(Cart::xyyyz,32) = -4. * factor_4;
+
+                trafo(Cart::xxxxz,33) = factor_4; /// Y 5,4
+                trafo(Cart::xxyyz,33) = -6. * factor_4;
+                trafo(Cart::yyyyz,33) = factor_4;
+
+                trafo(Cart::xxxxy,34) = 5. * factor_5; /// Y 5,-5
+                trafo(Cart::xxyyy,34) = -10. * factor_5;
+                trafo(Cart::yyyyy,34) = factor_5;
+
+                trafo(Cart::xxxxx,35) = factor_5; /// Y 5,5
+                trafo(Cart::xxxyy,35) = -10. * factor_5;
+                trafo(Cart::xyyyy,35) = 5. * factor_5;
+            }
+
+            // i-functions
+            if (lmax > 5) {
+                const double factor = (2. / 3.) * decay * decay * decay * contractions[6];
+                const double factor_1 = factor * 2. / sqrt(1155.);
+                const double factor_2 = factor * 4. / sqrt(55.);
+                const double factor_3 = factor * sqrt(22.) / 11.;
+                const double factor_4 = factor * 2. * sqrt(165.) / 55.;
+                const double factor_5 = factor * .4 * sqrt(30.);
+                const double factor_6 = factor * .2 * sqrt(10.);
+
+                trafo(Cart::xxxxxx,36) = -5. * factor_1; /// Y 6,0
+                trafo(Cart::xxxxyy,36) = -15. * factor_1;
+                trafo(Cart::xxxxzz,36) = 90. * factor_1;
+                trafo(Cart::xxyyyy,36) = -15. * factor_1;
+                trafo(Cart::xxyyzz,36) = 180. * factor_1;
+                trafo(Cart::xxzzzz,36) = -120. * factor_1;
+                trafo(Cart::yyyyyy,36) = -5. * factor_1;
+                trafo(Cart::yyyyzz,36) = 90. * factor_1;
+                trafo(Cart::yyzzzz,36) = -120. * factor_1;
+                trafo(Cart::zzzzzz,36) = 16. * factor_1;
+
+                trafo(Cart::xxxxyz,37) = 5. * factor_2; /// Y 6,-1
+                trafo(Cart::xxyyyz,37) = 10. * factor_2;
+                trafo(Cart::xxyzzz,37) = -20. * factor_2;
+                trafo(Cart::yyyyyz,37) = 5. * factor_2;
+                trafo(Cart::yyyzzz,37) = -20. * factor_2;
+                trafo(Cart::yzzzzz,37) = 8. * factor_2;
+
+                trafo(Cart::xxxxxz,38) = 5. * factor_2; /// Y 6,1
+                trafo(Cart::xxxyyz,38) = 10. * factor_2;
+                trafo(Cart::xxxzzz,38) = -20. * factor_2;
+                trafo(Cart::xyyyyz,38) = 5. * factor_2;
+                trafo(Cart::xyyzzz,38) = -20. * factor_2;
+                trafo(Cart::xzzzzz,38) = 8. * factor_2;
+
+                trafo(Cart::xxxxxy,39) = 2. * factor_3; /// Y 6,-2
+                trafo(Cart::xxxyyy,39) = 4. * factor_3;
+                trafo(Cart::xxxyzz,39) = -32. * factor_3;
+                trafo(Cart::xyyyyy,39) = 2. * factor_3;
+                trafo(Cart::xyyyzz,39) = -32. * factor_3;
+                trafo(Cart::xyzzzz,39) = 32. * factor_3;
+
+                trafo(Cart::xxxxxy,40) = factor_3; /// Y 6,2
+                trafo(Cart::xxxxyy,40) = factor_3;
+                trafo(Cart::xxxxzz,40) = -16. * factor_3;
+                trafo(Cart::xxyyyy,40) = -factor_3;
+                trafo(Cart::xxzzzz,40) = 16. * factor_3;
+                trafo(Cart::yyyyyy,40) = -factor_3;
+                trafo(Cart::yyyyzz,40) = 16. * factor_3;
+                trafo(Cart::yyzzzz,40) = -16. * factor_3;
+
+                trafo(Cart::xxxxyz,41) = -18. * factor_3; /// Y 6,-3
+                trafo(Cart::xxyyyz,41) = -12. * factor_3;
+                trafo(Cart::xxyzzz,41) = 48. * factor_3;
+                trafo(Cart::yyyyyz,41) = 6. * factor_3;
+                trafo(Cart::yyyzzz,41) = -16. * factor_3;
+
+                trafo(Cart::xxxxxz,42) = -6. * factor_3; /// Y 6,3
+                trafo(Cart::xxxyyz,42) = 12. * factor_3;
+                trafo(Cart::xxxzzz,42) = 16. * factor_3;
+                trafo(Cart::xyyyyz,42) = 18. * factor_3;
+                trafo(Cart::xyyzzz,42) = -48. * factor_3;
+
+                trafo(Cart::xxxxxy,43) = -4. * factor_4; /// Y 6,-4
+                trafo(Cart::xxxyzz,43) = 40. * factor_4;
+                trafo(Cart::xyyyyy,43) = 4. * factor_4;
+                trafo(Cart::xyyyzz,43) = -40. * factor_4;
+
+                trafo(Cart::xxxxxx,44) = -factor_4; /// Y 6,4
+                trafo(Cart::xxxxyy,44) = 5. * factor_4;
+                trafo(Cart::xxxxzz,44) = 10. * factor_4;
+                trafo(Cart::xxyyyy,44) = 5. * factor_4;
+                trafo(Cart::xxyyzz,44) = -60. * factor_4;
+                trafo(Cart::yyyyyy,44) = -factor_4;
+                trafo(Cart::yyyyzz,44) = 10. * factor_4;
+
+                trafo(Cart::xxxxyz,45) = 5. * factor_5; /// Y 6,-5
+                trafo(Cart::xxyyyz,45) = -10. * factor_5;
+                trafo(Cart::yyyyyz,45) = factor_5;
+
+                trafo(Cart::xxxxxz,46) = factor_5; /// Y 6,5
+                trafo(Cart::xxxyyz,46) = -10. * factor_5;
+                trafo(Cart::xyyyyz,46) = 5. * factor_5;
+
+                trafo(Cart::xxxxxy,47) = 6. * factor_6; /// Y 6,-6
+                trafo(Cart::xxxyyy,47) = -20. * factor_6;
+                trafo(Cart::xyyyyy,47) = 6. * factor_6;
+
+                trafo(Cart::xxxxxx,48) = factor_6; /// Y 6,6
+                trafo(Cart::xxxxyy,48) = -15. * factor_6;
+                trafo(Cart::xxyyyy,48) = 15. * factor_6;
+                trafo(Cart::yyyyyy,48) = -factor_6;
+            }
+            return trafo;
+        }
+
+
+        template<class T> 
+        std::vector<double> AOMatrix<T>::XIntegrate(int size, double U) {
+            std::vector<double> FmU = std::vector<double>(size, 0.0);
+            const int mm = FmU.size() - 1;
+            const double pi = boost::math::constants::pi<double>();
+            if (mm < 0) {
+                std::cerr << "mm is: " << mm << " This should not have happened!" << std::flush;
+                exit(1);
+            }
+
+            if (U < 0.0) {
+                std::cerr << "U is: " << U << " This should not have happened!" << std::flush;
+                exit(1);
+            }
+
+            if (U >= 10.0) {
+                // forward iteration
+                FmU[0] = 0.50 * sqrt(pi / U) * erf(sqrt(U));
+
+                for (unsigned m = 1; m < FmU.size(); m++) {
+                    FmU[m] = (2.0 * m - 1) * FmU[m - 1] / (2.0 * U) - exp(-U) / (2.0 * U);
+                }
+            }
+
+            if (U < 1e-10) {
+                for (unsigned m = 0; m < FmU.size(); m++) {
+                    FmU[m] = 1.0 / (2.0 * m + 1.0) - U / (2.0 * m + 3.0);
+                }
+            }
+
+
+            if (U >= 1e-10 && U < 10.0) {
+                // backward iteration
+                double fm = 0.0;
+                for (int m = 60; m >= mm; m--) {
+                    fm = (2.0 * U) / (2.0 * m + 1.0) * (fm + exp(-U) / (2.0 * U));
+                }
+                FmU[mm] = fm;
+                for (int m = mm - 1; m >= 0; m--) {
+                    FmU[m] = (2.0 * U) / (2.0 * m + 1.0) * (FmU[m + 1] + exp(-U) / (2.0 * U));
+                }
+            }
+
+            return FmU;
         }
         
+int AOSuperMatrix::getBlockSize(int lmax) {
+      //Each cartesian shells has (l+1)(l+2)/2 elements
+      //Sum of all shells up to _lmax leads to blocksize=1+11/6 l+l^2+1/6 l^3
+      int blocksize = 6 + 11 * lmax + 6 * lmax * lmax + lmax * lmax*lmax;
+      blocksize /= 6;
+      return blocksize;
+    }
+
+
+
+template class AOMatrix<double>;
+template class AOMatrix< std::complex<double> >;
 
     }
-    
-    
-    int AOSuperMatrix::getBlockSize(int _lmax){
-        int _block_size;
-        if ( _lmax == 0 ) { _block_size = 1  ;}  // s
-        else if ( _lmax == 1 ) { _block_size = 4  ;}  // p
-        else if ( _lmax == 2 ) { _block_size = 10 ;}  // d
-        else if ( _lmax == 3 ) { _block_size = 20 ;}  // f
-        else if ( _lmax == 4 ) { _block_size = 35 ;}  // g
-        else if ( _lmax == 5 ) { _block_size = 56 ;}  // h
-        else if ( _lmax == 6 ) { _block_size = 84 ;}  // i
-        else{
-            cerr << "GetBlocksize for l greater 6 not implemented!" << flush;
-            exit(1);
-        }
-        return _block_size;
-        //cout <<"_lmax"<<_lmax<<endl;
-        //cout <<"blocksize"<<  _block_size<<endl;
-        //return 35;
-    }
-    
-    
-    
-    
-    
-}}
+}
 

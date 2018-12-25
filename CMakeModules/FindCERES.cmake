@@ -1,0 +1,94 @@
+# - Find Ceres library
+# Find the native Ceres includes and library
+# This module defines
+#  CERES_INCLUDE_DIRS, where to find ceres.h, Set when
+#                      CERES_INCLUDE_DIR is found.
+#  CERES_LIBRARIES, libraries to link against to use Ceres.
+#  CERES_ROOT_DIR, The base directory to search for Ceres.
+#                  This can also be an environment variable.
+#  CERES_VERSION   will contain the version ceres version.
+#  CERES_FOUND, If false, do not try to use Ceres.
+#
+# also defined, but not for general use are
+#  CERES_LIBRARY, where to find the Ceres library.
+
+# If CERES_ROOT_DIR was defined in the environment, use it.
+IF(NOT CERES_ROOT_DIR AND NOT $ENV{CERES_ROOT_DIR} STREQUAL "")
+  SET(CERES_ROOT_DIR $ENV{CERES_ROOT_DIR})
+ENDIF()
+
+Set(CERES_SEARCH_DIRS
+  ${CERES_ROOT_DIR}
+  /usr/local/
+  /usr/
+  /usr/local/homebrew/ # Mac OS X
+  /opt/local/var/macports/software # Mac OS X.
+  /opt/local/
+  )
+
+FIND_PATH(CERES_INCLUDE_DIR
+  NAMES
+    ceres/ceres.h
+  HINTS
+    ${CERES_SEARCH_DIRS}
+  PATH_SUFFIXES
+    include
+)
+
+FIND_LIBRARY(CERES_LIBRARY
+  NAMES
+    ceres
+  HINTS
+    ${CERES_SEARCH_DIRS}
+  PATH_SUFFIXES
+    lib64 lib
+  )
+
+# handle the QUIETLY and REQUIRED arguments and set CERES_FOUND to TRUE if
+# all listed variables are TRUE
+INCLUDE(FindPackageHandleStandardArgs)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(ceres DEFAULT_MSG
+    CERES_LIBRARY CERES_INCLUDE_DIR)
+
+IF(CERES_FOUND)
+  SET(CERES_LIBRARIES ${CERES_LIBRARY})
+  SET(CERES_INCLUDE_DIRS ${CERES_INCLUDE_DIR})
+ENDIF(CERES_FOUND)
+
+IF (CERES_INCLUDE_DIRS)
+  set (CERES_VERSION_FILE ${CERES_INCLUDE_DIRS}/ceres/version.h)
+  IF (NOT EXISTS ${CERES_VERSION_FILE})
+    message (WARNING
+      "Could not find ${CERES_VERSION_FILE}")
+  ELSE (NOT EXISTS ${CERES_VERSION_FILE})
+    FILE (READ ${CERES_VERSION_FILE} CERES_VERSION_FILE_CONTENTS)
+
+    STRING(REGEX MATCH "#define CERES_VERSION_MAJOR [0-9]+"
+      CERES_VERSION_MAJOR ${CERES_VERSION_FILE_CONTENTS})
+    STRING(REPLACE "#define CERES_VERSION_MAJOR " ""
+      CERES_VERSION_MAJOR ${CERES_VERSION_MAJOR})
+
+    STRING(REGEX MATCH "#define CERES_VERSION_MINOR [0-9]+"
+      CERES_VERSION_MINOR ${CERES_VERSION_FILE_CONTENTS})
+    STRING(REPLACE "#define CERES_VERSION_MINOR " ""
+      CERES_VERSION_MINOR ${CERES_VERSION_MINOR})
+
+    STRING(REGEX MATCH "#define CERES_VERSION_REVISION [0-9]+"
+      CERES_VERSION_REVISION ${CERES_VERSION_FILE_CONTENTS})
+    STRING(REGEX REPLACE "#define CERES_VERSION_REVISION " ""
+      CERES_VERSION_REVISION ${CERES_VERSION_REVISION})
+
+    SET(CERES_VERSION ${CERES_VERSION_MAJOR}.${CERES_VERSION_MINOR}.${CERES_VERSION_REVISION})
+  ENDIF(NOT EXISTS ${CERES_VERSION_FILE})
+ENDIF(CERES_INCLUDE_DIRS)
+
+INCLUDE(FindPackageHandleStandardArgs)
+
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(CERES REQUIRED_VARS CERES_INCLUDE_DIRS
+  VERSION_VAR CERES_VERSION)
+
+MARK_AS_ADVANCED(
+  CERES_INCLUDE_DIR
+  CERES_LIBRARY
+  CERES_VERSION
+)

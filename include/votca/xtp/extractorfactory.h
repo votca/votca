@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,10 +26,10 @@
 
 namespace votca { namespace xtp {
 
-using namespace std;
+
 
 class ExtractorFactory
-: public ObjectFactory<std::string, QMCalculator>
+: public tools::ObjectFactory< std::string, QMCalculator >
 {
 private:
     ExtractorFactory() {}
@@ -66,5 +66,5 @@ inline QMCalculator* ExtractorFactory::Create(const std::string &key)
 
 }}
 
-#endif	/* VOTCA_XTP_EXTRACTORFACTORY_H.h */
+#endif	// VOTCA_XTP_EXTRACTORFACTORY_H
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,17 +17,17 @@
  *
  */
 
-#ifndef __QMPACKAGEFACTORY__H
-#define	__QMPACKAGEFACTORY__H
+#ifndef VOTCA_XTP_QMPACKAGEFACTORY_H
+#define	VOTCA_XTP_QMPACKAGEFACTORY_H
 
 #include <votca/tools/objectfactory.h>
-#include "qmpackage.h"
+#include <votca/xtp/qmpackage.h>
 
 namespace votca { namespace xtp {
 
 
 
-class QMPackageFactory : public ObjectFactory<std::string, QMPackage>
+class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage>
 {
 private:
     QMPackageFactory() {
@@ -48,5 +48,5 @@ inline QMPackageFactory &QMPackages()
 
 }}
 
-#endif	/* __QMPACKAGEFACTORY__H */
+#endif	// VOTCA_XTP_QMPACKAGEFACTORY_H 
 

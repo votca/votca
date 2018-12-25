@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,12 +16,16 @@
  * limitations under the License.
  *
  */
+/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
+#include <vector>
 #include <votca/xtp/fragment.h>
+#include <votca/xtp/polarsite.h>
+#include <votca/xtp/atom.h>
 
-
+using namespace std;
 namespace votca { namespace xtp {
+    using namespace tools;
 
 Fragment::Fragment(Fragment *stencil)
          : _id(stencil->getId()), _name(stencil->getName()+"_ghost"),
@@ -29,7 +33,7 @@ Fragment::Fragment(Fragment *stencil)
            _CoQM(stencil->getCoQM()), _CoMD(stencil->getCoMD()),
            _trihedron(stencil->getTrihedron()) {
 
-    std::vector< Atom* > ::iterator ait;
+    vector< Atom* > ::iterator ait;
     for (ait = stencil->Atoms().begin();
          ait < stencil->Atoms().end();
          ait++) {
@@ -42,22 +46,8 @@ Fragment::Fragment(Fragment *stencil)
 
 
 Fragment::~Fragment() {
-    std::vector < Atom* > ::iterator atmit;
-    for (atmit = this->Atoms().begin();
-          atmit < this->Atoms().end();
-          ++atmit) {
-          delete *atmit;
-    }
     _weights.clear();
     _atoms.clear();
-
-    std::vector < PolarSite* > ::iterator pit;
-    for (pit = this->PolarSites().begin();
-            pit < this->PolarSites().end();
-            ++pit) {
-        delete *pit;
-    }
-    _polarSites.clear();
 }
 
 
@@ -67,19 +57,9 @@ void Fragment::AddAtom(Atom* atom) {
     _weights.push_back( atom->getWeight() );
 }
 
-void Fragment::AddPolarSite(PolarSite *pole) {
-    _polarSites.push_back(pole);
-    pole->setFragment(this);
-}
-
-void Fragment::AddAPolarSite(APolarSite *pole) {
-    _apolarSites.push_back(pole);
-    pole->setFragment(this);
-}
-
 
 void Fragment::Rotate(matrix spin, vec refPos) {
-    std::vector <Atom*> ::iterator ait;
+    vector <Atom*> ::iterator ait;
     for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
         vec dir = (*ait)->getQMPos() - refPos;
         dir = spin * dir;
@@ -92,7 +72,7 @@ void Fragment::TranslateBy(const vec &shift) {
 
     _CoMD = _CoMD + shift;
 
-    std::vector <Atom*> ::iterator ait;
+    vector <Atom*> ::iterator ait;
     for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
         (*ait)->TranslateBy(shift);
     }
@@ -100,7 +80,7 @@ void Fragment::TranslateBy(const vec &shift) {
 
 
 void Fragment::RotTransQM2MD() {
-    std::vector <Atom*> ::iterator ait;
+    vector <Atom*> ::iterator ait;
     for (ait= _atoms.begin(); ait < _atoms.end(); ait++) {
         vec newQMPos = _rotateQM2MD*( (*ait)->getQMPos() - this->_CoQM )
                       + this->_CoMD;
@@ -109,9 +89,8 @@ void Fragment::RotTransQM2MD() {
 }
 
 void Fragment::calcPos(string tag) {
-    vec pos = vec(0,0,0);
+    tools::vec pos = tools::vec(0,0,0);
     double totWeight = 0.0;
-
     for (unsigned int i = 0; i< _atoms.size(); i++) {
         if (tag == "MD") {
             pos += _atoms[i]->getPos() * _atoms[i]->getWeight();
@@ -143,13 +122,13 @@ void Fragment::Rigidify(bool Auto) {
     // Establish reference atoms for local frame //
     // +++++++++++++++++++++++++++++++++++++++++ //
     
-    std::vector<Atom*> trihedron;
+    vector<Atom*> trihedron;
     
     if (Auto) {
 
         // Automated search for suitable atoms
         bool enough = false;
-        std::vector< Atom* > ::iterator ait = this->Atoms().begin();
+        vector< Atom* > ::iterator ait = this->Atoms().begin();
 
         while (!enough) {
 
@@ -171,7 +150,7 @@ void Fragment::Rigidify(bool Auto) {
     else {
 
         // Take atoms specified in mapping file <= DEFAULT
-        std::vector<Atom*> ::iterator ait;
+        vector<Atom*> ::iterator ait;
         for (ait = _atoms.begin(); ait < _atoms.end(); ait++) {
             if ( ! (*ait)->HasQMPart() ) { continue; }
 
@@ -185,7 +164,8 @@ void Fragment::Rigidify(bool Auto) {
     }
 
     _symmetry = trihedron.size();
-    if (!(trihedron.size() == _trihedron.size())) {
+    // [-Wlogical-not-parentheses]
+    if ( trihedron.size() != _trihedron.size() ) {
         cout << endl << "ERROR Local frame ill-defined" << flush;
     }
 
@@ -193,8 +173,8 @@ void Fragment::Rigidify(bool Auto) {
     // Construct trihedra axes //
     // +++++++++++++++++++++++ //
 
-    vec xMD, yMD, zMD;
-    vec xQM, yQM, zQM;
+    tools::vec xMD, yMD, zMD;
+    tools::vec xQM, yQM, zQM;
 
     if (_symmetry == 3) {
         

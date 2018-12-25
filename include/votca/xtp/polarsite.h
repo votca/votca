@@ -1,5 +1,5 @@
-/*
- *            Copyright 2009-2016 The VOTCA Development Team
+/* 
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,138 +17,145 @@
  *
  */
 
+#ifndef __VOTCA_XTP_POLARSITE_H
+#define __VOTCA_XTP_POLARSITE_H
 
-#ifndef POLARSITE_H
-#define POLARSITE_H
-
-#include <votca/tools/vec.h>
-#include <votca/tools/matrix.h>
-#include <votca/tools/types.h>
+#include <votca/xtp/eigen.h>
+#include <votca/xtp/qmatom.h>
 
 namespace votca { namespace xtp {
+    /**
+    \brief Class to represent Atom/Site in electrostatic+polarisation 
 
-using namespace votca::tools;
-
-
-class Topology;
-class Molecule;
-class Segment;
-class Fragment;
-
-
+     The units are atomic units, e.g. Bohr, Hartree.By default a PolarSite cannot be polarised.
+*/
 class PolarSite
 {
 
-    friend class EMultipole;
-    friend class EMultipole_StdAl;
-    friend class EOutersphere;
-    friend class ECoulomb;
-    friend class Interactor;
-    friend class Interactor3;
-    friend class InteractorMod;
-
-    friend class XMP;
-    friend class XInteractor;
-
 public:
 
-    PolarSite(int id, std::string name)
-            : _id(id), _name(name), _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)),    _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
+    PolarSite(int id, std::string element, Eigen::Vector3d pos);
+            
+    PolarSite(int id, std::string element)
+                    :PolarSite(id,element,Eigen::Vector3d::Zero()){
+                };
 
-    PolarSite() 
-            : _id(-1),  _locX(vec(1,0,0)),
-              _locY(vec(0,1,0)), _locZ(vec(0,0,1))
-            { _Qs.resize(3); _Ps.resize(3); };
+    PolarSite(const CheckpointReader& r){
+        ReadFromCpt(r);
+    }
 
-   ~PolarSite() {};
+    PolarSite(const QMAtom& atom, double charge):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
+        setCharge(charge);
+    }
+      
 
-    int             &getId() { return _id; }
-    std::string          &getName() { return _name; }
-    vec             &getPos() { return _pos; }
-    int             &getRank() { return _rank; }
-    Topology        *getTopology() { return _top; }
-    Segment         *getSegment() { return _seg; }
-    Fragment        *getFragment() { return _frag; }
+    int getId() const{ return _id; }
+    int getRank()const{return _rank;}
+    const std::string &getElement() const{ return _element; }
+    const Eigen::Vector3d &getPos() const{ return _pos; }
+    
+    bool isPolarisable() const{ return _isPolarisable;}
+    
+    void setPolarisable(bool polarisable){
+        _isPolarisable=polarisable;
+    }
+    
+    void setMultipole(const Eigen::VectorXd& multipole){
+        _multipole=multipole;
+        calcRank();
+    }
 
-    void            setPos(vec &pos) { _pos = pos; }
-    void            setRank(int rank) { _rank = rank; } // rank; } // OVERRIDE
-    void            setTopology(Topology *top) { _top = top; }
-    void            setSegment(Segment *seg) { _seg = seg; }
-    void            setFragment(Fragment *frag) { _frag = frag; }
+    void setCharge(double q){
+        _multipole(0)=q;
+        calcRank();
+    }
+    
+    void setPolarisation(const Eigen::Matrix3d pol){
+        _Ps=pol;
+        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+        es.computeDirect(_Ps,Eigen::EigenvaluesOnly);
+        _eigendamp=es.eigenvalues().maxCoeff();
+    }
+    
+    void ResetInduction(){
+        PhiU=0.0;
+        _inducedDipole=Eigen::Vector3d::Zero();
+        _inducedDipole_old=Eigen::Vector3d::Zero();
+        _localinducedField=Eigen::Vector3d::Zero();
+    }
+    
+    // COORDINATES TRANSFORMATION
+    void Translate(const Eigen::VectorXd &shift);
+    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
+ 
+    // MULTIPOLES DEFINITION
+    
+    double getCharge() const{return _multipole(0);}
+    const Eigen::VectorXd& getPermMultipole()const {return _multipole;}//Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s,...[NOT following Stone order for dipoles]
+    
+    Eigen::Vector3d getDipole()const{
+        Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
+        if(_isPolarisable){
+            dipole+=_inducedDipole;
+        }
+        if(_rank>0){
+            dipole+=_multipole.segment<3>(1);
+        }
+        return dipole;
+    }
+    
+    Eigen::Matrix3d CalculateCartesianMultipole()const; 
+    static Eigen::VectorXd CalculateSphericalMultipole(const Eigen::Matrix3d& quadrupole_cartesian);
+    
+    Eigen::Vector3d getField()const{return _localpermanetField+_localinducedField;}
+    
+    double getPotential()const{return PhiP+PhiU;}
+    
+    std::string WriteMpsLine(std::string unit = "bohr")const;
+    void Induce(double wSOR);
+       
+    double InteractStatic(PolarSite& otherSite);
+    
+    double InteractInduction(PolarSite& otherSite, double a=0.39);
+    
+    double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
+    
+    void WriteToCpt(const CheckpointWriter& w)const;
 
-    std::vector<double> &getQs(int state) { return _Qs[state+1]; }
-    void            setQs(std::vector<double> Qs, int state) { _Qs[state+1] = Qs; }
-    void            setPs(double polar, int state) { _Ps[state+1] = polar; }
-    double         &getPs(int state) { return _Ps[state+1]; }
-    double         &getP1() { return P1; }
-    double         &getQ00() { return Q00; }
-    void            Charge(int state);
-    void            ChargeDelta(int state1, int state2);
-
-    void            Induce(double wSOR = 0.25);
-    void            InduceDirect();
-    void            ResetFieldU() { FUx = FUy = FUz = 0.0; }
-    void            ResetFieldP() { FPx = FPy = FPz = 0.0; }
-    void            ResetU1Hist() { U1_Hist.clear(); }
-    void            Depolarize();
-    double          HistdU();
-
-
-    void            ImportFrom(PolarSite *templ, std::string tag = "basic");
-    void            Translate(const vec &shift);
-    void            Rotate(const matrix &rot, const vec &refPos);
-
-    void            PrintInfo(std::ostream &out);
-    void            PrintInfoInduce(std::ostream &out);
-    void            PrintInfoVisual(FILE *out);
-    void            PrintPDB(FILE *out, vec shift);
-    void            WriteChkLine(FILE *, vec &, bool, std::string, double);
-    void            WriteXyzLine(FILE *, vec &, std::string);
-
-
-
-
+   void ReadFromCpt(const CheckpointReader& r);
+   
+   static std::string Identify(){return "polarsite";}
+    
+    
 private:
-
+       
+    void calcRank(); 
+    Eigen::MatrixXd FillTholeInteraction(const PolarSite& otherSite, double a);
+    Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
+    
     int     _id;
-    std::string  _name;
-    vec     _pos;
-    vec     _locX;
-    vec     _locY;
-    vec     _locZ;
-
-    Topology *_top;
-    Segment  *_seg;
-    Fragment *_frag;
-    
-    std::vector < std::vector<double> > _Qs;
+    std::string  _element;
+    Eigen::Vector3d _pos;
     int     _rank;
-                           
-    std::vector < double > _Ps;
-    double P1;                              // Dipole polarizability
 
-    double Q00;
-    double Q1x, Q1y, Q1z;    
-    double Q20, Q21c, Q21s, Q22c, Q22s;
-
-    double U1x, U1y, U1z;                   // Induced dipole
-    double FPx, FPy, FPz;                   // Electric field (due to permanent)
-    double FUx, FUy, FUz;                   // Electric field (due to induced)
-    std::vector< vec > U1_Hist;                  // Ind. u history
-
-
-
+    Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+     bool _isPolarisable=false;
+    //required for polarisation
     
+    Eigen::Matrix3d _Ps;
+    Eigen::Vector3d _localpermanetField;
+    Eigen::Vector3d _localinducedField;
+    Eigen::Vector3d _inducedDipole;
+    Eigen::Vector3d _inducedDipole_old;
+    double _eigendamp;
+    
+    double PhiP;                            // Electric potential (due to perm.)
+    double PhiU;                            // Electric potential (due to indu.)
 
 };
 
 
-
-
-
-
 }}
+
 
 #endif

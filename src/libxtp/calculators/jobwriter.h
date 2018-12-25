@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -34,34 +34,21 @@ public:
 
     typedef void (JobWriter::*WriteFunct)(Topology*);
     
-    string Identify() { return "jobwriter"; }
-    void Initialize(Property *options);
+    std::string Identify() { return "jobwriter"; }
+    void Initialize(tools::Property *options);
     bool EvaluateFrame(Topology *top);    
     
     // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void mps_ct(Topology *top);
-    void mps_chrg(Topology *top);
-    void mps_kmc(Topology *top);
+    void mps_dimer(Topology *top);
+    void mps_monomer(Topology *top);
     void mps_background(Topology *top);
-    void mps_single(Topology *top);
-    
-    void edft(Topology *top);
-    void idft(Topology *top);
-    
 
 private:
-
-    Property *_options;
-    vector<string> _keys;
-    map<string,WriteFunct> _key_funct;
+    std::vector<std::string> _keys;
+    tools::Property *_options;
+    std::map<std::string,WriteFunct> _key_funct;
 };
 
-
-
-
-    
-    
-    
 }}
 
 #endif

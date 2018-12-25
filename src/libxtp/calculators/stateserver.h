@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -73,7 +73,7 @@ void StateServer::Initialize(Property *opt) {
     // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( opt, "xtp" );
 
-    string tag = "options.stateserver";
+    string tag = "options."+Identify();
 
     // Tabular output
     if ( opt->exists(tag+".out") ) {
@@ -202,24 +202,7 @@ bool StateServer::EvaluateFrame(Topology *top) {
                 fclose(out_emp);
         }
         
-        else if (*key == "excited_mps") {
-
-                cout << "excited state mps files ";
-
-                FILE *out_excited;
-                string excited_file = "excited_mps.tab";
-                out_excited = fopen(excited_file.c_str(), "w");
-
-                WriteEXCITED(out_excited , top);
-
-                fclose(out_excited );
-        }
-
-        else if (*key == "ulm") {
-                cout << "ULM input, ";
-                WriteULM(top);
-        }
-
+      
         else {
                 cout << "ERROR (Invalid key " << *key << ") ";
         }
@@ -291,12 +274,12 @@ void StateServer::DownloadTopology(FILE *out, Topology *top) {
     fprintf(out, "  # Segments  %7d \n", N_seg);
     fprintf(out, "  # Atoms     %7d \n", N_atm);
     fprintf(out, "  # Pairs     %7d \n", N_nbs);
-    
+ return;   
 }
 
 void StateServer::DownloadSegments(FILE *out, Topology *top) {
 
-    vector< Segment* > ::iterator segit;
+    vector< Segment* >::iterator segit;
 
     for (segit = top->Segments().begin();
             segit < top->Segments().end();
@@ -331,9 +314,10 @@ void StateServer::DownloadSegments(FILE *out, Topology *top) {
                 seg->getEMpoles(2),
                 seg->getEMpoles(3));
     }
+    return;
 }
 
-void StateServer::DownloadPairs(FILE *out, Topology *top) {
+void StateServer::DownloadPairs(FILE *out,Topology *top) {
     QMNBList::iterator nit;
 
     for (nit = top->NBList().begin();
@@ -380,6 +364,7 @@ void StateServer::DownloadPairs(FILE *out, Topology *top) {
                 pair->getRate21(+3)
                 );
     }
+    return;
 }
 
 void StateServer::DownloadIList(FILE *out, Topology *top) {
@@ -400,11 +385,10 @@ void StateServer::DownloadIList(FILE *out, Topology *top) {
         pair->Dist(),
         (pair->HasGhost()) ? 1 : 0);
     }
+    return;
 }
 
-void StateServer::DownloadEList(FILE *out, Topology *top) {
-    ;
-}
+
 
 
 
@@ -422,22 +406,10 @@ void StateServer::WriteEMP(FILE *out, Topology *top) {
                      ("MP_FILES/"+(*sit)->getName()+"_e.mps").c_str(),
                      ("MP_FILES/"+(*sit)->getName()+"_h.mps").c_str());
     }
+    return;
 }
 
-void StateServer::WriteEXCITED(FILE *out, Topology *top) {
 
-    fprintf(out, "# ID   TYPE    _t.mps \n");
-
-    vector< Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {        
-
-        fprintf(out, "%4d %15s %-30s \n",
-                     (*sit)->getId(),
-                     (*sit)->getName().c_str(),
-                     ("MP_FILES/"+(*sit)->getName()+"_n.mps").c_str()
-                );
-    }
-}
 
 void StateServer::WriteXQM(FILE *out, Topology *top) {
 
@@ -516,84 +488,9 @@ void StateServer::WriteXQM(FILE *out, Topology *top) {
     }
     
     fprintf(out, "</jobs>\n");
+    return;
 }
 
-void StateServer::WriteULM(Topology *top) {
-
-    FILE *out_ulm;
-    string ulm_file = "vertices_channel_e.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-
-    vector< Segment* > ::iterator sit;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
-                (*sit)->getId(),
-                (*sit)->getPos().getX(),
-                (*sit)->getPos().getY(),
-                (*sit)->getPos().getZ(),
-                (*sit)->getSiteEnergy(-1),
-                (*sit)->getName().c_str());
-    }
-    fclose(out_ulm);
-
-
-    ulm_file = "vertices_channel_h.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        fprintf(out_ulm, "%4d %+4.5f %+4.5f %+4.5f %+4.5f %-1s \n",
-                (*sit)->getId(),
-                (*sit)->getPos().getX(),
-                (*sit)->getPos().getY(),
-                (*sit)->getPos().getZ(),
-                (*sit)->getSiteEnergy(+1),
-                (*sit)->getName().c_str());
-    }
-    fclose(out_ulm);
-
-
-    ulm_file = "edges_channel_e.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-    QMNBList::iterator nit;
-    for (nit = top->NBList().begin();
-         nit != top->NBList().end();
-         nit++) {
-
-        QMPair *qmpair = *nit;
-
-        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
-                     qmpair->Seg1()->getId(),
-                     qmpair->Seg2()->getId(),
-                     qmpair->getJeff2(-1),
-                     qmpair->getRate12(-1),
-                     qmpair->getRate21(-1),
-                     qmpair->R().getX(),
-                     qmpair->R().getY(),
-                     qmpair->R().getZ());
-    }
-    fclose(out_ulm);
-
-
-    ulm_file = "edges_channel_h.dat";
-    out_ulm = fopen(ulm_file.c_str(), "w");
-    for (nit = top->NBList().begin();
-         nit != top->NBList().end();
-         nit++) {
-
-        QMPair *qmpair = *nit;
-
-        fprintf(out_ulm, "%4d %4d %+4.7e %+4.7e %+4.7e %+4.7f %+4.7f %+4.7f \n",
-                     qmpair->Seg1()->getId(),
-                     qmpair->Seg2()->getId(),
-                     qmpair->getJeff2(+1),
-                     qmpair->getRate12(+1),
-                     qmpair->getRate21(+1),
-                     qmpair->R().getX(),
-                     qmpair->R().getY(),
-                     qmpair->R().getZ());
-    }
-    fclose(out_ulm);
-
-}
 
 
 

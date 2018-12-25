@@ -1,0 +1,36 @@
+<pseudopotential name="CRENBL">
+
+	<element name="C" lmax="3" ncore="2">
+		<shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S">
+                    <constant power="0" decay="12.21120000" contraction="3.03797001"></constant>
+                    <constant power="1" decay="6.27069998" contraction="-4.67536402"></constant>
+                    <constant power="2" decay="4.17320001" contraction="71.58925819"></constant>
+                    <constant power="2" decay="3.81909999" contraction="-47.09821510"></constant>
+                </shell>
+		<shell type="P">
+                    <constant power="1" decay="51.61590004" contraction="-1.43484600"></constant>
+                    <constant power="2" decay="18.06680012" contraction="-4.07454997"></constant>
+                    <constant power="2" decay="5.35280001" contraction="-0.55931300"></constant>
+                </shell>
+		<shell type="D"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+	</element>
+
+        <element name="O" lmax="3" ncore="2">
+            <shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S">
+                    <constant power="0" decay="2.18920001" contraction="2.19389099"></constant>
+                    <constant power="1" decay="4.37400001" contraction="1.04294400"></constant>
+                    <constant power="2" decay="2.40490001" contraction="-16.34447694"></constant>
+                    <constant power="2" decay="2.24790001" contraction="11.21630394"></constant>
+            </shell>
+            <shell type="P">
+                    <constant power="1" decay="100.00389957" contraction="-1.48645601"></constant>
+                    <constant power="2" decay="34.19799995" contraction="-5.76684701"></constant>
+                    <constant power="2" decay="10.02859998" contraction="-0.79842000"></constant>
+            </shell>
+            <shell type="D"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+       </element>
+
+</pseudopotential>
+

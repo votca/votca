@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,65 +17,57 @@
  *
  */
 
-#ifndef _VOTCA_XTP_ESP2MULTIPOLE_H
-#define _VOTCA_XTP_ESP2MULTIPOLE_H
+#ifndef VOTCA_XTP_ESP2MULTIPOLE_H
+#define VOTCA_XTP_ESP2MULTIPOLE_H
 
 #include <stdio.h>
-#include <votca/xtp/espfit.h>
-#include <votca/xtp/mulliken.h>
-#include <votca/xtp/lowdin.h>
-#include <votca/xtp/nbo.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/qmmachine.h>
 #include <boost/filesystem.hpp>
-
+#include <votca/tools/property.h>
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/espfit.h>
 namespace votca { namespace xtp {
-    using namespace std;
+
     
 class Esp2multipole 
 {
 public:
 
-    Esp2multipole (Logger* log) {_log=log; }
-   ~Esp2multipole () { 
-   
-   std::vector< QMAtom* >::iterator it;
-    for ( it = _Atomlist.begin(); it != _Atomlist.end(); ++it ) delete *it;};
+    Esp2multipole (Logger* log) {
+        _log=log; 
+        _pairconstraint.resize(0);
+        _regionconstraint.resize(0);
+        }
 
-    string Identify() { return "esp2multipole"; }
+    std::string Identify() { return "esp2multipole"; }
 
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property &options);
     
    
-    void Extractingcharges( Orbitals& _orbitals );
-    void WritetoFile(string _output_file,  string identifier="esp2multipole");
-    string GetIdentifier();
+    void Extractingcharges( Orbitals& orbitals );
+ 
+
+    void WritetoFile(std::string output_file,const Orbitals& orbitals);
+    std::string GetStateString()const{return _state.ToString();}
 
 private:
     
-    int         _state_no;  
+    void PrintDipoles(Orbitals& orbitals);
+    
+    QMState      _state;  
     int         _openmp_threads;
-    string      _state;
-    string      _method;
-    string      _spin;
-    string      _integrationmethod;
-    string      _gridsize;
-    bool        _use_mps;
-    bool        _use_pdb;
+    std::string      _method;
+    std::string      _integrationmethod;
+    std::string      _gridsize;
     bool        _use_mulliken;
     bool        _use_lowdin;
     bool        _use_CHELPG;
-    bool        _use_bulkESP;
-    bool        _use_GDMA;
-    bool        _use_CHELPG_SVD;
-    bool        _use_NBO;
-    bool        _use_ecp;
     bool        _do_svd;
     double      _conditionnumber;
-    vector< QMAtom* > _Atomlist;
     
     Logger*      _log;
-    
+    std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
+    std::vector< Espfit::ConstraintRegion > _regionconstraint;
     
 
 };
@@ -85,4 +77,4 @@ private:
 }}
 
 
-#endif
+#endif // VOTCA_XTP_ESP2MULTIPOLE_H

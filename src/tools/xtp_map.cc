@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -28,7 +28,14 @@
 #include <votca/xtp/statesaversqlite.h>
 #include <votca/xtp/version.h>
 #include <votca/tools/globals.h>
-#include "Md2QmEngine.h"
+#include <votca/xtp/Md2QmEngine.h>
+
+#include <votca/xtp/topology.h>
+#include <votca/xtp/molecule.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/fragment.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/segmenttype.h>
 
 using namespace std;
 
@@ -36,7 +43,7 @@ namespace CSG = votca::csg;
 namespace XTP = votca::xtp;
 namespace TOOLS = votca::tools;
 
-class XtpMap : public Application
+class XtpMap : public TOOLS::Application
 {
 
 public:
@@ -55,11 +62,11 @@ public:
 
 
 protected:
-    Property               _options;
+    TOOLS::Property               _options;
     CSG::Topology          _mdtopol;
     XTP::Topology          _qmtopol;
 
-    Md2QmEngine            _md2qm;
+    XTP::Md2QmEngine            _md2qm;
     XTP::StateSaverSQLite  _statsav;
     string                 _outdb;
 
@@ -69,7 +76,7 @@ namespace propt = boost::program_options;
 
 void XtpMap::Initialize() {
 
-    Application::Initialize();
+    TOOLS::Application::Initialize();
     
     CSG::TrajectoryWriter::RegisterPlugins();
     CSG::TrajectoryReader::RegisterPlugins();
@@ -96,6 +103,10 @@ bool XtpMap::EvaluateOptions() {
 }
 
 void XtpMap::Run() {
+  
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    XTP::HelpTextHeader(name);
 
     // +++++++++++++++++++++++++++++++++++++ //
     // Initialize MD2QM Engine and SQLite Db //
@@ -217,14 +228,6 @@ void XtpMap::Save(string mode) {
 
     _statsav.WriteFrame();
 
-    if (TOOLS::globals::verbose) {
-        XTP::Topology *TopSQL = NULL;
-        TopSQL = _statsav.getTopology();
-        cout << endl << "Checking topology read from SQL file." << endl;
-        string pdbfile = "system.pdb";
-        _md2qm.CheckProduct(TopSQL, pdbfile);
-    }
-
     _statsav.Close();
 
 }
@@ -232,7 +235,7 @@ void XtpMap::Save(string mode) {
 void XtpMap::ShowHelpText(std::ostream &out) {
     string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::xtp::HelpTextHeader(name);
+    XTP::HelpTextHeader(name);
     HelpText(out);
     //out << "\n\n" << OptionsDesc() << endl;
     out << "\n\n" << VisibleOptions() << endl;

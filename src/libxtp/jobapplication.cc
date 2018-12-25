@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -37,7 +37,7 @@ void JobApplication::Initialize(void) {
 
     namespace propt = boost::program_options;
 
-    AddProgramOptions() ("file,f", propt::value<string>(),
+    AddProgramOptions() ("file,f", propt::value<std::string>(),
         "  sqlite state file, *.sql");
     AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
         "  start from this frame");
@@ -47,11 +47,11 @@ void JobApplication::Initialize(void) {
         "  number of threads to create");
     AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
         "  whether or not to save changes to state file");
-    AddProgramOptions() ("restart,r", propt::value<string>()->default_value(""),
+    AddProgramOptions() ("restart,r", propt::value<std::string>()->default_value(""),
         "  restart pattern: 'host(pc1:234) stat(FAILED)'");
     AddProgramOptions() ("cache,c", propt::value<int>()->default_value(8),
         "  assigns jobs in blocks of this size");
-    AddProgramOptions() ("jobs,j", propt::value<string>()->default_value("run"),
+    AddProgramOptions() ("jobs,j", propt::value<std::string>()->default_value("run"),
         "  task(s) to perform: input, run, import");
     AddProgramOptions() ("maxjobs,m", propt::value<int>()->default_value(-1),
         "  maximum number of jobs to process (-1 = inf)");
@@ -62,7 +62,7 @@ bool JobApplication::EvaluateOptions(void) {
     CheckRequired("options", "Please provide an xml file with calculator options");
     CheckRequired("file", "Please provide the state file");
     
-    string jobstr = _op_vm["jobs"].as<string>();
+    std::string jobstr = _op_vm["jobs"].as<std::string>();
     _generate_input = jobstr.find("write") != std::string::npos;
     _run = jobstr.find("run") != std::string::npos;
     _import = jobstr.find("read") != std::string::npos;
@@ -72,19 +72,22 @@ bool JobApplication::EvaluateOptions(void) {
 
 
 void JobApplication::Run() {
+    std::string name = ProgramName();
+    if (VersionString() != "") name = name + ", version " + VersionString();
+    HelpTextHeader(name);
 
-    load_property_from_xml(_options, _op_vm["options"].as<string>());
+    load_property_from_xml(_options, _op_vm["options"].as<std::string>());
 
     // EVALUATE OPTIONS
     int nThreads = OptionsMap()["nthreads"].as<int>();
     int nframes = OptionsMap()["nframes"].as<int>();
     int fframe = OptionsMap()["first-frame"].as<int>();
-    if (fframe-- == 0) throw runtime_error("ERROR: First frame is 0, counting "
+    if (fframe-- == 0) throw std::runtime_error("ERROR: First frame is 0, counting "
                                            "in VOTCA::XTP starts from 1.");
     int  save = OptionsMap()["save"].as<int>();
 
     // STATESAVER & PROGRESS OBSERVER
-    string statefile = OptionsMap()["file"].as<string>();
+    std::string statefile = OptionsMap()["file"].as<std::string>();
     StateSaverSQLite statsav;
     statsav.Open(_top, statefile);    
 
@@ -93,7 +96,7 @@ void JobApplication::Run() {
     progObs.InitCmdLineOpts(OptionsMap());
     
     // INITIALIZE & RUN CALCULATORS
-    cout << "Initializing calculators " << endl;
+    std::cout << "Initializing calculators " << std::endl;
     BeginEvaluate(nThreads, &progObs);
 
     int frameId = -1;
@@ -101,15 +104,15 @@ void JobApplication::Run() {
     while (statsav.NextFrame() && framesDone < nframes) {
         frameId += 1;
         if (frameId < fframe) continue;
-        cout << "Evaluating frame " << _top.getDatabaseId() << endl;
+        std::cout << "Evaluating frame " << _top.getDatabaseId() << std::endl;
         EvaluateFrame();
         if (save == 1) { statsav.WriteFrame(); }
-        else { cout << "Changes have not been written to state file." << endl; }
+        else { std::cout << "Changes have not been written to state file." << std::endl; }
         framesDone += 1;
     }
     
     if (framesDone == 0)
-        cout << "Input requires first frame = " << fframe+1 << ", # frames = " 
+        std::cout << "Input requires first frame = " << fframe+1 << ", # frames = " 
              << nframes << " => No frames processed.";
     
     statsav.Close();
@@ -127,32 +130,30 @@ void JobApplication::AddCalculator(JobCalculator* calculator) {
 
 void JobApplication::BeginEvaluate(int nThreads = 1, 
         ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs = NULL) {
-    list< JobCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " ";
-        (*it)->setnThreads(nThreads);
-        (*it)->setProgObserver(obs);
-        (*it)->Initialize(&_options);  
-        cout << endl;
+
+    for (JobCalculator* calculator:_calculators) {
+        std::cout << "... " << calculator->Identify() << " ";
+        calculator->setnThreads(nThreads);
+        calculator->setProgObserver(obs);
+        calculator->Initialize(&_options);  
+        std::cout << std::endl;
     }
 }
 
 bool JobApplication::EvaluateFrame() {
-    list< JobCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        cout << "... " << (*it)->Identify() << " " << flush;
-        if (_generate_input) (*it)->WriteJobFile(&_top);
-        if (_run) (*it)->EvaluateFrame(&_top);
-        if (_import) (*it)->ReadJobFile(&_top);
-        cout << endl;
+    for (JobCalculator* calculator:_calculators) {
+        std::cout << "... " << calculator->Identify() << " " << std::flush;
+        if (_generate_input) calculator->WriteJobFile(&_top);
+        if (_run) calculator->EvaluateFrame(&_top);
+        if (_import) calculator->ReadJobFile(&_top);
+        std::cout << std::endl;
     }
     return true;
 }
 
 void JobApplication::EndEvaluate() {
-    list< JobCalculator* > ::iterator it;
-    for (it = _calculators.begin(); it != _calculators.end(); it++) {
-        (*it)->EndEvaluate(&_top);
+   for (JobCalculator* calculator:_calculators) {
+        calculator->EndEvaluate(&_top);
     }
 }
 

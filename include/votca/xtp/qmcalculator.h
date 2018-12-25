@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,22 +16,19 @@
  * limitations under the License.
  *
  */
+/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef _VOTCA_XTP_QMCALCULATOR_H
-#define _VOTCA_XTP_QMCALCULATOR_H
-
+#ifndef VOTCA_XTP_QMCALCULATOR_H
+#define VOTCA_XTP_QMCALCULATOR_H
 
 #include <votca/tools/calculator.h>
-#include <votca/xtp/topology.h>
 
-namespace XTP = votca::xtp;
-namespace TOOLS = votca::tools;
 
 namespace votca { namespace xtp {
 
-class QMCalculator : public Calculator
-{
+class Topology;
+
+class QMCalculator : public tools::Calculator{
 public:
 
                     QMCalculator() {}
@@ -39,14 +36,12 @@ public:
 
     virtual std::string  Identify() = 0;
 
-    virtual void    Initialize(Property *options) = 0;
-    virtual bool    EvaluateFrame(XTP::Topology *top) { return true; }
-    virtual void    EndEvaluate(XTP::Topology *top) { }
-
-protected:
+    virtual void    Initialize(tools::Property *options) = 0;
+    virtual bool    EvaluateFrame(Topology *top) { return true; }
+    virtual void    EndEvaluate(Topology *top) { }
 
 };
 
 }}
 
-#endif /* _QMCALCULATOR_H */
+#endif // VOTCA_XTP_QMCALCULATOR_H 

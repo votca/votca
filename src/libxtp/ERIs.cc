@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,430 +19,510 @@
 
 
 #include <votca/xtp/ERIs.h>
-
-
-
-using namespace votca::tools;
+#include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {
     namespace xtp {
-        namespace ub = boost::numeric::ublas;
-        
-        
-        
-        void ERIs::Initialize (AOBasis &_dftbasis, AOBasis &_auxbasis,  AOOverlap &_auxAOverlap, AOCoulomb &_auxAOcoulomb){
 
-           
-           
-            _threecenter.Fill( _auxbasis, _dftbasis );
-            /* cout << "\n" << endl;
-             for (int k=0; k<_auxbasis._AOBasisSize; k++){
-                cout << " s-s " << _threecenter.getDatamatrix(k)(0,0) << "  s-px  " << _threecenter.getDatamatrix(k)(0,4) << " sym " << _threecenter.getDatamatrix(k)(4,0) << endl;
-                       
-             }
-            exit(0); */
-            
-            //ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
-            
-            /* AOOverlap _auxoverlap_inverse;               
-            AOOverlap _auxoverlap_cholesky_inverse;      
-            _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
-            _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
-            */
-            //linalg_invert( _auxAOverlap.Matrix() , _inverse);
-            //ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
-            _Vcoulomb=_auxAOcoulomb.Matrix();
-            
-            
-            //cout << "Vcoulomb"<< _Vcoulomb<< endl;
- /*
-            int size4c=_dftbasis.AOBasisSize();
-
-            // reconstructing 4center-integrals
-	  
-            for (int k=0; k<_auxbasis._AOBasisSize; k++){
-                
-                ub::matrix<double> shit = _threecenter.getDatamatrix(k);
-                
-               for (int alpha=0; alpha<size4c; alpha++){
-                    for (int beta=0; beta<size4c ;beta++){
-                        
-                        
-                        
-                        cout << "SHIT " << k << " " <<  alpha << " " << beta << " " << shit(alpha,beta) << " vs " << shit(beta,alpha) << endl;
-                        
-                        
-                    }
-               }
-                
-            }
-            
-             for (int k=0; k<_auxbasis._AOBasisSize; k++){
-				for (int l=0; l<_auxbasis._AOBasisSize; l++){
-                                 
-                                    
-                                    cout << " VCOU " << k << " " << l << " " << scientific << _Vcoulomb(k,l) << " vs " << _Vcoulomb(l,k) << endl; 
-                                    
-                                }
-                                }
-            
-            
-            
-            
-            //exit(0);
-            
-            
-        
-            
-
-           
-            
-            typedef boost::multi_array<double, 4> fourdim;
-            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-            cout <<endl;
-       
-                          for (int alpha=0; alpha<size4c; alpha++){
-                    for (int beta=0; beta<size4c ;beta++){
-           
-                       for (int mu=0; mu<size4c ;mu++){
-                            for (int nu=0; nu<size4c; nu++){
-			      fourcenter[alpha][beta][mu][nu]=0.0;
-			      for (int k=0; k<_auxbasis._AOBasisSize; k++){
-				for (int l=0; l<_auxbasis._AOBasisSize; l++){
-                                                 //cout<<_threecenter.getDatamatrix(k)(alpha,beta)<<"  "<<_threecenter.getDatamatrix(l)(mu,nu)<<"  "<<_Vcoulomb(k,l)<<endl;
-            fourcenter[alpha][beta][mu][nu]+=_Vcoulomb(k,l)*_threecenter.getDatamatrix(k)(alpha,beta)*_threecenter.getDatamatrix(l)(mu,nu);
-             //cout<<   fourcenter[alpha][beta][mu][nu]<< endl;                            
-                                    }}
-                                    
-
-            cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<") = "<< fourcenter[alpha][beta][mu][nu]<< endl;
-            }}
-            }}
-
-exit(0);
-	    
-            
-            
-            
+        void ERIs::Initialize(AOBasis &dftbasis, AOBasis &auxbasis,const Eigen::MatrixXd &inversesqrt_Coulomb) {
           
-            AOOverlap _auxoverlap_inverse;               // will also be needed in PPM itself
-            AOOverlap _auxoverlap_cholesky_inverse;      // will also be needed in PPM itself
-            _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
-            _auxAOcoulomb.Symmetrize(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
+          _threecenter.Fill( auxbasis, dftbasis,inversesqrt_Coulomb);
+          return;
+        }
 
-            std::vector< ub::matrix<double> > I_times_sqrtV;
-            for (int i=0; i< _auxbasis._AOBasisSize; i++){
-                 I_times_sqrtV.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
+        
+        void ERIs::Initialize_4c_small_molecule(AOBasis &dftbasis) {
+          
+          _fourcenter.Fill_4c_small_molecule( dftbasis );
+          return;
+        }
+
+        
+        void ERIs::Initialize_4c_screening(AOBasis &dftbasis, double eps) {
+          
+          _with_screening = true;
+          _screening_eps = eps;
+          CalculateERIsDiagonals(dftbasis);
+          return;
+        }
+        
+        
+        void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
+
+          unsigned nthreads = 1;
+          #ifdef _OPENMP
+            nthreads = omp_get_max_threads();
+          #endif
+          std::vector<Eigen::MatrixXd >ERIS_thread;
+
+          for (unsigned i = 0; i < nthreads; ++i) {
+            Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+            ERIS_thread.push_back(thread);
+          }
+
+          #pragma omp parallel for
+          for (unsigned thread = 0; thread < nthreads; ++thread) {
+            Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
+            for (int i = thread; i < _threecenter.size(); i += nthreads) {
+              const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(i);
+              // Trace over prod::DMAT,I(l)=componentwise product over 
+              const double factor = threecenter.TraceofProd(dmat_sym);
+              Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper> m=ERIS_thread[thread].selfadjointView<Eigen::Upper>();
+              threecenter.AddtoEigenUpperMatrix(m, factor);
             }
-            
-            cout <<"Coulomb symm"<< _auxAOcoulomb.Matrix() <<endl;
-            
-            for (int m=0;m<_auxbasis._AOBasisSize; m++){
-                for (int l=0;l<_auxbasis._AOBasisSize; l++){
-                    I_times_sqrtV[m]+=_auxAOcoulomb.Matrix()(m,l)*_threecenter.getDatamatrix(l);
+          }
+
+          _ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+          for (const auto& thread : ERIS_thread) {
+            _ERIs += thread;
+          }
+          _ERIs+=_ERIs.triangularView<Eigen::StrictlyUpper>().transpose();
+
+          CalculateEnergy(DMAT);
+          return;
+        }
+
+        
+        void ERIs::CalculateEXX(const Eigen::MatrixXd &DMAT) {
+      
+          int nthreads = 1;
+          #ifdef _OPENMP
+            nthreads = omp_get_max_threads();
+          #endif
+          std::vector<Eigen::MatrixXd >EXX_thread;
+
+          for (int i = 0; i < nthreads; ++i) {
+            Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+            EXX_thread.push_back(thread);
+          }
+
+          #pragma omp parallel for
+          for (int thread = 0; thread < nthreads; ++thread) {
+            Eigen::MatrixXd D=DMAT;
+            for(int i=thread;i<_threecenter.size();i+= nthreads){
+              const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).UpperMatrix();
+              EXX_thread[thread].noalias()+=threecenter.selfadjointView<Eigen::Upper>()*D*threecenter.selfadjointView<Eigen::Upper>();
+            }
+          }
+          _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+          for (const auto& thread : EXX_thread) {
+            _EXXs += thread;
+          }
+
+          CalculateEXXEnergy(DMAT);
+          return;
+        }
+    
+        
+        void ERIs::CalculateEXX(const Eigen::Block<Eigen::MatrixXd>& occMos,const Eigen::MatrixXd  &DMAT) {
+
+          int nthreads = 1;
+          #ifdef _OPENMP
+            nthreads = omp_get_max_threads();
+          #endif
+          std::vector<Eigen::MatrixXd >EXX_thread;
+
+          for (int i = 0; i < nthreads; ++i) {
+            Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
+            EXX_thread.push_back(thread);
+          }
+
+          #pragma omp parallel for
+          for (int thread = 0; thread < nthreads; ++thread) {
+            Eigen::MatrixXd occ=occMos;
+            for(int i=thread;i<_threecenter.size();i+= nthreads){
+              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).UpperMatrix().selfadjointView<Eigen::Upper>();
+              EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
+            }
+          }
+          _EXXs = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
+          for (const auto& thread : EXX_thread) {
+            _EXXs += 2*thread;
+          }
+
+          CalculateEXXEnergy(DMAT);
+          return;
+        }
+
+        
+        void ERIs::CalculateERIs_4c_small_molecule(const Eigen::MatrixXd &DMAT) {
+
+          _ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+          
+          const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
+
+          int dftBasisSize = DMAT.rows();
+          int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
+          #pragma omp parallel for
+          for (int i = 0; i < dftBasisSize; i++) {
+            int sum_i = (i*(i+1))/2;
+            for (int j = i; j < dftBasisSize; j++) {
+              int index_ij = dftBasisSize * i - sum_i + j;
+              int index_ij_kl_a = vectorSize * index_ij - (index_ij*(index_ij+1))/2;
+              for (int k = 0; k < dftBasisSize; k++) {
+                int sum_k = (k*(k+1))/2;
+                for (int l = k; l < dftBasisSize; l++) {
+                  int index_kl = dftBasisSize * k - sum_k + l;
+
+                  int index_ij_kl = index_ij_kl_a + index_kl;
+                  if (index_ij > index_kl) index_ij_kl = vectorSize * index_kl - (index_kl*(index_kl+1))/2 + index_ij;
+
+                  if (l == k) {
+                    _ERIs(i, j) += DMAT(k, l) * fourc_vector(index_ij_kl);
+                  } else {
+                    _ERIs(i, j) += 2. * DMAT(k, l) * fourc_vector(index_ij_kl);
+                  }
+
                 }
+              }
+              _ERIs(j, i) = _ERIs(i, j);
             }
-            
-            
-            int size4c=_dftbasis.AOBasisSize();
-            typedef boost::multi_array<double, 4> fourdim;
-            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-            
-            for (int alpha=0;alpha<size4c;alpha++){
-                for (int beta=0;beta<size4c;beta++){
-                   for (int mu=0;mu<size4c;mu++){
-                        for (int nu=0;nu<size4c;nu++){
-                    fourcenter[alpha][beta][mu][nu]=0.0;
-                    for (int m=0;m<_auxbasis._AOBasisSize;m++){
-                        fourcenter[alpha][beta][mu][nu]+= I_times_sqrtV[m](alpha,beta)*I_times_sqrtV[m](mu,nu);
-                    }
-                    cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
-                    
-                        }}}exit(0);}
-                    
-          
-            */
-            
-            
-            
-         
+          }
+
+          CalculateEnergy(DMAT);
+          return;
         }
         
         
+        void ERIs::CalculateEXX_4c_small_molecule(const Eigen::MatrixXd &DMAT) {
+          int nthreads = 1;
+          #ifdef _OPENMP
+            nthreads = omp_get_max_threads();
+          #endif  
+          
+          std::vector<Eigen::MatrixXd >EXX_thread;
 
-        
-        
-        
-        
-        
-        void ERIs::Initialize_Symmetric (AOBasis &_dftbasis, AOBasis &_auxbasis,  AOOverlap &_auxAOverlap, AOCoulomb &_auxAOcoulomb){
+          for (int i = 0; i < nthreads; ++i) {
+            Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+            EXX_thread.push_back(thread);
+          }
 
-           
-           
-            _threecenter.Fill( _auxbasis, _dftbasis );
-            
-            
-            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
-            
-            AOOverlap _auxoverlap_inverse;               
-            AOOverlap _auxoverlap_cholesky_inverse;      
-            _auxoverlap_inverse.Initialize( _auxbasis._AOBasisSize);
-            _auxAOcoulomb.Symmetrize_DFT(_auxAOverlap , _auxbasis, _auxoverlap_inverse , _auxoverlap_cholesky_inverse);
-            
-           // linalg_invert( _auxAOverlap.Matrix() , _inverse);
-           // ub::matrix<double> _temp=ub::prod(_auxAOcoulomb.Matrix(),_inverse);
-           // _Vcoulomb=ub::prod(_inverse,_temp);
-            
-            //cout << "Vcoulomb"<< _Vcoulomb<< endl;
+          const Eigen::VectorXd& fourc_vector = _fourcenter.get_4c_vector();
 
+          int dftBasisSize = DMAT.rows();
+          int vectorSize = (dftBasisSize*(dftBasisSize+1))/2;
+          #pragma omp parallel for
+          for (int thread = 0; thread < nthreads; ++thread) {
+            for (int i = thread; i < dftBasisSize; i+= nthreads) {
+              int sum_i = (i*(i+1))/2;
+              for (int j = i; j < dftBasisSize; j++) {
+                int index_ij = DMAT.cols() * i - sum_i + j;
+                int index_ij_kl_a = vectorSize * index_ij - (index_ij*(index_ij+1))/2;
+                for (int k = 0; k < dftBasisSize; k++) {
+                  int sum_k = (k*(k+1))/2;
+                  for (int l = k; l < dftBasisSize; l++) {
+                    int index_kl = DMAT.cols() * k - sum_k + l;
 
-          // multiply each element of _threecenters with symmetrized Coulomb
-          // K(l';a,b) = sum_l{ sqrt{V}(l',l) I(l;a,b) }
-            
-            std::vector< ub::matrix<double> > K ;
-            for (int i=0; i< _auxbasis._AOBasisSize; i++){
-                 K.push_back(ub::zero_matrix<double>(_dftbasis._AOBasisSize, _dftbasis._AOBasisSize));        
-            }
-
-            for (int m=0;m<_auxbasis._AOBasisSize; m++){
-                for (int l=0;l<_auxbasis._AOBasisSize; l++){
-                    K[m]+=_auxAOcoulomb.Matrix()(m,l)*_threecenter.getDatamatrix(l);
+                    int _index_ij_kl = index_ij_kl_a + index_kl;
+                    if (index_ij > index_kl) _index_ij_kl = vectorSize * index_kl - (index_kl*(index_kl+1))/2 + index_ij;
+                    double factorij=1;
+                    if(i==j){factorij=0.5;}
+                    double factorkl=1;
+                    if(l==k){factorkl=0.5;}
+                    double factor=factorij*factorkl;
+                    EXX_thread[thread](i, l) +=factor*DMAT(j, k) * fourc_vector(_index_ij_kl);
+                    EXX_thread[thread](j, l) +=factor*DMAT(i, k) * fourc_vector(_index_ij_kl);
+                    EXX_thread[thread](i, k) +=factor*DMAT(j, l) * fourc_vector(_index_ij_kl);
+                    EXX_thread[thread](j, k) +=factor*DMAT(i, l) * fourc_vector(_index_ij_kl);
+                  }
                 }
+              }
             }
-            
-            // update _threecenters
-            
-            for (int m=0;m<_auxbasis._AOBasisSize; m++){
-                    _threecenter.getDatamatrix(m)=K[m];
-            }
-            
-            
-          
-            int size4c=_dftbasis.AOBasisSize();
-            typedef boost::multi_array<double, 4> fourdim;
-            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-            
-            for (int alpha=0; alpha<size4c; alpha++){
-                for (int beta=0; beta<size4c; beta++){
-                   for (int mu=0; mu<size4c; mu++){
-                        for (int nu=0; nu<size4c; nu++){
-                    fourcenter[alpha][beta][mu][nu]=0.0;
-                    for (int m=0;m<_auxbasis._AOBasisSize;m++){
-                        fourcenter[alpha][beta][mu][nu]+= K[m](alpha,beta)*K[m](mu,nu);
-                    }
-                    cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
-                    
-                        }}}}
-            
-            exit(0);
-                    
-          
-            
-            
-            
-            
-         
+          }
+          _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
+          for (const auto& thread : EXX_thread) {
+            _EXXs += thread;
+          }
 
-        
-        
+          CalculateEXXEnergy(DMAT);
+          return;
         }
         
         
-        void ERIs::CalculateERIs (ub::matrix<double> &DMAT, AOOverlap &_auxAOverlap, ub::matrix<double>& _AOIntegrals ){
-            
-            
-            
-            /***** TEST VIA RECONSTRUCTED 4center ERIs ***************/
-            
-/*
-            int size4c=DMAT.size1(); // _dftbasis.AOBasisSize();
-            int auxsize = _Vcoulomb.size1();
-            
-            typedef boost::multi_array<double, 4> fourdim;
-            fourdim  fourcenter(boost::extents[size4c][size4c][size4c][size4c]);
-            cout <<endl;
-       
-           
-            for (int alpha=0;alpha<size4c;alpha++){
-                    for (int beta=0;beta<size4c;beta++){
-                       for (int mu=0;mu<size4c;mu++){
-                            for (int nu=0;nu<size4c;nu++){
-                        fourcenter[alpha][beta][mu][nu]=0.0;
+        void ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis, const Eigen::MatrixXd &DMAT) {
 
-                        
-                        for (int k=0;k<auxsize;k++){
-                                    for (int l=0;l<auxsize;l++){
-                                                 //cout<<_threecenter.getDatamatrix(k)(alpha,beta)<<"  "<<_threecenter.getDatamatrix(l)(mu,nu)<<"  "<<_Vcoulomb(k,l)<<endl;
-            fourcenter[alpha][beta][mu][nu]+=_Vcoulomb(k,l)*_threecenter.getDatamatrix(k)(alpha,beta)*_threecenter.getDatamatrix(l)(mu,nu);
-             //cout<<   fourcenter[alpha][beta][mu][nu]<< endl;                            
-                                    }}
-                                    
+          tensor4d::extent_gen extents;
+          
+          // Number of shells
+          int numShells = dftbasis.getNumofShells();
+          
+          // Initialize ERIs matrix
+          _ERIs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
 
-            //cout << "4c("<<alpha+1<<":"<<beta+1<<":"<<mu+1<<":"<<nu+1<<")="<< fourcenter[alpha][beta][mu][nu]<< endl;
-            }}
-            }}
-            
-            
+          #pragma omp parallel
+          { // Begin omp parallel
 
-            */
+            Eigen::MatrixXd ERIs_thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
             
-            
-      /*      
-            // TEST Number of fitted electrons
-            ub::matrix<double> _FITMAT = ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
-            ub::matrix<double> _inverse=ub::zero_matrix<double>( _auxAOverlap.Dimension(), _auxAOverlap.Dimension());
-            
-           //_auxAOverlap.Print("AUX-OL");
-            linalg_invert( _auxAOverlap._aomatrix , _inverse);
-            
-           ub:: matrix<double> _testS = ub::prod(_auxAOverlap._aomatrix , _inverse);
-                      for (int _i = 0; _i < _threecenter.getSize(); _i++) {
-                for (int _j = 0; _j < _threecenter.getSize(); _j++) {
-                    cout << " S*S-1(" << _i << "," << _j << ") " << setprecision (9) << _testS(_i,_j) << endl; 
-                      }
-        }
-           
-          */  
-            //cout <<  "3c size " << _threecenter.getSize() << " _auxAODim " << _auxAOverlap.Dimension() << " DMAT1 " << DMAT.size1() << " DMAT2 " << DMAT.size2() << endl;
-            
-            
-            //cout << _inverse << endl;
-       /*     
-            cout << " 3C size " << _threecenter.getSize() << endl;
-            
-            for (int _i = 0; _i < _threecenter.getSize(); _i++) {
-                for (int _j = 0; _j < _threecenter.getSize(); _j++) {
+            #pragma omp for
+            for (int iShell_3 = 0; iShell_3 < numShells; iShell_3++) {
+              const AOShell& shell_3 = dftbasis.getShell(iShell_3);
+              int numFunc_3 = shell_3.getNumFunc();
+              for (int iShell_4 = iShell_3; iShell_4 < numShells; iShell_4++) {
+                const AOShell& shell_4 = dftbasis.getShell(iShell_4);
+                int numFunc_4 = shell_4.getNumFunc();    
+                for (int iShell_1 = iShell_3; iShell_1 < numShells; iShell_1++) {
+                  const AOShell& shell_1 = dftbasis.getShell(iShell_1);
+                  int numFunc_1 = shell_1.getNumFunc();
+                  for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+                    const AOShell& shell_2 = dftbasis.getShell(iShell_2);
+                    int numFunc_2 = shell_2.getNumFunc();
 
-                //cout << " S-1(" << _i << "," << _j << ") " << setprecision (9) << _inverse(_i,_j) << endl; 
-                
-                    ub::matrix<double>& _3c = _threecenter.getDatamatrix(_j);
+                    // Pre-screening
+                    if (_with_screening && CheckScreen(_screening_eps, shell_1, shell_2, shell_3, shell_4))
+                      continue;
 
-                    for ( int alpha = 0 ; alpha < DMAT.size1(); alpha++ ){
-                        for ( int beta = 0 ; beta < DMAT.size2(); beta++ ){
-                        
-                            _FITMAT(alpha,beta) += _inverse(_i,_j)*_3c(alpha,beta)*_AOIntegrals(0,_i);
-                            cout << " inV " << _inverse(_i,_j) << " 3C " << _3c(alpha,beta) << endl;
-                            
+                    // Get the current 4c block
+                    tensor4d block(extents[ range(0, numFunc_1) ][ range(0, numFunc_2) ][ range(0, numFunc_3)][ range(0, numFunc_4)]);
+                    for (int i = 0; i < numFunc_1; ++i) {
+                      for (int j = 0; j < numFunc_2; ++j) {
+                        for (int k = 0; k < numFunc_3; ++k) {
+                          for (int l = 0; l < numFunc_4; ++l) {
+                            block[i][j][k][l] = 0.0;
+                          }
                         }
+                      }
                     }
+                    bool nonzero=_fourcenter.FillFourCenterRepBlock(block, shell_1, shell_2, shell_3, shell_4);
                     
-                    
-                }
-            }
-            
-           
-  
-            
-            
-            
-            
-//            ub::vector<double> Fitarray=_FITMAT.data();
+                    // If there are only zeros, we don't need to put anything in the ERIs matrix
+                    if (!nonzero)
+                      continue;
 
-            double _Nfit = 0.0;
-            
-            for ( int alpha = 0 ; alpha < DMAT.size1(); alpha++ ){
-                        for ( int beta = 0 ; beta < DMAT.size1(); beta++ ){
-                    
-                        cout << alpha << "  " << beta << "  " << _FITMAT(alpha,beta) << endl;  
-                        
-                        _Nfit += DMAT(alpha,beta) * _FITMAT(alpha,beta);
-                }
-                }
-            
+                    // Begin fill ERIs matrix
 
-            
-            
-            cout << " \nNumber of electrons in Density Fit  " << _Nfit << endl;
-            
-            
-            //exit(0);
-            exit(0);
-            
-            
-            _ERIs=ub::zero_matrix<double>(DMAT.size1(),DMAT.size2());
-            ub::vector<double> dmatasarray=DMAT.data();
-            
-            ub::matrix<double> Itilde=ub::zero_matrix<double>(_threecenter.getSize(),1);
-            //cout << _threecenter.getSize() << " Size-Threecenter"<<endl;
-            //check Efficiency !!!! someday 
-            for ( int _i=0; _i<_threecenter.getSize();_i++){
-                ub::vector<double>threecenterasarray=(_threecenter.getDatamatrix(_i)).data();
-                //cout << _threecenter.getDatamatrix(_i).size1() << "x"<< _threecenter.getDatamatrix(_i).size2() <<" Size-Threecenter,matrix"<<endl;
-                // Trace over prod::DMAT,I(l)=componentwise product over 
-                for ( int _j=0; _j<threecenterasarray.size();_j++){
-                    Itilde(_i,0)+=dmatasarray[_j]*threecenterasarray[_j];
-                }
-            }
-            //cout << "Itilde " <<Itilde << endl;
-            ub::matrix<double>K=ub::prod(_Vcoulomb,Itilde);
-            //cout << "K " << K << endl;
-            for ( int _i=0; _i<K.size1(); _i++){
-                
-            _ERIs+=_threecenter.getDatamatrix(_i)*K(_i,0);    
-            //cout << "I " << _threecenter.getDatamatrix(_i) << endl;
-            //cout<< "ERIs " <<_ERIs<< endl;
-            }
-            
-            
-            
-                          
-            for (int alpha=0;alpha<size4c;alpha++){
-                    for (int beta=0;beta<size4c;beta++){
+                    FillERIsBlock(ERIs_thread, DMAT, block, shell_1, shell_2, shell_3, shell_4);
 
-                        double localERI = 0.0;
-                        
-                        for (int mu=0;mu<size4c;mu++){
-                            for (int nu=0;nu<size4c;nu++){
-                                
-                                localERI += DMAT(mu,nu) * fourcenter[alpha][beta][mu][nu];
-                                
-                         }
+                    // Symmetry 1 <--> 2
+                    if (iShell_1 != iShell_2)
+                      FillERIsBlock(ERIs_thread, DMAT, block, shell_2, shell_1, shell_3, shell_4);
+
+                    // Symmetry 3 <--> 4
+                    if (iShell_3 != iShell_4)
+                      FillERIsBlock(ERIs_thread, DMAT, block, shell_1, shell_2, shell_4, shell_3);
+
+                    // Symmetry 1 <--> 2 and 3 <--> 4
+                    if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+                      FillERIsBlock(ERIs_thread, DMAT, block, shell_2, shell_1, shell_4, shell_3);
+
+                    // Symmetry (1, 2) <--> (3, 4)
+                    if (iShell_1 != iShell_3) {
+
+                      // We need the 'transpose' of block
+                      tensor4d block2(extents[ range(0, numFunc_3) ][ range(0, numFunc_4) ][ range(0, numFunc_1)][ range(0, numFunc_2)]);
+                      for (int i = 0; i < numFunc_1; ++i) {
+                        for (int j = 0; j < numFunc_2; ++j) {
+                          for (int k = 0; k < numFunc_3; ++k) {
+                            for (int l = 0; l < numFunc_4; ++l) {
+                              block2[k][l][i][j] = block[i][j][k][l];
+                            }
+                          }
+                        }
+                      }
+
+                      FillERIsBlock(ERIs_thread, DMAT, block2, shell_3, shell_4, shell_1, shell_2);
+
+                      // Symmetry 1 <--> 2
+                      if (iShell_1 != iShell_2)
+                        FillERIsBlock(ERIs_thread, DMAT, block2, shell_3, shell_4, shell_2, shell_1);
+
+                      // Symmetry 3 <--> 4
+                      if (iShell_3 != iShell_4)
+                        FillERIsBlock(ERIs_thread, DMAT, block2, shell_4, shell_3, shell_1, shell_2);
+
+                      // Symmetry 1 <--> 2 and 3 <--> 4
+                      if (iShell_1 != iShell_2 && iShell_3 != iShell_4)
+                        FillERIsBlock(ERIs_thread, DMAT, block2, shell_4, shell_3, shell_2, shell_1);
                     }
-                        
-                        
-                        cout << alpha+1<<":"<<beta+1<< " : " << localERI << " vs " << _ERIs(alpha,beta) << endl;
-                        
-                 }
+
+                    // End fill ERIs matrix
+                  } // End loop over shell 2
+                } // End loop over shell 1
+              } // End loop over shell 4
+            } // End loop over shell 3
+            
+            #pragma omp critical
+            {    
+              _ERIs += ERIs_thread;
             }
-            
-            exit(0); 
-            
-            
-            
-            
-           
-           // CalculateEnergy(dmatasarray);
+          } 
+
+          // Fill lower triangular part using symmetry
+          for (int i = 0; i < DMAT.cols(); i++){
+            for (int j = i + 1; j < DMAT.rows(); j++){
+              _ERIs(j, i) = _ERIs(i, j);
+            }
+          }
+
+          CalculateEnergy(DMAT);
+          return;
         }
         
         
+        void ERIs::FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
+              const tensor4d& block,
+              const AOShell& shell_1, const AOShell& shell_2,
+              const AOShell& shell_3, const AOShell& shell_4) {
+
+          for (int iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
+            int ind_3 = shell_3.getStartIndex() + iFunc_3;
+            for (int iFunc_4 = 0; iFunc_4 < shell_4.getNumFunc(); iFunc_4++) {
+              int ind_4 = shell_4.getStartIndex() + iFunc_4;
+
+              // Symmetry
+              if (ind_3 > ind_4) {
+                continue;
+              }
+
+              for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1.getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2.getStartIndex() + iFunc_2;
+
+                  // Symmetry
+                  if (ind_1 > ind_2) {
+                    continue;
+                  }
+
+                  // Symmetry for diagonal elements
+                  double multiplier = (ind_1 == ind_2 ? 1.0 : 2.0);
+                  // Fill ERIs matrix
+                  ERIsCur(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) * block[iFunc_1][iFunc_2][iFunc_3][iFunc_4];
+                  
+                } // End loop over functions in shell 2
+              } // End loop over functions in shell 1
+            } // End loop over functions in shell 4
+          } // End loop over functions in shell 3
+          
+          return;
+        }
         
         
-        
-        // This is simply Trace(prod(ERIs*Dmat))=Totenergy
-        void ERIs::CalculateEnergy(ub::vector<double> &dmatasarray){
-            _ERIsenergy=0;
-            ub::vector<double> ERIsasarray=_ERIs.data();
-            for (unsigned _i=0;_i<ERIsasarray.size();_i++){
-                _ERIsenergy+=dmatasarray[_i]*ERIsasarray[_i];
-                
+        void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
+          
+          tensor4d::extent_gen extents;
+          
+          // Number of shells
+          int numShells = dftbasis.getNumofShells();
+          // Total number of functions
+          int dftBasisSize = dftbasis.AOBasisSize();
+          
+          _diagonals = Eigen::MatrixXd::Zero(dftBasisSize,dftBasisSize);
+          
+          for (int iShell_1 = 0; iShell_1 < numShells; iShell_1++) {
+            const AOShell& shell_1 = dftbasis.getShell(iShell_1);
+            int numFunc_1 = shell_1.getNumFunc();
+            for (int iShell_2 = iShell_1; iShell_2 < numShells; iShell_2++) {
+              const AOShell& shell_2 = dftbasis.getShell(iShell_2);
+              int numFunc_2 = shell_2.getNumFunc();
+              
+              // Get the current 4c block
+              tensor4d block(extents[ range(0, numFunc_1) ][ range(0, numFunc_2) ][ range(0, numFunc_1)][ range(0, numFunc_2)]);
+              for (int i = 0; i < numFunc_1; ++i) {
+                for (int j = 0; j < numFunc_2; ++j) {
+                  for (int k = 0; k < numFunc_1; ++k) {
+                    for (int l = 0; l < numFunc_2; ++l) {
+                      block[i][j][k][l] = 0.0;
+                    }
+                  }
+                }
+              }
+              bool nonzero=_fourcenter.FillFourCenterRepBlock(block, shell_1, shell_2, shell_1, shell_2);
+              
+              if (!nonzero) {
+                continue;
+              }
+
+              for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1.getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2.getStartIndex() + iFunc_2;
+
+                  // Symmetry
+                  if (ind_1 > ind_2) {
+                    continue;
+                  }
+    
+                  _diagonals(ind_1, ind_2) = block[iFunc_1][iFunc_2][iFunc_1][iFunc_2];
+                  
+                  // Symmetry
+                  if (ind_1 != ind_2) {
+                    _diagonals(ind_2, ind_1) = _diagonals(ind_1, ind_2);
+                  }
+
+                }
+              }
             }
-            
-            
-          */  
-            
+          }
+          
+          return;
+        }
+        
+        
+        bool ERIs::CheckScreen(double eps,
+            const AOShell& shell_1, const AOShell& shell_2,
+            const AOShell& shell_3, const AOShell& shell_4) {
+          
+          const double eps2=eps * eps;
+          
+          for (int iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
+            int ind_3 = shell_3.getStartIndex() + iFunc_3;
+            for (int iFunc_4 = 0; iFunc_4 < shell_4.getNumFunc(); iFunc_4++) {
+              int ind_4 = shell_4.getStartIndex() + iFunc_4;
+
+              // Symmetry
+              if (ind_3 > ind_4) {
+                continue;
+              }
+              
+              for (int iFunc_1 = 0; iFunc_1 < shell_1.getNumFunc(); iFunc_1++) {
+                int ind_1 = shell_1.getStartIndex() + iFunc_1;
+                for (int iFunc_2 = 0; iFunc_2 < shell_2.getNumFunc(); iFunc_2++) {
+                  int ind_2 = shell_2.getStartIndex() + iFunc_2;
+
+                  // Symmetry
+                  if (ind_1 > ind_2) {
+                    continue;
+                  }
+                  
+                  // Cauchy–Schwarz
+                  // <ab|cd> <= sqrt(<ab|ab>) * sqrt(<cd|cd>)
+                  double ub = _diagonals(ind_1, ind_2) * _diagonals(ind_3, ind_4);
+                  
+                  // Compare with tolerance
+                  if (ub > eps2) {
+                    return false; // We must compute ERIS for the whole block
+                  }
+                  
+                }
+              }
+            }
+          }
+          
+          return true; // We can skip the whole block
+        }
+        
+        
+        void ERIs::CalculateEnergy(const Eigen::MatrixXd &DMAT){
+          _ERIsenergy=_ERIs.cwiseProduct(DMAT).sum();
+          return;
+        }
+         
+        
+        void ERIs::CalculateEXXEnergy(const Eigen::MatrixXd &DMAT){
+          _EXXsenergy=_EXXs.cwiseProduct(DMAT).sum();
+          return;
         }
         
         
         void ERIs::printERIs(){
-          for (unsigned i=0; i< _ERIs.size1(); i++){
-                for (unsigned j=0; j< _ERIs.size2();j++){
-                    cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<endl;
-                }
+          for (int i=0; i< _ERIs.cols(); i++){
+            for (int j=0; j< _ERIs.rows();j++){
+              std::cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<std::endl;
             }
+          }
+          return;
         }
         
-        
-        
-        
-        
-    }}
+    }
+}

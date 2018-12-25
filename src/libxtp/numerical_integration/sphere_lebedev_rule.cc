@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,123 +16,50 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
 
-
+#include <cmath>
 #include "votca/xtp/sphere_lebedev_rule.h"
 #include "votca/xtp/grid_containers.h"
-
+#include "votca/xtp/qmpackage.h"
 
 
 namespace votca { namespace xtp { 
 
-    double pi=boost::math::constants::pi<double>();
     
-    void LebedevGrid::getSphericalGrid(std::vector<QMAtom*> _atoms, string type, GridContainers& _grids){
-
-            std::vector< QMAtom* > ::iterator ait;
-            map<string,GridContainers::spherical_grid>::iterator it;
-
-
-            for (ait = _atoms.begin(); ait < _atoms.end(); ++ait) {
-
-                 string name = (*ait)->type;
-                 // is this element already in map?
-                 it = _grids._spherical_grids.find(name);
-                  // only proceed, if element data does not exist yet
-                 if (it == _grids._spherical_grids.end()) {              
-
-                     std::vector<double> theta;
-                     std::vector<double> phi;
-                     std::vector<double> weight;
-                     getUnitSphereGrid(name,type,theta,phi,weight);
-                     
-                     // update map
-                     _grids._spherical_grids[name].theta = theta; 
-                     _grids._spherical_grids[name].phi = phi; 
-                     _grids._spherical_grids[name].weight = weight; 
-                     
-                     
+     std::map<std::string,GridContainers::spherical_grid> LebedevGrid::CalculateSphericalGrids(const QMMolecule& atoms,const std::string& type){
+       std::vector<std::string> unique_atoms=atoms.FindUniqueElements();
+       std::map<std::string,GridContainers::spherical_grid> result;
+            for (const std::string& atomname:unique_atoms) {
+              result[atomname]=CalculateUnitSphereGrid(atomname,type);
                  }
-            }
+       return result;
     }
     
-    
-    void LebedevGrid::getUnitSphereGrid(string element, string type, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-              
-              double *w;
-              double *x;
-              double *y;
-              double *z;
-              int order = getOrder(element,type);
-              w = new double[order];
-              x = new double[order];
-              y = new double[order];
-              z = new double[order];
-              ld_by_order(order, x,y,z,w);
-              for ( int _i=0 ; _i < order ; _i++){
-                  
-                  double t;
-                  double p;
-                  xyz_to_tp(x[_i],y[_i],z[_i],&t,&p);
-                  _theta.push_back(t);
-                  _phi.push_back(p);
-                  _weight.push_back(4.0*pi*w[_i]);
-                  
-              }               
-    
-  
-              
-              
-              
-              
+    GridContainers::spherical_grid LebedevGrid::CalculateUnitSphereGrid(const std::string& element, const std::string& type) {
+      int order = Type2MaxOrder(element, type);
+      return CalculateUnitSphereGrid(order);
     }
     
-    
-        void LebedevGrid::getUnitSphereGrid(int order, std::vector<double>& _theta, std::vector<double>& _phi, std::vector<double>& _weight){
-              
-              double *w;
-              double *x;
-              double *y;
-              double *z;
-//               int order = getOrder(element,type);
-              w = new double[order];
-              x = new double[order];
-              y = new double[order];
-              z = new double[order];
-              ld_by_order(order, x,y,z,w);
-              for ( int _i=0 ; _i < order ; _i++){
-                  
-                  double t;
-                  double p;
-                  xyz_to_tp(x[_i],y[_i],z[_i],&t,&p);
-                  _theta.push_back(t);
-                  _phi.push_back(p);
-                  _weight.push_back(4.0*pi*w[_i]);
-                  
-              }               
-    
-  
-              
-              
-              
-              
+    GridContainers::spherical_grid LebedevGrid::CalculateUnitSphereGrid(int order) {
+      const double fourpi = 4 * tools::conv::Pi;
+      GridContainers::spherical_grid result;
+      result.phi=Eigen::VectorXd::Zero(order);
+      result.theta=Eigen::VectorXd::Zero(order);
+      result.weight=Eigen::VectorXd::Zero(order);
+      Eigen::Matrix4Xd xyzw=ld_by_order(order);
+      for (int i = 0; i <order; i++) {
+        Eigen::Vector3d xyz=xyzw.col(i).head<3>();
+        Eigen::Vector2d spherical=this->Cartesian2SphericalAngle(xyz);
+        result.phi[i]=spherical[0];
+        result.theta[i]=spherical[1];
+        result.weight[i]=fourpi *xyzw.col(i)[3];
+      }
+      return result;
     }
     
-    
-        int LebedevGrid::Type2MaxOrder(string element, string type){
-            
-           return  this->getOrder(element, type);
-            
-            
-        }
-    
-    
-    int LebedevGrid::getOrder(string element, string type){
+    int LebedevGrid::Type2MaxOrder(const std::string & element, const std::string& type){
         
         if ( type == "medium"){
-            
             return MediumOrder.at(element);                        
         }
         else if ( type == "coarse"){
@@ -149,24 +76,7 @@ namespace votca { namespace xtp {
         }
         throw std::runtime_error("Grid type "+type+" is not implemented");
         return -1;
-        
-        
-        
-        
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
     
     
 //****************************************************************************80
@@ -818,19 +728,16 @@ int LebedevGrid::gen_oh ( int code, double a, double b, double v, double *x,
   }
   else
   {
-    cerr << "\n";
-    cerr << "GEN_OH - Fatal error!\n";
-    cerr << "  Illegal value of code.\n";
+    std::cerr << "\n";
+    std::cerr << "GEN_OH - Fatal error!\n";
+    std::cerr << "  Illegal value of code.\n";
     exit ( 1 );
   }
   return num;
 }
 //****************************************************************************80
 
-void LebedevGrid::ld_by_order ( int order, double *x, double *y, double *z, double *w )
-
-//****************************************************************************80
-//
+Eigen::Matrix4Xd LebedevGrid::ld_by_order ( int order)
 //  Purpose:
 //
 //    LD_BY_ORDER returns a Lebedev angular grid given its order.
@@ -838,11 +745,6 @@ void LebedevGrid::ld_by_order ( int order, double *x, double *y, double *z, doub
 //  Discussion:
 //
 //    Only a certain set of such rules are available through this function.
-//
-//  Modified:
-//
-//    13 September 2010
-//
 //  Author:
 //
 //    Dmitri Laikov
@@ -855,152 +757,87 @@ void LebedevGrid::ld_by_order ( int order, double *x, double *y, double *z, doub
 //    Russian Academy of Sciences Doklady Mathematics,
 //    Volume 59, Number 3, 1999, pages 477-481.
 //
-//  Parameters:
-//
-//    Input, int ORDER, the order of the rule.
-//
-//    Output, double X[ORDER], Y[ORDER], Z[ORDER], W[ORDER], the coordinates
-//    and weights of the points.
-//
-{
-  if ( order == 6 )
-  {
-    ld0006 ( x, y, z, w );
-  }
-  else if ( order == 14 )
-  {
-    ld0014 ( x, y, z, w );
-  }
-  else if ( order == 26 )
-  {
-    ld0026 ( x, y, z, w );
-  }
-  else if ( order == 38 )
-  {
-    ld0038 ( x, y, z, w );
-  }
-  else if ( order == 50 )
-  {
-    ld0050 ( x, y, z, w );
-  }
-  else if ( order == 74 )
-  {
-    ld0074 ( x, y, z, w );
-  }
-  else if ( order == 86 )
-  {
-    ld0086 ( x, y, z, w );
-  }
-  else if ( order == 110 )
-  {
-    ld0110 ( x, y, z, w );
-  }
-  else if ( order == 146 )
-  {
-    ld0146 ( x, y, z, w );
-  }
-  else if ( order == 170 )
-  {
-    ld0170 ( x, y, z, w );
-  }
-  else if ( order == 194 )
-  {
-    ld0194 ( x, y, z, w );
-  }
-  else if ( order == 230 )
-  {
-    ld0230 ( x, y, z, w );
-  }
-  else if ( order == 266 )
-  {
-    ld0266 ( x, y, z, w );
-  }
-  else if ( order == 302 )
-  {
-    ld0302 ( x, y, z, w );
-  }
-  else if ( order == 350 )
-  {
-    ld0350 ( x, y, z, w );
-  }
-  else if ( order == 434 )
-  {
-    ld0434 ( x, y, z, w );
-  }
-  else if ( order == 590 )
-  {
-    ld0590 ( x, y, z, w );
-  }
-  else if ( order == 770 )
-  {
-    ld0770 ( x, y, z, w );
-  }
-  else if ( order == 974 )
-  {
-     ld0974 ( x, y, z, w );
-  }
-  else if ( order == 1202 )
-  {
-    ld1202 ( x, y, z, w );
-  }
-  else if ( order == 1454 )
-  {
-    ld1454 ( x, y, z, w );
-  }
-  else if ( order == 1730 )
-  {
-    ld1730 ( x, y, z, w );
-  }
-  else if ( order == 2030 )
-  {
-    ld2030 ( x, y, z, w );
-  }
-  else if ( order == 2354 )
-  {
-    ld2354 ( x, y, z, w );
-  }
-  else if ( order == 2702 )
-  {
-    ld2702 ( x, y, z, w );
-  }
-  else if ( order == 3074 )
-  {
-    ld3074 ( x, y, z, w );
-  }
-  else if ( order == 3470 )
-  {
-    ld3470 ( x, y, z, w );
-  }
-  else if ( order == 3890 )
-  {
-    ld3890 ( x, y, z, w );
-  }
-  else if ( order == 4334 )
-  {
-    ld4334 ( x, y, z, w );
-  }
-  else if ( order == 4802 )
-  {
-    ld4802 ( x, y, z, w );
-  }
-  else if ( order == 5294 )
-  {
-    ld5294 ( x, y, z, w );
-  }
-  else if ( order == 5810 )
-  {
-    ld5810 ( x, y, z, w );
-  }
-  else
-  {
-    cerr << "\n";
-    cerr << "LD_BY_ORDER - Fatal error!\n";
-    cerr << "  Unexpected value of ORDER.\n";
-    exit ( 1 );
-  }
-
-  return;
-}
+    {
+      Eigen::VectorXd x = Eigen::VectorXd::Zero(order);
+      Eigen::VectorXd y = Eigen::VectorXd::Zero(order);
+      Eigen::VectorXd z = Eigen::VectorXd::Zero(order);
+      Eigen::VectorXd w = Eigen::VectorXd::Zero(order);
+      switch (order) {
+        case 6: ld0006(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 14: ld0014(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 26: ld0026(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 38: ld0038(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 50: ld0050(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 74: ld0074(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 86: ld0086(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 110: ld0110(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 146: ld0146(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 170: ld0170(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 194: ld0194(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 230: ld0230(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 266: ld0266(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 302: ld0302(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 350: ld0350(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 434: ld0434(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 590: ld0590(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 770: ld0770(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 974: ld0974(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 1202: ld1202(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 1454: ld1454(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 1730: ld1730(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 2030: ld2030(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 2354: ld2354(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 2702: ld2702(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 3074: ld3074(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 3470: ld3470(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 3890: ld3890(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 4334: ld4334(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 4802: ld4802(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 5294: ld5294(x.data(), y.data(), z.data(), w.data());
+          break;
+        case 5810: ld5810(x.data(), y.data(), z.data(), w.data());
+          break;
+        default: throw std::runtime_error("LD_BY_ORDER - Fatal error! Unexpected value of ORDER.");
+          break;
+      }
+      Eigen::Matrix4Xd result = Eigen::Matrix4Xd::Zero(4,order);
+      result.row(0) = x;
+      result.row(1) = y;
+      result.row(2) = z;
+      result.row(3) = w;
+      return result;
+    }
+  
 //****************************************************************************80
 
 void LebedevGrid::ld0006 ( double *x, double *y, double *z, double *w )
@@ -6895,16 +6732,16 @@ int LebedevGrid::order_table ( int rule )
 
   if ( rule < 1 )
   {
-    cerr << "\n";
-    cerr << "ORDER_TABLE - Fatal error!\n";
-    cerr << "  RULE < 1.\n";
+    std::cerr << "\n";
+    std::cerr << "ORDER_TABLE - Fatal error!\n";
+    std::cerr << "  RULE < 1.\n";
     exit ( 1 );
   }
   else if ( rule_max < rule )
   {
-    cerr << "\n";
-    cerr << "ORDER_TABLE - Fatal error!\n";
-    cerr << "  RULE_MAX < RULE.\n";
+    std::cerr << "\n";
+    std::cerr << "ORDER_TABLE - Fatal error!\n";
+    std::cerr << "  RULE_MAX < RULE.\n";
     exit ( 1 );
   }
 
@@ -6958,16 +6795,16 @@ int LebedevGrid::precision_table ( int rule )
 
   if ( rule < 1 )
   {
-    cerr << "\n";
-    cerr << "PRECISION_TABLE - Fatal error!\n";
-    cerr << "  RULE < 1.\n";
+    std::cerr << "\n";
+    std::cerr << "PRECISION_TABLE - Fatal error!\n";
+    std::cerr << "  RULE < 1.\n";
     exit ( 1 );
   }
   else if ( rule_max < rule )
   {
-    cerr << "\n";
-    cerr << "PRECISION_TABLE - Fatal error!\n";
-    cerr << "  RULE_MAX < RULE.\n";
+    std::cerr << "\n";
+    std::cerr << "PRECISION_TABLE - Fatal error!\n";
+    std::cerr << "  RULE_MAX < RULE.\n";
     exit ( 1 );
   }
 
@@ -6975,110 +6812,13 @@ int LebedevGrid::precision_table ( int rule )
 
   return value;
 }
-//****************************************************************************80
 
-void LebedevGrid::timestamp ( )
-
-//****************************************************************************80
-//
-//  Purpose:
-//
-//    TIMESTAMP prints the current YMDHMS date as a time stamp.
-//
-//  Example:
-//
-//    31 May 2001 09:45:54 AM
-//
-//  Licensing:
-//
-//    This code is distributed under the GNU LGPL license. 
-//
-//  Modified:
-//
-//    08 July 2009
-//
-//  Author:
-//
-//    John Burkardt
-//
-//  Parameters:
-//
-//    None
-//
-{
-# define TIME_SIZE 40
-
-  static char time_buffer[TIME_SIZE];
-  //const struct std::tm *tm_ptr;
-  //size_t len;
-  //std::time_t now;
-
-  //now = std::time ( NULL );
-  //tm_ptr = std::localtime ( &now );
-
-  //len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
-
-  std::cout << time_buffer << "\n";
-
-  return;
-# undef TIME_SIZE
-}
-//****************************************************************************80
-
-void LebedevGrid::xyz_to_tp ( double x, double y, double z, double *t, double *p )
-
-//****************************************************************************80
-//
-//  Purpose:
-//
-//    XYZ_TO_TP converts (X,Y,Z) to (Theta,Phi) coordinates on the unit sphere.
-//
-//  Modified:
-//
-//    09 September 2010
-//
-//  Author:
-//
-//    Dmitri Laikin
-//
-//  Parameters:
-//
-//    Input, double X, Y, Z, the Cartesian coordinates of a point
-//    on the unit sphere.
-//
-//    Output, double T, P, the Theta and Phi coordinates of
-//    the point.
-//
-{
-  double ang_x;
-  double fact;
-  //double pi = 3.14159265358979323846;
-
-  *p = acos ( z );
-
-  fact = sqrt ( x * x + y * y );
-
-  if ( 0 < fact ) 
-  {
-    ang_x = acos ( x / fact );
-  }
-  else
-  {
-    ang_x = acos ( x );
-  }
-
-  if ( y < 0 ) 
-  {
-    ang_x = - ang_x;
-  }
-  *t = ang_x;
-//
-//  Convert to degrees.
-//
-  *t = *t * 180.0 / pi;
-  *p = *p * 180.0 / pi;
-
-  return;
+Eigen::Vector2d LebedevGrid::Cartesian2SphericalAngle ( const Eigen::Vector3d& r){
+  //phi=Vector[0] theta=Vector[1]
+  Eigen::Vector2d result;
+  result[0] = std::acos(r(2));
+  result[1]=  std::atan2(r(1),r(0));
+  return result;
 }
 }
 }

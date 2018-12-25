@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_MD2QM_VERSION_H
-#define	__VOTCA_MD2QM_VERSION_H
+#ifndef VOTCA_MD2QM_VERSION_H
+#define	VOTCA_MD2QM_VERSION_H
 
 #include <string>
 /**
@@ -30,5 +30,6 @@ namespace votca { namespace xtp {
     void HelpTextHeader(const std::string &tool_name);
 }}
 
-#endif
+#endif //  VOTCA_MD2QM_VERSION_H
+
 

@@ -1,19 +1,6 @@
 set(XTP_SCRIPTS) 
-if(WITH_DIPRO)
-  foreach(SCRIPT xtp_dipro)
-    configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
-    add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
-    add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
-      -DINPUT="${SCRIPT}.out" -DOUTPUT="${SCRIPT}"
-      -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-      -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/gitscript.cmake)
-    set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT})
-    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION bin)
-    set(XTP_SCRIPTS "${XTP_SCRIPTS} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
-  endforeach(SCRIPT)
-endif(WITH_DIPRO)
 
-foreach(SCRIPT xtp_testsuite xtp_update xtp_update_exciton xtp_basisset)
+foreach(SCRIPT xtp_update_exciton xtp_basisset xtp_makeauxbasis)
   configure_file(${SCRIPT}.in ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.out @ONLY)
   add_custom_target(${SCRIPT}_build ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT})
   add_custom_command(OUTPUT ${SCRIPT} COMMAND ${CMAKE_COMMAND}
@@ -21,7 +8,7 @@ foreach(SCRIPT xtp_testsuite xtp_update xtp_update_exciton xtp_basisset)
     -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
     -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}" -P ${CMAKE_MODULE_PATH}/gitscript.cmake)
   set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT})
-  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION bin)
-  set(XTP_SCRIPTS "${XTP_SCRIPTS} ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
+  install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT} DESTINATION ${CMAKE_INSTALL_BINDIR})
+  list(APPEND XTP_SCRIPTS "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
 endforeach(SCRIPT)
 set(XTP_SCRIPTS "${XTP_SCRIPTS}" PARENT_SCOPE)

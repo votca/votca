@@ -1,0 +1,19 @@
+<pseudopotential name="ECP2SDF">
+
+	<element name="C" lmax="3" ncore="2">
+		<shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+		<shell type="S"><constant power="2" decay="6.844600" contraction="37.456500"></constant></shell>
+		<shell type="P"><constant power="2" decay="7.931700" contraction="-2.673900"></constant></shell>
+		<shell type="D"><constant power="2" decay="6.020900" contraction="-0.594500"></constant></shell>
+	</element>
+
+
+        <element name="O" lmax="3" ncore="2">
+            <shell type="F"><constant power="2" decay="1.0" contraction="0.0"></constant></shell>
+            <shell type="S"><constant power="2" decay="12.968600" contraction="73.608600"></constant></shell>
+            <shell type="P"><constant power="2" decay="15.243000" contraction="-3.917200"></constant></shell>
+            <shell type="D"><constant power="2" decay="9.617200" contraction="-0.655900"></constant></shell>
+       </element>
+
+</pseudopotential>
+

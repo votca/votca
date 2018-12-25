@@ -1,26 +1,7 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
- *                       (http://www.votca.org)
- *
- *      Licensed under the Apache License, Version 2.0 (the "License")
- *
- * You may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *              http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- */
+#ifndef VOTCA_XTP_PAIRCALCULATOR2_H
+#define	VOTCA_XTP_PAIRCALCULATOR2_H
 
-#ifndef _PAIRCALCULATOR2_H
-#define	_PAIRCALCULATOR2_H
-
-#include "qmcalculator.h"
+#include <votca/xtp/qmcalculator.h>
 
 namespace votca { namespace xtp {
 
@@ -42,8 +23,8 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
         bool isRigid = top->Rigidify();
         if (!isRigid) { return 0; }
     }
-    else { cout << endl << "... ... System is already rigidified."; }
-    cout << endl;
+    else { std::cout << std::endl << "... ... System is already rigidified."; }
+    std::cout << std::endl;
 
     QMNBList &nblist = top->NBList();
 
@@ -54,9 +35,8 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
 
         if ( (*pit)->getId() == -1 ) {
             
-            string pairId = boost::lexical_cast<string>((*pit)->getId());
-            string pdbname = "Pair" + pairId + ".pdb";
-            (*pit)->WritePDB(pdbname);
+            std::string pairId = boost::lexical_cast<std::string>((*pit)->getId());
+            std::string pdbname = "Pair" + pairId + ".pdb";
         }
 
     }
@@ -66,6 +46,6 @@ bool PairCalculator2::EvaluateFrame(Topology *top) {
 
 }}
 
-#endif	/* _PAIRCALCULATOR2_H */
+#endif	// VOTCA_XTP_PAIRCALCULATOR2_H
 
  

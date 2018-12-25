@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,22 +16,17 @@
  * limitations under the License.
  *
  */
+/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef VOTCA_XTP_SEGMENT_TYPE_H
+#define	VOTCA_XTP_SEGMENT_TYPE_H
 
-#ifndef __VOTCA_SEGMENT_TYPE_H
-#define	__VOTCA_SEGMENT_TYPE_H
-
-#include <cstdlib>
 #include <string>
-#include <vector>
 
 namespace votca { namespace xtp {
 
-
-
 class Topology;
 class Segment;
-
 
 class SegmentType
 {
@@ -84,5 +79,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_SEGMENT_TYPE_H */
+#endif	// VOTCA_XTP_SEGMENT_TYPE_H 
 

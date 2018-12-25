@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_VXCFUNCTIONALS_H
-#define	__VOTCA_XTP_VXCFUNCTIONALS_H
+#ifndef VOTCA_XTP_VXCFUNCTIONALS_H
+#define	VOTCA_XTP_VXCFUNCTIONALS_H
 
 #include <string>
 #include <map>
@@ -26,9 +26,6 @@
 
 
 namespace votca { namespace xtp {
-
-
-
 
 
 /**
@@ -66,10 +63,7 @@ private:
     }
 
     inline void FillstringtoID(){
-    
-        _stringtoID["LDA_VOTCA"]  = -1; 
-        _stringtoID["PBE_VOTCA"]  = -2; 
-    #ifdef LIBXC
+
         _stringtoID["XC_LDA_X"] = 1;
         _stringtoID["XC_LDA_C_WIGNER"] = 2;
         _stringtoID["XC_LDA_C_RPA"] = 3;
@@ -388,7 +382,7 @@ private:
         _stringtoID["XC_HYB_MGGA_XC_PWB6K"] = 452;
         _stringtoID["XC_HYB_MGGA_XC_TPSSH"] = 457;
         _stringtoID["XC_HYB_MGGA_XC_REVTPSSH"] = 458;
-    #endif 
+
         
         }
     };
@@ -402,5 +396,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_XTP_ATOM_H */
+#endif	// VOTCA_XTP_VXCFUNCTIONALS_H
 

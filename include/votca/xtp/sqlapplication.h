@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,11 +21,14 @@
 #ifndef VOTCA_XTP_SQLAPPLICATION_H
 #define	VOTCA_XTP_SQLAPPLICATION_H
 
-#include <votca/xtp/xtpapplication.h>
-#include <votca/xtp/topology.h>
 
-#include "statesaversqlite.h"
-#include "qmcalculator.h"
+#include <votca/xtp/topology.h>
+#include <votca/xtp/qmcalculator.h>
+
+#include <votca/xtp/xtpapplication.h>
+#include <votca/xtp/statesaversqlite.h>
+
+
 
 
 namespace votca { namespace xtp {
@@ -35,7 +38,12 @@ class SqlApplication : public XtpApplication
 {
 public:
     SqlApplication();
-   ~SqlApplication() { };
+
+    ~SqlApplication() {
+        for (QMCalculator* calculator : _calculators) {
+            delete calculator;
+        }
+    };
 
    void Initialize();
    bool EvaluateOptions();
@@ -49,8 +57,8 @@ public:
 
 protected:
 
-    XTP::Topology           _top;
-    list< QMCalculator* >   _calculators;
+    Topology           _top;
+    std::list< QMCalculator* >   _calculators;
 
 };
 
@@ -64,7 +72,7 @@ protected:
 
 
 
-#endif /* _QMApplication_H */
+#endif // VOTCA_XTP_SQLAPPLICATION_H
 
 
 

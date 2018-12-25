@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,62 +17,64 @@
  *
  */
 
-#ifndef __XTP_ESPFIT__H
-#define	__XTP_ESPFIT__H
+#ifndef VOTCA_XTP_ESPFIT_H
+#define	VOTCA_XTP_ESPFIT_H
 
-
-#include <votca/xtp/elements.h>
 #include <votca/xtp/grid.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/aobasis.h>
-
-
 /**
 * \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of partial charges
 *
 * 
 * 
 */
-using namespace votca::tools;
-
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
     
 class Espfit{
 public:
     
-    Espfit(Logger *log):_ECP(false),_do_Transition(false),_do_svd(false) {_log = log;}
-   ~Espfit(){};
+    struct ConstraintRegion{
+         std::vector<int> atomindices;
+         double charge;
+     };
     
-   void setUseECPs(bool ECP){_ECP=ECP;}
+    Espfit(Logger *log):_do_svd(true) {_log = log;
+    _conditionnumber=1e-8;
+    _pairconstraint.resize(0);
+    _regionconstraint.resize(0);
+    }
    
-   void setUseSVD(bool do_svd,double conditionnumber){_do_svd=do_svd;_conditionnumber=conditionnumber;}
+   void setUseSVD(double conditionnumber){_do_svd=true;_conditionnumber=conditionnumber;}
     
-    void EvaluateAPECharges(Grid& _targetgrid, Grid& _chargepositions);
-  
-    void FitAPECharges(Grid& _targetgrid_fg, Grid& _targetgrid_bg, Grid& _chargepositions, double& netcharge);
+   void setPairConstraint(std::vector< std::pair<int,int> > pairconstraint){
+       _pairconstraint=pairconstraint;
+   }
+   
+   void setRegionConstraint(std::vector< ConstraintRegion > regionconstraint){
+       _regionconstraint=regionconstraint;
+   }
     // on grid very fast
-    void Fit2Density(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis,BasisSet &bs,std::string gridsize);
+    void Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis &basis,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(std::vector< QMAtom* >& _atomlist, ub::matrix<double> &_dmat, AOBasis &_basis);
+    void Fit2Density_analytic(Orbitals& orbitals,const QMState& state, const AOBasis &basis);
 private:
     
      Logger *_log;
-     Elements _elements; 
-     bool _ECP;
-     bool _do_Transition;
      bool _do_svd;
      double _conditionnumber;
      
+     std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
      
-    double getNetcharge( std::vector< QMAtom* >& _atoms, double N );
+     std::vector< ConstraintRegion > _regionconstraint;
  
-    ub::vector<double> EvalNuclearPotential( std::vector< QMAtom* >& _atoms, Grid _grid );
+    void EvalNuclearPotential(const QMMolecule& atoms, Grid& grid);
    
      // Fits partial charges to Potential on a grid, constrains net charge
-    std::vector<double> FitPartialCharges( std::vector< ub::vector<double> >& _fitcenters, Grid& _grid, ub::vector<double>& _potential, double& _netcharge );
+    void FitPartialCharges(Orbitals& orbitals,const Grid& grid,double netcharge  );
     
 };
 }}
 
-#endif	/* ESPFIT_H */
+#endif	// VOTCA_XTP_ESPFIT_H 

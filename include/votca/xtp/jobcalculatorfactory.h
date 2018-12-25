@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,10 +26,10 @@
 
 namespace votca { namespace xtp {
 
-using namespace std;
+
 
 class JobCalculatorfactory
-: public ObjectFactory<std::string, JobCalculator>
+: public tools::ObjectFactory<std::string, JobCalculator>
 {
 private:
     JobCalculatorfactory() {}
@@ -41,7 +41,7 @@ public:
        Create an instance of the object identified by key.
     *  Overwritten to load calculator defaults
     */
-    JobCalculator *Create(const string &key);
+    JobCalculator *Create(const std::string &key);
 
     friend JobCalculatorfactory &JobCalculators();
     
@@ -53,7 +53,7 @@ inline JobCalculatorfactory &JobCalculators()
     return _instance;
 }
 
-inline JobCalculator* JobCalculatorfactory::Create(const string &key)
+inline JobCalculator* JobCalculatorfactory::Create(const std::string &key)
 {
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
@@ -66,5 +66,5 @@ inline JobCalculator* JobCalculatorfactory::Create(const string &key)
 
 }}
 
-#endif	/* _Calculatorfactory_H */
+#endif	// VOTCA_XTP_JOBCALCULATORFACTORY_H
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,93 +17,83 @@
  *
  */
 
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/logger.h>
+#include <votca/xtp/couplingbase.h>
+#include <votca/xtp/qmstate.h>
 
-#ifndef _VOTCA_XTP_BSECOUPLING_H
-#define	_VOTCA_XTP_BSECOUPLING_H
+#ifndef VOTCA_XTP_BSECOUPLING_H
+#define	VOTCA_XTP_BSECOUPLING_H
 
 namespace votca { namespace xtp {
 
-namespace ub = boost::numeric::ublas;
+    
 /**
 * \brief Evaluates electronic coupling elements
 *
-* B. Baumeier, J. Kirkpatrick, D. Andrienko, 
-* Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+* J. Wehner,B. Baumeier, 
+* JCTC DOI: 10.1021/acs.jctc.6b00935
 * 
 */
 
-class BSECoupling 
+class BSECoupling : public CouplingBase
 {
 public:
-
-    BSECoupling() {};
-   ~BSECoupling() {};
    
-   void    Initialize( Property *options);
-    string  Identify() { return "bsecoupling"; }
-    bool get_doSinglets(){ return _doSinglets;}
-    bool get_doTriplets(){ return _doTriplets;}
-    
-    ub::matrix<real_gwbse> getJAB_singletstorage(){return JAB_singlet;}
-    ub::matrix<real_gwbse> getJAB_tripletstorage(){return JAB_triplet;}
-    void addoutput(Property *_type_summary,Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB);
-    
-    bool CalculateCouplings(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB 
-                             );  
-    
-    bool CalculateCouplings_OLD(   Orbitals* _orbitalsA, 
-                               Orbitals* _orbitalsB, 
-                               Orbitals* _orbitalsAB, 
-                               ub::matrix<real_gwbse>* _JAB_singlet);  
-    
-    
-
-     
-    real_gwbse getSingletCouplingElement( int levelA, int levelB);
-    
-    real_gwbse getTripletCouplingElement( int levelA, int levelB);
-    real_gwbse getSingletDimerEnergy( int level);
-    real_gwbse getTripletDimerEnergy( int level);
-    void setLogger( Logger* pLog ) { _pLog = pLog; }
-    
-private:
-    
-    Logger *_pLog;
+   void    Initialize( tools::Property &options);
+   std::string  Identify() { return "bsecoupling"; }
   
     
-    bool ProjectExcitons(const ub::matrix<real_gwbse>& _kap,const ub::matrix<real_gwbse>& _kbp, 
-                         const ub::matrix<real_gwbse>& ctAB,const ub::matrix<real_gwbse>& ctBA, 
-                         const ub::matrix<real_gwbse>& _bseA,const ub::matrix<real_gwbse>& _bseB, 
-                         const ub::matrix<real_gwbse>& _H, ub::matrix<real_gwbse>& _J );
+    Eigen::MatrixXd getJAB_singletstorage(){ return (_output_perturbation ?  JAB_singlet[0]:JAB_singlet[1]);}
+       
+    Eigen::MatrixXd getJAB_tripletstorage(){ return (_output_perturbation ?  JAB_triplet[0]: JAB_triplet[1]);}
+    void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
+                               const Orbitals& orbitalsB);
+
+    void CalculateCouplings(const Orbitals& orbitalsA,const Orbitals& orbitalsB, 
+                               Orbitals& orbitalsAB);
+     
+private:
     
-    ub::matrix<real_gwbse> JAB_singlet;
-    ub::matrix<real_gwbse> JAB_triplet;
+    void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB, 
+                        tools::Property& summary, const QMState& stateA, const QMState& stateB);
+    
+    double getSingletCouplingElement( int levelA, int levelB, int methodindex);
+    
+    double getTripletCouplingElement( int levelA, int levelB, int methodindex);
+    
+    std::vector< Eigen::MatrixXd >ProjectExcitons(const Eigen::MatrixXd& bseA_T,const Eigen::MatrixXd& bseB_T, 
+                         Eigen::MatrixXd& H);
+    
+    Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
+    
+    Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer);
+    
+    std::vector< Eigen::MatrixXd > JAB_singlet;
+    std::vector< Eigen::MatrixXd > JAB_triplet;
 
     bool _doTriplets;
     bool _doSinglets;
-    bool _do_perturbation;
-    bool _do_full_diag;
+    bool _output_perturbation;
     int _levA;
     int _levB;
     int _occA;
     int _unoccA;
     int _occB;
     int _unoccB;
-    int _FeA;
-    int _FeB;
-    double      _degeneracy;
-    int         _openmp_threads;
+    int _openmp_threads;
     
+    int _bse_exc;
+    
+    int _ct;
+    
+     Eigen::MatrixXd ctAB;
+     Eigen::MatrixXd ctBA;
+     Eigen::MatrixXd _kap;
+     Eigen::MatrixXd _kbp;
     
 };
 
 }}
 
-#endif	/* _VOTCA_XTP_BSECOUPLING_H */
+#endif	// VOTCA_XTP_BSECOUPLING_H
 
 

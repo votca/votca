@@ -1,9 +1,0 @@
-<options>
-	<cgpolar>
-		<multipoles>system.xml</multipoles>
-		<control>
-			<mps_table>mps.tab</mps_table>
-			<pdb_check>1</pdb_check>
-		</control>
-	</cgpolar>
-</options>	

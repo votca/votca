@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,82 +17,67 @@
  *
  */
 
-#ifndef __XTP_AOMATRIX__H
-#define	__XTP_AOMATRIX__H
+#ifndef VOTCA_XTP_AOMATRIX_H
+#define VOTCA_XTP_AOMATRIX_H
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
+#include <votca/xtp/mmregion.h>
+#include <votca/xtp/multiarray.h>
 
-#include <votca/xtp/segment.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/multi_array.hpp>
-#include "basisset.h"
-//#include "linalg_tools.h"
-
-
-using namespace votca::tools;
-
-namespace Cart {
+namespace votca { namespace xtp {
+    
+    namespace Cart {
         enum Index {
-                s, x, y, z,  xy, xz, yz, xx, yy, zz, xxy, xyy, xyz, xxz, xzz, yyz, yzz, xxx, yyy, zzz,
-                xxxy,xxxz,xxyy,xxyz,xxzz,xyyy,xyyz,xyzz,xzzz,yyyz,yyzz,yzzz,xxxx,yyyy,zzzz,
-                xxxxy,xxxxz,xxxyy,xxxyz,xxxzz,xxyyy,xxyyz,xxyzz,xxzzz,xyyyy,xyyyz,xyyzz,xyzzz,xzzzz,yyyyz,yyyzz,yyzzz,yzzzz,xxxxx,yyyyy,zzzzz
-                
+                    s,                                                                                                                                                     // s
+                    x, y, z,                                                                                                                                               // p
+                    xx, xy, xz, yy, yz, zz,                                                                                                                                // d
+                    xxx, xxy, xxz, xyy, xyz, xzz, yyy, yyz, yzz, zzz,                                                                                                      // f
+                    xxxx, xxxy, xxxz, xxyy, xxyz, xxzz, xyyy, xyyz, xyzz, xzzz, yyyy, yyyz, yyzz, yzzz, zzzz,                                                              // g
+                    xxxxx, xxxxy, xxxxz, xxxyy, xxxyz, xxxzz, xxyyy, xxyyz, xxyzz, xxzzz, xyyyy, xyyyz, xyyzz, xyzzz, xzzzz, yyyyy, yyyyz, yyyzz, yyzzz, yzzzz, zzzzz,     // h
+
+                    xxxxxx, xxxxxy, xxxxxz, xxxxyy, xxxxyz, xxxxzz, xxxyyy, xxxyyz, xxxyzz, xxxzzz, xxyyyy, xxyyyz, xxyyzz, xxyzzz,                                        // i
+                    xxzzzz, xyyyyy, xyyyyz, xyyyzz, xyyzzz, xyzzzz, xzzzzz, yyyyyy, yyyyyz, yyyyzz, yyyzzz, yyzzzz, yzzzzz, zzzzzz,
+
+                    xxxxxxx, xxxxxxy, xxxxxxz, xxxxxyy, xxxxxyz, xxxxxzz, xxxxyyy, xxxxyyz, xxxxyzz, xxxxzzz, xxxyyyy, xxxyyyz,                                            // j
+                    xxxyyzz, xxxyzzz, xxxzzzz, xxyyyyy, xxyyyyz, xxyyyzz, xxyyzzz, xxyzzzz, xxzzzzz, xyyyyyy, xyyyyyz, xyyyyzz,
+                    xyyyzzz, xyyzzzz, xyzzzzz, xzzzzzz, yyyyyyy, yyyyyyz, yyyyyzz, yyyyzzz, yyyzzzz, yyzzzzz, yzzzzzz, zzzzzzz,
+
+                    xxxxxxxx, xxxxxxxy, xxxxxxxz, xxxxxxyy, xxxxxxyz, xxxxxxzz, xxxxxyyy, xxxxxyyz, xxxxxyzz, xxxxxzzz, xxxxyyyy, xxxxyyyz, xxxxyyzz, xxxxyzzz, xxxxzzzz,  // k
+                    xxxyyyyy, xxxyyyyz, xxxyyyzz, xxxyyzzz, xxxyzzzz, xxxzzzzz, xxyyyyyy, xxyyyyyz, xxyyyyzz, xxyyyzzz, xxyyzzzz, xxyzzzzz, xxzzzzzz, xyyyyyyy, xyyyyyyz,
+                    xyyyyyzz, xyyyyzzz, xyyyzzzz, xyyzzzzz, xyzzzzzz, xzzzzzzz, yyyyyyyy, yyyyyyyz, yyyyyyzz, yyyyyzzz, yyyyzzzz, yyyzzzzz, yyzzzzzz, yzzzzzzz, zzzzzzzz,
                 };
 }
 
-namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
-    
-    
-    
-    
+
     /* "superclass" AOSuperMatrix contains all common functionality for
      * atomic orbital matrix types
      */
         class AOSuperMatrix{
-    public:
-        
-        int getBlockSize( int size );
-        
-        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay );
-        void getTrafo( ub::matrix<double>& _trafo, int _lmax, const double& _decay , std::vector<double> contractions);
-        
-        void PrintIndexToFunction( AOBasis* aobasis);
-        
-        
+    public: 
+        static int getBlockSize( int _lmax );
+        static Eigen::MatrixXd getTrafo( const AOGaussianPrimitive& gaussian);
+        void PrintIndexToFunction(const AOBasis& aobasis);
     };
     
     
     // base class for 1D atomic orbital matrix types (overlap, Coulomb, ESP)
+    template< class T> 
     class AOMatrix : public AOSuperMatrix {
-    public:
-        ub::matrix<double> _aomatrix; 
-        ub::vector<double> _gridpoint;
-
+    public: 
 	// Access functions
-	int Dimension(){ return  _aomatrix.size1();};
-	ub::matrix<double> &Matrix(){ return _aomatrix ;};
-
-        const ub::matrix<double> &Matrix() const{ return _aomatrix ;};
-        
-        void Initialize( int size ) {
-            this->_aomatrix = ub::zero_matrix<double>(size,size);
+	int Dimension(){ return  _aomatrix.rows();}
+        const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;}      
+        void Fill(const AOBasis& aobasis);
+        void Print( std::string ident);
+        void FreeMatrix(){
+            _aomatrix.resize(0,0);
         }
-        
-        void Fill( AOBasis* aobasis, ub::vector<double> r = ub::zero_vector<double>(3) , AOBasis* ecp = NULL );
-        
-        // matrix print 
-        void Print( std::string _ident);
         // integrate F
-        void XIntegrate( std::vector<double>& _FmT, const double& _T );
-        // block fill prototype
-        virtual void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col,  AOBasis* ecp = NULL) {} ;
-
-        // ~AOMatrix(){};
-
+        static std::vector<double> XIntegrate( int size, double U );
+    protected:
+        virtual void FillBlock(Eigen::Block< Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >&matrix,const  AOShell& shell_row,const AOShell& shell_col)=0 ;
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;   
     };
     
     
@@ -102,31 +87,14 @@ namespace votca { namespace xtp {
      */
     class AOMatrix3D : public AOSuperMatrix {
     public:
-        std::vector<ub::matrix<double> > _aomatrix; 
-        
-        void Initialize( int size ) {
-            _aomatrix.resize(3);
-            for (int i = 0; i < 3 ; i++){
-              _aomatrix[ i ] = ub::zero_matrix<double>(size,size);
-            }
-        }
-
-
-
-        // matrix print 
+        const std::array<Eigen::MatrixXd,3 > &Matrix() const{ return _aomatrix ;}
         void Print( std::string _ident);
-
-        
-        void Fill( AOBasis* aobasis );
-
+        void Fill(const AOBasis& aobasis );
         // block fill prototype
-        virtual void FillBlock(std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp = NULL) {} ;
-
-        
-        void Cleanup();
-        
-      //  ~AOMatrix3D();
-        
+        void FreeMatrix();
+    protected:
+        std::array<Eigen::MatrixXd,3 > _aomatrix; 
+        virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col)=0 ;
     };
     
     
@@ -135,113 +103,136 @@ namespace votca { namespace xtp {
      * momentum transition dipoles
      */
     class AOMomentum : public AOMatrix3D { 
-        
-        //block fill for gradient/momentum operator, implementation in aomomentum.cc
-        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
-        
-        
+    protected:  
+        void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col);
     };
-    
-    
     
     /* derived class for atomic orbital electrical dipole matrices, required for
      * electical transition dipoles
      */
     class AODipole : public AOMatrix3D { 
-        
-        //block fill for gradient/momentum operator, implementation in aomomentum.cc
-        void FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
-        
-        
+    public:
+        void setCenter(const Eigen::Vector3d& r){ _r=r;}// definition of a center around which the moment should be calculated
+    protected:   
+        void FillBlock(std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col);
+    private:
+        Eigen::Vector3d _r=Eigen::Vector3d::Zero();
     };
-    
     
     // derived class for atomic orbital nuclear potential
-    class AOESP : public AOMatrix{
+    class AOESP : public AOMatrix<double>{
     public:
-        //block fill for overlap, implementation in aoesp.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
-        //void Print();
-        void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+     
+        void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
+        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
+        const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
+        void setPosition(const Eigen::Vector3d& r){ _r=r;};
+    protected:   
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix ,const AOShell& shell_row,const AOShell& shell_col);
+    private:
         
-        ub::matrix<double> _nuclearpotential;
-        // ~AOESP();
-        
-        
+        Eigen::Vector3d _r;
+        Eigen::MatrixXd _nuclearpotential;
+        Eigen::MatrixXd _externalpotential;
     };
-    
-    
     
     // derived class for Effective Core Potentials
-    class AOECP : public AOMatrix{
+    class AOECP : public AOMatrix<double>{
     public:
-        //block fill for overlap, implementation in aoesp.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
-        //void Print();
-        //void Fillnucpotential( AOBasis* aobasis, std::vector<QMAtom*>& _atoms );
+        void setECP(const AOBasis* ecp){_ecp=ecp;}
+    protected: 
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
+    private:
         
-        ub::matrix<double> calcVNLmatrix(  const vec& posA, const vec& posB, const vec& posC, const double& alpha, const double& beta, ub::matrix<double>& _gamma_ecp, ub::matrix<double>& _pref_ecp   );
-        typedef boost::multi_array<double, 3> type_3D;
+        const AOBasis* _ecp;
+        Eigen::MatrixXd calcVNLmatrix(int _lmax_ecp,const Eigen::Vector3d& posC,
+                const AOGaussianPrimitive& _g_row,const AOGaussianPrimitive& _g_col,
+                const  Eigen::Matrix<int,4,5>& power_ecp,const Eigen::Matrix<double,4,5>& gamma_ecp,
+                const Eigen::Matrix<double,4,5>& pref_ecp   );
         
-        void getBLMCOF( const vec& pos, type_3D& BLC, type_3D& C  );
-        void getNorms( std::vector<double>& Norms, const double& decay);
+        void getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos, tensor3d& BLC, tensor3d& C  );
+        Eigen::VectorXd CalcNorms( double decay,int size);
+        Eigen::VectorXd CalcInt_r_exp( int nmax, double decay );
     };
     
-    
-    
-    
-    
-    
-    
     // derived class for kinetic energy
-    class AOKinetic : public AOMatrix{
-    public:
-        //block fill for overlap, implementation in aokinetic.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp);
-        //void Print();
-        
-        // ~AOKinetic();
-        
-        
+    class AOKinetic : public AOMatrix<double>{
+    protected:
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix , const AOShell& shell_row, const AOShell& shell_col);
     };
     
     
     // derived class for atomic orbital overlap
-    class AOOverlap : public AOMatrix{
+    class AOOverlap : public AOMatrix<double>{
     public:
-        //block fill for overlap, implementation in aooverlap.cc
-        void FillBlock( ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
-        //void Print();
+        Eigen::MatrixXd FillShell(const AOShell& shell);
+        int Removedfunctions()const{return removedfunctions;}
+        double SmallestEigenValue()const{return smallestEigenvalue;}
         
-	//        ~AOOverlap();
-        
-    };
-    
-    // inline AOOverlap::~AOOverlap(){
-        
-    //_aomatrix.clear();
-    //_aomatrix.resize(0,0);
-        
-    //}
-    
-    //derived class for atomic orbital Coulomb interaction
-    class AOCoulomb : public AOMatrix{
-    public:
-        int getExtraBlockSize( int lmax_row, int lmax_col  );
-        void FillBlock(ub::matrix_range< ub::matrix<double> >& _matrix, AOShell* _shell_row, AOShell* _shell_col, AOBasis* ecp);
-        void Symmetrize( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
-        void Symmetrize_DFT( AOOverlap& _overlap , AOBasis& _basis, AOOverlap& _overlap_inverse , AOOverlap& _gwoverlap_cholesky_inverse );
-        
+        Eigen::MatrixXd Pseudo_InvSqrt(double etol);
+        Eigen::MatrixXd Sqrt();
+    protected:
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
-        typedef boost::multi_array<double, 3> ma_type;
-        typedef ma_type::index index;
-        void FillgOrbitals(std::vector<double> &_wmp,vector<double> &_wmq,ma_type &_cou, const double _decay_row,const  double _decay_col,const int _lmax_row, const int  _lmax_col);
-        
-        
-        
-  
+         int removedfunctions;
+         double smallestEigenvalue;
     };
+    
+    class AODipole_Potential : public AOMatrix<double>{
+    public:
+        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
+        const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
+    protected: 
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
+    private:
+        void setPolarSite(const PolarSite* site){polarsite=site;};
+        const PolarSite* polarsite;
+        Eigen::MatrixXd _externalpotential;
+    };
+    
+    class AOQuadrupole_Potential : public AOMatrix<double>{
+    public:
+        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
+        const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
+    protected: 
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
+    private:
+        void setPolarSite(const PolarSite* site){polarsite=site;};
+        
+        const PolarSite* polarsite;
+        Eigen::MatrixXd _externalpotential;
+    };
+
+    //derived class for atomic orbital Coulomb interaction
+    class AOCoulomb : public AOMatrix<double>{
+    public:
+        Eigen::MatrixXd Pseudo_InvSqrt_GWBSE(const AOOverlap& auxoverlap,double etol);
+        Eigen::MatrixXd Pseudo_InvSqrt(double etol);
+        int Removedfunctions(){return removedfunctions;}
+    protected:
+        void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
+    private:
+        int removedfunctions;
+    };
+    
+    class AOPlanewave : public AOMatrix<std::complex<double> >{
+    public:
+        void Fillextpotential(const AOBasis& aobasis, const std::vector< Eigen::Vector3d>& kpoints);
+        Eigen::MatrixXd getExternalpotential(){ return _externalpotential.real();}
+    protected:
+        void FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
+                const AOShell& shell_row, const AOShell& shell_col);
+    private:
+        void setkVector(const Eigen::Vector3d& k){_k=k;};
+        Eigen::Vector3d _k;
+        Eigen::MatrixXcd _externalpotential;
+};
+    
+    
 }}
 
-#endif	/* AOMATRIX_H */
+#endif	// VOTCA_XTP_AOMATRIX_H
 

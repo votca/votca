@@ -1,7 +1,0 @@
-<options>
-
-<izindo help="Semiempirical electronic coupling elements for all neighbor list pairs" section="sec:izindo">
-        <orbitalsXML help="File with paths to .orb files">system.xml</orbitalsXML>
-</izindo>
-
-</options>

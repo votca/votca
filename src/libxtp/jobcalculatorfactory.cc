@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,15 +20,8 @@
 
 #include <votca/xtp/jobcalculatorfactory.h>
 
-
-#include "jobcalculators/idft.h"
-#include "jobcalculators/edft.h"
-#include "jobcalculators/xqmultipole.h"
-#include "jobcalculators/qmmm.h"
-#include "jobcalculators/ewald.h"
-#include "jobcalculators/egwbse.h"
-#include "jobcalculators/igwbse.h"
-#include "jobcalculators/qmape.h"
+#include "jobcalculators/eqm.h"
+#include "jobcalculators/iqm.h"
 #include "jobcalculators/iexcitoncl.h"
 
 
@@ -36,17 +29,9 @@ namespace votca { namespace xtp {
 
 void JobCalculatorfactory::RegisterAll(void)
 {	
-        JobCalculators().Register<EDFT>                ("edft");
-        JobCalculators().Register<IDFT>                ("idft");
-        JobCalculators().Register<XQMP>                ("xqmultipole");
-        JobCalculators().Register<QMMM>                ("qmmm");
-        JobCalculators().Register< Ewald<Ewald3D2D> >  ("ewald2d");
-        JobCalculators().Register< Ewald<Ewald3D3D> >  ("ewald3d");
-        JobCalculators().Register< Ewald<PEwald3D3D> > ("pewald3d");
-        JobCalculators().Register<EGWBSE>              ("egwbse");
-        JobCalculators().Register<IGWBSE>              ("igwbse");
-        JobCalculators().Register<QMAPE>               ("qmape");
-        JobCalculators().Register<IEXCITON>            ("iexcitoncl");
+        JobCalculators().Register<IQM>                  ("iqm");
+        JobCalculators().Register<EQM>                  ("eqm");
+        JobCalculators().Register<IEXCITON>             ("iexcitoncl");
 }
 
 }}

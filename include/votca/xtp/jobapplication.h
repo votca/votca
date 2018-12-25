@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,7 +27,7 @@
 #include <votca/xtp/topology.h>
 
 #include "statesaversqlite.h"
-#include "jobcalculator.h"
+#include <votca/xtp/jobcalculator.h>
 
 
 namespace votca { namespace xtp {
@@ -38,7 +38,11 @@ class JobApplication : public XtpApplication
 {
 public:
     JobApplication();
-   ~JobApplication() { };
+   ~JobApplication() {
+       for (JobCalculator* calculator : _calculators) {
+            delete calculator;
+        } 
+   };
 
    void Initialize();
    bool EvaluateOptions();
@@ -52,7 +56,7 @@ public:
 protected:
     
     bool _generate_input, _run, _import;
-    XTP::Topology           _top;
+    Topology           _top;
     std::list< JobCalculator* >   _calculators;
 
 };
@@ -67,7 +71,8 @@ protected:
 
 
 
-#endif /* _QMApplication_H */
+#endif // VOTCA_XTP_JOBAPPLICATION
+
 
 
 

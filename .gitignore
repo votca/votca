@@ -34,6 +34,8 @@ scripts/xtp_update_exciton
 scripts/xtp_update_exciton.out
 scripts/xtp_basisset
 scripts/xtp_basisset.out
+scripts/xtp_makeauxbasis
+scripts/xtp_makeauxbasis.out
 
 netbeans/*/build
 .dep.inc
@@ -54,5 +56,10 @@ CMakeCache.txt
 install_manifest.txt
 /netbeans/xtp_app/dist/
 /netbeans/libxtp/dist/
+/netbeans/libxtp/nbproject/private/private.xml
+/netbeans/libxtp/nbproject/Makefile-Release.mk
+/netbeans/libxtp/nbproject/Makefile-Debug.mk
+/netbeans/libxtp/nbproject/configurations.xml
+
 
 /build

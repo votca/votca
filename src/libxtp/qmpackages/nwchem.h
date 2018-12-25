@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,70 +21,65 @@
 #define	__VOTCA_XTP_NWCHEM_H
 
 
-#include <votca/xtp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
-#include <string> 
+#include <string>
 
 
 
 namespace votca { namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
- 
-    The Gaussian class executes the Gaussian package 
+
+    The Gaussian class executes the Gaussian package
     and extracts information from its log and io files
-    
+
 */
 class NWChem : public QMPackage
 {
-public:   
+public:
 
-   std::string getPackageName() { return "nwchem"; }
+   std::string getPackageName() const{ return "nwchem"; }
 
-   void Initialize( Property *options );
+   void Initialize( tools::Property &options );
 
-   /* Writes Gaussian input file with coordinates of segments
-    * and a guess for the dimer (if requested) constructed from the
-    * monomer orbitals
-    */
-   bool WriteInputFile( std::vector< Segment* > segments, Orbitals* orbitals_guess = NULL);
-
-   bool WriteShellScript();
+   bool WriteInputFile(const Orbitals& orbitals);
 
    bool Run();
 
    void CleanUp();
+
+   bool ParseLogFile( Orbitals& orbitals );
+
+   bool ParseOrbitalsFile( Orbitals& orbitals );
    
-   bool CheckLogFile();
 
-   bool ParseLogFile( Orbitals* _orbitals );
-
-   bool ParseOrbitalsFile( Orbitals* _orbitals );
-
-   bool ConvertToGW( Orbitals* _orbitals );
-   
    std::string getScratchDir( ) { return _scratch_dir; }
-   
-private:  
+
+private:
+    bool CheckLogFile();
+    bool WriteShellScript();
+    bool WriteGuess(const Orbitals& orbitals);
+  
+    
+    
 
     std::string                              _shell_file_name;
     std::string                              _chk_file_name;
     std::string                              _scratch_dir;
     bool                                _is_optimization;
-        
+
     std::string                              _cleanup;
-
-    int NumberOfElectrons( std::string _line ); 
-    int BasisSetSize( std::string _line ); 
-    int EnergiesFromLog( std::string _line, ifstream inputfile ); 
-    std::string FortranFormat( const double &number );
-
     
+    void WriteBasisset(std::ofstream& nw_file, const QMMolecule& qmatoms);
+    void WriteECP(std::ofstream& nw_file, const QMMolecule& qmatoms);
+
+    std::string FortranFormat( const double &number );
+    int WriteBackgroundCharges(std::ofstream& nw_file);
+    void WriteChargeOption();
 };
 
 
 }}
 
 #endif	/* __VOTCA_XTP_NWCHEM_H */
-

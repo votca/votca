@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,13 +16,13 @@
  * limitations under the License.
  *
  */
+/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <votca/xtp/parallelxjobcalc.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 
 using boost::format;
-
 
 namespace votca { namespace xtp {
 
@@ -35,21 +35,21 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
         bool isRigid = top->Rigidify();
         if (!isRigid) { return 0; }
     }
-    else cout << endl << "... ... System is already rigidified." << flush;
+    else std::cout << std::endl << "... ... System is already rigidified." << std::flush;
     
     // CONVERT THREADS INTO SUBTHREADS IF BENEFICIAL
     if (_XJobs.size() < _nThreads && false) {
         _subthreads = (_nThreads - _XJobs.size()) / _XJobs.size() + 1;
         _nThreads   = _XJobs.size();
 
-        cout << endl << "... ... "
+        std::cout << std::endl << "... ... "
              << "Converted threads into subthreads to increase efficiency: "
              << "NT = " << _nThreads << ", NST = " << _subthreads
-             << flush;
+             << std::flush;
     }
 
     // INITIALIZE PROGRESS OBSERVER
-    string progFile = _jobfile;
+    std::string progFile = _jobfile;
     assert(_jobfile != "__NOFILE__");    
     JobOperator* master = new JobOperator(-1, top, this);    
     master->getLogger()->setReportLevel(logDEBUG);
@@ -79,7 +79,7 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
         jobOps[id]->InitData(top);
     }
 
-    if (!_maverick) cout << endl; // REQUIRED FOR PROGRESS BAR IN OBSERVER
+    if (!_maverick) std::cout << std::endl; // REQUIRED FOR PROGRESS BAR IN OBSERVER
     
     for (unsigned int id = 0; id < _nThreads; id++) {
         jobOps[id]->Start();
@@ -91,7 +91,7 @@ bool ParallelXJobCalc<JobContainer,pJob,rJob>::EvaluateFrame(Topology *top) {
     
     if (!_maverick)
     for (unsigned int id = 0; id < _nThreads; id++) {
-        cout << endl << *(jobOps[id]->getLogger()) << flush;
+        std::cout << std::endl << *(jobOps[id]->getLogger()) << std::flush;
     }
 
     for (unsigned int id = 0; id < _nThreads; id++) {
@@ -139,9 +139,6 @@ void ParallelXJobCalc<JobContainer,pJob,rJob>::CustomizeLogger(QMThread *thread)
 }
 
 // REGISTER PARALLEL CALCULATORS
-//template class ParallelXJobCalc< vector<XJob*>, XJob* >;
-//template class ParallelXJobCalc< vector<Segment*>, Segment* >;
-//template class ParallelXJobCalc< QMNBList, QMPair* >;
 template class ParallelXJobCalc< std::vector<Job*>, Job*, Job::JobResult >;
 
 }}

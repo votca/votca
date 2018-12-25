@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,31 +16,21 @@
  * limitations under the License.
  *
  */
-// Overload of uBLAS prod function with MKL/GSL implementations
-#include <votca/tools/linalg.h>
+
 
 #include <votca/xtp/aomatrix.h>
 
 #include <votca/xtp/aobasis.h>
-#include <string>
-#include <map>
+
 #include <vector>
-#include <votca/tools/property.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/math/constants/constants.hpp>
-#include <boost/multi_array.hpp>
-#include <votca/xtp/logger.h>
-#include <votca/tools/linalg.h>
 
 
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
-    namespace ub = boost::numeric::ublas;
+
 
     
-    void AOMomentum::FillBlock( std::vector< ub::matrix_range< ub::matrix<double> > >& _matrix, AOShell* _shell_row, AOShell* _shell_col , AOBasis* ecp) {
+    void AOMomentum::FillBlock( std::vector< Eigen::Block<Eigen::MatrixXd> >& matrix, const AOShell& shell_row,const AOShell& shell_col) {
 
         
         /* Calculating the AO matrix of the gradient operator requires 
@@ -66,678 +56,508 @@ namespace votca { namespace xtp {
          */
 
         // shell info, only lmax tells how far to go
-        int _lmax_row = _shell_row->getLmax();
-        int _lmax_col = _shell_col->getLmax();
+        int lmax_row = shell_row.getLmax();
+        int lmax_col = shell_col.getLmax();
         
-        if ( _lmax_col > 2 ) {
-            cerr << "Momentum transition dipoles only implemented for S,P,D functions in DFT basis!" << flush;
+        if ( lmax_col > 4 ) {
+            std::cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << std::flush;
             exit(1);
         }
 
         // set size of internal block for recursion
-        int _nrows = this->getBlockSize( _lmax_row ); 
-        int _ncols = this->getBlockSize( _lmax_col ); 
+        int nrows = this->getBlockSize( lmax_row ); 
+        int ncols = this->getBlockSize( lmax_col ); 
     
         // initialize local matrix block for unnormalized cartesians
-        std::vector< ub::matrix<double> > _mom;
-        for (int _i_comp = 0; _i_comp < 3; _i_comp++){
-            _mom.push_back(ub::zero_matrix<double>(_nrows,_ncols));
+        std::vector< Eigen::MatrixXd > mom;
+        for (int i_comp = 0; i_comp < 3; i_comp++){
+            mom.push_back(Eigen::MatrixXd ::Zero(nrows,ncols));
         }
+
+        std::vector< Eigen::MatrixXd > scd_mom;
+        for (int i_comp = 0; i_comp < 6; i_comp++){ 
+            scd_mom.push_back(Eigen::MatrixXd ::Zero(nrows,ncols));
+        } 
         
         // initialize local matrix block for unnormalized cartesians of overlap
-        int _ncols_ol = this->getBlockSize( _lmax_col +1 ); 
-        // make copy of shell_col and change type, lmax
-        //AOShell _shell_col_local = (*_shell_col);
+        int nrows_ol = this->getBlockSize( lmax_row +1 );
+        int ncols_ol = this->getBlockSize( lmax_col +1 );
+   
+        Eigen::MatrixXd ol = Eigen::MatrixXd::Zero(nrows_ol,ncols_ol); 
         
-        ub::matrix<double> _ol = ub::zero_matrix<double>(_nrows,_ncols_ol);
-        
-        
-        // get shell positions
-        const vec& _pos_row = _shell_row->getPos();
-        const vec& _pos_col = _shell_col->getPos();
-        const vec  _diff    = _pos_row - _pos_col;
-        std::vector<double> _pma (3,0.0);
-        std::vector<double> _pmb (3,0.0);
-        double _distsq = (_diff.getX()*_diff.getX()) + (_diff.getY()*_diff.getY()) + (_diff.getZ()*_diff.getZ()); 
-     typedef std::vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-       // iterate over Gaussians in this _shell_row   
-        for ( GaussianIterator itr = _shell_row->firstGaussian(); itr != _shell_row->lastGaussian(); ++itr){
-            // iterate over Gaussians in this _shell_col
-            // get decay constant
-            const double& _decay_row = (*itr)->decay;
+        const Eigen::Vector3d& pos_row = shell_row.getPos();
+        const Eigen::Vector3d& pos_col = shell_col.getPos();
+        const Eigen::Vector3d  diff    = pos_row - pos_col;
+
+        double distsq = diff.squaredNorm();
+
+ int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
+
+
+ int nx[] = {
+ 0,
+ 1, 0, 0,
+ 2, 1, 1, 0, 0, 0,
+ 3, 2, 2, 1, 1, 1, 0, 0, 0, 0,
+ 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 0,
+ 5, 4, 4, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0
+ };
+
+ int ny[] = {
+ 0,
+ 0, 1, 0,
+ 0, 1, 0, 2, 1, 0,
+ 0, 1, 0, 2, 1, 0, 3, 2, 1, 0,
+ 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0,
+ 0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 4, 3, 2, 1, 0, 5, 4, 3, 2, 1, 0
+ };
+
+ int nz[] = {
+ 0,
+ 0, 0, 1,
+ 0, 0, 1, 0, 1, 2,
+ 0, 0, 1, 0, 1, 2, 0, 1, 2, 3,
+ 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4,
+ 0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5
+ };
+
+
+ int i_less_x[] = {
+  0,
+  0,  0,  0,
+  1,  2,  3,  0,  0,  0,
+  4,  5,  6,  7,  8,  9,  0,  0,  0,  0,
+ 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,  0,  0,  0,  0,  0,
+ 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,  0,  0,  0,  0,  0,  0
+ };
+
+ int i_less_y[] = {
+  0,
+  0,  0,  0,
+  0,  1,  0,  2,  3,  0,
+  0,  4,  0,  5,  6,  0,  7,  8,  9,  0,
+  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,  0,
+  0, 20,  0, 21, 22,  0, 23, 24, 25,  0, 26, 27, 28, 29,  0, 30, 31, 32, 33, 34,  0
+ };
+
+ int i_less_z[] = {
+  0,
+  0,  0,  0,
+  0,  0,  1,  0,  2,  3,
+  0,  0,  4,  0,  5,  6,  0,  7,  8,  9,
+  0,  0, 10,  0, 11, 12,  0, 13, 14, 15,  0, 16, 17, 18, 19,
+  0,  0, 20,  0, 21, 22,  0, 23, 24, 25,  0, 26, 27, 28, 29,  0, 30, 31, 32, 33, 34
+ };
+
+
+ int i_more_x[] = {
+  1,
+  4,  5,  6,
+ 10, 11, 12, 13, 14, 15,
+ 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+ 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49
+ };
+
+ int i_more_y[] = {
+  2,
+  5,  7,  8,
+ 11, 13, 14, 16, 17, 18,
+ 21, 23, 24, 26, 27, 28, 30, 31, 32, 33,
+ 36, 38, 39, 41, 42, 43, 45, 46, 47, 48, 50, 51, 52, 53, 54
+ };
+
+ int i_more_z[] = {
+  3,
+  6,  8,  9,
+ 12, 14, 15, 17, 18, 19,
+ 22, 24, 25, 27, 28, 29, 31, 32, 33, 34,
+ 37, 39, 40, 42, 43, 44, 46, 47, 48, 49, 51, 52, 53, 54, 55
+ };
+
+
+       
+      for (const auto& gaussian_row:shell_row){
+            const double decay_row = gaussian_row.getDecay();
             
-            for ( GaussianIterator itc = _shell_col->firstGaussian(); itc != _shell_col->lastGaussian(); ++itc){
-                //get decay constant
-                const double& _decay_col = (*itc)->decay;
+            for (const auto&  gaussian_col:shell_col){
+
+                const double decay_col = gaussian_col.getDecay();
+
         
-        // some helpers
-        
-        
-        const double _fak  = 0.5/(_decay_row + _decay_col);
-        const double _fak2 = 2.0 * _fak;
-        double _exparg = _fak2 * _decay_row * _decay_col *_distsq;
+        const double fak  = 0.5/(decay_row + decay_col);
+        const double fak2 = 2.0 * fak;
+        double _exparg = fak2 * decay_row * decay_col *distsq;
            
        /// check if distance between postions is big, then skip step   
        
-        if ( _exparg > 30.0 ) { continue; }
-
-        _pma[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_row.getX();
-        _pma[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_row.getY();
-        _pma[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_row.getZ();
-
-        _pmb[0] = _fak2*( _decay_row * _pos_row.getX() + _decay_col * _pos_col.getX() ) - _pos_col.getX();
-        _pmb[1] = _fak2*( _decay_row * _pos_row.getY() + _decay_col * _pos_col.getY() ) - _pos_col.getY();
-        _pmb[2] = _fak2*( _decay_row * _pos_row.getZ() + _decay_col * _pos_col.getZ() ) - _pos_col.getZ();
-        
+        if ( _exparg > 30.0 ) { continue; }        
       
+        const Eigen::Vector3d PmA=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_row;
+        const Eigen::Vector3d PmB=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_col;
 
-        
-        
-        const double _fak3 = 3.0 * _fak;
-        //const double _fak4 = 4.0 * _fak;
-        
         // calculate s-s- overlap matrix element
-        _ol(0,0) = pow(4.0*_decay_row*_decay_col,0.75) * pow(_fak2,1.5)*exp(-_fak2 * _decay_row * _decay_col *_distsq); // s-s element
+        ol(0,0) = pow(4.0*decay_row*decay_col,0.75) * pow(fak2,1.5)*exp(-fak2 * decay_row * decay_col *distsq); // s-s element
 
+
+
+
+//Integrals     p - s
+ol(Cart::x,0) = PmA(0)*ol(0,0);
+ol(Cart::y,0) = PmA(1)*ol(0,0);
+ol(Cart::z,0) = PmA(2)*ol(0,0);
+//------------------------------------------------------
+
+//Integrals     d - s
+if (lmax_row > 0) {
+  double term = fak*ol(0,0);
+  ol(Cart::xx,0) = PmA(0)*ol(Cart::x,0) + term;
+  ol(Cart::xy,0) = PmA(0)*ol(Cart::y,0);
+  ol(Cart::xz,0) = PmA(0)*ol(Cart::z,0);
+  ol(Cart::yy,0) = PmA(1)*ol(Cart::y,0) + term;
+  ol(Cart::yz,0) = PmA(1)*ol(Cart::z,0);
+  ol(Cart::zz,0) = PmA(2)*ol(Cart::z,0) + term;
+}
+//------------------------------------------------------
+
+//Integrals     f - s
+if (lmax_row > 1) {
+  ol(Cart::xxx,0) = PmA(0)*ol(Cart::xx,0) + 2*fak*ol(Cart::x,0);
+  ol(Cart::xxy,0) = PmA(1)*ol(Cart::xx,0);
+  ol(Cart::xxz,0) = PmA(2)*ol(Cart::xx,0);
+  ol(Cart::xyy,0) = PmA(0)*ol(Cart::yy,0);
+  ol(Cart::xyz,0) = PmA(0)*ol(Cart::yz,0);
+  ol(Cart::xzz,0) = PmA(0)*ol(Cart::zz,0);
+  ol(Cart::yyy,0) = PmA(1)*ol(Cart::yy,0) + 2*fak*ol(Cart::y,0);
+  ol(Cart::yyz,0) = PmA(2)*ol(Cart::yy,0);
+  ol(Cart::yzz,0) = PmA(1)*ol(Cart::zz,0);
+  ol(Cart::zzz,0) = PmA(2)*ol(Cart::zz,0) + 2*fak*ol(Cart::z,0);
+}
+//------------------------------------------------------
+
+//Integrals     g - s
+if (lmax_row > 2) {
+  double term_xx = fak*ol(Cart::xx,0);
+  double term_yy = fak*ol(Cart::yy,0);
+  double term_zz = fak*ol(Cart::zz,0);
+  ol(Cart::xxxx,0) = PmA(0)*ol(Cart::xxx,0) + 3*term_xx;
+  ol(Cart::xxxy,0) = PmA(1)*ol(Cart::xxx,0);
+  ol(Cart::xxxz,0) = PmA(2)*ol(Cart::xxx,0);
+  ol(Cart::xxyy,0) = PmA(0)*ol(Cart::xyy,0) + term_yy;
+  ol(Cart::xxyz,0) = PmA(1)*ol(Cart::xxz,0);
+  ol(Cart::xxzz,0) = PmA(0)*ol(Cart::xzz,0) + term_zz;
+  ol(Cart::xyyy,0) = PmA(0)*ol(Cart::yyy,0);
+  ol(Cart::xyyz,0) = PmA(0)*ol(Cart::yyz,0);
+  ol(Cart::xyzz,0) = PmA(0)*ol(Cart::yzz,0);
+  ol(Cart::xzzz,0) = PmA(0)*ol(Cart::zzz,0);
+  ol(Cart::yyyy,0) = PmA(1)*ol(Cart::yyy,0) + 3*term_yy;
+  ol(Cart::yyyz,0) = PmA(2)*ol(Cart::yyy,0);
+  ol(Cart::yyzz,0) = PmA(1)*ol(Cart::yzz,0) + term_zz;
+  ol(Cart::yzzz,0) = PmA(1)*ol(Cart::zzz,0);
+  ol(Cart::zzzz,0) = PmA(2)*ol(Cart::zzz,0) + 3*term_zz;
+}
+//------------------------------------------------------
+
+//Integrals     h - s
+if (lmax_row > 3) {
+  double term_xxx = fak*ol(Cart::xxx,0);
+  double term_yyy = fak*ol(Cart::yyy,0);
+  double term_zzz = fak*ol(Cart::zzz,0);
+  ol(Cart::xxxxx,0) = PmA(0)*ol(Cart::xxxx,0) + 4*term_xxx;
+  ol(Cart::xxxxy,0) = PmA(1)*ol(Cart::xxxx,0);
+  ol(Cart::xxxxz,0) = PmA(2)*ol(Cart::xxxx,0);
+  ol(Cart::xxxyy,0) = PmA(1)*ol(Cart::xxxy,0) + term_xxx;
+  ol(Cart::xxxyz,0) = PmA(1)*ol(Cart::xxxz,0);
+  ol(Cart::xxxzz,0) = PmA(2)*ol(Cart::xxxz,0) + term_xxx;
+  ol(Cart::xxyyy,0) = PmA(0)*ol(Cart::xyyy,0) + term_yyy;
+  ol(Cart::xxyyz,0) = PmA(2)*ol(Cart::xxyy,0);
+  ol(Cart::xxyzz,0) = PmA(1)*ol(Cart::xxzz,0);
+  ol(Cart::xxzzz,0) = PmA(0)*ol(Cart::xzzz,0) + term_zzz;
+  ol(Cart::xyyyy,0) = PmA(0)*ol(Cart::yyyy,0);
+  ol(Cart::xyyyz,0) = PmA(0)*ol(Cart::yyyz,0);
+  ol(Cart::xyyzz,0) = PmA(0)*ol(Cart::yyzz,0);
+  ol(Cart::xyzzz,0) = PmA(0)*ol(Cart::yzzz,0);
+  ol(Cart::xzzzz,0) = PmA(0)*ol(Cart::zzzz,0);
+  ol(Cart::yyyyy,0) = PmA(1)*ol(Cart::yyyy,0) + 4*term_yyy;
+  ol(Cart::yyyyz,0) = PmA(2)*ol(Cart::yyyy,0);
+  ol(Cart::yyyzz,0) = PmA(2)*ol(Cart::yyyz,0) + term_yyy;
+  ol(Cart::yyzzz,0) = PmA(1)*ol(Cart::yzzz,0) + term_zzz;
+  ol(Cart::yzzzz,0) = PmA(1)*ol(Cart::zzzz,0);
+  ol(Cart::zzzzz,0) = PmA(2)*ol(Cart::zzzz,0) + 4*term_zzz;
+}
+//------------------------------------------------------
+
+
+
+
+
+
+//Integrals     s - p
+ol(0,Cart::x) = PmB(0)*ol(0,0);
+ol(0,Cart::y) = PmB(1)*ol(0,0);
+ol(0,Cart::z) = PmB(2)*ol(0,0);
+//------------------------------------------------------
+
+//Integrals     p - p     d - p     f - p     g - p
+for (int i =  1; i < n_orbitals[lmax_row]; i++) {
+  ol(i,Cart::x) = PmB(0)*ol(i,0) + nx[i]*fak*ol(i_less_x[i],0);
+  ol(i,Cart::y) = PmB(1)*ol(i,0) + ny[i]*fak*ol(i_less_y[i],0);
+  ol(i,Cart::z) = PmB(2)*ol(i,0) + nz[i]*fak*ol(i_less_z[i],0);
+}
+//------------------------------------------------------
+
+
+if (lmax_col > 0) {
+
+  //Integrals     s - d
+  double term = fak*ol(0,0);
+  ol(0,Cart::xx) = PmB(0)*ol(0,Cart::x) + term;
+  ol(0,Cart::xy) = PmB(0)*ol(0,Cart::y);
+  ol(0,Cart::xz) = PmB(0)*ol(0,Cart::z);
+  ol(0,Cart::yy) = PmB(1)*ol(0,Cart::y) + term;
+  ol(0,Cart::yz) = PmB(1)*ol(0,Cart::z);
+  ol(0,Cart::zz) = PmB(2)*ol(0,Cart::z) + term;
+  //------------------------------------------------------
+
+  //Integrals     p - d     d - d     f - d     g - d
+  for (int i =  1; i < n_orbitals[lmax_row]; i++) {
+    double term = fak*ol(i,0);
+    ol(i,Cart::xx) = PmB(0)*ol(i,Cart::x) + nx[i]*fak*ol(i_less_x[i],Cart::x) + term;
+    ol(i,Cart::xy) = PmB(0)*ol(i,Cart::y) + nx[i]*fak*ol(i_less_x[i],Cart::y);
+    ol(i,Cart::xz) = PmB(0)*ol(i,Cart::z) + nx[i]*fak*ol(i_less_x[i],Cart::z);
+    ol(i,Cart::yy) = PmB(1)*ol(i,Cart::y) + ny[i]*fak*ol(i_less_y[i],Cart::y) + term;
+    ol(i,Cart::yz) = PmB(1)*ol(i,Cart::z) + ny[i]*fak*ol(i_less_y[i],Cart::z);
+    ol(i,Cart::zz) = PmB(2)*ol(i,Cart::z) + nz[i]*fak*ol(i_less_z[i],Cart::z) + term;
+  }
+  //------------------------------------------------------
+
+} // end if (lmax_col > 0)
+
+
+if (lmax_col > 1) {
+
+  //Integrals     s - f
+  ol(0,Cart::xxx) = PmB(0)*ol(0,Cart::xx) + 2*fak*ol(0,Cart::x);
+  ol(0,Cart::xxy) = PmB(1)*ol(0,Cart::xx);
+  ol(0,Cart::xxz) = PmB(2)*ol(0,Cart::xx);
+  ol(0,Cart::xyy) = PmB(0)*ol(0,Cart::yy);
+  ol(0,Cart::xyz) = PmB(0)*ol(0,Cart::yz);
+  ol(0,Cart::xzz) = PmB(0)*ol(0,Cart::zz);
+  ol(0,Cart::yyy) = PmB(1)*ol(0,Cart::yy) + 2*fak*ol(0,Cart::y);
+  ol(0,Cart::yyz) = PmB(2)*ol(0,Cart::yy);
+  ol(0,Cart::yzz) = PmB(1)*ol(0,Cart::zz);
+  ol(0,Cart::zzz) = PmB(2)*ol(0,Cart::zz) + 2*fak*ol(0,Cart::z);
+  //------------------------------------------------------
+
+  //Integrals     p - f     d - f     f - f     g - f
+  for (int i =  1; i < n_orbitals[lmax_row]; i++) {
+    int nx_i = nx[i];
+    int ny_i = ny[i];
+    int nz_i = nz[i];
+    int ilx_i = i_less_x[i];
+    int ily_i = i_less_y[i];
+    int ilz_i = i_less_z[i];
+    double term_x = 2*fak*ol(i,Cart::x);
+    double term_y = 2*fak*ol(i,Cart::y);
+    double term_z = 2*fak*ol(i,Cart::z);
+    ol(i,Cart::xxx) = PmB(0)*ol(i,Cart::xx) + nx_i*fak*ol(ilx_i,Cart::xx) + term_x;
+    ol(i,Cart::xxy) = PmB(1)*ol(i,Cart::xx) + ny_i*fak*ol(ily_i,Cart::xx);
+    ol(i,Cart::xxz) = PmB(2)*ol(i,Cart::xx) + nz_i*fak*ol(ilz_i,Cart::xx);
+    ol(i,Cart::xyy) = PmB(0)*ol(i,Cart::yy) + nx_i*fak*ol(ilx_i,Cart::yy);
+    ol(i,Cart::xyz) = PmB(0)*ol(i,Cart::yz) + nx_i*fak*ol(ilx_i,Cart::yz);
+    ol(i,Cart::xzz) = PmB(0)*ol(i,Cart::zz) + nx_i*fak*ol(ilx_i,Cart::zz);
+    ol(i,Cart::yyy) = PmB(1)*ol(i,Cart::yy) + ny_i*fak*ol(ily_i,Cart::yy) + term_y;
+    ol(i,Cart::yyz) = PmB(2)*ol(i,Cart::yy) + nz_i*fak*ol(ilz_i,Cart::yy);
+    ol(i,Cart::yzz) = PmB(1)*ol(i,Cart::zz) + ny_i*fak*ol(ily_i,Cart::zz);
+    ol(i,Cart::zzz) = PmB(2)*ol(i,Cart::zz) + nz_i*fak*ol(ilz_i,Cart::zz) + term_z;
+  }
+  //------------------------------------------------------
+
+} // end if (lmax_col > 1)
+
+
+if (lmax_col > 2) {
+
+  //Integrals     s - g
+  double term_xx = fak*ol(0,Cart::xx);
+  double term_yy = fak*ol(0,Cart::yy);
+  double term_zz = fak*ol(0,Cart::zz);
+  ol(0,Cart::xxxx) = PmB(0)*ol(0,Cart::xxx) + 3*term_xx;
+  ol(0,Cart::xxxy) = PmB(1)*ol(0,Cart::xxx);
+  ol(0,Cart::xxxz) = PmB(2)*ol(0,Cart::xxx);
+  ol(0,Cart::xxyy) = PmB(0)*ol(0,Cart::xyy) + term_yy;
+  ol(0,Cart::xxyz) = PmB(1)*ol(0,Cart::xxz);
+  ol(0,Cart::xxzz) = PmB(0)*ol(0,Cart::xzz) + term_zz;
+  ol(0,Cart::xyyy) = PmB(0)*ol(0,Cart::yyy);
+  ol(0,Cart::xyyz) = PmB(0)*ol(0,Cart::yyz);
+  ol(0,Cart::xyzz) = PmB(0)*ol(0,Cart::yzz);
+  ol(0,Cart::xzzz) = PmB(0)*ol(0,Cart::zzz);
+  ol(0,Cart::yyyy) = PmB(1)*ol(0,Cart::yyy) + 3*term_yy;
+  ol(0,Cart::yyyz) = PmB(2)*ol(0,Cart::yyy);
+  ol(0,Cart::yyzz) = PmB(1)*ol(0,Cart::yzz) + term_zz;
+  ol(0,Cart::yzzz) = PmB(1)*ol(0,Cart::zzz);
+  ol(0,Cart::zzzz) = PmB(2)*ol(0,Cart::zzz) + 3*term_zz;
+  //------------------------------------------------------
+
+  //Integrals     p - g     d - g     f - g     g - g
+  for (int i =  1; i < n_orbitals[lmax_row]; i++) {
+    int nx_i = nx[i];
+    int ny_i = ny[i];
+    int nz_i = nz[i];
+    int ilx_i = i_less_x[i];
+    int ily_i = i_less_y[i];
+    int ilz_i = i_less_z[i];
+    double term_xx = fak*ol(i,Cart::xx);
+    double term_yy = fak*ol(i,Cart::yy);
+    double term_zz = fak*ol(i,Cart::zz);
+    ol(i,Cart::xxxx) = PmB(0)*ol(i,Cart::xxx) + nx_i*fak*ol(ilx_i,Cart::xxx) + 3*term_xx;
+    ol(i,Cart::xxxy) = PmB(1)*ol(i,Cart::xxx) + ny_i*fak*ol(ily_i,Cart::xxx);
+    ol(i,Cart::xxxz) = PmB(2)*ol(i,Cart::xxx) + nz_i*fak*ol(ilz_i,Cart::xxx);
+    ol(i,Cart::xxyy) = PmB(0)*ol(i,Cart::xyy) + nx_i*fak*ol(ilx_i,Cart::xyy) + term_yy;
+    ol(i,Cart::xxyz) = PmB(1)*ol(i,Cart::xxz) + ny_i*fak*ol(ily_i,Cart::xxz);
+    ol(i,Cart::xxzz) = PmB(0)*ol(i,Cart::xzz) + nx_i*fak*ol(ilx_i,Cart::xzz) + term_zz;
+    ol(i,Cart::xyyy) = PmB(0)*ol(i,Cart::yyy) + nx_i*fak*ol(ilx_i,Cart::yyy);
+    ol(i,Cart::xyyz) = PmB(0)*ol(i,Cart::yyz) + nx_i*fak*ol(ilx_i,Cart::yyz);
+    ol(i,Cart::xyzz) = PmB(0)*ol(i,Cart::yzz) + nx_i*fak*ol(ilx_i,Cart::yzz);
+    ol(i,Cart::xzzz) = PmB(0)*ol(i,Cart::zzz) + nx_i*fak*ol(ilx_i,Cart::zzz);
+    ol(i,Cart::yyyy) = PmB(1)*ol(i,Cart::yyy) + ny_i*fak*ol(ily_i,Cart::yyy) + 3*term_yy;
+    ol(i,Cart::yyyz) = PmB(2)*ol(i,Cart::yyy) + nz_i*fak*ol(ilz_i,Cart::yyy);
+    ol(i,Cart::yyzz) = PmB(1)*ol(i,Cart::yzz) + ny_i*fak*ol(ily_i,Cart::yzz) + term_zz;
+    ol(i,Cart::yzzz) = PmB(1)*ol(i,Cart::zzz) + ny_i*fak*ol(ily_i,Cart::zzz);
+    ol(i,Cart::zzzz) = PmB(2)*ol(i,Cart::zzz) + nz_i*fak*ol(ilz_i,Cart::zzz) + 3*term_zz;
+  }
+  //------------------------------------------------------
+
+} // end if (lmax_col > 2)
+
+
+if (lmax_col > 3) {
+
+  //Integrals     s - h
+  double term_xxx = fak*ol(0,Cart::xxx);
+  double term_yyy = fak*ol(0,Cart::yyy);
+  double term_zzz = fak*ol(0,Cart::zzz);
+  ol(0,Cart::xxxxx) = PmB(0)*ol(0,Cart::xxxx) + 4*term_xxx;
+  ol(0,Cart::xxxxy) = PmB(1)*ol(0,Cart::xxxx);
+  ol(0,Cart::xxxxz) = PmB(2)*ol(0,Cart::xxxx);
+  ol(0,Cart::xxxyy) = PmB(1)*ol(0,Cart::xxxy) + term_xxx;
+  ol(0,Cart::xxxyz) = PmB(1)*ol(0,Cart::xxxz);
+  ol(0,Cart::xxxzz) = PmB(2)*ol(0,Cart::xxxz) + term_xxx;
+  ol(0,Cart::xxyyy) = PmB(0)*ol(0,Cart::xyyy) + term_yyy;
+  ol(0,Cart::xxyyz) = PmB(2)*ol(0,Cart::xxyy);
+  ol(0,Cart::xxyzz) = PmB(1)*ol(0,Cart::xxzz);
+  ol(0,Cart::xxzzz) = PmB(0)*ol(0,Cart::xzzz) + term_zzz;
+  ol(0,Cart::xyyyy) = PmB(0)*ol(0,Cart::yyyy);
+  ol(0,Cart::xyyyz) = PmB(0)*ol(0,Cart::yyyz);
+  ol(0,Cart::xyyzz) = PmB(0)*ol(0,Cart::yyzz);
+  ol(0,Cart::xyzzz) = PmB(0)*ol(0,Cart::yzzz);
+  ol(0,Cart::xzzzz) = PmB(0)*ol(0,Cart::zzzz);
+  ol(0,Cart::yyyyy) = PmB(1)*ol(0,Cart::yyyy) + 4*term_yyy;
+  ol(0,Cart::yyyyz) = PmB(2)*ol(0,Cart::yyyy);
+  ol(0,Cart::yyyzz) = PmB(2)*ol(0,Cart::yyyz) + term_yyy;
+  ol(0,Cart::yyzzz) = PmB(1)*ol(0,Cart::yzzz) + term_zzz;
+  ol(0,Cart::yzzzz) = PmB(1)*ol(0,Cart::zzzz);
+  ol(0,Cart::zzzzz) = PmB(2)*ol(0,Cart::zzzz) + 4*term_zzz;
+  //------------------------------------------------------
+
+  //Integrals     p - h     d - h     f - h     g - h
+  for (int i =  1; i < n_orbitals[lmax_row]; i++) {
+    int nx_i = nx[i];
+    int ny_i = ny[i];
+    int nz_i = nz[i];
+    int ilx_i = i_less_x[i];
+    int ily_i = i_less_y[i];
+    int ilz_i = i_less_z[i];
+    double term_xxx = fak*ol(i,Cart::xxx);
+    double term_yyy = fak*ol(i,Cart::yyy);
+    double term_zzz = fak*ol(i,Cart::zzz);
+    ol(i,Cart::xxxxx) = PmB(0)*ol(i,Cart::xxxx) + nx_i*fak*ol(ilx_i,Cart::xxxx) + 4*term_xxx;
+    ol(i,Cart::xxxxy) = PmB(1)*ol(i,Cart::xxxx) + ny_i*fak*ol(ily_i,Cart::xxxx);
+    ol(i,Cart::xxxxz) = PmB(2)*ol(i,Cart::xxxx) + nz_i*fak*ol(ilz_i,Cart::xxxx);
+    ol(i,Cart::xxxyy) = PmB(1)*ol(i,Cart::xxxy) + ny_i*fak*ol(ily_i,Cart::xxxy) + term_xxx;
+    ol(i,Cart::xxxyz) = PmB(1)*ol(i,Cart::xxxz) + ny_i*fak*ol(ily_i,Cart::xxxz);
+    ol(i,Cart::xxxzz) = PmB(2)*ol(i,Cart::xxxz) + nz_i*fak*ol(ilz_i,Cart::xxxz) + term_xxx;
+    ol(i,Cart::xxyyy) = PmB(0)*ol(i,Cart::xyyy) + nx_i*fak*ol(ilx_i,Cart::xyyy) + term_yyy;
+    ol(i,Cart::xxyyz) = PmB(2)*ol(i,Cart::xxyy) + nz_i*fak*ol(ilz_i,Cart::xxyy);
+    ol(i,Cart::xxyzz) = PmB(1)*ol(i,Cart::xxzz) + ny_i*fak*ol(ily_i,Cart::xxzz);
+    ol(i,Cart::xxzzz) = PmB(0)*ol(i,Cart::xzzz) + nx_i*fak*ol(ilx_i,Cart::xzzz) + term_zzz;
+    ol(i,Cart::xyyyy) = PmB(0)*ol(i,Cart::yyyy) + nx_i*fak*ol(ilx_i,Cart::yyyy);
+    ol(i,Cart::xyyyz) = PmB(0)*ol(i,Cart::yyyz) + nx_i*fak*ol(ilx_i,Cart::yyyz);
+    ol(i,Cart::xyyzz) = PmB(0)*ol(i,Cart::yyzz) + nx_i*fak*ol(ilx_i,Cart::yyzz);
+    ol(i,Cart::xyzzz) = PmB(0)*ol(i,Cart::yzzz) + nx_i*fak*ol(ilx_i,Cart::yzzz);
+    ol(i,Cart::xzzzz) = PmB(0)*ol(i,Cart::zzzz) + nx_i*fak*ol(ilx_i,Cart::zzzz);
+    ol(i,Cart::yyyyy) = PmB(1)*ol(i,Cart::yyyy) + ny_i*fak*ol(ily_i,Cart::yyyy) + 4*term_yyy;
+    ol(i,Cart::yyyyz) = PmB(2)*ol(i,Cart::yyyy) + nz_i*fak*ol(ilz_i,Cart::yyyy);
+    ol(i,Cart::yyyzz) = PmB(2)*ol(i,Cart::yyyz) + nz_i*fak*ol(ilz_i,Cart::yyyz) + term_yyy;
+    ol(i,Cart::yyzzz) = PmB(1)*ol(i,Cart::yzzz) + ny_i*fak*ol(ily_i,Cart::yzzz) + term_zzz;
+    ol(i,Cart::yzzzz) = PmB(1)*ol(i,Cart::zzzz) + ny_i*fak*ol(ily_i,Cart::zzzz);
+    ol(i,Cart::zzzzz) = PmB(2)*ol(i,Cart::zzzz) + nz_i*fak*ol(ilz_i,Cart::zzzz) + 4*term_zzz;
+  }
+  //------------------------------------------------------
+
+} // end if (lmax_col > 3)
+
+
+
+
+double alpha2 = 2.0 * decay_row;
+double beta2 = 2.0 * decay_col;
+for (int i = 0; i < ncols; i++) {
+
+  int nx_i = nx[i];
+  int ny_i = ny[i];
+  int nz_i = nz[i];
+  int ilx_i = i_less_x[i];
+  int ily_i = i_less_y[i];
+  int ilz_i = i_less_z[i];
+  int imx_i = i_more_x[i];
+  int imy_i = i_more_y[i];
+  int imz_i = i_more_z[i];
+
+  for (int j = 0; j < nrows; j++) {
+
+    mom[0](j,i) = nx_i*ol(j,ilx_i) - beta2*ol(j,imx_i);
+    mom[1](j,i) = ny_i*ol(j,ily_i) - beta2*ol(j,imy_i);
+    mom[2](j,i) = nz_i*ol(j,ilz_i) - beta2*ol(j,imz_i);
+
+    int nx_j = nx[j];
+    int ny_j = ny[j];
+    int nz_j = nz[j];
+    int ilx_j = i_less_x[j];
+    int ily_j = i_less_y[j];
+    int ilz_j = i_less_z[j];
+    int imx_j = i_more_x[j];
+    int imy_j = i_more_y[j];
+    int imz_j = i_more_z[j];
+
+    scd_mom[0](j,i) = nx_j * (beta2*ol(ilx_j,imx_i) - nx_i*ol(ilx_j,ilx_i)) - alpha2 * (beta2*ol(imx_j,imx_i) - nx_i*ol(imx_j,ilx_i)); // d2/(dxdx)
+    scd_mom[1](j,i) = nx_j * (beta2*ol(ilx_j,imy_i) - ny_i*ol(ilx_j,ily_i)) - alpha2 * (beta2*ol(imx_j,imy_i) - ny_i*ol(imx_j,ily_i)); // d2/(dxdy)
+    scd_mom[2](j,i) = nx_j * (beta2*ol(ilx_j,imz_i) - nz_i*ol(ilx_j,ilz_i)) - alpha2 * (beta2*ol(imx_j,imz_i) - nz_i*ol(imx_j,ilz_i)); // d2/(dxdz)
+
+    scd_mom[3](j,i) = ny_j * (beta2*ol(ily_j,imy_i) - ny_i*ol(ily_j,ily_i)) - alpha2 * (beta2*ol(imy_j,imy_i) - ny_i*ol(imy_j,ily_i)); // d2/(dydy)
+    scd_mom[4](j,i) = ny_j * (beta2*ol(ily_j,imz_i) - nz_i*ol(ily_j,ilz_i)) - alpha2 * (beta2*ol(imy_j,imz_i) - nz_i*ol(imy_j,ilz_i)); // d2/(dydz)
+
+    scd_mom[5](j,i) = nz_j * (beta2*ol(ilz_j,imz_i) - nz_i*ol(ilz_j,ilz_i)) - alpha2 * (beta2*ol(imz_j,imz_i) - nz_i*ol(imz_j,ilz_i)); // d2/(dzdz)
+
+  }
+}
+
+      Eigen::MatrixXd trafo_row = getTrafo(gaussian_row);
+      Eigen::MatrixXd trafo_col = getTrafo(gaussian_col);
+          // cartesian -> spherical
+      for (int i_comp = 0; i_comp < 3; i_comp++) {
+        Eigen::MatrixXd mom_sph = trafo_row.transpose() * mom[ i_comp ] * trafo_col;
+        // save to matrix
+        for (unsigned i = 0; i < matrix[0].rows(); i++) {
+          for (unsigned j = 0; j < matrix[0].cols(); j++) {
+            matrix[ i_comp ](i, j) += mom_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
+          }
+        }
+      }
         
-
-        // s-p momentum integrals
-        if ( _lmax_col +1 > 0 ) {
-     
-            _ol(0,1) = _pmb[0]*_ol(0,0); // s-px
-            _ol(0,2) = _pmb[1]*_ol(0,0); // s-py
-            _ol(0,3) = _pmb[2]*_ol(0,0); // s-pz
-            
-        }
         
-        // p-s
-        if ( _lmax_row > 0 ) {
-           //cout << "\t setting p-s" << flush;
-
-           _ol(1,0) = _pma[0]*_ol(0,0); // px-s
-           _ol(2,0) = _pma[1]*_ol(0,0); // py-s
-           _ol(3,0) = _pma[2]*_ol(0,0); // pz-s
-        }
-        
-        // p-p
-        if ( _lmax_row > 0 && _lmax_col + 1 > 0 ) {
-           //cout << "\t setting p-p" << endl;            
-           _ol(1,1) = _pma[0]*_ol(0,1) + _fak * _ol(0,0); // px-px
-           _ol(1,2) = _pma[0]*_ol(0,2); // px-py
-           _ol(1,3) = _pma[0]*_ol(0,3); // px-pz
-           _ol(2,1) = _pma[1]*_ol(0,1); // py-px
-           _ol(2,2) = _pma[1]*_ol(0,2) + _fak * _ol(0,0); // py-py
-           _ol(2,3) = _pma[1]*_ol(0,3); // py-pz
-           _ol(3,1) = _pma[2]*_ol(0,1); // pz-px
-           _ol(3,2) = _pma[2]*_ol(0,2); // pz-py
-           _ol(3,3) = _pma[2]*_ol(0,3) + _fak * _ol(0,0); // pz-pz
-        }
-        /* 
-         * d-function elements are six cartesians, in order 
-         * dxy, dxz, dyz, dxx, dyy, dzz
-         * we would like to have five spherical Gaussians in order
-         * dxz, dyz, dxy, d3z2-r2, dx2-y2
-         */
-        // s-d
-        if ( _lmax_col +1 > 1){
-            //cout << "\t setting s-d" << endl;
-            _ol(0,4) = _pmb[1]*_ol(0,1); // s-dxy
-            _ol(0,5) = _pmb[2]*_ol(0,1); // s-dxz
-            _ol(0,6) = _pmb[2]*_ol(0,2); // s-dyz
-            _ol(0,7) = _pmb[0]*_ol(0,1) + _fak*_ol(0,0); // s-dxx
-            _ol(0,8) = _pmb[1]*_ol(0,2) + _fak*_ol(0,0); // s-dyy
-            _ol(0,9) = _pmb[2]*_ol(0,3) + _fak*_ol(0,0); // s-dzz
-        }
-        
-        // p-d
-        if ( _lmax_row > 0 && _lmax_col +1 > 1){
-            //cout << "\t setting p-d" << endl;
-            
-            _ol(1,4) = _pma[0]*_ol(0,4) + _fak * _ol(0,2);
-            _ol(1,5) = _pma[0]*_ol(0,5) + _fak * _ol(0,3);
-            _ol(1,6) = _pma[0]*_ol(0,6);
-            _ol(1,7) = _pma[0]*_ol(0,7) + _fak2 * _ol(0,1);
-            _ol(1,8) = _pma[0]*_ol(0,8);
-            _ol(1,9) = _pma[0]*_ol(0,9);
- 
-            _ol(2,4) = _pma[1]*_ol(0,4) + _fak * _ol(0,1);
-            _ol(2,5) = _pma[1]*_ol(0,5);
-            _ol(2,6) = _pma[1]*_ol(0,6) + _fak * _ol(0,3);
-            _ol(2,7) = _pma[1]*_ol(0,7);
-            _ol(2,8) = _pma[1]*_ol(0,8) + _fak2 * _ol(0,2);
-            _ol(2,9) = _pma[1]*_ol(0,9);
-
-            _ol(3,4) = _pma[2]*_ol(0,4);
-            _ol(3,5) = _pma[2]*_ol(0,5) + _fak * _ol(0,1);
-            _ol(3,6) = _pma[2]*_ol(0,6) + _fak * _ol(0,2);
-            _ol(3,7) = _pma[2]*_ol(0,7);
-            _ol(3,8) = _pma[2]*_ol(0,8);
-            _ol(3,9) = _pma[2]*_ol(0,9) + _fak2 * _ol(0,3);
-        }
-
-        // d-s
-        if ( _lmax_row > 1){
-           //cout << "\t setting d-s" << endl;
-            _ol(4,0) = _pma[1]*_ol(1,0); // dxy-s
-            _ol(5,0) = _pma[2]*_ol(1,0); // dxz-s
-            _ol(6,0) = _pma[2]*_ol(2,0); // dyz-s
-            _ol(7,0) = _pma[0]*_ol(1,0) + _fak * _ol(0,0); // dxx-s
-            _ol(8,0) = _pma[1]*_ol(2,0) + _fak * _ol(0,0); // dyy-s
-            _ol(9,0) = _pma[2]*_ol(3,0) + _fak * _ol(0,0); // dzz-s
-        }
-        
-        
-        // d-p
-        if ( _lmax_row >1 && _lmax_col +1 > 0){
-           //cout << "\t setting d-p" << endl;
-
-             _ol(4,1) = _pma[1]*_ol(1,1);
-             _ol(5,1) = _pma[2]*_ol(1,1);
-             _ol(6,1) = _pma[2]*_ol(2,1);
-             
-             _ol(7,1) = _pma[0]*_ol(1,1) + _fak  * ( _ol(0,1) + _ol(1,0) );
-             _ol(8,1) = _pma[1]*_ol(2,1) + _fak  * _ol(0,1);
-             _ol(9,1) = _pma[2]*_ol(3,1) + _fak  * _ol(0,1);
-
-             _ol(4,2) = _pma[1]*_ol(1,2) + _fak  * _ol(1,0);
-             _ol(5,2) = _pma[2]*_ol(1,2);
-             _ol(6,2) = _pma[2]*_ol(2,2);
-             
-             _ol(7,2) = _pma[0]*_ol(1,2) + _fak  * _ol(0,2);
-             _ol(8,2) = _pma[1]*_ol(2,2) + _fak  * ( _ol(0,2) + _ol (2,0) );
-             _ol(9,2) = _pma[2]*_ol(3,2) + _fak  * _ol(0,2);
-
-             _ol(4,3) = _pma[1]*_ol(1,3);
-             _ol(5,3) = _pma[2]*_ol(1,3) + _fak  * _ol(1,0);
-             _ol(6,3) = _pma[2]*_ol(2,3) + _fak  * _ol(2,0);
-             _ol(7,3) = _pma[0]*_ol(1,3) + _fak  * _ol(0,3);
-             _ol(8,3) = _pma[1]*_ol(2,3) + _fak  * _ol(0,3);
-             _ol(9,3) = _pma[2]*_ol(3,3) + _fak  * ( _ol(0,3) + _ol(3,0) );
-           
-        }
-        
-        // d-d
-        if ( _lmax_row > 1 && _lmax_col +1 > 1 ){
-             // cout << "\t setting d-d" << endl;
-            
-             _ol(4,4) = _pma[1]*_ol(1,4) + _fak * _ol(1,1);
-             _ol(5,4) = _pma[2]*_ol(1,4);
-             _ol(6,4) = _pma[2]*_ol(2,4);
-             _ol(7,4) = _pma[0]*_ol(1,4) + _fak * (_ol(0,4) + _ol(1,2) );
-             _ol(8,4) = _pma[1]*_ol(2,4) + _fak * (_ol(0,4) + _ol(2,1) );
-             _ol(9,4) = _pma[2]*_ol(3,4) + _fak * _ol(0,4);
-
-             _ol(4,5) = _pma[1]*_ol(1,5);
-             _ol(5,5) = _pma[2]*_ol(1,5) + _fak * _ol(1,1);
-             _ol(6,5) = _pma[2]*_ol(2,5) + _fak * _ol(2,1);
-             _ol(7,5) = _pma[0]*_ol(1,5) + _fak * (_ol(0,5) + _ol(1,3) );
-             _ol(8,5) = _pma[1]*_ol(2,5) + _fak * _ol(0,5);
-             _ol(9,5) = _pma[2]*_ol(3,5) + _fak * (_ol(0,5) + _ol(3,1) );
-
-             _ol(4,6) = _pma[1]*_ol(1,6) + _fak * _ol(1,3);
-             _ol(5,6) = _pma[2]*_ol(1,6) + _fak * _ol(1,2);
-             _ol(6,6) = _pma[2]*_ol(2,6) + _fak * _ol(2,2);
-             _ol(7,6) = _pma[0]*_ol(1,6) + _fak * _ol(0,6);
-             _ol(8,6) = _pma[1]*_ol(2,6) + _fak * (_ol(0,6) + _ol(2,3) );
-             _ol(9,6) = _pma[2]*_ol(3,6) + _fak * (_ol(0,6) + _ol(3,2) );
-
-             _ol(4,7) = _pma[1]*_ol(1,7);
-             _ol(5,7) = _pma[2]*_ol(1,7);
-             _ol(6,7) = _pma[2]*_ol(2,7);
-             _ol(7,7) = _pma[0]*_ol(1,7) + _fak * (_ol(0,7) + 2.0*_ol(1,1) );
-             _ol(8,7) = _pma[1]*_ol(2,7) + _fak * _ol(0,7);
-             _ol(9,7) = _pma[2]*_ol(3,7) + _fak * _ol(0,7);
-
-             _ol(4,8) = _pma[1]*_ol(1,8) + _fak2 * _ol(1,2);
-             _ol(5,8) = _pma[2]*_ol(1,8);
-             _ol(6,8) = _pma[2]*_ol(2,8);
-             _ol(7,8) = _pma[0]*_ol(1,8) + _fak * _ol(0,8);
-             _ol(8,8) = _pma[1]*_ol(2,8) + _fak * (_ol(0,8) + 2.0*_ol(2,2) );
-             _ol(9,8) = _pma[2]*_ol(3,8) + _fak * _ol(0,8);
-
-             _ol(4,9) = _pma[1]*_ol(1,9);
-             _ol(5,9) = _pma[2]*_ol(1,9) + _fak2 * _ol(1,3);
-             _ol(6,9) = _pma[2]*_ol(2,9) + _fak2 * _ol(2,3);
-             _ol(7,9) = _pma[0]*_ol(1,9) + _fak * _ol( 0,9);
-             _ol(8,9) = _pma[1]*_ol(2,9) + _fak * _ol(0,9);
-             _ol(9,9) = _pma[2]*_ol(3,9) + _fak * (_ol(0,9) + 2.0*_ol(3,3) );
-            
-            
-        }
-
-        // s-f 
-        if ( _lmax_col +1 > 2 ){
-             _ol(0,10) = _pmb[0]*_ol(0,7) + _fak2* _ol(0,1);
-             _ol(0,11) = _pmb[1]*_ol(0,8) + _fak2* _ol(0,2);
-             _ol(0,12) = _pmb[2]*_ol(0,9) + _fak2* _ol(0,3);
-             _ol(0,13) = _pmb[0]*_ol(0,4) + _fak * _ol(0,2);
-             _ol(0,14) = _pmb[1]*_ol(0,4) + _fak * _ol(0,1);
-             _ol(0,15) = _pmb[0]*_ol(0,5) + _fak * _ol(0,3);
-             _ol(0,16) = _pmb[2]*_ol(0,5) + _fak * _ol(0,1);
-             _ol(0,17) = _pmb[1]*_ol(0,6) + _fak * _ol(0,3);
-             _ol(0,18) = _pmb[2]*_ol(0,6) + _fak * _ol(0,2);
-             _ol(0,19) = _pmb[2]*_ol(0,4);
-        }
-
-        // f-s
-        if ( _lmax_row > 2){
-             _ol(10,0) = _pma[0]*_ol(7,0) + _fak2* _ol( 1,0);
-             _ol(11,0) = _pma[1]*_ol(8,0) + _fak2* _ol( 2,0);
-             _ol(12,0) = _pma[2]*_ol(9,0) + _fak2* _ol( 3,0);
-             _ol(13,0) = _pma[0]*_ol(4,0) + _fak * _ol( 2,0);
-             _ol(14,0) = _pma[1]*_ol(4,0) + _fak * _ol( 1,0);
-             _ol(15,0) = _pma[0]*_ol(5,0) + _fak * _ol( 3,0);
-             _ol(16,0) = _pma[2]*_ol(5,0) + _fak * _ol( 1,0);
-             _ol(17,0) = _pma[1]*_ol(6,0) + _fak * _ol( 3,0);
-             _ol(18,0) = _pma[2]*_ol(6,0) + _fak * _ol( 2,0);
-             _ol(19,0) = _pma[2]*_ol(4,0);
-        }
-        
-        // p-f
-        if ( _lmax_row > 0 && _lmax_col +1 > 2 ){
-             _ol( 1,10) = _pma[0]*_ol( 0,10) + _fak3* _ol( 0, 7);
-             _ol( 2,10) = _pma[1]*_ol( 0,10);
-             _ol( 3,10) = _pma[2]*_ol( 0,10);
-             _ol( 1,11) = _pma[0]*_ol( 0,11);
-             _ol( 2,11) = _pma[1]*_ol( 0,11) + _fak3* _ol( 0, 8);
-             _ol( 3,11) = _pma[2]*_ol( 0,11);
-             _ol( 1,12) = _pma[0]*_ol( 0,12);
-             _ol( 2,12) = _pma[1]*_ol( 0,12);
-             _ol( 3,12) = _pma[2]*_ol( 0,12) + _fak3* _ol( 0,9);
-             _ol( 1,13) = _pma[0]*_ol( 0,13) + _fak2* _ol( 0, 4);
-             _ol( 2,13) = _pma[1]*_ol( 0,13) + _fak * _ol( 0, 7);
-             _ol( 3,13) = _pma[2]*_ol( 0,13);
-             _ol( 1,14) = _pma[0]*_ol( 0,14) + _fak * _ol( 0, 8);
-             _ol( 2,14) = _pma[1]*_ol( 0,14) + _fak2* _ol( 0, 4);
-             _ol( 3,14) = _pma[2]*_ol( 0,14);
-             _ol( 1,15) = _pma[0]*_ol( 0,15) + _fak2* _ol( 0, 5);
-             _ol( 2,15) = _pma[1]*_ol( 0,15);
-             _ol( 3,15) = _pma[2]*_ol( 0,15) + _fak * _ol( 0, 7);
-             _ol( 1,16) = _pma[0]*_ol( 0,16) + _fak * _ol( 0,9);
-             _ol( 2,16) = _pma[1]*_ol( 0,16);
-             _ol( 3,16) = _pma[2]*_ol( 0,16) + _fak2* _ol( 0, 5);
-             _ol( 1,17) = _pma[0]*_ol( 0,17);
-             _ol( 2,17) = _pma[1]*_ol( 0,17) + _fak2* _ol( 0, 6);
-             _ol( 3,17) = _pma[2]*_ol( 0,17) + _fak * _ol( 0, 8);
-             _ol( 1,18) = _pma[0]*_ol( 0,18);
-             _ol( 2,18) = _pma[1]*_ol( 0,18) + _fak * _ol( 0,9);
-             _ol( 3,18) = _pma[2]*_ol( 0,18) + _fak2* _ol( 0, 6);
-             _ol( 1,19) = _pma[0]*_ol( 0,19) + _fak * _ol( 0, 6);
-             _ol( 2,19) = _pma[1]*_ol( 0,19) + _fak * _ol( 0, 5);
-             _ol( 3,19) = _pma[2]*_ol( 0,19) + _fak * _ol( 0, 4);            
-        }
-   
-        // f-p
-        if (_lmax_row > 2 && _lmax_col +1 > 0 ){
-             _ol(13, 1) = _pma[0]*_ol( 4, 1) + _fak * (_ol( 2, 1) + _ol( 4, 0) );
-             _ol(14, 1) = _pma[1]*_ol( 4, 1) + _fak * _ol( 1, 1);
-             _ol(19, 1) = _pma[2]*_ol( 4, 1);
-             _ol(13, 2) = _pma[0]*_ol( 4, 2) + _fak * _ol( 2, 2);
-             _ol(14, 2) = _pma[1]*_ol( 4, 2) + _fak * (_ol( 1, 2) + _ol( 4, 0) );
-             _ol(19, 2) = _pma[2]*_ol( 4, 2);
-             _ol(13, 3) = _pma[0]*_ol( 4, 3) + _fak * _ol( 2, 3);
-             _ol(14, 3) = _pma[1]*_ol( 4, 3) + _fak * _ol( 1, 3);
-             _ol(19, 3) = _pma[2]*_ol( 4, 3) + _fak * _ol( 4, 0);
-             _ol(15, 1) = _pma[0]*_ol( 5, 1) + _fak * (_ol( 3, 1) + _ol( 5, 0) );
-             _ol(16, 1) = _pma[2]*_ol( 5, 1) + _fak * _ol( 1, 1);
-             _ol(15, 2) = _pma[0]*_ol( 5, 2) + _fak * _ol( 3, 2);
-             _ol(16, 2) = _pma[2]*_ol( 5, 2) + _fak * _ol( 1, 2);
-             _ol(15, 3) = _pma[0]*_ol( 5, 3) + _fak * _ol( 3, 3);
-             _ol(16, 3) = _pma[2]*_ol( 5, 3) + _fak * (_ol( 1, 3) + _ol( 5, 0) );
-             _ol(17, 1) = _pma[1]*_ol( 6, 1) + _fak * _ol( 3, 1);
-             _ol(18, 1) = _pma[2]*_ol( 6, 1) + _fak * _ol( 2, 1);
-             _ol(17, 2) = _pma[1]*_ol( 6, 2) + _fak * (_ol( 3, 2) + _ol( 6, 0) );
-             _ol(18, 2) = _pma[2]*_ol( 6, 2) + _fak * _ol( 2, 2);
-             _ol(17, 3) = _pma[1]*_ol( 6, 3) + _fak * _ol( 3, 3);
-             _ol(18, 3) = _pma[2]*_ol( 6, 3) + _fak * (_ol( 2, 3) + _ol( 6, 0) );
-             _ol(10, 1) = _pma[0]*_ol( 7, 1) + _fak * (2.0*_ol( 1, 1) + _ol( 7, 0) );
-             _ol(10, 2) = _pma[0]*_ol( 7, 2) + _fak2* _ol( 1, 2);
-             _ol(10, 3) = _pma[0]*_ol( 7, 3) + _fak2* _ol( 1, 3);
-             _ol(11, 1) = _pma[1]*_ol( 8, 1) + _fak2* _ol( 2, 1);
-             _ol(11, 2) = _pma[1]*_ol( 8, 2) + _fak * (2.0*_ol( 2, 2) + _ol( 8, 0) );
-             _ol(11, 3) = _pma[1]*_ol( 8, 3) + _fak2* _ol( 2, 3);
-             _ol(12, 1) = _pma[2]*_ol( 9, 1) + _fak2* _ol( 3, 1);
-             _ol(12, 2) = _pma[2]*_ol( 9, 2) + _fak2* _ol( 3, 2);
-             _ol(12, 3) = _pma[2]*_ol( 9, 3) + _fak * (2.0*_ol( 3, 3) + _ol(9, 0) );            
-        }
-        
-        // d-f
-        if ( _lmax_row > 1 && _lmax_col +1 >2 ){
-             _ol( 7,10) = _pma[0]*_ol( 1,10) + _fak * (_ol( 0,10) + 3.0*_ol( 1, 7) );
-             _ol( 4,10) = _pma[1]*_ol( 1,10);
-             _ol( 5,10) = _pma[2]*_ol( 1,10);
-             _ol( 7,11) = _pma[0]*_ol( 1,11) + _fak * _ol( 0,1);
-             _ol( 4,11) = _pma[1]*_ol( 1,11) + _fak3* _ol( 1, 8);
-             _ol( 5,11) = _pma[2]*_ol( 1,11);
-             _ol( 7,12) = _pma[0]*_ol( 1,12) + _fak * _ol( 0,12);
-             _ol( 4,12) = _pma[1]*_ol( 1,12);
-             _ol( 5,12) = _pma[2]*_ol( 1,12) + _fak3* _ol( 1,9);
-             _ol( 7,13) = _pma[0]*_ol( 1,13) + _fak * (_ol( 0,13) + 2.0*_ol( 1, 4) );
-             _ol( 4,13) = _pma[1]*_ol( 1,13) + _fak * _ol( 1, 7);
-             _ol( 5,13) = _pma[2]*_ol( 1,13);
-             _ol( 7,14) = _pma[0]*_ol( 1,14) + _fak * (_ol( 0,14) + _ol( 1, 8) );
-             _ol( 4,14) = _pma[1]*_ol( 1,14) + _fak2* _ol( 1, 4);
-             _ol( 5,14) = _pma[2]*_ol( 1,14);
-             _ol( 7,15) = _pma[0]*_ol( 1,15) + _fak * (_ol( 0,15) + 2.0*_ol( 1, 5) );
-             _ol( 4,15) = _pma[1]*_ol( 1,15);
-             _ol( 5,15) = _pma[2]*_ol( 1,15) + _fak * _ol( 1, 7);
-             _ol( 7,16) = _pma[0]*_ol( 1,16) + _fak * (_ol( 0,16) + _ol( 1,9) );
-             _ol( 4,16) = _pma[1]*_ol( 1,16);
-             _ol( 5,16) = _pma[2]*_ol( 1,16) + _fak2* _ol( 1, 5);
-             _ol( 7,17) = _pma[0]*_ol( 1,17) + _fak * _ol( 0,17);
-             _ol( 4,17) = _pma[1]*_ol( 1,17) + _fak2* _ol( 1, 6);
-             _ol( 5,17) = _pma[2]*_ol( 1,17) + _fak * _ol( 1, 8);
-             _ol( 7,18) = _pma[0]*_ol( 1,18) + _fak * _ol( 0,18);
-             _ol( 4,18) = _pma[1]*_ol( 1,18) + _fak * _ol( 1,9);
-             _ol( 5,18) = _pma[2]*_ol( 1,18) + _fak2* _ol( 1, 6);
-             _ol( 7,19) = _pma[0]*_ol( 1,19) + _fak * (_ol( 0,19) + _ol( 1, 6) );
-             _ol( 4,19) = _pma[1]*_ol( 1,19) + _fak * _ol( 1, 5);
-             _ol( 5,19) = _pma[2]*_ol( 1,19) + _fak * _ol( 1, 4);
-             _ol( 8,10) = _pma[1]*_ol( 2,10) + _fak * _ol( 0,10);
-             _ol( 6,10) = _pma[2]*_ol( 2,10);
-             _ol( 8,11) = _pma[1]*_ol( 2,11) + _fak * (_ol( 0,11) + 3.0*_ol( 2, 8) );
-             _ol( 6,11) = _pma[2]*_ol( 2,11);
-             _ol( 8,12) = _pma[1]*_ol( 2,12) + _fak * _ol( 0,12);
-             _ol( 6,12) = _pma[2]*_ol( 2,12) + _fak3* _ol( 2,9);
-             _ol( 8,13) = _pma[1]*_ol( 2,13) + _fak * (_ol( 0,13) + _ol( 2, 7) );
-             _ol( 6,13) = _pma[2]*_ol( 2,13);
-             _ol( 8,14) = _pma[1]*_ol( 2,14) + _fak * (_ol( 0,14) + 2.0*_ol( 2, 4) );
-             _ol( 6,14) = _pma[2]*_ol( 2,14);
-             _ol( 8,15) = _pma[1]*_ol( 2,15) + _fak * _ol( 0,15);
-             _ol( 6,15) = _pma[2]*_ol( 2,15) + _fak * _ol( 2, 7);
-             _ol( 8,16) = _pma[1]*_ol( 2,16) + _fak * _ol( 0,16);
-             _ol( 6,16) = _pma[2]*_ol( 2,16) + _fak2* _ol( 2, 5);
-             _ol( 8,17) = _pma[1]*_ol( 2,17) + _fak * (_ol( 0,17) + 2.0*_ol( 2, 6) );
-             _ol( 6,17) = _pma[2]*_ol( 2,17) + _fak * _ol( 2, 8);
-             _ol( 8,18) = _pma[1]*_ol( 2,18) + _fak * (_ol( 0,18) + _ol( 2,9) );
-             _ol( 6,18) = _pma[2]*_ol( 2,18) + _fak2* _ol( 2, 6);
-             _ol( 8,19) = _pma[1]*_ol( 2,19) + _fak * (_ol( 0,19) + _ol( 2, 5) );
-             _ol( 6,19) = _pma[2]*_ol( 2,19) + _fak * _ol( 2, 4);
-             _ol(9,10) = _pma[2]*_ol( 3,10) + _fak * _ol( 0,10);
-             _ol(9,11) = _pma[2]*_ol( 3,11) + _fak * _ol( 0,11);
-             _ol(9,12) = _pma[2]*_ol( 3,12) + _fak * (_ol( 0,12) + 3.0*_ol( 3,9) );
-             _ol(9,13) = _pma[2]*_ol( 3,13) + _fak * _ol( 0,13);
-             _ol(9,14) = _pma[2]*_ol( 3,14) + _fak * _ol( 0,14);
-             _ol(9,15) = _pma[2]*_ol( 3,15) + _fak * (_ol( 0,15) + _ol( 3, 7) );
-             _ol(9,16) = _pma[2]*_ol( 3,16) + _fak * (_ol( 0,16) + 2.0*_ol( 3, 5) );
-             _ol(9,17) = _pma[2]*_ol( 3,17) + _fak * (_ol( 0,17) + _ol( 3, 8) );
-             _ol(9,18) = _pma[2]*_ol( 3,18) + _fak * (_ol( 0,18) + 2.0*_ol( 3, 5) );
-             _ol(9,19) = _pma[2]*_ol( 3,19) + _fak * (_ol( 0,19) + _ol( 3, 4) );
-        }
-        // f-d
-        if ( _lmax_row > 2 && _lmax_col +1 > 1 ){
-             _ol(13, 4) = _pma[0]*_ol( 4, 4) + _fak * (_ol( 2, 4) + _ol( 4, 2) );
-             _ol(14, 4) = _pma[1]*_ol( 4, 4) + _fak * (_ol( 1, 4) + _ol( 4, 1) );
-             _ol(19, 4) = _pma[2]*_ol( 4, 4);
-             _ol(13, 5) = _pma[0]*_ol( 4, 5) + _fak * (_ol( 2, 5) + _ol( 4, 3) );
-             _ol(14, 5) = _pma[1]*_ol( 4, 5) + _fak * _ol( 1, 5);
-             _ol(19, 5) = _pma[2]*_ol( 4, 5) + _fak * _ol( 4, 1);
-             _ol(13, 6) = _pma[0]*_ol( 4, 6) + _fak * _ol( 2, 6);
-             _ol(14, 6) = _pma[1]*_ol( 4, 6) + _fak * (_ol( 1, 6) + _ol( 4, 3) );
-             _ol(19, 6) = _pma[2]*_ol( 4, 6) + _fak * _ol( 4, 2);
-             _ol(13, 7) = _pma[0]*_ol( 4, 7) + _fak * (_ol( 2, 7) + 2.0*_ol( 4, 1) );
-             _ol(14, 7) = _pma[1]*_ol( 4, 7) + _fak * _ol( 1, 7);
-             _ol(19, 7) = _pma[2]*_ol( 4, 7);
-             _ol(13, 8) = _pma[0]*_ol( 4, 8) + _fak * _ol( 2, 8);
-             _ol(14, 8) = _pma[1]*_ol( 4, 8) + _fak * (_ol( 1, 8) + 2.0*_ol( 4, 2) );
-             _ol(19, 8) = _pma[2]*_ol( 4, 8);
-             _ol(13,9) = _pma[0]*_ol( 4,9) + _fak * _ol( 2,9);
-             _ol(14,9) = _pma[1]*_ol( 4,9) + _fak * _ol( 1,9);
-             _ol(19,9) = _pma[2]*_ol( 4,9) + _fak2* _ol( 4, 3);
-             _ol(15, 4) = _pma[0]*_ol( 5, 4) + _fak * (_ol( 3, 4) + _ol( 5, 2) );
-             _ol(16, 4) = _pma[2]*_ol( 5, 4) + _fak * _ol( 1, 4);
-             _ol(15, 5) = _pma[0]*_ol( 5, 5) + _fak * (_ol( 3, 5) + _ol( 5, 3) );
-             _ol(16, 5) = _pma[2]*_ol( 5, 5) + _fak * (_ol( 1, 5) + _ol( 5, 1) );
-             _ol(15, 6) = _pma[0]*_ol( 5, 6) + _fak * _ol( 3, 6);
-             _ol(16, 6) = _pma[2]*_ol( 5, 6) + _fak * (_ol( 1, 6) + _ol( 5, 2) );
-             _ol(15, 7) = _pma[0]*_ol( 5, 7) + _fak * (_ol( 3, 7) + 2.0*_ol( 5, 1) );
-             _ol(16, 7) = _pma[2]*_ol( 5, 7) + _fak * _ol( 1, 7);
-             _ol(15, 8) = _pma[0]*_ol( 5, 8) + _fak * _ol( 3, 8);
-             _ol(16, 8) = _pma[2]*_ol( 5, 8) + _fak * _ol( 1, 8);
-             _ol(15,9) = _pma[0]*_ol( 5,9) + _fak * _ol( 3,9);
-             _ol(16,9) = _pma[2]*_ol( 5,9) + _fak * (_ol( 1,9) + 2.0*_ol( 5, 3) );
-             _ol(17, 4) = _pma[1]*_ol( 6, 4) + _fak * (_ol( 3, 4) + _ol( 6, 1) );
-             _ol(18, 4) = _pma[2]*_ol( 6, 4) + _fak * _ol( 2, 4);
-             _ol(17, 5) = _pma[1]*_ol( 6, 5) + _fak * _ol( 3, 5);
-             _ol(18, 5) = _pma[2]*_ol( 6, 5) + _fak * (_ol( 2, 5) + _ol( 6, 1) );
-             _ol(17, 6) = _pma[1]*_ol( 6, 6) + _fak * (_ol( 3, 6) + _ol( 6, 3) );
-             _ol(18, 6) = _pma[2]*_ol( 6, 6) + _fak * (_ol( 2, 5) + _ol( 5, 2) );
-             _ol(17, 7) = _pma[1]*_ol( 6, 7) + _fak * _ol( 3, 7);
-             _ol(18, 7) = _pma[2]*_ol( 6, 7) + _fak * _ol( 2, 7);
-             _ol(17, 8) = _pma[1]*_ol( 6, 8) + _fak * (_ol( 3, 8) + 2.0*_ol( 6, 2) );
-             _ol(18, 8) = _pma[2]*_ol( 6, 8) + _fak * _ol( 2, 8);
-             _ol(17,9) = _pma[1]*_ol( 6,9) + _fak * _ol( 3,9);
-             _ol(18,9) = _pma[2]*_ol( 6,9) + _fak * (_ol( 2,9) + 2.0*_ol( 6, 3) );
-             _ol(10, 4) = _pma[0]*_ol( 7, 4) + _fak * (2.0*_ol( 1, 4) + _ol( 7, 2) );
-             _ol(10, 5) = _pma[0]*_ol( 7, 5) + _fak * (2.0*_ol( 1, 5) + _ol( 7, 3) );
-             _ol(10, 6) = _pma[0]*_ol( 7, 6) + _fak2* _ol( 1, 6);
-             _ol(10, 7) = _pma[0]*_ol( 7, 7) + _fak * (2.0*_ol( 1, 7) + 2.0*_ol( 7, 1));
-             _ol(10, 8) = _pma[0]*_ol( 7, 8) + _fak2* _ol( 1, 8);
-             _ol(10,9) = _pma[0]*_ol( 7,9) + _fak2* _ol( 1,9);
-             _ol(11, 4) = _pma[1]*_ol( 8, 4) + _fak * (2.0*_ol( 2, 4) + _ol( 8, 1) );
-             _ol(11, 5) = _pma[1]*_ol( 8, 5) + _fak2* _ol( 2, 5);
-             _ol(11, 6) = _pma[1]*_ol( 8, 6) + _fak * (2.0*_ol( 2, 6) + _ol( 8, 3) );
-             _ol(11, 7) = _pma[1]*_ol( 8, 7) + _fak2* _ol( 2, 7);
-             _ol(11, 8) = _pma[1]*_ol( 8, 8) + _fak * (2.0*_ol( 2, 8) + 2.0*_ol( 8, 2));
-             _ol(11,9) = _pma[1]*_ol( 8,9) + _fak2* _ol( 2,9);
-             _ol(12, 4) = _pma[2]*_ol(9, 4) + _fak2* _ol( 3, 4);
-             _ol(12, 5) = _pma[2]*_ol(9, 5) + _fak * (2.0*_ol( 3, 5) + _ol(9, 1) );
-             _ol(12, 6) = _pma[2]*_ol(9, 6) + _fak * (2.0*_ol( 3, 6) + _ol(9, 2) );
-             _ol(12, 7) = _pma[2]*_ol(9, 7) + _fak2* _ol( 3, 7);
-             _ol(12, 8) = _pma[2]*_ol(9, 8) + _fak2* _ol( 3, 8);
-             _ol(12,9) = _pma[2]*_ol(9,9) + _fak * (2.0*_ol( 3,9) + 2.0*_ol(9, 3));
-        }
-        // f-f
-        if ( _lmax_row > 2 && _lmax_col +1 > 2 ){
-             _ol(13,10) = _pma[0]*_ol( 4,10) + _fak * (_ol( 2,10) + 3.0*_ol( 4, 7) );
-             _ol(14,10) = _pma[1]*_ol( 4,10) + _fak * _ol( 1,10);
-             _ol(19,10) = _pma[2]*_ol( 4,10);
-             _ol(13,11) = _pma[0]*_ol( 4,11) + _fak * _ol( 2,11);
-             _ol(14,11) = _pma[1]*_ol( 4,11) + _fak * (_ol( 1,11) + 3.0*_ol( 4, 8) );
-             _ol(19,11) = _pma[2]*_ol( 4,11);
-             _ol(13,12) = _pma[0]*_ol( 4,12) + _fak * _ol( 2,12);
-             _ol(14,12) = _pma[1]*_ol( 4,12) + _fak * _ol( 1,12);
-             _ol(19,12) = _pma[2]*_ol( 4,12) + _fak3* _ol( 4,9);
-             _ol(13,13) = _pma[0]*_ol( 4,13) + _fak * (_ol( 2,13) + 2.0*_ol( 4,4) );
-             _ol(14,13) = _pma[1]*_ol( 4,13) + _fak * (_ol( 1,13) + _ol( 4, 7) );
-             _ol(19,13) = _pma[2]*_ol( 4,13);
-             _ol(13,14) = _pma[0]*_ol( 4,14) + _fak * (_ol( 2,14) + _ol( 4, 8) );
-             _ol(14,14) = _pma[1]*_ol( 4,14) + _fak * (_ol( 1,14) + 2.0*_ol( 4, 4) );
-             _ol(19,14) = _pma[2]*_ol( 4,14);
-             _ol(13,15) = _pma[0]*_ol( 4,15) + _fak * (_ol( 2,15) + 2.0*_ol( 4, 5) );
-             _ol(14,15) = _pma[1]*_ol( 4,15) + _fak * _ol( 1,15);
-             _ol(19,15) = _pma[2]*_ol( 4,15) + _fak * _ol( 4, 7);
-             _ol(13,16) = _pma[0]*_ol( 4,16) + _fak * (_ol( 2,16) + _ol( 4,9) );
-             _ol(14,16) = _pma[1]*_ol( 4,16) + _fak * _ol( 1,16);
-             _ol(19,16) = _pma[2]*_ol( 4,16) + _fak2* _ol( 4, 5);
-             _ol(13,17) = _pma[0]*_ol( 4,17) + _fak * _ol( 2,17);
-             _ol(14,17) = _pma[1]*_ol( 4,17) + _fak * (_ol( 1,17) + 2.0*_ol( 4, 6) );
-             _ol(19,17) = _pma[2]*_ol( 4,17) + _fak * _ol( 4, 8);
-             _ol(13,18) = _pma[0]*_ol( 4,18) + _fak * _ol( 2,18);
-             _ol(14,18) = _pma[1]*_ol( 4,18) + _fak * (_ol( 1,18) + _ol( 4,9) );
-             _ol(19,18) = _pma[2]*_ol( 4,18) + _fak2* _ol( 4, 6);
-             _ol(13,19) = _pma[0]*_ol( 4,19) + _fak * (_ol( 2,19) + _ol( 4, 6) );
-             _ol(14,19) = _pma[1]*_ol( 4,19) + _fak * (_ol( 1,19) + _ol( 4, 5) );
-             _ol(19,19) = _pma[2]*_ol( 4,19) + _fak * _ol( 4, 4);
-             _ol(15,10) = _pma[0]*_ol( 5,10) + _fak * (_ol( 3,10) + 3.0*_ol( 5, 7) );
-             _ol(16,10) = _pma[2]*_ol( 5,10) + _fak * _ol( 1,10);
-             _ol(15,11) = _pma[0]*_ol( 5,11) + _fak * _ol( 3,11);
-             _ol(16,11) = _pma[2]*_ol( 5,11) + _fak * _ol( 1,11);
-             _ol(15,12) = _pma[0]*_ol( 5,12) + _fak * _ol( 3,12);
-             _ol(16,12) = _pma[2]*_ol( 5,12) + _fak * (_ol( 1,12) + 3.0*_ol( 5,9) );
-             _ol(15,13) = _pma[0]*_ol( 5,13) + _fak * (_ol( 3,13) + 2.0*_ol( 5, 4) );
-             _ol(16,13) = _pma[2]*_ol( 5,13) + _fak * _ol( 1,13);
-             _ol(15,14) = _pma[0]*_ol( 5,14) + _fak * (_ol( 3,14) + _ol( 5, 8) );
-             _ol(16,14) = _pma[2]*_ol( 5,14) + _fak * _ol( 1,14);
-             _ol(15,15) = _pma[0]*_ol( 5,15) + _fak * (_ol( 3,15) + 2.0*_ol( 5, 5) );
-             _ol(16,15) = _pma[2]*_ol( 5,15) + _fak * (_ol( 1,15) + _ol( 5, 7) );
-             _ol(15,16) = _pma[0]*_ol( 5,16) + _fak * (_ol( 3,16) + _ol( 5,9) );
-             _ol(16,16) = _pma[2]*_ol( 5,16) + _fak * (_ol( 1,16) + 2.0*_ol( 5, 5) );
-             _ol(15,17) = _pma[0]*_ol( 5,17) + _fak * _ol( 3,17);
-             _ol(16,17) = _pma[2]*_ol( 5,17) + _fak * (_ol( 1,17) + _ol( 5, 8) );
-             _ol(15,18) = _pma[0]*_ol( 5,18) + _fak * _ol( 3,18);
-             _ol(16,18) = _pma[2]*_ol( 5,18) + _fak * (_ol( 1,18) + 2.0*_ol( 5, 6) );
-             _ol(15,19) = _pma[0]*_ol( 5,19) + _fak * (_ol( 3,19) + _ol( 5, 6) );
-             _ol(16,19) = _pma[2]*_ol( 5,19) + _fak * (_ol( 1,19) + _ol( 5, 4) );
-             _ol(17,10) = _pma[1]*_ol( 6,10) + _fak * _ol( 3,10);
-             _ol(18,10) = _pma[2]*_ol( 6,10) + _fak * _ol( 2,10);
-             _ol(17,11) = _pma[1]*_ol( 6,11) + _fak * (_ol( 3,11) + 3.0*_ol( 6, 8) );
-             _ol(18,11) = _pma[2]*_ol( 6,11) + _fak * _ol( 2,11);
-             _ol(17,12) = _pma[1]*_ol( 6,12) + _fak * _ol( 3,12);
-             _ol(18,12) = _pma[2]*_ol( 6,12) + _fak * (_ol( 2,12) + 3.0*_ol( 6,9) );
-             _ol(17,13) = _pma[1]*_ol( 6,13) + _fak * (_ol( 3,13) + _ol( 6, 7) );
-             _ol(18,13) = _pma[2]*_ol( 6,13) + _fak * _ol( 2,13);
-             _ol(17,14) = _pma[1]*_ol( 6,14) + _fak * (_ol( 3,14) + 2.0*_ol( 6, 4) );
-             _ol(18,14) = _pma[2]*_ol( 6,14) + _fak * _ol( 2,14);
-             _ol(17,15) = _pma[1]*_ol( 6,15) + _fak * _ol( 3,15);
-             _ol(18,15) = _pma[2]*_ol( 6,15) + _fak * (_ol( 2,15) + _ol( 6, 7) );
-             _ol(17,16) = _pma[1]*_ol( 6,16) + _fak * _ol( 3,16);
-             _ol(18,16) = _pma[2]*_ol( 6,16) + _fak * (_ol( 2,16) + 2.0*_ol( 6, 5) );
-             _ol(17,17) = _pma[1]*_ol( 6,17) + _fak * (_ol( 3,17) + 2.0*_ol( 6, 6) );
-             _ol(18,17) = _pma[2]*_ol( 6,17) + _fak * (_ol( 2,17) + _ol( 6, 8) );
-             _ol(17,18) = _pma[1]*_ol( 6,18) + _fak * (_ol( 3,18) + _ol( 6,9) );
-             _ol(18,18) = _pma[2]*_ol( 6,18) + _fak * (_ol( 2,18) + 2.0*_ol( 6, 6) );
-             _ol(17,19) = _pma[1]*_ol( 6,19) + _fak * (_ol( 3,19) + _ol( 6, 5) );
-             _ol(18,19) = _pma[2]*_ol( 6,19) + _fak * (_ol( 2,19) + _ol( 6, 4) );
-             _ol(10,10) = _pma[0]*_ol( 7,10) + _fak * (2.0*_ol( 1,10) + 3.0*_ol( 7, 7));
-             _ol(10,11) = _pma[0]*_ol( 7,11) + _fak2* _ol( 1,11);
-             _ol(10,12) = _pma[0]*_ol( 7,12) + _fak2* _ol( 1,12);
-             _ol(10,13) = _pma[0]*_ol( 7,13) + _fak * (2.0*_ol( 1,13) + 2.0*_ol( 7, 4));
-             _ol(10,14) = _pma[0]*_ol( 7,14) + _fak * (2.0*_ol( 1,14) + _ol( 7, 8) );
-             _ol(10,15) = _pma[0]*_ol( 7,15) + _fak * (2.0*_ol( 1,15) + 2.0*_ol( 7, 5));
-             _ol(10,16) = _pma[0]*_ol( 7,16) + _fak * (2.0*_ol( 1,16) + _ol( 7,9) );
-             _ol(10,17) = _pma[0]*_ol( 7,17) + _fak2* _ol( 1,17);
-             _ol(10,18) = _pma[0]*_ol( 7,18) + _fak2* _ol( 1,18);
-             _ol(10,19) = _pma[0]*_ol( 7,19) + _fak * (2.0*_ol( 1,19) + _ol( 7, 6) );
-             _ol(11,10) = _pma[1]*_ol( 8,10) + _fak2* _ol( 2,10);
-             _ol(11,11) = _pma[1]*_ol( 8,11) + _fak * (2.0*_ol( 2,11) + 3.0*_ol( 8, 8));
-             _ol(11,12) = _pma[1]*_ol( 8,12) + _fak2* _ol( 2,12);
-             _ol(11,13) = _pma[1]*_ol( 8,13) + _fak * (2.0*_ol( 2,13) + _ol( 8, 7) );
-             _ol(11,14) = _pma[1]*_ol( 8,14) + _fak * (2.0*_ol( 2,14) + 2.0*_ol( 8, 4));
-             _ol(11,15) = _pma[1]*_ol( 8,15) + _fak2* _ol( 2,15);
-             _ol(11,16) = _pma[1]*_ol( 8,16) + _fak2* _ol( 2,16);
-             _ol(11,17) = _pma[1]*_ol( 8,17) + _fak * (2.0*_ol( 2,17) + 2.0*_ol( 8, 6));
-             _ol(11,18) = _pma[1]*_ol( 8,18) + _fak * (2.0*_ol( 2,18) + _ol( 8,9) );
-             _ol(11,19) = _pma[1]*_ol( 8,19) + _fak * (2.0*_ol( 2,19) + _ol( 8, 5) );
-             _ol(12,10) = _pma[2]*_ol(9,10) + _fak2* _ol( 3,10);
-             _ol(12,11) = _pma[2]*_ol(9,11) + _fak2* _ol( 3,11);
-             _ol(12,12) = _pma[2]*_ol(9,12) + _fak * (2.0*_ol( 3,12) + 3.0*_ol(9,9));
-             _ol(12,13) = _pma[2]*_ol(9,13) + _fak2* _ol( 3,13);
-             _ol(12,14) = _pma[2]*_ol(9,14) + _fak2* _ol( 3,14);
-             _ol(12,15) = _pma[2]*_ol(9,15) + _fak * (2.0*_ol( 3,15) + _ol(9, 7) );
-             _ol(12,16) = _pma[2]*_ol(9,16) + _fak * (2.0*_ol( 3,16) + 2.0*_ol(9, 5));
-             _ol(12,17) = _pma[2]*_ol(9,17) + _fak * (2.0*_ol( 3,17) + _ol(9, 8) );
-             _ol(12,18) = _pma[2]*_ol(9,18) + _fak * (2.0*_ol( 3,18) + 2.0*_ol(9, 6));
-             _ol(12,19) = _pma[2]*_ol(9,19) + _fak * (2.0*_ol( 3,19) + _ol(9, 4) );
-        }
-        // s-g
-        // g-s
-        // p-g
-        // g-p
-        // d-g
-        // g-d
-        // f-g
-        // g-f
-        // g-g
-        
-        // after overlap matrix is prepared, we can get the gradient/momentum matrix
        
-        /* matrix storage _matrix[m](i,j)
-         * with:
-         *    m: cartesian component of momentum 0-x; 1-y; 2-z
-         *    i: row basis function
-         *    j: col basis function
-         */
-
-            double _two_beta = 2.0 * _decay_col;
-            for (int _i_row = 0; _i_row < _nrows; _i_row++) {
-
-                // x-component
-                _mom[0](_i_row, 0) = -_two_beta * _ol(_i_row, 1);
-                if (_lmax_col > 0) {
-                    _mom[0](_i_row, 1) = _ol(_i_row, 0) - _two_beta * _ol(_i_row, 7);
-                    _mom[0](_i_row, 2) = -_two_beta * _ol(_i_row, 4);
-                    _mom[0](_i_row, 3) = -_two_beta * _ol(_i_row, 5);
-                }
-                if (_lmax_col > 1) {
-                    _mom[0](_i_row, 4) = _ol(_i_row, 2) - _two_beta * _ol(_i_row, 13);
-                    _mom[0](_i_row, 5) = _ol(_i_row, 3) - _two_beta * _ol(_i_row, 15);
-                    _mom[0](_i_row, 6) = -_two_beta * _ol(_i_row, 19);
-                    _mom[0](_i_row, 7) = 2.0 * _ol(_i_row, 1) - _two_beta * _ol(_i_row, 10);
-                    _mom[0](_i_row, 8) = -_two_beta * _ol(_i_row, 14);
-                    _mom[0](_i_row, 9) = -_two_beta * _ol(_i_row, 16);
-                }
-
-                // y-component
-                _mom[1](_i_row, 0) = -_two_beta * _ol(_i_row, 2);
-                if (_lmax_col > 0) {
-                    _mom[1](_i_row, 1) = -_two_beta * _ol(_i_row, 4);
-                    _mom[1](_i_row, 2) = _ol(_i_row, 0) - _two_beta * _ol(_i_row, 8);
-                    _mom[1](_i_row, 3) = -_two_beta * _ol(_i_row, 6);
-                }
-                if (_lmax_col > 1) {
-                    _mom[1](_i_row, 4) = _ol(_i_row, 1) - _two_beta * _ol(_i_row, 14);
-                    _mom[1](_i_row, 5) = -_two_beta * _ol(_i_row, 19);
-                    _mom[1](_i_row, 6) = _ol(_i_row, 3) - _two_beta * _ol(_i_row, 17);
-                    _mom[1](_i_row, 7) = -_two_beta * _ol(_i_row, 13);
-                    _mom[1](_i_row, 8) = 2.0 * _ol(_i_row, 2) - _two_beta * _ol(_i_row, 11);
-                    _mom[1](_i_row, 9) = -_two_beta * _ol(_i_row, 18);
-                }
-
-                
-                // z-component
-                _mom[2](_i_row, 0) = -_two_beta * _ol(_i_row, 3);
-                if (_lmax_col > 0) {
-                    _mom[2](_i_row, 1) = -_two_beta * _ol(_i_row, 5);
-                    _mom[2](_i_row, 2) = -_two_beta * _ol(_i_row, 6);
-                    _mom[2](_i_row, 3) = _ol(_i_row, 0) - _two_beta * _ol(_i_row, 9);
-                }
-                if (_lmax_col > 1) {
-                    _mom[2](_i_row, 4) = -_two_beta * _ol(_i_row, 19);
-                    _mom[2](_i_row, 5) = _ol(_i_row, 1) - _two_beta * _ol(_i_row, 16);
-                    _mom[2](_i_row, 6) = _ol(_i_row, 2) - _two_beta * _ol(_i_row, 18);
-                    _mom[2](_i_row, 7) = -_two_beta * _ol(_i_row, 15);
-                    _mom[2](_i_row, 8) = -_two_beta * _ol(_i_row, 17);
-                    _mom[2](_i_row, 9) = 2.0 * _ol(_i_row, 3) - _two_beta * _ol(_i_row, 12);
-                }
-
-            }
-        
-        // normalization and cartesian -> spherical factors
-        int _ntrafo_row = _shell_row->getNumFunc() + _shell_row->getOffset();
-        int _ntrafo_col = _shell_col->getNumFunc() + _shell_col->getOffset();
-        
-        //cout << " _ntrafo_row " << _ntrafo_row << ":" << _shell_row->getType() << endl;
-        //cout << " _ntrafo_col " << _ntrafo_col << ":" << _shell_col->getType() << endl;
-        ub::matrix<double> _trafo_row = ub::zero_matrix<double>(_ntrafo_row,_nrows);
-        ub::matrix<double> _trafo_col = ub::zero_matrix<double>(_ntrafo_col,_ncols);
-        
-        // get transformation matrices including contraction coefficients
-        std::vector<double> _contractions_row = (*itr)->contraction;
-        std::vector<double> _contractions_col = (*itc)->contraction;
-        this->getTrafo( _trafo_row, _lmax_row, _decay_row, _contractions_row);
-        this->getTrafo( _trafo_col, _lmax_col, _decay_col, _contractions_col);
-        ub::matrix<double> _trafo_col_tposed = ub::trans( _trafo_col );
-
-        // cartesian -> spherical
-       
-        for ( int _i_comp = 0; _i_comp < 3; _i_comp++){
-
-            ub::matrix<double> _mom_tmp = ub::prod( _trafo_row, _mom[ _i_comp ] );
-
-            ub::matrix<double> _mom_sph = ub::prod( _mom_tmp, _trafo_col_tposed );
-            
-            // save to _matrix
-            for ( unsigned i = 0; i< _matrix[0].size1(); i++ ) {
-                for (unsigned j = 0; j < _matrix[0].size2(); j++){
-                    _matrix[ _i_comp ](i,j) += _mom_sph(i+_shell_row->getOffset(),j+_shell_col->getOffset());
-                }
-            }
-        }
-        
-        _ol.clear();
-            }// _shell_col Gaussians
-        }// _shell_row Gaussians
+            }// shell_col Gaussians
+        }// shell_row Gaussians
     }
     
   

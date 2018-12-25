@@ -1,7 +1,0 @@
-<options>
-	<jobwriter help="Writes list of jobs for a parallel execusion" section="sec:jobwriter">	
-		<keys help="job type" >mps.single mps.background</keys>
-		<single_id help="Segment ID as argument for mps.single">257</single_id>
-		<kmc_cutoff help="Pair-interaction cut-off as argument for mps.kmc" unit="nm">3.0</kmc_cutoff>
-	</jobwriter>
-</options>

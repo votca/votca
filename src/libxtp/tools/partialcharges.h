@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -26,7 +26,6 @@
 #include <boost/filesystem.hpp>
 
 namespace votca { namespace xtp {
-    using namespace std;
     
 class Partialcharges : public QMTool
 {
@@ -35,54 +34,42 @@ public:
     Partialcharges () { };
    ~Partialcharges () { };
 
-    string Identify() { return "partialcharges"; }
+    std::string Identify() { return "partialcharges"; }
 
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property *options);
     bool   Evaluate();
     // two access functions for egwbse interface
     
 
-
 private:
     
-    string      _orbfile;
-    string      _output_file;
-    Property    _esp_options;
+    std::string      _orbfile;
+    std::string      _output_file;
+    tools::Property    _esp_options;
     
     Logger      _log;
     
     
 };
 
-void Partialcharges::Initialize(Property* options) {
+void Partialcharges::Initialize(tools::Property* options) {
     
             // update options with the VOTCASHARE defaults   
     UpdateWithDefaults( options, "xtp" );
+    std::string key = "options." + Identify();
  
-
-    string key = "options." + Identify();
-            // _jobfile = options->get(key + ".file").as<string>();
-
-            // key = "options." + Identify();
- 
-       
-           // orbitals file or pure DFT output
-           
-    _orbfile      = options->get(key + ".input").as<string> ();
-    _output_file  = options->get(key + ".output").as<string> ();
-    string _esp2multipole_xml = options->get(key + ".esp_options").as<string> ();
+    _orbfile      = options->get(key + ".input").as<std::string> ();
+    _output_file  = options->get(key + ".output").as<std::string> ();
+    std::string _esp2multipole_xml = options->get(key + ".esp_options").as<std::string> ();
     load_property_from_xml(_esp_options,_esp2multipole_xml.c_str());
     // get the path to the shared folders with xml files
     char *votca_share = getenv("VOTCASHARE");    
     if(votca_share == NULL) throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 
-  
-   
 }
 
 bool Partialcharges::Evaluate() {
     
-
     _log.setReportLevel( logDEBUG );
     _log.setMultithreading( true );
     
@@ -91,22 +78,21 @@ bool Partialcharges::Evaluate() {
     _log.setPreface(logWARNING, "\n... ...");
     _log.setPreface(logDEBUG,   "\n... ..."); 
 
-    LOG(logDEBUG, _log) << "Converting serialized QM data in " << _orbfile << flush;
+    
 
-    Orbitals _orbitals;
+    Orbitals orbitals;
     // load the QM data from serialized orbitals object
 
-    LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-    _orbitals.Load(_orbfile.c_str());
-
+    XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+    orbitals.ReadFromCpt(_orbfile);
+    XTP_LOG(logDEBUG, _log) << "Loaded QM data from " << _orbfile << flush;
     Esp2multipole esp2multipole=Esp2multipole(&_log);
-    esp2multipole.Initialize(&_esp_options);
-    esp2multipole.Extractingcharges(_orbitals);
+    esp2multipole.Initialize(_esp_options);
+    esp2multipole.Extractingcharges(orbitals);
     
-    esp2multipole.WritetoFile(_output_file);
+    esp2multipole.WritetoFile(_output_file,orbitals);
     
-    
-    LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
+    XTP_LOG(logDEBUG, _log) << "Written charges to " << _output_file << flush;
     
     return true;
 }

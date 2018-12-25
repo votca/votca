@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef __VOTCA_XTP_CALCULATORFACTORY_H
-#define	__VOTCA_XTP_CALCULATORFACTORY_H
+#ifndef VOTCA_XTP_CALCULATORFACTORY_H
+#define	VOTCA_XTP_CALCULATORFACTORY_H
 
 #include <map>
 #include <votca/tools/objectfactory.h>
@@ -29,7 +29,7 @@ namespace votca { namespace xtp {
 
 
 class Calculatorfactory
-: public ObjectFactory<std::string, QMCalculator>
+: public tools::ObjectFactory< std::string, QMCalculator >
 {
 private:
     Calculatorfactory() {}
@@ -47,14 +47,12 @@ public:
     
 };
 
-inline Calculatorfactory &Calculators()
-{
-    static Calculatorfactory _instance;
-    return _instance;
+inline Calculatorfactory &Calculators(){
+    static Calculatorfactory instance;
+    return instance;
 }
 
-inline QMCalculator* Calculatorfactory::Create(const std::string &key)
-{
+inline QMCalculator* Calculatorfactory::Create(const std::string &key){
     assoc_map::const_iterator it(getObjects().find(key));
     if (it != getObjects().end()) {
         QMCalculator* calc = (it->second)();
@@ -66,5 +64,6 @@ inline QMCalculator* Calculatorfactory::Create(const std::string &key)
 
 }}
 
-#endif	/* _Calculatorfactory_H */
+#endif // VOTCA_XTP_CALCULATORFACTORY_H
+
 

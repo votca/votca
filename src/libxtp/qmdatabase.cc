@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -187,13 +187,6 @@ void QMDatabase::onCreate()
         "Jeff2t     REAL DEFAULT 0,"
         "type       INT  DEFAULT 0)");
     
-    
-    // Super-exchange types
-    Exec("CREATE TABLE superExchange ("
-            "_id INTEGER PRIMARY KEY AUTOINCREMENT,"\
-            "frame      INT NOT NULL,"
-            "top        INT NOT NULL,"
-            "type      TEXT NOT NULL)");
 
 
 }

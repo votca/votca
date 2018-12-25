@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -52,7 +52,7 @@ bool XtpApplication::EvaluateOptions(void) {
 void XtpApplication::ShowHelpText(std::ostream &out) {
     std::string name = ProgramName();
     if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::xtp::HelpTextHeader(name);
+    HelpTextHeader(name);
     HelpText(out);
     out << "\n\n" << VisibleOptions() << std::endl;
     //out << "\n\n" << OptionsDesc() << endl;

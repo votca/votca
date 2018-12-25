@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -48,7 +48,7 @@ void HelpTextHeader(const std::string &tool_name)
          << "========   VOTCA (http://www.votca.org)   ========\n"
          << "==================================================\n\n"
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
-	 << tool_name << ", version " << votca::xtp::XtpVersionStr() 
+	 << tool_name << ", version " << XtpVersionStr() 
          << "\nvotca_csg, version " << votca::csg::CsgVersionStr()
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
          << "\n\n";

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,10 +16,10 @@
  * limitations under the License.
  *
  */
+/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-
-#ifndef __VOTCA_XTP_LOG_H
-#define	__VOTCA_XTP_LOG_H
+#ifndef VOTCA_XTP_LOG_H
+#define	VOTCA_XTP_LOG_H
 
 #include <sstream>
 #include <iostream>
@@ -29,13 +29,13 @@ namespace votca { namespace xtp {
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG};
  
 /*
- * Macros to use the Logger: LOG(level,logger) << message
+ * Macros to use the Logger: XTP_LOG(level,logger) << message
  */
-#define LOG(level, log) \
+#define XTP_LOG(level, log) \
 if ( &log != NULL && level > (log).getReportLevel() ) ; \
 else (log)(level)
 
-#define LOG_SAVE(level, log) \
+#define XTP_LOG_SAVE(level, log) \
 if ( level > (log).getReportLevel() ) ; \
 else (log)(level)
 
@@ -46,10 +46,8 @@ class LogBuffer : public std::stringbuf {
 
 public:
 	LogBuffer() : std::stringbuf(),
-                _errorPreface(" ERROR   "),
-                _warnPreface(" WARNING "),
-                _infoPreface("         "),
-                _dbgPreface(" DEBUG   "),
+                _errorPreface(" ERROR   "), _warnPreface(" WARNING "),
+                _infoPreface("         "), _dbgPreface(" DEBUG   "),
                 _writePreface(true) {}
         
         // sets the log level (needed for output)
@@ -99,16 +97,14 @@ private:
   // temporary buffer to store messages
   std::ostringstream _stringStream;
   
+  // Multithreading
+  bool _maverick;
   
-  
-  std::string _timePreface;
   std::string _errorPreface;
   std::string _warnPreface;
   std::string _infoPreface;
   std::string _dbgPreface;
-  
-  // Multithreading
-  bool _maverick;
+  std::string _timePreface;
   bool _writePreface;
   
 
@@ -161,7 +157,7 @@ protected:
 *  #include <votca/xtp/logger.h>
 *  Logger* log = new Logger(); // create a logger object
 *  log->setReportLevel(logDEBUG); // output only log messages starting from a DEBUG level
-*  LOG(logERROR,*log) << "Error detected" << flush; // write to the logger at an ERROR level
+*  XTP_LOG(logERROR,*log) << "Error detected" << flush; // write to the logger at an ERROR level
 *  cout << log; // output logger content to standard output
 *  \endcode
 *
@@ -255,4 +251,4 @@ class TimeStamp
 
 }}
 
-#endif /* __VOTCA_XTP_LOG_H */
+#endif // VOTCA_XTP_LOG_H

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,18 +18,18 @@
  */
 
 
-#ifndef __VOTCA_MD2QM_StateSaverSQLite_H
-#define	__VOTCA_MD2QM_StateSaverSQLite_H
+#ifndef VOTCA_MD2QM_STATE_SAVER_SQLITE_H
+#define	VOTCA_MD2QM_STATE_SAVER_SQLITE_H
 
 #include <stdio.h>
 #include <map>
-#include "qmdatabase.h"
-#include "topology.h"
+#include <votca/xtp/qmdatabase.h>
+#include <votca/xtp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 
 namespace votca { namespace xtp {
 
-using namespace votca::tools;
+
 
 class StateSaverSQLite
 {
@@ -74,8 +74,8 @@ private:
 
     int             _frame;
     int             _current_frame;
-    vector<int>     _frames;
-    vector<int>     _topIds;
+    std::vector<int>     _frames;
+    std::vector<int>     _topIds;
 
     std::string          _sqlfile;
     bool            _was_read;
@@ -85,5 +85,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_MD2QM_StateSaverSQLite2_H */
+#endif	// VOTCA_MD2QM_STATE_SAVER_SQLITE_H
 

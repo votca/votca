@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,10 +16,10 @@
  * limitations under the License.
  *
  */
+/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef __PARALLELXJOBCALC__H
-#define __PARALLELXJOBCALC__H
-
+#ifndef VOTCA_XTP_PARALLELXJOBCALC_H
+#define VOTCA_XTP_PARALLELXJOBCALC_H
 
 #include <votca/xtp/jobcalculator.h>
 #include <votca/xtp/qmthread.h>
@@ -27,16 +27,14 @@
 #include <votca/xtp/job.h>
 #include <votca/xtp/progressobserver.h>
 
+/// PATHWAYS TO A NEW THREADED CALCULATOR
+/// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( = *iterator)
+/// ... 2 Derive new calculator as ': public ParallelXJobCalc<JobContainer,pJob>'
+/// ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
+/// ... 4 Register new calculator (see end of parallelxjobcalc.cc)
 
-// PATHWAYS TO A NEW THREADED CALCULATOR
-// ... 1 Define 'JobContainer' (needs to define iterator), 'pJob' ( = *iterator)
-// ... 2 Derive new calculator as ': public ParallelXJobCalc<JobContainer,pJob>'
-// ... 3 Specialize XJOBS_FROM_TABLE< JobContainer, pJob> in xjob.cc
-// ... 4 Register new calculator (see end of parallelxjobcalc.cc)
-
-// REQUIRED MEMBERS FOR pJob
-// pJob::JobResult (struct)
-
+/// REQUIRED MEMBERS FOR pJob
+/// pJob::JobResult (struct)
 
 namespace votca { namespace xtp {
 
@@ -99,9 +97,9 @@ public:
 protected:
 
     JobContainer             _XJobs;
-    Mutex                    _coutMutex;
-    Mutex                    _logMutex;
-    std::string                   _jobfile;
+    tools::Mutex                    _coutMutex;
+    tools::Mutex                    _logMutex;
+    std::string              _jobfile;
     int                      _subthreads;
     
     // ProgObserver< JobContainer, pJob > *_progObs;
@@ -111,4 +109,4 @@ protected:
 
 }}
 
-#endif
+#endif // VOTCA_XTP_PARALLELXJOBCALC_H

@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -47,7 +47,7 @@ public:
    
     string Identify() { return "pdb2top"; }
     // run sequence
-    void   Initialize(Property *options);
+    void   Initialize(tools::Property *options);
     bool   Evaluate();
 
     // helpful guys
@@ -73,7 +73,7 @@ private:
     Topology    _top;
 };
 
-void PDB2Top::Initialize(Property* options) {
+void PDB2Top::Initialize(tools::Property* options) {
     // read options    
     string key = "options.pdb2top.";
 
@@ -132,7 +132,7 @@ bool PDB2Top::Evaluate() {
 void PDB2Top::top2txt(){
 
     // generating part
-    Topology * _topPtr = &_top;
+   Topology * _topPtr = &_top;
 
     // preps
     stringstream ss, sbody, stype;
@@ -339,7 +339,7 @@ void PDB2Top::readPDB(){
                         "... ... Make sure this line is PDB style\n");
             }
             
-            vec r(_xd , _yd , _zd);
+            tools::vec r(_xd , _yd , _zd);
 
             // set fragment
             // reconnect to topology, molecule, segment
@@ -488,7 +488,7 @@ void PDB2Top::readGRO(){
                         "... ... Make sure this line is GRO style\n");
             }
             
-            vec r(_xd , _yd , _zd);
+            tools::vec r(_xd , _yd , _zd);
                 
             // set fragment
             // reconnect to topology, molecule, segment

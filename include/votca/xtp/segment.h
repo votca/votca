@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,24 +16,24 @@
  * limitations under the License.
  *
  */
+/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#ifndef VOTCA_XTP_SEGMENT_H
+#define	VOTCA_XTP_SEGMENT_H
 
-#ifndef __VOTCA_XTP_SEGMENT_H
-#define	__VOTCA_XTP_SEGMENT_H
+#include <map>
+#include <vector>
 
-#include <votca/xtp/segmenttype.h>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/polarsite.h>
-#include <votca/xtp/apolarsite.h>
-
-class Topology;
+#include <votca/tools/vec.h>
 
 namespace votca { namespace xtp {
 
+class Atom;
+class Fragment;
+class SegmentType;
+class Topology;
 class Molecule;  
 
- 
 class Segment
 {
 public:
@@ -42,39 +42,60 @@ public:
     Segment(Segment *stencil);
    ~Segment();
 
-    const int       &getId() { return _id; }
-    const std::string    &getName() { return _name; }
+    int       getId() const{ return _id; }
+    const std::string& getName() const{ return _name; }
 
-    const vec       &getPos() const { return _CoM; }
-    void             setPos(vec pos) { _CoM = pos; }
+    const tools::vec       &getPos() const { return _CoM; }
+    void             setPos(tools::vec pos) { _CoM = pos; }
+    // This gets the center of mass from the MD positions of the atoms
     void             calcPos();
-    void             TranslateBy(const vec &shift);
+    void             TranslateBy(const tools::vec &shift);
+    
+    void            calcApproxSize();
+    double          getApproxSize()const{return _approxsize;}
 
     void             setHasState(bool yesno, int state);
-    bool             hasState(int state);
+    bool             hasState(int state)const;
 
-    double           getOcc(int e_h_s_t);
+    double           getOcc(int e_h_s_t)const;
     void             setOcc(double occ, int e_h_s_t);
 
     // state: -1 electron +1 hole +2 singlet +3 triplet
-    
-    void             setU_cC_nN(double dU, int state);
-    void             setU_nC_nN(double dU, int state);
-    void             setU_cN_cC(double dU, int state);
-    void             setU_xX_nN(double dU, int state);
-    void             setU_nX_nN(double dU, int state);
-    void             setU_xN_xX(double dU, int state);
-    const double    &getU_cC_nN(int state);
-    const double    &getU_nC_nN(int state);
-    const double    &getU_cN_cC(int state);
-    const double    &getU_xX_nN(int state);
-    const double    &getU_nX_nN(int state);
-    const double    &getU_xN_xX(int state);
-    double           getSiteEnergy(int state);
+  
+    /// Following notation can be observed in: 
+    /// [1. Victor, R. et al. Microscopic Simulations of Charge Transport in Disordered Organic Semiconductors. J. Chem. Theory Comput. 7, 3335–3345 (2011).] 
+    /// Labeling of the following methods follows the following semantics:
+    /// U - Energy 
+    /// n - neutral geometry
+    /// N - neutral state
+    /// c - charged geometry
+    /// C - charged state
+    /// x - excited geometry
+    /// X - excited state
 
-    double           getEMpoles(int state);
+    /// UcC - UnN
+    void             setU_cC_nN(double dU, int state);
+    /// UnN - UnN
+    void             setU_nC_nN(double dU, int state);
+    /// UcN - UcC
+    void             setU_cN_cC(double dU, int state);
+    /// UxX - UnN
+    void             setU_xX_nN(double dU, int state);
+    /// UnX - UnN
+    void             setU_nX_nN(double dU, int state);
+    /// UxN - UxX
+    void             setU_xN_xX(double dU, int state);
+    double    getU_cC_nN(int state)const;
+    double    getU_nC_nN(int state)const;
+    double    getU_cN_cC(int state)const;
+    double    getU_xX_nN(int state)const;
+    double    getU_nX_nN(int state)const;
+    double    getU_xN_xX(int state)const;
+    double    getSiteEnergy(int state)const;
+
+    double           getEMpoles(int state)const;
     void             setEMpoles(int state, double energy);
-    bool             hasChrgState(int state) { return _hasChrgState[state+1]; }
+    bool             hasChrgState(int state) const{ return _hasChrgState[state+1]; }
     void             setChrgStates(std::vector<bool> yesno) { _hasChrgState = yesno;}
 
     inline void      setTopology(Topology *container) { _top = container; }
@@ -86,18 +107,11 @@ public:
 
     void             AddFragment( Fragment* fragment );
     void             AddAtom( Atom* atom );
-    void             AddPolarSite(PolarSite *pole);
-    void             AddAPolarSite(APolarSite *pole);
     std::vector< Fragment* > &Fragments() { return _fragments; }
     std::vector < Atom* >    &Atoms() { return _atoms; }
-    std::vector<PolarSite*>  &PolarSites() { return _polarSites; }
-    std::vector<APolarSite*> &APolarSites() { return _apolarSites; }
 
 
     void Rigidify();
-
-    void WritePDB(std::FILE *out, std::string tag1 = "Fragments", std::string tag2 = "MD");
-    void WriteXYZ(std::FILE *out, bool useQMPos = true);
 
 private:
 
@@ -109,10 +123,9 @@ private:
 
     std::vector < Fragment* >    _fragments;
     std::vector < Atom* >        _atoms;
-    std::vector < PolarSite* >   _polarSites;
-    std::vector < APolarSite* >  _apolarSites;
 
-    vec         _CoM;
+    tools::vec         _CoM;
+    double   _approxsize;
 
 
     double _U_cC_nN_e;   // from ::EInternal     input     DEFAULT 0
@@ -152,10 +165,6 @@ private:
     double _U_xN_xX_s;   
     double _U_xN_xX_t;
     
-    //double _ePolar_s;
-    //double _ePolar_t;
-
-
     std::vector< double > _eMpoles;
     //   +1(=> h)   e.static + pol. energy E(+1) - E(0)
     //   -1(=> e)   e.static + pol. energy E(-1) - E(0)
@@ -163,7 +172,7 @@ private:
     //   +3(=> t)   e.static + pol. energy E(+3) - E(0)
     std::vector<bool> _hasChrgState;
 
-    std::map<int, vec> _intCoords;
+    std::map<int, tools::vec> _intCoords;
     // qmid => position
     
 
@@ -171,5 +180,5 @@ private:
 
 }}
 
-#endif	/* __VOTCA_XTP_SEGMENT_H */
+#endif	// VOTCA_XTP_SEGMENT_H 
 

@@ -8,7 +8,7 @@ Ideally the following bash script should do the job for you:
     cd ${prefix}/src
     wget http://votca.googlecode.com/hg/build.sh
     chmod +x build.sh
-    ./build.sh --prefix ${prefix} --dev tools csg kmc moo xtp
+    ./build.sh --prefix ${prefix} --dev tools csg xtp
 \endcode
 
 To run the program, source the VOTCARC file, i.e. in bash

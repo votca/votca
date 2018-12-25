@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ class Profile : public QMCalculator
 public:
 
     string      Identify() { return "profile"; }
-    void        Initialize(Property *options);
+    void        Initialize(tools::Property *options);
     bool        EvaluateFrame(Topology *top);
 
 private:
     
-    vec         _axis;
+    tools::vec  _axis;
     double      _resolution;
     string      _outfile;
     string      _outfile_EA_IP;
@@ -46,16 +46,16 @@ private:
     int         _lastSegId;
 };
 
-void Profile::Initialize(Property *options) {
+void Profile::Initialize(tools::Property *options) {
     
     // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options, "xtp" );
+    UpdateWithDefaults( options );
 
     string key      = "options." + Identify();
     
     // GEOMETRICAL OPTIONS
     // axis along which to calculate profiles
-    _axis           = options->get(key+".axis.direction").as< vec >();   
+    _axis           = options->get(key+".axis.direction").as< tools::vec >();   
     // spatial resolution of the profile
     _resolution     = options->get(key+".axis.bin").as< double >();
     // do binning automatically
@@ -63,8 +63,8 @@ void Profile::Initialize(Property *options) {
     _auto_bin       = (autobin == 1) ? true : false;
    // min and max for manual binning 
     if (!_auto_bin) {
-        _min            = options->get(key+"axis.min").as< double >();
-        _max            = options->get(key+"axis.max").as< double >();
+        _min            = options->get(key+".axis.min").as< double >();
+        _max            = options->get(key+".axis.max").as< double >();
     }
     // Normalize axis
     _axis           = _axis / sqrt(_axis*_axis);
@@ -101,8 +101,8 @@ bool Profile::EvaluateFrame(Topology *top) {
     // Collect profile positions from atoms in system, order by segment name //
     // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ //
 
-    double MAX = -1e100;
-    double MIN =  1e100;
+    double MAX = std::numeric_limits<double>::min();;
+    double MIN =  std::numeric_limits<double>::max();;
     //double RES = _resolution;
 
     for (sit = top->Segments().begin();
@@ -216,6 +216,10 @@ bool Profile::EvaluateFrame(Topology *top) {
         for (int bin = 0; bin < BIN; ++bin) {
             hist_Ns_com[bin] = hist_zs_com[bin].size();
         }
+        
+        
+        
+        /*
         // IP and EA
         for (int bin = 0; bin < BIN; ++bin) {
             double avg_ea = 0.0;
@@ -227,7 +231,6 @@ bool Profile::EvaluateFrame(Topology *top) {
             }
             avg_ea /= binned_ea[bin].size();
             avg_ec /= binned_ec[bin].size();
-
             binned_avg_ea[bin] = avg_ea;
             binned_avg_ec[bin] = avg_ec;
         }
@@ -236,13 +239,13 @@ bool Profile::EvaluateFrame(Topology *top) {
         for (int bin = 0; bin < BIN; ++bin) {
             double std_ea = 0.0;
             double std_ec = 0.0;
+            double avg_ea = binned_avg_ea[bin];
+            double avg_ec = binned_avg_ec[bin];
             for (unsigned int entry = 0; entry < binned_ea[bin].size(); ++entry) {
-                double avg_ea = binned_avg_ea[bin];
-                double avg_ec = binned_avg_ec[bin];
-                std_ea += (binned_ea[bin][entry] - avg_ea)
-                         *(binned_ea[bin][entry] - avg_ea);
-                std_ec += (binned_ec[bin][entry] - avg_ec)
-                         *(binned_ec[bin][entry] - avg_ec);
+                //double avg_ea = binned_avg_ea[bin];
+                //double avg_ec = binned_avg_ec[bin];
+                std_ea += (binned_ea[bin][entry] - avg_ea)*(binned_ea[bin][entry] - avg_ea);
+                std_ec += (binned_ec[bin][entry] - avg_ec)*(binned_ec[bin][entry] - avg_ec);           
             }
             std_ea /= binned_ea[bin].size();
             std_ec /= binned_ec[bin].size();
@@ -261,7 +264,51 @@ bool Profile::EvaluateFrame(Topology *top) {
         com_profile_ec_std.push_back(binned_std_ec);
     }
 
+   */
+    
+    
+     // EA, IP and STD_EA , STD_IP
+        for (int bin = 0; bin < BIN; ++bin) {
+            double avg_ea = 0.0;
+            double avg_ec = 0.0;
+	    double std_ea = 0.0;
+	    double std_ec = 0.0;
+            /* For every bin we calculate the average of its elements <x_bin>
+             * and the std_dev = sqrt(<(x_bin)^2> - <x_bin>^2)
+             */
+            for (unsigned int entry = 0; entry < binned_ea[bin].size(); ++entry) {
+                avg_ea += binned_ea[bin][entry];
+                avg_ec += binned_ec[bin][entry];
+		std_ea += pow(binned_ea[bin][entry],2.0);
+                std_ec += pow(binned_ec[bin][entry],2.0);
 
+            }
+            avg_ea /= binned_ea[bin].size();
+            avg_ec /= binned_ec[bin].size();
+	    
+            std_ea /= binned_ea[bin].size();
+            std_ec /= binned_ec[bin].size();
+	    std_ea -= pow (avg_ea,2.0);
+	    std_ec -= pow (avg_ec,2.0);
+            std_ea  = sqrt (std_ea);
+            std_ec  = sqrt (std_ec);
+		
+		binned_avg_ea[bin] = avg_ea;
+            	binned_avg_ec[bin] = avg_ec;
+
+            	binned_std_ea[bin] = std_ea;
+		binned_std_ec[bin] = std_ec;
+        }
+
+        seg_hist_Ns.push_back(hist_Ns);
+        com_hist_Ns.push_back(hist_Ns_com);
+        com_profile_ea.push_back(binned_avg_ea);
+        com_profile_ec.push_back(binned_avg_ec);
+        com_profile_ea_std.push_back(binned_std_ea);
+        com_profile_ec_std.push_back(binned_std_ec);
+    }
+
+   
     // +++++++++++++++++++++++ //
     // Output number densities //
     // +++++++++++++++++++++++ //
@@ -333,8 +380,8 @@ bool Profile::EvaluateFrame(Topology *top) {
 
         for (int s = 0; s < SEG; ++s) {
             fprintf(out, " %4.7f ", com_profile_ea[s][bin]);
-            fprintf(out, " %4.7f ", com_profile_ec[s][bin]);
             fprintf(out, " %4.7f ", com_profile_ea_std[s][bin]);
+            fprintf(out, " %4.7f ", com_profile_ec[s][bin]);
             fprintf(out, " %4.7f ", com_profile_ec_std[s][bin]);
         }
 

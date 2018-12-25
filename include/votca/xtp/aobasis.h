@@ -1,5 +1,5 @@
 /* 
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,101 +17,95 @@
  *
  */
 
-#ifndef __XTP_AOBASIS__H
-#define	__XTP_AOBASIS__H
+#ifndef VOTCA_XTP_AOBASIS_H
+#define	VOTCA_XTP_AOBASIS_H
 
-#include <votca/tools/property.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/qmatom.h>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
+
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/basisset.h>
+#include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/eigen.h>
+#include <votca/xtp/aoshell.h>
 
-
-
-using namespace votca::tools;
 
 namespace votca { namespace xtp {
-namespace ub = boost::numeric::ublas;
 
-class AOShell;
-
-
-
-/*
- * A collection of shells associated with a specific element  
+/**
+ * \brief Container to hold Basisfunctions for all atoms 
+ * 
+ * It is constructed from a vector of QMAtoms and a BasisSet.
  */
 class AOBasis 
 {   
 public:
-        AOBasis( ) { ; }
-        ~AOBasis(); 
-       // template< class T >
-       //static void ReorderMOs(ub::matrix<T> &v, std::vector<int> const &order )  {
-       //static void ReorderMOs(ub::matrix<T> &v, std::string start, std::string target )  { 
-       void ReorderMOs(ub::matrix<double> &v, std::string start, std::string target ); 
+    
+    void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
        
-      //template< class T >   
-      void MultiplyMOs(ub::matrix<double> &v, std::vector<int> const &multiplier );
+    void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
 
-    // void AOBasisFill( BasisSet* bs , std::vector<Segment* > segments);
-    void AOBasisFill( BasisSet* bs , std::vector<QMAtom* > segments, int fragbreak = -1);
-    void ECPFill( BasisSet* bs , std::vector<QMAtom* > segments); 
+    void AOBasisFill( const BasisSet& bs , const QMMolecule& atoms, int fragbreak = -1);
     
-    int NumFuncShell( std::string shell );
-    int NumFuncShell_cartesian( std::string shell );
-    int OffsetFuncShell( std::string shell );
-    int OffsetFuncShell_cartesian( std::string shell );
-    int AOBasisSize() {return _AOBasisSize; }
+//returns element names for which no ecp was found
+    std::vector<std::string> ECPFill( const BasisSet& bs , QMMolecule& atoms);
     
-    typedef std::vector< AOShell* >::iterator AOShellIterator;
-    AOShellIterator firstShell() { return _aoshells.begin(); }
-    AOShellIterator lastShell(){ return _aoshells.end(); }
+    int AOBasisSize() const {return _AOBasisSize; }
+    
+    typedef std::vector< AOShell >::const_iterator AOShellIterator;
+    AOShellIterator begin() const{ return _aoshells.begin(); }
+    AOShellIterator end() const{ return _aoshells.end(); }
 
+    Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
     
+    const AOShell& getShell( int idx )const{ return _aoshells[idx] ;}
     
-    // std::string getType() { return _type; }
-    // int    getNumFunc() { return _numFunc ;}
-        
-    AOShell* getShell( AOShellIterator it ) { return (*it); }
+    const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
-    AOShell* getShell( int idx ){ return _aoshells[idx] ;}
+    int getNumofShells() const{return _aoshells.size();}
+   
+    int getAOBasisFragA() const{return _AOBasisFragA;}
     
-    AOShell* addShell( std::string shellType, double shellScale, int shellFunc, int startIndex, int offset, vec pos, std::string name, int index ); 
+   int getAOBasisFragB() const{return _AOBasisFragB;}
+   
+   int getFuncOfAtom(int AtomIndex)const{return _FuncperAtom[AtomIndex];}
+   
+   const std::vector<int>& getFuncPerAtom()const {return _FuncperAtom;}
+
+   const AOShell& back()const{return _aoshells.back();}
+
+private:
+    
+  AOShell& addShell( const Shell& shell, const QMAtom& atom, int startIndex );
   
+  AOShell& addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);
     
-    std::vector<AOShell*> getShells() { return _aoshells; }
-    
- 
+  void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
    
-   int _AOBasisSize;
-   int _AOBasisFragA;
-   int _AOBasisFragB;
-   
-   bool _is_stable;
-   
-    std::vector<AOShell*> _aoshells;
 
-    // void getReorderVector( std::string& package, std::vector<int>& neworder );
-    void getReorderVector( std::string& start, std::string& target, std::vector<int>& neworder );
-    //void addReorderShell( std::string& package, std::string& shell, std::vector<int>& neworder );
-    void addReorderShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& neworder );
-    //void getMultiplierVector( std::string& package, std::vector<int>& multiplier );
-    void getMultiplierVector( std::string& start, std::string& target, std::vector<int>& multiplier );
-    //void addMultiplierShell( std::string& package, std::string& shell, std::vector<int>& multiplier );  
-    void addMultiplierShell( std::string& start, std::string& target, std::string& shell, std::vector<int>& multiplier );  
+
+    std::vector<int> invertOrder(const std::vector<int>& order );
     
+    std::vector<int> getReorderVector(const std::string& start,const std::string& target );
+   
+    void addReorderShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& neworder );
+  
+    std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
     
-    void getTransformationCartToSpherical( std::string& package, ub::matrix<double>& _trafomatrix );
-    void addTrafoCartShell(  AOShell* shell , ub::matrix_range< ub::matrix<double> >& _submatrix );
+    void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
+  
+    void addTrafoCartShell( const AOShell& shell , Eigen::Block<Eigen::MatrixXd>& submatrix );
+    std::vector<AOShell> _aoshells;
     
-    int getMaxFunctions ( );
+    std::vector<int> _FuncperAtom;
+    
+    int _AOBasisFragA;
+    int _AOBasisFragB;
+    int _AOBasisSize;
+    
 };
 
 
  
 }}
 
-#endif	/* AOBASIS_H */
+#endif	// VOTCA_XTP_AOBASIS_H
 

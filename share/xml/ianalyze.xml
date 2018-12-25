@@ -1,9 +1,0 @@
-<options>
-
-<ianalyze help="Evaluates a histogram of a logarithm of squared couplings" section="sec:ianalyze">
-	<resolution_logJ2 help="Bin size of histogram log(J2)">0.5</resolution_logJ2>
-	<resolution_space help="Bin size for r in log(J2(r))" unit="nm">0.05</resolution_space>
-	<states help="States for which to calculate the histogram. Example: 1 -1">+1 -1</states>
-</ianalyze>
-
-</options>

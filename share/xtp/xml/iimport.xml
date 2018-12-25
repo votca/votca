@@ -1,0 +1,12 @@
+<options>
+
+<iimport help="Imports electronic couplings from xml of xtp-dipro using folders of pairdump" section="sec:import">
+
+	<TI_tag help="Name/tag of the transfer integral"></TI_tag>
+	<TI_file help="File with transfer integrals"></TI_file>
+
+	<idft_jobs_file help="idft jobs file">idft.jobs</idft_jobs_file>
+
+</iimport>
+
+</options>

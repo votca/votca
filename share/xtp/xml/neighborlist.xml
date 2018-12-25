@@ -1,0 +1,12 @@
+<options>
+
+
+<neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
+        <segments>
+                <type>DCV5T_ME3 DCV5T_ME3</type>
+                <cutoff>3</cutoff>
+        </segments>
+        <constant>1.5</constant>
+        <exciton_cutoff>0.5</exciton_cutoff>
+</neighborlist>
+</options>

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2016 The VOTCA Development Team
+/*
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,10 +16,10 @@
  * limitations under the License.
  *
  */
+/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#ifndef VOTCA_XTP_PROGRESSOBSERVER
-#define VOTCA_XTP_PROGRESSOBSERVER
-
+#ifndef VOTCA_XTP_PROGRESSOBSERVER_H
+#define VOTCA_XTP_PROGRESSOBSERVER_H
 
 #include <vector>
 #include <iostream>
@@ -28,8 +28,6 @@
 #include <votca/xtp/job.h>
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
-
-using namespace std;
 
 namespace votca { namespace xtp {
     
@@ -48,7 +46,7 @@ class ProgObserver
 public:
     
     typedef typename JobContainer::iterator JobItCnt;
-    typedef typename vector<pJob>::iterator JobItVec;
+    typedef typename std::vector<pJob>::iterator JobItVec;
     
     ProgObserver()
         : _lockFile("__NOFILE__"), _progFile("__NOFILE__"), _cacheSize(-1),
@@ -81,7 +79,7 @@ private:
     
     JobItVec _nextjit;
     JobItCnt _metajit;
-    Mutex _lockThread;
+    tools::Mutex _lockThread;
     boost::interprocess::file_lock *_flock;
     
     std::map<std::string,bool> _restart_hosts;
@@ -113,4 +111,5 @@ void UPDATE_JOBS(JobContainer &from, JobContainer &to, std::string thisHost);
 }}
 
 
-#endif
+#endif // VOTCA_XTP_PROGRESSOBSERVER_H
+

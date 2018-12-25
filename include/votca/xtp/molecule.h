@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,19 +16,22 @@
  * limitations under the License.
  *
  */
+/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef VOTCA_XTP_MOLECULE_H
 #define VOTCA_XTP_MOLECULE_H
 
 #include <string>
 #include <vector>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
-#include <votca/xtp/fragment.h>
-
-class Topology;
+#include <map>
+#include <votca/tools/vec.h>
 
 namespace votca { namespace xtp {
+
+class Topology;
+class Atom;
+class Fragment;
+class Segment;
 
 class Molecule {
 public:
@@ -50,16 +53,12 @@ public:
 
     Atom           *getAtom(const int &id);
     const std::string   &getAtomType(const int &id);
-    const vec       getAtomPosition(const int &id);
+    const votca::tools::vec       getAtomPosition(const int &id);
     int             NumberOfAtoms();
 
     inline void setTopology(Topology *container) { _top = container; }
     Topology   *getTopology() { return _top; }
 
-    /// Load molecule coordinates from a file
-    void ReadXYZ ( std::string filename );
-    void WritePDB( FILE *out );
-    
 private:
 
     Topology *_top;

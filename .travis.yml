@@ -1,98 +1,125 @@
-#the original source of this file can be found in tools repository change it ther
-# changes in tools|csg tiggered a full rebuild
-# changes in csgapps|csg-manual|csg-tutorials only trigger tools+csg+ifself
-
+# the original source of this file can be found in votca/votca repository
+# add changes there!
+# To update:
+# wget -O .travis.yml https://raw.githubusercontent.com/votca/votca/master/.travis.yml
 language: cpp
 
-sudo: false
+sudo: required
 
-addons:
-  apt:
-    sources:
-      - boost-latest 
-      - george-edison55-precise-backports
-      - ubuntu-toolchain-r-test
-    packages:
-      - ccache
-      - gcc-4.8
-      - g++-4.8
-      - libfftw3-dev
-      - cmake
-      - cmake-data
-      - libgsl0-dev
-      - txt2tags
-      - libboost1.55-all-dev
-      - libexpat1-dev
-      - libsqlite3-dev
-      - libhdf5-serial-dev
-      - pkg-config
-      - pgf
-      - texlive-fonts-recommended
-      - texlive-latex-extra
-      - texlive-latex-recommended
-      - cm-super
-      - texlive-humanities
-      - texlive-pstricks
-      - texlive-latex3
-      - transfig
-      - inkscape
-      - doxygen
-      - graphviz
-      - ghostscript
-      - gnuplot-nox
-      - octave
+services:
+- docker
 
 env:
-  global:
-    - GMX_MAX_THREADS=8
-    - CCACHE_CPP2=yes #for clang
-    - GVER=4.8
-  matrix: #NINJA=1 is currently not support by Travis' cmake, enable when >=2.8.9
-    - XTP=yes WERROR=yes J=4 TYPE=Release
-    - XTP=yes WALL=yes J=4 XTP_MAN=yes BDIR=. TYPE=Release
-    - XTP=yes WERROR=yes J=4 BDIR=build TYPE=Debug
-    - XTP=yes WALL=yes J=4 BDIR=build TYPE=Debug
+  matrix:
+    - ENV=1
+    - ENV=2
+    - ENV=3
+    - ENV=4
+    - ENV=5
+    - ENV=6
+    - ENV=7
+    - ENV=8
+    - ENV=9
+    - ENV=10
+    - ENV=11
+    - ENV=12
+    - ENV=13
+    - ENV=14
+    - ENV=15
+    - ENV=16
+    - ENV=17
+    - ENV=18
+    - ENV=19
+    - ENV=20
 
 before_script:
-  - rm -vrf * .git
-  - wget https://raw.githubusercontent.com/votca/buildutil/master/build.sh && chmod 755 build.sh
-  - mkdir -p "$HOME/votca/src"
-  - if [[ ${XTP_MAN} ]]; then git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/votca/src/devdoc"; fi 
-  - if [[ ${GVER} ]]; then export CC=gcc-${GVER}; export CXX=g++-${GVER}; fi
-  - pip install --user numpy lxml
+ - git checkout -b current_commit
+ - cd ../../
+ - if [[ ${TRAVIS_REPO_SLUG} = */votca ]]; then
+     if [[ ${TRAVIS_BRANCH} = next ]]; then
+       git -C ${TRAVIS_REPO_SLUG} submodule foreach git checkout master;
+       git -C ${TRAVIS_REPO_SLUG} submodule foreach git pull;
+     fi;
+     cp -vr ${TRAVIS_REPO_SLUG}/docker ${HOME};
+     mv -v ${TRAVIS_REPO_SLUG} $HOME/docker;
+   else
+     git clone --recursive https://github.com/votca/votca.git $HOME/docker/votca;
+     if [[ ${TRAVIS_BRANCH} != master ]]; then
+       git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} origin/${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
+     fi;
+     git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} fetch ${PWD}/${TRAVIS_REPO_SLUG} current_commit;
+     git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} checkout -f FETCH_HEAD;
+     cp -vr ${HOME}/docker/votca/docker/* ${HOME}/docker;
+     if [[ -d ${TRAVIS_REPO_SLUG}/docker ]]; then cp -vr ${TRAVIS_REPO_SLUG}/docker/* ${HOME}/docker; fi;
+   fi
+ - source ${HOME}/docker/set_env.sh
+ - cp -r $HOME/.ccache ${HOME}/docker/ccache
+ - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
+ - if [[ ! ${SKIP} ]]; then 
+     travis_retry timeout 540 docker pull $(sed -n '1s/FROM //p' ${HOME}/docker/Dockerfile);
+   fi
 
 script:
-  - PATH="$HOME/hdf5:$PATH" ./build.sh -Wu --prefix "$HOME/votca"
-    ${TYPE:+-DCMAKE_BUILD_TYPE=${TYPE}} ${XTP_MAN:+--build-manual}
-    ${TEST:+--runtest=$TEST} ${WERROR:+--warn-to-errors} -DWITH_H5MD=ON ${MINIMAL:+--minimal} ${MAN:+--devdoc}
-    ${J:+-j$J} ${BDIR:+--builddir=$BDIR} ${NINJA:+--ninja} ${WALL:+--Wall} ${GMX_VERSION:+--gmx-release ${GMX_VERSION}}
-    --directory "$HOME/votca/src" --no-clean --depth 1 -DGMX_USE_RDTSCP=OFF ${GMX_DOUBLE:+-DGMX_DOUBLE=yes}
-    tools $([[ ${MINIMAL} ]] || echo gromacs) csg csgapps ${MAN:+csg-manual} ${TEST:+csg-tutorials}
-    ${CTP:+kmc moo ctp} ${XTP:+xtp}
+ - if [[ ! ${SKIP} ]]; then
+     travis_retry docker build "${docker_opts[@]}"
+                 --build-arg CC=${CC} --build-arg CXX=${CXX} --build-arg CXXFLAGS="-Wall ${WERROR:+-Werror}"
+                 --build-arg CI=${CI} --build-arg TRAVIS=${TRAVIS} --build-arg TRAVIS_OS_NAME=${DISTRO:-fedora}
+                 --build-arg TRAVIS_BRANCH=${TRAVIS_BRANCH} --build-arg TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER}
+                 --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_JOB_ID=${TRAVIS_JOB_ID}
+                 --build-arg TRAVIS_TAG=${TRAVIS_TAG} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG}
+                 --build-arg TRAVIS_COMMIT=${TRAVIS_COMMIT}
+                 ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
+                 -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} ${HOME}/docker/ &&
+     rm -rf $HOME/.ccache &&
+     CON=$(docker run -d votca/votca:${TRAVIS_BRANCH} /bin/bash) &&
+     docker cp ${CON}:/home/votca/.ccache ${HOME}/;
+   fi
 
 after_success:
-  - if [[ ${XTP_MAN} ]]; then
-      cp "$HOME"/votca/{share/votca/manual,src/devdoc}/xtp-manual.pdf;
-      cd "$HOME/votca/src/devdoc";
-      if [[ ${TRAVIS_BRANCH} = master && ${encrypted_f4232b15402f_key} && ${encrypted_f4232b15402f_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${CC} = *gcc* && ${DOCKERHUB} = yes && ! ${SKIP} ]] && DEPLOY=yes
+  - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
+  - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
+        docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+        docker push "${TRAVIS_REPO_SLUG}:${DOCKER_TAG}";
+    fi
+  - if [[ ${DOXYGEN} = yes && ! ${SKIP} ]]; then
+      git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
+      cd $HOME/devdoc;
+      rm -f *;
+      git checkout -- CNAME;
+      docker cp ${CON}:/home/votca/votca/build/share/doc/html . ;
+      mv html/* .; rmdir html;
+      docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
+      docker cp ${CON}:/home/votca/votca/build/ctp/manual/ctp-manual.pdf . ;
+      docker cp ${CON}:/home/votca/votca/build/xtp/manual/xtp-manual.pdf . ;
+      git add --all .;
+      if [[ ${TRAVIS_BRANCH} = master && ${encrypted_7abbb71c3ba6_key} && ${encrypted_7abbb71c3ba6_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
         git config --global user.name "Automatic Deployment (Travis CI)";
         git config --global user.email "votca-commits@googlegroups.com";
-        git add --all && git commit -m "XTP Documentation Update";
-        openssl aes-256-cbc -K $encrypted_f4232b15402f_key -iv $encrypted_f4232b15402f_iv -in deploy2.enc -out ~/.ssh/id_rsa -d;
+        git commit -m "Documentation Update";
+        openssl aes-256-cbc -K $encrypted_7abbb71c3ba6_key -iv $encrypted_7abbb71c3ba6_iv -in keys/deploy3.enc -out ~/.ssh/id_rsa -d;
         chmod 600 ~/.ssh/id_rsa;
         git push git@github.com:votca/doxygen.git gh-pages;
       else
-        git status
-        git diff --no-color | head -n 500;
+        git status;
+        git diff --cached --no-color | head -c 1k;
       fi;
     fi
+
+branches:
+  only:
+  - master
+  - development
+  - stable
+  - next
 
 cache:
   - ccache
 
 compiler:
   - gcc
+  - clang
 
 notifications:
   email:
-    - votca-commits@googlegroups.com 
+    - votca-commits@googlegroups.com

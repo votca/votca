@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,538 +18,383 @@
  */
 #include "votca/xtp/aobasis.h"
 #include "votca/xtp/aoshell.h"
-
+#include <votca/xtp/aomatrix.h>
 
 namespace votca { namespace xtp {
-    
- 
 
-int AOShell::detlmax( string shell_type ) {
-    int _lmax;
-    // single type shells defined here
-    if ( shell_type.length() == 1 ){
-       if ( shell_type == "S" ){ _lmax = 0;}
-       if ( shell_type == "P" ){ _lmax = 1;}
-       if ( shell_type == "D" ){ _lmax = 2;}
-       if ( shell_type == "F" ){ _lmax = 3;}
-       if ( shell_type == "G" ){ _lmax = 4;}
-    } else {
-        // for combined shells check all contributions
-        _lmax = 0;
-        for( unsigned i = 0; i < shell_type.length(); ++i) {
-            string local_shell =    string( shell_type, i, 1 );
-            int _test = this->detlmax( local_shell  );
-            if ( _test > _lmax ) { _lmax = _test;} 
+  
+  void AOShell::normalizeContraction(){   
+    AOOverlap overlap;
+    Eigen::MatrixXd block=overlap.FillShell(*this);
+    std::vector<int> numsubshells=NumFuncSubShell(_type);
+    int contraction_index=FindLmin(_type);
+    int aoindex=0;
+    for (int & numsubshell :numsubshells){
+      double norm=std::sqrt(block(aoindex,aoindex));   
+      for (auto& gaussian:_gaussians){
+        gaussian._contraction[contraction_index]/=norm;
+      }
+      aoindex+=numsubshell;
+      contraction_index++;
+    }
+    return;
+  }
+  
+  
+  void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, Eigen::Block< Eigen::MatrixX3d >& gradAOvalues, const Eigen::Vector3d& grid_pos)const {
+
+      // need position of shell
+      const Eigen::Vector3d center = (grid_pos - _pos);
+      const double& center_x = center.x();
+      const double& center_y = center.y();
+      const double& center_z = center.z();
+      const double distsq = center.squaredNorm();
+
+      // iterate over Gaussians in this shell
+      for (const AOGaussianPrimitive& gaussian:_gaussians) {
+
+        const double alpha = gaussian.getDecay();
+        const std::vector<double>& contractions = gaussian.getContraction();
+
+        const double expofactor = gaussian.getPowfactor() * std::exp(-alpha * distsq);
+        const Eigen::Vector3d second_term=-2.0*alpha*center;
+        // split combined shells
+        int i_func = -1;
+        int i_act;
+        for (const char& single_shell:_type) {
+          // single type shells
+          if (single_shell == 'S') {
+           
+            i_act = i_func + 1;
+            double AOvalue=contractions[0] * expofactor;
+            AOvalues(i_act) += AOvalue; // s-function
+            gradAOvalues.row(i_act) += second_term*AOvalue ; //gradient of s-function
+            i_func++;
+          } else if (single_shell == 'P') {
+            const double factor = 2. * sqrt(alpha) * contractions[1]* expofactor;
+
+            i_act = i_func + 1; // Y 1,0
+            double AOvalue = factor * center_z ; // Y 1,0
+            AOvalues(i_act) += AOvalue;
+            gradAOvalues.row(i_act) += second_term* AOvalue;
+            gradAOvalues( i_act,2) += factor;
+
+            i_act++; // Y 1,-1
+            AOvalue = factor * center_y ; // Y 1,-1
+            AOvalues(i_act) += AOvalue;
+            gradAOvalues.row(i_act) += second_term* AOvalue;
+            gradAOvalues( i_act,1) += factor;
+
+            i_act++; // Y 1,1
+            AOvalue = factor * center_x ; // Y 1,1
+            AOvalues(i_act) += AOvalue;
+            gradAOvalues( i_act,0) += factor;
+            gradAOvalues.row(i_act) += second_term* AOvalue; // y gradient
+
+            i_func += 3;
+          } else if (single_shell == 'D') {
+            const double factor = 2. * alpha * contractions[2]* expofactor;
+            const double factor_1 = factor / sqrt(3.);
+
+
+            i_act = i_func + 1; // Y 2,0
+            double AOvalue = factor_1 * (3. * center_z * center_z - distsq) ; // Y 2,0
+            AOvalues(i_act) += AOvalue;
+            Eigen::Array3d coeff(-2,-2,4);
+            gradAOvalues.row( i_act) +=(factor_1* coeff* center.array()).matrix()+ second_term* AOvalue;
+
+            i_act++; // Y 2,-1
+            AOvalue = 2. * factor * (center_y * center_z) ; // Y 2,-1
+            AOvalues(i_act) += AOvalue;
+            coeff={0,2 * center_z,2 * center_y };
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 2,1
+            AOvalue = 2. * factor * (center_x * center_z); // Y 2,1
+            AOvalues(i_act) += AOvalue;
+            coeff={2*center_z,0,2 * center_x };
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 2,-2
+            AOvalue = 2. * factor * (center_x * center_y) ; // Y 2,-2
+            AOvalues(i_act) += AOvalue;
+            coeff={2*center_y,2*center_x,0};
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 2,2
+            AOvalue = factor * (center_x * center_x - center_y * center_y) ; // Y 2,2
+            AOvalues(i_act) += AOvalue;
+            coeff={2*center_x,-2*center_y,0};
+            gradAOvalues.row( i_act) += factor*coeff.matrix()+second_term* AOvalue;
+
+            i_func += 5;
+          } else if (single_shell == 'F') {
+            const double factor = 2. * pow(alpha, 1.5) * contractions[3]* expofactor;
+            const double factor_1 = factor * 2. / sqrt(15.);
+            const double factor_2 = factor * sqrt(2.) / sqrt(5.);
+            const double factor_3 = factor * sqrt(2.) / sqrt(3.);
+            const double cx_cx = center_x*center_x;
+            const double cx_cy = center_x*center_y;
+            const double cx_cz = center_x*center_z;
+            const double cy_cy = center_y*center_y;
+            const double cy_cz = center_y*center_z;
+            const double cz_cz = center_z*center_z;
+
+
+            i_act = i_func + 1; // Y 3,0
+            double AOvalue = factor_1 * center_z * (5. * cz_cz - 3. * distsq) ; // Y 3,0
+            AOvalues(i_act) += AOvalue;
+            Eigen::Array3d coeff={-6. * cx_cz,-6. * cy_cz,3. * (3. * cz_cz - distsq)};
+            gradAOvalues.row( i_act) += factor_1*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 3,-1
+            AOvalue = factor_2 * center_y * (5. * cz_cz - distsq) ; // Y 3,-1
+            AOvalues(i_act) += AOvalue;
+            coeff={-2. * cx_cy,4. * cz_cz - cx_cx - 3. * cy_cy,8. * cy_cz};
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 3,1
+            AOvalue = factor_2 * center_x * (5. * cz_cz - distsq) ; // Y 3,1
+            AOvalues(i_act) += AOvalue;
+            coeff={4. * cz_cz - cy_cy - 3. * cx_cx,-2. * cx_cy,8. * cx_cz};
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 3,-2
+            AOvalue = 4. * factor * center_x * center_y * center_z ; // Y 3,-2
+            AOvalues(i_act) += AOvalue;
+            coeff={cy_cz,cx_cz, cx_cy };
+            gradAOvalues.row( i_act) += 4*factor*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 3,2
+            AOvalue = 2. * factor * center_z * (cx_cx - cy_cy) ; // Y 3,2
+            AOvalues(i_act) += AOvalue;
+            coeff={2. * cx_cz,-2. * cy_cz, cx_cx - cy_cy };
+            gradAOvalues.row( i_act) += 2*factor*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 3,-3
+            AOvalue = factor_3 * center_y * (3. * cx_cx - cy_cy) ; // Y 3,-3
+            AOvalues(i_act) += AOvalue;
+            coeff={6. * cx_cy,3. * (cx_cx - cy_cy), 0};
+            gradAOvalues.row( i_act) += factor_3*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 3,3
+            AOvalue = factor_3 * center_x * (cx_cx - 3. * cy_cy) ; // Y 3,3
+            AOvalues(i_act) += AOvalue;
+            coeff={3. * (cx_cx - cy_cy),-6. * cx_cy, 0};
+            gradAOvalues.row( i_act) += factor_3*coeff.matrix()+second_term* AOvalue;
+
+            i_func += 7;
+          } else if (single_shell == 'G') {
+            const double factor = 2. / sqrt(3.) * alpha * alpha * contractions[4]* expofactor;
+            const double factor_1 = factor / sqrt(35.);
+            const double factor_2 = factor * 4. / sqrt(14.);
+            const double factor_3 = factor * 2. / sqrt(7.);
+            const double factor_4 = factor * 2. * sqrt(2.);
+            const double cx_cx = center_x*center_x;
+            const double cx_cy = center_x*center_y;
+            const double cx_cz = center_x*center_z;
+            const double cy_cy = center_y*center_y;
+            const double cy_cz = center_y*center_z;
+            const double cz_cz = center_z*center_z;
+
+
+            i_act = i_func + 1; // Y 4,0
+            double AOvalue = factor_1 * (35. * cz_cz * cz_cz - 30. * cz_cz * distsq + 3. * distsq * distsq) ; // Y 4,0
+            AOvalues(i_act) += AOvalue;
+            Eigen::Array3d coeff={  12. * center_x * (distsq - 5. * cz_cz) ,
+                                    12. * center_y * (distsq - 5. * cz_cz),
+                                    16. * center_z * (5. * cz_cz - 3. * distsq)};
+            
+            gradAOvalues.row( i_act) += factor_1*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,-1
+            AOvalue = factor_2 * cy_cz * (7. * cz_cz - 3. * distsq) ; // Y 4,-1
+            AOvalues(i_act) += AOvalue;
+            coeff={ (-6. * center_x * cy_cz),
+                    center_z * (4. * cz_cz - 3. * cx_cx - 9. * cy_cy),
+                    3. * center_y * (5. * cz_cz - distsq)};
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,1
+            AOvalue = factor_2 * cx_cz * (7. * cz_cz - 3. * distsq) ; // Y 4,1
+            AOvalues(i_act) += AOvalue;
+            coeff={ center_z * (4. * cz_cz - 9. * cx_cx - 3. * cy_cy),
+                    (-6. * center_y * cx_cz),
+                    3. * center_x * (5. * cz_cz - distsq)};
+            gradAOvalues.row( i_act) += factor_2*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,-2
+            AOvalue = 2. * factor_3 * cx_cy * (7. * cz_cz - distsq); // Y 4,-2
+            AOvalues(i_act) += AOvalue;
+            coeff={ center_y * (6. * cz_cz - 3. * cx_cx - cy_cy),
+                    center_x * (6. * cz_cz - cx_cx - 3. * cy_cy) ,
+                    12. * center_z * cx_cy };
+            gradAOvalues.row( i_act) += 2*factor_3*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,2
+            AOvalue = factor_3 * (cx_cx - cy_cy) * (7. * cz_cz - distsq); // Y 4,2
+            AOvalues(i_act) += AOvalue;
+            coeff={ 4. * center_x * (3. * cz_cz - cx_cx),
+                    4. * center_y * (cy_cy - 3. * cz_cz) ,
+                    12. * center_z * (cx_cx - cy_cy)  };
+            gradAOvalues.row( i_act) += factor_3*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,-3
+            AOvalue = factor_4 * cy_cz * (3. * cx_cx - cy_cy); // Y 4,-3
+            AOvalues(i_act) += AOvalue;
+            coeff={ 6. * center_x* cy_cz ,
+                    3. * center_z * (cx_cx - cy_cy),
+                    center_y * (3. * cx_cx - cy_cy) };
+            gradAOvalues.row( i_act) += factor_4*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,3
+            AOvalue = factor_4 * cx_cz * (cx_cx - 3. * cy_cy); // Y 4,3
+            AOvalues(i_act) += AOvalue;
+            coeff={3. * center_z * (cx_cx - cy_cy),
+                   (-6. * center_y * cx_cz),
+                   center_x * (cx_cx - 3. * cy_cy) };
+            gradAOvalues.row( i_act) += factor_4*coeff.matrix()+second_term* AOvalue;
+
+
+            i_act++; // Y 4,-4
+            AOvalue = 4. * factor * cx_cy * (cx_cx - cy_cy); // Y 4,-4
+            AOvalues(i_act) += AOvalue;
+            coeff={ center_y * (3. * cx_cx - cy_cy) ,
+                   center_x * (cx_cx - 3. * cy_cy),
+                   0 };
+             gradAOvalues.row( i_act) += 4*factor*coeff.matrix()+second_term* AOvalue;
+
+            i_act++; // Y 4,4
+            AOvalue = factor * (cx_cx * cx_cx - 6. * cx_cx * cy_cy + cy_cy * cy_cy); // Y 4,4
+            AOvalues(i_act) += AOvalue;
+            coeff={ center_x * (cx_cx - 3. * cy_cy) ,
+                  center_y * (cy_cy - 3. * cx_cx) ,
+                   0 };
+            gradAOvalues.row( i_act) += 4*factor*coeff.matrix()+second_term* AOvalue;
+
+            i_func += 9;
+          }
+          else {
+              throw std::runtime_error("Shell type:"+std::string(1,single_shell)+" not known");
+          }
         }
+      } // contractions
+      return;
     }
 
-    return _lmax;
-}
+           
+     
+void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues, const Eigen::Vector3d& grid_pos )const{
 
-
-    
-void AOShell::EvalAOGradspace(ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z, string type ){
-
-     // need type of shell
-     string shell_type = this->_type;
-     // need position of shell
-     double center_x = x - this->_pos.getX();
-     double center_y = y - this->_pos.getY();
-     double center_z = z - this->_pos.getZ();
-     double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-     const double pi = boost::math::constants::pi<double>();
-            
-            
-  typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-            // iterate over Gaussians in this shell
-            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
-
-                const double& alpha = (*itr)->decay;
-                std::vector<double> _contractions = (*itr)->contraction;
-
-            double _expofactor = pow(2.0*alpha/pi,0.75) * exp( -alpha * distsq );
-            
-           // std::vector< std::vector<double> > _AOGradevaluated(3);
-         
-            // split combined shells
-            int _i_func = -1;
-            int i_act;
-            for (unsigned i = 0; i < shell_type.length(); ++i) {
-                string single_shell = string(shell_type, i, 1);
-                // single type shells
-                if ( single_shell == "S") {
-                    i_act = _i_func+1;
-                    gradAOvalues(i_act,0) += _contractions[0] * -2.0*alpha*center_x*_expofactor; // x gradient of s-function
-                    gradAOvalues(i_act,1) += _contractions[0] * -2.0*alpha*center_y*_expofactor; // y gradient of s-function
-                    gradAOvalues(i_act,2) += _contractions[0] * -2.0*alpha*center_z*_expofactor; // z gradient of s-function
-                    _i_func = i_act;
-                }
-                if ( single_shell == "P") {
-                    
-                    // px -functions
-                    i_act = _i_func+1;
-                    gradAOvalues(i_act,0) += _contractions[1] * 2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_x*center_x)*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) += _contractions[1] * -2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) += _contractions[1] * -2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor; // z gradient 
-                    
-                    // py -functions
-                    i_act = _i_func +2;
-                    gradAOvalues(i_act,0) += _contractions[1] * -2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) += _contractions[1] * 2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_y*center_y) *_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) += _contractions[1] * -2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z*_expofactor; // z gradient 
-                    
-                     // pz -functions
-                    i_act = _i_func +3;
-                    gradAOvalues(i_act,0) += _contractions[1] * -2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) += _contractions[1] * -2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z *_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) += _contractions[1] * 2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_z*center_z)*_expofactor; // z gradient                    
-                    _i_func = i_act;
-
-                }
-                if ( single_shell == "D") {
-                             
-                    // dxz function
-                    i_act = _i_func+1;
-                    gradAOvalues(i_act,0) += _contractions[2] * 4.0*alpha * (center_z - 2.0*alpha*center_x*center_x*center_z)*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) += _contractions[2] * -8.0*alpha*alpha *center_x*center_y*center_z*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) += _contractions[2] * 4.0*alpha * (center_x - 2.0*alpha*center_x*center_z*center_z)*_expofactor; // z gradient 
-
-                    // dyz function
-                    i_act = _i_func+2;                    
-                    gradAOvalues(i_act,0) += _contractions[2] * -8.0*alpha*alpha * center_x*center_y*center_z*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) += _contractions[2] * 4.0*alpha * (center_z - 2.0*alpha*center_y*center_y*center_z)*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) += _contractions[2] * 4.0*alpha * (center_y - 2.0*alpha*center_y*center_z*center_z)*_expofactor; // z gradient 
-
-                    // dxy function
-                    i_act = _i_func+3;                    
-                    gradAOvalues(i_act,0) += _contractions[2] * 4.0*alpha * (center_y - 2.0*alpha*center_x*center_x*center_y)*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) += _contractions[2] * 4.0*alpha * (center_x - 2.0*alpha*center_x*center_y*center_y)*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) +=_contractions[2] * -8.0*alpha*alpha *center_x*center_y*center_z*_expofactor; // z gradient 
-
-                    // d3z2-r2-function
-                    i_act = _i_func+4;                    
-                    gradAOvalues(i_act,0) +=_contractions[2] * -4.0*alpha/sqrt(3.0) * center_x * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
-                    gradAOvalues(i_act,1) +=_contractions[2] * -4.0*alpha/sqrt(3.0) * center_y * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
-                    gradAOvalues(i_act,2) += _contractions[2] * 4.0*alpha/sqrt(3.0) * center_z * (2.0 - alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
-                    
-                    // dx2-y2-function
-                    i_act = _i_func+5;                    
-                    gradAOvalues(i_act,0) += _contractions[2] * 4.0*alpha * center_x * (1.0 - alpha*(center_x*center_x - center_y*center_y)) * _expofactor;
-                    gradAOvalues(i_act,1) +=_contractions[2] * -4.0*alpha * center_y * (1.0 + alpha*(center_x*center_x - center_y*center_y)) * _expofactor;
-                    gradAOvalues(i_act,2) += _contractions[2] * -4.0*alpha*alpha * center_z * (center_x*center_x - center_y*center_y) * _expofactor;
-
-
-                }
-                if ( single_shell == "F") {
-                    cerr << " F functions not implemented in AOGradeval at the moment!" << endl;
-                    exit(1);
-                }
-                if ( single_shell == "G") {
-                    cerr << " G functions not implemented in AOGradeval at the moment!" << endl;
-                    exit(1);
-                }
-            }
-            }// contractions
-
-
-        }
-    /*
-       inline void AOShell::EvalAOGradspace(ub::matrix<double>& gradAOvalues, double x, double y, double z, string type ){
-
-            // need type of shell
-            string shell_type = this->_type;
             // need position of shell
-            double center_x = x - this->_pos.getX();
-            double center_y = y - this->_pos.getY();
-            double center_z = z - this->_pos.getZ();
-            // need decay constant
-            double alpha = this->_gaussians[0]->decay; // only uncontracted for testing
-            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-            const double pi = boost::math::constants::pi<double>();
-
-
-            double _expofactor = pow(2.0*alpha/pi,0.75) * exp( -alpha * distsq );
+            const Eigen::Vector3d center = grid_pos - _pos;
+            const double center_x = center[0];
+            const double center_y = center[1];
+            const double center_z = center[2];
+            const double distsq = center.squaredNorm();
             
-            std::vector< std::vector<double> > _AOGradevaluated(3);
-         
-            // split combined shells
-            int _i_func = -1;
-            int i_act;
-            for (int i = 0; i < shell_type.length(); ++i) {
-                string single_shell = string(shell_type, i, 1);
-                // single type shells
-                if ( single_shell == "S") {
-                    i_act = _i_func+1;
-                    gradAOvalues(i_act,0) =-2.0*alpha*center_x*_expofactor; // x gradient of s-function
-                    gradAOvalues(i_act,1) =-2.0*alpha*center_y*_expofactor; // y gradient of s-function
-                    gradAOvalues(i_act,2) =-2.0*alpha*center_z*_expofactor; // z gradient of s-function
-                    _i_func = i_act;
-                }
-                if ( single_shell == "P") {
-                    
-                    // px -functions
-                    i_act = _i_func+1;
-                    gradAOvalues(i_act,0) =2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_x*center_x)*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor; // z gradient 
-                    
-                    // py -functions
-                    i_act = _i_func +2;
-                    gradAOvalues(i_act,0) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_y*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) =2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_y*center_y) *_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) =-2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z*_expofactor; // z gradient 
-                    
-                     // pz -functions
-                    i_act = _i_func +3;
-                    gradAOvalues(i_act,0) =-2.0*sqrt(alpha) * 2.0*alpha*center_x*center_z*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) =-2.0*sqrt(alpha) * 2.0*alpha*center_y*center_z *_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) =2.0*sqrt(alpha) * (1.0 - 2.0*alpha*center_z*center_z)*_expofactor; // z gradient                    
-                    _i_func = i_act;
-
-                }
-                if ( single_shell == "D") {
-                             // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                    // dxz function
-                    i_act = _i_func+1;
-                    gradAOvalues(i_act,0) = 4.0*alpha * (center_z - 2.0*alpha*center_x*center_x*center_z)*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) =-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) = 4.0*alpha * (center_x - 2.0*alpha*center_x*center_z*center_z)*_expofactor; // z gradient 
-
-                    // dyz function
-                    i_act = _i_func+2;                    
-                    gradAOvalues(i_act,0) =-8.0*alpha*alpha * center_x*center_y*center_z*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) = 4.0*alpha * (center_z - 2.0*alpha*center_y*center_y*center_z)*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) = 4.0*alpha * (center_y - 2.0*alpha*center_y*center_z*center_z)*_expofactor; // z gradient 
-
-                    // dxy function
-                    i_act = _i_func+3;                    
-                    gradAOvalues(i_act,0) = 4.0*alpha * (center_y - 2.0*alpha*center_x*center_x*center_y)*_expofactor; // x gradient 
-                    gradAOvalues(i_act,1) = 4.0*alpha * (center_x - 2.0*alpha*center_x*center_y*center_y)*_expofactor; // y gradient 
-                    gradAOvalues(i_act,2) =-8.0*alpha*alpha *center_x*center_y*center_z*_expofactor; // z gradient 
-
-                    // d3z2-r2-function
-                    i_act = _i_func+4;                    
-                    gradAOvalues(i_act,0) =-4.0*alpha/sqrt(3.0) * center_x * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
-                    gradAOvalues(i_act,1) =-4.0*alpha/sqrt(3.0) * center_y * (1.0 + alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
-                    gradAOvalues(i_act,2) = 4.0*alpha/sqrt(3.0) * center_z * (2.0 - alpha *(3.0*center_z*center_z - distsq) ) * _expofactor;
-                    
-                    // dx2-y2-function
-                    i_act = _i_func+5;                    
-                    gradAOvalues(i_act,0) = 4.0*alpha * center_x * (1.0 - alpha*(center_x*center_x - center_y*center_y)) * _expofactor;
-                    gradAOvalues(i_act,1) =-4.0*alpha * center_y * (1.0 + alpha*(center_x*center_x - center_y*center_y)) * _expofactor;
-                    gradAOvalues(i_act,2) =-4.0*alpha*alpha * center_z * (center_x*center_x - center_y*center_y) * _expofactor;
-
-
-                }
-                if ( single_shell == "F") {
-                    cerr << " F functions not implemented in AOGradeval at the moment!" << endl;
-                    exit(1);
-                }
-                if ( single_shell == "G") {
-                    cerr << " G functions not implemented in AOGradeval at the moment!" << endl;
-                    exit(1);
-                }
-            }
-
-
-
-        } */
-    
-        
-       
-void AOShell::EvalAOIntegral(ub::matrix_range<ub::matrix<double> >& AOvalues){
-
-            // need type of shell
-            string shell_type = this->_type;
-            // need position of shell
-      //      double center_x = x - this->_pos.getX();
-    //        double center_y = y - this->_pos.getY();
-  //          double center_z = z - this->_pos.getZ();
-            // need decay constant
-            
-//            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-            const double pi = boost::math::constants::pi<double>();
-
-
-            
-            
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
             // iterate over Gaussians in this shell
-            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
+             for (const AOGaussianPrimitive& gaussian:_gaussians) {
 
-                const double& alpha = (*itr)->decay;
-                std::vector<double> _contractions = (*itr)->contraction;
+                const double alpha = gaussian.getDecay();
+                const std::vector<double>& contractions = gaussian.getContraction();
 
-                double _factor = pow(2.0 * pi / alpha, 0.75) ;
+                double expofactor =gaussian.getPowfactor() * exp(-alpha * distsq);
 
                 // split combined shells
-                int _i_func = -1;
-                //int i_act;
-                for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    string single_shell = string(shell_type, i, 1);
-                    // single type shells
-                    if (single_shell == "S") {
-                        AOvalues(0, _i_func + 1) += _contractions[0] * _factor; // s-function
-                        _i_func++;
-                    }
-                }
-            } // contractions
+                int i_func = -1;
 
-        }
-       
-       
-       
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, ub::matrix_range<ub::matrix<double> >& gradAOvalues, double x, double y, double z){
-
-            // need type of shell
-            string shell_type = this->_type;
-            // need position of shell
-            double center_x = x - this->_pos.getX();
-            double center_y = y - this->_pos.getY();
-            double center_z = z - this->_pos.getZ();
-            // need decay constant
-            
-            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-            const double pi = boost::math::constants::pi<double>();
-
-
-            
-            
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-            // iterate over Gaussians in this shell
-            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
-
-                const double alpha = (*itr)->decay;
-                std::vector<double>& _contractions = (*itr)->contraction;
-
-                double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
-
-                // split combined shells
-                int _i_func = -1;
-                int i_act;
-                for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    char  single_shell = shell_type[i];
+                for (const char& single_shell :_type) {
                     // single type shells
                     if (single_shell == 'S') {
-                        AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function
-
-                            i_act = _i_func+1;
-                            gradAOvalues(0, i_act) += _contractions[0] * -2.0 * alpha * center_x*_expofactor; // x gradient of s-function
-                            gradAOvalues(1, i_act) += _contractions[0] * -2.0 * alpha * center_y*_expofactor; // y gradient of s-function
-                            gradAOvalues(2, i_act) += _contractions[0] * -2.0 * alpha * center_z*_expofactor; // z gradient of s-function
-                        
-                        _i_func++;
+                        AOvalues( i_func + 1) += contractions[0] * expofactor; // s-function        
+                        i_func++;
                     }
                     else if (single_shell == 'P') {
-                        AOvalues(0, _i_func + 1) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
-                        AOvalues(0, _i_func + 2) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
-                        AOvalues(0, _i_func + 3) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
-                            i_act = _i_func+1;
-                            gradAOvalues(0, i_act) += _contractions[1] * 2.0 * sqrt(alpha) * (1.0 - 2.0 * alpha * center_x * center_x) * _expofactor; // x gradient 
-                            gradAOvalues(1, i_act) += _contractions[1] * -2.0 * sqrt(alpha) * 2.0 * alpha * center_x * center_y*_expofactor; // y gradient 
-                            gradAOvalues(2, i_act) += _contractions[1] * -2.0 * sqrt(alpha) * 2.0 * alpha * center_x * center_z*_expofactor; // z gradient 
-
-                            // py -functions
-                            i_act = _i_func + 2;
-                            gradAOvalues(0, i_act) += _contractions[1] * -2.0 * sqrt(alpha) * 2.0 * alpha * center_x * center_y*_expofactor; // x gradient 
-                            gradAOvalues(1, i_act) += _contractions[1] * 2.0 * sqrt(alpha) * (1.0 - 2.0 * alpha * center_y * center_y) * _expofactor; // y gradient 
-                            gradAOvalues(2, i_act) += _contractions[1] * -2.0 * sqrt(alpha) * 2.0 * alpha * center_y * center_z*_expofactor; // z gradient 
-
-                            // pz -functions
-                            i_act = _i_func + 3;
-                            gradAOvalues(0, i_act) += _contractions[1] * -2.0 * sqrt(alpha) * 2.0 * alpha * center_x * center_z*_expofactor; // x gradient 
-                            gradAOvalues(1, i_act) += _contractions[1] * -2.0 * sqrt(alpha) * 2.0 * alpha * center_y * center_z *_expofactor; // y gradient 
-                            gradAOvalues(2, i_act) += _contractions[1] * 2.0 * sqrt(alpha) * (1.0 - 2.0 * alpha * center_z * center_z) * _expofactor; // z gradient      
-
-
-
-                        _i_func += 3;
+                        double factor = 2.*sqrt(alpha)*contractions[1];
+                      AOvalues( i_func + 1) += factor * center_z* expofactor; // Y 1,0
+                      AOvalues( i_func + 2) += factor * center_y* expofactor; // Y 1,-1
+                      AOvalues( i_func + 3) += factor * center_x* expofactor; // Y 1,1
+                      i_func += 3;
                     }
                     else if (single_shell == 'D') {
-                        // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                        AOvalues(0, _i_func + 1) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
-                        AOvalues(0, _i_func + 2) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
-                        AOvalues(0, _i_func + 3) += _contractions[2] * 4.0 * alpha * center_x * center_y*_expofactor; // dxy-function
-                        AOvalues(0, _i_func + 4) += _contractions[2] * 2.0 * alpha / sqrt(3.0)*(3.0 * center_z * center_z - distsq) * _expofactor; // d3z2-r2-function
-                        AOvalues(0, _i_func + 5) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function
-
-
-                            i_act = _i_func+1;
-                            gradAOvalues(0, i_act) += _contractions[2] * 4.0 * alpha * (center_z - 2.0 * alpha * center_x * center_x * center_z) * _expofactor; // x gradient 
-                            gradAOvalues(1, i_act) += _contractions[2] * -8.0 * alpha * alpha * center_x * center_y * center_z*_expofactor; // y gradient 
-                            gradAOvalues(2, i_act) += _contractions[2] * 4.0 * alpha * (center_x - 2.0 * alpha * center_x * center_z * center_z) * _expofactor; // z gradient 
-
-                            // dyz function
-                            i_act = _i_func + 2;
-                            gradAOvalues(0, i_act) += _contractions[2] * -8.0 * alpha * alpha * center_x * center_y * center_z*_expofactor; // x gradient 
-                            gradAOvalues(1, i_act) += _contractions[2] * 4.0 * alpha * (center_z - 2.0 * alpha * center_y * center_y * center_z) * _expofactor; // y gradient 
-                            gradAOvalues(2, i_act) += _contractions[2] * 4.0 * alpha * (center_y - 2.0 * alpha * center_y * center_z * center_z) * _expofactor; // z gradient 
-
-                            // dxy function
-                            i_act = _i_func + 3;
-                            gradAOvalues(0, i_act) += _contractions[2] * 4.0 * alpha * (center_y - 2.0 * alpha * center_x * center_x * center_y) * _expofactor; // x gradient 
-                            gradAOvalues(1, i_act) += _contractions[2] * 4.0 * alpha * (center_x - 2.0 * alpha * center_x * center_y * center_y) * _expofactor; // y gradient 
-                            gradAOvalues(2, i_act) += _contractions[2] * -8.0 * alpha * alpha * center_x * center_y * center_z*_expofactor; // z gradient 
-
-                            // d3z2-r2-function
-                            i_act = _i_func + 4;
-                            gradAOvalues(0, i_act) += _contractions[2] * -4.0 * alpha / sqrt(3.0) * center_x * (1.0 + alpha * (3.0 * center_z * center_z - distsq)) * _expofactor;
-                            gradAOvalues(1, i_act) += _contractions[2] * -4.0 * alpha / sqrt(3.0) * center_y * (1.0 + alpha * (3.0 * center_z * center_z - distsq)) * _expofactor;
-                            gradAOvalues(2, i_act) += _contractions[2] * 4.0 * alpha / sqrt(3.0) * center_z * (2.0 - alpha * (3.0 * center_z * center_z - distsq)) * _expofactor;
-
-                            // dx2-y2-function
-                            i_act = _i_func + 5;
-                            gradAOvalues(0, i_act) += _contractions[2] * 4.0 * alpha * center_x * (1.0 - alpha * (center_x * center_x - center_y * center_y)) * _expofactor;
-                            gradAOvalues(1, i_act) += _contractions[2] * -4.0 * alpha * center_y * (1.0 + alpha * (center_x * center_x - center_y * center_y)) * _expofactor;
-                            gradAOvalues(2, i_act) += _contractions[2] * -4.0 * alpha * alpha * center_z * (center_x * center_x - center_y * center_y) * _expofactor;
-   
-                        _i_func += 5;
+                       double factor = 2.*alpha*contractions[2];
+                      double factor_1 =  factor/sqrt(3.);
+                      AOvalues( i_func + 1) += factor_1 * (3.*center_z*center_z - distsq) * expofactor; // Y 2,0
+                      AOvalues( i_func + 2) += 2.*factor * (center_y*center_z) * expofactor; // Y 2,-1
+                      AOvalues( i_func + 3) += 2.*factor * (center_x*center_z) * expofactor; // Y 2,1
+                      AOvalues( i_func + 4) += 2.*factor * (center_x*center_y) * expofactor; // Y 2,-2
+                      AOvalues( i_func + 5) += factor * (center_x*center_x - center_y*center_y) * expofactor; // Y 2,2
+                      i_func += 5;
                     }
                     else if (single_shell == 'F') {
-                        cerr << " F functions not implemented in AOeval at the moment!" << endl;
-                        exit(1);
+                      double factor = 2.*pow(alpha,1.5)*contractions[3];
+                      double factor_1 = factor*2./sqrt(15.);
+                      double factor_2 = factor*sqrt(2.)/sqrt(5.);
+                      double factor_3 = factor*sqrt(2.)/sqrt(3.);
+                      double cx_cx = center_x*center_x;
+                      double cy_cy = center_y*center_y;
+                      double cz_cz = center_z*center_z;
+
+                      AOvalues( i_func + 1) += factor_1 * center_z * (5.*cz_cz - 3.*distsq) * expofactor; // Y 3,0
+                      AOvalues( i_func + 2) += factor_2 * center_y * (5.*cz_cz - distsq) * expofactor; // Y 3,-1
+                      AOvalues( i_func + 3) += factor_2 * center_x * (5.*cz_cz - distsq) * expofactor; // Y 3,1
+                      AOvalues( i_func + 4) += 4.*factor * center_x * center_y * center_z * expofactor; // Y 3,-2
+                      AOvalues( i_func + 5) += 2.*factor * center_z * (cx_cx - cy_cy) * expofactor; // Y 3,2
+                      AOvalues( i_func + 6) += factor_3 * center_y * (3.*cx_cx - cy_cy) * expofactor; // Y 3,-3
+                      AOvalues( i_func + 7) += factor_3 * center_x * (cx_cx - 3.*cy_cy) * expofactor; // Y 3,3
+                      i_func += 7;
                     }
                     else if (single_shell == 'G') {
-                        cerr << " G functions not implemented in AOeval at the moment!" << endl;
-                        exit(1);
+                      double factor = 2./sqrt(3.)*alpha*alpha*contractions[4];
+                      double factor_1 = factor/sqrt(35.);
+                      double factor_2 = factor*4./sqrt(14.);
+                      double factor_3 = factor*2./sqrt(7.);
+                      double factor_4 = factor*2.*sqrt(2.);
+                      double cx_cx = center_x*center_x;
+                      double cx_cy = center_x*center_y;
+                      double cx_cz = center_x*center_z;
+                      double cy_cy = center_y*center_y;
+                      double cy_cz = center_y*center_z;
+                      double cz_cz = center_z*center_z;
+
+                      AOvalues( i_func + 1) += factor_1 * (35.*cz_cz*cz_cz - 30.*cz_cz*distsq + 3.*distsq*distsq) * expofactor; // Y 4,0
+                      AOvalues( i_func + 2) += factor_2 * cy_cz * (7.*cz_cz - 3.*distsq) * expofactor; // Y 4,-1
+                      AOvalues( i_func + 3) += factor_2 * cx_cz * (7.*cz_cz - 3.*distsq) * expofactor; // Y 4,1
+                      AOvalues( i_func + 4) += 2.*factor_3 * cx_cy * (7.*cz_cz - distsq) * expofactor; // Y 4,-2
+                      AOvalues( i_func + 5) += factor_3 * (cx_cx - cy_cy) * (7.*cz_cz - distsq) * expofactor; // Y 4,2
+                      AOvalues( i_func + 6) += factor_4 * cy_cz * (3.*cx_cx - cy_cy) * expofactor; // Y 4,-3
+                      AOvalues( i_func + 7) += factor_4 * cx_cz * (cx_cx - 3.*cy_cy) * expofactor; // Y 4,3
+                      AOvalues( i_func + 8) += 4.*factor * cx_cy * (cx_cx - cy_cy) * expofactor; // Y 4,-4
+                      AOvalues( i_func + 9) += factor * (cx_cx*cx_cx - 6.*cx_cx*cy_cy + cy_cy*cy_cy) * expofactor; // Y 4,4
+
+                      i_func += 9;
                     }
                     else{
-                        cerr << "Single shell type"<<single_shell<<" not known " << endl;
-                        exit(1);
+                        throw std::runtime_error( "Single shell type "+std::string(1,single_shell)+" not known ");
                     }
                 }
             } // contractions
-
+            return;
         }
-           
-           
-           
-void AOShell::EvalAOspace(ub::matrix_range<ub::matrix<double> >& AOvalues, double x,double y, double z ){
 
-            // need type of shell
-            string  shell_type = this->_type;
-            // need position of shell
-            double center_x = x - this->_pos.getX();
-            double center_y = y - this->_pos.getY();
-            double center_z = z - this->_pos.getZ();
-            // need decay constant
-            
-            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-            const double pi = boost::math::constants::pi<double>();
-
-            typedef vector< AOGaussianPrimitive* >::iterator GaussianIterator;
-            // iterate over Gaussians in this shell
-            for (GaussianIterator itr = firstGaussian(); itr != lastGaussian(); ++itr) {
-
-                const double alpha = (*itr)->decay;
-                const std::vector<double>& _contractions = (*itr)->contraction;
-
-                double _expofactor = pow(2.0 * alpha / pi, 0.75) * exp(-alpha * distsq);
-
-                // split combined shells
-                int _i_func = -1;
-
-                for (unsigned i = 0; i < shell_type.length(); ++i) {
-                    char single_shell = shell_type[i];
-                    // single type shells
-                    if (single_shell == 'S') {
-                        AOvalues(0, _i_func + 1) += _contractions[0] * _expofactor; // s-function        
-                        _i_func++;
-                    }
-                    else if (single_shell == 'P') {
-                        AOvalues(0, _i_func + 1) += _contractions[1] * 2.0 * sqrt(alpha) * center_x*_expofactor; // px-function
-                        AOvalues(0, _i_func + 2) += _contractions[1] * 2.0 * sqrt(alpha) * center_y*_expofactor; // py-function
-                        AOvalues(0, _i_func + 3) += _contractions[1] * 2.0 * sqrt(alpha) * center_z*_expofactor; // pz-function
-
-                        _i_func += 3;
-                    }
-                    else if (single_shell == 'D') {
-                        // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                        AOvalues(0, _i_func + 1) += _contractions[2] * 4.0 * alpha * center_x * center_z*_expofactor; // dxz-function
-                        AOvalues(0, _i_func + 2) += _contractions[2] * 4.0 * alpha * center_y * center_z*_expofactor; // dyz-function
-                        AOvalues(0, _i_func + 3) += _contractions[2] * 4.0 * alpha * center_x * center_y*_expofactor; // dxy-function
-                        AOvalues(0, _i_func + 4) += _contractions[2] * 2.0 * alpha / sqrt(3.0)*(3.0 * center_z * center_z - distsq) * _expofactor; // d3z2-r2-function
-                        AOvalues(0, _i_func + 5) += _contractions[2] * 2.0 * alpha * (center_x * center_x - center_y * center_y) * _expofactor; // dx2-y2-function                             
-                        _i_func += 5;
-                    }
-                    else if (single_shell == 'F') {
-                        cerr << " F functions not implemented in AOeval at the moment!" << endl;
-                        exit(1);
-                    }
-                    else if (single_shell == 'G') {
-                        cerr << " G functions not implemented in AOeval at the moment!" << endl;
-                        exit(1);
-                    }
-                    else{
-                        cerr << "Single shell type"<<single_shell<<" not known " << endl;
-                        exit(1);
-                    }
-                }
-            } // contractions
-
-        }
+std::ostream &operator<<(std::ostream &out, const AOShell& shell) {
+    out <<"AtomIndex:"<<shell.getAtomIndex();
+    out <<" Shelltype:"<<shell.getType() <<" Scale:"<<shell.getScale()
+        <<" Lmax:"<<shell.getLmax()<<" MinDecay:"<<shell.getMinDecay()
+        << " Func:"<<shell.getNumFunc()<<"\n";
+    for (const auto& gaussian:shell){
+      out<<" Gaussian Decay: "<<gaussian.getDecay();
+      out<<" Contractions:";
+      for (const double& contraction:gaussian.getContraction()){
+        out<<" "<<contraction;
+      }
+      out<<"\n";
+    }
+    return out;
+  }
         
-           
-           
-           
-        
-           
-        
-               
-  /*         inline void AOShell::EvalAOspace(ub::matrix<double>& AOvalues, double x, double y, double z, string type ){
 
-            // need type of shell
-            string shell_type = this->_type;
-            // need position of shell
-            double center_x = x - this->_pos.getX();
-            double center_y = y - this->_pos.getY();
-            double center_z = z - this->_pos.getZ();
-            // need decay constant
-            double alpha = this->_gaussians[0]->decay; // only uncontracted for testing
-            double distsq = center_x*center_x + center_y*center_y +  center_z*center_z;
-            const double pi = boost::math::constants::pi<double>();
-
-
-            double _expofactor = pow(2.0*alpha/pi,0.75) * exp( -alpha * distsq );
-            
-            // split combined shells
-            int _i_func = -1;
-            for (int i = 0; i < shell_type.length(); ++i) {
-                string single_shell = string(shell_type, i, 1);
-                // single type shells
-                if ( single_shell == "S") {
-                    AOvalues(_i_func +1 ,0) = _expofactor; // s-function
-                    _i_func++;
-                }
-                if ( single_shell == "P") {
-                    AOvalues(_i_func +1,0) = 2.0*sqrt(alpha)*center_x*_expofactor; // px-function
-                    AOvalues(_i_func +2,0) = 2.0*sqrt(alpha)*center_y*_expofactor; // py-function
-                    AOvalues(_i_func +3,0) = 2.0*sqrt(alpha)*center_z*_expofactor; // pz-function
-                    _i_func += 3;
-                }
-                if ( single_shell == "D") {
-                    // dxz, dyz, dxy, d3z2-r2, dx2-y2
-                    AOvalues(_i_func +1,0) = 4.0*alpha*center_x*center_z*_expofactor; // dxz-function
-                    AOvalues(_i_func +2,0) = 4.0*alpha*center_y*center_z*_expofactor; // dyz-function
-                    AOvalues(_i_func +3,0) = 4.0*alpha*center_x*center_y*_expofactor; // dxy-function
-                    AOvalues(_i_func +4,0) = 2.0*alpha/sqrt(3.0)*(3.0*center_z*center_z - distsq)*_expofactor; // d3z2-r2-function
-                    AOvalues(_i_func +5,0) = 2.0*alpha*(center_x*center_x - center_y*center_y)*_expofactor; // dx2-y2-function
-                    _i_func += 5;
-                }
-                if ( single_shell == "F") {
-                    cerr << " F functions not implemented in AOeval at the moment!" << endl;
-                    exit(1);
-                }
-                if ( single_shell == "G") {
-                    cerr << " G functions not implemented in AOeval at the moment!" << endl;
-                    exit(1);
-                }
-            }   
-
-
-        } */
-        
-        
 
 
 }}

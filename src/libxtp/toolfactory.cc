@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2016 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,43 +19,36 @@
 
 
 #include <votca/xtp/toolfactory.h>
-#include "tools/molpol.h"
+
 #include "tools/pdb2map.h"
-#include "tools/coupling.h"
 #include "tools/log2mps.h"
-#include "tools/ptopreader.h"
 #include "tools/pdb2top.h"
-#include "tools/exciton.h"
-#include "tools/qmanalyze.h"
+#include "tools/dftgwbse.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 #include "tools/excitoncoupling.h"
-#include "tools/orb2isogwa.h"
-#include "tools/dft.h"
 #include "tools/gencube.h"
 #include "tools/partialcharges.h"
-
+#include "tools/densityanalysis.h"
+#include "tools/coupling.h"
 
 namespace votca { namespace xtp {
 
 void QMToolFactory::RegisterAll(void)
 {
-        QMTools().Register<MolPolTool>         ("molpol");
+
         QMTools().Register<PDB2Map>            ("pdb2map");
-        QMTools().Register<Coupling>           ("coupling");
         QMTools().Register<Log2Mps>            ("log2mps");
-        QMTools().Register<PtopReader>         ("ptopreader");
-        QMTools().Register<Exciton>            ("exciton");
-        QMTools().Register<QMAnalyze>          ("qmanalyze");
+        QMTools().Register<DftGwBse>           ("dftgwbse");
         QMTools().Register<QMSandbox>          ("qmsandbox");
         QMTools().Register<Spectrum>           ("spectrum");
         QMTools().Register<ExcitonCoupling>    ("excitoncoupling");
-        QMTools().Register<Orb2IsoGWA>         ("orb2isogwa"); 
         QMTools().Register<PDB2Top>            ("pdb2top");
-        QMTools().Register<DFT>                ("dft");
         QMTools().Register<GenCube>            ("gencube");
         QMTools().Register<Partialcharges>     ("partialcharges");
-        
+        QMTools().Register<DensityAnalysis>    ("densityanalysis");
+        QMTools().Register<Coupling>           ("coupling");
+
 }
 
 }}
