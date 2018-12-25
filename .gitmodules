@@ -13,3 +13,6 @@
 [submodule "csg-tutorials"]
 	path = csg-tutorials
 	url = ../../votca/csg-tutorials.git
+[submodule "csg-manual"]
+	path = csg-manual
+	url = ../../votca/csg-manual.git
