@@ -16,8 +16,8 @@ assert() {
 script="$1"
 shift
 
-[ -z "$(type csg_call)" ] && die "${0##*/}: csg_call not found"
-tags=$(csg_call -l | awk -v name="$script" '($3==name){print $1,$2;exit}') 
+[ -x "${CSG_CALL}" ] || die "${0##*/}: variable CSG_CALL (value ${CSG_CALL}) is wrong"
+tags=$(${CSG_CALL} -l | awk -v name="$script" '($3==name){print $1,$2;exit}') 
 assert "could not get tags"
 
 echo "$script"
@@ -30,7 +30,7 @@ echo -e "++$script++"
 echo -e "label($script)"
 
 
-helpmsg="$(csg_call $tags --help 2>/dev/null)" || { echo -e "\nThis script has no help"; exit 0; }
+helpmsg="$(${CSG_CALL} $tags --help 2>/dev/null)" || { echo -e "\nThis script has no help"; exit 0; }
 
 #Here comes the magic:
 #-header in trash
@@ -57,7 +57,7 @@ echo -e "$helpmsg" | sed \
 
 assert "sed 1 failed"
 
-content="$(csg_call --cat $tags)" || die "${0##*/}: csg_call --cat $tags failed"
+content="$(${CSG_CALL} --cat $tags)" || die "${0##*/}: ${CSG_CALL} --cat $tags failed"
 #filter defining and export from function_common
 helpmsg="$(echo -e "$content" | \
    sed -n -e '/die.*"csg_get_\(interaction_\)\?property:/d' \

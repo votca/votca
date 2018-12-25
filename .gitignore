@@ -38,3 +38,5 @@ reference/xml/*.xml.*
 reference/xml/config.t2t
 usage/fig/*.eps
 gitid.tex
+
+/build*

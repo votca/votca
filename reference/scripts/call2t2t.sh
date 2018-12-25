@@ -1,9 +1,12 @@
 #! /bin/bash
 
-if ! which csg_call > /dev/null 2>&1; then
-  echo csg_call not found
+die() {
+  echo -e "$*" >&2
   exit 1
-fi
+}
+
+[[ -z $1 ]] && die "${0##*/}: Missing argument"
+[[ -f $1 ]] || die "${0##*/}: Could not open '$1'"
 
 echo "csg_table"
 echo "make"
@@ -12,6 +15,6 @@ echo
 echo '%!includeconf: config.t2t'
 echo
 echo "|| Key1 | Key2 | Scriptname"
-csg_call -l | \
+cat "$1" | \
 sed -e '/^#/d' | \
 awk '{printf "| %s | %s | ref(%s)(%s) |\n",$1,$2,$3,$3}'

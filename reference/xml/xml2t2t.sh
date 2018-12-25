@@ -25,11 +25,9 @@ if [ "$1" = "--help" ]; then
 fi
 
 [ -z "$1" ] && die "${0##*/}: Missing argument"
-[ -z "$(type -p csg_property)" ] && die "${0##*/}: csg_property not found"
-[ -z "$(type -p csg_call)" ] && die "${0##*/}: csg_call not found"
+[ -x "${CSG_PROPERTY}" ] || die "${0##*/}: variable CSG_PROPERTY (value ${CSG_PROPERTY}) is wrong"
 
-VOTCASHARE="$(csg_call --show-share)"
-xmlfile="${VOTCASHARE}/xml/$1"
+xmlfile="$1"
 [ -f "$xmlfile" ] || die "${0##*/}: Error, did not find $xmlfile"
 
 #header lines
@@ -57,9 +55,9 @@ items="$(echo -e "$items" | sort -u)"
 for name in ${items}; do
   #cut the first 3 heads of the item, as maximum deepth of latex itemize is 3
   cut_heads "$name" #returns $item and $spaces
-  desc="$(csg_property --file $xmlfile --path $name.DESC --print . --short)"
+  desc="$(${CSG_PROPERTY} --file $xmlfile --path $name.DESC --print . --short)"
   echo -n "${spaces}- target(${name})(**${item}**) "
-  default="$(csg_property --file $xmlfile --path $name --print . --short | \
+  default="$(${CSG_PROPERTY} --file $xmlfile --path $name --print . --short | \
     sed -e '/^[[:space:]]*$/d' -e 's/^[[:space:]]*//' -e 's/[[:space:]]$//')"
   [[ -n $default ]] && desc="$desc (default $default)"
   echo ${desc}

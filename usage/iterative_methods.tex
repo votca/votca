@@ -106,7 +106,7 @@ If the iteration was interrupted, the script \prog{csg_inverse} might not be abl
 \subsection{Input preparation}
 This section describes the usage of \ibi, implemented within the scripting framework described in the previous section \ref{sec:iterative_workflow}. It is suggested to get a basic understanding of this framework before proceeding.
 
-\ibi so far only supports iterative refinement of non-bonded interactions. An outline of the workflow for performing \ibi is given in \fig{fig:flow_ibi}.
+An outline of the workflow for performing \ibi is given in \fig{fig:flow_ibi}.
 
 To specify Iterative Boltzmann Inversion as algorithm in the script, add \texttt{ibi} in the \texttt{method} section of the \xml setting file as shown below.
 
@@ -131,33 +131,6 @@ In this section, additional options are described to run \imc coarse graining. T
 
 \subsection{General considerations}
 In comparison to \ibi, \imc needs significantly more statistics to calculate the potential update\cite{Ruehle:2009.a}. It is advisable to perform smoothing on the potential update. Smoothing can be performed as described in \sect{ref:ibi:optimize}. In addition, \imc can lead to problems related to finite size: for methanol, an undersized system proved to lead to a linear shift in the potential\cite{Ruehle:2009.a}. It is therefore always necessary to check that the system size is sufficiently large and that runlength csg smoothing iterations are well balanced.
-
-\subsection{Additional mapping for statistics}
-The program \prog{csg_stat} is used for evaluating the \imc matrix. Although the matrix only acts on the coarse-grained system here, it still needs a mapping file to work. This will improve with one of the next releases to simplify the setup. The mapping file needs to be a one to one mapping of the coarse grained system, e.g. for coarse graining \spce water, the mapping file looks as follows:
-\begin{lstlisting}
-  </cg_molecule>
-    <name>SOL</name> 
-    <ident>SOL</ident>
-    <topology>
-      <cg_beads>
-        <cg_bead>
-          <name>CG</name>
-          <type>CG</type>
-          <mapping>A</mapping>
-          <beads>
-            1:SOL:CG 
-          </beads>
-        </cg_bead>
-      </cg_beads>
-    </topology>
-    <maps>
-      <map>
-        <name>A</name>
-        <weights>1</weights>
-      </map>
-    </maps>
-  </cg_molecule>
-\end{lstlisting}
 
 \subsection{Correlation groups}
 Unlike \ibi, \imc also takes cross-correlations of interactions into account in order to calculate the update. However, it might not always be beneficial to evaluate cross-correlations of all pairs of interactions. By specifying \interopt{inverse.imc.group}, \votca allows to define groups of interactions, amongst which cross-correlations are taken into account, where \interopt{inverse.imc.group} can be any name.
