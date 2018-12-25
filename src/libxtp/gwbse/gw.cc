@@ -156,7 +156,7 @@ void GW::CalculateGWPerturbation() {
     rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
      CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                  << " Prepared RPA  " << std::flush;
-    for (int i_gw; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
+    for (int i_gw=0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
          if(i_gw%_opt.reset_3c==0 && i_gw!=0){
              _Mmn.Rebuild();
