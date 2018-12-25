@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
         po::store(po::parse_command_line(argc, argv, desc), vm);    
         po::notify(vm);
     }
-    catch(po::error err) {
+    catch(po::error& err) {
         cout << "error parsing command line: " << err.what() << endl;
         return -1;
     }

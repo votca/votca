@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ Allowed options:
     --help       show this help
     --clean      remove all intermediate temp files
     --no-r2d     do not converts rad to degree (scale x axis with 180/3.1415)
-                 for angle and dihedral
-                 Note: VOTCA calcs in rad, but lammps in degree
+                 for angle interactions
+                 Note: VOTCA calcs in rad, but lammps uses degrees for angle
     --no-shift   do not shift the potential
 EOF
 }
@@ -69,7 +69,8 @@ done
 ### end parsing options
 [[ -z $1 || -z $2 ]] && die "${0##*/}: missing argument"
 input="$1"
-trunc="${1%%.*}"
+trunc=${1##*/}
+trunc="${trunc%%.*}"
 [[ -f $input ]] || die "${0##*/}: Could not find input file '$input'"
 output="$2"
 echo "Convert $input to $output"
@@ -86,17 +87,20 @@ bin_size="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_b
 
 if [[ $bondtype = "angle" ]]; then
   table_begin=0
-  r_cut=180
+  table_end=180
 else
   table_begin="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_begin)"
   [[ -z ${table_begin} ]] && table_begin="${r_min}"
+  table_end="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_end)"
+  [[ -z ${table_end} ]] && table_end="${r_cut}"
 fi
 
 comment="$(get_table_comment $input)"
 
 scale_factor=$(csg_get_interaction_property inverse.lammps.scale)
 
-if [[ $bondtype = "angle" || $bondtype = "dihedral" ]] && [[ $r2d != 1 ]]; then
+if [[ $bondtype = "angle" ]] && [[ $r2d != 1 ]]; then
+# see lammps manual; only tabulated angle potentials need to be in degrees and scaled; dihedrals can be in radians or degrees; here we are putting dihedrals in radians
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "$r2d" "0"
   step=$(csg_calc $r2d "*" $step)
@@ -104,7 +108,7 @@ elif [[ ${scale_factor} != 1 ]]; then
   step=$(csg_calc ${scale_factor} "*" $step)
   bin_size=$(csg_calc ${scale_factor} "*" $bin_size)
   table_begin=$(csg_calc ${scale_factor} "*" ${table_begin})
-  r_cut=$(csg_calc ${scale_factor} "*" ${r_cut})
+  table_end=$(csg_calc ${scale_factor} "*" ${table_end})
   scale="$(critical mktemp ${trunc}.pot.scale.XXXXX)"
   do_external table linearop --on-x "${input}" "${scale}" "${scale_factor}" "0"
 else
@@ -113,14 +117,16 @@ fi
 
 #keep the grid for now, so that extrapolate can calculate the right mean
 smooth="$(critical mktemp ${trunc}.pot.smooth.XXXXX)"
-critical csg_resample --in ${scale} --out "$smooth" --grid "${table_begin}:${step}:${r_cut}"
+critical csg_resample --in ${scale} --out "$smooth" --grid "${table_begin}:${step}:${table_end}"
 
 extrapol="$(critical mktemp ${trunc}.pot.extrapol.XXXXX)"
-do_external potential extrapolate ${clean:+--clean} --type "$bondtype" "${smooth}" "${extrapol}"
+lfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_left_extrapolation)"
+rfct="$(csg_get_interaction_property --allow-empty inverse.$sim_prog.table_right_extrapolation)"
+do_external potential extrapolate ${clean:+--clean} ${lfct:+--lfct ${lfct}} ${rfct:+--rfct ${rfct}} --type "$bondtype" "${smooth}" "${extrapol}"
 
 interpol="$(critical mktemp ${trunc}.pot.interpol.XXXXX)"
 deriv="$(critical mktemp ${trunc}.pot.deriv.XXXXX)"
-critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${table_begin}:${bin_size}:${r_cut}" --der "${deriv}" --comment "$comment"
+critical csg_resample --in "${extrapol}" --out "$interpol" --grid "${table_begin}:${bin_size}:${table_end}" --der "${deriv}" --comment "$comment"
 
 if [[ $do_shift = "yes" ]]; then
   tshift="$(critical mktemp ${trunc}.pot.shift.XXXXX)"
@@ -131,5 +137,6 @@ fi
 
 do_external convert_potential tab --header "${sim_prog}" --type "${bondtype}" "${tshift}" "${deriv}" "${output}"
 if [[ $clean ]]; then
-  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}" "${scale}"
+  rm -f "${smooth}" "${interpol}" "${extrapol}" "${tshift}"
+  [[ ${input} != ${scale} ]] && rm -f "${scale}"
 fi

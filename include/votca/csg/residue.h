@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _residue_H
-#define	_residue_H
+#ifndef _VOTCA_CSG_RESIDUE_H
+#define	_VOTCA_CSG_RESIDUE_H
 
 #include <string>
 #include "topologyitem.h"
@@ -61,5 +61,5 @@ inline const string &Residue::getName()
 
 }}
 
-#endif	/* _residue_H */
+#endif	/* _VOTCA_CSG_RESIDUE_H */
 

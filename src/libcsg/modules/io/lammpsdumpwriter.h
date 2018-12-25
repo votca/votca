@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,27 +15,31 @@
  *
  */
 
-#ifndef _MDPTOPOLOGYREADER_H
-#define	_MDPTOPOLOGYREADER_H
+#ifndef __VOTCA_CSG_LAMMPSDUMPWRITER_H
+#define __VOTCA_CSG_LAMMPSDUMPWRITER_H
 
-#include "topologyreader.h"
+#include <stdio.h>
+#include <votca/csg/topology.h>
+#include <votca/csg/trajectorywriter.h>
 
-/**
-    \brief reader for Alexander Lyubartsev's md format
- 
- */
-class MDPTopologyReader
-    : public TopologyReader
+namespace votca { namespace csg {
+
+class LAMMPSDumpWriter
+: public TrajectoryWriter
 {
 public:
-    /// read a topology file
-    bool ReadTopology(string file, Topology &top);
-    TopologyReader *Clone() { return new MDPTopologyReader(); }
     
+    void Open(std::string file, bool bAppend = false);
+    void Close();
+    
+    void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}    
+
+    void Write(Topology *conf);
+
 private:
-       
+    FILE *_out;
 };
 
+}}
 
-#endif	/* _MDPTOPOLOGYREADER_H */
-
+#endif // __VOTCA_CSG_LAMMPSDUMPWRITER_H

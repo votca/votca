@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  *
  */
 
-#ifndef CSG_REUPDATE_H
-#define	CSG_REUPDATE_H
+#ifndef _VOTCA_CSG_REUPDATE_H
+#define	_VOTCA_CSG_REUPDATE_H
 #include <boost/program_options.hpp>
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/table.h>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
 #include <votca/tools/property.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/csg/potentialfunctions/potentialfunction.h>
@@ -95,11 +93,11 @@ protected:
   PotentialContainer _potentials;
   
   int _nlamda;
-  ub::vector<double> _lamda;
+  Eigen::VectorXd _lamda;
   // _HS is a symmetric matrix
-  ub::symmetric_matrix<double, ub::upper> _HS;
-  ub::vector<double> _DS;
-  ub::vector<double> _dUFrame;
+  Eigen::MatrixXd _HS;
+  Eigen::VectorXd _DS;
+  Eigen::VectorXd _dUFrame;
   bool _hessian_check;
 
   double _UavgAA;
@@ -150,10 +148,10 @@ public:
   PotentialContainer _potentials;
 
   int _nlamda;
-  ub::vector<double> _lamda;
-  ub::symmetric_matrix<double, ub::upper> _HS;
-  ub::vector<double> _DS;
-  ub::vector<double> _dUFrame;
+  Eigen::VectorXd _lamda;
+  Eigen::MatrixXd _HS;
+  Eigen::VectorXd _DS;
+  Eigen::VectorXd _dUFrame;
 
   double _UavgCG;
   double _beta;
@@ -165,4 +163,4 @@ public:
   
 };
 
-#endif	/* CSG_REUPDATE_H */
+#endif	/* _VOTCA_CSG_REUPDATE_H */

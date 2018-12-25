@@ -19,80 +19,80 @@
     </cleanlist>
     <convergence_check>
       <limit>0
-	    <DESC>lower convergency limit to stop</DESC>
+        <DESC>lower convergency limit to stop</DESC>
       </limit>
       <type>none
-	    <DESC>type of convergence check to do</DESC>
+        <DESC>type of convergence check to do</DESC>
       </type>
     </convergence_check>
     <dlpoly>
       <DESC> general dlpoly specific options </DESC>
       <command>DLPOLY.Z
-	    <DESC> command to run dlpoly  (name or absolute path or 'mpirun dlpoly' or such) </DESC>
+        <DESC> command to run dlpoly  (name or absolute path or 'mpirun dlpoly' or such) </DESC>
       </command>
       <topol>.dlpf
-	    <DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
+        <DESC> Name of dlpoly topology file</DESC>
       </topol>
       <traj>.dlph
-	    <DESC> Name of the output dlpoly trajectory file</DESC>
+        <DESC> Name of the output dlpoly trajectory file</DESC>
       </traj>
       <checkpoint>REVIVE REVCON
-	    <DESC> Names of the  dlpoly checkpoint files</DESC>
+        <DESC> Names of the  dlpoly checkpoint files</DESC>
       </checkpoint>
       <table_end>
-	      <DESC>dlpoly internal grid end point for tabulated non-bonded potentials (applied to all non-bonded)</DESC>
+        <DESC>dlpoly internal grid end point for tabulated non-bonded potentials (applied to all non-bonded)</DESC>
       </table_end>
       <table_grid>
-	      <DESC>dlpoly internal grid number for tabulated non-bonded potentials (applied to all non-bonded)</DESC>
+        <DESC>dlpoly internal grid number for tabulated non-bonded potentials (applied to all non-bonded)</DESC>
       </table_grid>
       <bonds>
-	      <DESC>dlpoly specs for tabulated bonded potentials (applied to all bonds)</DESC>
+        <DESC>dlpoly specs for tabulated bonded potentials (applied to all bonds)</DESC>
         <table_end>
-	        <DESC>dlpoly internal grid end point for tabulated potentials</DESC>
+          <DESC>dlpoly internal grid end point for tabulated potentials</DESC>
         </table_end>
         <table_grid>
-	        <DESC>dlpoly internal grid number for tabulated potentials</DESC>
+          <DESC>dlpoly internal grid number for tabulated potentials</DESC>
         </table_grid>
       </bonds>
       <angles>
-	      <DESC>dlpoly specs for tabulated bonded potentials (applied to all angles)</DESC>
+        <DESC>dlpoly specs for tabulated bonded potentials (applied to all angles)</DESC>
         <table_grid>
-	        <DESC>dlpoly internal grid number for tabulated potentials</DESC>
+          <DESC>dlpoly internal grid number for tabulated potentials</DESC>
         </table_grid>
       </angles>
       <dihedrals>
-	      <DESC>dlpoly specs for tabulated bonded potentials (applied to all dihedrals)</DESC>
+        <DESC>dlpoly specs for tabulated bonded potentials (applied to all dihedrals)</DESC>
         <table_grid>
-	        <DESC>dlpoly internal grid number for tabulated potentials</DESC>
+          <DESC>dlpoly internal grid number for tabulated potentials</DESC>
         </table_grid>
       </dihedrals>
     </dlpoly>
     <espresso>
-      <command>Espresso
-	    <DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
+      <command>python3
+        <DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
       </command>
       <opts>${script}
-	    <DESC> option to be given to espresso program, use ${script} in there </DESC>
+        <DESC> option to be given to espresso program, use ${script} in there </DESC>
       </opts>
       <first_frame>0
-	    <DESC>trash the given number of frames at the beginning of trajectory</DESC>
+        <DESC>trash the given number of frames at the beginning of trajectory</DESC>
       </first_frame>
       <table_bins>
-	      <DESC>espresso internal grid for tabulated potentials</DESC>
+        <DESC>espresso internal grid for tabulated potentials</DESC>
       </table_bins>
       <traj>
-	      <DESC> Name of the output Espresso trajectory file</DESC>
+        <DESC> Name of the output Espresso trajectory file</DESC>
       </traj>
     </espresso>
     <espressopp>
       <command>python2
-	    <DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
+        <DESC>Command to run espresso (name or absolute path or mpirun espresso..)</DESC>
       </command>
       <opts>${script}
-	    <DESC> option to be given to espresso program, use ${script} in there </DESC>
+        <DESC> option to be given to espresso program, use ${script} in there </DESC>
       </opts>
       <first_frame>0
-	    <DESC>trash the given number of frames at the beginning of trajectory</DESC>
+        <DESC>trash the given number of frames at the beginning of trajectory</DESC>
       </first_frame>
     </espressopp>
     <filelist>
@@ -100,264 +100,286 @@
     </filelist>
     <gnuplot>
       <bin>gnuplot
-	    <DESC>gnuplot binary to use</DESC>
+        <DESC>gnuplot binary to use</DESC>
       </bin>
     </gnuplot>
     <gromacs>
       <DESC>gromacs specific options </DESC>
       <conf>conf.gro
-	    <DESC>Name of the coordinate file read by grompp</DESC>
+        <DESC>Name of the coordinate file read by grompp</DESC>
       </conf>
       <conf_out>confout.gro
-	    <DESC>Name of the original outcome coordinate written by mdrun</DESC>
+        <DESC>Name of the original outcome coordinate written by mdrun</DESC>
       </conf_out>
       <density>
-	      <block_length>
-	        <DESC>Length of the block for the error analysis</DESC>
-	      </block_length>
-	      <with_errors>no
-	      <DESC>calculate error on the density: yes/no</DESC>
-	      </with_errors>
+        <block_length>
+          <DESC>Length of the block for the error analysis</DESC>
+        </block_length>
+        <with_errors>no
+          <DESC>calculate error on the density: yes/no</DESC>
+        </with_errors>
       </density>
       <equi_time>0
-	    <DESC>begin analysis after this time when using gromacs (max of this and first_frame is used)</DESC>
+        <DESC>begin analysis after this time when using gromacs (max of this and first_frame is used)</DESC>
       </equi_time>
       <first_frame>0
-	    <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
+        <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
       <g_energy>
-	      <bin>@G_ENERGY@
-	      <DESC> Name (or absolute path) of the g_energy binary</DESC>
-	      </bin>
-	      <opts>
-	        <DESC> Additional options to Gromacs g_energy (e.g. -P 1)</DESC>
-	      </opts>
-	      <pressure>
-	        <DESC> options for pressure calculation using g_energy</DESC>
-	        <allow_nan>no
-	        <DESC> is nan an allowed result: yes/no</DESC>
-	        </allow_nan>
-	      </pressure>
-	      <topol>
-	        <DESC> Gromacs binary topol (tpr) file to use by g_energy </DESC>
-	      </topol>
+        <bin>@G_ENERGY@
+          <DESC> Name (or absolute path) of the g_energy binary</DESC>
+        </bin>
+        <opts>
+          <DESC> Additional options to Gromacs g_energy (e.g. -P 1)</DESC>
+        </opts>
+        <pressure>
+          <DESC> options for pressure calculation using g_energy</DESC>
+          <allow_nan>no
+            <DESC> is nan an allowed result: yes/no</DESC>
+          </allow_nan>
+        </pressure>
+        <topol>
+          <DESC> Gromacs binary topol (tpr) file to use by g_energy </DESC>
+        </topol>
       </g_energy>
       <gmxrc>
-	      <DESC>GMXRC to source at the startup</DESC>
+        <DESC>GMXRC to source at the startup</DESC>
       </gmxrc>
       <grompp>
-	      <bin>@GROMPP@
-	      <DESC> Name (or absolute path) of the grompp binary</DESC>
-	      </bin>
-	      <opts>
-	        <DESC> Additional options to Gromacs grompp (e.g. -maxwarn 1)</DESC>
-	      </opts>
+        <bin>@GROMPP@
+          <DESC> Name (or absolute path) of the grompp binary</DESC>
+        </bin>
+        <opts>
+          <DESC> Additional options to Gromacs grompp (e.g. -maxwarn 1)</DESC>
+        </opts>
       </grompp>
       <index>index.ndx
-	    <DESC> Gromacs grompp index file to used by grompp</DESC>
+        <DESC> Gromacs grompp index file to used by grompp</DESC>
       </index>
       <log>
-	      <DESC> Separate log file for gromacs programs (useful with mdrun -v)</DESC>
+        <DESC> Separate log file for gromacs programs (useful with mdrun -v)</DESC>
       </log>
       <mdp>grompp.mdp
-	    <DESC> Gromacs mdp file to be used by grompp</DESC>
+        <DESC> Gromacs mdp file to be used by grompp</DESC>
       </mdp>
       <mdrun>
-	      <checkpoint>state.cpt
-	      <DESC>Name of the checkpint to use in case of restarted simulation</DESC>
-	      </checkpoint>
-	      <command>@MDRUN@
-	      <DESC>Command to run mdrun (name or absolute path or mpirun mdrun..)</DESC>
-	      </command>
-	      <opts>
-	        <DESC> Additional options to Gromacs mdrun (e.g. -nosum)</DESC>
-	      </opts>
+        <checkpoint>state.cpt
+          <DESC>Name of the checkpint to use in case of restarted simulation</DESC>
+        </checkpoint>
+        <command>@MDRUN@
+          <DESC>Command to run mdrun (name or absolute path or mpirun mdrun..)</DESC>
+        </command>
+        <multidir>
+          <DESC> List of directories for multidir simulations</DESC>
+        </multidir>
+        <opts>
+          <DESC> Additional options to Gromacs mdrun (e.g. -nosum)</DESC>
+        </opts>
       </mdrun>
       <pot_max>1000000
-	    <DESC> cut the potential at this value (gromacs bug) </DESC>
+        <DESC> cut the potential at this value (gromacs bug) </DESC>
       </pot_max>
       <pre_simulation>no
-	    <DESC>A pre simulation (e.g. minimization / equilibration ) is a simulation with a different mdp/topol/index</DESC>
-	    <index>
-	      <DESC> Gromacs grompp index file to used by grompp in the pre simulation</DESC>
-	    </index>
-	    <mdp>
-	      <DESC> Gromacs mdp file to be used by grompp in the pre simulation</DESC>
-	    </mdp>
-	    <topol_in>
-	      <DESC> Gromacs text topol (top) file to use by grompp in the pre simulation</DESC>
-	    </topol_in>
+        <DESC>A pre simulation (e.g. minimization / equilibration ) is a simulation with a different mdp/topol/index</DESC>
+        <index>
+          <DESC> Gromacs grompp index file to used by grompp in the pre simulation</DESC>
+        </index>
+        <mdp>
+          <DESC> Gromacs mdp file to be used by grompp in the pre simulation</DESC>
+        </mdp>
+        <topol_in>
+          <DESC> Gromacs text topol (top) file to use by grompp in the pre simulation</DESC>
+        </topol_in>
       </pre_simulation>
       <ref>
-	      <DESC> Options for the case that calculation of reference system is needed</DESC>
+        <DESC> Options for the case that calculation of reference system is needed</DESC>
         <equi_time>0
-        <DESC>begin analysis after this time when using gromacs (max of this and first_frame is used)</DESC>
+          <DESC>begin analysis after this time when using gromacs (max of this and first_frame is used)</DESC>
         </equi_time>
         <first_frame>0
-        <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
-	      </first_frame>
-	      <mapping>
-	        <DESC>Mapping to apply on the coarse-grained topology, use autogenerated ones (cg.inverse.optimizer.mapping.output) and given ones (map other components)</DESC>
-	      </mapping>
-	      <rdf>
-	        <DESC>Contains options for Reference rdf calculation</DESC>
-	        <opts>
-	          <DESC>Extra options to give to csg_stat (e.g. --nframes 100)</DESC>
-	        </opts>
-	      </rdf>
-	      <topol>
-	        <DESC>Reference binary topology(global or local path)</DESC>
-	      </topol>
-	      <traj>
-	        <DESC>Reference trajectory(global or local path)</DESC>
-	      </traj>
+          <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
+        </first_frame>
+        <mapping>
+          <DESC>Mapping to apply on the coarse-grained topology, use autogenerated ones (cg.inverse.optimizer.mapping.output) and given ones (map other components)</DESC>
+        </mapping>
+        <rdf>
+          <DESC>Contains options for Reference rdf calculation</DESC>
+          <opts>
+            <DESC>Extra options to give to csg_stat (e.g. --nframes 100)</DESC>
+          </opts>
+        </rdf>
+        <topol>
+          <DESC>Reference binary topology(global or local path)</DESC>
+        </topol>
+        <traj>
+          <DESC>Reference trajectory(global or local path)</DESC>
+        </traj>
       </ref>
       <rdf>
-	      <block_length>
-	        <DESC>Length of the block for the error analysis</DESC>
-	      </block_length>
-	      <map>
-	        <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
-	      </map>
-	      <topol>
-	        <DESC> Gromacs binary topol (tpr) file to be used for csg_stat</DESC>
-	      </topol>
-	      <with_errors>no
-	      <DESC>calculate error on the rdf: yes/no</DESC>
-	      </with_errors>
+        <block_length>
+          <DESC>Length of the block for the error analysis</DESC>
+        </block_length>
+        <map>
+          <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
+        </map>
+        <with_errors>no
+          <DESC>calculate error on the rdf: yes/no</DESC>
+        </with_errors>
       </rdf>
       <table_bins>0.002
-	    <DESC> grid for gromacs xvg table</DESC>
+        <DESC> grid for gromacs xvg table</DESC>
       </table_bins>
       <table_end>
-	      <DESC>extend the gromacs xvg tables to this value</DESC>
+        <DESC>extend the gromacs xvg tables to this value</DESC>
       </table_end>
       <temp_check>yes
-	    <DESC>check kBT against t_ref in mdp file: yes/no</DESC>
+        <DESC>check kBT against t_ref in mdp file: yes/no</DESC>
       </temp_check>
       <topol_in>topol.top
-	    <DESC> Gromacs text topology (top) file read by grompp</DESC>
+        <DESC> Gromacs text topology (top) file read by grompp</DESC>
       </topol_in>
       <topol>topol.tpr
-	    <DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
+        <DESC> Gromacs binary topology (tpr) file to be written by grompp and used for the simlation</DESC>
       </topol>
       <traj>traj.xtc
-	    <DESC> Gromacs trajectory file to use</DESC>
+        <DESC> Gromacs trajectory file to use</DESC>
       </traj>
+      <trjcat>
+        <bin>@G_TRJCAT@
+          <DESC> Name (or absolute path) of the trjcat binary </DESC>
+        </bin>
+      </trjcat>
     </gromacs>
     <hoomd-blue>
       <command>hoomd
-	    <DESC>Command to run hoomd-blue (name or absolute path or mpirun ..)</DESC>
+        <DESC>Command to run hoomd-blue (name or absolute path or mpirun ..)</DESC>
       </command>
       <opts>${script}
-	    <DESC> option to be given to hoomd-blue program, use ${script} in there </DESC>
+        <DESC> option to be given to hoomd-blue program, use ${script} in there </DESC>
       </opts>
     </hoomd-blue>
     <imc>
       <DESC> general imc specific options </DESC>
       <matlab>
-	      <bin>matlab
-	      <DESC> Name (or absolute path) of the matlab binary </DESC>
-	      </bin>
+        <bin>matlab
+          <DESC> Name (or absolute path) of the matlab binary </DESC>
+        </bin>
       </matlab>
       <octave>
-	      <bin>octave
-	      <DESC> Name (or absolute path) of the octave binary </DESC>
-	      </bin>
+        <bin>octave
+          <DESC> Name (or absolute path) of the octave binary </DESC>
+        </bin>
       </octave>
       <solver>
-	      <DESC> solver for solving a linear equation system: octave/numpy/matlab </DESC>
+        <DESC> solver for solving a linear equation system: octave/numpy/matlab </DESC>
       </solver>
     </imc>
     <lammps>
       <DESC> general lammps specific options </DESC>
       <command>lmp
-	    <DESC> command to run lammps  (name or absolute path or mpirun lammps..) </DESC>
+        <DESC> command to run lammps  (name or absolute path or mpirun lammps..) </DESC>
       </command>
       <script>
-	      <DESC> lammps script to run </DESC>
+        <DESC> lammps script to run </DESC>
       </script>
       <opts>-in ${script}
-	    <DESC> option to be given to lammps program, use ${script} in there </DESC>
+        <DESC> option to be given to lammps program, use ${script} in there </DESC>
       </opts>
       <traj>
-	      <DESC> trajectory file to be created by lammps, use a format like xyz, which can be read by csg_stat</DESC>
+        <DESC> trajectory file to be created by lammps, use a format like xyz, which can be read by csg_stat</DESC>
       </traj>
+      <pressure_file>
+        <DESC> pressure file generated by lammps, use "fix print" in lammps input (e.g., "fix pressure all print 50 "${mypress}" file lammps.pressure screen no title "LAMMPS_PRESSURE" " ; pressure_file would be lammps.pressure in this example).  The title can be anything as VOTCA skips over this line as a header when parsing </DESC> 
+      </pressure_file>
     </lammps>
     <sim_prog>
       <DESC> options, which apply to all simulation programs</DESC>
       <command>
-	      <DESC>Command to run for the simulation (name or absolute path or mpirun XXX ..)</DESC>
+        <DESC>Command to run for the simulation (name or absolute path or mpirun XXX ..)</DESC>
       </command>
       <conf>
-	      <DESC>Name of the coordinate file read by the simulation program (if needed)</DESC>
+        <DESC>Name of the coordinate file read by the simulation program (if needed)</DESC>
       </conf>
       <conf_out>
-	      <DESC>Name of the original outcome coordinate written by simulation program (if any)</DESC>
+        <DESC>Name of the original outcome coordinate written by simulation program (if any)</DESC>
       </conf_out>
       <equi_time>0
-	    <DESC>begin analysis after this time (max of this and first_frame is used)</DESC>
+        <DESC>begin analysis after this time (max of this and first_frame is used)</DESC>
       </equi_time>
       <density>
-	      <block_length>
-	        <DESC>Length of the block for the error analysis</DESC>
-	      </block_length>
-	      <with_errors>no
-	      <DESC>calculate error on the density: yes/no</DESC>
-	      </with_errors>
+        <block_length>
+          <DESC>Length of the block for the error analysis</DESC>
+        </block_length>
+        <with_errors>no
+          <DESC>calculate error on the density: yes/no</DESC>
+        </with_errors>
       </density>
       <first_frame>0
-	    <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
+        <DESC> trash the given number of frames at the beginning of trajectory (max of this and first_frame is used)</DESC>
       </first_frame>
+      <imc>
+        <topol>
+          <DESC>Special topology file to be used for csg_stat used in imc</DESC>
+        </topol>
+        <traj>
+          <DESC>Special trajectory file to be used for csg_stat used in imc</DESC>
+        </traj>
+      </imc>
       <re>
-	      <topol>
-	        <DESC>Special topology file to be used for csg_reupdate</DESC>
-	      </topol>
+        <topol>
+          <DESC>Special topology file to be used for csg_reupdate</DESC>
+        </topol>
+        <traj>
+          <DESC>Special trajectory file to be used for csg_reupdate</DESC>
+        </traj>
       </re>
       <rdf>
-	      <block_length>
-	        <DESC>Length of the block for the error analysis</DESC>
-	      </block_length>
-	      <map>
-	        <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
-	      </map>
-	      <topol>
-	        <DESC> Special topology file to be used for csg_stat</DESC>
-	      </topol>
-	      <with_errors>n
-	      <DESC>calculate error on the rdf: yes/no</DESC>
-	      </with_errors>
+        <block_length>
+          <DESC>Length of the block for the error analysis</DESC>
+        </block_length>
+        <map>
+          <DESC>Space separated list of special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
+        </map>
+        <topol>
+          <DESC> Special topology file to be used for csg_stat</DESC>
+        </topol>
+        <traj>
+          <DESC>Special trajectory file to be used for csg_stat</DESC>
+        </traj>
+        <with_errors>n
+          <DESC>calculate error on the rdf: yes/no</DESC>
+        </with_errors>
       </rdf>
       <topol>
         <DESC> General topology file to be use if no special one is specified</DESC>
       </topol>
       <traj>
-	      <DESC> trajectory file to be created by the simulation program</DESC>
+        <DESC> trajectory file to be created by the simulation program</DESC>
       </traj>
       <script>
-	      <DESC> simulation script to run (if any)</DESC>
+        <DESC> simulation script to run (if any)</DESC>
       </script>
       <opts>
-	      <DESC> option to be given to simulation program, use ${script} in there </DESC>
+        <DESC> option to be given to simulation program, use ${script} in there </DESC>
       </opts>
     </sim_prog>
     <re>
       <DESC>general options for realtive entropy method</DESC>
       <csg_reupdate>
-	      <opts>
-	        <DESC>options for the csg_reupdate command</DESC>
-	      </opts>
+        <opts>
+          <DESC>options for the csg_reupdate command</DESC>
+        </opts>
       </csg_reupdate>
     </re>
     <average>
       <steps>1
-      <DESC>number of steps to be used for average computation. For relative
-      entropy method, these many last iteration steps are used to compute average
-      CG potentials or parameters or both.</DESC>
+        <DESC>number of steps to be used for average computation. For relative
+        entropy method, these many last iteration steps are used to compute average
+        CG potentials or parameters or both.</DESC>
       </steps>
     </average>
     <initial_configuration>maindir
-    <DESC>what initial configuration to use in every step: maindir/laststep/nowhere.</DESC>
+      <DESC>what initial configuration to use in every step: maindir/laststep/nowhere.</DESC>
     </initial_configuration>
     <iterations_max>
       <DESC>do the given number of iterations (0=inf)</DESC>
@@ -366,7 +388,7 @@
       <DESC> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</DESC>
     </kBT>
     <log_file>inverse.log
-    <DESC>name of the log file</DESC>
+      <DESC>name of the log file</DESC>
     </log_file>
     <map>
       <DESC>Special mapping file(s) for rdf calculations needed for bonded interactions</DESC>
@@ -386,13 +408,13 @@
       </type>
     </optimizer>
     <program>gromacs
-    <DESC>simulation package to be used (gromacs/espresso/lammps)</DESC>
+      <DESC>simulation package to be used (gromacs/espresso/lammps)</DESC>
     </program>
     <restart_file>restart_points.log
-    <DESC>Name of the restart file in case a step has to be resumed</DESC>
+      <DESC>Name of the restart file in case a step has to be resumed</DESC>
     </restart_file>
     <dist_min>1e-10
-    <DESC> minimal value for the rdf to consider for initial guess of the potential)</DESC>
+      <DESC> minimal value for the rdf to consider for initial guess of the potential)</DESC>
     </dist_min>
     <scriptpath>
       <DESC> list of directories for user scripts (e.g. $PWD) separated by a colon (like PATH)</DESC>
@@ -400,15 +422,15 @@
     <simulation>
       <DESC>simulation options </DESC>
       <background>no
-	    <DESC>tells csg_inverse that simulation was send to the backgroud</DESC>
+        <DESC>tells csg_inverse that simulation was send to the backgroud</DESC>
       </background>
       <tasks>auto
-	    <DESC>number of threads to use for csg_stat</DESC>
+        <DESC>number of threads to use for csg_stat</DESC>
       </tasks>
     </simulation>
   </inverse>
   <nbsearch>grid
-  <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
+    <DESC>Grid search algorithm, simple (N square search) or grid</DESC>
   </nbsearch>
   <bonded>
     <DESC>Interaction specific option for bonded interactions, see the cg.non-bonded section for all options</DESC>
@@ -453,28 +475,28 @@
     <fmatch>
       <DESC>Force matching options</DESC>
       <min>
-	      <DESC>Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the distance to the rdf start. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).</DESC>
+        <DESC>Minimum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the distance to the rdf start. For CG bonds and angles the variable has the similar meaning ( note, that for angles it is specified in radians ).</DESC>
       </min>
       <max>
-	      <DESC>Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the cut-off of the interaction.</DESC>
+        <DESC>Maximum value of interval for distribution sampled in atomistic MD simulation. One can get this number by looking at the distribution function for this interaction. For non-bonded interactions it's the cut-off of the interaction.</DESC>
       </max>
       <step>
-	      <DESC>grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small either, otherwise you will have unsampled bins which result in an ill-defined equation system and NaNs in the output.</DESC>
+        <DESC>grid spacing for the spline, which represents the interaction. This parameter should not be too big, otherwise you might lose some features of the interaction potential, and not too small either, otherwise you will have unsampled bins which result in an ill-defined equation system and NaNs in the output.</DESC>
       </step>
       <out_step>
-	      <DESC>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</DESC>
+        <DESC>Grid spacing for the output grid. Normally, one wants to have this parameter smaller than fmatch.step, to have a smooth curve, without additional spline interpolation. As a rule of thumb we normally use fmatch.out_step which is approximately 5 times smaller than fmatch.step.</DESC>
       </out_step>
     </fmatch>
     <re>
       <DESC>Relative entropy options</DESC>
       <function>
-	      <DESC>Functional form for the potential. Available functional forms: lj126 (Lennard-Jones 12-6), ljg (Lennard-Jones 12-6 plus Gaussian), and cbspl (uniform cubic B-splines).</DESC>
+        <DESC>Functional form for the potential. Available functional forms: lj126 (Lennard-Jones 12-6), ljg (Lennard-Jones 12-6 plus Gaussian), and cbspl (uniform cubic B-splines).</DESC>
       </function>
       <cbspl>
-	      <DESC>options specific to cbspl function form</DESC>
-	      <nknots>
-	        <DESC>Number of knot values to be used for the cbspl functional form. Uniform grid size of the CBSPL depends on this parameter; for fixed potential range more the nknots smaller the grid spacing. Make sure grid spacing is sufficiently large and enough CG simulation steps are performed such that the bins at distance greater than the minimum distance are sampled sufficiently otherwise ill-defined system of equation would give NaNs in the output.</DESC>
-	      </nknots>
+        <DESC>options specific to cbspl function form</DESC>
+        <nknots>
+          <DESC>Number of knot values to be used for the cbspl functional form. Uniform grid size of the CBSPL depends on this parameter; for fixed potential range more the nknots smaller the grid spacing. Make sure grid spacing is sufficiently large and enough CG simulation steps are performed such that the bins at distance greater than the minimum distance are sampled sufficiently otherwise ill-defined system of equation would give NaNs in the output.</DESC>
+        </nknots>
       </cbspl>
     </re>
     <inverse>
@@ -483,212 +505,227 @@
         <DESC>target distribution (e.g. rdf) which is tried to match during iterations to match</DESC>
       </target>
       <p_target>
-	      <DESC>pressure contribution of this interaction</DESC>
+        <DESC>pressure contribution of this interaction</DESC>
       </p_target>
       <particle_dens>
-	      <DESC>particle density of this species (for wjk pressure correction)</DESC>
+        <DESC>particle density of this species (for wjk pressure correction)</DESC>
       </particle_dens>
       <do_potential>1
-      <DESC>Update cycle for the potential update. 1 means update, 0 don't update. 1 1 0 means update 2 iterations, then don't one iteration update, then repeat.</DESC>
+        <DESC>Update cycle for the potential update. 1 means update, 0 don't update. 1 1 0 means update 2 iterations, then don't one iteration update, then repeat.</DESC>
       </do_potential>
       <espresso>
-	      <DESC>Espresso specific options for this interations</DESC>
+        <DESC>Espresso specific options for this interations</DESC>
         <table>
-	        <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
-	      </table>
+          <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original espresso script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
+        </table>
       </espresso>
       <gromacs>
-	      <DESC>Gromacs specific options for this interations</DESC>
+        <DESC>Gromacs specific options for this interations</DESC>
         <table>
-	        <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step.</DESC>
-	      </table>
+          <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step.</DESC>
+        </table>
       </gromacs>
       <sim_prog>
         <DESC> interaction specific options, which apply to all simulation programs</DESC>
         <table>
-	        <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original simulation script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
-	      </table>
+          <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the original simulation script needs to contain the name of that table as the tabulated interaction (see tutorial methanol ibi_espresso for details).</DESC>
+        </table>
         <table_begin>
-	        <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
-	      </table_begin>
+          <DESC> Start of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
+        </table_begin>
+        <table_end>
+          <DESC> End of the tabulated potential of this interaction. (Automatic for gromacs)</DESC>
+        </table_end>
+        <table_left_extrapolation>
+          <DESC> Extrapolation function to use on the left. Default: exponential(non-bonded), linear (bonded), Options: constant linear quadratic exponential sasha</DESC>
+        </table_left_extrapolation>
+        <table_right_extrapolation>
+          <DESC> Extrapolation function to use on the right. Default: constant(non-bonded), linear (bonded), Options: constant linear quadratic exponential sasha</DESC>
+        </table_right_extrapolation>
         <table_bins>
-	        <DESC> Binszie of the tabulated potential of this interaction. (gromacs uses a non interaction specific option)</DESC>
-	      </table_bins>
+          <DESC> Binszie of the tabulated potential of this interaction. (gromacs uses a non interaction specific option)</DESC>
+        </table_bins>
       </sim_prog>
       <imc>
         <DESC>ection containing inverse monte carlo specific options.</DESC>
-	      <group>
-	        <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
-	      </group>
-              <reg>0
-                <DESC> magnitude for regularization parameter, default =0</DESC>
-	      </reg>
+        <group>
+          <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
+        </group>
+        <reg>0
+          <DESC> magnitude for regularization parameter, default =0</DESC>
+        </reg>
       </imc>
       <lammps>
-	      <DESC>lammps specific options for this interations</DESC>
+        <DESC>lammps specific options for this interations</DESC>
         <scale>1
           <DESC>scaling factor for the potential output, can be used to convert VOTCA units, nm, to other units, e.g. angstroms</DESC>
         </scale>
         <table>
-	        <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the lammps script needs to contain the name of that table as the tabulated interaction and the interaction is stored in the VOTCA section of the file..</DESC>
-	      </table>
+          <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the lammps script needs to contain the name of that table as the tabulated interaction and the interaction is stored in the VOTCA section of the file..</DESC>
+        </table>
       </lammps>
       <post_add>
-	      <DESC>Additional post processing of U after dU added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
+        <DESC>Additional post processing of U after dU added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
       </post_add>
       <post_add_options>
-	      <DESC>Contains all options of post add scripts</DESC>
-	      <compress>
-	        <DESC>Contains all options of the postadd compress sripts</DESC>
-	        <filelist>
-	          <DESC>Files to be compressed</DESC>
-	        </filelist>
-	        <program_opts>-9
-	        <DESC>Option to give to the compression command</DESC>
-	        </program_opts>
-	        <program>gzip
-	        <DESC>Compression command to run</DESC>
-	        </program>
-	      </compress>
-	      <convergence>
-	        <weight>1
-	        <DESC>weight factors for the convergence of this interaction, should be a list of same length as inverse.post_add_options.convergence.what</DESC>
-	        </weight>
-	        <what>dist
-	        <DESC>list from what to calc the convergence: dist pot, ..</DESC>
-	        </what>
-	        <base>tgt
-	        <DESC>what base values to be used to compute convergene error: tgt, cur, ..</DESC>
-	        </base>
-	        <norm>1
-	        <DESC>which norm to use to compute error: 1 first norm, 2 second norm</DESC>
-	        </norm>
-	      </convergence>
-	      <copyback>
-	        <DESC>Contains all options of the postadd copyback sripts</DESC>
-	        <filelist>
-	          <DESC>File to be copied to back to maindir</DESC>
-	        </filelist>
-	      </copyback>
-	      <overwrite>
-	        <DESC>Contains all options of the overwrite postadd scripts</DESC>
-	        <do>1
-	        <DESC>Cycle for overwrite postadd script (1 do, 0 do not) like do_potential.</DESC>
-	        </do>
-	      </overwrite>
-	      <plot>
-	        <DESC>Contains all options of the plot postadd scripts</DESC>
-	        <fd>8
-	        <DESC>file descriptor to use, make it unique if you want to plot multiple things</DESC>
-	        </fd>
-	        <gnuplot_opts>
-	          <DESC>extra options to give to gnuplot_bin like  -persist or -geometry</DESC>
-	        </gnuplot_opts>
-	        <kill>
-	          <DESC>kill all processes with that name before ploting (e.g. gnuplot_x11), this is more reliable than using named pipes</DESC>
-	        </kill>
-	        <script>
-	          <DESC>plot script to give to gnuplot</DESC>
-	        </script>
-	      </plot>
-	      <average>
-	        <what>
-	          <DESC>list for which averages of last few steps are to computed: param, pot, ... For relative entropy method, specify param before pot.</DESC>
-	        </what>
-	      </average>
+        <DESC>Contains all options of post add scripts</DESC>
+        <compress>
+          <DESC>Contains all options of the postadd compress sripts</DESC>
+          <filelist>
+            <DESC>Files to be compressed</DESC>
+          </filelist>
+          <program_opts>-9
+            <DESC>Option to give to the compression command</DESC>
+          </program_opts>
+          <program>gzip
+            <DESC>Compression command to run</DESC>
+          </program>
+        </compress>
+        <convergence>
+          <weight>1
+            <DESC>weight factors for the convergence of this interaction, should be a list of same length as inverse.post_add_options.convergence.what</DESC>
+          </weight>
+          <what>dist
+            <DESC>list from what to calc the convergence: dist pot, ..</DESC>
+          </what>
+          <base>tgt
+            <DESC>what base values to be used to compute convergene error: tgt, cur, ..</DESC>
+          </base>
+          <norm>1
+            <DESC>which norm to use to compute error: 1 first norm, 2 second norm</DESC>
+          </norm>
+        </convergence>
+        <copyback>
+          <DESC>Contains all options of the postadd copyback sripts</DESC>
+          <filelist>
+            <DESC>File to be copied to back to maindir</DESC>
+          </filelist>
+        </copyback>
+        <overwrite>
+          <DESC>Contains all options of the overwrite postadd scripts</DESC>
+          <do>1
+            <DESC>Cycle for overwrite postadd script (1 do, 0 do not) like do_potential.</DESC>
+          </do>
+        </overwrite>
+        <plot>
+          <DESC>Contains all options of the plot postadd scripts</DESC>
+          <fd>8
+            <DESC>file descriptor to use, make it unique if you want to plot multiple things</DESC>
+          </fd>
+          <gnuplot_opts>
+            <DESC>extra options to give to gnuplot_bin like  -persist or -geometry</DESC>
+          </gnuplot_opts>
+          <kill>
+            <DESC>kill all processes with that name before ploting (e.g. gnuplot_x11), this is more reliable than using named pipes</DESC>
+          </kill>
+          <script>
+            <DESC>plot script to give to gnuplot</DESC>
+          </script>
+        </plot>
+        <average>
+          <what>
+            <DESC>list for which averages of last few steps are to computed: param, pot, ... For relative entropy method, specify param before pot.</DESC>
+          </what>
+        </average>
       </post_add_options>
       <post_update>
-	      <DESC>Additional post-processing of dU before added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
+        <DESC>Additional post-processing of dU before added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
       </post_update>
       <post_update_options>
-	      <DESC>Contains all options of post update scripts</DESC>
-	      <cibi>
-	        <DESC>Contains all options of the Kirkwood-Buff integral corrections scripts</DESC>
-	        <do>1
-	        <DESC>Update cycle for the Kirkwood-Buff integral correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
-	        </do>
-	        <kbint_with_errors>no
-	        <DESC>calculate errors on the Kirkwood-Buff integral: yes/no</DESC>
-	        </kbint_with_errors>no
-	      </cibi>
-	      <extrapolate>
-	        <points>5
-	        <DESC>Number of point to calculate the average from for the extrapolation</DESC>
-	        </points>
-	      </extrapolate>
-	      <kbibi>
-	        <DESC>Contains all options of the Kirkwood-Buff ramp corrections scripts</DESC>
-	        <do>1
-	        <DESC>Update cycle for the Kirkwood-Buff ramp correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
-	        </do>
-	        <factor>
-	          <DESC>scaling factor for the ramp correction</DESC>
-	        </factor>
-	        <kbint_with_errors>no
-	        <DESC>calculate errors on the Kirkwood-Buff integral: yes/no</DESC>
-	        </kbint_with_errors>no
-	        <r_ramp>
-	          <DESC>cutoff of the ramp</DESC>
-	        </r_ramp>
-	        <start>
-	          <DESC>Where to start averaging the Kirkwood-Buff integral for the ramp</DESC>
-	        </start>
-	        <stop>
-	          <DESC>Where to stop averaging the Kirkwood-Buff integral for the ramp</DESC>
-	        </stop>
-	      </kbibi>
-               <lj>
-                <DESC>Contains all options of the Lennard-Jones potential update</DESC>
-                <c6>  
-                  <DESC>The c6 value for the extra LJ potential</DESC>
-                </c6>
-                <c12>  
-                  <DESC>The c12 value for the extra LJ potential</DESC>
-                </c12>
-              </lj>
-	      <pressure>
-	        <DESC>Contains all options of the pressure correction scripts</DESC>
-	        <do>1
-	        <DESC>Update cycle for the pressure correction (1 do, 0 do not). To do pressure correction every third step specify "0 0 1", similar to do_potential</DESC>
-	        </do>
-	        <simple>
-	          <DESC>Contains all options of the simple pressure correction</DESC>
-	          <scale>
-	            <DESC>slope of the simple pressure correction</DESC>
-	          </scale>
-	        </simple>
-	        <type>simple
-	        <DESC>Pressure correction type, can be simple or wjk</DESC>
-	        </type>
-	        <wjk>
-	          <DESC>Contains all options of the wjk pressure correction</DESC>
-	          <scale>1.0
-	          <DESC>extra scaling factor of pressure wjk correction</DESC>
-	          </scale>
-	        </wjk>
-	      </pressure>
-	      <scale>1.0
-	      <DESC>scale factor for the update</DESC>
-	      </scale>
-	      <smooth>
-	        <DESC>Contains all options of the post_update smooth script</DESC>
-	        <iterations>1
-	        <DESC>number of triangular smooth to be performed</DESC>
-	        </iterations>
-	      </smooth>
-	      <splinesmooth>
-	        <DESC>Contains all options of the post_update spline smooth script</DESC>
-	        <step>
-	          <DESC>grid spacing for spline fit when doing spline smoothing</DESC>
-	        </step>
-	      </splinesmooth>
+        <DESC>Contains all options of post update scripts</DESC>
+        <cibi>
+          <DESC>Contains all options of the Kirkwood-Buff integral corrections scripts</DESC>
+          <do>1
+            <DESC>Update cycle for the Kirkwood-Buff integral correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
+          </do>
+          <kbint_with_errors>no
+            <DESC>calculate errors on the Kirkwood-Buff integral: yes/no</DESC>
+          </kbint_with_errors>no
+        </cibi>
+        <extrapolate>
+          <points>5
+            <DESC>Number of point to calculate the average from for the extrapolation</DESC>
+          </points>
+        </extrapolate>
+        <kbibi>
+          <DESC>Contains all options of the Kirkwood-Buff ramp corrections scripts</DESC>
+          <do>1
+            <DESC>Update cycle for the Kirkwood-Buff ramp correction (1 do, 0 do not). To do the correction every third step specify "0 0 1", similar to do_potential</DESC>
+          </do>
+          <factor>
+            <DESC>scaling factor for the ramp correction</DESC>
+          </factor>
+          <kbint_with_errors>no
+            <DESC>calculate errors on the Kirkwood-Buff integral: yes/no</DESC>
+          </kbint_with_errors>no
+          <r_ramp>
+            <DESC>cutoff of the ramp</DESC>
+          </r_ramp>
+          <start>
+            <DESC>Where to start averaging the Kirkwood-Buff integral for the ramp</DESC>
+          </start>
+          <stop>
+            <DESC>Where to stop averaging the Kirkwood-Buff integral for the ramp</DESC>
+          </stop>
+        </kbibi>
+        <lj>
+          <DESC>Contains all options of the Lennard-Jones potential update</DESC>
+          <c6>  
+            <DESC>The c6 value for the extra LJ potential</DESC>
+          </c6>
+          <c12>  
+            <DESC>The c12 value for the extra LJ potential</DESC>
+          </c12>
+        </lj>
+        <pressure>
+          <DESC>Contains all options of the pressure correction scripts</DESC>
+          <do>1
+            <DESC>Update cycle for the pressure correction (1 do, 0 do not). To do pressure correction every third step specify "0 0 1", similar to do_potential</DESC>
+          </do>
+          <simple>
+            <DESC>Contains all options of the simple pressure correction</DESC>
+            <scale>
+              <DESC>slope of the simple pressure correction</DESC>
+            </scale>
+          </simple>
+          <ptype>
+            <DESC>Generic Pressure correction options</DESC>
+            <scale>
+              <DESC>slope of the pressure correction</DESC>
+            </scale>
+          </ptype>
+          <type>simple
+            <DESC>Pressure correction type, can be simple or wjk</DESC>
+          </type>
+          <wjk>
+            <DESC>Contains all options of the wjk pressure correction</DESC>
+            <scale>1.0
+              <DESC>extra scaling factor of pressure wjk correction</DESC>
+            </scale>
+          </wjk>
+        </pressure>
+        <scale>1.0
+          <DESC>scale factor for the update</DESC>
+        </scale>
+        <smooth>
+          <DESC>Contains all options of the post_update smooth script</DESC>
+          <iterations>1
+            <DESC>number of triangular smooth to be performed</DESC>
+          </iterations>
+        </smooth>
+        <splinesmooth>
+          <DESC>Contains all options of the post_update spline smooth script</DESC>
+          <step>
+            <DESC>grid spacing for spline fit when doing spline smoothing</DESC>
+          </step>
+        </splinesmooth>
       </post_update_options>
       <optimizer>
-	      <density>
-	        <DESC>Contains all options for the density calculation of the optimizer</DESC>
-	        <axis>x
-	        <DESC>Axis along which the density is calculated</DESC>
-	        </axis>
+        <density>
+          <DESC>Contains all options for the density calculation of the optimizer</DESC>
+          <axis>x
+          <DESC>Axis along which the density is calculated</DESC>
+          </axis>
           <min>
             <DESC>Lower bound of interval in which density calculation is performed.</DESC>
           </min>
@@ -699,60 +736,60 @@
             <DESC>Step size of interval in which density calculation is performed.</DESC>
           </step>
                <scale>1.0
-               <DESC>Scaling factor for density</DESC>
+                 <DESC>Scaling factor for density</DESC>
                </scale>
-	        <molname>*
-	        <DESC>The molname of this interaction</DESC>
-	        </molname>
-	        <target>
-	          <DESC>Filename of the target denstiy distribution in the maindir</DESC>
-	        </target>
-	      </density>
-	      <function>
-	        <DESC>Functional form of the interaction, using parameters in here</DESC>
-	      </function>
-	      <functionfile>
-	        <DESC>If the function is very complicated it can be defined in this files, which is used as an header</DESC>
-	      </functionfile>
+          <molname>*
+            <DESC>The molname of this interaction</DESC>
+          </molname>
+          <target>
+            <DESC>Filename of the target denstiy distribution in the maindir</DESC>
+          </target>
+        </density>
+        <function>
+          <DESC>Functional form of the interaction, using parameters in here</DESC>
+        </function>
+        <functionfile>
+          <DESC>If the function is very complicated it can be defined in this files, which is used as an header</DESC>
+        </functionfile>
         <mapping>
           <DESC>option related to mapping changes</DESC>
           <change>no
-          <DESC>Does the mapping change in optimization: yes/no</DESC>
+            <DESC>Does the mapping change in optimization: yes/no</DESC>
           </change>
           <output>no
-          <DESC>Output file name for mapping</DESC>
-	        </output>
-	        <template>
+            <DESC>Output file name for mapping</DESC>
+          </output>
+          <template>
             <DESC>template for the mapping optimization</DESC>
-	        </template>
+          </template>
         </mapping>
-	      <parameters>
-	        <DESC>Parameters to be fitted by the optimizer for this interaction. Note that the parameter names are global</DESC>
-	      </parameters>
-	      <pressure>
-	        <DESC>Contains all options for the pressure calculation of the optimizer</DESC>
-	        <undef>
-	          <DESC>Pressure to use if pressure from the simulation was nan (use a big number)</DESC>
-	        </undef>
-	      </pressure>
-	      <rdf>
-	        <DESC>Contains all options for the rdf calculation of the optimizer</DESC>
-	        <target>
-	          <DESC>Filename of the target rdf in the maindir</DESC>
-	        </target>
-	        <weight>
-	          <DESC>Weighting function for calculating the convergency of the rdf</DESC>
-	        </weight>
-	        <weightfile>
-	          <DESC>File with the weighting function definition calculating the rdf</DESC>
-	        </weightfile>
-	      </rdf>
-	      <targets>rdf
-	      <DESC>Targets to be fitted by the optimizer</DESC>
-	      </targets>
-	      <target_weights>1
-	      <DESC>Weight of the targets, amount has to be the same as of targets</DESC>
-	      </target_weights>
+        <parameters>
+          <DESC>Parameters to be fitted by the optimizer for this interaction. Note that the parameter names are global</DESC>
+        </parameters>
+        <pressure>
+          <DESC>Contains all options for the pressure calculation of the optimizer</DESC>
+          <undef>
+            <DESC>Pressure to use if pressure from the simulation was nan (use a big number)</DESC>
+          </undef>
+        </pressure>
+        <rdf>
+          <DESC>Contains all options for the rdf calculation of the optimizer</DESC>
+          <target>
+            <DESC>Filename of the target rdf in the maindir</DESC>
+          </target>
+          <weight>
+            <DESC>Weighting function for calculating the convergency of the rdf</DESC>
+          </weight>
+          <weightfile>
+            <DESC>File with the weighting function definition calculating the rdf</DESC>
+          </weightfile>
+        </rdf>
+        <targets>rdf
+          <DESC>Targets to be fitted by the optimizer</DESC>
+        </targets>
+        <target_weights>1
+          <DESC>Weight of the targets, amount has to be the same as of targets</DESC>
+        </target_weights>
       </optimizer>
     </inverse>
   </non-bonded>

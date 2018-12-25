@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg)
         Bead *b=cg.getBead(i);
        
         out << format("%d %s 1 RES %s %d %f %f\n")
-            % (i+1) % b->getType()->getName() % b->getName() % (i+1) % b->getQ() % b->getM();
+            % (i+1) % b->getType()->getName() % b->getName() % (i+1) % b->getQ() % b->getMass();
     }
     out << endl;
 }
@@ -108,13 +108,18 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg)
                     out << "\n[ dihedrals ]\n";
                     break;
                 default:
-                    throw runtime_error(string("cannot handle number of beads in interaction:") +
-                            ic->getName());
+                    string err = "cannot handle number of beads in interaction:";
+                    err += to_string(ic->getMolecule()+1)+":"+ic->getGroup();
+                    err += ":"+to_string(ic->getIndex()+1);
+                    throw runtime_error(err);
             }
         }
         for(int i=0; i<nb; ++i)
             out << ic->getBeadId(i)+1 << " ";
-        out << "  1  ; " << ic->getName() << endl;
+        out << "  1  ; ";
+        out << to_string(ic->getMolecule()+1) ;
+        out << ":"+ic->getGroup();
+        out << ":"+to_string(ic->getIndex()+1) << endl;
     }
 }
 

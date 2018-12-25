@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,12 @@ Allowed options:
     --clean                   remove all intermediate temp files
     --type TYPE               type of the potential
                               possible: ${pot_types}
+    --lfct FCT                type of the left extrapolation function
+                              possible: ${fct_type}
+                              default: exponential(non-bonded), linear (bonded)
+    --rfct FCT                type of the right extrapolation function
+                              possible: ${fct_types}
+                              default: constant(non-bonded), linear (bonded)
     --avg-point INT           number of average points
                               default: $avg_points
 
@@ -34,7 +40,10 @@ EOF
 }
 
 clean="no"
-pot_type="$2"
+lfct=
+rfct=
+fct_types="constant linear quadratic exponential sasha"
+pot_type=
 pot_types="non-bonded bond angle dihedral"
 avg_points=3
 
@@ -47,6 +56,10 @@ while [[ ${1} = --* ]]; do
     shift ;;
    --type)
     pot_type="$2"
+    shift 2;;
+   --[rl]fct)
+    is_part "${2}" "${fct_types}" || die "${0##*/}: given function type ($2) is not in the list of functions (${fct_types})"
+    eval "${1#--}"="$2"
     shift 2;;
   --avg-point)
     avg_points="$2";
@@ -62,7 +75,7 @@ done
 ### end parsing options
 
 [[ -z $pot_type ]] && die "${0##*/}: please specify add potential type (--type options) from: ${pot_types}"
-is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type is not in the listof types (${pot_types})"
+is_part "${pot_type}" "${pot_types}" || die "${0##*/}: given potential type($pot_type) is not in the list of types (${pot_types})"
 
 [[ -z $1 || -z $2 ]] && die "${0##*/}: Missing arguments"
 
@@ -73,12 +86,13 @@ output="$2"
 
 echo "Extrapolate $input to $output"
 
+intermediate="$(critical mktemp "${input}.onlyleft.XXXXX")"
 if [[ $pot_type = "non-bonded"  ]]; then
-  intermediate="$(critical mktemp "${input}.onlyleft.XXXXX")"
-  do_external table extrapolate --function exponential --avgpoints $avg_points --region left "${input}" "${intermediate}"
-  do_external table extrapolate --function constant --avgpoints 1 --region right "${intermediate}" "${output}"
+  do_external table extrapolate --function ${lfct:-exponential} --avgpoints $avg_points --region left "${input}" "${intermediate}"
+  do_external table extrapolate --function ${rfct:-constant} --avgpoints 1 --region right "${intermediate}" "${output}"
 elif [[ $pot_type = "bond"  || $pot_type = "angle" || $pot_type = "dihedral" ]]; then
-  do_external table extrapolate --function linear --avgpoints $avg_points --region leftright "${input}" "${output}"
+  do_external table extrapolate --function ${lfct:-linear} --avgpoints $avg_points --region left "${input}" "${intermediate}"
+  do_external table extrapolate --function ${rfct:-linear} --avgpoints $avg_points --region right "${intermediate}" "${output}"
 else
   die "${0##*/}: I don't know how to extraploate potential type '$pot_type', go and implement it!"
 fi

@@ -1,6 +1,5 @@
-prefix=@CMAKE_INSTALL_PREFIX@
-libdir=${prefix}/@LIB@
-includedir=${prefix}/include
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
 
 Name: libvotca_csg
 Description: csg functions of the votca package

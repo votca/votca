@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,10 @@
 #include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
 #include "modules/io/xyzwriter.h"
+#include "modules/io/lammpsdumpwriter.h"
 #include "modules/io/dlpolytrajectorywriter.h"
 
-#ifdef GMX
+#ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectorywriter.h"
 #endif
 #include "modules/io/growriter.h"
@@ -39,9 +40,10 @@ void TrajectoryWriter::RegisterPlugins()
 {
     TrjWriterFactory().Register<PDBWriter>("pdb");
     TrjWriterFactory().Register<XYZWriter>("xyz");
+    TrjWriterFactory().Register<LAMMPSDumpWriter>("dump");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlph");
     TrjWriterFactory().Register<DLPOLYTrajectoryWriter>("dlpc");
-#ifdef GMX
+#ifdef GMX_DOUBLE
     TrjWriterFactory().Register<GMXTrajectoryWriter>("trr");
     TrjWriterFactory().Register<GMXTrajectoryWriter>("xtc");
 #endif

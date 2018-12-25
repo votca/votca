@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2014 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ if ($sim_prog eq "espresso") {
   # espresso specific header - no other starting comments
   printf(OUTFILE "#%d %f %f\n", $#r+1, $r[0],$r[$#r]);
   for(my $i=0;$i<=$#r;$i++){
-    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],($r[$i]>0)?-$pot_deriv[$i]/$r[$i]:-$pot_deriv[$i], $pot[$i]);
+    printf(OUTFILE "%15.10e %15.10e %15.10e\n",$r[$i],-$pot_deriv[$i], $pot[$i]);
   }
 } elsif ($sim_prog eq "lammps") {
   if ($type eq "non-bonded"){
@@ -110,11 +110,19 @@ if ($sim_prog eq "espresso") {
       for(my $i=0;$i<=$#r;$i++){
         printf(OUTFILE "%i %15.10e %15.10e %15.10e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
       }
-  } elsif ( $type eq "bond"  || $type eq "angle" ||  $type eq "dihedral" ) {
+  } elsif ( $type eq "bond"  || $type eq "angle" ) {
     printf(OUTFILE "VOTCA\n");
     printf(OUTFILE "N %i\n\n",$#r+1);
     for(my $i=0;$i<=$#r;$i++){
       printf(OUTFILE "%i %12.5e %15.7e %15.7e\n",$i+1,$r[$i], $pot[$i], -$pot_deriv[$i]);
+    }
+  } elsif ( $type eq "dihedral" ) {
+    printf(OUTFILE "VOTCA\n");
+    # see lammps manual, NOF causes LAMMPS to calculate forces from potential
+    # see lammps manual RADIANS causes LAMMPS to assume units are in radians and not degrees
+    printf(OUTFILE "N %i RADIANS NOF\n\n",$#r+1);
+    for(my $i=0;$i<=$#r;$i++){
+      printf(OUTFILE "%i %12.5e %15.7e\n",$i+1,$r[$i], $pot[$i]);
     }
   } else {
     #should never happen

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,12 @@
  *
  */
 
-#ifndef BEADTRIPLE_H
-#define	BEADTRIPLE_H
+#ifndef _VOTCA_CSG_BEADTRIPLE_H
+#define	_VOTCA_CSG_BEADTRIPLE_H
 
 #include <tuple>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
 /**
    \brief A particle pair
@@ -31,7 +30,7 @@ using namespace votca::tools;
  
  */
 
-class BeadTriple   
+class BeadTriple
     : public std::tuple<Bead *, Bead *, Bead *>
 {
 public:
@@ -41,6 +40,11 @@ public:
         
     virtual ~BeadTriple() {}
 
+    /// \brief return the beads
+    const Bead * bead1() { return std::get<0>(*this); }
+    const Bead * bead2() { return std::get<1>(*this); }
+    const Bead * bead3() { return std::get<2>(*this); }
+    
     /// \brief the vector connecting two beads
     vec &r12() { return _r12; }
     vec &r13() { return _r13; }
@@ -61,5 +65,5 @@ protected:
 
 }}
 
-#endif	/* BEADTRIPLE_H */
+#endif	/* _VOTCA_CSG_BEADTRIPLE_H */
 

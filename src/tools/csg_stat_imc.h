@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,11 @@
  *
  */
 
-#ifndef _IMC_H
-#define	_IMC_H
+#ifndef _VOTCA_CSG_IMC_H
+#define	_VOTCA_CSG_IMC_H
 
 #include <votca/csg/csgapplication.h>
 #include <votca/tools/property.h>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/matrix_proxy.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/average.h>
 
@@ -63,17 +57,21 @@ public:
 protected:
     Average<double> _avg_vol;
     
-    typedef ub::matrix<double> group_matrix;
-    typedef ub::matrix_range< group_matrix > pair_matrix;
+    typedef Eigen::MatrixXd group_matrix;
+    typedef Eigen::Block<group_matrix > pair_matrix;
     
     /// struct to store collected information for interactions
     struct interaction_t {
         int _index;
         Property *_p;
         HistogramNew _average;
+        HistogramNew _average_force;
         double _min, _max, _step;
         double _norm;
+        double _cut;
         bool _is_bonded;
+        bool _threebody;
+        bool _force;
     };
     
     // a pair of interactions which are correlated
@@ -133,7 +131,7 @@ protected:
     void WriteIMCBlock(const string &suffix);
 
     void CalcDeltaS(interaction_t *interaction, 
-                    ub::vector_range< ub::vector<double> > &dS);
+                    Eigen::VectorBlock< Eigen::VectorXd > &dS);
     
     void ClearAverages();
 
@@ -142,6 +140,7 @@ protected:
     public:
 
         vector<HistogramNew> _current_hists;
+        vector<HistogramNew> _current_hists_force;
         Imc *_imc;
         double _cur_vol;
 
@@ -169,5 +168,5 @@ public:
 
 }}
 
-#endif	/* _IMC_H */
+#endif	/* _VOTCA_CSG_IMC_H */
 

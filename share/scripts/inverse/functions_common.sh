@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -286,7 +286,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
     return 0
   fi
 
-  [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$CSGXMLFILE" ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n $bondtype ]] || die "${FUNCNAME[0]}: bondtype is undefined (when calling from csg_call set it by --ia-type option)"
   [[ -n $bondname ]] || die "${FUNCNAME[0]}: bondname is undefined (when calling from csg_call set it by --ia-name option)"
 
@@ -307,16 +307,16 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
   ret="$(csg_property --file $CSGXMLFILE --short --path cg.${xmltype} --filter name=$bondname --print $1 | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
-  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying ${VOTCA_CSG_DEFAULTS}" >&2
   # if still empty fetch it from defaults file
-  if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.${xmltype}.$1 --print . | trim_all)"
-    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+  if [[ -z $ret && -f ${VOTCA_CSG_DEFAULTS} ]]; then
+    ret="$(critical -q csg_property --file "${VOTCA_CSG_DEFAULTS}" --short --path cg.${xmltype}.$1 --print . | trim_all)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '${VOTCA_CSG_DEFAULTS}'"
     #from time to time the default is only given in the non-bonded section
-    [[ -z $ret ]] && ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --short --path cg.non-bonded.$1 --print . | trim_all)"
-    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
+    [[ -z $ret ]] && ret="$(critical -q csg_property --file "${VOTCA_CSG_DEFAULTS}" --short --path cg.non-bonded.$1 --print . | trim_all)"
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from ${VOTCA_CSG_DEFAULTS}: $ret" >&2
   fi
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' for interaction with name '$bondname' from ${CSGXMLFILE} and no default was found in ${VOTCA_CSG_DEFAULTS}"
   [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value for '$1'" >&2
   echo "${ret}"
 }
@@ -331,29 +331,29 @@ csg_get_property () { #get an property from the xml file
     allow_empty="no"
   fi
   [[ -n $1 ]] || die "${FUNCNAME[0]}: Missing argument"
-  [[ -n $CSGXMLFILE ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
+  [[ -n "$CSGXMLFILE" ]] || die "${FUNCNAME[0]}: CSGXMLFILE is undefined (when calling from csg_call set it by --options option)"
   [[ -n "$(type -p csg_property)" ]] || die "${FUNCNAME[0]}: Could not find csg_property"
   #csg_property only fails if xml file is bad otherwise result is empty
   #leave the -q here to avoid flooding with messages
-  ret="$(critical -q csg_property --file $CSGXMLFILE --path ${1} --short --print . | trim_all)"
+  ret="$(critical -q csg_property --file "$CSGXMLFILE" --path ${1} --short --print . | trim_all)"
   #overwrite with function call value
   [[ -z $ret && -n $2 ]] && ret="$2"
-  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying $VOTCASHARE/xml/csg_defaults.xml" >&2
+  [[ -z $ret ]] && echo "${FUNCNAME[0]}: No value for '$1' found in $CSGXMLFILE, trying ${VOTCA_CSG_DEFAULTS}" >&2
   #if still empty fetch it from defaults file
-  if [[ -z $ret && -f $VOTCASHARE/xml/csg_defaults.xml ]]; then
-    ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${1}" --short --print . | trim_all)"
-    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+  if [[ -z $ret && -f ${VOTCA_CSG_DEFAULTS} ]]; then
+    ret="$(critical -q csg_property --file "${VOTCA_CSG_DEFAULTS}" --path "${1}" --short --print . | trim_all)"
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '${VOTCA_CSG_DEFAULTS}'"
     #avoid endless recursion
-    [[ $1 = cg.inverse.program && -n $ret ]] || sim_prog="$ret" \
+    [[ $1 = cg.inverse.program && -n $ret ]] && sim_prog="$ret" || \
       sim_prog="$(csg_get_property cg.inverse.program)" #no problem to call recursively as sim_prog has a default
     if [[ -z $ret ]] && [[ $1 = *${sim_prog}* ]]; then
       local path=${1/${sim_prog}/sim_prog}
-      ret="$(critical -q csg_property --file "$VOTCASHARE/xml/csg_defaults.xml" --path "${path}" --short --print . | trim_all)"
+      ret="$(critical -q csg_property --file "${VOTCA_CSG_DEFAULTS}" --path "${path}" --short --print . | trim_all)"
     fi
-    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from $VOTCASHARE/xml/csg_defaults.xml: $ret" >&2
-    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '$VOTCASHARE/xml/csg_defaults.xml'"
+    [[ -n $ret ]] && echo "${FUNCNAME[0]}: value for '$1' from ${VOTCA_CSG_DEFAULTS}: $ret" >&2
+    [[ $allow_empty = "yes" && -n "$res" ]] && msg "WARNING: '${FUNCNAME[0]} $1' was called with --allow-empty, but a default was found in '${VOTCA_CSG_DEFAULTS}'"
   fi
-  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in $VOTCASHARE/xml/csg_defaults.xml"
+  [[ $allow_empty = "no" && -z $ret ]] && die "${FUNCNAME[0]}: Could not get '$1' from ${CSGXMLFILE} and no default was found in ${VOTCA_CSG_DEFAULTS}"
   [[ -z $ret ]] && echo "${FUNCNAME[0]}: returning emtpy value for '$1'" >&2
   echo "${ret}"
 }
@@ -587,7 +587,7 @@ get_table_comment() { #get comment lines from a table and add common information
   version="$(csg_call --version)" || die "${FUNCNAME[0]}: csg_call --version failed"
   echo "Created on $(date) by $USER@$HOSTNAME"
   echo "called from $version" | sed "s/csg_call/${0##*/}/"
-  [[ -n ${CSGXMLFILE} ]] && echo "settings file: $(globalize_file $CSGXMLFILE)"
+  [[ -n "${CSGXMLFILE}" ]] && echo "settings file: '$(globalize_file "${CSGXMLFILE}")'"
   echo "working directory: $PWD"
   if [[ -f $1 ]]; then 
     co=$(sed -n 's/^[#@][[:space:]]*//p' "$1") || die "${FUNCNAME[0]}: sed failed"
@@ -910,17 +910,6 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
   done
 }
 export -f check_for_obsolete_xml_options
-
-check_for_bug_179() { #check if shell has bug #179
-  simple_fct() { echo "Shell OK";}
-  export -f simple_fct
-  if [[ $(perl -e '$x=`bash -c "simple_fct"`; print $x' 2> /dev/null) != "Shell OK" ]]; then
-    die "Your shell seems to exhibit bug #179 (see https://github.com/votca/csg/issues/179)\nIn short, as a workaround you want to run 'sudo ln -fs bash /bin/sh' and re-login!"
-  fi
-  unset simple_fct
-}
-check_for_bug_179
-unset check_for_bug_179
 
 command_not_found_handle() { #print and error message if a command or a function was not found
   die "Command/function $1 not found (when calling from csg_call you might need to add --simprog option or set cg.inverse.program in the xml file)"

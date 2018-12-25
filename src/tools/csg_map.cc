@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,10 +72,8 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
             // we want to combine atomistic and coarse-grained into one topology
             Topology *hybtol = new Topology();
 
-            BeadContainer::iterator it_bead;
             ResidueContainer::iterator it_res;
             MoleculeContainer::iterator it_mol;
-            InteractionContainer::iterator it_ia;
 
             hybtol->setBox(top->getBox());
             hybtol->setTime(top->getTime());
@@ -99,7 +97,7 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
 
                     Bead *bi = (*it_mol)->getBead(i);
                     BeadType *type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
-                    Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getM(), bi->getQ());
+                    Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getMass(), bi->getQ());
                     bn->setOptions(bi->Options());
                     bn->setPos(bi->getPos());
                     if (bi->HasVel()) bn->setVel(bi->getVel());
@@ -117,7 +115,7 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                         // todo: this is a bit dirty as a cg bead will always have the resid of its first parent
                         Bead *bparent = (*it_mol)->getBead(0);
                         BeadType *type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
-                        Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bparent->getResnr(), bi->getM(), bi->getQ());
+                        Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bparent->getResnr(), bi->getMass(), bi->getQ());
                         bn->setOptions(bi->Options());
                         bn->setPos(bi->getPos());
                         if (bi->HasVel()) bn->setVel(bi->getVel());

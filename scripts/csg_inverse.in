@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ fi
 
 if [[ -f ${VOTCASHARE}/scripts/inverse/inverse.sh ]]; then
   pre="$*"
-  [[ -n $pre && -z ${pre//*--debug*} ]] && pre="bash -x " || pre=""
+  [[ -n $pre && -z ${pre//*--debug*} ]] && pre="${BASH} -x " || pre=""
   exec ${pre} ${VOTCASHARE}/scripts/inverse/inverse.sh "$@"
   exit 0
 else

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -37,6 +37,9 @@ if [[ -n ${gmxrc} ]]; then
 fi
 unset gmxrc
 
+#>gromacs-2016.3 allows to disable frame count output, e.g. "Reading frame ..."
+export GMX_TRAJECTORY_IO_VERBOSITY=0
+
 get_simulation_setting() { #gets a parameter (1st argument) from gromacs mdp file (default 2nd parameter)
   local res
   if [[ $1 = "--file" ]]; then
@@ -64,7 +67,7 @@ check_temp() { #compares k_B T in xml with temp in mpd file
   [[ "$(csg_get_property cg.inverse.gromacs.temp_check)" = "no" ]] && return 0
   #kbt in energy unit
   kbt="$(csg_get_property cg.inverse.kBT)"
-  temp="$(get_simulation_setting ref_t)"
+  temp="$(get_simulation_setting "ref[_-]t")"
   for t in $temp; do
     #0.00831451 is k_b in gromacs untis see gmx manual chapter 2
     kbt2=$(csg_calc "$t" "*" 0.00831451)

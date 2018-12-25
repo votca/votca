@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1)
 
 project(votca-csg)
 
-set(PROJECT_VERSION "1.4.1")
+set(PROJECT_VERSION "1.5-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -28,26 +28,23 @@ enable_language(CXX)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
-check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
-if(COMPILER_SUPPORTS_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-else()
-	message(FATAL_ERROR "Could not find a C++-11 compiler")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
+  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
 endif()
 
 ########################################################################
 # User input options                                                   #
 ########################################################################
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
-if (NOT DEFINED LIB)
-  set(LIB "lib")
-endif(NOT DEFINED LIB)
-if (NOT DEFINED MAN)
-  set(MAN "share/man")
-endif(NOT DEFINED MAN)
-if (NOT DEFINED DATA)
-  set(DATA "share/votca")
-endif(NOT DEFINED DATA)
+include(GNUInstallDirs)
+
+option(ENABLE_TESTING "Build and enable testing stuff" OFF)
+if(ENABLE_TESTING)
+  enable_testing()
+endif(ENABLE_TESTING)
 
 # this has to be the include specification!
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -85,8 +82,19 @@ include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
-  find_package(GROMACS REQUIRED)
+  find_package(GROMACS 20160000 REQUIRED)
 endif(WITH_GMX) 
+
+if(ENABLE_TESTING)
+  foreach(prog votca_compare)
+    string(TOUPPER "${prog}" PROG)
+    find_program(${PROG} ${prog})
+    find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
+    if(NOT ${PROG}_FOUND)
+      message(FATAL_ERROR "Could not find ${prog}")
+    endif()
+  endforeach()
+endif(ENABLE_TESTING)
 
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #
@@ -129,7 +137,7 @@ add_subdirectory(include/votca/csg)
 add_subdirectory(share)
 
 file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake)
-install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${DATA}/template/CMakeModules)
+install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/template/CMakeModules)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
@@ -138,5 +146,7 @@ if(NOT TARGET uninstall)
 endif()
 add_dependencies(uninstall uninstall-csg)
 
-include(FeatureSummary)
-feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  include(FeatureSummary)
+  feature_summary(INCLUDE_QUIET_PACKAGES WHAT ALL)
+endif (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

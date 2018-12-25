@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _topologymap_H
-#define	_topologymap_H
+#ifndef _VOTCA_CSG_TOPOLOGYMAP_H
+#define	_VOTCA_CSG_TOPOLOGYMAP_H
 
 #include "map.h"
 #include "topology.h"
@@ -56,5 +56,5 @@ inline void TopologyMap::AddMoleculeMap(Map *map)
 
 }}
 
-#endif	/* _topologymap_H */
+#endif	/* _VOTCA_CSG_TOPOLOGYMAP_H */
 

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
  */
 
 #include <votca/csg/potentialfunctions/potentialfunctioncbspl.h>
+#include <Eigen/src/Core/PlainObjectBase.h>
 
 PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_,
                                                const double min_, const double max_) :
@@ -42,8 +43,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
   // break point locations
   // since ncoeff = nbreak +2 , r values for last two coefficients are also
   // computed
-  _rbreak.resize(nknots,false);
-  _rbreak.clear();
+  _rbreak=Eigen::VectorXd::Zero(nknots);
 
   for( int i = 0; i < nknots; i++)
     _rbreak(i) =  i*_dr;
@@ -69,8 +69,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nla
                                "3. Use more knot values.\n");
     }
 
-  _M.resize(4,4,false);
-  _M.clear();
+  _M=Eigen::MatrixXd::Zero(4,4);
   _M(0,0) =  1.0; _M(0,1) =  4.0; _M(0,2) =  1.0; _M(0,3) = 0.0;
   _M(1,0) = -3.0; _M(1,1) =  0.0; _M(1,2) =  3.0; _M(1,3) = 0.0;
   _M(2,0) =  3.0; _M(2,1) = -6.0; _M(2,2) =  3.0; _M(2,3) = 0.0;
@@ -89,7 +88,7 @@ void PotentialFunctionCBSPL::setParam(string filename) {
 
   Table param;
   param.Load(filename);
-  _lam.clear();
+  _lam.setZero();
 
   if( param.size() != _lam.size()) {
 
@@ -113,7 +112,7 @@ void PotentialFunctionCBSPL::SaveParam(const string& filename){
 
   Table param;
   param.SetHasYErr(false);
-  param.resize(_lam.size(), false);
+  param.resize(_lam.size());
 
   // write extrapolated knots with flag 'o'
   // points close to rmin can also be stastically not reliable
@@ -191,23 +190,14 @@ double PotentialFunctionCBSPL::CalculateF (const double r) const {
   if( r <= _cut_off){
 
     double u = 0.0;
-
-    ub::vector<double> R;
-    ub::vector<double> B;
-    R.resize(4,false); R.clear();
-    B.resize(4,false); B.clear();
-
     int indx = min( int( r /_dr ) , _nbreak-2 );;
     double rk = indx*_dr;;
     double t = (r - rk)/_dr;
-
+    
+    Eigen::VectorXd R=Eigen::VectorXd::Zero(4);
     R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
-    ub::vector<double> RM = ub::prod(R,_M);
-    B(0) = _lam(indx); B(1) = _lam(indx+1); B(2) = _lam(indx+2);
-    B(3) = _lam(indx+3);
-
-    u += ub::inner_prod(B,RM);
-
+    Eigen::VectorXd B=_lam.segment(indx,4);
+    u += ((R.transpose()*_M)*B).value();
     return u;
 
   } else
@@ -232,14 +222,13 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const{
 
     if ( i_opt >= indx && i_opt <= indx+3 ){
 
-      ub::vector<double> R;
-      R.resize(4,false); R.clear();
+      Eigen::VectorXd R=Eigen::VectorXd::Zero(4);
 
       double t = ( r - rk)/_dr;
 
       R(0) = 1.0; R(1) = t; R(2) = t*t; R(3) = t*t*t;
 
-      ub::vector<double> RM = ub::prod(R,_M);
+      Eigen::VectorXd RM = R.transpose()*_M;
 
       return RM(i_opt-indx);
 

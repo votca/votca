@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,16 +26,16 @@ This script calcs dU out of two rdfs with the rules of inverse boltzmann
 In addition, it does some magic tricks:
 - do not update if one of the two rdf is undefined
 
-Usage: $progname target_rdf new_rdf cur_pot outfile
+Usage: $progname target_rdf new_rdf cur_pot outfile kBT
 EOF
   exit 0;
 }
 
-die "4 parameters are necessary\n" if ($#ARGV<3);
+die "5 parameters are necessary\n" if ($#ARGV<4);
 
 use CsgFunctions;
 
-my $pref=csg_get_property("cg.inverse.kBT");
+my $pref="$ARGV[4]";
 
 my $aim_rdf_file="$ARGV[0]";
 my @r_aim;

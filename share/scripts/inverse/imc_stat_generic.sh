@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,10 +28,12 @@ fi
 
 sim_prog="$(csg_get_property cg.inverse.program)"
 
-topol=$(csg_get_property cg.inverse.$sim_prog.topol)
+topol=$(csg_get_property --allow-empty cg.inverse.$sim_prog.imc.topol)
+[[ -z $topol ]] && topol=$(csg_get_property cg.inverse.$sim_prog.topol)
 [[ -f $topol ]] || die "${0##*/}: topol file '$topol' not found, possibly you have to add it to cg.inverse.filelist"
 
-traj=$(csg_get_property cg.inverse.$sim_prog.traj)
+traj=$(csg_get_property --allow-empty cg.inverse.$sim_prog.imc.traj)
+[[ -z $traj ]] && traj=$(csg_get_property cg.inverse.$sim_prog.traj)
 [[ -f $traj ]] || die "${0##*/}: traj file '$traj' not found"
 
 equi_time="$(csg_get_property cg.inverse.$sim_prog.equi_time)"
@@ -41,6 +43,10 @@ if [[ ${CSG_RUNTEST} ]] && csg_calc "$equi_time" ">" "0"; then
 fi
 
 first_frame="$(csg_get_property cg.inverse.$sim_prog.first_frame)"
+if [[ ${CSG_RUNTEST} ]] && csg_calc "$first_frame" ">" "0"; then
+  msg --color blue --to-stderr "Automatically setting first_frame to 0, because CSG_RUNTEST was set"
+  first_frame=0
+fi
 
 tasks=$(get_number_tasks)
 msg "Calculating IMC statistics using $tasks tasks"

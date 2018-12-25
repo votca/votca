@@ -1,3 +1,6 @@
 add_subdirectory(libcsg)
 add_subdirectory(tools)
 add_subdirectory(csg_boltzmann)
+if(ENABLE_TESTING)
+  add_subdirectory(tests)
+endif()

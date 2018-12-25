@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -224,8 +224,8 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg)
         btype = btype.substr(0,btype.find_first_of("#")); // skip #index of atom from its type
 
         out << format("%8s  %10f  %10f     1     0     1 %10d  %8s  %8s %10d \n")
-            % btype % b->getM() % b->getQ() % (i+1) % btype % bname % (i+1);
-	//% b->getType()->getName() % b->getM() % b->getQ() % (i+1) % b->getType()->getName() % b->getName() % (i+1);
+            % btype % b->getMass() % b->getQ() % (i+1) % btype % bname % (i+1);
+	//% b->getType()->getName() % b->getMass() % b->getQ() % (i+1) % b->getType()->getName() % b->getName() % (i+1);
     }
 }
 
@@ -261,8 +261,10 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
                     out << "dihedrals ";
                     break;
                 default:
-                    throw runtime_error(string("cannot handle number of beads in interaction:") +
-                            ic->getName());
+                    string err = "cannot handle number of beads in interaction:";
+                    err += to_string(ic->getMolecule()+1)+":"+ic->getGroup();
+                    err += ":"+to_string(ic->getIndex()+1);
+                    throw runtime_error(err);
             }
         }
 	n_entries++;
@@ -271,8 +273,10 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg)
         sout << " tab ";
         for(int i=0; i<nb; ++i)
 	  sout << ic->getBeadId(i)+1 << " ";
-        sout << "   1.00000  0.00000" << " # " << ic->getName() << endl;
-        //sout << "   1.00000  0.00000" << " # " << ic->getGroup() << endl;
+        sout << "   1.00000  0.00000" << " # ";
+        sout << to_string(ic->getMolecule()+1) ;
+        sout << ":"+ic->getGroup();
+        sout << ":"+to_string(ic->getIndex()+1) << endl;
     }
     if(sout.str()!="") out << n_entries << endl << sout.str();
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _trajectorywriter_H
-#define	_trajectorywriter_H
+#ifndef _VOTCA_CSG_TRAJECTORYWRITER_H
+#define	_VOTCA_CSG_TRAJECTORYWRITER_H
 
 #include <string>
 #include <iostream>
@@ -52,5 +52,5 @@ inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory()
 
 }}
 
-#endif	/* _trajectorywriter_H */
+#endif	/* _VOTCA_CSG_TRAJECTORYWRITER_H */
 

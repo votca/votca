@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@
  *
  */
 
-#ifndef _CSG_FMATCH_H
-#define	_CSG_FMATCH_H
+#ifndef _VOTCA_CSG_FMATCH_H
+#define	_VOTCA_CSG_FMATCH_H
 
 #include <votca/tools/property.h>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix_sparse.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
 #include <votca/tools/cubicspline.h>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/trajectoryreader.h>
@@ -82,6 +79,12 @@ protected:
         bool bonded;
         /// \brief true if tabulated forces are periodic (e.g. for dihedral interactions)
         bool periodic;
+        /// \brief true if non-bonded interaction is threebody interaction
+        bool threebody;
+        /// \brief additional variables for treating cutoff of 
+        double a;
+        double sigma;
+        double gamma;
         /// \brief CubicSpline object
         CubicSpline Spline;
         /// \brief position in the _A matrix (first coloumn which is occupied with this particular spline)
@@ -92,22 +95,33 @@ protected:
         pair<int, int> beadTypes;
         
         /// \brief Result of 1 block calculation for f
-        ub::vector<double> block_res_f;
+        Eigen::VectorXd block_res_f;
         /// \brief Result of 1 block calculation for f''
-        ub::vector<double> block_res_f2;
+        Eigen::VectorXd block_res_f2;
         /// \brief Final result: average over all blocks
-        ub::vector<double> result;
+        Eigen::VectorXd result;
         /// \brief accuracy of the final result
-        ub::vector<double> error;
+        Eigen::VectorXd error;
         /// \brief sum of all block_res (used to calculate error)
-        ub::vector<double> resSum;
+        Eigen::VectorXd resSum;
         /// \brief sum of all squares of block_res (used to calculate error)
-        ub::vector<double> resSum2;
+        Eigen::VectorXd resSum2;
 
+        //only needed for 3body nonbonded interactions as here force and potential are calculated simultaneously        
+        /// \brief Final result of derivatives: average over all blocks
+        Eigen::VectorXd resultDer;
+        /// \brief accuracy of the final result
+        Eigen::VectorXd errorDer;
+        /// \brief sum of all block_res
+        Eigen::VectorXd resSumDer;    
+        /// \brief sum of all squares of block_res (used to calculate error)
+        Eigen::VectorXd resSumDer2;  
+
+        
         /// \brief Spline Name
         string splineName;
-        /// \brief for non-bonded interactions: types of beads involved
-        string type1, type2; // 
+        /// \brief for non-bonded interactions: types of beads involved (type3 only used if threebody interaction)
+        string type1, type2, type3; // 
 
         /// \brief pointer to Property object to hande input options
         Property *_options;
@@ -124,14 +138,14 @@ protected:
   SplineContainer _splines;
 
   /// \brief matrix used to store force matching equations
-  ub::matrix<double> _A;
+  Eigen::MatrixXd _A;
   /// \brief vector used to store reference forces on CG beads (from atomistic simulations)
-  ub::vector<double> _b;
+  Eigen::VectorXd _b;
   /// \brief Solution of matrix equation _A * _x = _b : CG force-field parameters
-  ub::vector<double> _x; //
+  Eigen::VectorXd _x; //
   /// \brief Additional matrix to handle constrained least squares fit
   /// contains constraints, which allow to get a real (smooth) spline (see VOTCA paper)
-  ub::matrix<double> _B_constr;
+  Eigen::MatrixXd _B_constr;
   
 
   /// \brief Counter for trajectory frames
@@ -159,11 +173,13 @@ protected:
   /// \brief Solves FM equations for one block and stores the results for further processing
   void FmatchAccumulateData();
   /// \brief Assigns smoothing conditions to matrices _A and _B_constr
-  void FmatchAssignSmoothCondsToMatrix(ub::matrix<double> &Matrix);
+  void FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix);
   /// \brief For each trajectory frame writes equations for bonded interactions to matrix _A
   void EvalBonded(Topology *conf, SplineInfo *sinfo);
   /// \brief For each trajectory frame writes equations for non-bonded interactions to matrix _A
   void EvalNonbonded(Topology *conf, SplineInfo *sinfo);
+  /// \brief For each trajectory frame writes equations for non-bonded threebody interactions to matrix _A
+  void EvalNonbonded_Threebody(Topology *conf, SplineInfo *sinfo);
   /// \brief Write results to output files
   void WriteOutFiles();
 
@@ -173,5 +189,5 @@ protected:
   TrajectoryReader *_trjreader_force;
 };
 
-#endif	/* _CSG_FMATCH_H */
+#endif	/* _VOTCA_CSG_FMATCH_H */
 

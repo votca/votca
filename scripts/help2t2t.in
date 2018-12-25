@@ -72,7 +72,7 @@ fi
 cat <<EOF
 $prog
 Version: $version
-$(date)
+@VOTCA_DATE@
 
 = NAME =
 

@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,33 +25,34 @@ Wan, Junghans & Kremer, Euro. Phys. J. E 28, 221 (2009)
 Basically dU=A*(1-r/r_c) with A= -max(0.1k_B T, Int ) * sign(p_cur-p_target)
 and Int is the integral from Eq. 7 in the paper.
 
-Usage: $progname p_cur outfile
+Usage: $progname p_cur outfile kBT min:step:max scale p_target particle_dens rdf_file
 EOF
   exit 0;
 }
 
-die "2 parameters are necessary\n" if ($#ARGV<1);
+die "8 parameters are necessary\n" if ($#ARGV<7);
 
 
 use CsgFunctions;
 
-my $kBT=csg_get_property("cg.inverse.kBT");
-my $max=csg_get_interaction_property("max");
-my $min=csg_get_interaction_property("min");
-my $delta_r=csg_get_interaction_property("step");
+my $kBT=$ARGV[2];;
+my @range=split(/:/,$ARGV[3]);
+defined($range[2]) || die "Not enough number in range $ARGV[3], got ".($#range+1)." need 3\n";
+my $max=$range[2];
+my $min=$range[0];
+my $delta_r=$range[1];
 
-my $partDens=csg_get_interaction_property("inverse.particle_dens");
-my $name=csg_get_interaction_property("name");
-my $scale_factor=csg_get_interaction_property("inverse.post_update_options.pressure.wjk.scale");
+my $partDens=$ARGV[6];
+my $scale_factor=$ARGV[4];
 
 my $pi= 3.14159265;
 my $bar_to_SI = 0.06022; # 1bar=0.06022 kJ/(nm mol)
 
-my $p_target=csg_get_interaction_property("inverse.p_target");
+my $p_target=$ARGV[5];
 my $p_now=$ARGV[0];
 
 # load current rdf
-my $cur_rdf_file="${name}.dist.new";
+my $cur_rdf_file="$ARGV[7]";
 my @r_cur;
 my @rdf_cur;
 my @flags_cur;

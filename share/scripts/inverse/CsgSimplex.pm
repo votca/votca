@@ -1,6 +1,6 @@
 package CsgSimplex;
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ use vars qw(@ISA @EXPORT);
 
 sub csg_simplex_function_help() {
   print <<EOF;
-CsgFunctions, version %version%
+CsgSimplex, version %version%
 Provides useful simplex function for VOTCA's iterative framework in perl:
 readin_simplex_state(\$\\\$\\@;\\\$):  reads in simplex state
 saveto_simplex_state(\$\$\\@;\$):      writes simplex state
@@ -126,6 +126,7 @@ sub is_num($) {
   return 1;
 }
 
+# prototype is needed here as the function calls itself.
 sub get_convergence_value(\@$);
 sub get_convergence_value(\@$) {
   defined($_[1]) || die "get_convergence_value: Missing argument\n";

@@ -16,9 +16,9 @@
  */
 
 /* Used gromacs version */
-#cmakedefine GMX @GMX@
+#cmakedefine GROMACS_VERSION @GROMACS_VERSION@
 
-/* Used gromacs version */
+/* Whether h5md is compiled in */
 #cmakedefine H5MD
 
 /* Version number of package */

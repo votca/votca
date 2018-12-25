@@ -20,17 +20,8 @@
 #include <iostream>
 #include <votca/csg/version.h>
 
-#ifdef GMX
-#if (GMX == 52)
-#include <gromacs/utility/baseversion.h>
-#else
-#include <gromacs/legacyheaders/copyrite.h>
 #ifdef GMX_DOUBLE
-extern void gmx_is_double_precision();
-#else
-extern void gmx_is_single_precision();
-#endif
-#endif
+#include <gromacs/utility/baseversion.h>
 // this one is needed because of bool is defined in one of the headers included by gmx
 #undef bool
 #endif
@@ -39,10 +30,8 @@ extern "C" {
    void VotcaCsgFromC(){
      //do nothing - this is just that we have a c function for autotools/cmake
      //sanity check if GMX is the write precision
-#ifdef GMX
-#if (GMX > 51) && (GMX_DOUBLE == 1)
-     gmx_is_double_precision();
-#elif (GMX < 52) && defined(GMX_DOUBLE)
+#ifdef GMX_DOUBLE
+#if (GMX_DOUBLE == 1)
      gmx_is_double_precision();
 #else
      gmx_is_single_precision();
@@ -71,15 +60,9 @@ void HelpTextHeader(const std::string &tool_name)
 	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
 	 << tool_name << ", version " << votca::csg::CsgVersionStr() 
          << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
-#ifdef GMX
-#if GMX > 51
+#ifdef GMX_DOUBLE
          << "\ngromacs, " << gmx_version()
-#else
-         << "\ngromacs, " << GromacsVersion()
-#endif
-#if (GMX > 51) && (GMX_DOUBLE == 1)
-	 << " (double precision)"
-#elif (GMX < 52) && defined(GMX_DOUBLE)
+#if (GMX_DOUBLE == 1)
 	 << " (double precision)"
 #else
 	 << " (single precision)"

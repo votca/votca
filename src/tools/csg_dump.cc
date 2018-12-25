@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,9 +87,10 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
                 cout << (*mol)->getBeadId(i) << " Name " <<
                         (*mol)->getBeadName(i) << " Type " <<
 			(*mol)->getBead(i)->getType()->getName() << " Mass " <<
-			(*mol)->getBead(i)->getM() << " Resnr " <<
+			(*mol)->getBead(i)->getMass() << " Resnr " <<
 			resnr << " Resname " <<
-			top->getResidue(resnr)->getName() <<
+			top->getResidue(resnr)->getName() << " Charge " <<
+			(*mol)->getBead(i)->getQ() <<
 			endl;
             }
         }

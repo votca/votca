@@ -1,6 +1,6 @@
 #! /bin/bash
 #
-# Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,7 +36,9 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
    echo "Update potential ${name} : yes"
    #update ibi
    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
-   do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi
+   kBT="$(csg_get_property cg.inverse.kBT)"
+   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
+   do_external update ibi_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_ibi "${kBT}"
    do_external potential shift --type "${bondtype}" ${name}.dpot.pure_ibi ${name}.dpot.new
 else
    echo "Update potential ${name} : no"

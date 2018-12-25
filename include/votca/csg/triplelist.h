@@ -1,5 +1,5 @@
 /* 
- * Copyright 2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,13 @@
  *
  */
 
-#ifndef _TRIPLELIST_H
-#define	_TRIPLELIST_H
+#ifndef _VOTCA_CSG_TRIPLELIST_H
+#define	_VOTCA_CSG_TRIPLELIST_H
 
-#include <list>
+#include <vector>
 #include <map>
 
 namespace votca { namespace csg {
-using namespace std;
 
 template<typename element_type, typename triple_type>
 class TripleList {
@@ -32,11 +31,11 @@ public:
            
     void AddTriple(triple_type *t);
     
-    typedef typename std::list<triple_type *>::iterator iterator;
+    typedef typename std::vector<triple_type *>::iterator iterator;
     
     iterator begin() { return _triples.begin(); }
     iterator end() { return _triples.end(); }
-    typename list<triple_type*>::size_type size() { return _triples.size(); }    
+    typename vector<triple_type*>::size_type size() { return _triples.size(); }    
     triple_type *front() { return _triples.front(); }
     triple_type *back() { return _triples.back(); }    
     bool empty() { return _triples.empty(); }
@@ -44,12 +43,13 @@ public:
     void Cleanup();
     
     triple_type *FindTriple(element_type e1, element_type e2, element_type e3);
+    
 
     typedef element_type element_t;
     typedef triple_type triple_t;
 
-protected:
-    list<triple_type *> _triples;
+private:
+    vector<triple_type *> _triples;
       
     map< element_type , map<element_type, map<element_type, triple_type *> > > _triple_map;
     
@@ -57,11 +57,12 @@ protected:
 
 template<typename element_type, typename triple_type>
 inline void TripleList<element_type, triple_type>::AddTriple(triple_type *t)
-{
-    /// \todo be careful, same triple object is used, some values might change (e.g. sign of distance vectors)
-    //experimental: So far only mapping '123' and '321' to the same triple
-    _triple_map[ (*t)[0] ][ (*t)[1] ][ (*t)[2] ] = t;
-    _triple_map[ (*t)[2] ][ (*t)[1] ][ (*t)[0] ] = t;
+{    
+    //(*t)[i] gives access to ith element of tuple object (i=0,1,2).
+    //only consider the permutations of elements (1,2) of the tuple object -> 
+    //tuple objects of the form (*,1,2) and (*,2,1) are considered to be the same    
+    _triple_map[ std::get<0>(*t) ][ std::get<1>(*t) ][ std::get<2>(*t) ] = t;
+    _triple_map[ std::get<0>(*t) ][ std::get<2>(*t) ][ std::get<1>(*t) ] = t;  
      /// \todo check if unique    
     _triples.push_back(t);    
 }
@@ -96,5 +97,5 @@ inline triple_type *TripleList<element_type, triple_type>::FindTriple(element_ty
 
 }}
 
-#endif	/* _TRIPLELIST_H */
+#endif	/* _VOTCA_CSG_TRIPLELIST_H */
 

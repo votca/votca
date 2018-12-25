@@ -25,19 +25,10 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-#if GMX == 52
-        #include <gromacs/trajectory/trajectoryframe.h>
-        #include <gromacs/fileio/trxio.h>
-#elif GMX == 51
-        #include <gromacs/fileio/trxio.h>
-        #include <gromacs/fileio/trx.h>
-#elif GMX == 50
-        #include <gromacs/fileio/trxio.h>
-#else
-#error Unsupported GMX version
-#endif
-    // this one is needed because of bool is defined in one of the headers included by gmx
-    #undef bool
+#include <gromacs/trajectory/trajectoryframe.h>
+#include <gromacs/fileio/trxio.h>
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
 
 namespace votca { namespace csg {
 using namespace votca::tools;

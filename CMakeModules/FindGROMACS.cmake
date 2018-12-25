@@ -7,7 +7,7 @@
 #  GROMACS_DEFINITIONS  - Extra definies needed by gromacs
 #  GROMACS_VERSION      - Gromacs lib interface version
 #
-# Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,47 +22,50 @@
 # limitations under the License.
 #
 
+function(_GROMACS_GET_VERSION _OUT_ver _version_hdr)
+  file(STRINGS ${_version_hdr} _contents REGEX "#define GMX_VERSION[ \t]+")
+  if(_contents)
+    string(REGEX REPLACE ".*#define GMX_VERSION[ \t]+([0-9.]+).*" "\\1" ${_OUT_ver} "${_contents}")
+    if(("${${_OUT_ver}}" STREUQAL "") OR (NOT ${${_OUT_ver}} MATCHES "[0-9]+"))
+        message(FATAL_ERROR "Version parsing failed for GMX_VERSION in ${_version_hdr}!")
+    endif()
+    set(${_OUT_ver} ${${_OUT_ver}} PARENT_SCOPE)
+ elseif(EXISTS ${_version_hdr})
+    message(FATAL_ERROR "No GMX_VERSION in ${_version_hdr}")
+ else()
+     message(FATAL_ERROR "No GMX_VERSION line found in include file ${_version_hdr}")
+  endif()
+endfunction()
+
 find_package(PkgConfig)
 pkg_check_modules(PC_GROMACS_D libgromacs_d)
 pkg_check_modules(PC_GROMACS libgromacs)
 
 find_library(GROMACS_LIBRARY NAMES gromacs_d gromacs HINTS ${PC_GROMACS_D_LIBRARY_DIRS} ${PC_GROMACS_LIBRARY_DIRS})
-if (GROMACS_LIBRARY)
-  include(CheckLibraryExists)
+if (GROMACS_LIBRARY AND NOT GROMACS_LIBRARY STREQUAL "gromacs")
   include(CheckCXXLibraryExists)
-  check_library_exists("${GROMACS_LIBRARY}" GromacsVersion "" FOUND_GROMACS_VERSION)
-  if(NOT FOUND_GROMACS_VERSION)
-    check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_version "" FOUND_GROMACS_VERSION_CXX)
-  endif()
-  if(NOT FOUND_GROMACS_VERSION AND NOT FOUND_GROMACS_VERSION_CXX)
-    message(FATAL_ERROR "Could not find GromacsVersion in ${GROMACS_LIBRARY}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set GROMACS_LIBRARY by hand which sets the gromacs lib and it's dependencies (i.e. -DGROMACS_LIBRARY='/path/to/libgmx.so;/path/to/libblas.so;/path/to/libm.so')!")
-  endif()
-  check_library_exists("${GROMACS_LIBRARY}" init_domdec_vsites "" FOUND_GROMACS_INIT_DOMDEC_VSITES)
-  check_library_exists("${GROMACS_LIBRARY}" gmx_gpu_sharing_supported "" FOUND_GROMACS_GMX_GPU_SHARING_SUPPORTED)
-  #check is above
-  if(FOUND_GROMACS_VERSION_CXX)
-    set(GROMACS_VERSION 52)
-  elseif(FOUND_GROMACS_GMX_GPU_SHARING_SUPPORTED)
-    set(GROMACS_VERSION 51)
-  elseif(FOUND_GROMACS_INIT_DOMDEC_VSITES)
-    set(GROMACS_VERSION 50)
-  else()
-    message(FATAL_ERROR "Could not find gmx_version, init_domdec_vsites nor gmx_gpu_sharing_supported in the gromacs library, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 5 !") 
+  check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_version "" FOUND_GROMACS_VERSION_CXX)
+  if(NOT FOUND_GROMACS_VERSION_CXX)
+    message(FATAL_ERROR "Could not find a suitable gromacs library. gmx_version is not  defined in the gromacs library, that is very very strange, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 2016!")
   endif()
   check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_single_precision "" FOUND_GMX_IS_SINGLE_PRECISION)
   check_cxx_library_exists("${GROMACS_LIBRARY}" gmx_is_double_precision "" FOUND_GMX_IS_DOUBLE_PRECISION)
-  if(FOUND_GMX_IS_DOUBLE_PRECISION AND GROMACS_VERSION GREATER 51)
+  if(FOUND_GMX_IS_DOUBLE_PRECISION)
     set(GROMACS_DEFINITIONS "-DGMX_DOUBLE=1")
-  elseif(FOUND_GMX_IS_SINGLE_PRECISION AND GROMACS_VERSION GREATER 51)
+  elseif(FOUND_GMX_IS_SINGLE_PRECISION)
     set(GROMACS_DEFINITIONS "-DGMX_DOUBLE=0")
-  elseif(FOUND_GMX_IS_DOUBLE_PRECISION)
-    set(GROMACS_DEFINITIONS "-DGMX_DOUBLE")
   elseif(NOT FOUND_GMX_IS_SINGLE_PRECISION)
-    message(FATAL_ERROR "Could not find neither gmx_is_single_precision nor gmx_is_double_precision in the gromacs library, that is very very strange, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 5 !") 
+    message(FATAL_ERROR "Could not find a suitable gromacs library. Neither gmx_is_single_precision nor gmx_is_double_precision is defined in the gromacs library, that is very very strange, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. This most likely means that your gromacs version is too old, we need at least gromacs 2016!")
   endif()
-endif (GROMACS_LIBRARY)
+endif()
 
-find_path(GROMACS_INCLUDE_DIR gromacs/fileio/tpxio.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS} ${PC_GROMACS_INCLUDE_DIRS})
+find_path(GROMACS_INCLUDE_DIR gromacs/version.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS} ${PC_GROMACS_INCLUDE_DIRS})
+if(GROMACS_VERSION)
+elseif(GROMACS_INCLUDE_DIR AND EXISTS ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
+  _GROMACS_GET_VERSION(GROMACS_VERSION ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
+else()
+  set(GROMACS_VERSION 0)
+endif()
 
 set(GROMACS_LIBRARIES "${GROMACS_LIBRARY}" )
 set(GROMACS_INCLUDE_DIRS "${GROMACS_INCLUDE_DIR}" )
@@ -70,6 +73,6 @@ set(GROMACS_INCLUDE_DIRS "${GROMACS_INCLUDE_DIR}" )
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set GROMACS_FOUND to TRUE
 # if all listed variables are TRUE
-find_package_handle_standard_args(GROMACS DEFAULT_MSG GROMACS_LIBRARY GROMACS_INCLUDE_DIR GROMACS_VERSION)
+find_package_handle_standard_args(GROMACS REQUIRED_VARS GROMACS_LIBRARY GROMACS_INCLUDE_DIR VERSION_VAR GROMACS_VERSION)
 
 mark_as_advanced(GROMACS_LIBRARY GROMACS_INCLUDE_DIR GROMACS_VERSION)

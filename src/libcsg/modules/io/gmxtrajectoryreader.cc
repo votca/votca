@@ -19,6 +19,7 @@
 #include <iostream>
 #include <votca/csg/topology.h>
 #include "gmxtrajectoryreader.h"
+#include <gromacs/utility/programcontext.h>
 
 namespace votca { namespace csg {
 
@@ -37,19 +38,11 @@ void GMXTrajectoryReader::Close()
 
 bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 {
-#if (GMX == 52)
     gmx_output_env_t *oenv;
-#else
-    output_env_t oenv;
-#endif
-    output_env_init_default (&oenv);
+    output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
     if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
         throw std::runtime_error(string("cannot open ") + _filename);
-#if (GMX == 52)
     output_env_done(oenv);
-#else
-    free(oenv);
-#endif
 
     matrix m;
     for(int i=0; i<3; i++)
@@ -83,19 +76,11 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf)
 
 bool GMXTrajectoryReader::NextFrame(Topology &conf)
 {
-#if (GMX == 52)
     gmx_output_env_t *oenv;
-#else
-    output_env_t oenv;
-#endif
-    output_env_init_default (&oenv);
+    output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
     if(!read_next_frame(oenv, _gmx_status,&_gmx_frame))
         return false;
-#if (GMX == 52)
     output_env_done(oenv);
-#else
-    free(oenv);
-#endif
 
     matrix m;
     for(int i=0; i<3; i++)

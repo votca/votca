@@ -22,22 +22,13 @@
 #include <iostream>
 #include "gmxtopologyreader.h"
 
-#if GMX == 52
-        #include <gromacs/fileio/tpxio.h>
-        #include <gromacs/topology/atoms.h>
-        #include <gromacs/topology/topology.h>
-        #include <gromacs/mdtypes/inputrec.h>
-#elif GMX == 51
-        #include <gromacs/fileio/tpxio.h>
-        #include <gromacs/topology/atoms.h>
-        #include <gromacs/topology/topology.h>
-#elif GMX == 50
-        #include <gromacs/fileio/tpxio.h>
-#else
-#error Unsupported GMX version
-#endif
-    // this one is needed because of bool is defined in one of the headers included by gmx
-    #undef bool
+#include <gromacs/fileio/tpxio.h>
+#include <gromacs/topology/atoms.h>
+#include <gromacs/topology/topology.h>
+#include <gromacs/mdtypes/inputrec.h>
+
+// this one is needed because of bool is defined in one of the headers included by gmx
+#undef bool
 
 namespace votca { namespace csg {
 
@@ -52,25 +43,17 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
     t_inputrec ir;
     ::matrix gbox;
 
-#if GMX == 52
     (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,&mtop);
+
+    size_t ifirstatom = 0;
+    
+#if GROMACS_VERSION >= 20190000
+    size_t nmolblock=mtop.molblock.size();
 #else
-    (void)read_tpx((char *)file.c_str(),&ir,gbox,&natoms,NULL,NULL,NULL,&mtop);
+    size_t nmolblock=mtop.nmolblock;
 #endif
 
-    int count=0;
-    for(int iblock=0; iblock<mtop.nmolblock; ++iblock)
-        count+=mtop.molblock[iblock].nmol;
-
-    if(count != mtop.mols.nr  ) {
-        throw runtime_error("gromacs topology contains inconsistency in molecule definitons\n\n"
-                "A possible reason is an outdated .tpr file. Please rerun grompp to generate a new tpr file.\n"
-                "If the problem remains or "
-                "you're missing the files to rerun grompp,\n contact the votca mailing list for a solution.");
-    }
-
-    int ifirstatom = 0;
-    for(int iblock=0; iblock<mtop.nmolblock; ++iblock) {
+    for(size_t iblock=0; iblock<nmolblock; ++iblock) {
         gmx_moltype_t *mol
                 = &(mtop.moltype[mtop.molblock[iblock].type]);
 
@@ -87,8 +70,13 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
         for(int imol=0; imol<mtop.molblock[iblock].nmol; ++imol) {
             Molecule *mi = top.CreateMolecule(molname);
 
+#if GROMACS_VERSION >= 20190000
+            size_t natoms_mol = mtop.moltype[mtop.molblock[iblock].type].atoms.nr;
+#else
+            size_t natoms_mol = mtop.molblock[iblock].natoms_mol;
+#endif
             // read the atoms
-            for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
+            for(size_t iatom=0; iatom<natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
 
                 BeadType *type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
@@ -100,7 +88,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             }
 
             // add exclusions
-            for(int iatom=0; iatom<mtop.molblock[iblock].natoms_mol; iatom++) {
+            for(size_t iatom=0; iatom<natoms_mol; iatom++) {
                 // read exclusions
                 t_blocka * excl = &(mol->excls);
                 // insert exclusions
@@ -110,7 +98,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
                 }
                 top.InsertExclusion(top.getBead(iatom+ifirstatom), excl_list);
             }
-            ifirstatom+=mtop.molblock[iblock].natoms_mol;
+            ifirstatom+=natoms_mol;
         }
     }
 

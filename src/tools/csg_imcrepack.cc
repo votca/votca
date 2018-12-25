@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
         po::store(po::parse_command_line(argc, argv, desc), vm);
         po::notify(vm);
     }
-    catch(po::error err) {
+    catch(po::error& err) {
         cout << "error parsing command line: " << err.what() << endl;
         return -1;
     }
@@ -82,9 +82,9 @@ int main(int argc, char** argv)
 
     check_option(desc, vm, "in");
 
-    ub::vector<double> r;
-    ub::vector<double> dS;
-    ub::matrix<double> gmc;
+    Eigen::VectorXd r;
+    Eigen::VectorXd dS;
+    Eigen::MatrixXd gmc;
     vector<string> names;
     vector<RangeParser> ranges;
 
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
         while(iter_name != names.end()) {
             cur_rp = &(*iter_range);
             for(RangeParser::iterator ir=cur_rp->begin(); ir!=cur_rp->end(); ++ir) {
-                for(size_t i=0; i<gmc.size1(); ++i)
+                for(long int i=0; i<gmc.rows(); ++i)
                     if(fabs(gmc(i,*ir-1)) > 1e-8) {
                         list.push_back(*ir-1);
                         end++;
