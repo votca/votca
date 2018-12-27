@@ -577,6 +577,11 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
     fi
     is_int "${tasks}" || tasks=1 #failback in case we got non-int
   fi
+  if [[ ${CSG_NUM_THREADS} ]]; then
+    is_int "${CSG_NUM_THREADS}" || die "${FUNCNAME[0]}: value of CSG_NUM_THREADS needs to be a number, but I got ${CSG_NUM_THREADS}"
+    msg --color blue --to-stderr "${FUNCNAME[0]}: Overwriting cg.inverse.simulation.tasks with '${CSG_NUM_THREADS}'"
+    tasks="${CSG_NUM_THREADS}"
+  fi
   echo "$tasks"
 }
 export -f get_number_tasks
