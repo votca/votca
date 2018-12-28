@@ -24,6 +24,7 @@ endif()
 
 set (GIT_HEADER "gitid.tex")
 set (NEW_GIT_HEADER "new_gitid.tex")
-file(WRITE ${NEW_GIT_HEADER} "\\newcommand{\\gitid}{${PROJECT_VERSION} (${MANUAL_GIT_ID})}\n")
+string(REPLACE "_" "\\_" SANITIZED_PROJECT_VERSION "${PROJECT_VERSION}")
+file(WRITE ${NEW_GIT_HEADER} "\\newcommand{\\gitid}{${SANITIZED_PROJECT_VERSION} (${MANUAL_GIT_ID})}\n")
 execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${NEW_GIT_HEADER} ${GIT_HEADER})
 execute_process(COMMAND ${CMAKE_COMMAND} -E remove ${NEW_GIT_HEADER})
