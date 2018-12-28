@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
-## Version 1.5_rc1 (released XX.12.18)
+## Version 1.5_rc1 (released 28.12.18)
 * optimized GW-BSE code and integral engine
 * added closed shell DFT code which supports hybrid functionals
 * removed ctp dependency
