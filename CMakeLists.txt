@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(votca)
 
-set(PROJECT_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.5_rc1")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
