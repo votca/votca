@@ -112,6 +112,7 @@ branches:
   - development
   - stable
   - next
+  - /^v\d+\.\d+(\.\d+|_rc\d+)?$/
 
 cache:
   - ccache
