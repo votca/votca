@@ -16,3 +16,4 @@ endif(TXT2TAGS_FOUND AND BASH)
 
 list(REMOVE_ITEM CSG_BO_SOURCES "main.cc")
 add_library(votca_csg_boltzmann ${CSG_BO_SOURCES})
+target_link_libraries(votca_csg_boltzmann votca_csg)
