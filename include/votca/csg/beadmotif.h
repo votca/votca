@@ -37,14 +37,15 @@ namespace votca {
      * Wants a beadstructure is created there are several different forms it can
      * have, this class helps to classify and break structures up into the 
      * appropriate sub class. The possible classes include:
-     * 
-     * 1. Line
-     * 2. Loop
-     * 3. Fused Ring
-     * 4. Other
-     * 5. Undefined
      *
-     * The line, loop and Fused Ring types are all elementary types that 
+     * 1. Single 
+     * 2. Line
+     * 3. Loop
+     * 4. Fused Ring
+     * 5. Other
+     * 6. Undefined
+     *
+     * The Single, line, loop and Fused Ring types are all elementary types that 
      * represent a fundamental structural unit. 
      *
      * Other represents a type that has not been broken up into its fundamental
@@ -62,6 +63,7 @@ namespace votca {
         ~BeadMotif() {}
 
         enum motif_type {
+          single;
           line;
           loop;
           fused_ring;
@@ -78,6 +80,7 @@ namespace votca {
       private:
 
         motif_type type_;
+        bool isSingle_();
         bool isLoop_();
         bool isFusedRing_();
         bool isLine_();
