@@ -94,6 +94,8 @@ if(ENABLE_TESTING)
       message(FATAL_ERROR "Could not find ${prog}")
     endif()
   endforeach()
+  set(REGRESSIONTEST_TOLERANCE "1e-5" CACHE STRING "Tolerance for the regression tests")
+  mark_as_advanced(REGRESSIONTEST_TOLERANCE)
 endif(ENABLE_TESTING)
 
 ########################################################################
