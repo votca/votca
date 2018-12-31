@@ -22,7 +22,7 @@ foreach(prog csg_boltzmann csg_call csg_density csg_dlptopol csg_dump csg_fmatch
     set(prog_dep ${${PROG}})
   endif()
   add_custom_command(OUTPUT ${CURRENT_DIR}/${prog}.tex
-    COMMAND ${${PROG}} --help > ${CURRENT_DIR}/${prog}.help
+    COMMAND VOTCASHARE=${CSG_SHARE} ${${PROG}} --help > ${CURRENT_DIR}/${prog}.help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/help2t2t.sh ${prog} ${CURRENT_DIR}/${prog}.help
       > ${CURRENT_DIR}/${prog}.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${prog}.t2t
