@@ -16,13 +16,18 @@ foreach(prog csg_boltzmann csg_call csg_density csg_dlptopol csg_dump csg_fmatch
   if(NOT ${PROG})
     message(FATAL_ERROR "Could not find ${prog}")
   endif()
+  if(TARGET ${prog}_build)
+    set(prog_dep ${prog}_build)
+  else()
+    set(prog_dep ${${PROG}})
+  endif()
   add_custom_command(OUTPUT ${CURRENT_DIR}/${prog}.tex
     COMMAND ${${PROG}} --help > ${CURRENT_DIR}/${prog}.help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/help2t2t.sh ${prog} ${CURRENT_DIR}/${prog}.help
       > ${CURRENT_DIR}/${prog}.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${prog}.t2t
       --outfile ${CURRENT_DIR}/${prog}.tex
-      DEPENDS ${${PROG}} ${CURRENT_DIR}/config.t2t)
+      DEPENDS ${prog_dep} ${CURRENT_DIR}/config.t2t)
   list(APPEND PROG_TEXS ${CURRENT_DIR}/${prog}.tex)
   file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake "\\input{${CURRENT_DIR}/${prog}}\n")
 endforeach()
