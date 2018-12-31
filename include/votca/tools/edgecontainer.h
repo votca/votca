@@ -45,11 +45,11 @@ class EdgeContainer {
   EdgeContainer(std::vector<Edge> eds);
 
   /// Get the value of the max degree
-  int getMaxDegree();
+  int getMaxDegree() const;
   /// Contains vector of all vertices with degree
-  std::vector<int> getVerticesDegree(int degree);
+  std::vector<int> getVerticesDegree(int degree) const;
   /// Determine the degree of the vertex/number of edges attached
-  int getDegree(int vert);
+  int getDegree(const int vert) const;
   /// Check if the edge exists returns true or false
   bool edgeExist(Edge ed);
   /// Check if the vertex exists returns true or false
