@@ -60,6 +60,7 @@ void BeadStructure::AddBead(BaseBead *bead) {
   auto numberOfBeads = beads_.size();
   beads_[bead->getId()] = bead;
   if (numberOfBeads != beads_.size()) {
+    single_structureUpToDate_ = false;
     graphUpToDate = false;
     structureIdUpToDate = false;
   }
@@ -77,6 +78,7 @@ void BeadStructure::ConnectBeads(int bead1_id, int bead2_id) {
   auto numberOfConnections = connections_.size();
   connections_.insert(Edge(bead1_id, bead2_id));
   if (numberOfConnections != connections_.size()) {
+    single_structureUpToDate_ = false;
     graphUpToDate = false;
     structureIdUpToDate = false;
   }
@@ -111,24 +113,35 @@ void BeadStructure::CalculateStructure_() {
   }
 }
 
-bool BeadStructure::isSingleMolecule() {
+bool BeadStructure::isSingleStructure() {
 
   InitializeGraph_();
-  auto vertices = graph_->getVertices();
-  if (vertices.size() == 0)
-    return false;
+  if(single_structureUpToDate_=false){
+    auto vertices = graph_->getVertices();
+    if (vertices.size() == 0){
+      single_structure_ = false;
+      return single_structure_;
+    }
+    // Choose first vertex that is actually in the graph as the starting vertex
+    Graph_BF_Visitor gv_breadth_first;
+    gv_breadth_first.setStartingVertex(vertices.at(0));
 
-  // Choose first vertex that is actually in the graph as the starting vertex
-  Graph_BF_Visitor gv_breadth_first;
-  gv_breadth_first.setStartingVertex(vertices.at(0));
-
-  if (!singleNetwork(*graph_, gv_breadth_first))
-    return false;
-  if (beads_.size() == 0)
-    return false;
-  if (vertices.size() != beads_.size())
-    return false;
-  return true;
+    if (!singleNetwork(*graph_, gv_breadth_first)){
+      single_structure_ = false;
+      return single_structure_;
+    }
+    if (beads_.size() == 0){
+      single_structure_ = false;
+      return single_structure_;
+    }
+    if (vertices.size() != beads_.size()){
+      single_structure_ = false;
+      return single_structure_;
+    }
+    single_structure_ = true;
+    single_structureUpToDate_ = true;
+  }
+  return single_structure_;
 }
 
 bool BeadStructure::isStructureEquivalent(BeadStructure &beadstructure) {
@@ -155,7 +168,7 @@ BaseBead *BeadStructure::getBead(int index) {
   return beads_[index];
 }
 
-vector<shared_ptr<BeadStructure>> BeadStructure::breakIntoMolecules() {
+vector<shared_ptr<BeadStructure>> BeadStructure::breakIntoStructures() {
   vector<shared_ptr<BeadStructure>> structures;
   if (!graphUpToDate)
     InitializeGraph_();

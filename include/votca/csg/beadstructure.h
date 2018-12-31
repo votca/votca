@@ -59,14 +59,15 @@ public:
   ~BeadStructure() {}
 
   /**
-   * \brief Determine if the bead structure consists of a single molecule
+   * \brief Determine if the bead structure consists of a single connected 
+   * structure
    *
    * This function will determine if all beads in the structure are connected
    * somehow to everyother bead. The connection does not have to be direct
    *
-   * @return - returns a boolean true if it is a single molecule
+   * @return - returns a boolean true if it is a single Structure
    **/
-  bool isSingleMolecule();
+  bool isSingleStructure();
 
   /**
    * \brief returns the number of beads in the bead structure
@@ -99,13 +100,14 @@ public:
   std::vector<BaseBead *> getNeighBeads(int index);
 
   /**
-   * \breif Bread the beadstructure up into molecular units
+   * \brief Break the beadstructure up into units where each unit is connected 
+   * to each of the parts within the unit
    *
    * If a beadstructure is composed of several unconnected networks of beads.
    * These structures will be broken up into their own bead structures and
    * returned in a vector.
    **/
-  std::vector<std::shared_ptr<BeadStructure>> breakIntoMolecules();
+  std::vector<std::shared_ptr<BeadStructure>> breakIntoStructures();
 
   /**
    * \breif Compare the topology of two bead structures
@@ -125,6 +127,8 @@ private:
 
   bool structureIdUpToDate;
   bool graphUpToDate;
+  bool single_structureUpToDate_;
+  bool single_structure_;
   shared_ptr<votca::tools::Graph> graph_;
   std::set<Edge> connections_;
   std::map<int, BaseBead *> beads_;
