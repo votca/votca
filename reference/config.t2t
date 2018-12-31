@@ -31,6 +31,7 @@
 
 % nicer --
 %!postproc(tex): '--' '{-}{-}'
+%!postproc(tex): '{tabular}' '{longtable}'
 
 %For other target is replaced by nothing.
 %!postproc: '(target|link|ref)\(.*?\)\((.*?)\)' '\2'
