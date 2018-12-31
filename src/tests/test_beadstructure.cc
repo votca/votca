@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
   beadstructure.ConnectBeads(1, 2);
 }
 
-BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleMolecule) {
+BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
   BeadStructure beadstructure;
 
   TestBead testbead1;
@@ -99,25 +99,25 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleMolecule) {
 
   beadstructure.AddBead(&testbead1);
   beadstructure.AddBead(&testbead2);
-  BOOST_CHECK(!beadstructure.isSingleMolecule());
+  BOOST_CHECK(!beadstructure.isSingleStructure());
 
   // C - C
   beadstructure.ConnectBeads(1, 2);
-  BOOST_CHECK(beadstructure.isSingleMolecule());
+  BOOST_CHECK(beadstructure.isSingleStructure());
 
   // C - C  O
   beadstructure.AddBead(&testbead3);
-  BOOST_CHECK(!beadstructure.isSingleMolecule());
+  BOOST_CHECK(!beadstructure.isSingleStructure());
 
   // C - C - O
   beadstructure.ConnectBeads(2, 3);
-  BOOST_CHECK(beadstructure.isSingleMolecule());
+  BOOST_CHECK(beadstructure.isSingleStructure());
 
   // C - C - O  H - H
   beadstructure.AddBead(&testbead4);
   beadstructure.AddBead(&testbead5);
   beadstructure.ConnectBeads(4, 5);
-  BOOST_CHECK(!beadstructure.isSingleMolecule());
+  BOOST_CHECK(!beadstructure.isSingleStructure());
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isStructureEquivalent) {
