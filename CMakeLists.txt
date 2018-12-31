@@ -94,7 +94,6 @@ add_subdirectory(csg-tutorials)
 list(APPEND ENABLED_VOTCA_PACKAGES csg-tutorials)
 if(BUILD_CSG_MANUAL)
   add_subdirectory(csg-manual)
-  add_dependencies(csg-manual_dvi csg_call_build csg_inverse_build)
 endif()
 set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
 set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
