@@ -123,7 +123,7 @@ vector<pair<int, GraphNode>> Graph::getNodes(void) {
 vector<int> Graph::getJunctions(void) const {
   vector<int> junctions;
   auto max_number_junctions = getMaxDegree();
-  for(auto degree=3;degree<max_number_junctions;++degree){
+  for(auto degree=3;degree<=max_number_junctions;++degree){
     auto vertices = getVerticesDegree(degree);
     junctions.insert(junctions.begin(),vertices.begin(),vertices.end());
   }
