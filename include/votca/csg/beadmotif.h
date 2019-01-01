@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _VOTCA_CSG_BEADMOTIF_H
-#define _VOTCA_CSG_BEADMOTIF_H
+#ifndef VOTCA_CSG_BEADMOTIF_H
+#define VOTCA_CSG_BEADMOTIF_H
 
 #include <list>
 #include <map>
@@ -25,8 +25,9 @@
 #include <string>
 
 #include <votca/csg/basebead.h>
-
 #include <votca/tools/graph.h>
+
+#include "beadstructure.h"
 
 namespace votca {
   namespace csg {
@@ -42,14 +43,19 @@ namespace votca {
      * 2. Line
      * 3. Loop
      * 4. Fused Ring
-     * 5. Other
+     * 5. Single Structure
+     * 6. Multiple Structures
      * 6. Undefined
      *
      * The Single, line, loop and Fused Ring types are all elementary types that 
      * represent a fundamental structural unit. 
      *
-     * Other represents a type that has not been broken up into its fundamental
-     * component.
+     * Single Structure represents a type that has not been broken up into its 
+     * fundamental components but consists of a single interconnected structure.
+     *
+     * Multiple Structures means that the structure consists of multiple 
+     * structures
+     *
      * Undefined means the structure has not yet been categorized. 
      *
      * Though the Beadmotif inherits from the Beadstructure its methods are kept
@@ -59,29 +65,78 @@ namespace votca {
 
     class BeadMotif : private BeadStructure{
       public:
-        BeadMotif() : type_(motif_type::undefined) {};
-        ~BeadMotif() {}
+        BeadMotif() : BeadStructure(), type_(motif_type::undefined),junctionsUpToDate_(false) {};
+        ~BeadMotif() {};
 
         enum motif_type {
-          single;
-          line;
-          loop;
-          fused_ring;
-          other;
-          undefined;
+          empty,
+          single_bead,
+          line,
+          loop,
+          fused_ring,
+          single_structure,
+          multiple_structures,
+          undefined
         };
 
         motif_type getType() const;
 
+        BaseBead * getBead(int id);
         /**
          * \brief Calculates the type of the motif
          **/
         void CalculateType();
+
+        void ConnectBeads(int bead1_id, int bead2_id);
+
+        std::vector<BaseBead *> getNeighBeads(int index);
+
+        void AddBead(BaseBead * bead);
+        
+        int BeadCount();
+
+        bool isStructureEquivalent(BeadMotif & beadmotif);
       private:
 
         motif_type type_;
+        bool junctionsUpToDate_;
+        std::vector<int> junctions_;
+
+        bool junctionExist_();
         bool isSingle_();
         bool isLoop_();
+        // One has to explore the whole tree to from each of the junctions to
+        // determine if the model is a fused ring or not. For speed it might
+        // make since to reduce the graph first to junctions of 3 or more. 
+        //
+        // if There is not way back to the junction than you have something 
+        // like this:
+        //
+        // c1 - c2 - c5 - c6 
+        // |    |    |    |
+        // c3 - c4   c7 - c8
+        //
+        // Say you start at c2 and head down tree c5 if you never find a way back
+        // you can split it
+        //
+        // If you have something like this
+        //
+        // c1 - c2 - c3
+        // |  /   \  |
+        //  c4     c5
+        //
+        //  Then you do not have a fused ring, must be represented as a joint
+        //  and two lines. Exploring a tree will only lead to one way back.
+        //
+        //         c6
+        //        /  |
+        // c1 - c2 - c3
+        // |  /   \  |
+        //  c4     c5
+        //
+        //  Still acts like a joint, For it not to be a joint exploring a single
+        //  branch originating from the junction should lead to exploration of
+        //  all the edges. 
         bool isFusedRing_();
         bool isLine_();
 
@@ -89,4 +144,4 @@ namespace votca {
   }
 }
 
-#endif // _VOTCA_CSG_BEADMOTIF_H
+#endif // VOTCA_CSG_BEADMOTIF_H

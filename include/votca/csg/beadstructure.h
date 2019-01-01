@@ -95,7 +95,7 @@ public:
   void ConnectBeads(int bead1_id, int bead2_id);
 
   /**
-   * \breif Return a vector of all the beads neighboring the index
+   * \brief Return a vector of all the beads neighboring the index
    **/
   std::vector<BaseBead *> getNeighBeads(int index);
 
@@ -110,7 +110,7 @@ public:
   std::vector<std::shared_ptr<BeadStructure>> breakIntoStructures();
 
   /**
-   * \breif Compare the topology of two bead structures
+   * \brief Compare the topology of two bead structures
    *
    * This function looks at how the beads are arranged within the bead structure
    * and determines if the topology is the same.
@@ -121,7 +121,7 @@ public:
    **/
   bool isStructureEquivalent(BeadStructure &beadstructure);
 
-private:
+protected:
   void InitializeGraph_();
   void CalculateStructure_();
 

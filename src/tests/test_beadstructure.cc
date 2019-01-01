@@ -297,7 +297,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
   BOOST_CHECK_EQUAL(v8.size(), 1);
 }
 
-BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoMolecules) {
+BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -389,7 +389,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoMolecules) {
   beadstructure.ConnectBeads(6, 7);
   beadstructure.ConnectBeads(7, 8);
 
-  auto structures = beadstructure.breakIntoMolecules();
+  auto structures = beadstructure.breakIntoStructures();
 
   bool structure1_found = false;
   bool structure2_found = false;
@@ -429,7 +429,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoMolecules) {
   beadstructure.ConnectBeads(9, 10);
   beadstructure.ConnectBeads(11, 10);
 
-  structures = beadstructure.breakIntoMolecules();
+  structures = beadstructure.breakIntoStructures();
 
   structure1_found = false;
   structure2_found = false;

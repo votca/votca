@@ -116,8 +116,10 @@ void BeadStructure::CalculateStructure_() {
 bool BeadStructure::isSingleStructure() {
 
   InitializeGraph_();
-  if(single_structureUpToDate_=false){
+  cout << "Calling is single structure " << single_structureUpToDate_ << endl;
+  if(single_structureUpToDate_==false){
     auto vertices = graph_->getVertices();
+    cout << "number of vertices " << vertices.size() << endl;
     if (vertices.size() == 0){
       single_structure_ = false;
       return single_structure_;
