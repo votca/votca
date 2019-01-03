@@ -1,7 +1,3 @@
-CHANGELOG
-Votca Developer Team
-%%mtime(%m/%d/%Y)
-
 For more detailed information about the changes see the
 history of the [repository http://code.google.com/p/votca/source/list?repo=tools&r=stable]
 
