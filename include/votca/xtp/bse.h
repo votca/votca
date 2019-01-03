@@ -53,7 +53,7 @@ class BSE {
         int vmin;
         int cmax;
         int nmax; //number of eigenvectors to calculate
-        int min_print_weight=0.5;  //minimium contribution for state to print it
+        double min_print_weight=0.5;  //minimium contribution for state to print it
         };
   
  

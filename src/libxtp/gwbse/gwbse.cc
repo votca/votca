@@ -223,7 +223,7 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
     std::vector<std::string> choices = {"G0W0", "evGW"};
-    std::string mode = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(".mode", choices);
+    std::string mode = options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key +".mode", choices);
     if (mode == "G0W0") {
         _gwopt.gw_sc_max_iterations = 1;
     }
@@ -558,8 +558,7 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
-
-  GW gw=GW(*_pLog,Mmn,vxc,_orbitals.MOCoefficients());
+  GW gw=GW(*_pLog,Mmn,vxc,_orbitals.MOEnergies());
   gw.configure(_gwopt);
   gw.CalculateGWPerturbation();
   

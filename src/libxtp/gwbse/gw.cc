@@ -210,6 +210,8 @@ void GW::CalculateGWPerturbation() {
                 rpa_energies = (1 - alpha) * rpa_energies + alpha*rpa_energies_old;
             }
     }
+
+    PrintGWA_Energies();
 }
 
    void GW::CalculateHQP(){

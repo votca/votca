@@ -24,7 +24,6 @@
 #include "votca/xtp/threecenter.h"
 
 
-
 namespace votca {
   namespace xtp {
       
@@ -67,15 +66,14 @@ namespace votca {
             }else{
                 denom=2.0*((deltaE-frequency).inverse()+(deltaE+frequency).inverse());
             }
-            Eigen::MatrixXd tempresult = Mmn_RPA.transpose() *denom.asDiagonal()* Mmn_RPA;
+            auto temp=Mmn_RPA.transpose() *denom.asDiagonal();
+            Eigen::MatrixXd tempresult = temp* Mmn_RPA;
 
 #pragma omp critical
             {
                 result += tempresult;
             }
         }
-
-
         return result;
     }
 

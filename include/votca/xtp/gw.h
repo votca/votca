@@ -39,9 +39,9 @@ class GW {
         int rpamin;
         int rpamax;
         double g_sc_limit=1e-5;
-        int g_sc_max_iterations=20;
+        int g_sc_max_iterations=50;
         double gw_sc_limit=1e-5;
-        int gw_sc_max_iterations=10;
+        int gw_sc_max_iterations=50;
         double shift=0;
         double ScaHFX=0.0;
         std::string sigma_integration="ppm";
