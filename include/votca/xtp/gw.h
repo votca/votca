@@ -54,6 +54,8 @@ class GW {
     //Calculates the diagonal elements up to self consistency
     void CalculateGWPerturbation();
 
+
+
     //Calculated offdiagonal elements as well
     void CalculateHQP();
 
@@ -78,7 +80,7 @@ class GW {
     const Eigen::MatrixXd& _vxc;
     const Eigen::VectorXd& _dft_energies;
 
-
+    Eigen::VectorXd CalculateExcitationFreq(const Eigen::VectorXd& rpa_energies, Eigen::VectorXd frequencies);
     double CalcHomoLumoShift()const;
     Eigen::VectorXd ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const;
     void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies)const;

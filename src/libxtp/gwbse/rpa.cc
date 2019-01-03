@@ -28,16 +28,16 @@
 namespace votca {
   namespace xtp {
       
-  Eigen::VectorXd RPA::CalculateRPAEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin)const{    
+  Eigen::VectorXd RPA::CalculateRPAEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin, int homo){
         int dftsize=dftenergies.size();
         Eigen::VectorXd rpaenergies=dftenergies;
         int gwsize=gwaenergies.size();
-        int lumo=_homo+1;
+        int lumo=homo+1;
 
         int qpmax=qpmin+gwsize-1;
         rpaenergies.segment(qpmin,gwsize)=gwaenergies;
-        double DFTgap = dftenergies(lumo) - dftenergies(_homo);
-        double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(_homo-qpmin);
+        double DFTgap = dftenergies(lumo) - dftenergies(homo);
+        double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(homo-qpmin);
         double shift=QPgap - DFTgap;
         rpaenergies.segment(qpmax+1,dftsize-qpmax-1).array()+=shift;
         return rpaenergies;
@@ -46,7 +46,6 @@ namespace votca {
  template< bool imag>
     Eigen::MatrixXd RPA::calculate_epsilon(double frequency)const{
         const int size = _Mmn.auxsize(); // size of gwbasis
-
         Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
         const int lumo = _homo + 1;
         const int n_occ = lumo - _rpamin;

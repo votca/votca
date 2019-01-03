@@ -33,8 +33,10 @@ namespace votca {
      if(_opt.sigma_integration=="ppm"){
          _sigma=std::unique_ptr<Sigma_base>(new Sigma_PPM(_Mmn));
      }
+     _sigma->configure(_opt.homo,_opt.qpmin,_opt.qpmax);
+     _Sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
+     _Sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
   }
-
 
 double GW::CalcHomoLumoShift()const{
   double DFTgap = _dft_energies(_opt.homo + 1) - _dft_energies(_opt.homo);
@@ -55,7 +57,6 @@ Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> GW::DiagonalizeQPHamiltonian()con
         PrintQP_Energies(qpdiag.eigenvalues());
         return qpdiag;
     }
-
 
 Eigen::MatrixXd GW::getGWAResults()const{
     Eigen::MatrixXd qp_energies_store=Eigen::MatrixXd::Zero(_qptotal, 5);
@@ -124,21 +125,46 @@ Eigen::MatrixXd GW::getGWAResults()const{
 
   Eigen::VectorXd GW::ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const{
       Eigen::VectorXd RPAenergies=dft_energies;
-      RPAenergies.segment(_opt.homo+1,dft_energies.size()-_opt.homo).array()+=_opt.shift;
+      RPAenergies.segment(_opt.homo+1,dft_energies.size()-_opt.homo-1).array()+=_opt.shift;
       return RPAenergies;
   }
-
- bool GW::Converged(const Eigen::VectorXd& e1,const Eigen::VectorXd& e2,double epsilon)const{
- int state = 0;
- bool energies_converged=true;
-double diff_max = (e1-e2).cwiseAbs().maxCoeff(&state);
-        if (diff_max > epsilon) {
-          energies_converged = false;
-        }
-if(tools::globals::verbose){
- CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" E_diff max=" << diff_max << " StateNo:" << state << std::flush;
+  
+bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2, double epsilon)const {
+    int state = 0;
+    bool energies_converged = true;
+    double diff_max = (e1 - e2).cwiseAbs().maxCoeff(&state);
+    if (diff_max > epsilon) {
+        energies_converged = false;
+    }
+    if (tools::globals::verbose) {
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " E_diff max=" << diff_max << " StateNo:" << state << std::flush;
+    }
+    return energies_converged;
 }
-return energies_converged;
+
+Eigen::VectorXd GW::CalculateExcitationFreq(const Eigen::VectorXd& rpa_energies, Eigen::VectorXd frequencies){
+    for (int i_freq = 0; i_freq < _opt.g_sc_max_iterations; ++i_freq) {
+
+        _Sigma_c.diagonal()= _sigma->CalcCorrelationDiag(frequencies, rpa_energies);
+        _gwa_energies = CalcDiagonalEnergies();
+
+        if(tools::globals::verbose){
+            CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" G_Iteration:" <<i_freq << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
+        }
+        if (Converged(_gwa_energies, frequencies, _opt.g_sc_limit)) {
+            CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Converged after " <<i_freq + 1 << " G iterations." << std::flush;
+            break;
+        } else if (i_freq == _opt.g_sc_max_iterations - 1) {
+            CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " G-self-consistency cycle not converged after "
+                    << _opt.g_sc_max_iterations << " iterations." << std::flush;
+            break;
+        } else {
+            double alpha = 0.0;
+            frequencies = (1 - alpha) * _gwa_energies + alpha*frequencies;
+        }
+
+    }
+    return frequencies;
 }
 
 void GW::CalculateGWPerturbation() {
@@ -163,31 +189,11 @@ void GW::CalculateGWPerturbation() {
         _sigma->PrepareScreening(rpa);
         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                    << " Calculated screening via RPA  " << std::flush;
-        for (int i_g = 0; i_g < _opt.g_sc_max_iterations; ++i_g) {
-
-            _Sigma_c.diagonal() = _sigma->CalcCorrelationDiag(frequencies, rpa_energies);
-            _gwa_energies = CalcDiagonalEnergies();
-
-            if(tools::globals::verbose){
-                CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" G_Iteration:" <<i_g << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
-            }
-            if (Converged(_gwa_energies, frequencies, _opt.g_sc_limit)) {
-                CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Converged after " <<i_g + 1 << " G iterations." << std::flush;
-                break;
-            } else if (i_g == _opt.g_sc_max_iterations - 1) {
-                CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " G-self-consistency cycle not converged after "
-                        << _opt.g_sc_max_iterations << " iterations." << std::flush;
-                break;
-            } else {
-                double alpha = 0.0;
-                frequencies = (1 - alpha) * _gwa_energies + alpha*frequencies;
-            }
-
-        }
+        frequencies=CalculateExcitationFreq(rpa_energies, frequencies);
         CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Calculated diagonal part of Sigma  " << std::flush;
         Eigen::VectorXd rpa_energies_old=rpa_energies;
-        rpa_energies=rpa.CalculateRPAEnergies(_dft_energies,_gwa_energies,_opt.qpmin);
+        rpa_energies=rpa.CalculateRPAEnergies(_dft_energies,frequencies,_opt.qpmin,_opt.homo);
         
         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" GW_Iteration:" <<i_gw << " Shift[Hrt]:" << CalcHomoLumoShift() << std::flush;
         if(Converged(rpa_energies, rpa_energies_old, _opt.gw_sc_limit)){
@@ -207,10 +213,11 @@ void GW::CalculateGWPerturbation() {
 }
 
    void GW::CalculateHQP(){
-       Eigen::VectorXd rpa_energies=_dft_energies;
-       rpa_energies.segment(_opt.qpmin,_qptotal)=_gwa_energies;
-       rpa_energies.segment(_opt.qpmax+1,_dft_energies.size()-_opt.qpmax).array()+=CalcHomoLumoShift();
-       _sigma->CalcCorrelationOffDiag(_gwa_energies,rpa_energies);
+       Eigen::VectorXd rpa_energies=RPA::CalculateRPAEnergies(_dft_energies,_gwa_energies,_opt.qpmin,_opt.homo);
+       Eigen::VectorXd diag_backup=_Sigma_c.diagonal();
+       _Sigma_c=_sigma->CalcCorrelationOffDiag(_gwa_energies,rpa_energies);
+       _Sigma_c.diagonal()=diag_backup;
+       
    }
  
 
