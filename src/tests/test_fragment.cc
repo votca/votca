@@ -22,6 +22,7 @@
 #include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
 
+using namespace std;
 using namespace votca::xtp;
 using namespace votca::tools;
 
