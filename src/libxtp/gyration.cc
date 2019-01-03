@@ -21,7 +21,7 @@
 #include <boost/format.hpp>
 #include <votca/tools/elements.h>
 
-
+using namespace std;
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
