@@ -194,7 +194,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #endif
 	  string beadtype;
 	  sl >> beadtype;
-	  BeadType *type = top.GetOrCreateBeadType(beadtype);
+	  auto type = top.GetOrCreateBeadType(beadtype);
 	  double mass;
 	  sl >> mass;
 	  double charge;
@@ -217,7 +217,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  for(int j=0;j<repeater;j++){
 
 	    string beadname = beadtype + "#" + boost::lexical_cast<string>(i+1);
-	    Bead *bead = top.CreateBead(1, beadname, type, res->getId(), mass, charge);
+	    Bead *bead = top.CreateBead(1, beadname, &type, res->getId(), mass, charge);
 
             stringstream nm;
             nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();
@@ -290,9 +290,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
           Molecule *mi_replica = top.CreateMolecule(mol_name);
 	  for(int i=0;i<mi->BeadCount();i++){
 	    Bead *bead=mi->getBead(i);
-	    BeadType *type = top.GetOrCreateBeadType(bead->Type()->getName());
+	    auto type = top.GetOrCreateBeadType(bead->Type()->getName());
 	    string beadname=mi->getBeadName(i);
-	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getMass(), bead->getQ());
+	    Bead *bead_replica = top.CreateBead(1, bead->getName(), &type, res->getId(), bead->getMass(), bead->getQ());
 	    mi_replica->AddBead(bead_replica,beadname);
 	  }
 	  matoms+=mi->BeadCount();

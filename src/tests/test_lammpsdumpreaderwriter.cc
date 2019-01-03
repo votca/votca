@@ -206,8 +206,8 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   byte_t symmetry = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
-    BeadType *type = top.GetOrCreateBeadType(atom_types.at(ind));
-    Bead *b = top.CreateBead(symmetry, atom_types.at(ind), type, residue_num,
+    auto type = top.GetOrCreateBeadType(atom_types.at(ind));
+    Bead *b = top.CreateBead(symmetry, atom_types.at(ind), &type, residue_num,
                              elements.getMass(atom_types.at(ind)), charge);
 
     vec xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
@@ -315,8 +315,8 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   byte_t symmetry = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
-    BeadType *type = top.GetOrCreateBeadType(atom_types.at(ind));
-    Bead *b = top.CreateBead(symmetry, atom_types.at(ind), type, residue_num,
+    auto type = top.GetOrCreateBeadType(atom_types.at(ind));
+    Bead *b = top.CreateBead(symmetry, atom_types.at(ind), &type, residue_num,
                              elements.getMass(atom_types.at(ind)), charge);
 
     vec xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),

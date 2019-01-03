@@ -104,8 +104,8 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
     vector<beaddef_t *>::iterator iter;
     for(iter = _beads.begin(); iter != _beads.end(); ++iter) {
         Bead *bead;
-        BeadType *bt = top.GetOrCreateBeadType((*iter)->_type);
-        bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, bt, res->getId(), 0, 0);
+        auto bt = top.GetOrCreateBeadType((*iter)->_type);
+        bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, &bt, res->getId(), 0, 0);
         minfo->AddBead(bead, bead->getName());
 
         bead->setOptions(*(*iter)->_options);
