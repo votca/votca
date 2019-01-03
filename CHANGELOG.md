@@ -5,32 +5,32 @@ For more detailed information about the changes see the history of the [reposito
  * Added unit testing 
  * Eigen added as a dependency
 
-== Version 1.2.2 ==
+## Version 1.2.2
 * cmake: allow static fftw and gsl
 * added dummy c function for cmake
 * fixed conflicting type headers (real was defined)
 
 
-== Version 1.2.1 ==
+## Version 1.2.1
 * fixed soname of libs
 * improved cmake checks and error messages
 * fixed pkg-config file
 
 
-== Version 1.2 (SuperDoris) ==
+## Version 1.2 (SuperDoris)
 * changed buildsystem to cmake
 * added database class through sqlite3
 
 
-== Version 1.1.2 ==
+## Version 1.1.2
 * fixed head of votca-tools manpage
 
 
-== Version 1.1.1 ==
+## Version 1.1.1
 * just a bugfix release
 
 
-== Version 1.1 (SuperAnn) ==
+## Version 1.1 (SuperAnn)
 * added thread class
 * added spline class, with akima spline, linear spline
 * added man7 page
@@ -38,14 +38,14 @@ For more detailed information about the changes see the history of the [reposito
 * added lexical cast class
 
 
-== Version 1.0.1 ==
+## Version 1.0.1
 * fixed a bug in VOTCARC.csh for empty LD_LIBRARY_PATH
 * completion file has moved back to csg
 * added --disable-rc-files to configure
 * updated bundled libtool to 2.2.10
 
 
-== Version 1.0 ==
+## Version 1.0
 * added libvotca_expat to allow compiling without expat
 * allow comments in tables
 * added application class to create standardized applications
@@ -55,7 +55,7 @@ For more detailed information about the changes see the history of the [reposito
 * allow compling without gsl (needed for csg_resample and csg_fmatch)
 
 
-== Version 1.0_rc5 ==
+## Version 1.0_rc5
 * using libexpat instead of libxml2
 * added libvotca_boost to allow compiling without boost
 * using pkg-config to detect package flags
@@ -64,21 +64,21 @@ For more detailed information about the changes see the history of the [reposito
 * updated configure, see --help
 
 
-== Version 1.0_rc4 ==
+## Version 1.0_rc4
 * using libtool to build shared libs
 
 
-== Version 1.0_rc3 ==
+## Version 1.0_rc3
 * corrected bug in tokenizer
 * fixed a bug in calculation of version string
 * some fixes concerning autotools
 
 
-== Version 1.0_rc2 ==
+## Version 1.0_rc2
 * fixed typo in calculation of version string
 * added NOTICE and LICENSE to the dist tarball
 
 
-== Version 1.0_rc1 ==
+## Version 1.0_rc1
 * initial version
 
