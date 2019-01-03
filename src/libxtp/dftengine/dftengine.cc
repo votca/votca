@@ -34,7 +34,7 @@
 
 using boost::format;
 using namespace boost::filesystem;
-using std;
+using namespace std;
 using std::flush;
 using namespace votca::tools;
 
