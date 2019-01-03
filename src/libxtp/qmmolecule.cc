@@ -22,8 +22,7 @@
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
 
-
-
+using namespace std;
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
