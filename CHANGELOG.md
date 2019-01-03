@@ -4,6 +4,7 @@ For more detailed information about the changes see the history of the [reposito
 
  * Added unit testing 
  * Eigen added as a dependency
+ *  removed GSL dependency
 
 ## Version 1.2.2
 * cmake: allow static fftw and gsl
