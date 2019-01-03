@@ -26,8 +26,7 @@
 
 #include "votca/xtp/polarsegment.h"
 
-
-
+using namespace std;
 using namespace votca::tools;
 
 namespace votca { namespace xtp {
