@@ -27,6 +27,7 @@
 
 #include <votca/xtp/logger.h>
 
+using namespace std;
 using namespace boost::filesystem;
 using namespace votca::tools;
 
