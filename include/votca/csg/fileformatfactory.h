@@ -19,14 +19,11 @@
 #define	_VOTCA_CSG_FILEFORMATFACTORY_H
 
 #include <string>
-#include <iostream>
 #include <votca/tools/objectfactory.h>
 #include <votca/tools/tokenizer.h>
 
 namespace votca { namespace csg {
 using namespace votca::tools;
-
-using namespace std;
 
 template<typename T>
 class FileFormatFactory
@@ -35,18 +32,18 @@ class FileFormatFactory
 public:
     FileFormatFactory() {}
     
-    T *Create(const string &file);
+    T *Create(const std::string &file);
 };
 
 template<typename T>
-T *FileFormatFactory<T>::Create(const string &file)
+T *FileFormatFactory<T>::Create(const std::string &file)
 {
-    string filetype = "";
+  std::string filetype = "";
     Tokenizer tok(file, ".");       
     for(Tokenizer::iterator iter=tok.begin();iter!=tok.end();iter++)
         filetype = *iter;
     try {
-        return ObjectFactory<string,T>::Create(filetype);
+        return ObjectFactory<std::string,T>::Create(filetype);
     } catch(std::exception &error) {}
     return NULL;
 }
