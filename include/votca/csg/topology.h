@@ -20,7 +20,6 @@
 
 #include <vector>
 #include <map>
-#include <memory>
 #include <list>
 
 #include <assert.h>
@@ -45,7 +44,7 @@ class ExclusionList;
 
 typedef vector<Molecule *> MoleculeContainer;
 typedef vector<Bead *> BeadContainer;
-typedef vector<std::unique_ptr<BeadType>> BeadTypeContainer;
+typedef vector<BeadType> BeadTypeContainer;
 typedef vector<Residue *> ResidueContainer;
 typedef vector<Interaction *> InteractionContainer;
 
@@ -194,7 +193,7 @@ public:
     void AddBondedInteraction(Interaction *ic);
     std::list<Interaction *> InteractionsInGroup(const string &group);
     
-    BeadType& getBeadType(const int i) const { return *(_beadtypes[i]); }
+    BeadType& getBeadType(const int i) { return _beadtypes.at(i); }
     Bead *getBead(const int i) const { return _beads[i]; }
     Residue *getResidue(const int i) const { return _residues[i]; }
     Molecule *getMolecule(const int i) const { return _molecules[i]; }

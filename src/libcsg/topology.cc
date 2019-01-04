@@ -278,13 +278,12 @@ BeadType& Topology::GetOrCreateBeadType(string name)
     
     iter = _beadtype_map.find(name);
     if(iter == _beadtype_map.end()) {
-        auto bt = unique_ptr<BeadType>(new BeadType(this, _beadtypes.size(), name));
-        _beadtypes.push_back(move(bt));
-        _beadtype_map[name] = _beadtypes.back()->getId();
-        return *(_beadtypes.back());
+        _beadtypes.push_back(BeadType(this,_beadtypes.size(),name));
+        _beadtype_map[name] = _beadtypes.back().getId();
+        return _beadtypes.back();
     }
 
-    return  *(_beadtypes[(*iter).second]);
+    return  _beadtypes[(*iter).second];
     
 }
 
