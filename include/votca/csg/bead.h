@@ -34,8 +34,6 @@ class Molecule;
 
 using namespace votca::tools;
 
-using namespace std;
-
 /**
  * \brief information about a bead
  *
@@ -188,7 +186,7 @@ public:
    * \return reference to velocity
    */
   vec &Vel() {
-    assert(_bVel);
+    std::assert(_bVel);
     return _vel;
   }
 
@@ -197,7 +195,7 @@ public:
    * \return reference to u
    */
   vec &U() {
-    assert(_bU);
+    std::assert(_bU);
     return _u;
   }
 
@@ -206,7 +204,7 @@ public:
    * \return reference to v
    */
   vec &V() {
-    assert(_bV);
+    std::assert(_bV);
     return _v;
   }
 
@@ -215,7 +213,7 @@ public:
    * \return reference to w
    */
   vec &W() {
-    assert(_bW);
+    std::assert(_bW);
     return _w;
   }
 
@@ -224,7 +222,7 @@ public:
    * \return reference to force
    */
   vec &F() {
-    assert(_bF);
+    std::assert(_bF);
     return _f;
   }
 
@@ -339,7 +337,7 @@ protected:
   bool _bF;
 
   /// constructur
-  Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, string name,
+  Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, std::string name,
        int resnr, double m, double q)
       : _symmetry(symmetry), _q(q), _resnr(resnr) {
     _parent = owner;
@@ -367,7 +365,7 @@ inline void Bead::setVel(const vec &r) {
 }
 
 inline const vec &Bead::getVel() const {
-  assert(_bVel);
+  std::assert(_bVel);
   return _vel;
 }
 
@@ -377,7 +375,7 @@ inline void Bead::setU(const vec &u) {
 }
 
 inline const vec &Bead::getU() const {
-  assert(_bU);
+  std::assert(_bU);
   return _u;
 }
 
@@ -387,7 +385,7 @@ inline void Bead::setV(const vec &v) {
 }
 
 inline const vec &Bead::getV() const {
-  assert(_bV);
+  std::assert(_bV);
   return _v;
 }
 
@@ -397,7 +395,7 @@ inline void Bead::setW(const vec &w) {
 }
 
 inline const vec &Bead::getW() const {
-  assert(_bW);
+  std::assert(_bW);
   return _w;
 }
 
@@ -407,7 +405,7 @@ inline void Bead::setF(const vec &F) {
 }
 
 inline const vec &Bead::getF() const {
-  assert(_bF);
+  std::assert(_bF);
   return _f;
 }
 
