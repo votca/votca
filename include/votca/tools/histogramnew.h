@@ -137,7 +137,7 @@ class HistogramNew {
    * \brief get the grid of histogram
    * \return step per bin
    */
-  double getStep() const { return _periodic ? _step_p : _step; }
+  double getStep() const { return _step; }
 
   /**
    * \brief normalize the histogram that the integral is 1
@@ -153,7 +153,7 @@ class HistogramNew {
    * \brief get access to content of histogram
    * \return table object with bins in x and values in y
    */
-  Table &data() { return _periodic ? _data_p : _data; }
+  Table &data() { return _data; }
 
   /**
    * \brief set whether interval is periodic
@@ -162,11 +162,7 @@ class HistogramNew {
   void setPeriodic(bool periodic) { _periodic = periodic; }
 
  private:
-  void InitializeP_(double min, double max);
   void Initialize_(double min, double max);
-  void ProcessP_(const double &v, double scale);
-  void Process_(const double &v, double scale);
-  void Normalize_(const double step, Table &data);
   double _min=0;
   double _max=0;
   double _step=0;
@@ -174,7 +170,6 @@ class HistogramNew {
   bool _periodic=false;
   int _nbins=100;
   Table _data;
-  Table _data_p;
 };
 
 inline std::ostream &operator<<(std::ostream &out, HistogramNew &h) {
