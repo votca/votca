@@ -276,7 +276,7 @@ public:
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  vector<int> &ParentBeads() { return _parent_beads; };
+  std::vector<int> &ParentBeads() { return _parent_beads; };
 
   /**
    * \brief Function to add arbitrary user data to bead
@@ -317,7 +317,7 @@ public:
   void setOptions(Property &options) { _options = &options; }
 
 protected:
-  vector<int> _parent_beads;
+  std::vector<int> _parent_beads;
 
   // TODO: this is so far a pointer. this should change! each bead should have
   // own options.
