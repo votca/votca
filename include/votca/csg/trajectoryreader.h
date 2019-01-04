@@ -23,9 +23,6 @@
 #include "fileformatfactory.h"
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief trajectoryreader interface
@@ -37,7 +34,7 @@ class TrajectoryReader
 public:
     virtual ~TrajectoryReader() {}
     /// open a trejectory file
-    virtual bool Open(const string &file) = 0;
+    virtual bool Open(const std::string &file) = 0;
         
     virtual void Close() {};
         
