@@ -32,9 +32,6 @@
 #undef bool
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief class for reading gromacs trajectory files
@@ -57,7 +54,7 @@ class GMXTrajectoryReader : public TrajectoryReader
         void Close();
         
     private:
-        string _filename;
+        std::string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
        t_trxstatus* _gmx_status;
