@@ -24,9 +24,6 @@
 #include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief class for reading dlpoly trajectory and configuration files
@@ -40,7 +37,7 @@ class DLPOLYTrajectoryReader
 {
  public:
   /// open original trajectory file
-  bool Open(const string &file);
+  bool Open(const std::string &file);
   /// read in the first frame
   bool FirstFrame(Topology &conf);
   /// read in the next frame
@@ -50,16 +47,16 @@ class DLPOLYTrajectoryReader
 
   /// set/get the original configuration or trajectory file name: 
   /// <name>.dlpc/<name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
-  void   setFname(string name) { _fname = name; return; }
-  string getFname()            { return _fname; }
+  void   setFname(std::string name) { _fname = name; return; }
+  std::string getFname()            { return _fname; }
   
   /// set/check the flag for the read-in file as configuration, i.e. not trajectory format
   void setIsConfig(bool isConf) { _isConfig=isConf; return; }
   bool getIsConfig()            { return _isConfig; }
   
  private:
-  ifstream _fl;
-  string _fname;
+  std::ifstream _fl;
+  std::string _fname;
   bool _first_frame;
   bool _isConfig;
 };
