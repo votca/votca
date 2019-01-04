@@ -33,6 +33,7 @@
 
 namespace votca { namespace csg {
 
+  namespace TOOLS = votca::tools;
 /**
     \brief class for reading gromacs trajectory files
 

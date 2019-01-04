@@ -23,11 +23,12 @@
 #include <votca/tools/tokenizer.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
+
+namespace TOOLS = votca::tools;
 
 template<typename T>
 class FileFormatFactory
-: public ObjectFactory<std::string, T>
+: public TOOLS::ObjectFactory<std::string, T>
 {
 public:
     FileFormatFactory() {}
@@ -39,11 +40,11 @@ template<typename T>
 T *FileFormatFactory<T>::Create(const std::string &file)
 {
   std::string filetype = "";
-    Tokenizer tok(file, ".");       
-    for(Tokenizer::iterator iter=tok.begin();iter!=tok.end();iter++)
+  TOOLS::Tokenizer tok(file, ".");       
+    for(TOOLS::Tokenizer::iterator iter=tok.begin();iter!=tok.end();iter++)
         filetype = *iter;
     try {
-        return ObjectFactory<std::string,T>::Create(filetype);
+        return TOOLS::ObjectFactory<std::string,T>::Create(filetype);
     } catch(std::exception &error) {}
     return NULL;
 }

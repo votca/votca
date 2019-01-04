@@ -46,7 +46,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   ~H5MDTrajectoryReader();
 
   /// Opens original trajectory file.
-  bool Open(const string &file);
+  bool Open(const std::string &file);
 
   /// Initialize data structures.
   void Initialize(Topology &top);
