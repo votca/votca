@@ -74,20 +74,14 @@ namespace tools {
 */
 class HistogramNew {
  public:
-  /// constructor
-  HistogramNew();
-  /// constructor
-  HistogramNew(const HistogramNew &hist);
-
-  /// destructor
-  ~HistogramNew() {};
-
+ 
   /**
-         * \brief Initialize the HistogramNew
-         * @param min lower bound of interval
-         * @param max upper bound of interval
-         * @param nbins number of bins
-         */ void Initialize(double min, double max, int nbins);
+* \brief Initialize the HistogramNew
+* @param min lower bound of interval
+* @param max upper bound of interval
+* @param nbins number of bins
+*/ 
+    void Initialize(double min, double max, int nbins);
 
   /**
     * \brief process a data point
@@ -119,7 +113,7 @@ class HistogramNew {
    * \brief Get number of grid points
    * \return number of grid poitns
    */
-  double getNBins() const { return _nbins; }
+  int getNBins() const { return _nbins; }
 
   /**
    * \brief Get the count of the bin with the fewest counts
@@ -132,7 +126,6 @@ class HistogramNew {
    * \return maximum counts
    */
   double getMaxBinVal() const;
-
   /**
    * \brief Given the bin number get the Inverval bounds
    * @param[in] bin - pass in the index of the bin
@@ -174,12 +167,12 @@ class HistogramNew {
   void ProcessP_(const double &v, double scale);
   void Process_(const double &v, double scale);
   void Normalize_(const double step, Table &data);
-  double _min, _max;
-  double _step;
-  double _step_p;
-  double _weight;
-  bool _periodic;
-  int _nbins;
+  double _min=0;
+  double _max=0;
+  double _step=0;
+  double _step_p=0;
+  bool _periodic=false;
+  int _nbins=100;
   Table _data;
   Table _data_p;
 };

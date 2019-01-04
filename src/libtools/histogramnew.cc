@@ -22,21 +22,6 @@ using namespace std;
 namespace votca {
   namespace tools {
 
-    HistogramNew::HistogramNew() {
-      _min = _max = _step = _step_p = 0;
-      _weight = 1.;
-      _periodic = false;
-    }
-
-    HistogramNew::HistogramNew(const HistogramNew &hist)
-    : _min(hist._min),
-    _max(hist._max),
-    _step(hist._step),
-    _step_p(hist._step_p),
-    _weight(hist._weight),
-    _periodic(hist._periodic) {
-    }
-
     void HistogramNew::Initialize_(double min, double max) {
       _step = (_max - _min) / (_nbins - 1.0);
       if(_nbins==1){
@@ -68,7 +53,6 @@ namespace votca {
     void HistogramNew::Initialize(double min, double max, int nbins) {
       _min = min;
       _max = max;
-      _weight = 1.;
       _nbins = nbins;
       Initialize_(min, max);
       InitializeP_(min, max);
@@ -80,7 +64,7 @@ namespace votca {
       if (i < 0 || i >= _nbins) {
         return;
       }
-      _data.y(i) += _weight * scale;
+      _data.y(i) += scale;
     }
 
     void HistogramNew::ProcessP_(const double &v, double scale) {
@@ -91,7 +75,7 @@ namespace votca {
         else
           i = i % _nbins;
       }
-      _data_p.y(i) += _weight * scale;
+      _data_p.y(i) += scale;
     }
 
     void HistogramNew::Process(const double &v, double scale) {
@@ -133,7 +117,6 @@ namespace votca {
     }
 
     void HistogramNew::Clear() {
-      _weight = 1.;
       _data.y() = Eigen::VectorXd::Zero(_nbins);
       _data.yerr() = Eigen::VectorXd::Zero(_nbins);
       _data_p.y() = Eigen::VectorXd::Zero(_nbins);
