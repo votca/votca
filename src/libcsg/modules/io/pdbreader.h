@@ -27,9 +27,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     brief class for reading pdb files
@@ -47,9 +44,9 @@ class PDBReader : public TopologyReader,
     /// Destructor
     ~PDBReader() {}
     /// open a topology file
-    bool ReadTopology(string file, Topology &top);
+    bool ReadTopology(std::string file, Topology &top);
     /// open a trajectory file
-    bool Open(const string &file);
+    bool Open(const std::string &file);
     /// read in the first frame
     bool FirstFrame(Topology &top);
     /// read in the next frame
