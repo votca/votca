@@ -23,10 +23,10 @@
 #include <sstream>
 #include <string>
 
+namespace TOOLS = votca::tools;
+
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-using namespace std;
 
 /**
     \brief base calss for all interactions
@@ -42,13 +42,13 @@ public:
   virtual ~Interaction() {}
   virtual double EvaluateVar(const Topology &top) = 0;
 
-  string getName() const { return _name; }
+  std::string getName() const { return _name; }
 
-  void setGroup(const string &group) {
+  void setGroup(const std::string &group) {
     _group = group;
     RebuildName();
   }
-  const string &getGroup() const {
+  const std::string &getGroup() const {
     assert(_group.compare("") != 0);
     return _group;
   }
@@ -89,17 +89,17 @@ public:
 
 protected:
   int _index;
-  string _group;
+  std::string _group;
   int _group_id;
-  string _name;
+  std::string _name;
   int _mol;
-  vector<int> _beads;
+  std::vector<int> _beads;
 
   void RebuildName();
 };
 
 inline void Interaction::RebuildName() {
-  stringstream s;
+  std::stringstream s;
   if (_mol != -1)
     s << "molecule " << _mol;
   if (!_group.empty()) {
