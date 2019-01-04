@@ -26,7 +26,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 class Molecule;
 
