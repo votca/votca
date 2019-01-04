@@ -283,7 +283,9 @@ BeadType& Topology::GetOrCreateBeadType(string name)
         _beadtype_map[name] = _beadtypes.back()->getId();
         return *(_beadtypes.back());
     }
-    return *(_beadtypes[(*iter).second]);
+
+    return  *(_beadtypes[(*iter).second]).get();
+    
 }
 
 vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const
