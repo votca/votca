@@ -110,7 +110,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l)
 	for(typename iteratable::iterator i=l.begin(); i!=l.end(); ++i) {
 		Bead *bead1 = bead1_;
 		;Bead *bead2 = *i;
-		if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
+		if (bead2->getId() < bead1->getId()) std::swap(bead1, bead2);
 		if(bead1==bead2) continue;
 		if(IsExcluded(bead1, bead2)) continue;
 		exclusion_t *e;
@@ -126,7 +126,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l)
 
 //template<>
 inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
-    if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
+    if (bead2->getId() < bead1->getId()) std::swap(bead1, bead2);
 	if(bead1==bead2) return;
 	if(IsExcluded(bead1, bead2)) return;
 
@@ -141,7 +141,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
 }
 
 inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
-    if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
+    if (bead2->getId() < bead1->getId()) std::swap(bead1, bead2);
     if(bead1==bead2) return;
     if(!IsExcluded(bead1, bead2)) return;
     std::list<exclusion_t*>::iterator ex;
