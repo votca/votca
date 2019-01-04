@@ -57,7 +57,7 @@ class CsgREupdate
 {
 public:
   std::string ProgramName() { return "csg_reupdate"; }
-  void HelpText(ostream &out) {
+  void HelpText(std::ostream &out) {
     out << "computes relative entropy update.";
   }
 
