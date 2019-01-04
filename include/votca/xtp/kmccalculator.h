@@ -37,12 +37,8 @@
 
 #include <votca/xtp/gnode.h>
 #include <votca/xtp/qmcalculator.h>
-using namespace std;
 
 namespace votca { namespace xtp {
-    
-   
-
 
 class KMCCalculator : public QMCalculator 
 {

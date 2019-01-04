@@ -25,10 +25,6 @@
 #include <vector>
 #include <votca/xtp/huffmantree.h>
 
-
-using namespace std;
-
-
 namespace votca { namespace xtp {
 
 
