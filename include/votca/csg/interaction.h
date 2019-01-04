@@ -124,7 +124,7 @@ public:
     _beads[1] = bead2;
   }
 
-  IBond(list<int> &beads) {
+  IBond(std::list<int> &beads) {
     assert(beads.size() >= 2);
     _beads.resize(2);
     for (int i = 0; i < 2; ++i) {
@@ -149,7 +149,7 @@ public:
     _beads[1] = bead2;
     _beads[2] = bead3;
   }
-  IAngle(list<int> &beads) {
+  IAngle(std::list<int> &beads) {
     assert(beads.size() >= 3);
     _beads.resize(3);
     for (int i = 0; i < 3; ++i) {
@@ -176,7 +176,7 @@ public:
     _beads[2] = bead3;
     _beads[3] = bead4;
   }
-  IDihedral(list<int> &beads) {
+  IDihedral(std::list<int> &beads) {
     assert(beads.size() >= 4);
     _beads.resize(4);
     for (int i = 0; i < 4; ++i) {
