@@ -22,6 +22,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 // open/create a dlpoly configuration or trajectory file
 // NOTE: allowed file naming - <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV", ".dlph"="HISTORY_CGV")
