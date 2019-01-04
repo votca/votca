@@ -45,7 +45,7 @@ class GMXTrajectoryReader : public TrajectoryReader
         GMXTrajectoryReader() {}
 
         /// open a trejectory file
-        bool Open(const string &file);
+        bool Open(const std::string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
         /// read in the next frame
