@@ -21,7 +21,6 @@
 #include <votca/tools/matrix.h>
 
 namespace votca { namespace csg {
-using namespace std;
 using namespace votca::tools;
 
 class BoundaryCondition {
