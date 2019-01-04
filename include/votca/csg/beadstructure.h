@@ -18,11 +18,9 @@
 #ifndef _VOTCA_CSG_BEADSTRUCTURE_H
 #define _VOTCA_CSG_BEADSTRUCTURE_H
 
-#include <list>
 #include <map>
 #include <memory>
 #include <set>
-#include <string>
 
 #include <votca/csg/basebead.h>
 
