@@ -28,11 +28,11 @@ using namespace votca::tools;
 
 void imcio_write_dS(const std::string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS, std::list<int> *list=NULL);
 void imcio_write_matrix(const std::string &file, Eigen::MatrixXd &gmc, std::list<int> *list=NULL);
-void imcio_write_index(const std::string &file, vector<std::string> &names, vector<RangeParser> &ranges);
+void imcio_write_index(const std::string &file, std::vector<std::string> &names, std::vector<RangeParser> &ranges);
 
 void imcio_read_dS(const std::string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS);
 void imcio_read_matrix(const std::string &file, Eigen::MatrixXd &gmc);
-void imcio_read_index(const std::string &file, vector<std::string> &names, vector<RangeParser> &ranges);
+void imcio_read_index(const std::string &file, std::vector<std::string> &names, std::vector<RangeParser> &ranges);
 
 }}
 
