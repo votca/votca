@@ -28,6 +28,7 @@
 #include <votca/csg/imcio.h>
 #include <votca/csg/version.h>
 
+using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
