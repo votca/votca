@@ -30,7 +30,6 @@
 
 namespace votca {  // NOLINT
 namespace csg {
-using namespace votca::tools;  // NOLINT
 
 /**
     \brief class for reading H5MD trajectory.
@@ -75,7 +74,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      throw std::runtime_error("Error ReadVectorData: " + boost::lexical_cast<string>(status));
+      throw std::runtime_error("Error ReadVectorData: " + boost::lexical_cast<std::string>(status));
     } else
       return data_out;
   }
@@ -91,7 +90,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     T1 *data_out = new T1[N_particles_];
     herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      throw std::runtime_error("Error ReadScalarData: " + boost::lexical_cast<string>(status));
+      throw std::runtime_error("Error ReadScalarData: " + boost::lexical_cast<std::string>(status));
     } else {
       return data_out;
     }
@@ -141,7 +140,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   int rank_;
 
-  string fname_;
+  std::string fname_;
   bool first_frame_;
 
   // Flags about datasets.
