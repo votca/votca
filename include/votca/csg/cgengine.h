@@ -41,8 +41,6 @@
 namespace votca { namespace csg {
 using namespace votca::tools;
 
-using namespace std;
-
 /**
     \brief coarse graining engine
 
@@ -65,17 +63,17 @@ public:
     /**
         load molecule type from file
     */
-    void LoadMoleculeType(string filename);
+    void LoadMoleculeType(std::string filename);
     
     
         
-    CGMoleculeDef *getMoleculeDef(string name);
+    CGMoleculeDef *getMoleculeDef(std::string name);
 
     /**
      * \brief ignores molecule in mapping process
      * \param pattern glob pattern for molecule ident
      */
-    void AddIgnore(string pattern) { _ignores.push_back(pattern); }
+    void AddIgnore(std::string pattern) { _ignores.push_back(pattern); }
 
 
     /**
@@ -83,17 +81,17 @@ public:
      * \param ident identifyier of molecule
      * \return true if is ignored
      */
-    bool IsIgnored(string ident);
+    bool IsIgnored(std::string ident);
 
 private:
-    map<string, CGMoleculeDef *> _molecule_defs;
+    std::map<std::string, CGMoleculeDef *> _molecule_defs;
 
-    std::list<string> _ignores;
+    std::list<std::string> _ignores;
 };
 
-inline CGMoleculeDef *CGEngine::getMoleculeDef(string name)
+inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name)
 {
-    map<string, CGMoleculeDef*>::iterator iter;
+  std::map<std::string, CGMoleculeDef*>::iterator iter;
     
     // if there is only 1 molecule definition, don't care about the name
     if(_molecule_defs.size()==1 && name == "unnamed") {
@@ -105,9 +103,9 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(string name)
     return (*iter).second;
 }
 
-inline bool CGEngine::IsIgnored(string ident)
+inline bool CGEngine::IsIgnored(std::string ident)
 {
-    for(std::list<string>::iterator iter=_ignores.begin(); iter!=_ignores.end(); ++iter) {
+    for(std::list<std::string>::iterator iter=_ignores.begin(); iter!=_ignores.end(); ++iter) {
         if(wildcmp(iter->c_str(), ident.c_str()))
             return true;
     }
