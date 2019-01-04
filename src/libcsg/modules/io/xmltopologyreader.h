@@ -26,15 +26,14 @@
 
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
-using namespace std;
+namespace TOOLS = votca::tools;
 
 class BondBead {
  public:
   BondBead(string &line) {
-    Tokenizer tok(line, ":");
-    vector<string> tmp_vec;
+    TOOLS::Tokenizer tok(line, ":");
+    std::vector<std::string> tmp_vec;
     tok.ToVector(tmp_vec);
     if (tmp_vec.size() != 2)
       throw runtime_error("Wrong number of elements in bead: " + line);
@@ -44,8 +43,8 @@ class BondBead {
     atname.erase(atname.find_last_not_of(" \n\r\t") + 1);
   }
 
-  string molname;
-  string atname;
+  std::string molname;
+  std::string atname;
 };
 
 class XMLBead {
@@ -68,8 +67,8 @@ class XMLMolecule {
   string name;
   int nmols;
   int pid;
-  vector<XMLBead*> beads;
-  map<string, XMLBead*> name2beads;
+  std::vector<XMLBead*> beads;
+  std::map<std::string, XMLBead*> name2beads;
   Molecule *mi;
 };
 
@@ -85,19 +84,19 @@ class XMLTopologyReader
 {
 public:
     /// read a topology file
-    bool ReadTopology(string file, Topology &top);
+    bool ReadTopology(std::string file, Topology &top);
     ~XMLTopologyReader();
 private:
-    typedef boost::unordered_multimap<string, XMLMolecule*> MoleculesMap;
+    typedef boost::unordered_multimap<std::string, XMLMolecule*> MoleculesMap;
 
-    void ReadTopolFile(string file);
+    void ReadTopolFile(std::string file);
 
     void ParseRoot(Property &el);
     void ParseMolecules(Property &el);
     void ParseBeadTypes(Property &el);
     void ParseBonded(Property &el);
     void ParseBox(Property &p);
-    void ParseMolecule(Property &p, string molname, int nbeads, int nmols);
+    void ParseMolecule(Property &p, std::string molname, int nbeads, int nmols);
     void ParseBond(Property &p);
     void ParseAngle(Property &p);
     void ParseDihedral(Property &p);
