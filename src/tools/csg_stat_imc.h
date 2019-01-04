@@ -24,8 +24,6 @@
 #include <votca/tools/average.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
 /**
  * \brief class to calculate distribution functions and cross correlations for inverse monte carlo
  * 
@@ -42,7 +40,7 @@ public:
     void Initialize(void);
 
     /// load cg definitions file
-    void LoadOptions(const string &file);
+    void LoadOptions(const std::string &file);
     
     /// begin coarse graining a trajectory
     void BeginEvaluate(Topology *top, Topology *top_atom);
@@ -52,7 +50,7 @@ public:
     
     void BlockLength(int length) { _block_length = length; }
     void DoImc(bool do_imc) { _do_imc = do_imc; }
-    void Extension(string ext) { _extension = ext; }
+    void Extension(std::string ext) { _extension = ext; }
     
 protected:
     Average<double> _avg_vol;
@@ -86,9 +84,9 @@ protected:
     
     /// struct to store collected information for groups (e.g. crosscorrelations)
     struct group_t {
-        list<interaction_t*> _interactions;
+      std::list<interaction_t*> _interactions;
         group_matrix _corr;
-        vector<pair_t> _pairs;
+        std::vector<pair_t> _pairs;
     };
     
     
@@ -100,35 +98,35 @@ protected:
     bool _do_imc;
 
     // file extension for the distributions
-    string _extension;
+    std::string _extension;
 
     // number of frames we processed
     int _nframes;
     int _nblock;
 
     /// list of bonded interactions
-    list<Property *> _bonded;
+    std::list<Property *> _bonded;
     /// list of non-bonded interactions
-    list<Property *> _nonbonded;        
+    std::list<Property *> _nonbonded;        
     
     /// map ineteractionm-name to interaction
-    map<string, interaction_t *> _interactions;
+    std::map<std::string, interaction_t *> _interactions;
     /// map group-name to group
-    map<string, group_t *> _groups;
+    std::map<std::string, group_t *> _groups;
                     
     /// create a new interaction entry based on given options
     interaction_t *AddInteraction(Property *p);
         
     /// get group by name, creates one if it doesn't exist
-    group_t *getGroup(const string &name);
+    group_t *getGroup(const std::string &name);
     
     /// initializes the group structs after interactions were added
     void InitializeGroups();    
 
     
-    void WriteDist(const string &suffix="");
-    void WriteIMCData(const string &suffix="");
-    void WriteIMCBlock(const string &suffix);
+    void WriteDist(const std::string &suffix="");
+    void WriteIMCData(const std::string &suffix="");
+    void WriteIMCBlock(const std::string &suffix);
 
     void CalcDeltaS(interaction_t *interaction, 
                     Eigen::VectorBlock< Eigen::VectorXd > &dS);
@@ -139,8 +137,8 @@ protected:
     {
     public:
 
-        vector<HistogramNew> _current_hists;
-        vector<HistogramNew> _current_hists_force;
+      std::vector<HistogramNew> _current_hists;
+      std::vector<HistogramNew> _current_hists_force;
         Imc *_imc;
         double _cur_vol;
 
