@@ -15,7 +15,6 @@
  *
  */
 
-#include <list>
 #include <fstream>
 #include <votca/csg/cgengine.h>
 #include <votca/tools/tokenizer.h>

@@ -18,10 +18,11 @@
 #ifndef _VOTCA_CSG_CGMOLECULEDEF_H
 #define	_VOTCA_CSG_CGMOLECULEDEF_H
 
-#include <string>
-#include <vector>
+#include <list>
 #include <map>
 #include <string>
+#include <vector>
+
 #include <votca/tools/property.h>
 #include "map.h"
 #include <votca/tools/types.h>
@@ -77,7 +78,7 @@ private:
     // mapping schemes
     std::map<std::string, Property *> _maps;
     
-    list<Property *> _bonded;
+    std::list<Property *> _bonded;
     
     void ParseTopology(Property &options);
     void ParseBeads(Property &options);
