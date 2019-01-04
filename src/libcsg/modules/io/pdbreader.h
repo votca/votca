@@ -54,7 +54,7 @@ class PDBReader : public TopologyReader,
     void Close();
 
   private:
-    ifstream _fl;
+    std::ifstream _fl;
     bool _topology;
 };
 }
