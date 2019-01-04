@@ -21,6 +21,7 @@ foreach(PROG
     test_name
     test_table
     test_thread
+    test_tokenizer
     test_typeconverter
     test_vec
     test_property)
