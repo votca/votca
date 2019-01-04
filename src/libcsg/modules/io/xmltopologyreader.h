@@ -31,7 +31,7 @@ namespace TOOLS = votca::tools;
 
 class BondBead {
  public:
-  BondBead(string &line) {
+  BondBead(std::string &line) {
     TOOLS::Tokenizer tok(line, ":");
     std::vector<std::string> tmp_vec;
     tok.ToVector(tmp_vec);
@@ -49,13 +49,13 @@ class BondBead {
 
 class XMLBead {
  public:
-  XMLBead(string _name, string _type, double _mass=1.0, double _q=0.0):
+  XMLBead(std::string _name, std::string _type, double _mass=1.0, double _q=0.0):
     name(_name), type(_type), mass(_mass), q(_q) {};
   XMLBead() {};
 
   int pid;
-  string name;
-  string type;
+  std::string name;
+  std::string type;
   double mass;
   double q;
 
@@ -63,8 +63,8 @@ class XMLBead {
 
 class XMLMolecule {
  public:
-  XMLMolecule(string _name, int _nmols): name(_name), nmols(_nmols) {}
-  string name;
+  XMLMolecule(std::string _name, int _nmols): name(_name), nmols(_nmols) {}
+  std::string name;
   int nmols;
   int pid;
   std::vector<XMLBead*> beads;
