@@ -32,6 +32,8 @@ class Sigma_base {
  public:
   Sigma_base(TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
   
+  virtual ~Sigma_base(){};
+  
   void configure(int homo, int qpmin,int qpmax){
       _homo=homo;
       _qpmin=qpmin;
