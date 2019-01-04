@@ -19,7 +19,7 @@
 #define _VOTCA_CSG_BEAD_H
 
 #include "basebead.h"
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
@@ -186,7 +186,7 @@ public:
    * \return reference to velocity
    */
   vec &Vel() {
-    std::assert(_bVel);
+    assert(_bVel);
     return _vel;
   }
 
@@ -195,7 +195,7 @@ public:
    * \return reference to u
    */
   vec &U() {
-    std::assert(_bU);
+    assert(_bU);
     return _u;
   }
 
@@ -204,7 +204,7 @@ public:
    * \return reference to v
    */
   vec &V() {
-    std::assert(_bV);
+    assert(_bV);
     return _v;
   }
 
@@ -213,7 +213,7 @@ public:
    * \return reference to w
    */
   vec &W() {
-    std::assert(_bW);
+    assert(_bW);
     return _w;
   }
 
@@ -222,7 +222,7 @@ public:
    * \return reference to force
    */
   vec &F() {
-    std::assert(_bF);
+    assert(_bF);
     return _f;
   }
 
@@ -365,7 +365,7 @@ inline void Bead::setVel(const vec &r) {
 }
 
 inline const vec &Bead::getVel() const {
-  std::assert(_bVel);
+  assert(_bVel);
   return _vel;
 }
 
@@ -375,7 +375,7 @@ inline void Bead::setU(const vec &u) {
 }
 
 inline const vec &Bead::getU() const {
-  std::assert(_bU);
+  assert(_bU);
   return _u;
 }
 
@@ -385,7 +385,7 @@ inline void Bead::setV(const vec &v) {
 }
 
 inline const vec &Bead::getV() const {
-  std::assert(_bV);
+  assert(_bV);
   return _v;
 }
 
@@ -395,7 +395,7 @@ inline void Bead::setW(const vec &w) {
 }
 
 inline const vec &Bead::getW() const {
-  std::assert(_bW);
+  assert(_bW);
   return _w;
 }
 
@@ -405,7 +405,7 @@ inline void Bead::setF(const vec &F) {
 }
 
 inline const vec &Bead::getF() const {
-  std::assert(_bF);
+  assert(_bF);
   return _f;
 }
 
