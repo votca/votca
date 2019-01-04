@@ -39,8 +39,8 @@
 #include "nematicorder.h"
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
+  namespace TOOLS = votca::tools;
 /**
     \brief coarse graining engine
 
