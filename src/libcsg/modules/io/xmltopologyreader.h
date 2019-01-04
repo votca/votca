@@ -36,7 +36,7 @@ class BondBead {
     std::vector<std::string> tmp_vec;
     tok.ToVector(tmp_vec);
     if (tmp_vec.size() != 2)
-      throw runtime_error("Wrong number of elements in bead: " + line);
+      throw std::runtime_error("Wrong number of elements in bead: " + line);
     molname = tmp_vec[0];
     atname = tmp_vec[1];
     molname.erase(molname.find_last_not_of(" \n\r\t") + 1);
