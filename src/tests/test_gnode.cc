@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+using namespace std;
 using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(gnode_test)
 
