@@ -94,7 +94,7 @@ public:
      *
      * Returns an existing bead type or creates one if it doesn't exist yet
      */
-    virtual BeadType& GetOrCreateBeadType(string name);
+    virtual BeadType * GetOrCreateBeadType(string name);
 
     /**
      * \brief creates a new molecule

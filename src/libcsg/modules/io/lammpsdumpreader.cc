@@ -134,7 +134,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     if(_topology){
       top.CreateResidue("dum");
       for(int i=0; i<_natoms; ++i) {
-        (void)top.CreateBead(1, "no", &(top.GetOrCreateBeadType("no")), 0, 0, 0);
+        (void)top.CreateBead(1, "no", (top.GetOrCreateBeadType("no")), 0, 0, 0);
       }
     }
 
@@ -223,7 +223,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
                 b->F().z() = boost::lexical_cast<double>(*itok);
             else if((fields[j] == "type")&&_topology){
                 auto type = top.GetOrCreateBeadType(*itok);
-                b->setType(&type);
+                b->setType(type);
             }
         }
     }

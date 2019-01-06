@@ -120,7 +120,7 @@ bool GROReader::NextFrame(Topology &top)
 	  auto type = top.GetOrCreateBeadType(atName);
 
 	  // res -1 as internal number starts with 0
-	  b = top.CreateBead(1, atName, &type, resnr-1, 1., 0.);
+	  b = top.CreateBead(1, atName, type, resnr-1, 1., 0.);
 	} else {
           b = top.getBead(i);
 	}

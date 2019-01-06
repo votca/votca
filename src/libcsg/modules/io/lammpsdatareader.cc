@@ -536,7 +536,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         throw runtime_error(err);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, &bead_type, residue_index,
+      b = top.CreateBead(symmetry, bead_type_name, bead_type, residue_index,
                          mass, charge);
 
       mol->AddBead(b, bead_type_name);

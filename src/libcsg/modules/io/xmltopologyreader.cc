@@ -193,7 +193,7 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads, i
                 _top->CreateResidue(molname, resnr);
             }
             auto type = _top->GetOrCreateBeadType(b.type);
-            Bead *bead = _top->CreateBead(1, b.name, &type, resnr, b.mass, b.q);
+            Bead *bead = _top->CreateBead(1, b.name, type, resnr, b.mass, b.q);
             bname << _mol_index << ":" << molname << ":" << b.name;
             mi->AddBead(bead, bname.str());
 

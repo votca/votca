@@ -137,7 +137,7 @@ void Topology::Add(Topology *top)
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
         auto type =  GetOrCreateBeadType(bi->getType()->getName());
-        CreateBead(bi->getSymmetry(), bi->getName(), &type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
+        CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
     }
     
     for(res=top->_residues.begin();res!=top->_residues.end(); ++res) {
@@ -175,7 +175,7 @@ void Topology::CopyTopologyData(Topology *top)
     for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
         Bead *bi = *it_bead;
         auto type =  GetOrCreateBeadType(bi->getType()->getName());
-        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), &type, bi->getResnr(), bi->getMass(), bi->getQ());
+        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getMass(), bi->getQ());
         bn->setOptions(bi->Options());
     }
 
@@ -214,7 +214,7 @@ void Topology::RenameBeadType(string name, string newname)
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
       auto type =  GetOrCreateBeadType((*bead)->getType()->getName());
       if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
-        type.setName(newname);
+        type->setName(newname);
       }
     }
 }
@@ -272,7 +272,7 @@ std::list<Interaction *> Topology::InteractionsInGroup(const string &group)
 }
 
 
-BeadType& Topology::GetOrCreateBeadType(string name)
+BeadType * Topology::GetOrCreateBeadType(string name)
 {
     map<string, int>::iterator iter;
     
@@ -280,10 +280,10 @@ BeadType& Topology::GetOrCreateBeadType(string name)
     if(iter == _beadtype_map.end()) {
         _beadtypes.push_back(BeadType(this,_beadtypes.size(),name));
         _beadtype_map[name] = _beadtypes.back().getId();
-        return _beadtypes.back();
+        return &(_beadtypes.back());
     }
 
-    return  _beadtypes[(*iter).second];
+    return  &(_beadtypes[(*iter).second]);
     
 }
 
