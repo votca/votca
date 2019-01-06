@@ -193,7 +193,7 @@ public:
     void AddBondedInteraction(Interaction *ic);
     std::list<Interaction *> InteractionsInGroup(const string &group);
     
-    BeadType& getBeadType(const int i) { return _beadtypes[i]; }
+    BeadType * getBeadType(const int i) { return &(_beadtypes[i]); }
     Bead *getBead(const int i) const { return _beads[i]; }
     Residue *getResidue(const int i) const { return _residues[i]; }
     Molecule *getMolecule(const int i) const { return _molecules[i]; }
