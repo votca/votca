@@ -138,7 +138,7 @@ void Topology::Add(Topology *top)
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
-        BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
+        auto type =  GetOrCreateBeadType(bi->getType()->getName());
         CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
     }
     
@@ -176,7 +176,7 @@ void Topology::CopyTopologyData(Topology *top)
     // create all beads
     for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
         Bead *bi = *it_bead;
-        BeadType *type =  GetOrCreateBeadType(bi->getType()->getName());
+        auto type =  GetOrCreateBeadType(bi->getType()->getName());
         Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getMass(), bi->getQ());
         bn->setOptions(bi->Options());
     }
@@ -214,9 +214,9 @@ void Topology::RenameBeadType(string name, string newname)
 {
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-      BeadType *type =  GetOrCreateBeadType((*bead)->getType()->getName());
+      auto type =  GetOrCreateBeadType((*bead)->getType()->getName());
       if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
-	type->setName(newname);
+        type->setName(newname);
       }
     }
 }
@@ -274,21 +274,19 @@ std::list<Interaction *> Topology::InteractionsInGroup(const string &group)
 }
 
 
-BeadType *Topology::GetOrCreateBeadType(string name)
+BeadType * Topology::GetOrCreateBeadType(string name)
 {
     map<string, int>::iterator iter;
     
     iter = _beadtype_map.find(name);
     if(iter == _beadtype_map.end()) {
-        BeadType *bt = new BeadType(this, _beadtypes.size(), name);
-        _beadtypes.push_back(bt);
-        _beadtype_map[name] = bt->getId();
-        return bt;
+        _beadtypes.push_back(BeadType(this,_beadtypes.size(),name));
+        _beadtype_map[name] = _beadtypes.back().getId();
+        return &(_beadtypes.back());
     }
-    else {
-        return _beadtypes[(*iter).second];
-    }
-    return NULL;
+
+    return  &(_beadtypes[(*iter).second]);
+    
 }
 
 vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const

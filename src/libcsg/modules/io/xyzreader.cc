@@ -98,7 +98,7 @@ bool XYZReader::NextFrame(Topology &top)
             Bead *b;
             if(_topology)
                 b = top.CreateBead(1, fields[0]+boost::lexical_cast<string>(i),
-                        top.GetOrCreateBeadType(fields[0]), 0, 0, 0);
+                        (top.GetOrCreateBeadType(fields[0])), 0, 0, 0);
             else
                 b = top.getBead(i);
 

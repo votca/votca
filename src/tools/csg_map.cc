@@ -96,7 +96,7 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                     int beadid = (*it_mol)->getBead(i)->getId();
 
                     Bead *bi = (*it_mol)->getBead(i);
-                    BeadType *type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
+                    auto type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
                     Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getMass(), bi->getQ());
                     bn->setOptions(bi->Options());
                     bn->setPos(bi->getPos());
@@ -114,7 +114,7 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                         Bead *bi = cgmol->getBead(i);
                         // todo: this is a bit dirty as a cg bead will always have the resid of its first parent
                         Bead *bparent = (*it_mol)->getBead(0);
-                        BeadType *type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
+                        auto type = hybtol->GetOrCreateBeadType(bi->getType()->getName());
                         Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), type, bparent->getResnr(), bi->getMass(), bi->getQ());
                         bn->setOptions(bi->Options());
                         bn->setPos(bi->getPos());

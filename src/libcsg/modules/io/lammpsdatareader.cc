@@ -529,7 +529,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       }
 
       string bead_type_name = to_string(atomTypeId + 1);
-      BeadType *bead_type = top.GetOrCreateBeadType(bead_type_name);
+      auto bead_type = top.GetOrCreateBeadType(bead_type_name);
       if (atomtypes_.count(atomTypeId) == 0) {
         string err = "Unrecognized atomTypeId, the atomtypes map "
                      "may be uninitialized";
