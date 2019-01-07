@@ -24,7 +24,9 @@
 #include <votca/tools/edgecontainer.h>
 #include <algorithm>
 
-using namespace votca::tools;
+namespace votca {
+  namespace tools {
+
 using namespace std;
 
 EdgeContainer::EdgeContainer(Edge ed) { addEdge(ed); }
@@ -102,4 +104,15 @@ vector<Edge> EdgeContainer::getEdges() {
   }
   vector<Edge> vec_edgs(edgs.begin(), edgs.end());
   return vec_edgs;
+}
+
+ostream& operator<<(ostream& os, const EdgeContainer edgecontainer){
+  edges = edgecontainer.getEdges();
+  for(auto edge : edges){
+    os << edge << endl;
+  }
+  return os;
+}
+
+}
 }
