@@ -21,123 +21,78 @@
 using namespace std;
 namespace votca {
   namespace tools {
-
-    HistogramNew::HistogramNew() {
-      _min = _max = _step = _step_p = 0;
-      _weight = 1.;
-      _periodic = false;
-    }
-
-    HistogramNew::HistogramNew(const HistogramNew &hist)
-    : _min(hist._min),
-    _max(hist._max),
-    _step(hist._step),
-    _step_p(hist._step_p),
-    _weight(hist._weight),
-    _periodic(hist._periodic) {
-    }
-
+      
+      
     void HistogramNew::Initialize_(double min, double max) {
-      _step = (_max - _min) / (_nbins - 1.0);
-      if(_nbins==1){
-        _step=1;
-      }
-      _data.resize(_nbins);
-      for (double v = _min, i = 0; i < _nbins; v += _step, ++i) {
-        _data.x(i) = v;
-      }
-      _data.y() = Eigen::VectorXd::Zero(_nbins);
-      _data.yerr() = Eigen::VectorXd::Zero(_nbins);
-      _data.flags() = std::vector<char>(_nbins, 'i');
-    }
-
-    void HistogramNew::InitializeP_(double min, double max) {
-      _step_p = (_max - _min) / (_nbins);
-      if(_nbins==1){
-        _step_p=1;
-      }
-      _data_p.resize(_nbins);
-      for (double v_p = _min, i = 0; i < _nbins; v_p += _step_p, ++i) {
-        _data_p.x(i) = v_p;
-      }
-      _data_p.y() = Eigen::VectorXd::Zero(_nbins);
-      _data_p.yerr() = Eigen::VectorXd::Zero(_nbins);
-      _data_p.flags() = std::vector<char>(_nbins, 'i');
+        if (_periodic) {
+            _step = (_max - _min) / (_nbins);
+        } else {
+            _step = (_max - _min) / (_nbins - 1.0);
+        }
+        
+        if (_nbins == 1) {
+            _step = 1;
+        }
+        _data.resize(_nbins);
+        for (double v = _min, i = 0; i < _nbins; v += _step, ++i) {
+            _data.x(i) = v;
+        }
+        _data.y() = Eigen::VectorXd::Zero(_nbins);
+        _data.yerr() = Eigen::VectorXd::Zero(_nbins);
+        _data.flags() = std::vector<char>(_nbins, 'i');
     }
 
     void HistogramNew::Initialize(double min, double max, int nbins) {
       _min = min;
       _max = max;
-      _weight = 1.;
       _nbins = nbins;
       Initialize_(min, max);
-      InitializeP_(min, max);
-    }
-
-    void HistogramNew::Process_(const double &v, double scale) {
-      
-      int i = (int) floor((v - _min) / _step + 0.5);
-      if (i < 0 || i >= _nbins) {
-        return;
-      }
-      _data.y(i) += _weight * scale;
-    }
-
-    void HistogramNew::ProcessP_(const double &v, double scale) {
-      int i = (int) floor((v - _min) / _step_p + 0.5);
-      if (i < 0 || i >= _nbins) {
-        if (i < 0)
-          i = _nbins - ((-i) % _nbins);
-        else
-          i = i % _nbins;
-      }
-      _data_p.y(i) += _weight * scale;
     }
 
     void HistogramNew::Process(const double &v, double scale) {
-      Process_(v, scale);
-      ProcessP_(v, scale);
+      
+      int i = (int) floor((v - _min) / _step + 0.5);
+      if (i < 0 || i >= _nbins) {
+          if(_periodic){
+               if (i < 0){
+                i = _nbins - ((-i) % _nbins);
+               }else{
+                i = i % _nbins;
+               }
+          }else{
+            return;
+          }
+      }
+      _data.y(i) += scale;
     }
 
-    double HistogramNew::getMinBinVal(void) const {
-      return _periodic ? _data_p.getMinY() : _data.getMinY();
+    double HistogramNew::getMinBinVal()const {
+      return _data.getMinY();
     }
 
-    double HistogramNew::getMaxBinVal(void) const {
-      return _periodic ? _data_p.getMaxY() : _data.getMaxY();
+    double HistogramNew::getMaxBinVal() const {
+      return  _data.getMaxY();
     }
 
     pair<double, double> HistogramNew::getInterval(int bin) const {
       pair<double, double> bounds;
       double value = static_cast<double> (bin);
-      if (_periodic) {
-        bounds.first = value * _step_p + _min;
-        bounds.second += _step_p;
-      } else {
-        bounds.first = value * _step + _min;
-        bounds.second += _step;
-      }
+      bounds.first = value * _step + _min;
+      bounds.second += _step;
       return bounds;
     }
 
-    void HistogramNew::Normalize_(const double step, Table &data) {
-      double area = 0;
-      area = data.y().cwiseAbs().sum() * step;
-      double scale = 1. / area;
-      data.y() *= scale;
-    }
-
     void HistogramNew::Normalize() {
-      Normalize_(_step, _data);
-      Normalize_(_step_p, _data_p);
+      double area = 0;
+      area = _data.y().cwiseAbs().sum() * _step;
+      double scale = 1. / area;
+      _data.y() *= scale;
     }
 
     void HistogramNew::Clear() {
-      _weight = 1.;
       _data.y() = Eigen::VectorXd::Zero(_nbins);
       _data.yerr() = Eigen::VectorXd::Zero(_nbins);
-      _data_p.y() = Eigen::VectorXd::Zero(_nbins);
-      _data_p.yerr() = Eigen::VectorXd::Zero(_nbins);
     }
+    
   }
 }
