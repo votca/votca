@@ -37,7 +37,7 @@ namespace tools {
  */
 class Edge {
  private:
-  std::vector<int> vertices;
+  std::vector<int> vertices_;
 
  public:
   Edge() {}
@@ -45,13 +45,13 @@ class Edge {
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   Edge(int ID1, int ID2);
-  Edge(const Edge& ed) : vertices(ed.vertices) {}
+  Edge(const Edge& ed) : vertices_(ed.vertices_) {}
   /// Given one of the integers in the edge the other will be output
   int getOtherEndPoint(int ver) const;
   /// grab the smaller integer
-  int getEndPoint1() const { return vertices.first; }
+  int getEndPoint1() const { return vertices_.front(); }
   /// grab the larger integer
-  int getEndPoint2() const { return vertices.second; }
+  int getEndPoint2() const { return vertices_.back(); }
 
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;
