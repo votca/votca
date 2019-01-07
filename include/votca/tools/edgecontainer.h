@@ -64,7 +64,8 @@ class EdgeContainer {
   std::vector<int> getNeighVertices(int vert);
   /// Get the edges neighboring vert
   std::vector<Edge> getNeighEdges(int vert);
- 
+  /// Print output of object
+  friend std::ostream& operator<<(std::ostream& os, const EdgeContainer edge_container); 
 };
 }
 }

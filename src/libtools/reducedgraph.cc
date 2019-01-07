@@ -26,30 +26,39 @@ namespace tools {
 
 class GraphNode;
 
+bool compareChainWithChains_(Chain chain, vector<Chain> chains){
+  bool match = false;
+  for( auto chain2 : chains){
+    if(chain2.size()=chain.size()){
+      match = true;
+      for(size_t index =0; index<chain.size();++index){
+        if(chain2.at(index)!=chain.at(index)){
+          match = false;
+          break;
+        }
+      }// Cycle vertices in each chain
+      if(match) return true;
+    }// Chains same size
+  }
+  return false;
+}
+
+
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges){
   std::vector<Edge> edges;
   for(auto reduced_edge : reduced_edges){
     Edge ed(reduced_edge.getV1(),reduced_edge.getV2());
     auto temp_chain = reduced_edge.getChain();
     bool match = false;
-    if(edge_count_.count(ed)){
-      match = false;
-      for(auto edge_chain_ptr : edge_count_[ed]){
-        if((*edge_chain_ptr).second.size()==temp_chain.size()){
-          for(size_t i=0; i<temp_chain.size();++i){
-            if(temp_chain.at(i)!=(*edge_chain_ptr).second.at(i)){
-              break;
-            }
-            match=true;
-          }
-        }
-        if(match) break;        
-      }
+    // Cycle the chains
+    if(expanded_edges_.count(ed)){
+      auto chains = expanded_edges_[ed];
+      match = compareChainWithChains_(temp_chain, chains);
     }
-    
+     
     if(!match){
       edges.push_back(ed);
-      expanded_edges_.push_back(pair<Edge,vector<int>>(ed, temp_chain));
+      expanded_edges_[ed].push_back(temp_chain);
       edge_count_[ed].push_back(&expanded_edges_.back());
     }
   }
@@ -90,12 +99,15 @@ ReducedGraph& ReducedGraph::operator=(ReducedGraph&& g) {
 
 vector<Edge> ReducedGraph::getEdges(){
   vector<Edge> edges;
-  for(auto edge_and_vec : edge_count_ ){
-    for(int edge_count=0; edge_count<edge_and_vec.second.size();++edge_count){
-      edges.push_back(edge_and_vec.first);
+  for(auto edge_and_chains : expanded_edges_ ){
+    for(int edge_count=0; edge_count<edge_and_chains.size();++edge_count){
+      edges.push_back(edge_and_chains.first);
     }
   }
   return edges;
 }
+
+
+
 }
 }
