@@ -121,12 +121,12 @@ vector<pair<int, GraphNode>> Graph::getNodes(void) {
   return vec_nodes;
 }
 
-vector<int> Graph::getJunctions(void) const {
+vector<int> Graph::getJunctions() const{
   vector<int> junctions;
-  auto max_number_junctions = getMaxDegree();
-  for(auto degree=3;degree<=max_number_junctions;++degree){
-    auto vertices = getVerticesDegree(degree);
-    junctions.insert(junctions.begin(),vertices.begin(),vertices.end());
+  int max_degree = edge_container_.getMaxDegree();
+  for(auto degree=3; degree<=max_degree;++degree){
+    auto vertices = edge_container_.getVerticesDegree(degree);
+    junctions.insert(junctions.end(),vertices.begin(),vertices.end());
   }
   return junctions;
 }

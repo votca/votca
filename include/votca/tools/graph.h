@@ -102,6 +102,9 @@ class Graph {
   void setNode(int vert, GraphNode gn);
   void setNode(std::pair<int, GraphNode> p_gn);
 
+  /// Gets all vertices with degree of 3 or greater
+  std::vector<int> getJunctions() const;
+
   /// Return a copy of the graph node at vertex 'vert'
   GraphNode getNode(int vert);
 
@@ -109,9 +112,6 @@ class Graph {
   std::vector<std::pair<int, GraphNode>> getNodes(void);
 
   std::string getId() { return id_; }
-
-  /// Return all the vertices that contain 3 or more connections
-  std::vector<int> getJunctions() const;
 
   virtual std::vector<Edge> getEdges() {return edge_container_.getEdges();}
 
