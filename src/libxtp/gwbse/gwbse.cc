@@ -228,6 +228,7 @@ void GWBSE::Initialize(tools::Property& options) {
         _gwopt.gw_sc_max_iterations = 1;
     }
     CTP_LOG(ctp::logDEBUG, *_pLog) << " Running GW as: " << mode << flush;
+    _gwopt.ScaHFX=_orbitals.getScaHFX();
 
     _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(key + ".shift", _gwopt.shift);
     _gwopt.g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(

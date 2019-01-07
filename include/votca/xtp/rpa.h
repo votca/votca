@@ -52,7 +52,7 @@ public:
 
     //calculates full RPA vector of energies from gwa and dftenergies and qpmin
     //RPA energies have three parts, lower than qpmin: dftenergies,between qpmin and qpmax:gwa_energies,above:dftenergies+homo-lumo shift
-    static Eigen::VectorXd CalculateRPAEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin, int homo);
+    static Eigen::VectorXd UpdateRPAInput(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin, int homo);
 
 private:
 

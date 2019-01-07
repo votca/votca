@@ -93,7 +93,6 @@ BOOST_AUTO_TEST_CASE(gw_full){
   orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
-
   orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
  Eigen::MatrixXd& MOs=orbitals.MOCoefficients();
