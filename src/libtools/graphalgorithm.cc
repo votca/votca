@@ -54,6 +54,66 @@ bool singleNetwork(Graph g, GraphVisitor& gv) {
          g.getIsolatedNodes().size() == 0;
 }
 
+ReducedGraph reduceGraph(Graph g){
+
+  auto tips = g.getVerticesDegree(1);
+  auto junctions = g.getJunctions();
+  auto vertices = g.getVertices();
+  int starting_vertex;
+  if(junctions.size()>0){
+    starting_vertex = junctions.at(0);
+  }else if(tips.size()>0){
+    starting_vertex = tips.at(0);
+  }else{
+    starting_vertex = vertices.at(0);
+  }
+
+  vector<vector<int>> chains;
+  
+  Graph_DF_Visitor gv;
+  gv.setStartingVertex(starting_vertex);
+  gv.initialize(g);
+
+  vector<int> chain{starting_vertex};
+  int old_vertex = starting_vertex;
+  bool new_chain = false;
+  while (!gv.queEmpty()) {
+    auto ed = gv.nextEdge(g);
+
+    auto unexplored_vertex = gv.getUnexploredVertex_(ed);
+    if(new_chain){
+      if(unexplored_vertex.size()==0){
+        old_vertex = ed.getEndPoint1();       
+        chain.push_back(old_vertex);
+        new_chain = false;
+      }else{
+        old_vertex = ed.getOtherEndPoint(unexplored_vertex.at(0));
+        chain.push_back(old_vertex);
+        new_chain = false;
+      }
+    }
+    int new_vertex = ed.getOtherEndPoint(old_vertex);
+
+    if(unexplored_vertex.size()==0){
+      chain.push_back(new_vertex);
+      chains.push_back(chain);    
+      chain.clear();
+      new_chain = true; 
+    }else if(g.getDegree(new_vertex)==1){
+      chain.push_back(new_vertex);
+      chains.push_back(chain);
+      chain.clear();
+      new_chain = true; 
+    }else if(unexplored_vertex.size()==1){
+      chain.push_back(new_vertex); 
+      old_vertex = new_vertex;
+    }
+
+    gv.exec(g, ed);
+  }
+
+}
+
 vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g) {
 
   auto vertices_list = vectorToList_(g.getVertices());

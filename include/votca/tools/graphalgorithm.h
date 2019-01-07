@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 #include <votca/tools/graphnode.h>
+#include <votca/tools/reducedgraph.h>
 
 /**
  * \brief This file is a compilation of graph related algorithms
@@ -51,6 +52,8 @@ class GraphVisitor;
  * @return - Boolean value (true - if single network)
  */
 bool singleNetwork(Graph g, GraphVisitor& gv);
+
+ReducedGraph reduceGraph(Graph g);
 
 /**
  * \brief Break graph into smaller graph instances if the network is made up of

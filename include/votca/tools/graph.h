@@ -119,7 +119,7 @@ class Graph {
 
   std::vector<int> getVertices() { return edge_container_.getVertices();}
   int getMaxDegree() { return edge_container_.getMaxDegree();}
-
+  int getDegree(int vertex) { return edge_container_.getDegree(vertex); }
   std::vector<int> getVerticesDegree(int degree) { return edge_container_.getVerticesDegree(degree); }
 
   bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex);}
