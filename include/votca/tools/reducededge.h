@@ -34,8 +34,6 @@ namespace tools {
  * a link.
  */
 class ReducedEdge : public Edge{
- private:
-  std::vector<int> chain_;
 
  public:
   ReducedEdge() {}

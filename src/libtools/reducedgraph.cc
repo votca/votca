@@ -107,6 +107,32 @@ vector<Edge> ReducedGraph::getEdges(){
   return edges;
 }
 
+ostream& operator<<(ostream& os, const ReducedGraph g){
+  os << "Graph" << endl;
+  for(auto p_gn : g.nodes_){
+    os << "Node " << p_gn.first << endl;
+    os << p_gn.second << endl;
+  }
+
+  os << endl;
+  os << g.edge_container_ << endl;
+  
+  os << endl;
+  os << "Expanded Edge Chains" << endl;
+  
+  for(auto edge_pr : g.expanded_edges_){
+    for(auto chain : edge_pr.second){
+      for(auto vertex : chain ){
+        os << vertex << " ";
+      }
+      os << endl;
+    }
+    os << endl;
+  }
+
+  return os;
+}
+
 
 
 }

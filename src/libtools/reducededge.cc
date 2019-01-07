@@ -24,39 +24,55 @@ namespace tools {
 
 using namespace std;
 
-ReducedEdge::ReducedEdge(int ID1, int ID2) {
-  vertices = minmax({ID1,ID2});
-}
+ReducedEdge::ReducedEdge(vector<int> chain) {
+  if(chain.size()<2){
+    throw invalid_argument("Edge chain must consist of at least two vertices.");
+  }
+  // Smallest value always placed at the front of the vectolr
 
-int ReducedEdge::getOtherV(int ver) const {
-  if (ver == vertices.first) {
-    return vertices.second;
-  } else {
-    return vertices.first;
+  bool reverse = false;
+  size_t length = chain.size();
+  size_t max_index = length/2;
+  for(auto index = 0; index< max_index;++index){
+    if(chain.at(index)<chain.at(length-1-index)){
+      break;
+    }
+    if(chain.at(index)>chain.at(length-1-index)){
+      reverse = true;
+      break;
+    }
+  }
+  if(!reverse){
+    chain_=chain;
+  }else{
+    for(auto it=chain.rbegin();it!=chain.rend();++it){
+      chain_.push_back(*it);
+    }
   }
 }
 
-bool ReducedEdge::contains(int ID) const {
-  return (vertices.first == ID || vertices.second == ID);
-}
-
 bool ReducedEdge::operator==(const ReducedEdge ed) const {
-  if (this->vertices.first == ed.vertices.first &&
-      this->vertices.second == ed.vertices.second)
-    return true;
-  if (this->vertices.second == ed.vertices.first &&
-      this->vertices.first == ed.vertices.second)
-    return true;
-  return false;
+  if(ed.vertices_.size()!=vertices_.size()) return false;
+  for(auto index=0;index<verties_.size();++index){
+    if(vertices_.at(index)!=ed.verties_.at(index)) return false;
+  }
+  return true;
 }
 
 bool ReducedEdge::operator!=(const ReducedEdge ed) const { return !(*this == ed); }
 
 bool ReducedEdge::operator<(const ReducedEdge ed) const {
-  if (this->vertices.first < ed.vertices.first) return true;
-  if (this->vertices.first > ed.vertices.first) return false;
-  if (this->vertices.second < ed.vertices.second) return true;
-  return false;
+  if (this->vertices_.front() < ed.vertices_.front()) return true;
+  if (this->vertices_.front() > ed.vertices_.front()) return false;
+  if (this->vertices_.back() < ed.vertices_.back()) return true;
+
+  if(vertices_.size()<ed.vertices_.size()) return true;
+
+  for(auto index=0;index<vertices_.size();++index){
+    if(verties_.at(index)>ed.vertices_.at(index)) return false;
+  }
+
+  return true;
 }
 
 bool ReducedEdge::operator<=(const ReducedEdge ed) const {
@@ -69,7 +85,10 @@ bool ReducedEdge::operator>=(const ReducedEdge ed) const { return !(*this < ed);
 
 ostream& operator<<(ostream& os, const ReducedEdge ed) {
   os << "Vertices" << endl;
-  os << ed.vertices.first << " " << ed.vertices.second << endl;
+  for(auto vertex : vertices_){
+    os << vertex << " ";
+  }
+  os << endl;
   return os;
 }
 }

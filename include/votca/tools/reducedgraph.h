@@ -28,12 +28,20 @@ namespace tools {
 class ReducedGraph : public Graph {
  private:
 
-   typedef std::vector<int> chain;
-   std::unordered_map<Edge,std::vector<chain>>> reduced_edges_;  
+   typedef std::vector<int> Chain;
+   std::unordered_map<Edge,std::vector<Chain>> expanded_edges_;  
 
  public:
   ReducedGraph(){};
   ~ReducedGraph(){};
+
+  ReducedGraph(std::vector<ReducedEdge> reduced_edges);
+
+  ReducedGraph(const ReducedGraph & reduced_graph);
+
+  ReducedGraph& operator=(const ReducedGraph& reduced_graph);
+
+  ReducedGraph& operator=(ReducedGraph&& reduced_graph);
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph g);
 };
