@@ -20,6 +20,7 @@
 
 #include <votca/tools/graph.h>
 #include <votca/tools/graph_bf_visitor.h>
+#include <votca/tools/graph_df_visitor.h>
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphvisitor.h>
 
@@ -80,7 +81,7 @@ ReducedGraph reduceGraph(Graph g){
   while (!gv.queEmpty()) {
     auto ed = gv.nextEdge(g);
 
-    auto unexplored_vertex = gv.getUnexploredVertex_(ed);
+    auto unexplored_vertex = gv.getUnexploredVertex(ed);
     if(new_chain){
       if(unexplored_vertex.size()==0){
         old_vertex = ed.getEndPoint1();       

@@ -55,9 +55,6 @@ class GraphVisitor {
   /// The vertex the visitor started on
   int startingVertex_;
 
-  /// Determine which vertices in the edge, if any, have not been explored
-  std::vector<int> getUnexploredVertex_(Edge ed);
-
   /// What is done to an individual graph node as it is explored
   virtual void addEdges_(Graph& g, int vertex);
   virtual Edge getEdge_(Graph g);
@@ -67,6 +64,9 @@ class GraphVisitor {
                             Edge ed = DUMMY_EDGE);
 
   GraphVisitor() : startingVertex_(0){};
+
+  /// Determine which vertices in the edge, if any, have not been explored
+  std::vector<int> getUnexploredVertex(Edge ed);
 
   /// Determine if the exploration is complete, this is determined by whether
   /// the edge queue is empty or not, it does not necessarily mean all 
