@@ -39,8 +39,11 @@ namespace tools {
 
 class GraphNode;
 
-class Graph : public EdgeContainer {
+class Graph {
  private:
+
+  EdgeContainer edge_container_;
+
   /// Parameter description
   /// @param int - is the index of the graph nodes / vertex ids
   /// @param GraphNode - this is the node object at each vertex and contains
@@ -65,7 +68,7 @@ class Graph : public EdgeContainer {
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
   Graph(std::vector<Edge> edgs, std::unordered_map<int, GraphNode> nodes)
-      : EdgeContainer::EdgeContainer(edgs), nodes_(nodes) {
+      : edge_container_(edgs), nodes_(nodes) {
     calcId_();
   }
 
