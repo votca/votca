@@ -36,7 +36,7 @@ namespace tools {
  * a link.
  */
 class Edge {
- private:
+ protected:
   std::vector<int> vertices_;
 
  public:
