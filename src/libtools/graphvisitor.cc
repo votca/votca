@@ -45,11 +45,11 @@ void GraphVisitor::exploreNode_(pair<int,GraphNode> &p_gn,Graph& g,Edge ed){
 
 vector<int> GraphVisitor::getUnexploredVertex_(Edge ed){
   vector<int> unexp_vert;
-  if(explored_.count(ed.getV1())==0){
-    unexp_vert.push_back(ed.getV1());
+  if(explored_.count(ed.getEndPoint1())==0){
+    unexp_vert.push_back(ed.getEndPoint1());
   }
-  if(explored_.count(ed.getV2())==0){
-    unexp_vert.push_back(ed.getV2());
+  if(explored_.count(ed.getEndPoint2())==0){
+    unexp_vert.push_back(ed.getEndPoint2());
   }
   return unexp_vert;
 }

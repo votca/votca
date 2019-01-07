@@ -54,11 +54,11 @@ BOOST_AUTO_TEST_CASE(nequivalence_test) {
 
 BOOST_AUTO_TEST_CASE(getter_test) {
   Edge ed(2, 3);
-  BOOST_CHECK_EQUAL(ed.getV1(), 2);
-  BOOST_CHECK_EQUAL(ed.getV2(), 3);
+  BOOST_CHECK_EQUAL(ed.getEndPoint1(), 2);
+  BOOST_CHECK_EQUAL(ed.getEndPoint2(), 3);
   Edge ed2(3,2);
-  BOOST_CHECK_EQUAL(ed.getV1(), 2);
-  BOOST_CHECK_EQUAL(ed.getV2(), 3);
+  BOOST_CHECK_EQUAL(ed.getEndPoint1(), 2);
+  BOOST_CHECK_EQUAL(ed.getEndPoint2(), 3);
 }
 
 BOOST_AUTO_TEST_CASE(less_test) {
