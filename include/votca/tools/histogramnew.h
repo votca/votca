@@ -166,7 +166,6 @@ class HistogramNew {
   double _min=0;
   double _max=0;
   double _step=0;
-  double _step_p=0;
   bool _periodic=false;
   int _nbins=100;
   Table _data;
