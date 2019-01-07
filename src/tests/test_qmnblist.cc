@@ -30,7 +30,8 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 BOOST_AUTO_TEST_CASE(cutoff_test){
   QMNBList qmnb;
   qmnb.setCutoff(23.4);
-  BOOST_CHECK_EQUAL(static_cast<int>(qmnb.getCutoff()*10),234);
+  BOOST_CHECK_CLOSE( qmnb.getCutoff(), 23.4, 0.0001 );
+
 }
 
 BOOST_AUTO_TEST_SUITE_END()

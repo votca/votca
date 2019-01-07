@@ -17,6 +17,7 @@
 
 #define BOOST_TEST_MODULE topology_test
 #include <boost/test/unit_test.hpp>
+#include <boost/test/floating_point_comparison.hpp>
 #include <votca/xtp/qmpair.h>
 #include <votca/xtp/topology.h>
 #include <votca/xtp/segment.h>
@@ -60,7 +61,7 @@ BOOST_AUTO_TEST_CASE(box_test) {
   top.setBox(box);
 
   auto vol = top.BoxVolume();
-  BOOST_CHECK_EQUAL(static_cast<int>(vol),8);
+  BOOST_CHECK_CLOSE( vol, 8, 0.0001 );
   auto box2 = top.getBox();
   
   auto v1_2 = box2.getCol(0);
