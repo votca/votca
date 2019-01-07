@@ -42,7 +42,7 @@ class ReducedEdge : public Edge{
   /// spot and the larger in the id2 spot
   ReducedEdge(std::vector<int> chain);
 
-  std::vector<int> getChain();
+  std::vector<int> getChain() const { return vertices_;}
 
   /// Checks if Edges are equivalent
   bool operator==(const ReducedEdge ed) const;
@@ -67,18 +67,23 @@ class ReducedEdge : public Edge{
 };
 
 // Value used as a dummy object
-const Edge DUMMY_EDGE(std::numeric_limits<int>::max(),
-                      std::numeric_limits<int>::max());
+const ReducedEdge DUMMY_REDUCEDEDGE(
+    std::vector<int>{std::numeric_limits<int>::max(),std::numeric_limits<int>::max()});
 }
 }
 
 /// Define a hasher so we can use it as a key in an unordered_map
 namespace std {
 template <>
-class hash<votca::tools::Edge> {
+class hash<votca::tools::ReducedEdge> {
  public:
-  size_t operator()(const votca::tools::Edge& ed) const {
-    return hash<int>()(ed.getV1()) ^ hash<int>()(ed.getV2());
+  size_t operator()(const votca::tools::ReducedEdge& ed) const {
+    size_t value = 1;
+    auto vertices = ed.getChain();
+    for(auto vertex : vertices ){
+      value+=hash<size_t>()(static_cast<size_t>(vertex))^value;
+    }
+    return value;
   }
 };
 }

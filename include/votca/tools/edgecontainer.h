@@ -57,7 +57,7 @@ class EdgeContainer {
   /// Add an edge to the container
   void addEdge(Edge ed);
   /// Get all the edges in vector form
-  std::vector<Edge> getEdges();
+  std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
   std::vector<int> getVertices();
   /// Get the vertices neighboring vert

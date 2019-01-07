@@ -30,7 +30,7 @@ namespace tools {
 using namespace std;
 
 Edge::Edge(int ID1, int ID2) {
-  vertices_ = minmax({ID1,ID2});
+  vertices_ = vector<int>{min({ID1,ID2}), max({ID1,ID2})};
 }
 
 int Edge::getOtherEndPoint(int ver) const {

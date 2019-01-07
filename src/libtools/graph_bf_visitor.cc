@@ -47,7 +47,7 @@ void Graph_BF_Visitor::addEdges_(Graph& g, int vertex) {
   if (edge_que_.empty()) {
     queue<Edge> first_que;
     for (auto ed : eds) {
-      int neigh_vert = ed.getOtherV(vertex);
+      int neigh_vert = ed.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
         first_que.push(ed);
       }
@@ -60,7 +60,7 @@ void Graph_BF_Visitor::addEdges_(Graph& g, int vertex) {
     if (edge_que_.size() == 1) {
       queue<Edge> next_que;
       for (auto ed : eds) {
-        int neigh_vert = ed.getOtherV(vertex);
+        int neigh_vert = ed.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           next_que.push(ed);
         }
@@ -70,7 +70,7 @@ void Graph_BF_Visitor::addEdges_(Graph& g, int vertex) {
       }
     } else {
       for (auto ed : eds) {
-        int neigh_vert = ed.getOtherV(vertex);
+        int neigh_vert = ed.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
           edge_que_.at(1).push(ed);
         }

@@ -40,7 +40,7 @@ namespace tools {
 class GraphNode;
 
 class Graph {
- private:
+ protected:
 
   EdgeContainer edge_container_;
 
@@ -112,6 +112,8 @@ class Graph {
 
   /// Return all the vertices that contain 3 or more connections
   std::vector<int> getJunctions() const;
+
+  virtual std::vector<Edge> getEdges() {return edge_container_.getEdges();}
 
   std::vector<Edge> getNeighEdges(int vertex) { return edge_container_.getNeighEdges(vertex);}
 

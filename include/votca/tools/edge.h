@@ -18,8 +18,9 @@
  */
 
 #include <iostream>
-#include <utility>
 #include <limits>
+#include <utility>
+#include <vector>
 
 #ifndef _VOTCA_TOOLS_EDGE_H
 #define _VOTCA_TOOLS_EDGE_H
@@ -56,9 +57,9 @@ class Edge {
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;
   /// Checks if Edges are equivalent
-  bool operator==(const Edge ed) const;
+  virtual bool operator==(const Edge ed) const;
   /// Checks if Edges are not equivalent
-  bool operator!=(const Edge ed) const;
+  virtual bool operator!=(const Edge ed) const;
 
   /// If the vertices are smaller in value
   /// Edge ed1(2,3);
@@ -68,10 +69,10 @@ class Edge {
   /// assert(ed2<ed1); // will return true
   /// assert(ed3<ed1); // will return true
   /// assert(ed3<ed1); // will return true
-  bool operator<(const Edge ed) const;
-  bool operator>(const Edge ed) const;
-  bool operator<=(const Edge ed) const;
-  bool operator>=(const Edge ed) const;
+  virtual bool operator<(const Edge ed) const;
+  virtual bool operator>(const Edge ed) const;
+  virtual bool operator<=(const Edge ed) const;
+  virtual bool operator>=(const Edge ed) const;
 
   /// Print the contents of the edge
   friend std::ostream& operator<<(std::ostream& os, const Edge ed);
@@ -89,7 +90,7 @@ template <>
 class hash<votca::tools::Edge> {
  public:
   size_t operator()(const votca::tools::Edge& ed) const {
-    return hash<int>()(ed.getV1()) ^ hash<int>()(ed.getV2());
+    return hash<int>()(ed.getEndPoint1()) ^ hash<int>()(ed.getEndPoint2());
   }
 };
 }

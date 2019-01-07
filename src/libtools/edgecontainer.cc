@@ -97,7 +97,7 @@ vector<Edge> EdgeContainer::getNeighEdges(int vert) {
   return neigh_edges;
 }
 
-vector<Edge> EdgeContainer::getEdges() {
+vector<Edge> EdgeContainer::getEdges() const {
   set<Edge> edgs;
   for (auto const& it : adj_list_) {
     for (auto const& vert : it.second) edgs.insert(Edge(it.first, vert));
@@ -107,7 +107,7 @@ vector<Edge> EdgeContainer::getEdges() {
 }
 
 ostream& operator<<(ostream& os, const EdgeContainer edgecontainer){
-  edges = edgecontainer.getEdges();
+  auto edges = edgecontainer.getEdges();
   for(auto edge : edges){
     os << edge << endl;
   }

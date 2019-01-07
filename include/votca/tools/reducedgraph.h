@@ -18,6 +18,7 @@
  */
 
 #include <votca/tools/graph.h>
+#include <votca/tools/reducededge.h>
 
 #ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
 #define _VOTCA_TOOLS_REDUCEDGRAPH_H
@@ -28,8 +29,8 @@ namespace tools {
 class ReducedGraph : public Graph {
  private:
 
-   typedef std::vector<int> Chain;
-   std::unordered_map<Edge,std::vector<Chain>> expanded_edges_;  
+   std::unordered_map<Edge,std::vector<std::vector<int>>> expanded_edges_;  
+
 
  public:
   ReducedGraph(){};
@@ -42,6 +43,8 @@ class ReducedGraph : public Graph {
   ReducedGraph& operator=(const ReducedGraph& reduced_graph);
 
   ReducedGraph& operator=(ReducedGraph&& reduced_graph);
+
+  std::vector<Edge> getEdges();
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph g);
 };

@@ -26,10 +26,10 @@ namespace tools {
 
 class GraphNode;
 
-bool compareChainWithChains_(Chain chain, vector<Chain> chains){
+bool compareChainWithChains_(vector<int> chain, vector<vector<int>> chains){
   bool match = false;
   for( auto chain2 : chains){
-    if(chain2.size()=chain.size()){
+    if(chain2.size()==chain.size()){
       match = true;
       for(size_t index =0; index<chain.size();++index){
         if(chain2.at(index)!=chain.at(index)){
@@ -47,7 +47,7 @@ bool compareChainWithChains_(Chain chain, vector<Chain> chains){
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges){
   std::vector<Edge> edges;
   for(auto reduced_edge : reduced_edges){
-    Edge ed(reduced_edge.getV1(),reduced_edge.getV2());
+    Edge ed(reduced_edge.getEndPoint1(),reduced_edge.getEndPoint2());
     auto temp_chain = reduced_edge.getChain();
     bool match = false;
     // Cycle the chains
@@ -59,7 +59,6 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges){
     if(!match){
       edges.push_back(ed);
       expanded_edges_[ed].push_back(temp_chain);
-      edge_count_[ed].push_back(&expanded_edges_.back());
     }
   }
   edge_container_ = EdgeContainer(edges);
@@ -100,7 +99,7 @@ ReducedGraph& ReducedGraph::operator=(ReducedGraph&& g) {
 vector<Edge> ReducedGraph::getEdges(){
   vector<Edge> edges;
   for(auto edge_and_chains : expanded_edges_ ){
-    for(int edge_count=0; edge_count<edge_and_chains.size();++edge_count){
+    for(int edge_count=0; edge_count<edge_and_chains.second.size();++edge_count){
       edges.push_back(edge_and_chains.first);
     }
   }
