@@ -22,6 +22,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 Topology::~Topology()
 {
     Cleanup();

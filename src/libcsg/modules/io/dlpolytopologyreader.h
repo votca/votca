@@ -23,9 +23,6 @@
 #include <votca/csg/topologyreader.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief class for reading dlpoly topology files
@@ -41,21 +38,21 @@ public:
     DLPOLYTopologyReader() {}
 
     /// read a topology file
-    bool ReadTopology(string file, Topology &top);
+    bool ReadTopology(std::string file, Topology &top);
     
     /// set the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
-    void   setFname(string name) { _fname = name; return; }
+    void   setFname(std::string name) { _fname = name; return; }
     /// get the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
-    string getFname()            { return _fname; }
+    std::string getFname()            { return _fname; }
 
 private:
-    string _fname;
+    std::string _fname;
     /// function to find and read the next line starting with a keyword/directive (skipping comments starting with "#" or ";")
-    string _NextKeyline(ifstream &fs, const char* wsp);
+    std::string _NextKeyline(std::ifstream &fs, const char* wsp);
     /// function to read the next line containing only a given keyword and an integer value after it (only skipping comments!)
-    string _NextKeyInt(ifstream &fs, const char* wsp, const string &word, int &ival);
+    std::string _NextKeyInt(std::ifstream &fs, const char* wsp, const std::string &word, int &ival);
     /// function to check if the given (last read) directive line starts with a given keyword and has an integer value at the end
-    bool   _isKeyInt(const string &line, const char* wsp, const string &word, int &ival);
+    bool   _isKeyInt(const std::string &line, const char* wsp, const std::string &word, int &ival);
 };
 
 }}

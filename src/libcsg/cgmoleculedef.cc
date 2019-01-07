@@ -25,6 +25,7 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
 using boost::lexical_cast;
 
 CGMoleculeDef::~CGMoleculeDef()

@@ -32,6 +32,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 { 
     gmx_mtop_t mtop;

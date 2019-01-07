@@ -18,7 +18,6 @@
 #ifndef _VOTCA_CSG_MAP_H
 #define	_VOTCA_CSG_MAP_H
 
-#include <string>
 #include <vector>
 #include <votca/tools/vec.h>
 #include <votca/tools/property.h>
@@ -26,9 +25,6 @@
 
 namespace votca { namespace csg {
 using namespace votca::tools;
-
-using namespace std;
-
 
 class BeadMap;
 /*******************************************************
@@ -47,7 +43,7 @@ public:
 
 protected:
     Molecule _in, _out;
-    vector<BeadMap *> _maps;
+    std::vector<BeadMap *> _maps;
 };
 
 /*******************************************************
@@ -91,7 +87,7 @@ protected:
         double _weight;
         double _force_weight;
     };
-    vector<element_t> _matrix;
+    std::vector<element_t> _matrix;
 };
 
 inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight)

@@ -37,19 +37,17 @@
 #include "openbox.h"
 
 namespace votca { namespace csg {
-using namespace votca::tools;
+
+namespace TOOLS = votca::tools;
 
 class Interaction;
 class ExclusionList;
 
-typedef vector<Molecule *> MoleculeContainer;
-typedef vector<Bead *> BeadContainer;
-typedef vector<BeadType *> BeadTypeContainer;
-typedef vector<Residue *> ResidueContainer;
-typedef vector<Interaction *> InteractionContainer;
-
-
-using namespace std;
+typedef std::vector<Molecule *> MoleculeContainer;
+typedef std::vector<Bead *> BeadContainer;
+typedef std::vector<BeadType *> BeadTypeContainer;
+typedef std::vector<Residue *> ResidueContainer;
+typedef std::vector<Interaction *> InteractionContainer;
 
 /**
     \brief topology of the whole system
@@ -85,7 +83,7 @@ public:
      *
      * The function creates a new bead and adds it to the list of beads.     
      */
-    virtual Bead *CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q);
+    virtual Bead *CreateBead(byte_t symmetry, std::string name, BeadType *type, int resnr, double m, double q);
 
      /**
      * \brief get bead type or create it
@@ -94,14 +92,14 @@ public:
      *
      * Returns an existing bead type or creates one if it doesn't exist yet
      */
-    virtual BeadType *GetOrCreateBeadType(string name);
+    virtual BeadType *GetOrCreateBeadType(std::string name);
 
     /**
      * \brief creates a new molecule
      * \param name name of the molecule
      * \return pointer to created molecule
      */
-    virtual Molecule *CreateMolecule(string name);
+    virtual Molecule *CreateMolecule(std::string name);
 
     /**
      *  \brief checks weather molecules with the same name really contain the same number of beads
@@ -113,8 +111,8 @@ public:
      * @param name residue name
      * @return created residue
      */
-    virtual Residue *CreateResidue(string name);
-    virtual Residue *CreateResidue(string name, int id);
+    virtual Residue *CreateResidue(std::string name);
+    virtual Residue *CreateResidue(std::string name, int id);
     
     /** 
      * \brief create molecules based on the residue
@@ -130,7 +128,7 @@ public:
      *
      *  This function creates one big molecule for all beads in the topology.
     */
-    void CreateOneBigMolecule(string name);
+    void CreateOneBigMolecule(std::string name);
     
     /**
      * \brief create molecules based on blocks of atoms
@@ -139,7 +137,7 @@ public:
      * \param nbeads number of beads per molecule
      * \param nmolecules number of molecules
      */
-    void CreateMoleculesByRange(string name, int first, int nbeads, int nmolecules);
+    void CreateMoleculesByRange(std::string name, int first, int nbeads, int nmolecules);
 
     /**
      * \brief number of molecules in the system
@@ -191,7 +189,7 @@ public:
     InteractionContainer &BondedInteractions() { return _interactions; }
     
     void AddBondedInteraction(Interaction *ic);
-    std::list<Interaction *> InteractionsInGroup(const string &group);
+    std::list<Interaction *> InteractionsInGroup(const std::string &group);
     
     BeadType *getBeadType(const int i) const { return _beadtypes[i]; }
     Bead *getBead(const int i) const { return _beads[i]; }
@@ -223,21 +221,21 @@ public:
      * \param name new name of molecule
      * range is a string which is parsed by RangeParser,
      */
-    void RenameMolecules(string range, string name);
+    void RenameMolecules(std::string range, std::string name);
 
     /**
      *  \brief rename all the bead types
      * \param name current rame of the bead type
      * \param newname new name of bead type
      */
-    void RenameBeadType(string name, string newname);
+    void RenameBeadType(std::string name, std::string newname);
     
     /**
      *  \brief set the mass of all the beads of a certain type
      * \param name the bead type
      * \param value mass value
      */
-    void SetBeadTypeMass(string name, double value);
+    void SetBeadTypeMass(std::string name, double value);
 
     /**
      * set the simulation box
@@ -304,13 +302,13 @@ public:
      * Sets the particle group. (For the H5MD file format)
      * \param particle_group The name of a particle group.
      */
-    void setParticleGroup(string particle_group) { _particle_group = particle_group; };
+    void setParticleGroup(std::string particle_group) { _particle_group = particle_group; };
 
     /**
      * Gets the particle group.
      * \return The name of a particle group.
      */
-    string getParticleGroup() { 
+    std::string getParticleGroup() { 
       return _particle_group; 
     };
 
@@ -396,10 +394,10 @@ protected:
     
     ExclusionList _exclusions;
     
-    map<string, int> _interaction_groups;
-    map<string, int> _beadtype_map;
+    std::map<std::string, int> _interaction_groups;
+    std::map<std::string, int> _beadtype_map;
     
-    map<string, list<Interaction *> > _interactions_by_group;
+    std::map<std::string, std::list<Interaction *> > _interactions_by_group;
     
     double _time;
     int _step;
@@ -407,10 +405,10 @@ protected:
     bool _has_force;
 
     /// The particle group (For H5MD file format)
-    string _particle_group;
+    std::string _particle_group;
 };
 
-inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, int resnr, double m, double q)
+inline Bead *Topology::CreateBead(byte_t symmetry, std::string name, BeadType *type, int resnr, double m, double q)
 {
     
     Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);    
@@ -418,21 +416,21 @@ inline Bead *Topology::CreateBead(byte_t symmetry, string name, BeadType *type, 
     return b;
 }
 
-inline Molecule *Topology::CreateMolecule(string name)
+inline Molecule *Topology::CreateMolecule(std::string name)
 {
     Molecule *mol = new Molecule(this, _molecules.size(), name);
     _molecules.push_back(mol);
     return mol;
 }
 
-inline Residue *Topology::CreateResidue(string name, int id)
+inline Residue *Topology::CreateResidue(std::string name, int id)
 {
     Residue *res = new Residue(this, id, name);
     _residues.push_back(res);
     return res;
 }
 
-inline Residue *Topology::CreateResidue(string name)
+inline Residue *Topology::CreateResidue(std::string name)
 {
     Residue *res = new Residue(this, _molecules.size(), name);
     _residues.push_back(res);

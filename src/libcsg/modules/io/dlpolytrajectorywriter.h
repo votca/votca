@@ -22,7 +22,6 @@
 #include <votca/csg/trajectorywriter.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
 /**
     \brief class for writing dlpoly trajectory and configuration files
@@ -36,7 +35,7 @@ class DLPOLYTrajectoryWriter
 {
  public:
   // open transformed trajectory file
-  void Open(string file, bool bAppend=false);
+  void Open(std::string file, bool bAppend=false);
   // close transformed trajectory file
   void Close();
   // write a frame into transformed trajectory file
@@ -44,16 +43,16 @@ class DLPOLYTrajectoryWriter
   
   /// set/get the created configuration or trajectory file name: 
   /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV", ".dlph"="HISTORY_CGV")
-  void   setFname(string name) { _fname = name; return; }
-  string getFname()            { return _fname; }
+  void   setFname(std::string name) { _fname = name; return; }
+  std::string getFname()            { return _fname; }
   
   /// set/check the flag for the created file as configuration, i.e. not trajectory format
   void setIsConfig(bool isConf) { _isConfig=isConf;  return; }
   bool getIsConfig()            { return _isConfig; }
   
  private:
-  ofstream _fl;
-  string _fname;
+  std::ofstream _fl;
+  std::string _fname;
   bool _isConfig;
 };
 

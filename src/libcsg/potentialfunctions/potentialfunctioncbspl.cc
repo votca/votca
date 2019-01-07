@@ -17,6 +17,12 @@
 
 #include <votca/csg/potentialfunctions/potentialfunctioncbspl.h>
 #include <Eigen/src/Core/PlainObjectBase.h>
+#include <votca/tools/table.h>
+#include <boost/lexical_cast.hpp>
+#include <iostream>
+
+using namespace std;
+using namespace votca::tools;
 
 PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_,
                                                const double min_, const double max_) :

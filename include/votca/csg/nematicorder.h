@@ -31,7 +31,7 @@ public:
     NematicOrder() {}
     ~NematicOrder() {}
     
-    void Process(Topology &top, const string &filter = "*");
+    void Process(Topology &top, const std::string &filter = "*");
     
     matrix::eigensystem_t &NematicU() {return _nemat_u; }
     matrix::eigensystem_t &NematicV() {return _nemat_v; }

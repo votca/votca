@@ -35,7 +35,7 @@ public:
     
     iterator begin() { return _triples.begin(); }
     iterator end() { return _triples.end(); }
-    typename vector<triple_type*>::size_type size() { return _triples.size(); }    
+    typename std::vector<triple_type*>::size_type size() { return _triples.size(); }    
     triple_type *front() { return _triples.front(); }
     triple_type *back() { return _triples.back(); }    
     bool empty() { return _triples.empty(); }
@@ -49,9 +49,9 @@ public:
     typedef triple_type triple_t;
 
 private:
-    vector<triple_type *> _triples;
+    std::vector<triple_type *> _triples;
       
-    map< element_type , map<element_type, map<element_type, triple_type *> > > _triple_map;
+    std::map< element_type , std::map<element_type, std::map<element_type, triple_type *> > > _triple_map;
     
 };
 
@@ -80,11 +80,11 @@ inline void TripleList<element_type, triple_type>::Cleanup()
 template<typename element_type, typename triple_type>
 inline triple_type *TripleList<element_type, triple_type>::FindTriple(element_type e1, element_type e2, element_type e3)
 {
-    typename std::map< element_type , map<element_type, map<element_type, triple_type *> > > ::iterator iter1;    
+    typename std::map< element_type , std::map<element_type, std::map<element_type, triple_type *> > > ::iterator iter1;    
     iter1 = _triple_map.find(e1);
     if(iter1==_triple_map.end()) return NULL;
      
-    typename std::map<element_type, map<element_type, triple_type *> >::iterator iter2;    
+    typename std::map<element_type, std::map<element_type, triple_type *> >::iterator iter2;    
     iter2 = iter1->second.find(e2);
     if(iter2 == iter1->second.end()) return NULL;
     

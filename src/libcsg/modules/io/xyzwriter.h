@@ -23,19 +23,16 @@
 #include <votca/csg/trajectorywriter.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 class XYZWriter
 : public TrajectoryWriter
 {
 public:
     
-    void Open(string file, bool bAppend = false);
+    void Open(std::string file, bool bAppend = false);
     void Close();
     
-    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
+    void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}    
 
     void Write(Topology *conf);
 

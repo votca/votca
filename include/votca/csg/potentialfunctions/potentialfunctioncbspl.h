@@ -22,12 +22,9 @@
 #include <math.h>
 #include "potentialfunction.h"
 
-using namespace std;
-using namespace votca::tools;
-
 class PotentialFunctionCBSPL : public PotentialFunction {
  public:
-  PotentialFunctionCBSPL(const string& name_,const int nlam_,
+  PotentialFunctionCBSPL(const std::string& name_,const int nlam_,
                          const double min_=0.0, const double max_=10.0);
   ~PotentialFunctionCBSPL(){}
   // calculate function value for given r
@@ -39,13 +36,13 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   int getOptParamSize() const ;
 
-  void setParam(string filename);
+  void setParam(std::string filename);
 
-  void SaveParam(const string& filename);
+  void SaveParam(const std::string& filename);
 
-  void SavePotTab(const string& filename, const double step);
+  void SavePotTab(const std::string& filename, const double step);
 
-  void SavePotTab(const string& filename, const double step, const double rmin, const double rcut);
+  void SavePotTab(const std::string& filename, const double step, const double rmin, const double rcut);
   void setOptParam(const int i, const double val);
 
   double getOptParam(const int i) const;
