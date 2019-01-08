@@ -78,7 +78,7 @@ BOOST_AUTO_TEST_CASE(simple_test){
   top.setStep(1);
   BOOST_CHECK_EQUAL(top.getStep(),1);
   top.setTime(1.21);
-  BOOST_CHECK_EQUAL(static_cast<int>(top.getTime()*100),121);
+   BOOST_CHECK_CLOSE( top.getTime(), 1.21, 0.0001 );
   top.setDatabaseId(3);
   BOOST_CHECK_EQUAL(top.getDatabaseId(),3);
 
