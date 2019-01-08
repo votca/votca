@@ -189,7 +189,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
            overlap= orbitalsAB.AOOverlap();
     }else{
-        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasis()<< flush; 
+        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasisName()<< flush; 
         overlap=CalculateOverlapMatrix(orbitalsAB);
     }
      CTP_LOG(ctp::logDEBUG,*_pLog) << "Projecting dimer onto monomer orbitals" << flush; 

@@ -23,6 +23,9 @@
 #include <votca/tools/property.h>
 #include <fstream>
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/gw.h>
+
+#include "bse.h"
 
 
 namespace votca {
@@ -47,25 +50,26 @@ namespace xtp {
 
 class GWBSE {
  public:
+     
   GWBSE(Orbitals& orbitals)
       : _orbitals(orbitals){};
 
   void Initialize(tools::Property& options);
+
+
 
   std::string Identify() { return "gwbse"; }
 
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
-    
+
   void addoutput(tools::Property& summary);
 
  private:
-     
- void PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies);
- void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& dft_energies);    
- 
+
  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+ int CountCoreLevels();
  ctp::Logger* _pLog;
  Orbitals& _orbitals;
   
@@ -82,9 +86,6 @@ class GWBSE {
   bool _store_bse_triplets;
   bool _store_eh_interaction;
 
-  // iterate G and W and not only G
-  bool _iterate_gw;
-
   // options for own Vxc calculation
   bool _doVxc;
   std::string _functional;
@@ -96,31 +97,15 @@ class GWBSE {
   int _fragA;
 
   // BSE variant
-  bool _do_full_BSE;
-
+  
+  GW::options _gwopt;
+  BSE::options _bseopt;
+  
+  
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-  int _reset_3c; //how often the 3c integrals in iterate shoudl be rebuild
-  double _shift;  // pre-shift of DFT energies
-  int _homo;   // HOMO index
-  int _rpamin;
-  int _rpamax;
-  int _qpmin;
-  int _qpmax;
-  int _qptotal;
-  double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  int _g_sc_max_iterations;
-  int _gw_sc_max_iterations;
-  double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
-  
-  int _bse_vmin;
-  int _bse_vmax;
-  int _bse_cmin;
-  int _bse_cmax;
-  int _bse_maxeigenvectors;
-  double _min_print_weight;
-
+ 
 };
 }
 }

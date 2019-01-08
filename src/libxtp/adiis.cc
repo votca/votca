@@ -26,7 +26,7 @@ namespace votca { namespace xtp {
   
       
       
-   Eigen::VectorXd ADIIS::CalcCoeff(const std::vector< Eigen::MatrixXd* >& dmathist,const std::vector< Eigen::MatrixXd* >& mathist){
+   Eigen::VectorXd ADIIS::CalcCoeff(const std::vector< std::unique_ptr<Eigen::MatrixXd> >& dmathist,const std::vector< std::unique_ptr<Eigen::MatrixXd> >& mathist){
       success=true;
       int size=dmathist.size();
       

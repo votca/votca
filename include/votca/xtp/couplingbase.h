@@ -66,7 +66,7 @@ protected:
 inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(Orbitals& orbitalsAB){
   BasisSet dftbasisset;
   AOBasis dftbasis;
-  dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasis());
+  dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasisName());
   dftbasis.AOBasisFill(dftbasisset, orbitalsAB.QMAtoms());
   AOOverlap dftAOoverlap;
   dftAOoverlap.Fill(dftbasis);

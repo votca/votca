@@ -23,7 +23,7 @@
 namespace votca {
   namespace xtp {
 
-    void TCMatrix_gwbse::Initialize(int _basissize, int mmin, int mmax, int nmin, int nmax) {
+    void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin, int nmax) {
 
       // here as storage indices starting from zero
       _nmin = nmin;
@@ -32,29 +32,17 @@ namespace votca {
       _mmin = mmin;
       _mmax = mmax;
       _mtotal = mmax - mmin + 1;
-      basissize = _basissize;
+      _basissize = basissize;
 
       // vector has mtotal elements
       _matrix.resize(_mtotal);
 
       // each element is a gwabasis-by-n matrix, initialize to zero
-      for (int i = 0; i < this->get_mtot(); i++) {
-        _matrix[i] = MatrixXfd::Zero(_ntotal,basissize);
+      for (int i = 0; i < this->msize(); i++) {
+        _matrix[i] = MatrixXfd::Zero(_ntotal,_basissize);
       }
       
     }
-
-    /*
-     * Cleaning TCMatrix data and free memory
-     */
-    void TCMatrix_gwbse::Cleanup() {
-
-      for (unsigned i = 0; i < _matrix.size(); i++) {
-        _matrix[ i ].resize(0, 0);
-      }
-      _matrix.clear();
-      return;
-    } // TCMatrix::Cleanup
 
     /*
      * Modify 3-center matrix elements consistent with use of symmetrized 
@@ -76,15 +64,6 @@ namespace votca {
       return;
     } 
 
-    void TCMatrix_gwbse::Print(std::string _ident) {
-
-      for (int k = 0; k < _mtotal; k++) {
-        std::cout <<k<<std::endl;
-         std::cout <<this->_matrix[k]<< std::endl;  
-      }
-      return;
-    }
-
     /*
      * Fill the 3-center object by looping over shells of GW basis set and
      * calling FillBlock, which calculates all 3-center overlap integrals
@@ -92,6 +71,10 @@ namespace votca {
      * coefficients
      */
     void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals) {
+        //needed for Rebuild())
+        _auxbasis=&gwbasis;
+        _dftbasis=&dftbasis;
+        _dft_orbitals=&dft_orbitals;
 
       // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)//private(_block)
@@ -105,16 +88,22 @@ namespace votca {
         FillBlock(block, shell, dftbasis, dft_orbitals);
 
         // put into correct position
-        for (int m_level = 0; m_level < this->get_mtot(); m_level++) {
+        for (int m_level = 0; m_level < this->msize(); m_level++) {
           for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
-            for (int n_level = 0; n_level < this->get_ntot(); n_level++) {
-
+            for (int n_level = 0; n_level < this->nsize(); n_level++) {
               _matrix[m_level]( n_level,shell->getStartIndex() + i_gw) = block[m_level](n_level,i_gw);
-
             } // n-th DFT orbital
           } // GW basis function in shell
         } // m-th DFT orbital
       } // shells of GW basis set
+
+  AOOverlap auxoverlap;
+  auxoverlap.Fill(gwbasis);
+  AOCoulomb auxcoulomb;
+  auxcoulomb.Fill(gwbasis);
+  Eigen::MatrixXd inv_sqrt=auxcoulomb.Pseudo_InvSqrt_GWBSE(auxoverlap,5e-7);
+    _removedfunctions=auxcoulomb.Removedfunctions();
+ MultiplyRightWithAuxMatrix(inv_sqrt);
       return;
     }
 
@@ -181,20 +170,6 @@ namespace votca {
             block[i](j, k) = threec_inMo(j, i);
           }
         }
-      }
-      return;
-    } // TCMatrix::FillBlock
-
-    void TCMatrix_gwbse::Prune(int min, int max) {
-        
-
-      _matrix.resize(max + 1);
-      // entries until min can be freed
-      for (int i = 0; i < min; i++) {
-        _matrix[i].resize(0, 0);
-      }
-      for (unsigned i = min; i < _matrix.size(); i++) {
-        _matrix[i].conservativeResize( max + 1,Eigen::NoChange);
       }
       return;
     }
