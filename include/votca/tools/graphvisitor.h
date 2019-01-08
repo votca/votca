@@ -53,7 +53,7 @@ class GraphVisitor {
   std::set<int> explored_;
 
   /// The vertex the visitor started on
-  int startingVertex_;
+  int startingVertex_ = 0;
 
   /// What is done to an individual graph node as it is explored
   virtual void addEdges_(Graph& g, int vertex);
@@ -63,7 +63,7 @@ class GraphVisitor {
   virtual void exploreNode_(std::pair<int, GraphNode> &p_gn, Graph& g,
                             Edge ed = DUMMY_EDGE);
 
-  GraphVisitor() : startingVertex_(0){};
+  GraphVisitor() {};
 
   /// Determine which vertices in the edge, if any, have not been explored
   std::vector<int> getUnexploredVertex(Edge ed);

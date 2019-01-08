@@ -10,6 +10,7 @@ foreach(PROG
     test_floatingpointcomparison
     test_graph_base
     test_graph_bf_visitor
+    test_graph_df_visitor
     test_graphalgorithm
     test_graphdistvisitor
     test_graphnode
