@@ -53,6 +53,7 @@ ReducedEdge::ReducedEdge(vector<int> vertices) {
 
 bool ReducedEdge::operator==(const ReducedEdge ed) const {
   if(ed.vertices_.size()!=vertices_.size()) return false;
+  cout << "Size " << ed.vertices_.size() << endl;
   for(auto index=0;index<vertices_.size();++index){
     if(vertices_.at(index)!=ed.vertices_.at(index)) return false;
   }
@@ -71,6 +72,7 @@ bool ReducedEdge::operator<(const ReducedEdge ed) const {
   for(auto index=0;index<vertices_.size();++index){
     if(vertices_.at(index)>ed.vertices_.at(index)) return false;
   }
+  if(*this==ed) return false;
 
   return true;
 }

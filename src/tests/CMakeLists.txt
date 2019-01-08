@@ -20,6 +20,7 @@ foreach(PROG
     test_linalg
     test_matrix
     test_name
+    test_reducededge
     test_table
     test_thread
     test_tokenizer

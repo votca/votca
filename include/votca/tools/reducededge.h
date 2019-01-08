@@ -41,6 +41,7 @@ class ReducedEdge : public Edge{
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   ReducedEdge(std::vector<int> chain);
+  ReducedEdge(int vert1, int vert2) : ReducedEdge(std::vector<int>{vert1,vert2}) {};
 
   std::vector<int> getChain() const { return vertices_;}
 
