@@ -43,7 +43,7 @@ namespace votca { namespace xtp {
         
         Eigen::VectorXd &getGridValues(){return _gridvalues;}
         const Eigen::VectorXd &getGridValues() const{return _gridvalues;}
-        unsigned getsize(){return _gridpoints.size();}
+        unsigned size(){return _gridpoints.size();}
         
         void printGridtoxyzfile(std::string filename);
        
