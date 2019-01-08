@@ -21,6 +21,7 @@ foreach(PROG
     test_matrix
     test_name
     test_reducededge
+    test_reducedgraph
     test_table
     test_thread
     test_tokenizer

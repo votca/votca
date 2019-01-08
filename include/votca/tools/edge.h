@@ -54,6 +54,8 @@ class Edge {
   /// grab the larger integer
   int getEndPoint2() const { return vertices_.back(); }
 
+  bool loop() { return vertices_.front()==vertices_.back(); }
+
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;
   /// Checks if Edges are equivalent

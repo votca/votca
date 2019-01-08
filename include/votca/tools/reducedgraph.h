@@ -26,17 +26,39 @@
 namespace votca {
 namespace tools {
 
+/**
+ * \brief Contains a graph that consits of vertices with degree of 1 or greater than 3
+ *
+ * The point of this class is to reduce the computational complexity of a
+ * regular graph. This is achieved by removing any vertices with degree 2. For 
+ * example a graph:
+ *
+ * 1 - 2 - 3 - 4 - 5 - 9
+ *     |   |   |
+ *     6 - 7   8
+ *
+ * Would be reduced to 
+ *
+ * 1 - 2 - 3 - 4 - 9
+ *     | _ |   |
+ *             8
+ *
+ * Notice that the vertices 5, 6 and 7 have been removed, there also exist two
+ * edges connecting 2 to 3. 
+ *
+ **/
 class ReducedGraph : public Graph {
  private:
 
    std::unordered_map<Edge,std::vector<std::vector<int>>> expanded_edges_;  
-
+   std::unordered_map<int,GraphNode> hidden_nodes_;
 
  public:
   ReducedGraph(){};
   ~ReducedGraph(){};
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
+  ReducedGraph(std::vector<ReducedEdge> reduced_edges, std::unordered_map<int,GraphNode> nodes);
 
   ReducedGraph(const ReducedGraph & reduced_graph);
 
@@ -45,6 +67,10 @@ class ReducedGraph : public Graph {
   ReducedGraph& operator=(ReducedGraph&& reduced_graph);
 
   std::vector<Edge> getEdges();
+
+  std::vector<std::vector<Edge>> expandEdge(Edge ed);
+
+  int getDegree(int vertex);
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph g);
 };
