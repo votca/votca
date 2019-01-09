@@ -32,7 +32,7 @@ void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis 
     // setting up grid
     Grid grid;
     grid.setupCHELPGGrid(orbitals.QMAtoms());
-    XTP_LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << grid.getsize() << " points " << flush;
+    XTP_LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << grid.size() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
     AOOverlap overlap;
@@ -56,7 +56,7 @@ void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis 
 
     XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     #pragma omp parallel for
-    for ( unsigned i = 0 ; i < grid.getsize(); i++){
+    for ( unsigned i = 0 ; i < grid.size(); i++){
         grid.getGridValues()(i)=numway.IntegratePotential(grid.getGridPositions()[i]);
     }
 
@@ -102,7 +102,7 @@ void Espfit::Fit2Density_analytic(Orbitals& orbitals,const QMState& state, const
     Grid grid;
     grid.setupCHELPGGrid(orbitals.QMAtoms());
     const Eigen::MatrixXd dmat=orbitals.DensityMatrixFull(state);
-    XTP_LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << grid.getsize() << " points " << std::endl;
+    XTP_LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << grid.size() << " points " << std::endl;
     // Calculating nuclear potential at gridpoints
     AOOverlap overlap;
     overlap.Fill(basis);
@@ -121,7 +121,7 @@ void Espfit::Fit2Density_analytic(Orbitals& orbitals,const QMState& state, const
 
     XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Calculating ESP at CHELPG grid points"  << flush;
     #pragma omp parallel for
-    for ( unsigned i = 0 ; i < grid.getsize(); i++){
+    for ( unsigned i = 0 ; i < grid.size(); i++){
          AOESP aoesp;
          aoesp.setPosition(grid.getGridPositions()[i]);
          aoesp.Fill(basis);

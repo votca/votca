@@ -21,8 +21,6 @@
 #define	XTP_NUMERICAL_INTEGRATION_H
 
 
-
-
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
 #include <votca/xtp/basisset.h>
@@ -90,10 +88,10 @@ namespace votca { namespace xtp {
            
            GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(const Eigen::Vector3d& atomA_pos,
                                         GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
-                                        unsigned i_rad,unsigned i_sph);
+                                        int i_rad,int i_sph);
            
-           Eigen::VectorXd SSWpartition(int igrid, const Eigen::MatrixXd& rq,const Eigen::MatrixXd& Rij );
-            void SSWpartitionAtom(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, unsigned i_atom,const Eigen::MatrixXd& Rij);
+           Eigen::VectorXd SSWpartition(const Eigen::VectorXd& rq_i,const Eigen::MatrixXd& Rij );
+            void SSWpartitionAtom(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, int i_atom,const Eigen::MatrixXd& Rij);
             Eigen::MatrixXd CalcDistanceAtomsGridpoints(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
             
             int  _totalgridsize;

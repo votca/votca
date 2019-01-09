@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE(setup_test) {
    bool Ctheta=C_theta_ref.isApprox(Cgrid.theta,0.001);
    if(!Cphi || !Ctheta){
           std::cout<<"phi_ref : Phi_comp | theta_ref : theta_comp"<<std::endl;
-   for (unsigned i=0;i<C_phi_ref.size();i++){
+   for (int i=0;i<C_phi_ref.size();i++){
      std::cout<<Cgrid.phi[i]<<":"<<C_phi_ref[i]<<" | "<<Cgrid.theta[i]<<":"<<C_theta_ref[i]<<std::endl;
    }
    }

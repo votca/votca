@@ -658,7 +658,7 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
 
     GridContainers::Cartesian_gridpoint NumericalIntegration::CreateCartesianGridpoint(const Eigen::Vector3d& atomA_pos,
             GridContainers::radial_grid& radial_grid, GridContainers::spherical_grid& spherical_grid,
-            unsigned i_rad, unsigned i_sph) {
+            int i_rad, int i_sph) {
       GridContainers::Cartesian_gridpoint gridpoint;
       double p = spherical_grid.phi[i_sph];
       double t = spherical_grid.theta[i_sph];
@@ -683,12 +683,12 @@ int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement, int m
     }
 
     void NumericalIntegration::SSWpartitionAtom(const QMMolecule& atoms, std::vector<GridContainers::Cartesian_gridpoint>& atomgrid
-                                                , unsigned i_atom, const Eigen::MatrixXd& Rij){
+                                                , int i_atom, const Eigen::MatrixXd& Rij){
       Eigen::MatrixXd AtomGridDist=CalcDistanceAtomsGridpoints(atoms, atomgrid);
       
 #pragma omp parallel for schedule(guided)
-      for (unsigned i_grid = 0; i_grid < atomgrid.size(); i_grid++) {
-        Eigen::VectorXd p = SSWpartition(i_grid, AtomGridDist,Rij);
+      for (int i_grid = 0; i_grid < int(atomgrid.size()); i_grid++) {
+        Eigen::VectorXd p = SSWpartition(AtomGridDist.col(i_grid),Rij);
         // check weight sum
         double wsum = p.sum();
         if (wsum != 0.0) {
@@ -730,7 +730,7 @@ void NumericalIntegration::GridSetup(const std::string& type,const QMMolecule& a
         int current_order = 0;
         // for each radial value
         std::vector< GridContainers::Cartesian_gridpoint > atomgrid;
-        for (unsigned i_rad = 0; i_rad < radial_grid.radius.size(); i_rad++) {
+        for (int i_rad = 0; i_rad < radial_grid.radius.size(); i_rad++) {
           double r = radial_grid.radius[i_rad];
 
           // which Lebedev order for this point?
@@ -741,43 +741,42 @@ void NumericalIntegration::GridSetup(const std::string& type,const QMMolecule& a
             current_order = order;
           }
 
-          for (unsigned i_sph = 0; i_sph < spherical_grid.phi.size(); i_sph++) {
+          for (int i_sph = 0; i_sph < spherical_grid.phi.size(); i_sph++) {
             GridContainers::Cartesian_gridpoint gridpoint=CreateCartesianGridpoint(atomA_pos, radial_grid, spherical_grid, i_rad,i_sph);
             atomgrid.push_back(gridpoint);
           } // spherical gridpoints
         } // radial gridpoint
 
         SSWpartitionAtom(atoms, atomgrid, i_atom,Rij);
-
-        // now remove points from the grid with negligible weights
-        for (std::vector<GridContainers::Cartesian_gridpoint >::iterator git = atomgrid.begin(); git != atomgrid.end();) {
-          if (git->grid_weight < 1e-13) {
-            git = atomgrid.erase(git);
-          } else {
-            ++git;
-          }
+           // now remove points from the grid with negligible weights
+        std::vector< GridContainers::Cartesian_gridpoint > atomgrid_cleanedup;
+        for(const auto& point:atomgrid){
+            if (point.grid_weight>1e-13){
+                atomgrid_cleanedup.push_back(point);
+            }
         }
-        _totalgridsize += atomgrid.size();
-        grid.push_back(atomgrid);
+      
+        _totalgridsize += atomgrid_cleanedup.size();
+        grid.push_back(atomgrid_cleanedup);
       } // atoms
       SortGridpointsintoBlocks(grid);
       FindSignificantShells(basis);
       return;
     }
 
-    Eigen::VectorXd NumericalIntegration::SSWpartition(int igrid, const Eigen::MatrixXd & rq,const Eigen::MatrixXd& Rij) {
+    Eigen::VectorXd NumericalIntegration::SSWpartition(const Eigen::VectorXd & rq_i,const Eigen::MatrixXd& Rij) {
       const double ass = 0.725;
       // initialize partition vector to 1.0
-      Eigen::VectorXd p=Eigen::VectorXd::Ones(rq.rows());
+      Eigen::VectorXd p=Eigen::VectorXd::Ones(rq_i.size());
       const double tol_scr = 1e-10;
       const double leps = 1e-6;
       // go through centers
-      for (int i = 1; i < rq.rows(); i++) {
-        double rag = rq(i,igrid);
+      for (int i = 1; i < rq_i.size(); i++) {
+        double rag = rq_i(i);
         // through all other centers (one-directional)
         for (int j = 0; j < i; j++) {
           if ((std::abs(p[i]) > tol_scr) || (std::abs(p[j]) > tol_scr)) {
-            double mu = (rag - rq(j,igrid)) * Rij(j,i);
+            double mu = (rag - rq_i(j)) * Rij(j,i);
             if (mu > ass) {
               p[i] = 0.0;
             } else if (mu < -ass) {
