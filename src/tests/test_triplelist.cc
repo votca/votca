@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
     Topology top;
 
     string bead_type_name = "CG";
-    BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
+    auto b_type = top.GetOrCreateBeadType(bead_type_name);
 
     int symmetry = 1;
     string name = "dummy1";
