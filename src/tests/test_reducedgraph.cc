@@ -405,6 +405,22 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
 
 }
 
+BOOST_AUTO_TEST_CASE(expandedge_test){
+
+  // 0 - 1 - 2 - 3 -4 -5
+  //     |       |
+  //     6 - 7 - 8  
+  //
+  ReducedEdge ed0(vector<int>{0, 1});
+  ReducedEdge ed1(vector<int>{1, 2, 3});
+  ReducedEdge ed2(vector<int>{3, 4, 5});
+  ReducedEdge ed3(vector<int>{1, 6, 7, 8, 3});
+
+  vector<ReducedEdge> vec_ed{ ed0, ed1, ed2, ed3};
+
+  ReducedGraph g(vec_ed);
+
+}
 
 /**
  * \brief Equivalence test 

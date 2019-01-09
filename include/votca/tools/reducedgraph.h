@@ -66,8 +66,6 @@ class ReducedGraph : public Graph {
 
   ReducedGraph& operator=(ReducedGraph&& reduced_graph);
 
-  std::vector<Edge> getEdges();
-
   std::vector<std::vector<Edge>> expandEdge(Edge ed);
 
   int getDegree(int vertex);

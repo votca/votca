@@ -178,16 +178,6 @@ ReducedGraph& ReducedGraph::operator=(ReducedGraph&& g) {
   return *this;
 }
 
-vector<Edge> ReducedGraph::getEdges(){
-  vector<Edge> edges;
-  for(auto edge_and_chains : expanded_edges_ ){
-    for(int edge_count=0; edge_count<edge_and_chains.second.size();++edge_count){
-      edges.push_back(edge_and_chains.first);
-    }
-  }
-  return edges;
-}
-
 vector<vector<Edge>> ReducedGraph::expandEdge(Edge ed){
   assert(expanded_edges_.count(ed));
   vector<vector<Edge>> all_edges;
