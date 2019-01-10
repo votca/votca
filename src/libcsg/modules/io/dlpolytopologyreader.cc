@@ -286,20 +286,21 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #endif
 
 	//replicate molecule
-	for (int replica=1;replica<nreplica;replica++){
-          Molecule *mi_replica = top.CreateMolecule(mol_name);
-	  for(int i=0;i<mi->BeadCount();i++){
-	    Bead *bead=mi->getBead(i);
-	    string beadname=mi->getBeadName(i);
-	    auto weak_type = bead->Type();
+  for (int replica=1;replica<nreplica;replica++){
+    Molecule *mi_replica = top.CreateMolecule(mol_name);
+    for(int i=0;i<mi->BeadCount();i++){
+      Bead *bead=mi->getBead(i);
+      string beadname=mi->getBeadName(i);
       Bead *bead_replica;
-      if(auto type = weak_type.lock()){
-        bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getMass(), bead->getQ());
+      weak_ptr<BeadType> weak_type = bead->Type();
+      if(shared_ptr<BeadType> shared_type = weak_type.lock()){
+        bead_replica = top.CreateBead(1, bead->getName(), shared_type, res->getId(), bead->getMass(), bead->getQ());
       }else{
-        throw runtime_error("Error in dlpolytopologyreader.cc in trying to getbead type it does not exist.");
+        throw runtime_error("Error in dlpolytopologyreader.cc in trying to "
+            "getbead type it does not exist.");
       }
       mi_replica->AddBead(bead_replica,beadname);
-	  }
+    }
 	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
           for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {
