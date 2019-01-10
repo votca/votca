@@ -85,19 +85,14 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
     for (int i = 0; i < (*mol)->BeadCount(); ++i) {
       int resnr=(*mol)->getBead(i)->getResnr();
 
-      auto weak_type = (*mol)->getBead(i)->getType();
-      if(auto type = weak_type.lock()){
       cout << (*mol)->getBeadId(i) << " Name " <<
         (*mol)->getBeadName(i) << " Type " <<
-        type->getName() << " Mass " <<
+        (*mol)->getBead(i)->getBeadTypeName() << " Mass " <<
         (*mol)->getBead(i)->getMass() << " Resnr " <<
         resnr << " Resname " <<
         top->getResidue(resnr)->getName() << " Charge " <<
         (*mol)->getBead(i)->getQ() <<
         endl;
-      }else{
-        throw runtime_error("Error cannot access beadtype in csg_dump.");
-      }
     }
   }
     }
