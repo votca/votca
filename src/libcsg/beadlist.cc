@@ -37,15 +37,20 @@ int BeadList::Generate(Topology &top, const string &select)
     }
     
     for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
-        if (!selectByName){
-            if(wildcmp(pSelect.c_str(), (*iter)->getType()->getName().c_str())) {
-                push_back(*iter);
-            }
+      if (!selectByName){
+        auto weak_type = (*iter)->getType();
+        if(auto type = weak_type.lock()){
+          if(wildcmp(pSelect.c_str(), type->getName().c_str())) {
+            push_back(*iter);
+          }
         }else{
-            if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-                push_back(*iter);
-            }
+          throw runtime_error("Error cannot access beadtype in BeadList generate.");
         }
+      }else{
+        if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
+          push_back(*iter);
+        }
+      }
     }
     return size();
 }
@@ -69,9 +74,14 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select, 
     for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
         if (abs(_topology->BCShortestConnection(ref, (*iter)->getPos())) > radius) continue;
         if (!selectByName){
-            if(wildcmp(pSelect.c_str(), (*iter)->getType()->getName().c_str())) {
-                push_back(*iter);
+          auto weak_type = (*iter)->getType();
+          if(auto type = weak_type.lock()){
+            if(wildcmp(pSelect.c_str(), type->getName().c_str())) {
+              push_back(*iter);
             }
+          }else{
+            throw runtime_error("Error beadtype is inaccessible in BeadList GenerateInSphericalSubvolume");
+          }
         }else{
             if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
                 push_back(*iter);

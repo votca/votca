@@ -136,8 +136,9 @@ void Topology::Add(Topology *top)
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
-        auto type =  GetOrCreateBeadType(bi->getType()->getName());
-        CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
+//        auto type =  GetOrCreateBeadType(bi->getType()->getName());
+        auto weak_type = bi->getType();
+        CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
     }
     
     for(res=top->_residues.begin();res!=top->_residues.end(); ++res) {
@@ -174,8 +175,9 @@ void Topology::CopyTopologyData(Topology *top)
     // create all beads
     for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
         Bead *bi = *it_bead;
-        auto type =  GetOrCreateBeadType(bi->getType()->getName());
-        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(), bi->getMass(), bi->getQ());
+//        auto type =  GetOrCreateBeadType(bi->getType()->getName());
+        auto weak_type = bi->getType();
+        Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr(), bi->getMass(), bi->getQ());
         bn->setOptions(bi->Options());
     }
 
@@ -212,9 +214,13 @@ void Topology::RenameBeadType(string name, string newname)
 {
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-      auto type =  GetOrCreateBeadType((*bead)->getType()->getName());
-      if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
-        type->setName(newname);
+      auto weak_type =  (*bead)->getType();
+      if(auto type = weak_type.lock()){
+        if (wildcmp(name.c_str(),type->getName().c_str())) {
+          type->setName(newname);
+        }
+      }else{
+        throw runtime_error("bead type no longer exist memory error.");
       }
     }
 }
@@ -223,8 +229,13 @@ void Topology::SetBeadTypeMass(string name, double value)
 {
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-      if (wildcmp(name.c_str(),(*bead)->getType()->getName().c_str())) {
-	(*bead)->setMass(value);
+      auto weak_type = (*bead)->getType();
+      if(auto type = weak_type.lock()){
+        if (wildcmp(name.c_str(),type->getName().c_str())) {
+          (*bead)->setMass(value);
+        }
+      }else{
+        throw runtime_error("bead type no longer exist memory error.");
       }
     }
 
@@ -272,18 +283,18 @@ std::list<Interaction *> Topology::InteractionsInGroup(const string &group)
 }
 
 
-BeadType * Topology::GetOrCreateBeadType(string name)
+weak_ptr<BeadType> Topology::GetOrCreateBeadType(string name)
 {
     map<string, int>::iterator iter;
     
     iter = _beadtype_map.find(name);
     if(iter == _beadtype_map.end()) {
-        _beadtypes.push_back(BeadType(this,_beadtypes.size(),name));
-        _beadtype_map[name] = _beadtypes.back().getId();
-        return &(_beadtypes.back());
+        _beadtypes.push_back(shared_ptr<BeadType>( new BeadType(this,_beadtypes.size(),name)));
+        _beadtype_map[name] = _beadtypes.back()->getId();
+        return (_beadtypes.back());
     }
 
-    return  &(_beadtypes[(*iter).second]);
+    return  (_beadtypes[(*iter).second]);
     
 }
 
