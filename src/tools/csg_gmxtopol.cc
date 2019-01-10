@@ -75,15 +75,10 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg)
     out << "[atoms]\n";
     out << "; nr type resnr residue atom cgnr charge mass\n";
     for(int i=0; i<cg.BeadCount(); ++i) {
-        Bead *b=cg.getBead(i);
-        auto weak_type = b->getType();
-        if(auto type = weak_type.lock()){ 
-        out << format("%d %s 1 RES %s %d %f %f\n")
-            % (i+1) % type->getName() % b->getName() % (i+1) % b->getQ() % b->getMass();
-        }else{
-          throw runtime_error("Cannot access bead type in csg gmxtopol as it is inacccessible.");
-        }
-        
+      Bead *b=cg.getBead(i);
+      out << format("%d %s 1 RES %s %d %f %f\n")
+        % (i+1) % b->getBeadTypeName() % b->getName() % (i+1) % b->getQ() % b->getMass();
+
     }
     out << endl;
 }
