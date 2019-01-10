@@ -136,7 +136,6 @@ void Topology::Add(Topology *top)
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
-//        auto type =  GetOrCreateBeadType(bi->getType()->getName());
         auto weak_type = bi->getType();
         CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
     }
@@ -175,7 +174,6 @@ void Topology::CopyTopologyData(Topology *top)
     // create all beads
     for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
         Bead *bi = *it_bead;
-//        auto type =  GetOrCreateBeadType(bi->getType()->getName());
         auto weak_type = bi->getType();
         Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr(), bi->getMass(), bi->getQ());
         bn->setOptions(bi->Options());
@@ -215,12 +213,13 @@ void Topology::RenameBeadType(string name, string newname)
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
       auto weak_type =  (*bead)->getType();
-      if(auto type = weak_type.lock()){
-        if (wildcmp(name.c_str(),type->getName().c_str())) {
-          type->setName(newname);
+      if(auto shared_type = weak_type.lock()){
+        if (wildcmp(name.c_str(),shared_type->getName().c_str())) {
+          shared_type->setName(newname);
         }
       }else{
-        throw runtime_error("bead type no longer exist memory error.");
+        throw runtime_error("bead type is not accessible while attempting to "
+            "rename.");
       }
     }
 }
