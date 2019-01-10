@@ -67,12 +67,7 @@ public:
    * get the bead type
    * \return - non constant bead type pointer
    */
-  virtual std::weak_ptr<BeadType> Type() const { 
-    if(_type){
-      return *_type; 
-    }
-    throw std::runtime_error("Cannot return beadtype has not been initialized.");
-  }
+  virtual std::weak_ptr<BeadType> Type() const { return _type; }
 
   /**
    * get the mass of the base bead
@@ -115,7 +110,7 @@ public:
 
 protected:
   BaseBead()
-      : TopologyItem(nullptr), MoleculeItem(nullptr), _type(nullptr),
+      : TopologyItem(nullptr), MoleculeItem(nullptr), 
       _mass(0.0), _bPos(false){};
 
 
