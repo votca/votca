@@ -115,7 +115,7 @@ public:
 
 protected:
   BaseBead()
-      : TopologyItem(nullptr), MoleculeItem(nullptr), 
+      : TopologyItem(nullptr), MoleculeItem(nullptr), _type(nullptr),
       _mass(0.0), _bPos(false){};
 
 
