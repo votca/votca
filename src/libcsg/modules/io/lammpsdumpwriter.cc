@@ -53,12 +53,7 @@ void LAMMPSDumpWriter::Write(Topology *conf)
 
     for(BeadContainer::iterator iter=conf->Beads().begin(); iter!=conf->Beads().end(); ++iter) {
         Bead *bi = *iter;
-        auto weak_type = bi->getType();
-        if(auto type = weak_type.lock()){
-          fprintf(_out,"%i %i", bi->getId()+1, type->getId());
-        }else{
-          throw runtime_error("Error in lammps dump writer cannot access beadtype.");
-        }
+        fprintf(_out,"%i %i", bi->getId()+1, bi->getBeadTypeId());
         fprintf(_out," %f %f %f",bi->getPos().getX(), bi->getPos().getY(), bi->getPos().getZ());
         if(v) {
             fprintf(_out, " %f %f %f", bi->getVel().getX(), bi->getVel().getY(), bi->getVel().getZ());
