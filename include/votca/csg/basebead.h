@@ -77,6 +77,13 @@ public:
   std::string getBeadTypeName();
 
   /**
+   * get the id of the bead type
+   * \return - int indicated the id or throw an error if bead type is not
+   * accessible
+   **/
+  int getBeadTypeId();
+
+  /**
    * get the mass of the base bead
    * \return - base bead mass
    */
@@ -137,7 +144,15 @@ inline std::string BaseBead::getBeadTypeName(){
       "accessible.");
 }
 
-inline void BaseBead::setPos(const vec &r) {
+inline int BaseBead::getBeadTypeId(){
+  if(shared_ptr<BeadType> shared_type = _type.lock()){
+    return shared_type->getId();
+  }
+  throw std::runtime_error("Cannot get bead type id because bead type is not "
+      "accessible.");
+}
+
+nline void BaseBead::setPos(const vec &r) {
   _bPos = true;
   _pos = r;
 }
