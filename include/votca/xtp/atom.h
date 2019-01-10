@@ -53,7 +53,6 @@ class Atom {
         _resnr(resnr),
         _resname(residue_name),
         _weight(weight),
-        _bPos(false),
         _hasQM(hasQMPart),
         _qmId(qm_atom_id),
         _qmPos(qmPos),
@@ -72,80 +71,50 @@ class Atom {
         _resname(stencil->getResname()),
         _weight(stencil->getWeight()),
         _pos(stencil->getPos()),
-        _bPos(true),
         _hasQM(stencil->HasQMPart()),
         _qmId(stencil->getQMId()),
         _qmPos(stencil->getQMPos()),
         _element(stencil->getElement()) {}
 
   Atom() {};
-  ~Atom() { _Q.clear(); }
 
   const int &getId() const { return _id; }
   const std::string &getName() const { return _name; }
   const std::string &getType() const { return _type; }
   const int &getResnr() const { return _resnr; }
 
-  inline void setTopology(Topology *container) { _top = container; }
-  inline void setMolecule(Molecule *container) { _mol = container; }
-  inline void setSegment(Segment *container) { _seg = container; }
-  inline void setFragment(Fragment *container) { _frag = container; }
+   void setTopology(Topology *container) { _top = container; }
+   void setMolecule(Molecule *container) { _mol = container; }
+   void setSegment(Segment *container) { _seg = container; }
+   void setFragment(Fragment *container) { _frag = container; }
 
   Topology *getTopology() { return _top; }
   Molecule *getMolecule() { return _mol; }
   Segment *getSegment() { return _seg; }
   Fragment *getFragment() { return _frag; }
 
-  inline void setResnr(const int &resnr) { _resnr = resnr; }
-  inline void setResname(const std::string &resname) { _resname = resname; }
-  inline void setWeight(const double &weight) { _weight = weight; }
-  inline void setQMPart(const int &qmid, tools::vec qmPos);
-  inline void setQMPos(const tools::vec &qmPos) { _qmPos = qmPos; }
-  inline void setElement(const std::string &element) { _element = element; }
-  inline void TranslateBy(const tools::vec &shift) {
+   void setResnr(int resnr) { _resnr = resnr; }
+   void setResname(const std::string &resname) { _resname = resname; }
+   void setWeight(double weight) { _weight = weight; }
+   void setQMPart(int qmid, tools::vec qmPos);
+   void setQMPos(const tools::vec &qmPos) { _qmPos = qmPos; }
+   void setElement(const std::string &element) { _element = element; }
+   void TranslateBy(const tools::vec &shift) {
     _pos = _pos + shift;
   }
 
-  inline const int &getResnr() { return _resnr; }
-  inline const std::string &getResname() { return _resname; }
-  inline const double &getWeight() { return _weight; }
-  inline const int &getQMId() { return _qmId; }
-  inline const tools::vec &getQMPos() { return _qmPos; }
-  inline const std::string &getElement() { return _element; }
+   const int &getResnr() { return _resnr; }
+   const std::string &getResname() { return _resname; }
+   const double &getWeight() { return _weight; }
+   const int &getQMId() { return _qmId; }
+  const tools::vec &getQMPos() { return _qmPos; }
+  const std::string &getElement() { return _element; }
 
-  inline const double &getQ(int state) { return _Q.at(state); }
-  inline const double &getQ() { return _q->second; }
-  inline void setQ(std::map<int, double> Q) { _Q = Q; }
-  void chrg(int state) { _q = _Q.find(state); }
 
-  inline void setPTensor(tools::matrix &ptensor) { _ptensor = ptensor; }
-  const tools::matrix &getPTensor() { return _ptensor; }
-
-  /**
-   * get the position of the atom
-   * \return atom position
-   */
-  const tools::vec &getPos() const;
-  /**
-   * set the position of the atom
-   * \param r atom position
-   */
-  void setPos(const tools::vec &r);
-  /**
-   * direct access (read/write) to the position of the atom
-   * \return reference to position
-   */
-  tools::vec &Pos() { return _pos; }
-  /** does this configuration store positions? */
-  bool HasPos() { return _bPos; }
-  /** dose the bead store a position */
-  void HasPos(bool b);
+  const tools::vec &getPos() const{return _pos;}
+  void setPos(const tools::vec &r){_pos = r;}
 
   bool HasQMPart() { return _hasQM; }
-  /**
-   * molecule the bead belongs to
-   * \return Molecule object
-   */
 
  protected:
   int _id;
@@ -161,32 +130,15 @@ class Atom {
   std::string _resname;
   double _weight;
   tools::vec _pos;
-  bool _bPos;
 
   bool _hasQM;
   int _qmId;
   tools::vec _qmPos;
   std::string _element;
-
-  // charge state of segment => partial charge
-  std::map<int, double> _Q;
-  std::map<int, double>::iterator _q;
-  tools::matrix _ptensor;
 };
 
-inline void Atom::setPos(const tools::vec &r) {
-  _bPos = true;
-  _pos = r;
-}
 
-inline const tools::vec &Atom::getPos() const {
-  if (!_bPos) throw std::runtime_error("Position has not yet been set");
-  return _pos;
-}
-
-inline void Atom::HasPos(bool b) { _bPos = b; }
-
-inline void Atom::setQMPart(const int &qmid, tools::vec qmPos) {
+inline void Atom::setQMPart(int qmid, tools::vec qmPos) {
   if (qmid > -1) {
     _hasQM = true;
     _qmId = qmid;

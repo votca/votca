@@ -35,9 +35,6 @@ using namespace votca::tools;
 
 namespace votca { namespace xtp {
 
-  Topology::Topology() : _db_id(-1), _hasPb(0), 
-  _bc(NULL), _nblist(this),
-  _isRigid(false), _isEStatified(false)  { }
 
   // +++++++++++++++++++++ //
   // Clean-Up, Destruct    //
@@ -59,7 +56,7 @@ namespace votca { namespace xtp {
     _segmentTypes.clear();
 
     if (_bc) { delete(_bc); _bc = NULL; }
-    _bc = new CSG::OpenBox;
+    _bc = new csg::OpenBox;
 
     _nblist.Cleanup();
     _isRigid = false;
@@ -143,10 +140,10 @@ namespace votca { namespace xtp {
   // +++++++++++++++++ //
 
   void Topology::setBox(const matrix &box,
-      CSG::BoundaryCondition::eBoxtype boxtype) {
+      csg::BoundaryCondition::eBoxtype boxtype) {
 
     // Determine box type automatically in case boxtype == typeAuto
-    if(boxtype == CSG::BoundaryCondition::typeAuto) {
+    if(boxtype == csg::BoundaryCondition::typeAuto) {
       boxtype = AutoDetectBoxType(box);
     }
 
@@ -156,16 +153,16 @@ namespace votca { namespace xtp {
       }
       delete _bc;
     }
-
+    _bc.reset(nullptr);
     switch(boxtype) {
-      case CSG::BoundaryCondition::typeTriclinic:
-        _bc = new CSG::TriclinicBox();
+      case csg::BoundaryCondition::typeTriclinic:
+        _bc = new csg::TriclinicBox();
         break;
-      case CSG::BoundaryCondition::typeOrthorhombic:
-        _bc = new CSG::OrthorhombicBox();
+      case csg::BoundaryCondition::typeOrthorhombic:
+        _bc = new csg::OrthorhombicBox();
         break;
       default:
-        _bc = new CSG::OpenBox();
+        _bc = new csg::OpenBox();
         break;
     }
 
@@ -174,7 +171,7 @@ namespace votca { namespace xtp {
   }
 
 
-  CSG::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(const matrix &box){
+  csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(const matrix &box){
 
     // Set box type to OpenBox in case "box" is the zero matrix,
     // to OrthorhombicBox in case "box" is a diagonal matrix,
@@ -186,21 +183,21 @@ namespace votca { namespace xtp {
 
       cout << "WARNING: No box vectors specified in trajectory."
         "Using open-box boundary conditions. " << endl;
-      return CSG::BoundaryCondition::typeOpen;
+      return csg::BoundaryCondition::typeOpen;
     }
 
     else if(box.get(0,1)==0 && box.get(0,2)==0 &&
         box.get(1,0)==0 && box.get(1,2)==0 &&
         box.get(2,0)==0 && box.get(2,1)==0) {
 
-      return CSG::BoundaryCondition::typeOrthorhombic;
+      return csg::BoundaryCondition::typeOrthorhombic;
     }
 
     else {
-      return CSG::BoundaryCondition::typeTriclinic;
+      return csg::BoundaryCondition::typeTriclinic;
     }
 
-    return CSG::BoundaryCondition::typeOpen;
+    return csg::BoundaryCondition::typeOpen;
   }
 
 

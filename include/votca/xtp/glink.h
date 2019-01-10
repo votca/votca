@@ -30,7 +30,6 @@ struct GLink {
   bool decayevent;
   double Jeff2;
   double reorg_out;
-  double initialrate;
   double getValue()const{
   	return rate;
   }

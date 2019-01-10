@@ -18,17 +18,17 @@
  */
 
 
-#ifndef Rates_H
-#define Rates_H
+#ifndef __VOTCA_XTP_RATESCALC_H
+#define __VOTCA_XTP_RATESCALC_H
 
 #include <votca/xtp/paircalculator.h>
 #include <cmath>
 #include <complex>
-//#include <boost/math/special_functions/gamma.hpp>
+
 
 namespace votca { namespace xtp {
    
-class Rates : public PairCalculator2
+class Rates : public PairCalculator
 {
 public:
 
@@ -450,39 +450,6 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
           // 1->2 == - 2->1
 
     double J2 = qmpair->getJeff2(state);                      // 1->2 == + 2->1
-
-    /*
-    if (state == -1) {
-
-        // Charge hops Seg1 -> Seg2
-        reorg12 = _seg_U_nC_nN_e[seg1->getName()]
-                + _seg_U_cN_cC_e[seg2->getName()];
-
-        // Charge hops Seg2 -> Seg1
-        reorg21 = _seg_U_nC_nN_e[seg2->getName()]
-                + _seg_U_cN_cC_e[seg1->getName()];
-
-        // dG Seg1 -> Seg2
-        dG_Site = _seg_U_cC_nN_e[seg2->getName()] + seg2->getEMpoles(state)
-                - _seg_U_cC_nN_e[seg1->getName()] - seg1->getEMpoles(state);
-    }
-
-    else if (state == +1) {
-
-        // Charge hops Seg1 -> Seg2
-        reorg12 = _seg_U_nC_nN_h[seg1->getName()]
-                + _seg_U_cN_cC_h[seg2->getName()];
-
-        // Charge hops Seg2 -> Seg1
-        reorg21 = _seg_U_nC_nN_h[seg2->getName()]
-                + _seg_U_cN_cC_h[seg1->getName()];
-
-        // dG Seg1 -> Seg2
-        dG_Site = _seg_U_cC_nN_h[seg2->getName()] + seg2->getEMpoles(state)
-                - _seg_U_cC_nN_h[seg1->getName()] - seg1->getEMpoles(state);
-    }
-    */
-
     double dG = dG_Field + dG_Site;
 
     // +++++++++++++ //
@@ -561,10 +528,6 @@ void Rates::CalculateRate(Topology *top, QMPair *qmpair, int state) {
         double characfreq21 = reorg21 /2 /_kondo/hbar_eV;
         
         std::complex<double> M_I = std::complex<double>(0.0,1.0);
-       /* std::cout << std::endl;
-       std::cout << "  CGAMMA via GSL: " << gsl_sf_gamma(2*_kondo) << " native: " << ccgamma(2*_kondo,0).real() << std::endl;
-       std::cout << " LCGAMMA via GSL: " << cgamma(_kondo+M_I*(+dG/2/M_PI/_kT)) << " native: " << ccgamma(_kondo+M_I*(+dG/2/M_PI/_kT),0) << std::endl;
-      */
         
        rate12 = J2/pow(hbar_eV,2)/characfreq12
                 * pow((hbar_eV*characfreq12/2/M_PI/_kT), (1-2*_kondo))
