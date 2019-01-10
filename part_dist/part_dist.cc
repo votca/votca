@@ -173,7 +173,13 @@ int main(int argc, char** argv)
 	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
 		for(int i=0; i<(*mol)->BeadCount(); ++i) {
 		    flag_found = 0;
-		    part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
+        weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
+        if(shared_ptr<BeadType> shared_type = weak_type.lock()){
+          part_type = atoi(shared_type->getName().c_str());
+        }else{
+          throw runtime_error("Cannot get bead type in part_dist as it is no "
+              "longer accessible.");
+        }
 		    for (size_t j=0; j < ptypes.size(); ++j) {
 			if (part_type == ptypes[j]) 
 			    flag_found = 1;
@@ -195,7 +201,13 @@ int main(int argc, char** argv)
 	if (vm.count("shift_com")) {
 	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
 		for(int i=0; i<(*mol)->BeadCount(); ++i) {
-		    part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
+        weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
+        if(shared_ptr<BeadType> shared_type = weak_type.lock()){
+          part_type = atoi(shared_type->getName().c_str());
+        }else{
+          throw runtime_error("Cannot get bead type in part_dist as it is no "
+              "longer accessible.");
+        }
 		    for (size_t j=0; j < ptypes.size(); ++j) 
 			if (part_type == ptypes[j])
 			    ++n_part;
@@ -233,52 +245,65 @@ int main(int argc, char** argv)
 	    // Calculate new center of mass position in the direction of 'coordinate'
 	    com = 0.;
 	    if (vm.count("shift_com")) {
-		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-                    for(int i=0; i<(*mol)->BeadCount(); ++i) {
-                        part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-                        for (size_t j=0; j < ptypes.size(); ++j) {
-                            if (part_type == ptypes[j]) {
-                                if (coordinate.compare("x") == 0) {
-				    com += (*mol)->getBead(i)->getPos().getX();
-				}
-				else if (coordinate.compare("y") == 0) {
-                                    com += (*mol)->getBead(i)->getPos().getY();
-				}
-                                else {
-                                    com += (*mol)->getBead(i)->getPos().getZ();
-				}
-			    }
-			}
-		    }
-		}
-		com /= n_part;
+        for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+          for(int i=0; i<(*mol)->BeadCount(); ++i) {
+            weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
+            if(shared_ptr<BeadType> shared_type = weak_type.lock()){
+              part_type = atoi(shared_type->getName().c_str());
+            }else{
+              throw runtime_error("Cannot get bead type in part_dist as it is no "
+                  "longer accessible.");
+            }
+            for (size_t j=0; j < ptypes.size(); ++j) {
+              if (part_type == ptypes[j]) {
+                if (coordinate.compare("x") == 0) {
+                  com += (*mol)->getBead(i)->getPos().getX();
+                }
+                else if (coordinate.compare("y") == 0) {
+                  com += (*mol)->getBead(i)->getPos().getY();
+                }
+                else {
+                  com += (*mol)->getBead(i)->getPos().getZ();
+                }
+              }
+            }
+          }
+        }
+        com /= n_part;
 	    }
 
 	    // Analyze frame
 	    if (moreframes && frame_id >= first_frame && not_the_last) {
 		++analyzed_frames;
 		// Loop over each atom property
-		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-		    for(int i=0; i<(*mol)->BeadCount(); ++i) {
-			part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-			for (size_t j=0; j < ptypes.size(); ++j) {	
-			    if (part_type == ptypes[j]) {
-				if (coordinate.compare("x") == 0)
-				    coord = (*mol)->getBead(i)->getPos().getX();
-				else if (coordinate.compare("y") == 0)
-				    coord = (*mol)->getBead(i)->getPos().getY();
-				else 
-				    coord = (*mol)->getBead(i)->getPos().getZ();
-				
-				if (coord-com > min && coord-com < max)
- 				    ++p_occ[j][(int)floor((coord-com-min)/step)];
-			    }
-			}
-		    }
-		}
-	    }
-	    ++frame_id;
-	}
+    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+      for(int i=0; i<(*mol)->BeadCount(); ++i) {
+        weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
+        if(shared_ptr<BeadType> shared_type = weak_type.lock()){
+          part_type = atoi(shared_type->getName().c_str());
+        }else{
+          throw runtime_error("Cannot get bead type in part_dist as it is no "
+              "longer accessible.");
+        }
+
+        for (size_t j=0; j < ptypes.size(); ++j) {	
+          if (part_type == ptypes[j]) {
+            if (coordinate.compare("x") == 0)
+              coord = (*mol)->getBead(i)->getPos().getX();
+            else if (coordinate.compare("y") == 0)
+              coord = (*mol)->getBead(i)->getPos().getY();
+            else 
+              coord = (*mol)->getBead(i)->getPos().getZ();
+
+            if (coord-com > min && coord-com < max)
+              ++p_occ[j][(int)floor((coord-com-min)/step)];
+          }
+        }
+      }
+    }
+      }
+      ++frame_id;
+  }
 	
 	trajreader->Close();				
 	
