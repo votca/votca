@@ -77,23 +77,29 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
 	    " id: " << top->getResidue(i)->getId() << endl;
 	}
 
-        cout << "\nList of molecules:\n";
-        MoleculeContainer::iterator mol;
-        for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
-            cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
-                    << " beads: " << (*mol)->BeadCount() << endl;
-            for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-	        int resnr=(*mol)->getBead(i)->getResnr();
-                cout << (*mol)->getBeadId(i) << " Name " <<
-                        (*mol)->getBeadName(i) << " Type " <<
-			(*mol)->getBead(i)->getType()->getName() << " Mass " <<
-			(*mol)->getBead(i)->getMass() << " Resnr " <<
-			resnr << " Resname " <<
-			top->getResidue(resnr)->getName() << " Charge " <<
-			(*mol)->getBead(i)->getQ() <<
-			endl;
-            }
-        }
+  cout << "\nList of molecules:\n";
+  MoleculeContainer::iterator mol;
+  for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
+    cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
+      << " beads: " << (*mol)->BeadCount() << endl;
+    for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+      int resnr=(*mol)->getBead(i)->getResnr();
+
+      auto weak_type = (*mol)->getBead(i)->getType();
+      if(auto type = weak_type.lock()){
+      cout << (*mol)->getBeadId(i) << " Name " <<
+        (*mol)->getBeadName(i) << " Type " <<
+        type->getName() << " Mass " <<
+        (*mol)->getBead(i)->getMass() << " Resnr " <<
+        resnr << " Resname " <<
+        top->getResidue(resnr)->getName() << " Charge " <<
+        (*mol)->getBead(i)->getQ() <<
+        endl;
+      }else{
+        throw runtime_error("Error cannot access beadtype in csg_dump.");
+      }
+    }
+  }
     }
     else {
         cout << "\nList of exclusions:\n" << top->getExclusions();

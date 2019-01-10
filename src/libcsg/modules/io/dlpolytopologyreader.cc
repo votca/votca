@@ -290,10 +290,15 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
           Molecule *mi_replica = top.CreateMolecule(mol_name);
 	  for(int i=0;i<mi->BeadCount();i++){
 	    Bead *bead=mi->getBead(i);
-	    auto type = top.GetOrCreateBeadType(bead->Type()->getName());
 	    string beadname=mi->getBeadName(i);
-	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getMass(), bead->getQ());
-	    mi_replica->AddBead(bead_replica,beadname);
+	    auto weak_type = bead->Type();
+      Bead *bead_replica;
+      if(auto type = weak_type.lock()){
+        bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getMass(), bead->getQ());
+      }else{
+        throw runtime_error("Error in dlpolytopologyreader.cc in trying to getbead type it does not exist.");
+      }
+      mi_replica->AddBead(bead_replica,beadname);
 	  }
 	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
