@@ -70,6 +70,13 @@ public:
   virtual std::weak_ptr<BeadType> Type() const { return _type; }
 
   /**
+   * get the name of the bead type
+   * \return - string indicates the name or throw error if bead type is not 
+   * accesible.
+   **/
+  std::string getBeadTypeName();
+
+  /**
    * get the mass of the base bead
    * \return - base bead mass
    */
@@ -121,6 +128,14 @@ protected:
 
   bool _bPos;
 };
+
+inline std::string BaseBead::getBeadTypeName(){
+  if(shared_ptr<BeadType> shared_type = _type.lock()){
+    return shared_type->getName();
+  }
+  throw std::runtime_error("Cannot get bead type name because bead type is not "
+      "accessible.");
+}
 
 inline void BaseBead::setPos(const vec &r) {
   _bPos = true;
