@@ -27,19 +27,18 @@
 namespace votca {
   namespace xtp {
       
-  Eigen::VectorXd RPA::UpdateRPAInput(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin, int homo){
+  void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin){
         int dftsize=dftenergies.size();
-        Eigen::VectorXd rpaenergies=dftenergies;
+        _energies=dftenergies;
         int gwsize=gwaenergies.size();
-        int lumo=homo+1;
+        int lumo=_homo+1;
 
         int qpmax=qpmin+gwsize-1;
-        rpaenergies.segment(qpmin,gwsize)=gwaenergies;
-        double DFTgap = dftenergies(lumo) - dftenergies(homo);
-        double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(homo-qpmin);
+        _energies.segment(qpmin,gwsize)=gwaenergies;
+        double DFTgap = dftenergies(lumo) - dftenergies(_homo);
+        double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(_homo-qpmin);
         double shift=QPgap - DFTgap;
-        rpaenergies.segment(qpmax+1,dftsize-qpmax-1).array()+=shift;
-        return rpaenergies;
+        _energies.segment(qpmax+1,dftsize-qpmax-1).array()+=shift;
     }
 
  template< bool imag>
