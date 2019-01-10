@@ -136,23 +136,7 @@ protected:
   bool _bPos;
 };
 
-inline std::string BaseBead::getBeadTypeName(){
-  if(shared_ptr<BeadType> shared_type = _type.lock()){
-    return shared_type->getName();
-  }
-  throw std::runtime_error("Cannot get bead type name because bead type is not "
-      "accessible.");
-}
-
-inline int BaseBead::getBeadTypeId(){
-  if(shared_ptr<BeadType> shared_type = _type.lock()){
-    return shared_type->getId();
-  }
-  throw std::runtime_error("Cannot get bead type id because bead type is not "
-      "accessible.");
-}
-
-nline void BaseBead::setPos(const vec &r) {
+inline void BaseBead::setPos(const vec &r) {
   _bPos = true;
   _pos = r;
 }
