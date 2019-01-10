@@ -20,8 +20,6 @@
 
 #include <memory>
 
-#include <boost/optional.hpp>
-
 #include <votca/csg/topologyitem.h>
 #include <votca/csg/moleculeitem.h>
 
@@ -57,14 +55,7 @@ public:
    * get the bead type
    * \return const bead type pointer
    */
-  virtual const std::weak_ptr<BeadType> getType() const {
-  //  return _type; 
-    if(_type){
-      return *_type; 
-    }
-    throw std::runtime_error("Cannot return beadtype has not been initialized.");
-
-  }
+  virtual const std::weak_ptr<BeadType> getType() const { return _type;}
 
   /**
    * set the bead type
@@ -128,7 +119,7 @@ protected:
       _mass(0.0), _bPos(false){};
 
 
-  boost::optional<std::weak_ptr<BeadType>> _type;
+  std::weak_ptr<BeadType> _type;
 
   double _mass;
   vec _pos;
