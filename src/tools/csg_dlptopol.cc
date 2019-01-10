@@ -140,7 +140,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
     // collect unique bead pairs over all molecular types found
 
     for(int ib1=0; ib1<mol->BeadCount(); ib1++) {
-      string bead_name1 mol->getBeadTypeName();
+      string bead_name1 = mol->getBead(ib1)->getBeadTypeName();
       bead_name1 = bead_name1.substr(0,bead_name1.find_first_of("#")); // skip #index of atom from its name
 
       for(unsigned int imt=0; imt<MolecularTypes.size(); imt++) {
