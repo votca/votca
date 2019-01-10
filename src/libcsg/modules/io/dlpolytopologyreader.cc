@@ -297,7 +297,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
         bead_replica = top.CreateBead(1, bead->getName(), shared_type, res->getId(), bead->getMass(), bead->getQ());
       }else{
         throw runtime_error("Error in dlpolytopologyreader.cc in trying to "
-            "getbead type it does not exist.");
+            "access bead type it does not exist.");
       }
       mi_replica->AddBead(bead_replica,beadname);
     }
