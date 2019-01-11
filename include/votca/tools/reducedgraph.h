@@ -53,7 +53,6 @@ namespace tools {
 class ReducedGraph : public Graph {
  private:
 
-   EdgeContainer edge_container_full_;
    std::unordered_map<Edge,std::vector<std::vector<int>>> expanded_edges_;  
 
     void initEdgeContainerFull_(std::vector<ReducedEdge> reduced_edges);

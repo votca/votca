@@ -45,11 +45,20 @@ bool compareChainWithChains_(vector<int> chain, vector<vector<int>> chains){
   return false;
 }
 
+set<int> getAllVertices_(std::vector<ReducedEdge> reduced_edges){
+  set<int> vertices;
+  for( auto reduced_edge : reduced_edges){
+    vector<int> chain = reduced_edge.getChain();
+    for( auto vertex : chain){
+      vertices.insert(vertex);
+    }
+  }
+  return vertices;
+}
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges){
-  initEdgeContainerFull_(reduced_edges);
 
-  auto vertices = edge_container_full_.getVertices();
+  auto vertices = getAllVertices_(reduced_edges);
   unordered_map<int,GraphNode> nodes;
   for( auto vertex : vertices  ){
     GraphNode gn;
@@ -59,8 +68,7 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges){
 }
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges, unordered_map<int,GraphNode> nodes){
-  initEdgeContainerFull_(reduced_edges); 
-  auto vertices = edge_container_full_.getVertices();
+  auto vertices = getAllVertices_(reduced_edges);
   if(nodes.size()<vertices.size()){
     throw invalid_argument("The number of nodes passed into a reduced graph "
         "must be greater or equivalent to the number of vertices");
@@ -71,15 +79,6 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges, unordered_map
     }
   }
   init_(reduced_edges,nodes);
-}
-
-void ReducedGraph::initEdgeContainerFull_(std::vector<ReducedEdge> reduced_edges){
-  vector<Edge> all_edges;
-  for(auto reduced_edge : reduced_edges){
-    auto temp_edges = reduced_edge.expand();
-    all_edges.insert(all_edges.begin(),temp_edges.begin(),temp_edges.end());
-  }
-  edge_container_full_ = EdgeContainer(all_edges);
 }
 
 void ReducedGraph::init_(std::vector<ReducedEdge> reduced_edges, unordered_map<int,GraphNode> nodes){
@@ -103,7 +102,6 @@ void ReducedGraph::init_(std::vector<ReducedEdge> reduced_edges, unordered_map<i
 
 ReducedGraph::ReducedGraph(const ReducedGraph& g) {
   this->edge_container_ = g.edge_container_;
-  this->edge_container_full_ = g.edge_container_full_;
   this->expanded_edges_ = g.expanded_edges_;
   this->nodes_ = g.nodes_;
   this->id_ = g.id_;
@@ -111,7 +109,6 @@ ReducedGraph::ReducedGraph(const ReducedGraph& g) {
 
 ReducedGraph& ReducedGraph::operator=(const ReducedGraph& g) {
   this->expanded_edges_ = g.expanded_edges_;
-  this->edge_container_full_ = g.edge_container_full_;
   this->expanded_edges_ = g.expanded_edges_;
   this->nodes_ = g.nodes_;
   this->id_ = g.id_;
@@ -120,7 +117,6 @@ ReducedGraph& ReducedGraph::operator=(const ReducedGraph& g) {
 
 ReducedGraph& ReducedGraph::operator=(ReducedGraph&& g) {
   this->expanded_edges_ = move(g.expanded_edges_);
-  this->edge_container_full_ = move(g.edge_container_full_);
   this->edge_container_ = move(g.edge_container_);
   this->nodes_ = move(g.nodes_);
   this->id_ = move(g.id_);
