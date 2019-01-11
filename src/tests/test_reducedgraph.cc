@@ -132,57 +132,144 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
 
 BOOST_AUTO_TEST_CASE(get_edges_test) {
 
-  unordered_map<string, int> int_vals0 = {{"a", 0}};
-  unordered_map<string, int> int_vals1 = {{"b", 1}};
-  unordered_map<string, int> int_vals2 = {{"c", 2}};
-  unordered_map<string, int> int_vals3 = {{"d", 3}};
-  unordered_map<string, int> int_vals4 = {{"e", 4}};
+  {
+    unordered_map<string, int> int_vals0 = {{"a", 0}};
+    unordered_map<string, int> int_vals1 = {{"b", 1}};
+    unordered_map<string, int> int_vals2 = {{"c", 2}};
+    unordered_map<string, int> int_vals3 = {{"d", 3}};
+    unordered_map<string, int> int_vals4 = {{"e", 4}};
 
-  unordered_map<string, double> double_vals;
-  unordered_map<string, string> str_vals;
+    unordered_map<string, double> double_vals;
+    unordered_map<string, string> str_vals;
 
-  // 0 - 1 - 2 - 3
-  //         |
-  //         4
+    // 0 - 1 - 2 - 3
+    //         |
+    //         4
 
-  vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<int>{0, 1,2});
-  ReducedEdge ed2(2, 3);
-  ReducedEdge ed3(2, 4);
+    vector<ReducedEdge> vec_ed;
+    ReducedEdge ed(std::vector<int>{0, 1,2});
+    ReducedEdge ed2(2, 3);
+    ReducedEdge ed3(2, 4);
 
-  vec_ed.push_back(ed);
-  vec_ed.push_back(ed2);
-  vec_ed.push_back(ed3);
+    vec_ed.push_back(ed);
+    vec_ed.push_back(ed2);
+    vec_ed.push_back(ed3);
 
-  GraphNode gn(int_vals0, double_vals, str_vals);
-  GraphNode gn1(int_vals1, double_vals, str_vals);
-  GraphNode gn2(int_vals2, double_vals, str_vals);
-  GraphNode gn3(int_vals3, double_vals, str_vals);
-  GraphNode gn4(int_vals4, double_vals, str_vals);
+    GraphNode gn(int_vals0, double_vals, str_vals);
+    GraphNode gn1(int_vals1, double_vals, str_vals);
+    GraphNode gn2(int_vals2, double_vals, str_vals);
+    GraphNode gn3(int_vals3, double_vals, str_vals);
+    GraphNode gn4(int_vals4, double_vals, str_vals);
 
-  unordered_map<int, GraphNode> m_gn;
-  m_gn[0] = gn;
-  m_gn[1] = gn1;
-  m_gn[2] = gn2;
-  m_gn[3] = gn3;
-  m_gn[4] = gn4;
+    unordered_map<int, GraphNode> m_gn;
+    m_gn[0] = gn;
+    m_gn[1] = gn1;
+    m_gn[2] = gn2;
+    m_gn[3] = gn3;
+    m_gn[4] = gn4;
 
-  ReducedGraph g(vec_ed, m_gn);
-  auto edges = g.getEdges();
+    ReducedGraph g(vec_ed, m_gn);
+    auto edges = g.getEdges();
 
-  bool ed0_found = false;
-  bool ed1_found = false;
-  bool ed2_found = false;
-  bool ed3_found = false;
-  for(auto ed_temp : edges){
-    if(ed_temp==ed) ed0_found = true;
-    if(ed_temp==ed2) ed2_found = true;
-    if(ed_temp==ed3) ed3_found = true;
+    bool ed0_found = false;
+    bool ed1_found = false;
+    bool ed2_found = false;
+    bool ed3_found = false;
+    for(auto ed_temp : edges){
+      if(ed_temp==ed) ed0_found = true;
+      if(ed_temp==ed2) ed2_found = true;
+      if(ed_temp==ed3) ed3_found = true;
+    }
+
+    BOOST_CHECK(ed0_found);
+    BOOST_CHECK(ed2_found);
+    BOOST_CHECK(ed3_found);
+
   }
 
-  BOOST_CHECK(ed0_found);
-  BOOST_CHECK(ed2_found);
-  BOOST_CHECK(ed3_found);
+  {
+    unordered_map<string, int> int_vals0 = {{"a", 0}};
+    unordered_map<string, int> int_vals1 = {{"b", 1}};
+    unordered_map<string, int> int_vals2 = {{"c", 2}};
+    unordered_map<string, int> int_vals3 = {{"d", 3}};
+    unordered_map<string, int> int_vals4 = {{"e", 4}};
+    unordered_map<string, int> int_vals5 = {{"f", 5}};
+    unordered_map<string, int> int_vals6 = {{"g", 6}};
+    unordered_map<string, int> int_vals7 = {{"h", 7}};
+
+    unordered_map<string, double> double_vals;
+    unordered_map<string, string> str_vals;
+
+    // Full Graph
+    //
+    // 0 - 1 - 2 - 3 - 5 - 6
+    //     |   |
+    //     7 - 4
+    //
+    //  Reduced Graph
+    //
+    //  0 - 1 - 2 - 6
+    //      | _ |
+    //
+    vector<ReducedEdge> vec_ed;
+    ReducedEdge ed(0,1);
+    ReducedEdge ed2(1,2);
+    ReducedEdge ed3(vector<int>{2,3,4,5,6});
+    ReducedEdge ed4(vector<int>{1,7,4,2});
+
+    vec_ed.push_back(ed);
+    vec_ed.push_back(ed2);
+    vec_ed.push_back(ed3);
+    vec_ed.push_back(ed4);
+
+    GraphNode gn(int_vals0, double_vals, str_vals);
+    GraphNode gn1(int_vals1, double_vals, str_vals);
+    GraphNode gn2(int_vals2, double_vals, str_vals);
+    GraphNode gn3(int_vals3, double_vals, str_vals);
+    GraphNode gn4(int_vals4, double_vals, str_vals);
+    GraphNode gn5(int_vals5, double_vals, str_vals);
+    GraphNode gn6(int_vals6, double_vals, str_vals);
+    GraphNode gn7(int_vals7, double_vals, str_vals);
+
+    unordered_map<int, GraphNode> m_gn;
+    m_gn[0] = gn;
+    m_gn[1] = gn1;
+    m_gn[2] = gn2;
+    m_gn[3] = gn3;
+    m_gn[4] = gn4;
+    m_gn[5] = gn5;
+    m_gn[6] = gn6;
+    m_gn[7] = gn7;
+
+    ReducedGraph g(vec_ed, m_gn);
+    auto edges = g.getEdges();
+
+    //  Reduced Graph
+    //
+    //  0 - 1 - 2 - 6
+    //      | _ |
+    //
+    int ed0_1count = 0;
+    int ed1_2count = 0;
+    int ed2_6count = 0;
+
+    Edge ed0_1(0,1);
+    Edge ed1_2(1,2);
+    Edge ed2_6(2,6);
+
+    for(auto ed_temp : edges){
+      if(ed_temp==ed0_1) ++ed0_1count;
+      if(ed_temp==ed1_2) ++ed1_2count;
+      if(ed_temp==ed2_6) ++ed2_6count;
+      
+    }
+
+    BOOST_CHECK_EQUAL(ed0_1count,1);
+    BOOST_CHECK_EQUAL(ed1_2count,2);
+    BOOST_CHECK_EQUAL(ed2_6count,1);
+
+  }
+
 }
 
 BOOST_AUTO_TEST_CASE(get_vertices_test) {
@@ -525,6 +612,56 @@ BOOST_AUTO_TEST_CASE(expandedge_test){
     // ONe of the two options above should have been triggered 
     BOOST_CHECK(false);
   }
+
+}
+
+BOOST_AUTO_TEST_CASE(getdegree_test){
+
+  //             9
+  //             |
+  // 0 - 1 - 2 - 3 -4 -5
+  //     |       |
+  //     6 - 7 - 8  
+  //
+  ReducedEdge ed0(vector<int>{0, 1});
+  ReducedEdge ed1(vector<int>{1, 2, 3});
+  ReducedEdge ed2(vector<int>{3, 4, 5});
+  ReducedEdge ed3(vector<int>{1, 6, 7, 8, 3});
+  ReducedEdge ed4(3,9);
+
+  vector<ReducedEdge> vec_ed{ ed0, ed1, ed2, ed3, ed4};
+
+  ReducedGraph g(vec_ed);
+
+  BOOST_CHECK_EQUAL(g.getMaxDegree(),4);
+
+  BOOST_CHECK_EQUAL(g.getDegree(0),1);
+  BOOST_CHECK_EQUAL(g.getDegree(1),3);
+  BOOST_CHECK_EQUAL(g.getDegree(3),4);
+  BOOST_CHECK_EQUAL(g.getDegree(5),1);
+  BOOST_CHECK_EQUAL(g.getDegree(9),1);
+
+  int degree = 0;
+  auto vertices_w_degree = g.getVerticesDegree(degree);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(),0);
+
+  degree = 1;
+  vertices_w_degree = g.getVerticesDegree(degree);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(),3);
+
+  degree = 2;
+  vertices_w_degree = g.getVerticesDegree(degree);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(),0);
+
+  degree = 3;
+  vertices_w_degree = g.getVerticesDegree(degree);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(),1);
+
+  degree = 4;
+  vertices_w_degree = g.getVerticesDegree(degree);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(),1);
+
+
 
 }
 

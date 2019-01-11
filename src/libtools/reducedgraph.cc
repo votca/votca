@@ -142,18 +142,6 @@ vector<vector<Edge>> ReducedGraph::expandEdge(Edge ed){
   return all_edges;
 }
 
-int ReducedGraph::getMaxDegree(){
-  return edge_container_full_.getMaxDegree();
-}
-
-int ReducedGraph::getDegree(int vertex){
-  return edge_container_full_.getDegree(vertex);
-}
-
-vector<int> ReducedGraph::getVerticesDegree(int degree){
-  return edge_container_full_.getVerticesDegree(degree);
-}
-
 vector<pair<int,GraphNode>> ReducedGraph::getNodes(){
   auto vertices = edge_container_.getVertices();
   vector<pair<int,GraphNode>> nodes;

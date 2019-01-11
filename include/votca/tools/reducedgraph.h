@@ -45,7 +45,9 @@ namespace tools {
  *             8
  *
  * Notice that the vertices 5, 6 and 7 have been removed, there also exist two
- * edges connecting 2 to 3. 
+ * edges connecting 2 to 3. The reduced graph still contains all the information
+ * associated with the full graph but when used with graph algorithms only the
+ * vertices and nodes associated with the reduced graph are used.  
  *
  **/
 class ReducedGraph : public Graph {
@@ -71,13 +73,31 @@ class ReducedGraph : public Graph {
 
   ReducedGraph& operator=(ReducedGraph&& reduced_graph);
 
+  /**
+   * \brief Allows one to return all edges connecting two vertices of the reduced
+   * graph.
+   *
+   * In this case if edge (2,3) were passed in:
+   *
+   * 1 - 2 - 3 - 4 - 5 - 9
+   *     |   |   |
+   *     6 - 7   8
+   *
+   * Reduced Graph
+   *
+   * 1 - 2 - 3 - 4 - 9
+   *     | _ |   |
+   *             8
+   *
+   * The following vectors would be returned
+   * 
+   * vec_edges = expandEdge(Edge(2,3));
+   * vec_edges.at(0); // 2-3
+   * vec_edges.at(1); // 2-6, 6-7, 7-3
+   **/
   std::vector<std::vector<Edge>> expandEdge(Edge ed);
 
   std::vector<std::pair<int, GraphNode>> getNodes(void);
-
-  int getMaxDegree();
-  std::vector<int> getVerticesDegree(int degree);
-  int getDegree(int vertex);
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph g);
 };
