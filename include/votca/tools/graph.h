@@ -60,7 +60,7 @@ class Graph {
 
  public:
   Graph() : id_(""){};
-  ~Graph(){};
+  virtual ~Graph(){};
 
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
@@ -81,10 +81,10 @@ class Graph {
   bool operator==(const Graph& g) const;
 
   /// Copy Assignment
-  Graph& operator=(const Graph& g);
+  virtual Graph& operator=(const Graph& g);
 
   /// Move Assignment
-  Graph& operator=(Graph&& g);
+  virtual Graph& operator=(Graph&& g);
 
   /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.
@@ -109,7 +109,7 @@ class Graph {
   GraphNode getNode(int vert);
 
   /// Return all the vertices and their graph nodes that are within the graph
-  std::vector<std::pair<int, GraphNode>> getNodes(void);
+  virtual std::vector<std::pair<int, GraphNode>> getNodes(void);
 
   std::string getId() { return id_; }
 
@@ -118,9 +118,9 @@ class Graph {
   std::vector<Edge> getNeighEdges(int vertex) { return edge_container_.getNeighEdges(vertex);}
 
   std::vector<int> getVertices() { return edge_container_.getVertices();}
-  int getMaxDegree() { return edge_container_.getMaxDegree();}
-  int getDegree(int vertex) { return edge_container_.getDegree(vertex); }
-  std::vector<int> getVerticesDegree(int degree) { return edge_container_.getVerticesDegree(degree); }
+  virtual int getMaxDegree() { return edge_container_.getMaxDegree();}
+  virtual int getDegree(int vertex) { return edge_container_.getDegree(vertex); }
+  virtual std::vector<int> getVerticesDegree(int degree) { return edge_container_.getVerticesDegree(degree); }
 
   bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex);}
   friend std::ostream& operator<<(std::ostream& os, const Graph g);

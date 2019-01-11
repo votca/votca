@@ -1,4 +1,5 @@
 /*
+ *            E
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -50,8 +51,12 @@ namespace tools {
 class ReducedGraph : public Graph {
  private:
 
+   EdgeContainer edge_container_full_;
    std::unordered_map<Edge,std::vector<std::vector<int>>> expanded_edges_;  
-   std::unordered_map<int,GraphNode> hidden_nodes_;
+
+    void initEdgeContainerFull_(std::vector<ReducedEdge> reduced_edges);
+
+    void init_(std::vector<ReducedEdge> reduced_edges, std::unordered_map<int,GraphNode> nodes);
 
  public:
   ReducedGraph(){};
@@ -68,6 +73,10 @@ class ReducedGraph : public Graph {
 
   std::vector<std::vector<Edge>> expandEdge(Edge ed);
 
+  std::vector<std::pair<int, GraphNode>> getNodes(void);
+
+  int getMaxDegree();
+  std::vector<int> getVerticesDegree(int degree);
   int getDegree(int vertex);
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph g);

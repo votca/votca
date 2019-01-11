@@ -236,6 +236,31 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   for( auto found : vertices_found){
     BOOST_CHECK(found);
   }
+
+  // Lets add a redundant edge, this should not change the output of the
+  // getVertices method
+  //
+  // 0 - 1 - 2 - 3
+  //     | _ |
+  //         4
+  
+  vec_ed.push_back(ed);
+  ReducedGraph g2(vec_ed, m_gn);
+  vertices = g2.getVertices();
+  BOOST_CHECK_EQUAL(vertices.size(),4);
+  vector<bool> vertices_found2(4,false);
+  for( auto vertex : vertices){
+    if(vertex==0) vertices_found2.at(0)=true;
+    if(vertex==2) vertices_found2.at(1)=true;
+    if(vertex==3) vertices_found2.at(2)=true;
+    if(vertex==4) vertices_found2.at(3)=true;
+  }
+
+  for( auto found : vertices_found2){
+    BOOST_CHECK(found);
+  }
+
+
 }
 
 BOOST_AUTO_TEST_CASE(compare_test) {

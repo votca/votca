@@ -47,131 +47,80 @@ bool compareChainWithChains_(vector<int> chain, vector<vector<int>> chains){
 
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges){
-  std::vector<Edge> edges;
-  std::set<int> all_vertices;
-  for(auto reduced_edge : reduced_edges){
-    Edge ed(reduced_edge.getEndPoint1(),reduced_edge.getEndPoint2());
-    auto temp_chain = reduced_edge.getChain();
-    bool match = false;
-    // Cycle the chains
-    if(expanded_edges_.count(ed)){
-      auto chains = expanded_edges_[ed];
-      match = compareChainWithChains_(temp_chain, chains);
-    }
-     
-    if(!match){
-      if(ed.loop()==false){
-        // Do not add the edge to the reduced graph if it is a loop
-        edges.push_back(ed);
-      }
-      copy(temp_chain.begin(),temp_chain.end(),inserter(all_vertices,all_vertices.end()));
-      expanded_edges_[ed].push_back(temp_chain);
-    }
-  }
-  edge_container_ = EdgeContainer(edges);
+  initEdgeContainerFull_(reduced_edges);
 
-  int unallowed_degree = 2;
-  auto vertices_degree2 = edge_container_.getVerticesDegree(unallowed_degree);
-  if(vertices_degree2.size()!=0){
-    throw invalid_argument("You cannot create a reducedGraph by passing in "
-        "reduced edges of degree 2 they can only contain verties of degree 1 "
-        "0 or 3 or greater."); 
-  }
-  auto vertices = edge_container_.getVertices();
-  for(auto vertex : vertices ){
+  auto vertices = edge_container_full_.getVertices();
+  unordered_map<int,GraphNode> nodes;
+  for( auto vertex : vertices  ){
     GraphNode gn;
-    nodes_[vertex] = gn;  
+    nodes[vertex] = gn;  
   }
-  for(auto vertex : all_vertices){
-    if(nodes_.count(vertex)==0){
-      GraphNode gn;
-      hidden_nodes_[vertex] = gn;
-    }
-  }
-  calcId_();
+  init_(reduced_edges,nodes);
 }
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges, unordered_map<int,GraphNode> nodes){
-  std::vector<Edge> edges;
+  initEdgeContainerFull_(reduced_edges); 
+  auto vertices = edge_container_full_.getVertices();
+  if(nodes.size()<vertices.size()){
+    throw invalid_argument("The number of nodes passed into a reduced graph "
+        "must be greater or equivalent to the number of vertices");
+  }
+  for(auto vertex : vertices){
+    if(nodes.count(vertex)==0){
+      throw invalid_argument("A vertex is missing its corresponding node.");
+    }
+  }
+  init_(reduced_edges,nodes);
+}
 
-  std::set<int> all_vertices;
+void ReducedGraph::initEdgeContainerFull_(std::vector<ReducedEdge> reduced_edges){
+  vector<Edge> all_edges;
+  for(auto reduced_edge : reduced_edges){
+    auto temp_edges = reduced_edge.expand();
+    all_edges.insert(all_edges.begin(),temp_edges.begin(),temp_edges.end());
+  }
+  edge_container_full_ = EdgeContainer(all_edges);
+}
 
+void ReducedGraph::init_(std::vector<ReducedEdge> reduced_edges, unordered_map<int,GraphNode> nodes){
+  vector<Edge> edges;
+  nodes_ = nodes;
   for(auto reduced_edge : reduced_edges){
     Edge ed(reduced_edge.getEndPoint1(),reduced_edge.getEndPoint2());
-    auto temp_chain = reduced_edge.getChain();
-    bool match = false;
-    // Cycle the chains
+    edges.push_back(ed);
     if(expanded_edges_.count(ed)){
-      auto chains = expanded_edges_[ed];
-      match = compareChainWithChains_(temp_chain, chains);
-    }
-     
-    if(!match){
-      if(ed.loop()==false){
-        // Do not add the edge to the reduced graph if it is a loop
-        edges.push_back(ed);
+      bool match = compareChainWithChains_(reduced_edge.getChain(),expanded_edges_[ed]);
+      if(!match){
+        expanded_edges_[ed].push_back(reduced_edge.getChain());
       }
-      copy(temp_chain.begin(),temp_chain.end(),inserter(all_vertices,all_vertices.end()));
-      expanded_edges_[ed].push_back(temp_chain);
+    }else{
+      expanded_edges_[ed].push_back(reduced_edge.getChain());
     }
   }
   edge_container_ = EdgeContainer(edges);
-  int unallowed_degree = 2;
-  auto vertices_degree2 = edge_container_.getVerticesDegree(unallowed_degree);
-  if(vertices_degree2.size()!=0){
-    throw invalid_argument("You cannot create a reducedGraph by passing in "
-        "reduced edges of degree 2 they can only contain verties of degree 1 "
-        "0 or 3 or greater."); 
-  }
-
-  auto vertices = edge_container_.getVertices();
-  for(auto vertex : vertices ){
-    if(nodes.count(vertex)==0){
-      throw invalid_argument("You are missing nodes, you cannot initialize "
-          "the reducedgraph without all the nodes");
-    }
-    nodes_[vertex] = nodes[vertex];  
-  }
-  for(auto vertex : all_vertices){
-    if(nodes_.count(vertex)==0){
-      if(nodes.count(vertex)==0){
-        throw invalid_argument("You are missing nodes, you cannot initialize "
-            "the reducedgraph without all the nodes, even the hidden ones.");
-      }
-      hidden_nodes_[vertex] = nodes[vertex];
-    }
-  }
-
-  for(auto pr : nodes){
-    if(nodes_.count(pr.first)==0 && hidden_nodes_.count(pr.first)==0){
-      nodes_[pr.first] = pr.second;
-    }
-  }
-
   calcId_();
 }
 
 ReducedGraph::ReducedGraph(const ReducedGraph& g) {
   this->edge_container_ = g.edge_container_;
+  this->edge_container_full_ = g.edge_container_full_;
   this->expanded_edges_ = g.expanded_edges_;
-  for(auto pr : g.nodes_ ){
-    this->nodes_[pr.first] = pr.second;
-  }
+  this->nodes_ = g.nodes_;
   this->id_ = g.id_;
 }
 
 ReducedGraph& ReducedGraph::operator=(const ReducedGraph& g) {
   this->expanded_edges_ = g.expanded_edges_;
-  this->edge_container_ = g.edge_container_;
-  for( auto pr : g.nodes_ ){
-    this->nodes_[pr.first] = pr.second;
-  }
+  this->edge_container_full_ = g.edge_container_full_;
+  this->expanded_edges_ = g.expanded_edges_;
+  this->nodes_ = g.nodes_;
   this->id_ = g.id_;
   return *this;
 }
 
 ReducedGraph& ReducedGraph::operator=(ReducedGraph&& g) {
   this->expanded_edges_ = move(g.expanded_edges_);
+  this->edge_container_full_ = move(g.edge_container_full_);
   this->edge_container_ = move(g.edge_container_);
   this->nodes_ = move(g.nodes_);
   this->id_ = move(g.id_);
@@ -193,13 +142,26 @@ vector<vector<Edge>> ReducedGraph::expandEdge(Edge ed){
   return all_edges;
 }
 
+int ReducedGraph::getMaxDegree(){
+  return edge_container_full_.getMaxDegree();
+}
+
 int ReducedGraph::getDegree(int vertex){
-  auto neigh_edges = edge_container_.getNeighEdges(vertex);
-  int degree = 0;
-  for(auto ed : neigh_edges){
-    degree+=static_cast<int>(expanded_edges_[ed].size());
+  return edge_container_full_.getDegree(vertex);
+}
+
+vector<int> ReducedGraph::getVerticesDegree(int degree){
+  return edge_container_full_.getVerticesDegree(degree);
+}
+
+vector<pair<int,GraphNode>> ReducedGraph::getNodes(){
+  auto vertices = edge_container_.getVertices();
+  vector<pair<int,GraphNode>> nodes;
+  for(auto vertex : vertices ){
+    pair<int,GraphNode> pr(vertex, nodes_[vertex]);
+    nodes.push_back(pr);
   }
-  return degree;
+  return nodes;
 }
 
 ostream& operator<<(ostream& os, const ReducedGraph g){

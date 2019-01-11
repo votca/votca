@@ -51,6 +51,15 @@ ReducedEdge::ReducedEdge(vector<int> vertices) {
   }
 }
 
+vector<Edge> ReducedEdge::expand() const {
+  vector<Edge> edges;
+  for(size_t index = 0; index<(vertices_.size()-1);++index){
+    Edge ed(vertices_.at(index),vertices_.at(index+1));
+    edges.push_back(ed);
+  }
+  return edges;
+}
+
 bool ReducedEdge::operator==(const ReducedEdge ed) const {
   if(ed.vertices_.size()!=vertices_.size()) return false;
   cout << "Size " << ed.vertices_.size() << endl;
