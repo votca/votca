@@ -420,6 +420,87 @@ BOOST_AUTO_TEST_CASE(expandedge_test){
 
   ReducedGraph g(vec_ed);
 
+  vector<vector<Edge>> edges = g.expandEdge(Edge(0,1));
+  BOOST_CHECK_EQUAL(edges.size(),1);
+  BOOST_CHECK_EQUAL(edges.at(0).size(),1);
+
+  edges = g.expandEdge(Edge(1,3));
+  BOOST_CHECK_EQUAL(edges.size(),2); // Two separate chains 
+
+  if(edges.at(0).size() == 2){
+    bool found_ed1_2 = false;
+    bool found_ed2_3 = false;
+
+    Edge ed1_2(1,2);
+    Edge ed2_3(2,3);
+    for(auto e1 : edges.at(0)){
+      if(e1 == ed1_2) found_ed1_2 = true;
+      if(e1 == ed2_3) found_ed2_3 = true;
+    }
+    BOOST_CHECK(found_ed1_2);
+    BOOST_CHECK(found_ed2_3);
+
+    Edge ed1_6(1,6);
+    Edge ed6_7(6,7);
+    Edge ed7_8(7,8);
+    Edge ed8_3(3,8);
+
+    bool found_ed1_6 = false;
+    bool found_ed6_7 = false;
+    bool found_ed7_8 = false;
+    bool found_ed8_3 = false;
+
+    for(auto e1 : edges.at(1) ){
+      if(e1 == ed1_6) found_ed1_6 = true;
+      if(e1 == ed6_7) found_ed6_7 = true;
+      if(e1 == ed7_8) found_ed7_8 = true;
+      if(e1 == ed8_3) found_ed8_3 = true;
+    } 
+    BOOST_CHECK(found_ed1_6);
+    BOOST_CHECK(found_ed6_7);
+    BOOST_CHECK(found_ed7_8);
+    BOOST_CHECK(found_ed8_3);
+
+  }else if(edges.at(0).size() == 4){
+    bool found_ed1_2 = false;
+    bool found_ed2_3 = false;
+
+    Edge ed1_2(1,2);
+    Edge ed2_3(2,3);
+    for(auto e1 : edges.at(1)){
+      if(e1 == ed1_2) found_ed1_2 = true;
+      if(e1 == ed2_3) found_ed2_3 = true;
+    }
+    BOOST_CHECK(found_ed1_2);
+    BOOST_CHECK(found_ed2_3);
+
+    Edge ed1_6(1,6);
+    Edge ed6_7(6,7);
+    Edge ed7_8(7,8);
+    Edge ed8_3(3,8);
+
+    bool found_ed1_6 = false;
+    bool found_ed6_7 = false;
+    bool found_ed7_8 = false;
+    bool found_ed8_3 = false;
+
+    for(auto e1 : edges.at(0) ){
+      if(e1 == ed1_6) found_ed1_6 = true;
+      if(e1 == ed6_7) found_ed6_7 = true;
+      if(e1 == ed7_8) found_ed7_8 = true;
+      if(e1 == ed8_3) found_ed8_3 = true;
+    } 
+    BOOST_CHECK(found_ed1_6);
+    BOOST_CHECK(found_ed6_7);
+    BOOST_CHECK(found_ed7_8);
+    BOOST_CHECK(found_ed8_3);
+
+
+  }else{
+    // ONe of the two options above should have been triggered 
+    BOOST_CHECK(false);
+  }
+
 }
 
 /**
