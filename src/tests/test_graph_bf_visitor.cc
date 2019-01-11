@@ -127,22 +127,45 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   gb_v.initialize(g);
   BOOST_CHECK_EQUAL(gb_v.queEmpty(), false);
   // No exception should be thrown at this point
+  
+  // First two edges found should be ed and ed2
+  vector<Edge> temp;
   Edge ed5 = gb_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed, ed5);
+  temp.push_back(ed5);
   gb_v.exec(g, ed5);
-
   ed5 = gb_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed2, ed5);
-  gb_v.exec(g, ed5);
+  temp.push_back(ed5);
 
+  bool found_ed = false;
+  bool found_ed2 = false;
+  for(auto temp_ed : temp){
+    if(temp_ed == ed) found_ed = true;
+    if(temp_ed == ed2) found_ed2 = true;
+  }
+  BOOST_CHECK(found_ed);
+  BOOST_CHECK(found_ed2);
+
+  // Next two edges are ed1 and ed3 they are equal distance apart from the 
+  // starting vertex so the order does not matter.
+  temp.clear();
+
+  gb_v.exec(g, ed5);
   ed5 = gb_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed1, ed5);
+  temp.push_back(ed5);
   gb_v.exec(g, ed5);
-
   ed5 = gb_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed3, ed5);
-  gb_v.exec(g, ed5);
+  temp.push_back(ed5);
+ 
+  bool found_ed1 = false;
+  bool found_ed3 = false;
+  for(auto temp_ed : temp){
+    if(temp_ed == ed1) found_ed1 = true;
+    if(temp_ed == ed3) found_ed3 = true;
+  }
+  BOOST_CHECK(found_ed1);
+  BOOST_CHECK(found_ed3);
 
+  gb_v.exec(g, ed5);
   BOOST_CHECK(gb_v.queEmpty());
 
   // Show which vertices have been explored

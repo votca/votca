@@ -125,9 +125,24 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   gdv.initialize(g);
   BOOST_CHECK_EQUAL(gdv.queEmpty(), false);
   // No exception should be thrown at this point
+
+  // First two edges that should be explored are edges ed and ed6
+  vector<Edge> temp;
   Edge ed7 = gdv.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed, ed7);
+  temp.push_back(ed7);
   gdv.exec(g, ed7);
+  ed7 = gdv.nextEdge(g);
+  gdv.exec(g, ed7);
+  temp.push_back(ed7);
+
+  bool found_ed = false;
+  bool found_ed6 = false;
+  for(auto ed_temp : temp){
+    if(ed_temp==ed) found_ed = true;
+    if(ed_temp==ed6) found_ed6 = true;
+  }
+  BOOST_CHECK(found_ed);
+  BOOST_CHECK(found_ed6);
 
   // Explore the whole graph
   while (!gdv.queEmpty()) {

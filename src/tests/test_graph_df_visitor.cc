@@ -127,22 +127,43 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   // Default starts with node index 0
   gd_v.initialize(g);
   BOOST_CHECK_EQUAL(gd_v.queEmpty(), false);
+
   // No exception should be thrown at this point
+  // The visitor can progress down either branch it does not matter which one
+  // it just matters that it completely explores the chosen branch before 
+  // exploring the next branch
   Edge ed5 = gd_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed2, ed5);
   gd_v.exec(g, ed5);
 
-  ed5 = gd_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed3, ed5);
-  gd_v.exec(g, ed5);
+  if(ed5==ed2){
+    ed5 = gd_v.nextEdge(g);
+    BOOST_CHECK_EQUAL(ed3, ed5);
+    gd_v.exec(g, ed5);
 
-  ed5 = gd_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed0, ed5);
-  gd_v.exec(g, ed5);
+    ed5 = gd_v.nextEdge(g);
+    BOOST_CHECK_EQUAL(ed0, ed5);
+    gd_v.exec(g, ed5);
 
-  ed5 = gd_v.nextEdge(g);
-  BOOST_CHECK_EQUAL(ed1, ed5);
-  gd_v.exec(g, ed5);
+    ed5 = gd_v.nextEdge(g);
+    BOOST_CHECK_EQUAL(ed1, ed5);
+    gd_v.exec(g, ed5);
+  }else if(ed5==ed0){
+    ed5 = gd_v.nextEdge(g);
+    BOOST_CHECK_EQUAL(ed1, ed5);
+    gd_v.exec(g, ed5);
+
+    ed5 = gd_v.nextEdge(g);
+    BOOST_CHECK_EQUAL(ed2, ed5);
+    gd_v.exec(g, ed5);
+
+    ed5 = gd_v.nextEdge(g);
+    BOOST_CHECK_EQUAL(ed3, ed5);
+    gd_v.exec(g, ed5);
+
+  }else{
+    // one of the staring edges should eithe be ed0 or ed2
+    BOOST_CHECK(false);
+  }
 
   BOOST_CHECK(gd_v.queEmpty());
 
