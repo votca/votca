@@ -27,7 +27,7 @@
 #include <votca/tools/reducedgraph.h>
 
 /**
- * \brief This file is a compilation of graph related algorithms
+ * \brief This file is a compilation of graph related algorithms.
  *
  * These algorithms require the interplay of the graph and graph visitor
  * classes and thus cannot be made methods of either. In most cases a graph
@@ -41,7 +41,7 @@ class GraphVisitor;
 
 /**
  * \brief Determine if every vertex is connected to every other one through some
- *        combination of edges
+ *        combination of edges.
  *
  * The purpose of this algorithm is to simply determine if the graph is one
  * large network or not. If it is it means every vertex is connected to every
@@ -53,11 +53,16 @@ class GraphVisitor;
  */
 bool singleNetwork(Graph g, GraphVisitor& gv);
 
+/**
+ * \brief Will take a graph and reduce it, by removing all vertices with degree
+ * of 2. 
+ *
+ **/
 ReducedGraph reduceGraph(Graph g);
 
 /**
  * \brief Break graph into smaller graph instances if the network is made up of
- *        isolated sub networks
+ *        isolated sub networks.
  *
  * This algorithm will determine if there are groups of vertices that are
  * connected, but where there are no connections shared between the groups.
@@ -70,7 +75,7 @@ ReducedGraph reduceGraph(Graph g);
 std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g);
 
 /**
- * \brief Explore a graph with a graph visitor
+ * \brief Explore a graph with a graph visitor.
  *
  * This function will simply explore a graph, any information gained from the
  * exploration will depend on the graph visitor used. Note that the Graph
@@ -83,7 +88,7 @@ std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g);
 void exploreGraph(Graph& g, GraphVisitor& gv);
 
 /**
- * \brief Find a unique identifier that describes graph structure
+ * \brief Find a unique identifier that describes graph structure.
  *
  * This algorithm is designed to explore the topology of the graph and return an
  * identifier in the form of the string that is unique to the topology. It does

@@ -30,7 +30,7 @@ namespace tools {
 bool Graph_DF_Visitor::queEmpty() { return edge_stack_.empty(); }
 
 Edge Graph_DF_Visitor::getEdge_(Graph g) {
-
+  cout << "Edge stack size " << edge_stack_.size() << endl;
   Edge ed = edge_stack_.top();
   edge_stack_.pop();
   return ed;
@@ -39,11 +39,13 @@ Edge Graph_DF_Visitor::getEdge_(Graph g) {
 // Add edges to be explored
 void Graph_DF_Visitor::addEdges_(Graph& g, int vertex) {
   auto eds = g.getNeighEdges(vertex);
+  cout << "Adding Edges " << endl;
   if(edge_stack_.empty()){
   // If first edges to be added
     for(auto ed : eds){
       int neigh_vert = ed.getOtherEndPoint(vertex);
       if(explored_.count(neigh_vert)==0){
+        cout << ed << endl;
         edge_stack_.push(ed);
       }
     }
@@ -51,6 +53,7 @@ void Graph_DF_Visitor::addEdges_(Graph& g, int vertex) {
     for(auto ed : eds){
       int neigh_vert = ed.getOtherEndPoint(vertex);
       if(explored_.count(neigh_vert)==0){
+        cout << ed << endl;
         edge_stack_.push(ed);
       }
     }

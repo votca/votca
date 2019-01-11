@@ -29,8 +29,26 @@ ReducedEdge::ReducedEdge(vector<int> vertices) {
   if(vertices.size()<2){
     throw invalid_argument("Edge vertices must consist of at least two vertices.");
   }
-  // Smallest value always placed at the front of the vectolr
+  // Smallest value always placed at the front of the vector
 
+  // If we have a loop will arange the edge so that the smallest valued vertex 
+  // sits at both ends
+  if(vertices.back()==vertices.front()){
+    int min_vertex = vertices.at(0);
+    size_t min_index =0;
+    for(size_t index=1;index<(vertices.size()-1);++index){
+      if(vertices.at(index)<min_vertex){
+        min_index = index;
+        min_vertex = vertices.at(index);
+      }
+    }
+    vector<int> temp_vertices;
+    for(size_t count=0;count<vertices.size();++count){
+      size_t index = (min_index+count) % (vertices.size()-1);
+      temp_vertices.push_back(vertices.at(index));
+    }
+    vertices = temp_vertices;
+  }
   bool reverse = false;
   size_t length = vertices.size();
   size_t max_index = length/2;
@@ -43,13 +61,19 @@ ReducedEdge::ReducedEdge(vector<int> vertices) {
       break;
     }
   }
+
   if(!reverse){
+
+
     vertices_=vertices;
   }else{
+
     for(auto it=vertices.rbegin();it!=vertices.rend();++it){
       vertices_.push_back(*it);
     }
   }
+
+
 }
 
 vector<Edge> ReducedEdge::expand() const {
@@ -68,7 +92,6 @@ bool ReducedEdge::vertexExistInChain(int vertex){
 
 bool ReducedEdge::operator==(const ReducedEdge ed) const {
   if(ed.vertices_.size()!=vertices_.size()) return false;
-  cout << "Size " << ed.vertices_.size() << endl;
   for(auto index=0;index<vertices_.size();++index){
     if(vertices_.at(index)!=ed.vertices_.at(index)) return false;
   }

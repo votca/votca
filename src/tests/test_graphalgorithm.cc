@@ -147,7 +147,99 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     GraphNode gn6;
     GraphNode gn7;
 
+    unordered_map<int, GraphNode> nodes;
+    nodes[0] = gn1;
+    nodes[1] = gn2;
+    nodes[2] = gn3;
+    nodes[3] = gn4;
+    nodes[4] = gn5;
+    nodes[5] = gn6;
+    nodes[6] = gn7;
+
+    Graph g(edges,nodes);
+    ReducedGraph reduced_g = reduceGraph(g);
+
+    auto edges2 = reduced_g.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),5);
+    vector<bool> found_edges(5,false);
+    for(auto edge : edges2 ){
+      if(edge==ed1) found_edges.at(0) = true;
+      if(edge==ed2) found_edges.at(1) = true;
+      if(edge==ed3) found_edges.at(2) = true;
+      if(edge==ed4) found_edges.at(3) = true;
+      if(edge==ed5) found_edges.at(4) = true;
+    }
+
+    for(auto found : found_edges){
+      BOOST_CHECK(found);
+    }
   }
+
+  {
+    // Create edge
+    //     2
+    //     |
+    // 0 - 1 - 3 - 9
+    //     |       |
+    //     4 - 5 - 6 -  7 - 8
+
+    Edge ed1(0, 1);
+    Edge ed2(1, 2);
+    Edge ed3(1, 3);
+    Edge ed4(1, 4);
+    Edge ed5(4, 5);
+    Edge ed6(5, 6);
+    Edge ed7(6, 7);
+    Edge ed8(7, 8);
+    Edge ed9(6, 9);
+    Edge ed10(3, 9);
+
+    //
+    // 10 - 11 - 12 
+    //
+    // 13
+    //
+    // 14 - 15 
+    // |    |
+    // 16 - 17
+    //
+    Edge ed11(10, 11);
+    Edge ed12(11, 12);
+
+    Edge ed13(14,15);
+    Edge ed14(15,16);
+    Edge ed15(15,17);
+    Edge ed16(14,16);
+
+    vector<Edge> edges{ ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10,
+      ed11, ed12, ed13, ed14, ed15, ed16};
+
+    // Create Graph nodes
+    unordered_map<int, GraphNode> nodes;
+    for(int index = 0; index<18;++index){
+      GraphNode gn;
+      nodes[index] = gn;
+    }
+
+    Graph g(edges,nodes);
+    ReducedGraph reduced_g = reduceGraph(g);
+
+    auto edges2 = reduced_g.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),5);
+    vector<bool> found_edges(5,false);
+    for(auto edge : edges2 ){
+      if(edge==ed1) found_edges.at(0) = true;
+      if(edge==ed2) found_edges.at(1) = true;
+      if(edge==ed3) found_edges.at(2) = true;
+      if(edge==ed4) found_edges.at(3) = true;
+      if(edge==ed5) found_edges.at(4) = true;
+    }
+
+    for(auto found : found_edges){
+      BOOST_CHECK(found);
+    }
+  }
+
 }
 
 BOOST_AUTO_TEST_CASE(structureid_test) {

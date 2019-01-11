@@ -55,64 +55,135 @@ bool singleNetwork(Graph g, GraphVisitor& gv) {
          g.getIsolatedNodes().size() == 0;
 }
 
+/**
+ * \brief This class is to help keep track of which vertices have and have not
+ * been explored.
+ *
+ **/
+class ExplorationRecord{
+  private:
+    unordered_map<int,std::pair<bool,int>> vertex_explored_;
+    size_t unexplored_vertex_count_;
+  public:
+    
+    ExplorationRecord(unordered_map<int,std::pair<bool,int>> vertex_explored) : 
+      vertex_explored_(vertex_explored), 
+      unexplored_vertex_count_(vertex_explored.size()) {};
+
+    void explore(int vertex) { 
+      vertex_explored_[vertex].first = true;
+      cout << "Exploring " << vertex << endl;
+      --unexplored_vertex_count_;
+      cout << "unexplored count " << unexplored_vertex_count_ << endl;
+    }
+
+    bool unexploredVerticesExist() { 
+      cout << unexplored_vertex_count_ << endl;
+      return unexplored_vertex_count_>0; }
+
+    int getUnexploredVertex(){
+       
+      vector<int> remaining_unexplored;
+      for( auto vertex_record : vertex_explored_){
+        bool vertex_explored = vertex_record.second.first;
+        if(!vertex_explored){
+          int degree = vertex_record.second.second;
+          if(degree>2){
+            return vertex_record.first;
+          }
+          remaining_unexplored.push_back(vertex_record.first);
+        }
+      }
+
+      // Search tips next
+      for(auto vertex : remaining_unexplored){
+        if(vertex_explored_[vertex].second==1){
+          return vertex;
+        }
+      }
+
+      // Finally if there are no tips or junctions left we will return a vertex
+      // of degree 2 if one exists
+      for(auto vertex : remaining_unexplored){
+        if(!vertex_explored_[vertex].first) return vertex;
+      }
+
+      throw runtime_error("You cannot get an unexplored vertex as they have all"
+          " been explored.");
+    }
+
+};
+
 ReducedGraph reduceGraph(Graph g){
 
-  auto tips = g.getVerticesDegree(1);
-  auto junctions = g.getJunctions();
+  unordered_map<int,pair<bool,int>> unexplored_vertices;
   auto vertices = g.getVertices();
-  int starting_vertex;
-  if(junctions.size()>0){
-    starting_vertex = junctions.at(0);
-  }else if(tips.size()>0){
-    starting_vertex = tips.at(0);
-  }else{
-    starting_vertex = vertices.at(0);
+  for(auto vertex : vertices ){
+    unexplored_vertices[vertex]=pair<bool,int>(false,g.getDegree(vertex));
   }
+
+  ExplorationRecord exploration_record(unexplored_vertices);
 
   vector<vector<int>> chains;
   
-  Graph_DF_Visitor gv;
-  gv.setStartingVertex(starting_vertex);
-  gv.initialize(g);
+  while(exploration_record.unexploredVerticesExist()){
+    cout << "Still in while loop " << endl;  
+    Graph_DF_Visitor gv;
+    int starting_vertex = exploration_record.getUnexploredVertex();
+    exploration_record.explore(starting_vertex);
+    gv.setStartingVertex(starting_vertex);
+    gv.initialize(g);
 
-  vector<int> chain{starting_vertex};
-  int old_vertex = starting_vertex;
-  bool new_chain = false;
-  while (!gv.queEmpty()) {
-    auto ed = gv.nextEdge(g);
+    vector<int> chain{starting_vertex};
+    int old_vertex = starting_vertex;
+    bool new_chain = false;
+    while (!gv.queEmpty()) {
+      auto ed = gv.nextEdge(g);
+      
+      vector<int> unexplored_vertex = gv.getUnexploredVertex(ed);
 
-    auto unexplored_vertex = gv.getUnexploredVertex(ed);
-    if(new_chain){
-      if(unexplored_vertex.size()==0){
-        old_vertex = ed.getEndPoint1();       
-        chain.push_back(old_vertex);
-        new_chain = false;
-      }else{
-        old_vertex = ed.getOtherEndPoint(unexplored_vertex.at(0));
-        chain.push_back(old_vertex);
-        new_chain = false;
+      if(new_chain){
+        if(unexplored_vertex.size()==0){
+          old_vertex = ed.getEndPoint1();       
+          chain.push_back(old_vertex);
+          new_chain = false;
+        }else{
+          old_vertex = ed.getOtherEndPoint(unexplored_vertex.at(0));
+          chain.push_back(old_vertex);
+          new_chain = false;
+        }
       }
-    }
-    int new_vertex = ed.getOtherEndPoint(old_vertex);
+      int new_vertex = ed.getOtherEndPoint(old_vertex);
 
-    if(unexplored_vertex.size()==0){
-      chain.push_back(new_vertex);
-      chains.push_back(chain);    
-      chain.clear();
-      new_chain = true; 
-    }else if(g.getDegree(new_vertex)==1){
-      chain.push_back(new_vertex);
-      chains.push_back(chain);
-      chain.clear();
-      new_chain = true; 
-    }else if(unexplored_vertex.size()==1){
-      chain.push_back(new_vertex); 
-      old_vertex = new_vertex;
-    }
+      if(unexplored_vertex.size()==0){
+        chain.push_back(new_vertex);
+        chains.push_back(chain);    
+        chain.clear();
+        new_chain = true; 
+      }else if(g.getDegree(new_vertex)==1){
+        chain.push_back(new_vertex);
+        chains.push_back(chain);
+        chain.clear();
+        exploration_record.explore(new_vertex);
+        new_chain = true; 
+      }else if(unexplored_vertex.size()==1){
+        chain.push_back(new_vertex); 
+        old_vertex = new_vertex;
+        exploration_record.explore(new_vertex);
+      }
 
-    gv.exec(g, ed);
+      gv.exec(g, ed);
+    }
+  }
+  vector<ReducedEdge> reduced_edges;
+  for(vector<int> chain : chains){
+    ReducedEdge reduced_ed(chain);
+    reduced_edges.push_back(reduced_ed);
   }
 
+  cout << "Number of reduced edges " << reduced_edges.size() << endl;
+  ReducedGraph reduced_g(reduced_edges);
+  return reduced_g;
 }
 
 vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g) {

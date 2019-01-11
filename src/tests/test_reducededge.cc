@@ -52,6 +52,13 @@ BOOST_AUTO_TEST_CASE(equivalence_test) {
   ReducedEdge ed6(vector<int>{2,6,3,1});
   ReducedEdge ed7(vector<int>{1,3,6,2});
   BOOST_CHECK_EQUAL(ed6,ed7);
+
+  // Both are loops they get rearranged internally so the smallest vertex 
+  // appears as EndPoint1 and EndPoint2
+  ReducedEdge ed8(vector<int>{1, 2, 4, 1});
+  ReducedEdge ed9(vector<int>{2, 4, 1, 2});
+  BOOST_CHECK_EQUAL(ed8,ed9); 
+
 }
 
 BOOST_AUTO_TEST_CASE(nequivalence_test) {
@@ -76,6 +83,12 @@ BOOST_AUTO_TEST_CASE(getter_test) {
   BOOST_CHECK_EQUAL(ed4.getEndPoint1(),1);
   BOOST_CHECK_EQUAL(ed4.getEndPoint2(),2);
 
+  ReducedEdge ed5(vector<int>{1, 2, 4, 1});
+  BOOST_CHECK_EQUAL(ed5.getEndPoint1(),1);
+  BOOST_CHECK_EQUAL(ed5.getEndPoint2(),1);
+  ReducedEdge ed6(vector<int>{2, 4, 1, 2});
+  BOOST_CHECK_EQUAL(ed6.getEndPoint1(),1);
+  BOOST_CHECK_EQUAL(ed6.getEndPoint2(),1);
 }
 
 BOOST_AUTO_TEST_CASE(getchain_test){
