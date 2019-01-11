@@ -68,8 +68,6 @@ class GW {
  private:
     int _qptotal;
 
-    RPA _rpa;
-
     Eigen::VectorXd _gwa_energies;
 
     Eigen::MatrixXd _Sigma_x;
@@ -82,6 +80,8 @@ class GW {
     TCMatrix_gwbse& _Mmn;
     const Eigen::MatrixXd& _vxc;
     const Eigen::VectorXd& _dft_energies;
+ 
+    RPA _rpa;
 
     Eigen::VectorXd CalculateExcitationFreq(Eigen::VectorXd frequencies);
     double CalcHomoLumoShift()const;
