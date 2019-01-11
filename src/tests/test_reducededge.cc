@@ -78,6 +78,27 @@ BOOST_AUTO_TEST_CASE(getter_test) {
 
 }
 
+BOOST_AUTO_TEST_CASE(getchain_test){
+  vector<int> vertices{ 4,1,6,7,0};
+  ReducedEdge ed(vertices);
+  auto chain = ed.getChain();
+  BOOST_CHECK_EQUAL(chain.at(0),0);
+  BOOST_CHECK_EQUAL(chain.at(1),7);
+  BOOST_CHECK_EQUAL(chain.at(2),6);
+  BOOST_CHECK_EQUAL(chain.at(3),1);
+  BOOST_CHECK_EQUAL(chain.at(4),4);
+}
+
+BOOST_AUTO_TEST_CASE(vertexwithinchain_test){
+  vector<int> vertices{1, 3, 4, 5};
+  ReducedEdge ed(vertices);
+  BOOST_CHECK(ed.vertexExistInChain(1));
+  BOOST_CHECK(ed.vertexExistInChain(2)==false);
+  BOOST_CHECK(ed.vertexExistInChain(3));
+  BOOST_CHECK(ed.vertexExistInChain(4));
+  BOOST_CHECK(ed.vertexExistInChain(5));
+}
+
 BOOST_AUTO_TEST_CASE(less_test) {
   ReducedEdge ed1(1, 2);
   ReducedEdge ed2(2, 1);

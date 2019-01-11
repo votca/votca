@@ -45,6 +45,8 @@ class ReducedEdge : public Edge{
 
   std::vector<int> getChain() const { return vertices_;}
 
+  bool vertexExistInChain(int vertex);
+
   std::vector<Edge> expand() const;
   /// Checks if Edges are equivalent
   bool operator==(const ReducedEdge ed) const;

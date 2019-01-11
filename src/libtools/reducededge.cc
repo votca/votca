@@ -17,6 +17,7 @@
  *
  */
 
+#include <algorithm>
 #include <votca/tools/reducededge.h>
 
 namespace votca {
@@ -58,6 +59,11 @@ vector<Edge> ReducedEdge::expand() const {
     edges.push_back(ed);
   }
   return edges;
+}
+
+bool ReducedEdge::vertexExistInChain(int vertex){
+  auto it = find(vertices_.begin(),vertices_.end(),vertex);
+  return it!=vertices_.end();
 }
 
 bool ReducedEdge::operator==(const ReducedEdge ed) const {
