@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(esp_charges){
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
   orbitals.setBasisSetSize(17);
-  orbitals.setNumberOfLevels(5,12);
+  orbitals.setNumberOfOccupiedLevels(5);
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
  Eigen::MatrixXd MOs=Eigen::MatrixXd::Zero(17,17);

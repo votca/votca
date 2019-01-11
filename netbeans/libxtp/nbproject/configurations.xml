@@ -131,7 +131,6 @@
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
-      <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
@@ -213,11 +212,13 @@
       </logicalFolder>
       <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/gw.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/ppm.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
-        <itemPath>../../src/libxtp/gwbse/sigma.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/sigma_base.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/sigma_ppm.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libxtp/gridbox.cc</itemPath>
@@ -280,6 +281,7 @@
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_gnode.cc</itemPath>
       <itemPath>../../src/tests/test_grid.cc</itemPath>
+      <itemPath>../../src/tests/test_gw.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
@@ -296,7 +298,7 @@
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
-      <itemPath>../../src/tests/test_sigma.cc</itemPath>
+      <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
       <itemPath>../../src/tests/test_statefilter.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
@@ -4141,8 +4143,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/sigma.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
             tool="3"
@@ -4545,6 +4545,8 @@
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbseengine.cc"
@@ -4556,7 +4558,15 @@
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/gwbse/sigma_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/sigma_ppm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4806,6 +4816,8 @@
       </item>
       <item path="../../src/tests/test_grid.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -4850,7 +4862,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
             ex="false"
@@ -5205,8 +5217,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/sigma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -5610,6 +5620,8 @@
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbseengine.cc"
@@ -5621,7 +5633,15 @@
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/gwbse/sigma_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/sigma_ppm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5871,6 +5891,8 @@
       </item>
       <item path="../../src/tests/test_grid.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -5915,7 +5937,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
             ex="false"

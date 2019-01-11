@@ -24,24 +24,21 @@
 
 #include <votca/xtp/eigen.h> 
 #include <vector>
-
+#include <memory>
 namespace votca { namespace xtp {
 
 
  
  class ADIIS{
 public:
-
-    ADIIS():success(true) {};
-   ~ADIIS() {};
-   
-    Eigen::VectorXd CalcCoeff(const std::vector< Eigen::MatrixXd* >& _dmathist,const std::vector< Eigen::MatrixXd* >& _mathist);
+  
+    Eigen::VectorXd CalcCoeff(const std::vector< std::unique_ptr<Eigen::MatrixXd> >& dmathist,const std::vector< std::unique_ptr<Eigen::MatrixXd> >& mathist);
     
    
-   bool Info(){return success;}
+    bool Info(){return success;}
  private:
      
-     bool success;
+     bool success=true;
   
  };
     

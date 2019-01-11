@@ -135,7 +135,7 @@ namespace votca {
 #endif
             XTP_LOG(logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
             BasisSet bs;
-            bs.LoadBasisSet(orbitals.getDFTbasis());
+            bs.LoadBasisSet(orbitals.getDFTbasisName());
             AOBasis basis;
             basis.AOBasisFill(bs, orbitals.QMAtoms());   
 
