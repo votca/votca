@@ -51,7 +51,7 @@ int EdgeContainer::getMaxDegree(void) const{
 int EdgeContainer::getDegree(const int vert) const{
   if(!adj_list_.count(vert)) throw invalid_argument("vertex is not defined");
   int degree_count=0;
-  for(auto neighbor_and_count : adj_list_[vert]){
+  for(auto neighbor_and_count : adj_list_.at(vert)){
     degree_count+=neighbor_and_count.second;
   }
   return degree_count;
