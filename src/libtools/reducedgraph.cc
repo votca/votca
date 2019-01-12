@@ -99,7 +99,6 @@ void ReducedGraph::init_(std::vector<ReducedEdge> reduced_edges, unordered_map<i
   edge_container_ = EdgeContainer(edges);
   
   auto edges_test = edge_container_.getEdges();
-  cout << "Size of edges " << edges_test.size() << endl;
   calcId_();
 }
 

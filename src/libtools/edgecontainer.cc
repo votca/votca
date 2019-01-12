@@ -76,6 +76,7 @@ bool EdgeContainer::edgeExist(Edge ed) {
 bool EdgeContainer::vertexExist(int vert) { return adj_list_.count(vert); }
 
 void EdgeContainer::addEdge(Edge ed) {
+
   int point1 = ed.getEndPoint1();
   int point2 = ed.getEndPoint2();
   if(adj_list_[point1].count(point2)){
@@ -83,10 +84,14 @@ void EdgeContainer::addEdge(Edge ed) {
   }else{
     adj_list_[point1][point2]=1;
   }
-  if(adj_list_[point2].count(point1)){
-    ++adj_list_[point2][point1];
-  }else{
-    adj_list_[point2][point1]=1;
+
+  // Do not add the same edge if the points are the same
+  if(point1!=point2){
+    if(adj_list_[point2].count(point1)){
+      ++adj_list_[point2][point1];
+    }else{
+      adj_list_[point2][point1]=1;
+    }
   }
   return;
 }

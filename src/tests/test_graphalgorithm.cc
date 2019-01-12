@@ -207,8 +207,8 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Edge ed12(11, 12);
 
     Edge ed13(14,15);
-    Edge ed14(15,16);
-    Edge ed15(15,17);
+    Edge ed14(15,17);
+    Edge ed15(16,17);
     Edge ed16(14,16);
 
     vector<Edge> edges{ ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10,
@@ -224,20 +224,71 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges,nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
-    auto edges2 = reduced_g.getEdges();
-    BOOST_CHECK_EQUAL(edges2.size(),5);
-    vector<bool> found_edges(5,false);
-    for(auto edge : edges2 ){
-      if(edge==ed1) found_edges.at(0) = true;
-      if(edge==ed2) found_edges.at(1) = true;
-      if(edge==ed3) found_edges.at(2) = true;
-      if(edge==ed4) found_edges.at(3) = true;
-      if(edge==ed5) found_edges.at(4) = true;
-    }
+    // Full Graph 
+    //
+    //     2
+    //     |
+    // 0 - 1 - 3 - 9
+    //     |       |
+    //     4 - 5 - 6 -  7 - 8
+    //
+    // 10 - 11 - 12 
+    //
+    // 13
+    //
+    // 14 - 15 
+    // |    |
+    // 16 - 17
+    //
+    // Reduced Graph
+    //
+    //     2
+    //     |
+    // 0 - 1 - 
+    //     |   |
+    //       - 6 - 8
+    //
+    // 10 - 12 
+    //
+    // 13
+    //
+    // 14 -  
+    // |  |
+    //  - 
+    //
+    Edge ed0_1(0,1);
+    Edge ed1_2(1,2);
+    Edge ed1_6(1,6);
+    Edge ed6_8(6,8);
+    Edge ed10_12(10,12);
+    Edge ed14_14(14,14);
 
-    for(auto found : found_edges){
-      BOOST_CHECK(found);
-    }
+    int edge_count0_1 = 0; 
+    int edge_count1_2 = 0; 
+    int edge_count1_6 = 0; 
+    int edge_count6_8 = 0; 
+    int edge_count10_12 = 0; 
+    int edge_count14_14 = 0; 
+
+    auto edges2 = reduced_g.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),7);
+
+    for(auto edge : edges2 ){
+      if(edge==ed0_1) ++edge_count0_1;
+      if(edge==ed1_2) ++edge_count1_2;
+      if(edge==ed1_6) ++edge_count1_6;
+      if(edge==ed6_8) ++edge_count6_8;
+      if(edge==ed10_12) ++edge_count10_12;
+      if(edge==ed14_14) ++edge_count14_14;
+    } 
+
+    BOOST_CHECK_EQUAL(edge_count0_1,1);
+    BOOST_CHECK_EQUAL(edge_count1_2,1);
+    BOOST_CHECK_EQUAL(edge_count1_6,2);
+    BOOST_CHECK_EQUAL(edge_count6_8,1);
+    BOOST_CHECK_EQUAL(edge_count10_12,1);
+    BOOST_CHECK_EQUAL(edge_count14_14,1);
+
   }
 
 }

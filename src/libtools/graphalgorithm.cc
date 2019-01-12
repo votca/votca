@@ -72,13 +72,10 @@ class ExplorationRecord{
 
     void explore(int vertex) { 
       vertex_explored_[vertex].first = true;
-      cout << "Exploring " << vertex << endl;
       --unexplored_vertex_count_;
-      cout << "unexplored count " << unexplored_vertex_count_ << endl;
     }
 
     bool unexploredVerticesExist() { 
-      cout << unexplored_vertex_count_ << endl;
       return unexplored_vertex_count_>0; }
 
     int getUnexploredVertex(){
@@ -127,7 +124,6 @@ ReducedGraph reduceGraph(Graph g){
   vector<vector<int>> chains;
   
   while(exploration_record.unexploredVerticesExist()){
-    cout << "Still in while loop " << endl;  
     Graph_DF_Visitor gv;
     int starting_vertex = exploration_record.getUnexploredVertex();
     exploration_record.explore(starting_vertex);
@@ -166,6 +162,12 @@ ReducedGraph reduceGraph(Graph g){
         chain.clear();
         exploration_record.explore(new_vertex);
         new_chain = true; 
+      }else if(g.getDegree(new_vertex)>2){
+        chain.push_back(new_vertex);
+        chains.push_back(chain);
+        chain.clear();
+        exploration_record.explore(new_vertex);
+        new_chain = true; 
       }else if(unexplored_vertex.size()==1){
         chain.push_back(new_vertex); 
         old_vertex = new_vertex;
@@ -178,10 +180,12 @@ ReducedGraph reduceGraph(Graph g){
   vector<ReducedEdge> reduced_edges;
   for(vector<int> chain : chains){
     ReducedEdge reduced_ed(chain);
+    cout << reduced_ed << endl;
     reduced_edges.push_back(reduced_ed);
   }
 
   cout << "Number of reduced edges " << reduced_edges.size() << endl;
+
   ReducedGraph reduced_g(reduced_edges);
   return reduced_g;
 }
