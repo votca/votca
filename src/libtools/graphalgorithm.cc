@@ -62,8 +62,18 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
         "exploration is started from a vertex that does not exist within the "
         "graph.");
   } 
+  if(!g.edgeExist(edge)){
+    throw invalid_argument("Edge does not exist in the graph so exploration of"
+        " the graph branch cannot continue");
+  }
+  if(!edge.contains(starting_vertex)){
+    throw invalid_argument("The edge determining which branch to explore does "
+        "not contain the starting vertex.");
+  }
   Graph_BF_Visitor gv_breadth_first;
   gv_breadth_first.setStartingVertex(starting_vertex);
+  GraphNode gn = g.getNode(starting_vertex);
+ 
 }
 /**
  * \brief This class is to help keep track of which vertices have and have not
