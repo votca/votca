@@ -119,7 +119,7 @@ bool GROReader::NextFrame(Topology &top)
             top.CreateResidue(resName);
 	  }
           //this is not correct, but still better than no type at all!
-	  auto type = top.GetOrCreateBeadType(atName);
+	  BeadType * type = top.GetOrCreateBeadType(atName);
 
 	  // res -1 as internal number starts with 0
 	  b = top.CreateBead(1, atName, type, resnr-1, 1., 0.);
