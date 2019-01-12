@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <votca/tools/reducededge.h>
 
 namespace votca {
