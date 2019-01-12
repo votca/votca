@@ -212,8 +212,8 @@ void Topology::RenameBeadType(string name, string newname)
 {
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-      auto weak_type =  (*bead)->getType();
-      if(auto shared_type = weak_type.lock()){
+      weak_ptr<BeadType> weak_type =  (*bead)->getType();
+      if(shared_ptr<BeadType> shared_type = weak_type.lock()){
         if (wildcmp(name.c_str(),shared_type->getName().c_str())) {
           shared_type->setName(newname);
         }
@@ -227,8 +227,8 @@ void Topology::SetBeadTypeMass(string name, double value)
 {
     BeadContainer::iterator bead;
     for(bead=_beads.begin(); bead!=_beads.end(); ++bead) {
-      auto weak_type = (*bead)->getType();
-      if(auto type = weak_type.lock()){
+      weak_ptr<BeadType> weak_type = (*bead)->getType();
+      if(shared_ptr<BeadType> type = weak_type.lock()){
         if (wildcmp(name.c_str(),type->getName().c_str())) {
           (*bead)->setMass(value);
         }
