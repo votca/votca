@@ -293,12 +293,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
       string beadname=mi->getBeadName(i);
       Bead *bead_replica;
       weak_ptr<BeadType> weak_type = bead->Type();
-      if(shared_ptr<BeadType> shared_type = weak_type.lock()){
-        bead_replica = top.CreateBead(1, bead->getName(), shared_type, res->getId(), bead->getMass(), bead->getQ());
-      }else{
-        throw runtime_error("Error in dlpolytopologyreader.cc in trying to "
-            "access bead type it does not exist.");
-      }
+      bead_replica = top.CreateBead(1, bead->getName(), weak_type, res->getId(), bead->getMass(), bead->getQ());
       mi_replica->AddBead(bead_replica,beadname);
     }
 	  matoms+=mi->BeadCount();

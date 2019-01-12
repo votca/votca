@@ -218,8 +218,7 @@ void Topology::RenameBeadType(string name, string newname)
           shared_type->setName(newname);
         }
       }else{
-        throw runtime_error("bead type is not accessible while attempting to "
-            "rename.");
+        assert(!"bead type is not accessible while attempting to rename.");
       }
     }
 }
@@ -234,7 +233,7 @@ void Topology::SetBeadTypeMass(string name, double value)
           (*bead)->setMass(value);
         }
       }else{
-        throw runtime_error("bead type no longer exist memory error.");
+        assert(!"bead type no longer exist memory error.");
       }
     }
 

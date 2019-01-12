@@ -28,16 +28,16 @@ namespace votca {
       if(std::shared_ptr<BeadType> shared_type = _type.lock()){
         return shared_type->getName();
       }
-      throw std::runtime_error("Cannot get bead type name because bead type is not "
-          "accessible.");
+      assert(!"Cannot get bead type name because bead type is not accessible.");
+      return "";
     }
 
     int BaseBead::getBeadTypeId(){
       if(std::shared_ptr<BeadType> shared_type = _type.lock()){
         return shared_type->getId();
       }
-      throw std::runtime_error("Cannot get bead type id because bead type is not "
-          "accessible.");
+      assert(!"Cannot get bead type id because bead type is not accessible.");
+      return -1;
     }
 
   }

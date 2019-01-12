@@ -71,15 +71,13 @@ public:
 
   /**
    * get the name of the bead type
-   * \return - string indicates the name or throw error if bead type is not 
-   * accesible.
+   * \return - string indicates the name 
    **/
   std::string getBeadTypeName();
 
   /**
    * get the id of the bead type
-   * \return - int indicated the id or throw an error if bead type is not
-   * accessible
+   * \return - int indicated the id 
    **/
   int getBeadTypeId();
 

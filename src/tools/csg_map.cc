@@ -97,9 +97,6 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
 
                     Bead *bi = (*it_mol)->getBead(i);
                     auto weak_type = bi->getType();
-                    if(!weak_type.lock()){
-                      throw runtime_error("Error bead type is inaccessible in csg_map.");
-                    }
                     Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr(), bi->getMass(), bi->getQ());
                     bn->setOptions(bi->Options());
                     bn->setPos(bi->getPos());
@@ -118,9 +115,6 @@ void EvalConfiguration(Topology *top, Topology *top_ref) {
                         // todo: this is a bit dirty as a cg bead will always have the resid of its first parent
                         Bead *bparent = (*it_mol)->getBead(0);
                         auto weak_type = bi->getType();
-                        if(!weak_type.lock()){
-                          throw runtime_error("Error bead type is inaccessible in csg_map.");
-                        }
                         Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bparent->getResnr(), bi->getMass(), bi->getQ());
                         bn->setOptions(bi->Options());
                         bn->setPos(bi->getPos());
