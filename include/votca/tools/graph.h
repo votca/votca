@@ -39,8 +39,11 @@ namespace tools {
 
 class GraphNode;
 
-class Graph : public EdgeContainer {
- private:
+class Graph {
+ protected:
+
+  EdgeContainer edge_container_;
+
   /// Parameter description
   /// @param int - is the index of the graph nodes / vertex ids
   /// @param GraphNode - this is the node object at each vertex and contains
@@ -57,7 +60,7 @@ class Graph : public EdgeContainer {
 
  public:
   Graph() : id_(""){};
-  ~Graph(){};
+  virtual ~Graph(){};
 
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
@@ -65,7 +68,7 @@ class Graph : public EdgeContainer {
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
   Graph(std::vector<Edge> edgs, std::unordered_map<int, GraphNode> nodes)
-      : EdgeContainer::EdgeContainer(edgs), nodes_(nodes) {
+      : edge_container_(edgs), nodes_(nodes) {
     calcId_();
   }
 
@@ -78,10 +81,10 @@ class Graph : public EdgeContainer {
   bool operator==(const Graph& g) const;
 
   /// Copy Assignment
-  Graph& operator=(const Graph& g);
+  virtual Graph& operator=(const Graph& g);
 
   /// Move Assignment
-  Graph& operator=(Graph&& g);
+  virtual Graph& operator=(Graph&& g);
 
   /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.
@@ -99,17 +102,29 @@ class Graph : public EdgeContainer {
   void setNode(int vert, GraphNode gn);
   void setNode(std::pair<int, GraphNode> p_gn);
 
+  /// Gets all vertices with degree of 3 or greater
+  std::vector<int> getJunctions() const;
+
   /// Return a copy of the graph node at vertex 'vert'
   GraphNode getNode(int vert);
 
   /// Return all the vertices and their graph nodes that are within the graph
-  std::vector<std::pair<int, GraphNode>> getNodes(void);
+  virtual std::vector<std::pair<int, GraphNode>> getNodes(void);
+
+  std::vector<int> getNeighVertices(int vert) { return edge_container_.getNeighVertices(vert); }
 
   std::string getId() { return id_; }
 
-  /// Return all the vertices that contain 3 or more connections
-  std::vector<int> getJunctions() const;
+  virtual std::vector<Edge> getEdges() {return edge_container_.getEdges();}
 
+  std::vector<Edge> getNeighEdges(int vertex) { return edge_container_.getNeighEdges(vertex);}
+
+  std::vector<int> getVertices() { return edge_container_.getVertices();}
+  virtual int getMaxDegree() { return edge_container_.getMaxDegree();}
+  virtual int getDegree(int vertex) { return edge_container_.getDegree(vertex); }
+  virtual std::vector<int> getVerticesDegree(int degree) { return edge_container_.getVerticesDegree(degree); }
+
+  bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex);}
   friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
 

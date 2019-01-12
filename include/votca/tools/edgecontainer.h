@@ -37,7 +37,8 @@ namespace tools {
  */
 class EdgeContainer {
  protected:
-  std::unordered_map<int,std::set<int>> adj_list_; 
+  /// The vertex, the neighboring vertices and the number of edges
+  std::unordered_map<int,std::unordered_map<int,int>> adj_list_; 
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
   EdgeContainer() {};
@@ -57,14 +58,15 @@ class EdgeContainer {
   /// Add an edge to the container
   void addEdge(Edge ed);
   /// Get all the edges in vector form
-  std::vector<Edge> getEdges();
+  std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
   std::vector<int> getVertices();
   /// Get the vertices neighboring vert
   std::vector<int> getNeighVertices(int vert);
   /// Get the edges neighboring vert
   std::vector<Edge> getNeighEdges(int vert);
- 
+  /// Print output of object
+  friend std::ostream& operator<<(std::ostream& os, const EdgeContainer edge_container); 
 };
 }
 }

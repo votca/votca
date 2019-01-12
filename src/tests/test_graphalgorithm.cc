@@ -21,9 +21,11 @@
 
 #define BOOST_TEST_MODULE graphalgorithm_test
 #include <boost/test/unit_test.hpp>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 #include <votca/tools/graph.h>
+#include <votca/tools/reducedgraph.h>
 #include <votca/tools/graph_bf_visitor.h>
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphdistvisitor.h>
@@ -62,9 +64,11 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
     Graph_BF_Visitor gb_v;
 
     BOOST_CHECK(gb_v.queEmpty());
+    //gb_v.exec(g,ed);
     BOOST_CHECK_THROW(gb_v.exec(g, ed), runtime_error);
 
     bool single_n = singleNetwork(g, gb_v);
+    cerr << "is single network " << single_n << endl;
     BOOST_CHECK(single_n);
     BOOST_CHECK(gb_v.queEmpty());
 
@@ -108,34 +112,8 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
+BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
   {
-    // In this test we add two nodes and an edge describing
-    // their connection
-
-    // Create edge
-    Edge ed(0, 1);
-    vector<Edge> edges;
-    edges.push_back(ed);
-
-    // Create Graph nodes
-    GraphNode gn1;
-    GraphNode gn2;
-
-    unordered_map<int, GraphNode> nodes;
-    nodes[0] = gn1;
-    nodes[1] = gn2;
-
-    Graph g(edges, nodes);
-
-    auto subGraphs = decoupleIsolatedSubGraphs(g);
-
-    BOOST_CHECK_EQUAL(subGraphs.size(), 1);
-    BOOST_CHECK_EQUAL(*(subGraphs.at(0)), g);
-  }
-
-  {
-
     // Create edge
     //     2
     //     |
@@ -178,47 +156,141 @@ BOOST_AUTO_TEST_CASE(decoupleIsolatedSubGraphs_algorithm_test) {
     nodes[5] = gn6;
     nodes[6] = gn7;
 
-    Graph g(edges, nodes);
-    vector<std::shared_ptr<Graph>> sub_graphs = decoupleIsolatedSubGraphs(g);
-    BOOST_CHECK_EQUAL(sub_graphs.size(), 2);
+    Graph g(edges,nodes);
+    ReducedGraph reduced_g = reduceGraph(g);
 
-    // Create sub graphs to compare with the graphs stored in 'sub_graphs'
-
-    vector<Edge> sub_graph1_edges;
-    sub_graph1_edges.push_back(ed1);
-    sub_graph1_edges.push_back(ed2);
-    sub_graph1_edges.push_back(ed3);
-    sub_graph1_edges.push_back(ed4);
-
-    vector<Edge> sub_graph2_edges;
-    sub_graph2_edges.push_back(ed5);
-
-    unordered_map<int, GraphNode> sub_graph1_nodes;
-    sub_graph1_nodes[0] = gn1;
-    sub_graph1_nodes[1] = gn2;
-    sub_graph1_nodes[2] = gn3;
-    sub_graph1_nodes[3] = gn4;
-    sub_graph1_nodes[4] = gn5;
-
-    unordered_map<int, GraphNode> sub_graph2_nodes;
-    sub_graph2_nodes[0] = gn6;
-    sub_graph2_nodes[1] = gn7;
-
-    Graph sub_graph1(sub_graph1_edges, sub_graph1_nodes);
-    Graph sub_graph2(sub_graph2_edges, sub_graph2_nodes);
-
-    // Cycle sub_graphs
-    bool sub_graph1_found = false;
-    bool sub_graph2_found = false;
-
-    for (auto graph_sub_it = sub_graphs.begin();
-         graph_sub_it != sub_graphs.end(); ++graph_sub_it) {
-      if (**graph_sub_it == sub_graph1) sub_graph1_found = true;
-      if (**graph_sub_it == sub_graph2) sub_graph2_found = true;
+    auto edges2 = reduced_g.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),5);
+    vector<bool> found_edges(5,false);
+    for(auto edge : edges2 ){
+      if(edge==ed1) found_edges.at(0) = true;
+      if(edge==ed2) found_edges.at(1) = true;
+      if(edge==ed3) found_edges.at(2) = true;
+      if(edge==ed4) found_edges.at(3) = true;
+      if(edge==ed5) found_edges.at(4) = true;
     }
-    BOOST_CHECK(sub_graph1_found);
-    BOOST_CHECK(sub_graph2_found);
+
+    for(auto found : found_edges){
+      BOOST_CHECK(found);
+    }
   }
+
+  {
+    // Create edge
+    //     2
+    //     |
+    // 0 - 1 - 3 - 9
+    //     |       |
+    //     4 - 5 - 6 -  7 - 8
+
+    Edge ed1(0, 1);
+    Edge ed2(1, 2);
+    Edge ed3(1, 3);
+    Edge ed4(1, 4);
+    Edge ed5(4, 5);
+    Edge ed6(5, 6);
+    Edge ed7(6, 7);
+    Edge ed8(7, 8);
+    Edge ed9(6, 9);
+    Edge ed10(3, 9);
+
+    //
+    // 10 - 11 - 12 
+    //
+    // 13
+    //
+    // 14 - 15 
+    // |    |
+    // 16 - 17
+    //
+    Edge ed11(10, 11);
+    Edge ed12(11, 12);
+
+    Edge ed13(14,15);
+    Edge ed14(15,17);
+    Edge ed15(16,17);
+    Edge ed16(14,16);
+
+    vector<Edge> edges{ ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10,
+      ed11, ed12, ed13, ed14, ed15, ed16};
+
+    // Create Graph nodes
+    unordered_map<int, GraphNode> nodes;
+    for(int index = 0; index<18;++index){
+      GraphNode gn;
+      nodes[index] = gn;
+    }
+
+    Graph g(edges,nodes);
+    ReducedGraph reduced_g = reduceGraph(g);
+
+    // Full Graph 
+    //
+    //     2
+    //     |
+    // 0 - 1 - 3 - 9
+    //     |       |
+    //     4 - 5 - 6 -  7 - 8
+    //
+    // 10 - 11 - 12 
+    //
+    // 13
+    //
+    // 14 - 15 
+    // |    |
+    // 16 - 17
+    //
+    // Reduced Graph
+    //
+    //     2
+    //     |
+    // 0 - 1 - 
+    //     |   |
+    //       - 6 - 8
+    //
+    // 10 - 12 
+    //
+    // 13
+    //
+    // 14 -  
+    // |  |
+    //  - 
+    //
+    Edge ed0_1(0,1);
+    Edge ed1_2(1,2);
+    Edge ed1_6(1,6);
+    Edge ed6_8(6,8);
+    Edge ed10_12(10,12);
+    Edge ed14_14(14,14);
+
+    int edge_count0_1 = 0; 
+    int edge_count1_2 = 0; 
+    int edge_count1_6 = 0; 
+    int edge_count6_8 = 0; 
+    int edge_count10_12 = 0; 
+    int edge_count14_14 = 0; 
+
+    auto edges2 = reduced_g.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),7);
+
+    for(auto edge : edges2 ){
+      if(edge==ed0_1) ++edge_count0_1;
+      if(edge==ed1_2) ++edge_count1_2;
+      if(edge==ed1_6) ++edge_count1_6;
+      if(edge==ed6_8) ++edge_count6_8;
+      if(edge==ed10_12) ++edge_count10_12;
+      if(edge==ed14_14) ++edge_count14_14;
+    } 
+
+    BOOST_CHECK_EQUAL(edge_count0_1,1);
+    BOOST_CHECK_EQUAL(edge_count1_2,1);
+    BOOST_CHECK_EQUAL(edge_count1_6,2);
+    BOOST_CHECK_EQUAL(edge_count6_8,1);
+    BOOST_CHECK_EQUAL(edge_count10_12,1);
+    BOOST_CHECK_EQUAL(edge_count14_14,1);
+
+  }
+
 }
 
 BOOST_AUTO_TEST_CASE(structureid_test) {

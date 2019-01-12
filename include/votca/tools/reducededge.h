@@ -17,13 +17,10 @@
  *
  */
 
-#include <iostream>
-#include <limits>
-#include <utility>
-#include <vector>
+#include <votca/tools/edge.h>
 
-#ifndef _VOTCA_TOOLS_EDGE_H
-#define _VOTCA_TOOLS_EDGE_H
+#ifndef _VOTCA_TOOLS_REDUCEDEDGE_H
+#define _VOTCA_TOOLS_REDUCEDEDGE_H
 
 namespace votca {
 namespace tools {
@@ -36,32 +33,25 @@ namespace tools {
  * always placed in id1, this allows us to reduce ambiguity when dealing with
  * a link.
  */
-class Edge {
- protected:
-  std::vector<int> vertices_;
+class ReducedEdge : public Edge{
 
  public:
-  Edge() {}
-  ~Edge() {}
+  ReducedEdge() {}
+  ~ReducedEdge() {}
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
-  Edge(int ID1, int ID2);
-  Edge(const Edge& ed) : vertices_(ed.vertices_) {}
-  /// Given one of the integers in the edge the other will be output
-  int getOtherEndPoint(int ver) const;
-  /// grab the smaller integer
-  int getEndPoint1() const { return vertices_.front(); }
-  /// grab the larger integer
-  int getEndPoint2() const { return vertices_.back(); }
+  ReducedEdge(std::vector<int> chain);
+  ReducedEdge(int vert1, int vert2) : ReducedEdge(std::vector<int>{vert1,vert2}) {};
 
-  bool loop() { return vertices_.front()==vertices_.back(); }
+  std::vector<int> getChain() const { return vertices_;}
 
-  /// Determine if the edge contains the int ID
-  bool contains(int ID) const;
+  bool vertexExistInChain(int vertex);
+
+  std::vector<Edge> expand() const;
   /// Checks if Edges are equivalent
-  virtual bool operator==(const Edge ed) const;
+  bool operator==(const ReducedEdge ed) const;
   /// Checks if Edges are not equivalent
-  virtual bool operator!=(const Edge ed) const;
+  bool operator!=(const ReducedEdge ed) const;
 
   /// If the vertices are smaller in value
   /// Edge ed1(2,3);
@@ -71,29 +61,34 @@ class Edge {
   /// assert(ed2<ed1); // will return true
   /// assert(ed3<ed1); // will return true
   /// assert(ed3<ed1); // will return true
-  virtual bool operator<(const Edge ed) const;
-  virtual bool operator>(const Edge ed) const;
-  virtual bool operator<=(const Edge ed) const;
-  virtual bool operator>=(const Edge ed) const;
+  bool operator<(const ReducedEdge ed) const;
+  bool operator>(const ReducedEdge ed) const;
+  bool operator<=(const ReducedEdge ed) const;
+  bool operator>=(const ReducedEdge ed) const;
 
   /// Print the contents of the edge
-  friend std::ostream& operator<<(std::ostream& os, const Edge ed);
+  friend std::ostream& operator<<(std::ostream& os, const ReducedEdge ed);
 };
 
 // Value used as a dummy object
-const Edge DUMMY_EDGE(std::numeric_limits<int>::max(),
-                      std::numeric_limits<int>::max());
+const ReducedEdge DUMMY_REDUCEDEDGE(
+    std::vector<int>{std::numeric_limits<int>::max(),std::numeric_limits<int>::max()});
 }
 }
 
 /// Define a hasher so we can use it as a key in an unordered_map
 namespace std {
 template <>
-class hash<votca::tools::Edge> {
+class hash<votca::tools::ReducedEdge> {
  public:
-  size_t operator()(const votca::tools::Edge& ed) const {
-    return hash<int>()(ed.getEndPoint1()) ^ hash<int>()(ed.getEndPoint2());
+  size_t operator()(const votca::tools::ReducedEdge& ed) const {
+    size_t value = 1;
+    auto vertices = ed.getChain();
+    for(auto vertex : vertices ){
+      value+=hash<size_t>()(static_cast<size_t>(vertex))^value;
+    }
+    return value;
   }
 };
 }
-#endif  // _VOTCA_TOOLS_EDGE_H
+#endif  // _VOTCA_TOOLS_REDUCEDEDGE_H

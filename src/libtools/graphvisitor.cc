@@ -43,13 +43,13 @@ void GraphVisitor::exploreNode_(pair<int,GraphNode> &p_gn,Graph& g,Edge ed){
   explored_.insert(p_gn.first);
 }
 
-vector<int> GraphVisitor::getUnexploredVertex_(Edge ed){
+vector<int> GraphVisitor::getUnexploredVertex(Edge ed){
   vector<int> unexp_vert;
-  if(explored_.count(ed.getV1())==0){
-    unexp_vert.push_back(ed.getV1());
+  if(explored_.count(ed.getEndPoint1())==0){
+    unexp_vert.push_back(ed.getEndPoint1());
   }
-  if(explored_.count(ed.getV2())==0){
-    unexp_vert.push_back(ed.getV2());
+  if(explored_.count(ed.getEndPoint2())==0){
+    unexp_vert.push_back(ed.getEndPoint2());
   }
   return unexp_vert;
 }
@@ -63,7 +63,7 @@ void GraphVisitor::initialize(Graph& g){
 }
 
 void GraphVisitor::exec(Graph& g, Edge ed){
-  auto unexp_vert = getUnexploredVertex_(ed);    
+  auto unexp_vert = getUnexploredVertex(ed);    
   // If no vertices are return than just ignore it means the same
   // vertex was explored from a different direction
   if(!unexp_vert.size()) return;
@@ -86,7 +86,7 @@ Edge GraphVisitor::nextEdge(Graph g){
 
   // Get the edge and at the same time remove it from whatever queue it is in
   Edge ed = getEdge_(g);
-  auto vert_v = getUnexploredVertex_(ed);
+  auto vert_v = getUnexploredVertex(ed);
   // Do not add neighboring edges if they belong to a vertex that has already 
   // been explored because they will have already been added
   if(vert_v.size()){

@@ -34,7 +34,7 @@ bool Graph::operator!=(const Graph& g) const { return id_.compare(g.id_); }
 bool Graph::operator==(const Graph& g) const { return !(*(this) != g); }
 
 Graph::Graph(const Graph& g) {
-  this->adj_list_ = g.adj_list_;
+  this->edge_container_ = g.edge_container_;
   for (auto pr : g.nodes_) {
     this->nodes_[pr.first] = pr.second;
   }
@@ -42,7 +42,7 @@ Graph::Graph(const Graph& g) {
 }
 
 Graph& Graph::operator=(const Graph& g) {
-  this->adj_list_ = g.adj_list_;
+  this->edge_container_ = g.edge_container_;
   for (auto pr : g.nodes_) {
     this->nodes_[pr.first] = pr.second;
   }
@@ -51,7 +51,7 @@ Graph& Graph::operator=(const Graph& g) {
 }
 
 Graph& Graph::operator=(Graph&& g) {
-  this->adj_list_ = move(g.adj_list_);
+  this->edge_container_ = move(g.edge_container_);
   this->nodes_ = move(g.nodes_);
   this->id_ = move(g.id_);
   return *this;
@@ -60,8 +60,8 @@ Graph& Graph::operator=(Graph&& g) {
 vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) {
   vector<pair<int, GraphNode>> iso_nodes;
   for (auto node : nodes_) {
-    if (adj_list_.count(node.first)) {
-      if (adj_list_[node.first].size() == 0) {
+    if (edge_container_.vertexExist(node.first)) {
+      if (edge_container_.getDegree(node.first) == 0) {
         pair<int, GraphNode> pr(node.first, node.second);
         iso_nodes.push_back(pr);
       }
@@ -75,16 +75,17 @@ vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) {
 
 vector<int> Graph::getVerticesMissingNodes(void) {
   vector<int> missing;
-  for (auto pr_v : adj_list_) {
-    if (nodes_.count(pr_v.first) == 0) {
-      missing.push_back(pr_v.first);
+  auto vertices = edge_container_.getVertices();
+  for (auto vertex : vertices) {
+    if (nodes_.count(vertex) == 0) {
+      missing.push_back(vertex);
     }
   }
   return missing;
 }
 
 vector<pair<int,GraphNode>> Graph::getNeighNodes(int vert){
-  auto neigh_vertices = getNeighVertices(vert);
+  auto neigh_vertices = edge_container_.getNeighVertices(vert);
   vector<pair<int,GraphNode>> neigh_vertices_pr;
   for(auto neigh_vert : neigh_vertices){
     auto node_pr = pair<int,GraphNode>(neigh_vert,nodes_[neigh_vert]);
@@ -120,12 +121,12 @@ vector<pair<int, GraphNode>> Graph::getNodes(void) {
   return vec_nodes;
 }
 
-vector<int> Graph::getJunctions(void) const {
+vector<int> Graph::getJunctions() const{
   vector<int> junctions;
-  auto max_number_junctions = getMaxDegree();
-  for(auto degree=3;degree<=max_number_junctions;++degree){
-    auto vertices = getVerticesDegree(degree);
-    junctions.insert(junctions.begin(),vertices.begin(),vertices.end());
+  int max_degree = edge_container_.getMaxDegree();
+  for(auto degree=3; degree<=max_degree;++degree){
+    auto vertices = edge_container_.getVerticesDegree(degree);
+    junctions.insert(junctions.end(),vertices.begin(),vertices.end());
   }
   return junctions;
 }
