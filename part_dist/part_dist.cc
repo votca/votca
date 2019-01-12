@@ -170,24 +170,18 @@ int main(int argc, char** argv)
 	}
 	else {
 	    // Include all particle types
-	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-		for(int i=0; i<(*mol)->BeadCount(); ++i) {
-		    flag_found = 0;
-        weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
-        if(shared_ptr<BeadType> shared_type = weak_type.lock()){
-          part_type = atoi(shared_type->getName().c_str());
-        }else{
-          throw runtime_error("Cannot get bead type in part_dist as it is no "
-              "longer accessible.");
+    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+      for(int i=0; i<(*mol)->BeadCount(); ++i) {
+        flag_found = 0;
+        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        for (size_t j=0; j < ptypes.size(); ++j) {
+          if (part_type == ptypes[j]) 
+            flag_found = 1;
         }
-		    for (size_t j=0; j < ptypes.size(); ++j) {
-			if (part_type == ptypes[j]) 
-			    flag_found = 1;
-		    }
-		    if (!flag_found)
-			ptypes.push_back(part_type);
-		}
-	    }
+        if (!flag_found)
+          ptypes.push_back(part_type);
+      }
+    }
 	}
 
 	// Allocate array used to store particle occupancy p_occ
@@ -198,22 +192,16 @@ int main(int argc, char** argv)
 	// If we need to shift the center of mass, calculate the number of
 	// particles (only the ones that belong to the particle type index
 	// ptypes)
-	if (vm.count("shift_com")) {
-	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-		for(int i=0; i<(*mol)->BeadCount(); ++i) {
-        weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
-        if(shared_ptr<BeadType> shared_type = weak_type.lock()){
-          part_type = atoi(shared_type->getName().c_str());
-        }else{
-          throw runtime_error("Cannot get bead type in part_dist as it is no "
-              "longer accessible.");
-        }
-		    for (size_t j=0; j < ptypes.size(); ++j) 
-			if (part_type == ptypes[j])
-			    ++n_part;
-		}
-	    }
-	}
+  if (vm.count("shift_com")) {
+    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+      for(int i=0; i<(*mol)->BeadCount(); ++i) {
+        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        for (size_t j=0; j < ptypes.size(); ++j) 
+          if (part_type == ptypes[j])
+            ++n_part;
+      }
+    }
+  }
 
 
 	// Now load trajectory
@@ -247,13 +235,7 @@ int main(int argc, char** argv)
 	    if (vm.count("shift_com")) {
         for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
           for(int i=0; i<(*mol)->BeadCount(); ++i) {
-            weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
-            if(shared_ptr<BeadType> shared_type = weak_type.lock()){
-              part_type = atoi(shared_type->getName().c_str());
-            }else{
-              throw runtime_error("Cannot get bead type in part_dist as it is no "
-                  "longer accessible.");
-            }
+            part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
             for (size_t j=0; j < ptypes.size(); ++j) {
               if (part_type == ptypes[j]) {
                 if (coordinate.compare("x") == 0) {
@@ -278,14 +260,7 @@ int main(int argc, char** argv)
 		// Loop over each atom property
     for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
       for(int i=0; i<(*mol)->BeadCount(); ++i) {
-        weak_ptr<BeadType> weak_type = (*mol)->getBead(i)->getType();
-        if(shared_ptr<BeadType> shared_type = weak_type.lock()){
-          part_type = atoi(shared_type->getName().c_str());
-        }else{
-          throw runtime_error("Cannot get bead type in part_dist as it is no "
-              "longer accessible.");
-        }
-
+        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
         for (size_t j=0; j < ptypes.size(); ++j) {	
           if (part_type == ptypes[j]) {
             if (coordinate.compare("x") == 0)
