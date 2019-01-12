@@ -57,7 +57,11 @@ bool singleNetwork(Graph g, GraphVisitor& gv) {
 
 std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
   // Check if the starting vertex is in the graph
-  
+  if(!g.vertexExist(starting_vertex)){
+    throw invalid_argument("Cannot explore a branch of the graph when the "
+        "exploration is started from a vertex that does not exist within the "
+        "graph.");
+  } 
   Graph_BF_Visitor gv_breadth_first;
   gv_breadth_first.setStartingVertex(starting_vertex);
 }

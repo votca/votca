@@ -68,9 +68,14 @@ vector<int> EdgeContainer::getVerticesDegree(int degree) const{
   return verts;
 }
 
-bool EdgeContainer::edgeExist(Edge ed) {
-  return adj_list_[ed.getEndPoint1()].count(ed.getEndPoint2()) || 
-    adj_list_[ed.getEndPoint2()].count(ed.getEndPoint1()); 
+bool EdgeContainer::edgeExist(Edge ed){
+  if(adj_list_.count(ed.getEndPoint1())){
+    if(adj_list_[ed.getEndPoint1()].count(ed.getEndPoint2())) return true;
+  }
+  if(adj_list_.count(ed.getEndPoint2())){
+    if(adj_list_[ed.getEndPoint2()].count(ed.getEndPoint1())) return true;
+  }
+  return false;
 }
 
 bool EdgeContainer::vertexExist(int vert) { return adj_list_.count(vert); }

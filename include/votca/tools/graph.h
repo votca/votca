@@ -124,6 +124,7 @@ class Graph {
   virtual int getDegree(int vertex) { return edge_container_.getDegree(vertex); }
   virtual std::vector<int> getVerticesDegree(int degree) { return edge_container_.getVerticesDegree(degree); }
 
+  bool edgeExist(Edge ed) { return edge_container_.edgeExist(ed); }
   bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex);}
   friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
