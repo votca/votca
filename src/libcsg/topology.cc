@@ -136,7 +136,7 @@ void Topology::Add(Topology *top)
     
     for(bead=top->_beads.begin(); bead!=top->_beads.end(); ++bead) {
         Bead *bi = *bead;
-        auto weak_type = bi->getType();
+        weak_ptr<BeadType> weak_type = bi->getType();
         CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr()+res0, bi->getMass(), bi->getQ());
     }
     
@@ -174,7 +174,7 @@ void Topology::CopyTopologyData(Topology *top)
     // create all beads
     for(it_bead=top->_beads.begin(); it_bead!=top->_beads.end(); ++it_bead) {
         Bead *bi = *it_bead;
-        auto weak_type = bi->getType();
+        weak_ptr<BeadType> weak_type = bi->getType();
         Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr(), bi->getMass(), bi->getQ());
         bn->setOptions(bi->Options());
     }
