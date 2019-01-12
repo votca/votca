@@ -39,7 +39,7 @@ void GraphVisitor::addEdges_(Graph& g, int vertex){
   throw runtime_error("addEdges_ method must be defined by your visitor");
 }
 
-void GraphVisitor::exploreNode_(pair<int,GraphNode> &p_gn,Graph& g,Edge ed){
+void GraphVisitor::exploreNode(pair<int,GraphNode> &p_gn,Graph& g,Edge ed){
   explored_.insert(p_gn.first);
 }
 
@@ -58,7 +58,7 @@ void GraphVisitor::initialize(Graph& g){
   auto neigh_eds = g.getNeighEdges(startingVertex_);
   GraphNode gn = g.getNode(startingVertex_);
   pair<int, GraphNode> p_gn(startingVertex_,gn);
-  exploreNode_(p_gn,g);
+  exploreNode(p_gn,g);
   addEdges_(g, startingVertex_);
 }
 
@@ -74,7 +74,7 @@ void GraphVisitor::exec(Graph& g, Edge ed){
   }
   pair<int,GraphNode> pr(unexp_vert.at(0),g.getNode(unexp_vert.at(0)));
  
-  exploreNode_(pr,g,ed);
+  exploreNode(pr,g,ed);
 
 }
 
