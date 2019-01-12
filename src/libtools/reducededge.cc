@@ -26,9 +26,7 @@ namespace tools {
 using namespace std;
 
 ReducedEdge::ReducedEdge(vector<int> vertices) {
-  if(vertices.size()<2){
-    throw invalid_argument("Edge vertices must consist of at least two vertices.");
-  }
+  assert(vertices.size()>=2 && "Edge vertices must consist of at least two vertices.");
   // Smallest value always placed at the front of the vector
 
   // If we have a loop will arange the edge so that the smallest valued vertex 
