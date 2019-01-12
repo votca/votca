@@ -111,6 +111,8 @@ class Graph {
   /// Return all the vertices and their graph nodes that are within the graph
   virtual std::vector<std::pair<int, GraphNode>> getNodes(void);
 
+  std::vector<int> getNeighVertices(int vert) { return edge_container_.getNeighVertices(vert); }
+
   std::string getId() { return id_; }
 
   virtual std::vector<Edge> getEdges() {return edge_container_.getEdges();}
