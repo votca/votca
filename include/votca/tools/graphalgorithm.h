@@ -53,6 +53,15 @@ class GraphVisitor;
 bool singleNetwork(Graph g, GraphVisitor& gv);
 
 /**
+ * \brief Explore one of the branches if exploration is initiated at vertex
+ * `starting_vertex`.
+ *
+ * The `edge` is used to determine which branch is to be explored. The edge must
+ * be an edge connected to the starting_vertex.
+ **/
+std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge);
+
+/**
  * \brief Break graph into smaller graph instances if the network is made up of
  *        isolated sub networks
  *

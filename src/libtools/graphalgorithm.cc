@@ -54,6 +54,13 @@ bool singleNetwork(Graph g, GraphVisitor& gv) {
          g.getIsolatedNodes().size() == 0;
 }
 
+std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
+  // Check if the starting vertex is in the graph
+  
+  Graph_BF_Visitor gv_breadth_first;
+  gv_breadth_first.setStartingVertex(*v_it);
+}
+
 vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g) {
 
   auto vertices_list = vectorToList_(g.getVertices());
