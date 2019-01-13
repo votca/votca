@@ -33,14 +33,15 @@ class RPA
 {
 public:
 
-    RPA(const Eigen::VectorXd& energies, const TCMatrix_gwbse& Mmn):
-        _energies(energies),_Mmn(Mmn){};
+    RPA(const TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
 
     void configure(int homo, int rpamin, int rpamax){
         _homo = homo;
         _rpamin = rpamin;
         _rpamax = rpamax;
     }
+
+    
 
     Eigen::MatrixXd calculate_epsilon_i(double frequency)const{
         return calculate_epsilon<true>(frequency);
@@ -50,9 +51,15 @@ public:
         return calculate_epsilon<false>(frequency);
     }
 
+    const Eigen::VectorXd& getRPAInputEnergies()const {return _energies;}
+
+    void setRPAInputEnergies(const Eigen::VectorXd& energies){
+        _energies=energies;
+    }
+    
     //calculates full RPA vector of energies from gwa and dftenergies and qpmin
     //RPA energies have three parts, lower than qpmin: dftenergies,between qpmin and qpmax:gwa_energies,above:dftenergies+homo-lumo shift
-    static Eigen::VectorXd UpdateRPAInput(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin, int homo);
+    void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin);
 
 private:
 
@@ -60,7 +67,8 @@ private:
     int _rpamin;
     int _rpamax;
 
-    const Eigen::VectorXd& _energies;
+    Eigen::VectorXd _energies;
+
     const TCMatrix_gwbse& _Mmn;
 
     template< bool imag>

@@ -111,7 +111,8 @@ TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 
-RPA rpa=RPA(es.eigenvalues(),Mmn);
+RPA rpa=RPA(Mmn);
+rpa.setRPAInputEnergies(es.eigenvalues());
 rpa.configure(4,0,16);
 
 PPM ppm;

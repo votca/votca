@@ -23,6 +23,7 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/sigma_base.h>
+#include <votca/xtp/rpa.h>
 namespace votca {
 namespace xtp {
 
@@ -30,7 +31,7 @@ class GW {
  public:
     GW(ctp::Logger &log, TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& vxc,
        const Eigen::VectorXd& dft_energies):
-     _log(log),_Mmn(Mmn),_vxc(vxc),_dft_energies(dft_energies){};
+     _log(log),_Mmn(Mmn),_vxc(vxc),_dft_energies(dft_energies),_rpa(Mmn){};
     
     struct options{
         int homo;
@@ -79,8 +80,10 @@ class GW {
     TCMatrix_gwbse& _Mmn;
     const Eigen::MatrixXd& _vxc;
     const Eigen::VectorXd& _dft_energies;
+ 
+    RPA _rpa;
 
-    Eigen::VectorXd CalculateExcitationFreq(const Eigen::VectorXd& rpa_energies, Eigen::VectorXd frequencies);
+    Eigen::VectorXd CalculateExcitationFreq(Eigen::VectorXd frequencies);
     double CalcHomoLumoShift()const;
     Eigen::VectorXd ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const;
     void PrintQP_Energies(const Eigen::VectorXd& qp_diag_energies)const;

@@ -30,7 +30,7 @@ namespace xtp {
 
 class Sigma_base {
  public:
-  Sigma_base(TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
+  Sigma_base(TCMatrix_gwbse& Mmn,const RPA& rpa ):_Mmn(Mmn),_rpa(rpa){};
   
   virtual ~Sigma_base(){};
   
@@ -45,16 +45,17 @@ class Sigma_base {
 Eigen::MatrixXd CalcExchange()const;
 
 //Sets up the screening parametrisation
-virtual void PrepareScreening(const RPA& rpa)=0;
+virtual void PrepareScreening()=0;
 //Calculates Sigma_c diag elements
-virtual Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const=0;
+virtual Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies)const=0;
 //Calculates Sigma_c offdiag elements
-virtual Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const=0;
+virtual Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies)const=0;
  
 
  protected:
 
   TCMatrix_gwbse& _Mmn;
+  const RPA& _rpa;
 
   int _homo;   // HOMO index
   int _qpmin;
