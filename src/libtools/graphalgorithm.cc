@@ -88,8 +88,6 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
   vector<Edge> neigh_edges = g.getNeighEdges(starting_vertex);
   for( auto ed : neigh_edges){
     int neigh_vertex = ed.getOtherEndPoint(starting_vertex);
-
-    cout << "neigh vertex " << neigh_vertex << endl;
     if(gv_breadth_first.vertexExplored(neigh_vertex)){
       branch_edges.insert(ed);
     }
