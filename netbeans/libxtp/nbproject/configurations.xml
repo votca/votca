@@ -68,6 +68,7 @@
       <itemPath>../../include/votca/xtp/checkpoint_utils.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointreader.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointwriter.h</itemPath>
+      <itemPath>../../include/votca/xtp/classicalsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
       <itemPath>../../include/votca/xtp/couplingbase.h</itemPath>
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
@@ -108,7 +109,6 @@
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelxjobcalc.h</itemPath>
-      <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/populationanalysis.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
@@ -234,6 +234,7 @@
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
+      <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -245,7 +246,6 @@
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
-      <itemPath>../../src/libxtp/polarsegment.cc</itemPath>
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/progressobserver.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
@@ -3912,6 +3912,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/classicalsegment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/convergenceacc.h"
             ex="false"
             tool="3"
@@ -4054,11 +4059,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/parallelxjobcalc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/polarsegment.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4499,6 +4499,11 @@
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/classicalsegment.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -4636,8 +4641,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4987,6 +4990,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/classicalsegment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/convergenceacc.h"
             ex="false"
             tool="3"
@@ -5129,11 +5137,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/parallelxjobcalc.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/polarsegment.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5574,6 +5577,11 @@
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/classicalsegment.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -5711,8 +5719,6 @@
             ex="false"
             tool="1"
             flavor2="0">
-      </item>
-      <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>

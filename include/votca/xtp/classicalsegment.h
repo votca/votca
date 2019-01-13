@@ -17,20 +17,19 @@
  *
  */
 
-#ifndef VOTCA_XTP_POLARSEGMENT_H
-#define VOTCA_XTP_POLARSEGMENT_H
+#ifndef VOTCA_XTP_CLASSICALSEGMENT_H
+#define VOTCA_XTP_CLASSICALSEGMENT_H
 
 #include <votca/xtp/atomcontainer.h>
-#include <votca/xtp/polarsite.h>
 
 
 namespace votca {
     namespace xtp {
-
-class PolarSegment : public AtomContainer<PolarSite>
+template <class T>
+class ClassicalSegment : public AtomContainer<T>
 {
 public:
-    PolarSegment(std::string name,int id):AtomContainer<PolarSite>(name,id){};
+    ClassicalSegment(std::string name,int id):AtomContainer<T>(name,id){};
     
     void LoadFromMPS(const std::string& filename);
 
@@ -39,9 +38,16 @@ public:
     double CalcTotalQ()const;
 
     Eigen::Vector3d CalcDipole()const;
+    
+
+protected:
+
+
 
     
 };
+
+typedef ClassicalSegment<PolarSite> PolarSegment ;
         
         
         
@@ -49,5 +55,5 @@ public:
     }
 }
 
-#endif /* VOTCA_XTP_POLARSEGMENT_H */
+#endif /* VOTCA_XTP_CLASSICALSEGMENT_H */
 

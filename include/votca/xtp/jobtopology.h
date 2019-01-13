@@ -35,14 +35,16 @@ namespace votca { namespace xtp {
    
 class JobTopology{
     public:
-               
+
+
+    void BuildRegions(Topology& top,Mapper& mapper);
    
             
   protected:
 
-      std::vector<std::shared_ptr<Region> > _regions;
+      std::vector<std::unique_ptr<Region> > _regions;
     
     
 }}
 
-#endif	// VOTCA_XTP_ATOMCONTAINER_H
+#endif	// VOTCA_XTP_JOBTOPOLOGY_H

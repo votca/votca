@@ -34,7 +34,7 @@ namespace votca { namespace xtp {
 
 //MPS files have a weird format positions can be in bohr or angstroem,
 //multipoles are in q*bohr^k, with k rank of multipole and polarisabilities are in angstroem^3
-void PolarSegment::LoadFromMPS(const std::string& filename){
+void ClassicalSegment::LoadFromMPS(const std::string& filename){
 
     std::string line;
     std::ifstream intt;
@@ -93,7 +93,7 @@ void PolarSegment::LoadFromMPS(const std::string& filename){
             numberofmultipoles=(rank+1)*(rank+1);
             multipoles=Eigen::VectorXd::Zero(numberofmultipoles);
             pos*=unit_conversion;
-            _atomlist.push_back(PolarSite(id,name,pos));
+            _atomlist.push_back(T(id,name,pos));
             }
         // 'P', dipole polarizability
         else if ( split[0] == "P") {
@@ -145,26 +145,26 @@ void PolarSegment::LoadFromMPS(const std::string& filename){
 }
 
 
-double PolarSegment::CalcTotalQ()const{
+double ClassicalSegment::CalcTotalQ()const{
     double Q=0;
-    for(const PolarSite& site:_atomlist){
+    for(const T& site:_atomlist){
         Q+=site.getCharge();
     }
     return Q;
 }
 
-Eigen::Vector3d PolarSegment::CalcDipole()const{
+Eigen::Vector3d ClassicalSegment::CalcDipole()const{
     Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
 
     Eigen::Vector3d CoM=this->getPos();
-    for(const PolarSite& site:_atomlist){
+    for(const T& site:_atomlist){
             dipole += (site.getPos()- CoM) * site.getCharge();
             dipole+=site.getDipole();
     }
     return dipole;
 }
 
-void PolarSegment::WriteMPS(const std::string& filename, std::string header) const{
+void ClassicalSegment::WriteMPS(const std::string& filename, std::string header) const{
 
     std::ofstream ofs;
     ofs.open(filename.c_str(), ofstream::out);
@@ -177,7 +177,7 @@ void PolarSegment::WriteMPS(const std::string& filename, std::string header) con
         % CalcTotalQ() % size());
     ofs << boost::format("Units angstrom\n");
 
-    for(const PolarSite& site:_atomlist){
+    for(const T& site:_atomlist){
         ofs <<site.WriteMpsLine("angstrom");
     }
     ofs.close();
