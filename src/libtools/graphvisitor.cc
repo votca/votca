@@ -62,6 +62,10 @@ void GraphVisitor::initialize(Graph& g){
   addEdges_(g, startingVertex_);
 }
 
+bool GraphVisitor::vertexExplored(int vertex){
+  return explored_.count(vertex)==1;
+}
+
 void GraphVisitor::exec(Graph& g, Edge ed){
   auto unexp_vert = getUnexploredVertex(ed);    
   // If no vertices are return than just ignore it means the same
@@ -73,7 +77,6 @@ void GraphVisitor::exec(Graph& g, Edge ed){
       " did you set the starting node");
   }
   pair<int,GraphNode> pr(unexp_vert.at(0),g.getNode(unexp_vert.at(0)));
- 
   exploreNode(pr,g,ed);
 
 }

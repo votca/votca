@@ -91,6 +91,9 @@ class GraphVisitor {
 
   /// Get the set of all the vertices that have been explored
   std::set<int> getExploredVertices();
+
+  /// Has the vertex been explored
+  bool vertexExplored(int vert);
 };
 }
 }

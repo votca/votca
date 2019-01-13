@@ -293,6 +293,63 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
 
 }
 
+BOOST_AUTO_TEST_CASE(explorebranch_test){
+  {
+    // Create edge
+    //     2 - 10
+    //     |
+    // 0 - 1 - 3 - 9
+    //     |       |
+    //     4 - 5 - 6 -  7 - 8
+
+    Edge ed1(0, 1);
+    Edge ed2(1, 2);
+    Edge ed3(1, 3);
+    Edge ed4(1, 4);
+    Edge ed5(4, 5);
+    Edge ed6(5, 6);
+    Edge ed7(6, 7);
+    Edge ed8(7, 8);
+    Edge ed9(6, 9);
+    Edge ed10(3, 9);
+    Edge ed11(2,10);
+
+    vector<Edge> edges{ ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9, ed10, ed11};
+
+    // Create Graph nodes
+    unordered_map<int, GraphNode> nodes;
+    for(int index = 0; index<11;++index){
+      GraphNode gn;
+      nodes[index] = gn;
+    }
+
+    Graph g(edges,nodes);
+
+    int starting_vertex = 1;
+    set<Edge> branch_edges = exploreBranch(g,starting_vertex,ed3);
+
+    BOOST_CHECK_EQUAL(branch_edges.size(),8);
+
+    vector<bool> found_edges(8,false);
+    int index = 0;
+    for (auto ed : branch_edges){
+      if(ed == ed3) found_edges.at(index)=true;
+      if(ed == ed4) found_edges.at(index)=true;
+      if(ed == ed5) found_edges.at(index)=true;
+      if(ed == ed6) found_edges.at(index)=true;
+      if(ed == ed7) found_edges.at(index)=true;
+      if(ed == ed8) found_edges.at(index)=true;
+      if(ed == ed9) found_edges.at(index)=true;
+      if(ed == ed10) found_edges.at(index)=true;
+      ++index;
+    }
+
+    for( auto found : found_edges){
+      BOOST_CHECK(found);
+    }
+  }
+}
+
 BOOST_AUTO_TEST_CASE(structureid_test) {
   {
 

@@ -71,9 +71,31 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
         "not contain the starting vertex.");
   }
   Graph_BF_Visitor gv_breadth_first;
-  gv_breadth_first.setStartingVertex(starting_vertex);
-  GraphNode gn = g.getNode(starting_vertex);
- 
+  GraphNode gn;
+  pair<int,GraphNode> pr_gn(starting_vertex,gn);
+  gv_breadth_first.exploreNode(pr_gn,g);
+  gv_breadth_first.setStartingVertex(edge.getOtherEndPoint(starting_vertex));
+  gv_breadth_first.initialize(g);
+
+  set<Edge> branch_edges;
+  branch_edges.insert(edge);
+  while (!gv_breadth_first.queEmpty()) {
+    Edge ed = gv_breadth_first.nextEdge(g);
+    branch_edges.insert(ed);
+    gv_breadth_first.exec(g, ed);
+  }
+
+  vector<Edge> neigh_edges = g.getNeighEdges(starting_vertex);
+  for( auto ed : neigh_edges){
+    int neigh_vertex = ed.getOtherEndPoint(starting_vertex);
+
+    cout << "neigh vertex " << neigh_vertex << endl;
+    if(gv_breadth_first.vertexExplored(neigh_vertex)){
+      branch_edges.insert(ed);
+    }
+  }
+
+  return branch_edges;
 }
 /**
  * \brief This class is to help keep track of which vertices have and have not
