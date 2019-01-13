@@ -18,6 +18,8 @@
 #ifndef _VOTCA_CSG_BASEBEAD_H
 #define _VOTCA_CSG_BASEBEAD_H
 
+#include <memory>
+
 #include <votca/csg/topologyitem.h>
 #include <votca/csg/moleculeitem.h>
 
@@ -53,19 +55,31 @@ public:
    * get the bead type
    * \return const bead type pointer
    */
-  virtual const BeadType *getType() const { return _type; }
+  virtual const std::weak_ptr<BeadType> getType() const { return _type;}
 
   /**
    * set the bead type
    * \param bead type object
    */
-  virtual void setType(BeadType *type) { _type = type; }
+  virtual void setType(std::weak_ptr<BeadType> type) { _type = type; }
 
   /**
    * get the bead type
    * \return - non constant bead type pointer
    */
-  virtual BeadType *Type() const { return _type; }
+  virtual std::weak_ptr<BeadType> Type() const { return _type; }
+
+  /**
+   * get the name of the bead type
+   * \return - string indicates the name 
+   **/
+  std::string getBeadTypeName();
+
+  /**
+   * get the id of the bead type
+   * \return - int indicated the id 
+   **/
+  int getBeadTypeId();
 
   /**
    * get the mass of the base bead
@@ -108,11 +122,11 @@ public:
 
 protected:
   BaseBead()
-      : TopologyItem(nullptr), MoleculeItem(nullptr), _type(nullptr), 
+      : TopologyItem(nullptr), MoleculeItem(nullptr), 
       _mass(0.0), _bPos(false){};
 
 
-  BeadType *_type;
+  std::weak_ptr<BeadType> _type;
 
   double _mass;
   vec _pos;

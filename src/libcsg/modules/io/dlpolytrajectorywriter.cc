@@ -116,14 +116,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf)
       // AB: DL_POLY needs bead TYPE, not name!
 
       if( _isConfig) {
-
-	_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1 << endl;
-
+        _fl << setw(8) << left << bead->getBeadTypeName() << right << setw(10) << i+1 << endl;
       } else {
-
-	_fl << setw(8) << left << bead->getType()->getName() << right << setw(10) << i+1;
-	_fl << setprecision(6) << setw(12) << bead->getMass() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
-
+        _fl << setw(8) << left << bead->getBeadTypeName() << right << setw(10) << i+1;
+        _fl << setprecision(6) << setw(12) << bead->getMass() << setw(12) << bead->getQ() << setw(12) << "   0.0" << endl;
       }
 
       // alternative with atom NAME & fixed floating point format (in case the need arises)

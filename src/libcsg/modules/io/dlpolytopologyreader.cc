@@ -286,15 +286,16 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #endif
 
 	//replicate molecule
-	for (int replica=1;replica<nreplica;replica++){
-          Molecule *mi_replica = top.CreateMolecule(mol_name);
-	  for(int i=0;i<mi->BeadCount();i++){
-	    Bead *bead=mi->getBead(i);
-	    auto type = top.GetOrCreateBeadType(bead->Type()->getName());
-	    string beadname=mi->getBeadName(i);
-	    Bead *bead_replica = top.CreateBead(1, bead->getName(), type, res->getId(), bead->getMass(), bead->getQ());
-	    mi_replica->AddBead(bead_replica,beadname);
-	  }
+  for (int replica=1;replica<nreplica;replica++){
+    Molecule *mi_replica = top.CreateMolecule(mol_name);
+    for(int i=0;i<mi->BeadCount();i++){
+      Bead *bead=mi->getBead(i);
+      string beadname=mi->getBeadName(i);
+      Bead *bead_replica;
+      weak_ptr<BeadType> weak_type = bead->Type();
+      bead_replica = top.CreateBead(1, bead->getName(), weak_type, res->getId(), bead->getMass(), bead->getQ());
+      mi_replica->AddBead(bead_replica,beadname);
+    }
 	  matoms+=mi->BeadCount();
 	  InteractionContainer ics=mi->Interactions();
           for(vector<Interaction *>::iterator ic=ics.begin(); ic!=ics.end(); ++ic) {

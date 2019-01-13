@@ -1,0 +1,18 @@
+I have 4 beads in 4 molecules
+Boundary Condition: open
+
+List of residues:
+0 name: MEO id: 0
+1 name: MEO id: 1
+2 name: SOL id: 2
+3 name: SOL id: 3
+
+List of molecules:
+molecule: 1 MEO beads: 1
+0 Name 1:MEO:ME Type ME Mass 32.0424 Resnr 0 Resname MEO Charge 0
+molecule: 2 MEO beads: 1
+1 Name 1:MEO:ME Type ME Mass 32.0424 Resnr 1 Resname MEO Charge 0
+molecule: 3 SOL beads: 1
+2 Name 2:SOL:WT Type WT Mass 18.0154 Resnr 2 Resname SOL Charge 0
+molecule: 4 SOL beads: 1
+3 Name 2:SOL:WT Type WT Mass 18.0154 Resnr 3 Resname SOL Charge 0
