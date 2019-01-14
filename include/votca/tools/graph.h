@@ -71,19 +71,10 @@ class Graph {
     calcId_();
   }
 
-  /// Copy constructor
-  Graph(const Graph& graph);
-
   /// Equivalence and non equivalence operators work by determine if the
   /// contents of each graph node in each of the graphs are the same.
   bool operator!=(const Graph& graph) const;
   bool operator==(const Graph& graph) const;
-
-  /// Copy Assignment
-  virtual Graph& operator=(const Graph& graph);
-
-  /// Move Assignment
-  virtual Graph& operator=(Graph&& graph);
 
   /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.

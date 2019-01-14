@@ -35,30 +35,6 @@ bool Graph::operator!=(const Graph& graph) const {
 
 bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
 
-Graph::Graph(const Graph& graph) {
-  this->edge_container_ = graph.edge_container_;
-  for (const pair<int, GraphNode>& id_and_node : graph.nodes_) {
-    this->nodes_[id_and_node.first] = id_and_node.second;
-  }
-  this->id_ = graph.id_;
-}
-
-Graph& Graph::operator=(const Graph& graph) {
-  this->edge_container_ = graph.edge_container_;
-  for (const pair<int, GraphNode>& id_and_node : graph.nodes_) {
-    this->nodes_[id_and_node.first] = id_and_node.second;
-  }
-  this->id_ = graph.id_;
-  return *this;
-}
-
-Graph& Graph::operator=(Graph&& graph) {
-  this->edge_container_ = move(graph.edge_container_);
-  this->nodes_ = move(graph.nodes_);
-  this->id_ = move(graph.id_);
-  return *this;
-}
-
 vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) {
   vector<pair<int, GraphNode>> isolated_nodes;
   for (const pair<int, GraphNode>& id_and_node : nodes_) {
