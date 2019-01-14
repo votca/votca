@@ -85,6 +85,7 @@ namespace votca {
           xtpdft.Evaluate( _orbitals );
           _basisset_name = xtpdft.getDFTBasisName();
           std::string file_name = _run_dir + "/" + _log_file_name;
+          CTP_LOG(ctp::logDEBUG, *_pLog) << "Writing result to " << _log_file_name << flush;
           _orbitals.WriteToCpt(file_name);
             return true;
     }
