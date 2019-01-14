@@ -113,6 +113,7 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
 }
 
 BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
+
   {
     // Create edge
     //     2
@@ -174,6 +175,53 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
       BOOST_CHECK(found);
     }
   }
+
+  {
+    // Test that the reduced graph handles loops correctly
+    //
+    // 1 - 2 
+    // |   |
+    // 4 - 3
+    //
+    // Should reduce this to 
+    //
+    // 1 - 1
+    //
+    vector<Edge> edges{ Edge(1,2), Edge(2,3), Edge(3,4),Edge(1,4)};
+
+    unordered_map<int, GraphNode> nodes;
+    for(int vertex = 1; vertex<=4;++vertex){
+      GraphNode gn;
+      nodes[vertex] = gn;
+    } 
+    
+    Graph graph(edges,nodes);
+    ReducedGraph reduced_graph = reduceGraph(graph);
+  
+    vector<Edge> edges2 = reduced_graph.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),1);
+
+    Edge ed_check(1,1);
+    BOOST_CHECK_EQUAL(edges2.at(0),ed_check);
+
+    vector<vector<Edge>> edges3 = reduced_graph.expandEdge(ed_check);
+    BOOST_CHECK_EQUAL(edges3.size(),1);
+    BOOST_CHECK_EQUAL(edges3.at(0).size(),4);
+
+    vector<bool> found_edge(4,false);
+   
+    for(auto edge : edges3.at(0)){
+      if(edge==edges.at(0)) found_edge.at(0) = true;
+      if(edge==edges.at(1)) found_edge.at(1) = true;
+      if(edge==edges.at(2)) found_edge.at(2) = true;
+      if(edge==edges.at(3)) found_edge.at(3) = true;
+    }
+
+    for(bool found : found_edge){
+      BOOST_CHECK(found);
+    }
+  }
+
 
   {
     // Create edge
