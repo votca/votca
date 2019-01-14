@@ -20,9 +20,11 @@
 
 #include <votca/xtp/bse.h>
 #include <votca/tools/linalg.h>
+#include <votca/xtp/davidsonsolver.h>
 
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
+
 using boost::format;
 using std::flush;
 
@@ -51,7 +53,24 @@ void BSE::SetupDirectInteractionOperator() {
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
-      tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_opt.nmax );
+
+      if (_opt.davidson)
+      {
+        DavidsonSolver DS;
+        if (_opt.jocc)
+        {
+          DS.set_jacobi_correction();
+          DS.set_jacobi_linsolve(_opt.jocc_linsolve);
+        }
+        DS.solve(H,_opt.nmax);
+        _bse_triplet_energies = DS.eigenvalues().cast<float>();
+        _bse_triplet_coefficients = DS.eigenvectors().cast<float>();  
+      }
+
+      else
+        tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_opt.nmax );
+
+      
       return;
     }
 
@@ -72,7 +91,24 @@ void BSE::SetupDirectInteractionOperator() {
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
-      tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _opt.nmax );
+
+      if (_opt.davidson)
+      {
+
+        DavidsonSolver DS;
+        if (_opt.jocc)
+        {
+          DS.set_jacobi_correction();
+          DS.set_jacobi_linsolve(_opt.jocc_linsolve);
+        }
+        DS.solve(H,_opt.nmax);
+        _bse_singlet_energies = DS.eigenvalues().cast<float>();
+        _bse_singlet_coefficients = DS.eigenvectors().cast<float>();  
+      }
+
+      else
+        tools::linalg_eigenvalues(H, _bse_singlet_energies, _bse_singlet_coefficients , _opt.nmax );
+      
       return;
     }
     
