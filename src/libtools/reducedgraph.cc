@@ -67,7 +67,7 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
   calcId_();
 }
 
-set<int> getAllVertices_(std::vector<ReducedEdge> reduced_edges) {
+set<int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
   set<int> vertices;
   for (auto reduced_edge : reduced_edges) {
     vector<int> chain = reduced_edge.getChain();
