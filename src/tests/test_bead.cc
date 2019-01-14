@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(test_bead_constructor) {
 	Topology top;
 
 	string bead_type_name = "C1";
-	BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
+  BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
 
 	int symmetry = 1;
 	string name = "dummy";
@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 	Topology top;
 
 	string bead_type_name = "C1";
-	BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
+  BeadType * b_type = top.GetOrCreateBeadType(bead_type_name);
 
 	int symmetry = 1;
 	string name = "dummy";
