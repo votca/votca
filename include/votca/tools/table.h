@@ -25,9 +25,6 @@
 namespace votca {
 namespace tools {
 
-// the entry is invalid, e.g. could not be calculated (ln(0), ...)
-#define TBL_INVALID 1
-
 /**
     \brief class to store tables like rdfs, tabulated potentials, etc
 
@@ -37,10 +34,6 @@ namespace tools {
  */
 class Table {
  public:
-  Table();
-  Table(Table &tbl);
-
-  ~Table() {};
 
   void clear();
 
@@ -120,32 +113,16 @@ class Table {
   Eigen::VectorXd _y;
   std::vector<char> _flags;
   Eigen::VectorXd _yerr;
-  std::string _error_details;
+  std::string _error_details="";
 
-  bool _has_yerr;
-  bool _has_comment;
+  bool _has_yerr=false;
+  bool _has_comment=false;
 
   friend std::ostream &operator<<(std::ostream &out, const Table &v);
   friend std::istream &operator>>(std::istream &in , Table &t);
 
   std::string _comment_line;
 };
-
-inline Table::Table() {
-  _has_yerr = false;
-  _has_comment = false;
-  _error_details = "";
-}
-
-inline Table::Table(Table &tbl) {
-  _x = tbl._x;
-  _y = tbl._y;
-  _flags = tbl._flags;
-  _has_yerr = tbl._has_yerr;
-  if (_has_yerr) _yerr = tbl._yerr;
-  _has_comment = false;
-  _error_details = "";
-}
 
 inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
