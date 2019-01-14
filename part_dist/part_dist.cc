@@ -170,18 +170,18 @@ int main(int argc, char** argv)
 	}
 	else {
 	    // Include all particle types
-	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-		for(int i=0; i<(*mol)->BeadCount(); ++i) {
-		    flag_found = 0;
-		    part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-		    for (size_t j=0; j < ptypes.size(); ++j) {
-			if (part_type == ptypes[j]) 
-			    flag_found = 1;
-		    }
-		    if (!flag_found)
-			ptypes.push_back(part_type);
-		}
-	    }
+    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+      for(int i=0; i<(*mol)->BeadCount(); ++i) {
+        flag_found = 0;
+        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        for (size_t j=0; j < ptypes.size(); ++j) {
+          if (part_type == ptypes[j]) 
+            flag_found = 1;
+        }
+        if (!flag_found)
+          ptypes.push_back(part_type);
+      }
+    }
 	}
 
 	// Allocate array used to store particle occupancy p_occ
@@ -192,16 +192,16 @@ int main(int argc, char** argv)
 	// If we need to shift the center of mass, calculate the number of
 	// particles (only the ones that belong to the particle type index
 	// ptypes)
-	if (vm.count("shift_com")) {
-	    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-		for(int i=0; i<(*mol)->BeadCount(); ++i) {
-		    part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-		    for (size_t j=0; j < ptypes.size(); ++j) 
-			if (part_type == ptypes[j])
-			    ++n_part;
-		}
-	    }
-	}
+  if (vm.count("shift_com")) {
+    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+      for(int i=0; i<(*mol)->BeadCount(); ++i) {
+        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        for (size_t j=0; j < ptypes.size(); ++j) 
+          if (part_type == ptypes[j])
+            ++n_part;
+      }
+    }
+  }
 
 
 	// Now load trajectory
@@ -233,52 +233,52 @@ int main(int argc, char** argv)
 	    // Calculate new center of mass position in the direction of 'coordinate'
 	    com = 0.;
 	    if (vm.count("shift_com")) {
-		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-                    for(int i=0; i<(*mol)->BeadCount(); ++i) {
-                        part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-                        for (size_t j=0; j < ptypes.size(); ++j) {
-                            if (part_type == ptypes[j]) {
-                                if (coordinate.compare("x") == 0) {
-				    com += (*mol)->getBead(i)->getPos().getX();
-				}
-				else if (coordinate.compare("y") == 0) {
-                                    com += (*mol)->getBead(i)->getPos().getY();
-				}
-                                else {
-                                    com += (*mol)->getBead(i)->getPos().getZ();
-				}
-			    }
-			}
-		    }
-		}
-		com /= n_part;
+        for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+          for(int i=0; i<(*mol)->BeadCount(); ++i) {
+            part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+            for (size_t j=0; j < ptypes.size(); ++j) {
+              if (part_type == ptypes[j]) {
+                if (coordinate.compare("x") == 0) {
+                  com += (*mol)->getBead(i)->getPos().getX();
+                }
+                else if (coordinate.compare("y") == 0) {
+                  com += (*mol)->getBead(i)->getPos().getY();
+                }
+                else {
+                  com += (*mol)->getBead(i)->getPos().getZ();
+                }
+              }
+            }
+          }
+        }
+        com /= n_part;
 	    }
 
 	    // Analyze frame
 	    if (moreframes && frame_id >= first_frame && not_the_last) {
 		++analyzed_frames;
 		// Loop over each atom property
-		for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
-		    for(int i=0; i<(*mol)->BeadCount(); ++i) {
-			part_type = atoi((*mol)->getBead(i)->getType()->getName().c_str());
-			for (size_t j=0; j < ptypes.size(); ++j) {	
-			    if (part_type == ptypes[j]) {
-				if (coordinate.compare("x") == 0)
-				    coord = (*mol)->getBead(i)->getPos().getX();
-				else if (coordinate.compare("y") == 0)
-				    coord = (*mol)->getBead(i)->getPos().getY();
-				else 
-				    coord = (*mol)->getBead(i)->getPos().getZ();
-				
-				if (coord-com > min && coord-com < max)
- 				    ++p_occ[j][(int)floor((coord-com-min)/step)];
-			    }
-			}
-		    }
-		}
-	    }
-	    ++frame_id;
-	}
+    for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
+      for(int i=0; i<(*mol)->BeadCount(); ++i) {
+        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        for (size_t j=0; j < ptypes.size(); ++j) {	
+          if (part_type == ptypes[j]) {
+            if (coordinate.compare("x") == 0)
+              coord = (*mol)->getBead(i)->getPos().getX();
+            else if (coordinate.compare("y") == 0)
+              coord = (*mol)->getBead(i)->getPos().getY();
+            else 
+              coord = (*mol)->getBead(i)->getPos().getZ();
+
+            if (coord-com > min && coord-com < max)
+              ++p_occ[j][(int)floor((coord-com-min)/step)];
+          }
+        }
+      }
+    }
+      }
+      ++frame_id;
+  }
 	
 	trajreader->Close();				
 	
