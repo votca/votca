@@ -20,10 +20,10 @@
 #ifndef _VOTCA_TOOLS_EDGECONTAINER_H
 #define _VOTCA_TOOLS_EDGECONTAINER_H
 
-#include <vector>
-#include <unordered_map>
 #include <map>
 #include <set>
+#include <unordered_map>
+#include <vector>
 #include <votca/tools/edge.h>
 
 namespace votca {
@@ -38,10 +38,11 @@ namespace tools {
 class EdgeContainer {
  protected:
   /// The vertex, the neighboring vertices and the number of edges
-  std::unordered_map<int,std::unordered_map<int,int>> adj_list_; 
+  std::unordered_map<int, std::unordered_map<int, int>> adj_list_;
+
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
-  EdgeContainer() {};
+  EdgeContainer(){};
   EdgeContainer(Edge edge);
   EdgeContainer(std::vector<Edge> edges);
 
@@ -66,9 +67,10 @@ class EdgeContainer {
   /// Get the edges neighboring vert
   std::vector<Edge> getNeighEdges(int vertex);
   /// Print output of object
-  friend std::ostream& operator<<(std::ostream& os, const EdgeContainer edge_container); 
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const EdgeContainer edge_container);
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif  // _VOTCA_TOOLS_EDGECONTAINER_H
