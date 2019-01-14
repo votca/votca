@@ -29,18 +29,18 @@ namespace votca {
 
 using namespace std;
 
-EdgeContainer::EdgeContainer(Edge ed) { addEdge(ed); }
+EdgeContainer::EdgeContainer(Edge edge) { addEdge(edge); }
 
-EdgeContainer::EdgeContainer(vector<Edge> eds) {
-  for (auto ed : eds) {
-    addEdge(ed);
+EdgeContainer::EdgeContainer(vector<Edge> edges) {
+  for (Edge& edge : edges) {
+    addEdge(edge);
   }
 }
 
 int EdgeContainer::getMaxDegree(void) const{
   int max = 0;
-  for(auto const& it : adj_list_) {
-    int degree = getDegree(it.first);
+  for(const auto & vertex_and_neigh_and_count : adj_list_) {
+    int degree = getDegree(vertex_and_neigh_and_count.first);
     if(degree>max) {
       max = degree;
     }
@@ -48,37 +48,47 @@ int EdgeContainer::getMaxDegree(void) const{
   return max;
 }
 
-int EdgeContainer::getDegree(const int vert) const{
-  if(!adj_list_.count(vert)) throw invalid_argument("vertex is not defined");
+int EdgeContainer::getDegree(const int vertex) const{
+  if(!adj_list_.count(vertex)) throw invalid_argument("vertex is not defined");
   int degree_count=0;
-  for(auto neighbor_and_count : adj_list_.at(vert)){
+  for(const pair<int,int>& neighbor_and_count : adj_list_.at(vertex)){
     degree_count+=neighbor_and_count.second;
   }
   return degree_count;
 }
 
 vector<int> EdgeContainer::getVerticesDegree(int degree) const{
-  vector<int> verts;
-  for(auto v_list : adj_list_){
-    int degree_count= getDegree(v_list.first);
+  vector<int> vertices;
+  for(const auto& vertex_and_neigh_and_count : adj_list_){
+    int degree_count= getDegree(vertex_and_neigh_and_count.first);
     if(degree_count==degree){
-      verts.push_back(v_list.first);
+      vertices.push_back(vertex_and_neigh_and_count.first);
     }
   }
-  return verts;
+  return vertices;
 }
 
-bool EdgeContainer::edgeExist(Edge ed) {
-  return adj_list_[ed.getEndPoint1()].count(ed.getEndPoint2()) || 
-    adj_list_[ed.getEndPoint2()].count(ed.getEndPoint1()); 
+bool EdgeContainer::edgeExist(Edge edge) const {
+  if(adj_list_.count(edge.getEndPoint1())){
+    if(adj_list_.at(edge.getEndPoint1()).count(edge.getEndPoint2())) {
+      return true;
+    }
+  }
+  if(adj_list_.count(edge.getEndPoint2())){
+    if(adj_list_.at(edge.getEndPoint2()).count(edge.getEndPoint1())) {
+      return true;
+    }
+  }
+  return false;
 }
 
-bool EdgeContainer::vertexExist(int vert) { return adj_list_.count(vert); }
+bool EdgeContainer::vertexExist(const int vertex) const { 
+  return adj_list_.count(vertex); }
 
-void EdgeContainer::addEdge(Edge ed) {
+void EdgeContainer::addEdge(Edge edge) {
 
-  int point1 = ed.getEndPoint1();
-  int point2 = ed.getEndPoint2();
+  int point1 = edge.getEndPoint1();
+  int point2 = edge.getEndPoint2();
   if(adj_list_[point1].count(point2)){
     ++adj_list_[point1][point2];
   }else{
@@ -98,23 +108,25 @@ void EdgeContainer::addEdge(Edge ed) {
 
 vector<int> EdgeContainer::getVertices() {
   vector<int> vertices;
-  for (auto const& it : adj_list_) vertices.push_back(it.first);
+  for (const auto & vertex_and_neigh_and_count : adj_list_) {
+    vertices.push_back(vertex_and_neigh_and_count.first);
+  }
   return vertices;
 }
 
-vector<int> EdgeContainer::getNeighVertices(int vert) {
+vector<int> EdgeContainer::getNeighVertices(int vertex) {
   vector<int> neigh_verts;
-  for (auto const& neigh_vert : adj_list_[vert]) {
-    neigh_verts.push_back(neigh_vert.first);
+  for (const pair<int,int>& neigh_and_count : adj_list_[vertex]) {
+    neigh_verts.push_back(neigh_and_count.first);
   }
   return neigh_verts;
 }
 
-vector<Edge> EdgeContainer::getNeighEdges(int vert) {
+vector<Edge> EdgeContainer::getNeighEdges(int vertex) {
   vector<Edge> neigh_edges;
-  for (auto const& neigh_vert : adj_list_[vert]) {
-    for(int count=0;count<adj_list_[vert][neigh_vert.first];++count){
-      neigh_edges.push_back(Edge(vert, neigh_vert.first));
+  for (const pair<int,int> & neigh_and_count : adj_list_[vertex]) {
+    for(int count=0;count<adj_list_[vertex][neigh_and_count.first];++count){
+      neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
     }
   }
   return neigh_edges;
@@ -122,18 +134,19 @@ vector<Edge> EdgeContainer::getNeighEdges(int vert) {
 
 vector<Edge> EdgeContainer::getEdges() const {
   unordered_map<Edge,int> extra_edge_count;
-  for (auto const& it : adj_list_) {
-    for (auto const& vert : it.second) {
-      extra_edge_count[Edge(it.first,vert.first)]=vert.second;
+  for (const auto & vertex_and_neigh_and_count : adj_list_) {
+    for (const pair<int,int>& neigh_and_count : vertex_and_neigh_and_count.second) {
+      extra_edge_count[Edge(vertex_and_neigh_and_count.first,
+          neigh_and_count.first)]=neigh_and_count.second;
     }
   }
-  vector<Edge> vec_edgs;
-  for(auto edge_count : extra_edge_count){
+  vector<Edge> edges;
+  for(pair<const Edge,int>& edge_count : extra_edge_count){
     for(int count = 0; count < edge_count.second;++count){
-      vec_edgs.push_back(edge_count.first);
+      edges.push_back(edge_count.first);
     }
   }
-  return vec_edgs;
+  return edges;
 }
 
 ostream& operator<<(ostream& os, const EdgeContainer edgecontainer){
