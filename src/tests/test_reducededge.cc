@@ -51,6 +51,8 @@ BOOST_AUTO_TEST_CASE(equivalence_test) {
 
   ReducedEdge ed6(vector<int>{2,6,3,1});
   ReducedEdge ed7(vector<int>{1,3,6,2});
+  
+  auto chain = ed6.getChain();
   BOOST_CHECK_EQUAL(ed6,ed7);
 
   // Both are loops they get rearranged internally so the smallest vertex 
