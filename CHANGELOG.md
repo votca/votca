@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.5_rcr21 (released XX.01.19)
+## Version 1.5_rc2 (released XX.01.19)
  * histogramnew: refactor to fix memory lead
 
 
