@@ -44,13 +44,13 @@ class Graph_BF_Visitor : public GraphVisitor {
 
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
-  void addEdges_(Graph& g, int vertex);
-  Edge getEdge_(Graph g);
+  void addEdges_(Graph& graph, int vertex);
+  Edge getEdge_(Graph graph);
 
  public:
   Graph_BF_Visitor(){};
   bool queEmpty();
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
