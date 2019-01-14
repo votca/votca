@@ -95,13 +95,6 @@ namespace votca {
             return;
         }
 
-        void AOMatrix3D::FreeMatrix() {
-            for (int i = 0; i < 3; i++) {
-                _aomatrix[i].resize(0, 0);
-            }
-            return;
-        }
-
         template<class T> void AOMatrix<T>::Print(std::string ident) {
             std::cout << "\n" << std::endl;
             std::cout.precision(12);

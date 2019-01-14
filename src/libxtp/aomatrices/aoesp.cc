@@ -430,12 +430,13 @@ if (lmax_col > 3) {
             return;
         }
 
-        void AOESP::Fillextpotential(const AOBasis& aobasis,const std::shared_ptr<MMRegion> & sites) {
+        template <class T>
+        void AOESP::Fillextpotential(const AOBasis& aobasis,const MMRegion<T> & sites) {
             
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
-            for (const auto& Seg:*sites) {
-                 for (const PolarSite& site:Seg) {
+            for (const auto& Seg:sites) {
+                 for (const auto& site:Seg) {
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                     setPosition(site.getPos());
                     Fill(aobasis);

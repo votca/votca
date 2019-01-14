@@ -752,15 +752,15 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
-        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites) {
+        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (const auto& Seg:*sites) {
-                for (const PolarSite& site:Seg) {
-                    if (site.getRank() > 0 || site.isPolarisable()) {
+            for (const auto& Seg:sites) {
+                for (const auto& site:Seg) {
+                    if (site.getRank() > 0 ) {
                         if(site.getDipole().norm()<1e-12){continue;}
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setPolarSite(&site);
+                        setSite(&site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
                     }

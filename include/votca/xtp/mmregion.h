@@ -53,6 +53,7 @@ class MMRegion: public Region{
 };
 
 typedef MMRegion<PolarSegment> PolarRegion;
+typedef MMRegion<StaticSegment> StaticRegion;
 
 
 

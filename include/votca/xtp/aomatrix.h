@@ -90,8 +90,6 @@ namespace votca { namespace xtp {
         const std::array<Eigen::MatrixXd,3 > &Matrix() const{ return _aomatrix ;}
         void Print( std::string _ident);
         void Fill(const AOBasis& aobasis );
-        // block fill prototype
-        void FreeMatrix();
     protected:
         std::array<Eigen::MatrixXd,3 > _aomatrix; 
         virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col)=0 ;
@@ -124,7 +122,8 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
-        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        template <class T>
+        void Fillextpotential(const AOBasis& aobasis, const MMRegion & sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
@@ -181,20 +180,22 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        template <class T>
+        void Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
-        void setPolarSite(const PolarSite* site){polarsite=site;};
+        void setSite(const PolarSite* site){polarsite=site;};
         const PolarSite* polarsite;
         Eigen::MatrixXd _externalpotential;
     };
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        template <class T>
+        void Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 

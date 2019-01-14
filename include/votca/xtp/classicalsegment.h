@@ -47,7 +47,8 @@ protected:
     
 };
 
-typedef ClassicalSegment<PolarSite> PolarSegment ;
+typedef ClassicalSegment<PolarSite> PolarSegment;
+typedef ClassicalSegment<StaticStie> StaticSegment;
         
         
         
