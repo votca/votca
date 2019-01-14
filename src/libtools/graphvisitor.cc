@@ -54,7 +54,7 @@ vector<int> GraphVisitor::getUnexploredVertex(Edge edge) {
 }
 
 void GraphVisitor::initialize(Graph& graph) {
-  auto neigh_eds = graph.getNeighEdges(startingVertex_);
+  vector<Edge> neigh_eds = graph.getNeighEdges(startingVertex_);
   GraphNode graph_node = graph.getNode(startingVertex_);
   pair<int, GraphNode> vertex_and_graph_node(startingVertex_, graph_node);
   exploreNode_(vertex_and_graph_node, graph);
@@ -62,7 +62,7 @@ void GraphVisitor::initialize(Graph& graph) {
 }
 
 void GraphVisitor::exec(Graph& graph, Edge edge) {
-  auto unexp_vert = getUnexploredVertex(edge);
+  vector<int> unexp_vert = getUnexploredVertex(edge);
   // If no vertices are return than just ignore it means the same
   // vertex was explored from a different direction
   if (!unexp_vert.size()) return;
@@ -86,7 +86,7 @@ Edge GraphVisitor::nextEdge(Graph graph) {
 
   // Get the edge and at the same time remove it from whatever queue it is in
   Edge edge = getEdge_(graph);
-  auto unexplored_vertices = getUnexploredVertex(edge);
+  vector<int> unexplored_vertices = getUnexploredVertex(edge);
   // Do not add neighboring edges if they belong to a vertex that has already
   // been explored because they will have already been added
   if (unexplored_vertices.size()) {
