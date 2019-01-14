@@ -28,17 +28,18 @@ namespace votca {
 namespace tools {
 
 /**
- * \brief Contains a graph that consits of vertices with degree of 1 or greater than 3
+ * \brief Contains a graph that consits of vertices with degree of 1 or greater
+ *than 3
  *
  * The point of this class is to reduce the computational complexity of a
- * regular graph. This is achieved by removing any vertices with degree 2. For 
+ * regular graph. This is achieved by removing any vertices with degree 2. For
  * example a graph:
  *
  * 1 - 2 - 3 - 4 - 5 - 9
  *     |   |   |
  *     6 - 7   8
  *
- * Would be reduced to 
+ * Would be reduced to
  *
  * 1 - 2 - 3 - 4 - 9
  *     | _ |   |
@@ -47,34 +48,43 @@ namespace tools {
  * Notice that the vertices 5, 6 and 7 have been removed, there also exist two
  * edges connecting 2 to 3. The reduced graph still contains all the information
  * associated with the full graph but when used with graph algorithms only the
- * vertices and nodes associated with the reduced graph are used.  
+ * vertices and nodes associated with the reduced graph are used.
  *
  **/
 class ReducedGraph : public Graph {
  private:
+  /**
+   * The inherited graph stores all the edges describing the graph after it
+   * has been reduced. However, in order to expand the edges back to the
+   * vertices that make them up a second variable is needed.
+   *
+   * E.g.
+   *
+   * 1 - 2 - 4 - 9 - 5
+   *
+   * The edge
+   *
+   * 1 - 5
+   *
+   * Would be stored in the parent graph datastructure, the rest of the
+   * vertices are stored as a vector in the expanded_edges_ object
+   **/
+  std::unordered_map<Edge, std::vector<std::vector<int>>> expanded_edges_;
 
-   std::unordered_map<Edge,std::vector<std::vector<int>>> expanded_edges_;  
-
-    void initEdgeContainerFull_(std::vector<ReducedEdge> reduced_edges);
-
-    void init_(std::vector<ReducedEdge> reduced_edges, std::unordered_map<int,GraphNode> nodes);
+  void init_(std::vector<ReducedEdge> reduced_edges,
+             std::unordered_map<int, GraphNode> nodes);
 
  public:
   ReducedGraph(){};
   ~ReducedGraph(){};
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
-  ReducedGraph(std::vector<ReducedEdge> reduced_edges, std::unordered_map<int,GraphNode> nodes);
-
-  ReducedGraph(const ReducedGraph & reduced_graph);
-
-  ReducedGraph& operator=(const ReducedGraph& reduced_graph);
-
-  ReducedGraph& operator=(ReducedGraph&& reduced_graph);
+  ReducedGraph(std::vector<ReducedEdge> reduced_edges,
+               std::unordered_map<int, GraphNode> nodes);
 
   /**
-   * \brief Allows one to return all edges connecting two vertices of the reduced
-   * graph.
+   * \brief Allows one to return all edges connecting two vertices of the
+   *reduced graph.
    *
    * In this case if edge (2,3) were passed in:
    *
@@ -89,18 +99,18 @@ class ReducedGraph : public Graph {
    *             8
    *
    * The following vectors would be returned
-   * 
+   *
    * vec_edges = expandEdge(Edge(2,3));
    * vec_edges.at(0); // 2-3
    * vec_edges.at(1); // 2-6, 6-7, 7-3
    **/
-  std::vector<std::vector<Edge>> expandEdge(Edge ed);
+  std::vector<std::vector<Edge>> expandEdge(Edge edge);
 
   std::vector<std::pair<int, GraphNode>> getNodes(void);
 
-  friend std::ostream& operator<<(std::ostream& os, const ReducedGraph g);
+  friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };
 
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // _VOTCA_TOOLS_REDUCEDGRAPH_H

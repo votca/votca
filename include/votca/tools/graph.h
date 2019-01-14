@@ -36,7 +36,6 @@ namespace tools {
  * the bonds between nodes.
  *
  */
-
 class GraphNode;
 
 class Graph {
