@@ -26,109 +26,148 @@ namespace tools {
 
 using namespace std;
 
+/**
+ * Given a chain of vertices where the end points are the same this method
+ * will rotate the chain so that the vertex with the smallest value is at the
+ * end points e.g.
+ *
+ * 3 - 4 - 5 - 9 - 2 - 8 - 3
+ *
+ * The method will return the chain as
+ *
+ * 2 - 8 - 3 - 4 - 5 - 9 - 2
+ *
+ * Notice that the order is preserved, because it is assumed that the chain
+ * makes a loop.
+ **/
+void moveVertexWithSmallestValueToEnds_(vector<int>& vertices) {
+  vertices.pop_back();
+  vector<int>::iterator starting_iterator = next(vertices.begin());
+  int min_vertex_index =
+      min_element(starting_iterator, vertices.end()) - vertices.begin();
+  if (vertices.front() > vertices.at(min_vertex_index)) {
+    rotate(vertices.begin(), vertices.begin() + min_vertex_index,
+           vertices.end());
+  }
+  vertices.push_back(vertices.front());
+}
+
+/**
+ * This function will determine if it is necessary to reverse the order of
+ * a chain of vertices. E.g.
+ *
+ * 1 - 2 - 4 - 5
+ *
+ * This chain will not need to be reversed because the end points have end
+ * point 1 smaller than 5
+ *
+ * This chain will need to be reversed
+ *
+ * 4 - 1 - 8 - 2
+ *
+ * Because 2 is smaller than 4
+ *
+ * If the chain has the same end points the next two vertices will be compared
+ *
+ * 1 - 2 - 3 - 4 - 1
+ *     ^       ^
+ *     |       |
+ *
+ * The 2 is smaller than the 4 so there is no need to reverse the order.
+ *
+ * 4 - 9 - 8 - 6 - 4
+ *
+ * In this case th 6 is smaller than the 9 so the order will be reversed.
+ *
+ **/
+bool verticesShouldBeReversed_(vector<int>& vertices) {
+  size_t length = vertices.size();
+  size_t max_index = length / 2;
+  for (size_t index = 0; index < max_index; ++index) {
+    if (vertices.at(index) < vertices.at(length - 1 - index)) {
+      return false;
+    } else if (vertices.at(index) > vertices.at(length - 1 - index)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 ReducedEdge::ReducedEdge(vector<int> vertices) {
-  assert(vertices.size()>=2 && "Edge vertices must consist of at least two vertices.");
+  assert(vertices.size() >= 2 &&
+         "Edge vertices must consist of at least two vertices.");
   // Smallest value always placed at the front of the vector
 
-  // If we have a loop will arange the edge so that the smallest valued vertex 
+  // If we have a loop will arange the edge so that the smallest valued vertex
   // sits at both ends
-  if(vertices.back()==vertices.front()){
-    int min_vertex = vertices.at(0);
-    size_t min_index =0;
-    for(size_t index=1;index<(vertices.size()-1);++index){
-      if(vertices.at(index)<min_vertex){
-        min_index = index;
-        min_vertex = vertices.at(index);
-      }
-    }
-    vector<int> temp_vertices;
-    for(size_t count=0;count<vertices.size();++count){
-      size_t index = (min_index+count) % (vertices.size()-1);
-      temp_vertices.push_back(vertices.at(index));
-    }
-    vertices = temp_vertices;
-  }
-  bool reverse = false;
-  size_t length = vertices.size();
-  size_t max_index = length/2;
-  for(auto index = 0; index< max_index;++index){
-    if(vertices.at(index)<vertices.at(length-1-index)){
-      break;
-    }
-    if(vertices.at(index)>vertices.at(length-1-index)){
-      reverse = true;
-      break;
-    }
+  if (vertices.back() == vertices.front() && vertices.size() > 2) {
+    moveVertexWithSmallestValueToEnds_(vertices);
   }
 
-  if(!reverse){
-
-
-    vertices_=vertices;
-  }else{
-
-    for(auto it=vertices.rbegin();it!=vertices.rend();++it){
-      vertices_.push_back(*it);
-    }
+  if (verticesShouldBeReversed_(vertices)) {
+    reverse(vertices.begin(), vertices.end());
   }
-
-
+  vertices_ = vertices;
 }
 
 vector<Edge> ReducedEdge::expand() const {
   vector<Edge> edges;
-  for(size_t index = 0; index<(vertices_.size()-1);++index){
-    Edge ed(vertices_.at(index),vertices_.at(index+1));
+  for (size_t index = 0; index < (vertices_.size() - 1); ++index) {
+    Edge ed(vertices_.at(index), vertices_.at(index + 1));
     edges.push_back(ed);
   }
   return edges;
 }
 
-bool ReducedEdge::vertexExistInChain(int vertex){
-  auto it = find(vertices_.begin(),vertices_.end(),vertex);
-  return it!=vertices_.end();
+bool ReducedEdge::vertexExistInChain(const int& vertex) const {
+  vector<int>::const_iterator vertex_iterator =
+      find(vertices_.begin(), vertices_.end(), vertex);
+  return vertex_iterator != vertices_.end();
 }
 
-bool ReducedEdge::operator==(const ReducedEdge ed) const {
-  if(ed.vertices_.size()!=vertices_.size()) return false;
-  for(auto index=0;index<vertices_.size();++index){
-    if(vertices_.at(index)!=ed.vertices_.at(index)) return false;
+bool ReducedEdge::operator==(const ReducedEdge edge) const {
+  if (edge.vertices_.size() != vertices_.size()) return false;
+  for (size_t index = 0; index < vertices_.size(); ++index) {
+    if (vertices_.at(index) != edge.vertices_.at(index)) return false;
   }
   return true;
 }
 
-bool ReducedEdge::operator!=(const ReducedEdge ed) const { return !(*this == ed); }
+bool ReducedEdge::operator!=(const ReducedEdge edge) const {
+  return !(*this == edge);
+}
 
-bool ReducedEdge::operator<(const ReducedEdge ed) const {
-  if (this->vertices_.front() < ed.vertices_.front()) return true;
-  if (this->vertices_.front() > ed.vertices_.front()) return false;
-  if (this->vertices_.back() < ed.vertices_.back()) return true;
-
-  if(vertices_.size()<ed.vertices_.size()) return true;
-
-  for(auto index=0;index<vertices_.size();++index){
-    if(vertices_.at(index)>ed.vertices_.at(index)) return false;
+bool ReducedEdge::operator<(const ReducedEdge edge) const {
+  if (this->vertices_.front() < edge.vertices_.front()) return true;
+  if (this->vertices_.front() > edge.vertices_.front()) return false;
+  if (this->vertices_.back() < edge.vertices_.back()) return true;
+  if (vertices_.size() < edge.vertices_.size()) return true;
+  for (size_t index = 0; index < vertices_.size(); ++index) {
+    if (vertices_.at(index) > edge.vertices_.at(index)) return false;
   }
-  if(*this==ed) return false;
-
+  if (*this == edge) return false;
   return true;
 }
 
-bool ReducedEdge::operator<=(const ReducedEdge ed) const {
-  return (*this < ed || *this == ed);
+bool ReducedEdge::operator<=(const ReducedEdge edge) const {
+  return (*this < edge || *this == edge);
 }
 
-bool ReducedEdge::operator>(const ReducedEdge ed) const { return !(*this <= ed); }
+bool ReducedEdge::operator>(const ReducedEdge edge) const {
+  return !(*this <= edge);
+}
 
-bool ReducedEdge::operator>=(const ReducedEdge ed) const { return !(*this < ed); }
+bool ReducedEdge::operator>=(const ReducedEdge edge) const {
+  return !(*this < edge);
+}
 
-ostream& operator<<(ostream& os, const ReducedEdge ed) {
+ostream& operator<<(ostream& os, const ReducedEdge& edge) {
   os << "Vertices" << endl;
-  for(auto vertex : ed.vertices_){
+  for (auto vertex : edge.vertices_) {
     os << vertex << " ";
   }
   os << endl;
   return os;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

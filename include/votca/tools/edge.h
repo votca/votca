@@ -42,11 +42,9 @@ class Edge {
 
  public:
   Edge() {}
-  ~Edge() {}
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   Edge(int ID1, int ID2);
-  Edge(const Edge& ed) : vertices_(ed.vertices_) {}
   /// Given one of the integers in the edge the other will be output
   int getOtherEndPoint(int ver) const;
   /// grab the smaller integer
@@ -54,7 +52,13 @@ class Edge {
   /// grab the larger integer
   int getEndPoint2() const { return vertices_.back(); }
 
-  bool loop() { return vertices_.front()==vertices_.back(); }
+  /**
+   * \brief Checks to see if an edge loops back on itself.
+   *
+   * If both ends of the edge point to the same vertex than it is considered a
+   * loop.
+   **/
+  bool loop() { return vertices_.front() == vertices_.back(); }
 
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;
@@ -83,8 +87,8 @@ class Edge {
 // Value used as a dummy object
 const Edge DUMMY_EDGE(std::numeric_limits<int>::max(),
                       std::numeric_limits<int>::max());
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 /// Define a hasher so we can use it as a key in an unordered_map
 namespace std {
@@ -95,5 +99,5 @@ class hash<votca::tools::Edge> {
     return hash<int>()(ed.getEndPoint1()) ^ hash<int>()(ed.getEndPoint2());
   }
 };
-}
+}  // namespace std
 #endif  // _VOTCA_TOOLS_EDGE_H
