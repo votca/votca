@@ -194,7 +194,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 #endif
 	  string beadtype;
 	  sl >> beadtype;
-	  BeadType * type = top.GetOrCreateBeadType(beadtype);
+	  weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(beadtype);
 	  double mass;
 	  sl >> mass;
 	  double charge;
@@ -217,7 +217,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top)
 	  for(int j=0;j<repeater;j++){
 
 	    string beadname = beadtype + "#" + boost::lexical_cast<string>(i+1);
-	    Bead *bead = top.CreateBead(1, beadname, type, res->getId(), mass, charge);
+	    Bead *bead = top.CreateBead(1, beadname, weak_type, res->getId(), mass, charge);
 
             stringstream nm;
             nm << bead->getResnr() + 1 << ":" <<  top.getResidue(bead->getResnr())->getName() << ":" << bead->getName();

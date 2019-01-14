@@ -86,8 +86,9 @@ BOOST_AUTO_TEST_CASE(simple_test){
 BOOST_AUTO_TEST_CASE(create_bead_type){
   Topology top;
   string bead_type_name = "type1";
-  auto bead_type_ptr = top.GetOrCreateBeadType(bead_type_name);
+  std::weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(bead_type_name);
 
+  auto bead_type_ptr=weak_type.lock();
   BOOST_CHECK(bead_type_ptr->getName()==bead_type_name);
 
   top.Cleanup();
@@ -103,14 +104,14 @@ BOOST_AUTO_TEST_CASE(create_bead) {
   string bead_name = "bead_test";
 
   string bead_type_name = "type1";
-  auto bead_type_ptr = top.GetOrCreateBeadType(bead_type_name);
+  weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(bead_type_name);
 
   int residue_number = 1;
   double mass = 1.1;
   double charge = 0.3;
 
   auto bead_ptr = top.CreateBead(symmetry,
-      bead_name,bead_type_ptr,residue_number,mass,charge);
+      bead_name,weak_type,residue_number,mass,charge);
 
   BOOST_CHECK_EQUAL(round_(bead_ptr->getQ()*10,1),3.0);
   BOOST_CHECK_EQUAL(round_(bead_ptr->getMass()*10,2),11);
@@ -118,7 +119,9 @@ BOOST_AUTO_TEST_CASE(create_bead) {
   BOOST_CHECK_EQUAL(bead_ptr->getSymmetry(),symmetry);
   BOOST_CHECK(bead_ptr->getName() == bead_name);
 
-  auto bead_type_ptr2 = bead_ptr->getType();
+  std::weak_ptr<BeadType> weak_type2 = bead_ptr->getType();
+  auto bead_type_ptr = weak_type.lock();
+  auto bead_type_ptr2=weak_type2.lock();
   BOOST_CHECK(bead_type_ptr2->getName() == bead_type_ptr->getName());
   BOOST_CHECK_EQUAL(top.BeadCount(),1);
 
@@ -137,7 +140,7 @@ BOOST_AUTO_TEST_CASE(add_bonded_interation_test){
   byte_t symmetry = 1;
 
   string bead_type_name = "type1";
-  auto bead_type_ptr = top.GetOrCreateBeadType(bead_type_name);
+  std::weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(bead_type_name);
 
   int residue_number = 1;
   double mass = 1.1;
@@ -146,17 +149,17 @@ BOOST_AUTO_TEST_CASE(add_bonded_interation_test){
   // Create 3 beads
   string bead_name = "bead_test";
   auto bead_ptr = top.CreateBead(symmetry,
-      bead_name,bead_type_ptr,residue_number,mass,charge);
+      bead_name,weak_type,residue_number,mass,charge);
   bead_ptr->setId(0);
 
   string bead_name2 = "bead_test2";
   auto bead_ptr2 = top.CreateBead(symmetry,
-      bead_name2,bead_type_ptr,residue_number,mass,charge);
+      bead_name2,weak_type,residue_number,mass,charge);
   bead_ptr2->setId(1);
 
   string bead_name3 = "bead_test3";
   auto bead_ptr3 = top.CreateBead(symmetry,
-      bead_name3,bead_type_ptr,residue_number,mass,charge);
+      bead_name3,weak_type,residue_number,mass,charge);
   bead_ptr3->setId(2);
 
   BOOST_CHECK_EQUAL(top.BeadCount(),3);
