@@ -1,10 +1,14 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.5_rc1 (released 28.12.18)
+## Version 1.5_rcr21 (released XX.01.19)
+ * histogramnew: refactor to fix memory lead
 
- * Added unit testing 
+
+## Version 1.5_rc1 (released 28.12.18)
+ * added unit testing 
  * Eigen added as a dependency
- *  removed GSL dependency
+ * removed GSL dependency
+
 
 ## Version 1.2.2
 * cmake: allow static fftw and gsl
