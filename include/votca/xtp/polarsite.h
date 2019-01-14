@@ -21,18 +21,21 @@
 #define __VOTCA_XTP_POLARSITE_H
 
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/qmatom.h>
+#include <votca/xtp/staticsite.h>
 
-namespace votca { namespace xtp {
+namespace votca { namespace xtp {\
+    
+  
     /**
     \brief Class to represent Atom/Site in electrostatic+polarisation 
 
      The units are atomic units, e.g. Bohr, Hartree.By default a PolarSite cannot be polarised.
 */
-class PolarSite
+class PolarSite : public StaticSite
 {
 
 public:
+    
 
     PolarSite(int id, std::string element, Eigen::Vector3d pos);
             
@@ -48,28 +51,7 @@ public:
         setCharge(charge);
     }
       
-
-    int getId() const{ return _id; }
-    int getRank()const{return _rank;}
-    const std::string &getElement() const{ return _element; }
-    const Eigen::Vector3d &getPos() const{ return _pos; }
-    
-    bool isPolarisable() const{ return _isPolarisable;}
-    
-    void setPolarisable(bool polarisable){
-        _isPolarisable=polarisable;
-    }
-    
-    void setMultipole(const Eigen::VectorXd& multipole){
-        _multipole=multipole;
-        calcRank();
-    }
-
-    void setCharge(double q){
-        _multipole(0)=q;
-        calcRank();
-    }
-    
+        
     void setPolarisation(const Eigen::Matrix3d pol){
         _Ps=pol;
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
@@ -83,64 +65,31 @@ public:
         _inducedDipole_old=Eigen::Vector3d::Zero();
         _localinducedField=Eigen::Vector3d::Zero();
     }
-    
-    // COORDINATES TRANSFORMATION
-    void Translate(const Eigen::VectorXd &shift);
-    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
- 
+     
     // MULTIPOLES DEFINITION
-    
-    double getCharge() const{return _multipole(0);}
-    const Eigen::VectorXd& getPermMultipole()const {return _multipole;}//Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s,...[NOT following Stone order for dipoles]
-    
+       
     Eigen::Vector3d getDipole()const{
         Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
-        if(_isPolarisable){
-            dipole+=_inducedDipole;
-        }
-        if(_rank>0){
-            dipole+=_multipole.segment<3>(1);
-        }
+        dipole+=_inducedDipole;
+        dipole+=_multipole.segment<3>(1);
         return dipole;
     }
-    
-    Eigen::Matrix3d CalculateCartesianMultipole()const; 
-    static Eigen::VectorXd CalculateSphericalMultipole(const Eigen::Matrix3d& quadrupole_cartesian);
-    
-    Eigen::Vector3d getField()const{return _localpermanetField+_localinducedField;}
-    
-    double getPotential()const{return PhiP+PhiU;}
-    
-    std::string WriteMpsLine(std::string unit = "bohr")const;
+   
     void Induce(double wSOR);
-       
-    double InteractStatic(PolarSite& otherSite);
-    
-    double InteractInduction(PolarSite& otherSite, double a=0.39);
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
     
-    void WriteToCpt(const CheckpointWriter& w)const;
-
-   void ReadFromCpt(const CheckpointReader& r);
-   
-   static std::string Identify(){return "polarsite";}
-    
+    static std::string Identify(){return "polarsite";}
     
 private:
-       
-    void calcRank(); 
-    Eigen::MatrixXd FillTholeInteraction(const PolarSite& otherSite, double a);
-    Eigen::MatrixXd FillInteraction(const PolarSite& otherSite);
     
     int     _id;
     std::string  _element;
     Eigen::Vector3d _pos;
     int     _rank;
 
-    Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
-     bool _isPolarisable=false;
-    //required for polarisation
+    Vector9d _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+    
     
     Eigen::Matrix3d _Ps;
     Eigen::Vector3d _localpermanetField;
