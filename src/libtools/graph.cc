@@ -69,7 +69,8 @@ vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) {
         isolated_nodes.push_back(id_and_node_copy);
       }
     } else {
-      pair<int, GraphNode> id_and_node_copy(node.first, node.second);
+      pair<int, GraphNode> id_and_node_copy(id_and_node.first,
+                                            id_and_node.second);
       isolated_nodes.push_back(id_and_node_copy);
     }
   }
@@ -147,7 +148,7 @@ void Graph::calcId_() {
 
 ostream& operator<<(ostream& os, const Graph graph) {
   os << "Graph" << endl;
-  for (const pair<int, GraphNode>& id_and_node : g.nodes_) {
+  for (const pair<int, GraphNode>& id_and_node : graph.nodes_) {
     os << "Node " << id_and_node.first << endl;
     os << id_and_node.second << endl;
   }
