@@ -76,7 +76,6 @@ class ReducedGraph : public Graph {
 
  public:
   ReducedGraph(){};
-  ~ReducedGraph(){};
 
   ReducedGraph(std::vector<ReducedEdge> reduced_edges);
   ReducedGraph(std::vector<ReducedEdge> reduced_edges,

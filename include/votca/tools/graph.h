@@ -58,7 +58,6 @@ class Graph {
 
  public:
   Graph() : id_(""){};
-  virtual ~Graph(){};
 
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two

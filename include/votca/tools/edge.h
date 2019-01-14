@@ -42,7 +42,6 @@ class Edge {
 
  public:
   Edge() {}
-  ~Edge() {}
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   Edge(int ID1, int ID2);
