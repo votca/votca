@@ -128,6 +128,57 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
     BOOST_CHECK(!node1);
     BOOST_CHECK(node2);
   }
+
+  /// In this test the junctions of the graph are returned, the junctions 
+  /// consist of vertices of three or more connections
+  {
+
+    /// In this test both node 0 and 1 share an edge there are no junctions
+    Edge ed(0, 1);
+    vector<Edge> vec_ed{ed};
+
+    GraphNode gn;
+    GraphNode gn1;
+    GraphNode gn2;
+
+    unordered_map<int, GraphNode> m_gn;
+    m_gn[0] = gn;
+    m_gn[1] = gn1;
+    m_gn[2] = gn2;
+
+    Graph g(vec_ed, m_gn);
+    auto junctions = g.getJunctions();  
+
+    BOOST_CHECK(!junctions.size());
+  }
+
+  /// In this test the junctions of the graph are returned, the junctions 
+  /// consist of vertices of three or more connections
+  {
+
+    /// In this test both node 0 and 1 share an edge there are no junctions
+    Edge ed(0, 2);
+    Edge ed2(1, 2);
+    Edge ed3(3, 2);
+    vector<Edge> vec_ed{ ed, ed2, ed3};
+
+    GraphNode gn;
+    GraphNode gn1;
+    GraphNode gn2;
+    GraphNode gn3;
+
+    unordered_map<int, GraphNode> m_gn;
+    m_gn[0] = gn;
+    m_gn[1] = gn1;
+    m_gn[2] = gn2;
+    m_gn[3] = gn3;
+
+    Graph g(vec_ed, m_gn);
+    auto junctions = g.getJunctions();  
+
+    BOOST_CHECK_EQUAL(junctions.size(),1);
+    BOOST_CHECK_EQUAL(junctions.at(0),2);
+  }
 }
 
 /** 

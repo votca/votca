@@ -106,7 +106,7 @@ class DataCollection {
   size_t size() { return _data.size(); }
   bool empty() { return _data.empty(); }
   array &operator[](int i) {
-    assert(i < _data.size());
+    assert(static_cast<size_t>(i) < _data.size());
     return *(_data[i]);
   }
   iterator begin() { return _data.begin(); }
@@ -129,6 +129,10 @@ class DataCollection {
 
   /**
    * \brief select a set of arrays
+   *
+   * WARNING If attempting to append to an existing selection you must be
+   * careful if there exist more than one array with the same name the 
+   * first array name that matches 'strselection' will be appended.
    */
   selection *select(string strselection, selection *sel_append = NULL);
 

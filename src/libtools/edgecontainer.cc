@@ -35,7 +35,7 @@ EdgeContainer::EdgeContainer(vector<Edge> eds) {
   }
 }
 
-int EdgeContainer::getMaxDegree(void){
+int EdgeContainer::getMaxDegree(void) const{
   int max = 0;
   for(auto const& it : adj_list_) {
     if(it.second.size()>static_cast<size_t>(max)) {
@@ -45,12 +45,12 @@ int EdgeContainer::getMaxDegree(void){
   return max;
 }
 
-int EdgeContainer::getDegree(int vert){
+int EdgeContainer::getDegree(const int vert) const{
   if(!adj_list_.count(vert)) throw invalid_argument("vertex is not defined");
-  return static_cast<int>(adj_list_[vert].size());
+  return static_cast<int>(adj_list_.at(vert).size());
 }
 
-vector<int> EdgeContainer::getVerticesDegree(int degree){
+vector<int> EdgeContainer::getVerticesDegree(int degree) const{
   vector<int> verts;
   for(auto v_list : adj_list_){
     if(static_cast<int>(v_list.second.size())==degree){

@@ -107,6 +107,9 @@ class Graph : public EdgeContainer {
 
   std::string getId() { return id_; }
 
+  /// Return all the vertices that contain 3 or more connections
+  std::vector<int> getJunctions() const;
+
   friend std::ostream& operator<<(std::ostream& os, const Graph g);
 };
 
