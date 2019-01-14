@@ -1,5 +1,10 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
+## Version 1.5_rc2 (released XX.01.19)
+* fix parallel build of manual
+* fix usage on inkscape on arm arch
+* clean up namespace in header
+
 ## Version 1.5_rc1 (released 28.12.18)
 * optimized GW-BSE code and integral engine
 * added closed shell DFT code which supports hybrid functionals
