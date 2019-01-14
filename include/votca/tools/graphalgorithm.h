@@ -51,14 +51,34 @@ class GraphVisitor;
  * @param[in,out] - Graph visitor reference instance used to explore the graph
  * @return - Boolean value (true - if single network)
  */
-bool singleNetwork(Graph g, GraphVisitor& gv);
+bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
 
 /**
  * \brief Will take a graph and reduce it, by removing all vertices with degree
- * of 2. 
+ * of 2.
  *
+ * The purpose of this algorithm is to introduce new functionality that reduces
+ * the complexity of a graph by removing any vertex that has a degree of 2. By
+ * exploring a reduced graph instead of a full graph insight can still be gained
+ * into the topology of the graph but with better performance. The edges of the
+ * reduced graph can be expanded if needed to determine how they correspond to
+ * the full graph. Take:
+ *
+ * 1 - 2 - 3 - 4 - 5 - 6
+ *     |       |
+ *     7 - 8 - 9
+ *
+ * This would be reduced to
+ *
+ * 1 - 2 - 4 - 6
+ *     | _ |
+ *
+ * A total of 4 vertices with 4 edges as opposed to 9 vertices and 9 edges.
+ *
+ * @param[in] - graph instance
+ * @return - a reduced graph
  **/
-ReducedGraph reduceGraph(Graph g);
+ReducedGraph reduceGraph(Graph graph);
 
 /**
  * \brief Break graph into smaller graph instances if the network is made up of
@@ -72,7 +92,7 @@ ReducedGraph reduceGraph(Graph g);
  * @return - vector containing shared pointers to all the sub graphs if there
  *           are no subgraphs than the input graph is returned.
  */
-std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g);
+std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph graph);
 
 /**
  * \brief Explore a graph with a graph visitor.
@@ -85,7 +105,7 @@ std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph g);
  * @param[in,out] - Graph reference instance
  * @param[in,out] - graph visitor
  */
-void exploreGraph(Graph& g, GraphVisitor& gv);
+void exploreGraph(Graph& graph, GraphVisitor& graph_visitor);
 
 /**
  * \brief Find a unique identifier that describes graph structure.
@@ -99,56 +119,56 @@ void exploreGraph(Graph& g, GraphVisitor& gv);
  * @return - string identifier
  */
 template <typename GV>
-std::string findStructureId(Graph& g) {
+std::string findStructureId(Graph& graph) {
 
   // Determine the highest degree in the graph
-  int maxD = g.getMaxDegree();
+  int maxD = graph.getMaxDegree();
   // Get the vertices with this degree
-  auto verts = g.getVerticesDegree(maxD);
+  std::vector<int> vertices = graph.getVerticesDegree(maxD);
 
   // Get the nodes and determine which node has the greatest stringID
   // When compared using compare function
   std::string str_id = "";
-  std::vector<int> gn_ids;
-  for (auto v : verts) {
-    auto gn = g.getNode(v);
-    int comp_int = str_id.compare(gn.getStringId());
+  std::vector<int> graph_node_ids;
+  for (const int& vertex : vertices) {
+    auto graph_node = graph.getNode(vertex);
+    int comp_int = str_id.compare(graph_node.getStringId());
     if (comp_int > 0) {
-      str_id = gn.getStringId();
-      gn_ids.clear();
-      gn_ids.push_back(v);
+      str_id = graph_node.getStringId();
+      graph_node_ids.clear();
+      graph_node_ids.push_back(vertex);
     } else if (comp_int == 0) {
-      gn_ids.push_back(v);
+      graph_node_ids.push_back(vertex);
     }
   }
 
   // If the str_id is empty it means the nodes are empty and we will
   // simply have to rely on the degree to choose the vertices to explore from
   if (str_id.compare("") == 0) {
-    gn_ids = verts;
+    graph_node_ids = vertices;
   }
 
   // If two or more graph nodes are found to be equal then
   // they must all be explored
   std::string chosenId = "";
-  Graph g_chosen = g;
+  Graph graph_chosen = graph;
 
-  for (auto v : gn_ids) {
-    GV gv;
-    gv.setStartingVertex(v);
-    Graph g_temp = g;
-    exploreGraph(g_temp, gv);
-    std::string temp_struct_id = g_temp.getId();
+  for (const int& vertex : graph_node_ids) {
+    GV graph_visitor;
+    graph_visitor.setStartingVertex(vertex);
+    Graph graph_temp = graph;
+    exploreGraph(graph_temp, graph_visitor);
+    std::string temp_struct_id = graph_temp.getId();
     if (chosenId.compare(temp_struct_id) < 0) {
       chosenId = temp_struct_id;
-      g_chosen = g_temp;
+      graph_chosen = graph_temp;
     }
   }
 
-  g = g_chosen;
+  graph = graph_chosen;
   return chosenId;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif  // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
