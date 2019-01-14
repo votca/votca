@@ -24,8 +24,8 @@
 #include "exclusionlist.h"
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
+  namespace TOOLS = votca::tools;
 /**
  * \brief Neighbour list class
  *
@@ -70,10 +70,10 @@ public:
     void SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &, const double dist));
 
     /// \brief match function for static member functions or plain functions
-    void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &, const double dist));
+    void SetMatchFunction(bool (*fkt)(Bead *, Bead *, const TOOLS::vec &, const double dist));
 
     /// standard match function
-    static bool match_always(Bead *b1, Bead *b2, const vec &r, const double dist) { return true; }
+    static bool match_always(Bead *b1, Bead *b2, const TOOLS::vec &r, const double dist) { return true; }
 
     /// function to use a user defined pair type
     template<typename pair_type>
@@ -87,12 +87,12 @@ protected:
 
     /// policy function to create new bead types
     template<typename pair_type>
-    static BeadPair *beadpair_create_policy(Bead *bead1, Bead *bead2, const vec &r)
+    static BeadPair *beadpair_create_policy(Bead *bead1, Bead *bead2, const TOOLS::vec &r)
     {
         return dynamic_cast<BeadPair*>(new pair_type(bead1, bead2, r));
     }
 
-    typedef BeadPair* (*pair_creator_t)(Bead *bead1, Bead *bead2, const vec &r);
+    typedef BeadPair* (*pair_creator_t)(Bead *bead1, Bead *bead2, const TOOLS::vec &r);
     /// the current bead pair creator function
     pair_creator_t _pair_creator;
 
@@ -102,7 +102,7 @@ protected:
     class Functor {
     public:
         Functor() {}
-        virtual bool operator()(Bead *, Bead *, const vec &, const double dist) = 0;
+        virtual bool operator()(Bead *, Bead *, const TOOLS::vec &, const double dist) = 0;
 	virtual ~Functor() {};
     };
 
@@ -110,11 +110,11 @@ protected:
     template<typename T>
     class FunctorMember : public Functor {
     public:
-        typedef bool (T::*fkt_t)(Bead *, Bead *, const vec &, const double dist);
+        typedef bool (T::*fkt_t)(Bead *, Bead *, const TOOLS::vec &, const double dist);
 
         FunctorMember(T* cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
-        bool operator()(Bead *b1, Bead *b2, const vec &r, const double dist) {
+        bool operator()(Bead *b1, Bead *b2, const TOOLS::vec &r, const double dist) {
             return (_cls->*_fkt)(b1, b2, r, dist);
         }
 
@@ -126,10 +126,10 @@ protected:
     /// Functor for non-member functions
     class FunctorNonMember : public Functor {
     public:
-        typedef bool (*fkt_t)(Bead *, Bead *, const vec &, const double dist);
+        typedef bool (*fkt_t)(Bead *, Bead *, const TOOLS::vec &, const double dist);
         FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
 
-        bool operator()(Bead *b1, Bead *b2, const vec &r, const double dist) {
+        bool operator()(Bead *b1, Bead *b2, const TOOLS::vec &r, const double dist) {
             return (*_fkt)(b1, b2, r, dist);
         }
 
@@ -148,14 +148,14 @@ void NBList::setPairType()
 }
 
 template<typename T>
-inline void NBList::SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const vec &, const double))
+inline void NBList::SetMatchFunction(T *object, bool (T::*fkt)(Bead *, Bead *, const TOOLS::vec &, const double))
 {
     if(_match_function)
         delete _match_function;
     _match_function = dynamic_cast<Functor*>(new FunctorMember<T>(object, fkt));
 }
 
-inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const vec &, const double))
+inline void NBList::SetMatchFunction(bool (*fkt)(Bead *, Bead *, const TOOLS::vec &, const double))
 {
     if(_match_function)
         delete _match_function;

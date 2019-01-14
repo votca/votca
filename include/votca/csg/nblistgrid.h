@@ -24,7 +24,8 @@
 #include <vector>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
+
+namespace TOOLS = votca::tools;
 
 class NBListGrid
     : public NBList
@@ -39,16 +40,16 @@ protected:
         std::vector<cell_t*> _neighbours;
     };
 
-    vec _box_a, _box_b, _box_c;
-    vec _norm_a, _norm_b, _norm_c;
+    TOOLS::vec _box_a, _box_b, _box_c;
+    TOOLS::vec _norm_a, _norm_b, _norm_c;
     int _box_Na, _box_Nb, _box_Nc;
 
     std::vector<cell_t> _grid;
     Topology *_top;
 
-    void InitializeGrid(const matrix &box);
+    void InitializeGrid(const TOOLS::matrix &box);
     
-    cell_t &getCell(const vec &r);
+    cell_t &getCell(const TOOLS::vec &r);
     cell_t &getCell(const int &a, const int &b, const int &c);
 
     void TestBead(cell_t &cell, Bead *bead);

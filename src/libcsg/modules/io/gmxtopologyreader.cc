@@ -32,6 +32,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 bool GMXTopologyReader::ReadTopology(string file, Topology &top)
 { 
     gmx_mtop_t mtop;
@@ -79,7 +81,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top)
             for(size_t iatom=0; iatom<natoms_mol; iatom++) {
                 t_atom *a = &(atoms->atom[iatom]);
 
-                auto type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
+                BeadType * type = top.GetOrCreateBeadType(*(atoms->atomtype[iatom]));
                 Bead *bead = top.CreateBead(1, *(atoms->atomname[iatom]), type, a->resind + res_offset, a->m, a->q);
 
                 stringstream nm;

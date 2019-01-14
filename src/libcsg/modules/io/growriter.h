@@ -24,9 +24,6 @@
 
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 class GROWriter
 : public TrajectoryWriter

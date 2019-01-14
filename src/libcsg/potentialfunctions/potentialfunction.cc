@@ -16,6 +16,12 @@
  */
 
 #include <votca/csg/potentialfunctions/potentialfunction.h>
+#include <votca/tools/table.h>
+
+#include <boost/lexical_cast.hpp>
+
+using namespace std;
+using namespace votca::tools;
 
 PotentialFunction::PotentialFunction(const string& name_,const int nlam_,
                                      const double min_,const double max_){

@@ -262,7 +262,7 @@ bool PDBReader::NextFrame(Topology &top) {
           top.CreateResidue(resName);
         }
         // This is not correct, but still better than no type at all!
-        auto type = top.GetOrCreateBeadType(atName);
+        BeadType * type = top.GetOrCreateBeadType(atName);
 
         // Determine if the charge has been provided in the .pdb file or if we
         // will be assuming it is 0

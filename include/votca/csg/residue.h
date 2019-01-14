@@ -22,10 +22,7 @@
 #include "topologyitem.h"
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
-using namespace std;
-    
 /**
     \brief class for a residue
  
@@ -38,23 +35,23 @@ class Residue : public TopologyItem
 public:
    
     /// get the name of the residue
-    const string &getName();
+    const std::string &getName();
 
     /// get the name of the residue
     const int &getId() const { return _id; }
 
     private:
     int _id;
-    string _name;
+    std::string _name;
 private:
         /// constructor
-    Residue(Topology *parent, int id, const string &name)
+    Residue(Topology *parent, int id, const std::string &name)
         : TopologyItem(parent), _id(id), _name(name)
     {}
     friend class Topology;
 };
 
-inline const string &Residue::getName()
+inline const std::string &Residue::getName()
 {
     return _name;
 }

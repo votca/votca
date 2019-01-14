@@ -21,6 +21,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 void LAMMPSDumpWriter::Open(std::string file, bool bAppend)
 {
     _out = fopen(file.c_str(), bAppend ? "at" : "wt");

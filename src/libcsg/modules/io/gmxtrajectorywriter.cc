@@ -21,6 +21,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 void GMXTrajectoryWriter::Open(string file, bool bAppend)
 {
     //char c[1] = bAppend ? "a" : "w";

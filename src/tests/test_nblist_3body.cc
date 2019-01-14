@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
     mol=top.CreateMolecule("UNKNOWN");
 
     string bead_type_name = "CG";
-    auto b_type=top.GetOrCreateBeadType(bead_type_name);
+    BeadType * b_type=top.GetOrCreateBeadType(bead_type_name);
 
     int symmetry = 1;
     string name = "dummy1";
