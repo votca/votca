@@ -31,7 +31,6 @@
 namespace votca {
 namespace xtp {
     class Orbitals;
-    class Sigma;
     class AOBasis;
 /**
 * \brief Electronic excitations from GW-BSE

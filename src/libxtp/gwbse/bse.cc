@@ -30,9 +30,9 @@ namespace votca {
   namespace xtp {
 
 void BSE::SetupDirectInteractionOperator() {
-    Eigen::VectorXd rpaenergies= RPA::UpdateRPAInput(_orbitals.MOEnergies(),_Hqp.diagonal(),_opt.qpmin,_opt.homo);
-    RPA rpa = RPA(rpaenergies, _Mmn);
+    RPA rpa = RPA(_Mmn);
     rpa.configure(_opt.homo,_opt.rpamin,_opt.rpamax);
+    rpa.UpdateRPAInputEnergies(_orbitals.MOEnergies(),_Hqp.diagonal(),_opt.qpmin);
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
     _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
     _epsilon_0_inv = VectorXfd::Zero(es.eigenvalues().size());
@@ -176,6 +176,8 @@ void BSE::SetupDirectInteractionOperator() {
     
         template <typename T>
         void BSE::Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
+            
+            int offset=_opt.vmin-_opt.qpmin;
             vc2index vc = vc2index(0, 0, _bse_ctotal);
 #pragma omp parallel for
             for (int v1 = 0; v1 < _bse_vtotal; v1++) {
@@ -184,12 +186,12 @@ void BSE::SetupDirectInteractionOperator() {
                     // v->c
                     for (int c2 = 0; c2 < _bse_ctotal; c2++) {
                         int index_vc2 = vc.I(v1, c2);
-                        H(index_vc2, index_vc) += _Hqp(c2 + _bse_vtotal-_opt.qpmin, c1 + _bse_vtotal-_opt.qpmin);
+                        H(index_vc2, index_vc) += _Hqp(c2 + _bse_vtotal+offset, c1 + _bse_vtotal+offset);
                     }
                     // c-> v
                     for (int v2 = 0; v2 < _bse_vtotal; v2++) {
                         int index_vc2 = vc.I(v2, c1);
-                        H(index_vc2, index_vc) -= _Hqp(v2-_opt.qpmin, v1-_opt.qpmin);
+                        H(index_vc2, index_vc) -= _Hqp(v2+offset, v1+offset);
                     }
                 }
             }
