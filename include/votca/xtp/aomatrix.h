@@ -61,7 +61,6 @@ namespace votca { namespace xtp {
     public: 
         static int getBlockSize( int _lmax );
         static Eigen::MatrixXd getTrafo( const AOGaussianPrimitive& gaussian);
-        void PrintIndexToFunction(const AOBasis& aobasis);
     };
     
     
@@ -73,10 +72,6 @@ namespace votca { namespace xtp {
 	int Dimension(){ return  _aomatrix.rows();}
         const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;}      
         void Fill(const AOBasis& aobasis);
-        void Print( std::string ident);
-        void FreeMatrix(){
-            _aomatrix.resize(0,0);
-        }
         // integrate F
         static std::vector<double> XIntegrate( int size, double U );
     protected:
@@ -92,10 +87,8 @@ namespace votca { namespace xtp {
     class AOMatrix3D : public AOSuperMatrix {
     public:
         const std::vector<Eigen::MatrixXd > &Matrix() const{ return _aomatrix ;}
-        void Print( std::string _ident);
         void Fill(const AOBasis& aobasis );
         // block fill prototype
-        void FreeMatrix();
     protected:
         std::vector<Eigen::MatrixXd > _aomatrix; 
         virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell* shell_row,const AOShell* shell_col)=0 ;
