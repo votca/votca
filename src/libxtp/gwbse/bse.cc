@@ -102,8 +102,8 @@ void BSE::SetupDirectInteractionOperator() {
           DS.set_jacobi_linsolve(_opt.jocc_linsolve);
         }
         DS.solve(H,_opt.nmax);
-        _bse_singlet_energies = DS.eigenvalues().cast<float>();
-        _bse_singlet_coefficients = DS.eigenvectors().cast<float>();  
+        _bse_singlet_energies = DS.eigenvalues();
+        _bse_singlet_coefficients = DS.eigenvectors();  
       }
 
       else
