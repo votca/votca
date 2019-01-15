@@ -80,6 +80,9 @@ Code
   * in functions/classes, the { is in the next line
   * for for loops, if, ..., the { is n the same line as if,for
 
+### Auto ###
+  * avoid using auto unless the type is very long, the reason being auto obscures the underlying type and can make it difficult to discern what a variable is meant to be used for
+
 ### Classes ###
   * normally begin in upper case
   * exceptions: classes which define "small" types (e.g. `vec`, `matrix`)
@@ -118,6 +121,8 @@ Code
   * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
   
 ## Testing
+
+### Unit Testing ###
 
  Each repository contains a src folder. Within the src folder exists a 
  library folder: libtools, libcsg etc... and a tools folder. A tests folder
@@ -184,6 +189,12 @@ make test
 ```
 
 Ensure you have an up to date version of cmake or use cmake3 
+
+### Testing Across Repos ###
+
+There may come a case where changes have to be committed across more than one repo at the same time. Attempting to merge one repo at a time will cause the continuous integration to fail as changes in the other repos will not be pulled in. To do this correctly the following steps should be taken:
+
+1. Each repo that is changed must have its own branch, and the branches must have the same name.
 
 ## Failed Travis Builds
 
