@@ -30,20 +30,6 @@ namespace votca { namespace xtp {
  
  class DIIS{
 public:
-
-    DIIS( ):success(true) { };
-   ~DIIS() {
-       
-    for (std::vector< Eigen::MatrixXd* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
-         delete *it;
-     }
-    _errormatrixhist.clear();    
-       
-   for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
-         delete *it;
-     }
-    _Diis_Bs.clear(); 
-   };
    
     void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
     Eigen::VectorXd CalcCoeff();
@@ -57,10 +43,10 @@ public:
      
      
      
-     bool success;
+     bool success=true;
      int _histlength;
-     std::vector< std::vector<double>* >  _Diis_Bs;
-     std::vector< Eigen::MatrixXd* >   _errormatrixhist;
+     std::vector< std::vector<double> >  _Diis_Bs;
+     std::vector< Eigen::MatrixXd >   _errormatrixhist;
   
  };
  

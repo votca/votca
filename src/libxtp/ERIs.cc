@@ -46,7 +46,7 @@ namespace votca {
         
         void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
 
-          unsigned nthreads = 1;
+          int nthreads = 1;
           #ifdef _OPENMP
             nthreads = omp_get_max_threads();
           #endif
@@ -58,7 +58,7 @@ namespace votca {
           }
 
           #pragma omp parallel for
-          for (unsigned thread = 0; thread < nthreads; ++thread) {
+          for (int thread = 0; thread < nthreads; ++thread) {
             Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
             for (int i = thread; i < _threecenter.size(); i += nthreads) {
               const Symmetric_Matrix &threecenter = _threecenter[i];
@@ -105,7 +105,6 @@ namespace votca {
           for (const auto& thread : EXX_thread) {
             _EXXs += thread;
           }
-          _EXXs+=_EXXs.triangularView<Eigen::StrictlyUpper>().transpose();
           CalculateEXXEnergy(DMAT);
           return;
         }
@@ -136,7 +135,6 @@ namespace votca {
           for (const auto& thread : EXX_thread) {
             _EXXs += 2*thread;
           }
-          _EXXs+=_EXXs.triangularView<Eigen::StrictlyUpper>().transpose();
           CalculateEXXEnergy(DMAT);
           return;
         }
@@ -511,15 +509,6 @@ namespace votca {
           return;
         }
         
-        
-        void ERIs::printERIs(){
-          for (int i=0; i< _ERIs.cols(); i++){
-            for (int j=0; j< _ERIs.rows();j++){
-              std::cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<std::endl;
-            }
-          }
-          return;
-        }
         
     }
 }
