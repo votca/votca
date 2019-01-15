@@ -30,14 +30,14 @@ namespace xtp {
 
 class Sigma_PPM : public Sigma_base {
  public:
-  Sigma_PPM(TCMatrix_gwbse& Mmn):Sigma_base(Mmn){};
+  Sigma_PPM(TCMatrix_gwbse& Mmn,RPA& rpa ):Sigma_base(Mmn,rpa){};
   
 //Sets up the screening parametrisation
-  void PrepareScreening(const RPA& rpa);
+  void PrepareScreening();
 //Calculates Sigma_c diag elements
-Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
+Eigen::VectorXd CalcCorrelationDiag(const Eigen::VectorXd& frequencies)const;
 //Calculates Sigma_c offdiag elements
-Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const;
+Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies)const;
  
 
  private:

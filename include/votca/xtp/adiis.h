@@ -32,7 +32,7 @@ namespace votca { namespace xtp {
  class ADIIS{
 public:
   
-    Eigen::VectorXd CalcCoeff(const std::vector< std::unique_ptr<Eigen::MatrixXd> >& dmathist,const std::vector< std::unique_ptr<Eigen::MatrixXd> >& mathist);
+    Eigen::VectorXd CalcCoeff(const std::vector< Eigen::MatrixXd >& dmathist,const std::vector< Eigen::MatrixXd >& mathist);
     
    
     bool Info(){return success;}

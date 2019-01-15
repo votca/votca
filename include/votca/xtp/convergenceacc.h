@@ -62,43 +62,46 @@ class ConvergenceAcc{
        else if(_opt.mode==KSmode::fractional){
            _nocclevels=0;
        }
+       _diis.setHistLength(_opt.histlength);
    }
    void setLogger(Logger* log){_log=log;}
+
+   void PrintConfigOptions()const;
   
-   bool isConverged(){
+   bool isConverged()const{
        if (_totE.size()<2){
            return false;
        }else{
-        return std::abs(_totE.back() - _totE[_totE.size() - 2]) < _opt.Econverged
+        return std::abs(getDeltaE()) < _opt.Econverged
                 && getDIIsError() < _opt.error_converged;
        }
    }
 
-   double getDeltaE(){
+   double getDeltaE()const{
        if (_totE.size()<2){
            return 0;
        }else{
            return _totE.back() - _totE[_totE.size() - 2];
        }
    }
-   void setOverlap(AOOverlap* S, double etol);
+   void setOverlap(AOOverlap& S, double etol);
    
-   double getDIIsError(){return _diiserror;}
+   double getDIIsError()const{return _diiserror;}
    
-    bool getUseMixing(){return _usedmixing;}
+    bool getUseMixing()const{return _usedmixing;}
 
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
     void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H);
-    void Levelshift(Eigen::MatrixXd& H);
+    void Levelshift(Eigen::MatrixXd& H)const;
 
-    Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
+    Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies)const;
    
  private:
     options _opt;
 
-    Eigen::MatrixXd DensityMatrixGroundState(const Eigen::MatrixXd& MOs);
-    Eigen::MatrixXd DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs);
-    Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
+    Eigen::MatrixXd DensityMatrixGroundState(const Eigen::MatrixXd& MOs)const;
+    Eigen::MatrixXd DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs)const;
+    Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies)const;
      
     bool             _usedmixing=true;
     double           _diiserror=std::numeric_limits<double>::max();
@@ -108,9 +111,9 @@ class ConvergenceAcc{
     Eigen::MatrixXd                 Sminusahalf;
     Eigen::MatrixXd                 Sonehalf;
     Eigen::MatrixXd                 MOsinv;
-    std::vector< std::unique_ptr<Eigen::MatrixXd> >   _mathist;
-    std::vector< std::unique_ptr<Eigen::MatrixXd> >   _dmatHist;
-    std::vector<double>                 _totE;
+    std::vector< Eigen::MatrixXd >   _mathist;
+    std::vector< Eigen::MatrixXd >   _dmatHist;
+    std::vector<double>              _totE;
  
     int _nocclevels;
     int _maxerrorindex=0;

@@ -125,10 +125,11 @@ TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,MOs);
 
-RPA rpa(mo_energy,Mmn);
+RPA rpa(Mmn);
 rpa.configure(4,0,16);
+rpa.setRPAInputEnergies(mo_energy);
 
-  Sigma_PPM sigma=Sigma_PPM(Mmn);
+  Sigma_PPM sigma=Sigma_PPM(Mmn,rpa);
   sigma.configure(4,0,16);
 
 Eigen::MatrixXd x=sigma.CalcExchange();
@@ -162,9 +163,9 @@ if(!check_x){
 }
 BOOST_CHECK_EQUAL(check_x, true);
 
- sigma.PrepareScreening(rpa);
- Eigen::VectorXd c_diag= sigma.CalcCorrelationDiag(mo_energy,mo_energy);
- Eigen::MatrixXd c_off= sigma.CalcCorrelationOffDiag(mo_energy,mo_energy);
+ sigma.PrepareScreening();
+ Eigen::VectorXd c_diag= sigma.CalcCorrelationDiag(mo_energy);
+ Eigen::MatrixXd c_off= sigma.CalcCorrelationOffDiag(mo_energy);
 
  c_off.diagonal()=c_diag;
 Eigen::MatrixXd c_ref=Eigen::MatrixXd::Zero(17,17);

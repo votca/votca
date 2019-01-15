@@ -30,12 +30,14 @@ namespace votca {
   namespace xtp {
       
       
-    void Sigma_PPM::PrepareScreening(const RPA& rpa){
-      _ppm.PPM_construct_parameters(rpa);
+    void Sigma_PPM::PrepareScreening(){
+      _ppm.PPM_construct_parameters(_rpa);
       _Mmn.MultiplyRightWithAuxMatrix(_ppm.getPpm_phi());
   }
     
-   Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const{
+   Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(const Eigen::VectorXd& frequencies)const{
+
+       Eigen::VectorXd RPAEnergies=_rpa.getRPAInputEnergies();
         Eigen::VectorXd result=Eigen::VectorXd::Zero(_qptotal);
         const int levelsum = _Mmn.nsize(); // total number of bands
         const int gwsize = _Mmn.auxsize(); // size of the GW basis
@@ -83,7 +85,7 @@ namespace votca {
          }
      }
 
-   Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies, const Eigen::VectorXd& RPAEnergies)const{
+   Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(const Eigen::VectorXd& frequencies)const{
 
        Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
     
@@ -96,7 +98,7 @@ namespace votca {
         const Eigen::VectorXd ppm_freqs=_ppm.getPpm_freq();
         const Eigen::VectorXd fac=0.25*ppm_weight.cwiseProduct(ppm_freqs);
         
-        const Eigen::VectorXd rpaenergies_thread=RPAEnergies;
+        const Eigen::VectorXd rpaenergies_thread=_rpa.getRPAInputEnergies();;
         #pragma omp for schedule(dynamic)
         for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
         const MatrixXfd& Mmn1=_Mmn[ gw_level1 + _qpmin ];
