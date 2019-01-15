@@ -46,7 +46,7 @@ public:
             charges+=CalcNucChargeperAtom(orbitals.QMAtoms());
         }
 
-        PolarSegment seg=PolarSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
+        StaticSegment seg=StaticSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
         for (int i=0;i<orbitals.QMAtoms().size();++i){
              seg.push_back(PolarSite(orbitals.QMAtoms()[i],charges(i)));
         }

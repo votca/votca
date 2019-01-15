@@ -37,7 +37,7 @@ class StaticSite
 public:
     
 
-    StaticSite(int id, std::string element, Eigen::Vector3d pos);
+    StaticSite(int id, std::string element, Eigen::Vector3d pos):_id(id),_element(element),_pos(pos){};
             
     StaticSite(int id, std::string element)
                     :StaticSite(id,element,Eigen::Vector3d::Zero()){
@@ -58,20 +58,19 @@ public:
     const Eigen::Vector3d &getPos() const{ return _pos; }
        
     
-    void setMultipole(const Vector9d& multipole){
+    void setMultipole(const Vector9d& multipole, int rank){
         _multipole=multipole;
-        calcRank();
+        _rank=rank;
     }
 
     void setCharge(double q){
         _multipole(0)=q;
-        calcRank();
     }
     
     
     // COORDINATES TRANSFORMATION
     void Translate(const Eigen::VectorXd &shift);
-    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
+    virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
  
     // MULTIPOLES DEFINITION
     
@@ -86,39 +85,37 @@ public:
     Eigen::Matrix3d CalculateCartesianMultipole()const; 
     static Eigen::VectorXd CalculateSphericalMultipole(const Eigen::Matrix3d& quadrupole_cartesian);
     
-    Eigen::Vector3d getField()const{return _localpermanetField;}
+    virtual Eigen::Vector3d getField()const{return _localpermanetField;}
     
-    double getPotential()const{return PhiU;}
+    virtual double getPotential()const{return PhiP;}
     
     std::string WriteMpsLine(std::string unit = "bohr")const;
     
-    void WriteToCpt(const CheckpointWriter& w)const;
+    virtual void WriteToCpt(const CheckpointWriter& w)const;
 
-    void ReadFromCpt(const CheckpointReader& r);
+    virtual void ReadFromCpt(const CheckpointReader& r);
    
     virtual std::string Identify(){return "staticsite";}
     
-    
+    virtual void setPolarisation(){
+        return;
+    }
 protected:
+
+    virtual std::string writePolarisation()const{
+        return "P 0.0 0.0 0.0";
+    };
        
-    void calcRank(); 
-    int     _id;
-    std::string  _element;
-    Eigen::Vector3d _pos;
-    int     _rank;
 
-    Eigen::VectorXd _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+    int     _id=-1;
+    std::string  _element="";
+    Eigen::Vector3d _pos=Eigen::Vector3d::Zero();
+    int     _rank=0;
 
-    
-    Eigen::Matrix3d _Ps;
-    Eigen::Vector3d _localpermanetField;
-    Eigen::Vector3d _localinducedField;
-    Eigen::Vector3d _inducedDipole;
-    Eigen::Vector3d _inducedDipole_old;
-    double _eigendamp;
-    
-    double PhiP;                            // Electric potential (due to perm.)
-    double PhiU;                            // Electric potential (due to indu.)
+    Vector9d _multipole=Vector9d::Zero(); //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+
+    Eigen::Vector3d _localpermanetField=Eigen::Vector3d::Zero();
+    double PhiP=0.0;                            // Electric potential (due to perm.)
     
 };
 

@@ -33,8 +33,8 @@ namespace votca { namespace xtp {
 
         // Get components of dipole vector somehow
         
-        const Eigen::Vector3d dipole=-polarsite->getDipole();
-        const Eigen::Vector3d position=polarsite->getPos();
+        const Eigen::Vector3d dipole=-_site->getDipole();
+        const Eigen::Vector3d position=_site->getPos();
 
        
         // shell info, only lmax tells how far to go
@@ -752,22 +752,24 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
+        template <class T>
         void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
             for (const auto& Seg:sites) {
                 for (const auto& site:Seg) {
-                    if (site.getRank() > 0 ) {
                         if(site.getDipole().norm()<1e-12){continue;}
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
                         setSite(&site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
-                    }
                 }
             }
             return;
         }
+
+        template void AODipole_Potential::Fillextpotential(const AOBasis& aobasis,const StaticRegion & sites);
+        template void AODipole_Potential::Fillextpotential(const AOBasis& aobasis,const PolarRegion & sites);
 
 }}
 

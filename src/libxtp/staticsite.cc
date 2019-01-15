@@ -30,24 +30,7 @@ using namespace std;
 namespace votca {
   namespace xtp {
 
-   StaticSite::StaticSite(int id, std::string element, Eigen::Vector3d pos)
-            : _id(id), _element(element),_pos(pos),_rank(0),_multipole(Eigen::VectorXd::Zero(1)),
-              _localpermanetField(Eigen::Vector3d::Zero()),
-              _localinducedField(Eigen::Vector3d::Zero()),_eigendamp(0.0),
-              PhiP(0.0),PhiU(0.0){
-               /*
-                tools::Elements e;
-                
-                double default_pol=std::pow(tools::conv::ang2bohr,3);
-                try{
-                    default_pol=e.getPolarizability(element)*std::pow(tools::conv::nm2bohr,3);
-                }catch(const std::invalid_argument& ){
-                     std::cout << std::endl << "WARNING No default polarizability given for "
-                    << "polar site type '" << element << "'. Defaulting to 1 A**3. "
-                    << std::flush;
-                }
-                setPolarisation(default_pol*Eigen::Matrix3d::Identity());*/
-            };
+  
 
 
     void StaticSite::calcRank() {
@@ -107,8 +90,6 @@ namespace votca {
         Eigen::Matrix3d rotated = R * cartesianquad * R.transpose();
         _multipole.segment<5>(4) = CalculateSphericalMultipole(rotated);
       }
-      _Ps = R * _Ps * R.transpose();
-
       return;
     }
 
@@ -125,7 +106,7 @@ namespace votca {
       } else if (unit == "bohr") {
         conv_pos = 1.;
       } else{
-          throw std::runtime_error(" PolarSite::WriteMpsLine: Unit conversion not known");
+          throw std::runtime_error(" StaticSite::WriteMpsLine: Unit conversion not known");
       }
       std::string output="";
       output+=(boost::format(" %1$2s %2$+1.7f %3$+1.7f %4$+1.7f Rank %5$d\n")
@@ -146,9 +127,7 @@ namespace votca {
       }
       // Polarizability
       double conv_pol=std::pow(tools::conv::bohr2ang,3);
-      Eigen::MatrixX3d pol=_Ps*conv_pol;
-      output+=(boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f\n")
-              % pol(0, 0) % pol(1, 0) % pol(2, 0) % pol(1, 1) % pol(1, 2) % pol(2, 2)).str();
+      output+=writePolarisation();
       return output;
     }
     
@@ -160,15 +139,9 @@ namespace votca {
        w(_pos, "pos");
        w(_rank, "rank");
        w(_multipole, "multipoles");
-       w(_isPolarisable, "isPolarisable");
-       w(_localpermanetField,"localpermanentField");
-       w(_localinducedField,"localinducedField");
-       w(_inducedDipole,"inducedDipole");
-       w(_inducedDipole_old,"inducedDipole_old");
-       w(_eigendamp,"eigendamp");
        w(PhiP,"PhiP");
-       w(PhiU,"PhiU");
-       
+       w(_localpermanetField,"localpermanentField");
+      
    }
 
    void StaticSite::ReadFromCpt(const CheckpointReader& r){
@@ -179,12 +152,8 @@ namespace votca {
       r(_rank, "rank");
       r(_multipole, "multipoles");
       r(_localpermanetField,"localpermanentField");
-      r(_localinducedField,"localinducedField");
-      r(_inducedDipole,"inducedDipole");
-      r(_inducedDipole_old,"inducedDipole_old");
-      r(_eigendamp,"eigendamp");
       r(PhiP,"PhiP");
-      r(PhiU,"PhiU");
+    
    }
 
 

@@ -123,7 +123,7 @@ namespace votca { namespace xtp {
      
         void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
         template <class T>
-        void Fillextpotential(const AOBasis& aobasis, const MMRegion & sites);
+        void Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
@@ -187,8 +187,8 @@ namespace votca { namespace xtp {
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
-        void setSite(const PolarSite* site){polarsite=site;};
-        const PolarSite* polarsite;
+        void setSite(const StaticSite* site){_site=site;};
+        const StaticSite* _site;
         Eigen::MatrixXd _externalpotential;
     };
     
@@ -201,9 +201,9 @@ namespace votca { namespace xtp {
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
-        void setPolarSite(const PolarSite* site){polarsite=site;};
+        void setSite(const StaticSite* site){_site=site;};
         
-        const PolarSite* polarsite;
+        const StaticSite* _site;
         Eigen::MatrixXd _externalpotential;
     };
 

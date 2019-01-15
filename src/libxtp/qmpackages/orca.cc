@@ -231,10 +231,8 @@ namespace votca {
             for (const PolarSegment& seg:*_PolarSegments) {
                 for (const PolarSite& site:seg) {
                     if (site.getCharge() != 0.0) total_background++;
-                    if (site.getRank() > 0 || _with_polarization ) {
-                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
-                        total_background+= split_multipoles.size();
-                    }
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+                    total_background+= split_multipoles.size();
                 }
             } //counting only
             
@@ -247,14 +245,13 @@ namespace votca {
                     string sitestring=boost::str(fmt % site.getCharge() % pos.x()
                             % pos.y() % pos.z());
                     if (site.getCharge() != 0.0) crg_file << sitestring << endl;
-                    if (site.getRank() > 0 || _with_polarization ) {
-                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
-                        for (const auto& mpoles:split_multipoles){
-                            Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
-                           string multipole=boost::str( fmt % mpoles._q % pos.x() % pos.y() % pos.z() );
-                            crg_file << multipole << endl;
-                        }
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+                    for (const auto& mpoles:split_multipoles){
+                        Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+                       string multipole=boost::str( fmt % mpoles._q % pos.x() % pos.y() % pos.z() );
+                        crg_file << multipole << endl;
                     }
+
                 }
             }
             
@@ -568,11 +565,11 @@ namespace votca {
                         row=GetLineAndSplit(input_file, "\t ");
                         nfields = row.size();
                         if (!hasAtoms) {
-                            PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                            StaticSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
                             temp.setCharge(atom_charge);
                             orbitals.Multipoles().push_back(temp);
                         } else {
-                            orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
+                            orbitals.Multipoles().push_back(StaticSite(orbitals.QMAtoms().at(atom_id),atom_charge));
                         }
                     }
                 }

@@ -24,17 +24,17 @@
 #include <boost/format.hpp>
 #include <vector>
 
-#include "votca/xtp/polarsegment.h"
+#include "votca/xtp/classicalsegment.h"
 
-using namespace std;
-using namespace votca::tools;
+
 
 namespace votca { namespace xtp {
 
 
 //MPS files have a weird format positions can be in bohr or angstroem,
 //multipoles are in q*bohr^k, with k rank of multipole and polarisabilities are in angstroem^3
-void ClassicalSegment::LoadFromMPS(const std::string& filename){
+template< class T>
+void ClassicalSegment<T>::LoadFromMPS(const std::string& filename){
 
     std::string line;
     std::ifstream intt;
@@ -44,6 +44,7 @@ void ClassicalSegment::LoadFromMPS(const std::string& filename){
     int readinmultipoles=0;
     int numberofmultipoles=0;
     Eigen::VectorXd multipoles;
+    int rank;
 
     if (!intt.is_open() ) {
         throw runtime_error("File:"+filename+" could not be opened");
@@ -51,7 +52,7 @@ void ClassicalSegment::LoadFromMPS(const std::string& filename){
     while ( intt.good() ) {
 
         std::getline(intt, line);
-        vector<string> split;
+        std::vector<std::string> split;
         Tokenizer toker(line, " \t");
         toker.ToVector(split);
 
@@ -83,13 +84,13 @@ void ClassicalSegment::LoadFromMPS(const std::string& filename){
             }
         }else if ( split.size() == 6 ) {
             // element,  position,  rank limit convert to bohr
-            string name = split[0];
+            std::string name = split[0];
             Eigen::Vector3d pos;
             int id=_atomlist.size();
             pos[0] = boost::lexical_cast<double>(split[1]);
             pos[1] = boost::lexical_cast<double>(split[2]);
             pos[2] = boost::lexical_cast<double>(split[3]);
-            int rank = boost::lexical_cast<int>(split[5]);
+            rank = boost::lexical_cast<int>(split[5]);
             numberofmultipoles=(rank+1)*(rank+1);
             multipoles=Eigen::VectorXd::Zero(numberofmultipoles);
             pos*=unit_conversion;
@@ -136,7 +137,7 @@ void ClassicalSegment::LoadFromMPS(const std::string& filename){
                 readinmultipoles++;
             }
             if(readinmultipoles==numberofmultipoles){
-                _atomlist.back().setMultipole(multipoles);
+                _atomlist.back().setMultipole(multipoles,rank);
                 multipoles.resize(0);
                 readinmultipoles=0;
             }
@@ -144,8 +145,8 @@ void ClassicalSegment::LoadFromMPS(const std::string& filename){
     } 
 }
 
-
-double ClassicalSegment::CalcTotalQ()const{
+template <class T>
+double ClassicalSegment<T>::CalcTotalQ()const{
     double Q=0;
     for(const T& site:_atomlist){
         Q+=site.getCharge();
@@ -153,7 +154,9 @@ double ClassicalSegment::CalcTotalQ()const{
     return Q;
 }
 
-Eigen::Vector3d ClassicalSegment::CalcDipole()const{
+
+template <class T>
+Eigen::Vector3d ClassicalSegment<T>::CalcDipole()const{
     Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
 
     Eigen::Vector3d CoM=this->getPos();
@@ -164,10 +167,11 @@ Eigen::Vector3d ClassicalSegment::CalcDipole()const{
     return dipole;
 }
 
-void ClassicalSegment::WriteMPS(const std::string& filename, std::string header) const{
+template <class T>
+void ClassicalSegment<T>::WriteMPS(const std::string& filename, std::string header) const{
 
     std::ofstream ofs;
-    ofs.open(filename.c_str(), ofstream::out);
+    ofs.open(filename.c_str(), std::ofstream::out);
     if (!ofs.is_open()) {
         throw runtime_error("Bad file handle: " + filename);
     }
@@ -181,9 +185,10 @@ void ClassicalSegment::WriteMPS(const std::string& filename, std::string header)
         ofs <<site.WriteMpsLine("angstrom");
     }
     ofs.close();
-
 }
 
+template class ClassicalSegment<PolarSite>;
+template class ClassicalSegment<StaticSite>;
     
 
     

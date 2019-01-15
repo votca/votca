@@ -39,7 +39,7 @@ namespace votca { namespace xtp {
         // q_01 etc are cartesian tensor multipole moments according to https://en.wikipedia.org/wiki/Quadrupole
         // so transform apolarsite into cartesian and then multiply by 2 (difference stone definition/wiki definition)
         // not sure about unit conversion
-        Eigen::Matrix3d quadrupole=-2*polarsite->CalculateCartesianMultipole();
+        Eigen::Matrix3d quadrupole=-2*_site->CalculateCartesianMultipole();
         // shell info, only lmax tells how far to go
         int lmax_row = shell_row.getLmax();
         int lmax_col = shell_col.getLmax();
@@ -128,7 +128,7 @@ namespace votca { namespace xtp {
         // some helpers
         const Eigen::Vector3d PmA=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_row;
         const Eigen::Vector3d PmB=fak2*( decay_row * pos_row + decay_col * pos_col ) - pos_col;
-        const Eigen::Vector3d PmC=fak2*( decay_row * pos_row + decay_col * pos_col ) - polarsite->getPos();
+        const Eigen::Vector3d PmC=fak2*( decay_row * pos_row + decay_col * pos_col ) - _site->getPos();
 
         const double U = zeta*PmC.squaredNorm();
 
@@ -1107,15 +1107,16 @@ for (int i = 0; i < nrows; i++) {
             }// shell_col Gaussians
         }// shell_row Gaussians
     }
-
-        void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites) {
+    
+        template <class T>
+        void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (const auto& Seg:*sites) {
-               for (const PolarSite& site:Seg) {
+            for (const auto& Seg:sites) {
+               for (const auto& site:Seg) {
                     if (site.getRank() > 1) {
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setPolarSite(&site);
+                        setSite(&site);
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
                     }
@@ -1124,6 +1125,8 @@ for (int i = 0; i < nrows; i++) {
 
             return;
         }
+        template void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis,const StaticRegion & sites);
+        template void AOQuadrupole_Potential::Fillextpotential(const AOBasis& aobasis,const PolarRegion & sites);
 
 }}
 

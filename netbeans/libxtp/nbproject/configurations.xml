@@ -256,6 +256,7 @@
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libxtp/staticsite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/topology.cc</itemPath>
       <itemPath>../../src/libxtp/trustregion.cc</itemPath>
@@ -4712,6 +4713,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
             tool="1"
@@ -5789,6 +5792,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"

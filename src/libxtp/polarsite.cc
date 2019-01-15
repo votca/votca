@@ -56,5 +56,32 @@ namespace votca {
       return;
     }
 
+
+    std::string PolarSite::writePolarisation()const{
+        double conv_pol=std::pow(tools::conv::bohr2ang,3);
+        Eigen::MatrixX3d pol=_Ps*conv_pol;
+        return (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f %6$+1.7f\n")
+              % pol(0, 0) % pol(1, 0) % pol(2, 0) % pol(1, 1) % pol(1, 2) % pol(2, 2)).str();
+    }
+
+
+    void PolarSite::WriteToCpt(const CheckpointWriter& w)const{
+        StaticSite::WriteToCpt(w);
+        w(_localinducedField,"localinducedField");
+        w(_inducedDipole,"inducedDipole");
+        w(_inducedDipole_old,"inducedDipole_old");
+        w(_eigendamp,"eigendamp");
+        w(PhiU,"PhiU");
+     }
+
+    void PolarSite::ReadFromCpt(const CheckpointReader& r){
+        StaticSite::ReadFromCpt(r);
+        r(_localinducedField,"localinducedField");
+        r(_inducedDipole,"inducedDipole");
+        r(_inducedDipole_old,"inducedDipole_old");
+        r(_eigendamp,"eigendamp");
+        r(PhiU,"PhiU");
+    }
+
   }
 }

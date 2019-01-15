@@ -444,7 +444,11 @@ if (lmax_col > 3) {
                 }
             }
             return;
-        }    
+        }
+
+
+        template void AOESP::Fillextpotential(const AOBasis& aobasis,const StaticRegion & sites);
+        template void AOESP::Fillextpotential(const AOBasis& aobasis,const PolarRegion & sites);
     
 }}
 

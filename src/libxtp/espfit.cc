@@ -229,7 +229,7 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
     double totalPotSq = 0.0;
     for ( unsigned k=0 ; k < gridpoints.size(); k++ ){
         double temp = 0.0;
-        for ( const PolarSite& atom:orbitals.Multipoles()){
+        for ( const StaticSite& atom:orbitals.Multipoles()){
             double dist = (gridpoints[k]-atom.getPos()).norm();
             temp += atom.getCharge()/dist;
         }

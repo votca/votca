@@ -23,7 +23,7 @@
 
 
 #include <votca/xtp/region.h>
-
+#include <votca/xtp/classicalsegment.h>
 
 namespace votca { namespace xtp {
 template <class T>
@@ -36,11 +36,11 @@ class MMRegion: public Region{
 
         int size()const{return _segments.size();}
 
-        std::vector<T>::iterator begin(){return _segments.begin();}
-        std::vector<T>::iterator end(){return _segments.end();}
+       typename std::vector<T>::iterator begin(){return _segments.begin();}
+       typename std::vector<T>::iterator end(){return _segments.end();}
 
-        std::vector<T>::const_iterator begin()const{return _segments.begin();}
-        std::vector<T>::const_iterator end()const{return _segments.end();}
+       typename std::vector<T>::const_iterator begin()const{return _segments.begin();}
+       typename std::vector<T>::const_iterator end()const{return _segments.end();}
 
         void push_back(const T& seg){
             _segments.push_back(seg);

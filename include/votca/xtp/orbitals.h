@@ -26,7 +26,7 @@
 #include <votca/tools/property.h>
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/qmstate.h>
 
@@ -179,11 +179,11 @@ namespace votca {
                 return ( _multipoles.size() > 0) ? true : false;
             }
 
-            PolarSegment& Multipoles(){
+            StaticSegment& Multipoles(){
                 return _multipoles;
             }
 
-            const PolarSegment& Multipoles()const{
+            const StaticSegment& Multipoles()const{
                 return _multipoles;
             }
 
@@ -603,7 +603,7 @@ namespace votca {
 
             QMMolecule _atoms;
 
-            PolarSegment _multipoles;
+            StaticSegment _multipoles;
 
             double _qm_energy=0;
             double _self_energy=0;

@@ -54,9 +54,17 @@ namespace votca {
             virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
 
             virtual void CleanUp() = 0;
-            
-            void setMultipoleBackground(const std::shared_ptr<MMRegion>& PolarSegments);
 
+
+            template< class T>
+            void QMPackage::AddRegion(const MMRegion<ClassicalSegment<T> > & region){
+                for(const auto& segment: region){
+                    for(const auto& site:segment){
+                        _externalsites.push_back(std:unique_ptr<StaticSite>(new T(site));
+                    }
+                }
+            }
+           
             void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
             }
@@ -113,11 +121,6 @@ namespace votca {
                 return _executable;
             };
 
-            void setWithPolarization(bool polar){
-                _with_polarization=polar;
-                return;
-            }
-
             void setDipoleSpacing(double spacing){
                 _dpl_spacing=spacing;
                 return;
@@ -132,13 +135,17 @@ namespace votca {
             };
 
             virtual void WriteChargeOption() =0;
-            std::vector<MinimalMMCharge > SplitMultipoles(const PolarSite& site);
+            std::vector<MinimalMMCharge > SplitMultipoles(const StaticSite& site);
             void ReorderOutput(Orbitals& orbitals);
             Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals)const;
             bool isLinker( std::string name, std::vector< std::string> linker_names );
             
             
             std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,const std::string separators );
+
+
+            
+
             
             int _charge;
             int _spin; // 2S+1
@@ -174,9 +181,8 @@ namespace votca {
             Logger* _pLog;
 
             
-            std::shared_ptr<MMRegion>  _PolarSegments;
+            std::vector<std::unique_ptr<StaticSite> > _externalsites;
             double _dpl_spacing;
-            bool _with_polarization;
             
         };
         

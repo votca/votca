@@ -21,6 +21,8 @@
 #define VOTCA_XTP_CLASSICALSEGMENT_H
 
 #include <votca/xtp/atomcontainer.h>
+#include <votca/xtp/polarsite.h>
+#include <votca/xtp/staticsite.h>
 
 
 namespace votca {
@@ -48,7 +50,7 @@ protected:
 };
 
 typedef ClassicalSegment<PolarSite> PolarSegment;
-typedef ClassicalSegment<StaticStie> StaticSegment;
+typedef ClassicalSegment<StaticSite> StaticSegment;
         
         
         

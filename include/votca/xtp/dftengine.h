@@ -23,7 +23,7 @@
 #include <votca/xtp/numerical_integrations.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/topology.h>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/convergenceacc.h>
@@ -171,7 +171,8 @@ namespace votca {
             ERIs _ERIs;
 
             // external charges
-            std::shared_ptr<MMRegion> _externalsites;
+            std::shared_ptr<PolarRegion> _externalsites;
+            std::shared_ptr<StaticRegion> _externalsites;
             bool _addexternalsites=false;
 
             // exchange and correlation

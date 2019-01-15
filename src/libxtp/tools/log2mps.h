@@ -99,7 +99,7 @@ bool Log2Mps::Evaluate() {
         throw std::runtime_error( "\nERROR Parsing " + _logfile+"failed.");
     }
 
-    const PolarSegment atoms=orbs.Multipoles();
+    const StaticSegment& atoms=orbs.Multipoles();
     // Sanity checks, total charge
     double Q =atoms.CalcTotalQ();
     

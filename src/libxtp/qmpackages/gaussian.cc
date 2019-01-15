@@ -257,15 +257,11 @@ namespace votca {
                             % site.getCharge());
                     if (site.getCharge() != 0.0) com_file << sitestring << endl;
 
-                    if (site.getRank() > 0 || _with_polarization ) {
-
-                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
-                        for (const auto& mpoles:split_multipoles){
-                           Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
-                           string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
-                            com_file << multipole << endl;
-
-                        }
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+                    for (const auto& mpoles:split_multipoles){
+                       Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+                       string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
+                        com_file << multipole << endl;
                     }
                 }
             }
@@ -747,11 +743,11 @@ namespace votca {
               row=GetLineAndSplit(input_file, "\t ");
               nfields = row.size();
                 if (!has_atoms) {
-                    PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                    StaticSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
                     temp.setCharge(atom_charge);
                     orbitals.Multipoles().push_back(temp);
                 } else {
-                    orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
+                    orbitals.Multipoles().push_back(StaticSite(orbitals.QMAtoms().at(atom_id),atom_charge));
                 }
             }
           }

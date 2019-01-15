@@ -43,12 +43,8 @@ public:
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
 
-    PolarSite(const CheckpointReader& r){
+    PolarSite(const CheckpointReader& r):StaticSite(r){
         ReadFromCpt(r);
-    }
-
-    PolarSite(const QMAtom& atom, double charge):PolarSite(atom.getAtomID(),atom.getElement(),atom.getPos()){
-        setCharge(charge);
     }
       
         
@@ -69,37 +65,38 @@ public:
     // MULTIPOLES DEFINITION
        
     Eigen::Vector3d getDipole()const{
-        Eigen::Vector3d dipole=Eigen::Vector3d::Zero();
+        Eigen::Vector3d dipole=_multipole.segment<3>(1);
         dipole+=_inducedDipole;
-        dipole+=_multipole.segment<3>(1);
         return dipole;
+    }
+
+
+    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos){
+        StaticSite::Rotate(R,ref_pos);
+        _Ps = R * _Ps * R.transpose();
     }
    
     void Induce(double wSOR);
     
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
+
+    void WriteToCpt(const CheckpointWriter& w)const;
+
+    void ReadFromCpt(const CheckpointReader& r);
     
-    static std::string Identify(){return "polarsite";}
+    std::string Identify(){return "polarsite";}
     
 private:
-    
-    int     _id;
-    std::string  _element;
-    Eigen::Vector3d _pos;
-    int     _rank;
 
-    Vector9d _multipole; //Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+     virtual std::string writePolarisation()const;
     
+    Eigen::Matrix3d _Ps=Eigen::Matrix3d::Zero();;
+    Eigen::Vector3d _localinducedField=Eigen::Vector3d::Zero();
+    Eigen::Vector3d _inducedDipole=Eigen::Vector3d::Zero();
+    Eigen::Vector3d _inducedDipole_old=Eigen::Vector3d::Zero();
+    double _eigendamp=0.0;
     
-    Eigen::Matrix3d _Ps;
-    Eigen::Vector3d _localpermanetField;
-    Eigen::Vector3d _localinducedField;
-    Eigen::Vector3d _inducedDipole;
-    Eigen::Vector3d _inducedDipole_old;
-    double _eigendamp;
-    
-    double PhiP;                            // Electric potential (due to perm.)
-    double PhiU;                            // Electric potential (due to indu.)
+    double PhiU=0.0;                            // Electric potential (due to indu.)
 
 };
 
