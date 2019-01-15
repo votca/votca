@@ -24,15 +24,12 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 class TopologyReader {
 public:
   virtual ~TopologyReader() {}
   /// open, read and close topology file
-  virtual bool ReadTopology(string file, Topology &top) = 0;
+  virtual bool ReadTopology(std::string file, Topology &top) = 0;
 
   static void RegisterPlugins(void);
 };

@@ -165,7 +165,7 @@ namespace votca {
             virtual void MergeWorker(Worker *worker);
 
         protected:
-            list<CGObserver *> _observers;
+            std::list<CGObserver *> _observers;
             bool _do_mapping;
             std::vector<Worker*> _myWorkers;
             int _nframes;

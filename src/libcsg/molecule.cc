@@ -20,6 +20,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 void Molecule::AddBead(Bead *bead, const string &name)
 {
     _beads.push_back(bead);

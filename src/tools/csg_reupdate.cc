@@ -27,6 +27,9 @@
 /*
  *
  */
+
+using namespace std;
+
 int main(int argc, char** argv) {
   CsgREupdate app;
   return app.Exec(argc, argv);

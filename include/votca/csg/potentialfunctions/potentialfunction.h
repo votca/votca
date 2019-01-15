@@ -18,30 +18,21 @@
 #ifndef POTENTIALFUNCTION_H
 #define	POTENTIALFUNCTION_H
 
-#include <votca/tools/table.h>
-#include <boost/lexical_cast.hpp>
-#include <cstdlib>
-#include <math.h>
-#include <iostream>
-#include <fstream>
-#include <stdio.h>
-#include <sstream>
-
-using namespace std;
-using namespace votca::tools;
+#include <Eigen/Dense>
+#include <string>
 
 class PotentialFunction {
 public:
 
     virtual ~PotentialFunction() {}
     // read parameters from the input file
-    virtual void setParam(string filename);
+    virtual void setParam(std::string filename);
     // save parameters to the file
-    virtual void SaveParam(const string& filename);
+    virtual void SaveParam(const std::string& filename);
     // write potential table
-    virtual void SavePotTab(const string& filename, const double step);
+    virtual void SavePotTab(const std::string& filename, const double step);
     // write potential table for specified interval
-    virtual void SavePotTab(const string& filename, const double step,
+    virtual void SavePotTab(const std::string& filename, const double step,
 			    const double rmin, const double rcut);
     // set all parameters
     void setParam(const Eigen::VectorXd& param){ _lam = param; }
@@ -79,9 +70,9 @@ public:
 
 protected:
 
-    PotentialFunction(const string& name_,const int nlam_,const double min_,const double max_);
+    PotentialFunction(const std::string& name_,const int nlam_,const double min_,const double max_);
 
-    string _name;
+    std::string _name;
     Eigen::VectorXd _lam;
     double _cut_off;
     double _min;

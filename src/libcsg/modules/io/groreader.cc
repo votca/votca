@@ -24,6 +24,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 bool GROReader::ReadTopology(string file,  Topology &top)
 {
    _topology = true;

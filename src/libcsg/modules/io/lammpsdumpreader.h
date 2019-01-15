@@ -25,9 +25,6 @@
 #include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief class for reading lammps dump files
@@ -44,10 +41,10 @@ class LAMMPSDumpReader :
         ~LAMMPSDumpReader() {}
         
         /// open a topology file
-        bool ReadTopology(string file, Topology &top);
+        bool ReadTopology(std::string file, Topology &top);
 
         /// open a trejectory file
-        bool Open(const string &file);
+        bool Open(const std::string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
         /// read in the next frame
@@ -57,13 +54,13 @@ class LAMMPSDumpReader :
         
     private:
 
-        void ReadTimestep(Topology &top, string itemline);
-        void ReadBox(Topology &top, string itemline);
-        void ReadNumAtoms(Topology &top, string itemline);
-        void ReadAtoms(Topology &top, string itemline);
+        void ReadTimestep(Topology &top, std::string itemline);
+        void ReadBox(Topology &top, std::string itemline);
+        void ReadNumAtoms(Topology &top, std::string itemline);
+        void ReadAtoms(Topology &top, std::string itemline);
   
-        ifstream _fl;
-        string _fname;
+        std::ifstream _fl;
+        std::string _fname;
         bool _topology;
         int _natoms;
 };

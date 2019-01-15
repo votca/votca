@@ -18,11 +18,9 @@
 #ifndef _VOTCA_CSG_BEADSTRUCTURE_H
 #define _VOTCA_CSG_BEADSTRUCTURE_H
 
-#include <list>
 #include <map>
 #include <memory>
 #include <set>
-#include <string>
 
 #include <votca/csg/basebead.h>
 
@@ -129,7 +127,7 @@ protected:
   bool graphUpToDate;
   bool single_structureUpToDate_;
   bool single_structure_;
-  shared_ptr<votca::tools::Graph> graph_;
+  std::shared_ptr<votca::tools::Graph> graph_;
   std::set<Edge> connections_;
   std::map<int, BaseBead *> beads_;
   std::map<int, std::shared_ptr<votca::tools::GraphNode>> graphnodes_;

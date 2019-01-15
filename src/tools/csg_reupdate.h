@@ -30,23 +30,22 @@
 
 using namespace votca::csg;
 using namespace votca::tools;
-using namespace std;
 
 struct PotentialInfo {
   
   PotentialInfo(int index,bool bonded_,int vec_pos_,
-                string& param_in_ext_,Property *options,
+                std::string& param_in_ext_,Property *options,
                 bool gentable = false);
 
   int potentialIndex;
   bool bonded;
   PotentialFunction *ucg;
   int vec_pos;
-  pair<int, int> beadTypes;
+  std::pair<int, int> beadTypes;
   
-  string potentialName;
-  string potentialFunction;
-  string type1, type2;
+  std::string potentialName;
+  std::string potentialFunction;
+  std::string type1, type2;
   
   double rmin,rcut;
   
@@ -57,8 +56,8 @@ class CsgREupdate
 : public CsgApplication
 {
 public:
-  string ProgramName() { return "csg_reupdate"; }
-  void HelpText(ostream &out) {
+  std::string ProgramName() { return "csg_reupdate"; }
+  void HelpText(std::ostream &out) {
     out << "computes relative entropy update.";
   }
 
@@ -74,7 +73,7 @@ public:
   void Initialize();
   bool EvaluateOptions();
   void BeginEvaluate(Topology *top, Topology *top_atom = 0);
-  void LoadOptions(const string &file);
+  void LoadOptions(const std::string &file);
     
   void Run();
   
@@ -87,9 +86,9 @@ private:
 protected:
    
   Property _options;
-  list<Property *> _nonbonded;
+  std::list<Property *> _nonbonded;
   
-  typedef vector<PotentialInfo *> PotentialContainer;
+  typedef std::vector<PotentialInfo *> PotentialContainer;
   PotentialContainer _potentials;
   
   int _nlamda;
@@ -109,13 +108,13 @@ protected:
   bool _gentable;
   bool _dosteep;
   
-  vector<Table *> _aardfs;
-  vector<double *> _aardfnorms;
+  std::vector<Table *> _aardfs;
+  std::vector<double *> _aardfnorms;
 
   // file extension for the inputs/outputs
-  string _param_in_ext, _param_out_ext;
-  string _pot_out_ext;
-  string _rdf_ext;
+  std::string _param_in_ext, _param_out_ext;
+  std::string _pot_out_ext;
+  std::string _rdf_ext;
   
   void WriteOutFiles();
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);
@@ -142,9 +141,9 @@ public:
   ~CsgREupdateWorker(){};
   
   Property _options;
-  list<Property *> _nonbonded;
+  std::list<Property *> _nonbonded;
   
-  typedef vector<PotentialInfo *> PotentialContainer;
+  typedef std::vector<PotentialInfo *> PotentialContainer;
   PotentialContainer _potentials;
 
   int _nlamda;

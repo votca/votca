@@ -25,8 +25,6 @@
 namespace votca { namespace csg {
 using namespace votca::tools;
 
-using namespace std;
-
 /**
     \brief Generate lists of beads
 
@@ -36,16 +34,16 @@ using namespace std;
 */
 
 class BeadList
-    : public list<Bead *>
+    : public std::list<Bead *>
 {
 public:
     BeadList() {};
     ~BeadList() {}
     
     /// \brief Select all beads of type <select>
-    int Generate(Topology &top, const string &select);
+    int Generate(Topology &top, const std::string &select);
      /// \brief Select all beads of type <select> withn a radius <radius> of reference vector <ref>
-    int GenerateInSphericalSubvolume(Topology &top, const string &select,  vec ref, double radius);
+    int GenerateInSphericalSubvolume(Topology &top, const std::string &select,  vec ref, double radius);
     
     Topology *getTopology() {return _topology; }
     

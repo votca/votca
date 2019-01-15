@@ -21,6 +21,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 int BeadList::Generate(Topology &top, const string &select)
 {
     BeadContainer::iterator iter;

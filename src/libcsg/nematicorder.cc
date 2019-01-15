@@ -22,6 +22,8 @@
 
 namespace votca { namespace csg {
 
+  using namespace std;
+
 void NematicOrder::Process(Topology &top, const string &filter)
 {
     _mu.ZeroMatrix();
