@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ namespace votca {
      **********************/
     bool BeadMotif::junctionExist_(){
       if(!junctionsUpToDate_){
-        junctions_ = graph_->getJunctions(); 
+        junctions_ = reduced_graph_->getJunctions(); 
         junctionsUpToDate_ = true;
       }
       return junctions_.size()!=0;
@@ -46,9 +46,9 @@ namespace votca {
       // all other vertices must be 2 
       int num_vertices_degree_1 = 0;
 
-      auto vertices = graph_->getVertices();
+      auto vertices = reduced_graph_->getVertices();
       for(auto vertex : vertices) {
-        int degree = graph_->getDegree(vertex);
+        int degree = reduced_graph_->getDegree(vertex);
         if(degree==1){
           ++num_vertices_degree_1;
         }else if(degree==0) {
@@ -65,9 +65,9 @@ namespace votca {
       if(junctionExist_()) return false;
 
       // Ensure that the degree of every vertex is 2
-      auto vertices = graph_->getVertices();
+      auto vertices = reduced_graph_->getVertices();
       for(auto vertex : vertices){
-        if(graph_->getDegree(vertex)!=2) return false;
+        if(reduced_graph_->getDegree(vertex)!=2) return false;
       }
       return true;
     }
@@ -76,12 +76,20 @@ namespace votca {
       if(!junctionExist_()) return false;
       cout << "Junction exists" << endl;
       // Ensure that the degree of every vertex is 2 or greater
-      auto vertices = graph_->getVertices();
+      auto vertices = reduced_graph_->getVertices();
       for(auto vertex : vertices){
-        if(graph_->getDegree(vertex)<2) return false;
+        if(reduced_graph_->getDegree(vertex)<2) return false;
       }
       // If exploring from one branch of a junction lets you explore every
       // edge than it is a fused ring. 
+      vector<int> junctions = reduced_graph.getJunctions();
+      vector<Edge> edges = getNeighEdges(junctions.at(0));
+      set<Edge> all_edges_explored = exploreBranch(reduced_graph,junctions.at(0),edges.at(0));
+       
+      for(const Edge& edge_next_to_junction : edges){
+        if(!all_edges_explored.count(edge_next_to_junction)) return false;
+      }
+      
       return true;
     }
     /***************************
