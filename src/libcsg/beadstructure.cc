@@ -22,10 +22,12 @@
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphdistvisitor.h>
 
-using namespace votca::csg;
 using namespace votca::tools;
 using namespace std;
 
+namespace votca {
+
+namespace csg {
 /**********************
  * Internal Functions *
  **********************/
@@ -104,6 +106,11 @@ void BeadStructure::InitializeGraph_() {
   }
 }
 
+Graph BeadStructure::getGraph() {
+  InitializeGraph_();
+  return *graph_;
+}
+
 void BeadStructure::CalculateStructure_() {
 
   InitializeGraph_();
@@ -170,20 +177,5 @@ BaseBead *BeadStructure::getBead(int index) {
   return beads_[index];
 }
 
-vector<shared_ptr<BeadStructure>> BeadStructure::breakIntoStructures() {
-  vector<shared_ptr<BeadStructure>> structures;
-  if (!graphUpToDate) InitializeGraph_();
-  auto sub_graphs = decoupleIsolatedSubGraphs(*graph_);
-  for (auto sub_graph_it = sub_graphs.begin(); sub_graph_it != sub_graphs.end();
-       ++sub_graph_it) {
-    auto sub_graph_edges = (*sub_graph_it)->getEdges();
-    auto sub_graph_vertices = (*sub_graph_it)->getVertices();
-    BeadStructure beadstructure;
-    for (auto vertex : sub_graph_vertices)
-      beadstructure.AddBead(beads_[vertex]);
-    for (auto edge : sub_graph_edges)
-      beadstructure.ConnectBeads(edge.getEndPoint1(), edge.getEndPoint2());
-    structures.push_back(make_shared<BeadStructure>(beadstructure));
-  }
-  return structures;
-}
+}  // namespace csg
+}  // namespace votca

@@ -39,10 +39,13 @@ namespace csg {
  * have, this class helps to classify and break structures up into the
  * appropriate sub class. The possible classes include:
  *
- * 1. Single bead
- * 2. Line
- * 3. Loop
- * 4. Fused Ring
+ * Some of the structures are considered fundamental and cannot be broken up any
+ * more than they are. These elements are listed as elemental
+ *
+ * 1. Single bead          // Elemental
+ * 2. Line                 // Elemental
+ * 3. Loop                 // Elemental
+ * 4. Fused Ring           // Elemental
  * 5. Single Structure
  * 6. Multiple Structures
  * 6. Undefined
@@ -65,10 +68,7 @@ namespace csg {
 
 class BeadMotif : private BeadStructure {
  public:
-  BeadMotif()
-      : BeadStructure(),
-        type_(motif_type::undefined),
-        junctionsUpToDate_(false){};
+  BeadMotif() : BeadStructure(){};
   ~BeadMotif(){};
 
   enum motif_type {
@@ -97,8 +97,8 @@ class BeadMotif : private BeadStructure {
 
  private:
   void InitializeGraph_();
-  motif_type type_;
-  bool junctionsUpToDate_;
+  motif_type type_ = motif_type::undefined;
+  bool junctionsUpToDate_ = false;
   bool type_up_to_date_ = false;
   std::vector<int> junctions_;
   std::unique_ptr<ReducedGraph> reduced_graph_;

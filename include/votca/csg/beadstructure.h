@@ -105,8 +105,9 @@ class BeadStructure {
    * These structures will be broken up into their own bead structures and
    * returned in a vector.
    **/
-  std::vector<std::shared_ptr<BeadStructure>> breakIntoStructures();
+  // std::vector<std::shared_ptr<BeadStructure>> breakIntoStructures();
 
+  Graph getGraph();
   /**
    * \brief Compare the topology of two bead structures
    *
