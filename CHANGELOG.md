@@ -1,6 +1,11 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.5_rc1 (released XX.12.18)
+## Version 1.5_rc2 (released XX.01.19)
+* added REGRESSIONTEST_TOLERANCE cmake option
+* added bug fix for memory leak in bead class
+* added topology unit test
+
+## Version 1.5_rc1 (released 28.12.18)
 * added support for 3 body distribution
 * allow usage of _ in gmx options
 * support espresso-4.0

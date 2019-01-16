@@ -45,7 +45,7 @@ class ExclusionList;
 
 typedef std::vector<Molecule *> MoleculeContainer;
 typedef std::vector<Bead *> BeadContainer;
-typedef std::vector<BeadType *> BeadTypeContainer;
+typedef std::vector<std::shared_ptr<BeadType>> BeadTypeContainer;
 typedef std::vector<Residue *> ResidueContainer;
 typedef std::vector<Interaction *> InteractionContainer;
 
@@ -83,7 +83,7 @@ public:
      *
      * The function creates a new bead and adds it to the list of beads.     
      */
-    virtual Bead *CreateBead(byte_t symmetry, std::string name, BeadType *type, int resnr, double m, double q);
+    virtual Bead *CreateBead(byte_t symmetry, std::string name, std::weak_ptr<BeadType> type, int resnr, double m, double q);
 
      /**
      * \brief get bead type or create it
@@ -92,7 +92,7 @@ public:
      *
      * Returns an existing bead type or creates one if it doesn't exist yet
      */
-    virtual BeadType *GetOrCreateBeadType(std::string name);
+    virtual std::weak_ptr<BeadType> GetOrCreateBeadType(std::string name);
 
     /**
      * \brief creates a new molecule
@@ -191,7 +191,7 @@ public:
     void AddBondedInteraction(Interaction *ic);
     std::list<Interaction *> InteractionsInGroup(const std::string &group);
     
-    BeadType *getBeadType(const int i) const { return _beadtypes[i]; }
+    std::weak_ptr<BeadType> getBeadType(const int i) { return (_beadtypes[i]); }
     Bead *getBead(const int i) const { return _beads[i]; }
     Residue *getResidue(const int i) const { return _residues[i]; }
     Molecule *getMolecule(const int i) const { return _molecules[i]; }
@@ -408,7 +408,7 @@ protected:
     std::string _particle_group;
 };
 
-inline Bead *Topology::CreateBead(byte_t symmetry, std::string name, BeadType *type, int resnr, double m, double q)
+inline Bead *Topology::CreateBead(byte_t symmetry, std::string name, std::weak_ptr<BeadType> type, int resnr, double m, double q)
 {
     
     Bead *b = new Bead(this, _beads.size(), type, symmetry, name, resnr, m, q);    

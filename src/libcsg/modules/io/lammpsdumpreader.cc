@@ -15,6 +15,7 @@
  *
  */
 
+#include <memory>
 #include <vector>
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/getline.h>
@@ -134,7 +135,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     if(_topology){
       top.CreateResidue("dum");
       for(int i=0; i<_natoms; ++i) {
-        (void)top.CreateBead(1, "no", top.GetOrCreateBeadType("no"), 0, 0, 0);
+        (void)top.CreateBead(1, "no", (top.GetOrCreateBeadType("no")), 0, 0, 0);
       }
     }
 
@@ -222,8 +223,8 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
             else if(fields[j] == "fz")
                 b->F().z() = boost::lexical_cast<double>(*itok);
             else if((fields[j] == "type")&&_topology){
-                BeadType *type = top.GetOrCreateBeadType(*itok);
-                b->setType(type);
+                std::weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(*itok);
+                b->setType(weak_type);
             }
         }
     }

@@ -337,7 +337,7 @@ protected:
   bool _bF;
 
   /// constructur
-  Bead(Topology *owner, int id, BeadType *type, byte_t symmetry, std::string name,
+  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry, std::string name,
        int resnr, double m, double q)
       : _symmetry(symmetry), _q(q), _resnr(resnr) {
     _parent = owner;

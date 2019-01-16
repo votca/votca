@@ -1,0 +1,11 @@
+<topology>
+  <molecules>
+    <molecule name="MEO" nmols="2" nbeads="1">
+      <bead name="ME" type="ME" mass="32.0424" q="0" />
+    </molecule>
+    <molecule name="SOL" nmols="2" nbeads="1">
+      <bead name="WT" type="WT" mass="18.0154" q="0" />
+    </molecule>
+  </molecules>
+</topology>
+

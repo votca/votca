@@ -39,15 +39,15 @@ int BeadList::Generate(Topology &top, const string &select)
     }
     
     for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
-        if (!selectByName){
-            if(wildcmp(pSelect.c_str(), (*iter)->getType()->getName().c_str())) {
-                push_back(*iter);
-            }
-        }else{
-            if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-                push_back(*iter);
-            }
+      if (!selectByName){
+        if(wildcmp(pSelect.c_str(), (*iter)->getBeadTypeName().c_str())) {
+          push_back(*iter);
         }
+      }else{
+        if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
+          push_back(*iter);
+        }
+      }
     }
     return size();
 }
@@ -71,9 +71,9 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select, 
     for(iter=top.Beads().begin(); iter!=top.Beads().end();++iter) {
         if (abs(_topology->BCShortestConnection(ref, (*iter)->getPos())) > radius) continue;
         if (!selectByName){
-            if(wildcmp(pSelect.c_str(), (*iter)->getType()->getName().c_str())) {
-                push_back(*iter);
-            }
+          if(wildcmp(pSelect.c_str(), (*iter)->getBeadTypeName().c_str())) {
+            push_back(*iter);
+          }
         }else{
             if(wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
                 push_back(*iter);

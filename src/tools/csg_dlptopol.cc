@@ -140,15 +140,15 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref)
     // collect unique bead pairs over all molecular types found
 
     for(int ib1=0; ib1<mol->BeadCount(); ib1++) {
-      string bead_name1 = mol->getBead(ib1)->getType()->getName();
+      string bead_name1 = mol->getBead(ib1)->getBeadTypeName();
       bead_name1 = bead_name1.substr(0,bead_name1.find_first_of("#")); // skip #index of atom from its name
 
       for(unsigned int imt=0; imt<MolecularTypes.size(); imt++) {
 
 	for(int ib2=0; ib2<MolecularTypes[imt]->BeadCount(); ib2++) {
 
-	  string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getType()->getName();
-	  bead_name2 = bead_name2.substr(0,bead_name2.find_first_of("#")); // skip #index of atom from its name
+    string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getBeadTypeName();
+    bead_name2 = bead_name2.substr(0,bead_name2.find_first_of("#")); // skip #index of atom from its name
 
 	  stringstream ss_bp1,ss_bp2;
 
@@ -218,8 +218,8 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg)
         Bead *b=cg.getBead(i);
 
         string bname=b->getName();
-        string btype=b->getType()->getName();
-	
+	      string btype = b->getBeadTypeName();
+
         bname = bname.substr(0,bname.find_first_of("#")); // skip #index of atom from its name
         btype = btype.substr(0,btype.find_first_of("#")); // skip #index of atom from its type
 
