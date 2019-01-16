@@ -64,7 +64,6 @@ void BeadStructure::AddBead(BaseBead *bead) {
     graphUpToDate = false;
     structureIdUpToDate = false;
   }
-  cout << "After Adding bead uptodate " << structureIdUpToDate << endl;
 }
 
 void BeadStructure::ConnectBeads(int bead1_id, int bead2_id) {
@@ -83,7 +82,6 @@ void BeadStructure::ConnectBeads(int bead1_id, int bead2_id) {
     graphUpToDate = false;
     structureIdUpToDate = false;
   }
-  cout << "Connecting beads uptodate " << structureIdUpToDate << endl;
 }
 
 void BeadStructure::InitializeGraph_() {
@@ -111,7 +109,6 @@ void BeadStructure::CalculateStructure_() {
   InitializeGraph_();
   if (!structureIdUpToDate) {
     structure_id_ = findStructureId<GraphDistVisitor>(*graph_);
-    cout << "Structure id found " << structure_id_ << endl;
     structureIdUpToDate = true;
   }
 }
@@ -119,10 +116,8 @@ void BeadStructure::CalculateStructure_() {
 bool BeadStructure::isSingleStructure() {
 
   InitializeGraph_();
-  cout << "Calling is single structure " << single_structureUpToDate_ << endl;
   if (single_structureUpToDate_ == false) {
     auto vertices = graph_->getVertices();
-    cout << "number of vertices " << vertices.size() << endl;
     if (vertices.size() == 0) {
       single_structure_ = false;
       return single_structure_;
@@ -155,11 +150,6 @@ bool BeadStructure::isStructureEquivalent(BeadStructure &beadstructure) {
   if (!beadstructure.structureIdUpToDate) {
     beadstructure.CalculateStructure_();
   }
-  cout << "Structures up to date " << structureIdUpToDate << " "
-       << beadstructure.structureIdUpToDate << endl;
-  cout << "structure id " << structure_id_ << " " << beadstructure.structure_id_
-       << endl;
-  ;
   return structure_id_.compare(beadstructure.structure_id_) == 0;
 }
 
