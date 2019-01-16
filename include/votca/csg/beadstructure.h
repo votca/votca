@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@
 
 #include <votca/csg/basebead.h>
 
-#include <votca/tools/graph.h>
+#include <votca/tools/reducedgraph.h>
 
 namespace votca {
 namespace csg {
@@ -52,12 +52,12 @@ class BaseBead;
  **/
 
 class BeadStructure {
-public:
+ public:
   BeadStructure() : structureIdUpToDate(false), graphUpToDate(false){};
   ~BeadStructure() {}
 
   /**
-   * \brief Determine if the bead structure consists of a single connected 
+   * \brief Determine if the bead structure consists of a single connected
    * structure
    *
    * This function will determine if all beads in the structure are connected
@@ -98,7 +98,7 @@ public:
   std::vector<BaseBead *> getNeighBeads(int index);
 
   /**
-   * \brief Break the beadstructure up into units where each unit is connected 
+   * \brief Break the beadstructure up into units where each unit is connected
    * to each of the parts within the unit
    *
    * If a beadstructure is composed of several unconnected networks of beads.
@@ -119,20 +119,21 @@ public:
    **/
   bool isStructureEquivalent(BeadStructure &beadstructure);
 
-protected:
-  void InitializeGraph_();
+ protected:
+  virtual void InitializeGraph_();
   void CalculateStructure_();
 
-  bool structureIdUpToDate;
-  bool graphUpToDate;
-  bool single_structureUpToDate_;
-  bool single_structure_;
+  bool                                        structureIdUpToDate;
+  bool                                        graphUpToDate;
+  bool                                        single_structureUpToDate_;
+  bool                                        single_structure_;
+  std::string                                 structure_id_ = "";
   std::shared_ptr<votca::tools::Graph> graph_;
-  std::set<Edge> connections_;
-  std::map<int, BaseBead *> beads_;
+  std::set<Edge>                              connections_;
+  std::map<int, BaseBead *>                   beads_;
   std::map<int, std::shared_ptr<votca::tools::GraphNode>> graphnodes_;
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_BEADSTRUCTURE_H
+#endif  // _VOTCA_CSG_BEADSTRUCTURE_H

@@ -54,10 +54,6 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_beadcount) {
 BOOST_AUTO_TEST_CASE(test_beadmotif_getType) {
   BeadMotif beadmotif;
   auto type = beadmotif.getType();
-  BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::undefined);
-
-  beadmotif.CalculateType();
-  type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::empty);
 
   TestBead testbead;
@@ -67,7 +63,6 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType) {
   BOOST_CHECK_EQUAL(beadmotif.BeadCount(), 1);
   type = beadmotif.getType();
 
-  beadmotif.CalculateType();
   type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::single_bead);
 
@@ -76,27 +71,33 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType) {
   testbead2.setName("Helium");
   beadmotif.AddBead(&testbead2);
   type = beadmotif.getType();
-  BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::undefined);
-  beadmotif.CalculateType();
-  type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::multiple_structures);
 }
 
 BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   BeadMotif beadmotif;
+  auto type = beadmotif.getType();
+  BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::empty);
   TestBead testbead1;
   testbead1.setId(1);
   testbead1.setName("Carbon");
+  beadmotif.AddBead(&testbead1);
+
+  // C1
+  type = beadmotif.getType();
+  BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::single_bead);
+
+  // C1   C2
   TestBead testbead2;
   testbead2.setId(2);
   testbead2.setName("Carbon");
-  beadmotif.AddBead(&testbead1);
   beadmotif.AddBead(&testbead2);
-  beadmotif.ConnectBeads(1, 2);
+  type = beadmotif.getType();
+  BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::multiple_structures);
 
   // C1 - C2
-  beadmotif.CalculateType();
-  auto type = beadmotif.getType();
+  beadmotif.ConnectBeads(1, 2);
+  type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::line);
   
   TestBead testbead3;
@@ -106,7 +107,6 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   beadmotif.ConnectBeads(2,3);
 
   // C1 - C2 - C3
-  beadmotif.CalculateType();
   type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::line);
 
@@ -115,7 +115,6 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   // C1 - C2 
   //   \  :
   //     C3
-  beadmotif.CalculateType();
   type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::loop);
 
@@ -131,7 +130,6 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   // C1 - C2 
   //   \  :
   //     C3
-  beadmotif.CalculateType();
   type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::single_structure);
 
@@ -148,7 +146,6 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   // C1 - C2 
   //   \  :
   //     C3
-  beadmotif.CalculateType();
   type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::fused_ring);
 
@@ -172,6 +169,8 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   //   \  :
   //     C3
   // This is not a fused ring
+  type = beadmotif.getType();
+  BOOST_CHECK_EQUAL(type,BeadMotif::motif_type::single_structure);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

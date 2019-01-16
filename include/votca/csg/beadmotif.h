@@ -25,7 +25,7 @@
 #include <string>
 
 #include <votca/csg/basebead.h>
-#include <votca/tools/graph.h>
+#include <votca/tools/reducedgraph.h>
 
 #include "beadstructure.h"
 
@@ -39,7 +39,7 @@ namespace votca {
      * have, this class helps to classify and break structures up into the 
      * appropriate sub class. The possible classes include:
      *
-     * 1. Single 
+     * 1. Single bead 
      * 2. Line
      * 3. Loop
      * 4. Fused Ring
@@ -79,14 +79,9 @@ namespace votca {
           undefined
         };
 
-        motif_type getType() const;
+        motif_type getType();
 
         BaseBead * getBead(int id);
-        /**
-         * \brief Calculates the type of the motif
-         **/
-        void CalculateType();
-
         void ConnectBeads(int bead1_id, int bead2_id);
 
         std::vector<BaseBead *> getNeighBeads(int index);
@@ -97,14 +92,20 @@ namespace votca {
 
         bool isStructureEquivalent(BeadMotif & beadmotif);
       private:
-
+        void InitializeGraph_();
         motif_type type_;
         bool junctionsUpToDate_;
+        bool type_up_to_date_ = false;
         std::vector<int> junctions_;
-
+        std::unique_ptr<ReducedGraph> reduced_graph_;
         bool junctionExist_();
         bool isSingle_();
         bool isLoop_();
+        /**
+         * \brief Calculates the type of the motif
+         **/
+        void CalculateType_();
+
         // One has to explore the whole tree to from each of the junctions to
         // determine if the model is a fused ring or not. For speed it might
         // make since to reduce the graph first to junctions of 3 or more. 
