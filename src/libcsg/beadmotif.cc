@@ -69,7 +69,8 @@ bool BeadMotif::isLoop_() {
   // Ensure that the degree of every vertex is 2
   auto vertices = graph_->getVertices();
   for (auto vertex : vertices) {
-    cout << "Checking vertex " << vertex << " has degree " << graph_->getDegree(vertex) << endl;
+    cout << "Checking vertex " << vertex << " has degree "
+         << graph_->getDegree(vertex) << endl;
     if (graph_->getDegree(vertex) != 2) return false;
   }
   return true;
@@ -87,10 +88,10 @@ bool BeadMotif::isFusedRing_() {
   // edge than it is a fused ring.
   junctionExist_();
 
-  for( int junction : junctions_ ){
+  for (int junction : junctions_) {
     vector<Edge> edges = reduced_graph_->getNeighEdges(junction);
-    set<Edge>    all_edges_explored =
-      exploreBranch(*reduced_graph_, junction, edges.at(0));
+    set<Edge> all_edges_explored =
+        exploreBranch(*reduced_graph_, junction, edges.at(0));
     cout << "Exploring junction " << junction << endl;
     for (const Edge& edge_next_to_junction : edges) {
       cout << "Edges next to junciton" << endl;
@@ -106,11 +107,11 @@ bool BeadMotif::isFusedRing_() {
  * Public Facing Functions *
  ***************************/
 
-BeadMotif::motif_type BeadMotif::getType() { 
-  if(!type_up_to_date_){
+BeadMotif::motif_type BeadMotif::getType() {
+  if (!type_up_to_date_) {
     CalculateType_();
   }
-  return type_; 
+  return type_;
 }
 
 void BeadMotif::CalculateType_() {
@@ -157,10 +158,11 @@ std::vector<BaseBead*> BeadMotif::getNeighBeads(int index) {
   return getNeighBeads(index);
 }
 
-void BeadMotif::InitializeGraph_(){
+void BeadMotif::InitializeGraph_() {
   BeadStructure::InitializeGraph_();
   cout << "BeadMotif calling initialize graph" << endl;
-  reduced_graph_ = unique_ptr<ReducedGraph>( new ReducedGraph(move(reduceGraph(*graph_))));
+  reduced_graph_ =
+      unique_ptr<ReducedGraph>(new ReducedGraph(move(reduceGraph(*graph_))));
   cout << *reduced_graph_ << endl;
 }
 

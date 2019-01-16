@@ -120,25 +120,25 @@ bool BeadStructure::isSingleStructure() {
 
   InitializeGraph_();
   cout << "Calling is single structure " << single_structureUpToDate_ << endl;
-  if(single_structureUpToDate_==false){
+  if (single_structureUpToDate_ == false) {
     auto vertices = graph_->getVertices();
     cout << "number of vertices " << vertices.size() << endl;
-    if (vertices.size() == 0){
+    if (vertices.size() == 0) {
       single_structure_ = false;
       return single_structure_;
     }
     // Choose first vertex that is actually in the graph as the starting vertex
     Graph_BF_Visitor gv_breadth_first;
     gv_breadth_first.setStartingVertex(vertices.at(0));
-    if (!singleNetwork(*graph_, gv_breadth_first)){
+    if (!singleNetwork(*graph_, gv_breadth_first)) {
       single_structure_ = false;
       return single_structure_;
     }
-    if (beads_.size() == 0){
+    if (beads_.size() == 0) {
       single_structure_ = false;
       return single_structure_;
     }
-    if (vertices.size() != beads_.size()){
+    if (vertices.size() != beads_.size()) {
       single_structure_ = false;
       return single_structure_;
     }
@@ -149,19 +149,22 @@ bool BeadStructure::isSingleStructure() {
 }
 
 bool BeadStructure::isStructureEquivalent(BeadStructure &beadstructure) {
-  if (!structureIdUpToDate){
+  if (!structureIdUpToDate) {
     CalculateStructure_();
   }
-  if (!beadstructure.structureIdUpToDate){
+  if (!beadstructure.structureIdUpToDate) {
     beadstructure.CalculateStructure_();
   }
-  cout << "Structures up to date " << structureIdUpToDate << " " << beadstructure.structureIdUpToDate << endl; 
-  cout << "structure id " << structure_id_ << " " << beadstructure.structure_id_ << endl;;
-  return structure_id_.compare(beadstructure.structure_id_)==0;
+  cout << "Structures up to date " << structureIdUpToDate << " "
+       << beadstructure.structureIdUpToDate << endl;
+  cout << "structure id " << structure_id_ << " " << beadstructure.structure_id_
+       << endl;
+  ;
+  return structure_id_.compare(beadstructure.structure_id_) == 0;
 }
 
 vector<BaseBead *> BeadStructure::getNeighBeads(int index) {
-  if (!graphUpToDate){
+  if (!graphUpToDate) {
     InitializeGraph_();
   }
   auto neighbor_ids = graph_->getNeighVertices(index);
@@ -179,8 +182,7 @@ BaseBead *BeadStructure::getBead(int index) {
 
 vector<shared_ptr<BeadStructure>> BeadStructure::breakIntoStructures() {
   vector<shared_ptr<BeadStructure>> structures;
-  if (!graphUpToDate)
-    InitializeGraph_();
+  if (!graphUpToDate) InitializeGraph_();
   auto sub_graphs = decoupleIsolatedSubGraphs(*graph_);
   for (auto sub_graph_it = sub_graphs.begin(); sub_graph_it != sub_graphs.end();
        ++sub_graph_it) {

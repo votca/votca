@@ -123,14 +123,14 @@ class BeadStructure {
   virtual void InitializeGraph_();
   void CalculateStructure_();
 
-  bool                                        structureIdUpToDate;
-  bool                                        graphUpToDate;
-  bool                                        single_structureUpToDate_;
-  bool                                        single_structure_;
-  std::string                                 structure_id_ = "";
+  bool structureIdUpToDate;
+  bool graphUpToDate;
+  bool single_structureUpToDate_;
+  bool single_structure_;
+  std::string structure_id_ = "";
   std::shared_ptr<votca::tools::Graph> graph_;
-  std::set<Edge>                              connections_;
-  std::map<int, BaseBead *>                   beads_;
+  std::set<Edge> connections_;
+  std::map<int, BaseBead *> beads_;
   std::map<int, std::shared_ptr<votca::tools::GraphNode>> graphnodes_;
 };
 }  // namespace csg
