@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,9 @@
 #include <cmath>
 #include <exception>
 #include <iostream>
-#include <iostream>
+#include <votca/tools/graphnode.h>
 #include <votca/tools/reducededge.h>
 #include <votca/tools/reducedgraph.h>
-#include <votca/tools/graphnode.h>
 using namespace std;
 using namespace votca::tools;
 
@@ -41,11 +40,11 @@ BOOST_AUTO_TEST_SUITE(reducedgraph_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { ReducedGraph g; }
 
-/** 
+/**
  * \brief Test on isolated nodes method
  *
  * The isolated nodes method is meant to grab any nodes that have no edges, as
- * in they exist as islands within the context of the graph. 
+ * in they exist as islands within the context of the graph.
  */
 BOOST_AUTO_TEST_CASE(isolatednodes_test) {
 
@@ -66,7 +65,7 @@ BOOST_AUTO_TEST_CASE(isolatednodes_test) {
 
     /// In this test case gn, gn1 and gn2 are all islands no edges have been
     /// specified to connect them. Calling getIsolatedNodes() thus returns all
-    /// three of them. 
+    /// three of them.
     vector<ReducedEdge> vec_ed;
     GraphNode gn;
     GraphNode gn1;
@@ -147,7 +146,7 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1,2});
+    ReducedEdge ed(std::vector<int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -174,16 +173,15 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     bool ed0_found = false;
     bool ed2_found = false;
     bool ed3_found = false;
-    for(auto ed_temp : edges){
-      if(ed_temp==ed) ed0_found = true;
-      if(ed_temp==ed2) ed2_found = true;
-      if(ed_temp==ed3) ed3_found = true;
+    for (auto ed_temp : edges) {
+      if (ed_temp == ed) ed0_found = true;
+      if (ed_temp == ed2) ed2_found = true;
+      if (ed_temp == ed3) ed3_found = true;
     }
 
     BOOST_CHECK(ed0_found);
     BOOST_CHECK(ed2_found);
     BOOST_CHECK(ed3_found);
-
   }
 
   {
@@ -211,10 +209,10 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     //      | _ |
     //
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(0,1);
-    ReducedEdge ed2(1,2);
-    ReducedEdge ed3(vector<int>{2,3,4,5,6});
-    ReducedEdge ed4(vector<int>{1,7,4,2});
+    ReducedEdge ed(0, 1);
+    ReducedEdge ed2(1, 2);
+    ReducedEdge ed3(vector<int>{2, 3, 4, 5, 6});
+    ReducedEdge ed4(vector<int>{1, 7, 4, 2});
 
     vec_ed.push_back(ed);
     vec_ed.push_back(ed2);
@@ -252,23 +250,20 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     int ed1_2count = 0;
     int ed2_6count = 0;
 
-    Edge ed0_1(0,1);
-    Edge ed1_2(1,2);
-    Edge ed2_6(2,6);
+    Edge ed0_1(0, 1);
+    Edge ed1_2(1, 2);
+    Edge ed2_6(2, 6);
 
-    for(auto ed_temp : edges){
-      if(ed_temp==ed0_1) ++ed0_1count;
-      if(ed_temp==ed1_2) ++ed1_2count;
-      if(ed_temp==ed2_6) ++ed2_6count;
-      
+    for (auto ed_temp : edges) {
+      if (ed_temp == ed0_1) ++ed0_1count;
+      if (ed_temp == ed1_2) ++ed1_2count;
+      if (ed_temp == ed2_6) ++ed2_6count;
     }
 
-    BOOST_CHECK_EQUAL(ed0_1count,1);
-    BOOST_CHECK_EQUAL(ed1_2count,2);
-    BOOST_CHECK_EQUAL(ed2_6count,1);
-
+    BOOST_CHECK_EQUAL(ed0_1count, 1);
+    BOOST_CHECK_EQUAL(ed1_2count, 2);
+    BOOST_CHECK_EQUAL(ed2_6count, 1);
   }
-
 }
 
 BOOST_AUTO_TEST_CASE(get_vertices_test) {
@@ -287,7 +282,7 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   //         4
 
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<int>{0, 1,2});
+  ReducedEdge ed(std::vector<int>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -310,16 +305,16 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
 
   ReducedGraph g(vec_ed, m_gn);
   auto vertices = g.getVertices();
-  BOOST_CHECK_EQUAL(vertices.size(),4);
-  vector<bool> vertices_found(4,false);
-  for( auto vertex : vertices){
-    if(vertex==0) vertices_found.at(0)=true;
-    if(vertex==2) vertices_found.at(1)=true;
-    if(vertex==3) vertices_found.at(2)=true;
-    if(vertex==4) vertices_found.at(3)=true;
+  BOOST_CHECK_EQUAL(vertices.size(), 4);
+  vector<bool> vertices_found(4, false);
+  for (auto vertex : vertices) {
+    if (vertex == 0) vertices_found.at(0) = true;
+    if (vertex == 2) vertices_found.at(1) = true;
+    if (vertex == 3) vertices_found.at(2) = true;
+    if (vertex == 4) vertices_found.at(3) = true;
   }
 
-  for( auto found : vertices_found){
+  for (auto found : vertices_found) {
     BOOST_CHECK(found);
   }
 
@@ -329,24 +324,22 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   // 0 - 1 - 2 - 3
   //     | _ |
   //         4
-  
+
   vec_ed.push_back(ed);
   ReducedGraph g2(vec_ed, m_gn);
   vertices = g2.getVertices();
-  BOOST_CHECK_EQUAL(vertices.size(),4);
-  vector<bool> vertices_found2(4,false);
-  for( auto vertex : vertices){
-    if(vertex==0) vertices_found2.at(0)=true;
-    if(vertex==2) vertices_found2.at(1)=true;
-    if(vertex==3) vertices_found2.at(2)=true;
-    if(vertex==4) vertices_found2.at(3)=true;
+  BOOST_CHECK_EQUAL(vertices.size(), 4);
+  vector<bool> vertices_found2(4, false);
+  for (auto vertex : vertices) {
+    if (vertex == 0) vertices_found2.at(0) = true;
+    if (vertex == 2) vertices_found2.at(1) = true;
+    if (vertex == 3) vertices_found2.at(2) = true;
+    if (vertex == 4) vertices_found2.at(3) = true;
   }
 
-  for( auto found : vertices_found2){
+  for (auto found : vertices_found2) {
     BOOST_CHECK(found);
   }
-
-
 }
 
 BOOST_AUTO_TEST_CASE(compare_test) {
@@ -366,7 +359,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         4
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1,2});
+    ReducedEdge ed(std::vector<int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -412,7 +405,7 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     //         |
     //         4
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1,2});
+    ReducedEdge ed(std::vector<int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -461,7 +454,7 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   //         |
   //         4
   vector<ReducedEdge> vec_ed;
-  ReducedEdge ed(std::vector<int>{0, 1,2});
+  ReducedEdge ed(std::vector<int>{0, 1, 2});
   ReducedEdge ed2(2, 3);
   ReducedEdge ed3(2, 4);
 
@@ -486,190 +479,184 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
   ReducedGraph g(vec_ed, m_gn);
 
   auto neigh1 = g.getNeighNodes(0);
-  BOOST_CHECK_EQUAL(neigh1.size(),1);
-  bool neigh1_found1 = neigh1.at(0).second==gn3;
+  BOOST_CHECK_EQUAL(neigh1.size(), 1);
+  bool neigh1_found1 = neigh1.at(0).second == gn3;
   BOOST_CHECK(neigh1_found1);
 
   auto neigh3 = g.getNeighNodes(2);
-  BOOST_CHECK_EQUAL(neigh3.size(),3);
+  BOOST_CHECK_EQUAL(neigh3.size(), 3);
   bool neigh3_found1 = false;
   bool neigh3_found2 = false;
   bool neigh3_found3 = false;
-  for(auto neigh_pr : neigh3){
-    if(neigh_pr.second==gn) neigh3_found1=true;
-    if(neigh_pr.second==gn2) neigh3_found2=true;
-    if(neigh_pr.second==gn) neigh3_found3=true;
+  for (auto neigh_pr : neigh3) {
+    if (neigh_pr.second == gn) neigh3_found1 = true;
+    if (neigh_pr.second == gn2) neigh3_found2 = true;
+    if (neigh_pr.second == gn) neigh3_found3 = true;
   }
   BOOST_CHECK(neigh3_found1);
   BOOST_CHECK(neigh3_found2);
   BOOST_CHECK(neigh3_found3);
 
   auto neigh4 = g.getNeighNodes(3);
-  BOOST_CHECK_EQUAL(neigh4.size(),1);
-  bool neigh4_found1 = neigh4.at(0).second==gn3;
+  BOOST_CHECK_EQUAL(neigh4.size(), 1);
+  bool neigh4_found1 = neigh4.at(0).second == gn3;
   BOOST_CHECK(neigh4_found1);
 
   auto neigh5 = g.getNeighNodes(4);
-  BOOST_CHECK_EQUAL(neigh5.size(),1);
-  bool neigh5_found1 = neigh5.at(0).second==gn3;
+  BOOST_CHECK_EQUAL(neigh5.size(), 1);
+  bool neigh5_found1 = neigh5.at(0).second == gn3;
   BOOST_CHECK(neigh5_found1);
-
 }
 
-BOOST_AUTO_TEST_CASE(expandedge_test){
+BOOST_AUTO_TEST_CASE(expandedge_test) {
 
   // 0 - 1 - 2 - 3 -4 -5
   //     |       |
-  //     6 - 7 - 8  
+  //     6 - 7 - 8
   //
   ReducedEdge ed0(vector<int>{0, 1});
   ReducedEdge ed1(vector<int>{1, 2, 3});
   ReducedEdge ed2(vector<int>{3, 4, 5});
   ReducedEdge ed3(vector<int>{1, 6, 7, 8, 3});
 
-  vector<ReducedEdge> vec_ed{ ed0, ed1, ed2, ed3};
+  vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3};
 
   ReducedGraph g(vec_ed);
 
-  vector<vector<Edge>> edges = g.expandEdge(Edge(0,1));
-  BOOST_CHECK_EQUAL(edges.size(),1);
-  BOOST_CHECK_EQUAL(edges.at(0).size(),1);
+  vector<vector<Edge>> edges = g.expandEdge(Edge(0, 1));
+  BOOST_CHECK_EQUAL(edges.size(), 1);
+  BOOST_CHECK_EQUAL(edges.at(0).size(), 1);
 
-  edges = g.expandEdge(Edge(1,3));
-  BOOST_CHECK_EQUAL(edges.size(),2); // Two separate chains 
+  edges = g.expandEdge(Edge(1, 3));
+  BOOST_CHECK_EQUAL(edges.size(), 2);  // Two separate chains
 
-  if(edges.at(0).size() == 2){
+  if (edges.at(0).size() == 2) {
     bool found_ed1_2 = false;
     bool found_ed2_3 = false;
 
-    Edge ed1_2(1,2);
-    Edge ed2_3(2,3);
-    for(auto e1 : edges.at(0)){
-      if(e1 == ed1_2) found_ed1_2 = true;
-      if(e1 == ed2_3) found_ed2_3 = true;
+    Edge ed1_2(1, 2);
+    Edge ed2_3(2, 3);
+    for (auto e1 : edges.at(0)) {
+      if (e1 == ed1_2) found_ed1_2 = true;
+      if (e1 == ed2_3) found_ed2_3 = true;
     }
     BOOST_CHECK(found_ed1_2);
     BOOST_CHECK(found_ed2_3);
 
-    Edge ed1_6(1,6);
-    Edge ed6_7(6,7);
-    Edge ed7_8(7,8);
-    Edge ed8_3(3,8);
+    Edge ed1_6(1, 6);
+    Edge ed6_7(6, 7);
+    Edge ed7_8(7, 8);
+    Edge ed8_3(3, 8);
 
     bool found_ed1_6 = false;
     bool found_ed6_7 = false;
     bool found_ed7_8 = false;
     bool found_ed8_3 = false;
 
-    for(auto e1 : edges.at(1) ){
-      if(e1 == ed1_6) found_ed1_6 = true;
-      if(e1 == ed6_7) found_ed6_7 = true;
-      if(e1 == ed7_8) found_ed7_8 = true;
-      if(e1 == ed8_3) found_ed8_3 = true;
-    } 
+    for (auto e1 : edges.at(1)) {
+      if (e1 == ed1_6) found_ed1_6 = true;
+      if (e1 == ed6_7) found_ed6_7 = true;
+      if (e1 == ed7_8) found_ed7_8 = true;
+      if (e1 == ed8_3) found_ed8_3 = true;
+    }
     BOOST_CHECK(found_ed1_6);
     BOOST_CHECK(found_ed6_7);
     BOOST_CHECK(found_ed7_8);
     BOOST_CHECK(found_ed8_3);
 
-  }else if(edges.at(0).size() == 4){
+  } else if (edges.at(0).size() == 4) {
     bool found_ed1_2 = false;
     bool found_ed2_3 = false;
 
-    Edge ed1_2(1,2);
-    Edge ed2_3(2,3);
-    for(auto e1 : edges.at(1)){
-      if(e1 == ed1_2) found_ed1_2 = true;
-      if(e1 == ed2_3) found_ed2_3 = true;
+    Edge ed1_2(1, 2);
+    Edge ed2_3(2, 3);
+    for (auto e1 : edges.at(1)) {
+      if (e1 == ed1_2) found_ed1_2 = true;
+      if (e1 == ed2_3) found_ed2_3 = true;
     }
     BOOST_CHECK(found_ed1_2);
     BOOST_CHECK(found_ed2_3);
 
-    Edge ed1_6(1,6);
-    Edge ed6_7(6,7);
-    Edge ed7_8(7,8);
-    Edge ed8_3(3,8);
+    Edge ed1_6(1, 6);
+    Edge ed6_7(6, 7);
+    Edge ed7_8(7, 8);
+    Edge ed8_3(3, 8);
 
     bool found_ed1_6 = false;
     bool found_ed6_7 = false;
     bool found_ed7_8 = false;
     bool found_ed8_3 = false;
 
-    for(auto e1 : edges.at(0) ){
-      if(e1 == ed1_6) found_ed1_6 = true;
-      if(e1 == ed6_7) found_ed6_7 = true;
-      if(e1 == ed7_8) found_ed7_8 = true;
-      if(e1 == ed8_3) found_ed8_3 = true;
-    } 
+    for (auto e1 : edges.at(0)) {
+      if (e1 == ed1_6) found_ed1_6 = true;
+      if (e1 == ed6_7) found_ed6_7 = true;
+      if (e1 == ed7_8) found_ed7_8 = true;
+      if (e1 == ed8_3) found_ed8_3 = true;
+    }
     BOOST_CHECK(found_ed1_6);
     BOOST_CHECK(found_ed6_7);
     BOOST_CHECK(found_ed7_8);
     BOOST_CHECK(found_ed8_3);
 
-
-  }else{
-    // ONe of the two options above should have been triggered 
+  } else {
+    // ONe of the two options above should have been triggered
     BOOST_CHECK(false);
   }
-
 }
 
-BOOST_AUTO_TEST_CASE(getdegree_test){
+BOOST_AUTO_TEST_CASE(getdegree_test) {
 
   //             9
   //             |
   // 0 - 1 - 2 - 3 -4 -5
   //     |       |
-  //     6 - 7 - 8  
+  //     6 - 7 - 8
   //
   ReducedEdge ed0(vector<int>{0, 1});
   ReducedEdge ed1(vector<int>{1, 2, 3});
   ReducedEdge ed2(vector<int>{3, 4, 5});
   ReducedEdge ed3(vector<int>{1, 6, 7, 8, 3});
-  ReducedEdge ed4(3,9);
+  ReducedEdge ed4(3, 9);
 
-  vector<ReducedEdge> vec_ed{ ed0, ed1, ed2, ed3, ed4};
+  vector<ReducedEdge> vec_ed{ed0, ed1, ed2, ed3, ed4};
 
   ReducedGraph g(vec_ed);
 
-  BOOST_CHECK_EQUAL(g.getMaxDegree(),4);
+  BOOST_CHECK_EQUAL(g.getMaxDegree(), 4);
 
-  BOOST_CHECK_EQUAL(g.getDegree(0),1);
-  BOOST_CHECK_EQUAL(g.getDegree(1),3);
-  BOOST_CHECK_EQUAL(g.getDegree(3),4);
-  BOOST_CHECK_EQUAL(g.getDegree(5),1);
-  BOOST_CHECK_EQUAL(g.getDegree(9),1);
+  BOOST_CHECK_EQUAL(g.getDegree(0), 1);
+  BOOST_CHECK_EQUAL(g.getDegree(1), 3);
+  BOOST_CHECK_EQUAL(g.getDegree(3), 4);
+  BOOST_CHECK_EQUAL(g.getDegree(5), 1);
+  BOOST_CHECK_EQUAL(g.getDegree(9), 1);
 
   int degree = 0;
   auto vertices_w_degree = g.getVerticesDegree(degree);
-  BOOST_CHECK_EQUAL(vertices_w_degree.size(),0);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(), 0);
 
   degree = 1;
   vertices_w_degree = g.getVerticesDegree(degree);
-  BOOST_CHECK_EQUAL(vertices_w_degree.size(),3);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(), 3);
 
   degree = 2;
   vertices_w_degree = g.getVerticesDegree(degree);
-  BOOST_CHECK_EQUAL(vertices_w_degree.size(),0);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(), 0);
 
   degree = 3;
   vertices_w_degree = g.getVerticesDegree(degree);
-  BOOST_CHECK_EQUAL(vertices_w_degree.size(),1);
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(), 1);
 
   degree = 4;
   vertices_w_degree = g.getVerticesDegree(degree);
-  BOOST_CHECK_EQUAL(vertices_w_degree.size(),1);
-
-
-
+  BOOST_CHECK_EQUAL(vertices_w_degree.size(), 1);
 }
 
 /**
- * \brief Equivalence test 
+ * \brief Equivalence test
  *
  * Here we demonstrate how the equivalence test works it is purely dependendent
- * on whether the contents of the graphnodes in the graph contain the same 
- * information. 
+ * on whether the contents of the graphnodes in the graph contain the same
+ * information.
  */
 BOOST_AUTO_TEST_CASE(id_test) {
   {
@@ -684,7 +671,7 @@ BOOST_AUTO_TEST_CASE(id_test) {
     unordered_map<string, string> str_vals;
 
     vector<ReducedEdge> vec_ed;
-    ReducedEdge ed(std::vector<int>{0, 1,2});
+    ReducedEdge ed(std::vector<int>{0, 1, 2});
     ReducedEdge ed2(2, 3);
     ReducedEdge ed3(2, 4);
 
@@ -723,10 +710,10 @@ BOOST_AUTO_TEST_CASE(id_test) {
     m_gn[2] = gn1;
     ReducedGraph g3(vec_ed, m_gn);
     BOOST_CHECK(g != g3);
-  
+
     string str2 = "a0b1c2e4";
     string s_id2 = g3.getId();
-    BOOST_CHECK_EQUAL(s_id2,str2);
+    BOOST_CHECK_EQUAL(s_id2, str2);
 
     GraphNode gn5(int_vals3, double_vals, str_vals);
     m_gn[5] = gn5;
