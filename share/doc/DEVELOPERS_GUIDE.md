@@ -12,7 +12,7 @@
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
  - [Updating Git Submodules](#updating-git-submodules)
-
+ 
 ## Reporting Bugs
 
  To report a bug please create an issue on the appropriate github repo. Please
@@ -80,6 +80,9 @@ Code
   * in functions/classes, the { is in the next line
   * for for loops, if, ..., the { is n the same line as if,for
 
+### Auto ###
+  * avoid using auto unless the type is very long, the reason being auto obscures the underlying type and can make it difficult to discern what a variable is meant to be used for
+
 ### Classes ###
   * normally begin in upper case
   * exceptions: classes which define "small" types (e.g. `vec`, `matrix`)
@@ -118,6 +121,8 @@ Code
   * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
   
 ## Testing
+
+### Unit Testing ###
 
  Each repository contains a src folder. Within the src folder exists a 
  library folder: libtools, libcsg etc... and a tools folder. A tests folder
@@ -185,6 +190,54 @@ make test
 
 Ensure you have an up to date version of cmake or use cmake3 
 
+### Testing Across Repos ###
+
+There may come a case where changes have to be committed across more than one repo at the same time. Attempting to merge one repo at a time will cause the continuous integration to fail as changes in the other repos will not be pulled in. To do this correctly the following steps should be taken.
+
+Assuming you are in the votca/votca repository:
+
+    git checkout <base_branch>
+    git submodule update
+    git checkout -b <some_descriptive_branch_name>
+    git submodule foreach git remote update
+    git -C <module1> checkout <sha_or_branch_of_module1_to_test>
+    git -C <module2> checkout <sha_or_branch_of_module2_to_test>
+    git add <module1> <module2>
+    git commit -m "test <module1> with <module2>"
+    git push origin <some_descriptive_branch_name>
+
+1. Here `base_branch` will typically be the master or stable branch.
+
+    git checkout <base_branch>
+ 
+2. The submodules are updated to be sure they have incorporated the latest changes in your local repository
+
+   git submodule update
+ 
+3. Create a branch with a descriptive name
+
+   git checkout -b <some_descriptive_name> 
+
+4. Update each of the submodules, by pulling in any remote changes to the submodules. 
+
+   git submodule foreach git remote update
+
+5. '-C' changes directory to the submodule directory and then checks out the appropriate commit
+
+    git -C <module1> checkout <sha_or_branch_of_module1_to_test>                 
+    git -C <module2> checkout <sha_or_branch_of_module2_to_test>  
+
+6. The changes are then added and commited
+
+    git add <module1> <module2>                                                  
+    git commit -m "test <module1> with <module2>" 
+
+7. Finally, they are pushed to the remote branch
+
+    git push origin <some_descriptive_branch_name>
+
+A pull request is then made for the votca/votca repo using the branch name. Once the branch passes all tests it can be merged. Pull requests for each of repos changed can then be made. They will now compile against the updated votca/votca repo. Once they pass their tests they can be merged. If a pull request was already made the travis tests may simply need to be restarted. 
+
 ## Failed Travis Builds
 
 There may come a time where one of the docker builds fails. It may be the case
@@ -224,7 +277,14 @@ clang-format -i -style=file file.cc
      it will use a default style guide. 
 
 By default tabs should not be used to indent, avoid inserting '\t', it is
-preferable that spaces be used instead. 
+preferable that spaces be used instead.
+
+Clang formatting can be automated at every commit using the script found in the [dev-tools](https://github.com/votca/dev-tools) repository. To use it copy the file `pre-commit` to your local .git subfolder to the hooks folder. E.g.
+    
+    chmod 777 dev-tools/pre-commit  
+    cp dev-tools/pre-commit tools/.git/hooks/
+
+The above will make the script executable and then copy it to the local .git/hooks directory in the tools repository. The script not only updates the file format of every file staged during a commit it will also update the license date. 
 
 ## CPP Comment Guide
  
