@@ -113,10 +113,8 @@ vector<int> Graph::getJunctions() const {
 
 void Graph::copyNodes(Graph& graph) {
   for (const pair<int, GraphNode>& id_and_node : graph.nodes_) {
-    cout << "Copying node " << id_and_node.first << endl;
     this->nodes_[id_and_node.first] = id_and_node.second;
   }
-  cout << "Size of nodes after copy " << nodes_.size() << endl;
 }
 
 void Graph::calcId_() {

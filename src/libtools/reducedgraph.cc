@@ -115,7 +115,6 @@ Graph ReducedGraph::expandGraph() {
                                 edges.end());
     }
   }
-  cout << "Number of nodes when calling expandGraph " << nodes_.size() << endl;
   return Graph(all_expanded_edges, nodes_);
 }
 
@@ -160,8 +159,6 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() {
       nodes.push_back(id_and_node);
     }
   }
-  cout << "Number of nodes calling getNodes from reduced graph " << nodes.size()
-       << endl;
   return nodes;
 }
 

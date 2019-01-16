@@ -98,8 +98,6 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge) {
   for (auto ed : neigh_edges) {
     int neigh_vertex = ed.getOtherEndPoint(starting_vertex);
     if (neigh_vertex != starting_vertex) {
-      cout << "vertex neighboring starting vertex that has been explored "
-           << neigh_vertex << endl;
       if (gv_breadth_first.vertexExplored(neigh_vertex)) {
         branch_edges.insert(ed);
       }
@@ -184,14 +182,10 @@ ReducedGraph reduceGraph(Graph graph) {
     graph_visitor.initialize(graph);
 
     vector<int> chain{starting_vertex};
-    cout << endl;
-    cout << "Starting vertex is " << starting_vertex << endl;
     int old_vertex = starting_vertex;
     bool new_chain = false;
     while (!graph_visitor.queEmpty()) {
       Edge edge = graph_visitor.nextEdge(graph);
-      cout << "Exploring edge " << endl;
-      cout << edge << endl;
       vector<int> unexplored_vertex = graph_visitor.getUnexploredVertex(edge);
 
       if (new_chain) {
@@ -206,12 +200,10 @@ ReducedGraph reduceGraph(Graph graph) {
         }
       }
       int new_vertex = edge.getOtherEndPoint(old_vertex);
-      cout << "Exploring new_vertex " << new_vertex << endl;
       if (unexplored_vertex.size() == 0) {
         chain.push_back(new_vertex);
         chains.push_back(chain);
         chain.clear();
-        cout << "Added chain 1" << endl;
         new_chain = true;
       } else if (graph.getDegree(new_vertex) == 1) {
         chain.push_back(new_vertex);
@@ -219,19 +211,16 @@ ReducedGraph reduceGraph(Graph graph) {
         chain.clear();
         exploration_record.explore(new_vertex);
         new_chain = true;
-        cout << "Added chain 2" << endl;
       } else if (graph.getDegree(new_vertex) > 2) {
         chain.push_back(new_vertex);
         chains.push_back(chain);
         chain.clear();
         exploration_record.explore(new_vertex);
         new_chain = true;
-        cout << "Added chain 3" << endl;
       } else if (unexplored_vertex.size() == 1) {
         chain.push_back(new_vertex);
         old_vertex = new_vertex;
         exploration_record.explore(new_vertex);
-        cout << "Just adding vertex to chain " << endl;
       }
 
       graph_visitor.exec(graph, edge);
@@ -243,14 +232,10 @@ ReducedGraph reduceGraph(Graph graph) {
     reduced_edges.push_back(reduced_edge);
   }
 
-  cout << "Number of reduced edges " << reduced_edges.size() << endl;
-
   ReducedGraph reduced_g(reduced_edges);
   auto nodes_graph = graph.getNodes();
-  cout << "number of nodes in graph " << nodes_graph.size() << endl;
   reduced_g.copyNodes(graph);
   auto nodes_reduced_g = reduced_g.getNodes();
-  cout << "number of nodes in reduced g " << nodes_reduced_g.size() << endl;
   return reduced_g;
 }
 

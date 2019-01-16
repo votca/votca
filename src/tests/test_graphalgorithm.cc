@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     vector<Edge> edges2 = reduced_g.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 3);
 
-    int edge_count1_2;
+    int edge_count1_2=0;
     for (const Edge& edge_temp : edges2) {
       if (edge_temp == ed1) ++edge_count1_2;
     }

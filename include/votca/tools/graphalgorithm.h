@@ -135,16 +135,12 @@ std::string findStructureId(Graph& graph) {
   // Get the vertices with this degree
   std::vector<int> vertices = graph.getVerticesDegree(maxD);
 
-  std::cout << "Number of vertices " << vertices.size() << " with max degree "
-            << maxD << std::endl;
   // Get the nodes and determine which node has the greatest stringID
   // When compared using compare function
   std::string str_id = "";
   std::vector<int> graph_node_ids;
   for (const int& vertex : vertices) {
     auto graph_node = graph.getNode(vertex);
-    std::cout << "graph_node string id " << graph_node.getStringId()
-              << std::endl;
     int comp_int = str_id.compare(graph_node.getStringId());
     if (comp_int > 0) {
       str_id = graph_node.getStringId();
@@ -160,7 +156,6 @@ std::string findStructureId(Graph& graph) {
   if (str_id.compare("") == 0) {
     graph_node_ids = vertices;
   }
-  std::cout << "Size of graph node ids " << graph_node_ids.size() << std::endl;
   // If two or more graph nodes are found to be equal then
   // they must all be explored
   std::string chosenId = "";
@@ -168,7 +163,6 @@ std::string findStructureId(Graph& graph) {
 
   for (const int& vertex : graph_node_ids) {
     GV graph_visitor;
-    std::cout << "Setting starting node to " << vertex << std::endl;
     graph_visitor.setStartingVertex(vertex);
     Graph graph_temp = graph;
     exploreGraph(graph_temp, graph_visitor);
