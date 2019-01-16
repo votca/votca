@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(votca-csg)
 
-set(PROJECT_VERSION "1.5_rc1")
+set(PROJECT_VERSION "1.5_rc2")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")

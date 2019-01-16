@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.5_rc2 (released XX.01.19)
+## Version 1.5_rc2 (released 16.01.19)
 * added REGRESSIONTEST_TOLERANCE cmake option
 * added bug fix for memory leak in bead class
 * added topology unit test
