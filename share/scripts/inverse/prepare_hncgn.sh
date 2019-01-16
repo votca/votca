@@ -18,15 +18,19 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the function update for the IHNC method
+This script initializes potentials for HNCGN
 
 Usage: ${0##*/}
 EOF
    exit 0
 fi
 
-sim_prog="$(csg_get_property cg.inverse.program)"
-#if using csg_stat, like in the case of gromacs 'for_all' is actually not needed
-#but in case of espresso the rdfs are calculated seperately
-for_all "non-bonded bonded" do_external rdf $sim_prog
-for_all "non-bonded bonded" do_external update ihnc_single
+names=( $(csg_get_interaction_property --all name) )
+if [[ ${#names[@]} -gt 1 ]]; then
+    die "HNCGN multicomponent is not yet implemented"
+fi
+
+[[ -n $(csg_get_property --allow-empty cg.bonded.name) ]] && die "HNCGN does not support bonded interactions, go and implement it"
+
+method="$(csg_get_property cg.inverse.method)"
+for_all "non-bonded" do_external prepare_single $method

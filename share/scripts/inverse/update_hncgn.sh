@@ -18,7 +18,7 @@
 if [ "$1" = "--help" ]; then
 cat <<EOF
 ${0##*/}, version %version%
-This script implements the function update for the IHNC method
+This script implements the function update for the HNCGN method
 
 Usage: ${0##*/}
 EOF
@@ -29,4 +29,4 @@ sim_prog="$(csg_get_property cg.inverse.program)"
 #if using csg_stat, like in the case of gromacs 'for_all' is actually not needed
 #but in case of espresso the rdfs are calculated seperately
 for_all "non-bonded bonded" do_external rdf $sim_prog
-for_all "non-bonded bonded" do_external update ihnc_single
+for_all "non-bonded bonded" do_external update hncgn_single

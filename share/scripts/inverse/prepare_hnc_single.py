@@ -55,7 +55,7 @@ def calc_pot_hnc_core(r, rdf_current_g, kBT, density, dump_steps=False):
     omega = np.arange(1, len(r)) / (2 * max(r))
     h_hat = fourier(r, h, omega)
 
-    # special Fourier of c (structure factor)
+    # special Fourier of c (direct correlation function)
     c_hat = h_hat / (1 + rho * h_hat)
 
     # y
