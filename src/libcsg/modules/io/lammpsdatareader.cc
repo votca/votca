@@ -529,14 +529,14 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       }
 
       string bead_type_name = to_string(atomTypeId + 1);
-      BeadType * bead_type = top.GetOrCreateBeadType(bead_type_name);
+      std::weak_ptr<BeadType> weak_bead_type = top.GetOrCreateBeadType(bead_type_name);
       if (atomtypes_.count(atomTypeId) == 0) {
         string err = "Unrecognized atomTypeId, the atomtypes map "
                      "may be uninitialized";
         throw runtime_error(err);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type, residue_index,
+      b = top.CreateBead(symmetry, bead_type_name, weak_bead_type, residue_index,
                          mass, charge);
 
       mol->AddBead(b, bead_type_name);
