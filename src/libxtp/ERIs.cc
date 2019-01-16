@@ -52,7 +52,7 @@ namespace votca {
           #endif
           std::vector<Eigen::MatrixXd >ERIS_thread;
 
-          for (unsigned i = 0; i < nthreads; ++i) {
+          for (int i = 0; i < nthreads; ++i) {
             Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
             ERIS_thread.push_back(thread);
           }
