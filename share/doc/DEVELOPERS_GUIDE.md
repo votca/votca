@@ -12,7 +12,7 @@
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
  - [Updating Git Submodules](#updating-git-submodules)
-
+ 
 ## Reporting Bugs
 
  To report a bug please create an issue on the appropriate github repo. Please
@@ -277,7 +277,14 @@ clang-format -i -style=file file.cc
      it will use a default style guide. 
 
 By default tabs should not be used to indent, avoid inserting '\t', it is
-preferable that spaces be used instead. 
+preferable that spaces be used instead.
+
+Clang formatting can be automated at every commit using the script found in the [dev-tools](https://github.com/votca/dev-tools) repository. To use it copy the file `pre-commit` to your local .git subfolder to the hooks folder. E.g.
+    
+    chmod 777 dev-tools/pre-commit  
+    cp dev-tools/pre-commit tools/.git/hooks/
+
+The above will make the script executable and then copy it to the local .git/hooks directory in the tools repository. The script not only updates the file format of every file staged during a commit it will also update the license date. 
 
 ## CPP Comment Guide
  
