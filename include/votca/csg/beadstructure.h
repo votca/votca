@@ -54,7 +54,7 @@ class BaseBead;
 class BeadStructure {
  public:
   BeadStructure() : structureIdUpToDate(false), graphUpToDate(false){};
-  ~BeadStructure() {}
+  virtual ~BeadStructure() {}
 
   /**
    * \brief Determine if the bead structure consists of a single connected
