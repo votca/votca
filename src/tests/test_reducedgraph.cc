@@ -172,7 +172,6 @@ BOOST_AUTO_TEST_CASE(get_edges_test) {
     auto edges = g.getEdges();
 
     bool ed0_found = false;
-    bool ed1_found = false;
     bool ed2_found = false;
     bool ed3_found = false;
     for(auto ed_temp : edges){
