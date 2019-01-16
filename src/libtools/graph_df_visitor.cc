@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -38,30 +38,31 @@ Edge Graph_DF_Visitor::getEdge_(Graph g) {
 // Add edges to be explored
 void Graph_DF_Visitor::addEdges_(Graph& g, int vertex) {
   auto eds = g.getNeighEdges(vertex);
-  if(edge_list_.empty()){
-  // If first edges to be added
-    for(auto ed : eds){
+  if (edge_list_.empty()) {
+    // If first edges to be added
+    for (auto ed : eds) {
       int neigh_vert = ed.getOtherEndPoint(vertex);
-      if(explored_.count(neigh_vert)==0){
+      if (explored_.count(neigh_vert) == 0) {
         edge_list_.push_back(ed);
       }
     }
-  }else{
-    for(const auto& ed : eds){
+  } else {
+    for (const auto& ed : eds) {
       int neigh_vert = ed.getOtherEndPoint(vertex);
-      if(explored_.count(neigh_vert)==0){
+      if (explored_.count(neigh_vert) == 0) {
         edge_list_.push_back(ed);
-      }else{
+      } else {
         // Check if edge has already been added earlier in the queue
         // if so we wil move it to the end
-        list<Edge>::iterator edge_found_iterator = find(edge_list_.begin(),edge_list_.end(),ed);
-        if(edge_found_iterator!=edge_list_.end()){
+        list<Edge>::iterator edge_found_iterator =
+            find(edge_list_.begin(), edge_list_.end(), ed);
+        if (edge_found_iterator != edge_list_.end()) {
           // Move the edge to the back if it was stored earlier on.
-          edge_list_.splice(edge_list_.end(),edge_list_,edge_found_iterator); 
+          edge_list_.splice(edge_list_.end(), edge_list_, edge_found_iterator);
         }
       }
     }
   }
 }
-}
-}
+}  // namespace tools
+}  // namespace votca
