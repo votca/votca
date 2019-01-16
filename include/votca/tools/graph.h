@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -129,7 +129,7 @@ class Graph {
   int getMaxDegree() const { return edge_container_.getMaxDegree(); }
 
   /// Calcualtes the degree, or number of edges connected to vertex `vertex`
-  int getDegree(int vertex) const; 
+  int getDegree(int vertex) const;
 
   /// Returns all the vertices with degree specified by `degree`
   virtual std::vector<int> getVerticesDegree(int degree) const;
@@ -140,7 +140,7 @@ class Graph {
   /// Determines if an edge is stored in the graph
   bool edgeExist(Edge edge) { return edge_container_.edgeExist(edge); }
 
-  void copyNodes(Graph & graph);
+  void copyNodes(Graph& graph);
 
   friend std::ostream& operator<<(std::ostream& os, const Graph graph);
 };

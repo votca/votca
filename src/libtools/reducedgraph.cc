@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -105,16 +105,18 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
   init_(reduced_edges, nodes);
 }
 
-Graph ReducedGraph::expandGraph(){
+Graph ReducedGraph::expandGraph() {
   vector<Edge> all_expanded_edges;
-  for( const pair<Edge,vector<vector<int>>> edge_and_vertices : expanded_edges_){
+  for (const pair<Edge, vector<vector<int>>> edge_and_vertices :
+       expanded_edges_) {
     vector<vector<Edge>> edges_local = expandEdge(edge_and_vertices.first);
-    for( vector<Edge>& edges : edges_local){
-      all_expanded_edges.insert(all_expanded_edges.end(),edges.begin(),edges.end());
+    for (vector<Edge>& edges : edges_local) {
+      all_expanded_edges.insert(all_expanded_edges.end(), edges.begin(),
+                                edges.end());
     }
   }
   cout << "Number of nodes when calling expandGraph " << nodes_.size() << endl;
-  return Graph(all_expanded_edges,nodes_);
+  return Graph(all_expanded_edges, nodes_);
 }
 
 vector<vector<Edge>> ReducedGraph::expandEdge(Edge edge) {
@@ -132,12 +134,13 @@ vector<vector<Edge>> ReducedGraph::expandEdge(Edge edge) {
   return all_edges;
 }
 
-set<int> getAllConnectedVertices_(const unordered_map<Edge,vector<vector<int>>>& expanded_edges){
+set<int> getAllConnectedVertices_(
+    const unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
   set<int> all_vertices;
 
-  for(const auto& edge_and_chains : expanded_edges){
-    for(vector<int> chain : edge_and_chains.second){
-      all_vertices.insert(chain.begin(),chain.end());
+  for (const auto& edge_and_chains : expanded_edges) {
+    for (vector<int> chain : edge_and_chains.second) {
+      all_vertices.insert(chain.begin(), chain.end());
     }
   }
   return all_vertices;
@@ -152,26 +155,27 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() {
 
   set<int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
   // Grab the nodes that are not attached to any edges
-  for( pair<int,GraphNode> id_and_node : nodes_){
-    if(!all_connected_vertices.count(id_and_node.first)){
+  for (pair<int, GraphNode> id_and_node : nodes_) {
+    if (!all_connected_vertices.count(id_and_node.first)) {
       nodes.push_back(id_and_node);
     }
   }
-  cout << "Number of nodes calling getNodes from reduced graph " << nodes.size() << endl;
+  cout << "Number of nodes calling getNodes from reduced graph " << nodes.size()
+       << endl;
   return nodes;
 }
 
-vector<int> ReducedGraph::getVerticesDegree(int degree) const{
-  if(degree==0){
+vector<int> ReducedGraph::getVerticesDegree(int degree) const {
+  if (degree == 0) {
     set<int> all_connected_vertices = getAllConnectedVertices_(expanded_edges_);
     vector<int> vertices;
-    for(const pair<int,GraphNode> id_and_node : nodes_){
-      if(all_connected_vertices.count(id_and_node.first)==false){
+    for (const pair<int, GraphNode> id_and_node : nodes_) {
+      if (all_connected_vertices.count(id_and_node.first) == false) {
         vertices.push_back(id_and_node.first);
       }
       return vertices;
     }
-  }else{
+  } else {
     return edge_container_.getVerticesDegree(degree);
   }
 }

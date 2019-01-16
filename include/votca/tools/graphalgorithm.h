@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -135,14 +135,16 @@ std::string findStructureId(Graph& graph) {
   // Get the vertices with this degree
   std::vector<int> vertices = graph.getVerticesDegree(maxD);
 
-  std::cout << "Number of vertices " << vertices.size() << " with max degree " << maxD << std::endl;
+  std::cout << "Number of vertices " << vertices.size() << " with max degree "
+            << maxD << std::endl;
   // Get the nodes and determine which node has the greatest stringID
   // When compared using compare function
   std::string str_id = "";
   std::vector<int> graph_node_ids;
   for (const int& vertex : vertices) {
     auto graph_node = graph.getNode(vertex);
-    std::cout << "graph_node string id " << graph_node.getStringId() << std::endl;
+    std::cout << "graph_node string id " << graph_node.getStringId()
+              << std::endl;
     int comp_int = str_id.compare(graph_node.getStringId());
     if (comp_int > 0) {
       str_id = graph_node.getStringId();
