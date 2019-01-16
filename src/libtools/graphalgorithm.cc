@@ -239,15 +239,15 @@ ReducedGraph reduceGraph(Graph graph) {
   return reduced_g;
 }
 
-vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph graph) {
+vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
   list<int> vertices_list = vectorToList_(graph.getVertices());
-  vector<shared_ptr<Graph>> subGraphs;
+  vector<Graph> subGraphs;
   {
     Graph_BF_Visitor graph_visitor_breadth_first;
     graph_visitor_breadth_first.setStartingVertex(*vertices_list.begin());
     if (singleNetwork(graph, graph_visitor_breadth_first)) {
-      subGraphs.push_back(make_shared<Graph>(graph));
+      subGraphs.push_back(graph);
       return subGraphs;
     }
   }
@@ -285,8 +285,7 @@ vector<shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph graph) {
 
     vector<Edge> sub_graph_vector_edges = edgeSetToVector_(sub_graph_edges);
 
-    subGraphs.push_back(
-        make_shared<Graph>(Graph(sub_graph_vector_edges, sub_graph_nodes)));
+    subGraphs.push_back(Graph(sub_graph_vector_edges, sub_graph_nodes));
   }
   return subGraphs;
 }

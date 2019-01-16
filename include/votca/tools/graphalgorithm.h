@@ -101,7 +101,7 @@ ReducedGraph reduceGraph(Graph graph);
  * @return - vector containing shared pointers to all the sub graphs if there
  *           are no subgraphs than the input graph is returned.
  */
-std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph graph);
+std::vector<Graph> decoupleIsolatedSubGraphs(Graph graph);
 
 /**
  * \brief Explore a graph with a graph visitor.
