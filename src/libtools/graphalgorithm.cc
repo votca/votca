@@ -71,6 +71,12 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
     throw invalid_argument("The edge determining which branch to explore does "
         "not contain the starting vertex.");
   }
+
+  set<Edge> branch_edges;
+  if(edge.getEndPoint1()==edge.getEndPoint2()){
+    branch_edges.insert(edge);
+    return branch_edges;  
+  }
   Graph_BF_Visitor gv_breadth_first;
   GraphNode gn;
   pair<int,GraphNode> pr_gn(starting_vertex,gn);
@@ -78,7 +84,6 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
   gv_breadth_first.setStartingVertex(edge.getOtherEndPoint(starting_vertex));
   gv_breadth_first.initialize(g);
 
-  set<Edge> branch_edges;
   branch_edges.insert(edge);
   while (!gv_breadth_first.queEmpty()) {
     Edge ed = gv_breadth_first.nextEdge(g);
@@ -89,8 +94,11 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge){
   vector<Edge> neigh_edges = g.getNeighEdges(starting_vertex);
   for( auto ed : neigh_edges){
     int neigh_vertex = ed.getOtherEndPoint(starting_vertex);
-    if(gv_breadth_first.vertexExplored(neigh_vertex)){
-      branch_edges.insert(ed);
+    if(neigh_vertex!=starting_vertex){
+      cout << "vertex neighboring starting vertex that has been explored " << neigh_vertex << endl;
+      if(gv_breadth_first.vertexExplored(neigh_vertex)){
+        branch_edges.insert(ed);
+      }
     }
   }
 
@@ -227,6 +235,11 @@ ReducedGraph reduceGraph(Graph graph) {
   cout << "Number of reduced edges " << reduced_edges.size() << endl;
 
   ReducedGraph reduced_g(reduced_edges);
+  auto nodes_graph = graph.getNodes();
+  cout << "number of nodes in graph " << nodes_graph.size() << endl;
+  reduced_g.copyNodes(graph);
+  auto nodes_reduced_g = reduced_g.getNodes();
+  cout << "number of nodes in reduced g " << nodes_reduced_g.size() << endl;
   return reduced_g;
 }
 

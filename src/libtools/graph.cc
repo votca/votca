@@ -111,6 +111,14 @@ vector<int> Graph::getJunctions() const {
   return junctions;
 }
 
+void Graph::copyNodes(Graph & graph){
+  for(const pair<int,GraphNode>& id_and_node : graph.nodes_ ){
+    cout << "Copying node " << id_and_node.first << endl;
+    this->nodes_[id_and_node.first] = id_and_node.second;
+  }
+  cout << "Size of nodes after copy " << nodes_.size() << endl;
+}
+
 void Graph::calcId_() {
   auto nodes = getNodes();
   sort(nodes.begin(), nodes.end(), cmpVertNodePair);
@@ -120,6 +128,36 @@ void Graph::calcId_() {
   }
   id_ = struct_Id_temp;
   return;
+}
+
+int Graph::getDegree(int vertex) const {
+  if(edge_container_.vertexExist(vertex)){
+    return edge_container_.getDegree(vertex);
+  }
+  if(nodes_.count(vertex)) return 0;
+  throw invalid_argument("vertex does not exist within the graph the degree is "
+      "not defined.");
+  
+}
+
+bool Graph::vertexExist(int vertex){
+  if(edge_container_.vertexExist(vertex)) return true;
+  if(nodes_.count(vertex)) return true;
+  return false;
+}
+
+vector<int> Graph::getVerticesDegree(int degree) const {
+  if(degree==0){
+    vector<int> vertices;
+    for( const pair<int,GraphNode> id_and_node : nodes_){
+      if(edge_container_.vertexExist(id_and_node.first)==false){
+        vertices.push_back(id_and_node.first);
+      }
+    }
+    return vertices;
+  }else{
+    return edge_container_.getVerticesDegree(degree);
+  }
 }
 
 ostream& operator<<(ostream& os, const Graph graph) {

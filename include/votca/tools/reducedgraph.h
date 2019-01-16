@@ -105,7 +105,12 @@ class ReducedGraph : public Graph {
    **/
   std::vector<std::vector<Edge>> expandEdge(Edge edge);
 
+  /// This method will return a copy of the full graph
+  Graph expandGraph();
+
   std::vector<std::pair<int, GraphNode>> getNodes(void);
+
+  std::vector<int> getVerticesDegree(int degree) const;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };

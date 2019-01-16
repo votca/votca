@@ -129,18 +129,18 @@ class Graph {
   int getMaxDegree() const { return edge_container_.getMaxDegree(); }
 
   /// Calcualtes the degree, or number of edges connected to vertex `vertex`
-  int getDegree(int vertex) const { return edge_container_.getDegree(vertex); }
+  int getDegree(int vertex) const; 
 
   /// Returns all the vertices with degree specified by `degree`
-  std::vector<int> getVerticesDegree(int degree) const {
-    return edge_container_.getVerticesDegree(degree);
-  }
+  virtual std::vector<int> getVerticesDegree(int degree) const;
 
   /// Determines if a vertex exists within the graph
-  bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex); }
+  bool vertexExist(int vertex);
 
   /// Determines if an edge is stored in the graph
   bool edgeExist(Edge edge) { return edge_container_.edgeExist(edge); }
+
+  void copyNodes(Graph & graph);
 
   friend std::ostream& operator<<(std::ostream& os, const Graph graph);
 };
