@@ -222,6 +222,48 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     }
   }
 
+  {
+
+    // 4 - 5
+    // |   |
+    // 1 - 2
+    //  \  |
+    //    3
+    Edge ed1(1,2);
+    Edge ed2(1,4);
+    Edge ed3(1,3);
+    Edge ed4(4,5);
+    Edge ed5(2,5);
+    Edge ed6(2,3);
+
+    vector<Edge> edges{ ed1, ed2, ed3, ed4, ed5, ed6};
+
+    unordered_map<int, GraphNode> nodes;
+    for(int index = 0; index<18;++index){
+      GraphNode gn;
+      nodes[index] = gn;
+    }
+
+    Graph g(edges,nodes);
+    ReducedGraph reduced_g = reduceGraph(g);
+
+    // Should end up with
+    //
+    //  / \
+    // 1 - 2
+    //  \ /
+    //    
+
+    
+    vector<Edge> edges2 = reduced_g.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(),3);
+
+    int edge_count1_2;
+    for(const Edge& edge_temp : edges2){
+      if(edge_temp==ed1) ++edge_count1_2;
+    }
+    BOOST_CHECK_EQUAL(edge_count1_2,3);
+  }
 
   {
     // Create edge
