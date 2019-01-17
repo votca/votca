@@ -59,6 +59,35 @@ bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
  *
  * The `edge` is used to determine which branch is to be explored. The edge must
  * be an edge connected to the starting_vertex.
+ *
+ * Take the following
+ *
+ * 1 - 2 - 3 - 4 - 5
+ *         |       |
+ *         6 - 7 - 8
+ *
+ * If our graph is reprsented by the above depiction and vertex 3 is chosen as
+ * our starting vertex, we are left with 3 edges to choose from Edges:
+ * 
+ *   2 - 3
+ *   3 - 4
+ *   3 - 6
+ *
+ * If we pick edge 3 - 4 or 3 - 6 the returned set of edges will consist of the
+ * loop
+ *
+ *         3 - 4 - 5
+ *         |       |
+ *         6 - 7 - 8
+ *
+ * If instead Edge 2 - 3 is picked, the following set of edges would be returned
+ *
+ * 1 - 2 - 3  
+ *                  
+ * @param[in] - Graph instance 
+ * @param[in] - int starting vertex, where the exploration begins
+ * @param[in] - the edge indicating which branch is to be explored
+ * @return - set of edges in the branch that were explored
  **/
 std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge);
 
