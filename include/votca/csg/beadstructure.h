@@ -24,7 +24,7 @@
 
 #include <votca/csg/basebead.h>
 
-#include <votca/tools/reducedgraph.h>
+#include <votca/tools/graph.h>
 
 namespace votca {
 namespace csg {

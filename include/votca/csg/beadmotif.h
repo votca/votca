@@ -18,12 +18,6 @@
 #ifndef VOTCA_CSG_BEADMOTIF_H
 #define VOTCA_CSG_BEADMOTIF_H
 
-#include <list>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-
 #include <votca/csg/basebead.h>
 #include <votca/tools/reducedgraph.h>
 
@@ -40,15 +34,15 @@ namespace csg {
  * appropriate sub class. The possible classes include:
  *
  * Some of the structures are considered fundamental and cannot be broken up any
- * more than they are. These elements are listed as elemental
+ * more than they are. These elements are listed as simple
  *
- * 1. Single bead          // Elemental
- * 2. Line                 // Elemental
- * 3. Loop                 // Elemental
- * 4. Fused Ring           // Elemental
- * 5. Single Structure
- * 6. Multiple Structures
- * 6. Undefined
+ * 1. Single bead          // Simple
+ * 2. Line                 // Simple
+ * 3. Loop                 // Simple
+ * 4. Fused Ring           // Simple
+ * 5. Single Structure     // Complex
+ * 6. Multiple Structures  // Complex
+ * 6. Undefined            // Undefined
  *
  * The Single, line, loop and Fused Ring types are all elementary types that
  * represent a fundamental structural unit.
@@ -66,12 +60,9 @@ namespace csg {
  * from the original class is called.
  **/
 
-class BeadMotif : private BeadStructure {
+class BeadMotif : public BeadStructure {
  public:
-  BeadMotif() : BeadStructure(){};
-  ~BeadMotif(){};
-
-  enum motif_type {
+  enum MotifType {
     empty,
     single_bead,
     line,
@@ -82,7 +73,7 @@ class BeadMotif : private BeadStructure {
     undefined
   };
 
-  motif_type getType();
+  MotifType getType();
 
   BaseBead *getBead(int id);
   void ConnectBeads(int bead1_id, int bead2_id);
@@ -95,13 +86,18 @@ class BeadMotif : private BeadStructure {
 
   bool isStructureEquivalent(BeadMotif &beadmotif);
 
+  bool isMotifSimple();
+
  private:
   void InitializeGraph_();
-  motif_type type_ = motif_type::undefined;
+  MotifType type_ = MotifType::undefined;
   bool junctionsUpToDate_ = false;
   bool type_up_to_date_ = false;
+
+  // List beads that might be shared across more than one motif
+  std::set<int> unowned_beads_;
   std::vector<int> junctions_;
-  std::unique_ptr<ReducedGraph> reduced_graph_;
+  ReducedGraph reduced_graph_;
   bool junctionExist_();
   bool isSingle_();
   bool isLoop_();

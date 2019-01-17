@@ -23,13 +23,22 @@
 namespace votca {
 namespace csg {
 
-vector<BeadMotif> breakInToMotifs(BeadStructure beadstructure);
-
+template <class T>
+T breakIntoMotifs(BeadStructure& beadstructure) {
+  T bead_motifs;
+  std::vector<BeadStructure> structures = breakIntoStructures(beadstructure);
+  for (BeadStructure& structure : structures) {
+    BeadMotif bead_motif;
+    bead_motif.BeadStructure::operator=(structure);
+    bead_motifs.push_back(bead_motif);
+  }
+  return bead_motifs;
+}
 /**
  * \brief This function will take a beadmotif and break it into its elemental
  *motifs
  **/
-vector<BeadMotif> breakInToElementalMotifs(BeadMotif beadmotif);
+// std::unordered_map<int,BeadMotif> breakIntoSimpleMotifs(BeadMotif beadmotif);
 
 }  // namespace csg
 }  // namespace votca

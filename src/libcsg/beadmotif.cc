@@ -48,9 +48,9 @@ bool BeadMotif::isLine_() {
   // all other vertices must be 2
   int num_vertices_degree_1 = 0;
 
-  auto vertices = reduced_graph_->getVertices();
+  auto vertices = reduced_graph_.getVertices();
   for (auto vertex : vertices) {
-    int degree = reduced_graph_->getDegree(vertex);
+    int degree = reduced_graph_.getDegree(vertex);
     if (degree == 1) {
       ++num_vertices_degree_1;
     } else if (degree == 0) {
@@ -86,9 +86,9 @@ bool BeadMotif::isFusedRing_() {
   junctionExist_();
 
   for (int junction : junctions_) {
-    vector<Edge> edges = reduced_graph_->getNeighEdges(junction);
+    vector<Edge> edges = reduced_graph_.getNeighEdges(junction);
     set<Edge> all_edges_explored =
-        exploreBranch(*reduced_graph_, junction, edges.at(0));
+        exploreBranch(reduced_graph_, junction, edges.at(0));
     for (const Edge& edge_next_to_junction : edges) {
       if (!all_edges_explored.count(edge_next_to_junction)) {
         return false;
@@ -101,7 +101,7 @@ bool BeadMotif::isFusedRing_() {
  * Public Facing Functions *
  ***************************/
 
-BeadMotif::motif_type BeadMotif::getType() {
+BeadMotif::MotifType BeadMotif::getType() {
   if (!type_up_to_date_) {
     CalculateType_();
   }
@@ -110,19 +110,19 @@ BeadMotif::motif_type BeadMotif::getType() {
 
 void BeadMotif::CalculateType_() {
   if (BeadCount() == 0) {
-    type_ = motif_type::empty;
+    type_ = MotifType::empty;
   } else if (isSingle_()) {
-    type_ = motif_type::single_bead;
+    type_ = MotifType::single_bead;
   } else if (!BeadStructure::isSingleStructure()) {
-    type_ = motif_type::multiple_structures;
+    type_ = MotifType::multiple_structures;
   } else if (isLine_()) {
-    type_ = motif_type::line;
+    type_ = MotifType::line;
   } else if (isLoop_()) {
-    type_ = motif_type::loop;
+    type_ = MotifType::loop;
   } else if (isFusedRing_()) {
-    type_ = motif_type::fused_ring;
+    type_ = MotifType::fused_ring;
   } else {
-    type_ = motif_type::single_structure;
+    type_ = MotifType::single_structure;
   }
   type_up_to_date_ = true;
 }
@@ -130,7 +130,7 @@ void BeadMotif::CalculateType_() {
 BaseBead* BeadMotif::getBead(int id) { return BeadStructure::getBead(id); }
 
 void BeadMotif::AddBead(BaseBead* bead) {
-  type_ = motif_type::undefined;
+  type_ = MotifType::undefined;
   BeadStructure::AddBead(bead);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;
@@ -146,8 +146,16 @@ std::vector<BaseBead*> BeadMotif::getNeighBeads(int index) {
 
 void BeadMotif::InitializeGraph_() {
   BeadStructure::InitializeGraph_();
-  reduced_graph_ =
-      unique_ptr<ReducedGraph>(new ReducedGraph(move(reduceGraph(*graph_))));
+  reduced_graph_ = reduceGraph(*graph_);
+}
+
+bool BeadMotif::isMotifSimple() {
+  MotifType motif_type = getType();
+  if (motif_type == single_structure || motif_type == multiple_structures ||
+      motif_type == undefined) {
+    return false;
+  }
+  return true;
 }
 
 int BeadMotif::BeadCount() { return BeadStructure::BeadCount(); }

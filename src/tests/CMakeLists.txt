@@ -4,7 +4,7 @@ foreach(PROG
   test_bead
   test_beadtriple
   test_basebead
-  test_beadmotif
+  test_beadmotif_base
   test_beadstructure_base
   test_beadstructure_algorithms
   test_bondedstatistics

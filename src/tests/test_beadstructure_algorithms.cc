@@ -134,7 +134,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure.ConnectBeads(5, 2);
   beadstructure.ConnectBeads(6, 7);
   beadstructure.ConnectBeads(7, 8);
-  vector<BeadStructure> structures = breakInToStructures(beadstructure);
+  vector<BeadStructure> structures = breakIntoStructures(beadstructure);
 
   bool structure1_found = false;
   bool structure2_found = false;
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure.ConnectBeads(9, 10);
   beadstructure.ConnectBeads(11, 10);
 
-  structures = breakInToStructures(beadstructure);
+  structures = breakIntoStructures(beadstructure);
 
   structure1_found = false;
   structure2_found = false;

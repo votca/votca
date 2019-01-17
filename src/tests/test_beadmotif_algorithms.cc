@@ -15,17 +15,30 @@
  *
  */
 
-#ifndef VOTCA_CSG_BEADSTRUCTUREALGORITHMS_H
-#define VOTCA_CSG_BEADSTRUCTUREALGORITHMS_H
+#define BOOST_TEST_MAIN
 
-#include "beadstructure.h"
+#define BOOST_TEST_MODULE beadmotifalgorithms_test
+#include <boost/test/unit_test.hpp>
 
-namespace votca {
-namespace csg {
+#include <string>
+#include <votca/csg/beadmotifalgorithms.h>
 
-std::vector<BeadStructure> breakIntoStructures(BeadStructure& beadstructure);
+using namespace std;
+using namespace votca::csg;
 
-}  // namespace csg
-}  // namespace votca
+// used for rounding doubles so we can compare them
+double round_(double v, int p) {
+  v *= pow(10, p);
+  v = round(v);
+  v /= pow(10, p);
+  return v;
+}
 
-#endif  // VOTCA_CSG_BEADSTRUCTUREALGORITHMS_H
+class TestBead : public BaseBead {
+ public:
+  TestBead() : BaseBead(){};
+};
+
+BOOST_AUTO_TEST_SUITE(beadmotif_algorithms_test)
+
+BOOST_AUTO_TEST_SUITE_END()
