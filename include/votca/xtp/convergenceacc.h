@@ -25,112 +25,102 @@
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/diis.h>
 #include <votca/xtp/aomatrix.h>
-
+#include <memory>
 namespace votca { namespace xtp {
 
  
 class ConvergenceAcc{
     public:
-    
+
     enum KSmode { closed, open, fractional };
 
-    ConvergenceAcc() {_mode=KSmode::closed;
-                       _usemixing=true;
-                      _diiserror=std::numeric_limits<double>::max();
-                      _maxerrorindex=0;
-                      _maxerror=0.0;};
+    struct options{
+        KSmode mode=KSmode::closed;
+        bool usediis=true;
+        bool noisy=false;
+        int histlength=10;
+        bool maxout=false;
+        double adiis_start=2;
+        double diis_start=0.01;
+        double levelshift=0.25;
+        double levelshiftend=0.8;
+        int numberofelectrons;
+        double mixingparameter=0.7;
+        double Econverged=1e-7;
+        double error_converged=1e-7;
+    };
+    
                       
-   ~ConvergenceAcc() {
-     for (std::vector< Eigen::MatrixXd* >::iterator it = _mathist.begin() ; it !=_mathist.end(); ++it){
-         delete *it;
-     }
-     _mathist.clear();
-      for (std::vector< Eigen::MatrixXd* >::iterator it = _dmatHist.begin() ; it !=_dmatHist.end(); ++it){
-         delete *it;
-     }
-     _dmatHist.clear();
-   }
-   
-   void Configure(KSmode mode,bool usediis,bool noisy, 
-                    int histlength, bool maxout, double adiis_start,
-                    double diis_start,double levelshift,double levelshiftend,
-                    int numberofelectrons, double mixingparameter){
-       _mode=mode;
-       _usediis=usediis;
-       _noisy=noisy;
-       _histlength=histlength;
-       _diis.setHistLength(histlength);
-       _maxout=maxout;
-       _adiis_start=adiis_start;
-       _diis_start=diis_start;
-       _levelshift=levelshift;
-       _levelshiftend=levelshiftend;
-       _mixingparameter=mixingparameter;
-       _numberofelectrons=numberofelectrons;
-       if(mode==KSmode::closed){
-           _nocclevels=_numberofelectrons/2;
+   void Configure(const ConvergenceAcc::options& opt){
+       _opt=opt;
+       if(_opt.mode==KSmode::closed){
+           _nocclevels=_opt.numberofelectrons/2;
        }
-       else if(mode==KSmode::open){
-           _nocclevels=_numberofelectrons;
+       else if(_opt.mode==KSmode::open){
+           _nocclevels=_opt.numberofelectrons;
        }
-       else if(mode==KSmode::fractional){
+       else if(_opt.mode==KSmode::fractional){
            _nocclevels=0;
        }
+       _diis.setHistLength(_opt.histlength);
    }
+   void setLogger(ctp::Logger* log){_log=log;}
+
+   void PrintConfigOptions()const;
+  
+   bool isConverged()const{
+       if (_totE.size()<2){
+           return false;
+       }else{
+        return std::abs(getDeltaE()) < _opt.Econverged
+                && getDIIsError() < _opt.error_converged;
+       }
+   }
+
+   double getDeltaE()const{
+       if (_totE.size()<2){
+           return 0;
+       }else{
+           return _totE.back() - _totE[_totE.size() - 2];
+       }
+   }
+   void setOverlap(AOOverlap& S, double etol);
    
-   void setOverlap(AOOverlap* S, double etol);
+   double getDIIsError()const{return _diiserror;}
    
-   double getDIIsError(){return _diiserror;}
-   
-    bool getUseMixing(){return _usemixing;}
-   
-    void setLogger(ctp::Logger *pLog){_pLog=pLog;}
+    bool getUseMixing()const{return _usedmixing;}
+
     Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE);
     void SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H);
-    void Levelshift(Eigen::MatrixXd& H);
+    void Levelshift(Eigen::MatrixXd& H)const;
 
-    Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
+    Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies)const;
    
  private:
+    options _opt;
+
+    Eigen::MatrixXd DensityMatrixGroundState(const Eigen::MatrixXd& MOs)const;
+    Eigen::MatrixXd DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs)const;
+    Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies)const;
      
-    KSmode _mode;
-    Eigen::MatrixXd DensityMatrixGroundState(const Eigen::MatrixXd& MOs);
-    Eigen::MatrixXd DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs);
-    Eigen::MatrixXd DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies);
-     
-    bool                                _usemixing;
-    ctp::Logger *                       _pLog;
+    bool             _usedmixing=true;
+    double           _diiserror=std::numeric_limits<double>::max();
+    ctp::Logger*     _log;
     const AOOverlap* _S;
     
-    bool                              _usediis;
-    bool                              _noisy;
-    int                          _histlength;
-    bool                              _maxout;
     Eigen::MatrixXd                 Sminusahalf;
     Eigen::MatrixXd                 Sonehalf;
     Eigen::MatrixXd                 MOsinv;
-    double                              _maxerror;
-    double                              _diiserror;
-    double                              _adiis_start;  
-    double                              _diis_start;
-    double                              _levelshiftend;
-    int                            _maxerrorindex;
-    std::vector< Eigen::MatrixXd* >   _mathist;
-    std::vector< Eigen::MatrixXd* >   _dmatHist;
-    double                              _mixingparameter;
-    std::vector<double>                 _totE;
-   
-    int _numberofelectrons;
+    std::vector< Eigen::MatrixXd >   _mathist;
+    std::vector< Eigen::MatrixXd >   _dmatHist;
+    std::vector<double>              _totE;
+ 
     int _nocclevels;
-    double _levelshift;
-    
+    int _maxerrorindex=0;
+    double _maxerror=0.0;
     ADIIS _adiis;
     DIIS _diis;
-   
-    
-    
-    
-    
+
   
  };
  

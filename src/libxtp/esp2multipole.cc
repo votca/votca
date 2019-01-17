@@ -143,7 +143,7 @@ namespace votca {
 
             _atomlist = orbitals.QMAtoms();
             BasisSet bs;
-            bs.LoadBasisSet(orbitals.getDFTbasis());
+            bs.LoadBasisSet(orbitals.getDFTbasisName());
             AOBasis basis;
             basis.AOBasisFill(bs, _atomlist);
             Eigen::MatrixXd DMAT=orbitals.DensityMatrixFull(_state);

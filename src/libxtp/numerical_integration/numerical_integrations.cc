@@ -363,8 +363,7 @@ namespace votca {
       std::vector<Eigen::MatrixXd >vxc_thread;
       std::vector<double> Exc_thread = std::vector<double>(nthreads, 0.0);
       for (unsigned i = 0; i < nthreads; ++i) {
-        Eigen::MatrixXd Vxc_thread = Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols());
-        vxc_thread.push_back(Vxc_thread);
+        vxc_thread.push_back(Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols()));
       }
       
 #pragma omp parallel for

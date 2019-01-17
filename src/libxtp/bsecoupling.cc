@@ -181,8 +181,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
     }
 
     // number of levels stored in monomers
-    int levelsA = orbitalsA.getNumberOfLevels();
-    int levelsB = orbitalsB.getNumberOfLevels();
+    int levelsA = orbitalsA.getBasisSetSize();
+    int levelsB = orbitalsB.getBasisSetSize();
             
     // get exciton information of molecule A
     int _bseA_cmax        = orbitalsA.getBSEcmax();
@@ -344,7 +344,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& 
             CTP_LOG(ctp::logDEBUG,*_pLog) << "Reading overlap matrix from orbitals" << flush; 
            overlapAB= orbitalsAB.AOOverlap();
     }else{
-        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasis()<< flush; 
+        CTP_LOG(ctp::logDEBUG,*_pLog) << "Calculating overlap matrix for basisset: "<< orbitalsAB.getDFTbasisName()<< flush; 
         overlapAB=CalculateOverlapMatrix(orbitalsAB);
     }
   

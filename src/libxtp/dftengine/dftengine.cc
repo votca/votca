@@ -86,49 +86,36 @@ namespace votca {
           _gridquality=options.ifExistsReturnElseThrowRuntimeError<string>(key + ".externaldensity.gridquality");
           _state=options.ifExistsReturnElseThrowRuntimeError<string>(key + ".externaldensity.state");        
       }
-      
+
+
       if (options.exists(key + ".convergence")) {
-        _Econverged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.energy", 1e-7);
-        _error_converged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.error", 1e-7);
+        _conv_opt.Econverged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.energy", _conv_opt.Econverged);
+        _conv_opt.error_converged = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.error",  _conv_opt.error_converged);
         _max_iter = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.max_iterations", 100);
 
         if (options.exists(key + ".convergence.method")) {
           string method = options.get(key + ".convergence.method").as<string>();
           if (method == "DIIS") {
-            _usediis = true;
+            _conv_opt.usediis = true;
           } else if (method == "mixing") {
-            _usediis = false;
+            _conv_opt.usediis = false;
           } else {
             cout << "WARNING method not known. Using Mixing" << endl;
-            _usediis = false;
+            _conv_opt.usediis = false;
           }
-        } else {
-          _usediis = true;
         }
-        if (!_usediis) {
-          _histlength = 1;
-          _maxout = false;
+        if (!_conv_opt.usediis) {
+          _conv_opt.histlength = 1;
+          _conv_opt.maxout = false;
         }
-        _mixingparameter = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing", 0.7);
-        _levelshift = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", 0.0);
-        _levelshiftend = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end", 0.8);
-        _maxout = options.ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout", false);
-        _histlength = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.DIIS_length", 10);
-        _diis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.DIIS_start", 0.01);
-        _adiis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.ADIIS_start", 2);
-      } else {
-        _Econverged = 1e-7;
-        _error_converged = 1e-7;
-        _maxout = false;
-        _diis_start = 0.01;
-        _adiis_start = 2;
-        _histlength = 10;
-        _mixingparameter = 0.7;
-        _usediis = true;
-        _max_iter = 100;
-        _levelshift = 0.25;
-        _levelshiftend = 0.8;
-      }
+        _conv_opt.mixingparameter = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.mixing",  _conv_opt.mixingparameter);
+        _conv_opt.levelshift = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift", _conv_opt.levelshift);
+        _conv_opt.levelshiftend = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.levelshift_end",  _conv_opt.levelshiftend);
+        _conv_opt.maxout = options.ifExistsReturnElseReturnDefault<bool>(key + ".convergence.DIIS_maxout",  _conv_opt.maxout);
+        _conv_opt.histlength = options.ifExistsReturnElseReturnDefault<int>(key + ".convergence.DIIS_length", _conv_opt.histlength);
+        _conv_opt.diis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.DIIS_start", _conv_opt.diis_start);
+        _conv_opt.adiis_start = options.ifExistsReturnElseReturnDefault<double>(key + ".convergence.ADIIS_start", _conv_opt.adiis_start);
+      } 
 
       return;
     }
@@ -255,15 +242,12 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
       CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " STARTING SCF cycle" << flush;
       CTP_LOG(ctp::logDEBUG, *_pLog) << " --------------------------------------------------------------------------" << flush;
 
-      double energyold = std::numeric_limits<double>::max();
-
       for (int this_iter = 0; this_iter < _max_iter; this_iter++) {
         CTP_LOG(ctp::logDEBUG, *_pLog) << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Iteration " 
                 << this_iter + 1 << " of " << _max_iter << flush;
 
         
-
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Filled DFT Electron repulsion matrix" << flush;
         double vxcenergy = 0.0;
         if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
@@ -313,13 +297,6 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
 
         _dftAOdmat = _conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff, totenergy);
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " DIIs error " << _conv_accelerator.getDIIsError() << std::flush;
-        double deltaE=totenergy - energyold;
-        if(this_iter == 0){
-          deltaE=0;
-        }
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Delta Etot " <<deltaE<< std::flush;
         if (tools::globals::verbose) {
           PrintMOs(MOEnergies);
         }
@@ -327,25 +304,19 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         CTP_LOG(ctp::logDEBUG, *_pLog) << "\t\tGAP " 
                 << MOEnergies(_numofelectrons / 2) - MOEnergies(_numofelectrons / 2 - 1) << flush;
 
-        if (std::abs(totenergy - energyold) < _Econverged && _conv_accelerator.getDIIsError() < _error_converged) {
+        if (_conv_accelerator.isConverged()) {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                   << " Total Energy has converged to " << std::setprecision(9) 
-                  << std::abs(totenergy - energyold) << "[Ha] after " << this_iter + 1 <<
-                  " iterations. DIIS error is converged up to " << _error_converged << "[Ha]" << flush;
+                  <<  _conv_accelerator.getDeltaE()<< "[Ha] after " << this_iter + 1 <<
+                  " iterations. DIIS error is converged up to " << _conv_accelerator.getDIIsError() << flush;
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy "
-                  << std::setprecision(12) << totenergy << " Ha" << flush;
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
-          
+                  << std::setprecision(12) << totenergy << " Ha" << flush;          
           PrintMOs(MOEnergies);
           orbitals.setQMEnergy(totenergy);
           CalcElDipole(orbitals);
           break;
-        } else {
-          energyold = totenergy;
-        }
+        }         
         
-        
-       
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Density Matrix gives N=" 
                 << _dftAOdmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons." << flush;
 
@@ -417,28 +388,18 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() 
                 << " Filled DFT ECP matrix" << flush;
       }
-
-      _conv_accelerator.Configure(ConvergenceAcc::KSmode::closed, _usediis,
-              true, _histlength, _maxout, _adiis_start, _diis_start,
-              _levelshift, _levelshiftend, _numofelectrons, _mixingparameter);
+      _conv_opt.numberofelectrons=_numofelectrons;
+      _conv_accelerator.Configure(_conv_opt);
       _conv_accelerator.setLogger(_pLog);
-      _conv_accelerator.setOverlap(&_dftAOoverlap, 1e-8);
+      _conv_accelerator.setOverlap(_dftAOoverlap, 1e-8);
+      _conv_accelerator.PrintConfigOptions();
 
       if (_with_RI) {
-
-        AOCoulomb auxAOcoulomb;
-        auxAOcoulomb.Fill(_auxbasis);
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Filled auxiliary Coulomb matrix"<< flush;
-
-        Eigen::MatrixXd Inverse=auxAOcoulomb.Pseudo_InvSqrt(1e-8);
-
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " Inverted AUX Coulomb matrix, removed " << auxAOcoulomb.Removedfunctions()
-                << " functions from aux basis" << flush;
-
         // prepare invariant part of electron repulsion integrals
-        _ERIs.Initialize(_dftbasis, _auxbasis, Inverse);
+        _ERIs.Initialize(_dftbasis, _auxbasis);
+        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
+                << " Inverted AUX Coulomb matrix, removed " << _ERIs.Removedfunctions()
+                << " functions from aux basis" << flush;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
                 << " Setup invariant parts of Electron Repulsion integrals " << flush;
       } else {
@@ -511,17 +472,26 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         ConvergenceAcc Convergence_alpha;
 
         ConvergenceAcc Convergence_beta;
-        double adiisstart = 0;
-        double diisstart = 0;
+        ConvergenceAcc::options opt_alpha=_conv_opt;
+        opt_alpha.mode=ConvergenceAcc::KSmode::open;
+        opt_alpha.histlength=20;
+        opt_alpha.levelshift=0.1;
+        opt_alpha.levelshiftend=0.0;
+        opt_alpha.usediis=true;
+        opt_alpha.adiis_start=0.0;
+        opt_alpha.diis_start=0.0;
+        opt_alpha.numberofelectrons=alpha_e;
 
-        Convergence_alpha.Configure(ConvergenceAcc::KSmode::open, true, false, 
-                20, 0, adiisstart, diisstart, 0.1, diisstart, alpha_e, _mixingparameter);
-        Convergence_alpha.setLogger(_pLog);
-        Convergence_alpha.setOverlap(&dftAOoverlap, 1e-8);
-        Convergence_beta.Configure(ConvergenceAcc::KSmode::open, true, false, 
-                20, 0, adiisstart, diisstart, 0.1, diisstart, beta_e, _mixingparameter);
-        Convergence_beta.setLogger(_pLog);
-        Convergence_beta.setOverlap(&dftAOoverlap, 1e-8);
+        ConvergenceAcc::options opt_beta=opt_alpha;
+        opt_beta.numberofelectrons=beta_e;
+
+        ctp::Logger log;
+        Convergence_alpha.Configure(opt_alpha);
+        Convergence_alpha.setLogger(&log);
+        Convergence_alpha.setOverlap(dftAOoverlap, 1e-8);
+        Convergence_beta.Configure(opt_beta);
+        Convergence_beta.setLogger(&log);
+        Convergence_beta.setOverlap(dftAOoverlap, 1e-8);
         /**** Construct initial density  ****/
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
@@ -539,7 +509,6 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         Convergence_beta.SolveFockmatrix(MOEnergies_beta, MOCoeff_beta, H0);
         Eigen::MatrixXd dftAOdmat_beta = Convergence_beta.DensityMatrix(MOCoeff_beta, MOEnergies_beta);
    
-        double energyold = 0;
         int maxiter = 80;
         for (int this_iter = 0; this_iter < maxiter; this_iter++) {
           ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
@@ -591,9 +560,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
                     <<" Nalpha="<<dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_alpha).sum()
                     <<" Nbeta="<<dftAOoverlap.Matrix().cwiseProduct(dftAOdmat_beta).sum()<<flush;
           }
-          bool converged = (std::abs(totenergy - energyold) < _Econverged &&
-                  Convergence_alpha.getDIIsError() < _error_converged &&
-                  Convergence_beta.getDIIsError() < _error_converged);
+          bool converged = Convergence_alpha.isConverged() && Convergence_beta.isConverged();
           if (converged || this_iter == maxiter - 1) {
 
             if (converged) {
@@ -606,8 +573,6 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
             }
             break;
 
-          } else {
-            energyold = totenergy;
           }
         }
         Eigen::MatrixXd avgmatrix=SphericalAverageShells(dftAOdmat_alpha + dftAOdmat_beta,dftbasis);
@@ -666,11 +631,11 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
     void DFTEngine::ConfigOrbfile(Orbitals& orbitals) {
       if (_with_guess) {
 
-        if (orbitals.hasDFTbasis()) {
-          if (orbitals.getDFTbasis() != _dftbasis_name) {
+        if (orbitals.hasDFTbasisName()) {
+          if (orbitals.getDFTbasisName() != _dftbasis_name) {
             throw runtime_error((boost::format("Basisset Name in guess orb file "
                     "and in dftengine option file differ %1% vs %2%") 
-                    % orbitals.getDFTbasis() % _dftbasis_name).str());
+                    % orbitals.getDFTbasisName() % _dftbasis_name).str());
           }
         } else {
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " WARNING: "
@@ -680,34 +645,34 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         }
       }
       orbitals.setQMpackage("xtp");
-      orbitals.setDFTbasis(_dftbasis_name);
+      orbitals.setDFTbasisName(_dftbasis_name);
       orbitals.setBasisSetSize(_dftbasis.AOBasisSize());
       orbitals.setScaHFX(_ScaHFX);
       if (_with_ecp) {
-        orbitals.setECP(_ecp_name);
+        orbitals.setECPName(_ecp_name);
       }
       if (_with_RI) {
-        orbitals.setAuxbasis(_auxbasis_name);
+        orbitals.setAuxbasisName(_auxbasis_name);
       }
 
       if (_with_guess) {
-        if (orbitals.hasECP() || _with_ecp) {
-          if (orbitals.getECP() != _ecp_name) {
+        if (orbitals.hasECPName() || _with_ecp) {
+          if (orbitals.getECPName() != _ecp_name) {
             throw runtime_error((boost::format("ECPs in orb file: %1% and options %2% differ")
-                    % orbitals.getECP() % _ecp_name).str());
+                    % orbitals.getECPName() % _ecp_name).str());
           }
         }
-        if (orbitals.getNumberOfElectrons() != _numofelectrons / 2) {
+        if (orbitals.getNumberOfAlphaElectrons() != _numofelectrons / 2) {
           throw runtime_error((boost::format("Number of electron in guess orb file: %1% and in dftengine: %2% differ.")
-                  % orbitals.getNumberOfElectrons() % (_numofelectrons / 2)).str());
+                  % orbitals.getNumberOfAlphaElectrons() % (_numofelectrons / 2)).str());
         }
-        if (orbitals.getNumberOfLevels() != _dftbasis.AOBasisSize()) {
+        if (orbitals.getBasisSetSize() != _dftbasis.AOBasisSize()) {
           throw runtime_error((boost::format("Number of levels in guess orb file: %1% and in dftengine: %2% differ.") 
-                  % orbitals.getNumberOfLevels() % _dftbasis.AOBasisSize()).str());
+                  % orbitals.getBasisSetSize() % _dftbasis.AOBasisSize()).str());
         }
       } else {
-        orbitals.setNumberOfElectrons(_numofelectrons / 2);
-        orbitals.setNumberOfLevels(_numofelectrons / 2, _dftbasis.AOBasisSize() - _numofelectrons / 2);
+        orbitals.setNumberOfAlphaElectrons(_numofelectrons / 2);
+        orbitals.setNumberOfOccupiedLevels(_numofelectrons / 2);
       }
       return;
     }
@@ -972,7 +937,7 @@ void DFTEngine::Prepare(Orbitals& orbitals) {
     
     Eigen::MatrixXd DFTEngine::IntegrateExternalDensity(Orbitals& extdensity){
       BasisSet basis;
-      basis.LoadBasisSet(extdensity.getDFTbasis());
+      basis.LoadBasisSet(extdensity.getDFTbasisName());
       AOBasis aobasis;
       aobasis.AOBasisFill(basis,extdensity.QMAtoms());
       NumericalIntegration numint;

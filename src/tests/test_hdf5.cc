@@ -88,8 +88,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         Orbitals orbWrite;
 
         orbWrite.setBasisSetSize(basisSetSize);
-        orbWrite.setNumberOfLevels(occupiedLevels, unoccupiedLevels);
-        orbWrite.setNumberOfElectrons(numElectrons);
+        orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
+        orbWrite.setNumberOfAlphaElectrons(numElectrons);
         orbWrite.MOEnergies() = moeTest;
         orbWrite.MOCoefficients() = mocTest;
 
@@ -100,14 +100,14 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.setQMEnergy(qmEnergy);
         orbWrite.setQMpackage(qmPackage);
         orbWrite.setSelfEnergy(selfEnergy);
-        orbWrite.setDFTbasis(dftBasis);
-        orbWrite.setAuxbasis(auxBasis);
+        orbWrite.setDFTbasisName(dftBasis);
+        orbWrite.setAuxbasisName(auxBasis);
         orbWrite.setRPAindices(rpaMin, rpaMax);
         // no need to write qpmin, qpmax
-        orbWrite.setBSEindices(bseVmin, bseCmax, 3);
+        orbWrite.setBSEindices(bseVmin, bseCmax);
         orbWrite.setScaHFX(scaHfx);
         orbWrite.setTDAApprox(useTDA);
-        orbWrite.setECP(someECP);
+        orbWrite.setECPName(someECP);
         orbWrite.QPpertEnergies() = QPpertEnergiesTest;
         orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
         orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
@@ -131,16 +131,16 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     // Test the read values
     BOOST_CHECK_EQUAL(orbRead.getBasisSetSize() , basisSetSize);
-    BOOST_CHECK_EQUAL(orbRead.getNumberOfLevels() , occupiedLevels + unoccupiedLevels);
-    BOOST_CHECK_EQUAL(orbRead.getNumberOfElectrons() , numElectrons);
+    BOOST_CHECK_EQUAL(orbRead.getBasisSetSize() , occupiedLevels + unoccupiedLevels);
+    BOOST_CHECK_EQUAL(orbRead.getNumberOfAlphaElectrons() , numElectrons);
     BOOST_CHECK(orbRead.MOEnergies().isApprox(moeTest, tol));
 
     BOOST_CHECK(orbRead.MOCoefficients().isApprox(mocTest, tol));
     BOOST_CHECK_CLOSE(orbRead.getQMEnergy(), qmEnergy, tol);
     BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
     BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
-    BOOST_CHECK_EQUAL(orbRead.getDFTbasis(), dftBasis);
-    BOOST_CHECK_EQUAL(orbRead.getAuxbasis(), auxBasis);
+    BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
+    BOOST_CHECK_EQUAL(orbRead.getAuxbasisName(), auxBasis);
     BOOST_CHECK_EQUAL(orbRead.getRPAmin(), rpaMin);
     BOOST_CHECK_EQUAL(orbRead.getRPAmax(), rpaMax);
 
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
     BOOST_CHECK_CLOSE(orbRead.getScaHFX(), scaHfx, tol);
     BOOST_CHECK_EQUAL(orbRead.getTDAApprox(), useTDA);
-    BOOST_CHECK_EQUAL(orbRead.getECP(), someECP);
+    BOOST_CHECK_EQUAL(orbRead.getECPName(), someECP);
     BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
     BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
     BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));

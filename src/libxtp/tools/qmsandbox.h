@@ -161,7 +161,7 @@ bool QMSandbox::Evaluate() {
     Eigen::MatrixXd dmat=orbitals.DensityMatrixGroundState();
     
     BasisSet basis;
-    basis.LoadBasisSet(orbitals.getDFTbasis());
+    basis.LoadBasisSet(orbitals.getDFTbasisName());
     
     AOBasis aobasis;
     aobasis.AOBasisFill(basis,orbitals.QMAtoms());

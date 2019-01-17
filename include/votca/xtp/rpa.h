@@ -23,78 +23,59 @@
 #include <vector>
 
 
-namespace votca {
-    namespace xtp {
-        class TCMatrix_gwbse;
+namespace votca
+{
+namespace xtp
+{
+class TCMatrix_gwbse;
 
-        class RPA {
-        public:
+class RPA
+{
+public:
 
-            void configure(int homo, int rpamin, int rpamax) {
-                _homo = homo;
-                _rpamin = rpamin;
-                _rpamax = rpamax;
-            }
-            
-            void setScreening(Eigen::VectorXd& screen_freq_r,Eigen::VectorXd& screen_freq_i){
-                _screen_freq_r = screen_freq_r;
-                _screen_freq_i = screen_freq_i;
-                _epsilon_r.resize(_screen_freq_r.size());
-                _epsilon_i.resize(_screen_freq_i.size());
-                
-            }
+    RPA(const TCMatrix_gwbse& Mmn):_Mmn(Mmn){};
 
-            const Eigen::VectorXd& GetScreening_freq_r() const {
-                return _screen_freq_r;
-            }
-            
-            const Eigen::VectorXd& GetScreening_freq_i() const {
-                return _screen_freq_i;
-            }
-
-            const std::vector<Eigen::MatrixXd>& GetEpsilon_r() const {
-                return _epsilon_r;
-            }
-            
-            const std::vector<Eigen::MatrixXd>& GetEpsilon_i() const {
-                return _epsilon_i;
-            }
-
-            void prepare_threecenters(const TCMatrix_gwbse& Mmn_full);
-
-            void calculate_epsilon(const Eigen::VectorXd& qp_energies,const TCMatrix_gwbse& Mmn_full);
-
-            void FreeMatrices() {
-                for (Eigen::MatrixXd & matrix:_epsilon_r){
-                    matrix.resize(0,0);
-                }
-                for (Eigen::MatrixXd & matrix:_epsilon_i){
-                    matrix.resize(0,0);
-                }
-            
-            }
-
-        private:
-
-            int _homo; // HOMO index
-            int _rpamin;
-            int _rpamax;
-
-            // container for the epsilon matrix
-            std::vector<Eigen::MatrixXd > _epsilon_r;
-            
-            std::vector<Eigen::MatrixXd > _epsilon_i;
-           
-            
-            // We cannot calculate screening at complex frequencies only at real or imaginary points
-            Eigen::VectorXd _screen_freq_r; //real screening frequencies
-            Eigen::VectorXd _screen_freq_i;//imaginary screening frequencies
-
-           
-
-
-        };
+    void configure(int homo, int rpamin, int rpamax){
+        _homo = homo;
+        _rpamin = rpamin;
+        _rpamax = rpamax;
     }
+
+    
+
+    Eigen::MatrixXd calculate_epsilon_i(double frequency)const{
+        return calculate_epsilon<true>(frequency);
+    }
+
+    Eigen::MatrixXd calculate_epsilon_r(double frequency)const{
+        return calculate_epsilon<false>(frequency);
+    }
+
+    const Eigen::VectorXd& getRPAInputEnergies()const {return _energies;}
+
+    void setRPAInputEnergies(const Eigen::VectorXd& energies){
+        _energies=energies;
+    }
+    
+    //calculates full RPA vector of energies from gwa and dftenergies and qpmin
+    //RPA energies have three parts, lower than qpmin: dftenergies,between qpmin and qpmax:gwa_energies,above:dftenergies+homo-lumo shift
+    void UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin);
+
+private:
+
+    int _homo; // HOMO index
+    int _rpamin;
+    int _rpamax;
+
+    Eigen::VectorXd _energies;
+
+    const TCMatrix_gwbse& _Mmn;
+
+    template< bool imag>
+    Eigen::MatrixXd calculate_epsilon(double frequency)const;
+
+};
+}
 }
 
 #endif /* _VOTCA_RPA_RPA_H */

@@ -204,7 +204,7 @@ namespace votca {
    
    Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals & orbitals)const{
     BasisSet dftbs;
-    dftbs.LoadBasisSet(orbitals.getDFTbasis());
+    dftbs.LoadBasisSet(orbitals.getDFTbasisName());
     AOBasis dftbasis;
     dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
     AOOverlap dftoverlap;
