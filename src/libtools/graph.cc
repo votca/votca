@@ -112,7 +112,7 @@ vector<int> Graph::getJunctions() const {
 }
 
 void Graph::copyNodes(Graph& graph) {
-  assert(nodes_.size()==0);
+  assert(nodes_.size() == 0);
   for (const pair<int, GraphNode>& id_and_node : graph.nodes_) {
     this->nodes_[id_and_node.first] = id_and_node.second;
   }
