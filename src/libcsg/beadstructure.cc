@@ -168,7 +168,7 @@ vector<shared_ptr<BeadStructure>> BeadStructure::breakIntoMolecules() {
     for (auto vertex : sub_graph_vertices)
       beadstructure.AddBead(beads_[vertex]);
     for (auto edge : sub_graph_edges)
-      beadstructure.ConnectBeads(edge.getV1(), edge.getV2());
+      beadstructure.ConnectBeads(edge.getEndPoint1(), edge.getEndPoint2());
     structures.push_back(make_shared<BeadStructure>(beadstructure));
   }
   return structures;
