@@ -140,6 +140,8 @@ class Graph {
   /// Determines if an edge is stored in the graph
   bool edgeExist(Edge edge) { return edge_container_.edgeExist(edge); }
 
+  /// Copies nodes from one graph to another. This should only be used in cases
+  /// where the graph does not contain nodes before the copy. 
   void copyNodes(Graph& graph);
 
   friend std::ostream& operator<<(std::ostream& os, const Graph graph);
