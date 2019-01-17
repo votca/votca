@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -51,14 +51,14 @@ class Graph_BF_Visitor;
 
 class GraphDistVisitor : public Graph_BF_Visitor {
 
-  public:
-    GraphDistVisitor(){};
+ public:
+  GraphDistVisitor(){};
 
-    /// Note the only manipulation to the BF visitor is the need to add a
-    /// distance attribute to each of the graph nodes.
-    void exploreNode(std::pair<int, GraphNode> &p_gn, Graph& g,
-        Edge ed = DUMMY_EDGE);
+  /// Note the only manipulation to the BF visitor is the need to add a
+  /// distance attribute to each of the graph nodes.
+  void exploreNode(std::pair<int, GraphNode>& p_gn, Graph& g,
+                   Edge ed = DUMMY_EDGE);
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H

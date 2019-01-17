@@ -376,6 +376,12 @@ BOOST_AUTO_TEST_CASE(explorebranch_test){
     int starting_vertex = 1;
     set<Edge> branch_edges = exploreBranch(g,starting_vertex,ed3);
 
+    // The following edges should be found in the branch
+    //
+    //     1 - 3 - 9
+    //     |       |
+    //     4 - 5 - 6 -  7 - 8
+    //
     BOOST_CHECK_EQUAL(branch_edges.size(),8);
 
     vector<bool> found_edges(8,false);

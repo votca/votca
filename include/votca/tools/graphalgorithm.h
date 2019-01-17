@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -68,7 +68,7 @@ bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
  *
  * If our graph is reprsented by the above depiction and vertex 3 is chosen as
  * our starting vertex, we are left with 3 edges to choose from Edges:
- * 
+ *
  *   2 - 3
  *   3 - 4
  *   3 - 6
@@ -82,9 +82,9 @@ bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
  *
  * If instead Edge 2 - 3 is picked, the following set of edges would be returned
  *
- * 1 - 2 - 3  
- *                  
- * @param[in] - Graph instance 
+ * 1 - 2 - 3
+ *
+ * @param[in] - Graph instance
  * @param[in] - int starting vertex, where the exploration begins
  * @param[in] - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
