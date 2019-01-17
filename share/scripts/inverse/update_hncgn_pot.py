@@ -91,7 +91,8 @@ with numpy.matmul"""
     H = np.diag((2 + rho * h_hat) / (1 + rho * h_hat)**2 * rho * h_hat)
 
     # T matrix
-    T = np.linalg.inv(F) @ H @ F
+    #T = np.linalg.inv(F) @ H @ F
+    T = np.matmul(np.linalg.inv(F), np.matmul(H, F))
 
     # real grid without core region
     core_end = np.where(g_tgt > g_min)[0][0]
@@ -111,7 +112,8 @@ with numpy.matmul"""
     A0 = delta_r * np.triu(np.ones((len(r_nocore), len(r_nocore_cut))), k=0)
 
     # Jacobian matrix
-    J = - np.linalg.inv(U) @ A0
+    #J = - np.linalg.inv(U) @ A0
+    J = - np.matmul(np.linalg.inv(U), A0)
 
     # residuum vector
     res = g_tgt - g
@@ -120,10 +122,12 @@ with numpy.matmul"""
     # w
     # (J.T @ J) w == - J.T @ res_nocore
     #     a     x ==       b
-    w = np.linalg.solve(J.T @ J, -J.T @ res_nocore)
+    #w = np.linalg.solve(J.T @ J, -J.T @ res_nocore)
+    w = np.linalg.solve(np.matmul(J.T, J), -np.matmul(J.T, res_nocore))
 
     # dU
-    dU = A0 @ w
+    #dU = A0 @ w
+    dU = np.matmul(A0, w)
 
     # fill core with nans
     dU = np.concatenate((np.full(core_end + 1, np.nan), dU))
