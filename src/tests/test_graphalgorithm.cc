@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
       if (edge == ed5) found_edges.at(4) = true;
     }
 
-    for (bool& found : found_edges) {
+    for (const bool& found : found_edges) {
       BOOST_CHECK(found);
     }
   }
@@ -382,7 +382,7 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
 
     vector<bool> found_edges(8, false);
     int index = 0;
-    for (Edge& ed : branch_edges) {
+    for (const Edge& ed : branch_edges) {
       if (ed == ed3) found_edges.at(index) = true;
       if (ed == ed4) found_edges.at(index) = true;
       if (ed == ed5) found_edges.at(index) = true;
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
       ++index;
     }
 
-    for (bool& found : found_edges) {
+    for (const bool& found : found_edges) {
       BOOST_CHECK(found);
     }
   }
