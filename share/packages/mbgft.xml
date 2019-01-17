@@ -1,7 +1,7 @@
 <gwbse>
         <dftbasis>ubecppol</dftbasis>
         <gwbasis>aux-ubecppol</gwbasis>
-        <ranges></ranges> <!-- default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit -->
+        <ranges>default</ranges> <!-- default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit -->
         <rpamax></rpamax> <!-- only needed, if ranges is factor or explicit -->
         <qpmin></qpmin> <!-- needed, if ranges is factor or explicit -->
         <qpmax></qpmax> <!-- needed, if ranges is factor or explicit -->

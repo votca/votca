@@ -57,7 +57,6 @@ namespace votca { namespace xtp {
         int getSize1(){return _ERIs.rows();}
         int getSize2(){return _ERIs.cols();}
         int Removedfunctions()const{return _threecenter.Removedfunctions();}
-        void printERIs();
         
     private:
 
