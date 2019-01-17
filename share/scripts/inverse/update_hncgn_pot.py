@@ -55,8 +55,11 @@ def gen_fourier_matrix(r_nz, omega_nz, fourier_function):
     return fourier_matrix
 
 
-def calc_dpot_hncgn_full(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cut_off, dump_steps=False):
-    """calculates dU for all r with the Gauss-Newton approach"""
+def calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min,
+                         cut_off, dump_steps=False):
+    """does the math for the hncgn method.
+matrix multiplication was done with @ in earlier versions, now
+with numpy.matmul"""
 
     # for convenience grids (real and reciprocal) are without the zero value
     r = r[1:]
@@ -88,8 +91,7 @@ def calc_dpot_hncgn_full(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cu
     H = np.diag((2 + rho * h_hat) / (1 + rho * h_hat)**2 * rho * h_hat)
 
     # T matrix
-    #T = np.linalg.inv(F) @ H @ F
-    T = np.matmul(np.linalg.inv(F), np.matmul(H, F))
+    T = np.linalg.inv(F) @ H @ F
 
     # real grid without core region
     core_end = np.where(g_tgt > g_min)[0][0]
@@ -101,14 +103,15 @@ def calc_dpot_hncgn_full(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cu
     # U matrix
     U = -kBT * np.linalg.inv(D) + kBT * T[core_end:, core_end:]
 
-    # A0 matrix
+    # grid up to (including) cut-off
     index_cut_off = np.searchsorted(r_nocore, cut_off)
-    r_nocore_cut = r_nocore[:index_cut_off]
+    r_nocore_cut = r_nocore[:index_cut_off+1]
+
+    # A0 matrix
     A0 = delta_r * np.triu(np.ones((len(r_nocore), len(r_nocore_cut))), k=0)
 
-    # Jacobian matrix (really that simple?)
-    #J = - np.linalg.inv(U) @ A0
-    J = - np.matmul(np.linalg.inv(U), A0)
+    # Jacobian matrix
+    J = - np.linalg.inv(U) @ A0
 
     # residuum vector
     res = g_tgt - g
@@ -117,28 +120,27 @@ def calc_dpot_hncgn_full(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cu
     # w
     # (J.T @ J) w == - J.T @ res_nocore
     #     a     x ==       b
-    #w = np.linalg.solve(J.T @ J, -J.T @ res_nocore)
-    w = np.linalg.solve(np.matmul(J.T, J), np.matmul(-J.T, res_nocore))
+    w = np.linalg.solve(J.T @ J, -J.T @ res_nocore)
 
     # dU
-    print(w)
-    #dU = A0 @ w
-    dU = np.matmul(A0, w)
+    dU = A0 @ w
 
     # fill core with nans
     dU = np.concatenate((np.full(core_end + 1, np.nan), dU))
 
     # dump files
     if dump_steps:
-        pass
+        np.savetxt("hncgn_h_hat.xvg", (omega, h_hat), header="omega, h_hat")
 
     return dU
 
 
 def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
-                      rdf_current_g, rdf_current_flag,
-                      pot_current_U, pot_current_flag,
-                      kBT, density, cut_off, g_min):
+                    rdf_current_g, rdf_current_flag,
+                    pot_current_U, pot_current_flag,
+                    kBT, density, cut_off, g_min):
+    """calculate dU for the hncgn method"""
+
     # allways raise an error
     np.seterr(all='raise')
 
@@ -147,25 +149,16 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
     dpot_flag = np.array([''] * len(dpot_dU))
 
     # full range dU
-    dU_full = calc_dpot_hncgn_full(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cut_off)
+    dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cut_off)
 
     # calculate dpot
     for i in range(len(r)):
-
-        # test
-        #dpot_dU[i] = dU_full[i]
-        #continue
-
-        if rdf_target_g[i] > g_min and rdf_current_g[i] > g_min:
+        if (np.isnan(dU_full[i])) or ('u' in str(pot_current_flag[i])):
+            dpot_dU[i] = np.nan
+            dpot_flag[i] = 'o'
+        else:
             dpot_dU[i] = dU_full[i]
             dpot_flag[i] = 'i'
-        else:
-            dpot_dU[i] = np.nan
-            dpot_flag[i] = 'o'
-        # check for unset value in current potential
-        if 'u' in str(pot_current_flag[i]):
-            dpot_dU[i] = np.nan
-            dpot_flag[i] = 'o'
 
     # find first valid dU value
     first_dU_index = np.where(dpot_flag == 'i')[0][0]
@@ -176,7 +169,7 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
 
     # shift dU to be zero at cut_off and beyond
     index_cut_off = np.searchsorted(r, cut_off)
-    U_cut_off = pot_current_U[index_cut_off] + dpot_dU[index_cut_off]
+    U_cut_off = dpot_dU[index_cut_off] + pot_current_U[index_cut_off]
     dpot_dU -= U_cut_off
     dpot_dU[index_cut_off:] = - pot_current_U[index_cut_off:]
 
