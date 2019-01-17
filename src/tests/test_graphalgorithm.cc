@@ -263,8 +263,6 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     BOOST_CHECK_EQUAL(edge_count1_2, 3);
   }
 
-=======
->>>>>>> feature-explore-branch-algorithm
   {
     // Create edge
     //     2
