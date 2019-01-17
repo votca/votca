@@ -159,10 +159,10 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
-    auto edges2 = reduced_g.getEdges();
+    vector<Edge> edges2 = reduced_g.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 5);
     vector<bool> found_edges(5, false);
-    for (auto edge : edges2) {
+    for (Edge& edge : edges2) {
       if (edge == ed1) found_edges.at(0) = true;
       if (edge == ed2) found_edges.at(1) = true;
       if (edge == ed3) found_edges.at(2) = true;
@@ -170,7 +170,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
       if (edge == ed5) found_edges.at(4) = true;
     }
 
-    for (auto found : found_edges) {
+    for (bool& found : found_edges) {
       BOOST_CHECK(found);
     }
   }
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
 
     vector<bool> found_edge(4, false);
 
-    for (auto edge : edges3.at(0)) {
+    for (const Edge& edge : edges3.at(0)) {
       if (edge == edges.at(0)) found_edge.at(0) = true;
       if (edge == edges.at(1)) found_edge.at(1) = true;
       if (edge == edges.at(2)) found_edge.at(2) = true;
@@ -316,10 +316,10 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     int edge_count10_12 = 0;
     int edge_count14_14 = 0;
 
-    auto edges2 = reduced_g.getEdges();
+    vector<Edge> edges2 = reduced_g.getEdges();
     BOOST_CHECK_EQUAL(edges2.size(), 7);
 
-    for (auto edge : edges2) {
+    for (Edge& edge : edges2) {
       if (edge == ed0_1) ++edge_count0_1;
       if (edge == ed1_2) ++edge_count1_2;
       if (edge == ed1_6) ++edge_count1_6;
@@ -382,7 +382,7 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
 
     vector<bool> found_edges(8, false);
     int index = 0;
-    for (auto ed : branch_edges) {
+    for (Edge & ed : branch_edges) {
       if (ed == ed3) found_edges.at(index) = true;
       if (ed == ed4) found_edges.at(index) = true;
       if (ed == ed5) found_edges.at(index) = true;
@@ -394,7 +394,7 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
       ++index;
     }
 
-    for (auto found : found_edges) {
+    for (bool& found : found_edges) {
       BOOST_CHECK(found);
     }
   }
@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE(structureid_test) {
 
     Graph g(edges, nodes);
 
-    auto structId = findStructureId<GraphDistVisitor>(g);
+    string structId = findStructureId<GraphDistVisitor>(g);
 
     string answer = "Dist0Dist1Dist1Dist1Dist2Dist2Dist3";
     BOOST_CHECK_EQUAL(structId, answer);
