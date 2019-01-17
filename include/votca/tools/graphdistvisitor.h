@@ -51,13 +51,13 @@ class Graph_BF_Visitor;
 
 class GraphDistVisitor : public Graph_BF_Visitor {
 
-  /// Note the only manipulation to the BF visitor is the need to add a
-  /// distance attribute to each of the graph nodes.
-  void exploreNode(std::pair<int, GraphNode> &p_gn, Graph& g,
-                    Edge ed = DUMMY_EDGE);
-
   public:
     GraphDistVisitor(){};
+
+    /// Note the only manipulation to the BF visitor is the need to add a
+    /// distance attribute to each of the graph nodes.
+    void exploreNode(std::pair<int, GraphNode> &p_gn, Graph& g,
+        Edge ed = DUMMY_EDGE);
 };
 }
 }
