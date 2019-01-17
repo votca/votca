@@ -382,7 +382,7 @@ BOOST_AUTO_TEST_CASE(explorebranch_test) {
 
     vector<bool> found_edges(8, false);
     int index = 0;
-    for (Edge & ed : branch_edges) {
+    for (Edge& ed : branch_edges) {
       if (ed == ed3) found_edges.at(index) = true;
       if (ed == ed4) found_edges.at(index) = true;
       if (ed == ed5) found_edges.at(index) = true;
