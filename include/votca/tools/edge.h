@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -42,6 +42,7 @@ class Edge {
 
  public:
   Edge() {}
+  virtual ~Edge() {}
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   Edge(int ID1, int ID2);
