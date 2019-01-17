@@ -217,6 +217,167 @@ BOOST_AUTO_TEST_CASE(verticesmissingnodes_test) {
   }
 }
 
+BOOST_AUTO_TEST_CASE(junctions_test) {
+
+  unordered_map<string, int> int_vals0 = {{"a", 0}};
+  unordered_map<string, int> int_vals1 = {{"b", 1}};
+  unordered_map<string, int> int_vals2 = {{"c", 2}};
+  unordered_map<string, int> int_vals3 = {{"d", 3}};
+  unordered_map<string, int> int_vals4 = {{"e", 4}};
+
+  unordered_map<string, double> double_vals;
+  unordered_map<string, string> str_vals;
+
+  // 0 - 1 - 2 - 3
+  //         |
+  //         4
+
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
+
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
+
+  GraphNode gn(int_vals0, double_vals, str_vals);
+  GraphNode gn1(int_vals1, double_vals, str_vals);
+  GraphNode gn2(int_vals2, double_vals, str_vals);
+  GraphNode gn3(int_vals3, double_vals, str_vals);
+  GraphNode gn4(int_vals4, double_vals, str_vals);
+
+  unordered_map<int, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+  m_gn[3] = gn3;
+  m_gn[4] = gn4;
+
+  Graph g(vec_ed, m_gn);
+  // A junction should consist of a vertex with degree of 3 or more
+  auto junctions = g.getJunctions();
+  BOOST_CHECK(junctions.size()==1);
+  BOOST_CHECK_EQUAL(junctions.at(0),2);
+}
+
+BOOST_AUTO_TEST_CASE(get_edges_test) {
+
+  unordered_map<string, int> int_vals0 = {{"a", 0}};
+  unordered_map<string, int> int_vals1 = {{"b", 1}};
+  unordered_map<string, int> int_vals2 = {{"c", 2}};
+  unordered_map<string, int> int_vals3 = {{"d", 3}};
+  unordered_map<string, int> int_vals4 = {{"e", 4}};
+
+  unordered_map<string, double> double_vals;
+  unordered_map<string, string> str_vals;
+
+  // 0 - 1 - 2 - 3
+  //         |
+  //         4
+
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
+
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
+
+  GraphNode gn(int_vals0, double_vals, str_vals);
+  GraphNode gn1(int_vals1, double_vals, str_vals);
+  GraphNode gn2(int_vals2, double_vals, str_vals);
+  GraphNode gn3(int_vals3, double_vals, str_vals);
+  GraphNode gn4(int_vals4, double_vals, str_vals);
+
+  unordered_map<int, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+  m_gn[3] = gn3;
+  m_gn[4] = gn4;
+
+  Graph g(vec_ed, m_gn);
+  auto edges = g.getEdges();
+
+  bool ed0_found = false;
+  bool ed1_found = false;
+  bool ed2_found = false;
+  bool ed3_found = false;
+  for(auto ed_temp : edges){
+    if(ed_temp==ed) ed0_found = true;
+    if(ed_temp==ed1) ed1_found = true;
+    if(ed_temp==ed2) ed2_found = true;
+    if(ed_temp==ed3) ed3_found = true;
+  }
+
+  BOOST_CHECK(ed0_found);
+  BOOST_CHECK(ed1_found);
+  BOOST_CHECK(ed2_found);
+  BOOST_CHECK(ed3_found);
+}
+
+BOOST_AUTO_TEST_CASE(get_vertices_test) {
+
+  unordered_map<string, int> int_vals0 = {{"a", 0}};
+  unordered_map<string, int> int_vals1 = {{"b", 1}};
+  unordered_map<string, int> int_vals2 = {{"c", 2}};
+  unordered_map<string, int> int_vals3 = {{"d", 3}};
+  unordered_map<string, int> int_vals4 = {{"e", 4}};
+
+  unordered_map<string, double> double_vals;
+  unordered_map<string, string> str_vals;
+
+  // 0 - 1 - 2 - 3
+  //         |
+  //         4
+
+  vector<Edge> vec_ed;
+  Edge ed(0, 1);
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
+
+  vec_ed.push_back(ed);
+  vec_ed.push_back(ed1);
+  vec_ed.push_back(ed2);
+  vec_ed.push_back(ed3);
+
+  GraphNode gn(int_vals0, double_vals, str_vals);
+  GraphNode gn1(int_vals1, double_vals, str_vals);
+  GraphNode gn2(int_vals2, double_vals, str_vals);
+  GraphNode gn3(int_vals3, double_vals, str_vals);
+  GraphNode gn4(int_vals4, double_vals, str_vals);
+
+  unordered_map<int, GraphNode> m_gn;
+  m_gn[0] = gn;
+  m_gn[1] = gn1;
+  m_gn[2] = gn2;
+  m_gn[3] = gn3;
+  m_gn[4] = gn4;
+
+  Graph g(vec_ed, m_gn);
+  auto vertices = g.getVertices();
+
+  vector<bool> vertices_found(5,false);
+  for( auto vertex : vertices){
+    if(vertex==0) vertices_found.at(0)=true;
+    if(vertex==1) vertices_found.at(1)=true;
+    if(vertex==2) vertices_found.at(2)=true;
+    if(vertex==3) vertices_found.at(3)=true;
+    if(vertex==4) vertices_found.at(4)=true;
+  }
+
+  for( auto found : vertices_found){
+    BOOST_CHECK(found);
+  }
+}
+
 BOOST_AUTO_TEST_CASE(compare_test) {
   {
 
@@ -228,6 +389,10 @@ BOOST_AUTO_TEST_CASE(compare_test) {
 
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
+
+    // 0 - 1 - 2 - 3
+    //         |
+    //         4
 
     vector<Edge> vec_ed;
     Edge ed(0, 1);
@@ -275,6 +440,9 @@ BOOST_AUTO_TEST_CASE(compare_test) {
     unordered_map<string, double> double_vals;
     unordered_map<string, string> str_vals;
 
+    // 0 - 1 - 2 - 3
+    //         |
+    //         4
     vector<Edge> vec_ed;
     Edge ed(0, 1);
     Edge ed1(1, 2);
@@ -324,6 +492,9 @@ BOOST_AUTO_TEST_CASE(neighbornode_test) {
 
   unordered_map<string, string> str_vals;
 
+  // 0 - 1 - 2 - 3
+  //         |
+  //         4
   vector<Edge> vec_ed;
   Edge ed(0, 1);
   Edge ed1(1, 2);

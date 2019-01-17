@@ -29,73 +29,54 @@ namespace tools {
 
 class GraphNode;
 
-bool Graph::operator!=(const Graph& g) const { return id_.compare(g.id_); }
-
-bool Graph::operator==(const Graph& g) const { return !(*(this) != g); }
-
-Graph::Graph(const Graph& g) {
-  this->adj_list_ = g.adj_list_;
-  for (auto pr : g.nodes_) {
-    this->nodes_[pr.first] = pr.second;
-  }
-  this->id_ = g.id_;
+bool Graph::operator!=(const Graph& graph) const {
+  return id_.compare(graph.id_);
 }
 
-Graph& Graph::operator=(const Graph& g) {
-  this->adj_list_ = g.adj_list_;
-  for (auto pr : g.nodes_) {
-    this->nodes_[pr.first] = pr.second;
-  }
-  this->id_ = g.id_;
-  return *this;
-}
-
-Graph& Graph::operator=(Graph&& g) {
-  this->adj_list_ = move(g.adj_list_);
-  this->nodes_ = move(g.nodes_);
-  this->id_ = move(g.id_);
-  return *this;
-}
+bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
 
 vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) {
-  vector<pair<int, GraphNode>> iso_nodes;
-  for (auto node : nodes_) {
-    if (adj_list_.count(node.first)) {
-      if (adj_list_[node.first].size() == 0) {
-        pair<int, GraphNode> pr(node.first, node.second);
-        iso_nodes.push_back(pr);
+  vector<pair<int, GraphNode>> isolated_nodes;
+  for (const pair<int, GraphNode>& id_and_node : nodes_) {
+    if (edge_container_.vertexExist(id_and_node.first)) {
+      if (edge_container_.getDegree(id_and_node.first) == 0) {
+        pair<int, GraphNode> id_and_node_copy(id_and_node.first,
+                                              id_and_node.second);
+        isolated_nodes.push_back(id_and_node_copy);
       }
     } else {
-      pair<int, GraphNode> pr(node.first, node.second);
-      iso_nodes.push_back(pr);
+      pair<int, GraphNode> id_and_node_copy(id_and_node.first,
+                                            id_and_node.second);
+      isolated_nodes.push_back(id_and_node_copy);
     }
   }
-  return iso_nodes;
+  return isolated_nodes;
 }
 
 vector<int> Graph::getVerticesMissingNodes(void) {
   vector<int> missing;
-  for (auto pr_v : adj_list_) {
-    if (nodes_.count(pr_v.first) == 0) {
-      missing.push_back(pr_v.first);
+  vector<int> vertices = edge_container_.getVertices();
+  for (int& vertex : vertices) {
+    if (nodes_.count(vertex) == 0) {
+      missing.push_back(vertex);
     }
   }
   return missing;
 }
 
-vector<pair<int,GraphNode>> Graph::getNeighNodes(int vert){
-  auto neigh_vertices = getNeighVertices(vert);
-  vector<pair<int,GraphNode>> neigh_vertices_pr;
-  for(auto neigh_vert : neigh_vertices){
-    auto node_pr = pair<int,GraphNode>(neigh_vert,nodes_[neigh_vert]);
-    neigh_vertices_pr.push_back(node_pr);
+vector<pair<int, GraphNode>> Graph::getNeighNodes(int vertex) {
+  vector<int> neigh_vertices = edge_container_.getNeighVertices(vertex);
+  vector<pair<int, GraphNode>> neigh_ids_and_nodes;
+  for (int& neigh_vert : neigh_vertices) {
+    auto id_and_node = pair<int, GraphNode>(neigh_vert, nodes_[neigh_vert]);
+    neigh_ids_and_nodes.push_back(id_and_node);
   }
-  return neigh_vertices_pr;
+  return neigh_ids_and_nodes;
 }
 
-void Graph::setNode(int vert, GraphNode gn){
-  if(nodes_.count(vert)){
-    nodes_[vert] = gn;
+void Graph::setNode(int vertex, GraphNode graph_node) {
+  if (nodes_.count(vertex)) {
+    nodes_[vertex] = graph_node;
   } else {
     string errMsg = "Vertex does not exist within graph cannot, reset node";
     throw runtime_error(errMsg);
@@ -103,29 +84,29 @@ void Graph::setNode(int vert, GraphNode gn){
   calcId_();
 }
 
-void Graph::setNode(std::pair<int, GraphNode> p_gn) {
-  setNode(p_gn.first, p_gn.second);
+void Graph::setNode(std::pair<int, GraphNode> id_and_node) {
+  setNode(id_and_node.first, id_and_node.second);
 }
 
-GraphNode Graph::getNode(int vert) { 
-  assert(nodes_.count(vert));
-  return nodes_[vert]; 
+GraphNode Graph::getNode(int vertex) {
+  assert(nodes_.count(vertex));
+  return nodes_[vertex];
 }
 
 vector<pair<int, GraphNode>> Graph::getNodes(void) {
   vector<pair<int, GraphNode>> vec_nodes;
-  for (auto pr_node : nodes_) {
-    vec_nodes.push_back(pr_node);
+  for (const pair<int, GraphNode>& id_and_node : nodes_) {
+    vec_nodes.push_back(id_and_node);
   }
   return vec_nodes;
 }
 
-vector<int> Graph::getJunctions(void) const {
+vector<int> Graph::getJunctions() const {
   vector<int> junctions;
-  auto max_number_junctions = getMaxDegree();
-  for(auto degree=3;degree<=max_number_junctions;++degree){
-    auto vertices = getVerticesDegree(degree);
-    junctions.insert(junctions.begin(),vertices.begin(),vertices.end());
+  int max_degree = edge_container_.getMaxDegree();
+  for (int degree = 3; degree <= max_degree; ++degree) {
+    vector<int> vertices = edge_container_.getVerticesDegree(degree);
+    junctions.insert(junctions.end(), vertices.begin(), vertices.end());
   }
   return junctions;
 }
@@ -134,25 +115,26 @@ void Graph::calcId_() {
   auto nodes = getNodes();
   sort(nodes.begin(), nodes.end(), cmpVertNodePair);
   string struct_Id_temp = "";
-  for (auto nd_pr : nodes) {
-    struct_Id_temp.append(nd_pr.second.getStringId());
+  for (const pair<int, GraphNode>& id_and_node : nodes) {
+    struct_Id_temp.append(id_and_node.second.getStringId());
   }
   id_ = struct_Id_temp;
   return;
 }
 
-ostream& operator<<(ostream& os, const Graph g) {
+ostream& operator<<(ostream& os, const Graph graph) {
   os << "Graph" << endl;
-  for (auto p_gn : g.nodes_) {
-    os << "Node " << p_gn.first << endl;
-    os << p_gn.second << endl;
+  for (const pair<int, GraphNode>& id_and_node : graph.nodes_) {
+    os << "Node " << id_and_node.first << endl;
+    os << id_and_node.second << endl;
   }
   return os;
 }
 
-bool cmpVertNodePair(pair<int, GraphNode> gn1_pr, pair<int, GraphNode> gn2_pr) {
-  string str1_Id = gn1_pr.second.getStringId();
-  return str1_Id.compare(gn2_pr.second.getStringId()) < 0;
+bool cmpVertNodePair(pair<int, GraphNode>& id_and_node1,
+                     pair<int, GraphNode>& id_and_node2) {
+  string str1_Id = id_and_node1.second.getStringId();
+  return str1_Id.compare(id_and_node2.second.getStringId()) < 0;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

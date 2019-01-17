@@ -35,7 +35,7 @@
  * different ways such as a breadth first or depth first algorithm or others.
  *
  * The general flow of the class is as follows:
- * 
+ *
  * 1. Set the node the graph visitor will start on and create an edge queue
  * 2. Get an edge from the edge queue
  * 3. Explore the edge and operate on the unexplored node(optional) add more
@@ -53,46 +53,46 @@ class GraphVisitor {
   std::set<int> explored_;
 
   /// The vertex the visitor started on
-  int startingVertex_;
-
-  /// Determine which vertices in the edge, if any, have not been explored
-  std::vector<int> getUnexploredVertex_(Edge ed);
+  int startingVertex_ = 0;
 
   /// What is done to an individual graph node as it is explored
-  virtual void addEdges_(Graph& g, int vertex);
-  virtual Edge getEdge_(Graph g);
+  virtual void addEdges_(Graph& graph, int vertex);
+  virtual Edge getEdge_(Graph graph);
   /// Edge(0,0) is a dummy value
  public:
-  virtual void exploreNode_(std::pair<int, GraphNode> &p_gn, Graph& g,
-                            Edge ed = DUMMY_EDGE);
+  virtual void exploreNode_(std::pair<int, GraphNode>& vertex_and_node,
+                            Graph& graph, Edge edge = DUMMY_EDGE);
 
-  GraphVisitor() : startingVertex_(0){};
+  GraphVisitor(){};
+
+  /// Determine which vertices in the edge, if any, have not been explored
+  std::vector<int> getUnexploredVertex(Edge edge);
 
   /// Determine if the exploration is complete, this is determined by whether
-  /// the edge queue is empty or not, it does not necessarily mean all 
-  /// vertices in a graph have been explored. 
+  /// the edge queue is empty or not, it does not necessarily mean all
+  /// vertices in a graph have been explored.
   virtual bool queEmpty();
 
   void setStartingVertex(int vertex) { startingVertex_ = vertex; }
   int getStartingVertex() { return startingVertex_; }
 
   /// Initialize the graphvisitor the default starting point is 0
-  void initialize(Graph& g);
+  void initialize(Graph& graph);
 
   /// What the visitor does to each node as it is visited, it will
   /// simply add the vertex that was explored to the list of explored
   /// vertices in its current form.
-  virtual void exec(Graph& g, Edge ed);
+  virtual void exec(Graph& graph, Edge edge);
 
   /// The next edge to be explored, note that when this function
   /// is called it removes the edge from the visitors queue and will
   /// no longer be accessible with a second call to nextEdge
-  Edge nextEdge(Graph g);
+  Edge nextEdge(Graph graph);
 
   /// Get the set of all the vertices that have been explored
   std::set<int> getExploredVertices();
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif  // __VOTCA_TOOLS_GRAPH_VISITOR_H

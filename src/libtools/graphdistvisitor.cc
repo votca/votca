@@ -43,7 +43,7 @@ void GraphDistVisitor::exploreNode_(pair<int, GraphNode> &p_gn, Graph& g,
   } else {
     // Node has not been explored
     if (explored_.count(vertex) == 0) {
-      int prev_vertex = ed.getOtherV(vertex);
+      int prev_vertex = ed.getOtherEndPoint(vertex);
       GraphNode gn_prev = g.getNode(prev_vertex);
       p_gn.second.int_vals_["Dist"] = gn_prev.int_vals_["Dist"] + 1;
       p_gn.second.initStringId_();

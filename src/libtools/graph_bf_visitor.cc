@@ -29,54 +29,54 @@ namespace tools {
 
 bool Graph_BF_Visitor::queEmpty() { return edge_que_.empty(); }
 
-Edge Graph_BF_Visitor::getEdge_(Graph g) {
-  Edge ed = edge_que_.at(0).front();
+Edge Graph_BF_Visitor::getEdge_(Graph graph) {
+  Edge oldest_edge = edge_que_.at(0).front();
   edge_que_.at(0).pop();
   if (edge_que_.at(0).size() == 0) {
     edge_que_.pop_front();
   }
-  return ed;
+  return oldest_edge;
 }
 
 // Add edges to be explored
-void Graph_BF_Visitor::addEdges_(Graph& g, int vertex) {
+void Graph_BF_Visitor::addEdges_(Graph& graph, int vertex) {
 
-  auto eds = g.getNeighEdges(vertex);
+  vector<Edge> newest_edges = graph.getNeighEdges(vertex);
 
   // If first edges to be added
   if (edge_que_.empty()) {
-    queue<Edge> first_que;
-    for (auto ed : eds) {
-      int neigh_vert = ed.getOtherV(vertex);
+    queue<Edge> first_edge_queue;
+    for (const Edge edge : newest_edges) {
+      int neigh_vert = edge.getOtherEndPoint(vertex);
       if (explored_.count(neigh_vert) == 0) {
-        first_que.push(ed);
+        first_edge_queue.push(edge);
       }
     }
-    if (!first_que.empty()) {
-      edge_que_.push_back(first_que);
+    if (!first_edge_queue.empty()) {
+      edge_que_.push_back(first_edge_queue);
     }
   } else {
 
     if (edge_que_.size() == 1) {
-      queue<Edge> next_que;
-      for (auto ed : eds) {
-        int neigh_vert = ed.getOtherV(vertex);
+      queue<Edge> new_edge_queue;
+      for (const Edge edge : newest_edges) {
+        int neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
-          next_que.push(ed);
+          new_edge_queue.push(edge);
         }
       }
-      if (!next_que.empty()) {
-        edge_que_.push_back(next_que);
+      if (!new_edge_queue.empty()) {
+        edge_que_.push_back(new_edge_queue);
       }
     } else {
-      for (auto ed : eds) {
-        int neigh_vert = ed.getOtherV(vertex);
+      for (const Edge edge : newest_edges) {
+        int neigh_vert = edge.getOtherEndPoint(vertex);
         if (explored_.count(neigh_vert) == 0) {
-          edge_que_.at(1).push(ed);
+          edge_que_.at(1).push(edge);
         }
       }
     }
   }
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

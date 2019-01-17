@@ -20,10 +20,10 @@
 #ifndef _VOTCA_TOOLS_EDGECONTAINER_H
 #define _VOTCA_TOOLS_EDGECONTAINER_H
 
-#include <vector>
-#include <unordered_map>
 #include <map>
 #include <set>
+#include <unordered_map>
+#include <vector>
 #include <votca/tools/edge.h>
 
 namespace votca {
@@ -37,36 +37,40 @@ namespace tools {
  */
 class EdgeContainer {
  protected:
-  std::unordered_map<int,std::set<int>> adj_list_; 
+  /// The vertex, the neighboring vertices and the number of edges
+  std::unordered_map<int, std::unordered_map<int, int>> adj_list_;
+
  public:
   /// Constructors can take no arguments a single Edge or a vector of edges
-  EdgeContainer() {};
-  EdgeContainer(Edge ed);
-  EdgeContainer(std::vector<Edge> eds);
+  EdgeContainer(){};
+  EdgeContainer(Edge edge);
+  EdgeContainer(std::vector<Edge> edges);
 
   /// Get the value of the max degree
   int getMaxDegree() const;
   /// Contains vector of all vertices with degree
   std::vector<int> getVerticesDegree(int degree) const;
   /// Determine the degree of the vertex/number of edges attached
-  int getDegree(const int vert) const;
+  int getDegree(const int vertex) const;
   /// Check if the edge exists returns true or false
-  bool edgeExist(Edge ed);
+  bool edgeExist(Edge edge) const;
   /// Check if the vertex exists returns true or false
-  bool vertexExist(int vert);
+  bool vertexExist(int vertex) const;
   /// Add an edge to the container
-  void addEdge(Edge ed);
+  void addEdge(Edge edge);
   /// Get all the edges in vector form
-  std::vector<Edge> getEdges();
+  std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
   std::vector<int> getVertices();
   /// Get the vertices neighboring vert
-  std::vector<int> getNeighVertices(int vert);
+  std::vector<int> getNeighVertices(int vertex);
   /// Get the edges neighboring vert
-  std::vector<Edge> getNeighEdges(int vert);
- 
+  std::vector<Edge> getNeighEdges(int vertex);
+  /// Print output of object
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const EdgeContainer edge_container);
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif  // _VOTCA_TOOLS_EDGECONTAINER_H

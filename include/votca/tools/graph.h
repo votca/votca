@@ -32,15 +32,16 @@ namespace votca {
 namespace tools {
 
 /**
- * \brief A graph object that contains the graph nodes and the edges describing 
+ * \brief A graph object that contains the graph nodes and the edges describing
  * the bonds between nodes.
  *
  */
-
 class GraphNode;
 
-class Graph : public EdgeContainer {
- private:
+class Graph {
+ protected:
+  EdgeContainer edge_container_;
+
   /// Parameter description
   /// @param int - is the index of the graph nodes / vertex ids
   /// @param GraphNode - this is the node object at each vertex and contains
@@ -57,31 +58,21 @@ class Graph : public EdgeContainer {
 
  public:
   Graph() : id_(""){};
-  ~Graph(){};
-
+  virtual ~Graph() {};
   /// Constructor
   /// @param edgs - vector of edges where each edge is composed of two
   /// ints (vertex ids) describing a link between the vertices
   /// @param nodes - unordered_map where the key is the vertex id and the
   /// target is the graph node
   Graph(std::vector<Edge> edgs, std::unordered_map<int, GraphNode> nodes)
-      : EdgeContainer::EdgeContainer(edgs), nodes_(nodes) {
+      : edge_container_(edgs), nodes_(nodes) {
     calcId_();
   }
 
-  /// Copy constructor
-  Graph(const Graph& g);
-
   /// Equivalence and non equivalence operators work by determine if the
   /// contents of each graph node in each of the graphs are the same.
-  bool operator!=(const Graph& g) const;
-  bool operator==(const Graph& g) const;
-
-  /// Copy Assignment
-  Graph& operator=(const Graph& g);
-
-  /// Move Assignment
-  Graph& operator=(Graph&& g);
+  bool operator!=(const Graph& graph) const;
+  bool operator==(const Graph& graph) const;
 
   /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.
@@ -93,24 +84,62 @@ class Graph : public EdgeContainer {
 
   /// Returns a vector of the vertices and their graph nodes that are directly
   /// connected to the vertex 'vert'
-  std::vector<std::pair<int, GraphNode>> getNeighNodes(int vert);
+  std::vector<std::pair<int, GraphNode>> getNeighNodes(int vertex);
 
   /// set the Node associated with vertex 'vert'
-  void setNode(int vert, GraphNode gn);
-  void setNode(std::pair<int, GraphNode> p_gn);
+  void setNode(int vertex, GraphNode graph_node);
+  void setNode(std::pair<int, GraphNode> id_and_node);
 
-  /// Return a copy of the graph node at vertex 'vert'
-  GraphNode getNode(int vert);
-
-  /// Return all the vertices and their graph nodes that are within the graph
-  std::vector<std::pair<int, GraphNode>> getNodes(void);
-
-  std::string getId() { return id_; }
-
-  /// Return all the vertices that contain 3 or more connections
+  /// Gets all vertices with degree of 3 or greater
   std::vector<int> getJunctions() const;
 
-  friend std::ostream& operator<<(std::ostream& os, const Graph g);
+  /// Return a copy of the graph node at vertex 'vert'
+  GraphNode getNode(int vertex);
+
+  /// Return all the vertices and their graph nodes that are within the graph
+  virtual std::vector<std::pair<int, GraphNode>> getNodes(void);
+
+  /// Returns all the vertices of the graph connected to vertex `vert` through
+  /// an edge.
+  std::vector<int> getNeighVertices(int vertex) {
+    return edge_container_.getNeighVertices(vertex);
+  }
+
+  /// Returns the id of graph
+  std::string getId() const { return id_; }
+
+  /// Returns all the edges in the graph
+  std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
+
+  /// Returns all the edges in the graph connected to vertex `vertex`
+  std::vector<Edge> getNeighEdges(int vertex) {
+    return edge_container_.getNeighEdges(vertex);
+  }
+
+  /// Returns all the vertices in the graph
+  std::vector<int> getVertices() { return edge_container_.getVertices(); }
+
+  /**
+   * \brief Finds the max degree of a vertex in the graph.
+   *
+   * Will look at each of the vertices and find the vertex with the most edges
+   * connected to it. It will count the number of edges this corresponds to the
+   * maximum degree of the graph.
+   **/
+  int getMaxDegree() const { return edge_container_.getMaxDegree(); }
+
+  /// Calcualtes the degree, or number of edges connected to vertex `vertex`
+  int getDegree(int vertex) const { return edge_container_.getDegree(vertex); }
+
+  /// Returns all the vertices with degree specified by `degree`
+  std::vector<int> getVerticesDegree(int degree) const {
+    return edge_container_.getVerticesDegree(degree);
+  }
+
+  /// Determines if a vertex exists within the graph
+  bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex); }
+
+  friend std::ostream& operator<<(std::ostream& os, const Graph graph);
 };
 
 /**
@@ -127,8 +156,8 @@ class Graph : public EdgeContainer {
  *
  * sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePair);
  */
-bool cmpVertNodePair(std::pair<int, GraphNode> gn1_pr,
-                     std::pair<int, GraphNode> gn2_pr);
-}
-}
+bool cmpVertNodePair(std::pair<int, GraphNode>& id_and_node1,
+                     std::pair<int, GraphNode>& id_and_node2);
+}  // namespace tools
+}  // namespace votca
 #endif  // _VOTCA_TOOLS_GRAPH_H

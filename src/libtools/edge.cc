@@ -30,27 +30,27 @@ namespace tools {
 using namespace std;
 
 Edge::Edge(int ID1, int ID2) {
-  vertices = minmax({ID1,ID2});
+  vertices_ = vector<int>{min({ID1,ID2}), max({ID1,ID2})};
 }
 
-int Edge::getOtherV(int ver) const {
-  if (ver == vertices.first) {
-    return vertices.second;
+int Edge::getOtherEndPoint(int ver) const {
+  if (ver == vertices_.front()) {
+    return vertices_.back();
   } else {
-    return vertices.first;
+    return vertices_.front();
   }
 }
 
 bool Edge::contains(int ID) const {
-  return (vertices.first == ID || vertices.second == ID);
+  return (vertices_.front() == ID || vertices_.back() == ID);
 }
 
 bool Edge::operator==(const Edge ed) const {
-  if (this->vertices.first == ed.vertices.first &&
-      this->vertices.second == ed.vertices.second)
+  if (this->vertices_.front() == ed.vertices_.front() &&
+      this->vertices_.back() == ed.vertices_.back())
     return true;
-  if (this->vertices.second == ed.vertices.first &&
-      this->vertices.first == ed.vertices.second)
+  if (this->vertices_.back() == ed.vertices_.front() &&
+      this->vertices_.front() == ed.vertices_.back())
     return true;
   return false;
 }
@@ -58,9 +58,9 @@ bool Edge::operator==(const Edge ed) const {
 bool Edge::operator!=(const Edge ed) const { return !(*this == ed); }
 
 bool Edge::operator<(const Edge ed) const {
-  if (this->vertices.first < ed.vertices.first) return true;
-  if (this->vertices.first > ed.vertices.first) return false;
-  if (this->vertices.second < ed.vertices.second) return true;
+  if (this->vertices_.front() < ed.vertices_.front()) return true;
+  if (this->vertices_.front() > ed.vertices_.front()) return false;
+  if (this->vertices_.back() < ed.vertices_.back()) return true;
   return false;
 }
 
@@ -74,7 +74,7 @@ bool Edge::operator>=(const Edge ed) const { return !(*this < ed); }
 
 ostream& operator<<(ostream& os, const Edge ed) {
   os << "Vertices" << endl;
-  os << ed.vertices.first << " " << ed.vertices.second << endl;
+  os << ed.vertices_.front() << " " << ed.vertices_.back() << endl;
   return os;
 }
 }
