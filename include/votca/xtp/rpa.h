@@ -66,6 +66,7 @@ private:
     int _homo; // HOMO index
     int _rpamin;
     int _rpamax;
+    const double _eta=0.0001;
 
     Eigen::VectorXd _energies;
 

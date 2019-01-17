@@ -49,7 +49,7 @@ namespace votca {
         const int n_occ = lumo - _rpamin;
         const int n_unocc = _rpamax - _homo;
         const double freq2 = frequency*frequency;
-
+        const double eta2=_eta*_eta;
 #pragma omp parallel for
         for (int m_level = 0; m_level < n_occ; m_level++)        {
             const double qp_energy_m = _energies(m_level + _rpamin);
@@ -63,7 +63,11 @@ namespace votca {
             if (imag){
                 denom=4*deltaE/(deltaE.square()+freq2);
             }else{
-                denom=2.0*((deltaE-frequency).inverse()+(deltaE+frequency).inverse());
+                Eigen::ArrayXd deltEf=deltaE-frequency;
+                Eigen::ArrayXd sum=deltEf/(deltEf.square()+eta2);
+                deltEf=deltaE+frequency;
+                sum+=deltEf/(deltEf.square()+eta2);
+                denom=2*sum;
             }
             auto temp=Mmn_RPA.transpose() *denom.asDiagonal();
             Eigen::MatrixXd tempresult = temp* Mmn_RPA;
