@@ -57,15 +57,11 @@ public:
    bool ParseOrbitalsFile( Orbitals& orbitals );
 
 
-   std::string getScratchDir( ) { return _scratch_dir; }
+   
 
 private:
 
-    std::string                              _shell_file_name;
-    std::string                              _scratch_dir;
-    bool                                _is_optimization;
-
-    std::string                              _cleanup;
+    
 
     std::string indent( const double &number );
     std::string getLName(int lnum);

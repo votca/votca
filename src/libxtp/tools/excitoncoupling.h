@@ -26,7 +26,7 @@
 
 #include <stdio.h>
 #include <votca/tools/constants.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
 

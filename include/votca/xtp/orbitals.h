@@ -30,6 +30,9 @@
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/qmstate.h>
 
+#include "basisset.h"
+#include "aobasis.h"
+
 namespace votca {
     namespace xtp {
 
@@ -43,8 +46,6 @@ namespace votca {
         public:
 
             Orbitals();
-            
-            static Eigen::VectorXd LoewdinPopulation(const Eigen::MatrixXd& densitymatrix, const Eigen::MatrixXd& overlapmatrix, int frag);
 
             bool hasBasisSetSize() const{
                 return ( _basis_set_size > 0) ? true : false;
@@ -144,7 +145,12 @@ namespace votca {
 
             // access to DFT molecular orbital energy of a specific level (in eV)
             double getEnergy(int level) const{
-                return ( hasMOEnergies()) ? votca::tools::conv::hrt2ev * _mo_energies[level] : 0;
+                if(level<_mo_energies.size()){
+                    return votca::tools::conv::hrt2ev * _mo_energies[level];
+                }else{
+                    throw std::runtime_error("Level index is outside array range");
+                }
+                return 0;
             }
 
             // access to DFT molecular orbital coefficients, new, tested
@@ -162,6 +168,17 @@ namespace votca {
 
             // determine (pseudo-)degeneracy of a DFT molecular orbital
             std::vector<int> CheckDegeneracy(int level, double energy_difference)const;
+
+            int NumberofStates(QMStateType type)const{
+                switch (type.Type()){
+                case QMStateType::Singlet: return BSESingletEnergies().size(); break;
+                case QMStateType::Triplet: return BSETripletEnergies().size(); break;
+                case QMStateType::KSstate: return MOEnergies().size(); break;
+                case QMStateType::PQPstate: return _QPpert_energies.rows(); break;
+                case QMStateType::DQPstate: return QPdiagEnergies().size(); break;
+                default: return 1; break;
+                }
+            }
 
             bool hasQMAtoms() const{
                 return ( _atoms.size() > 0) ? true : false;
@@ -227,8 +244,14 @@ namespace votca {
                 return _dftbasis;
             }
 
+            AOBasis SetupDftBasis()const{
+                return SetupBasis<true>();
+            }
+            AOBasis SetupAuxBasis()const{
+                return SetupBasis<false>();
+            }
 
-
+           
             /*
              *  ======= GW-BSE related functions =======
              */
@@ -469,10 +492,6 @@ namespace votca {
                 return _transition_dipoles;
             }
 
-            std::vector< Eigen::Vector3d > &TransitionDipoles() {
-                return _transition_dipoles;
-            }
-
             std::vector<double> Oscillatorstrengths()const;
             
             Eigen::Vector3d CalcElDipole(const QMState& state)const;
@@ -488,80 +507,12 @@ namespace votca {
             Eigen::MatrixXd CalculateQParticleAORepresentation()const;
             double getTotalStateEnergy(const QMState& state)const;//Hartree
             double getExcitedStateEnergy (const QMState& state)const;//Hartree
-            
-
-
-            // access to fragment charges of singlet excitations
-            bool hasFragmentChargesSingEXC() const{
-                return (_DqS_frag.size() > 0) ? true : false;
-            }
-
-            const std::vector< Eigen::VectorXd > &getFragmentChargesSingEXC() const {
-                return _DqS_frag;
-            }
-
-             void setFragmentChargesSingEXC(const std::vector< Eigen::VectorXd >& DqS_frag) {
-                _DqS_frag=DqS_frag;
-            }
-
-
-
-            // access to fragment charges of triplet excitations
-            bool hasFragmentChargesTripEXC() const{
-                return (_DqT_frag.size() > 0) ? true : false;
-            }
-
-            const std::vector< Eigen::VectorXd > &getFragmentChargesTripEXC() const {
-                return _DqT_frag;
-            }
-
-            void setFragmentChargesTripEXC(const std::vector< Eigen::VectorXd >& DqT_frag) {
-                _DqT_frag=DqT_frag;
-            }
-
-            // access to fragment charges in ground state
-
-            const Eigen::VectorXd &getFragmentChargesGS() const {
-                return _GSq_frag;
-            }
-
-             void setFragmentChargesGS(const Eigen::VectorXd& GSq_frag) {
-                 _GSq_frag=GSq_frag;
-            }
-
-            void setFragment_E_localisation_singlet(const std::vector< Eigen::VectorXd >& popE){
-                _popE_s=popE;
-            }
-
-            void setFragment_H_localisation_singlet(const std::vector< Eigen::VectorXd > & popH){
-                _popH_s=popH;
-            }
-
-            void setFragment_E_localisation_triplet(const std::vector< Eigen::VectorXd > & popE){
-                _popE_t=popE;
-            }
-
-            void setFragment_H_localisation_triplet(const std::vector< Eigen::VectorXd > & popH){
-                _popE_s=popH;
-            }
-
-            const std::vector< Eigen::VectorXd >& getFragment_E_localisation_singlet()const{
-                return _popE_s;
-            }
-            const std::vector< Eigen::VectorXd >& getFragment_H_localisation_singlet()const{
-                return _popH_s;
-            }
-            const std::vector< Eigen::VectorXd >& getFragment_E_localisation_triplet()const{
-                return _popE_t;
-            }
-            const std::vector< Eigen::VectorXd >& getFragment_H_localisation_triplet()const{
-                return _popH_t;
-            }
+          
             void OrderMOsbyEnergy();
 
             void PrepareDimerGuess(const Orbitals& orbitalsA,const Orbitals& orbitalsB);
-            
-            Eigen::VectorXd FragmentNuclearCharges(int frag)const;
+
+            void CalcCoupledTransition_Dipoles();
 
             void WriteToCpt (const std::string& filename)const;
             
@@ -569,8 +520,24 @@ namespace votca {
             
         private:
 
+
+            std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles()const;
+
             // returns indeces of a re-sorted vector of energies from lowest to highest
             std::vector<int> SortEnergies();
+
+            template<bool dftbasis>
+            AOBasis SetupBasis() const{
+                BasisSet bs;
+                if(dftbasis){
+                    bs.LoadBasisSet(this->getDFTbasisName());
+                }else{
+                    bs.LoadBasisSet(this->getAuxbasisName());
+                }
+                AOBasis basis;
+                basis.AOBasisFill(bs,this->QMAtoms());
+                return basis;
+            }
 
             
 

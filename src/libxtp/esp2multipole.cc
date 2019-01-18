@@ -134,18 +134,14 @@ namespace votca {
             threads = omp_get_max_threads();
 #endif
             XTP_LOG(logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
-            BasisSet bs;
-            bs.LoadBasisSet(orbitals.getDFTbasisName());
-            AOBasis basis;
-            basis.AOBasisFill(bs, orbitals.QMAtoms());   
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.CalcChargeperAtom(orbitals, basis, _state);
+                mulliken.CalcChargeperAtom(orbitals, _state);
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.CalcChargeperAtom(orbitals, basis, _state);
+                lowdin.CalcChargeperAtom(orbitals, _state);
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){
@@ -159,8 +155,10 @@ namespace votca {
                     esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
-                    esp.Fit2Density(orbitals, _state, basis, _gridsize);
-                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(orbitals, _state, basis);
+                    esp.Fit2Density(orbitals, _state, _gridsize);
+                } else if (_integrationmethod == "analytic"){
+                    esp.Fit2Density_analytic(orbitals, _state);
+                }
             } 
 
             PrintDipoles(orbitals);

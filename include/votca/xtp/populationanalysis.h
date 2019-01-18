@@ -35,30 +35,85 @@
 namespace votca { namespace xtp {
 
 
+ struct BSE_Population {
+    Eigen::VectorXd H;
+    Eigen::VectorXd E;
+    double Gs=0;
+
+    void Initialize(int size){
+        H=Eigen::VectorXd::Zero(size);
+        E=Eigen::VectorXd::Zero(size);
+        Gs=0;
+    }
+    friend std::ostream &operator<<(std::ostream &out, const BSE_Population& pop){
+        if(pop.H.size()<1){return out;}
+        Eigen::VectorXd diff=pop.H - pop.E;
+        out<<"GroundstateCharge:"<<pop.Gs<<std::endl;
+        out<<"Index hole electron dQ Qeff"<<std::endl;
+        for(int i=0;i<pop.H.size();++i){
+            out<<i<<" "<<pop.H(i)<<" "<<pop.E(i)<<" "<<diff(i)<<" "<<diff(i)+pop.Gs<<std::endl;
+        }
+        return out;
+    }
+    
+    };
+
+
 template <bool T>
 class Populationanalysis{
 public:
+
+   
+
+
     
-    void CalcChargeperAtom(Orbitals& orbitals,const AOBasis &basis,const QMState& state)const{
+    void CalcChargeperAtom(Orbitals& orbitals,const QMState& state)const{
+
+        AOBasis basis=orbitals.SetupDftBasis();
         Eigen::MatrixXd dmat=orbitals.DensityMatrixFull(state);
-        Eigen::VectorXd charges=CalcElecChargeperAtom(dmat,basis);
+        AOOverlap overlap;
+        overlap.Fill(basis);
+        Eigen::VectorXd charges=CalcElecChargeperAtom(dmat,overlap,basis);
         if(!state.isTransition()){
             charges+=CalcNucChargeperAtom(orbitals.QMAtoms());
         }
 
         StaticSegment seg=StaticSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
         for (int i=0;i<orbitals.QMAtoms().size();++i){
-             seg.push_back(PolarSite(orbitals.QMAtoms()[i],charges(i)));
+             seg.push_back(StaticSite(orbitals.QMAtoms()[i],charges(i)));
         }
         orbitals.Multipoles()=seg;
         return;
     }
-    template< typename S >
-    Eigen::VectorXd CalcChargeperFragment(const std::vector<QMFragment<S> >& frags, const Eigen::VectorXd& atomcharges){
-        Eigen::VectorXd result=Eigen::VectorXd::Zero(frags.size());
 
-        return result;
-    }
+    
+    void CalcChargeperFragment(std::vector<QMFragment<BSE_Population> >& frags, const Orbitals& orbitals,QMStateType type){
+        if(!type.isExciton()){
+            throw std::runtime_error("CalcChargeperFragment: QmStateType must be an exciton");
+        }
+        AOBasis basis=orbitals.SetupDftBasis();
+        AOOverlap overlap;
+        overlap.Fill(basis);
+        Eigen::VectorXd nuccharges=CalcNucChargeperAtom(orbitals.QMAtoms());
+        Eigen::MatrixXd dmatgs=orbitals.DensityMatrixGroundState();
+        Eigen::VectorXd gscharges=nuccharges-CalcElecChargeperAtom(dmatgs,overlap,basis);
+        int numofstates=orbitals.NumberofStates(type);
+        for( auto& frag: frags){
+            frag.value().Initialize(numofstates);
+            frag.value().Gs=frag.ExtractFromVector(gscharges);
+        }
+        for(int i_state=0;i_state<numofstates;i_state++){
+            QMState state(type,i_state,false);
+            std::vector< Eigen::MatrixXd > dmat_ex = orbitals.DensityMatrixExcitedState(state);
+            Eigen::VectorXd atom_h=CalcElecChargeperAtom(dmat_ex[0],overlap,basis);
+            Eigen::VectorXd atom_e=CalcElecChargeperAtom(dmat_ex[1],overlap,basis);
+                for( auto& frag: frags){
+                    frag.value().E(i_state)=frag.ExtractFromVector(atom_e);
+                    frag.value().H(i_state)=frag.ExtractFromVector(atom_h);
+                }
+            }
+        }
+        
 
 
     private:
@@ -71,14 +126,10 @@ public:
             return result;
         }
 
-        Eigen::VectorXd CalcElecChargeperAtom(const Eigen::MatrixXd& dmat,const AOBasis &basis)const{
-            AOOverlap overlap;
-            // Fill overlap
-            overlap.Fill(basis);
+        Eigen::VectorXd CalcElecChargeperAtom(const Eigen::MatrixXd& dmat,AOOverlap &overlap,const AOBasis& basis)const{
             Eigen::MatrixXd prodmat;
             if(T){
-                Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(overlap.Matrix());
-                Eigen::MatrixXd Smsqrt=es.operatorSqrt();
+                Eigen::MatrixXd Smsqrt=overlap.Sqrt();
                 prodmat=Smsqrt*dmat*Smsqrt;
             }else{
                 prodmat =dmat* overlap.Matrix();

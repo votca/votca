@@ -57,12 +57,17 @@ namespace votca {
 
 
             template< class T>
-            void QMPackage::AddRegion(const MMRegion<ClassicalSegment<T> > & region){
+            void AddRegion(const MMRegion<ClassicalSegment<T> > & region){
                 for(const auto& segment: region){
                     for(const auto& site:segment){
-                        _externalsites.push_back(std:unique_ptr<StaticSite>(new T(site));
+                        _externalsites.push_back(std::unique_ptr<StaticSite>(new T(site)));
                     }
                 }
+                if(!_write_charges){
+                    _write_charges = true;
+                   WriteChargeOption();
+                }
+
             }
            
             void setRunDir(const std::string& run_dir) {
@@ -85,15 +90,15 @@ namespace votca {
                 _pLog = pLog;
             }
 
-            bool GuessRequested() {
+            bool GuessRequested() const{
                 return _write_guess;
             }
 
-            bool ECPRequested() {
+            bool ECPRequested() const{
                 return _write_pseudopotentials;
             }
 
-            bool VXCRequested() {
+            bool VXCRequested() const{
                 return _output_Vxc;
             }
 
@@ -109,15 +114,15 @@ namespace votca {
                 _threads = threads;
             }
 
-            void doGetCharges(bool do_get_charges) {
+            void setGetCharges(bool do_get_charges) {
                 _get_charges = do_get_charges;
             }
 
-            const std::string& getBasisSetName() {
+            const std::string& getBasisSetName() const{
                 return _basisset_name;
             }
 
-            const std::string& getExecutable() {
+            const std::string& getExecutable() const{
                 return _executable;
             };
 
@@ -125,6 +130,9 @@ namespace votca {
                 _dpl_spacing=spacing;
                 return;
             }
+
+
+            std::string getScratchDir() const{ return _scratch_dir; }
 
         protected:
 
@@ -142,10 +150,6 @@ namespace votca {
             
             
             std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,const std::string separators );
-
-
-            
-
             
             int _charge;
             int _spin; // 2S+1
@@ -164,19 +168,21 @@ namespace votca {
             std::string _auxbasisset_name;
             std::string _ecp_name;
 
-            std::list< std::string > _cleanup_list;
+            std::string _shell_file_name;
+            std::string _chk_file_name;
+            std::string _scratch_dir;
+            bool _is_optimization;
 
-            bool _get_orbitals;
-            bool _get_overlap;
-            bool _get_charges;
-            
+            std::string _cleanup;
 
-            bool _write_guess;
-            bool _write_charges;
-            bool _write_basis_set;
-            bool _write_pseudopotentials;
+            bool _get_charges=false;
 
-            bool _output_Vxc;
+            bool _write_guess=false;
+            bool _write_charges=false;
+            bool _write_basis_set=false;
+            bool _write_pseudopotentials=false;
+
+            bool _output_Vxc=false;
 
             Logger* _pLog;
 

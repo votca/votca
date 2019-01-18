@@ -83,8 +83,8 @@ public:
     void WriteToCpt(const CheckpointWriter& w)const;
 
     void ReadFromCpt(const CheckpointReader& r);
-    
-    std::string Identify(){return "polarsite";}
+
+    std::string identify()const{return "polarsite";}
     
 private:
 

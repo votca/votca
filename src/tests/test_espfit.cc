@@ -90,12 +90,9 @@ BOOST_AUTO_TEST_CASE(esp_charges){
   
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
-  BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
-  AOBasis aobasis;
+  orbitals.setDFTbasisName("3-21G.xml");
   orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(5);
-  aobasis.AOBasisFill(basis,orbitals.QMAtoms());
   
  Eigen::MatrixXd MOs=Eigen::MatrixXd::Zero(17,17);
  MOs<<0.9859859225723715,-0.2120110387683121,6.027624018483543E-10,-6.033794875416886E-10,8.465530119117907E-11,-0.18523741323314466,3.527736165571619E-8,1.037690086043051E-7,5.255631038084852E-8,-1.0944961312553891E-10,-2.9968082771885056E-9,6.517433004000378E-9,-0.12272340526993321,2.5237950468317497E-8,-2.7690325768547364E-8,-9.537078236009389E-9,0.01606292231800701,
@@ -121,7 +118,7 @@ orbitals.MOCoefficients()=MOs;
   Logger log;
   Espfit esp=Espfit(&log);
   esp.setUseSVD(1e-8);
-  esp.Fit2Density(orbitals,gs,aobasis,"medium");
+  esp.Fit2Density(orbitals,gs,"medium");
   Eigen::VectorXd pcharges=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
   int index=0;
   for (const auto& site:orbitals.Multipoles()){
@@ -140,7 +137,7 @@ if(!check_esp_num){
 }
 BOOST_CHECK_EQUAL(check_esp_num, 1);
   
-  esp.Fit2Density_analytic(orbitals,gs,aobasis);
+  esp.Fit2Density_analytic(orbitals,gs);
   Eigen::VectorXd pcharges_anal=Eigen::VectorXd::Zero(orbitals.Multipoles().size());
   index=0;
    for (const auto& site:orbitals.Multipoles()){
@@ -168,7 +165,7 @@ pairconstraint.push_back(p2);
 Espfit esp2=Espfit(&log);
 esp2.setUseSVD(1e-8);
 esp2.setPairConstraint(pairconstraint);
-esp2.Fit2Density(orbitals,gs,aobasis,"medium");
+esp2.Fit2Density(orbitals,gs,"medium");
 Eigen::VectorXd pcharges_equal=Eigen::VectorXd::Zero(orbitals.Multipoles().size());
 index=0;
  for (const auto& site:orbitals.Multipoles()){
@@ -189,7 +186,7 @@ regionconstraint.push_back(reg);
 Espfit esp3=Espfit(&log);
 esp3.setRegionConstraint(regionconstraint);
 esp3.setUseSVD(1e-8);
-esp3.Fit2Density(orbitals,gs,aobasis,"medium");
+esp3.Fit2Density(orbitals,gs,"medium");
 Eigen::VectorXd pcharges_reg=Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
 index=0;
 

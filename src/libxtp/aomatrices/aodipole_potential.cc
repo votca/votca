@@ -752,24 +752,20 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
-        template <class T>
-        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites) {
+
+        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (const auto& Seg:sites) {
-                for (const auto& site:Seg) {
-                        if(site.getDipole().norm()<1e-12){continue;}
+            for (const std::unique_ptr<StaticSite>& site: externalsites) {
+                        if(site->getDipole().norm()<1e-12){continue;}
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setSite(&site);
+                        setSite(site.get());
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
-                }
             }
             return;
         }
 
-        template void AODipole_Potential::Fillextpotential(const AOBasis& aobasis,const StaticRegion & sites);
-        template void AODipole_Potential::Fillextpotential(const AOBasis& aobasis,const PolarRegion & sites);
 
 }}
 

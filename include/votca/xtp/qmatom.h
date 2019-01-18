@@ -48,9 +48,6 @@ public:
     QMAtom(const CheckpointReader& r){
         ReadFromCpt(r);
     }
-
-
-   static std::string Identify(){return "qmatom";}
        
    const Eigen::Vector3d& getPos() const {return _pos;}
    
@@ -71,6 +68,8 @@ public:
   int getAtomID()const{ return _index;}
    
    int getNuccharge() const{ return _nuccharge-_ecpcharge;}
+
+   std::string identify()const{return "qmatom";}
 
 private:
     

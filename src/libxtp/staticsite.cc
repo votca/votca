@@ -30,25 +30,6 @@ using namespace std;
 namespace votca {
   namespace xtp {
 
-  
-
-
-    void StaticSite::calcRank() {
-      // Get Rank: We have at the moment just three cases. Point charges,dipoles and Quadrupoles
-      //It calculates the rank in the spherical case
-      int mplen = _multipole.size();
-      if (mplen == 1) {
-        _rank = 0;
-      } else if (mplen == 4) {
-        _rank = 1;
-      } else if (mplen == 9) {
-        _rank = 2;
-      } else {
-        throw std::runtime_error("StaticSite. multipoles size is not 1,4 or 9.");
-      }
-      return;
-    }
-
     Eigen::Matrix3d StaticSite::CalculateCartesianMultipole() const {
       // spherical_multipoles Q = ( Q00,Q10,Q11c,Q11s,Q20,Q21c,Q21s,Q22c,Q22s )
       // We are trasforming here just quadrupoles

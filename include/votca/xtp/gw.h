@@ -30,7 +30,7 @@ namespace xtp {
 
 class GW {     
  public:
-    GW(ctp::Logger &log, TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& vxc,
+    GW(Logger &log, TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& vxc,
        const Eigen::VectorXd& dft_energies):
      _log(log),_Mmn(Mmn),_vxc(vxc),_dft_energies(dft_energies),_rpa(Mmn){};
     

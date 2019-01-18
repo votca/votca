@@ -25,8 +25,8 @@ namespace votca { namespace xtp {
   void ConvergenceAcc::setOverlap(AOOverlap& S,double etol){
        _S=&S;
        Sminusahalf=S.Pseudo_InvSqrt(etol);
-       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
-       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
+       XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
+       XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
        Sonehalf=S.Sqrt();
        return;
    }
@@ -64,10 +64,10 @@ namespace votca { namespace xtp {
        
     _diis.Update(_maxerrorindex,errormatrix);
     bool diis_error=false; 
-    CTP_LOG(ctp::logDEBUG,*_log) << ctp::TimeStamp()
+    XTP_LOG(logDEBUG,*_log) << TimeStamp()
                 << " DIIs error " << getDIIsError() << std::flush;
 
-    CTP_LOG(ctp::logDEBUG,*_log) << ctp::TimeStamp() <<" Delta Etot "<<getDeltaE()<< std::flush;
+    XTP_LOG(logDEBUG,*_log) << TimeStamp() <<" Delta Etot "<<getDeltaE()<< std::flush;
        
     if ((_diiserror<_opt.adiis_start ||_diiserror<_opt.diis_start) && _opt.usediis && _mathist.size()>2){
         Eigen::VectorXd coeffs;
@@ -76,17 +76,17 @@ namespace votca { namespace xtp {
         if(_diiserror>_opt.diis_start || _totE.back()>0.9*_totE[_totE.size()-2]){
             coeffs=_adiis.CalcCoeff(_dmatHist,_mathist);
             diis_error=!_adiis.Info();
-            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using ADIIS for next guess" << std::flush;
+            XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Using ADIIS for next guess" << std::flush;
 
         }
         else{
              coeffs=_diis.CalcCoeff();
              diis_error=!_diis.Info();
-             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using DIIS for next guess" << std::flush;
+             XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Using DIIS for next guess" << std::flush;
 
         }
         if(diis_error){
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " (A)DIIS failed using mixing instead" << std::flush;
+          XTP_LOG(logDEBUG, *_log) << TimeStamp() << " (A)DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
         for (int i=0;i<coeffs.size();i++){  
@@ -107,7 +107,7 @@ namespace votca { namespace xtp {
     if(_diiserror>_opt.adiis_start ||!_opt.usediis || diis_error ||_mathist.size()<=2 ){
       _usedmixing=true;
       dmatout=_opt.mixingparameter*dmat+(1.0-_opt.mixingparameter)*dmatout;
-      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using Mixing with alpha="<<_opt.mixingparameter << std::flush;
+      XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Using Mixing with alpha="<<_opt.mixingparameter << std::flush;
     }else{
       _usedmixing=false;
     }
@@ -115,22 +115,22 @@ namespace votca { namespace xtp {
     }
 
     void ConvergenceAcc::PrintConfigOptions() const{
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Convergence Options:" << std::flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Delta E [Ha]: "<<_opt.Econverged << std::flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t DIIS max error: "<<_opt.error_converged << std::flush;
+        XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Convergence Options:" << std::flush;
+        XTP_LOG(logDEBUG, *_log) << "\t\t Delta E [Ha]: "<<_opt.Econverged << std::flush;
+        XTP_LOG(logDEBUG, *_log) << "\t\t DIIS max error: "<<_opt.error_converged << std::flush;
         if(_opt.usediis){
-            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t DIIS histlength: "<<_opt.histlength << std::flush;
-            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t ADIIS start: "<<_opt.adiis_start << std::flush;
-            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t DIIS start: "<<_opt.diis_start << std::flush;
+            XTP_LOG(logDEBUG, *_log) << "\t\t DIIS histlength: "<<_opt.histlength << std::flush;
+            XTP_LOG(logDEBUG, *_log) << "\t\t ADIIS start: "<<_opt.adiis_start << std::flush;
+            XTP_LOG(logDEBUG, *_log) << "\t\t DIIS start: "<<_opt.diis_start << std::flush;
             std::string del="oldest";
             if(_opt.maxout){
                 del="largest";
             }
-            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Deleting "<<del<<" element from DIIS hist"<< std::flush;
+            XTP_LOG(logDEBUG, *_log) << "\t\t Deleting "<<del<<" element from DIIS hist"<< std::flush;
         }
-        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Levelshift[Ha]: "<<_opt.levelshift << std::flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Levelshift end: "<<_opt.levelshiftend<< std::flush;
-        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Mixing Parameter alpha: "<<_opt.mixingparameter<< std::flush; 
+        XTP_LOG(logDEBUG, *_log) << "\t\t Levelshift[Ha]: "<<_opt.levelshift << std::flush;
+        XTP_LOG(logDEBUG, *_log) << "\t\t Levelshift end: "<<_opt.levelshiftend<< std::flush;
+        XTP_LOG(logDEBUG, *_log) << "\t\t Mixing Parameter alpha: "<<_opt.mixingparameter<< std::flush;
     }
       
     void ConvergenceAcc::SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H){

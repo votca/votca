@@ -123,15 +123,14 @@ namespace votca {
 
       int numberofcharges=0;
       boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-       for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
-          string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z() % site.getCharge());
-          if (site.getCharge() != 0.0){
+      for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    Eigen::Vector3d pos=site->getPos()*tools::conv::bohr2ang;
+          string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z() % site->getCharge());
+          if (site->getCharge() != 0.0){
             nw_file << sitestring << endl;
             numberofcharges++;
           }
-            std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+            std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
             for (const auto& mpoles:split_multipoles){
             Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
             string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
@@ -140,7 +139,6 @@ namespace votca {
 
           }
         }
-      }
       nw_file << endl;
       return numberofcharges;
     }

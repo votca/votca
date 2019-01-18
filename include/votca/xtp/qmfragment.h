@@ -40,13 +40,31 @@ class QMFragment{
     QMFragment(std::string name,int id,std::string atoms):_name(name),_id(id)
                 {FillAtomIndices(atoms);}
 
-    void setValue(const T& value){_value=value;}
+    QMFragment();
 
-    const T& getValue()const{return _value;}
+    void setName(std::string name){_name=name;}
+    void setId(int id){_id=id;}
+    void FillFromString(std::string atoms){
+        FillAtomIndices(atoms);
+    }
+
+
+    const T& value()const{return _value;}
+
+    T& value(){return _value;}
+    const std::string& name()const{return _name;}
 
     int size()const{return _atomindices.size();}
 
     const std::vector<int>& getIndices()const{return _atomindices;}
+
+    double ExtractFromVector(const Eigen::VectorXd& atomentries)const{
+        double result=0;
+        for(int index:_atomindices){
+            result+=atomentries(index);
+        }
+        return result;
+    }
 
 
     typename std::vector<int>::const_iterator begin()const{return _atomindices.begin();}
@@ -87,8 +105,8 @@ private:
     }
 
     std::vector<int> _atomindices;
-    std::string _name;
-    int _id;
+    std::string _name="";
+    int _id=-1;
     T _value;
 
     

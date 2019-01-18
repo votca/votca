@@ -52,7 +52,6 @@ public:
 
    bool ParseOrbitalsFile( Orbitals& orbitals );
    
-   std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
     
@@ -60,11 +59,7 @@ private:
 
     bool CheckLogFile();
     
-    std::string                              _shell_file_name;
-    std::string                              _chk_file_name;
-    std::string                              _scratch_dir;
     std::string                              _input_vxc_file_name;
-    std::string                              _cleanup;
     std::string                              _vdWfooter;
 
     bool ReadESPCharges(Orbitals& orbitals, std::string& line, std::ifstream& input_file);

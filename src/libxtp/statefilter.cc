@@ -43,9 +43,7 @@ namespace votca {
             throw std::runtime_error("statefiler: Fragment and localisation threshold are not separated");
           }
           if (strings_vec[0] == "a" || strings_vec[0] == "A") {
-            _localiseonA = true;
           } else if (strings_vec[0] == "b" || strings_vec[0] == "B") {
-            _localiseonA = false;
           } else {
             throw std::runtime_error("statefiler: Fragment label not known, either A or B");
           }
@@ -78,14 +76,10 @@ namespace votca {
        }
      }
      if(_use_localisationfilter){
-       std::string fragment="A";
-       if(!_localiseonA){
-         fragment="B";
-       }
-       XTP_LOG(logDEBUG, *_log) << "Using localisation filter for fragment"<<fragment<<" with cutoff "<<_loc_threshold << flush;
+       XTP_LOG(logDEBUG, *_log) << "Using localisation filter for fragment"<<_fragment_loc[0].name()<<" with cutoff "<<_loc_threshold << flush;
      }
      if(_use_dQfilter){
-       XTP_LOG(logDEBUG, *_log) << "Using Delta Q filter with cutoff "<<_dQ_threshold << flush;
+       XTP_LOG(logDEBUG, *_log) << "Using Delta Q filter for fragment"<<_fragment_dQ[0].name()<<"with cutoff  "<<_dQ_threshold << flush;
      }
     if (_use_oscfilter && _use_dQfilter) {
           XTP_LOG(logDEBUG, *_log) << "WARNING: filtering for optically active CT transition - might not make sense... " << flush;
@@ -170,31 +164,28 @@ namespace votca {
      return indexes;
    }
    
-   
-   std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals)const{
-     std::vector<int> indexes;
-    const std::vector< Eigen::VectorXd >& popE = (_statehist[0].Type()== QMStateType::Singlet)
-                   ? orbitals.getFragment_E_localisation_singlet() : orbitals.getFragment_E_localisation_triplet();
-    const std::vector< Eigen::VectorXd >& popH = (_statehist[0].Type()== QMStateType::Singlet)
-            ? orbitals.getFragment_H_localisation_singlet() : orbitals.getFragment_H_localisation_triplet();
-            int fragmentindex=1;
-            if (_localiseonA) {
-              fragmentindex=0;
-            }
-            for (unsigned i = 0; i < popE.size(); i++) {
-              if (popE[i](fragmentindex) > _loc_threshold && popH[i](fragmentindex) > _loc_threshold) {
-                indexes.push_back(i);
-              }
-            }
-     return indexes;
-   }
+   std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals)const {
+    std::vector<int> indexes;
+    Lowdin low;
+    low.CalcChargeperFragment(_fragment_loc, orbitals, _statehist[0].Type());
+    const Eigen::VectorXd& popE = _fragment_loc[0].value().E;
+    const Eigen::VectorXd& popH = _fragment_loc[0].value().H;
+    for (int i = 0; i < popE.size(); i++) {
+        if (popE[i] > _loc_threshold && popH[i] > _loc_threshold) {
+            indexes.push_back(i);
+        }
+    }
+    return indexes;
+}
    
    std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals)const{
     std::vector<int> indexes;
-    const std::vector< Eigen::VectorXd >& dQ_frag = (_statehist[0].Type()== QMStateType::Singlet)
-                    ? orbitals.getFragmentChargesSingEXC() : orbitals.getFragmentChargesTripEXC();
-    for (unsigned i = 0; i < dQ_frag.size(); i++) {
-      if (std::abs(dQ_frag[i](0)) > _dQ_threshold) {
+    Lowdin low;
+    low.CalcChargeperFragment(_fragment_dQ, orbitals, _statehist[0].Type());
+    Eigen::VectorXd dq=(_fragment_dQ[0].value().H-_fragment_dQ[0].value().E).cwiseAbs();
+
+    for (int i = 0; i < dq.size(); i++) {
+      if (dq[i] > _dQ_threshold) {
         indexes.push_back(i);
       }
     }

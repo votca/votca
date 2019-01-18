@@ -104,7 +104,11 @@ class GWBSE {
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
- 
+
+
+  std::vector<QMFragment<BSE_Population> > _triplets;
+  std::vector<QMFragment<BSE_Population> > _singlets;
+  
 };
 }
 }

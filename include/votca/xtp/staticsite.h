@@ -94,12 +94,12 @@ public:
     virtual void WriteToCpt(const CheckpointWriter& w)const;
 
     virtual void ReadFromCpt(const CheckpointReader& r);
-   
-    virtual std::string Identify(){return "staticsite";}
     
-    virtual void setPolarisation(){
+    virtual void setPolarisation(const Eigen::Matrix3d pol){
         return;
     }
+
+    virtual std::string identify()const{return "staticsite";}
 protected:
 
     virtual std::string writePolarisation()const{

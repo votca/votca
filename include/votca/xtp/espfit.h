@@ -56,9 +56,9 @@ public:
        _regionconstraint=regionconstraint;
    }
     // on grid very fast
-    void Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis &basis,std::string gridsize);
+    void Fit2Density(Orbitals& orbitals,const QMState& state,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(Orbitals& orbitals,const QMState& state, const AOBasis &basis);
+    void Fit2Density_analytic(Orbitals& orbitals,const QMState& state);
 private:
     
      Logger *_log;

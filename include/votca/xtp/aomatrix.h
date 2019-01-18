@@ -116,8 +116,7 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
-        template <class T>
-        void Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
@@ -174,8 +173,7 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        template <class T>
-        void Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
@@ -188,8 +186,7 @@ namespace votca { namespace xtp {
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        template <class T>
-        void Fillextpotential(const AOBasis& aobasis, const MMRegion<T> & sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 

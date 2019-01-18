@@ -30,9 +30,13 @@ template <class T>
 class MMRegion: public Region{
     public:
 
-        void WriteToCpt(CheckpointWriter& w)const;
+        void WriteToCpt(CheckpointWriter& w)const{
+            return;
+        }
 
-        void ReadFromCpt(CheckpointReader& r);
+        void ReadFromCpt(CheckpointReader& r){
+            return;
+        }
 
         int size()const{return _segments.size();}
 

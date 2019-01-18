@@ -228,31 +228,26 @@ namespace votca {
             crg_file.open(_crg_file_name_full.c_str());
             int total_background = 0;
 
-            for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    if (site.getCharge() != 0.0) total_background++;
-                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+           for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    if (site->getCharge() != 0.0) total_background++;
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
                     total_background+= split_multipoles.size();
-                }
             } //counting only
             
             crg_file << total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
-            for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
-                    string sitestring=boost::str(fmt % site.getCharge() % pos.x()
+            for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    Eigen::Vector3d pos=site->getPos()*tools::conv::bohr2ang;
+                    string sitestring=boost::str(fmt % site->getCharge() % pos.x()
                             % pos.y() % pos.z());
-                    if (site.getCharge() != 0.0) crg_file << sitestring << endl;
-                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+                    if (site->getCharge() != 0.0) crg_file << sitestring << endl;
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
                     for (const auto& mpoles:split_multipoles){
                         Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
                        string multipole=boost::str( fmt % mpoles._q % pos.x() % pos.y() % pos.z() );
                         crg_file << multipole << endl;
-                    }
-
-                }
+                    }                
             }
             
             return;

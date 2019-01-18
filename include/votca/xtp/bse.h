@@ -25,6 +25,8 @@
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/populationanalysis.h>
+#include <votca/xtp/qmfragment.h>
 
 namespace votca {
 namespace xtp {
@@ -71,8 +73,8 @@ class BSE {
   void Solve_singlets();
   void Solve_triplets();
 
-  void Analyze_triplets(const AOBasis& dftbasis);
-  void Analyze_singlets(const AOBasis& dftbasis);
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
    
   void FreeMatrices(){
       _eh_t.resize(0, 0);
@@ -101,12 +103,7 @@ class BSE {
     Eigen::VectorXd qp_contrib;
 };
 
-struct Population {
-    std::vector<Eigen::VectorXd> popH;
-    std::vector<Eigen::VectorXd> popE;
-    std::vector<Eigen::VectorXd> Crgs;
-    Eigen::VectorXd popGs;
-};   
+
  
       
 Logger &_log;
@@ -131,8 +128,6 @@ Logger &_log;
   const Eigen::MatrixXd& _Hqp;
 
   VectorXfd _epsilon_0_inv;
-  
-
 
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
@@ -145,19 +140,14 @@ Logger &_log;
    template <typename T, int factor>
   void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
 
- void printFragInfo(const Population& pop, int i);
- void printWeights(int i_bse, double weight);
+ void printFragInfo(const std::vector<QMFragment<BSE_Population> > & frags, int state)const;
+ void printWeights(int i_bse, double weight)const;
 
  void SetupDirectInteractionOperator();
  
   Interaction Analyze_eh_interaction(const QMStateType& type);
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
 
-  Population FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis);
-
-  std::vector<Eigen::MatrixXd > CalcFreeTransition_Dipoles(const AOBasis& dftbasis);
-
-  std::vector<Eigen::Vector3d > CalcCoupledTransition_Dipoles(const AOBasis& dftbasis);
 };
 }
 }

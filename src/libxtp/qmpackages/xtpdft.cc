@@ -74,7 +74,7 @@ namespace votca {
           xtpdft.setLogger(_pLog);
            
           if(_write_charges){
-            xtpdft.setExternalcharges(_PolarSegments);
+            xtpdft.setExternalcharges(&_externalsites);
           }
           xtpdft.Prepare();
           bool success=xtpdft.Evaluate();

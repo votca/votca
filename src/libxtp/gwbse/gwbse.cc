@@ -519,16 +519,12 @@ bool GWBSE::Evaluate() {
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, _orbitals.QMAtoms(), _fragA);
+  dftbasis.AOBasisFill(dftbs, _orbitals.QMAtoms());
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp()
                                  << " Filled DFT Basis of size "
                                  << dftbasis.AOBasisSize() << flush;
-  if (dftbasis.getAOBasisFragB() > 0  && dftbasis.getAOBasisFragA()>0) {
-    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " FragmentA size "
-                                   << dftbasis.getAOBasisFragA() << flush;
-    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " FragmentB size "
-                                   << dftbasis.getAOBasisFragB()<< flush;
-  }
+  
+    
   
   // load auxiliary basis set (element-wise information) from xml file
   BasisSet auxbs;
@@ -543,6 +539,17 @@ bool GWBSE::Evaluate() {
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp()
                                  << " Filled Auxbasis of size "
                                  << auxbasis.AOBasisSize() << flush;
+
+  if (_do_bse_singlets && _singlets.size() > 0) {
+        for (const auto& frag : _singlets) {
+            XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.name() << " size:" << frag.size() << flush;
+        }
+    }
+    if (_do_bse_triplets && _triplets.size() > 0) {
+        for (const auto& frag : _triplets) {
+            XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.name() << " size:" << frag.size() << flush;
+        }
+    }
   
   Eigen::MatrixXd vxc=CalculateVXC(dftbasis);
   
@@ -596,7 +603,7 @@ bool GWBSE::Evaluate() {
         bse.Solve_triplets();
         XTP_LOG(logDEBUG, *_pLog) << TimeStamp()
                 << " Solved BSE for triplets " << flush;
-        bse.Analyze_triplets(dftbasis);
+        bse.Analyze_triplets(_triplets);
         if (!_store_bse_triplets) {
             bse.FreeTriplets();
         }
@@ -606,7 +613,7 @@ bool GWBSE::Evaluate() {
         bse.Solve_singlets();
         XTP_LOG(logDEBUG, *_pLog)
                 << TimeStamp() << " Solved BSE for singlets " << flush;
-        bse.Analyze_singlets(dftbasis);
+        bse.Analyze_singlets(_singlets);
         if (!_store_bse_singlets) {
             bse.FreeSinglets();
         }

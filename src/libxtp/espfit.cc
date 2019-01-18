@@ -26,7 +26,7 @@
 namespace votca { namespace xtp {
   using std::flush;
     
-void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis &basis,std::string gridsize) {
+void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state,std::string gridsize) {
 
     const Eigen::MatrixXd dmat=orbitals.DensityMatrixFull(state);
     // setting up grid
@@ -35,6 +35,7 @@ void Espfit::Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis 
     XTP_LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << grid.size() << " points " << flush;
 
     // Calculating nuclear potential at gridpoints
+    AOBasis basis=orbitals.SetupDftBasis();
     AOOverlap overlap;
     overlap.Fill(basis);
     double N_comp=dmat.cwiseProduct(overlap.Matrix()).sum();
@@ -97,13 +98,14 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
 }
 
 
-void Espfit::Fit2Density_analytic(Orbitals& orbitals,const QMState& state, const AOBasis &basis) {
+void Espfit::Fit2Density_analytic(Orbitals& orbitals,const QMState& state) {
     // setting up grid
     Grid grid;
     grid.setupCHELPGGrid(orbitals.QMAtoms());
     const Eigen::MatrixXd dmat=orbitals.DensityMatrixFull(state);
     XTP_LOG(logDEBUG, *_log) << TimeStamp() <<  " Done setting up CHELPG grid with " << grid.size() << " points " << std::endl;
     // Calculating nuclear potential at gridpoints
+    AOBasis basis=orbitals.SetupDftBasis();
     AOOverlap overlap;
     overlap.Fill(basis);
     double N=dmat.cwiseProduct(overlap.Matrix()).sum();
@@ -217,11 +219,11 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
     }
     //remove constraints from charges
     charges.conservativeResize(atomlist.size());
-    PolarSegment seg=PolarSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
+    StaticSegment seg=StaticSegment(orbitals.QMAtoms().getName(),orbitals.QMAtoms().getId());
 
     XTP_LOG(logDEBUG, *_log) << " Sum of fitted charges: " << charges.sum() << flush;
     for (int i=0;i<atomlist.size();i++){
-        seg.push_back(PolarSite(atomlist[i],charges(i)));
+        seg.push_back(StaticSite(atomlist[i],charges(i)));
     }
     orbitals.Multipoles()=seg;
     // get RMSE

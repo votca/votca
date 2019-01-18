@@ -334,16 +334,16 @@ void DFTEngine::CalcElDipole()const{
               << " Filled DFT nuclear potential matrix."<< flush;
 
       if (_addexternalsites) {
-        _dftAOESP.Fillextpotential(_dftbasis, _externalsites);
+        _dftAOESP.Fillextpotential(_dftbasis, *_externalsites);
         XTP_LOG(logDEBUG, *_pLog) << TimeStamp() 
                 << " Filled DFT external pointcharge potential matrix"<< flush;
 
-        _dftAODipole_Potential.Fillextpotential(_dftbasis, _externalsites);
+        _dftAODipole_Potential.Fillextpotential(_dftbasis, *_externalsites);
         if (_dftAODipole_Potential.Dimension() > 0) {
           XTP_LOG(logDEBUG, *_pLog) << TimeStamp() 
                   << " Filled DFT external dipole potential matrix" << flush;
         }
-        _dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, _externalsites);
+        _dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, *_externalsites);
         if (_dftAOQuadrupole_Potential.Dimension()) {
           XTP_LOG(logDEBUG, *_pLog) << TimeStamp() 
                   << " Filled DFT external quadrupole potential matrix."<< flush;
@@ -353,28 +353,27 @@ void DFTEngine::CalcElDipole()const{
                                         "              quadrupole[e*a0^2]         " << flush;
 
 
-        for (const auto& segment:*_externalsites) {
-          for (const PolarSite& site:segment){
+        for (const std::unique_ptr<StaticSite>& site:*_externalsites) {
             std::string output=(boost::format("  %1$s"
                                             "   %2$+1.4f %3$+1.4f %4$+1.4f"
                                             "   %5$+1.4f")
-                                            %site.getElement()
-                                            %site.getPos()[0] %site.getPos()[1] %site.getPos()[2]
-                                            %site.getCharge()).str();
-            if (site.getRank() > 0) {
-              const Eigen::Vector3d& dipole = site.getDipole();
+                                            %site->getElement()
+                                            %site->getPos()[0] %site->getPos()[1] %site->getPos()[2]
+                                            %site->getCharge()).str();
+            if (site->getRank() > 0) {
+              const Eigen::Vector3d& dipole = site->getDipole();
               output+=(boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f")
                                      %dipole[0] %dipole[1] %dipole[2]).str();
             }
-            if (site.getRank() > 1) {
-              Eigen::VectorXd quadrupole = site.getPermMultipole().tail<5>();
+            if (site->getRank() > 1) {
+              Eigen::VectorXd quadrupole = site->getPermMultipole().tail<5>();
               output+=(boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f")
                                      %quadrupole[0] %quadrupole[1] %quadrupole[2] 
                                      %quadrupole[3] %quadrupole[4]).str();
             }
             XTP_LOG(logDEBUG, *_pLog) <<output<< flush;
           }
-        }
+        
       }
 
       if (_with_ecp) {
@@ -480,7 +479,7 @@ void DFTEngine::CalcElDipole()const{
         ConvergenceAcc::options opt_beta=opt_alpha;
         opt_beta.numberofelectrons=beta_e;
 
-        ctp::Logger log;
+        Logger log;
         Convergence_alpha.Configure(opt_alpha);
         Convergence_alpha.setLogger(&log);
         Convergence_alpha.setOverlap(dftAOoverlap, 1e-8);
@@ -801,11 +800,8 @@ void DFTEngine::Prepare() {
       double E_ext=0;
       for (const QMAtom& atom:_orbitals.QMAtoms()){
           StaticSite nucleus=StaticSite(atom,atom.getNuccharge());
-          for (auto&  seg : _externalsites) {
-              for (auto& site : seg) {
-                  E_ext+=nucleus.InteractStatic(site);
-                  E_ext+=nucleus.InteractInduction(site);
-              }
+          for (const std::unique_ptr<StaticSite>&  site : *_externalsites) {
+                  ;
           }
       }
       return E_ext;

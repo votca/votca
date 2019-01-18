@@ -102,18 +102,7 @@ namespace votca {
             }
             return multipoles_split;
         }
-        
-      void QMPackage::setMultipoleBackground(const std::shared_ptr<MMRegion>& PolarSegments ) {
-        if(PolarSegments->size()==0){
-          std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
-          return;
-        }
-      _PolarSegments = PolarSegments;
-      _write_charges = true;
-      
-      WriteChargeOption();
-    }
-      
+              
       std::vector<std::string> QMPackage::GetLineAndSplit(std::ifstream& input_file,const std::string separators ){
           std::string line;
           getline(input_file, line);

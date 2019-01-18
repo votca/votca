@@ -134,14 +134,10 @@ namespace votca {
               nuclei_dip += (atom.getPos() - _atoms.getPos()) * atom.getNuccharge();
             }
           }
-
-          BasisSet basis;
-          basis.LoadBasisSet(this->getDFTbasisName());
-          AOBasis aobasis;
-          aobasis.AOBasisFill(basis, _atoms);
+          AOBasis basis=SetupDftBasis();
           AODipole dipole;
           dipole.setCenter(_atoms.getPos());
-          dipole.Fill(aobasis);
+          dipole.Fill(basis);
 
           Eigen::MatrixXd dmat = this->DensityMatrixFull(state);
           Eigen::Vector3d electronic_dip;
@@ -331,24 +327,6 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             return dmatAR;
         }
 
-        Eigen::VectorXd Orbitals::LoewdinPopulation(const Eigen::MatrixXd & densitymatrix, const Eigen::MatrixXd & overlapmatrix, int frag){
-
-            Eigen::VectorXd fragmentCharges = Eigen::VectorXd::Zero(2);
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
-            es.compute(overlapmatrix);
-            Eigen::MatrixXd sqrtm1 = es.operatorInverseSqrt();
-            Eigen::MatrixXd prodmat = sqrtm1 * densitymatrix*sqrtm1;
-
-            for (int i = 0; i < frag; i++) {
-                fragmentCharges(0) += prodmat(i, i);
-            }
-            for (int i = frag; i < overlapmatrix.rows(); i++) {
-                fragmentCharges(1) += prodmat(i, i);
-            }
-
-            return fragmentCharges;
-        }
-
         std::vector<double> Orbitals::Oscillatorstrengths() const{
             std::vector<double> oscs;
             int size = _transition_dipoles.size();
@@ -409,30 +387,51 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             return  omega; //  e.g. hartree
         }
         
+        std::vector<Eigen::MatrixXd > Orbitals::CalcFreeTransition_Dipoles()const{
+                const Eigen::MatrixXd& dft_orbitals = MOCoefficients();
+                AOBasis basis=SetupDftBasis();
+              // Testing electric dipole AOMatrix
+              AODipole dft_dipole;
+              dft_dipole.Fill(basis);
 
-        Eigen::VectorXd Orbitals::FragmentNuclearCharges(int frag) const{
-         
-            if (frag < 0) {
-                throw runtime_error("Orbitals::FragmentNuclearCharges Fragment index is smaller than zero");
-            }
+              // now transition dipole elements for free interlevel transitions
+              std::vector<Eigen::MatrixXd > interlevel_dipoles;
 
-            Eigen::VectorXd fragmentNuclearCharges = Eigen::VectorXd::Zero(2);
-            int id = 0;
-            for (const QMAtom& atom :_atoms) {
-                id++;
-                // get element type and determine its nuclear charge
-                double crg = atom.getNuccharge();
-                // add to either fragment
-                if (id <= frag) {
-                    fragmentNuclearCharges(0) += crg;
-                } else {
-                    fragmentNuclearCharges(1) += crg;
-                }
-            }
-            return fragmentNuclearCharges;
+              Eigen::MatrixXd empty = dft_orbitals.block(0,_bse_cmin,basis.AOBasisSize() , _bse_ctotal);
+              Eigen::MatrixXd occ = dft_orbitals.block(0,_bse_vmin, basis.AOBasisSize(), _bse_vtotal);
+              for (int i_comp = 0; i_comp < 3; i_comp++) {
+                interlevel_dipoles.push_back(empty.transpose() * dft_dipole.Matrix()[i_comp] * occ);
+              }
+              return interlevel_dipoles;
         }
-        
-        
+
+        void Orbitals::CalcCoupledTransition_Dipoles() {
+            std::vector<Eigen::MatrixXd > interlevel_dipoles = CalcFreeTransition_Dipoles();
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
+            int numofstates = _BSE_singlet_energies.size();
+            _transition_dipoles.resize(0);
+            _transition_dipoles.reserve(numofstates);
+            std::vector<Eigen::Vector3d > dipols;
+            const double sqrt2 = sqrt(2.0);
+            for (int i_exc = 0; i_exc < numofstates; i_exc++) {
+                Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
+                for (int i = 0; i < 3; i++) {
+                    for (int v = 0; v < _bse_vtotal; v++) {
+                        for (int c = 0; c < _bse_ctotal; c++) {
+                            int index_vc = vc.I(v, c);
+                            double factor = BSESingletCoefficients()(index_vc, i_exc);
+                            if (!_useTDA) {
+                                factor += BSESingletCoefficientsAR()(index_vc, i_exc);
+                            }
+                            // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+                            tdipole[i] += factor * interlevel_dipoles[i](c, v);
+                        }
+                    }
+                }
+                _transition_dipoles.push_back(-sqrt2 * tdipole); //- because electrons are negative
+            }
+        }
+ 
         void Orbitals::OrderMOsbyEnergy(){
           std::vector<int> sort_index = SortEnergies();
           Eigen::MatrixXd MOcopy=MOCoefficients();

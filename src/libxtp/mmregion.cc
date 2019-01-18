@@ -24,14 +24,7 @@ namespace votca {
     namespace xtp {
 
 
-        void MMRegion::WriteToCpt(CheckpointWriter& w)const{
-
-            
-        }
-
-        void MMRegion::ReadFromCpt(CheckpointReader& r){
-            
-        }
+        
   
 
     }
