@@ -51,7 +51,7 @@ class GraphVisitor;
  * @param[in,out] - Graph visitor reference instance used to explore the graph
  * @return - Boolean value (true - if single network)
  */
-bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
+bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
 
 /**
  * \brief Explore one of the branches if exploration is initiated at vertex
@@ -89,7 +89,8 @@ bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
  * @param[in] - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
  **/
-std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge);
+std::set<Edge> exploreBranch(Graph& g, const int starting_vertex,
+                             const Edge& edge);
 
 /**
  * \brief Will take a graph and reduce it, by removing all vertices with degree

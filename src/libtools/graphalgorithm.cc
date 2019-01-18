@@ -49,14 +49,15 @@ vector<Edge> edgeSetToVector_(set<Edge> edges) {
  * Public Functions *
  ********************/
 
-bool singleNetwork(Graph graph, GraphVisitor& graph_visitor) {
+bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor) {
   exploreGraph(graph, graph_visitor);
   return graph_visitor.getExploredVertices().size() ==
              graph.getVertices().size() &&
          graph.getIsolatedNodes().size() == 0;
 }
 
-std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge) {
+std::set<Edge> exploreBranch(Graph& g, const int starting_vertex,
+                             const Edge& edge) {
   // Check if the starting vertex is in the graph
   if (!g.vertexExist(starting_vertex)) {
     throw invalid_argument(
