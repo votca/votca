@@ -179,7 +179,6 @@ std::string findStructureId(Graph& graph) {
       graph_node_ids.push_back(vertex);
     }
   }
-
   // If the str_id is empty it means the nodes are empty and we will
   // simply have to rely on the degree to choose the vertices to explore from
   if (str_id.compare("") == 0) {

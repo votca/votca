@@ -117,18 +117,22 @@ vector<int> EdgeContainer::getVertices() const {
 
 vector<int> EdgeContainer::getNeighVertices(int vertex) const {
   vector<int> neigh_verts;
-  for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
-    neigh_verts.push_back(neigh_and_count.first);
+  if (adj_list_.count(vertex)) {
+    for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
+      neigh_verts.push_back(neigh_and_count.first);
+    }
   }
   return neigh_verts;
 }
 
 vector<Edge> EdgeContainer::getNeighEdges(int vertex) const {
   vector<Edge> neigh_edges;
-  for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
-    for (int count = 0; count < adj_list_.at(vertex).at(neigh_and_count.first);
-         ++count) {
-      neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
+  if (adj_list_.count(vertex)) {
+    for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
+      for (int count = 0;
+           count < adj_list_.at(vertex).at(neigh_and_count.first); ++count) {
+        neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
+      }
     }
   }
   return neigh_edges;

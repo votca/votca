@@ -90,6 +90,7 @@ Edge GraphVisitor::getEdge_(const Graph& graph) {
 Edge GraphVisitor::nextEdge(Graph graph) {
 
   // Get the edge and at the same time remove it from whatever queue it is in
+
   Edge edge = getEdge_(graph);
   vector<int> unexplored_vertices = getUnexploredVertex(edge);
   // Do not add neighboring edges if they belong to a vertex that has already
