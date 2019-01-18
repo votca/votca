@@ -74,7 +74,7 @@ vector<pair<int, GraphNode>> Graph::getNeighNodes(int vertex) {
   return neigh_ids_and_nodes;
 }
 
-void Graph::setNode(int vertex, GraphNode graph_node) {
+void Graph::setNode(int vertex, GraphNode& graph_node) {
   if (nodes_.count(vertex)) {
     nodes_[vertex] = graph_node;
   } else {
@@ -84,13 +84,13 @@ void Graph::setNode(int vertex, GraphNode graph_node) {
   calcId_();
 }
 
-void Graph::setNode(std::pair<int, GraphNode> id_and_node) {
+void Graph::setNode(std::pair<int, GraphNode>& id_and_node) {
   setNode(id_and_node.first, id_and_node.second);
 }
 
-GraphNode Graph::getNode(int vertex) {
+GraphNode Graph::getNode(const int vertex) const {
   assert(nodes_.count(vertex));
-  return nodes_[vertex];
+  return nodes_.at(vertex);
 }
 
 vector<pair<int, GraphNode>> Graph::getNodes(void) {

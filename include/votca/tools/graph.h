@@ -87,14 +87,14 @@ class Graph {
   std::vector<std::pair<int, GraphNode>> getNeighNodes(int vertex);
 
   /// set the Node associated with vertex 'vert'
-  void setNode(int vertex, GraphNode graph_node);
-  void setNode(std::pair<int, GraphNode> id_and_node);
+  void setNode(int vertex, GraphNode& graph_node);
+  void setNode(std::pair<int, GraphNode>& id_and_node);
 
   /// Gets all vertices with degree of 3 or greater
   std::vector<int> getJunctions() const;
 
   /// Return a copy of the graph node at vertex 'vert'
-  GraphNode getNode(int vertex);
+  GraphNode getNode(const int vertex) const;
 
   /// Return all the vertices and their graph nodes that are within the graph
   virtual std::vector<std::pair<int, GraphNode>> getNodes(void);

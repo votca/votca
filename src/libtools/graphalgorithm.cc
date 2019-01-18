@@ -49,14 +49,14 @@ vector<Edge> edgeSetToVector_(set<Edge> edges) {
  * Public Functions *
  ********************/
 
-bool singleNetwork(Graph graph, GraphVisitor& graph_visitor) {
+bool singleNetwork(const Graph& graph, GraphVisitor& graph_visitor) {
   exploreGraph(graph, graph_visitor);
   return graph_visitor.getExploredVertices().size() ==
              graph.getVertices().size() &&
          graph.getIsolatedNodes().size() == 0;
 }
 
-std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge) {
+std::set<Edge> exploreBranch(const Graph& g, int starting_vertex, Edge edge) {
   // Check if the starting vertex is in the graph
   if (!g.vertexExist(starting_vertex)) {
     throw invalid_argument(
@@ -106,62 +106,69 @@ std::set<Edge> exploreBranch(Graph g, int starting_vertex, Edge edge) {
 
   return branch_edges;
 }
-/**
- * \brief This class is to help keep track of which vertices have and have not
- * been explored.
- *
- **/
-class ExplorationRecord {
- private:
-  unordered_map<int, std::pair<bool, int>> vertex_explored_;
-  size_t unexplored_vertex_count_;
 
- public:
-  ExplorationRecord(unordered_map<int, std::pair<bool, int>> vertex_explored)
-      : vertex_explored_(vertex_explored),
-        unexplored_vertex_count_(vertex_explored.size()){};
+ReducedGraph reduceGraph(const Graph& graph) {
 
-  void explore(int vertex) {
-    vertex_explored_[vertex].first = true;
-    --unexplored_vertex_count_;
-  }
+  /****************************
+   * Internal Function Class
+   ****************************/
 
-  bool unexploredVerticesExist() { return unexplored_vertex_count_ > 0; }
+  /**
+   * \brief This class is to help keep track of which vertices have and have not
+   * been explored.
+   *
+   * It is only used within the function and hence the encapsulation, it is not
+   * a public class and is not meant to be.
+   **/
+  class ExplorationRecord {
+   private:
+    unordered_map<int, std::pair<bool, int>> vertex_explored_;
+    size_t unexplored_vertex_count_;
 
-  int getUnexploredVertex() {
+   public:
+    ExplorationRecord(unordered_map<int, std::pair<bool, int>> vertex_explored)
+        : vertex_explored_(vertex_explored),
+          unexplored_vertex_count_(vertex_explored.size()){};
 
-    vector<int> remaining_unexplored;
-    for (const pair<int, pair<bool, int>>& vertex_record : vertex_explored_) {
-      bool vertex_explored = vertex_record.second.first;
-      if (!vertex_explored) {
-        int degree = vertex_record.second.second;
-        if (degree > 2) {
-          return vertex_record.first;
+    void explore(int vertex) {
+      vertex_explored_[vertex].first = true;
+      --unexplored_vertex_count_;
+    }
+
+    bool unexploredVerticesExist() { return unexplored_vertex_count_ > 0; }
+
+    int getUnexploredVertex() {
+
+      vector<int> remaining_unexplored;
+      for (const pair<int, pair<bool, int>>& vertex_record : vertex_explored_) {
+        bool vertex_explored = vertex_record.second.first;
+        if (!vertex_explored) {
+          int degree = vertex_record.second.second;
+          if (degree > 2) {
+            return vertex_record.first;
+          }
+          remaining_unexplored.push_back(vertex_record.first);
         }
-        remaining_unexplored.push_back(vertex_record.first);
       }
-    }
 
-    // Search tips next
-    for (const int& vertex : remaining_unexplored) {
-      if (vertex_explored_[vertex].second == 1) {
-        return vertex;
+      // Search tips next
+      for (const int& vertex : remaining_unexplored) {
+        if (vertex_explored_[vertex].second == 1) {
+          return vertex;
+        }
       }
+
+      // Finally if there are no tips or junctions left we will return a vertex
+      // of degree 2 if one exists
+      for (const int& vertex : remaining_unexplored) {
+        if (!vertex_explored_[vertex].first) return vertex;
+      }
+
+      throw runtime_error(
+          "You cannot get an unexplored vertex as they have all"
+          " been explored.");
     }
-
-    // Finally if there are no tips or junctions left we will return a vertex
-    // of degree 2 if one exists
-    for (const int& vertex : remaining_unexplored) {
-      if (!vertex_explored_[vertex].first) return vertex;
-    }
-
-    throw runtime_error(
-        "You cannot get an unexplored vertex as they have all"
-        " been explored.");
-  }
-};
-
-ReducedGraph reduceGraph(Graph graph) {
+  };  // Class ExplorationRecord
 
   unordered_map<int, pair<bool, int>> unexplored_vertices;
   vector<int> vertices = graph.getVertices();
@@ -239,7 +246,7 @@ ReducedGraph reduceGraph(Graph graph) {
   return reduced_g;
 }
 
-vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
+vector<Graph> decoupleIsolatedSubGraphs(const Graph& graph) {
 
   list<int> vertices_list = vectorToList_(graph.getVertices());
   vector<Graph> subGraphs;
@@ -290,7 +297,7 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
   return subGraphs;
 }
 
-void exploreGraph(Graph& graph, GraphVisitor& graph_visitor) {
+void exploreGraph(const Graph& graph, GraphVisitor& graph_visitor) {
 
   if (!graph.vertexExist(graph_visitor.getStartingVertex())) {
     string err = "Cannot explore graph starting at vertex " +
