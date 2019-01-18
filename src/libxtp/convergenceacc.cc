@@ -22,14 +22,12 @@
 namespace votca { namespace xtp {
 
   
-  void ConvergenceAcc::setOverlap(AOOverlap* S,double etol){
-       _S=S;
-       Sminusahalf=S->Pseudo_InvSqrt(etol);
-       if(_opt.noisy){
-            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
-            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
-        }
-       Sonehalf=S->Sqrt();
+  void ConvergenceAcc::setOverlap(AOOverlap& S,double etol){
+       _S=&S;
+       Sminusahalf=S.Pseudo_InvSqrt(etol);
+       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Smallest value of AOOverlap matrix is "<<_S->SmallestEigenValue() << std::flush;
+       CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Removed "<<_S->Removedfunctions()<<" basisfunction from inverse overlap matrix" << std::flush;
+       Sonehalf=S.Sqrt();
        return;
    }
    
@@ -37,7 +35,7 @@ namespace votca { namespace xtp {
     Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,Eigen::MatrixXd& H,Eigen::VectorXd &MOenergies,Eigen::MatrixXd &MOs,double totE){
       Eigen::MatrixXd H_guess=Eigen::MatrixXd::Zero(H.rows(),H.cols());    
     
-      if(int(_mathist.size())>_opt.histlength){
+      if(int(_mathist.size())==_opt.histlength){
               _totE.erase(_totE.begin()+_maxerrorindex);
               _mathist.erase(_mathist.begin()+_maxerrorindex);
               _dmatHist.erase(_dmatHist.begin()+_maxerrorindex);
@@ -54,45 +52,46 @@ namespace votca { namespace xtp {
       Eigen::MatrixXd errormatrix=Sminusahalf.transpose()*(H*dmat*S-S*dmat*H)*Sminusahalf;
       _diiserror=errormatrix.cwiseAbs().maxCoeff();
 
-       _mathist.push_back(std::unique_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(H)));
-       _dmatHist.push_back(std::unique_ptr<Eigen::MatrixXd>(new Eigen::MatrixXd(dmat)));
+       _mathist.push_back(H);
+       _dmatHist.push_back(dmat);
              
        if(_opt.maxout){
         if (_diiserror>_maxerror){
             _maxerror=_diiserror;
-            _maxerrorindex=_mathist.size();
+            _maxerrorindex=_mathist.size()-1;
         }
-      } 
+      }
        
     _diis.Update(_maxerrorindex,errormatrix);
     bool diis_error=false; 
-   
+    CTP_LOG(ctp::logDEBUG,*_log) << ctp::TimeStamp()
+                << " DIIs error " << getDIIsError() << std::flush;
+
+    CTP_LOG(ctp::logDEBUG,*_log) << ctp::TimeStamp() <<" Delta Etot "<<getDeltaE()<< std::flush;
        
     if ((_diiserror<_opt.adiis_start ||_diiserror<_opt.diis_start) && _opt.usediis && _mathist.size()>2){
         Eigen::VectorXd coeffs;
         //use ADIIs if energy has risen a lot in current iteration
 
-        if(_diiserror>_opt.diis_start || _totE[_totE.size()-1]>0.9*_totE[_totE.size()-2]){
+        if(_diiserror>_opt.diis_start || _totE.back()>0.9*_totE[_totE.size()-2]){
             coeffs=_adiis.CalcCoeff(_dmatHist,_mathist);
             diis_error=!_adiis.Info();
-            if(_opt.noisy){
-            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using ADIIS" << std::flush;
-            }
+            CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using ADIIS for next guess" << std::flush;
+
         }
         else{
              coeffs=_diis.CalcCoeff();
              diis_error=!_diis.Info();
-             if(_opt.noisy){
-             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using DIIS" << std::flush;
-             }
+             CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using DIIS for next guess" << std::flush;
+
         }
         if(diis_error){
-          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " DIIS failed using mixing instead" << std::flush;
+          CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " (A)DIIS failed using mixing instead" << std::flush;
           H_guess=H;
         }else{
         for (int i=0;i<coeffs.size();i++){  
             if(std::abs(coeffs(i))<1e-8){ continue;}
-            H_guess+=coeffs(i)*(*_mathist[i]);
+            H_guess+=coeffs(i)*_mathist[i];
             }
         }
            
@@ -105,17 +104,33 @@ namespace votca { namespace xtp {
     SolveFockmatrix( MOenergies,MOs,H_guess);
     Eigen::MatrixXd dmatout=DensityMatrix(MOs,MOenergies);
     
-    
     if(_diiserror>_opt.adiis_start ||!_opt.usediis || diis_error ||_mathist.size()<=2 ){
       _usedmixing=true;
       dmatout=_opt.mixingparameter*dmat+(1.0-_opt.mixingparameter)*dmatout;
-      if(_opt.noisy){
-        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using Mixing with alpha="<<_opt.mixingparameter << std::flush;
-        }
+      CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using Mixing with alpha="<<_opt.mixingparameter << std::flush;
     }else{
       _usedmixing=false;
     }
     return dmatout;
+    }
+
+    void ConvergenceAcc::PrintConfigOptions() const{
+        CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Convergence Options:" << std::flush;
+        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Delta E [Ha]: "<<_opt.Econverged << std::flush;
+        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t DIIS max error: "<<_opt.error_converged << std::flush;
+        if(_opt.usediis){
+            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t DIIS histlength: "<<_opt.histlength << std::flush;
+            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t ADIIS start: "<<_opt.adiis_start << std::flush;
+            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t DIIS start: "<<_opt.diis_start << std::flush;
+            std::string del="oldest";
+            if(_opt.maxout){
+                del="largest";
+            }
+            CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Deleting "<<del<<" element from DIIS hist"<< std::flush;
+        }
+        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Levelshift[Ha]: "<<_opt.levelshift << std::flush;
+        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Levelshift end: "<<_opt.levelshiftend<< std::flush;
+        CTP_LOG(ctp::logDEBUG, *_log) << "\t\t Mixing Parameter alpha: "<<_opt.mixingparameter<< std::flush; 
     }
       
     void ConvergenceAcc::SolveFockmatrix(Eigen::VectorXd& MOenergies,Eigen::MatrixXd& MOs,const Eigen::MatrixXd&H){
@@ -133,7 +148,7 @@ namespace votca { namespace xtp {
         return;
     }
     
-    void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H) {
+    void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H) const{
       if(_opt.levelshift<1e-9){
         return;
       }
@@ -145,17 +160,14 @@ namespace votca { namespace xtp {
                         virt(i, i) = _opt.levelshift;
             }
 
-        if(_opt.noisy){
         CTP_LOG(ctp::logDEBUG, *_log) << ctp::TimeStamp() << " Using levelshift:" << _opt.levelshift << " Hartree" << std::flush;
-        }
         Eigen::MatrixXd vir=  MOsinv.transpose()*virt*MOsinv ; 
-        H+=vir;
-      
+        H+=vir;   
           return;
     }
     
     
-    Eigen::MatrixXd ConvergenceAcc::DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies){
+    Eigen::MatrixXd ConvergenceAcc::DensityMatrix(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies)const{
       Eigen::MatrixXd result;
       if(_opt.mode== KSmode::closed){
         result=DensityMatrixGroundState( MOs);
@@ -167,14 +179,14 @@ namespace votca { namespace xtp {
       return result;
     }
     
-    Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(const Eigen::MatrixXd& MOs){
+    Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(const Eigen::MatrixXd& MOs)const{
           const Eigen::MatrixXd occstates=MOs.block(0,0,MOs.rows(),_nocclevels);
           Eigen::MatrixXd dmatGS = 2.0*occstates*occstates.transpose();
           return dmatGS;
         } 
     
     
-    Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs) {
+    Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_unres(const Eigen::MatrixXd& MOs)const {
             if (_nocclevels == 0) {
                 return Eigen::MatrixXd::Zero(MOs.cols(),MOs.rows());
             }
@@ -183,7 +195,7 @@ namespace votca { namespace xtp {
               return dmatGS;
         }
 
-        Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) {
+        Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies)const {
             if (_opt.numberofelectrons == 0) {
                 return Eigen::MatrixXd::Zero(MOs.rows(),MOs.cols());
             }
