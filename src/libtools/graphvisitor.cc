@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -31,18 +31,18 @@ namespace tools {
 
 class GraphNode;
 
-bool GraphVisitor::queEmpty() { return true; }
+bool GraphVisitor::queEmpty() const { return true; }
 
 void GraphVisitor::addEdges_(Graph& graph, int vertex) {
   throw runtime_error("addEdges_ method must be defined by your visitor");
 }
 
 void GraphVisitor::exploreNode(pair<int, GraphNode>& vertex_and_node,
-                                Graph& graph, Edge edge) {
+                               Graph& graph, Edge edge) {
   explored_.insert(vertex_and_node.first);
 }
 
-vector<int> GraphVisitor::getUnexploredVertex(Edge edge) {
+vector<int> GraphVisitor::getUnexploredVertex(const Edge edge) const {
   vector<int> unexp_vert;
   if (explored_.count(edge.getEndPoint1()) == 0) {
     unexp_vert.push_back(edge.getEndPoint1());
@@ -53,8 +53,8 @@ vector<int> GraphVisitor::getUnexploredVertex(Edge edge) {
   return unexp_vert;
 }
 
-bool GraphVisitor::vertexExplored(int vertex){
-  return explored_.count(vertex)==1;
+bool GraphVisitor::vertexExplored(const int vertex) const {
+  return explored_.count(vertex) == 1;
 }
 
 void GraphVisitor::initialize(Graph& graph) {
@@ -100,7 +100,7 @@ Edge GraphVisitor::nextEdge(Graph graph) {
   return edge;
 }
 
-set<int> GraphVisitor::getExploredVertices() { return explored_; }
+set<int> GraphVisitor::getExploredVertices() const { return explored_; }
 
 }  // namespace tools
 }  // namespace votca

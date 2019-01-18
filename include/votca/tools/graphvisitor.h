@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -61,20 +61,20 @@ class GraphVisitor {
   /// Edge(0,0) is a dummy value
  public:
   virtual void exploreNode(std::pair<int, GraphNode>& vertex_and_node,
-                            Graph& graph, Edge edge = DUMMY_EDGE);
+                           Graph& graph, Edge edge = DUMMY_EDGE);
 
   GraphVisitor(){};
 
   /// Determine which vertices in the edge, if any, have not been explored
-  std::vector<int> getUnexploredVertex(Edge edge);
+  std::vector<int> getUnexploredVertex(const Edge edge) const;
 
   /// Determine if the exploration is complete, this is determined by whether
   /// the edge queue is empty or not, it does not necessarily mean all
   /// vertices in a graph have been explored.
-  virtual bool queEmpty();
+  virtual bool queEmpty() const;
 
   void setStartingVertex(int vertex) { startingVertex_ = vertex; }
-  int getStartingVertex() { return startingVertex_; }
+  int getStartingVertex() const { return startingVertex_; }
 
   /// Initialize the graphvisitor the default starting point is 0
   void initialize(Graph& graph);
@@ -90,10 +90,10 @@ class GraphVisitor {
   Edge nextEdge(Graph graph);
 
   /// Get the set of all the vertices that have been explored
-  std::set<int> getExploredVertices();
+  std::set<int> getExploredVertices() const;
 
   /// Has the vertex been explored
-  bool vertexExplored(int vert);
+  bool vertexExplored(const int vert) const;
 };
 }  // namespace tools
 }  // namespace votca
