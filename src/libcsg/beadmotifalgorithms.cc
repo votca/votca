@@ -157,7 +157,7 @@ list<BeadMotif> moveMultipleStructureMotifsToSeparateList_(
   while (bead_motif_iter != bead_motifs.end()) {
     if (bead_motif_iter->getType() ==
         BeadMotif::MotifType::multiple_structures) {
-      auto temp_iter = bead_motif_iter;
+      list<BeadMotif>::iterator temp_iter = bead_motif_iter;
       ++temp_iter;
       bead_motif_multiple_structures.splice(
           bead_motif_multiple_structures.end(), bead_motifs, bead_motif_iter);
@@ -177,13 +177,13 @@ pair<list<BeadMotif>, list<BeadMotif>> separateComplexAndSimpleMotifs_(
   list<BeadMotif>::iterator motif_iterator = bead_motifs.begin();
   while (motif_iterator != bead_motifs.end()) {
     if (motif_iterator->isMotifSimple()) {
-      auto temp_iter = motif_iterator;
+      list<BeadMotif>::iterator temp_iter = motif_iterator;
       ++temp_iter;
       simple_motifs.splice(simple_motifs.end(), bead_motifs, motif_iterator);
       motif_iterator = temp_iter;
     } else {
       assert(motif_iterator->getType() != BeadMotif::MotifType::undefined);
-      auto temp_iter = motif_iterator;
+      list<BeadMotif>::iterator temp_iter = motif_iterator;
       ++temp_iter;
       complex_motifs.splice(complex_motifs.end(), bead_motifs, motif_iterator);
       motif_iterator = temp_iter;

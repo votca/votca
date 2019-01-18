@@ -18,7 +18,9 @@
 #ifndef VOTCA_CSG_BEADMOTIFALGORITHMS_H
 #define VOTCA_CSG_BEADMOTIFALGORITHMS_H
 
+#include "beadmotif.h"
 #include "beadstructure.h"
+#include "beadstructurealgorithms.h"
 
 namespace votca {
 namespace csg {
@@ -26,7 +28,8 @@ namespace csg {
 template <class T>
 T breakIntoMotifs(BeadStructure& beadstructure) {
   T bead_motifs;
-  std::vector<BeadStructure> structures = breakIntoStructures(beadstructure);
+  std::vector<BeadStructure> structures =
+      votca::csg::breakIntoStructures(beadstructure);
   for (BeadStructure& structure : structures) {
     BeadMotif bead_motif;
     bead_motif.BeadStructure::operator=(structure);
@@ -35,10 +38,10 @@ T breakIntoMotifs(BeadStructure& beadstructure) {
   return bead_motifs;
 }
 /**
- * \brief This function will take a beadmotif and break it into its elemental
+ * \brief This function will take a beadmotif and break it into its simple
  *motifs
  **/
-// std::unordered_map<int,BeadMotif> breakIntoSimpleMotifs(BeadMotif beadmotif);
+std::unordered_map<int, BeadMotif> breakIntoSimpleMotifs(BeadMotif beadmotif);
 
 }  // namespace csg
 }  // namespace votca

@@ -32,7 +32,7 @@ namespace csg {
  * Internal Functions *
  **********************/
 
-shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead *basebead) {
+GraphNode BaseBeadToGraphNode(BaseBead *basebead) {
   unordered_map<string, double> attributes1;
   unordered_map<string, string> attributes2;
 
@@ -44,7 +44,7 @@ shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead *basebead) {
   graphnode.setDouble(attributes1);
   graphnode.setStr(attributes2);
 
-  return make_shared<GraphNode>(graphnode);
+  return graphnode;
 }
 
 /***************************
@@ -59,7 +59,7 @@ void BeadStructure::AddBead(BaseBead *bead) {
     err += "already exists within the beadstructure";
     throw invalid_argument(err);
   }
-  auto numberOfBeads = beads_.size();
+  size_t numberOfBeads = beads_.size();
   beads_[bead->getId()] = bead;
   if (numberOfBeads != beads_.size()) {
     single_structureUpToDate_ = false;
@@ -77,7 +77,7 @@ void BeadStructure::ConnectBeads(int bead1_id, int bead2_id) {
     string err = "Beads cannot be self-connected";
     throw invalid_argument(err);
   }
-  auto numberOfConnections = connections_.size();
+  size_t numberOfConnections = connections_.size();
   connections_.insert(Edge(bead1_id, bead2_id));
   if (numberOfConnections != connections_.size()) {
     single_structureUpToDate_ = false;
@@ -90,32 +90,29 @@ void BeadStructure::InitializeGraph_() {
   cerr << "Graph up to Date " << graphUpToDate << endl;
   if (!graphUpToDate) {
     vector<Edge> connections_vector;
-    for (auto edge : connections_) {
+    for (const Edge &edge : connections_) {
       connections_vector.push_back(edge);
     }
 
-    unordered_map<int, GraphNode> graphnodes;
-    for (auto id_bead_ptr_pair : beads_) {
+    for (pair<const int, BaseBead *> &id_bead_ptr_pair : beads_) {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode(id_bead_ptr_pair.second);
-      graphnodes[id_bead_ptr_pair.first] =
-          *(graphnodes_[id_bead_ptr_pair.first]);
     }
-    graph_ = make_shared<Graph>(Graph(connections_vector, graphnodes));
+    graph_ = Graph(connections_vector, graphnodes_);
     graphUpToDate = true;
   }
 }
 
 Graph BeadStructure::getGraph() {
   InitializeGraph_();
-  return *graph_;
+  return graph_;
 }
 
 void BeadStructure::CalculateStructure_() {
 
   InitializeGraph_();
   if (!structureIdUpToDate) {
-    structure_id_ = findStructureId<GraphDistVisitor>(*graph_);
+    structure_id_ = findStructureId<GraphDistVisitor>(graph_);
     structureIdUpToDate = true;
   }
 }
@@ -124,7 +121,7 @@ bool BeadStructure::isSingleStructure() {
 
   InitializeGraph_();
   if (single_structureUpToDate_ == false) {
-    auto vertices = graph_->getVertices();
+    vector<int> vertices = graph_.getVertices();
     if (vertices.size() == 0) {
       single_structure_ = false;
       return single_structure_;
@@ -132,7 +129,7 @@ bool BeadStructure::isSingleStructure() {
     // Choose first vertex that is actually in the graph as the starting vertex
     Graph_BF_Visitor gv_breadth_first;
     gv_breadth_first.setStartingVertex(vertices.at(0));
-    if (!singleNetwork(*graph_, gv_breadth_first)) {
+    if (!singleNetwork(graph_, gv_breadth_first)) {
       single_structure_ = false;
       return single_structure_;
     }
@@ -164,9 +161,9 @@ vector<BaseBead *> BeadStructure::getNeighBeads(int index) {
   if (!graphUpToDate) {
     InitializeGraph_();
   }
-  auto neighbor_ids = graph_->getNeighVertices(index);
+  vector<int> neighbor_ids = graph_.getNeighVertices(index);
   vector<BaseBead *> neighbeads;
-  for (auto node_id : neighbor_ids) {
+  for (int &node_id : neighbor_ids) {
     neighbeads.push_back(beads_[node_id]);
   }
   return neighbeads;

@@ -30,7 +30,7 @@ namespace csg {
  **********************/
 bool BeadMotif::junctionExist_() {
   if (!junctionsUpToDate_) {
-    junctions_ = graph_->getJunctions();
+    junctions_ = graph_.getJunctions();
     junctionsUpToDate_ = true;
   }
   return junctions_.size() != 0;
@@ -48,8 +48,8 @@ bool BeadMotif::isLine_() {
   // all other vertices must be 2
   int num_vertices_degree_1 = 0;
 
-  auto vertices = reduced_graph_.getVertices();
-  for (auto vertex : vertices) {
+  vector<int> vertices = reduced_graph_.getVertices();
+  for (int& vertex : vertices) {
     int degree = reduced_graph_.getDegree(vertex);
     if (degree == 1) {
       ++num_vertices_degree_1;
@@ -67,9 +67,9 @@ bool BeadMotif::isLoop_() {
   if (junctionExist_()) return false;
 
   // Ensure that the degree of every vertex is 2
-  auto vertices = graph_->getVertices();
-  for (auto vertex : vertices) {
-    if (graph_->getDegree(vertex) != 2) return false;
+  vector<int> vertices = graph_.getVertices();
+  for (int& vertex : vertices) {
+    if (graph_.getDegree(vertex) != 2) return false;
   }
   return true;
 }
@@ -77,9 +77,9 @@ bool BeadMotif::isLoop_() {
 bool BeadMotif::isFusedRing_() {
   if (!junctionExist_()) return false;
   // Ensure that the degree of every vertex is 2 or greater
-  auto vertices = graph_->getVertices();
-  for (auto vertex : vertices) {
-    if (graph_->getDegree(vertex) < 2) return false;
+  vector<int> vertices = graph_.getVertices();
+  for (int& vertex : vertices) {
+    if (graph_.getDegree(vertex) < 2) return false;
   }
   // If exploring from one branch of a junction lets you explore every
   // edge than it is a fused ring.
@@ -146,7 +146,7 @@ std::vector<BaseBead*> BeadMotif::getNeighBeads(int index) {
 
 void BeadMotif::InitializeGraph_() {
   BeadStructure::InitializeGraph_();
-  reduced_graph_ = reduceGraph(*graph_);
+  reduced_graph_ = reduceGraph(graph_);
 }
 
 bool BeadMotif::isMotifSimple() {
