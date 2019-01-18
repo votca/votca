@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,11 +17,9 @@
  *
  */
 
-#include <iostream>
-#include <list>
-#include <vector>
 #include <algorithm>
-
+#include <iostream>
+#include <vector>
 #include <votca/tools/edge.h>
 
 namespace votca {
@@ -30,7 +28,7 @@ namespace tools {
 using namespace std;
 
 Edge::Edge(int ID1, int ID2) {
-  vertices_ = vector<int>{min({ID1,ID2}), max({ID1,ID2})};
+  vertices_ = vector<int>{min({ID1, ID2}), max({ID1, ID2})};
 }
 
 int Edge::getOtherEndPoint(int ver) const {
@@ -77,5 +75,5 @@ ostream& operator<<(ostream& os, const Edge ed) {
   os << ed.vertices_.front() << " " << ed.vertices_.back() << endl;
   return os;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

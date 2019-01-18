@@ -48,7 +48,7 @@ class Graph_DF_Visitor : public GraphVisitor {
 
  public:
   Graph_DF_Visitor(){};
-  bool queEmpty();
+  bool queEmpty() const;
 };
 }  // namespace tools
 }  // namespace votca

@@ -56,7 +56,8 @@ bool singleNetwork(const Graph& graph, GraphVisitor& graph_visitor) {
          graph.getIsolatedNodes().size() == 0;
 }
 
-std::set<Edge> exploreBranch(const Graph& g, int starting_vertex, Edge edge) {
+std::set<Edge> exploreBranch(const Graph& g, const int starting_vertex,
+                             const Edge& edge) {
   // Check if the starting vertex is in the graph
   if (!g.vertexExist(starting_vertex)) {
     throw invalid_argument(

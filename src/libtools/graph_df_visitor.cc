@@ -27,7 +27,7 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-bool Graph_DF_Visitor::queEmpty() { return edge_list_.empty(); }
+bool Graph_DF_Visitor::queEmpty() const { return edge_stack_.empty(); }
 
 Edge Graph_DF_Visitor::getEdge_(Graph g) {
   Edge ed = edge_list_.back();

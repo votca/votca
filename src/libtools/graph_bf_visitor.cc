@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,7 +27,7 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-bool Graph_BF_Visitor::queEmpty() { return edge_que_.empty(); }
+bool Graph_BF_Visitor::queEmpty() const { return edge_que_.empty(); }
 
 Edge Graph_BF_Visitor::getEdge_(Graph graph) {
   Edge oldest_edge = edge_que_.at(0).front();
