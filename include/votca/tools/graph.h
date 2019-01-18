@@ -76,7 +76,7 @@ class Graph {
 
   /// Find all the vertices that are isolated (not connected to any other
   /// vertex) and return them in a vector with their corresponding graph node.
-  std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void);
+  std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void) const;
 
   /// Functions determines which vertices do not have a graph node associated
   /// with them and return their ids in a vector.
@@ -84,7 +84,7 @@ class Graph {
 
   /// Returns a vector of the vertices and their graph nodes that are directly
   /// connected to the vertex 'vert'
-  std::vector<std::pair<int, GraphNode>> getNeighNodes(int vertex);
+  std::vector<std::pair<int, GraphNode>> getNeighNodes(int vertex) const;
 
   /// set the Node associated with vertex 'vert'
   void setNode(int vertex, GraphNode& graph_node);
@@ -97,11 +97,11 @@ class Graph {
   GraphNode getNode(const int vertex) const;
 
   /// Return all the vertices and their graph nodes that are within the graph
-  virtual std::vector<std::pair<int, GraphNode>> getNodes(void);
+  virtual std::vector<std::pair<int, GraphNode>> getNodes(void) const;
 
   /// Returns all the vertices of the graph connected to vertex `vert` through
   /// an edge.
-  std::vector<int> getNeighVertices(int vertex) {
+  std::vector<int> getNeighVertices(int vertex) const {
     return edge_container_.getNeighVertices(vertex);
   }
 
@@ -112,12 +112,12 @@ class Graph {
   std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
 
   /// Returns all the edges in the graph connected to vertex `vertex`
-  std::vector<Edge> getNeighEdges(int vertex) {
+  std::vector<Edge> getNeighEdges(int vertex) const {
     return edge_container_.getNeighEdges(vertex);
   }
 
   /// Returns all the vertices in the graph
-  std::vector<int> getVertices() { return edge_container_.getVertices(); }
+  std::vector<int> getVertices() const { return edge_container_.getVertices(); }
 
   /**
    * \brief Finds the max degree of a vertex in the graph.
@@ -135,10 +135,12 @@ class Graph {
   virtual std::vector<int> getVerticesDegree(int degree) const;
 
   /// Determines if a vertex exists within the graph
-  bool vertexExist(int vertex);
+  bool vertexExist(int vertex) const;
 
   /// Determines if an edge is stored in the graph
-  bool edgeExist(Edge edge) { return edge_container_.edgeExist(edge); }
+  bool edgeExist(const Edge& edge) const {
+    return edge_container_.edgeExist(edge);
+  }
 
   /// Copies nodes from one graph to another. This should only be used in cases
   /// where the graph does not contain nodes before the copy.

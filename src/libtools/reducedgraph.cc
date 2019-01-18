@@ -69,7 +69,7 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
 
 set<int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
   set<int> vertices;
-  for (auto reduced_edge : reduced_edges) {
+  for (const ReducedEdge& reduced_edge : reduced_edges) {
     vector<int> chain = reduced_edge.getChain();
     for (const int vertex : chain) {
       vertices.insert(vertex);
@@ -118,15 +118,14 @@ Graph ReducedGraph::expandGraph() {
   return Graph(all_expanded_edges, nodes_);
 }
 
-vector<vector<Edge>> ReducedGraph::expandEdge(Edge edge) {
-  assert(expanded_edges_.count(edge));
+vector<vector<Edge>> ReducedGraph::expandEdge(const Edge& edge) const {
   vector<vector<Edge>> all_edges;
-  vector<vector<int>> chains = expanded_edges_[edge];
+  vector<vector<int>> chains = expanded_edges_.at(edge);
   for (vector<int> vertices : chains) {
     vector<Edge> edges;
     for (size_t index = 0; index < (vertices.size() - 1); ++index) {
-      Edge edge(vertices.at(index), vertices.at(index + 1));
-      edges.push_back(edge);
+      Edge edge_temp(vertices.at(index), vertices.at(index + 1));
+      edges.push_back(edge_temp);
     }
     all_edges.push_back(edges);
   }
@@ -144,11 +143,11 @@ set<int> getAllConnectedVertices_(
   }
   return all_vertices;
 }
-vector<pair<int, GraphNode>> ReducedGraph::getNodes() {
+vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
   vector<int> vertices = edge_container_.getVertices();
   vector<pair<int, GraphNode>> nodes;
   for (const int vertex : vertices) {
-    pair<int, GraphNode> id_and_node(vertex, nodes_[vertex]);
+    pair<int, GraphNode> id_and_node(vertex, nodes_.at(vertex));
     nodes.push_back(id_and_node);
   }
 

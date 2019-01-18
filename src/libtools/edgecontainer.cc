@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -68,7 +68,7 @@ vector<int> EdgeContainer::getVerticesDegree(int degree) const {
   return vertices;
 }
 
-bool EdgeContainer::edgeExist(Edge edge) const {
+bool EdgeContainer::edgeExist(const Edge& edge) const {
   if (adj_list_.count(edge.getEndPoint1())) {
     if (adj_list_.at(edge.getEndPoint1()).count(edge.getEndPoint2())) {
       return true;
@@ -107,7 +107,7 @@ void EdgeContainer::addEdge(Edge edge) {
   return;
 }
 
-vector<int> EdgeContainer::getVertices() {
+vector<int> EdgeContainer::getVertices() const {
   vector<int> vertices;
   for (const auto& vertex_and_neigh_and_count : adj_list_) {
     vertices.push_back(vertex_and_neigh_and_count.first);
@@ -115,18 +115,18 @@ vector<int> EdgeContainer::getVertices() {
   return vertices;
 }
 
-vector<int> EdgeContainer::getNeighVertices(int vertex) {
+vector<int> EdgeContainer::getNeighVertices(int vertex) const {
   vector<int> neigh_verts;
-  for (const pair<int, int>& neigh_and_count : adj_list_[vertex]) {
+  for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
     neigh_verts.push_back(neigh_and_count.first);
   }
   return neigh_verts;
 }
 
-vector<Edge> EdgeContainer::getNeighEdges(int vertex) {
+vector<Edge> EdgeContainer::getNeighEdges(int vertex) const {
   vector<Edge> neigh_edges;
-  for (const pair<int, int>& neigh_and_count : adj_list_[vertex]) {
-    for (int count = 0; count < adj_list_[vertex][neigh_and_count.first];
+  for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
+    for (int count = 0; count < adj_list_.at(vertex).at(neigh_and_count.first);
          ++count) {
       neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
     }

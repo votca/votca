@@ -103,12 +103,12 @@ class ReducedGraph : public Graph {
    * vec_edges.at(0); // 2-3
    * vec_edges.at(1); // 2-6, 6-7, 7-3
    **/
-  std::vector<std::vector<Edge>> expandEdge(Edge edge);
+  std::vector<std::vector<Edge>> expandEdge(const Edge& edge) const;
 
   /// This method will return a copy of the full graph
   Graph expandGraph();
 
-  std::vector<std::pair<int, GraphNode>> getNodes(void);
+  std::vector<std::pair<int, GraphNode>> getNodes(void) const;
 
   std::vector<int> getVerticesDegree(int degree) const;
 

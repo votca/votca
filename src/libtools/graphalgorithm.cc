@@ -49,15 +49,14 @@ vector<Edge> edgeSetToVector_(set<Edge> edges) {
  * Public Functions *
  ********************/
 
-bool singleNetwork(const Graph& graph, GraphVisitor& graph_visitor) {
+bool singleNetwork(Graph graph, GraphVisitor& graph_visitor) {
   exploreGraph(graph, graph_visitor);
   return graph_visitor.getExploredVertices().size() ==
              graph.getVertices().size() &&
          graph.getIsolatedNodes().size() == 0;
 }
 
-std::set<Edge> exploreBranch(const Graph& g, const int starting_vertex,
-                             const Edge& edge) {
+std::set<Edge> exploreBranch(Graph g, int starting_vertex, const Edge& edge) {
   // Check if the starting vertex is in the graph
   if (!g.vertexExist(starting_vertex)) {
     throw invalid_argument(
@@ -108,7 +107,7 @@ std::set<Edge> exploreBranch(const Graph& g, const int starting_vertex,
   return branch_edges;
 }
 
-ReducedGraph reduceGraph(const Graph& graph) {
+ReducedGraph reduceGraph(Graph graph) {
 
   /****************************
    * Internal Function Class
@@ -247,17 +246,15 @@ ReducedGraph reduceGraph(const Graph& graph) {
   return reduced_g;
 }
 
-vector<Graph> decoupleIsolatedSubGraphs(const Graph& graph) {
+vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
   list<int> vertices_list = vectorToList_(graph.getVertices());
   vector<Graph> subGraphs;
-  {
-    Graph_BF_Visitor graph_visitor_breadth_first;
-    graph_visitor_breadth_first.setStartingVertex(*vertices_list.begin());
-    if (singleNetwork(graph, graph_visitor_breadth_first)) {
-      subGraphs.push_back(graph);
-      return subGraphs;
-    }
+  Graph_BF_Visitor graph_visitor_breadth_first;
+  graph_visitor_breadth_first.setStartingVertex(vertices_list.front());
+  if (singleNetwork(graph, graph_visitor_breadth_first)) {
+    subGraphs.push_back(graph);
+    return subGraphs;
   }
 
   list<int>::iterator vertices_iterator = vertices_list.begin();
@@ -298,7 +295,7 @@ vector<Graph> decoupleIsolatedSubGraphs(const Graph& graph) {
   return subGraphs;
 }
 
-void exploreGraph(const Graph& graph, GraphVisitor& graph_visitor) {
+void exploreGraph(Graph& graph, GraphVisitor& graph_visitor) {
 
   if (!graph.vertexExist(graph_visitor.getStartingVertex())) {
     string err = "Cannot explore graph starting at vertex " +

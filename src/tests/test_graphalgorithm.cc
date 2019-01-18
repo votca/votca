@@ -20,6 +20,7 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE graphalgorithm_test
+
 #include <boost/test/unit_test.hpp>
 #include <memory>
 #include <unordered_map>

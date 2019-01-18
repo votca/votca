@@ -29,7 +29,7 @@ namespace tools {
 
 bool Graph_BF_Visitor::queEmpty() const { return edge_que_.empty(); }
 
-Edge Graph_BF_Visitor::getEdge_(Graph graph) {
+Edge Graph_BF_Visitor::getEdge_(const Graph& graph) {
   Edge oldest_edge = edge_que_.at(0).front();
   edge_que_.at(0).pop();
   if (edge_que_.at(0).size() == 0) {
@@ -39,7 +39,7 @@ Edge Graph_BF_Visitor::getEdge_(Graph graph) {
 }
 
 // Add edges to be explored
-void Graph_BF_Visitor::addEdges_(Graph& graph, int vertex) {
+void Graph_BF_Visitor::addEdges_(const Graph& graph, int vertex) {
 
   vector<Edge> newest_edges = graph.getNeighEdges(vertex);
 

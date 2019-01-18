@@ -35,7 +35,7 @@ bool Graph::operator!=(const Graph& graph) const {
 
 bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
 
-vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) {
+vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) const {
   vector<pair<int, GraphNode>> isolated_nodes;
   for (const pair<int, GraphNode>& id_and_node : nodes_) {
     if (edge_container_.vertexExist(id_and_node.first)) {
@@ -64,11 +64,11 @@ vector<int> Graph::getVerticesMissingNodes(void) {
   return missing;
 }
 
-vector<pair<int, GraphNode>> Graph::getNeighNodes(int vertex) {
+vector<pair<int, GraphNode>> Graph::getNeighNodes(int vertex) const {
   vector<int> neigh_vertices = edge_container_.getNeighVertices(vertex);
   vector<pair<int, GraphNode>> neigh_ids_and_nodes;
-  for (int& neigh_vert : neigh_vertices) {
-    auto id_and_node = pair<int, GraphNode>(neigh_vert, nodes_[neigh_vert]);
+  for (const int& neigh_vert : neigh_vertices) {
+    auto id_and_node = pair<int, GraphNode>(neigh_vert, nodes_.at(neigh_vert));
     neigh_ids_and_nodes.push_back(id_and_node);
   }
   return neigh_ids_and_nodes;
@@ -93,7 +93,7 @@ GraphNode Graph::getNode(const int vertex) const {
   return nodes_.at(vertex);
 }
 
-vector<pair<int, GraphNode>> Graph::getNodes(void) {
+vector<pair<int, GraphNode>> Graph::getNodes(void) const {
   vector<pair<int, GraphNode>> vec_nodes;
   for (const pair<int, GraphNode>& id_and_node : nodes_) {
     vec_nodes.push_back(id_and_node);
@@ -139,7 +139,7 @@ int Graph::getDegree(int vertex) const {
       "not defined.");
 }
 
-bool Graph::vertexExist(int vertex) {
+bool Graph::vertexExist(int vertex) const {
   if (edge_container_.vertexExist(vertex)) return true;
   if (nodes_.count(vertex)) return true;
   return false;
