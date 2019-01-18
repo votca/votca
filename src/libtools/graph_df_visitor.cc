@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -27,7 +27,7 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-bool Graph_DF_Visitor::queEmpty() { return edge_stack_.empty(); }
+bool Graph_DF_Visitor::queEmpty() const { return edge_stack_.empty(); }
 
 Edge Graph_DF_Visitor::getEdge_(Graph g) {
   Edge ed = edge_stack_.top();
@@ -38,22 +38,22 @@ Edge Graph_DF_Visitor::getEdge_(Graph g) {
 // Add edges to be explored
 void Graph_DF_Visitor::addEdges_(Graph& g, int vertex) {
   auto eds = g.getNeighEdges(vertex);
-  if(edge_stack_.empty()){
-  // If first edges to be added
-    for(auto ed : eds){
+  if (edge_stack_.empty()) {
+    // If first edges to be added
+    for (auto ed : eds) {
       int neigh_vert = ed.getOtherEndPoint(vertex);
-      if(explored_.count(neigh_vert)==0){
+      if (explored_.count(neigh_vert) == 0) {
         edge_stack_.push(ed);
       }
     }
-  }else{
-    for(auto ed : eds){
+  } else {
+    for (auto ed : eds) {
       int neigh_vert = ed.getOtherEndPoint(vertex);
-      if(explored_.count(neigh_vert)==0){
+      if (explored_.count(neigh_vert) == 0) {
         edge_stack_.push(ed);
       }
     }
   }
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

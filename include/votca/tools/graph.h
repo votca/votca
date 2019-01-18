@@ -139,6 +139,9 @@ class Graph {
   /// Determines if a vertex exists within the graph
   bool vertexExist(int vertex) { return edge_container_.vertexExist(vertex); }
 
+  /// Determines if an edge is stored in the graph
+  bool edgeExist(Edge edge) { return edge_container_.edgeExist(edge); }
+
   friend std::ostream& operator<<(std::ostream& os, const Graph graph);
 };
 

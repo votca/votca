@@ -59,7 +59,7 @@ class Edge {
    * If both ends of the edge point to the same vertex than it is considered a
    * loop.
    **/
-  bool loop() { return vertices_.front() == vertices_.back(); }
+  bool loop() const { return vertices_.front() == vertices_.back(); }
 
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;
