@@ -1,0 +1,25 @@
+test:default:
+  variables:
+    CMAKE_BUILD_TYPE: "Release"
+    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
+  image: votca/buildenv
+  cache:
+    paths:
+      - ccache/
+  script:
+    - mktexfmt latex.fmt
+    - ccache -z
+    - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
+    - git checkout -B current_commit
+    - cd $HOME
+    - git clone --depth=1 --recursive https://github.com/votca/votca
+    - pushd votca
+    - git -C ${CI_PROJECT_NAME} fetch ${CI_PROJECT_DIR} current_commit
+    - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
+    - mkdir -p build
+    - pushd build
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_XTP_MANUAL=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    - make -O -k -j${j} VERBOSE=1
+    - make test CTEST_OUTPUT_ON_FAILURE=1
+    - make install
+    - ccache -s
