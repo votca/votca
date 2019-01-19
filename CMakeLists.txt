@@ -96,6 +96,7 @@ if(ENABLE_TESTING)
   endforeach()
   set(REGRESSIONTEST_TOLERANCE "1e-5" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
+  find_package(UnixCommands)
 endif(ENABLE_TESTING)
 
 ########################################################################
