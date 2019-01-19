@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.5_rc3 (released XX.01.19)
+## Version 1.5_rc3 (released 19.01.19)
  * travis: fixed bug in building tags
 
 
