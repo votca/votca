@@ -142,15 +142,17 @@ if(ENABLE_TESTING)
   add_test(NAME Compare_csg_resample_cubicfit_output COMMAND ${VOTCA_COMPARE} --etol ${REGRESSIONTEST_TOLERANCE} -f1 table_cubicfit -f2 ${REFPATH}/table_cubicfit WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(Compare_csg_resample_cubicfit_output PROPERTIES DEPENDS Run_csg_resample_cubicfit)
   set_tests_properties(Compare_csg_resample_cubicfit_output PROPERTIES LABELS "csg;tools;votca")
-  
-  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_dump)
-  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/methanol-water/)
-  file(MAKE_DIRECTORY ${RUNPATH})
-  add_test(NAME Run_csg_dump
-    COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --top ${REFPATH}/topol_cg.xml > csg_dump.out"
-    WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Run_csg_dump PROPERTIES LABELS "csg;tools;votca")
-  add_test(NAME Compare_csg_dump_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump.out ${REFPATH}/csg_dump.out WORKING_DIRECTORY ${RUNPATH})
-  set_tests_properties(Compare_csg_dump_output PROPERTIES DEPENDS Run_csg_dump)
-  set_tests_properties(Compare_csg_dump_output PROPERTIES LABELS "csg;tools;votca")
+ 
+  if(BASH)
+    set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_dump)
+    set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/methanol-water/)
+    file(MAKE_DIRECTORY ${RUNPATH})
+    add_test(NAME Run_csg_dump
+      COMMAND ${BASH} -c "$<TARGET_FILE:csg_dump> --top ${REFPATH}/topol_cg.xml > csg_dump.out"
+      WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(Run_csg_dump PROPERTIES LABELS "csg;tools;votca")
+    add_test(NAME Compare_csg_dump_output COMMAND ${CMAKE_COMMAND} -E compare_files csg_dump.out ${REFPATH}/csg_dump.out WORKING_DIRECTORY ${RUNPATH})
+    set_tests_properties(Compare_csg_dump_output PROPERTIES DEPENDS Run_csg_dump)
+    set_tests_properties(Compare_csg_dump_output PROPERTIES LABELS "csg;tools;votca")
+  endif(BASH)
 endif()

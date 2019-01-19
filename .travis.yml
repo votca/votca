@@ -45,7 +45,7 @@ before_script:
    else
      git clone --recursive https://github.com/votca/votca.git $HOME/docker/votca;
      if [[ ${TRAVIS_BRANCH} != master ]]; then
-       git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} origin/${TRAVIS_BRANCH} && git -C ${HOME}/docker/votca submodule update --recursive --init;
+       git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} ${TRAVIS_TAG:-origin/${TRAVIS_BRANCH}} && git -C ${HOME}/docker/votca submodule update --recursive --init;
      fi;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} fetch ${PWD}/${TRAVIS_REPO_SLUG} current_commit;
      git -C ${HOME}/docker/votca/${TRAVIS_REPO_SLUG#*/} checkout -f FETCH_HEAD;
