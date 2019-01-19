@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
  */
 
 #include "bondedstatistics.h"
+
+using namespace votca::tools;
+
+namespace votca {
+  namespace csg {
 
 void BondedStatistics::BeginCG(Topology *top, Topology *top_atom)
 {
@@ -38,9 +43,10 @@ void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom)
     InteractionContainer::iterator ia;
     
     DataCollection<double>::container::iterator is;
-    
     for(ia=ic.begin(), is = _bonded_values.begin(); ia != ic.end(); ++ia, ++is) {
-//        const string &name = (*ia)->getName();        
         (*is)->push_back((*ia)->EvaluateVar(*conf));
     }
+}
+
+}
 }

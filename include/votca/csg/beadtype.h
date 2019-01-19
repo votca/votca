@@ -24,8 +24,6 @@
 namespace votca { namespace csg {
 using namespace votca::tools;
 
-using namespace std;
-
 /**
     \brief Bead Type informaton
 
@@ -35,14 +33,14 @@ using namespace std;
 class  BeadType : public TopologyItem {
 public:    
     const int &getId() const { return _id; }
-    const string &getName() const { return _name; }
-    void setName(const string &name) { _name=name; }
+    const std::string &getName() const { return _name; }
+    void setName(const std::string &name) { _name=name; }
     
 private:
     int _id;
-    string _name;
+    std::string _name;
     
-    BeadType(Topology *parent, int id, const string &name)
+    BeadType(Topology *parent, int id, const std::string &name)
     : TopologyItem(parent), _id(id), _name(name) {}
     friend class Topology;
 };

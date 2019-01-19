@@ -21,6 +21,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 void ExclusionList::Clear(void)
 {
     list< exclusion_t *>::iterator iter;

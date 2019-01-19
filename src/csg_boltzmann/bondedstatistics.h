@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,27 @@
  *
  */
 
-#ifndef _BONDEDSTATISTICS_H
-#define	_BONDEDSTATISTICS_H
+#ifndef VOTCA_CSG_BONDEDSTATISTICS_H
+#define	VOTCA_CSG_BONDEDSTATISTICS_H
 
 #include <votca/csg/cgobserver.h>
 #include <votca/tools/datacollection.h>
 
-using namespace votca::tools;
-using namespace votca::csg;
+namespace TOOLS = votca::tools;
 
+namespace votca {
+  namespace csg {
+/**
+ * \brief Class calculates data associated with bond interactions
+ *
+ * This class will essentially calculate and store information related to each
+ * type of interaction. For instance for the IBond which is the interaction
+ * between two beads it will calculate and store the distance between the two
+ * beads involved in the interaction. It will calculate a similar metric for all
+ * other interactions such as IAngle, IDihedral etc...
+ **/
 class BondedStatistics
-    : public CGObserver
+    : public votca::csg::CGObserver
 {
 public:
     void BeginCG(Topology *top, Topology *top_atom = 0);
@@ -33,11 +43,11 @@ public:
     
     void EvalConfiguration(Topology *conf, Topology *conf_atom = 0);
     
-    DataCollection<double> &BondedValues() { return _bonded_values; }
+    TOOLS::DataCollection<double> &BondedValues() { return _bonded_values; }
 
 protected:
-    DataCollection<double> _bonded_values;
+    TOOLS::DataCollection<double> _bonded_values;
 };
-
-#endif	/* _BOLZMANNINVERSION_H */
+}}
+#endif	// VOTCA_CSG_BOLZMANNINVERSION_H 
 

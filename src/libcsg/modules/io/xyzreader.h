@@ -25,9 +25,6 @@
 #include <votca/csg/trajectoryreader.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief class for reading xyz files
@@ -44,10 +41,10 @@ class XYZReader :
         ~XYZReader() {}
 
         /// open a topology file
-        bool ReadTopology(string file, Topology &top);
+        bool ReadTopology(std::string file, Topology &top);
 
         /// open a trejectory file
-        bool Open(const string &file);
+        bool Open(const std::string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
         /// read in the next frame
@@ -56,7 +53,7 @@ class XYZReader :
         void Close();
 
     private:
-        ifstream _fl;
+        std::ifstream _fl;
         bool _topology;
         int _natoms;
 

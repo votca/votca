@@ -25,6 +25,7 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
 using boost::lexical_cast;
 
 CGMoleculeDef::~CGMoleculeDef()
@@ -104,8 +105,8 @@ Molecule * CGMoleculeDef::CreateMolecule(Topology & top)
     vector<beaddef_t *>::iterator iter;
     for(iter = _beads.begin(); iter != _beads.end(); ++iter) {
         Bead *bead;
-        auto bt = top.GetOrCreateBeadType((*iter)->_type);
-        bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, bt, res->getId(), 0, 0);
+        weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType((*iter)->_type);
+        bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, weak_type, res->getId(), 0, 0);
         minfo->AddBead(bead, bead->getName());
 
         bead->setOptions(*(*iter)->_options);
