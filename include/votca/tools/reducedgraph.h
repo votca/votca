@@ -110,6 +110,8 @@ class ReducedGraph : public Graph {
 
   std::vector<std::pair<int, GraphNode>> getNodes(void) const;
 
+  std::vector<int> getVertices() const;
+
   std::vector<int> getVerticesDegree(int degree) const;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);

@@ -48,8 +48,7 @@ vector<Edge> edgeSetToVector_(set<Edge> edges) {
 /********************
  * Public Functions *
  ********************/
-
-bool singleNetwork(Graph graph, GraphVisitor& graph_visitor) {
+bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor) {
   exploreGraph(graph, graph_visitor);
   return graph_visitor.getExploredVertices().size() ==
              graph.getVertices().size() &&
@@ -248,22 +247,23 @@ ReducedGraph reduceGraph(Graph graph) {
 
 vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
+  cout << "Calling decoupleIsolatedSubGraphs" << endl;
   list<int> vertices_list = vectorToList_(graph.getVertices());
   vector<Graph> subGraphs;
   Graph_BF_Visitor graph_visitor_breadth_first;
   graph_visitor_breadth_first.setStartingVertex(vertices_list.front());
   if (singleNetwork(graph, graph_visitor_breadth_first)) {
+    cout << "Is considered a single network " << endl;
     subGraphs.push_back(graph);
     return subGraphs;
   }
 
   list<int>::iterator vertices_iterator = vertices_list.begin();
-  unordered_map<int, GraphNode> sub_graph_nodes;
   while (vertices_iterator != vertices_list.end()) {
+    unordered_map<int, GraphNode> sub_graph_nodes;
     Graph_BF_Visitor graph_visitor_breadth_first;
     graph_visitor_breadth_first.setStartingVertex(*vertices_iterator);
     exploreGraph(graph, graph_visitor_breadth_first);
-
     ++vertices_iterator;
     set<int> sub_graph_explored_vertices =
         graph_visitor_breadth_first.getExploredVertices();
@@ -271,26 +271,31 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
     set<int>::iterator sub_graph_vertex_it =
         sub_graph_explored_vertices.begin();
+
+    // Means it is an isolated node
+
     while (sub_graph_vertex_it != sub_graph_explored_vertices.end()) {
       if (*vertices_iterator == *sub_graph_vertex_it) {
         ++vertices_iterator;
       }
+
       vertices_list.remove(*sub_graph_vertex_it);
 
       vector<Edge> sub_graph_neigh_edges =
           graph.getNeighEdges(*sub_graph_vertex_it);
       for (const Edge sub_graph_edge : sub_graph_neigh_edges) {
+        cout << "Getting edge " << sub_graph_edge << endl;
         sub_graph_edges.insert(sub_graph_edge);
       }
-
+      cout << "Getting node " << *sub_graph_vertex_it << endl;
       sub_graph_nodes[*sub_graph_vertex_it] =
           graph.getNode(*sub_graph_vertex_it);
       ++sub_graph_vertex_it;
     }
-
+    cout << "End of subgraph " << endl;
     vector<Edge> sub_graph_vector_edges = edgeSetToVector_(sub_graph_edges);
-
-    subGraphs.push_back(Graph(sub_graph_vector_edges, sub_graph_nodes));
+    Graph graph_temp(sub_graph_vector_edges, sub_graph_nodes);
+    subGraphs.push_back(graph_temp);
   }
   return subGraphs;
 }

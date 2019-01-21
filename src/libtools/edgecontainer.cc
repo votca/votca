@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <exception>
 #include <set>
 #include <vector>
@@ -51,6 +52,9 @@ int EdgeContainer::getMaxDegree(void) const {
 int EdgeContainer::getDegree(const int vertex) const {
   if (!adj_list_.count(vertex)) throw invalid_argument("vertex is not defined");
   int degree_count = 0;
+  if (adj_list_.at(vertex).size() == 0) {
+    return degree_count;
+  }
   for (const pair<int, int>& neighbor_and_count : adj_list_.at(vertex)) {
     degree_count += neighbor_and_count.second;
   }
@@ -66,6 +70,16 @@ vector<int> EdgeContainer::getVerticesDegree(int degree) const {
     }
   }
   return vertices;
+}
+
+bool EdgeContainer::vertexExistWithDegree(int degree) const {
+  for (const auto& vertex_and_neigh_and_count : adj_list_) {
+    int degree_count = getDegree(vertex_and_neigh_and_count.first);
+    if (degree_count == degree) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool EdgeContainer::edgeExist(const Edge& edge) const {
@@ -107,9 +121,16 @@ void EdgeContainer::addEdge(Edge edge) {
   return;
 }
 
+void EdgeContainer::addVertex(int vertex) {
+  assert(adj_list_.count(vertex) == 0 && "Cannot add vertex already exists");
+  unordered_map<int, int> empty_temp;
+  adj_list_[vertex] = empty_temp;
+}
+
 vector<int> EdgeContainer::getVertices() const {
   vector<int> vertices;
-  for (const auto& vertex_and_neigh_and_count : adj_list_) {
+  for (const pair<const int, unordered_map<int, int>>&
+           vertex_and_neigh_and_count : adj_list_) {
     vertices.push_back(vertex_and_neigh_and_count.first);
   }
   return vertices;

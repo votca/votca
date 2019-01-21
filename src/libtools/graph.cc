@@ -29,6 +29,30 @@ namespace tools {
 
 class GraphNode;
 
+bool nodeForEveryVertex_(vector<int> vertices,
+                         unordered_map<int, GraphNode> nodes) {
+  for (const int vertex : vertices) {
+    if (nodes.count(vertex) == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+Graph::Graph(vector<Edge> edges, unordered_map<int, GraphNode> nodes) {
+  edge_container_ = EdgeContainer(edges);
+  vector<int> vertices = edge_container_.getVertices();
+  assert(nodeForEveryVertex_(vertices, nodes) &&
+         "A node must exist for every vertex.");
+  nodes_ = nodes;
+  for (const pair<int, GraphNode> id_and_node : nodes_) {
+    if (edge_container_.vertexExist(id_and_node.first) == false) {
+      edge_container_.addVertex(id_and_node.first);
+    }
+  }
+  calcId_();
+}
+
 bool Graph::operator!=(const Graph& graph) const {
   return id_.compare(graph.id_);
 }
@@ -37,18 +61,11 @@ bool Graph::operator==(const Graph& graph) const { return !(*(this) != graph); }
 
 vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) const {
   vector<pair<int, GraphNode>> isolated_nodes;
-  for (const pair<int, GraphNode>& id_and_node : nodes_) {
-    if (edge_container_.vertexExist(id_and_node.first)) {
-      if (edge_container_.getDegree(id_and_node.first) == 0) {
-        pair<int, GraphNode> id_and_node_copy(id_and_node.first,
-                                              id_and_node.second);
-        isolated_nodes.push_back(id_and_node_copy);
-      }
-    } else {
-      pair<int, GraphNode> id_and_node_copy(id_and_node.first,
-                                            id_and_node.second);
-      isolated_nodes.push_back(id_and_node_copy);
-    }
+  vector<int> vertices_degree_0 = edge_container_.getVerticesDegree(0);
+
+  for (const int vertex : vertices_degree_0) {
+    pair<int, GraphNode> id_and_node{vertex, nodes_.at(vertex)};
+    isolated_nodes.push_back(id_and_node);
   }
   return isolated_nodes;
 }
@@ -75,12 +92,8 @@ vector<pair<int, GraphNode>> Graph::getNeighNodes(int vertex) const {
 }
 
 void Graph::setNode(int vertex, GraphNode& graph_node) {
-  if (nodes_.count(vertex)) {
-    nodes_[vertex] = graph_node;
-  } else {
-    string errMsg = "Vertex does not exist within graph cannot, reset node";
-    throw runtime_error(errMsg);
-  }
+  assert(nodes_.count(vertex) && "Can only set a node that already exists");
+  nodes_[vertex] = graph_node;
   calcId_();
 }
 
@@ -146,18 +159,10 @@ bool Graph::vertexExist(int vertex) const {
 }
 
 vector<int> Graph::getVerticesDegree(int degree) const {
-  if (degree == 0) {
-    vector<int> vertices;
-    for (const pair<int, GraphNode> id_and_node : nodes_) {
-      if (edge_container_.vertexExist(id_and_node.first) == false) {
-        vertices.push_back(id_and_node.first);
-      }
-    }
-    return vertices;
-  } else {
-    return edge_container_.getVerticesDegree(degree);
-  }
+  return edge_container_.getVerticesDegree(degree);
 }
+
+vector<int> Graph::getVertices() const { return edge_container_.getVertices(); }
 
 ostream& operator<<(ostream& os, const Graph graph) {
   os << "Graph" << endl;

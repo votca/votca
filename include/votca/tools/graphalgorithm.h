@@ -51,7 +51,7 @@ class GraphVisitor;
  * @param[in,out] - Graph visitor reference instance used to explore the graph
  * @return - Boolean value (true - if single network)
  */
-bool singleNetwork(Graph graph, GraphVisitor& graph_visitor);
+bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
 
 /**
  * \brief Explore one of the branches if exploration is initiated at vertex
@@ -169,7 +169,7 @@ std::string findStructureId(Graph& graph) {
   std::string str_id = "";
   std::vector<int> graph_node_ids;
   for (const int& vertex : vertices) {
-    auto graph_node = graph.getNode(vertex);
+    GraphNode graph_node = graph.getNode(vertex);
     int comp_int = str_id.compare(graph_node.getStringId());
     if (comp_int > 0) {
       str_id = graph_node.getStringId();

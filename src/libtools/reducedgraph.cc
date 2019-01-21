@@ -64,6 +64,7 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
     }
   }
   edge_container_ = EdgeContainer(edges);
+
   calcId_();
 }
 
@@ -91,6 +92,7 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges) {
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
                            unordered_map<int, GraphNode> nodes) {
+
   set<int> vertices = getAllVertices_(reduced_edges);
   if (nodes.size() < vertices.size()) {
     throw invalid_argument(
@@ -103,6 +105,13 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
     }
   }
   init_(reduced_edges, nodes);
+
+  // Add all the nodes that are isolated
+  for (pair<const int, GraphNode>& id_and_node : nodes) {
+    if (vertices.count(id_and_node.first) == 0) {
+      edge_container_.addVertex(id_and_node.first);
+    }
+  }
 }
 
 Graph ReducedGraph::expandGraph() {
@@ -159,6 +168,12 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
     }
   }
   return nodes;
+}
+
+vector<int> ReducedGraph::getVertices() const {
+  // Get all the vertices that are in the reduced graph
+  vector<int> vertices = edge_container_.getVertices();
+  return vertices;
 }
 
 vector<int> ReducedGraph::getVerticesDegree(int degree) const {

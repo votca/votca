@@ -52,12 +52,16 @@ class EdgeContainer {
   std::vector<int> getVerticesDegree(int degree) const;
   /// Determine the degree of the vertex/number of edges attached
   int getDegree(const int vertex) const;
+
+  bool vertexExistWithDegree(int degree) const;
+
   /// Check if the edge exists returns true or false
   bool edgeExist(const Edge& edge) const;
   /// Check if the vertex exists returns true or false
   bool vertexExist(int vertex) const;
   /// Add an edge to the container
   void addEdge(Edge edge);
+  void addVertex(int vertex);
   /// Get all the edges in vector form
   std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
