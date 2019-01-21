@@ -78,12 +78,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     VectorXfd BSETripletEnergiesTest = VectorXfd::Random(33);
     MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Random(33,31);
 
-
-    std::vector <Eigen::Vector3d> transitionDipolesTest;
-    for (size_t i =0; i < 1000; ++i){
-        transitionDipolesTest.push_back(Eigen::Vector3d::Ones());
-    }
-
     {
         // Write orbitals
         Orbitals orbWrite;
@@ -115,7 +109,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
         orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
         orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
         orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
-        orbWrite.TransitionDipoles() = transitionDipolesTest;
         orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
         orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
 
@@ -160,23 +153,15 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     BOOST_CHECK(orbRead.BSETripletEnergies().isApprox(BSETripletEnergiesTest, tol));
     BOOST_CHECK(orbRead.BSETripletCoefficients().isApprox(BSETripletCoefficientsTest, tol));
 
-    BOOST_REQUIRE_EQUAL(orbRead.TransitionDipoles().size(), transitionDipolesTest.size());
-
-    for (size_t c = 0; c<transitionDipolesTest.size(); ++c){
-        BOOST_CHECK(
-            orbRead.TransitionDipoles()[c].isApprox(transitionDipolesTest[c], tol));
-
-    }
-
     BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
 
     for (int i = 0; i<atoms.size(); ++i){
-        auto atomRead = orbRead.QMAtoms()[i];
-        auto atomTest = atoms[i];
+       const auto& atomRead = orbRead.QMAtoms()[i];
+       const auto& atomTest = atoms[i];
         BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
         BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
         BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
-        // no way to get qmatom index
+        BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
     }
 }
 

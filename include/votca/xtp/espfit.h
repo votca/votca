@@ -35,10 +35,6 @@ namespace votca { namespace xtp {
 class Espfit{
 public:
     
-    struct ConstraintRegion{
-         std::vector<int> atomindices;
-         double charge;
-     };
     
     Espfit(Logger *log):_do_svd(true) {_log = log;
     _conditionnumber=1e-8;
@@ -52,7 +48,7 @@ public:
        _pairconstraint=pairconstraint;
    }
    
-   void setRegionConstraint(std::vector< ConstraintRegion > regionconstraint){
+   void setRegionConstraint(std::vector< QMFragment<double> > regionconstraint){
        _regionconstraint=regionconstraint;
    }
     // on grid very fast
@@ -67,7 +63,7 @@ private:
      
      std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
      
-     std::vector< ConstraintRegion > _regionconstraint;
+     std::vector< QMFragment<double> > _regionconstraint;
  
     void EvalNuclearPotential(const QMMolecule& atoms, Grid& grid);
    

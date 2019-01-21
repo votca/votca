@@ -162,7 +162,6 @@ orbitals.setTDAApprox(true);
 bse.configure(opt);
 
 bse.Solve_singlets();
-bse.Analyze_singlets(aobasis);
 
 VectorXfd se_ref=VectorXfd::Zero(1);
 se_ref<<0.107455;

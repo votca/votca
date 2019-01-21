@@ -104,7 +104,7 @@ ofstream xyzfile("molecule.xyz");
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels=5;
-  votca::ctp::Logger log;
+  Logger log;
   ConvergenceAcc::options opt;
   opt.mode=ConvergenceAcc::KSmode::closed;
   opt.levelshift=0.1;

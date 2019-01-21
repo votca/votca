@@ -127,7 +127,7 @@ template<class T>  class AtomContainer{
         size_t count = r.getNumDataSets();
         _atomlist.clear();
         _atomlist.reserve(count);
-        T element(0,"",Eigen::Vector3d::Zero());
+        T element(0,"H",Eigen::Vector3d::Zero());//dummy element to get .identify for type
         for (size_t i = 0; i < count; ++i) {
            CheckpointReader c = r.openChild( element.identify() + std::to_string(i));
             _atomlist.emplace_back(T(c));

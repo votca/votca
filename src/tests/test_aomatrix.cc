@@ -317,13 +317,17 @@ mpsfile<<"10 0 0"<<endl;
 mpsfile<<"     100 0 0 0 0"<<endl;
 mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<<endl;
 
-auto polar_segments = std::make_shared<MMRegion>();
-PolarSegment seg=PolarSegment("",0);
+StaticSegment seg("",0);
 seg.LoadFromMPS("polarsite.mps");
-polar_segments->push_back(seg);
+
             
 AODipole_Potential dip;
-dip.Fillextpotential(aobasis,polar_segments);
+std::vector<std::unique_ptr<StaticSite> > externalsites;
+for(const StaticSite& site:seg){
+    externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+}
+
+dip.Fillextpotential(aobasis,externalsites);
   
   Eigen::MatrixXd dip_ref= Eigen::MatrixXd::Zero(17,17);
   dip_ref<<0.31114997753,0.059568868026,0.0090978711864,0,0,0.056104697636,0.0013498178976,0,0,0.0061933281198,0.025459181656,0.0061933281198,0.025459181656,0.0056130806569,0.024860733171,0.0056130806569,0.024860733171,
@@ -353,7 +357,7 @@ dip.Fillextpotential(aobasis,polar_segments);
   }
 
   AOQuadrupole_Potential quad;
-  quad.Fillextpotential(aobasis,polar_segments);
+  quad.Fillextpotential(aobasis,externalsites);
   
   Eigen::MatrixXd quad_ref= Eigen::MatrixXd::Zero(17,17);
 
