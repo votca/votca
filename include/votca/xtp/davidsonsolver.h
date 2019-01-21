@@ -31,10 +31,10 @@ namespace votca { namespace xtp {
 
         public:
 
-            DavidsonSolver();
-            DavidsonSolver(int itermax);
-            DavidsonSolver(int itermax, real_gwbse tol);
-            DavidsonSolver(int itermax, real_gwbse tol, int max_search_size);
+            DavidsonSolver(ctp::Logger &log);
+            // DavidsonSolver(ctp::Logger &log,int itermax);
+            // DavidsonSolver(int itermax, real_gwbse tol);
+            // DavidsonSolver(int itermax, real_gwbse tol, int max_search_size);
 
             void set_iter_max(int set_iter_max);
             void set_tolerance(real_gwbse tol);
@@ -50,6 +50,7 @@ namespace votca { namespace xtp {
 
         private :
 
+            ctp::Logger &_log;
             int iter_max;
             double tol;
             int max_search_space;
@@ -66,7 +67,7 @@ namespace votca { namespace xtp {
             MatrixXfd _solve_linear_system(MatrixXfd, VectorXfd b); 
 
             template <typename OpMat>
-            MatrixXfd _jacobi_orthogonal_correction(OpMat A, VectorXfd u, real_gwbse lambda);
+            MatrixXfd _jacobi_orthogonal_correction(OpMat A, VectorXfd r, VectorXfd u, real_gwbse lambda);
 
     };
 

@@ -72,7 +72,7 @@ void BSE_MF::SetupDirectInteractionOperator() {
 
       if (_opt.davidson)
       {
-        DavidsonSolver DS;
+        DavidsonSolver DS(_log);
         if (_opt.jocc)
         {
           DS.set_jacobi_correction();
@@ -111,7 +111,7 @@ void BSE_MF::SetupDirectInteractionOperator() {
       if (_opt.davidson)
       {
 
-        DavidsonSolver DS;
+        DavidsonSolver DS(_log);
         if (_opt.jocc)
         {
           DS.set_jacobi_correction();

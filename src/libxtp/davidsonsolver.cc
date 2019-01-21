@@ -30,16 +30,17 @@
 #include <votca/xtp/bse_matrix_free.h>
 #include <votca/xtp/davidsonsolver.h>
 
-
+using boost::format;
+using std::flush;
 
 namespace votca { namespace xtp {
 
 using namespace std;
 
-DavidsonSolver::DavidsonSolver() : iter_max(1000), tol(1E-6), max_search_space(100) { }
-DavidsonSolver::DavidsonSolver(int iter_max) : iter_max(iter_max) , tol(1E-6), max_search_space(100) { }
-DavidsonSolver::DavidsonSolver(int iter_max, real_gwbse tol) : iter_max(iter_max), tol(tol), max_search_space(100) { }
-DavidsonSolver::DavidsonSolver(int iter_max, real_gwbse tol, int max_search_space) : iter_max(iter_max), tol(tol), max_search_space(max_search_space) { }
+DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log), iter_max(1000), tol(1E-6), max_search_space(100) { }
+// DavidsonSolver::DavidsonSolver(int iter_max) : iter_max(iter_max) , tol(1E-6), max_search_space(100) { }
+// DavidsonSolver::DavidsonSolver(int iter_max, real_gwbse tol) : iter_max(iter_max), tol(tol), max_search_space(100) { }
+// DavidsonSolver::DavidsonSolver(int iter_max, real_gwbse tol, int max_search_space) : iter_max(iter_max), tol(tol), max_search_space(max_search_space) { }
 
 void DavidsonSolver::set_iter_max(int N) { this->iter_max = N; }
 void DavidsonSolver::set_tolerance(real_gwbse eps) { this->tol = eps; }
@@ -103,7 +104,7 @@ MatrixXfd DavidsonSolver::_solve_linear_system(MatrixXfd A, VectorXfd r)
 
 
 template <class OpMat>
-MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction(OpMat A, VectorXfd u, real_gwbse lambda)
+MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction(OpMat A, VectorXfd r, VectorXfd u, real_gwbse lambda)
 {
     MatrixXfd w;
 
@@ -112,7 +113,7 @@ MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction(OpMat A, VectorXfd u, re
     P.diagonal().array() += 1.0;
 
     // compute the residue
-    VectorXfd r = A*u - lambda*u;
+    //VectorXfd r = A*u - lambda*u;
 
     // project the matrix
     // P * (A - lambda*I) * P^T
@@ -123,8 +124,8 @@ MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction(OpMat A, VectorXfd u, re
     return DavidsonSolver::_solve_linear_system(projA,r);
 }
 
-template MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction<MatrixXfd>(MatrixXfd  A, VectorXfd u, real_gwbse lambda);
-template MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction<BSE_MF>(BSE_MF A, VectorXfd u, real_gwbse lambda);
+template MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction<MatrixXfd>(MatrixXfd  A, VectorXfd r, VectorXfd u, real_gwbse lambda);
+//template MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction<BSE_MF>(BSE_MF A, VectorXfd u, real_gwbse lambda);
 
 template<class OpMat>
 void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
@@ -132,21 +133,38 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 
     if (this->_debug_)
     {
-        cout << endl;
-        cout << "===========================" << endl; 
+        
         if(this->jacobi_correction)
-        {
-            cout << "= Jacobi-Davidson      " <<  endl; 
-            cout << "    linsolve : " << this->jacobi_linsolve << endl;
-        }
+            CTP_LOG(ctp::logDEBUG, _log)
+                << ctp::TimeStamp() << " Jacobi-Davidson - linsolve : " << this->jacobi_linsolve << flush;
         else
-            cout << "= Davidson (DPR)" <<  endl; 
-        cout << "===========================" << endl;
-        cout << endl;
+            CTP_LOG(ctp::logDEBUG, _log)
+                << ctp::TimeStamp() << " Davidson (DPR)" << flush;
     }
 
     double norm;
     int size = A.rows();
+
+    // asking too many eigenvalues for the system size
+    if (neigen>size/4)
+    {
+        CTP_LOG(ctp::logDEBUG, _log)
+                << ctp::TimeStamp() << " Warning neigen (" << neigen << ") larger than system size (" << size << ")" << flush;
+        neigen = size/4;
+        CTP_LOG(ctp::logDEBUG, _log)
+                << ctp::TimeStamp() << " Computing only " << neigen << " eigenvalues" << flush;                            
+    }
+
+    //. search space exeeding the system size
+    if (max_search_space > size)
+    {
+        CTP_LOG(ctp::logDEBUG, _log)
+                << ctp::TimeStamp() << " Warning Max search space (" << max_search_space << ") larger than system size (" << size << ")" << flush;   
+        max_search_space = size;
+        CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Max search space set to " << size << flush;                            
+    }
+    //std::cout << std::endl << "matrix A : " << std::endl << A.block(0,0,5,5) << std::endl;
 
     // if argument not provided we default to 0
     // and set to twice the number of eigenvalues
@@ -158,6 +176,8 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
     // initialize the guess eigenvector
     VectorXfd Adiag = A.diagonal();    
     MatrixXfd V = DavidsonSolver::_get_initial_eigenvectors(Adiag,size_initial_guess);
+    //std::cout << std::endl << "matrix V : " << std::endl << V << std::endl;
+
 
     // sort the eigenvalues
     std::sort(Adiag.data(),Adiag.data()+Adiag.size());
@@ -177,7 +197,9 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
     chrono::duration<double> elapsed_time;
 
     if (_debug_)
-        cout << "iter\tSearch Space\tNorm" << endl;
+      CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
+        
     
     for (int iiter = 0; iiter < iter_max; iiter ++ )
     {
@@ -194,6 +216,7 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
         // project the matrix on the trial subspace
         T = A * V;
         T = V.transpose()*T;
+        //std::cout << std::endl << " T matrix : " << std::endl << T << std::endl;
 
         // diagonalize in the subspace
         // we could replace that with LAPACK ... 
@@ -206,16 +229,21 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 
         // compute correction vectors
         // and append to V
+        norm = 0.0;
         for (int j=0; j<size_initial_guess; j++)
         {   
 
+            // residue vector
+            w = A*q.col(j) - lambda(j)*q.col(j);
+            norm += w.norm();
+
             // jacobi-davidson correction
             if (this->jacobi_correction)
-                w = DavidsonSolver::_jacobi_orthogonal_correction<OpMat>(A,q.col(j),lambda(j));
+                w = DavidsonSolver::_jacobi_orthogonal_correction<OpMat>(A,w,q.col(j),lambda(j));
             
             // Davidson DPR
             else  
-                w = ( A*q.col(j) - lambda(j)*q.col(j) ) / ( lambda(j) - Adiag(j) );  
+                w = w / ( lambda(j) - Adiag(j) );  
 
             // append the correction vector to the search space
             V.conservativeResize(Eigen::NoChange,V.cols()+1);
@@ -223,10 +251,15 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
         }
 
         // check for convergence
-        norm = (lambda.head(neigen) - lambda_old).norm();
+        //norm = (lambda.head(neigen) - lambda_old).norm();
+        norm /= size_initial_guess;
 
         if(_debug_)
-            printf("%4d\t%12d\t%4.2e/%.0e\n", iiter,search_space,norm,tol);
+            CTP_LOG(ctp::logDEBUG, _log)  << ctp::TimeStamp() 
+               << format(" %1$4d \t %2$12d \t %3$4.2e/%4$.0e") % iiter % search_space % norm % tol << flush; 
+            // CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<
+            //     iiter << "   " << search_space  << "   " << norm << "   " << tol << flush; 
+        
         
         // break if converged, update otherwise
         if (norm < tol)
@@ -248,11 +281,11 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
     // store the eigenvalues/eigenvectors
     this->_eigenvalues = lambda.head(neigen);
     this->_eigenvectors = U.block(0,0,U.rows(),neigen);
-   
+
 }
 
 
 template void DavidsonSolver::solve<MatrixXfd>(MatrixXfd A, int neigen, int size_initial_guess=0);
-template void DavidsonSolver::solve<BSE_MF>(BSE_MF A, int neigen, int size_initial_guess=0);
+//template void DavidsonSolver::solve<BSE_MF>(BSE_MF &A, int neigen, int size_initial_guess=0);
 
 }}

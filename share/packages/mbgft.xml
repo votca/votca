@@ -17,6 +17,9 @@
 	    <tasks>singlets,triplets</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
 	    <store></store>
         <exctotal>25</exctotal>
+        <davidson>1</davidson>
+        <jocc>0</jocc>
+        <jsolve>1</jsolve>
         <print>25</print>
         <fragment>0</fragment>  
         <openmp>0</openmp>

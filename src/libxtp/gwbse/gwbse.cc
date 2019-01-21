@@ -187,6 +187,15 @@ void GWBSE::Initialize(tools::Property& options) {
             options.ifExistsReturnElseReturnDefault<int>(key + ".exctotal", _bseopt.nmax);
     if (_bseopt.nmax > bse_size || _bseopt.nmax < 0) _bseopt.nmax = bse_size;
 
+    _bseopt.davidson =
+            options.ifExistsReturnElseReturnDefault<bool>(key + ".davidson", _bseopt.davidson);
+
+    _bseopt.jocc =
+            options.ifExistsReturnElseReturnDefault<bool>(key + ".jocc", _bseopt.jocc);
+
+    _bseopt.jocc_linsolve =
+            options.ifExistsReturnElseReturnDefault<int>(key + ".jsolve", _bseopt.jocc_linsolve);
+
     _fragA = options.ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 
     _bseopt.useTDA =

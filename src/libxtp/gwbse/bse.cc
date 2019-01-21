@@ -56,7 +56,9 @@ void BSE::SetupDirectInteractionOperator() {
 
       if (_opt.davidson)
       {
-        DavidsonSolver DS;
+        CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " Using Davidson Iterative Eigen Solver " << flush;
+        DavidsonSolver DS(_log);
         if (_opt.jocc)
         {
           DS.set_jacobi_correction();
@@ -64,13 +66,17 @@ void BSE::SetupDirectInteractionOperator() {
         }
         DS.solve(H,_opt.nmax);
         _bse_triplet_energies = DS.eigenvalues().cast<float>();
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << "Eigenvalues :" << std::endl << _bse_triplet_energies << flush;
         _bse_triplet_coefficients = DS.eigenvectors().cast<float>();  
       }
 
       else
+      {
+        CTP_LOG(ctp::logDEBUG, _log)
+          << ctp::TimeStamp() << " Using Lapack Eigen Solver " << flush;
         tools::linalg_eigenvalues(H , _bse_triplet_energies, _bse_triplet_coefficients ,_opt.nmax );
-
-      
+      }
+    
       return;
     }
 
@@ -95,15 +101,15 @@ void BSE::SetupDirectInteractionOperator() {
       if (_opt.davidson)
       {
 
-        DavidsonSolver DS;
+        DavidsonSolver DS(_log);
         if (_opt.jocc)
         {
           DS.set_jacobi_correction();
           DS.set_jacobi_linsolve(_opt.jocc_linsolve);
         }
         DS.solve(H,_opt.nmax);
-        _bse_singlet_energies = DS.eigenvalues();
-        _bse_singlet_coefficients = DS.eigenvectors();  
+        _bse_singlet_energies = DS.eigenvalues().cast<float>();
+        _bse_singlet_coefficients = DS.eigenvectors().cast<float>();  
       }
 
       else
