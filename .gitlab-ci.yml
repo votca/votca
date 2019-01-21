@@ -1,6 +1,5 @@
-test:default:
+.build:
   variables:
-    CMAKE_BUILD_TYPE: "Release"
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
   image: votca/buildenv
   cache:
@@ -23,3 +22,31 @@ test:default:
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - make install
     - ccache -s
+
+Debug GCC:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+  extends: .build
+
+Debug Clang:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+  extends: .build
+
+Release GCC:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+  extends: .build
+
+Release Clang:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+  extends: .build
