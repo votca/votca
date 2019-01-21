@@ -91,21 +91,34 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   testbead8.setName("Hydrogen");
   testbead8.setId(8);
 
+  // Adding a Helium
+  //
+  // He
+  //
+
+  TestBead testbead12;
+  testbead12.setName("Helium");
+  testbead12.setId(12);
+
   // Methane
-  BeadStructure beadstructure1;
-  beadstructure1.AddBead(&testbead1);
-  beadstructure1.AddBead(&testbead2);
-  beadstructure1.AddBead(&testbead3);
-  beadstructure1.AddBead(&testbead4);
-  beadstructure1.AddBead(&testbead5);
+  BeadStructure beadstructure_methane;
+  beadstructure_methane.AddBead(&testbead1);
+  beadstructure_methane.AddBead(&testbead2);
+  beadstructure_methane.AddBead(&testbead3);
+  beadstructure_methane.AddBead(&testbead4);
+  beadstructure_methane.AddBead(&testbead5);
 
   // Water
-  BeadStructure beadstructure2;
-  beadstructure2.AddBead(&testbead6);
-  beadstructure2.AddBead(&testbead7);
-  beadstructure2.AddBead(&testbead8);
+  BeadStructure beadstructure_water;
+  beadstructure_water.AddBead(&testbead6);
+  beadstructure_water.AddBead(&testbead7);
+  beadstructure_water.AddBead(&testbead8);
 
-  // Methane and Water
+  // Helium
+  BeadStructure beadstructure_helium;
+  beadstructure_helium.AddBead(&testbead12);
+
+  // Methane and Water and Helium
   BeadStructure beadstructure;
   beadstructure.AddBead(&testbead1);
   beadstructure.AddBead(&testbead2);
@@ -118,14 +131,14 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
 
   // Connect beads
   // Methane
-  beadstructure1.ConnectBeads(1, 2);
-  beadstructure1.ConnectBeads(3, 2);
-  beadstructure1.ConnectBeads(4, 2);
-  beadstructure1.ConnectBeads(5, 2);
+  beadstructure_methane.ConnectBeads(1, 2);
+  beadstructure_methane.ConnectBeads(3, 2);
+  beadstructure_methane.ConnectBeads(4, 2);
+  beadstructure_methane.ConnectBeads(5, 2);
 
   // Water
-  beadstructure2.ConnectBeads(6, 7);
-  beadstructure2.ConnectBeads(7, 8);
+  beadstructure_water.ConnectBeads(6, 7);
+  beadstructure_water.ConnectBeads(7, 8);
 
   // Methane and Water
   beadstructure.ConnectBeads(1, 2);
@@ -134,20 +147,24 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure.ConnectBeads(5, 2);
   beadstructure.ConnectBeads(6, 7);
   beadstructure.ConnectBeads(7, 8);
+  cout << "Calling break into structures " << endl;
   vector<BeadStructure> structures = breakIntoStructures(beadstructure);
 
-  bool structure1_found = false;
-  bool structure2_found = false;
+  BOOST_CHECK_EQUAL(structures.size(), 2);
+  cout << "Bead Count 1 " << structures.at(0).BeadCount() << endl;
+  cout << "Bead Count 2 " << structures.at(1).BeadCount() << endl;
+  bool methane_found = false;
+  bool water_found = false;
   for (auto structure : structures) {
-    if (structure.isStructureEquivalent(beadstructure1)) {
-      structure1_found = true;
+    if (structure.isStructureEquivalent(beadstructure_methane)) {
+      methane_found = true;
     }
-    if (structure.isStructureEquivalent(beadstructure2)) {
-      structure2_found = true;
+    if (structure.isStructureEquivalent(beadstructure_water)) {
+      water_found = true;
     }
   }
-  BOOST_CHECK(structure1_found);
-  BOOST_CHECK(structure2_found);
+  BOOST_CHECK(methane_found);
+  BOOST_CHECK(water_found);
 
   // Adding another water
   //
@@ -174,22 +191,36 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure.ConnectBeads(9, 10);
   beadstructure.ConnectBeads(11, 10);
 
+  // Adding a Helium
+  TestBead testbead13;
+  testbead13.setName("Helium");
+  testbead13.setId(13);
+
+  beadstructure.AddBead(&testbead13);
+
   structures = breakIntoStructures(beadstructure);
 
-  structure1_found = false;
-  structure2_found = false;
+  BOOST_CHECK_EQUAL(structures.size(), 4);
+
+  methane_found = false;
+  water_found = false;
+  bool structure3_found = false;
   int structure2_count = 0;
   for (auto structure : structures) {
-    if (structure.isStructureEquivalent(beadstructure1)) {
-      structure1_found = true;
+    if (structure.isStructureEquivalent(beadstructure_methane)) {
+      methane_found = true;
     }
-    if (structure.isStructureEquivalent(beadstructure2)) {
-      structure2_found = true;
+    if (structure.isStructureEquivalent(beadstructure_water)) {
+      water_found = true;
       ++structure2_count;
     }
+    if (structure.isStructureEquivalent(beadstructure_helium)) {
+      structure3_found = true;
+    }
   }
-  BOOST_CHECK(structure1_found);
-  BOOST_CHECK(structure2_found);
+  BOOST_CHECK(methane_found);
+  BOOST_CHECK(water_found);
+  BOOST_CHECK(structure3_found);
   BOOST_CHECK_EQUAL(structure2_count, 2);
 }
 

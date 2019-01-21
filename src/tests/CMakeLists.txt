@@ -5,6 +5,7 @@ foreach(PROG
   test_beadtriple
   test_basebead
   test_beadmotif_base
+  test_beadmotif_algorithms
   test_beadstructure_base
   test_beadstructure_algorithms
   test_bondedstatistics

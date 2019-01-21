@@ -98,7 +98,10 @@ void BeadStructure::InitializeGraph_() {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode(id_bead_ptr_pair.second);
     }
+    cerr << "Total Nodes " << graphnodes_.size() << endl;
     graph_ = Graph(connections_vector, graphnodes_);
+    auto nodes = graph_.getNodes();
+    auto vertices = graph_.getVertices();
     graphUpToDate = true;
   }
 }
@@ -112,6 +115,7 @@ void BeadStructure::CalculateStructure_() {
 
   InitializeGraph_();
   if (!structureIdUpToDate) {
+    auto nodes = graph_.getNodes();
     structure_id_ = findStructureId<GraphDistVisitor>(graph_);
     structureIdUpToDate = true;
   }
