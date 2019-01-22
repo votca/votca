@@ -17,10 +17,10 @@
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_XTP_MANUAL=ON -DCMAKE_INSTALL_PREFIX=$HOME/votca -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_XTP_MANUAL=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     - make -O -k -j${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
-    - make install
+    - sudo make install
     - ccache -s
 
 Debug GCC:
