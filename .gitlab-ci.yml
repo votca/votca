@@ -2,7 +2,8 @@
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
     CXXFLAGS: "-Werror"
-  image: votca/buildenv:${DISTRO:-latest}
+    DISTRO: "latest"
+  image: votca/buildenv:${DISTRO}
   cache:
     paths:
       - ccache/
