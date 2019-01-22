@@ -7,7 +7,6 @@
     paths:
       - ccache/
   script:
-    - mktexfmt latex.fmt
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
     - git checkout -B current_commit
