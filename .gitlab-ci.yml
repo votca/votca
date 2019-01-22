@@ -1,9 +1,14 @@
+stages:
+  - canary
+  - build
+
 .build:
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
     CXXFLAGS: "-Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
+  stage: build
   cache:
     paths:
       - ccache/
@@ -26,6 +31,7 @@
     - ccache -s
 
 Debug GCC:
+  stage: canary
   variables:
     CC: "gcc"
     CXX: "g++"
