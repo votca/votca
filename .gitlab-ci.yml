@@ -1,6 +1,7 @@
 .build:
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
+    CXXFLAGS: "-Werror"
   image: votca/buildenv
   cache:
     paths:
