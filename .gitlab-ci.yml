@@ -2,7 +2,7 @@
   variables:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
     CXXFLAGS: "-Werror"
-  image: votca/buildenv
+  image: votca/buildenv:${DISTRO:-latest}
   cache:
     paths:
       - ccache/
@@ -50,4 +50,36 @@ Release Clang:
     CC: "clang"
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
+  extends: .build
+
+Debug GCC Ubuntu:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu"
+  extends: .build
+
+Debug Clang Ubuntu:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "ubuntu"
+  extends: .build
+
+Release GCC Ubuntu:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "ubuntu"
+  extends: .build
+
+Release Clang Ubuntu:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "ubuntu"
   extends: .build
