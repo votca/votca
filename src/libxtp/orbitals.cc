@@ -479,8 +479,8 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             Eigen::VectorXd fragmentCharges = Eigen::VectorXd::Zero(2);
             Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
             es.compute(overlapmatrix);
-            Eigen::MatrixXd sqrtm1 = es.operatorSqrt();
-            Eigen::MatrixXd prodmat = sqrtm1 * densitymatrix*sqrtm1;
+            Eigen::MatrixXd sqrt = es.operatorSqrt();
+            Eigen::MatrixXd prodmat = sqrt * densitymatrix*sqrt;
 
             for (int i = 0; i < frag; i++) {
                 fragmentCharges(0) += prodmat(i, i);
