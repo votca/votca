@@ -61,7 +61,7 @@ namespace votca {
 
             void Fill(const AOBasis& auxbasis,const AOBasis& dftbasis);
 
-            int getSize() const{return _matrix.size();}
+            int size() const{return _matrix.size();}
 
             Symmetric_Matrix& operator[](int i) {
                 return _matrix[i];

@@ -26,31 +26,25 @@ namespace votca { namespace xtp {
    
    void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix){
      
-     
-     if(int(_errormatrixhist.size())>_histlength){
-       delete _errormatrixhist[maxerrorindex];
-       delete _Diis_Bs[maxerrorindex];
-       _errormatrixhist.erase(_errormatrixhist.begin()+maxerrorindex);
-              _Diis_Bs.erase( _Diis_Bs.begin()+maxerrorindex);
-              for( std::vector< std::vector<double>* >::iterator it=_Diis_Bs.begin();it<_Diis_Bs.end();++it){
-                  std::vector<double>* vect=(*it);
-                  vect->erase(vect->begin()+maxerrorindex);
-              }
-     } 
-     
-     Eigen::MatrixXd* olderror=new Eigen::MatrixXd; 
-      *olderror=errormatrix;
-       _errormatrixhist.push_back(olderror);
-       
-     std::vector<double>* Bijs=new std::vector<double>;
-       _Diis_Bs.push_back(Bijs);
-      for (int i=0;i<int(_errormatrixhist.size())-1;i++){
-          double value=errormatrix.cwiseProduct((*_errormatrixhist[i]).transpose()).sum();
-          Bijs->push_back(value);
-          _Diis_Bs[i]->push_back(value);
-      }
-      Bijs->push_back(errormatrix.cwiseProduct(errormatrix.transpose()).sum());   
 
+    if (int(_errormatrixhist.size()) == _histlength) {
+        _errormatrixhist.erase(_errormatrixhist.begin() + maxerrorindex);
+        _Diis_Bs.erase(_Diis_Bs.begin() + maxerrorindex);
+        for (std::vector<double>& subvec : _Diis_Bs) {
+            subvec.erase(subvec.begin() + maxerrorindex);
+        }
+    } 
+
+    _errormatrixhist.push_back(errormatrix);
+       
+    std::vector<double> Bijs;
+    for (int i=0;i<int(_errormatrixhist.size())-1;i++){
+        double value=errormatrix.cwiseProduct((_errormatrixhist[i]).transpose()).sum();
+        Bijs.push_back(value);
+        _Diis_Bs[i].push_back(value);
+    }
+      Bijs.push_back(errormatrix.cwiseProduct(errormatrix.transpose()).sum());
+      _Diis_Bs.push_back(Bijs);
       return; 
    }
   
@@ -73,7 +67,7 @@ namespace votca { namespace xtp {
           }
           for (int i=1;i<B.rows();i++){
               for (int j=1;j<=i;j++){
-                  B(i,j)=_Diis_Bs[i-1]->at(j-1);
+                  B(i,j)=_Diis_Bs[i-1][j-1];
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }
@@ -93,7 +87,7 @@ namespace votca { namespace xtp {
             
           for (int i=0;i<B.rows();i++){
               for (int j=0;j<=i;j++){
-                  B(i,j)=_Diis_Bs[i]->at(j);
+                  B(i,j)=_Diis_Bs[i][j];
                   if(i!=j){
                     B(j,i)=B(i,j);
                   }

@@ -297,10 +297,6 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
 
         _dftAOdmat = _conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff, totenergy);
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
-                << " DIIs error " << _conv_accelerator.getDIIsError() << std::flush;
-       
-        CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Delta Etot " <<_conv_accelerator.getDeltaE()<< std::flush;
         if (tools::globals::verbose) {
           PrintMOs(MOEnergies);
         }
@@ -314,9 +310,7 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
                   <<  _conv_accelerator.getDeltaE()<< "[Ha] after " << this_iter + 1 <<
                   " iterations. DIIS error is converged up to " << _conv_accelerator.getDIIsError() << flush;
           CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Final Single Point Energy "
-                  << std::setprecision(12) << totenergy << " Ha" << flush;
-          CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " MO Energies  [Ha]" << flush;
-          
+                  << std::setprecision(12) << totenergy << " Ha" << flush;          
           PrintMOs(MOEnergies);
           orbitals.setQMEnergy(totenergy);
           CalcElDipole(orbitals);
@@ -397,7 +391,8 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
       _conv_opt.numberofelectrons=_numofelectrons;
       _conv_accelerator.Configure(_conv_opt);
       _conv_accelerator.setLogger(_pLog);
-      _conv_accelerator.setOverlap(&_dftAOoverlap, 1e-8);
+      _conv_accelerator.setOverlap(_dftAOoverlap, 1e-8);
+      _conv_accelerator.PrintConfigOptions();
 
       if (_with_RI) {
         // prepare invariant part of electron repulsion integrals
@@ -482,7 +477,6 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
         opt_alpha.histlength=20;
         opt_alpha.levelshift=0.1;
         opt_alpha.levelshiftend=0.0;
-        opt_alpha.noisy=false;
         opt_alpha.usediis=true;
         opt_alpha.adiis_start=0.0;
         opt_alpha.diis_start=0.0;
@@ -490,12 +484,14 @@ void DFTEngine::CalcElDipole(Orbitals& orbitals)const{
 
         ConvergenceAcc::options opt_beta=opt_alpha;
         opt_beta.numberofelectrons=beta_e;
+
+        ctp::Logger log;
         Convergence_alpha.Configure(opt_alpha);
-        Convergence_alpha.setLogger(_pLog);
-        Convergence_alpha.setOverlap(&dftAOoverlap, 1e-8);
+        Convergence_alpha.setLogger(&log);
+        Convergence_alpha.setOverlap(dftAOoverlap, 1e-8);
         Convergence_beta.Configure(opt_beta);
-        Convergence_beta.setLogger(_pLog);
-        Convergence_beta.setOverlap(&dftAOoverlap, 1e-8);
+        Convergence_beta.setLogger(&log);
+        Convergence_beta.setOverlap(dftAOoverlap, 1e-8);
         /**** Construct initial density  ****/
 
         Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
