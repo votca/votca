@@ -45,7 +45,6 @@ Debug GCC:
   extends: .build
 
 None GCC:
-  stage: canary
   variables:
     CC: "gcc"
     CXX: "g++"
