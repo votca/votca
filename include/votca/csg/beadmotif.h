@@ -44,6 +44,51 @@ namespace csg {
  * 6. Multiple Structures  // Complex
  * 6. Undefined            // Undefined
  *
+ * Examples of each type are shown below connections are indicated with lines
+ *
+ * Single Bead:
+ *
+ * H1
+ *
+ * Line:
+ *
+ * C1 - C2 - C3                   H1 - H2                   H1  H2
+ *                                                           \  /
+ *                                                            O1
+ * Loop:
+ *
+ * C1 - C2                        C5 - C6
+ * |    |                        /       \
+ * C4 - C3                      C7       C8
+ *                                \      /
+ *                                C9 - C10
+ *
+ * Fused Ring:
+ *
+ *    C5 - C6
+ *   /       \
+ *  C7       C8 - C11
+ *    \      /      \
+ *    C9 - C10      C12
+ *           \      /
+ *           C13 - C14
+ *
+ * Single Structures:
+ *
+ *      H1                         H5      H6
+ *      |                           \     /
+ * H2 - C1 - H3                     C1 - C2
+ *      |                           /      \
+ *      H4                    H7 - C3      C4 - H8
+ *                                   \     /
+ *                                   C5 - C6
+ *                                   /      \
+ *                                  H9      H10
+ *
+ * Multiple Structures:
+ *
+ * Any combination of more than one structure
+ *
  * The Single, line, loop and Fused Ring types are all elementary types that
  * represent a fundamental structural unit.
  *
@@ -73,73 +118,54 @@ class BeadMotif : public BeadStructure {
     undefined
   };
 
+  /// Gets the motif type, calculates it first if it is not yet known
   MotifType getType();
 
-  BaseBead *getBead(int id);
-  void ConnectBeads(int bead1_id, int bead2_id);
-
-  std::vector<BaseBead *> getNeighBeads(int index);
-
-  void AddBead(BaseBead *bead);
-
-  int BeadCount();
-
-  bool isStructureEquivalent(BeadMotif &beadmotif);
-
+  /**
+   * \brief Determines if the motif type is a simple type
+   *
+   * If the motif is of type single_bead, line, loop or fused ring it will
+   * return true.
+   *
+   * @return true if the bead motif type is simple
+   **/
   bool isMotifSimple();
 
+  /**
+   * \brief Adds a new bead to the motif
+   *
+   * This method calls the beastructure AddBead method but it also switches an
+   * attribute indicating that the beadtype is now out of date.
+   *
+   * @param[in] basebead pointer
+   **/
+  void AddBead(BaseBead* basebead);
+
+  /**
+   * \brief Adds a new connection to the motif
+   *
+   * Also switches an internal attribute to indicate the beadtype is no longer
+   * up to date.
+   *
+   * \param[in] - id of the first and second beads that are connected
+   **/
+  void ConnectBeads(int bead1_id, int bead2_id);
+
  private:
-  void InitializeGraph_();
   MotifType type_ = MotifType::undefined;
   bool junctionsUpToDate_ = false;
   bool type_up_to_date_ = false;
 
-  // List beads that might be shared across more than one motif
-  std::set<int> unowned_beads_;
   std::vector<int> junctions_;
   ReducedGraph reduced_graph_;
-  bool junctionExist_();
-  bool isSingle_();
-  bool isLoop_();
-  /**
-   * \brief Calculates the type of the motif
-   **/
-  void CalculateType_();
 
-  // One has to explore the whole tree to from each of the junctions to
-  // determine if the model is a fused ring or not. For speed it might
-  // make since to reduce the graph first to junctions of 3 or more.
-  //
-  // if There is not way back to the junction than you have something
-  // like this:
-  //
-  // c1 - c2 - c5 - c6
-  // |    |    |    |
-  // c3 - c4   c7 - c8
-  //
-  // Say you start at c2 and head down tree c5 if you never find a way back
-  // you can split it
-  //
-  // If you have something like this
-  //
-  // c1 - c2 - c3
-  // |  /   \  |
-  //  c4     c5
-  //
-  //  Then you do not have a fused ring, must be represented as a joint
-  //  and two lines. Exploring a tree will only lead to one way back.
-  //
-  //         c6
-  //        /  |
-  // c1 - c2 - c3
-  // |  /   \  |
-  //  c4     c5
-  //
-  //  Still acts like a joint, For it not to be a joint exploring a single
-  //  branch originating from the junction should lead to exploration of
-  //  all the edges.
-  bool isFusedRing_();
+  void InitializeGraph_();
+  bool junctionExist_();
+  void CalculateType_();
+  bool isSingle_();
   bool isLine_();
+  bool isLoop_();
+  bool isFusedRing_();
 };
 }  // namespace csg
 }  // namespace votca

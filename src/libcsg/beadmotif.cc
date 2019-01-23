@@ -28,12 +28,37 @@ namespace csg {
 /**********************
  * Internal Functions *
  **********************/
+
+void BeadMotif::InitializeGraph_() {
+  BeadStructure::InitializeGraph_();
+  reduced_graph_ = reduceGraph(graph_);
+}
+
 bool BeadMotif::junctionExist_() {
   if (!junctionsUpToDate_) {
     junctions_ = graph_.getJunctions();
     junctionsUpToDate_ = true;
   }
   return junctions_.size() != 0;
+}
+
+void BeadMotif::CalculateType_() {
+  if (BeadCount() == 0) {
+    type_ = MotifType::empty;
+  } else if (isSingle_()) {
+    type_ = MotifType::single_bead;
+  } else if (!BeadStructure::isSingleStructure()) {
+    type_ = MotifType::multiple_structures;
+  } else if (isLine_()) {
+    type_ = MotifType::line;
+  } else if (isLoop_()) {
+    type_ = MotifType::loop;
+  } else if (isFusedRing_()) {
+    type_ = MotifType::fused_ring;
+  } else {
+    type_ = MotifType::single_structure;
+  }
+  type_up_to_date_ = true;
 }
 
 bool BeadMotif::isSingle_() {
@@ -74,6 +99,40 @@ bool BeadMotif::isLoop_() {
   return true;
 }
 
+/**
+ * One has to explore the whole tree from each of the junctions to
+ * determine if the model is a fused ring or not. For speed it might
+ * make since to reduce the graph first to junctions of 3 or more.
+ *
+ * if There is not way back to the junction than you have something
+ * like this:
+ *
+ * c1 - c2 - c5 - c6
+ * |    |    |    |
+ * c3 - c4   c7 - c8
+ *
+ * Say you start at c2 and head down tree c5 if you never find a way back
+ * you can split it
+ *
+ * If you have something like this
+ *
+ * c1 - c2 - c3
+ * |  /   \  |
+ *  c4     c5
+ *
+ *  Then you do not have a fused ring, must be represented as a joint
+ *  and two lines. Exploring a tree will only lead to one way back.
+ *
+ *         c6
+ *        /  |
+ * c1 - c2 - c3
+ * |  /   \  |
+ *  c4     c5
+ *
+ *  Still acts like a joint, For it not to be a joint exploring a single
+ *  branch originating from the junction should lead to exploration of
+ *  all the edges.
+ **/
 bool BeadMotif::isFusedRing_() {
   if (!junctionExist_()) return false;
   // Ensure that the degree of every vertex is 2 or greater
@@ -97,6 +156,7 @@ bool BeadMotif::isFusedRing_() {
   }
   return true;
 }
+
 /***************************
  * Public Facing Functions *
  ***************************/
@@ -108,47 +168,6 @@ BeadMotif::MotifType BeadMotif::getType() {
   return type_;
 }
 
-void BeadMotif::CalculateType_() {
-  if (BeadCount() == 0) {
-    type_ = MotifType::empty;
-  } else if (isSingle_()) {
-    type_ = MotifType::single_bead;
-  } else if (!BeadStructure::isSingleStructure()) {
-    type_ = MotifType::multiple_structures;
-  } else if (isLine_()) {
-    type_ = MotifType::line;
-  } else if (isLoop_()) {
-    type_ = MotifType::loop;
-  } else if (isFusedRing_()) {
-    type_ = MotifType::fused_ring;
-  } else {
-    type_ = MotifType::single_structure;
-  }
-  type_up_to_date_ = true;
-}
-
-BaseBead* BeadMotif::getBead(int id) { return BeadStructure::getBead(id); }
-
-void BeadMotif::AddBead(BaseBead* bead) {
-  type_ = MotifType::undefined;
-  BeadStructure::AddBead(bead);
-  junctionsUpToDate_ = false;
-  type_up_to_date_ = false;
-}
-
-bool BeadMotif::isStructureEquivalent(BeadMotif& beadmotif) {
-  return BeadStructure::isStructureEquivalent(beadmotif);
-}
-
-std::vector<BaseBead*> BeadMotif::getNeighBeads(int index) {
-  return getNeighBeads(index);
-}
-
-void BeadMotif::InitializeGraph_() {
-  BeadStructure::InitializeGraph_();
-  reduced_graph_ = reduceGraph(graph_);
-}
-
 bool BeadMotif::isMotifSimple() {
   MotifType motif_type = getType();
   if (motif_type == single_structure || motif_type == multiple_structures ||
@@ -158,12 +177,18 @@ bool BeadMotif::isMotifSimple() {
   return true;
 }
 
-int BeadMotif::BeadCount() { return BeadStructure::BeadCount(); }
+void BeadMotif::AddBead(BaseBead* bead) {
+  type_ = MotifType::undefined;
+  BeadStructure::AddBead(bead);
+  junctionsUpToDate_ = false;
+  type_up_to_date_ = false;
+}
 
 void BeadMotif::ConnectBeads(int bead1_id, int bead2_id) {
   BeadStructure::ConnectBeads(bead1_id, bead2_id);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;
 }
+
 }  // namespace csg
 }  // namespace votca

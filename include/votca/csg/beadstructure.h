@@ -77,7 +77,7 @@ class BeadStructure {
    *
    * The same bead cannot be added twice.
    **/
-  void AddBead(BaseBead *bead);
+  virtual void AddBead(BaseBead *bead);
 
   /**
    * \brief Get the bead with the specified id
@@ -90,22 +90,12 @@ class BeadStructure {
    * A bead cannot be connected to itself. It also may not be connected to a
    * bead that has not yet been added to the structure.
    **/
-  void ConnectBeads(int bead1_id, int bead2_id);
+  virtual void ConnectBeads(int bead1_id, int bead2_id);
 
   /**
    * \brief Return a vector of all the beads neighboring the index
    **/
   std::vector<BaseBead *> getNeighBeads(int index);
-
-  /**
-   * \brief Break the beadstructure up into units where each unit is connected
-   * to each of the parts within the unit
-   *
-   * If a beadstructure is composed of several unconnected networks of beads.
-   * These structures will be broken up into their own bead structures and
-   * returned in a vector.
-   **/
-  // std::vector<std::shared_ptr<BeadStructure>> breakIntoStructures();
 
   Graph getGraph();
   /**
