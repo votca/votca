@@ -435,7 +435,7 @@ template <typename T,int factor>
         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Filled DFT Overlap matrix of dimension: " << dftoverlap.Matrix().rows() << flush;
         // ground state populations
         Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
-        Eigen::VectorXd nuccharges = _orbitals.FragmentNuclearCharges(dftbasis.getAOBasisFragA());
+        Eigen::VectorXd nuccharges = _orbitals.FragmentNuclearCharges(dftbasis.getAtomNumberFragbreak());
         Eigen::VectorXd pops = _orbitals.LoewdinPopulation(DMAT, dftoverlap.Matrix(), dftbasis.getAOBasisFragA());
         pop.popGs=nuccharges - pops;
         // population to electron charges and add nuclear charges         
