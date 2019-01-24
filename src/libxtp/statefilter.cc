@@ -34,25 +34,19 @@ namespace votca {
           _overlapthreshold = options.ifExistsReturnElseReturnDefault<double>("overlap",0.0);
         }
         if (options.exists("localisation")) {
-          _use_localisationfilter = true;
-          std::string temp = options.get("localisation").as<std::string> ();
-          tools::Tokenizer tok_cleanup(temp, ", \n\t");
-          std::vector <std::string> strings_vec;
-          tok_cleanup.ToVector(strings_vec);
-          if (strings_vec.size() != 2) {
-            throw std::runtime_error("statefiler: Fragment and localisation threshold are not separated");
-          }
-          if (strings_vec[0] == "a" || strings_vec[0] == "A") {
-          } else if (strings_vec[0] == "b" || strings_vec[0] == "B") {
-          } else {
-            throw std::runtime_error("statefiler: Fragment label not known, either A or B");
-          }
-          _loc_threshold = boost::lexical_cast<double>(strings_vec[1]);
+            _use_localisationfilter = true;
+            std::string indices = options.ifExistsReturnElseThrowRuntimeError<std::string>("localisation.fragment");
+            QMFragment<BSE_Population> reg=QMFragment<BSE_Population>("Fragment",0,indices);
+            _loc_threshold=options.ifExistsReturnElseThrowRuntimeError<double>("localisation.threshold");
+            _fragment_loc.push_back(reg);
         }
-
+          
         if (options.exists("charge_transfer")) {
-          _use_dQfilter = true;
-          _dQ_threshold = options.ifExistsReturnElseThrowRuntimeError<double>("charge_transfer");
+            _use_dQfilter = true;
+            std::string indices = options.ifExistsReturnElseThrowRuntimeError<std::string>("charge_transfer.fragment");
+            QMFragment<BSE_Population> reg=QMFragment<BSE_Population>("Fragment",0,indices);
+            _dQ_threshold=options.ifExistsReturnElseThrowRuntimeError<double>("charge_transfer.threshold");
+           _fragment_dQ.push_back(reg);
         }
         if (_use_dQfilter && _use_localisationfilter) {
           throw std::runtime_error("Cannot use localisation and charge_transfer filter at the same time.");

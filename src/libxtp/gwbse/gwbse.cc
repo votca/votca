@@ -322,6 +322,22 @@ void GWBSE::Initialize(tools::Property& options) {
         XTP_LOG(logDEBUG, *_pLog) << " ehint " << flush;
     }
 
+      
+    if (options.exists(key + ".fragments")) {
+        std::list<tools::Property*> prop_region = options.Select(key + ".fragments.fragment");
+        int index=0;
+        for (tools::Property* prop:prop_region) {
+            std::string indices=prop->ifExistsReturnElseThrowRuntimeError<std::string>("indices");
+            QMFragment<BSE_Population> reg=QMFragment<BSE_Population>("Fragment",index,indices);
+            if(_do_bse_singlets){
+                _singlets.push_back(reg);
+            }
+            if(_do_bse_triplets){
+                _triplets.push_back(reg);
+            }
+            index++;
+        }
+    }
     return;
 }
 
