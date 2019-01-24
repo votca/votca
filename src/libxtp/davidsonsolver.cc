@@ -252,14 +252,11 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 
         // check for convergence
         //norm = (lambda.head(neigen) - lambda_old).norm();
-        norm /= size_initial_guess;
+        norm /= search_space;
 
         if(_debug_)
             CTP_LOG(ctp::logDEBUG, _log)  << ctp::TimeStamp() 
-               << format(" %1$4d \t %2$12d \t %3$4.2e/%4$.0e") % iiter % search_space % norm % tol << flush; 
-            // CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<
-            //     iiter << "   " << search_space  << "   " << norm << "   " << tol << flush; 
-        
+               << format(" %1$4d \t %2$12d \t %3$4.2e/%4$.0e") % iiter % search_space % norm % tol << flush;         
         
         // break if converged, update otherwise
         if (norm < tol)
