@@ -68,6 +68,8 @@ public:
     unsigned getNumofShells() const{return _aoshells.size();}
    
     int getAOBasisFragA() const{return _AOBasisFragA;}
+
+    int getAtomNumberFragbreak()const{return _fragA;}
     
    int getAOBasisFragB() const{return _AOBasisFragB;}
    
@@ -100,6 +102,8 @@ private:
     void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
     
     std::vector<int> _FuncperAtom;
+
+    int _fragA;
     
    int _AOBasisFragA;
    int _AOBasisFragB;
