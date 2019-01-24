@@ -189,12 +189,12 @@ void Espfit::FitPartialCharges( Orbitals& orbitals,const Grid& grid,double netch
      
      //Regionconstraint
      for (unsigned i=0;i<_regionconstraint.size();i++){
-         const ConstraintRegion& reg=_regionconstraint[i];
-         for (const int& index:reg.atomindices){
+         const QMFragment<double>& reg=_regionconstraint[i];
+         for (int index:reg){
              Amat(index,atomlist.size()+i+1+_pairconstraint.size())=1.0;
              Amat(atomlist.size()+i+1+_pairconstraint.size(),index)=1.0;
          }
-         Bvec(atomlist.size()+i+1+_pairconstraint.size())=reg.charge;
+         Bvec(atomlist.size()+i+1+_pairconstraint.size())=reg.value();
      }
 
     XTP_LOG(logDEBUG, *_log) << TimeStamp() << " Solving linear Equation "<< flush;

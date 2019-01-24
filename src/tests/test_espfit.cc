@@ -178,10 +178,11 @@ bool check_p1=(std::abs(pcharges_equal(1)-pcharges_equal(2))<1e-6);
 bool check_p2=(std::abs(pcharges_equal(3)-pcharges_equal(4))<1e-6);
 BOOST_CHECK_EQUAL(check_p1 && check_p2, 1);
 
-std::vector< Espfit::ConstraintRegion > regionconstraint;
-Espfit::ConstraintRegion reg;
-reg.atomindices={1,2,3};
-reg.charge=1.0;
+std::vector< QMFragment<double> > regionconstraint;
+
+std::string indeces="1...3";
+QMFragment<double> reg=QMFragment<double>("constraint",0,indeces);
+reg.value()=1.0;
 regionconstraint.push_back(reg);
 Espfit esp3=Espfit(&log);
 esp3.setRegionConstraint(regionconstraint);

@@ -59,16 +59,13 @@ namespace votca {
                      std::list<tools::Property*> prop_region = options.Select(key + ".constraints.regions.region");
                      for (tools::Property* prop:prop_region) {
                          std::string indices=prop->get("indices").as<std::string>();
-                         tools::Tokenizer tok(indices,"\n\t ,");
-                         Espfit::ConstraintRegion reg;
-                         tok.ConvertToVector<int>(reg.atomindices);
-                         reg.charge=prop->get("charge").as<double>();
+                         QMFragment<double> reg=QMFragment<double>("Constraint",0,indices);
+                         reg.value()=prop->get("charge").as<double>();
                          _regionconstraint.push_back(reg);
-                         XTP_LOG(logDEBUG, *_log) << "Fit constrained by SUM(";
-                         for(int i:reg.atomindices){
-                             XTP_LOG(logDEBUG, *_log)<<i<<" ";
-                         }
-                        XTP_LOG(logDEBUG, *_log)<<")="<<reg.charge<< flush;
+                         XTP_LOG(logDEBUG, *_log) << "Fit constrained by Region"<<flush;
+                         XTP_LOG(logDEBUG, *_log)<<reg;
+
+               
                      }
                  }
                  if (options.exists(key + ".constraints.pairs")) {

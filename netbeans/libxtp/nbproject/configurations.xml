@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -291,6 +291,7 @@
       <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmatom.cc</itemPath>
+      <itemPath>../../src/tests/test_qmfragment.cc</itemPath>
       <itemPath>../../src/tests/test_qmmolecule.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
@@ -4846,6 +4847,8 @@
       </item>
       <item path="../../src/tests/test_qmatom.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_qmfragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmnblist.cc" ex="false" tool="1" flavor2="0">
@@ -5925,6 +5928,8 @@
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmatom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmfragment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>

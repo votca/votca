@@ -23,6 +23,7 @@
 #include <votca/xtp/grid.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/qmfragment.h>
 /**
 * \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of partial charges
 *

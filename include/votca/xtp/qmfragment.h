@@ -22,6 +22,7 @@
 #include <votca/xtp/eigen.h>
 #include <limits>
 #include <boost/lexical_cast.hpp>
+#include <votca/tools/tokenizer.h>
 
 /**
 * \brief Container to define fragments of QMmolecules, containing atomindices, no pointers to atoms, it also handles the parsing of strings etc..
@@ -40,7 +41,7 @@ class QMFragment{
     QMFragment(std::string name,int id,std::string atoms):_name(name),_id(id)
                 {FillAtomIndices(atoms);}
 
-    QMFragment();
+    QMFragment(){};
 
     void setName(std::string name){_name=name;}
     void setId(int id){_id=id;}
@@ -90,14 +91,14 @@ private:
         const std::string delimiter="...";
         for(std::string s:results){ 
             if(s.find(delimiter) != std::string::npos){
-                int start = boost::lexical_cast<int>(s.substr(0, s.find(delimiter)));
-                int stop = boost::lexical_cast<int>(s.erase(0,s.find(delimiter) + delimiter.length()));
+                int start = std::stoi(s.substr(0, s.find(delimiter)));
+                int stop = std::stoi(s.erase(0,s.find(delimiter) + delimiter.length()));
                 for(int i=start;i<=stop;i++){
                     _atomindices.push_back(i);
                 }
             }
             else{
-                _atomindices.push_back(boost::lexical_cast<int>(s));
+                _atomindices.push_back(std::stoi(s));
             }
         }
         
