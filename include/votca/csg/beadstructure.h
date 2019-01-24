@@ -110,6 +110,8 @@ class BeadStructure {
    **/
   bool isStructureEquivalent(BeadStructure &beadstructure);
 
+  bool BeadExist(int bead_id) const { return beads_.count(bead_id); }
+
  protected:
   virtual void InitializeGraph_();
   void CalculateStructure_();

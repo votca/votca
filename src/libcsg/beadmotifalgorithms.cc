@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- */
+/ */
 #include "../../include/votca/csg/beadmotifalgorithms.h"
 #include "../../include/votca/csg/beadstructurealgorithms.h"
 #include <list>
 #include <unordered_map>
 #include <votca/csg/beadmotif.h>
+#include <votca/tools/edge.h>
 #include <votca/tools/graphalgorithm.h>
 
 using namespace votca::tools;
@@ -28,170 +29,37 @@ namespace votca {
 namespace csg {
 
 /******************************************************************************
- * Declartion of Internal Private Functions
+ * Locally Global Variables
+ ******************************************************************************/
+
+typedef pair<int, BeadMotif> IdMotif;
+
+const int unassigned_id = -1;
+
+static int motif_index = 0;
+
+/******************************************************************************
+ * Internal Private Functions
  ******************************************************************************/
 
 /**
- * \brief This function will take a list of bead_motifs and split them up
- * depending on whether they are of type multiple_structures or not.
- *
- * Elements are moved out of the bead_motifs they are not destroyed.
- *
- * @param[in,out] - list of bead motifs
- * @return - list of bead motifs of type multiple structures.
+ * \brief Determines which edges are connected to the junction and stored them
+ * in the remove_edges map.
  **/
-list<BeadMotif> moveMultipleStructureMotifsToSeparateList_(
-    list<BeadMotif>& bead_motifs);
+void removeAllEdgesConnectedToVertex_(int junction, Graph& full_graph,
+                                      unordered_map<Edge, bool>& remove_edges) {
 
-/**
- * \brief Separates the bead motifs in a list into two separate list the first
- * containing simple motifs and the scond containing complex motifs
- *
- * @param[in,out] - bead motifs of all types
- * @return - pair of lists of bead motifs the first contains simple and second
- * complex bead motifs
- **/
-pair<list<BeadMotif>, list<BeadMotif>> separateComplexAndSimpleMotifs_(
-    list<BeadMotif>& bead_motifs);
-
+  vector<Edge> neigh_edges = full_graph.getNeighEdges(junction);
+  for (Edge& edge : neigh_edges) {
+    remove_edges[edge] = true;
+  }
+}
 /**
  * The purpose of this function is to determine which edges connected to the
  * starting vertex in the full graph were explored for a branch. We are
  * starting with a contracted edge from the reduced graph. So it must first
  * be expanded and then it can be explored.
  **/
-int determineEdgesOfBranchesWithSingleConnectionToJunction_(
-    int junction, ReducedGraph& reduced_graph,
-    unordered_map<Edge, bool>& remove_edges,
-    unordered_map<int, vector<Edge>>
-        contracted_branch_edges_connected_to_junction);
-
-/**
- * \brief Determines which edges are connected to the junction and stored them
- * in the rmoeve_edges map.
- **/
-void removeAllEdgesConnectedToVertex_(int junction, Graph& full_graph,
-                                      unordered_map<Edge, bool>& remove_edges);
-
-/**
- * \brief takes a list of bead motifs and places them in a map while assigning
- * an id to them.
- **/
-unordered_map<int, BeadMotif> convertToUnorderedMapAndAssignId_(
-    list<BeadMotif> motifs);
-
-/**
- * \brief Calculate which edges to remove from a graph to split it up correctly
- *
- * This will depend on the number of junctions and the number of edges of each
- * branch that is connected to each of the junctions.
- **/
-void calculateEdgesToRemove_(Graph& full_graph,
-                             unordered_map<Edge, bool>& remove_edges);
-
-/**
- * \brief Takes a bead motif of type single structure and splits it into
- * smaller components
- *
- * This internal function can be called only when we are dealng with a bead
- * motif that is known be a single network and it is not a simple component
- *
- * E.g.
- *
- * Scenario I
- *
- * 1 - 2
- * |   |
- * 4 - 3 - 5
- *     |   |
- *     6 _ 7
- *
- * Scenario II
- *
- * 1 - 2  8
- * |   | / \
- * 4 - 3 - 5
- *     |   |
- *     6 _ 7
- *
- * Scenario III
- *
- * 1   2 - 5           4 - 1     2 - 5
- * | \ | /
- * 4 - 3        =>            3
- *     | \
- *     6 -7                6 - 7
- *
- * Scenario IV
- *
- * 1 - 2 - 3  4 - 5       1 - 2 - 3    4 - 5
- *          \ /
- *           6 - 7    =>         6 - 7
- *           |   |               |   |
- *           8 _ 9               8 - 9
- *
- * In Scenario I and III all branches equally share the vertex 3 so it is
- * treated as a pivot vertex that is not owned by any of the motifs think
- * of AlQ3
- *
- * In Scenario II there are three edges connected to vertex 3 from one
- * branch and only two from the other we will also consider it as a pivot
- * vertex
- *
- * In scenario IV vertex 6 will be assigned to the branch that has two
- * connecting edges.
- **/
-list<BeadMotif> splitConnectedBeadMotif_(BeadMotif bead_motif);
-
-list<BeadMotif> breakMultipleMotifs_(list<BeadMotif> motifs);
-/******************************************************************************
- * Internal Private Functions
- ******************************************************************************/
-
-list<BeadMotif> moveMultipleStructureMotifsToSeparateList_(
-    list<BeadMotif>& bead_motifs) {
-
-  list<BeadMotif> bead_motif_multiple_structures;
-  list<BeadMotif>::iterator bead_motif_iter = bead_motifs.begin();
-
-  while (bead_motif_iter != bead_motifs.end()) {
-    if (bead_motif_iter->getType() ==
-        BeadMotif::MotifType::multiple_structures) {
-      list<BeadMotif>::iterator temp_iter = bead_motif_iter;
-      ++temp_iter;
-      bead_motif_multiple_structures.splice(
-          bead_motif_multiple_structures.end(), bead_motifs, bead_motif_iter);
-      bead_motif_iter = temp_iter;
-    } else {
-      ++bead_motif_iter;
-    }
-  }
-  return bead_motif_multiple_structures;
-}
-
-pair<list<BeadMotif>, list<BeadMotif>> separateComplexAndSimpleMotifs_(
-    list<BeadMotif>& bead_motifs) {
-  list<BeadMotif> complex_motifs;
-  list<BeadMotif> simple_motifs;
-
-  list<BeadMotif>::iterator motif_iterator = bead_motifs.begin();
-  while (motif_iterator != bead_motifs.end()) {
-    if (motif_iterator->isMotifSimple()) {
-      list<BeadMotif>::iterator temp_iter = motif_iterator;
-      ++temp_iter;
-      simple_motifs.splice(simple_motifs.end(), bead_motifs, motif_iterator);
-      motif_iterator = temp_iter;
-    } else {
-      assert(motif_iterator->getType() != BeadMotif::MotifType::undefined);
-      list<BeadMotif>::iterator temp_iter = motif_iterator;
-      ++temp_iter;
-      complex_motifs.splice(complex_motifs.end(), bead_motifs, motif_iterator);
-      motif_iterator = temp_iter;
-    }
-  }
-  return pair<list<BeadMotif>, list<BeadMotif>>{simple_motifs, complex_motifs};
-}
-
 int determineEdgesOfBranchesWithSingleConnectionToJunction_(
     int junction, ReducedGraph& reduced_graph,
     unordered_map<Edge, bool>& remove_edges,
@@ -229,27 +97,13 @@ int determineEdgesOfBranchesWithSingleConnectionToJunction_(
   return number_branches_with_more_than_one_bond;
 }
 
-void removeAllEdgesConnectedToVertex_(int junction, Graph& full_graph,
-                                      unordered_map<Edge, bool>& remove_edges) {
-
-  vector<Edge> neigh_edges = full_graph.getNeighEdges(junction);
-  for (Edge& edge : neigh_edges) {
-    remove_edges[edge] = true;
-  }
-  return;
-}
-
-unordered_map<int, BeadMotif> convertToUnorderedMapAndAssignId_(
-    list<BeadMotif> motifs) {
-  int motif_id = 0;
-  unordered_map<int, BeadMotif> motifs2;
-  for (BeadMotif& motif : motifs) {
-    motifs2[motif_id] = motif;
-    ++motif_id;
-  }
-  return motifs2;
-}
-
+/**
+ * \brief Calculates which edges to remove from a graph, in order to split it up
+ * correctly into simple motif types.
+ *
+ * This will depend on the number of junctions and the number of edges of each
+ * branch that is connected to each of the junctions.
+ **/
 void calculateEdgesToRemove_(Graph& full_graph,
                              unordered_map<Edge, bool>& remove_edges) {
 
@@ -257,9 +111,7 @@ void calculateEdgesToRemove_(Graph& full_graph,
 
   vector<int> junctions = reduced_graph.getJunctions();
 
-  cout << "Number of junctions " << junctions.size() << endl;
   for (int& junction : junctions) {
-    cout << "In calculateEdgesToRemove_ junction " << junction << endl;
     vector<Edge> neighboring_edges = reduced_graph.getNeighEdges(junction);
     unordered_map<Edge, bool> contracted_edge_explored;
     for (Edge& edge : neighboring_edges) {
@@ -269,7 +121,6 @@ void calculateEdgesToRemove_(Graph& full_graph,
     int branch_index = 0;
     unordered_map<int, vector<Edge>>
         contracted_branch_edges_connected_to_junction;
-
     for (Edge& branch_starting_edge : neighboring_edges) {
       if (contracted_edge_explored[branch_starting_edge] == false) {
         // The starting edge could be redundant but I guess it doesn't matter
@@ -296,16 +147,14 @@ void calculateEdgesToRemove_(Graph& full_graph,
       // branch We can use the full graph to decouple the edges we can begin by
       // snipping branches with only a single edge connecting them to starting
       // nodes.
-      cout << "Number of branches connected to starting vertex " << junction
-           << " " << branch_index << endl;
       int number_branches_with_more_than_one_bond =
           determineEdgesOfBranchesWithSingleConnectionToJunction_(
               junction, reduced_graph, remove_edges,
               contracted_branch_edges_connected_to_junction);
 
-      // If more than one branch claims the junction and they both have more
-      // than one connection the junction neigther branch can claim the junction
-      // thus all connections to the junction will be cut.
+      // If more than one branch claims the junction, and each branch has more
+      // than one connetion to the junction neigther branch can claim the
+      // junction, in this case all connections to the junction will be cut.
       if (number_branches_with_more_than_one_bond > 1) {
         removeAllEdgesConnectedToVertex_(junction, full_graph, remove_edges);
       }
@@ -313,92 +162,251 @@ void calculateEdgesToRemove_(Graph& full_graph,
   }  // for(int & junction : junctions)
 }
 
-list<BeadMotif> splitConnectedBeadMotif_(BeadMotif bead_motif) {
+/******************************************************************************
+ * Internal Private Class
+ ******************************************************************************/
 
-  assert(bead_motif.getType() == BeadMotif::MotifType::single_structure);
+/**
+ * \brief This is an internal class meant to deconstruct bead motifs into their
+ * simple forms
+ *
+ * It is only meant to be used within the source file. It is simply more
+ * convenient to write a class with shared internal variables then a series of
+ * functions. However, everything this class can do is accessed via the
+ * graph motif algorithm breakIntoSimpleMotifs. Do not pull this class out of
+ * the file.
+ **/
+class MotifDeconstructor_ {
+ public:
+  /// Adds a motif with its corresponding id
+  void AddMotif(IdMotif id_and_motif);
 
-  Graph full_graph = bead_motif.getGraph();
-  vector<Edge> all_edges = full_graph.getEdges();
-  unordered_map<Edge, bool> remove_edges;
-  for (Edge& edge : all_edges) {
-    cout << "Edges in the complex bead " << edge << endl;
-    remove_edges[edge] = false;
+  /**
+   * \brief Takes a bead motif of type single structure and deconstructs it
+   * into smaller components.
+   *
+   * E.g.
+   *
+   * Scenario I
+   *
+   * 1 - 2
+   * |   |
+   * 4 - 3 - 5
+   *     |   |
+   *     6 _ 7
+   *
+   * Scenario II
+   *
+   * 1 - 2  8
+   * |   | / \
+   * 4 - 3 - 5
+   *     |   |
+   *     6 _ 7
+   *
+   * Scenario III
+   *
+   * 1   2 - 5           4 - 1     2 - 5
+   * | \ | /
+   * 4 - 3        =>            3
+   *     | \
+   *     6 -7                6 - 7
+   *
+   * Scenario IV
+   *
+   * 1 - 2 - 3  4 - 5       1 - 2 - 3    4 - 5
+   *          \ /
+   *           6 - 7    =>         6 - 7
+   *           |   |               |   |
+   *           8 _ 9               8 - 9
+   *
+   * In Scenario I and III all branches equally share the vertex 3 so it is
+   * treated as a pivot vertex that is not owned by any of the motifs think
+   * of AlQ3
+   *
+   * In Scenario II there are three edges connected to vertex 3 from one
+   * branch and only two from the other we will also consider it as a pivot
+   * vertex
+   *
+   * In scenario IV vertex 6 will be assigned to the branch that has two
+   * connecting edges.
+   *
+   * @param[in,out] - BeadMotifConnector this keeps track of all the
+   * connections between motifs. Both the bead ids and the motif ids are
+   * tracked and stored
+   **/
+  void deconstructComplexSingleStructures(BeadMotifConnector& connector);
+
+  /// Counts the number of complex motifs that have not yet been broken down
+  /// into simple motifs
+  size_t CountComplexMotifs() const;
+
+  /// returns whether all the connections between the simple motifs have
+  /// been correctly handled.
+  bool ConnectionsCompleted() const { return bead_edges_removed_.size() == 0; }
+
+  /// Returns a map of all the simple motifs with their ids
+  unordered_map<int, BeadMotif> getSimpleMotifs();
+
+ private:
+  list<IdMotif> motifs_simple_;
+  list<IdMotif> motifs_complex_single_structure_;
+  list<IdMotif> motifs_multiple_structures_;
+  list<Edge> bead_edges_removed_;
+
+  // Returns the ids of the simple motifs that were assigned ids
+  void sortMotifsAndAssignIdsToSimpleMotifs_(list<BeadMotif>& bead_motifs);
+  void determineMotifConnections_(BeadMotifConnector& connector);
+};
+
+unordered_map<int, BeadMotif> MotifDeconstructor_::getSimpleMotifs() {
+  unordered_map<int, BeadMotif> simple_motifs;
+  for (IdMotif& id_and_motif : motifs_simple_) {
+    simple_motifs[id_and_motif.first] = id_and_motif.second;
   }
+  return simple_motifs;
+}
 
-  calculateEdgesToRemove_(full_graph, remove_edges);
+size_t MotifDeconstructor_::CountComplexMotifs() const {
+  return motifs_complex_single_structure_.size() +
+         motifs_multiple_structures_.size();
+}
 
-  vector<int> all_vertices = full_graph.getVertices();
-
-  BeadStructure new_beadstructure;
-  for (int& vertex : all_vertices) {
-    new_beadstructure.AddBead(bead_motif.getBead(vertex));
+void MotifDeconstructor_::AddMotif(IdMotif id_and_motif) {
+  if (id_and_motif.second.getType() ==
+      BeadMotif::MotifType::multiple_structures) {
+    motifs_multiple_structures_.push_back(id_and_motif);
+  } else if (id_and_motif.second.getType() ==
+             BeadMotif::MotifType::single_structure) {
+    motifs_complex_single_structure_.push_back(id_and_motif);
+  } else if (id_and_motif.second.isMotifSimple()) {
+    motifs_simple_.push_back(id_and_motif);
+  } else {
+    assert(false && "Error the motif type must be a simple or complex type.");
   }
+}
 
-  cout << "Remove edges or not " << endl;
-  for (pair<const Edge, bool>& edge_and_remove : remove_edges) {
-    cout << edge_and_remove.first << " " << edge_and_remove.second << endl;
-    if (edge_and_remove.second == false) {
-      Edge edge = edge_and_remove.first;
-      new_beadstructure.ConnectBeads(edge.getEndPoint1(), edge.getEndPoint2());
+void MotifDeconstructor_::deconstructComplexSingleStructures(
+    BeadMotifConnector& connector) {
+  list<BeadMotif> split_motifs;
+  for (IdMotif& id_and_bead_motif : motifs_complex_single_structure_) {
+    Graph full_graph = id_and_bead_motif.second.getGraph();
+    vector<Edge> all_edges = full_graph.getEdges();
+    unordered_map<Edge, bool> remove_edges;
+    for (Edge& edge : all_edges) {
+      remove_edges[edge] = false;
     }
+
+    calculateEdgesToRemove_(full_graph, remove_edges);
+
+    vector<int> all_vertices = full_graph.getVertices();
+
+    BeadStructure new_beadstructure;
+    for (int& vertex : all_vertices) {
+      new_beadstructure.AddBead(id_and_bead_motif.second.getBead(vertex));
+    }
+
+    for (pair<const Edge, bool>& edge_and_remove : remove_edges) {
+      if (edge_and_remove.second == false) {
+        Edge edge = edge_and_remove.first;
+        new_beadstructure.ConnectBeads(edge.getEndPoint1(),
+                                       edge.getEndPoint2());
+      } else {
+        bead_edges_removed_.push_back(edge_and_remove.first);
+      }
+    }
+
+    list<BeadMotif> split_motifs_temp =
+        breakIntoMotifs<list<BeadMotif>>(new_beadstructure);
+
+    split_motifs.splice(split_motifs.end(), split_motifs_temp);
   }
 
-  list<BeadMotif> split_motifs =
-      breakIntoMotifs<list<BeadMotif>>(new_beadstructure);
-  return split_motifs;
+  motifs_complex_single_structure_.clear();
+  sortMotifsAndAssignIdsToSimpleMotifs_(split_motifs);
+  determineMotifConnections_(connector);
 }
 
-list<BeadMotif> breakMultipleMotifs_(list<BeadMotif> motifs) {
-  list<BeadMotif> all_motifs;
-  for (BeadMotif& motif : motifs) {
-    list<BeadMotif> motifs_temp = breakIntoMotifs<list<BeadMotif>>(motif);
-    all_motifs.splice(all_motifs.end(), motifs_temp);
-  }
-  return all_motifs;
+void MotifDeconstructor_::determineMotifConnections_(
+    BeadMotifConnector& connector) {
+
+  // Cycle the edges
+  list<Edge>::iterator edge_iterator = bead_edges_removed_.begin();
+  while (edge_iterator != bead_edges_removed_.end()) {
+    assert(bead_edge.loop() == false);
+    int bead_id1 = edge_iterator->getEndPoint1();
+    int bead_id2 = edge_iterator->getEndPoint2();
+    // Cycle the motifs
+    list<IdMotif>::iterator motif_bead1_iterator;
+    for (motif_bead1_iterator = motifs_simple_.begin();
+         motif_bead1_iterator != motifs_simple_.end(); ++motif_bead1_iterator) {
+
+      if (motif_bead1_iterator->second.BeadExist(bead_id1)) {
+        break;
+      }
+    }
+
+    list<IdMotif>::iterator motif_bead2_iterator;
+    for (motif_bead2_iterator = motifs_simple_.begin();
+         motif_bead2_iterator != motifs_simple_.end(); ++motif_bead2_iterator) {
+
+      if (motif_bead2_iterator->second.BeadExist(bead_id2)) {
+        break;
+      }
+    }
+
+    // We remove the edge from the list and add it as a connection
+    if (motif_bead2_iterator != motifs_simple_.end() &&
+        motif_bead1_iterator != motifs_simple_.end()) {
+      Edge motif_edge(motif_bead1_iterator->first, motif_bead2_iterator->first);
+      connector.AddMotifAndBeadEdge(motif_edge, *edge_iterator);
+      edge_iterator = bead_edges_removed_.erase(edge_iterator);
+    } else {
+      ++edge_iterator;
+    }
+  }  // while( edge_iterator != bead_edges.end() )
 }
+
+void MotifDeconstructor_::sortMotifsAndAssignIdsToSimpleMotifs_(
+    list<BeadMotif>& bead_motifs) {
+
+  list<BeadMotif>::iterator bead_motif_iter = bead_motifs.begin();
+  while (bead_motif_iter != bead_motifs.end()) {
+
+    list<BeadMotif>::iterator temp_iter = bead_motif_iter;
+    int new_motif_id = unassigned_id;
+    if (bead_motif_iter->isMotifSimple()) {
+      new_motif_id = motif_index;
+      ++motif_index;
+    }
+    pair<int, BeadMotif> id_and_motif(new_motif_id, move(*bead_motif_iter));
+    AddMotif(id_and_motif);
+    bead_motif_iter = bead_motifs.erase(bead_motif_iter);
+  }
+}
+
 /******************************************************************************
  * Public Functions
  ******************************************************************************/
 
-/**
- * \brief This function will take a beadmotif and break it into its simple
- *motifs
- *
- * It will return the simple motif and the edges connecting each motif with
- *other motifs as well as the edges describing which vertices are connecting the
- *motifs
- **/
-unordered_map<int, BeadMotif> breakIntoSimpleMotifs(BeadMotif bead_motif) {
+pair<unordered_map<int, BeadMotif>, BeadMotifConnector> breakIntoSimpleMotifs(
+    BeadMotif bead_motif) {
 
-  list<BeadMotif> motifs_simple;
-  list<BeadMotif> motifs_complex;
-  list<BeadMotif> motifs;
-  motifs.push_back(bead_motif);
+  MotifDeconstructor_ motif_manipulator;
+  motif_manipulator.AddMotif(IdMotif(unassigned_id, bead_motif));
 
-  do {  // while(motifs_complex.size()!=0)
+  BeadMotifConnector connector;
 
-    for (BeadMotif& complex_motif : motifs_complex) {
-      list<BeadMotif> motifs_temp = splitConnectedBeadMotif_(complex_motif);
-      motifs.splice(motifs.end(), motifs_temp);
-    }
+  do {
+    motif_manipulator.deconstructComplexSingleStructures(connector);
+  } while (motif_manipulator.CountComplexMotifs());
 
-    {  // Sorting block
-      list<BeadMotif> motifs_multiple_structure =
-          moveMultipleStructureMotifsToSeparateList_(motifs);
-      list<BeadMotif> motifs_temp =
-          breakMultipleMotifs_(motifs_multiple_structure);
-      motifs.splice(motifs.end(), motifs_temp);
-      auto simple_and_complex_motifs = separateComplexAndSimpleMotifs_(motifs);
-      motifs_simple = simple_and_complex_motifs.first;
-      motifs_complex = simple_and_complex_motifs.second;
-      assert(motifs.size() == 0);
-    }  // End of Sorting block
-
-    cout << "complex motifs size " << motifs_complex.size() << endl;
-    cout << "simple motifs size " << motifs_simple.size() << endl;
-  } while (motifs_complex.size() != 0);
-
-  return convertToUnorderedMapAndAssignId_(motifs_simple);
+  assert(motif_manipulator.ConnectionsCompleted());
+  unordered_map<int, BeadMotif> motifs_simple_map =
+      motif_manipulator.getSimpleMotifs();
+  auto simple_motifs_and_connector =
+      pair<unordered_map<int, BeadMotif>, BeadMotifConnector>(motifs_simple_map,
+                                                              connector);
+  return simple_motifs_and_connector;
 }
 
 }  // namespace csg

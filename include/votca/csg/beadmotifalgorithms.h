@@ -19,6 +19,7 @@
 #define VOTCA_CSG_BEADMOTIFALGORITHMS_H
 
 #include "beadmotif.h"
+#include "beadmotifconnector.h"
 #include "beadstructure.h"
 #include "beadstructurealgorithms.h"
 
@@ -77,7 +78,9 @@ T breakIntoMotifs(BeadStructure& beadstructure) {
  * This structure is of type 'single_structure' will be broken up into two
  * separate structures 1 of type 'loop' and the other of type line.
  **/
-std::unordered_map<int, BeadMotif> breakIntoSimpleMotifs(BeadMotif beadmotif);
+
+std::pair<std::unordered_map<int, BeadMotif>, BeadMotifConnector>
+    breakIntoSimpleMotifs(BeadMotif beadmotif);
 
 }  // namespace csg
 }  // namespace votca

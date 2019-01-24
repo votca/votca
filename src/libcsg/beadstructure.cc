@@ -61,6 +61,7 @@ void BeadStructure::AddBead(BaseBead *bead) {
   }
   size_t numberOfBeads = beads_.size();
   beads_[bead->getId()] = bead;
+
   if (numberOfBeads != beads_.size()) {
     single_structureUpToDate_ = false;
     graphUpToDate = false;
