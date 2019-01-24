@@ -245,6 +245,7 @@ unordered_map<int, BeadMotif> convertToUnorderedMapAndAssignId_(
   unordered_map<int, BeadMotif> motifs2;
   for (BeadMotif& motif : motifs) {
     motifs2[motif_id] = motif;
+    ++motif_id;
   }
   return motifs2;
 }
@@ -255,8 +256,10 @@ void calculateEdgesToRemove_(Graph& full_graph,
   ReducedGraph reduced_graph = reduceGraph(full_graph);
 
   vector<int> junctions = reduced_graph.getJunctions();
-  for (int& junction : junctions) {
 
+  cout << "Number of junctions " << junctions.size() << endl;
+  for (int& junction : junctions) {
+    cout << "In calculateEdgesToRemove_ junction " << junction << endl;
     vector<Edge> neighboring_edges = reduced_graph.getNeighEdges(junction);
     unordered_map<Edge, bool> contracted_edge_explored;
     for (Edge& edge : neighboring_edges) {
@@ -293,7 +296,8 @@ void calculateEdgesToRemove_(Graph& full_graph,
       // branch We can use the full graph to decouple the edges we can begin by
       // snipping branches with only a single edge connecting them to starting
       // nodes.
-
+      cout << "Number of branches connected to starting vertex " << junction
+           << " " << branch_index << endl;
       int number_branches_with_more_than_one_bond =
           determineEdgesOfBranchesWithSingleConnectionToJunction_(
               junction, reduced_graph, remove_edges,
@@ -317,6 +321,7 @@ list<BeadMotif> splitConnectedBeadMotif_(BeadMotif bead_motif) {
   vector<Edge> all_edges = full_graph.getEdges();
   unordered_map<Edge, bool> remove_edges;
   for (Edge& edge : all_edges) {
+    cout << "Edges in the complex bead " << edge << endl;
     remove_edges[edge] = false;
   }
 
@@ -329,7 +334,9 @@ list<BeadMotif> splitConnectedBeadMotif_(BeadMotif bead_motif) {
     new_beadstructure.AddBead(bead_motif.getBead(vertex));
   }
 
+  cout << "Remove edges or not " << endl;
   for (pair<const Edge, bool>& edge_and_remove : remove_edges) {
+    cout << edge_and_remove.first << " " << edge_and_remove.second << endl;
     if (edge_and_remove.second == false) {
       Edge edge = edge_and_remove.first;
       new_beadstructure.ConnectBeads(edge.getEndPoint1(), edge.getEndPoint2());
@@ -387,6 +394,8 @@ unordered_map<int, BeadMotif> breakIntoSimpleMotifs(BeadMotif bead_motif) {
       assert(motifs.size() == 0);
     }  // End of Sorting block
 
+    cout << "complex motifs size " << motifs_complex.size() << endl;
+    cout << "simple motifs size " << motifs_simple.size() << endl;
   } while (motifs_complex.size() != 0);
 
   return convertToUnorderedMapAndAssignId_(motifs_simple);

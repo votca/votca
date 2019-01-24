@@ -214,9 +214,150 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   BOOST_CHECK(found_type_single);
   BOOST_CHECK(found_type_fused_ring);
 }
-/*
-  BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs){
-  unordered_map<int, BeadMotif> breakIntoSimpleMotifs(BeadMotif beadmotif);
 
-  }*/
+/*
+BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs){
+
+  BeadStructure beadstructure1;
+
+  // Beads for bead structure 1
+  // Make a methane molecule
+  //
+  //     H
+  //     |
+  // H - C - H
+  //     |
+  //     H
+  //
+  // Should return this as type single_structure
+
+  TestBead testbead1;
+  testbead1.setName("Hydrogen");
+  testbead1.setId(1);
+
+  TestBead testbead2;
+  testbead2.setName("Carbon");
+  testbead2.setId(2);
+
+  TestBead testbead3;
+  testbead3.setName("Hydrogen");
+  testbead3.setId(3);
+
+  TestBead testbead4;
+  testbead4.setName("Hydrogen");
+  testbead4.setId(4);
+
+  TestBead testbead5;
+  testbead5.setName("Hydrogen");
+  testbead5.setId(5);
+
+  beadstructure1.AddBead(&testbead1);
+  beadstructure1.AddBead(&testbead2);
+  beadstructure1.AddBead(&testbead3);
+  beadstructure1.AddBead(&testbead4);
+  beadstructure1.AddBead(&testbead5);
+
+  beadstructure1.ConnectBeads(1, 2);
+  beadstructure1.ConnectBeads(3, 2);
+  beadstructure1.ConnectBeads(4, 2);
+  beadstructure1.ConnectBeads(5, 2);
+
+  list<BeadMotif> bead_motifs =
+breakIntoMotifs<list<BeadMotif>>(beadstructure1);
+
+  // Single structure breaking it into simple motifs should lead to 5 singles
+  unordered_map<int, BeadMotif> simple_motifs =
+breakIntoSimpleMotifs(*bead_motifs.begin());
+
+  BOOST_CHECK_EQUAL(simple_motifs.size(),5);
+
+  int single_type_count = 0;
+  for(pair<const int,BeadMotif>& id_and_motif : simple_motifs){
+    if(id_and_motif.second.getType()==BeadMotif::MotifType::single_bead){
+      ++single_type_count;
+    }
+  }
+  BOOST_CHECK_EQUAL(single_type_count,5);
+}
+*/
+BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
+
+  BeadStructure beadstructure1;
+
+  // Beads for bead structure 1
+  //
+  // C1 - C2
+  // |    |
+  // C3 - C4 - C5 - H6
+  //
+  // Should return this as type single_structure
+
+  TestBead testbead1;
+  testbead1.setName("Carbon");
+  testbead1.setId(1);
+
+  TestBead testbead2;
+  testbead2.setName("Carbon");
+  testbead2.setId(2);
+
+  TestBead testbead3;
+  testbead3.setName("Carbon");
+  testbead3.setId(3);
+
+  TestBead testbead4;
+  testbead4.setName("Carbon");
+  testbead4.setId(4);
+
+  TestBead testbead5;
+  testbead5.setName("Carbon");
+  testbead5.setId(5);
+
+  TestBead testbead6;
+  testbead6.setName("Hydrogen");
+  testbead6.setId(6);
+
+  beadstructure1.AddBead(&testbead1);
+  beadstructure1.AddBead(&testbead2);
+  beadstructure1.AddBead(&testbead3);
+  beadstructure1.AddBead(&testbead4);
+  beadstructure1.AddBead(&testbead5);
+  beadstructure1.AddBead(&testbead6);
+
+  //
+  // C1 - C2
+  // |    |
+  // C3 - C4 - C5 - H6
+  //
+  beadstructure1.ConnectBeads(1, 2);
+  beadstructure1.ConnectBeads(3, 1);
+  beadstructure1.ConnectBeads(4, 2);
+  beadstructure1.ConnectBeads(3, 4);
+  beadstructure1.ConnectBeads(4, 5);
+  beadstructure1.ConnectBeads(5, 6);
+
+  list<BeadMotif> bead_motifs =
+      breakIntoMotifs<list<BeadMotif>>(beadstructure1);
+
+  BOOST_CHECK_EQUAL(bead_motifs.size(), 1);
+  // Single structure breaking it into simple motifs should lead to 2 structures
+  // one of type line and the other of type loop
+  unordered_map<int, BeadMotif> simple_motifs =
+      breakIntoSimpleMotifs(*bead_motifs.begin());
+
+  BOOST_CHECK_EQUAL(simple_motifs.size(), 2);
+
+  int line_type_count = 0;
+  int loop_type_count = 0;
+  for (pair<const int, BeadMotif>& id_and_motif : simple_motifs) {
+    if (id_and_motif.second.getType() == BeadMotif::MotifType::line) {
+      ++line_type_count;
+    }
+    if (id_and_motif.second.getType() == BeadMotif::MotifType::loop) {
+      ++loop_type_count;
+    }
+  }
+  BOOST_CHECK_EQUAL(line_type_count, 1);
+  BOOST_CHECK_EQUAL(loop_type_count, 1);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
