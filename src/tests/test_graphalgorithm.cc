@@ -199,6 +199,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     ReducedGraph reduced_graph = reduceGraph(graph);
 
     vector<Edge> edges2 = reduced_graph.getEdges();
+
     BOOST_CHECK_EQUAL(edges2.size(), 1);
 
     Edge ed_check(1, 1);
@@ -220,6 +221,116 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     for (bool found : found_edge) {
       BOOST_CHECK(found);
     }
+  }
+
+  {
+    // Test that the reduced graph handles loop and edge correctly
+    //
+    // 1 - 2
+    // |   |
+    // 4 - 3 - 5 - 6
+    //
+    // Should reduce this to
+    //
+    // 3 - 3
+    // 3 - 6
+    //
+    vector<Edge> edges{Edge(1, 2), Edge(2, 3), Edge(3, 4),
+                       Edge(1, 4), Edge(3, 5), Edge(5, 6)};
+
+    unordered_map<int, GraphNode> nodes;
+    for (int vertex = 1; vertex <= 6; ++vertex) {
+      GraphNode gn;
+      nodes[vertex] = gn;
+    }
+
+    Graph graph(edges, nodes);
+    ReducedGraph reduced_graph = reduceGraph(graph);
+
+    vector<Edge> edges2 = reduced_graph.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(), 2);
+
+    cout << "EDGE CHECK **************************************" << endl;
+
+    Edge ed3_3(3, 3);
+    Edge ed3_6(3, 6);
+
+    bool found_edge3_3 = false;
+    bool found_edge3_6 = false;
+    for (Edge ed : edges2) {
+      if (ed == ed3_3) {
+        found_edge3_3 = true;
+      } else if (ed == ed3_6) {
+        found_edge3_6 = true;
+      }
+    }
+    BOOST_CHECK(found_edge3_3);
+    BOOST_CHECK(found_edge3_6);
+  }
+
+  {
+    // Test that the reduced graph handles loop and edge correctly
+    //
+    // 1 - 2       6 - 8
+    // |   |       |   |
+    // 4 - 3 - 5 - 7 - 9
+    //
+    // Should reduce this to
+    //
+    // 3 - 3
+    // 3 - 7
+    // 7 - 7
+    //
+    vector<Edge> edges{Edge(1, 2), Edge(2, 3), Edge(3, 4), Edge(1, 4),
+                       Edge(3, 5), Edge(5, 7), Edge(7, 6), Edge(6, 8),
+                       Edge(8, 9), Edge(9, 7)};
+
+    unordered_map<int, GraphNode> nodes;
+    for (int vertex = 1; vertex <= 9; ++vertex) {
+      GraphNode gn;
+      nodes[vertex] = gn;
+    }
+
+    Graph graph(edges, nodes);
+    ReducedGraph reduced_graph = reduceGraph(graph);
+
+    vector<int> junctions = reduced_graph.getJunctions();
+    BOOST_CHECK_EQUAL(junctions.size(), 2);
+    bool found_junction_3 = false;
+    bool found_junction_7 = false;
+    for (int junction : junctions) {
+      if (junction == 3) {
+        found_junction_3 = true;
+      } else if (junction == 7) {
+        found_junction_7 = true;
+      }
+    }
+    BOOST_CHECK(found_junction_3);
+    BOOST_CHECK(found_junction_7);
+
+    vector<Edge> edges2 = reduced_graph.getEdges();
+    BOOST_CHECK_EQUAL(edges2.size(), 3);
+
+    Edge ed3_3(3, 3);
+    Edge ed3_7(3, 7);
+    Edge ed7_7(7, 7);
+
+    bool found_edge3_3 = false;
+    bool found_edge3_7 = false;
+    bool found_edge7_7 = false;
+
+    for (Edge ed : edges2) {
+      if (ed == ed3_3) {
+        found_edge3_3 = true;
+      } else if (ed == ed3_7) {
+        found_edge3_7 = true;
+      } else if (ed == ed7_7) {
+        found_edge7_7 = true;
+      }
+    }
+    BOOST_CHECK(found_edge3_3);
+    BOOST_CHECK(found_edge3_7);
+    BOOST_CHECK(found_edge7_7);
   }
 
   {
@@ -246,6 +357,20 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
 
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
+
+    vector<int> junctions = reduced_g.getJunctions();
+    BOOST_CHECK_EQUAL(junctions.size(), 2);
+    bool found_junction_1 = false;
+    bool found_junction_2 = false;
+    for (int junction : junctions) {
+      if (junction == 1) {
+        found_junction_1 = true;
+      } else if (junction == 2) {
+        found_junction_2 = true;
+      }
+    }
+    BOOST_CHECK(found_junction_1);
+    BOOST_CHECK(found_junction_2);
 
     // Should end up with
     //
@@ -313,6 +438,20 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     Graph g(edges, nodes);
     ReducedGraph reduced_g = reduceGraph(g);
 
+    vector<int> junctions = reduced_g.getJunctions();
+    BOOST_CHECK_EQUAL(junctions.size(), 2);
+
+    bool found_junction_1 = false;
+    bool found_junction_6 = false;
+    for (int junction : junctions) {
+      if (junction == 1) {
+        found_junction_1 = true;
+      } else if (junction == 6) {
+        found_junction_6 = true;
+      }
+    }
+    BOOST_CHECK(found_junction_1);
+    BOOST_CHECK(found_junction_6);
     // Full Graph
     //
     //     2
@@ -360,6 +499,7 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     int edge_count14_14 = 0;
 
     vector<Edge> edges2 = reduced_g.getEdges();
+
     BOOST_CHECK_EQUAL(edges2.size(), 7);
 
     for (Edge& edge : edges2) {

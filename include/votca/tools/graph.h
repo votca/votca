@@ -106,7 +106,7 @@ class Graph {
   std::string getId() const { return id_; }
 
   /// Returns all the edges in the graph
-  std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
+  virtual std::vector<Edge> getEdges() { return edge_container_.getEdges(); }
 
   /// Returns all the edges in the graph connected to vertex `vertex`
   std::vector<Edge> getNeighEdges(int vertex) const {
@@ -135,7 +135,7 @@ class Graph {
   bool vertexExist(int vertex) const;
 
   /// Determines if an edge is stored in the graph
-  bool edgeExist(const Edge& edge) const {
+  virtual bool edgeExist(const Edge& edge) const {
     return edge_container_.edgeExist(edge);
   }
 

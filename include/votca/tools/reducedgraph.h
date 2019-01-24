@@ -74,6 +74,9 @@ class ReducedGraph : public Graph {
   void init_(std::vector<ReducedEdge> reduced_edges,
              std::unordered_map<int, GraphNode> nodes);
 
+  // Junctions must be stored internally
+  std::set<int> junctions_;
+
  public:
   ReducedGraph(){};
 
@@ -105,8 +108,32 @@ class ReducedGraph : public Graph {
    **/
   std::vector<std::vector<Edge>> expandEdge(const Edge& edge) const;
 
+  /// Get edges
+  std::vector<Edge> getEdges();
+
   /// This method will return a copy of the full graph
   Graph expandGraph();
+
+  /**
+   * \brief Gets the junctions in the graph.
+   *
+   * This method is different from the regular graph method as it must account
+   * for edges that loop around and refer to the same vertex.
+   *
+   * E.g.
+   *
+   *   - -
+   *  |   |
+   *   - -1 - 2 - 3
+   *
+   * This is composed of the edges:
+   * 1, 1
+   * 1, 2
+   * 2, 3
+   *
+   * Thus 1 is the only junction that exists in the reduced graph
+   **/
+  // std::vector<int> getJunctions() const;
 
   std::vector<std::pair<int, GraphNode>> getNodes(void) const;
 

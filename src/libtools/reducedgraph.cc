@@ -17,6 +17,7 @@
  *
  */
 
+#include <algorithm>
 #include <cassert>
 #include <votca/tools/edge.h>
 #include <votca/tools/reducedgraph.h>
@@ -46,23 +47,125 @@ bool compareChainWithChains_(const vector<int>& chain,
   return false;
 }
 
+set<int> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
+  unordered_map<int, int> vertex_count;
+  for (ReducedEdge reduced_edge : reduced_edges) {
+    // if loop, increment value is double and the first index is skipped to
+    // prevent over counting of the first number
+    int increment = 1;
+    size_t index = 0;
+    if (reduced_edge.loop()) {
+      ++index;
+      increment = 2;
+    }
+    vector<int> chain = reduced_edge.getChain();
+    for (; index < chain.size(); ++index) {
+      if (vertex_count.count(chain.at(index))) {
+        vertex_count[chain.at(index)] += increment;
+      } else {
+        vertex_count[chain.at(index)] = increment;
+      }
+    }
+  }
+  set<int> junctions;
+  for (pair<int, int> vertex_and_count : vertex_count) {
+    if (vertex_and_count.second > 2) {
+      junctions.insert(vertex_and_count.first);
+    }
+  }
+  return junctions;
+}
+
+void addEdgeIfNotLoop_(
+    vector<Edge>& edges, const ReducedEdge reduced_edge,
+    unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
+
+  Edge edge(reduced_edge.getEndPoint1(), reduced_edge.getEndPoint2());
+  if (expanded_edges.count(edge)) {
+    bool match =
+        compareChainWithChains_(reduced_edge.getChain(), expanded_edges[edge]);
+    if (!match) {
+      expanded_edges[edge].push_back(reduced_edge.getChain());
+    }
+  } else {
+    expanded_edges[edge].push_back(reduced_edge.getChain());
+  }
+  edges.push_back(edge);
+}
+
+void orderChainAfterInitialVertex_(vector<int>& chain) {
+  size_t ignore_first_and_last_vertex = 2;
+  size_t total_number_to_parse =
+      (chain.size() - ignore_first_and_last_vertex) / 2;
+  bool reverse_vector = false;
+  for (size_t count = 0; count < (total_number_to_parse); ++count) {
+    if (chain.at(chain.size() - count - 1) < chain.at(count + 1)) {
+      reverse_vector = true;
+      break;
+    }
+  }
+
+  if (reverse_vector) {
+    reverse(chain.begin(), chain.end());
+  }
+}
+
+bool reordereAndStoreChainIfDoesNotExist_(
+    vector<Edge>& edges,
+    unordered_map<Edge, vector<vector<int>>>& expanded_edges, vector<int> chain,
+    int vertex, size_t& chain_index) {
+
+  Edge edge(vertex, vertex);
+  edges.push_back(edge);
+  vector<int> new_chain;
+  for (size_t index = 0; index < chain.size(); ++index) {
+    if (((chain_index + index) % chain.size()) == 0) {
+      ++chain_index;
+    }
+    int new_chain_index = (chain_index + index) % chain.size();
+    new_chain.push_back(chain.at(new_chain_index));
+  }
+  // Ensure that the new_chain is sorted so after the first vertex they are
+  // ordered from smallest to largest
+  orderChainAfterInitialVertex_(new_chain);
+  bool match = compareChainWithChains_(new_chain, expanded_edges[edge]);
+  if (!match) {
+    expanded_edges[edge].push_back(new_chain);
+    return true;
+  }
+  return false;
+}
+
 void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
                          unordered_map<int, GraphNode> nodes) {
   vector<Edge> edges;
   nodes_ = nodes;
+
+  junctions_ = getVertexJunctions_(reduced_edges);
+
   for (const ReducedEdge& reduced_edge : reduced_edges) {
-    Edge edge(reduced_edge.getEndPoint1(), reduced_edge.getEndPoint2());
-    edges.push_back(edge);
-    if (expanded_edges_.count(edge)) {
-      bool match = compareChainWithChains_(reduced_edge.getChain(),
-                                           expanded_edges_[edge]);
-      if (!match) {
-        expanded_edges_[edge].push_back(reduced_edge.getChain());
+
+    if (reduced_edge.loop() &&
+        junctions_.count(reduced_edge.getEndPoint1()) == 0) {
+      vector<int> chain = reduced_edge.getChain();
+      size_t chain_index = 0;
+      bool edge_added = false;
+      for (int vertex : chain) {
+        if (junctions_.count(vertex)) {
+          edge_added = reordereAndStoreChainIfDoesNotExist_(
+              edges, expanded_edges_, chain, vertex, chain_index);
+          break;
+        }
+        ++chain_index;
+      }
+      if (!edge_added) {
+        addEdgeIfNotLoop_(edges, reduced_edge, expanded_edges_);
       }
     } else {
-      expanded_edges_[edge].push_back(reduced_edge.getChain());
+      addEdgeIfNotLoop_(edges, reduced_edge, expanded_edges_);
     }
   }
+
   edge_container_ = EdgeContainer(edges);
 
   calcId_();
@@ -168,6 +271,35 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
     }
   }
   return nodes;
+}
+/*
+bool ReducedGraph::edgeExist(const Edge& edge) const {
+  return edge_container_.edgeExist(edge);
+}*/
+
+vector<Edge> ReducedGraph::getEdges() {
+  /*  vector<Edge> edges_unfiltered = edge_container_.getEdges();
+    vector<Edge> edges;
+    for(const Edge edge : edges_unfiltered){
+     if(edge.loop()){
+      // Find which vertex if any is a junction if it is return the edge so that
+      // it points to the junction
+      vector<vector<int>> chains = expanded_edges_.at(edge);
+      // If it is a loop there should only be a single junction at most
+      assert(chains.size()==1);
+      for(int vertex : chains.at(0)){
+        if(junctions_.count(vertex)){
+          Edge edge(vertex,vertex);
+          edges.push_back(edge);
+          break;
+        }
+      }
+     }else{
+      edges.push_back(edge);
+     }
+     }
+    return edges;*/
+  return edge_container_.getEdges();
 }
 
 vector<int> ReducedGraph::getVertices() const {

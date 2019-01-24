@@ -56,7 +56,11 @@ int EdgeContainer::getDegree(const int vertex) const {
     return degree_count;
   }
   for (const pair<int, int>& neighbor_and_count : adj_list_.at(vertex)) {
-    degree_count += neighbor_and_count.second;
+    if (neighbor_and_count.first == vertex) {
+      degree_count += neighbor_and_count.second * 2;
+    } else {
+      degree_count += neighbor_and_count.second;
+    }
   }
   return degree_count;
 }
@@ -110,7 +114,7 @@ void EdgeContainer::addEdge(Edge edge) {
     adj_list_[point1][point2] = 1;
   }
 
-  // Do not add the same edge if the points are the same
+  // Do not add the same edge a second time if the points are the same
   if (point1 != point2) {
     if (adj_list_[point2].count(point1)) {
       ++adj_list_[point2][point1];
