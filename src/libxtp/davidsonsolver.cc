@@ -280,7 +280,7 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 
     // store the eigenvalues/eigenvectors
     this->_eigenvalues = lambda.head(neigen);
-    this->_eigenvectors = U.block(0,0,U.rows(),neigen);
+    this->_eigenvectors = q.block(0,0,q.rows(),neigen);
 
 }
 
