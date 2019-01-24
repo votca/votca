@@ -247,13 +247,11 @@ ReducedGraph reduceGraph(Graph graph) {
 
 vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
-  cout << "Calling decoupleIsolatedSubGraphs" << endl;
   list<int> vertices_list = vectorToList_(graph.getVertices());
   vector<Graph> subGraphs;
   Graph_BF_Visitor graph_visitor_breadth_first;
   graph_visitor_breadth_first.setStartingVertex(vertices_list.front());
   if (singleNetwork(graph, graph_visitor_breadth_first)) {
-    cout << "Is considered a single network " << endl;
     subGraphs.push_back(graph);
     return subGraphs;
   }
@@ -284,15 +282,12 @@ vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
       vector<Edge> sub_graph_neigh_edges =
           graph.getNeighEdges(*sub_graph_vertex_it);
       for (const Edge sub_graph_edge : sub_graph_neigh_edges) {
-        cout << "Getting edge " << sub_graph_edge << endl;
         sub_graph_edges.insert(sub_graph_edge);
       }
-      cout << "Getting node " << *sub_graph_vertex_it << endl;
       sub_graph_nodes[*sub_graph_vertex_it] =
           graph.getNode(*sub_graph_vertex_it);
       ++sub_graph_vertex_it;
     }
-    cout << "End of subgraph " << endl;
     vector<Edge> sub_graph_vector_edges = edgeSetToVector_(sub_graph_edges);
     Graph graph_temp(sub_graph_vector_edges, sub_graph_nodes);
     subGraphs.push_back(graph_temp);
