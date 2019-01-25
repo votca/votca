@@ -318,9 +318,8 @@ vector<int> ReducedGraph::getVerticesDegree(int degree) const {
       }
       return vertices;
     }
-  } else {
-    return edge_container_.getVerticesDegree(degree);
   }
+  return edge_container_.getVerticesDegree(degree);
 }
 
 ostream& operator<<(ostream& os, const ReducedGraph graph) {
