@@ -349,7 +349,7 @@ class Bead : public BaseBead {
     setType(type);
     setName(name);
     setMass(m);
-    bPos_ = false;
+    bead_position_set_ = false;
     bead_velocity_set_ = false;
     bU_ = false;
     bV_ = false;

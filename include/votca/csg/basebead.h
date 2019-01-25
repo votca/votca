@@ -115,7 +115,7 @@ class BaseBead {
    * set the position of the base bead
    * \param - base bead position
    */
-  virtual void setPos(const vec &pos);
+  virtual void setPos(const vec &bead_position);
 
   /**
    * get the position of the base bead
@@ -128,22 +128,22 @@ class BaseBead {
    * \return reference to position
    */
   virtual vec &Pos() {
-    assert(bPos_);
-    return pos_;
+    assert(bead_position_set_);
+    return bead_position_;
   }
 
   /** does this configuration store positions? */
-  bool HasPos() const { return bPos_; }
+  bool HasPos() const { return bead_position_set_; }
 
   /** set has position to true */
-  void HasPos(bool true_or_false) { bPos_ = true_or_false; }
+  void HasPos(bool true_or_false) { bead_position_set_ = true_or_false; }
 
  protected:
   BaseBead()
       : topology_item_(nullptr),
         molecule_item_(nullptr),
         mass_(0.0),
-        bPos_(false){};
+        bead_position_set_(false){};
 
   TopologyItem topology_item_;
   MoleculeItem molecule_item_;
@@ -153,19 +153,19 @@ class BaseBead {
   std::weak_ptr<BeadType> type_;
 
   double mass_;
-  vec pos_;
+  vec bead_position_;
 
-  bool bPos_;
+  bool bead_position_set_;
 };
 
-inline void BaseBead::setPos(const vec &pos) {
-  bPos_ = true;
-  pos_ = pos;
+inline void BaseBead::setPos(const vec &bead_position) {
+  bead_position_set_ = true;
+  bead_position_ = bead_position;
 }
 
 inline const vec &BaseBead::getPos() const {
-  assert(bPos_);
-  return pos_;
+  assert(bead_position_set_);
+  return bead_position_;
 }
 }  // namespace csg
 }  // namespace votca
