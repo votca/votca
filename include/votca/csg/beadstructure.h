@@ -23,8 +23,9 @@
 #include <set>
 
 #include <votca/csg/basebead.h>
-
 #include <votca/tools/graph.h>
+
+namespace TOOLS = votca::tools;
 
 namespace votca {
 namespace csg {
@@ -97,7 +98,7 @@ class BeadStructure {
    **/
   std::vector<BaseBead *> getNeighBeads(int index);
 
-  Graph getGraph();
+  TOOLS::Graph getGraph();
   /**
    * \brief Compare the topology of two bead structures
    *
@@ -121,10 +122,10 @@ class BeadStructure {
   bool single_structureUpToDate_;
   bool single_structure_;
   std::string structure_id_ = "";
-  votca::tools::Graph graph_;
-  std::set<Edge> connections_;
+  TOOLS::Graph graph_;
+  std::set<TOOLS::Edge> connections_;
   std::unordered_map<int, BaseBead *> beads_;
-  std::unordered_map<int, votca::tools::GraphNode> graphnodes_;
+  std::unordered_map<int, TOOLS::GraphNode> graphnodes_;
 };
 }  // namespace csg
 }  // namespace votca

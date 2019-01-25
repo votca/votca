@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,15 +53,15 @@ bool fexists(const string filename) {
 BOOST_AUTO_TEST_SUITE(lammpsdumpreaderwriter_test)
 
 /**
-* \brief Test the trajectory reader
-*
-* This test is designed to test the trajectory reader this is done by
-* creating a small lammps dump file. A topology object is created with
-* some default values. The file is then read in with the
+ * \brief Test the trajectory reader
+ *
+ * This test is designed to test the trajectory reader this is done by
+ * creating a small lammps dump file. A topology object is created with
+ * some default values. The file is then read in with the
  * trajectory reader and the values in the top object are then examined
-* to ensure they no longer represent the default state but the values
-* from the file.
-*/
+ * to ensure they no longer represent the default state but the values
+ * from the file.
+ */
 BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   // Create a .dump file with (2-bonded thiophene monomers)
@@ -206,9 +206,13 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   byte_t symmetry = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
-    weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(atom_types.at(ind));
-    Bead *b = top.CreateBead(symmetry, atom_types.at(ind), weak_type, residue_num,
-                             elements.getMass(atom_types.at(ind)), charge);
+    string atom_type = atom_types.at(ind);
+    if (!top.BeadTypeExist(atom_type)) {
+      top.RegisterBeadType(atom_type);
+    }
+    Bead *b =
+        top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
+                       elements.getMass(atom_types.at(ind)), charge);
 
     vec xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
             atom_xyz.at(ind).at(2));
@@ -246,7 +250,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
  *
  * This test first creates a topology object and assigns default values to
  * it. It then writes the topology info to a lammps dump file. The dump
-       * file is then read into the topology file and the values are compared.
+ * file is then read into the topology file and the values are compared.
  */
 BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
 
@@ -315,9 +319,14 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   byte_t symmetry = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
-    weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(atom_types.at(ind));
-    Bead *b = top.CreateBead(symmetry, atom_types.at(ind), weak_type, residue_num,
-                             elements.getMass(atom_types.at(ind)), charge);
+
+    string atom_type = atom_types.at(ind);
+    if (!top.BeadTypeExist(atom_type)) {
+      top.RegisterBeadType(atom_type);
+    }
+    Bead *b =
+        top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
+                       elements.getMass(atom_types.at(ind)), charge);
 
     vec xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
             atom_xyz.at(ind).at(2));

@@ -27,11 +27,10 @@
 #include <votca/tools/name.h>
 #include <votca/tools/vec.h>
 
+namespace TOOLS = votca::tools;
+
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-
-class BeadType;
 
 /**
  * \brief information about a base bead
@@ -71,33 +70,15 @@ class BaseBead {
 
   /**
    * get the bead type
-   * \return const bead type pointer
+   * \return const string
    */
-  virtual const std::weak_ptr<BeadType> getType() const { return type_; }
+  virtual const std::string getType() const { return type_.getName(); }
 
   /**
    * set the bead type
    * \param bead type object
    */
-  virtual void setType(std::weak_ptr<BeadType> type) { type_ = type; }
-
-  /**
-   * get the bead type
-   * \return - non constant bead type pointer
-   */
-  virtual std::weak_ptr<BeadType> Type() const { return type_; }
-
-  /**
-   * get the name of the bead type
-   * \return - string indicates the name
-   **/
-  std::string getBeadTypeName();
-
-  /**
-   * get the id of the bead type
-   * \return - int indicated the id
-   **/
-  int getBeadTypeId();
+  virtual void setType(std::string type) { type_.setName(type); }
 
   /**
    * get the mass of the base bead
@@ -115,19 +96,19 @@ class BaseBead {
    * set the position of the base bead
    * \param - base bead position
    */
-  virtual void setPos(const vec &bead_position);
+  virtual void setPos(const TOOLS::vec &bead_position);
 
   /**
    * get the position of the base bead
    * \return base bead position
    */
-  virtual const vec &getPos() const;
+  virtual const TOOLS::vec &getPos() const;
 
   /**
    * direct access (read/write) to the position of the base bead
    * \return reference to position
    */
-  virtual vec &Pos() {
+  virtual TOOLS::vec &Pos() {
     assert(bead_position_set_);
     return bead_position_;
   }
@@ -148,22 +129,22 @@ class BaseBead {
   TopologyItem topology_item_;
   MoleculeItem molecule_item_;
 
-  Identity<int> id_;
-  Name name_;
-  std::weak_ptr<BeadType> type_;
+  TOOLS::Identity<int> id_;
+  TOOLS::Name name_;
+  TOOLS::Name type_;
 
   double mass_;
-  vec bead_position_;
+  TOOLS::vec bead_position_;
 
   bool bead_position_set_;
 };
 
-inline void BaseBead::setPos(const vec &bead_position) {
+inline void BaseBead::setPos(const TOOLS::vec &bead_position) {
   bead_position_set_ = true;
   bead_position_ = bead_position;
 }
 
-inline const vec &BaseBead::getPos() const {
+inline const TOOLS::vec &BaseBead::getPos() const {
   assert(bead_position_set_);
   return bead_position_;
 }
