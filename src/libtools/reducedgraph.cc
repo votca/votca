@@ -363,6 +363,10 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
   return nodes;
 }
 
+vector<Edge> ReducedGraph::getEdges() {
+  return edge_container_.getEdges();
+}
+
 vector<int> ReducedGraph::getVertices() const {
   // Get all the vertices that are in the reduced graph
   vector<int> vertices = edge_container_.getVertices();
