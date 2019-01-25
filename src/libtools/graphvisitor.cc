@@ -33,10 +33,6 @@ class GraphNode;
 
 bool GraphVisitor::queEmpty() const { return true; }
 
-void GraphVisitor::addEdges_(const Graph& graph, int vertex) {
-  throw runtime_error("addEdges_ method must be defined by your visitor");
-}
-
 void GraphVisitor::exploreNode(pair<int, GraphNode>& vertex_and_node,
                                Graph& graph, Edge edge) {
   explored_.insert(vertex_and_node.first);
@@ -81,10 +77,6 @@ void GraphVisitor::exec(Graph& graph, Edge edge) {
                                        graph.getNode(unexp_vert.at(0)));
 
   exploreNode(vertex_and_node, graph, edge);
-}
-
-Edge GraphVisitor::getEdge_(const Graph& graph) {
-  throw runtime_error("The getEdge_ function must be set");
 }
 
 Edge GraphVisitor::nextEdge(Graph graph) {
