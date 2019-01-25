@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,17 @@
 #include <votca/tools/graphalgorithm.h>
 #include <votca/tools/graphdistvisitor.h>
 
-using namespace votca::csg;
 using namespace votca::tools;
 using namespace std;
 
+namespace votca {
+
+namespace csg {
 /**********************
  * Internal Functions *
  **********************/
 
-shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead *basebead) {
+GraphNode BaseBeadToGraphNode(BaseBead *basebead) {
   unordered_map<string, double> attributes1;
   unordered_map<string, string> attributes2;
 
@@ -42,7 +44,7 @@ shared_ptr<GraphNode> BaseBeadToGraphNode(BaseBead *basebead) {
   graphnode.setDouble(attributes1);
   graphnode.setStr(attributes2);
 
-  return make_shared<GraphNode>(graphnode);
+  return graphnode;
 }
 
 /***************************
@@ -57,9 +59,11 @@ void BeadStructure::AddBead(BaseBead *bead) {
     err += "already exists within the beadstructure";
     throw invalid_argument(err);
   }
-  auto numberOfBeads = beads_.size();
+  size_t numberOfBeads = beads_.size();
   beads_[bead->getId()] = bead;
+
   if (numberOfBeads != beads_.size()) {
+    single_structureUpToDate_ = false;
     graphUpToDate = false;
     structureIdUpToDate = false;
   }
@@ -74,9 +78,10 @@ void BeadStructure::ConnectBeads(int bead1_id, int bead2_id) {
     string err = "Beads cannot be self-connected";
     throw invalid_argument(err);
   }
-  auto numberOfConnections = connections_.size();
+  size_t numberOfConnections = connections_.size();
   connections_.insert(Edge(bead1_id, bead2_id));
   if (numberOfConnections != connections_.size()) {
+    single_structureUpToDate_ = false;
     graphUpToDate = false;
     structureIdUpToDate = false;
   }
@@ -86,65 +91,84 @@ void BeadStructure::InitializeGraph_() {
   cerr << "Graph up to Date " << graphUpToDate << endl;
   if (!graphUpToDate) {
     vector<Edge> connections_vector;
-    for (auto edge : connections_) {
+    for (const Edge &edge : connections_) {
       connections_vector.push_back(edge);
     }
 
-    unordered_map<int, GraphNode> graphnodes;
-    for (auto id_bead_ptr_pair : beads_) {
+    for (pair<const int, BaseBead *> &id_bead_ptr_pair : beads_) {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode(id_bead_ptr_pair.second);
-      graphnodes[id_bead_ptr_pair.first] =
-          *(graphnodes_[id_bead_ptr_pair.first]);
     }
-    graph_ = make_shared<Graph>(Graph(connections_vector, graphnodes));
+    cerr << "Total Nodes " << graphnodes_.size() << endl;
+    graph_ = Graph(connections_vector, graphnodes_);
+    auto nodes = graph_.getNodes();
+    auto vertices = graph_.getVertices();
     graphUpToDate = true;
   }
+}
+
+Graph BeadStructure::getGraph() {
+  InitializeGraph_();
+  return graph_;
 }
 
 void BeadStructure::CalculateStructure_() {
 
   InitializeGraph_();
   if (!structureIdUpToDate) {
-    findStructureId<GraphDistVisitor>(*graph_);
+    auto nodes = graph_.getNodes();
+    structure_id_ = findStructureId<GraphDistVisitor>(graph_);
     structureIdUpToDate = true;
   }
 }
 
-bool BeadStructure::isSingleMolecule() {
+bool BeadStructure::isSingleStructure() {
 
   InitializeGraph_();
-  auto vertices = graph_->getVertices();
-  if (vertices.size() == 0)
-    return false;
-
-  // Choose first vertex that is actually in the graph as the starting vertex
-  Graph_BF_Visitor gv_breadth_first;
-  gv_breadth_first.setStartingVertex(vertices.at(0));
-
-  if (!singleNetwork(*graph_, gv_breadth_first))
-    return false;
-  if (beads_.size() == 0)
-    return false;
-  if (vertices.size() != beads_.size())
-    return false;
-  return true;
+  if (single_structureUpToDate_ == false) {
+    vector<int> vertices = graph_.getVertices();
+    if (vertices.size() == 0) {
+      single_structure_ = false;
+      return single_structure_;
+    }
+    // Choose first vertex that is actually in the graph as the starting vertex
+    Graph_BF_Visitor gv_breadth_first;
+    gv_breadth_first.setStartingVertex(vertices.at(0));
+    if (!singleNetwork(graph_, gv_breadth_first)) {
+      single_structure_ = false;
+      return single_structure_;
+    }
+    if (beads_.size() == 0) {
+      single_structure_ = false;
+      return single_structure_;
+    }
+    if (vertices.size() != beads_.size()) {
+      single_structure_ = false;
+      return single_structure_;
+    }
+    single_structure_ = true;
+    single_structureUpToDate_ = true;
+  }
+  return single_structure_;
 }
 
 bool BeadStructure::isStructureEquivalent(BeadStructure &beadstructure) {
-  if (!structureIdUpToDate)
+  if (!structureIdUpToDate) {
     CalculateStructure_();
-  if (!beadstructure.structureIdUpToDate)
+  }
+  if (!beadstructure.structureIdUpToDate) {
     beadstructure.CalculateStructure_();
-  return *graph_ == *beadstructure.graph_;
+  }
+  return structure_id_.compare(beadstructure.structure_id_) == 0;
 }
 
 vector<BaseBead *> BeadStructure::getNeighBeads(int index) {
-  if (!graphUpToDate)
+  if (!graphUpToDate) {
     InitializeGraph_();
-  auto neighbor_ids = graph_->getNeighVertices(index);
+  }
+  vector<int> neighbor_ids = graph_.getNeighVertices(index);
   vector<BaseBead *> neighbeads;
-  for (auto node_id : neighbor_ids) {
+  for (int &node_id : neighbor_ids) {
     neighbeads.push_back(beads_[node_id]);
   }
   return neighbeads;
@@ -155,21 +179,5 @@ BaseBead *BeadStructure::getBead(int index) {
   return beads_[index];
 }
 
-vector<shared_ptr<BeadStructure>> BeadStructure::breakIntoMolecules() {
-  vector<shared_ptr<BeadStructure>> structures;
-  if (!graphUpToDate)
-    InitializeGraph_();
-  auto sub_graphs = decoupleIsolatedSubGraphs(*(this->graph_));
-  for (auto sub_graph_it = sub_graphs.begin(); sub_graph_it != sub_graphs.end();
-       ++sub_graph_it) {
-    auto sub_graph_edges = (*sub_graph_it)->getEdges();
-    auto sub_graph_vertices = (*sub_graph_it)->getVertices();
-    BeadStructure beadstructure;
-    for (auto vertex : sub_graph_vertices)
-      beadstructure.AddBead(beads_[vertex]);
-    for (auto edge : sub_graph_edges)
-      beadstructure.ConnectBeads(edge.getEndPoint1(), edge.getEndPoint2());
-    structures.push_back(make_shared<BeadStructure>(beadstructure));
-  }
-  return structures;
-}
+}  // namespace csg
+}  // namespace votca
