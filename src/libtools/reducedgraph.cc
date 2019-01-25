@@ -29,6 +29,14 @@ namespace tools {
 
 class GraphNode;
 
+/**
+ * \brief Function will compare a chain with a vector of chains
+ *
+ * If the one of the chains in the vector of chains is equivalent will return
+ * true. A chain is simply a vector of integers where each integer represents
+ * a vertex along an edge. The vertices appear in the chain in the same order
+ * as they exist in a graph.
+ **/
 bool compareChainWithChains_(const vector<int>& chain,
                              const vector<vector<int>>& chains) {
   bool match = false;
@@ -47,6 +55,36 @@ bool compareChainWithChains_(const vector<int>& chain,
   return false;
 }
 
+/**
+ * \brief Given a vector of Reduced Edges will find and return junctions if any
+ * exist
+ *
+ * A junction is a vertex in a graph that has 3 or more edges eminating from it.
+ *
+ * Consider three reduced edges given by
+ *
+ * Edge   Reduced Edge when Expanded (chain of vertices)
+ * 1, 5  :  1 - 3 - 4 - 6 - 5
+ * 5, 10 :  5 - 2 - 10
+ * 5, 9  :  5 - 8 - 9
+ *
+ * Graph:
+ *
+ * 1 - 3 - 4 - 6 - 5 - 2 - 10
+ *                 |
+ *                 8 - 9
+ *
+ * Reduced Graph:
+ *
+ * 1 - 5 - 10
+ *     |
+ *     9
+ *
+ * Here vertex 5 would be found to be a junction
+ *
+ * @param[in,out] - vector of reduced edges
+ * @return - set of integers containing junctions
+ **/
 set<int> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
   unordered_map<int, int> vertex_count;
   for (ReducedEdge reduced_edge : reduced_edges) {
@@ -76,6 +114,34 @@ set<int> getVertexJunctions_(const vector<ReducedEdge>& reduced_edges) {
   return junctions;
 }
 
+/**
+ * \breif function adds an edge to an unordered_map and a vector if it is found
+ * to not be a loop
+ *
+ * A loop is an edge that essentially makes a circle. In an edge that is a loop
+ * will have both end points equal to the samve vertex. E.g. a reduced edge
+ * like this:
+ *
+ * Edge  Expanded edge (chain of vertices)
+ * 2, 2 : 2 - 4 - 3 - 5 - 2
+ *
+ * Graph
+ *
+ *  2 - 4
+ *  |   |
+ *  5 - 3
+ *
+ * Reduced Graph
+ *
+ *  - 2
+ *  |_|
+ *
+ * @param[in,out] - vector of edges, an edge is added to the vector if it is not
+ * a loop
+ * @param[in] - a reduced edge, the edge to be added
+ * @param[in,out] - an unordered_map that stores the edge and its chain if it
+ * is found to not be a loop
+ **/
 void addEdgeIfNotLoop_(
     vector<Edge>& edges, const ReducedEdge reduced_edge,
     unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
@@ -93,6 +159,30 @@ void addEdgeIfNotLoop_(
   edges.push_back(edge);
 }
 
+/**
+ * \brief This is a helper function used to help store the vertex chain in a
+ * reproducable order
+ *
+ * Ordering chains in a reproducable manner enable quicker comparison between
+ * chains.
+ *
+ * E.g. Given a chain
+ *
+ * End Point 1
+ * v
+ * 1 - 4 - 3 - 5 - 6 - 2 - 1
+ *                         ^
+ *                      End Point 2
+ *
+ * This function will ensure that it is reordered such that the next consecutive
+ * number in the chain after end point 2 is the lower number, in this case the
+ * two numbers that are compared are 4 and 2. The 2 is smaller so the chain is
+ * reordered.
+ *
+ * 1 - 2 - 6 - 5 - 3 - 4 - 1
+ *
+ * @param[in,out] - vector of integers containing the chain
+ **/
 void orderChainAfterInitialVertex_(vector<int>& chain) {
   size_t ignore_first_and_last_vertex = 2;
   size_t total_number_to_parse =
@@ -110,7 +200,7 @@ void orderChainAfterInitialVertex_(vector<int>& chain) {
   }
 }
 
-bool reordereAndStoreChainIfDoesNotExist_(
+bool reorderAndStoreChainIfDoesNotExist_(
     vector<Edge>& edges,
     unordered_map<Edge, vector<vector<int>>>& expanded_edges, vector<int> chain,
     int vertex, size_t& chain_index) {
@@ -152,7 +242,7 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
       bool edge_added = false;
       for (int vertex : chain) {
         if (junctions_.count(vertex)) {
-          edge_added = reordereAndStoreChainIfDoesNotExist_(
+          edge_added = reorderAndStoreChainIfDoesNotExist_(
               edges, expanded_edges_, chain, vertex, chain_index);
           break;
         }
@@ -271,35 +361,6 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
     }
   }
   return nodes;
-}
-/*
-bool ReducedGraph::edgeExist(const Edge& edge) const {
-  return edge_container_.edgeExist(edge);
-}*/
-
-vector<Edge> ReducedGraph::getEdges() {
-  /*  vector<Edge> edges_unfiltered = edge_container_.getEdges();
-    vector<Edge> edges;
-    for(const Edge edge : edges_unfiltered){
-     if(edge.loop()){
-      // Find which vertex if any is a junction if it is return the edge so that
-      // it points to the junction
-      vector<vector<int>> chains = expanded_edges_.at(edge);
-      // If it is a loop there should only be a single junction at most
-      assert(chains.size()==1);
-      for(int vertex : chains.at(0)){
-        if(junctions_.count(vertex)){
-          Edge edge(vertex,vertex);
-          edges.push_back(edge);
-          break;
-        }
-      }
-     }else{
-      edges.push_back(edge);
-     }
-     }
-    return edges;*/
-  return edge_container_.getEdges();
 }
 
 vector<int> ReducedGraph::getVertices() const {
