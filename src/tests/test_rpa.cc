@@ -32,7 +32,7 @@ BOOST_AUTO_TEST_CASE(rpa_calcenergies){
     TCMatrix_gwbse Mmn;
     Eigen::VectorXd eigenvals;
     RPA rpa(Mmn);
-    rpa.configure(4,0,0);
+    rpa.configure(4,0,9);
     Eigen::VectorXd dftenergies=Eigen::VectorXd::Zero(10);
     dftenergies<<-0.5,-0.4,-0.3,-0.2,-0.2,-0.1,0,0.1,0.2,0.3;
     Eigen::VectorXd gwenergies=Eigen::VectorXd::Zero(7);
@@ -154,8 +154,8 @@ Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,eigenvectors);
 
   RPA rpa(Mmn);
-  rpa.setRPAInputEnergies(eigenvals);
   rpa.configure(4,0,16);
+  rpa.setRPAInputEnergies(eigenvals);
   Eigen::MatrixXd e_i=rpa.calculate_epsilon_i(0.5);
   
   Eigen::MatrixXd i_ref=Eigen::MatrixXd::Zero(17,17);

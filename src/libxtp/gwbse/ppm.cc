@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/ppm.h"
+#include <iostream>
 
 
 
@@ -51,6 +52,8 @@ namespace votca {
                         _ppm_freq(i) = std::sqrt(std::abs(frac));
                     }
             }
+             std::cout<<"freq"<<_ppm_freq<<std::endl;
+             std::cout<<"weight"<<_ppm_weight<<std::endl;
             return;
         }
 

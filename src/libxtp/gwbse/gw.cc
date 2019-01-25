@@ -34,7 +34,12 @@ namespace votca {
      if(_opt.sigma_integration=="ppm"){
          _sigma=std::unique_ptr<Sigma_base>(new Sigma_PPM(_Mmn,_rpa));
      }
-     _sigma->configure(_opt.homo,_opt.qpmin,_opt.qpmax);
+     Sigma_base::options sigma_opt;
+     sigma_opt.homo=_opt.homo;
+     sigma_opt.qpmax=_opt.qpmax;
+     sigma_opt.qpmin=_opt.qpmin;
+     sigma_opt.rpamin=_opt.rpamin;
+     _sigma->configure(sigma_opt);
      _Sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
      _Sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
 
@@ -178,13 +183,17 @@ void GW::CalculateGWPerturbation() {
          CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                  << " Calculated Hartree exchange contribution  " << std::flush;
 
-    Eigen::VectorXd rpa_energies = ScissorShift_DFTlevel(_dft_energies);
-    _rpa.setRPAInputEnergies(rpa_energies);
-    Eigen::VectorXd frequencies = rpa_energies.segment(_opt.qpmin, _qptotal);
+    Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
+    std::cout<<"dft_shifted_energies"<<std::endl;
+    std::cout<<dft_shifted_energies<<std::endl;
+    Eigen::VectorXd rpa_energies=dft_shifted_energies.segment(_opt.rpamin,_opt.rpamax-_opt.rpamin+1);
+    std::cout<<"rpa_energies"<<std::endl;
+    std::cout<<rpa_energies<<std::endl;
 
-   
-     CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
-                                 << " Prepared RPA  " << std::flush;
+
+    std::cout<<rpa_energies<<std::endl;
+    _rpa.setRPAInputEnergies(rpa_energies);
+    Eigen::VectorXd frequencies = dft_shifted_energies.segment(_opt.qpmin, _qptotal);
     for (int i_gw=0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
          if(i_gw%_opt.reset_3c==0 && i_gw!=0){

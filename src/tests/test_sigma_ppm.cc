@@ -130,7 +130,13 @@ rpa.configure(4,0,16);
 rpa.setRPAInputEnergies(mo_energy);
 
   Sigma_PPM sigma=Sigma_PPM(Mmn,rpa);
-  sigma.configure(4,0,16);
+
+  Sigma_PPM::options opt;
+  opt.homo=4;
+  opt.qpmin=0;
+  opt.qpmax=16;
+  opt.rpamin=0;
+  sigma.configure(opt);
 
 Eigen::MatrixXd x=sigma.CalcExchange();
 

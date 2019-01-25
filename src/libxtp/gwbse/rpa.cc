@@ -29,30 +29,33 @@ namespace votca {
       
   void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin){
         int dftsize=dftenergies.size();
-        _energies=dftenergies;
+        int rpatotal=_rpamax-_rpamin+1;
+        _energies=dftenergies.segment(_rpamin,rpatotal);
         int gwsize=gwaenergies.size();
         int lumo=_homo+1;
 
         int qpmax=qpmin+gwsize-1;
-        _energies.segment(qpmin,gwsize)=gwaenergies;
+        _energies.segment(qpmin-_rpamin,gwsize)=gwaenergies;
         double DFTgap = dftenergies(lumo) - dftenergies(_homo);
         double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(_homo-qpmin);
         double shift=QPgap - DFTgap;
-        _energies.segment(qpmax+1,dftsize-qpmax-1).array()+=shift;
+        int levelaboveqpmax=_rpamax-qpmax;
+        _energies.segment(qpmax+1-_rpamin,levelaboveqpmax).array()+=shift;
     }
 
  template< bool imag>
     Eigen::MatrixXd RPA::calculate_epsilon(double frequency)const{
-        const int size = _Mmn.auxsize(); // size of gwbasis
+        const int size = _Mmn.auxsize(); 
         Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
-        const int lumo = _homo + 1;
-        const int n_occ = lumo - _rpamin;
-        const int n_unocc = _rpamax - _homo;
+        const int lumo = _homo + 1- _rpamin;
+        const int n_occ = _homo - _rpamin+1;
+        const int n_unocc = _rpamax - lumo+1;
         const double freq2 = frequency*frequency;
         const double eta2=_eta*_eta;
+        std::cout<<"energies"<<_energies<<std::endl;
 #pragma omp parallel for
         for (int m_level = 0; m_level < n_occ; m_level++)        {
-            const double qp_energy_m = _energies(m_level + _rpamin);
+            const double qp_energy_m = _energies(m_level);
 #if (GWBSE_DOUBLE)
             const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level].block(n_occ, 0, n_unocc, size);
 #else
@@ -77,6 +80,7 @@ namespace votca {
                 result += tempresult;
             }
         }
+        std::cout<<"rpa"<< result<<std::endl;
         return result;
     }
 
