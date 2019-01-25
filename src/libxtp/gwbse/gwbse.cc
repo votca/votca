@@ -124,6 +124,7 @@ void GWBSE::Initialize(tools::Property& options) {
     int ignored_corelevels = 0;
     if (ignore_corelevels) {
         ignored_corelevels = CountCoreLevels();
+        rpamin=ignored_corelevels;
         qpmin = ignored_corelevels;
         bse_vmin = ignored_corelevels;
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ignoring "
