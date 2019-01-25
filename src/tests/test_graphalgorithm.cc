@@ -373,10 +373,10 @@ BOOST_AUTO_TEST_CASE(reduceGraph_algorithm_test) {
     BOOST_CHECK(found_junction_2);
 
     // Should end up with
-    //
-    //  / \
+    //  _ _
+    // |   |
     // 1 - 2
-    //  \ /
+    // |_ _|
     //
 
     vector<Edge> edges2 = reduced_g.getEdges();
