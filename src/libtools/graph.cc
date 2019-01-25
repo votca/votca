@@ -70,17 +70,6 @@ vector<pair<int, GraphNode>> Graph::getIsolatedNodes(void) const {
   return isolated_nodes;
 }
 
-vector<int> Graph::getVerticesMissingNodes(void) {
-  vector<int> missing;
-  vector<int> vertices = edge_container_.getVertices();
-  for (int& vertex : vertices) {
-    if (nodes_.count(vertex) == 0) {
-      missing.push_back(vertex);
-    }
-  }
-  return missing;
-}
-
 vector<pair<int, GraphNode>> Graph::getNeighNodes(int vertex) const {
   vector<int> neigh_vertices = edge_container_.getNeighVertices(vertex);
   vector<pair<int, GraphNode>> neigh_ids_and_nodes;
@@ -123,6 +112,8 @@ vector<int> Graph::getJunctions() const {
   }
   return junctions;
 }
+
+void Graph::clearNodes() { nodes_.clear(); }
 
 void Graph::copyNodes(Graph& graph) {
   assert(nodes_.size() == 0);

@@ -75,10 +75,6 @@ class Graph {
   /// vertex) and return them in a vector with their corresponding graph node.
   std::vector<std::pair<int, GraphNode>> getIsolatedNodes(void) const;
 
-  /// Functions determines which vertices do not have a graph node associated
-  /// with them and return their ids in a vector.
-  std::vector<int> getVerticesMissingNodes(void);
-
   /// Returns a vector of the vertices and their graph nodes that are directly
   /// connected to the vertex 'vert'
   std::vector<std::pair<int, GraphNode>> getNeighNodes(int vertex) const;
@@ -139,6 +135,8 @@ class Graph {
     return edge_container_.edgeExist(edge);
   }
 
+  /// Remove contents of all nodes
+  void clearNodes();
   /// Copies nodes from one graph to another. This should only be used in cases
   /// where the graph does not contain nodes before the copy.
   void copyNodes(Graph& graph);

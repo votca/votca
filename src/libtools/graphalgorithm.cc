@@ -240,6 +240,7 @@ ReducedGraph reduceGraph(Graph graph) {
 
   ReducedGraph reduced_g(reduced_edges);
   auto nodes_graph = graph.getNodes();
+  reduced_g.clearNodes();
   reduced_g.copyNodes(graph);
   auto nodes_reduced_g = reduced_g.getNodes();
   return reduced_g;
