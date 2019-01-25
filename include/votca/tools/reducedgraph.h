@@ -108,11 +108,8 @@ class ReducedGraph : public Graph {
    **/
   std::vector<std::vector<Edge>> expandEdge(const Edge& edge) const;
 
-  /// Get edges
-  std::vector<Edge> getEdges();
-
   /// This method will return a copy of the full graph
-  Graph expandGraph();
+  Graph expandGraph() const;
 
   /**
    * \brief Gets the junctions in the graph.
@@ -136,8 +133,6 @@ class ReducedGraph : public Graph {
   // std::vector<int> getJunctions() const;
 
   std::vector<std::pair<int, GraphNode>> getNodes(void) const;
-
-  std::vector<int> getVertices() const;
 
   std::vector<int> getVerticesDegree(int degree) const;
 

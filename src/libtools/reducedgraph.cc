@@ -29,6 +29,10 @@ namespace tools {
 
 class GraphNode;
 
+/******************************************************************************
+ * Internal Private Functions
+ ******************************************************************************/
+
 /**
  * \brief Function will compare a chain with a vector of chains
  *
@@ -226,6 +230,32 @@ bool reorderAndStoreChainIfDoesNotExist_(
   return false;
 }
 
+set<int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
+  set<int> vertices;
+  for (const ReducedEdge& reduced_edge : reduced_edges) {
+    vector<int> chain = reduced_edge.getChain();
+    for (const int vertex : chain) {
+      vertices.insert(vertex);
+    }
+  }
+  return vertices;
+}
+
+set<int> getAllConnectedVertices_(
+    const unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
+  set<int> all_vertices;
+
+  for (const auto& edge_and_chains : expanded_edges) {
+    for (vector<int> chain : edge_and_chains.second) {
+      all_vertices.insert(chain.begin(), chain.end());
+    }
+  }
+  return all_vertices;
+}
+/******************************************************************************
+ * Private Class Methods
+ ******************************************************************************/
+
 void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
                          unordered_map<int, GraphNode> nodes) {
   vector<Edge> edges;
@@ -261,16 +291,9 @@ void ReducedGraph::init_(vector<ReducedEdge> reduced_edges,
   calcId_();
 }
 
-set<int> getAllVertices_(const std::vector<ReducedEdge>& reduced_edges) {
-  set<int> vertices;
-  for (const ReducedEdge& reduced_edge : reduced_edges) {
-    vector<int> chain = reduced_edge.getChain();
-    for (const int vertex : chain) {
-      vertices.insert(vertex);
-    }
-  }
-  return vertices;
-}
+/******************************************************************************
+ * Public Class Methods
+ ******************************************************************************/
 
 ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges) {
 
@@ -307,7 +330,7 @@ ReducedGraph::ReducedGraph(std::vector<ReducedEdge> reduced_edges,
   }
 }
 
-Graph ReducedGraph::expandGraph() {
+Graph ReducedGraph::expandGraph() const {
   vector<Edge> all_expanded_edges;
   for (const pair<Edge, vector<vector<int>>> edge_and_vertices :
        expanded_edges_) {
@@ -334,17 +357,6 @@ vector<vector<Edge>> ReducedGraph::expandEdge(const Edge& edge) const {
   return all_edges;
 }
 
-set<int> getAllConnectedVertices_(
-    const unordered_map<Edge, vector<vector<int>>>& expanded_edges) {
-  set<int> all_vertices;
-
-  for (const auto& edge_and_chains : expanded_edges) {
-    for (vector<int> chain : edge_and_chains.second) {
-      all_vertices.insert(chain.begin(), chain.end());
-    }
-  }
-  return all_vertices;
-}
 vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
   vector<int> vertices = edge_container_.getVertices();
   vector<pair<int, GraphNode>> nodes;
@@ -361,12 +373,6 @@ vector<pair<int, GraphNode>> ReducedGraph::getNodes() const {
     }
   }
   return nodes;
-}
-
-vector<int> ReducedGraph::getVertices() const {
-  // Get all the vertices that are in the reduced graph
-  vector<int> vertices = edge_container_.getVertices();
-  return vertices;
 }
 
 vector<int> ReducedGraph::getVerticesDegree(int degree) const {
