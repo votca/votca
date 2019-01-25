@@ -332,7 +332,7 @@ void MotifDeconstructor_::determineMotifConnections_(
   // Cycle the edges
   list<Edge>::iterator edge_iterator = bead_edges_removed_.begin();
   while (edge_iterator != bead_edges_removed_.end()) {
-    assert(bead_edge.loop() == false);
+    assert(edge_iterator->loop() == false);
     int bead_id1 = edge_iterator->getEndPoint1();
     int bead_id2 = edge_iterator->getEndPoint2();
     // Cycle the motifs
@@ -372,7 +372,6 @@ void MotifDeconstructor_::sortMotifsAndAssignIdsToSimpleMotifs_(
   list<BeadMotif>::iterator bead_motif_iter = bead_motifs.begin();
   while (bead_motif_iter != bead_motifs.end()) {
 
-    list<BeadMotif>::iterator temp_iter = bead_motif_iter;
     int new_motif_id = unassigned_id;
     if (bead_motif_iter->isMotifSimple()) {
       new_motif_id = motif_index;
