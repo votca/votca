@@ -46,7 +46,7 @@ using namespace votca::tools;
  * \todo make sure bead belongs to topology
  **/
 class Bead : public BaseBead {
-public:
+ public:
   /**
    * destructor
    */
@@ -56,7 +56,7 @@ public:
    * get the residu number of the bead
    * \return residue id
    */
-  const int &getResnr() const { return _resnr; }
+  const int &getResnr() const { return residue_number_; }
 
   /**
    * get the mass of the bead
@@ -80,13 +80,13 @@ public:
    * get the charge of the bead
    * \return - base bead charge
    */
-  virtual const double &getQ() const { return _q; }
+  virtual const double &getQ() const { return charge_; }
 
   /**
    * set the charge of the base bead
    * \param[in] - base bead position
    */
-  virtual void setQ(const double &q) { _q = q; }
+  virtual void setQ(const double &q) { charge_ = q; }
 
   /**
    * \brief get the symmetry of the bead
@@ -98,7 +98,7 @@ public:
    *
    * \return bead symmetry
    */
-  byte_t getSymmetry() const { return _symmetry; }
+  byte_t getSymmetry() const { return symmetry_; }
 
   /**
    * set the velocity of the bead
@@ -186,8 +186,8 @@ public:
    * \return reference to velocity
    */
   vec &Vel() {
-    assert(_bVel);
-    return _vel;
+    assert(bead_velocity_set_);
+    return velocity_;
   }
 
   /**
@@ -195,8 +195,8 @@ public:
    * \return reference to u
    */
   vec &U() {
-    assert(_bU);
-    return _u;
+    assert(bU_);
+    return u_;
   }
 
   /**
@@ -204,8 +204,8 @@ public:
    * \return reference to v
    */
   vec &V() {
-    assert(_bV);
-    return _v;
+    assert(bV_);
+    return v_;
   }
 
   /**
@@ -213,8 +213,8 @@ public:
    * \return reference to w
    */
   vec &W() {
-    assert(_bW);
-    return _w;
+    assert(bW_);
+    return w_;
   }
 
   /**
@@ -222,15 +222,15 @@ public:
    * \return reference to force
    */
   vec &F() {
-    assert(_bF);
-    return _f;
+    assert(bead_force_set_);
+    return bead_force_;
   }
 
   /**
    * set force acting on bead
-   * @param F force
+   * @param bead_force force
    */
-  void setF(const vec &F);
+  void setF(const vec &bead_force);
 
   /**
    * \brief get the force acting on the bead
@@ -243,19 +243,19 @@ public:
   const vec &getF() const;
 
   /** does this configuration store velocities? */
-  bool HasVel() { return _bVel; }
+  bool HasVel() { return bead_velocity_set_; }
 
   /** does this configuration store forces? */
-  bool HasF() { return _bF; }
+  bool HasF() { return bead_force_set_; }
 
   /** does this configuration store u-orientations? */
-  bool HasU() { return _bU; }
+  bool HasU() { return bU_; }
 
   /** does this configuration store v-orientations? */
-  bool HasV() { return _bV; }
+  bool HasV() { return bV_; }
 
   /** does this configuration store w-orientations? */
-  bool HasW() { return _bW; }
+  bool HasW() { return bW_; }
 
   /** dos the bead store a velocity */
   void HasVel(bool b);
@@ -276,7 +276,7 @@ public:
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  std::vector<int> &ParentBeads() { return _parent_beads; };
+  std::vector<int> &ParentBeads() { return parent_beads_; };
 
   /**
    * \brief Function to add arbitrary user data to bead
@@ -288,7 +288,8 @@ public:
    *
    * \param userdata userdata
    */
-  template <typename T> void setUserData(T *userdata) {
+  template <typename T>
+  void setUserData(T *userdata) {
     _userdata = (void *)userdata;
   }
 
@@ -296,7 +297,10 @@ public:
    * get userdata attached to bead
    * @return pointer to userdata
    */
-  template <typename T> T *getUserData() { return (T *)_userdata; }
+  template <typename T>
+  T *getUserData() {
+    return (T *)_userdata;
+  }
 
   /**
    * \brief Additional options of bead
@@ -308,49 +312,49 @@ public:
    *
    * \return Property object containing options
    */
-  Property &Options() { return *_options; }
+  Property &Options() { return *options_; }
 
   /**
    * update pointer to options object of bead
    * \param options pointer to options object of bead
    */
-  void setOptions(Property &options) { _options = &options; }
+  void setOptions(Property &options) { options_ = &options; }
 
-protected:
-  std::vector<int> _parent_beads;
+ protected:
+  std::vector<int> parent_beads_;
 
   // TODO: this is so far a pointer. this should change! each bead should have
   // own options.
-  Property *_options;
+  Property *options_;
 
-  byte_t _symmetry;
-  double _q;
+  byte_t symmetry_;
+  double charge_;
 
-  int _resnr;
+  int residue_number_;
 
-  vec _vel, _f, _u, _v, _w;
+  vec velocity_, bead_force_, u_, v_, w_;
 
-  bool _bVel;
-  bool _bU;
-  bool _bV;
-  bool _bW;
-  bool _bF;
+  bool bead_velocity_set_;
+  bool bU_;
+  bool bV_;
+  bool bW_;
+  bool bead_force_set_;
 
   /// constructur
-  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry, std::string name,
-       int resnr, double m, double q)
-      : _symmetry(symmetry), _q(q), _resnr(resnr) {
-    _parent = owner;
+  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry,
+       std::string name, int resnr, double m, double q)
+      : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
+    topology_item_._parent = owner;
     setId(id);
     setType(type);
     setName(name);
     setMass(m);
-    _bPos = false;
-    _bVel = false;
-    _bU = false;
-    _bV = false;
-    _bW = false;
-    _bF = false;
+    bPos_ = false;
+    bead_velocity_set_ = false;
+    bU_ = false;
+    bV_ = false;
+    bW_ = false;
+    bead_force_set_ = false;
   }
 
   void *_userdata;
@@ -360,65 +364,65 @@ protected:
 };
 
 inline void Bead::setVel(const vec &r) {
-  _bVel = true;
-  _vel = r;
+  bead_velocity_set_ = true;
+  velocity_ = r;
 }
 
 inline const vec &Bead::getVel() const {
-  assert(_bVel);
-  return _vel;
+  assert(bead_velocity_set_);
+  return velocity_;
 }
 
 inline void Bead::setU(const vec &u) {
-  _bU = true;
-  _u = u;
+  bU_ = true;
+  u_ = u;
 }
 
 inline const vec &Bead::getU() const {
-  assert(_bU);
-  return _u;
+  assert(bU_);
+  return u_;
 }
 
 inline void Bead::setV(const vec &v) {
-  _bV = true;
-  _v = v;
+  bV_ = true;
+  v_ = v;
 }
 
 inline const vec &Bead::getV() const {
-  assert(_bV);
-  return _v;
+  assert(bV_);
+  return v_;
 }
 
 inline void Bead::setW(const vec &w) {
-  _bW = true;
-  _w = w;
+  bW_ = true;
+  w_ = w;
 }
 
 inline const vec &Bead::getW() const {
-  assert(_bW);
-  return _w;
+  assert(bW_);
+  return w_;
 }
 
-inline void Bead::setF(const vec &F) {
-  _bF = true;
-  _f = F;
+inline void Bead::setF(const vec &bead_force) {
+  bead_force_set_ = true;
+  bead_force_ = bead_force;
 }
 
 inline const vec &Bead::getF() const {
-  assert(_bF);
-  return _f;
+  assert(bead_force_set_);
+  return bead_force_;
 }
 
-inline void Bead::HasVel(bool b) { _bVel = b; }
+inline void Bead::HasVel(bool b) { bead_velocity_set_ = b; }
 
-inline void Bead::HasF(bool b) { _bF = b; }
+inline void Bead::HasF(bool b) { bead_force_set_ = b; }
 
-inline void Bead::HasU(bool b) { _bU = b; }
+inline void Bead::HasU(bool b) { bU_ = b; }
 
-inline void Bead::HasV(bool b) { _bV = b; }
+inline void Bead::HasV(bool b) { bV_ = b; }
 
-inline void Bead::HasW(bool b) { _bW = b; }
-}
-}
+inline void Bead::HasW(bool b) { bW_ = b; }
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_BEAD_H
+#endif  // _VOTCA_CSG_BEAD_H
