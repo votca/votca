@@ -89,8 +89,7 @@ bool singleNetwork(Graph& graph, GraphVisitor& graph_visitor);
  * @param[in] - the edge indicating which branch is to be explored
  * @return - set of edges in the branch that were explored
  **/
-std::set<Edge> exploreBranch(Graph& g, const int starting_vertex,
-                             const Edge& edge);
+std::set<Edge> exploreBranch(Graph g, int starting_vertex, const Edge& edge);
 
 /**
  * \brief Will take a graph and reduce it, by removing all vertices with degree
@@ -131,7 +130,7 @@ ReducedGraph reduceGraph(Graph graph);
  * @return - vector containing shared pointers to all the sub graphs if there
  *           are no subgraphs than the input graph is returned.
  */
-std::vector<std::shared_ptr<Graph>> decoupleIsolatedSubGraphs(Graph graph);
+std::vector<Graph> decoupleIsolatedSubGraphs(Graph graph);
 
 /**
  * \brief Explore a graph with a graph visitor.
@@ -170,7 +169,7 @@ std::string findStructureId(Graph& graph) {
   std::string str_id = "";
   std::vector<int> graph_node_ids;
   for (const int& vertex : vertices) {
-    auto graph_node = graph.getNode(vertex);
+    GraphNode graph_node = graph.getNode(vertex);
     int comp_int = str_id.compare(graph_node.getStringId());
     if (comp_int > 0) {
       str_id = graph_node.getStringId();
@@ -180,13 +179,11 @@ std::string findStructureId(Graph& graph) {
       graph_node_ids.push_back(vertex);
     }
   }
-
   // If the str_id is empty it means the nodes are empty and we will
   // simply have to rely on the degree to choose the vertices to explore from
   if (str_id.compare("") == 0) {
     graph_node_ids = vertices;
   }
-
   // If two or more graph nodes are found to be equal then
   // they must all be explored
   std::string chosenId = "";

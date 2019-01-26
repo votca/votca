@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -52,20 +52,25 @@ class EdgeContainer {
   std::vector<int> getVerticesDegree(int degree) const;
   /// Determine the degree of the vertex/number of edges attached
   int getDegree(const int vertex) const;
+  /// Determine if a vertex with the specified degree exists
+  bool vertexExistWithDegree(int degree) const;
+
   /// Check if the edge exists returns true or false
-  bool edgeExist(Edge edge) const;
+  bool edgeExist(const Edge& edge) const;
   /// Check if the vertex exists returns true or false
   bool vertexExist(int vertex) const;
   /// Add an edge to the container
   void addEdge(Edge edge);
+  /// Add a lone vertex
+  void addVertex(int vertex);
   /// Get all the edges in vector form
   std::vector<Edge> getEdges() const;
   /// Get all the vertices in vector form
-  std::vector<int> getVertices();
+  std::vector<int> getVertices() const;
   /// Get the vertices neighboring vert
-  std::vector<int> getNeighVertices(int vertex);
+  std::vector<int> getNeighVertices(int vertex) const;
   /// Get the edges neighboring vert
-  std::vector<Edge> getNeighEdges(int vertex);
+  std::vector<Edge> getNeighEdges(int vertex) const;
   /// Print output of object
   friend std::ostream& operator<<(std::ostream& os,
                                   const EdgeContainer edge_container);

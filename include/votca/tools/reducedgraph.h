@@ -1,6 +1,6 @@
 /*
  *            E
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -74,6 +74,9 @@ class ReducedGraph : public Graph {
   void init_(std::vector<ReducedEdge> reduced_edges,
              std::unordered_map<int, GraphNode> nodes);
 
+  // Junctions must be stored internally
+  std::set<int> junctions_;
+
  public:
   ReducedGraph(){};
 
@@ -103,9 +106,35 @@ class ReducedGraph : public Graph {
    * vec_edges.at(0); // 2-3
    * vec_edges.at(1); // 2-6, 6-7, 7-3
    **/
-  std::vector<std::vector<Edge>> expandEdge(Edge edge);
+  std::vector<std::vector<Edge>> expandEdge(const Edge& edge) const;
 
-  std::vector<std::pair<int, GraphNode>> getNodes(void);
+  /// This method will return a copy of the full graph
+  Graph expandGraph() const;
+
+  /**
+   * \brief Gets the junctions in the graph.
+   *
+   * This method is different from the regular graph method as it must account
+   * for edges that loop around and refer to the same vertex.
+   *
+   * E.g.
+   *
+   *   - -
+   *  |   |
+   *   - -1 - 2 - 3
+   *
+   * This is composed of the edges:
+   * 1, 1
+   * 1, 2
+   * 2, 3
+   *
+   * Thus 1 is the only junction that exists in the reduced graph
+   **/
+  // std::vector<int> getJunctions() const;
+
+  std::vector<std::pair<int, GraphNode>> getNodes(void) const;
+
+  std::vector<int> getVerticesDegree(int degree) const;
 
   friend std::ostream& operator<<(std::ostream& os, const ReducedGraph graph);
 };

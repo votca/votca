@@ -304,7 +304,10 @@ BOOST_AUTO_TEST_CASE(get_vertices_test) {
   m_gn[4] = gn4;
 
   ReducedGraph g(vec_ed, m_gn);
-  auto vertices = g.getVertices();
+  vector<int> vertices = g.getVertices();
+  for (auto vertex : vertices) {
+    cout << vertex << endl;
+  }
   BOOST_CHECK_EQUAL(vertices.size(), 4);
   vector<bool> vertices_found(4, false);
   for (auto vertex : vertices) {

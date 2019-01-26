@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <cassert>
 #include <exception>
 #include <set>
 #include <vector>
@@ -51,8 +52,15 @@ int EdgeContainer::getMaxDegree(void) const {
 int EdgeContainer::getDegree(const int vertex) const {
   if (!adj_list_.count(vertex)) throw invalid_argument("vertex is not defined");
   int degree_count = 0;
+  if (adj_list_.at(vertex).size() == 0) {
+    return degree_count;
+  }
   for (const pair<int, int>& neighbor_and_count : adj_list_.at(vertex)) {
-    degree_count += neighbor_and_count.second;
+    if (neighbor_and_count.first == vertex) {
+      degree_count += neighbor_and_count.second * 2;
+    } else {
+      degree_count += neighbor_and_count.second;
+    }
   }
   return degree_count;
 }
@@ -68,7 +76,17 @@ vector<int> EdgeContainer::getVerticesDegree(int degree) const {
   return vertices;
 }
 
-bool EdgeContainer::edgeExist(Edge edge) const {
+bool EdgeContainer::vertexExistWithDegree(int degree) const {
+  for (const auto& vertex_and_neigh_and_count : adj_list_) {
+    int degree_count = getDegree(vertex_and_neigh_and_count.first);
+    if (degree_count == degree) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool EdgeContainer::edgeExist(const Edge& edge) const {
   if (adj_list_.count(edge.getEndPoint1())) {
     if (adj_list_.at(edge.getEndPoint1()).count(edge.getEndPoint2())) {
       return true;
@@ -96,7 +114,7 @@ void EdgeContainer::addEdge(Edge edge) {
     adj_list_[point1][point2] = 1;
   }
 
-  // Do not add the same edge if the points are the same
+  // Do not add the same edge a second time if the points are the same
   if (point1 != point2) {
     if (adj_list_[point2].count(point1)) {
       ++adj_list_[point2][point1];
@@ -107,28 +125,39 @@ void EdgeContainer::addEdge(Edge edge) {
   return;
 }
 
-vector<int> EdgeContainer::getVertices() {
+void EdgeContainer::addVertex(int vertex) {
+  assert(adj_list_.count(vertex) == 0 && "Cannot add vertex already exists");
+  unordered_map<int, int> empty_temp;
+  adj_list_[vertex] = empty_temp;
+}
+
+vector<int> EdgeContainer::getVertices() const {
   vector<int> vertices;
-  for (const auto& vertex_and_neigh_and_count : adj_list_) {
+  for (const pair<const int, unordered_map<int, int>>&
+           vertex_and_neigh_and_count : adj_list_) {
     vertices.push_back(vertex_and_neigh_and_count.first);
   }
   return vertices;
 }
 
-vector<int> EdgeContainer::getNeighVertices(int vertex) {
+vector<int> EdgeContainer::getNeighVertices(int vertex) const {
   vector<int> neigh_verts;
-  for (const pair<int, int>& neigh_and_count : adj_list_[vertex]) {
-    neigh_verts.push_back(neigh_and_count.first);
+  if (adj_list_.count(vertex)) {
+    for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
+      neigh_verts.push_back(neigh_and_count.first);
+    }
   }
   return neigh_verts;
 }
 
-vector<Edge> EdgeContainer::getNeighEdges(int vertex) {
+vector<Edge> EdgeContainer::getNeighEdges(int vertex) const {
   vector<Edge> neigh_edges;
-  for (const pair<int, int>& neigh_and_count : adj_list_[vertex]) {
-    for (int count = 0; count < adj_list_[vertex][neigh_and_count.first];
-         ++count) {
-      neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
+  if (adj_list_.count(vertex)) {
+    for (const pair<int, int>& neigh_and_count : adj_list_.at(vertex)) {
+      for (int count = 0;
+           count < adj_list_.at(vertex).at(neigh_and_count.first); ++count) {
+        neigh_edges.push_back(Edge(vertex, neigh_and_count.first));
+      }
     }
   }
   return neigh_edges;
