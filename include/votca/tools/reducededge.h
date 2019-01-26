@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -52,6 +52,7 @@ class ReducedEdge : public Edge {
   /// Creates an edge the smallest integer value will be placed in the id1
   /// spot and the larger in the id2 spot
   ReducedEdge(std::vector<int> chain);
+
   ReducedEdge(int vertex1, int vertex2)
       : ReducedEdge(std::vector<int>{vertex1, vertex2}){};
 

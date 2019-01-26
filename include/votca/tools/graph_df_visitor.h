@@ -20,7 +20,7 @@
 #ifndef __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_DF_VISITOR_H
 
-#include <stack>
+#include <list>
 #include <votca/tools/graphvisitor.h>
 
 /**
@@ -39,12 +39,12 @@ class GraphNode;
 
 class Graph_DF_Visitor : public GraphVisitor {
  private:
-  std::stack<Edge> edge_stack_;
+  std::list<Edge> edge_list_;
 
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
-  void addEdges_(Graph& g, int vertex);
-  Edge getEdge_(Graph g);
+  void addEdges_(const Graph& g, int vertex);
+  Edge getEdge_(const Graph& g);
 
  public:
   Graph_DF_Visitor(){};
