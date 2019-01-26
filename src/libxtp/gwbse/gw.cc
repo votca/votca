@@ -134,9 +134,9 @@ Eigen::MatrixXd GW::getGWAResults()const{
   Eigen::VectorXd GW::ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const{
        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                  << " Scissor shifting DFT energies by: "<< _opt.shift<<" Hrt"<< std::flush;
-      Eigen::VectorXd RPAenergies=dft_energies;
-      RPAenergies.segment(_opt.homo+1,dft_energies.size()-_opt.homo-1).array()+=_opt.shift;
-      return RPAenergies;
+      Eigen::VectorXd shifted_energies=dft_energies;
+      shifted_energies.segment(_opt.homo+1,dft_energies.size()-_opt.homo-1).array()+=_opt.shift;
+      return shifted_energies;
   }
   
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2, double epsilon)const {
@@ -182,16 +182,12 @@ void GW::CalculateGWPerturbation() {
     _Sigma_x = (1-_opt.ScaHFX)*_sigma->CalcExchange();
          CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                  << " Calculated Hartree exchange contribution  " << std::flush;
-
+    //dft energies has size aobasissize
+    //rpaenergies has siye rpatotal so has Mmn
+    //gwaenergies/frequencies has qpmin,qpmax
+    //homo index is relative to dftenergies
     Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
-    std::cout<<"dft_shifted_energies"<<std::endl;
-    std::cout<<dft_shifted_energies<<std::endl;
     Eigen::VectorXd rpa_energies=dft_shifted_energies.segment(_opt.rpamin,_opt.rpamax-_opt.rpamin+1);
-    std::cout<<"rpa_energies"<<std::endl;
-    std::cout<<rpa_energies<<std::endl;
-
-
-    std::cout<<rpa_energies<<std::endl;
     _rpa.setRPAInputEnergies(rpa_energies);
     Eigen::VectorXd frequencies = dft_shifted_energies.segment(_opt.qpmin, _qptotal);
     for (int i_gw=0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
