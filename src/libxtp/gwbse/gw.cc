@@ -95,7 +95,7 @@ Eigen::MatrixXd GW::getGWAResults()const{
     CTP_LOG(ctp::logINFO, _log)
             <<level<<(boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
             "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-            (i + _opt.qpmin + 1) % _dft_energies(i + _opt.qpmin) % _vxc(i, i) %
+            (i + _opt.qpmin) % _dft_energies(i + _opt.qpmin) % _vxc(i, i) %
             _Sigma_x(i,i) % _Sigma_c(i,i) % _gwa_energies(i))
             .str()
             << std::flush;
@@ -111,22 +111,13 @@ Eigen::MatrixXd GW::getGWAResults()const{
           << (boost::format("  ====== Diagonalized quasiparticle energies (Hartree) "
           "====== ")).str()<< std::flush;
   for (int i = 0; i < _qptotal; i++) {
-    if ((i +_opt.qpmin) == _opt.homo) {
-      CTP_LOG(ctp::logINFO, _log)
-              << (boost::format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (i + _opt.qpmin + 1) % _gwa_energies(i) %
+    std::string level="  Level";
+    if ((i + _opt.qpmin) == _opt.homo) {level="  HOMO ";}
+    else if ((i + _opt.qpmin) == _opt.homo + 1) {level="  LUMO ";}
+    CTP_LOG(ctp::logINFO, _log)
+              <<level<< (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (i + _opt.qpmin ) % _gwa_energies(i) %
               qp_diag_energies(i)).str()<< std::flush;
-    } else if ((i + _opt.qpmin) == _opt.homo + 1) {
-      CTP_LOG(ctp::logINFO, _log)
-              << (boost::format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (i + _opt.qpmin + 1) % _gwa_energies(i) %
-              qp_diag_energies(i)).str()<< std::flush;
-    } else {
-      CTP_LOG(ctp::logINFO, _log)
-              << (boost::format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (i + _opt.qpmin + 1) % _gwa_energies(i) %
-              qp_diag_energies(i)).str()<< std::flush;
-    }
   }
   return;
 }
