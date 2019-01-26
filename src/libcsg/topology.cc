@@ -199,9 +199,9 @@ void Topology::CopyTopologyData(Topology *top) {
 
 int Topology::getBeadTypeIndex(string type) const {
   int index = -1;
-  for (const string &bead_type : beadtypes_) {
+  for (auto iter = beadtypes_.rbegin(); iter != beadtypes_.rend(); ++iter) {
     ++index;
-    if (bead_type == type) {
+    if (*iter == type) {
       break;
     }
   }

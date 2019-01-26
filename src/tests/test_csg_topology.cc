@@ -16,7 +16,6 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE csg_topology_test
-#include "../../include/votca/csg/beadtype.h"
 #include "../../include/votca/csg/topology.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>

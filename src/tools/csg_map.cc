@@ -109,6 +109,7 @@ class CsgMapApp : public CsgApplication {
           if (!hybtol->BeadTypeExist(bi->getType())) {
             hybtol->RegisterBeadType(bi->getType());
           }
+
           Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
                                         bi->getType(), bi->getResnr(),
                                         bi->getMass(), bi->getQ());
