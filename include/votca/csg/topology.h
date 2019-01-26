@@ -20,7 +20,7 @@
 
 #include <list>
 #include <map>
-#include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "bead.h"
@@ -198,7 +198,7 @@ class Topology {
   bool BeadTypeExist(std::string type) const;
   void RegisterBeadType(std::string name);
 
-  int getBeadTypeIndex(std::string type) const;
+  int getBeadTypeId(std::string type) const;
   //    std::string getBeadType(const int i) { return (_beadtypes[i]); }
   Bead *getBead(const int i) const { return _beads[i]; }
   Residue *getResidue(const int i) const { return _residues[i]; }
@@ -381,7 +381,7 @@ class Topology {
   BoundaryCondition::eBoxtype autoDetectBoxType(const matrix &box);
 
   /// bead types in the topology
-  std::set<std::string> beadtypes_;
+  std::unordered_map<std::string, int> beadtypes_;
 
   /// beads in the topology
   BeadContainer _beads;

@@ -15,7 +15,10 @@
  *
  */
 
+#include <boost/lexical_cast.hpp>
+#include <regex>
 #include <stdexcept>
+#include <unordered_set>
 #include <votca/csg/interaction.h>
 #include <votca/csg/topology.h>
 #include <votca/tools/rangeparser.h>
@@ -24,6 +27,10 @@ namespace votca {
 namespace csg {
 
 using namespace std;
+
+bool is_digits(const std::string &str) {
+  return str.find_first_not_of("0123456789") == std::string::npos;
+}
 
 Topology::~Topology() {
   Cleanup();
@@ -197,16 +204,9 @@ void Topology::CopyTopologyData(Topology *top) {
   //}
 }
 
-int Topology::getBeadTypeIndex(string type) const {
-  int index = -1;
-  for (auto iter = beadtypes_.rbegin(); iter != beadtypes_.rend(); ++iter) {
-    ++index;
-    if (*iter == type) {
-      break;
-    }
-  }
-  assert(index != -1);
-  return index;
+int Topology::getBeadTypeId(string type) const {
+  assert(beadtypes_.count(type));
+  return beadtypes_.at(type);
 }
 
 void Topology::RenameMolecules(string range, string name) {
@@ -286,22 +286,29 @@ bool Topology::BeadTypeExist(string type) const {
   return beadtypes_.count(type);
 }
 
-void Topology::RegisterBeadType(string type) { beadtypes_.insert(type); }
+void Topology::RegisterBeadType(string type) {
+  unordered_set<int> ids;
+  for (pair<const string, int> type_and_id : beadtypes_) {
+    ids.insert(type_and_id.second);
+  }
 
-/*string Topology::GetOrCreateBeadType(string name)
-{
-    map<string, int>::iterator iter;
+  int id = 0;
+  // If the type is also a number use it as the id as well provided it is not
+  // already taken
+  if (is_digits(type)) {
+    id = boost::lexical_cast<int>(type);
+    assert(!ids.count(id) &&
+           "The type passed in is a number and has already"
+           " been registered. It is likely that you are passing in numbers as "
+           "bead types as well as strings, choose one or the other do not mix "
+           "between using numbers and strings ");
+  }
 
-    iter = _beadtype_map.find(name);
-    if(iter == _beadtype_map.end()) {
-        _beadtypes.push_back(name);
-        _beadtype_map[name] = _beadtypes.back()->getId();
-        return (_beadtypes.back());
-    }
-
-    return  (_beadtypes[(*iter).second]);
-
-}*/
+  while (ids.count(id)) {
+    ++id;
+  }
+  beadtypes_[type] = id;
+}
 
 vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const {
   return _bc->BCShortestConnection(r_i, r_j);

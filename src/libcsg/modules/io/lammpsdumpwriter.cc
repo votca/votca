@@ -53,9 +53,9 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
        iter != conf->Beads().end(); ++iter) {
     Bead *bi = *iter;
 
-    int type_index = conf->getBeadTypeIndex(bi->getType());
+    int type_id = conf->getBeadTypeId(bi->getType());
 
-    fprintf(_out, "%i %i", bi->getId() + 1, type_index);
+    fprintf(_out, "%i %i", bi->getId() + 1, type_id);
     fprintf(_out, " %f %f %f", bi->getPos().getX(), bi->getPos().getY(),
             bi->getPos().getZ());
     if (v) {
