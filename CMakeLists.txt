@@ -61,9 +61,6 @@ add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 find_package(LIBXC REQUIRED)
 include_directories(${LIBXC_INCLUDE_DIRS})
 
-find_package(CERES REQUIRED)
-include_directories(${CERES_INCLUDE_DIRS})
-
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 include_directories(${HDF5_INCLUDE_DIRS})
 
