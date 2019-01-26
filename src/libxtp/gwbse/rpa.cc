@@ -28,7 +28,6 @@ namespace votca {
   namespace xtp {
       
   void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin){
-        int dftsize=dftenergies.size();
         int rpatotal=_rpamax-_rpamin+1;
         _energies=dftenergies.segment(_rpamin,rpatotal);
         int gwsize=gwaenergies.size();
