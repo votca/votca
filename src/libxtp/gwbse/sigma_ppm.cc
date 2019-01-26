@@ -41,7 +41,8 @@ namespace votca {
         Eigen::VectorXd result=Eigen::VectorXd::Zero(_qptotal);
         const int levelsum = _Mmn.nsize(); // total number of bands
         const int gwsize = _Mmn.auxsize(); // size of the GW basis
-        const int lumo=_homo+1;
+        const int lumo=_opt.homo+1;
+        const int qpmin_offset=_opt.qpmin-_opt.rpamin;
          // loop over all GW levels
 #pragma omp parallel for
       for (int gw_level = 0; gw_level < _qptotal; gw_level++) {
@@ -55,9 +56,9 @@ namespace votca {
           }
           
 #if (GWBSE_DOUBLE)
-     const Eigen::VectorXd Mmn2=_Mmn[ gw_level + _qpmin ].col(i_gw).cwiseAbs2();
+     const Eigen::VectorXd Mmn2=_Mmn[ gw_level + qpmin_offset ].col(i_gw).cwiseAbs2();
 #else
-     const Eigen::VectorXd Mmn2=_Mmn[ gw_level + _qpmin ].col(i_gw).cwiseAbs2().cast<double>();
+     const Eigen::VectorXd Mmn2=_Mmn[ gw_level + qpmin_offset ].col(i_gw).cwiseAbs2().cast<double>();
 #endif
         const double ppm_freq = _ppm.getPpm_freq()(i_gw);
         const double fac = 0.5*_ppm.getPpm_weight()(i_gw) * ppm_freq;
@@ -91,20 +92,21 @@ namespace votca {
     
  #pragma omp parallel
       {
-        int lumo=_homo+1;
+        const int lumo=_opt.homo+1;
         const int levelsum =_Mmn.nsize(); // total number of bands
         const int gwsize = _Mmn.auxsize(); // size of the GW basis
         const Eigen::VectorXd ppm_weight=_ppm.getPpm_weight();
         const Eigen::VectorXd ppm_freqs=_ppm.getPpm_freq();
         const Eigen::VectorXd fac=0.25*ppm_weight.cwiseProduct(ppm_freqs);
+        const int qpmin_offset=_opt.qpmin-_opt.rpamin;
         
-        const Eigen::VectorXd rpaenergies_thread=_rpa.getRPAInputEnergies();;
+        const Eigen::VectorXd rpaenergies_thread=_rpa.getRPAInputEnergies();
         #pragma omp for schedule(dynamic)
         for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
-        const MatrixXfd& Mmn1=_Mmn[ gw_level1 + _qpmin ];
+        const MatrixXfd& Mmn1=_Mmn[ gw_level1 + qpmin_offset ];
         const double qpmin1 = frequencies(gw_level1);
         for (int gw_level2 = gw_level1+1; gw_level2 < _qptotal; gw_level2++) {
-          const MatrixXfd& Mmn2=_Mmn[ gw_level2 + _qpmin ];
+          const MatrixXfd& Mmn2=_Mmn[ gw_level2 + qpmin_offset ];
           const double qpmin2 = frequencies(gw_level2);
           double sigma_c=0;
           for (int i_gw = 0; i_gw < gwsize; i_gw++) {
