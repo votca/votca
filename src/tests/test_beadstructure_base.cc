@@ -300,15 +300,6 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
 BOOST_AUTO_TEST_CASE(test_beadstructure_catchError) {
 
   {
-    // Intentionally fail to set id
-    TestBead testbead1;
-    testbead1.setName("Hydrogen");
-
-    BeadStructure beadstructure1;
-    BOOST_CHECK_THROW(beadstructure1.AddBead(&testbead1), runtime_error);
-  }
-
-  {
     TestBead testbead1;
     testbead1.setName("Hydrogen");
     testbead1.setId(1);
