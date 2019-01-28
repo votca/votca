@@ -34,7 +34,12 @@ namespace votca {
      if(_opt.sigma_integration=="ppm"){
          _sigma=std::unique_ptr<Sigma_base>(new Sigma_PPM(_Mmn,_rpa));
      }
-     _sigma->configure(_opt.homo,_opt.qpmin,_opt.qpmax);
+     Sigma_base::options sigma_opt;
+     sigma_opt.homo=_opt.homo;
+     sigma_opt.qpmax=_opt.qpmax;
+     sigma_opt.qpmin=_opt.qpmin;
+     sigma_opt.rpamin=_opt.rpamin;
+     _sigma->configure(sigma_opt);
      _Sigma_x=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
      _Sigma_c=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
 
@@ -90,7 +95,7 @@ Eigen::MatrixXd GW::getGWAResults()const{
     XTP_LOG(logINFO, _log)
             <<level<<(boost::format(" = %1$4d DFT = %2$+1.4f VXC = %3$+1.4f S-X = "
             "%4$+1.4f S-C = %5$+1.4f GWA = %6$+1.4f") %
-            (i + _opt.qpmin + 1) % _dft_energies(i + _opt.qpmin) % _vxc(i, i) %
+            (i + _opt.qpmin) % _dft_energies(i + _opt.qpmin) % _vxc(i, i) %
             _Sigma_x(i,i) % _Sigma_c(i,i) % _gwa_energies(i))
             .str()
             << std::flush;
@@ -106,22 +111,13 @@ Eigen::MatrixXd GW::getGWAResults()const{
           << (boost::format("  ====== Diagonalized quasiparticle energies (Hartree) "
           "====== ")).str()<< std::flush;
   for (int i = 0; i < _qptotal; i++) {
-    if ((i +_opt.qpmin) == _opt.homo) {
+    std::string level="  Level";
+    if ((i + _opt.qpmin) == _opt.homo) {level="  HOMO ";}
+    else if ((i + _opt.qpmin) == _opt.homo + 1) {level="  LUMO ";}
       XTP_LOG(logINFO, _log)
-              << (boost::format("  HOMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (i + _opt.qpmin + 1) % _gwa_energies(i) %
+              <<level<< (boost::format(" = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
+              (i + _opt.qpmin ) % _gwa_energies(i) %
               qp_diag_energies(i)).str()<< std::flush;
-    } else if ((i + _opt.qpmin) == _opt.homo + 1) {
-      XTP_LOG(logINFO, _log)
-              << (boost::format("  LUMO  = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (i + _opt.qpmin + 1) % _gwa_energies(i) %
-              qp_diag_energies(i)).str()<< std::flush;
-    } else {
-      XTP_LOG(logINFO, _log)
-              << (boost::format("  Level = %1$4d PQP = %2$+1.4f DQP = %3$+1.4f ") %
-              (i + _opt.qpmin + 1) % _gwa_energies(i) %
-              qp_diag_energies(i)).str()<< std::flush;
-    }
   }
   return;
 }
@@ -129,9 +125,9 @@ Eigen::MatrixXd GW::getGWAResults()const{
   Eigen::VectorXd GW::ScissorShift_DFTlevel(const Eigen::VectorXd& dft_energies)const{
        XTP_LOG(logDEBUG, _log) << TimeStamp()
                                  << " Scissor shifting DFT energies by: "<< _opt.shift<<" Hrt"<< std::flush;
-      Eigen::VectorXd RPAenergies=dft_energies;
-      RPAenergies.segment(_opt.homo+1,dft_energies.size()-_opt.homo-1).array()+=_opt.shift;
-      return RPAenergies;
+      Eigen::VectorXd shifted_energies=dft_energies;
+      shifted_energies.segment(_opt.homo+1,dft_energies.size()-_opt.homo-1).array()+=_opt.shift;
+      return shifted_energies;
   }
   
 bool GW::Converged(const Eigen::VectorXd& e1, const Eigen::VectorXd& e2, double epsilon)const {
@@ -177,14 +173,14 @@ void GW::CalculateGWPerturbation() {
     _Sigma_x = (1-_opt.ScaHFX)*_sigma->CalcExchange();
          XTP_LOG(logDEBUG, _log) << TimeStamp()
                                  << " Calculated Hartree exchange contribution  " << std::flush;
-
-    Eigen::VectorXd rpa_energies = ScissorShift_DFTlevel(_dft_energies);
+    //dft energies has size aobasissize
+    //rpaenergies has siye rpatotal so has Mmn
+    //gwaenergies/frequencies has qpmin,qpmax
+    //homo index is relative to dftenergies
+    Eigen::VectorXd dft_shifted_energies = ScissorShift_DFTlevel(_dft_energies);
+    Eigen::VectorXd rpa_energies=dft_shifted_energies.segment(_opt.rpamin,_opt.rpamax-_opt.rpamin+1);
     _rpa.setRPAInputEnergies(rpa_energies);
-    Eigen::VectorXd frequencies = rpa_energies.segment(_opt.qpmin, _qptotal);
-
-   
-     XTP_LOG(logDEBUG, _log) << TimeStamp()
-                                 << " Prepared RPA  " << std::flush;
+    Eigen::VectorXd frequencies = dft_shifted_energies.segment(_opt.qpmin, _qptotal);
     for (int i_gw=0; i_gw < _opt.gw_sc_max_iterations; ++i_gw) {
 
          if(i_gw%_opt.reset_3c==0 && i_gw!=0){

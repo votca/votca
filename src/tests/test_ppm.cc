@@ -112,8 +112,8 @@ Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 
 RPA rpa=RPA(Mmn);
-rpa.setRPAInputEnergies(es.eigenvalues());
 rpa.configure(4,0,16);
+rpa.setRPAInputEnergies(es.eigenvalues());
 
 PPM ppm;
 ppm.PPM_construct_parameters(rpa);

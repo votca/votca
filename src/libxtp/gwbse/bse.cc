@@ -201,12 +201,14 @@ template <typename T>
 void BSE::Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0, 0, _bse_ctotal);
+            const int vmin=_opt.vmin-_opt.rpamin;
+            const int cmin=_bse_cmin-_opt.rpamin;
 #pragma omp parallel for
     for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        const MatrixXfd Mmn1T = (_Mmn[v1 + _opt.vmin ].block(_opt.vmin, 0, _bse_vtotal, auxsize) * _epsilon_0_inv.asDiagonal()).transpose();
+                const MatrixXfd Mmn1T = (_Mmn[v1 + vmin ].block(vmin, 0, _bse_vtotal, auxsize) * _epsilon_0_inv.asDiagonal()).transpose();
         for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-            const MatrixXfd& Mmn2 = _Mmn[c1 + _bse_cmin];
-            const MatrixXfd Mmn2xMmn1T = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
+                    const MatrixXfd& Mmn2 = _Mmn[c1 + cmin];
+                    const MatrixXfd Mmn2xMmn1T = Mmn2.block(cmin, 0, _bse_ctotal, auxsize)*Mmn1T;
             int i1 = vc.I(v1, c1);
             for (int v2 = 0; v2 < _bse_vtotal; v2++) {
                 for (int c2 = 0; c2 < _bse_ctotal; c2++) {
@@ -224,12 +226,14 @@ template <typename T, int factor>
 void BSE::Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0, 0, _bse_ctotal);
+            const int vmin=_opt.vmin-_opt.rpamin;
+            const int cmin=_bse_cmin-_opt.rpamin;
 #pragma omp parallel for       
     for (int c1 = 0; c1 < _bse_ctotal; c1++) {
-        const MatrixXfd Mmn2T = factor * (_Mmn[c1 + _bse_cmin ].block(_opt.vmin, 0, _bse_vtotal, auxsize) * _epsilon_0_inv.asDiagonal()).transpose();
+                const MatrixXfd Mmn2T =factor * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize)* _epsilon_0_inv.asDiagonal()).transpose();
         for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-            const MatrixXfd& Mmn1 = _Mmn[v1 + _opt.vmin];
-            MatrixXfd Mmn1xMmn2T = Mmn1.block(_bse_cmin, 0, _bse_ctotal, auxsize) * Mmn2T;
+                    const MatrixXfd& Mmn1 = _Mmn[v1 + vmin];
+                    MatrixXfd Mmn1xMmn2T = Mmn1.block(cmin, 0, _bse_ctotal, auxsize)* Mmn2T;
             int i1 = vc.I(v1, c1);
             for (int v2 = 0; v2 < _bse_vtotal; v2++) {
                 for (int c2 = 0; c2 < _bse_ctotal; c2++) {
@@ -246,14 +250,16 @@ template <typename T, int factor>
 void BSE::Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H) {
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0, 0, _bse_ctotal);
+        const int vmin=_opt.vmin-_opt.rpamin;
+        const int cmin=_bse_cmin-_opt.rpamin;
 #pragma omp parallel for
     for (int v1 = 0; v1 < _bse_vtotal; v1++) {
-        const MatrixXfd Mmn1 = factor * (_Mmn[v1 + _opt.vmin].block(_bse_cmin, 0, _bse_ctotal, auxsize)).transpose();
+                const MatrixXfd Mmn1 = factor * (_Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize)).transpose();
         for (int c1 = 0; c1 < _bse_ctotal; c1++) {
             int i1 = vc.I(v1, c1);
             for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-                const MatrixXfd& Mmn2 = _Mmn[v2 + _opt.vmin];
-                const VectorXfd Mmnx2 = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
+                        const MatrixXfd& Mmn2 = _Mmn[v2 +vmin];
+                        const VectorXfd Mmnx2 = Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
                 for (int c2 = 0; c2 < _bse_ctotal; c2++) {
                     int i2 = vc.I(v2, c2);
                     H(i2, i1) += Mmnx2(c2);

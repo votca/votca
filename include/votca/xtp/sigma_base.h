@@ -32,12 +32,18 @@ class Sigma_base {
   Sigma_base(TCMatrix_gwbse& Mmn,const RPA& rpa ):_Mmn(Mmn),_rpa(rpa){};
   
   virtual ~Sigma_base(){};
+
+
+  struct options{
+      int homo;
+      int qpmin;
+      int qpmax;
+      int rpamin;
+  };
   
-  void configure(int homo, int qpmin,int qpmax){
-      _homo=homo;
-      _qpmin=qpmin;
-      _qpmax=qpmax;
-      _qptotal=_qpmax - _qpmin + 1;
+  void configure(options opt){
+      _opt=opt;
+      _qptotal=opt.qpmax - opt.qpmin + 1;
   }
 
   //Calculates Full exchange matrix
@@ -52,13 +58,10 @@ virtual Eigen::MatrixXd CalcCorrelationOffDiag(const Eigen::VectorXd& frequencie
  
 
  protected:
-
+     options _opt;
   TCMatrix_gwbse& _Mmn;
   const RPA& _rpa;
 
-  int _homo;   // HOMO index
-  int _qpmin;
-  int _qpmax;
   int _qptotal;
 
 

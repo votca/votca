@@ -61,7 +61,7 @@ public:
     const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
     int getNumofShells() const{return _aoshells.size();}
-   
+      
    int getFuncOfAtom(int AtomIndex)const{return _FuncperAtom[AtomIndex];}
    
    const std::vector<int>& getFuncPerAtom()const {return _FuncperAtom;}
