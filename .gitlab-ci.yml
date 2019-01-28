@@ -17,11 +17,15 @@ stages:
   script:
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
-    - git checkout -B current_commit
+    - git branch commit_of_build_${CI_BUILD_ID} ${CI_COMMIT_SHA}
     - cd $HOME
-    - git clone --depth=1 --recursive https://github.com/votca/votca
+    - git clone --recursive https://github.com/votca/votca
     - pushd votca
-    - git -C ${CI_PROJECT_NAME} fetch ${CI_PROJECT_DIR} current_commit
+    - if [[ ${CI_COMMIT_REF_NAME} =~ for/([^/]*)/.* && ${BASH_REMATCH[1]} != master ]]; then
+        git checkout -b ${BASH_REMATCH[1]} origin/${BASH_REMATCH[1]} && git submodule update --recursive --init;
+      fi
+    - git -C ${CI_PROJECT_NAME} fetch ${CI_PROJECT_DIR} commit_of_build_${CI_BUILD_ID}
+    - git -C ${CI_PROJECT_DIR} branch -d commit_of_build_${CI_BUILD_ID}
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
