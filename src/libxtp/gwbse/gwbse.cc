@@ -117,22 +117,27 @@ void GWBSE::Initialize(tools::Property& options) {
         bse_vmin = 0;
         bse_cmax = num_of_levels - 1;
     }
-
-    bool ignore_corelevels = options.ifExistsReturnElseReturnDefault<bool>(
-            key + ".ignore_corelevels", false);
-
-    int ignored_corelevels = 0;
-    if (ignore_corelevels) {
-        ignored_corelevels = CountCoreLevels();
-        rpamin=ignored_corelevels;
-        if(qpmin<ignored_corelevels){
-            qpmin = ignored_corelevels;
+    std::string ignore_corelevels = options.ifExistsReturnElseReturnDefault<std::string>(
+            key + ".ignore_corelevels", "none");
+    
+    if(ignore_corelevels=="RPA" || ignore_corelevels=="GW" || ignore_corelevels=="BSE"){
+        int ignored_corelevels = CountCoreLevels();
+        if(ignore_corelevels=="RPA"){
+            rpamin=ignored_corelevels;
         }
-        if(bse_vmin<ignored_corelevels){
-            bse_vmin = ignored_corelevels;
+        if(ignore_corelevels=="GW" || ignore_corelevels=="RPA"){
+            if(qpmin<ignored_corelevels){
+                qpmin = ignored_corelevels;
+            }
         }
+        if(ignore_corelevels=="GW" || ignore_corelevels=="RPA" || ignore_corelevels=="BSE"){
+            if(bse_vmin<ignored_corelevels){
+                bse_vmin = ignored_corelevels;
+            }
+        }
+        
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Ignoring "
-                << ignored_corelevels << " core levels "
+                << ignored_corelevels << " core levels for "<<ignore_corelevels<< " and beyond."
                 << flush;
     }
 
@@ -174,7 +179,7 @@ void GWBSE::Initialize(tools::Property& options) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range ["
             << rpamin << ":" << rpamax << "]"
             << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set QP  level range ["
+    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set GW  level range ["
             << qpmin << ":" << qpmax << "]"
             << flush;
     CTP_LOG(ctp::logDEBUG, *_pLog)
