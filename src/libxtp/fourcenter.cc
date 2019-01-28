@@ -32,8 +32,7 @@ namespace votca {
           _4c_vector = Eigen::VectorXd::Zero((vectorSize*(vectorSize+1))/2);
           }
           catch(std::bad_alloc& ba){
-            std::cerr << "Basisset too large for 4c calculation. Not enough RAM. Caught bad alloc: " << ba.what() << std::endl;
-            exit(0);
+            throw std::runtime_error("Basisset too large for 4c calculation. Not enough RAM.");
           }
           int shellsize=dftbasis.getNumofShells();
           #pragma omp parallel for schedule(dynamic)

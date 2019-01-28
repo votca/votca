@@ -38,8 +38,7 @@ namespace votca {
         class QMPackage {
         public:
    
-            virtual ~QMPackage() {
-            };
+            virtual ~QMPackage() {};
 
             virtual std::string getPackageName()const = 0;
 

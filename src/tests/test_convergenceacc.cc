@@ -102,18 +102,22 @@ ofstream xyzfile("molecule.xyz");
   esp.Fillnucpotential(aobasis,orbitals.QMAtoms());
   Eigen::MatrixXd H=kinetic.Matrix()+esp.getNuclearpotential();
   
-  double levelshift=0.1;
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels=5;
-  d.Configure(ConvergenceAcc::closed,false,false,10,false,0,0,levelshift,0,occlevels*2,0);
+  ConvergenceAcc::options opt;
+  opt.mode=ConvergenceAcc::KSmode::closed;
+  opt.levelshift=0.1;
+  opt.histlength=10;
+  opt.numberofelectrons=occlevels*2;
+  d.Configure(opt);
   d.setOverlap(&overlap,1e-8);
   d.SolveFockmatrix(orb.MOEnergies(),orb.MOCoefficients(),H);
   
 
 
   for (unsigned i=occlevels;i<17;i++){
-    orb.MOEnergies()(i)+=levelshift;
+    orb.MOEnergies()(i)+=opt.levelshift;
   }
   Eigen::VectorXd MOEnergies;
   Eigen::MatrixXd MOCoeffs;

@@ -161,25 +161,12 @@ namespace votca {
             bool _with_guess;
             std::string _initial_guess;
 
-            // Convergence 
-            double _mixingparameter;
-            double _Econverged;
-            double _error_converged;
+            // Convergence
             int _numofelectrons=0;
-            int _max_iter;
-            
-        
-            //levelshift
-            double _levelshiftend;
-            double _levelshift;
-
+            int _max_iter=100;
+            ConvergenceAcc::options _conv_opt;
             //DIIS variables
             ConvergenceAcc _conv_accelerator;
-            bool _usediis;
-            int _histlength;
-            bool _maxout;
-            double _diis_start;
-            double _adiis_start;
             //Electron repulsion integrals
             ERIs _ERIs;
 

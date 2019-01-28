@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE(ppm_test)
 
 BOOST_AUTO_TEST_CASE(ppm_full){
   
-  ofstream xyzfile("molecule.xyz");
+  std::ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
   xyzfile << " C            .000000     .000000     .000000" << endl;
@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(ppm_full){
   xyzfile << " H           -.629118     .629118    -.629118" << endl;
   xyzfile.close();
 
-  ofstream basisfile("3-21G.xml");
+  std::ofstream basisfile("3-21G.xml");
   basisfile <<"<basis name=\"3-21G\">" << endl;
   basisfile << "  <element name=\"H\">" << endl;
   basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_CASE(ppm_full){
   
   Orbitals orb;
   orb.setBasisSetSize(17);
-  orb.setNumberOfLevels(4,13);
+  orb.setNumberOfOccupiedLevels(4);
 
 AOKinetic kinetic;
 kinetic.Fill(aobasis);
@@ -111,26 +111,17 @@ TCMatrix_gwbse Mmn;
 Mmn.Initialize(aobasis.AOBasisSize(),0,16,0,16);
 Mmn.Fill(aobasis,aobasis,es.eigenvectors());
 
+RPA rpa=RPA(es.eigenvalues(),Mmn);
+rpa.configure(4,0,16);
 
-  RPA rpa;
-  rpa.configure(4,0,17-1);
-  
-  PPM ppm;
-  Eigen::VectorXd screen_r=Eigen::VectorXd::Zero(1);
-  screen_r(0)=ppm.getScreening_r();
-  Eigen::VectorXd screen_i=Eigen::VectorXd::Zero(1);
-  screen_i(0)=ppm.getScreening_i();
-  rpa.setScreening(screen_r,screen_i);
-  rpa.calculate_epsilon(es.eigenvalues(),Mmn);
-  ppm.PPM_construct_parameters(rpa);
- 
-  
+PPM ppm;
+ppm.PPM_construct_parameters(rpa);
+
   Eigen::VectorXd ppm_freq=Eigen::VectorXd::Zero(17);
-  ppm_freq<< 1.94598,0.923413,0.923413, 1.66455, 1.25616, 1.56824,0.939509,0.725025,0.725025, 0.69766, 0.69766,0.789006,0.655588,0.697099, 1.21575, 1.21575, 25.747;
+  ppm_freq<< 2.04748,1.90379,0.9627,0.9627,1.36437,1.88394,0.979326,1.01522,1.01522,1.09165,1.09165,0.80298,0.837678,0.282465,1.88758,0.23266,0.23266;
   Eigen::VectorXd ppm_w=Eigen::VectorXd::Zero(17);
-  ppm_w<<0.000145438,0.000350387,0.000350387,0.000393263,0.000511193, 0.00208969, 0.00455154, 0.0107557, 0.0107557, 0.0456673, 0.0456673, 0.089354, 0.118543, 0.788686, 0.984015, 0.984015, 0.994573;
+  ppm_w<<0.000231545,0.000323424,0.000383456,0.000383456,0.000583222,0.00111183,0.00244362,0.00351714,0.00351714,0.0163704,0.0163704,0.0246761,0.0290079,0.120546,0.406604,0.582834,0.582834;
  
-  
   bool f_check =ppm_freq.isApprox(ppm.getPpm_freq(),0.0001);
   
   bool w_check =ppm_w.isApprox(ppm.getPpm_weight(),0.0001);

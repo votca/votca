@@ -74,9 +74,9 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   
   Orbitals orb;
   orb.setBasisSetSize(17);
-  orb.setNumberOfLevels(4,12);
-  orb.setBSEindices(0,9,2);
-  orb.setNumberOfElectrons(5);
+  orb.setNumberOfOccupiedLevels(4);
+  orb.setBSEindices(0,9);
+  orb.setNumberOfAlphaElectrons(5);
 
   orb.MOCoefficients()=Eigen::MatrixXd::Zero(17,17);
   orb.MOCoefficients()<<0.9907442950821396,0.20551857477099006,1.7023418853572578E-4,9.074399061719398E-5,3.837098252664792E-5,0.16974897759501614,-4.204899244661065E-5,7.615775441246816E-5,4.676066062450439E-5,2.884698428033532E-5,-4.481545968117419E-5,-1.3204180988296866E-4,-0.11680388320125862,1.6189605485598983E-5,-5.371063226647223E-6,-1.2047015045305022E-4,0.023240774591255682,
@@ -329,12 +329,12 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
-  orbitals.setDFTbasis("3-21G.xml");
+  orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis,orbitals.QMAtoms());
 
   orbitals.setBasisSetSize(17);
-  orbitals.setNumberOfLevels(4,13);
+  orbitals.setNumberOfOccupiedLevels(4);
  Eigen::MatrixXd& MOs=orbitals.MOCoefficients();
 MOs=Eigen::MatrixXd::Zero(17,17);
 MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15, 2.89043e-13, -0.00949189, 1.95787e-12, 1.22168e-14, -2.63092e-15, -0.22227, 1.00844,
@@ -355,7 +355,7 @@ MOs<<-0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169, -2.23157e
 0.129798, 0.0953806, 0.243102, -0.0847266, -0.0118465, -0.0475639, -0.132788, 0.00985812, 0.507751, 0.244188, -0.196253, 0.65313, 0.322032, -0.87828, -0.235242, -0.195084, 0.0246232,
 0.0541331, 0.088689, 0.226046, -0.0787824, -0.88576, -0.566373, -1.58119, 0.117387, 0.0916104, 0.0440574, -0.0354087, -0.362701, -0.512321, 1.39726, 0.374248, -0.793844, -0.035336;
 
-orbitals.setBSEindices(0,16,1);
+orbitals.setBSEindices(0,16);
 orbitals.setTDAApprox(true);
 
 MatrixXfd spsi_ref=MatrixXfd::Zero(60,1);
