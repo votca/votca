@@ -1,7 +1,7 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/xtp/commits/master).
 
 ## Version 1.5 (released XX.01.19)
- * no more changes since 1.5_rc3
+ * enable gitlab CI
 
 ## Version 1.5_rc3 (released 19.01.19)
  * travis: fixed bug in building tags
