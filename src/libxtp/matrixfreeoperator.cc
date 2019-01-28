@@ -25,47 +25,45 @@ namespace votca { namespace xtp {
     MatrixFreeOperator::MatrixFreeOperator(){}
 
     // virtual here : get a row of the operator
-    RowVectorXfd MatrixFreeOperator::row(int index) const
-    {
-    	
-        std::cout << "MatrixFreeOperator.row() not defined in class" << std::endl;
-        exit(0);
-    }
+    // RowVectorXfd MatrixFreeOperator::row(int index) const
+    // {    	
+    //     std::cout << "MatrixFreeOperator.row() not defined in class" << std::endl;
+    //     exit(0);
+    // }
 
     // virtual here : get a col of the operator
-    VectorXfd MatrixFreeOperator::col(int index) const
+    Eigen::VectorXd MatrixFreeOperator::col(int index) const
     {
-
         std::cout << "MatrixFreeOperator.col() not defined in class" << std::endl;
         exit(0);
     }
 
-    VectorXfd MatrixFreeOperator::diagonal()
+    Eigen::VectorXd MatrixFreeOperator::diagonal() const
     {
-        VectorXfd D = VectorXfd::Zero(OpSizeVal,1);
-        RowVectorXfd row_data;
-        for(int i=0; i<OpSizeVal;i++)
+        Eigen::VectorXd D = Eigen::VectorXd::Zero(_size,1);
+        Eigen::VectorXd col_data;
+        for(int i=0; i<_size;i++)
         {
-            row_data = this->row(i);
-            D(i,0) = row_data(0,i);
+            col_data = this->col(i);
+            D(i,0) = col_data(i,0);
         }
         return D;
     }
 
     // get the full matrix if we have to
-    MatrixXfd MatrixFreeOperator::get_full_mat()
+    Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const
     {
-    	MatrixXfd matrix = MatrixXfd::Zero(OpSizeVal,OpSizeVal);
-        for(int i=0; i<OpSizeVal; i++)
-            matrix.row(i) = this->row(i);
+    	Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size,_size);
+        for(int i=0; i<_size; i++)
+            matrix.col(i) = this->col(i);
         return matrix; 
     }
 
 
     // get the size
-    int MatrixFreeOperator::OpSize()
+    int MatrixFreeOperator::size()
     {
-    	return OpSizeVal;
+    	return this->_size;
     }
 
 }}

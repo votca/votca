@@ -17,24 +17,24 @@
  *
  */
 
-#ifndef _VOTCA_XTP_BSE_MF_H
-#define _VOTCA_XTP_BSE_MF_H
+#ifndef _VOTCA_XTP_BSE_H
+#define _VOTCA_XTP_BSE_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 
-#include <votca/xtp/matrixfreeoperator.h>
+#include <votca/xtp/bse_operator.h>
 
 namespace votca {
 namespace xtp {
 
-class BSE_MF : public MatrixFreeOperator {
+class BSE_ENGINE {
 
  public:
  
-  BSE_MF(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
+  BSE_ENGINE(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -46,7 +46,8 @@ class BSE_MF : public MatrixFreeOperator {
         _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
         _Mmn(Mmn),_Hqp(Hqp){};
 
-    struct options{
+    struct options {
+
         bool useTDA=true;
         int homo;
         int rpamin;
@@ -54,28 +55,29 @@ class BSE_MF : public MatrixFreeOperator {
         int qpmin;
         int vmin;
         int cmax;
+
         int nmax; //number of eigenvectors to calculate
-        bool davidson=1; // use davidson to diagonalize the matrix
+        bool davidson=0; // use davidson to diagonalize the matrix
         bool jocc=0; // jacobi orthogonal correction instead of DPR
         int jocc_linsolve=1; //method to solve the linea system in jacobi davidson
         double min_print_weight=0.5;  //minimium contribution for state to print it
         };
   
-   // extract a row/col from the matrix
-   RowVectorXfd row(int index) const;
-   VectorXfd col(int index) const;
+ 
 
    void configure(const options& opt){
     _opt=opt;
-    _bse_vmax = _opt.homo;
-    _bse_cmin = _opt.homo+1;
-    _bse_vtotal = _bse_vmax - _opt.vmin + 1;
-    _bse_ctotal =_opt.cmax - _bse_cmin + 1;
-    _bse_size = _bse_vtotal * _bse_ctotal;
-    SetupDirectInteractionOperator();
+    // _bse_vmax = _opt.homo;
+    // _bse_cmin = _opt.homo+1;
+    // _bse_vtotal = _bse_vmax - _opt.vmin + 1;
+    // _bse_ctotal =_opt.cmax - _bse_cmin + 1;
+    // _bse_size = _bse_vtotal * _bse_ctotal;
+    // SetupDirectInteractionOperator();
   }
+
   void Solve_singlets();
   void Solve_triplets();
+  void solve_hermitian(BSE_OPERATOR &H, Eigen::VectorXd &eigenvalues, Eigen::MatrixXd &coefficients );
 
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
@@ -84,10 +86,6 @@ class BSE_MF : public MatrixFreeOperator {
       _eh_t.resize(0, 0);
       _eh_s.resize(0, 0);
   }
-  
-  void SetupHs();
-  
-  void SetupHt();
   
   void FreeTriplets(){
       _bse_triplet_coefficients.resize(0,0);
@@ -102,9 +100,9 @@ class BSE_MF : public MatrixFreeOperator {
     options _opt;
 
      struct Interaction {
-    Eigen::VectorXd exchange_contrib;
-    Eigen::VectorXd direct_contrib;
-    Eigen::VectorXd qp_contrib;
+        Eigen::VectorXd exchange_contrib;
+        Eigen::VectorXd direct_contrib;
+        Eigen::VectorXd qp_contrib;
 };
 
 struct Population {
@@ -126,6 +124,7 @@ ctp::Logger &_log;
     // BSE variables and functions
   MatrixXfd& _eh_s;  // only for storage in orbitals object
   MatrixXfd& _eh_t;  // only for storage in orbitals object
+  
    // references are stored in orbitals object
   VectorXfd& _bse_singlet_energies;  
   MatrixXfd& _bse_singlet_coefficients;                                                 
@@ -140,21 +139,14 @@ ctp::Logger &_log;
   
 
 
+  
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
-   template <typename T>
-  void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T,int factor>
-  void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T>
-   void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T, int factor>
-  void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
 
+  
  void printFragInfo(const Population& pop, int i);
  void printWeights(int i_bse, double weight);
 
- void SetupDirectInteractionOperator();
  
   Interaction Analyze_eh_interaction(const QMStateType& type);
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
@@ -168,4 +160,4 @@ ctp::Logger &_log;
 }
 }
 
-#endif /* _VOTCA_XTP_BSE_MF_H */
+#endif /* _VOTCA_XTP_BSE_H */

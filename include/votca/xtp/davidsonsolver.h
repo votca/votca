@@ -17,7 +17,14 @@
 
 #ifndef __VOTCA_TOOLS_DAVIDSON_SOLVER_H
 #define	__VOTCA_TOOLS_DAVIDSON_SOLVER_H
+
+
 #include <votca/xtp/eigen.h>
+
+#include <votca/xtp/orbitals.h>
+#include <votca/xtp/rpa.h>
+#include <votca/xtp/threecenter.h>
+#include <votca/xtp/qmstate.h>
 
 namespace votca { namespace xtp {
  
@@ -42,11 +49,11 @@ namespace votca { namespace xtp {
             void set_jacobi_correction();
             void set_jacobi_linsolve(int method);
 
-            VectorXfd eigenvalues();
-            MatrixXfd eigenvectors();
+            Eigen::VectorXd eigenvalues();
+            Eigen::MatrixXd eigenvectors();
 
-            template <typename OpMat>
-            void solve(OpMat A, int neigen, int size_initial_guess = 0);
+            template <typename MatrixReplacement>
+            void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0);
 
         private :
 
@@ -59,15 +66,15 @@ namespace votca { namespace xtp {
             bool jacobi_correction=false;
             int jacobi_linsolve = 0;
 
-            VectorXfd _eigenvalues;
-            MatrixXfd _eigenvectors; 
+            Eigen::VectorXd _eigenvalues;
+            Eigen::MatrixXd _eigenvectors; 
 
-            ArrayXfd _sort_index(VectorXfd V);
-            MatrixXfd _get_initial_eigenvectors(VectorXfd D, int size);
-            MatrixXfd _solve_linear_system(MatrixXfd, VectorXfd b); 
+            Eigen::ArrayXd _sort_index(Eigen::VectorXd &V);
+            Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size);
+            Eigen::MatrixXd _solve_linear_system(Eigen::MatrixXd &A, Eigen::VectorXd &b); 
 
-            template <typename OpMat>
-            MatrixXfd _jacobi_orthogonal_correction(OpMat A, VectorXfd r, VectorXfd u, real_gwbse lambda);
+            template <typename MatrixReplacement>
+            Eigen::MatrixXd _jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, real_gwbse lambda);
 
     };
 

@@ -122,6 +122,7 @@ ctp::Logger &_log;
     // BSE variables and functions
   MatrixXfd& _eh_s;  // only for storage in orbitals object
   MatrixXfd& _eh_t;  // only for storage in orbitals object
+  
    // references are stored in orbitals object
   VectorXfd& _bse_singlet_energies;  
   MatrixXfd& _bse_singlet_coefficients;                                                 

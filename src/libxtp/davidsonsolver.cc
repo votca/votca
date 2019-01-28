@@ -27,13 +27,16 @@
 #include <chrono>
 
 #include <votca/xtp/matrixfreeoperator.h>
-#include <votca/xtp/bse_matrix_free.h>
+#include <votca/xtp/bse_operator.h>
 #include <votca/xtp/davidsonsolver.h>
+
+
 
 using boost::format;
 using std::flush;
 
-namespace votca { namespace xtp {
+namespace votca { 
+    namespace xtp {
 
 using namespace std;
 
@@ -48,23 +51,23 @@ void DavidsonSolver::set_max_search_space(int N) { this->max_search_space = N;}
 void DavidsonSolver::set_jacobi_correction() { this->jacobi_correction = true; }
 void DavidsonSolver::set_jacobi_linsolve(int method) {this->jacobi_linsolve = method;}
 
-VectorXfd DavidsonSolver::eigenvalues() {return this->_eigenvalues;}
-MatrixXfd DavidsonSolver::eigenvectors() {return this->_eigenvectors;}
+Eigen::VectorXd DavidsonSolver::eigenvalues() {return this->_eigenvalues;}
+Eigen::MatrixXd DavidsonSolver::eigenvectors() {return this->_eigenvectors;}
 
 
-ArrayXfd DavidsonSolver::_sort_index(VectorXfd V)
+Eigen::ArrayXd DavidsonSolver::_sort_index(Eigen::VectorXd &V)
 {
-    ArrayXfd idx = ArrayXfd::LinSpaced(V.rows(),0,V.rows()-1);
+    Eigen::ArrayXd idx = Eigen::ArrayXd::LinSpaced(V.rows(),0,V.rows()-1);
     std::sort(idx.data(),idx.data()+idx.size(),
               [&](int i1, int i2){return V[i1]<V[i2];});
     return idx; 
 }
 
-MatrixXfd DavidsonSolver::_get_initial_eigenvectors(VectorXfd d, int size_initial_guess)
+Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(Eigen::VectorXd &d, int size_initial_guess)
 {
 
-    MatrixXfd guess = MatrixXfd::Zero(d.size(),size_initial_guess);
-    ArrayXfd idx = DavidsonSolver::_sort_index(d);
+    Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(),size_initial_guess);
+    Eigen::ArrayXd idx = DavidsonSolver::_sort_index(d);
 
     for (int j=0; j<size_initial_guess;j++)
         guess(idx(j),j) = 1.0;
@@ -72,16 +75,16 @@ MatrixXfd DavidsonSolver::_get_initial_eigenvectors(VectorXfd d, int size_initia
     return guess;
 }
 
-MatrixXfd DavidsonSolver::_solve_linear_system(MatrixXfd A, VectorXfd r)
+Eigen::MatrixXd DavidsonSolver::_solve_linear_system(Eigen::MatrixXd &A, Eigen::VectorXd &r)
 {
-    MatrixXfd w;
+    Eigen::MatrixXd w;
 
     switch(this->jacobi_linsolve)
     {        
         //use cg approximate solver     
         case 0: 
         {
-            Eigen::ConjugateGradient<MatrixXfd, Eigen::Lower|Eigen::Upper> cg;
+            Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower|Eigen::Upper> cg;
             cg.compute(A);
             w = cg.solve(r);
         }   
@@ -89,7 +92,7 @@ MatrixXfd DavidsonSolver::_solve_linear_system(MatrixXfd A, VectorXfd r)
         //use GMRES approximate solver
         case 1:
         {
-            Eigen::GMRES<MatrixXfd, Eigen::IdentityPreconditioner> gmres;
+            Eigen::GMRES<Eigen::MatrixXd, Eigen::IdentityPreconditioner> gmres;
             gmres.compute(A);
             w = gmres.solve(r);
         }
@@ -103,13 +106,13 @@ MatrixXfd DavidsonSolver::_solve_linear_system(MatrixXfd A, VectorXfd r)
 
 
 
-template <class OpMat>
-MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction(OpMat A, VectorXfd r, VectorXfd u, real_gwbse lambda)
+template <class MatrixReplacement>
+Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, real_gwbse lambda)
 {
-    MatrixXfd w;
+    Eigen::MatrixXd w;
 
     // form the projector 
-    MatrixXfd P = -u*u.transpose();
+    Eigen::MatrixXd P = -u*u.transpose();
     P.diagonal().array() += 1.0;
 
     // compute the residue
@@ -117,18 +120,18 @@ MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction(OpMat A, VectorXfd r, Ve
 
     // project the matrix
     // P * (A - lambda*I) * P^T
-    MatrixXfd projA = A*P.transpose();
+    Eigen::MatrixXd projA = A*P.transpose();
     projA -= lambda*P.transpose();
     projA = P * projA;
 
     return DavidsonSolver::_solve_linear_system(projA,r);
 }
 
-template MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction<MatrixXfd>(MatrixXfd  A, VectorXfd r, VectorXfd u, real_gwbse lambda);
-//template MatrixXfd DavidsonSolver::_jacobi_orthogonal_correction<BSE_MF>(BSE_MF A, VectorXfd u, real_gwbse lambda);
+template Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction<Eigen::MatrixXd>(Eigen::MatrixXd &A, Eigen::VectorXd &r, Eigen::VectorXd &u, real_gwbse lambda);
+template Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction<MatrixFreeOperator>(MatrixFreeOperator &A, Eigen::VectorXd &r, Eigen::VectorXd &u, real_gwbse lambda);
 
-template<class OpMat>
-void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
+template <class MatrixReplacement>
+void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_guess)
 {
 
     if (this->_debug_)
@@ -174,8 +177,8 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
     int search_space = size_initial_guess;
 
     // initialize the guess eigenvector
-    VectorXfd Adiag = A.diagonal();    
-    MatrixXfd V = DavidsonSolver::_get_initial_eigenvectors(Adiag,size_initial_guess);
+    Eigen::VectorXd Adiag = A.diagonal();    
+    Eigen::MatrixXd V = DavidsonSolver::_get_initial_eigenvectors(Adiag,size_initial_guess);
     //std::cout << std::endl << "matrix V : " << std::endl << V << std::endl;
 
 
@@ -183,14 +186,14 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
     std::sort(Adiag.data(),Adiag.data()+Adiag.size());
 
     // thin matrix for QR
-    MatrixXfd thinQ;
+    Eigen::MatrixXd thinQ;
 
     // eigenvalues hodlers
-    VectorXfd lambda;
-    VectorXfd lambda_old = VectorXfd::Ones(neigen,1);
-
+    Eigen::VectorXd lambda;
+    
     // temp varialbes 
-    MatrixXfd T, U, w, q;
+    Eigen::MatrixXd T, U, q;
+    Eigen::VectorXd w, tmp;
 
     // chrono !
     chrono::time_point<chrono::system_clock> start, end, instart, instop;
@@ -208,8 +211,8 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
         // use the HouseholderQR algorithm of Eigen
         if (iiter>0)
         {
-            thinQ = MatrixXfd::Identity(V.rows(),V.cols());
-            Eigen::HouseholderQR<MatrixXfd> qr(V);
+            thinQ = Eigen::MatrixXd::Identity(V.rows(),V.cols());
+            Eigen::HouseholderQR<Eigen::MatrixXd> qr(V);
             V = qr.householderQ() * thinQ;
         }
 
@@ -220,7 +223,7 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 
         // diagonalize in the subspace
         // we could replace that with LAPACK ... 
-        Eigen::SelfAdjointEigenSolver<MatrixXfd> es(T);
+        Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
         lambda = es.eigenvalues();
         U = es.eigenvectors();
         
@@ -239,7 +242,10 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 
             // jacobi-davidson correction
             if (this->jacobi_correction)
-                w = DavidsonSolver::_jacobi_orthogonal_correction<OpMat>(A,w,q.col(j),lambda(j));
+            {
+                tmp = q.col(j);
+                w = DavidsonSolver::_jacobi_orthogonal_correction<MatrixReplacement>(A,w,tmp,lambda(j));
+            }
             
             // Davidson DPR
             else  
@@ -263,7 +269,6 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
             break;
         else
         {
-            lambda_old = lambda.head(neigen);
             search_space += size_initial_guess;
         }
 
@@ -282,7 +287,9 @@ void DavidsonSolver::solve(OpMat A, int neigen, int size_initial_guess)
 }
 
 
-template void DavidsonSolver::solve<MatrixXfd>(MatrixXfd A, int neigen, int size_initial_guess=0);
-//template void DavidsonSolver::solve<BSE_MF>(BSE_MF &A, int neigen, int size_initial_guess=0);
+//template void DavidsonSolver::solve<Eigen::MatrixXf>(Eigen::MatrixXf &A, int neigen, int size_initial_guess=0);
+//template void DavidsonSolver::solve<Eigen::MatrixXd>(Eigen::MatrixXd &A, int neigen, int size_initial_guess=0);
+template void DavidsonSolver::solve<MatrixFreeOperator>(MatrixFreeOperator &A, int neigen, int size_initial_guess=0);
+template void DavidsonSolver::solve<BSE_OPERATOR>(BSE_OPERATOR &A, int neigen, int size_initial_guess=0);
 
 }}

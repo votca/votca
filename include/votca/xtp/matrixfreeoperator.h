@@ -23,7 +23,7 @@ namespace votca { namespace xtp {
 
     //class MatrixFreeOperator;
 
-    class MatrixFreeOperator : public Eigen::EigenBase<MatrixXfd>
+    class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd>
     {
         public: 
 
@@ -37,8 +37,8 @@ namespace votca { namespace xtp {
                 IsRowMajor = false
             };
 
-            Index rows() const {return this-> OpSizeVal;}
-            Index cols() const {return this-> OpSizeVal;}
+            Index rows() const {return this-> _size;}
+            Index cols() const {return this-> _size;}
 
             template<typename Vtype>
             Eigen::Product<MatrixFreeOperator,Vtype,Eigen::AliasFreeProduct> operator*(const Eigen::MatrixBase<Vtype>& x) const {
@@ -49,17 +49,16 @@ namespace votca { namespace xtp {
             MatrixFreeOperator();
 
             // convenience function
-            MatrixXfd get_full_mat();
-            VectorXfd diagonal();
-            int OpSize();
+            Eigen::MatrixXd get_full_matrix() const;
+            Eigen::VectorXd diagonal() const;
+            int size();
 
             // extract row/col of the operator
-            virtual RowVectorXfd row(int index) const;
-            virtual VectorXfd col(int index) const;
+            // virtual RowVectorXfd row(int index) const = 0;
+            virtual Eigen::VectorXd col(int index) const;
 
-            int OpSizeVal;
-            double OpEpsVal;
-            VectorXfd diag_el;    
+            int _size;
+            Eigen::VectorXd diag_el;    
 
         private:
 
@@ -74,7 +73,7 @@ namespace Eigen{
 
 
         template<>
-        struct traits<votca::xtp::MatrixFreeOperator> : public Eigen::internal::traits<votca::xtp::MatrixXfd> {};
+        struct traits<votca::xtp::MatrixFreeOperator> : public Eigen::internal::traits<Eigen::MatrixXd> {};
 
         // replacement of the mat*vect operation
         template<typename Vtype>
