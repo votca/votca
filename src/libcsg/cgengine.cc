@@ -22,6 +22,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 namespace po = boost::program_options;
 
 CGEngine::CGEngine()

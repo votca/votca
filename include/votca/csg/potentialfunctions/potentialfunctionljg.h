@@ -23,7 +23,7 @@
 // with c12,c6 parameters
 class PotentialFunctionLJG : public PotentialFunction {
 public:
-    PotentialFunctionLJG(const string& name_,const double min_ = 0.0,
+    PotentialFunctionLJG(const std::string& name_,const double min_ = 0.0,
             const double max_ = 10.0);
     ~PotentialFunctionLJG() {};
     // calculate function value for given r

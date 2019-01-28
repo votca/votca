@@ -26,7 +26,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 class Molecule;
 
@@ -69,11 +68,11 @@ private:
 
   // String is the type .e.g. "atom","bond" etc
   // int is the number of different types
-  std::map<string, int> numberOfDifferentTypes_;
+  std::map<std::string, int> numberOfDifferentTypes_;
 
   // String is the type .e.g. "atom", "bond" etc
   // int is the number of them
-  std::map<string, int> numberOf_;
+  std::map<std::string, int> numberOf_;
 
   // First int is the molecule id
   // Second int is the molecule ptr
@@ -94,7 +93,7 @@ private:
 
   void ReadBox_(std::vector<std::string> fields, Topology &top);
   void SortIntoDataGroup_(std::string tag);
-  void ReadNumTypes_(std::vector<string> fields, string type);
+  void ReadNumTypes_(std::vector<std::string> fields, std::string type);
 
   void ReadNumOfAtoms_(std::vector<std::string> fields, Topology &top);
   void ReadNumOfBonds_(std::vector<std::string> fields);

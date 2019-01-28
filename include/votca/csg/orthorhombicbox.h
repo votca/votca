@@ -21,13 +21,13 @@
 #include "boundarycondition.h"
 
 namespace votca { namespace csg {
-using namespace std;
-using namespace votca::tools;
+
+  namespace TOOLS = votca::tools;
 
 class OrthorhombicBox : public BoundaryCondition {
 
 public:
-    vec BCShortestConnection(const vec &r_i, const vec &r_j) const;
+  TOOLS::vec BCShortestConnection(const TOOLS::vec &r_i, const TOOLS::vec &r_j) const;
 
     eBoxtype getBoxType() {
         return typeOrthorhombic;

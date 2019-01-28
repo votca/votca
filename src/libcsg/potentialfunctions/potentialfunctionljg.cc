@@ -17,6 +17,8 @@
 
 #include <votca/csg/potentialfunctions/potentialfunctionljg.h>
 
+using namespace std;
+
 PotentialFunctionLJG::PotentialFunctionLJG(const string& name_,const double min_,
                                            const double max_) : PotentialFunction(name_,5,min_,max_){
 }

@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,13 @@
  *
  */
 
-#ifndef _analasystool_H
-#define	_analasystool_H
+#ifndef VOTCA_CSG_ANALYSISTOOL_H
+#define	VOTCA_CSG_ANALYSISTOOL_H
 
 #include <map>
 #include <string>
 #include <votca/csg/cgengine.h>
 #include "bondedstatistics.h"
-
-using namespace std;
 
 /**
     \brief base class for all analasys tools
@@ -31,19 +29,22 @@ using namespace std;
     This is the base class for all analasys tool. 
     \todo do option functions!!!
 */
+namespace votca {
+  namespace csg {
+
 class AnalysisTool
 {
 public:
     AnalysisTool() {}
     virtual ~AnalysisTool() {}
     
-    virtual void Register(map<string, AnalysisTool *> &lib) {}
-    virtual void Command(BondedStatistics &bs, string cmd, vector<string> &args) {};
-    virtual void Help(string cmd, vector<string> &args) {};
+    virtual void Register(std::map<std::string, AnalysisTool *> &lib) {}
+    virtual void Command(BondedStatistics &bs, std::string cmd, std::vector<std::string> &args) {};
+    virtual void Help(std::string cmd, std::vector<std::string> &args) {};
     
-private:
-//    map<string, string> _options;
 };
 
-#endif	/* _analasystool_H */
+}
+}
+#endif	// VOTCA_CSG_ANALYSISTOOL_H
 

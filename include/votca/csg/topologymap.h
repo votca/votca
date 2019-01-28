@@ -23,9 +23,6 @@
 #include <vector>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 class TopologyMap 
 {
@@ -42,7 +39,7 @@ private:
     Topology *_in;
     Topology *_out;
     
-    typedef vector<Map *> MapContainer;
+    typedef std::vector<Map *> MapContainer;
     MapContainer _maps;
 };
 

@@ -262,7 +262,7 @@ bool PDBReader::NextFrame(Topology &top) {
           top.CreateResidue(resName);
         }
         // This is not correct, but still better than no type at all!
-        auto type = top.GetOrCreateBeadType(atName);
+        std::weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(atName);
 
         // Determine if the charge has been provided in the .pdb file or if we
         // will be assuming it is 0
@@ -280,7 +280,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // 6 - charge               (double)
         //
         // res -1 as internal number starts with 0
-        b = top.CreateBead(1, atName, type, resnr - 1, this->getMass(atName),
+        b = top.CreateBead(1, atName, weak_type, resnr - 1, this->getMass(atName),
                            ch);
       } else {
         b = top.getBead(bead_count - 1);

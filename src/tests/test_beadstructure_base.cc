@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ double round_(double v, int p) {
 }
 
 class TestBead : public BaseBead {
-public:
+ public:
   TestBead() : BaseBead(){};
 };
 
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
   beadstructure.ConnectBeads(1, 2);
 }
 
-BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleMolecule) {
+BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
   BeadStructure beadstructure;
 
   TestBead testbead1;
@@ -99,25 +99,25 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleMolecule) {
 
   beadstructure.AddBead(&testbead1);
   beadstructure.AddBead(&testbead2);
-  BOOST_CHECK(!beadstructure.isSingleMolecule());
+  BOOST_CHECK(!beadstructure.isSingleStructure());
 
   // C - C
   beadstructure.ConnectBeads(1, 2);
-  BOOST_CHECK(beadstructure.isSingleMolecule());
+  BOOST_CHECK(beadstructure.isSingleStructure());
 
   // C - C  O
   beadstructure.AddBead(&testbead3);
-  BOOST_CHECK(!beadstructure.isSingleMolecule());
+  BOOST_CHECK(!beadstructure.isSingleStructure());
 
   // C - C - O
   beadstructure.ConnectBeads(2, 3);
-  BOOST_CHECK(beadstructure.isSingleMolecule());
+  BOOST_CHECK(beadstructure.isSingleStructure());
 
   // C - C - O  H - H
   beadstructure.AddBead(&testbead4);
   beadstructure.AddBead(&testbead5);
   beadstructure.ConnectBeads(4, 5);
-  BOOST_CHECK(!beadstructure.isSingleMolecule());
+  BOOST_CHECK(!beadstructure.isSingleStructure());
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isStructureEquivalent) {
@@ -297,167 +297,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
   BOOST_CHECK_EQUAL(v8.size(), 1);
 }
 
-BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoMolecules) {
-
-  // Beads for bead structure 1
-  // Make a methane molecule
-  //
-  //     H
-  //     |
-  // H - C - H
-  //     |
-  //     H
-  //
-  TestBead testbead1;
-  testbead1.setName("Hydrogen");
-  testbead1.setId(1);
-
-  TestBead testbead2;
-  testbead2.setName("Carbon");
-  testbead2.setId(2);
-
-  TestBead testbead3;
-  testbead3.setName("Hydrogen");
-  testbead3.setId(3);
-
-  TestBead testbead4;
-  testbead4.setName("Hydrogen");
-  testbead4.setId(4);
-
-  TestBead testbead5;
-  testbead5.setName("Hydrogen");
-  testbead5.setId(5);
-
-  // Make a Water molecule
-  //
-  // H - O - H
-  //
-
-  TestBead testbead6;
-  testbead6.setName("Hydrogen");
-  testbead6.setId(6);
-
-  TestBead testbead7;
-  testbead7.setName("Oxygen");
-  testbead7.setId(7);
-
-  TestBead testbead8;
-  testbead8.setName("Hydrogen");
-  testbead8.setId(8);
-
-  // Methane
-  BeadStructure beadstructure1;
-  beadstructure1.AddBead(&testbead1);
-  beadstructure1.AddBead(&testbead2);
-  beadstructure1.AddBead(&testbead3);
-  beadstructure1.AddBead(&testbead4);
-  beadstructure1.AddBead(&testbead5);
-
-  // Water
-  BeadStructure beadstructure2;
-  beadstructure2.AddBead(&testbead6);
-  beadstructure2.AddBead(&testbead7);
-  beadstructure2.AddBead(&testbead8);
-
-  // Methane and Water
-  BeadStructure beadstructure;
-  beadstructure.AddBead(&testbead1);
-  beadstructure.AddBead(&testbead2);
-  beadstructure.AddBead(&testbead3);
-  beadstructure.AddBead(&testbead4);
-  beadstructure.AddBead(&testbead5);
-  beadstructure.AddBead(&testbead6);
-  beadstructure.AddBead(&testbead7);
-  beadstructure.AddBead(&testbead8);
-
-  // Connect beads
-  // Methane
-  beadstructure1.ConnectBeads(1, 2);
-  beadstructure1.ConnectBeads(3, 2);
-  beadstructure1.ConnectBeads(4, 2);
-  beadstructure1.ConnectBeads(5, 2);
-
-  // Water
-  beadstructure2.ConnectBeads(6, 7);
-  beadstructure2.ConnectBeads(7, 8);
-
-  // Methane and Water
-  beadstructure.ConnectBeads(1, 2);
-  beadstructure.ConnectBeads(3, 2);
-  beadstructure.ConnectBeads(4, 2);
-  beadstructure.ConnectBeads(5, 2);
-  beadstructure.ConnectBeads(6, 7);
-  beadstructure.ConnectBeads(7, 8);
-
-  auto structures = beadstructure.breakIntoMolecules();
-
-  bool structure1_found = false;
-  bool structure2_found = false;
-  for (auto structure : structures) {
-    if (structure->isStructureEquivalent(beadstructure1)) {
-      structure1_found = true;
-    }
-    if (structure->isStructureEquivalent(beadstructure2)) {
-      structure2_found = true;
-    }
-  }
-  BOOST_CHECK(structure1_found);
-  BOOST_CHECK(structure2_found);
-
-  // Adding another water
-  //
-  // H - O - H
-  //
-
-  TestBead testbead9;
-  testbead9.setName("Hydrogen");
-  testbead9.setId(9);
-
-  TestBead testbead11;
-  testbead11.setName("Hydrogen");
-  testbead11.setId(11);
-
-  TestBead testbead10;
-  testbead10.setName("Oxygen");
-  testbead10.setId(10);
-
-  // Adding the water
-  beadstructure.AddBead(&testbead9);
-  beadstructure.AddBead(&testbead10);
-  beadstructure.AddBead(&testbead11);
-
-  beadstructure.ConnectBeads(9, 10);
-  beadstructure.ConnectBeads(11, 10);
-
-  structures = beadstructure.breakIntoMolecules();
-
-  structure1_found = false;
-  structure2_found = false;
-  int structure2_count = 0;
-  for (auto structure : structures) {
-    if (structure->isStructureEquivalent(beadstructure1)) {
-      structure1_found = true;
-    }
-    if (structure->isStructureEquivalent(beadstructure2)) {
-      structure2_found = true;
-      ++structure2_count;
-    }
-  }
-  BOOST_CHECK(structure1_found);
-  BOOST_CHECK(structure2_found);
-  BOOST_CHECK_EQUAL(structure2_count, 2);
-}
-
 BOOST_AUTO_TEST_CASE(test_beadstructure_catchError) {
-
-  {
-    // Intentionally fail to set id
-    TestBead testbead1;
-    testbead1.setName("Hydrogen");
-
-    BeadStructure beadstructure1;
-    BOOST_CHECK_THROW(beadstructure1.AddBead(&testbead1), runtime_error);
-  }
 
   {
     TestBead testbead1;

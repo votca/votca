@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@
 #ifndef _VOTCA_CSG_BEADSTRUCTURE_H
 #define _VOTCA_CSG_BEADSTRUCTURE_H
 
-#include <list>
 #include <map>
 #include <memory>
 #include <set>
-#include <string>
 
 #include <votca/csg/basebead.h>
 
@@ -54,31 +52,32 @@ class BaseBead;
  **/
 
 class BeadStructure {
-public:
+ public:
   BeadStructure() : structureIdUpToDate(false), graphUpToDate(false){};
-  ~BeadStructure() {}
+  virtual ~BeadStructure() {}
 
   /**
-   * \brief Determine if the bead structure consists of a single molecule
+   * \brief Determine if the bead structure consists of a single connected
+   * structure
    *
    * This function will determine if all beads in the structure are connected
    * somehow to everyother bead. The connection does not have to be direct
    *
-   * @return - returns a boolean true if it is a single molecule
+   * @return - returns a boolean true if it is a single Structure
    **/
-  bool isSingleMolecule();
+  bool isSingleStructure();
 
   /**
    * \brief returns the number of beads in the bead structure
    **/
-  int BeadCount() { return beads_.size(); }
+  size_t BeadCount() { return beads_.size(); }
 
   /**
    * \brief add a bead to the bead structure
    *
    * The same bead cannot be added twice.
    **/
-  void AddBead(BaseBead *bead);
+  virtual void AddBead(BaseBead *bead);
 
   /**
    * \brief Get the bead with the specified id
@@ -91,24 +90,16 @@ public:
    * A bead cannot be connected to itself. It also may not be connected to a
    * bead that has not yet been added to the structure.
    **/
-  void ConnectBeads(int bead1_id, int bead2_id);
+  virtual void ConnectBeads(int bead1_id, int bead2_id);
 
   /**
-   * \breif Return a vector of all the beads neighboring the index
+   * \brief Return a vector of all the beads neighboring the index
    **/
   std::vector<BaseBead *> getNeighBeads(int index);
 
+  Graph getGraph();
   /**
-   * \breif Bread the beadstructure up into molecular units
-   *
-   * If a beadstructure is composed of several unconnected networks of beads.
-   * These structures will be broken up into their own bead structures and
-   * returned in a vector.
-   **/
-  std::vector<std::shared_ptr<BeadStructure>> breakIntoMolecules();
-
-  /**
-   * \breif Compare the topology of two bead structures
+   * \brief Compare the topology of two bead structures
    *
    * This function looks at how the beads are arranged within the bead structure
    * and determines if the topology is the same.
@@ -119,18 +110,23 @@ public:
    **/
   bool isStructureEquivalent(BeadStructure &beadstructure);
 
-private:
-  void InitializeGraph_();
+  bool BeadExist(int bead_id) const { return beads_.count(bead_id); }
+
+ protected:
+  virtual void InitializeGraph_();
   void CalculateStructure_();
 
   bool structureIdUpToDate;
   bool graphUpToDate;
-  shared_ptr<votca::tools::Graph> graph_;
+  bool single_structureUpToDate_;
+  bool single_structure_;
+  std::string structure_id_ = "";
+  votca::tools::Graph graph_;
   std::set<Edge> connections_;
-  std::map<int, BaseBead *> beads_;
-  std::map<int, std::shared_ptr<votca::tools::GraphNode>> graphnodes_;
+  std::unordered_map<int, BaseBead *> beads_;
+  std::unordered_map<int, votca::tools::GraphNode> graphnodes_;
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_BEADSTRUCTURE_H
+#endif  // _VOTCA_CSG_BEADSTRUCTURE_H

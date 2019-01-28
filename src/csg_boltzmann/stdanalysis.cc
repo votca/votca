@@ -24,6 +24,8 @@
 #include "bondedstatistics.h"
 #include "stdanalysis.h"
 
+namespace votca {
+  namespace csg {
 
 void StdAnalysis::Register(map<string, AnalysisTool *> &lib)
 {
@@ -123,3 +125,5 @@ void StdAnalysis::WriteCorrelations(BondedStatistics &bs, vector<string> &args)
     cout << "calculated correlations for " << sel->size() << " rows, written to " << args[0] << endl;
     delete sel;
 }
+
+}}

@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
     Topology top;
 
     string bead_type_name = "CG";
-    auto b_type = top.GetOrCreateBeadType(bead_type_name);
+    weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(bead_type_name);
 
     int symmetry = 1;
     string name = "dummy1";
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
     double mass = 1.0;
     double charge = -1.0;
 
-    top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    top.CreateBead(symmetry,name,weak_type,resnr,mass,charge);
     
     symmetry = 1;
     name = "dummy2";
@@ -54,7 +54,7 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
     mass = 1.0;
     charge = -1.0;
     
-    top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    top.CreateBead(symmetry,name,weak_type,resnr,mass,charge);
 
     symmetry = 1;
     name = "dummy3";
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
     mass = 1.0;
     charge = -1.0;
     
-    top.CreateBead(symmetry,name,b_type,resnr,mass,charge);
+    top.CreateBead(symmetry,name,weak_type,resnr,mass,charge);
 
     vec dist12(0.1,0.2,0.3);
     vec dist13(0.2,0.4,0.3);

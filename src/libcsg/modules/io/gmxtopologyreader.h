@@ -22,9 +22,6 @@
 #include <votca/csg/topologyreader.h>
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
     
 /**
     \brief reader for gromacs topology files
@@ -39,7 +36,7 @@ public:
     GMXTopologyReader() {}
 
     /// read a topology file
-    bool ReadTopology(string file, Topology &top);
+    bool ReadTopology(std::string file, Topology &top);
     
 private:
 };

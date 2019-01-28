@@ -19,6 +19,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3, bool do_exclusions)
 {
     BeadList::iterator iter;

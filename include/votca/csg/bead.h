@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #define _VOTCA_CSG_BEAD_H
 
 #include "basebead.h"
-#include <assert.h>
+#include <cassert>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
@@ -33,8 +33,6 @@ class Topology;
 class Molecule;
 
 using namespace votca::tools;
-
-using namespace std;
 
 /**
  * \brief information about a bead
@@ -278,7 +276,7 @@ public:
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  vector<int> &ParentBeads() { return _parent_beads; };
+  std::vector<int> &ParentBeads() { return _parent_beads; };
 
   /**
    * \brief Function to add arbitrary user data to bead
@@ -319,7 +317,7 @@ public:
   void setOptions(Property &options) { _options = &options; }
 
 protected:
-  vector<int> _parent_beads;
+  std::vector<int> _parent_beads;
 
   // TODO: this is so far a pointer. this should change! each bead should have
   // own options.
@@ -339,7 +337,7 @@ protected:
   bool _bF;
 
   /// constructur
-  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry, string name,
+  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry, std::string name,
        int resnr, double m, double q)
       : _symmetry(symmetry), _q(q), _resnr(resnr) {
     _parent = owner;
