@@ -17,6 +17,7 @@ include(GNUInstallDirs)
 # User input options                                                   #
 ########################################################################
 option(BUILD_CSGAPPS "Build csgapps" OFF)
+option(BUILD_CTP "Build ctp" OFF)
 option(BUILD_XTP "Build xtp" OFF)
 option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
 
@@ -37,8 +38,8 @@ if(ENABLE_COVERAGE_BUILD)
 endif()
 
 option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
-if(NOT WITH_SQLITE3 AND BUILD_XTP )
-  message(FATAL_ERROR "xtp needs tools to be build with sqlite3")
+if(NOT WITH_SQLITE3 AND ( BUILD_CTP OR BUILD_XTP) )
+  message(FATAL_ERROR "ctp and xtp needs tools to be build with sqlite3")
 endif()
 
 option(ENABLE_RPATH_INJECT "Inject link and install libdir into executables" OFF)
@@ -101,6 +102,13 @@ set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
 if(BUILD_CSGAPPS)
   add_subdirectory(csgapps)
   list(APPEND ENABLED_VOTCA_PACKAGES csgapps)
+endif()
+if(BUILD_CTP)
+  add_subdirectory(ctp)
+  list(APPEND ENABLED_VOTCA_PACKAGES ctp)
+  set(VOTCA_CTP_LIBRARY votca_ctp CACHE STRING "ctp library name")
+  set(VOTCA_CTP_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ctp/include
+	  CACHE PATH "ctp include path")
 endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
