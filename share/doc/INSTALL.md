@@ -9,8 +9,7 @@ VOTCA is currently composed of four major repositories:
 * CTP - charge transport classes and functionality
 * XTP - exciton and excited states functionality GW-BSE and DFT engine
 
-TOOLS -> CSG -> CTP
-TOOLS -> CSG -> XTP
+TOOLS -> CSG -> CTP -> XTP
 
 ### Dependency Installation
 #### Ubuntu

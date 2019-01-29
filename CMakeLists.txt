@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(votca)
 
-set(PROJECT_VERSION "1.5_rc3")
+set(PROJECT_VERSION "1.6-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -19,6 +19,9 @@ include(GNUInstallDirs)
 option(BUILD_CSGAPPS "Build csgapps" OFF)
 option(BUILD_CTP "Build ctp" OFF)
 option(BUILD_XTP "Build xtp" OFF)
+if(BUILD_XTP AND NOT BUILD_CTP)
+  message(FATAL_ERROR "xtp needs ctp to be build")
+endif(BUILD_XTP AND NOT BUILD_CTP)
 option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
