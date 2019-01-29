@@ -18,12 +18,14 @@
 #ifndef _VOTCA_CSG_BEAD_H
 #define _VOTCA_CSG_BEAD_H
 
-#include "basebead.h"
+#include <assert.h>
 #include <cassert>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 #include <votca/tools/vec.h>
+
+#include "basebead.h"
 
 namespace votca {
 namespace csg {
@@ -186,7 +188,8 @@ class Bead : public BaseBead {
    * \return reference to velocity
    */
   vec &Vel() {
-    assert(bead_velocity_set_);
+    assert(bead_velocity_set_ &&
+           "Cannot access velocity, it has not been set.");
     return velocity_;
   }
 
@@ -195,7 +198,7 @@ class Bead : public BaseBead {
    * \return reference to u
    */
   vec &U() {
-    assert(bU_);
+    assert(bU_ && "Cannot access bead orientation u, has not been set.");
     return u_;
   }
 
@@ -204,7 +207,7 @@ class Bead : public BaseBead {
    * \return reference to v
    */
   vec &V() {
-    assert(bV_);
+    assert(bV_ && "Cannot access bead orientation v, has not been set.");
     return v_;
   }
 
@@ -213,7 +216,7 @@ class Bead : public BaseBead {
    * \return reference to w
    */
   vec &W() {
-    assert(bW_);
+    assert(bW_ && "Cannot access bead orientation w, has not been set.");
     return w_;
   }
 
@@ -222,7 +225,7 @@ class Bead : public BaseBead {
    * \return reference to force
    */
   vec &F() {
-    assert(bead_force_set_);
+    assert(bead_force_set_ && "Cannot access bead force, has not been set.");
     return bead_force_;
   }
 
@@ -276,7 +279,7 @@ class Bead : public BaseBead {
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  std::vector<int> &ParentBeads() { return parent_beads_; };
+  const std::vector<int> &ParentBeads() { return parent_beads_; };
 
   /**
    * \brief Function to add arbitrary user data to bead
@@ -288,19 +291,19 @@ class Bead : public BaseBead {
    *
    * \param userdata userdata
    */
-  template <typename T>
-  void setUserData(T *userdata) {
-    _userdata = (void *)userdata;
-  }
+  // template <typename T>
+  // void setUserData(T *userdata) {
+  //  _userdata = (void *)userdata;
+  //}
 
   /**
    * get userdata attached to bead
    * @return pointer to userdata
    */
-  template <typename T>
-  T *getUserData() {
-    return (T *)_userdata;
-  }
+  // template <typename T>
+  // T *getUserData() {
+  //  return (T *)_userdata;
+  //}
 
   /**
    * \brief Additional options of bead
@@ -312,20 +315,20 @@ class Bead : public BaseBead {
    *
    * \return Property object containing options
    */
-  Property &Options() { return *options_; }
+  // Property &Options() { return *options_; }
 
   /**
    * update pointer to options object of bead
    * \param options pointer to options object of bead
    */
-  void setOptions(Property &options) { options_ = &options; }
+  // void setOptions(Property &options) { options_ = &options; }
 
  protected:
   std::vector<int> parent_beads_;
 
   // TODO: this is so far a pointer. this should change! each bead should have
   // own options.
-  Property *options_;
+  // Property *options_;
 
   byte_t symmetry_;
   double charge_;
@@ -357,7 +360,7 @@ class Bead : public BaseBead {
     bead_force_set_ = false;
   }
 
-  void *_userdata;
+  // void *_userdata;
 
   friend class Topology;
   friend class Molecule;
@@ -369,7 +372,8 @@ inline void Bead::setVel(const vec &r) {
 }
 
 inline const vec &Bead::getVel() const {
-  assert(bead_velocity_set_);
+  assert(bead_velocity_set_ &&
+         "Cannot access bead velocity, has not been set.");
   return velocity_;
 }
 
@@ -379,7 +383,7 @@ inline void Bead::setU(const vec &u) {
 }
 
 inline const vec &Bead::getU() const {
-  assert(bU_);
+  assert(bU_ && "Cannot access bead orientation u, has not been set.");
   return u_;
 }
 
@@ -399,7 +403,7 @@ inline void Bead::setW(const vec &w) {
 }
 
 inline const vec &Bead::getW() const {
-  assert(bW_);
+  assert(bW_ && "Cannot access bead orientation w, has not been set.");
   return w_;
 }
 
@@ -409,7 +413,7 @@ inline void Bead::setF(const vec &bead_force) {
 }
 
 inline const vec &Bead::getF() const {
-  assert(bead_force_set_);
+  assert(bead_force_set_ && "Cannot access bead force, has not been set.");
   return bead_force_;
 }
 
