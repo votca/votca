@@ -1,6 +1,6 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/tools/commits/stable).
 
-## Version 1.5 (released XX.01.19)
+## Version 1.5 _SuperVictor_ (released XX.01.19)
  * enable gitlab CI
 
 
