@@ -266,6 +266,7 @@ Release GCC OWN GMX:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
+    CXXFLAGS: "-Wall"
     BUILD_GROMACS: "yes"
   extends: .build
 
