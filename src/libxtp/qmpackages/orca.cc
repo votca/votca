@@ -482,10 +482,10 @@ namespace votca {
                     }
                 }
 
-                std::string::size_type energy_pos = line.find("Total Energy");
+                std::string::size_type energy_pos = line.find("FINAL SINGLE");
                 if (energy_pos != std::string::npos) {
                     boost::algorithm::split(results, line, boost::is_any_of(" "), boost::algorithm::token_compress_on);
-                    std::string energy = results[3];
+                    std::string energy = results[4];
                     boost::trim(energy);
                     orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
                     CTP_LOG(ctp::logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy()).str() << flush;
