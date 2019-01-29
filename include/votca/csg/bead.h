@@ -282,46 +282,16 @@ class Bead : public BaseBead {
   const std::vector<int> &ParentBeads() { return parent_beads_; };
 
   /**
-   * \brief Function to add arbitrary user data to bead
-   *
-   * The user can attach pointers to own created objects to beads. Currently
-   * the user has to take care about deletion of the objects at the end.
-   *
-   * \todo change this to shared_pointer
-   *
-   * \param userdata userdata
-   */
-  // template <typename T>
-  // void setUserData(T *userdata) {
-  //  _userdata = (void *)userdata;
-  //}
+   * \brief Clears out all parent beads
+   **/
+  void ClearParentBeads() { parent_beads_.clear(); }
 
   /**
-   * get userdata attached to bead
-   * @return pointer to userdata
-   */
-  // template <typename T>
-  // T *getUserData() {
-  //  return (T *)_userdata;
-  //}
-
-  /**
-   * \brief Additional options of bead
-   *
-   * The options object stores additional options which can be attached to
-   * the bead. For mapped beads, it contains all the values which were specified
-   * in the xml mapping file. This allows to at user defined options to the xml
-   * which are automatically read in on creation of the coare-grained bead.
-   *
-   * \return Property object containing options
-   */
-  // Property &Options() { return *options_; }
-
-  /**
-   * update pointer to options object of bead
-   * \param options pointer to options object of bead
-   */
-  // void setOptions(Property &options) { options_ = &options; }
+   * \brief Adds the id of a parent bead
+   **/
+  void AddParentBead(int parent_bead_id) {
+    parent_beads_.push_back(parent_bead_id);
+  }
 
  protected:
   std::vector<int> parent_beads_;
