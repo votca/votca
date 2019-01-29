@@ -18,11 +18,10 @@
 #ifndef _VOTCA_CSG_BASEBEAD_H
 #define _VOTCA_CSG_BASEBEAD_H
 
+#include <assert.h>
 #include <memory>
-
 #include <votca/csg/moleculeitem.h>
 #include <votca/csg/topologyitem.h>
-
 #include <votca/tools/identity.h>
 #include <votca/tools/name.h>
 #include <votca/tools/vec.h>
@@ -128,7 +127,7 @@ class BaseBead {
    * \return reference to position
    */
   virtual vec &Pos() {
-    assert(bead_position_set_);
+    assert(bead_position_set_ && "Position is not set.");
     return bead_position_;
   }
 
@@ -164,7 +163,8 @@ inline void BaseBead::setPos(const vec &bead_position) {
 }
 
 inline const vec &BaseBead::getPos() const {
-  assert(bead_position_set_);
+  assert(bead_position_set_ &&
+         "Cannot get bead position as it has not been set.");
   return bead_position_;
 }
 }  // namespace csg
