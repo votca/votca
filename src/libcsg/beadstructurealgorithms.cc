@@ -16,7 +16,6 @@
  */
 
 #include <votca/csg/beadstructurealgorithms.h>
-#include <votca/tools/graphalgorithm.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -24,8 +23,9 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-vector<BeadStructure> breakIntoStructures(BeadStructure& beadstructure) {
-  vector<BeadStructure> structures;
+vector<BeadStructure<BaseBead>> breakIntoStructures(
+    BeadStructure<BaseBead>& beadstructure) {
+  vector<BeadStructure<BaseBead>> structures;
   if (beadstructure.isSingleStructure()) {
     structures.push_back(beadstructure);
   } else {
@@ -36,7 +36,7 @@ vector<BeadStructure> breakIntoStructures(BeadStructure& beadstructure) {
          sub_graph_it != sub_graphs.end(); ++sub_graph_it) {
       vector<Edge> sub_graph_edges = sub_graph_it->getEdges();
       vector<int> sub_graph_vertices = sub_graph_it->getVertices();
-      BeadStructure beadstructure_temp;
+      BeadStructure<BaseBead> beadstructure_temp;
       for (const int& vertex : sub_graph_vertices) {
         beadstructure_temp.AddBead(beadstructure.getBead(vertex));
       }

@@ -105,7 +105,7 @@ namespace csg {
  * from the original class is called.
  **/
 
-class BeadMotif : public BeadStructure {
+class BeadMotif : public BeadStructure<BaseBead> {
  public:
   enum MotifType {
     empty,
