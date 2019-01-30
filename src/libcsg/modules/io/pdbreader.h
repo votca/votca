@@ -36,8 +36,7 @@ namespace csg {
 
 */
 class PDBReader : public TopologyReader,
-                  public TrajectoryReader,
-                  public Elements {
+                  public TrajectoryReader {
   public:
     /// Constuctor
     PDBReader() {}
@@ -56,6 +55,8 @@ class PDBReader : public TopologyReader,
   private:
     std::ifstream _fl;
     bool _topology;
+
+    tools::Elements _elements;
 };
 }
 }
