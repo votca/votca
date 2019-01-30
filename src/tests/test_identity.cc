@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 
 BOOST_AUTO_TEST_CASE(simple_test) {
   Identity<int> id;
-  BOOST_CHECK_THROW(id.getId(), runtime_error);
   Identity<int> id2(32);
   BOOST_CHECK_EQUAL(id2.getId(), 32);
   id2.setId(34);

@@ -3,7 +3,15 @@ For more detailed information about the changes see the history of the [reposito
 ## Version 1.6-dev
 
 
-## Version 1.5_rc2 (released XX.01.19)
+## Version 1.5 (released XX.01.19)
+ * enable gitlab CI
+
+
+## Version 1.5_rc3 (released 19.01.19)
+ * travis: fixed bug in building tags
+
+
+## Version 1.5_rc2 (released 16.01.19)
  * histogramnew: refactor to fix memory lead
 
 
