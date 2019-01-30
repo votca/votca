@@ -21,7 +21,7 @@ stages:
     - cd $HOME
     - git clone --recursive https://github.com/votca/votca
     - pushd votca
-    - if [[ ${CI_COMMIT_REF_NAME} =~ for/([^/]*)/.* && ${BASH_REMATCH[1]} != master ]]; then
+    - if [[ ( ${CI_COMMIT_REF_NAME} =~ ^for/([^/]*)/.* || ${CI_COMMIT_REF_NAME} =~ ^(stable)$ ) && ${BASH_REMATCH[1]} != master ]]; then
         git checkout -b ${BASH_REMATCH[1]} origin/${BASH_REMATCH[1]} && git submodule update --recursive --init;
       fi
     - git -C ${CI_PROJECT_NAME} fetch ${CI_PROJECT_DIR} commit_of_build_${CI_BUILD_ID}
