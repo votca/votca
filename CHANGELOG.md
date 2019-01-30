@@ -1,6 +1,9 @@
 For more detailed information about the changes see the history of the [repository](https://github.com/votca/csg/commits/master).
 
-## Version 1.5_rc3 (released XX.01.19)
+## Version 1.5 _SuperVictor_ (released XX.01.19)
+ * enable gitlab CI
+
+## Version 1.5_rc3 (released 19.01.19)
  * travis: fixed bug in building tags
  * cmake: only run csg_dump test if bash was found
 
