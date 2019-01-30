@@ -20,14 +20,12 @@
 #define BOOST_TEST_MODULE beadstructurealgorithms_test
 #include <boost/test/unit_test.hpp>
 
-#include "../../include/votca/csg/beadstructurealgorithms.h"
-#include <string>
-#include <votca/csg/basebead.h>
-#include <votca/csg/beadstructure.h>
+#include "../../include/votca/csg/basebead.h"
+#include "../../include/votca/csg/beadstructure.h"
+#include "../../include/votca/csg/beadstructurealgorithms.h"  // IWYU pragma: keep
 
 using namespace std;
 using namespace votca::csg;
-
 
 class TestBead : public BaseBead {
  public:
@@ -94,7 +92,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   testbead12.setId(12);
 
   // Methane
-  BeadStructure beadstructure_methane;
+  BeadStructure<BaseBead> beadstructure_methane;
   beadstructure_methane.AddBead(&testbead1);
   beadstructure_methane.AddBead(&testbead2);
   beadstructure_methane.AddBead(&testbead3);
@@ -102,17 +100,17 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure_methane.AddBead(&testbead5);
 
   // Water
-  BeadStructure beadstructure_water;
+  BeadStructure<BaseBead> beadstructure_water;
   beadstructure_water.AddBead(&testbead6);
   beadstructure_water.AddBead(&testbead7);
   beadstructure_water.AddBead(&testbead8);
 
   // Helium
-  BeadStructure beadstructure_helium;
+  BeadStructure<BaseBead> beadstructure_helium;
   beadstructure_helium.AddBead(&testbead12);
 
   // Methane and Water and Helium
-  BeadStructure beadstructure;
+  BeadStructure<BaseBead> beadstructure;
   beadstructure.AddBead(&testbead1);
   beadstructure.AddBead(&testbead2);
   beadstructure.AddBead(&testbead3);
@@ -141,7 +139,8 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_breakIntoStructures) {
   beadstructure.ConnectBeads(6, 7);
   beadstructure.ConnectBeads(7, 8);
   cout << "Calling break into structures " << endl;
-  vector<BeadStructure> structures = breakIntoStructures(beadstructure);
+  vector<BeadStructure<BaseBead>> structures =
+      breakIntoStructures(beadstructure);
 
   BOOST_CHECK_EQUAL(structures.size(), 2);
   cout << "Bead Count 1 " << structures.at(0).BeadCount() << endl;

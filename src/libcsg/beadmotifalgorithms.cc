@@ -15,12 +15,23 @@
  *
 / */
 #include "../../include/votca/csg/beadmotifalgorithms.h"
-#include "../../include/votca/csg/beadstructurealgorithms.h"
-#include <list>
-#include <unordered_map>
-#include <votca/csg/beadmotif.h>
-#include <votca/tools/edge.h>
+
+#include <assert.h>
+#include <stddef.h>
+#include <utility>
 #include <votca/tools/graphalgorithm.h>
+#include <votca/tools/reducedgraph.h>
+
+#include "../../include/votca/csg/beadmotifconnector.h"
+
+namespace votca {
+namespace csg {
+class BeadMotif;
+}  // namespace csg
+namespace tools {
+class Graph;
+}  // namespace tools
+}  // namespace votca
 
 using namespace votca::tools;
 using namespace std;
@@ -300,7 +311,7 @@ void MotifDeconstructor_::deconstructComplexSingleStructures(
 
     vector<int> all_vertices = full_graph.getVertices();
 
-    BeadStructure new_beadstructure;
+    BeadStructure<BaseBead> new_beadstructure;
     for (int& vertex : all_vertices) {
       new_beadstructure.AddBead(id_and_bead_motif.second.getBead(vertex));
     }

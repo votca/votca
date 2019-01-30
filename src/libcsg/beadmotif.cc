@@ -17,7 +17,11 @@
 
 #include <votca/csg/beadmotif.h>
 
-#include <votca/tools/graphalgorithm.h>
+namespace votca {
+namespace csg {
+class BaseBead;
+}  // namespace csg
+}  // namespace votca
 
 using namespace votca::tools;
 using namespace std;
@@ -30,7 +34,7 @@ namespace csg {
  **********************/
 
 void BeadMotif::InitializeGraph_() {
-  BeadStructure::InitializeGraph_();
+  BeadStructure<BaseBead>::InitializeGraph_();
   reduced_graph_ = reduceGraph(graph_);
 }
 
@@ -47,7 +51,7 @@ void BeadMotif::CalculateType_() {
     type_ = MotifType::empty;
   } else if (isSingle_()) {
     type_ = MotifType::single_bead;
-  } else if (!BeadStructure::isSingleStructure()) {
+  } else if (!BeadStructure<BaseBead>::isSingleStructure()) {
     type_ = MotifType::multiple_structures;
   } else if (isLine_()) {
     type_ = MotifType::line;
@@ -68,7 +72,6 @@ bool BeadMotif::isSingle_() {
 
 bool BeadMotif::isLine_() {
   if (junctionExist_()) return false;
-
   // Ensure that the degree of two of the vertices is 1
   // all other vertices must be 2
   int num_vertices_degree_1 = 0;
@@ -163,6 +166,7 @@ bool BeadMotif::isFusedRing_() {
 
 BeadMotif::MotifType BeadMotif::getType() {
   if (!type_up_to_date_) {
+    InitializeGraph_();
     CalculateType_();
   }
   return type_;
@@ -179,13 +183,13 @@ bool BeadMotif::isMotifSimple() {
 
 void BeadMotif::AddBead(BaseBead* bead) {
   type_ = MotifType::undefined;
-  BeadStructure::AddBead(bead);
+  BeadStructure<BaseBead>::AddBead(bead);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;
 }
 
 void BeadMotif::ConnectBeads(int bead1_id, int bead2_id) {
-  BeadStructure::ConnectBeads(bead1_id, bead2_id);
+  BeadStructure<BaseBead>::ConnectBeads(bead1_id, bead2_id);
   junctionsUpToDate_ = false;
   type_up_to_date_ = false;
 }
