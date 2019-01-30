@@ -33,17 +33,6 @@ namespace tools {
  * Internal Functions *
  **********************/
 
-list<int> vectorToList_(vector<int> values) {
-  list<int> values_list;
-  copy(values.begin(), values.end(), back_inserter(values_list));
-  return values_list;
-}
-
-vector<Edge> edgeSetToVector_(set<Edge> edges) {
-  vector<Edge> edges_vector;
-  copy(edges.begin(), edges.end(), back_inserter(edges_vector));
-  return edges_vector;
-}
 
 /********************
  * Public Functions *
@@ -248,52 +237,43 @@ ReducedGraph reduceGraph(Graph graph) {
 
 vector<Graph> decoupleIsolatedSubGraphs(Graph graph) {
 
-  list<int> vertices_list = vectorToList_(graph.getVertices());
-  vector<Graph> subGraphs;
-  Graph_BF_Visitor graph_visitor_breadth_first;
-  graph_visitor_breadth_first.setStartingVertex(vertices_list.front());
-  if (singleNetwork(graph, graph_visitor_breadth_first)) {
-    subGraphs.push_back(graph);
-    return subGraphs;
-  }
+ const std::vector<int>& vertices = graph.getVertices();
+ //bool vector to see if vertex is already part of graph
+ std::vector<bool> vertex_analysed=std::vector<bool>(vertices.size(),false);
 
-  list<int>::iterator vertices_iterator = vertices_list.begin();
-  while (vertices_iterator != vertices_list.end()) {
-    unordered_map<int, GraphNode> sub_graph_nodes;
+ std::vector<Graph> subGraphs;
+ unsigned i=0;
+ while(i<vertices.size()){
+    if(vertex_analysed[i]){i++;continue;}
     Graph_BF_Visitor graph_visitor_breadth_first;
-    graph_visitor_breadth_first.setStartingVertex(*vertices_iterator);
+    graph_visitor_breadth_first.setStartingVertex(vertices[i]);
     exploreGraph(graph, graph_visitor_breadth_first);
-    ++vertices_iterator;
     set<int> sub_graph_explored_vertices =
         graph_visitor_breadth_first.getExploredVertices();
-    set<Edge> sub_graph_edges;
-
-    set<int>::iterator sub_graph_vertex_it =
-        sub_graph_explored_vertices.begin();
-
-    // Means it is an isolated node
-
-    while (sub_graph_vertex_it != sub_graph_explored_vertices.end()) {
-      if (*vertices_iterator == *sub_graph_vertex_it) {
-        ++vertices_iterator;
-      }
-
-      vertices_list.remove(*sub_graph_vertex_it);
-
-      vector<Edge> sub_graph_neigh_edges =
-          graph.getNeighEdges(*sub_graph_vertex_it);
-      for (const Edge sub_graph_edge : sub_graph_neigh_edges) {
-        sub_graph_edges.insert(sub_graph_edge);
-      }
-      sub_graph_nodes[*sub_graph_vertex_it] =
-          graph.getNode(*sub_graph_vertex_it);
-      ++sub_graph_vertex_it;
+    
+    for (int vertex:sub_graph_explored_vertices) {
+        for(unsigned j=0;j<vertices.size();j++){
+            if(vertex_analysed[j]){continue;}
+            if(vertex==vertices[j]){
+                vertex_analysed[j]=true;
+                break;
+            }
+        }
     }
-    vector<Edge> sub_graph_vector_edges = edgeSetToVector_(sub_graph_edges);
-    Graph graph_temp(sub_graph_vector_edges, sub_graph_nodes);
-    subGraphs.push_back(graph_temp);
+
+    set<Edge> sub_graph_edges;
+    unordered_map<int, GraphNode> sub_graph_nodes;
+     for (int vertex:sub_graph_explored_vertices) {
+
+        for (const Edge& sub_graph_edge : graph.getNeighEdges(vertex)) {
+            sub_graph_edges.insert(sub_graph_edge);
+        }
+        sub_graph_nodes[vertex] =graph.getNode(vertex);
+    }
+    subGraphs.push_back(Graph(std::vector<Edge>(sub_graph_edges.begin(), sub_graph_edges.end()), sub_graph_nodes));
+     
   }
-  return subGraphs;
+return subGraphs;
 }
 
 void exploreGraph(Graph& graph, GraphVisitor& graph_visitor) {
