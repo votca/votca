@@ -124,7 +124,24 @@ ReducedGraph reduceGraph(Graph graph);
  *
  * This algorithm will determine if there are groups of vertices that are
  * connected, but where there are no connections shared between the groups.
- * These groups will be brocken up into their own Graph instances.
+ * These groups will be brocken up into their own Graph instances. E.g. Take
+ * a graph with the following vertices and connections
+ *
+ * Graph 1:
+ *
+ *  1 - 2 - 3
+ *      |   |            8 - 9 - 10      11
+ *      4 - 5 - 6 -7
+ *
+ * decoupling the graph into sub graphs will break the islands up into
+ * individual graphs:
+ *
+ *  Sub Graph 1          Sub Graph 2     Sub Graph 3
+ *
+ *  1 - 2 - 3
+ *      |   |            8 - 9 - 10      11
+ *      4 - 5 - 6 -7
+ *
  *
  * @param[in] - Graph instance
  * @return - vector containing shared pointers to all the sub graphs if there

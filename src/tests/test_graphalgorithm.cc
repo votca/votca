@@ -22,9 +22,16 @@
 #define BOOST_TEST_MODULE graphalgorithm_test
 
 #include <boost/test/unit_test.hpp>
+#include <ext/alloc_traits.h>
+#include <iostream>
 #include <memory>
+#include <set>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
+#include <votca/tools/edge.h>
 #include <votca/tools/graph.h>
 #include <votca/tools/graph_bf_visitor.h>
 #include <votca/tools/graphalgorithm.h>
@@ -109,6 +116,89 @@ BOOST_AUTO_TEST_CASE(single_network_algorithm_test) {
     bool single_n = singleNetwork(g, gb_v);
     BOOST_CHECK(!single_n);
     BOOST_CHECK(gb_v.queEmpty());
+  }
+}
+
+BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
+
+  //  1 - 2 - 3
+  //      |   |            8 - 9 - 10      11
+  //      4 - 5 - 6 -7
+
+  Edge ed1(1, 2);
+  Edge ed2(2, 3);
+  Edge ed3(2, 4);
+  Edge ed4(4, 5);
+  Edge ed5(3, 5);
+  Edge ed6(5, 6);
+  Edge ed7(6, 7);
+
+  Edge ed8(8, 9);
+  Edge ed9(9, 10);
+
+  vector<Edge> edges{ed1, ed2, ed3, ed4, ed5, ed6, ed7, ed8, ed9};
+
+  unordered_map<int, GraphNode> nodes;
+  for (int index = 1; index < 12; ++index) {
+    GraphNode gn;
+    nodes[index] = gn;
+  }
+
+  Graph graph(edges, nodes);
+
+  vector<Graph> sub_graphs = decoupleIsolatedSubGraphs(graph);
+
+  BOOST_CHECK_EQUAL(sub_graphs.size(), 3);
+
+  unordered_map<int, bool> vertices_sub_graph1;
+  vertices_sub_graph1[1] = false;
+  vertices_sub_graph1[2] = false;
+  vertices_sub_graph1[3] = false;
+  vertices_sub_graph1[4] = false;
+  vertices_sub_graph1[5] = false;
+  vertices_sub_graph1[6] = false;
+  vertices_sub_graph1[7] = false;
+
+  unordered_map<int, bool> vertices_sub_graph2;
+  vertices_sub_graph2[8] = false;
+  vertices_sub_graph2[9] = false;
+  vertices_sub_graph2[10] = false;
+  unordered_map<int, bool> vertices_sub_graph3;
+  vertices_sub_graph3[11] = false;
+
+  for (const Graph& sub_graph : sub_graphs) {
+    const vector<int> vertices = sub_graph.getVertices();
+    if (vertices_sub_graph1.count(vertices.at(0))) {
+      for (const int& vertex : vertices) {
+        if (vertices_sub_graph1.count(vertex)) {
+          vertices_sub_graph1.at(vertex) = true;
+        }
+      }
+    } else if (vertices_sub_graph2.count(vertices.at(0))) {
+      for (const int& vertex : vertices) {
+        if (vertices_sub_graph2.count(vertex)) {
+          vertices_sub_graph2.at(vertex) = true;
+        }
+      }
+    } else if (vertices_sub_graph3.count(vertices.at(0))) {
+      for (const int& vertex : vertices) {
+        if (vertices_sub_graph3.count(vertex)) {
+          vertices_sub_graph3.at(vertex) = true;
+        }
+      }
+    }
+  }
+
+  for (const pair<int, bool>& found : vertices_sub_graph1) {
+    BOOST_CHECK(found.second);
+  }
+
+  for (const pair<int, bool>& found : vertices_sub_graph2) {
+    BOOST_CHECK(found.second);
+  }
+
+  for (const pair<int, bool>& found : vertices_sub_graph3) {
+    BOOST_CHECK(found.second);
   }
 }
 
