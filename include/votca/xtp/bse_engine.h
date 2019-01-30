@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_BSE_H
-#define _VOTCA_XTP_BSE_H
+#ifndef _VOTCA_XTP_BSE_ENGINE_H
+#define _VOTCA_XTP_BSE_ENGINE_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
@@ -34,7 +34,8 @@ class BSE_ENGINE {
 
  public:
  
-  BSE_ENGINE(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
+  BSE_ENGINE(Orbitals& orbitals, ctp::Logger &log, TCMatrix_gwbse& Mmn,
+            const Eigen::MatrixXd& Hqp):
         _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
@@ -61,18 +62,19 @@ class BSE_ENGINE {
         bool jocc=0; // jacobi orthogonal correction instead of DPR
         int jocc_linsolve=1; //method to solve the linea system in jacobi davidson
         double min_print_weight=0.5;  //minimium contribution for state to print it
+
         };
   
  
 
    void configure(const options& opt){
     _opt=opt;
-    // _bse_vmax = _opt.homo;
-    // _bse_cmin = _opt.homo+1;
-    // _bse_vtotal = _bse_vmax - _opt.vmin + 1;
-    // _bse_ctotal =_opt.cmax - _bse_cmin + 1;
-    // _bse_size = _bse_vtotal * _bse_ctotal;
-    // SetupDirectInteractionOperator();
+    _bse_vmax = _opt.homo;
+    _bse_cmin = _opt.homo+1;
+    _bse_vtotal = _bse_vmax - _opt.vmin + 1;
+    _bse_ctotal =_opt.cmax - _bse_cmin + 1;
+    _bse_size = _bse_vtotal * _bse_ctotal;
+    //SetupDirectInteractionOperator();
   }
 
   void Solve_singlets();

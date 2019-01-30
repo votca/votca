@@ -17,14 +17,15 @@
  *
  */
 
-#ifndef _VOTCA_XTP_BSE_OP_H
-#define _VOTCA_XTP_BSE_OP_H
+#ifndef _VOTCA_XTP_BSE_OPERATOR_H
+#define _VOTCA_XTP_BSE_OPERATOR_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/matrixfreeoperator.h>
+//#include <votca/xtp/bse_engine.h>
 
 namespace votca {
 namespace xtp {
@@ -62,18 +63,20 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   
  
 
-   void configure(const options& opt){
+   void configure(options& opt){
     _opt=opt;
     _bse_vmax = _opt.homo;
     _bse_cmin = _opt.homo+1;
     _bse_vtotal = _bse_vmax - _opt.vmin + 1;
     _bse_ctotal =_opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
+    _size = _bse_size;
     SetupDirectInteractionOperator();
   }
   
     
  private:
+
     options _opt;
 
     struct Interaction {

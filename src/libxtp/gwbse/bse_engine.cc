@@ -38,6 +38,10 @@ namespace votca {
     {
 
       BSE_Triplet Ht( _orbitals, _log, _Mmn, _Hqp );
+      
+      Ht.configure(_opt);
+      Ht.set_size(_bse_size);
+
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
 
@@ -68,6 +72,8 @@ namespace votca {
     void BSE_ENGINE::Solve_singlets_TDA() {
 
       BSE_Singlet Hs(_orbitals, _log, _Mmn, _Hqp);
+      Hs.configure(_opt);
+      Hs.set_size(_bse_size);
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
 
@@ -103,13 +109,15 @@ namespace votca {
         }
 
         DS.solve(h,_opt.nmax);
-        energies = DS.eigenvalues(); //.cast<float>();
-        coefficients = DS.eigenvectors(); //.cast<float>();  
+        energies = DS.eigenvalues(); 
+        coefficients = DS.eigenvectors();
       }
 
       else
       {
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Getting full Matrix" << flush;
         Eigen::MatrixXd hfull = h.get_full_matrix();
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Lapack Diag" << flush;
         tools::linalg_eigenvalues(hfull, energies, coefficients , _opt.nmax );
       }
       return;

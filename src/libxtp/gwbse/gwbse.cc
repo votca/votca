@@ -26,6 +26,7 @@
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/bse.h>
+#include <votca/xtp/bse_engine.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/gw.h>
 
@@ -602,7 +603,8 @@ bool GWBSE::Evaluate() {
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-    BSE bse=BSE(_orbitals,*_pLog,Mmn,Hqp);
+    //BSE bse=BSE(_orbitals,*_pLog,Mmn,Hqp);
+    BSE_ENGINE bse = BSE_ENGINE(_orbitals,*_pLog,Mmn,Hqp);
     bse.configure(_bseopt);
     if (_do_bse_triplets && _do_bse_diag) {
         bse.Solve_triplets();
@@ -623,14 +625,14 @@ bool GWBSE::Evaluate() {
             bse.FreeSinglets();
         }
     }
-    if (_store_eh_interaction) {
-        if (_do_bse_singlets) {
-            bse.SetupHs();
-        }
-        if (_do_bse_triplets) {
-            bse.SetupHt();
-        }
-    }
+    // if (_store_eh_interaction) {
+    //     if (_do_bse_singlets) {
+    //         bse.SetupHs();
+    //     }
+    //     if (_do_bse_triplets) {
+    //         bse.SetupHt();
+    //     }
+    // }
     }
   }
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()

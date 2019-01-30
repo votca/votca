@@ -22,7 +22,7 @@
 namespace votca { namespace xtp {
 
 
-    MatrixFreeOperator::MatrixFreeOperator(){}
+    MatrixFreeOperator::MatrixFreeOperator() {}
 
     // virtual here : get a row of the operator
     // RowVectorXfd MatrixFreeOperator::row(int index) const
@@ -53,9 +53,11 @@ namespace votca { namespace xtp {
     // get the full matrix if we have to
     Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const
     {
+        std::cout << " Matrix Size : " << _size << "x" << _size ;
     	Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size,_size);
         for(int i=0; i<_size; i++)
             matrix.col(i) = this->col(i);
+        std::cout << " done " << std::endl;
         return matrix; 
     }
 
@@ -64,6 +66,13 @@ namespace votca { namespace xtp {
     int MatrixFreeOperator::size()
     {
     	return this->_size;
+    }
+
+    // set the size
+    void MatrixFreeOperator::set_size(int size)
+    {
+        std::cout << "Set Matrix Size : " << size << "x" << size << std::endl;
+        this->_size = size;
     }
 
 }}
