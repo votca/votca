@@ -46,9 +46,9 @@ void BSE::SetupDirectInteractionOperator() {
 }
 
     void BSE::Solve_triplets() {
-      MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
-      Add_Hd<real_gwbse>(H);
-      Add_Hqp<real_gwbse>(H);
+      Eigen::MatrixXd H = Eigen::MatrixXd::Zero(_bse_size,_bse_size);
+      Add_Hd<double>(H);
+      Add_Hqp<double>(H);
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
@@ -65,9 +65,17 @@ void BSE::SetupDirectInteractionOperator() {
           DS.set_jacobi_linsolve(_opt.jocc_linsolve);
         }
         DS.solve(H,_opt.nmax);
-        _bse_triplet_energies = DS.eigenvalues().cast<float>();
+
+        #if (GWBSE_DOUBLE)
+          _bse_triplet_energies = DS.eigenvalues();
+          _bse_triplet_coefficients = DS.eigenvectors();  
+        #else
+          _bse_triplet_energies = DS.eigenvalues().cast<float>();
+          _bse_triplet_coefficients = DS.eigenvectors().cast<float>();  
+        #endif
+
         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << "Eigenvalues :" << std::endl << _bse_triplet_energies << flush;
-        _bse_triplet_coefficients = DS.eigenvectors().cast<float>();  
+
       }
 
       else
@@ -89,10 +97,10 @@ void BSE::SetupDirectInteractionOperator() {
     }
 
     void BSE::Solve_singlets_TDA() {
-      MatrixXfd H = MatrixXfd::Zero(_bse_size,_bse_size);
-      Add_Hd<real_gwbse>(H);
-      Add_Hqp<real_gwbse>(H);
-      Add_Hx<real_gwbse,2>(H);
+      Eigen::MatrixXd H = Eigen::MatrixXd::Zero(_bse_size,_bse_size);
+      Add_Hd<double>(H);
+      Add_Hqp<double>(H);
+      Add_Hx<double,2>(H);
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
       CTP_LOG(ctp::logDEBUG, _log)
@@ -108,8 +116,13 @@ void BSE::SetupDirectInteractionOperator() {
           DS.set_jacobi_linsolve(_opt.jocc_linsolve);
         }
         DS.solve(H,_opt.nmax);
-        _bse_singlet_energies = DS.eigenvalues().cast<float>();
-        _bse_singlet_coefficients = DS.eigenvectors().cast<float>();  
+        #if (GWBSE_DOUBLE)
+          _bse_singlet_energies = DS.eigenvalues();
+          _bse_singlet_coefficients = DS.eigenvectors();  
+        #else
+          _bse_singlet_energies = DS.eigenvalues().cast<float>();
+          _bse_singlet_coefficients = DS.eigenvectors().cast<float>();  
+        #endif  
       }
 
       else
@@ -172,7 +185,7 @@ void BSE::SetupDirectInteractionOperator() {
       }
       
       Eigen::MatrixXd temp= ApB*AmB;
-      ApB.noalias() =AmB.transpose()*temp;
+      ApB.noalias() = AmB.transpose()*temp;
       temp.resize(0,0);
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
       Eigen::VectorXd eigenvalues;

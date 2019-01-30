@@ -30,7 +30,7 @@ namespace votca {
 		Eigen::VectorXd BSE_Singlet::col(int index) const
 		{
 			Eigen::VectorXd _col;
-			_col = Hx_col<2>(index) + Hqp_col(index) + Hd_col(index);
+			_col = 2 * Hx_col(index) + Hqp_col(index) + Hd_col(index);
 			return _col;
 		}
 		

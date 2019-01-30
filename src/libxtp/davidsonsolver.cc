@@ -288,7 +288,8 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
 
 
 //template void DavidsonSolver::solve<Eigen::MatrixXf>(Eigen::MatrixXf &A, int neigen, int size_initial_guess=0);
-//template void DavidsonSolver::solve<Eigen::MatrixXd>(Eigen::MatrixXd &A, int neigen, int size_initial_guess=0);
+template void DavidsonSolver::solve<Eigen::MatrixXd>(Eigen::MatrixXd &A, int neigen, int size_initial_guess=0);
+//template void DavidsonSolver::solve<MatrixXfd>(MatrixXfd &A, int neigen, int size_initial_guess=0);
 template void DavidsonSolver::solve<MatrixFreeOperator>(MatrixFreeOperator &A, int neigen, int size_initial_guess=0);
 template void DavidsonSolver::solve<BSE_OPERATOR>(BSE_OPERATOR &A, int neigen, int size_initial_guess=0);
 

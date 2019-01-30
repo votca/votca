@@ -21,11 +21,16 @@
 #define	__XTP_EIGEN__H
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
+
+
 #if (GWBSE_DOUBLE)
 #define real_gwbse double
 #else
 #define real_gwbse float
 #endif
+
+
+//#define real_gwbse double
 
 
 namespace votca {

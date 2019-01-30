@@ -23,7 +23,7 @@ namespace votca { namespace xtp {
 
     //class MatrixFreeOperator;
 
-    class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd>
+    class MatrixFreeOperator : public Eigen::EigenBase<MatrixXfd>
     {
         public: 
 

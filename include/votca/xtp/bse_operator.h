@@ -112,12 +112,12 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   Eigen::VectorXd Hqp_col(int index) const;
 
-  template <int factor>
+  //template <int factor>
   Eigen::VectorXd Hx_col(int index) const;
 
   Eigen::VectorXd Hd_col(int index) const;
 
-  template <int factor>
+  //template <int factor>
   Eigen::VectorXd Hd2_col(int index) const;
 
 

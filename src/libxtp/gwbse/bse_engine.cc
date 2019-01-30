@@ -44,8 +44,15 @@ namespace votca {
       Eigen::VectorXd _tmp_es;
       Eigen::MatrixXd _tmp_mo;
       BSE_ENGINE::solve_hermitian(Ht, _tmp_es, _tmp_mo);
-      _bse_triplet_energies = _tmp_es.cast<float>();
-      _bse_triplet_coefficients = _tmp_mo.cast<float>();
+
+      #if (GWBSE_DOUBLE)
+        _bse_triplet_energies = _tmp_es;
+        _bse_triplet_coefficients = _tmp_mo;  
+      #else
+        _bse_triplet_energies = _tmp_es.cast<float>();
+        _bse_triplet_coefficients = _tmp_mo.cast<float>();  
+      #endif
+
       return;
     }
 
@@ -67,8 +74,14 @@ namespace votca {
       Eigen::VectorXd _tmp_es;
       Eigen::MatrixXd _tmp_mo;
       BSE_ENGINE::solve_hermitian(Hs, _tmp_es, _tmp_mo);
-      _bse_singlet_energies = _tmp_es.cast<float>(); 
-      _bse_singlet_coefficients = _tmp_mo.cast<float>();
+
+      #if (GWBSE_DOUBLE)
+        _bse_singlet_energies = _tmp_es;
+        _bse_singlet_coefficients = _tmp_mo;  
+      #else
+        _bse_singlet_energies = _tmp_es.cast<float>();
+        _bse_singlet_coefficients = _tmp_mo.cast<float>();  
+      #endif
       
     }
     
