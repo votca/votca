@@ -36,11 +36,11 @@ namespace csg {
  * @return - a container of beadmotifs
  **/
 template <class T>
-T breakIntoMotifs(BeadStructure& beadstructure) {
+T breakIntoMotifs(BeadStructure<BaseBead>& beadstructure) {
   T bead_motifs;
-  std::vector<BeadStructure> structures =
+  std::vector<BeadStructure<BaseBead>> structures =
       votca::csg::breakIntoStructures(beadstructure);
-  for (BeadStructure& structure : structures) {
+  for (BeadStructure<BaseBead>& structure : structures) {
     BeadMotif bead_motif;
     bead_motif.BeadStructure::operator=(structure);
     bead_motifs.push_back(bead_motif);

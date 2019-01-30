@@ -19,21 +19,11 @@
 
 #define BOOST_TEST_MODULE beadstructure_test
 #include <boost/test/unit_test.hpp>
-
-#include <string>
+#include <stdexcept>
 #include <votca/csg/basebead.h>
-#include <votca/csg/beadstructure.h>
 
 using namespace std;
 using namespace votca::csg;
-
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 class TestBead : public BaseBead {
  public:
@@ -43,16 +33,16 @@ class TestBead : public BaseBead {
 BOOST_AUTO_TEST_SUITE(beadstructure_test)
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_constructor) {
-  BeadStructure beadstructure;
+  BeadStructure<TestBead> beadstructure;
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_beadcount) {
-  BeadStructure beadstructure;
+  BeadStructure<TestBead> beadstructure;
   BOOST_CHECK_EQUAL(beadstructure.BeadCount(), 0);
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_add_and_getbead) {
-  BeadStructure beadstructure;
+  BeadStructure<TestBead> beadstructure;
   TestBead testbead;
   testbead.setId(2);
   beadstructure.AddBead(&testbead);
@@ -62,7 +52,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_add_and_getbead) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
-  BeadStructure beadstructure;
+  BeadStructure<TestBead> beadstructure;
   TestBead testbead1;
   testbead1.setId(1);
   testbead1.setName("Carbon");
@@ -75,7 +65,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_ConnectBeads) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
-  BeadStructure beadstructure;
+  BeadStructure<TestBead> beadstructure;
 
   TestBead testbead1;
   testbead1.setName("Carbon");
@@ -121,8 +111,8 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_isSingleStructure) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_isStructureEquivalent) {
-  BeadStructure beadstructure1;
-  BeadStructure beadstructure2;
+  BeadStructure<TestBead> beadstructure1;
+  BeadStructure<TestBead> beadstructure2;
 
   // Beads for bead structure 1
   TestBead testbead1;
@@ -195,7 +185,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_isStructureEquivalent) {
 }
 
 BOOST_AUTO_TEST_CASE(test_beadstructure_getNeighBeads) {
-  BeadStructure beadstructure1;
+  BeadStructure<TestBead> beadstructure1;
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -324,7 +314,7 @@ BOOST_AUTO_TEST_CASE(test_beadstructure_catchError) {
     testbead6.setName("Hydrogen");
     testbead6.setId(5);
 
-    BeadStructure beadstructure;
+    BeadStructure<TestBead> beadstructure;
     beadstructure.AddBead(&testbead1);
     beadstructure.AddBead(&testbead2);
     beadstructure.AddBead(&testbead3);
