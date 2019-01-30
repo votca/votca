@@ -88,7 +88,6 @@ void BeadStructure::ConnectBeads(int bead1_id, int bead2_id) {
 }
 
 void BeadStructure::InitializeGraph_() {
-  cerr << "Graph up to Date " << graphUpToDate << endl;
   if (!graphUpToDate) {
     vector<Edge> connections_vector;
     for (const Edge &edge : connections_) {
@@ -99,10 +98,7 @@ void BeadStructure::InitializeGraph_() {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode(id_bead_ptr_pair.second);
     }
-    cerr << "Total Nodes " << graphnodes_.size() << endl;
     graph_ = Graph(connections_vector, graphnodes_);
-    auto nodes = graph_.getNodes();
-    auto vertices = graph_.getVertices();
     graphUpToDate = true;
   }
 }
@@ -116,7 +112,6 @@ void BeadStructure::CalculateStructure_() {
 
   InitializeGraph_();
   if (!structureIdUpToDate) {
-    auto nodes = graph_.getNodes();
     structure_id_ = findStructureId<GraphDistVisitor>(graph_);
     structureIdUpToDate = true;
   }
@@ -134,7 +129,7 @@ bool BeadStructure::isSingleStructure() {
     // Choose first vertex that is actually in the graph as the starting vertex
     Graph_BF_Visitor gv_breadth_first;
     gv_breadth_first.setStartingVertex(vertices.at(0));
-    if (!singleNetwork(graph_, gv_breadth_first)) {
+    if (!isSingleNetwork(graph_, gv_breadth_first)) {
       single_structure_ = false;
       return single_structure_;
     }

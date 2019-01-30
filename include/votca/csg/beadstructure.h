@@ -53,7 +53,7 @@ class BaseBead;
 
 class BeadStructure {
  public:
-  BeadStructure() : structureIdUpToDate(false), graphUpToDate(false){};
+  
   virtual ~BeadStructure() {}
 
   /**
@@ -116,10 +116,10 @@ class BeadStructure {
   virtual void InitializeGraph_();
   void CalculateStructure_();
 
-  bool structureIdUpToDate;
-  bool graphUpToDate;
-  bool single_structureUpToDate_;
-  bool single_structure_;
+  bool structureIdUpToDate=false;
+  bool graphUpToDate=false;
+  bool single_structureUpToDate_=false;
+  bool single_structure_=false;
   std::string structure_id_ = "";
   votca::tools::Graph graph_;
   std::set<Edge> connections_;

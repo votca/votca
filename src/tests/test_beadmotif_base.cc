@@ -27,13 +27,6 @@
 using namespace std;
 using namespace votca::csg;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 class TestBead : public BaseBead {
  public:

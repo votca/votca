@@ -19,7 +19,7 @@
 
 #define BOOST_TEST_MODULE bead_test
 #include <boost/test/unit_test.hpp>
-
+#include <boost/test/floating_point_comparison.hpp>
 #include <string>
 #include <votca/csg/bead.h>
 #include <votca/csg/beadtype.h>
@@ -30,13 +30,7 @@
 using namespace std;
 using namespace votca::csg;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
+
 
 BOOST_AUTO_TEST_SUITE(bead_test)
 
@@ -71,8 +65,8 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
 
 	Bead * b = top.CreateBead(symmetry,name,weak_type,resnr,mass,charge);
 
-	BOOST_CHECK_EQUAL(round_(b->getMass(),3),round_(mass,3));
-	BOOST_CHECK_EQUAL(round_(b->getQ(),3),round_(charge,3));
+	BOOST_CHECK_CLOSE(b->getMass(),mass,1e-5);
+	BOOST_CHECK_CLOSE(b->getQ(),charge,1e-5);
 	BOOST_CHECK_EQUAL(b->getId(),0);
 	BOOST_CHECK_EQUAL(b->getName(),name);
 	BOOST_CHECK_EQUAL(b->getResnr(),resnr);
@@ -112,8 +106,8 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 
 	b->setMolecule(mol);
 	
-	BOOST_CHECK_EQUAL(round_(b->getMass(),3),round_(newMass,3));
-	BOOST_CHECK_EQUAL(round_(b->getQ(),3),round_(newCharge,3));
+	BOOST_CHECK_CLOSE(b->getMass(),newMass,1e-5);
+	BOOST_CHECK_CLOSE(b->getQ(),newCharge,1e-5);
 
 	auto new_xyz = b->getPos();
 	BOOST_CHECK(new_xyz.isClose(xyz,3));
