@@ -237,7 +237,7 @@ bool BeadStructure<T>::isSingleStructure() {
     // Choose first vertex that is actually in the graph as the starting vertex
     TOOLS::Graph_BF_Visitor gv_breadth_first;
     gv_breadth_first.setStartingVertex(vertices.at(0));
-    if (!isSingleNetwork(graph_, gv_breadth_first)) {
+    if (!singleNetwork(graph_, gv_breadth_first)) {
       single_structure_ = false;
       return single_structure_;
     }
