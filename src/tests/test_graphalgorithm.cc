@@ -189,14 +189,17 @@ BOOST_AUTO_TEST_CASE(decouple_isolated_subgraphs_test) {
     }
   }
 
+  BOOST_CHECK_EQUAL(vertices_sub_graph1.size(), 7);
   for (const pair<int, bool>& found : vertices_sub_graph1) {
     BOOST_CHECK(found.second);
   }
 
+  BOOST_CHECK_EQUAL(vertices_sub_graph2.size(), 3);
   for (const pair<int, bool>& found : vertices_sub_graph2) {
     BOOST_CHECK(found.second);
   }
 
+  BOOST_CHECK_EQUAL(vertices_sub_graph3.size(), 1);
   for (const pair<int, bool>& found : vertices_sub_graph3) {
     BOOST_CHECK(found.second);
   }
