@@ -22,6 +22,7 @@
 
 #include "../../include/votca/csg/basebead.h"
 #include "../../include/votca/csg/beadstructure.h"
+#include "../../include/votca/csg/beadstructurealgorithms.h"  // IWYU pragma: keep
 
 using namespace std;
 using namespace votca::csg;

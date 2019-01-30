@@ -20,7 +20,10 @@
 #define BOOST_TEST_MODULE beadmotifalgorithms_test
 #include <boost/test/unit_test.hpp>
 #include <votca/csg/basebead.h>
+#include <votca/csg/beadmotif.h>            // IWYU pragma: keep
+#include <votca/csg/beadmotifalgorithms.h>  // IWYU pragma: keep
 #include <votca/csg/beadmotifconnector.h>
+#include <votca/csg/beadstructure.h>  // IWYU pragma: keep
 #include <votca/tools/edge.h>
 
 using namespace std;

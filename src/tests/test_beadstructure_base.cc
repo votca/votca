@@ -21,6 +21,7 @@
 #include <boost/test/unit_test.hpp>
 #include <stdexcept>
 #include <votca/csg/basebead.h>
+#include <votca/csg/beadstructure.h>  // IWYU pragma: keep
 
 using namespace std;
 using namespace votca::csg;

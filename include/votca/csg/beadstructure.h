@@ -156,7 +156,6 @@ void BeadStructure<T>::CalculateStructure_() {
 
   InitializeGraph_();
   if (!structureIdUpToDate) {
-    auto nodes = graph_.getNodes();
     structure_id_ = TOOLS::findStructureId<TOOLS::GraphDistVisitor>(graph_);
     structureIdUpToDate = true;
   }
