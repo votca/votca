@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(votca)
 
-#cmake policy CMP0048
-#set(PROJECT_VERSION "1.5-dev")
-set(VOTCA_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.6-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -44,7 +42,7 @@ endif()
 
 option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
 if(NOT WITH_SQLITE3 AND ( BUILD_CTP OR BUILD_XTP) )
-  message(FATAL_ERROR "ctp needs tools to be build with sqlite3")
+  message(FATAL_ERROR "ctp and xtp needs tools to be build with sqlite3")
 endif()
 
 option(ENABLE_RPATH_INJECT "Inject link and install libdir into executables" OFF)
@@ -100,7 +98,6 @@ add_subdirectory(csg-tutorials)
 list(APPEND ENABLED_VOTCA_PACKAGES csg-tutorials)
 if(BUILD_CSG_MANUAL)
   add_subdirectory(csg-manual)
-  add_dependencies(csg-manual_dvi csg_call_build csg_inverse_build)
 endif()
 set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
 set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
