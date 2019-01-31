@@ -38,8 +38,7 @@ namespace votca { namespace xtp {
         
         
         if (lmax_col >4 || lmax_row >4){
-            std::cerr << "Orbitals higher than g are not yet implemented. This should not have happened!" << std::flush;
-             exit(1);
+            throw std::runtime_error("Orbitals higher than g are not yet implemented. This should not have happened!");
         }
 
         // set size of internal block for recursion

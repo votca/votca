@@ -43,8 +43,7 @@ namespace votca { namespace xtp {
         int lmax_col = shell_col.getLmax();
         
         if ( lmax_col > 4 ) {
-            std::cerr << "Momentum transition dipoles only implemented for S,P,D,F,G functions in DFT basis!" << std::flush;
-            exit(1);
+            throw std::runtime_error("Dipole transition dipoles only implemented for S,P,D,F,G functions in DFT basis!");
         }
 
         // set size of internal block for recursion

@@ -68,25 +68,6 @@ private:
 
 };
 
-/* std::complex <double> cgamma (std::complex <double> argument)
-{   // std::complex result of Gamma(z) with complex z
-
-    // calc log(Gamma(z)) then exp^()
-    std::complex<double> result;
-    gsl_sf_result result_logradius;
-    gsl_sf_result result_phi;
-    gsl_sf_lngamma_complex_e(real(argument),imag(argument), &result_logradius, &result_phi);
-    double radius = result_logradius.val;
-    radius = exp(radius);
-    double phi = result_phi.val;
-    result  = polar(radius,phi);
-    // std::cout << "Complex Gamma functions not supported by MKL " << std::endl;
-    // exit(1);
-    return result;
-} */
-
-
-
 std::complex<double> ccgamma(std::complex<double> z,int OPT)
 {
     std::complex<double> g;
