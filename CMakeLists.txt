@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(csgapps)
 
-set(PROJECT_VERSION "1.5_rc3")
+set(PROJECT_VERSION "1.5")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
