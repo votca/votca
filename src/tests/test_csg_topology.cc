@@ -16,18 +16,13 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE csg_topology_test
+#include <boost/test/floating_point_comparison.hpp>
 #include <iostream>
 #include <boost/test/unit_test.hpp>
 #include "../../include/votca/csg/topology.h"
 #include "../../include/votca/csg/beadtype.h"
 
-// used for rounding doubles so we can compare them                              
-double round_(double v, int p) {                                                 
-  v *= pow(10, p);                                                               
-  v = round(v);                                                                  
-  v /= pow(10, p);                                                               
-  return v;                                                                      
-}     
+
 
 using namespace std;
 using namespace votca::tools;
@@ -62,15 +57,10 @@ BOOST_AUTO_TEST_CASE(box_test) {
   top.setBox(box);
 
   auto vol = top.BoxVolume();
-  BOOST_CHECK_EQUAL(static_cast<int>(vol),8);
+  BOOST_CHECK_CLOSE(vol,8,1e-5);
   auto box2 = top.getBox();
   
-  auto v1_2 = box2.getCol(0);
-  auto v2_2 = box2.getCol(1);
-  auto v3_2 = box2.getCol(2);
-  BOOST_CHECK_EQUAL(v1,v1_2);
-  BOOST_CHECK_EQUAL(v2,v2_2);
-  BOOST_CHECK_EQUAL(v3,v3_2);
+  BOOST_CHECK_EQUAL(box2.isClose(box,1e-5),true);
 }
 
 BOOST_AUTO_TEST_CASE(simple_test){
@@ -79,7 +69,7 @@ BOOST_AUTO_TEST_CASE(simple_test){
   top.setStep(1);
   BOOST_CHECK_EQUAL(top.getStep(),1);
   top.setTime(1.21);
-  BOOST_CHECK_EQUAL(static_cast<int>(top.getTime()*100),121);
+  BOOST_CHECK_CLOSE(top.getTime(),1.21,1e-5);
 
 }
 
@@ -113,8 +103,8 @@ BOOST_AUTO_TEST_CASE(create_bead) {
   auto bead_ptr = top.CreateBead(symmetry,
       bead_name,weak_type,residue_number,mass,charge);
 
-  BOOST_CHECK_EQUAL(round_(bead_ptr->getQ()*10,1),3.0);
-  BOOST_CHECK_EQUAL(round_(bead_ptr->getMass()*10,2),11);
+  BOOST_CHECK_CLOSE(bead_ptr->getQ(),0.3,1e-5);
+  BOOST_CHECK_CLOSE(bead_ptr->getMass(),1.1,1e-5);
   BOOST_CHECK_EQUAL(bead_ptr->getResnr(),residue_number);
   BOOST_CHECK_EQUAL(bead_ptr->getSymmetry(),symmetry);
   BOOST_CHECK(bead_ptr->getName() == bead_name);

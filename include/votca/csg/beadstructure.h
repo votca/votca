@@ -53,7 +53,7 @@ namespace csg {
 template <class T>
 class BeadStructure {
  public:
-  BeadStructure() : structureIdUpToDate(false), graphUpToDate(false){};
+
   ~BeadStructure() {}
 
   /**
@@ -117,10 +117,10 @@ class BeadStructure {
   void CalculateStructure_();
   TOOLS::GraphNode BaseBeadToGraphNode_(T *basebead);
 
-  bool structureIdUpToDate;
-  bool graphUpToDate;
-  bool single_structureUpToDate_;
-  bool single_structure_;
+  bool structureIdUpToDate=false;
+  bool graphUpToDate=false;
+  bool single_structureUpToDate_=false;
+  bool single_structure_=false;
   std::string structure_id_ = "";
   TOOLS::Graph graph_;
   std::set<TOOLS::Edge> connections_;
@@ -145,8 +145,6 @@ void BeadStructure<T>::InitializeGraph_() {
           BaseBeadToGraphNode_(id_bead_ptr_pair.second);
     }
     graph_ = TOOLS::Graph(connections_vector, graphnodes_);
-    auto nodes = graph_.getNodes();
-    auto vertices = graph_.getVertices();
     graphUpToDate = true;
   }
 }

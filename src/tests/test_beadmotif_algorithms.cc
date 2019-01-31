@@ -381,7 +381,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
   BeadMotifConnector connector = simple_motifs_and_connector.second;
 
   // There should be a single edge connecting the motifs, motif id will start
-  // at 0 that means motifs 0 and 1 sholud be connected via edge 5 and 5
+  // at 0 that means motifs 0 and 1 should be connected via edge 5 and 5
   Edge edge_motif(5, 6);
   Edge edge_bead4_5(4, 5);
   vector<Edge> bead_edges = connector.getBeadEdges(edge_motif);

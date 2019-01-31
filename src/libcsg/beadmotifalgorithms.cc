@@ -272,7 +272,7 @@ class MotifDeconstructor_ {
 unordered_map<int, BeadMotif> MotifDeconstructor_::getSimpleMotifs() {
   unordered_map<int, BeadMotif> simple_motifs;
   for (IdMotif& id_and_motif : motifs_simple_) {
-    simple_motifs[id_and_motif.first] = id_and_motif.second;
+    simple_motifs.insert(id_and_motif);
   }
   return simple_motifs;
 }

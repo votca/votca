@@ -53,9 +53,11 @@ class XYZReader :
         void Close();
 
     private:
+
+        template <bool topology>
+        bool ReadFrame(Topology &top);
+
         std::ifstream _fl;
-        bool _topology;
-        int _natoms;
 
         int _line;
 };

@@ -330,6 +330,22 @@
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifconnector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadstructurealgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -575,7 +591,80 @@
       </item>
       <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basebead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_connector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadtriple.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_csg_topology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_interaction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdatareader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdumpreaderwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblist_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_triplelist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -607,6 +696,7 @@
       </item>
       <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
       </item>
+    </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -790,6 +880,22 @@
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifconnector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadstructurealgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -1035,7 +1141,80 @@
       </item>
       <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basebead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_connector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadtriple.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_csg_topology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_interaction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdatareader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdumpreaderwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblist_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_triplelist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1067,6 +1246,7 @@
       </item>
       <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
       </item>
+</item>
     </conf>
     <conf name="profile_release" type="3">
       <toolsSet>
@@ -1250,7 +1430,23 @@
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
       <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifconnector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadstructurealgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -1496,7 +1692,80 @@
       </item>
       <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basebead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_connector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadtriple.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_csg_topology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_interaction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdatareader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdumpreaderwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblist_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_triplelist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1528,6 +1797,7 @@
       </item>
       <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
       </item>
+</item>
     </conf>
   </confs>
 </configurationDescriptor>
