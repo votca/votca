@@ -43,7 +43,7 @@ class XYZReader :
         /// open a topology file
         bool ReadTopology(std::string file, Topology &top);
 
-        /// open a trejectory file
+        /// open a trajectory file
         bool Open(const std::string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
@@ -79,16 +79,16 @@ class XYZReader :
 
         template <bool topology, class T>
         void AddAtom(Topology &container,std::string name,int id, const tools::vec& pos){
-        Bead *b;
-        tools::vec posnm=pos*tools::conv::ang2nm;
-        if(topology)
-            b = container.CreateBead(1, name+boost::lexical_cast<string>(id),
-                    (container.GetOrCreateBeadType(name)), 0, 0, 0);
-        else
-            b = container.getBead(id);
+            Bead *b;
+            tools::vec posnm=pos*tools::conv::ang2nm;
+            if(topology){
+                b = container.CreateBead(1, name+boost::lexical_cast<string>(id),
+                        (container.GetOrCreateBeadType(name)), 0, 0, 0);
+            }else{
+                b = container.getBead(id);
+            }
             b->setPos(posnm);
         }
-
 
         template <bool topology, class T>
         bool ReadFrame(T &container);
@@ -112,34 +112,31 @@ inline bool XYZReader::ReadFrame(T &container)
           throw std::runtime_error("First line of xyz file should contain number of atoms/beads, nothing else.");
         }
         int natoms = boost::lexical_cast<int>(line1[0]);
-        if(!topology && natoms !=getContainerSize(container))
+        if(!topology && natoms !=getContainerSize(container)){
             throw std::runtime_error("number of beads in topology and trajectory differ");
-
+        }
         // the title line
         getline(_fl, line); ++_line;
-
         // read atoms
         for(int i=0; i<natoms; ++i) {
             getline(_fl, line); ++_line;
-            if(_fl.eof())
+            if(_fl.eof()){
                 throw std::runtime_error("unexpected end of file in xyz file");
+            }
             vector<string> fields;
             Tokenizer tok(line, " ");
             tok.ToVector(fields);
-
-            if(fields.size() != 4)
+            if(fields.size() != 4){
                 throw std::runtime_error("invalide line " +
                         boost::lexical_cast<string>(_line) +
                         " in xyz file\n" + line);
-
-
+            }
             tools::vec pos=vec(
                     boost::lexical_cast<double>(fields[1]),
                     boost::lexical_cast<double>(fields[2]),
                     boost::lexical_cast<double>(fields[3]));
 
             AddAtom<topology,T>(container,fields[0],i,pos);
-
         }
     }
     return !_fl.eof();;
