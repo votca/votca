@@ -53,7 +53,7 @@ namespace csg {
 template <class T>
 class BeadStructure {
  public:
-  
+
   ~BeadStructure() {}
 
   /**
