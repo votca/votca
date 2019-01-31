@@ -28,7 +28,7 @@ namespace votca { namespace xtp {
 //MPS files have a weird format positions can be in bohr or angstroem,
 //multipoles are in q*bohr^k, with k rank of multipole and polarisabilities are in angstroem^3
 template< class T>
-void ClassicalSegment<T>::LoadFromMPS(const std::string& filename){
+void ClassicalSegment<T>::LoadFromMPS(std::string filename){
 
     std::string line;
     std::ifstream intt;
@@ -162,7 +162,7 @@ Eigen::Vector3d ClassicalSegment<T>::CalcDipole()const{
 }
 
 template <class T>
-void ClassicalSegment<T>::WriteMPS(const std::string& filename, std::string header) const{
+void ClassicalSegment<T>::WriteMPS(std::string filename, std::string header) const{
 
     std::ofstream ofs;
     ofs.open(filename.c_str(), std::ofstream::out);

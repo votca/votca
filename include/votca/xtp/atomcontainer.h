@@ -49,6 +49,10 @@ template<class T>  class AtomContainer{
         void push_back(const T& atom){_atomlist.push_back(atom);_position_valid=false;}
         void push_back(T&& atom){_atomlist.push_back(atom);_position_valid=false;}
 
+        void push_back(int id,std::string name,Eigen::Vector3d pos){
+            push_back(T(id,name,pos));
+        }
+
         const T& at(int index)const{return _atomlist.at(index);}
         T& at(int index){return _atomlist.at(index);}
 

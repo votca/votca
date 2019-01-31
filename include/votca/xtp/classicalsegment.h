@@ -33,9 +33,9 @@ class ClassicalSegment : public AtomContainer<T>
 public:
     ClassicalSegment(std::string name,int id):AtomContainer<T>(name,id){};
     
-    void LoadFromMPS(const std::string& filename);
+    void LoadFromMPS(std::string filename);
 
-    void WriteMPS(const std::string& filename, std::string header) const;
+    void WriteMPS(std::string filename, std::string header) const;
 
     double CalcTotalQ()const;
 

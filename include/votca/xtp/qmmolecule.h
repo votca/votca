@@ -32,9 +32,9 @@ class QMMolecule : public AtomContainer<QMAtom>
 public:
     QMMolecule(std::string name,int id):AtomContainer<QMAtom>(name,id){};
         
-    void LoadFromXYZ(const std::string& filename);
+    void LoadFromXYZ(std::string filename);
 
-    void WriteXYZ(const std::string& filename, std::string header) const;
+    void WriteXYZ(std::string filename, std::string header) const;
     
 };
         
