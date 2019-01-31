@@ -19,7 +19,7 @@
 #define	_VOTCA_CSG_BEADPAIR_H
 
 namespace votca { namespace csg {
-using namespace votca::tools;
+
 
 /**
    \brief A particle pair
@@ -34,18 +34,18 @@ class BeadPair
 {
 public:
     BeadPair() {}
-    BeadPair(Bead *bead1, Bead *bead2, vec r)
+    BeadPair(Bead *bead1, Bead *bead2, tools::vec r)
             : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
         
     virtual ~BeadPair() {}
 
     /// \brief the vector connecting two beads
-    vec &r() { return _r; }
+    tools::vec &r() { return _r; }
     /// \brief the distance of the beads
     double &dist() { return _dist; }
 
 protected:
-        vec _r;
+        tools::vec _r;
         double _dist;
 };
 

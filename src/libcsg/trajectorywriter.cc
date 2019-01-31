@@ -22,7 +22,7 @@
 #include <iostream>
 #include <votca/csg/trajectorywriter.h>
 #include "modules/io/pdbwriter.h"
-#include "modules/io/xyzwriter.h"
+#include <votca/csg/xyzwriter.h>
 #include "modules/io/lammpsdumpwriter.h"
 #include "modules/io/dlpolytrajectorywriter.h"
 
