@@ -47,37 +47,47 @@ class BSE_OPERATOR : public MatrixFreeOperator {
         _Mmn(Mmn),_Hqp(Hqp){};
 
     struct options {
-        bool useTDA=true;
-        int homo;
-        int rpamin;
-        int rpamax;
-        int qpmin;
-        int vmin;
-        int cmax;
-        int nmax; //number of eigenvectors to calculate
-        bool davidson=0; // use davidson to diagonalize the matrix
-        bool jocc=0; // jacobi orthogonal correction instead of DPR
-        int jocc_linsolve=1; //method to solve the linea system in jacobi davidson
-        double min_print_weight=0.5;  //minimium contribution for state to print it
+        //bool useTDA=true;
+
+        int homo; //
+        int rpamin; //
+        int rpamax; //
+        int qpmin;  //
+        int vmin; // 
+        int cmax; // 
+
+        // int nmax; //number of eigenvectors to calculate
+        // bool davidson=0; // use davidson to diagonalize the matrix
+        // bool jocc=0; // jacobi orthogonal correction instead of DPR
+        // int jocc_linsolve=1; //method to solve the linea system in jacobi davidson
+        // double min_print_weight=0.5;  //minimium contribution for state to print it
         };
   
- 
+  //  void configure(options& opt){
+  //   //_opt=opt;
+  //   //_bse_vmax = _opt.homo;
 
-   void configure(options& opt){
-    _opt=opt;
-    _bse_vmax = _opt.homo;
-    _bse_cmin = _opt.homo+1;
-    _bse_vtotal = _bse_vmax - _opt.vmin + 1;
-    _bse_ctotal =_opt.cmax - _bse_cmin + 1;
-    _bse_size = _bse_vtotal * _bse_ctotal;
-    _size = _bse_size;
-    SetupDirectInteractionOperator();
-  }
+  //   _bse_cmin = _opt.homo+1; //
+  //   _bse_vtotal = _bse_vmax - _opt.vmin + 1; //
+  //   _bse_ctotal =_opt.cmax - _bse_cmin + 1; //
+  //   _bse_size = _bse_vtotal * _bse_ctotal; //
+  //   _size = _bse_size;
+  //   SetupDirectInteractionOperator();
+  // }
   
-    
+  options _opt;
+
+  int  _bse_vmax;
+  int  _bse_cmin;
+  int  _bse_size;
+  int  _bse_vtotal;
+  int  _bse_ctotal;    
+
+  void SetupDirectInteractionOperator();
+
  private:
 
-    options _opt;
+    
 
     struct Interaction {
       Eigen::VectorXd exchange_contrib;
@@ -86,14 +96,10 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     };
       
   ctp::Logger &_log;
-  int  _bse_vmax;
-  int  _bse_cmin;
-  int  _bse_size;
-  int  _bse_vtotal;
-  int  _bse_ctotal;
+
   
   Orbitals& _orbitals;
-    // BSE variables and functions
+  // BSE variables and functions
   //MatrixXfd& _eh_s;  // only for storage in orbitals object
   //MatrixXfd& _eh_t;  // only for storage in orbitals object
   
@@ -109,9 +115,9 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   VectorXfd _epsilon_0_inv;
 
-  void SetupDirectInteractionOperator();
 
- protected :
+
+  protected: 
 
   Eigen::VectorXd Hqp_col(int index) const;
 

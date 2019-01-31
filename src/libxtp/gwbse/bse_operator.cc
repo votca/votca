@@ -31,11 +31,17 @@ namespace votca {
 
 void BSE_OPERATOR::SetupDirectInteractionOperator() 
 {
+    CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " Setup RPA " << _opt.homo << " " << _opt.rpamin << " " <<  _opt.rpamax << flush;
     RPA rpa = RPA(_Mmn);
     rpa.configure(_opt.homo,_opt.rpamin, _opt.rpamax);
     rpa.UpdateRPAInputEnergies(_orbitals.MOEnergies(),_Hqp.diagonal(),_opt.qpmin);
+    CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " Diag RPA " << flush;
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
     _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
+    CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " eps-1 " << flush;
     _epsilon_0_inv = VectorXfd::Zero(es.eigenvalues().size());
     for (int i = 0; i < es.eigenvalues().size(); ++i) {
         if (es.eigenvalues()(i) > 1e-8) {
@@ -99,6 +105,7 @@ Eigen::VectorXd BSE_OPERATOR::Hd_col(int index) const
 
 Eigen::VectorXd BSE_OPERATOR::Hqp_col(int index) const
 {
+    std::cout << std::endl << "_bse_size in Hqp_col : " << _bse_size << std::endl;
     vc2index vc = vc2index(0, 0, _bse_ctotal);
     int v1 = vc.v(index);
     int c1 = vc.c(index);

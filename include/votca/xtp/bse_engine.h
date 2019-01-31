@@ -50,6 +50,7 @@ class BSE_ENGINE {
     struct options {
 
         bool useTDA=true;
+        
         int homo;
         int rpamin;
         int rpamax;
@@ -77,8 +78,10 @@ class BSE_ENGINE {
     //SetupDirectInteractionOperator();
   }
 
+  
   void Solve_singlets();
   void Solve_triplets();
+  void configure_operator(BSE_OPERATOR &h);
   void solve_hermitian(BSE_OPERATOR &H, Eigen::VectorXd &eigenvalues, Eigen::MatrixXd &coefficients );
 
   void Analyze_triplets(const AOBasis& dftbasis);
