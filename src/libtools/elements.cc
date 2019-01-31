@@ -25,31 +25,44 @@ using namespace std;
 /*************************
  * Public Facing Methods *
  *************************/
-const double &Elements::getNucCrg(std::string name){
+double Elements::getNucCrg(std::string name){
     if (!this->_filled_NucCrg) {
         this->FillNucCrg();
         _filled_NucCrg = true;
     }
-    return _NucCrg.at(name);
+    try{
+        return _NucCrg.at(name);
+    }catch(const std::out_of_range& oor){
+        throw std::runtime_error("Nuclearcharge of element "+name+" not found.");
+    }
 }
 
-const int &Elements::getEleNum(std::string name){
+int Elements::getEleNum(std::string name){
     if (!this->_filled_EleNum) {
         this->FillEleNum();
         _filled_EleNum = true;
     }
-    return _EleNum.at(name);
+    try{
+        return _EleNum.at(name);
+    }catch(const std::out_of_range& oor){
+        throw std::runtime_error("Elementnumber of element "+name+" not found.");
+    }
 }
 
-const double &Elements::getMass(std::string name){
+double Elements::getMass(std::string name){
     if (!this->_filled_Mass) {
         this->FillMass();
         _filled_Mass = true;
     }
-    return _Mass.at(name);
+    
+    try{
+        return _Mass.at(name);
+    }catch(const std::out_of_range& oor){
+        throw std::runtime_error("Mass of element "+name+" not found.");
+    }
 }
 
-const double & Elements::getVdWChelpG(string name){
+double Elements::getVdWChelpG(string name){
     if (!this->_filled_VdWChelpG) {
         this->FillVdWChelpG();
         _filled_VdWChelpG = true;
@@ -59,7 +72,7 @@ const double & Elements::getVdWChelpG(string name){
     return _VdWChelpG.at(name);
 }
 
-const double & Elements::getVdWMK(string name){
+double Elements::getVdWMK(string name){
     if (!this->_filled_VdWMK) {
         this->FillVdWMK();
         _filled_VdWMK = true;
@@ -69,7 +82,7 @@ const double & Elements::getVdWMK(string name){
     return _VdWMK.at(name);
 }
 
-const double & Elements::getPolarizability(string name){
+double Elements::getPolarizability(string name){
     if (!this->_filled_ElPolarizability) {
         this->FillPolarizability();
         _filled_ElPolarizability = true;
@@ -93,7 +106,7 @@ double Elements::getCovRad(string name, string unit){
                            unit + " is not known");
 }
 
-const string & Elements::getEleName(int elenum){
+string Elements::getEleName(int elenum){
      if (!this->_filled_EleName) {
         this->FillEleName();
         _filled_EleName = true;
@@ -101,7 +114,7 @@ const string & Elements::getEleName(int elenum){
     return _EleName.at(elenum);
 }
 
-const string & Elements::getEleShort(string elefull){
+string Elements::getEleShort(string elefull){
     if (!this->_filled_EleShort) {
         this->FillEleShort();
         _filled_EleShort = true;
@@ -124,7 +137,7 @@ string Elements::getEleShortClosestInMass(double mass, double tolerance) {
     return closestMatch.first;
 }
 
-const string & Elements::getEleFull(string eleshort){
+string Elements::getEleFull(string eleshort){
     if (!this->_filled_EleFull) {
         this->FillEleFull();
         _filled_EleFull = true;
