@@ -24,8 +24,8 @@
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
-
 #include <votca/xtp/bse_operator.h>
+
 
 namespace votca {
 namespace xtp {

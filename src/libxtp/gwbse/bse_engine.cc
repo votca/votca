@@ -39,8 +39,6 @@ namespace votca {
     {
 
       BSE_Triplet Ht( _orbitals, _log, _Mmn, _Hqp );
-      CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Configure Operator " << flush;
       BSE_ENGINE::configure_operator(Ht);
       
       CTP_LOG(ctp::logDEBUG, _log)
@@ -95,9 +93,6 @@ namespace votca {
     void BSE_ENGINE::configure_operator(BSE_OPERATOR &h)
     {
 
-      CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Setup options " << flush;
-
       h._opt.homo = this->_opt.homo;
       h._opt.rpamin = this->_opt.rpamin;
       h._opt.rpamax = this->_opt.rpamax;
@@ -105,16 +100,12 @@ namespace votca {
       h._opt.vmin = this->_opt.vmin;
       h._opt.cmax = this->_opt.cmax;
 
-      CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Setup Parameters " << flush;
-
       h._bse_cmin = _opt.homo+1; //
       h._bse_vtotal = _bse_vmax - _opt.vmin + 1; //
       h._bse_ctotal =_opt.cmax - _bse_cmin + 1; //
       h._bse_size = _bse_vtotal * _bse_ctotal; //
       h._size = _bse_size;
-      CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Setup Direct Interaction " << flush;
+
       h.SetupDirectInteractionOperator();
 
       return ;

@@ -87,8 +87,6 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
  private:
 
-    
-
     struct Interaction {
       Eigen::VectorXd exchange_contrib;
       Eigen::VectorXd direct_contrib;

@@ -29,7 +29,6 @@ namespace votca {
 
 		Eigen::VectorXd BSE_Triplet::col(int index) const
 		{
-			std::cout << std::endl << " Get Column Triplet " << index << std::endl;
 			return BSE_Triplet::Hqp_col(index) + BSE_Triplet::Hd_col(index);
 		}
 
