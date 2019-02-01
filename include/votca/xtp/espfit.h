@@ -23,6 +23,7 @@
 #include <votca/xtp/grid.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/qmfragment.h>
 /**
 * \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of partial charges
 *
@@ -35,10 +36,6 @@ namespace votca { namespace xtp {
 class Espfit{
 public:
     
-    struct ConstraintRegion{
-         std::vector<int> atomindices;
-         double charge;
-     };
     
     Espfit(Logger *log):_do_svd(true) {_log = log;
     _conditionnumber=1e-8;
@@ -52,13 +49,13 @@ public:
        _pairconstraint=pairconstraint;
    }
    
-   void setRegionConstraint(std::vector< ConstraintRegion > regionconstraint){
+   void setRegionConstraint(std::vector< QMFragment<double> > regionconstraint){
        _regionconstraint=regionconstraint;
    }
     // on grid very fast
-    void Fit2Density(Orbitals& orbitals,const QMState& state, const AOBasis &basis,std::string gridsize);
+    void Fit2Density(Orbitals& orbitals,const QMState& state,std::string gridsize);
     // not so fast
-    void Fit2Density_analytic(Orbitals& orbitals,const QMState& state, const AOBasis &basis);
+    void Fit2Density_analytic(Orbitals& orbitals,const QMState& state);
 private:
     
      Logger *_log;
@@ -67,7 +64,7 @@ private:
      
      std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
      
-     std::vector< ConstraintRegion > _regionconstraint;
+     std::vector< QMFragment<double> > _regionconstraint;
  
     void EvalNuclearPotential(const QMMolecule& atoms, Grid& grid);
    

@@ -59,7 +59,6 @@ namespace votca {
         private:
             void WriteChargeOption() { return ;}
             tools::Property _xtpdft_options;
-            std::string _cleanup;
 
             Orbitals _orbitals;
 

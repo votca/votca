@@ -57,7 +57,6 @@ namespace votca { namespace xtp {
     public: 
         static int getBlockSize( int _lmax );
         static Eigen::MatrixXd getTrafo( const AOGaussianPrimitive& gaussian);
-        void PrintIndexToFunction(const AOBasis& aobasis);
     };
     
     
@@ -69,10 +68,6 @@ namespace votca { namespace xtp {
 	int Dimension(){ return  _aomatrix.rows();}
         const  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &Matrix() const{ return _aomatrix ;}      
         void Fill(const AOBasis& aobasis);
-        void Print( std::string ident);
-        void FreeMatrix(){
-            _aomatrix.resize(0,0);
-        }
         // integrate F
         static std::vector<double> XIntegrate( int size, double U );
     protected:
@@ -88,10 +83,7 @@ namespace votca { namespace xtp {
     class AOMatrix3D : public AOSuperMatrix {
     public:
         const std::array<Eigen::MatrixXd,3 > &Matrix() const{ return _aomatrix ;}
-        void Print( std::string _ident);
         void Fill(const AOBasis& aobasis );
-        // block fill prototype
-        void FreeMatrix();
     protected:
         std::array<Eigen::MatrixXd,3 > _aomatrix; 
         virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,const AOShell& shell_row,const AOShell& shell_col)=0 ;
@@ -124,7 +116,7 @@ namespace votca { namespace xtp {
     public:
      
         void Fillnucpotential(const AOBasis& aobasis,const QMMolecule& atoms);
-        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites);
         const Eigen::MatrixXd &getNuclearpotential()const{ return _nuclearpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
         void setPosition(const Eigen::Vector3d& r){ _r=r;};
@@ -181,28 +173,28 @@ namespace votca { namespace xtp {
     
     class AODipole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
-        void setPolarSite(const PolarSite* site){polarsite=site;};
-        const PolarSite* polarsite;
+        void setSite(const StaticSite* site){_site=site;};
+        const StaticSite* _site;
         Eigen::MatrixXd _externalpotential;
     };
     
     class AOQuadrupole_Potential : public AOMatrix<double>{
     public:
-        void Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites);
+        void Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites);
         Eigen::MatrixXd &getExternalpotential(){ return _externalpotential;}
         const Eigen::MatrixXd &getExternalpotential()const{ return _externalpotential;}
     protected: 
         void FillBlock( Eigen::Block<Eigen::MatrixXd>& matrix,const AOShell& shell_row,const AOShell& shell_col);
     private:
-        void setPolarSite(const PolarSite* site){polarsite=site;};
+        void setSite(const StaticSite* site){_site=site;};
         
-        const PolarSite* polarsite;
+        const StaticSite* _site;
         Eigen::MatrixXd _externalpotential;
     };
 

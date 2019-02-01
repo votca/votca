@@ -31,11 +31,11 @@
 namespace votca { namespace xtp {
    
 class Region{
+
     public:
 
         virtual ~Region() {};
                
-
         virtual void WriteToCpt(CheckpointWriter& w)const =0 ;
 
         virtual void ReadFromCpt(CheckpointReader& r)=0;

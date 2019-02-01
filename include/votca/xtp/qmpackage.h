@@ -38,8 +38,7 @@ namespace votca {
         class QMPackage {
         public:
    
-            virtual ~QMPackage() {
-            };
+            virtual ~QMPackage() {};
 
             virtual std::string getPackageName()const = 0;
 
@@ -55,9 +54,22 @@ namespace votca {
             virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
 
             virtual void CleanUp() = 0;
-            
-            void setMultipoleBackground(const std::shared_ptr<MMRegion>& PolarSegments);
 
+
+            template< class T>
+            void AddRegion(const MMRegion<ClassicalSegment<T> > & region){
+                for(const auto& segment: region){
+                    for(const auto& site:segment){
+                        _externalsites.push_back(std::unique_ptr<StaticSite>(new T(site)));
+                    }
+                }
+                if(!_write_charges){
+                    _write_charges = true;
+                   WriteChargeOption();
+                }
+
+            }
+           
             void setRunDir(const std::string& run_dir) {
                 _run_dir = run_dir;
             }
@@ -78,15 +90,15 @@ namespace votca {
                 _pLog = pLog;
             }
 
-            bool GuessRequested() {
+            bool GuessRequested() const{
                 return _write_guess;
             }
 
-            bool ECPRequested() {
+            bool ECPRequested() const{
                 return _write_pseudopotentials;
             }
 
-            bool VXCRequested() {
+            bool VXCRequested() const{
                 return _output_Vxc;
             }
 
@@ -102,27 +114,25 @@ namespace votca {
                 _threads = threads;
             }
 
-            void doGetCharges(bool do_get_charges) {
+            void setGetCharges(bool do_get_charges) {
                 _get_charges = do_get_charges;
             }
 
-            const std::string& getBasisSetName() {
+            const std::string& getBasisSetName() const{
                 return _basisset_name;
             }
 
-            const std::string& getExecutable() {
+            const std::string& getExecutable() const{
                 return _executable;
             };
-
-            void setWithPolarization(bool polar){
-                _with_polarization=polar;
-                return;
-            }
 
             void setDipoleSpacing(double spacing){
                 _dpl_spacing=spacing;
                 return;
             }
+
+
+            std::string getScratchDir() const{ return _scratch_dir; }
 
         protected:
 
@@ -133,7 +143,7 @@ namespace votca {
             };
 
             virtual void WriteChargeOption() =0;
-            std::vector<MinimalMMCharge > SplitMultipoles(const PolarSite& site);
+            std::vector<MinimalMMCharge > SplitMultipoles(const StaticSite& site);
             void ReorderOutput(Orbitals& orbitals);
             Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals)const;
             bool isLinker( std::string name, std::vector< std::string> linker_names );
@@ -158,26 +168,27 @@ namespace votca {
             std::string _auxbasisset_name;
             std::string _ecp_name;
 
-            std::list< std::string > _cleanup_list;
+            std::string _shell_file_name;
+            std::string _chk_file_name;
+            std::string _scratch_dir;
+            bool _is_optimization;
 
-            bool _get_orbitals;
-            bool _get_overlap;
-            bool _get_charges;
-            
+            std::string _cleanup;
 
-            bool _write_guess;
-            bool _write_charges;
-            bool _write_basis_set;
-            bool _write_pseudopotentials;
+            bool _get_charges=false;
 
-            bool _output_Vxc;
+            bool _write_guess=false;
+            bool _write_charges=false;
+            bool _write_basis_set=false;
+            bool _write_pseudopotentials=false;
+
+            bool _output_Vxc=false;
 
             Logger* _pLog;
 
             
-            std::shared_ptr<MMRegion>  _PolarSegments;
+            std::vector<std::unique_ptr<StaticSite> > _externalsites;
             double _dpl_spacing;
-            bool _with_polarization;
             
         };
         

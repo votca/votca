@@ -484,10 +484,8 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
       return result;
     }
 
-    void AOBasis::AOBasisFill(const BasisSet& bs,  const QMMolecule& atoms, int fragbreak) {
+    void AOBasis::AOBasisFill(const BasisSet& bs,  const QMMolecule& atoms) {
       _AOBasisSize = 0;
-      _AOBasisFragA = 0;
-      _AOBasisFragB = 0;
       _FuncperAtom=std::vector<int>(0);
       // loop over atoms
       for (const QMAtom& atom : atoms) {
@@ -505,15 +503,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order ){
           aoshell.CalcMinDecay();
           aoshell.normalizeContraction();
         }
-        if (atom.getAtomID() < fragbreak) _AOBasisFragA = _AOBasisSize;
         _FuncperAtom.push_back(atomfunc);
-      }
-
-      if (fragbreak < 0) {
-        _AOBasisFragA = _AOBasisSize;
-        _AOBasisFragB = 0;
-      } else {
-        _AOBasisFragB = _AOBasisSize - _AOBasisFragA;
       }
       return;
     }

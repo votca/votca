@@ -228,34 +228,26 @@ namespace votca {
             crg_file.open(_crg_file_name_full.c_str());
             int total_background = 0;
 
-            for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    if (site.getCharge() != 0.0) total_background++;
-                    if (site.getRank() > 0 || _with_polarization ) {
-                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
-                        total_background+= split_multipoles.size();
-                    }
-                }
+           for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    if (site->getCharge() != 0.0) total_background++;
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
+                    total_background+= split_multipoles.size();
             } //counting only
             
             crg_file << total_background << endl;
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
             //now write
-            for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
-                    string sitestring=boost::str(fmt % site.getCharge() % pos.x()
+            for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    Eigen::Vector3d pos=site->getPos()*tools::conv::bohr2ang;
+                    string sitestring=boost::str(fmt % site->getCharge() % pos.x()
                             % pos.y() % pos.z());
-                    if (site.getCharge() != 0.0) crg_file << sitestring << endl;
-                    if (site.getRank() > 0 || _with_polarization ) {
-                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
-                        for (const auto& mpoles:split_multipoles){
-                            Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
-                           string multipole=boost::str( fmt % mpoles._q % pos.x() % pos.y() % pos.z() );
-                            crg_file << multipole << endl;
-                        }
-                    }
-                }
+                    if (site->getCharge() != 0.0) crg_file << sitestring << endl;
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
+                    for (const auto& mpoles:split_multipoles){
+                        Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+                       string multipole=boost::str( fmt % mpoles._q % pos.x() % pos.y() % pos.z() );
+                        crg_file << multipole << endl;
+                    }                
             }
             
             return;
@@ -416,9 +408,9 @@ namespace votca {
         bool Orca::ParseLogFile(Orbitals& orbitals) {
             bool found_success=false;
             orbitals.setQMpackage("orca");
-            orbitals.setDFTbasis(_basisset_name);
+            orbitals.setDFTbasisName(_basisset_name);
             if (_write_pseudopotentials) {
-                orbitals.setECP(_ecp_name);
+                orbitals.setECPName(_ecp_name);
             } 
 
             XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
@@ -568,11 +560,11 @@ namespace votca {
                         row=GetLineAndSplit(input_file, "\t ");
                         nfields = row.size();
                         if (!hasAtoms) {
-                            PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                            StaticSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
                             temp.setCharge(atom_charge);
                             orbitals.Multipoles().push_back(temp);
                         } else {
-                            orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
+                            orbitals.Multipoles().push_back(StaticSite(orbitals.QMAtoms().at(atom_id),atom_charge));
                         }
                     }
                 }
@@ -595,8 +587,8 @@ namespace votca {
             // copying information to the orbitals object
        
             orbitals.setBasisSetSize(levels);
-            orbitals.setNumberOfElectrons(number_of_electrons);
-            orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
+            orbitals.setNumberOfAlphaElectrons(number_of_electrons);
+            orbitals.setNumberOfOccupiedLevels(occupied_levels);
             orbitals.setSelfEnergy(0.0);
 
             // copying energies to a vector
@@ -644,7 +636,7 @@ namespace votca {
             if (!CheckLogFile()) return false;
             std::vector<double> coefficients;
             int basis_size = orbitals.getBasisSetSize();
-            int levels = orbitals.getNumberOfLevels();
+            int levels = orbitals.getBasisSetSize();
             if (basis_size == 0 || levels == 0) {
                 throw runtime_error("Basis size not set, calculator does not parse log file first");
             }

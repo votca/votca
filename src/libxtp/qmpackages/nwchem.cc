@@ -123,26 +123,22 @@ namespace votca {
 
       int numberofcharges=0;
       boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-       for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
-          string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z() % site.getCharge());
-          if (site.getCharge() != 0.0){
+      for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    Eigen::Vector3d pos=site->getPos()*tools::conv::bohr2ang;
+          string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z() % site->getCharge());
+          if (site->getCharge() != 0.0){
             nw_file << sitestring << endl;
             numberofcharges++;
           }
-          if (site.getRank() > 0 || _with_polarization ) {
-            std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
+            std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
             for (const auto& mpoles:split_multipoles){
-              Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
-              string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
-              nw_file << multipole << endl;
-              numberofcharges++;
+            Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+            string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
+            nw_file << multipole << endl;
+            numberofcharges++;
 
-            }
           }
         }
-      }
       nw_file << endl;
       return numberofcharges;
     }
@@ -168,7 +164,7 @@ namespace votca {
       // write occupations as double in three columns
       // occupied levels
       int column = 1;
-      for (int i = 0; i < orbitals.getNumberOfElectrons(); i++) {
+          for (int i = 0; i < orbitals.getNumberOfAlphaElectrons(); i++) {
         orb_file << FortranFormat(2.0);
         if (column == ncolumns) {
           orb_file << endl;
@@ -177,7 +173,7 @@ namespace votca {
         column++;
       }
       // unoccupied levels
-      for (int i = orbitals.getNumberOfElectrons(); i < size_of_basis; i++) {
+          for (int i = orbitals.getNumberOfAlphaElectrons(); i < size_of_basis; i++) {
         orb_file << FortranFormat(0.0);
         if (column == ncolumns) {
           orb_file << endl;
@@ -531,8 +527,8 @@ namespace votca {
 
       // copying information to the orbitals object
       orbitals.setBasisSetSize(basis_size);
-      orbitals.setNumberOfElectrons(number_of_electrons);
-      orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
+            orbitals.setNumberOfAlphaElectrons(number_of_electrons);
+            orbitals.setNumberOfOccupiedLevels(occupied_levels);
       // copying energies to a matrix
       orbitals.MOEnergies().resize(levels);
       //_level = 1;
@@ -646,9 +642,9 @@ namespace votca {
 
       // save qmpackage name
       orbitals.setQMpackage("nwchem");
-      orbitals.setDFTbasis(_basisset_name);
+            orbitals.setDFTbasisName(_basisset_name);
       if (_write_pseudopotentials) {
-        orbitals.setECP(_ecp_name);
+                orbitals.setECPName(_ecp_name);
       } 
       // set _found_optimization to true if this is a run without optimization
       if (!_is_optimization) {
@@ -707,11 +703,11 @@ namespace votca {
             row=GetLineAndSplit(input_file, "\t ");
             nfields = row.size();
             if (!hasAtoms) {
-                PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                StaticSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
                 temp.setCharge(atom_charge);
                 orbitals.Multipoles().push_back(temp);
             } else {
-                orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
+                orbitals.Multipoles().push_back(StaticSite(orbitals.QMAtoms().at(atom_id),atom_charge));
             }
           }
         }

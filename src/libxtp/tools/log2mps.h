@@ -23,7 +23,7 @@
 
 #include <boost/format.hpp>
 #include <votca/xtp/qmtool.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 
@@ -87,7 +87,7 @@ bool Log2Mps::Evaluate() {
     XTP_LOG_SAVE(logINFO,log) << "Using package <" << _package << ">" << std::flush;
 
     QMPackage *qmpack = QMPackages().Create(_package);    
-    qmpack->doGetCharges(true);
+    qmpack->setGetCharges(true);
     qmpack->setLog(&log);
     qmpack->setRunDir(".");
     qmpack->setLogFileName(_logfile);
@@ -99,7 +99,7 @@ bool Log2Mps::Evaluate() {
         throw std::runtime_error( "\nERROR Parsing " + _logfile+"failed.");
     }
 
-    const PolarSegment atoms=orbs.Multipoles();
+    const StaticSegment& atoms=orbs.Multipoles();
     // Sanity checks, total charge
     double Q =atoms.CalcTotalQ();
     

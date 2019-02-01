@@ -36,7 +36,7 @@ namespace votca { namespace xtp {
         
     public:
 
-        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis, const Eigen::MatrixXd& inverse_Coulomb);
+        void Initialize(AOBasis &_dftbasis, AOBasis &_auxbasis);
         void Initialize_4c_small_molecule(AOBasis &_dftbasis); 
         void Initialize_4c_screening(AOBasis &_dftbasis, double eps); // Pre-screening
       
@@ -56,8 +56,7 @@ namespace votca { namespace xtp {
         
         int getSize1(){return _ERIs.rows();}
         int getSize2(){return _ERIs.cols();}
-        
-        void printERIs();
+        int Removedfunctions()const{return _threecenter.Removedfunctions();}
         
     private:
 

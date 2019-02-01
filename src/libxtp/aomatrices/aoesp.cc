@@ -430,20 +430,21 @@ if (lmax_col > 3) {
             return;
         }
 
-        void AOESP::Fillextpotential(const AOBasis& aobasis,const std::shared_ptr<MMRegion> & sites) {
+        void AOESP::Fillextpotential(const AOBasis& aobasis,const std::vector<std::unique_ptr<StaticSite> >& externalsites) {
             
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
-            for (const auto& Seg:*sites) {
-                 for (const PolarSite& site:Seg) {
+            for (const std::unique_ptr<StaticSite>& site:externalsites) {
                     _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                    setPosition(site.getPos());
+                    setPosition(site->getPos());
                     Fill(aobasis);
-                    _externalpotential -= site.getCharge() * _aomatrix;
-                }
+                    _externalpotential -= site->getCharge() * _aomatrix;
             }
             return;
-        }    
+        }
+
+
+      
     
 }}
 

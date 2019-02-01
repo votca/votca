@@ -59,16 +59,13 @@ namespace votca {
                      std::list<tools::Property*> prop_region = options.Select(key + ".constraints.regions.region");
                      for (tools::Property* prop:prop_region) {
                          std::string indices=prop->get("indices").as<std::string>();
-                         tools::Tokenizer tok(indices,"\n\t ,");
-                         Espfit::ConstraintRegion reg;
-                         tok.ConvertToVector<int>(reg.atomindices);
-                         reg.charge=prop->get("charge").as<double>();
+                         QMFragment<double> reg=QMFragment<double>("Constraint",0,indices);
+                         reg.value()=prop->get("charge").as<double>();
                          _regionconstraint.push_back(reg);
-                         XTP_LOG(logDEBUG, *_log) << "Fit constrained by SUM(";
-                         for(int i:reg.atomindices){
-                             XTP_LOG(logDEBUG, *_log)<<i<<" ";
-                         }
-                        XTP_LOG(logDEBUG, *_log)<<")="<<reg.charge<< flush;
+                         XTP_LOG(logDEBUG, *_log) << "Fit constrained by Region"<<flush;
+                         XTP_LOG(logDEBUG, *_log)<<reg;
+
+               
                      }
                  }
                  if (options.exists(key + ".constraints.pairs")) {
@@ -134,18 +131,14 @@ namespace votca {
             threads = omp_get_max_threads();
 #endif
             XTP_LOG(logDEBUG, *_log) << "===== Running on " << threads << " threads ===== " << flush;
-            BasisSet bs;
-            bs.LoadBasisSet(orbitals.getDFTbasis());
-            AOBasis basis;
-            basis.AOBasisFill(bs, orbitals.QMAtoms());   
 
             if (_use_mulliken) {
                 Mulliken mulliken;
-                mulliken.CalcChargeperAtom(orbitals, basis, _state);
+                mulliken.CalcChargeperAtom(orbitals, _state);
             }
             else if (_use_lowdin) {
                 Lowdin lowdin;
-                lowdin.CalcChargeperAtom(orbitals, basis, _state);
+                lowdin.CalcChargeperAtom(orbitals, _state);
             } else if (_use_CHELPG) {
                 Espfit esp = Espfit(_log);
                 if(_pairconstraint.size()>0){
@@ -159,8 +152,10 @@ namespace votca {
                     esp.setUseSVD(_conditionnumber);
                 }
                 if (_integrationmethod == "numeric") {
-                    esp.Fit2Density(orbitals, _state, basis, _gridsize);
-                } else if (_integrationmethod == "analytic") esp.Fit2Density_analytic(orbitals, _state, basis);
+                    esp.Fit2Density(orbitals, _state, _gridsize);
+                } else if (_integrationmethod == "analytic"){
+                    esp.Fit2Density_analytic(orbitals, _state);
+                }
             } 
 
             PrintDipoles(orbitals);

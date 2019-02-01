@@ -29,16 +29,7 @@
 namespace votca {
     namespace xtp {
 
-        void AOSuperMatrix::PrintIndexToFunction(const AOBasis& aobasis) {
-            for ( const AOShell& shell:aobasis) {
-                int row_start = shell.getStartIndex();
-                std::string type = shell.getType();
-                std::cout << "Shell " << type << "starts at " << row_start + 1 << std::endl;
-            }
-            return;
-        }
-
-        
+       
         template< class T> 
         void AOMatrix<T>::Fill(const AOBasis& aobasis) {
             _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(aobasis.AOBasisSize(),aobasis.AOBasisSize());
@@ -93,32 +84,6 @@ namespace votca {
                 }
             }
             return;
-        }
-
-        void AOMatrix3D::FreeMatrix() {
-            for (int i = 0; i < 3; i++) {
-                _aomatrix[i].resize(0, 0);
-            }
-            return;
-        }
-
-        template<class T> void AOMatrix<T>::Print(std::string ident) {
-            std::cout << "\n" << std::endl;
-            std::cout.precision(12);
-        for ( int i =0; i< _aomatrix.rows(); i++){
-            for ( int j =0; j< _aomatrix.cols(); j++){
-                std::cout << ident << "[" << i+1 << ":" << j+1 << "] " << std::scientific <<_aomatrix(i,j) << std::endl;
-                }
-            }
-    }   
-
-        void AOMatrix3D::Print(std::string ident) {
-            std::cout << "\n" << std::endl;
-        for ( int i =0; i< _aomatrix[0].rows(); i++){
-            for ( int j =0; j< _aomatrix[0].cols(); j++){
-                std::cout << ident << "[" << i+1 << ":" << j+1 << "] " <<  _aomatrix[0](i,j) << " : " <<  _aomatrix[1](i,j) << " : " <<  _aomatrix[2](i,j)  << std::endl;
-                }
-            }
         }
 
        Eigen::MatrixXd AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian){

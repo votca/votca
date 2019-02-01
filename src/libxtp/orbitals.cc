@@ -41,9 +41,8 @@ namespace votca {
         Orbitals::Orbitals():_atoms("",0),_multipoles("",0) {;}
 
             // GW-BSE
-        void Orbitals::setNumberOfLevels(int occupied_levels,int unoccupied_levels) {
+        void Orbitals::setNumberOfOccupiedLevels(int occupied_levels) {
             _occupied_levels = occupied_levels;
-            _unoccupied_levels = unoccupied_levels;
         }
       
          /**
@@ -113,7 +112,7 @@ namespace votca {
           if (!hasQPdiag()) {
                 throw std::runtime_error("Orbitals file does not contain QP coefficients");
             }
-            return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(), _qptotal)*_QPdiag_coefficients;
+            return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(),  _qpmax - _qpmin + 1)*_QPdiag_coefficients;
         }
 
         // Determine QuasiParticle Density Matrix
@@ -135,14 +134,10 @@ namespace votca {
               nuclei_dip += (atom.getPos() - _atoms.getPos()) * atom.getNuccharge();
             }
           }
-
-          BasisSet basis;
-          basis.LoadBasisSet(this->getDFTbasis());
-          AOBasis aobasis;
-          aobasis.AOBasisFill(basis, _atoms);
+          AOBasis basis=SetupDftBasis();
           AODipole dipole;
           dipole.setCenter(_atoms.getPos());
-          dipole.Fill(aobasis);
+          dipole.Fill(basis);
 
           Eigen::MatrixXd dmat = this->DensityMatrixFull(state);
           Eigen::Vector3d electronic_dip;
@@ -332,24 +327,6 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             return dmatAR;
         }
 
-        Eigen::VectorXd Orbitals::LoewdinPopulation(const Eigen::MatrixXd & densitymatrix, const Eigen::MatrixXd & overlapmatrix, int frag){
-
-            Eigen::VectorXd fragmentCharges = Eigen::VectorXd::Zero(2);
-            Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
-            es.compute(overlapmatrix);
-            Eigen::MatrixXd sqrtm1 = es.operatorInverseSqrt();
-            Eigen::MatrixXd prodmat = sqrtm1 * densitymatrix*sqrtm1;
-
-            for (int i = 0; i < frag; i++) {
-                fragmentCharges(0) += prodmat(i, i);
-            }
-            for (int i = frag; i < overlapmatrix.rows(); i++) {
-                fragmentCharges(1) += prodmat(i, i);
-            }
-
-            return fragmentCharges;
-        }
-
         std::vector<double> Orbitals::Oscillatorstrengths() const{
             std::vector<double> oscs;
             int size = _transition_dipoles.size();
@@ -410,30 +387,51 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             return  omega; //  e.g. hartree
         }
         
+        std::vector<Eigen::MatrixXd > Orbitals::CalcFreeTransition_Dipoles()const{
+                const Eigen::MatrixXd& dft_orbitals = MOCoefficients();
+                AOBasis basis=SetupDftBasis();
+              // Testing electric dipole AOMatrix
+              AODipole dft_dipole;
+              dft_dipole.Fill(basis);
 
-        Eigen::VectorXd Orbitals::FragmentNuclearCharges(int frag) const{
-         
-            if (frag < 0) {
-                throw runtime_error("Orbitals::FragmentNuclearCharges Fragment index is smaller than zero");
-            }
+              // now transition dipole elements for free interlevel transitions
+              std::vector<Eigen::MatrixXd > interlevel_dipoles;
 
-            Eigen::VectorXd fragmentNuclearCharges = Eigen::VectorXd::Zero(2);
-            int id = 0;
-            for (const QMAtom& atom :_atoms) {
-                id++;
-                // get element type and determine its nuclear charge
-                double crg = atom.getNuccharge();
-                // add to either fragment
-                if (id <= frag) {
-                    fragmentNuclearCharges(0) += crg;
-                } else {
-                    fragmentNuclearCharges(1) += crg;
-                }
-            }
-            return fragmentNuclearCharges;
+              Eigen::MatrixXd empty = dft_orbitals.block(0,_bse_cmin,basis.AOBasisSize() , _bse_ctotal);
+              Eigen::MatrixXd occ = dft_orbitals.block(0,_bse_vmin, basis.AOBasisSize(), _bse_vtotal);
+              for (int i_comp = 0; i_comp < 3; i_comp++) {
+                interlevel_dipoles.push_back(empty.transpose() * dft_dipole.Matrix()[i_comp] * occ);
+              }
+              return interlevel_dipoles;
         }
-        
-        
+
+        void Orbitals::CalcCoupledTransition_Dipoles() {
+            std::vector<Eigen::MatrixXd > interlevel_dipoles = CalcFreeTransition_Dipoles();
+            vc2index vc = vc2index(0, 0, _bse_ctotal);
+            int numofstates = _BSE_singlet_energies.size();
+            _transition_dipoles.resize(0);
+            _transition_dipoles.reserve(numofstates);
+            std::vector<Eigen::Vector3d > dipols;
+            const double sqrt2 = sqrt(2.0);
+            for (int i_exc = 0; i_exc < numofstates; i_exc++) {
+                Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
+                for (int i = 0; i < 3; i++) {
+                    for (int v = 0; v < _bse_vtotal; v++) {
+                        for (int c = 0; c < _bse_ctotal; c++) {
+                            int index_vc = vc.I(v, c);
+                            double factor = BSESingletCoefficients()(index_vc, i_exc);
+                            if (!_useTDA) {
+                                factor += BSESingletCoefficientsAR()(index_vc, i_exc);
+                            }
+                            // The Transition dipole is sqrt2 bigger because of the spin, the excited state is a linear combination of 2 slater determinants, where either alpha or beta spin electron is excited
+                            tdipole[i] += factor * interlevel_dipoles[i](c, v);
+                        }
+                    }
+                }
+                _transition_dipoles.push_back(-sqrt2 * tdipole); //- because electrons are negative
+            }
+        }
+ 
         void Orbitals::OrderMOsbyEnergy(){
           std::vector<int> sort_index = SortEnergies();
           Eigen::MatrixXd MOcopy=MOCoefficients();
@@ -460,29 +458,28 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             int basisA = orbitalsA.getBasisSetSize();
             int basisB = orbitalsB.getBasisSetSize();
 
-            int levelsA = orbitalsA.getNumberOfLevels();
-            int levelsB = orbitalsB.getNumberOfLevels();
+            int levelsA = orbitalsA.getBasisSetSize();
+            int levelsB = orbitalsB.getBasisSetSize();
 
-            int electronsA = orbitalsA.getNumberOfElectrons();
-            int electronsB = orbitalsB.getNumberOfElectrons();
+            int electronsA = orbitalsA.getNumberOfAlphaElectrons();
+            int electronsB = orbitalsB.getNumberOfAlphaElectrons();
 
             
             MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
 
             // AxB = | A 0 |  //   A = [EA, EB]  //
             //       | 0 B |  //                 //
-            if(orbitalsA.getDFTbasis()!=orbitalsB.getDFTbasis()){
-              throw std::runtime_error("Basissets of Orbitals A and B differ "+orbitalsA.getDFTbasis()+":"+orbitalsB.getDFTbasis());
+            if(orbitalsA.getDFTbasisName()!=orbitalsB.getDFTbasisName()){
+              throw std::runtime_error("Basissets of Orbitals A and B differ "+orbitalsA.getDFTbasisName()+":"+orbitalsB.getDFTbasisName());
             }
-            this->setDFTbasis(orbitalsA.getDFTbasis());
-            if(orbitalsA.getECP()!=orbitalsB.getECP()){
-              throw std::runtime_error("ECPs of Orbitals A and B differ "+orbitalsA.getECP()+":"+orbitalsB.getECP());
+            this->setDFTbasisName(orbitalsA.getDFTbasisName());
+            if(orbitalsA.getECPName()!=orbitalsB.getECPName()){
+              throw std::runtime_error("ECPs of Orbitals A and B differ "+orbitalsA.getECPName()+":"+orbitalsB.getECPName());
             }
-            this->setECP(orbitalsA.getECP());
+            this->setECPName(orbitalsA.getECPName());
             this->setBasisSetSize(basisA + basisB);
-            this->setNumberOfLevels(electronsA + electronsB,
-                    levelsA + levelsB - electronsA - electronsB);
-            this->setNumberOfElectrons(electronsA + electronsB);
+            this->setNumberOfOccupiedLevels(electronsA + electronsB);
+            this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
             this->MOCoefficients().block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients();
             this->MOCoefficients().block(basisA, levelsA, basisB, levelsB) = orbitalsB.MOCoefficients();
@@ -513,15 +510,13 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             w(XtpVersionStr(), "Version");
             w(_basis_set_size, "basis_set_size");
             w(_occupied_levels, "occupied_levels");
-            w(_unoccupied_levels, "unoccupied_levels");
-            w(_number_of_electrons, "number_of_electrons");
+            w(_number_alpha_electrons, "number_alpha_electrons");
 
             w(_mo_energies, "mo_energies");
             w(_mo_coefficients, "mo_coefficients");
 
             CheckpointWriter molgroup = w.openChild("qmmolecule");
             _atoms.WriteToCpt(molgroup);
-
             CheckpointWriter multigroup = w.openChild("multipoles");
             _multipoles.WriteToCpt(multigroup);
 
@@ -537,8 +532,6 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             w(_qpmin, "qpmin");
             w(_qpmax, "qpmax");
             w(_bse_vmin, "bse_vmin");
-            w(_bse_vmax, "bse_vmax");
-            w(_bse_cmin, "bse_cmin");
             w(_bse_cmax, "bse_cmax");
 
             w(_ScaHFX, "ScaHFX");
@@ -578,8 +571,7 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
         void Orbitals::ReadFromCpt(CheckpointReader r) {
             r(_basis_set_size, "basis_set_size");
             r(_occupied_levels, "occupied_levels");
-            r(_unoccupied_levels, "unoccupied_levels");
-            r(_number_of_electrons, "number_of_electrons");
+            r(_number_alpha_electrons, "number_alpha_electrons");
 
             r(_mo_energies, "mo_energies");
             r(_mo_coefficients, "mo_coefficients");
@@ -603,12 +595,8 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs)const{
             r(_qpmin, "qpmin");
             r(_qpmax, "qpmax");
             r(_bse_vmin, "bse_vmin");
-            r(_bse_vmax, "bse_vmax");
-            r(_bse_cmin, "bse_cmin");
             r(_bse_cmax, "bse_cmax");
-            _bse_vtotal = _bse_vmax - _bse_vmin + 1;
-            _bse_ctotal = _bse_cmax - _bse_cmin + 1;
-            _bse_size = _bse_vtotal * _bse_ctotal;
+            setBSEindices(_bse_vmin,_bse_cmax);
 
             r(_ScaHFX, "ScaHFX");
             r(_useTDA, "useTDA");

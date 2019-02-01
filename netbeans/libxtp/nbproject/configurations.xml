@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -68,6 +68,7 @@
       <itemPath>../../include/votca/xtp/checkpoint_utils.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointreader.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointwriter.h</itemPath>
+      <itemPath>../../include/votca/xtp/classicalsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
       <itemPath>../../include/votca/xtp/couplingbase.h</itemPath>
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
@@ -108,7 +109,6 @@
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelxjobcalc.h</itemPath>
-      <itemPath>../../include/votca/xtp/polarsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/populationanalysis.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
@@ -131,7 +131,6 @@
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
-      <itemPath>../../include/votca/xtp/sigma.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
@@ -213,11 +212,13 @@
       </logicalFolder>
       <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/gw.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/ppm.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
-        <itemPath>../../src/libxtp/gwbse/sigma.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/sigma_base.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/sigma_ppm.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libxtp/gridbox.cc</itemPath>
@@ -233,6 +234,7 @@
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
+      <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -244,7 +246,6 @@
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
-      <itemPath>../../src/libxtp/polarsegment.cc</itemPath>
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/progressobserver.cc</itemPath>
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
@@ -255,6 +256,7 @@
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
+      <itemPath>../../src/libxtp/staticsite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/topology.cc</itemPath>
       <itemPath>../../src/libxtp/trustregion.cc</itemPath>
@@ -280,6 +282,7 @@
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_gnode.cc</itemPath>
       <itemPath>../../src/tests/test_grid.cc</itemPath>
+      <itemPath>../../src/tests/test_gw.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
       <itemPath>../../src/tests/test_molecule.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
@@ -288,6 +291,7 @@
       <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmatom.cc</itemPath>
+      <itemPath>../../src/tests/test_qmfragment.cc</itemPath>
       <itemPath>../../src/tests/test_qmmolecule.cc</itemPath>
       <itemPath>../../src/tests/test_qmnblist.cc</itemPath>
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
@@ -296,7 +300,7 @@
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
-      <itemPath>../../src/tests/test_sigma.cc</itemPath>
+      <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
       <itemPath>../../src/tests/test_statefilter.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
@@ -3910,6 +3914,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/classicalsegment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/convergenceacc.h"
             ex="false"
             tool="3"
@@ -4056,11 +4065,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/polarsegment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/polarsite.h"
             ex="false"
             tool="3"
@@ -4140,8 +4144,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/sigma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -4499,6 +4501,11 @@
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/classicalsegment.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -4545,6 +4552,8 @@
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbseengine.cc"
@@ -4556,7 +4565,15 @@
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/gwbse/sigma_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/sigma_ppm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4627,8 +4644,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/progressobserver.cc"
@@ -4698,6 +4713,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
@@ -4806,6 +4823,8 @@
       </item>
       <item path="../../src/tests/test_grid.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -4827,6 +4846,8 @@
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmatom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmfragment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4850,7 +4871,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
             ex="false"
@@ -4971,6 +4992,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/checkpointwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/classicalsegment.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5121,11 +5147,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/polarsegment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/polarsite.h"
             ex="false"
             tool="3"
@@ -5205,8 +5226,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/sigma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -5564,6 +5583,11 @@
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/classicalsegment.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
@@ -5610,6 +5634,8 @@
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gwbse/gwbse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gwbseengine.cc"
@@ -5621,7 +5647,15 @@
       </item>
       <item path="../../src/libxtp/gwbse/rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/gwbse/sigma_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/sigma_ppm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gyration.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5692,8 +5726,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/polarsegment.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/progressobserver.cc"
@@ -5763,6 +5795,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
@@ -5871,6 +5905,8 @@
       </item>
       <item path="../../src/tests/test_grid.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gw.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_molecule.cc" ex="false" tool="1" flavor2="0">
@@ -5892,6 +5928,8 @@
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmatom.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_qmfragment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5915,7 +5953,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_sigma.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
             ex="false"

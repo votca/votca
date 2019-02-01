@@ -52,24 +52,11 @@ public:
    bool ParseLogFile( Orbitals& orbitals );
 
    bool ParseOrbitalsFile( Orbitals& orbitals );
-   
-
-   std::string getScratchDir( ) { return _scratch_dir; }
 
 private:
     bool CheckLogFile();
     bool WriteShellScript();
     bool WriteGuess(const Orbitals& orbitals);
-  
-    
-    
-
-    std::string                              _shell_file_name;
-    std::string                              _chk_file_name;
-    std::string                              _scratch_dir;
-    bool                                _is_optimization;
-
-    std::string                              _cleanup;
     
     void WriteBasisset(std::ofstream& nw_file, const QMMolecule& qmatoms);
     void WriteECP(std::ofstream& nw_file, const QMMolecule& qmatoms);

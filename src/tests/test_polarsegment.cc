@@ -17,7 +17,7 @@
 
 #define BOOST_TEST_MODULE polarsegment_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 
 using namespace votca::xtp;
 using namespace std;
@@ -87,8 +87,9 @@ BOOST_AUTO_TEST_CASE(add_atom_test){
 PolarSegment seg=   PolarSegment("seg1",0);
 Eigen::Vector3d pos=Eigen::Vector3d::Zero();
 PolarSite site=PolarSite(0,"C",pos);
-Eigen::VectorXd poles=Eigen::VectorXd::Ones(9);
-site.setMultipole(poles);
+Eigen::VectorXd poles=Vector9d::Ones(9);
+int rank=2;
+site.setMultipole(poles,rank);
 seg.push_back(site);
  
 }

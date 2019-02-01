@@ -38,19 +38,16 @@ public:
    
             
    QMAtom (int index,std::string element,Eigen::Vector3d pos)
-            :_index(index), _element(element ),_pos(pos),_nuccharge(0)
+            :_index(index), _element(element),_pos(pos),_nuccharge(0)
             , _ecpcharge(0)
             {
                 tools::Elements elements;
-                _nuccharge=elements.getNucCrg(element);
+                _nuccharge=elements.getNucCrg(_element);
             }
 
     QMAtom(const CheckpointReader& r){
         ReadFromCpt(r);
     }
-
-
-   static std::string Identify(){return "qmatom";}
        
    const Eigen::Vector3d& getPos() const {return _pos;}
    
@@ -71,6 +68,8 @@ public:
   int getAtomID()const{ return _index;}
    
    int getNuccharge() const{ return _nuccharge-_ecpcharge;}
+
+   std::string identify()const{return "qmatom";}
 
 private:
     

@@ -24,6 +24,7 @@
 namespace votca {
     namespace xtp {
       using std::flush;
+
         void QMPackage::ReorderOutput(Orbitals& orbitals) {
             BasisSet dftbasisset;
             dftbasisset.LoadBasisSet(_basisset_name);
@@ -70,7 +71,7 @@ namespace votca {
             return result;
         }
 
-        std::vector<QMPackage::MinimalMMCharge > QMPackage::SplitMultipoles(const PolarSite& aps) {
+        std::vector<QMPackage::MinimalMMCharge > QMPackage::SplitMultipoles(const StaticSite& aps) {
 
             std::vector< QMPackage::MinimalMMCharge > multipoles_split;
             // Calculate virtual charge positions
@@ -81,9 +82,10 @@ namespace votca {
             const Eigen::Vector3d B = aps.getPos() - 0.5 * a * dir_d;
             double qA = mag_d / a;
             double qB = -qA;
-            multipoles_split.push_back(MinimalMMCharge(A, qA));
-            multipoles_split.push_back(MinimalMMCharge(B, qB));
-
+            if(std::abs(qA)>1e-12){
+                multipoles_split.push_back(MinimalMMCharge(A, qA));
+                multipoles_split.push_back(MinimalMMCharge(B, qB));
+            }
 
             if (aps.getRank() > 1) {
                 const Eigen::Matrix3d components = aps.CalculateCartesianMultipole();
@@ -100,18 +102,7 @@ namespace votca {
             }
             return multipoles_split;
         }
-        
-      void QMPackage::setMultipoleBackground(const std::shared_ptr<MMRegion>& PolarSegments ) {
-        if(PolarSegments->size()==0){
-          std::cout<<"WARNING::The Multipole Background has no entries!"<<std::endl;
-          return;
-        }
-      _PolarSegments = PolarSegments;
-      _write_charges = true;
-      
-      WriteChargeOption();
-    }
-      
+              
       std::vector<std::string> QMPackage::GetLineAndSplit(std::ifstream& input_file,const std::string separators ){
           std::string line;
           getline(input_file, line);

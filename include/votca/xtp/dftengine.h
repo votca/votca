@@ -23,7 +23,7 @@
 #include <votca/xtp/numerical_integrations.h>
 #include <boost/filesystem.hpp>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/topology.h>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/convergenceacc.h>
@@ -59,7 +59,7 @@ namespace votca {
                 _do_externalfield = true;
             }
 
-            void setExternalcharges(std::shared_ptr<MMRegion>& externalsites) {
+            void setExternalcharges(std::vector<std::unique_ptr<StaticSite> >* externalsites) {
                 _externalsites = externalsites;           
                 _addexternalsites = true;
             }
@@ -161,30 +161,17 @@ namespace votca {
             bool _with_guess;
             std::string _initial_guess;
 
-            // Convergence 
-            double _mixingparameter;
-            double _Econverged;
-            double _error_converged;
+            // Convergence
             int _numofelectrons=0;
-            int _max_iter;
-            
-        
-            //levelshift
-            double _levelshiftend;
-            double _levelshift;
-
+            int _max_iter=100;
+            ConvergenceAcc::options _conv_opt;
             //DIIS variables
             ConvergenceAcc _conv_accelerator;
-            bool _usediis;
-            int _histlength;
-            bool _maxout;
-            double _diis_start;
-            double _adiis_start;
             //Electron repulsion integrals
             ERIs _ERIs;
 
             // external charges
-            std::shared_ptr<MMRegion> _externalsites;
+            std::vector<std::unique_ptr<StaticSite> >* _externalsites;
             bool _addexternalsites=false;
 
             // exchange and correlation

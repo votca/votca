@@ -33,8 +33,8 @@ namespace votca { namespace xtp {
 
         // Get components of dipole vector somehow
         
-        const Eigen::Vector3d dipole=-polarsite->getDipole();
-        const Eigen::Vector3d position=polarsite->getPos();
+        const Eigen::Vector3d dipole=-_site->getDipole();
+        const Eigen::Vector3d position=_site->getPos();
 
        
         // shell info, only lmax tells how far to go
@@ -752,22 +752,20 @@ for (int i = 0; i < nrows; i++) {
         }// shell_row Gaussians
         }
 
-        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::shared_ptr<MMRegion> & sites) {
+
+        void AODipole_Potential::Fillextpotential(const AOBasis& aobasis, const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
 
             _externalpotential = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-            for (const auto& Seg:*sites) {
-                for (const PolarSite& site:Seg) {
-                    if (site.getRank() > 0 || site.isPolarisable()) {
-                        if(site.getDipole().norm()<1e-12){continue;}
+            for (const std::unique_ptr<StaticSite>& site: externalsites) {
+                        if(site->getDipole().norm()<1e-12){continue;}
                         _aomatrix = Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-                        setPolarSite(&site);
+                        setSite(site.get());
                         Fill(aobasis);
                         _externalpotential += _aomatrix;
-                    }
-                }
             }
             return;
         }
+
 
 }}
 

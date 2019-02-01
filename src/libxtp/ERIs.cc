@@ -24,22 +24,19 @@
 namespace votca {
     namespace xtp {
 
-        void ERIs::Initialize(AOBasis &dftbasis, AOBasis &auxbasis,const Eigen::MatrixXd &inversesqrt_Coulomb) {
-          
-          _threecenter.Fill( auxbasis, dftbasis,inversesqrt_Coulomb);
+        void ERIs::Initialize(AOBasis &dftbasis, AOBasis &auxbasis) {
+          _threecenter.Fill( auxbasis, dftbasis);
           return;
         }
 
         
         void ERIs::Initialize_4c_small_molecule(AOBasis &dftbasis) {
-          
           _fourcenter.Fill_4c_small_molecule( dftbasis );
           return;
         }
 
         
         void ERIs::Initialize_4c_screening(AOBasis &dftbasis, double eps) {
-          
           _with_screening = true;
           _screening_eps = eps;
           CalculateERIsDiagonals(dftbasis);
@@ -49,22 +46,22 @@ namespace votca {
         
         void ERIs::CalculateERIs(const Eigen::MatrixXd &DMAT) {
 
-          unsigned nthreads = 1;
+          int nthreads = 1;
           #ifdef _OPENMP
             nthreads = omp_get_max_threads();
           #endif
           std::vector<Eigen::MatrixXd >ERIS_thread;
 
-          for (unsigned i = 0; i < nthreads; ++i) {
+          for (int i = 0; i < nthreads; ++i) {
             Eigen::MatrixXd thread = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
             ERIS_thread.push_back(thread);
           }
 
           #pragma omp parallel for
-          for (unsigned thread = 0; thread < nthreads; ++thread) {
+          for (int thread = 0; thread < nthreads; ++thread) {
             Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
             for (int i = thread; i < _threecenter.size(); i += nthreads) {
-              const Symmetric_Matrix &threecenter = _threecenter.getDatamatrix(i);
+              const Symmetric_Matrix &threecenter = _threecenter[i];
               // Trace over prod::DMAT,I(l)=componentwise product over 
               const double factor = threecenter.TraceofProd(dmat_sym);
               Eigen::SelfAdjointView<Eigen::MatrixXd,Eigen::Upper> m=ERIS_thread[thread].selfadjointView<Eigen::Upper>();
@@ -100,15 +97,14 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd D=DMAT;
             for(int i=thread;i<_threecenter.size();i+= nthreads){
-              const Eigen::MatrixXd threecenter = _threecenter.getDatamatrix(i).UpperMatrix();
-              EXX_thread[thread].noalias()+=threecenter.selfadjointView<Eigen::Upper>()*D*threecenter.selfadjointView<Eigen::Upper>();
+              const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
+              EXX_thread[thread]+=threecenter.selfadjointView<Eigen::Upper>()*D*threecenter.selfadjointView<Eigen::Upper>();
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols());
           for (const auto& thread : EXX_thread) {
             _EXXs += thread;
           }
-
           CalculateEXXEnergy(DMAT);
           return;
         }
@@ -131,15 +127,14 @@ namespace votca {
           for (int thread = 0; thread < nthreads; ++thread) {
             Eigen::MatrixXd occ=occMos;
             for(int i=thread;i<_threecenter.size();i+= nthreads){
-              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter.getDatamatrix(i).UpperMatrix().selfadjointView<Eigen::Upper>();
-              EXX_thread[thread].noalias()+=TCxMOs_T.transpose()*TCxMOs_T;
+              const Eigen::MatrixXd TCxMOs_T = occ.transpose()*_threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
+              EXX_thread[thread]+=TCxMOs_T.transpose()*TCxMOs_T;
             }
           }
           _EXXs = Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows());
           for (const auto& thread : EXX_thread) {
             _EXXs += 2*thread;
           }
-
           CalculateEXXEnergy(DMAT);
           return;
         }
@@ -514,15 +509,6 @@ namespace votca {
           return;
         }
         
-        
-        void ERIs::printERIs(){
-          for (int i=0; i< _ERIs.cols(); i++){
-            for (int j=0; j< _ERIs.rows();j++){
-              std::cout << "ERIs [" << i<<":"<<j<<"]="<<_ERIs(i,j)<<std::endl;
-            }
-          }
-          return;
-        }
         
     }
 }

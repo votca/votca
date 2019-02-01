@@ -23,34 +23,43 @@
 
 
 #include <votca/xtp/region.h>
-#include <votca/xtp/polarsegment.h>
+#include <votca/xtp/classicalsegment.h>
 
 namespace votca { namespace xtp {
-
+template <class T>
 class MMRegion: public Region{
     public:
 
-        void WriteToCpt(CheckpointWriter& w)const;
+        void WriteToCpt(CheckpointWriter& w)const{
+            return;
+        }
 
-        void ReadFromCpt(CheckpointReader& r);
+        void ReadFromCpt(CheckpointReader& r){
+            return;
+        }
 
         int size()const{return _segments.size();}
 
-        std::vector<PolarSegment>::iterator begin(){return _segments.begin();}
-        std::vector<PolarSegment>::iterator end(){return _segments.end();}
+       typename std::vector<T>::iterator begin(){return _segments.begin();}
+       typename std::vector<T>::iterator end(){return _segments.end();}
 
-        std::vector<PolarSegment>::const_iterator begin()const{return _segments.begin();}
-        std::vector<PolarSegment>::const_iterator end()const{return _segments.end();}
+       typename std::vector<T>::const_iterator begin()const{return _segments.begin();}
+       typename std::vector<T>::const_iterator end()const{return _segments.end();}
 
-        void push_back(const PolarSegment& seg){
+        void push_back(const T& seg){
             _segments.push_back(seg);
         }
         
     private:
 
-        std::vector<PolarSegment> _segments;
+        std::vector<T> _segments;
 
 };
+
+typedef MMRegion<PolarSegment> PolarRegion;
+typedef MMRegion<StaticSegment> StaticRegion;
+
+
 
 }}
 

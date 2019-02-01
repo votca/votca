@@ -250,25 +250,20 @@ namespace votca {
         void Gaussian::WriteBackgroundCharges(std::ofstream& com_file) {
             
             boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
-            for (const PolarSegment& seg:*_PolarSegments) {
-                for (const PolarSite& site:seg) {
-                    Eigen::Vector3d pos=site.getPos()*tools::conv::bohr2ang;
+            for (const std::unique_ptr<StaticSite>& site:_externalsites) {
+                    Eigen::Vector3d pos=site->getPos()*tools::conv::bohr2ang;
                     string sitestring=boost::str(fmt % pos.x() % pos.y() % pos.z()
-                            % site.getCharge());
-                    if (site.getCharge() != 0.0) com_file << sitestring << endl;
+                            % site->getCharge());
+                    if (site->getCharge() != 0.0) com_file << sitestring << endl;
 
-                    if (site.getRank() > 0 || _with_polarization ) {
-
-                        std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(site);
-                        for (const auto& mpoles:split_multipoles){
-                           Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
-                           string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
-                            com_file << multipole << endl;
-
-                        }
+                    std::vector< MinimalMMCharge > split_multipoles = SplitMultipoles(*site);
+                    for (const auto& mpoles:split_multipoles){
+                       Eigen::Vector3d pos=mpoles._pos*tools::conv::bohr2ang;
+                       string multipole=boost::str( fmt % pos.x() % pos.y() % pos.z() % mpoles._q);
+                        com_file << multipole << endl;
                     }
                 }
-            }
+            
             com_file << endl;
             return;
         }
@@ -747,11 +742,11 @@ namespace votca {
               row=GetLineAndSplit(input_file, "\t ");
               nfields = row.size();
                 if (!has_atoms) {
-                    PolarSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
+                    StaticSite temp=PolarSite(atom_id,atom_type, Eigen::Vector3d::Zero());
                     temp.setCharge(atom_charge);
                     orbitals.Multipoles().push_back(temp);
                 } else {
-                    orbitals.Multipoles().push_back(PolarSite(orbitals.QMAtoms().at(atom_id),atom_charge));
+                    orbitals.Multipoles().push_back(StaticSite(orbitals.QMAtoms().at(atom_id),atom_charge));
                 }
             }
           }
@@ -790,11 +785,11 @@ namespace votca {
 
             // save qmpackage name
             orbitals.setQMpackage("gaussian");
-            orbitals.setDFTbasis(_basisset_name);
+            orbitals.setDFTbasisName(_basisset_name);
 
 
             if (_write_pseudopotentials) {
-                orbitals.setECP(_ecp_name);
+                orbitals.setECPName(_ecp_name);
             }
 
             read_vxc = _output_Vxc;
@@ -825,7 +820,7 @@ namespace votca {
                     boost::algorithm::split(results, line, boost::is_any_of("\t "), boost::algorithm::token_compress_on);
                     has_number_of_electrons = true;
                     number_of_electrons = boost::lexical_cast<int>(results.front());
-                    orbitals.setNumberOfElectrons(number_of_electrons);
+                    orbitals.setNumberOfAlphaElectrons(number_of_electrons);
                     XTP_LOG(logDEBUG, *_pLog) << "Alpha electrons: " << number_of_electrons << flush;
                 }
 
@@ -875,7 +870,7 @@ namespace votca {
                         if (eigenvalues_pos == std::string::npos) {
                             has_occupied_levels = true;
                             has_unoccupied_levels = true;
-                            orbitals.setNumberOfLevels(occupied_levels, unoccupied_levels);
+                            orbitals.setNumberOfOccupiedLevels(occupied_levels);
                             XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
                             XTP_LOG(logDEBUG, *_pLog) << "Unoccupied levels: " << unoccupied_levels << flush;
                         }

@@ -37,9 +37,6 @@ class PPM {
     //This sets the screening frequencies for real and imaginary part in hartree
      
 
-double getScreening_r()const{return screening_r;}
-
-double getScreening_i()const{return screening_i;}
  void PPM_construct_parameters(const RPA& rpa);
 
  const Eigen::VectorXd& getPpm_weight() const {

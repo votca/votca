@@ -67,7 +67,7 @@ private:
     
     Logger*      _log;
     std::vector< std::pair<int,int> > _pairconstraint; //  pairconstraint[i] is all the atomindices which have the same charge     
-    std::vector< Espfit::ConstraintRegion > _regionconstraint;
+    std::vector< QMFragment<double> > _regionconstraint;
     
 
 };

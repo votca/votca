@@ -23,6 +23,8 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/checkpoint.h>
 #include <limits>
+#include <typeinfo>
+	
 
 /**
 * \brief Basic Container for QMAtoms,PolarSites and Atoms
@@ -46,6 +48,10 @@ template<class T>  class AtomContainer{
         
         void push_back(const T& atom){_atomlist.push_back(atom);_position_valid=false;}
         void push_back(T&& atom){_atomlist.push_back(atom);_position_valid=false;}
+
+        void push_back(int id,std::string name,Eigen::Vector3d pos){
+            push_back(T(id,name,pos));
+        }
 
         const T& at(int index)const{return _atomlist.at(index);}
         T& at(int index){return _atomlist.at(index);}
@@ -114,7 +120,7 @@ template<class T>  class AtomContainer{
         w(_name,"name");
         w(_id,"id");
         for (unsigned i=0;i<_atomlist.size();i++) {
-            CheckpointWriter s = w.openChild( T::Identify() + std::to_string(i));
+            CheckpointWriter s = w.openChild( _atomlist[i].identify() + std::to_string(i));
             _atomlist[i].WriteToCpt(s);
         }    
     }
@@ -125,8 +131,9 @@ template<class T>  class AtomContainer{
         size_t count = r.getNumDataSets();
         _atomlist.clear();
         _atomlist.reserve(count);
+        T element(0,"H",Eigen::Vector3d::Zero());//dummy element to get .identify for type
         for (size_t i = 0; i < count; ++i) {
-           CheckpointReader c = r.openChild( T::Identify() + std::to_string(i));
+           CheckpointReader c = r.openChild( element.identify() + std::to_string(i));
             _atomlist.emplace_back(T(c));
         }      
     }

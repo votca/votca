@@ -23,7 +23,8 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmstate.h>
-
+#include <votca/xtp/qmfragment.h>
+#include <votca/xtp/populationanalysis.h>
 
 namespace votca {
 namespace xtp {
@@ -75,10 +76,12 @@ bool _use_overlapfilter;
 double _overlapthreshold;
 
 bool _use_localisationfilter;
-bool _localiseonA;
+
+mutable std::vector<QMFragment<BSE_Population> >_fragment_loc; //contain value and definition but between iterations it does not change so mutalbe now
 double _loc_threshold;
 
 bool _use_dQfilter;
+mutable  std::vector< QMFragment<BSE_Population> >_fragment_dQ; //contain value and definition
 double _dQ_threshold;
 
 

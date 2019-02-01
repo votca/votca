@@ -106,13 +106,12 @@ namespace votca {
             
 
             if (_do_external) {
-                auto polar_segments = std::make_shared<MMRegion>();
-                PolarSegment seg=PolarSegment("",0);
+                StaticRegion region;
+                StaticSegment seg=StaticSegment("",0);
                 seg.LoadFromMPS(_mpsfile);
-                polar_segments->push_back(seg);
-                qmpackage->setMultipoleBackground(polar_segments);
+                region.push_back(seg);
+                qmpackage->AddRegion(region);
                 qmpackage->setDipoleSpacing(_dipole_spacing);
-                qmpackage->setWithPolarization(true);
             }
 
             GWBSEEngine gwbse_engine;

@@ -24,7 +24,13 @@
 namespace votca {
   namespace xtp {
 
-    void TCMatrix_dft::Fill(AOBasis& auxbasis, AOBasis& dftbasis, const Eigen::MatrixXd& V_sqrtm1) {
+    void TCMatrix_dft::Fill(const AOBasis& auxbasis,const AOBasis& dftbasis) {
+
+        AOCoulomb auxAOcoulomb;
+        auxAOcoulomb.Fill(auxbasis);
+        _inv_sqrt=auxAOcoulomb.Pseudo_InvSqrt(1e-8);
+        _removedfunctions=auxAOcoulomb.Removedfunctions();
+
 
       for (int i = 0; i < auxbasis.AOBasisSize(); i++) {
         try {
@@ -36,7 +42,6 @@ namespace votca {
       }
       #pragma omp parallel for schedule(dynamic)
       for (int is = dftbasis.getNumofShells()-1; is >=0; is--) {
-        const Eigen::MatrixXd V=V_sqrtm1;
         const AOShell& dftshell = dftbasis.getShell(is);
         std::vector< Eigen::MatrixXd > block;
         for (int i = 0; i < dftshell.getNumFunc(); i++) {
@@ -46,7 +51,7 @@ namespace votca {
         FillBlock(block, is, dftbasis, auxbasis);
         int offset = dftshell.getStartIndex();
         for (unsigned i = 0; i < block.size(); ++i) {
-          Eigen::MatrixXd temp =V * block[i];
+          Eigen::MatrixXd temp =_inv_sqrt * block[i];
           for (int mu = 0; mu < temp.rows(); ++mu) {
             for (int j = 0; j < temp.cols(); ++j) {
               _matrix[mu](i + offset, j) = temp(mu, j);

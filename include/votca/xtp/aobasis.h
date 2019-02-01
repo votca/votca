@@ -43,7 +43,7 @@ public:
        
     void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
 
-    void AOBasisFill( const BasisSet& bs , const QMMolecule& atoms, int fragbreak = -1);
+    void AOBasisFill( const BasisSet& bs , const QMMolecule& atoms);
     
 //returns element names for which no ecp was found
     std::vector<std::string> ECPFill( const BasisSet& bs , QMMolecule& atoms);
@@ -61,11 +61,7 @@ public:
     const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
     
     int getNumofShells() const{return _aoshells.size();}
-   
-    int getAOBasisFragA() const{return _AOBasisFragA;}
-    
-   int getAOBasisFragB() const{return _AOBasisFragB;}
-   
+      
    int getFuncOfAtom(int AtomIndex)const{return _FuncperAtom[AtomIndex];}
    
    const std::vector<int>& getFuncPerAtom()const {return _FuncperAtom;}
@@ -96,9 +92,7 @@ private:
     std::vector<AOShell> _aoshells;
     
     std::vector<int> _FuncperAtom;
-    
-    int _AOBasisFragA;
-    int _AOBasisFragB;
+
     int _AOBasisSize;
     
 };

@@ -22,6 +22,7 @@
 #include <votca/xtp/eigen.h>
 #include <limits>
 #include <boost/lexical_cast.hpp>
+#include <votca/tools/tokenizer.h>
 
 /**
 * \brief Container to define fragments of QMmolecules, containing atomindices, no pointers to atoms, it also handles the parsing of strings etc..
@@ -40,13 +41,31 @@ class QMFragment{
     QMFragment(std::string name,int id,std::string atoms):_name(name),_id(id)
                 {FillAtomIndices(atoms);}
 
-    void setValue(const T& value){_value=value;}
+    QMFragment(){};
 
-    const T& getValue()const{return _value;}
+    void setName(std::string name){_name=name;}
+    void setId(int id){_id=id;}
+    void FillFromString(std::string atoms){
+        FillAtomIndices(atoms);
+    }
+
+
+    const T& value()const{return _value;}
+
+    T& value(){return _value;}
+    const std::string& name()const{return _name;}
 
     int size()const{return _atomindices.size();}
 
     const std::vector<int>& getIndices()const{return _atomindices;}
+
+    double ExtractFromVector(const Eigen::VectorXd& atomentries)const{
+        double result=0;
+        for(int index:_atomindices){
+            result+=atomentries(index);
+        }
+        return result;
+    }
 
 
     typename std::vector<int>::const_iterator begin()const{return _atomindices.begin();}
@@ -72,14 +91,14 @@ private:
         const std::string delimiter="...";
         for(std::string s:results){ 
             if(s.find(delimiter) != std::string::npos){
-                int start = boost::lexical_cast<int>(s.substr(0, s.find(delimiter)));
-                int stop = boost::lexical_cast<int>(s.erase(0,s.find(delimiter) + delimiter.length()));
+                int start = std::stoi(s.substr(0, s.find(delimiter)));
+                int stop = std::stoi(s.erase(0,s.find(delimiter) + delimiter.length()));
                 for(int i=start;i<=stop;i++){
                     _atomindices.push_back(i);
                 }
             }
             else{
-                _atomindices.push_back(boost::lexical_cast<int>(s));
+                _atomindices.push_back(std::stoi(s));
             }
         }
         
@@ -87,8 +106,8 @@ private:
     }
 
     std::vector<int> _atomindices;
-    std::string _name;
-    int _id;
+    std::string _name="";
+    int _id=-1;
     T _value;
 
     
