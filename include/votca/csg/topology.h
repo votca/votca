@@ -88,15 +88,6 @@ class Topology {
                            int resnr, double m, double q);
 
   /**
-   * \brief get bead type or create it
-   * \param name typename
-   * \return pointer to bead type
-   *
-   * Returns an existing bead type or creates one if it doesn't exist yet
-   */
-  // virtual std::string GetOrCreateBeadType(std::string name);
-
-  /**
    * \brief creates a new molecule
    * \param name name of the molecule
    * \return pointer to created molecule
@@ -199,7 +190,6 @@ class Topology {
   void RegisterBeadType(std::string name);
 
   int getBeadTypeId(std::string type) const;
-  //    std::string getBeadType(const int i) { return (_beadtypes[i]); }
   Bead *getBead(const int i) const { return _beads[i]; }
   Residue *getResidue(const int i) const { return _residues[i]; }
   Molecule *getMolecule(const int i) const { return _molecules[i]; }
