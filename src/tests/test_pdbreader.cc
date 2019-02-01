@@ -19,7 +19,7 @@
 
 #define BOOST_TEST_MODULE pdbreader_test
 #include <boost/test/unit_test.hpp>
-
+#include <boost/test/floating_point_comparison.hpp>
 #include <cmath>
 #include <fstream>
 #include <string>
@@ -30,13 +30,6 @@
 using namespace std;
 using namespace votca::csg;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 BOOST_AUTO_TEST_SUITE(pdbreader_test)
 
@@ -120,10 +113,10 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
     BOOST_CHECK_EQUAL(bd->getName(),bd_name.at(i));
   //BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
     v = bd->getPos();
-    BOOST_CHECK_EQUAL(bd->getQ(), 0);
-    BOOST_CHECK_EQUAL(round_(v.getX(), 3), round_(x.at(i), 3));
-    BOOST_CHECK_EQUAL(round_(v.getY(), 3), round_(y.at(i), 3));
-    BOOST_CHECK_EQUAL(round_(v.getZ(), 3), round_(z.at(i), 3));
+    BOOST_CHECK_CLOSE(bd->getQ(), 0,1e-5);
+    BOOST_CHECK_CLOSE(v.getX(),x.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.getY(),y.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.getZ(),z.at(i), 1e-5);
   }
 }
 
