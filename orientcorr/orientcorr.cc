@@ -175,7 +175,7 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
             // create a bead in mapped topology
             string bead_type = "A";
             if(mapped.BeadTypeExist(bead_type)==false){
-              mapped.ReigsterBeadType(bead_type);
+              mapped.RegisterBeadType(bead_type);
             }
             Bead *b = mapped.CreateBead(3, "A", bead_type, 1, 0.0, 0.0);
             vec p1 = mol_src->getBead(i)->getPos();
