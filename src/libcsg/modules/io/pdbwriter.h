@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,28 @@
  */
 
 #ifndef _PDBWRITER_H
-#define	_PDBWRITER_H
+#define _PDBWRITER_H
 
 #include <stdio.h>
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-class PDBWriter
-: public TrajectoryWriter
-{
+class PDBWriter : public TrajectoryWriter {
 public:
-    
-    void Open(std::string file, bool bAppend = false);
-    void Close();
-    
-    void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}    
+  void Open(std::string file, bool bAppend = false);
+  void Close();
 
-    void Write(Topology *conf);
+  void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}
+
+  void Write(Topology *conf);
 
 private:
-    FILE *_out;
+  std::ofstream _out;
 };
+}
+}
 
-}}
-
-#endif	/* _PDBWRITER_H */
-
+#endif /* _PDBWRITER_H */
