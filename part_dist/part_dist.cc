@@ -173,7 +173,7 @@ int main(int argc, char** argv)
     for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
       for(int i=0; i<(*mol)->BeadCount(); ++i) {
         flag_found = 0;
-        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        part_type = atoi((*mol)->getBead(i)->getType().c_str());
         for (size_t j=0; j < ptypes.size(); ++j) {
           if (part_type == ptypes[j]) 
             flag_found = 1;
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
   if (vm.count("shift_com")) {
     for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
       for(int i=0; i<(*mol)->BeadCount(); ++i) {
-        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        part_type = atoi((*mol)->getBead(i)->getType().c_str());
         for (size_t j=0; j < ptypes.size(); ++j) 
           if (part_type == ptypes[j])
             ++n_part;
@@ -235,7 +235,7 @@ int main(int argc, char** argv)
 	    if (vm.count("shift_com")) {
         for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
           for(int i=0; i<(*mol)->BeadCount(); ++i) {
-            part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+            part_type = atoi((*mol)->getBead(i)->getType().c_str());
             for (size_t j=0; j < ptypes.size(); ++j) {
               if (part_type == ptypes[j]) {
                 if (coordinate.compare("x") == 0) {
@@ -260,7 +260,7 @@ int main(int argc, char** argv)
 		// Loop over each atom property
     for(mol=top.Molecules().begin(); mol!=top.Molecules().end();++mol) {
       for(int i=0; i<(*mol)->BeadCount(); ++i) {
-        part_type = atoi((*mol)->getBead(i)->getBeadTypeName().c_str());
+        part_type = atoi((*mol)->getBead(i)->getType().c_str());
         for (size_t j=0; j < ptypes.size(); ++j) {	
           if (part_type == ptypes[j]) {
             if (coordinate.compare("x") == 0)
