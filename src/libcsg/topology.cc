@@ -185,8 +185,8 @@ void Topology::CopyTopologyData(Topology *top) {
   for (it_bead = top->_beads.begin(); it_bead != top->_beads.end(); ++it_bead) {
     Bead *bi = *it_bead;
     weak_ptr<BeadType> weak_type = bi->getType();
-    Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), weak_type,
-                          bi->getResnr(), bi->getMass(), bi->getQ());
+    CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr(),
+               bi->getMass(), bi->getQ());
   }
 
   // copy all molecules
@@ -198,12 +198,6 @@ void Topology::CopyTopologyData(Topology *top) {
       mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
     }
   }
-  // TODO: copy interactions
-  // InteractionContainer::iterator it_ia;
-  // for(it_ia=top->_interaction.begin();it_ia=top->_interactions.end();++it_ia)
-  // {
-
-  //}
 }
 
 void Topology::RenameMolecules(string range, string name) {
