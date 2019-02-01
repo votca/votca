@@ -284,6 +284,10 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
     this->_eigenvalues = lambda.head(neigen);
     this->_eigenvectors = q.block(0,0,q.rows(),neigen);
 
+    // normalize the eigenvectors
+    for (int i=0; i<neigen; i++)
+        this->_eigenvectors.col(i).normalize();
+
 }
 
 
