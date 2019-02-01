@@ -186,10 +186,36 @@ class Topology {
   void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
 
+  /**
+   * \brief Determine if a bead type exists.
+   *
+   * @return bool true if it has been registered
+   **/
   bool BeadTypeExist(std::string type) const;
+
+  /**
+   * \brief Register the bead type with the topology object.
+   *
+   * Records are kept of the different bead types in the topology object. This
+   * method stores the bead type.
+   **/
   void RegisterBeadType(std::string name);
 
+  /**
+   * \brief Given a bead type this method returns the id associated with the
+   * type
+   *
+   * @param[in] string name of the type
+   * @return int the id of the type
+   **/
   int getBeadTypeId(std::string type) const;
+
+  /**
+   * \brief Returns a pointer to the bead with index i
+   *
+   * @param[in] int i is the id of the bead
+   * @return Bead * is a pointer to the bead
+   **/
   Bead *getBead(const int i) const { return _beads[i]; }
   Residue *getResidue(const int i) const { return _residues[i]; }
   Molecule *getMolecule(const int i) const { return _molecules[i]; }
