@@ -25,17 +25,15 @@ namespace csg {
 using namespace boost;
 using namespace std;
 
-bool XYZReader::ReadTopology(string file,  Topology &top)
-{
-    top.Cleanup();
+bool XYZReader::ReadTopology(string file, Topology &top) {
+  top.Cleanup();
 
   _fl.open(file.c_str());
-  if (!_fl.is_open())
+  if (!_fl.is_open()) {
     throw std::ios_base::failure("Error on open topology file: " + file);
+  }
 
-    top.CreateResidue("DUM");
-
-   ReadFrame<true>(top);
+  ReadFrame<true>(top);
 
   _fl.close();
 
@@ -52,67 +50,66 @@ bool XYZReader::Open(const string &file) {
 
 void XYZReader::Close() { _fl.close(); }
 
-bool XYZReader::FirstFrame(Topology &top)
-{
-    return NextFrame(top);
-}
+bool XYZReader::FirstFrame(Topology &top) { return NextFrame(top); }
 
-bool XYZReader::NextFrame(Topology& top){
-    bool success=ReadFrame<false>(top);
-    return success;
+bool XYZReader::NextFrame(Topology &top) {
+  bool success = ReadFrame<false>(top);
+  return success;
 }
 
 template <bool topology>
-bool XYZReader::ReadFrame(Topology &top)
-{
-    string line;
-    getline(_fl, line); ++_line;
-    if(!_fl.eof()) {
-        // read the number of atoms
-        int natoms = boost::lexical_cast<int>(line);
-        if(!topology && natoms !=top.BeadCount())
-            throw std::runtime_error("number of beads in topology and trajectory differ");
+bool XYZReader::ReadFrame(Topology &top) {
+  string line;
+  getline(_fl, line);
+  ++_line;
+  if (!_fl.eof()) {
+    // read the number of atoms
+    int natoms = boost::lexical_cast<int>(line);
+    if (!topology && natoms != top.BeadCount())
+      throw std::runtime_error(
+          "number of beads in topology and trajectory differ");
 
-        // the title line
-        getline(_fl, line); ++_line;
-        
-        // read atoms
-        for(int i=0; i<natoms; ++i) {
-            getline(_fl, line); ++_line;
-            if(_fl.eof()) {
-                throw std::runtime_error("unexpected end of file in xyz file");
-            }
-          
-            vector<string> fields;
-            Tokenizer tok(line, " ");
-            tok.ToVector(fields);
+    // the title line
+    getline(_fl, line);
+    ++_line;
 
-            if(fields.size() != 4) {
-                throw std::runtime_error("invalide line " + 
-                        boost::lexical_cast<string>(_line) +
-                        " in xyz file\n" + line);
-            }
+    // read atoms
+    for (int i = 0; i < natoms; ++i) {
+      getline(_fl, line);
+      ++_line;
+      if (_fl.eof()) {
+        throw std::runtime_error("unexpected end of file in xyz file");
+      }
 
-            Bead *b;
-            if(topology) {     
-                string bead_type = fields[0];
-                if (!top.BeadTypeExist(bead_type)) {
-                    top.RegisterBeadType(bead_type);
-                }
-                b = top.CreateBead(1, fields[0]+boost::lexical_cast<string>(i),
-                            bead_type, 0, 0, 0);
-            } else {
-                b = top.getBead(i);
-            }
+      vector<string> fields;
+      Tokenizer tok(line, " ");
+      tok.ToVector(fields);
 
-            // convert to nm from A
-            b->setPos(vec(
-                    boost::lexical_cast<double>(fields[1])/10.0,
-                    boost::lexical_cast<double>(fields[2])/10.0,
-                    boost::lexical_cast<double>(fields[3])/10.0));
-          
-        } // for(int i=0; i<natoms; ++i)
-    } // if(!_fl.eof())
+      if (fields.size() != 4) {
+        throw std::runtime_error("invalide line " +
+                                 boost::lexical_cast<string>(_line) +
+                                 " in xyz file\n" + line);
+      }
+
+      Bead *b;
+      if (topology) {
+        string bead_type = fields[0];
+        if (!top.BeadTypeExist(bead_type)) {
+          top.RegisterBeadType(bead_type);
+        }
+        b = top.CreateBead(1, fields[0] + boost::lexical_cast<string>(i),
+                           bead_type, 0, 0, 0);
+      } else {
+        b = top.getBead(i);
+      }
+
+      // convert to nm from A
+      b->setPos(vec(boost::lexical_cast<double>(fields[1]) / 10.0,
+                    boost::lexical_cast<double>(fields[2]) / 10.0,
+                    boost::lexical_cast<double>(fields[3]) / 10.0));
+
+    }  // for(int i=0; i<natoms; ++i)
+  }    // if(!_fl.eof())
   return !_fl.eof();
 }
 
