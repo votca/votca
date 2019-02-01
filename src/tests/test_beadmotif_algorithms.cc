@@ -27,6 +27,7 @@
 #include <votca/tools/edge.h>
 
 using namespace std;
+using namespace votca::tools;
 using namespace votca::csg;
 
 class TestBead : public BaseBead {
