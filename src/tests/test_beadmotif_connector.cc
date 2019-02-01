@@ -26,13 +26,7 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
+
 
 BOOST_AUTO_TEST_SUITE(beadmotifconnector_test)
 

@@ -106,7 +106,7 @@ namespace csg {
  * from the original class is called.
  **/
 
-class BeadMotif : public BeadStructure {
+class BeadMotif : public BeadStructure<BaseBead> {
  public:
   enum MotifType {
     empty,
@@ -118,6 +118,10 @@ class BeadMotif : public BeadStructure {
     multiple_structures,
     undefined
   };
+
+  BeadMotif(){};
+
+  BeadMotif(const BeadStructure& structure):BeadStructure(structure){};
 
   /// Gets the motif type, calculates it first if it is not yet known
   MotifType getType();

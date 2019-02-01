@@ -19,20 +19,15 @@
 
 #define BOOST_TEST_MODULE beadmotifalgorithms_test
 #include <boost/test/unit_test.hpp>
-
-#include <string>
-#include <votca/csg/beadmotifalgorithms.h>
+#include <votca/csg/basebead.h>
+#include <votca/csg/beadmotif.h>            // IWYU pragma: keep
+#include <votca/csg/beadmotifalgorithms.h>  // IWYU pragma: keep
+#include <votca/csg/beadmotifconnector.h>
+#include <votca/csg/beadstructure.h>  // IWYU pragma: keep
+#include <votca/tools/edge.h>
 
 using namespace std;
 using namespace votca::csg;
-using namespace votca::tools;
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 class TestBead : public BaseBead {
  public:
@@ -43,7 +38,7 @@ BOOST_AUTO_TEST_SUITE(beadmotif_algorithms_test)
 
 BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
 
-  BeadStructure beadstructure1;
+  BeadStructure<BaseBead> beadstructure1;
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -154,7 +149,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   //
   // Should return type fused ring
 
-  vector<TestBead> fused_ring;
+  vector<BaseBead> fused_ring;
   for (int index = 0; index < 6; ++index) {
     int id = index + 13;
     TestBead temp;
@@ -217,7 +212,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
 
 BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
 
-  BeadStructure beadstructure1;
+  BeadStructure<BaseBead> beadstructure1;
 
   // Beads for bead structure 1
   // Make a methane molecule
@@ -303,7 +298,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
 
 BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
 
-  BeadStructure beadstructure1;
+  BeadStructure<BaseBead> beadstructure1;
 
   // Beads for bead structure 1
   //
@@ -386,7 +381,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
   BeadMotifConnector connector = simple_motifs_and_connector.second;
 
   // There should be a single edge connecting the motifs, motif id will start
-  // at 0 that means motifs 0 and 1 sholud be connected via edge 5 and 5
+  // at 0 that means motifs 0 and 1 should be connected via edge 5 and 5
   Edge edge_motif(5, 6);
   Edge edge_bead4_5(4, 5);
   vector<Edge> bead_edges = connector.getBeadEdges(edge_motif);
@@ -396,7 +391,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
 
 BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
 
-  BeadStructure beadstructure1;
+  BeadStructure<BaseBead> beadstructure1;
 
   // Beads for bead structure 1
   //

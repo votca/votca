@@ -21,9 +21,11 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/votca/csg/basebead.h</itemPath>
       <itemPath>../../include/votca/csg/bead.h</itemPath>
       <itemPath>../../include/votca/csg/beadlist.h</itemPath>
       <itemPath>../../include/votca/csg/beadpair.h</itemPath>
+      <itemPath>../../include/votca/csg/beadstructure.h</itemPath>
       <itemPath>../../include/votca/csg/beadtriple.h</itemPath>
       <itemPath>../../include/votca/csg/beadtype.h</itemPath>
       <itemPath>../../include/votca/csg/boundarycondition.h</itemPath>
@@ -85,8 +87,12 @@
             <itemPath>../../src/libcsg/modules/io/growriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/h5mdtrajectoryreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/h5mdtrajectoryreader.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/lammpsreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/lammpsreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdatareader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdatareader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpwriter.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
@@ -111,6 +117,7 @@
         <itemPath>../../include/votca/csg/potentialfunctions/potentialfunctionljg.h</itemPath>
       </logicalFolder>
       <itemPath>../../src/libcsg/beadlist.cc</itemPath>
+      <itemPath>../../src/libcsg/beadstructure.cc</itemPath>
       <itemPath>../../src/libcsg/boundarycondition.cc</itemPath>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
@@ -167,11 +174,18 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadstructure.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadtriple.h"
             ex="false"
@@ -315,6 +329,24 @@
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifconnector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadstructurealgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
             tool="1"
@@ -422,12 +454,32 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -539,7 +591,80 @@
       </item>
       <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basebead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_connector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadtriple.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_csg_topology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_interaction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdatareader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdumpreaderwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblist_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_triplelist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -571,6 +696,7 @@
       </item>
       <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
       </item>
+    </item>
     </conf>
     <conf name="Release" type="3">
       <toolsSet>
@@ -598,11 +724,18 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadstructure.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadtriple.h"
             ex="false"
@@ -746,6 +879,24 @@
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifconnector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadstructurealgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
             tool="1"
@@ -853,12 +1004,32 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -970,7 +1141,80 @@
       </item>
       <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basebead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_connector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadtriple.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_csg_topology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_interaction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdatareader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdumpreaderwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblist_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_triplelist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1002,6 +1246,7 @@
       </item>
       <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
       </item>
+</item>
     </conf>
     <conf name="profile_release" type="3">
       <toolsSet>
@@ -1030,11 +1275,18 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadstructure.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadtriple.h"
             ex="false"
@@ -1178,6 +1430,24 @@
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/beadmotif.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifalgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadmotifconnector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/beadstructurealgorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
             tool="1"
@@ -1285,12 +1555,32 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1402,7 +1692,80 @@
       </item>
       <item path="../../src/libcsg/version_nb.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_basebead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bead.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadmotif_connector.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_algorithms.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadstructure_base.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_beadtriple.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_csg_topology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_interaction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdatareader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_lammpsdumpreaderwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblist_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_pdbreader.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_triplelist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_density.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1434,6 +1797,7 @@
       </item>
       <item path="../../src/tools/csg_stat_imc.h" ex="false" tool="3" flavor2="0">
       </item>
+</item>
     </conf>
   </confs>
 </configurationDescriptor>

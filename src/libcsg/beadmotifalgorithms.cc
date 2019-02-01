@@ -15,12 +15,23 @@
  *
 / */
 #include "../../include/votca/csg/beadmotifalgorithms.h"
-#include "../../include/votca/csg/beadstructurealgorithms.h"
-#include <list>
-#include <unordered_map>
-#include <votca/csg/beadmotif.h>
-#include <votca/tools/edge.h>
+
+#include <assert.h>
+#include <stddef.h>
+#include <utility>
 #include <votca/tools/graphalgorithm.h>
+#include <votca/tools/reducedgraph.h>
+
+#include "../../include/votca/csg/beadmotifconnector.h"
+
+namespace votca {
+namespace csg {
+class BeadMotif;
+}  // namespace csg
+namespace tools {
+class Graph;
+}  // namespace tools
+}  // namespace votca
 
 using namespace votca::tools;
 using namespace std;
@@ -261,7 +272,7 @@ class MotifDeconstructor_ {
 unordered_map<int, BeadMotif> MotifDeconstructor_::getSimpleMotifs() {
   unordered_map<int, BeadMotif> simple_motifs;
   for (IdMotif& id_and_motif : motifs_simple_) {
-    simple_motifs[id_and_motif.first] = id_and_motif.second;
+    simple_motifs.insert(id_and_motif);
   }
   return simple_motifs;
 }
@@ -300,7 +311,7 @@ void MotifDeconstructor_::deconstructComplexSingleStructures(
 
     vector<int> all_vertices = full_graph.getVertices();
 
-    BeadStructure new_beadstructure;
+    BeadStructure<BaseBead> new_beadstructure;
     for (int& vertex : all_vertices) {
       new_beadstructure.AddBead(id_and_bead_motif.second.getBead(vertex));
     }
