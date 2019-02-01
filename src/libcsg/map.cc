@@ -15,6 +15,7 @@
  *
  */
 
+#include <numeric>
 #include <string>
 #include <votca/csg/bead.h>
 #include <votca/csg/map.h>
