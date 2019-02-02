@@ -112,8 +112,6 @@ void Topology::CreateMoleculesByResidue() {
   // add the beads to the corresponding molecules based on their resid
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
-    // MoleculeByIndex((*bead)->getResnr())->AddBead((*bead)->getId(),
-    // (*bead)->getName());
 
     MoleculeByIndex((*bead)->getResnr())
         ->AddBead((*bead), string("1:TRI:") + (*bead)->getName());
@@ -132,7 +130,6 @@ void Topology::CreateOneBigMolecule(string name) {
     stringstream n("");
     n << (*bead)->getResnr() + 1 << ":"
       << _residues[(*bead)->getResnr()]->getName() << ":" << (*bead)->getName();
-    // cout << n.str() << endl;
     mi->AddBead((*bead), n.str());
   }
 }
@@ -186,8 +183,8 @@ void Topology::CopyTopologyData(Topology *top) {
   for (it_bead = top->_beads.begin(); it_bead != top->_beads.end(); ++it_bead) {
     Bead *bi = *it_bead;
     string type = bi->getType();
-    Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type,
-                          bi->getResnr(), bi->getMass(), bi->getQ());
+    CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(),
+               bi->getMass(), bi->getQ());
   }
 
   // copy all molecules
