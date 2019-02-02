@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,29 @@
  */
 
 #ifndef _VOTCA_CSG_TOPOLOGYITEM_H
-#define	_VOTCA_CSG_TOPOLOGYITEM_H
+#define _VOTCA_CSG_TOPOLOGYITEM_H
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 class Topology;
 
-class TopologyItem
-{
-public:    
-    virtual ~TopologyItem() {}
-    Topology *getParent() { return _parent; }
-protected:
-    TopologyItem(Topology *parent)
-        : _parent(parent) {}
-    
-    Topology *_parent;
-    
-    friend class Topology;
+class TopologyItem {
+ public:
+  virtual ~TopologyItem() {}
+  Topology *getParent() const { return _parent; }
+
+ protected:
+  TopologyItem(Topology *parent) : _parent(parent) {}
+
+  Topology *_parent;
+
+  friend class Topology;
+  friend class BaseBead;
+  friend class Bead;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _VOTCA_CSG_TOPOLOGYITEM_H */
-
+#endif /* _VOTCA_CSG_TOPOLOGYITEM_H */
