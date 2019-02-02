@@ -18,6 +18,7 @@
 #ifndef _VOTCA_CSG_TOPOLOGY_H
 #define _VOTCA_CSG_TOPOLOGY_H
 
+#include <cassert>
 #include <list>
 #include <map>
 #include <unordered_map>
@@ -32,7 +33,7 @@
 #include "orthorhombicbox.h"
 #include "residue.h"
 #include "triclinicbox.h"
-#include <assert.h>
+
 #include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
 #include <votca/tools/vec.h>
