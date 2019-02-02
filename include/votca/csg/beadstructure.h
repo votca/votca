@@ -27,8 +27,6 @@
 
 namespace TOOLS = votca::tools;
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 
