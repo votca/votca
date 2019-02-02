@@ -11,6 +11,11 @@ stages:
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/votca
+    when: always 
+  dependencies: []
   cache:
     paths:
       - ccache/
@@ -18,7 +23,6 @@ stages:
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
     - git branch commit_of_build_${CI_BUILD_ID} ${CI_COMMIT_SHA}
-    - cd $HOME
     - git clone https://github.com/votca/votca
     - pushd votca
     - if [[ ${CI_COMMIT_TAG} = v[12].[0-9]* ]]; then
