@@ -52,12 +52,11 @@ typedef std::vector<Residue *> ResidueContainer;
 typedef std::vector<Interaction *> InteractionContainer;
 
 /**
-    \brief topology of the whole system
-
-    The Topology class stores the topology of the system like the beads, bonds,
- molecules and residues.
-
-    \todo internal management for ids and indices
+ * \brief topology of the whole system
+ *
+ * The Topology class stores the topology of the system like the beads, bonds,
+ * molecules and residues.
+ *
  **/
 class Topology {
  public:
@@ -68,19 +67,19 @@ class Topology {
   virtual ~Topology();
 
   /**
-   * \brief cleans up all the stored data
+   * \brief Cleans up all the stored data
    */
   virtual void Cleanup();
 
   /**
-   * \brief creates a new Bead
+   * \brief Creates a new Bead
    *
-   * \param symmetry symmetry of the bead, 1: spherical 3: ellipsoidal
-   * \param name name of the bead
-   * \param type bead type
-   * \param resnr residue number
-   * \param m mass
-   * \param q charge
+   * \param[in] symmetry symmetry of the bead, 1: spherical 3: ellipsoidal
+   * \param[in] name name of the bead
+   * \param[in] type bead type
+   * \param[in] resnr residue number
+   * \param[in] m mass
+   * \param[in] q charge
    * \return pointer to created bead
    *
    * The function creates a new bead and adds it to the list of beads.
@@ -89,8 +88,8 @@ class Topology {
                            int resnr, double m, double q);
 
   /**
-   * \brief creates a new molecule
-   * \param name name of the molecule
+   * \brief Creates a new molecule
+   * \param[in] name name of the molecule
    * \return pointer to created molecule
    */
   virtual Molecule *CreateMolecule(std::string name);
@@ -102,15 +101,16 @@ class Topology {
   void CheckMoleculeNaming(void);
 
   /**
-   * \brief create a new resiude
-   * @param name residue name
+   * \brief Create a new resiude.
+   *
+   * @param[in] name residue name
    * @return created residue
    */
   virtual Residue *CreateResidue(std::string name);
   virtual Residue *CreateResidue(std::string name, int id);
 
   /**
-   * \brief create molecules based on the residue
+   * \brief Create molecules based on the residue.
    *
    * This function scans the topology and creates molecules based on the resiude
    * id. All beads with the same resid are put int one molecule.
@@ -127,10 +127,10 @@ class Topology {
 
   /**
    * \brief create molecules based on blocks of atoms
-   * \param name molecule name
-   * \param first first bead
-   * \param nbeads number of beads per molecule
-   * \param nmolecules number of molecules
+   * \param[in] name molecule name
+   * \param[in] first first bead
+   * \param[in] nbeads number of beads per molecule
+   * \param[in] nmolecules number of molecules
    */
   void CreateMoleculesByRange(std::string name, int first, int nbeads,
                               int nmolecules);
