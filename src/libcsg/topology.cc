@@ -16,10 +16,14 @@
  */
 
 #include <boost/lexical_cast.hpp>
+#include <cassert>
 #include <regex>
 #include <stdexcept>
 #include <unordered_set>
+#include <votca/csg/boundarycondition.h>
 #include <votca/csg/interaction.h>
+#include <votca/csg/molecule.h>
+#include <votca/csg/openbox.h>
 #include <votca/csg/topology.h>
 #include <votca/tools/rangeparser.h>
 
@@ -35,7 +39,7 @@ bool is_digits(const std::string &str) {
 Topology::~Topology() {
   Cleanup();
   if (_bc) delete (_bc);
-  _bc = NULL;
+  _bc = nullptr;
 }
 
 void Topology::Cleanup() {
@@ -184,7 +188,6 @@ void Topology::CopyTopologyData(Topology *top) {
     string type = bi->getType();
     Bead *bn = CreateBead(bi->getSymmetry(), bi->getName(), type,
                           bi->getResnr(), bi->getMass(), bi->getQ());
-    bn->setOptions(bi->Options());
   }
 
   // copy all molecules
@@ -196,12 +199,6 @@ void Topology::CopyTopologyData(Topology *top) {
       mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
     }
   }
-  // TODO: copy interactions
-  // InteractionContainer::iterator it_ia;
-  // for(it_ia=top->_interaction.begin();it_ia=top->_interactions.end();++it_ia)
-  // {
-
-  //}
 }
 
 int Topology::getBeadTypeId(string type) const {

@@ -15,11 +15,12 @@
  *
  */
 
-#include <boost/tokenizer.hpp>
 #include <fstream>
-#include <iostream>
-#include <math.h>
+#include <stddef.h>
+#include <stdexcept>
+#include <string>
 #include <votca/csg/csgapplication.h>
+#include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
 using namespace std;
@@ -113,7 +114,6 @@ class CsgMapApp : public CsgApplication {
           Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
                                         bi->getType(), bi->getResnr(),
                                         bi->getMass(), bi->getQ());
-          bn->setOptions(bi->Options());
           bn->setPos(bi->getPos());
           if (bi->HasVel()) bn->setVel(bi->getVel());
           if (bi->HasF()) bn->setF(bi->getF());
@@ -132,7 +132,6 @@ class CsgMapApp : public CsgApplication {
             Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
                                           bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
-            bn->setOptions(bi->Options());
             bn->setPos(bi->getPos());
             if (bi->HasVel()) bn->setVel(bi->getVel());
             mi->AddBead(bi, bi->getName());

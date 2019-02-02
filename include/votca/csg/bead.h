@@ -18,12 +18,14 @@
 #ifndef _VOTCA_CSG_BEAD_H
 #define _VOTCA_CSG_BEAD_H
 
-#include "basebead.h"
+#include <assert.h>
 #include <cassert>
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
 #include <votca/tools/vec.h>
+
+#include "basebead.h"
 
 namespace votca {
 namespace csg {
@@ -185,7 +187,8 @@ class Bead : public BaseBead {
    * \return reference to velocity
    */
   vec &Vel() {
-    assert(bead_velocity_set_);
+    assert(bead_velocity_set_ &&
+           "Cannot access velocity, it has not been set.");
     return velocity_;
   }
 
@@ -194,7 +197,7 @@ class Bead : public BaseBead {
    * \return reference to u
    */
   vec &U() {
-    assert(bU_);
+    assert(bU_ && "Cannot access bead orientation u, has not been set.");
     return u_;
   }
 
@@ -203,7 +206,7 @@ class Bead : public BaseBead {
    * \return reference to v
    */
   vec &V() {
-    assert(bV_);
+    assert(bV_ && "Cannot access bead orientation v, has not been set.");
     return v_;
   }
 
@@ -212,7 +215,7 @@ class Bead : public BaseBead {
    * \return reference to w
    */
   vec &W() {
-    assert(bW_);
+    assert(bW_ && "Cannot access bead orientation w, has not been set.");
     return w_;
   }
 
@@ -221,7 +224,7 @@ class Bead : public BaseBead {
    * \return reference to force
    */
   vec &F() {
-    assert(bead_force_set_);
+    assert(bead_force_set_ && "Cannot access bead force, has not been set.");
     return bead_force_;
   }
 
@@ -275,56 +278,26 @@ class Bead : public BaseBead {
    * If it is a mapped beads, returns te bead id the cg bead was created from
    * \return vector of bead ids of reference atoms
    */
-  std::vector<int> &ParentBeads() { return parent_beads_; };
+  const std::vector<int> &ParentBeads() { return parent_beads_; };
 
   /**
-   * \brief Function to add arbitrary user data to bead
-   *
-   * The user can attach pointers to own created objects to beads. Currently
-   * the user has to take care about deletion of the objects at the end.
-   *
-   * \todo change this to shared_pointer
-   *
-   * \param userdata userdata
-   */
-  template <typename T>
-  void setUserData(T *userdata) {
-    _userdata = (void *)userdata;
+   * \brief Clears out all parent beads
+   **/
+  void ClearParentBeads() { parent_beads_.clear(); }
+
+  /**
+   * \brief Adds the id of a parent bead
+   **/
+  void AddParentBead(int parent_bead_id) {
+    parent_beads_.push_back(parent_bead_id);
   }
-
-  /**
-   * get userdata attached to bead
-   * @return pointer to userdata
-   */
-  template <typename T>
-  T *getUserData() {
-    return (T *)_userdata;
-  }
-
-  /**
-   * \brief Additional options of bead
-   *
-   * The options object stores additional options which can be attached to
-   * the bead. For mapped beads, it contains all the values which were specified
-   * in the xml mapping file. This allows to at user defined options to the xml
-   * which are automatically read in on creation of the coare-grained bead.
-   *
-   * \return Property object containing options
-   */
-  Property &Options() { return *options_; }
-
-  /**
-   * update pointer to options object of bead
-   * \param options pointer to options object of bead
-   */
-  void setOptions(Property &options) { options_ = &options; }
 
  protected:
   std::vector<int> parent_beads_;
 
   // TODO: this is so far a pointer. this should change! each bead should have
   // own options.
-  Property *options_;
+  // Property *options_;
 
   byte_t symmetry_;
   double charge_;
@@ -356,7 +329,7 @@ class Bead : public BaseBead {
     bead_force_set_ = false;
   }
 
-  void *_userdata;
+  // void *_userdata;
 
   friend class Topology;
   friend class Molecule;
@@ -368,7 +341,8 @@ inline void Bead::setVel(const vec &r) {
 }
 
 inline const vec &Bead::getVel() const {
-  assert(bead_velocity_set_);
+  assert(bead_velocity_set_ &&
+         "Cannot access bead velocity, has not been set.");
   return velocity_;
 }
 
@@ -378,7 +352,7 @@ inline void Bead::setU(const vec &u) {
 }
 
 inline const vec &Bead::getU() const {
-  assert(bU_);
+  assert(bU_ && "Cannot access bead orientation u, has not been set.");
   return u_;
 }
 
@@ -398,7 +372,7 @@ inline void Bead::setW(const vec &w) {
 }
 
 inline const vec &Bead::getW() const {
-  assert(bW_);
+  assert(bW_ && "Cannot access bead orientation w, has not been set.");
   return w_;
 }
 
@@ -408,7 +382,7 @@ inline void Bead::setF(const vec &bead_force) {
 }
 
 inline const vec &Bead::getF() const {
-  assert(bead_force_set_);
+  assert(bead_force_set_ && "Cannot access bead force, has not been set.");
   return bead_force_;
 }
 
