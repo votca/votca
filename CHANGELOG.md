@@ -3,7 +3,7 @@ For more detailed information about the changes see the history of the [reposito
 ## Version 1.6-dev
 
 
-## Version 1.5 (released XX.01.19)
+## Version 1.5 _SuperVictor_ (released 31.01.19)
  * enable gitlab CI
 
 
