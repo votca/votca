@@ -9,13 +9,13 @@ stages:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
     CXXFLAGS: "-Wall -Werror"
     DISTRO: "latest"
-    GIT_SUBMODULE_STRATEGY: recursive
   image: votca/buildenv:${DISTRO}
   stage: build
   artifacts:
     paths:
       - ${CI_PROJECT_DIR}/votca
     when: always 
+  dependencies: []
   cache:
     paths:
       - ccache/
