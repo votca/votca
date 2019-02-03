@@ -46,6 +46,8 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getMass("K"), 39.098);
   BOOST_CHECK_EQUAL(ele.getEleNum("Li"), 3);
 
+  BOOST_CHECK_EQUAL(ele.getNucCrg("H"),1);
+
   BOOST_CHECK_EQUAL(ele.getEleName(17), "Cl");
   BOOST_CHECK_EQUAL(ele.getEleShort("MAGNESIUM"), "Mg");
   BOOST_CHECK_EQUAL(ele.getEleFull("Ge"), "GERMANIUM");

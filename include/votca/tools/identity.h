@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,7 +18,7 @@
  */
 #ifndef __VOTCA_TOOLS_IDENTITY_H
 #define __VOTCA_TOOLS_IDENTITY_H
-#include <stdexcept>
+#include <cassert>
 namespace votca {
 namespace tools {
 
@@ -27,9 +27,9 @@ namespace tools {
 
     The identity object is meant to provide functionality for storing the id of
     an object it primariy meant to be used in child classes and provides a more
-    safety than other imlementations.
+    safety than other implementations.
 */
-template<typename T>
+template <typename T>
 class Identity {
  private:
   T id_;
@@ -39,16 +39,19 @@ class Identity {
   /// Constructor
   Identity() : id_set_(false) {}
   /// Constructor that takes initial id
-  Identity(const T &id) : id_(id), id_set_(true) {};
+  Identity(const T &id) : id_(id), id_set_(true){};
   /// Gets the id returns error of the id has not been set
   const T &getId() const {
-    if(!id_set_) throw std::runtime_error("ID not set");
+    assert(id_set_ && "No id has been set, cannot get id");
     return id_;
   }
   /// Set the id
-  void setId(const T & id) { id_set_ = true; id_ = id; }
+  void setId(const T &id) {
+    id_set_ = true;
+    id_ = id;
+  }
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif
