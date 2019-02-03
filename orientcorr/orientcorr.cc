@@ -173,7 +173,11 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
         // loop over beads in molecule
         for(int i=0; i<mol_src->BeadCount()-1; ++i) {
             // create a bead in mapped topology
-            Bead *b = mapped.CreateBead(3, "A", mapped.GetOrCreateBeadType("A"), 1, 0.0, 0.0);
+            string bead_type = "A";
+            if(mapped.BeadTypeExist(bead_type)==false){
+              mapped.RegisterBeadType(bead_type);
+            }
+            Bead *b = mapped.CreateBead(3, "A", bead_type, 1, 0.0, 0.0);
             vec p1 = mol_src->getBead(i)->getPos();
             vec p2 = mol_src->getBead(i+1)->getPos();
             // position is in middle of bond
