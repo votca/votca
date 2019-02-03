@@ -1,4 +1,4 @@
-find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 
 foreach(PROG
   test_bead

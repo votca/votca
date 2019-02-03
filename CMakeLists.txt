@@ -68,7 +68,7 @@ else (BUILD_MANPAGES)
   set(TXT2TAGS_FOUND)
 endif (BUILD_MANPAGES)
 
-find_package(Boost 1.39.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
