@@ -18,10 +18,11 @@
 #ifndef VOTCA_CSG_BEADMOTIF_H
 #define VOTCA_CSG_BEADMOTIF_H
 
+#include "beadstructure.h"
 #include <votca/csg/basebead.h>
 #include <votca/tools/reducedgraph.h>
 
-#include "beadstructure.h"
+namespace TOOLS = votca::tools;
 
 namespace votca {
 namespace csg {
@@ -161,7 +162,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
   bool type_up_to_date_ = false;
 
   std::vector<int> junctions_;
-  ReducedGraph reduced_graph_;
+  TOOLS::ReducedGraph reduced_graph_;
 
   void InitializeGraph_();
   bool junctionExist_();

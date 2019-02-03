@@ -16,6 +16,10 @@
  */
 
 #include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <votca/csg/interaction.h>
+#include <votca/tools/tokenizer.h>
+
 #include <stddef.h>
 #include <stdexcept>
 #include <string>
@@ -106,8 +110,12 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   vector<beaddef_t *>::iterator iter;
   for (iter = _beads.begin(); iter != _beads.end(); ++iter) {
     Bead *bead;
-    weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType((*iter)->_type);
-    bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, weak_type,
+
+    string type = (*iter)->_type;
+    if (!top.BeadTypeExist(type)) {
+      top.RegisterBeadType(type);
+    }
+    bead = top.CreateBead((*iter)->_symmetry, (*iter)->_name, type,
                           res->getId(), 0, 0);
     minfo->AddBead(bead, bead->getName());
   }

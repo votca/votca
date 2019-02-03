@@ -15,8 +15,11 @@
  *
  */
 
-#include <assert.h>
-#include <stddef.h>
+#include <boost/lexical_cast.hpp>
+#include <cassert>
+#include <regex>
+#include <stdexcept>
+#include <unordered_set>
 #include <votca/csg/boundarycondition.h>
 #include <votca/csg/interaction.h>
 #include <votca/csg/molecule.h>
@@ -26,19 +29,17 @@
 
 namespace votca {
 namespace csg {
-class BeadType;
-}  // namespace csg
-}  // namespace votca
-
-namespace votca {
-namespace csg {
 
 using namespace std;
+
+bool is_digits(const std::string &str) {
+  return str.find_first_not_of("0123456789") == std::string::npos;
+}
 
 Topology::~Topology() {
   Cleanup();
   if (_bc) delete (_bc);
-  _bc = NULL;
+  _bc = nullptr;
 }
 
 void Topology::Cleanup() {
@@ -111,8 +112,6 @@ void Topology::CreateMoleculesByResidue() {
   // add the beads to the corresponding molecules based on their resid
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
-    // MoleculeByIndex((*bead)->getResnr())->AddBead((*bead)->getId(),
-    // (*bead)->getName());
 
     MoleculeByIndex((*bead)->getResnr())
         ->AddBead((*bead), string("1:TRI:") + (*bead)->getName());
@@ -131,7 +130,6 @@ void Topology::CreateOneBigMolecule(string name) {
     stringstream n("");
     n << (*bead)->getResnr() + 1 << ":"
       << _residues[(*bead)->getResnr()]->getName() << ":" << (*bead)->getName();
-    // cout << n.str() << endl;
     mi->AddBead((*bead), n.str());
   }
 }
@@ -145,9 +143,9 @@ void Topology::Add(Topology *top) {
 
   for (bead = top->_beads.begin(); bead != top->_beads.end(); ++bead) {
     Bead *bi = *bead;
-    weak_ptr<BeadType> weak_type = bi->getType();
-    CreateBead(bi->getSymmetry(), bi->getName(), weak_type,
-               bi->getResnr() + res0, bi->getMass(), bi->getQ());
+    string type = bi->getType();
+    CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr() + res0,
+               bi->getMass(), bi->getQ());
   }
 
   for (res = top->_residues.begin(); res != top->_residues.end(); ++res) {
@@ -184,8 +182,8 @@ void Topology::CopyTopologyData(Topology *top) {
   // create all beads
   for (it_bead = top->_beads.begin(); it_bead != top->_beads.end(); ++it_bead) {
     Bead *bi = *it_bead;
-    weak_ptr<BeadType> weak_type = bi->getType();
-    CreateBead(bi->getSymmetry(), bi->getName(), weak_type, bi->getResnr(),
+    string type = bi->getType();
+    CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(),
                bi->getMass(), bi->getQ());
   }
 
@@ -198,6 +196,11 @@ void Topology::CopyTopologyData(Topology *top) {
       mi->AddBead(_beads[beadid], (*it_mol)->getBeadName(i));
     }
   }
+}
+
+int Topology::getBeadTypeId(string type) const {
+  assert(beadtypes_.count(type));
+  return beadtypes_.at(type);
 }
 
 void Topology::RenameMolecules(string range, string name) {
@@ -216,13 +219,9 @@ void Topology::RenameMolecules(string range, string name) {
 void Topology::RenameBeadType(string name, string newname) {
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
-    weak_ptr<BeadType> weak_type = (*bead)->getType();
-    if (shared_ptr<BeadType> shared_type = weak_type.lock()) {
-      if (wildcmp(name.c_str(), shared_type->getName().c_str())) {
-        shared_type->setName(newname);
-      }
-    } else {
-      assert(!"bead type is not accessible while attempting to rename.");
+    string type = (*bead)->getType();
+    if (wildcmp(name.c_str(), type.c_str())) {
+      (*bead)->setType(newname);
     }
   }
 }
@@ -230,13 +229,9 @@ void Topology::RenameBeadType(string name, string newname) {
 void Topology::SetBeadTypeMass(string name, double value) {
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
-    weak_ptr<BeadType> weak_type = (*bead)->getType();
-    if (shared_ptr<BeadType> type = weak_type.lock()) {
-      if (wildcmp(name.c_str(), type->getName().c_str())) {
-        (*bead)->setMass(value);
-      }
-    } else {
-      assert(!"bead type no longer exist memory error.");
+    string type = (*bead)->getType();
+    if (wildcmp(name.c_str(), type.c_str())) {
+      (*bead)->setMass(value);
     }
   }
 }
@@ -281,18 +276,32 @@ std::list<Interaction *> Topology::InteractionsInGroup(const string &group) {
   return iter->second;
 }
 
-weak_ptr<BeadType> Topology::GetOrCreateBeadType(string name) {
-  map<string, int>::iterator iter;
+bool Topology::BeadTypeExist(string type) const {
+  return beadtypes_.count(type);
+}
 
-  iter = _beadtype_map.find(name);
-  if (iter == _beadtype_map.end()) {
-    _beadtypes.push_back(
-        shared_ptr<BeadType>(new BeadType(this, _beadtypes.size(), name)));
-    _beadtype_map[name] = _beadtypes.back()->getId();
-    return (_beadtypes.back());
+void Topology::RegisterBeadType(string type) {
+  unordered_set<int> ids;
+  for (pair<const string, int> type_and_id : beadtypes_) {
+    ids.insert(type_and_id.second);
   }
 
-  return (_beadtypes[(*iter).second]);
+  int id = 0;
+  // If the type is also a number use it as the id as well provided it is not
+  // already taken
+  if (is_digits(type)) {
+    id = boost::lexical_cast<int>(type);
+    assert(!ids.count(id) &&
+           "The type passed in is a number and has already"
+           " been registered. It is likely that you are passing in numbers as "
+           "bead types as well as strings, choose one or the other do not mix "
+           "between using numbers and strings ");
+  }
+
+  while (ids.count(id)) {
+    ++id;
+  }
+  beadtypes_[type] = id;
 }
 
 vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const {

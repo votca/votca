@@ -107,10 +107,13 @@ class CsgMapApp : public CsgApplication {
           int beadid = (*it_mol)->getBead(i)->getId();
 
           Bead *bi = (*it_mol)->getBead(i);
-          weak_ptr<BeadType> weak_type = bi->getType();
-          Bead *bn =
-              hybtol->CreateBead(bi->getSymmetry(), bi->getName(), weak_type,
-                                 bi->getResnr(), bi->getMass(), bi->getQ());
+          if (!hybtol->BeadTypeExist(bi->getType())) {
+            hybtol->RegisterBeadType(bi->getType());
+          }
+
+          Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
+                                        bi->getType(), bi->getResnr(),
+                                        bi->getMass(), bi->getQ());
           bn->setPos(bi->getPos());
           if (bi->HasVel()) bn->setVel(bi->getVel());
           if (bi->HasF()) bn->setF(bi->getF());
@@ -126,9 +129,8 @@ class CsgMapApp : public CsgApplication {
             // todo: this is a bit dirty as a cg bead will always have the resid
             // of its first parent
             Bead *bparent = (*it_mol)->getBead(0);
-            weak_ptr<BeadType> weak_type = bi->getType();
             Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
-                                          weak_type, bparent->getResnr(),
+                                          bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
             if (bi->HasVel()) bn->setVel(bi->getVel());

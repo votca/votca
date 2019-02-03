@@ -18,7 +18,7 @@
 #ifndef _VOTCA_CSG_BEADSTRUCTURE_H
 #define _VOTCA_CSG_BEADSTRUCTURE_H
 
-#include <iostream>
+#include <cassert>
 #include <unordered_map>
 #include <votca/tools/graph.h>
 #include <votca/tools/graph_bf_visitor.h>
@@ -53,7 +53,6 @@ namespace csg {
 template <class T>
 class BeadStructure {
  public:
-
   ~BeadStructure() {}
 
   /**
@@ -117,10 +116,10 @@ class BeadStructure {
   void CalculateStructure_();
   TOOLS::GraphNode BaseBeadToGraphNode_(T *basebead);
 
-  bool structureIdUpToDate=false;
-  bool graphUpToDate=false;
-  bool single_structureUpToDate_=false;
-  bool single_structure_=false;
+  bool structureIdUpToDate = false;
+  bool graphUpToDate = false;
+  bool single_structureUpToDate_ = false;
+  bool single_structure_ = false;
   std::string structure_id_ = "";
   TOOLS::Graph graph_;
   std::set<TOOLS::Edge> connections_;
@@ -183,7 +182,7 @@ template <class T>
 void BeadStructure<T>::AddBead(T *bead) {
   if (beads_.count(bead->getId())) {
     std::string err = "Cannot add bead with Id ";
-    err += to_string(bead->getId());
+    err += std::to_string(bead->getId());
     err += " because each bead must have a unique Id and a bead with that Id ";
     err += "already exists within the beadstructure";
     throw std::invalid_argument(err);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     byte_t symmetry = 1;
 
     string bead_type_name = "H2";
-    auto bead_type_ptr = top.GetOrCreateBeadType(bead_type_name);
+    top.RegisterBeadType(bead_type_name);
 
     double mass = 0.9;
     double charge = 0.0;
@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
           string bead_name = to_string(number_of_H2) + "_H2";
           vec bead_pos(x, y, z);
-          auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_ptr,
+          auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                          residue_number, mass, charge);
           bead_ptr->setId(number_of_H2);
           bead_ptr->setPos(bead_pos);
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     bonded_statistics.BeginCG(&top, nullptr);
     bonded_statistics.EvalConfiguration(&top, nullptr);
-  } // End of setup
+  }  // End of setup
 
   DataCollection<double> &bonded_values = bonded_statistics.BondedValues();
   cout << "bonded_values after pulling out of statistics "
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
     BOOST_CHECK_EQUAL(column3.isApprox(col3_ref,1e-2),true);
 
-  } // End of Test 1
+  }  // End of Test 1
 
   // Test 2
   {
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column3.isApprox(col3_ref,1e-2),true);
    
 
-  } // End of Test 2
+  }  // End of Test 2
 
   // Test 3
   {
@@ -252,7 +252,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column3.isApprox(col3_ref,1e-2),true);
 
 
-  } // End of Test 3
+  }  // End of Test 3
 
   // Test 4
   {
@@ -280,7 +280,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
 
-  } // End of Test 4
+  }  // End of Test 4
 
   // Test 5
   {
@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
 
-  } // End of Test 5
+  }  // End of Test 5
 
   // Test 6
   {
@@ -371,7 +371,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
 
-  } // End of Test 7
+  }  // End of Test 7
 
   // Test 8
   {
@@ -400,7 +400,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
 
 
-  } // End of Test 8
+  }  // End of Test 8
 
   top.Cleanup();
 }
