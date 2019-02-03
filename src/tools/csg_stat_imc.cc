@@ -29,6 +29,8 @@
 
 namespace votca { namespace csg {
 
+using namespace std;
+
 Imc::Imc()
    : _block_length(0), _do_imc(false), _processed_some_frames(false)
 {

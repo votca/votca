@@ -32,10 +32,8 @@
 #undef bool
 
 namespace votca { namespace csg {
-using namespace votca::tools;
 
-using namespace std;
-
+  namespace TOOLS = votca::tools;
 /**
     \brief class for reading gromacs trajectory files
 
@@ -48,7 +46,7 @@ class GMXTrajectoryReader : public TrajectoryReader
         GMXTrajectoryReader() {}
 
         /// open a trejectory file
-        bool Open(const string &file);
+        bool Open(const std::string &file);
         /// read in the first frame
         bool FirstFrame(Topology &top);
         /// read in the next frame
@@ -57,7 +55,7 @@ class GMXTrajectoryReader : public TrajectoryReader
         void Close();
         
     private:
-        string _filename;
+        std::string _filename;
         
         // gmx status used in read_first_frame and _read_next_frame;
        t_trxstatus* _gmx_status;

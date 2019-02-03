@@ -18,10 +18,11 @@
 #ifndef _VOTCA_CSG_CGMOLECULEDEF_H
 #define	_VOTCA_CSG_CGMOLECULEDEF_H
 
-#include <string>
-#include <vector>
+#include <list>
 #include <map>
 #include <string>
+#include <vector>
+
 #include <votca/tools/property.h>
 #include "map.h"
 #include <votca/tools/types.h>
@@ -30,8 +31,6 @@
 
 namespace votca { namespace csg {
 using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief definition of a coarse grained molecule
@@ -50,44 +49,44 @@ public:
     Molecule *CreateMolecule(Topology & top);
     Map *CreateMap(Molecule &in, Molecule &out);
 
-    void Load(string filename);
+    void Load(std::string filename);
     
-    const string &getName() { return _name; }
-    const string &getIdent() { return _ident; }
+    const std::string &getName() { return _name; }
+    const std::string &getIdent() { return _ident; }
     
 private:
     Property _options;
     
     struct beaddef_t {
-        string _name;
-        string _type;
+      std::string _name;
+      std::string _type;
         byte_t _symmetry;
-        string _mapping;
-        vector<string> _subbeads;
+        std::string _mapping;
+        std::vector<std::string> _subbeads;
         Property *_options;
     };    
 
     // name of the coarse grained molecule
-    string _name;
+    std::string _name;
     // name of the molecule to coarse grain
-    string _ident;
+    std::string _ident;
     
     // beads of the cg molecule
-    vector<beaddef_t *> _beads;
-    map<string, beaddef_t *> _beads_by_name;
+    std::vector<beaddef_t *> _beads;
+    std::map<std::string, beaddef_t *> _beads_by_name;
     
     // mapping schemes
-    map<string, Property *> _maps;
+    std::map<std::string, Property *> _maps;
     
-    list<Property *> _bonded;
+    std::list<Property *> _bonded;
     
     void ParseTopology(Property &options);
     void ParseBeads(Property &options);
     void ParseBonded(Property &options);
     void ParseMapping(Property &options);
         
-    beaddef_t *getBeadByName(const string &name);
-    Property *getMapByName(const string &name);
+    beaddef_t *getBeadByName(const std::string &name);
+    Property *getMapByName(const std::string &name);
 };
 
 }}

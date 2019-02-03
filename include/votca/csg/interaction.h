@@ -23,10 +23,10 @@
 #include <sstream>
 #include <string>
 
+namespace TOOLS = votca::tools;
+
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-using namespace std;
 
 /**
     \brief base calss for all interactions
@@ -42,13 +42,13 @@ public:
   virtual ~Interaction() {}
   virtual double EvaluateVar(const Topology &top) = 0;
 
-  string getName() const { return _name; }
+  std::string getName() const { return _name; }
 
-  void setGroup(const string &group) {
+  void setGroup(const std::string &group) {
     _group = group;
     RebuildName();
   }
-  const string &getGroup() const {
+  const std::string &getGroup() const {
     assert(_group.compare("") != 0);
     return _group;
   }
@@ -89,17 +89,17 @@ public:
 
 protected:
   int _index;
-  string _group;
+  std::string _group;
   int _group_id;
-  string _name;
+  std::string _name;
   int _mol;
-  vector<int> _beads;
+  std::vector<int> _beads;
 
   void RebuildName();
 };
 
 inline void Interaction::RebuildName() {
-  stringstream s;
+  std::stringstream s;
   if (_mol != -1)
     s << "molecule " << _mol;
   if (!_group.empty()) {
@@ -124,7 +124,7 @@ public:
     _beads[1] = bead2;
   }
 
-  IBond(list<int> &beads) {
+  IBond(std::list<int> &beads) {
     assert(beads.size() >= 2);
     _beads.resize(2);
     for (int i = 0; i < 2; ++i) {
@@ -149,7 +149,7 @@ public:
     _beads[1] = bead2;
     _beads[2] = bead3;
   }
-  IAngle(list<int> &beads) {
+  IAngle(std::list<int> &beads) {
     assert(beads.size() >= 3);
     _beads.resize(3);
     for (int i = 0; i < 3; ++i) {
@@ -176,7 +176,7 @@ public:
     _beads[2] = bead3;
     _beads[3] = bead4;
   }
-  IDihedral(list<int> &beads) {
+  IDihedral(std::list<int> &beads) {
     assert(beads.size() >= 4);
     _beads.resize(4);
     for (int i = 0; i < 4; ++i) {

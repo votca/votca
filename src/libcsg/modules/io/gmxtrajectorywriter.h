@@ -31,9 +31,6 @@
 #undef bool
 
 namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 class GMXTrajectoryWriter
     : public TrajectoryWriter
@@ -41,7 +38,7 @@ class GMXTrajectoryWriter
 public:
     GMXTrajectoryWriter() {}
 
-    void Open(string file, bool bAppend = false);
+    void Open(std::string file, bool bAppend = false);
     void Close();
     void Write(Topology *conf);
 

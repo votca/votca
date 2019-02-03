@@ -23,6 +23,8 @@
 namespace votca {
 namespace csg {
 
+  using namespace std;
+
 H5MDTrajectoryReader::H5MDTrajectoryReader(){
   has_velocity_ = H5MDTrajectoryReader::NONE;
   has_force_ = H5MDTrajectoryReader::NONE;
