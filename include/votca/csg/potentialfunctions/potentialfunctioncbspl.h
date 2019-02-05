@@ -22,6 +22,9 @@
 #include <math.h>
 #include <votca/tools/table.h>
 
+namespace votca {
+  namespace csg {
+
 class PotentialFunctionCBSPL : public PotentialFunction {
  public:
   PotentialFunctionCBSPL(const std::string& name_, const int nlam_,
@@ -65,5 +68,6 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   Eigen::MatrixXd _M;
 };
-
+}
+}
 #endif

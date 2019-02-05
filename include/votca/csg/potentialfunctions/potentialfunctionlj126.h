@@ -22,6 +22,8 @@
 #include <math.h>
 #include <votca/tools/table.h>
 
+namespace votca {
+  namespace csg {
 // LJ 12-6 potential class
 // with c12,c6 parameters
 class PotentialFunctionLJ126 : public PotentialFunction {
@@ -36,5 +38,6 @@ class PotentialFunctionLJ126 : public PotentialFunction {
   // calculate second derivative w.r.t. ith parameter
   double CalculateD2F(const int i, const int j, const double r) const;
 };
-
+}
+}
 #endif

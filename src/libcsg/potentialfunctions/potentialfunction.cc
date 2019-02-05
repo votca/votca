@@ -23,6 +23,9 @@
 using namespace std;
 using namespace votca::tools;
 
+namespace votca {
+  namespace csg {
+
 PotentialFunction::PotentialFunction(const string& name_, const int nlam_,
                                      const double min_, const double max_) {
 
@@ -91,4 +94,6 @@ void PotentialFunction::SavePotTab(const string& filename, const double step,
 
   pot_tab.set(i, rcut, CalculateF(rcut), flag);
   pot_tab.Save(filename);
+}
+}
 }

@@ -24,6 +24,9 @@
 using namespace std;
 using namespace votca::tools;
 
+namespace votca {
+namespace csg {
+
 PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string& name_,const int nlam_,
                                                const double min_, const double max_) :
   PotentialFunction(name_,nlam_,min_,max_) {
@@ -252,4 +255,7 @@ double PotentialFunctionCBSPL::CalculateD2F(const int i, const int j,
 
   return 0.0;
 
+}
+
+}
 }

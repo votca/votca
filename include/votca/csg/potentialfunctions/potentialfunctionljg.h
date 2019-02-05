@@ -19,6 +19,8 @@
 #define POTENTIALFUNCTIONLJG_H
 #include "potentialfunction.h"
 
+namespace votca {
+  namespace csg {
 // LJ 12-6 potential class
 // with c12,c6 parameters
 class PotentialFunctionLJG : public PotentialFunction {
@@ -33,5 +35,6 @@ class PotentialFunctionLJG : public PotentialFunction {
   // calculate second derivative w.r.t. ith parameter
   double CalculateD2F(const int i, const int j, const double r) const;
 };
-
+}
+}
 #endif /* POTFUNCTION_LJG_H */

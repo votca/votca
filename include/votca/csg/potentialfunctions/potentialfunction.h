@@ -21,6 +21,8 @@
 #include <Eigen/Dense>
 #include <string>
 
+namespace votca {
+  namespace csg {
 class PotentialFunction {
  public:
   virtual ~PotentialFunction() {}
@@ -73,5 +75,6 @@ class PotentialFunction {
   double _cut_off;
   double _min;
 };
-
+}
+}
 #endif

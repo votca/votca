@@ -19,6 +19,9 @@
 
 using namespace std;
 
+namespace votca {
+  namespace csg {
+
 PotentialFunctionLJG::PotentialFunctionLJG(const string& name_,
                                            const double min_, const double max_)
     : PotentialFunction(name_, 5, min_, max_) {}
@@ -121,4 +124,7 @@ double PotentialFunctionLJG::CalculateD2F(const int i, const int j,
     }
   }
   return 0.0;
+}
+
+}
 }
