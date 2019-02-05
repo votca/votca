@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,25 @@
  */
 
 #ifndef _dlpolytrajectoryreader_H
-#define	_dlpolytrajectoryreader_H
+#define _dlpolytrajectoryreader_H
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 #include <votca/csg/trajectoryreader.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 /**
     \brief class for reading dlpoly trajectory and configuration files
 
-    This class encapsulates the dlpoly trajectory and configuration reading function and provides an interface to fill a topology class
+    This class encapsulates the dlpoly trajectory and configuration reading
+   function and provides an interface to fill a topology class
 
 */
 
-class DLPOLYTrajectoryReader 
-   : public TrajectoryReader
-{
+class DLPOLYTrajectoryReader : public TrajectoryReader {
  public:
   /// open original trajectory file
   bool Open(const std::string &file);
@@ -45,15 +45,22 @@ class DLPOLYTrajectoryReader
   /// close original trajectory file
   void Close();
 
-  /// set/get the original configuration or trajectory file name: 
+  /// set/get the original configuration or trajectory file name:
   /// <name>.dlpc/<name>.dlph (convention: ".dlpc"="CONFIG", ".dlph"="HISTORY")
-  void   setFname(std::string name) { _fname = name; return; }
-  std::string getFname()            { return _fname; }
-  
-  /// set/check the flag for the read-in file as configuration, i.e. not trajectory format
-  void setIsConfig(bool isConf) { _isConfig=isConf; return; }
-  bool getIsConfig()            { return _isConfig; }
-  
+  void setFname(std::string name) {
+    _fname = name;
+    return;
+  }
+  std::string getFname() { return _fname; }
+
+  /// set/check the flag for the read-in file as configuration, i.e. not
+  /// trajectory format
+  void setIsConfig(bool isConf) {
+    _isConfig = isConf;
+    return;
+  }
+  bool getIsConfig() { return _isConfig; }
+
  private:
   std::ifstream _fl;
   std::string _fname;
@@ -61,7 +68,7 @@ class DLPOLYTrajectoryReader
   bool _isConfig;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _dlpolytrajectoryreader_H */
-
+#endif /* _dlpolytrajectoryreader_H */

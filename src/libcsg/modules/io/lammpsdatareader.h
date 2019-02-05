@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class Molecule;
 
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
-public:
+ public:
   LAMMPSDataReader() {}
   ~LAMMPSDataReader() {}
 
@@ -53,7 +53,7 @@ public:
   /// close the topology file
   void Close();
 
-private:
+ private:
   std::ifstream fl_;
   std::string fname_;
   bool topology_;
@@ -155,7 +155,7 @@ private:
   std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
       std::map<std::string, double> baseNamesAndMasses);
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_LAMMPSDATAREADER_H
+#endif  // _VOTCA_CSG_LAMMPSDATAREADER_H

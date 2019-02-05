@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,54 @@
  */
 
 #ifndef _DLPTOPOLOGYREADER_H
-#define	_DLPTOPOLOGYREADER_H
+#define _DLPTOPOLOGYREADER_H
 
 #include <string>
 #include <votca/csg/topology.h>
 #include <votca/csg/topologyreader.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 /**
     \brief class for reading dlpoly topology files
 
-    This class encapsulates the dlpoly topology reading functions and provides an interface to fill a topolgy class
+    This class encapsulates the dlpoly topology reading functions and provides
+   an interface to fill a topolgy class
 
 */
 
-class DLPOLYTopologyReader
-   : public TopologyReader
-{
-public:
-    DLPOLYTopologyReader() {}
+class DLPOLYTopologyReader : public TopologyReader {
+ public:
+  DLPOLYTopologyReader() {}
 
-    /// read a topology file
-    bool ReadTopology(std::string file, Topology &top);
-    
-    /// set the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
-    void   setFname(std::string name) { _fname = name; return; }
-    /// get the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
-    std::string getFname()            { return _fname; }
+  /// read a topology file
+  bool ReadTopology(std::string file, Topology &top);
 
-private:
-    std::string _fname;
-    /// function to find and read the next line starting with a keyword/directive (skipping comments starting with "#" or ";")
-    std::string _NextKeyline(std::ifstream &fs, const char* wsp);
-    /// function to read the next line containing only a given keyword and an integer value after it (only skipping comments!)
-    std::string _NextKeyInt(std::ifstream &fs, const char* wsp, const std::string &word, int &ival);
-    /// function to check if the given (last read) directive line starts with a given keyword and has an integer value at the end
-    bool   _isKeyInt(const std::string &line, const char* wsp, const std::string &word, int &ival);
+  /// set the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
+  void setFname(std::string name) {
+    _fname = name;
+    return;
+  }
+  /// get the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
+  std::string getFname() { return _fname; }
+
+ private:
+  std::string _fname;
+  /// function to find and read the next line starting with a keyword/directive
+  /// (skipping comments starting with "#" or ";")
+  std::string _NextKeyline(std::ifstream &fs, const char *wsp);
+  /// function to read the next line containing only a given keyword and an
+  /// integer value after it (only skipping comments!)
+  std::string _NextKeyInt(std::ifstream &fs, const char *wsp,
+                          const std::string &word, int &ival);
+  /// function to check if the given (last read) directive line starts with a
+  /// given keyword and has an integer value at the end
+  bool _isKeyInt(const std::string &line, const char *wsp,
+                 const std::string &word, int &ival);
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _DLPTOPOLOGYREADER_H */
+#endif /* _DLPTOPOLOGYREADER_H */

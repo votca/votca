@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,27 @@
  */
 
 #ifndef _GROWRITER_H
-#define	_GROWRITER_H
+#define _GROWRITER_H
 
 #include <stdio.h>
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
+namespace votca {
+namespace csg {
 
-namespace votca { namespace csg {
+class GROWriter : public TrajectoryWriter {
+ public:
+  void Open(string file, bool bAppend = false);
+  void Close();
 
-class GROWriter
-: public TrajectoryWriter
-{
-public:
-    
-    void Open(string file, bool bAppend = false);
-    void Close();
-    
-    void Write(Topology *conf);
+  void Write(Topology *conf);
 
-    private:
-        FILE *_out;
+ private:
+  FILE *_out;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _GROWRITER_H */
-
+#endif /* _GROWRITER_H */

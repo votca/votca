@@ -279,7 +279,8 @@ bool PDBReader::NextFrame(Topology &top) {
         // 6 - charge               (double)
         //
         // res -1 as internal number starts with 0
-        b = top.CreateBead(1, atName, atName, resnr - 1, _elements.getMass(atName),ch);
+        b = top.CreateBead(1, atName, atName, resnr - 1,
+                           _elements.getMass(atName), ch);
       } else {
         b = top.getBead(bead_count - 1);
       }
