@@ -36,8 +36,6 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-
-
 // Check if file exists
 bool fexists(const string filename) {
   std::ifstream ifile(filename);

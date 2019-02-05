@@ -18,8 +18,8 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE bead_test
-#include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
 #include <string>
 #include <votca/csg/bead.h>
 #include <votca/csg/beadtype.h>
@@ -29,8 +29,6 @@
 
 using namespace std;
 using namespace votca::csg;
-
-
 
 BOOST_AUTO_TEST_SUITE(bead_test)
 
@@ -60,14 +58,14 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
   double mass = 1.21;
   double charge = -0.87;
 
-	Bead * b = top.CreateBead(symmetry,name,bead_type_name,resnr,mass,charge);
+  Bead* b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
-	BOOST_CHECK_CLOSE(b->getMass(),mass,1e-5);
-	BOOST_CHECK_CLOSE(b->getQ(),charge,1e-5);
-	BOOST_CHECK_EQUAL(b->getId(),0);
-	BOOST_CHECK_EQUAL(b->getName(),name);
-	BOOST_CHECK_EQUAL(b->getResnr(),resnr);
-	BOOST_CHECK_EQUAL(b->getSymmetry(),symmetry);
+  BOOST_CHECK_CLOSE(b->getMass(), mass, 1e-5);
+  BOOST_CHECK_CLOSE(b->getQ(), charge, 1e-5);
+  BOOST_CHECK_EQUAL(b->getId(), 0);
+  BOOST_CHECK_EQUAL(b->getName(), name);
+  BOOST_CHECK_EQUAL(b->getResnr(), resnr);
+  BOOST_CHECK_EQUAL(b->getSymmetry(), symmetry);
 }
 
 BOOST_AUTO_TEST_CASE(test_bead_setters) {
@@ -100,9 +98,9 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   Molecule* mol = top.CreateMolecule(molecule_name);
 
   b->setMolecule(mol);
-	
-	BOOST_CHECK_CLOSE(b->getMass(),newMass,1e-5);
-	BOOST_CHECK_CLOSE(b->getQ(),newCharge,1e-5);
+
+  BOOST_CHECK_CLOSE(b->getMass(), newMass, 1e-5);
+  BOOST_CHECK_CLOSE(b->getQ(), newCharge, 1e-5);
 
   auto new_xyz = b->getPos();
   BOOST_CHECK(new_xyz.isClose(xyz, 3));
