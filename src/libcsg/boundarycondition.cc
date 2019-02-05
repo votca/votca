@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,15 @@
 #include <vector>
 #include <votca/csg/boundarycondition.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 double BoundaryCondition::BoxVolume() {
-    vec a = _box.getCol(0);
-    vec b = _box.getCol(1);
-    vec c = _box.getCol(2);
-    return (a^b)*c;
+  vec a = _box.getCol(0);
+  vec b = _box.getCol(1);
+  vec c = _box.getCol(2);
+  return (a ^ b) * c;
 }
 
-}}
+}  // namespace csg
+}  // namespace votca
