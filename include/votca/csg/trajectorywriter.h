@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,41 +16,40 @@
  */
 
 #ifndef _VOTCA_CSG_TRAJECTORYWRITER_H
-#define	_VOTCA_CSG_TRAJECTORYWRITER_H
+#define _VOTCA_CSG_TRAJECTORYWRITER_H
 
-#include <string>
-#include <iostream>
-#include <fstream>
 #include "fileformatfactory.h"
 #include "topology.h"
+#include <fstream>
+#include <iostream>
+#include <string>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 using namespace votca::tools;
 
 using namespace std;
 
-class TrajectoryWriter
-{
-public:
-    TrajectoryWriter() {}
-    virtual ~TrajectoryWriter() {}
-    
-    virtual void Open(string file, bool bAppend = false) {}
-    virtual void Close() {};
-    
-    virtual void Write(Topology *top) {}
-    
-    static void RegisterPlugins(void);
+class TrajectoryWriter {
+ public:
+  TrajectoryWriter() {}
+  virtual ~TrajectoryWriter() {}
+
+  virtual void Open(string file, bool bAppend = false) {}
+  virtual void Close(){};
+
+  virtual void Write(Topology *top) {}
+
+  static void RegisterPlugins(void);
 };
 
 // important - singleton pattern, make sure factory is created before accessed
-inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory()
-{
-    static FileFormatFactory<TrajectoryWriter> _TrjWriterFactory;
-    return _TrjWriterFactory;
+inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory() {
+  static FileFormatFactory<TrajectoryWriter> _TrjWriterFactory;
+  return _TrjWriterFactory;
 }
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _VOTCA_CSG_TRAJECTORYWRITER_H */
-
+#endif /* _VOTCA_CSG_TRAJECTORYWRITER_H */

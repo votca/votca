@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,39 @@
  */
 
 #ifndef _VOTCA_CSG_TOPOLOGYMAP_H
-#define	_VOTCA_CSG_TOPOLOGYMAP_H
+#define _VOTCA_CSG_TOPOLOGYMAP_H
 
 #include "map.h"
 #include "topology.h"
 #include <vector>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-class TopologyMap 
-{
-public:
-    ~TopologyMap();
-    
-    TopologyMap(Topology *in, Topology *out);
-    
-    void AddMoleculeMap(Map *map);
+class TopologyMap {
+ public:
+  ~TopologyMap();
 
-    void Apply();
-    
-private:
-    Topology *_in;
-    Topology *_out;
-    
-    typedef std::vector<Map *> MapContainer;
-    MapContainer _maps;
+  TopologyMap(Topology *in, Topology *out);
+
+  void AddMoleculeMap(Map *map);
+
+  void Apply();
+
+ private:
+  Topology *_in;
+  Topology *_out;
+
+  typedef std::vector<Map *> MapContainer;
+  MapContainer _maps;
 };
 
 inline TopologyMap::TopologyMap(Topology *in, Topology *out)
     : _in(in), _out(out) {}
-    
-inline void TopologyMap::AddMoleculeMap(Map *map)
-{
-        _maps.push_back(map);
-}
 
-}}
+inline void TopologyMap::AddMoleculeMap(Map *map) { _maps.push_back(map); }
 
-#endif	/* _VOTCA_CSG_TOPOLOGYMAP_H */
+}  // namespace csg
+}  // namespace votca
 
+#endif /* _VOTCA_CSG_TOPOLOGYMAP_H */
