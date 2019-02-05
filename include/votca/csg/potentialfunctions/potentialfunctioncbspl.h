@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,25 +16,25 @@
  */
 
 #ifndef POTENTIALFUNCTIONCBSPL_H
-#define	POTENTIALFUNCTIONCBSPL_H
+#define POTENTIALFUNCTIONCBSPL_H
 
-#include <votca/tools/table.h>
-#include <math.h>
 #include "potentialfunction.h"
+#include <math.h>
+#include <votca/tools/table.h>
 
 class PotentialFunctionCBSPL : public PotentialFunction {
  public:
-  PotentialFunctionCBSPL(const std::string& name_,const int nlam_,
-                         const double min_=0.0, const double max_=10.0);
-  ~PotentialFunctionCBSPL(){}
+  PotentialFunctionCBSPL(const std::string& name_, const int nlam_,
+                         const double min_ = 0.0, const double max_ = 10.0);
+  ~PotentialFunctionCBSPL() {}
   // calculate function value for given r
-  double CalculateF (const double r) const;
+  double CalculateF(const double r) const;
   // calculate first derivative w.r.t. ith parameter
   double CalculateDF(const int i, const double r) const;
   // calculate second derivative w.r.t. ith parameter
   double CalculateD2F(const int i, const int j, const double r) const;
 
-  int getOptParamSize() const ;
+  int getOptParamSize() const;
 
   void setParam(std::string filename);
 
@@ -42,7 +42,8 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   void SavePotTab(const std::string& filename, const double step);
 
-  void SavePotTab(const std::string& filename, const double step, const double rmin, const double rcut);
+  void SavePotTab(const std::string& filename, const double step,
+                  const double rmin, const double rcut);
   void setOptParam(const int i, const double val);
 
   double getOptParam(const int i) const;
@@ -50,7 +51,6 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   void extrapolExclParam();
 
  protected:
-
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin
@@ -64,8 +64,6 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   Eigen::VectorXd _rbreak;
 
   Eigen::MatrixXd _M;
-
-
 };
 
 #endif
