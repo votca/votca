@@ -70,7 +70,7 @@ void DLPTopolApp::Initialize(void) {
   // AddProgramOptions()
   //("top", boost::program_options::value<string>(),
   //"  input topology in any known format:\n  <name>.dlpf for dlpoly, <name>.tpr
-  //for gromacs\n  (convention: '.dlpf'='use FIELD')");
+  // for gromacs\n  (convention: '.dlpf'='use FIELD')");
   AddProgramOptions()("out", boost::program_options::value<string>(),
                       "  output topology in dlpoly format");
 }
@@ -237,7 +237,7 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
                btype % b->getMass() % b->getQ() % (i + 1) % btype % bname %
                (i + 1);
     //% b->getType()->getName() % b->getMass() % b->getQ() % (i+1) %
-    //b->getType()->getName() % b->getName() % (i+1);
+    // b->getType()->getName() % b->getName() % (i+1);
   }
 }
 

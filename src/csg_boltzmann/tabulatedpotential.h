@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 namespace TOOLS = votca::tools;
 
 namespace votca {
-  namespace csg {
+namespace csg {
 /**
  * \brief Tabulated Potential calculates histograms of bead interactions
  *
@@ -102,14 +102,14 @@ namespace votca {
  * column1 = the bin edge, column2 = potential, column3 = the force
  **/
 class TabulatedPotential : public AnalysisTool {
-public:
+ public:
   TabulatedPotential();
   ~TabulatedPotential(){};
 
   void Register(std::map<std::string, AnalysisTool *> &lib);
 
-  void Command(BondedStatistics &bs, std::string cmd, 
-      std::vector<std::string> &args);
+  void Command(BondedStatistics &bs, std::string cmd,
+               std::vector<std::string> &args);
 
   void Help(std::string cmd, std::vector<std::string> &args);
 
@@ -136,9 +136,9 @@ public:
    **/
   std::pair<int, int> getSmoothIterations() const;
 
-private:
-  bool SetOption_(TOOLS::Histogram::options_t &op, 
-      const std::vector<std::string> &args);
+ private:
+  bool SetOption_(TOOLS::Histogram::options_t &op,
+                  const std::vector<std::string> &args);
 
   bool SetOption_(const std::vector<std::string> &args);
 
@@ -170,5 +170,6 @@ private:
   /// Temperature in units of Kelvin
   double _Temperature;
 };
-}}
-#endif // VOTCA_CSG_TABULATEDPOTENTIAL_H
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_TABULATEDPOTENTIAL_H

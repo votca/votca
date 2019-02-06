@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,16 @@
  */
 
 #ifndef _XMLTOPOLOGYREADER_H
-#define	_XMLTOPOLOGYREADER_H
+#define _XMLTOPOLOGYREADER_H
 
+#include <boost/unordered_map.hpp>
+#include <stack>
 #include <string>
 #include <votca/csg/topologyreader.h>
-#include <stack>
 #include <votca/tools/parsexml.h>
-#include <boost/unordered_map.hpp>
 
-
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 namespace TOOLS = votca::tools;
 
@@ -49,26 +49,26 @@ class BondBead {
 
 class XMLBead {
  public:
-  XMLBead(std::string _name, std::string _type, double _mass=1.0, double _q=0.0):
-    name(_name), type(_type), mass(_mass), q(_q) {};
-  XMLBead() {};
+  XMLBead(std::string _name, std::string _type, double _mass = 1.0,
+          double _q = 0.0)
+      : name(_name), type(_type), mass(_mass), q(_q){};
+  XMLBead(){};
 
   int pid;
   std::string name;
   std::string type;
   double mass;
   double q;
-
 };
 
 class XMLMolecule {
  public:
-  XMLMolecule(std::string _name, int _nmols): name(_name), nmols(_nmols) {}
+  XMLMolecule(std::string _name, int _nmols) : name(_name), nmols(_nmols) {}
   std::string name;
   int nmols;
   int pid;
-  std::vector<XMLBead*> beads;
-  std::map<std::string, XMLBead*> name2beads;
+  std::vector<XMLBead *> beads;
+  std::map<std::string, XMLBead *> name2beads;
   Molecule *mi;
 };
 
@@ -77,42 +77,41 @@ class XMLMolecule {
  *
  * \todo this is a sloppy implementation using expat, is just reads attributes
  * \todo should be extended to also read beads, ...
- * 
-*/
-class XMLTopologyReader
-   : public TopologyReader
-{
-public:
-    /// read a topology file
-    bool ReadTopology(std::string file, Topology &top);
-    ~XMLTopologyReader();
-private:
-    typedef boost::unordered_multimap<std::string, XMLMolecule*> MoleculesMap;
+ *
+ */
+class XMLTopologyReader : public TopologyReader {
+ public:
+  /// read a topology file
+  bool ReadTopology(std::string file, Topology &top);
+  ~XMLTopologyReader();
 
-    void ReadTopolFile(std::string file);
+ private:
+  typedef boost::unordered_multimap<std::string, XMLMolecule *> MoleculesMap;
 
-    void ParseRoot(Property &el);
-    void ParseMolecules(Property &el);
-    void ParseBeadTypes(Property &el);
-    void ParseBonded(Property &el);
-    void ParseBox(Property &p);
-    void ParseMolecule(Property &p, std::string molname, int nbeads, int nmols);
-    void ParseBond(Property &p);
-    void ParseAngle(Property &p);
-    void ParseDihedral(Property &p);
+  void ReadTopolFile(std::string file);
 
-private:
-    ParseXML _parser;
+  void ParseRoot(Property &el);
+  void ParseMolecules(Property &el);
+  void ParseBeadTypes(Property &el);
+  void ParseBonded(Property &el);
+  void ParseBox(Property &p);
+  void ParseMolecule(Property &p, std::string molname, int nbeads, int nmols);
+  void ParseBond(Property &p);
+  void ParseAngle(Property &p);
+  void ParseDihedral(Property &p);
 
-    Topology *_top;
-    MoleculesMap _molecules;
-    int _mol_index;
-    int _bead_index;
+ private:
+  ParseXML _parser;
 
-    bool _has_base_topology;
+  Topology *_top;
+  MoleculesMap _molecules;
+  int _mol_index;
+  int _bead_index;
+
+  bool _has_base_topology;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _PDBTOPOLOGYREADER_H */
-
+#endif /* _PDBTOPOLOGYREADER_H */

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,49 +15,43 @@
  *
  */
 
+#include "xyzwriter.h"
 #include <stdio.h>
 #include <string>
-#include "xyzwriter.h"
 
-
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 using namespace std;
 
-void XYZWriter::Open(string file, bool bAppend)
-{
-    _out = fopen(file.c_str(), bAppend ? "at" : "wt");
+void XYZWriter::Open(string file, bool bAppend) {
+  _out = fopen(file.c_str(), bAppend ? "at" : "wt");
 }
 
-void XYZWriter::Close()
-{
-    fclose(_out);
-}
+void XYZWriter::Close() { fclose(_out); }
 
-void XYZWriter::Write(Topology *conf)
-{
-    Topology *top = conf;
-    fprintf(_out, "%d\n", (int)top->Beads().size());
-    fprintf(_out, "frame: %d time: %f\n", top->getStep()+1, top->getTime());
+void XYZWriter::Write(Topology *conf) {
+  Topology *top = conf;
+  fprintf(_out, "%d\n", (int)top->Beads().size());
+  fprintf(_out, "frame: %d time: %f\n", top->getStep() + 1, top->getTime());
 
-    for(BeadContainer::iterator iter=conf->Beads().begin();
-    iter!=conf->Beads().end(); ++iter) {
-        Bead *bi = *iter;
-        vec r = bi->getPos();
-        //truncate strings if necessary
-        string atomname = bi->getName();
-        if (atomname.size() > 3) {
-            atomname = atomname.substr(0,3);
-        }
-        while(atomname.size()<3)
-            atomname=" " + atomname;
-        
-        //nm -> Angs
-        fprintf(_out,
-                "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), r.getX()*10.0, r.getY()*10.0, r.getZ()*10.0
-        );       
+  for (BeadContainer::iterator iter = conf->Beads().begin();
+       iter != conf->Beads().end(); ++iter) {
+    Bead *bi = *iter;
+    vec r = bi->getPos();
+    // truncate strings if necessary
+    string atomname = bi->getName();
+    if (atomname.size() > 3) {
+      atomname = atomname.substr(0, 3);
     }
-    fflush(_out);
+    while (atomname.size() < 3) atomname = " " + atomname;
+
+    // nm -> Angs
+    fprintf(_out, "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), r.getX() * 10.0,
+            r.getY() * 10.0, r.getZ() * 10.0);
+  }
+  fflush(_out);
 }
 
-}}
+}  // namespace csg
+}  // namespace votca

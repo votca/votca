@@ -17,10 +17,8 @@
 
 #define BOOST_TEST_MODULE csg_topology_test
 
-#include <boost/test/floating_point_comparison.hpp>
-#include <iostream>
-#include <boost/test/unit_test.hpp>
 #include "../../include/votca/csg/topology.h"
+#include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 
@@ -58,11 +56,10 @@ BOOST_AUTO_TEST_CASE(box_test) {
 
   auto vol = top.BoxVolume();
 
-  BOOST_CHECK_CLOSE(vol,8,1e-5);
+  BOOST_CHECK_CLOSE(vol, 8, 1e-5);
   auto box2 = top.getBox();
-  
-  BOOST_CHECK_EQUAL(box2.isClose(box,1e-5),true);
 
+  BOOST_CHECK_EQUAL(box2.isClose(box, 1e-5), true);
 }
 
 BOOST_AUTO_TEST_CASE(simple_test) {
@@ -72,8 +69,7 @@ BOOST_AUTO_TEST_CASE(simple_test) {
   BOOST_CHECK_EQUAL(top.getStep(), 1);
   top.setTime(1.21);
 
-  BOOST_CHECK_CLOSE(top.getTime(),1.21,1e-5);
-
+  BOOST_CHECK_CLOSE(top.getTime(), 1.21, 1e-5);
 }
 
 BOOST_AUTO_TEST_CASE(create_bead_type) {
@@ -104,10 +100,10 @@ BOOST_AUTO_TEST_CASE(create_bead) {
   auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                  residue_number, mass, charge);
 
-  BOOST_CHECK_CLOSE(bead_ptr->getQ(),0.3,1e-5);
-  BOOST_CHECK_CLOSE(bead_ptr->getMass(),1.1,1e-5);
-  BOOST_CHECK_EQUAL(bead_ptr->getResnr(),residue_number);
-  BOOST_CHECK_EQUAL(bead_ptr->getSymmetry(),symmetry);
+  BOOST_CHECK_CLOSE(bead_ptr->getQ(), 0.3, 1e-5);
+  BOOST_CHECK_CLOSE(bead_ptr->getMass(), 1.1, 1e-5);
+  BOOST_CHECK_EQUAL(bead_ptr->getResnr(), residue_number);
+  BOOST_CHECK_EQUAL(bead_ptr->getSymmetry(), symmetry);
   BOOST_CHECK(bead_ptr->getName() == bead_name);
 
   string bead_type2 = bead_ptr->getType();

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,25 @@
 
 #include <votca/csg/topologymap.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-TopologyMap::~TopologyMap()
-{
-    MapContainer::iterator i;
-    
-    for(i=_maps.begin();i!=_maps.end();++i)
-        delete *i;
-    _maps.clear();
-}
-    
-void TopologyMap::Apply()
-{
-    MapContainer::iterator iter;
-    
-    _out->setStep(_in->getStep());
-    _out->setTime(_in->getTime());
-    _out->setBox(_in->getBox());
+TopologyMap::~TopologyMap() {
+  MapContainer::iterator i;
 
-    for(iter=_maps.begin();iter!=_maps.end();++iter)
-        (*iter)->Apply();
+  for (i = _maps.begin(); i != _maps.end(); ++i) delete *i;
+  _maps.clear();
 }
 
-}}
+void TopologyMap::Apply() {
+  MapContainer::iterator iter;
+
+  _out->setStep(_in->getStep());
+  _out->setTime(_in->getTime());
+  _out->setBox(_in->getBox());
+
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) (*iter)->Apply();
+}
+
+}  // namespace csg
+}  // namespace votca

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,34 @@
  */
 
 #ifndef VOTCA_CSG_STDANALYSIS_H
-#define	VOTCA_CSG_STDANALYSIS_H
+#define VOTCA_CSG_STDANALYSIS_H
 
+#include "analysistool.h"
 #include "bondedstatistics.h"
 #include <map>
 
 namespace TOOLS = votca::tools;
 
 namespace votca {
-  namespace csg {
+namespace csg {
 
-class StdAnalysis
-    : public AnalysisTool
-{
-    public:
-        StdAnalysis() {};
-        ~StdAnalysis() {};
+class StdAnalysis : public AnalysisTool {
+ public:
+  StdAnalysis(){};
+  ~StdAnalysis(){};
 
-        void Register(std::map<std::string, AnalysisTool *> &lib);
+  void Register(std::map<std::string, AnalysisTool *> &lib);
 
-        void Command(BondedStatistics &bs, std::string cmd, std::vector<std::string> &args);
-        void Help(std::string cmd, std::vector<std::string> &args);
+  void Command(BondedStatistics &bs, std::string cmd,
+               std::vector<std::string> &args);
+  void Help(std::string cmd, std::vector<std::string> &args);
 
-        void WriteValues(BondedStatistics &bs, std::vector<std::string> &args);
-        void WriteCorrelations(BondedStatistics &bs, std::vector<std::string> &args);
-        void WriteAutocorrelation(BondedStatistics &bs, std::vector<std::string> &args);
+  void WriteValues(BondedStatistics &bs, std::vector<std::string> &args);
+  void WriteCorrelations(BondedStatistics &bs, std::vector<std::string> &args);
+  void WriteAutocorrelation(BondedStatistics &bs,
+                            std::vector<std::string> &args);
 };
 
-}}
-#endif	// VOTCA_CSG_STDANALYSIS_H 
-
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_STDANALYSIS_H

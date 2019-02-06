@@ -38,7 +38,8 @@ namespace csg {
 template <class T>
 T breakIntoMotifs(BeadStructure<BaseBead>& beadstructure) {
   T bead_motifs;
-  std::vector<BeadStructure<BaseBead> > structures =breakIntoStructures(beadstructure);
+  std::vector<BeadStructure<BaseBead> > structures =
+      breakIntoStructures(beadstructure);
   for (BeadStructure<BaseBead>& structure : structures) {
     bead_motifs.push_back(BeadMotif(structure));
   }
