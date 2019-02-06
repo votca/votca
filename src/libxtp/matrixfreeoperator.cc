@@ -24,18 +24,10 @@ namespace votca { namespace xtp {
 
     MatrixFreeOperator::MatrixFreeOperator() {}
 
-    // virtual here : get a row of the operator
-    // RowVectorXfd MatrixFreeOperator::row(int index) const
-    // {    	
-    //     std::cout << "MatrixFreeOperator.row() not defined in class" << std::endl;
-    //     exit(0);
-    // }
-
     // virtual here : get a col of the operator
-    Eigen::VectorXd MatrixFreeOperator::col(int index) const
+    Eigen::VectorXd MatrixFreeOperator::col(int index) const 
     {
-        std::cout << "MatrixFreeOperator.col() not defined in class" << std::endl;
-        exit(0);
+         throw std::runtime_error("MatrixFreeOperator.col() not defined in class");
     }
 
     Eigen::VectorXd MatrixFreeOperator::diagonal() const
@@ -63,7 +55,7 @@ namespace votca { namespace xtp {
 
 
     // get the size
-    int MatrixFreeOperator::size()
+    int MatrixFreeOperator::size() const
     {
     	return this->_size;
     }

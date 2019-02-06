@@ -39,18 +39,15 @@ namespace votca { namespace xtp {
         public:
 
             DavidsonSolver(ctp::Logger &log);
-            // DavidsonSolver(ctp::Logger &log,int itermax);
-            // DavidsonSolver(int itermax, real_gwbse tol);
-            // DavidsonSolver(int itermax, real_gwbse tol, int max_search_size);
 
-            void set_iter_max(int set_iter_max);
-            void set_tolerance(real_gwbse tol);
-            void set_max_search_space(int size);
-            void set_jacobi_correction();
-            void set_jacobi_linsolve(int method);
+            void set_iter_max(int N) { this->iter_max = N; }
+            void set_tolerance(double eps) { this->tol = eps; }
+            void set_max_search_space(int N) { this->max_search_space = N;}
+            void set_jacobi_correction() { this->jacobi_correction = true; }
+            void set_jacobi_linsolve(std::string method) {this->jacobi_linsolve = method;}
 
-            Eigen::VectorXd eigenvalues();
-            Eigen::MatrixXd eigenvectors();
+            Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
+            Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
 
             template <typename MatrixReplacement>
             void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0);
@@ -58,23 +55,22 @@ namespace votca { namespace xtp {
         private :
 
             ctp::Logger &_log;
-            int iter_max;
-            double tol;
-            int max_search_space;
-            bool _debug_ = true;
-
-            bool jacobi_correction=false;
-            int jacobi_linsolve = 0;
+            int iter_max = 1000;
+            double tol = 1E-6;
+            int max_search_space = 100;
+        
+            bool jacobi_correction = false;
+            std::string jacobi_linsolve = "CG";
 
             Eigen::VectorXd _eigenvalues;
             Eigen::MatrixXd _eigenvectors; 
 
-            Eigen::ArrayXd _sort_index(Eigen::VectorXd &V);
-            Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size);
-            Eigen::MatrixXd _solve_linear_system(Eigen::MatrixXd &A, Eigen::VectorXd &b); 
+            Eigen::ArrayXd _sort_index(Eigen::VectorXd &V) const;
+            Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size) const;
+            Eigen::MatrixXd _solve_linear_system(Eigen::MatrixXd &A, Eigen::VectorXd &b) const; 
 
             template <typename MatrixReplacement>
-            Eigen::MatrixXd _jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, real_gwbse lambda);
+            Eigen::MatrixXd _jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, double lambda) const;
 
     };
 

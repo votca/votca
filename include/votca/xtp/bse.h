@@ -55,7 +55,7 @@ class BSE {
         int nmax; //number of eigenvectors to calculate
         bool davidson=0; // use davidson to diagonalize the matrix
         bool jocc=0; // jacobi orthogonal correction instead of DPR
-        int jocc_linsolve=1; //method to solve the linea system in jacobi davidson
+        std::string jocc_linsolve="CG"; //method to solve the linea system in jacobi davidson
         double min_print_weight=0.5;  //minimium contribution for state to print it
         };
   

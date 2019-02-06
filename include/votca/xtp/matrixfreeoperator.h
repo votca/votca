@@ -51,7 +51,7 @@ namespace votca { namespace xtp {
             // convenience function
             Eigen::MatrixXd get_full_matrix() const;
             Eigen::VectorXd diagonal() const;
-            int size();
+            int size() const; 
             void set_size(int size);
 
             // extract row/col of the operator
