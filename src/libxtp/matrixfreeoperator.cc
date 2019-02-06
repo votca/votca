@@ -34,10 +34,9 @@ namespace votca { namespace xtp {
     {
         Eigen::VectorXd D = Eigen::VectorXd::Zero(_size,1);
         Eigen::VectorXd col_data;
-        for(int i=0; i<_size;i++)
-        {
+        for(int i=0; i<_size;i++) {
             col_data = this->col(i);
-            D(i,0) = col_data(i,0);
+            D(i) = col_data(i);
         }
         return D;
     }
@@ -47,18 +46,16 @@ namespace votca { namespace xtp {
     {
         std::cout << " Matrix Size : " << _size << "x" << _size ;
     	Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size,_size);
-        for(int i=0; i<_size; i++)
+        for(int i=0; i<_size; i++) {
             matrix.col(i) = this->col(i);
+        }
         std::cout << " done " << std::endl;
         return matrix; 
     }
 
 
     // get the size
-    int MatrixFreeOperator::size() const
-    {
-    	return this->_size;
-    }
+    int MatrixFreeOperator::size() const { return this->_size; }
 
     // set the size
     void MatrixFreeOperator::set_size(int size)

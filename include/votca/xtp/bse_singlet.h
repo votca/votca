@@ -35,6 +35,28 @@ class BSE_Singlet : public BSE_OPERATOR
 
 };
 
+class BSE_Singlet_BTDA_ApB : public BSE_OPERATOR
+{
+
+	public:
+
+		BSE_Singlet_BTDA_ApB(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp);
+		Eigen::VectorXd col(int index) const;
+
+};
+
+
+class BSE_Singlet_BTDA_AmB : public BSE_OPERATOR
+{
+
+	public:
+
+		BSE_Singlet_BTDA_AmB(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp);
+		Eigen::VectorXd col(int index) const;
+
+};
+
+
 }
 }
 

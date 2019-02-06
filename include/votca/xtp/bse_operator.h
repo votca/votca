@@ -39,14 +39,14 @@ class BSE_OPERATOR : public MatrixFreeOperator {
         _orbitals(orbitals),
         _Mmn(Mmn),_Hqp(Hqp){};
 
-    struct options {
-        int homo; //
-        int rpamin; //
-        int rpamax; //
-        int qpmin;  //
-        int vmin; // 
-        int cmax; // 
-        };
+  struct options {
+      int homo;
+      int rpamin;
+      int rpamax;
+      int qpmin;
+      int vmin; 
+      int cmax; 
+      };
   
   options _opt;
 
@@ -58,6 +58,11 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void SetupDirectInteractionOperator();
 
+  void setHx(double coeff) {this->_coeff_Hx = coeff;}
+  void setHqp(double coeff) {this->_coeff_Hqp = coeff;}
+  void setHd(double coeff) {this->_coeff_Hd = coeff;}
+  void setHd2(double coeff) {this->_coeff_Hd2 = coeff;}
+
  private:
 
     struct Interaction {
@@ -67,30 +72,25 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     };
       
   ctp::Logger &_log;
-
   Orbitals& _orbitals;
-  
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
-
   VectorXfd _epsilon_0_inv;
-
-
 
   protected: 
 
+  Eigen::VectorXd col(int index) const;
   Eigen::VectorXd Hqp_col(int index) const;
-
-  //template <int factor>
   Eigen::VectorXd Hx_col(int index) const;
-
   Eigen::VectorXd Hd_col(int index) const;
-
-  //template <int factor>
   Eigen::VectorXd Hd2_col(int index) const;
 
+  private:
 
- 
+    double _coeff_Hx = 0.;
+    double _coeff_Hd = 0.;
+    double _coeff_Hd2 = 0.;
+    double _coeff_Hqp = 0.;
  
 };
 }

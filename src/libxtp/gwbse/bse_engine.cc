@@ -38,8 +38,11 @@ namespace votca {
     void BSE_ENGINE::Solve_triplets() 
     {
 
-      BSE_Triplet Ht( _orbitals, _log, _Mmn, _Hqp );
+      BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
       BSE_ENGINE::configure_operator(Ht);
+
+      Ht.setHqp(1.0);
+      Ht.setHd(1.0);
       
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
@@ -60,18 +63,27 @@ namespace votca {
     }
 
     void BSE_ENGINE::Solve_singlets(){
-        if(_opt.useTDA)
+        if(_opt.useTDA){
             Solve_singlets_TDA();
-        else
-          CTP_LOG(ctp::logDEBUG, _log)
-            << ctp::TimeStamp() << " BTDA Not implemented with matrix free " << flush;
-            //Solve_singlets_BTDA(); 
+        }
+        else {
+          if (_opt.davidson){
+            CTP_LOG(ctp::logDEBUG, _log)
+              << ctp::TimeStamp() << " Davidson solver not implemented for BTDA. Full diagonalization." << flush;
+            _opt.davidson = 0;
+          }
+          Solve_singlets_BTDA(); 
+        }
     }
 
     void BSE_ENGINE::Solve_singlets_TDA() {
 
-      BSE_Singlet Hs(_orbitals, _log, _Mmn, _Hqp);
+      BSE_OPERATOR Hs(_orbitals, _log, _Mmn, _Hqp);
       BSE_ENGINE::configure_operator(Hs);
+
+      Hs.setHx(2.0);
+      Hs.setHqp(1.0);
+      Hs.setHd(1.0);
 
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
@@ -100,10 +112,10 @@ namespace votca {
       h._opt.vmin = this->_opt.vmin;
       h._opt.cmax = this->_opt.cmax;
 
-      h._bse_cmin = _opt.homo+1; //
-      h._bse_vtotal = _bse_vmax - _opt.vmin + 1; //
-      h._bse_ctotal =_opt.cmax - _bse_cmin + 1; //
-      h._bse_size = _bse_vtotal * _bse_ctotal; //
+      h._bse_cmin = _opt.homo+1;
+      h._bse_vtotal = _bse_vmax - _opt.vmin + 1;
+      h._bse_ctotal =_opt.cmax - _bse_cmin + 1;
+      h._bse_size = _bse_vtotal * _bse_ctotal; 
       h._size = _bse_size;
 
       h.SetupDirectInteractionOperator();
@@ -111,19 +123,16 @@ namespace votca {
       return ;
     }
 
-
     void BSE_ENGINE::solve_hermitian(BSE_OPERATOR &h, Eigen::VectorXd &energies, Eigen::MatrixXd &coefficients)
     {
 
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
 
-      if (_opt.davidson)
-      {
+      if (_opt.davidson) {
 
         DavidsonSolver DS(_log);
-        if (_opt.jocc)
-        {
+        if (_opt.jocc) {
           DS.set_jacobi_correction();
           DS.set_jacobi_linsolve(_opt.jocc_linsolve);
         }
@@ -133,102 +142,105 @@ namespace votca {
         coefficients = DS.eigenvectors();
       }
 
-      else
-      {
-        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Getting full Matrix" << flush;
+      else {
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Lapack Diagonalization" << flush;
         Eigen::MatrixXd hfull = h.get_full_matrix();
-        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Lapack Diag" << flush;
         tools::linalg_eigenvalues(hfull, energies, coefficients , _opt.nmax );
       }
       return;
-
-
     }
 
-//     void BSE::Solve_singlets_BTDA() {
+    void BSE_ENGINE::Solve_singlets_BTDA() {
 
-//       // For details of the method, see EPL,78(2007)12001,
-//       // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
-//       // setup resonant (A) and RARC blocks (B)
-//        //corresponds to 
-//       // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
-//       // _AmB = (_eh_d +_eh_qp - _eh_d2);
-//         Eigen::MatrixXd ApB=Eigen::MatrixXd::Zero(_bse_size,_bse_size);
-//         Add_Hd<double>(ApB);
-//         Add_Hqp<double>(ApB);
-        
-//         Eigen::MatrixXd AmB=ApB;
-//         Add_Hd2<double,-1>(AmB);
- 
-        
-//         Add_Hx<double,4>(ApB);
-//         Add_Hd2<double,1>(ApB);
-//         CTP_LOG(ctp::logDEBUG, _log)
-//         << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
+      // For details of the method, see EPL,78(2007)12001,
+      // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
+      // setup resonant (A) and RARC blocks (B)
+       //corresponds to 
+      // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
+      // _AmB = (_eh_d +_eh_qp - _eh_d2);
+
+      BSE_OPERATOR Hs_ApB(_orbitals, _log, _Mmn, _Hqp);
+      BSE_ENGINE::configure_operator(Hs_ApB);
+      Hs_ApB.setHd(1.0);
+      Hs_ApB.setHqp(1.0);
+      Hs_ApB.setHd2(1.0);
+      Hs_ApB.setHx(4.0);
+
+      BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
+      BSE_ENGINE::configure_operator(Hs_AmB);
+      Hs_ApB.setHd(1.0);
+      Hs_ApB.setHqp(1.0);
+      Hs_ApB.setHd2(-1.0);
+
+      Eigen::MatrixXd ApB = Hs_ApB.get_full_matrix();
+      Eigen::MatrixXd AmB = Hs_AmB.get_full_matrix();
+
+      CTP_LOG(ctp::logDEBUG, _log)
+      << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
      
-//       // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
-//       //(A-B) is not needed any longer and can be overwritten
-//       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
-//       Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(AmB);
+      // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not positive definite
+      //(A-B) is not needed any longer and can be overwritten
+      CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Trying Cholesky decomposition of KAA-KAB" << flush;
+      Eigen::LLT< Eigen::Ref<Eigen::MatrixXd> > L(AmB);
       
-//        for (int i=0;i<AmB.rows();++i){
-//           for (int j=i+1;j<AmB.cols();++j){
-//           AmB(i,j)=0;
-//           }
-//         }
+       for (int i=0;i<AmB.rows();++i){
+          for (int j=i+1;j<AmB.cols();++j){
+          AmB(i,j)=0;
+          }
+        }
 
-//       if(L.info()!=0){
-//         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
-//         throw std::runtime_error("Cholesky decompostion failed");
-//       }else{
-//         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was successful"<<flush;
-//       }
+      if(L.info()!=0){
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller basisset. This can indicate a triplet instability."<<flush;
+        throw std::runtime_error("Cholesky decompostion failed");
+      }else{
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() <<" Cholesky decomposition of KAA-KAB was successful"<<flush;
+      }
       
-//       Eigen::MatrixXd temp= ApB*AmB;
-//       ApB.noalias() =AmB.transpose()*temp;
-//       temp.resize(0,0);
-//       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
-//       Eigen::VectorXd eigenvalues;
-//       Eigen::MatrixXd eigenvectors;     
-//       CTP_LOG(ctp::logDEBUG, _log)
-//         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
-//       bool success_diag=tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors ,_opt.nmax);
-//       if(!success_diag){
-//         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Could not solve problem" << flush;
-//       }else{
-//         CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
-//       }
-//       ApB.resize(0,0);
-//       eigenvalues=eigenvalues.cwiseSqrt();
+      Eigen::MatrixXd temp= ApB*AmB;
+      ApB.noalias() =AmB.transpose()*temp;
+      temp.resize(0,0);
+      CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Calculated H = L^T(A+B)L " << flush;
+      Eigen::VectorXd eigenvalues;
+      Eigen::MatrixXd eigenvectors;     
+      CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
+      bool success_diag=tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors ,_opt.nmax);
+      if(!success_diag){
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Could not solve problem" << flush;
+      }else{
+        CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
+      }
+      ApB.resize(0,0);
+      eigenvalues=eigenvalues.cwiseSqrt();
      
-// #if (GWBSE_DOUBLE)
-//       _bse_singlet_energies = eigenvalues;
-// #else
-//       _bse_singlet_energies = eigenvalues.cast<float>(); 
-// #endif
-//       // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 + 1/sqrt(eps_l)L ] R_l
-//       //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
-//       // determine inverse of L^T
-//      Eigen::MatrixXd LmT = AmB.inverse().transpose();
-//       int dim = LmT.rows();
-//       _bse_singlet_energies.resize(_opt.nmax);
-//       _bse_singlet_coefficients.resize(dim, _opt.nmax); // resonant part (_X_evec)
-//       _bse_singlet_coefficients_AR.resize(dim, _opt.nmax); // anti-resonant part (_Y_evec)
-//       for (int level = 0; level < _opt.nmax; level++) {
-//         double sqrt_eval = std::sqrt(_bse_singlet_energies(level));
-//         // get l-th reduced EV
-// #if (GWBSE_DOUBLE)
-//         _bse_singlet_coefficients.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT + AmB) * eigenvectors.col(level));
-//         _bse_singlet_coefficients_AR.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) * eigenvectors.col(level));
-// #else
-//         _bse_singlet_coefficients.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT + AmB) * eigenvectors.col(level)).cast<float>();
-//         _bse_singlet_coefficients_AR.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) * eigenvectors.col(level)).cast<float>();
-// #endif
+#if (GWBSE_DOUBLE)
+      _bse_singlet_energies = eigenvalues;
+#else
+      _bse_singlet_energies = eigenvalues.cast<float>(); 
+#endif
+      // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 + 1/sqrt(eps_l)L ] R_l
+      //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 - 1/sqrt(eps_l)L ] R_l
+      // determine inverse of L^T
+     Eigen::MatrixXd LmT = AmB.inverse().transpose();
+      int dim = LmT.rows();
+      _bse_singlet_energies.resize(_opt.nmax);
+      _bse_singlet_coefficients.resize(dim, _opt.nmax); // resonant part (_X_evec)
+      _bse_singlet_coefficients_AR.resize(dim, _opt.nmax); // anti-resonant part (_Y_evec)
+      for (int level = 0; level < _opt.nmax; level++) {
+        double sqrt_eval = std::sqrt(_bse_singlet_energies(level));
+        // get l-th reduced EV
+#if (GWBSE_DOUBLE)
+        _bse_singlet_coefficients.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT + AmB) * eigenvectors.col(level));
+        _bse_singlet_coefficients_AR.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) * eigenvectors.col(level));
+#else
+        _bse_singlet_coefficients.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT + AmB) * eigenvectors.col(level)).cast<float>();
+        _bse_singlet_coefficients_AR.col(level) = (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) * eigenvectors.col(level)).cast<float>();
+#endif
 
-//       }
+      }
 
-//       return;
-//     }
+      return;
+    }
         
     void BSE_ENGINE::printFragInfo(const Population& pop, int i){
       CTP_LOG(ctp::logINFO, _log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")

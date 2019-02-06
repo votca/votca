@@ -30,10 +30,33 @@ namespace votca {
 		Eigen::VectorXd BSE_Singlet::col(int index) const
 		{
 			Eigen::VectorXd _col;
-			_col = 2 * Hx_col(index) + Hqp_col(index) + Hd_col(index);
+			_col = 2.0 * Hx_col(index) + Hqp_col(index) + Hd_col(index);
 			return _col;
 		}
 		
+
+
+		BSE_Singlet_BTDA_ApB::BSE_Singlet_BTDA_ApB(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp) :
+			BSE_OPERATOR(orbitals, log, Mmn, Hqp) {};
+
+		Eigen::VectorXd BSE_Singlet_BTDA_ApB::col(int index) const
+		{
+			Eigen::VectorXd _col;
+			_col = Hd_col(index) + Hqp_col(index) + Hd2_col(index) + 4.0 * Hx_col(index);
+			return _col;
+		}
+
+
+		BSE_Singlet_BTDA_AmB::BSE_Singlet_BTDA_AmB(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp) :
+			BSE_OPERATOR(orbitals, log, Mmn, Hqp) {};
+
+		Eigen::VectorXd BSE_Singlet_BTDA_AmB::col(int index) const
+		{
+			Eigen::VectorXd _col;
+			_col = Hd_col(index) + Hqp_col(index) - Hd2_col(index);
+			return _col;
+		}
+
 
 	}
 }

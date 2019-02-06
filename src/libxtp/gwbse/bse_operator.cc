@@ -28,7 +28,6 @@ using std::flush;
 namespace votca {
     namespace xtp {
 
-
 void BSE_OPERATOR::SetupDirectInteractionOperator() 
 {    
     RPA rpa = RPA(_Mmn);
@@ -46,7 +45,14 @@ void BSE_OPERATOR::SetupDirectInteractionOperator()
     }
 }
 
-//template <int factor>
+Eigen::VectorXd BSE_OPERATOR::col(int index) const
+{
+    Eigen::VectorXd _col;
+    _col = _coeff_Hx * Hx_col(index) + _coeff_Hd * Hd_col(index) + _coeff_Hd2 * Hd2_col(index) + _coeff_Hqp * Hqp_col(index);
+    return _col;
+}
+
+
 Eigen::VectorXd BSE_OPERATOR::Hx_col(int index) const
 { 
     int auxsize = _Mmn.auxsize();
@@ -63,8 +69,7 @@ Eigen::VectorXd BSE_OPERATOR::Hx_col(int index) const
     {
         const MatrixXfd& Mmn2 = _Mmn[v2 + _opt.vmin];
         const VectorXfd Mmnx2 = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
-        for (int c2 = 0; c2 < _bse_ctotal; c2++) 
-        {
+        for (int c2 = 0; c2 < _bse_ctotal; c2++) {
             int i2 = vc.I(v2, c2);
             Hcol(i2) += Mmnx2(c2);
         }
@@ -97,8 +102,6 @@ Eigen::VectorXd BSE_OPERATOR::Hd_col(int index) const
     return Hcol;
 }        
 
-
-
 Eigen::VectorXd BSE_OPERATOR::Hqp_col(int index) const
 {
     vc2index vc = vc2index(0, 0, _bse_ctotal);
@@ -121,9 +124,6 @@ Eigen::VectorXd BSE_OPERATOR::Hqp_col(int index) const
     return Hcol;
 }
 
-
-
-//template <int factor>
 Eigen::VectorXd BSE_OPERATOR::Hd2_col(int index) const {
 
     int auxsize = _Mmn.auxsize();
@@ -148,8 +148,6 @@ Eigen::VectorXd BSE_OPERATOR::Hd2_col(int index) const {
      
     return Hcol;
 }
-
-
 
 }
 }

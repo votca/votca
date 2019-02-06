@@ -191,16 +191,16 @@ void GWBSE::Initialize(tools::Property& options) {
     if(options.exists(key + ".eigensolver"))
     {
         _bseopt.davidson =
-            options.ifExistsReturnElseReturnDefault<bool>(key + ".dodavidson", _bseopt.davidson);   
+            options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.dodavidson", _bseopt.davidson);   
 
         if(_bseopt.davidson)
         {
             _bseopt.jocc =
-                options.ifExistsReturnElseReturnDefault<bool>(key + ".jacobi_correction", _bseopt.jocc);
+                options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.jacobi_correction", _bseopt.jocc);
 
             if (_bseopt.jocc)
                 _bseopt.jocc_linsolve =
-                    options.ifExistsReturnElseReturnDefault<std::string>(key + ".jacobi_solver", _bseopt.jocc_linsolve);
+                    options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.jacobi_solver", _bseopt.jocc_linsolve);
         }
     }
 
