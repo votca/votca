@@ -78,13 +78,9 @@ Eigen::MatrixXd DavidsonSolver::_solve_linear_system(Eigen::MatrixXd &A, Eigen::
         w = A.llt().solve(r);
     }
 
-    // default (there is probably a better way to do that. Validate options in gwbse.cc ...)
+    // default 
     else {
-        CTP_LOG(ctp::logDEBUG, _log)
-            << ctp::TimeStamp() << " Linear Solver " << this->jacobi_linsolve << " not recognized\n Default back to CG" << flush;  
-        Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower|Eigen::Upper> cg;
-        cg.compute(A);
-        w = cg.solve(r);
+        throw std::runtime_error( " Linear Solver " + this->jacobi_linsolve + " not recognized");
     }
     
     return w;
@@ -124,13 +120,11 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
         CTP_LOG(ctp::logDEBUG, _log)
             << ctp::TimeStamp() << " Davidson (DPR)" << flush;
 
-
     double norm;
     int size = A.rows();
 
     //. search space exeeding the system size
-    if (max_search_space > size)
-    {
+    if (max_search_space > size) {
         CTP_LOG(ctp::logDEBUG, _log)
                 << ctp::TimeStamp() << " Warning Max search space (" << max_search_space << ") larger than system size (" << size << ")" << flush;   
         max_search_space = size;
@@ -138,63 +132,47 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
             << ctp::TimeStamp() << " Max search space set to " << size << flush;                            
     }
     
-    // if argument not provided we default to 0
-    // and set to twice the number of eigenvalues
+    // initial guess size
     if (size_initial_guess == 0) {
         size_initial_guess = 2*neigen;
     }
-
     int search_space = size_initial_guess;
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();    
     Eigen::MatrixXd V = DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
-    
-
-    // sort the eigenvalues
     std::sort(Adiag.data(),Adiag.data()+Adiag.size());
 
-    // thin matrix for QR
-    Eigen::MatrixXd thinQ;
-
-    // eigenvalues hodlers
-    Eigen::VectorXd lambda;
+    Eigen::MatrixXd thinQ; // thin matrix for QR 
+    Eigen::VectorXd lambda; // eigenvalues hodlers
     
     // temp varialbes 
     Eigen::MatrixXd T, U, q;
     Eigen::VectorXd w, tmp;
 
-
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;    
-    for (int iiter = 0; iiter < iter_max; iiter++ )
-    {
+    for (int iiter = 0; iiter < iter_max; iiter++ ) {
         
         // orthogonalise the vectors
-        // use the HouseholderQR algorithm of Eigen
-        if (iiter>0)
-        {
+        if (iiter>0) {
             thinQ = Eigen::MatrixXd::Identity(V.rows(),V.cols());
             Eigen::HouseholderQR<Eigen::MatrixXd> qr(V);
             V = qr.householderQ() * thinQ;
         }
 
-        // project the matrix on the trial subspace
+        // project the matrix on the trial subspace and diagonalize
         T = A * V;
         T = V.transpose()*T;
-
-        // diagonalize in the subspace
-        // we could replace that with LAPACK ... 
         Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
         lambda = es.eigenvalues();
         U = es.eigenvectors();
         
         // Ritz eigenvectors
         q = V.block(0,0,V.rows(),search_space)*U;
-
-        // compute correction vectors
-        // and append to V
         norm = 0.0;
+
+        // correction vectors
         for (int j=0; j<size_initial_guess; j++) {   
 
             // residue vector
@@ -205,10 +183,7 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
             if (this->jacobi_correction) {
                 tmp = q.col(j);
                 w = DavidsonSolver::_jacobi_orthogonal_correction<MatrixReplacement>(A,w,tmp,lambda(j));
-            }
-            
-            // Davidson DPR
-            else  {
+            } else  {
                 w = w / ( lambda(j) - Adiag(j) );  
             }
 
@@ -245,8 +220,6 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
     for (int i=0; i<neigen; i++){
         this->_eigenvectors.col(i).normalize();
     }
-    
-
 }
 
 template void DavidsonSolver::solve<Eigen::MatrixXd>(Eigen::MatrixXd &A, int neigen, int size_initial_guess=0);

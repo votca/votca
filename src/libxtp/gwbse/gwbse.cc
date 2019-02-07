@@ -19,6 +19,7 @@
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 
+#include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <votca/ctp/logger.h>
@@ -187,6 +188,7 @@ void GWBSE::Initialize(tools::Property& options) {
             options.ifExistsReturnElseReturnDefault<int>(key + ".exctotal", _bseopt.nmax);
     if (_bseopt.nmax > bse_size || _bseopt.nmax < 0) _bseopt.nmax = bse_size;
 
+    // eigensolver options
     if(options.exists(key + ".eigensolver"))
     {
         _bseopt.davidson =
@@ -197,16 +199,27 @@ void GWBSE::Initialize(tools::Property& options) {
             _bseopt.jocc =
                 options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.jacobi_correction", _bseopt.jocc);
 
-            if (_bseopt.jocc)
+            _bseopt.matrixfree =
+                options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
+
+            if (_bseopt.jocc) {
                 _bseopt.jocc_linsolve =
                     options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.jacobi_solver", _bseopt.jocc_linsolve);
 
-            _bseopt.matrixfree =
-                options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
-        
+                // check solver
+                std::list<std::string> _solver = {"CG", "GMRES", "LLT"};
+                bool solver_not_found = (std::find(_solver.begin(),_solver.end(),_bseopt.jocc_linsolve) == _solver.end());
+                if(solver_not_found){
+                    CTP_LOG(ctp::logDEBUG, *_pLog)
+                        << ctp::TimeStamp() << " Linear Solver " << _bseopt.jocc_linsolve << " not recognized. Default back to CG" << flush;  
+                    _bseopt.jocc_linsolve = "CG";
+                }
+            }
+
+            // check size
             if (_bseopt.nmax > bse_size/4 ) {
                 CTP_LOG(ctp::logDEBUG, *_pLog)
-                << ctp::TimeStamp() << " Warning : Too many eigenvalues required for Davidson. Defaulting to Lapack diagonalization" << flush;
+                << ctp::TimeStamp() << " Warning : Too many eigenvalues required for Davidson. Default to Lapack diagonalization" << flush;
                 _bseopt.davidson=false;
             }
         }
