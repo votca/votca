@@ -206,8 +206,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf)
         natoms = boost::lexical_cast<int>(fields[2]);
 	navecs = boost::lexical_cast<int>(fields[3]);
 	npbct  = boost::lexical_cast<int>(fields[4]);
-	dtime  = boost::lexical_cast<double>(fields[5]);               // normally it is the 5-th column in 'timestep' line
-	stime  = boost::lexical_cast<double>(fields[fields.size()-1]); // normally it is the last column in 'timestep' line
+	dtime  = stod(fields[5]);               // normally it is the 5-th column in 'timestep' line
+	stime  = stod(fields[fields.size()-1]); // normally it is the last column in 'timestep' line
 
 #ifdef DEBUG
 	cout << "Read from dlpoly file '" << _fname << "' : natoms = " << natoms << ", levcfg = " << fields[3];

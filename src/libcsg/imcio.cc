@@ -149,7 +149,7 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc)
             throw runtime_error(string("error loading ")
                     + filename + ": size mismatchm, number of columns differ");
         for(size_t i=0; i<tokens.size(); ++i)
-            gmc(line_count,i) = boost::lexical_cast<double>(tokens[i]);
+            gmc(line_count,i) = stod(tokens[i]);
         ++line_count;
     }
     if(line_count != gmc.rows())
