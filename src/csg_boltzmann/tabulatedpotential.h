@@ -18,9 +18,10 @@
 #ifndef _TABULATEDPOTENTIAL_H
 #define	_TABULATEDPOTENTIAL_H
 
-#include <vector>
+#include "analysistool.h"
 #include "bondedstatistics.h"
 #include <votca/tools/histogram.h>
+#include <vector>
 
 using namespace std;
 using namespace votca::tools;
