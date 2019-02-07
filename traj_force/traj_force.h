@@ -16,13 +16,13 @@
  */
 
 #ifndef _TRAJ_FORCE_H
-#define	_TRAJ_FORCE_H
+#define _TRAJ_FORCE_H
 
-#include <votca/tools/property.h>
 #include <boost/numeric/ublas/vector.hpp>
 #include <votca/csg/csgapplication.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
+#include <votca/tools/property.h>
 
 using namespace votca::csg;
 using namespace std;
@@ -31,17 +31,15 @@ using namespace std;
    \brief Adds/subtracts forces from given atomistic trajectories
 **/
 
-class TrajForce
-: public CsgApplication
-{
+class TrajForce : public CsgApplication {
  public:
   string ProgramName() { return "traj_force"; }
   void HelpText(ostream &out) {
     out << "Adds/subtracts forces from given atomistic trajectories";
   }
 
-  bool DoTrajectory() {return true;}
-  bool DoMapping() {return false;}
+  bool DoTrajectory() { return true; }
+  bool DoMapping() { return false; }
 
   void Initialize(void);
   bool EvaluateOptions();
@@ -65,5 +63,4 @@ class TrajForce
   TrajectoryWriter *_trjwriter;
 };
 
-#endif	/* _TRAJ_FORCE_H */
-
+#endif /* _TRAJ_FORCE_H */
