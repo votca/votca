@@ -282,7 +282,7 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
 
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
-    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+    double mass_atom_bead = stod(mass.at(1));
 
     auto baseName =
         getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesMasses, 0.01);
@@ -308,7 +308,7 @@ map<string, double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
   map<string, double> baseNamesAndMasses;
   int bead_index_type = 1;
   for (auto mass : data_["Masses"]) {
-    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+    double mass_atom_bead = stod(mass.at(1));
     string beadElementName;
     if (elements.isMassAssociatedWithElement(mass_atom_bead, 0.01)) {
       beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
@@ -326,7 +326,7 @@ map<string, int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
 
   map<std::string, int> countSameElementOrBead;
   for (auto mass : data_["Masses"]) {
-    double mass_atom_bead = boost::lexical_cast<double>(mass.at(1));
+    double mass_atom_bead = stod(mass.at(1));
     auto baseName =
         getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesAndMasses, 0.01);
 
@@ -342,8 +342,8 @@ map<string, int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
   matrix m;
   m.ZeroMatrix();
-  m[0][0] = boost::lexical_cast<double>(fields.at(1)) -
-            boost::lexical_cast<double>(fields.at(0));
+  m[0][0] = stod(fields.at(1)) -
+            stod(fields.at(0));
 
   for (int i = 1; i < 3; ++i) {
     string line;
@@ -354,8 +354,8 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
       throw runtime_error("invalid box format in the lammps data file");
     }
 
-    m[i][i] = boost::lexical_cast<double>(fields.at(1)) -
-              boost::lexical_cast<double>(fields.at(0));
+    m[i][i] = stod(fields.at(1)) -
+              stod(fields.at(0));
   }
   top.setBox(m);
 }
@@ -518,7 +518,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       }
       int symmetry = 1; // spherical
       double mass = 
-        boost::lexical_cast<double>(data_["Masses"].at(atomTypeId).at(1));
+        stod(data_["Masses"].at(atomTypeId).at(1));
 
       int residue_index = moleculeId;
       if (residue_index >= top.ResidueCount()) {

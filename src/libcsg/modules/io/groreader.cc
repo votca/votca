@@ -126,18 +126,18 @@ bool GROReader::NextFrame(Topology &top)
 	}
 
         b->setPos(vec(
-          boost::lexical_cast<double>(x),
-          boost::lexical_cast<double>(y),
-          boost::lexical_cast<double>(z)
+          stod(x),
+          stod(y),
+          stod(z)
         ));
 	if (hasVel) {
           boost::algorithm::trim(vx);
           boost::algorithm::trim(vy);
           boost::algorithm::trim(vz);
           b->setVel(vec(
-            boost::lexical_cast<double>(vx),
-            boost::lexical_cast<double>(vy),
-            boost::lexical_cast<double>(vz)
+            stod(vx),
+            stod(vy),
+            stod(vz)
           ));
 	}
     }
