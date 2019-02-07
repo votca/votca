@@ -367,7 +367,7 @@ mock -r epel-7-ppc64le --forcearch ppc64le --shell
 ```
 
 You will also need to install a text editor if you want to change the source 
-files. 
+files before running the interactive instance. 
 
 
 ```
