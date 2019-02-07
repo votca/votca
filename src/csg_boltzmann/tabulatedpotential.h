@@ -1,4 +1,4 @@
-/*
+/* 
  * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -102,9 +102,9 @@ namespace csg {
  * column1 = the bin edge, column2 = potential, column3 = the force
  **/
 class TabulatedPotential : public AnalysisTool {
- public:
-  TabulatedPotential();
-  ~TabulatedPotential(){};
+    public:
+        TabulatedPotential();
+        ~TabulatedPotential() {};
 
   void Register(std::map<std::string, AnalysisTool *> &lib);
 
@@ -136,7 +136,7 @@ class TabulatedPotential : public AnalysisTool {
    **/
   std::pair<int, int> getSmoothIterations() const;
 
- private:
+    private:
   bool SetOption_(TOOLS::Histogram::options_t &op,
                   const std::vector<std::string> &args);
 
@@ -163,10 +163,10 @@ class TabulatedPotential : public AnalysisTool {
 
   /// How many times the data is smoothed before the histogram is
   /// boltzmann inverted.
-  int _tab_smooth1;
+        int _tab_smooth1;
   /// How many times the data is smoothed after the histogram is boltzmann
   /// inverted.
-  int _tab_smooth2;
+        int _tab_smooth2;
   /// Temperature in units of Kelvin
   double _Temperature;
 };
