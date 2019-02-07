@@ -47,8 +47,24 @@ void BSE_OPERATOR::SetupDirectInteractionOperator()
 
 Eigen::VectorXd BSE_OPERATOR::col(int index) const
 {
-    Eigen::VectorXd _col;
-    _col = _coeff_Hx * Hx_col(index) + _coeff_Hd * Hd_col(index) + _coeff_Hd2 * Hd2_col(index) + _coeff_Hqp * Hqp_col(index);
+    Eigen::VectorXd _col = Eigen::VectorXd::Zero(_bse_size);
+
+    if (_coeff_Hx != 0) {
+        _col += _coeff_Hx * Hx_col(index);
+    }
+
+    if(_coeff_Hd != 0) {
+        _col += _coeff_Hd * Hd_col(index); 
+    }
+
+    if (_coeff_Hd2 != 0) {
+        _col += _coeff_Hd2 * Hd2_col(index);  
+    }
+
+    if (_coeff_Hqp != 0){
+        _col += _coeff_Hqp * Hqp_col(index);
+    }
+
     return _col;
 }
 
@@ -57,7 +73,7 @@ Eigen::VectorXd BSE_OPERATOR::Hx_col(int index) const
 { 
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0,0,_bse_ctotal);
-    Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size );
+    Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
 
     int v1 = vc.v(index);
     int c1 = vc.c(index);
@@ -86,11 +102,9 @@ Eigen::VectorXd BSE_OPERATOR::Hd_col(int index) const
     int v1 = vc.v(index);
     int c1 = vc.c(index);
 
-    
     const MatrixXfd Mmn1T = (_Mmn[v1 + _opt.vmin ].block(_opt.vmin, 0, _bse_vtotal, auxsize) * _epsilon_0_inv.asDiagonal()).transpose();
     const MatrixXfd& Mmn2 = _Mmn[c1 + _bse_cmin];
     const MatrixXfd Mmn2xMmn1T = Mmn2.block(_bse_cmin, 0, _bse_ctotal, auxsize)*Mmn1T;
-
 
     #pragma omp parallel for
     for (int v2 = 0; v2 < _bse_vtotal; v2++) {

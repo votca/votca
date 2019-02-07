@@ -19,13 +19,13 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
+
 #include <votca/ctp/logger.h>
 #include <votca/tools/property.h>
 #include <fstream>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
 
-#include "bse.h"
 #include "bse_engine.h"
 
 namespace votca {

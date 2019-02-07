@@ -18,19 +18,10 @@
 #include <stdexcept>
 #include <iostream>
 
-// #include <Eigen/Dense>
-// #include <Eigen/Core>
-// #include <Eigen/QR>
-// #include <Eigen/Eigenvalues>
-// #include <Eigen/IterativeLinearSolvers>
-// #include <unsupported/Eigen/IterativeSolvers>
-// #include <chrono>
-
 #include <votca/xtp/eigen.h>
 #include <Eigen/IterativeLinearSolvers>
 #include <unsupported/Eigen/IterativeSolvers>
 
-#include <votca/xtp/matrixfreeoperator.h>
 #include <votca/xtp/bse_operator.h>
 #include <votca/xtp/davidsonsolver.h>
 
@@ -45,15 +36,6 @@ namespace votca {
 using namespace std;
 
 DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log) { }
-
-// void DavidsonSolver::set_iter_max(int N) { this->iter_max = N; }
-// void DavidsonSolver::set_tolerance(real_gwbse eps) { this->tol = eps; }
-// void DavidsonSolver::set_max_search_space(int N) { this->max_search_space = N;}
-// void DavidsonSolver::set_jacobi_correction() { this->jacobi_correction = true; }
-// void DavidsonSolver::set_jacobi_linsolve(std::string method) {this->jacobi_linsolve = method;}
-
-// Eigen::VectorXd DavidsonSolver::eigenvalues() {return this->_eigenvalues;}
-// Eigen::MatrixXd DavidsonSolver::eigenvectors() {return this->_eigenvectors;}
 
 
 Eigen::ArrayXd DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
@@ -86,14 +68,12 @@ Eigen::MatrixXd DavidsonSolver::_solve_linear_system(Eigen::MatrixXd &A, Eigen::
         w = cg.solve(r);
     }   
 
-    //use GMRES approximate solver
     else if (this->jacobi_linsolve == "GMRES") {
         Eigen::GMRES<Eigen::MatrixXd, Eigen::IdentityPreconditioner> gmres;
         gmres.compute(A);
         w = gmres.solve(r);
     }
 
-    // LLT solver
     else if (this->jacobi_linsolve == "LLT") {
         w = A.llt().solve(r);
     }
@@ -110,12 +90,9 @@ Eigen::MatrixXd DavidsonSolver::_solve_linear_system(Eigen::MatrixXd &A, Eigen::
     return w;
 }
 
-
-
 template <class MatrixReplacement>
 Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, double lambda) const
 {
-    
     //! Solve the linear system of the jacobi correction
     /*!
         \param A Matrix of the system
@@ -124,23 +101,17 @@ Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction(MatrixReplacement 
         \param lambda eigenvalue
     */
 
-    Eigen::MatrixXd w;
-
     // form the projector P = 1 - u * u.T
     Eigen::MatrixXd P = -u*u.transpose();
     P.diagonal().array() += 1.0;
 
-    // project the matrix
-    // P * (A - lambda*I) * P^T
+    // project the matrix P * (A - lambda*I) * P^T
     Eigen::MatrixXd projA = A*P.transpose();
     projA -= lambda*P.transpose();
     projA = P * projA;
 
     return DavidsonSolver::_solve_linear_system(projA,r);
 }
-
-template Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction<Eigen::MatrixXd>(Eigen::MatrixXd &A, Eigen::VectorXd &r, Eigen::VectorXd &u, double lambda) const;
-template Eigen::MatrixXd DavidsonSolver::_jacobi_orthogonal_correction<MatrixFreeOperator>(MatrixFreeOperator &A, Eigen::VectorXd &r, Eigen::VectorXd &u, double lambda) const;
 
 template <class MatrixReplacement>
 void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_guess)
@@ -156,16 +127,6 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
 
     double norm;
     int size = A.rows();
-
-    // asking too many eigenvalues for the system size
-    if (neigen>size/4)
-    {
-        CTP_LOG(ctp::logDEBUG, _log)
-                << ctp::TimeStamp() << " Warning neigen (" << neigen << ") larger than system size (" << size << ")" << flush;
-        neigen = size/4;
-        CTP_LOG(ctp::logDEBUG, _log)
-                << ctp::TimeStamp() << " Computing only " << neigen << " eigenvalues" << flush;                            
-    }
 
     //. search space exeeding the system size
     if (max_search_space > size)
@@ -289,7 +250,6 @@ void DavidsonSolver::solve(MatrixReplacement &A, int neigen, int size_initial_gu
 }
 
 template void DavidsonSolver::solve<Eigen::MatrixXd>(Eigen::MatrixXd &A, int neigen, int size_initial_guess=0);
-template void DavidsonSolver::solve<MatrixFreeOperator>(MatrixFreeOperator &A, int neigen, int size_initial_guess=0);
 template void DavidsonSolver::solve<BSE_OPERATOR>(BSE_OPERATOR &A, int neigen, int size_initial_guess=0);
 
 }}

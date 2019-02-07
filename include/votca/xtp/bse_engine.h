@@ -25,7 +25,7 @@
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/bse_operator.h>
-
+#include <votca/xtp/davidsonsolver.h>
 
 namespace votca {
 namespace xtp {
@@ -47,9 +47,6 @@ class BSE_ENGINE {
         _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
         _Mmn(Mmn),_Hqp(Hqp){};
 
-
-    
-
     struct options {
 
         bool useTDA=true;
@@ -65,11 +62,10 @@ class BSE_ENGINE {
         bool davidson=0; // use davidson to diagonalize the matrix
         bool jocc=0; // jacobi orthogonal correction instead of DPR
         std::string jocc_linsolve = "CG"; //method to solve the linea system in jacobi davidson
-        double min_print_weight=0.5;  //minimium contribution for state to print it
+        bool matrixfree=0; // use matrix free method
+        double min_print_weight = 0.5;  //minimium contribution for state to print it
 
         };
-  
- 
 
    void configure(const options& opt){
     _opt=opt;
@@ -78,7 +74,6 @@ class BSE_ENGINE {
     _bse_vtotal = _bse_vmax - _opt.vmin + 1;
     _bse_ctotal =_opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
-    //SetupDirectInteractionOperator();
   }
 
   

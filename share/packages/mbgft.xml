@@ -21,7 +21,8 @@
         <eigensolver>
                 <dodavidson>1</dodavidson>
                 <jacobi_correction>0</jacobi_correction>
-                <jacobi_solver>1</jacobi_solver>
+                <jacobi_solver>CG</jacobi_solver>
+                <domatrixfree>0</domatrixfree>
         </eigensolver>
 
         <print>25</print>

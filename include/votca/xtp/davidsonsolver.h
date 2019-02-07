@@ -72,13 +72,8 @@ namespace votca { namespace xtp {
             template <typename MatrixReplacement>
             Eigen::MatrixXd _jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, double lambda) const;
 
-    };
-
-   
-   
+    };   
 }}
-
-
 
 #endif	// __VOTCA_TOOLS_DAVIDSON_SOLVER_H
 

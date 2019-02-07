@@ -25,7 +25,6 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/bse.h>
 #include <votca/xtp/bse_engine.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/gw.h>
@@ -201,10 +200,17 @@ void GWBSE::Initialize(tools::Property& options) {
             if (_bseopt.jocc)
                 _bseopt.jocc_linsolve =
                     options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.jacobi_solver", _bseopt.jocc_linsolve);
+
+            _bseopt.matrixfree =
+                options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
+        
+            if (_bseopt.nmax > bse_size/4 ) {
+                CTP_LOG(ctp::logDEBUG, *_pLog)
+                << ctp::TimeStamp() << " Warning : Too many eigenvalues required for Davidson. Defaulting to Lapack diagonalization" << flush;
+                _bseopt.davidson=false;
+            }
         }
     }
-
-
 
     _fragA = options.ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
 

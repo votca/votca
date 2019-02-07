@@ -44,12 +44,10 @@ namespace votca { namespace xtp {
     // get the full matrix if we have to
     Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const
     {
-        std::cout << " Matrix Size : " << _size << "x" << _size ;
     	Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size,_size);
         for(int i=0; i<_size; i++) {
             matrix.col(i) = this->col(i);
         }
-        std::cout << " done " << std::endl;
         return matrix; 
     }
 

@@ -22,9 +22,6 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/davidsonsolver.h>
 
-#include <votca/xtp/bse_singlet.h>
-#include <votca/xtp/bse_triplet.h>
-
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
 
@@ -33,10 +30,8 @@ using std::flush;
 
 namespace votca {
   namespace xtp {
-
   
-    void BSE_ENGINE::Solve_triplets() 
-    {
+    void BSE_ENGINE::Solve_triplets() {
 
       BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
       BSE_ENGINE::configure_operator(Ht);
@@ -62,7 +57,7 @@ namespace votca {
       return;
     }
 
-    void BSE_ENGINE::Solve_singlets(){
+    void BSE_ENGINE::Solve_singlets() {
         if(_opt.useTDA){
             Solve_singlets_TDA();
         }
@@ -102,42 +97,44 @@ namespace votca {
       
     }
     
-    void BSE_ENGINE::configure_operator(BSE_OPERATOR &h)
-    {
-
+    void BSE_ENGINE::configure_operator(BSE_OPERATOR &h) {
       h._opt.homo = this->_opt.homo;
       h._opt.rpamin = this->_opt.rpamin;
       h._opt.rpamax = this->_opt.rpamax;
       h._opt.qpmin = this->_opt.qpmin;
       h._opt.vmin = this->_opt.vmin;
       h._opt.cmax = this->_opt.cmax;
-
       h._bse_cmin = _opt.homo+1;
       h._bse_vtotal = _bse_vmax - _opt.vmin + 1;
       h._bse_ctotal =_opt.cmax - _bse_cmin + 1;
       h._bse_size = _bse_vtotal * _bse_ctotal; 
       h._size = _bse_size;
-
       h.SetupDirectInteractionOperator();
-
       return ;
     }
 
-    void BSE_ENGINE::solve_hermitian(BSE_OPERATOR &h, Eigen::VectorXd &energies, Eigen::MatrixXd &coefficients)
-    {
+    void BSE_ENGINE::solve_hermitian(BSE_OPERATOR &h, Eigen::VectorXd &energies, Eigen::MatrixXd &coefficients) {
 
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
 
       if (_opt.davidson) {
-
         DavidsonSolver DS(_log);
         if (_opt.jocc) {
           DS.set_jacobi_correction();
           DS.set_jacobi_linsolve(_opt.jocc_linsolve);
         }
-
-        DS.solve(h,_opt.nmax);
+        
+        if(_opt.matrixfree) {
+          CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Using matrix free method"<< flush;
+          DS.solve(h,_opt.nmax);
+        } else {
+          CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Using full matrix method"<< flush;
+          Eigen::MatrixXd hfull = h.get_full_matrix();
+          DS.solve(hfull,_opt.nmax);
+        }
         energies = DS.eigenvalues(); 
         coefficients = DS.eigenvectors();
       }
@@ -168,9 +165,9 @@ namespace votca {
 
       BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
       BSE_ENGINE::configure_operator(Hs_AmB);
-      Hs_ApB.setHd(1.0);
-      Hs_ApB.setHqp(1.0);
-      Hs_ApB.setHd2(-1.0);
+      Hs_AmB.setHd(1.0);
+      Hs_AmB.setHqp(1.0);
+      Hs_AmB.setHd2(-1.0);
 
       Eigen::MatrixXd ApB = Hs_ApB.get_full_matrix();
       Eigen::MatrixXd AmB = Hs_AmB.get_full_matrix();
@@ -313,9 +310,6 @@ namespace votca {
       return;
     }
     
-    
-    
-    
     void BSE_ENGINE::Analyze_triplets(const AOBasis& dftbasis) {
 
       Interaction act;
@@ -384,20 +378,25 @@ namespace votca {
 
       Interaction analysis;
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " ANALYZE_EH_INTERACTION DISABLED" << flush;
-      // MatrixXfd H = MatrixXfd::Zero(_bse_size, _bse_size);
-      // Add_Hqp<real_gwbse>(H);
-      // analysis.qp_contrib=Analyze_IndividualContribution(type,H);
+
+      BSE_OPERATOR h (_orbitals, _log, _Mmn, _Hqp);
+      h.setHqp(1.0);
+      Eigen::MatrixXd H = h.get_full_matrix();
+      analysis.qp_contrib=Analyze_IndividualContribution(type,H);
       
-      // H = MatrixXfd::Zero(_bse_size, _bse_size);
-      // Add_Hd<real_gwbse>(H);
-      // analysis.direct_contrib=Analyze_IndividualContribution(type,H);
-      // if (type == QMStateType::Singlet) {
-      //     H = MatrixXfd::Zero(_bse_size, _bse_size);
-      //     Add_Hx<real_gwbse,2>(H);
-      //     analysis.exchange_contrib=Analyze_IndividualContribution(type,H);
-      // }else{
-      //       analysis.exchange_contrib=Eigen::VectorXd::Zero(0);
-      // }
+      h.setHqp(0.0);
+      h.setHd(1.0);
+      H = h.get_full_matrix();
+      analysis.direct_contrib=Analyze_IndividualContribution(type,H);
+
+      if (type == QMStateType::Singlet) {
+          h.setHd(0.0);
+          h.setHx(1.0);
+          H = h.get_full_matrix();
+          analysis.exchange_contrib=Analyze_IndividualContribution(type,H);
+      } else {
+            analysis.exchange_contrib=Eigen::VectorXd::Zero(0);
+      }
       
       return analysis;
     }

@@ -21,9 +21,7 @@
 
 namespace votca { namespace xtp {
 
-    //class MatrixFreeOperator;
-
-    class MatrixFreeOperator : public Eigen::EigenBase<MatrixXfd>
+    class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd>
     {
         public: 
 
@@ -55,7 +53,6 @@ namespace votca { namespace xtp {
             void set_size(int size);
 
             // extract row/col of the operator
-            // virtual RowVectorXfd row(int index) const = 0;
             virtual Eigen::VectorXd col(int index) const;
 
             int _size;
