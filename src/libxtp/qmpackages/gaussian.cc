@@ -756,7 +756,7 @@ bool Gaussian::ReadESPCharges(Orbitals& orbitals, std::string& line,
     while (nfields == 3) {
       int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
       std::string atom_type = row.at(1);
-      double atom_charge = stod > (row.at(2));
+      double atom_charge = stod(row.at(2));
       row = GetLineAndSplit(input_file, "\t ");
       nfields = row.size();
       if (!has_atoms) {

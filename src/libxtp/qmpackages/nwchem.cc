@@ -737,7 +737,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       while (nfields == 6) {
         int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
         std::string atom_type = row.at(1);
-        double atom_charge = stod > (row.at(5));
+        double atom_charge = stod(row.at(5));
         row = GetLineAndSplit(input_file, "\t ");
         nfields = row.size();
         if (!hasAtoms) {
