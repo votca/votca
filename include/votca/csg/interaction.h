@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@
 #include <sstream>
 #include <string>
 
+namespace TOOLS = votca::tools;
+
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-using namespace std;
 
 /**
     \brief base calss for all interactions
@@ -36,19 +36,19 @@ using namespace std;
     \todo double names/groups right, add molecules!!
 */
 class Interaction {
-public:
+ public:
   Interaction() : _index(-1), _group(""), _group_id(-1), _name(""), _mol(-1){};
 
   virtual ~Interaction() {}
   virtual double EvaluateVar(const Topology &top) = 0;
 
-  string getName() const { return _name; }
+  std::string getName() const { return _name; }
 
-  void setGroup(const string &group) {
+  void setGroup(const std::string &group) {
     _group = group;
     RebuildName();
   }
-  const string &getGroup() const {
+  const std::string &getGroup() const {
     assert(_group.compare("") != 0);
     return _group;
   }
@@ -87,29 +87,27 @@ public:
     return _beads[bead];
   }
 
-protected:
+ protected:
   int _index;
-  string _group;
+  std::string _group;
   int _group_id;
-  string _name;
+  std::string _name;
   int _mol;
-  vector<int> _beads;
+  std::vector<int> _beads;
 
   void RebuildName();
 };
 
 inline void Interaction::RebuildName() {
-  stringstream s;
-  if (_mol != -1)
-    s << "molecule " << _mol;
+  std::stringstream s;
+  if (_mol != -1) s << "molecule " << _mol;
   if (!_group.empty()) {
     s << ":" << _group;
     if (_group_id != -1) {
       s << " " << _group_id;
     }
   }
-  if (_index != -1)
-    s << ":index " << _index;
+  if (_index != -1) s << ":index " << _index;
   _name = s.str();
 }
 
@@ -117,14 +115,14 @@ inline void Interaction::RebuildName() {
     \brief bond interaction
 */
 class IBond : public Interaction {
-public:
+ public:
   IBond(int bead1, int bead2) {
     _beads.resize(2);
     _beads[0] = bead1;
     _beads[1] = bead2;
   }
 
-  IBond(list<int> &beads) {
+  IBond(std::list<int> &beads) {
     assert(beads.size() >= 2);
     _beads.resize(2);
     for (int i = 0; i < 2; ++i) {
@@ -135,21 +133,21 @@ public:
   double EvaluateVar(const Topology &top);
   vec Grad(const Topology &top, int bead);
 
-private:
+ private:
 };
 
 /**
     \brief angle interaction
 */
 class IAngle : public Interaction {
-public:
+ public:
   IAngle(int bead1, int bead2, int bead3) {
     _beads.resize(3);
     _beads[0] = bead1;
     _beads[1] = bead2;
     _beads[2] = bead3;
   }
-  IAngle(list<int> &beads) {
+  IAngle(std::list<int> &beads) {
     assert(beads.size() >= 3);
     _beads.resize(3);
     for (int i = 0; i < 3; ++i) {
@@ -161,14 +159,14 @@ public:
   double EvaluateVar(const Topology &top);
   vec Grad(const Topology &top, int bead);
 
-private:
+ private:
 };
 
 /**
     \brief dihedral interaction
 */
 class IDihedral : public Interaction {
-public:
+ public:
   IDihedral(int bead1, int bead2, int bead3, int bead4) {
     _beads.resize(4);
     _beads[0] = bead1;
@@ -176,7 +174,7 @@ public:
     _beads[2] = bead3;
     _beads[3] = bead4;
   }
-  IDihedral(list<int> &beads) {
+  IDihedral(std::list<int> &beads) {
     assert(beads.size() >= 4);
     _beads.resize(4);
     for (int i = 0; i < 4; ++i) {
@@ -188,7 +186,7 @@ public:
   double EvaluateVar(const Topology &top);
   vec Grad(const Topology &top, int bead);
 
-private:
+ private:
 };
 
 inline double IBond::EvaluateVar(const Topology &top) {
@@ -212,26 +210,25 @@ inline vec IAngle::Grad(const Topology &top, int bead) {
   vec v2(top.getDist(_beads[1], _beads[2]));
 
   double acos_prime =
-      1.0 /
-      (sqrt(1 -
-            (v1 * v2) * (v1 * v2) / (abs(v1) * abs(v2) * abs(v1) * abs(v2))));
+      1.0 / (sqrt(1 - (v1 * v2) * (v1 * v2) /
+                          (abs(v1) * abs(v2) * abs(v1) * abs(v2))));
   switch (bead) {
-  case (0):
-    return acos_prime *
-           (-v2 / (abs(v1) * abs(v2)) +
-            (v1 * v2) * v1 / (abs(v2) * abs(v1) * abs(v1) * abs(v1)));
-    break;
-  case (1):
-    return acos_prime *
-           ((v1 + v2) / (abs(v1) * abs(v2)) -
-            (v1 * v2) * ((v2 * v2) * v1 + (v1 * v1) * v2) /
-                (abs(v1) * abs(v1) * abs(v1) * abs(v2) * abs(v2) * abs(v2)));
-    break;
-  case (2):
-    return acos_prime *
-           (-v1 / (abs(v1) * abs(v2)) +
-            (v1 * v2) * v2 / (abs(v1) * abs(v2) * abs(v2) * abs(v2)));
-    break;
+    case (0):
+      return acos_prime *
+             (-v2 / (abs(v1) * abs(v2)) +
+              (v1 * v2) * v1 / (abs(v2) * abs(v1) * abs(v1) * abs(v1)));
+      break;
+    case (1):
+      return acos_prime *
+             ((v1 + v2) / (abs(v1) * abs(v2)) -
+              (v1 * v2) * ((v2 * v2) * v1 + (v1 * v1) * v2) /
+                  (abs(v1) * abs(v1) * abs(v1) * abs(v2) * abs(v2) * abs(v2)));
+      break;
+    case (2):
+      return acos_prime *
+             (-v1 / (abs(v1) * abs(v2)) +
+              (v1 * v2) * v2 / (abs(v1) * abs(v2) * abs(v2) * abs(v2)));
+      break;
   }
   // should never reach this
   assert(false);
@@ -243,8 +240,8 @@ inline double IDihedral::EvaluateVar(const Topology &top) {
   vec v2(top.getDist(_beads[1], _beads[2]));
   vec v3(top.getDist(_beads[2], _beads[3]));
   vec n1, n2;
-  n1 = v1 ^ v2; // calculate the normal vector
-  n2 = v2 ^ v3; // calculate the normal vector
+  n1 = v1 ^ v2;  // calculate the normal vector
+  n2 = v2 ^ v3;  // calculate the normal vector
   double sign = (v1 * n2 < 0) ? -1 : 1;
   return sign * acos(n1 * n2 / sqrt((n1 * n1) * (n2 * n2)));
 }
@@ -254,115 +251,120 @@ inline vec IDihedral::Grad(const Topology &top, int bead) {
   vec v2(top.getDist(_beads[1], _beads[2]));
   vec v3(top.getDist(_beads[2], _beads[3]));
   vec n1, n2;
-  n1 = v1 ^ v2; // calculate the normal vector
-  n2 = v2 ^ v3; // calculate the normal vector
+  n1 = v1 ^ v2;  // calculate the normal vector
+  n2 = v2 ^ v3;  // calculate the normal vector
   double sign = (v1 * n2 < 0) ? -1 : 1;
-  vec returnvec;                             // vector to return
-  double returnvec0, returnvec1, returnvec2; // components of the return vector
-  vec e0(1, 0, 0); // unit vector pointing in x-direction
-  vec e1(0, 1, 0); // unit vector pointing in y-direction
-  vec e2(0, 0, 1); // unit vector pointing in z-direction
+  vec returnvec;                              // vector to return
+  double returnvec0, returnvec1, returnvec2;  // components of the return vector
+  vec e0(1, 0, 0);  // unit vector pointing in x-direction
+  vec e1(0, 1, 0);  // unit vector pointing in y-direction
+  vec e2(0, 0, 1);  // unit vector pointing in z-direction
 
   double acos_prime =
-      (-1.0 / (sqrt(1 -
-                    (n1 * n2) * (n1 * n2) /
-                        (abs(n1) * abs(n2) * abs(n1) * abs(n2))))) *
+      (-1.0 / (sqrt(1 - (n1 * n2) * (n1 * n2) /
+                            (abs(n1) * abs(n2) * abs(n1) * abs(n2))))) *
       sign;
   switch (bead) {
-  case (0): { //
-    returnvec0 = acos_prime * ((n2 * (v2 ^ e0)) / (abs(n1) * abs(n2)) -
-                               ((n1 * n2) * (n1 * (v2 ^ e0))) /
-                                   (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
-    returnvec1 = acos_prime * ((n2 * (v2 ^ e1)) / (abs(n1) * abs(n2)) -
-                               ((n1 * n2) * (n1 * (v2 ^ e1))) /
-                                   (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
-    returnvec2 = acos_prime * ((n2 * (v2 ^ e2)) / (abs(n1) * abs(n2)) -
-                               ((n1 * n2) * (n1 * (v2 ^ e2))) /
-                                   (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
-    returnvec.setX(returnvec0);
-    returnvec.setY(returnvec1);
-    returnvec.setZ(returnvec2);
-    return returnvec;
-    break;
-  }
-  case (1): { //
-    returnvec0 =
-        acos_prime *
-        ((n1 * (v3 ^ e0) + n2 * ((e0 ^ v1) + (e0 ^ v2))) / (abs(n1) * abs(n2)) -
-         ((n1 * n2) *
-          ((n1 * ((e0 ^ v1) + (e0 ^ v2))) /
-               (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
-           (n2 * (v3 ^ e0)) / (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
-    returnvec1 =
-        acos_prime *
-        ((n1 * (v3 ^ e1) + n2 * ((e1 ^ v1) + (e1 ^ v2))) / (abs(n1) * abs(n2)) -
-         ((n1 * n2) *
-          ((n1 * ((e1 ^ v1) + (e1 ^ v2))) /
-               (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
-           (n2 * (v3 ^ e1)) / (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
-    returnvec2 =
-        acos_prime *
-        ((n1 * (v3 ^ e2) + n2 * ((e2 ^ v1) + (e2 ^ v2))) / (abs(n1) * abs(n2)) -
-         ((n1 * n2) *
-          ((n1 * ((e2 ^ v1) + (e2 ^ v2))) /
-               (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
-           (n2 * (v3 ^ e2)) / (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
-    returnvec.setX(returnvec0);
-    returnvec.setY(returnvec1);
-    returnvec.setZ(returnvec2);
-    return returnvec;
-    break;
-  };
-  case (2): { //
-    returnvec0 =
-        acos_prime *
-        ((n1 * ((e0 ^ v2) + (e0 ^ v3)) + n2 * (v1 ^ e0)) / (abs(n1) * abs(n2)) -
-         ((n1 * n2) *
-          ((n1 * (v1 ^ e0)) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
-           (n2 * ((e0 ^ v2) + (e0 ^ v3))) /
-               (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
-    returnvec1 =
-        acos_prime *
-        ((n1 * ((e1 ^ v2) + (e1 ^ v3)) + n2 * (v1 ^ e1)) / (abs(n1) * abs(n2)) -
-         ((n1 * n2) *
-          ((n1 * (v1 ^ e1)) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
-           (n2 * ((e1 ^ v2) + (e1 ^ v3))) /
-               (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
-    returnvec2 =
-        acos_prime *
-        ((n1 * ((e2 ^ v2) + (e2 ^ v3)) + n2 * (v1 ^ e2)) / (abs(n1) * abs(n2)) -
-         ((n1 * n2) *
-          ((n1 * (v1 ^ e2)) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
-           (n2 * ((e2 ^ v2) + (e2 ^ v3))) /
-               (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
-    returnvec.setX(returnvec0);
-    returnvec.setY(returnvec1);
-    returnvec.setZ(returnvec2);
-    return returnvec;
-    break;
-  };
-  case (3): { //
-    returnvec0 = acos_prime * ((n1 * (v2 ^ e0)) / (abs(n1) * abs(n2)) -
-                               ((n1 * n2) * (n2 * (v2 ^ e0))) /
-                                   (abs(n1) * abs(n2) * abs(n2) * abs(n2)));
-    returnvec1 = acos_prime * ((n1 * (v2 ^ e1)) / (abs(n1) * abs(n2)) -
-                               ((n1 * n2) * (n2 * (v2 ^ e1))) /
-                                   (abs(n1) * abs(n2) * abs(n2) * abs(n2)));
-    returnvec2 = acos_prime * ((n1 * (v2 ^ e2)) / (abs(n1) * abs(n2)) -
-                               ((n1 * n2) * (n2 * (v2 ^ e2))) /
-                                   (abs(n1) * abs(n2) * abs(n2) * abs(n2)));
-    returnvec.setX(returnvec0);
-    returnvec.setY(returnvec1);
-    returnvec.setZ(returnvec2);
-    return returnvec;
-    break;
-  };
+    case (0): {  //
+      returnvec0 = acos_prime * ((n2 * (v2 ^ e0)) / (abs(n1) * abs(n2)) -
+                                 ((n1 * n2) * (n1 * (v2 ^ e0))) /
+                                     (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
+      returnvec1 = acos_prime * ((n2 * (v2 ^ e1)) / (abs(n1) * abs(n2)) -
+                                 ((n1 * n2) * (n1 * (v2 ^ e1))) /
+                                     (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
+      returnvec2 = acos_prime * ((n2 * (v2 ^ e2)) / (abs(n1) * abs(n2)) -
+                                 ((n1 * n2) * (n1 * (v2 ^ e2))) /
+                                     (abs(n1) * abs(n1) * abs(n1) * abs(n2)));
+      returnvec.setX(returnvec0);
+      returnvec.setY(returnvec1);
+      returnvec.setZ(returnvec2);
+      return returnvec;
+      break;
+    }
+    case (1): {  //
+      returnvec0 =
+          acos_prime *
+          ((n1 * (v3 ^ e0) + n2 * ((e0 ^ v1) + (e0 ^ v2))) /
+               (abs(n1) * abs(n2)) -
+           ((n1 * n2) *
+            ((n1 * ((e0 ^ v1) + (e0 ^ v2))) /
+                 (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
+             (n2 * (v3 ^ e0)) / (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
+      returnvec1 =
+          acos_prime *
+          ((n1 * (v3 ^ e1) + n2 * ((e1 ^ v1) + (e1 ^ v2))) /
+               (abs(n1) * abs(n2)) -
+           ((n1 * n2) *
+            ((n1 * ((e1 ^ v1) + (e1 ^ v2))) /
+                 (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
+             (n2 * (v3 ^ e1)) / (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
+      returnvec2 =
+          acos_prime *
+          ((n1 * (v3 ^ e2) + n2 * ((e2 ^ v1) + (e2 ^ v2))) /
+               (abs(n1) * abs(n2)) -
+           ((n1 * n2) *
+            ((n1 * ((e2 ^ v1) + (e2 ^ v2))) /
+                 (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
+             (n2 * (v3 ^ e2)) / (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
+      returnvec.setX(returnvec0);
+      returnvec.setY(returnvec1);
+      returnvec.setZ(returnvec2);
+      return returnvec;
+      break;
+    };
+    case (2): {  //
+      returnvec0 =
+          acos_prime *
+          ((n1 * ((e0 ^ v2) + (e0 ^ v3)) + n2 * (v1 ^ e0)) /
+               (abs(n1) * abs(n2)) -
+           ((n1 * n2) *
+            ((n1 * (v1 ^ e0)) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
+             (n2 * ((e0 ^ v2) + (e0 ^ v3))) /
+                 (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
+      returnvec1 =
+          acos_prime *
+          ((n1 * ((e1 ^ v2) + (e1 ^ v3)) + n2 * (v1 ^ e1)) /
+               (abs(n1) * abs(n2)) -
+           ((n1 * n2) *
+            ((n1 * (v1 ^ e1)) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
+             (n2 * ((e1 ^ v2) + (e1 ^ v3))) /
+                 (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
+      returnvec2 =
+          acos_prime *
+          ((n1 * ((e2 ^ v2) + (e2 ^ v3)) + n2 * (v1 ^ e2)) /
+               (abs(n1) * abs(n2)) -
+           ((n1 * n2) *
+            ((n1 * (v1 ^ e2)) / (abs(n1) * abs(n1) * abs(n1) * abs(n2)) +
+             (n2 * ((e2 ^ v2) + (e2 ^ v3))) /
+                 (abs(n1) * abs(n2) * abs(n2) * abs(n2)))));
+      returnvec.setX(returnvec0);
+      returnvec.setY(returnvec1);
+      returnvec.setZ(returnvec2);
+      return returnvec;
+      break;
+    };
+    case (3): {  //
+      returnvec0 = acos_prime * ((n1 * (v2 ^ e0)) / (abs(n1) * abs(n2)) -
+                                 ((n1 * n2) * (n2 * (v2 ^ e0))) /
+                                     (abs(n1) * abs(n2) * abs(n2) * abs(n2)));
+      returnvec1 = acos_prime * ((n1 * (v2 ^ e1)) / (abs(n1) * abs(n2)) -
+                                 ((n1 * n2) * (n2 * (v2 ^ e1))) /
+                                     (abs(n1) * abs(n2) * abs(n2) * abs(n2)));
+      returnvec2 = acos_prime * ((n1 * (v2 ^ e2)) / (abs(n1) * abs(n2)) -
+                                 ((n1 * n2) * (n2 * (v2 ^ e2))) /
+                                     (abs(n1) * abs(n2) * abs(n2) * abs(n2)));
+      returnvec.setX(returnvec0);
+      returnvec.setY(returnvec1);
+      returnvec.setZ(returnvec2);
+      return returnvec;
+      break;
+    };
   }
   // should never reach this
   assert(false);
   return vec(0, 0, 0);
 }
-}
-}
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_INTERACTION_H
+#endif  // _VOTCA_CSG_INTERACTION_H

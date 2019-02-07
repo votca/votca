@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,12 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
-
-using namespace std;
 
 class TopologyReader {
-public:
+ public:
   virtual ~TopologyReader() {}
   /// open, read and close topology file
-  virtual bool ReadTopology(string file, Topology &top) = 0;
+  virtual bool ReadTopology(std::string file, Topology &top) = 0;
 
   static void RegisterPlugins(void);
 };
@@ -42,7 +39,7 @@ inline FileFormatFactory<TopologyReader> &TopReaderFactory() {
   static FileFormatFactory<TopologyReader> _TopReaderFactory;
   return _TopReaderFactory;
 }
-}
-}
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_TOPOLOGYREADER_H 
+#endif  // _VOTCA_CSG_TOPOLOGYREADER_H

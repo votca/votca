@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,22 @@
  *
  */
 
-#include <votca/tools/spline.h>
-#include <votca/tools/cubicspline.h>
-#include <votca/tools/akimaspline.h>
-#include <votca/tools/linspline.h>
-#include <votca/tools/table.h>
-#include <votca/tools/tokenizer.h>
 #include <boost/program_options.hpp>
 #include <iostream>
 #include <votca/csg/version.h>
+#include <votca/tools/akimaspline.h>
+#include <votca/tools/cubicspline.h>
+#include <votca/tools/linspline.h>
+#include <votca/tools/spline.h>
+#include <votca/tools/table.h>
+#include <votca/tools/tokenizer.h>
 
 using namespace std;
 namespace po = boost::program_options;
 using namespace votca::csg;
 using namespace votca::tools;
 
-void help_text()
-{
+void help_text() {
     votca::csg::HelpTextHeader("csg_resample");
     cout << "Change grid and interval of any sort of table files.\n"
             "Mainly called internally by inverse script, can also be\n"
@@ -39,8 +38,8 @@ void help_text()
             "simulations.\n\n";     
 }
 
-void check_option(po::options_description &desc, po::variables_map &vm, const string &option)
-{
+void check_option(po::options_description &desc, po::variables_map &vm,
+                  const string &option) {
     if(!vm.count(option)) {
         cout << "csg_resample \n\n";                
         cout << desc << endl << "parameter " << option << " is not specified\n";
@@ -48,8 +47,7 @@ void check_option(po::options_description &desc, po::variables_map &vm, const st
     }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char **argv) {
 
     string in_file, out_file, grid, fitgrid, comment, type, boundaries;
     Spline *spline=NULL;
@@ -57,24 +55,31 @@ int main(int argc, char** argv)
     // program options
     po::options_description desc("Allowed options");            
     
-    desc.add_options()
-      ("help", "produce this help message")
-      ("in", po::value<string>(&in_file), "table to read")
-      ("out", po::value<string>(&out_file), "table to write")
-      ("derivative", po::value<string>(), "table to write")
-      ("grid", po::value<string>(&grid), "new grid spacing (min:step:max). If 'grid' is specified only, interpolation is performed.")
-      ("type", po::value<string>(&type)->default_value("akima"), "[cubic|akima|linear]. If option is not specified, the default type 'akima' is assumed.")
-      ("fitgrid", po::value<string>(&fitgrid), "specify fit grid (min:step:max). If 'grid' and 'fitgrid' are specified, a fit is performed.")
-      ("nocut", "Option for fitgrid: Normally, values out of fitgrid boundaries are cut off. If they shouldn't, choose --nocut.")
-      ("comment", po::value<string>(&comment), "store a comment in the output table")
-      ("boundaries", po::value<string>(&boundaries), "(natural|periodic|derivativezero) sets boundary conditions");
+  desc.add_options()("help", "produce this help message")(
+      "in", po::value<string>(&in_file), "table to read")(
+      "out", po::value<string>(&out_file), "table to write")(
+      "derivative", po::value<string>(), "table to write")(
+      "grid", po::value<string>(&grid),
+      "new grid spacing (min:step:max). If 'grid' is specified only, "
+      "interpolation is performed.")(
+      "type", po::value<string>(&type)->default_value("akima"),
+      "[cubic|akima|linear]. If option is not specified, the default type "
+      "'akima' is assumed.")("fitgrid", po::value<string>(&fitgrid),
+                             "specify fit grid (min:step:max). If 'grid' and "
+                             "'fitgrid' are specified, a fit is performed.")(
+      "nocut",
+      "Option for fitgrid: Normally, values out of fitgrid boundaries are cut "
+      "off. If they shouldn't, choose --nocut.")(
+      "comment", po::value<string>(&comment),
+      "store a comment in the output table")(
+      "boundaries", po::value<string>(&boundaries),
+      "(natural|periodic|derivativezero) sets boundary conditions");
     
     po::variables_map vm;
     try {
         po::store(po::parse_command_line(argc, argv, desc), vm);    
         po::notify(vm);
-    }
-    catch(po::error& err) {
+  } catch (po::error &err) {
         cout << "error parsing command line: " << err.what() << endl;
         return -1;
     }
@@ -100,7 +105,6 @@ int main(int argc, char** argv)
             return 1;
     }
 
-    
     double min, max, step;
     {
         Tokenizer tok(grid, ":");
@@ -115,26 +119,21 @@ int main(int argc, char** argv)
         max = stod(toks[2]);
     }
 
-   
     in.Load(in_file);
 
     if (vm.count("type")) {
         if(type=="cubic") {
             spline = new CubicSpline();
-        }
-        else if(type=="akima") {
+      } else if (type == "akima") {
             spline = new AkimaSpline();
-        }
-        else if(type=="linear") {
+      } else if (type == "linear") {
             spline = new LinSpline();
-        }
-        else {
+      } else {
             throw std::runtime_error("unknown type");
         }
     }
     spline->setBC(Spline::splineNormal);
     
-
     if (vm.count("boundaries")) {
         if(boundaries=="periodic") {
             spline->setBC(Spline::splinePeriodic);
@@ -144,7 +143,6 @@ int main(int argc, char** argv)
         }
         //default: normal
     }
-
 
     // in case fit is specified
     if (vm.count("fitgrid")) {
@@ -161,7 +159,8 @@ int main(int argc, char** argv)
         sp_max = stod(toks[2]);
         cout << "doing " << type << " fit " << sp_min << ":" << sp_step << ":" << sp_max << endl;
 
-        // cut off any values out of fitgrid boundaries (exception: do nothing in case of --nocut)
+      // cut off any values out of fitgrid boundaries (exception: do nothing in
+      // case of --nocut)
         Eigen::VectorXd x_copy;
         Eigen::VectorXd y_copy;
         if (!vm.count("nocut")) {
@@ -195,12 +194,17 @@ int main(int argc, char** argv)
             }   
         } catch (const char* message) {
             if(strcmp("qrsolve_zero_column_in_matrix",message)) {
-                throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
-            }    
-            else if(strcmp("constrained_qrsolve_zero_column_in_matrix",message)) {
-                throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data for fit, please adjust grid (zero row in fit matrix)");
-            }
-            else throw std::runtime_error("Unknown error in csg_resample while fitting.");
+          throw std::runtime_error(
+              "error in Linalg::linalg_qrsolve : Not enough data for fit, "
+              "please adjust grid (zero row in fit matrix)");
+        } else if (strcmp("constrained_qrsolve_zero_column_in_matrix",
+                          message)) {
+          throw std::runtime_error(
+              "error in Linalg::linalg_constrained_qrsolve : Not enough data "
+              "for fit, please adjust grid (zero row in fit matrix)");
+        } else
+          throw std::runtime_error(
+              "Unknown error in csg_resample while fitting.");
         }
     } else {
         // otherwise do interpolation (default = cubic)
@@ -208,20 +212,23 @@ int main(int argc, char** argv)
             spline->Interpolate(in.x(), in.y());
         } catch (const char* message) {
             if(strcmp("qrsolve_zero_column_in_matrix",message)) {
-                throw std::runtime_error("error in Linalg::linalg_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
+          throw std::runtime_error(
+              "error in Linalg::linalg_qrsolve : Not enough data, please "
+              "adjust grid (zero row in fit matrix)");
+        } else if (strcmp("constrained_qrsolve_zero_column_in_matrix",
+                          message)) {
+          throw std::runtime_error(
+              "error in Linalg::linalg_constrained_qrsolve : Not enough data, "
+              "please adjust grid (zero row in fit matrix)");
+        } else
+          throw std::runtime_error(
+              "Unknown error in csg_resample while interpolating.");
             }
-            else if(strcmp("constrained_qrsolve_zero_column_in_matrix",message)) {
-                throw std::runtime_error("error in Linalg::linalg_constrained_qrsolve : Not enough data, please adjust grid (zero row in fit matrix)");
-            }
-            else throw std::runtime_error("Unknown error in csg_resample while interpolating.");
         }
-    }
-
     
     out.GenerateGridSpacing(min, max, step);
     spline->Calculate(out.x(), out.y());
         
-    
     //store a comment line
     if (vm.count("comment")){
         out.set_comment(comment);
@@ -233,12 +240,14 @@ int main(int argc, char** argv)
     der.flags() = std::vector<char>(der.flags().size(), 'o');
 
     int i=0;
-    for(i=0; out.x(i) < in.x(0) && i<out.size(); ++i);
+    for (i = 0; out.x(i) < in.x(0) && i < out.size(); ++i)
+      ;
 
     int j=0;
     for(;i < out.size(); ++i) {
         for(; j < in.size(); ++j)
-            if(in.x(j) >= out.x(i)  || fabs(in.x(j)-out.x(i) ) < 1e-12) // fix for precison errors
+        if (in.x(j) >= out.x(i) ||
+            fabs(in.x(j) - out.x(i)) < 1e-12)  // fix for precison errors
                 break;        
         if(in.size() == j) break;
         out.flags(i) = in.flags(j);
@@ -254,11 +263,9 @@ int main(int argc, char** argv)
     }
 
     delete spline;
-	}
-    catch(std::exception &error) {
+  } catch (std::exception &error) {
          cerr << "an error occurred:\n" << error.what() << endl;
          return -1;
     }
     return 0;
 }
-

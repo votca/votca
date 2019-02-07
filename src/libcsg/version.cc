@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,63 +15,61 @@
  *
  */
 
-#include <votca_config.h>
-#include <votca/tools/version.h>
 #include <iostream>
 #include <votca/csg/version.h>
+#include <votca/tools/version.h>
+#include <votca_config.h>
 
 #ifdef GMX_DOUBLE
 #include <gromacs/utility/baseversion.h>
-// this one is needed because of bool is defined in one of the headers included by gmx
+// this one is needed because of bool is defined in one of the headers included
+// by gmx
 #undef bool
 #endif
 
 extern "C" {
-   void VotcaCsgFromC(){
-     //do nothing - this is just that we have a c function for autotools/cmake
-     //sanity check if GMX is the write precision
+void VotcaCsgFromC() {
+  // do nothing - this is just that we have a c function for autotools/cmake
+  // sanity check if GMX is the write precision
 #ifdef GMX_DOUBLE
 #if (GMX_DOUBLE == 1)
-     gmx_is_double_precision();
+  gmx_is_double_precision();
 #else
-     gmx_is_single_precision();
+  gmx_is_single_precision();
 #endif
 #endif
-   }
+}
 }
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-//defines gitversion
+// defines gitversion
 #include "gitversion.h"
-static const std::string version_str = std::string(VERSION) + " " + gitversion + " (compiled " __DATE__ ", " __TIME__ ")";
+static const std::string version_str = std::string(VERSION) + " " + gitversion +
+                                       " (compiled " __DATE__ ", " __TIME__ ")";
 
-const std::string &CsgVersionStr()
-{
-    return version_str;
-}
+const std::string &CsgVersionStr() { return version_str; }
 
-void HelpTextHeader(const std::string &tool_name)
-{
-    std::cout
-         << "==================================================\n"
-         << "========   VOTCA (http://www.votca.org)   ========\n"
-         << "==================================================\n\n"
-	 << "please submit bugs to " PACKAGE_BUGREPORT "\n\n" 
-	 << tool_name << ", version " << votca::csg::CsgVersionStr() 
-         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
+void HelpTextHeader(const std::string &tool_name) {
+  std::cout << "==================================================\n"
+            << "========   VOTCA (http://www.votca.org)   ========\n"
+            << "==================================================\n\n"
+            << "please submit bugs to " PACKAGE_BUGREPORT "\n\n"
+            << tool_name << ", version " << votca::csg::CsgVersionStr()
+            << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
 #ifdef GMX_DOUBLE
-         << "\ngromacs, " << gmx_version()
+            << "\ngromacs, " << gmx_version()
 #if (GMX_DOUBLE == 1)
-	 << " (double precision)"
+            << " (double precision)"
 #else
-	 << " (single precision)"
+            << " (single precision)"
 #endif
 #else
-	 << "\n"
+            << "\n"
 #endif
-         << "\n\n";
+            << "\n\n";
 }
 
-}}
-
+}  // namespace csg
+}  // namespace votca

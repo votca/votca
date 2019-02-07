@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE basebead_test
+#include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
-
 #include <string>
 #include <votca/csg/basebead.h>
 #include <votca/csg/beadtype.h>
@@ -31,16 +31,8 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
-
 class TestBead : public BaseBead {
-public:
+ public:
   TestBead() : BaseBead(){};
 };
 
@@ -51,7 +43,7 @@ BOOST_AUTO_TEST_CASE(test_basebead_constructor) { TestBead basebead; }
 BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
 
   TestBead basebead;
-  BOOST_CHECK_EQUAL(round_(basebead.getMass(), 3), round_(0.0, 3));
+  BOOST_CHECK_CLOSE(basebead.getMass(), 0.0, 1e-5);
   BOOST_CHECK(!basebead.HasPos());
 
   basebead.setId(0);
@@ -62,20 +54,19 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
   BOOST_CHECK(name == basebead.getName());
 
   basebead.setMass(1.0);
-  BOOST_CHECK_EQUAL(round_(basebead.getMass(), 3), round_(1.0, 3));
+  BOOST_CHECK_CLOSE(basebead.getMass(), 1.0, 1e-5);
 
   vec xyz(-1.3, 2.9, 9.2);
   basebead.setPos(xyz);
   BOOST_CHECK(basebead.HasPos());
-  auto xyz2 = basebead.getPos();
-  BOOST_CHECK_EQUAL(round_(xyz2.x(), 3), round_(-1.3, 3));
-  BOOST_CHECK_EQUAL(round_(xyz2.y(), 3), round_(2.9, 3));
-  BOOST_CHECK_EQUAL(round_(xyz2.z(), 3), round_(9.2, 3));
+  Eigen::Vector3d xyz2 = basebead.getPos().toEigen();
+  Eigen::Vector3d xyz_ref = xyz.toEigen();
 
-  auto xyz3 = basebead.Pos();
-  BOOST_CHECK_EQUAL(round_(xyz3.x(), 3), round_(-1.3, 3));
-  BOOST_CHECK_EQUAL(round_(xyz3.y(), 3), round_(2.9, 3));
-  BOOST_CHECK_EQUAL(round_(xyz3.z(), 3), round_(9.2, 3));
+  BOOST_CHECK_EQUAL(xyz2.isApprox(xyz_ref, 1e-5), true);
+
+  Eigen::Vector3d xyz3 = basebead.Pos().toEigen();
+
+  BOOST_CHECK_EQUAL(xyz3.isApprox(xyz_ref, 1e-5), true);
 
   Topology top;
   auto mol = top.CreateMolecule("Molecule1");

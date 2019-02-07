@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,29 @@
  */
 
 #ifndef __VOTCA_CSG_XYZWRITER_H
-#define	__VOTCA_CSG_XYZWRITER_H
+#define __VOTCA_CSG_XYZWRITER_H
 
 #include <stdio.h>
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-namespace votca { namespace csg {
-using namespace votca::tools;
+namespace votca {
+namespace csg {
 
-using namespace std;
+class XYZWriter : public TrajectoryWriter {
+ public:
+  void Open(std::string file, bool bAppend = false);
+  void Close();
 
-class XYZWriter
-: public TrajectoryWriter
-{
-public:
-    
-    void Open(string file, bool bAppend = false);
-    void Close();
-    
-    void RegisteredAt(ObjectFactory<string, TrajectoryWriter> &factory) {}    
+  void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}
 
-    void Write(Topology *conf);
+  void Write(Topology *conf);
 
-private:
-    FILE *_out;
+ private:
+  FILE *_out;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
 #endif

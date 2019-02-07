@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,16 @@
  */
 
 #ifndef __VOTCA_CSG_XYZREADER_H
-#define	__VOTCA_CSG_XYZREADER_H
+#define __VOTCA_CSG_XYZREADER_H
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 
-namespace votca { namespace csg {
-using namespace votca::tools;
-
-using namespace std;
+namespace votca {
+namespace csg {
 
 /**
     \brief class for reading xyz files
@@ -36,34 +34,33 @@ using namespace std;
     for xyz files
 
 */
-class XYZReader :
-    public TrajectoryReader, public TopologyReader
-{
-    public:
-        XYZReader() {}
-        ~XYZReader() {}
+class XYZReader : public TrajectoryReader, public TopologyReader {
+ public:
+  XYZReader() {}
+  ~XYZReader() {}
 
-        /// open a topology file
-        bool ReadTopology(string file, Topology &top);
+  /// open a topology file
+  bool ReadTopology(std::string file, Topology &top);
 
-        /// open a trejectory file
-        bool Open(const string &file);
-        /// read in the first frame
-        bool FirstFrame(Topology &top);
-        /// read in the next frame
-        bool NextFrame(Topology &top);
+  /// open a trejectory file
+  bool Open(const std::string &file);
+  /// read in the first frame
+  bool FirstFrame(Topology &top);
+  /// read in the next frame
+  bool NextFrame(Topology &top);
 
-        void Close();
+  void Close();
 
-    private:
-        ifstream _fl;
-        bool _topology;
-        int _natoms;
+ private:
+  template <bool topology>
+  bool ReadFrame(Topology &top);
 
-        int _line;
+  std::ifstream _fl;
+
+  int _line;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
 #endif
-

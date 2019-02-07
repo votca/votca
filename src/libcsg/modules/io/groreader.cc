@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
  *
  */
 
-#include <iostream>
-#include <fstream>
-#include <boost/lexical_cast.hpp>
-#include <votca/tools/getline.h>
-#include <boost/algorithm/string.hpp>
 #include "groreader.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <fstream>
+#include <iostream>
+#include <votca/tools/getline.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-bool GROReader::ReadTopology(string file,  Topology &top)
-{
+using namespace std;
+
+bool GROReader::ReadTopology(string file, Topology &top) {
    _topology = true;
    top.Cleanup();
 
@@ -40,28 +42,22 @@ bool GROReader::ReadTopology(string file,  Topology &top)
     return true;
 }
 
-bool GROReader::Open(const string &file)
-{
+bool GROReader::Open(const string &file) {
     _fl.open(file.c_str());
     if(!_fl.is_open())
         throw std::ios_base::failure("Error on open trajectory file: " + file);
     return true;
 }
 
-void GROReader::Close()
-{
-    _fl.close();
-}
+void GROReader::Close() { _fl.close(); }
 
-bool GROReader::FirstFrame(Topology &top)
-{
+bool GROReader::FirstFrame(Topology &top) {
     _topology = false;
     NextFrame(top);
     return true;
 }
 
-bool GROReader::NextFrame(Topology &top)
-{
+bool GROReader::NextFrame(Topology &top) {
     string tmp;
     getline(_fl, tmp);//title
     if (_fl.eof()) {
@@ -70,7 +66,8 @@ bool GROReader::NextFrame(Topology &top)
     getline(_fl, tmp);//number atoms
     int natoms = atoi(tmp.c_str());
     if(!_topology && natoms != top.BeadCount())
-      throw std::runtime_error("number of beads in topology and trajectory differ");
+    throw std::runtime_error(
+        "number of beads in topology and trajectory differ");
    
     for(int i=0;i<natoms; i++) {
         string line;
@@ -110,17 +107,24 @@ bool GROReader::NextFrame(Topology &top)
             throw std::runtime_error("Misformated gro file, resnr has to be > 0");
 	  //TODO: fix the case that resnr is not in ascending order
 	  if(resnr > top.ResidueCount()) {
-	    while ((resnr-1)>top.ResidueCount()){ //gro resnr should start with 1 but accept sloppy files
-	      top.CreateResidue("DUMMY"); // create dummy residue, hopefully it will never show
-	      cout << "Warning: residue numbers not continous, create DUMMY residue with nr " << top.ResidueCount() << endl;
+        while ((resnr - 1) > top.ResidueCount()) {  // gro resnr should start
+                                                    // with 1 but accept sloppy
+                                                    // files
+          top.CreateResidue("DUMMY");  // create dummy residue, hopefully it
+                                       // will never show
+          cout << "Warning: residue numbers not continous, create DUMMY "
+                  "residue with nr "
+               << top.ResidueCount() << endl;
 	    }
             top.CreateResidue(resName);
 	  }
           //this is not correct, but still better than no type at all!
-	  auto type = top.GetOrCreateBeadType(atName);
+      if (!top.BeadTypeExist(atName)) {
+        top.RegisterBeadType(atName);
+      }
 
 	  // res -1 as internal number starts with 0
-	  b = top.CreateBead(1, atName, type, resnr-1, 1., 0.);
+      b = top.CreateBead(1, atName, atName, resnr - 1, 1., 0.);
 	} else {
           b = top.getBead(i);
 	}
@@ -144,7 +148,8 @@ bool GROReader::NextFrame(Topology &top)
 
     getline(_fl, tmp); //read box line
     if(_fl.eof())
-      throw std::runtime_error("unexpected end of file in poly file, when boxline");
+    throw std::runtime_error(
+        "unexpected end of file in poly file, when boxline");
     Tokenizer tok(tmp, " ");
     vector<double> fields;
     tok.ConvertToVector<double>(fields);
@@ -168,10 +173,12 @@ bool GROReader::NextFrame(Topology &top)
     top.setBox(box);
 
     if (_topology) {
-      cout << "WARNING: topology created from .gro file, masses and charges are wrong!\n";
+    cout << "WARNING: topology created from .gro file, masses and charges are "
+            "wrong!\n";
     }
     
     return !_fl.eof();
 }
 
-}}
+}  // namespace csg
+}  // namespace votca
