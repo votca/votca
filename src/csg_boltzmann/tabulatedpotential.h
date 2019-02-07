@@ -22,7 +22,6 @@
 #include "bondedstatistics.h"
 #include <vector>
 #include <votca/tools/histogram.h>
-#include <vector>
 
 namespace TOOLS = votca::tools;
 
