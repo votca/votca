@@ -96,7 +96,24 @@ namespace votca {
       #endif
       
     }
+
+    void BSE::SetupHs() {
+      BSE_OPERATOR Hs(_orbitals, _log, _Mmn, _Hqp);
+      BSE::configure_operator(Hs);
+      Hs.setHx(2.0);
+      Hs.setHqp(1.0);
+      Hs.setHd(1.0); 
+      _eh_s = Hs.get_full_matrix();
+    }
     
+    void BSE::SetupHt() {
+      BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
+      BSE::configure_operator(Ht);
+      Ht.setHqp(1.0);
+      Ht.setHd(1.0); 
+      _eh_t = Ht.get_full_matrix();
+    }
+
     void BSE::configure_operator(BSE_OPERATOR &h) {
       h._opt.homo = this->_opt.homo;
       h._opt.rpamin = this->_opt.rpamin;

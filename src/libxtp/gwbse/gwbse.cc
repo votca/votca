@@ -618,15 +618,10 @@ bool GWBSE::Evaluate() {
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-    //BSE bse=BSE(_orbitals,*_pLog,Mmn,Hqp);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Declare the engine " << flush;
+
     BSE bse = BSE(_orbitals,*_pLog,Mmn,Hqp);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Configure the engine " << flush;
     bse.configure(_bseopt);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Compute Triplet " << flush;
+
     if (_do_bse_triplets && _do_bse_diag) {
         bse.Solve_triplets();
         CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()
@@ -646,14 +641,16 @@ bool GWBSE::Evaluate() {
             bse.FreeSinglets();
         }
     }
-    // if (_store_eh_interaction) {
-    //     if (_do_bse_singlets) {
-    //         bse.SetupHs();
-    //     }
-    //     if (_do_bse_triplets) {
-    //         bse.SetupHt();
-    //     }
-    // }
+
+    if (_store_eh_interaction) {
+        if (_do_bse_singlets) {
+            bse.SetupHs();
+        }
+        if (_do_bse_triplets) {
+            bse.SetupHt();
+        }
+    }
+
     }
   }
   CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp()

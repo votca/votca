@@ -79,6 +79,8 @@ class BSE {
   
   void Solve_singlets();
   void Solve_triplets();
+  void SetupHs();
+  void SetupHt();
   void configure_operator(BSE_OPERATOR &h);
   void solve_hermitian(BSE_OPERATOR &H, Eigen::VectorXd &eigenvalues, Eigen::MatrixXd &coefficients );
 
