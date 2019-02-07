@@ -121,14 +121,14 @@ istream &operator>>(istream &in, Table &t) {
       bHasN = true;
     } else if (tokens.size() == 2) {
     // it's the first data line with 2 or 3 entries
-          t.push_back(lexical_cast<double>(tokens[0], conversion_error),
-                  lexical_cast<double>(tokens[1], conversion_error), 'i');
+          t.push_back(std::stod(tokens[0]),
+                  std::stod(tokens[1]), 'i');
     } else if (tokens.size() > 2) {
       char flag = 'i';
       string sflag = tokens.back();
       if (sflag == "i" || sflag == "o" || sflag == "u") flag = sflag.c_str()[0];
-      t.push_back(lexical_cast<double>(tokens[0], conversion_error),
-                  lexical_cast<double>(tokens[1], conversion_error), flag);
+      t.push_back(std::stod(tokens[0]),
+                  std::stod(tokens[1]), flag);
     } else {
       throw runtime_error("error, wrong table format");
     }
@@ -154,14 +154,14 @@ istream &operator>>(istream &in, Table &t) {
 
     // it's a data line
     if (tokens.size() == 2) {
-      t.push_back(lexical_cast<double>(tokens[0], conversion_error),
-                  lexical_cast<double>(tokens[1], conversion_error), 'i');
+      t.push_back(std::stod(tokens[0]),
+                  std::stod(tokens[1]), 'i');
     } else if (tokens.size() > 2) {
       char flag = 'i';
       if (tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
         flag = tokens[2].c_str()[0];
-      t.push_back(lexical_cast<double>(tokens[0], conversion_error),
-                  lexical_cast<double>(tokens[1], conversion_error), flag);
+      t.push_back(std::stod(tokens[0]),
+                  std::stod(tokens[1]), flag);
     }else{
     // otherwise error
       throw runtime_error("error, wrong table format");
