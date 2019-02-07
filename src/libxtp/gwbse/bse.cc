@@ -18,7 +18,7 @@
  */
 
 
-#include <votca/xtp/bse_engine.h>
+#include <votca/xtp/bse.h>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/davidsonsolver.h>
 
@@ -31,10 +31,10 @@ using std::flush;
 namespace votca {
   namespace xtp {
   
-    void BSE_ENGINE::Solve_triplets() {
+    void BSE::Solve_triplets() {
 
       BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
-      BSE_ENGINE::configure_operator(Ht);
+      BSE::configure_operator(Ht);
 
       Ht.setHqp(1.0);
       Ht.setHd(1.0);
@@ -44,7 +44,7 @@ namespace votca {
 
       Eigen::VectorXd _tmp_es;
       Eigen::MatrixXd _tmp_mo;
-      BSE_ENGINE::solve_hermitian(Ht, _tmp_es, _tmp_mo);
+      BSE::solve_hermitian(Ht, _tmp_es, _tmp_mo);
 
       #if (GWBSE_DOUBLE)
         _bse_triplet_energies = _tmp_es;
@@ -57,7 +57,7 @@ namespace votca {
       return;
     }
 
-    void BSE_ENGINE::Solve_singlets() {
+    void BSE::Solve_singlets() {
         if(_opt.useTDA){
             Solve_singlets_TDA();
         }
@@ -71,10 +71,10 @@ namespace votca {
         }
     }
 
-    void BSE_ENGINE::Solve_singlets_TDA() {
+    void BSE::Solve_singlets_TDA() {
 
       BSE_OPERATOR Hs(_orbitals, _log, _Mmn, _Hqp);
-      BSE_ENGINE::configure_operator(Hs);
+      BSE::configure_operator(Hs);
 
       Hs.setHx(2.0);
       Hs.setHqp(1.0);
@@ -85,7 +85,7 @@ namespace votca {
 
       Eigen::VectorXd _tmp_es;
       Eigen::MatrixXd _tmp_mo;
-      BSE_ENGINE::solve_hermitian(Hs, _tmp_es, _tmp_mo);
+      BSE::solve_hermitian(Hs, _tmp_es, _tmp_mo);
 
       #if (GWBSE_DOUBLE)
         _bse_singlet_energies = _tmp_es;
@@ -97,7 +97,7 @@ namespace votca {
       
     }
     
-    void BSE_ENGINE::configure_operator(BSE_OPERATOR &h) {
+    void BSE::configure_operator(BSE_OPERATOR &h) {
       h._opt.homo = this->_opt.homo;
       h._opt.rpamin = this->_opt.rpamin;
       h._opt.rpamax = this->_opt.rpamax;
@@ -113,7 +113,7 @@ namespace votca {
       return ;
     }
 
-    void BSE_ENGINE::solve_hermitian(BSE_OPERATOR &h, Eigen::VectorXd &energies, Eigen::MatrixXd &coefficients) {
+    void BSE::solve_hermitian(BSE_OPERATOR &h, Eigen::VectorXd &energies, Eigen::MatrixXd &coefficients) {
 
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
@@ -147,7 +147,7 @@ namespace votca {
       return;
     }
 
-    void BSE_ENGINE::Solve_singlets_BTDA() {
+    void BSE::Solve_singlets_BTDA() {
 
       // For details of the method, see EPL,78(2007)12001,
       // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
@@ -157,14 +157,14 @@ namespace votca {
       // _AmB = (_eh_d +_eh_qp - _eh_d2);
 
       BSE_OPERATOR Hs_ApB(_orbitals, _log, _Mmn, _Hqp);
-      BSE_ENGINE::configure_operator(Hs_ApB);
+      BSE::configure_operator(Hs_ApB);
       Hs_ApB.setHd(1.0);
       Hs_ApB.setHqp(1.0);
       Hs_ApB.setHd2(1.0);
       Hs_ApB.setHx(4.0);
 
       BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
-      BSE_ENGINE::configure_operator(Hs_AmB);
+      BSE::configure_operator(Hs_AmB);
       Hs_AmB.setHd(1.0);
       Hs_AmB.setHqp(1.0);
       Hs_AmB.setHd2(-1.0);
@@ -239,7 +239,7 @@ namespace votca {
       return;
     }
         
-    void BSE_ENGINE::printFragInfo(const Population& pop, int i){
+    void BSE::printFragInfo(const Population& pop, int i){
       CTP_LOG(ctp::logINFO, _log) << format("           Fragment A -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
               % (100.0 * pop.popH[i](0)) % (100.0 * pop.popE[i](0)) % (pop.Crgs[i](0)) % (pop.Crgs[i](0) + pop.popGs(0)) << flush;
       CTP_LOG(ctp::logINFO, _log) << format("           Fragment B -- hole: %1$5.1f%%  electron: %2$5.1f%%  dQ: %3$+5.2f  Qeff: %4$+5.2f")
@@ -247,7 +247,7 @@ namespace votca {
       return;
     }
 
-    void BSE_ENGINE::printWeights(int i_bse, double weight){
+    void BSE::printWeights(int i_bse, double weight){
         
       vc2index vc=vc2index(_opt.vmin,_bse_cmin,_bse_ctotal);
       if (weight > _opt.min_print_weight) {
@@ -257,7 +257,7 @@ namespace votca {
       return;
     }
 
-    void BSE_ENGINE::Analyze_singlets(const AOBasis& dftbasis) {
+    void BSE::Analyze_singlets(const AOBasis& dftbasis) {
 
       Interaction act;
       Population pop;
@@ -310,7 +310,7 @@ namespace votca {
       return;
     }
     
-    void BSE_ENGINE::Analyze_triplets(const AOBasis& dftbasis) {
+    void BSE::Analyze_triplets(const AOBasis& dftbasis) {
 
       Interaction act;
       Population pop;
@@ -351,7 +351,7 @@ namespace votca {
       return;
     }
 
-    Eigen::VectorXd BSE_ENGINE::Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H){
+    Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H){
         Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_opt.nmax);
         if (type == QMStateType::Singlet) {
             for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
@@ -374,7 +374,7 @@ namespace votca {
         return contrib;
     }
 
-    BSE_ENGINE::Interaction BSE_ENGINE::Analyze_eh_interaction(const QMStateType& type) {
+    BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type) {
 
       Interaction analysis;
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " ANALYZE_EH_INTERACTION DISABLED" << flush;
@@ -401,7 +401,7 @@ namespace votca {
       return analysis;
     }
 
-    BSE_ENGINE::Population BSE_ENGINE::FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis) {
+    BSE::Population BSE::FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis) {
       Population pop;
       // Mulliken fragment population analysis
         AOOverlap dftoverlap;
@@ -432,7 +432,7 @@ namespace votca {
       return pop;
     }
 
-    std::vector<Eigen::MatrixXd > BSE_ENGINE::CalcFreeTransition_Dipoles(const AOBasis& dftbasis) {
+    std::vector<Eigen::MatrixXd > BSE::CalcFreeTransition_Dipoles(const AOBasis& dftbasis) {
       const Eigen::MatrixXd& dft_orbitals = _orbitals.MOCoefficients();
       // Testing electric dipole AOMatrix
       AODipole dft_dipole;
@@ -449,7 +449,7 @@ namespace votca {
       return interlevel_dipoles;
     }
 
-    std::vector<tools::vec > BSE_ENGINE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
+    std::vector<tools::vec > BSE::CalcCoupledTransition_Dipoles(const AOBasis& dftbasis) {
     std::vector<Eigen::MatrixXd > interlevel_dipoles= CalcFreeTransition_Dipoles(dftbasis);
     vc2index vc=vc2index(0,0,_bse_ctotal);
     std::vector<tools::vec > dipols;

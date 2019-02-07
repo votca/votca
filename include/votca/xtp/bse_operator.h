@@ -25,7 +25,6 @@
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/matrixfreeoperator.h>
-//#include <votca/xtp/bse_engine.h>
 
 namespace votca {
 namespace xtp {

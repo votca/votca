@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_BSE_ENGINE_H
-#define _VOTCA_XTP_BSE_ENGINE_H
+#ifndef _VOTCA_XTP_BSE_H
+#define _VOTCA_XTP_BSE_H
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
@@ -30,11 +30,11 @@
 namespace votca {
 namespace xtp {
 
-class BSE_ENGINE {
+class BSE {
 
  public:
  
-  BSE_ENGINE(Orbitals& orbitals, ctp::Logger &log, TCMatrix_gwbse& Mmn,
+  BSE(Orbitals& orbitals, ctp::Logger &log, TCMatrix_gwbse& Mmn,
             const Eigen::MatrixXd& Hqp):
         _log(log),
         _orbitals(orbitals),

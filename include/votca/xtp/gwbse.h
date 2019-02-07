@@ -26,7 +26,7 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
 
-#include "bse_engine.h"
+#include "bse.h"
 
 namespace votca {
 namespace xtp {
@@ -98,7 +98,7 @@ class GWBSE {
   // BSE variant
   
   GW::options _gwopt;
-  BSE_ENGINE::options _bseopt;
+  BSE::options _bseopt;
   
   
   // basis sets

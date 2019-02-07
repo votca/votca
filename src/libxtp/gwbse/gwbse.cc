@@ -25,7 +25,7 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/bse_engine.h>
+#include <votca/xtp/bse.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/gw.h>
 
@@ -621,7 +621,7 @@ bool GWBSE::Evaluate() {
     //BSE bse=BSE(_orbitals,*_pLog,Mmn,Hqp);
     CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Declare the engine " << flush;
-    BSE_ENGINE bse = BSE_ENGINE(_orbitals,*_pLog,Mmn,Hqp);
+    BSE bse = BSE(_orbitals,*_pLog,Mmn,Hqp);
     CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Configure the engine " << flush;
     bse.configure(_bseopt);
