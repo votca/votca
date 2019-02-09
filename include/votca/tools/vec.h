@@ -171,9 +171,9 @@ inline vec::vec(const std::string &str)
         throw std::runtime_error("\n\n\t error, string to vec, size!=3\n\n");
     }
     try {
-        _x = boost::lexical_cast<double>(values[0]);
-        _y = boost::lexical_cast<double>(values[1]);
-        _z = boost::lexical_cast<double>(values[2]);
+        _x = std::stod(values[0]);
+        _y = std::stod(values[1]);
+        _z = std::stod(values[2]);
     }
     catch(const boost::bad_lexical_cast& e)
     {
