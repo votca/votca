@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,111 +15,99 @@
  *
  */
 
-#include <iostream>
-#include <fstream>
+#include "rdf_calculator.h"
 #include <boost/program_options.hpp>
+#include <fstream>
+#include <iostream>
 #include <votca/csg/cgengine.h>
 #include <votca/csg/version.h>
-#include "rdf_calculator.h"
 
 using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-
 #include <stdlib.h>
 #include <votca/csg/csgapplication.h>
 
-//using namespace votca::tools;
+// using namespace votca::tools;
 using namespace std;
 using namespace votca::csg;
 
-class CsgStatApp
-    : public CsgApplication
-{
-public:
-    CsgStatApp() : _write_every(0) {}
-    
-    string ProgramName() { return "csg_partial_rdf"; }
-    void HelpText(ostream &out);
+class CsgStatApp : public CsgApplication {
+ public:
+  CsgStatApp() : _write_every(0) {}
 
-    bool DoTrajectory() {return true;}
-    bool DoMapping() {return true;}
-    bool DoMappingDefault(void) { return false; }
-    bool DoThreaded() {return true; }
-    bool SynchronizeThreads() {return true;}
-    void Initialize();
-    bool EvaluateOptions();
+  string ProgramName() { return "csg_partial_rdf"; }
+  void HelpText(ostream &out);
 
-    void BeginEvaluate(Topology *top, Topology *top_ref);
-    void EndEvaluate();
+  bool DoTrajectory() { return true; }
+  bool DoMapping() { return true; }
+  bool DoMappingDefault(void) { return false; }
+  bool DoThreaded() { return true; }
+  bool SynchronizeThreads() { return true; }
+  void Initialize();
+  bool EvaluateOptions();
 
-    CsgApplication::Worker *ForkWorker() {
-        return _rdf_calculator.ForkWorker();
-    }
+  void BeginEvaluate(Topology *top, Topology *top_ref);
+  void EndEvaluate();
 
-    void MergeWorker(CsgApplication::Worker *worker) {
-        _rdf_calculator.MergeWorker(worker);
-    }
+  CsgApplication::Worker *ForkWorker() { return _rdf_calculator.ForkWorker(); }
 
-public:
-    RDFCalculator _rdf_calculator;
-    int _write_every;
+  void MergeWorker(CsgApplication::Worker *worker) {
+    _rdf_calculator.MergeWorker(worker);
+  }
+
+ public:
+  RDFCalculator _rdf_calculator;
+  int _write_every;
 };
 
-void CsgStatApp::HelpText(ostream &out)
-{
-    out << "Calculate spatially confined rdfs";
+void CsgStatApp::HelpText(ostream &out) {
+  out << "Calculate spatially confined rdfs";
 }
 
-void CsgStatApp::Initialize()
-{
-    CsgApplication::Initialize();
-    AddProgramOptions("Specific options")
-            ("options", boost::program_options::value<string>(), "  options file defining the rdfs")
-            ("subvolume_radius", boost::program_options::value<double>(), "Rdf calc. in spherical subvolume of this radius (from center of box)")
-            ("do-vol-corr", "Correct for subvolume truncation in rdf")
-            ("write-every", boost::program_options::value<int>(&_write_every), " (UNIMPLEMENTED) write after every block of this length, " \
-                "if --blocking   is set, the averages are cleared after every output")
-            ("do-blocks", "  write output for blocking analysis");
+void CsgStatApp::Initialize() {
+  CsgApplication::Initialize();
+  AddProgramOptions("Specific options")("options",
+                                        boost::program_options::value<string>(),
+                                        "  options file defining the rdfs")(
+      "subvolume_radius", boost::program_options::value<double>(),
+      "Rdf calc. in spherical subvolume of this radius (from center of box)")(
+      "do-vol-corr", "Correct for subvolume truncation in rdf")(
+      "write-every", boost::program_options::value<int>(&_write_every),
+      " (UNIMPLEMENTED) write after every block of this length, "
+      "if --blocking   is set, the averages are cleared after every output")(
+      "do-blocks", "  write output for blocking analysis");
 }
 
-bool CsgStatApp::EvaluateOptions()
-{
-    CsgApplication::EvaluateOptions();
-    CheckRequired("options");
-    CheckRequired("subvolume_radius");
-    CheckRequired("trj", "no trajectory file specified");
-    
-    _rdf_calculator.LoadOptions(OptionsMap()["options"].as<string>());
+bool CsgStatApp::EvaluateOptions() {
+  CsgApplication::EvaluateOptions();
+  CheckRequired("options");
+  CheckRequired("subvolume_radius");
+  CheckRequired("trj", "no trajectory file specified");
 
-    _rdf_calculator.SetSubvolRadius(OptionsMap()["subvolume_radius"].as<double>());
+  _rdf_calculator.LoadOptions(OptionsMap()["options"].as<string>());
 
-    _rdf_calculator.WriteEvery(_write_every);
-    if(OptionsMap().count("do-blocks"))
-        _rdf_calculator.DoBlocks(true);
+  _rdf_calculator.SetSubvolRadius(
+      OptionsMap()["subvolume_radius"].as<double>());
 
-    if(OptionsMap().count("do-vol-corr"))
-        _rdf_calculator.DoVolumeCorrection(true);
+  _rdf_calculator.WriteEvery(_write_every);
+  if (OptionsMap().count("do-blocks")) _rdf_calculator.DoBlocks(true);
 
-    _rdf_calculator.Initialize();
-    return true;
+  if (OptionsMap().count("do-vol-corr"))
+    _rdf_calculator.DoVolumeCorrection(true);
+
+  _rdf_calculator.Initialize();
+  return true;
 }
 
-void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref)
-{
-    _rdf_calculator.BeginEvaluate(top, top_ref);
+void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
+  _rdf_calculator.BeginEvaluate(top, top_ref);
 }
 
-void CsgStatApp::EndEvaluate()
-{
-    _rdf_calculator.EndEvaluate();
+void CsgStatApp::EndEvaluate() { _rdf_calculator.EndEvaluate(); }
+
+int main(int argc, char **argv) {
+  CsgStatApp app;
+  app.Exec(argc, argv);
 }
-
-int main(int argc, char** argv)
-{
-    CsgStatApp app;
-    app.Exec(argc, argv);
-}
-
-
