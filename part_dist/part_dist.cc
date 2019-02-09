@@ -135,9 +135,9 @@ int main(int argc, char **argv) {
     cout << "Wrong range format, use min:step:max\n";
     return 1;
   }
-    min = stod(toks[0]);
-    step = stod(toks[1]);
-    max = stod(toks[2]);
+  min = std::stod(toks[0]);
+  step = std::stod(toks[1]);
+  max = std::stod(toks[2]);
   // Calculate number of bins
   n_bins = (int)((max - min) / (1. * step) + 1);
 
