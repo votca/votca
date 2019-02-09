@@ -20,6 +20,7 @@
 
 #include <string>
 #include <list>
+#include <vector>
 #include <votca/tools/eigen.h>
 #include <votca/tools/rangeparser.h>
 
