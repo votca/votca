@@ -12,6 +12,7 @@
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
  - [Updating Git Submodules](#updating-git-submodules)
+ - [Failed Release Builds](#failed-release-builds)
  
 ## Reporting Bugs
 
@@ -335,4 +336,49 @@ git submodule foreach git pull
 git add -u
 git commit -m "update all submodules"
 ```
- 
+## Failed Release Builds
+
+To prepare votca for distribution on different linux flavors there are different
+requirements from the package managers. Some of the architectures that the 
+package managers support can be quite varied. In the case that a failure occurs
+on an architecture that is not available to you there are different approaches
+to debugging the problem. As an example fedora dnf has extended support to the
+**pcc64le** architecture. Assuming you have access to fedora you can run the 
+following commands to simulate the build process on the **pcc64le** architecture:
+
+```
+dnf update
+dnf install qemu-user-static dnf-utils
+usermod -a -G mock <username>
+mock -r epel-7-ppc64le --forcearch ppc64le --dnf --init
+wget https://raw.githubusercontent.com/votca/fedora-copr/master/votca.spec
+spectool -g votca.spec
+rpmbuild -D"_sourcedir ${PWD}" -D"_srcrpmdir ${PWD}" -bs votca.spec
+mock -r epel-7-ppc64le --forcearch ppc64le --dnf --no-clean votca-1.5-1.*.src.rpm
+```
+
+Here, votca-1.5-1 should be replaced with the correct version. The above 
+commands would setup and run the dnf installation process on the **pcc64le** 
+enviroment. If a bug was found and the build crashes one can interactively 
+intervene by issuing the following command: 
+
+```
+mock -r epel-7-ppc64le --forcearch ppc64le --shell
+```
+
+You will also need to install a text editor if you want to change the source 
+files before running the interactive instance. 
+
+
+```
+mock -r epel-7-ppc64le --forcearch ppc64le --install vim
+```
+
+Note: we have used this process with the **ppc64le** architecture as an example, but
+the same procedure can be extended with different architectures and diferent 
+operating systems. For example you could use the **aarch64** or **armv7hl** architecture
+in place of **pcc64le**. You could also replace the **epel-7-ppc64le** os-architecure to
+**fedora-28-ppc64le**, **fedora-27-aarch64** or some other combination. A final point,
+if you simply want to build natively for instance if you are running fedora on
+an **x86_64** machine the `frocearch pcc64le` in the above case could just be
+dropped. 
