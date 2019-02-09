@@ -343,8 +343,8 @@ requirements from the package managers. Some of the architectures that the
 package managers support can be quite varied. In the case that a failure occurs
 on an architecture that is not available to you there are different approaches
 to debugging the problem. As an example fedora dnf has extended support to the
-pcc64le architecture. Assuming you have access to fedora you can run the 
-following commands to simulate the build process on the pcc64le architecture:
+**pcc64le** architecture. Assuming you have access to fedora you can run the 
+following commands to simulate the build process on the **pcc64le** architecture:
 
 ```
 dnf update
@@ -358,7 +358,7 @@ mock -r epel-7-ppc64le --forcearch ppc64le --dnf --no-clean votca-1.5-1.*.src.rp
 ```
 
 Here, votca-1.5-1 should be replaced with the correct version. The above 
-commands would setup and run the dnf installation process on the pcc64le 
+commands would setup and run the dnf installation process on the **pcc64le** 
 enviroment. If a bug was found and the build crashes one can interactively 
 intervene by issuing the following command: 
 
@@ -374,11 +374,11 @@ files before running the interactive instance.
 mock -r epel-7-ppc64le --forcearch ppc64le --install vim
 ```
 
-Note: we have used this process with the ppc64le architecture as an example, but
+Note: we have used this process with the **ppc64le** architecture as an example, but
 the same procedure can be extended with different architectures and diferent 
-operating systems. For example you could use the aarch64`or armv7hl architecture
-inplace of pcc64le. You could also replace the epel-7-ppc64le os-architecure to
-fedora-28-ppc64le, fedora-27-aarch64 or some other combination. A final point,
+operating systems. For example you could use the **aarch64** or **armv7hl** architecture
+in place of **pcc64le**. You could also replace the **epel-7-ppc64le** os-architecure to
+**fedora-28-ppc64le**, **fedora-27-aarch64** or some other combination. A final point,
 if you simply want to build natively for instance if you are running fedora on
-an x86_64 machine the `frocearch pcc64le` in the above case could just be
+an **x86_64** machine the `frocearch pcc64le` in the above case could just be
 dropped. 
