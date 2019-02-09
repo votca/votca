@@ -12,6 +12,7 @@
  - [CPP Codeing Style Guide](#cpp-codeing-style-guide)
  - [CPP Comment Guide](#cpp-comment-guide)
  - [Updating Git Submodules](#updating-git-submodules)
+ - [Merging With Stable](#merging-with-stable)
  - [Failed Release Builds](#failed-release-builds)
  
 ## Reporting Bugs
@@ -336,6 +337,19 @@ git submodule foreach git pull
 git add -u
 git commit -m "update all submodules"
 ```
+## Merging With Stable
+
+When creating a pull request to merge a branch with master the ci test build
+will by default build agains the master votca branch. This is fine if you are
+merging with the master branch of a given repo. However, if you would like to
+merge a bug fix to stable it becomes a problem because you want to build against
+the stable branch. 
+
+Thus to merge with stable the name of the branch to be merged must be prepended
+with **for/stable/**. As an example if I have a bug fix for stable I would name
+it **for/stable/bug-fix-1-because-I-am-awesome**. When the ci runs it should 
+proceed to make the build correctly. 
+
 ## Failed Release Builds
 
 To prepare votca for distribution on different linux flavors there are different
