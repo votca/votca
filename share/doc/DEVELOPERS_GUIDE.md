@@ -373,3 +373,12 @@ files before running the interactive instance.
 ```
 mock -r epel-7-ppc64le --forcearch ppc64le --install vim
 ```
+
+Note: we have used this process with the ppc64le architecture as an example, but
+the same procedure can be extended with different architectures and diferent 
+operating systems. For example you could use the aarch64`or armv7hl architecture
+inplace of pcc64le. You could also replace the epel-7-ppc64le os-architecure to
+fedora-28-ppc64le, fedora-27-aarch64 or some other combination. A final point,
+if you simply want to build natively for instance if you are running fedora on
+an x86_64 machine the `frocearch pcc64le` in the above case could just be
+dropped. 
