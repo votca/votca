@@ -9,15 +9,26 @@ stages:
     CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
     CXXFLAGS: "-Wall -Werror"
     DISTRO: "latest"
-    GIT_SUBMODULE_STRATEGY: recursive
   image: votca/buildenv:${DISTRO}
   stage: build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/votca
+    when: always 
+  dependencies: []
   cache:
     paths:
       - ccache/
   script:
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
+    - git branch commit_of_build_${CI_BUILD_ID} ${CI_COMMIT_SHA}
+    - git clone https://github.com/votca/votca
+    - pushd votca
+    - git fetch ${CI_PROJECT_DIR} commit_of_build_${CI_BUILD_ID}
+    - git -C ${CI_PROJECT_DIR} branch -d commit_of_build_${CI_BUILD_ID}
+    - git checkout -f ${CI_COMMIT_SHA}
+    - git submodule update --recursive --init
     - mkdir -p build
     - pushd build
     - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_CTP_MANUAL=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON
