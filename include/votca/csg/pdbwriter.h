@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_CSG_XYZWRITER_H
-#define __VOTCA_CSG_XYZWRITER_H
+#ifndef _PDBWRITER_H
+#define _PDBWRITER_H
 
 #include <stdio.h>
 #include <votca/csg/topology.h>
@@ -26,7 +26,7 @@
 namespace votca {
 namespace csg {
 
-class XYZWriter : public TrajectoryWriter {
+class PDBWriter : public TrajectoryWriter {
 public:
   void Open(std::string file, bool bAppend = false);
   void Close();
@@ -38,15 +38,28 @@ public:
   template <class T> void Write(T &container, std::string header);
 
 private:
-  template <class T> int getSize(T &container) {
-    return getIterable(container).size();
-  }
-
   template <class Atom> std::string getName(Atom &atom) {
     return atom.getElement();
   }
 
   std::string getName(Bead *bead) { return bead->getName(); }
+
+  template <class T, class Atom>
+  std::string getResname(T &container, Atom &atom) {
+    return container.getName();
+  }
+  std::string getResname(Topology &conf, Bead *bead);
+
+  template <class Atom> int getId(Atom &atom) { return atom.getId(); }
+  int getId(Bead *bead) { return bead->getId(); }
+
+  template <class T, class Atom> int getResId(T &container, Atom &atom) {
+    return container.getId();
+  }
+  int getResId(Topology &conf, Bead *bead) { return bead->getResnr() + 1; }
+
+  template <class Atom> void writeSymmetry(Atom &atom) { return; }
+  void writeSymmetry(Bead *bead);
 
   template <class Atom> Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
@@ -64,27 +77,33 @@ private:
 };
 
 template <class T>
-inline void XYZWriter::Write(T &container, std::string header) {
-  _out << getSize(container) << "\n";
+inline void PDBWriter::Write(T &container, std::string header) {
   _out << header << "\n";
-
-  boost::format fmter("%1$s%2$10.5f%3$10.5f%4$10.5f\n");
+  boost::format atomfrmt(
+      "ATOM  %1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
 
   for (auto &atom : getIterable(container)) {
     Eigen::Vector3d r = getPos(atom);
-    // truncate strings if necessary
-    std::string atomname = getName(atom);
-    if (atomname.size() > 3) {
-      atomname = atomname.substr(0, 3);
+    string resname = getResname(container, atom);
+    string atomname = getName(atom);
+    if (resname.size() > 3) {
+      resname = resname.substr(0, 3);
     }
-    while (atomname.size() < 3)
-      atomname = " " + atomname;
+    if (atomname.size() > 4) {
+      atomname = atomname.substr(0, 4);
+    }
 
-    _out << fmter % atomname % r.x() % r.y() % r.z();
+    _out << atomfrmt % (getId(atom) % 100000) // atom serial number
+                % atomname % resname % " "    // chain identifier 1 char
+                % getResId(container, atom)   // residue sequence number
+                % r.x() % r.y() % r.z();
+    // we skip the charge
+    writeSymmetry(atom);
   }
+  _out << "ENDMDL\n";
   _out << std::flush;
 }
 }
 }
 
-#endif
+#endif /* _PDBWRITER_H */

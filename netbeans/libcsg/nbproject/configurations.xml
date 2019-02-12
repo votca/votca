@@ -96,7 +96,7 @@
             <itemPath>../../src/libcsg/modules/io/pdbreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
+            <itemPath>../../include/votca/csg/pdbwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzreader.cc</itemPath>
@@ -117,7 +117,6 @@
         <itemPath>../../include/votca/csg/potentialfunctions/potentialfunctionljg.h</itemPath>
       </logicalFolder>
       <itemPath>../../src/libcsg/beadlist.cc</itemPath>
-      <itemPath>../../src/libcsg/beadstructure.cc</itemPath>
       <itemPath>../../src/libcsg/boundarycondition.cc</itemPath>
       <itemPath>../../src/libcsg/cgengine.cc</itemPath>
       <itemPath>../../src/libcsg/cgmoleculedef.cc</itemPath>
@@ -258,6 +257,11 @@
       </item>
       <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/csg/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
             ex="false"
             tool="3"
@@ -338,8 +342,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -491,11 +493,6 @@
       <item path="../../src/libcsg/modules/io/pdbwriter.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
@@ -718,6 +715,11 @@
       </item>
       <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/csg/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
             ex="false"
             tool="3"
@@ -798,8 +800,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -951,11 +951,6 @@
       <item path="../../src/libcsg/modules/io/pdbwriter.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
@@ -1179,6 +1174,11 @@
       </item>
       <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/csg/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
             ex="false"
             tool="3"
@@ -1259,8 +1259,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libcsg/beadstructure.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
             ex="false"
@@ -1412,11 +1410,6 @@
       <item path="../../src/libcsg/modules/io/pdbwriter.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
