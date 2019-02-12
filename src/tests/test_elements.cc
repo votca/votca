@@ -68,6 +68,14 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK(ele.isElement("CARBON"));
   BOOST_CHECK(ele.isElement("C"));
   BOOST_CHECK(!ele.isElement("1C"));
+
+  BOOST_CHECK(ele.isEleFull("Carbon"));
+  BOOST_CHECK(ele.isEleFull("CARBON"));
+  BOOST_CHECK(!ele.isEleFull("C"));
+
+  BOOST_CHECK(ele.isEleShort("C"));
+  BOOST_CHECK(!ele.isEleShort("Carbon"));
+  BOOST_CHECK(!ele.isEleShort("CARBON"));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

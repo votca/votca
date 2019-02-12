@@ -138,6 +138,23 @@ string Elements::getEleShort(string elefull) {
   return _EleShort.at(elefull);
 }
 
+bool Elements::isEleFull(std::string fullname) {
+  if (!this->_filled_EleShort) {
+    this->FillEleShort();
+    _filled_EleShort = true;
+  }
+  string name_upper = boost::to_upper_copy<std::string>(fullname);
+  return _EleShort.count(name_upper);
+}
+
+bool Elements::isEleShort(std::string shortname) {
+  if (!this - _filled_EleShort) {
+    this->FillEleFull();
+    _filled_EleFull = true;
+  }
+  return _EleFull.count(shortname);
+}
+
 bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
   auto closestMatch = findShortNameOfElementClosestInMass_(mass);
   if (closestMatch.second / _Mass[closestMatch.first] > tolerance) return false;
@@ -770,6 +787,6 @@ void Elements::FillPolarizability() {
   _ElPolarizability["Zn"] = 5.962e-3;  // B3LYP/6-311+g(2d,2p)
   _ElPolarizability["Al"] =
       5.80e-3;  //[1]P. Fuentealba, “The static dipole polarizability of
-                //aluminium atom: discrepancy between theory and experiment,”
-                //Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
+                // aluminium atom: discrepancy between theory and experiment,”
+                // Chemical physics letters, vol. 397, no. 4, pp. 459–461, 2004.
 };

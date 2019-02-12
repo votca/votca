@@ -99,6 +99,10 @@ class Elements {
   /// "Hydrogen" = "H", "HELIUM" = "He",...
   std::string getEleShort(std::string elefull);
 
+  /// Is name recognized an element symbol
+  bool isEleShort(std::string eleshort);
+  bool isEleFull(std::string elefull);
+
   bool isMassAssociatedWithElement(double mass, double tolerance);
 
   /// Get the shortened element name given a mass similar in size to one of
