@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,39 +31,37 @@ BOOST_AUTO_TEST_SUITE(tokenizer_test)
 BOOST_AUTO_TEST_CASE(constructors_test) {
   string str1 = "blah,ya";
   string separators = ",";
-  Tokenizer tok(str1,separators.c_str());
+  Tokenizer tok(str1, separators.c_str());
 }
 
 BOOST_AUTO_TEST_CASE(wildcmp_test) {
   string wildcard = "";
   string potential_match = "";
 
-  auto out = wildcmp(wildcard.c_str(),potential_match.c_str());
-  BOOST_CHECK_EQUAL(out,1);
+  auto out = wildcmp(wildcard.c_str(), potential_match.c_str());
+  BOOST_CHECK_EQUAL(out, 1);
 
   string wildcard2 = "file";
-  out = wildcmp(wildcard2.c_str(),potential_match.c_str());
-  BOOST_CHECK_EQUAL(out,0);
+  out = wildcmp(wildcard2.c_str(), potential_match.c_str());
+  BOOST_CHECK_EQUAL(out, 0);
 
   string potential_match2 = "file2";
-  out = wildcmp(wildcard.c_str(),potential_match2.c_str());
-  BOOST_CHECK_EQUAL(out,0);
-  out = wildcmp(wildcard2.c_str(),potential_match2.c_str());
-  BOOST_CHECK_EQUAL(out,0);
+  out = wildcmp(wildcard.c_str(), potential_match2.c_str());
+  BOOST_CHECK_EQUAL(out, 0);
+  out = wildcmp(wildcard2.c_str(), potential_match2.c_str());
+  BOOST_CHECK_EQUAL(out, 0);
 
   string wildcard3 = "file*";
-  out = wildcmp(wildcard3.c_str(),potential_match2.c_str());
-  BOOST_CHECK_EQUAL(out,1);
+  out = wildcmp(wildcard3.c_str(), potential_match2.c_str());
+  BOOST_CHECK_EQUAL(out, 1);
 
   string wildcard4 = "file*.txt";
-  out = wildcmp(wildcard4.c_str(),potential_match2.c_str());
-  BOOST_CHECK_EQUAL(out,0);
+  out = wildcmp(wildcard4.c_str(), potential_match2.c_str());
+  BOOST_CHECK_EQUAL(out, 0);
 
   string potential_match3 = "file1.txt";
-  out = wildcmp(wildcard4.c_str(),potential_match3.c_str());
-  BOOST_CHECK_EQUAL(out,1);
-
-
+  out = wildcmp(wildcard4.c_str(), potential_match3.c_str());
+  BOOST_CHECK_EQUAL(out, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

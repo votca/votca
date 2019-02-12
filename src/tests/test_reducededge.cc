@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,25 +42,24 @@ BOOST_AUTO_TEST_CASE(equivalence_test) {
   ReducedEdge ed3(3, 2);
   BOOST_CHECK_EQUAL(ed, ed);
   BOOST_CHECK_EQUAL(ed, ed3);
-  BOOST_CHECK_EQUAL((ed == ed2),false);
+  BOOST_CHECK_EQUAL((ed == ed2), false);
 
   ReducedEdge ed4(vector<int>{2, 3, 4});
   ReducedEdge ed5(vector<int>{4, 3, 2});
-  BOOST_CHECK_EQUAL(ed4,ed5);
-  BOOST_CHECK_EQUAL((ed4==ed),false);
+  BOOST_CHECK_EQUAL(ed4, ed5);
+  BOOST_CHECK_EQUAL((ed4 == ed), false);
 
-  ReducedEdge ed6(vector<int>{2,6,3,1});
-  ReducedEdge ed7(vector<int>{1,3,6,2});
-  
+  ReducedEdge ed6(vector<int>{2, 6, 3, 1});
+  ReducedEdge ed7(vector<int>{1, 3, 6, 2});
+
   auto chain = ed6.getChain();
-  BOOST_CHECK_EQUAL(ed6,ed7);
+  BOOST_CHECK_EQUAL(ed6, ed7);
 
-  // Both are loops they get rearranged internally so the smallest vertex 
+  // Both are loops they get rearranged internally so the smallest vertex
   // appears as EndPoint1 and EndPoint2
   ReducedEdge ed8(vector<int>{1, 2, 4, 1});
   ReducedEdge ed9(vector<int>{2, 4, 1, 2});
-  BOOST_CHECK_EQUAL(ed8,ed9); 
-
+  BOOST_CHECK_EQUAL(ed8, ed9);
 }
 
 BOOST_AUTO_TEST_CASE(nequivalence_test) {
@@ -74,41 +73,41 @@ BOOST_AUTO_TEST_CASE(getter_test) {
   ReducedEdge ed(2, 3);
   BOOST_CHECK_EQUAL(ed.getEndPoint1(), 2);
   BOOST_CHECK_EQUAL(ed.getEndPoint2(), 3);
-  ReducedEdge ed2(3,2);
+  ReducedEdge ed2(3, 2);
   BOOST_CHECK_EQUAL(ed.getEndPoint1(), 2);
   BOOST_CHECK_EQUAL(ed.getEndPoint2(), 3);
 
-  ReducedEdge ed3(vector<int>{2,6,3,1});
-  BOOST_CHECK_EQUAL(ed3.getEndPoint1(),1);
-  BOOST_CHECK_EQUAL(ed3.getEndPoint2(),2);
-  ReducedEdge ed4(vector<int>{1,3,6,2});
-  BOOST_CHECK_EQUAL(ed4.getEndPoint1(),1);
-  BOOST_CHECK_EQUAL(ed4.getEndPoint2(),2);
+  ReducedEdge ed3(vector<int>{2, 6, 3, 1});
+  BOOST_CHECK_EQUAL(ed3.getEndPoint1(), 1);
+  BOOST_CHECK_EQUAL(ed3.getEndPoint2(), 2);
+  ReducedEdge ed4(vector<int>{1, 3, 6, 2});
+  BOOST_CHECK_EQUAL(ed4.getEndPoint1(), 1);
+  BOOST_CHECK_EQUAL(ed4.getEndPoint2(), 2);
 
   ReducedEdge ed5(vector<int>{1, 2, 4, 1});
-  BOOST_CHECK_EQUAL(ed5.getEndPoint1(),1);
-  BOOST_CHECK_EQUAL(ed5.getEndPoint2(),1);
+  BOOST_CHECK_EQUAL(ed5.getEndPoint1(), 1);
+  BOOST_CHECK_EQUAL(ed5.getEndPoint2(), 1);
   ReducedEdge ed6(vector<int>{2, 4, 1, 2});
-  BOOST_CHECK_EQUAL(ed6.getEndPoint1(),1);
-  BOOST_CHECK_EQUAL(ed6.getEndPoint2(),1);
+  BOOST_CHECK_EQUAL(ed6.getEndPoint1(), 1);
+  BOOST_CHECK_EQUAL(ed6.getEndPoint2(), 1);
 }
 
-BOOST_AUTO_TEST_CASE(getchain_test){
-  vector<int> vertices{ 4,1,6,7,0};
+BOOST_AUTO_TEST_CASE(getchain_test) {
+  vector<int> vertices{4, 1, 6, 7, 0};
   ReducedEdge ed(vertices);
   auto chain = ed.getChain();
-  BOOST_CHECK_EQUAL(chain.at(0),0);
-  BOOST_CHECK_EQUAL(chain.at(1),7);
-  BOOST_CHECK_EQUAL(chain.at(2),6);
-  BOOST_CHECK_EQUAL(chain.at(3),1);
-  BOOST_CHECK_EQUAL(chain.at(4),4);
+  BOOST_CHECK_EQUAL(chain.at(0), 0);
+  BOOST_CHECK_EQUAL(chain.at(1), 7);
+  BOOST_CHECK_EQUAL(chain.at(2), 6);
+  BOOST_CHECK_EQUAL(chain.at(3), 1);
+  BOOST_CHECK_EQUAL(chain.at(4), 4);
 }
 
-BOOST_AUTO_TEST_CASE(vertexwithinchain_test){
+BOOST_AUTO_TEST_CASE(vertexwithinchain_test) {
   vector<int> vertices{1, 3, 4, 5};
   ReducedEdge ed(vertices);
   BOOST_CHECK(ed.vertexExistInChain(1));
-  BOOST_CHECK(ed.vertexExistInChain(2)==false);
+  BOOST_CHECK(ed.vertexExistInChain(2) == false);
   BOOST_CHECK(ed.vertexExistInChain(3));
   BOOST_CHECK(ed.vertexExistInChain(4));
   BOOST_CHECK(ed.vertexExistInChain(5));
@@ -125,21 +124,21 @@ BOOST_AUTO_TEST_CASE(less_test) {
   ReducedEdge ed5(2, 2);
   BOOST_CHECK_EQUAL(ed4 < ed5, true);
 
-  ReducedEdge ed6(vector<int>{ 1, 2, 3});
-  BOOST_CHECK_EQUAL(ed1<ed6,true);
+  ReducedEdge ed6(vector<int>{1, 2, 3});
+  BOOST_CHECK_EQUAL(ed1 < ed6, true);
 
   ReducedEdge ed7(vector<int>{1, 2, 3, 4, 1});
   ReducedEdge ed8(vector<int>{1, 4, 3, 2, 1});
-  BOOST_CHECK_EQUAL((ed7<ed8),false); // Equal
+  BOOST_CHECK_EQUAL((ed7 < ed8), false);  // Equal
 
   ReducedEdge ed9(vector<int>{1, 4, 5, 2, 1});
-  BOOST_CHECK_EQUAL((ed7<ed9),true); 
+  BOOST_CHECK_EQUAL((ed7 < ed9), true);
 
   ReducedEdge ed10(vector<int>{1, 4, 5, 0, 1});
-  BOOST_CHECK_EQUAL((ed10<ed9),true); 
+  BOOST_CHECK_EQUAL((ed10 < ed9), true);
 
   ReducedEdge ed11(vector<int>{1, 0, 5, 2, 1});
-  BOOST_CHECK_EQUAL((ed11<ed9),true); 
+  BOOST_CHECK_EQUAL((ed11 < ed9), true);
 }
 
 BOOST_AUTO_TEST_CASE(greater_test) {
@@ -152,7 +151,7 @@ BOOST_AUTO_TEST_CASE(greater_test) {
 
 BOOST_AUTO_TEST_CASE(hash_key_test) {
   set<ReducedEdge> e_set;
-  ReducedEdge      ed(23, 43);
+  ReducedEdge ed(23, 43);
   e_set.insert(ed);
   unordered_map<int, ReducedEdge> e_map;
   e_map[2] = ed;
