@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,34 @@
  *
  */
 
-#include <vector>
-#include <string>
 #include <iostream>
+#include <string>
+#include <vector>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 using namespace std;
 
-//wrapper written with Denis to do MOO only on a file which give the unitary transformation + displacement one per line
-void  parce_string (string line, string delims, vector<string>* result ) {
+// wrapper written with Denis to do MOO only on a file which give the unitary
+// transformation + displacement one per line
+void parce_string(string line, string delims, vector<string>* result) {
   string::size_type begIdx, endIdx;
 
   begIdx = line.find_first_not_of(delims);
   while (begIdx != string::npos) {
-    endIdx = line.find_first_of (delims, begIdx);
+    endIdx = line.find_first_of(delims, begIdx);
     if (endIdx == string::npos) {
       endIdx = line.length();
     }
-    result->push_back( line.substr(begIdx, endIdx-begIdx) );
-    if (endIdx == line.length()) { break; cout << "I am still here";}
-    begIdx = line.find_first_not_of (delims, endIdx);
+    result->push_back(line.substr(begIdx, endIdx - begIdx));
+    if (endIdx == line.length()) {
+      break;
+      cout << "I am still here";
+    }
+    begIdx = line.find_first_not_of(delims, endIdx);
   }
 }
 
-}}
+}  // namespace tools
+}  // namespace votca
