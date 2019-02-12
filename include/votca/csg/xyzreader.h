@@ -82,8 +82,8 @@ private:
     Bead *b;
     tools::vec posnm = pos * tools::conv::ang2nm;
     if (topology) {
-      b = container.CreateBead(1, name + boost::lexical_cast<string>(id),
-                               (container.GetOrCreateBeadType(name)), 0, 0, 0);
+      b = container.CreateBead(1, name + boost::lexical_cast<string>(id), name,
+                               0, 0, 0);
     } else {
       b = container.getBead(id);
     }
