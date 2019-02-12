@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,32 @@
  */
 
 #ifndef _gmxtopologyreader_H
-#define	_gmxtopologyreader_H
+#define _gmxtopologyreader_H
 
 #include <string>
 #include <votca/csg/topologyreader.h>
 
-namespace votca { namespace csg {
-    
+namespace votca {
+namespace csg {
+
 /**
     \brief reader for gromacs topology files
 
-    This class encapsulates the gromacs reading functions and provides an interface to fill a topolgy class
+    This class encapsulates the gromacs reading functions and provides an
+   interface to fill a topolgy class
 
 */
-class GMXTopologyReader
-    : public TopologyReader
-{
+class GMXTopologyReader : public TopologyReader {
 public:
-    GMXTopologyReader() {}
+  GMXTopologyReader() {}
 
-    /// read a topology file
-    bool ReadTopology(std::string file, Topology &top);
-    
+  /// read a topology file
+  bool ReadTopology(std::string file, Topology &top);
+
 private:
 };
 
-}}
+} // namespace csg
+} // namespace votca
 
-#endif	/* _gmxtopologyreader_H */
-
+#endif /* _gmxtopologyreader_H */

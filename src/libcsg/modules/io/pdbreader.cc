@@ -111,9 +111,9 @@ bool PDBReader::NextFrame(Topology &top) {
         throw std::runtime_error(
             "Non cubical box in pdb file not implemented, yet!");
       }
-      double aa = boost::lexical_cast<double>(a) / 10.0;
-      double bb = boost::lexical_cast<double>(b) / 10.0;
-      double cc = boost::lexical_cast<double>(c) / 10.0;
+      double aa = stod(a) / 10.0;
+      double bb = stod(b) / 10.0;
+      double cc = stod(c) / 10.0;
       top.setBox(matrix(vec(aa, 0, 0), vec(0, bb, 0), vec(0, 0, cc)));
     }
     // Only read the CONECT keyword if the topology is set too true
@@ -260,13 +260,15 @@ bool PDBReader::NextFrame(Topology &top) {
           top.CreateResidue(resName);
         }
         // This is not correct, but still better than no type at all!
-        std::weak_ptr<BeadType> weak_type = top.GetOrCreateBeadType(atName);
+        if (!top.BeadTypeExist(atName)) {
+          top.RegisterBeadType(atName);
+        }
 
         // Determine if the charge has been provided in the .pdb file or if we
         // will be assuming it is 0
         double ch = 0;
         if (charge != "") {
-          ch = boost::lexical_cast<double>(charge);
+          ch = stod(charge);
         }
         // CreateBead takes 6 parameters in the following order
         // 1 - symmetry of the bead (1-indicates sphere, 3-indicates
@@ -278,15 +280,13 @@ bool PDBReader::NextFrame(Topology &top) {
         // 6 - charge               (double)
         //
         // res -1 as internal number starts with 0
-        b = top.CreateBead(1, atName, weak_type, resnr - 1,
+        b = top.CreateBead(1, atName, atName, resnr - 1,
                            elements.getMass(atName), ch);
       } else {
         b = top.getBead(bead_count - 1);
       }
       // convert to nm from A
-      b->setPos(vec(boost::lexical_cast<double>(x) / 10.0,
-                    boost::lexical_cast<double>(y) / 10.0,
-                    boost::lexical_cast<double>(z) / 10.0));
+      b->setPos(vec(stod(x) / 10.0, stod(y) / 10.0, stod(z) / 10.0));
 
       bead_vec.push_back(b);
     }
@@ -470,5 +470,5 @@ bool PDBReader::NextFrame(Topology &top) {
 
   return !_fl.eof();
 }
-}
-}
+} // namespace csg
+} // namespace votca

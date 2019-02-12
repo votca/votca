@@ -26,8 +26,6 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-
-
 BOOST_AUTO_TEST_SUITE(beadmotifconnector_test)
 
 BOOST_AUTO_TEST_CASE(test_beadmotifconnector_constructor) {

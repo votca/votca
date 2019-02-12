@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,38 @@
  */
 
 #ifndef _VOTCA_CSG_FILEFORMATFACTORY_H
-#define	_VOTCA_CSG_FILEFORMATFACTORY_H
+#define _VOTCA_CSG_FILEFORMATFACTORY_H
 
 #include <string>
 #include <votca/tools/objectfactory.h>
 #include <votca/tools/tokenizer.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 namespace TOOLS = votca::tools;
 
-template<typename T>
-class FileFormatFactory
-: public TOOLS::ObjectFactory<std::string, T>
-{
+template <typename T>
+class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
 public:
-    FileFormatFactory() {}
-    
-    T *Create(const std::string &file);
+  FileFormatFactory() {}
+
+  T *Create(const std::string &file);
 };
 
-template<typename T>
-T *FileFormatFactory<T>::Create(const std::string &file)
-{
+template <typename T> T *FileFormatFactory<T>::Create(const std::string &file) {
   std::string filetype = "";
-  TOOLS::Tokenizer tok(file, ".");       
-    for(TOOLS::Tokenizer::iterator iter=tok.begin();iter!=tok.end();iter++)
-        filetype = *iter;
-    try {
-        return TOOLS::ObjectFactory<std::string,T>::Create(filetype);
-    } catch(std::exception &error) {}
-    return NULL;
+  TOOLS::Tokenizer tok(file, ".");
+  for (TOOLS::Tokenizer::iterator iter = tok.begin(); iter != tok.end(); iter++)
+    filetype = *iter;
+  try {
+    return TOOLS::ObjectFactory<std::string, T>::Create(filetype);
+  } catch (std::exception &error) {
+  }
+  return NULL;
 }
 
-}}
+} // namespace csg
+} // namespace votca
 
-#endif	/* _VOTCA_CSG_FILEFORMATFACTORY_H */
-
+#endif /* _VOTCA_CSG_FILEFORMATFACTORY_H */

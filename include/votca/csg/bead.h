@@ -30,7 +30,6 @@
 namespace votca {
 namespace csg {
 
-class BeadType;
 class Topology;
 class Molecule;
 
@@ -314,7 +313,7 @@ protected:
   bool bead_force_set_;
 
   /// constructur
-  Bead(Topology *owner, int id, std::weak_ptr<BeadType> type, byte_t symmetry,
+  Bead(Topology *owner, int id, std::string type, byte_t symmetry,
        std::string name, int resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
     topology_item_._parent = owner;

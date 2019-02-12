@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
  */
 
 #ifndef _VOTCA_CSG_BEADTYPE_H
-#define	_VOTCA_CSG_BEADTYPE_H
+#define _VOTCA_CSG_BEADTYPE_H
 
-#include <string>
 #include "topologyitem.h"
+#include <string>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 using namespace votca::tools;
 
 /**
@@ -30,22 +31,22 @@ using namespace votca::tools;
     Each bead has a type. While the bead name should be unique,
     several beads can share the same type.
   */
-class  BeadType : public TopologyItem {
-public:    
-    const int &getId() const { return _id; }
-    const std::string &getName() const { return _name; }
-    void setName(const std::string &name) { _name=name; }
-    
+class BeadType : public TopologyItem {
+public:
+  const int &getId() const { return _id; }
+  const std::string &getName() const { return _name; }
+  void setName(const std::string &name) { _name = name; }
+
 private:
-    int _id;
-    std::string _name;
-    
-    BeadType(Topology *parent, int id, const std::string &name)
-    : TopologyItem(parent), _id(id), _name(name) {}
-    friend class Topology;
+  int _id;
+  std::string _name;
+
+  BeadType(Topology *parent, int id, const std::string &name)
+      : TopologyItem(parent), _id(id), _name(name) {}
+  friend class Topology;
 };
 
-}}
+} // namespace csg
+} // namespace votca
 
-#endif	/* _VOTCA_CSG_BEADTYPE_H */
-
+#endif /* _VOTCA_CSG_BEADTYPE_H */

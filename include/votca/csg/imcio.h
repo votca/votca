@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,32 @@
  */
 
 #ifndef _VOTCA_CSG_IMCIO_H
-#define	_VOTCA_CSG_IMCIO_H
+#define _VOTCA_CSG_IMCIO_H
 
-#include <string>
 #include <list>
+#include <string>
+#include <vector>
 #include <votca/tools/eigen.h>
 #include <votca/tools/rangeparser.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 using namespace votca::tools;
 
-void imcio_write_dS(const std::string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS, std::list<int> *list=NULL);
-void imcio_write_matrix(const std::string &file, Eigen::MatrixXd &gmc, std::list<int> *list=NULL);
-void imcio_write_index(const std::string &file, std::vector<std::string> &names, std::vector<RangeParser> &ranges);
+void imcio_write_dS(const std::string &file, Eigen::VectorXd &r,
+                    Eigen::VectorXd &dS, std::list<int> *list = NULL);
+void imcio_write_matrix(const std::string &file, Eigen::MatrixXd &gmc,
+                        std::list<int> *list = NULL);
+void imcio_write_index(const std::string &file, std::vector<std::string> &names,
+                       std::vector<RangeParser> &ranges);
 
-void imcio_read_dS(const std::string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS);
+void imcio_read_dS(const std::string &file, Eigen::VectorXd &r,
+                   Eigen::VectorXd &dS);
 void imcio_read_matrix(const std::string &file, Eigen::MatrixXd &gmc);
-void imcio_read_index(const std::string &file, std::vector<std::string> &names, std::vector<RangeParser> &ranges);
+void imcio_read_index(const std::string &file, std::vector<std::string> &names,
+                      std::vector<RangeParser> &ranges);
 
-}}
+} // namespace csg
+} // namespace votca
 
-#endif	/* _VOTCA_CSG_IMCIO_H */
-
+#endif /* _VOTCA_CSG_IMCIO_H */

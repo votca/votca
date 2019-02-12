@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -362,7 +362,7 @@ inline vec IDihedral::Grad(const Topology &top, int bead) {
   assert(false);
   return vec(0, 0, 0);
 }
-}
-}
+} // namespace csg
+} // namespace votca
 
 #endif // _VOTCA_CSG_INTERACTION_H

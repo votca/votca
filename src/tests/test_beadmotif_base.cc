@@ -27,9 +27,8 @@
 using namespace std;
 using namespace votca::csg;
 
-
 class TestBead : public BaseBead {
- public:
+public:
   TestBead() : BaseBead(){};
 };
 

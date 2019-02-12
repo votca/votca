@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@
 #include <string>
 #include <vector>
 #include <votca/csg/version.h>
-#include <votca/tools/histogram.h>
 #include <votca/tools/constants.h>
+#include <votca/tools/histogram.h>
 
 using namespace std;
 using namespace votca::tools;
 
 namespace votca {
-  namespace csg {
+namespace csg {
 /******************************************************************************
  * Public Facing Methods
  ******************************************************************************/
@@ -318,22 +318,25 @@ void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
   size_t i;
   for (i = 0; i < data.size() - 2; i++) {
     old[2] = data[i];
-    data[i] = (old[0]+2.*old[1]+3.*data[i]+2.*data[i+1]+data[i + 2])/9.;
+    data[i] =
+        (old[0] + 2. * old[1] + 3. * data[i] + 2. * data[i + 1] + data[i + 2]) /
+        9.;
     old[0] = old[1];
     old[1] = old[2];
     ;
   }
   if (bPeriodic) {
-    data[i] = (old[0]+2.*old[1]+3.*data[i]+2.*data[i+1]+data[0])/9.;
+    data[i] =
+        (old[0] + 2. * old[1] + 3. * data[i] + 2. * data[i + 1] + data[0]) / 9.;
     old[0] = old[1];
     old[1] = data[i];
     data[n - 1] = data[0];
   } else {
-    data[i] = (old[0]+2.*old[1]+3.*data[i]+3.*data[i+1])/9.;
+    data[i] = (old[0] + 2. * old[1] + 3. * data[i] + 3. * data[i + 1]) / 9.;
     old[0] = old[1];
     old[1] = data[i];
     i++;
-    data[i] = (old[0]+2.*old[1]+6.*data[i]) / 9.;
+    data[i] = (old[0] + 2. * old[1] + 6. * data[i]) / 9.;
   }
 }
 
@@ -348,15 +351,17 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
     if (data[i] > 0)
       _min = min(data[i], _min);
   }
-  _max = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(_max);
-  _min = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
+  _max = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_max);
+  _min = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
 
   for (size_t i = 0; i < data.size(); i++) {
     if (data[i] == 0)
       data[i] = _min;
     else
-      data[i] = -conv::kB*conv::ev2kj_per_mol * _Temperature * log(data[i]) - _max;
+      data[i] =
+          -conv::kB * conv::ev2kj_per_mol * _Temperature * log(data[i]) - _max;
   }
 }
 
-}}
+} // namespace csg
+} // namespace votca

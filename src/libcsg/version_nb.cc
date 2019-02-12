@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,24 @@
  *
  */
 
-#include <votca/tools/version.h>
 #include <iostream>
 #include <votca/csg/version.h>
+#include <votca/tools/version.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-static const std::string version_str = "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
+static const std::string version_str =
+    "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
 
+const std::string &CsgVersionStr() { return version_str; }
 
-const std::string &CsgVersionStr()
-{
-    return version_str;
+void HelpTextHeader(const std::string &tool_name) {
+  std::cout << "\t------ VOTCA ( http://www.votca.org ) ------\n"
+            << tool_name << ", version " << votca::csg::CsgVersionStr()
+            << "\nvotca_tools, version " << votca::tools::ToolsVersionStr()
+            << "\n\n";
 }
 
-void HelpTextHeader(const std::string &tool_name)
-{
-    std::cout 
-         << "\t------ VOTCA ( http://www.votca.org ) ------\n"
-         << tool_name << ", version " << votca::csg::CsgVersionStr()
-         << "\nvotca_tools, version " << votca::tools::ToolsVersionStr() 
-         << "\n\n";
-}
-
-}}
-
+} // namespace csg
+} // namespace votca

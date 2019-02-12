@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 
 #include <votca/csg/openbox.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-vec OpenBox::BCShortestConnection(const vec &r_i, const vec &r_j) const
-{
-    vec r_ij;
-    r_ij = r_j - r_i;
-    //cout << abs(r_ij) << endl;
-    return r_ij;
+vec OpenBox::BCShortestConnection(const vec &r_i, const vec &r_j) const {
+  vec r_ij;
+  r_ij = r_j - r_i;
+  // cout << abs(r_ij) << endl;
+  return r_ij;
 }
 
-}}
+} // namespace csg
+} // namespace votca

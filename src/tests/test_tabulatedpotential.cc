@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-
 Eigen::VectorXd getColumnFromFile(string file_name, int column) {
   vector<double> data;
   ifstream file;
@@ -47,11 +46,10 @@ Eigen::VectorXd getColumnFromFile(string file_name, int column) {
     }
     file.close();
   }
-  Eigen::VectorXd result = Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(data.data(), data.size());
+  Eigen::VectorXd result =
+      Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(data.data(), data.size());
   return result;
 }
-
-
 
 BOOST_AUTO_TEST_SUITE(tabulatedpotential_test)
 
@@ -104,7 +102,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     byte_t symmetry = 1;
 
     string bead_type_name = "H2";
-    auto bead_type_ptr = top.GetOrCreateBeadType(bead_type_name);
+    top.RegisterBeadType(bead_type_name);
 
     double mass = 0.9;
     double charge = 0.0;
@@ -122,7 +120,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
           string bead_name = to_string(number_of_H2) + "_H2";
           vec bead_pos(x, y, z);
-          auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_ptr,
+          auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                          residue_number, mass, charge);
           bead_ptr->setId(number_of_H2);
           bead_ptr->setPos(bead_pos);
@@ -174,15 +172,15 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column3 = getColumnFromFile(interactions.at(0), 3);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<3.0,5.86,8.73,11.59,14.46;
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<<5.16,1.84,0.00,0.36,5.70;
+    col2_ref << 5.16, 1.84, 0.00, 0.36, 5.70;
     Eigen::VectorXd col3_ref(5);
-    col3_ref<<1.16,0.90,0.26,-1.00,-1.87;
+    col3_ref << 1.16, 0.90, 0.26, -1.00, -1.87;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref,1e-2),true);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
   } // End of Test 1
 
@@ -206,16 +204,15 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column3 = getColumnFromFile(interactions.at(0), 3);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<3.0,5.86,8.73,11.59,14.46;
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<<0.79,0.24,0.00,0.14,0.77;
+    col2_ref << 0.79, 0.24, 0.00, 0.14, 0.77;
     Eigen::VectorXd col3_ref(5);
-    col3_ref<<0.193,0.1385,0.018,-0.134,-0.220;
+    col3_ref << 0.193, 0.1385, 0.018, -0.134, -0.220;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref,1e-2),true);
-   
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
   } // End of Test 2
 
@@ -241,16 +238,15 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column3 = getColumnFromFile(interactions.at(0), 3);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<3.0,5.86,8.73,11.59,14.46;
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<< 0.58,0.36,0.26,0.33,0.59;
+    col2_ref << 0.58, 0.36, 0.26, 0.33, 0.59;
     Eigen::VectorXd col3_ref(5);
-    col3_ref<< 0.0777308, 0.0567485,0.00544064,-0.0573399,-0.0897949;
+    col3_ref << 0.0777308, 0.0567485, 0.00544064, -0.0573399, -0.0897949;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref,1e-2),true);
-
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
   } // End of Test 3
 
@@ -273,12 +269,12 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<3.0,5.86,8.73,11.59,14.46;
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<< 0.0284148,0.059643, 0.124631, 0.108033,0.0284148;
+    col2_ref << 0.0284148, 0.059643, 0.124631, 0.108033, 0.0284148;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
   } // End of Test 4
 
@@ -302,14 +298,13 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
     Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
-
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<3.0,5.86,8.73,11.59,14.46;
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<< 404.0, 848.0,1772.0,1536.0,404.0;
+    col2_ref << 404.0, 848.0, 1772.0, 1536.0, 404.0;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
   } // End of Test 5
 
@@ -336,12 +331,12 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<0.0,0.25,0.5,0.75,1;
+    col1_ref << 0.0, 0.25, 0.5, 0.75, 1;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<<1508.0, 1164.0,436.0, 1452.0,1508.0;
+    col2_ref << 1508.0, 1164.0, 436.0, 1452.0, 1508.0;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
   } // End of Test 6
 
   // Test 7
@@ -359,17 +354,16 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-
     Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
     Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<0.0,0.25,0.5,0.75,1;
+    col1_ref << 0.0, 0.25, 0.5, 0.75, 1;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<<19372.0, 18624.0,1744.0, 2581.33,19372.0;
+    col2_ref << 19372.0, 18624.0, 1744.0, 2581.33, 19372.0;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
   } // End of Test 7
 
@@ -392,13 +386,12 @@ BOOST_AUTO_TEST_CASE(test_command) {
     Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
     Eigen::VectorXd col1_ref(5);
-    col1_ref<<0.0,0.25,0.5,0.75,1;
+    col1_ref << 0.0, 0.25, 0.5, 0.75, 1;
     Eigen::VectorXd col2_ref(5);
-    col2_ref<<5593.78, 4704.86,909.42, 2130.16,5593.78;
+    col2_ref << 5593.78, 4704.86, 909.42, 2130.16, 5593.78;
 
-    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref,1e-2),true);
-    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref,1e-2),true);
-
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
   } // End of Test 8
 

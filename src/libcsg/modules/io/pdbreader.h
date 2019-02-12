@@ -55,7 +55,7 @@ private:
   std::ifstream _fl;
   bool _topology;
 };
-}
-}
+} // namespace csg
+} // namespace votca
 
 #endif // __VOTCA_CSG_PDBREADER_H

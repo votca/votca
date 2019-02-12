@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE pdbreader_test
-#include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
 #include <cmath>
 #include <fstream>
 #include <string>
@@ -29,7 +29,6 @@
 
 using namespace std;
 using namespace votca::csg;
-
 
 BOOST_AUTO_TEST_SUITE(pdbreader_test)
 
@@ -92,31 +91,34 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
 
   Topology top;
   TopologyReader::RegisterPlugins();
-  TopologyReader* reader;
-  string          str = "Molecule1.pdb";
-  reader              = TopReaderFactory().Create(str);
+  TopologyReader *reader;
+  string str = "Molecule1.pdb";
+  reader = TopReaderFactory().Create(str);
   reader->ReadTopology(str, top);
   BOOST_CHECK_EQUAL(reader != NULL, true);
   BOOST_CHECK_EQUAL(top.BeadCount(), 10);
 
-  vector<int> resnr = { 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
-  vector<string> bd_name = { "C", "H", "H", "H", "H", "C", "H", "H", "H", "H"};
-  vector<double> x = { -0.5249, -0.6202,-0.539, -0.4682,-0.4724,-0.2248,-0.1518,-0.3153,-0.2442,-0.1880 };
-  vector<double> y = { 0.1055 ,  0.1521, 0.0026, 0.1124, 0.1550, 0.1671, 0.2451, 0.1999, 0.1430, 0.0804 };
-  vector<double> z = { -0.000 , -0.0141, 0.0255,-0.0904, 0.079 ,-0.000 , 0.0051, 0.0467,-0.1024, 0.0507 };
-  Bead* bd;
+  vector<int> resnr = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  vector<string> bd_name = {"C", "H", "H", "H", "H", "C", "H", "H", "H", "H"};
+  vector<double> x = {-0.5249, -0.6202, -0.539,  -0.4682, -0.4724,
+                      -0.2248, -0.1518, -0.3153, -0.2442, -0.1880};
+  vector<double> y = {0.1055, 0.1521, 0.0026, 0.1124, 0.1550,
+                      0.1671, 0.2451, 0.1999, 0.1430, 0.0804};
+  vector<double> z = {-0.000, -0.0141, 0.0255, -0.0904, 0.079,
+                      -0.000, 0.0051,  0.0467, -0.1024, 0.0507};
+  Bead *bd;
   vec v;
-  for(int i=0;i<10;i++){
+  for (int i = 0; i < 10; i++) {
     bd = top.getBead(i);
-    BOOST_CHECK_EQUAL(bd->getId(),i);
-    BOOST_CHECK_EQUAL(bd->getResnr(),resnr.at(i));
-    BOOST_CHECK_EQUAL(bd->getName(),bd_name.at(i));
-  //BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
+    BOOST_CHECK_EQUAL(bd->getId(), i);
+    BOOST_CHECK_EQUAL(bd->getResnr(), resnr.at(i));
+    BOOST_CHECK_EQUAL(bd->getName(), bd_name.at(i));
+    // BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
     v = bd->getPos();
-    BOOST_CHECK_CLOSE(bd->getQ(), 0,1e-5);
-    BOOST_CHECK_CLOSE(v.getX(),x.at(i), 1e-5);
-    BOOST_CHECK_CLOSE(v.getY(),y.at(i), 1e-5);
-    BOOST_CHECK_CLOSE(v.getZ(),z.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(bd->getQ(), 0, 1e-5);
+    BOOST_CHECK_CLOSE(v.getX(), x.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.getY(), y.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.getZ(), z.at(i), 1e-5);
   }
 }
 
