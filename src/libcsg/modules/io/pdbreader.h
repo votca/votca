@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #ifndef __VOTCA_CSG_PDBREADER_H
 #define __VOTCA_CSG_PDBREADER_H
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/tools/elements.h>
@@ -35,30 +35,27 @@ namespace csg {
     for pdb files
 
 */
-class PDBReader : public TopologyReader,
-                  public TrajectoryReader {
-  public:
-    /// Constuctor
-    PDBReader() {}
-    /// Destructor
-    ~PDBReader() {}
-    /// open a topology file
-    bool ReadTopology(std::string file, Topology &top);
-    /// open a trajectory file
-    bool Open(const std::string &file);
-    /// read in the first frame
-    bool FirstFrame(Topology &top);
-    /// read in the next frame
-    bool NextFrame(Topology &top);
-    void Close();
+class PDBReader : public TopologyReader, public TrajectoryReader {
+public:
+  /// Constuctor
+  PDBReader() {}
+  /// Destructor
+  ~PDBReader() {}
+  /// open a topology file
+  bool ReadTopology(std::string file, Topology &top);
+  /// open a trajectory file
+  bool Open(const std::string &file);
+  /// read in the first frame
+  bool FirstFrame(Topology &top);
+  /// read in the next frame
+  bool NextFrame(Topology &top);
+  void Close();
 
-  private:
-    std::ifstream _fl;
-    bool _topology;
-
-    tools::Elements _elements;
+private:
+  std::ifstream _fl;
+  bool _topology;
 };
 }
 }
 
-#endif  // __VOTCA_CSG_PDBREADER_H
+#endif // __VOTCA_CSG_PDBREADER_H

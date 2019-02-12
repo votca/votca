@@ -35,7 +35,9 @@ public:
 
   void Write(Topology *conf);
 
-  template <class T> void Write(T &container, std::string header);
+  template <class T> void WriteContainer(T &container);
+
+  void WriteHeader(std::string header);
 
 private:
   template <class Atom> std::string getName(Atom &atom) {
@@ -76,11 +78,9 @@ private:
   std::ofstream _out;
 };
 
-template <class T>
-inline void PDBWriter::Write(T &container, std::string header) {
-  _out << header << "\n";
+template <class T> inline void PDBWriter::WriteContainer(T &container) {
   boost::format atomfrmt(
-      "ATOM  %1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
+      "ATOM  %1$5d %2$-4s %3$-3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
 
   for (auto &atom : getIterable(container)) {
     Eigen::Vector3d r = getPos(atom);
@@ -100,7 +100,6 @@ inline void PDBWriter::Write(T &container, std::string header) {
     // we skip the charge
     writeSymmetry(atom);
   }
-  _out << "ENDMDL\n";
   _out << std::flush;
 }
 }

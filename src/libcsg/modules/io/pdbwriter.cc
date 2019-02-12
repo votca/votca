@@ -33,13 +33,24 @@ void PDBWriter::Open(string file, bool bAppend) {
   }
 }
 
+void PDBWriter::WriteHeader(std::string header) {
+  if (header.size() < 10 || header.substr(0, 10) != "HEADER    ") {
+    _out << "HEADER    ";
+  }
+  _out << header;
+  if (header.back() != '\n')
+    _out << "\n";
+}
+
 void PDBWriter::Close() { _out.close(); }
 
 void PDBWriter::Write(Topology *conf) {
 
-  std::string header =
-      (boost::format("MODEL     %1$4d\n") % (conf->getStep() + 1)).str();
-  Write<Topology>(*conf, header);
+  _out << boost::format("MODEL     %1$4d\n") % (conf->getStep() + 1)
+       << std::flush;
+  ;
+  WriteContainer<Topology>(*conf);
+  _out << "ENDMDL" << std::endl;
 }
 
 void PDBWriter::writeSymmetry(Bead *bead) {

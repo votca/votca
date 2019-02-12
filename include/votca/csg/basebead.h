@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
 #ifndef _VOTCA_CSG_BASEBEAD_H
 #define _VOTCA_CSG_BASEBEAD_H
 
+#include <assert.h>
 #include <memory>
-
-#include <votca/csg/topologyitem.h>
 #include <votca/csg/moleculeitem.h>
-
+#include <votca/csg/topologyitem.h>
 #include <votca/tools/identity.h>
 #include <votca/tools/name.h>
 #include <votca/tools/vec.h>
@@ -41,43 +40,61 @@ class BeadType;
  * charge and the residue it belongs to and the position
  *
  **/
-class BaseBead : public TopologyItem,
-                 public MoleculeItem,
-                 public virtual Name,
-                 public virtual Identity<int> {
+class BaseBead {
 public:
   /**
    * destructor
    */
   virtual ~BaseBead() {}
 
+  /// Gets the id of the bead
+  int getId() const { return id_.getId(); }
+
+  /// Sets the id of the bead
+  void setId(int id) { id_.setId(id); }
+
+  /// Gets the name of the bead
+  std::string getName() const { return name_.getName(); }
+
+  /// Sets the name of the bead
+  void setName(std::string name) { return name_.setName(name); }
+
+  /// Sets the molecule the bead is attached too
+  void setMolecule(Molecule *molecule) { molecule_item_.setMolecule(molecule); }
+
+  /// Gets the molecule pointer the bead is attached too
+  Molecule *getMolecule() const { return molecule_item_.getMolecule(); }
+
+  /// Gets the topology pointer the bead is attached too
+  Topology *getParent() const { return topology_item_.getParent(); }
+
   /**
    * get the bead type
    * \return const bead type pointer
    */
-  virtual const std::weak_ptr<BeadType> getType() const { return _type;}
+  virtual const std::weak_ptr<BeadType> getType() const { return type_; }
 
   /**
    * set the bead type
    * \param bead type object
    */
-  virtual void setType(std::weak_ptr<BeadType> type) { _type = type; }
+  virtual void setType(std::weak_ptr<BeadType> type) { type_ = type; }
 
   /**
    * get the bead type
    * \return - non constant bead type pointer
    */
-  virtual std::weak_ptr<BeadType> Type() const { return _type; }
+  virtual std::weak_ptr<BeadType> Type() const { return type_; }
 
   /**
    * get the name of the bead type
-   * \return - string indicates the name 
+   * \return - string indicates the name
    **/
   std::string getBeadTypeName();
 
   /**
    * get the id of the bead type
-   * \return - int indicated the id 
+   * \return - int indicated the id
    **/
   int getBeadTypeId();
 
@@ -85,19 +102,19 @@ public:
    * get the mass of the base bead
    * \return - base bead mass
    */
-  virtual const double &getMass() const { return _mass; }
+  virtual const double &getMass() const { return mass_; }
 
   /**
    * set the mass of the base bead
    * \param - base bead mass
    */
-  virtual void setMass(const double &m) { _mass = m; }
+  virtual void setMass(const double &m) { mass_ = m; }
 
   /**
    * set the position of the base bead
    * \param - base bead position
    */
-  virtual void setPos(const vec &r);
+  virtual void setPos(const vec &bead_position);
 
   /**
    * get the position of the base bead
@@ -110,40 +127,45 @@ public:
    * \return reference to position
    */
   virtual vec &Pos() {
-    assert(_bPos);
-    return _pos;
+    assert(bead_position_set_ && "Position is not set.");
+    return bead_position_;
   }
 
   /** does this configuration store positions? */
-  bool HasPos() const { return _bPos; }
+  bool HasPos() const { return bead_position_set_; }
 
   /** set has position to true */
-  void HasPos(bool true_or_false) { _bPos = true_or_false; }
+  void HasPos(bool true_or_false) { bead_position_set_ = true_or_false; }
 
 protected:
   BaseBead()
-      : TopologyItem(nullptr), MoleculeItem(nullptr), 
-      _mass(0.0), _bPos(false){};
+      : topology_item_(nullptr), molecule_item_(nullptr), mass_(0.0),
+        bead_position_set_(false){};
 
+  TopologyItem topology_item_;
+  MoleculeItem molecule_item_;
 
-  std::weak_ptr<BeadType> _type;
+  Identity<int> id_;
+  Name name_;
+  std::weak_ptr<BeadType> type_;
 
-  double _mass;
-  vec _pos;
+  double mass_;
+  vec bead_position_;
 
-  bool _bPos;
+  bool bead_position_set_;
 };
 
-inline void BaseBead::setPos(const vec &r) {
-  _bPos = true;
-  _pos = r;
+inline void BaseBead::setPos(const vec &bead_position) {
+  bead_position_set_ = true;
+  bead_position_ = bead_position;
 }
 
 inline const vec &BaseBead::getPos() const {
-  assert(_bPos);
-  return _pos;
+  assert(bead_position_set_ &&
+         "Cannot get bead position as it has not been set.");
+  return bead_position_;
 }
-}
-}
+} // namespace csg
+} // namespace votca
 
 #endif // _VOTCA_CSG_BASEBEAD_H

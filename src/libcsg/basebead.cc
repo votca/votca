@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,28 @@
  */
 
 #include <votca/csg/basebead.h>
-
 #include <votca/csg/beadtype.h>
 
 using namespace std;
 
 namespace votca {
-  namespace csg {
+namespace csg {
 
-    std::string BaseBead::getBeadTypeName(){
-      if(std::shared_ptr<BeadType> shared_type = _type.lock()){
-        return shared_type->getName();
-      }
-      assert(!"Cannot get bead type name because bead type is not accessible.");
-      return "";
-    }
-
-    int BaseBead::getBeadTypeId(){
-      if(std::shared_ptr<BeadType> shared_type = _type.lock()){
-        return shared_type->getId();
-      }
-      assert(!"Cannot get bead type id because bead type is not accessible.");
-      return -1;
-    }
-
+std::string BaseBead::getBeadTypeName() {
+  if (std::shared_ptr<BeadType> shared_type = type_.lock()) {
+    return shared_type->getName();
   }
+  assert(!"Cannot get bead type name because bead type is not accessible.");
+  return "";
 }
 
+int BaseBead::getBeadTypeId() {
+  if (std::shared_ptr<BeadType> shared_type = type_.lock()) {
+    return shared_type->getId();
+  }
+  assert(!"Cannot get bead type id because bead type is not accessible.");
+  return -1;
+}
+
+} // namespace csg
+} // namespace votca

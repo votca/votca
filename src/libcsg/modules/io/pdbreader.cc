@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  *
  */
 
-#include <vector>
-#include <sstream>
-#include <unordered_map>
-#include <boost/lexical_cast.hpp>
+#include "pdbreader.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/convenience.hpp>
+#include <boost/lexical_cast.hpp>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 #include <votca/tools/getline.h>
-#include "pdbreader.h"
 
 namespace votca {
 namespace csg {
@@ -63,6 +63,7 @@ bool PDBReader::FirstFrame(Topology &top) {
 
 bool PDBReader::NextFrame(Topology &top) {
   string line;
+  tools::Elements elements;
   // Two column vector for storing all bonds
   // 1 - id of first atom
   // 2 - id of second atom
@@ -95,8 +96,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // 48 - 54       Real(7.2)     gamma (degrees)
         // 56 - 66       LString       Space group
         // 67 - 70       Integer       Z value
-      }
-      catch (std::out_of_range &err) {
+      } catch (std::out_of_range &err) {
         throw std::runtime_error("Misformated pdb file in CRYST1 line");
       }
       boost::algorithm::trim(a);
@@ -144,8 +144,7 @@ bool PDBReader::NextFrame(Topology &top) {
           num_bonds++;
           ss >> temp_atm;
         }
-      }
-      catch (std::out_of_range &err) {
+      } catch (std::out_of_range &err) {
         throw std::runtime_error("Misformated pdb file in CONECT line\n" +
                                  line);
       }
@@ -210,8 +209,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // elem_sym =  string(line,(77-1),2);
         // str       , Charge on the atom
         charge = string(line, (79 - 1), 2);
-      }
-      catch (std::out_of_range &err) {
+      } catch (std::out_of_range &err) {
         string err_msg = "Misformated pdb file in atom line # " +
                          boost::lexical_cast<string>(bead_count) +
                          "\n the correct pdb file format requires 80 "
@@ -240,8 +238,7 @@ bool PDBReader::NextFrame(Topology &top) {
         int resnr;
         try {
           resnr = boost::lexical_cast<int>(resNum);
-        }
-        catch (bad_lexical_cast &) {
+        } catch (bad_lexical_cast &) {
           throw std::runtime_error(
               "Cannot convert resNum='" + resNum +
               "' to int, that usallly means: misformated pdb file");
@@ -250,14 +247,15 @@ bool PDBReader::NextFrame(Topology &top) {
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
         // TODO: fix the case that resnr is not in ascending order
         if (resnr > top.ResidueCount()) {
-          while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
-                                                      // with 1 but accept
-                                                      // sloppy files
+          while ((resnr - 1) > top.ResidueCount()) { // pdb resnr should start
+                                                     // with 1 but accept
+                                                     // sloppy files
 
             // create dummy residue, hopefully it will never show
-            top.CreateResidue("DUMMY");  
+            top.CreateResidue("DUMMY");
             cout << "Warning: residue numbers not continous, create DUMMY "
-                    "residue with nr " << top.ResidueCount() << endl;
+                    "residue with nr "
+                 << top.ResidueCount() << endl;
           }
           top.CreateResidue(resName);
         }
@@ -280,8 +278,8 @@ bool PDBReader::NextFrame(Topology &top) {
         // 6 - charge               (double)
         //
         // res -1 as internal number starts with 0
-        b = top.CreateBead(1, atName, weak_type, resnr - 1, _elements.getMass(atName),
-                           ch);
+        b = top.CreateBead(1, atName, weak_type, resnr - 1,
+                           elements.getMass(atName), ch);
       } else {
         b = top.getBead(bead_count - 1);
       }
