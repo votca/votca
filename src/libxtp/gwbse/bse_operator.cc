@@ -18,8 +18,8 @@
  */
 
 
+
 #include <votca/xtp/bse_operator.h>
-#include <votca/xtp/qmstate.h> 
 #include <votca/xtp/vc2index.h>
 
 using boost::format;
@@ -44,6 +44,7 @@ void BSE_OPERATOR::SetupDirectInteractionOperator()
         }
     }
 }
+
 
 Eigen::VectorXd BSE_OPERATOR::col(int index) const
 {

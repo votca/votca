@@ -19,6 +19,7 @@
 
 #ifndef __XTP_EIGEN__H
 #define	__XTP_EIGEN__H
+#include <Eigen/IterativeLinearSolvers>
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
 
@@ -29,23 +30,15 @@
 #define real_gwbse float
 #endif
 
-
-//#define real_gwbse double
-
-
 namespace votca {
     namespace xtp {
       
  typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
  typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
- typedef Eigen::Matrix<real_gwbse, 1, Eigen::Dynamic> RowVectorXfd;
  typedef Eigen::Array<real_gwbse, Eigen::Dynamic,1> ArrayXfd;
 
 
     }}
-
-
-
 
 
 #endif	/*XTP_EIGEN__H */

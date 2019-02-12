@@ -53,7 +53,7 @@ namespace votca { namespace xtp {
             void set_size(int size);
 
             // extract row/col of the operator
-            virtual Eigen::VectorXd col(int index) const;
+            virtual Eigen::VectorXd col(int index) const = 0;
 
             int _size;
             Eigen::VectorXd diag_el;    

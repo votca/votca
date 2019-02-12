@@ -20,7 +20,9 @@
 
 #include <votca/xtp/bse.h>
 #include <votca/tools/linalg.h>
+
 #include <votca/xtp/davidsonsolver.h>
+#include <votca/xtp/bse_operator.h>
 
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
@@ -100,17 +102,17 @@ namespace votca {
     void BSE::SetupHs() {
       BSE_OPERATOR Hs(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Hs);
-      Hs.setHx(2.0);
-      Hs.setHqp(1.0);
-      Hs.setHd(1.0); 
+      Hs.setHx(2);
+      Hs.setHqp(1);
+      Hs.setHd(1); 
       _eh_s = Hs.get_full_matrix();
     }
     
     void BSE::SetupHt() {
       BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Ht);
-      Ht.setHqp(1.0);
-      Ht.setHd(1.0); 
+      Ht.setHqp(1);
+      Ht.setHd(1); 
       _eh_t = Ht.get_full_matrix();
     }
 
@@ -136,11 +138,11 @@ namespace votca {
         << ctp::TimeStamp() << " Solving for first "<<_opt.nmax<<" eigenvectors"<< flush;
 
       if (_opt.davidson) {
+        
         DavidsonSolver DS(_log);
-        if (_opt.jocc) {
-          DS.set_jacobi_correction();
-          DS.set_jacobi_linsolve(_opt.jocc_linsolve);
-        }
+        DS.set_correction(_opt.davidson_correction);
+        if(_opt.davidson_correction == "JACOBI") DS.set_jacobi_linsolve(_opt.jocc_linsolve);
+        
         
         if(_opt.matrixfree) {
           CTP_LOG(ctp::logDEBUG, _log)
@@ -175,16 +177,16 @@ namespace votca {
 
       BSE_OPERATOR Hs_ApB(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Hs_ApB);
-      Hs_ApB.setHd(1.0);
-      Hs_ApB.setHqp(1.0);
-      Hs_ApB.setHd2(1.0);
-      Hs_ApB.setHx(4.0);
+      Hs_ApB.setHd(1);
+      Hs_ApB.setHqp(1);
+      Hs_ApB.setHd2(1);
+      Hs_ApB.setHx(4);
 
       BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Hs_AmB);
-      Hs_AmB.setHd(1.0);
-      Hs_AmB.setHqp(1.0);
-      Hs_AmB.setHd2(-1.0);
+      Hs_AmB.setHd(1);
+      Hs_AmB.setHqp(1);
+      Hs_AmB.setHd2(-1);
 
       Eigen::MatrixXd ApB = Hs_ApB.get_full_matrix();
       Eigen::MatrixXd AmB = Hs_AmB.get_full_matrix();
@@ -394,21 +396,20 @@ namespace votca {
     BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type) {
 
       Interaction analysis;
-      CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " ANALYZE_EH_INTERACTION DISABLED" << flush;
 
       BSE_OPERATOR h (_orbitals, _log, _Mmn, _Hqp);
-      h.setHqp(1.0);
+      h.setHqp(1);
       Eigen::MatrixXd H = h.get_full_matrix();
       analysis.qp_contrib=Analyze_IndividualContribution(type,H);
       
-      h.setHqp(0.0);
-      h.setHd(1.0);
+      h.setHqp(0);
+      h.setHd(1);
       H = h.get_full_matrix();
       analysis.direct_contrib=Analyze_IndividualContribution(type,H);
 
       if (type == QMStateType::Singlet) {
-          h.setHd(0.0);
-          h.setHx(1.0);
+          h.setHd(0);
+          h.setHx(1);
           H = h.get_full_matrix();
           analysis.exchange_contrib=Analyze_IndividualContribution(type,H);
       } else {

@@ -20,7 +20,7 @@
 
         <eigensolver>
                 <dodavidson>1</dodavidson>
-                <jacobi_correction>0</jacobi_correction>
+                <davidson_correction>DPR</davidson_correction>
                 <jacobi_solver>CG</jacobi_solver>
                 <domatrixfree>0</domatrixfree>
         </eigensolver>

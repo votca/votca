@@ -19,7 +19,6 @@
 
 // Overload of uBLAS prod function with MKL/GSL implementations
 
-#include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <votca/ctp/logger.h>
@@ -196,24 +195,23 @@ void GWBSE::Initialize(tools::Property& options) {
 
         if(_bseopt.davidson)
         {
-            _bseopt.jocc =
-                options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.jacobi_correction", _bseopt.jocc);
+            _bseopt.davidson_correction =
+                options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.davidson_correction", _bseopt.davidson_correction);
+
+            std::vector<std::string> _dcorr = {"DPR", "JACOBI"};
+                options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".eigensolver.davidson_correction",_dcorr);
 
             _bseopt.matrixfree =
                 options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
 
-            if (_bseopt.jocc) {
+            if (_bseopt.davidson_correction == "JACOBI") {
                 _bseopt.jocc_linsolve =
                     options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.jacobi_solver", _bseopt.jocc_linsolve);
 
                 // check solver
-                std::list<std::string> _solver = {"CG", "GMRES", "LLT"};
-                bool solver_not_found = (std::find(_solver.begin(),_solver.end(),_bseopt.jocc_linsolve) == _solver.end());
-                if(solver_not_found){
-                    CTP_LOG(ctp::logDEBUG, *_pLog)
-                        << ctp::TimeStamp() << " Linear Solver " << _bseopt.jocc_linsolve << " not recognized. Default back to CG" << flush;  
-                    _bseopt.jocc_linsolve = "CG";
-                }
+                std::vector<std::string> _solver = {"CG", "LLT"};
+                options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".eigensolver.jacobi_solver",_solver);
+
             }
 
             // check size

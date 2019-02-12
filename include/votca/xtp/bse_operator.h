@@ -46,35 +46,21 @@ class BSE_OPERATOR : public MatrixFreeOperator {
       int vmin; 
       int cmax; 
       };
-  
-  options _opt;
 
   int  _bse_vmax;
   int  _bse_cmin;
   int  _bse_size;
   int  _bse_vtotal;
-  int  _bse_ctotal;    
+  int  _bse_ctotal; 
+
+  options _opt;
 
   void SetupDirectInteractionOperator();
 
-  void setHx(double coeff) {this->_coeff_Hx = coeff;}
-  void setHqp(double coeff) {this->_coeff_Hqp = coeff;}
-  void setHd(double coeff) {this->_coeff_Hd = coeff;}
-  void setHd2(double coeff) {this->_coeff_Hd2 = coeff;}
-
- private:
-
-    struct Interaction {
-      Eigen::VectorXd exchange_contrib;
-      Eigen::VectorXd direct_contrib;
-      Eigen::VectorXd qp_contrib;
-    };
-      
-  ctp::Logger &_log;
-  Orbitals& _orbitals;
-  TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
-  VectorXfd _epsilon_0_inv;
+  void setHx(int coeff) {this->_coeff_Hx = coeff;}
+  void setHqp(int coeff) {this->_coeff_Hqp = coeff;}
+  void setHd(int coeff) {this->_coeff_Hd = coeff;}
+  void setHd2(int coeff) {this->_coeff_Hd2 = coeff;}
 
   protected: 
 
@@ -86,10 +72,22 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   private:
 
-    double _coeff_Hx = 0.;
-    double _coeff_Hd = 0.;
-    double _coeff_Hd2 = 0.;
-    double _coeff_Hqp = 0.;
+  struct Interaction {
+    Eigen::VectorXd exchange_contrib;
+    Eigen::VectorXd direct_contrib;
+    Eigen::VectorXd qp_contrib;
+  };
+
+  ctp::Logger &_log;
+  Orbitals& _orbitals;
+  TCMatrix_gwbse& _Mmn;
+  const Eigen::MatrixXd& _Hqp;
+  VectorXfd _epsilon_0_inv;   
+
+  int _coeff_Hx = 0;
+  int _coeff_Hd = 0;
+  int _coeff_Hd2 = 0;
+  int _coeff_Hqp = 0;
  
 };
 }

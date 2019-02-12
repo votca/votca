@@ -22,10 +22,12 @@
 
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
+
+#include <votca/xtp/bse_operator.h>
+
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/davidsonsolver.h>
+
 
 namespace votca {
 namespace xtp {
@@ -60,7 +62,7 @@ class BSE {
 
         int nmax; //number of eigenvectors to calculate
         bool davidson=0; // use davidson to diagonalize the matrix
-        bool jocc=0; // jacobi orthogonal correction instead of DPR
+        std::string davidson_correction = "DPR"; // Davidson correction
         std::string jocc_linsolve = "CG"; //method to solve the linea system in jacobi davidson
         bool matrixfree=0; // use matrix free method
         double min_print_weight = 0.5;  //minimium contribution for state to print it
@@ -79,10 +81,9 @@ class BSE {
   
   void Solve_singlets();
   void Solve_triplets();
+
   void SetupHs();
   void SetupHt();
-  void configure_operator(BSE_OPERATOR &h);
-  void solve_hermitian(BSE_OPERATOR &H, Eigen::VectorXd &eigenvalues, Eigen::MatrixXd &coefficients );
 
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
@@ -102,23 +103,23 @@ class BSE {
   }
  
  private:
-    options _opt;
+  options _opt;
 
-     struct Interaction {
+
+  struct Interaction {
         Eigen::VectorXd exchange_contrib;
         Eigen::VectorXd direct_contrib;
         Eigen::VectorXd qp_contrib;
-};
+  };
 
-struct Population {
-    std::vector<Eigen::VectorXd> popH;
-    std::vector<Eigen::VectorXd> popE;
-    std::vector<Eigen::VectorXd> Crgs;
-    Eigen::VectorXd popGs;
-};   
+  struct Population {
+      std::vector<Eigen::VectorXd> popH;
+      std::vector<Eigen::VectorXd> popE;
+      std::vector<Eigen::VectorXd> Crgs;
+      Eigen::VectorXd popGs;
+  };   
  
-      
-ctp::Logger &_log;
+  ctp::Logger &_log;
   int  _bse_vmax;
   int  _bse_cmin;
   int  _bse_size;
@@ -144,7 +145,10 @@ ctp::Logger &_log;
 
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
-  
+
+  void configure_operator(BSE_OPERATOR &h);
+  void solve_hermitian(BSE_OPERATOR &H, Eigen::VectorXd &eigenvalues, Eigen::MatrixXd &coefficients );
+
   void printFragInfo(const Population& pop, int i);
   void printWeights(int i_bse, double weight);
 
