@@ -90,7 +90,7 @@ class Graph {
   GraphNode getNode(const int vertex) const;
 
   /// Return all the vertices and their graph nodes that are within the graph
-  virtual std::vector<std::pair<int, GraphNode> > getNodes() const;
+  virtual std::vector<std::pair<int, GraphNode>> getNodes() const;
 
   /// Returns all the vertices of the graph connected to vertex `vert` through
   /// an edge.

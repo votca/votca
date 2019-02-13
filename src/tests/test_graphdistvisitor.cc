@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -137,9 +137,9 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   bool found_ed = false;
   bool found_ed6 = false;
-  for(auto ed_temp : temp){
-    if(ed_temp==ed) found_ed = true;
-    if(ed_temp==ed6) found_ed6 = true;
+  for (auto ed_temp : temp) {
+    if (ed_temp == ed) found_ed = true;
+    if (ed_temp == ed6) found_ed6 = true;
   }
   BOOST_CHECK(found_ed);
   BOOST_CHECK(found_ed6);

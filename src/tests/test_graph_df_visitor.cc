@@ -130,12 +130,12 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   // No exception should be thrown at this point
   // The visitor can progress down either branch it does not matter which one
-  // it just matters that it completely explores the chosen branch before 
+  // it just matters that it completely explores the chosen branch before
   // exploring the next branch
   Edge ed5 = gd_v.nextEdge(g);
   gd_v.exec(g, ed5);
 
-  if(ed5==ed2){
+  if (ed5 == ed2) {
     ed5 = gd_v.nextEdge(g);
     BOOST_CHECK_EQUAL(ed3, ed5);
     gd_v.exec(g, ed5);
@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
     ed5 = gd_v.nextEdge(g);
     BOOST_CHECK_EQUAL(ed1, ed5);
     gd_v.exec(g, ed5);
-  }else if(ed5==ed0){
+  } else if (ed5 == ed0) {
     ed5 = gd_v.nextEdge(g);
     BOOST_CHECK_EQUAL(ed1, ed5);
     gd_v.exec(g, ed5);
@@ -160,7 +160,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
     BOOST_CHECK_EQUAL(ed3, ed5);
     gd_v.exec(g, ed5);
 
-  }else{
+  } else {
     // one of the staring edges should eithe be ed0 or ed2
     BOOST_CHECK(false);
   }

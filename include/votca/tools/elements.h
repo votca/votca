@@ -99,8 +99,10 @@ class Elements {
   /// "Hydrogen" = "H", "HELIUM" = "He",...
   std::string getEleShort(std::string elefull);
 
-  /// Is name recognized an element symbol
+  /// Is `eleshort` recognized an element symbol i.e. H, C, He, Ne etc
   bool isEleShort(std::string eleshort);
+
+  /// Is `elefull` recognized as an element name i.e. Carbon, HYDROGEN, suphur
   bool isEleFull(std::string elefull);
 
   bool isMassAssociatedWithElement(double mass, double tolerance);
