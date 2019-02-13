@@ -26,9 +26,12 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
                                 BeadList &list3, bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list1.empty()) return;
-  if (list2.empty()) return;
-  if (list3.empty()) return;
+  if (list1.empty())
+    return;
+  if (list2.empty())
+    return;
+  if (list3.empty())
+    return;
 
   // check if all bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -61,8 +64,10 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
                                 bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list1.empty()) return;
-  if (list2.empty()) return;
+  if (list1.empty())
+    return;
+  if (list2.empty())
+    return;
 
   // check if both bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -94,7 +99,8 @@ void NBListGrid_3Body::Generate(BeadList &list1, BeadList &list2,
 void NBListGrid_3Body::Generate(BeadList &list, bool do_exclusions) {
   BeadList::iterator iter;
   _do_exclusions = do_exclusions;
-  if (list.empty()) return;
+  if (list.empty())
+    return;
 
   Topology *top = _top = list.getTopology();
 
@@ -154,13 +160,19 @@ void NBListGrid_3Body::InitializeGrid(const matrix &box) {
   a1 = b1 = c1 = -1;
   a2 = b2 = c2 = 1;
 
-  if (_box_Na < 3) a2 = 0;
-  if (_box_Nb < 3) b2 = 0;
-  if (_box_Nc < 3) c2 = 0;
+  if (_box_Na < 3)
+    a2 = 0;
+  if (_box_Nb < 3)
+    b2 = 0;
+  if (_box_Nc < 3)
+    c2 = 0;
 
-  if (_box_Na < 2) a1 = 0;
-  if (_box_Nb < 2) b1 = 0;
-  if (_box_Nc < 2) c1 = 0;
+  if (_box_Na < 2)
+    a1 = 0;
+  if (_box_Nb < 2)
+    b1 = 0;
+  if (_box_Nc < 2)
+    c1 = 0;
 
   // wow, setting up the neighbours is an ugly for construct!
   // loop from N..2*N to avoid if and only use %
@@ -184,13 +196,16 @@ NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const vec &r) {
   int b = (int)floor(r * _norm_b);
   int c = (int)floor(r * _norm_c);
 
-  if (a < 0) a = _box_Na + a % _box_Na;
+  if (a < 0)
+    a = _box_Na + a % _box_Na;
   a %= _box_Na;
 
-  if (b < 0) b = _box_Nb + b % _box_Nb;
+  if (b < 0)
+    b = _box_Nb + b % _box_Nb;
   b %= _box_Nb;
 
-  if (c < 0) c = _box_Nc + c % _box_Nc;
+  if (c < 0)
+    c = _box_Nc + c % _box_Nc;
   c %= _box_Nc;
 
   return getCell(a, b, c);
@@ -260,5 +275,5 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
   }
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

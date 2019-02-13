@@ -34,17 +34,15 @@ class Topology;
 class Bead;
 
 class ExclusionList {
- public:
+public:
   ExclusionList() {}
   ~ExclusionList() { Clear(); }
 
   void Clear(void);
 
-  template <typename iteratable>
-  void Remove(iteratable &l);
+  template <typename iteratable> void Remove(iteratable &l);
 
-  template <typename iteratable>
-  void ExcludeList(iteratable &l);
+  template <typename iteratable> void ExcludeList(iteratable &l);
 
   struct exclusion_t {
     Bead *_atom;
@@ -68,7 +66,7 @@ class ExclusionList {
 
   void RemoveExclusion(Bead *bead1, Bead *bead2);
 
- private:
+private:
   std::list<exclusion_t *> _exclusions;
   std::map<Bead *, exclusion_t *> _excl_by_bead;
 
@@ -77,7 +75,8 @@ class ExclusionList {
 
 inline ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
   std::map<Bead *, exclusion_t *>::iterator iter = _excl_by_bead.find(bead);
-  if (iter == _excl_by_bead.end()) return NULL;
+  if (iter == _excl_by_bead.end())
+    return NULL;
   return (*iter).second;
 }
 
@@ -109,9 +108,12 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l) {
     Bead *bead1 = bead1_;
     ;
     Bead *bead2 = *i;
-    if (bead2->getId() < bead1->getId()) std::swap(bead1, bead2);
-    if (bead1 == bead2) continue;
-    if (IsExcluded(bead1, bead2)) continue;
+    if (bead2->getId() < bead1->getId())
+      std::swap(bead1, bead2);
+    if (bead1 == bead2)
+      continue;
+    if (IsExcluded(bead1, bead2))
+      continue;
     exclusion_t *e;
     if ((e = GetExclusions(bead1)) == NULL) {
       e = new exclusion_t;
@@ -125,9 +127,12 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l) {
 
 // template<>
 inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
-  if (bead2->getId() < bead1->getId()) std::swap(bead1, bead2);
-  if (bead1 == bead2) return;
-  if (IsExcluded(bead1, bead2)) return;
+  if (bead2->getId() < bead1->getId())
+    std::swap(bead1, bead2);
+  if (bead1 == bead2)
+    return;
+  if (IsExcluded(bead1, bead2))
+    return;
 
   exclusion_t *e;
   if ((e = GetExclusions(bead1)) == NULL) {
@@ -140,13 +145,18 @@ inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
 }
 
 inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
-  if (bead2->getId() < bead1->getId()) std::swap(bead1, bead2);
-  if (bead1 == bead2) return;
-  if (!IsExcluded(bead1, bead2)) return;
+  if (bead2->getId() < bead1->getId())
+    std::swap(bead1, bead2);
+  if (bead1 == bead2)
+    return;
+  if (!IsExcluded(bead1, bead2))
+    return;
   std::list<exclusion_t *>::iterator ex;
   for (ex = _exclusions.begin(); ex != _exclusions.end(); ++ex)
-    if ((*ex)->_atom == bead1) break;
-  if (ex == _exclusions.end()) return;
+    if ((*ex)->_atom == bead1)
+      break;
+  if (ex == _exclusions.end())
+    return;
   (*ex)->_exclude.remove(bead2);
   if ((*ex)->_exclude.empty()) {
     (*ex) = NULL;
@@ -157,7 +167,7 @@ inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
 
 std::ostream &operator<<(std::ostream &out, ExclusionList &ex);
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_EXCLUSIONLIST_H */

@@ -63,6 +63,7 @@ bool PDBReader::FirstFrame(Topology &top) {
 
 bool PDBReader::NextFrame(Topology &top) {
   string line;
+  tools::Elements elements;
   // Two column vector for storing all bonds
   // 1 - id of first atom
   // 2 - id of second atom
@@ -246,12 +247,12 @@ bool PDBReader::NextFrame(Topology &top) {
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
         // TODO: fix the case that resnr is not in ascending order
         if (resnr > top.ResidueCount()) {
-          while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
-                                                      // with 1 but accept
-                                                      // sloppy files
+          while ((resnr - 1) > top.ResidueCount()) { // pdb resnr should start
+                                                     // with 1 but accept
+                                                     // sloppy files
 
             // create dummy residue, hopefully it will never show
-            top.CreateResidue("DUMMY");  
+            top.CreateResidue("DUMMY");
             cout << "Warning: residue numbers not continous, create DUMMY "
                     "residue with nr "
                  << top.ResidueCount() << endl;
@@ -280,14 +281,12 @@ bool PDBReader::NextFrame(Topology &top) {
         //
         // res -1 as internal number starts with 0
         b = top.CreateBead(1, atName, atName, resnr - 1,
-                           _elements.getMass(atName), ch);
+                           elements.getMass(atName), ch);
       } else {
         b = top.getBead(bead_count - 1);
       }
       // convert to nm from A
-      b->setPos(vec(stod(x) / 10.0,
-                    stod(y) / 10.0,
-                    stod(z) / 10.0));
+      b->setPos(vec(stod(x) / 10.0, stod(y) / 10.0, stod(z) / 10.0));
 
       bead_vec.push_back(b);
     }
@@ -471,5 +470,5 @@ bool PDBReader::NextFrame(Topology &top) {
 
   return !_fl.eof();
 }
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

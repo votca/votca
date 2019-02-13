@@ -36,7 +36,7 @@ namespace csg {
 
 */
 class PDBReader : public TopologyReader, public TrajectoryReader {
- public:
+public:
   /// Constuctor
   PDBReader() {}
   /// Destructor
@@ -51,13 +51,11 @@ class PDBReader : public TopologyReader, public TrajectoryReader {
   bool NextFrame(Topology &top);
   void Close();
 
- private:
+private:
   std::ifstream _fl;
   bool _topology;
-
-  tools::Elements _elements;
 };
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
-#endif  // __VOTCA_CSG_PDBREADER_H
+#endif // __VOTCA_CSG_PDBREADER_H

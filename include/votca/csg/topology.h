@@ -59,7 +59,7 @@ typedef std::vector<Interaction *> InteractionContainer;
  *
  **/
 class Topology {
- public:
+public:
   /// constructor
   Topology() : _time(0.0), _has_vel(false), _has_force(false) {
     _bc = new OpenBox();
@@ -264,8 +264,9 @@ class Topology {
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void setBox(const matrix &box, BoundaryCondition::eBoxtype boxtype =
-                                     BoundaryCondition::typeAuto) {
+  void
+  setBox(const matrix &box,
+         BoundaryCondition::eBoxtype boxtype = BoundaryCondition::typeAuto) {
     // determine box type automatically in case boxtype==typeAuto
     if (boxtype == BoundaryCondition::typeAuto) {
       boxtype = autoDetectBoxType(box);
@@ -276,15 +277,15 @@ class Topology {
     }
 
     switch (boxtype) {
-      case BoundaryCondition::typeTriclinic:
-        _bc = new TriclinicBox();
-        break;
-      case BoundaryCondition::typeOrthorhombic:
-        _bc = new OrthorhombicBox();
-        break;
-      default:
-        _bc = new OpenBox();
-        break;
+    case BoundaryCondition::typeTriclinic:
+      _bc = new TriclinicBox();
+      break;
+    case BoundaryCondition::typeOrthorhombic:
+      _bc = new OrthorhombicBox();
+      break;
+    default:
+      _bc = new OpenBox();
+      break;
     }
 
     _bc->setBox(box);
@@ -392,7 +393,7 @@ class Topology {
   bool HasForce() { return _has_force; }
   void SetHasForce(const bool v) { _has_force = v; }
 
- protected:
+protected:
   BoundaryCondition *_bc;
 
   BoundaryCondition::eBoxtype autoDetectBoxType(const matrix &box);
@@ -416,7 +417,7 @@ class Topology {
 
   std::map<std::string, int> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *> > _interactions_by_group;
+  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
 
   double _time;
   int _step;
@@ -463,8 +464,8 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
   _exclusions.InsertExclusion(bead1, l);
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #include "interaction.h"
 

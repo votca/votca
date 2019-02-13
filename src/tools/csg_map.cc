@@ -27,7 +27,7 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgMapApp : public CsgApplication {
- public:
+public:
   string ProgramName() { return "csg_map"; }
   void HelpText(ostream &out) {
     out << "Convert a reference atomistic trajectory or configuration into a "
@@ -57,9 +57,8 @@ class CsgMapApp : public CsgApplication {
                         "  output file for coarse-grained trajectory")(
         "vel", "  Write mapped velocities (if available)")(
         "force", "  Write mapped forces (if available)")(
-        "hybrid",
-        "  Create hybrid trajectory containing both atomistic and "
-        "coarse-grained");
+        "hybrid", "  Create hybrid trajectory containing both atomistic and "
+                  "coarse-grained");
   }
 
   bool EvaluateOptions() {
@@ -73,8 +72,10 @@ class CsgMapApp : public CsgApplication {
   void EvalConfiguration(Topology *top, Topology *top_ref) {
     if (!_do_hybrid) {
       // simply write the topology mapped by csgapplication class
-      if (_do_vel) top->SetHasVel(true);
-      if (_do_force) top->SetHasForce(true);
+      if (_do_vel)
+        top->SetHasVel(true);
+      if (_do_force)
+        top->SetHasForce(true);
       _writer->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
@@ -115,8 +116,10 @@ class CsgMapApp : public CsgApplication {
                                         bi->getType(), bi->getResnr(),
                                         bi->getMass(), bi->getQ());
           bn->setPos(bi->getPos());
-          if (bi->HasVel()) bn->setVel(bi->getVel());
-          if (bi->HasF()) bn->setF(bi->getF());
+          if (bi->HasVel())
+            bn->setVel(bi->getVel());
+          if (bi->HasF())
+            bn->setF(bi->getF());
 
           mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
         }
@@ -133,7 +136,8 @@ class CsgMapApp : public CsgApplication {
                                           bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
-            if (bi->HasVel()) bn->setVel(bi->getVel());
+            if (bi->HasVel())
+              bn->setVel(bi->getVel());
             mi->AddBead(bi, bi->getName());
           }
         }
@@ -149,7 +153,7 @@ class CsgMapApp : public CsgApplication {
     delete _writer;
   }
 
- protected:
+protected:
   TrajectoryWriter *_writer;
   bool _do_hybrid;
   bool _do_vel;

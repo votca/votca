@@ -107,7 +107,7 @@ namespace csg {
  **/
 
 class BeadMotif : public BeadStructure<BaseBead> {
- public:
+public:
   enum MotifType {
     empty,
     single_bead,
@@ -121,7 +121,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
 
   BeadMotif(){};
 
-  BeadMotif(const BeadStructure& structure) : BeadStructure(structure){};
+  BeadMotif(const BeadStructure &structure) : BeadStructure(structure){};
 
   /// Gets the motif type, calculates it first if it is not yet known
   MotifType getType();
@@ -144,7 +144,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
    *
    * @param[in] basebead pointer
    **/
-  void AddBead(BaseBead* basebead);
+  void AddBead(BaseBead *basebead);
 
   /**
    * \brief Adds a new connection to the motif
@@ -156,7 +156,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
    **/
   void ConnectBeads(int bead1_id, int bead2_id);
 
- private:
+private:
   MotifType type_ = MotifType::undefined;
   bool junctionsUpToDate_ = false;
   bool type_up_to_date_ = false;
@@ -172,7 +172,7 @@ class BeadMotif : public BeadStructure<BaseBead> {
   bool isLoop_();
   bool isFusedRing_();
 };
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
-#endif  // VOTCA_CSG_BEADMOTIF_H
+#endif // VOTCA_CSG_BEADMOTIF_H

@@ -208,8 +208,8 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   delete particle_group_name_;
 }
 
-bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const
-                                                        // reference
+bool H5MDTrajectoryReader::FirstFrame(Topology &top) { // NOLINT const
+                                                       // reference
   if (first_frame_) {
     first_frame_ = false;
     Initialize(top);
@@ -219,10 +219,11 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const
 }
 
 /// Reading the data.
-bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
+bool H5MDTrajectoryReader::NextFrame(Topology &top) { // NOLINT const reference
   // Reads the position row.
   idx_frame_++;
-  if (idx_frame_ > max_idx_frame_) return false;
+  if (idx_frame_ > max_idx_frame_)
+    return false;
 
   // Set volume of box because top on workers somehow does not have this
   // information.
@@ -266,7 +267,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     // Set atom id, or it is an index of a row in dataset or from id dataset.
     int atom_id = at_idx;
     if (has_id_group_ != H5MDTrajectoryReader::NONE) {
-      if (ids[at_idx] == -1)  // ignore values where id == -1
+      if (ids[at_idx] == -1) // ignore values where id == -1
         continue;
       atom_id = ids[at_idx] - 1;
     }
@@ -298,12 +299,15 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
 
   // Clean up pointers.
   delete[] positions;
-  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] forces;
-  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] velocities;
-  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] ids;
+  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT)
+    delete[] forces;
+  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT)
+    delete[] velocities;
+  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT)
+    delete[] ids;
 
   return true;
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

@@ -26,7 +26,7 @@ using namespace votca::tools;
 
 class BoundaryCondition {
 
- public:
+public:
   virtual ~BoundaryCondition(){};
 
   /**
@@ -56,11 +56,11 @@ class BoundaryCondition {
   enum eBoxtype { typeAuto = 0, typeTriclinic, typeOrthorhombic, typeOpen };
   virtual eBoxtype getBoxType() = 0;
 
- protected:
+protected:
   matrix _box;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_BOUNDARYCONDITION_H */

@@ -40,5 +40,5 @@ int Molecule::getBeadByName(const string &name) {
   return _beadmap[name];
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

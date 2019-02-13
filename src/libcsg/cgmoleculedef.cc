@@ -32,8 +32,8 @@ namespace votca {
 namespace csg {
 class Molecule;
 class Residue;
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 namespace votca {
 namespace csg {
@@ -44,7 +44,8 @@ using boost::lexical_cast;
 CGMoleculeDef::~CGMoleculeDef() {
   {
     vector<beaddef_t *>::iterator i;
-    for (i = _beads.begin(); i != _beads.end(); ++i) delete *i;
+    for (i = _beads.begin(); i != _beads.end(); ++i)
+      delete *i;
     _beads.clear();
   }
 }
@@ -61,7 +62,8 @@ void CGMoleculeDef::Load(string filename) {
 
 void CGMoleculeDef::ParseTopology(Property &options) {
   ParseBeads(options.get("cg_beads"));
-  if (options.exists("cg_bonded")) ParseBonded(options.get("cg_bonded"));
+  if (options.exists("cg_bonded"))
+    ParseBonded(options.get("cg_bonded"));
 }
 
 void CGMoleculeDef::ParseBeads(Property &options) {
@@ -206,14 +208,14 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
     /// TODO: change this to factory, do not hardcode!!
     BeadMap *bmap;
     switch ((*def)->_symmetry) {
-      case 1:
-        bmap = new Map_Sphere();
-        break;
-      case 3:
-        bmap = new Map_Ellipsoid();
-        break;
-      default:
-        throw runtime_error(string("unknown symmetry in bead definition!"));
+    case 1:
+      bmap = new Map_Sphere();
+      break;
+    case 3:
+      bmap = new Map_Ellipsoid();
+      break;
+    default:
+      throw runtime_error(string("unknown symmetry in bead definition!"));
     }
     ////////////////////////////////////////////////////
 
@@ -245,5 +247,5 @@ Property *CGMoleculeDef::getMapByName(const string &name) {
   return (*iter).second;
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

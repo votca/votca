@@ -38,7 +38,8 @@ bool is_digits(const std::string &str) {
 
 Topology::~Topology() {
   Cleanup();
-  if (_bc) delete (_bc);
+  if (_bc)
+    delete (_bc);
   _bc = nullptr;
 }
 
@@ -46,29 +47,34 @@ void Topology::Cleanup() {
   // cleanup beads
   {
     BeadContainer::iterator i;
-    for (i = _beads.begin(); i < _beads.end(); ++i) delete *i;
+    for (i = _beads.begin(); i < _beads.end(); ++i)
+      delete *i;
     _beads.clear();
   }
   // cleanup molecules
   {
     MoleculeContainer::iterator i;
-    for (i = _molecules.begin(); i < _molecules.end(); ++i) delete *i;
+    for (i = _molecules.begin(); i < _molecules.end(); ++i)
+      delete *i;
     _molecules.clear();
   }
   // cleanup residues
   {
     ResidueContainer::iterator i;
-    for (i = _residues.begin(); i < _residues.end(); ++i) delete (*i);
+    for (i = _residues.begin(); i < _residues.end(); ++i)
+      delete (*i);
     _residues.clear();
   }
   // cleanup interactions
   {
     InteractionContainer::iterator i;
-    for (i = _interactions.begin(); i < _interactions.end(); ++i) delete (*i);
+    for (i = _interactions.begin(); i < _interactions.end(); ++i)
+      delete (*i);
     _interactions.clear();
   }
   // cleanup _bc object
-  if (_bc) delete (_bc);
+  if (_bc)
+    delete (_bc);
   _bc = new OpenBox();
 }
 
@@ -82,7 +88,8 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
     // xml numbering starts with 1
-    if (--first > 0) continue;
+    if (--first > 0)
+      continue;
     // This is not 100% correct, but let's assume for now that the resnr do
     // increase
     if (beadcount == 0) {
@@ -94,7 +101,8 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
           << (*bead)->getName();
     mol->AddBead((*bead), bname.str());
     if (++beadcount == nbeads) {
-      if (--nmolecules <= 0) break;
+      if (--nmolecules <= 0)
+        break;
       mol = CreateMolecule(name);
       beadcount = 0;
     }
@@ -270,9 +278,10 @@ void Topology::AddBondedInteraction(Interaction *ic) {
 }
 
 std::list<Interaction *> Topology::InteractionsInGroup(const string &group) {
-  map<string, list<Interaction *> >::iterator iter;
+  map<string, list<Interaction *>>::iterator iter;
   iter = _interactions_by_group.find(group);
-  if (iter == _interactions_by_group.end()) return list<Interaction *>();
+  if (iter == _interactions_by_group.end())
+    return list<Interaction *>();
   return iter->second;
 }
 
@@ -358,5 +367,5 @@ double Topology::ShortestBoxSize() {
   return min(la, min(lb, lc));
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

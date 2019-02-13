@@ -38,9 +38,11 @@ void NematicOrder::Process(Topology &top, const string &filter) {
 
     Bead *bead = *iter;
 
-    if (!wildcmp(filter.c_str(), bead->getName().c_str())) continue;
+    if (!wildcmp(filter.c_str(), bead->getName().c_str()))
+      continue;
 
-    if (bead->getSymmetry() == 1) continue;
+    if (bead->getSymmetry() == 1)
+      continue;
 
     if (bead->HasU()) {
       _mu += bead->getU() | bead->getU();
@@ -73,10 +75,13 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   _mv = f * _mv;
   _mw = f * _mw;
 
-  if (bU) _mu.SolveEigensystem(_nemat_u);
-  if (bV) _mv.SolveEigensystem(_nemat_v);
-  if (bW) _mw.SolveEigensystem(_nemat_w);
+  if (bU)
+    _mu.SolveEigensystem(_nemat_u);
+  if (bV)
+    _mv.SolveEigensystem(_nemat_v);
+  if (bW)
+    _mw.SolveEigensystem(_nemat_w);
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

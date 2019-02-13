@@ -37,7 +37,7 @@ class Molecule;
 
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
- public:
+public:
   LAMMPSDataReader() {}
   ~LAMMPSDataReader() {}
 
@@ -53,7 +53,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   /// close the topology file
   void Close();
 
- private:
+private:
   std::ifstream fl_;
   std::string fname_;
   bool topology_;
@@ -155,7 +155,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
       std::map<std::string, double> baseNamesAndMasses);
 };
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
-#endif  // _VOTCA_CSG_LAMMPSDATAREADER_H
+#endif // _VOTCA_CSG_LAMMPSDATAREADER_H

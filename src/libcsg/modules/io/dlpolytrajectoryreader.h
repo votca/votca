@@ -35,7 +35,7 @@ namespace csg {
 */
 
 class DLPOLYTrajectoryReader : public TrajectoryReader {
- public:
+public:
   /// open original trajectory file
   bool Open(const std::string &file);
   /// read in the first frame
@@ -61,14 +61,14 @@ class DLPOLYTrajectoryReader : public TrajectoryReader {
   }
   bool getIsConfig() { return _isConfig; }
 
- private:
+private:
   std::ifstream _fl;
   std::string _fname;
   bool _first_frame;
   bool _isConfig;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _dlpolytrajectoryreader_H */

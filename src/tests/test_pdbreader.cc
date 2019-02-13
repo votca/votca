@@ -91,7 +91,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
 
   Topology top;
   TopologyReader::RegisterPlugins();
-  TopologyReader* reader;
+  TopologyReader *reader;
   string str = "Molecule1.pdb";
   reader = TopReaderFactory().Create(str);
   reader->ReadTopology(str, top);
@@ -106,7 +106,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
                       0.1671, 0.2451, 0.1999, 0.1430, 0.0804};
   vector<double> z = {-0.000, -0.0141, 0.0255, -0.0904, 0.079,
                       -0.000, 0.0051,  0.0467, -0.1024, 0.0507};
-  Bead* bd;
+  Bead *bd;
   vec v;
   for (int i = 0; i < 10; i++) {
     bd = top.getBead(i);

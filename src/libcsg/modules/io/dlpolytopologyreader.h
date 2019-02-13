@@ -34,7 +34,7 @@ namespace csg {
 */
 
 class DLPOLYTopologyReader : public TopologyReader {
- public:
+public:
   DLPOLYTopologyReader() {}
 
   /// read a topology file
@@ -48,7 +48,7 @@ class DLPOLYTopologyReader : public TopologyReader {
   /// get the topology file name: <name>.dlpf (convention: ".dlpf"="FIELD")
   std::string getFname() { return _fname; }
 
- private:
+private:
   std::string _fname;
   /// function to find and read the next line starting with a keyword/directive
   /// (skipping comments starting with "#" or ";")
@@ -63,7 +63,7 @@ class DLPOLYTopologyReader : public TopologyReader {
                  const std::string &word, int &ival);
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _DLPTOPOLOGYREADER_H */

@@ -42,7 +42,7 @@ class Interaction;
 
 */
 class Molecule : public TopologyItem {
- public:
+public:
   /// get the molecule ID
   int getId() const { return _id; }
 
@@ -71,17 +71,13 @@ class Molecule : public TopologyItem {
 
   std::vector<Interaction *> Interactions() { return _interactions; }
 
-  template <typename T>
-  void setUserData(T *userdata) {
+  template <typename T> void setUserData(T *userdata) {
     _userdata = (void *)userdata;
   }
 
-  template <typename T>
-  T *getUserData() {
-    return (T *)_userdata;
-  }
+  template <typename T> T *getUserData() { return (T *)_userdata; }
 
- private:
+private:
   // maps a name to a bead id
   std::map<std::string, int> _beadmap;
   std::vector<Interaction *> _interactions;
@@ -106,11 +102,12 @@ class Molecule : public TopologyItem {
 
 inline int Molecule::getBeadIdByName(const std::string &name) {
   int i = getBeadByName(name);
-  if (i < 0) return i;
+  if (i < 0)
+    return i;
   return _beads[i]->getId();
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_MOLECULE_H */

@@ -43,7 +43,7 @@ using namespace votca::tools;
     \todo check for consistency of xml file, seperate xml parser and class!!
 */
 class CGMoleculeDef {
- public:
+public:
   CGMoleculeDef() {}
   ~CGMoleculeDef();
 
@@ -55,7 +55,7 @@ class CGMoleculeDef {
   const std::string &getName() { return _name; }
   const std::string &getIdent() { return _ident; }
 
- private:
+private:
   Property _options;
 
   struct beaddef_t {
@@ -90,7 +90,7 @@ class CGMoleculeDef {
   Property *getMapByName(const std::string &name);
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_CGMOLECULEDEF_H */

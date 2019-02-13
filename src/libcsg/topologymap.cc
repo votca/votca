@@ -23,7 +23,8 @@ namespace csg {
 TopologyMap::~TopologyMap() {
   MapContainer::iterator i;
 
-  for (i = _maps.begin(); i != _maps.end(); ++i) delete *i;
+  for (i = _maps.begin(); i != _maps.end(); ++i)
+    delete *i;
   _maps.clear();
 }
 
@@ -34,8 +35,9 @@ void TopologyMap::Apply() {
   _out->setTime(_in->getTime());
   _out->setBox(_in->getBox());
 
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter) (*iter)->Apply();
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter)
+    (*iter)->Apply();
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

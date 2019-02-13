@@ -15,43 +15,27 @@
  *
  */
 
-#include "xyzwriter.h"
 #include <stdio.h>
 #include <string>
-
+#include <votca/csg/xyzwriter.h>
 namespace votca {
 namespace csg {
 
-using namespace std;
-
-void XYZWriter::Open(string file, bool bAppend) {
-  _out = fopen(file.c_str(), bAppend ? "at" : "wt");
+void XYZWriter::Open(std::string file, bool bAppend) {
+  if (bAppend) {
+    _out.open(file, std::ios_base::app);
+  } else {
+    _out.open(file);
+  }
 }
 
-void XYZWriter::Close() { fclose(_out); }
+void XYZWriter::Close() { _out.close(); }
 
 void XYZWriter::Write(Topology *conf) {
-  Topology *top = conf;
-  fprintf(_out, "%d\n", (int)top->Beads().size());
-  fprintf(_out, "frame: %d time: %f\n", top->getStep() + 1, top->getTime());
-
-  for (BeadContainer::iterator iter = conf->Beads().begin();
-       iter != conf->Beads().end(); ++iter) {
-    Bead *bi = *iter;
-    vec r = bi->getPos();
-    // truncate strings if necessary
-    string atomname = bi->getName();
-    if (atomname.size() > 3) {
-      atomname = atomname.substr(0, 3);
-    }
-    while (atomname.size() < 3) atomname = " " + atomname;
-
-    // nm -> Angs
-    fprintf(_out, "%s%10.5f%10.5f%10.5f\n", atomname.c_str(), r.getX() * 10.0,
-            r.getY() * 10.0, r.getZ() * 10.0);
-  }
-  fflush(_out);
+  std::string header = (boost::format("frame: %1$d time: %2$f\n") %
+                        (conf->getStep() + 1) % conf->getTime())
+                           .str();
+  Write<Topology>(*conf, header);
 }
-
-}  // namespace csg
-}  // namespace votca
+}
+}

@@ -35,9 +35,12 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   BeadList::iterator iter3;
   _do_exclusions = do_exclusions;
 
-  if (list1.empty()) return;
-  if (list2.empty()) return;
-  if (list3.empty()) return;
+  if (list1.empty())
+    return;
+  if (list2.empty())
+    return;
+  if (list3.empty())
+    return;
 
   // check if all bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -114,5 +117,5 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   }
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@
 #include <votca/tools/table.h>
 
 namespace votca {
-  namespace csg {
+namespace csg {
 
 class PotentialFunctionCBSPL : public PotentialFunction {
- public:
-  PotentialFunctionCBSPL(const std::string& name_, const int nlam_,
+public:
+  PotentialFunctionCBSPL(const std::string &name_, const int nlam_,
                          const double min_ = 0.0, const double max_ = 10.0);
   ~PotentialFunctionCBSPL() {}
   // calculate function value for given r
@@ -41,11 +41,11 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   void setParam(std::string filename);
 
-  void SaveParam(const std::string& filename);
+  void SaveParam(const std::string &filename);
 
-  void SavePotTab(const std::string& filename, const double step);
+  void SavePotTab(const std::string &filename, const double step);
 
-  void SavePotTab(const std::string& filename, const double step,
+  void SavePotTab(const std::string &filename, const double step,
                   const double rmin, const double rcut);
   void setOptParam(const int i, const double val);
 
@@ -53,7 +53,7 @@ class PotentialFunctionCBSPL : public PotentialFunction {
 
   void extrapolExclParam();
 
- protected:
+protected:
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin

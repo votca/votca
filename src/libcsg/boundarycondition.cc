@@ -28,5 +28,5 @@ double BoundaryCondition::BoxVolume() {
   return (a ^ b) * c;
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

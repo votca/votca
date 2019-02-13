@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,12 @@
 #include "potentialfunction.h"
 
 namespace votca {
-  namespace csg {
+namespace csg {
 // LJ 12-6 potential class
 // with c12,c6 parameters
 class PotentialFunctionLJG : public PotentialFunction {
- public:
-  PotentialFunctionLJG(const std::string& name_, const double min_ = 0.0,
+public:
+  PotentialFunctionLJG(const std::string &name_, const double min_ = 0.0,
                        const double max_ = 10.0);
   ~PotentialFunctionLJG(){};
   // calculate function value for given r

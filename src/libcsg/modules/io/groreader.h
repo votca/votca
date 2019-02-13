@@ -35,7 +35,7 @@ namespace csg {
 
 */
 class GROReader : public TrajectoryReader, public TopologyReader {
- public:
+public:
   GROReader() {}
   ~GROReader() {}
 
@@ -51,12 +51,12 @@ class GROReader : public TrajectoryReader, public TopologyReader {
 
   void Close();
 
- private:
+private:
   std::ifstream _fl;
   bool _topology;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_GROREADER_H */

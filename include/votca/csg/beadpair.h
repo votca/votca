@@ -20,7 +20,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 /**
    \brief A particle pair
@@ -31,24 +30,24 @@ using namespace votca::tools;
  */
 
 class BeadPair : public std::pair<Bead *, Bead *> {
- public:
+public:
   BeadPair() {}
-  BeadPair(Bead *bead1, Bead *bead2, vec r)
+  BeadPair(Bead *bead1, Bead *bead2, tools::vec r)
       : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
 
   virtual ~BeadPair() {}
 
   /// \brief the vector connecting two beads
-  vec &r() { return _r; }
+  tools::vec &r() { return _r; }
   /// \brief the distance of the beads
   double &dist() { return _dist; }
 
- protected:
-  vec _r;
+protected:
+  tools::vec _r;
   double _dist;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_BEADPAIR_H */

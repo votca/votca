@@ -25,7 +25,7 @@ using namespace std;
 using boost::format;
 
 class GmxTopolApp : public CsgApplication {
- public:
+public:
   string ProgramName() { return "csg_gmxtopol"; }
   void HelpText(ostream &out) {
     out << "Create skeleton for gromacs topology based on atomistic topology\n"
@@ -42,7 +42,7 @@ class GmxTopolApp : public CsgApplication {
   }
   bool EvaluateTopology(Topology *top, Topology *top_ref);
 
- protected:
+protected:
   void WriteAtoms(ostream &out, Molecule &cg);
   void WriteInteractions(ostream &out, Molecule &cg);
   void WriteMolecule(ostream &out, Molecule &cg);
@@ -87,27 +87,29 @@ void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
 
   for (iter = ics.begin(); iter != ics.end(); ++iter) {
     ic = *iter;
-    if (ic->getMolecule() != cg.getId()) continue;
+    if (ic->getMolecule() != cg.getId())
+      continue;
     if (nb != ic->BeadCount()) {
       nb = ic->BeadCount();
       switch (nb) {
-        case 2:
-          out << "\n[ bonds ]\n";
-          break;
-        case 3:
-          out << "\n[ angles ]\n";
-          break;
-        case 4:
-          out << "\n[ dihedrals ]\n";
-          break;
-        default:
-          string err = "cannot handle number of beads in interaction:";
-          err += to_string(ic->getMolecule() + 1) + ":" + ic->getGroup();
-          err += ":" + to_string(ic->getIndex() + 1);
-          throw runtime_error(err);
+      case 2:
+        out << "\n[ bonds ]\n";
+        break;
+      case 3:
+        out << "\n[ angles ]\n";
+        break;
+      case 4:
+        out << "\n[ dihedrals ]\n";
+        break;
+      default:
+        string err = "cannot handle number of beads in interaction:";
+        err += to_string(ic->getMolecule() + 1) + ":" + ic->getGroup();
+        err += ":" + to_string(ic->getIndex() + 1);
+        throw runtime_error(err);
       }
     }
-    for (int i = 0; i < nb; ++i) out << ic->getBeadId(i) + 1 << " ";
+    for (int i = 0; i < nb; ++i)
+      out << ic->getBeadId(i) + 1 << " ";
     out << "  1  ; ";
     out << to_string(ic->getMolecule() + 1);
     out << ":" + ic->getGroup();

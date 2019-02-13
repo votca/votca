@@ -26,7 +26,7 @@ namespace csg {
 class Molecule;
 
 class MoleculeItem {
- public:
+public:
   virtual ~MoleculeItem() {}
 
   /**
@@ -42,14 +42,14 @@ class MoleculeItem {
    */
   void setMolecule(Molecule *mol) { _mol = mol; }
 
- protected:
+protected:
   MoleculeItem(Molecule *mol) : _mol(mol) {}
 
   Molecule *_mol = nullptr;
 
   friend class BaseBead;
 };
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
-#endif  // _VOTCA_CSG_MOLECULEITEM_H
+#endif // _VOTCA_CSG_MOLECULEITEM_H

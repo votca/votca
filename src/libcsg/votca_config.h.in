@@ -16,6 +16,7 @@
  */
 
 /* Used gromacs version */
+// clang-format off
 #cmakedefine GROMACS_VERSION @GROMACS_VERSION@
 
 /* Whether h5md is compiled in */
@@ -26,3 +27,4 @@
 
 /* Contact address of package */
 #define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
+// clang-format on

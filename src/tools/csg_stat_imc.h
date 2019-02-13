@@ -34,7 +34,7 @@ namespace csg {
  *
  */
 class Imc {
- public:
+public:
   Imc();
   ~Imc();
 
@@ -53,7 +53,7 @@ class Imc {
   void DoImc(bool do_imc) { _do_imc = do_imc; }
   void Extension(std::string ext) { _extension = ext; }
 
- protected:
+protected:
   Average<double> _avg_vol;
 
   typedef Eigen::MatrixXd group_matrix;
@@ -133,7 +133,7 @@ class Imc {
   void ClearAverages();
 
   class Worker : public CsgApplication::Worker {
-   public:
+  public:
     std::vector<HistogramNew> _current_hists;
     std::vector<HistogramNew> _current_hists_force;
     Imc *_imc;
@@ -151,7 +151,7 @@ class Imc {
 
   bool _processed_some_frames;
 
- public:
+public:
   CsgApplication::Worker *ForkWorker();
   void MergeWorker(CsgApplication::Worker *worker);
 };
@@ -160,7 +160,7 @@ inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,
                            int offset_i, int offset_j, const pair_matrix &corr)
     : _i1(i1), _i2(i2), _offset_i(offset_i), _offset_j(offset_j), _corr(corr) {}
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_IMC_H */

@@ -21,10 +21,10 @@
 
 #include "modules/io/dlpolytrajectorywriter.h"
 #include "modules/io/lammpsdumpwriter.h"
-#include "modules/io/pdbwriter.h"
-#include "modules/io/xyzwriter.h"
 #include <iostream>
+#include <votca/csg/pdbwriter.h>
 #include <votca/csg/trajectorywriter.h>
+#include <votca/csg/xyzwriter.h>
 
 #ifdef GMX_DOUBLE
 #include "modules/io/gmxtrajectorywriter.h"
@@ -49,5 +49,5 @@ void TrajectoryWriter::RegisterPlugins() {
 #endif
   TrjWriterFactory().Register<GROWriter>("gro");
 }
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

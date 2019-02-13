@@ -31,7 +31,7 @@ namespace csg {
 using namespace votca::tools;
 
 class CsgApplication : public Application {
- public:
+public:
   CsgApplication();
   ~CsgApplication();
 
@@ -99,7 +99,7 @@ class CsgApplication : public Application {
    *
    */
   class Worker : public Thread {
-   public:
+  public:
     Worker();
     ~Worker();
 
@@ -109,7 +109,7 @@ class CsgApplication : public Application {
     /// \brief returns worker id
     int getId() { return _id; }
 
-   protected:
+  protected:
     CsgApplication *_app;
     Topology _top, _top_cg;
     TopologyMap *_map;
@@ -146,7 +146,7 @@ class CsgApplication : public Application {
    */
   virtual void MergeWorker(Worker *worker);
 
- protected:
+protected:
   std::list<CGObserver *> _observers;
   bool _do_mapping;
   std::vector<Worker *> _myWorkers;
@@ -169,7 +169,7 @@ inline void CsgApplication::AddObserver(CGObserver *observer) {
 
 inline CsgApplication::Worker::Worker() : _app(NULL), _map(NULL), _id(-1) {}
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_APPLICATION_H */

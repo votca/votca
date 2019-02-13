@@ -15,9 +15,10 @@
  *
  */
 
-#include "pdbwriter.h"
+#include <boost/format.hpp>
 #include <stdio.h>
 #include <string>
+#include <votca/csg/pdbwriter.h>
 
 namespace votca {
 namespace csg {
@@ -25,64 +26,66 @@ namespace csg {
 using namespace std;
 
 void PDBWriter::Open(string file, bool bAppend) {
-  _out = fopen(file.c_str(), bAppend ? "at" : "wt");
+  if (bAppend) {
+    _out.open(file, std::ios_base::app);
+  } else {
+    _out.open(file);
+  }
 }
 
-void PDBWriter::Close() { fclose(_out); }
+void PDBWriter::WriteHeader(std::string header) {
+  if (header.size() < 10 || header.substr(0, 10) != "HEADER    ") {
+    _out << "HEADER    ";
+  }
+  _out << header;
+  if (header.back() != '\n')
+    _out << "\n";
+}
+
+void PDBWriter::Close() { _out.close(); }
 
 void PDBWriter::Write(Topology *conf) {
-  Topology *top = conf;
-  fprintf(_out, "MODEL     %4d\n", conf->getStep());
-  for (BeadContainer::iterator iter = conf->Beads().begin();
-       iter != conf->Beads().end(); ++iter) {
-    Bead *bi = *iter;
-    vec r = bi->getPos();
-    // truncate strings if necessary
-    string resname = "";
-    if (top->getResidue(bi->getResnr()))
-      resname = top->getResidue(bi->getResnr())->getName();
-    string atomname = bi->getName();
-    if (resname.size() > 3) {
-      resname = resname.substr(0, 3);
-    }
-    if (atomname.size() > 4) {
-      atomname = atomname.substr(0, 4);
-    }
 
-    fprintf(_out, "ATOM  %5d %4s %3s %1s%4d    %8.3f%8.3f%8.3f\n",
-            (bi->getId() + 1) % 100000,           // atom serial number
-            atomname.c_str(),                     // atom name
-            resname.c_str(),                      // residue name
-            " ",                                  // chain identifier 1 char
-            bi->getResnr() + 1,                   // residue sequence number
-            10 * r.x(), 10 * r.y(), 10 * r.z());  // nm -> Angs
-    // we skip the charge
-
-    if (bi->getSymmetry() >= 2) {
-      vec ru = 0.1 * bi->getU() + r;
-
-      fprintf(_out, "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f\n",
-              bi->getId() + 1,          // atom serial number
-              bi->getName().c_str(),    // atom name
-              "REU",                    // residue name
-              " ",                      // chain identifier 1 char
-              bi->getResnr() + 1,       // residue sequence number
-              ru.x(), ru.y(), ru.z());  // we skip the charge
-    }
-    if (bi->getSymmetry() >= 3) {
-      vec rv = 0.1 * bi->getV() + r;
-      fprintf(_out, "HETATM%5d %4s %3s %1s%4d    %8.3f%8.3f%8.4f\n",
-              bi->getId() + 1,          // atom serial number
-              bi->getName().c_str(),    // atom name
-              "REV",                    // residue name
-              " ",                      // chain identifier 1 char
-              bi->getResnr() + 1,       // residue sequence number
-              rv.x(), rv.y(), rv.z());  // we skip the charge
-    }
-  }
-  fprintf(_out, "ENDMDL\n");
-  fflush(_out);
+  _out << boost::format("MODEL     %1$4d\n") % (conf->getStep() + 1)
+       << std::flush;
+  ;
+  WriteContainer<Topology>(*conf);
+  _out << "ENDMDL" << std::endl;
 }
 
-}  // namespace csg
-}  // namespace votca
+void PDBWriter::writeSymmetry(Bead *bead) {
+  if (bead->getSymmetry() > 1) {
+    tools::vec r = 10 * bead->getPos();
+    boost::format beadfrmt(
+        "HETATM%1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
+    tools::vec ru = 0.1 * bead->getU() + r;
+
+    _out << beadfrmt % (bead->getId() + 1) % 100000 // atom serial number
+                % bead->getName()                   // atom name
+                % "REU"                             // residue name
+                % " "                               // chain identifier 1 char
+                % (bead->getResnr() + 1)            // residue sequence number
+                % ru.x() % ru.y() % ru.z();         // we skip the charge
+
+    if (bead->getSymmetry() > 2) {
+      tools::vec rv = 0.1 * bead->getV() + r;
+      _out << beadfrmt % (bead->getId() + 1) % 100000 // atom serial number
+                  % bead->getName()                   // atom name
+                  % "REV"                             // residue name
+                  % " "                               // chain identifier 1 char
+                  % (bead->getResnr() + 1)            // residue sequence number
+                  % rv.x() % rv.y() % rv.z();         // we skip the charge
+    }
+  }
+  return;
+}
+
+std::string PDBWriter::getResname(Topology &conf, Bead *bead) {
+  if (conf.getResidue(bead->getResnr())) {
+    return conf.getResidue(bead->getResnr())->getName();
+  } else {
+    return "";
+  }
+}
+}
+}

@@ -39,7 +39,7 @@ namespace csg {
  *
  */
 class NBList_3Body : public TripleList<Bead *, BeadTriple> {
- public:
+public:
   NBList_3Body();
   virtual ~NBList_3Body();
 
@@ -102,10 +102,9 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   }
 
   /// function to use a user defined triple type
-  template <typename triple_type>
-  void setTripleType();
+  template <typename triple_type> void setTripleType();
 
- protected:
+protected:
   /// cutoff (at the moment use only one cutoff value)
   double _cutoff;
   /// take into account exclusions from topolgoy
@@ -126,11 +125,11 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   /// the current bead pair creator function
   triple_creator_t _triple_creator;
 
- protected:
+protected:
   /// Functor for match function to be able to set member and non-member
   /// functions
   class Functor {
-   public:
+  public:
     Functor() {}
     virtual bool operator()(Bead *, Bead *, Bead *, const vec &, const vec &,
                             const vec &, const double dist12,
@@ -139,9 +138,8 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   };
 
   /// Functor for member functions
-  template <typename T>
-  class FunctorMember : public Functor {
-   public:
+  template <typename T> class FunctorMember : public Functor {
+  public:
     typedef bool (T::*fkt_t)(Bead *, Bead *, Bead *, const vec &, const vec &,
                              const vec &, const double dist12,
                              const double dist13, const double dist23);
@@ -154,14 +152,14 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
       return (_cls->*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
-   private:
+  private:
     T *_cls;
     fkt_t _fkt;
   };
 
   /// Functor for non-member functions
   class FunctorNonMember : public Functor {
-   public:
+  public:
     typedef bool (*fkt_t)(Bead *, Bead *, Bead *, const vec &, const vec &,
                           const vec &, const double dist12, const double dist13,
                           const double dist23);
@@ -173,15 +171,14 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
       return (*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
-   private:
+  private:
     fkt_t _fkt;
   };
 
   Functor *_match_function;
 };
 
-template <typename triple_type>
-void NBList_3Body::setTripleType() {
+template <typename triple_type> void NBList_3Body::setTripleType() {
   _triple_creator = NBList_3Body::beadtriple_create_policy<triple_type>;
 }
 
@@ -190,18 +187,20 @@ inline void NBList_3Body::SetMatchFunction(
     T *object, bool (T::*fkt)(Bead *, Bead *, Bead *, const vec &, const vec &,
                               const vec &, const double dist12,
                               const double dist13, const double dist23)) {
-  if (_match_function) delete _match_function;
+  if (_match_function)
+    delete _match_function;
   _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList_3Body::SetMatchFunction(bool (*fkt)(
     Bead *, Bead *, Bead *, const vec &, const vec &, const vec &,
     const double dist12, const double dist13, const double dist23)) {
-  if (_match_function) delete _match_function;
+  if (_match_function)
+    delete _match_function;
   _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_NBLIST_3BODY_H */

@@ -40,7 +40,7 @@ namespace csg {
  *
  **/
 class BaseBead {
- public:
+public:
   /**
    * destructor
    */
@@ -118,11 +118,9 @@ class BaseBead {
   /** set has position to true */
   void HasPos(bool true_or_false) { bead_position_set_ = true_or_false; }
 
- protected:
+protected:
   BaseBead()
-      : topology_item_(nullptr),
-        molecule_item_(nullptr),
-        mass_(0.0),
+      : topology_item_(nullptr), molecule_item_(nullptr), mass_(0.0),
         bead_position_set_(false){};
 
   TopologyItem topology_item_;
@@ -148,7 +146,7 @@ inline const TOOLS::vec &BaseBead::getPos() const {
          "Cannot get bead position as it has not been set.");
   return bead_position_;
 }
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
-#endif  // _VOTCA_CSG_BASEBEAD_H
+#endif // _VOTCA_CSG_BASEBEAD_H

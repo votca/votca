@@ -33,7 +33,7 @@ namespace csg {
 */
 
 class DLPOLYTrajectoryWriter : public TrajectoryWriter {
- public:
+public:
   // open transformed trajectory file
   void Open(std::string file, bool bAppend = false);
   // close transformed trajectory file
@@ -58,13 +58,13 @@ class DLPOLYTrajectoryWriter : public TrajectoryWriter {
   }
   bool getIsConfig() { return _isConfig; }
 
- private:
+private:
   std::ofstream _fl;
   std::string _fname;
   bool _isConfig;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _DLPOLYTRAJECTORYWRITER_H */

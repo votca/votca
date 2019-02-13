@@ -77,7 +77,7 @@ void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
 void DLPOLYTrajectoryWriter::Write(Topology *conf) {
   static int nstep = 1;
   static double dstep = 0.0;
-  const double scale = 10.0;  // nm -> A factor
+  const double scale = 10.0; // nm -> A factor
   int mavecs = 0;
   int mpbct = 0;
   double energy = 0.0;
@@ -88,8 +88,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     mavecs = 1;
   }
 
-  if (conf->getBoxType() == BoundaryCondition::typeOrthorhombic) mpbct = 2;
-  if (conf->getBoxType() == BoundaryCondition::typeTriclinic) mpbct = 3;
+  if (conf->getBoxType() == BoundaryCondition::typeOrthorhombic)
+    mpbct = 2;
+  if (conf->getBoxType() == BoundaryCondition::typeTriclinic)
+    mpbct = 3;
 
   if (_isConfig) {
 
@@ -177,5 +179,5 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
   nstep++;
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

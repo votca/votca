@@ -29,14 +29,13 @@ namespace TOOLS = votca::tools;
 
 template <typename T>
 class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
- public:
+public:
   FileFormatFactory() {}
 
   T *Create(const std::string &file);
 };
 
-template <typename T>
-T *FileFormatFactory<T>::Create(const std::string &file) {
+template <typename T> T *FileFormatFactory<T>::Create(const std::string &file) {
   std::string filetype = "";
   TOOLS::Tokenizer tok(file, ".");
   for (TOOLS::Tokenizer::iterator iter = tok.begin(); iter != tok.end(); iter++)
@@ -48,7 +47,7 @@ T *FileFormatFactory<T>::Create(const std::string &file) {
   return NULL;
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_FILEFORMATFACTORY_H */

@@ -53,7 +53,7 @@ struct PotentialInfo {
 };
 
 class CsgREupdate : public CsgApplication {
- public:
+public:
   std::string ProgramName() { return "csg_reupdate"; }
   void HelpText(std::ostream &out) {
     out << "computes relative entropy update.";
@@ -79,8 +79,8 @@ class CsgREupdate : public CsgApplication {
   CsgApplication::Worker *ForkWorker(void);
   void MergeWorker(Worker *worker);
 
- private:
- protected:
+private:
+protected:
   Property _options;
   std::list<Property *> _nonbonded;
 
@@ -128,7 +128,7 @@ class CsgREupdate : public CsgApplication {
 };
 
 class CsgREupdateWorker : public CsgApplication::Worker {
- public:
+public:
   ~CsgREupdateWorker(){};
 
   Property _options;

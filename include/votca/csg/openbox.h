@@ -27,14 +27,14 @@ namespace TOOLS = votca::tools;
 
 class OpenBox : public BoundaryCondition {
 
- public:
+public:
   TOOLS::vec BCShortestConnection(const TOOLS::vec &r_i,
                                   const TOOLS::vec &r_j) const;
 
   eBoxtype getBoxType() { return typeOpen; }
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_OPENBOX_H */

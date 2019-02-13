@@ -24,11 +24,11 @@ namespace csg {
 class Topology;
 
 class TopologyItem {
- public:
+public:
   virtual ~TopologyItem() {}
   Topology *getParent() const { return _parent; }
 
- protected:
+protected:
   TopologyItem(Topology *parent) : _parent(parent) {}
 
   Topology *_parent;
@@ -38,7 +38,7 @@ class TopologyItem {
   friend class Bead;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_TOPOLOGYITEM_H */

@@ -54,8 +54,8 @@ BOOST_AUTO_TEST_CASE(test_bondedstatistics_begin) {
   BondedStatistics bonded_statistics;
   bonded_statistics.BeginCG(&top, nullptr);
 
-  DataCollection<double>& data_collection = bonded_statistics.BondedValues();
-  vector<DataCollection<double>::array*>& vector_of_arrays =
+  DataCollection<double> &data_collection = bonded_statistics.BondedValues();
+  vector<DataCollection<double>::array *> &vector_of_arrays =
       data_collection.Data();
   BOOST_CHECK_EQUAL(vector_of_arrays.size(), 2);
   BOOST_CHECK_EQUAL(vector_of_arrays.at(0)->getName(),
@@ -144,8 +144,8 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
   // between the beads in the BondedStatitics class
   bonded_statistics.EvalConfiguration(&top, nullptr);
 
-  DataCollection<double>& data_collection = bonded_statistics.BondedValues();
-  vector<DataCollection<double>::array*>& vector_of_arrays =
+  DataCollection<double> &data_collection = bonded_statistics.BondedValues();
+  vector<DataCollection<double>::array *> &vector_of_arrays =
       data_collection.Data();
 
   // Distance between bead 0 and bead 1

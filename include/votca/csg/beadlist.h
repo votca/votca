@@ -35,7 +35,7 @@ using namespace votca::tools;
 */
 
 class BeadList : public std::list<Bead *> {
- public:
+public:
   BeadList(){};
   ~BeadList() {}
 
@@ -48,11 +48,11 @@ class BeadList : public std::list<Bead *> {
 
   Topology *getTopology() { return _topology; }
 
- private:
+private:
   Topology *_topology;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_BEADLIST_H */

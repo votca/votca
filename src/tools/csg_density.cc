@@ -51,7 +51,7 @@ class CsgDensityApp : public CsgApplication {
     return true;
   };
 
- protected:
+protected:
   string _filter, _out;
   HistogramNew _dist;
   string _dens_type;
@@ -104,7 +104,8 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
     throw std::runtime_error("unknown axis type");
   }
 
-  if (OptionsMap().count("rmax")) _rmax = OptionsMap()["rmax"].as<double>();
+  if (OptionsMap().count("rmax"))
+    _rmax = OptionsMap()["rmax"].as<double>();
 
   if (OptionsMap().count("block-length")) {
     _block_length = OptionsMap()["block-length"].as<int>();
@@ -113,7 +114,8 @@ void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
   }
 
   if (_axisname == "r") {
-    if (!OptionsMap().count("ref")) _ref = a / 2 + b / 2 + c / 2;
+    if (!OptionsMap().count("ref"))
+      _ref = a / 2 + b / 2 + c / 2;
     cout << "Using referece point: " << _ref << endl;
   } else if (OptionsMap().count("ref"))
     throw std::runtime_error(
@@ -135,11 +137,13 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   for (MoleculeContainer::iterator imol = top->Molecules().begin();
        imol != top->Molecules().end(); ++imol) {
     Molecule *mol = *imol;
-    if (!wildcmp(_molname.c_str(), mol->getName().c_str())) continue;
+    if (!wildcmp(_molname.c_str(), mol->getName().c_str()))
+      continue;
     int N = mol->BeadCount();
     for (int i = 0; i < N; i++) {
       Bead *b = mol->getBead(i);
-      if (!wildcmp(_filter.c_str(), b->getName().c_str())) continue;
+      if (!wildcmp(_filter.c_str(), b->getName().c_str()))
+        continue;
       double r;
       if (_axisname == "r") {
         r = abs(top->BCShortestConnection(_ref, b->getPos()));
@@ -155,7 +159,8 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
     }
   }
   _frames++;
-  if (!did_something) throw std::runtime_error("No molecule in selection");
+  if (!did_something)
+    throw std::runtime_error("No molecule in selection");
   if (_block_length != 0) {
     if ((_nframes % _block_length) == 0) {
       _nblock++;
@@ -182,7 +187,8 @@ void CsgDensityApp::WriteDensity(int nframes, const string &suffix) {
 }
 
 void CsgDensityApp::EndEvaluate() {
-  if (_block_length == 0) WriteDensity(_frames);
+  if (_block_length == 0)
+    WriteDensity(_frames);
 }
 
 // add our user program options

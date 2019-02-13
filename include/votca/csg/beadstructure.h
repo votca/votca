@@ -50,9 +50,8 @@ namespace csg {
  * Here BeadStructure 1 and 2 will compare equal
  *
  **/
-template <class T>
-class BeadStructure {
- public:
+template <class T> class BeadStructure {
+public:
   ~BeadStructure() {}
 
   /**
@@ -111,7 +110,7 @@ class BeadStructure {
 
   bool BeadExist(int bead_id) const { return beads_.count(bead_id); }
 
- protected:
+protected:
   void InitializeGraph_();
   void CalculateStructure_();
   TOOLS::GraphNode BaseBeadToGraphNode_(T *basebead);
@@ -131,8 +130,7 @@ class BeadStructure {
  * Internal Functions *
  **********************/
 
-template <class T>
-void BeadStructure<T>::InitializeGraph_() {
+template <class T> void BeadStructure<T>::InitializeGraph_() {
   if (!graphUpToDate) {
     std::vector<TOOLS::Edge> connections_vector;
     for (const TOOLS::Edge &edge : connections_) {
@@ -148,8 +146,7 @@ void BeadStructure<T>::InitializeGraph_() {
   }
 }
 
-template <class T>
-void BeadStructure<T>::CalculateStructure_() {
+template <class T> void BeadStructure<T>::CalculateStructure_() {
 
   InitializeGraph_();
   if (!structureIdUpToDate) {
@@ -178,8 +175,7 @@ TOOLS::GraphNode BeadStructure<T>::BaseBeadToGraphNode_(T *basebead) {
  * Public Facing Functions *
  ***************************/
 
-template <class T>
-void BeadStructure<T>::AddBead(T *bead) {
+template <class T> void BeadStructure<T>::AddBead(T *bead) {
   if (beads_.count(bead->getId())) {
     std::string err = "Cannot add bead with Id ";
     err += std::to_string(bead->getId());
@@ -217,14 +213,12 @@ void BeadStructure<T>::ConnectBeads(int bead1_id, int bead2_id) {
   }
 }
 
-template <class T>
-TOOLS::Graph BeadStructure<T>::getGraph() {
+template <class T> TOOLS::Graph BeadStructure<T>::getGraph() {
   InitializeGraph_();
   return graph_;
 }
 
-template <class T>
-bool BeadStructure<T>::isSingleStructure() {
+template <class T> bool BeadStructure<T>::isSingleStructure() {
 
   InitializeGraph_();
   if (single_structureUpToDate_ == false) {
@@ -265,8 +259,7 @@ bool BeadStructure<T>::isStructureEquivalent(BeadStructure<T> &beadstructure) {
   return structure_id_.compare(beadstructure.structure_id_) == 0;
 }
 
-template <class T>
-std::vector<T *> BeadStructure<T>::getNeighBeads(int index) {
+template <class T> std::vector<T *> BeadStructure<T>::getNeighBeads(int index) {
   if (!graphUpToDate) {
     InitializeGraph_();
   }
@@ -278,13 +271,12 @@ std::vector<T *> BeadStructure<T>::getNeighBeads(int index) {
   return neighbeads;
 }
 
-template <class T>
-T *BeadStructure<T>::getBead(int index) {
+template <class T> T *BeadStructure<T>::getBead(int index) {
   assert(beads_.count(index));
   return beads_[index];
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif

@@ -26,17 +26,17 @@ namespace votca {
 namespace csg {
 
 class GROWriter : public TrajectoryWriter {
- public:
+public:
   void Open(string file, bool bAppend = false);
   void Close();
 
   void Write(Topology *conf);
 
- private:
+private:
   FILE *_out;
 };
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _GROWRITER_H */

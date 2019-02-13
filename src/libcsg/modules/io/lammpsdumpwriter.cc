@@ -71,5 +71,5 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
   fflush(_out);
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

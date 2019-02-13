@@ -20,10 +20,10 @@
 #define BOOST_TEST_MODULE beadmotifalgorithms_test
 #include <boost/test/unit_test.hpp>
 #include <votca/csg/basebead.h>
-#include <votca/csg/beadmotif.h>            // IWYU pragma: keep
-#include <votca/csg/beadmotifalgorithms.h>  // IWYU pragma: keep
+#include <votca/csg/beadmotif.h>           // IWYU pragma: keep
+#include <votca/csg/beadmotifalgorithms.h> // IWYU pragma: keep
 #include <votca/csg/beadmotifconnector.h>
-#include <votca/csg/beadstructure.h>  // IWYU pragma: keep
+#include <votca/csg/beadstructure.h> // IWYU pragma: keep
 #include <votca/tools/edge.h>
 
 using namespace std;
@@ -31,7 +31,7 @@ using namespace votca::tools;
 using namespace votca::csg;
 
 class TestBead : public BaseBead {
- public:
+public:
   TestBead() : BaseBead(){};
 };
 
@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
   bool found_type_single = false;
   bool found_type_fused_ring = false;
 
-  for (BeadMotif& motif : bead_motifs) {
+  for (BeadMotif &motif : bead_motifs) {
     if (motif.getType() == BeadMotif::MotifType::single_bead) {
       found_type_single = true;
     } else if (motif.getType() == BeadMotif::MotifType::line) {
@@ -269,7 +269,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
   BOOST_CHECK_EQUAL(simple_motifs.size(), 5);
 
   int single_type_count = 0;
-  for (pair<const int, BeadMotif>& id_and_motif : simple_motifs) {
+  for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::single_bead) {
       ++single_type_count;
     }
@@ -286,13 +286,17 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
   Edge ed5_2(5, 2);
 
   vector<bool> found_edges(4, false);
-  for (Edge& edge : bead_edges) {
-    if (edge == ed1_2) found_edges.at(0) = true;
-    if (edge == ed3_2) found_edges.at(1) = true;
-    if (edge == ed4_2) found_edges.at(2) = true;
-    if (edge == ed5_2) found_edges.at(3) = true;
+  for (Edge &edge : bead_edges) {
+    if (edge == ed1_2)
+      found_edges.at(0) = true;
+    if (edge == ed3_2)
+      found_edges.at(1) = true;
+    if (edge == ed4_2)
+      found_edges.at(2) = true;
+    if (edge == ed5_2)
+      found_edges.at(3) = true;
   }
-  for (const bool& found : found_edges) {
+  for (const bool &found : found_edges) {
     BOOST_CHECK(found);
   }
 }
@@ -368,7 +372,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
 
   int line_type_count = 0;
   int loop_type_count = 0;
-  for (pair<const int, BeadMotif>& id_and_motif : simple_motifs) {
+  for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::line) {
       ++line_type_count;
     }
@@ -511,7 +515,7 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
   int line_count = 0;
   int single_count = 0;
   int loop_count = 0;
-  for (pair<const int, BeadMotif>& id_and_motif : simple_motifs) {
+  for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::single_bead) {
       ++single_count;
     } else if (id_and_motif.second.getType() == BeadMotif::MotifType::line) {
@@ -535,13 +539,16 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
   Edge ed7_11(7, 11);
 
   vector<bool> found_edge(3, false);
-  for (Edge& edge : bead_edges) {
-    if (edge == ed4_5) found_edge.at(0) = true;
-    if (edge == ed5_6) found_edge.at(1) = true;
-    if (edge == ed7_11) found_edge.at(2) = true;
+  for (Edge &edge : bead_edges) {
+    if (edge == ed4_5)
+      found_edge.at(0) = true;
+    if (edge == ed5_6)
+      found_edge.at(1) = true;
+    if (edge == ed7_11)
+      found_edge.at(2) = true;
   }
 
-  for (const bool& found : found_edge) {
+  for (const bool &found : found_edge) {
     BOOST_CHECK(found);
   }
 }

@@ -31,7 +31,7 @@ using namespace votca::tools;
 using namespace std;
 
 class TrajectoryWriter {
- public:
+public:
   TrajectoryWriter() {}
   virtual ~TrajectoryWriter() {}
 
@@ -49,7 +49,7 @@ inline FileFormatFactory<TrajectoryWriter> &TrjWriterFactory() {
   return _TrjWriterFactory;
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
 
 #endif /* _VOTCA_CSG_TRAJECTORYWRITER_H */

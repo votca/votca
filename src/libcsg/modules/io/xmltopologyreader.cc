@@ -41,7 +41,8 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top) {
 void XMLTopologyReader::ReadTopolFile(string file) {
   TopologyReader *reader;
   reader = TopReaderFactory().Create(file);
-  if (!reader) throw runtime_error(file + ": unknown topology format");
+  if (!reader)
+    throw runtime_error(file + ": unknown topology format");
 
   reader->ReadTopology(file, *_top);
 
@@ -95,7 +96,8 @@ void XMLTopologyReader::ParseMolecules(Property &p) {
     } else if (it->name() == "define" || it->name() == "molecule") {
       string molname = it->getAttribute<string>("name");
       int first = 0;
-      if (it->name() == "define") first = it->getAttribute<int>("first");
+      if (it->name() == "define")
+        first = it->getAttribute<int>("first");
       int nbeads = it->getAttribute<int>("nbeads");
       int nmols = it->getAttribute<int>("nmols");
       if (it->name() == "define" && first < 1)
@@ -400,5 +402,5 @@ XMLTopologyReader::~XMLTopologyReader() {
   }
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

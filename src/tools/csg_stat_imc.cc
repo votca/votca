@@ -65,7 +65,8 @@ void Imc::Initialize() {
   }
 
   // initialize the group structures
-  if (_do_imc) InitializeGroups();
+  if (_do_imc)
+    InitializeGroups();
 };
 
 void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
@@ -204,7 +205,8 @@ void Imc::EndEvaluate() {
     if (_block_length == 0) {
       string suffix = string(".") + _extension;
       WriteDist(suffix);
-      if (_do_imc) WriteIMCData();
+      if (_do_imc)
+        WriteIMCData();
     }
   }
   // clear interactions and groups
@@ -252,7 +254,7 @@ void Imc::ClearAverages() {
 }
 
 class IMCNBSearchHandler {
- public:
+public:
   IMCNBSearchHandler(HistogramNew *hist) : _hist(hist) {}
 
   HistogramNew *_hist;
@@ -304,8 +306,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       else
         nb = new NBList_3Body();
 
-      nb->setCutoff(i._cut);  // implement different cutoffs for different
-                              // interactions!
+      nb->setCutoff(i._cut); // implement different cutoffs for different
+                             // interactions!
       // Here, a is the distance between two beads of a triple, where the 3-body
       // interaction is zero
 
@@ -451,7 +453,8 @@ Imc::group_t *Imc::getGroup(const string &name) {
 
 // initialize the groups after interactions are added
 void Imc::InitializeGroups() {
-  if (!_do_imc) return;
+  if (!_do_imc)
+    return;
   map<string, group_t *>::iterator group_iter;
 
   // clear all the pairs
@@ -500,7 +503,8 @@ void Imc::InitializeGroups() {
 
 // update the correlation matrix
 void Imc::DoCorrelations(Imc::Worker *worker) {
-  if (!_do_imc) return;
+  if (!_do_imc)
+    return;
   vector<pair_t>::iterator pair;
   map<string, group_t *>::iterator group_iter;
 
@@ -523,8 +527,8 @@ void Imc::DoCorrelations(Imc::Worker *worker) {
 void Imc::WriteDist(const string &suffix) {
   map<string, interaction_t *>::iterator iter;
 
-  cout << std::endl;  // Cosmetic, put \n before printing names of distribution
-                      // files.
+  cout << std::endl; // Cosmetic, put \n before printing names of distribution
+                     // files.
   // for all interactions
   for (iter = _interactions.begin(); iter != _interactions.end(); ++iter) {
     // calculate the rdf
@@ -609,7 +613,8 @@ void Imc::WriteDist(const string &suffix) {
  *      - calculate th
  */
 void Imc::WriteIMCData(const string &suffix) {
-  if (!_do_imc) return;
+  if (!_do_imc)
+    return;
   // map<string, interaction_t *>::iterator ic_iter;
   map<string, group_t *>::iterator group_iter;
 
@@ -630,8 +635,8 @@ void Imc::WriteIMCData(const string &suffix) {
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<RangeParser> ranges;  // sizes of the individual interactions
-    vector<string> names;        // names of the interactions
+    vector<RangeParser> ranges; // sizes of the individual interactions
+    vector<string> names;       // names of the interactions
 
     // copy all averages+r of group to one vector
     n = 0;
@@ -708,7 +713,8 @@ void Imc::CalcDeltaS(interaction_t *interaction,
     for (unsigned int i = 0; i < target.y().size(); ++i) {
       double x1 = target.x()[i] - 0.5 * interaction->_step;
       double x2 = x1 + interaction->_step;
-      if (x1 < 0) x1 = x2 = 0;
+      if (x1 < 0)
+        x1 = x2 = 0;
       target.y()[i] = 1. / (_avg_vol.getAvg() * interaction->_norm) *
                       target.y()[i] *
                       (4. / 3. * M_PI * (x2 * x2 * x2 - x1 * x1 * x1));
@@ -725,7 +731,8 @@ void Imc::CalcDeltaS(interaction_t *interaction,
 
 void Imc::WriteIMCBlock(const string &suffix) {
 
-  if (!_do_imc) return;
+  if (!_do_imc)
+    return;
   // map<string, interaction_t *>::iterator ic_iter;
   map<string, group_t *>::iterator group_iter;
 
@@ -746,8 +753,8 @@ void Imc::WriteIMCBlock(const string &suffix) {
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<int> sizes;     // sizes of the individual interactions
-    vector<string> names;  // names of the interactions
+    vector<int> sizes;    // sizes of the individual interactions
+    vector<string> names; // names of the interactions
 
     // copy all averages+r of group to one vector
     n = 0;
@@ -861,7 +868,8 @@ void Imc::MergeWorker(CsgApplication::Worker *worker_) {
   }
 
   // update correlation matrices
-  if (_do_imc) DoCorrelations(worker);
+  if (_do_imc)
+    DoCorrelations(worker);
 
   if (_block_length != 0) {
     if ((_nframes % _block_length) == 0) {
@@ -876,5 +884,5 @@ void Imc::MergeWorker(CsgApplication::Worker *worker_) {
   }
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca
