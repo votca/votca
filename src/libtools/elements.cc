@@ -29,11 +29,11 @@ using namespace std;
 bool Elements::isElement(std::string name) {
   if (!this->_filled_EleShort) {
     this->FillEleShort();
-    _filled_EleShort;
+    _filled_EleShort = true;
   }
   if (!this->_filled_EleFull) {
     this->FillEleFull();
-    _filled_EleFull;
+    _filled_EleFull = true;
   }
   string name_upper = boost::to_upper_copy<std::string>(name);
   return _EleShort.count(name_upper) || _EleFull.count(name);
