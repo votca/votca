@@ -148,7 +148,7 @@ bool Elements::isEleFull(std::string fullname) {
 }
 
 bool Elements::isEleShort(std::string shortname) {
-  if (!this - _filled_EleShort) {
+  if (!this->_filled_EleShort) {
     this->FillEleFull();
     _filled_EleFull = true;
   }
