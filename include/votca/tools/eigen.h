@@ -43,7 +43,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #endif
-#include <Eigen/Dense>
+#include <Eigen/Eigen>
 #if (defined STRICT_GNUC) && GCC_VERSION > 70000
 #pragma GCC diagnostic pop
 #endif
