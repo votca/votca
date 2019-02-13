@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(test_createarray) {
   datacollection.CreateArray(name_tag2);
   datacollection.CreateArray(name_tag3);
 
-  BOOST_CHECK_EQUAL(datacollection.size(),3);
+  BOOST_CHECK_EQUAL(datacollection.size(), 3);
 }
 
 BOOST_AUTO_TEST_CASE(test_getname) {
@@ -100,18 +100,18 @@ BOOST_AUTO_TEST_CASE(test_data) {
 
   zpositions->push_back(5);
 
-  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->size(),2);
-  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->size(),3);
-  BOOST_CHECK_EQUAL(datacollection.Data().at(2)->size(),1);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->size(), 2);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->size(), 3);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(2)->size(), 1);
 
-  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->at(0),1);
-  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->at(1),3);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->at(0), 1);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(0)->at(1), 3);
 
-  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(0),-4);
-  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(1),4);
-  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(2),4);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(0), -4);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(1), 4);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(1)->at(2), 4);
 
-  BOOST_CHECK_EQUAL(datacollection.Data().at(2)->at(0),5);
+  BOOST_CHECK_EQUAL(datacollection.Data().at(2)->at(0), 5);
 }
 
 BOOST_AUTO_TEST_CASE(test_bracket) {
@@ -143,18 +143,18 @@ BOOST_AUTO_TEST_CASE(test_bracket) {
 
   zpositions->push_back(5);
 
-  BOOST_CHECK_EQUAL(datacollection[0].size(),2);
-  BOOST_CHECK_EQUAL(datacollection[1].size(),3);
-  BOOST_CHECK_EQUAL(datacollection[2].size(),1);
+  BOOST_CHECK_EQUAL(datacollection[0].size(), 2);
+  BOOST_CHECK_EQUAL(datacollection[1].size(), 3);
+  BOOST_CHECK_EQUAL(datacollection[2].size(), 1);
 
-  BOOST_CHECK_EQUAL(datacollection[0].at(0),1);
-  BOOST_CHECK_EQUAL(datacollection[0].at(1),3);
+  BOOST_CHECK_EQUAL(datacollection[0].at(0), 1);
+  BOOST_CHECK_EQUAL(datacollection[0].at(1), 3);
 
-  BOOST_CHECK_EQUAL(datacollection[1].at(0),-4);
-  BOOST_CHECK_EQUAL(datacollection[1].at(1),4);
-  BOOST_CHECK_EQUAL(datacollection[1].at(2),4);
+  BOOST_CHECK_EQUAL(datacollection[1].at(0), -4);
+  BOOST_CHECK_EQUAL(datacollection[1].at(1), 4);
+  BOOST_CHECK_EQUAL(datacollection[1].at(2), 4);
 
-  BOOST_CHECK_EQUAL(datacollection[2].at(0),5);
+  BOOST_CHECK_EQUAL(datacollection[2].at(0), 5);
 }
 
 BOOST_AUTO_TEST_CASE(test_arraybyname) {
@@ -211,6 +211,5 @@ BOOST_AUTO_TEST_CASE(test_arraybyname) {
   BOOST_CHECK_EQUAL(zPosArray->at(1), -5);
   BOOST_CHECK_EQUAL(zPosArray->at(2), 5);
 }
-
 
 BOOST_AUTO_TEST_SUITE_END()

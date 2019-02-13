@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   gb_v.initialize(g);
   BOOST_CHECK_EQUAL(gb_v.queEmpty(), false);
   // No exception should be thrown at this point
-  
+
   // First two edges found should be ed and ed2
   vector<Edge> temp;
   Edge ed5 = gb_v.nextEdge(g);
@@ -138,14 +138,14 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
 
   bool found_ed = false;
   bool found_ed2 = false;
-  for(auto temp_ed : temp){
-    if(temp_ed == ed) found_ed = true;
-    if(temp_ed == ed2) found_ed2 = true;
+  for (auto temp_ed : temp) {
+    if (temp_ed == ed) found_ed = true;
+    if (temp_ed == ed2) found_ed2 = true;
   }
   BOOST_CHECK(found_ed);
   BOOST_CHECK(found_ed2);
 
-  // Next two edges are ed1 and ed3 they are equal distance apart from the 
+  // Next two edges are ed1 and ed3 they are equal distance apart from the
   // starting vertex so the order does not matter.
   temp.clear();
 
@@ -155,12 +155,12 @@ BOOST_AUTO_TEST_CASE(basic_test2) {
   gb_v.exec(g, ed5);
   ed5 = gb_v.nextEdge(g);
   temp.push_back(ed5);
- 
+
   bool found_ed1 = false;
   bool found_ed3 = false;
-  for(auto temp_ed : temp){
-    if(temp_ed == ed1) found_ed1 = true;
-    if(temp_ed == ed3) found_ed3 = true;
+  for (auto temp_ed : temp) {
+    if (temp_ed == ed1) found_ed1 = true;
+    if (temp_ed == ed3) found_ed3 = true;
   }
   BOOST_CHECK(found_ed1);
   BOOST_CHECK(found_ed3);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  */
 
 #include <expat.h>
-#include <stdio.h>
-#include <string.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stack>
 #include <stdexcept>
+#include <stdio.h>
+#include <string.h>
 #include <string>
 
 #include <votca/tools/colors.h>
@@ -30,9 +30,9 @@
 #include <votca/tools/propertyiomanipulator.h>
 #include <votca/tools/tokenizer.h>
 
-#include <unistd.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <unistd.h>
 
 namespace votca {
 namespace tools {
@@ -127,7 +127,7 @@ bool load_property_from_xml(Property &p, string filename) {
   fl.open(filename.c_str());
   if (!fl.is_open())
     throw std::ios_base::failure("Error on open xml file: " + filename);
-  
+
   XML_Parser parser = XML_ParserCreate(NULL);
   if (!parser)
     throw std::runtime_error("Couldn't allocate memory for xml parser");
@@ -432,5 +432,5 @@ std::ostream &operator<<(std::ostream &out, Property &p) {
 
   return out;
 };
-}
-}
+}  // namespace tools
+}  // namespace votca

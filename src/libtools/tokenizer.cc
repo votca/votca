@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,40 +17,42 @@
 
 #include <votca/tools/tokenizer.h>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 int wildcmp(const char *wild, const char *string) {
-    // Written by Jack Handy - jakkhandy@hotmail.com
-    const char *cp = NULL, *mp = NULL;
+  // Written by Jack Handy - jakkhandy@hotmail.com
+  const char *cp = NULL, *mp = NULL;
 
-    while ((*string) && (*wild != '*')) {
-        if ((*wild != *string) && (*wild != '?')) {
-            return 0;
-        }
-        wild++;
-        string++;
+  while ((*string) && (*wild != '*')) {
+    if ((*wild != *string) && (*wild != '?')) {
+      return 0;
     }
+    wild++;
+    string++;
+  }
 
-    while (*string) {
-        if (*wild == '*') {
-            if (!*++wild) {
-                return 1;
-            }
-            mp = wild;
-            cp = string+1;
-        } else if ((*wild == *string) || (*wild == '?')) {
-            wild++;
-            string++;
-        } else {
-            wild = mp;
-            string = cp++;
-        }
+  while (*string) {
+    if (*wild == '*') {
+      if (!*++wild) {
+        return 1;
+      }
+      mp = wild;
+      cp = string + 1;
+    } else if ((*wild == *string) || (*wild == '?')) {
+      wild++;
+      string++;
+    } else {
+      wild = mp;
+      string = cp++;
     }
+  }
 
-    while (*wild == '*') {
-        wild++;
-    }
-    return !*wild;
+  while (*wild == '*') {
+    wild++;
+  }
+  return !*wild;
 }
 
-}}
+}  // namespace tools
+}  // namespace votca
