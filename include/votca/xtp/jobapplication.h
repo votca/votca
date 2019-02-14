@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,9 +17,8 @@
  *
  */
 
-
 #ifndef VOTCA_XTP_JOBAPPLICATION
-#define	VOTCA_XTP_JOBAPPLICATION
+#define VOTCA_XTP_JOBAPPLICATION
 
 #include <votca/xtp/xtpapplication.h>
 
@@ -29,61 +28,32 @@
 #include "statesaversqlite.h"
 #include <votca/xtp/jobcalculator.h>
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+class JobApplication : public XtpApplication {
+ public:
+  JobApplication();
+  ~JobApplication(){};
 
+  void Initialize();
+  bool EvaluateOptions();
+  void Run(void);
 
+  virtual void BeginEvaluate(
+      int nThreads,
+      ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *obs);
+  virtual bool EvaluateFrame();
+  virtual void EndEvaluate();
+  void AddCalculator(JobCalculator *calculator);
 
-class JobApplication : public XtpApplication
-{
-public:
-    JobApplication();
-   ~JobApplication() {
-       for (JobCalculator* calculator : _calculators) {
-            delete calculator;
-        } 
-   };
-
-   void Initialize();
-   bool EvaluateOptions();
-   void Run(void);
-
-   virtual void BeginEvaluate(int nThreads, ProgObserver< std::vector<Job*>, Job*, Job::JobResult> *obs);
-   virtual bool EvaluateFrame();
-   virtual void EndEvaluate();
-   void AddCalculator(JobCalculator *calculator);
-
-protected:
-    
-    bool _generate_input, _run, _import;
-    Topology           _top;
-    std::list< JobCalculator* >   _calculators;
-
+ protected:
+  bool _generate_input, _run, _import;
+  Topology _top;
+  std::vector<std::unique_ptr<JobCalculator> > _calculators;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-
-
-
-
-#endif // VOTCA_XTP_JOBAPPLICATION
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#endif  // VOTCA_XTP_JOBAPPLICATION
