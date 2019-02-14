@@ -16,38 +16,33 @@
  *
  */
 
-
-#include <votca/xtp/qmmolecule.h>
-#include <votca/tools/elements.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/checkpointreader.h>
+#include <votca/csg/pdbwriter.h>
 #include <votca/csg/xyzreader.h>
 #include <votca/csg/xyzwriter.h>
+#include <votca/tools/elements.h>
+#include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointwriter.h>
+#include <votca/xtp/qmmolecule.h>
 
 using namespace std;
 using namespace votca::tools;
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-  
-      void QMMolecule::WriteXYZ(std::string filename, std::string header) const{
-          csg::XYZWriter writer;
-          writer.Open(filename,false);
-          writer.Write(*this,header);
-          writer.Close();
-          return;
-        }
+void QMMolecule::WriteXYZ(std::string filename, std::string header) const {
+  csg::XYZWriter writer;
+  writer.Open(filename, false);
+  writer.Write(*this, header);
+  writer.Close();
+  return;
+}
 
-
-     void QMMolecule::LoadFromXYZ(std::string filename) {
-        csg::XYZReader reader;
-        reader.Open(filename);
-        reader.ReadFile<QMMolecule>(*this);
-        reader.Close();
-        }
-
-    
-
-}}
-
-
+void QMMolecule::LoadFromXYZ(std::string filename) {
+  csg::XYZReader reader;
+  reader.Open(filename);
+  reader.ReadFile<QMMolecule>(*this);
+  reader.Close();
+}
+}  // namespace xtp
+}  // namespace votca

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,185 +17,185 @@
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE test_hdf5
-#include <cassert>
-#include <boost/test/unit_test.hpp>
 #include <boost/test/floating_point_comparison.hpp>
+#include <boost/test/unit_test.hpp>
+#include <cassert>
+#include <votca/xtp/checkpoint.h>
+#include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/qmatom.h>
-#include <votca/xtp/checkpointwriter.h>
-#include <votca/xtp/checkpointreader.h>
-#include <votca/xtp/checkpoint.h>
 
 BOOST_AUTO_TEST_SUITE(test_hdf5)
 using namespace votca::xtp;
 BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
 
-    int basisSetSize = 17;
-    int occupiedLevels = 4;
-    int unoccupiedLevels = 13;
-    int numElectrons = 12;
+  int basisSetSize = 17;
+  int occupiedLevels = 4;
+  int unoccupiedLevels = 13;
+  int numElectrons = 12;
 
+  Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
+  Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17, 17);
 
-    Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
-    Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17,17);
+  QMMolecule atoms = QMMolecule(" ", 0);
+  atoms.push_back(QMAtom(0, "O", Eigen::Vector3d::Zero()));
 
-    QMMolecule atoms=QMMolecule(" ",0);
-    atoms.push_back(QMAtom(0,"O",Eigen::Vector3d::Zero()));
+  double qmEnergy = -2.1025e-3;
 
-    double qmEnergy = -2.1025e-3;
+  std::string qmPackage = "NOPE";
+  double selfEnergy = 3.14159e23;
 
-    std::string qmPackage = "NOPE";
-    double selfEnergy = 3.14159e23;
+  std::string dftBasis = "AWESOME basis*,, 2/.8";
+  std::string auxBasis = "cos(theta) = pretty okay basis";
 
-    std::string dftBasis = "AWESOME basis*,, 2/.8";
-    std::string auxBasis = "cos(theta) = pretty okay basis";
+  int rpaMin = '?';
+  int rpaMax = 1e3;
 
-    int rpaMin = '?';
-    int rpaMax = 1e3;
+  unsigned int bseVmin = -6019386;
+  unsigned int bseCmax = 42;
 
-    unsigned int bseVmin = -6019386;
-    unsigned int bseCmax = 42;
+  double scaHfx = 3.14159;
 
-    double scaHfx = 3.14159;
+  bool useTDA = true;
 
-    bool useTDA = true;
+  Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Random(200, 200);
+  std::string someECP = "aye aye Cap'n";
 
+  Eigen::MatrixXd QPpertEnergiesTest = Eigen::MatrixXd::Random(31, 42);
+  Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Random(21);
+  Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(42, 42);
 
-    Eigen::MatrixXd vxcTest = Eigen::MatrixXd::Random(200,200);
-    std::string someECP = "aye aye Cap'n";
+  MatrixXfd eh_dTest = MatrixXfd::Random(32, 290);
+  MatrixXfd eh_xTest = MatrixXfd::Random(3, 22);
+  VectorXfd BSESingletEnergiesTest = VectorXfd::Random(25);
+  MatrixXfd BSESingletCoefficientsTest = MatrixXfd::Random(25, 38);
+  MatrixXfd BSESingletCoefficientsARTest = MatrixXfd::Random(42, 42);
 
-    Eigen::MatrixXd QPpertEnergiesTest = Eigen::MatrixXd::Random(31, 42);
-    Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Random(21);
-    Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(42, 42);
+  VectorXfd BSETripletEnergiesTest = VectorXfd::Random(33);
+  MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Random(33, 31);
 
+  {
+    // Write orbitals
+    Orbitals orbWrite;
 
-    MatrixXfd eh_dTest = MatrixXfd::Random(32, 290);
-    MatrixXfd eh_xTest = MatrixXfd::Random(3, 22);
-    VectorXfd BSESingletEnergiesTest = VectorXfd::Random(25);
-    MatrixXfd BSESingletCoefficientsTest = MatrixXfd::Random(25, 38);
-    MatrixXfd BSESingletCoefficientsARTest = MatrixXfd::Random(42, 42);
+    orbWrite.setBasisSetSize(basisSetSize);
+    orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
+    orbWrite.setNumberOfAlphaElectrons(numElectrons);
+    orbWrite.MOEnergies() = moeTest;
+    orbWrite.MOCoefficients() = mocTest;
 
-    VectorXfd BSETripletEnergiesTest = VectorXfd::Random(33);
-    MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Random(33,31);
+    orbWrite.QMAtoms() = atoms;
 
-    {
-        // Write orbitals
-        Orbitals orbWrite;
+    orbWrite.setQMEnergy(qmEnergy);
+    orbWrite.setQMpackage(qmPackage);
+    orbWrite.setSelfEnergy(selfEnergy);
+    orbWrite.setDFTbasisName(dftBasis);
+    orbWrite.setAuxbasisName(auxBasis);
+    orbWrite.setRPAindices(rpaMin, rpaMax);
+    // no need to write qpmin, qpmax
+    orbWrite.setBSEindices(bseVmin, bseCmax);
+    orbWrite.setScaHFX(scaHfx);
+    orbWrite.setTDAApprox(useTDA);
+    orbWrite.setECPName(someECP);
+    orbWrite.QPpertEnergies() = QPpertEnergiesTest;
+    orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
+    orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
+    orbWrite.eh_t() = eh_dTest;
+    orbWrite.eh_s() = eh_xTest;
+    orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
+    orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
+    orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
+    orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
+    orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
 
-        orbWrite.setBasisSetSize(basisSetSize);
-        orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
-        orbWrite.setNumberOfAlphaElectrons(numElectrons);
-        orbWrite.MOEnergies() = moeTest;
-        orbWrite.MOCoefficients() = mocTest;
+    orbWrite.WriteToCpt("xtp_testing.hdf5");
+  }
+  // Read Orbitals
+  Orbitals orbRead;
+  orbRead.ReadFromCpt("xtp_testing.hdf5");
 
-        orbWrite.QMAtoms()=atoms;
+  double tol = 1e-6;
 
-        orbWrite.setQMEnergy(qmEnergy);
-        orbWrite.setQMpackage(qmPackage);
-        orbWrite.setSelfEnergy(selfEnergy);
-        orbWrite.setDFTbasisName(dftBasis);
-        orbWrite.setAuxbasisName(auxBasis);
-        orbWrite.setRPAindices(rpaMin, rpaMax);
-        // no need to write qpmin, qpmax
-        orbWrite.setBSEindices(bseVmin, bseCmax);
-        orbWrite.setScaHFX(scaHfx);
-        orbWrite.setTDAApprox(useTDA);
-        orbWrite.setECPName(someECP);
-        orbWrite.QPpertEnergies() = QPpertEnergiesTest;
-        orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
-        orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
-        orbWrite.eh_t() = eh_dTest;
-        orbWrite.eh_s() = eh_xTest;
-        orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
-        orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
-        orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
-        orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
-        orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
+  // Test the read values
+  BOOST_CHECK_EQUAL(orbRead.getBasisSetSize(), basisSetSize);
+  BOOST_CHECK_EQUAL(orbRead.getBasisSetSize(),
+                    occupiedLevels + unoccupiedLevels);
+  BOOST_CHECK_EQUAL(orbRead.getNumberOfAlphaElectrons(), numElectrons);
+  BOOST_CHECK(orbRead.MOEnergies().isApprox(moeTest, tol));
 
-        orbWrite.WriteToCpt("xtp_testing.hdf5");
+  BOOST_CHECK(orbRead.MOCoefficients().isApprox(mocTest, tol));
+  BOOST_CHECK_CLOSE(orbRead.getQMEnergy(), qmEnergy, tol);
+  BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
+  BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
+  BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
+  BOOST_CHECK_EQUAL(orbRead.getAuxbasisName(), auxBasis);
+  BOOST_CHECK_EQUAL(orbRead.getRPAmin(), rpaMin);
+  BOOST_CHECK_EQUAL(orbRead.getRPAmax(), rpaMax);
 
-    }
-    // Read Orbitals
-    Orbitals orbRead;
-    orbRead.ReadFromCpt("xtp_testing.hdf5");
+  BOOST_CHECK_EQUAL(orbRead.getBSEvmin(), bseVmin);
+  BOOST_CHECK_EQUAL(orbRead.getBSEcmax(), bseCmax);
 
-    double tol = 1e-6;
+  BOOST_CHECK_CLOSE(orbRead.getScaHFX(), scaHfx, tol);
+  BOOST_CHECK_EQUAL(orbRead.getTDAApprox(), useTDA);
+  BOOST_CHECK_EQUAL(orbRead.getECPName(), someECP);
+  BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
+  BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
+  BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));
+  BOOST_CHECK(orbRead.eh_t().isApprox(eh_dTest, tol));
+  BOOST_CHECK(orbRead.eh_s().isApprox(eh_xTest, tol));
+  BOOST_CHECK(
+      orbRead.BSESingletEnergies().isApprox(BSESingletEnergiesTest, tol));
+  BOOST_CHECK(orbRead.BSESingletCoefficients().isApprox(
+      BSESingletCoefficientsTest, tol));
+  BOOST_CHECK(orbRead.BSESingletCoefficientsAR().isApprox(
+      BSESingletCoefficientsARTest, tol));
+  BOOST_CHECK(
+      orbRead.BSETripletEnergies().isApprox(BSETripletEnergiesTest, tol));
+  BOOST_CHECK(orbRead.BSETripletCoefficients().isApprox(
+      BSETripletCoefficientsTest, tol));
 
-    // Test the read values
-    BOOST_CHECK_EQUAL(orbRead.getBasisSetSize() , basisSetSize);
-    BOOST_CHECK_EQUAL(orbRead.getBasisSetSize() , occupiedLevels + unoccupiedLevels);
-    BOOST_CHECK_EQUAL(orbRead.getNumberOfAlphaElectrons() , numElectrons);
-    BOOST_CHECK(orbRead.MOEnergies().isApprox(moeTest, tol));
+  BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
 
-    BOOST_CHECK(orbRead.MOCoefficients().isApprox(mocTest, tol));
-    BOOST_CHECK_CLOSE(orbRead.getQMEnergy(), qmEnergy, tol);
-    BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
-    BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
-    BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
-    BOOST_CHECK_EQUAL(orbRead.getAuxbasisName(), auxBasis);
-    BOOST_CHECK_EQUAL(orbRead.getRPAmin(), rpaMin);
-    BOOST_CHECK_EQUAL(orbRead.getRPAmax(), rpaMax);
-
-    BOOST_CHECK_EQUAL(orbRead.getBSEvmin(), bseVmin);
-    BOOST_CHECK_EQUAL(orbRead.getBSEcmax(), bseCmax);
-
-    BOOST_CHECK_CLOSE(orbRead.getScaHFX(), scaHfx, tol);
-    BOOST_CHECK_EQUAL(orbRead.getTDAApprox(), useTDA);
-    BOOST_CHECK_EQUAL(orbRead.getECPName(), someECP);
-    BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
-    BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
-    BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));
-    BOOST_CHECK(orbRead.eh_t().isApprox(eh_dTest, tol));
-    BOOST_CHECK(orbRead.eh_s().isApprox(eh_xTest, tol));
-    BOOST_CHECK(orbRead.BSESingletEnergies().isApprox(BSESingletEnergiesTest, tol));
-    BOOST_CHECK(orbRead.BSESingletCoefficients().isApprox(BSESingletCoefficientsTest, tol));
-    BOOST_CHECK(orbRead.BSESingletCoefficientsAR().isApprox(BSESingletCoefficientsARTest, tol));
-    BOOST_CHECK(orbRead.BSETripletEnergies().isApprox(BSETripletEnergiesTest, tol));
-    BOOST_CHECK(orbRead.BSETripletCoefficients().isApprox(BSETripletCoefficientsTest, tol));
-
-    BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
-
-    for (int i = 0; i<atoms.size(); ++i){
-       const auto& atomRead = orbRead.QMAtoms()[i];
-       const auto& atomTest = atoms[i];
-        BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
-        BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
-        BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
-        BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
-    }
+  for (int i = 0; i < atoms.size(); ++i) {
+    const auto& atomRead = orbRead.QMAtoms()[i];
+    const auto& atomTest = atoms[i];
+    BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());
+    BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
+    BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
+    BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
+  }
 }
 
-BOOST_AUTO_TEST_CASE(open_file_error){
-    BOOST_REQUIRE_THROW(CheckpointFile cpf("/bin/mr/root/man.pls",
-                                           CheckpointAccessLevel::READ),
-                        std::runtime_error);
+BOOST_AUTO_TEST_CASE(open_file_error) {
+  BOOST_REQUIRE_THROW(
+      CheckpointFile cpf("/bin/mr/root/man.pls", CheckpointAccessLevel::READ),
+      std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(checkpoint_open_non_existing_loc) {
-    CheckpointFile cpf ("testin_yo.ab", CheckpointAccessLevel::MODIFY);
-    BOOST_REQUIRE_THROW(CheckpointReader r = cpf.getReader("/some/bulshit"),
-                        std::runtime_error);
-
+  CheckpointFile cpf("testin_yo.ab", CheckpointAccessLevel::MODIFY);
+  BOOST_REQUIRE_THROW(CheckpointReader r = cpf.getReader("/some/bulshit"),
+                      std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(read_non_exisiting_matrix){
+BOOST_AUTO_TEST_CASE(read_non_exisiting_matrix) {
 
-    CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
-    CheckpointReader r = cpf.getReader("/QMdata");
+  CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
+  CheckpointReader r = cpf.getReader("/QMdata");
 
-    Eigen::MatrixXd someMatrix;
+  Eigen::MatrixXd someMatrix;
 
-    BOOST_REQUIRE_THROW(r(someMatrix, "someMatrix012'5915.jb"),
-                        std::runtime_error);
+  BOOST_REQUIRE_THROW(r(someMatrix, "someMatrix012'5915.jb"),
+                      std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(read_non_existing_scalar){
-    CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
-    CheckpointReader r = cpf.getReader("/QMdata");
+BOOST_AUTO_TEST_CASE(read_non_existing_scalar) {
+  CheckpointFile cpf("xtp_testing.hdf5", CheckpointAccessLevel::READ);
+  CheckpointReader r = cpf.getReader("/QMdata");
 
-    float someThing = 0;
-    BOOST_REQUIRE_THROW(r(someThing, "someThing"), std::runtime_error);
-
+  float someThing = 0;
+  BOOST_REQUIRE_THROW(r(someThing, "someThing"), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
