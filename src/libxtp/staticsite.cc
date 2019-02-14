@@ -107,7 +107,6 @@ namespace votca {
         }
       }
       // Polarizability
-      double conv_pol=std::pow(tools::conv::bohr2ang,3);
       output+=writePolarisation();
       return output;
     }

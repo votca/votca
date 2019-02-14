@@ -304,23 +304,19 @@ namespace votca {
       double tempdouble;
       in2 >> tempint;
       if (tempint != natoms) {
-        cerr << "Atom numbers do not match";
-        exit(1);
+          throw std::runtime_error( "Atom numbers do not match");
       }
       in2 >> tempdouble;
       if (tempdouble != xstart) {
-        cerr << "Xstart does not match";
-        exit(1);
+           throw std::runtime_error( "Xstart does not match");
       }
       in2 >> tempdouble;
       if (tempdouble != ystart) {
-        cerr << "Ystart does not match";
-        exit(1);
+       throw std::runtime_error( "Ystart does not match");
       }
       in2 >> tempdouble;
       if (tempdouble != zstart) {
-        cerr << "Zstart does not match";
-        exit(1);
+        throw std::runtime_error( "Zstart does not match");
       }
 
       fprintf(out, "%d %f %f %f \n", natoms, xstart, ystart, zstart);
@@ -345,39 +341,33 @@ namespace votca {
       // check second cube
       in2 >> tempint;
       if (tempint != _xsteps) {
-        cerr << "xsteps does not match";
-        exit(1);
+          throw std::runtime_error( "xsteps does not match");
       }
       in2 >> tempdouble;
       if (tempdouble != xincr) {
-        cerr << "xincr does not match";
-        exit(1);
+         throw std::runtime_error( "xincr does not match");
       }
       in2 >> tempdouble;
       in2 >> tempdouble;
       in2 >> tempint;
       if (tempint != _ysteps) {
-        cerr << "ysteps does not match";
-        exit(1);
+        throw std::runtime_error( "ysteps does not match");
       }
       in2 >> tempdouble;
       in2 >> tempdouble;
       if (tempdouble != yincr) {
-        cerr << "yincr does not match";
-        exit(1);
+        throw std::runtime_error( "yincr does not match");
       }
       in2 >> tempdouble;
       in2 >> tempint;
       if (tempint != _zsteps) {
-        cerr << "zsteps does not match";
-        exit(1);
+         throw std::runtime_error( "zsteps does not match");
       }
       in2 >> tempdouble;
       in2 >> tempdouble;
       in2 >> tempdouble;
       if (tempdouble != zincr) {
-        cerr << "zincr does not match";
-        exit(1);
+       throw std::runtime_error( "zincr does not match");
       }
 
       fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, xincr);
@@ -403,28 +393,24 @@ namespace votca {
         // check second cube
         in2 >> tempint;
         if (tempint != atnum) {
-          cerr << "atnum does not match";
-          exit(1);
+            throw std::runtime_error( "atnum does not match");
+         
         }
         in2 >> tempdouble;
         if (tempdouble != crg) {
-          cerr << "crg does not match";
-          exit(1);
+         throw std::runtime_error( "crg does not match");
         }
         in2 >> tempdouble;
         if (tempdouble != x) {
-          cerr << "x does not match";
-          exit(1);
+            throw std::runtime_error( "x does not match");
         }
         in2 >> tempdouble;
         if (tempdouble != y) {
-          cerr << "y does not match";
-          exit(1);
+           throw std::runtime_error( "y does not match");
         }
         in2 >> tempdouble;
         if (tempdouble != z) {
-          cerr << "z does not match";
-          exit(1);
+           throw std::runtime_error( "z does not match");
         }
 
         fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
@@ -440,13 +426,11 @@ namespace votca {
 
         in2 >> tempint;
         if (tempint != ntotal) {
-          cerr << "ntotal does not match";
-          exit(1);
+            throw std::runtime_error( "ntotal does not match");
         }
         in2 >> tempint;
         if (tempint != nis) {
-          cerr << "nis does not match";
-          exit(1);
+            throw std::runtime_error( "nis does not match");
         }
         fprintf(out, "  1 %d \n", nis);
       }
