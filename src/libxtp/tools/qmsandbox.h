@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,69 +24,57 @@
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmtool.h>
 
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/qmpackagefactory.h>
-#include<votca/xtp/aobasis.h>
-#include<votca/xtp/aomatrix.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-    
-class QMSandbox : public QMTool
-{
-public:
+class QMSandbox : public QMTool {
+ public:
+  QMSandbox(){};
+  ~QMSandbox(){};
 
-    QMSandbox() { };
-   ~QMSandbox() { };
+  std::string Identify() { return "qmsandbox"; }
 
-    std::string Identify() { return "qmsandbox"; }
+  void Initialize(tools::Property* options);
+  bool Evaluate();
 
-    void   Initialize(tools::Property *options);
-    bool   Evaluate();
-
-
-private:
-    
-    std::string      _orbfile;
-    std::string      _espfile;
-    std::string      _mpsfiled;
-    std::string      _mpsfileds;
-    std::string      _mpsfileq;
-    std::string      _mpsfileqs;
-
+ private:
+  std::string _orbfile;
+  std::string _espfile;
+  std::string _mpsfiled;
+  std::string _mpsfileds;
+  std::string _mpsfileq;
+  std::string _mpsfileqs;
 };
-
-
-
 
 void QMSandbox::Initialize(tools::Property* options) {
 
-    // update options with the VOTCASHARE defaults   
-    //UpdateWithDefaults( options, "xtp" );
- 
+  // update options with the VOTCASHARE defaults
+  // UpdateWithDefaults( options, "xtp" );
 
-    std::string key = "options." + Identify();
+  std::string key = "options." + Identify();
 
-    _orbfile = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".orbfile");
-    _espfile =options->ifExistsReturnElseThrowRuntimeError<string>(key + ".espfile");
-    _mpsfiled = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dipole");
-     
-    _mpsfileds = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".dipole_split");
-    _mpsfileq = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".quadrupole");
-    _mpsfileqs = options->ifExistsReturnElseThrowRuntimeError<string>(key + ".quadrupole_split");
+  _orbfile = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".orbfile");
+  _espfile = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".espfile");
+  _mpsfiled = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".dipole");
 
-    
+  _mpsfileds = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".dipole_split");
+  _mpsfileq = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".quadrupole");
+  _mpsfileqs = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".quadrupole_split");
 }
 
-bool QMSandbox::Evaluate() {
-    return true;
-}
+bool QMSandbox::Evaluate() { return true; }
 
-
-
-
-
-
-}}
-
+}  // namespace xtp
+}  // namespace votca
 
 #endif

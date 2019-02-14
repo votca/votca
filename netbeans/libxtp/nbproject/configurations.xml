@@ -30,12 +30,12 @@
         <itemPath>../../src/libxtp/tools/dftgwbse.cc</itemPath>
         <itemPath>../../src/libxtp/tools/dftgwbse.h</itemPath>
         <itemPath>../../src/libxtp/tools/excitoncoupling.h</itemPath>
+        <itemPath>../../src/libxtp/tools/gencube.cc</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
-        <itemPath>../../src/libxtp/tools/pdb2map.h</itemPath>
-        <itemPath>../../src/libxtp/tools/pdb2top.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
+        <itemPath>../../src/libxtp/tools/spectrum.cc</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.h</itemPath>
       </logicalFolder>
     </logicalFolder>
@@ -4772,6 +4772,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/gencube.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
@@ -4781,11 +4783,9 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/spectrum.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -5867,6 +5867,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/tools/gencube.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
@@ -5876,11 +5878,9 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/tools/pdb2map.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/tools/pdb2top.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../src/libxtp/tools/qmsandbox.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/spectrum.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/spectrum.h" ex="false" tool="3" flavor2="0">
       </item>

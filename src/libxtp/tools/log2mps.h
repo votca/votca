@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2017 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,106 +20,103 @@
 #ifndef VOTCA_XTP_LOG2MPS_H
 #define VOTCA_XTP_LOG2MPS_H
 
-
 #include <boost/format.hpp>
-#include <votca/xtp/qmtool.h>
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/qmpackagefactory.h>
+#include <votca/xtp/qmtool.h>
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+class Log2Mps : public QMTool {
+ public:
+  Log2Mps(){};
+  ~Log2Mps(){};
 
+  std::string Identify() { return "log2mps"; }
 
-class Log2Mps : public QMTool
-{
-public:
+  void Initialize(tools::Property *options);
+  bool Evaluate();
 
-    Log2Mps() { };
-   ~Log2Mps() { };
-
-    std::string Identify() { return "log2mps"; }
-
-    void   Initialize(tools::Property *options);
-    bool   Evaluate();
-
-
-
-private:
-
-    std::string _package;
-    std::string _logfile;
-    std::string _mpsfile;
-
+ private:
+  std::string _package;
+  std::string _logfile;
+  std::string _mpsfile;
 };
 
-
 void Log2Mps::Initialize(tools::Property *opt) {
-    
-    QMPackageFactory::RegisterAll();
-    
-    std::string key = "options.log2mps";
-    _package = opt->get(key+".package").as<std::string>();
-    
-    if(_package=="xtp"){
-        throw std::runtime_error("XTP has no log file. For xtp package just run the partialcharges tool on you .orb file");
-    }
-    _logfile = opt->get(key+".logfile").as<std::string>();
-    
 
-    _mpsfile = (opt->exists(key+".mpsfile")) ? 
-        opt->get(key+".mpsfile").as<std::string>() : "";
-    if (_mpsfile == "") _mpsfile = _logfile.substr(0,_logfile.size()-4)+".mps";
+  QMPackageFactory::RegisterAll();
 
-    std::cout << std::endl << "... ... " << _logfile << " => " << _mpsfile << std::flush;
+  std::string key = "options.log2mps";
+  _package = opt->get(key + ".package").as<std::string>();
+
+  if (_package == "xtp") {
+    throw std::runtime_error(
+        "XTP has no log file. For xtp package just run the partialcharges tool "
+        "on you .orb file");
+  }
+  _logfile = opt->get(key + ".logfile").as<std::string>();
+
+  _mpsfile = (opt->exists(key + ".mpsfile"))
+                 ? opt->get(key + ".mpsfile").as<std::string>()
+                 : "";
+  if (_mpsfile == "")
+    _mpsfile = _logfile.substr(0, _logfile.size() - 4) + ".mps";
+
+  std::cout << std::endl
+            << "... ... " << _logfile << " => " << _mpsfile << std::flush;
 }
-
 
 bool Log2Mps::Evaluate() {
-    
-    // Logger (required for QM package, so we can just as well use it)
-    Logger log;
-    log.setPreface(logINFO, "\n... ...");
-    log.setPreface(logDEBUG, "\n... ...");
-    log.setReportLevel(logDEBUG);
-    log.setMultithreading(true);  
-    
-    // Set-up QM package
-    XTP_LOG_SAVE(logINFO,log) << "Using package <" << _package << ">" << std::flush;
 
-    QMPackage *qmpack = QMPackages().Create(_package);    
-    qmpack->setGetCharges(true);
-    qmpack->setLog(&log);
-    qmpack->setRunDir(".");
-    qmpack->setLogFileName(_logfile);
-    
-    // Create orbitals, fill with life & extract QM atoms
-    Orbitals orbs;
-    int cdx = qmpack->ParseLogFile(orbs);
-    if (!cdx) {
-        throw std::runtime_error( "\nERROR Parsing " + _logfile+"failed.");
-    }
+  // Logger (required for QM package, so we can just as well use it)
+  Logger log;
+  log.setPreface(logINFO, "\n... ...");
+  log.setPreface(logDEBUG, "\n... ...");
+  log.setReportLevel(logDEBUG);
+  log.setMultithreading(true);
 
-    const StaticSegment& atoms=orbs.Multipoles();
-    // Sanity checks, total charge
-    double Q =atoms.CalcTotalQ();
-    
-    if (atoms.size() < 1) {
-        std::cout << "\nERROR No charges extracted from " << _logfile 
-            << ". Abort.\n" << std::flush;
-        throw std::runtime_error("(see above, input or parsing error)");
-    }
-    XTP_LOG_SAVE(logINFO,log) 
-        << atoms.size() << " QM atoms, total charge Q = " << Q << std::flush;    
+  // Set-up QM package
+  XTP_LOG_SAVE(logINFO, log)
+      << "Using package <" << _package << ">" << std::flush;
 
-    std::string tag = "::LOG2MPS " 
-        + (boost::format("(log-file='%1$s' : %2$d QM atoms)")
-        % _logfile % atoms.size()).str();    
-    atoms.WriteMPS(_mpsfile, tag);
-    return true;
+  std::unique_ptr<QMPackage> qmpack =
+      std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+  qmpack->setGetCharges(true);
+  qmpack->setLog(&log);
+  qmpack->setRunDir(".");
+  qmpack->setLogFileName(_logfile);
+
+  // Create orbitals, fill with life & extract QM atoms
+  Orbitals orbs;
+  int cdx = qmpack->ParseLogFile(orbs);
+  if (!cdx) {
+    throw std::runtime_error("\nERROR Parsing " + _logfile + "failed.");
+  }
+
+  const StaticSegment &atoms = orbs.Multipoles();
+  // Sanity checks, total charge
+  double Q = atoms.CalcTotalQ();
+
+  if (atoms.size() < 1) {
+    std::cout << "\nERROR No charges extracted from " << _logfile
+              << ". Abort.\n"
+              << std::flush;
+    throw std::runtime_error("(see above, input or parsing error)");
+  }
+  XTP_LOG_SAVE(logINFO, log)
+      << atoms.size() << " QM atoms, total charge Q = " << Q << std::flush;
+
+  std::string tag =
+      "::LOG2MPS " + (boost::format("(log-file='%1$s' : %2$d QM atoms)") %
+                      _logfile % atoms.size())
+                         .str();
+  atoms.WriteMPS(_mpsfile, tag);
+  return true;
 }
 
-
-
-}}
+}  // namespace xtp
+}  // namespace votca
 
 #endif
