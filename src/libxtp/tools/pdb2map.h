@@ -175,9 +175,7 @@ bool PDB2Map::Evaluate() {
     if (_has_xyz){adaptQM2MD();}
 
     topMdQm2xml();
-    
-//    XTP_LOG( logINFO, _log ) << "Reading from: " << _input_file << flush;    
-//    std::cout << _log;
+
     return true;
 }
 

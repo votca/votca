@@ -219,19 +219,8 @@ namespace votca {
                     double rate = 2 * tools::conv::Pi / tools::conv::hbar * J2 / sqrt(4 * tools::conv::Pi * reorg * tools::conv::kB * _temperature) 
                     * exp(-(dG + reorg)*(dG + reorg) / (4 * reorg * tools::conv::kB * _temperature));
 
-                    // calculate relative difference compared to values in the table
-                    double reldiff = (event.rate - rate) / event.rate;
-                    if (reldiff > maxreldiff) {
-                        maxreldiff = reldiff;
-                    }
-                    reldiff = (event.rate - rate) / rate;
-                    if (reldiff > maxreldiff) {
-                        maxreldiff = reldiff;
-                    }
-
                     // set rates to calculated values
                     event.rate = rate;
-                    event.initialrate = rate;
                     
                     if(rate>maxrate){
                         maxrate=rate;
@@ -247,14 +236,6 @@ namespace votca {
                     node.InitEscapeRate();
                     node.MakeHuffTree();
                 }
-
-            cout << "    " << totalnumberofrates << " rates have been calculated." << endl;
-            cout<< " Largest rate="<<maxrate<<" 1/s  Smallest rate="<<minrate<<" 1/s"<<endl;
-            if (maxreldiff < 0.01) {
-                cout << "    Good agreement with rates in the state file. Maximal relative difference: " << maxreldiff * 100 << " %" << endl;
-            } else {
-                cout << "    WARNING: Rates differ from those in the state file up to " << maxreldiff * 100 << " %." << " If the rates in the state file are calculated for a different temperature/field or if they are not Marcus rates, this is fine. Otherwise something might be wrong here." << endl;
-            }
             
             return;
         }

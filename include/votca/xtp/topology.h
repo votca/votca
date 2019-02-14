@@ -33,7 +33,7 @@
 
 #include <votca/xtp/qmnblist.h>
 
-namespace CSG = votca::csg;
+
 
 namespace votca { namespace xtp {
 
@@ -50,7 +50,6 @@ class Topology
 {
 public:
 
-    Topology();
    ~Topology();
 
 
@@ -78,19 +77,17 @@ public:
     void                setCanRigidify(bool yesno) { _canRigidify = yesno; }
     const bool         &canRigidify() { return _canRigidify; }
     const bool         &isRigid() { return _isRigid; }
-    void                setIsEStatified(bool yesno) { _isEStatified = yesno; }
-    const bool         &isEStatified() { return _isEStatified; }
 
 
 
     // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
 
-    votca::tools::vec              PbShortestConnect(const votca::tools::vec &r1, const votca::tools::vec &r2) const;
-    const votca::tools::matrix    &getBox() { return _bc->getBox(); }
-    double           BoxVolume() { return _bc->BoxVolume(); }
-    void             setBox(const votca::tools::matrix &box,
-                            CSG::BoundaryCondition::eBoxtype boxtype =
-                            CSG::BoundaryCondition::typeAuto);
+    votca::tools::vec PbShortestConnect(const tools::vec &r1, const tools::vec &r2) const;
+    const votca::tools::matrix &getBox() { return _bc->getBox(); }
+    double BoxVolume() { return _bc->BoxVolume(); }
+    void setBox(const tools::matrix &box,
+                            csg::BoundaryCondition::eBoxtype boxtype =
+                            csg::BoundaryCondition::typeAuto);
 
     QMNBList       &NBList() { return _nblist; }
 
@@ -114,21 +111,19 @@ protected:
     std::vector < SegmentType* > _segmentTypes;
 
 
-    int    _db_id;
-    bool                    _hasPb;
-    CSG::BoundaryCondition *_bc;
-    QMNBList               _nblist;
+    int    _db_id=-1;
+    std::unique_ptr<csg::BoundaryCondition> _bc=nullptr;
+    QMNBList _nblist;
 
-    bool                    _canRigidify;
-    bool                    _isRigid;
-    bool                    _isEStatified;
+    bool                    _canRigidify=false;
+    bool                    _isRigid=false;
 
     double _time;
     int    _step;
 
 
-    CSG::BoundaryCondition::eBoxtype
-    AutoDetectBoxType(const votca::tools::matrix &box);
+    csg::BoundaryCondition::eBoxtype
+    AutoDetectBoxType(const tools::matrix &box);
 
 };
 

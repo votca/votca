@@ -30,11 +30,9 @@ using namespace std;
 namespace votca {
     namespace xtp {
 void GNode::AddDecayEvent(double decayrate){
-
     GLink newEvent;
-    newEvent.destination = NULL;
+    newEvent.destination = nullptr;
     newEvent.rate = decayrate;
-    newEvent.initialrate = decayrate;
     newEvent.dr = Eigen::Vector3d::Zero();
     newEvent.Jeff2 = 0.0;
     newEvent.decayevent=true;
@@ -47,14 +45,12 @@ void GNode::AddEvent(GNode* seg2, double rate12,const Eigen::Vector3d& dr, doubl
     GLink newEvent;
     newEvent.destination = seg2;
     newEvent.rate = rate12;
-    newEvent.initialrate = rate12;
     newEvent.dr = dr;
     newEvent.Jeff2 = Jeff2;
     newEvent.decayevent=false;
     newEvent.reorg_out = reorg_out;
     events.push_back(newEvent);
 }
-
 
 void GNode::InitEscapeRate(){
     escape_rate = 0.0;

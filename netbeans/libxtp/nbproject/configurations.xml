@@ -239,11 +239,13 @@
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
+      <itemPath>../../src/libxtp/fragment.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
       <itemPath>../../src/libxtp/mmregion.cc</itemPath>
+      <itemPath>../../src/libxtp/molecule.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
@@ -252,9 +254,11 @@
       <itemPath>../../src/libxtp/qmdatabase.cc</itemPath>
       <itemPath>../../src/libxtp/qminterface.cc</itemPath>
       <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
+      <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/qmpair.cc</itemPath>
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
+      <itemPath>../../src/libxtp/segment.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/staticsite.cc</itemPath>
@@ -4543,6 +4547,8 @@
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/geometry_optimization.cc"
@@ -4626,6 +4632,8 @@
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
@@ -4662,6 +4670,8 @@
       <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4710,6 +4720,8 @@
       <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5630,6 +5642,8 @@
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/fragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/geometry_optimization.cc"
@@ -5713,6 +5727,8 @@
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/molecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/nbo.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/numerical_integration/numerical_integrations.cc"
@@ -5749,6 +5765,8 @@
       <item path="../../src/libxtp/qminterface.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmnblist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpackage.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5797,6 +5815,8 @@
       <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
       </item>

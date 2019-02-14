@@ -49,9 +49,10 @@ namespace votca {
 
             void Initialize(tools::Property *options);
             bool EvaluateFrame(Topology *top);
-            void DetClassicalPairs(Topology* top);
-
+            
         private:
+
+            void DetClassicalPairs(Topology* top);
 
             std::vector<std::string> _included_segments;
             std::map< std::string, std::map< std::string, double> > _cutoffs;
@@ -59,8 +60,6 @@ namespace votca {
             double _constantCutoff;
             bool _useExcitonCutoff;
             double _excitonqmCutoff;
-            std::string _pairfilename;
-            bool _generate_from_file;
 
         };
 
@@ -105,21 +104,11 @@ namespace votca {
             } else {
                 _useExcitonCutoff = false;
             }
-            if (options->exists(key + ".generate_from")) {
-                _generate_from_file = true;
-                _pairfilename = options->get(key + ".generate_from").as< std::string >();
-            } else {
-                _generate_from_file = false;
-                _pairfilename = "nofile";
-            }
-
         }
 
         void Neighborlist::DetClassicalPairs(Topology* top){
             std::cout << std::endl << " ... ... Determining classical pairs " << std::endl;
             for (QMPair* pair:top->NBList()) {
-                tools::vec r1;
-                tools::vec r2;
                 Segment* seg1=pair->Seg1();
                 Segment* seg2=pair->Seg2();
                 bool stopLoop = false;
@@ -128,8 +117,8 @@ namespace votca {
                         break;
                     }
                     for (Fragment* frag2:seg2->Fragments()) {
-                        r1 = frag1->getPos();
-                        r2 = frag2->getPos();
+                        tools::vec r1 = frag1->getPos();
+                        tools::vec r2 = frag2->getPos();
                         if (tools::abs(top->PbShortestConnect(r1, r2)) > _excitonqmCutoff) {
                             pair->setType(QMPair::PairType::Excitoncl);
                             continue;
@@ -158,6 +147,8 @@ namespace votca {
                 if (min > box.get(2, 2)) {
                     min = box.get(2, 2);
                 }
+
+                double min2=min;
 
                 std::vector< Segment* > segs;
                 for (Segment* seg:top->Segments()) {
@@ -212,7 +203,7 @@ namespace votca {
                             cutoff = _constantCutoff;
                         }
 
-                        if (cutoff > 0.5 * min) {
+                        if (cutoff > 0.5 * min2) {
                             throw std::runtime_error((boost::format("Cutoff is larger than half the box size. Maximum allowed cutoff is %1$1.1f") % (0.5 * min)).str());
                         }
                         double cutoff2 = cutoff*cutoff;
