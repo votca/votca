@@ -33,5 +33,5 @@ vec OrthorhombicBox::BCShortestConnection(const vec &r_i,
   return r_ij;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

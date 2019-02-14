@@ -27,16 +27,16 @@ namespace TOOLS = votca::tools;
 
 class OrthorhombicBox : public BoundaryCondition {
 
-public:
+ public:
   TOOLS::vec BCShortestConnection(const TOOLS::vec &r_i,
                                   const TOOLS::vec &r_j) const;
 
   eBoxtype getBoxType() { return typeOrthorhombic; }
 
-protected:
+ protected:
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_ORTHORHOMBICBOX_H */

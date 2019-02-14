@@ -42,14 +42,14 @@ void PotentialFunction::setParam(string filename) {
 
   if (param.size() != _lam.size()) {
 
-    throw std::runtime_error(
-        "In potential " + _name + ": parameters size mismatch!\n"
-                                  "Check input parameter file \"" +
-        filename + "\" \nThere should be " +
-        boost::lexical_cast<string>(_lam.size()) + " parameters");
+    throw std::runtime_error("In potential " + _name +
+                             ": parameters size mismatch!\n"
+                             "Check input parameter file \"" +
+                             filename + "\" \nThere should be " +
+                             boost::lexical_cast<string>(_lam.size()) +
+                             " parameters");
   } else {
-    for (unsigned int i = 0; i < _lam.size(); i++)
-      _lam(i) = param.y(i);
+    for (unsigned int i = 0; i < _lam.size(); i++) _lam(i) = param.y(i);
   }
 }
 
@@ -59,8 +59,7 @@ void PotentialFunction::SaveParam(const string &filename) {
   param.SetHasYErr(false);
   param.resize(_lam.size());
 
-  for (unsigned int i = 0; i < _lam.size(); i++)
-    param.set(i, i, _lam(i), 'i');
+  for (unsigned int i = 0; i < _lam.size(); i++) param.set(i, i, _lam(i), 'i');
 
   param.Save(filename);
 }
@@ -96,5 +95,5 @@ void PotentialFunction::SavePotTab(const string &filename, const double step,
   pot_tab.set(i, rcut, CalculateF(rcut), flag);
   pot_tab.Save(filename);
 }
-}
-}
+}  // namespace csg
+}  // namespace votca

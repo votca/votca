@@ -35,7 +35,7 @@ namespace csg {
 
 */
 class LAMMPSDumpReader : public TrajectoryReader, public TopologyReader {
-public:
+ public:
   LAMMPSDumpReader() {}
   ~LAMMPSDumpReader() {}
 
@@ -51,7 +51,7 @@ public:
 
   void Close();
 
-private:
+ private:
   void ReadTimestep(Topology &top, std::string itemline);
   void ReadBox(Topology &top, std::string itemline);
   void ReadNumAtoms(Topology &top, std::string itemline);
@@ -63,7 +63,7 @@ private:
   int _natoms;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_LAMMPSDUMPREADER_H
+#endif  // _VOTCA_CSG_LAMMPSDUMPREADER_H

@@ -27,7 +27,7 @@ namespace votca {
 namespace csg {
 
 class PDBWriter : public TrajectoryWriter {
-public:
+ public:
   void Open(std::string file, bool bAppend = false);
   void Close();
 
@@ -35,12 +35,14 @@ public:
 
   void Write(Topology *conf);
 
-  template <class T> void WriteContainer(T &container);
+  template <class T>
+  void WriteContainer(T &container);
 
   void WriteHeader(std::string header);
 
-private:
-  template <class Atom> std::string getName(Atom &atom) {
+ private:
+  template <class Atom>
+  std::string getName(Atom &atom) {
     return atom.getElement();
   }
 
@@ -52,18 +54,26 @@ private:
   }
   std::string getResname(Topology &conf, Bead *bead);
 
-  template <class Atom> int getId(Atom &atom) { return atom.getId(); }
+  template <class Atom>
+  int getId(Atom &atom) {
+    return atom.getId();
+  }
   int getId(Bead *bead) { return bead->getId(); }
 
-  template <class T, class Atom> int getResId(T &container, Atom &atom) {
+  template <class T, class Atom>
+  int getResId(T &container, Atom &atom) {
     return container.getId();
   }
   int getResId(Topology &conf, Bead *bead) { return bead->getResnr() + 1; }
 
-  template <class Atom> void writeSymmetry(Atom &atom) { return; }
+  template <class Atom>
+  void writeSymmetry(Atom &atom) {
+    return;
+  }
   void writeSymmetry(Bead *bead);
 
-  template <class Atom> Eigen::Vector3d getPos(Atom &atom) {
+  template <class Atom>
+  Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
@@ -71,14 +81,18 @@ private:
     return bead->Pos().toEigen() * tools::conv::nm2ang;
   }
 
-  template <class T> T &getIterable(T &container) { return container; }
+  template <class T>
+  T &getIterable(T &container) {
+    return container;
+  }
 
   BeadContainer &getIterable(Topology &top) { return top.Beads(); }
 
   std::ofstream _out;
 };
 
-template <class T> inline void PDBWriter::WriteContainer(T &container) {
+template <class T>
+inline void PDBWriter::WriteContainer(T &container) {
   boost::format atomfrmt(
       "ATOM  %1$5d %2$-4s %3$-3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
 
@@ -93,16 +107,16 @@ template <class T> inline void PDBWriter::WriteContainer(T &container) {
       atomname = atomname.substr(0, 4);
     }
 
-    _out << atomfrmt % (getId(atom) % 100000) // atom serial number
-                % atomname % resname % " "    // chain identifier 1 char
-                % getResId(container, atom)   // residue sequence number
+    _out << atomfrmt % (getId(atom) % 100000)  // atom serial number
+                % atomname % resname % " "     // chain identifier 1 char
+                % getResId(container, atom)    // residue sequence number
                 % r.x() % r.y() % r.z();
     // we skip the charge
     writeSymmetry(atom);
   }
   _out << std::flush;
 }
-}
-}
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _PDBWRITER_H */

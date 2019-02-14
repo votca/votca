@@ -32,16 +32,16 @@ namespace csg {
 
 */
 class GMXTopologyReader : public TopologyReader {
-public:
+ public:
   GMXTopologyReader() {}
 
   /// read a topology file
   bool ReadTopology(std::string file, Topology &top);
 
-private:
+ private:
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _gmxtopologyreader_H */

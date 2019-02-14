@@ -247,9 +247,9 @@ bool PDBReader::NextFrame(Topology &top) {
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
         // TODO: fix the case that resnr is not in ascending order
         if (resnr > top.ResidueCount()) {
-          while ((resnr - 1) > top.ResidueCount()) { // pdb resnr should start
-                                                     // with 1 but accept
-                                                     // sloppy files
+          while ((resnr - 1) > top.ResidueCount()) {  // pdb resnr should start
+                                                      // with 1 but accept
+                                                      // sloppy files
 
             // create dummy residue, hopefully it will never show
             top.CreateResidue("DUMMY");
@@ -470,5 +470,5 @@ bool PDBReader::NextFrame(Topology &top) {
 
   return !_fl.eof();
 }
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

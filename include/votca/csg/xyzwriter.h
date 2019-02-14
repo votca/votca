@@ -27,7 +27,7 @@ namespace votca {
 namespace csg {
 
 class XYZWriter : public TrajectoryWriter {
-public:
+ public:
   void Open(std::string file, bool bAppend = false);
   void Close();
 
@@ -35,20 +35,24 @@ public:
 
   void Write(Topology *conf);
 
-  template <class T> void Write(T &container, std::string header);
+  template <class T>
+  void Write(T &container, std::string header);
 
-private:
-  template <class T> int getSize(T &container) {
+ private:
+  template <class T>
+  int getSize(T &container) {
     return getIterable(container).size();
   }
 
-  template <class Atom> std::string getName(Atom &atom) {
+  template <class Atom>
+  std::string getName(Atom &atom) {
     return atom.getElement();
   }
 
   std::string getName(Bead *bead) { return bead->getName(); }
 
-  template <class Atom> Eigen::Vector3d getPos(Atom &atom) {
+  template <class Atom>
+  Eigen::Vector3d getPos(Atom &atom) {
     return atom.getPos() * tools::conv::bohr2ang;
   }
 
@@ -56,7 +60,10 @@ private:
     return bead->Pos().toEigen() * tools::conv::nm2ang;
   }
 
-  template <class T> T &getIterable(T &container) { return container; }
+  template <class T>
+  T &getIterable(T &container) {
+    return container;
+  }
 
   BeadContainer &getIterable(Topology &top) { return top.Beads(); }
 
@@ -77,14 +84,13 @@ inline void XYZWriter::Write(T &container, std::string header) {
     if (atomname.size() > 3) {
       atomname = atomname.substr(0, 3);
     }
-    while (atomname.size() < 3)
-      atomname = " " + atomname;
+    while (atomname.size() < 3) atomname = " " + atomname;
 
     _out << fmter % atomname % r.x() % r.y() % r.z();
   }
   _out << std::flush;
 }
-}
-}
+}  // namespace csg
+}  // namespace votca
 
 #endif

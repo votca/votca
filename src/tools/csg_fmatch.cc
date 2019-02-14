@@ -49,8 +49,7 @@ bool CGForceMatching::EvaluateOptions() {
   LoadOptions(OptionsMap()["options"].as<string>());
 
   _has_existing_forces = false;
-  if (OptionsMap().count("trj-force"))
-    _has_existing_forces = true;
+  if (OptionsMap().count("trj-force")) _has_existing_forces = true;
   return true;
 }
 
@@ -112,7 +111,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
 
   // now initialize _A, _b, _x and probably _B_constr
   // depending on least-squares algorithm used
-  if (_constr_least_sq) { // Constrained Least Squares
+  if (_constr_least_sq) {  // Constrained Least Squares
 
     cout << "\nUsing constrained Least Squares!\n " << endl;
 
@@ -130,7 +129,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
     // in case of constrained least squares smoothing conditions
     // are assigned to matrix _B_constr
     FmatchAssignSmoothCondsToMatrix(_B_constr);
-  } else { // Simple Least Squares
+  } else {  // Simple Least Squares
 
     cout << "\nUsing simple Least Squares! " << endl;
     // assign _least_sq_offset
@@ -177,9 +176,9 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
   threebody = 0;
   // initialize additional parameters for threebody interactions
   //(values of Molinero water potential)
-  a = 0.37;     //(0.37 nm)
-  sigma = 1;    //(dimensionless)
-  gamma = 0.12; //(0.12 nm = 1.2 Ang)
+  a = 0.37;      //(0.37 nm)
+  sigma = 1;     //(dimensionless)
+  gamma = 0.12;  //(0.12 nm = 1.2 Ang)
 
   // get non-bonded information
   if (!bonded) {
@@ -391,8 +390,8 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
     for (int i = 0; i < conf->BeadCount(); ++i) {
       conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
       vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-      if (abs(d) > _dist) { // default is 1e-5, otherwise it can be a too
-                            // strict criterion
+      if (abs(d) > _dist) {  // default is 1e-5, otherwise it can be a too
+                             // strict criterion
         throw std::runtime_error(
             "One or more bead positions in mapped and reference force "
             "trajectory differ by more than 1e-5");
@@ -402,10 +401,10 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
   for (spiter = _splines.begin(); spiter != _splines.end(); ++spiter) {
     SplineInfo *sinfo = *spiter;
-    if (sinfo->bonded) // bonded interaction
+    if (sinfo->bonded)  // bonded interaction
       EvalBonded(conf, sinfo);
-    else // non-bonded interaction
-        // check if threebody interaction or not
+    else  // non-bonded interaction
+          // check if threebody interaction or not
         if (sinfo->threebody) {
       EvalNonbonded_Threebody(conf, sinfo);
     } else {
@@ -434,9 +433,9 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
   // update the frame counter
   _frame_counter += 1;
 
-  if (_frame_counter % _nframes == 0) { // at this point we processed _nframes
-                                        // frames, which is enough for one
-                                        // block
+  if (_frame_counter % _nframes == 0) {  // at this point we processed _nframes
+                                         // frames, which is enough for one
+                                         // block
     // update block counter
     _nblocks++;
     // solve FM equations and accumulate the result
@@ -448,28 +447,27 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
     // we must count frames from zero again for the next block
     _frame_counter = 0;
-    if (_constr_least_sq) { // Constrained Least Squares
+    if (_constr_least_sq) {  // Constrained Least Squares
       // Matrices should be cleaned after each block is evaluated
       _A.setZero();
       _b.setZero();
       // clear and assign smoothing conditions to _B_constr
       FmatchAssignSmoothCondsToMatrix(_B_constr);
-    } else { // Simple Least Squares
+    } else {  // Simple Least Squares
       // Matrices should be cleaned after each block is evaluated
       // clear and assign smoothing conditions to _A
       FmatchAssignSmoothCondsToMatrix(_A);
       _b.setZero();
     }
   }
-  if (_has_existing_forces)
-    _trjreader_force->NextFrame(_top_force);
+  if (_has_existing_forces) _trjreader_force->NextFrame(_top_force);
 }
 
 void CGForceMatching::FmatchAccumulateData() {
-  if (_constr_least_sq) { // Constrained Least Squares
+  if (_constr_least_sq) {  // Constrained Least Squares
     // Solving linear equations system
     votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
-  } else { // Simple Least Squares
+  } else {  // Simple Least Squares
 
     Eigen::HouseholderQR<Eigen::MatrixXd> dec(_A);
     _x = dec.solve(_b);
@@ -580,15 +578,15 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
        ++interListIter) {
 
     int beads_in_int =
-        (*interListIter)->BeadCount(); // 2 for bonds, 3 for angles, 4 for
-                                       // dihedrals
+        (*interListIter)->BeadCount();  // 2 for bonds, 3 for angles, 4 for
+                                        // dihedrals
 
     CubicSpline &SP = sinfo->Spline;
 
     int &mpos = sinfo->matr_pos;
 
-    double var = (*interListIter)->EvaluateVar(*conf); // value of bond, angle,
-                                                       // or dihedral
+    double var = (*interListIter)->EvaluateVar(*conf);  // value of bond, angle,
+                                                        // or dihedral
 
     for (int loop = 0; loop < beads_in_int; loop++) {
       int ii = (*interListIter)->getBeadId(loop);
@@ -597,14 +595,14 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
       SP.AddToFitMatrix(_A, var,
                         _least_sq_offset + 3 * _nbeads * _frame_counter + ii,
                         mpos, -gradient.x());
-      SP.AddToFitMatrix(_A, var,
-                        _least_sq_offset + 3 * _nbeads * _frame_counter +
-                            _nbeads + ii,
-                        mpos, -gradient.y());
-      SP.AddToFitMatrix(_A, var,
-                        _least_sq_offset + 3 * _nbeads * _frame_counter +
-                            2 * _nbeads + ii,
-                        mpos, -gradient.z());
+      SP.AddToFitMatrix(
+          _A, var,
+          _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + ii, mpos,
+          -gradient.y());
+      SP.AddToFitMatrix(
+          _A, var,
+          _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + ii,
+          mpos, -gradient.z());
     }
   }
 }
@@ -630,10 +628,10 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     nb = new NBList();
 
   nb->setCutoff(
-      sinfo->_options->get("fmatch.max").as<double>()); // implement different
-                                                        // cutoffs for
-                                                        // different
-                                                        // interactions!
+      sinfo->_options->get("fmatch.max").as<double>());  // implement different
+                                                         // cutoffs for
+                                                         // different
+                                                         // interactions!
 
   // generate the bead lists
   BeadList beads1, beads2;
@@ -663,23 +661,27 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + iatom,
                       mpos, gradient.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + iatom,
-                      mpos, gradient.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + iatom,
-                      mpos, gradient.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos,
+        gradient.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom,
+        mpos, gradient.z());
 
     // add jatom
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + jatom,
                       mpos, -gradient.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + jatom,
-                      mpos, -gradient.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + jatom,
-                      mpos, -gradient.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + jatom, mpos,
+        -gradient.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom,
+        mpos, -gradient.z());
   }
   delete nb;
 }
@@ -706,8 +708,8 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   else
     nb = new NBList_3Body();
 
-  nb->setCutoff(sinfo->a); // implement different cutoffs for different
-                           // interactions!
+  nb->setCutoff(sinfo->a);  // implement different cutoffs for different
+                            // interactions!
   // Here, a is the distance between two beads of a triple, where the 3-body
   // interaction is zero
 
@@ -775,9 +777,8 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     double var = acos(rij * rik / sqrt((rij * rij) * (rik * rik)));
 
     double acos_prime =
-        1.0 /
-        (sqrt(1 -
-              (rij * rik) * (rij * rik) / (distij * distik * distij * distik)));
+        1.0 / (sqrt(1 - (rij * rik) * (rij * rik) /
+                            (distij * distik * distij * distik)));
 
     // evaluate gradient1 and gradient2 for iatom:
     gradient1 = acos_prime *
@@ -794,12 +795,14 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + iatom,
                       mpos, -gradient1.x(), -gradient2.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + iatom,
-                      mpos, -gradient1.y(), -gradient2.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + iatom,
-                      mpos, -gradient1.z(), -gradient2.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos,
+        -gradient1.y(), -gradient2.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom,
+        mpos, -gradient1.z(), -gradient2.z());
 
     // evaluate gradient1 and gradient2 for jatom:
     gradient1 = acos_prime *
@@ -814,12 +817,14 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + jatom,
                       mpos, -gradient1.x(), -gradient2.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + jatom,
-                      mpos, -gradient1.y(), -gradient2.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + jatom,
-                      mpos, -gradient1.z(), -gradient2.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + jatom, mpos,
+        -gradient1.y(), -gradient2.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom,
+        mpos, -gradient1.z(), -gradient2.z());
 
     // evaluate gradient1 and gradient2 for katom:
     gradient1 = acos_prime *
@@ -834,12 +839,14 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + katom,
                       mpos, -gradient1.x(), -gradient2.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + katom,
-                      mpos, -gradient1.y(), -gradient2.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + katom,
-                      mpos, -gradient1.z(), -gradient2.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + katom, mpos,
+        -gradient1.y(), -gradient2.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + katom,
+        mpos, -gradient1.z(), -gradient2.z());
   }
   delete nb;
 }

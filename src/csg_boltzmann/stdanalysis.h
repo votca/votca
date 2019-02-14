@@ -28,7 +28,7 @@ namespace votca {
 namespace csg {
 
 class StdAnalysis : public AnalysisTool {
-public:
+ public:
   StdAnalysis(){};
   ~StdAnalysis(){};
 
@@ -44,6 +44,6 @@ public:
                             std::vector<std::string> &args);
 };
 
-} // namespace csg
-} // namespace votca
-#endif // VOTCA_CSG_STDANALYSIS_H
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_STDANALYSIS_H

@@ -38,8 +38,7 @@ void PDBWriter::WriteHeader(std::string header) {
     _out << "HEADER    ";
   }
   _out << header;
-  if (header.back() != '\n')
-    _out << "\n";
+  if (header.back() != '\n') _out << "\n";
 }
 
 void PDBWriter::Close() { _out.close(); }
@@ -60,21 +59,21 @@ void PDBWriter::writeSymmetry(Bead *bead) {
         "HETATM%1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
     tools::vec ru = 0.1 * bead->getU() + r;
 
-    _out << beadfrmt % (bead->getId() + 1) % 100000 // atom serial number
-                % bead->getName()                   // atom name
-                % "REU"                             // residue name
-                % " "                               // chain identifier 1 char
-                % (bead->getResnr() + 1)            // residue sequence number
-                % ru.x() % ru.y() % ru.z();         // we skip the charge
+    _out << beadfrmt % (bead->getId() + 1) % 100000  // atom serial number
+                % bead->getName()                    // atom name
+                % "REU"                              // residue name
+                % " "                                // chain identifier 1 char
+                % (bead->getResnr() + 1)             // residue sequence number
+                % ru.x() % ru.y() % ru.z();          // we skip the charge
 
     if (bead->getSymmetry() > 2) {
       tools::vec rv = 0.1 * bead->getV() + r;
-      _out << beadfrmt % (bead->getId() + 1) % 100000 // atom serial number
-                  % bead->getName()                   // atom name
-                  % "REV"                             // residue name
-                  % " "                               // chain identifier 1 char
-                  % (bead->getResnr() + 1)            // residue sequence number
-                  % rv.x() % rv.y() % rv.z();         // we skip the charge
+      _out << beadfrmt % (bead->getId() + 1) % 100000  // atom serial number
+                  % bead->getName()                    // atom name
+                  % "REV"                              // residue name
+                  % " "                        // chain identifier 1 char
+                  % (bead->getResnr() + 1)     // residue sequence number
+                  % rv.x() % rv.y() % rv.z();  // we skip the charge
     }
   }
   return;
@@ -87,5 +86,5 @@ std::string PDBWriter::getResname(Topology &conf, Bead *bead) {
     return "";
   }
 }
-}
-}
+}  // namespace csg
+}  // namespace votca

@@ -47,5 +47,5 @@ void TopologyReader::RegisterPlugins(void) {
   TopReaderFactory().Register<DLPOLYTopologyReader>("dlpf");
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

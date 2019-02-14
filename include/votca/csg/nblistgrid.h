@@ -29,11 +29,11 @@ namespace csg {
 namespace TOOLS = votca::tools;
 
 class NBListGrid : public NBList {
-public:
+ public:
   void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
   void Generate(BeadList &list, bool do_exclusions = true);
 
-protected:
+ protected:
   struct cell_t {
     BeadList _beads;
     std::vector<cell_t *> _neighbours;
@@ -60,7 +60,7 @@ inline NBListGrid::cell_t &NBListGrid::getCell(const int &a, const int &b,
   return _grid[a + _box_Na * b + _box_Na * _box_Nb * c];
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_NBLISTGRID_H */

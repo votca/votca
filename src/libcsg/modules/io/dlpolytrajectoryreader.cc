@@ -87,10 +87,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   static bool hasVs = false;
   static bool hasFs = false;
   static int mavecs =
-      0; // number of 3d vectors per atom = keytrj in DL_POLY manuals
-  static int mpbct = 0;     // cell PBC type = imcon in DL_POLY manuals
-  static int matoms = 0;    // number of atoms/beads in a frame
-  const double scale = 0.1; // A -> nm factor
+      0;  // number of 3d vectors per atom = keytrj in DL_POLY manuals
+  static int mpbct = 0;      // cell PBC type = imcon in DL_POLY manuals
+  static int matoms = 0;     // number of atoms/beads in a frame
+  const double scale = 0.1;  // A -> nm factor
 
   static int nerrt = 0;
 
@@ -100,14 +100,14 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
   if (_first_frame) {
 
-    getline(_fl, line); // title
+    getline(_fl, line);  // title
 
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line
          << "' - header" << endl;
 #endif
 
-    getline(_fl, line); // 2nd header line
+    getline(_fl, line);  // 2nd header line
 
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line
@@ -126,10 +126,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     mpbct = boost::lexical_cast<int>(fields[1]);
     matoms = boost::lexical_cast<int>(fields[2]);
 
-    hasVs = (mavecs > 0); // 1 or 2 => in DL_POLY frame velocity vector follows
-                          // coords for each atom/bead
-    hasFs = (mavecs > 1); // 2      => in DL_POLY frame force vector follows
-                          // velocities for each atom/bead
+    hasVs = (mavecs > 0);  // 1 or 2 => in DL_POLY frame velocity vector follows
+                           // coords for each atom/bead
+    hasFs = (mavecs > 1);  // 2      => in DL_POLY frame force vector follows
+                           // velocities for each atom/bead
 
 #ifdef DEBUG
     if (hasVs != conf.HasVel() || hasFs != conf.HasForce()) {
@@ -176,8 +176,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   // read normal frame
 
   if (!_isConfig) {
-    getline(_fl, line); // timestep line - only present in HISTORY, and not in
-                        // CONFIG
+    getline(_fl, line);  // timestep line - only present in HISTORY, and not in
+                         // CONFIG
 #ifdef DEBUG
     cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
          << endl;
@@ -222,10 +222,9 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       navecs = boost::lexical_cast<int>(fields[3]);
       npbct = boost::lexical_cast<int>(fields[4]);
       dtime =
-          stod(fields[5]); // normally it is the 5-th column in 'timestep' line
-      stime =
-          stod(fields[fields.size() -
-                      1]); // normally it is the last column in 'timestep' line
+          stod(fields[5]);  // normally it is the 5-th column in 'timestep' line
+      stime = stod(fields[fields.size() - 1]);  // normally it is the last
+                                                // column in 'timestep' line
 
 #ifdef DEBUG
       cout << "Read from dlpoly file '" << _fname << "' : natoms = " << natoms
@@ -279,7 +278,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     }
 
     vec box_vectors[3]{0.0, 0.0, 0.0};
-    for (int i = 0; i < 3; i++) { // read 3 box/cell lines
+    for (int i = 0; i < 3; i++) {  // read 3 box/cell lines
 
       getline(_fl, line);
 
@@ -307,7 +306,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
     for (int i = 0; i < natoms; i++) {
 
       {
-        getline(_fl, line); // atom header line
+        getline(_fl, line);  // atom header line
 
 #ifdef DEBUG
         cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
@@ -334,7 +333,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       vec atom_vec[3]{0.0, 0.0, 0.0};
       for (int j = 0; j < min(navecs, 2) + 1; j++) {
 
-        getline(_fl, line); // read atom positions
+        getline(_fl, line);  // read atom positions
 
 #ifdef DEBUG
         cout << "Read from dlpoly file '" << _fname << "' : '" << line << "'"
@@ -381,5 +380,5 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   return !_fl.eof();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

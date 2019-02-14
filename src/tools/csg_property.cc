@@ -74,10 +74,8 @@ int main(int argc, char **argv) {
     cout << desc << endl;
     return -1;
   }
-  if (vm.count("short"))
-    short_output = true;
-  if (vm.count("with-path"))
-    with_path = true;
+  if (vm.count("short")) short_output = true;
+  if (vm.count("with-path")) with_path = true;
 
   try {
     Property p;
@@ -105,10 +103,8 @@ int main(int argc, char **argv) {
 
       Property *p = &((*iter)->get(print));
 
-      if (!short_output && with_path)
-        cout << p->path() << ".";
-      if (!short_output)
-        cout << p->name() << " = ";
+      if (!short_output && with_path) cout << p->path() << ".";
+      if (!short_output) cout << p->name() << " = ";
       // if(!p->HasChilds())
       cout << p->value();
       cout << endl;

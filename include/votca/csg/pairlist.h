@@ -24,8 +24,9 @@
 namespace votca {
 namespace csg {
 
-template <typename element_type, typename pair_type> class PairList {
-public:
+template <typename element_type, typename pair_type>
+class PairList {
+ public:
   PairList() {}
   virtual ~PairList() { Cleanup(); }
 
@@ -51,7 +52,7 @@ public:
   typedef element_type element_t;
   typedef pair_type pair_t;
 
-protected:
+ protected:
   std::vector<pair_type *> _pairs;
 
   std::map<element_type, std::map<element_type, pair_type *>> _pair_map;
@@ -81,29 +82,26 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1,
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter1;
   iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end())
-    return NULL;
+  if (iter1 == _pair_map.end()) return NULL;
 
   // typename map<element_type, pair_type *>::iterator iter2;
   typename partners::iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end())
-    return NULL;
+  if (iter2 == iter1->second.end()) return NULL;
 
   return iter2->second;
 }
 
 template <typename element_type, typename pair_type>
 typename PairList<element_type, pair_type>::partners *
-PairList<element_type, pair_type>::FindPartners(element_type e1) {
+    PairList<element_type, pair_type>::FindPartners(element_type e1) {
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter;
-  if ((iter = _pair_map.find(e1)) == _pair_map.end())
-    return NULL;
+  if ((iter = _pair_map.find(e1)) == _pair_map.end()) return NULL;
   return &(iter->second);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_PAIRLIST_H */

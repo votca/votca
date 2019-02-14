@@ -35,7 +35,8 @@ namespace csg {
  * @param[in] - reference to beadstructure
  * @return - a container of beadmotifs
  **/
-template <class T> T breakIntoMotifs(BeadStructure<BaseBead> &beadstructure) {
+template <class T>
+T breakIntoMotifs(BeadStructure<BaseBead> &beadstructure) {
   T bead_motifs;
   std::vector<BeadStructure<BaseBead>> structures =
       breakIntoStructures(beadstructure);
@@ -77,9 +78,9 @@ template <class T> T breakIntoMotifs(BeadStructure<BaseBead> &beadstructure) {
  **/
 
 std::pair<std::unordered_map<int, BeadMotif>, BeadMotifConnector>
-breakIntoSimpleMotifs(BeadMotif beadmotif);
+    breakIntoSimpleMotifs(BeadMotif beadmotif);
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // VOTCA_CSG_BEADMOTIFALGORITHMS_H
+#endif  // VOTCA_CSG_BEADMOTIFALGORITHMS_H

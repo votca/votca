@@ -28,7 +28,7 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgStatApp : public CsgApplication {
-public:
+ public:
   string ProgramName() { return "csg_stat"; }
   void HelpText(ostream &out);
 
@@ -47,7 +47,7 @@ public:
 
   void MergeWorker(CsgApplication::Worker *worker) { _imc.MergeWorker(worker); }
 
-public:
+ public:
   Imc _imc;
   int _block_length;
   string _extension;
@@ -71,8 +71,9 @@ void CsgStatApp::Initialize() {
       "do-imc", "  write out additional Inverse Monte Carlo data")(
       "block-length", boost::program_options::value<int>(),
       "  write blocks of this length, the averages are cleared after every "
-      "write")("ext", boost::program_options::value<string>(&_extension)
-                          ->default_value("dist.new"),
+      "write")("ext",
+               boost::program_options::value<string>(&_extension)
+                   ->default_value("dist.new"),
                "Extension of the output");
 }
 
@@ -89,8 +90,7 @@ bool CsgStatApp::EvaluateOptions() {
     _imc.BlockLength(0);
   }
 
-  if (OptionsMap().count("do-imc"))
-    _imc.DoImc(true);
+  if (OptionsMap().count("do-imc")) _imc.DoImc(true);
 
   _imc.Extension(_extension);
 

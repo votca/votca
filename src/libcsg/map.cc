@@ -27,11 +27,11 @@
 namespace votca {
 namespace csg {
 class Molecule;
-} // namespace csg
+}  // namespace csg
 namespace tools {
 class Property;
-} // namespace tools
-} // namespace votca
+}  // namespace tools
+}  // namespace votca
 
 namespace votca {
 namespace csg {
@@ -40,15 +40,13 @@ using namespace std;
 
 Map::~Map() {
   vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter)
-    delete (*iter);
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) delete (*iter);
   _maps.clear();
 }
 
 void Map::Apply() {
   vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter)
-    (*iter)->Apply();
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) (*iter)->Apply();
 }
 
 void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
@@ -179,12 +177,9 @@ void Map_Sphere::Apply() {
     }
   }
   _out->setMass(M);
-  if (bPos)
-    _out->setPos(cg);
-  if (bVel)
-    _out->setVel(vel);
-  if (bF)
-    _out->setF(f);
+  if (bPos) _out->setPos(cg);
+  if (bVel) _out->setVel(vel);
+  if (bF) _out->setF(f);
 }
 
 /// \todo implement this function
@@ -237,12 +232,9 @@ void Map_Ellipsoid::Apply() {
     }
   }
 
-  if (bPos)
-    _out->setPos(cg);
-  if (bVel)
-    _out->setVel(vel);
-  if (bF)
-    _out->setF(f);
+  if (bPos) _out->setPos(cg);
+  if (bVel) _out->setVel(vel);
+  if (bF) _out->setF(f);
 
   if (!_matrix[0]._in->HasPos()) {
     _out->setU(vec(1.0, 0, 0));
@@ -254,8 +246,7 @@ void Map_Ellipsoid::Apply() {
   // calculate the tensor of gyration
   c = c / (double)n;
   for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-    if ((*iter)._weight == 0)
-      continue;
+    if ((*iter)._weight == 0) continue;
     Bead *bead = iter->_in;
     vec v = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
@@ -296,8 +287,7 @@ void Map_Ellipsoid::Apply() {
   vec w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
   w.normalize();
 
-  if ((v ^ w) * u < 0)
-    u = vec(0., 0., 0.) - u;
+  if ((v ^ w) * u < 0) u = vec(0., 0., 0.) - u;
   _out->setU(u);
 
   // write out w
@@ -310,5 +300,5 @@ void Map_Ellipsoid::Apply() {
   // out.BeadW(_out) = es.eigenvecs[2];
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

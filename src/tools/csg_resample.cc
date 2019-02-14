@@ -56,8 +56,8 @@ int main(int argc, char **argv) {
   po::options_description desc("Allowed options");
 
   desc.add_options()("help", "produce this help message")(
-      "in", po::value<string>(&in_file),
-      "table to read")("out", po::value<string>(&out_file), "table to write")(
+      "in", po::value<string>(&in_file), "table to read")(
+      "out", po::value<string>(&out_file), "table to write")(
       "derivative", po::value<string>(), "table to write")(
       "grid", po::value<string>(&grid),
       "new grid spacing (min:step:max). If 'grid' is specified only, "
@@ -248,10 +248,9 @@ int main(int argc, char **argv) {
     for (; i < out.size(); ++i) {
       for (; j < in.size(); ++j)
         if (in.x(j) >= out.x(i) ||
-            fabs(in.x(j) - out.x(i)) < 1e-12) // fix for precison errors
+            fabs(in.x(j) - out.x(i)) < 1e-12)  // fix for precison errors
           break;
-      if (in.size() == j)
-        break;
+      if (in.size() == j) break;
       out.flags(i) = in.flags(j);
       der.flags(i) = in.flags(j);
     }

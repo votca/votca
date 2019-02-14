@@ -28,7 +28,7 @@ int BeadList::Generate(Topology &top, const string &select) {
   BeadContainer::iterator iter;
   _topology = &top;
   bool selectByName = false;
-  string pSelect; // parsed selection string
+  string pSelect;  // parsed selection string
 
   if (select.substr(0, 5) == "name:") {
     // select according to bead name instead of type
@@ -57,7 +57,7 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
   BeadContainer::iterator iter;
   _topology = &top;
   bool selectByName = false;
-  string pSelect; // parsed selection string
+  string pSelect;  // parsed selection string
 
   if (select.substr(0, 5) == "name:") {
     // select according to bead name instead of type
@@ -83,5 +83,5 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
   return size();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

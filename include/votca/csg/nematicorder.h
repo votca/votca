@@ -26,7 +26,7 @@ namespace csg {
 using namespace votca::tools;
 
 class NematicOrder {
-public:
+ public:
   NematicOrder() {}
   ~NematicOrder() {}
 
@@ -36,12 +36,12 @@ public:
   matrix::eigensystem_t &NematicV() { return _nemat_v; }
   matrix::eigensystem_t &NematicW() { return _nemat_w; }
 
-private:
+ private:
   matrix _mu, _mv, _mw;
   matrix::eigensystem_t _nemat_u, _nemat_v, _nemat_w;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_NEMATICORDER_H */

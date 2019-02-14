@@ -26,7 +26,7 @@ namespace votca {
 namespace csg {
 
 class TopologyReader {
-public:
+ public:
   virtual ~TopologyReader() {}
   /// open, read and close topology file
   virtual bool ReadTopology(std::string file, Topology &top) = 0;
@@ -39,7 +39,7 @@ inline FileFormatFactory<TopologyReader> &TopReaderFactory() {
   static FileFormatFactory<TopologyReader> _TopReaderFactory;
   return _TopReaderFactory;
 }
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_TOPOLOGYREADER_H
+#endif  // _VOTCA_CSG_TOPOLOGYREADER_H

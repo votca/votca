@@ -27,13 +27,13 @@ namespace votca {
 namespace csg {
 
 class NBListGrid_3Body : public NBList_3Body {
-public:
+ public:
   void Generate(BeadList &list1, BeadList &list2, BeadList &list3,
                 bool do_exclusions = true);
   void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
   void Generate(BeadList &list, bool do_exclusions = true);
 
-protected:
+ protected:
   struct cell_t {
     BeadList _beads1;
     BeadList _beads2;
@@ -56,12 +56,13 @@ protected:
   void TestBead(cell_t &cell, Bead *bead);
 };
 
-inline NBListGrid_3Body::cell_t &
-NBListGrid_3Body::getCell(const int &a, const int &b, const int &c) {
+inline NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const int &a,
+                                                           const int &b,
+                                                           const int &c) {
   return _grid[a + _box_Na * b + _box_Na * _box_Nb * c];
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_NBLISTGRID_3BODY_H */
