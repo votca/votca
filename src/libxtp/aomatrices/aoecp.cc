@@ -551,10 +551,7 @@ namespace votca { namespace xtp {
                         }
 
                         if (lmin_dft_ecp > 3) {
-
-                             std::cerr << "Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4." << std::endl;
-                             exit(1);
-
+                            throw std::runtime_error("Sorry, not yet supported: Combination of G functions in DFT basis and ECPs with l = 4.");
                         }
 
                     }

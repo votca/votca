@@ -798,12 +798,12 @@ void DFTEngine::Prepare() {
       }
 
       double E_ext=0;
-      for (const QMAtom& atom:_orbitals.QMAtoms()){
+      /*for (const QMAtom& atom:_orbitals.QMAtoms()){
           StaticSite nucleus=StaticSite(atom,atom.getNuccharge());
           for (const std::unique_ptr<StaticSite>&  site : *_externalsites) {
                   ;
           }
-      }
+      }*/
       return E_ext;
     }
 

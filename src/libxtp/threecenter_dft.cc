@@ -36,7 +36,7 @@ namespace votca {
         try {
           _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
         } catch (std::bad_alloc& ba) {
-          throw std::runtime_error("Basisset/aux basis too large for 3c calculation. Not enough RAM.");
+          throw std::runtime_error( "Basisset/aux basis too large for 3c calculation. Not enough RAM."); 
         }
 
       }

@@ -191,8 +191,7 @@ void AOBasis::addTrafoCartShell( const AOShell& shell , Eigen::Block<Eigen::Matr
         local(8,7) = 1.0;              // dxy
      }
     if ( lmax > 2 ){
-        std::cerr << " Gaussian input with f- functions or higher not yet supported!" << std::endl;
-        exit(1);
+        throw std::runtime_error(" Gaussian input with f- functions or higher not yet supported!"); 
     }
     // now copy to _trafo
     for ( int i_sph = 0 ; i_sph < NumFuncShell( type ) ; i_sph++ ){

@@ -141,7 +141,7 @@ namespace votca {
 
             if (exc_lambda > int(TransitionDipoles.size())) {
                 XTP_LOG(logDEBUG, _log) << " Transition dipoles for some excitations missing! " << std::flush;
-                exit(1);
+                exc_lambda= int(TransitionDipoles.size());
             }
 
             XTP_LOG(logDEBUG, _log) << " Considering " << n_exc 

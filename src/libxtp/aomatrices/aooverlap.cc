@@ -42,8 +42,7 @@ namespace votca {
             int ncols = this->getBlockSize(lmax_col);
 
             if (lmax_col > 6 || lmax_row > 6) {
-                std::cerr << "Orbitals higher than i are not yet implemented. This should not have happened!" << std::flush;
-                exit(1);
+                throw std::runtime_error("Orbitals higher than i are not yet implemented. This should not have happened!");
             }
 
             /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION

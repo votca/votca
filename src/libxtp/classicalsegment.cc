@@ -20,6 +20,7 @@
 #include <votca/tools/elements.h>
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/atomcontainer.h"
+#include <boost/format.hpp>
 
 
 namespace votca { namespace xtp {

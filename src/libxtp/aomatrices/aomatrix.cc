@@ -371,13 +371,11 @@ namespace votca {
             const int mm = FmU.size() - 1;
             const double pi = boost::math::constants::pi<double>();
             if (mm < 0) {
-                std::cerr << "mm is: " << mm << " This should not have happened!" << std::flush;
-                exit(1);
+                throw std::runtime_error("mm is: " +std::to_string(mm)+ " This should not have happened!");
             }
 
             if (U < 0.0) {
-                std::cerr << "U is: " << U << " This should not have happened!" << std::flush;
-                exit(1);
+                 throw std::runtime_error("U is: "+std::to_string(U)+ " This should not have happened!");
             }
 
             if (U >= 10.0) {
