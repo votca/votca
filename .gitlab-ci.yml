@@ -41,6 +41,7 @@ stages:
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
     - sudo make install
+    - if [[ ${CLANG_FORMAT} ]]; then make format && git diff --submodule=diff --exit-code; fi
     - ccache -s
 
 Debug GCC:
@@ -49,6 +50,7 @@ Debug GCC:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    CLANG_FORMAT: "yes"
   extends: .build
 
 None GCC:
