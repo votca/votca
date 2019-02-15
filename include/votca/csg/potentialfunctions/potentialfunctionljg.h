@@ -24,7 +24,7 @@ namespace csg {
 // LJ 12-6 potential class
 // with c12,c6 parameters
 class PotentialFunctionLJG : public PotentialFunction {
-public:
+ public:
   PotentialFunctionLJG(const std::string &name_, const double min_ = 0.0,
                        const double max_ = 10.0);
   ~PotentialFunctionLJG(){};
@@ -35,6 +35,6 @@ public:
   // calculate second derivative w.r.t. ith parameter
   double CalculateD2F(const int i, const int j, const double r) const;
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 #endif /* POTFUNCTION_LJG_H */

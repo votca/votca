@@ -37,7 +37,7 @@ namespace csg {
 
 */
 class XYZReader : public TrajectoryReader, public TopologyReader {
-public:
+ public:
   XYZReader() {}
   ~XYZReader() {}
 
@@ -51,7 +51,8 @@ public:
   /// read in the next frame
   bool NextFrame(Topology &top);
 
-  template <class T> void ReadFile(T &container) {
+  template <class T>
+  void ReadFile(T &container) {
     if (!ReadFrame<true, T>(container)) {
       throw std::runtime_error("Reading xyz file failed");
     }
@@ -59,8 +60,9 @@ public:
 
   void Close();
 
-private:
-  template <class T> int getContainerSize(T &container) {
+ private:
+  template <class T>
+  int getContainerSize(T &container) {
     return container.size();
   }
 
@@ -90,7 +92,8 @@ private:
     b->setPos(posnm);
   }
 
-  template <bool topology, class T> bool ReadFrame(T &container);
+  template <bool topology, class T>
+  bool ReadFrame(T &container);
 
   std::ifstream _fl;
 
@@ -108,8 +111,9 @@ inline bool XYZReader::ReadFrame(T &container) {
     std::vector<std::string> line1;
     tok1.ToVector(line1);
     if (line1.size() != 1) {
-      throw std::runtime_error("First line of xyz file should contain number "
-                               "of atoms/beads, nothing else.");
+      throw std::runtime_error(
+          "First line of xyz file should contain number "
+          "of atoms/beads, nothing else.");
     }
     int natoms = boost::lexical_cast<int>(line1[0]);
     if (!topology && natoms != getContainerSize(container)) {
@@ -143,7 +147,7 @@ inline bool XYZReader::ReadFrame(T &container) {
   }
   return !_fl.eof();
 }
-}
-}
+}  // namespace csg
+}  // namespace votca
 
 #endif

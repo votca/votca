@@ -20,10 +20,10 @@
 #define BOOST_TEST_MODULE beadmotifalgorithms_test
 #include <boost/test/unit_test.hpp>
 #include <votca/csg/basebead.h>
-#include <votca/csg/beadmotif.h>           // IWYU pragma: keep
-#include <votca/csg/beadmotifalgorithms.h> // IWYU pragma: keep
+#include <votca/csg/beadmotif.h>            // IWYU pragma: keep
+#include <votca/csg/beadmotifalgorithms.h>  // IWYU pragma: keep
 #include <votca/csg/beadmotifconnector.h>
-#include <votca/csg/beadstructure.h> // IWYU pragma: keep
+#include <votca/csg/beadstructure.h>  // IWYU pragma: keep
 #include <votca/tools/edge.h>
 
 using namespace std;
@@ -31,7 +31,7 @@ using namespace votca::tools;
 using namespace votca::csg;
 
 class TestBead : public BaseBead {
-public:
+ public:
   TestBead() : BaseBead(){};
 };
 
@@ -287,14 +287,10 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
 
   vector<bool> found_edges(4, false);
   for (Edge &edge : bead_edges) {
-    if (edge == ed1_2)
-      found_edges.at(0) = true;
-    if (edge == ed3_2)
-      found_edges.at(1) = true;
-    if (edge == ed4_2)
-      found_edges.at(2) = true;
-    if (edge == ed5_2)
-      found_edges.at(3) = true;
+    if (edge == ed1_2) found_edges.at(0) = true;
+    if (edge == ed3_2) found_edges.at(1) = true;
+    if (edge == ed4_2) found_edges.at(2) = true;
+    if (edge == ed5_2) found_edges.at(3) = true;
   }
   for (const bool &found : found_edges) {
     BOOST_CHECK(found);
@@ -540,12 +536,9 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
 
   vector<bool> found_edge(3, false);
   for (Edge &edge : bead_edges) {
-    if (edge == ed4_5)
-      found_edge.at(0) = true;
-    if (edge == ed5_6)
-      found_edge.at(1) = true;
-    if (edge == ed7_11)
-      found_edge.at(2) = true;
+    if (edge == ed4_5) found_edge.at(0) = true;
+    if (edge == ed5_6) found_edge.at(1) = true;
+    if (edge == ed7_11) found_edge.at(2) = true;
   }
 
   for (const bool &found : found_edge) {

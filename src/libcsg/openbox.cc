@@ -27,5 +27,5 @@ vec OpenBox::BCShortestConnection(const vec &r_i, const vec &r_j) const {
   return r_ij;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

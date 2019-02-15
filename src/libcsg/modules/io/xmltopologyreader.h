@@ -30,7 +30,7 @@ namespace csg {
 namespace TOOLS = votca::tools;
 
 class BondBead {
-public:
+ public:
   BondBead(std::string &line) {
     TOOLS::Tokenizer tok(line, ":");
     std::vector<std::string> tmp_vec;
@@ -48,7 +48,7 @@ public:
 };
 
 class XMLBead {
-public:
+ public:
   XMLBead(std::string _name, std::string _type, double _mass = 1.0,
           double _q = 0.0)
       : name(_name), type(_type), mass(_mass), q(_q){};
@@ -62,7 +62,7 @@ public:
 };
 
 class XMLMolecule {
-public:
+ public:
   XMLMolecule(std::string _name, int _nmols) : name(_name), nmols(_nmols) {}
   std::string name;
   int nmols;
@@ -80,12 +80,12 @@ public:
  *
  */
 class XMLTopologyReader : public TopologyReader {
-public:
+ public:
   /// read a topology file
   bool ReadTopology(std::string file, Topology &top);
   ~XMLTopologyReader();
 
-private:
+ private:
   typedef boost::unordered_multimap<std::string, XMLMolecule *> MoleculesMap;
 
   void ReadTopolFile(std::string file);
@@ -100,7 +100,7 @@ private:
   void ParseAngle(Property &p);
   void ParseDihedral(Property &p);
 
-private:
+ private:
   ParseXML _parser;
 
   Topology *_top;
@@ -111,7 +111,7 @@ private:
   bool _has_base_topology;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _PDBTOPOLOGYREADER_H */

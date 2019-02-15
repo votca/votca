@@ -35,18 +35,18 @@ namespace votca {
 namespace csg {
 
 class GMXTrajectoryWriter : public TrajectoryWriter {
-public:
+ public:
   GMXTrajectoryWriter() {}
 
   void Open(std::string file, bool bAppend = false);
   void Close();
   void Write(Topology *conf);
 
-private:
+ private:
   t_trxstatus *_file;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _GMXTRAJECTORYWRITER_H */

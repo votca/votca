@@ -47,7 +47,7 @@ using namespace votca::tools;
  * \todo make sure bead belongs to topology
  **/
 class Bead : public BaseBead {
-public:
+ public:
   /**
    * destructor
    */
@@ -292,7 +292,7 @@ public:
     parent_beads_.push_back(parent_bead_id);
   }
 
-protected:
+ protected:
   std::vector<int> parent_beads_;
 
   // TODO: this is so far a pointer. this should change! each bead should have
@@ -395,7 +395,7 @@ inline void Bead::HasU(bool b) { bU_ = b; }
 inline void Bead::HasV(bool b) { bV_ = b; }
 
 inline void Bead::HasW(bool b) { bW_ = b; }
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_BEAD_H
+#endif  // _VOTCA_CSG_BEAD_H

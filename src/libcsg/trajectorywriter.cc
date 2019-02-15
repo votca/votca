@@ -49,5 +49,5 @@ void TrajectoryWriter::RegisterPlugins() {
 #endif
   TrjWriterFactory().Register<GROWriter>("gro");
 }
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

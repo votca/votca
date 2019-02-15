@@ -36,19 +36,16 @@ void StdAnalysis::Register(map<string, AnalysisTool *> &lib) {
 
 void StdAnalysis::Command(BondedStatistics &bs, string cmd,
                           vector<string> &args) {
-  if (cmd == "vals")
-    WriteValues(bs, args);
-  if (cmd == "cor")
-    WriteCorrelations(bs, args);
-  if (cmd == "autocor")
-    WriteAutocorrelation(bs, args);
+  if (cmd == "vals") WriteValues(bs, args);
+  if (cmd == "cor") WriteCorrelations(bs, args);
+  if (cmd == "autocor") WriteAutocorrelation(bs, args);
   if (cmd == "list") {
     DataCollection<double>::selection *sel = bs.BondedValues().select("*");
     DataCollection<double>::selection::iterator i;
     cout << "Available bonded interactions:" << endl;
     for (i = sel->begin(); i != sel->end(); ++i)
       cout << (*i)->getName()
-           << " "; // << "[" << (*i).second->size() << "]" << " ";
+           << " ";  // << "[" << (*i).second->size() << "]" << " ";
     cout << endl;
     delete sel;
   }
@@ -134,5 +131,5 @@ void StdAnalysis::WriteCorrelations(BondedStatistics &bs,
   delete sel;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

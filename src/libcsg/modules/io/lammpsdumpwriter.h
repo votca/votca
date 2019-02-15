@@ -26,7 +26,7 @@ namespace votca {
 namespace csg {
 
 class LAMMPSDumpWriter : public TrajectoryWriter {
-public:
+ public:
   void Open(std::string file, bool bAppend = false);
   void Close();
 
@@ -34,11 +34,11 @@ public:
 
   void Write(Topology *conf);
 
-private:
+ private:
   FILE *_out;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // __VOTCA_CSG_LAMMPSDUMPWRITER_H
+#endif  // __VOTCA_CSG_LAMMPSDUMPWRITER_H

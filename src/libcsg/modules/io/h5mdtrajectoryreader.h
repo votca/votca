@@ -28,7 +28,7 @@
 
 #include "hdf5.h"
 
-namespace votca { // NOLINT
+namespace votca {  // NOLINT
 namespace csg {
 
 /**
@@ -41,7 +41,7 @@ namespace csg {
    available here: http://nongnu.org/h5md/
 */
 class H5MDTrajectoryReader : public TrajectoryReader {
-public:
+ public:
   H5MDTrajectoryReader();
   ~H5MDTrajectoryReader();
 
@@ -52,15 +52,15 @@ public:
   void Initialize(Topology &top);
 
   /// Reads in the first frame.
-  bool FirstFrame(Topology &conf); // NOLINT
+  bool FirstFrame(Topology &conf);  // NOLINT
 
   /// Reads in the next frame.
-  bool NextFrame(Topology &conf); // NOLINT
+  bool NextFrame(Topology &conf);  // NOLINT
 
   /// Closes original trajectory file.
   void Close();
 
-private:
+ private:
   enum DatasetState { NONE, STATIC, TIMEDEPENDENT };
 
   /// Reads dataset that contains vectors.
@@ -129,8 +129,7 @@ private:
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
     herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
-    if (status < 0)
-      return false;
+    if (status < 0) return false;
     return info.type == H5G_GROUP;
   }
 
@@ -174,7 +173,7 @@ private:
   matrix m;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
+#endif  // SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_

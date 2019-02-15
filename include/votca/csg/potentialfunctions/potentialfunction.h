@@ -24,7 +24,7 @@
 namespace votca {
 namespace csg {
 class PotentialFunction {
-public:
+ public:
   virtual ~PotentialFunction() {}
   // read parameters from the input file
   virtual void setParam(std::string filename);
@@ -66,7 +66,7 @@ public:
   double getCutOff() const { return _cut_off; }
   double getMinDist() const { return _min; }
 
-protected:
+ protected:
   PotentialFunction(const std::string &name_, const int nlam_,
                     const double min_, const double max_);
 
@@ -75,6 +75,6 @@ protected:
   double _cut_off;
   double _min;
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 #endif

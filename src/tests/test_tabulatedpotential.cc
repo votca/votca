@@ -144,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     bonded_statistics.BeginCG(&top, nullptr);
     bonded_statistics.EvalConfiguration(&top, nullptr);
-  } // End of setup
+  }  // End of setup
 
   DataCollection<double> &bonded_values = bonded_statistics.BondedValues();
   cout << "bonded_values after pulling out of statistics "
@@ -182,7 +182,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
-  } // End of Test 1
+  }  // End of Test 1
 
   // Test 2
   {
@@ -214,7 +214,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
-  } // End of Test 2
+  }  // End of Test 2
 
   // Test 3
   {
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
-  } // End of Test 3
+  }  // End of Test 3
 
   // Test 4
   {
@@ -276,7 +276,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 4
+  }  // End of Test 4
 
   // Test 5
   {
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 5
+  }  // End of Test 5
 
   // Test 6
   {
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
-  } // End of Test 6
+  }  // End of Test 6
 
   // Test 7
   {
@@ -365,7 +365,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 7
+  }  // End of Test 7
 
   // Test 8
   {
@@ -393,7 +393,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
     BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 8
+  }  // End of Test 8
 
   top.Cleanup();
 }

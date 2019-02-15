@@ -39,7 +39,7 @@ void GROWriter::Write(Topology *conf) {
   fprintf(_out, "%5d\n", top->BeadCount());
 
   bool v = top->HasVel();
-  int pr = 3; // precision of writeout, given by the spec
+  int pr = 3;  // precision of writeout, given by the spec
 
   /* build format string for printing,
      something like "%8.3f" for x and "%8.4f" for v */
@@ -77,14 +77,14 @@ void GROWriter::Write(Topology *conf) {
   // write the boy
   matrix box = conf->getBox();
 
-  if (pr < 5)
-    pr = 5;
+  if (pr < 5) pr = 5;
   l = pr + 5;
 
   if (box[0][1] || box[0][2] || box[1][0] || box[1][2] || box[2][0] ||
       box[2][1]) {
-    sprintf(format, "%%%d.%df%%%d.%df%%%d.%df"
-                    "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n",
+    sprintf(format,
+            "%%%d.%df%%%d.%df%%%d.%df"
+            "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n",
             l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr);
     fprintf(_out, format, box[0][0], box[1][1], box[2][2], box[1][0], box[2][0],
             box[0][1], box[2][1], box[0][2], box[1][2]);
@@ -95,5 +95,5 @@ void GROWriter::Write(Topology *conf) {
   fflush(_out);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

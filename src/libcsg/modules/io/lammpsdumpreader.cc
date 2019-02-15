@@ -107,8 +107,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
     Tokenizer tok(s, " ");
     vector<double> v;
     tok.ConvertToVector(v);
-    if (v.size() != 2)
-      throw std::ios_base::failure("invalid box format");
+    if (v.size() != 2) throw std::ios_base::failure("invalid box format");
     m[i][i] = v[1] - v[0];
   }
   top.setBox(m);
@@ -234,5 +233,5 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

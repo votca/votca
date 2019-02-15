@@ -30,7 +30,7 @@ namespace csg {
  */
 
 class BeadPair : public std::pair<Bead *, Bead *> {
-public:
+ public:
   BeadPair() {}
   BeadPair(Bead *bead1, Bead *bead2, tools::vec r)
       : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
@@ -42,12 +42,12 @@ public:
   /// \brief the distance of the beads
   double &dist() { return _dist; }
 
-protected:
+ protected:
   tools::vec _r;
   double _dist;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_BEADPAIR_H */

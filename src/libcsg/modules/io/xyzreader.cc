@@ -15,60 +15,47 @@
  *
  */
 
-#include <vector>
 #include <boost/lexical_cast.hpp>
-#include <votca/tools/getline.h>
+#include <vector>
 #include <votca/csg/xyzreader.h>
-namespace votca { namespace csg {
-    using namespace boost;
+#include <votca/tools/getline.h>
+namespace votca {
+namespace csg {
+using namespace boost;
 using namespace std;
 
-bool XYZReader::ReadTopology(string file,  Topology &top)
-{
-    top.Cleanup();
+bool XYZReader::ReadTopology(string file, Topology &top) {
+  top.Cleanup();
 
-   _fl.open(file.c_str());
-    if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open topology file: " + file);
+  _fl.open(file.c_str());
+  if (!_fl.is_open())
+    throw std::ios_base::failure("Error on open topology file: " + file);
 
-    top.CreateResidue("DUM");
+  top.CreateResidue("DUM");
 
-   ReadFrame<true,Topology>(top);
+  ReadFrame<true, Topology>(top);
 
-    _fl.close();
+  _fl.close();
 
-    return true;
+  return true;
 }
 
-bool XYZReader::Open(const string &file)
-{
-    _fl.open(file.c_str());
-    if(!_fl.is_open())
-        throw std::ios_base::failure("Error on open trajectory file: " + file);
-    _line = 0;
-    return true;
+bool XYZReader::Open(const string &file) {
+  _fl.open(file.c_str());
+  if (!_fl.is_open())
+    throw std::ios_base::failure("Error on open trajectory file: " + file);
+  _line = 0;
+  return true;
 }
 
-void XYZReader::Close()
-{
-    _fl.close();
+void XYZReader::Close() { _fl.close(); }
+
+bool XYZReader::FirstFrame(Topology &top) { return NextFrame(top); }
+
+bool XYZReader::NextFrame(Topology &top) {
+  bool success = ReadFrame<false, Topology>(top);
+  return success;
 }
 
-bool XYZReader::FirstFrame(Topology &top)
-{
-    return NextFrame(top);
-}
-
-bool XYZReader::NextFrame(Topology& top){
-    bool success=ReadFrame<false,Topology>(top);
-    return success;
-}
-
-
-
-
-
-
-
-}}
-
+}  // namespace csg
+}  // namespace votca

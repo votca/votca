@@ -71,5 +71,5 @@ void HelpTextHeader(const std::string &tool_name) {
             << "\n\n";
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

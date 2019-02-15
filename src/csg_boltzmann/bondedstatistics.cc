@@ -45,5 +45,5 @@ void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom) {
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

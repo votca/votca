@@ -24,8 +24,9 @@
 namespace votca {
 namespace csg {
 
-template <typename element_type, typename triple_type> class TripleList {
-public:
+template <typename element_type, typename triple_type>
+class TripleList {
+ public:
   TripleList() {}
   virtual ~TripleList() { Cleanup(); }
 
@@ -49,7 +50,7 @@ public:
   typedef element_type element_t;
   typedef triple_type triple_t;
 
-private:
+ private:
   std::vector<triple_type *> _triples;
 
   std::map<element_type,
@@ -84,24 +85,21 @@ inline triple_type *TripleList<element_type, triple_type>::FindTriple(
       std::map<element_type, std::map<element_type, triple_type *>>>::iterator
       iter1;
   iter1 = _triple_map.find(e1);
-  if (iter1 == _triple_map.end())
-    return NULL;
+  if (iter1 == _triple_map.end()) return NULL;
 
   typename std::map<element_type,
                     std::map<element_type, triple_type *>>::iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end())
-    return NULL;
+  if (iter2 == iter1->second.end()) return NULL;
 
   typename std::map<element_type, triple_type *>::iterator iter3;
   iter3 = iter2->second.find(e3);
-  if (iter3 == iter2->second.end())
-    return NULL;
+  if (iter3 == iter2->second.end()) return NULL;
 
   return iter3->second;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_TRIPLELIST_H */

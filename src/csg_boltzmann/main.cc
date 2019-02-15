@@ -36,7 +36,7 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgBoltzmann : public CsgApplication {
-public:
+ public:
   string ProgramName() { return "csg_boltzmann"; }
   void HelpText(ostream &out) {
     out << "Performs tasks that are needed for simple boltzmann\n"
@@ -52,7 +52,7 @@ public:
   void InteractiveMode();
   bool EvaluateTopology(Topology *top, Topology *top_ref);
 
-protected:
+ protected:
   ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg);
   BondedStatistics _bs;
 };
@@ -147,8 +147,7 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
 
 void CsgBoltzmann::Run() {
   CsgApplication::Run();
-  if (OptionsMap().count("excl"))
-    return;
+  if (OptionsMap().count("excl")) return;
   InteractiveMode();
 }
 
@@ -184,14 +183,12 @@ void CsgBoltzmann::InteractiveMode() {
     Tokenizer tok(line, " \t");
     tok.ToVector(args);
 
-    if (args.size() == 0)
-      continue;
+    if (args.size() == 0) continue;
 
     string cmd = args.front();
     args.erase(args.begin());
 
-    if (cmd == "q")
-      break;
+    if (cmd == "q") break;
 
     std::map<string, AnalysisTool *>::iterator tool;
     if (cmd == "help") {

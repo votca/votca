@@ -55,8 +55,7 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
   frame.bV = conf->HasVel();
 
   for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      frame.box[j][i] = box[i][j];
+    for (int j = 0; j < 3; j++) frame.box[j][i] = box[i][j];
 
   for (int i = 0; i < N; ++i) {
     vec pos = conf->getBead(i)->getPos();
@@ -90,11 +89,9 @@ void GMXTrajectoryWriter::Write(Topology *conf) {
 
   step++;
   delete[] x;
-  if (frame.bV)
-    delete[] v;
-  if (frame.bF)
-    delete[] f;
+  if (frame.bV) delete[] v;
+  if (frame.bF) delete[] f;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

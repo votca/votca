@@ -26,7 +26,7 @@ namespace votca {
 namespace csg {
 
 class PotentialFunctionCBSPL : public PotentialFunction {
-public:
+ public:
   PotentialFunctionCBSPL(const std::string &name_, const int nlam_,
                          const double min_ = 0.0, const double max_ = 10.0);
   ~PotentialFunctionCBSPL() {}
@@ -53,7 +53,7 @@ public:
 
   void extrapolExclParam();
 
-protected:
+ protected:
   // exclude these many first coefficients from optimization
   // since the region relevant to these coefficients is not sampled
   // the value of _nexcl is determined from rmin
@@ -68,6 +68,6 @@ protected:
 
   Eigen::MatrixXd _M;
 };
-}
-}
+}  // namespace csg
+}  // namespace votca
 #endif

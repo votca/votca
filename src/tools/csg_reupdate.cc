@@ -50,14 +50,17 @@ void CsgREupdate::Initialize() {
                          " [OPTIONAL] generate potential tables only for the "
                          "specified interactions, \n"
                          " only valid when 'gentable' is true")(
-      "param-in-ext", boost::program_options::value<string>(&_param_in_ext)
-                          ->default_value("param.cur"),
+      "param-in-ext",
+      boost::program_options::value<string>(&_param_in_ext)
+          ->default_value("param.cur"),
       "  Extension of the input parameter tables")(
-      "param-out-ext", boost::program_options::value<string>(&_param_out_ext)
-                           ->default_value("param.new"),
+      "param-out-ext",
+      boost::program_options::value<string>(&_param_out_ext)
+          ->default_value("param.new"),
       "  Extension of the output parameter tables")(
-      "pot-out-ext", boost::program_options::value<string>(&_pot_out_ext)
-                         ->default_value("pot.new"),
+      "pot-out-ext",
+      boost::program_options::value<string>(&_pot_out_ext)
+          ->default_value("pot.new"),
       "  Extension of the output potential tables")(
       "hessian-check",
       boost::program_options::value<bool>(&_hessian_check)->default_value(true),
@@ -134,8 +137,9 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
     cout << "We have " << i->potentialName << " CG potential" << endl;
     cout << "\t \t Between beads " << i->type1 << "-" << i->type2 << endl;
     cout << "\t \t With Function form " << i->potentialFunction << endl;
-    cout << "\t \t And " << i->ucg->getOptParamSize() << " parameters to "
-                                                         "optimize"
+    cout << "\t \t And " << i->ucg->getOptParamSize()
+         << " parameters to "
+            "optimize"
          << endl;
     cout << "Potential range:" << endl;
     cout << "\t \t rmin    = " << i->rmin << " [nm]" << endl;
@@ -163,14 +167,14 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
       int lamda_i = row - pos_start;
       _lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
 
-    } // end row loop
+    }  // end row loop
 
-  } // end potiter loop
+  }  // end potiter loop
 
   _DS = Eigen::VectorXd::Zero(_nlamda);
   _HS = Eigen::MatrixXd::Zero(_nlamda, _nlamda);
   _dUFrame = Eigen::VectorXd::Zero(_nlamda);
-  _nframes = 0.0; // no frames processed yet!
+  _nframes = 0.0;  // no frames processed yet!
 
   // set Temperature
   _beta = (1.0 / _options.get("cg.inverse.kBT").as<double>());
@@ -205,8 +209,7 @@ void CsgREupdate::Run() {
         tok.ToVector(vtok);
         vector<string>::iterator vtok_iter =
             find(vtok.begin(), vtok.end(), name);
-        if (vtok_iter == vtok.end())
-          continue;
+        if (vtok_iter == vtok.end()) continue;
       }
 
       PotentialInfo *i = new PotentialInfo(_potentials.size(), false, _nlamda,
@@ -287,9 +290,9 @@ void CsgREupdate::REFormulateLinEq() {
       _HS(col, row) += (-1.0 * _DS(row) * _DS(col));
       // since at this step _DS(i) = -beta*<dU/dlamda_i>cg
 
-    } // end loop over col
+    }  // end loop over col
 
-  } // end loop over row
+  }  // end loop over row
 
   /* adding 1st term (i.e. aa ensemble avg) of eq. 51 to _DS
    * and of eq. 52 to _DH
@@ -309,8 +312,8 @@ void CsgREupdate::REFormulateLinEq() {
 void CsgREupdate::REUpdateLamda() {
 
   // first solve _HS dx = -_DS
-  Eigen::LLT<Eigen::MatrixXd> cholesky(_HS); // compute the Cholesky
-                                             // decomposition of _HS
+  Eigen::LLT<Eigen::MatrixXd> cholesky(_HS);  // compute the Cholesky
+                                              // decomposition of _HS
   Eigen::VectorXd dlamda = cholesky.solve(-_DS);
   if (cholesky.info() == Eigen::ComputationInfo::NumericalIssue) {
 
@@ -362,9 +365,9 @@ void CsgREupdate::REUpdateLamda() {
       int lamda_i = row - pos_start;
       (*potiter)->ucg->setOptParam(lamda_i, _lamda(row));
 
-    } // end row loop
+    }  // end row loop
 
-  } // end potiter loop
+  }  // end potiter loop
 }
 
 // do non bonded potential AA ensemble avg energy computations
@@ -391,8 +394,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
     double n_hist = _aardfs[indx]->y(bin) * (*_aardfnorms[indx]) *
                     (4. / 3. * M_PI * (r2 * r2 * r2 - r1 * r1 * r1));
 
-    if (n_hist > 0.0)
-      U += n_hist * potinfo->ucg->CalculateF(r_hist);
+    if (n_hist > 0.0) U += n_hist * potinfo->ucg->CalculateF(r_hist);
   }
 
   _UavgAA += U;
@@ -417,7 +419,7 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
       if (n_hist > 0.0)
         dU_i += n_hist * potinfo->ucg->CalculateDF(lamda_i, r_hist);
 
-    } // end loop over hist
+    }  // end loop over hist
 
     _DS(row) += (_beta * dU_i);
 
@@ -440,14 +442,14 @@ void CsgREupdate::AAavgNonbonded(PotentialInfo *potinfo) {
           d2U_ij +=
               n_hist * potinfo->ucg->CalculateD2F(lamda_i, lamda_j, r_hist);
 
-      } // end loop pair_iter
+      }  // end loop pair_iter
 
       _HS(row, col) += (_beta * d2U_ij);
       _HS(col, row) += (_beta * d2U_ij);
 
-    } // end loop col
+    }  // end loop col
 
-  } // end loop row
+  }  // end loop row
 }
 
 // do bonded potential AA ensemble avg energy computations
@@ -488,14 +490,14 @@ CsgApplication::Worker *CsgREupdate::ForkWorker() {
       int lamda_i = row - pos_start;
       worker->_lamda(row) = (*potiter)->ucg->getOptParam(lamda_i);
 
-    } // end row loop
+    }  // end row loop
 
-  } // end potiter loop
+  }  // end potiter loop
 
   worker->_DS = Eigen::VectorXd::Zero(worker->_nlamda);
   worker->_HS = Eigen::MatrixXd::Zero(worker->_nlamda, worker->_nlamda);
   worker->_dUFrame = Eigen::VectorXd::Zero(worker->_nlamda);
-  worker->_nframes = 0.0; // no frames processed yet!
+  worker->_nframes = 0.0;  // no frames processed yet!
   // set Temperature
   worker->_beta = (1.0 / worker->_options.get("cg.inverse.kBT").as<double>());
   worker->_UavgCG = 0.0;
@@ -595,9 +597,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
   nb->setCutoff(potinfo->ucg->getCutOff());
 
-  if (potinfo->type1 == potinfo->type2) // same beads
+  if (potinfo->type1 == potinfo->type2)  // same beads
     nb->Generate(beads1, true);
-  else // different beads
+  else  // different beads
     nb->Generate(beads1, beads2, true);
 
   NBList::iterator pair_iter;
@@ -636,9 +638,9 @@ void CsgREupdateWorker::EvalNonbonded(Topology *conf, PotentialInfo *potinfo) {
 
       _HS(row, col) += (-1.0 * _beta * d2U_ij);
       _HS(col, row) += (-1.0 * _beta * d2U_ij);
-    } // end loop col
+    }  // end loop col
 
-  } // end loop row
+  }  // end loop row
 
   delete nb;
 }

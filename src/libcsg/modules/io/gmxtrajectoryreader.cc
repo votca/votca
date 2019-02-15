@@ -43,8 +43,7 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
 
   matrix m;
   for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      m[i][j] = _gmx_frame.box[j][i];
+    for (int j = 0; j < 3; j++) m[i][j] = _gmx_frame.box[j][i];
   conf.setBox(m);
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
@@ -78,14 +77,12 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
 bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   gmx_output_env_t *oenv;
   output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
-  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame))
-    return false;
+  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) return false;
   output_env_done(oenv);
 
   matrix m;
   for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      m[i][j] = _gmx_frame.box[j][i];
+    for (int j = 0; j < 3; j++) m[i][j] = _gmx_frame.box[j][i];
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
   conf.setBox(m);
@@ -110,5 +107,5 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   return true;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
