@@ -404,3 +404,12 @@ in place of **pcc64le**. You could also replace the **epel-7-ppc64le** os-archit
 if you simply want to build natively for instance if you are running fedora on
 an **x86_64** machine the `frocearch pcc64le` in the above case could just be
 dropped. 
+
+
+## Units in VOTCA
+
+VOTCA tried as much as possible to standarize units across both CSG and XTP. Internally we use:
+
+- nm for molecular dynamics and coarse grained positions. Bohr is used for quantum mechanical and electrostatic coordinates in XTP
+- energies are ?? in CSG and Hartree in XTP
+- time is in seconds
