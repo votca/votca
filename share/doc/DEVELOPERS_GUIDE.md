@@ -14,6 +14,7 @@
  - [Updating Git Submodules](#updating-git-submodules)
  - [Merging With Stable](#merging-with-stable)
  - [Failed Release Builds](#failed-release-builds)
+ - [Units in VOTCA](#units-in-votca)
  
 ## Reporting Bugs
 
@@ -410,6 +411,6 @@ dropped.
 
 VOTCA tried as much as possible to standarize units across both CSG and XTP. Internally we use:
 
-- nm for molecular dynamics and coarse grained positions. Bohr is used for quantum mechanical and electrostatic coordinates in XTP
-- energies are ?? in CSG and Hartree in XTP
-- time is in seconds
+- `nm` for molecular dynamics and coarse grained positions. `Bohr` is used for quantum mechanical and electrostatic coordinates in XTP
+- energies are ?? in CSG and `Hartree` in XTP
+- time is in `seconds`
