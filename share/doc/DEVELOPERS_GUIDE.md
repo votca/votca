@@ -15,6 +15,7 @@
  - [Merging With Stable](#merging-with-stable)
  - [Failed Release Builds](#failed-release-builds)
  - [Units in VOTCA](#units-in-votca)
+ - [Indexing in VOTCA](#indexing-in-votca)
  
 ## Reporting Bugs
 
@@ -414,3 +415,7 @@ VOTCA tried as much as possible to standarize units across both CSG and XTP. Int
 - `nm` for molecular dynamics and coarse grained positions. `Bohr` is used for quantum mechanical and electrostatic coordinates in XTP
 - energies are ?? in CSG and `Hartree` in XTP
 - time is in `seconds`
+
+## Indexing in VOTCA
+
+All indeces in VOTCA start at `0`. This is useful, because C++ arrays start at index 0.
