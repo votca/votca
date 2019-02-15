@@ -16,68 +16,64 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef __VOTCA_XTP_SEGMENT_TYPE_H
-#define	__VOTCA_XTP_SEGMENT_TYPE_H
+#define __VOTCA_XTP_SEGMENT_TYPE_H
 
 #include <string>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 class Topology;
 class Segment;
 
-class SegmentType
-{
-public:
-    
-    SegmentType() { }
-   ~SegmentType() { }
+class SegmentType {
+ public:
+  SegmentType() {}
+  ~SegmentType() {}
 
-    SegmentType(int typeId,                  std::string name,
-                std::string basis,                std::string orbFile,
-                std::string qmCoordsFile,         bool canRigidify)
-              : _id(typeId),                 _name(name),
-                _basisSetName(basis),        _orbitalsFile(orbFile),
-                _qmCoordsFile(qmCoordsFile), _canRigidify(canRigidify)
-              { };
+  SegmentType(int typeId, std::string name, std::string basis,
+              std::string orbFile, std::string qmCoordsFile, bool canRigidify)
+      : _id(typeId),
+        _name(name),
+        _basisSetName(basis),
+        _orbitalsFile(orbFile),
+        _qmCoordsFile(qmCoordsFile),
+        _canRigidify(canRigidify){};
 
-    SegmentType(int typeId, std::string name) : _id(typeId), _name(name) { };
+  SegmentType(int typeId, std::string name) : _id(typeId), _name(name){};
 
-    void setTopology(Topology *top) { _top = top; }
-    void setBasisName(const std::string &name) { _basisSetName = name; }
-    void setOrbitalsFile(const std::string &file) { _orbitalsFile = file; }
-    void setQMCoordsFile(const std::string &file) { _qmCoordsFile = file; }
-    void setCanRigidify(bool yesno) { _canRigidify = yesno; }
+  void setTopology(Topology *top) { _top = top; }
+  void setBasisName(const std::string &name) { _basisSetName = name; }
+  void setOrbitalsFile(const std::string &file) { _orbitalsFile = file; }
+  void setQMCoordsFile(const std::string &file) { _qmCoordsFile = file; }
+  void setCanRigidify(bool yesno) { _canRigidify = yesno; }
 
-    Topology     *getTopology() { return _top; }
-    const std::string &getName() { return _name; }
-    const int    &getId() { return _id; }
-    const std::string &getBasisName() { return _basisSetName; }
-    const std::string &getOrbitalsFile() { return _orbitalsFile; }
-    const std::string &getQMCoordsFile() { return _qmCoordsFile; }
-    const bool   &canRigidify() { return _canRigidify; }
+  Topology *getTopology() { return _top; }
+  const std::string &getName() { return _name; }
+  const int &getId() { return _id; }
+  const std::string &getBasisName() { return _basisSetName; }
+  const std::string &getOrbitalsFile() { return _orbitalsFile; }
+  const std::string &getQMCoordsFile() { return _qmCoordsFile; }
+  const bool &canRigidify() { return _canRigidify; }
 
+ private:
+  Topology *_top;
 
+  int _id;
+  std::string _name;
 
-private:
+  std::string _basisSetName;
+  std::string _orbitalsFile;
+  std::string _qmCoordsFile;
 
-    Topology*   _top;
-
-    int         _id;
-    std::string      _name;
-
-    std::string          _basisSetName;
-    std::string          _orbitalsFile;
-    std::string          _qmCoordsFile;
-
-    bool            _canRigidify;
-
-
+  bool _canRigidify;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* __VOTCA_XTP_SEGMENT_TYPE_H */
-
+#endif /* __VOTCA_XTP_SEGMENT_TYPE_H */

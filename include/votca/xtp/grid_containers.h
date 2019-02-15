@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -18,49 +18,40 @@
  */
 
 #ifndef __XTP_GRID_CONTAINERS__H
-#define	__XTP_GRID_CONTAINERS__H
+#define __XTP_GRID_CONTAINERS__H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/aobasis.h>
 
+namespace votca {
+namespace xtp {
 
+class GridContainers {
+ public:
+  // containers for radial grids per element
+  struct radial_grid {
+    Eigen::VectorXd radius;
+    Eigen::VectorXd weight;
+  };
 
-namespace votca { namespace xtp {
+  std::map<std::string, radial_grid> radial_grids;
 
-    
-    
-    
+  // containers for spherical grids on a unit sphere per element
+  struct spherical_grid {
+    Eigen::VectorXd theta;
+    Eigen::VectorXd phi;
+    Eigen::VectorXd weight;
+  };
 
-        class GridContainers {
-        public: 
-            
-            // containers for radial grids per element
-            struct radial_grid {
-               Eigen::VectorXd radius;
-               Eigen::VectorXd weight;
-            };
-       
-            std::map<std::string,radial_grid> radial_grids;
+  std::map<std::string, spherical_grid> spherical_grids;
 
-            // containers for spherical grids on a unit sphere per element
-            struct spherical_grid{
-                Eigen::VectorXd theta;
-                Eigen::VectorXd phi;
-                Eigen::VectorXd weight;
-            };
-            
-            std::map<std::string,spherical_grid> spherical_grids;
-            
-            // container for cartesian grid points and weights
-            struct Cartesian_gridpoint {
-                tools::vec grid_pos;//bohr
-                double grid_weight;
-            };
-            
-            
-            
+  // container for cartesian grid points and weights
+  struct Cartesian_gridpoint {
+    tools::vec grid_pos;  // bohr
+    double grid_weight;
+  };
+};
 
-        };
-
-    }}
-#endif	/* NUMERICAL_INTEGRATION_H */
+}  // namespace xtp
+}  // namespace votca
+#endif /* NUMERICAL_INTEGRATION_H */

@@ -17,118 +17,114 @@
  *
  */
 
-
-#include <votca/xtp/sqlapplication.h>
-#include <votca/xtp/calculatorfactory.h>
-#include <votca/xtp/version.h>
 #include <boost/format.hpp>
+#include <votca/xtp/calculatorfactory.h>
+#include <votca/xtp/sqlapplication.h>
+#include <votca/xtp/version.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-SqlApplication::SqlApplication() {
-    Calculatorfactory::RegisterAll();
-}
-
+SqlApplication::SqlApplication() { Calculatorfactory::RegisterAll(); }
 
 void SqlApplication::Initialize(void) {
-    XtpApplication::Initialize();
+  XtpApplication::Initialize();
 
-    Calculatorfactory::RegisterAll();
+  Calculatorfactory::RegisterAll();
 
-    namespace propt = boost::program_options;
+  namespace propt = boost::program_options;
 
-    AddProgramOptions() ("file,f", propt::value<string>(),
-        "  sqlight state file, *.sql");
-    AddProgramOptions() ("first-frame,i", propt::value<int>()->default_value(1),
-        "  start from this frame");
-    AddProgramOptions() ("nframes,n", propt::value<int>()->default_value(1),
-        "  number of frames to process");
-    AddProgramOptions() ("nthreads,t", propt::value<int>()->default_value(1),
-        "  number of threads to create");
-    AddProgramOptions() ("save,s", propt::value<int>()->default_value(1),
-        "  whether or not to save changes to state file");
+  AddProgramOptions()("file,f", propt::value<string>(),
+                      "  sqlight state file, *.sql");
+  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(1),
+                      "  start from this frame");
+  AddProgramOptions()("nframes,n", propt::value<int>()->default_value(1),
+                      "  number of frames to process");
+  AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
+                      "  number of threads to create");
+  AddProgramOptions()("save,s", propt::value<int>()->default_value(1),
+                      "  whether or not to save changes to state file");
 }
-
 
 bool SqlApplication::EvaluateOptions(void) {
-    CheckRequired("file", "Please provide the state file");
-    return true;
+  CheckRequired("file", "Please provide the state file");
+  return true;
 }
-
 
 void SqlApplication::Run() {
 
-    std::string name = ProgramName();
-    if (VersionString() != "") name = name + ", version " + VersionString();
-    votca::xtp::HelpTextHeader(name);
-    // EVALUATE OPTIONS
-    int nThreads = OptionsMap()["nthreads"].as<int>();
-    int nframes = OptionsMap()["nframes"].as<int>();
-    int fframe = OptionsMap()["first-frame"].as<int>();
-    if (fframe-- == 0) throw runtime_error("ERROR: First frame is 0, counting "
-                                           "in VOTCA::XTP starts from 1.");
-    int  save = OptionsMap()["save"].as<int>();
+  std::string name = ProgramName();
+  if (VersionString() != "") name = name + ", version " + VersionString();
+  votca::xtp::HelpTextHeader(name);
+  // EVALUATE OPTIONS
+  int nThreads = OptionsMap()["nthreads"].as<int>();
+  int nframes = OptionsMap()["nframes"].as<int>();
+  int fframe = OptionsMap()["first-frame"].as<int>();
+  if (fframe-- == 0)
+    throw runtime_error(
+        "ERROR: First frame is 0, counting "
+        "in VOTCA::XTP starts from 1.");
+  int save = OptionsMap()["save"].as<int>();
 
-    // STATESAVER & PROGRESS OBSERVER
-    string statefile = OptionsMap()["file"].as<string>();
-    StateSaverSQLite statsav;
-    statsav.Open(_top, statefile);
-    
-    // INITIALIZE & RUN CALCULATORS
-    cout << "Initializing calculators " << endl;
-    BeginEvaluate(nThreads);
+  // STATESAVER & PROGRESS OBSERVER
+  string statefile = OptionsMap()["file"].as<string>();
+  StateSaverSQLite statsav;
+  statsav.Open(_top, statefile);
 
-    int frameId = -1;
-    int framesDone = 0;
-    while (statsav.NextFrame() && framesDone < nframes) {
-        frameId += 1;
-        if (frameId < fframe) continue;
-        cout << "Evaluating frame " << _top.getDatabaseId() << endl;
-        EvaluateFrame();
-        if (save == 1) { statsav.WriteFrame(); }
-        else { cout << "Changes have not been written to state file." << endl; }
-        framesDone += 1;
+  // INITIALIZE & RUN CALCULATORS
+  cout << "Initializing calculators " << endl;
+  BeginEvaluate(nThreads);
+
+  int frameId = -1;
+  int framesDone = 0;
+  while (statsav.NextFrame() && framesDone < nframes) {
+    frameId += 1;
+    if (frameId < fframe) continue;
+    cout << "Evaluating frame " << _top.getDatabaseId() << endl;
+    EvaluateFrame();
+    if (save == 1) {
+      statsav.WriteFrame();
+    } else {
+      cout << "Changes have not been written to state file." << endl;
     }
-    
-    if (framesDone == 0)
-        cout << "Input requires first frame = " << fframe+1 << ", # frames = " 
-             << nframes << " => No frames processed.";
-    
-    statsav.Close();
-    EndEvaluate();
+    framesDone += 1;
+  }
 
+  if (framesDone == 0)
+    cout << "Input requires first frame = " << fframe + 1
+         << ", # frames = " << nframes << " => No frames processed.";
+
+  statsav.Close();
+  EndEvaluate();
 }
-
-
-
 
 void SqlApplication::AddCalculator(ctp::QMCalculator* calculator) {
-    _calculators.push_back(calculator);
+  _calculators.push_back(calculator);
 }
 
-
 void SqlApplication::BeginEvaluate(int nThreads = 1) {
-    for (ctp::QMCalculator* calculator:_calculators) {
-        cout << "... " << calculator->Identify() << " ";
-        calculator->setnThreads(nThreads);
-        calculator->Initialize(&_options); 
-        cout << endl;
-    }
+  for (ctp::QMCalculator* calculator : _calculators) {
+    cout << "... " << calculator->Identify() << " ";
+    calculator->setnThreads(nThreads);
+    calculator->Initialize(&_options);
+    cout << endl;
+  }
 }
 
 bool SqlApplication::EvaluateFrame() {
-     for (ctp::QMCalculator* calculator:_calculators) {
-        cout << "... " << calculator->Identify() << " " << flush;
-        calculator->EvaluateFrame(&_top);
-        cout << endl;
-    }
-    return true;
+  for (ctp::QMCalculator* calculator : _calculators) {
+    cout << "... " << calculator->Identify() << " " << flush;
+    calculator->EvaluateFrame(&_top);
+    cout << endl;
+  }
+  return true;
 }
 
 void SqlApplication::EndEvaluate() {
-    for (ctp::QMCalculator* calculator:_calculators) {
-        calculator->EndEvaluate(&_top);
-    }
+  for (ctp::QMCalculator* calculator : _calculators) {
+    calculator->EndEvaluate(&_top);
+  }
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca

@@ -16,17 +16,19 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef VOTCA_XTP_MOLECULE_H
 #define VOTCA_XTP_MOLECULE_H
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 #include <votca/tools/vec.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 class Topology;
 class Atom;
@@ -34,46 +36,44 @@ class Fragment;
 class Segment;
 
 class Molecule {
-public:
+ public:
+  Molecule(int id, std::string name) : _id(id), _name(name) {}
+  Molecule() {}
+  ~Molecule();
 
-    Molecule(int id, std::string name) : _id(id), _name(name) {}
-    Molecule() { }
-   ~Molecule();
+  const int &getId();
+  const std::string &getName();
 
-    const int       &getId();
-    const std::string    &getName();
+  void AddSegment(Segment *segment);
+  void AddFragment(Fragment *fragment);
+  void AddAtom(Atom *atom);
 
-    void AddSegment( Segment* segment );
-    void AddFragment( Fragment* fragment);
-    void AddAtom( Atom* atom);
+  std::vector<Atom *> &Atoms() { return _atoms; }
+  std::vector<Fragment *> &Fragments() { return _fragments; }
+  std::vector<Segment *> &Segments() { return _segments; }
 
-    std::vector< Atom* >     &Atoms() { return _atoms; }
-    std::vector< Fragment* > &Fragments() { return _fragments; }
-    std::vector< Segment* >  &Segments() { return _segments; }
+  Atom *getAtom(const int &id);
+  const std::string &getAtomType(const int &id);
+  const votca::tools::vec getAtomPosition(const int &id);
+  int NumberOfAtoms();
 
-    Atom           *getAtom(const int &id);
-    const std::string   &getAtomType(const int &id);
-    const votca::tools::vec       getAtomPosition(const int &id);
-    int             NumberOfAtoms();
+  inline void setTopology(Topology *container) { _top = container; }
+  Topology *getTopology() { return _top; }
 
-    inline void setTopology(Topology *container) { _top = container; }
-    Topology   *getTopology() { return _top; }
+ private:
+  Topology *_top;
 
-private:
+  std::vector<Segment *> _segments;
+  std::vector<Fragment *> _fragments;
+  std::vector<Atom *> _atoms;
 
-    Topology *_top;
+  int _id;
+  std::string _name;
 
-    std::vector < Segment* >   _segments;
-    std::vector < Fragment* >  _fragments;
-    std::vector < Atom* >      _atoms ;
-
-    int     _id;
-    std::string  _name ;
-
-    std::map<std::string, Atom* > _map_AtomName_Atom;
-
+  std::map<std::string, Atom *> _map_AtomName_Atom;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif // VOTCA_XTP_MOLECULE_H
+#endif  // VOTCA_XTP_MOLECULE_H

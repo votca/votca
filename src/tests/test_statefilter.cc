@@ -17,18 +17,12 @@
 
 #define BOOST_TEST_MODULE statefilter_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/statefilter.h>
 #include <fstream>
+#include <votca/xtp/statefilter.h>
 
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(statefilter_test)
-BOOST_AUTO_TEST_CASE(readxyztest){
-  
-  
-   BOOST_CHECK_EQUAL(true, true);
-}
-
-
+BOOST_AUTO_TEST_CASE(readxyztest) { BOOST_CHECK_EQUAL(true, true); }
 
 BOOST_AUTO_TEST_SUITE_END()

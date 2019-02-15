@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,20 @@
  */
 
 #ifndef __VOTCA_MD2QM_VERSION_H
-#define	__VOTCA_MD2QM_VERSION_H
+#define __VOTCA_MD2QM_VERSION_H
 
 #include <string>
 /**
  * \namespace votca::xtp
  * \brief Charge transport classes
- * 
+ *
  * Classes used for charge and exciton transport simulations
  */
-namespace votca { namespace xtp {
-    const std::string & XtpVersionStr();
-    void HelpTextHeader(const std::string &tool_name);
-}}
+namespace votca {
+namespace xtp {
+const std::string &XtpVersionStr();
+void HelpTextHeader(const std::string &tool_name);
+}  // namespace xtp
+}  // namespace votca
 
 #endif
-

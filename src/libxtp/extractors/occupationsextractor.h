@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2017 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -20,79 +20,73 @@
 #ifndef VOTCA_XTP_OCCUPATIONSEXTRACTOR_H
 #define VOTCA_XTP_OCCUPATIONSEXTRACTOR_H
 
-#include <votca/tools/propertyiomanipulator.h>
-#include <votca/ctp/qmcalculator.h>
 #include <boost/format.hpp>
+#include <votca/ctp/qmcalculator.h>
+#include <votca/tools/propertyiomanipulator.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
+class OccupationsExtractor : public ctp::QMCalculator {
+ public:
+  OccupationsExtractor(){};
+  ~OccupationsExtractor(){};
 
-class OccupationsExtractor : public ctp::QMCalculator
-{
-public:
+  std::string Identify() { return "extract.occupations"; }
+  void Initialize(tools::Property *options);
+  bool EvaluateFrame(ctp::Topology *top);
 
-    OccupationsExtractor() { };
-   ~OccupationsExtractor() { };
-
-    std::string Identify() { return "extract.occupations"; }
-    void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
-
-private:
-
+ private:
 };
 
-
-void OccupationsExtractor::Initialize(tools::Property *options) {
-    return;
-}
-
+void OccupationsExtractor::Initialize(tools::Property *options) { return; }
 
 bool OccupationsExtractor::EvaluateFrame(ctp::Topology *top) {
-    
-    std::string xmlfile = Identify() + ".xml";    
-    
-    tools::Property state("state", "", "");
-    tools::Property &segs = state.add("segments","");
-    tools::Property *next = NULL;
-    
-    
-    using boost::format;
-    
-    // SEGMENTS
-    std::vector<ctp::Segment*> ::iterator sit;
-    next = &segs;
-    for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
-        ctp::Segment *seg = *sit;
-        tools::Property &segprop = next->add("segment", "");
-        segprop.add("id", (format("%1$d") % seg->getId()).str());
-        segprop.add("name", seg->getName());
-        segprop.add("xyz", (format("%1$+1.4f %2$+1.4f %3$+1.4f")
-            % seg->getPos().getX() % seg->getPos().getY() % seg->getPos().getZ()).str());
-        if (seg->hasChrgState(+1)) {
-            tools::Property &channel = segprop.add("channel","");
-            channel.setAttribute("type", "hole");
-            channel.add("occupation_h", (format("%1$+1.7e") % seg->getOcc(+1)).str());
-        }
-        if (seg->hasChrgState(-1)) {
-            tools::Property &channel = segprop.add("channel","");
-            channel.setAttribute("type", "electron");
-            channel.add("occupation_e", (format("%1$+1.7e") % seg->getOcc(-1)).str());
-        }
-    }    
-    
-    std::ofstream ofs;    
-    ofs.open(xmlfile.c_str(), std::ofstream::out);
-    if (!ofs.is_open()) {
-        throw std::runtime_error("Bad file handle: " + xmlfile);
+
+  std::string xmlfile = Identify() + ".xml";
+
+  tools::Property state("state", "", "");
+  tools::Property &segs = state.add("segments", "");
+  tools::Property *next = NULL;
+
+  using boost::format;
+
+  // SEGMENTS
+  std::vector<ctp::Segment *>::iterator sit;
+  next = &segs;
+  for (sit = top->Segments().begin(); sit < top->Segments().end(); ++sit) {
+    ctp::Segment *seg = *sit;
+    tools::Property &segprop = next->add("segment", "");
+    segprop.add("id", (format("%1$d") % seg->getId()).str());
+    segprop.add("name", seg->getName());
+    segprop.add("xyz",
+                (format("%1$+1.4f %2$+1.4f %3$+1.4f") % seg->getPos().getX() %
+                 seg->getPos().getY() % seg->getPos().getZ())
+                    .str());
+    if (seg->hasChrgState(+1)) {
+      tools::Property &channel = segprop.add("channel", "");
+      channel.setAttribute("type", "hole");
+      channel.add("occupation_h", (format("%1$+1.7e") % seg->getOcc(+1)).str());
     }
-    ofs << tools::XML << state;
-    ofs.close();
-    
-    return true;
+    if (seg->hasChrgState(-1)) {
+      tools::Property &channel = segprop.add("channel", "");
+      channel.setAttribute("type", "electron");
+      channel.add("occupation_e", (format("%1$+1.7e") % seg->getOcc(-1)).str());
+    }
+  }
+
+  std::ofstream ofs;
+  ofs.open(xmlfile.c_str(), std::ofstream::out);
+  if (!ofs.is_open()) {
+    throw std::runtime_error("Bad file handle: " + xmlfile);
+  }
+  ofs << tools::XML << state;
+  ofs.close();
+
+  return true;
 }
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif // VOTCA_XTP_OCCUPATIONSEXTRACTOR_H
+#endif  // VOTCA_XTP_OCCUPATIONSEXTRACTOR_H

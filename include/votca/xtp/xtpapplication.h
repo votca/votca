@@ -17,56 +17,30 @@
  *
  */
 
-
 #ifndef VOTCA_XTP_XTPAPPLICATION_H
-#define	VOTCA_XTP_XTPAPPLICATION_H
+#define VOTCA_XTP_XTPAPPLICATION_H
 
 #include <votca/tools/application.h>
 #include <votca/tools/property.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
+class XtpApplication : public votca::tools::Application {
+ public:
+  XtpApplication();
+  ~XtpApplication(){};
 
+  void Initialize();
+  bool EvaluateOptions();
+  virtual void Run(void) = 0;
+  void ShowHelpText(std::ostream &out);
 
-class XtpApplication : public votca::tools::Application
-{
-public:
-    XtpApplication();
-   ~XtpApplication() { };
-
-   void Initialize();
-   bool EvaluateOptions();
-   virtual void Run(void) = 0;
-   void ShowHelpText(std::ostream &out);
-
-protected:
-
-    votca::tools::Property _options;
-    
+ protected:
+  votca::tools::Property _options;
 };
 
-}}
-
-
-
-
-
-
-
-
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _QMApplication_H */
-
-
-
-
-
-
-
-
-
-
-
-
-
-

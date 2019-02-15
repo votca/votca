@@ -18,53 +18,48 @@
  */
 
 #ifndef VOTCA_XTP_EXTRACTORFACTORY_H
-#define	VOTCA_XTP_EXTRACTORFACTORY_H
+#define VOTCA_XTP_EXTRACTORFACTORY_H
 
 #include <map>
-#include <votca/tools/objectfactory.h>
 #include <votca/ctp/qmcalculator.h>
+#include <votca/tools/objectfactory.h>
 
-namespace votca { namespace xtp {
-
-
+namespace votca {
+namespace xtp {
 
 class ExtractorFactory
-: public tools::ObjectFactory< std::string, ctp::QMCalculator >
-{
-private:
-    ExtractorFactory() {}
-public:
-    
-    static void RegisterAll(void);
-    
-    /**
-       Create an instance of the object identified by key.
-    *  Overwritten to load calculator defaults
-    */
-    ctp::QMCalculator *Create(const std::string &key);
+    : public tools::ObjectFactory<std::string, ctp::QMCalculator> {
+ private:
+  ExtractorFactory() {}
 
-    friend ExtractorFactory &Extractors();
-    
+ public:
+  static void RegisterAll(void);
+
+  /**
+     Create an instance of the object identified by key.
+  *  Overwritten to load calculator defaults
+  */
+  ctp::QMCalculator *Create(const std::string &key);
+
+  friend ExtractorFactory &Extractors();
 };
 
-inline ExtractorFactory &Extractors()
-{
-    static ExtractorFactory _instance;
-    return _instance;
+inline ExtractorFactory &Extractors() {
+  static ExtractorFactory _instance;
+  return _instance;
 }
 
-inline ctp::QMCalculator* ExtractorFactory::Create(const std::string &key)
-{
-    assoc_map::const_iterator it(getObjects().find(key));
-    if (it != getObjects().end()) {
-        ctp::QMCalculator* calc = (it->second)();
-        // calc->LoadDefaults();
-        return calc;
-    } else
-        throw std::runtime_error("factory key " + key + " not found.");
+inline ctp::QMCalculator *ExtractorFactory::Create(const std::string &key) {
+  assoc_map::const_iterator it(getObjects().find(key));
+  if (it != getObjects().end()) {
+    ctp::QMCalculator *calc = (it->second)();
+    // calc->LoadDefaults();
+    return calc;
+  } else
+    throw std::runtime_error("factory key " + key + " not found.");
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* VOTCA_XTP_EXTRACTORFACTORY_H.h */
-
+#endif /* VOTCA_XTP_EXTRACTORFACTORY_H.h */

@@ -19,43 +19,38 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
+#include <fstream>
 #include <votca/ctp/logger.h>
 #include <votca/tools/property.h>
-#include <fstream>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
 
 #include "bse.h"
 
-
 namespace votca {
 namespace xtp {
-    class Orbitals;
-    class AOBasis;
+class Orbitals;
+class AOBasis;
 /**
-* \brief Electronic excitations from GW-BSE
-*
-* Evaluates electronic excitations in molecular systems based on
-* many-body Green's functions theory within the GW approximation and
-* the Bethe-Salpeter equation. Requires molecular orbitals 
-*
-*  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
-*  J. Chem. Theory Comput. 8, 997-1002 (2012)
-*
-*  B. Baumeier, D. Andrienko, M. Rohlfing
-*  J. Chem. Theory Comput. 8, 2790-2795 (2012)
-*
-*/
+ * \brief Electronic excitations from GW-BSE
+ *
+ * Evaluates electronic excitations in molecular systems based on
+ * many-body Green's functions theory within the GW approximation and
+ * the Bethe-Salpeter equation. Requires molecular orbitals
+ *
+ *  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
+ *  J. Chem. Theory Comput. 8, 997-1002 (2012)
+ *
+ *  B. Baumeier, D. Andrienko, M. Rohlfing
+ *  J. Chem. Theory Comput. 8, 2790-2795 (2012)
+ *
+ */
 
 class GWBSE {
  public:
-     
-  GWBSE(Orbitals& orbitals)
-      : _orbitals(orbitals){};
+  GWBSE(Orbitals& orbitals) : _orbitals(orbitals){};
 
   void Initialize(tools::Property& options);
-
-
 
   std::string Identify() { return "gwbse"; }
 
@@ -66,12 +61,11 @@ class GWBSE {
   void addoutput(tools::Property& summary);
 
  private:
+  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+  int CountCoreLevels();
+  ctp::Logger* _pLog;
+  Orbitals& _orbitals;
 
- Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
- int CountCoreLevels();
- ctp::Logger* _pLog;
- Orbitals& _orbitals;
-  
   // program tasks
   bool _do_qp_diag;
   bool _do_bse_diag;
@@ -96,17 +90,15 @@ class GWBSE {
   int _fragA;
 
   // BSE variant
-  
+
   GW::options _gwopt;
   BSE::options _bseopt;
-  
-  
+
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
- 
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _VOTCA_XTP_GWBSE_H */

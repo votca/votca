@@ -17,100 +17,86 @@
  */
 
 #ifndef __VOTCA_KMC_CALCULATOR_H
-#define	__VOTCA_KMC_CALCULATOR_H
+#define __VOTCA_KMC_CALCULATOR_H
 
 // #include <votca/xtp/vssmgroup.h>
-#include <vector>
-#include <map>
-#include <iostream>
+#include <cmath>  // needed for abs(double)
 #include <fstream>
-#include <string>
+#include <iostream>
+#include <map>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
 #include <time.h>
-#include <cmath> // needed for abs(double)
+#include <vector>
 
-#include <votca/tools/vec.h>
-#include <votca/tools/matrix.h>
-#include <votca/tools/tokenizer.h>
 #include <votca/tools/globals.h>
+#include <votca/tools/matrix.h>
 #include <votca/tools/random2.h>
+#include <votca/tools/tokenizer.h>
+#include <votca/tools/vec.h>
 #include <votca/xtp/chargecarrier.h>
 
-#include <votca/xtp/gnode.h>
 #include <votca/ctp/qmcalculator.h>
+#include <votca/xtp/gnode.h>
 using namespace std;
 
-namespace votca { namespace xtp {
-    
-   
+namespace votca {
+namespace xtp {
 
+class KMCCalculator : public ctp::QMCalculator {
+ public:
+  KMCCalculator();
+  virtual ~KMCCalculator(){};
 
-class KMCCalculator : public ctp::QMCalculator 
-{
-public:
-    
-    
-   KMCCalculator();
-   virtual ~KMCCalculator() {};
-   
-   
-   
-   virtual std::string  Identify() = 0;
-   virtual void    Initialize(tools::Property *options) = 0;
+  virtual std::string Identify() = 0;
+  virtual void Initialize(tools::Property* options) = 0;
 
-protected:
-       
-       int _carriertype;
-            
-            std::string CarrierInttoLongString(int carriertype);
-            std::string CarrierInttoShortString(int carriertype);
-            int StringtoCarriertype(std::string name);
-            
-	    void LoadGraph(ctp::Topology *top);
-            virtual void  RunVSSM(ctp::Topology *top){};
-            void InitialRates();
-            
-            double Promotetime(double cumulated_rate);
-            void ResetForbiddenlist(std::vector<int> &forbiddenid);
-            void AddtoForbiddenlist(int id, std::vector<int> &forbiddenid);
-            bool CheckForbidden(int id,const std::vector<int> &forbiddenlist);
-            bool CheckSurrounded(GNode* node,const std::vector<int> &forbiddendests);
-            GLink* ChooseHoppingDest(GNode* node);
-            Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
-            
-            
-            void RandomlyCreateCharges();
-            void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
-            void AddtoJumplengthdistro(const GLink* event, double dt);
-            void PrintJumplengthdistro();
-            std::vector<GNode*> _nodes;
-            std::vector< Chargecarrier* > _carriers;
-            tools::Random2 _RandomVariable;
-           
-            std::string _injection_name;
-            std::string _injectionmethod;
-            std::vector<long unsigned> _jumplengthdistro;
-            std::vector<double> _jumplengthdistro_weighted;
-          
-            unsigned lengthdistribution;
-            bool dolengthdistributon=false;
-            double lengthresolution;
-            double minlength;
-            int _seed;
-            unsigned _numberofcharges;
-            tools::vec _field;
-            
-            double _temperature;
-            std::string _rates;
+ protected:
+  int _carriertype;
+
+  std::string CarrierInttoLongString(int carriertype);
+  std::string CarrierInttoShortString(int carriertype);
+  int StringtoCarriertype(std::string name);
+
+  void LoadGraph(ctp::Topology* top);
+  virtual void RunVSSM(ctp::Topology* top){};
+  void InitialRates();
+
+  double Promotetime(double cumulated_rate);
+  void ResetForbiddenlist(std::vector<int>& forbiddenid);
+  void AddtoForbiddenlist(int id, std::vector<int>& forbiddenid);
+  bool CheckForbidden(int id, const std::vector<int>& forbiddenlist);
+  bool CheckSurrounded(GNode* node, const std::vector<int>& forbiddendests);
+  GLink* ChooseHoppingDest(GNode* node);
+  Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
+
+  void RandomlyCreateCharges();
+  void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
+  void AddtoJumplengthdistro(const GLink* event, double dt);
+  void PrintJumplengthdistro();
+  std::vector<GNode*> _nodes;
+  std::vector<Chargecarrier*> _carriers;
+  tools::Random2 _RandomVariable;
+
+  std::string _injection_name;
+  std::string _injectionmethod;
+  std::vector<long unsigned> _jumplengthdistro;
+  std::vector<double> _jumplengthdistro_weighted;
+
+  unsigned lengthdistribution;
+  bool dolengthdistributon = false;
+  double lengthresolution;
+  double minlength;
+  int _seed;
+  unsigned _numberofcharges;
+  tools::vec _field;
+
+  double _temperature;
+  std::string _rates;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-}}
-
-
-#endif	/* __VOTCA_KMC_MULTIPLE_H */
+#endif /* __VOTCA_KMC_MULTIPLE_H */

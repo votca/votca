@@ -17,74 +17,73 @@
  *
  */
 
-
-
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/aomatrix.h>
 #include "votca/xtp/threecenter.h"
-
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/rpa.h>
 
 namespace votca {
-  namespace xtp {
-      
-  void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,const Eigen::VectorXd& gwaenergies,int qpmin){
-        int rpatotal=_rpamax-_rpamin+1;
-        _energies=dftenergies.segment(_rpamin,rpatotal);
-        int gwsize=gwaenergies.size();
-        int lumo=_homo+1;
+namespace xtp {
 
-        int qpmax=qpmin+gwsize-1;
-        _energies.segment(qpmin-_rpamin,gwsize)=gwaenergies;
-        double DFTgap = dftenergies(lumo) - dftenergies(_homo);
-        double QPgap = gwaenergies(lumo-qpmin) - gwaenergies(_homo-qpmin);
-        double shift=QPgap - DFTgap;
-        int levelaboveqpmax=_rpamax-qpmax;
-        _energies.segment(qpmax+1-_rpamin,levelaboveqpmax).array()+=shift;
-    }
+void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
+                                 const Eigen::VectorXd& gwaenergies,
+                                 int qpmin) {
+  int rpatotal = _rpamax - _rpamin + 1;
+  _energies = dftenergies.segment(_rpamin, rpatotal);
+  int gwsize = gwaenergies.size();
+  int lumo = _homo + 1;
 
- template< bool imag>
-    Eigen::MatrixXd RPA::calculate_epsilon(double frequency)const{
-        const int size = _Mmn.auxsize(); 
-        Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
-        const int lumo = _homo + 1;
-        const int n_occ = lumo - _rpamin;
-        const int n_unocc = _rpamax - lumo+1;
-        const double freq2 = frequency*frequency;
-        const double eta2=_eta*_eta;
+  int qpmax = qpmin + gwsize - 1;
+  _energies.segment(qpmin - _rpamin, gwsize) = gwaenergies;
+  double DFTgap = dftenergies(lumo) - dftenergies(_homo);
+  double QPgap = gwaenergies(lumo - qpmin) - gwaenergies(_homo - qpmin);
+  double shift = QPgap - DFTgap;
+  int levelaboveqpmax = _rpamax - qpmax;
+  _energies.segment(qpmax + 1 - _rpamin, levelaboveqpmax).array() += shift;
+}
+
+template <bool imag>
+Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
+  const int size = _Mmn.auxsize();
+  Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
+  const int lumo = _homo + 1;
+  const int n_occ = lumo - _rpamin;
+  const int n_unocc = _rpamax - lumo + 1;
+  const double freq2 = frequency * frequency;
+  const double eta2 = _eta * _eta;
 #pragma omp parallel for
-        for (int m_level = 0; m_level < n_occ; m_level++)        {
-            const double qp_energy_m = _energies(m_level);
-            
+  for (int m_level = 0; m_level < n_occ; m_level++) {
+    const double qp_energy_m = _energies(m_level);
+
 #if (GWBSE_DOUBLE)
-            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level].block(n_occ, 0, n_unocc, size);
+    const Eigen::MatrixXd Mmn_RPA =
+        _Mmn[m_level].block(n_occ, 0, n_unocc, size);
 #else
-            const Eigen::MatrixXd Mmn_RPA = _Mmn[ m_level].block(n_occ, 0, n_unocc, size).cast<double>();
+    const Eigen::MatrixXd Mmn_RPA =
+        _Mmn[m_level].block(n_occ, 0, n_unocc, size).cast<double>();
 #endif
-            const Eigen::ArrayXd deltaE=_energies.segment(n_occ,n_unocc).array()-qp_energy_m;
-            Eigen::VectorXd denom;
-            if (imag){
-                denom=4*deltaE/(deltaE.square()+freq2);
-            }else{
-                Eigen::ArrayXd deltEf=deltaE-frequency;
-                Eigen::ArrayXd sum=deltEf/(deltEf.square()+eta2);
-                deltEf=deltaE+frequency;
-                sum+=deltEf/(deltEf.square()+eta2);
-                denom=2*sum;
-            }
-            auto temp=Mmn_RPA.transpose() *denom.asDiagonal();
-            Eigen::MatrixXd tempresult = temp* Mmn_RPA;
+    const Eigen::ArrayXd deltaE =
+        _energies.segment(n_occ, n_unocc).array() - qp_energy_m;
+    Eigen::VectorXd denom;
+    if (imag) {
+      denom = 4 * deltaE / (deltaE.square() + freq2);
+    } else {
+      Eigen::ArrayXd deltEf = deltaE - frequency;
+      Eigen::ArrayXd sum = deltEf / (deltEf.square() + eta2);
+      deltEf = deltaE + frequency;
+      sum += deltEf / (deltEf.square() + eta2);
+      denom = 2 * sum;
+    }
+    auto temp = Mmn_RPA.transpose() * denom.asDiagonal();
+    Eigen::MatrixXd tempresult = temp * Mmn_RPA;
 
 #pragma omp critical
-            {
-                result += tempresult;
-            }
-        }
-        return result;
-    }
+    { result += tempresult; }
+  }
+  return result;
+}
 
+template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency) const;
+template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency) const;
 
- template Eigen::MatrixXd RPA::calculate_epsilon<true>(double frequency)const;
- template Eigen::MatrixXd RPA::calculate_epsilon<false>(double frequency)const;
-
-
-  }}
+}  // namespace xtp
+}  // namespace votca

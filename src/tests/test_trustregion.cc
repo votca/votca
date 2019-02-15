@@ -17,8 +17,8 @@
 
 #define BOOST_TEST_MODULE trustregion_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/trustregion.h>
 #include <iostream>
+#include <votca/xtp/trustregion.h>
 
 using namespace votca::xtp;
 using namespace votca;
@@ -27,31 +27,26 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE(trustregion_test)
 
 BOOST_AUTO_TEST_CASE(subproblem_test) {
-  
-Eigen::VectorXd gradient=Eigen::VectorXd::Zero(5);
-gradient<<5.92833,9.88054,9.88054,9.88054,9.88054;
-Eigen::MatrixXd hessian=Eigen::MatrixXd::Zero(5,5);
-hessian<<1.0835,0.139166,0.139166,0.139166,0.139166,
-0.139166,1.23194,0.231943,0.231943,0.231943,
-0.139166,0.231943,1.23194,0.231943,0.231943,
-0.139166,0.231943,0.231943,1.23194,0.231943,
-0.139166,0.231943,0.231943,0.231943, 1.23194;
 
-double radius=0.1;
-TrustRegion trf;
-Eigen::VectorXd newstep=trf.CalculateStep(gradient,hessian,radius);
+  Eigen::VectorXd gradient = Eigen::VectorXd::Zero(5);
+  gradient << 5.92833, 9.88054, 9.88054, 9.88054, 9.88054;
+  Eigen::MatrixXd hessian = Eigen::MatrixXd::Zero(5, 5);
+  hessian << 1.0835, 0.139166, 0.139166, 0.139166, 0.139166, 0.139166, 1.23194,
+      0.231943, 0.231943, 0.231943, 0.139166, 0.231943, 1.23194, 0.231943,
+      0.231943, 0.139166, 0.231943, 0.231943, 1.23194, 0.231943, 0.139166,
+      0.231943, 0.231943, 0.231943, 1.23194;
 
-bool equal=std::abs(newstep.norm()-radius)<1e-9;
-if(!equal){
- std::cout<<"newstep_norm:"<<newstep.norm()<<" trust_radius:"<<radius<<std::endl; 
-}
-  
-  
+  double radius = 0.1;
+  TrustRegion trf;
+  Eigen::VectorXd newstep = trf.CalculateStep(gradient, hessian, radius);
+
+  bool equal = std::abs(newstep.norm() - radius) < 1e-9;
+  if (!equal) {
+    std::cout << "newstep_norm:" << newstep.norm() << " trust_radius:" << radius
+              << std::endl;
+  }
+
   BOOST_CHECK_EQUAL(equal, 1);
-  
-  
 }
-
-
 
 BOOST_AUTO_TEST_SUITE_END()
