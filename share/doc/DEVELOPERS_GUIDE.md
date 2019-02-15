@@ -410,11 +410,11 @@ dropped.
 
 ## Units in VOTCA
 
-VOTCA tried as much as possible to standarize units across both CSG and XTP. Internally we use:
+VOTCA tried as much as possible to standarize units across both CSG and XTP. Internally we convert all parsed units to:
 
 - `nm` for molecular dynamics and coarse grained positions. `Bohr` is used for quantum mechanical and electrostatic coordinates in XTP
-- energies are ?? in CSG and `Hartree` in XTP
-- time is in `seconds`
+- energies are `kJ/mol` in CSG and `Hartree` in XTP
+- time is in `ps`
 
 ## Indexing in VOTCA
 
