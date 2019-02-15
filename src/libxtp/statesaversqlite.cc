@@ -445,7 +445,7 @@ void StateSaverSQLite::WritePairs(bool update) {
     int has_t = (pair->isPathCarrier(+3)) ? 1 : 0;
 
     stmt->Bind(1, _qmtop->getDatabaseId());
-    stmt->Bind(2, pair->getTopology()->getDatabaseId());
+    stmt->Bind(2, _qmtop->getDatabaseId());
     stmt->Bind(3, pair->getId());
     stmt->Bind(4, pair->Seg1PbCopy()->getId());
     stmt->Bind(5, pair->Seg2PbCopy()->getId());
@@ -823,9 +823,10 @@ void StateSaverSQLite::ReadPairs(int topId) {
     double js = stmt->Column<double>(20);
     double jt = stmt->Column<double>(21);
     int tp = stmt->Column<int>(22);
-
+    tools::vec delta_r = _qmtop->PbShortestConnect(
+        _qmtop->getSegment(s1)->getPos(), _qmtop->getSegment(s2)->getPos());
     QMPair *newPair =
-        nblist.Add(_qmtop->getSegment(s1), _qmtop->getSegment(s2), false);
+        nblist.Add(_qmtop->getSegment(s1), _qmtop->getSegment(s2), delta_r);
 
     bool has_e = (he == 0) ? false : true;
     bool has_h = (hh == 0) ? false : true;
