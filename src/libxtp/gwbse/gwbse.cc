@@ -221,9 +221,25 @@ void GWBSE::Initialize(tools::Property& options) {
                     key + ".vxc.grid", "medium");
         }
     }
-
-    _auxbasis_name =
-            options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".gwbasis");
+    
+    if (options.exists(key + ".gwbasis")) {
+      _auxbasis_name =
+              options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".gwbasis");
+      if (options.exists(key + ".auxbasis")) {
+        throw std::runtime_error(std::string() +
+                "Cannot use the options \"gwbasis\" and \"auxbasis\" simultaneously. " +
+                " Use option \"auxbasis\" to specify the auxiliary basis instead.");
+      } else {
+        CTP_LOG(ctp::logDEBUG, *_pLog)
+                << " Warning: The option \"gwbasis\" is outdated."
+                << " Use option \"auxbasis\" to specify the auxiliary basis instead. "
+                << flush;
+      }
+    } else {
+      _auxbasis_name =
+              options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".auxbasis");
+    }
+    
     _dftbasis_name =
             options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dftbasis");
      if (_dftbasis_name != _orbitals.getDFTbasisName()) {
