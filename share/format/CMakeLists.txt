@@ -3,7 +3,7 @@ find_package_handle_standard_args(CLANG_FORMAT REQUIRED_VARS CLANG_FORMAT_EXECUT
 if(CLANG_FORMAT_FOUND)
   set(FORMAT_SOURCES)
   foreach(DIR ${ENABLED_VOTCA_PACKAGES})
-    if(DIR MATCHES "(ctp|xtp)")
+    if(DIR MATCHES "ctp")
       continue()
     endif()
     set(ABS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../${DIR})
