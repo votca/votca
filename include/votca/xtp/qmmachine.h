@@ -18,80 +18,76 @@
  */
 
 #ifndef __QMMACHINE__H
-#define	__QMMACHINE__H
+#define __QMMACHINE__H
 
-
-#include <votca/ctp/xjob.h>
 #include <votca/ctp/xinductor.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/qmpackagefactory.h>
-#include <votca/xtp/orbitals.h>
+#include <votca/ctp/xjob.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/gdma.h>
+#include <votca/xtp/gwbse.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/qminterface.h>
 #include <votca/xtp/qmiter.h>
+#include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/statefilter.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
+class QMMachine {
 
+ public:
+  QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
+            Property *opt, string sfx);
+  ~QMMachine();
 
-class QMMachine{
+  int Evaluate(ctp::XJob *job);
 
-public:
+  void setLog(ctp::Logger *log) { _log = log; }
 
-    QMMachine(ctp::XJob *job, ctp::XInductor *xind, QMPackage *qmpack,
-              Property *opt, string sfx);
-   ~QMMachine();
+ private:
+  bool Iterate(string jobFolder, int iterCnt);
+  bool RunDFT(
+      string &runFolder,
+      std::vector<std::shared_ptr<ctp::PolarSeg> > &MultipolesBackground);
+  void RunGWBSE(string &runFolder);
+  void RunGDMA(QMMIter *thisIter, string &runFolder);
+  void Density2Charges(const QMState &state);
 
-    int Evaluate(ctp::XJob *job);
+  QMMIter *CreateNewIter();
+  bool hasConverged();
+  ctp::XJob *_job;
+  ctp::XInductor *_xind;
+  QMPackage *_qmpack;
+  ctp::Logger *_log;
 
-    void setLog(ctp::Logger *log) { _log = log; }
+  std::vector<QMMIter *> _iters;
+  bool _isConverged;
+  int _maxIter;
 
-private:
-    bool Iterate(string jobFolder, int iterCnt);
-    bool RunDFT(string& runFolder, std::vector<std::shared_ptr<ctp::PolarSeg> >& MultipolesBackground);
-    void RunGWBSE(string& runFolder);
-    void RunGDMA(QMMIter* thisIter, string& runFolder);
-    void Density2Charges(const QMState& state);
-    
-    QMMIter *CreateNewIter();
-    bool hasConverged();
-    ctp::XJob *_job;
-    ctp::XInductor *_xind;
-    QMPackage *_qmpack;
-    ctp::Logger *_log;
+  Property _gdma_options;
+  bool _do_gdma;
 
-    std::vector<QMMIter*> _iters;
-    bool _isConverged;
-    int _maxIter;
+  Property _gwbse_options;
+  QMState _initialstate;
 
-    Property _gdma_options;
-    bool _do_gdma;
+  Statefilter _filter;
 
-    Property _gwbse_options;
-    QMState  _initialstate;
+  double _crit_dR;
+  double _crit_dQ;
+  double _crit_dE_QM;
+  double _crit_dE_MM;
 
-    Statefilter _filter;
-    
-    double _crit_dR;
-    double _crit_dQ;
-    double _crit_dE_QM;
-    double _crit_dE_MM;
+  bool _do_gwbse = false;
+  bool _do_archive;
+  bool _static_qmmm;
+  Orbitals orb_iter_input;
 
-    bool _do_gwbse=false; 
-    bool _do_archive;
-    bool _static_qmmm;
-    Orbitals orb_iter_input;
-    
-    double _alpha;
-    Eigen::MatrixXd _DMAT_old;
-
-    
-
+  double _alpha;
+  Eigen::MatrixXd _DMAT_old;
 };
 
-
-}}
+}  // namespace xtp
+}  // namespace votca
 
 #endif

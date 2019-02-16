@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -18,102 +18,101 @@
  */
 
 #ifndef __XTP_AOBASIS__H
-#define	__XTP_AOBASIS__H
-
+#define __XTP_AOBASIS__H
 
 #include <boost/math/constants/constants.hpp>
-#include <votca/xtp/basisset.h>
 #include <votca/tools/vec.h>
+#include <votca/xtp/basisset.h>
 #include <votca/xtp/eigen.h>
 
-
-
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 class AOShell;
 class QMAtom;
 
-
 /**
- * \brief Container to hold Basisfunctions for all atoms 
- * 
+ * \brief Container to hold Basisfunctions for all atoms
+ *
  * It is constructed from a vector of QMAtoms and a BasisSet.
  */
-class AOBasis 
-{   
-public:
-    
-    ~AOBasis();//has to be declared, deletes std::vector<*Shell>_aoshells
-    void ReorderMOs(Eigen::MatrixXd &v,const std::string& start, const std::string& target ); 
-       
-    void ReorderMatrix(Eigen::MatrixXd &v,const std::string& start,const std::string& target );
+class AOBasis {
+ public:
+  ~AOBasis();  // has to be declared, deletes std::vector<*Shell>_aoshells
+  void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
+                  const std::string& target);
 
-    void AOBasisFill( const BasisSet& bs , std::vector<QMAtom* >& atoms, int fragbreak = -1);
-    void ECPFill( const BasisSet& bs , std::vector<QMAtom* >& atoms); 
-    
-    int AOBasisSize() const {return _AOBasisSize; }
-    
-    typedef std::vector< AOShell* >::const_iterator AOShellIterator;
-    AOShellIterator begin() const{ return _aoshells.begin(); }
-    AOShellIterator end() const{ return _aoshells.end(); }
+  void ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
+                     const std::string& target);
 
-    Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
-    
-    const AOShell* getShell( int idx )const{ return _aoshells[idx] ;}
+  void AOBasisFill(const BasisSet& bs, std::vector<QMAtom*>& atoms,
+                   int fragbreak = -1);
+  void ECPFill(const BasisSet& bs, std::vector<QMAtom*>& atoms);
 
-    const std::vector<AOShell*>& getShells() const{ return _aoshells; }
-    
-    const std::vector<const AOShell*> getShellsofAtom(int AtomId)const;
-    
-    unsigned getNumofShells() const{return _aoshells.size();}
-   
-    int getAOBasisFragA() const{return _AOBasisFragA;}
+  int AOBasisSize() const { return _AOBasisSize; }
 
-    int getAtomNumberFragbreak()const{return _fragA;}
-    
-   int getAOBasisFragB() const{return _AOBasisFragB;}
-   
-   int getFuncOfAtom(int AtomIndex)const{return _FuncperAtom[AtomIndex];}
-   
-   const std::vector<int>& getFuncPerAtom()const {return _FuncperAtom;}
-  
+  typedef std::vector<AOShell*>::const_iterator AOShellIterator;
+  AOShellIterator begin() const { return _aoshells.begin(); }
+  AOShellIterator end() const { return _aoshells.end(); }
 
-private:
-    
-  AOShell* addShell( const Shell& shell, const QMAtom& atom, int startIndex );  
-  
-  AOShell* addECPShell( const Shell& shell, const QMAtom& atom, int startIndex,bool nonlocal);  
-    
-       
-  void MultiplyMOs(Eigen::MatrixXd &v, std::vector<int> const &multiplier );
-   
-    std::vector<AOShell*> _aoshells;
+  Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
 
-    std::vector<int> invertOrder(const std::vector<int>& order );
-    
-    std::vector<int> getReorderVector(const std::string& start,const std::string& target );
-   
-    void addReorderShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& neworder );
-  
-    std::vector<int> getMultiplierVector(const std::string& start,const std::string& target );
-    
-    void addMultiplierShell(const std::string& start,const std::string& target,const std::string& shell, std::vector<int>& multiplier );  
-  
-    void addTrafoCartShell( const AOShell* shell , Eigen::Block<Eigen::MatrixXd>& _submatrix );
-    
-    std::vector<int> _FuncperAtom;
+  const AOShell* getShell(int idx) const { return _aoshells[idx]; }
 
-    int _fragA;
-    
-   int _AOBasisFragA;
-   int _AOBasisFragB;
-    unsigned int _AOBasisSize;
-    
+  const std::vector<AOShell*>& getShells() const { return _aoshells; }
+
+  const std::vector<const AOShell*> getShellsofAtom(int AtomId) const;
+
+  unsigned getNumofShells() const { return _aoshells.size(); }
+
+  int getAOBasisFragA() const { return _AOBasisFragA; }
+
+  int getAtomNumberFragbreak() const { return _fragA; }
+
+  int getAOBasisFragB() const { return _AOBasisFragB; }
+
+  int getFuncOfAtom(int AtomIndex) const { return _FuncperAtom[AtomIndex]; }
+
+  const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
+
+ private:
+  AOShell* addShell(const Shell& shell, const QMAtom& atom, int startIndex);
+
+  AOShell* addECPShell(const Shell& shell, const QMAtom& atom, int startIndex,
+                       bool nonlocal);
+
+  void MultiplyMOs(Eigen::MatrixXd& v, std::vector<int> const& multiplier);
+
+  std::vector<AOShell*> _aoshells;
+
+  std::vector<int> invertOrder(const std::vector<int>& order);
+
+  std::vector<int> getReorderVector(const std::string& start,
+                                    const std::string& target);
+
+  void addReorderShell(const std::string& start, const std::string& target,
+                       const std::string& shell, std::vector<int>& neworder);
+
+  std::vector<int> getMultiplierVector(const std::string& start,
+                                       const std::string& target);
+
+  void addMultiplierShell(const std::string& start, const std::string& target,
+                          const std::string& shell,
+                          std::vector<int>& multiplier);
+
+  void addTrafoCartShell(const AOShell* shell,
+                         Eigen::Block<Eigen::MatrixXd>& _submatrix);
+
+  std::vector<int> _FuncperAtom;
+
+  int _fragA;
+
+  int _AOBasisFragA;
+  int _AOBasisFragB;
+  unsigned int _AOBasisSize;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
- 
-}}
-
-#endif	/* AOBASIS_H */
-
+#endif /* AOBASIS_H */

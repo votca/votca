@@ -17,22 +17,21 @@
  *
  */
 
-
-#include <votca/xtp/qmpackagefactory.h>
 #include "qmpackages/gaussian.h"
 #include "qmpackages/nwchem.h"
 #include "qmpackages/orca.h"
+#include <votca/xtp/qmpackagefactory.h>
 
 #include "qmpackages/xtpdft.h"
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-void QMPackageFactory::RegisterAll(void)
-{
-        QMPackages().Register<Gaussian>         ("gaussian");
-        QMPackages().Register<NWChem>           ("nwchem");
-        QMPackages().Register<Orca>             ("orca");
-        QMPackages().Register<XTPDFT>           ("xtp");
-
+void QMPackageFactory::RegisterAll(void) {
+  QMPackages().Register<Gaussian>("gaussian");
+  QMPackages().Register<NWChem>("nwchem");
+  QMPackages().Register<Orca>("orca");
+  QMPackages().Register<XTPDFT>("xtp");
 }
-}}
+}  // namespace xtp
+}  // namespace votca

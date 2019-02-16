@@ -16,17 +16,18 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
-#include <vector>
 #include <string>
+#include <vector>
 
+#include <votca/tools/vec.h>
 #include <votca/xtp/apolarsite.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/fragment.h>
 #include <votca/xtp/segment.h>
 #include <votca/xtp/segmenttype.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -157,8 +158,8 @@ double Segment::getOcc(int e_h_s_t) {
   } else if (e_h_s_t == +3) {
     result = _occ_t;
   } else {
-    throw runtime_error(
-        " ERROR CODE whe__00s11o__");  // blabla what do I do here?
+    throw runtime_error(" ERROR CODE whe__00s11o__");  // blabla what do I do
+                                                       // here?
   }
   return result;
 }
@@ -203,8 +204,8 @@ void Segment::setU_xX_nN(double dU, int state) {
   } else if (state == +3) {
     _U_xX_nN_t = dU;
   } else {
-    throw runtime_error(
-        " ERROR CODE whe__00u11d__");  // blabla?? What do I do here?
+    throw runtime_error(" ERROR CODE whe__00u11d__");  // blabla?? What do I do
+                                                       // here?
   }
 }
 
@@ -215,8 +216,8 @@ void Segment::setU_nX_nN(double dU, int state) {
   } else if (state == +3) {
     _U_nX_nN_t = dU;
   } else {
-    throw runtime_error(
-        " ERROR CODE whe__00u11d__");  // blabla?? What do I do here?
+    throw runtime_error(" ERROR CODE whe__00u11d__");  // blabla?? What do I do
+                                                       // here?
   }
 }
 
@@ -227,8 +228,8 @@ void Segment::setU_xN_xX(double dU, int state) {
   } else if (state == +3) {
     _U_xN_xX_t = dU;
   } else {
-    throw runtime_error(
-        " ERROR CODE whe__00u11d__");  // blabla?? What do I do here?
+    throw runtime_error(" ERROR CODE whe__00u11d__");  // blabla?? What do I do
+                                                       // here?
   }
 }
 
@@ -274,8 +275,8 @@ double Segment::getSiteEnergy(int state) {
   } else if (state == +3) {
     result = getEMpoles(state) + _U_xX_nN_t;
   } else {
-    throw runtime_error(
-        " ERROR CODE whe__00s11o__");  // blabla what do I do here?
+    throw runtime_error(" ERROR CODE whe__00s11o__");  // blabla what do I do
+                                                       // here?
   }
   return result;
 }
@@ -365,5 +366,5 @@ void Segment::Rigidify() {
   }
 }
 
-}
-}
+}  // namespace xtp
+}  // namespace votca

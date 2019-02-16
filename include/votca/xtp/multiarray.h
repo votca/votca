@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -18,25 +18,20 @@
  */
 
 #ifndef __XTP_MULTIARRAY__H
-#define	__XTP_MULTIARRAY__H
+#define __XTP_MULTIARRAY__H
 
-#define BOOST_DISABLE_ASSERTS 
+#define BOOST_DISABLE_ASSERTS
 #include <boost/multi_array.hpp>
 namespace votca {
-    namespace xtp {
+namespace xtp {
 typedef boost::multi_array<double, 3> tensor3d;
 typedef boost::multi_array<double, 4> tensor4d;
 
-typedef boost::multi_array_types::extent_range range; //////////////////
-typedef tensor3d::index index3d; /////////////////////
-typedef tensor4d::index index4d; /////////////////////
+typedef boost::multi_array_types::extent_range range;  //////////////////
+typedef tensor3d::index index3d;                       /////////////////////
+typedef tensor4d::index index4d;                       /////////////////////
 
+}  // namespace xtp
+}  // namespace votca
 
-   
-    
-    }}
-
-
-
-#endif	/*XTP_MULTIARRAY__H */
-
+#endif /*XTP_MULTIARRAY__H */

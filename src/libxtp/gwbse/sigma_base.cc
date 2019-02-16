@@ -17,38 +17,36 @@
  *
  */
 
-
-
-#include <votca/xtp/sigma_base.h>
-#include <cmath>
 #include <boost/math/constants/constants.hpp>
+#include <cmath>
 #include <votca/tools/constants.h>
+#include <votca/xtp/sigma_base.h>
 
 #include "votca/xtp/threecenter.h"
 
-
 namespace votca {
-  namespace xtp {
+namespace xtp {
 
-  Eigen::MatrixXd Sigma_base::CalcExchange()const{
+Eigen::MatrixXd Sigma_base::CalcExchange() const {
 
-    Eigen::MatrixXd result=Eigen::MatrixXd::Zero(_qptotal,_qptotal);
-    int gwsize = _Mmn.auxsize();
-    int occlevel=_opt.homo-_opt.rpamin+1;
-    int qpmin=_opt.qpmin-_opt.rpamin;
-      #pragma omp parallel for schedule(dynamic)
-      for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
-        const MatrixXfd& Mmn1 = _Mmn[ gw_level1 + qpmin ];
-        for (int gw_level2 = gw_level1; gw_level2 < _qptotal; gw_level2++) {
-          const MatrixXfd & Mmn2 = _Mmn[ gw_level2 + qpmin ];
-          double sigma_x =- (Mmn1.block(0,0,occlevel,gwsize).cwiseProduct(Mmn2.block(0,0,occlevel,gwsize))).sum();
-          result(gw_level1, gw_level2) =  sigma_x;
-          result(gw_level2, gw_level1) =  sigma_x;
-        }
-      }
-        return result;
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(_qptotal, _qptotal);
+  int gwsize = _Mmn.auxsize();
+  int occlevel = _opt.homo - _opt.rpamin + 1;
+  int qpmin = _opt.qpmin - _opt.rpamin;
+#pragma omp parallel for schedule(dynamic)
+  for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
+    const MatrixXfd& Mmn1 = _Mmn[gw_level1 + qpmin];
+    for (int gw_level2 = gw_level1; gw_level2 < _qptotal; gw_level2++) {
+      const MatrixXfd& Mmn2 = _Mmn[gw_level2 + qpmin];
+      double sigma_x = -(Mmn1.block(0, 0, occlevel, gwsize)
+                             .cwiseProduct(Mmn2.block(0, 0, occlevel, gwsize)))
+                            .sum();
+      result(gw_level1, gw_level2) = sigma_x;
+      result(gw_level2, gw_level1) = sigma_x;
     }
-
-       
   }
-};
+  return result;
+}
+
+}  // namespace xtp
+};  // namespace votca

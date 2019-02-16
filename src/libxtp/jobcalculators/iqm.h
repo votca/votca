@@ -18,85 +18,88 @@
  */
 
 #ifndef _CALC_XTP_IQM_H
-#define	_CALC_XTP_IQM_H
+#define _CALC_XTP_IQM_H
 
 #include <votca/tools/property.h>
 
+#include <boost/filesystem.hpp>
+#include <sys/stat.h>
 #include <votca/ctp/parallelxjobcalc.h>
-#include <votca/xtp/orbitals.h>
+#include <votca/xtp/bsecoupling.h>
 #include <votca/xtp/dftcoupling.h>
 #include <votca/xtp/gwbse.h>
-#include <votca/xtp/bsecoupling.h>
-#include <sys/stat.h>
-#include <boost/filesystem.hpp>
+#include <votca/xtp/orbitals.h>
 
-namespace votca { namespace xtp {
-    
+namespace votca {
+namespace xtp {
+
 /**
-* \brief DFT & GWBSE-based coupling elements
-*
-* Evaluates DFT & GWBSE-based coupling elements for all conjugated
-* segments from the neighbor list. Requires molecular orbitals of two monomers
-* and a dimer in GAUSSIAN, NWChem, or ORCAformat.
-* 
-* Callname: iqm
-*/
+ * \brief DFT & GWBSE-based coupling elements
+ *
+ * Evaluates DFT & GWBSE-based coupling elements for all conjugated
+ * segments from the neighbor list. Requires molecular orbitals of two monomers
+ * and a dimer in GAUSSIAN, NWChem, or ORCAformat.
+ *
+ * Callname: iqm
+ */
 
-class IQM : public ctp::ParallelXJobCalc< vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult >
-{
-public:
-   
-    void    Initialize(tools::Property *options ); 
-    string  Identify() { return "iqm"; }   
-    ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job, ctp::QMThread *Thread);  
-    void WriteJobFile(ctp::Topology *top);
-    void ReadJobFile( ctp::Topology *top );
+class IQM : public ctp::ParallelXJobCalc<vector<ctp::Job*>, ctp::Job*,
+                                         ctp::Job::JobResult> {
+ public:
+  void Initialize(tools::Property* options);
+  string Identify() { return "iqm"; }
+  ctp::Job::JobResult EvalJob(ctp::Topology* top, ctp::Job* job,
+                              ctp::QMThread* Thread);
+  void WriteJobFile(ctp::Topology* top);
+  void ReadJobFile(ctp::Topology* top);
 
-private:
-    
-    double GetBSECouplingFromProp(tools::Property& bseprop,const QMState& stateA,const QMState& stateB);
-    double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA, int stateB);
-    void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog, const string& errormessage);
-    void WriteLoggerToFile(const string& logfile, ctp::Logger& logger);
-    void addLinkers(std::vector< ctp::Segment* > &segments, ctp::Topology *top);
-    bool isLinker(const std::string& name);
-    void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
-    void ParseOptionsXML( tools::Property &opt);    
-    std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
-    
-    QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,const std::string& elementname )const;
-    
-    string              _package;
-    Property            _dftpackage_options; 
-    Property            _gwbse_options; 
-    Property            _bsecoupling_options; 
-    Property            _dftcoupling_options; 
+ private:
+  double GetBSECouplingFromProp(tools::Property& bseprop, const QMState& stateA,
+                                const QMState& stateB);
+  double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA,
+                                int stateB);
+  void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog,
+                      const string& errormessage);
+  void WriteLoggerToFile(const string& logfile, ctp::Logger& logger);
+  void addLinkers(std::vector<ctp::Segment*>& segments, ctp::Topology* top);
+  bool isLinker(const std::string& name);
+  void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
+  void ParseOptionsXML(tools::Property& opt);
+  std::map<std::string, QMState> FillParseMaps(const string& Mapstring);
 
-    // what to do
-    bool                _do_dft_input;
-    bool                _do_dft_run;
-    bool                _do_dft_parse;
-    bool                _do_dftcoupling;
-    bool                _do_gwbse;
-    bool                _do_bsecoupling;
-    
-    std::vector< std::string > _linker_names;
-    
-    // what to write in the storage
-    bool                _store_dft;
-    bool                _store_singlets;
-    bool                _store_triplets;
-    bool                _store_ehint;
-      
-    // parsing options
-    std::map<std::string, QMState> _singlet_levels;
-    std::map<std::string, QMState> _triplet_levels;
-    
-    std::map<std::string, QMState> _hole_levels;
-    std::map<std::string, QMState> _electron_levels;
+  QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,
+                            const std::string& elementname) const;
 
-        
+  string _package;
+  Property _dftpackage_options;
+  Property _gwbse_options;
+  Property _bsecoupling_options;
+  Property _dftcoupling_options;
+
+  // what to do
+  bool _do_dft_input;
+  bool _do_dft_run;
+  bool _do_dft_parse;
+  bool _do_dftcoupling;
+  bool _do_gwbse;
+  bool _do_bsecoupling;
+
+  std::vector<std::string> _linker_names;
+
+  // what to write in the storage
+  bool _store_dft;
+  bool _store_singlets;
+  bool _store_triplets;
+  bool _store_ehint;
+
+  // parsing options
+  std::map<std::string, QMState> _singlet_levels;
+  std::map<std::string, QMState> _triplet_levels;
+
+  std::map<std::string, QMState> _hole_levels;
+  std::map<std::string, QMState> _electron_levels;
 };
 
-}}
-#endif	
+}  // namespace xtp
+}  // namespace votca
+#endif

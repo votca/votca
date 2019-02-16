@@ -18,101 +18,105 @@
  */
 
 #ifndef _VOTCA_XTP_COUPLINGBASE_H
-#define	_VOTCA_XTP_COUPLINGBASE_H
+#define _VOTCA_XTP_COUPLINGBASE_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/orbitals.h>
 
-
-namespace votca { namespace xtp {
-
+namespace votca {
+namespace xtp {
 
 /**
-* \brief Base Class to derive DFT and BSE coupling from
-*
-* B. Baumeier, J. Kirkpatrick, D. Andrienko, 
-* Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
-* 
-*/
+ * \brief Base Class to derive DFT and BSE coupling from
+ *
+ * B. Baumeier, J. Kirkpatrick, D. Andrienko,
+ * Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
+ *
+ */
 
-class CouplingBase
-{
-public:
-    
-    
-    virtual void CalculateCouplings(const Orbitals& orbitalsA, 
-                               const Orbitals& orbitalsB, 
-                               Orbitals& orbitalsAB)=0;
-    
-    
-    virtual void Initialize(tools::Property&)=0;
-    
-    virtual void Addoutput(tools::Property & type_summary,const Orbitals& orbitalsA, 
-                               const Orbitals& orbitalsB)=0;
-    
-    void setLogger( ctp::Logger* pLog ) { _pLog = pLog; }
-    
-protected:
-    ctp::Logger *_pLog;
-    void CheckAtomCoordinates(const Orbitals& orbitalsA, const Orbitals& orbitalsB, const Orbitals& orbitalsAB);
-   
-   Eigen::MatrixXd CalculateOverlapMatrix( Orbitals& orbitalsAB); 
-  
+class CouplingBase {
+ public:
+  virtual void CalculateCouplings(const Orbitals& orbitalsA,
+                                  const Orbitals& orbitalsB,
+                                  Orbitals& orbitalsAB) = 0;
 
+  virtual void Initialize(tools::Property&) = 0;
+
+  virtual void Addoutput(tools::Property& type_summary,
+                         const Orbitals& orbitalsA,
+                         const Orbitals& orbitalsB) = 0;
+
+  void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
+
+ protected:
+  ctp::Logger* _pLog;
+  void CheckAtomCoordinates(const Orbitals& orbitalsA,
+                            const Orbitals& orbitalsB,
+                            const Orbitals& orbitalsAB);
+
+  Eigen::MatrixXd CalculateOverlapMatrix(Orbitals& orbitalsAB);
 };
 
-inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(Orbitals& orbitalsAB){
+inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(
+    Orbitals& orbitalsAB) {
   BasisSet dftbasisset;
   AOBasis dftbasis;
   dftbasisset.LoadBasisSet(orbitalsAB.getDFTbasisName());
   dftbasis.AOBasisFill(dftbasisset, orbitalsAB.QMAtoms());
   AOOverlap dftAOoverlap;
   dftAOoverlap.Fill(dftbasis);
-  Eigen::MatrixXd overlapAB=dftAOoverlap.Matrix();
+  Eigen::MatrixXd overlapAB = dftAOoverlap.Matrix();
   return overlapAB;
 }
 
-inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA, 
-                          const Orbitals& orbitalsB, const Orbitals& orbitalsAB){
-  const std::vector<QMAtom*>& atomsA=orbitalsA.QMAtoms();
-  const std::vector<QMAtom*>& atomsB=orbitalsB.QMAtoms();
+inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
+                                               const Orbitals& orbitalsB,
+                                               const Orbitals& orbitalsAB) {
+  const std::vector<QMAtom*>& atomsA = orbitalsA.QMAtoms();
+  const std::vector<QMAtom*>& atomsB = orbitalsB.QMAtoms();
   const std::vector<QMAtom*>& atomsAll = orbitalsAB.QMAtoms();
-  bool coordinates_agree=true;
+  bool coordinates_agree = true;
   for (unsigned i = 0; i < atomsAll.size(); i++) {
     QMAtom* dimer = atomsAll[i];
     QMAtom* monomer = NULL;
-    
+
     if (i < atomsA.size()) {
       monomer = atomsA[i];
     } else if (i < atomsB.size() + atomsA.size()) {
-      monomer = atomsB[i - atomsA.size()]; 
+      monomer = atomsB[i - atomsA.size()];
     } else {
       // Linker
-      CTP_LOG(ctp::logERROR, *_pLog) << (boost::format("Neither Monomer A nor Monomer B contains "
-              "atom %s on line %u. Hence, this atom is part of a linker.") %dimer->getType() %(i+1) ).str()<<std::flush;
+      CTP_LOG(ctp::logERROR, *_pLog)
+          << (boost::format(
+                  "Neither Monomer A nor Monomer B contains "
+                  "atom %s on line %u. Hence, this atom is part of a linker.") %
+              dimer->getType() % (i + 1))
+                 .str()
+          << std::flush;
       continue;
     }
-    
-    if(!monomer->getPos().isClose(dimer->getPos(), 0.001)){
-        coordinates_agree=false;
+
+    if (!monomer->getPos().isClose(dimer->getPos(), 0.001)) {
+      coordinates_agree = false;
     }
-    
+
     if (monomer->getType() != dimer->getType()) {
-      throw std::runtime_error("\nERROR: Atom types do not agree in dimer and monomers\n");
+      throw std::runtime_error(
+          "\nERROR: Atom types do not agree in dimer and monomers\n");
     }
   }
-  
-  if(!coordinates_agree){
-        CTP_LOG(ctp::logINFO, *_pLog) << "======WARNING=======\n Coordinates of monomer "
-              "and dimer atoms do not agree" << std::flush;
+
+  if (!coordinates_agree) {
+    CTP_LOG(ctp::logINFO, *_pLog)
+        << "======WARNING=======\n Coordinates of monomer "
+           "and dimer atoms do not agree"
+        << std::flush;
   }
 }
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif	/* _VOTCA_XTP_DFTCOUPLING_H */
-
-
+#endif /* _VOTCA_XTP_DFTCOUPLING_H */

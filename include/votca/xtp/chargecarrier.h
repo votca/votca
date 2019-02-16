@@ -17,60 +17,57 @@
  */
 
 #ifndef __VOTCA_CHARGECARRIER_H
-#define	__VOTCA_CHARGECARRIER_H
+#define __VOTCA_CHARGECARRIER_H
 
 #include <votca/tools/vec.h>
 #include <votca/xtp/gnode.h>
 
+namespace votca {
+namespace xtp {
 
+class Chargecarrier {
+ public:
+  Chargecarrier() : lifetime(0.0), steps(0) {
+    dr_travelled = tools::vec(0.0, 0.0, 0.0);
+    node = NULL;
+  }
+  ~Chargecarrier(){};
+  bool hasNode() { return (node != NULL); }
+  void updateLifetime(double dt) { lifetime += dt; }
+  void updateOccupationtime(double dt) { node->occupationtime += dt; }
+  void updateSteps(unsigned t) { steps += t; }
+  void resetCarrier() {
+    lifetime = 0;
+    steps = 0;
+    dr_travelled = tools::vec(0.0, 0.0, 0.0);
+  }
+  const double& getLifetime() { return lifetime; }
+  const unsigned& getSteps() { return steps; }
+  const int& getCurrentNodeId() { return node->id; }
+  double getCurrentEnergy() { return node->siteenergy; }
+  tools::vec getCurrentPosition() { return node->position; }
+  double getCurrentEscapeRate() { return node->escape_rate; }
+  GNode* getCurrentNode() { return node; }
+  void settoNote(GNode* newnode) {
+    node = newnode;
+    node->occupied = true;
+  }
 
-namespace votca { namespace xtp {
-    
-  
-       
-        
-            class Chargecarrier
-            {
-                public:
-                    Chargecarrier(): lifetime(0.0),steps(0) 
-                    {
-                        dr_travelled=tools::vec(0.0,0.0,0.0);
-                        node=NULL;
-                    }
-                    ~Chargecarrier(){};
-                    bool hasNode(){return (node!=NULL);}
-                    void updateLifetime(double dt) { lifetime+=dt;}
-                    void updateOccupationtime(double dt) { node->occupationtime+=dt;}
-                    void updateSteps(unsigned t) { steps+=t;}
-                    void resetCarrier() { lifetime=0;steps=0; dr_travelled=tools::vec(0.0,0.0,0.0);}
-                    const double& getLifetime(){return lifetime;}
-                    const unsigned& getSteps(){return steps;}
-                    const int& getCurrentNodeId(){return node->id;}
-                    double getCurrentEnergy(){return node->siteenergy;}
-                    tools::vec getCurrentPosition(){return node->position;}
-                    double getCurrentEscapeRate(){return node->escape_rate;}
-                    GNode * getCurrentNode(){return node;}
-                    void settoNote(GNode *newnode){node=newnode;
-                        node->occupied=true;}
+  void jumpfromCurrentNodetoNode(GNode* newnode) {
+    node->occupied = false;
+    settoNote(newnode);
+  }
+  int id;
 
-                    void jumpfromCurrentNodetoNode(GNode *newnode){
-                        node->occupied=false;
-                        settoNote(newnode);
-                    }
-                    int id;
-                    
-                    tools::vec dr_travelled;
-                    
-                private:
-                    GNode *node;
-                    double lifetime;
-                    unsigned steps;
-            };
-     
+  tools::vec dr_travelled;
 
+ private:
+  GNode* node;
+  double lifetime;
+  unsigned steps;
+};
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-
-#endif	/* __VOTCA_CHARGECARRIER_H */
+#endif /* __VOTCA_CHARGECARRIER_H */

@@ -18,35 +18,29 @@
  */
 
 #ifndef __QMPACKAGEFACTORY__H
-#define	__QMPACKAGEFACTORY__H
+#define __QMPACKAGEFACTORY__H
 
 #include <votca/tools/objectfactory.h>
 #include <votca/xtp/qmpackage.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
+class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage> {
+ private:
+  QMPackageFactory() {}
 
-
-class QMPackageFactory : public tools::ObjectFactory<std::string, QMPackage>
-{
-private:
-    QMPackageFactory() {
-    }
-public:
-    
-    static void RegisterAll(void);
-    friend QMPackageFactory &QMPackages();
-    
+ public:
+  static void RegisterAll(void);
+  friend QMPackageFactory &QMPackages();
 };
 
-inline QMPackageFactory &QMPackages()
-{
-    static QMPackageFactory _instance;
-    return _instance;
+inline QMPackageFactory &QMPackages() {
+  static QMPackageFactory _instance;
+  return _instance;
 }
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif	/* __QMPACKAGEFACTORY__H */
-
+#endif /* __QMPACKAGEFACTORY__H */
