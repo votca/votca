@@ -40,7 +40,7 @@ class GenCube : public ctp::QMTool {
 
   string Identify() { return "gencube"; }
 
-  void Initialize(Property* options);
+  void Initialize(tools::Property* options);
   bool Evaluate();
 
  private:
@@ -66,7 +66,7 @@ class GenCube : public ctp::QMTool {
   ctp::Logger _log;
 };
 
-void GenCube::Initialize(Property* options) {
+void GenCube::Initialize(tools::Property* options) {
 
   // update options with the VOTCASHARE defaults
   UpdateWithDefaults(options, "xtp");
@@ -183,7 +183,7 @@ void GenCube::calculateCube() {
   out << boost::format("%1$d %2$f 0.0 0.0 \n") % (_xsteps + 1) % xincr;
   out << boost::format("%1$d 0.0 %2$f 0.0 \n") % (_ysteps + 1) % yincr;
   out << boost::format("%1$d 0.0 0.0 %2$f \n") % (_zsteps + 1) % zincr;
-  Elements _elements;
+  tools::Elements _elements;
   for (const QMAtom* atom : atoms) {
     const tools::vec& pos = atom->getPos();
     // get center coordinates in Bohr
@@ -234,7 +234,7 @@ void GenCube::calculateCube() {
   }
 
   CTP_LOG(ctp::logDEBUG, _log) << " Calculating cube data ... \n" << flush;
-  _log.setPreface(ctp::logDEBUG, (format(" ... ...")).str());
+  _log.setPreface(ctp::logDEBUG, (boost::format(" ... ...")).str());
 
   boost::progress_display progress(_xsteps);
   // eval density at cube grid points
@@ -246,7 +246,7 @@ void GenCube::calculateCube() {
       for (int iz = 0; iz <= _zsteps; iz++) {
         double z = zstart + double(iz) * zincr;
         Nrecord++;
-        vec pos = vec(x, y, z);
+        tools::vec pos = tools::vec(x, y, z);
         Eigen::VectorXd tmat = EvaluateBasisAtPosition(dftbasis, pos);
         double value = 0.0;
         if (do_amplitude) {

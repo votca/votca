@@ -43,14 +43,14 @@ class ExcitonCoupling : public ctp::QMTool {
 
   string Identify() { return "excitoncoupling"; }
 
-  void Initialize(Property* options);
+  void Initialize(tools::Property* options);
   bool Evaluate();
 
  private:
   string _orbA, _orbB, _orbAB;
   // int         _trimA, _trimB;
 
-  Property _coupling_options;
+  tools::Property _coupling_options;
 
   string _output_file;
   bool _classical;
@@ -61,7 +61,7 @@ class ExcitonCoupling : public ctp::QMTool {
   ctp::Logger _log;
 };
 
-void ExcitonCoupling::Initialize(Property* options) {
+void ExcitonCoupling::Initialize(tools::Property* options) {
   // _doSinglets=false;
   // _doTriplets=false;
   // update options with the VOTCASHARE defaults
@@ -106,8 +106,8 @@ bool ExcitonCoupling::Evaluate() {
   _log.setPreface(ctp::logERROR, "\n... ...");
   _log.setPreface(ctp::logWARNING, "\n... ...");
   _log.setPreface(ctp::logDEBUG, "\n... ...");
-  Property summary;
-  Property& job_output = summary.add("output", "");
+  tools::Property summary;
+  tools::Property& job_output = summary.add("output", "");
   // get the corresponding object from the QMPackageFactory
   if (!_classical) {
     Orbitals orbitalsA, orbitalsB, orbitalsAB;
@@ -132,8 +132,8 @@ bool ExcitonCoupling::Evaluate() {
     bsecoupling.CalculateCouplings(orbitalsA, orbitalsB, orbitalsAB);
     std::cout << _log;
 
-    Property& pair_summary = job_output.add("pair", "");
-    Property& type_summary = pair_summary.add("type", "");
+    tools::Property& pair_summary = job_output.add("pair", "");
+    tools::Property& type_summary = pair_summary.add("type", "");
     bsecoupling.Addoutput(type_summary, orbitalsA, orbitalsB);
 
   }
@@ -149,7 +149,7 @@ bool ExcitonCoupling::Evaluate() {
     ctp::PolarSeg Seg2 = ctp::PolarSeg(2, seg2);
     ctp::XInteractor actor;
     actor.ResetEnergy();
-    vec s = vec(0, 0, 0);
+    tools::vec s = tools::vec(0, 0, 0);
     double E = 0.0;
     for (ctp::APolarSite* site1 : Seg1) {
       for (ctp::APolarSite* site2 : Seg2) {
@@ -160,14 +160,14 @@ bool ExcitonCoupling::Evaluate() {
       }
     }
 
-    double J = E * conv::int2eV;
+    double J = E * tools::conv::int2eV;
 
-    Property& pair_summary = job_output.add("pair", "");
+    tools::Property& pair_summary = job_output.add("pair", "");
     pair_summary.setAttribute("idA", 1);
     pair_summary.setAttribute("idB", 2);
     pair_summary.setAttribute("typeA", _mpsA);
     pair_summary.setAttribute("typeB", _mpsB);
-    Property& coupling_summary = pair_summary.add("Coupling", "");
+    tools::Property& coupling_summary = pair_summary.add("Coupling", "");
     coupling_summary.setAttribute("jABstatic", J);
   }
 
