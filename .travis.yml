@@ -9,6 +9,9 @@ sudo: required
 services:
 - docker
 
+git:
+  quiet: true
+
 env:
   matrix:
     - ENV=1
@@ -43,7 +46,7 @@ before_script:
      cp -vr ${TRAVIS_REPO_SLUG}/docker ${HOME};
      mv -v ${TRAVIS_REPO_SLUG} $HOME/docker;
    else
-     git clone --recursive https://github.com/votca/votca.git $HOME/docker/votca;
+     git clone -q --recursive https://github.com/votca/votca.git $HOME/docker/votca;
      if [[ ${TRAVIS_BRANCH} != master ]]; then
        git -C ${HOME}/docker/votca checkout -b ${TRAVIS_BRANCH} ${TRAVIS_TAG:-origin/${TRAVIS_BRANCH}} && git -C ${HOME}/docker/votca submodule update --recursive --init;
      fi;
@@ -53,10 +56,10 @@ before_script:
      if [[ -d ${TRAVIS_REPO_SLUG}/docker ]]; then cp -vr ${TRAVIS_REPO_SLUG}/docker/* ${HOME}/docker; fi;
    fi
  - source ${HOME}/docker/set_env.sh
- - cp -r $HOME/.ccache ${HOME}/docker/ccache
+ - test -n "${SKIP}" || cp -r $HOME/.ccache ${HOME}/docker/ccache
  - sed -i "1s/latest/${DISTRO:-latest}/" ${HOME}/docker/Dockerfile
  - if [[ ! ${SKIP} ]]; then 
-     travis_retry timeout 540 docker pull $(sed -n '1s/FROM //p' ${HOME}/docker/Dockerfile);
+     travis_retry timeout 540 docker pull $(sed -n '1s/FROM //p' ${HOME}/docker/Dockerfile) | cat;
    fi
 
 script:
