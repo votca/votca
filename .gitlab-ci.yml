@@ -29,6 +29,9 @@ stages:
     - git -C ${CI_PROJECT_DIR} branch -d commit_of_build_${CI_BUILD_ID}
     - git checkout -f ${CI_COMMIT_SHA}
     - git submodule update --recursive --init
+    - if [[ ${CI_COMMIT_REF_NAME} = next ]]; then
+        git submodule foreach git checkout master && git submodule foreach git pull
+      fi
     - mkdir -p build
     - pushd build
     - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_CTP_MANUAL=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON
