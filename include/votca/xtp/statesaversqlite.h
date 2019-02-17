@@ -34,37 +34,28 @@ class StateSaverSQLite {
   StateSaverSQLite(){};
   ~StateSaverSQLite() { _db.Close(); }
 
-  void Open(Topology &qmtop, const std::string &file, bool lock = true);
+  void Open(const std::string &file, bool lock = true);
   void Close() { _db.Close(); }
   bool NextFrame();
 
-  void WriteFrame();
-  void WriteMeta(bool update);
-  void WriteMolecules(bool update);
-  void WriteSegTypes(bool update);
-  void WriteSegments(bool update);
-  void WriteFragments(bool update);
-  void WriteAtoms(bool update);
-  void WritePairs(bool update);
+  void WriteFrame(const Topology &top);
+  void WriteMeta(const Topology &top, bool update);
+  void WriteSegments(const Topology &top, bool update);
+  void WriteAtoms(const Topology &top, bool update);
+  void WritePairs(const Topology &top, bool update);
 
-  void ReadFrame();
-  void ReadMeta(int topId);
-  void ReadMolecules(int topId);
-  void ReadSegTypes(int topId);
-  void ReadSegments(int topId);
-  void ReadFragments(int topId);
-  void ReadAtoms(int topId);
-  void ReadPairs(int topId);
+  void ReadFrame(Topology &top);
+  void ReadMeta(Topology &top, int topId);
+  void ReadSegments(Topology &top, int topId);
+  void ReadAtoms(Topology &top, int topId);
+  void ReadPairs(Topology &top, int topId);
 
   int FramesInDatabase();
-  Topology *getTopology() { return _qmtop; }
-  bool HasTopology(Topology *top);
-
   void LockStateFile();
   void UnlockStateFile();
 
  private:
-  Topology *_qmtop;
+  bool HasTopology(const Topology &top);
   QMDatabase _db;
 
   int _frame;

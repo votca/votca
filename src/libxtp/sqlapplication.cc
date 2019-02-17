@@ -69,7 +69,7 @@ void SqlApplication::Run() {
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
   StateSaverSQLite statsav;
-  statsav.Open(_top, statefile);
+  statsav.Open(statefile);
 
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculators " << std::endl;
@@ -83,7 +83,7 @@ void SqlApplication::Run() {
     std::cout << "Evaluating frame " << _top.getDatabaseId() << std::endl;
     EvaluateFrame();
     if (save == 1) {
-      statsav.WriteFrame();
+      statsav.WriteFrame(_top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
     }

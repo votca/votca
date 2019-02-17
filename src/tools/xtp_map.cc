@@ -31,10 +31,7 @@
 #include <votca/xtp/version.h>
 
 #include <votca/xtp/atom.h>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/molecule.h>
 #include <votca/xtp/segment.h>
-#include <votca/xtp/segmenttype.h>
 #include <votca/xtp/topology.h>
 
 using namespace std;
@@ -53,11 +50,7 @@ class XtpMap : public TOOLS::Application {
   void Initialize();
   bool EvaluateOptions();
   void Run();
-  void Save(string mode);
-
-  void BeginEvaluate() { ; }
-  bool DoTrajectory() { return 0; }
-  bool DoMapping() { return 0; }
+  void Save();
 
  protected:
   TOOLS::Property _options;
@@ -107,18 +100,16 @@ void XtpMap::Run() {
   // Initialize MD2QM Engine and SQLite Db //
   // +++++++++++++++++++++++++++++++++++++ //
 
-  bool abort = false;
   _outdb = _op_vm["file"].as<string>();
-  _statsav.Open(_qmtopol, _outdb, false);
+  _statsav.Open(_outdb, false);
   int frames_in_db = _statsav.FramesInDatabase();
   if (frames_in_db > 0) {
     cout << endl
          << "ERROR <xtp_map> : state file '" << _outdb
          << "' already in use. Abort." << endl;
-    abort = true;
+    _statsav.Close();
+    return;
   }
-  _statsav.Close();
-  if (abort) return;
 
   string cgfile = _op_vm["segments"].as<string>();
   _md2qm.Initialize(cgfile);
@@ -130,9 +121,11 @@ void XtpMap::Run() {
   // Create topology reader
   string topfile = _op_vm["topology"].as<string>();
   CSG::TopologyReader *topread;
-  topread = CSG::TopReaderFactory().Create(topfile);
+  std::unique_ptr<CSG::TopologyReader> topread =
+      std::unique_ptr<CSG::TopologyReader>(
+          CSG::TopReaderFactory().Create(topfile));
 
-  if (topread == NULL) {
+  if (topread == nullptr) {
     throw runtime_error(string("Input format not supported: ") +
                         _op_vm["topology"].as<string>());
   }
@@ -150,15 +143,16 @@ void XtpMap::Run() {
 
   // Create trajectory reader and initialize
   string trjfile = _op_vm["coordinates"].as<string>();
-  CSG::TrajectoryReader *trjread;
-  trjread = CSG::TrjReaderFactory().Create(trjfile);
+  std::unique_ptr<CSG::TrajectoryReader> trjread =
+      std::unique_ptr<CSG::TrajectoryReader>(
+          CSG::TrjReaderFactory().Create(trjfile));
 
-  if (trjread == NULL) {
+  if (trjread == nullptr) {
     throw runtime_error(string("Input format not supported: ") +
                         _op_vm["coordinates"].as<string>());
   }
   trjread->Open(trjfile);
-  trjread->FirstFrame(this->_mdtopol);
+  trjread->FirstFrame(_mdtopol);
 
   int firstFrame = 1;
   int nFrames = 1;
@@ -180,7 +174,7 @@ void XtpMap::Run() {
   bool hasFrame;
 
   for (hasFrame = true; hasFrame == true;
-       hasFrame = trjread->NextFrame(this->_mdtopol)) {
+       hasFrame = trjread->NextFrame(_mdtopol)) {
     if (((_mdtopol.getTime() < startTime) && beginAt) || firstFrame > 1) {
       firstFrame--;
       continue;
@@ -189,7 +183,6 @@ void XtpMap::Run() {
   }
   if (!hasFrame) {
     trjread->Close();
-    delete trjread;
 
     throw runtime_error("Time or frame number exceeds trajectory length");
   }
@@ -199,24 +192,16 @@ void XtpMap::Run() {
   // +++++++++++++++++++++++++ //
 
   for (int saved = 0; hasFrame && saved < nFrames;
-       hasFrame = trjread->NextFrame(this->_mdtopol), saved++) {
-
+       hasFrame = trjread->NextFrame(_mdtopol), saved++) {
     _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
-
-    // +++++++++++++++++++++++++ //
-    // Save to SQLite State File //
-    // +++++++++++++++++++++++++ //
-
-    this->Save("");
+    Save();
   }
 }
 
-void XtpMap::Save(string mode) {
+void XtpMap::Save() {
 
-  _statsav.Open(_qmtopol, _outdb);
-
-  _statsav.WriteFrame();
-
+  _statsav.Open(_outdb);
+  _statsav.WriteFrame(_qmtopol);
   _statsav.Close();
 }
 

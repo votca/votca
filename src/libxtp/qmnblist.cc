@@ -27,18 +27,13 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-QMPair* QMNBList::Add(Segment* seg1, Segment* seg2) {
+QMPair& QMNBList::Add(Segment* seg1, Segment* seg2) {
   assert(this->FindPair(seg1, seg2) != NULL &&
          "Critical bug: pair already exists");
-
-  // POTENTIAL BUGS : +1 added to start from 1;
   int id = this->size();
-
   QMPair* pair = new QMPair(id, seg1, seg2);
-
   this->AddPair(pair);
-
-  return pair;
+  return *pair;
 }
 
 }  // namespace xtp

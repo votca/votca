@@ -71,8 +71,7 @@ class QMPair {
            _segments.first->getSiteEnergy(state);
   }
 
-  Segment* Seg1PbCopy() const { return _segments.first; }
-  Segment* Seg2PbCopy() const;
+  Segment* Seg2PbC() const;
   Segment* Seg1() const { return _segments.first; }
   Segment* Seg2() const { return _segments.second; }
 

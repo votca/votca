@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -101,7 +101,6 @@
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/logger.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
-      <itemPath>../../include/votca/xtp/molecule.h</itemPath>
       <itemPath>../../include/votca/xtp/multiarray.h</itemPath>
       <itemPath>../../include/votca/xtp/nbo.h</itemPath>
       <itemPath>../../include/votca/xtp/numerical_integrations.h</itemPath>
@@ -130,7 +129,6 @@
       <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
-      <itemPath>../../include/votca/xtp/segmenttype.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
@@ -4039,8 +4037,6 @@
       </item>
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/multiarray.h"
             ex="false"
             tool="3"
@@ -4144,11 +4140,6 @@
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/segmenttype.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -5134,8 +5125,6 @@
       </item>
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/multiarray.h"
             ex="false"
             tool="3"
@@ -5239,11 +5228,6 @@
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/segmenttype.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"

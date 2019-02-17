@@ -97,7 +97,7 @@ class QMStateCarrierStorage {
   QMStateCarrierStorage() {
     if (std::is_integral<T>::value) {
       _content = {0, 0, 0, 0};
-    } else if (std::is_floating_point<A>::value) {
+    } else if (std::is_floating_point<T>::value) {
       _content = {0.0, 0.0, 0.0, 0.0};
     }
   }

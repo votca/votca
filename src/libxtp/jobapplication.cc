@@ -89,7 +89,7 @@ void JobApplication::Run() {
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
   StateSaverSQLite statsav;
-  statsav.Open(_top, statefile);
+  statsav.Open(statefile);
 
   ProgObserver<std::vector<Job*>, Job*, Job::JobResult> progObs =
       ProgObserver<std::vector<Job*>, Job*, Job::JobResult>();
@@ -107,7 +107,7 @@ void JobApplication::Run() {
     std::cout << "Evaluating frame " << _top.getDatabaseId() << std::endl;
     EvaluateFrame();
     if (save == 1) {
-      statsav.WriteFrame();
+      statsav.WriteFrame(_top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
     }

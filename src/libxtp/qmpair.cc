@@ -30,17 +30,18 @@ QMPair::QMPair(int id, Segment *seg1, Segment *seg2,
     : _id(id), _R(delta_R) {
   _segments.first = seg1;
   _segments.second = seg2;
-  Eigen::Vector3d r1 = seg1->getPos().toEigen();
-  Eigen::Vector3d r2 = seg2->getPos().toEigen();
+}
+
+Segment *QMPair::Seg2PbCopy() {
+  Eigen::Vector3d r1 = _segments.first->getPos().toEigen();
+  Eigen::Vector3d r2 = _segments.second->getPos().toEigen();
 
   // Check whether pair formed across periodic boundary
   if ((r2 - r1 - _R).norm() > 1e-8) {
     _ghost = std::unique_ptr<Segment>(new Segment(seg2));
     _ghost->TranslateBy(r1 - r2 + _R);
   }
-}
 
-Segment *QMPair::Seg2PbCopy() {
   if (_ghost != nullptr) {
     return _ghost.get();
   } else {
