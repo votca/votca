@@ -23,14 +23,15 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 
-#include <votca/xtp/bse_operator.h>
-
 #include <votca/xtp/threecenter.h>
 #include <votca/xtp/qmstate.h>
 
 
+
 namespace votca {
 namespace xtp {
+
+class BSE_OPERATOR;
 
 class BSE {
 
@@ -153,7 +154,8 @@ class BSE {
 
  
   Interaction Analyze_eh_interaction(const QMStateType& type);
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
+  //Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
+  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const BSE_OPERATOR& H);
 
   Population FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis);
 

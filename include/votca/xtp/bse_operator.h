@@ -26,6 +26,8 @@
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/matrixfreeoperator.h>
 
+class BSE;
+
 namespace votca {
 namespace xtp {
 
@@ -56,7 +58,7 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   options _opt;
 
   void SetupDirectInteractionOperator();
-
+  
   void setHx(int coeff) {this->_coeff_Hx = coeff;}
   void setHqp(int coeff) {this->_coeff_Hqp = coeff;}
   void setHd(int coeff) {this->_coeff_Hd = coeff;}

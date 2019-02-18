@@ -19,7 +19,7 @@
 
 #ifndef __XTP_EIGEN__H
 #define	__XTP_EIGEN__H
-#include <Eigen/IterativeLinearSolvers>
+
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
 
