@@ -43,28 +43,28 @@ using namespace votca::tools;
     \todo check for consistency of xml file, seperate xml parser and class!!
 */
 class CGMoleculeDef {
-public:
+ public:
   CGMoleculeDef() {}
   ~CGMoleculeDef();
 
   Molecule *CreateMolecule(Topology &top);
-  Map *CreateMap(Molecule &in, Molecule &out);
+  Map *     CreateMap(Molecule &in, Molecule &out);
 
   void Load(std::string filename);
 
   const std::string &getName() { return _name; }
   const std::string &getIdent() { return _ident; }
 
-private:
+ private:
   Property _options;
 
   struct beaddef_t {
-    std::string _name;
-    std::string _type;
-    byte_t _symmetry;
-    std::string _mapping;
+    std::string              _name;
+    std::string              _type;
+    byte_t                   _symmetry;
+    std::string              _mapping;
     std::vector<std::string> _subbeads;
-    Property *_options;
+    Property *               _options;
   };
 
   // name of the coarse grained molecule
@@ -73,13 +73,13 @@ private:
   std::string _ident;
 
   // beads of the cg molecule
-  std::vector<beaddef_t *> _beads;
+  std::vector<beaddef_t *>           _beads;
   std::map<std::string, beaddef_t *> _beads_by_name;
 
   // mapping schemes
   std::map<std::string, Property *> _maps;
 
-  std::list<Property *> _bonded;
+  std::vector<Property *> _bonded;
 
   void ParseTopology(Property &options);
   void ParseBeads(Property &options);
@@ -87,10 +87,10 @@ private:
   void ParseMapping(Property &options);
 
   beaddef_t *getBeadByName(const std::string &name);
-  Property *getMapByName(const std::string &name);
+  Property * getMapByName(const std::string &name);
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_CGMOLECULEDEF_H */

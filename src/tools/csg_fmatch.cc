@@ -49,14 +49,13 @@ bool CGForceMatching::EvaluateOptions() {
   LoadOptions(OptionsMap()["options"].as<string>());
 
   _has_existing_forces = false;
-  if (OptionsMap().count("trj-force"))
-    _has_existing_forces = true;
+  if (OptionsMap().count("trj-force")) _has_existing_forces = true;
   return true;
 }
 
 void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   // set counters to zero value:
-  _nblocks = 0;
+  _nblocks   = 0;
   _line_cntr = _col_cntr = 0;
 
   // Number of CG beads in topology
@@ -76,9 +75,8 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   _constr_least_sq = _options.get("cg.fmatch.constrainedLS").as<bool>();
 
   // initializing bonded interactions
-  for (list<Property *>::iterator iter = _bonded.begin(); iter != _bonded.end();
-       ++iter) {
-    SplineInfo *i = new SplineInfo(_splines.size(), true, _col_cntr, *iter);
+  for (Property *prop : _bonded) {
+    SplineInfo *i = new SplineInfo(_splines.size(), true, _col_cntr, prop);
     // adjust initial matrix dimensions:
     _line_cntr += i->num_gridpoints;
     _col_cntr += 2 * i->num_gridpoints;
@@ -92,9 +90,8 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   }
 
   // initializing non-bonded interactions
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, *iter);
+  for (Property *prop : _nonbonded) {
+    SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, prop);
     // adjust initial matrix dimensions:
     // number of constraints/restraints
     _line_cntr += i->num_gridpoints;
@@ -112,7 +109,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
 
   // now initialize _A, _b, _x and probably _B_constr
   // depending on least-squares algorithm used
-  if (_constr_least_sq) { // Constrained Least Squares
+  if (_constr_least_sq) {  // Constrained Least Squares
 
     cout << "\nUsing constrained Least Squares!\n " << endl;
 
@@ -130,7 +127,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
     // in case of constrained least squares smoothing conditions
     // are assigned to matrix _B_constr
     FmatchAssignSmoothCondsToMatrix(_B_constr);
-  } else { // Simple Least Squares
+  } else {  // Simple Least Squares
 
     cout << "\nUsing simple Least Squares! " << endl;
     // assign _least_sq_offset
@@ -168,18 +165,18 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
                                         Property *options) {
   // initialize standard data
   splineIndex = index;
-  _options = options;
-  splineName = options->get("name").value();
-  bonded = bonded_;
+  _options    = options;
+  splineName  = options->get("name").value();
+  bonded      = bonded_;
   // in general natural boundary conditions are used for splines (default is no)
   periodic = 0;
   // check if non-bonded 3-body interaction or not (default is no)
   threebody = 0;
   // initialize additional parameters for threebody interactions
   //(values of Molinero water potential)
-  a = 0.37;     //(0.37 nm)
-  sigma = 1;    //(dimensionless)
-  gamma = 0.12; //(0.12 nm = 1.2 Ang)
+  a     = 0.37;  //(0.37 nm)
+  sigma = 1;     //(dimensionless)
+  gamma = 0.12;  //(0.12 nm = 1.2 Ang)
 
   // get non-bonded information
   if (!bonded) {
@@ -221,14 +218,14 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
             << std::endl;
 
   // initialize the grid
-  double grid_min = options->get("fmatch.min").as<double>();
-  double grid_max = options->get("fmatch.max").as<double>();
+  double grid_min  = options->get("fmatch.min").as<double>();
+  double grid_max  = options->get("fmatch.max").as<double>();
   double grid_step = options->get("fmatch.step").as<double>();
 
   // GenerateGrid returns number of grid points. We subtract 1 to get
   // the number of spline functions
   num_gridpoints = Spline.GenerateGrid(grid_min, grid_max, grid_step);
-  num_splinefun = num_gridpoints - 1;
+  num_splinefun  = num_gridpoints - 1;
 
   cout << "Number of spline functions for the interaction " << splineName << ":"
        << num_splinefun << endl;
@@ -239,20 +236,20 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
   dx_out = options->get("fmatch.out_step").as<double>();
   // number of output grid points
   num_outgrid = 1 + (int)((grid_max - grid_min) / dx_out);
-  result = Eigen::VectorXd::Zero(num_outgrid);
-  error = Eigen::VectorXd::Zero(num_outgrid);
-  resSum = Eigen::VectorXd::Zero(num_outgrid);
-  resSum2 = Eigen::VectorXd::Zero(num_outgrid);
+  result      = Eigen::VectorXd::Zero(num_outgrid);
+  error       = Eigen::VectorXd::Zero(num_outgrid);
+  resSum      = Eigen::VectorXd::Zero(num_outgrid);
+  resSum2     = Eigen::VectorXd::Zero(num_outgrid);
 
   // Only if threebody interaction, the derivatives are explicitly calculated
   if (threebody) {
-    resultDer = Eigen::VectorXd::Zero(num_outgrid);
-    errorDer = Eigen::VectorXd::Zero(num_outgrid);
-    resSumDer = Eigen::VectorXd::Zero(num_outgrid);
+    resultDer  = Eigen::VectorXd::Zero(num_outgrid);
+    errorDer   = Eigen::VectorXd::Zero(num_outgrid);
+    resSumDer  = Eigen::VectorXd::Zero(num_outgrid);
     resSumDer2 = Eigen::VectorXd::Zero(num_outgrid);
   }
 
-  block_res_f = Eigen::VectorXd::Zero(num_outgrid);
+  block_res_f  = Eigen::VectorXd::Zero(num_outgrid);
   block_res_f2 = Eigen::VectorXd::Zero(num_outgrid);
 }
 void CGForceMatching::EndEvaluate() {
@@ -276,12 +273,12 @@ void CGForceMatching::EndEvaluate() {
 }
 
 void CGForceMatching::WriteOutFiles() {
-  string file_extension = ".force";
+  string file_extension     = ".force";
   string file_extension_pot = ".pot";
   string file_name;
   string file_nameDer;
-  Table force_tab;
-  Table force_tabDer;
+  Table  force_tab;
+  Table  force_tabDer;
 
   // table with error column
   force_tab.SetHasYErr(true);
@@ -307,7 +304,7 @@ void CGForceMatching::WriteOutFiles() {
     // the derivative represents the force Only then, the derivatives are
     // explicitly calculated
     if ((*is)->threebody) {
-      file_name = file_name + file_extension_pot;
+      file_name    = file_name + file_extension_pot;
       file_nameDer = (*is)->splineName;
       file_nameDer = file_nameDer + file_extension;
 
@@ -391,8 +388,8 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
     for (int i = 0; i < conf->BeadCount(); ++i) {
       conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
       vec d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-      if (abs(d) > _dist) { // default is 1e-5, otherwise it can be a too
-                            // strict criterion
+      if (abs(d) > _dist) {  // default is 1e-5, otherwise it can be a too
+                             // strict criterion
         throw std::runtime_error(
             "One or more bead positions in mapped and reference force "
             "trajectory differ by more than 1e-5");
@@ -402,10 +399,10 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
   for (spiter = _splines.begin(); spiter != _splines.end(); ++spiter) {
     SplineInfo *sinfo = *spiter;
-    if (sinfo->bonded) // bonded interaction
+    if (sinfo->bonded)  // bonded interaction
       EvalBonded(conf, sinfo);
-    else // non-bonded interaction
-        // check if threebody interaction or not
+    else  // non-bonded interaction
+          // check if threebody interaction or not
         if (sinfo->threebody) {
       EvalNonbonded_Threebody(conf, sinfo);
     } else {
@@ -434,9 +431,9 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
   // update the frame counter
   _frame_counter += 1;
 
-  if (_frame_counter % _nframes == 0) { // at this point we processed _nframes
-                                        // frames, which is enough for one
-                                        // block
+  if (_frame_counter % _nframes == 0) {  // at this point we processed _nframes
+                                         // frames, which is enough for one
+                                         // block
     // update block counter
     _nblocks++;
     // solve FM equations and accumulate the result
@@ -448,31 +445,30 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
     // we must count frames from zero again for the next block
     _frame_counter = 0;
-    if (_constr_least_sq) { // Constrained Least Squares
+    if (_constr_least_sq) {  // Constrained Least Squares
       // Matrices should be cleaned after each block is evaluated
       _A.setZero();
       _b.setZero();
       // clear and assign smoothing conditions to _B_constr
       FmatchAssignSmoothCondsToMatrix(_B_constr);
-    } else { // Simple Least Squares
+    } else {  // Simple Least Squares
       // Matrices should be cleaned after each block is evaluated
       // clear and assign smoothing conditions to _A
       FmatchAssignSmoothCondsToMatrix(_A);
       _b.setZero();
     }
   }
-  if (_has_existing_forces)
-    _trjreader_force->NextFrame(_top_force);
+  if (_has_existing_forces) _trjreader_force->NextFrame(_top_force);
 }
 
 void CGForceMatching::FmatchAccumulateData() {
-  if (_constr_least_sq) { // Constrained Least Squares
+  if (_constr_least_sq) {  // Constrained Least Squares
     // Solving linear equations system
     votca::tools::linalg_constrained_qrsolve(_x, _A, _b, _B_constr);
-  } else { // Simple Least Squares
+  } else {  // Simple Least Squares
 
     Eigen::HouseholderQR<Eigen::MatrixXd> dec(_A);
-    _x = dec.solve(_b);
+    _x                       = dec.solve(_b);
     Eigen::VectorXd residual = _b - _A * _x;
     // calculate FM residual - quality of FM
     // FM residual is initially calculated in (kJ/(mol*nm))^2
@@ -490,13 +486,13 @@ void CGForceMatching::FmatchAccumulateData() {
 
   SplineContainer::iterator is;
   for (is = _splines.begin(); is != _splines.end(); ++is) {
-    int &mp = (*is)->matr_pos;
+    int &mp  = (*is)->matr_pos;
     int &ngp = (*is)->num_gridpoints;
 
     // _x contains results for all splines. Here we cut the results for one
     // spline
     for (int i = 0; i < ngp; i++) {
-      (*is)->block_res_f[i] = _x[i + mp];
+      (*is)->block_res_f[i]  = _x[i + mp];
       (*is)->block_res_f2[i] = _x[i + mp + ngp];
     }
     // result cutted before is assigned to the corresponding spline
@@ -542,7 +538,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
   // For constrained least squares - for matrix _B_constr
   int line_tmp, col_tmp;
   line_tmp = 0;
-  col_tmp = 0;
+  col_tmp  = 0;
 
   Matrix.setZero();
 
@@ -566,12 +562,12 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
 
 void CGForceMatching::LoadOptions(const string &file) {
   load_property_from_xml(_options, file);
-  _bonded = _options.Select("cg.bonded");
+  _bonded    = _options.Select("cg.bonded");
   _nonbonded = _options.Select("cg.non-bonded");
 }
 
 void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
-  std::list<Interaction *> interList;
+  std::list<Interaction *>           interList;
   std::list<Interaction *>::iterator interListIter;
 
   interList = conf->InteractionsInGroup(sinfo->splineName);
@@ -580,31 +576,31 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
        ++interListIter) {
 
     int beads_in_int =
-        (*interListIter)->BeadCount(); // 2 for bonds, 3 for angles, 4 for
-                                       // dihedrals
+        (*interListIter)->BeadCount();  // 2 for bonds, 3 for angles, 4 for
+                                        // dihedrals
 
     CubicSpline &SP = sinfo->Spline;
 
     int &mpos = sinfo->matr_pos;
 
-    double var = (*interListIter)->EvaluateVar(*conf); // value of bond, angle,
-                                                       // or dihedral
+    double var = (*interListIter)->EvaluateVar(*conf);  // value of bond, angle,
+                                                        // or dihedral
 
     for (int loop = 0; loop < beads_in_int; loop++) {
-      int ii = (*interListIter)->getBeadId(loop);
+      int ii       = (*interListIter)->getBeadId(loop);
       vec gradient = (*interListIter)->Grad(*conf, loop);
 
       SP.AddToFitMatrix(_A, var,
                         _least_sq_offset + 3 * _nbeads * _frame_counter + ii,
                         mpos, -gradient.x());
-      SP.AddToFitMatrix(_A, var,
-                        _least_sq_offset + 3 * _nbeads * _frame_counter +
-                            _nbeads + ii,
-                        mpos, -gradient.y());
-      SP.AddToFitMatrix(_A, var,
-                        _least_sq_offset + 3 * _nbeads * _frame_counter +
-                            2 * _nbeads + ii,
-                        mpos, -gradient.z());
+      SP.AddToFitMatrix(
+          _A, var,
+          _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + ii, mpos,
+          -gradient.y());
+      SP.AddToFitMatrix(
+          _A, var,
+          _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + ii,
+          mpos, -gradient.z());
     }
   }
 }
@@ -630,10 +626,10 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     nb = new NBList();
 
   nb->setCutoff(
-      sinfo->_options->get("fmatch.max").as<double>()); // implement different
-                                                        // cutoffs for
-                                                        // different
-                                                        // interactions!
+      sinfo->_options->get("fmatch.max").as<double>());  // implement different
+                                                         // cutoffs for
+                                                         // different
+                                                         // interactions!
 
   // generate the bead lists
   BeadList beads1, beads2;
@@ -649,10 +645,10 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   NBList::iterator pair_iter;
   // iterate over all pairs
   for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-    int iatom = (*pair_iter)->first->getId();
-    int jatom = (*pair_iter)->second->getId();
-    double var = (*pair_iter)->dist();
-    vec gradient = (*pair_iter)->r();
+    int    iatom    = (*pair_iter)->first->getId();
+    int    jatom    = (*pair_iter)->second->getId();
+    double var      = (*pair_iter)->dist();
+    vec    gradient = (*pair_iter)->r();
     gradient.normalize();
 
     CubicSpline &SP = sinfo->Spline;
@@ -663,28 +659,32 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + iatom,
                       mpos, gradient.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + iatom,
-                      mpos, gradient.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + iatom,
-                      mpos, gradient.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos,
+        gradient.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom,
+        mpos, gradient.z());
 
     // add jatom
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + jatom,
                       mpos, -gradient.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + jatom,
-                      mpos, -gradient.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + jatom,
-                      mpos, -gradient.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + jatom, mpos,
+        -gradient.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom,
+        mpos, -gradient.z());
   }
   delete nb;
 }
 
-void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
+void CGForceMatching::EvalNonbonded_Threebody(Topology *  conf,
                                               SplineInfo *sinfo) {
   // so far option gridsearch ignored. Only simple search
 
@@ -706,8 +706,8 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   else
     nb = new NBList_3Body();
 
-  nb->setCutoff(sinfo->a); // implement different cutoffs for different
-                           // interactions!
+  nb->setCutoff(sinfo->a);  // implement different cutoffs for different
+                            // interactions!
   // Here, a is the distance between two beads of a triple, where the 3-body
   // interaction is zero
 
@@ -752,19 +752,19 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
   NBList_3Body::iterator triple_iter;
   // iterate over all triples
   for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter) {
-    int iatom = (*triple_iter)->bead1()->getId();
-    int jatom = (*triple_iter)->bead2()->getId();
-    int katom = (*triple_iter)->bead3()->getId();
+    int    iatom  = (*triple_iter)->bead1()->getId();
+    int    jatom  = (*triple_iter)->bead2()->getId();
+    int    katom  = (*triple_iter)->bead3()->getId();
     double distij = (*triple_iter)->dist12();
     double distik = (*triple_iter)->dist13();
-    vec rij = (*triple_iter)->r12();
-    vec rik = (*triple_iter)->r13();
+    vec    rij    = (*triple_iter)->r12();
+    vec    rik    = (*triple_iter)->r13();
 
     double gamma_sigma = (sinfo->gamma) * (sinfo->sigma);
-    double denomij = (distij - (sinfo->a) * (sinfo->sigma));
-    double denomik = (distik - (sinfo->a) * (sinfo->sigma));
-    double expij = exp(gamma_sigma / denomij);
-    double expik = exp(gamma_sigma / denomik);
+    double denomij     = (distij - (sinfo->a) * (sinfo->sigma));
+    double denomik     = (distik - (sinfo->a) * (sinfo->sigma));
+    double expij       = exp(gamma_sigma / denomij);
+    double expik       = exp(gamma_sigma / denomik);
 
     vec gradient1, gradient2;
 
@@ -775,9 +775,8 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     double var = acos(rij * rik / sqrt((rij * rij) * (rik * rik)));
 
     double acos_prime =
-        1.0 /
-        (sqrt(1 -
-              (rij * rik) * (rij * rik) / (distij * distik * distij * distik)));
+        1.0 / (sqrt(1 - (rij * rik) * (rij * rik) /
+                            (distij * distik * distij * distik)));
 
     // evaluate gradient1 and gradient2 for iatom:
     gradient1 = acos_prime *
@@ -794,12 +793,14 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + iatom,
                       mpos, -gradient1.x(), -gradient2.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + iatom,
-                      mpos, -gradient1.y(), -gradient2.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + iatom,
-                      mpos, -gradient1.z(), -gradient2.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + iatom, mpos,
+        -gradient1.y(), -gradient2.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + iatom,
+        mpos, -gradient1.z(), -gradient2.z());
 
     // evaluate gradient1 and gradient2 for jatom:
     gradient1 = acos_prime *
@@ -814,12 +815,14 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + jatom,
                       mpos, -gradient1.x(), -gradient2.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + jatom,
-                      mpos, -gradient1.y(), -gradient2.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + jatom,
-                      mpos, -gradient1.z(), -gradient2.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + jatom, mpos,
+        -gradient1.y(), -gradient2.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + jatom,
+        mpos, -gradient1.z(), -gradient2.z());
 
     // evaluate gradient1 and gradient2 for katom:
     gradient1 = acos_prime *
@@ -834,12 +837,14 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + katom,
                       mpos, -gradient1.x(), -gradient2.x());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   _nbeads + katom,
-                      mpos, -gradient1.y(), -gradient2.y());
-    SP.AddToFitMatrix(_A, var, _least_sq_offset + 3 * _nbeads * _frame_counter +
-                                   2 * _nbeads + katom,
-                      mpos, -gradient1.z(), -gradient2.z());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + _nbeads + katom, mpos,
+        -gradient1.y(), -gradient2.y());
+    SP.AddToFitMatrix(
+        _A, var,
+        _least_sq_offset + 3 * _nbeads * _frame_counter + 2 * _nbeads + katom,
+        mpos, -gradient1.z(), -gradient2.z());
   }
   delete nb;
 }

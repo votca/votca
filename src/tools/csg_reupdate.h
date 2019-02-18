@@ -37,10 +37,10 @@ struct PotentialInfo {
                 std::string &param_in_ext_, Property *options,
                 bool gentable = false);
 
-  int potentialIndex;
-  bool bonded;
-  PotentialFunction *ucg;
-  int vec_pos;
+  int                 potentialIndex;
+  bool                bonded;
+  PotentialFunction * ucg;
+  int                 vec_pos;
   std::pair<int, int> beadTypes;
 
   std::string potentialName;
@@ -53,9 +53,9 @@ struct PotentialInfo {
 };
 
 class CsgREupdate : public CsgApplication {
-public:
+ public:
   std::string ProgramName() { return "csg_reupdate"; }
-  void HelpText(std::ostream &out) {
+  void        HelpText(std::ostream &out) {
     out << "computes relative entropy update.";
   }
 
@@ -75,36 +75,36 @@ public:
 
   void Run();
 
-  void EndEvaluate();
+  void                    EndEvaluate();
   CsgApplication::Worker *ForkWorker(void);
-  void MergeWorker(Worker *worker);
+  void                    MergeWorker(Worker *worker);
 
-private:
-protected:
-  Property _options;
-  std::list<Property *> _nonbonded;
+ private:
+ protected:
+  Property                _options;
+  std::vector<Property *> _nonbonded;
 
   typedef std::vector<PotentialInfo *> PotentialContainer;
-  PotentialContainer _potentials;
+  PotentialContainer                   _potentials;
 
-  int _nlamda;
+  int             _nlamda;
   Eigen::VectorXd _lamda;
   // _HS is a symmetric matrix
   Eigen::MatrixXd _HS;
   Eigen::VectorXd _DS;
   Eigen::VectorXd _dUFrame;
-  bool _hessian_check;
+  bool            _hessian_check;
 
   double _UavgAA;
   double _UavgCG;
   double _beta;
   double _relax;
-  int _nframes;
+  int    _nframes;
 
   bool _gentable;
   bool _dosteep;
 
-  std::vector<Table *> _aardfs;
+  std::vector<Table *>  _aardfs;
   std::vector<double *> _aardfnorms;
 
   // file extension for the inputs/outputs
@@ -128,16 +128,16 @@ protected:
 };
 
 class CsgREupdateWorker : public CsgApplication::Worker {
-public:
+ public:
   ~CsgREupdateWorker(){};
 
-  Property _options;
-  std::list<Property *> _nonbonded;
+  Property                _options;
+  std::vector<Property *> _nonbonded;
 
   typedef std::vector<PotentialInfo *> PotentialContainer;
-  PotentialContainer _potentials;
+  PotentialContainer                   _potentials;
 
-  int _nlamda;
+  int             _nlamda;
   Eigen::VectorXd _lamda;
   Eigen::MatrixXd _HS;
   Eigen::VectorXd _DS;
@@ -145,7 +145,7 @@ public:
 
   double _UavgCG;
   double _beta;
-  int _nframes;
+  int    _nframes;
 
   void EvalConfiguration(Topology *conf, Topology *conf_atom);
   void EvalBonded(Topology *conf, PotentialInfo *potinfo);

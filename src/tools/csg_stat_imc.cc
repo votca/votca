@@ -51,34 +51,30 @@ void Imc::Initialize() {
         "No interactions defined in options xml-file - nothing to be done");
 
   // initialize non-bonded structures
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    interaction_t *i = AddInteraction(*iter);
-    i->_is_bonded = false;
+  for (Property *prop : _nonbonded) {
+    interaction_t *i = AddInteraction(prop);
+    i->_is_bonded    = false;
   }
 
   // initialize bonded structures
-  for (list<Property *>::iterator iter = _bonded.begin(); iter != _bonded.end();
-       ++iter) {
-    interaction_t *i = AddInteraction(*iter);
-    i->_is_bonded = true;
+  for (Property *prop : _bonded) {
+    interaction_t *i = AddInteraction(prop);
+    i->_is_bonded    = true;
   }
 
   // initialize the group structures
-  if (_do_imc)
-    InitializeGroups();
+  if (_do_imc) InitializeGroups();
 };
 
 void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
   // we didn't process any frames so far
-  _nframes = 0;
-  _nblock = 0;
+  _nframes               = 0;
+  _nblock                = 0;
   _processed_some_frames = false;
 
   // initialize non-bonded structures
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _nonbonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_interactions[name];
 
@@ -88,28 +84,28 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
       // generate the bead lists
       BeadList beads1, beads2, beads3;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
-      beads3.Generate(*top, (*iter)->get("type3").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
+      beads3.Generate(*top, prop->get("type3").value());
 
       if (beads1.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type1").value() +
+            prop->get("type1").value() +
             "\"\n"
             "This was specified in type1 of interaction \"" +
             name + "\"");
       if (beads2.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type2").value() +
+            prop->get("type2").value() +
             "\"\n"
             "This was specified in type2 of interaction \"" +
             name + "\"");
       if (beads3.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type3").value() +
+            prop->get("type3").value() +
             "\"\n"
             "This was specified in type3 of interaction \"" +
             name + "\"");
@@ -120,35 +116,34 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
       // generate the bead lists
       BeadList beads1, beads2;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
 
       if (beads1.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type1").value() +
+            prop->get("type1").value() +
             "\"\n"
             "This was specified in type1 of interaction \"" +
             name + "\"");
       if (beads2.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type2").value() +
+            prop->get("type2").value() +
             "\"\n"
             "This was specified in type2 of interaction \"" +
             name + "\"");
 
       // calculate normalization factor for rdf
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+      if (prop->get("type1").value() == prop->get("type2").value())
         i._norm = 1. / (beads1.size() * (beads2.size()) / 2.);
       else
         i._norm = 1. / (beads1.size() * beads2.size());
     }
   }
 
-  for (list<Property *>::iterator iter = _bonded.begin(); iter != _bonded.end();
-       ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _bonded) {
+    string name = prop->get("name").value();
 
     std::list<Interaction *> list = top->InteractionsInGroup(name);
     if (list.empty())
@@ -168,16 +163,16 @@ Imc::interaction_t *Imc::AddInteraction(Property *p) {
   else
     group = "none";
 
-  interaction_t *i = new interaction_t;
-  i->_index = _interactions.size();
+  interaction_t *i    = new interaction_t;
+  i->_index           = _interactions.size();
   _interactions[name] = i;
   getGroup(group)->_interactions.push_back(i);
 
   i->_step = p->get("step").as<double>();
-  i->_min = p->get("min").as<double>();
-  i->_max = p->get("max").as<double>();
+  i->_min  = p->get("min").as<double>();
+  i->_max  = p->get("max").as<double>();
   i->_norm = 1.0;
-  i->_p = p;
+  i->_p    = p;
 
   // if option threebody does not exist, replace it by default of 0
   i->_threebody = p->ifExistsReturnElseReturnDefault<bool>("threebody", 0);
@@ -205,8 +200,7 @@ void Imc::EndEvaluate() {
     if (_block_length == 0) {
       string suffix = string(".") + _extension;
       WriteDist(suffix);
-      if (_do_imc)
-        WriteIMCData();
+      if (_do_imc) WriteIMCData();
     }
   }
   // clear interactions and groups
@@ -220,7 +214,7 @@ void Imc::EndEvaluate() {
 // load options from xml file
 void Imc::LoadOptions(const string &file) {
   load_property_from_xml(_options, file);
-  _bonded = _options.Select("cg.bonded");
+  _bonded    = _options.Select("cg.bonded");
   _nonbonded = _options.Select("cg.non-bonded");
 }
 
@@ -236,7 +230,7 @@ void Imc::Worker::EvalConfiguration(Topology *top, Topology *top_atom) {
 
 void Imc::ClearAverages() {
   map<string, interaction_t *>::iterator ic_iter;
-  map<string, group_t *>::iterator group_iter;
+  map<string, group_t *>::iterator       group_iter;
 
   _nframes = 0;
   for (ic_iter = _interactions.begin(); ic_iter != _interactions.end();
@@ -254,7 +248,7 @@ void Imc::ClearAverages() {
 }
 
 class IMCNBSearchHandler {
-public:
+ public:
   IMCNBSearchHandler(HistogramNew *hist) : _hist(hist) {}
 
   HistogramNew *_hist;
@@ -267,9 +261,8 @@ public:
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoNonbonded(Topology *top) {
-  for (list<Property *>::iterator iter = _imc->_nonbonded.begin();
-       iter != _imc->_nonbonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _imc->_nonbonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_imc->_interactions[name];
 
@@ -294,9 +287,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // generate the bead lists
       BeadList beads1, beads2, beads3;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
-      beads3.Generate(*top, (*iter)->get("type3").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
+      beads3.Generate(*top, prop->get("type3").value());
 
       // generate the neighbour list
       NBList_3Body *nb;
@@ -306,38 +299,38 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       else
         nb = new NBList_3Body();
 
-      nb->setCutoff(i._cut); // implement different cutoffs for different
-                             // interactions!
+      nb->setCutoff(i._cut);  // implement different cutoffs for different
+                              // interactions!
       // Here, a is the distance between two beads of a triple, where the 3-body
       // interaction is zero
 
       // check if type1 and type2 are the same
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value()) {
+      if (prop->get("type1").value() == prop->get("type2").value()) {
         // if all three types are the same
-        if ((*iter)->get("type2").value() == (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() == prop->get("type3").value()) {
           nb->Generate(beads1, true);
         }
         // if type2 and type3 are different, use the Generate function for 2
         // bead types
-        if ((*iter)->get("type2").value() != (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() != prop->get("type3").value()) {
           nb->Generate(beads1, beads3, true);
         }
       }
       // if type1 != type2
-      if ((*iter)->get("type1").value() != (*iter)->get("type2").value()) {
+      if (prop->get("type1").value() != prop->get("type2").value()) {
         // if the last two types are the same, use Generate function with them
         // as the first two bead types Neighborlist_3body is constructed in a
         // way that the two equal bead types have two be the first 2 types
-        if ((*iter)->get("type2").value() == (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() == prop->get("type3").value()) {
           nb->Generate(beads1, beads2, true);
         }
-        if ((*iter)->get("type2").value() != (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() != prop->get("type3").value()) {
           // type1 = type3 !=type2
-          if ((*iter)->get("type1").value() == (*iter)->get("type3").value()) {
+          if (prop->get("type1").value() == prop->get("type3").value()) {
             nb->Generate(beads2, beads1, true);
           }
           // type1 != type2 != type3
-          if ((*iter)->get("type1").value() != (*iter)->get("type3").value()) {
+          if (prop->get("type1").value() != prop->get("type3").value()) {
             nb->Generate(beads1, beads2, beads3, true);
           }
         }
@@ -346,8 +339,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       NBList_3Body::iterator triple_iter;
       // iterate over all triples
       for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter) {
-        vec rij = (*triple_iter)->r12();
-        vec rik = (*triple_iter)->r13();
+        vec    rij = (*triple_iter)->r12();
+        vec    rik = (*triple_iter)->r13();
         double var = acos(rij * rik / sqrt((rij * rij) * (rik * rik)));
         _current_hists[i._index].Process(var);
       }
@@ -360,8 +353,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // generate the bead lists
       BeadList beads1, beads2;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
 
       // generate the neighbour list
       NBList *nb;
@@ -378,7 +371,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
       // is it same types or different types?
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+      if (prop->get("type1").value() == prop->get("type2").value())
         nb->Generate(beads1);
       else
         nb->Generate(beads1, beads2);
@@ -395,7 +388,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         nb->setCutoff(i._max + i._step);
 
         // is it same types or different types?
-        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+        if (prop->get("type1").value() == prop->get("type2").value())
           nb->Generate(beads1);
         else
           nb->Generate(beads1, beads2);
@@ -404,11 +397,11 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         // mean force on bead 1 on the pair distance: F1 * r12
         NBList::iterator pair_iter;
         for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-          vec F2 = (*pair_iter)->second->getF();
-          vec F1 = (*pair_iter)->first->getF();
+          vec F2  = (*pair_iter)->second->getF();
+          vec F1  = (*pair_iter)->first->getF();
           vec r12 = (*pair_iter)->r();
           r12.normalize();
-          double var = (*pair_iter)->dist();
+          double var   = (*pair_iter)->dist();
           double scale = 0.5 * (F2 - F1) * r12;
           _current_hists_force[i._index].Process(var, scale);
         }
@@ -420,9 +413,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoBonded(Topology *top) {
-  for (list<Property *>::iterator iter = _imc->_bonded.begin();
-       iter != _imc->_bonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _imc->_bonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_imc->_interactions[name];
 
@@ -435,7 +427,7 @@ void Imc::Worker::DoBonded(Topology *top) {
     std::list<Interaction *>::iterator ic_iter;
     for (ic_iter = list.begin(); ic_iter != list.end(); ++ic_iter) {
       Interaction *ic = *ic_iter;
-      double v = ic->EvaluateVar(*top);
+      double       v  = ic->EvaluateVar(*top);
       _current_hists[i._index].Process(v);
     }
   }
@@ -453,8 +445,7 @@ Imc::group_t *Imc::getGroup(const string &name) {
 
 // initialize the groups after interactions are added
 void Imc::InitializeGroups() {
-  if (!_do_imc)
-    return;
+  if (!_do_imc) return;
   map<string, group_t *>::iterator group_iter;
 
   // clear all the pairs
@@ -485,7 +476,7 @@ void Imc::InitializeGroups() {
     for (list<interaction_t *>::iterator i1 = grp->_interactions.begin();
          i1 != grp->_interactions.end(); ++i1) {
       int n1 = (*i1)->_average.getNBins();
-      j = i;
+      j      = i;
       for (list<interaction_t *>::iterator i2 = i1;
            i2 != grp->_interactions.end(); ++i2) {
         int n2 = (*i2)->_average.getNBins();
@@ -503,9 +494,8 @@ void Imc::InitializeGroups() {
 
 // update the correlation matrix
 void Imc::DoCorrelations(Imc::Worker *worker) {
-  if (!_do_imc)
-    return;
-  vector<pair_t>::iterator pair;
+  if (!_do_imc) return;
+  vector<pair_t>::iterator         pair;
   map<string, group_t *>::iterator group_iter;
 
   for (group_iter = _groups.begin(); group_iter != _groups.end();
@@ -515,7 +505,7 @@ void Imc::DoCorrelations(Imc::Worker *worker) {
     for (pair = grp->_pairs.begin(); pair != grp->_pairs.end(); ++pair) {
       Eigen::VectorXd &a = worker->_current_hists[pair->_i1->_index].data().y();
       Eigen::VectorXd &b = worker->_current_hists[pair->_i2->_index].data().y();
-      pair_matrix &M = pair->_corr;
+      pair_matrix &    M = pair->_corr;
 
       M = ((((double)_nframes - 1.0) * M) + a * b.transpose()) /
           (double)_nframes;
@@ -527,20 +517,20 @@ void Imc::DoCorrelations(Imc::Worker *worker) {
 void Imc::WriteDist(const string &suffix) {
   map<string, interaction_t *>::iterator iter;
 
-  cout << std::endl; // Cosmetic, put \n before printing names of distribution
-                     // files.
+  cout << std::endl;  // Cosmetic, put \n before printing names of distribution
+                      // files.
   // for all interactions
   for (iter = _interactions.begin(); iter != _interactions.end(); ++iter) {
     // calculate the rdf
     Table &t = iter->second->_average.data();
-    Table dist(t);
+    Table  dist(t);
 
     // if no average force calculation, dummy table
     Table force;
     // if average force calculation, table force contains force data
     if (iter->second->_force) {
       Table &f = iter->second->_average_force.data();
-      force = f;
+      force    = f;
     }
 
     if (!iter->second->_is_bonded) {
@@ -613,16 +603,15 @@ void Imc::WriteDist(const string &suffix) {
  *      - calculate th
  */
 void Imc::WriteIMCData(const string &suffix) {
-  if (!_do_imc)
-    return;
+  if (!_do_imc) return;
   // map<string, interaction_t *>::iterator ic_iter;
   map<string, group_t *>::iterator group_iter;
 
   // iterate over all groups
   for (group_iter = _groups.begin(); group_iter != _groups.end();
        ++group_iter) {
-    group_t *grp = (*group_iter).second;
-    string grp_name = (*group_iter).first;
+    group_t *                       grp      = (*group_iter).second;
+    string                          grp_name = (*group_iter).first;
     list<interaction_t *>::iterator iter;
 
     // number of total bins for all interactions in group is matrix dimension
@@ -630,16 +619,16 @@ void Imc::WriteIMCData(const string &suffix) {
 
     // build full set of equations + copy some data to make
     // code better to read
-    group_matrix gmc(grp->_corr);
+    group_matrix    gmc(grp->_corr);
     Eigen::VectorXd dS(n);
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<RangeParser> ranges; // sizes of the individual interactions
-    vector<string> names;       // names of the interactions
+    vector<RangeParser> ranges;  // sizes of the individual interactions
+    vector<string>      names;   // names of the interactions
 
     // copy all averages+r of group to one vector
-    n = 0;
+    n         = 0;
     int begin = 1;
     for (iter = grp->_interactions.begin(); iter != grp->_interactions.end();
          ++iter) {
@@ -661,7 +650,7 @@ void Imc::WriteIMCData(const string &suffix) {
 
       // save size
       RangeParser rp;
-      int end = begin + ic->_average.getNBins() - 1;
+      int         end = begin + ic->_average.getNBins() - 1;
       rp.Add(begin, end);
       ranges.push_back(rp);
       begin = end + 1;
@@ -684,13 +673,13 @@ void Imc::WriteIMCData(const string &suffix) {
       // make reference to <S_j>
       Eigen::VectorXd &b = i2->_average.data().y();
 
-      int i = pair->_offset_i;
-      int j = pair->_offset_j;
+      int i  = pair->_offset_i;
+      int j  = pair->_offset_j;
       int n1 = i1->_average.getNBins();
       int n2 = i2->_average.getNBins();
 
       pair_matrix M = gmc.block(i, j, n1, n2);
-      M = -(M - a * b.transpose());
+      M             = -(M - a * b.transpose());
       // matrix is symmetric
       gmc.block(j, i, n2, n1) = M.transpose().eval();
     }
@@ -702,7 +691,7 @@ void Imc::WriteIMCData(const string &suffix) {
 }
 
 // calculate deviation from target vectors
-void Imc::CalcDeltaS(interaction_t *interaction,
+void Imc::CalcDeltaS(interaction_t *                      interaction,
                      Eigen::VectorBlock<Eigen::VectorXd> &dS) {
   const string &name = interaction->_p->get("name").as<string>();
 
@@ -713,8 +702,7 @@ void Imc::CalcDeltaS(interaction_t *interaction,
     for (unsigned int i = 0; i < target.y().size(); ++i) {
       double x1 = target.x()[i] - 0.5 * interaction->_step;
       double x2 = x1 + interaction->_step;
-      if (x1 < 0)
-        x1 = x2 = 0;
+      if (x1 < 0) x1 = x2 = 0;
       target.y()[i] = 1. / (_avg_vol.getAvg() * interaction->_norm) *
                       target.y()[i] *
                       (4. / 3. * M_PI * (x2 * x2 * x2 - x1 * x1 * x1));
@@ -731,16 +719,15 @@ void Imc::CalcDeltaS(interaction_t *interaction,
 
 void Imc::WriteIMCBlock(const string &suffix) {
 
-  if (!_do_imc)
-    return;
+  if (!_do_imc) return;
   // map<string, interaction_t *>::iterator ic_iter;
   map<string, group_t *>::iterator group_iter;
 
   // iterate over all groups
   for (group_iter = _groups.begin(); group_iter != _groups.end();
        ++group_iter) {
-    group_t *grp = (*group_iter).second;
-    string grp_name = (*group_iter).first;
+    group_t *                       grp      = (*group_iter).second;
+    string                          grp_name = (*group_iter).first;
     list<interaction_t *>::iterator iter;
 
     // number of total bins for all interactions in group is matrix dimension
@@ -748,13 +735,13 @@ void Imc::WriteIMCBlock(const string &suffix) {
 
     // build full set of equations + copy some data to make
     // code better to read
-    group_matrix gmc(grp->_corr);
+    group_matrix    gmc(grp->_corr);
     Eigen::VectorXd dS(n);
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<int> sizes;    // sizes of the individual interactions
-    vector<string> names; // names of the interactions
+    vector<int>    sizes;  // sizes of the individual interactions
+    vector<string> names;  // names of the interactions
 
     // copy all averages+r of group to one vector
     n = 0;
@@ -785,7 +772,7 @@ void Imc::WriteIMCBlock(const string &suffix) {
 
     // write the dS
     ofstream out_dS;
-    string name_dS = grp_name + suffix + ".S";
+    string   name_dS = grp_name + suffix + ".S";
     out_dS.open(name_dS.c_str());
     out_dS << setprecision(8);
     if (!out_dS)
@@ -800,7 +787,7 @@ void Imc::WriteIMCBlock(const string &suffix) {
 
     // write the correlations
     ofstream out_cor;
-    string name_cor = grp_name + suffix + ".cor";
+    string   name_cor = grp_name + suffix + ".cor";
     out_cor.open(name_cor.c_str());
     out_cor << setprecision(8);
 
@@ -844,7 +831,7 @@ CsgApplication::Worker *Imc::ForkWorker() {
 
 void Imc::MergeWorker(CsgApplication::Worker *worker_) {
   _processed_some_frames = true;
-  Imc::Worker *worker = dynamic_cast<Imc::Worker *>(worker_);
+  Imc::Worker *worker    = dynamic_cast<Imc::Worker *>(worker_);
   // update the average
   map<string, interaction_t *>::iterator ic_iter;
   // map<string, group_t *>::iterator group_iter;
@@ -868,8 +855,7 @@ void Imc::MergeWorker(CsgApplication::Worker *worker_) {
   }
 
   // update correlation matrices
-  if (_do_imc)
-    DoCorrelations(worker);
+  if (_do_imc) DoCorrelations(worker);
 
   if (_block_length != 0) {
     if ((_nframes % _block_length) == 0) {
@@ -884,5 +870,5 @@ void Imc::MergeWorker(CsgApplication::Worker *worker_) {
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

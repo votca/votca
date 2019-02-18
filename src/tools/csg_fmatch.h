@@ -38,9 +38,9 @@ using namespace std;
  **/
 
 class CGForceMatching : public CsgApplication {
-public:
+ public:
   string ProgramName() { return "csg_fmatch"; }
-  void HelpText(ostream &out) {
+  void   HelpText(ostream &out) {
     out << "Perform force matching (also called multiscale coarse-graining)";
   }
 
@@ -59,7 +59,7 @@ public:
   /// \brief load options from the input file
   void LoadOptions(const string &file);
 
-protected:
+ protected:
   /// \brief structure, which contains CubicSpline object with related
   /// parameters
   struct SplineInfo {
@@ -122,7 +122,7 @@ protected:
     string splineName;
     /// \brief for non-bonded interactions: types of beads involved (type3 only
     /// used if threebody interaction)
-    string type1, type2, type3; //
+    string type1, type2, type3;  //
 
     /// \brief pointer to Property object to hande input options
     Property *_options;
@@ -130,9 +130,9 @@ protected:
   /// \brief Property object to hande input options
   Property _options;
   /// \brief list of bonded interactions
-  list<Property *> _bonded;
+  std::vector<Property *> _bonded;
   /// \brief list of non-bonded interactions
-  list<Property *> _nonbonded;
+  std::vector<Property *> _nonbonded;
 
   typedef vector<SplineInfo *> SplineContainer;
   /// \brief vector of SplineInfo * for all interactions
@@ -145,7 +145,7 @@ protected:
   Eigen::VectorXd _b;
   /// \brief Solution of matrix equation _A * _x = _b : CG force-field
   /// parameters
-  Eigen::VectorXd _x; //
+  Eigen::VectorXd _x;  //
   /// \brief Additional matrix to handle constrained least squares fit
   /// contains constraints, which allow to get a real (smooth) spline (see VOTCA
   /// paper)
@@ -194,7 +194,7 @@ protected:
 
   void OpenForcesTrajectory();
 
-  Topology _top_force;
+  Topology          _top_force;
   TrajectoryReader *_trjreader_force;
 };
 

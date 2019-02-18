@@ -32,8 +32,8 @@ void help_text() {
 
 int main(int argc, char **argv) {
   string filter, file, path, print;
-  bool short_output = false;
-  bool with_path = false;
+  bool   short_output = false;
+  bool   with_path    = false;
 
   // lets read in some program options
   namespace po = boost::program_options;
@@ -74,20 +74,16 @@ int main(int argc, char **argv) {
     cout << desc << endl;
     return -1;
   }
-  if (vm.count("short"))
-    short_output = true;
-  if (vm.count("with-path"))
-    with_path = true;
+  if (vm.count("short")) short_output = true;
+  if (vm.count("with-path")) with_path = true;
 
   try {
     Property p;
     load_property_from_xml(p, file);
 
-    list<Property *> sel = p.Select(path);
-    for (list<Property *>::iterator iter = sel.begin(); iter != sel.end();
-         ++iter) {
+    for (Property *prop : p.Select(path)) {
       if (filter != "") {
-        Tokenizer tokenizer(filter, "=");
+        Tokenizer           tokenizer(filter, "=");
         Tokenizer::iterator tok;
         tok = tokenizer.begin();
         if (tok == tokenizer.end())
@@ -99,16 +95,13 @@ int main(int argc, char **argv) {
           throw std::invalid_argument("error, specified invalid filter");
 
         string value = *tok;
-        if (!wildcmp(value.c_str(), (*iter)->get(field).value().c_str()))
-          continue;
+        if (!wildcmp(value.c_str(), prop->get(field).value().c_str())) continue;
       }
 
-      Property *p = &((*iter)->get(print));
+      Property *p = &(prop->get(print));
 
-      if (!short_output && with_path)
-        cout << p->path() << ".";
-      if (!short_output)
-        cout << p->name() << " = ";
+      if (!short_output && with_path) cout << p->path() << ".";
+      if (!short_output) cout << p->name() << " = ";
       // if(!p->HasChilds())
       cout << p->value();
       cout << endl;
