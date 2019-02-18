@@ -220,7 +220,8 @@ namespace votca { namespace xtp {
             Eigen::MatrixXd _QR(Eigen::MatrixXd &A) const; 
 
             Eigen::VectorXd _dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0, double lambda) const;
-            
+            Eigen::VectorXd _olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x, Eigen::VectorXd &D, double lambda) const;
+
             template<class MatrixReplacement>
             void _update_projected_matrix(Eigen::MatrixXd &T, MatrixReplacement &A, Eigen::MatrixXd &V) const
             {

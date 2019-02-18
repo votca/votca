@@ -35,9 +35,8 @@ DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log) { }
 
 void DavidsonSolver::set_correction(std::string method) {
     if (method == "DPR") this->davidson_correction = CORR::DPR;
-    //else if (method == "OLSEN") this->davidson_correction = CORR::OLSEN;
-    
-    else throw std::runtime_error("Not a valid correction method");
+    else if (method == "OLSEN") this->davidson_correction = CORR::OLSEN;
+    else throw std::runtime_error(method + " is not a valid Davidson correction method");
 }
 
 Eigen::ArrayXd DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
@@ -60,15 +59,38 @@ Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(Eigen::VectorXd &d, in
     return guess;
 }
 
-Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0, double lambda) const
+Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r, Eigen::VectorXd &D, double lambda) const
 {
-    int size = w.rows();
-    Eigen::VectorXd out = Eigen::VectorXd::Zero(size);
+    /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r */
+    int size = r.rows();
+    Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
     for (int i=0; i < size; i++) {
-        out(i) = w(i) / (lambda - A0(i));
+        delta(i) = r(i) / (lambda - D(i));
     }
 
-    return out;
+    return delta;
+}
+
+Eigen::VectorXd DavidsonSolver::_olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x, Eigen::VectorXd &D, double lambda) const
+{
+    /* Compute the olsen correction :
+
+    \delta = (D-\lambda)^{-1} (-r + \epsilon x)
+
+    */
+
+    int size = r.rows();
+    Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
+
+    delta = DavidsonSolver::_dpr_correction(r,D,lambda);
+
+    double _num = - x.transpose() * delta;
+    double _denom = - x.transpose() * DavidsonSolver::_dpr_correction(x,D,lambda);
+    double eps = _num / _denom;
+
+    delta += eps * x;
+
+    return delta;
 }
 
 Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const
