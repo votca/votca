@@ -66,7 +66,7 @@ class Calculator {
    *
    * @param options Property object passed by the application to a calculator
    */
-  virtual void Initialize(const Property &options) = 0;
+  virtual void Initialize(Property &options) = 0;
   /**
    * \brief Sets number of threads to use
    *
