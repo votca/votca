@@ -30,7 +30,7 @@ stages:
     - git checkout -f ${CI_COMMIT_SHA}
     - git submodule update --recursive --init
     - if [[ ${CI_COMMIT_REF_NAME} = next ]]; then
-        git submodule foreach git checkout master && git submodule foreach git pull
+        git submodule foreach git checkout master && git submodule foreach git pull;
       fi
     - mkdir -p build
     - pushd build
