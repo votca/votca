@@ -25,10 +25,6 @@ namespace votca { namespace xtp {
     {
         public: 
 
-            typedef real_gwbse Scalar;
-            typedef real_gwbse RealScalar;
-            typedef int StorageIndex;
-
             enum {
                 ColsAtCompileTime = Eigen::Dynamic,
                 MaxColsAtCompileTime = Eigen::Dynamic,

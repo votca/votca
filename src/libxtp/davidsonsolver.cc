@@ -49,6 +49,9 @@ Eigen::ArrayXd DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
 
 Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(Eigen::VectorXd &d, int size_initial_guess) const
 {
+
+    /* Initialize the guess eigenvector so that they 'target' the lowest diagonal elements */
+
     Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(),size_initial_guess);
     Eigen::ArrayXd idx = DavidsonSolver::_sort_index(d);
 

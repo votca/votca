@@ -375,29 +375,6 @@ namespace votca {
       return;
     }
 
-    // Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H){
-    //     Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_opt.nmax);
-    //     if (type == QMStateType::Singlet) {
-    //         for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
-    //             MatrixXfd slice_R = _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
-    //             contrib(i_exc) =  (slice_R.transpose()*H * slice_R).value();
-    //             if (_bse_singlet_coefficients_AR.cols() > 0) {
-    //                 MatrixXfd slice_AR = _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
-    //                 // get anti-resonant contribution from direct Keh 
-    //                 contrib(i_exc)-= (slice_AR.transpose()*H * slice_AR).value();           
-    //             }
-    //         }
-    //     } else if (type == QMStateType::Triplet) {
-    //         for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
-    //             MatrixXfd _slice_R = _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
-    //             contrib(i_exc) =  (_slice_R.transpose()*H * _slice_R).value();
-    //         }
-    //     } else {
-    //         throw std::runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
-    //     }
-    //     return contrib;
-    // }
-
     Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type, const BSE_OPERATOR& H){
         Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_opt.nmax);
         if (type == QMStateType::Singlet) {

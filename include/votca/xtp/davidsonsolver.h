@@ -50,7 +50,6 @@ namespace votca { namespace xtp {
             void set_max_search_space(int N) { this->max_search_space = N;}
 
             void set_correction(std::string method); 
-            //void set_jacobi_linsolve(std::string method);
 
             Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
             Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
@@ -58,14 +57,10 @@ namespace votca { namespace xtp {
             template <typename MatrixReplacement>
             void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0)
             {
-                switch(this->davidson_correction) {
-
-                    case CORR::DPR :
-                        CTP_LOG(ctp::logDEBUG, _log)
-                            << ctp::TimeStamp() << " Davidson (DPR)" << flush;
-                        break;
-                }
-
+                
+                CTP_LOG(ctp::logDEBUG, _log)
+                    << ctp::TimeStamp() << " Davidson " << this->davidson_correction << flush;
+                
                 double res_norm;
                 double conv;
                 int size = A.rows();
@@ -128,6 +123,11 @@ namespace votca { namespace xtp {
 
                             case CORR::DPR :
                                 w = DavidsonSolver::_dpr_correction(w, Adiag, lambda(j));
+                                break; 
+
+                            case CORR::OLSEN :
+                                tmp = q.col(j);
+                                w = DavidsonSolver::_olsen_correction(w, tmp, Adiag, lambda(j));
                                 break; 
                         }
 
