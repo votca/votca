@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  */
 
 #include <expat.h>
-#include <stdio.h>
-#include <string.h>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <stack>
 #include <stdexcept>
+#include <stdio.h>
+#include <string.h>
 #include <string>
 
 #include <votca/tools/colors.h>
@@ -30,9 +30,9 @@
 #include <votca/tools/propertyiomanipulator.h>
 #include <votca/tools/tokenizer.h>
 
-#include <unistd.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <unistd.h>
 
 namespace votca {
 namespace tools {
@@ -40,23 +40,19 @@ using namespace std;
 // ostream modifier defines the output format, level, indentation
 const int Property::IOindex = std::ios_base::xalloc();
 
-Property &Property::get(const string &key) {
+const Property &Property::get(const string &key) const {
   Tokenizer tok(key, ".");
-  Tokenizer::iterator n;
-
-  n = tok.begin();
+  Tokenizer::iterator n = tok.begin();
   if (n == tok.end()) return *this;
 
-  Property *p;
-  map<string, Property *>::iterator iter;
+  const Property *p;
+  map<string, Property *>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
     iter = _map.find(*n);
-
     if (iter == _map.end()) throw runtime_error("property not found: " + key);
-
-    p = (((*iter).second));
+    p = ((*iter).second);
   }
   ++n;
   try {
@@ -70,29 +66,45 @@ Property &Property::get(const string &key) {
   return *p;
 }
 
-std::list<Property *> Property::Select(const string &filter) {
+Property &Property::get(const string &key) {
+  return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+}
+
+std::vector<const Property *> Property::Select(const string &filter) const {
   Tokenizer tok(filter, ".");
-
-  std::list<Property *> selection;
-
+  std::vector<const Property *> selection;
   if (tok.begin() == tok.end()) return selection;
-
   selection.push_back(this);
-
-  for (Tokenizer::iterator n = tok.begin(); n != tok.end(); ++n) {
-    std::list<Property *> childs;
-    for (std::list<Property *>::iterator p = selection.begin();
-         p != selection.end(); ++p) {
-      for (list<Property>::iterator iter = (*p)->_properties.begin();
-           iter != (*p)->_properties.end(); ++iter) {
-        if (wildcmp((*n).c_str(), (*iter).name().c_str())) {
-          childs.push_back(&(*iter));
+  for (const auto &n : tok) {
+    std::vector<const Property *> childs;
+    for (const Property *p : selection) {
+      for (const Property &s : p->_properties) {
+        if (wildcmp(n.c_str(), s.name().c_str())) {
+          childs.push_back(&s);
         }
       }
     }
     selection = childs;
   }
+  return selection;
+}
 
+std::vector<Property *> Property::Select(const string &filter) {
+  Tokenizer tok(filter, ".");
+  std::vector<Property *> selection;
+  if (tok.begin() == tok.end()) return selection;
+  selection.push_back(this);
+  for (const auto &n : tok) {
+    std::vector<Property *> childs;
+    for (Property *p : selection) {
+      for (Property &s : p->_properties) {
+        if (wildcmp(n.c_str(), s.name().c_str())) {
+          childs.push_back(&s);
+        }
+      }
+    }
+    selection = childs;
+  }
   return selection;
 }
 
@@ -127,7 +139,7 @@ bool load_property_from_xml(Property &p, string filename) {
   fl.open(filename.c_str());
   if (!fl.is_open())
     throw std::ios_base::failure("Error on open xml file: " + filename);
-  
+
   XML_Parser parser = XML_ParserCreate(NULL);
   if (!parser)
     throw std::runtime_error("Couldn't allocate memory for xml parser");
@@ -155,7 +167,7 @@ bool load_property_from_xml(Property &p, string filename) {
   return true;
 }
 
-void PrintNodeTXT(std::ostream &out, Property &p, const int start_level,
+void PrintNodeTXT(std::ostream &out, const Property &p, const int start_level,
                   int level = 0, string prefix = "", string offset = "") {
   if ((p.value() != "") || p.HasChilds()) {
     if (level >= start_level) {
@@ -166,7 +178,7 @@ void PrintNodeTXT(std::ostream &out, Property &p, const int start_level,
     }
   }
 
-  for (Property &prop : p) {
+  for (const Property &prop : p) {
     if (prefix == "") {
       level++;
       PrintNodeTXT(out, prop, start_level, level, prefix + prop.name(), offset);
@@ -180,9 +192,10 @@ void PrintNodeTXT(std::ostream &out, Property &p, const int start_level,
   }
 }
 
-void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
-                  int level = 0, string offset = "") {
-  Property::AttributeIterator ia;
+void PrintNodeXML(std::ostream &out, const Property &p,
+                  PropertyIOManipulator *piom, int level = 0,
+                  string offset = "") {
+  Property::const_AttributeIterator ia;
   bool linebreak = true;
   bool has_value = false;
 
@@ -230,7 +243,7 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
   }
 
   // continue iteratively through the rest of the nodes
-  for (Property &prop : p) {
+  for (const Property &prop : p) {
     level++;
     if (level > start_level) offset += "\t";
     PrintNodeXML(out, prop, piom, level, offset);
@@ -248,9 +261,9 @@ void PrintNodeXML(std::ostream &out, Property &p, PropertyIOManipulator *piom,
   }
 }
 
-void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom,
-                  int level = 0, string prefix = "") {
-  list<Property>::iterator iter;
+void PrintNodeTEX(std::ostream &out, const Property &p,
+                  PropertyIOManipulator *piom, int level = 0,
+                  string prefix = "") {
   string head_name;
   string _label("");    // reference of the xml file in the manual
   string _section("");  // reference of the description section in the manual
@@ -306,14 +319,14 @@ void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom,
   }
 
   // continue iteratively through the rest of the nodes
-  for (iter = p.begin(); iter != p.end(); ++iter) {
+  for (const Property &pp : p) {
     if (prefix == "") {
       level++;
-      PrintNodeTEX(out, (*iter), piom, level, prefix);
+      PrintNodeTEX(out, pp, piom, level, prefix);
       level--;
     } else {
       level++;
-      PrintNodeTEX(out, (*iter), piom, level, prefix);
+      PrintNodeTEX(out, pp, piom, level, prefix);
       level--;
     }
   }
@@ -323,9 +336,9 @@ void PrintNodeTEX(std::ostream &out, Property &p, PropertyIOManipulator *piom,
     out << boost::format(footer_format) % _section % head_name;
 }
 
-void PrintNodeHLP(std::ostream &out, Property &p, const int start_level = 0,
-                  int level = 0, string prefix = "", string offset = "") {
-  list<Property>::iterator iter;
+void PrintNodeHLP(std::ostream &out, const Property &p,
+                  const int start_level = 0, int level = 0, string prefix = "",
+                  string offset = "") {
   string head_name;
   string _help("");
   string _unit("");
@@ -369,25 +382,25 @@ void PrintNodeHLP(std::ostream &out, Property &p, const int start_level = 0,
     out << boost::format(ofmt) % _name % _default % _unit % _help;
   }
 
-  for (iter = p.begin(); iter != p.end(); ++iter) {
+  for (const Property pp : p) {
     if (prefix == "") {
       _offset = level + 2;
       level++;
-      PrintNodeHLP(out, (*iter), start_level, level, (*iter).name(), offset);
+      PrintNodeHLP(out, pp, start_level, level, pp.name(), offset);
       _offset = level - 2;
       level--;
     } else {
       _offset = level + 2;
       level++;
-      PrintNodeHLP(out, (*iter), start_level, level,
-                   prefix + "." + (*iter).name(), offset);
+      PrintNodeHLP(out, pp, start_level, level, prefix + "." + pp.name(),
+                   offset);
       _offset = level - 2;
       level--;
     }
   }
 }
 
-std::ostream &operator<<(std::ostream &out, Property &p) {
+std::ostream &operator<<(std::ostream &out, const Property &p) {
   if (!out.good()) return out;
 
   std::ostream::sentry sentry(out);
@@ -432,5 +445,5 @@ std::ostream &operator<<(std::ostream &out, Property &p) {
 
   return out;
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
