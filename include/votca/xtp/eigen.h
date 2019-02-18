@@ -35,7 +35,7 @@ namespace votca {
       
  typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
  typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
- typedef Eigen::Array<real_gwbse, Eigen::Dynamic,1> ArrayXfd;
+ 
 
 
     }}

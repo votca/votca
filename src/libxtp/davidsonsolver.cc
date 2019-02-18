@@ -39,9 +39,10 @@ void DavidsonSolver::set_correction(std::string method) {
     else throw std::runtime_error(method + " is not a valid Davidson correction method");
 }
 
-Eigen::ArrayXd DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
+Eigen::ArrayXi DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
 {
-    Eigen::ArrayXd idx = Eigen::ArrayXd::LinSpaced(V.rows(),0,V.rows()-1);
+    /* return the index of the sorted vector */
+    Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(),0,V.rows()-1);
     std::sort(idx.data(),idx.data()+idx.size(),
               [&](int i1, int i2){return V[i1]<V[i2];});
     return idx; 
@@ -53,7 +54,7 @@ Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(Eigen::VectorXd &d, in
     /* Initialize the guess eigenvector so that they 'target' the lowest diagonal elements */
 
     Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(),size_initial_guess);
-    Eigen::ArrayXd idx = DavidsonSolver::_sort_index(d);
+    Eigen::ArrayXi idx = DavidsonSolver::_sort_index(d);
 
     for (int j=0; j<size_initial_guess;j++) {
         guess(idx(j),j) = 1.0; 

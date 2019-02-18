@@ -214,7 +214,7 @@ namespace votca { namespace xtp {
             Eigen::VectorXd _eigenvalues;
             Eigen::MatrixXd _eigenvectors; 
 
-            Eigen::ArrayXd _sort_index(Eigen::VectorXd &V) const;
+            Eigen::ArrayXi _sort_index(Eigen::VectorXd &V) const;
             Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size) const;
 
             Eigen::MatrixXd _QR(Eigen::MatrixXd &A) const; 
