@@ -72,27 +72,6 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
 
 }
 
-BOOST_AUTO_TEST_CASE(jacobi_full_matrix) {
-
-    int size = 100;
-    int neigen = 10;
-    double eps = 0.01;
-    Eigen::MatrixXd A = init_matrix(size,eps,false);
-
-    DavidsonSolver DS;
-    DS.set_correction("JACOBI");
-    DS.set_jacobi_linsolve("CG");
-    DS.solve(A,neigen);
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-
-    auto lambda = DS.eigenvalues();
-    auto lambda_ref = es.eigenvalues().head(neigen);
-    bool check_eigenvalues = lambda.isApprox(lambda_ref,1E-6);
-    
-    BOOST_CHECK_EQUAL(check_eigenvalues,1);
-
-}
-
 
 
 BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
@@ -103,52 +82,6 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
     // Create Operator
     TestOperator Aop(size);
     DavidsonSolver DS;
-    DS.solve(Aop,neigen);
-
-    Eigen::MatrixXd A = Aop.get_full_mat();
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-
-    auto lambda = DS.eigenvalues();
-    auto lambda_ref = es.eigenvalues().head(neigen);
-    bool check_eigenvalues = lambda.isApprox(lambda_ref,1E-6);
-    
-    BOOST_CHECK_EQUAL(check_eigenvalues,1);
-
-}
-
-BOOST_AUTO_TEST_CASE(jacobi_matrix_free) {
-
-    int size = 100;
-    int neigen = 10;
-
-    TestOperator Aop(size);
-    DavidsonSolver DS;
-    DS.set_correction("JACOBI");
-    DS.set_jacobi_linsolve("CG");
-    DS.solve(Aop,neigen);
-
-    Eigen::MatrixXd A = Aop.get_full_mat();
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
-
-    auto lambda = DS.eigenvalues();
-    auto lambda_ref = es.eigenvalues().head(neigen);
-    bool check_eigenvalues = lambda.isApprox(lambda_ref,1E-6);
-    
-    BOOST_CHECK_EQUAL(check_eigenvalues,1);
-
-}
-
-
-BOOST_AUTO_TEST_CASE(jacobi_full_matrix_small_matrixfree) {
-
-    int size = 50;
-    int neigen = 2;
-    
-
-    DavidsonOperator Aop(size);
-    DavidsonSolver DS;
-    DS.set_correction("JACOBI");
-    DS.set_jacobi_linsolve("CG");
     DS.solve(Aop,neigen);
 
     Eigen::MatrixXd A = Aop.get_full_mat();

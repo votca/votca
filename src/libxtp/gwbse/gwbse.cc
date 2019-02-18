@@ -195,26 +195,17 @@ void GWBSE::Initialize(tools::Property& options) {
 
         if(_bseopt.davidson)
         {
-            _bseopt.davidson_correction =
-                options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.davidson_correction", _bseopt.davidson_correction);
-
-            std::vector<std::string> _dcorr = {"DPR", "JACOBI"};
-                options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".eigensolver.davidson_correction",_dcorr);
-
+            
             _bseopt.matrixfree =
                 options.ifExistsReturnElseReturnDefault<bool>(key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
 
-            if (_bseopt.davidson_correction == "JACOBI") {
-                _bseopt.jocc_linsolve =
-                    options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.jacobi_solver", _bseopt.jocc_linsolve);
+            _bseopt.davidson_correction =
+                options.ifExistsReturnElseReturnDefault<std::string>(key + ".eigensolver.davidson_correction", _bseopt.davidson_correction);
 
-                // check solver
-                std::vector<std::string> _solver = {"CG", "LLT"};
-                options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".eigensolver.jacobi_solver",_solver);
+            std::vector<std::string> _dcorr = {"DPR","OLSEN"};
+                options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(key + ".eigensolver.davidson_correction",_dcorr);
 
-            }
-
-            // check size
+            //check size
             if (_bseopt.nmax > bse_size/4 ) {
                 CTP_LOG(ctp::logDEBUG, *_pLog)
                 << ctp::TimeStamp() << " Warning : Too many eigenvalues required for Davidson. Default to Lapack diagonalization" << flush;

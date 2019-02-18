@@ -35,15 +35,9 @@ DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log) { }
 
 void DavidsonSolver::set_correction(std::string method) {
     if (method == "DPR") this->davidson_correction = CORR::DPR;
-    else if (method == "JACOBI") this->davidson_correction = CORR::JACOBI;
+    //else if (method == "OLSEN") this->davidson_correction = CORR::OLSEN;
+    
     else throw std::runtime_error("Not a valid correction method");
-}
-
-void DavidsonSolver::set_jacobi_linsolve(std::string method) {
-    if (method == "CG") this->jacobi_linsolve = LSOLVE::CG;
-    else if (method == "GMRES") this->jacobi_linsolve = LSOLVE::GMRES;
-    else if (method == "LLT") this->jacobi_linsolve = LSOLVE::LLT;   
-    else throw std::runtime_error("Not a valid linsolve method");
 }
 
 Eigen::ArrayXd DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
@@ -65,39 +59,6 @@ Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(Eigen::VectorXd &d, in
 
     return guess;
 }
-
-Eigen::MatrixXd DavidsonSolver::_solve_linear_system(Eigen::MatrixXd &A, Eigen::VectorXd &r) const
-{
-    Eigen::MatrixXd w;
-
-    switch (this->jacobi_linsolve) {
-
-        case LSOLVE::CG :  {
-                Eigen::ConjugateGradient<Eigen::MatrixXd, Eigen::Lower|Eigen::Upper> cg;
-                cg.compute(A);
-                w = cg.solve(r); 
-            }
-            break;
-
-        // case LSOLVE::GMRES : {
-        //         Eigen::GMRES<Eigen::MatrixXd, Eigen::IdentityPreconditioner> gmres;
-        //         gmres.compute(A);
-        //         w = gmres.solve(r);
-        //     }
-        //     break;
-
-        case LSOLVE::LLT : 
-            w = A.llt().solve(r);
-            break;
-
-        // default 
-        default :
-            throw std::runtime_error( " Linear Solver not recognized");
-    }
-    
-    return w;
-}
-
 
 Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0, double lambda) const
 {

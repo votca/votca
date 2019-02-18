@@ -50,7 +50,7 @@ namespace votca { namespace xtp {
             void set_max_search_space(int N) { this->max_search_space = N;}
 
             void set_correction(std::string method); 
-            void set_jacobi_linsolve(std::string method);
+            //void set_jacobi_linsolve(std::string method);
 
             Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
             Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
@@ -59,10 +59,7 @@ namespace votca { namespace xtp {
             void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0)
             {
                 switch(this->davidson_correction) {
-                    case CORR::JACOBI :
-                        CTP_LOG(ctp::logDEBUG, _log)
-                            << ctp::TimeStamp() << " Jacobi-Davidson - : " << this->jacobi_linsolve << flush;
-                        break;
+
                     case CORR::DPR :
                         CTP_LOG(ctp::logDEBUG, _log)
                             << ctp::TimeStamp() << " Davidson (DPR)" << flush;
@@ -128,12 +125,6 @@ namespace votca { namespace xtp {
                         res_norm += w.norm() / neigen;
 
                         switch (this->davidson_correction) {
-
-                            // jacobi-davidson correction
-                            case CORR::JACOBI :  
-                                tmp = q.col(j);
-                                w = DavidsonSolver::_jacobi_orthogonal_correction<MatrixReplacement>(A,w,tmp,lambda(j));
-                                break;
 
                             case CORR::DPR :
                                 w = DavidsonSolver::_dpr_correction(w, Adiag, lambda(j));
@@ -217,42 +208,16 @@ namespace votca { namespace xtp {
             double tol = 1E-6;
             int max_search_space = 100;
         
-            enum CORR {DPR,JACOBI,OLSEN};
-            enum LSOLVE {CG,GMRES,LLT};
-
+            enum CORR {DPR,OLSEN};
             CORR davidson_correction = CORR::DPR;
-            LSOLVE jacobi_linsolve = LSOLVE::CG;
 
             Eigen::VectorXd _eigenvalues;
             Eigen::MatrixXd _eigenvectors; 
 
             Eigen::ArrayXd _sort_index(Eigen::VectorXd &V) const;
             Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size) const;
-            Eigen::MatrixXd _solve_linear_system(Eigen::MatrixXd &A, Eigen::VectorXd &b) const;
+
             Eigen::MatrixXd _QR(Eigen::MatrixXd &A) const; 
-
-            template <typename MatrixReplacement>
-            Eigen::MatrixXd _jacobi_orthogonal_correction(MatrixReplacement &A, Eigen::VectorXd &r, Eigen::VectorXd &u, double lambda) const
-            {
-                //! Solve the linear system of the jacobi correction
-                /*!
-                    \param A Matrix of the system
-                    \param r residue vector
-                    \param u eigenvetor
-                    \param lambda eigenvalue
-                */
-
-                // form the projector P = 1 - u * u.T
-                Eigen::MatrixXd P = -u*u.transpose();
-                P.diagonal().array() += 1.0;
-
-                // project the matrix P * (A - lambda*I) * P^T
-                Eigen::MatrixXd projA = A*P.transpose();
-                projA -= lambda*P.transpose();
-                projA = P * projA;
-
-                return DavidsonSolver::_solve_linear_system(projA,r);
-            }
 
             Eigen::VectorXd _dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0, double lambda) const;
             

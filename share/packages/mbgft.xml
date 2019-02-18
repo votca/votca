@@ -21,7 +21,6 @@
         <eigensolver>
                 <dodavidson>1</dodavidson>
                 <davidson_correction>DPR</davidson_correction>
-                <jacobi_solver>CG</jacobi_solver>
                 <domatrixfree>0</domatrixfree>
         </eigensolver>
 

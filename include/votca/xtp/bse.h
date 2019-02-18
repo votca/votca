@@ -62,9 +62,8 @@ class BSE {
 
         int nmax; //number of eigenvectors to calculate
         bool davidson=0; // use davidson to diagonalize the matrix
-        std::string davidson_correction = "DPR"; // Davidson correction
-        std::string jocc_linsolve = "CG"; //method to solve the linea system in jacobi davidson
         bool matrixfree=0; // use matrix free method
+        std::string davidson_correction = "DPR"; // Davidson correction
         double min_print_weight = 0.5;  //minimium contribution for state to print it
 
         };
