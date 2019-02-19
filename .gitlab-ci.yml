@@ -125,6 +125,38 @@ Release Clang Ubuntu:
     DISTRO: "ubuntu"
   extends: .build
 
+Debug GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
+Debug Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
+Release GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
+Release Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
 Release GCC Minimal:
   variables:
     CC: "gcc"
