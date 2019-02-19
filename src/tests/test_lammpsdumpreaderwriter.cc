@@ -139,7 +139,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   Topology top;
 
   // Make square box
-  matrix box;
+  Eigen::Matrix3d box;
   // 10  0  0
   //  0 10  0
   //  0  0 10
@@ -193,9 +193,9 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
       {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}};
 
   Elements elements;
-  int residue_num = 1;
-  double charge = 0.0;
-  byte_t symmetry = 1;
+  int      residue_num = 1;
+  double   charge      = 0.0;
+  byte_t   symmetry    = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
     string atom_type = atom_types.at(ind);
@@ -206,16 +206,17 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
         top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
                        elements.getMass(atom_types.at(ind)), charge);
 
-    vec xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
-            atom_xyz.at(ind).at(2));
+    Eigen::Vector3d xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
+                        atom_xyz.at(ind).at(2));
     b->setPos(xyz);
 
-    vec xyz_vel(atom_vel.at(ind).at(0), atom_vel.at(ind).at(1),
-                atom_vel.at(ind).at(2));
+    Eigen::Vector3d xyz_vel(atom_vel.at(ind).at(0), atom_vel.at(ind).at(1),
+                            atom_vel.at(ind).at(2));
     b->setVel(xyz_vel);
 
-    vec xyz_forces(atom_forces.at(ind).at(0), atom_forces.at(ind).at(1),
-                   atom_forces.at(ind).at(2));
+    Eigen::Vector3d xyz_forces(atom_forces.at(ind).at(0),
+                               atom_forces.at(ind).at(1),
+                               atom_forces.at(ind).at(2));
     b->setF(xyz_forces);
   }
 
@@ -251,7 +252,7 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   Topology top;
 
   // Make square box
-  matrix box;
+  Eigen::Matrix3d box;
   // 10  0  0
   //  0 10  0
   //  0  0 10
@@ -306,9 +307,9 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}};
 
   Elements elements;
-  int residue_num = 1;
-  double charge = 0.0;
-  byte_t symmetry = 1;
+  int      residue_num = 1;
+  double   charge      = 0.0;
+  byte_t   symmetry    = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
 
@@ -320,16 +321,17 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
         top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
                        elements.getMass(atom_types.at(ind)), charge);
 
-    vec xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
-            atom_xyz.at(ind).at(2));
+    Eigen::Vector3d xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
+                        atom_xyz.at(ind).at(2));
     b->setPos(xyz);
 
-    vec xyz_vel(atom_vel.at(ind).at(0), atom_vel.at(ind).at(1),
-                atom_vel.at(ind).at(2));
+    Eigen::Vector3d xyz_vel(atom_vel.at(ind).at(0), atom_vel.at(ind).at(1),
+                            atom_vel.at(ind).at(2));
     b->setVel(xyz_vel);
 
-    vec xyz_forces(atom_forces.at(ind).at(0), atom_forces.at(ind).at(1),
-                   atom_forces.at(ind).at(2));
+    Eigen::Vector3d xyz_forces(atom_forces.at(ind).at(0),
+                               atom_forces.at(ind).at(1),
+                               atom_forces.at(ind).at(2));
     b->setF(xyz_forces);
   }
   top.SetHasForce(true);

@@ -45,11 +45,11 @@ BOOST_AUTO_TEST_CASE(box_test) {
   double y3 = 0.0;
   double z3 = 2.0;
 
-  vec v1(x1, y1, z1);
-  vec v2(x2, y2, z2);
-  vec v3(x3, y3, z3);
+  Eigen::Vector3d v1(x1, y1, z1);
+  Eigen::Vector3d v2(x2, y2, z2);
+  Eigen::Vector3d v3(x3, y3, z3);
 
-  matrix box(v1, v2, v3);
+  Eigen::Matrix3d box(v1, v2, v3);
 
   Topology top;
   top.setBox(box);
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE(simple_test) {
 
 BOOST_AUTO_TEST_CASE(create_bead_type) {
   Topology top;
-  string bead_type_name = "type1";
+  string   bead_type_name = "type1";
   top.RegisterBeadType(bead_type_name);
   BOOST_CHECK(top.BeadTypeExist(bead_type_name));
 
@@ -87,15 +87,15 @@ BOOST_AUTO_TEST_CASE(create_bead_type) {
 BOOST_AUTO_TEST_CASE(create_bead) {
   Topology top;
   // 1 - for spherical bead
-  byte_t symmetry = 1;
+  byte_t symmetry  = 1;
   string bead_name = "bead_test";
 
   string bead_type_name = "type1";
   top.RegisterBeadType(bead_type_name);
 
-  int residue_number = 1;
-  double mass = 1.1;
-  double charge = 0.3;
+  int    residue_number = 1;
+  double mass           = 1.1;
+  double charge         = 0.3;
 
   auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                  residue_number, mass, charge);
@@ -126,23 +126,23 @@ BOOST_AUTO_TEST_CASE(add_bonded_interation_test) {
   string bead_type_name = "type1";
   top.RegisterBeadType(bead_type_name);
 
-  int residue_number = 1;
-  double mass = 1.1;
-  double charge = 0.3;
+  int    residue_number = 1;
+  double mass           = 1.1;
+  double charge         = 0.3;
 
   // Create 3 beads
   string bead_name = "bead_test";
-  auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
+  auto   bead_ptr  = top.CreateBead(symmetry, bead_name, bead_type_name,
                                  residue_number, mass, charge);
   bead_ptr->setId(0);
 
   string bead_name2 = "bead_test2";
-  auto bead_ptr2 = top.CreateBead(symmetry, bead_name2, bead_type_name,
+  auto   bead_ptr2  = top.CreateBead(symmetry, bead_name2, bead_type_name,
                                   residue_number, mass, charge);
   bead_ptr2->setId(1);
 
   string bead_name3 = "bead_test3";
-  auto bead_ptr3 = top.CreateBead(symmetry, bead_name3, bead_type_name,
+  auto   bead_ptr3  = top.CreateBead(symmetry, bead_name3, bead_type_name,
                                   residue_number, mass, charge);
   bead_ptr3->setId(2);
 
@@ -150,7 +150,7 @@ BOOST_AUTO_TEST_CASE(add_bonded_interation_test) {
 
   // Create two bonded interactions
   string interaction_group = "bond";
-  auto bond1 = new IBond(0, 1);
+  auto   bond1             = new IBond(0, 1);
   bond1->setGroup(interaction_group);
   auto bond2 = new IBond(1, 2);
   bond2->setGroup(interaction_group);

@@ -40,7 +40,7 @@ namespace csg {
  *
  **/
 class BaseBead {
-public:
+ public:
   /**
    * destructor
    */
@@ -95,19 +95,19 @@ public:
    * set the position of the base bead
    * \param - base bead position
    */
-  virtual void setPos(const TOOLS::vec &bead_position);
+  virtual void setPos(const Eigen::Vector3d &bead_position);
 
   /**
    * get the position of the base bead
    * \return base bead position
    */
-  virtual const TOOLS::vec &getPos() const;
+  virtual const Eigen::Vector3d &getPos() const;
 
   /**
    * direct access (read/write) to the position of the base bead
    * \return reference to position
    */
-  virtual TOOLS::vec &Pos() {
+  virtual Eigen::Vector3d &Pos() {
     assert(bead_position_set_ && "Position is not set.");
     return bead_position_;
   }
@@ -118,35 +118,37 @@ public:
   /** set has position to true */
   void HasPos(bool true_or_false) { bead_position_set_ = true_or_false; }
 
-protected:
+ protected:
   BaseBead()
-      : topology_item_(nullptr), molecule_item_(nullptr), mass_(0.0),
+      : topology_item_(nullptr),
+        molecule_item_(nullptr),
+        mass_(0.0),
         bead_position_set_(false){};
 
   TopologyItem topology_item_;
   MoleculeItem molecule_item_;
 
   TOOLS::Identity<int> id_;
-  TOOLS::Name name_;
-  TOOLS::Name type_;
+  TOOLS::Name          name_;
+  TOOLS::Name          type_;
 
-  double mass_;
-  TOOLS::vec bead_position_;
+  double          mass_;
+  Eigen::Vector3d bead_position_;
 
   bool bead_position_set_;
 };
 
-inline void BaseBead::setPos(const TOOLS::vec &bead_position) {
+inline void BaseBead::setPos(const Eigen::Vector3d &bead_position) {
   bead_position_set_ = true;
-  bead_position_ = bead_position;
+  bead_position_     = bead_position;
 }
 
-inline const TOOLS::vec &BaseBead::getPos() const {
+inline const Eigen::Vector3d &BaseBead::getPos() const {
   assert(bead_position_set_ &&
          "Cannot get bead position as it has not been set.");
   return bead_position_;
 }
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_BASEBEAD_H
+#endif  // _VOTCA_CSG_BASEBEAD_H

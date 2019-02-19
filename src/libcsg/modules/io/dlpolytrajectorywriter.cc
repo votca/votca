@@ -35,7 +35,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
         "Error: appending to dlpoly files not implemented");
 
   boost::filesystem::path filepath(file.c_str());
-  string out_name = "HISTORY_CGV";
+  string                  out_name = "HISTORY_CGV";
 
   if (boost::filesystem::extension(filepath).size() == 0) {
 
@@ -45,7 +45,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
   } else if (boost::filesystem::extension(filepath) == ".dlpc") {
 
     _isConfig = true;
-    out_name = "CONFIG_CGV";
+    out_name  = "CONFIG_CGV";
 
   } else if (boost::filesystem::extension(filepath) == ".dlph") {
 
@@ -75,12 +75,12 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
 
 void DLPOLYTrajectoryWriter::Write(Topology *conf) {
-  static int nstep = 1;
-  static double dstep = 0.0;
-  const double scale = 10.0; // nm -> A factor
-  int mavecs = 0;
-  int mpbct = 0;
-  double energy = 0.0;
+  static int    nstep  = 1;
+  static double dstep  = 0.0;
+  const double  scale  = 10.0;  // nm -> A factor
+  int           mavecs = 0;
+  int           mpbct  = 0;
+  double        energy = 0.0;
 
   if (conf->HasForce() && conf->HasVel()) {
     mavecs = 2;
@@ -88,20 +88,18 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     mavecs = 1;
   }
 
-  if (conf->getBoxType() == BoundaryCondition::typeOrthorhombic)
-    mpbct = 2;
-  if (conf->getBoxType() == BoundaryCondition::typeTriclinic)
-    mpbct = 3;
+  if (conf->getBoxType() == BoundaryCondition::typeOrthorhombic) mpbct = 2;
+  if (conf->getBoxType() == BoundaryCondition::typeTriclinic) mpbct = 3;
 
   if (_isConfig) {
 
     _fl << "From VOTCA with love" << endl;
     _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
         << conf->BeadCount() << setw(20) << energy << endl;
-    matrix m = conf->getBox();
+    Eigen::Matrix3d m = conf->getBox();
     for (int i = 0; i < 3; i++)
-      _fl << fixed << setprecision(10) << setw(20) << m[i][0] * scale
-          << setw(20) << m[i][1] * scale << setw(20) << m[i][2] * scale << endl;
+      _fl << fixed << setprecision(10) << setw(20) << m(i, 0) * scale
+          << setw(20) << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
 
   } else {
 
@@ -118,10 +116,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     _fl << setprecision(9) << setw(12) << dstep << setw(12) << conf->getTime()
         << endl;
 
-    matrix m = conf->getBox();
+    Eigen::Matrix3d m = conf->getBox();
     for (int i = 0; i < 3; i++)
-      _fl << setprecision(12) << setw(20) << m[i][0] * scale << setw(20)
-          << m[i][1] * scale << setw(20) << m[i][2] * scale << endl;
+      _fl << setprecision(12) << setw(20) << m(i, 0) * scale << setw(20)
+          << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
   }
 
   for (int i = 0; i < conf->BeadCount(); i++) {
@@ -146,9 +144,9 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
 
     // nm -> Angs
     _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20)
-        << bead->getPos().getX() * scale;
-    _fl << setw(20) << bead->getPos().getY() * scale << setw(20)
-        << bead->getPos().getZ() * scale << endl;
+        << bead->getPos().x() * scale;
+    _fl << setw(20) << bead->getPos().y() * scale << setw(20)
+        << bead->getPos().z() * scale << endl;
 
     if (mavecs > 0) {
       if (!bead->HasVel())
@@ -157,10 +155,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
             "does not have v-data");
 
       // nm -> Angs
-      _fl << setprecision(12) << setw(20) << bead->getVel().getX() * scale
+      _fl << setprecision(12) << setw(20) << bead->getVel().x() * scale
           << setw(20);
-      _fl << bead->getVel().getY() * scale << setw(20)
-          << bead->getVel().getZ() * scale << endl;
+      _fl << bead->getVel().y() * scale << setw(20)
+          << bead->getVel().z() * scale << endl;
 
       if (mavecs > 1) {
         if (!bead->HasF())
@@ -169,15 +167,15 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
               "does not have f-data");
 
         // nm -> Angs
-        _fl << setprecision(12) << setw(20) << bead->getF().getX() * scale
+        _fl << setprecision(12) << setw(20) << bead->getF().x() * scale
             << setw(20);
-        _fl << bead->getF().getY() * scale << setw(20)
-            << bead->getF().getZ() * scale << endl;
+        _fl << bead->getF().y() * scale << setw(20) << bead->getF().z() * scale
+            << endl;
       }
     }
   }
   nstep++;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

@@ -28,7 +28,7 @@
 
 #include "hdf5.h"
 
-namespace votca { // NOLINT
+namespace votca {  // NOLINT
 namespace csg {
 
 /**
@@ -41,7 +41,7 @@ namespace csg {
    available here: http://nongnu.org/h5md/
 */
 class H5MDTrajectoryReader : public TrajectoryReader {
-public:
+ public:
   H5MDTrajectoryReader();
   ~H5MDTrajectoryReader();
 
@@ -52,15 +52,15 @@ public:
   void Initialize(Topology &top);
 
   /// Reads in the first frame.
-  bool FirstFrame(Topology &conf); // NOLINT
+  bool FirstFrame(Topology &conf);  // NOLINT
 
   /// Reads in the next frame.
-  bool NextFrame(Topology &conf); // NOLINT
+  bool NextFrame(Topology &conf);  // NOLINT
 
   /// Closes original trajectory file.
   void Close();
 
-private:
+ private:
   enum DatasetState { NONE, STATIC, TIMEDEPENDENT };
 
   /// Reads dataset that contains vectors.
@@ -74,10 +74,10 @@ private:
     chunk_rows[0] = 1;
     chunk_rows[1] = N_particles_;
     chunk_rows[2] = vec_components_;
-    hid_t dsp = H5Dget_space(ds);
+    hid_t dsp     = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
-    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
-    T1 *data_out = new T1[N_particles_ * vec_components_];
+    hid_t  mspace1  = H5Screate_simple(vec_components_, chunk_rows, NULL);
+    T1 *   data_out = new T1[N_particles_ * vec_components_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
@@ -96,10 +96,10 @@ private:
     hsize_t ch_rows[2];
     ch_rows[0] = 1;
     ch_rows[1] = N_particles_;
-    hid_t dsp = H5Dget_space(ds);
+    hid_t dsp  = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
-    hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
-    T1 *data_out = new T1[N_particles_];
+    hid_t  mspace1  = H5Screate_simple(2, ch_rows, NULL);
+    T1 *   data_out = new T1[N_particles_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
@@ -128,9 +128,8 @@ private:
 
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
-    herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
-    if (status < 0)
-      return false;
+    herr_t     status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
+    if (status < 0) return false;
     return info.type == H5G_GROUP;
   }
 
@@ -151,7 +150,7 @@ private:
   int rank_;
 
   std::string fname_;
-  bool first_frame_;
+  bool        first_frame_;
 
   // Flags about datasets.
   DatasetState has_velocity_;
@@ -171,10 +170,10 @@ private:
   int vec_components_;
 
   // Box matrix.
-  matrix m;
+  Eigen::Matrix3d m;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
+#endif  // SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_

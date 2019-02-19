@@ -23,7 +23,7 @@ using namespace votca::csg;
 
 class CsgDumpApp : public CsgApplication {
   string ProgramName() { return "csg_dump"; }
-  void HelpText(ostream &out) {
+  void   HelpText(ostream &out) {
     out << "Print atoms that are read from topology file to help"
            " debugging atom naming.";
   }
@@ -60,10 +60,10 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref) {
     cout << endl;
     if (top->getBoxType() != BoundaryCondition::typeOpen) {
       cout << " Box matix:";
-      matrix box = top->getBox();
+      Eigen::Matrix3d box = top->getBox();
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          cout << " " << box[i][j];
+          cout << " " << box(i, j);
         }
         cout << endl << "           ";
       }

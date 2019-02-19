@@ -37,7 +37,7 @@ namespace csg {
 
 */
 class XYZReader : public TrajectoryReader, public TopologyReader {
-public:
+ public:
   XYZReader() {}
   ~XYZReader() {}
 
@@ -51,7 +51,8 @@ public:
   /// read in the next frame
   bool NextFrame(Topology &top);
 
-  template <class T> void ReadFile(T &container) {
+  template <class T>
+  void ReadFile(T &container) {
     if (!ReadFrame<true, T>(container)) {
       throw std::runtime_error("Reading xyz file failed");
     }
@@ -59,28 +60,30 @@ public:
 
   void Close();
 
-private:
-  template <class T> int getContainerSize(T &container) {
+ private:
+  template <class T>
+  int getContainerSize(T &container) {
     return container.size();
   }
 
   int getContainerSize(Topology &container) { return container.BeadCount(); }
 
   template <bool topology, class T>
-  void AddAtom(T &container, std::string name, int id, const tools::vec &pos) {
+  void AddAtom(T &container, std::string name, int id,
+               const Eigen::Vector3d &pos) {
     // the typedef returns the type of the objects the container holds
     typedef
         typename std::iterator_traits<decltype(container.begin())>::value_type
-            atom;
-    Eigen::Vector3d pos2 = pos.toEigen() * tools::conv::ang2bohr;
+                    atom;
+    Eigen::Vector3d pos2 = pos * tools::conv::ang2bohr;
     container.push_back(atom(id, name, pos2));
   }
 
   template <bool topology, class T>
   void AddAtom(Topology &container, std::string name, int id,
-               const tools::vec &pos) {
-    Bead *b;
-    tools::vec posnm = pos * tools::conv::ang2nm;
+               const Eigen::Vector3d &pos) {
+    Bead *          b;
+    Eigen::Vector3d posnm = pos * tools::conv::ang2nm;
     if (topology) {
       b = container.CreateBead(1, name + boost::lexical_cast<string>(id), name,
                                0, 0, 0);
@@ -90,7 +93,8 @@ private:
     b->setPos(posnm);
   }
 
-  template <bool topology, class T> bool ReadFrame(T &container);
+  template <bool topology, class T>
+  bool ReadFrame(T &container);
 
   std::ifstream _fl;
 
@@ -104,12 +108,13 @@ inline bool XYZReader::ReadFrame(T &container) {
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
-    Tokenizer tok1(line, " \t");
+    Tokenizer                tok1(line, " \t");
     std::vector<std::string> line1;
     tok1.ToVector(line1);
     if (line1.size() != 1) {
-      throw std::runtime_error("First line of xyz file should contain number "
-                               "of atoms/beads, nothing else.");
+      throw std::runtime_error(
+          "First line of xyz file should contain number "
+          "of atoms/beads, nothing else.");
     }
     int natoms = boost::lexical_cast<int>(line1[0]);
     if (!topology && natoms != getContainerSize(container)) {
@@ -127,23 +132,24 @@ inline bool XYZReader::ReadFrame(T &container) {
         throw std::runtime_error("unexpected end of file in xyz file");
       }
       vector<string> fields;
-      Tokenizer tok(line, " ");
+      Tokenizer      tok(line, " ");
       tok.ToVector(fields);
       if (fields.size() != 4) {
         throw std::runtime_error("invalide line " +
                                  boost::lexical_cast<string>(_line) +
                                  " in xyz file\n" + line);
       }
-      tools::vec pos = vec(boost::lexical_cast<double>(fields[1]),
-                           boost::lexical_cast<double>(fields[2]),
-                           boost::lexical_cast<double>(fields[3]));
+      Eigen::Vector3d pos =
+          Eigen::Vector3d(boost::lexical_cast<double>(fields[1]),
+                          boost::lexical_cast<double>(fields[2]),
+                          boost::lexical_cast<double>(fields[3]));
 
       AddAtom<topology, T>(container, fields[0], i, pos);
     }
   }
   return !_fl.eof();
 }
-}
-}
+}  // namespace csg
+}  // namespace votca
 
 #endif

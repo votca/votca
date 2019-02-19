@@ -99,17 +99,15 @@ void LAMMPSDumpReader::ReadTimestep(Topology &top, string itemline) {
 void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
   string s;
 
-  matrix m;
-  m.ZeroMatrix();
+  Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
 
   for (int i = 0; i < 3; ++i) {
     getline(_fl, s);
-    Tokenizer tok(s, " ");
+    Tokenizer      tok(s, " ");
     vector<double> v;
     tok.ConvertToVector(v);
-    if (v.size() != 2)
-      throw std::ios_base::failure("invalid box format");
-    m[i][i] = v[1] - v[0];
+    if (v.size() != 2) throw std::ios_base::failure("invalid box format");
+    m(i, i) = v[1] - v[0];
   }
   top.setBox(m);
 }
@@ -133,10 +131,10 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     }
   }
 
-  bool pos = false;
+  bool pos   = false;
   bool force = false;
-  bool vel = false;
-  int id = -1;
+  bool vel   = false;
+  int  id    = -1;
 
   vector<string> fields;
 
@@ -173,9 +171,9 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
                                boost::lexical_cast<string>(i) + " atoms of " +
                                boost::lexical_cast<string>(_natoms) + " read.");
 
-    Tokenizer tok(s, " ");
+    Tokenizer           tok(s, " ");
     Tokenizer::iterator itok = tok.begin();
-    vector<string> fields2;
+    vector<string>      fields2;
     tok.ToVector(fields2);
     // internal numbering begins with 0
     int atom_id = boost::lexical_cast<int>(fields2[id]);
@@ -188,7 +186,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
     b->HasPos(pos);
     b->HasF(force);
     b->HasVel(vel);
-    matrix m = top.getBox();
+    Eigen::Matrix3d m = top.getBox();
 
     for (size_t j = 0; itok != tok.end(); ++itok, ++j) {
       if (j == fields.size())
@@ -207,11 +205,11 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
       else if (fields[j] == "zu")
         b->Pos().z() = stod(*itok);
       else if (fields[j] == "xs")
-        b->Pos().x() = stod(*itok) * m[0][0];
+        b->Pos().x() = stod(*itok) * m(0, 0);
       else if (fields[j] == "ys")
-        b->Pos().y() = stod(*itok) * m[1][1];
+        b->Pos().y() = stod(*itok) * m(1, 1);
       else if (fields[j] == "zs")
-        b->Pos().z() = stod(*itok) * m[2][2];
+        b->Pos().z() = stod(*itok) * m(2, 2);
       else if (fields[j] == "vx")
         b->Vel().x() = stod(*itok);
       else if (fields[j] == "vy")
@@ -234,5 +232,5 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

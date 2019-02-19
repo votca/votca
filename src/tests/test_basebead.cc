@@ -32,7 +32,7 @@ using namespace votca::csg;
 using namespace votca::tools;
 
 class TestBead : public BaseBead {
-public:
+ public:
   TestBead() : BaseBead(){};
 };
 
@@ -56,10 +56,10 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
   basebead.setMass(1.0);
   BOOST_CHECK_CLOSE(basebead.getMass(), 1.0, 1e-5);
 
-  vec xyz(-1.3, 2.9, 9.2);
+  Eigen::Vector3d xyz(-1.3, 2.9, 9.2);
   basebead.setPos(xyz);
   BOOST_CHECK(basebead.HasPos());
-  Eigen::Vector3d xyz2 = basebead.getPos().toEigen();
+  Eigen::Vector3d xyz2    = basebead.getPos().toEigen();
   Eigen::Vector3d xyz_ref = xyz.toEigen();
 
   BOOST_CHECK_EQUAL(xyz2.isApprox(xyz_ref, 1e-5), true);
@@ -69,9 +69,9 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
   BOOST_CHECK_EQUAL(xyz3.isApprox(xyz_ref, 1e-5), true);
 
   Topology top;
-  auto mol = top.CreateMolecule("Molecule1");
+  auto     mol = top.CreateMolecule("Molecule1");
   basebead.setMolecule(mol);
-  auto mol2 = basebead.getMolecule();
+  auto mol2            = basebead.getMolecule();
   bool molecules_equal = mol2->getName() == "Molecule1";
   BOOST_CHECK(molecules_equal);
 }

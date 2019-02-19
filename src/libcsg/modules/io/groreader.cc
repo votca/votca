@@ -59,11 +59,11 @@ bool GROReader::FirstFrame(Topology &top) {
 
 bool GROReader::NextFrame(Topology &top) {
   string tmp;
-  getline(_fl, tmp); // title
+  getline(_fl, tmp);  // title
   if (_fl.eof()) {
     return !_fl.eof();
   }
-  getline(_fl, tmp); // number atoms
+  getline(_fl, tmp);  // number atoms
   int natoms = atoi(tmp.c_str());
   if (!_topology && natoms != top.BeadCount())
     throw std::runtime_error(
@@ -74,13 +74,13 @@ bool GROReader::NextFrame(Topology &top) {
     getline(_fl, line);
     string resNum, resName, atName, x, y, z;
     try {
-      resNum = string(line, 0, 5);  // %5i
-      resName = string(line, 5, 5); //%5s
-      atName = string(line, 10, 5); // %5s
+      resNum  = string(line, 0, 5);   // %5i
+      resName = string(line, 5, 5);   //%5s
+      atName  = string(line, 10, 5);  // %5s
       // atNum= string(line,15,5); // %5i not needed
-      x = string(line, 20, 8); // %8.3f
-      y = string(line, 28, 8); // %8.3f
-      z = string(line, 36, 8); // %8.3f
+      x = string(line, 20, 8);  // %8.3f
+      y = string(line, 28, 8);  // %8.3f
+      z = string(line, 36, 8);  // %8.3f
     } catch (std::out_of_range &err) {
       throw std::runtime_error("Misformated gro file");
     }
@@ -91,11 +91,11 @@ bool GROReader::NextFrame(Topology &top) {
     boost::algorithm::trim(y);
     boost::algorithm::trim(z);
     string vx, vy, vz;
-    bool hasVel = true;
+    bool   hasVel = true;
     try {
-      vx = string(line, 44, 8); // %8.4f
-      vy = string(line, 52, 8); // %8.4f
-      vz = string(line, 60, 8); // %8.4f
+      vx = string(line, 44, 8);  // %8.4f
+      vy = string(line, 52, 8);  // %8.4f
+      vz = string(line, 60, 8);  // %8.4f
     } catch (std::out_of_range &err) {
       hasVel = false;
     }
@@ -107,11 +107,11 @@ bool GROReader::NextFrame(Topology &top) {
         throw std::runtime_error("Misformated gro file, resnr has to be > 0");
       // TODO: fix the case that resnr is not in ascending order
       if (resnr > top.ResidueCount()) {
-        while ((resnr - 1) > top.ResidueCount()) { // gro resnr should start
-                                                   // with 1 but accept sloppy
-                                                   // files
-          top.CreateResidue("DUMMY"); // create dummy residue, hopefully it
-                                      // will never show
+        while ((resnr - 1) > top.ResidueCount()) {  // gro resnr should start
+                                                    // with 1 but accept sloppy
+                                                    // files
+          top.CreateResidue("DUMMY");  // create dummy residue, hopefully it
+                                       // will never show
           cout << "Warning: residue numbers not continous, create DUMMY "
                   "residue with nr "
                << top.ResidueCount() << endl;
@@ -129,37 +129,36 @@ bool GROReader::NextFrame(Topology &top) {
       b = top.getBead(i);
     }
 
-    b->setPos(vec(stod(x), stod(y), stod(z)));
+    b->setPos(Eigen::Vector3d(stod(x), stod(y), stod(z)));
     if (hasVel) {
       boost::algorithm::trim(vx);
       boost::algorithm::trim(vy);
       boost::algorithm::trim(vz);
-      b->setVel(vec(stod(vx), stod(vy), stod(vz)));
+      b->setVel(Eigen::Vector3d(stod(vx), stod(vy), stod(vz)));
     }
   }
 
-  getline(_fl, tmp); // read box line
+  getline(_fl, tmp);  // read box line
   if (_fl.eof())
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");
-  Tokenizer tok(tmp, " ");
+  Tokenizer      tok(tmp, " ");
   vector<double> fields;
   tok.ConvertToVector<double>(fields);
-  matrix box;
+  Eigen::Matrix3d box;
   if (fields.size() == 3) {
-    box.ZeroMatrix();
-    for (int i = 0; i < 3; i++)
-      box[i][i] = fields[i];
+    box = Eigen::Matrix3d::Zero();
+    for (int i = 0; i < 3; i++) box(i, i) = fields[i];
   } else if (fields.size() == 9) {
-    box[0][0] = fields[0];
-    box[1][1] = fields[1];
-    box[2][2] = fields[2];
-    box[1][0] = fields[3];
-    box[2][0] = fields[4];
-    box[0][1] = fields[5];
-    box[2][1] = fields[6];
-    box[0][2] = fields[7];
-    box[1][2] = fields[8];
+    box(0, 0) = fields[0];
+    box(1, 1) = fields[1];
+    box(2, 2) = fields[2];
+    box(1, 0) = fields[3];
+    box(2, 0) = fields[4];
+    box(0, 1) = fields[5];
+    box(2, 1) = fields[6];
+    box(0, 2) = fields[7];
+    box(1, 2) = fields[8];
   } else {
     throw std::runtime_error("Error while reading box (last) line");
   }
@@ -173,5 +172,5 @@ bool GROReader::NextFrame(Topology &top) {
   return !_fl.eof();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

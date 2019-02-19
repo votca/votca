@@ -34,21 +34,17 @@
 #include "residue.h"
 #include "triclinicbox.h"
 
-#include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
-#include <votca/tools/vec.h>
 
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
-
 class Interaction;
 class ExclusionList;
 
-typedef std::vector<Molecule *> MoleculeContainer;
-typedef std::vector<Bead *> BeadContainer;
-typedef std::vector<Residue *> ResidueContainer;
+typedef std::vector<Molecule *>    MoleculeContainer;
+typedef std::vector<Bead *>        BeadContainer;
+typedef std::vector<Residue *>     ResidueContainer;
 typedef std::vector<Interaction *> InteractionContainer;
 
 /**
@@ -59,7 +55,7 @@ typedef std::vector<Interaction *> InteractionContainer;
  *
  **/
 class Topology {
-public:
+ public:
   /// constructor
   Topology() : _time(0.0), _has_vel(false), _has_force(false) {
     _bc = new OpenBox();
@@ -184,7 +180,7 @@ public:
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
 
-  void AddBondedInteraction(Interaction *ic);
+  void                     AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
 
   /**
@@ -217,8 +213,8 @@ public:
    * @param[in] int i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *getBead(const int i) const { return _beads[i]; }
-  Residue *getResidue(const int i) const { return _residues[i]; }
+  Bead *    getBead(const int i) const { return _beads[i]; }
+  Residue * getResidue(const int i) const { return _residues[i]; }
   Molecule *getMolecule(const int i) const { return _molecules[i]; }
 
   /**
@@ -264,9 +260,8 @@ public:
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void
-  setBox(const matrix &box,
-         BoundaryCondition::eBoxtype boxtype = BoundaryCondition::typeAuto) {
+  void setBox(const Eigen::Matrix3d &box, BoundaryCondition::eBoxtype boxtype =
+                                              BoundaryCondition::typeAuto) {
     // determine box type automatically in case boxtype==typeAuto
     if (boxtype == BoundaryCondition::typeAuto) {
       boxtype = autoDetectBoxType(box);
@@ -277,15 +272,15 @@ public:
     }
 
     switch (boxtype) {
-    case BoundaryCondition::typeTriclinic:
-      _bc = new TriclinicBox();
-      break;
-    case BoundaryCondition::typeOrthorhombic:
-      _bc = new OrthorhombicBox();
-      break;
-    default:
-      _bc = new OpenBox();
-      break;
+      case BoundaryCondition::typeTriclinic:
+        _bc = new TriclinicBox();
+        break;
+      case BoundaryCondition::typeOrthorhombic:
+        _bc = new OrthorhombicBox();
+        break;
+      default:
+        _bc = new OpenBox();
+        break;
     }
 
     _bc->setBox(box);
@@ -295,7 +290,7 @@ public:
    * get the simulation box
    * \return triclinic box matrix
    */
-  const matrix &getBox() { return _bc->getBox(); };
+  const Eigen::Matrix3d &getBox() { return _bc->getBox(); };
 
   /**
    * set the time of current frame
@@ -344,7 +339,7 @@ public:
    * calculates the smallest distance between two beads with correct treatment
    * of pbc
    */
-  vec getDist(int bead1, int bead2) const;
+  Eigen::Vector3d getDist(int bead1, int bead2) const;
 
   /**
    * \brief calculate shortest vector connecting two points
@@ -355,7 +350,8 @@ public:
    * calculates the smallest distance between two points with correct treatment
    * of pbc
    */
-  vec BCShortestConnection(const vec &r1, const vec &r2) const;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r1,
+                                       const Eigen::Vector3d &r2) const;
 
   /**
    * \brief return the shortest box size
@@ -393,10 +389,10 @@ public:
   bool HasForce() { return _has_force; }
   void SetHasForce(const bool v) { _has_force = v; }
 
-protected:
+ protected:
   BoundaryCondition *_bc;
 
-  BoundaryCondition::eBoxtype autoDetectBoxType(const matrix &box);
+  BoundaryCondition::eBoxtype autoDetectBoxType(const Eigen::Matrix3d &box);
 
   /// bead types in the topology
   std::unordered_map<std::string, int> beadtypes_;
@@ -417,12 +413,12 @@ protected:
 
   std::map<std::string, int> _interaction_groups;
 
-  std::map<std::string, std::list<Interaction *>> _interactions_by_group;
+  std::map<std::string, std::list<Interaction *> > _interactions_by_group;
 
   double _time;
-  int _step;
-  bool _has_vel;
-  bool _has_force;
+  int    _step;
+  bool   _has_vel;
+  bool   _has_force;
 
   /// The particle group (For H5MD file format)
   std::string _particle_group;
@@ -464,8 +460,8 @@ inline void Topology::InsertExclusion(Bead *bead1, iteratable &l) {
   _exclusions.InsertExclusion(bead1, l);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #include "interaction.h"
 

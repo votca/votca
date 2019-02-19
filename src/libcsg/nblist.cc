@@ -35,10 +35,8 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
   BeadList::iterator iter2;
   _do_exclusions = do_exclusions;
 
-  if (list1.empty())
-    return;
-  if (list2.empty())
-    return;
+  if (list1.empty()) return;
+  if (list2.empty()) return;
 
   assert(list1.getTopology() == list2.getTopology());
   Topology *top = list1.getTopology();
@@ -50,15 +48,14 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     } else
       iter2 = list2.begin();
 
-    if (*iter1 == *iter2)
-      continue;
+    if (*iter1 == *iter2) continue;
 
     for (; iter2 != list2.end(); ++iter2) {
-      vec u = (*iter1)->getPos();
-      vec v = (*iter2)->getPos();
+      Eigen::Vector3d u = (*iter1)->getPos();
+      Eigen::Vector3d v = (*iter2)->getPos();
 
-      vec r = top->BCShortestConnection(u, v);
-      double d = abs(r);
+      Eigen::Vector3d r = top->BCShortestConnection(u, v);
+      double          d = abs(r);
       if (d < _cutoff) {
         if (_do_exclusions)
           if (top->getExclusions().IsExcluded(*iter1, *iter2)) {
@@ -72,5 +69,5 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

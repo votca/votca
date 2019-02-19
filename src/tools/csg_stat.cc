@@ -28,9 +28,9 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgStatApp : public CsgApplication {
-public:
+ public:
   string ProgramName() { return "csg_stat"; }
-  void HelpText(ostream &out);
+  void   HelpText(ostream &out);
 
   bool DoTrajectory() { return true; }
   bool DoMapping() { return true; }
@@ -47,16 +47,17 @@ public:
 
   void MergeWorker(CsgApplication::Worker *worker) { _imc.MergeWorker(worker); }
 
-public:
-  Imc _imc;
-  int _block_length;
+ public:
+  Imc    _imc;
+  int    _block_length;
   string _extension;
 };
 
 void CsgStatApp::HelpText(ostream &out) {
   out << "Calculate all distributions (bonded and non-bonded) specified in "
          "options file.\n"
-         "Optionally calculates update matrix for invere Monte Carlo. This "
+         "Optionally calculates update Eigen::Matrix3d for invere Monte Carlo. "
+         "This "
          "program\n"
          "is called inside the inverse scripts. Unlike csg_boltzmann, big "
          "systems\n"
@@ -71,8 +72,9 @@ void CsgStatApp::Initialize() {
       "do-imc", "  write out additional Inverse Monte Carlo data")(
       "block-length", boost::program_options::value<int>(),
       "  write blocks of this length, the averages are cleared after every "
-      "write")("ext", boost::program_options::value<string>(&_extension)
-                          ->default_value("dist.new"),
+      "write")("ext",
+               boost::program_options::value<string>(&_extension)
+                   ->default_value("dist.new"),
                "Extension of the output");
 }
 
@@ -89,8 +91,7 @@ bool CsgStatApp::EvaluateOptions() {
     _imc.BlockLength(0);
   }
 
-  if (OptionsMap().count("do-imc"))
-    _imc.DoImc(true);
+  if (OptionsMap().count("do-imc")) _imc.DoImc(true);
 
   _imc.Extension(_extension);
 

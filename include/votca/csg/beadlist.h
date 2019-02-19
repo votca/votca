@@ -35,7 +35,7 @@ using namespace votca::tools;
 */
 
 class BeadList : public std::list<Bead *> {
-public:
+ public:
   BeadList(){};
   ~BeadList() {}
 
@@ -44,15 +44,15 @@ public:
   /// \brief Select all beads of type <select> withn a radius <radius> of
   /// reference vector <ref>
   int GenerateInSphericalSubvolume(Topology &top, const std::string &select,
-                                   vec ref, double radius);
+                                   Eigen::Vector3d ref, double radius);
 
   Topology *getTopology() { return _topology; }
 
-private:
+ private:
   Topology *_topology;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_BEADLIST_H */

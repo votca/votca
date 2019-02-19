@@ -41,10 +41,9 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
     throw std::runtime_error(string("cannot open ") + _filename);
   output_env_done(oenv);
 
-  matrix m;
+  Eigen::Matrix3d m;
   for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      m[i][j] = _gmx_frame.box[j][i];
+    for (int j = 0; j < 3; j++) m(i, j) = _gmx_frame.box[j][i];
   conf.setBox(m);
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
@@ -58,17 +57,17 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
   // conf.HasF(_gmx_frame.bF);
 
   for (int i = 0; i < _gmx_frame.natoms; i++) {
-    double r[3] = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
-                   _gmx_frame.x[i][ZZ]};
+    Eigen::Vector3d r = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
+                         _gmx_frame.x[i][ZZ]};
     conf.getBead(i)->setPos(r);
     if (_gmx_frame.bF) {
-      double f[3] = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
-                     _gmx_frame.f[i][ZZ]};
+      Eigen::Vector3d f = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
+                           _gmx_frame.f[i][ZZ]};
       conf.getBead(i)->setF(f);
     }
     if (_gmx_frame.bV) {
-      double v[3] = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
-                     _gmx_frame.v[i][ZZ]};
+      Eigen::Vector3d v = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
+                           _gmx_frame.v[i][ZZ]};
       conf.getBead(i)->setVel(v);
     }
   }
@@ -78,14 +77,12 @@ bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
 bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   gmx_output_env_t *oenv;
   output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
-  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame))
-    return false;
+  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) return false;
   output_env_done(oenv);
 
-  matrix m;
+  Eigen::Matrix3d m;
   for (int i = 0; i < 3; i++)
-    for (int j = 0; j < 3; j++)
-      m[i][j] = _gmx_frame.box[j][i];
+    for (int j = 0; j < 3; j++) m(i, j) = _gmx_frame.box[j][i];
   conf.setTime(_gmx_frame.time);
   conf.setStep(_gmx_frame.step);
   conf.setBox(m);
@@ -93,22 +90,22 @@ bool GMXTrajectoryReader::NextFrame(Topology &conf) {
   // conf.HasF(_gmx_frame.bF);
 
   for (int i = 0; i < _gmx_frame.natoms; i++) {
-    double r[3] = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
-                   _gmx_frame.x[i][ZZ]};
+    Eigen::Vector3d r = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
+                         _gmx_frame.x[i][ZZ]};
     conf.getBead(i)->setPos(r);
     if (_gmx_frame.bF) {
-      double f[3] = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
-                     _gmx_frame.f[i][ZZ]};
+      Eigen::Vector3d f = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
+                           _gmx_frame.f[i][ZZ]};
       conf.getBead(i)->setF(f);
     }
     if (_gmx_frame.bV) {
-      double v[3] = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
-                     _gmx_frame.v[i][ZZ]};
+      Eigen::Vector3d v = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
+                           _gmx_frame.v[i][ZZ]};
       conf.getBead(i)->setVel(v);
     }
   }
   return true;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

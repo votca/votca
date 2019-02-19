@@ -23,20 +23,18 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
-
 class OrthorhombicBox : public BoundaryCondition {
 
-public:
-  TOOLS::vec BCShortestConnection(const TOOLS::vec &r_i,
-                                  const TOOLS::vec &r_j) const;
+ public:
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const;
 
   eBoxtype getBoxType() { return typeOrthorhombic; }
 
-protected:
+ protected:
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_ORTHORHOMBICBOX_H */

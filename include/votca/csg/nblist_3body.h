@@ -39,7 +39,7 @@ namespace csg {
  *
  */
 class NBList_3Body : public TripleList<Bead *, BeadTriple> {
-public:
+ public:
   NBList_3Body();
   virtual ~NBList_3Body();
 
@@ -82,29 +82,32 @@ public:
    * the processing in the match function.
    */
   template <typename T>
-  void SetMatchFunction(T *object,
-                        bool (T::*fkt)(Bead *, Bead *, Bead *, const vec &,
-                                       const vec &, const vec &,
-                                       const double dist12, const double dist13,
-                                       const double dist23));
+  void SetMatchFunction(
+      T *object, bool (T::*fkt)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                                const Eigen::Vector3d &,
+                                const Eigen::Vector3d &, const double dist12,
+                                const double dist13, const double dist23));
 
   /// \brief match function for static member functions or plain functions
-  void SetMatchFunction(bool (*fkt)(Bead *, Bead *, Bead *, const vec &,
-                                    const vec &, const vec &,
-                                    const double dist12, const double dist13,
-                                    const double dist23));
+  void SetMatchFunction(bool (*fkt)(
+      Bead *, Bead *, Bead *, const Eigen::Vector3d &, const Eigen::Vector3d &,
+      const Eigen::Vector3d &, const double dist12, const double dist13,
+      const double dist23));
 
   /// standard match function
-  static bool match_always(Bead *b1, Bead *b2, Bead *b3, const vec &r12,
-                           const vec &r13, const vec &r23, const double dist12,
+  static bool match_always(Bead *b1, Bead *b2, Bead *b3,
+                           const Eigen::Vector3d &r12,
+                           const Eigen::Vector3d &r13,
+                           const Eigen::Vector3d &r23, const double dist12,
                            const double dist13, const double dist23) {
     return true;
   }
 
   /// function to use a user defined triple type
-  template <typename triple_type> void setTripleType();
+  template <typename triple_type>
+  void setTripleType();
 
-protected:
+ protected:
   /// cutoff (at the moment use only one cutoff value)
   double _cutoff;
   /// take into account exclusions from topolgoy
@@ -113,94 +116,104 @@ protected:
   /// policy function to create new bead types
   template <typename triple_type>
   static BeadTriple *beadtriple_create_policy(Bead *bead1, Bead *bead2,
-                                              Bead *bead3, const vec &r12,
-                                              const vec &r13, const vec &r23) {
+                                              Bead *                 bead3,
+                                              const Eigen::Vector3d &r12,
+                                              const Eigen::Vector3d &r13,
+                                              const Eigen::Vector3d &r23) {
     return dynamic_cast<BeadTriple *>(
         new triple_type(bead1, bead2, bead3, r12, r13, r23));
   }
 
   typedef BeadTriple *(*triple_creator_t)(Bead *bead1, Bead *bead2, Bead *bead3,
-                                          const vec &r12, const vec &r13,
-                                          const vec &r23);
+                                          const Eigen::Vector3d &r12,
+                                          const Eigen::Vector3d &r13,
+                                          const Eigen::Vector3d &r23);
   /// the current bead pair creator function
   triple_creator_t _triple_creator;
 
-protected:
+ protected:
   /// Functor for match function to be able to set member and non-member
   /// functions
   class Functor {
-  public:
+   public:
     Functor() {}
-    virtual bool operator()(Bead *, Bead *, Bead *, const vec &, const vec &,
-                            const vec &, const double dist12,
-                            const double dist13, const double dist23) = 0;
+    virtual bool operator()(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                            const Eigen::Vector3d &, const Eigen::Vector3d &,
+                            const double dist12, const double dist13,
+                            const double dist23) = 0;
     virtual ~Functor(){};
   };
 
   /// Functor for member functions
-  template <typename T> class FunctorMember : public Functor {
-  public:
-    typedef bool (T::*fkt_t)(Bead *, Bead *, Bead *, const vec &, const vec &,
-                             const vec &, const double dist12,
-                             const double dist13, const double dist23);
+  template <typename T>
+  class FunctorMember : public Functor {
+   public:
+    typedef bool (T::*fkt_t)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                             const Eigen::Vector3d &, const Eigen::Vector3d &,
+                             const double dist12, const double dist13,
+                             const double dist23);
 
     FunctorMember(T *cls, fkt_t fkt) : _cls(cls), _fkt(fkt) {}
 
-    bool operator()(Bead *b1, Bead *b2, Bead *b3, const vec &r12,
-                    const vec &r13, const vec &r23, const double dist12,
-                    const double dist13, const double dist23) {
+    bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
+                    const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
+                    const double dist12, const double dist13,
+                    const double dist23) {
       return (_cls->*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
-  private:
-    T *_cls;
+   private:
+    T *   _cls;
     fkt_t _fkt;
   };
 
   /// Functor for non-member functions
   class FunctorNonMember : public Functor {
-  public:
-    typedef bool (*fkt_t)(Bead *, Bead *, Bead *, const vec &, const vec &,
-                          const vec &, const double dist12, const double dist13,
+   public:
+    typedef bool (*fkt_t)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                          const Eigen::Vector3d &, const Eigen::Vector3d &,
+                          const double dist12, const double dist13,
                           const double dist23);
     FunctorNonMember(fkt_t fkt) : _fkt(fkt) {}
 
-    bool operator()(Bead *b1, Bead *b2, Bead *b3, const vec &r12,
-                    const vec &r13, const vec &r23, const double dist12,
-                    const double dist13, const double dist23) {
+    bool operator()(Bead *b1, Bead *b2, Bead *b3, const Eigen::Vector3d &r12,
+                    const Eigen::Vector3d &r13, const Eigen::Vector3d &r23,
+                    const double dist12, const double dist13,
+                    const double dist23) {
       return (*_fkt)(b1, b2, b3, r12, r13, r23, dist12, dist13, dist23);
     }
 
-  private:
+   private:
     fkt_t _fkt;
   };
 
   Functor *_match_function;
 };
 
-template <typename triple_type> void NBList_3Body::setTripleType() {
+template <typename triple_type>
+void NBList_3Body::setTripleType() {
   _triple_creator = NBList_3Body::beadtriple_create_policy<triple_type>;
 }
 
 template <typename T>
 inline void NBList_3Body::SetMatchFunction(
-    T *object, bool (T::*fkt)(Bead *, Bead *, Bead *, const vec &, const vec &,
-                              const vec &, const double dist12,
-                              const double dist13, const double dist23)) {
-  if (_match_function)
-    delete _match_function;
+    T *object, bool (T::*fkt)(Bead *, Bead *, Bead *, const Eigen::Vector3d &,
+                              const Eigen::Vector3d &, const Eigen::Vector3d &,
+                              const double dist12, const double dist13,
+                              const double dist23)) {
+  if (_match_function) delete _match_function;
   _match_function = dynamic_cast<Functor *>(new FunctorMember<T>(object, fkt));
 }
 
 inline void NBList_3Body::SetMatchFunction(bool (*fkt)(
-    Bead *, Bead *, Bead *, const vec &, const vec &, const vec &,
-    const double dist12, const double dist13, const double dist23)) {
-  if (_match_function)
-    delete _match_function;
+    Bead *, Bead *, Bead *, const Eigen::Vector3d &, const Eigen::Vector3d &,
+    const Eigen::Vector3d &, const double dist12, const double dist13,
+    const double dist23)) {
+  if (_match_function) delete _match_function;
   _match_function = dynamic_cast<Functor *>(new FunctorNonMember(fkt));
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_NBLIST_3BODY_H */

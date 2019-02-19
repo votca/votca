@@ -20,35 +20,32 @@
 #include <votca/csg/bead.h>
 #include <votca/csg/map.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/matrix.h>
+#include <votca/tools/eigen.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/tools/vec.h>
 
 namespace votca {
 namespace csg {
 class Molecule;
-} // namespace csg
+}  // namespace csg
 namespace tools {
 class Property;
-} // namespace tools
-} // namespace votca
+}  // namespace tools
+}  // namespace votca
 
 namespace votca {
 namespace csg {
-
+using namespace tools;
 using namespace std;
 
 Map::~Map() {
   vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter)
-    delete (*iter);
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) delete (*iter);
   _maps.clear();
 }
 
 void Map::Apply() {
   vector<BeadMap *>::iterator iter;
-  for (iter = _maps.begin(); iter != _maps.end(); ++iter)
-    (*iter)->Apply();
+  for (iter = _maps.begin(); iter != _maps.end(); ++iter) (*iter)->Apply();
 }
 
 void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
@@ -60,7 +57,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   vector<double> fweights;
 
   // get the beads
-  string s(_opts_bead->get("beads").value());
+  string    s(_opts_bead->get("beads").value());
   Tokenizer tok_beads(s, " \n\t");
   tok_beads.ToVector(beads);
 
@@ -128,33 +125,36 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
 
 void Map_Sphere::Apply() {
   vector<element_t>::iterator iter;
-  vec cg(0., 0., 0.), f(0., 0., 0.), vel(0., 0., 0.);
+
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
   _out->ClearParentBeads();
 
   // the following is needed for pbc treatment
-  Topology *top = _out->getParent();
-  double max_dist = 0.5 * top->ShortestBoxSize();
-  vec r0 = vec(0, 0, 0);
-  string name0;
-  int id0 = 0;
+  Topology *      top      = _out->getParent();
+  double          max_dist = 0.5 * top->ShortestBoxSize();
+  Eigen::Vector3d r0       = Eigen::Vector3d::Zero();
+  string          name0;
+  int             id0 = 0;
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
-      r0 = _matrix.front()._in->getPos();
+      r0    = _matrix.front()._in->getPos();
       name0 = _matrix.front()._in->getName();
-      id0 = _matrix.front()._in->getId();
+      id0   = _matrix.front()._in->getId();
     }
   }
 
-  double M = 0;
+  double          M   = 0;
+  Eigen::Vector3d cg  = Eigen::Vector3d::Zero();
+  Eigen::Vector3d f   = Eigen::Vector3d::Zero();
+  Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
   for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
     Bead *bead = iter->_in;
     _out->AddParentBead(bead->getId());
     M += bead->getMass();
     if (bead->HasPos()) {
-      vec r = top->BCShortestConnection(r0, bead->getPos());
+      Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
       if (abs(r) > max_dist) {
         cout << r0 << " " << bead->getPos() << endl;
         throw std::runtime_error(
@@ -179,31 +179,31 @@ void Map_Sphere::Apply() {
     }
   }
   _out->setMass(M);
-  if (bPos)
-    _out->setPos(cg);
-  if (bVel)
-    _out->setVel(vel);
-  if (bF)
-    _out->setF(f);
+  if (bPos) _out->setPos(cg);
+  if (bVel) _out->setVel(vel);
+  if (bF) _out->setF(f);
 }
 
 /// \todo implement this function
 void Map_Ellipsoid::Apply() {
   vector<element_t>::iterator iter;
-  vec cg(0., 0., 0.), c(0., 0., 0.), f(0., 0., 0.), vel(0., 0., 0.);
-  matrix m(0.);
+
   bool bPos, bVel, bF;
   bPos = bVel = bF = false;
 
   // the following is needed for pbc treatment
-  Topology *top = _out->getParent();
-  double max_dist = 0.5 * top->ShortestBoxSize();
-  vec r0 = vec(0, 0, 0);
+  Topology *      top      = _out->getParent();
+  double          max_dist = 0.5 * top->ShortestBoxSize();
+  Eigen::Vector3d r0       = Eigen::Vector3d::Zero();
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
       r0 = _matrix.front()._in->getPos();
     }
   }
+  Eigen::Vector3d cg  = Eigen::Vector3d::Zero();
+  Eigen::Vector3d c   = Eigen::Vector3d::Zero();
+  Eigen::Vector3d f   = Eigen::Vector3d::Zero();
+  Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
   int n;
   n = 0;
@@ -212,7 +212,7 @@ void Map_Ellipsoid::Apply() {
     Bead *bead = iter->_in;
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
-      vec r = top->BCShortestConnection(r0, bead->getPos());
+      Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
       if (abs(r) > max_dist)
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box");
@@ -237,78 +237,54 @@ void Map_Ellipsoid::Apply() {
     }
   }
 
-  if (bPos)
-    _out->setPos(cg);
-  if (bVel)
-    _out->setVel(vel);
-  if (bF)
-    _out->setF(f);
+  if (bPos) _out->setPos(cg);
+  if (bVel) _out->setVel(vel);
+  if (bF) _out->setF(f);
 
   if (!_matrix[0]._in->HasPos()) {
-    _out->setU(vec(1.0, 0, 0));
-    _out->setV(vec(.0, 1, 0));
-    _out->setW(vec(.0, 0, 1));
+    _out->setU(Eigen::Vector3d::UnitX());
+    _out->setV(Eigen::Vector3d::UnitY());
+    _out->setW(Eigen::Vector3d::UnitZ());
     return;
   }
 
+  Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
   // calculate the tensor of gyration
   c = c / (double)n;
   for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
-    if ((*iter)._weight == 0)
-      continue;
-    Bead *bead = iter->_in;
-    vec v = bead->getPos() - c;
+    if ((*iter)._weight == 0) continue;
+    Bead *          bead = iter->_in;
+    Eigen::Vector3d v    = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
     //    + vec(0.5, -1, 0) * (drand48()-0.5)
     //    + vec(0, 0, 1) * (drand48()-0.5);
 
     // Normalize the tensor with 1/number_of_atoms_per_bead
-    m[0][0] += v.getX() * v.getX() / (double)_matrix.size();
-    m[0][1] += v.getX() * v.getY() / (double)_matrix.size();
-    m[0][2] += v.getX() * v.getZ() / (double)_matrix.size();
-    m[1][1] += v.getY() * v.getY() / (double)_matrix.size();
-    m[1][2] += v.getY() * v.getZ() / (double)_matrix.size();
-    m[2][2] += v.getZ() * v.getZ() / (double)_matrix.size();
+    m += v * v.transpose() / (double)_matrix.size();
   }
-  m[1][0] = m[0][1];
-  m[2][0] = m[0][2];
-  m[2][1] = m[1][2];
 
-  // calculate the eigenvectors
-  matrix::eigensystem_t es;
-  m.SolveEigensystem(es);
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eig;
+  eig.computeDirect(m);
 
-  // vec eigenv1=es.eigenvecs[0];
-  // vec eigenv2=es.eigenvecs[1];
-  // vec eigenv3=es.eigenvecs[2];
-
-  /*    _out->seteigenvec1(eigenv1);
-      _out->seteigenvec2(eigenv2);
-      _out->seteigenvec3(eigenv3);
-    */
-
-  vec u = es.eigenvecs[0];
-  vec v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
+  Eigen::Vector3d u = eig.eigenvectors().col(0);
+  Eigen::Vector3d v = _matrix[1]._in->getPos() - _matrix[0]._in->getPos();
   v.normalize();
 
   _out->setV(v);
 
-  vec w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
+  Eigen::Vector3d w = _matrix[2]._in->getPos() - _matrix[0]._in->getPos();
   w.normalize();
 
-  if ((v ^ w) * u < 0)
-    u = vec(0., 0., 0.) - u;
+  if (v.cross(w).dot(u) < 0) {
+    u = -u;
+  }
   _out->setU(u);
 
   // write out w
-  w = u ^ v;
+  w = u.cross(v);
   w.normalize();
   _out->setW(w);
-
-  // out.BeadV(_out) = v;
-
-  // out.BeadW(_out) = es.eigenvecs[2];
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

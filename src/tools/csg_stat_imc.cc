@@ -253,7 +253,8 @@ class IMCNBSearchHandler {
 
   HistogramNew *_hist;
 
-  bool FoundPair(Bead *b1, Bead *b2, const vec &r, const double dist) {
+  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
+                 const double dist) {
     _hist->Process(dist);
     return false;
   }
@@ -339,9 +340,10 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       NBList_3Body::iterator triple_iter;
       // iterate over all triples
       for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter) {
-        vec    rij = (*triple_iter)->r12();
-        vec    rik = (*triple_iter)->r13();
-        double var = acos(rij * rik / sqrt((rij * rij) * (rik * rik)));
+        Eigen::Vector3d rij = (*triple_iter)->r12();
+        Eigen::Vector3d rik = (*triple_iter)->r13();
+        double          var = std::acos(rij.dot(rik) /
+                               sqrt(rij.squaredNorm() * rik.squaredNorm()));
         _current_hists[i._index].Process(var);
       }
 
@@ -397,12 +399,12 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         // mean force on bead 1 on the pair distance: F1 * r12
         NBList::iterator pair_iter;
         for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-          vec F2  = (*pair_iter)->second->getF();
-          vec F1  = (*pair_iter)->first->getF();
-          vec r12 = (*pair_iter)->r();
+          Eigen::Vector3d F2  = (*pair_iter)->second->getF();
+          Eigen::Vector3d F1  = (*pair_iter)->first->getF();
+          Eigen::Vector3d r12 = (*pair_iter)->r();
           r12.normalize();
           double var   = (*pair_iter)->dist();
-          double scale = 0.5 * (F2 - F1) * r12;
+          double scale = 0.5 * (F2 - F1).dot(r12);
           _current_hists_force[i._index].Process(var, scale);
         }
         delete nb;

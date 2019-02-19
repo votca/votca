@@ -37,11 +37,11 @@ BOOST_AUTO_TEST_CASE(test_bead_constructor) {
   Topology top;
 
   string bead_type_name = "C1";
-  int symmetry = 1;
-  string name = "dummy";
-  int resnr = 0;
-  double mass = 1.21;
-  double charge = -0.87;
+  int    symmetry       = 1;
+  string name           = "dummy";
+  int    resnr          = 0;
+  double mass           = 1.21;
+  double charge         = -0.87;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 }
@@ -52,11 +52,11 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
 
   string bead_type_name = "C1";
 
-  int symmetry = 1;
-  string name = "dummy";
-  int resnr = 0;
-  double mass = 1.21;
-  double charge = -0.87;
+  int    symmetry = 1;
+  string name     = "dummy";
+  int    resnr    = 0;
+  double mass     = 1.21;
+  double charge   = -0.87;
 
   Bead *b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
@@ -74,28 +74,28 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 
   string bead_type_name = "C1";
 
-  int symmetry = 1;
-  string name = "dummy";
-  int resnr = 0;
-  double mass = 1.21;
-  double charge = -0.87;
+  int    symmetry = 1;
+  string name     = "dummy";
+  int    resnr    = 0;
+  double mass     = 1.21;
+  double charge   = -0.87;
 
   Bead *b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
-  double newMass = 9.4;
+  double newMass   = 9.4;
   double newCharge = 2.6;
 
   b->setM(newMass);
   b->setQ(newCharge);
 
-  vec xyz(0.1, 0.2, 0.3);
+  Eigen::Vector3d xyz(0.1, 0.2, 0.3);
   b->setPos(xyz);
 
-  vec xyz_vel(-2.0, 0.32, 32.0);
+  Eigen::Vector3d xyz_vel(-2.0, 0.32, 32.0);
   b->setVel(xyz_vel);
 
-  string molecule_name = "TestMol";
-  Molecule *mol = top.CreateMolecule(molecule_name);
+  string    molecule_name = "TestMol";
+  Molecule *mol           = top.CreateMolecule(molecule_name);
 
   b->setMolecule(mol);
 
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   BOOST_CHECK(new_xyz_vel.isClose(xyz_vel, 3));
 
   auto mol_new = b->getMolecule();
-  bool same = !(molecule_name.compare(mol_new->getName()));
+  bool same    = !(molecule_name.compare(mol_new->getName()));
   BOOST_CHECK(same);
 }
 

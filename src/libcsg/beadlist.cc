@@ -26,13 +26,13 @@ using namespace std;
 
 int BeadList::Generate(Topology &top, const string &select) {
   BeadContainer::iterator iter;
-  _topology = &top;
-  bool selectByName = false;
-  string pSelect; // parsed selection string
+  _topology           = &top;
+  bool   selectByName = false;
+  string pSelect;  // parsed selection string
 
   if (select.substr(0, 5) == "name:") {
     // select according to bead name instead of type
-    pSelect = select.substr(5);
+    pSelect      = select.substr(5);
     selectByName = true;
   } else {
     pSelect = select;
@@ -53,15 +53,15 @@ int BeadList::Generate(Topology &top, const string &select) {
 }
 
 int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
-                                           vec ref, double radius) {
+                                           Eigen::Vector3d ref, double radius) {
   BeadContainer::iterator iter;
-  _topology = &top;
-  bool selectByName = false;
-  string pSelect; // parsed selection string
+  _topology           = &top;
+  bool   selectByName = false;
+  string pSelect;  // parsed selection string
 
   if (select.substr(0, 5) == "name:") {
     // select according to bead name instead of type
-    pSelect = select.substr(5);
+    pSelect      = select.substr(5);
     selectByName = true;
   } else {
     pSelect = select;
@@ -83,5 +83,5 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
   return size();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

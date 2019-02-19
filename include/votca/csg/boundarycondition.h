@@ -18,28 +18,27 @@
 #ifndef _VOTCA_CSG_BOUNDARYCONDITION_H
 #define _VOTCA_CSG_BOUNDARYCONDITION_H
 
-#include <votca/tools/matrix.h>
+#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 class BoundaryCondition {
 
-public:
+ public:
   virtual ~BoundaryCondition(){};
 
   /**
    * set the simulation box
    * \param box triclinic box matrix
    */
-  void setBox(const matrix &box) { _box = box; };
+  void setBox(const Eigen::Matrix3d &box) { _box = box; };
 
   /**
    * get the simulation box
    * \return triclinic box matrix
    */
-  const matrix &getBox() { return _box; };
+  const Eigen::Matrix3d &getBox() { return _box; };
 
   /**
    * get the volume of the box
@@ -51,16 +50,17 @@ public:
    * get shortest connection vector between r_i and r_j with respect to the
    * (periodic) box \return shortest distance vector
    */
-  virtual vec BCShortestConnection(const vec &r_i, const vec &r_j) const = 0;
+  virtual Eigen::Vector3d BCShortestConnection(
+      const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const = 0;
 
   enum eBoxtype { typeAuto = 0, typeTriclinic, typeOrthorhombic, typeOpen };
   virtual eBoxtype getBoxType() = 0;
 
-protected:
-  matrix _box;
+ protected:
+  Eigen::Matrix3d _box;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_BOUNDARYCONDITION_H */

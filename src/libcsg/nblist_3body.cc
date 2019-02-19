@@ -35,12 +35,9 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   BeadList::iterator iter3;
   _do_exclusions = do_exclusions;
 
-  if (list1.empty())
-    return;
-  if (list2.empty())
-    return;
-  if (list3.empty())
-    return;
+  if (list1.empty()) return;
+  if (list2.empty()) return;
+  if (list3.empty()) return;
 
   // check if all bead lists "have" the same topology
   assert(list1.getTopology() == list2.getTopology());
@@ -85,16 +82,16 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
           continue;
         }
 
-        vec u = (*iter1)->getPos();
-        vec v = (*iter2)->getPos();
-        vec z = (*iter3)->getPos();
+        Eigen::Vector3d u = (*iter1)->getPos();
+        Eigen::Vector3d v = (*iter2)->getPos();
+        Eigen::Vector3d z = (*iter3)->getPos();
 
-        vec r12 = top->BCShortestConnection(u, v);
-        vec r13 = top->BCShortestConnection(u, z);
-        vec r23 = top->BCShortestConnection(v, z);
-        double d12 = abs(r12);
-        double d13 = abs(r13);
-        double d23 = abs(r23);
+        Eigen::Vector3d r12 = top->BCShortestConnection(u, v);
+        Eigen::Vector3d r13 = top->BCShortestConnection(u, z);
+        Eigen::Vector3d r23 = top->BCShortestConnection(v, z);
+        double          d12 = r12.norm();
+        double          d13 = r13.norm();
+        double          d23 = r23.norm();
         // to do: at the moment use only one cutoff value
         // to do: so far only check the distance between bead 1 (central bead)
         // and bead2 and bead 3
@@ -117,5 +114,5 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

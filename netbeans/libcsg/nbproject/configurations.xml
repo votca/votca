@@ -126,7 +126,9 @@
       <itemPath>../../src/libcsg/map.cc</itemPath>
       <itemPath>../../src/libcsg/molecule.cc</itemPath>
       <itemPath>../../src/libcsg/nblist.cc</itemPath>
+      <itemPath>../../src/libcsg/nblist_3body.cc</itemPath>
       <itemPath>../../src/libcsg/nblistgrid.cc</itemPath>
+      <itemPath>../../src/libcsg/nblistgrid_3body.cc</itemPath>
       <itemPath>../../src/libcsg/nematicorder.cc</itemPath>
       <itemPath>../../src/libcsg/openbox.cc</itemPath>
       <itemPath>../../src/libcsg/orthorhombicbox.cc</itemPath>
@@ -519,7 +521,14 @@
       </item>
       <item path="../../src/libcsg/nblist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/nblist_3body.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libcsg/nblistgrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/nematicorder.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -977,7 +986,14 @@
       </item>
       <item path="../../src/libcsg/nblist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/nblist_3body.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libcsg/nblistgrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/nematicorder.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1436,7 +1452,14 @@
       </item>
       <item path="../../src/libcsg/nblist.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libcsg/nblist_3body.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libcsg/nblistgrid.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libcsg/nblistgrid_3body.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libcsg/nematicorder.cc" ex="false" tool="1" flavor2="0">
       </item>

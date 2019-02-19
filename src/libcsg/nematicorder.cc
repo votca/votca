@@ -16,9 +16,6 @@
  */
 
 #include <votca/csg/nematicorder.h>
-#include <votca/csg/topology.h>
-#include <votca/tools/matrix.h>
-#include <votca/tools/tokenizer.h>
 
 namespace votca {
 namespace csg {
@@ -26,10 +23,10 @@ namespace csg {
 using namespace std;
 
 void NematicOrder::Process(Topology &top, const string &filter) {
-  _mu.ZeroMatrix();
-  _mv.ZeroMatrix();
-  _mw.ZeroMatrix();
-  int N = 0;
+  _mu    = Eigen::Matrix3d::Zero();
+  _mv    = Eigen::Matrix3d::Zero();
+  _mw    = Eigen::Matrix3d::Zero();
+  int  N = 0;
   bool bU, bV, bW;
   bU = bV = bW = false;
 
@@ -38,50 +35,39 @@ void NematicOrder::Process(Topology &top, const string &filter) {
 
     Bead *bead = *iter;
 
-    if (!wildcmp(filter.c_str(), bead->getName().c_str()))
-      continue;
+    if (!wildcmp(filter.c_str(), bead->getName().c_str())) continue;
 
-    if (bead->getSymmetry() == 1)
-      continue;
+    if (bead->getSymmetry() == 1) continue;
 
     if (bead->HasU()) {
-      _mu += bead->getU() | bead->getU();
-      _mu[0][0] -= 1. / 3.;
-      _mu[1][1] -= 1. / 3.;
-      _mu[2][2] -= 1. / 3.;
+      _mu += bead->getU() * bead->getU().transpose();
+      _mu.diagonal().array() -= 1. / 3.;
       bU = true;
     }
 
     if (bead->HasV()) {
-      _mv += bead->getV() | bead->getV();
-      _mv[0][0] -= 1. / 3.;
-      _mv[1][1] -= 1. / 3.;
-      _mv[2][2] -= 1. / 3.;
+      _mu += bead->getV() * bead->getV().transpose();
+      _mu.diagonal().array() -= 1. / 3.;
       bV = true;
     }
 
     if (bead->HasW()) {
-      _mw += bead->getW() | bead->getW();
-      _mw[0][0] -= 1. / 3.;
-      _mw[1][1] -= 1. / 3.;
-      _mw[2][2] -= 1. / 3.;
+      _mu += bead->getW() * bead->getW().transpose();
+      _mu.diagonal().array() -= 1. / 3.;
       bW = true;
     }
     N++;
   }
 
   double f = 1. / (double)N * 3. / 2.;
-  _mu = f * _mu;
-  _mv = f * _mv;
-  _mw = f * _mw;
+  _mu      = f * _mu;
+  _mv      = f * _mv;
+  _mw      = f * _mw;
 
-  if (bU)
-    _mu.SolveEigensystem(_nemat_u);
-  if (bV)
-    _mv.SolveEigensystem(_nemat_v);
-  if (bW)
-    _mw.SolveEigensystem(_nemat_w);
+  if (bU) _nemat_u.computeDirect(_mu);
+  if (bV) _nemat_v.computeDirect(_mv);
+  if (bW) _nemat_w.computeDirect(_mw);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

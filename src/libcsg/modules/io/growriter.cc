@@ -31,15 +31,15 @@ void GROWriter::Open(string file, bool bAppend) {
 void GROWriter::Close() { fclose(_out); }
 
 void GROWriter::Write(Topology *conf) {
-  char format[100];
-  int i, resnr, l, vpr;
+  char      format[100];
+  int       i, resnr, l, vpr;
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
   fprintf(_out, "%5d\n", top->BeadCount());
 
-  bool v = top->HasVel();
-  int pr = 3; // precision of writeout, given by the spec
+  bool v  = top->HasVel();
+  int  pr = 3;  // precision of writeout, given by the spec
 
   /* build format string for printing,
      something like "%8.3f" for x and "%8.4f" for v */
@@ -47,7 +47,7 @@ void GROWriter::Write(Topology *conf) {
     pr=0;
   if (pr>30)
     pr=30;*/
-  l = pr + 5;
+  l   = pr + 5;
   vpr = pr + 1;
   if (v)
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n", l, pr,
@@ -56,44 +56,43 @@ void GROWriter::Write(Topology *conf) {
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
 
   for (i = 0; i < top->BeadCount(); i++) {
-    resnr = top->getBead(i)->getResnr();
-    string resname = top->getResidue(resnr)->getName();
+    resnr           = top->getBead(i)->getResnr();
+    string resname  = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
 
     fprintf(_out, "%5d%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
             atomname.c_str(), (i + 1) % 100000);
     /* next fprintf uses built format string */
-    vec r = conf->getBead(i)->getPos();
+    Eigen::Vector3d r = conf->getBead(i)->getPos();
 
     if (v) {
-      vec vv = conf->getBead(i)->getVel();
-      fprintf(_out, format, r.getX(), r.getY(), r.getZ(), vv.getX(), vv.getY(),
-              vv.getZ());
+      Eigen::Vector3d vv = conf->getBead(i)->getVel();
+      fprintf(_out, format, r.x(), r.x(), r.x(), vv.x(), vv.x(), vv.x());
     } else {
-      fprintf(_out, format, r.getX(), r.getY(), r.getZ());
+      fprintf(_out, format, r.x(), r.x(), r.x());
     }
   }
 
   // write the boy
-  matrix box = conf->getBox();
+  Eigen::Matrix3d box = conf->getBox();
 
-  if (pr < 5)
-    pr = 5;
+  if (pr < 5) pr = 5;
   l = pr + 5;
 
-  if (box[0][1] || box[0][2] || box[1][0] || box[1][2] || box[2][0] ||
-      box[2][1]) {
-    sprintf(format, "%%%d.%df%%%d.%df%%%d.%df"
-                    "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n",
+  if (box(0, 1) || box(0, 2) || box(1, 0) || box(1, 2) || box(2, 0) ||
+      box(2, 1)) {
+    sprintf(format,
+            "%%%d.%df%%%d.%df%%%d.%df"
+            "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n",
             l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr);
-    fprintf(_out, format, box[0][0], box[1][1], box[2][2], box[1][0], box[2][0],
-            box[0][1], box[2][1], box[0][2], box[1][2]);
+    fprintf(_out, format, box(0, 0), box(1, 1), box(2, 2), box(1, 0), box(2, 0),
+            box(0, 1), box(2, 1), box(0, 2), box(1, 2));
   } else {
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
-    fprintf(_out, format, box[0][0], box[1][1], box[2][2]);
+    fprintf(_out, format, box(0, 0), box(1, 1), box(2, 2));
   }
   fflush(_out);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

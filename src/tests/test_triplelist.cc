@@ -45,33 +45,33 @@ BOOST_AUTO_TEST_CASE(triplelist_add_triple) {
   string bead_type_name = "CG";
   top.RegisterBeadType(bead_type_name);
 
-  int symmetry = 1;
-  string name = "dummy1";
-  int resnr = 0;
-  double mass = 1.0;
-  double charge = -1.0;
+  int    symmetry = 1;
+  string name     = "dummy1";
+  int    resnr    = 0;
+  double mass     = 1.0;
+  double charge   = -1.0;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
   symmetry = 1;
-  name = "dummy2";
-  resnr = 0;
-  mass = 2.0;
-  charge = -2.0;
+  name     = "dummy2";
+  resnr    = 0;
+  mass     = 2.0;
+  charge   = -2.0;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
   symmetry = 1;
-  name = "dummy3";
-  resnr = 0;
-  mass = 3.0;
-  charge = -3.0;
+  name     = "dummy3";
+  resnr    = 0;
+  mass     = 3.0;
+  charge   = -3.0;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
-  vec dist12(0.1, 0.2, 0.3);
-  vec dist13(0.2, 0.4, 0.3);
-  vec dist23(0.1, 0.2, 0.0);
+  Eigen::Vector3d dist12(0.1, 0.2, 0.3);
+  Eigen::Vector3d dist13(0.2, 0.4, 0.3);
+  Eigen::Vector3d dist23(0.1, 0.2, 0.0);
 
   BeadTriple *testtriple = new BeadTriple(
       top.getBead(0), top.getBead(1), top.getBead(2), dist12, dist13, dist23);

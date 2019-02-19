@@ -30,24 +30,24 @@ namespace csg {
  */
 
 class BeadPair : public std::pair<Bead *, Bead *> {
-public:
+ public:
   BeadPair() {}
-  BeadPair(Bead *bead1, Bead *bead2, tools::vec r)
+  BeadPair(Bead *bead1, Bead *bead2, Eigen::Vector3d r)
       : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
 
   virtual ~BeadPair() {}
 
   /// \brief the vector connecting two beads
-  tools::vec &r() { return _r; }
+  Eigen::Vector3d &r() { return _r; }
   /// \brief the distance of the beads
   double &dist() { return _dist; }
 
-protected:
-  tools::vec _r;
-  double _dist;
+ protected:
+  Eigen::Vector3d _r;
+  double          _dist;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_BEADPAIR_H */

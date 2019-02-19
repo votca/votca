@@ -31,12 +31,12 @@ void LAMMPSDumpWriter::Open(std::string file, bool bAppend) {
 void LAMMPSDumpWriter::Close() { fclose(_out); }
 
 void LAMMPSDumpWriter::Write(Topology *conf) {
-  Topology *top = conf;
-  votca::tools::matrix box = conf->getBox();
+  Topology *      top = conf;
+  Eigen::Matrix3d box = conf->getBox();
   fprintf(_out, "ITEM: TIMESTEP\n%i\n", top->getStep());
   fprintf(_out, "ITEM: NUMBER OF ATOMS\n%i\n", (int)top->Beads().size());
   fprintf(_out, "ITEM: BOX BOUNDS pp pp pp\n");
-  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box[0][0], box[1][1], box[2][2]);
+  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0), box(1, 1), box(2, 2));
 
   fprintf(_out, "ITEM: ATOMS id type x y z");
   bool v = top->HasVel();
@@ -56,20 +56,20 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
     int type_id = conf->getBeadTypeId(bi->getType());
 
     fprintf(_out, "%i %i", bi->getId() + 1, type_id);
-    fprintf(_out, " %f %f %f", bi->getPos().getX(), bi->getPos().getY(),
-            bi->getPos().getZ());
+    fprintf(_out, " %f %f %f", bi->getPos().x(), bi->getPos().x(),
+            bi->getPos().x());
     if (v) {
-      fprintf(_out, " %f %f %f", bi->getVel().getX(), bi->getVel().getY(),
-              bi->getVel().getZ());
+      fprintf(_out, " %f %f %f", bi->getVel().x(), bi->getVel().x(),
+              bi->getVel().x());
     }
     if (f) {
-      fprintf(_out, " %f %f %f", bi->getF().getX(), bi->getF().getY(),
-              bi->getF().getZ());
+      fprintf(_out, " %f %f %f", bi->getF().x(), bi->getF().x(),
+              bi->getF().x());
     }
     fprintf(_out, "\n");
   }
   fflush(_out);
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
