@@ -98,7 +98,7 @@ class Calculator {
   unsigned int _nThreads;
   bool _maverick;
 
-  void AddDefaults(Property &p, Property &defaults);
+  void AddDefaults(Property &p, const Property &defaults);
 };
 
 inline void Calculator::LoadDefaults() {}
@@ -138,7 +138,7 @@ inline void Calculator::UpdateWithDefaults(Property &options,
   }
 }
 
-inline void Calculator::AddDefaults(Property &p, Property &defaults) {
+inline void Calculator::AddDefaults(Property &p, const Property &defaults) {
 
   for (const Property &prop : defaults) {
     std::string name = prop.path() + "." + prop.name();

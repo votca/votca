@@ -18,7 +18,9 @@
 #ifndef _VOTCA_TOOLS_PROPERTY_H
 #define _VOTCA_TOOLS_PROPERTY_H
 
+#include "eigen.h"
 #include "lexical_cast.h"
+#include "tokenizer.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
 #include <iostream>
@@ -27,9 +29,6 @@
 #include <stdexcept>
 #include <stdlib.h>
 #include <string>
-
-#include "tokenizer.h"
-#include "vec.h"
 
 namespace votca {
 namespace tools {
@@ -320,18 +319,6 @@ inline std::string Property::as<std::string>() const {
   std::string tmp(_value);
   boost::trim(tmp);
   return tmp;
-}
-
-template <>
-inline vec Property::as<vec>() const {
-  std::vector<double> tmp;
-  Tokenizer tok(as<std::string>(), " ,");
-  tok.ConvertToVector<double>(tmp);
-  if (tmp.size() != 3)
-    throw std::runtime_error("Vector has " +
-                             boost::lexical_cast<std::string>(tmp.size()) +
-                             " instead of three entries");
-  return vec(tmp[0], tmp[1], tmp[2]);
 }
 
 template <>

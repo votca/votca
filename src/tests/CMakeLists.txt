@@ -18,7 +18,6 @@ foreach(PROG
     test_histogramnew
     test_identity
     test_linalg
-    test_matrix
     test_name
     test_reducededge
     test_reducedgraph
@@ -26,7 +25,6 @@ foreach(PROG
     test_thread
     test_tokenizer
     test_typeconverter
-    test_vec
     test_property)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
