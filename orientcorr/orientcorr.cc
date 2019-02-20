@@ -85,7 +85,7 @@ class MyWorker : public CsgApplication::Worker {
   void EvalConfiguration(Topology *top, Topology *top_ref);
 
   // callback if neighborsearch finds a pair
-  bool FoundPair(Bead *b1, Bead *b2, const vec &r, const double dist);
+  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r, const double dist);
 
   // accumulator of the 3/2*u(0)u(r) - 1/2
   HistogramNew _cor;
@@ -174,12 +174,12 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
         mapped.RegisterBeadType(bead_type);
       }
       Bead *b = mapped.CreateBead(3, "A", bead_type, 1, 0.0, 0.0);
-      vec p1 = mol_src->getBead(i)->getPos();
-      vec p2 = mol_src->getBead(i + 1)->getPos();
+      Eigen::Vector3d p1 = mol_src->getBead(i)->getPos();
+      Eigen::Vector3d p2 = mol_src->getBead(i + 1)->getPos();
       // position is in middle of bond
-      vec pos = 0.5 * (p1 + p2);
+      Eigen::Vector3d pos = 0.5 * (p1 + p2);
       // orientation pointing along bond
-      vec v = p2 - p1;
+      Eigen::Vector3d v = p2 - p1;
       v.normalize();
       b->setPos(pos);
       b->setV(v);
@@ -211,8 +211,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
 
 // process a pair, since return value is falsed, pairs are not cached which
 // saves a lot of memory for the big systems
-bool MyWorker::FoundPair(Bead *b1, Bead *b2, const vec &r, const double dist) {
-  double tmp = b1->getV() * b2->getV();
+bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r, const double dist) {
+  double tmp = b1->getV().dot(b2->getV());
   double P2 = 3. / 2. * tmp * tmp - 0.5;
 
   // calculate average without exclusions

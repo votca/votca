@@ -99,11 +99,10 @@ class CGOrderParam : public CsgApplication {
 
     _n = 0;
 
-    matrix box;
-    box = top->getBox();
-    vec a = box.getCol(0);
-    vec b = box.getCol(1);
-    vec c = box.getCol(2);
+    Eigen::Matrix3d box = top->getBox();
+    Eigen::Vector3d a = box.col(0);
+    Eigen::Vector3d b = box.col(1);
+    Eigen::Vector3d c = box.col(2);
 
     if (_refmol == "") {
 
@@ -175,9 +174,9 @@ class CGOrderParam : public CsgApplication {
 
   void EvalConfiguration(Topology *conf, Topology *conf_atom = 0) {
 
-    vec eR;
+    Eigen::Vector3d eR;
     int nu, nv, nw;
-    vec u, v, w;
+    Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
       for (BeadContainer::iterator iter = conf->Beads().begin();
@@ -214,9 +213,9 @@ class CGOrderParam : public CsgApplication {
         v.normalize();
         w.normalize();
 
-        nu = (int)((((eR * u) + 1) / 2) * _nbin);
-        nv = (int)((((eR * v) + 1) / 2) * _nbin);
-        nw = (int)((((eR * w) + 1) / 2) * _nbin);
+        nu = (int)(((eR.dot(u) + 1) / 2) * _nbin);
+        nv = (int)(((eR.dot(v) + 1) / 2) * _nbin);
+        nw = (int)(((eR.dot(w) + 1) / 2) * _nbin);
 
         // cout << "nu" << nu << "nv" << nv << "nw" << nw << endl;
         _hist_u[rb][nu] += 1;
@@ -237,7 +236,7 @@ class CGOrderParam : public CsgApplication {
   ofstream _file;
   string _filename;
   int _n;
-  vec _ref;
+  Eigen::Vector3d _ref;
   ofstream _file_u;
   ofstream _file_v;
   ofstream _file_w;

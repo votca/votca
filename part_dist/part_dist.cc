@@ -238,11 +238,11 @@ int main(int argc, char **argv) {
             for (size_t j = 0; j < ptypes.size(); ++j) {
               if (part_type == ptypes[j]) {
                 if (coordinate.compare("x") == 0) {
-                  com += (*mol)->getBead(i)->getPos().getX();
+                  com += (*mol)->getBead(i)->getPos().x();
                 } else if (coordinate.compare("y") == 0) {
-                  com += (*mol)->getBead(i)->getPos().getY();
+                  com += (*mol)->getBead(i)->getPos().y();
                 } else {
-                  com += (*mol)->getBead(i)->getPos().getZ();
+                  com += (*mol)->getBead(i)->getPos().z();
                 }
               }
             }
@@ -262,11 +262,11 @@ int main(int argc, char **argv) {
             for (size_t j = 0; j < ptypes.size(); ++j) {
               if (part_type == ptypes[j]) {
                 if (coordinate.compare("x") == 0)
-                  coord = (*mol)->getBead(i)->getPos().getX();
+                  coord = (*mol)->getBead(i)->getPos().x();
                 else if (coordinate.compare("y") == 0)
-                  coord = (*mol)->getBead(i)->getPos().getY();
+                  coord = (*mol)->getBead(i)->getPos().y();
                 else
-                  coord = (*mol)->getBead(i)->getPos().getZ();
+                  coord = (*mol)->getBead(i)->getPos().z();
 
                 if (coord - com > min && coord - com < max)
                   ++p_occ[j][(int)floor((coord - com - min) / step)];

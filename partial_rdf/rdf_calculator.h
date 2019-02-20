@@ -116,13 +116,13 @@ class RDFCalculator {
   int _nframes;
   int _nblock;
   double _subvol_rad;
-  vec _boxc;  // center of box
+  Eigen::Vector3d _boxc;  // center of box
   bool _do_vol_corr;
 
   /// list of bonded interactions
-  list<Property *> _bonded;
+  vector<Property *> _bonded;
   /// list of non-bonded interactions
-  list<Property *> _nonbonded;
+  vector<Property *> _nonbonded;
 
   /// map ineteractionm-name to interaction
   map<string, interaction_t *> _interactions;

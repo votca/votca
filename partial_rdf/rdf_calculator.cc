@@ -49,19 +49,17 @@ void RDFCalculator::Initialize() {
         "No interactions defined in options xml-file - nothing to be done");
 
   // initialize non-bonded structures
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    interaction_t *i = AddInteraction(*iter);
+  for (Property *prop:_nonbonded) {
+    interaction_t *i = AddInteraction(prop);
     i->_is_bonded = false;
   }
 };
 
 void RDFCalculator::BeginEvaluate(Topology *top, Topology *top_atom) {
-  matrix box;
-  box = top->getBox();
-  vec a = box.getCol(0);
-  vec b = box.getCol(1);
-  vec c = box.getCol(2);
+  Eigen::Matrix3d box = top->getBox();
+  Eigen::Vector3d a = box.col(0);
+  Eigen::Vector3d b = box.col(1);
+  Eigen::Vector3d c = box.col(2);
   _boxc = a / 2 + b / 2 + c / 2;
 
   cout << "Using center of box: " << _boxc << endl;
@@ -71,27 +69,26 @@ void RDFCalculator::BeginEvaluate(Topology *top, Topology *top_atom) {
   _processed_some_frames = false;
 
   // initialize non-bonded structures
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+   for (Property *prop:_nonbonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_interactions[name];
 
     // count total species for ideal densities
 
     BeadList allbeads1, allbeads2;
-    allbeads1.Generate(*top, (*iter)->get("type1").value());
-    allbeads2.Generate(*top, (*iter)->get("type2").value());
+    allbeads1.Generate(*top, prop->get("type1").value());
+    allbeads2.Generate(*top, prop->get("type2").value());
 
     if (allbeads1.size() == 0)
       throw std::runtime_error("Topology does not have beads of type \"" +
-                               (*iter)->get("type1").value() +
+                               prop->get("type1").value() +
                                "\"\n"
                                "This was specified in type1 of interaction \"" +
                                name + "\"");
     if (allbeads2.size() == 0)
       throw std::runtime_error("Topology does not have beads of type \"" +
-                               (*iter)->get("type2").value() +
+                               prop->get("type2").value() +
                                "\"\n"
                                "This was specified in type2 of interaction \"" +
                                name + "\"");
@@ -109,22 +106,9 @@ void RDFCalculator::BeginEvaluate(Topology *top, Topology *top_atom) {
     if (_do_vol_corr) {
       cout << "Volume correction on" << endl;
       i._norm = 1. / (4.0 * M_PI * i._step);
-      /* OLD STUFF FROM ANALYTIC
-      double r5= _subvol_rad*_subvol_rad*_subvol_rad*_subvol_rad*_subvol_rad;
-
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-          i._norm = 1. / (r5* 2. * (2*M_PI)*(2*M_PI) * i._step *
-      allbeads1.size()*(allbeads2.size() - 1.) / 2.); else i._norm = 1. /
-      (r5* 2. * (2*M_PI)*(2*M_PI) * i._step * allbeads1.size() *
-      allbeads2.size());*/
     } else {
       cout << "Volume correction off" << endl;
       i._norm = 1. / (4. * M_PI * i._step);
-      /*if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
-           i._norm = 1. / (4. * M_PI * i._step *
-       allbeads1.size()*(allbeads2.size() - 1.) / 2.); else i._norm = 1. / (4. *
-       M_PI * i._step * allbeads1.size() * allbeads2.size());
-       }*/
     }
   }
 }
@@ -202,7 +186,7 @@ void RDFCalculator::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  IMCNBSearchHandler(HistogramNew *hist, double subvol_rad, vec boxc,
+  IMCNBSearchHandler(HistogramNew *hist, double subvol_rad, Eigen::Vector3d boxc,
                      bool do_vol_corr)
       : _hist(hist),
         _subvol_rad(subvol_rad),
@@ -211,13 +195,13 @@ class IMCNBSearchHandler {
 
   HistogramNew *_hist;
   double _subvol_rad;
-  vec _boxc;  // center of box
+  Eigen::Vector3d _boxc;  // center of box
   bool _do_vol_corr;
 
-  bool FoundPair(Bead *b1, Bead *b2, const vec &r, const double dist) {
+  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r, const double dist) {
 
     if (_do_vol_corr) {
-      double dr = abs(b1->Pos() - _boxc);
+      double dr = (b1->Pos() - _boxc).norm();
       if (dist + dr > _subvol_rad)
         // 2.0 is because everything is normalized to 4 PI
         _hist->Process(dist, 2.0 / SurfaceRatio(dist, dr));
@@ -240,19 +224,18 @@ class IMCNBSearchHandler {
 
 // process non-bonded interactions for current frame
 void RDFCalculator::Worker::DoNonbonded(Topology *top) {
-  for (list<Property *>::iterator iter = _rdfcalculator->_nonbonded.begin();
-       iter != _rdfcalculator->_nonbonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop: _rdfcalculator->_nonbonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_rdfcalculator->_interactions[name];
 
     // generate the bead lists
     BeadList beads1, beads2;
 
-    beads1.GenerateInSphericalSubvolume(*top, (*iter)->get("type1").value(),
+    beads1.GenerateInSphericalSubvolume(*top, prop->get("type1").value(),
                                         _rdfcalculator->_boxc,
                                         _rdfcalculator->_subvol_rad);
-    beads2.GenerateInSphericalSubvolume(*top, (*iter)->get("type2").value(),
+    beads2.GenerateInSphericalSubvolume(*top, prop->get("type2").value(),
                                         _rdfcalculator->_boxc,
                                         _rdfcalculator->_subvol_rad);
 
@@ -260,7 +243,7 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
     _cur_beadlist_2_count = beads2.size();
 
     // same types, so put factor 1/2 because of already counted interactions
-    if ((*iter)->get("type1").value() == (*iter)->get("type2").value()) {
+    if (prop->get("type1").value() == prop->get("type2").value()) {
       _cur_beadlist_2_count /= 2.0;
     }
 
@@ -294,7 +277,7 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
     nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
     // is it same types or different types?
-    if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+    if (prop->get("type1").value() == prop->get("type2").value())
       nb->Generate(beads1);
     else
       nb->Generate(beads1, beads2);
@@ -315,9 +298,8 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
 
 // process non-bonded interactions for current frame
 void RDFCalculator::Worker::DoBonded(Topology *top) {
-  for (list<Property *>::iterator iter = _rdfcalculator->_bonded.begin();
-       iter != _rdfcalculator->_bonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop:_rdfcalculator->_bonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_rdfcalculator->_interactions[name];
 
@@ -356,19 +338,6 @@ void RDFCalculator::WriteDist(const string &suffix) {
     Table &t = iter->second->_average.data();
     Table dist(t);
 
-    /* OLD WRONG: correct for real density like below!
-    double VolumeSq = _avg_vol.getAvg()*_avg_vol.getAvg();
-    for (int i=0; i< dist.size(); i++){
-        if (dist.x(i)>0) // avoid division through zero
-            dist.y(i)=
-    dist.y(i)*iter->second->_norm*VolumeSq/(AnalyticVolumeCorrection(dist.x(i)/_subvol_rad));
-        else
-            dist.y(i)=0.0;
-    }*/
-
-    // dist.y() = _avg_vol.getAvg()*iter->second->_norm *
-    // factor 1/2 if beadlist1==beadlist2 already inclyded in
-    // _avg_beadlist_2_count!!
     iter->second->_norm /= (iter->second->_avg_beadlist_1_count.getAvg() *
                             iter->second->_avg_beadlist_2_count.getAvg());
     dist.y() = _avg_vol.getAvg() * iter->second->_norm *
