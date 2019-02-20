@@ -92,21 +92,21 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   Topology top;
   TopologyReader::RegisterPlugins();
   TopologyReader *reader;
-  string          str = "Molecule1.pdb";
-  reader              = TopReaderFactory().Create(str);
+  string str = "Molecule1.pdb";
+  reader = TopReaderFactory().Create(str);
   reader->ReadTopology(str, top);
   BOOST_CHECK_EQUAL(reader != NULL, true);
   BOOST_CHECK_EQUAL(top.BeadCount(), 10);
 
-  vector<int>     resnr   = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
-  vector<string>  bd_name = {"C", "H", "H", "H", "H", "C", "H", "H", "H", "H"};
-  vector<double>  x       = {-0.5249, -0.6202, -0.539,  -0.4682, -0.4724,
+  vector<int> resnr = {0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  vector<string> bd_name = {"C", "H", "H", "H", "H", "C", "H", "H", "H", "H"};
+  vector<double> x = {-0.5249, -0.6202, -0.539,  -0.4682, -0.4724,
                       -0.2248, -0.1518, -0.3153, -0.2442, -0.1880};
-  vector<double>  y       = {0.1055, 0.1521, 0.0026, 0.1124, 0.1550,
+  vector<double> y = {0.1055, 0.1521, 0.0026, 0.1124, 0.1550,
                       0.1671, 0.2451, 0.1999, 0.1430, 0.0804};
-  vector<double>  z       = {-0.000, -0.0141, 0.0255, -0.0904, 0.079,
+  vector<double> z = {-0.000, -0.0141, 0.0255, -0.0904, 0.079,
                       -0.000, 0.0051,  0.0467, -0.1024, 0.0507};
-  Bead *          bd;
+  Bead *bd;
   Eigen::Vector3d v;
   for (int i = 0; i < 10; i++) {
     bd = top.getBead(i);
@@ -117,8 +117,8 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
     v = bd->getPos();
     BOOST_CHECK_CLOSE(bd->getQ(), 0, 1e-5);
     BOOST_CHECK_CLOSE(v.x(), x.at(i), 1e-5);
-    BOOST_CHECK_CLOSE(v.x(), y.at(i), 1e-5);
-    BOOST_CHECK_CLOSE(v.x(), z.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.y(), y.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.z(), z.at(i), 1e-5);
   }
 }
 

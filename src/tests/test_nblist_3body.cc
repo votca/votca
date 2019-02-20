@@ -44,15 +44,11 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
 
   Topology top;
 
-  Eigen::Matrix3d m;
-  m.ZeroMatrix();
-  m[0][0] = 5.0;
-  m[1][1] = 5.0;
-  m[2][2] = 5.0;
+  Eigen::Matrix3d m = 5 * Eigen::Matrix3d::Identity();
 
   top.setBox(m);
 
-  Eigen::Vector3d pos;
+  Eigen::Vector3d pos = Eigen::Vector3d::Zero();
 
   Molecule *mol;
   mol = top.CreateMolecule("UNKNOWN");
@@ -60,38 +56,33 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   string bead_type_name = "CG";
   top.RegisterBeadType(bead_type_name);
 
-  int    symmetry = 1;
-  string name     = "dummy1";
-  int    resnr    = 0;
-  double mass     = 1.0;
-  double charge   = -1.0;
-  Bead * b;
-  b      = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
-  pos[0] = 0.0;
-  pos[1] = 0.0;
-  pos[2] = 0.0;
+  int symmetry = 1;
+  string name = "dummy1";
+  int resnr = 0;
+  double mass = 1.0;
+  double charge = -1.0;
+  Bead *b;
+  b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
   b->setPos(pos);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
 
   symmetry = 1;
-  name     = "dummy2";
-  resnr    = 0;
-  mass     = 2.0;
-  charge   = -2.0;
+  name = "dummy2";
+  resnr = 0;
+  mass = 2.0;
+  charge = -2.0;
   b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
-  pos[0] = 1.0;
-  pos[1] = 0.0;
-  pos[2] = 0.0;
+  pos = Eigen::Vector3d::UnitX();
   b->setPos(pos);
 
   symmetry = 1;
-  name     = "dummy3";
-  resnr    = 0;
-  mass     = 3.0;
-  charge   = -3.0;
+  name = "dummy3";
+  resnr = 0;
+  mass = 3.0;
+  charge = -3.0;
   b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);

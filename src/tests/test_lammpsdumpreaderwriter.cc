@@ -29,7 +29,6 @@
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
 #include <votca/tools/elements.h>
-#include <votca/tools/matrix.h>
 #include <votca/tools/types.h>
 
 using namespace std;
@@ -139,14 +138,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   Topology top;
 
   // Make square box
-  Eigen::Matrix3d box;
-  // 10  0  0
-  //  0 10  0
-  //  0  0 10
-  box.ZeroMatrix();
-  box.set(0, 0, 10);
-  box.set(1, 1, 10);
-  box.set(2, 2, 10);
+  Eigen::Matrix3d box = 10 * Eigen::Matrix3d::Identity();
 
   top.setBox(box);
   auto boxType = top.getBoxType();
@@ -193,9 +185,9 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
       {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}, {0.2, 0.2, 0.2}};
 
   Elements elements;
-  int      residue_num = 1;
-  double   charge      = 0.0;
-  byte_t   symmetry    = 1;
+  int residue_num = 1;
+  double charge = 0.0;
+  byte_t symmetry = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
     string atom_type = atom_types.at(ind);
@@ -252,14 +244,7 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   Topology top;
 
   // Make square box
-  Eigen::Matrix3d box;
-  // 10  0  0
-  //  0 10  0
-  //  0  0 10
-  box.ZeroMatrix();
-  box.set(0, 0, 10);
-  box.set(1, 1, 10);
-  box.set(2, 2, 10);
+  Eigen::Matrix3d box = 10 * Eigen::Matrix3d::Identity();
 
   top.setBox(box);
   auto boxType = top.getBoxType();
@@ -307,9 +292,9 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
       {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}, {0.1, 0.1, 0.1}};
 
   Elements elements;
-  int      residue_num = 1;
-  double   charge      = 0.0;
-  byte_t   symmetry    = 1;
+  int residue_num = 1;
+  double charge = 0.0;
+  byte_t symmetry = 1;
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
 

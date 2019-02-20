@@ -37,11 +37,11 @@ BOOST_AUTO_TEST_CASE(test_bead_constructor) {
   Topology top;
 
   string bead_type_name = "C1";
-  int    symmetry       = 1;
-  string name           = "dummy";
-  int    resnr          = 0;
-  double mass           = 1.21;
-  double charge         = -0.87;
+  int symmetry = 1;
+  string name = "dummy";
+  int resnr = 0;
+  double mass = 1.21;
+  double charge = -0.87;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 }
@@ -52,11 +52,11 @@ BOOST_AUTO_TEST_CASE(test_bead_getters) {
 
   string bead_type_name = "C1";
 
-  int    symmetry = 1;
-  string name     = "dummy";
-  int    resnr    = 0;
-  double mass     = 1.21;
-  double charge   = -0.87;
+  int symmetry = 1;
+  string name = "dummy";
+  int resnr = 0;
+  double mass = 1.21;
+  double charge = -0.87;
 
   Bead *b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
@@ -74,15 +74,15 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
 
   string bead_type_name = "C1";
 
-  int    symmetry = 1;
-  string name     = "dummy";
-  int    resnr    = 0;
-  double mass     = 1.21;
-  double charge   = -0.87;
+  int symmetry = 1;
+  string name = "dummy";
+  int resnr = 0;
+  double mass = 1.21;
+  double charge = -0.87;
 
   Bead *b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
-  double newMass   = 9.4;
+  double newMass = 9.4;
   double newCharge = 2.6;
 
   b->setM(newMass);
@@ -94,8 +94,8 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   Eigen::Vector3d xyz_vel(-2.0, 0.32, 32.0);
   b->setVel(xyz_vel);
 
-  string    molecule_name = "TestMol";
-  Molecule *mol           = top.CreateMolecule(molecule_name);
+  string molecule_name = "TestMol";
+  Molecule *mol = top.CreateMolecule(molecule_name);
 
   b->setMolecule(mol);
 
@@ -103,12 +103,12 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   BOOST_CHECK_CLOSE(b->getQ(), newCharge, 1e-5);
 
   auto new_xyz = b->getPos();
-  BOOST_CHECK(new_xyz.isClose(xyz, 3));
+  BOOST_CHECK(new_xyz.isApprox(xyz, 1e-7));
   auto new_xyz_vel = b->getVel();
-  BOOST_CHECK(new_xyz_vel.isClose(xyz_vel, 3));
+  BOOST_CHECK(new_xyz_vel.isApprox(xyz_vel, 1e-7));
 
   auto mol_new = b->getMolecule();
-  bool same    = !(molecule_name.compare(mol_new->getName()));
+  bool same = !(molecule_name.compare(mol_new->getName()));
   BOOST_CHECK(same);
 }
 

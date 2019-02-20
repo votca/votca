@@ -31,7 +31,7 @@ void LAMMPSDumpWriter::Open(std::string file, bool bAppend) {
 void LAMMPSDumpWriter::Close() { fclose(_out); }
 
 void LAMMPSDumpWriter::Write(Topology *conf) {
-  Topology *      top = conf;
+  Topology *top = conf;
   Eigen::Matrix3d box = conf->getBox();
   fprintf(_out, "ITEM: TIMESTEP\n%i\n", top->getStep());
   fprintf(_out, "ITEM: NUMBER OF ATOMS\n%i\n", (int)top->Beads().size());
@@ -56,20 +56,20 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
     int type_id = conf->getBeadTypeId(bi->getType());
 
     fprintf(_out, "%i %i", bi->getId() + 1, type_id);
-    fprintf(_out, " %f %f %f", bi->getPos().x(), bi->getPos().x(),
-            bi->getPos().x());
+    fprintf(_out, " %f %f %f", bi->getPos().x(), bi->getPos().y(),
+            bi->getPos().z());
     if (v) {
-      fprintf(_out, " %f %f %f", bi->getVel().x(), bi->getVel().x(),
-              bi->getVel().x());
+      fprintf(_out, " %f %f %f", bi->getVel().x(), bi->getVel().y(),
+              bi->getVel().z());
     }
     if (f) {
-      fprintf(_out, " %f %f %f", bi->getF().x(), bi->getF().x(),
-              bi->getF().x());
+      fprintf(_out, " %f %f %f", bi->getF().x(), bi->getF().y(),
+              bi->getF().z());
     }
     fprintf(_out, "\n");
   }
   fflush(_out);
 }
 
-}  // namespace csg
-}  // namespace votca
+} // namespace csg
+} // namespace votca

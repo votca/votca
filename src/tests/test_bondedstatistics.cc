@@ -38,14 +38,14 @@ BOOST_AUTO_TEST_CASE(test_bondedstatistics_constructor) {
 BOOST_AUTO_TEST_CASE(test_bondedstatistics_begin) {
   Topology top;
   // Create two bonded interactions
-  string interaction_group         = "covalent_bond1";
+  string interaction_group = "covalent_bond1";
   string interaction_group_compare = ":covalent_bond1";
-  auto   bond1                     = new IBond(0, 1);
+  auto bond1 = new IBond(0, 1);
   bond1->setGroup(interaction_group);
 
-  string interaction_group2         = "covalent_bond2";
+  string interaction_group2 = "covalent_bond2";
   string interaction_group_compare2 = ":covalent_bond2";
-  auto   bond2                      = new IBond(1, 2);
+  auto bond2 = new IBond(1, 2);
   bond2->setGroup(interaction_group2);
 
   top.AddBondedInteraction(bond1);
@@ -74,23 +74,8 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
   // Setup topology class
   {
     // Set the system size
-    double x1 = 10.0;
-    double y1 = 0.0;
-    double z1 = 0.0;
 
-    double x2 = 0.0;
-    double y2 = 10.0;
-    double z2 = 0.0;
-
-    double x3 = 0.0;
-    double y3 = 0.0;
-    double z3 = 10.0;
-
-    Eigen::Vector3d v1(x1, y1, z1);
-    Eigen::Vector3d v2(x2, y2, z2);
-    Eigen::Vector3d v3(x3, y3, z3);
-
-    Eigen::Matrix3d box(v1, v2, v3);
+    Eigen::Matrix3d box = 10 * Eigen::Matrix3d::Identity();
     top.setBox(box);
 
     // Create three beads
@@ -99,26 +84,26 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
     string bead_type_name = "type1";
     top.RegisterBeadType(bead_type_name);
 
-    int    residue_number = 1;
-    double mass           = 1.1;
-    double charge         = 0.3;
+    int residue_number = 1;
+    double mass = 1.1;
+    double charge = 0.3;
 
     // Create 3 beads
-    string          bead_name = "bead_test";
+    string bead_name = "bead_test";
     Eigen::Vector3d pos_bead1(5.0, 3.0, 5.0);
     auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                    residue_number, mass, charge);
     bead_ptr->setId(0);
     bead_ptr->setPos(pos_bead1);
 
-    string          bead_name2 = "bead_test2";
+    string bead_name2 = "bead_test2";
     Eigen::Vector3d pos_bead2(5.0, 4.0, 5.0);
     auto bead_ptr2 = top.CreateBead(symmetry, bead_name2, bead_type_name,
                                     residue_number, mass, charge);
     bead_ptr2->setId(1);
     bead_ptr2->setPos(pos_bead2);
 
-    string          bead_name3 = "bead_test3";
+    string bead_name3 = "bead_test3";
     Eigen::Vector3d pos_bead3(5.0, 6.0, 5.0);
     auto bead_ptr3 = top.CreateBead(symmetry, bead_name3, bead_type_name,
                                     residue_number, mass, charge);
@@ -127,10 +112,10 @@ BOOST_AUTO_TEST_CASE(test_evalconfiguration_begin) {
 
     // Create two bonded interactions
     string interaction_group = "covalent_bond1";
-    auto   bond1             = new IBond(0, 1);
+    auto bond1 = new IBond(0, 1);
     bond1->setGroup(interaction_group);
     string interaction_group2 = "covalent_bond2";
-    auto   bond2              = new IBond(1, 2);
+    auto bond2 = new IBond(1, 2);
     bond2->setGroup(interaction_group2);
 
     top.AddBondedInteraction(bond1);
