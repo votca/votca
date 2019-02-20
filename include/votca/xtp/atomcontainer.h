@@ -126,7 +126,7 @@ class AtomContainer {
     calcPos();
   }
 
-  void WriteToCpt(CheckpointWriter& w) const {
+  virtual void WriteToCpt(CheckpointWriter& w) const {
     w(_name, "name");
     w(_id, "id");
     for (unsigned i = 0; i < _atomlist.size(); i++) {
@@ -136,7 +136,7 @@ class AtomContainer {
     }
   }
 
-  void ReadFromCpt(CheckpointReader& r) {
+  virtual void ReadFromCpt(CheckpointReader& r) {
     r(_name, "name");
     r(_id, "id");
     size_t count = r.getNumDataSets();
@@ -154,6 +154,8 @@ class AtomContainer {
   std::vector<T> _atomlist;
   std::string _name;
   int _id;
+
+  bool PosIsValid() const { return_position_valid; }
 
  private:
   mutable bool _position_valid;

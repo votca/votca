@@ -129,21 +129,20 @@ void ParallelXJobCalc<JobContainer, pJob, rJob>::JobOperator::Run(void) {
 
 template <typename JobContainer, typename pJob, typename rJob>
 void ParallelXJobCalc<JobContainer, pJob, rJob>::CustomizeLogger(
-    QMThread *thread) {
+    QMThread &thread) {
 
   // CONFIGURE LOGGER
-  Logger *log = thread->getLogger();
-  log->setReportLevel(logDEBUG);
-  log->setMultithreading(_maverick);
+  Logger &log = thread.getLogger();
+  log.setReportLevel(logDEBUG);
+  log.setMultithreading(_maverick);
 
-  log->setPreface(logINFO,
-                  (format("\nT%1$02d INF ...") % thread->getId()).str());
-  log->setPreface(logERROR,
-                  (format("\nT%1$02d ERR ...") % thread->getId()).str());
-  log->setPreface(logWARNING,
-                  (format("\nT%1$02d WAR ...") % thread->getId()).str());
-  log->setPreface(logDEBUG,
-                  (format("\nT%1$02d DBG ...") % thread->getId()).str());
+  log.setPreface(logINFO, (format("\nT%1$02d INF ...") % thread.getId()).str());
+  log.setPreface(logERROR,
+                 (format("\nT%1$02d ERR ...") % thread.getId()).str());
+  log.setPreface(logWARNING,
+                 (format("\nT%1$02d WAR ...") % thread.getId()).str());
+  log.setPreface(logDEBUG,
+                 (format("\nT%1$02d DBG ...") % thread.getId()).str());
 }
 
 // REGISTER PARALLEL CALCULATORS

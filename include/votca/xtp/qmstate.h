@@ -22,6 +22,9 @@
 
 #include <string>
 
+#include "checkpointreader.h"
+#include "checkpointwriter.h"
+
 namespace votca {
 namespace xtp {
 
@@ -114,8 +117,24 @@ class QMStateCarrierStorage {
     return _content[t.Type()];
   }
 
+  void WriteToCpt(CheckpointWriter& w, std::string tag) const {
+    CheckpointWriter u = w.openChild(tag);
+    u(_content[0], "e");
+    u(_content[1], "h");
+    u(_content[2], "s");
+    u(_content[3], "t");
+  }
+
+  void ReadFromCpt(CheckpointReader& r, std::string tag) {
+    CheckpointReader u = r.openChild(tag);
+    u(_content[0], "e");
+    u(_content[1], "h");
+    u(_content[2], "s");
+    u(_content[3], "t");
+  }
+
  private:
-  std::array<T, 4> _content = std::array<T, 4>(0);
+  std::array<T, 4> _content;
 };
 
 /**

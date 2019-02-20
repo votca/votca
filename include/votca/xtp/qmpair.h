@@ -35,15 +35,35 @@ class QMPair {
  public:
   enum PairType { Hopping, Excitoncl };
 
+  static std::string get_name(PairType type) {
+    switch (type) {
+      case Hopping:
+        return "Hopping";
+      case Excitoncl:
+        return "Excitoncl";
+        // no default case to trigger compiler error
+    }
+  }
+
+  static PairType get_Enum(std::string type) {
+    if (type == "Hopping") {
+      return PairType::Hopping;
+    } else if (type == "Excitoncl") {
+      return PairType::Excitoncl;
+    } else {
+      throw std::runtime_error("get_Enum input is invalid");
+    }
+  }
+
   QMPair(int id, Segment* seg1, Segment* seg2, const Eigen::Vector3d& delta_R);
+
+  QMPair(CheckpointReader& r, const std::vector<Segment>& segments) {
+    ReadFromCpt(r, segments);
+  }
 
   int getId() const { return _id; }
   const Eigen::Vector3d& R() const { return _R; }
   double Dist() const { return _R.norm(); }
-  Eigen::Vector3d getPos() const {
-    return 0.5 * (_segments.first->getPos().toEigen() +
-                  _segments.second->getPos().toEigen());
-  }
 
   void setLambdaO(double lO, QMStateType state) {
     _lambda0.setValue(lO, state);
@@ -71,15 +91,18 @@ class QMPair {
            _segments.first->getSiteEnergy(state);
   }
 
-  Segment* Seg2PbC() const;
+  Segment* Seg2PbCopy() const;
   Segment* Seg1() const { return _segments.first; }
   Segment* Seg2() const { return _segments.second; }
 
   bool HasGhost() const { return _ghost != nullptr; }
 
   void setType(PairType pair_type) { _pair_type = pair_type; }
-  void setType(int pair_type) { _pair_type = (PairType)pair_type; }
   const PairType& getType() const { return _pair_type; }
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r, const std::vector<Segment>& segments);
 
  private:
   std::pair<Segment*, Segment*> _segments;

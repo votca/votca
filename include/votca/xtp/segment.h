@@ -25,39 +25,17 @@
 #include <map>
 #include <vector>
 
-#include <votca/tools/vec.h>
-
+#include "atom.h"
+#include "atomcontainer.h"
+#include "qmstate.h"
 namespace votca {
 namespace xtp {
 
-class Atom;
-class Fragment;
-class SegmentType;
-class Topology;
-class Molecule;
-
-class Segment {
+class Segment : public AtomContainer<Atom> {
  public:
-  Segment(int id, std::string name);
-  Segment(Segment *stencil);
-  ~Segment();
+  Segment(std::string name, int id) : AtomContainer<Atom>(name, id){};
 
-  int getId() const { return _id; }
-  const std::string &getName() const { return _name; }
-
-  const tools::vec &getPos() const { return _CoM; }
-  void setPos(tools::vec pos) { _CoM = pos; }
-  // This gets the center of mass from the MD positions of the atoms
-  void calcPos();
-  void TranslateBy(const tools::vec &shift);
-
-  void calcApproxSize();
-  double getApproxSize() const { return _approxsize; }
-
-  void setHasState(bool yesno, int state);
-  bool hasState(int state) const;
-
-  // state: -1 electron +1 hole +2 singlet +3 triplet
+  Segment(CheckpointReader& r) : AtomContainer<Atom>("", 0) { ReadFromCpt(r); }
 
   /// Following notation can be observed in:
   /// [1. Victor, R. et al. Microscopic Simulations of Charge Transport in
@@ -67,63 +45,55 @@ class Segment {
   /// geometry X - excited state
 
   /// UxX - UnN
-  void setU_xX_nN(double dU, int state);
+  void setU_xX_nN(double dU, QMStateType state) {
+    _U_xX_nN.setValue(dU, state);
+  }
   /// UnX - UnN
-  void setU_nX_nN(double dU, int state);
+  void setU_nX_nN(double dU, QMStateType state) {
+    _U_nX_nN.setValue(dU, state);
+  }
   /// UxN - UxX
-  void setU_xN_xX(double dU, int state);
-  double getU_xX_nN(int state) const;
-  double getU_nX_nN(int state) const;
-  double getU_xN_xX(int state) const;
-  double getSiteEnergy(int state) const;
+  void setU_xN_xX(double dU, QMStateType state) {
+    _U_xN_xX.setValue(dU, state);
+  }
 
-  double getEMpoles(int state) const;
-  void setEMpoles(int state, double energy);
+  double getU_xX_nN(QMStateType state) const { _U_xX_nN.getValue(state); }
 
-  inline void setTopology(Topology *container) { _top = container; }
-  Topology *getTopology() { return _top; }
-  inline void setMolecule(Molecule *container) { _mol = container; }
-  Molecule *getMolecule() { return _mol; }
-  inline void setType(SegmentType *type) { _typ = type; }
-  SegmentType *getType() { return _typ; }
+  double getU_nX_nN(QMStateType state) const { _U_nX_nN.getValue(state); }
 
-  void AddFragment(Fragment *fragment);
-  void AddAtom(Atom *atom);
-  std::vector<Fragment *> &Fragments() { return _fragments; }
-  std::vector<Atom *> &Atoms() { return _atoms; }
+  double getU_xN_xX(QMStateType state) const { _U_xN_xX.getValue(state); }
+
+  double getSiteEnergy(QMStateType state) const {
+    _eMpoles.getValue(state) + _U_xX_nN.getValue(state);
+  }
+
+  double getEMpoles(QMStateType state) const { _eMpoles.getValue(state); }
+
+  void setEMpoles(QMStateType state, double energy) {
+    _eMpoles.setValue(energy, state);
+  }
+
+  void AddMoleculeId(int id) { _molecule_ids.push_back(id); }
+
+  const std::vector<int>& getMoleculeIds() { return _molecule_ids; }
+
+  double getApproxSize() const;
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
 
  private:
-  int _id;
-  std::string _name;
-  SegmentType *_typ;
-  Topology *_top;
-  Molecule *_mol;
+  std::vector<int> _molecule_ids = std::vector<int>(0);
 
-  std::vector<Fragment *> _fragments;
-  std::vector<Atom *> _atoms;
+  QMStateCarrierStorage<double> _U_xX_nN;
+  QMStateCarrierStorage<double> _U_nX_nN;
+  QMStateCarrierStorage<double> _U_xN_xX;
+  QMStateCarrierStorage<double> _eMpoles;
 
-  tools::vec _CoM;
-  double _approxsize;
-
-  double _U_cC_nN_e;  // from ::EInternal     input     DEFAULT 0
-  double _U_cC_nN_h;
-
-  double _U_nC_nN_e;  // from ::EInternal     input     DEFAULT 0
-  double _U_nC_nN_h;
-
-  double _U_cN_cC_e;  // from ::EInternal     input     DEFAULT 0
-  double _U_cN_cC_h;
-
-  double _U_xX_nN_s;
-  double _U_xX_nN_t;
-
-  double _U_nX_nN_s;
-  double _U_nX_nN_t;
-
-  double _U_xN_xX_s;
-  double _U_xN_xX_t;
-
-  std::vector<double> _eMpoles;
+  // using caching for approximate size
+  mutable double _approxsize = 0.0;
+  mutable bool _has_approxsize = false;
 };
 
 }  // namespace xtp

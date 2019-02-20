@@ -22,6 +22,8 @@
 #include <iostream>
 #include <votca/xtp/qmnblist.h>
 
+#include "votca/xtp/checkpointwriter.h"
+
 using namespace std;
 
 namespace votca {
@@ -34,6 +36,31 @@ QMPair& QMNBList::Add(Segment* seg1, Segment* seg2) {
   QMPair* pair = new QMPair(id, seg1, seg2);
   this->AddPair(pair);
   return *pair;
+}
+
+void QMNBList::WriteToCpt(CheckpointWriter& w) const {
+  w(size(), "size");
+  for (const QMPair* pair : _pairs) {
+    CheckpointWriter u = w.openChild("pair" + std::to_string(pair->getId()));
+    pair->WriteToCpt(u);
+  }
+}
+
+void QMNBList::ReadFromCpt(CheckpointReader& r,
+                           const std::vector<Segment>& segments) {
+  Cleanup();
+  int size = 0;
+  r(size, "size");
+  int count = r.getNumDataSets();
+  if (count != size) {
+    throw std::runtime_error(
+        "QMNBList: size of neighborlist and number of saved pairs does not "
+        "agree.");
+  }
+  for (int i = 0; i < size; i++) {
+    CheckpointReader c = r.openChild("pair" + std::to_string(i));
+    this->AddPair(new QMPair(c, segments));
+  }
 }
 
 }  // namespace xtp

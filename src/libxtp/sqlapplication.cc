@@ -60,10 +60,6 @@ void SqlApplication::Run() {
   int nThreads = OptionsMap()["nthreads"].as<int>();
   int nframes = OptionsMap()["nframes"].as<int>();
   int fframe = OptionsMap()["first-frame"].as<int>();
-  if (fframe-- == 0)
-    throw std::runtime_error(
-        "ERROR: First frame is 0, counting "
-        "in VOTCA::XTP starts from 1.");
   int save = OptionsMap()["save"].as<int>();
 
   // STATESAVER & PROGRESS OBSERVER

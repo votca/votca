@@ -28,6 +28,9 @@
 #include <votca/tools/matrix.h>
 #include <votca/tools/vec.h>
 
+#include "votca/xtp/atomcontainer.h"
+#include "votca/xtp/checkpointwriter.h"
+
 using namespace std;
 using namespace votca::tools;
 
@@ -38,34 +41,15 @@ namespace xtp {
 // Clean-Up, Destruct    //
 // +++++++++++++++++++++ //
 
-void Topology::CleanUp() {
-
-  _segments.clear();
-  _atoms.clear();
-
-  _bc.reset(nullptr);
-  _nblist.Cleanup();
-}
-
 Segment &Topology::AddSegment(string segment_name) {
   int segment_id = _segments.size();
-  Segment segment = Segment(segment_id, segment_name);
-  segment.setTopology(this);
-  _segments.push_back(segment);
+  _segments.push_back(Segment(segment_name, segment_id));
   return _segments.back();
-}
-
-Atom &Topology::AddAtom(string atom_name) {
-  int atom_id = _atoms.size();
-  Atom atom = Atom(atom_id, atom_name);
-  _atoms.push_back(atom);
-  return _atoms.back();
 }
 
 // +++++++++++++++++ //
 // Periodic Boundary //
 // +++++++++++++++++ //
-
 void Topology::setBox(const Eigen::Matrix3d &box,
                       csg::BoundaryCondition::eBoxtype boxtype) {
 
@@ -102,15 +86,15 @@ csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
   // to OrthorhombicBox in case "box" is a diagonal matrix,
   // or to TriclinicBox otherwise
 
-  if (box.isApprox(Eigen::Matrix3d::Zero(), 1e-8)) {
+  if (box.isApproxToConstant(0)) {
     cout << "WARNING: No box vectors specified in trajectory."
             "Using open-box boundary conditions. "
          << endl;
     return csg::BoundaryCondition::typeOpen;
   }
 
-  else if ((box - box.diagonal().asDiagonal())
-               .isApprox(Eigen::Matrix3d::Zero(), 1e-8)) {
+  else if ((box - Eigen::Matrix3d(box.diagonal().asDiagonal()))
+               .isApproxToConstant(0)) {
     return csg::BoundaryCondition::typeOrthorhombic;
   }
 
@@ -124,6 +108,36 @@ csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
 Eigen::Vector3d Topology::PbShortestConnect(const Eigen::Vector3d &r1,
                                             const Eigen::Vector3d &r2) const {
   return _bc->BCShortestConnection(r1, r2).toEigen();
+}
+
+void Topology::WriteToCpt(CheckpointWriter &w) const {
+  w(_time, "time");
+  w(_step, "step");
+  w(this->getBox(), "box");
+  CheckpointWriter v = w.openChild("segments");
+  for (const Segment &seg : _segments) {
+    CheckpointWriter u = v.openChild("segment" + std::to_string(seg.getId()));
+    seg.WriteToCpt(u);
+  }
+  CheckpointWriter v = w.openChild("neighborlist");
+  _nblist.WriteToCpt(v);
+}
+
+void Topology::ReadFromCpt(CheckpointReader &r) {
+  r(_time, "time");
+  r(_step, "step");
+  Eigen::Matrix3d box;
+  r(box, "box");
+  setBox(box);
+  CheckpointReader v = r.openChild("segments");
+  _segments.clear();
+  int count = v.getNumDataSets();
+  for (int i = 0; i < count; i++) {
+    CheckpointReader w = v.openChild("segment" + std::to_string(i));
+    _segments.push_back(Segment(w));
+  }
+  CheckpointReader rr = r.openChild("neighborlist");
+  _nblist.ReadFromCpt(rr, _segments);
 }
 
 }  // namespace xtp

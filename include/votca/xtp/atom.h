@@ -48,10 +48,13 @@ class Atom {
 
   Atom(int atom_id, std::string atom_name) : _id(atom_id), _name(atom_name) {}
 
-  const int &getId() const { return _id; }
+  Atom(const CheckpointReader &r) { ReadFromCpt(r); }
+
+  int getId() const { return _id; }
   const std::string &getName() const { return _name; }
   const std::string &getType() const { return _type; }
-  const int &getResnr() const { return _resnr; }
+  int getResnr() const { return _resnr; }
+  const std::string &getResname() const { return _resname; }
 
   void setResnr(int resnr) { _resnr = resnr; }
   void setResname(const std::string &resname) { _resname = resname; }
@@ -63,13 +66,30 @@ class Atom {
     Translate(refPos);  // Rotated Position
   }
 
-  int &getResnr() const { return _resnr; }
-  const std::string &getResname() const { return _resname; }
-
   const Eigen::Vector3d &getPos() const { return _pos; }
   void setPos(const Eigen::Vector3d &r) { _pos = r; }
 
- protected:
+  std::string identify() const { return "atom"; }
+
+  void WriteToCpt(const CheckpointWriter &w) const {
+    w(_id, "index");
+    w(_name, "name");
+    w(_type, "type");
+    w(_pos, "pos");
+    w(_resname, "resname");
+    w(_resnr, "resnar");
+  }
+
+  void ReadFromCpt(const CheckpointReader &r) {
+    r(_id, "index");
+    r(_name, "name");
+    r(_type, "type");
+    r(_pos, "pos");
+    r(_resname, "resname");
+    r(_resnr, "resnr");
+  }
+
+ private:
   int _id = -1;
   std::string _name = "";
 

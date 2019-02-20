@@ -35,6 +35,10 @@ class QMNBList : public csg::PairList<Segment*, QMPair> {
 
   QMPair& Add(Segment* seg1, Segment* seg2);
 
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r, const std::vector<Segment>& segments);
+
  protected:
 };
 

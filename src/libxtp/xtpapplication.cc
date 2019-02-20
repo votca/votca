@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,44 +20,36 @@
 #include <votca/tools/globals.h>
 #include <votca/tools/propertyiomanipulator.h>
 
-#include <votca/xtp/xtpapplication.h>
-#include <votca/xtp/version.h>
 #include <boost/format.hpp>
+#include <votca/xtp/version.h>
+#include <votca/xtp/xtpapplication.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-XtpApplication::XtpApplication() {
-    ;
-}
+XtpApplication::XtpApplication() { ; }
 
 /**
  * \brief Adds program options to the executable
- * 
+ *
  * Every executable requires option file for calculators it is running
- * It is thus a part of the base XtpApplication class 
- * 
+ * It is thus a part of the base XtpApplication class
+ *
  */
 void XtpApplication::Initialize(void) {
-
-     AddProgramOptions() ("options,o", boost::program_options::value<std::string>(),
-        "  calculator options");
+  AddProgramOptions()("options,o", boost::program_options::value<std::string>(),
+                      "  calculator options");
 }
 
-
-bool XtpApplication::EvaluateOptions(void) {
-    return true;
-}
-
+bool XtpApplication::EvaluateOptions(void) { return true; }
 
 void XtpApplication::ShowHelpText(std::ostream &out) {
-    std::string name = ProgramName();
-    if (VersionString() != "") name = name + ", version " + VersionString();
-    HelpTextHeader(name);
-    HelpText(out);
-    out << "\n\n" << VisibleOptions() << std::endl;
-    //out << "\n\n" << OptionsDesc() << endl;
+  std::string name = ProgramName();
+  if (VersionString() != "") name = name + ", version " + VersionString();
+  HelpTextHeader(name);
+  HelpText(out);
+  out << "\n\n" << VisibleOptions() << std::endl;
 }
 
-
-
-}}
+}  // namespace xtp
+}  // namespace votca

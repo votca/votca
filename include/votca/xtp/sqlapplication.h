@@ -46,7 +46,6 @@ class SqlApplication : public XtpApplication {
   void AddCalculator(QMCalculator *calculator);
 
  protected:
-  Topology _top;
   std::vector<std::unique_ptr<QMCalculator> > _calculators;
 };
 

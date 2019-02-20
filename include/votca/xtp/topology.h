@@ -20,23 +20,16 @@
 #ifndef VOTCA_XTP_TOPOLOGY_H
 #define VOTCA_XTP_TOPOLOGY_H
 
-#include <string>
-#include <vector>
-
-#include <votca/tools/property.h>
-
 #include <votca/csg/boundarycondition.h>
 #include <votca/csg/openbox.h>
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/triclinicbox.h>
-
 #include <votca/xtp/qmnblist.h>
 
 namespace votca {
 namespace xtp {
 
 class Segment;
-class Atom;
 /**
  * \brief Container for molecules, conjugated segments, rigid fragments,
  * and atoms.
@@ -44,14 +37,12 @@ class Atom;
 class Topology {
  public:
   Segment &AddSegment(std::string segment_name);
-  Atom &AddAtom(std::string atom_name);
 
   Segment &getSegment(int id) { return _segments[id]; }
 
   std::vector<Segment> &Segments() { return _segments; }
 
   // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
-
   Eigen::Vector3d PbShortestConnect(const Eigen::Vector3d &r1,
                                     const Eigen::Vector3d &r2) const;
   const Eigen::Matrix3d &getBox() { return _bc->getBox().ToEigenMatrix(); }
@@ -69,21 +60,21 @@ class Topology {
   const double &getTime() { return _time; }
   void setTime(double time) { _time = time; }
 
-  int getDatabaseId() { return _db_id; };
-  void setDatabaseId(int id) { _db_id = id; }
-  void CleanUp();
+  void WriteToCpt(CheckpointWriter &w) const;
+
+  void ReadFromCpt(CheckpointReader &r);
 
  protected:
   std::vector<Segment> _segments;
 
-  int _db_id = -1;
   std::unique_ptr<csg::BoundaryCondition> _bc = nullptr;
   QMNBList _nblist;
 
   double _time;
   int _step;
 
-  csg::BoundaryCondition::eBoxtype AutoDetectBoxType(const tools::matrix &box);
+  csg::BoundaryCondition::eBoxtype AutoDetectBoxType(
+      const Eigen::Matrix3d &box);
 };
 
 }  // namespace xtp
