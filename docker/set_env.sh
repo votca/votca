@@ -14,6 +14,12 @@ add_to_docker_opts() {
 }
 
 set -x
+
+for i in CC CXX CI TRAVIS TRAVIS_BRANCH TRAVIS_JOB_NUMBER TRAVIS_PULL_REQUEST TRAVIS_JOB_ID TRAVIS_TAG TRAVIS_REPO_SLUG \
+  TRAVIS_COMMIT TRAVIS_PULL_REQUEST_SHA; do
+  [[ -z ${!i} ]] || add_to_docker_opts "$i=${!i}"
+done
+
 if [[ $ENV -eq 1 ]]; then
   # Release build, which gets push to dockerhub, first half of the tests
   add_to_docker_opts TESTING=ON
@@ -93,5 +99,9 @@ elif [[ $ENV -eq 20 ]]; then
 else
   die "Unknown environment"
 fi
+
+add_to_docker_opts CXXFLAGS="-Wall ${WERROR:+-Werror}"
+add_to_docker_opts TRAVIS_OS_NAME="${DISTRO:-fedora}"
+
 export docker_opts
 set +x
