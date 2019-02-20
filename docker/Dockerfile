@@ -61,9 +61,9 @@ RUN if [ ! ${MODULE_BUILD} ]; then \
     fi
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
-    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov" | tail -n 250; \
+    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) -F "${CC}" -X "gcovout" -x "llvm-cov gcov"; \
   else \
-    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" | tail -n 250; \
+    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) -F "${CC}" -X "gcovout"; \
   fi; \
 fi
 USER root
