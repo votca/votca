@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,59 +17,42 @@
  */
 
 #ifndef __VOTCA_KMC_LIFETIME_H
-#define	__VOTCA_KMC_LIFETIME_H
-
-
-
-
+#define __VOTCA_KMC_LIFETIME_H
 
 #include <votca/xtp/kmccalculator.h>
 using namespace std;
 
-namespace votca { namespace xtp {
-    
-   
+namespace votca {
+namespace xtp {
 
+class KMCLifetime : public KMCCalculator {
+ public:
+  KMCLifetime(){};
+  ~KMCLifetime(){};
+  std::string Identify() { return "kmclifetime"; }
+  void Initialize(tools::Property &options);
+  bool EvaluateFrame(Topology &top);
 
-class KMCLifetime : public KMCCalculator 
-{
-public:
-    KMCLifetime() {};
-   ~KMCLifetime() {};
-   std::string Identify() { return "kmclifetime"; }
-    void Initialize(tools::Property *options);
-    bool EvaluateFrame(Topology *top);
+ private:
+  void WriteDecayProbability(string filename);
 
-private:
-       
-    void WriteDecayProbability(string filename);
-            
-	    
-            void  RunVSSM(Topology *top);
-            
-            
-            void ReadLifetimeFile( string filename);
-            
-            //tools::vec _field;
-            string _probfile;
-            bool _do_carrierenergy;
-            string _energy_outputfile;
-            double _alpha;
-            unsigned _outputsteps;
-            unsigned int _insertions;
-            std::string _lifetimefile;
-            double _maxrealtime;
-            string _trajectoryfile;
-            string _outputfile;
-            string _filename;
+  void RunVSSM(Topology &top);
+
+  void ReadLifetimeFile(string filename);
+  string _probfile;
+  bool _do_carrierenergy;
+  string _energy_outputfile;
+  double _alpha;
+  unsigned _outputsteps;
+  unsigned int _insertions;
+  std::string _lifetimefile;
+  double _maxrealtime;
+  string _trajectoryfile;
+  string _outputfile;
+  string _filename;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-
-
-}}
-
-
-#endif	/* __VOTCA_KMC_MULTIPLE_H */
+#endif /* __VOTCA_KMC_MULTIPLE_H */

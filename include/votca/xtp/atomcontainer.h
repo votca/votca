@@ -155,7 +155,7 @@ class AtomContainer {
   std::string _name;
   int _id;
 
-  bool PosIsValid() const { return_position_valid; }
+  bool PosIsValid() const { return _position_valid; }
 
  private:
   mutable bool _position_valid;

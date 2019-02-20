@@ -23,13 +23,9 @@
 #include <boost/format.hpp>
 #include <boost/progress.hpp>
 #include <votca/tools/globals.h>
-#include <votca/tools/property.h>
 #include <votca/xtp/atom.h>
-#include <votca/xtp/fragment.h>
 #include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/qmnblist.h>
-#include <votca/xtp/qmpair.h>
-#include <votca/xtp/segment.h>
 #include <votca/xtp/topology.h>
 
 #ifdef _OPENMP
@@ -43,11 +39,11 @@ class Neighborlist : public QMCalculator {
  public:
   std::string Identify() { return "neighborlist"; }
 
-  void Initialize(tools::Property* options);
-  bool EvaluateFrame(Topology* top);
+  void Initialize(tools::Property& options);
+  bool EvaluateFrame(Topology& top);
 
  private:
-  void DetClassicalPairs(Topology* top);
+  void DetClassicalPairs(Topology& top);
 
   std::vector<std::string> _included_segments;
   std::map<std::string, std::map<std::string, double> > _cutoffs;
@@ -57,13 +53,13 @@ class Neighborlist : public QMCalculator {
   double _excitonqmCutoff;
 };
 
-void Neighborlist::Initialize(tools::Property* options) {
+void Neighborlist::Initialize(tools::Property& options) {
 
   // update options with the VOTCASHARE defaults
   UpdateWithDefaults(options, "xtp");
   std::string key = "options." + Identify();
 
-  std::list<tools::Property*> segs = options->Select(key + ".segments");
+  std::list<tools::Property*> segs = options.Select(key + ".segments");
 
   for (tools::Property* segprop : segs) {
     std::string types = segprop->get("type").as<std::string>();
@@ -90,78 +86,59 @@ void Neighborlist::Initialize(tools::Property* options) {
     }
   }
 
-  if (options->exists(key + ".constant")) {
+  if (options.exists(key + ".constant")) {
     _useConstantCutoff = true;
-    _constantCutoff = options->get(key + ".constant").as<double>();
+    _constantCutoff = options.get(key + ".constant").as<double>();
   } else {
     _useConstantCutoff = false;
   }
-  if (options->exists(key + ".exciton_cutoff")) {
+  if (options.exists(key + ".exciton_cutoff")) {
     _useExcitonCutoff = true;
-    _excitonqmCutoff = options->get(key + ".exciton_cutoff").as<double>();
+    _excitonqmCutoff = options.get(key + ".exciton_cutoff").as<double>();
   } else {
     _useExcitonCutoff = false;
   }
 }
 
-void Neighborlist::DetClassicalPairs(Topology* top) {
+void Neighborlist::DetClassicalPairs(Topology& top) {
   std::cout << std::endl
             << " ... ... Determining classical pairs " << std::endl;
-  for (QMPair* pair : top->NBList()) {
+  for (QMPair* pair : top.NBList()) {
     Segment* seg1 = pair->Seg1();
     Segment* seg2 = pair->Seg2();
-    bool stopLoop = false;
-    for (Fragment* frag1 : seg1->Fragments()) {
-      if (stopLoop) {
-        break;
-      }
-      for (Fragment* frag2 : seg2->Fragments()) {
-        tools::vec r1 = frag1->getPos();
-        tools::vec r2 = frag2->getPos();
-        if (tools::abs(top->PbShortestConnect(r1, r2)) > _excitonqmCutoff) {
-          pair->setType(QMPair::PairType::Excitoncl);
-          continue;
-        } else {
-          pair->setType(QMPair::PairType::Hopping);
-          stopLoop = true;
-          break;
-        }
-      } /* exit loop frag2 */
-    }   /* exit loop frag1 */
-  }     // Type 3 Exciton_classical approx
+    if ((top.PbShortestConnect(seg1->getPos(), seg2->getPos()).norm()) +
+                seg1->getApproxSize() + seg2->getApproxSize() >
+            _excitonqmCutoff ||
+        top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
+      pair->setType(QMPair::Excitoncl);
+    } else {
+      pair->setType(QMPair::Hopping);
+    }
+  }  // Type 3 Exciton_classical approx
 }
 
-bool Neighborlist::EvaluateFrame(Topology* top) {
+bool Neighborlist::EvaluateFrame(Topology& top) {
   top->NBList().Cleanup();
 
   if (tools::globals::verbose) {
     std::cout << std::endl << "... ..." << std::flush;
   }
 
-  const tools::matrix box = top->getBox();
-  double min = box.get(0, 0);
-  if (min > box.get(1, 1)) {
-    min = box.get(1, 1);
-  }
-  if (min > box.get(2, 2)) {
-    min = box.get(2, 2);
-  }
-
-  double min2 = min;
+  double min = top.getBox().diagonal().minCoeff();
 
   std::vector<Segment*> segs;
-  for (Segment* seg : top->Segments()) {
+  for (const Segment& seg : top.Segments()) {
     if (_useConstantCutoff ||
         std::find(_included_segments.begin(), _included_segments.end(),
-                  seg->getName()) != _included_segments.end()) {
-      segs.push_back(seg);
-      seg->calcPos();
-      seg->calcApproxSize();
+                  seg.getName()) != _included_segments.end()) {
+      segs.push_back(&seg);
+      seg.calcPos();
+      seg.calcApproxSize();
     }
   }
   std::cout << std::endl;
   std::cout << "Evaluating " << segs.size() << " segments for neighborlist. "
-            << top->Segments().size() - segs.size()
+            << top.Segments().size() - segs.size()
             << " segments are not taken into account as specified" << std::endl;
   if (!_useConstantCutoff) {
     std::cout << "The following segments are used in the neigborlist creation"
@@ -182,8 +159,6 @@ bool Neighborlist::EvaluateFrame(Topology* top) {
 
     std::vector<Segment*>::iterator segit2;
     double cutoff;
-    tools::vec r1;
-    tools::vec r2;
 
     if (tools::globals::verbose) {
       std::cout << "\r ... ... NB List Seg " << seg1->getId() << std::flush;
@@ -206,7 +181,7 @@ bool Neighborlist::EvaluateFrame(Topology* top) {
         cutoff = _constantCutoff;
       }
 
-      if (cutoff > 0.5 * min2) {
+      if (cutoff > 0.5 * min) {
         throw std::runtime_error(
             (boost::format("Cutoff is larger than half the box size. Maximum "
                            "allowed cutoff is %1$1.1f") %
@@ -214,35 +189,20 @@ bool Neighborlist::EvaluateFrame(Topology* top) {
                 .str());
       }
       double cutoff2 = cutoff * cutoff;
-      tools::vec segdistance =
+      Eigen::Vector3d segdistance =
           top->PbShortestConnect(seg1->getPos(), seg2->getPos());
-      double segdistance2 = segdistance * segdistance;
+      double segdistance2 = segdistance.squaredNorm();
       double outside = cutoff + seg1->getApproxSize() + seg2->getApproxSize();
 
       if (segdistance2 < cutoff2) {
-        top->NBList().Add(seg1, seg2, segdistance);
+        top.NBList().Add(seg1, seg2, segdistance);
       } else if (segdistance2 > (outside * outside)) {
         continue;
       } else {
-        bool stopLoop = false;
-        for (Fragment* frag1 : seg1->Fragments()) {
-          if (stopLoop) {
-            break;
-          }
-          r1 = frag1->getPos();
-          for (Fragment* frag2 : seg2->Fragments()) {
-            r2 = frag2->getPos();
-            tools::vec distance = top->PbShortestConnect(r1, r2);
-            double dist2 = distance * distance;
-            if (dist2 > cutoff2) {
-              continue;
-            } else {
-              top->NBList().Add(seg1, seg2, distance);
-              stopLoop = true;
-              break;
-            }
-          } /* exit loop frag2 */
-        }   /* exit loop frag1 */
+        double R = top.GetShortestDist(*seg1, *seg2);
+        if ((R * R) > cutoff2) {
+          top.NBList().Add(seg1, seg2, distance);
+        }
       }
     } /* exit loop seg2 */
   }   /* exit loop seg1 */
@@ -267,4 +227,4 @@ bool Neighborlist::EvaluateFrame(Topology* top) {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __NEIGHBORLIST2_H */
+#endif

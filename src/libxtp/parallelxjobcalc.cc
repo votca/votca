@@ -29,17 +29,7 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer, typename pJob, typename rJob>
-bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology *top) {
-
-  // RIGIDIFY TOPOLOGY (=> LOCAL FRAMES)
-  if (!top->isRigid()) {
-    bool isRigid = top->Rigidify();
-    if (!isRigid) {
-      return 0;
-    }
-  } else
-    std::cout << std::endl
-              << "... ... System is already rigidified." << std::flush;
+bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology &top) {
 
   // CONVERT THREADS INTO SUBTHREADS IF BENEFICIAL
   if (_XJobs.size() < _nThreads && false) {
@@ -57,7 +47,7 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology *top) {
   std::string progFile = _jobfile;
   assert(_jobfile != "__NOFILE__");
   std::unique_ptr<JobOperator> master =
-      std::unique_ptr<JobOperator>(new JobOperator(-1, top, this));
+      std::unique_ptr<JobOperator>(new JobOperator(-1, &top, this));
   master->getLogger()->setReportLevel(logDEBUG);
   master->getLogger()->setMultithreading(true);
   master->getLogger()->setPreface(logINFO, "\nMST INF");
@@ -66,15 +56,12 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology *top) {
   master->getLogger()->setPreface(logDEBUG, "\nMST DBG");
   _progObs->InitFromProgFile(progFile, master.get());
 
-  // PRE-PROCESS (OVERWRITTEN IN CHILD OBJECT)
-  this->PreProcess(top);
-
   // CREATE + EXECUTE THREADS (XJOB HANDLERS)
   std::vector<std::unique_ptr<JobOperator> > jobOps;
 
   for (unsigned int id = 0; id < _nThreads; id++) {
     jobOps.push_back(
-        std::unique_ptr<JobOperator>(new JobOperator(id, top, this)));
+        std::unique_ptr<JobOperator>(new JobOperator(id, &top, this)));
   }
 
   for (unsigned int id = 0; id < _nThreads; ++id) {
@@ -105,9 +92,6 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology *top) {
 
   // SYNC REMAINING COMPLETE JOBS
   _progObs->SyncWithProgFile(master.get());
-
-  // POST-PROCESS (OVERWRITTEN IN CHILD OBJECT)
-  this->PostProcess(top);
 
   return true;
 }

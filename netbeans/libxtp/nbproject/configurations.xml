@@ -13,8 +13,6 @@
         <itemPath>../../src/libxtp/calculators/kmcmultiple.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/kmcmultiple.h</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/rates.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/stateserver.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libxtp/jobcalculators/eqm.cc</itemPath>
@@ -81,7 +79,6 @@
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/forces.h</itemPath>
       <itemPath>../../include/votca/xtp/fourcenter.h</itemPath>
-      <itemPath>../../include/votca/xtp/fragment.h</itemPath>
       <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/geometry_optimization.h</itemPath>
       <itemPath>../../include/votca/xtp/glink.h</itemPath>
@@ -3970,8 +3967,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/fragment.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/geometry_optimization.h"
@@ -4486,16 +4481,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/rates.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/stateserver.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5058,8 +5043,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/fragment.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/geometry_optimization.h"
@@ -5574,16 +5557,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/rates.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/stateserver.h"
             ex="false"
             tool="3"
             flavor2="0">

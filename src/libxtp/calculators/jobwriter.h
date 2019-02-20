@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,35 +20,32 @@
 #ifndef _VOTCA_XTP_JOBWRITER_H
 #define _VOTCA_XTP_JOBWRITER_H
 
-#include<votca/xtp/topology.h>
-#include<votca/xtp/qmcalculator.h>
+#include <votca/xtp/qmcalculator.h>
+#include <votca/xtp/topology.h>
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
-    
-  
-class JobWriter : public QMCalculator
-{
+class JobWriter : public QMCalculator {
 
-public:
+ public:
+  typedef void (JobWriter::*WriteFunct)(Topology &);
 
-    typedef void (JobWriter::*WriteFunct)(Topology*);
-    
-    std::string Identify() { return "jobwriter"; }
-    void Initialize(tools::Property *options);
-    bool EvaluateFrame(Topology *top);    
-    
-    // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
-    void mps_dimer(Topology *top);
-    void mps_monomer(Topology *top);
-    void mps_background(Topology *top);
+  std::string Identify() { return "jobwriter"; }
+  void Initialize(tools::Property &options);
+  bool EvaluateFrame(Topology &top);
 
-private:
-    std::vector<std::string> _keys;
-    tools::Property *_options;
-    std::map<std::string,WriteFunct> _key_funct;
+  // NEED TO REGISTER ALL WRITE MEMBERS IN ::Initialize
+  void mps_dimer(Topology &top);
+  void mps_monomer(Topology &top);
+
+ private:
+  std::vector<std::string> _keys;
+  tools::Property *_options;
+  std::map<std::string, WriteFunct> _key_funct;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
 #endif

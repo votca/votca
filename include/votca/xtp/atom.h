@@ -25,8 +25,8 @@
 #include <exception>
 #include <map>
 #include <string>
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
+#include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointwriter.h>
 
 namespace votca {
 namespace xtp {
@@ -96,7 +96,7 @@ class Atom {
   std::string _type = "";
   int _resnr = -1;
   std::string _resname = "";
-  Eigen::Vector3d _pos = Eigen::VectorXd::Zero();
+  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 
 }  // namespace xtp

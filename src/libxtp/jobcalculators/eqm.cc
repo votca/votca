@@ -22,7 +22,6 @@
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/esp2multipole.h>
-#include <votca/xtp/qminterface.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -30,7 +29,7 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void EQM::Initialize(tools::Property* options) {
+void EQM::Initialize(tools::Property& options) {
 
   _do_dft_input = false;
   _do_dft_run = false;
@@ -42,12 +41,12 @@ void EQM::Initialize(tools::Property* options) {
   QMPackageFactory::RegisterAll();
 }
 
-void EQM::ParseOptionsXML(tools::Property* options) {
+void EQM::ParseOptionsXML(tools::Property& options) {
 
   _maverick = (_nThreads == 1) ? true : false;
   std::string key = "options." + Identify();
   // job tasks
-  std::string _tasks_string = options->get(key + ".tasks").as<std::string>();
+  std::string _tasks_string = options.get(key + ".tasks").as<std::string>();
   if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
   if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
   if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
@@ -56,8 +55,8 @@ void EQM::ParseOptionsXML(tools::Property* options) {
 
   key = "options." + Identify();
 
-  if (options->exists(key + ".job_file")) {
-    _jobfile = options->get(key + ".job_file").as<std::string>();
+  if (options.exists(key + ".job_file")) {
+    _jobfile = options.get(key + ".job_file").as<std::string>();
   } else {
     throw std::runtime_error("Job-file not set. Abort.");
   }
@@ -65,12 +64,11 @@ void EQM::ParseOptionsXML(tools::Property* options) {
   // options for gwbse
   key = "options." + Identify();
   std::string _gwbse_xml =
-      options->get(key + ".gwbse_options").as<std::string>();
+      options.get(key + ".gwbse_options").as<std::string>();
   load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
 
   // options for dft package
-  std::string _package_xml =
-      options->get(key + ".dftpackage").as<std::string>();
+  std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
   load_property_from_xml(_package_options, _package_xml.c_str());
   key = "package";
   _package = _package_options.get(key + ".name").as<std::string>();
@@ -78,12 +76,12 @@ void EQM::ParseOptionsXML(tools::Property* options) {
   // options for esp/partialcharges
   if (_do_esp) {
     key = "options." + Identify();
-    std::string _esp_xml = options->get(key + ".esp_options").as<std::string>();
+    std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
     load_property_from_xml(_esp_options, _esp_xml.c_str());
   }
 }
 
-void EQM::WriteJobFile(Topology* top) {
+void EQM::WriteJobFile(Topology& top) {
 
   std::cout << std::endl << "... ... Writing job file: " << std::flush;
   std::ofstream ofs;
@@ -130,19 +128,15 @@ void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs << logger << std::endl;
   ofs.close();
 }
-Job::JobResult EQM::EvalJob(Topology* top, Job* job, QMThread* opThread) {
+Job::JobResult EQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
 
   Orbitals orbitals;
   Job::JobResult jres = Job::JobResult();
   tools::Property _job_input = job->getInput();
-  std::list<tools::Property*> lSegments = _job_input.Select("segment");
-  std::vector<Segment*> segments;
+  std::vector<tools::Property*> lSegments = _job_input.Select("segment");
   int segId = lSegments.front()->getAttribute<int>("id");
   std::string segType = lSegments.front()->getAttribute<std::string>("type");
-  Segment* seg = top->getSegment(segId);
-  segments.push_back(seg);
-  QMInterface interface;
-  orbitals.QMAtoms() = interface.Convert(segments);
+  Segment& seg = top.getSegment(segId);
 
   Logger* pLog = opThread->getLogger();
 

@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,44 +16,44 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For an earlier history see ctp repo commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef VOTCA_XTP_JOBCALCULATOR_H
 #define VOTCA_XTP_JOBCALCULATOR_H
 
-
+#include <votca/xtp/progressobserver.h>
 #include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/topology.h>
-#include <votca/xtp/progressobserver.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 class Topology;
 
-class JobCalculator : public QMCalculator
-{
-public:
+class JobCalculator : public QMCalculator {
+ public:
+  JobCalculator() {}
+  virtual ~JobCalculator() {}
 
-                    JobCalculator() {}
-    virtual        ~JobCalculator() {}
+  virtual std::string Identify() { return "Generic Job calculator"; }
 
-    virtual std::string  Identify() { return "Generic Job calculator"; }
+  virtual bool EvaluateFrame(Topology &top) { return true; }
+  virtual void EndEvaluate(Topology &top) {}
 
-    virtual bool    EvaluateFrame(Topology *top) { return true; }
-    virtual void    EndEvaluate(Topology *top) { }
+  virtual void WriteJobFile(Topology &top) { ; }
+  virtual void ReadJobFile(Topology &top) { ; }
 
-    virtual void    WriteJobFile(Topology *top)  { ; }
-    virtual void    ReadJobFile(Topology *top) { ; }
+  void setProgObserver(
+      ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *obs) {
+    _progObs = obs;
+  }
 
-    void            setProgObserver(ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *obs) { _progObs = obs; }
-
-protected:
-    
-    ProgObserver< std::vector<Job*>, Job*, Job::JobResult > *_progObs;
-
+ protected:
+  ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *_progObs;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif // VOTCA_XTP_JOBCALCULATOR_H
-
+#endif  // VOTCA_XTP_JOBCALCULATOR_H

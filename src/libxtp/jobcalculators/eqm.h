@@ -40,8 +40,8 @@ namespace xtp {
 class EQM : public ParallelXJobCalc<std::vector<Job *>, Job *, Job::JobResult> {
  public:
   std::string Identify() { return "eqm"; }
-  void Initialize(tools::Property *options);
-  Job::JobResult EvalJob(Topology *top, Job *job, QMThread *thread);
+  void Initialize(tools::Property &options);
+  Job::JobResult EvalJob(Topology &top, Job *job, QMThread *thread);
 
   void CleanUp() { ; }
   void WriteJobFile(Topology *top);

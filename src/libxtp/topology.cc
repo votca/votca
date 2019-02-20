@@ -110,6 +110,20 @@ Eigen::Vector3d Topology::PbShortestConnect(const Eigen::Vector3d &r1,
   return _bc->BCShortestConnection(r1, r2).toEigen();
 }
 
+double GetShortestDist(const Segment &seg1, const Segment &seg2) const {
+  double R2 = 0;
+  for (const Atom &atom1 : seg1) {
+    for (const Atom &atom2 : seg2) {
+      double R2_test =
+          top.PbShortestConnect(atom1.getPos(), atom2.getPos()).squaredNorm();
+      if (R2_test < R2) {
+        R2 = R2_test;
+      }
+    }
+  }
+  return std::sqrt(R2);
+}
+
 void Topology::WriteToCpt(CheckpointWriter &w) const {
   w(_time, "time");
   w(_step, "step");

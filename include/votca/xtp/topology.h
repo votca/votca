@@ -31,7 +31,7 @@ namespace xtp {
 
 class Segment;
 /**
- * \brief Container for molecules, conjugated segments, rigid fragments,
+ * \brief Container for segments and box
  * and atoms.
  */
 class Topology {
@@ -39,30 +39,35 @@ class Topology {
   Segment &AddSegment(std::string segment_name);
 
   Segment &getSegment(int id) { return _segments[id]; }
+  const Segment &getSegment(int id) const { return _segments[id]; }
 
   std::vector<Segment> &Segments() { return _segments; }
+  const std::vector<Segment> &Segments() const { return _segments; }
 
   // Periodic boundary: Can be 'open', 'orthorhombic', 'triclinic'
   Eigen::Vector3d PbShortestConnect(const Eigen::Vector3d &r1,
                                     const Eigen::Vector3d &r2) const;
-  const Eigen::Matrix3d &getBox() { return _bc->getBox().ToEigenMatrix(); }
-  double BoxVolume() { return _bc->BoxVolume(); }
+  const Eigen::Matrix3d &getBox() const { return _bc->getBox(); }
+  double BoxVolume() const { return _bc->BoxVolume(); }
   void setBox(const Eigen::Matrix3d box,
               csg::BoundaryCondition::eBoxtype boxtype =
                   csg::BoundaryCondition::typeAuto);
 
   QMNBList &NBList() { return _nblist; }
+  const QMNBList &NBList() const { return _nblist; }
 
   // Trajectory meta data: step number, time, frame (= Db ID)
 
-  const int &getStep() { return _step; }
+  int getStep() const { return _step; }
   void setStep(int step) { _step = step; }
-  const double &getTime() { return _time; }
+  double getTime() const { return _time; }
   void setTime(double time) { _time = time; }
 
   void WriteToCpt(CheckpointWriter &w) const;
 
   void ReadFromCpt(CheckpointReader &r);
+
+  double GetShortestDist(const Segment &seg1, const Segment &seg2) const;
 
  protected:
   std::vector<Segment> _segments;
