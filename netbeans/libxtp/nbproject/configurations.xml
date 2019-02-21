@@ -113,7 +113,6 @@
       <itemPath>../../include/votca/xtp/qmcalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/qmdatabase.h</itemPath>
       <itemPath>../../include/votca/xtp/qmfragment.h</itemPath>
-      <itemPath>../../include/votca/xtp/qminterface.h</itemPath>
       <itemPath>../../include/votca/xtp/qmmolecule.h</itemPath>
       <itemPath>../../include/votca/xtp/qmnblist.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
@@ -4095,11 +4094,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/qminterface.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/qmmolecule.h"
             ex="false"
             tool="3"
@@ -5167,11 +5161,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmfragment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qminterface.h"
             ex="false"
             tool="3"
             flavor2="0">

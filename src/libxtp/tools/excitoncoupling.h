@@ -37,7 +37,7 @@ class ExcitonCoupling : public QMTool {
  public:
   std::string Identify() { return "excitoncoupling"; }
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:
@@ -51,12 +51,12 @@ class ExcitonCoupling : public QMTool {
   Logger _log;
 };
 
-void ExcitonCoupling::Initialize(tools::Property* options) {
+void ExcitonCoupling::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
   _classical = false;
-  if (options->exists(key + ".classical")) {
-    _classical = options->get(key + ".classical").as<bool>();
+  if (options.exists(key + ".classical")) {
+    _classical = options.get(key + ".classical").as<bool>();
 
   } else {
     _classical = false;
@@ -65,18 +65,18 @@ void ExcitonCoupling::Initialize(tools::Property* options) {
   if (!_classical) {
 
     std::string _coupling_xml =
-        options->get(key + ".bsecoupling_options").as<std::string>();
+        options.get(key + ".bsecoupling_options").as<std::string>();
     load_property_from_xml(_coupling_options, _coupling_xml.c_str());
 
-    _orbA = options->get(key + ".orbitalsA").as<std::string>();
-    _orbB = options->get(key + ".orbitalsB").as<std::string>();
-    _orbAB = options->get(key + ".orbitalsAB").as<std::string>();
+    _orbA = options.get(key + ".orbitalsA").as<std::string>();
+    _orbB = options.get(key + ".orbitalsB").as<std::string>();
+    _orbAB = options.get(key + ".orbitalsAB").as<std::string>();
 
   } else {
-    _mpsA = options->get(key + ".mpsA").as<std::string>();
-    _mpsB = options->get(key + ".mpsB").as<std::string>();
+    _mpsA = options.get(key + ".mpsA").as<std::string>();
+    _mpsB = options.get(key + ".mpsB").as<std::string>();
   }
-  _output_file = options->get(key + ".output").as<std::string>();
+  _output_file = options.get(key + ".output").as<std::string>();
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");

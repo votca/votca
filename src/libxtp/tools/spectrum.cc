@@ -25,28 +25,24 @@
 namespace votca {
 namespace xtp {
 
-void Spectrum::Initialize(tools::Property* options) {
+void Spectrum::Initialize(tools::Property& options) {
 
   // update options with the VOTCASHARE defaults
   UpdateWithDefaults(options, "xtp");
   std::string key = "options." + Identify();
 
   // orbitals file or pure DFT output
-  _orbfile = options->get(key + ".input").as<std::string>();
-  _output_file = options->get(key + ".output").as<std::string>();
-  _n_pt = options->get(key + ".points").as<int>();
-  _lower = options->get(key + ".lower").as<double>();
-  _upper = options->get(key + ".upper").as<double>();
-  _fwhm = options->get(key + ".fwhm").as<double>();
-  _spectrum_type = options->get(key + ".type").as<std::string>();
-  _minexc = options->get(key + ".minexc").as<int>();
-  exc_lambda = options->get(key + ".maxexc").as<int>();
-  _shiftby = options->get(key + ".shift").as<double>();
+  _orbfile = options.get(key + ".input").as<std::string>();
+  _output_file = options.get(key + ".output").as<std::string>();
+  _n_pt = options.get(key + ".points").as<int>();
+  _lower = options.get(key + ".lower").as<double>();
+  _upper = options.get(key + ".upper").as<double>();
+  _fwhm = options.get(key + ".fwhm").as<double>();
+  _spectrum_type = options.get(key + ".type").as<std::string>();
+  _minexc = options.get(key + ".minexc").as<int>();
+  exc_lambda = options.get(key + ".maxexc").as<int>();
+  _shiftby = options.get(key + ".shift").as<double>();
 
-  // get the path to the shared folders with xml files
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
   return;
 }
 

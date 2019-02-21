@@ -36,7 +36,7 @@ using namespace boost::filesystem;
 namespace votca {
 namespace xtp {
 
-void IQM::Initialize(tools::Property* options) {
+void IQM::Initialize(tools::Property& options) {
 
   _do_dft_input = false;
   _do_dft_run = false;
@@ -49,7 +49,7 @@ void IQM::Initialize(tools::Property* options) {
   _store_singlets = false;
   _store_triplets = false;
   _store_ehint = false;
-  ParseOptionsXML(*options);
+  ParseOptionsXML(options);
 
   // register all QM packages (Gaussian, turbomole, etc))
   QMPackageFactory::RegisterAll();
@@ -160,23 +160,20 @@ std::map<std::string, QMState> IQM::FillParseMaps(
   return type2level;
 }
 
-void IQM::addLinkers(std::vector<Segment*>& segments, Topology* top) {
+void IQM::addLinkers(std::vector<Segment*>& segments, Topology& top) {
   Segment* seg1 = segments[0];
   Segment* seg2 = segments[1];
-  int moleculeIdSeg1 = seg1->getMolecule()->getId();
-  int moleculeIdSeg2 = seg2->getMolecule()->getId();
-  if (moleculeIdSeg1 == moleculeIdSeg2) {  // Check that both segments belong to
-                                           // the same molecule
-    int idSeg1 = seg1->getId();
-    int idSeg2 = seg2->getId();
-    std::vector<Segment*> segmentsInMolecule =
-        top->getMolecule(moleculeIdSeg1)->Segments();
-    for (Segment* segment : segmentsInMolecule) {
-      int idIterator = segment->getId();
-      if (idIterator != idSeg1 && idIterator != idSeg2 &&
-          isLinker(segment->getName())) {
-        segments.push_back(segment);
-      }
+  std::vector<const Segment*> segmentsInMolecule =
+      top.FindAllSegmentsOnMolecule(*seg1, *seg2);
+  if (segments.empty()) {
+    return;
+  }
+
+  for (const Segment* segment : segmentsInMolecule) {
+    int idIterator = segment.getId();
+    if (idIterator != seg1->getId() && idIterator != seg2->getId() &&
+        isLinker(segment->getName())) {
+      segments.push_back(segment);
     }
   }
   return;
@@ -189,31 +186,11 @@ bool IQM::isLinker(const std::string& name) {
 
 void IQM::WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals) {
   Segment* seg1 = pair.Seg1();
-  Segment* seg2 = pair.Seg2();
-  Segment* ghost = NULL;
-  Topology* _top = seg1->getTopology();
-  tools::vec r1 = seg1->getPos();
-  tools::vec r2 = seg2->getPos();
-  tools::vec R = _top->PbShortestConnect(r1, r2);  // => _R points from 1 to 2
+  Segment* seg2 = pair.Seg2PbCopy();
 
-  // Check whether pair formed across periodic boundary
-  if (abs(r2 - r1 - R) > 1e-8) {
-    ghost = new Segment(seg2);
-    // ghost->TranslateBy(r1 - r2 + _R); // DO NOT USE THIS METHOD !
-    for (Atom* atom : ghost->Atoms()) {
-      atom->setQMPos(atom->getQMPos() + r1 - r2 + R);
-    }
-  }
   std::vector<Segment*> segments;
   segments.push_back(seg1);
-  if (ghost) {
-    segments.push_back(ghost);
-  } else {
-    segments.push_back(seg2);
-  }
-  QMInterface interface;
-  orbitals.QMAtoms() = interface.Convert(segments);
-  delete ghost;
+  segments.push_back(seg2);
 }
 
 void IQM::SetJobToFailed(Job::JobResult& jres, Logger* pLog,
@@ -234,7 +211,7 @@ void IQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs.close();
 }
 
-Job::JobResult IQM::EvalJob(Topology* top, Job* job, QMThread* opThread) {
+Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
@@ -242,14 +219,14 @@ Job::JobResult IQM::EvalJob(Topology* top, Job* job, QMThread* opThread) {
   std::string iqm_work_dir = "OR_FILES";
   std::string eqm_work_dir = "OR_FILES";
   std::string frame_dir =
-      "frame_" + boost::lexical_cast<std::string>(top->getDatabaseId());
+      "frame_" + boost::lexical_cast<std::string>(top.getStep());
 
   Logger* pLog = opThread->getLogger();
 
   // get the information about the job executed by the thread
   int job_ID = job->getId();
   tools::Property job_input = job->getInput();
-  std::list<tools::Property*> segment_list = job_input.Select("segment");
+  std::vector<tools::Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
   std::string type_A = segment_list.front()->getAttribute<std::string>("type");
   int ID_B = segment_list.back()->getAttribute<int>("id");
@@ -276,10 +253,10 @@ Job::JobResult IQM::EvalJob(Topology* top, Job* job, QMThread* opThread) {
   std::string orb_dir =
       (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
 
-  Segment* seg_A = top->getSegment(ID_A);
-  Segment* seg_B = top->getSegment(ID_B);
+  Segment& seg_A = top.getSegment(ID_A);
+  Segment& seg_B = top.getSegment(ID_B);
   QMNBList* nblist = &top->NBList();
-  QMPair* pair = nblist->FindPair(seg_A, seg_B);
+  QMPair* pair = nblist->FindPair(*seg_A, *seg_B);
 
   XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair " << job_ID
                           << " [" << ID_A << ":" << ID_B << "] out of "
@@ -287,8 +264,8 @@ Job::JobResult IQM::EvalJob(Topology* top, Job* job, QMThread* opThread) {
 
   std::string package_append = _package + "_" + Identify();
   std::vector<Segment*> segments;
-  segments.push_back(seg_A);
-  segments.push_back(seg_B);
+  segments.push_back(*seg_A);
+  segments.push_back(*seg_B);
   std::string work_dir =
       (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir).c_str();
 
@@ -304,8 +281,7 @@ Job::JobResult IQM::EvalJob(Topology* top, Job* job, QMThread* opThread) {
           << "PBCs are not taken into account when writing the coordinate file!"
           << std::flush;
     }
-    QMInterface interface;
-    orbitalsAB.QMAtoms() = interface.Convert(segments);
+
   } else {
     WriteCoordinatesToOrbitalsPBC(*pair, orbitalsAB);
   }
@@ -695,9 +671,9 @@ QMState IQM::GetElementFromMap(const std::map<std::string, QMState>& elementmap,
   return state;
 }
 
-void IQM::ReadJobFile(Topology* top) {
+void IQM::ReadJobFile(Topology& top) {
   // gets the neighborlist from the topology
-  QMNBList& nblist = top->NBList();
+  QMNBList& nblist = top.NBList();
   int number_of_pairs = nblist.size();
   int dft_h = 0;
   int dft_e = 0;
@@ -710,7 +686,7 @@ void IQM::ReadJobFile(Topology* top) {
   tools::Property xml;
   // load the QC results in a vector indexed by the pair ID
   load_property_from_xml(xml, _jobfile);
-  std::list<tools::Property*> jobProps = xml.Select("jobs.job");
+  std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
   std::vector<tools::Property*> records =
       std::vector<tools::Property*>(nblist.size() + 1, NULL);
 
@@ -728,7 +704,7 @@ void IQM::ReadJobFile(Topology* top) {
     tools::Property poutput = job->get("output");
     // job file is stupid, because segment ids are only in input have to get
     // them out l
-    std::list<tools::Property*> segmentprobs = job->Select("input.segment");
+    std::vector<tools::Property*> segmentprobs = job->Select("input.segment");
     std::vector<int> id;
     for (tools::Property* segment : segmentprobs) {
       id.push_back(segment->getAttribute<int>("id"));
@@ -741,10 +717,10 @@ void IQM::ReadJobFile(Topology* top) {
     double idB = id[1];
 
     // segments which correspond to these ids
-    Segment* segA = top->getSegment(idA);
-    Segment* segB = top->getSegment(idB);
+    Segment& segA = top.getSegment(idA);
+    Segment& segB = top.getSegment(idB);
     // pair that corresponds to the two segments
-    QMPair* qmp = nblist.FindPair(segA, segB);
+    QMPair* qmp = nblist.FindPair(*segA, *segB);
     // output using logger
 
     if (qmp == NULL) {  // there is no pair in the neighbor list with this name
@@ -757,7 +733,7 @@ void IQM::ReadJobFile(Topology* top) {
 
   }  // finished loading from the file
 
-  for (QMPair* pair : top->NBList()) {
+  for (QMPair* pair : top.NBList()) {
 
     if (records[pair->getId()] == NULL)
       continue;  // skip pairs which are not in the jobfile
@@ -789,8 +765,7 @@ void IQM::ReadJobFile(Topology* top) {
         int levelB = homoB - stateB.Index();
         double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
         if (J2 > 0) {
-          pair->setJeff2(J2, 1);
-          pair->setIsPathCarrier(true, 1);
+          pair->setJeff2(J2, hole);
           dft_h++;
         }
       }
@@ -805,8 +780,7 @@ void IQM::ReadJobFile(Topology* top) {
         int levelB = homoB + 1 + stateB.Index();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
         if (J2 > 0) {
-          pair->setJeff2(J2, -1);
-          pair->setIsPathCarrier(true, -1);
+          pair->setJeff2(J2, electron);
           dft_e++;
         }
       }
@@ -822,8 +796,7 @@ void IQM::ReadJobFile(Topology* top) {
             GetElementFromMap(_singlet_levels, segmentB->getName());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
         if (J2 > 0) {
-          pair->setJeff2(J2, 2);
-          pair->setIsPathCarrier(true, 2);
+          pair->setJeff2(J2, singlet);
           bse_s++;
         }
       }
@@ -836,8 +809,7 @@ void IQM::ReadJobFile(Topology* top) {
             GetElementFromMap(_triplet_levels, segmentB->getName());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
         if (J2 > 0) {
-          pair->setJeff2(J2, 3);
-          pair->setIsPathCarrier(true, 3);
+          pair->setJeff2(J2, triplet);
           bse_t++;
         }
       }

@@ -31,32 +31,32 @@ namespace xtp {
 
 using namespace std;
 
-void GenCube::Initialize(tools::Property* options) {
+void GenCube::Initialize(tools::Property& options) {
 
   // update options with the VOTCASHARE defaults
   UpdateWithDefaults(options, "xtp");
 
   string key = "options." + Identify();
-  _orbfile = options->get(key + ".input").as<string>();
-  _output_file = options->get(key + ".output").as<string>();
+  _orbfile = options.get(key + ".input").as<string>();
+  _output_file = options.get(key + ".output").as<string>();
 
   // padding
-  _padding = options->get(key + ".padding").as<double>();
+  _padding = options.get(key + ".padding").as<double>();
 
   // steps
-  _xsteps = options->get(key + ".xsteps").as<int>();
-  _ysteps = options->get(key + ".ysteps").as<int>();
-  _zsteps = options->get(key + ".zsteps").as<int>();
+  _xsteps = options.get(key + ".xsteps").as<int>();
+  _ysteps = options.get(key + ".ysteps").as<int>();
+  _zsteps = options.get(key + ".zsteps").as<int>();
 
-  std::string statestring = options->get(key + ".state").as<string>();
+  std::string statestring = options.get(key + ".state").as<string>();
   _state.FromString(statestring);
   _dostateonly =
-      options->ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs", false);
+      options.ifExistsReturnElseReturnDefault<bool>(key + ".diff2gs", false);
 
-  _mode = options->get(key + ".mode").as<string>();
+  _mode = options.get(key + ".mode").as<string>();
   if (_mode == "subtract") {
-    _infile1 = options->get(key + ".infile1").as<string>();
-    _infile2 = options->get(key + ".infile2").as<string>();
+    _infile1 = options.get(key + ".infile1").as<string>();
+    _infile2 = options.get(key + ".infile2").as<string>();
   }
 
   // get the path to the shared folders with xml files

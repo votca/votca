@@ -35,7 +35,7 @@ class Partialcharges : public QMTool {
 
   std::string Identify() { return "partialcharges"; }
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:
@@ -46,13 +46,13 @@ class Partialcharges : public QMTool {
   Logger _log;
 };
 
-void Partialcharges::Initialize(tools::Property* options) {
+void Partialcharges::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
-  _orbfile = options->get(key + ".input").as<std::string>();
-  _output_file = options->get(key + ".output").as<std::string>();
+  _orbfile = options.get(key + ".input").as<std::string>();
+  _output_file = options.get(key + ".output").as<std::string>();
   std::string _esp2multipole_xml =
-      options->get(key + ".esp_options").as<std::string>();
+      options.get(key + ".esp_options").as<std::string>();
   load_property_from_xml(_esp_options, _esp2multipole_xml.c_str());
 }
 

@@ -69,6 +69,9 @@ class Topology {
 
   double GetShortestDist(const Segment &seg1, const Segment &seg2) const;
 
+  std::vector<const Segment *> FindAllSegmentsOnMolecule(
+      const Segment &seg1, const Segment &seg2) const;
+
  protected:
   std::vector<Segment> _segments;
 

@@ -23,57 +23,57 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-void DftGwBse::Initialize(tools::Property* options) {
+void DftGwBse::Initialize(tools::Property& options) {
 
   _do_optimize = false;
   std::string key = "options." + Identify();
 
-  if (options->exists(key + ".mpsfile")) {
+  if (options.exists(key + ".mpsfile")) {
     _do_external = true;
-    _mpsfile = options->get(key + ".mpsfile").as<string>();
-    _dipole_spacing = options->get(key + ".multipolespacing").as<double>();
+    _mpsfile = options.get(key + ".mpsfile").as<string>();
+    _dipole_spacing = options.get(key + ".multipolespacing").as<double>();
   } else {
     _do_external = false;
   }
 
-  if (options->exists(key + ".guess")) {
+  if (options.exists(key + ".guess")) {
     _do_guess = true;
-    _guess_file = options->get(key + ".guess").as<string>();
+    _guess_file = options.get(key + ".guess").as<string>();
 
   } else {
     _do_guess = false;
   }
 
-  _archive_file = options->ifExistsReturnElseReturnDefault<string>(
+  _archive_file = options.ifExistsReturnElseReturnDefault<string>(
       key + ".archive", "system.orb");
-  _reporting = options->ifExistsReturnElseReturnDefault<string>(
+  _reporting = options.ifExistsReturnElseReturnDefault<string>(
       key + ".reporting", "default");
 
   // job tasks
   std::vector<string> choices = {"optimize", "energy"};
-  string mode = options->ifExistsAndinListReturnElseThrowRuntimeError<string>(
+  string mode = options.ifExistsAndinListReturnElseThrowRuntimeError<string>(
       key + ".mode", choices);
   if (mode == "optimize") _do_optimize = true;
 
   // GWBSEENGINE options
-  _gwbseengine_options = options->get(key + ".gwbse_engine");
+  _gwbseengine_options = options.get(key + ".gwbse_engine");
 
   // options for dft package
-  string _package_xml = options->get(key + ".dftpackage").as<string>();
+  string _package_xml = options.get(key + ".dftpackage").as<string>();
   load_property_from_xml(_package_options, _package_xml.c_str());
   _package = _package_options.get("package.name").as<string>();
 
   // MOLECULE properties
   _xyzfile =
-      options->ifExistsReturnElseThrowRuntimeError<string>(key + ".molecule");
+      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".molecule");
 
   // XML OUTPUT
-  _xml_output = options->ifExistsReturnElseReturnDefault<string>(
+  _xml_output = options.ifExistsReturnElseReturnDefault<string>(
       key + ".output", "dftgwbse.out.xml");
 
   // if optimization is chosen, get options for geometry_optimizer
   if (_do_optimize)
-    _geoopt_options = options->get(key + ".geometry_optimization");
+    _geoopt_options = options.get(key + ".geometry_optimization");
 
   // register all QM packages (Gaussian, NWCHEM, etc)
   QMPackageFactory::RegisterAll();

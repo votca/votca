@@ -40,19 +40,32 @@ namespace xtp {
 class Atom {
  public:
   Atom(std::string residue_name, int resnr, std::string md_atom_name,
-       int md_atom_id)
+       int md_atom_id, Eigen::Vector3d pos)
       : _id(md_atom_id),
         _name(md_atom_name),
         _resnr(resnr),
-        _resname(residue_name) {}
+        _resname(residue_name),
+        _pos(pos) {}
 
-  Atom(int atom_id, std::string atom_name) : _id(atom_id), _name(atom_name) {}
+  Atom(int atom_id, std::string atom_name, Eigen::Vector3d pos)
+      : _id(atom_id), _name(atom_name), _pos(pos) {}
 
   Atom(const CheckpointReader &r) { ReadFromCpt(r); }
 
   int getId() const { return _id; }
   const std::string &getName() const { return _name; }
   const std::string &getType() const { return _type; }
+  std::string getElement() const {
+    std::string result = _type.substr(0, 1);
+    for (char s : _type.substr(1)) {
+      if (std::islower(s)) {
+        result += s;
+      } else {
+        break;
+      }
+    }
+    return result;
+  }
   int getResnr() const { return _resnr; }
   const std::string &getResname() const { return _resname; }
 

@@ -52,11 +52,9 @@ void IAnalyze::Initialize(tools::Property &opt) {
   std::cout << std::endl;
   _do_pairtype = false;
   _do_IRdependence = false;
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(opt, "xtp");
   std::string key = "options." + Identify();
-  if (opt->exists(key + ".states")) {
-    std::string statestrings = opt->get(key + ".states").as<std::string>();
+  if (opt.exists(key + ".states")) {
+    std::string statestrings = opt.get(key + ".states").as<std::string>();
     tools::Tokenizer tok(statestrings, ",\n\t ");
     std::vector<std::string> string_vec;
     tok.ToVector(string_vec);
@@ -68,11 +66,10 @@ void IAnalyze::Initialize(tools::Property &opt) {
     _states.push_back(QMStateType(QMStateType::Hole));
   }
 
-  _resolution_logJ2 = opt->get(key + ".resolution_logJ2").as<double>();
-  if (opt->exists(key + ".pairtype")) {
+  _resolution_logJ2 = opt.get(key + ".resolution_logJ2").as<double>();
+  if (opt.exists(key + ".pairtype")) {
     _do_pairtype = true;
-    std::string _store_stdstring =
-        opt->get(key + ".pairtype").as<std::string>();
+    std::string _store_stdstring = opt.get(key + ".pairtype").as<std::string>();
     if (_store_stdstring.find("Hopping") != std::string::npos)
       _pairtype.push_back(QMPair::Hopping);
     if (_store_stdstring.find("Excitoncl") != std::string::npos)
@@ -83,8 +80,8 @@ void IAnalyze::Initialize(tools::Property &opt) {
       _do_pairtype = false;
     }
   }
-  if (opt->exists(key + ".resolution_space")) {
-    _resolution_space = opt->get(key + ".resolution_space").as<double>();
+  if (opt.exists(key + ".resolution_space")) {
+    _resolution_space = opt.get(key + ".resolution_space").as<double>();
     if (_resolution_space != 0.0) _do_IRdependence = true;
   }
 }

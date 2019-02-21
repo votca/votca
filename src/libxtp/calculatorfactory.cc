@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,34 +17,28 @@
  *
  */
 
-
 #include <votca/xtp/calculatorfactory.h>
 
-#include "calculators/neighborlist.h"
-#include "calculators/rates.h"
-#include "calculators/ianalyze.h"
 #include "calculators/eanalyze.h"
-#include "calculators/jobwriter.h"
 #include "calculators/einternal.h"
+#include "calculators/ianalyze.h"
+#include "calculators/jobwriter.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
-#include "calculators/profile.h"
+#include "calculators/neighborlist.h"
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+void Calculatorfactory::RegisterAll(void) {
 
-void Calculatorfactory::RegisterAll(void)
-{	
-       
-        Calculators().Register<Neighborlist>        ("neighborlist");
-        Calculators().Register<Rates>               ("rates");
-        Calculators().Register<IAnalyze>            ("ianalyze");
-        Calculators().Register<EAnalyze>            ("eanalyze");
-        Calculators().Register<JobWriter>           ("jobwriter");
-        Calculators().Register<EInternal>           ("einternal");
-        Calculators().Register<KMCLifetime>         ("kmclifetime");
-        Calculators().Register<KMCMultiple>         ("kmcmultiple");
-        Calculators().Register<Profile>             ("profile");
-
+  Calculators().Register<Neighborlist>("neighborlist");
+  Calculators().Register<IAnalyze>("ianalyze");
+  Calculators().Register<EAnalyze>("eanalyze");
+  Calculators().Register<JobWriter>("jobwriter");
+  Calculators().Register<EInternal>("einternal");
+  Calculators().Register<KMCLifetime>("kmclifetime");
+  Calculators().Register<KMCMultiple>("kmcmultiple");
 }
-}}
+}  // namespace xtp
+}  // namespace votca

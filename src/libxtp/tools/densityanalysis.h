@@ -31,7 +31,7 @@ class DensityAnalysis : public QMTool {
  public:
   std::string Identify() { return "densityanalysis"; }
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:
@@ -42,13 +42,13 @@ class DensityAnalysis : public QMTool {
   Logger _log;
 };
 
-void DensityAnalysis::Initialize(tools::Property* options) {
+void DensityAnalysis::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
-  _orbfile = options->get(key + ".input").as<std::string>();
+  _orbfile = options.get(key + ".input").as<std::string>();
 
   std::string gyration_xml =
-      options->get(key + ".gyration_options").as<std::string>();
+      options.get(key + ".gyration_options").as<std::string>();
   load_property_from_xml(_gyration_options, gyration_xml.c_str());
 }
 

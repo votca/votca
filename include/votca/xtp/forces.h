@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,54 +20,47 @@
 #ifndef VOTCA_XTP_FORCES_H
 #define VOTCA_XTP_FORCES_H
 
-
-#include <votca/xtp/qmatom.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/segment.h>
 #include <stdio.h>
 #include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/qminterface.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/qmatom.h>
+#include <votca/xtp/segment.h>
 #include <votca/xtp/statefilter.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
+class Forces {
+ public:
+  Forces(GWBSEEngine& gwbse_engine, const Statefilter& filter)
+      : _gwbse_engine(gwbse_engine),
+        _filter(filter),
+        _remove_total_force(false){};
 
-        class Forces {
-        public:
+  void Initialize(tools::Property& options);
+  void Calculate(const Orbitals& orbitals);
 
-            Forces(GWBSEEngine& gwbse_engine,const Statefilter& filter)
-            : _gwbse_engine(gwbse_engine),_filter(filter),_remove_total_force(false){};
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
-            void Initialize(tools::Property &options);
-            void Calculate(const Orbitals& orbitals);
+  const Eigen::MatrixX3d& GetForces() const { return _forces; };
+  void Report() const;
 
-            void setLog(Logger* pLog) {
-                _pLog = pLog;
-            }
+ private:
+  Eigen::Vector3d NumForceForward(Orbitals orbitals, int atom_index);
+  Eigen::Vector3d NumForceCentral(Orbitals orbitals, int atom_index);
+  void RemoveTotalForce();
 
-            const Eigen::MatrixX3d& GetForces() const{
-                return _forces;
-            };
-            void Report()const;
+  double _displacement;
+  std::string _force_method;
 
-        private:
-            
-            Eigen::Vector3d NumForceForward(Orbitals orbitals,int atom_index);
-            Eigen::Vector3d NumForceCentral(Orbitals orbitals,int atom_index);
-            void RemoveTotalForce();
+  GWBSEEngine& _gwbse_engine;
+  const Statefilter& _filter;
+  bool _remove_total_force;
 
-            double _displacement;
-            std::string _force_method;
+  Eigen::MatrixX3d _forces;
+  Logger* _pLog;
+};
 
-            GWBSEEngine& _gwbse_engine;
-            const Statefilter& _filter;
-            bool _remove_total_force;
-
-            Eigen::MatrixX3d _forces;
-            Logger *_pLog;
-        };
-
-    }
-}
-#endif // VOTCA_XTP_FORCES_H
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_FORCES_H

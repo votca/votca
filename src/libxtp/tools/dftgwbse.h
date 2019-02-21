@@ -42,7 +42,7 @@ class DftGwBse : public QMTool {
 
   std::string Identify() { return "dftgwbse"; }
 
-  void Initialize(tools::Property *options);
+  void Initialize(tools::Property &options);
   bool Evaluate();
 
  private:

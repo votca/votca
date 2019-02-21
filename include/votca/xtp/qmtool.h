@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,36 +16,35 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For an earlier history see ctp repo commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef VOTCA_XTP_QMTOOL_H
 #define VOTCA_XTP_QMTOOL_H
 
+#include <boost/format.hpp>
 #include <votca/tools/property.h>
 #include <votca/xtp/qmcalculator.h>
-#include <boost/format.hpp>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-class QMTool : public QMCalculator
-{
-public:
+class QMTool : public QMCalculator {
+ public:
+  QMTool(){};
+  virtual ~QMTool(){};
 
-    QMTool() { };
-    virtual        ~QMTool() { };
+  virtual std::string Identify() = 0;
+  virtual void Initialize(tools::Property &options) = 0;
+  virtual bool Evaluate() = 0;
+  virtual bool EndEvaluate() { return true; }
 
-    virtual std::string  Identify() = 0;
-    virtual void    Initialize(tools::Property *options) = 0;    
-    virtual bool    Evaluate() = 0;
-    virtual bool    EndEvaluate() { return true; }
-
-protected:
-    
-private:
-    using QMCalculator::EndEvaluate;
-
+ protected:
+ private:
+  using QMCalculator::EndEvaluate;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif // VOTCA_XTP_QMTOOL_H 
+#endif  // VOTCA_XTP_QMTOOL_H

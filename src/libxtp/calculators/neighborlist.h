@@ -59,7 +59,7 @@ void Neighborlist::Initialize(tools::Property& options) {
   UpdateWithDefaults(options, "xtp");
   std::string key = "options." + Identify();
 
-  std::list<tools::Property*> segs = options.Select(key + ".segments");
+  std::vector<tools::Property*> segs = options.Select(key + ".segments");
 
   for (tools::Property* segprop : segs) {
     std::string types = segprop->get("type").as<std::string>();
@@ -118,7 +118,7 @@ void Neighborlist::DetClassicalPairs(Topology& top) {
 }
 
 bool Neighborlist::EvaluateFrame(Topology& top) {
-  top->NBList().Cleanup();
+  top.NBList().Cleanup();
 
   if (tools::globals::verbose) {
     std::cout << std::endl << "... ..." << std::flush;
@@ -127,13 +127,12 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   double min = top.getBox().diagonal().minCoeff();
 
   std::vector<Segment*> segs;
-  for (const Segment& seg : top.Segments()) {
+  for (Segment& seg : top.Segments()) {
     if (_useConstantCutoff ||
         std::find(_included_segments.begin(), _included_segments.end(),
                   seg.getName()) != _included_segments.end()) {
       segs.push_back(&seg);
-      seg.calcPos();
-      seg.calcApproxSize();
+      seg.getApproxSize();
     }
   }
   std::cout << std::endl;
@@ -190,7 +189,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       }
       double cutoff2 = cutoff * cutoff;
       Eigen::Vector3d segdistance =
-          top->PbShortestConnect(seg1->getPos(), seg2->getPos());
+          top.PbShortestConnect(seg1->getPos(), seg2->getPos());
       double segdistance2 = segdistance.squaredNorm();
       double outside = cutoff + seg1->getApproxSize() + seg2->getApproxSize();
 
@@ -201,7 +200,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       } else {
         double R = top.GetShortestDist(*seg1, *seg2);
         if ((R * R) > cutoff2) {
-          top.NBList().Add(seg1, seg2, distance);
+          top.NBList().Add(seg1, seg2, segdistance);
         }
       }
     } /* exit loop seg2 */
@@ -217,7 +216,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   }
 
   std::cout << std::endl
-            << " ... ... Created " << top->NBList().size() << " direct pairs.";
+            << " ... ... Created " << top.NBList().size() << " direct pairs.";
   if (_useExcitonCutoff) {
     DetClassicalPairs(top);
   }

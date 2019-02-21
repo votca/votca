@@ -36,7 +36,7 @@ class Coupling : public QMTool {
 
   std::string Identify() { return "coupling"; }
 
-  void Initialize(tools::Property *options);
+  void Initialize(tools::Property &options);
   bool Evaluate();
 
  private:
@@ -53,27 +53,26 @@ class Coupling : public QMTool {
   Logger _log;
 };
 
-void Coupling::Initialize(tools::Property *options) {
+void Coupling::Initialize(tools::Property &options) {
   std::string key = "options." + Identify();
 
-  _degeneracy = options->get(key + ".degeneracy").as<double>();
+  _degeneracy = options.get(key + ".degeneracy").as<double>();
 
-  _orbA = options->get(key + ".moleculeA.orbitals").as<std::string>();
-  _orbB = options->get(key + ".moleculeB.orbitals").as<std::string>();
-  _orbAB = options->get(key + ".dimerAB.orbitals").as<std::string>();
+  _orbA = options.get(key + ".moleculeA.orbitals").as<std::string>();
+  _orbB = options.get(key + ".moleculeB.orbitals").as<std::string>();
+  _orbAB = options.get(key + ".dimerAB.orbitals").as<std::string>();
 
-  _logA = options->get(key + ".moleculeA.log").as<std::string>();
-  _logB = options->get(key + ".moleculeB.log").as<std::string>();
-  _logAB = options->get(key + ".dimerAB.log").as<std::string>();
+  _logA = options.get(key + ".moleculeA.log").as<std::string>();
+  _logB = options.get(key + ".moleculeB.log").as<std::string>();
+  _logAB = options.get(key + ".dimerAB.log").as<std::string>();
 
-  _output_file = options->get(key + ".output").as<std::string>();
+  _output_file = options.get(key + ".output").as<std::string>();
 
-  std::string _package_xml =
-      options->get(key + ".dftpackage").as<std::string>();
+  std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
   load_property_from_xml(_package_options, _package_xml);
   _package = _package_options.get("package.name").as<std::string>();
 
-  _dftcoupling_options = options->get(key + ".dftcoupling_options");
+  _dftcoupling_options = options.get(key + ".dftcoupling_options");
 
   QMPackageFactory::RegisterAll();
 }

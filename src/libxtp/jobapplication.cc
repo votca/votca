@@ -104,7 +104,7 @@ void JobApplication::Run() {
   while (statsav.NextFrame() && framesDone < nframes) {
     frameId += 1;
     if (frameId < fframe) continue;
-    std::cout << "Evaluating frame " << _top.getDatabaseId() << std::endl;
+    std::cout << "Evaluating frame " << _top.getStep() << std::endl;
     EvaluateFrame();
     if (save == 1) {
       statsav.WriteFrame(_top);
@@ -134,7 +134,7 @@ void JobApplication::BeginEvaluate(
     std::cout << "... " << calculator->Identify() << " ";
     calculator->setnThreads(nThreads);
     calculator->setProgObserver(obs);
-    calculator->Initialize(&_options);
+    calculator->Initialize(_options);
     std::cout << std::endl;
   }
 }
@@ -142,9 +142,9 @@ void JobApplication::BeginEvaluate(
 bool JobApplication::EvaluateFrame() {
   for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " " << std::flush;
-    if (_generate_input) calculator->WriteJobFile(&_top);
-    if (_run) calculator->EvaluateFrame(&_top);
-    if (_import) calculator->ReadJobFile(&_top);
+    if (_generate_input) calculator->WriteJobFile(_top);
+    if (_run) calculator->EvaluateFrame(_top);
+    if (_import) calculator->ReadJobFile(_top);
     std::cout << std::endl;
   }
   return true;
@@ -152,7 +152,7 @@ bool JobApplication::EvaluateFrame() {
 
 void JobApplication::EndEvaluate() {
   for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
-    calculator->EndEvaluate(&_top);
+    calculator->EndEvaluate(_top);
   }
 }
 

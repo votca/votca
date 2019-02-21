@@ -36,7 +36,7 @@ class GenCube : public QMTool {
 
   std::string Identify() { return "gencube"; }
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:

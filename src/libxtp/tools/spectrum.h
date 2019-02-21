@@ -38,7 +38,7 @@ class Spectrum : public QMTool {
 
   std::string Identify() { return "spectrum"; }
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:

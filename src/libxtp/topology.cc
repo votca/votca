@@ -124,6 +124,28 @@ double GetShortestDist(const Segment &seg1, const Segment &seg2) const {
   return std::sqrt(R2);
 }
 
+std::vector<const Segment *> FindAllSegmentsOnMolecule(
+    const Segment &seg1, const Segment &seg2) const {
+  std::vector<int> &ids1 = seg1.getMoleculeIds();
+  std::vector<int> &ids2 = seg2.getMoleculeIds();
+  std::vector<int> common_elements;
+  std::set_intersection(ids1.begin(), ids1.end(), ids2.begin(), ids2.end(),
+                        std::back_inserter(common_elements));
+  std::vector<const Segment *> results;
+  if (common_elements.empty() || common_elements.size() > 1) {
+    return results;
+  }
+  int molid = common_elements[0];
+
+  for (const Segment &seg : _segments) {
+    if (std::find(seg.getMoleculeIds().begin(), seg.getMoleculeIds().end(),
+                  molid) != seg.getMoleculeIds().end()) {
+      results.push_back(*seg);
+    }
+  }
+  return results;
+}
+
 void Topology::WriteToCpt(CheckpointWriter &w) const {
   w(_time, "time");
   w(_step, "step");

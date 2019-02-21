@@ -33,7 +33,7 @@ class QMNBList : public csg::PairList<Segment*, QMPair> {
   QMNBList(){};
   ~QMNBList() { csg::PairList<Segment*, QMPair>::Cleanup(); }
 
-  QMPair& Add(Segment* seg1, Segment* seg2);
+  QMPair& Add(Segment* seg1, Segment* seg2, const Eigen::Vector3d& r);
 
   void WriteToCpt(CheckpointWriter& w) const;
 

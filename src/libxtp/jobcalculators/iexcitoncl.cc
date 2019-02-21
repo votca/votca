@@ -93,7 +93,7 @@ std::map<std::string, QMState> IEXCITON::FillParseMaps(
   return type2level;
 }
 
-Job::JobResult IEXCITON::EvalJob(Topology* top, Job* job, QMThread* opThread) {
+Job::JobResult IEXCITON::EvalJob(Topology& top, Job* job, QMThread* opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
@@ -104,7 +104,7 @@ Job::JobResult IEXCITON::EvalJob(Topology* top, Job* job, QMThread* opThread) {
   // get the information about the job executed by the thread
   int job_ID = job->getId();
   Property job_input = job->getInput();
-  list<Property*> segment_list = job_input.Select("segment");
+  vector<Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
   string type_A = segment_list.front()->getAttribute<string>("type");
   string mps_fileA = segment_list.front()->getAttribute<string>("mps_file");
@@ -112,8 +112,8 @@ Job::JobResult IEXCITON::EvalJob(Topology* top, Job* job, QMThread* opThread) {
   string type_B = segment_list.back()->getAttribute<string>("type");
   string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
 
-  Segment* seg_A = top->getSegment(ID_A);
-  Segment* seg_B = top->getSegment(ID_B);
+  Segment& seg_A = top.getSegment(ID_A);
+  Segment& seg_B = top.getSegment(ID_B);
 
   XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair " << job_ID
                           << " [" << ID_A << ":" << ID_B << "]" << flush;
@@ -123,8 +123,8 @@ Job::JobResult IEXCITON::EvalJob(Topology* top, Job* job, QMThread* opThread) {
   Property job_summary;
   Property& job_output = job_summary.add("output", "");
   Property& pair_summary = job_output.add("pair", "");
-  string nameA = seg_A->getName();
-  string nameB = seg_B->getName();
+  string nameA = seg_A.getName();
+  string nameB = seg_B.getName();
   pair_summary.setAttribute("idA", ID_A);
   pair_summary.setAttribute("idB", ID_B);
   pair_summary.setAttribute("typeA", nameA);
@@ -154,14 +154,14 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
   return state;
 }
 
-void IEXCITON::WriteJobFile(Topology* top) {
+void IEXCITON::WriteJobFile(Topology& top) {
 
   cout << endl << "... ... Writing job file " << flush;
   std::ofstream ofs;
   ofs.open(_jobfile.c_str(), std::ofstream::out);
   if (!ofs.is_open())
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
-  QMNBList& nblist = top->NBList();
+  QMNBList& nblist = top.NBList();
   int jobCount = 0;
   if (nblist.size() == 0) {
     cout << endl << "... ... No pairs in neighbor list, skip." << flush;
@@ -213,7 +213,7 @@ void IEXCITON::WriteJobFile(Topology* top) {
   cout << endl << "... ... In total " << jobCount << " jobs" << flush;
 }
 
-void IEXCITON::ReadJobFile(Topology* top) {
+void IEXCITON::ReadJobFile(Topology& top) {
 
   Property xml;
   vector<Property*> records;
@@ -226,7 +226,7 @@ void IEXCITON::ReadJobFile(Topology* top) {
 
   // load the QC results in a vector indexed by the pair ID
   load_property_from_xml(xml, _jobfile);
-  list<Property*> jobProps = xml.Select("jobs.job");
+  vector<Property*> jobProps = xml.Select("jobs.job");
   records.resize(number_of_pairs + 1);
 
   // to skip pairs which are not in the jobfile
@@ -241,9 +241,9 @@ void IEXCITON::ReadJobFile(Topology* top) {
       Property& poutput = prop->get("output.pair");
       int idA = poutput.getAttribute<int>("idA");
       int idB = poutput.getAttribute<int>("idB");
-      Segment* segA = top->getSegment(idA);
-      Segment* segB = top->getSegment(idB);
-      QMPair* qmp = nblist.FindPair(segA, segB);
+      Segment& segA = top.getSegment(idA);
+      Segment& segB = top.getSegment(idB);
+      QMPair* qmp = nblist.FindPair(*segA, *segB);
 
       if (qmp == NULL) {
         XTP_LOG_SAVE(logINFO, log)
@@ -263,8 +263,8 @@ void IEXCITON::ReadJobFile(Topology* top) {
 
   // loop over all pairs in the neighbor list
   XTP_LOG_SAVE(logINFO, log)
-      << "Neighborlist size " << top->NBList().size() << flush;
-  for (QMPair* pair : top->NBList()) {
+      << "Neighborlist size " << top.NBList().size() << flush;
+  for (QMPair* pair : top.NBList()) {
 
     if (records[pair->getId()] == NULL)
       continue;  // skip pairs which are not in the jobfile
@@ -272,7 +272,7 @@ void IEXCITON::ReadJobFile(Topology* top) {
     double jAB = 0.0;
     if (pair->getType() == QMPair::Excitoncl) {
       Property* pair_property = records[pair->getId()];
-      list<Property*> pCoupling = pair_property->Select("Coupling");
+      vector<Property*> pCoupling = pair_property->Select("Coupling");
       for (Property* coup : pCoupling) {
         jAB = coup->getAttribute<double>("jABstatic");
       }

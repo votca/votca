@@ -38,7 +38,7 @@ class QMSandbox : public QMTool {
 
   std::string Identify() { return "qmsandbox"; }
 
-  void Initialize(tools::Property* options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:
@@ -50,25 +50,25 @@ class QMSandbox : public QMTool {
   std::string _mpsfileqs;
 };
 
-void QMSandbox::Initialize(tools::Property* options) {
+void QMSandbox::Initialize(tools::Property& options) {
 
   // update options with the VOTCASHARE defaults
   // UpdateWithDefaults( options, "xtp" );
 
   std::string key = "options." + Identify();
 
-  _orbfile = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".orbfile");
-  _espfile = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+  _espfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".espfile");
-  _mpsfiled = options->ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".dipole");
+  _mpsfiled =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".dipole");
 
-  _mpsfileds = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+  _mpsfileds = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".dipole_split");
-  _mpsfileq = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+  _mpsfileq = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".quadrupole");
-  _mpsfileqs = options->ifExistsReturnElseThrowRuntimeError<std::string>(
+  _mpsfileqs = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".quadrupole_split");
 }
 

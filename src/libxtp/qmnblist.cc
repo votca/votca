@@ -29,11 +29,11 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-QMPair& QMNBList::Add(Segment* seg1, Segment* seg2) {
+QMPair& QMNBList::Add(Segment* seg1, Segment* seg2, const Eigen::Vector3d& r) {
   assert(this->FindPair(seg1, seg2) != NULL &&
          "Critical bug: pair already exists");
   int id = this->size();
-  QMPair* pair = new QMPair(id, seg1, seg2);
+  QMPair* pair = new QMPair(id, seg1, seg2, r);
   this->AddPair(pair);
   return *pair;
 }
