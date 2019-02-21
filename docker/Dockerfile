@@ -52,7 +52,9 @@ RUN ccache -s
 RUN if [ ${DOXYGEN} ]; then \
       make doxygen; \
       python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
-      codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
+      codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+        -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+        -F doxygen -X gcov -f doxygen.coverage.info; \
       rm -f doxygen.coverage.info; \
     fi
 RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
@@ -61,9 +63,13 @@ RUN if [ ! ${MODULE_BUILD} ]; then \
     fi
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
-    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) -F "${CC}" -X "gcovout" -x "llvm-cov gcov"; \
+    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+      -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+      -F "${CC}" -X "gcovout" -x "llvm-cov gcov"; \
   else \
-    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) -F "${CC}" -X "gcovout"; \
+    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+      -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+      -F "${CC}" -X "gcovout"; \
   fi; \
 fi
 USER root
