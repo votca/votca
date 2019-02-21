@@ -57,15 +57,14 @@ class Atom {
   const std::string &getType() const { return _type; }
   std::string getElement() const {
     std::string result = _type.substr(0, 1);
-    for (char s : _type.substr(1)) {
-      if (std::islower(s)) {
-        result += s;
-      } else {
-        break;
+    if (_type.size() > 1) {
+      if (std::islower(_type[1])) {
+        result += _type[1];
       }
     }
     return result;
   }
+
   int getResnr() const { return _resnr; }
   const std::string &getResname() const { return _resname; }
 
