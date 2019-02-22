@@ -77,8 +77,5 @@ RUN if [[ ${CLANG_FORMAT} && ${TRAVIS_BRANCH} != next ]]; then \
       make format && \
       git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
     fi
-USER root
-RUN make install
-USER votca
-RUN ccache -s
+RUN sudo make install
 WORKDIR ../csg-tutorials
