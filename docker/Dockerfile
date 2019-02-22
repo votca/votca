@@ -12,6 +12,7 @@ ARG MINIMAL
 ARG MODULE_BUILD
 ARG BUILD_GROMACS
 ARG REGRESSION_TESTING
+ARG CLANG_FORMAT
 
 #for coverage
 ARG CI
@@ -72,6 +73,10 @@ RUN if [ ${COVERAGE} ]; then \
       -F "${CC}" -X "gcovout"; \
   fi; \
 fi
+RUN if [[ ${CLANG_FORMAT} && ${TRAVIS_BRANCH} != next ]]; then \
+      make format && \
+      git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
+    fi
 USER root
 RUN make install
 USER votca

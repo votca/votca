@@ -42,6 +42,7 @@ elif [[ $ENV -eq 3 ]]; then
   add_to_docker_opts TESTING=OFF
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
   add_to_docker_opts DOXYGEN=yes
+  add_to_docker_opts CLANG_FORMAT=yes
   export DOXYGEN=yes # used in .travis.yml
   export WERROR=yes
 elif [[ $ENV -eq 4 ]]; then
