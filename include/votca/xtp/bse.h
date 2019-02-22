@@ -24,14 +24,15 @@
 #include <votca/xtp/rpa.h>
 
 #include <votca/xtp/threecenter.h>
-#include <votca/xtp/qmstate.h>
-
+#include <votca/xtp/qmstate.h> 
+#include <votca/xtp/bse_operator.h>
 
 
 namespace votca {
 namespace xtp {
 
-class BSE_OPERATOR;
+// template<int _coeff_Hqp, int _coeff_Hx, int _coeff_Hd, int _coeff_Hd2>
+// class BSE_OPERATOR;
 
 class BSE {
 
@@ -146,7 +147,10 @@ class BSE {
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
 
+  template <typename BSE_OPERATOR>
   void configure_operator(BSE_OPERATOR &h);
+
+  template <typename BSE_OPERATOR>
   void solve_hermitian(BSE_OPERATOR &H, Eigen::VectorXd &eigenvalues, Eigen::MatrixXd &coefficients );
 
   void printFragInfo(const Population& pop, int i);
@@ -154,7 +158,8 @@ class BSE {
 
  
   Interaction Analyze_eh_interaction(const QMStateType& type);
-  //Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
+  
+  template <typename BSE_OPERATOR>
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const BSE_OPERATOR& H);
 
   Population FragmentPopulations(const QMStateType& type, const AOBasis& dftbasis);

@@ -31,6 +31,7 @@ class BSE;
 namespace votca {
 namespace xtp {
 
+template<int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR : public MatrixFreeOperator {
 
  public:
@@ -59,14 +60,11 @@ class BSE_OPERATOR : public MatrixFreeOperator {
 
   void SetupDirectInteractionOperator();
   
-  void setHx(int coeff) {this->_coeff_Hx = coeff;}
-  void setHqp(int coeff) {this->_coeff_Hqp = coeff;}
-  void setHd(int coeff) {this->_coeff_Hd = coeff;}
-  void setHd2(int coeff) {this->_coeff_Hd2 = coeff;}
-
   protected: 
 
+  
   Eigen::VectorXd col(int index) const;
+
   Eigen::VectorXd Hqp_col(int index) const;
   Eigen::VectorXd Hx_col(int index) const;
   Eigen::VectorXd Hd_col(int index) const;
@@ -85,13 +83,22 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
   VectorXfd _epsilon_0_inv;   
-
-  int _coeff_Hx = 0;
-  int _coeff_Hd = 0;
-  int _coeff_Hd2 = 0;
-  int _coeff_Hqp = 0;
  
 };
+
+
+// type defs for the different operators
+typedef BSE_OPERATOR<1,2,1,0> SingletOperator_TDA;
+typedef BSE_OPERATOR<1,0,1,0> TripletOperator_TDA;
+
+typedef BSE_OPERATOR<1,4,1,1> SingletOperator_BTDA_ApB;
+typedef BSE_OPERATOR<1,0,1,-1> SingletOperator_BTDA_AmB;
+
+typedef BSE_OPERATOR<1,0,0,0> HqpOperator;
+typedef BSE_OPERATOR<0,1,0,0> HxOperator;
+typedef BSE_OPERATOR<0,0,1,0> HdOperator;
+typedef BSE_OPERATOR<0,0,0,1> Hd2Operator;
+
 }
 }
 

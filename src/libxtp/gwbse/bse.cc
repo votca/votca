@@ -22,7 +22,7 @@
 #include <votca/tools/linalg.h>
 
 #include <votca/xtp/davidsonsolver.h>
-#include <votca/xtp/bse_operator.h>
+//#include <votca/xtp/bse_operator.h>
 
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
@@ -30,16 +30,15 @@
 using boost::format;
 using std::flush;
 
+class BSE_OPERATOR;
+
 namespace votca {
   namespace xtp {
   
     void BSE::Solve_triplets() {
 
-      BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
+      TripletOperator_TDA Ht(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Ht);
-
-      Ht.setHqp(1);
-      Ht.setHd(1);
       
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
@@ -75,12 +74,9 @@ namespace votca {
 
     void BSE::Solve_singlets_TDA() {
 
-      BSE_OPERATOR Hs(_orbitals, _log, _Mmn, _Hqp);
+      
+      SingletOperator_TDA Hs(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Hs);
-
-      Hs.setHx(2);
-      Hs.setHqp(1);
-      Hs.setHd(1);
 
       CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
@@ -100,26 +96,21 @@ namespace votca {
     }
 
     void BSE::SetupHs() {
-      BSE_OPERATOR Hs(_orbitals, _log, _Mmn, _Hqp);
-      BSE::configure_operator(Hs);
       
-
-      Hs.setHx(2);
-      Hs.setHqp(1);
-      Hs.setHd(1); 
+      SingletOperator_TDA Hs(_orbitals, _log, _Mmn, _Hqp);
+      BSE::configure_operator(Hs);
       _eh_s = Hs.get_full_matrix();
+
     }
     
     void BSE::SetupHt() {
-      BSE_OPERATOR Ht(_orbitals, _log, _Mmn, _Hqp);
-      BSE::configure_operator(Ht);
       
-
-      Ht.setHqp(1);
-      Ht.setHd(1); 
+      TripletOperator_TDA Ht(_orbitals, _log, _Mmn, _Hqp);
+      BSE::configure_operator(Ht); 
       _eh_t = Ht.get_full_matrix();
     }
 
+    template <typename BSE_OPERATOR>
     void BSE::configure_operator(BSE_OPERATOR &h) {
       h._opt.homo = this->_opt.homo;
       h._opt.rpamin = this->_opt.rpamin;
@@ -136,6 +127,7 @@ namespace votca {
       return ;
     }
 
+    template <typename BSE_OPERATOR>
     void BSE::solve_hermitian(BSE_OPERATOR &h, Eigen::VectorXd &energies, Eigen::MatrixXd &coefficients) {
 
       CTP_LOG(ctp::logDEBUG, _log)
@@ -177,22 +169,14 @@ namespace votca {
       // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
       // _AmB = (_eh_d +_eh_qp - _eh_d2);
 
-      BSE_OPERATOR Hs_ApB(_orbitals, _log, _Mmn, _Hqp);
+      //BSE_OPERATOR Hs_ApB(_orbitals, _log, _Mmn, _Hqp);
+      SingletOperator_BTDA_ApB Hs_ApB(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Hs_ApB);
       
-
-      Hs_ApB.setHd(1);
-      Hs_ApB.setHqp(1);
-      Hs_ApB.setHd2(1);
-      Hs_ApB.setHx(4);
-
-      BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
+      //BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
+      SingletOperator_BTDA_AmB Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
       BSE::configure_operator(Hs_AmB);
       
-      Hs_AmB.setHd(1);
-      Hs_AmB.setHqp(1);
-      Hs_AmB.setHd2(-1);
-
       Eigen::MatrixXd ApB = Hs_ApB.get_full_matrix();
       Eigen::MatrixXd AmB = Hs_AmB.get_full_matrix();
 
@@ -375,6 +359,7 @@ namespace votca {
       return;
     }
 
+    template <typename BSE_OPERATOR>
     Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type, const BSE_OPERATOR& H){
         Eigen::VectorXd contrib=Eigen::VectorXd::Zero(_opt.nmax);
         if (type == QMStateType::Singlet) {
@@ -403,21 +388,16 @@ namespace votca {
 
       Interaction analysis;
 
-      BSE_OPERATOR h (_orbitals, _log, _Mmn, _Hqp);
-      h.setHqp(1);
-      //Eigen::MatrixXd H = h.get_full_matrix();
-      analysis.qp_contrib=Analyze_IndividualContribution(type,h);
+      HqpOperator hqp(_orbitals, _log, _Mmn, _Hqp);
+      analysis.qp_contrib=Analyze_IndividualContribution(type,hqp);
       
-      h.setHqp(0);
-      h.setHd(1);
-      //H = h.get_full_matrix();
-      analysis.direct_contrib=Analyze_IndividualContribution(type,h);
-
+      
+      HdOperator hd(_orbitals, _log, _Mmn, _Hqp);
+      analysis.direct_contrib=Analyze_IndividualContribution(type,hd);
+      
       if (type == QMStateType::Singlet) {
-          h.setHd(0);
-          h.setHx(1);
-          //H = h.get_full_matrix();
-          analysis.exchange_contrib=Analyze_IndividualContribution(type,h);
+          HxOperator hx(_orbitals, _log, _Mmn, _Hqp);
+          analysis.exchange_contrib=Analyze_IndividualContribution(type,hx);
       } else {
             analysis.exchange_contrib=Eigen::VectorXd::Zero(0);
       }

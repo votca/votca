@@ -28,7 +28,8 @@ using std::flush;
 namespace votca {
     namespace xtp {
 
-void BSE_OPERATOR::SetupDirectInteractionOperator() 
+template<int cqp, int cx, int cd, int cd2>
+void BSE_OPERATOR<cqp,cx,cd, cd2>::SetupDirectInteractionOperator() 
 {    
     RPA rpa = RPA(_Mmn);
     rpa.configure(_opt.homo,_opt.rpamin, _opt.rpamax);
@@ -46,31 +47,33 @@ void BSE_OPERATOR::SetupDirectInteractionOperator()
 }
 
 
-Eigen::VectorXd BSE_OPERATOR::col(int index) const
+template<int cqp, int cx, int cd, int cd2>
+Eigen::VectorXd BSE_OPERATOR<cqp,cx,cd, cd2>::col(int index) const
 {
     Eigen::VectorXd _col = Eigen::VectorXd::Zero(_bse_size);
 
-    if (_coeff_Hx != 0) {
-        _col += _coeff_Hx * Hx_col(index);
+    if (cx != 0) {
+        _col += cx * Hx_col(index);
     }
 
-    if(_coeff_Hd != 0) {
-        _col += _coeff_Hd * Hd_col(index); 
+    if(cd != 0) {
+        _col += cd * Hd_col(index); 
     }
 
-    if (_coeff_Hd2 != 0) {
-        _col += _coeff_Hd2 * Hd2_col(index);  
+    if (cd2 != 0) {
+        _col += cd2 * Hd2_col(index);  
     }
 
-    if (_coeff_Hqp != 0){
-        _col += _coeff_Hqp * Hqp_col(index);
+    if (cqp != 0){
+        _col += cqp * Hqp_col(index);
     }
 
     return _col;
 }
 
 
-Eigen::VectorXd BSE_OPERATOR::Hx_col(int index) const
+template<int cqp, int cx, int cd, int cd2>
+Eigen::VectorXd BSE_OPERATOR<cqp,cx,cd, cd2>::Hx_col(int index) const
 { 
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0,0,_bse_ctotal);
@@ -90,11 +93,13 @@ Eigen::VectorXd BSE_OPERATOR::Hx_col(int index) const
             int i2 = vc.I(v2, c2);
             Hcol(i2) += Mmnx2(c2);
         }
+        
     }
     return Hcol;
 }
 
-Eigen::VectorXd BSE_OPERATOR::Hd_col(int index) const
+template<int cqp, int cx, int cd, int cd2>
+Eigen::VectorXd BSE_OPERATOR<cqp,cx,cd, cd2>::Hd_col(int index) const
 {
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0, 0, _bse_ctotal);
@@ -117,7 +122,8 @@ Eigen::VectorXd BSE_OPERATOR::Hd_col(int index) const
     return Hcol;
 }        
 
-Eigen::VectorXd BSE_OPERATOR::Hqp_col(int index) const
+template<int cqp, int cx, int cd, int cd2>
+Eigen::VectorXd BSE_OPERATOR<cqp,cx,cd, cd2>::Hqp_col(int index) const
 {
     vc2index vc = vc2index(0, 0, _bse_ctotal);
     int v1 = vc.v(index);
@@ -139,7 +145,8 @@ Eigen::VectorXd BSE_OPERATOR::Hqp_col(int index) const
     return Hcol;
 }
 
-Eigen::VectorXd BSE_OPERATOR::Hd2_col(int index) const {
+template<int cqp, int cx, int cd, int cd2>
+Eigen::VectorXd BSE_OPERATOR<cqp,cx,cd, cd2>::Hd2_col(int index) const {
 
     int auxsize = _Mmn.auxsize();
     vc2index vc = vc2index(0, 0, _bse_ctotal);
@@ -163,6 +170,18 @@ Eigen::VectorXd BSE_OPERATOR::Hd2_col(int index) const {
      
     return Hcol;
 }
+
+
+template class BSE_OPERATOR<1,2,1,0> ;
+template class BSE_OPERATOR<1,0,1,0> ;
+
+template class BSE_OPERATOR<1,4,1,1> ;
+template class BSE_OPERATOR<1,0,1,-1> ;
+
+template class BSE_OPERATOR<1,0,0,0> ;
+template class BSE_OPERATOR<0,1,0,0> ;
+template class BSE_OPERATOR<0,0,1,0> ;
+template class BSE_OPERATOR<0,0,0,1> ;
 
 }
 }
