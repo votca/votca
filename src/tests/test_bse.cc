@@ -296,7 +296,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.Analyze_singlets(aobasis);
 
   bool check_se_dav = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
-  if (!check_se_dav) {
+  if (!check_se_dav || true) {
     cout << "Singlets energy" << endl;
     cout << orbitals.BSESingletEnergies() << endl;
     cout << "Singlets energy ref" << endl;
@@ -306,7 +306,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   bool check_spsi_dav = spsi_ref.cwiseAbs2().isApprox(
       orbitals.BSESingletCoefficients().cwiseAbs2(), 0.1);
-  if (!check_spsi_dav) {
+  if (!check_spsi_dav || true) {
     cout << "Singlets psi" << endl;
     cout << orbitals.BSESingletCoefficients() << endl;
     cout << "Singlets psi ref" << endl;
@@ -321,7 +321,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.Solve_singlets();
   bse.Analyze_singlets(aobasis);
 
-  bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
+  bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 1e-4);
   if (!check_se_dav2) {
     cout << "Singlets energy" << endl;
     cout << orbitals.BSESingletEnergies() << endl;
