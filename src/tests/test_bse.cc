@@ -299,13 +299,11 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se, true);
 
-  std::cout << "bla" << std::endl;
   Eigen::MatrixXd projection =
       spsi_ref.transpose() * orbitals.BSESingletCoefficients();
   Eigen::VectorXd norms = projection.colwise().norm();
 
   bool check_spsi = norms.isApproxToConstant(1, 1e-5);
-  check_spsi = true;
   if (!check_spsi) {
     cout << "Norms" << norms << endl;
     cout << "Singlets psi" << endl;
@@ -322,7 +320,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.Analyze_singlets(aobasis);
 
   bool check_se_dav = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
-  if (!check_se_dav || true) {
+  if (!check_se_dav) {
     cout << "Singlets energy" << endl;
     cout << orbitals.BSESingletEnergies() << endl;
     cout << "Singlets energy ref" << endl;
@@ -330,9 +328,12 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_dav, true);
 
-  bool check_spsi_dav = spsi_ref.cwiseAbs2().isApprox(
-      orbitals.BSESingletCoefficients().cwiseAbs2(), 0.1);
-  if (!check_spsi_dav || true) {
+  Eigen::MatrixXd projection_dav =
+      spsi_ref.transpose() * orbitals.BSESingletCoefficients();
+  Eigen::VectorXd norms_dav = projection_dav.colwise().norm();
+  bool check_spsi_dav = norms_dav.isApproxToConstant(1, 1e-5);
+  if (!check_spsi_dav) {
+    cout << "Norms" << norms_dav << endl;
     cout << "Singlets psi" << endl;
     cout << orbitals.BSESingletCoefficients() << endl;
     cout << "Singlets psi ref" << endl;
@@ -347,7 +348,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.Solve_singlets();
   bse.Analyze_singlets(aobasis);
 
-  bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 1e-4);
+  bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_dav2) {
     cout << "Singlets energy" << endl;
     cout << orbitals.BSESingletEnergies() << endl;
@@ -356,10 +357,12 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_dav2, true);
 
-  bool check_spsi_dav2 = spsi_ref.cwiseAbs2().isApprox(
-      orbitals.BSESingletCoefficients().cwiseAbs2(), 0.1);
-  check_spsi_dav2 = true;
+  Eigen::MatrixXd projection_dav2 =
+      spsi_ref.transpose() * orbitals.BSESingletCoefficients();
+  Eigen::VectorXd norms_dav2 = projection_dav2.colwise().norm();
+  bool check_spsi_dav2 = norms_dav2.isApproxToConstant(1, 1e-5);
   if (!check_spsi_dav2) {
+    cout << "Norms" << norms_dav2 << endl;
     cout << "Singlets psi" << endl;
     cout << orbitals.BSESingletCoefficients() << endl;
     cout << "Singlets psi ref" << endl;
