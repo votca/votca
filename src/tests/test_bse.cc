@@ -298,7 +298,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << se_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_se, true);
-
   Eigen::MatrixXd projection =
       spsi_ref.transpose() * orbitals.BSESingletCoefficients();
   Eigen::VectorXd norms = projection.colwise().norm();
@@ -327,7 +326,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << se_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_se_dav, true);
-
   Eigen::MatrixXd projection_dav =
       spsi_ref.transpose() * orbitals.BSESingletCoefficients();
   Eigen::VectorXd norms_dav = projection_dav.colwise().norm();
@@ -347,7 +345,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt);
   bse.Solve_singlets();
   bse.Analyze_singlets(aobasis);
-
   bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_dav2) {
     cout << "Singlets energy" << endl;

@@ -22,7 +22,7 @@ namespace votca {
 namespace xtp {
 
 Eigen::VectorXd MatrixFreeOperator::diagonal() const {
-  Eigen::VectorXd D = Eigen::VectorXd::Zero(_size, 1);
+  Eigen::VectorXd D = Eigen::VectorXd::Zero(_size);
   Eigen::VectorXd col_data;
   for (int i = 0; i < _size; i++) {
     col_data = this->col(i);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -233,6 +233,7 @@
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
+      <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -3549,6 +3550,8 @@
       </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
@@ -4554,6 +4557,8 @@
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>

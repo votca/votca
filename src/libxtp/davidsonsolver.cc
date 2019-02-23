@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,97 +15,102 @@
  *
  */
 
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
-#include <votca/xtp/eigen.h>
 #include <votca/xtp/davidsonsolver.h>
-
-
+#include <votca/xtp/eigen.h>
 
 using boost::format;
 using std::flush;
 
-namespace votca { 
-    namespace xtp {
+namespace votca {
+namespace xtp {
 
 using namespace std;
 
-DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log) { }
+DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log) {}
 
 void DavidsonSolver::set_correction(std::string method) {
-    if (method == "DPR") this->davidson_correction = CORR::DPR;
-    else if (method == "OLSEN") this->davidson_correction = CORR::OLSEN;
-    else throw std::runtime_error(method + " is not a valid Davidson correction method");
+  if (method == "DPR")
+    this->davidson_correction = CORR::DPR;
+  else if (method == "OLSEN")
+    this->davidson_correction = CORR::OLSEN;
+  else
+    throw std::runtime_error(method +
+                             " is not a valid Davidson correction method");
 }
 
-Eigen::ArrayXi DavidsonSolver::_sort_index(Eigen::VectorXd &V) const
-{
-    /* return the index of the sorted vector */
-    Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(),0,V.rows()-1);
-    std::sort(idx.data(),idx.data()+idx.size(),
-              [&](int i1, int i2){return V[i1]<V[i2];});
-    return idx; 
+Eigen::ArrayXi DavidsonSolver::_sort_index(Eigen::VectorXd &V) const {
+  /* return the index of the sorted vector */
+  Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(), 0, V.rows() - 1);
+  std::sort(idx.data(), idx.data() + idx.size(),
+            [&](int i1, int i2) { return V[i1] < V[i2]; });
+  return idx;
 }
 
-Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(Eigen::VectorXd &d, int size_initial_guess) const
-{
+Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(
+    Eigen::VectorXd &d, int size_initial_guess) const {
 
-    /* Initialize the guess eigenvector so that they 'target' the lowest diagonal elements */
+  /* Initialize the guess eigenvector so that they 'target' the lowest diagonal
+   * elements */
 
-    Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(),size_initial_guess);
-    Eigen::ArrayXi idx = DavidsonSolver::_sort_index(d);
+  Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(), size_initial_guess);
+  Eigen::ArrayXi idx = DavidsonSolver::_sort_index(d);
 
-    for (int j=0; j<size_initial_guess;j++) {
-        guess(idx(j),j) = 1.0; 
-    }
+  for (int j = 0; j < size_initial_guess; j++) {
+    guess(idx(j), j) = 1.0;
+  }
 
-    return guess;
+  return guess;
 }
 
-Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r, Eigen::VectorXd &D, double lambda) const
-{
-    /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r */
-    int size = r.rows();
-    Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
-    for (int i=0; i < size; i++) {
-        delta(i) = r(i) / (lambda - D(i));
-    }
-
-    return delta;
+Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r,
+                                                Eigen::VectorXd &D,
+                                                double lambda) const {
+  /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
+   */
+  int size = r.rows();
+  Eigen::VectorXd delta = r.array() / (lambda - D.array());
+  return delta;
 }
 
-Eigen::VectorXd DavidsonSolver::_olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x, Eigen::VectorXd &D, double lambda) const
-{
-    /* Compute the olsen correction :
+Eigen::VectorXd DavidsonSolver::_olsen_correction(Eigen::VectorXd &r,
+                                                  Eigen::VectorXd &x,
+                                                  Eigen::VectorXd &D,
+                                                  double lambda) const {
+  /* Compute the olsen correction :
 
-    \delta = (D-\lambda)^{-1} (-r + \epsilon x)
+  \delta = (D-\lambda)^{-1} (-r + \epsilon x)
 
-    */
+  */
 
-    int size = r.rows();
-    Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
+  int size = r.rows();
+  Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
 
-    delta = DavidsonSolver::_dpr_correction(r,D,lambda);
+  delta = DavidsonSolver::_dpr_correction(r, D, lambda);
 
-    double _num = - x.transpose() * delta;
-    double _denom = - x.transpose() * DavidsonSolver::_dpr_correction(x,D,lambda);
-    double eps = _num / _denom;
+  double _num = -x.transpose() * delta;
+  double _denom =
+      -x.transpose() * DavidsonSolver::_dpr_correction(x, D, lambda);
+  double eps = _num / _denom;
 
-    delta += eps * x;
+  delta += eps * x;
 
-    return delta;
+  return delta;
 }
 
-Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const
-{
-    
-    int nrows = A.rows();
-    int ncols = A.cols();
-    ncols = std::min(nrows,ncols);
-    
-    Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
-    return qr.householderQ() * Eigen::MatrixXd::Identity(nrows,ncols);
+Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const {
+
+  int nrows = A.rows();
+  int ncols = A.cols();
+  ncols = std::min(nrows, ncols);
+
+  Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
+  Eigen::MatrixXd result =
+      qr.householderQ() * Eigen::MatrixXd::Identity(nrows, ncols);
+  return result;
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca

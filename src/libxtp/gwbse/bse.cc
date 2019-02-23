@@ -122,7 +122,6 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
 
     DavidsonSolver DS(_log);
     DS.set_correction(_opt.davidson_correction);
-
     if (_opt.matrixfree) {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using matrix free method" << flush;

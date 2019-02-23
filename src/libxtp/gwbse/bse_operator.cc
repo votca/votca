@@ -29,7 +29,6 @@ namespace xtp {
 template <int cqp, int cx, int cd, int cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index) const {
   Eigen::VectorXd col = Eigen::VectorXd::Zero(_bse_size);
-
   if (cx != 0) {
     col += cx * Hx_col(index);
   }
@@ -62,7 +61,6 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_col(int index) const {
       factor *
       (_Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize)).transpose();
 
-#pragma omp parallel for
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     const Eigen::MatrixXd& Mmn2 = _Mmn[v2 + vmin];
     const Eigen::VectorXd Mmnx2 =
@@ -91,7 +89,6 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_col(int index) const {
   const Eigen::MatrixXd Mmn2xMmn1T =
       Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
 
-#pragma omp parallel for
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     int i2 = vc.I(v2, 0);
     Hcol.segment(i2, _bse_ctotal) = -Mmn2xMmn1T.col(v2);
@@ -133,16 +130,15 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_col(int index) const {
   int c1 = vc.c(index);
 
   Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
-  int factor = 1;
+
   const Eigen::MatrixXd Mmn2T =
-      factor * (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
-                _epsilon_0_inv.asDiagonal())
-                   .transpose();
+      (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
+       _epsilon_0_inv.asDiagonal())
+          .transpose();
   const Eigen::MatrixXd& Mmn1 = _Mmn[v1 + vmin];
   Eigen::MatrixXd Mmn1xMmn2T =
       Mmn1.block(cmin, 0, _bse_ctotal, auxsize) * Mmn2T;
 
-#pragma omp parallel for
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     int i2 = vc.I(v2, 0);
     Hcol.segment(i2, _bse_ctotal) = -Mmn1xMmn2T.col(v2);
