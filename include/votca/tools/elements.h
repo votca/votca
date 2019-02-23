@@ -53,6 +53,9 @@ class Elements {
         _filled_EleShort(false),
         _filled_EleFull(false){};
 
+  /// Determine if the name is a recognized element symbol or name
+  bool isElement(std::string name);
+
   /// ChelpG is a method for calculating the electrostatic potential outside
   /// of a molecule. The VdWChelpG radius in this case is specific to each
   /// element and defines the radius outside of which the electrostatic
@@ -95,6 +98,12 @@ class Elements {
   /// Provided the full element name returns the element symbol
   /// "Hydrogen" = "H", "HELIUM" = "He",...
   std::string getEleShort(std::string elefull);
+
+  /// Is `eleshort` recognized an element symbol i.e. H, C, He, Ne etc
+  bool isEleShort(std::string eleshort);
+
+  /// Is `elefull` recognized as an element name i.e. Carbon, HYDROGEN, suphur
+  bool isEleFull(std::string elefull);
 
   bool isMassAssociatedWithElement(double mass, double tolerance);
 

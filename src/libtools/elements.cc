@@ -17,6 +17,7 @@
  *
  */
 
+#include <boost/algorithm/string.hpp>
 #include <votca/tools/elements.h>
 
 using namespace votca::tools;
@@ -25,6 +26,10 @@ using namespace std;
 /*************************
  * Public Facing Methods *
  *************************/
+bool Elements::isElement(std::string name) {
+  return isEleShort(name) || isEleFull(name);
+}
+
 double Elements::getNucCrg(std::string name) {
   if (!this->_filled_NucCrg) {
     this->FillNucCrg();
@@ -116,12 +121,37 @@ string Elements::getEleName(int elenum) {
   return _EleName.at(elenum);
 }
 
+string Elements::getEleFull(string eleshort) {
+  if (!this->_filled_EleFull) {
+    this->FillEleFull();
+    _filled_EleFull = true;
+  }
+  return _EleFull.at(eleshort);
+}
+
 string Elements::getEleShort(string elefull) {
   if (!this->_filled_EleShort) {
     this->FillEleShort();
     _filled_EleShort = true;
   }
   return _EleShort.at(elefull);
+}
+
+bool Elements::isEleFull(std::string fullname) {
+  if (!this->_filled_EleShort) {
+    this->FillEleShort();
+    _filled_EleShort = true;
+  }
+  string name_upper = boost::to_upper_copy<std::string>(fullname);
+  return _EleShort.count(name_upper);
+}
+
+bool Elements::isEleShort(std::string shortname) {
+  if (!this->_filled_EleFull) {
+    this->FillEleFull();
+    _filled_EleFull = true;
+  }
+  return _EleFull.count(shortname);
 }
 
 bool Elements::isMassAssociatedWithElement(double mass, double tolerance) {
@@ -138,14 +168,6 @@ string Elements::getEleShortClosestInMass(double mass, double tolerance) {
         " with an element the mass exceeds tolerance of a possible match");
   }
   return closestMatch.first;
-}
-
-string Elements::getEleFull(string eleshort) {
-  if (!this->_filled_EleFull) {
-    this->FillEleFull();
-    _filled_EleFull = true;
-  }
-  return _EleFull.at(eleshort);
 }
 
 /*******************
