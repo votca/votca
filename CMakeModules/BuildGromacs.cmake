@@ -2,8 +2,8 @@ include(ExternalProject)
 include(GNUInstallDirs)
 # ftp://ftp.gromacs.org/pub/gromacs/gromacs-XXX.tar.gz is too unstable for CI, so use Gentoo Mirror
 ExternalProject_Add(Gromacs_build
-  URL http://distfiles.gentoo.org/distfiles/gromacs-2018.5.tar.gz
-  URL_MD5 1484e421721b7787becf6f88d23292e6
+  URL http://distfiles.gentoo.org/distfiles/gromacs-2018.6.tar.gz
+  URL_MD5 997f2b8108197780d61b23b5eb05644a
   PREFIX gromacs INSTALL_DIR gromacs/install
   CMAKE_ARGS 
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
@@ -19,7 +19,7 @@ ExternalProject_Add(Gromacs_build
 ExternalProject_get_property(Gromacs_build INSTALL_DIR)
 set(GROMACS_LIBRARY "${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libgromacs.so" CACHE STRING "gromacs library" FORCE)
 set(GROMACS_INCLUDE_DIR "${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "gromacs inclde dir" FORCE)
-set(GROMACS_VERSION 20180004)
+set(GROMACS_VERSION 20180006)
 set(FOUND_GROMACS_VERSION_CXX TRUE CACHE INTERNAL "" FORCE)
 set(FOUND_GMX_IS_SINGLE_PRECISION TRUE CACHE INTERNAL "" FORCE)
 set(FOUND_GMX_IS_DOUBLE_PRECISION FALSE CACHE INTERNAL "" FORCE)
