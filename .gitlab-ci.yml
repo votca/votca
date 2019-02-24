@@ -261,6 +261,7 @@ Release GCC OWN GMX:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_nogmx"
     CXXFLAGS: "-Wall"
     BUILD_GROMACS: "yes"
   extends: .build
