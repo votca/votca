@@ -166,7 +166,6 @@ void BSE::Solve_singlets_BTDA() {
 
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
-
   // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
   // positive definite
   //(A-B) is not needed any longer and can be overwritten
@@ -180,7 +179,6 @@ void BSE::Solve_singlets_BTDA() {
       AmB(i, j) = 0;
     }
   }
-
   if (L.info() != 0) {
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp()
@@ -213,8 +211,9 @@ void BSE::Solve_singlets_BTDA() {
         << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
   }
   ApB.resize(0, 0);
-  _bse_singlet_energies = eigenvalues.cwiseSqrt();
-
+  Eigen::VectorXd tempvec =
+      eigenvalues.cwiseSqrt();  // has to stay otherwise mkl complains
+  _bse_singlet_energies = tempvec;
   // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 +
   // 1/sqrt(eps_l)L ] R_l
   //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 -
@@ -222,7 +221,6 @@ void BSE::Solve_singlets_BTDA() {
   // determine inverse of L^T
   Eigen::MatrixXd LmT = AmB.inverse().transpose();
   int dim = LmT.rows();
-  _bse_singlet_energies.resize(_opt.nmax);
   _bse_singlet_coefficients.resize(dim, _opt.nmax);  // resonant part (_X_evec)
   _bse_singlet_coefficients_AR.resize(
       dim, _opt.nmax);  // anti-resonant part (_Y_evec)
@@ -236,7 +234,6 @@ void BSE::Solve_singlets_BTDA() {
         (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) *
          eigenvectors.col(level));
   }
-
   return;
 }
 

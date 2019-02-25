@@ -238,9 +238,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   orbitals.setBSEindices(0, 16);
   votca::ctp::Logger log;
+
   BSE bse = BSE(orbitals, log, Mmn, Hqp);
   orbitals.setTDAApprox(true);
-
   ////////////////////////////////////////////////////////
   // TDA Singlet lapack, davidson, davidson matrix free
   ////////////////////////////////////////////////////////
@@ -289,7 +289,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt);
   bse.Solve_singlets();
   bse.Analyze_singlets(aobasis);
-
   bool check_se = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se) {
     cout << "Singlets energy" << endl;
@@ -301,7 +300,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   Eigen::MatrixXd projection =
       spsi_ref.transpose() * orbitals.BSESingletCoefficients();
   Eigen::VectorXd norms = projection.colwise().norm();
-
   bool check_spsi = norms.isApproxToConstant(1, 1e-5);
   if (!check_spsi) {
     cout << "Norms" << norms << endl;
@@ -410,9 +408,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.matrixfree = 0;
   bse.configure(opt);
   orbitals.setTDAApprox(false);
-
   bse.Solve_singlets();
-
   bool check_se_btda =
       se_ref_btda.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_btda) {
