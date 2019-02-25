@@ -123,7 +123,7 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
     // }
 
     // make the mat mat product
-    #pragma omp parallel
+    #pragma omp parallel for
     for (int j = 0; j < m.cols(); j++) {
       for (int i = 0; i < op.cols(); i++) dst.col(j) += m(i, j) * op.col(i);
     }
