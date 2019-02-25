@@ -58,6 +58,10 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 }  // namespace xtp
 }  // namespace votca
 
+//user defined reduction
+#pragma omp declare reduction(+: Eigen::VectorXd: omp_out=omp_out+omp_in )\
+  initializer(omp_priv=Eigen::VectorXd::Zero(omp_orig.size()))
+
 namespace Eigen {
 
 namespace internal {
@@ -86,7 +90,10 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype, DenseShape,
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
     // make the mat vect product
-    for (int i = 0; i < op.cols(); i++) dst += v(i) * op.col(i);
+    #pragma omp parallel for reduction(+: dst)
+    for (int i = 0; i < op.cols(); i++) { 
+      dst += v(i) * op.col(i);
+    }
   }
 };
 
@@ -110,6 +117,7 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
     // make the mat vect product
+    #pragma omp parallel for
     for (int i = 0; i < op.cols(); i++) {
       for (int j = 0; j < m.cols(); j++) dst.col(j) += m(i, j) * op.col(i);
     }

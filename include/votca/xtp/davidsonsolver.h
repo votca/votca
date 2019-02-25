@@ -143,6 +143,7 @@ class DavidsonSolver {
       // update
       search_space = V.cols();
       old_val = lambda.head(neigen);
+      
       // break if converged
       if (res_norm < tol) {
         has_converged = true;
