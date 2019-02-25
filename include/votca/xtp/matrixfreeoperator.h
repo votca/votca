@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,104 +19,103 @@
 #define __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
 #include <votca/xtp/eigen.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-    class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd>
-    {
-        public: 
+class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
+ public:
+  enum {
+    ColsAtCompileTime = Eigen::Dynamic,
+    MaxColsAtCompileTime = Eigen::Dynamic,
+    IsRowMajor = false
+  };
 
-            enum {
-                ColsAtCompileTime = Eigen::Dynamic,
-                MaxColsAtCompileTime = Eigen::Dynamic,
-                IsRowMajor = false
-            };
+  Index rows() const { return this->_size; }
+  Index cols() const { return this->_size; }
 
-            Index rows() const {return this-> _size;}
-            Index cols() const {return this-> _size;}
+  template <typename Vtype>
+  Eigen::Product<MatrixFreeOperator, Vtype, Eigen::AliasFreeProduct> operator*(
+      const Eigen::MatrixBase<Vtype>& x) const {
+    return Eigen::Product<MatrixFreeOperator, Vtype, Eigen::AliasFreeProduct>(
+        *this, x.derived());
+  }
 
-            template<typename Vtype>
-            Eigen::Product<MatrixFreeOperator,Vtype,Eigen::AliasFreeProduct> operator*(const Eigen::MatrixBase<Vtype>& x) const {
-                return Eigen::Product<MatrixFreeOperator,Vtype,Eigen::AliasFreeProduct>(*this, x.derived());
-            }
+  // convenience function
+  Eigen::MatrixXd get_full_matrix() const;
+  Eigen::VectorXd diagonal() const;
+  int size() const;
+  void set_size(int size);
 
-            // custom API
-            MatrixFreeOperator();
+  // extract row/col of the operator
+  virtual Eigen::VectorXd col(int index) const = 0;
 
-            // convenience function
-            Eigen::MatrixXd get_full_matrix() const;
-            Eigen::VectorXd diagonal() const;
-            int size() const; 
-            void set_size(int size);
+ private:
+  int _size;
+  Eigen::VectorXd diag_el;
 
-            // extract row/col of the operator
-            virtual Eigen::VectorXd col(int index) const = 0;
+ private:
+};
+}  // namespace xtp
+}  // namespace votca
 
-            int _size;
-            Eigen::VectorXd diag_el;    
+namespace Eigen {
 
-        private:
+namespace internal {
 
-    };
-}}
+template <>
+struct traits<votca::xtp::MatrixFreeOperator>
+    : public Eigen::internal::traits<Eigen::MatrixXd> {};
 
+// replacement of the mat*vect operation
+template <typename Vtype>
+struct generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype, DenseShape,
+                            DenseShape, GemvProduct>
+    : generic_product_impl_base<
+          votca::xtp::MatrixFreeOperator, Vtype,
+          generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype>> {
 
-namespace Eigen{
-    
-    namespace internal{
+  typedef
+      typename Product<votca::xtp::MatrixFreeOperator, Vtype>::Scalar Scalar;
 
+  template <typename Dest>
+  static void scaleAndAddTo(Dest& dst, const votca::xtp::MatrixFreeOperator& op,
+                            const Vtype& v, const Scalar& alpha) {
+    // returns dst = alpha * op * v
+    // alpha must be 1 here
+    assert(alpha == Scalar(1) && "scaling is not implemented");
+    EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
+    // make the mat vect product
+    for (int i = 0; i < op.cols(); i++) dst += v(i) * op.col(i);
+  }
+};
 
-        template<>
-        struct traits<votca::xtp::MatrixFreeOperator> : public Eigen::internal::traits<Eigen::MatrixXd> {};
+// replacement of the mat*mat operation
+template <typename Mtype>
+struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
+                            DenseShape, GemmProduct>
+    : generic_product_impl_base<
+          votca::xtp::MatrixFreeOperator, Mtype,
+          generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype>> {
 
-        // replacement of the mat*vect operation
-        template<typename Vtype>
-        struct generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype, DenseShape, DenseShape, GemvProduct> 
-        : generic_product_impl_base<votca::xtp::MatrixFreeOperator,Vtype,generic_product_impl<votca::xtp::MatrixFreeOperator,Vtype>>
-        {
+  typedef
+      typename Product<votca::xtp::MatrixFreeOperator, Mtype>::Scalar Scalar;
 
-            typedef typename Product<votca::xtp::MatrixFreeOperator,Vtype>::Scalar Scalar;
+  template <typename Dest>
+  static void scaleAndAddTo(Dest& dst, const votca::xtp::MatrixFreeOperator& op,
+                            const Mtype& m, const Scalar& alpha) {
+    // returns dst = alpha * op * v
+    // alpha must be 1 here
+    assert(alpha == Scalar(1) && "scaling is not implemented");
+    EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
-            template<typename Dest>
-            static void scaleAndAddTo(Dest& dst, const votca::xtp::MatrixFreeOperator& op, const Vtype &v, const Scalar& alpha)
-            {
-                //returns dst = alpha * op * v
-                // alpha must be 1 here
-                assert(alpha==Scalar(1) && "scaling is not implemented");
-                EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-
-                // make the mat vect product
-                for (int i=0; i<op.cols(); i++)
-                    dst += v(i) * op.col(i);
-            }
-        };
-
-        // replacement of the mat*mat operation
-        template<typename Mtype>
-        struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape, DenseShape, GemmProduct> 
-        : generic_product_impl_base<votca::xtp::MatrixFreeOperator,Mtype,generic_product_impl<votca::xtp::MatrixFreeOperator,Mtype>>
-        {
-
-            typedef typename Product<votca::xtp::MatrixFreeOperator,Mtype>::Scalar Scalar;
-
-            template<typename Dest>
-            static void scaleAndAddTo(Dest& dst, const votca::xtp::MatrixFreeOperator& op, const Mtype &m, const Scalar& alpha)
-            {
-                //returns dst = alpha * op * v
-                // alpha must be 1 here
-                assert(alpha==Scalar(1) && "scaling is not implemented");
-                EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-
-                // make the mat vect product
-                for (int i=0; i<op.cols();i++)
-                {
-                    for (int j=0; j<m.cols(); j++)
-                        dst.col(j) += m(i,j) * op.col(i);   
-                }
-                    
-            }
-        };
+    // make the mat vect product
+    for (int i = 0; i < op.cols(); i++) {
+      for (int j = 0; j < m.cols(); j++) dst.col(j) += m(i, j) * op.col(i);
     }
-}
+  }
+};
+}  // namespace internal
+}  // namespace Eigen
 
-#endif //__VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
+#endif  //__VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H

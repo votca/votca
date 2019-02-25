@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(votca-xtp)
 
 
-set(PROJECT_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.6-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -49,14 +49,6 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-if(GWBSE_DOUBLE)
-   add_definitions(-DGWBSE_DOUBLE)
-    set(GWBSE_DOUBLE_VALUE 1)
-else()
-    set(GWBSE_DOUBLE_VALUE 0)
-endif()
-add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
-
 
 find_package(LIBXC REQUIRED)
 include_directories(${LIBXC_INCLUDE_DIRS})

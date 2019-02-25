@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,49 +20,41 @@
 #ifndef _VOTCA_XTP_BSE_OPERATOR_H
 #define _VOTCA_XTP_BSE_OPERATOR_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/threecenter.h>
-#include <votca/xtp/qmstate.h>
+#include <votca/ctp/logger.h>
+#include <votca/xtp/eigen.h>
 #include <votca/xtp/matrixfreeoperator.h>
-
-class BSE;
+#include <votca/xtp/threecenter.h>
 
 namespace votca {
 namespace xtp {
 
-template<int cqp, int cx, int cd, int cd2>
+struct BSEOperator_Options {
+  int homo;
+  int rpamin;
+  int qpmin;
+  int vmin;
+  int cmax;
+};
+
+template <int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR : public MatrixFreeOperator {
 
  public:
- 
-  BSE_OPERATOR(Orbitals& orbitals,ctp::Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
-        _log(log),
-        _orbitals(orbitals),
-        _Mmn(Mmn),_Hqp(Hqp){};
+  BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, ctp::Logger& log,
+               TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
+      : _epsilon_0_inv(Hd_operator), _log(log), _Mmn(Mmn), _Hqp(Hqp){};
 
-  struct options {
-      int homo;
-      int rpamin;
-      int rpamax;
-      int qpmin;
-      int vmin; 
-      int cmax; 
-      };
+  void configure(BSEOperator_Options opt) {
+    _opt = opt;
+    int bse_vmax = _opt.homo;
+    _bse_cmin = _opt.homo + 1;
+    _bse_vtotal = bse_vmax - _opt.vmin + 1;
+    _bse_ctotal = _opt.cmax - _bse_cmin + 1;
+    _bse_size = _bse_vtotal * _bse_ctotal;
+    this->set_size(_bse_size);
+  }
 
-  int  _bse_vmax;
-  int  _bse_cmin;
-  int  _bse_size;
-  int  _bse_vtotal;
-  int  _bse_ctotal; 
-
-  options _opt;
-
-  void SetupDirectInteractionOperator();
-  
-  protected: 
-
-  
+ protected:
   Eigen::VectorXd col(int index) const;
 
   Eigen::VectorXd Hqp_col(int index) const;
@@ -70,36 +62,32 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   Eigen::VectorXd Hd_col(int index) const;
   Eigen::VectorXd Hd2_col(int index) const;
 
-  private:
+ private:
+  BSEOperator_Options _opt;
+  int _bse_size;
+  int _bse_vtotal;
+  int _bse_ctotal;
+  int _bse_cmin;
 
-  struct Interaction {
-    Eigen::VectorXd exchange_contrib;
-    Eigen::VectorXd direct_contrib;
-    Eigen::VectorXd qp_contrib;
-  };
-
-  ctp::Logger &_log;
-  Orbitals& _orbitals;
+  ctp::Logger& _log;
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
-  VectorXfd _epsilon_0_inv;   
- 
+  Eigen::VectorXd _epsilon_0_inv;
 };
 
-
 // type defs for the different operators
-typedef BSE_OPERATOR<1,2,1,0> SingletOperator_TDA;
-typedef BSE_OPERATOR<1,0,1,0> TripletOperator_TDA;
+typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
+typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
 
-typedef BSE_OPERATOR<1,4,1,1> SingletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1,0,1,-1> SingletOperator_BTDA_AmB;
+typedef BSE_OPERATOR<1, 4, 1, 1> SingletOperator_BTDA_ApB;
+typedef BSE_OPERATOR<1, 0, 1, -1> SingletOperator_BTDA_AmB;
 
-typedef BSE_OPERATOR<1,0,0,0> HqpOperator;
-typedef BSE_OPERATOR<0,1,0,0> HxOperator;
-typedef BSE_OPERATOR<0,0,1,0> HdOperator;
-typedef BSE_OPERATOR<0,0,0,1> Hd2Operator;
+typedef BSE_OPERATOR<1, 0, 0, 0> HqpOperator;
+typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;
+typedef BSE_OPERATOR<0, 0, 1, 0> HdOperator;
+typedef BSE_OPERATOR<0, 0, 0, 1> Hd2Operator;
 
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _VOTCA_XTP_BSE_OP_H */

@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,48 +18,33 @@
 #include <iostream>
 #include <votca/xtp/matrixfreeoperator.h>
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+Eigen::VectorXd MatrixFreeOperator::diagonal() const {
+  Eigen::VectorXd D = Eigen::VectorXd::Zero(_size);
+  Eigen::VectorXd col_data;
+  for (int i = 0; i < _size; i++) {
+    col_data = this->col(i);
+    D(i) = col_data(i);
+  }
+  return D;
+}
 
+// get the full matrix if we have to
+Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
+  Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
+  for (int i = 0; i < _size; i++) {
+    matrix.col(i) = this->col(i);
+  }
+  return matrix;
+}
 
-    MatrixFreeOperator::MatrixFreeOperator() {}
+// get the size
+int MatrixFreeOperator::size() const { return this->_size; }
 
-    // virtual here : get a col of the operator
-    Eigen::VectorXd MatrixFreeOperator::col(int index) const 
-    {
-         throw std::runtime_error("MatrixFreeOperator.col() not defined in class");
-    }
+// set the size
+void MatrixFreeOperator::set_size(int size) { this->_size = size; }
 
-    Eigen::VectorXd MatrixFreeOperator::diagonal() const
-    {
-        Eigen::VectorXd D = Eigen::VectorXd::Zero(_size,1);
-        Eigen::VectorXd col_data;
-        for(int i=0; i<_size;i++) {
-            col_data = this->col(i);
-            D(i) = col_data(i);
-        }
-        return D;
-    }
-
-    // get the full matrix if we have to
-    Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const
-    {
-    	Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size,_size);
-        for(int i=0; i<_size; i++) {
-            matrix.col(i) = this->col(i);
-        }
-        return matrix; 
-    }
-
-
-    // get the size
-    int MatrixFreeOperator::size() const { return this->_size; }
-
-    // set the size
-    void MatrixFreeOperator::set_size(int size)
-    {
-        std::cout << "Set Matrix Size : " << size << "x" << size << std::endl;
-        this->_size = size;
-    }
-
-}}
+}  // namespace xtp
+}  // namespace votca
