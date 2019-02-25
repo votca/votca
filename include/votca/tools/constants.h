@@ -63,6 +63,15 @@ const double ev2kj_per_mol = 96.485;
 
 }  // namespace conv
 
+namespace topology_constants {
+const std::string unassigned_element = "unassigned";
+const std::string unassigned_bead_type = "unassigned";
+const std::string unassigned_residue_type = "unassigned";
+const std::string unassigned_molecule_type = "unassigned";
+
+const int unassigned_residue_id = -1;
+const int unassigned_molecule_id = -1;
+}  // namespace topology_constants
 }  // namespace tools
 }  // namespace votca
 
