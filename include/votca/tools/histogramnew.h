@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@
 #ifndef _VOTCA_TOOLS_HISTOGRAMNEW_H
 #define _VOTCA_TOOLS_HISTOGRAMNEW_H
 
+#include "table.h"
+#include <cmath>
 #include <iostream>
 #include <limits>
-#include <cmath>
-#include "table.h"
 
 namespace votca {
 namespace tools {
@@ -71,28 +71,21 @@ namespace tools {
  *
  *  0.00 - 0.416 and 4.580 - 5.00
  *
-*/
+ */
 class HistogramNew {
  public:
-  /// constructor
-  HistogramNew();
-  /// constructor
-  HistogramNew(const HistogramNew &hist);
-
-  /// destructor
-  ~HistogramNew() {};
+  /**
+   * \brief Initialize the HistogramNew
+   * @param min lower bound of interval
+   * @param max upper bound of interval
+   * @param nbins number of bins
+   */
+  void Initialize(double min, double max, int nbins);
 
   /**
-         * \brief Initialize the HistogramNew
-         * @param min lower bound of interval
-         * @param max upper bound of interval
-         * @param nbins number of bins
-         */ void Initialize(double min, double max, int nbins);
-
-  /**
-    * \brief process a data point
-    * \param v value of this point
-    * \scale scale weighting of this point, bin of v is increased by scale
+   * \brief process a data point
+   * \param v value of this point
+   * \scale scale weighting of this point, bin of v is increased by scale
    * instead of 1
    */
   void Process(const double &v, double scale = 1.0);
@@ -119,7 +112,7 @@ class HistogramNew {
    * \brief Get number of grid points
    * \return number of grid poitns
    */
-  double getNBins() const { return _nbins; }
+  int getNBins() const { return _nbins; }
 
   /**
    * \brief Get the count of the bin with the fewest counts
@@ -132,7 +125,6 @@ class HistogramNew {
    * \return maximum counts
    */
   double getMaxBinVal() const;
-
   /**
    * \brief Given the bin number get the Inverval bounds
    * @param[in] bin - pass in the index of the bin
@@ -144,7 +136,7 @@ class HistogramNew {
    * \brief get the grid of histogram
    * \return step per bin
    */
-  double getStep() const { return _periodic ? _step_p : _step; }
+  double getStep() const { return _step; }
 
   /**
    * \brief normalize the histogram that the integral is 1
@@ -160,7 +152,7 @@ class HistogramNew {
    * \brief get access to content of histogram
    * \return table object with bins in x and values in y
    */
-  Table &data() { return _periodic ? _data_p : _data; }
+  Table &data() { return _data; }
 
   /**
    * \brief set whether interval is periodic
@@ -169,19 +161,13 @@ class HistogramNew {
   void setPeriodic(bool periodic) { _periodic = periodic; }
 
  private:
-  void InitializeP_(double min, double max);
   void Initialize_(double min, double max);
-  void ProcessP_(const double &v, double scale);
-  void Process_(const double &v, double scale);
-  void Normalize_(const double step, Table &data);
-  double _min, _max;
-  double _step;
-  double _step_p;
-  double _weight;
-  bool _periodic;
-  int _nbins;
+  double _min = 0;
+  double _max = 0;
+  double _step = 0;
+  bool _periodic = false;
+  int _nbins = 100;
   Table _data;
-  Table _data_p;
 };
 
 inline std::ostream &operator<<(std::ostream &out, HistogramNew &h) {
@@ -194,6 +180,6 @@ inline void HistogramNew::ProcessRange(const iterator_type &begin,
                                        const iterator_type &end) {
   for (iterator_type iter = begin; iter != end; ++iter) Process(*iter);
 }
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // _VOTCA_TOOLS_HISTOGRAMNEW_H

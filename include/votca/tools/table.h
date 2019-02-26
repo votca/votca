@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,12 @@
 #ifndef VOTCA_TOOLS_TABLE_H
 #define VOTCA_TOOLS_TABLE_H
 
-#include <votca/tools/eigen.h>
-#include <vector>
 #include <string>
+#include <vector>
+#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace tools {
-
-// the entry is invalid, e.g. could not be calculated (ln(0), ...)
-#define TBL_INVALID 1
 
 /**
     \brief class to store tables like rdfs, tabulated potentials, etc
@@ -37,16 +34,11 @@ namespace tools {
  */
 class Table {
  public:
-  Table();
-  Table(Table &tbl);
-
-  ~Table() {};
-
   void clear();
 
   void GenerateGridSpacing(double min, double max, double spacing);
   void resize(int N);
-   int size() const { return _x.size(); }
+  int size() const { return _x.size(); }
 
   double &x(int i) { return _x[i]; }
   double &y(int i) { return _y[i]; }
@@ -120,53 +112,37 @@ class Table {
   Eigen::VectorXd _y;
   std::vector<char> _flags;
   Eigen::VectorXd _yerr;
-  std::string _error_details;
+  std::string _error_details = "";
 
-  bool _has_yerr;
-  bool _has_comment;
+  bool _has_yerr = false;
+  bool _has_comment = false;
 
   friend std::ostream &operator<<(std::ostream &out, const Table &v);
-  friend std::istream &operator>>(std::istream &in , Table &t);
+  friend std::istream &operator>>(std::istream &in, Table &t);
 
   std::string _comment_line;
 };
 
-inline Table::Table() {
-  _has_yerr = false;
-  _has_comment = false;
-  _error_details = "";
-}
-
-inline Table::Table(Table &tbl) {
-  _x = tbl._x;
-  _y = tbl._y;
-  _flags = tbl._flags;
-  _has_yerr = tbl._has_yerr;
-  if (_has_yerr) _yerr = tbl._yerr;
-  _has_comment = false;
-  _error_details = "";
-}
-
 inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   // TODO: use a smarter precision guess, XXX.YYYYY=8, so 10 should be enough
   out.precision(10);
-  
+
   if (t._has_yerr) {
     for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
-      if(t._flags[i]!=' '){
-        out  << " "<< t._flags[i] << std::endl;
-      }else{
-        out<<std::endl;  
+      if (t._flags[i] != ' ') {
+        out << " " << t._flags[i] << std::endl;
+      } else {
+        out << std::endl;
       }
     }
   } else {
     for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i];
-       if(t._flags[i]!=' '){
-        out  << " "<< t._flags[i] << std::endl;
-      }else{
-        out<<std::endl;  
+      if (t._flags[i] != ' ') {
+        out << " " << t._flags[i] << std::endl;
+      } else {
+        out << std::endl;
       }
     }
   }
@@ -180,6 +156,6 @@ inline void Table::push_back(double x, double y, char flags) {
   _y[n] = y;
   _flags[n] = flags;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // VOTCA_TOOLS_TABLE_H

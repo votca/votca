@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -44,13 +44,13 @@ class Graph_BF_Visitor : public GraphVisitor {
 
   /// The core of the breadth first visitor is in how the edges are added
   /// to the queue in this function
-  void addEdges_(Graph& g, int vertex);
-  Edge getEdge_(Graph g);
+  void addEdges_(const Graph& graph, int vertex);
+  Edge getEdge_(const Graph& graph);
 
  public:
   Graph_BF_Visitor(){};
-  bool queEmpty();
+  bool queEmpty() const;
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H

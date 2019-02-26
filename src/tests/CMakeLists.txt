@@ -1,4 +1,4 @@
-find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 
 # Each test listed in Alphabetical order
 foreach(PROG
@@ -10,6 +10,7 @@ foreach(PROG
     test_floatingpointcomparison
     test_graph_base
     test_graph_bf_visitor
+    test_graph_df_visitor
     test_graphalgorithm
     test_graphdistvisitor
     test_graphnode
@@ -19,8 +20,11 @@ foreach(PROG
     test_linalg
     test_matrix
     test_name
+    test_reducededge
+    test_reducedgraph
     test_table
     test_thread
+    test_tokenizer
     test_typeconverter
     test_vec
     test_property)

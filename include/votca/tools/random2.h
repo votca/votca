@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@
      MARSAGLIA pseudo random number generator
      See: G. Marsaglia and A. Zaman. Toward a universal random number generator,
           Statistics & Probability Letters, 9(1):35–39, 1990.
-     This function returns a double precision floating point number 
+     This function returns a double precision floating point number
      uniformly distributed in the range [0,1)
 *************************************************/
 
 #ifndef _VOTCA_TOOLS_RANDOM2_H_
 #define _VOTCA_TOOLS_RANDOM2_H_
 
-
 #include <vector>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 /**
   \brief MARSAGLIA pseudo random number generator
@@ -38,28 +38,25 @@ namespace votca { namespace tools {
   uniformly distributed in the range [0,1)
 */
 
-class Random2
-{
-public:
+class Random2 {
+ public:
+  Random2(){};
+  ~Random2(){};
 
-    Random2() {};
-   ~Random2() {};
+  void init(int nA1, int nA2, int nA3, int nB1);
 
-    void    init( int nA1, int nA2, int nA3, int nB1 );
+  double rand_uniform(void);
+  int rand_uniform_int(int max_int);
+  double rand_gaussian(double sigma);
 
-    double  rand_uniform( void );
-    int     rand_uniform_int( int max_int );
-    double  rand_gaussian( double sigma );
-
-private:
-    
-    
-    static const int MARS_FIELD_SIZE = 98;
-    std::vector<double> MARSarray;
-    double  MARSc, MARScd, MARScm ;
-    int     MARSi, MARSj ; 
+ private:
+  static const int MARS_FIELD_SIZE = 98;
+  std::vector<double> MARSarray;
+  double MARSc, MARScd, MARScm;
+  int MARSi, MARSj;
 };
 
-}}
+}  // namespace tools
+}  // namespace votca
 
-#endif	/* _RANMARS2_H_ */
+#endif /* _RANMARS2_H_ */

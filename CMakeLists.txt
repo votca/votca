@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(votca-tools)
 
-set(PROJECT_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.6-dev")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
   message(FATAL_ERROR "Could not determind SOVERSION from ${PROJECT_VERSION}")
@@ -60,7 +60,7 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 find_package(Threads REQUIRED)
 set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
 set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")

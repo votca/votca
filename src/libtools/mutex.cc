@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,15 @@
 #include <votca/tools/mutex.h>
 
 namespace votca {
-    namespace tools {
+namespace tools {
 
-        Mutex::Mutex() {
-            pthread_mutex_init(&_mutexVar, NULL);
+Mutex::Mutex() { pthread_mutex_init(&_mutexVar, NULL); }
 
-        }
+Mutex::~Mutex() { pthread_mutex_destroy(&_mutexVar); }
 
-        Mutex::~Mutex() {
-            pthread_mutex_destroy(&_mutexVar);
-        }
+void Mutex::Lock() { pthread_mutex_lock(&_mutexVar); }
 
-        void Mutex::Lock() {
-            pthread_mutex_lock(&_mutexVar);
-        }
+void Mutex::Unlock() { pthread_mutex_unlock(&_mutexVar); }
 
-        void Mutex::Unlock() {
-            pthread_mutex_unlock(&_mutexVar);
-        }
-
-    }
-}
-
+}  // namespace tools
+}  // namespace votca
