@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,81 +16,81 @@
  */
 
 #ifndef _VOTCA_CSG_CGMOLECULEDEF_H
-#define	_VOTCA_CSG_CGMOLECULEDEF_H
+#define _VOTCA_CSG_CGMOLECULEDEF_H
 
-#include <string>
-#include <vector>
+#include <list>
 #include <map>
 #include <string>
-#include <votca/tools/property.h>
-#include "map.h"
-#include <votca/tools/types.h>
+#include <vector>
+
 #include "exclusionlist.h"
+#include "map.h"
 #include "molecule.h"
+#include <votca/tools/property.h>
+#include <votca/tools/types.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 using namespace votca::tools;
-
-using namespace std;
 
 /**
     \brief definition of a coarse grained molecule
 
-    This class is to define a coarse grained molecule, which includes the topology, mapping, ...
+    This class is to define a coarse grained molecule, which includes the
+   topology, mapping, ...
 
     \todo clean up this class, do the bonded interactions right!!!!
     \todo check for consistency of xml file, seperate xml parser and class!!
 */
-class CGMoleculeDef
-{
-public:
-    CGMoleculeDef() {}
-    ~CGMoleculeDef();
-        
-    Molecule *CreateMolecule(Topology & top);
-    Map *CreateMap(Molecule &in, Molecule &out);
+class CGMoleculeDef {
+ public:
+  CGMoleculeDef() {}
+  ~CGMoleculeDef();
 
-    void Load(string filename);
-    
-    const string &getName() { return _name; }
-    const string &getIdent() { return _ident; }
-    
-private:
-    Property _options;
-    
-    struct beaddef_t {
-        string _name;
-        string _type;
-        byte_t _symmetry;
-        string _mapping;
-        vector<string> _subbeads;
-        Property *_options;
-    };    
+  Molecule *CreateMolecule(Topology &top);
+  Map *CreateMap(Molecule &in, Molecule &out);
 
-    // name of the coarse grained molecule
-    string _name;
-    // name of the molecule to coarse grain
-    string _ident;
-    
-    // beads of the cg molecule
-    vector<beaddef_t *> _beads;
-    map<string, beaddef_t *> _beads_by_name;
-    
-    // mapping schemes
-    map<string, Property *> _maps;
-    
-    list<Property *> _bonded;
-    
-    void ParseTopology(Property &options);
-    void ParseBeads(Property &options);
-    void ParseBonded(Property &options);
-    void ParseMapping(Property &options);
-        
-    beaddef_t *getBeadByName(const string &name);
-    Property *getMapByName(const string &name);
+  void Load(std::string filename);
+
+  const std::string &getName() { return _name; }
+  const std::string &getIdent() { return _ident; }
+
+ private:
+  Property _options;
+
+  struct beaddef_t {
+    std::string _name;
+    std::string _type;
+    byte_t _symmetry;
+    std::string _mapping;
+    std::vector<std::string> _subbeads;
+    Property *_options;
+  };
+
+  // name of the coarse grained molecule
+  std::string _name;
+  // name of the molecule to coarse grain
+  std::string _ident;
+
+  // beads of the cg molecule
+  std::vector<beaddef_t *> _beads;
+  std::map<std::string, beaddef_t *> _beads_by_name;
+
+  // mapping schemes
+  std::map<std::string, Property *> _maps;
+
+  std::list<Property *> _bonded;
+
+  void ParseTopology(Property &options);
+  void ParseBeads(Property &options);
+  void ParseBonded(Property &options);
+  void ParseMapping(Property &options);
+
+  beaddef_t *getBeadByName(const std::string &name);
+  Property *getMapByName(const std::string &name);
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _VOTCA_CSG_CGMOLECULEDEF_H */
-
+#endif /* _VOTCA_CSG_CGMOLECULEDEF_H */

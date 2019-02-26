@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,84 +21,78 @@
 using namespace std;
 using namespace votca::csg;
 
-class CsgDumpApp
-    : public CsgApplication
-{
-    string ProgramName() { return "csg_dump"; }
-    void HelpText(ostream &out) { out << "Print atoms that are read from topology file to help"
-        " debugging atom naming."; }
-    void Initialize() {
-        CsgApplication::Initialize();
-        AddProgramOptions("Specific options")
-            ("excl", "  display exclusion list instead of molecule list");
-    }
+class CsgDumpApp : public CsgApplication {
+  string ProgramName() { return "csg_dump"; }
+  void HelpText(ostream &out) {
+    out << "Print atoms that are read from topology file to help"
+           " debugging atom naming.";
+  }
+  void Initialize() {
+    CsgApplication::Initialize();
+    AddProgramOptions("Specific options")(
+        "excl", "  display exclusion list instead of molecule list");
+  }
 
-    bool EvaluateTopology(Topology *top, Topology *top_ref);
+  bool EvaluateTopology(Topology *top, Topology *top_ref);
 
-    bool DoMapping() {return true;}
-    bool DoMappingDefault(void) { return false; }
+  bool DoMapping() { return true; }
+  bool DoMappingDefault(void) { return false; }
 };
 
-int main(int argc, char** argv)
-{
-    CsgDumpApp app;
+int main(int argc, char **argv) {
+  CsgDumpApp app;
 
-    return app.Exec(argc, argv);
+  return app.Exec(argc, argv);
 }
 
-bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref)
-{
-    if(!OptionsMap().count("excl")) {
-        cout << "Boundary Condition: ";
-	if(top->getBoxType()==BoundaryCondition::typeAuto) {
-	  cout << "auto";
-	} else if (top->getBoxType()==BoundaryCondition::typeTriclinic) {
-	  cout << "triclinic";
-	} else if (top->getBoxType()==BoundaryCondition::typeOrthorhombic) {
-	  cout << "orthorhombic";
-	} else if (top->getBoxType()==BoundaryCondition::typeOpen) {
-	  cout << "open";
-	}
-	cout << endl;
-	if (top->getBoxType()!=BoundaryCondition::typeOpen) {
-	  cout << " Box matix:";
-	  matrix box=top->getBox();
-	  for (int i=0;i<3;i++){
-	    for (int j=0;j<3;j++){
-	      cout << " " << box[i][j];
-	    }
-	    cout << endl << "           ";
-	  }
-	}
-
-        cout << "\nList of residues:\n";
-	for (int i=0; i<top->ResidueCount(); i++){
-	  cout << i << " name: " << top->getResidue(i)->getName() <<
-	    " id: " << top->getResidue(i)->getId() << endl;
-	}
-
-        cout << "\nList of molecules:\n";
-        MoleculeContainer::iterator mol;
-        for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
-            cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
-                    << " beads: " << (*mol)->BeadCount() << endl;
-            for (int i = 0; i < (*mol)->BeadCount(); ++i) {
-	        int resnr=(*mol)->getBead(i)->getResnr();
-                cout << (*mol)->getBeadId(i) << " Name " <<
-                        (*mol)->getBeadName(i) << " Type " <<
-			(*mol)->getBead(i)->getType()->getName() << " Mass " <<
-			(*mol)->getBead(i)->getMass() << " Resnr " <<
-			resnr << " Resname " <<
-			top->getResidue(resnr)->getName() << " Charge " <<
-			(*mol)->getBead(i)->getQ() <<
-			endl;
-            }
+bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref) {
+  if (!OptionsMap().count("excl")) {
+    cout << "Boundary Condition: ";
+    if (top->getBoxType() == BoundaryCondition::typeAuto) {
+      cout << "auto";
+    } else if (top->getBoxType() == BoundaryCondition::typeTriclinic) {
+      cout << "triclinic";
+    } else if (top->getBoxType() == BoundaryCondition::typeOrthorhombic) {
+      cout << "orthorhombic";
+    } else if (top->getBoxType() == BoundaryCondition::typeOpen) {
+      cout << "open";
+    }
+    cout << endl;
+    if (top->getBoxType() != BoundaryCondition::typeOpen) {
+      cout << " Box matix:";
+      matrix box = top->getBox();
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          cout << " " << box[i][j];
         }
+        cout << endl << "           ";
+      }
     }
-    else {
-        cout << "\nList of exclusions:\n" << top->getExclusions();
-    }
-    
-    return true;
-}
 
+    cout << "\nList of residues:\n";
+    for (int i = 0; i < top->ResidueCount(); i++) {
+      cout << i << " name: " << top->getResidue(i)->getName()
+           << " id: " << top->getResidue(i)->getId() << endl;
+    }
+
+    cout << "\nList of molecules:\n";
+    MoleculeContainer::iterator mol;
+    for (mol = top->Molecules().begin(); mol != top->Molecules().end(); ++mol) {
+      cout << "molecule: " << (*mol)->getId() + 1 << " " << (*mol)->getName()
+           << " beads: " << (*mol)->BeadCount() << endl;
+      for (int i = 0; i < (*mol)->BeadCount(); ++i) {
+        int resnr = (*mol)->getBead(i)->getResnr();
+
+        cout << (*mol)->getBeadId(i) << " Name " << (*mol)->getBeadName(i)
+             << " Type " << (*mol)->getBead(i)->getType() << " Mass "
+             << (*mol)->getBead(i)->getMass() << " Resnr " << resnr
+             << " Resname " << top->getResidue(resnr)->getName() << " Charge "
+             << (*mol)->getBead(i)->getQ() << endl;
+      }
+    }
+  } else {
+    cout << "\nList of exclusions:\n" << top->getExclusions();
+  }
+
+  return true;
+}

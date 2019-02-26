@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,7 @@ using namespace std;
 using namespace votca::csg;
 using namespace votca::tools;
 
-double randomDouble(double min_val, double max_val) {
-  double random_num =
-      static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
-  return min_val + random_num * (max_val - min_val);
-}
-
-vector<double> getColumnFromFile(string file_name, int column) {
+Eigen::VectorXd getColumnFromFile(string file_name, int column) {
   vector<double> data;
   ifstream file;
   file.open(file_name);
@@ -52,15 +46,9 @@ vector<double> getColumnFromFile(string file_name, int column) {
     }
     file.close();
   }
-  return data;
-}
-
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
+  Eigen::VectorXd result =
+      Eigen::Map<Eigen::VectorXd, Eigen::Unaligned>(data.data(), data.size());
+  return result;
 }
 
 BOOST_AUTO_TEST_SUITE(tabulatedpotential_test)
@@ -114,7 +102,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     byte_t symmetry = 1;
 
     string bead_type_name = "H2";
-    auto bead_type_ptr = top.GetOrCreateBeadType(bead_type_name);
+    top.RegisterBeadType(bead_type_name);
 
     double mass = 0.9;
     double charge = 0.0;
@@ -132,7 +120,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
           string bead_name = to_string(number_of_H2) + "_H2";
           vec bead_pos(x, y, z);
-          auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_ptr,
+          auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                          residue_number, mass, charge);
           bead_ptr->setId(number_of_H2);
           bead_ptr->setPos(bead_pos);
@@ -156,7 +144,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     bonded_statistics.BeginCG(&top, nullptr);
     bonded_statistics.EvalConfiguration(&top, nullptr);
-  } // End of setup
+  }  // End of setup
 
   DataCollection<double> &bonded_values = bonded_statistics.BondedValues();
   cout << "bonded_values after pulling out of statistics "
@@ -179,29 +167,22 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
-    vector<double> column3 = getColumnFromFile(interactions.at(0), 3);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column3 = getColumnFromFile(interactions.at(0), 3);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 3.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 5.86);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 8.73);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 11.59);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 14.46);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 5.16, 1.84, 0.00, 0.36, 5.70;
+    Eigen::VectorXd col3_ref(5);
+    col3_ref << 1.16, 0.90, 0.26, -1.00, -1.87;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 5.16);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 1.84);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 0.00);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 0.36);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 5.70);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
-    BOOST_CHECK_EQUAL(round_(column3.at(0), 2), 1.16);
-    BOOST_CHECK_EQUAL(round_(column3.at(1), 2), 0.90);
-    BOOST_CHECK_EQUAL(round_(column3.at(2), 2), 0.26);
-    BOOST_CHECK_EQUAL(round_(column3.at(3), 2), -1.00);
-    BOOST_CHECK_EQUAL(round_(column3.at(4), 2), -1.87);
-
-  } // End of Test 1
+  }  // End of Test 1
 
   // Test 2
   {
@@ -218,29 +199,22 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
-    vector<double> column3 = getColumnFromFile(interactions.at(0), 3);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column3 = getColumnFromFile(interactions.at(0), 3);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 3.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 5.86);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 8.73);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 11.59);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 14.46);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 0.79, 0.24, 0.00, 0.14, 0.77;
+    Eigen::VectorXd col3_ref(5);
+    col3_ref << 0.193, 0.1385, 0.018, -0.134, -0.220;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 0.79);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 0.24);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 0.00);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 0.14);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 0.77);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
-    BOOST_CHECK_EQUAL(round_(column3.at(0), 2), 0.19);
-    BOOST_CHECK_EQUAL(round_(column3.at(1), 2), 0.14);
-    BOOST_CHECK_EQUAL(round_(column3.at(2), 2), 0.02);
-    BOOST_CHECK_EQUAL(round_(column3.at(3), 2), -0.13);
-    BOOST_CHECK_EQUAL(round_(column3.at(4), 2), -0.22);
-
-  } // End of Test 2
+  }  // End of Test 2
 
   // Test 3
   {
@@ -259,29 +233,22 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments3);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
-    vector<double> column3 = getColumnFromFile(interactions.at(0), 3);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column3 = getColumnFromFile(interactions.at(0), 3);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 3.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 5.86);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 8.73);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 11.59);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 14.46);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 0.58, 0.36, 0.26, 0.33, 0.59;
+    Eigen::VectorXd col3_ref(5);
+    col3_ref << 0.0777308, 0.0567485, 0.00544064, -0.0573399, -0.0897949;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 0.58);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 0.36);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 0.26);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 0.33);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 0.59);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column3.isApprox(col3_ref, 1e-2), true);
 
-    BOOST_CHECK_EQUAL(round_(column3.at(0), 2), 0.08);
-    BOOST_CHECK_EQUAL(round_(column3.at(1), 2), 0.06);
-    BOOST_CHECK_EQUAL(round_(column3.at(2), 2), 0.01);
-    BOOST_CHECK_EQUAL(round_(column3.at(3), 2), -0.06);
-    BOOST_CHECK_EQUAL(round_(column3.at(4), 2), -0.09);
-
-  } // End of Test 3
+  }  // End of Test 3
 
   // Test 4
   {
@@ -298,22 +265,18 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 3.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 5.86);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 8.73);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 11.59);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 14.46);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 0.0284148, 0.059643, 0.124631, 0.108033, 0.0284148;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 0.03);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 0.06);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 0.12);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 0.11);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 0.03);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 4
+  }  // End of Test 4
 
   // Test 5
   {
@@ -332,22 +295,18 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments3);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 3.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 5.86);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 8.73);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 11.59);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 14.46);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 3.0, 5.86, 8.73, 11.59, 14.46;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 404.0, 848.0, 1772.0, 1536.0, 404.0;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 404.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 848.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 1772.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 1536.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 404.0);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 5
+  }  // End of Test 5
 
   // Test 6
   {
@@ -368,22 +327,17 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments4);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 0.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 0.25);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 0.50);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 0.75);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 1.00);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 0.0, 0.25, 0.5, 0.75, 1;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 1508.0, 1164.0, 436.0, 1452.0, 1508.0;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 1508.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 1164.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 436.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 1452.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 1508.0);
-
-  } // End of Test 6
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
+  }  // End of Test 6
 
   // Test 7
   {
@@ -400,22 +354,18 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 0.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 0.25);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 0.50);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 0.75);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 1.00);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 0.0, 0.25, 0.5, 0.75, 1;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 19372.0, 18624.0, 1744.0, 2581.33, 19372.0;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 19372.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 18624.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 1744.0);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 2581.33);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 19372.0);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 7
+  }  // End of Test 7
 
   // Test 8
   {
@@ -432,22 +382,18 @@ BOOST_AUTO_TEST_CASE(test_command) {
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
 
-    vector<double> column1 = getColumnFromFile(interactions.at(0), 1);
-    vector<double> column2 = getColumnFromFile(interactions.at(0), 2);
+    Eigen::VectorXd column1 = getColumnFromFile(interactions.at(0), 1);
+    Eigen::VectorXd column2 = getColumnFromFile(interactions.at(0), 2);
 
-    BOOST_CHECK_EQUAL(round_(column1.at(0), 2), 0.00);
-    BOOST_CHECK_EQUAL(round_(column1.at(1), 2), 0.25);
-    BOOST_CHECK_EQUAL(round_(column1.at(2), 2), 0.50);
-    BOOST_CHECK_EQUAL(round_(column1.at(3), 2), 0.75);
-    BOOST_CHECK_EQUAL(round_(column1.at(4), 2), 1.00);
+    Eigen::VectorXd col1_ref(5);
+    col1_ref << 0.0, 0.25, 0.5, 0.75, 1;
+    Eigen::VectorXd col2_ref(5);
+    col2_ref << 5593.78, 4704.86, 909.42, 2130.16, 5593.78;
 
-    BOOST_CHECK_EQUAL(round_(column2.at(0), 2), 5593.78);
-    BOOST_CHECK_EQUAL(round_(column2.at(1), 2), 4704.86);
-    BOOST_CHECK_EQUAL(round_(column2.at(2), 2), 909.42);
-    BOOST_CHECK_EQUAL(round_(column2.at(3), 2), 2130.16);
-    BOOST_CHECK_EQUAL(round_(column2.at(4), 2), 5593.78);
+    BOOST_CHECK_EQUAL(column1.isApprox(col1_ref, 1e-2), true);
+    BOOST_CHECK_EQUAL(column2.isApprox(col2_ref, 1e-2), true);
 
-  } // End of Test 8
+  }  // End of Test 8
 
   top.Cleanup();
 }
