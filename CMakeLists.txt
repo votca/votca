@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(csgapps)
 
-set(PROJECT_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.6-dev")
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
 
@@ -58,10 +58,9 @@ list(REMOVE_DUPLICATES DIRS)
 foreach(DIR ${DIRS})
   file(GLOB SRC ${DIR}/*.cc)
   add_executable(${DIR} ${SRC})
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${DIR}) #needed for out-of-source build
   target_link_libraries(${DIR} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
   install(TARGETS ${DIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-  set_target_properties(${DIR} PROPERTIES OUTPUT_NAME ${DIR}/csg_${DIR})
+  set_target_properties(${DIR} PROPERTIES OUTPUT_NAME csg_${DIR} RUNTIME_OUTPUT_DIRECTORY ${DIR})
   if(ENABLE_TESTING)
     add_test(${DIR}Help ${DIR}/csg_${DIR} --help)
     # run tests for tools and csg as well for coverage
