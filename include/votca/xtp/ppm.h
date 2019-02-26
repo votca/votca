@@ -22,60 +22,35 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/rpa.h>
 
-
 namespace votca {
 namespace xtp {
 
-
-
-
 class PPM {
  public:
-     
-     PPM():screening_r(0.0),screening_i(0.5){};
-     
-    //This sets the screening frequencies for real and imaginary part in hartree
-     
+  PPM() : screening_r(0.0), screening_i(0.5){};
 
-double getScreening_r()const{return screening_r;}
+  // This sets the screening frequencies for real and imaginary part in hartree
 
-double getScreening_i()const{return screening_i;}
- void PPM_construct_parameters(const RPA& rpa);
+  void PPM_construct_parameters(const RPA& rpa);
 
- const Eigen::VectorXd& getPpm_weight() const {
-     return _ppm_weight;
- }
+  const Eigen::VectorXd& getPpm_weight() const { return _ppm_weight; }
 
- const Eigen::VectorXd& getPpm_freq() const {
-     return _ppm_freq;
- }
+  const Eigen::VectorXd& getPpm_freq() const { return _ppm_freq; }
 
- const Eigen::MatrixXd& getPpm_phi() const {
-     return _ppm_phi;
- }     
-     
- void FreeMatrix(){
-     _ppm_phi.resize(0,0);
- }
-     
+  const Eigen::MatrixXd& getPpm_phi() const { return _ppm_phi; }
+
+  void FreeMatrix() { _ppm_phi.resize(0, 0); }
+
  private:
- 
-     double screening_r;
-     double screening_i;
+  double screening_r;
+  double screening_i;
 
   // PPM related variables and functions
   Eigen::MatrixXd _ppm_phi;
   Eigen::VectorXd _ppm_freq;
   Eigen::VectorXd _ppm_weight;
-  
-  
- 
-
-  
-
- 
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _VOTCA_XTP_GWBSE_H */

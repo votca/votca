@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -22,70 +22,55 @@
 
 #include <stdio.h>
 
-#include <votca/ctp/logger.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/geometry_optimization.h>
-#include <votca/xtp/qmpackagefactory.h>
 #include <votca/ctp/atom.h>
+#include <votca/ctp/logger.h>
 #include <votca/ctp/qmtool.h>
 #include <votca/ctp/segment.h>
 #include <votca/tools/constants.h>
-
+#include <votca/xtp/geometry_optimization.h>
+#include <votca/xtp/gwbse.h>
+#include <votca/xtp/qmpackagefactory.h>
 
 namespace votca {
-    namespace xtp {
-       
+namespace xtp {
 
-        class DftGwBse : public ctp::QMTool {
-        public:
+class DftGwBse : public ctp::QMTool {
+ public:
+  DftGwBse(){};
 
-            DftGwBse() {
-            };
+  ~DftGwBse(){};
 
-            ~DftGwBse() {
-            };
+  std::string Identify() { return "dftgwbse"; }
 
-            std::string Identify() {
-                return "dftgwbse";
-            }
+  void Initialize(tools::Property *options);
+  bool Evaluate();
 
-            void Initialize(tools::Property *options);
-            bool Evaluate();
+ private:
+  std::string _guess_file;
+  bool _do_guess;
 
+  std::string _mpsfile;
+  bool _do_external;
+  double _dipole_spacing;
 
+  std::string _xyzfile;
+  std::string _xml_output;  // .xml output
+  std::string _package;
+  std::string _archive_file;  // .orb file to parse to
+  std::string _reporting;
+  std::string _guess_orbA;
+  std::string _guess_orbB;
 
+  tools::Property _package_options;
+  tools::Property _gwbseengine_options;
+  tools::Property _geoopt_options;
 
-        private:
+  ctp::Logger _log;
 
-            std::string _guess_file;
-            bool _do_guess;
-            
-            std::string _mpsfile;
-            bool _do_external;
-            double _dipole_spacing;
+  bool _do_optimize;
+};
 
-            std::string _xyzfile;
-            std::string _xml_output;    // .xml output
-            std::string _package;
-            std::string _archive_file; // .orb file to parse to
-            std::string _reporting;
-            std::string _guess_orbA;
-            std::string _guess_orbB;
-
-            tools::Property _package_options;
-            tools::Property _gwbseengine_options;
-            tools::Property _geoopt_options;
-
-            ctp::Logger _log;
-
-            bool _do_optimize;
-
-        };
-
-
-
-    }
-}
-
+}  // namespace xtp
+}  // namespace votca
 
 #endif

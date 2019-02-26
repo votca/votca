@@ -17,34 +17,32 @@
  *
  */
 
-
 #include <votca/xtp/calculatorfactory.h>
 
-#include "calculators/neighborlist.h"
-#include "calculators/rates.h"
-#include "calculators/ianalyze.h"
 #include "calculators/eanalyze.h"
-#include "calculators/jobwriter.h"
 #include "calculators/einternal.h"
+#include "calculators/ianalyze.h"
+#include "calculators/jobwriter.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
+#include "calculators/neighborlist.h"
 #include "calculators/profile.h"
+#include "calculators/rates.h"
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+void Calculatorfactory::RegisterAll(void) {
 
-void Calculatorfactory::RegisterAll(void)
-{	
-       
-        Calculators().Register<Neighborlist>        ("neighborlist");
-        Calculators().Register<Rates>               ("rates");
-        Calculators().Register<IAnalyze>            ("ianalyze");
-        Calculators().Register<EAnalyze>            ("eanalyze");
-        Calculators().Register<JobWriter>           ("jobwriter");
-        Calculators().Register<EInternal>           ("einternal");
-        Calculators().Register<KMCLifetime>         ("kmclifetime");
-        Calculators().Register<KMCMultiple>         ("kmcmultiple");
-        Calculators().Register<Profile>             ("profile");
-
+  Calculators().Register<Neighborlist>("neighborlist");
+  Calculators().Register<Rates>("rates");
+  Calculators().Register<IAnalyze>("ianalyze");
+  Calculators().Register<EAnalyze>("eanalyze");
+  Calculators().Register<JobWriter>("jobwriter");
+  Calculators().Register<EInternal>("einternal");
+  Calculators().Register<KMCLifetime>("kmclifetime");
+  Calculators().Register<KMCMultiple>("kmcmultiple");
+  Calculators().Register<Profile>("profile");
 }
-}}
+}  // namespace xtp
+}  // namespace votca

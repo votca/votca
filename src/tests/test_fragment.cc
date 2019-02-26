@@ -17,10 +17,10 @@
 
 #define BOOST_TEST_MODULE fragment_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/atom.h>
-#include <votca/tools/vec.h>
 #include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/fragment.h>
 
 using namespace votca::xtp;
 using namespace votca::tools;
@@ -35,8 +35,8 @@ BOOST_AUTO_TEST_CASE(getters_test) {
   BOOST_CHECK_EQUAL(frag.getName(), "frag3");
 }
 
-BOOST_AUTO_TEST_CASE(position_test){
-  
+BOOST_AUTO_TEST_CASE(position_test) {
+
   BOOST_TEST_MESSAGE("Testing: setPos & getPos");
   {
     vec v;
@@ -46,9 +46,9 @@ BOOST_AUTO_TEST_CASE(position_test){
     Fragment frag(3, "frag3");
     frag.setPos(v);
     auto v2 = frag.getPos();
-    BOOST_CHECK_EQUAL(v2.x(),0.0);
-    BOOST_CHECK_EQUAL(v2.y(),0.0);
-    BOOST_CHECK_EQUAL(v2.z(),0.0);
+    BOOST_CHECK_EQUAL(v2.x(), 0.0);
+    BOOST_CHECK_EQUAL(v2.y(), 0.0);
+    BOOST_CHECK_EQUAL(v2.z(), 0.0);
   }
 
   BOOST_TEST_MESSAGE("Testing: getCoMD");
@@ -62,11 +62,11 @@ BOOST_AUTO_TEST_CASE(position_test){
     frag.setPos(v);
     auto v2 = frag.getCoMD();
     cerr << v2.x() << endl;
-    BOOST_CHECK_EQUAL(v2.x(),1.0);
+    BOOST_CHECK_EQUAL(v2.x(), 1.0);
     cerr << v2.y() << endl;
-    BOOST_CHECK_EQUAL(v2.y(),0.0);
+    BOOST_CHECK_EQUAL(v2.y(), 0.0);
     cerr << v2.z() << endl;
-    BOOST_CHECK_EQUAL(v2.z(),0.0);
+    BOOST_CHECK_EQUAL(v2.z(), 0.0);
   }
 
   BOOST_TEST_MESSAGE("Testing: getCoQM");
@@ -86,29 +86,30 @@ BOOST_AUTO_TEST_CASE(position_test){
     // If set to false cannot calculate the QM position of fragment when
     // the atom is added
     bool hasQM = true;
-    Atom * atm = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos,"C",1.0);
+    Atom* atm =
+        new Atom(nullptr, "res1", 1, "CSP", 2, hasQM, 3, qmpos, "C", 1.0);
     atm->setPos(pos);
 
     Fragment frag(3, "frag3");
     frag.AddAtom(atm);
     // Default is MD
-    frag.calcPos(); 
+    frag.calcPos();
     auto v2 = frag.getPos();
-    BOOST_CHECK_EQUAL(v2.x(),3.0);
-    BOOST_CHECK_EQUAL(v2.y(),3.0);
-    BOOST_CHECK_EQUAL(v2.z(),3.0);
+    BOOST_CHECK_EQUAL(v2.x(), 3.0);
+    BOOST_CHECK_EQUAL(v2.y(), 3.0);
+    BOOST_CHECK_EQUAL(v2.z(), 3.0);
 
     frag.calcPos("QM");
     v2 = frag.getCoQM();
-    BOOST_CHECK_EQUAL(v2.x(),2.0);
-    BOOST_CHECK_EQUAL(v2.y(),2.0);
-    BOOST_CHECK_EQUAL(v2.z(),2.0);
+    BOOST_CHECK_EQUAL(v2.x(), 2.0);
+    BOOST_CHECK_EQUAL(v2.y(), 2.0);
+    BOOST_CHECK_EQUAL(v2.z(), 2.0);
     delete atm;
-  } 
+  }
 }
 
-BOOST_AUTO_TEST_CASE(translate_test){
-  
+BOOST_AUTO_TEST_CASE(translate_test) {
+
   BOOST_TEST_MESSAGE("Testing: TranslateBy");
   vec v;
   v.setX(0.0);
@@ -122,23 +123,22 @@ BOOST_AUTO_TEST_CASE(translate_test){
   shift.setZ(4.0);
   frag.TranslateBy(shift);
   auto v2 = frag.getPos();
-  BOOST_CHECK_EQUAL(v2.x(),1.0);
-  BOOST_CHECK_EQUAL(v2.y(),-2.0);
-  BOOST_CHECK_EQUAL(v2.z(),4.0);
+  BOOST_CHECK_EQUAL(v2.x(), 1.0);
+  BOOST_CHECK_EQUAL(v2.y(), -2.0);
+  BOOST_CHECK_EQUAL(v2.z(), 4.0);
 }
 
-BOOST_AUTO_TEST_CASE(ptr_set_test){
+BOOST_AUTO_TEST_CASE(ptr_set_test) {
 
   BOOST_TEST_MESSAGE("Testing: setTopology & setMolecule & setSegment");
   Fragment frag(3, "frag3");
   frag.setTopology(nullptr);
   frag.setMolecule(nullptr);
   frag.setSegment(nullptr);
-
 }
 
-BOOST_AUTO_TEST_CASE(rotate_pos_test){
-  
+BOOST_AUTO_TEST_CASE(rotate_pos_test) {
+
   BOOST_TEST_MESSAGE("Testing: Rotate");
   // Setting values for a rotation matrix
   // 90 degree rotation
@@ -165,7 +165,7 @@ BOOST_AUTO_TEST_CASE(rotate_pos_test){
   center.setY(0.0);
   center.setZ(0.0);
 
-  matrix rot_mat(row1,row2,row3);
+  matrix rot_mat(row1, row2, row3);
 
   // The qmpos is not used to calculate the positions of the fragment
   // when calcPos is called with the MD tag which is also the default
@@ -182,38 +182,38 @@ BOOST_AUTO_TEST_CASE(rotate_pos_test){
   // If set to false cannot calculate the QM position of fragment when
   // the atom is added
   bool hasQM = true;
-  Atom * atm = new Atom(nullptr, "res1",1,"CSP",2,hasQM,3,qmpos,"C",1.0);
+  Atom* atm = new Atom(nullptr, "res1", 1, "CSP", 2, hasQM, 3, qmpos, "C", 1.0);
   atm->setPos(pos);
 
   Fragment frag(3, "frag3");
   frag.AddAtom(atm);
   // Default is MD
-  frag.calcPos(); 
+  frag.calcPos();
   auto v2 = frag.getPos();
-  BOOST_CHECK_EQUAL(v2.x(),3.0);
-  BOOST_CHECK_EQUAL(v2.y(),3.0);
-  BOOST_CHECK_EQUAL(v2.z(),3.0);
+  BOOST_CHECK_EQUAL(v2.x(), 3.0);
+  BOOST_CHECK_EQUAL(v2.y(), 3.0);
+  BOOST_CHECK_EQUAL(v2.z(), 3.0);
 
   frag.calcPos("QM");
   v2 = frag.getCoQM();
-  BOOST_CHECK_EQUAL(v2.x(),2.0);
-  BOOST_CHECK_EQUAL(v2.y(),2.0);
-  BOOST_CHECK_EQUAL(v2.z(),2.0);
+  BOOST_CHECK_EQUAL(v2.x(), 2.0);
+  BOOST_CHECK_EQUAL(v2.y(), 2.0);
+  BOOST_CHECK_EQUAL(v2.z(), 2.0);
 
-  frag.Rotate(rot_mat,center);
+  frag.Rotate(rot_mat, center);
   // Demonstrate that the rotate function does not change the md position
   frag.calcPos();
   v2 = frag.getPos();
-  BOOST_CHECK_EQUAL(v2.x(),3.0);
-  BOOST_CHECK_EQUAL(v2.y(),3.0);
-  BOOST_CHECK_EQUAL(v2.z(),3.0);
+  BOOST_CHECK_EQUAL(v2.x(), 3.0);
+  BOOST_CHECK_EQUAL(v2.y(), 3.0);
+  BOOST_CHECK_EQUAL(v2.z(), 3.0);
 
   // Rotate does change the qm position
   frag.calcPos("QM");
   v2 = frag.getCoQM();
-  BOOST_CHECK_EQUAL(v2.x(),2.0);
-  BOOST_CHECK_EQUAL(v2.y(),2.0);
-  BOOST_CHECK_EQUAL(v2.z(),-2.0);
+  BOOST_CHECK_EQUAL(v2.x(), 2.0);
+  BOOST_CHECK_EQUAL(v2.y(), 2.0);
+  BOOST_CHECK_EQUAL(v2.z(), -2.0);
   delete atm;
 }
 

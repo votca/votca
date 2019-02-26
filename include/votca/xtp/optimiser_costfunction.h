@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -23,24 +23,24 @@
 #include <votca/xtp/eigen.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        class Optimiser_costfunction {
-        public:
+class Optimiser_costfunction {
+ public:
+  virtual ~Optimiser_costfunction(){};
 
-            virtual ~Optimiser_costfunction() {
-            };
+  virtual double EvaluateCost(const Eigen::VectorXd& parameters) = 0;
 
-            virtual double EvaluateCost(const Eigen::VectorXd& parameters)= 0;
-            
-            virtual Eigen::VectorXd EvaluateGradient(const Eigen::VectorXd& parameters)= 0;
+  virtual Eigen::VectorXd EvaluateGradient(
+      const Eigen::VectorXd& parameters) = 0;
 
-            virtual int NumParameters() const = 0;
+  virtual int NumParameters() const = 0;
 
-            virtual bool Converged(const Eigen::VectorXd& delta_parameters,
-                    double delta_cost, const Eigen::VectorXd& gradient) = 0;
-        };
+  virtual bool Converged(const Eigen::VectorXd& delta_parameters,
+                         double delta_cost,
+                         const Eigen::VectorXd& gradient) = 0;
+};
 
-    }
-}
+}  // namespace xtp
+}  // namespace votca
 #endif /* FORCES_H */

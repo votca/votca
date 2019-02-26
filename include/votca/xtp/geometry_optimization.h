@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -20,57 +20,54 @@
 #ifndef __XTP_GEOMETRY_OPTIMIZATION__H
 #define __XTP_GEOMETRY_OPTIMIZATION__H
 
-
-#include <votca/xtp/qmatom.h>
-#include <votca/ctp/logger.h>
 #include <stdio.h>
-#include <votca/xtp/gwbseengine.h>
-#include <votca/xtp/qmstate.h>
+#include <votca/ctp/logger.h>
 #include <votca/xtp/bfgs-trm.h>
 #include <votca/xtp/energy_costfunction.h>
-
+#include <votca/xtp/gwbseengine.h>
+#include <votca/xtp/qmatom.h>
+#include <votca/xtp/qmstate.h>
 
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-        class GeometryOptimization {
-        public:
+class GeometryOptimization {
+ public:
+  GeometryOptimization(GWBSEEngine& gwbse_engine, Orbitals& orbitals)
+      : _gwbse_engine(gwbse_engine),
+        _orbitals(orbitals){
 
-            GeometryOptimization(GWBSEEngine& gwbse_engine,Orbitals& orbitals) :
-            _gwbse_engine(gwbse_engine), _orbitals(orbitals) {
-
-            };
-
-            void Initialize(tools::Property& options);
-
-            void setLog(ctp::Logger* pLog) {
-                _pLog = pLog;
-            }
-
-            void Evaluate();
-
-        private:
-
-            static void Report(const BFGSTRM& bfgstrm,const Forces& forces, ctp::Logger* pLog);
-            static void WriteTrajectory(const std::string& filename, std::vector< QMAtom* >& atoms,
-                                        const BFGSTRM& bfgstrm);
-
-            QMState _opt_state;
-            std::string _optimizer;
-            std::string _trajfile;
-            GWBSEEngine& _gwbse_engine;
-            Orbitals& _orbitals;
-
-            Energy_costfunction::conv_paras _conv;
-            int _max_iteration;
-            double _trust_radius;
-
-            tools::Property _filter_options;
-            tools::Property _force_options;
-
-            ctp::Logger *_pLog;
         };
 
-    }
-}
+  void Initialize(tools::Property& options);
+
+  void setLog(ctp::Logger* pLog) { _pLog = pLog; }
+
+  void Evaluate();
+
+ private:
+  static void Report(const BFGSTRM& bfgstrm, const Forces& forces,
+                     ctp::Logger* pLog);
+  static void WriteTrajectory(const std::string& filename,
+                              std::vector<QMAtom*>& atoms,
+                              const BFGSTRM& bfgstrm);
+
+  QMState _opt_state;
+  std::string _optimizer;
+  std::string _trajfile;
+  GWBSEEngine& _gwbse_engine;
+  Orbitals& _orbitals;
+
+  Energy_costfunction::conv_paras _conv;
+  int _max_iteration;
+  double _trust_radius;
+
+  tools::Property _filter_options;
+  tools::Property _force_options;
+
+  ctp::Logger* _pLog;
+};
+
+}  // namespace xtp
+}  // namespace votca
 #endif /* GEOMETRY_OPTIMIZATION_H */

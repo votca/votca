@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 project(votca-xtp)
 
 
-set(PROJECT_VERSION "1.5-dev")
+set(PROJECT_VERSION "1.6-dev")
 set(PROJECT_CONTACT "bugs@votca.org")
 string(REGEX REPLACE "^[1-9]+\\.([1-9]+).*$" "\\1" SOVERSION "${PROJECT_VERSION}")
 if (NOT ${SOVERSION} MATCHES "[1-9]+")
@@ -60,10 +60,6 @@ add_definitions(-DGWBSE_DOUBLE=${GWBSE_DOUBLE_VALUE})
 
 find_package(LIBXC REQUIRED)
 include_directories(${LIBXC_INCLUDE_DIRS})
-
-find_package(CERES REQUIRED)
-include_directories(${CERES_INCLUDE_DIRS})
-
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 include_directories(${HDF5_INCLUDE_DIRS})

@@ -19,36 +19,36 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
+#include <fstream>
 #include <votca/ctp/logger.h>
 #include <votca/tools/property.h>
-#include <fstream>
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/gw.h>
 
+#include "bse.h"
 
 namespace votca {
 namespace xtp {
-    class Orbitals;
-    class Sigma;
-    class AOBasis;
+class Orbitals;
+class AOBasis;
 /**
-* \brief Electronic excitations from GW-BSE
-*
-* Evaluates electronic excitations in molecular systems based on
-* many-body Green's functions theory within the GW approximation and
-* the Bethe-Salpeter equation. Requires molecular orbitals 
-*
-*  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
-*  J. Chem. Theory Comput. 8, 997-1002 (2012)
-*
-*  B. Baumeier, D. Andrienko, M. Rohlfing
-*  J. Chem. Theory Comput. 8, 2790-2795 (2012)
-*
-*/
+ * \brief Electronic excitations from GW-BSE
+ *
+ * Evaluates electronic excitations in molecular systems based on
+ * many-body Green's functions theory within the GW approximation and
+ * the Bethe-Salpeter equation. Requires molecular orbitals
+ *
+ *  B. Baumeier, Y. Ma, D. Andrienko, M. Rohlfing
+ *  J. Chem. Theory Comput. 8, 997-1002 (2012)
+ *
+ *  B. Baumeier, D. Andrienko, M. Rohlfing
+ *  J. Chem. Theory Comput. 8, 2790-2795 (2012)
+ *
+ */
 
 class GWBSE {
  public:
-  GWBSE(Orbitals& orbitals)
-      : _orbitals(orbitals){};
+  GWBSE(Orbitals& orbitals) : _orbitals(orbitals){};
 
   void Initialize(tools::Property& options);
 
@@ -57,18 +57,15 @@ class GWBSE {
   void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
-    
+
   void addoutput(tools::Property& summary);
 
  private:
-     
- void PrintQP_Energies(const Eigen::VectorXd& gwa_energies, const Eigen::VectorXd& qp_diag_energies);
- void PrintGWA_Energies(const Eigen::MatrixXd& vxc,const Sigma& sigma, const Eigen::VectorXd& dft_energies);    
- 
- Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
- ctp::Logger* _pLog;
- Orbitals& _orbitals;
-  
+  Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
+  int CountCoreLevels();
+  ctp::Logger* _pLog;
+  Orbitals& _orbitals;
+
   // program tasks
   bool _do_qp_diag;
   bool _do_bse_diag;
@@ -82,9 +79,6 @@ class GWBSE {
   bool _store_bse_triplets;
   bool _store_eh_interaction;
 
-  // iterate G and W and not only G
-  bool _iterate_gw;
-
   // options for own Vxc calculation
   bool _doVxc;
   std::string _functional;
@@ -96,33 +90,15 @@ class GWBSE {
   int _fragA;
 
   // BSE variant
-  bool _do_full_BSE;
+
+  GW::options _gwopt;
+  BSE::options _bseopt;
 
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
-  int _reset_3c; //how often the 3c integrals in iterate shoudl be rebuild
-  double _shift;  // pre-shift of DFT energies
-  int _homo;   // HOMO index
-  int _rpamin;
-  int _rpamax;
-  int _qpmin;
-  int _qpmax;
-  int _qptotal;
-  double _g_sc_limit;  // convergence criteria for g iteration [Hartree]]
-  int _g_sc_max_iterations;
-  int _gw_sc_max_iterations;
-  double _gw_sc_limit;  // convergence criteria for gw iteration [Hartree]]
-  
-  int _bse_vmin;
-  int _bse_vmax;
-  int _bse_cmin;
-  int _bse_cmax;
-  int _bse_maxeigenvectors;
-  double _min_print_weight;
-
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _VOTCA_XTP_GWBSE_H */

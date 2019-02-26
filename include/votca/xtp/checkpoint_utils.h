@@ -68,7 +68,7 @@ struct InferDataType<std::string> {
 
 H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
 
-} // checkpoint_utils
-} // xtp
-} // votca
-#endif //VOTCA_XTP_CHECKPOINT_UTILS_H
+}  // namespace checkpoint_utils
+}  // namespace xtp
+}  // namespace votca
+#endif  // VOTCA_XTP_CHECKPOINT_UTILS_H

@@ -26,9 +26,9 @@ BOOST_AUTO_TEST_SUITE(apolararsite_test)
 BOOST_AUTO_TEST_CASE(constructors_test) { APolarSite ps(1, "ps1"); }
 
 BOOST_AUTO_TEST_CASE(getters_test) {
-  APolarSite ps(1,"ps2");
-  BOOST_CHECK_EQUAL(ps.getId(),1);
-  BOOST_CHECK_EQUAL(ps.getName(),"ps2");
+  APolarSite ps(1, "ps2");
+  BOOST_CHECK_EQUAL(ps.getId(), 1);
+  BOOST_CHECK_EQUAL(ps.getName(), "ps2");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

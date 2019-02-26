@@ -31,11 +31,9 @@ struct GLink {
   double Jeff2;
   double reorg_out;
   double initialrate;
-  double getValue(){
-  	return rate;
-  }
+  double getValue() { return rate; }
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif  // _VOTCA_KMC_GLINK_H

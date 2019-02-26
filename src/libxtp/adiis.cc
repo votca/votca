@@ -17,51 +17,51 @@
  *
  */
 #include "votca/xtp/adiis.h"
-#include <votca/xtp/bfgs-trm.h>
-#include <votca/xtp/adiis_costfunction.h>
-#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
+#include <votca/ctp/logger.h>
+#include <votca/xtp/adiis_costfunction.h>
+#include <votca/xtp/bfgs-trm.h>
 
-namespace votca { namespace xtp {
-  
-      
-      
-   Eigen::VectorXd ADIIS::CalcCoeff(const std::vector< Eigen::MatrixXd* >& dmathist,const std::vector< Eigen::MatrixXd* >& mathist){
-      success=true;
-      int size=dmathist.size();
-      
-      const Eigen::MatrixXd& dmat=*dmathist.back();
-      const Eigen::MatrixXd& H=*mathist.back();
-      Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
-      Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
-      
-      for (int i = 0; i < size; i++) {
-        DiF(i) = ((*dmathist[i]) - dmat).cwiseProduct(H).sum();
-      }
+namespace votca {
+namespace xtp {
 
-      for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
-          DiFj(i, j) = ((*dmathist[i]) - dmat).cwiseProduct((*mathist[j]) - H).sum();
-        }
-      }  
+Eigen::VectorXd ADIIS::CalcCoeff(const std::vector<Eigen::MatrixXd>& dmathist,
+                                 const std::vector<Eigen::MatrixXd>& mathist) {
+  success = true;
+  int size = dmathist.size();
 
+  const Eigen::MatrixXd& dmat = dmathist.back();
+  const Eigen::MatrixXd& H = mathist.back();
+  Eigen::VectorXd DiF = Eigen::VectorXd::Zero(size);
+  Eigen::MatrixXd DiFj = Eigen::MatrixXd::Zero(size, size);
 
-      ADIIS_costfunction a_cost=ADIIS_costfunction(DiF,DiFj);
-      BFGSTRM optimizer=BFGSTRM(a_cost);
-      optimizer.setNumofIterations(1000);
-      optimizer.setTrustRadius(0.01);
-   // Starting point: equal weights on all matrices
-   Eigen::VectorXd coeffs=Eigen::VectorXd::Constant(size,1.0/size);
-   optimizer.Optimize(coeffs);
-  success=optimizer.Success();
-  coeffs=optimizer.getParameters().cwiseAbs2();
-  double xnorm=coeffs.sum();
-  coeffs/=xnorm;
+  for (int i = 0; i < size; i++) {
+    DiF(i) = ((dmathist[i]) - dmat).cwiseProduct(H).sum();
+  }
 
-  if(std::abs(coeffs.tail(1).value())<0.001){     
-        success=false;
-      }
+  for (int i = 0; i < size; i++) {
+    for (int j = 0; j < size; j++) {
+      DiFj(i, j) = ((dmathist[i]) - dmat).cwiseProduct((mathist[j]) - H).sum();
+    }
+  }
+
+  ADIIS_costfunction a_cost = ADIIS_costfunction(DiF, DiFj);
+  BFGSTRM optimizer = BFGSTRM(a_cost);
+  optimizer.setNumofIterations(1000);
+  optimizer.setTrustRadius(0.01);
+  // Starting point: equal weights on all matrices
+  Eigen::VectorXd coeffs = Eigen::VectorXd::Constant(size, 1.0 / size);
+  optimizer.Optimize(coeffs);
+  success = optimizer.Success();
+  coeffs = optimizer.getParameters().cwiseAbs2();
+  double xnorm = coeffs.sum();
+  coeffs /= xnorm;
+
+  if (std::abs(coeffs.tail(1).value()) < 0.001) {
+    success = false;
+  }
   return coeffs;
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca

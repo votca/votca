@@ -18,53 +18,49 @@
  */
 
 #ifndef VOTCA_XTP_JOBCALCULATORFACTORY_H
-#define	VOTCA_XTP_JOBCALCULATORFACTORY_H
+#define VOTCA_XTP_JOBCALCULATORFACTORY_H
 
 #include <map>
-#include <votca/tools/objectfactory.h>
 #include <votca/ctp/jobcalculator.h>
+#include <votca/tools/objectfactory.h>
 
-namespace votca { namespace xtp {
-
-
+namespace votca {
+namespace xtp {
 
 class JobCalculatorfactory
-: public tools::ObjectFactory<std::string, ctp::JobCalculator>
-{
-private:
-    JobCalculatorfactory() {}
-public:
-    
-    static void RegisterAll(void);
-    
-    /**
-       Create an instance of the object identified by key.
-    *  Overwritten to load calculator defaults
-    */
-    ctp::JobCalculator *Create(const std::string &key);
+    : public tools::ObjectFactory<std::string, ctp::JobCalculator> {
+ private:
+  JobCalculatorfactory() {}
 
-    friend JobCalculatorfactory &JobCalculators();
-    
+ public:
+  static void RegisterAll(void);
+
+  /**
+     Create an instance of the object identified by key.
+  *  Overwritten to load calculator defaults
+  */
+  ctp::JobCalculator *Create(const std::string &key);
+
+  friend JobCalculatorfactory &JobCalculators();
 };
 
-inline JobCalculatorfactory &JobCalculators()
-{
-    static JobCalculatorfactory _instance;
-    return _instance;
+inline JobCalculatorfactory &JobCalculators() {
+  static JobCalculatorfactory _instance;
+  return _instance;
 }
 
-inline ctp::JobCalculator* JobCalculatorfactory::Create(const std::string &key)
-{
-    assoc_map::const_iterator it(getObjects().find(key));
-    if (it != getObjects().end()) {
-        ctp::JobCalculator* calc = (it->second)();
-        calc->LoadDefaults();
-        return calc;
-    } else
-        throw std::runtime_error("factory key " + key + " not found.");
+inline ctp::JobCalculator *JobCalculatorfactory::Create(
+    const std::string &key) {
+  assoc_map::const_iterator it(getObjects().find(key));
+  if (it != getObjects().end()) {
+    ctp::JobCalculator *calc = (it->second)();
+    calc->LoadDefaults();
+    return calc;
+  } else
+    throw std::runtime_error("factory key " + key + " not found.");
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* _Calculatorfactory_H */
-
+#endif /* _Calculatorfactory_H */

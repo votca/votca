@@ -16,75 +16,71 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#include <fstream>
+#include <iostream>
 #include <stdio.h>
 #include <vector>
-#include <iostream>
-#include <fstream>
 #include <votca/tools/vec.h>
+#include <votca/xtp/atom.h>
+#include <votca/xtp/fragment.h>
 #include <votca/xtp/molecule.h>
 #include <votca/xtp/segment.h>
-#include <votca/xtp/fragment.h>
-#include <votca/xtp/atom.h>
 
 using namespace std;
 using namespace votca::tools;
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
 /// Destructor
 Molecule::~Molecule() {
 
-    _segments.clear();
-    _fragments.clear();
-    _atoms.clear();
-    
+  _segments.clear();
+  _fragments.clear();
+  _atoms.clear();
 }
 
 /// Returns ID of the molecule
-const int &Molecule::getId() {
-        return _id;
-}
+const int &Molecule::getId() { return _id; }
 
 /// Returns the name of the molecule
-const string &Molecule::getName() {
-        return _name;
+const string &Molecule::getName() { return _name; }
+
+void Molecule::AddSegment(Segment *segment) {
+  _segments.push_back(segment);
+  segment->setMolecule(this);
 }
 
-void Molecule::AddSegment( Segment* segment ) {
-    _segments.push_back( segment );
-    segment->setMolecule(this);
+void Molecule::AddFragment(Fragment *fragment) {
+  _fragments.push_back(fragment);
+  fragment->setMolecule(this);
 }
 
-void Molecule::AddFragment(Fragment* fragment ) {
-    _fragments.push_back( fragment );
-    fragment->setMolecule(this);
-}
-
-void Molecule::AddAtom(Atom *atom ) {
-    _atoms.push_back(atom);
-    atom->setMolecule(this);
+void Molecule::AddAtom(Atom *atom) {
+  _atoms.push_back(atom);
+  atom->setMolecule(this);
 }
 
 /// Returns a pointer to the atom
 Atom *Molecule::getAtom(const int &id) {
-    throw runtime_error( string("Not implemented") ); 
+  throw runtime_error(string("Not implemented"));
 }
 
 /// Returns atom type
 const string &Molecule::getAtomType(const int &id) {
-    throw runtime_error( string("Not implemented") ); 
+  throw runtime_error(string("Not implemented"));
 }
 
 /// Returns atom position
 const vec Molecule::getAtomPosition(const int &id) {
-    throw runtime_error( string("Not implemented") ); 
+  throw runtime_error(string("Not implemented"));
 }
 
 /// Returns number of atoms in the molecule
-int Molecule::NumberOfAtoms() {
-    return _atoms.size(); 
-}
+int Molecule::NumberOfAtoms() { return _atoms.size(); }
 
-}}
+}  // namespace xtp
+}  // namespace votca

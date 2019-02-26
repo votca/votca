@@ -1,4 +1,4 @@
-/* 
+/*
  *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -20,53 +20,29 @@
 #ifndef _VOTCA_XTP_DIIS__H
 #define _VOTCA_XTP_DIIS__H
 
-
-
-#include <votca/xtp/eigen.h>
 #include <vector>
+#include <votca/xtp/eigen.h>
 
-namespace votca { namespace xtp {
- 
- 
- class DIIS{
-public:
+namespace votca {
+namespace xtp {
 
-    DIIS( ):success(true) { };
-   ~DIIS() {
-       
-    for (std::vector< Eigen::MatrixXd* >::iterator it = _errormatrixhist.begin() ; it !=_errormatrixhist.end(); ++it){
-         delete *it;
-     }
-    _errormatrixhist.clear();    
-       
-   for (std::vector< std::vector<double>* >::iterator it = _Diis_Bs.begin() ; it !=_Diis_Bs.end(); ++it){
-         delete *it;
-     }
-    _Diis_Bs.clear(); 
-   };
-   
-    void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
-    Eigen::VectorXd CalcCoeff();
-    
-    void setHistLength(int length){_histlength=length;}
-   
-    bool Info(){return success;}
-    
+class DIIS {
+ public:
+  void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
+  Eigen::VectorXd CalcCoeff();
+
+  void setHistLength(int length) { _histlength = length; }
+
+  bool Info() { return success; }
+
  private:
-     
-     
-     
-     
-     bool success;
-     int _histlength;
-     std::vector< std::vector<double>* >  _Diis_Bs;
-     std::vector< Eigen::MatrixXd* >   _errormatrixhist;
-  
- };
- 
- 
-    
-}}
+  bool success = true;
+  int _histlength;
+  std::vector<std::vector<double> > _Diis_Bs;
+  std::vector<Eigen::MatrixXd> _errormatrixhist;
+};
 
-#endif	
+}  // namespace xtp
+}  // namespace votca
 
+#endif
