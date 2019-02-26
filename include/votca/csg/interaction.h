@@ -238,10 +238,9 @@ inline double IDihedral::EvaluateVar(const Topology &top) {
   Eigen::Vector3d v1(top.getDist(_beads[0], _beads[1]));
   Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
   Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
-  Eigen::Vector3d n1, n2;
-  n1          = v1.cross(v2);  // calculate the normal vector
-  n2          = v2.cross(v3);  // calculate the normal vector
-  double sign = (v1.dot(n2) < 0) ? -1 : 1;
+  Eigen::Vector3d n1   = v1.cross(v2);  // calculate the normal vector
+  Eigen::Vector3d n2   = v2.cross(v3);  // calculate the normal vector
+  double          sign = (v1.dot(n2) < 0) ? -1 : 1;
   return sign *
          std::acos(n1.dot(n2) / sqrt(n1.squaredNorm() * n2.squaredNorm()));
 }
@@ -264,8 +263,8 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, int bead) {
   switch (bead) {
     case (0): {
       for (int i = 0; i < 3; i++) {
-        returnvec[i] = n2.dot(v2.cross(e.col(0))) / (n1.norm() * n2.norm()) -
-                       n1.dot(n2) * n1.dot(v2.cross(e.col(0))) /
+        returnvec[i] = n2.dot(v2.cross(e.col(i))) / (n1.norm() * n2.norm()) -
+                       n1.dot(n2) * n1.dot(v2.cross(e.col(i))) /
                            (n1.norm() * std::pow(n2.norm(), 3));
       }
       return acos_prime * returnvec;

@@ -284,17 +284,15 @@ void CGForceMatching::WriteOutFiles() {
   force_tab.SetHasYErr(true);
   force_tabDer.SetHasYErr(true);
 
-  SplineContainer::iterator is;
-
-  for (is = _splines.begin(); is != _splines.end(); ++is) {
+  for (SplineInfo *spline : _splines) {
     // construct meaningful outfile name
-    file_name = (*is)->splineName;
+    file_name = spline->splineName;
 
     // resize table
-    force_tab.resize((*is)->num_outgrid);
+    force_tab.resize(spline->num_outgrid);
 
     // If not threebody, the result represents the force
-    if (!((*is)->threebody)) {
+    if (!(spline->threebody)) {
       file_name = file_name + file_extension;
       // print output file names on stdout
       cout << "Updating file: " << file_name << endl;
@@ -303,63 +301,58 @@ void CGForceMatching::WriteOutFiles() {
     // If threebody interaction, the result represents the potential and (-1)
     // the derivative represents the force Only then, the derivatives are
     // explicitly calculated
-    if ((*is)->threebody) {
+    if (spline->threebody) {
       file_name    = file_name + file_extension_pot;
-      file_nameDer = (*is)->splineName;
+      file_nameDer = spline->splineName;
       file_nameDer = file_nameDer + file_extension;
 
-      force_tabDer.resize((*is)->num_outgrid);
+      force_tabDer.resize(spline->num_outgrid);
       // print output file names on stdout
       cout << "Updating files: " << file_name << " and: " << file_nameDer
            << endl;
     }
 
-    // loop over output grid points
-    for (int i = 0; i < (*is)->num_outgrid; i++) {
-      // average value
-      (*is)->result[i] = (*is)->resSum[i] / _nblocks;
-      // standard deviation of the average
-      (*is)->error[i] = sqrt(
-          ((*is)->resSum2[i] / _nblocks - (*is)->result[i] * (*is)->result[i]) /
-          _nblocks);
+    spline->result = (spline->resSum).array() / double(_nblocks);
+    spline->error  = (((spline->resSum2).array() / double(_nblocks) -
+                      (spline->result).array().abs2()) /
+                     double(_nblocks))
+                        .abs()
+                        .sqrt();
 
-      // Only if threebody interaction, the derivatives are explicitly
-      // calculated
-      if ((*is)->threebody) {
-        // average value
-        (*is)->resultDer[i] = (*is)->resSumDer[i] / _nblocks;
-        // standard deviation of the average
-        (*is)->errorDer[i] = sqrt(((*is)->resSumDer2[i] / _nblocks -
-                                   (*is)->resultDer[i] * (*is)->resultDer[i]) /
-                                  _nblocks);
-      }
+    if (spline->threebody) {
+      spline->resultDer = (spline->resSumDer).array() / double(_nblocks);
+      spline->errorDer  = (((spline->resSumDer2).array() / double(_nblocks) -
+                           (spline->resultDer).array().abs2()) /
+                          double(_nblocks))
+                             .abs()
+                             .sqrt();
     }
 
     // first output point = first grid point
-    double out_x = (*is)->Spline.getGridPoint(0);
+    double out_x = spline->Spline.getGridPoint(0);
     // loop over output grid
-    for (int i = 0; i < (*is)->num_outgrid; i++) {
+    for (int i = 0; i < spline->num_outgrid; i++) {
 
       // If not threebody the result is (-1) the force
-      if (!((*is)->threebody)) {
+      if (!(spline->threebody)) {
         // put point, result, flag and accuracy at point out_x into the table
-        force_tab.set(i, out_x, (-1.0) * (*is)->result[i], 'i',
-                      (*is)->error[i]);
+        force_tab.set(i, out_x, (-1.0) * spline->result[i], 'i',
+                      spline->error[i]);
       }
 
       // If threebody interaction, force_tab represents the potential (-1) which
       // is the Antiderivative of the force Only if threebody interaction, the
       // derivatives are explicitly calculated
-      if ((*is)->threebody) {
+      if (spline->threebody) {
         // put point, result, flag and accuracy at point out_x into the table
-        force_tab.set(i, out_x, (+1.0) * (*is)->result[i], 'i',
-                      (*is)->error[i]);
-        force_tabDer.set(i, out_x, (-1.0) * (*is)->resultDer[i], 'i',
-                         (*is)->errorDer[i]);
+        force_tab.set(i, out_x, (+1.0) * spline->result[i], 'i',
+                      spline->error[i]);
+        force_tabDer.set(i, out_x, (-1.0) * spline->resultDer[i], 'i',
+                         spline->errorDer[i]);
       }
 
       // update out_x for the next iteration
-      out_x += (*is)->dx_out;
+      out_x += spline->dx_out;
     }
     // save table in the file
     force_tab.Save(file_name);
@@ -368,7 +361,7 @@ void CGForceMatching::WriteOutFiles() {
     force_tab.clear();
 
     // Only if threebody interaction, the derivatives are explicitly calculated
-    if ((*is)->threebody) {
+    if (spline->threebody) {
       force_tabDer.Save(file_nameDer);
       // clear the table for the next spline
       force_tabDer.clear();
