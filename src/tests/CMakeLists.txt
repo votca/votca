@@ -2,7 +2,8 @@ find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 
 # Each test listed in Alphabetical order
 foreach(PROG
-    test_cubicspline
+		test_constants
+		test_cubicspline
     test_datacollection
     test_edge_base
     test_edgecontainer
