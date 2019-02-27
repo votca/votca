@@ -122,8 +122,8 @@ Code
 ### General ###
   * Do not comment out code, if you do not use it delete it.
   * Variables should have clear and explicit names.
-  * Do not duplicate code. 
-  * Functions should have no more than 3 arguments.Otherwise create a class.
+  * Do not duplicate code.
+  * Functions should have no more than 3 arguments. Otherwise create a class.
   * XYZ positions should be described using tools::vec, 3x3 matrices tools::matrix, or classes and or functions in the eigen library.
   * Readability is more important the elegant design.
   * Leave the code better than you found it.
