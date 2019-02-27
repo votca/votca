@@ -21,14 +21,14 @@ for i in CC CXX CI TRAVIS TRAVIS_BRANCH TRAVIS_JOB_NUMBER TRAVIS_PULL_REQUEST TR
 done
 
 if [[ $ENV -eq 1 ]]; then
-  # Release build, which gets push to dockerhub, first half of the tests
+  # Release build with doxygen, which gets push to dockerhub, first half of the tests
   add_to_docker_opts TESTING=ON
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re"
   # only run csg-tutorials regressions tests for csg, tools, csg-tutorials and votca
-  [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) ]] && add_to_docker_opts REGRESSION_TESTING=ON
+  [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) && ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   export WERROR=yes
-  export DOCKERHUB=yes
+  [[ ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts DOXYGEN_COVERAGE=yes
 elif [[ $ENV -eq 2 ]]; then
   # Release build, which gets push to dockerhub, first half of the tests (for tools, csg, csg-tutorials and votca)
   add_to_docker_opts TESTING=ON
@@ -38,12 +38,10 @@ elif [[ $ENV -eq 2 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   export WERROR=yes
 elif [[ $ENV -eq 3 ]]; then
-  # Build with doxygen and test Debug build (no time problem as no tests are run)
+  # Debug build (no time problem as no tests are run)
   add_to_docker_opts TESTING=OFF
   add_to_docker_opts CMAKE_BUILD_TYPE=Debug
-  add_to_docker_opts DOXYGEN=yes
   add_to_docker_opts CLANG_FORMAT=yes
-  export DOXYGEN=yes # used in .travis.yml
   export WERROR=yes
 elif [[ $ENV -eq 4 ]]; then
   # Coverage build on Ubuntu, Fedora has issues, see #67
