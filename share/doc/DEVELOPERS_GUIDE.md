@@ -74,7 +74,7 @@
 :
 Code
 :
-#endif  // VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
+#endif // VOTCA_VOTCA-REPO-NAME_CLASS-NAME_H
 ```
   * Never use the "using namespace" in a header file.
   * Avoid using includes in header files. If possible forward declare a class instead.
@@ -110,11 +110,11 @@ Code
 
 ### Functions ###
   * Make functions short.
-  * Functions should not have more than one use.So use boolean arguments sparingly.
+  * Functions should not have more than one use. So use boolean arguments sparingly.
 
 ### Pointers ###
-  * In general, use pointers sparringly. Most objects are small and a copy does not change performance. Use references as well 
-  * If your pointer owns an object(i.e.it has to delete it later) use a `unique_ptr` to it, so you do not have to call `delete` on it yourself
+  * In general, use pointers sparringly. Most objects are small and a copy does not change performance. Use references as well
+  * If your pointer owns an object (i.e. it has to delete it later) use a `unique_ptr` to it, so you do not have to call `delete` on it yourself
   * If multiple objects own an object and the last object alive should delete it, use a `shared_ptr`
   * If your object does not have ownership but just wants to visit, you can use a raw pointer, but if you can a reference is better.
   * If you ever have to explicitly call `delete`, you did something very wrong.
@@ -128,7 +128,7 @@ Code
   * Readability is more important the elegant design.
   * Leave the code better than you found it.
   * Use pointers sparingly and especially try not to pass them around objects. Prefer references.
-	* Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
+  * Do not write code, which you may use in the future. Only write code you will use now. Write code, you need later, later. This avoids cluttering the codebase with unused "at some point we will need this functions".
   
 ## Testing
 
