@@ -22,7 +22,7 @@ jobs:
     - stage: canary
       env: ENV=3
     - stage: deploy
-      if: repo = votca/votca
+      if: repo = votca/votca AND type != pull_request
       env: ENV=1
 
 env:
