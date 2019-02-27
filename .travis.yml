@@ -12,6 +12,19 @@ services:
 git:
   quiet: true
 
+stages:
+  - canary
+  - test
+  - deploy
+
+jobs:
+  include:
+    - stage: canary
+      env: ENV=3
+    - stage: deploy
+      if: repo = votca/votca AND type != pull_request
+      env: ENV=1
+
 env:
   matrix:
     - ENV=1
@@ -73,13 +86,14 @@ script:
    fi
 
 after_success:
-  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) && ${CC} = *gcc* && ${DOCKERHUB} = yes && ! ${SKIP} ]] && DEPLOY=yes
+  - if [[ ${TRAVIS_REPO_SLUG} != votca/votca || ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" || ${SKIP} ]]; then travis_terminate 0; fi
+  - shopt -s extglob && [[ ${TRAVIS_BRANCH} = @(master|stable|v1.*) ]] && DEPLOY=yes
   - if [[ ${TRAVIS_BRANCH} = master ]]; then DOCKER_TAG=latest; else DOCKER_TAG="${TRAVIS_BRANCH}"; fi
   - if [[ ${DOCKER_USERNAME} && ${DOCKER_PASSWORD} && ${TRAVIS_PULL_REQUEST} == false && ${DEPLOY} ]]; then
         docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
         docker push "${TRAVIS_REPO_SLUG}:${DOCKER_TAG}";
     fi
-  - if [[ ${DOXYGEN} = yes && ! ${SKIP} ]]; then
+  - if true; then
       git clone --depth=1 https://github.com/votca/doxygen.git "$HOME/devdoc";
       cd $HOME/devdoc;
       rm -f *;
