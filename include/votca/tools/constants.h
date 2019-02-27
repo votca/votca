@@ -63,6 +63,27 @@ const double ev2kj_per_mol = 96.485;
 
 }  // namespace conv
 
+namespace topology_constants {
+
+/// Used to indicate that a valid element variable has not been assigned
+const std::string unassigned_element = "unassigned";
+
+/// Used to indicate that a valid bead type variable has not been assigned
+const std::string unassigned_bead_type = "unassigned";
+
+/// Used to indicate that a valid residue type variable has not been assigned
+const std::string unassigned_residue_type = "unassigned";
+
+/// Used to indicate that a valid molecule type variable has not been assigned
+const std::string unassigned_molecule_type = "unassigned";
+
+/// Used to indicate a valid residue id has not been assigned
+const int unassigned_residue_id = -1;
+
+/// Used to indicate a valid molecule id has not been assigned
+const int unassigned_molecule_id = -1;
+
+}  // namespace topology_constants
 }  // namespace tools
 }  // namespace votca
 
