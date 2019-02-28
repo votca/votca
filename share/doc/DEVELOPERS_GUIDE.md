@@ -14,6 +14,7 @@
  - [Updating Git Submodules](#updating-git-submodules)
  - [Merging With Stable](#merging-with-stable)
  - [Failed Release Builds](#failed-release-builds)
+ - [Setting Up A GitLab Runner Server](#gitlab-server)
  
 ## Reporting Bugs
 
@@ -105,20 +106,19 @@ Code
 ### get/set Functions ###
   * get/set functions start with a lowercase set/get (these are only functions which directly set/get a private member variable)
   * get must return a constant reference and keep the `class const`: `const int &getId() const;`
-  * set only sets the member, e.g. `void setId(const int &id) {_id=id;}`
- 
+  * set only sets the member, e.g. `void setId(const int &id) { _id = id; }`
+
 ### Functions ###
   * Make functions short.
   * Functions should not have more than one use. So use boolean arguments sparingly.
-  
+
 ### Pointers ###
   * In general, use pointers sparringly. Most objects are small and a copy does not change performance. Use references as well
-  * If your pointer owns an object (i.e. it has to delete it later) use a `unique_ptr` to it, so you do not have to call `delete` on it yourself 
+  * If your pointer owns an object (i.e. it has to delete it later) use a `unique_ptr` to it, so you do not have to call `delete` on it yourself
   * If multiple objects own an object and the last object alive should delete it, use a `shared_ptr`
   * If your object does not have ownership but just wants to visit, you can use a raw pointer, but if you can a reference is better.
   * If you ever have to explicitly call `delete`, you did something very wrong.
-  
- 
+
 ### General ###
   * Do not comment out code, if you do not use it delete it.
   * Variables should have clear and explicit names.
@@ -155,7 +155,7 @@ Code
     must have the same name as what appears in the foreach in the 
     CMakeLists.txt file. And place the following contents
 
-```  
+```
 #define BOOST_TEST_MAIN
 
 #define BOOST_TEST_MODULE vec_test
@@ -171,15 +171,15 @@ BOOST_AUTO_TEST_SUITE(vec_test)
 
 
 BOOST_AUTO_TEST_CASE(test1){
-  vecv;
-  BOOST_CHECK_EQUAL(...);
-  BOOST_CHECK_EQUAL(...);
+	vecv;
+	BOOST_CHECK_EQUAL(...);
+	BOOST_CHECK_EQUAL(...);
   :
 }
 BOOST_AUTO_TEST_CASE(test2){
-  vecv;
-  BOOST_CHECK_EQUAL(...);
-  BOOST_CHECK_EQUAL(...);
+	vecv;
+	BOOST_CHECK_EQUAL(...);
+	BOOST_CHECK_EQUAL(...);
   :
 }
 :
@@ -404,3 +404,15 @@ in place of **pcc64le**. You could also replace the **epel-7-ppc64le** os-archit
 if you simply want to build natively for instance if you are running fedora on
 an **x86_64** machine the `frocearch pcc64le` in the above case could just be
 dropped. 
+
+## Gitlab Server
+
+To setup a gitlab server the instructions on the official 
+[gitlab website](https://docs.gitlab.com/runner/register/) should be followed. 
+To obtain the access token contact one of the votca administrators. It is also 
+advisable to setup a cron job to help monitor the docker containers, images and
+ volumes which can use a substantial amount of space if not cleaned. A docker 
+cleanup script has been added in the 
+[dev-tools](https://github.com/votca/dev-tools) repo, instructions on how to 
+set it up are provided in the script. 
+
