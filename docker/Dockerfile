@@ -8,6 +8,7 @@ ARG CXXFLAGS
 ARG CMAKE_BUILD_TYPE
 ARG TESTING
 ARG DOXYGEN
+ARG DOXYGEN_COVERAGE
 ARG MINIMAL
 ARG MODULE_BUILD
 ARG BUILD_GROMACS
@@ -52,11 +53,13 @@ RUN make -j2 VERBOSE=1
 RUN ccache -s
 RUN if [ ${DOXYGEN} ]; then \
       make doxygen; \
-      python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
-      codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
-        -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
-        -F doxygen -X gcov -f doxygen.coverage.info; \
-      rm -f doxygen.coverage.info; \
+      if [ ${DOXYGEN_COVERAGE} ]; then \
+        python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
+        codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+          -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+          -F doxygen -X gcov -f doxygen.coverage.info; \
+        rm -f doxygen.coverage.info; \
+      fi; \
     fi
 RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
 RUN if [ ! ${MODULE_BUILD} ]; then \
