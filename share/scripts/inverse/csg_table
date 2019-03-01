@@ -164,7 +164,6 @@ table linearop table_linearop.pl
 #do not use table functional here as it needs gnuplot
 table dummy table_dummy.sh
 table get_value table_get_value.pl
-table smooth_borders table_smooth_borders.py
 table switch_border table_switch_border.pl
 table compare table_combine.pl --die --op =
 table combine table_combine.pl
