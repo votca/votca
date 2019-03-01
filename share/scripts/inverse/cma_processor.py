@@ -112,4 +112,4 @@ print("We going to State '",new_state.state, "' with parameters\n",new_state.par
 new_state.write(args[1])
 #we need to pickle parameters as well as they are saved in a dict (string compare)
 #and internal precission is float64
-pickle.dump([es,new_state.parameters],open("cma.internal_state.new", 'w'))
+pickle.dump([es,new_state.parameters],open("cma.internal_state.new", 'wb'))
