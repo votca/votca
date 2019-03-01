@@ -77,7 +77,7 @@ class state:
 try:
   import cma
 except:
-  exit("cma module could not be imported, please make sure to cma.py in your PYTHONPATH. The cma.py is available from http://www.lri.fr/~hansen/cmaes_inmatlab.html, get with 'csg_call cma get'")
+  exit("cma module could not be imported, please make sure to cma.py in your PYTHONPATH.")
 
 
 usage = "usage: %prog [options] statefile-in statefile-out"
