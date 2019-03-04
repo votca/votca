@@ -399,8 +399,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         // mean force on bead 1 on the pair distance: F1 * r12
         NBList::iterator pair_iter;
         for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-          Eigen::Vector3d F2  = (*pair_iter)->second->getF();
-          Eigen::Vector3d F1  = (*pair_iter)->first->getF();
+          Eigen::Vector3d F2  = (*pair_iter)->second()->getF();
+          Eigen::Vector3d F1  = (*pair_iter)->first()->getF();
           Eigen::Vector3d r12 = (*pair_iter)->r();
           r12.normalize();
           double var   = (*pair_iter)->dist();

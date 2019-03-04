@@ -639,8 +639,8 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   NBList::iterator pair_iter;
   // iterate over all pairs
   for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-    int             iatom    = (*pair_iter)->first->getId();
-    int             jatom    = (*pair_iter)->second->getId();
+    int             iatom    = (*pair_iter)->first()->getId();
+    int             jatom    = (*pair_iter)->second()->getId();
     double          var      = (*pair_iter)->dist();
     Eigen::Vector3d gradient = (*pair_iter)->r();
     gradient.normalize();

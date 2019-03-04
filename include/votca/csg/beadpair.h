@@ -29,20 +29,22 @@ namespace csg {
 
  */
 
-class BeadPair : public std::pair<Bead *, Bead *> {
+class BeadPair {
  public:
   BeadPair() {}
   BeadPair(Bead *bead1, Bead *bead2, Eigen::Vector3d r)
-      : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
+      : _pair(std::pair<Bead *, Bead *>(bead1, bead2)), _r(r), _dist(abs(r)) {}
 
-  virtual ~BeadPair() {}
-
+  Bead *first() { return _pair.first; }
+  Bead *second() { return _pair.second; }
   /// \brief the vector connecting two beads
   Eigen::Vector3d &r() { return _r; }
   /// \brief the distance of the beads
   double &dist() { return _dist; }
 
  protected:
+  std::pair<Bead *, Bead *> _pair;
+
   Eigen::Vector3d _r;
   double          _dist;
 };

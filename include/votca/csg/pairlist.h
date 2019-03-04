@@ -61,8 +61,8 @@ template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::AddPair(pair_type *p) {
   /// \todo be careful, same pair object is used, some values might change (e.g.
   /// sign of distance vector)
-  _pair_map[p->first][p->second] = p;
-  _pair_map[p->second][p->first] = p;
+  _pair_map[p->first()][p->second()] = p;
+  _pair_map[p->second()][p->first()] = p;
   /// \todo check if unique
   _pairs.push_back(p);
 }
