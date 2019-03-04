@@ -31,7 +31,7 @@ namespace csg {
 using namespace votca::tools;
 
 class CsgApplication : public Application {
-public:
+ public:
   CsgApplication();
   ~CsgApplication();
 
@@ -99,7 +99,7 @@ public:
    *
    */
   class Worker : public Thread {
-  public:
+   public:
     Worker();
     ~Worker();
 
@@ -109,11 +109,11 @@ public:
     /// \brief returns worker id
     int getId() { return _id; }
 
-  protected:
+   protected:
     CsgApplication *_app;
-    Topology _top, _top_cg;
-    TopologyMap *_map;
-    int _id;
+    Topology        _top, _top_cg;
+    TopologyMap *   _map;
+    int             _id;
 
     void Run(void);
 
@@ -146,21 +146,21 @@ public:
    */
   virtual void MergeWorker(Worker *worker);
 
-protected:
+ protected:
   std::list<CGObserver *> _observers;
-  bool _do_mapping;
-  std::vector<Worker *> _myWorkers;
-  int _nframes;
-  bool _is_first_frame;
-  int _nthreads;
-  Mutex _nframesMutex;
-  Mutex _traj_readerMutex;
+  bool                    _do_mapping;
+  std::vector<Worker *>   _myWorkers;
+  int                     _nframes;
+  bool                    _is_first_frame;
+  int                     _nthreads;
+  Mutex                   _nframesMutex;
+  Mutex                   _traj_readerMutex;
 
   /// \brief stores Mutexes used to impose order for input
   std::vector<Mutex *> _threadsMutexesIn;
   /// \brief stores Mutexes used to impose order for output
   std::vector<Mutex *> _threadsMutexesOut;
-  TrajectoryReader *_traj_reader;
+  TrajectoryReader *   _traj_reader;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer) {
@@ -169,7 +169,7 @@ inline void CsgApplication::AddObserver(CGObserver *observer) {
 
 inline CsgApplication::Worker::Worker() : _app(NULL), _map(NULL), _id(-1) {}
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_APPLICATION_H */

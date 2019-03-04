@@ -23,8 +23,8 @@ using namespace votca::tools;
 namespace votca {
 namespace csg {
 
-vector<BeadStructure<BaseBead>>
-breakIntoStructures(BeadStructure<BaseBead> &beadstructure) {
+vector<BeadStructure<BaseBead>> breakIntoStructures(
+    BeadStructure<BaseBead> &beadstructure) {
   vector<BeadStructure<BaseBead>> structures;
   if (beadstructure.isSingleStructure()) {
     structures.push_back(beadstructure);
@@ -33,8 +33,8 @@ breakIntoStructures(BeadStructure<BaseBead> &beadstructure) {
     vector<Graph> sub_graphs =
         decoupleIsolatedSubGraphs(beadstructure.getGraph());
     for (Graph &sub_graph : sub_graphs) {
-      vector<Edge> sub_graph_edges = sub_graph.getEdges();
-      vector<int> sub_graph_vertices = sub_graph.getVertices();
+      vector<Edge> sub_graph_edges    = sub_graph.getEdges();
+      vector<int>  sub_graph_vertices = sub_graph.getVertices();
 
       BeadStructure<BaseBead> beadstructure_temp;
       for (const int &vertex : sub_graph_vertices) {
@@ -50,5 +50,5 @@ breakIntoStructures(BeadStructure<BaseBead> &beadstructure) {
   return structures;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

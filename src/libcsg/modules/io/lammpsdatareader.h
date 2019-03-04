@@ -37,7 +37,7 @@ class Molecule;
 
 */
 class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
-public:
+ public:
   LAMMPSDataReader() {}
   ~LAMMPSDataReader() {}
 
@@ -53,10 +53,10 @@ public:
   /// close the topology file
   void Close();
 
-private:
+ private:
   std::ifstream fl_;
-  std::string fname_;
-  bool topology_;
+  std::string   fname_;
+  bool          topology_;
 
   std::map<std::string, std::vector<std::vector<std::string>>> data_;
 
@@ -89,7 +89,7 @@ private:
   bool MatchThreeFieldLabels_(std::vector<std::string> fields, Topology &top);
   bool MatchFourFieldLabels_(std::vector<std::string> fields, Topology &top);
   bool MatchFieldsTimeStepLabel_(std::vector<std::string> fields,
-                                 Topology &top);
+                                 Topology &               top);
 
   void ReadBox_(std::vector<std::string> fields, Topology &top);
   void SortIntoDataGroup_(std::string tag);
@@ -109,8 +109,8 @@ private:
 
   enum lammps_format {
     style_angle_bond_molecule = 0,
-    style_atomic = 1,
-    style_full = 2
+    style_atomic              = 1,
+    style_full                = 2
   };
   lammps_format determineDataFileFormat_(std::string line);
 
@@ -150,12 +150,12 @@ private:
    * Note that we do not append a number if it is singular, in such cases the
    * element and the atom name is the same.
    **/
-  void InitializeAtomAndBeadTypes_();
+  void                          InitializeAtomAndBeadTypes_();
   std::map<std::string, double> determineBaseNameAssociatedWithMass_();
-  std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
-      std::map<std::string, double> baseNamesAndMasses);
+  std::map<std::string, int>    determineAtomAndBeadCountBasedOnMass_(
+         std::map<std::string, double> baseNamesAndMasses);
 };
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
-#endif // _VOTCA_CSG_LAMMPSDATAREADER_H
+#endif  // _VOTCA_CSG_LAMMPSDATAREADER_H

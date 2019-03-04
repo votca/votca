@@ -49,15 +49,15 @@ void check_option(po::options_description &desc, po::variables_map &vm,
 
 int main(int argc, char **argv) {
 
-  string in_file, out_file, grid, fitgrid, comment, type, boundaries;
+  string  in_file, out_file, grid, fitgrid, comment, type, boundaries;
   Spline *spline = NULL;
-  Table in, out, der;
+  Table   in, out, der;
   // program options
   po::options_description desc("Allowed options");
 
   desc.add_options()("help", "produce this help message")(
-      "in", po::value<string>(&in_file),
-      "table to read")("out", po::value<string>(&out_file), "table to write")(
+      "in", po::value<string>(&in_file), "table to read")(
+      "out", po::value<string>(&out_file), "table to write")(
       "derivative", po::value<string>(), "table to write")(
       "grid", po::value<string>(&grid),
       "new grid spacing (min:step:max). If 'grid' is specified only, "
@@ -107,16 +107,16 @@ int main(int argc, char **argv) {
 
     double min, max, step;
     {
-      Tokenizer tok(grid, ":");
+      Tokenizer      tok(grid, ":");
       vector<string> toks;
       tok.ToVector(toks);
       if (toks.size() != 3) {
         cout << "wrong range format, use min:step:max\n";
         return 1;
       }
-      min = stod(toks[0]);
+      min  = stod(toks[0]);
       step = stod(toks[1]);
-      max = stod(toks[2]);
+      max  = stod(toks[2]);
     }
 
     in.Load(in_file);
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
 
     // in case fit is specified
     if (vm.count("fitgrid")) {
-      Tokenizer tok(fitgrid, ":");
+      Tokenizer      tok(fitgrid, ":");
       vector<string> toks;
       tok.ToVector(toks);
       if (toks.size() != 3) {
@@ -154,9 +154,9 @@ int main(int argc, char **argv) {
         return 1;
       }
       double sp_min, sp_max, sp_step;
-      sp_min = stod(toks[0]);
+      sp_min  = stod(toks[0]);
       sp_step = stod(toks[1]);
-      sp_max = stod(toks[2]);
+      sp_max  = stod(toks[2]);
       cout << "doing " << type << " fit " << sp_min << ":" << sp_step << ":"
            << sp_max << endl;
 
@@ -234,7 +234,7 @@ int main(int argc, char **argv) {
     if (vm.count("comment")) {
       out.set_comment(comment);
     }
-    out.y() = out.y();
+    out.y()     = out.y();
     out.flags() = std::vector<char>(out.flags().size(), 'o');
 
     der.GenerateGridSpacing(min, max, step);
@@ -248,10 +248,9 @@ int main(int argc, char **argv) {
     for (; i < out.size(); ++i) {
       for (; j < in.size(); ++j)
         if (in.x(j) >= out.x(i) ||
-            fabs(in.x(j) - out.x(i)) < 1e-12) // fix for precison errors
+            fabs(in.x(j) - out.x(i)) < 1e-12)  // fix for precison errors
           break;
-      if (in.size() == j)
-        break;
+      if (in.size() == j) break;
       out.flags(i) = in.flags(j);
       der.flags(i) = in.flags(j);
     }

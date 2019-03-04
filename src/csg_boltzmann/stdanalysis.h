@@ -28,7 +28,7 @@ namespace votca {
 namespace csg {
 
 class StdAnalysis : public AnalysisTool {
-public:
+ public:
   StdAnalysis(){};
   ~StdAnalysis(){};
 
@@ -40,10 +40,10 @@ public:
 
   void WriteValues(BondedStatistics &bs, std::vector<std::string> &args);
   void WriteCorrelations(BondedStatistics &bs, std::vector<std::string> &args);
-  void WriteAutocorrelation(BondedStatistics &bs,
+  void WriteAutocorrelation(BondedStatistics &        bs,
                             std::vector<std::string> &args);
 };
 
-} // namespace csg
-} // namespace votca
-#endif // VOTCA_CSG_STDANALYSIS_H
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_STDANALYSIS_H

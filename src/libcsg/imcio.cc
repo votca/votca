@@ -38,8 +38,7 @@ void imcio_write_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS,
   ofstream out_dS;
   out_dS.open(file.c_str());
   out_dS << setprecision(8);
-  if (!out_dS)
-    throw runtime_error(string("error, cannot open file ") + file);
+  if (!out_dS) throw runtime_error(string("error, cannot open file ") + file);
 
   if (list == NULL) {
     for (int i = 0; i < dS.size(); ++i) {
@@ -61,8 +60,7 @@ void imcio_write_matrix(const string &file, Eigen::MatrixXd &gmc,
   out_A.open(file.c_str());
   out_A << setprecision(8);
 
-  if (!out_A)
-    throw runtime_error(string("error, cannot open file ") + file);
+  if (!out_A) throw runtime_error(string("error, cannot open file ") + file);
 
   if (list == NULL) {
     for (int i = 0; i < gmc.rows(); ++i) {
@@ -90,8 +88,7 @@ void imcio_write_index(const string &file, vector<string> &names,
   ofstream out_idx;
   out_idx.open(file.c_str());
 
-  if (!out_idx)
-    throw runtime_error(string("error, cannot open file ") + file);
+  if (!out_idx) throw runtime_error(string("error, cannot open file ") + file);
 
   for (size_t i = 0; i < names.size(); ++i)
     out_idx << names[i] << " " << ranges[i] << endl;
@@ -109,7 +106,7 @@ void imcio_read_dS(const string &filename, Eigen::VectorXd &r,
   dS.resize(tbl.size());
 
   for (int i = 0; i < tbl.size(); ++i) {
-    r(i) = tbl.x(i);
+    r(i)  = tbl.x(i);
     dS(i) = tbl.y(i);
   }
 }
@@ -119,10 +116,9 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
   in.open(filename.c_str());
 
   bool is_initialized = false;
-  if (!in)
-    throw runtime_error(string("error, cannot open file ") + filename);
+  if (!in) throw runtime_error(string("error, cannot open file ") + filename);
 
-  int line_count = 0;
+  int    line_count = 0;
   string line;
   // read till the first data line
   while (getline(in, line)) {
@@ -131,15 +127,13 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer tok(line, " \t");
+    Tokenizer      tok(line, " \t");
     vector<string> tokens;
     tok.ToVector(tokens);
 
     // skip empty lines
-    if (tokens.size() == 0)
-      continue;
-    if (!is_initialized)
-      gmc.resize(tokens.size(), tokens.size());
+    if (tokens.size() == 0) continue;
+    if (!is_initialized) gmc.resize(tokens.size(), tokens.size());
     is_initialized = true;
 
     if (gmc.rows() != int(tokens.size()))
@@ -159,8 +153,7 @@ void imcio_read_index(const string &filename, vector<string> &names,
                       vector<RangeParser> &ranges) {
   ifstream in;
   in.open(filename.c_str());
-  if (!in)
-    throw runtime_error(string("error, cannot open file ") + filename);
+  if (!in) throw runtime_error(string("error, cannot open file ") + filename);
 
   names.clear();
   ranges.clear();
@@ -191,5 +184,5 @@ void imcio_read_index(const string &filename, vector<string> &names,
   in.close();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

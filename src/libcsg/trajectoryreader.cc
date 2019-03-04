@@ -54,5 +54,5 @@ void TrajectoryReader::RegisterPlugins(void) {
 #endif
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

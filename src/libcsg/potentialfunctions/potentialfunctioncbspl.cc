@@ -27,9 +27,9 @@ namespace votca {
 namespace csg {
 
 PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
-                                               const int nlam_,
-                                               const double min_,
-                                               const double max_)
+                                               const int     nlam_,
+                                               const double  min_,
+                                               const double  max_)
     : PotentialFunction(name_, nlam_, min_, max_) {
 
   /* Here nlam_ is the total number of coeff values that are to be optimized
@@ -55,16 +55,14 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
   // computed
   _rbreak = Eigen::VectorXd::Zero(nknots);
 
-  for (int i = 0; i < nknots; i++)
-    _rbreak(i) = i * _dr;
+  for (int i = 0; i < nknots; i++) _rbreak(i) = i * _dr;
 
   // exclude knots corresponding to r <= _min
   _nexcl = min(int((_min) / _dr), _nbreak - 2) + 1;
 
   // account for finite numerical division of _min/_dr
   // e.g. 0.24/0.02 may result in 11.99999999999999
-  if (_rbreak(_nexcl) == _min)
-    _nexcl++;
+  if (_rbreak(_nexcl) == _min) _nexcl++;
 
   // fixing last 4 knots to zeros is reasonable
   _ncutcoeff = 4;
@@ -84,7 +82,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
         "3. Use more knot values.\n");
   }
 
-  _M = Eigen::MatrixXd::Zero(4, 4);
+  _M       = Eigen::MatrixXd::Zero(4, 4);
   _M(0, 0) = 1.0;
   _M(0, 1) = 4.0;
   _M(0, 2) = 1.0;
@@ -117,11 +115,12 @@ void PotentialFunctionCBSPL::setParam(string filename) {
 
   if (param.size() != _lam.size()) {
 
-    throw std::runtime_error(
-        "In potential " + _name + ": parameters size mismatch!\n"
-                                  "Check input parameter file \"" +
-        filename + "\" \nThere should be " +
-        boost::lexical_cast<string>(_lam.size()) + " parameters");
+    throw std::runtime_error("In potential " + _name +
+                             ": parameters size mismatch!\n"
+                             "Check input parameter file \"" +
+                             filename + "\" \nThere should be " +
+                             boost::lexical_cast<string>(_lam.size()) +
+                             " parameters");
   } else {
 
     // force last _ncutcoeff to zero
@@ -141,8 +140,7 @@ void PotentialFunctionCBSPL::SaveParam(const string &filename) {
   // write extrapolated knots with flag 'o'
   // points close to rmin can also be stastically not reliable
   // so flag 3 more points next to rmin as 'o'
-  for (int i = 0; i < _nexcl + 3; i++)
-    param.set(i, _rbreak(i), _lam(i), 'o');
+  for (int i = 0; i < _nexcl + 3; i++) param.set(i, _rbreak(i), _lam(i), 'o');
 
   for (unsigned int i = _nexcl + 3; i < _lam.size(); i++)
     param.set(i, _rbreak(i), _lam(i), 'i');
@@ -158,7 +156,7 @@ void PotentialFunctionCBSPL::SavePotTab(const string &filename,
 }
 
 void PotentialFunctionCBSPL::SavePotTab(const string &filename,
-                                        const double step) {
+                                        const double  step) {
   extrapolExclParam();
   PotentialFunction::SavePotTab(filename, step);
 }
@@ -166,7 +164,7 @@ void PotentialFunctionCBSPL::SavePotTab(const string &filename,
 void PotentialFunctionCBSPL::extrapolExclParam() {
 
   double u0 = _lam(_nexcl);
-  double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
+  double m  = (_lam(_nexcl + 1) - _lam(_nexcl)) /
              (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
   double r0 = _rbreak(_nexcl);
 
@@ -187,8 +185,7 @@ void PotentialFunctionCBSPL::extrapolExclParam() {
 
   double a = m;
   double b = -1.0 * m * r0 + u0;
-  for (int i = 0; i < _nexcl; i++)
-    _lam(i) = a * _rbreak(i) + b;
+  for (int i = 0; i < _nexcl; i++) _lam(i) = a * _rbreak(i) + b;
 }
 
 void PotentialFunctionCBSPL::setOptParam(const int i, const double val) {
@@ -205,18 +202,18 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
 
   if (r <= _cut_off) {
 
-    double u = 0.0;
-    int indx = min(int(r / _dr), _nbreak - 2);
+    double u    = 0.0;
+    int    indx = min(int(r / _dr), _nbreak - 2);
     ;
     double rk = indx * _dr;
     ;
     double t = (r - rk) / _dr;
 
     Eigen::VectorXd R = Eigen::VectorXd::Zero(4);
-    R(0) = 1.0;
-    R(1) = t;
-    R(2) = t * t;
-    R(3) = t * t * t;
+    R(0)              = 1.0;
+    R(1)              = t;
+    R(2)              = t * t;
+    R(3)              = t * t * t;
     Eigen::VectorXd B = _lam.segment(indx, 4);
     u += ((R.transpose() * _M) * B).value();
     return u;
@@ -234,10 +231,10 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
 
     unsigned int i_opt = i + _nexcl;
     unsigned int indx;
-    double rk;
+    double       rk;
 
     indx = min(int((r) / _dr), _nbreak - 2);
-    rk = indx * _dr;
+    rk   = indx * _dr;
 
     if (i_opt >= indx && i_opt <= indx + 3) {
 
@@ -268,5 +265,5 @@ double PotentialFunctionCBSPL::CalculateD2F(const int i, const int j,
   return 0.0;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

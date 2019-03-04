@@ -33,7 +33,7 @@ namespace votca {
 namespace csg {
 
 class AnalysisTool {
-public:
+ public:
   AnalysisTool() {}
   virtual ~AnalysisTool() {}
 
@@ -43,6 +43,6 @@ public:
   virtual void Help(std::string cmd, std::vector<std::string> &args){};
 };
 
-} // namespace csg
-} // namespace votca
-#endif // VOTCA_CSG_ANALYSISTOOL_H
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_ANALYSISTOOL_H

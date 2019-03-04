@@ -38,11 +38,11 @@ namespace csg {
  ******************************************************************************/
 TabulatedPotential::TabulatedPotential() {
   _tab_smooth1 = _tab_smooth2 = 0;
-  _Temperature = 300;
+  _Temperature                = 300;
 }
 
 void TabulatedPotential::Register(map<string, AnalysisTool *> &lib) {
-  lib["tab"] = this;
+  lib["tab"]  = this;
   lib["hist"] = this;
 }
 
@@ -141,10 +141,11 @@ void TabulatedPotential::Help(string cmd, vector<string> &args) {
       return;
     }
     if (args[1] == "extend") {
-      cout << cmd << "set extend <value>\n"
-                     "should only be used with auto=0. Can be 1 for extend the "
-                     "interval if values are out of bounds (min/max) or 0 to "
-                     "ignore values which are out of the interal\n";
+      cout << cmd
+           << "set extend <value>\n"
+              "should only be used with auto=0. Can be 1 for extend the "
+              "interval if values are out of bounds (min/max) or 0 to "
+              "ignore values which are out of the interal\n";
       return;
     }
     if (args[1] == "scale") {
@@ -194,8 +195,8 @@ pair<int, int> TabulatedPotential::getSmoothIterations() const {
 }
 
 void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
-                                        vector<string> &args) {
-  ofstream out;
+                                        vector<string> &  args) {
+  ofstream                           out;
   DataCollection<double>::selection *sel = nullptr;
 
   for (size_t i = 1; i < args.size(); i++) {
@@ -212,8 +213,8 @@ void TabulatedPotential::WriteHistogram(BondedStatistics &bs,
 }
 
 void TabulatedPotential::WritePotential(BondedStatistics &bs,
-                                        vector<string> &args) {
-  ofstream out;
+                                        vector<string> &  args) {
+  ofstream                           out;
   DataCollection<double>::selection *sel = nullptr;
 
   // Appends all the interactions that are specified in args to selection
@@ -298,16 +299,15 @@ void TabulatedPotential::CalcForce_(vector<double> &U, vector<double> &F,
   if (bPeriodic)
     F[n - 1] = F[0] = -(U[1] - U[n - 2]) * f;
   else {
-    F[0] = -(U[1] - U[0]) * 2 * f;
+    F[0]     = -(U[1] - U[0]) * 2 * f;
     F[n - 1] = -(U[n - 1] - U[n - 2]) * 2 * f;
   }
-  for (size_t i = 1; i < n - 1; i++)
-    F[i] = -(U[i + 1] - U[i - 1]) * f;
+  for (size_t i = 1; i < n - 1; i++) F[i] = -(U[i + 1] - U[i - 1]) * f;
 }
 
 void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
   double old[3];
-  int n = data.size();
+  int    n = data.size();
   if (bPeriodic) {
     old[0] = data[n - 3];
     old[1] = data[n - 2];
@@ -328,13 +328,13 @@ void TabulatedPotential::Smooth_(vector<double> &data, bool bPeriodic) {
   if (bPeriodic) {
     data[i] =
         (old[0] + 2. * old[1] + 3. * data[i] + 2. * data[i + 1] + data[0]) / 9.;
-    old[0] = old[1];
-    old[1] = data[i];
+    old[0]      = old[1];
+    old[1]      = data[i];
     data[n - 1] = data[0];
   } else {
     data[i] = (old[0] + 2. * old[1] + 3. * data[i] + 3. * data[i + 1]) / 9.;
-    old[0] = old[1];
-    old[1] = data[i];
+    old[0]  = old[1];
+    old[1]  = data[i];
     i++;
     data[i] = (old[0] + 2. * old[1] + 6. * data[i]) / 9.;
   }
@@ -348,8 +348,7 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
 
   for (size_t i = 0; i < data.size(); i++) {
     _max = max(data[i], _max);
-    if (data[i] > 0)
-      _min = min(data[i], _min);
+    if (data[i] > 0) _min = min(data[i], _min);
   }
   _max = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_max);
   _min = -conv::kB * conv::ev2kj_per_mol * _Temperature * log(_min) - _max;
@@ -363,5 +362,5 @@ void TabulatedPotential::BoltzmannInvert_(vector<double> &data) {
   }
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca

@@ -27,9 +27,9 @@ using namespace std;
 using namespace votca::csg;
 
 class CsgMapApp : public CsgApplication {
-public:
+ public:
   string ProgramName() { return "csg_map"; }
-  void HelpText(ostream &out) {
+  void   HelpText(ostream &out) {
     out << "Convert a reference atomistic trajectory or configuration into a "
            "coarse-grained one \n"
         << "based on a mapping xml-file. The mapping can be applied to either "
@@ -57,8 +57,9 @@ public:
                         "  output file for coarse-grained trajectory")(
         "vel", "  Write mapped velocities (if available)")(
         "force", "  Write mapped forces (if available)")(
-        "hybrid", "  Create hybrid trajectory containing both atomistic and "
-                  "coarse-grained");
+        "hybrid",
+        "  Create hybrid trajectory containing both atomistic and "
+        "coarse-grained");
   }
 
   bool EvaluateOptions() {
@@ -72,16 +73,14 @@ public:
   void EvalConfiguration(Topology *top, Topology *top_ref) {
     if (!_do_hybrid) {
       // simply write the topology mapped by csgapplication class
-      if (_do_vel)
-        top->SetHasVel(true);
-      if (_do_force)
-        top->SetHasForce(true);
+      if (_do_vel) top->SetHasVel(true);
+      if (_do_force) top->SetHasForce(true);
       _writer->Write(top);
     } else {
       // we want to combine atomistic and coarse-grained into one topology
       Topology *hybtol = new Topology();
 
-      ResidueContainer::iterator it_res;
+      ResidueContainer::iterator  it_res;
       MoleculeContainer::iterator it_mol;
 
       hybtol->setBox(top->getBox());
@@ -116,10 +115,8 @@ public:
                                         bi->getType(), bi->getResnr(),
                                         bi->getMass(), bi->getQ());
           bn->setPos(bi->getPos());
-          if (bi->HasVel())
-            bn->setVel(bi->getVel());
-          if (bi->HasF())
-            bn->setF(bi->getF());
+          if (bi->HasVel()) bn->setVel(bi->getVel());
+          if (bi->HasF()) bn->setF(bi->getF());
 
           mi->AddBead(hybtol->Beads()[beadid], (*it_mol)->getBeadName(i));
         }
@@ -132,12 +129,11 @@ public:
             // todo: this is a bit dirty as a cg bead will always have the resid
             // of its first parent
             Bead *bparent = (*it_mol)->getBead(0);
-            Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
+            Bead *bn      = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
                                           bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
-            if (bi->HasVel())
-              bn->setVel(bi->getVel());
+            if (bi->HasVel()) bn->setVel(bi->getVel());
             mi->AddBead(bi, bi->getName());
           }
         }
@@ -153,11 +149,11 @@ public:
     delete _writer;
   }
 
-protected:
+ protected:
   TrajectoryWriter *_writer;
-  bool _do_hybrid;
-  bool _do_vel;
-  bool _do_force;
+  bool              _do_hybrid;
+  bool              _do_vel;
+  bool              _do_force;
 };
 
 void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {

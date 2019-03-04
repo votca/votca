@@ -44,7 +44,7 @@ namespace TOOLS = votca::tools;
 
 */
 class GMXTrajectoryReader : public TrajectoryReader {
-public:
+ public:
   GMXTrajectoryReader() {}
 
   /// open a trejectory file
@@ -56,7 +56,7 @@ public:
 
   void Close();
 
-private:
+ private:
   std::string _filename;
 
   // gmx status used in read_first_frame and _read_next_frame;
@@ -65,7 +65,7 @@ private:
   t_trxframe _gmx_frame;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _gmxtrajectoryreader_H */

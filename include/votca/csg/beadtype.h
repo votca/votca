@@ -32,13 +32,13 @@ using namespace votca::tools;
     several beads can share the same type.
   */
 class BeadType : public TopologyItem {
-public:
-  const int &getId() const { return _id; }
+ public:
+  const int &        getId() const { return _id; }
   const std::string &getName() const { return _name; }
-  void setName(const std::string &name) { _name = name; }
+  void               setName(const std::string &name) { _name = name; }
 
-private:
-  int _id;
+ private:
+  int         _id;
   std::string _name;
 
   BeadType(Topology *parent, int id, const std::string &name)
@@ -46,7 +46,7 @@ private:
   friend class Topology;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_BEADTYPE_H */

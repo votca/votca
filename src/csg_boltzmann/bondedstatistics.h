@@ -35,7 +35,7 @@ namespace csg {
  * other interactions such as IAngle, IDihedral etc...
  **/
 class BondedStatistics : public votca::csg::CGObserver {
-public:
+ public:
   void BeginCG(Topology *top, Topology *top_atom = 0);
   void EndCG();
 
@@ -43,9 +43,9 @@ public:
 
   TOOLS::DataCollection<double> &BondedValues() { return _bonded_values; }
 
-protected:
+ protected:
   TOOLS::DataCollection<double> _bonded_values;
 };
-} // namespace csg
-} // namespace votca
-#endif // VOTCA_CSG_BOLZMANNINVERSION_H
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_BOLZMANNINVERSION_H
