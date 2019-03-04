@@ -33,18 +33,18 @@ namespace csg {
 
 */
 class Residue : public TopologyItem {
-public:
+ public:
   /// get the name of the residue
   const std::string &getName();
 
   /// get the name of the residue
   const int &getId() const { return _id; }
 
-private:
-  int _id;
+ private:
+  int         _id;
   std::string _name;
 
-private:
+ private:
   /// constructor
   Residue(Topology *parent, int id, const std::string &name)
       : TopologyItem(parent), _id(id), _name(name) {}
@@ -53,7 +53,7 @@ private:
 
 inline const std::string &Residue::getName() { return _name; }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_RESIDUE_H */

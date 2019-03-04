@@ -31,7 +31,7 @@ namespace csg {
     This class defines the interface a trajectory reader has to implement
  */
 class TrajectoryReader {
-public:
+ public:
   virtual ~TrajectoryReader() {}
   /// open a trejectory file
   virtual bool Open(const std::string &file) = 0;
@@ -52,7 +52,7 @@ inline FileFormatFactory<TrajectoryReader> &TrjReaderFactory() {
   return _TrjReaderFactory;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_TRAJECTORYREADER_H */

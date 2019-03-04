@@ -26,7 +26,7 @@ namespace votca {
 namespace csg {
 
 class TopologyMap {
-public:
+ public:
   ~TopologyMap();
 
   TopologyMap(Topology *in, Topology *out);
@@ -35,12 +35,12 @@ public:
 
   void Apply();
 
-private:
+ private:
   Topology *_in;
   Topology *_out;
 
   typedef std::vector<Map *> MapContainer;
-  MapContainer _maps;
+  MapContainer               _maps;
 };
 
 inline TopologyMap::TopologyMap(Topology *in, Topology *out)
@@ -48,7 +48,7 @@ inline TopologyMap::TopologyMap(Topology *in, Topology *out)
 
 inline void TopologyMap::AddMoleculeMap(Map *map) { _maps.push_back(map); }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_TOPOLOGYMAP_H */

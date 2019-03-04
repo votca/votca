@@ -32,9 +32,9 @@ using boost::format;
 */
 
 class DLPTopolApp : public CsgApplication {
-public:
+ public:
   string ProgramName() { return "csg_dlptopol"; }
-  void HelpText(ostream &out) {
+  void   HelpText(ostream &out) {
     out << "Create a dlpoly topology template based on an existing (atomistic) "
            "topology and \n"
         << "a mapping xml-file. The created template file needs to be "
@@ -58,7 +58,7 @@ public:
   }
   bool EvaluateTopology(Topology *top, Topology *top_ref);
 
-protected:
+ protected:
   void WriteMoleculeAtoms(ostream &out, Molecule &cg);
   void WriteMoleculeInteractions(ostream &out, Molecule &cg);
   void WriteVDWInteractions(ostream &out, Molecule &cg);
@@ -104,12 +104,12 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
   // do CG mapping
 
-  MoleculeContainer &mols = top->Molecules();
-  MoleculeContainer MolecularTypes;
+  MoleculeContainer &         mols = top->Molecules();
+  MoleculeContainer           MolecularTypes;
   MoleculeContainer::iterator iter;
 
-  int prv_mol_number = 1;
-  string prv_mol_name;
+  int         prv_mol_number = 1;
+  string      prv_mol_name;
   vector<int> nummols;
 
   vector<string> vdw_pairs;
@@ -130,7 +130,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     nummols.push_back(prv_mol_number);
     prv_mol_number = 1;
-    prv_mol_name = mol->getName();
+    prv_mol_name   = mol->getName();
 
     //#ifdef DEBUG
     cout << "'" << mol->getName() << "' added to CG molecular types" << endl;
@@ -142,18 +142,18 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     for (int ib1 = 0; ib1 < mol->BeadCount(); ib1++) {
       string bead_name1 = mol->getBead(ib1)->getType();
-      bead_name1 = bead_name1.substr(
+      bead_name1        = bead_name1.substr(
           0,
-          bead_name1.find_first_of("#")); // skip #index of atom from its name
+          bead_name1.find_first_of("#"));  // skip #index of atom from its name
 
       for (unsigned int imt = 0; imt < MolecularTypes.size(); imt++) {
 
         for (int ib2 = 0; ib2 < MolecularTypes[imt]->BeadCount(); ib2++) {
 
           string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getType();
-          bead_name2 = bead_name2.substr(
-              0, bead_name2.find_first_of("#")); // skip #index of atom from
-                                                 // its name
+          bead_name2        = bead_name2.substr(
+              0, bead_name2.find_first_of("#"));  // skip #index of atom from
+                                                         // its name
 
           stringstream ss_bp1, ss_bp2;
 
@@ -229,9 +229,9 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
     string btype = b->getType();
 
     bname = bname.substr(
-        0, bname.find_first_of("#")); // skip #index of atom from its name
+        0, bname.find_first_of("#"));  // skip #index of atom from its name
     btype = btype.substr(
-        0, btype.find_first_of("#")); // skip #index of atom from its type
+        0, btype.find_first_of("#"));  // skip #index of atom from its type
 
     out << format("%8s  %10f  %10f     1     0     1 %10d  %8s  %8s %10d \n") %
                btype % b->getMass() % b->getQ() % (i + 1) % btype % bname %
@@ -242,40 +242,39 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
 }
 
 void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
-  InteractionContainer ics = cg.Interactions();
+  InteractionContainer            ics = cg.Interactions();
   vector<Interaction *>::iterator iter;
 
   stringstream sout;
 
   int n_entries = 0;
-  int nb = -1;
+  int nb        = -1;
 
   for (iter = ics.begin(); iter != ics.end(); ++iter) {
     Interaction *ic = *iter;
     if (nb != ic->BeadCount()) {
 
-      if (sout.str() != "")
-        out << n_entries << endl << sout.str();
+      if (sout.str() != "") out << n_entries << endl << sout.str();
 
       sout.str("");
       n_entries = 0;
 
       nb = ic->BeadCount();
       switch (nb) {
-      case 2:
-        out << "bonds ";
-        break;
-      case 3:
-        out << "angles ";
-        break;
-      case 4:
-        out << "dihedrals ";
-        break;
-      default:
-        string err = "cannot handle number of beads in interaction:";
-        err += to_string(ic->getMolecule() + 1) + ":" + ic->getGroup();
-        err += ":" + to_string(ic->getIndex() + 1);
-        throw runtime_error(err);
+        case 2:
+          out << "bonds ";
+          break;
+        case 3:
+          out << "angles ";
+          break;
+        case 4:
+          out << "dihedrals ";
+          break;
+        default:
+          string err = "cannot handle number of beads in interaction:";
+          err += to_string(ic->getMolecule() + 1) + ":" + ic->getGroup();
+          err += ":" + to_string(ic->getIndex() + 1);
+          throw runtime_error(err);
       }
     }
     n_entries++;
@@ -284,16 +283,14 @@ void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
     // sout << ic->getInteractionFunc(); // something like that (only for 1:1
     // mapping!)
     sout << " tab ";
-    for (int i = 0; i < nb; ++i)
-      sout << ic->getBeadId(i) + 1 << " ";
+    for (int i = 0; i < nb; ++i) sout << ic->getBeadId(i) + 1 << " ";
     sout << "   1.00000  0.00000"
          << " # ";
     sout << to_string(ic->getMolecule() + 1);
     sout << ":" + ic->getGroup();
     sout << ":" + to_string(ic->getIndex() + 1) << endl;
   }
-  if (sout.str() != "")
-    out << n_entries << endl << sout.str();
+  if (sout.str() != "") out << n_entries << endl << sout.str();
 }
 
 void DLPTopolApp::WriteMolecularType(ostream &out, Molecule &cg, int nummol) {

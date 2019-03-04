@@ -1,289 +1,291 @@
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+#Copyright 2009 - 2019 The VOTCA Development Team(http:  // www.votca.org)
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+#Licensed under the Apache License, Version 2.0(the "License");
+#you may not use this file except in compliance with the License.
+#You may obtain a copy of the License at
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+#http:  // www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an "AS IS" BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
 #
 
 #general scripts
-tag file tag_file.sh
-dummy dummy dummy.sh
+tag file tag_file.sh dummy dummy dummy
+    .sh
 
-#only here for building the manual (not actually used)
-functions common functions_common.sh
-csg master inverse.sh
+#only here for building the manual(not actually used)
+        functions common functions_common.sh csg master inverse
+    .sh
 
-# BEGIN: these scripts have to be defined for each method
-# method initialization
-prepare ibi prepare_generic.sh
-prepare imc prepare_imc.sh
-prepare generic prepare_generic.sh
-prepare optimizer prepare_optimizer.sh
-prepare re prepare_re.sh
-prepare_single ibi prepare_generic_single.sh
-prepare_single imc prepare_generic_single.sh
-prepare_single optimizer prepare_optimizer_single.sh
-initstep ibi initialize_step_generic.sh
-initstep imc initialize_step_generic.sh
-initstep optimizer initialize_step_optimizer.sh
-initstep re initialize_step_re.sh
+#BEGIN : these scripts have to be defined for each method
+#method initialization
+        prepare ibi prepare_generic.sh prepare imc prepare_imc
+    .sh prepare generic prepare_generic.sh prepare optimizer prepare_optimizer
+    .sh prepare re prepare_re.sh prepare_single ibi
+        prepare_generic_single.sh prepare_single imc prepare_generic_single
+    .sh prepare_single optimizer
+        prepare_optimizer_single.sh initstep ibi
+            initialize_step_generic.sh initstep imc initialize_step_generic
+    .sh initstep optimizer
+        initialize_step_optimizer.sh initstep re initialize_step_re
+    .sh
 
 #this is just to warn users from old versions
-prepare ibm prepare_ibm.sh
-update ibm update_ibm.sh
+        prepare ibm prepare_ibm.sh update ibm update_ibm
+    .sh
 
-# the update step
+#the update step
 
-# add up the potential
-# TODO: think about name add_pot, is other name maybe better
-add_pot ibi add_pot_generic.sh
-add_pot imc add_pot_generic.sh
-add_pot optimizer dummy.sh
-add_pot re dummy.sh
+#add up the   potential
+#TODO : think about name add_pot, is other name maybe better
+        add_pot ibi add_pot_generic.sh add_pot imc
+            add_pot_generic.sh add_pot optimizer dummy.sh add_pot re dummy
+    .sh
 
-# END: these scripts have to be defined for each method
+#END : these scripts have to be defined for each method
 
-# pre update
-pre_update ibi dummy.sh
-pre_update imc dummy.sh
-pre_update optimizer dummy.sh
-pre_update re pre_update_re.sh
+#pre update
+        pre_update ibi dummy.sh pre_update imc
+            dummy.sh pre_update optimizer dummy.sh pre_update re pre_update_re
+    .sh
 
-# post update
-post_update ibi post_update_generic.sh
-post_update imc post_update_generic.sh
-post_update optimizer dummy.sh
-post_update re post_update_generic.sh
-post_update_single ibi post_update_generic_single.sh
-post_update_single imc post_update_generic_single.sh
-post_update_single re post_update_re_single.sh
+#post update
+        post_update ibi
+            post_update_generic.sh post_update imc post_update_generic
+    .sh post_update optimizer dummy.sh post_update re
+        post_update_generic.sh post_update_single ibi post_update_generic_single
+    .sh post_update_single imc post_update_generic_single
+    .sh post_update_single re post_update_re_single
+    .sh
 
 #post update scripts
-postupd scale postupd_scale.sh
-postupd pressure postupd_pressure.sh
-postupd lj postupd_addlj.sh
-postupd splinesmooth postupd_splinesmooth.sh
-postupd smooth postupd_smooth.sh
-postupd shift postadd_shift.sh
-postupd dummy postadd_dummy.sh
-postupd tag tag_file.sh
-postupd extrapolate postupd_extrapolate.sh
-postupd kbibi postupd_kbibi_correction.sh
-postupd cibi postupd_cibi_correction.sh
+        postupd scale postupd_scale.sh postupd pressure postupd_pressure
+    .sh postupd lj postupd_addlj.sh postupd splinesmooth postupd_splinesmooth
+    .sh postupd smooth postupd_smooth.sh postupd shift
+        postadd_shift.sh postupd dummy postadd_dummy.sh postupd tag
+            tag_file.sh postupd extrapolate
+                postupd_extrapolate.sh postupd kbibi postupd_kbibi_correction
+    .sh postupd cibi postupd_cibi_correction
+    .sh
 
-# post add
-post add post_add.sh
-post add_single post_add_single.sh
+#post add
+        post add post_add.sh post add_single post_add_single
+    .sh
 
-# post add scripts
-postadd tag tag_file.sh
-postadd dummy postadd_dummy.sh
-postadd copyback postadd_copyback.sh
-postadd compress postadd_compress.sh
-postadd convergence postadd_convergence.sh
-postadd acc_convergence postadd_acc_convergence.sh 
-postadd shift postadd_shift.sh
-postadd overwrite postadd_overwrite.sh
-postadd plot postadd_plot.sh
-postadd average postadd_average.sh
+#post add scripts
+        postadd tag tag_file.sh postadd dummy postadd_dummy
+    .sh postadd copyback postadd_copyback.sh postadd compress
+        postadd_compress.sh postadd convergence postadd_convergence
+    .sh postadd acc_convergence postadd_acc_convergence
+    .sh postadd shift postadd_shift.sh postadd overwrite postadd_overwrite
+    .sh postadd plot postadd_plot.sh postadd average postadd_average
+    .sh
 
 #convergence checks
-convergence_check default convergence_check_default.sh
+        convergence_check default convergence_check_default
+    .sh
 
-# table preparation
-resample target resample_target.sh
-dpot crop dpot_crop.pl
+#table preparation
+        resample target resample_target.sh dpot crop dpot_crop
+    .pl
 
-# ibi specific stuff
-update ibi update_ibi.sh
-update ibi_single update_ibi_single.sh
-update ibi_pot update_ibi_pot.pl
+#ibi specific stuff
+        update ibi update_ibi.sh update ibi_single
+            update_ibi_single.sh update ibi_pot update_ibi_pot
+    .pl
 
-# imc specific stuff
-update imc update_imc.sh
-imcsolver matlab solve_matlab.sh
-solve matlab linsolve.m
-imcsolver octave solve_octave.sh
-solve octave linsolve.octave
-imcsolver numpy solve_numpy.sh
-solve numpy linsolve.py
+#imc specific stuff
+        update imc update_imc.sh imcsolver matlab solve_matlab
+    .sh solve matlab linsolve.m imcsolver octave
+        solve_octave.sh solve octave linsolve.octave imcsolver numpy
+            solve_numpy.sh solve numpy linsolve
+    .py
 
-imc purify imc_purify.sh
+        imc purify imc_purify
+    .sh
 
-# optimzer(generic) stuff
-optimizer prepare_state optimizer_prepare_state.sh
-optimizer parameters_to_potential optimizer_parameters_to_potential.sh
-optimizer state_to_potentials optimizer_state_to_potentials.sh
-optimizer state_to_mapping  optimizer_state_to_mapping.sh
-update optimizer update_optimizer.sh
-update optimizer_single update_optimizer_single.sh
+#optimzer(generic) stuff
+        optimizer prepare_state optimizer_prepare_state
+    .sh optimizer parameters_to_potential optimizer_parameters_to_potential
+    .sh optimizer state_to_potentials optimizer_state_to_potentials
+    .sh optimizer state_to_mapping
+        optimizer_state_to_mapping.sh update optimizer
+            update_optimizer.sh update optimizer_single update_optimizer_single
+    .sh
 
-optimizer_target rdf optimizer_target_rdf.sh
-optimizer_target density optimizer_target_density.sh
-optimizer_target pressure optimizer_target_pressure.sh
+        optimizer_target rdf optimizer_target_rdf
+    .sh optimizer_target density optimizer_target_density
+    .sh optimizer_target pressure optimizer_target_pressure
+    .sh
 
-# simplex specific stuff
-simplex precede_state simplex_downhill_processor.pl
+#simplex specific stuff
+        simplex precede_state simplex_downhill_processor
+    .pl
 
-# cma specific stuff
-cma precede_state cma_processor.py
+#cma specific stuff
+        cma precede_state cma_processor
+    .py
 
-# relative entroy (re) specific stuff
-update re update_re.sh
+#relative entroy(re) specific stuff
+        update re update_re
+    .sh
 
-# recalculate reference
-calc target_rdf calc_target_rdf_generic.sh
+#recalculate reference
+        calc target_rdf calc_target_rdf_generic
+    .sh
 
-# pressure correction
-pressure_cor simple pressure_cor_simple.pl
-pressure_cor wjk pressure_cor_wjk.pl
+#pressure correction
+        pressure_cor simple
+            pressure_cor_simple.pl pressure_cor wjk pressure_cor_wjk
+    .pl
 
-# lj addition
-compute_lj 12_6 lj_126.pl
+#lj addition
+        compute_lj 12_6 lj_126
+    .pl
 
-# kirkwood-buff correction
-kbibi ramp_correction kbibi_ramp_correction.pl
-calc kbint calc_kbint.sh
+#kirkwood - buff correction
+        kbibi ramp_correction kbibi_ramp_correction.pl calc kbint calc_kbint
+    .sh
 
-# generic table manipulation
-table add add_POT.pl
-table integrate table_integrate.pl
-table extrapolate table_extrapolate.pl
-table merge merge_tables.pl
-table smooth table_smooth.pl
-table linearop table_linearop.pl
+#generic table manipulation
+        table add add_POT.pl table integrate table_integrate
+    .pl table extrapolate table_extrapolate.pl table merge merge_tables
+    .pl table smooth table_smooth.pl table linearop table_linearop
+    .pl
 #do not use table functional here as it needs gnuplot
-table dummy table_dummy.sh
-table get_value table_get_value.pl
-table getsubset table_getsubset.py
-table smooth_borders table_smooth_borders.py
-table switch_border table_switch_border.pl
-table compare table_combine.pl --die --op =
-table combine table_combine.pl
-table average table_average.sh
-table scale table_scale.pl
-table change_flag table_change_flag.sh
-table functional table_functional.sh
+        table dummy table_dummy.sh table get_value table_get_value
+    .pl table switch_border table_switch_border.pl table compare
+                                                         table_combine.pl-- die-- op =
+    table combine table_combine.pl table average table_average
+        .sh table scale table_scale.pl table change_flag
+            table_change_flag.sh table functional table_functional
+        .sh
 
-# generic potential manipulation
-potential extrapolate potential_extrapolate.sh
-potential shift potential_shift.pl
-convert_potential tab table_to_tab.pl
+#generic potential manipulation
+            potential extrapolate
+                potential_extrapolate.sh potential shift
+                    potential_shift.pl convert_potential tab table_to_tab
+        .pl
 
-# generic distribution manipulation
-dist adjust dist_adjust.pl
-dist invert dist_boltzmann_invert.pl
+#generic distribution manipulation
+            dist adjust dist_adjust.pl dist invert dist_boltzmann_invert
+        .pl
 
+#tools needed for (atom / molecule) configuration handling
+            configuration compare configuration_compare
+        .py
 
-# tools needed for (atom/molecule) configuration handling
-configuration compare configuration_compare.py
+#error analysis
+            tables jackknife tables_jackknife
+        .pl
 
-# error analysis
-tables jackknife tables_jackknife.pl
+#BEGIN : these scripts have to be defined for each simulation program
+#interface to                                                 gromacs
+            initstep gromacs initialize_step_genericsim
+        .sh run gromacs run_gromacs.sh clean gromacs
+            clean_generic.sh presimulation gromacs
+                run_gromacs.sh-- pre pressure gromacs calc_pressure_gromacs
+        .sh pressure lammps calc_pressure_lammps.sh rdf gromacs
+            calc_rdf_generic.sh imc_stat gromacs imc_stat_generic
+        .sh
 
-# BEGIN: these scripts have to be defined for each simulation program
-# interface to gromacs
-initstep gromacs initialize_step_genericsim.sh
-run gromacs run_gromacs.sh
-clean gromacs clean_generic.sh
-presimulation gromacs run_gromacs.sh --pre
-pressure gromacs calc_pressure_gromacs.sh
-pressure lammps calc_pressure_lammps.sh
-rdf gromacs calc_rdf_generic.sh
-imc_stat gromacs imc_stat_generic.sh
+            density gromacs calc_density_generic
+        .sh
 
-density gromacs calc_density_generic.sh
-
-# gromacs scripts specific stuff
-convert_potential gromacs potential_to_gromacs.sh
-convert_potentials gromacs potentials_to_generic.sh
-convert_potential xvg table_to_xvg.pl
+#gromacs scripts specific stuff
+            convert_potential gromacs potential_to_gromacs
+        .sh convert_potentials gromacs
+            potentials_to_generic.sh convert_potential xvg table_to_xvg
+        .pl
 
 #function for gromacs
-functions gromacs functions_gromacs.sh
+            functions gromacs functions_gromacs
+        .sh
 
-# Interface to ESPResSo
-initstep espresso initialize_step_genericsim.sh
-run espresso run_genericsim.sh
-clean espresso clean_generic.sh
-rdf espresso calc_rdf_generic.sh
-imc_stat espresso imc_stat_generic.sh
-density espresso calc_density_generic.sh
+#Interface to ESPResSo
+            initstep espresso initialize_step_genericsim
+        .sh run espresso run_genericsim.sh clean espresso clean_generic
+        .sh rdf espresso calc_rdf_generic.sh imc_stat espresso
+            imc_stat_generic.sh density espresso calc_density_generic
+        .sh
 
-# ESPResSo scripts
-convert_potential espresso potential_to_generic.sh
-convert_potentials espresso potentials_to_generic.sh
+#ESPResSo scripts
+            convert_potential espresso potential_to_generic
+        .sh convert_potentials espresso potentials_to_generic
+        .sh
 
-# function for ESPResSo
-functions espresso functions_genericsim.sh
+#function for ESPResSo
+            functions espresso functions_genericsim
+        .sh
 
-# lammps scripts
-convert_potential lammps potential_to_lammps.sh
-convert_potentials lammps potentials_to_generic.sh
+#lammps scripts
+            convert_potential lammps potential_to_lammps
+        .sh convert_potentials lammps potentials_to_generic
+        .sh
 
-# interface to lammps
-initstep lammps initialize_step_genericsim.sh
-run lammps run_genericsim.sh
-clean lammps clean_generic.sh
-rdf lammps calc_rdf_generic.sh
-imc_stat lammps imc_stat_generic.sh
-density lammps calc_density_generic.sh
+#interface to lammps
+            initstep lammps initialize_step_genericsim
+        .sh run lammps run_genericsim.sh clean lammps clean_generic
+        .sh rdf lammps calc_rdf_generic.sh imc_stat lammps
+            imc_stat_generic.sh density lammps calc_density_generic
+        .sh
 
-# function for lammps
-functions lammps functions_genericsim.sh
+#function for lammps
+            functions lammps functions_genericsim
+        .sh
 
-# espressopp scripts
-convert_potential espressopp potential_to_generic.sh
-convert_potentials espressopp potentials_to_generic.sh
+#espressopp scripts
+            convert_potential espressopp potential_to_generic
+        .sh convert_potentials espressopp potentials_to_generic
+        .sh
 
-# interface to espressopp
-initstep espressopp initialize_step_genericsim.sh
-run espressopp run_genericsim.sh
-clean espressopp clean_generic.sh
-rdf espressopp calc_rdf_generic.sh
-imc_stat espressopp imc_stat_generic.sh
-density espressopp calc_density_generic.sh
+#interface to espressopp
+            initstep espressopp initialize_step_genericsim
+        .sh run espressopp run_genericsim.sh clean espressopp
+            clean_generic.sh rdf espressopp
+                calc_rdf_generic.sh imc_stat espressopp
+                    imc_stat_generic.sh density espressopp calc_density_generic
+        .sh
 
-# function for espressopp
-functions espressopp functions_genericsim.sh
+#function for espressopp
+            functions espressopp functions_genericsim
+        .sh
 
-# interface to dlpoly
-initstep dlpoly initialize_step_genericsim.sh
-run dlpoly run_genericsim.sh
-clean dlpoly clean_generic.sh
-rdf dlpoly calc_rdf_generic.sh
-imc_stat dlpoly imc_stat_generic.sh
-density dlpoly calc_density_generic.sh
+#interface to dlpoly
+            initstep dlpoly initialize_step_genericsim
+        .sh run dlpoly run_genericsim.sh clean dlpoly clean_generic
+        .sh rdf dlpoly calc_rdf_generic.sh imc_stat dlpoly
+            imc_stat_generic.sh density dlpoly calc_density_generic
+        .sh
 
-# function for dlpoly
-functions dlpoly functions_dlpoly.sh
+#function for dlpoly
+            functions dlpoly functions_dlpoly
+        .sh
 
-# dlpoly scripts
-convert_potential dlpoly potential_to_dlpoly.sh
-convert_potentials dlpoly potentials_to_dlpoly.sh
+#dlpoly scripts
+            convert_potential dlpoly potential_to_dlpoly
+        .sh convert_potentials dlpoly potentials_to_dlpoly.sh
 
-# hoomd-blue scripts
-convert_potential hoomd-blue potential_to_generic.sh
-convert_potentials hoomd-blue potentials_to_generic.sh
+#hoomd - blue scripts
+            convert_potential hoomd -
+    blue potential_to_generic.sh convert_potentials hoomd -
+    blue                                            potentials_to_generic.sh
 
-# interface to hoomd-blue
-initstep hoomd-blue initialize_step_genericsim.sh
-run hoomd-blue run_genericsim.sh
-clean hoomd-blue clean_generic.sh
-rdf hoomd-blue calc_rdf_generic.sh
-imc_stat hoomd-blue imc_stat_generic.sh
-density hoomd-blue calc_density_generic.sh
+#interface to hoomd - blue
+        initstep hoomd -
+    blue initialize_step_genericsim.sh run hoomd -
+    blue run_genericsim.sh clean hoomd - blue clean_generic.sh rdf hoomd -
+    blue calc_rdf_generic.sh imc_stat hoomd -
+    blue imc_stat_generic.sh density hoomd -
+    blue                             calc_density_generic.sh
 
-# function for hoomd-blue
-functions hoomd-blue functions_genericsim.sh
+#function for hoomd - blue
+        functions hoomd -
+    blue          functions_genericsim.sh
 
-# END: these scripts have to be defined for each simulation program
+#END : these scripts have to be defined for each simulation program

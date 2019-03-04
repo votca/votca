@@ -42,7 +42,7 @@ class Interaction;
 
 */
 class Molecule : public TopologyItem {
-public:
+ public:
   /// get the molecule ID
   int getId() const { return _id; }
 
@@ -56,14 +56,14 @@ public:
   void AddBead(Bead *bead, const std::string &name);
   /// get the id of a bead in the molecule
   Bead *getBead(int bead) { return _beads[bead]; }
-  int getBeadId(int bead) { return _beads[bead]->getId(); }
-  int getBeadIdByName(const std::string &name);
+  int   getBeadId(int bead) { return _beads[bead]->getId(); }
+  int   getBeadIdByName(const std::string &name);
 
   /// get the number of beads in the molecule
   int BeadCount() const { return _beads.size(); }
 
   /// find a bead by it's name
-  int getBeadByName(const std::string &name);
+  int         getBeadByName(const std::string &name);
   std::string getBeadName(int bead) { return _bead_names[bead]; }
 
   /// Add an interaction to the molecule
@@ -71,13 +71,17 @@ public:
 
   std::vector<Interaction *> Interactions() { return _interactions; }
 
-  template <typename T> void setUserData(T *userdata) {
+  template <typename T>
+  void setUserData(T *userdata) {
     _userdata = (void *)userdata;
   }
 
-  template <typename T> T *getUserData() { return (T *)_userdata; }
+  template <typename T>
+  T *getUserData() {
+    return (T *)_userdata;
+  }
 
-private:
+ private:
   // maps a name to a bead id
   std::map<std::string, int> _beadmap;
   std::vector<Interaction *> _interactions;
@@ -88,7 +92,7 @@ private:
   // name of the molecule
   std::string _name;
   // the beads in the molecule
-  std::vector<Bead *> _beads;
+  std::vector<Bead *>      _beads;
   std::vector<std::string> _bead_names;
 
   void *_userdata;
@@ -102,12 +106,11 @@ private:
 
 inline int Molecule::getBeadIdByName(const std::string &name) {
   int i = getBeadByName(name);
-  if (i < 0)
-    return i;
+  if (i < 0) return i;
   return _beads[i]->getId();
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_MOLECULE_H */

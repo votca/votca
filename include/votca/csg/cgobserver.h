@@ -35,7 +35,7 @@ using namespace votca::tools;
  */
 
 class CGObserver {
-public:
+ public:
   /// \brief called before the first frame
   virtual void BeginCG(Topology *top, Topology *top_atom = 0) = 0;
   /// \brief called after the last frame
@@ -44,7 +44,7 @@ public:
   virtual void EvalConfiguration(Topology *top, Topology *top_atom = 0) = 0;
 };
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_CGOBSERVER_H */

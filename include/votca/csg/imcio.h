@@ -41,7 +41,7 @@ void imcio_read_matrix(const std::string &file, Eigen::MatrixXd &gmc);
 void imcio_read_index(const std::string &file, std::vector<std::string> &names,
                       std::vector<RangeParser> &ranges);
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_IMCIO_H */

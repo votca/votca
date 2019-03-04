@@ -102,7 +102,7 @@ namespace csg {
  * column1 = the bin edge, column2 = potential, column3 = the force
  **/
 class TabulatedPotential : public AnalysisTool {
-public:
+ public:
   TabulatedPotential();
   ~TabulatedPotential(){};
 
@@ -136,8 +136,8 @@ public:
    **/
   std::pair<int, int> getSmoothIterations() const;
 
-private:
-  bool SetOption_(TOOLS::Histogram::options_t &op,
+ private:
+  bool SetOption_(TOOLS::Histogram::options_t &   op,
                   const std::vector<std::string> &args);
 
   bool SetOption_(const std::vector<std::string> &args);
@@ -170,6 +170,6 @@ private:
   /// Temperature in units of Kelvin
   double _Temperature;
 };
-} // namespace csg
-} // namespace votca
-#endif // VOTCA_CSG_TABULATEDPOTENTIAL_H
+}  // namespace csg
+}  // namespace votca
+#endif  // VOTCA_CSG_TABULATEDPOTENTIAL_H

@@ -37,5 +37,5 @@ void XYZWriter::Write(Topology *conf) {
                            .str();
   Write<Topology>(*conf, header);
 }
-}
-}
+}  // namespace csg
+}  // namespace votca

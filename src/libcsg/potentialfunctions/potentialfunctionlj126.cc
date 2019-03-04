@@ -22,8 +22,8 @@ using namespace std;
 namespace votca {
 namespace csg {
 PotentialFunctionLJ126::PotentialFunctionLJ126(const string &name_,
-                                               const double min_,
-                                               const double max_)
+                                               const double  min_,
+                                               const double  max_)
     : PotentialFunction(name_, 2, min_, max_) {}
 
 double PotentialFunctionLJ126::CalculateF(const double r) const {
@@ -40,10 +40,10 @@ double PotentialFunctionLJ126::CalculateDF(const int i, const double r) const {
   if (r >= _min && r <= _cut_off) {
 
     switch (i) {
-    case 0:
-      return 1.0 / pow(r, 12);
-    case 1:
-      return -1.0 / pow(r, 6);
+      case 0:
+        return 1.0 / pow(r, 12);
+      case 1:
+        return -1.0 / pow(r, 6);
     }
   }
   return 0.0;
@@ -55,5 +55,5 @@ double PotentialFunctionLJ126::CalculateD2F(const int i, const int j,
 
   return 0.0;
 }
-}
-}
+}  // namespace csg
+}  // namespace votca

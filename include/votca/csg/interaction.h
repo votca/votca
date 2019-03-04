@@ -215,7 +215,7 @@ inline Eigen::Vector3d IAngle::Grad(const Topology &top, int bead) {
   switch (bead) {
     case (0):
       return acos_prime *
-             ((-v2 / v1.norm() * v2.norm()) +
+             (-v2 / (v1.norm() * v2.norm()) +
               (v1.dot(v2) * v1) / (v1.squaredNorm() * v2.squaredNorm()));
       break;
     case (1):
@@ -255,7 +255,7 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, int bead) {
   double          sign = (v1.dot(n2) < 0) ? -1 : 1;
   Eigen::Vector3d returnvec;
 
-  Eigen::Matrix3d e = Eigen::Matrix3d::Zero();
+  Eigen::Matrix3d e = Eigen::Matrix3d::Identity();
 
   double acos_prime =
       sign * (-1.0 / (sqrt(1 - std::pow(n1.dot(n2), 2) /
@@ -265,7 +265,7 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, int bead) {
       for (int i = 0; i < 3; i++) {
         returnvec[i] = n2.dot(v2.cross(e.col(i))) / (n1.norm() * n2.norm()) -
                        n1.dot(n2) * n1.dot(v2.cross(e.col(i))) /
-                           (n1.norm() * std::pow(n2.norm(), 3));
+                           (n2.norm() * std::pow(n1.norm(), 3));
       }
       return acos_prime * returnvec;
       break;
@@ -278,7 +278,7 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, int bead) {
                 (n1.norm() * n2.norm()) -
             n1.dot(n2) * ((n1.dot(e.col(i).cross(v1) + e.col(i).cross(v2))) /
                               (n2.norm() * std::pow(n1.norm(), 3)) +
-                          n2.dot(v3.cross(e.col(0))) /
+                          n2.dot(v3.cross(e.col(i))) /
                               (n1.norm() * std::pow(n2.norm(), 3)));
       }
       return acos_prime * returnvec;

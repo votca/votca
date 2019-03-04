@@ -312,18 +312,18 @@ void CGForceMatching::WriteOutFiles() {
            << endl;
     }
 
-    spline->result = (spline->resSum).array() / double(_nblocks);
-    spline->error  = (((spline->resSum2).array() / double(_nblocks) -
+    spline->result = (spline->resSum).array() / _nblocks;
+    spline->error  = (((spline->resSum2).array() / _nblocks -
                       (spline->result).array().abs2()) /
-                     double(_nblocks))
+                     _nblocks)
                         .abs()
                         .sqrt();
 
     if (spline->threebody) {
-      spline->resultDer = (spline->resSumDer).array() / double(_nblocks);
-      spline->errorDer  = (((spline->resSumDer2).array() / double(_nblocks) -
+      spline->resultDer = (spline->resSumDer).array() / _nblocks;
+      spline->errorDer  = (((spline->resSumDer2).array() / _nblocks -
                            (spline->resultDer).array().abs2()) /
-                          double(_nblocks))
+                          _nblocks)
                              .abs()
                              .sqrt();
     }

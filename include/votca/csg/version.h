@@ -62,8 +62,8 @@
 namespace votca {
 namespace csg {
 const std::string &CsgVersionStr();
-void HelpTextHeader(const std::string &tool_name);
-} // namespace csg
-} // namespace votca
+void               HelpTextHeader(const std::string &tool_name);
+}  // namespace csg
+}  // namespace votca
 
 #endif /* _VOTCA_CSG_VERSION_H */

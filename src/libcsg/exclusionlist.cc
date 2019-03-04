@@ -33,11 +33,11 @@ void ExclusionList::Clear(void) {
 }
 
 void ExclusionList::CreateExclusions(Topology *top) {
-  InteractionContainer &ic = top->BondedInteractions();
+  InteractionContainer &         ic = top->BondedInteractions();
   InteractionContainer::iterator ia;
 
   for (ia = ic.begin(); ia != ic.end(); ++ia) {
-    int beads_in_int = (*ia)->BeadCount();
+    int          beads_in_int = (*ia)->BeadCount();
     list<Bead *> l;
 
     for (int ibead = 0; ibead < beads_in_int; ibead++) {
@@ -50,10 +50,8 @@ void ExclusionList::CreateExclusions(Topology *top) {
 
 bool ExclusionList::IsExcluded(Bead *bead1, Bead *bead2) {
   exclusion_t *excl;
-  if (bead1->getMolecule() != bead2->getMolecule())
-    return false;
-  if (bead2->getId() < bead1->getId())
-    swap(bead1, bead2);
+  if (bead1->getMolecule() != bead2->getMolecule()) return false;
+  if (bead2->getId() < bead1->getId()) swap(bead1, bead2);
   if ((excl = GetExclusions(bead1))) {
     if (find(excl->_exclude.begin(), excl->_exclude.end(), bead2) !=
         excl->_exclude.end())
@@ -87,5 +85,5 @@ std::ostream &operator<<(std::ostream &out, ExclusionList &exl) {
   return out;
 }
 
-} // namespace csg
-} // namespace votca
+}  // namespace csg
+}  // namespace votca
