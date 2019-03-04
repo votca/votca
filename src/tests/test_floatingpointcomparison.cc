@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ BOOST_AUTO_TEST_SUITE(floatingpointcomparison_test)
 BOOST_AUTO_TEST_CASE(comparison_test) {
   double var1 = 1.000;
   double var2 = 1.010;
-  BOOST_CHECK(isApproximatelyEqual(var1,var2,0.1));
-  BOOST_CHECK(isApproximatelyEqual(var1,var2,0.01));
-  BOOST_CHECK(!isApproximatelyEqual(var1,var2,0.001));
+  BOOST_CHECK(isApproximatelyEqual(var1, var2, 0.1));
+  BOOST_CHECK(isApproximatelyEqual(var1, var2, 0.01));
+  BOOST_CHECK(!isApproximatelyEqual(var1, var2, 0.001));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

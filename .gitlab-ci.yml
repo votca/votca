@@ -11,6 +11,11 @@ stages:
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
   stage: build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/votca
+    when: always 
+  dependencies: []
   cache:
     paths:
       - ccache/
@@ -18,26 +23,30 @@ stages:
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
     - git branch commit_of_build_${CI_BUILD_ID} ${CI_COMMIT_SHA}
-    - cd $HOME
-    - git clone --recursive https://github.com/votca/votca
+    - git clone https://github.com/votca/votca
     - pushd votca
-    - if [[ ${CI_COMMIT_REF_NAME} =~ for/([^/]*)/.* && ${BASH_REMATCH[1]} != master ]]; then
-        git checkout -b ${BASH_REMATCH[1]} origin/${BASH_REMATCH[1]} && git submodule update --recursive --init;
+    - if [[ ${CI_COMMIT_TAG} = v[12].[0-9]* ]]; then
+        git checkout -b ${CI_COMMIT_TAG} ${CI_COMMIT_TAG};
+      elif [[ ( ${CI_COMMIT_REF_NAME} =~ ^for/([^/]*)/.* || ${CI_COMMIT_REF_NAME} =~ ^(stable)$ ) && ${BASH_REMATCH[1]} != master ]]; then
+        git checkout -b ${BASH_REMATCH[1]} origin/${BASH_REMATCH[1]};
       fi
+    - git submodule update --recursive --init
     - git -C ${CI_PROJECT_NAME} fetch ${CI_PROJECT_DIR} commit_of_build_${CI_BUILD_ID}
     - git -C ${CI_PROJECT_DIR} branch -d commit_of_build_${CI_BUILD_ID}
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_CTP_MANUAL=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_CTP_MANUAL=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_OWN_GROMACS=${BUILD_GROMACS} -DENABLE_REGRESSION_TESTING=ON
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DWITH_FFTW=OFF -DWITH_GSL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GSL=ON
       -DWITH_MKL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DWITH_SQLITE3=OFF
-      -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DBUILD_CTP=OFF}
+      -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DBUILD_CTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
     - sudo make install
+    - if [[ ${CLANG_FORMAT} ]]; then make format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
 Debug GCC:
@@ -46,6 +55,7 @@ Debug GCC:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
+    CLANG_FORMAT: "yes"
   extends: .build
 
 None GCC:
@@ -113,6 +123,38 @@ Release Clang Ubuntu:
     CXX: "clang++"
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "ubuntu"
+  extends: .build
+
+Debug GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
+Debug Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Debug"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
+Release GCC Rawhide:
+  variables:
+    CC: "gcc"
+    CXX: "g++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
+  extends: .build
+
+Release Clang Rawhide:
+  variables:
+    CC: "clang"
+    CXX: "clang++"
+    CMAKE_BUILD_TYPE: "Release"
+    DISTRO: "fedora_rawhide"
   extends: .build
 
 Release GCC Minimal:

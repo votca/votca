@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,51 +16,75 @@
  */
 
 #ifndef VOTCA_TOOLS_CONSTANTS_H
-#define	VOTCA_TOOLS_CONSTANTS_H
+#define VOTCA_TOOLS_CONSTANTS_H
 
 #include <boost/math/constants/constants.hpp>
 #include <cmath>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
+namespace conv {
 
-  namespace conv{
+// mathematical constants
+const double Pi = boost::math::constants::pi<double>();
 
-    // mathematical constants 
-    const double Pi = boost::math::constants::pi<double>();
+const double rSqrtPi = 1.0 / sqrt(Pi);
 
-    const double rSqrtPi = 1.0/sqrt(Pi);
+// natural constants
+// Boltzmann Factor eV/K
+const double kB = 8.617332478E-5;
+// Planck's Constant eV*s
+const double hbar = 6.5821192815E-16;
+// Permittivity of free space e**2/eV/m = 8.85418781762E-12 As/Vm
+const double eps0 = 8.85418781762E-12 / 1.602176565E-19;
 
-    // natural constants
-    // Boltzmann Factor eV/K    
-    const double kB = 8.617332478E-5; 
-    // Planck's Constant eV*s
-    const double hbar = 6.5821192815E-16; 
-    // Permittivity of free space e**2/eV/m = 8.85418781762E-12 As/Vm
-    const double eps0 = 8.85418781762E-12/1.602176565E-19; 
+// length conversions
+// votca xtp-uses for any conversions the following scheme unitA2unitB
+const double bohr2nm = 0.052917721092;
+const double nm2bohr = 18.897259886;
+const double ang2bohr = 1.8897259886;
+const double bohr2ang = 1.0 / 1.8897259886;
+const double nm2ang = 10.0;
+const double ang2nm = 0.1;
 
-    // length conversions
-    // votca xtp-uses for any conversions the following scheme unitA2unitB 
-    const double bohr2nm =0.052917721092;
-    const double nm2bohr =18.897259886; 
-    const double ang2bohr = 1.8897259886; 
-    const double bohr2ang =1.0/1.8897259886;  
-    const double nm2ang=10.0; 
-    const double ang2nm=0.1; 
+const double hrt2ev = 27.21138602;
+const double ev2hrt = 1.0 / 27.21138602;
+// ewald internal to eV conversion
+const double int2eV =
+    1 / (4 * Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+const double int2V_m =
+    1 / (4 * Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
+const double int2V =
+    1 / (4 * Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
-    const double hrt2ev=  27.21138602; 
-    const double ev2hrt=1.0/27.21138602; 
-    //ewald internal to eV conversion
-    const double int2eV = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-    const double int2V_m = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
-    const double int2V = 1/(4*Pi*8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
+// 1 eV = 96.485 Kj/mol
+const double ev2kj_per_mol = 96.485;
 
-    // 1 eV = 96.485 Kj/mol
-    const double ev2kj_per_mol = 96.485;   
-    
-    }
+}  // namespace conv
 
-}}
+namespace topology_constants {
 
-#endif	// VOTCA_TOOLS_CONSTANTS_H
+/// Used to indicate that a valid element variable has not been assigned
+const std::string unassigned_element = "unassigned";
 
+/// Used to indicate that a valid bead type variable has not been assigned
+const std::string unassigned_bead_type = "unassigned";
+
+/// Used to indicate that a valid residue type variable has not been assigned
+const std::string unassigned_residue_type = "unassigned";
+
+/// Used to indicate that a valid molecule type variable has not been assigned
+const std::string unassigned_molecule_type = "unassigned";
+
+/// Used to indicate a valid residue id has not been assigned
+const int unassigned_residue_id = -1;
+
+/// Used to indicate a valid molecule id has not been assigned
+const int unassigned_molecule_id = -1;
+
+}  // namespace topology_constants
+}  // namespace tools
+}  // namespace votca
+
+#endif  // VOTCA_TOOLS_CONSTANTS_H
