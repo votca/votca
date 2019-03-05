@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _CALC_XTP_IQM_H
-#define _CALC_XTP_IQM_H
+#ifndef VOTCA_XTP_IQM_H
+#define VOTCA_XTP_IQM_H
 
 #include <votca/tools/property.h>
 
@@ -56,10 +56,10 @@ class IQM : public ParallelXJobCalc<std::vector<Job*>, Job*, Job::JobResult> {
                                 const QMState& stateB);
   double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA,
                                 int stateB);
-  void SetJobToFailed(Job::JobResult& jres, Logger* pLog,
+  void SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                       const std::string& errormessage);
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
-  void addLinkers(std::vector<Segment*>& segments, Topology& top);
+  void addLinkers(std::vector<const Segment*>& segments, Topology& top);
   bool isLinker(const std::string& name);
   void WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals);
   void ParseOptionsXML(tools::Property& opt);

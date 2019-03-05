@@ -39,7 +39,7 @@ void JobWriter::Initialize(tools::Property& options) {
 
   // SPLIT KEYS
   std::string key = "options." + Identify();
-  std::string keys = options->get(key + ".keys").as<std::string>();
+  std::string keys = options.get(key + ".keys").as<std::string>();
   tools::Tokenizer tok_keys(keys, " ,\t\n");
   tok_keys.ToVector(_keys);
 

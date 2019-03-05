@@ -37,8 +37,7 @@ class QMCalculator : public tools::Calculator {
   virtual std::string Identify() = 0;
 
   virtual void Initialize(tools::Property &options) = 0;
-  virtual bool EvaluateFrame(Topology &top) { return true; }
-  virtual void EndEvaluate(Topology &top) {}
+  virtual bool EvaluateFrame(Topology &top) = 0;
 };
 
 }  // namespace xtp

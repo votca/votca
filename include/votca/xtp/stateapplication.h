@@ -17,31 +17,30 @@
  *
  */
 
-#ifndef VOTCA_XTP_SQLAPPLICATION_H
-#define VOTCA_XTP_SQLAPPLICATION_H
+#ifndef VOTCA_XTP_STATEAPPLICATION_H
+#define VOTCA_XTP_STATEAPPLICATION_H
 
 #include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/topology.h>
 
-#include <votca/xtp/statesaversqlite.h>
 #include <votca/xtp/xtpapplication.h>
 
 namespace votca {
 namespace xtp {
 
-class SqlApplication : public XtpApplication {
+class StateApplication : public XtpApplication {
  public:
-  SqlApplication();
+  StateApplication();
 
-  ~SqlApplication(){};
+  ~StateApplication(){};
 
   void Initialize();
   bool EvaluateOptions();
   void Run(void);
 
-  virtual void BeginEvaluate(int nThreads);
-  virtual bool EvaluateFrame();
-  virtual void EndEvaluate();
+  void BeginEvaluate(int nThreads);
+  bool EvaluateFrame();
+  void EndEvaluate();
 
   void AddCalculator(QMCalculator *calculator);
 

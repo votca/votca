@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef VOTCA_MD2QM_STATE_SAVER_SQLITE_H
-#define VOTCA_MD2QM_STATE_SAVER_SQLITE_H
+#ifndef VOTCA_XTP_STATE_SAVER_H
+#define VOTCA_XTP_STATE_SAVER_H
 
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <map>

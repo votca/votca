@@ -34,21 +34,20 @@ namespace xtp {
 class JobApplication : public XtpApplication {
  public:
   JobApplication();
-  ~JobApplication(){};
-
   void Initialize();
   bool EvaluateOptions();
   void Run(void);
 
-  virtual void BeginEvaluate(
+  void BeginEvaluate(
       int nThreads,
       ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *obs);
-  virtual bool EvaluateFrame();
-  virtual void EndEvaluate();
+  bool EvaluateFrame();
   void AddCalculator(JobCalculator *calculator);
 
  protected:
-  bool _generate_input, _run, _import;
+  bool _generate_input = false;
+  bool _run = false;
+  bool _import = false;
   Topology _top;
   std::vector<std::unique_ptr<JobCalculator> > _calculators;
 };

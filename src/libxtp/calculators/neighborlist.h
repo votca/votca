@@ -104,8 +104,8 @@ void Neighborlist::DetClassicalPairs(Topology& top) {
   std::cout << std::endl
             << " ... ... Determining classical pairs " << std::endl;
   for (QMPair* pair : top.NBList()) {
-    Segment* seg1 = pair->Seg1();
-    Segment* seg2 = pair->Seg2();
+    const Segment* seg1 = pair->Seg1();
+    const Segment* seg2 = pair->Seg2();
     if ((top.PbShortestConnect(seg1->getPos(), seg2->getPos()).norm()) +
                 seg1->getApproxSize() + seg2->getApproxSize() >
             _excitonqmCutoff ||

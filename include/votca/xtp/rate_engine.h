@@ -17,24 +17,36 @@
  *
  */
 
-#ifndef VOTCA_XTP_EIGEN_H
-#define VOTCA_XTP_EIGEN_H
-#include <votca/tools/eigen.h>
-#include <votca/xtp/votca_config.h>
-#if (GWBSE_DOUBLE)
-#define real_gwbse double
-#else
-#define real_gwbse float
-#endif
+#ifndef VOTCA_XTP_RATE_ENGINE_H
+#define VOTCA_XTP_RATE_ENGINE_H
+#include <votca/xtp/eigen.h>
+#include <votca/xtp/qmpair.h>
+#include <votca/xtp/qmstate.h>
 
 namespace votca {
 namespace xtp {
 
-typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
-typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
-typedef Eigen::Matrix<double, 9, 1> Vector9d;
+class Rate_Engine {
+
+ public:
+  struct PairRates {
+    double rate12 = 0.0;
+    double rate21 = 0.0;
+  };
+
+  Rate_Engine(double temperature, const Eigen::Vector3d& field)
+      : _temperature(temperature), _field(field){};
+
+  PairRates Rate(const QMPair& pair, QMStateType carriertype) const;
+
+ private:
+  double Markusrate(double Jeff2, double deltaG, double reorg) const;
+
+  double _temperature = 0.0;                         // K
+  Eigen::Vector3d _field = Eigen::Vector3d::Zero();  // units
+};
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_EIGEN_H
+#endif  // VOTCA_XTP_RATE_ENGINE_H

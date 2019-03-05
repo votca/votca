@@ -28,12 +28,13 @@
 namespace votca {
 namespace xtp {
 
-class QMNBList : public csg::PairList<Segment*, QMPair> {
+class QMNBList : public csg::PairList<const Segment*, QMPair> {
  public:
   QMNBList(){};
-  ~QMNBList() { csg::PairList<Segment*, QMPair>::Cleanup(); }
+  ~QMNBList() { csg::PairList<const Segment*, QMPair>::Cleanup(); }
 
-  QMPair& Add(Segment* seg1, Segment* seg2, const Eigen::Vector3d& r);
+  QMPair& Add(const Segment* seg1, const Segment* seg2,
+              const Eigen::Vector3d& r);
 
   void WriteToCpt(CheckpointWriter& w) const;
 

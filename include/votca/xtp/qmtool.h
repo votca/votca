@@ -37,11 +37,6 @@ class QMTool : public QMCalculator {
   virtual std::string Identify() = 0;
   virtual void Initialize(tools::Property &options) = 0;
   virtual bool Evaluate() = 0;
-  virtual bool EndEvaluate() { return true; }
-
- protected:
- private:
-  using QMCalculator::EndEvaluate;
 };
 
 }  // namespace xtp

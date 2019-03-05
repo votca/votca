@@ -48,12 +48,12 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology &top) {
   assert(_jobfile != "__NOFILE__");
   std::unique_ptr<JobOperator> master =
       std::unique_ptr<JobOperator>(new JobOperator(-1, &top, this));
-  master->getLogger()->setReportLevel(logDEBUG);
-  master->getLogger()->setMultithreading(true);
-  master->getLogger()->setPreface(logINFO, "\nMST INF");
-  master->getLogger()->setPreface(logERROR, "\nMST ERR");
-  master->getLogger()->setPreface(logWARNING, "\nMST WAR");
-  master->getLogger()->setPreface(logDEBUG, "\nMST DBG");
+  master->getLogger().setReportLevel(logDEBUG);
+  master->getLogger().setMultithreading(true);
+  master->getLogger().setPreface(logINFO, "\nMST INF");
+  master->getLogger().setPreface(logERROR, "\nMST ERR");
+  master->getLogger().setPreface(logWARNING, "\nMST WAR");
+  master->getLogger().setPreface(logDEBUG, "\nMST DBG");
   _progObs->InitFromProgFile(progFile, master.get());
 
   // CREATE + EXECUTE THREADS (XJOB HANDLERS)
@@ -65,7 +65,7 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology &top) {
   }
 
   for (unsigned int id = 0; id < _nThreads; ++id) {
-    CustomizeLogger(jobOps[id].get());
+    CustomizeLogger(*jobOps[id]);
   }
 
   for (unsigned int id = 0; id < _nThreads; id++) {
@@ -85,7 +85,7 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology &top) {
 
   if (!_maverick)
     for (unsigned int id = 0; id < _nThreads; id++) {
-      std::cout << std::endl << *(jobOps[id]->getLogger()) << std::flush;
+      std::cout << std::endl << (jobOps[id]->getLogger()) << std::flush;
     }
 
   jobOps.clear();
@@ -105,7 +105,7 @@ void ParallelXJobCalc<JobContainer, pJob, rJob>::JobOperator::Run(void) {
     if (_job == NULL) {
       break;
     } else {
-      rJob res = this->_master->EvalJob(_top, _job, this);
+      rJob res = this->_master->EvalJob(*_top, _job, this);
       this->_master->_progObs->ReportJobDone(_job, &res, this);
     }
   }

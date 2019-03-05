@@ -55,7 +55,8 @@ class QMPair {
     }
   }
 
-  QMPair(int id, Segment* seg1, Segment* seg2, const Eigen::Vector3d& delta_R);
+  QMPair(int id, const Segment* seg1, const Segment* seg2,
+         const Eigen::Vector3d& delta_R);
 
   QMPair(CheckpointReader& r, const std::vector<Segment>& segments) {
     ReadFromCpt(r, segments);
@@ -86,16 +87,19 @@ class QMPair {
     _Jeff2.setValue(Jeff2, state);
   }
 
-  double getdE12(QMStateType state) {
+  double getdE12(QMStateType state) const {
     return _segments.second->getSiteEnergy(state) -
            _segments.first->getSiteEnergy(state);
   }
 
-  Segment* Seg2PbCopy() const;
-  Segment* Seg1() const { return _segments.first; }
-  Segment* Seg2() const { return _segments.second; }
+  const Segment* Seg2PbCopy();
+  const Segment* Seg1() const { return _segments.first; }
+  const Segment* Seg2() const { return _segments.second; }
 
   bool HasGhost() const { return _ghost != nullptr; }
+
+  const Segment* first() { return _segments.first; }
+  const Segment* second() { return _segments.second; }
 
   void setType(PairType pair_type) { _pair_type = pair_type; }
   const PairType& getType() const { return _pair_type; }
@@ -105,7 +109,7 @@ class QMPair {
   void ReadFromCpt(CheckpointReader& r, const std::vector<Segment>& segments);
 
  private:
-  std::pair<Segment*, Segment*> _segments;
+  std::pair<const Segment*, const Segment*> _segments;
 
   int _id = -1;
   Eigen::Vector3d _R = Eigen::Vector3d::Zero();

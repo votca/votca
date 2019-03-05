@@ -29,7 +29,8 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
-QMPair& QMNBList::Add(Segment* seg1, Segment* seg2, const Eigen::Vector3d& r) {
+QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
+                      const Eigen::Vector3d& r) {
   assert(this->FindPair(seg1, seg2) != NULL &&
          "Critical bug: pair already exists");
   int id = this->size();
@@ -39,7 +40,8 @@ QMPair& QMNBList::Add(Segment* seg1, Segment* seg2, const Eigen::Vector3d& r) {
 }
 
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
-  w(size(), "size");
+  int size = this->size();
+  w(size, "size");
   for (const QMPair* pair : _pairs) {
     CheckpointWriter u = w.openChild("pair" + std::to_string(pair->getId()));
     pair->WriteToCpt(u);

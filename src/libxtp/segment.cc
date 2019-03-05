@@ -26,7 +26,7 @@
 namespace votca {
 namespace xtp {
 
-void Segment::getApproxSize() const {
+double Segment::getApproxSize() const {
   if (!_has_approxsize || !this->PosIsValid()) {
     if (!PosIsValid()) {
       this->getPos();

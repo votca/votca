@@ -36,13 +36,12 @@ class JobCalculator : public QMCalculator {
   JobCalculator() {}
   virtual ~JobCalculator() {}
 
-  virtual std::string Identify() { return "Generic Job calculator"; }
+  virtual std::string Identify() = 0;
 
-  virtual bool EvaluateFrame(Topology &top) { return true; }
-  virtual void EndEvaluate(Topology &top) {}
+  virtual bool EvaluateFrame(Topology &top) = 0;
 
-  virtual void WriteJobFile(Topology &top) { ; }
-  virtual void ReadJobFile(Topology &top) { ; }
+  virtual void WriteJobFile(Topology &top) = 0;
+  virtual void ReadJobFile(Topology &top) = 0;
 
   void setProgObserver(
       ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *obs) {

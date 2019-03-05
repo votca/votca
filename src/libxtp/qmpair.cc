@@ -27,21 +27,21 @@
 namespace votca {
 namespace xtp {
 
-QMPair::QMPair(int id, Segment* seg1, Segment* seg2,
+QMPair::QMPair(int id, const Segment* seg1, const Segment* seg2,
                const Eigen::Vector3d& delta_R)
     : _id(id), _R(delta_R) {
   _segments.first = seg1;
   _segments.second = seg2;
 }
 
-Segment* QMPair::Seg2PbCopy() {
+const Segment* QMPair::Seg2PbCopy() {
   const Eigen::Vector3d& r1 = _segments.first->getPos();
   const Eigen::Vector3d& r2 = _segments.second->getPos();
 
   // Check whether pair formed across periodic boundary
   if (_ghost == nullptr && (r2 - r1 - _R).norm() > 1e-8) {
-    _ghost = std::unique_ptr<Segment>(new Segment(seg2));
-    _ghost->TranslateBy(r1 - r2 + _R);
+    _ghost = std::unique_ptr<Segment>(new Segment(*(_segments.second)));
+    _ghost->Translate(r1 - r2 + _R);
   }
 
   if (_ghost != nullptr) {

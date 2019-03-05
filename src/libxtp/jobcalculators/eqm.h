@@ -44,14 +44,15 @@ class EQM : public ParallelXJobCalc<std::vector<Job *>, Job *, Job::JobResult> {
   Job::JobResult EvalJob(Topology &top, Job *job, QMThread *thread);
 
   void CleanUp() { ; }
-  void WriteJobFile(Topology *top);
+  void WriteJobFile(Topology &top);
+  void ReadJobFile(Topology &top) { return; }
 
  private:
   void WriteLoggerToFile(const std::string &logfile, Logger &logger);
 
-  void SetJobToFailed(Job::JobResult &jres, Logger *pLog,
+  void SetJobToFailed(Job::JobResult &jres, Logger &pLog,
                       const std::string &errormessage);
-  void ParseOptionsXML(tools::Property *options);
+  void ParseOptionsXML(tools::Property &options);
 
   std::string _package;
   tools::Property _package_options;

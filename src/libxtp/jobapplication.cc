@@ -119,7 +119,6 @@ void JobApplication::Run() {
               << ", # frames = " << nframes << " => No frames processed.";
 
   statsav.Close();
-  EndEvaluate();
 }
 
 void JobApplication::AddCalculator(JobCalculator* calculator) {
@@ -148,12 +147,6 @@ bool JobApplication::EvaluateFrame() {
     std::cout << std::endl;
   }
   return true;
-}
-
-void JobApplication::EndEvaluate() {
-  for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
-    calculator->EndEvaluate(_top);
-  }
 }
 
 }  // namespace xtp

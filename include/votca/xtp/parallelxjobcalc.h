@@ -51,10 +51,10 @@ class ParallelXJobCalc : public JobCalculator {
   ParallelXJobCalc() : _jobfile("__NOFILE__"){};
   ~ParallelXJobCalc() { ; };
 
-  std::string Identify() { return "Parallel XJob Calculator"; }
+  std::string Identify() = 0;
 
   bool EvaluateFrame(Topology &top);
-  virtual void CustomizeLogger(QMThread *thread);
+  virtual void CustomizeLogger(QMThread &thread);
   virtual rJob EvalJob(Topology &top, const pJob job, QMThread *thread) = 0;
 
   void LockCout() { _coutMutex.Lock(); }

@@ -27,6 +27,7 @@
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/qmstate.h>
+#include <votca/xtp/topology.h>
 
 namespace votca {
 namespace xtp {

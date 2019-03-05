@@ -53,8 +53,6 @@ void KMCLifetime::Initialize(tools::Property& options) {
       key + ".trajectoryfile", "trajectory.csv");
   _temperature = options.ifExistsReturnElseReturnDefault<double>(
       key + ".temperature", 300);
-  _rates = options.ifExistsReturnElseReturnDefault<std::string>(key + ".rates",
-                                                                "statefile");
 
   std::string subkey = key + ".carrierenergy";
   if (options.exists(subkey)) {
@@ -75,12 +73,8 @@ void KMCLifetime::Initialize(tools::Property& options) {
   cout << "carrier type:" << _carriertype.ToLongString() << endl;
   _field = Eigen::Vector3d::Zero();
 
-  if (_rates != "statefile" && _rates != "calculate") {
-    cout << "WARNING in kmclifetime: Invalid option rates. Valid options are "
-            "'statefile' or 'calculate'. Setting it to 'statefile'."
-         << endl;
-    _rates = "statefile";
-  }
+  _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".occfile", "occupation.dat");
 
   return;
 }
@@ -93,13 +87,13 @@ void KMCLifetime::WriteDecayProbability(string filename) {
 
   for (unsigned i = 0; i < _nodes.size(); i++) {
     GNode& node = _nodes[i];
-    if (node.hasdecay) {
-      for (const GLink& event : node.events) {
-        if (event.decayevent) {
-          decayrates[i] = event.rate;
+    if (node.canDecay()) {
+      for (const GLink& event : node.Events()) {
+        if (event.isDecayEvent()) {
+          decayrates[i] = event.getRate();
         } else {
-          inrates[event.destination->id] += event.rate;
-          outrates[i] += event.rate;
+          inrates[event.getDestination()->getId()] += event.getRate();
+          outrates[i] += event.getRate();
         }
       }
     }
@@ -111,7 +105,8 @@ void KMCLifetime::WriteDecayProbability(string filename) {
   probs.open(filename, fstream::out);
   probs << "#SiteID, Relative Prob outgoing, Relative Prob ingoing" << endl;
   for (unsigned i = 0; i < _nodes.size(); i++) {
-    probs << _nodes[i].id << " " << outrates[i] << " " << inrates[i] << endl;
+    probs << _nodes[i].getId() << " " << outrates[i] << " " << inrates[i]
+          << endl;
   }
   probs.close();
   return;
@@ -120,7 +115,7 @@ void KMCLifetime::WriteDecayProbability(string filename) {
 void KMCLifetime::ReadLifetimeFile(std::string filename) {
   tools::Property xml;
   load_property_from_xml(xml, filename);
-  list<tools::Property*> jobProps = xml.Select("lifetimes.site");
+  std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
   if (jobProps.size() != _nodes.size()) {
     throw runtime_error(
         (boost::format("The number of sites in the sqlfile: %i does not match "
@@ -134,11 +129,11 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
     double lifetime = boost::lexical_cast<double>(prop->value());
     bool check = false;
     for (auto& node : _nodes) {
-      if (node.id == site_id && !(node.hasdecay)) {
+      if (node.getId() == site_id && !(node.canDecay())) {
         node.AddDecayEvent(1.0 / lifetime);
         check = true;
         break;
-      } else if (node.id == site_id && node.hasdecay) {
+      } else if (node.getId() == site_id && node.canDecay()) {
         throw runtime_error(
             (boost::format("Node %i appears twice in your list") % site_id)
                 .str());
@@ -151,11 +146,14 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
               .str());
     }
   }
-
+  for (auto& node : _nodes) {
+    node.InitEscapeRate();
+    node.MakeHuffTree();
+  }
   return;
 }
 
-void KMCLifetime::RunVSSM(Topology* top) {
+void KMCLifetime::RunVSSM(Topology& top) {
 
   int realtime_start = time(NULL);
   cout << endl
@@ -282,7 +280,7 @@ void KMCLifetime::RunVSSM(Topology* top) {
         const GLink& event =
             ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
-        if (event.decayevent) {
+        if (event.isDecayEvent()) {
 
           avlifetime += affectedcarrier->getLifetime();
           meanfreepath += affectedcarrier->get_dRtravelled().norm();
@@ -310,7 +308,7 @@ void KMCLifetime::RunVSSM(Topology* top) {
           secondlevel = false;
           break;
         } else {
-          newnode = event.destination;
+          newnode = event.getDestination();
         }
 
         // check after the event if this was allowed
@@ -320,7 +318,7 @@ void KMCLifetime::RunVSSM(Topology* top) {
 
         // if the new segment is unoccupied: jump; if not: add to forbidden list
         // and choose new hopping destination
-        if (newnode->occupied) {
+        if (newnode->isOccupied()) {
           if (CheckSurrounded(affectedcarrier->getCurrentNode(),
                               forbiddendests)) {
             AddtoForbiddenlist(affectedcarrier->getCurrentNode(),
@@ -356,12 +354,7 @@ void KMCLifetime::RunVSSM(Topology* top) {
        << endl;
   cout << endl;
 
-  vector<Segment*>& seg = top->Segments();
-
-  for (unsigned i = 0; i < seg.size(); i++) {
-    double occupationprobability = _nodes[i].occupationtime / simtime;
-    seg[i]->setOcc(occupationprobability, _carriertype.ToSegIndex());
-  }
+  WriteOccupationtoFile(simtime, _occfile);
   traj.close();
   if (_do_carrierenergy) {
     energyfile.close();
@@ -383,7 +376,6 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   _RandomVariable.init(rand(), rand(), rand(), rand());
   LoadGraph(top);
   ReadLifetimeFile(_lifetimefile);
-  InitialRates();
 
   if (_probfile != "") {
     WriteDecayProbability(_probfile);

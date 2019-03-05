@@ -26,8 +26,6 @@
 
 #include <votca/xtp/atom.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/molecule.h>
-#include <votca/xtp/qminterface.h>
 #include <votca/xtp/qmpackagefactory.h>
 
 using boost::format;
@@ -160,9 +158,9 @@ std::map<std::string, QMState> IQM::FillParseMaps(
   return type2level;
 }
 
-void IQM::addLinkers(std::vector<Segment*>& segments, Topology& top) {
-  Segment* seg1 = segments[0];
-  Segment* seg2 = segments[1];
+void IQM::addLinkers(std::vector<const Segment*>& segments, Topology& top) {
+  const Segment* seg1 = segments[0];
+  const Segment* seg2 = segments[1];
   std::vector<const Segment*> segmentsInMolecule =
       top.FindAllSegmentsOnMolecule(*seg1, *seg2);
   if (segments.empty()) {
@@ -170,7 +168,7 @@ void IQM::addLinkers(std::vector<Segment*>& segments, Topology& top) {
   }
 
   for (const Segment* segment : segmentsInMolecule) {
-    int idIterator = segment.getId();
+    int idIterator = segment->getId();
     if (idIterator != seg1->getId() && idIterator != seg2->getId() &&
         isLinker(segment->getName())) {
       segments.push_back(segment);
@@ -185,18 +183,18 @@ bool IQM::isLinker(const std::string& name) {
 }
 
 void IQM::WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals) {
-  Segment* seg1 = pair.Seg1();
-  Segment* seg2 = pair.Seg2PbCopy();
+  const Segment* seg1 = pair.Seg1();
+  const Segment* seg2 = pair.Seg2PbCopy();
 
-  std::vector<Segment*> segments;
+  std::vector<const Segment*> segments;
   segments.push_back(seg1);
   segments.push_back(seg2);
 }
 
-void IQM::SetJobToFailed(Job::JobResult& jres, Logger* pLog,
+void IQM::SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                          const std::string& errormessage) {
-  XTP_LOG(logERROR, *pLog) << errormessage << std::flush;
-  std::cout << *pLog;
+  XTP_LOG(logERROR, pLog) << errormessage << std::flush;
+  std::cout << pLog;
   jres.setError(errormessage);
   jres.setStatus(Job::FAILED);
 }
@@ -221,7 +219,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
 
-  Logger* pLog = opThread->getLogger();
+  Logger& pLog = opThread->getLogger();
 
   // get the information about the job executed by the thread
   int job_ID = job->getId();
@@ -255,17 +253,17 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
 
   Segment& seg_A = top.getSegment(ID_A);
   Segment& seg_B = top.getSegment(ID_B);
-  QMNBList* nblist = &top->NBList();
-  QMPair* pair = nblist->FindPair(*seg_A, *seg_B);
+  QMNBList& nblist = top.NBList();
+  QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
 
-  XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair " << job_ID
-                          << " [" << ID_A << ":" << ID_B << "] out of "
-                          << (top->NBList()).size() << std::flush;
+  XTP_LOG(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID << " ["
+                         << ID_A << ":" << ID_B << "] out of "
+                         << (top.NBList()).size() << std::flush;
 
   std::string package_append = _package + "_" + Identify();
-  std::vector<Segment*> segments;
-  segments.push_back(*seg_A);
-  segments.push_back(*seg_B);
+  std::vector<const Segment*> segments;
+  segments.push_back(&seg_A);
+  segments.push_back(&seg_B);
   std::string work_dir =
       (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir).c_str();
 
@@ -277,7 +275,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   // otherwise write as is
   if (pair == NULL || segments.size() > 2) {
     if (pair == NULL) {
-      XTP_LOG(logWARNING, *pLog)
+      XTP_LOG(logWARNING, pLog)
           << "PBCs are not taken into account when writing the coordinate file!"
           << std::flush;
     }
@@ -315,11 +313,11 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
               "exclusive.");
         }
 
-        XTP_LOG(logINFO, *pLog)
+        XTP_LOG(logINFO, pLog)
             << "Guess requested, reading molecular orbitals" << std::flush;
 
         if (qmpackage->getPackageName() == "orca") {
-          XTP_LOG(logINFO, *pLog)
+          XTP_LOG(logINFO, pLog)
               << "Copying monomer .gbw files to pair folder" << std::flush;
           std::string gbwFileA =
               (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
@@ -362,12 +360,12 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
                 "Do input: failed loading orbitals from " + orbFileB);
             return jres;
           }
-          XTP_LOG(logDEBUG, *pLog)
+          XTP_LOG(logDEBUG, pLog)
               << "Constructing the guess for dimer orbitals" << std::flush;
           orbitalsAB.PrepareDimerGuess(orbitalsA, orbitalsB);
         }
       } else {
-        XTP_LOG(logINFO, *pLog)
+        XTP_LOG(logINFO, pLog)
             << "No Guess requested, starting from DFT starting Guess"
             << std::flush;
       }
@@ -375,7 +373,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
     }
 
     if (_do_dft_run) {
-      XTP_LOG(logDEBUG, *pLog) << "Running DFT" << std::flush;
+      XTP_LOG(logDEBUG, pLog) << "Running DFT" << std::flush;
       bool _run_dft_status = qmpackage->Run();
       if (!_run_dft_status) {
         SetJobToFailed(jres, pLog, qmpackage->getPackageName() + " run failed");
@@ -413,7 +411,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   tools::Property& job_output = job_summary.add("output", "");
   if (_do_dftcoupling) {
     DFTcoupling dftcoupling;
-    dftcoupling.setLogger(pLog);
+    dftcoupling.setLogger(&pLog);
     dftcoupling.Initialize(_dftcoupling_options);
     Orbitals orbitalsB;
     Orbitals orbitalsA;
@@ -446,7 +444,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   // do excited states calculation
   if (_do_gwbse) {
     try {
-      XTP_LOG(logDEBUG, *pLog) << "Running GWBSE" << std::flush;
+      XTP_LOG(logDEBUG, pLog) << "Running GWBSE" << std::flush;
       Logger gwbse_logger(logDEBUG);
       gwbse_logger.setMultithreading(false);
       gwbse_logger.setPreface(logINFO, (format("\nGWBSE INF ...")).str());
@@ -469,7 +467,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   // calculate the coupling
 
   if (_do_bsecoupling) {
-    XTP_LOG(logDEBUG, *pLog) << "Running BSECoupling" << std::flush;
+    XTP_LOG(logDEBUG, pLog) << "Running BSECoupling" << std::flush;
     BSECoupling bsecoupling;
     // orbitals must be loaded from a file
     if (!_do_gwbse) {
@@ -526,12 +524,11 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
   std::stringstream sout;
   sout << iomXML << job_summary;
-  XTP_LOG(logINFO, *pLog) << TimeStamp() << " Finished evaluating pair " << ID_A
-                          << ":" << ID_B << std::flush;
+  XTP_LOG(logINFO, pLog) << TimeStamp() << " Finished evaluating pair " << ID_A
+                         << ":" << ID_B << std::flush;
   if (_store_dft || _store_singlets || _store_triplets || _store_ehint) {
     boost::filesystem::create_directories(orb_dir);
-    XTP_LOG(logDEBUG, *pLog)
-        << "Saving orbitals to " << orbFileAB << std::flush;
+    XTP_LOG(logDEBUG, pLog) << "Saving orbitals to " << orbFileAB << std::flush;
     if (!_store_dft) {
       orbitalsAB.AOVxc().resize(0, 0);
       orbitalsAB.MOCoefficients().resize(0, 0);
@@ -550,7 +547,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
     }
     orbitalsAB.WriteToCpt(orbFileAB);
   } else {
-    XTP_LOG(logDEBUG, *pLog)
+    XTP_LOG(logDEBUG, pLog)
         << "Orb file is not saved according to options " << std::flush;
   }
 
@@ -560,7 +557,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   return jres;
 }
 
-void IQM::WriteJobFile(Topology* top) {
+void IQM::WriteJobFile(Topology& top) {
 
   std::cout << std::endl << "... ... Writing job file " << std::flush;
   std::ofstream ofs;
@@ -568,7 +565,7 @@ void IQM::WriteJobFile(Topology* top) {
   if (!ofs.is_open())
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-  QMNBList& nblist = top->NBList();
+  QMNBList& nblist = top.NBList();
 
   int jobCount = 0;
   if (nblist.size() == 0) {
@@ -720,7 +717,7 @@ void IQM::ReadJobFile(Topology& top) {
     Segment& segA = top.getSegment(idA);
     Segment& segB = top.getSegment(idB);
     // pair that corresponds to the two segments
-    QMPair* qmp = nblist.FindPair(*segA, *segB);
+    QMPair* qmp = nblist.FindPair(&segA, &segB);
     // output using logger
 
     if (qmp == NULL) {  // there is no pair in the neighbor list with this name
@@ -738,8 +735,8 @@ void IQM::ReadJobFile(Topology& top) {
     if (records[pair->getId()] == NULL)
       continue;  // skip pairs which are not in the jobfile
 
-    Segment* segmentA = pair->Seg1();
-    Segment* segmentB = pair->Seg2();
+    const Segment* segmentA = pair->Seg1();
+    const Segment* segmentB = pair->Seg2();
 
     QMPair::PairType ptype = pair->getType();
     if (ptype != QMPair::PairType::Hopping) {

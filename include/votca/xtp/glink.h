@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,18 +23,28 @@ namespace votca {
 namespace xtp {
 
 class GNode;
-struct GLink {
-  GNode* destination;
-  double rate;
-  Eigen::Vector3d dr;
-  bool decayevent;
-  double Jeff2;
-  double reorg_out;
-  double getValue()const{
-  	return rate;
-  }
+class GLink {
+
+ public:
+  GLink(GNode* dest, double rate, const Eigen::Vector3d& dr)
+      : destination(dest), _rate(rate), _dr(dr), _decayevent(false){};
+
+  GLink(double rate) : _rate(rate), _decayevent(true){};
+
+  double getValue() const { return _rate; }
+  double getRate() const { return _rate; }
+  GNode* getDestination() const { return destination; }
+  const Eigen::Vector3d& getDeltaR() const { return _dr; }
+
+  bool isDecayEvent() const { return _decayevent; }
+
+ private:
+  GNode* destination = nullptr;
+  double _rate = 0.0;
+  Eigen::Vector3d _dr = Eigen::Vector3d::Zero();
+  bool _decayevent = false;
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif  // VOTCA_XTP_GLINK_H

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -48,7 +48,6 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../include/votca/xtp/ERIs.h</itemPath>
-      <itemPath>../../include/votca/xtp/Md2QmEngine.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis.h</itemPath>
       <itemPath>../../include/votca/xtp/adiis_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
@@ -122,13 +121,14 @@
       <itemPath>../../include/votca/xtp/qmthread.h</itemPath>
       <itemPath>../../include/votca/xtp/qmtool.h</itemPath>
       <itemPath>../../include/votca/xtp/radial_euler_maclaurin_rule.h</itemPath>
+      <itemPath>../../include/votca/xtp/rate_engine.h</itemPath>
       <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
-      <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/xtp/statesaver.h</itemPath>
       <itemPath>../../include/votca/xtp/staticsite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
@@ -180,7 +180,7 @@
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
         <itemPath>../../src/libxtp/jobapplication.cc</itemPath>
-        <itemPath>../../src/libxtp/sqlapplication.cc</itemPath>
+        <itemPath>../../src/libxtp/stateapplication.cc</itemPath>
         <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
@@ -222,7 +222,6 @@
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
-      <itemPath>../../src/libxtp/Md2QmEngine.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
@@ -252,8 +251,10 @@
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/qmpair.cc</itemPath>
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
+      <itemPath>../../src/libxtp/rate_engine.cc</itemPath>
       <itemPath>../../src/libxtp/segment.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
+      <itemPath>../../src/libxtp/statesaver.cc</itemPath>
       <itemPath>../../src/libxtp/statesaversqlite.cc</itemPath>
       <itemPath>../../src/libxtp/staticsite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
@@ -3847,11 +3848,6 @@
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/Md2QmEngine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis_costfunction.h"
@@ -4124,6 +4120,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/rate_engine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
@@ -4145,7 +4146,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/statesaversqlite.h"
+      <item path="../../include/votca/xtp/statesaver.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4359,8 +4360,6 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4691,11 +4690,18 @@
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/rate_engine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/stateapplication.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"
@@ -4917,11 +4923,6 @@
         </archiverTool>
       </compileType>
       <item path="../../include/votca/xtp/ERIs.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/Md2QmEngine.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/adiis.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -5195,6 +5196,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/rate_engine.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
@@ -5216,7 +5222,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/statesaversqlite.h"
+      <item path="../../include/votca/xtp/statesaver.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5430,8 +5436,6 @@
       <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/Md2QmEngine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5762,11 +5766,18 @@
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/rate_engine.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/sqlapplication.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/stateapplication.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaversqlite.cc"
             ex="false"

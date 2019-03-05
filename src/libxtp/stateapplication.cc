@@ -19,15 +19,15 @@
 
 #include <boost/format.hpp>
 #include <votca/xtp/calculatorfactory.h>
-#include <votca/xtp/sqlapplication.h>
+#include <votca/xtp/stateapplication.h>
 #include <votca/xtp/version.h>
 
 namespace votca {
 namespace xtp {
 
-SqlApplication::SqlApplication() { Calculatorfactory::RegisterAll(); }
+StateApplication::StateApplication() { Calculatorfactory::RegisterAll(); }
 
-void SqlApplication::Initialize(void) {
+void StateApplication::Initialize(void) {
   XtpApplication::Initialize();
 
   Calculatorfactory::RegisterAll();
@@ -46,12 +46,12 @@ void SqlApplication::Initialize(void) {
                       "  whether or not to save changes to state file");
 }
 
-bool SqlApplication::EvaluateOptions(void) {
+bool StateApplication::EvaluateOptions(void) {
   CheckRequired("file", "Please provide the state file");
   return true;
 }
 
-void SqlApplication::Run() {
+void StateApplication::Run() {
 
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
@@ -94,11 +94,11 @@ void SqlApplication::Run() {
   EndEvaluate();
 }
 
-void SqlApplication::AddCalculator(QMCalculator* calculator) {
+void StateApplication::AddCalculator(QMCalculator* calculator) {
   _calculators.push_back(std::unique_ptr<QMCalculator>(calculator));
 }
 
-void SqlApplication::BeginEvaluate(int nThreads = 1) {
+void StateApplication::BeginEvaluate(int nThreads = 1) {
   for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " ";
     calculator->setnThreads(nThreads);
@@ -107,7 +107,7 @@ void SqlApplication::BeginEvaluate(int nThreads = 1) {
   }
 }
 
-bool SqlApplication::EvaluateFrame() {
+bool StateApplication::EvaluateFrame() {
   for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " " << std::flush;
     calculator->EvaluateFrame(&_top);
@@ -116,7 +116,7 @@ bool SqlApplication::EvaluateFrame() {
   return true;
 }
 
-void SqlApplication::EndEvaluate() {
+void StateApplication::EndEvaluate() {
   for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
     calculator->EndEvaluate(&_top);
   }

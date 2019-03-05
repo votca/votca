@@ -36,6 +36,7 @@ class KMCMultiple : public KMCCalculator {
 
  private:
   void RunVSSM(Topology &top);
+
   double _runtime;
   double _outputtime;
   std::string _trajectoryfile;

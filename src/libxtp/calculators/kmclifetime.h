@@ -34,22 +34,23 @@ class KMCLifetime : public KMCCalculator {
   bool EvaluateFrame(Topology &top);
 
  private:
-  void WriteDecayProbability(string filename);
+  void WriteDecayProbability(std::string filename);
 
   void RunVSSM(Topology &top);
 
-  void ReadLifetimeFile(string filename);
-  string _probfile;
+  void ReadLifetimeFile(std::string filename);
+  std::string _probfile;
   bool _do_carrierenergy;
-  string _energy_outputfile;
+  std::string _energy_outputfile;
   double _alpha;
   unsigned _outputsteps;
   unsigned int _insertions;
   std::string _lifetimefile;
   double _maxrealtime;
-  string _trajectoryfile;
-  string _outputfile;
-  string _filename;
+  std::string _trajectoryfile;
+  std::string _outputfile;
+  std::string _filename;
+  std::string _occfile;
 };
 
 }  // namespace xtp

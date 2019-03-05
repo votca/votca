@@ -19,16 +19,6 @@
 #ifndef VOTCA_XTP_CALCULATOR_H
 #define VOTCA_XTP_CALCULATOR_H
 
-#include <cmath>  // needed for abs(double)
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <time.h>
-#include <vector>
-
 #include <votca/tools/globals.h>
 #include <votca/tools/random2.h>
 #include <votca/tools/tokenizer.h>
@@ -65,6 +55,8 @@ class KMCCalculator : public QMCalculator {
   const GLink& ChooseHoppingDest(const GNode& node);
   Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
 
+  void WriteOccupationtoFile(double simtime, std::string filename);
+
   void RandomlyCreateCharges();
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
   std::vector<GNode> _nodes;
@@ -78,7 +70,6 @@ class KMCCalculator : public QMCalculator {
   Eigen::Vector3d _field;
 
   double _temperature;
-  std::string _rates;
 };
 
 }  // namespace xtp

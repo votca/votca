@@ -47,8 +47,6 @@ void KMCMultiple::Initialize(tools::Property& options) {
       key + ".trajectoryfile", "trajectory.csv");
   _temperature = options.ifExistsReturnElseReturnDefault<double>(
       key + ".temperature", 300);
-  _rates = options.ifExistsReturnElseReturnDefault<std::string>(key + ".rates",
-                                                                "statefile");
 
   _injectionmethod = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".injectionmethod", "random");
@@ -159,302 +157,290 @@ void KMCMultiple::RunVSSM(Topology& top) {
           << endl;
   }
 
-    double absolute_field = _field.norm());
+  double absolute_field = _field.norm();
 
-    RandomlyCreateCharges();
-    vector<Eigen::Vector3d> startposition(_numberofcharges,
-                                          Eigen::Vector3d::Zero());
-    for (int i = 0; i < _numberofcharges; i++) {
-      startposition[i] = _carriers[i].getCurrentPosition();
+  RandomlyCreateCharges();
+  vector<Eigen::Vector3d> startposition(_numberofcharges,
+                                        Eigen::Vector3d::Zero());
+  for (int i = 0; i < _numberofcharges; i++) {
+    startposition[i] = _carriers[i].getCurrentPosition();
+  }
+
+  traj << 0 << "\t";
+  traj << 0 << "\t";
+  for (int i = 0; i < _numberofcharges; i++) {
+    traj << startposition[i][0] << "\t";
+    traj << startposition[i][1] << "\t";
+    traj << startposition[i][2];
+    if (i < _numberofcharges - 1) {
+      traj << "\t";
+    } else {
+      traj << endl;
+    }
+  }
+
+  vector<GNode*> forbiddennodes;
+  vector<GNode*> forbiddendests;
+
+  Eigen::Matrix3d avgdiffusiontensor = Eigen::Matrix3d::Zero();
+
+  unsigned long diffusionresolution = 1000;
+  double simtime = 0.0;
+  unsigned long step = 0;
+
+  while (((stopontime && simtime < _runtime) ||
+          (!stopontime && step < maxsteps))) {
+
+    if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
+      cout << endl
+           << "Real time limit of " << _maxrealtime << " hours ("
+           << int(_maxrealtime * 60 * 60 + 0.5)
+           << " seconds) has been reached. Stopping here." << endl
+           << endl;
+      break;
     }
 
-    traj << 0 << "\t";
-    traj << 0 << "\t";
-    for (int i = 0; i < _numberofcharges; i++) {
-      traj << startposition[i][0] << "\t";
-      traj << startposition[i][1] << "\t";
-      traj << startposition[i][2];
-      if (i < _numberofcharges - 1) {
-        traj << "\t";
-      } else {
-        traj << endl;
-      }
+    double cumulated_rate = 0;
+    for (const auto& carrier : _carriers) {
+      cumulated_rate += carrier.getCurrentEscapeRate();
+    }
+    if (cumulated_rate == 0) {  // this should not happen: no possible jumps
+                                // defined for a node
+      throw runtime_error(
+          "ERROR in kmcmultiple: Incorrect rates in the database file. All "
+          "the escape rates for the current setting are 0.");
     }
 
-    vector<GNode*> forbiddennodes;
-    vector<GNode*> forbiddendests;
+    double dt = Promotetime(cumulated_rate);
 
-    Eigen::Matrix3d avgdiffusiontensor = Eigen::Matrix3d::Zero();
+    simtime += dt;
+    step++;
 
-    unsigned long diffusionresolution = 1000;
-    double simtime = 0.0;
-    unsigned long step = 0;
+    for (auto& carrier : _carriers) {
+      carrier.updateOccupationtime(dt);
+    }
 
-    while (((stopontime && simtime < _runtime) ||
-            (!stopontime && step < maxsteps))) {
+    ResetForbiddenlist(forbiddennodes);
+    bool level1step = true;
+    while (level1step) {
 
-      if ((time(NULL) - realtime_start) > _maxrealtime * 60. * 60.) {
-        cout << endl
-             << "Real time limit of " << _maxrealtime << " hours ("
-             << int(_maxrealtime * 60 * 60 + 0.5)
-             << " seconds) has been reached. Stopping here." << endl
-             << endl;
-        break;
+      // determine which electron will escape
+      GNode* newnode = NULL;
+      Chargecarrier* affectedcarrier = ChooseAffectedCarrier(cumulated_rate);
+
+      if (CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {
+        continue;
       }
+      ResetForbiddenlist(forbiddendests);
+      while (true) {
+        // LEVEL 2
 
-      double cumulated_rate = 0;
-      for (const auto& carrier : _carriers) {
-        cumulated_rate += carrier.getCurrentEscapeRate();
-      }
-      if (cumulated_rate == 0) {  // this should not happen: no possible jumps
-                                  // defined for a node
-        throw runtime_error(
-            "ERROR in kmcmultiple: Incorrect rates in the database file. All "
-            "the escape rates for the current setting are 0.");
-      }
+        const GLink& event =
+            ChooseHoppingDest(affectedcarrier->getCurrentNode());
+        newnode = event.getDestination();
 
-      double dt = Promotetime(cumulated_rate);
+        if (newnode == NULL) {
+          AddtoForbiddenlist(affectedcarrier->getCurrentNode(), forbiddennodes);
+          break;  // select new escape node (ends level 2 but without setting
+                  // level1step to 1)
+        }
 
-      simtime += dt;
-      step++;
-
-      for (auto& carrier : _carriers) {
-        carrier.updateOccupationtime(dt);
-      }
-
-      ResetForbiddenlist(forbiddennodes);
-      bool level1step = true;
-      while (level1step) {
-
-        // determine which electron will escape
-        GNode* newnode = NULL;
-        Chargecarrier* affectedcarrier = ChooseAffectedCarrier(cumulated_rate);
-
-        if (CheckForbidden(affectedcarrier->getCurrentNode(), forbiddennodes)) {
+        // check after the event if this was allowed
+        if (CheckForbidden(*newnode, forbiddendests)) {
           continue;
         }
-        ResetForbiddenlist(forbiddendests);
-        while (true) {
-          // LEVEL 2
 
-          const GLink& event =
-              ChooseHoppingDest(affectedcarrier->getCurrentNode());
-          newnode = event.destination;
-
-          if (newnode == NULL) {
+        // if the new segment is unoccupied: jump; if not: add to forbidden
+        // list and choose new hopping destination
+        if (newnode->isOccupied()) {
+          if (CheckSurrounded(affectedcarrier->getCurrentNode(),
+                              forbiddendests)) {
             AddtoForbiddenlist(affectedcarrier->getCurrentNode(),
                                forbiddennodes);
-            break;  // select new escape node (ends level 2 but without setting
-                    // level1step to 1)
+            break;  // select new escape node (ends level 2 but without
+                    // setting level1step to 1)
           }
-
-          // check after the event if this was allowed
-          if (CheckForbidden(*newnode, forbiddendests)) {
-            continue;
-          }
-
-          // if the new segment is unoccupied: jump; if not: add to forbidden
-          // list and choose new hopping destination
-          if (newnode->occupied) {
-            if (CheckSurrounded(affectedcarrier->getCurrentNode(),
-                                forbiddendests)) {
-              AddtoForbiddenlist(affectedcarrier->getCurrentNode(),
-                                 forbiddennodes);
-              break;  // select new escape node (ends level 2 but without
-                      // setting level1step to 1)
-            }
-            AddtoForbiddenlist(*newnode, forbiddendests);
-            continue;  // select new destination
-          } else {
-            affectedcarrier->jumpAccordingEvent(event);
-            level1step = false;
-            break;  // this ends LEVEL 2 , so that the time is updated and the
-                    // next MC step started
-          }
-          if (tools::globals::verbose) {
-            cout << "." << endl;
-          }
-          // END LEVEL 2
-        }
-        // END LEVEL 1
-      }
-
-      // outputstuff
-
-      if (step % diffusionresolution == 0) {
-        for (const auto& carrier : _carriers) {
-          avgdiffusiontensor += (carrier.get_dRtravelled()) *
-                                (carrier.get_dRtravelled()).transpose();
-        }
-      }
-
-      if (step != 0 && step % _intermediateoutput_frequency == 0) {
-
-        if (absolute_field == 0) {
-          unsigned long diffusionsteps = step / diffusionresolution;
-          Eigen::Matrix3d result =
-              avgdiffusiontensor /
-              (diffusionsteps * 2 * simtime * _numberofcharges);
-          cout << endl
-               << "Step: " << step
-               << " Diffusion tensor averaged over all carriers (nm^2/s):"
-               << endl
-               << result << endl;
+          AddtoForbiddenlist(*newnode, forbiddendests);
+          continue;  // select new destination
         } else {
-          double average_mobility = 0;
-          cout << endl << "Mobilities (nm^2/Vs): " << endl;
-          for (int i = 0; i < _numberofcharges; i++) {
-            Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
-            cout << std::scientific << "    charge " << i + 1 << ": mu="
-                 << velocity.dot(_field) / (absolute_field * absolute_field)
-                 << endl;
-            average_mobility +=
-                velocity.dot(_field) / (absolute_field * absolute_field);
-          }
-          average_mobility /= _numberofcharges;
-          cout << std::scientific
-               << "  Overall average mobility in field direction <mu>="
-               << average_mobility << " nm^2/Vs  " << endl;
+          affectedcarrier->jumpAccordingEvent(event);
+          level1step = false;
+          break;  // this ends LEVEL 2 , so that the time is updated and the
+                  // next MC step started
         }
-      }
-
-      if (checkifoutput) {
-        bool outputsteps = (!stopontime && step % outputstep == 0);
-        bool outputtime = (stopontime && simtime > nexttrajoutput);
-        if (outputsteps || outputtime) {
-          // write to trajectory file
-          nexttrajoutput = simtime + _outputtime;
-          traj << simtime << "\t";
-          traj << step << "\t";
-          for (int i = 0; i < _numberofcharges; i++) {
-            traj << startposition[i][0] + _carriers[i].get_dRtravelled()[0]
-                 << "\t";
-            traj << startposition[i][1] + _carriers[i].get_dRtravelled()[1]
-                 << "\t";
-            traj << startposition[i][2] + _carriers[i].get_dRtravelled()[2];
-            if (i < _numberofcharges - 1) {
-              traj << "\t";
-            } else {
-              traj << endl;
-            }
-          }
-
-          double currentenergy = 0;
-          double currentmobility = 0;
-          Eigen::Vector3d dr_travelled_current = Eigen::Vector3d::Zero();
-          double dr_travelled_field = 0.0;
-          Eigen::Vector3d avgvelocity_current = Eigen::Vector3d::Zero();
-          if (absolute_field != 0) {
-            for (const auto& carrier : _carriers) {
-              dr_travelled_current += carrier.get_dRtravelled();
-              currentenergy += carrier.getCurrentEnergy();
-            }
-            dr_travelled_current /= _numberofcharges;
-            currentenergy /= _numberofcharges;
-            avgvelocity_current = dr_travelled_current / simtime;
-            currentmobility = avgvelocity_current.dot(_field) /
-                              (absolute_field * absolute_field);
-            dr_travelled_field =
-                dr_travelled_current.dot(_field) / absolute_field;
-          }
-
-          tfile << simtime << "\t" << step << "\t" << currentenergy << "\t"
-                << currentmobility << "\t" << dr_travelled_field << "\t"
-                << dr_travelled_current.norm() <
-              "\t" << endl;
+        if (tools::globals::verbose) {
+          cout << "." << endl;
         }
+        // END LEVEL 2
       }
-    }  // KMC
+      // END LEVEL 1
+    }
+
+    // outputstuff
+
+    if (step % diffusionresolution == 0) {
+      for (const auto& carrier : _carriers) {
+        avgdiffusiontensor += (carrier.get_dRtravelled()) *
+                              (carrier.get_dRtravelled()).transpose();
+      }
+    }
+
+    if (step != 0 && step % _intermediateoutput_frequency == 0) {
+
+      if (absolute_field == 0) {
+        unsigned long diffusionsteps = step / diffusionresolution;
+        Eigen::Matrix3d result =
+            avgdiffusiontensor /
+            (diffusionsteps * 2 * simtime * _numberofcharges);
+        cout << endl
+             << "Step: " << step
+             << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl
+             << result << endl;
+      } else {
+        double average_mobility = 0;
+        cout << endl << "Mobilities (nm^2/Vs): " << endl;
+        for (int i = 0; i < _numberofcharges; i++) {
+          Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
+          cout << std::scientific << "    charge " << i + 1 << ": mu="
+               << velocity.dot(_field) / (absolute_field * absolute_field)
+               << endl;
+          average_mobility +=
+              velocity.dot(_field) / (absolute_field * absolute_field);
+        }
+        average_mobility /= _numberofcharges;
+        cout << std::scientific
+             << "  Overall average mobility in field direction <mu>="
+             << average_mobility << " nm^2/Vs  " << endl;
+      }
+    }
 
     if (checkifoutput) {
-      traj.close();
-      tfile.close();
-    }
+      bool outputsteps = (!stopontime && step % outputstep == 0);
+      bool outputtime = (stopontime && simtime > nexttrajoutput);
+      if (outputsteps || outputtime) {
+        // write to trajectory file
+        nexttrajoutput = simtime + _outputtime;
+        traj << simtime << "\t";
+        traj << step << "\t";
+        for (int i = 0; i < _numberofcharges; i++) {
+          traj << startposition[i][0] + _carriers[i].get_dRtravelled()[0]
+               << "\t";
+          traj << startposition[i][1] + _carriers[i].get_dRtravelled()[1]
+               << "\t";
+          traj << startposition[i][2] + _carriers[i].get_dRtravelled()[2];
+          if (i < _numberofcharges - 1) {
+            traj << "\t";
+          } else {
+            traj << endl;
+          }
+        }
 
-    fstream probs;
-    probs.open(_occfile, fstream::out);
-    probs << "#SiteID, Occupation prob" << endl;
-    for (const GNode& node : _nodes) {
-      double occupationprobability = node.occupationtime / simtime;
-      node.id() probs << node.id() << " " << occupationprobability << endl;
-    }
-    probs.close();
+        double currentenergy = 0;
+        double currentmobility = 0;
+        Eigen::Vector3d dr_travelled_current = Eigen::Vector3d::Zero();
+        double dr_travelled_field = 0.0;
+        Eigen::Vector3d avgvelocity_current = Eigen::Vector3d::Zero();
+        if (absolute_field != 0) {
+          for (const auto& carrier : _carriers) {
+            dr_travelled_current += carrier.get_dRtravelled();
+            currentenergy += carrier.getCurrentEnergy();
+          }
+          dr_travelled_current /= _numberofcharges;
+          currentenergy /= _numberofcharges;
+          avgvelocity_current = dr_travelled_current / simtime;
+          currentmobility = avgvelocity_current.dot(_field) /
+                            (absolute_field * absolute_field);
+          dr_travelled_field =
+              dr_travelled_current.dot(_field) / absolute_field;
+        }
 
-    cout << endl
-         << "finished KMC simulation after " << step << " steps." << endl;
-    cout << "simulated time " << simtime << " seconds." << endl;
-    cout << "runtime: ";
-    cout << endl << endl;
-
-    Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
-    for (int i = 0; i < _numberofcharges; i++) {
-      cout << std::scientific << "    charge " << i + 1 << ": "
-           << _carriers[i].get_dRtravelled() / simtime << endl;
-      avg_dr_travelled += _carriers[i].get_dRtravelled();
-    }
-    avg_dr_travelled /= _numberofcharges;
-
-    Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
-    cout << std::scientific
-         << "  Overall average velocity (nm/s): " << avgvelocity << endl;
-
-    cout << endl << "Distances travelled (nm): " << endl;
-    for (int i = 0; i < _numberofcharges; i++) {
-      cout << std::scientific << "    charge " << i + 1 << ": "
-           << _carriers[i].get_dRtravelled() << endl;
-    }
-
-    // calculate mobilities
-
-    if (absolute_field != 0) {
-      double average_mobility = 0;
-      cout << endl << "Mobilities (nm^2/Vs): " << endl;
-      for (int i = 0; i < _numberofcharges; i++) {
-        Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
-        cout << std::scientific << "    charge " << i + 1 << ": mu="
-             << velocity.dot(_field) / (absolute_field * absolute_field)
-             << endl;
-        average_mobility +=
-            velocity.dot(_field) / (absolute_field * absolute_field);
+        tfile << simtime << "\t" << step << "\t" << currentenergy << "\t"
+              << currentmobility << "\t" << dr_travelled_field << "\t"
+              << dr_travelled_current.norm() << "\t" << endl;
       }
-      average_mobility /= _numberofcharges;
-      cout << std::scientific
-           << "  Overall average mobility in field direction <mu>="
-           << average_mobility << " nm^2/Vs  " << endl;
     }
-    cout << endl;
+  }  // KMC
 
-    // calculate diffusion tensor
-    unsigned long diffusionsteps = step / diffusionresolution;
-    avgdiffusiontensor /= (diffusionsteps * 2 * simtime * _numberofcharges);
-    cout << endl
-         << "Diffusion tensor averaged over all carriers (nm^2/s):" << endl
-         << avgdiffusiontensor << endl;
+  if (checkifoutput) {
+    traj.close();
+    tfile.close();
+  }
 
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-    es.computeDirect(avgdiffusiontensor);
+  WriteOccupationtoFile(simtime, _occfile);
 
-    cout << endl << "Eigenvalues: " << endl << endl;
-    for (int i = 0; i < 3; i++) {
-      cout << "Eigenvalue: " << es.eigenvalues()(i) << endl << "Eigenvector: ";
-      cout << es.eigenvectors().col(i)(0) << "   ";
-      cout << es.eigenvectors().col(i)(1) << "   ";
-      cout << es.eigenvectors().col(i)(2) << endl << endl;
+  cout << endl << "finished KMC simulation after " << step << " steps." << endl;
+  cout << "simulated time " << simtime << " seconds." << endl;
+  cout << "runtime: ";
+  cout << endl << endl;
+
+  Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
+  for (int i = 0; i < _numberofcharges; i++) {
+    cout << std::scientific << "    charge " << i + 1 << ": "
+         << _carriers[i].get_dRtravelled() / simtime << endl;
+    avg_dr_travelled += _carriers[i].get_dRtravelled();
+  }
+  avg_dr_travelled /= _numberofcharges;
+
+  Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
+  cout << std::scientific
+       << "  Overall average velocity (nm/s): " << avgvelocity << endl;
+
+  cout << endl << "Distances travelled (nm): " << endl;
+  for (int i = 0; i < _numberofcharges; i++) {
+    cout << std::scientific << "    charge " << i + 1 << ": "
+         << _carriers[i].get_dRtravelled() << endl;
+  }
+
+  // calculate mobilities
+
+  if (absolute_field != 0) {
+    double average_mobility = 0;
+    cout << endl << "Mobilities (nm^2/Vs): " << endl;
+    for (int i = 0; i < _numberofcharges; i++) {
+      Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
+      cout << std::scientific << "    charge " << i + 1 << ": mu="
+           << velocity.dot(_field) / (absolute_field * absolute_field) << endl;
+      average_mobility +=
+          velocity.dot(_field) / (absolute_field * absolute_field);
     }
+    average_mobility /= _numberofcharges;
+    cout << std::scientific
+         << "  Overall average mobility in field direction <mu>="
+         << average_mobility << " nm^2/Vs  " << endl;
+  }
+  cout << endl;
 
-    // calculate average mobility from the Einstein relation
-    if (absolute_field == 0) {
-      cout << "The following value is calculated using the Einstein relation "
-              "and assuming an isotropic medium"
-           << endl;
-      double avgD = 1. / 3. * es.eigenvalues().sum();
-      double average_mobility = std::abs(avgD / tools::conv::kB / _temperature);
-      cout << std::scientific
-           << "  Overall average mobility <mu>=" << average_mobility
-           << " nm^2/Vs " << endl;
-    }
+  // calculate diffusion tensor
+  unsigned long diffusionsteps = step / diffusionresolution;
+  avgdiffusiontensor /= (diffusionsteps * 2 * simtime * _numberofcharges);
+  cout << endl
+       << "Diffusion tensor averaged over all carriers (nm^2/s):" << endl
+       << avgdiffusiontensor << endl;
 
-    return;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+  es.computeDirect(avgdiffusiontensor);
+
+  cout << endl << "Eigenvalues: " << endl << endl;
+  for (int i = 0; i < 3; i++) {
+    cout << "Eigenvalue: " << es.eigenvalues()(i) << endl << "Eigenvector: ";
+    cout << es.eigenvectors().col(i)(0) << "   ";
+    cout << es.eigenvectors().col(i)(1) << "   ";
+    cout << es.eigenvectors().col(i)(2) << endl << endl;
+  }
+
+  // calculate average mobility from the Einstein relation
+  if (absolute_field == 0) {
+    cout << "The following value is calculated using the Einstein relation "
+            "and assuming an isotropic medium"
+         << endl;
+    double avgD = 1. / 3. * es.eigenvalues().sum();
+    double average_mobility = std::abs(avgD / tools::conv::kB / _temperature);
+    cout << std::scientific
+         << "  Overall average mobility <mu>=" << average_mobility
+         << " nm^2/Vs " << endl;
+  }
+
+  return;
 }
 
 bool KMCMultiple::EvaluateFrame(Topology& top) {

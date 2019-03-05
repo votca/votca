@@ -46,25 +46,25 @@ void IEXCITON::Initialize(tools::Property& options) {
 
   string key = "options." + Identify();
 
-  if (options->exists(key + ".job_file")) {
-    _jobfile = options->get(key + ".job_file").as<string>();
+  if (options.exists(key + ".job_file")) {
+    _jobfile = options.get(key + ".job_file").as<string>();
   } else {
     throw std::runtime_error("Job-file not set. Abort.");
   }
   key = "options." + Identify();
-  if (options->exists(key + ".mapping")) {
-    _xml_file = options->get(key + ".mapping").as<string>();
+  if (options.exists(key + ".mapping")) {
+    _xml_file = options.get(key + ".mapping").as<string>();
   } else {
     throw std::runtime_error("Mapping-file not set. Abort.");
   }
-  if (options->exists(key + ".emp_file")) {
-    _emp_file = options->get(key + ".emp_file").as<string>();
+  if (options.exists(key + ".emp_file")) {
+    _emp_file = options.get(key + ".emp_file").as<string>();
   } else {
     throw std::runtime_error("Emp-file not set. Abort.");
   }
 
-  if (options->exists(key + ".states")) {
-    string parse_string = options->get(key + ".states").as<string>();
+  if (options.exists(key + ".states")) {
+    string parse_string = options.get(key + ".states").as<string>();
     _statemap = FillParseMaps(parse_string);
   }
 
@@ -99,7 +99,7 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   Job::JobResult jres = Job::JobResult();
 
   // get the logger from the thread
-  Logger* pLog = opThread->getLogger();
+  Logger& pLog = opThread->getLogger();
 
   // get the information about the job executed by the thread
   int job_ID = job->getId();
@@ -115,8 +115,8 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   Segment& seg_A = top.getSegment(ID_A);
   Segment& seg_B = top.getSegment(ID_B);
 
-  XTP_LOG(logINFO, *pLog) << TimeStamp() << " Evaluating pair " << job_ID
-                          << " [" << ID_A << ":" << ID_B << "]" << flush;
+  XTP_LOG(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID << " ["
+                         << ID_A << ":" << ID_B << "]" << flush;
 
   double JAB = 0;
   _cutoff = 0;
@@ -218,7 +218,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
   Property xml;
   vector<Property*> records;
   // gets the neighborlist from the topology
-  QMNBList& nblist = top->NBList();
+  QMNBList& nblist = top.NBList();
   int number_of_pairs = nblist.size();
   int current_pairs = 0;
   Logger log;
@@ -243,7 +243,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
       int idB = poutput.getAttribute<int>("idB");
       Segment& segA = top.getSegment(idA);
       Segment& segB = top.getSegment(idB);
-      QMPair* qmp = nblist.FindPair(*segA, *segB);
+      QMPair* qmp = nblist.FindPair(&segA, &segB);
 
       if (qmp == NULL) {
         XTP_LOG_SAVE(logINFO, log)
@@ -277,8 +277,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
         jAB = coup->getAttribute<double>("jABstatic");
       }
       Jeff2 = jAB * jAB;
-      pair->setJeff2(Jeff2, 2);
-      pair->setIsPathCarrier(true, 2);
+      pair->setJeff2(Jeff2, QMStateType::Singlet);
     }
   }
   XTP_LOG_SAVE(logINFO, log) << "Pairs [total:updated] " << number_of_pairs

@@ -47,7 +47,7 @@ class IEXCITON
 
   Job::JobResult EvalJob(Topology &top, Job *job, QMThread *Thread);
 
-  void WriteJobFile(Topology &top) const;
+  void WriteJobFile(Topology &top);
   void ReadJobFile(Topology &top);
 
  private:
