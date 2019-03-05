@@ -36,6 +36,16 @@ class Segment;
  */
 class Topology {
  public:
+  Topology(){};
+
+  Topology(const Topology &top);
+
+  Topology &operator=(const Topology &top);
+
+  // I do not have to manually make a move constructor or move assignment
+  // operator or destructor because I only have to reassign pointers in qmnblist
+  // object
+
   Segment &AddSegment(std::string segment_name);
 
   Segment &getSegment(int id) { return _segments[id]; }
@@ -49,7 +59,7 @@ class Topology {
                                     const Eigen::Vector3d &r2) const;
   const Eigen::Matrix3d &getBox() const { return _bc->getBox(); }
   double BoxVolume() const { return _bc->BoxVolume(); }
-  void setBox(const Eigen::Matrix3d box,
+  void setBox(const Eigen::Matrix3d &box,
               csg::BoundaryCondition::eBoxtype boxtype =
                   csg::BoundaryCondition::typeAuto);
 

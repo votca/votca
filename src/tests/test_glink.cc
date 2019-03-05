@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(glink_test)
-
-BOOST_AUTO_TEST_CASE(constructors_test) { GLink glin; }
+BOOST_AUTO_TEST_CASE(getter_tests) {}
 
 BOOST_AUTO_TEST_SUITE_END()

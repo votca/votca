@@ -37,9 +37,33 @@ using namespace votca::tools;
 namespace votca {
 namespace xtp {
 
-// +++++++++++++++++++++ //
-// Clean-Up, Destruct    //
-// +++++++++++++++++++++ //
+Topology::Topology(const Topology &top) {
+  _segments = top._segments;
+  _time = top._time;
+  _step = top._step;
+  this->setBox(top.getBox());
+  for (const QMPair *pair : top._nblist) {
+    const Segment *seg1 = &_segments[pair->Seg1()->getId()];
+    const Segment *seg2 = &_segments[pair->Seg2()->getId()];
+    _nblist.Add(seg1, seg2, pair->R());
+  }
+}
+
+Topology &Topology::operator=(const Topology &top) {
+  if (&top != this) {
+    _segments = top._segments;
+    _time = top._time;
+    _step = top._step;
+    this->setBox(top.getBox());
+    _nblist.Cleanup();
+    for (const QMPair *pair : top._nblist) {
+      const Segment *seg1 = &_segments[pair->Seg1()->getId()];
+      const Segment *seg2 = &_segments[pair->Seg2()->getId()];
+      _nblist.Add(seg1, seg2, pair->R());
+    }
+  }
+  return *this;
+}
 
 Segment &Topology::AddSegment(string segment_name) {
   int segment_id = _segments.size();
@@ -107,15 +131,16 @@ csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
 
 Eigen::Vector3d Topology::PbShortestConnect(const Eigen::Vector3d &r1,
                                             const Eigen::Vector3d &r2) const {
-  return _bc->BCShortestConnection(r1, r2).toEigen();
+  return _bc->BCShortestConnection(r1, r2);
 }
 
-double GetShortestDist(const Segment &seg1, const Segment &seg2) const {
+double Topology::GetShortestDist(const Segment &seg1,
+                                 const Segment &seg2) const {
   double R2 = 0;
   for (const Atom &atom1 : seg1) {
     for (const Atom &atom2 : seg2) {
       double R2_test =
-          top.PbShortestConnect(atom1.getPos(), atom2.getPos()).squaredNorm();
+          PbShortestConnect(atom1.getPos(), atom2.getPos()).squaredNorm();
       if (R2_test < R2) {
         R2 = R2_test;
       }
@@ -124,10 +149,10 @@ double GetShortestDist(const Segment &seg1, const Segment &seg2) const {
   return std::sqrt(R2);
 }
 
-std::vector<const Segment *> FindAllSegmentsOnMolecule(
+std::vector<const Segment *> Topology::FindAllSegmentsOnMolecule(
     const Segment &seg1, const Segment &seg2) const {
-  std::vector<int> &ids1 = seg1.getMoleculeIds();
-  std::vector<int> &ids2 = seg2.getMoleculeIds();
+  const std::vector<int> &ids1 = seg1.getMoleculeIds();
+  const std::vector<int> &ids2 = seg2.getMoleculeIds();
   std::vector<int> common_elements;
   std::set_intersection(ids1.begin(), ids1.end(), ids2.begin(), ids2.end(),
                         std::back_inserter(common_elements));
@@ -140,7 +165,7 @@ std::vector<const Segment *> FindAllSegmentsOnMolecule(
   for (const Segment &seg : _segments) {
     if (std::find(seg.getMoleculeIds().begin(), seg.getMoleculeIds().end(),
                   molid) != seg.getMoleculeIds().end()) {
-      results.push_back(*seg);
+      results.push_back(&seg);
     }
   }
   return results;
@@ -150,13 +175,13 @@ void Topology::WriteToCpt(CheckpointWriter &w) const {
   w(_time, "time");
   w(_step, "step");
   w(this->getBox(), "box");
-  CheckpointWriter v = w.openChild("segments");
+  CheckpointWriter ww = w.openChild("segments");
   for (const Segment &seg : _segments) {
-    CheckpointWriter u = v.openChild("segment" + std::to_string(seg.getId()));
+    CheckpointWriter u = ww.openChild("segment" + std::to_string(seg.getId()));
     seg.WriteToCpt(u);
   }
-  CheckpointWriter v = w.openChild("neighborlist");
-  _nblist.WriteToCpt(v);
+  CheckpointWriter www = w.openChild("neighborlist");
+  _nblist.WriteToCpt(www);
 }
 
 void Topology::ReadFromCpt(CheckpointReader &r) {

@@ -25,7 +25,7 @@
 #include <votca/xtp/progressobserver.h>
 #include <votca/xtp/topology.h>
 
-#include "statesaversqlite.h"
+#include "statesaver.h"
 #include <votca/xtp/jobcalculator.h>
 
 namespace votca {
@@ -36,19 +36,18 @@ class JobApplication : public XtpApplication {
   JobApplication();
   void Initialize();
   bool EvaluateOptions();
-  void Run(void);
+  void Run();
 
   void BeginEvaluate(
       int nThreads,
       ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *obs);
-  bool EvaluateFrame();
+  bool EvaluateFrame(Topology &top);
   void AddCalculator(JobCalculator *calculator);
 
  protected:
   bool _generate_input = false;
   bool _run = false;
   bool _import = false;
-  Topology _top;
   std::vector<std::unique_ptr<JobCalculator> > _calculators;
 };
 

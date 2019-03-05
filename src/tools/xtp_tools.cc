@@ -51,7 +51,6 @@ class XtpTools : public xtp::XtpApplication {
 
   void BeginEvaluate(int nThreads);
   bool Evaluate();
-  void EndEvaluate();
 
  private:
   tools::Property _options;
@@ -150,14 +149,13 @@ void XtpTools::Run() {
   cout << "Evaluating tools " << endl;
 
   Evaluate();
-  EndEvaluate();
 }
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
   for (std::unique_ptr<xtp::QMTool>& tool : _tools) {
     cout << "... " << tool->Identify() << " " << flush;
     tool->setnThreads(nThreads);
-    tool->Initialize(&_options);
+    tool->Initialize(_options);
     cout << endl;
   }
 }
@@ -171,12 +169,6 @@ bool XtpTools::Evaluate() {
   }
 
   return true;
-}
-
-void XtpTools::EndEvaluate() {
-  for (std::unique_ptr<xtp::QMTool>& tool : _tools) {
-    tool->EndEvaluate();
-  }
 }
 
 int main(int argc, char** argv) {

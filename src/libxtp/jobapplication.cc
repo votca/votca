@@ -80,17 +80,17 @@ void JobApplication::Run() {
   int nThreads = OptionsMap()["nthreads"].as<int>();
   int nframes = OptionsMap()["nframes"].as<int>();
   int fframe = OptionsMap()["first-frame"].as<int>();
-  if (fframe-- == 0)
-    throw std::runtime_error(
-        "ERROR: First frame is 0, counting "
-        "in VOTCA::XTP starts from 1.");
   int save = OptionsMap()["save"].as<int>();
+
+  if (nThreads == 0) {
+    nThreads = 1;
+  }
+  if (nframes == 0) {
+    nframes = 1;
+  }
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
-  StateSaverSQLite statsav;
-  statsav.Open(statefile);
-
   ProgObserver<std::vector<Job*>, Job*, Job::JobResult> progObs =
       ProgObserver<std::vector<Job*>, Job*, Job::JobResult>();
   progObs.InitCmdLineOpts(OptionsMap());
@@ -99,26 +99,40 @@ void JobApplication::Run() {
   std::cout << "Initializing calculators " << std::endl;
   BeginEvaluate(nThreads, &progObs);
 
-  int frameId = -1;
-  int framesDone = 0;
-  while (statsav.NextFrame() && framesDone < nframes) {
-    frameId += 1;
-    if (frameId < fframe) continue;
-    std::cout << "Evaluating frame " << _top.getStep() << std::endl;
-    EvaluateFrame();
-    if (save == 1) {
-      statsav.WriteFrame(_top);
+  StateSaver statsav(statefile);
+
+  std::vector<int> frames = statsav.getFrames();
+
+  // INITIALIZE & RUN CALCULATORS
+  std::cout << "Initializing calculators " << std::endl;
+  std::cout << "Frames in statefile: ";
+  for (int frame : frames) {
+    std::cout << frame << " ";
+  }
+  std::cout << std::endl;
+  if (fframe < int(frames.size())) {
+    std::cout << "Starting at frame " << frames[fframe] << std::endl;
+  } else {
+    std::cout << "First frame:" << fframe
+              << " is larger than number of frames:" << int(frames.size())
+              << std::endl;
+    return;
+  }
+
+  if ((fframe + nframes) > int(frames.size())) {
+    nframes = frames.size() - fframe;
+  }
+
+  for (int i = fframe; i < nframes; i++) {
+    std::cout << "Evaluating frame " << i << std::endl;
+    Topology top = statsav.ReadFrame(i);
+    EvaluateFrame(top);
+    if (save) {
+      statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
     }
-    framesDone += 1;
   }
-
-  if (framesDone == 0)
-    std::cout << "Input requires first frame = " << fframe + 1
-              << ", # frames = " << nframes << " => No frames processed.";
-
-  statsav.Close();
 }
 
 void JobApplication::AddCalculator(JobCalculator* calculator) {
@@ -138,12 +152,12 @@ void JobApplication::BeginEvaluate(
   }
 }
 
-bool JobApplication::EvaluateFrame() {
+bool JobApplication::EvaluateFrame(Topology& top) {
   for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " " << std::flush;
-    if (_generate_input) calculator->WriteJobFile(_top);
-    if (_run) calculator->EvaluateFrame(_top);
-    if (_import) calculator->ReadJobFile(_top);
+    if (_generate_input) calculator->WriteJobFile(top);
+    if (_run) calculator->EvaluateFrame(top);
+    if (_import) calculator->ReadJobFile(top);
     std::cout << std::endl;
   }
   return true;

@@ -22,17 +22,14 @@
 #include <stdexcept>
 
 #include "votca/tools/application.h"
+#include "votca/xtp/statesaver.h"
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
 #include <votca/tools/globals.h>
-#include <votca/xtp/Md2QmEngine.h>
-#include <votca/xtp/statesaversqlite.h>
-#include <votca/xtp/version.h>
-
-#include <votca/xtp/atom.h>
-#include <votca/xtp/segment.h>
+#include <votca/xtp/md2qmengine.h>
 #include <votca/xtp/topology.h>
+#include <votca/xtp/version.h>
 
 using namespace std;
 
@@ -50,15 +47,10 @@ class XtpMap : public TOOLS::Application {
   void Initialize();
   bool EvaluateOptions();
   void Run();
-  void Save();
 
  protected:
   TOOLS::Property _options;
-  CSG::Topology _mdtopol;
-  XTP::Topology _qmtopol;
 
-  XTP::Md2QmEngine _md2qm;
-  XTP::StateSaverSQLite _statsav;
   string _outdb;
 };
 
@@ -101,18 +93,16 @@ void XtpMap::Run() {
   // +++++++++++++++++++++++++++++++++++++ //
 
   _outdb = _op_vm["file"].as<string>();
-  _statsav.Open(_outdb, false);
-  int frames_in_db = _statsav.FramesInDatabase();
-  if (frames_in_db > 0) {
+  std::ifstream infile(_outdb);
+  if (!infile.good()) {
     cout << endl
          << "ERROR <xtp_map> : state file '" << _outdb
          << "' already in use. Abort." << endl;
-    _statsav.Close();
     return;
   }
 
   string cgfile = _op_vm["segments"].as<string>();
-  _md2qm.Initialize(cgfile);
+  XTP::Md2QmEngine md2qm(cgfile);
 
   // ++++++++++++++++++++++++++++ //
   // Create MD topology from file //
@@ -120,7 +110,6 @@ void XtpMap::Run() {
 
   // Create topology reader
   string topfile = _op_vm["topology"].as<string>();
-  CSG::TopologyReader *topread;
   std::unique_ptr<CSG::TopologyReader> topread =
       std::unique_ptr<CSG::TopologyReader>(
           CSG::TopReaderFactory().Create(topfile));
@@ -129,11 +118,11 @@ void XtpMap::Run() {
     throw runtime_error(string("Input format not supported: ") +
                         _op_vm["topology"].as<string>());
   }
-
-  topread->ReadTopology(topfile, this->_mdtopol);
+  CSG::Topology mdtopol;
+  topread->ReadTopology(topfile, mdtopol);
   if (TOOLS::globals::verbose) {
     cout << "Read MD topology from " << topfile << ": Found "
-         << _mdtopol.BeadCount() << " atoms in " << _mdtopol.MoleculeCount()
+         << mdtopol.BeadCount() << " atoms in " << mdtopol.MoleculeCount()
          << " molecules. " << endl;
   }
 
@@ -152,12 +141,12 @@ void XtpMap::Run() {
                         _op_vm["coordinates"].as<string>());
   }
   trjread->Open(trjfile);
-  trjread->FirstFrame(_mdtopol);
+  trjread->FirstFrame(mdtopol);
 
   int firstFrame = 1;
   int nFrames = 1;
   bool beginAt = 0;
-  double startTime = _mdtopol.getTime();
+  double startTime = mdtopol.getTime();
 
   if (_op_vm.count("nframes")) {
     nFrames = _op_vm["nframes"].as<int>();
@@ -174,8 +163,8 @@ void XtpMap::Run() {
   bool hasFrame;
 
   for (hasFrame = true; hasFrame == true;
-       hasFrame = trjread->NextFrame(_mdtopol)) {
-    if (((_mdtopol.getTime() < startTime) && beginAt) || firstFrame > 1) {
+       hasFrame = trjread->NextFrame(mdtopol)) {
+    if (((mdtopol.getTime() < startTime) && beginAt) || firstFrame > 1) {
       firstFrame--;
       continue;
     }
@@ -191,18 +180,12 @@ void XtpMap::Run() {
   // Convert MD to QM Topology //
   // +++++++++++++++++++++++++ //
 
+  XTP::StateSaver statsav(_outdb);
   for (int saved = 0; hasFrame && saved < nFrames;
-       hasFrame = trjread->NextFrame(_mdtopol), saved++) {
-    _md2qm.Md2Qm(&_mdtopol, &_qmtopol);
-    Save();
+       hasFrame = trjread->NextFrame(mdtopol), saved++) {
+    XTP::Topology qmtopol = md2qm.map(mdtopol);
+    statsav.WriteFrame(qmtopol);
   }
-}
-
-void XtpMap::Save() {
-
-  _statsav.Open(_outdb);
-  _statsav.WriteFrame(_qmtopol);
-  _statsav.Close();
 }
 
 void XtpMap::ShowHelpText(std::ostream &out) {

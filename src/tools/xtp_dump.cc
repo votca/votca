@@ -26,7 +26,7 @@
 using namespace std;
 using namespace votca;
 
-class XtpDump : public xtp::SqlApplication {
+class XtpDump : public xtp::StateApplication {
  public:
   string ProgramName() { return "xtp_dump"; }
 
@@ -46,7 +46,7 @@ namespace propt = boost::program_options;
 
 void XtpDump::Initialize() {
   xtp::ExtractorFactory::RegisterAll();
-  xtp::SqlApplication::Initialize();
+  xtp::StateApplication::Initialize();
 
   AddProgramOptions("Extractors")("extract,e", propt::value<string>(),
                                   "List of extractors separated by ',' or ' '");
@@ -92,7 +92,7 @@ bool XtpDump::EvaluateOptions() {
     return true;
   }
 
-  xtp::SqlApplication::EvaluateOptions();
+  xtp::StateApplication::EvaluateOptions();
   CheckRequired("extract", "Nothing to do here: Abort.");
 
   tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
@@ -102,7 +102,8 @@ bool XtpDump::EvaluateOptions() {
     for (const auto& extract : xtp::Extractors().getObjects()) {
       if (n.compare(extract.first.c_str()) == 0) {
         cout << " This is a XTP app" << endl;
-        xtp::SqlApplication::AddCalculator(xtp::Extractors().Create(n.c_str()));
+        xtp::StateApplication::AddCalculator(
+            xtp::Extractors().Create(n.c_str()));
         found_calc = true;
       }
     }

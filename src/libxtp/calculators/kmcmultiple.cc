@@ -459,8 +459,6 @@ bool KMCMultiple::EvaluateFrame(Topology& top) {
   _RandomVariable.init(rand(), rand(), rand(), rand());
 
   LoadGraph(top);
-  InitialRates();
-
   RunVSSM(top);
 
   return true;

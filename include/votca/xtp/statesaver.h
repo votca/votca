@@ -20,55 +20,29 @@
 #ifndef VOTCA_XTP_STATE_SAVER_H
 #define VOTCA_XTP_STATE_SAVER_H
 
-#include <boost/interprocess/sync/file_lock.hpp>
 #include <map>
 #include <stdio.h>
-#include <votca/xtp/qmdatabase.h>
 #include <votca/xtp/topology.h>
 
 namespace votca {
 namespace xtp {
 
-class StateSaverSQLite {
+class StateSaver {
  public:
-  StateSaverSQLite(){};
-  ~StateSaverSQLite() { _db.Close(); }
-
-  void Open(const std::string &file, bool lock = true);
-  void Close() { _db.Close(); }
-  bool NextFrame();
+  StateSaver(std::string file) : _hdf5file(file){};
 
   void WriteFrame(const Topology &top);
-  void WriteMeta(const Topology &top, bool update);
-  void WriteSegments(const Topology &top, bool update);
-  void WriteAtoms(const Topology &top, bool update);
-  void WritePairs(const Topology &top, bool update);
 
-  void ReadFrame(Topology &top);
-  void ReadMeta(Topology &top, int topId);
-  void ReadSegments(Topology &top, int topId);
-  void ReadAtoms(Topology &top, int topId);
-  void ReadPairs(Topology &top, int topId);
+  Topology ReadFrame(int frameid) const;
 
-  int FramesInDatabase();
-  void LockStateFile();
-  void UnlockStateFile();
+  std::vector<int> getFrames() const;
 
  private:
-  bool HasTopology(const Topology &top);
-  QMDatabase _db;
+  bool TopStepisinFrames(int frameid) const;
 
-  int _frame;
-  int _current_frame;
-  std::vector<int> _frames;
-  std::vector<int> _topIds;
-
-  std::string _sqlfile;
-  bool _was_read;
-
-  boost::interprocess::file_lock _flock;
+  std::string _hdf5file;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_MD2QM_STATE_SAVER_SQLITE_H
+#endif  // VOTCA_XTP_STATE_SAVER_H

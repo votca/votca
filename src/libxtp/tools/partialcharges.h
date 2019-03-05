@@ -69,7 +69,7 @@ bool Partialcharges::Evaluate() {
   XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
   XTP_LOG(logDEBUG, _log) << "Loaded QM data from " << _orbfile << std::flush;
-  Esp2multipole esp2multipole = Esp2multipole(&_log);
+  Esp2multipole esp2multipole = Esp2multipole(_log);
   esp2multipole.Initialize(_esp_options);
   esp2multipole.Extractingcharges(orbitals);
   esp2multipole.WritetoFile(_output_file, orbitals);

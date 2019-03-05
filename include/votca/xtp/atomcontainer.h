@@ -113,14 +113,14 @@ class AtomContainer {
   }
 
   void Translate(const Eigen::Vector3d& shift) {
-    for (const T& atom : _atomlist) {
+    for (T& atom : _atomlist) {
       atom.Translate(shift);
     }
     calcPos();
   }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
-    for (const T& atom : _atomlist) {
+    for (T& atom : _atomlist) {
       atom.Rotate(R, ref_pos);
     }
     calcPos();

@@ -22,6 +22,8 @@
 #include <votca/xtp/stateapplication.h>
 #include <votca/xtp/version.h>
 
+#include "votca/xtp/statesaver.h"
+
 namespace votca {
 namespace xtp {
 
@@ -56,42 +58,56 @@ void StateApplication::Run() {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
   HelpTextHeader(name);
-  // EVALUATE OPTIONS
+  // EVALUATE OPTIONS default values are zero, due to property of std::map
   int nThreads = OptionsMap()["nthreads"].as<int>();
   int nframes = OptionsMap()["nframes"].as<int>();
   int fframe = OptionsMap()["first-frame"].as<int>();
-  int save = OptionsMap()["save"].as<int>();
+  int save = OptionsMap()["save"].as<bool>();
+
+  if (nThreads == 0) {
+    nThreads = 1;
+  }
+  if (nframes == 0) {
+    nframes = 1;
+  }
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
-  StateSaverSQLite statsav;
-  statsav.Open(statefile);
+  StateSaver statsav(statefile);
+
+  std::vector<int> frames = statsav.getFrames();
 
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculators " << std::endl;
   BeginEvaluate(nThreads);
+  std::cout << "Frames in statefile: ";
+  for (int frame : frames) {
+    std::cout << frame << " ";
+  }
+  std::cout << std::endl;
+  if (fframe < int(frames.size())) {
+    std::cout << "Starting at frame " << frames[fframe] << std::endl;
+  } else {
+    std::cout << "First frame:" << fframe
+              << " is larger than number of frames:" << int(frames.size())
+              << std::endl;
+    return;
+  }
 
-  int frameId = -1;
-  int framesDone = 0;
-  while (statsav.NextFrame() && framesDone < nframes) {
-    frameId += 1;
-    if (frameId < fframe) continue;
-    std::cout << "Evaluating frame " << _top.getDatabaseId() << std::endl;
-    EvaluateFrame();
-    if (save == 1) {
-      statsav.WriteFrame(_top);
+  if ((fframe + nframes) > int(frames.size())) {
+    nframes = frames.size() - fframe;
+  }
+
+  for (int i = fframe; i < nframes; i++) {
+    std::cout << "Evaluating frame " << i << std::endl;
+    Topology top = statsav.ReadFrame(i);
+    EvaluateFrame(top);
+    if (save) {
+      statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
     }
-    framesDone += 1;
   }
-
-  if (framesDone == 0)
-    std::cout << "Input requires first frame = " << fframe + 1
-              << ", # frames = " << nframes << " => No frames processed.";
-
-  statsav.Close();
-  EndEvaluate();
 }
 
 void StateApplication::AddCalculator(QMCalculator* calculator) {
@@ -102,24 +118,18 @@ void StateApplication::BeginEvaluate(int nThreads = 1) {
   for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " ";
     calculator->setnThreads(nThreads);
-    calculator->Initialize(&_options);
+    calculator->Initialize(_options);
     std::cout << std::endl;
   }
 }
 
-bool StateApplication::EvaluateFrame() {
+bool StateApplication::EvaluateFrame(Topology& top) {
   for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " " << std::flush;
-    calculator->EvaluateFrame(&_top);
+    calculator->EvaluateFrame(top);
     std::cout << std::endl;
   }
   return true;
-}
-
-void StateApplication::EndEvaluate() {
-  for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
-    calculator->EndEvaluate(&_top);
-  }
 }
 
 }  // namespace xtp

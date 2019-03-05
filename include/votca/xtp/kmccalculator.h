@@ -43,7 +43,6 @@ class KMCCalculator : public QMCalculator {
 
   void LoadGraph(Topology& top);
   virtual void RunVSSM(Topology& top){};
-  void InitialRates();
 
   double Promotetime(double cumulated_rate);
   void ResetForbiddenlist(std::vector<GNode*>& forbiddenid) const;

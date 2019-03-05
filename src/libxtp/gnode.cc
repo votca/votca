@@ -14,13 +14,8 @@
  * limitations under the License.
  *
  */
-
-#include <boost/format.hpp>
 #include <queue>
-#include <vector>
-#include <votca/xtp/glink.h>
 #include <votca/xtp/gnode.h>
-#include <votca/xtp/huffmantree.h>
 
 using namespace std;
 

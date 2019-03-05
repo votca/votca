@@ -75,7 +75,7 @@ class Segment : public AtomContainer<Atom> {
 
   void AddMoleculeId(int id) { _molecule_ids.push_back(id); }
 
-  const std::vector<int>& getMoleculeIds() { return _molecule_ids; }
+  const std::vector<int>& getMoleculeIds() const { return _molecule_ids; }
 
   double getApproxSize() const;
 

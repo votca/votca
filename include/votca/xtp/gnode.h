@@ -18,7 +18,6 @@
 #ifndef VOTCA_XTP_GNODE_H
 #define VOTCA_XTP_GNODE_H
 
-#include <vector>
 #include <votca/xtp/glink.h>
 #include <votca/xtp/huffmantree.h>
 #include <votca/xtp/qmpair.h>
@@ -34,6 +33,8 @@ class GNode {
         _siteenergy(seg.getSiteEnergy(carriertype)),
         _position(seg.getPos()),
         _injectable(injectable){};
+
+  GNode(int id, Eigen::Vector3d pos) : _id(id), _position(pos){};
 
   bool isOccupied() const { return _occupied; }
   void setOccupation(bool occupied) { _occupied = occupied; }

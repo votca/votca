@@ -23,13 +23,13 @@
 #define VOTCA_XTP_QMTOOL_H
 
 #include <boost/format.hpp>
+#include <votca/tools/calculator.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/qmcalculator.h>
 
 namespace votca {
 namespace xtp {
 
-class QMTool : public QMCalculator {
+class QMTool : public tools::Calculator {
  public:
   QMTool(){};
   virtual ~QMTool(){};
