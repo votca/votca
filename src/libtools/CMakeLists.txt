@@ -11,20 +11,6 @@ file(GLOB NOT_VOTCA_SOURCES version_nb.cc)
 file(GLOB_RECURSE VOTCA_SQL_SOURCES database.cc statement.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
-option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
-if (WITH_SQLITE3)
-  find_package(SQLITE3)
-  if(NOT SQLITE3_FOUND)
-    message(FATAL_ERROR "SQLITE3 not found,  make sure you have also installed the sqlite3 and it's dev package, at this point sqlite3 is only needed for charge transport parts of VOTCA, so you can just switch it off using -DWITH_SQLITE3=OFF in case you do not need it.")
-  endif(NOT SQLITE3_FOUND)
-  include_directories(${SQLITE3_INCLUDE_DIRS})
-  set(SQLITE3_PKG "sqlite3")
-else(WITH_SQLITE3)
-  set(SQLITE3_PKG)
-  set(VOTCA_SQL_SOURCES)
-endif(WITH_SQLITE3)
-
-
 #for gitversion.h
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}

@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _tools_H
-#define _tools_H
+#ifndef _VOTCA_TOOLS_TOKENIZER_H
+#define _VOTCA_TOOLS_TOKENIZER_H
 
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
