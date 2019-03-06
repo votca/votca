@@ -16,6 +16,7 @@ cp $VOTCASHARE/xtp/packages/mbgft.xml .
 
 changeoption dftpackage xtpdft.xml dftgwbse.xml
 changeoption molecule methane.xyz dftgwbse.xml
+changeoption dftlog system_dft.orb dftgwbse.xml
 changeoption openmp 1 mbgft.xml
 changeoption threads 1 xtpdft.xml
 changeoption shift_type fixed mbgft.xml
