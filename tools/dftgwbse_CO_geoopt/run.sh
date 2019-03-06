@@ -17,6 +17,7 @@ cp $VOTCASHARE/xtp/packages/mbgft.xml .
 changeoption dftpackage xtpdft.xml dftgwbse.xml
 changeoption mode optimize dftgwbse.xml
 changeoption molecule CO.xyz dftgwbse.xml
+changeoption dftlog system_dft.orb dftgwbse.xml
 changeoption openmp 4 mbgft.xml
 changeoption threads 4 xtpdft.xml
 changeoption shift_type iterate mbgft.xml
