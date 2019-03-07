@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ class CGOrderParam : public CsgApplication {
     _n++;
   }
 
-  void setOut(string filename) { _filename = filename; }
+  void setOut(const string filename) { _filename = filename; }
 
   void setFilter(const string &filter) { _filter = filter; }
 
