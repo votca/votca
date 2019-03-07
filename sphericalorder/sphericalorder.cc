@@ -229,7 +229,7 @@ class CGOrderParam : public CsgApplication {
     _n++;
   }
 
-  void setOut(const string filename) { _filename = filename; }
+  void setOut(const string &filename) { _filename = filename; }
 
   void setFilter(const string &filter) { _filter = filter; }
 
