@@ -314,12 +314,12 @@ Eigen::Vector3d Topology::getDist(int bead1, int bead2) const {
                               getBead(bead2)->getPos());
 }
 
-double Topology::BoxVolume() { return _bc->BoxVolume(); }
+double Topology::BoxVolume() const { return _bc->BoxVolume(); }
 
 void Topology::RebuildExclusions() { _exclusions.CreateExclusions(this); }
 
 BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
-    const Eigen::Matrix3d &box) {
+    const Eigen::Matrix3d &box) const {
   // set the box type to OpenBox in case "box" is the zero matrix,
   // to OrthorhombicBox in case "box" is a diagonal matrix,
   // or to TriclinicBox otherwise
@@ -334,7 +334,7 @@ BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
   return BoundaryCondition::typeOpen;
 }
 
-double Topology::ShortestBoxSize() {
+double Topology::ShortestBoxSize() const {
   Eigen::Vector3d box_a = getBox().col(0);
   Eigen::Vector3d box_b = getBox().col(1);
   Eigen::Vector3d box_c = getBox().col(2);
