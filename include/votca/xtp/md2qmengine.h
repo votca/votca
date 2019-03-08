@@ -31,6 +31,14 @@ class Md2QmEngine {
   Topology map(const csg::Topology& top);
 
  private:
+  void CheckMappingFile(tools::Property& topology_map) const;
+  template <class T>
+  bool SameValueForMultipleEntries(const std::vector<tools::Property*>& props,
+                                   std::string tag) const;
+
+  int DetermineResNumOffset(const csg::Molecule* mol,
+                            const std::vector<int>& resnums_map);
+
   std::string _mapfile;
 };
 

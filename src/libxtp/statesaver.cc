@@ -25,6 +25,11 @@ namespace votca {
 namespace xtp {
 
 std::vector<int> StateSaver::getFrames() const {
+  std::ifstream infile(_hdf5file);
+  if (!infile.good()) {
+    return std::vector<int>();
+  }
+
   boost::interprocess::file_lock flock(_hdf5file.c_str());
   flock.lock();
   CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::READ);

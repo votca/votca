@@ -94,7 +94,7 @@ void XtpMap::Run() {
 
   _outdb = _op_vm["file"].as<string>();
   std::ifstream infile(_outdb);
-  if (!infile.good()) {
+  if (infile.good()) {
     cout << endl
          << "ERROR <xtp_map> : state file '" << _outdb
          << "' already in use. Abort." << endl;
@@ -175,7 +175,10 @@ void XtpMap::Run() {
 
     throw runtime_error("Time or frame number exceeds trajectory length");
   }
-
+  if (TOOLS::globals::verbose) {
+    cout << "Read MD trajectory from " << trjfile << ": Frames " << nFrames
+         << " starting from " << firstFrame << " frame. " << endl;
+  }
   // +++++++++++++++++++++++++ //
   // Convert MD to QM Topology //
   // +++++++++++++++++++++++++ //

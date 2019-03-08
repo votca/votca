@@ -39,37 +39,35 @@ namespace xtp {
 */
 class Atom {
  public:
-  Atom(std::string residue_name, int resnr, std::string md_atom_name,
-       int md_atom_id, Eigen::Vector3d pos)
-      : _id(md_atom_id),
-        _name(md_atom_name),
-        _resnr(resnr),
-        _resname(residue_name),
-        _pos(pos) {}
+  Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos)
+      : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
+    _element = _name.substr(0, 1);
+    if (_name.size() > 1) {
+      if (std::islower(_name[1])) {
+        _element += _name[1];
+      }
+    }
+  }
 
   Atom(int atom_id, std::string atom_name, Eigen::Vector3d pos)
-      : _id(atom_id), _name(atom_name), _pos(pos) {}
+      : _id(atom_id), _name(atom_name), _pos(pos) {
+    _element = _name.substr(0, 1);
+    if (_name.size() > 1) {
+      if (std::islower(_name[1])) {
+        _element += _name[1];
+      }
+    }
+  }
 
   Atom(const CheckpointReader &r) { ReadFromCpt(r); }
 
   int getId() const { return _id; }
   const std::string &getName() const { return _name; }
-  const std::string &getType() const { return _type; }
-  std::string getElement() const {
-    std::string result = _type.substr(0, 1);
-    if (_type.size() > 1) {
-      if (std::islower(_type[1])) {
-        result += _type[1];
-      }
-    }
-    return result;
-  }
+  std::string getElement() const { return _element; }
 
   int getResnr() const { return _resnr; }
-  const std::string &getResname() const { return _resname; }
 
   void setResnr(int resnr) { _resnr = resnr; }
-  void setResname(const std::string &resname) { _resname = resname; }
   void Translate(const Eigen::Vector3d &shift) { _pos = _pos + shift; }
 
   void Rotate(const Eigen::Matrix3d &R, const Eigen::Vector3d &refPos) {
@@ -85,19 +83,17 @@ class Atom {
 
   void WriteToCpt(const CheckpointWriter &w) const {
     w(_id, "index");
+    w(_element, "element");
     w(_name, "name");
-    w(_type, "type");
     w(_pos, "pos");
-    w(_resname, "resname");
-    w(_resnr, "resnar");
+    w(_resnr, "resnr");
   }
 
   void ReadFromCpt(const CheckpointReader &r) {
     r(_id, "index");
+    r(_element, "element");
     r(_name, "name");
-    r(_type, "type");
     r(_pos, "pos");
-    r(_resname, "resname");
     r(_resnr, "resnr");
   }
 
@@ -105,9 +101,8 @@ class Atom {
   int _id = -1;
   std::string _name = "";
 
-  std::string _type = "";
+  std::string _element = "";
   int _resnr = -1;
-  std::string _resname = "";
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 
