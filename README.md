@@ -1,4 +1,4 @@
-Istallation instructions and developer information can be found [here](https://github.com/votca/votca/blob/master/share/doc/INSTALL.md)
+Installation instructions and developer information can be found [here](https://github.com/votca/votca/blob/master/share/doc/INSTALL.md)
 
 For other questions, we provide an email list:
 
