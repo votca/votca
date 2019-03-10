@@ -98,7 +98,7 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *conf_atom) {
     _top_force.getBead(i)->F() =
         conf->getBead(i)->getF() + _scale * _top_force.getBead(i)->getF();
     Eigen::Vector3d d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-    if (abs(d) > 1e-6)
+    if (d.norm() > 1e-6)
       throw std::runtime_error(
           "One or more bead positions in trajectory and reference force "
           "trajectory differ by more than 1e-6");

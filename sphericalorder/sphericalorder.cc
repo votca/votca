@@ -111,7 +111,7 @@ class CGOrderParam : public CsgApplication {
       cout << "Refernce is center of box " << _ref << endl;
     }
 
-    boxl = abs(a) / 2;
+    boxl = a.norm() / 2;
     if (_rbinw > 0) {
       _rbins = boxl / _rbinw + 1;
       cout << "radial bins " << _rbins << endl;
@@ -196,11 +196,11 @@ class CGOrderParam : public CsgApplication {
       if (wildcmp(_refmol.c_str(), bead->getName().c_str())) continue;
 
       eR = bead->getPos() - _ref;
-      if ((abs(eR) < _radialcutoff && abs(eR) > _minrad) || _rbins != 1) {
+      if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
         // cout << eR << endl;
         int rb = 0;
         if (_rbinw > 0) {
-          rb = (int)((abs(eR)) / boxl * (double)_rbins);
+          rb = (int)((eR.norm()) / boxl * (double)_rbins);
         }
         if (rb >= _rbins) continue;
         // cout << "rb " << rb << endl;

@@ -197,7 +197,7 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
 
     if (_do_spherical) {
       eR = bead->getPos() - _ref;
-      r = abs(eR);
+      r = eR.norm();
     } else {
       eR = bead->getPos();
       if (_dim == 0)
