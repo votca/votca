@@ -190,7 +190,7 @@ class IDihedral : public Interaction {
 };
 
 inline double IBond::EvaluateVar(const Topology &top) {
-  return abs(top.getDist(_beads[0], _beads[1]));
+  return top.getDist(_beads[0], _beads[1]).norm();
 }
 
 inline Eigen::Vector3d IBond::Grad(const Topology &top, int bead) {

@@ -382,7 +382,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
       conf->getBead(i)->F() -= _top_force.getBead(i)->getF();
       Eigen::Vector3d d =
           conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
-      if (abs(d) > _dist) {  // default is 1e-5, otherwise it can be a too
+      if (d.norm() > _dist) {  // default is 1e-5, otherwise it can be a too
                              // strict criterion
         throw std::runtime_error(
             "One or more bead positions in mapped and reference force "

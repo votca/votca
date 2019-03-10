@@ -18,6 +18,8 @@
 #ifndef _VOTCA_CSG_BEADPAIR_H
 #define _VOTCA_CSG_BEADPAIR_H
 
+#include <votca/tools/eigen.h>
+
 namespace votca {
 namespace csg {
 
@@ -33,7 +35,7 @@ class BeadPair {
  public:
   BeadPair() {}
   BeadPair(Bead *bead1, Bead *bead2, Eigen::Vector3d r)
-      : _pair(std::pair<Bead *, Bead *>(bead1, bead2)), _r(r), _dist(abs(r)) {}
+      : _pair(std::pair<Bead *, Bead *>(bead1, bead2)), _r(r), _dist(r.norm()) {}
 
   Bead *first() { return _pair.first; }
   Bead *second() { return _pair.second; }

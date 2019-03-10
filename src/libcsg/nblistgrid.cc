@@ -151,7 +151,7 @@ void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead) {
 
     Eigen::Vector3d v = (*iter)->getPos();
     Eigen::Vector3d r = _top->BCShortestConnection(v, u);
-    double          d = abs(r);
+    double          d = r.norm();
     if (d < _cutoff) {
       if (_do_exclusions)
         if (_top->getExclusions().IsExcluded((*iter), bead)) {

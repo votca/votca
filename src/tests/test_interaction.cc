@@ -26,7 +26,6 @@
 #include <votca/csg/interaction.h>
 #include <votca/csg/molecule.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;

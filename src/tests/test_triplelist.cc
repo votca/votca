@@ -26,7 +26,6 @@
 #include <votca/csg/beadtype.h>
 #include <votca/csg/topology.h>
 #include <votca/csg/triplelist.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;

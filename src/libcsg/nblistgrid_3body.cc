@@ -231,9 +231,9 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
           Eigen::Vector3d r12 = _top->BCShortestConnection(u, v);
           Eigen::Vector3d r13 = _top->BCShortestConnection(u, z);
           Eigen::Vector3d r23 = _top->BCShortestConnection(v, z);
-          double          d12 = abs(r12);
-          double          d13 = abs(r13);
-          double          d23 = abs(r23);
+          double          d12 = r12.norm();
+          double          d13 = r13.norm();
+          double          d23 = r23.norm();
 
           // to do: at the moment use only one cutoff value
           // to do: so far only check the distance between bead 1 (central bead)

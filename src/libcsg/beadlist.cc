@@ -68,7 +68,7 @@ int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
   }
 
   for (iter = top.Beads().begin(); iter != top.Beads().end(); ++iter) {
-    if (abs(_topology->BCShortestConnection(ref, (*iter)->getPos())) > radius)
+    if (_topology->BCShortestConnection(ref, (*iter)->getPos()).norm() > radius)
       continue;
     if (!selectByName) {
       if (wildcmp(pSelect.c_str(), (*iter)->getType().c_str())) {

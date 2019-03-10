@@ -155,7 +155,7 @@ void Map_Sphere::Apply() {
     M += bead->getMass();
     if (bead->HasPos()) {
       Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (abs(r) > max_dist) {
+      if (r.norm() > max_dist) {
         cout << r0 << " " << bead->getPos() << endl;
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box \n (atoms " +
@@ -213,7 +213,7 @@ void Map_Ellipsoid::Apply() {
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
       Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (abs(r) > max_dist)
+      if (r.norm() > max_dist)
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box");
       cg += (*iter)._weight * (r + r0);
