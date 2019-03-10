@@ -25,8 +25,6 @@
 
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/globals.h>
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
 
 #include "votca/xtp/atomcontainer.h"
 #include "votca/xtp/checkpointwriter.h"

@@ -22,7 +22,6 @@
 #include <typeinfo>
 #include <vector>
 #include <type_traits>
-#include <votca/tools/vec.h>
 
 #include <votca/xtp/checkpoint_utils.h>
 

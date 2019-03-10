@@ -20,7 +20,6 @@
 #ifndef VOTCA_XTP_GRIDBOX_H
 #define	VOTCA_XTP_GRIDBOX_H
 
-#include <votca/tools/vec.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/aoshell.h>
 

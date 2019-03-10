@@ -22,10 +22,6 @@
 #include <votca/xtp/qmpair.h>
 #include <votca/xtp/segment.h>
 #include <votca/xtp/topology.h>
-
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
-
 #include <votca/csg/boundarycondition.h>
 
 using namespace votca::tools;

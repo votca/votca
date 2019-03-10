@@ -20,7 +20,6 @@
 #ifndef VOTCA_XTP_GRID_CONTAINERS_H
 #define	VOTCA_XTP_GRID_CONTAINERS_H
 
-#include <votca/tools/vec.h>
 #include <votca/xtp/aobasis.h>
 
 

@@ -28,8 +28,6 @@
 #include <vector>
 #include <boost/filesystem.hpp>
 #include <type_traits>
-#include <votca/tools/vec.h>
-#include <votca/xtp/checkpoint_utils.h>
 #include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
 #include <votca/xtp/checkpoint.h>

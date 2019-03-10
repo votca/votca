@@ -23,7 +23,6 @@
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
-#include <votca/tools/vec.h>
 #include <votca/xtp/eigen.h>
 
 #include <votca/xtp/checkpoint_utils.h>

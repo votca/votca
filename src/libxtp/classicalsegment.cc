@@ -21,7 +21,7 @@
 #include "votca/xtp/classicalsegment.h"
 #include "votca/xtp/atomcontainer.h"
 #include <boost/format.hpp>
-
+#include <votca/tools/tokenizer.h>
 
 namespace votca { namespace xtp {
 

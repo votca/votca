@@ -403,14 +403,14 @@ void GWBSE::addoutput(tools::Property& summary) {
                             .str());
       if (_orbitals.hasTransitionDipoles()) {
 
-        const tools::vec& dipoles = (_orbitals.TransitionDipoles())[state];
+        const Eigen::Vector3d& dipoles = (_orbitals.TransitionDipoles())[state];
         double f =
-            2 * dipoles * dipoles * _orbitals.BSESingletEnergies()(state) / 3.0;
+            2 * dipoles.squaredNorm()* _orbitals.BSESingletEnergies()(state) / 3.0;
 
         level_summary.add("f", (format("%1$+1.6f ") % f).str());
         tools::Property& dipol_summary = level_summary.add(
-            "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.getX() %
-                         dipoles.getY() % dipoles.getZ())
+            "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.x() %
+                         dipoles.y() % dipoles.z())
                             .str());
         dipol_summary.setAttribute("unit", "e*bohr");
         dipol_summary.setAttribute("gauge", "length");

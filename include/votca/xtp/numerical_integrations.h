@@ -21,8 +21,6 @@
 #define	XTP_NUMERICAL_INTEGRATION_H
 
 
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/grid_containers.h>
