@@ -23,7 +23,6 @@
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
-#include <votca/tools/vec.h>
 
 #include "basebead.h"
 
