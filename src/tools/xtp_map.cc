@@ -96,8 +96,8 @@ void XtpMap::Run() {
   std::ifstream infile(_outdb);
   if (infile.good()) {
     cout << endl
-         << "ERROR <xtp_map> : state file '" << _outdb
-         << "' already in use. Abort." << endl;
+         << "xtp_map : state file '" << _outdb
+         << "' already in use. Delete the current statefile or specify a different name." << endl;
     return;
   }
 
@@ -143,7 +143,7 @@ void XtpMap::Run() {
   trjread->Open(trjfile);
   trjread->FirstFrame(mdtopol);
 
-  int firstFrame = 1;
+  int firstFrame = 0;
   int nFrames = 1;
   bool beginAt = 0;
   double startTime = mdtopol.getTime();
@@ -164,7 +164,7 @@ void XtpMap::Run() {
 
   for (hasFrame = true; hasFrame == true;
        hasFrame = trjread->NextFrame(mdtopol)) {
-    if (((mdtopol.getTime() < startTime) && beginAt) || firstFrame > 1) {
+    if (((mdtopol.getTime() < startTime) && beginAt) || firstFrame > 0) {
       firstFrame--;
       continue;
     }
@@ -176,16 +176,21 @@ void XtpMap::Run() {
     throw runtime_error("Time or frame number exceeds trajectory length");
   }
   if (TOOLS::globals::verbose) {
-    cout << "Read MD trajectory from " << trjfile << ": Frames " << nFrames
-         << " starting from " << firstFrame << " frame. " << endl;
+    cout << "Read MD trajectory from " << trjfile << ": found " << nFrames
+         << " frames, starting from frame " << firstFrame<< endl;
   }
   // +++++++++++++++++++++++++ //
   // Convert MD to QM Topology //
   // +++++++++++++++++++++++++ //
+  int laststep=-1;//for some formats no step is given out so we check if the step
 
   XTP::StateSaver statsav(_outdb);
   for (int saved = 0; hasFrame && saved < nFrames;
        hasFrame = trjread->NextFrame(mdtopol), saved++) {
+    if(mdtopol.getStep()==laststep){
+        mdtopol.setStep(laststep+1);
+    }
+    laststep=mdtopol.getStep();
     XTP::Topology qmtopol = md2qm.map(mdtopol);
     statsav.WriteFrame(qmtopol);
   }

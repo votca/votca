@@ -44,16 +44,16 @@ void StateSaver::WriteFrame(const Topology &top) {
   if (!TopStepisinFrames(top.getStep())) {
     std::vector<int> frames = this->getFrames();
     frames.push_back(top.getStep());
-    CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::CREATE);
+    CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::MODIFY);
     CheckpointWriter w = cpf.getWriter();
     w(frames, "frames");
-    std::cout << "Frame:" << top.getStep()
-              << " was not in statefile:" << _hdf5file << " , adding it now."
+    std::cout << "Frame with id " << top.getStep()
+              << " was not in statefile " << _hdf5file << " ,adding it now."
               << std::endl;
   }
   boost::interprocess::file_lock flock(_hdf5file.c_str());
   flock.lock();
-  CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::CREATE);
+  CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::MODIFY);
   CheckpointWriter w = cpf.getWriter("/frame_" + std::to_string(top.getStep()));
   top.WriteToCpt(w);
 
