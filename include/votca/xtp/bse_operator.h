@@ -54,7 +54,14 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     this->set_size(_bse_size);
   }
 
+ void set_operator_reordering();
+ Eigen::MatrixXd reorder_coefficients(Eigen::MatrixXd& U) const;
+ Eigen::VectorXd _reorder_col(Eigen::VectorXd& col) const;
+ Eigen::ArrayXi _diag_order_index;
+ bool do_reorder = false;
+
  protected:
+  
   Eigen::VectorXd col(int index) const;
 
   Eigen::VectorXd Hqp_col(int index) const;
@@ -68,6 +75,8 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   int _bse_vtotal;
   int _bse_ctotal;
   int _bse_cmin;
+
+
 
   ctp::Logger& _log;
   TCMatrix_gwbse& _Mmn;

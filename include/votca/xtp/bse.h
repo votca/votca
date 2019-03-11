@@ -60,6 +60,8 @@ class BSE {
     bool davidson = 0;    // use davidson to diagonalize the matrix
     bool matrixfree = 0;  // use matrix free method
     std::string davidson_correction = "DPR";  // Davidson correction
+    double davidson_tolerance = 1E-6;
+    bool reorder = false; // reorder the operator elements
     double min_print_weight =
         0.5;  // minimium contribution for state to print it
   };

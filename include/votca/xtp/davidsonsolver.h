@@ -56,8 +56,23 @@ class DavidsonSolver {
   template <typename MatrixReplacement>
   void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0) {
 
-    CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Davidson "
-                                 << this->davidson_correction << flush;
+    CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Davidson Solver"
+                                 << flush;
+
+    switch (this->davidson_correction) {
+
+          case CORR::DPR:
+            CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() 
+            << " DPR Correction" << flush;
+            break;
+
+          case CORR::OLSEN:
+            CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() 
+            << " Olsen Correction" << flush;
+            break;
+        }
+    CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() 
+    << " Tolerance : " << this->tol << flush;
 
     double res_norm;
     double conv;
@@ -83,8 +98,18 @@ class DavidsonSolver {
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();
+    //std::cout << "Adiag : "  << Adiag << std::endl;
+
+    // target the lowest diagonal element
     Eigen::MatrixXd V =
-        DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
+    DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
+
+    // use a simple identity matrix
+    //Eigen::MatrixXd V = Eigen::MatrixXd::Identity(size,size_initial_guess);
+
+    // order the diagonal element
+    // it seems to be needed or sometimes we
+    // don't get the lowest eigenvalues .... t
     // std::sort(Adiag.data(),Adiag.data()+Adiag.size());
 
     Eigen::VectorXd lambda;  // eigenvalues hodlers
@@ -184,6 +209,7 @@ class DavidsonSolver {
     } else {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << "- Davidson converged " << flush;
+
       // store the eigenvalues/eigenvectors
       this->_eigenvalues = lambda.head(neigen);
       this->_eigenvectors = q.block(0, 0, q.rows(), neigen);
@@ -200,7 +226,7 @@ class DavidsonSolver {
  private:
   ctp::Logger &_log;
   int iter_max = 1000;
-  double tol = 1E-6;
+  double tol = 1E-3;
   int max_search_space = 100;
 
   enum CORR { DPR, OLSEN };

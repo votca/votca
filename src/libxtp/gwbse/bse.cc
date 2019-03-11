@@ -26,6 +26,8 @@
 #include "votca/xtp/qmstate.h"
 #include "votca/xtp/vc2index.h"
 
+#include <chrono>
+
 using boost::format;
 using std::flush;
 
@@ -115,13 +117,24 @@ template <typename BSE_OPERATOR>
 void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
                           Eigen::MatrixXd& coefficients) {
 
+
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::duration<double> elapsed_time;
+  start = std::chrono::system_clock::now();
+
   CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Solving for first "
                                << _opt.nmax << " eigenvectors" << flush;
+
 
   if (_opt.davidson) {
 
     DavidsonSolver DS(_log);
     DS.set_correction(_opt.davidson_correction);
+    DS.set_tolerance(_opt.davidson_tolerance);
+
+    if(_opt.reorder)
+      h.set_operator_reordering();
+
     if (_opt.matrixfree) {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using matrix free method" << flush;
@@ -129,11 +142,16 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
     } else {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using full matrix method" << flush;
-      Eigen::MatrixXd hfull = h.get_full_matrix();
+      Eigen::MatrixXd hfull = h.get_full_matrix();    
       DS.solve(hfull, _opt.nmax);
     }
     energies = DS.eigenvalues();
     coefficients = DS.eigenvectors();
+
+    if(_opt.reorder) {
+      coefficients = h.reorder_coefficients(coefficients);
+    }
+    
   }
 
   else {
@@ -142,6 +160,14 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
     Eigen::MatrixXd hfull = h.get_full_matrix();
     tools::linalg_eigenvalues(hfull, energies, coefficients, _opt.nmax);
   }
+
+  end = std::chrono::system_clock::now();
+  elapsed_time = end-start;
+
+  CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " Diagonalization done in " 
+        << elapsed_time.count() << " secs" << flush;
+
   return;
 }
 

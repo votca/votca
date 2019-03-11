@@ -199,10 +199,18 @@ void GWBSE::Initialize(tools::Property& options) {
       _bseopt.matrixfree = options.ifExistsReturnElseReturnDefault<bool>(
           key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
 
+      _bseopt.reorder = options.ifExistsReturnElseReturnDefault<bool>(
+          key + ".eigensolver.reorder", _bseopt.reorder);
+
       _bseopt.davidson_correction =
           options.ifExistsReturnElseReturnDefault<std::string>(
               key + ".eigensolver.davidson_correction",
               _bseopt.davidson_correction);
+
+      _bseopt.davidson_tolerance =
+          options.ifExistsReturnElseReturnDefault<double>(
+              key + ".eigensolver.davidson_tolerance",
+              _bseopt.davidson_tolerance);
 
       std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
