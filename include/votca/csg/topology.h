@@ -57,7 +57,7 @@ typedef std::vector<Interaction *> InteractionContainer;
 class Topology {
  public:
   /// constructor
-  Topology() : _time(0.0), _has_vel(false), _has_force(false) {
+  Topology(){
     _bc = new OpenBox();
   }
   virtual ~Topology();
@@ -417,10 +417,10 @@ class Topology {
 
   std::map<std::string, std::list<Interaction *> > _interactions_by_group;
 
-  double _time;
-  int    _step;
-  bool   _has_vel;
-  bool   _has_force;
+  double _time=0.0;
+  int    _step=0;
+  bool   _has_vel=false;
+  bool   _has_force=false;
 
   /// The particle group (For H5MD file format)
   std::string _particle_group;
