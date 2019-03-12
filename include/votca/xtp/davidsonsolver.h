@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
 
 #include <votca/xtp/eigen.h>
 
@@ -98,7 +99,6 @@ class DavidsonSolver {
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();
-    //std::cout << "Adiag : "  << Adiag << std::endl;
 
     // target the lowest diagonal element
     Eigen::MatrixXd V =
@@ -125,7 +125,13 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::duration<double> elapsed_time;
+    
+
     for (int iiter = 0; iiter < iter_max; iiter++) {
+
+      start = std::chrono::system_clock::now();
 
       // diagonalize the small subspace
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
@@ -158,13 +164,14 @@ class DavidsonSolver {
         V.col(V.cols() - 1) = w.normalized();
       }
 
-      // normalized the norm of the residue vector
-      conv = (lambda.head(neigen) - old_val).norm();
+      // Get the convergence criteria on the eigenvalues
+      //conv = (lambda.head(neigen) - old_val).norm();
+
+      // Print iteration data
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                    << format(" %1$4d \t %2$12d \t %3$4.2e") %
                                           iiter % search_space % res_norm
                                    << flush;
-
       // update
       search_space = V.cols();
       old_val = lambda.head(neigen);
@@ -190,8 +197,10 @@ class DavidsonSolver {
 
       // continue otherwise
       else {
+        
         // orthogonalize the V vectors
         V = DavidsonSolver::_QR(V);
+
         // update the T matrix : avoid recomputing V.T A V
         // just recompute the element relative to the new eigenvectors
         DavidsonSolver::_update_projected_matrix<MatrixReplacement>(T, A, V);
