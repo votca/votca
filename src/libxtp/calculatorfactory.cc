@@ -26,6 +26,7 @@
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
 #include "calculators/neighborlist.h"
+#include "calculators/mapchecker.h"
 
 namespace votca {
 namespace xtp {
@@ -33,6 +34,7 @@ namespace xtp {
 void Calculatorfactory::RegisterAll(void) {
 
   Calculators().Register<Neighborlist>("neighborlist");
+  Calculators().Register<MapChecker>("mapchecker");
   Calculators().Register<IAnalyze>("ianalyze");
   Calculators().Register<EAnalyze>("eanalyze");
   Calculators().Register<JobWriter>("jobwriter");

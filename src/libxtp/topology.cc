@@ -26,7 +26,6 @@
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/globals.h>
 #include <votca/csg/pdbwriter.h>
-#include "votca/xtp/atomcontainer.h"
 #include "votca/xtp/checkpointwriter.h"
 
 using namespace std;

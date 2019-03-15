@@ -22,7 +22,7 @@
 
 
 #include <votca/xtp/qmcalculator.h>
-
+#include <votca/tools/filesystem.h>
 
 namespace votca {
 namespace xtp {
@@ -64,7 +64,9 @@ bool MapChecker::EvaluateFrame(Topology &top) {
 
    std::string base=tools::filesystem::GetFileBase(_segmentfile);
    std::string fileending=tools::filesystem::GetFileExtension(_segmentfile);
-   top.WriteToPdb(base+"_"+top.getStep()+"."+fileending);
+   std::string filename=base+"_step_"+std::to_string(top.getStep())+"."+fileending;
+   std::cout<<"Writing segments to "<<filename<<std::endl;
+   top.WriteToPdb(filename);
 
   return true;
 }

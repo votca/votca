@@ -126,6 +126,7 @@
       <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
+      <itemPath>../../include/votca/xtp/segmentmapper.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/stateapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
@@ -251,6 +252,7 @@
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
       <itemPath>../../src/libxtp/rate_engine.cc</itemPath>
       <itemPath>../../src/libxtp/segment.cc</itemPath>
+      <itemPath>../../src/libxtp/segmentmapper.cc</itemPath>
       <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaver.cc</itemPath>
       <itemPath>../../src/libxtp/staticsite.cc</itemPath>
@@ -294,6 +296,7 @@
       <itemPath>../../src/tests/test_radial_euler_maclaurin_rule.cc</itemPath>
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
+      <itemPath>../../src/tests/test_segmentmapper.cc</itemPath>
       <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
       <itemPath>../../src/tests/test_statefilter.cc</itemPath>
@@ -4125,6 +4128,11 @@
       </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/segmentmapper.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
             tool="3"
@@ -4687,6 +4695,8 @@
       </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/segmentmapper.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/stateapplication.cc"
             ex="false"
             tool="1"
@@ -4843,6 +4853,11 @@
       <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_segmentmapper.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5185,6 +5200,11 @@
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/segmentmapper.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
             ex="false"
@@ -5748,6 +5768,8 @@
       </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/segmentmapper.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/stateapplication.cc"
             ex="false"
             tool="1"
@@ -5904,6 +5926,11 @@
       <item path="../../src/tests/test_rpa.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_segment.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_segmentmapper.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
