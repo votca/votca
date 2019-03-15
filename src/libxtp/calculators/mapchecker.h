@@ -62,8 +62,9 @@ _mpfile = opt.ifExistsReturnElseReturnDefault<std::string>(
 
 bool MapChecker::EvaluateFrame(Topology &top) {
 
-    
- 
+   std::string base=tools::filesystem::GetFileBase(_segmentfile);
+   std::string fileending=tools::filesystem::GetFileExtension(_segmentfile);
+   top.WriteToPdb(base+"_"+top.getStep()+"."+fileending);
 
   return true;
 }
