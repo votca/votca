@@ -26,6 +26,7 @@ foreach(PROG
 		test_thread
 		test_tokenizer
 		test_typeconverter
+        test_filesystem
 		test_property)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
