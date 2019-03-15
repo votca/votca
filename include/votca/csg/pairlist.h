@@ -41,7 +41,6 @@ class PairList {
 
   const_iterator begin() const { return _pairs.begin(); }
   const_iterator end() const { return _pairs.end(); }
-  typename std::vector<pair_type *>::size_type size() { return _pairs.size(); }
   pair_type *front() { return _pairs.front(); }
   pair_type *back() { return _pairs.back(); }
   bool       empty() { return _pairs.empty(); }

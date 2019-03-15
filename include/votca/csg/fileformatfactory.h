@@ -20,7 +20,7 @@
 
 #include <string>
 #include <votca/tools/objectfactory.h>
-#include <votca/tools/tokenizer.h>
+#include <votca/tools/filesystem.h>
 
 namespace votca {
 namespace csg {
@@ -37,13 +37,12 @@ class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
 
 template <typename T>
 T *FileFormatFactory<T>::Create(const std::string &file) {
-  std::string      filetype = "";
-  TOOLS::Tokenizer tok(file, ".");
-  for (TOOLS::Tokenizer::iterator iter = tok.begin(); iter != tok.end(); iter++)
-    filetype = *iter;
+  std::string      filetype = tools::filesystem::GetFileExtension(file);
   try {
     return TOOLS::ObjectFactory<std::string, T>::Create(filetype);
   } catch (std::exception &error) {
+      throw std::runtime_error("Error '"+filetype+"' file format of file "
+              "'"+file+"' cannot be read or written");
   }
   return NULL;
 }

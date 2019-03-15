@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
 
   TopologyReader::RegisterPlugins();
   TopologyReader *lammpsDataReader;
-  lammpsDataReader = TopReaderFactory().Create("data");
+  lammpsDataReader = TopReaderFactory().Create("test.data");
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   BOOST_CHECK_EQUAL(top.BeadCount(), 100);
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   TopologyReader::RegisterPlugins();
   TopologyReader *lammpsDataReader;
-  lammpsDataReader = TopReaderFactory().Create("data");
+  lammpsDataReader = TopReaderFactory().Create("test.data");
   lammpsDataReader->ReadTopology(lammpsdatafilename, top);
 
   string lammpsdatafilename2 = "test_polymer4.data";
@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   TrajectoryReader::RegisterPlugins();
   TrajectoryReader *lammpsDataReaderTrj;
-  lammpsDataReaderTrj = TrjReaderFactory().Create("data");
+  lammpsDataReaderTrj = TrjReaderFactory().Create("test.data");
 
   lammpsDataReaderTrj->Open(lammpsdatafilename2);
   lammpsDataReaderTrj->FirstFrame(top);
@@ -167,13 +167,6 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
  * Internal test functions                                                   *
  *****************************************************************************/
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
 
 // Check if file exists
 bool fexists_(const string filename) {

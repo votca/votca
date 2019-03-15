@@ -52,6 +52,17 @@ void PDBWriter::Write(Topology *conf) {
   _out << "ENDMDL" << std::endl;
 }
 
+void PDBWriter::WriteBox(const Eigen::Matrix3d& box){
+    boost::format boxfrmt("CRYST1%1$9.3f%2$9.3f%3$9.3f%4$7.2f%5$7.2f%6$7.2f\n");
+    double a=box.col(0).norm();
+    double b=box.col(1).norm();
+    double c=box.col(2).norm();
+    double alpha=180/tools::conv::Pi*std::acos(box.col(1).dot(box.col(2))/(b*c));
+    double beta=180/tools::conv::Pi*std::acos(box.col(0).dot(box.col(2))/(a*c));
+    double gamma=180/tools::conv::Pi*std::acos(box.col(0).dot(box.col(1))/(a*b));
+    _out <<boxfrmt % a % b % c % alpha % beta % gamma;
+}
+
 void PDBWriter::writeSymmetry(Bead *bead) {
   if (bead->getSymmetry() > 1) {
     Eigen::Vector3d r = 10 * bead->getPos();

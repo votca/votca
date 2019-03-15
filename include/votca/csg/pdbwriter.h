@@ -40,6 +40,8 @@ class PDBWriter : public TrajectoryWriter {
 
   void WriteHeader(std::string header);
 
+  void WriteBox(const Eigen::Matrix3d& box);
+
  private:
   template <class Atom>
   std::string getName(Atom &atom) {
