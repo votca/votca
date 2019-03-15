@@ -43,6 +43,7 @@ class QMPair {
         return "Excitoncl";
         // no default case to trigger compiler error
     }
+    return "";
   }
 
   static PairType get_Enum(std::string type) {
@@ -63,6 +64,8 @@ class QMPair {
   }
 
   int getId() const { return _id; }
+  void setId(int id){_id=id;}
+
   const Eigen::Vector3d& R() const { return _R; }
   double Dist() const { return _R.norm(); }
 

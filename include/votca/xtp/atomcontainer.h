@@ -129,9 +129,10 @@ class AtomContainer {
   virtual void WriteToCpt(CheckpointWriter& w) const {
     w(_name, "name");
     w(_id, "id");
+    CheckpointWriter q=w.openChild("atoms");
     for (unsigned i = 0; i < _atomlist.size(); i++) {
       CheckpointWriter s =
-          w.openChild(_atomlist[i].identify() + std::to_string(i));
+          q.openChild(_atomlist[i].identify() + std::to_string(i));
       _atomlist[i].WriteToCpt(s);
     }
   }
@@ -139,13 +140,14 @@ class AtomContainer {
   virtual void ReadFromCpt(CheckpointReader& r) {
     r(_name, "name");
     r(_id, "id");
-    size_t count = r.getNumDataSets();
+    CheckpointReader rr=r.openChild("atoms");
+    size_t count = rr.getNumDataSets();
     _atomlist.clear();
     _atomlist.reserve(count);
     T element(0, "H", Eigen::Vector3d::Zero());  // dummy element to get
                                                  // .identify for type
     for (size_t i = 0; i < count; ++i) {
-      CheckpointReader c = r.openChild(element.identify() + std::to_string(i));
+      CheckpointReader c = rr.openChild(element.identify() + std::to_string(i));
       _atomlist.emplace_back(T(c));
     }
   }

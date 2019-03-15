@@ -20,13 +20,13 @@
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <votca/xtp/statesaver.h>
 #include <votca/xtp/topology.h>
+#include <votca/tools/filesystem.h>
 
 namespace votca {
 namespace xtp {
 
 std::vector<int> StateSaver::getFrames() const {
-  std::ifstream infile(_hdf5file);
-  if (!infile.good()) {
+    if(!tools::filesystem::FileExists(_hdf5file)){
     return std::vector<int>();
   }
 

@@ -39,6 +39,8 @@ QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
   return *pair;
 }
 
+
+
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   int size = this->size();
   w(size, "size");

@@ -57,17 +57,17 @@ class Segment : public AtomContainer<Atom> {
     _U_xN_xX.setValue(dU, state);
   }
 
-  double getU_xX_nN(QMStateType state) const { _U_xX_nN.getValue(state); }
+  double getU_xX_nN(QMStateType state) const {return _U_xX_nN.getValue(state); }
 
-  double getU_nX_nN(QMStateType state) const { _U_nX_nN.getValue(state); }
+  double getU_nX_nN(QMStateType state) const {return _U_nX_nN.getValue(state); }
 
-  double getU_xN_xX(QMStateType state) const { _U_xN_xX.getValue(state); }
+  double getU_xN_xX(QMStateType state) const {return  _U_xN_xX.getValue(state); }
 
   double getSiteEnergy(QMStateType state) const {
-    _eMpoles.getValue(state) + _U_xX_nN.getValue(state);
+   return _eMpoles.getValue(state) + _U_xX_nN.getValue(state);
   }
 
-  double getEMpoles(QMStateType state) const { _eMpoles.getValue(state); }
+  double getEMpoles(QMStateType state) const {return _eMpoles.getValue(state); }
 
   void setEMpoles(QMStateType state, double energy) {
     _eMpoles.setValue(energy, state);

@@ -75,6 +75,8 @@ class Topology {
 
   void WriteToCpt(CheckpointWriter &w) const;
 
+  void WriteToPdb(std::string filename)const;
+
   void ReadFromCpt(CheckpointReader &r);
 
   double GetShortestDist(const Segment &seg1, const Segment &seg2) const;

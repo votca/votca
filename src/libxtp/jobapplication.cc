@@ -35,14 +35,14 @@ void JobApplication::Initialize(void) {
   namespace propt = boost::program_options;
 
   AddProgramOptions()("file,f", propt::value<std::string>(),
-                      "  sqlite state file, *.sql");
-  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(1),
+                      "  hdf5 state file, *.hdf5");
+  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(0),
                       "  start from this frame");
   AddProgramOptions()("nframes,n", propt::value<int>()->default_value(1),
                       "  number of frames to process");
   AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
                       "  number of threads to create");
-  AddProgramOptions()("save,s", propt::value<int>()->default_value(1),
+  AddProgramOptions()("save,s", propt::value<bool>()->default_value(true),
                       "  whether or not to save changes to state file");
   AddProgramOptions()("restart,r",
                       propt::value<std::string>()->default_value(""),
@@ -80,14 +80,8 @@ void JobApplication::Run() {
   int nThreads = OptionsMap()["nthreads"].as<int>();
   int nframes = OptionsMap()["nframes"].as<int>();
   int fframe = OptionsMap()["first-frame"].as<int>();
-  int save = OptionsMap()["save"].as<int>();
+  bool save = OptionsMap()["save"].as<bool>();
 
-  if (nThreads == 0) {
-    nThreads = 1;
-  }
-  if (nframes == 0) {
-    nframes = 1;
-  }
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
@@ -105,7 +99,7 @@ void JobApplication::Run() {
 
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculators " << std::endl;
-  std::cout << "Frames in statefile: ";
+  std::cout <<frames.size()<<" frames in statefile, Ids are: ";
   for (int frame : frames) {
     std::cout << frame << " ";
   }

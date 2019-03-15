@@ -92,7 +92,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) {
   Topology xtptop;
   xtptop.setStep(top.getStep());
   xtptop.setTime(top.getTime());
-  xtptop.setBox(top.getBox(), top.getBoxType());
+  xtptop.setBox(top.getBox()*tools::conv::nm2bohr, top.getBoxType());
 
   // which segment does an atom belong to molname resnum name segid
   std::map<std::string, std::map<int, std::map<std::string, int> > >
@@ -152,6 +152,7 @@ Topology Md2QmEngine::map(const csg::Topology& top) {
                                      // modify them via pointers;
     for (const std::string& segname : segnames) {
       segments.push_back(&xtptop.AddSegment(segname));
+      segments.back()->AddMoleculeId(mol->getId());
     }
 
     // we have to figure out how the Residue numbers change from molecule to
@@ -162,9 +163,11 @@ Topology Md2QmEngine::map(const csg::Topology& top) {
       Segment* seg =
           segments[MolToSegMap[mol->getName()][bead->getResnr() - ResNumOffset]
                               [bead->getName()]];
+      
       Atom atom(bead->getResnr(), bead->getName(), atomid,
                 bead->getPos() * tools::conv::nm2bohr);
       seg->push_back(atom);
+      atomid++;
     }
   }
 

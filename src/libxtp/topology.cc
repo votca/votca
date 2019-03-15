@@ -25,7 +25,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <votca/tools/globals.h>
-
+#include <votca/csg/pdbwriter.h>
 #include "votca/xtp/atomcontainer.h"
 #include "votca/xtp/checkpointwriter.h"
 
@@ -167,6 +167,19 @@ std::vector<const Segment *> Topology::FindAllSegmentsOnMolecule(
     }
   }
   return results;
+}
+
+
+void Topology::WriteToPdb(std::string filename)const{
+
+  csg::PDBWriter writer;
+  writer.Open(filename, false);
+  writer.WriteHeader("Frame:"+std::to_string(this->getStep()));
+  writer.WriteBox(this->getBox()*tools::conv::bohr2ang);
+  for(const Segment& seg:_segments){
+    writer.WriteContainer(seg);
+  }
+  writer.Close();
 }
 
 void Topology::WriteToCpt(CheckpointWriter &w) const {

@@ -103,22 +103,31 @@ void Neighborlist::Initialize(tools::Property& options) {
 void Neighborlist::DetClassicalPairs(Topology& top) {
   std::cout << std::endl
             << " ... ... Determining classical pairs " << std::endl;
-  for (QMPair* pair : top.NBList()) {
-    const Segment* seg1 = pair->Seg1();
-    const Segment* seg2 = pair->Seg2();
+  #pragma omp parallel for
+  for (int i=0;i<top.NBList().size();i++) {
+    const Segment* seg1 = top.NBList()[i]->Seg1();
+    const Segment* seg2 = top.NBList()[i]->Seg2();
     if ((top.PbShortestConnect(seg1->getPos(), seg2->getPos()).norm()) +
                 seg1->getApproxSize() + seg2->getApproxSize() >
             _excitonqmCutoff ||
         top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
-      pair->setType(QMPair::Excitoncl);
+      top.NBList()[i]->setType(QMPair::Excitoncl);
     } else {
-      pair->setType(QMPair::Hopping);
+      top.NBList()[i]->setType(QMPair::Hopping);
     }
   }  // Type 3 Exciton_classical approx
 }
 
 bool Neighborlist::EvaluateFrame(Topology& top) {
-  top.NBList().Cleanup();
+
+ #ifdef _OPENMP
+  if (_nThreads > 0) {
+    omp_set_num_threads(_nThreads);
+    std::cout << " Using "<< omp_get_max_threads() << " threads" << std::flush;
+  }
+#endif
+
+ 
 
   if (tools::globals::verbose) {
     std::cout << std::endl << "... ..." << std::flush;
@@ -136,9 +145,13 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
     }
   }
   std::cout << std::endl;
-  std::cout << "Evaluating " << segs.size() << " segments for neighborlist. "
-            << top.Segments().size() - segs.size()
+  std::cout << "Evaluating " << segs.size() << " segments for neighborlist. ";
+  if((top.Segments().size() - segs.size())!=0){
+            std::cout<< top.Segments().size() - segs.size()
             << " segments are not taken into account as specified" << std::endl;
+  }else{
+      std::cout<<std::endl;
+  }
   if (!_useConstantCutoff) {
     std::cout << "The following segments are used in the neigborlist creation"
               << std::endl;
@@ -152,19 +165,14 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   std::cout << "\r ... ... Evaluating " << std::flush;
   std::vector<std::string> skippedpairs;
 
-  for (std::vector<Segment*>::iterator segit1 = segs.begin();
-       segit1 < segs.end(); ++segit1) {
-    Segment* seg1 = *segit1;
+  top.NBList().Cleanup();
 
-    std::vector<Segment*>::iterator segit2;
-    double cutoff;
-
-    if (tools::globals::verbose) {
-      std::cout << "\r ... ... NB List Seg " << seg1->getId() << std::flush;
-    }
-
-    for (segit2 = segit1 + 1; segit2 < segs.end(); ++segit2) {
-      Segment* seg2 = *segit2;
+#pragma omp parallel for schedule(guided)
+  for (unsigned i=0;i<segs.size();i++) {
+    Segment* seg1 = segs[i];
+    double cutoff=_constantCutoff;
+   for (unsigned j=i+1;j<segs.size();j++) {
+      Segment* seg2 = segs[j];
       if (!_useConstantCutoff) {
         try {
           cutoff = _cutoffs.at(seg1->getName()).at(seg2->getName());
@@ -172,12 +180,14 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
           std::string pairstring = seg1->getName() + "/" + seg2->getName();
           if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
               skippedpairs.end()) {
-            skippedpairs.push_back(pairstring);
+             #pragma omp critical
+            {
+                skippedpairs.push_back(pairstring);
+            }
+            
           }
           continue;
         }
-      } else {
-        cutoff = _constantCutoff;
       }
 
       if (cutoff > 0.5 * min) {
@@ -192,15 +202,22 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
           top.PbShortestConnect(seg1->getPos(), seg2->getPos());
       double segdistance2 = segdistance.squaredNorm();
       double outside = cutoff + seg1->getApproxSize() + seg2->getApproxSize();
-
+      
       if (segdistance2 < cutoff2) {
-        top.NBList().Add(seg1, seg2, segdistance);
+          #pragma omp critical
+            {
+                top.NBList().Add(seg1, seg2, segdistance);
+            }
+        
       } else if (segdistance2 > (outside * outside)) {
         continue;
       } else {
         double R = top.GetShortestDist(*seg1, *seg2);
         if ((R * R) > cutoff2) {
-          top.NBList().Add(seg1, seg2, segdistance);
+            #pragma omp critical
+            {
+                top.NBList().Add(seg1, seg2, segdistance);
+            }    
         }
       }
     } /* exit loop seg2 */
@@ -220,6 +237,12 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   if (_useExcitonCutoff) {
     DetClassicalPairs(top);
   }
+
+  //sort qmpairs by seg1id and then by seg2id then reindex the pair id according to that.
+top.NBList().sortAndReindex([](QMPair* a, QMPair* b) {
+    if (a->Seg1()->getId() != b->Seg1()->getId()) return a->Seg1()->getId() < b->Seg1()->getId();
+    return a->Seg2()->getId() < b->Seg2()->getId();});
+
   return true;
 }
 

@@ -36,12 +36,27 @@ class QMNBList : public csg::PairList<const Segment*, QMPair> {
   QMPair& Add(const Segment* seg1, const Segment* seg2,
               const Eigen::Vector3d& r);
 
+  template<class Compare>
+  void sortAndReindex(Compare comp);
+
+  const QMPair* operator[](int index) const { return _pairs[index]; }
+  QMPair* operator[](int index) { return _pairs[index]; }
+
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r, const std::vector<Segment>& segments);
 
  protected:
 };
+
+  template< class Compare >
+inline void QMNBList::sortAndReindex( Compare comp ){
+    std::sort(_pairs.begin(),_pairs.end(),comp);
+
+    for(unsigned i=0;i<_pairs.size();i++){
+        _pairs[i]->setId(i);
+    }
+}
 
 }  // namespace xtp
 }  // namespace votca
