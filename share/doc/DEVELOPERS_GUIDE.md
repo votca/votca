@@ -256,38 +256,38 @@ Assuming you are in the votca/votca repository:
     git push origin <some_descriptive_branch_name>
 
 1. Here `base_branch` will typically be the master or stable branch.
-
-   git checkout <base_branch>
-
+```
+git checkout <base_branch>
+```
 2. The submodules are updated to be sure they have incorporated the latest
    changes in your local repository
-
-   git submodule update
-
+```
+git submodule update
+```
 3. Create a branch with a descriptive name
-
-   git checkout -b <some_descriptive_name>
-
+```
+git checkout -b <some_descriptive_name>
+```
 4. Update each of the submodules, by pulling in any remote changes to the
    submodules.
-
-   git submodule foreach git remote update
-
+```
+git submodule foreach git remote update
+```
 5. '-C' changes directory to the submodule directory and then checks out the
    appropriate commit
-
-   git -C <module1> checkout <sha_or_branch_of_module1_to_test>  
-   git -C <module2> checkout <sha_or_branch_of_module2_to_test>
-
+```
+git -C <module1> checkout <sha_or_branch_of_module1_to_test>  
+git -C <module2> checkout <sha_or_branch_of_module2_to_test>
+```
 6. The changes are then added and commited
-
-   git add <module1> <module2>  
-   git commit -m "test <module1> with <module2>"
-
+```
+git add <module1> <module2>  
+git commit -m "test <module1> with <module2>"
+```
 7. Finally, they are pushed to the remote branch
-
-   git push origin <some_descriptive_branch_name>
-
+```
+git push origin <some_descriptive_branch_name>
+```
 A pull request is then made for the votca/votca repo using the branch name. Once
 the branch passes all tests it can be merged. Pull requests for each of repos
 changed can then be made. They will now compile against the updated votca/votca
