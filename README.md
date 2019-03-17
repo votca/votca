@@ -22,7 +22,7 @@ docker run -it votca/votca /bin/bash
 ```
 
 For further details see:
-1. [Installation](share/doc/INSTALL.md) 
+
+1. [Installation](share/doc/INSTALL.md)
 2. [Further Information](http://www.votca.org)
 3. [Developers Guide](share/doc/DEVELOPERS_GUIDE.md)
-
