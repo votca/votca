@@ -336,8 +336,11 @@ preferable that spaces be used instead.
 Clang formatting can be automated at every commit using the script found in the
 [dev-tools](https://github.com/votca/dev-tools) repository. To use it copy the
 file `pre-commit` to your local .git subfolder to the hooks folder. E.g.   
- chmod 777 dev-tools/pre-commit  
- cp dev-tools/pre-commit tools/.git/hooks/
+
+```
+chmod 777 dev-tools/pre-commit  
+cp dev-tools/pre-commit tools/.git/hooks/
+```
 
 The above will make the script executable and then copy it to the local
 .git/hooks directory in the tools repository. The script not only updates the
