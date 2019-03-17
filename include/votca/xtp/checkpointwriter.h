@@ -115,6 +115,17 @@ class CheckpointWriter {
     }
   }
 
+  template<typename T>
+      CptTable createTable(const std::string& name, T& Obj, std::size_t nRows){
+
+      CptTable table(name, sizeof(T::data), nRows);
+
+      Obj.SetupCptTable(table);
+      table.initialize(_loc) ;
+      return table;
+  }
+
+
  private:
   const CptLoc _loc;
   const std::string _path;

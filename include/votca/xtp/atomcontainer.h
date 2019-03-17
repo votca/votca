@@ -129,13 +129,21 @@ class AtomContainer {
   virtual void WriteToCpt(CheckpointWriter& w) const {
     w(_name, "name");
     w(_id, "id");
+    T element(0, "H", Eigen::Vector3d::Zero());
     CheckpointWriter q=w.openChild("atoms");
     for (unsigned i = 0; i < _atomlist.size(); i++) {
-      CheckpointWriter s =
-          q.openChild(_atomlist[i].identify() + std::to_string(i));
-      _atomlist[i].WriteToCpt(s);
+        CheckpointWriter s =
+            q.openChild(_atomlist[i].identify() + std::to_string(i));
+        _atomlist[i].WriteToCpt(s);
+    }
+
+    CptTable table = w.createTable("atom list", _atomlist[0], _atomlist.size());
+
+    for (unsigned i = 0; i < _atomlist.size(); i++) {
+        _atomlist[i].WriteToCpt(table, i);
     }
   }
+
 
   virtual void ReadFromCpt(CheckpointReader& r) {
     r(_name, "name");

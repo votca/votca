@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+nn * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
@@ -82,6 +82,30 @@ class StaticSite {
   virtual double getPotential() const { return PhiP; }
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
+
+  struct data{
+      int id;
+      std::string element;
+      double posX;
+      double posY;
+      double posZ;
+
+      int rank;
+
+      double _multipoleQ00;
+      double _multipoleQ11c;
+      double _multipoleQ11s;
+      double _multipoleQ10;
+      double _multipoleQ20;
+      double _multipoleQ21c;
+      double _multipoleQ21s;
+      double _multipoleQ22c;
+      double _multipoleQ22s;
+  };
+
+  virtual void SetupCptTable(CptTable& table) const;
+
+  virtual void WriteToCpt(CptTable& table, const std::size_t& idx) const;
 
   virtual void WriteToCpt(const CheckpointWriter& w) const;
 

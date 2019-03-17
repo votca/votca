@@ -107,6 +107,8 @@ CheckpointReader(const CptLoc& loc, const std::string path):
         return _loc.getNumObjs();
     }
 
+    CptLoc getLoc(){ return _loc;}
+
 private:
     const CptLoc _loc;
     const std::string _path;

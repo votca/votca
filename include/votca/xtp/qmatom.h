@@ -75,6 +75,40 @@ class QMAtom {
   int _ecpcharge;
 
  public:
+  struct data{
+      int index;
+      std::string element;
+      double x;
+      double y;
+      double z;
+      int nuccharge;
+      int ecpcharge;
+  };
+
+  void SetupCptTable(CptTable& table) const {
+      table.addCol(_index, "index", HOFFSET(data, index));
+      table.addCol(_element, "element", HOFFSET(data, element));
+      table.addCol(_pos[0], "pos.x", HOFFSET(data, x));
+      table.addCol(_pos[1],"pos.y", HOFFSET(data, y));
+      table.addCol(_pos[2],"pos.z", HOFFSET(data, z));
+      table.addCol(_nuccharge, "nuccharge", HOFFSET(data, nuccharge));
+      table.addCol(_ecpcharge, "ecpcharge", HOFFSET(data, ecpcharge));
+  }
+
+  void WriteToCpt(CptTable& table, const std::size_t& idx) const{
+      data d[1];
+      d[0].index = _index;
+      d[0].element = _element;
+      d[0].x = _pos[0];
+      d[0].y = _pos[1];
+      d[0].z = _pos[2];
+      d[0].nuccharge = _nuccharge;
+      d[0].ecpcharge = _ecpcharge;
+
+      table.writeToRow(d, idx);
+  };
+
+
   void WriteToCpt(const CheckpointWriter& w) const {
     w(_index, "index");
     w(_element, "element");

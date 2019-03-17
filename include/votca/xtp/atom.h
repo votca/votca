@@ -81,6 +81,36 @@ class Atom {
 
   std::string identify() const { return "atom"; }
 
+  struct data{
+      int id;
+      std::string element;
+      std::string name;
+      double x;
+      double y;
+      double z;
+  };
+
+  void SetupCptTable(CptTable& table) const{
+      table.addCol(_id, "index", HOFFSET(data, id));
+      table.addCol(_element, "element", HOFFSET(data, element));
+      table.addCol(_name, "name", HOFFSET(data, name));
+      table.addCol(_pos[0], "pos.x", HOFFSET(data, x));
+      table.addCol(_pos[1], "pos.y", HOFFSET(data, y));
+      table.addCol(_pos[2], "pos.z", HOFFSET(data, z));
+  }
+
+  void WriteToCpt(CptTable& table, const std::size_t& idx) const{
+      data d[1];
+      d[0].id = _id;
+      d[0].element = _element;
+      d[0].name = _name;
+      d[0].x = _pos[0];
+      d[0].y = _pos[1];
+      d[0].z = _pos[2];
+
+      table.writeToRow(d, idx);
+  }
+
   void WriteToCpt(const CheckpointWriter &w) const {
     w(_id, "index");
     w(_element, "element");
