@@ -27,20 +27,34 @@ EOF
 fi
 
 step_nr=$(get_current_step_nr)
+sim_prog="$(csg_get_property cg.inverse.program)"
 scheme=( $(csg_get_interaction_property inverse.do_potential) )
 scheme_nr=$(( ($step_nr - 1 ) % ${#scheme[@]} ))
 name=$(csg_get_interaction_property name)
 bondtype="$(csg_get_interaction_property bondtype)"
 
+pressure_constraint=$(csg_get_property cg.inverse.hncgn.pressure_constraint)
+if is_num ${pressure_constraint}; then
+    p_file="${name}.pressure"
+    do_external pressure "$sim_prog" "$p_file"
+    p_now="$(sed -n 's/^Pressure=\(.*\)/\1/p' "$p_file")" || die "${0##*/}: sed of Pressure failed"
+    [[ -z $p_now ]] && die "${0##*/}: Could not get pressure from simulation"
+    echo "New pressure $p_now, target pressure $p_target"
+fi
+
 if [ "${scheme[$scheme_nr]}" = 1 ]; then
-   echo "Update potential ${name} : yes"
-   #update hncgn
-   do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
-   kBT="$(csg_get_property cg.inverse.kBT)"
-   density="$(csg_get_property cg.inverse.hncgn.density)"
-   cut_off="$(csg_get_property cg.inverse.hncgn.cut_off)"
-   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
-   do_external update hncgn_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_hncgn "${kBT}" "${density}" "${cut_off}"
+    echo "Update potential ${name} : yes"
+    #update hncgn
+    do_external resample target "$(csg_get_interaction_property inverse.target)" "${name}.dist.tgt"
+    kBT="$(csg_get_property cg.inverse.kBT)"
+    density="$(csg_get_property cg.inverse.hncgn.density)"
+    cut_off="$(csg_get_property cg.inverse.hncgn.cut_off)"
+    is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
+    if is_num ${pressure_constraint}; then
+        do_external update hncgn_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_hncgn "${kBT}" "${density}" "${cut_off}" "--pressure_constraint=${pressure_constraint},${p_now}"
+    else
+        do_external update hncgn_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_hncgn "${kBT}" "${density}" "${cut_off}"
+    fi
    do_external potential shift --type "${bondtype}" ${name}.dpot.pure_hncgn ${name}.dpot.new
 else
    echo "Update potential ${name} : no"

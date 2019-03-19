@@ -55,17 +55,76 @@ def gen_fourier_matrix(r_nz, omega_nz, fourier_function):
     return fourier_matrix
 
 
+def gauss_newton_constrained(A, C, b, d):
+    m,n = A.shape
+    p,n = C.shape
+    b.shape = (m)
+    d.shape = (p)
+
+    if p > 1:
+        raise Exception("not implemented for p > 1")
+
+    A_elim = A.copy()
+    b_elim = b.copy()
+    for i in range(p):
+
+        pivot = np.argmax(abs(C[i]))  # find max value of C
+
+        A_elim = A - np.ones_like(A) * A[:, pivot][:, np.newaxis] * C[i] / C[i, pivot]
+        b_elim = b - A[:, pivot] * d[i] / C[i, pivot]
+        A_elim = np.delete(A_elim, pivot, 1)
+
+    if p == n:
+        print("Warning: solution determined fully by constraints")
+        x_elim = []
+    else:
+        #x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
+        x_elim = np.linalg.solve(np.matmul(A_elim.T, A_elim), np.matmul(A_elim.T, b_elim))
+
+    if p == 0:
+        # no constraints
+        x = x_elim
+    else:
+        #x_pivot = (d[i] - np.delete(C, pivot, 1) @ x_elim) / C[i, pivot]
+        x_pivot = (d[i] - np.matmul(np.delete(C, pivot, 1), x_elim)) / C[i, pivot]
+        x = np.insert(x_elim, pivot, x_pivot)
+
+    return x
+
+
 def calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min,
-                         cut_off, dump_steps=False):
-    """does the math for the hncgn method.
-matrix multiplication was done with @ in earlier versions, now
-with numpy.matmul"""
+                         r_cut_off, pot_current_U, constraints, dump_steps=False):
+    """Apply the (constrained) HNCGN method.
+    Matrix multiplication was done with @ in earlier versions, now
+    with numpy.matmul"""
 
     # for convenience grids (real and reciprocal) are without the zero value
     r = r[1:]
     delta_r = r[1] - r[0]
     g = rdf_current_g[1:]
     g_tgt = rdf_target_g[1:]
+    u = pot_current_U[1:]
+
+    # there are different regions in r used in the method
+    #              |       main        |                     # regions
+    # |   core     |                 nocore               |
+    # 0 --------core_end------------cut_off----------len(r)  # those are indices
+    #
+    # Δ from the paper equals nocore
+    # Δ' from the paper equals main
+    # note: Vector w is in region main, but with one element less, because of
+    #       the antiderivative operator A0
+
+    core_end = np.where(g_tgt > g_min)[0][0]
+    cut_off = np.searchsorted(r, r_cut_off)
+    main = slice(core_end, cut_off+1)
+    nocore = slice(core_end, len(r))
+    #print("core_end:", core_end, r[core_end])
+    #print("cut_off:", cut_off, r[cut_off])
+    #print("r_end:", len(r)-1, r[-1])
+    #print("r", 0, len(r), min(r), max(r))
+    #print("main:", core_end, cut_off+1, min(r[main]), max(r[main]))
+    #print("nocore:", core_end, len(r), min(r[nocore]), max(r[nocore]))
 
     # reciprocal grid up to Nyquist frequency
     delta_r = (r[-1] - r[0]) / (len(r) - 1)
@@ -73,7 +132,7 @@ with numpy.matmul"""
     omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
     # This ensures max(omega) becomes not to large due to numerical accuracy
     # because if it does there are artifacts
-    omega *= 0.99999
+    omega *= 0.9999
 
     # Fourier matrix
     F = gen_fourier_matrix(r, omega, fourier)
@@ -94,36 +153,59 @@ with numpy.matmul"""
     #T = np.linalg.inv(F) @ H @ F
     T = np.matmul(np.linalg.inv(F), np.matmul(H, F))
 
-    # real grid without core region
-    core_end = np.where(g_tgt > g_min)[0][0]
-    r_nocore = r[core_end:]
-
     # D matrix
     D = np.diag(g_tgt[core_end:])
 
     # U matrix
     U = -kBT * np.linalg.inv(D) + kBT * T[core_end:, core_end:]
 
-    # grid up to (including) cut-off
-    index_cut_off = np.searchsorted(r_nocore, cut_off)
-    r_nocore_cut = r_nocore[:index_cut_off+1]
-
     # A0 matrix
-    A0 = delta_r * np.triu(np.ones((len(r_nocore), len(r_nocore_cut))), k=0)
+    A0 = delta_r * np.triu(np.ones((len(r[nocore]), len(r[main])-1)), k=0)
 
     # Jacobian matrix
-    #J = - np.linalg.inv(U) @ A0
-    J = - np.matmul(np.linalg.inv(U), A0)
+    #J = np.linalg.inv(U) @ A0
+    J = np.matmul(np.linalg.inv(U), A0)
+    print('J', J.shape)
+
+    # constraint matrix and vector
+    C = np.zeros((len(constraints), len(r[main])-1))
+    d = np.zeros(len(constraints))
+
+    # build constraint matrix and vector from constraints
+    for c, constraint in enumerate(constraints):
+        if constraint['type'] == 'pressure':
+            # current pressure
+            p = constraint['current']
+            # target pressure
+            p_tgt = constraint['target']
+            # g_tgt(r_{i+1})
+            g_tgt_ip1 = g_tgt[main][1:]
+            # g_tgt(r_{i})
+            g_tgt_i = g_tgt[main][:-1]
+            # r_{i+1}
+            r_ip1 = r[main][1:]
+            # r_{i}
+            r_i = r[main][:-1]
+            # l vector
+            l = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
+            l *= 1/12 * np.pi * rho**2
+
+            # set C row and d element
+            C[c, :] = l
+            d[c] = p_tgt - p
+        else:
+            raise Exception("not implemented constraint type")
 
     # residuum vector
     res = g_tgt - g
-    res_nocore = res[core_end:]
 
-    # w
-    # (J.T @ J) w == - J.T @ res_nocore
-    #     a     x ==       b
-    #w = np.linalg.solve(J.T @ J, -J.T @ res_nocore)
-    w = np.linalg.solve(np.matmul(J.T, J), -np.matmul(J.T, res_nocore))
+    # switching to notation of Gander et al. for solving
+    #A = J.T @ J
+    #b = J.T @ res[nocore]
+    A = J
+    b = res[nocore]
+    print('d =', d)
+    w = gauss_newton_constrained(A, C, b, d)
 
     # dU
     #dU = A0 @ w
@@ -142,8 +224,8 @@ with numpy.matmul"""
 def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                     rdf_current_g, rdf_current_flag,
                     pot_current_U, pot_current_flag,
-                    kBT, density, cut_off, g_min):
-    """calculate dU for the hncgn method"""
+                    kBT, density, cut_off, g_min, constraints):
+    """calculate dU for the hncgn method with constraint pressure"""
 
     # allways raise an error
     np.seterr(all='raise')
@@ -153,7 +235,8 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
     dpot_flag = np.array([''] * len(dpot_dU))
 
     # full range dU
-    dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min, cut_off)
+    dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g,
+                                   kBT, density, g_min, cut_off, pot_current_U, constraints)
 
     # calculate dpot
     for i in range(len(r)):
@@ -173,7 +256,7 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
 
     # shift dU to be zero at cut_off and beyond
     index_cut_off = np.searchsorted(r, cut_off)
-    U_cut_off = dpot_dU[index_cut_off] + pot_current_U[index_cut_off]
+    U_cut_off = pot_current_U[index_cut_off] + dpot_dU[index_cut_off]
     dpot_dU -= U_cut_off
     dpot_dU[index_cut_off:] = - pot_current_U[index_cut_off:]
 
@@ -194,6 +277,7 @@ parser.add_argument('dpot', type=argparse.FileType('wb'))
 parser.add_argument('kBT', type=float)
 parser.add_argument('density', type=float)
 parser.add_argument('cut_off', type=float)
+parser.add_argument('--pressure_constraint', type=str, default=None)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -207,11 +291,18 @@ if __name__ == '__main__':
     compare_grids(rdf_target_r, rdf_current_r)
     r = rdf_target_r
 
+    constraints = []
+    if args.pressure_constraint is not None:
+        p_target = float(args.pressure_constraint.split(',')[0])
+        p_current = float(args.pressure_constraint.split(',')[1])
+        constraints.append({'type': 'pressure', 'target': p_target, 'current': p_current})
+
     # calculate dpot
     dpot_dU, dpot_flag = calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                                          rdf_current_g, rdf_current_flag,
                                          pot_current_U, pot_current_flag,
-                                         args.kBT, args.density, args.cut_off, 1e-10)
+                                         args.kBT, args.density, args.cut_off, 1e-10,
+                                         constraints)
 
     # save dpot
     comment = "created by: {}".format(" ".join(sys.argv))
