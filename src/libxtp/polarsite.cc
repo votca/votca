@@ -59,13 +59,13 @@ namespace votca {
 
 
   void PolarSite::SetupCptTable(CptTable& table) const {
-      table.addCol(_Ps[0], "psX", HOFFSET(data, psX));
-      table.addCol(_Ps[1], "psY", HOFFSET(data, psY));
-      table.addCol(_Ps[2], "psZ", HOFFSET(data, psZ));
+      // table.addCol(_Ps[0], "psX", HOFFSET(data, psX));
+      // table.addCol(_Ps[1], "psY", HOFFSET(data, psY));
+      // table.addCol(_Ps[2], "psZ", HOFFSET(data, psZ));
 
-      table.addCol(_localInducedField[0], "localInducedFieldX", HOFFSET(data, fieldX));
-      table.addCol(_localInducedField[1], "localInducedFieldY", HOFFSET(data, fieldY));
-      table.addCol(_localInducedField[2], "localInducedFieldZ", HOFFSET(data, fieldZ));
+      table.addCol(_localinducedField[0], "localInducedFieldX", HOFFSET(data, fieldX));
+      table.addCol(_localinducedField[1], "localInducedFieldY", HOFFSET(data, fieldY));
+      table.addCol(_localinducedField[2], "localInducedFieldZ", HOFFSET(data, fieldZ));
 
       table.addCol(_inducedDipole[0], "inducedDipoleX", HOFFSET(data, dipoleX));
       table.addCol(_inducedDipole[1], "inducedDipoleY", HOFFSET(data, dipoleY));
@@ -83,13 +83,13 @@ namespace votca {
   void PolarSite::WriteToCpt(CptTable& table, const std::size_t& idx) const{
       data d[1];
 
-      d[0].psX        = _PS[0];
-      d[0].psY        = _PS[1];
-      d[0].psZ        = _PS[2];
+      // d[0].psX        = _Ps[0];
+      // d[0].psY        = _Ps[1];
+      // d[0].psZ        = _Ps[2];
 
-      d[0].fieldX     = _localinducedFiled[0];
-      d[0].fieldY     = _localinducedFiled[1];
-      d[0].fieldZ     = _localinducedFiled[2];
+      d[0].fieldX     = _localinducedField[0];
+      d[0].fieldY     = _localinducedField[1];
+      d[0].fieldZ     = _localinducedField[2];
 
       d[0].dipoleX    = _inducedDipole[0];
       d[0].dipoleY    = _inducedDipole[1];
@@ -99,7 +99,7 @@ namespace votca {
       d[0].dipoleYOld = _inducedDipole_old[1];
       d[0].dipoleZOld = _inducedDipole_old[2];
 
-      d[0].eigenamp = _eigendamp;
+      d[0].eigendamp = _eigendamp;
       d[0].phiU = PhiU;
 
       table.writeToRow(d, idx);

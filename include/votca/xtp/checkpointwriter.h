@@ -26,6 +26,7 @@
 #include <votca/xtp/eigen.h>
 
 #include <votca/xtp/checkpoint_utils.h>
+#include <votca/xtp/checkpointtable.h>
 
 namespace votca {
 namespace xtp {

@@ -81,9 +81,9 @@ public:
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
 
     struct data{
-        double psX;
-        double psY;
-        double psZ;
+        /* double psX; */
+        /* double psY; */
+        /* double psZ; */
 
         double fieldX;
         double fieldY;
@@ -97,7 +97,7 @@ public:
         double dipoleYOld;
         double dipoleZOld;
 
-        double eigenamp;
+        double eigendamp;
         double phiU;
     };
 

@@ -92,15 +92,15 @@ class StaticSite {
 
       int rank;
 
-      double _multipoleQ00;
-      double _multipoleQ11c;
-      double _multipoleQ11s;
-      double _multipoleQ10;
-      double _multipoleQ20;
-      double _multipoleQ21c;
-      double _multipoleQ21s;
-      double _multipoleQ22c;
-      double _multipoleQ22s;
+      double multipoleQ00;
+      double multipoleQ11c;
+      double multipoleQ11s;
+      double multipoleQ10;
+      double multipoleQ20;
+      double multipoleQ21c;
+      double multipoleQ21s;
+      double multipoleQ22c;
+      double multipoleQ22s;
   };
 
   virtual void SetupCptTable(CptTable& table) const;

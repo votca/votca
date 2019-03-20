@@ -122,19 +122,39 @@ namespace votca {
 
       table.addCol(_rank, "rank", HOFFSET(data, rank));
 
-      table.addCol(_multipole[0], "multipolesQ00",  HOFFSET(data, multipoleQ00));
-      table.addCol(_multipole[1], "multipolesQ11c", HOFFSET(data, multipoleQ11C));
-      table.addCol(_multipole[2], "multipolesQ11s", HOFFSET(data, multipoleQ11s));
-      table.addCol(_multipole[3], "multipolesQ10",  HOFFSET(data, multipoleQ10));
-      table.addCol(_multipole[4], "multipolesQ20",  HOFFSET(data, multipoleQ20));
-      table.addCol(_multipole[5], "multipolesQ21c", HOFFSET(data, multipoleQ21c));
-      table.addCol(_multipole[6], "multipolesQ21s", HOFFSET(data, multipoleQ21s));
-      table.addCol(_multipole[7], "multipolesQ22c", HOFFSET(data, multipoleQ22c));
-      table.addCol(_multipole[8], "multipolesQ22s", HOFFSET(data, multipoleQ22s));
+      table.addCol(_multipole[0], "multipoleQ00",  HOFFSET(data, multipoleQ00));
+      table.addCol(_multipole[1], "multipoleQ11c", HOFFSET(data, multipoleQ11c));
+      table.addCol(_multipole[2], "multipoleQ11s", HOFFSET(data, multipoleQ11s));
+      table.addCol(_multipole[3], "multipoleQ10",  HOFFSET(data, multipoleQ10));
+      table.addCol(_multipole[4], "multipoleQ20",  HOFFSET(data, multipoleQ20));
+      table.addCol(_multipole[5], "multipoleQ21c", HOFFSET(data, multipoleQ21c));
+      table.addCol(_multipole[6], "multipoleQ21s", HOFFSET(data, multipoleQ21s));
+      table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
+      table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
 
   }
 
   void StaticSite::WriteToCpt(CptTable& table, const std::size_t& idx) const{
+
+      data d[1];
+
+      d[0].id = _id;
+      d[0].element = _element;
+      d[0].posX = _pos[0];
+      d[0].posY = _pos[1];
+      d[0].posZ = _pos[2];
+
+      d[0].rank = _rank;
+
+      d[0].multipoleQ00  = _multipole[0];
+      d[0].multipoleQ11c = _multipole[1];
+      d[0].multipoleQ11s = _multipole[2];
+      d[0].multipoleQ10  = _multipole[3];
+      d[0].multipoleQ20  = _multipole[4];
+      d[0].multipoleQ21c = _multipole[5];
+      d[0].multipoleQ21s = _multipole[6];
+      d[0].multipoleQ22c = _multipole[7];
+      d[0].multipoleQ22s = _multipole[8];
 
       table.writeToRow(d, idx);
   }
