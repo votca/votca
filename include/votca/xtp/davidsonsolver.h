@@ -75,7 +75,8 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() 
     << " Tolerance : " << this->tol << flush;
 
-    double res_norm;
+    //double res_norm;
+    Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(neigen);
     double conv;
     int size = A.rows();
     bool has_converged = false;
@@ -140,13 +141,16 @@ class DavidsonSolver {
 
       // Ritz eigenvectors
       q = V.block(0, 0, V.rows(), search_space) * U;
-      res_norm = 0.0;
+      //res_norm = 0.0;
+
       // correction vectors
       for (int j = 0; j < neigen; j++) {
 
         // residue vector
         w = A * q.col(j) - lambda(j) * q.col(j);
-        res_norm += w.norm() / neigen;
+        //res_norm += w.norm() / neigen;
+        res_norm[j] = w.norm();
+
         switch (this->davidson_correction) {
 
           case CORR::DPR:
@@ -170,14 +174,14 @@ class DavidsonSolver {
       // Print iteration data
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
                                    << format(" %1$4d \t %2$12d \t %3$4.2e") %
-                                          iiter % search_space % res_norm
+                                          iiter % search_space % res_norm.maxCoeff()
                                    << flush;
       // update
       search_space = V.cols();
       old_val = lambda.head(neigen);
       
       // break if converged
-      if (res_norm < tol) {
+      if ((res_norm < tol).all()) {
         has_converged = true;
         break;
       }
