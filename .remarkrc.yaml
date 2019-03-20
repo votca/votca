@@ -1,6 +1,0 @@
- "plugins": [
-   "remark-stringify",
-   "preset-lint-markdown-style-guide",
-   ["lint-list-item-indent", "space"],
-   ["lint-unordered-list-marker-style", "*"]
- ]
