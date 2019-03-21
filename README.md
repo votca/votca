@@ -1,6 +1,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/97dee3a54c2d49829932aac8899f2843)](https://app.codacy.com/app/JoshuaSBrown/csg?utm_source=github.com&utm_medium=referral&utm_content=votca/csg&utm_campaign=Badge_Grade_Dashboard)
 [![codecov](https://codecov.io/gh/votca/csg/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/csg)
 [![Build Status](https://travis-ci.org/votca/csg.svg?branch=master)](https://travis-ci.org/votca/csg)
+[![pipeline status](https://gitlab.com/votca/csg/badges/master/pipeline.svg)](https://gitlab.com/votca/csg/commits/master)
 
 Further information on VOTCA can be found at <http://www.votca.org>
 
