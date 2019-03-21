@@ -57,6 +57,9 @@ class DavidsonSolver {
   template <typename MatrixReplacement>
   void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0) {
 
+    std::chrono::time_point<std::chrono::system_clock> start, end;
+    start = std::chrono::system_clock::now();
+
     CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Davidson Solver"
                                  << flush;
 
@@ -108,11 +111,11 @@ class DavidsonSolver {
     Eigen::VectorXd Adiag = A.diagonal();
 
     // target the lowest diagonal element
-    Eigen::MatrixXd V =
-    DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
+    //Eigen::MatrixXd V =
+    //DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
 
     // use a simple identity matrix
-    //Eigen::MatrixXd V = Eigen::MatrixXd::Identity(size,size_initial_guess);
+    Eigen::MatrixXd V = Eigen::MatrixXd::Identity(size,size_initial_guess);
 
     // eigenvalues holder
     Eigen::VectorXd lambda; 
@@ -128,12 +131,12 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::time_point<std::chrono::system_clock> istart, iend;
     std::chrono::duration<double> elapsed_time;
     
     for (int iiter = 0; iiter < iter_max; iiter++) {
 
-      start = std::chrono::system_clock::now();
+      istart = std::chrono::system_clock::now();
 
       // diagonalize the small subspace
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
@@ -171,8 +174,8 @@ class DavidsonSolver {
       }
 
 
-      end = std::chrono::system_clock::now();
-      elapsed_time = end - start;
+      iend = std::chrono::system_clock::now();
+      elapsed_time = iend - istart;
 
       // Print iteration data
       percent_converged = 100*root_converged.sum() / neigen;
@@ -216,17 +219,20 @@ class DavidsonSolver {
 
     }
 
+    end = std::chrono::system_clock::now();
+    elapsed_time = end - start;
+
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << "-----------------------------------" << flush;
     if (!has_converged) {
       CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << "- Warning : Davidson didn't converge ! "
+          << ctp::TimeStamp() << "- Warning : Davidson didn't converge ! " << elapsed_time.count() << "secs."
           << flush;
       this->_eigenvalues = Eigen::VectorXd::Zero(neigen);
       this->_eigenvectors = Eigen::MatrixXd::Zero(size, neigen);
     } else {
       CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << "- Davidson converged " << flush;
+          << ctp::TimeStamp() << "- Davidson converged in " << elapsed_time.count() << "secs." << flush;
 
       // store the eigenvalues/eigenvectors
       this->_eigenvalues = lambda.head(neigen);

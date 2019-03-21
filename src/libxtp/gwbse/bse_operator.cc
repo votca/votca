@@ -58,6 +58,7 @@ Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::reorder_coefficients(Eigen::Matr
 
     Eigen::MatrixXd _tmp = Eigen::MatrixXd::Zero(nrows,ncols);
 
+    #pragma omp parallel for
     for (int j=0; j < nrows; j++)
         _tmp.row(_diag_order_index(j)) = U.row(j);
     return _tmp;   

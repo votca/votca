@@ -69,13 +69,13 @@ void BSE::Solve_triplets() {
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
 
-  Eigen::MatrixXd hfull = Ht.get_full_matrix(); 
-  std::ofstream file("bse_triplet.dat");
-  if (file.is_open())
-  {
-    file << hfull;
-    file.close();
-  }
+  // Eigen::MatrixXd hfull = Ht.get_full_matrix(); 
+  // std::ofstream file("bse_triplet.dat");
+  // if (file.is_open())
+  // {
+  //   file << hfull;
+  //   file.close();
+  // }
 
   solve_hermitian(Ht, _bse_triplet_energies, _bse_triplet_coefficients);
 
@@ -104,14 +104,13 @@ void BSE::Solve_singlets_TDA() {
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
 
-  Eigen::MatrixXd hfull = Hs.get_full_matrix(); 
-  std::ofstream file("bse_singlet.dat");
-  if (file.is_open())
-  {
-    file << hfull;
-    file.close();
-  }
-
+  // Eigen::MatrixXd hfull = Hs.get_full_matrix(); 
+  // std::ofstream file("bse_singlet.dat");
+  // if (file.is_open())
+  // {
+  //   file << hfull;
+  //   file.close();
+  // }
 
   solve_hermitian(Hs, _bse_singlet_energies, _bse_singlet_coefficients);
 }
@@ -136,6 +135,7 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
 
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
   std::chrono::duration<double> elapsed_time;
   start = std::chrono::system_clock::now();
 
@@ -151,32 +151,92 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
     DS.set_max_search_space(10*_opt.nmax);
 
     if(_opt.reorder)
+    {
+      hstart = std::chrono::system_clock::now();
       h.set_operator_reordering();
+      hend = std::chrono::system_clock::now(); 
 
-    if (_opt.matrixfree) {
+      elapsed_time = hend-hstart;
+
+      CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Reorder Elements " 
+            << elapsed_time.count() << " secs" << flush;  
+    }
+
+    if (_opt.matrixfree) 
+    {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using matrix free method" << flush;
       DS.solve(h, _opt.nmax);
-    } else {
+    }
+
+    else 
+    {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using full matrix method" << flush;
-      Eigen::MatrixXd hfull = h.get_full_matrix();    
+
+      // get the full matrix    
+      hstart = std::chrono::system_clock::now();
+      Eigen::MatrixXd hfull = h.get_full_matrix();   
+      hend = std::chrono::system_clock::now(); 
+
+      elapsed_time = hend-hstart;
+
+      CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Full matrix assembled in " 
+            << elapsed_time.count() << " secs" << flush;  
+
+      // solve theeigenalue problem
+      hstart = std::chrono::system_clock::now();
       DS.solve(hfull, _opt.nmax);
+      hend = std::chrono::system_clock::now(); 
+
+      elapsed_time = hend - hstart;
+      CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Davidson solve done in " 
+            << elapsed_time.count() << " secs" << flush;  
     }
+
     energies = DS.eigenvalues();
     coefficients = DS.eigenvectors();
 
     if(_opt.reorder) {
+      hstart = std::chrono::system_clock::now();
       coefficients = h.reorder_coefficients(coefficients);
+      hend = std::chrono::system_clock::now(); 
+
+      elapsed_time = hend - hstart;
+      CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Reorder coefficients done in " 
+            << elapsed_time.count() << " secs" << flush;  
+
     }
     
   }
 
   else {
+
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Lapack Diagonalization" << flush;
+
+    hstart = std::chrono::system_clock::now();
     Eigen::MatrixXd hfull = h.get_full_matrix();
+    hend = std::chrono::system_clock::now(); 
+
+    elapsed_time = hend - hstart;
+    CTP_LOG(ctp::logDEBUG, _log)
+          << ctp::TimeStamp() << " Full matrix assembled in " 
+          << elapsed_time.count() << " secs" << flush;  
+
+    hstart = std::chrono::system_clock::now();
     tools::linalg_eigenvalues(hfull, energies, coefficients, _opt.nmax);
+    hend = std::chrono::system_clock::now(); 
+
+    elapsed_time = hend - hstart;
+    CTP_LOG(ctp::logDEBUG, _log)
+          << ctp::TimeStamp() << " Lapack solve done in " 
+          << elapsed_time.count() << " secs" << flush;  
+
   }
 
   end = std::chrono::system_clock::now();
