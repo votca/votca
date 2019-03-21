@@ -34,9 +34,12 @@ Eigen::VectorXd MatrixFreeOperator::diagonal() const {
 // get the full matrix if we have to
 Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
+
+  #pragma omp parallel for
   for (int i = 0; i < _size; i++) {
     matrix.col(i) = this->col(i);
   }
+  
   return matrix;
 }
 

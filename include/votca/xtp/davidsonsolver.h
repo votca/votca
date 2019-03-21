@@ -75,11 +75,17 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() 
     << " Tolerance : " << this->tol << flush;
 
-    //double res_norm;
     Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(neigen);
+    Eigen::ArrayXd root_converged = Eigen::ArrayXd::Zero(neigen);
+
+    double percent_converged;
     double conv;
     int size = A.rows();
     bool has_converged = false;
+
+    CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() 
+    << " Matrix size : " << size << 'x' << size << flush;
+
 
     //. search space exeeding the system size
     if (max_search_space > size) {
@@ -108,28 +114,23 @@ class DavidsonSolver {
     // use a simple identity matrix
     //Eigen::MatrixXd V = Eigen::MatrixXd::Identity(size,size_initial_guess);
 
-    // order the diagonal element
-    // it seems to be needed or sometimes we
-    // don't get the lowest eigenvalues .... t
-    // std::sort(Adiag.data(),Adiag.data()+Adiag.size());
-
-    Eigen::VectorXd lambda;  // eigenvalues hodlers
-    Eigen::VectorXd old_val = Eigen::VectorXd::Zero(neigen);
+    // eigenvalues holder
+    Eigen::VectorXd lambda; 
 
     // temp varialbes
     Eigen::MatrixXd T, U, q;
     Eigen::VectorXd w, tmp;
 
     // project the matrix on the trial subspace
-    T = A * V;
-    T = V.transpose() * T;
+    T = V.transpose()*(A * V);
+
+
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
     std::chrono::duration<double> elapsed_time;
     
-
     for (int iiter = 0; iiter < iter_max; iiter++) {
 
       start = std::chrono::system_clock::now();
@@ -141,14 +142,12 @@ class DavidsonSolver {
 
       // Ritz eigenvectors
       q = V.block(0, 0, V.rows(), search_space) * U;
-      //res_norm = 0.0;
 
       // correction vectors
       for (int j = 0; j < neigen; j++) {
 
         // residue vector
         w = A * q.col(j) - lambda(j) * q.col(j);
-        //res_norm += w.norm() / neigen;
         res_norm[j] = w.norm();
 
         switch (this->davidson_correction) {
@@ -166,19 +165,24 @@ class DavidsonSolver {
         // append the correction vector to the search space
         V.conservativeResize(Eigen::NoChange, V.cols() + 1);
         V.col(V.cols() - 1) = w.normalized();
+
+        // track converged root
+        root_converged[j] = res_norm[j] < tol;
       }
 
-      // Get the convergence criteria on the eigenvalues
-      //conv = (lambda.head(neigen) - old_val).norm();
+
+      end = std::chrono::system_clock::now();
+      elapsed_time = end - start;
 
       // Print iteration data
+      percent_converged = 100*root_converged.sum() / neigen;
       CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp()
-                                   << format(" %1$4d \t %2$12d \t %3$4.2e") %
-                                          iiter % search_space % res_norm.maxCoeff()
+                                   << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged done ine %5$f secs") %
+                                          iiter % search_space % res_norm.maxCoeff() 
+                                          % percent_converged % elapsed_time.count()
                                    << flush;
       // update
       search_space = V.cols();
-      old_val = lambda.head(neigen);
       
       // break if converged
       if ((res_norm < tol).all()) {
@@ -195,8 +199,8 @@ class DavidsonSolver {
         search_space = neigen;
 
         // recompute the projected matrix
-        T = A * V;
-        T = V.transpose() * T;
+        T = V.transpose()*(A * V);
+
       }
 
       // continue otherwise
@@ -209,6 +213,7 @@ class DavidsonSolver {
         // just recompute the element relative to the new eigenvectors
         DavidsonSolver::_update_projected_matrix<MatrixReplacement>(T, A, V);
       }
+
     }
 
     CTP_LOG(ctp::logDEBUG, _log)
@@ -237,6 +242,7 @@ class DavidsonSolver {
   }
 
  private:
+
   ctp::Logger &_log;
   int iter_max = 1000;
   double tol = 1E-3;

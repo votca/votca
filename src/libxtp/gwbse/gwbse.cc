@@ -211,7 +211,7 @@ void GWBSE::Initialize(tools::Property& options) {
           options.ifExistsReturnElseReturnDefault<double>(
               key + ".eigensolver.davidson_tolerance",
               _bseopt.davidson_tolerance);
-
+          
       std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           key + ".eigensolver.davidson_correction", _dcorr);
