@@ -42,7 +42,7 @@ For more detailed information about the changes see the history of the
 * new calculators: edft, idft, pdb2map, xqmultipole, ...
 * edft / idft: provide interfaces to the GAUSSIAN, TURBOMOLE & NWCHEM package, using packages computes: couplings, internal energies, partial charges
 * pdb2map (generates a system mapping file from an input coordinate file)
-* xqmultipole computes classical configuration energies of: charged clusters embedded in a molecular environment)
+* xqmultipole computes classical configuration energies of: charged clusters embedded in a molecular environment
 * enhanced usability via the command-line help, tutorial & test-suite
 * a GUI tutorial assists with the first practical steps in using VOTCA-CTP
 * an extended and homogenized help system provides: short infos on individual calculator options from the command line
