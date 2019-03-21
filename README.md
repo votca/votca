@@ -1,4 +1,5 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b946fb9d8a774893a731917cd07cd0b5)](https://www.codacy.com/app/JoshuaSBrown/csgapps?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/csgapps&amp;utm_campaign=Badge_Grade)
+[![codecov](https://codecov.io/gh/votca/csgapps/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/csgapps)
 
 This repository contains some small analysis programs which are written based on the votca_csg framework
 
