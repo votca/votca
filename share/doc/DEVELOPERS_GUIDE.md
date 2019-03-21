@@ -73,7 +73,7 @@ Here are a few general tips that should be followed:
 ### Header Files
 
 * One class, one header.
-* When creating header gruards use the following form, where "VOTCA-REPO-NAME"
+* When creating header guards use the following form, where "VOTCA-REPO-NAME"
   is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where
   "CLASS-NAME" is replaced by the name of the class described in the header
   file:
