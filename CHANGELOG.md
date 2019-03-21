@@ -21,7 +21,7 @@ For more detailed information about the changes see the history of the
 ## Version 1.5_rc1 (released 28.12.18)
 
 * added support for 3 body distribution
-* allow usage of (\_) in gmx options
+* allow usage of \_ in gmx options
 * support espresso-4.0
 * added LAMMPS data topology reader
 * added LAMMPS dump writer
@@ -50,7 +50,7 @@ For more detailed information about the changes see the history of the
 * added cibi tutorial and manual section
 * install mkl headers if mkl is enabled
 * updated copyright
-* xmltopologyparser: tokenize on (\\n) and (\\t) as well (#195)
+* xmltopologyparser: tokenize on \\n and \\t as well (#195)
 * tools: added support for boost-1.62
 
 ## Version 1.4_rc1 (released 26.09.16)
