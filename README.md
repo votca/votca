@@ -1,4 +1,5 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/9f3db8fd6bd243128b42788a308250ae)](https://app.codacy.com/app/JoshuaSBrown/votca?utm_source=github.com&utm_medium=referral&utm_content=votca/votca&utm_campaign=Badge_Grade_Dashboard)
+[![Build Status](https://travis-ci.org/votca/votca.svg?branch=master)](https://travis-ci.org/votca/votca)
 
 This is VOTCA's next generation build system.
 
