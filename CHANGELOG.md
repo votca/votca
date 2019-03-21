@@ -85,7 +85,7 @@ For more detailed information about the changes see the history of the
 
 * added new iterative methods: relative entropy, simplex optimization
 * added support for using the following with iterative methods: hoomd-blue, lammps, ESPResSo, ESPResSo++, dl_poly 
-* added pre- simulation feature for GROMACS (e.g. for minimization)
+* added pre-simulation feature for GROMACS (e.g. for minimization)
 * added rudimentary support for IBI with bonded interaction
 * made pdb reader work with libgmx
 * added support for h5md, dl_ploy file format
