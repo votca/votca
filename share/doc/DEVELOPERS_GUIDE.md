@@ -61,7 +61,6 @@ Here are a few general tips that should be followed:
   use the relative includes. This consists of using quotation marks i.e.
 
 
-
       #include "molecule.h"
 
 * When including from another repository, for instance you are working in the
