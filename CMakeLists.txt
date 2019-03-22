@@ -45,6 +45,9 @@ if(ENABLE_TESTING)
   include(CTest)
   enable_testing()
   find_program(VALGRIND "valgrind")
+  if(NOT VALGRIND)
+    message("Unable to create memory tests because valgrind was not found")
+  endif()
 endif(ENABLE_TESTING)
 
 #this has to be the first include directive
