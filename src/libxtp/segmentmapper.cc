@@ -21,6 +21,24 @@
 
 namespace votca {
 namespace xtp {
+    
+    template <class AtomContainer, class mapAtom>
+    SegmentMapper<AtomContainer, mapAtom>::SegmentMapper(Logger& log): _log(log){
+	FillMap();
+    };
+    
+template <class AtomContainer, class mapAtom>
+template<typename T>
+Eigen::Vector3d SegmentMapper<AtomContainer, mapAtom>::CalcWeightedPos(const
+std::vector<double>& weights,const T& atoms)const{
+    Eigen::Vector3d map_pos=Eigen::Vector3d::Zero();
+    double map_weight=0.0;
+    for(unsigned i=0;i<atoms.size();i++){
+        map_pos+=atoms[i]->getPos()*weights[i];
+        map_weight+=weights[i];
+    }
+    return map_pos=map_pos/map_weight;
+}
 
 template <class AtomContainer, class mapAtom>
 void SegmentMapper<AtomContainer, mapAtom>::ParseFragment(Seginfo& seginfo, const tools::Property& frag){

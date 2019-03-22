@@ -31,13 +31,10 @@ namespace votca
 namespace xtp
 {
 template <class AtomContainer, class mapAtom>
-class SegmentMapper
-{
+class SegmentMapper{
 public:
 
-    SegmentMapper(Logger& log): _log(log){
-	FillMap();
-    };
+    SegmentMapper(Logger& log);
 
     void LoadMappingFile(const std::string& mapfile);
 
@@ -63,6 +60,8 @@ private:
         std::vector< mapsite_id > mapatoms;
         std::map<std::string,std::string> coordfiles;
     };
+    std::map<std::string,std::string> _mapatom_xml;
+    std::map<std::string, Seginfo > _segment_info;
 
     int FindVectorIndexFromAtomId(int atomid,
 				const std::vector<mapAtom*>& fragment_mapatoms)const;
@@ -93,13 +92,14 @@ private:
     }
 
     std::string getFrame(const tools::Property & frag)const{
-	if (frag.exists(_mapatom_xml.at("frame")){
+	if (frag.exists(_mapatom_xml.at("frame"))){
 	    return frag.get( _mapatom_xml.at("frame")).as<std::string>();
-	}else{
+	} else{
 	    return frag.get("localframe").as<std::string>();
-	}
+	} 
     }
 
+    
     void FillMap(){
            _mapatom_xml["tag"]="MP";
 	   _mapatom_xml["name"]="MPole";
@@ -108,26 +108,15 @@ private:
 	   _mapatom_xml["weights"]="mp_weights";
 	   _mapatom_xml["frame"]="mp_localframe";
     }
-    std::map<std::string,std::string> _mapatom_xml;
-    std::map<std::string, Seginfo > _segment_info;
+    
+
+
 
 };
 
-template <class AtomContainer, class mapAtom>
-template<typename T>
-Eigen::Vector3d SegmentMapper<AtomContainer, mapAtom>::CalcWeightedPos(const
-std::vector<double>& weights,const T& atoms)const{
-    Eigen::Vector3d map_pos=Eigen::Vector3d::Zero();
-    double map_weight=0.0;
-    for(unsigned i=0;i<atoms.size();i++){
-        map_pos+=atoms[i]->getPos()*weights[i];
-        map_weight+=weights[i];
-    }
-    return map_pos=map_pos/map_weight;
-}
 
 template<> 
-void SegmentMapper<QMMolecule,QMAtom>::FillMap(){
+inline void SegmentMapper<QMMolecule, QMAtom>::FillMap(){
    _mapatom_xml["tag"]="QM";
    _mapatom_xml["name"]="QMAtom";
    _mapatom_xml["atoms"]="qmatoms";
@@ -138,9 +127,10 @@ void SegmentMapper<QMMolecule,QMAtom>::FillMap(){
 
 
 template<> 
-int SegmentMapper<QMMolecule,QMAtom>::getRank(const QMAtom& atom)const{
+inline int SegmentMapper<QMMolecule, QMAtom>::getRank(const QMAtom& atom)const{
    return 0;
 }
+
 
 typedef SegmentMapper<QMMolecule,QMAtom> QMMapper;
 typedef SegmentMapper<StaticSegment,StaticSite> StaticMapper;

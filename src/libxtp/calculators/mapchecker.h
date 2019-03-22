@@ -113,10 +113,10 @@ bool MapChecker::EvaluateFrame(Topology &top) {
   log.setPreface(logDEBUG, "\n... ...");
 
   QMMapper map(log);
- 
+  PolarMapper mp(log);
    for(QMState state:_qmstates){
     map.LoadMappingFile(_mapfile);
-
+    mp.LoadMappingFile(_mapfile);
    std::string filename_qm=AddStatetoFilename(_qmfile,state);
 
   csg::PDBWriter qmwriter;
@@ -130,6 +130,23 @@ bool MapChecker::EvaluateFrame(Topology &top) {
     qmwriter.WriteContainer(mol);
   }
   qmwriter.Close();
+  
+  
+  std::string filename_mp=AddStatetoFilename(_mpfile,state);
+
+  csg::PDBWriter mpwriter;
+  std::string filename_mp_state=AddSteptoFilename(filename_mp,top.getStep());
+  std::cout<<"Writing polarsegments to "<<filename_mp_state<<std::endl;
+  mpwriter.Open(filename_mp_state, false);
+  mpwriter.WriteHeader("MPFrame:"+std::to_string(top.getStep())+" state:"+state.ToString());
+  mpwriter.WriteBox(top.getBox()*tools::conv::bohr2ang);
+  for (const Segment& seg:top.Segments()){
+    PolarSegment mol=mp.map(seg,state);
+    mpwriter.WriteContainer(mol);
+  }
+  mpwriter.Close();
+  
+  
    }
 
   return true;
