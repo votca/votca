@@ -54,13 +54,15 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   template <class T>
   void ReadFile(T &container) {
     if (!ReadFrame<true, T>(container)) {
-      throw std::runtime_error("Reading xyz file failed");
+      throw std::runtime_error("Reading xyz file '"+_file+"' failed");
     }
   }
 
   void Close();
 
  private:
+
+
   template <class T>
   int getContainerSize(T &container) {
     return container.size();
@@ -97,7 +99,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   bool ReadFrame(T &container);
 
   std::ifstream _fl;
-
+  std::string _file;
   int _line;
 };
 
