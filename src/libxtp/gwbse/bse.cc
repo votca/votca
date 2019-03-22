@@ -69,7 +69,7 @@ void BSE::Solve_triplets() {
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
 
-  // Eigen::MatrixXd hfull = Ht.get_full_matrix(); 
+  // Eigen::MatrixXd hfull = Ht.get_full_matrix();
   // std::ofstream file("bse_triplet.dat");
   // if (file.is_open())
   // {

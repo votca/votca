@@ -111,11 +111,8 @@ class DavidsonSolver {
     Eigen::VectorXd Adiag = A.diagonal();
 
     // target the lowest diagonal element
-    //Eigen::MatrixXd V =
-    //DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
-
-    // use a simple identity matrix
-    Eigen::MatrixXd V = Eigen::MatrixXd::Identity(size,size_initial_guess);
+    Eigen::MatrixXd V =
+    DavidsonSolver::_get_initial_eigenvectors(Adiag, size_initial_guess);
 
     // eigenvalues holder
     Eigen::VectorXd lambda; 
@@ -127,10 +124,9 @@ class DavidsonSolver {
     // project the matrix on the trial subspace
     T = V.transpose()*(A * V);
 
-
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
-
+        
     std::chrono::time_point<std::chrono::system_clock> istart, iend;
     std::chrono::duration<double> elapsed_time;
     
@@ -210,12 +206,15 @@ class DavidsonSolver {
       else {
         
         // orthogonalize the V vectors
-        V = DavidsonSolver::_QR(V);
+        //V = DavidsonSolver::_QR(V);
+        V = DavidsonSolver::_gramschmidt(V,V.cols()-neigen);
 
         // update the T matrix : avoid recomputing V.T A V
         // just recompute the element relative to the new eigenvectors
         DavidsonSolver::_update_projected_matrix<MatrixReplacement>(T, A, V);
-      }
+        
+
+      } 
 
     }
 
@@ -264,25 +263,32 @@ class DavidsonSolver {
   Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size) const;
 
   Eigen::MatrixXd _QR(Eigen::MatrixXd &A) const;
-
+  Eigen::MatrixXd _gramschmidt( Eigen::MatrixXd &A, int nstart ) const;
   Eigen::VectorXd _dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0,
                                   double lambda) const;
   Eigen::VectorXd _olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x,
                                     Eigen::VectorXd &D, double lambda) const;
 
   template <class MatrixReplacement>
-  void _update_projected_matrix(Eigen::MatrixXd &T, MatrixReplacement &A,
+  void _update_projected_matrix(Eigen::MatrixXd &T,  MatrixReplacement &A,
                                 Eigen::MatrixXd &V) const {
-    int nvec_old = T.cols();
-    int nvec = V.cols();
-    int nnew_vec = nvec - nvec_old;
 
-    Eigen::MatrixXd _tmp = A * V.block(0, nvec_old, V.rows(), nnew_vec);
-    T.conservativeResize(nvec, nvec);
-    T.block(0, nvec_old, nvec, nnew_vec) = V.transpose() * _tmp;
-    T.block(nvec_old, 0, nnew_vec, nvec_old) =
-        T.block(0, nvec_old, nvec_old, nnew_vec).transpose();
-    return;
+    int size = V.rows();
+
+    int old_dim = T.cols();
+    int new_dim = V.cols();
+    int nvec = new_dim - old_dim;
+
+    T.conservativeResize(new_dim, new_dim);
+    
+    Eigen::MatrixXd _tmp = A * V.block(0, old_dim, size, nvec);
+    
+    T.block(0, old_dim, new_dim, nvec) = V.transpose() * _tmp;
+    
+    T.block(old_dim, 0, nvec, old_dim) =
+    T.block(0, old_dim, old_dim, nvec).transpose();
+    
+    return ;
   }
 };
 }  // namespace xtp

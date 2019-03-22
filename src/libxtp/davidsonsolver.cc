@@ -70,7 +70,7 @@ Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r,
                                                 double lambda) const {
   /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
    */
-  int size = r.rows();
+  
   Eigen::VectorXd delta = r.array() / (lambda - D.array());
   return delta;
 }
@@ -110,6 +110,24 @@ Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const {
   Eigen::MatrixXd result =
       qr.householderQ() * Eigen::MatrixXd::Identity(nrows, ncols);
   return result;
+}
+
+Eigen::MatrixXd DavidsonSolver::_gramschmidt( Eigen::MatrixXd &A, int nstart ) const
+{
+    Eigen::MatrixXd Q = A;
+
+    for(unsigned int j = nstart; j < A.cols(); ++j) {
+        // Replace inner loop over each previous vector in Q with fast matrix-vector multiplication
+        Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
+        // Normalize vector if possible (othw. means colums of A almsost lin. dep.
+        if( Q.col(j).norm() <= 10e-14 * A.col(j).norm() ) {
+            std::cerr << "Gram-Schmidt failed because A has lin. dep columns. Bye." << std::endl;
+            break;
+        } else {
+            Q.col(j).normalize();
+        }
+    }
+    return Q;
 }
 
 }  // namespace xtp
