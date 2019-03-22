@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _objectfactory_H
-#define _objectfactory_H
+#ifndef VOTCA_TOOLS_OBJECTFACTORY
+#define VOTCA_TOOLS_OBJECTFACTORY
 
 #include <boost/lexical_cast.hpp>
 #include <iostream>
@@ -111,26 +111,10 @@ inline T *ObjectFactory<key_t, T>::Create(const key_t &key) {
                              " not found.");
 }
 
-/*template<typename key_t, typename T>
-inline static ObjectFactory<key_t, T>& ObjectFactory<key_t, T>::Instance()
-{
-    static ObjectFactory<key_t, T> _this;
-    return _this;
-}*/
-
 template <typename key_t, typename T>
 inline bool ObjectFactory<key_t, T>::IsRegistered(const key_t &_id) const {
   return (_objects.find(_id) != _objects.end());
 }
-
-/*std::string list_keys() const {
-    std::stringstream _str;
-    for (typename assoc_map::const_iterator it(map.begin()); it != map.end();
-it++) { _str << (*it).first << "\n";
-    }
-    return _str.str();
-}
-*/
 
 template <typename object_type>
 class ObjectFactoryRegister {
@@ -146,4 +130,4 @@ class ObjectFactoryRegister {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _objectfactory_H */
+#endif // VOTCA_TOOLS_OBJECTFACTORY 
