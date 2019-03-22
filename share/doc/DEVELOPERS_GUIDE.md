@@ -314,34 +314,56 @@ need to reproduce to test the error in the travis build.
 
 ## CPP Codeing Style Guide
 
-VOTCA uses the clang formatter to automatically ensure consistent style. The
-style follows the google style fomatting rules. Have a look at
-`.clang-format file` in the
-[main votca repository](https://github.com/votca/votca/blob/master/.clang-format)
-for details.
+VOTCA uses a few auto formatting tools to help enforce the rules
+
+### [clang-format](https://clang.llvm.org/docs/ClangFormat.html)
+
+Automatically ensure consistent formatting for .cc and .h files. The style
+follows the google style fomatting rules. Have a look at the `.clang-format
+file` in the [main votca
+repository](https://github.com/votca/votca/blob/master/.clang-format) for
+details.
 
 To run the clang-format function on file.cc
 
     clang-format -i -style=file file.cc
 
 '-i' ensures it will make change to file.cc, omitting the '-i' will display the
-changes without implementing them. '-style=file' ensures the format is read from
-the .clang-format file otherwise it will use a default style guide.
+changes without implementing them. '-style=file' ensures the format is read
+from the .clang-format file otherwise it will use a default style guide.
 
 By default tabs should not be used to indent, avoid inserting '\\t', it is
 preferable that spaces be used instead.
 
-Clang formatting can be automated at every commit using the script found in the
-[dev-tools](https://github.com/votca/dev-tools) repository. To use it copy the
-file `pre-commit` to your local .git subfolder to the hooks folder. E.g.   
+### [autopep8](https://pypi.org/project/autopep8/0.8/)
+
+Automatically formats python .py files. We are use the default format rules of
+autopep8. To run on file.py and update the file run:
+
+    autopep8 -i file.py
+
+### [remark](https://github.com/remarkjs/remark)
+
+Remark is used to automatically format markdown files .md. Some of the rules
+applied are: 
+
+* single spaces are used instead of tabs after bullets
+* bullets are marked with `*` are used instead of `-`
+* words are emphasised by placing `__` on both sides 
+
+### Automating Formatting
+
+The above formatters can be automated at every commit using the script found in
+the [dev-tools](https://github.com/votca/dev-tools) repository. To use it copy
+the file `pre-commit` to your local .git subfolder to the hooks folder. E.g.   
 
     chmod 777 dev-tools/pre-commit  
     cp dev-tools/pre-commit tools/.git/hooks/
 
 The above will make the script executable and then copy it to the local
 .git/hooks directory in the tools repository. The script not only updates the
-file format of every file staged during a commit it will also update the license
-date.
+file format of every file staged during a commit it will also update the
+license date.
 
 ## CPP Comment Guide
 
