@@ -130,4 +130,4 @@ class ObjectFactoryRegister {
 }  // namespace tools
 }  // namespace votca
 
-#endif // VOTCA_TOOLS_OBJECTFACTORY 
+#endif  // VOTCA_TOOLS_OBJECTFACTORY 
