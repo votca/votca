@@ -46,7 +46,6 @@ if(ENABLE_TESTING)
   include(FindPackageHandleStandardArgs) 
   find_program(VALGRIND_EXECUTABLE "valgrind")
   find_package_handle_standard_args(VALGRIND REQUIRED_VARS VALGRIND_EXECUTABLE)
-  message(VALGRIND)
 endif(ENABLE_TESTING)
 
 #this has to be the first include directive
