@@ -20,6 +20,7 @@
 #include <H5Cpp.h>
 #include <string>
 #include <cstddef>
+#include <cstring>
 
 namespace votca {
 namespace xtp {

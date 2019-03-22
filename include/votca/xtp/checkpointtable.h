@@ -25,51 +25,79 @@
 #include <votca/xtp/checkpoint_utils.h>
 
 
+#define CPT_MEM_FROM_STRUCT(m, s) HOFFSET(s, m)
+#define CPT_MEMBER(m, s) HOFFSET(s, m)
 
 namespace votca {
 namespace xtp {
     using namespace checkpoint_utils;
 
-struct CptTable{
-CptTable(const std::string& name, std::size_t rowSize, std::size_t nRows)
-:_name(name), _rowStructure(rowSize), _nRows(nRows), _maxStringSize(256){};
+class CptTable{
+public:
+CptTable(): CptTable("empty", 0, 0) {};
+CptTable(const std::string& name, const std::size_t& rowSize, const std::size_t& nRows)
+:_name(name), _rowStructure(rowSize), _nRows(nRows){};
     ~CptTable(){};
+
+CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc):
+    _name(name), _loc(loc), _inited(true), _rowStructure(rowSize){
+
+        _dataset = _loc.openDataSet(_name);
+        _dp = _dataset.getSpace();
+        hsize_t dims[2];
+        _dp.getSimpleExtentDims(dims, NULL);
+        _nRows = dims[0];
+    }
 
     template<typename U>
     typename std::enable_if <std::is_fundamental<U>::value>::type
-    addCol(const U& item, const std::string& name, const size_t& offset){
+        addCol(const U& item, const std::string& name, const size_t& offset){
         _rowStructure.insertMember(name, offset, *InferDataType<U>::get());
     }
 
     void addCol(const std::string& item, const std::string& name,
                 const size_t& offset){
 
-        if (item.size() > _maxStringSize){
-            std::stringstream message;
-            message << "String too long this table." << std::endl
-                    << "Maximum allowed string size is" << _maxStringSize
-                    << std::endl;
-
-            throw std::runtime_error(message.str());
-        }
-
-        /* std::cout << "String is " << item.size() << " characters long." */
-        /*           << std::endl; */
-
         _rowStructure.insertMember(name, offset, *InferDataType<std::string>::get());
+    }
+
+    void addCol(const char* item, const std::string& name,
+                const size_t& offset){
+
+        H5::DataType fixedWidth (H5T_STRING, _maxStringSize);
+
+        _rowStructure.insertMember(name, offset, fixedWidth);
     }
 
     void initialize(const CptLoc& loc){
         // create the dataspace...
+        if (_inited){
+            std::stringstream message;
+
+            message << "Checkpoint tables cannot be reinitialized. " << _name
+                    << " has either already been initialized or already exists."
+                    << std::endl;
+
+            throw std::runtime_error(message.str());
+
+        }
         _dims[0] = _nRows;
         _dims[1] = 1;
         _dp = H5::DataSpace(2, _dims);
+        _loc = loc;
 
-        _dataset = loc.createDataSet(_name.c_str(), _rowStructure,
-                                    _dp);
+        _dataset = _loc.createDataSet(_name.c_str(), _rowStructure,
+                                      _dp);
+        _inited=true;
     }
 
-    void writeToRow(void* buffer, std::size_t idx){
+    void writeToRow(void* buffer, const std::size_t& idx){
+
+        if (!_inited){
+            std::stringstream message;
+            message << "Checkpoint table uninitialized." << std::endl;
+            throw std::runtime_error(message.str());
+        }
 
         hsize_t fStart[2] = {idx, 0};
         hsize_t fCount[2] = {1, 1};
@@ -84,16 +112,44 @@ CptTable(const std::string& name, std::size_t rowSize, std::size_t nRows)
         _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
         mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
         _dataset.write(buffer, _rowStructure, mspace, _dp);
-
     }
 
+    void readFromRow(void* buffer, const std::size_t& idx){
+
+        if (!_inited){
+            std::stringstream message;
+            message << "Checkpoint table uninitialized." << std::endl;
+            throw std::runtime_error(message.str());
+        }
+
+        hsize_t fStart[2] = {idx, 0};
+        hsize_t fCount[2] = {1, 1};
+
+        hsize_t mStart[2] = {0, 0};
+        hsize_t mCount[2] = {1, 1};
+
+        hsize_t mDim[2] = {1, 1};
+
+        H5::DataSpace mspace(2, mDim);
+
+        _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
+        mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
+        _dataset.read(buffer, _rowStructure, mspace, _dp);
+    }
+
+    std::size_t numRows(){return _nRows;}
+
+    static const std::size_t _maxStringSize = 512;
+private:
+    CptLoc _loc;
     H5::CompType _rowStructure;
     std::size_t _nRows;
     hsize_t _dims[2];
     H5::DataSpace _dp;
     H5::DataSet _dataset;
     std::string _name;
-    long int _maxStringSize;
+
+    bool _inited;
 };
 
 } // xtp

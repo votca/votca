@@ -41,6 +41,7 @@ class StaticSite {
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
 
   StaticSite(const CheckpointReader& r) { ReadFromCpt(r); }
+  StaticSite(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx);}
 
   StaticSite(const QMAtom& atom, double charge)
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
@@ -110,6 +111,7 @@ class StaticSite {
   virtual void WriteToCpt(const CheckpointWriter& w) const;
 
   virtual void ReadFromCpt(const CheckpointReader& r);
+  virtual void ReadFromCpt(CptTable& table, const std::size_t& idx);
 
   virtual void setPolarisation(const Eigen::Matrix3d pol) { return; }
 

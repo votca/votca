@@ -60,6 +60,7 @@ class Atom {
   }
 
   Atom(const CheckpointReader &r) { ReadFromCpt(r); }
+  Atom(CptTable table, const std::size_t& idx ) { ReadFromCpt(table, idx); }
 
   int getId() const { return _id; }
   const std::string &getName() const { return _name; }
@@ -100,15 +101,15 @@ class Atom {
   }
 
   void WriteToCpt(CptTable& table, const std::size_t& idx) const{
-      data d[1];
-      d[0].id = _id;
-      d[0].element = _element;
-      d[0].name = _name;
-      d[0].x = _pos[0];
-      d[0].y = _pos[1];
-      d[0].z = _pos[2];
+      data d;
+      d.id = _id;
+      d.element = _element;
+      d.name = _name;
+      d.x = _pos[0];
+      d.y = _pos[1];
+      d.z = _pos[2];
 
-      table.writeToRow(d, idx);
+      table.writeToRow(&d, idx);
   }
 
   void WriteToCpt(const CheckpointWriter &w) const {
@@ -125,6 +126,22 @@ class Atom {
     r(_name, "name");
     r(_pos, "pos");
     r(_resnr, "resnr");
+  }
+
+  void ReadFromCpt(CptTable table, const std::size_t& idx){
+      data d;
+
+      d.element = std::string("something really very long");
+
+      table.readFromRow(&d, idx);
+
+
+      _id      = d.id;
+      _element   = std::string(d.element.c_str());
+      _name    = d.name;
+      _pos[0]  = d.x;
+      _pos[2]  = d.z;
+      _pos[1]  = d.y;
   }
 
  private:

@@ -47,6 +47,10 @@ public:
         ReadFromCpt(r);
     }
 
+    PolarSite(CptTable& table, const std::size_t& idx):StaticSite(table, idx){
+        ReadFromCpt(table, idx);
+    }
+
 
     void setPolarisation(const Eigen::Matrix3d pol){
         _Ps=pol;
@@ -106,6 +110,7 @@ public:
     void WriteToCpt(const CheckpointWriter& w)const;
 
     void ReadFromCpt(const CheckpointReader& r);
+    void ReadFromCpt(CptTable& table, const std::size_t& idx);
 
     std::string identify()const{return "polarsite";}
 

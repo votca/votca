@@ -136,27 +136,27 @@ namespace votca {
 
   void StaticSite::WriteToCpt(CptTable& table, const std::size_t& idx) const{
 
-      data d[1];
+      data d;
 
-      d[0].id = _id;
-      d[0].element = _element;
-      d[0].posX = _pos[0];
-      d[0].posY = _pos[1];
-      d[0].posZ = _pos[2];
+      d.id = _id;
+      d.element = _element;
+      d.posX = _pos[0];
+      d.posY = _pos[1];
+      d.posZ = _pos[2];
 
-      d[0].rank = _rank;
+      d.rank = _rank;
 
-      d[0].multipoleQ00  = _multipole[0];
-      d[0].multipoleQ11c = _multipole[1];
-      d[0].multipoleQ11s = _multipole[2];
-      d[0].multipoleQ10  = _multipole[3];
-      d[0].multipoleQ20  = _multipole[4];
-      d[0].multipoleQ21c = _multipole[5];
-      d[0].multipoleQ21s = _multipole[6];
-      d[0].multipoleQ22c = _multipole[7];
-      d[0].multipoleQ22s = _multipole[8];
+      d.multipoleQ00  = _multipole[0];
+      d.multipoleQ11c = _multipole[1];
+      d.multipoleQ11s = _multipole[2];
+      d.multipoleQ10  = _multipole[3];
+      d.multipoleQ20  = _multipole[4];
+      d.multipoleQ21c = _multipole[5];
+      d.multipoleQ21s = _multipole[6];
+      d.multipoleQ22c = _multipole[7];
+      d.multipoleQ22s = _multipole[8];
 
-      table.writeToRow(d, idx);
+      table.writeToRow(&d, idx);
   }
 
     void StaticSite::WriteToCpt(const CheckpointWriter& w)const{
@@ -183,7 +183,29 @@ namespace votca {
 
    }
 
+  void StaticSite::ReadFromCpt(CptTable& table, const std::size_t& idx){
+      data d;
+      d.element = std::string("something really very long");
+      table.readFromRow(&d, idx);
 
+      _id           = d.id;
+      _element      = std::string(d.element.c_str());
+      _pos[0]       = d.posX;
+      _pos[1]       = d.posY;
+      _pos[2]       = d.posZ;
+
+      _rank         = d.rank;
+
+      _multipole[0] = d.multipoleQ00;
+      _multipole[1] = d.multipoleQ11c;
+      _multipole[2] = d.multipoleQ11s;
+      _multipole[3] = d.multipoleQ10;
+      _multipole[4] = d.multipoleQ20;
+      _multipole[5] = d.multipoleQ21c;
+      _multipole[6] = d.multipoleQ21s;
+      _multipole[7] = d.multipoleQ22c;
+      _multipole[8] = d.multipoleQ22s;
+  }
 
   }
 }

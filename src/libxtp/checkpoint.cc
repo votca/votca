@@ -62,8 +62,7 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
     : _fileName(fN), _accessLevel(access){
 
     try {
-        //H5::Exception::dontPrint();
-
+        H5::Exception::dontPrint();
         switch (_accessLevel){
         case CheckpointAccessLevel::READ:
             _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);

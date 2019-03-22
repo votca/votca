@@ -81,28 +81,24 @@ namespace votca {
   }
 
   void PolarSite::WriteToCpt(CptTable& table, const std::size_t& idx) const{
-      data d[1];
+      data d;
 
-      // d[0].psX        = _Ps[0];
-      // d[0].psY        = _Ps[1];
-      // d[0].psZ        = _Ps[2];
+      d.fieldX     = _localinducedField[0];
+      d.fieldY     = _localinducedField[1];
+      d.fieldZ     = _localinducedField[2];
 
-      d[0].fieldX     = _localinducedField[0];
-      d[0].fieldY     = _localinducedField[1];
-      d[0].fieldZ     = _localinducedField[2];
+      d.dipoleX    = _inducedDipole[0];
+      d.dipoleY    = _inducedDipole[1];
+      d.dipoleZ    = _inducedDipole[2];
 
-      d[0].dipoleX    = _inducedDipole[0];
-      d[0].dipoleY    = _inducedDipole[1];
-      d[0].dipoleZ    = _inducedDipole[2];
+      d.dipoleXOld = _inducedDipole_old[0];
+      d.dipoleYOld = _inducedDipole_old[1];
+      d.dipoleZOld = _inducedDipole_old[2];
 
-      d[0].dipoleXOld = _inducedDipole_old[0];
-      d[0].dipoleYOld = _inducedDipole_old[1];
-      d[0].dipoleZOld = _inducedDipole_old[2];
+      d.eigendamp = _eigendamp;
+      d.phiU = PhiU;
 
-      d[0].eigendamp = _eigendamp;
-      d[0].phiU = PhiU;
-
-      table.writeToRow(d, idx);
+      table.writeToRow(&d, idx);
   }
 
     void PolarSite::WriteToCpt(const CheckpointWriter& w)const{
@@ -123,5 +119,26 @@ namespace votca {
         r(PhiU,"PhiU");
     }
 
+  void PolarSite::ReadFromCpt(CptTable& table, const std::size_t& idx){
+
+      data d;
+      table.readFromRow(&d, idx);
+
+      _localinducedField[0] = d.fieldX;
+      _localinducedField[1] = d.fieldY;
+      _localinducedField[2] = d.fieldZ;
+
+      _inducedDipole[0]     = d.dipoleX;
+      _inducedDipole[1]     = d.dipoleY;
+      _inducedDipole[2]     = d.dipoleZ;
+
+      _inducedDipole_old[0] = d.dipoleXOld;
+      _inducedDipole_old[1] = d.dipoleYOld;
+      _inducedDipole_old[2] = d.dipoleZOld;
+
+      _eigendamp            = d.eigendamp;
+      PhiU                  = d.phiU;
   }
+
+}
 }

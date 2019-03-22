@@ -122,7 +122,7 @@ class CheckpointWriter {
       CptTable table(name, sizeof(T::data), nRows);
 
       Obj.SetupCptTable(table);
-      table.initialize(_loc) ;
+      table.initialize(_loc);
       return table;
   }
 
