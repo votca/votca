@@ -33,7 +33,7 @@ class ClassicalSegment : public AtomContainer<T>
 public:
     ClassicalSegment(std::string name,int id):AtomContainer<T>(name,id){};
     
-    void LoadFromMPS(std::string filename);
+    void LoadFromFile(std::string filename);
 
     void WriteMPS(std::string filename, std::string header) const;
 

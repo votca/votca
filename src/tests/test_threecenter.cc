@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -165,7 +165,7 @@ BOOST_CHECK_EQUAL(check_three1, true);
 
 BOOST_AUTO_TEST_CASE(threecenter_gwbse){
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;

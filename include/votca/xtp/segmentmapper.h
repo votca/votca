@@ -20,32 +20,37 @@
 
 #include <votca/xtp/topology.h>
 #include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/logger.h>
 #include <votca/csg/pdbwriter.h>
+#include <type_traits>
 
 namespace votca
 {
 namespace xtp
 {
-
+template <class AtomContainer, class mapAtom>
 class SegmentMapper
 {
 public:
 
-    SegmentMapper(Logger& log): _log(log){};
+    SegmentMapper(Logger& log): _log(log){
+	FillMap();
+    };
 
     void LoadMappingFile(const std::string& mapfile);
 
-    QMMolecule map(const Segment& seg, QMState state)const;
+    AtomContainer map(const Segment& seg, QMState state)const;
 
 private:
+    typedef std::pair<int,std::string> mapsite_id;
 
     struct FragInfo{
         std::vector<double> _weights;
-        std::vector<QM_atom_id> _qmatom_ids;
+        std::vector<mapsite_id> _mapatom_ids;
         std::vector<MD_atom_id> _mdatom_ids;
-        std::vector<int> _qm_local_frame;
+        std::vector<int> _map_local_frame;
     };
 
     struct Seginfo{
@@ -55,36 +60,92 @@ private:
         bool map2md;
         std::string segname;
         std::vector<double> weights;
-        std::vector< QM_atom_id > qmatoms;
+        std::vector< mapsite_id > mapatoms;
         std::map<std::string,std::string> coordfiles;
     };
 
     int FindVectorIndexFromAtomId(int atomid,
-				const std::vector<QMAtom*>& fragment_qmatoms)const;
+				const std::vector<mapAtom*>& fragment_mapatoms)const;
 
     void ParseFragment(Seginfo& seginfo, const tools::Property& frag);
 
-    template<class T>
-    Eigen::Vector3d CalcWeightedPos(const FragInfo& frag,
-                                    const T& atoms)const;
+    template<typename T>
+    Eigen::Vector3d CalcWeightedPos(const std::vector<double>& weights,
+                                    const T & atoms)const;
 
-    void PlaceQMonMD(const std::vector<QMAtom*>& fragment_qmatoms,
+    void PlaceMapAtomonMD(const std::vector<mapAtom*>& fragment_mapatoms,
                      const std::vector<const Atom*>& fragment_mdatoms)const;
 
-    void MapQMonMD(const FragInfo& frag, const std::vector<QMAtom*>& fragment_qmatoms,
+    void MapMapAtomonMD(const FragInfo& frag, const std::vector<mapAtom*>& fragment_mapatoms,
                    const std::vector<const Atom*>& fragment_mdatoms)const;
 
     Logger &_log;
     std::pair<int, int> CalcResidueRange(const Segment& seg)const;
     std::pair<int, int> CalcResidueRange(const std::vector<MD_atom_id>& seg)const;
 
-    QM_atom_id StringToQMIndex(const std::string& qm_string)const;
+    mapsite_id StringToMapIndex(const std::string& map_string)const;
 
     MD_atom_id StringToMDIndex(const std::string& md_string)const;
 
+
+    int getRank(const mapAtom& atom)const{
+	return atom.getRank();
+    }
+
+    std::string getFrame(const tools::Property & frag)const{
+	if (frag.exists(_mapatom_xml.at("frame")){
+	    return frag.get( _mapatom_xml.at("frame")).as<std::string>();
+	}else{
+	    return frag.get("localframe").as<std::string>();
+	}
+    }
+
+    void FillMap(){
+           _mapatom_xml["tag"]="MP";
+	   _mapatom_xml["name"]="MPole";
+           _mapatom_xml["atoms"]="mpoles";
+           _mapatom_xml["coords"]="multipoles";
+	   _mapatom_xml["weights"]="mp_weights";
+	   _mapatom_xml["frame"]="mp_localframe";
+    }
+    std::map<std::string,std::string> _mapatom_xml;
     std::map<std::string, Seginfo > _segment_info;
 
 };
+
+template <class AtomContainer, class mapAtom>
+template<typename T>
+Eigen::Vector3d SegmentMapper<AtomContainer, mapAtom>::CalcWeightedPos(const
+std::vector<double>& weights,const T& atoms)const{
+    Eigen::Vector3d map_pos=Eigen::Vector3d::Zero();
+    double map_weight=0.0;
+    for(unsigned i=0;i<atoms.size();i++){
+        map_pos+=atoms[i]->getPos()*weights[i];
+        map_weight+=weights[i];
+    }
+    return map_pos=map_pos/map_weight;
+}
+
+template<> 
+void SegmentMapper<QMMolecule,QMAtom>::FillMap(){
+   _mapatom_xml["tag"]="QM";
+   _mapatom_xml["name"]="QMAtom";
+   _mapatom_xml["atoms"]="qmatoms";
+   _mapatom_xml["coords"]="qmcoords";
+   _mapatom_xml["weights"]="qm_weights";
+   _mapatom_xml["frame"]="qm_localframe";
+}
+
+
+template<> 
+int SegmentMapper<QMMolecule,QMAtom>::getRank(const QMAtom& atom)const{
+   return 0;
+}
+
+typedef SegmentMapper<QMMolecule,QMAtom> QMMapper;
+typedef SegmentMapper<StaticSegment,StaticSite> StaticMapper;
+typedef SegmentMapper<PolarSegment,PolarSite> PolarMapper;
+
 
 } // namespace xtp
 } // namespace votca

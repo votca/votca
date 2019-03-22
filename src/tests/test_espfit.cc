@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   orbitals.setDFTbasisName("3-21G.xml");
   orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(5);

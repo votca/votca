@@ -29,7 +29,7 @@ namespace votca { namespace xtp {
 //MPS files have a weird format positions can be in bohr or angstroem,
 //multipoles are in q*bohr^k, with k rank of multipole and polarisabilities are in angstroem^3
 template< class T>
-void ClassicalSegment<T>::LoadFromMPS(std::string filename){
+void ClassicalSegment<T>::LoadFromFile(std::string filename){
 
     std::string line;
     std::ifstream intt;

@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(load_xyz_test) {
   xyzfile.close();
 
   QMMolecule seg("seg1", 1);
-  seg.LoadFromXYZ("molecule.xyz");
+  seg.LoadFromFile("molecule.xyz");
 
   auto extension = seg.CalcSpatialMinMax();
   Eigen::Vector3d max(0.629118, 0.629118, 0.629118);

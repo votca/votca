@@ -78,6 +78,7 @@ class AtomContainer {
     }
     return _pos;
   }
+  
 
   // calculates the lowest and highest point in the cube, sorrounding the
   // molecule

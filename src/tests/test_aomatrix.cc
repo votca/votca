@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -301,7 +301,7 @@ BOOST_CHECK_EQUAL(check_ecp, 1);
 
 BOOST_AUTO_TEST_CASE(externalmatrices_test){
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -318,7 +318,7 @@ mpsfile<<"     100 0 0 0 0"<<endl;
 mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<<endl;
 
 StaticSegment seg("",0);
-seg.LoadFromMPS("polarsite.mps");
+seg.LoadFromFile("polarsite.mps");
 
             
 AODipole_Potential dip;
@@ -504,7 +504,7 @@ xyzfile << " C            .000000     .000000     .000000" << std::endl;
 xyzfile.close();
   
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("C.xyz");
+  orbitals.QMAtoms().LoadFromFile("C.xyz");
   BasisSet basis;
   basis.LoadBasisSet("contracted.xml");
   AOBasis aobasis;
@@ -562,7 +562,7 @@ BOOST_CHECK_EQUAL(check_overlap, 1);
 
 BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
  Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;

@@ -112,7 +112,7 @@ bool MapChecker::EvaluateFrame(Topology &top) {
   log.setPreface(logWARNING, "\n... ...");
   log.setPreface(logDEBUG, "\n... ...");
 
-  SegmentMapper map(log);
+  QMMapper map(log);
  
    for(QMState state:_qmstates){
     map.LoadMappingFile(_mapfile);

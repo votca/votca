@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(readxyztest){
   
   Orbitals orb;
 
-  BOOST_CHECK_THROW( orb.QMAtoms().LoadFromXYZ("molecule.xyz"), std::runtime_error);
+  BOOST_CHECK_THROW( orb.QMAtoms().LoadFromFile("molecule.xyz"), std::runtime_error);
 }
 
 
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   xyzfile.close();
 
 
-  orb.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orb.QMAtoms().LoadFromFile("molecule.xyz");
   QMState s=QMState("n");
   Eigen::MatrixXd dmat_gs=orb.DensityMatrixFull(s);
 
@@ -374,7 +374,7 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");

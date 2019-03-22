@@ -241,7 +241,7 @@ xyzfile << " O            1.000000     .000000     .000000" << std::endl;
 xyzfile.close();
 
 Orbitals orbitals;
-orbitals.QMAtoms().LoadFromXYZ("CO.xyz");
+orbitals.QMAtoms().LoadFromFile("CO.xyz");
 BasisSet basis;
 basis.LoadBasisSet("contracted.xml");
 

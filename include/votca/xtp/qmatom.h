@@ -25,7 +25,6 @@
 
 namespace votca {
 namespace xtp {
-typedef std::pair<int,std::string> QM_atom_id;
 
 /**
  *    \brief container for QM atoms
@@ -67,8 +66,6 @@ class QMAtom {
   int getNuccharge() const { return _nuccharge - _ecpcharge; }
 
   std::string identify() const { return "qmatom"; }
-
-
 
   friend std::ostream &operator<<(std::ostream &out, const QMAtom& atom) {
     out <<atom.getId()<<" "<<atom.getElement();

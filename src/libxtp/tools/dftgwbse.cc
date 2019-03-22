@@ -102,7 +102,7 @@ bool DftGwBse::Evaluate() {
     orbitals.ReadFromCpt(_guess_file);
   } else {
     XTP_LOG(logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
-    orbitals.QMAtoms().LoadFromXYZ(_xyzfile);
+    orbitals.QMAtoms().LoadFromFile(_xyzfile);
   }
 
   std::unique_ptr<QMPackage> qmpackage =
@@ -114,7 +114,7 @@ bool DftGwBse::Evaluate() {
   if (_do_external) {
     StaticRegion region;
     StaticSegment seg = StaticSegment("", 0);
-    seg.LoadFromMPS(_mpsfile);
+    seg.LoadFromFile(_mpsfile);
     region.push_back(seg);
     qmpackage->AddRegion(region);
     qmpackage->setDipoleSpacing(_dipole_spacing);

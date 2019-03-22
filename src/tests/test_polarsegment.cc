@@ -40,7 +40,7 @@ mpsfile<<"10 0 0"<<endl;
 mpsfile<<"     100 0 0 0 0"<<endl;
 mpsfile<<"P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "<<endl;
 
-seg.LoadFromMPS("polarsite.mps");
+seg.LoadFromFile("polarsite.mps");
 Eigen::Vector3d ref_pos=Eigen::Vector3d(0,0,3*votca::tools::conv::ang2bohr);
 
 bool is_equal=seg.getPos().isApprox(ref_pos,0.0001);
