@@ -189,34 +189,34 @@ not take a look at what was done in the votca-tools repo.
    file. And place the following contents
 
 
-      #define BOOST_TEST_MAIN
+        #define BOOST_TEST_MAIN
 
-      #define BOOST_TEST_MODULE vec_test
-      #include <boost/test/unit_test.hpp>
-      #include <exception>
+        #define BOOST_TEST_MODULE vec_test
+        #include <boost/test/unit_test.hpp>
+        #include <exception>
 
-      #include <votca/tools/vec.h>
+        #include <votca/tools/vec.h>
 
-      using namespace std;
-      using namespace votca::tools;
+        using namespace std;
+        using namespace votca::tools;
 
-      BOOST_AUTO_TEST_SUITE(vec_test)
+        BOOST_AUTO_TEST_SUITE(vec_test)
 
 
-      BOOST_AUTO_TEST_CASE(test1){
-        vecv;
-        BOOST_CHECK_EQUAL(...);
-        BOOST_CHECK_EQUAL(...);
+        BOOST_AUTO_TEST_CASE(test1){
+          vecv;
+          BOOST_CHECK_EQUAL(...);
+          BOOST_CHECK_EQUAL(...);
+          :
+        }
+        BOOST_AUTO_TEST_CASE(test2){
+          vecv;
+          BOOST_CHECK_EQUAL(...);
+          BOOST_CHECK_EQUAL(...);
+          :
+        }
         :
-      }
-      BOOST_AUTO_TEST_CASE(test2){
-        vecv;
-        BOOST_CHECK_EQUAL(...);
-        BOOST_CHECK_EQUAL(...);
-        :
-      }
-      :
-      BOOST_AUTO_TEST_SUITE_END()
+        BOOST_AUTO_TEST_SUITE_END()
 
 Replace the '...' and ':' with the appropriate syntax. For more info on which
 boost test macros to use refer to the boost documentation
@@ -225,9 +225,9 @@ boost test macros to use refer to the boost documentation
    following commands:
 
 
-      cmake -DENABLE_TESTING=ON ../
-      make
-      make test
+        cmake -DENABLE_TESTING=ON ../
+        make
+        make test
 
 Ensure you have an up to date version of cmake or use cmake3
 
@@ -253,42 +253,42 @@ Assuming you are in the votca/votca repository:
 1. Here `base_branch` will typically be the master or stable branch.
 
 
-      git checkout <base_branch>
+        git checkout <base_branch>
 
 2. The submodules are updated to be sure they have incorporated the latest
    changes in your local repository
 
 
-      git submodule update
+        git submodule update
 
 3. Create a branch with a descriptive name
 
 
-      git checkout -b <some_descriptive_name>
+        git checkout -b <some_descriptive_name>
 
 4. Update each of the submodules, by pulling in any remote changes to the
    submodules.
 
 
-      git submodule foreach git remote update
+        git submodule foreach git remote update
 
 5. '-C' changes directory to the submodule directory and then checks out the
    appropriate commit
 
 
-      git -C <module1> checkout <sha_or_branch_of_module1_to_test>  
-      git -C <module2> checkout <sha_or_branch_of_module2_to_test>
+        git -C <module1> checkout <sha_or_branch_of_module1_to_test>  
+        git -C <module2> checkout <sha_or_branch_of_module2_to_test>
 
 6. The changes are then added and commited
 
 
-      git add <module1> <module2>  
-      git commit -m "test <module1> with <module2>"
+        git add <module1> <module2>  
+        git commit -m "test <module1> with <module2>"
 
 7. Finally, they are pushed to the remote branch
 
 
-      git push origin <some_descriptive_branch_name>
+        git push origin <some_descriptive_branch_name>
 
 A pull request is then made for the votca/votca repo using the branch name. Once
 the branch passes all tests it can be merged. Pull requests for each of repos
@@ -355,17 +355,17 @@ comments to code:
    used in the header files above each class and function description.
 
 
-      /**
-      * \brief function/class summary
-      *
-      * Detailed function/class description if needed
-      *
-      * @param[in] - description of parameter 1
-      * @param[out] - description of parameter 2
-      * @param[in,out] - description of parameter 3
-      * :
-      * @return - description of return type
-      */
+        /**
+        * \brief function/class summary
+        *
+        * Detailed function/class description if needed
+        *
+        * @param[in] - description of parameter 1
+        * @param[out] - description of parameter 2
+        * @param[in,out] - description of parameter 3
+        * :
+        * @return - description of return type
+        */
 
 The doxygen commenting will help future developers maintain the code, in its
 fully compiled state it may be found at: <http://doc.votca.org>
