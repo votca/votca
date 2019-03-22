@@ -60,9 +60,9 @@ namespace votca {
     }
 
     void StaticSite::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d &refPos) {
-      Translate(-refPos);
-      _pos = R*_pos;
-      Translate(refPos); //Rotated Position
+        Eigen::Vector3d dir=_pos - refPos;
+        dir = R * dir;
+        _pos = refPos + dir;  // Rotated Position
       if (_rank > 0) {
         _multipole.segment<3>(1) = R * _multipole.segment<3>(1);
       }

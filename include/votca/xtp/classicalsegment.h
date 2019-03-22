@@ -40,7 +40,15 @@ public:
     double CalcTotalQ()const;
 
     Eigen::Vector3d CalcDipole()const;
-    
+
+    friend std::ostream &operator<<(std::ostream &out, const ClassicalSegment<T>& container) {
+    out <<container.getId()<<" "<<container.getName()<<"\n";
+    for(const T& atom:container){
+	out<<atom;
+    }
+    out<<std::endl;
+    return out;
+    }
 
 protected:
 

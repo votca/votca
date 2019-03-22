@@ -38,6 +38,18 @@ double Segment::getApproxSize() const {
   return _approxsize;
 }
 
+const Atom* Segment::getAtom(const MD_atom_id& id)const{
+    int resnum=id.first;
+    std::string atomname=id.second;
+    for(const Atom& atom:*this){
+        if(atom.getResnr()==resnum && atom.getName()==atomname){
+            return &atom;
+        }
+    }
+    return nullptr;
+}
+
+
 void Segment::WriteToCpt(CheckpointWriter& w) const {
   AtomContainer<Atom>::WriteToCpt(w);
   w(_molecule_ids, "mol_ids");

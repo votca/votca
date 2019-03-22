@@ -58,6 +58,8 @@ class StaticSite {
   }
 
   void setCharge(double q) { _multipole(0) = q; }
+  
+  void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
   // COORDINATES TRANSFORMATION
   void Translate(const Eigen::VectorXd& shift);
@@ -91,6 +93,12 @@ class StaticSite {
 
   virtual std::string identify() const { return "staticsite"; }
 
+  friend std::ostream &operator<<(std::ostream &out, const StaticSite& site) {
+    out <<site.getId()<<" "<<site.getElement()<<" "<<site.getRank();
+    out <<" "<<site.getPos().x()<<","<<
+        site.getPos().y()<<","<<site.getPos().z()<<"\n";
+    return out;
+  }
  protected:
   virtual std::string writePolarisation() const { return "P 0.0 0.0 0.0"; };
 

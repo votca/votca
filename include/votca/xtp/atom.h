@@ -30,7 +30,7 @@
 
 namespace votca {
 namespace xtp {
-
+typedef std::pair<int,std::string> MD_atom_id;
 /**
     \brief information about an atom
 
@@ -41,26 +41,27 @@ class Atom {
  public:
   Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos)
       : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
-    _element = _name.substr(0, 1);
-    if (_name.size() > 1) {
-      if (std::islower(_name[1])) {
-        _element += _name[1];
-      }
-    }
+    _element=GetElementFromMDName(md_atom_name);
   }
 
-  Atom(int atom_id, std::string atom_name, Eigen::Vector3d pos)
-      : _id(atom_id), _name(atom_name), _pos(pos) {
-    _element = _name.substr(0, 1);
-    if (_name.size() > 1) {
-      if (std::islower(_name[1])) {
-        _element += _name[1];
-      }
+      
+Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1, md_atom_name, atom_id, pos)    {
+      _element=GetElementFromMDName(md_atom_name);
     }
-  }
 
   Atom(const CheckpointReader &r) { ReadFromCpt(r); }
 
+
+  static std::string GetElementFromMDName(const std::string& MDName){
+      std::string element = MDName.substr(0, 1);
+        if (MDName.size() > 1){
+            if (std::islower(MDName[1])){
+                element += MDName[1];
+            }
+        }
+      return element;
+  }
+  
   int getId() const { return _id; }
   const std::string &getName() const { return _name; }
   std::string getElement() const { return _element; }
@@ -71,15 +72,22 @@ class Atom {
   void Translate(const Eigen::Vector3d &shift) { _pos = _pos + shift; }
 
   void Rotate(const Eigen::Matrix3d &R, const Eigen::Vector3d &refPos) {
-    Translate(-refPos);
-    _pos = R * _pos;
-    Translate(refPos);  // Rotated Position
+   Eigen::Vector3d dir=_pos - refPos;
+    dir = R * dir;
+    _pos = refPos + dir;  // Rotated Position
   }
 
   const Eigen::Vector3d &getPos() const { return _pos; }
   void setPos(const Eigen::Vector3d &r) { _pos = r; }
 
   std::string identify() const { return "atom"; }
+
+  friend std::ostream &operator<<(std::ostream &out, const Atom& atom) {
+    out <<atom.getId()<<" "<<atom.getName()<<" "<<atom.getElement()<<" "<<atom.getResnr();
+    out <<" "<<atom.getPos().x()<<","<<
+        atom.getPos().y()<<","<<atom.getPos().z()<<"\n";
+    return out;
+  }
 
   void WriteToCpt(const CheckpointWriter &w) const {
     w(_id, "index");

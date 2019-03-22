@@ -97,6 +97,7 @@
       <itemPath>../../include/votca/xtp/jobtopology.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/logger.h</itemPath>
+      <itemPath>../../include/votca/xtp/mapfragment.h</itemPath>
       <itemPath>../../include/votca/xtp/md2qmengine.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/multiarray.h</itemPath>
@@ -238,6 +239,7 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
+      <itemPath>../../src/libxtp/mapfragment.cc</itemPath>
       <itemPath>../../src/libxtp/md2qmengine.cc</itemPath>
       <itemPath>../../src/libxtp/mmregion.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
@@ -4022,6 +4024,11 @@
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/mapfragment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
             ex="false"
             tool="3"
@@ -4604,6 +4611,8 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/mapfragment.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/md2qmengine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
@@ -5094,6 +5103,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/mapfragment.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
             ex="false"
@@ -5676,6 +5690,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/mapfragment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/md2qmengine.cc" ex="false" tool="1" flavor2="0">
       </item>

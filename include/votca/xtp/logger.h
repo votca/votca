@@ -92,7 +92,7 @@ public:
 private:
   
   // Log Level (WARNING, INFO, etc) 
-  TLogLevel _LogLevel;
+  TLogLevel _LogLevel=TLogLevel::logDEBUG;;
   
   // temporary buffer to store messages
   std::ostringstream _stringStream;
@@ -211,7 +211,7 @@ public:
         
 private:
     // at what level of detail output messages
-    TLogLevel _ReportLevel;
+    TLogLevel _ReportLevel=TLogLevel::logDEBUG;
     
     // if true, only a single processor job is executed
     bool      _maverick;
