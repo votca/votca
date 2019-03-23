@@ -58,7 +58,7 @@ xyzfile << " Al            .000000     .000000     .000000" << std::endl;
 xyzfile.close();
 
 QMMolecule mol=QMMolecule("",0);
-mol.LoadFromXYZ("Al.xyz");
+mol.LoadFromFile("Al.xyz");
 BasisSet basis;
 basis.LoadBasisSet("largeshell.xml");
 AOBasis aobasis;

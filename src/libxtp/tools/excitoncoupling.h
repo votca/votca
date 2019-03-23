@@ -131,8 +131,8 @@ bool ExcitonCoupling::Evaluate() {
         << _orbB << std::flush;
     PolarSegment seg1 = PolarSegment("A", 0);
     PolarSegment seg2 = PolarSegment("B", 1);
-    seg1.LoadFromMPS(_mpsA);
-    seg2.LoadFromMPS(_mpsB);
+    seg1.LoadFromFile(_mpsA);
+    seg2.LoadFromFile(_mpsB);
 
     double J = 0;
 

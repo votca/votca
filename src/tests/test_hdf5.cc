@@ -59,8 +59,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   int rpaMin = '?';
   int rpaMax = 1e3;
 
-  unsigned int bseVmin = -6019386;
-  unsigned int bseCmax = 42;
+  int bseVmin = -6019386;
+  int bseCmax = 42;
 
   double scaHfx = 3.14159;
 

@@ -114,6 +114,13 @@ public:
 
     std::string identify()const{return "polarsite";}
 
+
+    friend std::ostream &operator<<(std::ostream &out, const PolarSite& site) {
+    out <<site.getId()<<" "<<site.getElement()<<" "<<site.getRank();
+    out <<" "<<site.getPos().x()<<","<<
+        site.getPos().y()<<","<<site.getPos().z()<<"\n";
+    return out;
+    }
 private:
 
      virtual std::string writePolarisation()const;

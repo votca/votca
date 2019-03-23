@@ -53,9 +53,9 @@ class QMAtom {
   void Translate(const Eigen::Vector3d& shift) { _pos += shift; }
 
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
-    Translate(-refPos);
-    _pos = R * _pos;
-    Translate(refPos);  // Rotated Position
+    Eigen::Vector3d dir=_pos - refPos;
+    dir = R * dir;
+    _pos = refPos + dir;  // Rotated Position
   }
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
@@ -67,6 +67,13 @@ class QMAtom {
   int getNuccharge() const { return _nuccharge - _ecpcharge; }
 
   std::string identify() const { return "qmatom"; }
+
+  friend std::ostream &operator<<(std::ostream &out, const QMAtom& atom) {
+    out <<atom.getId()<<" "<<atom.getElement();
+    out <<" "<<atom.getPos().x()<<","
+	    <<atom.getPos().y()<<","<<atom.getPos().z()<<" "<<atom.getNuccharge()<<"\n";
+    return out;
+  }
 
  private:
   int _index;

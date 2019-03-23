@@ -51,7 +51,7 @@ xyzfile << " Al            .000000     .000000     .000000" << std::endl;
 xyzfile.close();
 
 Orbitals orbitals;
-orbitals.QMAtoms().LoadFromXYZ("Al.xyz");
+orbitals.QMAtoms().LoadFromFile("Al.xyz");
 BasisSet basis;
 basis.LoadBasisSet("notnormalized.xml");
 AOBasis aobasis;
@@ -149,7 +149,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   basisfile.close();
   
   Orbitals orbitals;
-  orbitals.QMAtoms().LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;

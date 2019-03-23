@@ -38,7 +38,7 @@ void QMMolecule::WriteXYZ(std::string filename, std::string header) const {
   return;
 }
 
-void QMMolecule::LoadFromXYZ(std::string filename) {
+void QMMolecule::LoadFromFile(std::string filename) {
   csg::XYZReader reader;
   reader.Open(filename);
   reader.ReadFile<QMMolecule>(*this);

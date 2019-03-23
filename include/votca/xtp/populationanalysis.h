@@ -55,17 +55,12 @@ namespace votca { namespace xtp {
         }
         return out;
     }
-    
     };
 
 
 template <bool T>
 class Populationanalysis{
 public:
-
-   
-
-
     
     void CalcChargeperAtom(Orbitals& orbitals,const QMState& state)const{
 
@@ -85,7 +80,6 @@ public:
         orbitals.Multipoles()=seg;
         return;
     }
-
     
     void CalcChargeperFragment(std::vector<QMFragment<BSE_Population> >& frags, const Orbitals& orbitals,QMStateType type){
         if(!type.isExciton()){
@@ -113,8 +107,6 @@ public:
                 }
             }
         }
-        
-
 
     private:
 
@@ -144,11 +136,6 @@ public:
             }
             return charges;
         }
-        
-
-        
-        
-
     
 };
 

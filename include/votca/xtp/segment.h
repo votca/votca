@@ -57,6 +57,8 @@ class Segment : public AtomContainer<Atom> {
     _U_xN_xX.setValue(dU, state);
   }
 
+  const Atom* getAtom(const MD_atom_id & id)const;
+
   double getU_xX_nN(QMStateType state) const {return _U_xX_nN.getValue(state); }
 
   double getU_nX_nN(QMStateType state) const {return _U_nX_nN.getValue(state); }
@@ -82,6 +84,15 @@ class Segment : public AtomContainer<Atom> {
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r);
+
+  friend std::ostream &operator<<(std::ostream &out, const Segment& container) {
+    out <<container.getId()<<" "<<container.getName()<<"\n";
+    for(const Atom& atom:container){
+	out<<atom;
+    }
+    out<<std::endl;
+    return out;
+  }
 
  private:
   std::vector<int> _molecule_ids = std::vector<int>(0);

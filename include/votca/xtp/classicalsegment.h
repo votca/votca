@@ -33,14 +33,22 @@ class ClassicalSegment : public AtomContainer<T>
 public:
     ClassicalSegment(std::string name,int id):AtomContainer<T>(name,id){};
     
-    void LoadFromMPS(std::string filename);
+    void LoadFromFile(std::string filename);
 
     void WriteMPS(std::string filename, std::string header) const;
 
     double CalcTotalQ()const;
 
     Eigen::Vector3d CalcDipole()const;
-    
+
+    friend std::ostream &operator<<(std::ostream &out, const ClassicalSegment<T>& container) {
+    out <<container.getId()<<" "<<container.getName()<<"\n";
+    for(const T& atom:container){
+	out<<atom;
+    }
+    out<<std::endl;
+    return out;
+    }
 
 protected:
 
