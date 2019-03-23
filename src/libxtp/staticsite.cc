@@ -1,4 +1,4 @@
-/* 
+/*
  *           Copyright 2009-2018 The VOTCA Development Team
  *                      (http://www.votca.org)
  *
@@ -43,11 +43,11 @@ namespace votca {
         theta(2, 2) = MP(4); // theta_zz
         theta(0, 1) = theta(1, 0) = 0.5 * sqr3 * MP(8); // theta_xy = theta_yx
         theta(0, 2) = theta(2, 0) = 0.5 * sqr3 * MP(5); // theta_xz = theta_zx
-        theta(1, 2) = theta(2, 1) = 0.5 * sqr3 * MP(6); //theta_yz = theta_zy 
+        theta(1, 2) = theta(2, 1) = 0.5 * sqr3 * MP(6); //theta_yz = theta_zy
       }
        return theta;
     }
-    
+
     Eigen::VectorXd StaticSite::CalculateSphericalMultipole(const Eigen::Matrix3d& quad_cart) {
       Eigen::VectorXd quadrupole_polar = Eigen::VectorXd::Zero(5);
       const double sqr3 = std::sqrt(3);
@@ -79,7 +79,7 @@ namespace votca {
       return;
     }
 
-      
+
     std::string StaticSite::WriteMpsLine(string unit) const {
       double conv_pos = 1.;
       if (unit == "angstrom") {
@@ -110,33 +110,79 @@ namespace votca {
       output+=writePolarisation();
       return output;
     }
-    
-    
-    void StaticSite::WriteToCpt(const CheckpointWriter& w)const{
-
-       w(_id, "index");
-       w(_element, "type");
-       w(_pos, "pos");
-       w(_rank, "rank");
-       w(_multipole, "multipoles");
-       w(PhiP,"PhiP");
-       w(_localpermanetField,"localpermanentField");
-      
-   }
-
-   void StaticSite::ReadFromCpt(const CheckpointReader& r){
-
-      r(_id, "index");
-      r(_element, "type");
-      r(_pos, "pos");
-      r(_rank, "rank");
-      r(_multipole, "multipoles");
-      r(_localpermanetField,"localpermanentField");
-      r(PhiP,"PhiP");
-    
-   }
 
 
+  void StaticSite::SetupCptTable(CptTable& table)const {
+      table.addCol(_id, "index", HOFFSET(data, id));
+      table.addCol(_element, "type", HOFFSET(data, element));
+
+      table.addCol(_pos[0], "posX", HOFFSET(data, posX));
+      table.addCol(_pos[1], "posY", HOFFSET(data, posY));
+      table.addCol(_pos[2], "posZ", HOFFSET(data, posZ));
+
+      table.addCol(_rank, "rank", HOFFSET(data, rank));
+
+      table.addCol(_multipole[0], "multipoleQ00",  HOFFSET(data, multipoleQ00));
+      table.addCol(_multipole[1], "multipoleQ11c", HOFFSET(data, multipoleQ11c));
+      table.addCol(_multipole[2], "multipoleQ11s", HOFFSET(data, multipoleQ11s));
+      table.addCol(_multipole[3], "multipoleQ10",  HOFFSET(data, multipoleQ10));
+      table.addCol(_multipole[4], "multipoleQ20",  HOFFSET(data, multipoleQ20));
+      table.addCol(_multipole[5], "multipoleQ21c", HOFFSET(data, multipoleQ21c));
+      table.addCol(_multipole[6], "multipoleQ21s", HOFFSET(data, multipoleQ21s));
+      table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
+      table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
+
+  }
+
+  void StaticSite::WriteToCpt(CptTable& table, const std::size_t& idx) const{
+
+      data d;
+
+      d.id = _id;
+      d.element = const_cast<char*>(_element.c_str());
+      d.posX = _pos[0];
+      d.posY = _pos[1];
+      d.posZ = _pos[2];
+
+      d.rank = _rank;
+
+      d.multipoleQ00  = _multipole[0];
+      d.multipoleQ11c = _multipole[1];
+      d.multipoleQ11s = _multipole[2];
+      d.multipoleQ10  = _multipole[3];
+      d.multipoleQ20  = _multipole[4];
+      d.multipoleQ21c = _multipole[5];
+      d.multipoleQ21s = _multipole[6];
+      d.multipoleQ22c = _multipole[7];
+      d.multipoleQ22s = _multipole[8];
+
+      table.writeToRow(&d, idx);
+  }
+
+
+  void StaticSite::ReadFromCpt(CptTable& table, const std::size_t& idx){
+      data d;
+      table.readFromRow(&d, idx);
+
+      _id           = d.id;
+      _element      = std::string(d.element);
+      free(d.element);
+      _pos[0]       = d.posX;
+      _pos[1]       = d.posY;
+      _pos[2]       = d.posZ;
+
+      _rank         = d.rank;
+
+      _multipole[0] = d.multipoleQ00;
+      _multipole[1] = d.multipoleQ11c;
+      _multipole[2] = d.multipoleQ11s;
+      _multipole[3] = d.multipoleQ10;
+      _multipole[4] = d.multipoleQ20;
+      _multipole[5] = d.multipoleQ21c;
+      _multipole[6] = d.multipoleQ21s;
+      _multipole[7] = d.multipoleQ22c;
+      _multipole[8] = d.multipoleQ22s;
+  }
 
   }
 }

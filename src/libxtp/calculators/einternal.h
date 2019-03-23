@@ -117,10 +117,6 @@ void EInternal::ParseEnergiesXML(tools::Property &opt) {
       std::string segName = segprop->get("name").as<std::string>();
 
       bool has_seg = true;
-      bool has_e = false;
-      bool has_h = false;
-      bool has_s = false;
-      bool has_t = false;
 
       QMStateCarrierStorage<double> U_xX_nN;
       QMStateCarrierStorage<double> U_nX_nN;

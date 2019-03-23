@@ -42,29 +42,25 @@ QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
 
 
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
-  int size = this->size();
-  w(size, "size");
-  for (const QMPair* pair : _pairs) {
-    CheckpointWriter u = w.openChild("pair" + std::to_string(pair->getId()));
-    pair->WriteToCpt(u);
+  int size = this->size();  
+  w(size,"size");
+  CptTable table = w.createTable("pairs", *_pairs[0], size);
+  for (int i=0;i<size;i++) {
+    _pairs[i]->WriteToCpt(table,i);
   }
 }
 
 void QMNBList::ReadFromCpt(CheckpointReader& r,
                            const std::vector<Segment>& segments) {
   Cleanup();
-  int size = 0;
-  r(size, "size");
-  int count = r.getNumDataSets();
-  if (count != size) {
-    throw std::runtime_error(
-        "QMNBList: size of neighborlist and number of saved pairs does not "
-        "agree.");
-  }
-  for (int i = 0; i < size; i++) {
-    CheckpointReader c = r.openChild("pair" + std::to_string(i));
-    this->AddPair(new QMPair(c, segments));
-  }
+  int size=0;
+  r(size,"size");
+  if(size==0){return;}
+  QMPair pair(1,&segments[0],&segments[1],Eigen::Vector3d::Zero());
+  CptTable table = r.openTable("pairs", pair);
+    for (std::size_t i = 0; i < table.numRows(); ++i){
+        this->AddPair(new QMPair(table, i, segments));
+    }
 }
 
 }  // namespace xtp

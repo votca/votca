@@ -39,28 +39,13 @@ typedef std::pair<int,std::string> MD_atom_id;
 */
 class Atom {
  public:
-  Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos)
-      : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
-    _element=GetElementFromMDName(md_atom_name);
-  }
+  Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos);
 
-      
-Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1, md_atom_name, atom_id, pos)    {
-      _element=GetElementFromMDName(md_atom_name);
-    }
+    Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos);
 
-  Atom(const CheckpointReader &r) { ReadFromCpt(r); }
+Atom(CptTable table, const std::size_t& idx ) { ReadFromCpt(table, idx); }
 
-
-  static std::string GetElementFromMDName(const std::string& MDName){
-      std::string element = MDName.substr(0, 1);
-        if (MDName.size() > 1){
-            if (std::islower(MDName[1])){
-                element += MDName[1];
-            }
-        }
-      return element;
-  }
+  static std::string GetElementFromMDName(const std::string& MDName);
   
   int getId() const { return _id; }
   const std::string &getName() const { return _name; }
@@ -71,11 +56,7 @@ Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1, md_at
   void setResnr(int resnr) { _resnr = resnr; }
   void Translate(const Eigen::Vector3d &shift) { _pos = _pos + shift; }
 
-  void Rotate(const Eigen::Matrix3d &R, const Eigen::Vector3d &refPos) {
-   Eigen::Vector3d dir=_pos - refPos;
-    dir = R * dir;
-    _pos = refPos + dir;  // Rotated Position
-  }
+  void Rotate(const Eigen::Matrix3d &R, const Eigen::Vector3d &refPos);
 
   const Eigen::Vector3d &getPos() const { return _pos; }
   void setPos(const Eigen::Vector3d &r) { _pos = r; }
@@ -89,21 +70,20 @@ Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1, md_at
     return out;
   }
 
-  void WriteToCpt(const CheckpointWriter &w) const {
-    w(_id, "index");
-    w(_element, "element");
-    w(_name, "name");
-    w(_pos, "pos");
-    w(_resnr, "resnr");
-  }
+  struct data{
+      int id;
+      char* element;
+      char* name;
+      double x;
+      double y;
+      double z;
+  };
 
-  void ReadFromCpt(const CheckpointReader &r) {
-    r(_id, "index");
-    r(_element, "element");
-    r(_name, "name");
-    r(_pos, "pos");
-    r(_resnr, "resnr");
-  }
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+
+  void ReadFromCpt(CptTable table, const std::size_t& idx);
 
  private:
   int _id = -1;

@@ -24,6 +24,7 @@
 #include <type_traits>
 
 #include <votca/xtp/checkpoint_utils.h>
+#include <votca/xtp/checkpointtable.h>
 
 namespace votca {
     namespace xtp {
@@ -105,6 +106,25 @@ CheckpointReader(const CptLoc& loc, const std::string path):
 
     int getNumDataSets()const{
         return _loc.getNumObjs();
+    }
+
+    CptLoc getLoc(){ return _loc;}
+
+    template<typename T>
+        CptTable openTable(const std::string& name, const T& obj){
+        try{
+            CptTable table = CptTable(name, sizeof(typename T::data), _loc);
+            obj.SetupCptTable(table);
+            return table;
+        } catch (H5::Exception& error){
+            std::stringstream message;
+            message << "Could not open table " << name
+                    << " in " << _loc.getFileName() << ":" << _path
+                    << std::endl;
+            std::cout << error.getDetailMsg();
+            throw std::runtime_error(message.str());
+        }
+
     }
 
 private:

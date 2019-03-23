@@ -12,7 +12,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+nn * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
@@ -39,8 +39,7 @@ class StaticSite {
 
   StaticSite(int id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
-
-  StaticSite(const CheckpointReader& r) { ReadFromCpt(r); }
+  StaticSite(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx);}
 
   StaticSite(const QMAtom& atom, double charge)
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
@@ -85,9 +84,30 @@ class StaticSite {
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
-  virtual void WriteToCpt(const CheckpointWriter& w) const;
+  struct data{
+      int id;
+      char* element;
+      double posX;
+      double posY;
+      double posZ;
 
-  virtual void ReadFromCpt(const CheckpointReader& r);
+      int rank;
+
+      double multipoleQ00;
+      double multipoleQ11c;
+      double multipoleQ11s;
+      double multipoleQ10;
+      double multipoleQ20;
+      double multipoleQ21c;
+      double multipoleQ21s;
+      double multipoleQ22c;
+      double multipoleQ22s;
+  };
+
+  virtual void SetupCptTable(CptTable& table) const;
+
+  virtual void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+  virtual void ReadFromCpt(CptTable& table, const std::size_t& idx);
 
   virtual void setPolarisation(const Eigen::Matrix3d pol) { return; }
 

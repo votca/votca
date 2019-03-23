@@ -35,27 +35,15 @@ class QMAtom {
   friend class AOBasis;
 
  public:
-  QMAtom(int index, std::string element, Eigen::Vector3d pos)
-      : _index(index),
-        _element(element),
-        _pos(pos),
-        _nuccharge(0),
-        _ecpcharge(0) {
-    tools::Elements elements;
-    _nuccharge = elements.getNucCrg(_element);
-  }
+  QMAtom(int index, std::string element, Eigen::Vector3d pos);
 
-  QMAtom(const CheckpointReader& r) { ReadFromCpt(r); }
+  QMAtom(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx); }
 
   const Eigen::Vector3d& getPos() const { return _pos; }
 
   void Translate(const Eigen::Vector3d& shift) { _pos += shift; }
 
-  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
-    Eigen::Vector3d dir=_pos - refPos;
-    dir = R * dir;
-    _pos = refPos + dir;  // Rotated Position
-  }
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
@@ -78,25 +66,25 @@ class QMAtom {
   int _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
-  int _nuccharge;        // nuc charge is set in aobasis fill and ecpfill
-  int _ecpcharge;
-
+  int _nuccharge=0;        // nuc charge is set in aobasis fill and ecpfill
+  int _ecpcharge=0;
  public:
-  void WriteToCpt(const CheckpointWriter& w) const {
-    w(_index, "index");
-    w(_element, "element");
-    w(_pos, "pos");
-    w(_nuccharge, "nuccharge");
-    w(_ecpcharge, "ecpcharge");
-  }
+  struct data{
+      int index;
+      char* element;
+      double x;
+      double y;
+      double z;
+      int nuccharge;
+      int ecpcharge;
+  };
 
-  void ReadFromCpt(const CheckpointReader& r) {
-    r(_index, "index");
-    r(_element, "element");
-    r(_pos, "pos");
-    r(_nuccharge, "nuccharge");
-    r(_ecpcharge, "ecpcharge");
-  }
+  void SetupCptTable(CptTable& table) const;
+
+  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+
+  void ReadFromCpt(CptTable& table, const std::size_t& idx);
+
 };
 }  // namespace xtp
 }  // namespace votca

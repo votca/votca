@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -65,6 +65,7 @@
       <itemPath>../../include/votca/xtp/checkpoint.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpoint_utils.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointreader.h</itemPath>
+      <itemPath>../../include/votca/xtp/checkpointtable.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointwriter.h</itemPath>
       <itemPath>../../include/votca/xtp/classicalsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
@@ -97,7 +98,6 @@
       <itemPath>../../include/votca/xtp/jobtopology.h</itemPath>
       <itemPath>../../include/votca/xtp/kmccalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/logger.h</itemPath>
-      <itemPath>../../include/votca/xtp/mapfragment.h</itemPath>
       <itemPath>../../include/votca/xtp/md2qmengine.h</itemPath>
       <itemPath>../../include/votca/xtp/mmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/multiarray.h</itemPath>
@@ -227,6 +227,7 @@
       <itemPath>../../src/libxtp/ERIs.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
+      <itemPath>../../src/libxtp/atom.cc</itemPath>
       <itemPath>../../src/libxtp/basisset.cc</itemPath>
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
@@ -239,7 +240,6 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
-      <itemPath>../../src/libxtp/mapfragment.cc</itemPath>
       <itemPath>../../src/libxtp/md2qmengine.cc</itemPath>
       <itemPath>../../src/libxtp/mmregion.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
@@ -247,6 +247,7 @@
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
       <itemPath>../../src/libxtp/progressobserver.cc</itemPath>
+      <itemPath>../../src/libxtp/qmatom.cc</itemPath>
       <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
       <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
@@ -3903,6 +3904,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/checkpointtable.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/checkpointwriter.h"
             ex="false"
             tool="3"
@@ -4023,11 +4029,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mapfragment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
             ex="false"
@@ -4426,6 +4427,8 @@
       </item>
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
@@ -4611,8 +4614,6 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/mapfragment.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/md2qmengine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
@@ -4647,6 +4648,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmatom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4983,6 +4986,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/checkpointtable.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/checkpointwriter.h"
             ex="false"
             tool="3"
@@ -5103,11 +5111,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mapfragment.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
             ex="false"
@@ -5506,6 +5509,8 @@
       </item>
       <item path="../../src/libxtp/aoshell.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/atom.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/basisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/bfgs-trm.cc" ex="false" tool="1" flavor2="0">
@@ -5691,8 +5696,6 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/mapfragment.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/md2qmengine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
@@ -5727,6 +5730,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmatom.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmmolecule.cc" ex="false" tool="1" flavor2="0">
       </item>

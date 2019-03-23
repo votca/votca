@@ -26,6 +26,7 @@
 #include <votca/xtp/eigen.h>
 
 #include <votca/xtp/checkpoint_utils.h>
+#include <votca/xtp/checkpointtable.h>
 
 namespace votca {
 namespace xtp {
@@ -114,6 +115,16 @@ class CheckpointWriter {
       }
     }
   }
+
+  template<typename T>
+      CptTable createTable(const std::string& name, T& Obj, std::size_t nRows){
+      CptTable table(name, sizeof(typename T::data), nRows);
+
+      Obj.SetupCptTable(table);
+      table.initialize(_loc);
+      return table;
+  }
+
 
  private:
   const CptLoc _loc;

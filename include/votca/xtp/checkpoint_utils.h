@@ -19,6 +19,8 @@
 
 #include <H5Cpp.h>
 #include <string>
+#include <cstddef>
+#include <cstring>
 
 namespace votca {
 namespace xtp {
@@ -67,6 +69,7 @@ struct InferDataType<std::string> {
 };
 
 H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
+
 
 }  // namespace checkpoint_utils
 }  // namespace xtp

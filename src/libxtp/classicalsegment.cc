@@ -39,7 +39,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename){
     int readinmultipoles=0;
     int numberofmultipoles=0;
     Eigen::VectorXd multipoles;
-    int rank;
+    int rank=0;
 
     if (!intt.is_open() ) {
         throw std::runtime_error("File:"+filename+" could not be opened");
