@@ -33,7 +33,7 @@ namespace xtp {
 
 class QMPair {
  public:
-  enum PairType { Hopping, Excitoncl };
+  enum PairType { Hopping=0, Excitoncl=1 };
 
   static std::string get_name(PairType type) {
     switch (type) {
@@ -59,9 +59,10 @@ class QMPair {
   QMPair(int id, const Segment* seg1, const Segment* seg2,
          const Eigen::Vector3d& delta_R);
 
-  QMPair(CheckpointReader& r, const std::vector<Segment>& segments) {
-    ReadFromCpt(r, segments);
-  }
+ QMPair(CptTable& table, const std::size_t& idx,
+                   const std::vector<Segment>& segments){
+    ReadFromCpt(table,idx, segments);
+ }
 
   int getId() const { return _id; }
   void setId(int id){_id=id;}
@@ -113,7 +114,7 @@ class QMPair {
       double RY;
       double RZ;
 
-      std::string pair_type;
+      char* pair_type;
 
       double lambda0e;
       double lambda0h;
@@ -130,12 +131,7 @@ class QMPair {
   };
 
   void SetupCptTable(CptTable& table) const;
-
-  void WriteToCpt(CheckpointWriter& w) const;
-
   void WriteToCpt(CptTable& table, const std::size_t& idx) const;
-
-  void ReadFromCpt(CheckpointReader& r, const std::vector<Segment>& segments);
   void ReadFromCpt(CptTable& table, const std::size_t& idx,
                    const std::vector<Segment>& segments);
 

@@ -60,12 +60,12 @@ class GNode {
  private:
   int _id = 0;
   bool _occupied = false;
-  bool _injectable = true;
   double _occupationtime = 0.0;
   double _escape_rate = 0.0;
   bool _hasdecay = false;
   double _siteenergy;
   Eigen::Vector3d _position;
+  bool _injectable = true;
   std::vector<GLink> _events;
 
   huffmanTree<GLink> hTree;

@@ -130,15 +130,9 @@ class AtomContainer {
   virtual void WriteToCpt(CheckpointWriter& w) const {
     w(_name, "name");
     w(_id, "id");
+    w(int(_atomlist.size()),"size");
     T element(0, "H", Eigen::Vector3d::Zero());
-    /* CheckpointWriter q=w.openChild("atoms"); */
-    /* for (unsigned i = 0; i < _atomlist.size(); i++) { */
-    /*     CheckpointWriter s = */
-    /*         q.openChild(_atomlist[i].identify() + std::to_string(i)); */
-    /*     _atomlist[i].WriteToCpt(s); */
-    /* } */
-
-    CptTable table = w.createTable(element.identify() + "s", _atomlist[0], _atomlist.size());
+    CptTable table = w.createTable(element.identify() + "s", element, _atomlist.size());
 
     for (unsigned i = 0; i < _atomlist.size(); i++) {
         _atomlist[i].WriteToCpt(table, i);
@@ -149,16 +143,9 @@ class AtomContainer {
   virtual void ReadFromCpt(CheckpointReader& r) {
     r(_name, "name");
     r(_id, "id");
-    /* CheckpointReader rr=r.openChild("atoms"); */
-    /* size_t count = rr.getNumDataSets(); */
-    /* _atomlist.clear(); */
-    /* _atomlist.reserve(count); */
-
-    /* for (size_t i = 0; i < count; ++i) { */
-    /*   CheckpointReader c = rr.openChild(element.identify() + std::to_string(i)); */
-    /*   _atomlist.emplace_back(T(c)); */
-    /* } */
-
+    int size=0;
+    r(size,"size");
+    if(size==0){return;}
     T element(0, "H", Eigen::Vector3d::Zero());  // dummy element to get
                                                  // .identify for type
 

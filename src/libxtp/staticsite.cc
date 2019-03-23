@@ -139,7 +139,7 @@ namespace votca {
       data d;
 
       d.id = _id;
-      d.element = _element;
+      d.element = const_cast<char*>(_element.c_str());
       d.posX = _pos[0];
       d.posY = _pos[1];
       d.posZ = _pos[2];
@@ -159,37 +159,14 @@ namespace votca {
       table.writeToRow(&d, idx);
   }
 
-    void StaticSite::WriteToCpt(const CheckpointWriter& w)const{
-
-       w(_id, "index");
-       w(_element, "type");
-       w(_pos, "pos");
-       w(_rank, "rank");
-       w(_multipole, "multipoles");
-       w(PhiP,"PhiP");
-       w(_localpermanetField,"localpermanentField");
-
-   }
-
-   void StaticSite::ReadFromCpt(const CheckpointReader& r){
-
-      r(_id, "index");
-      r(_element, "type");
-      r(_pos, "pos");
-      r(_rank, "rank");
-      r(_multipole, "multipoles");
-      r(_localpermanetField,"localpermanentField");
-      r(PhiP,"PhiP");
-
-   }
 
   void StaticSite::ReadFromCpt(CptTable& table, const std::size_t& idx){
       data d;
-      d.element = std::string("something really very long");
       table.readFromRow(&d, idx);
 
       _id           = d.id;
-      _element      = std::string(d.element.c_str());
+      _element      = std::string(d.element);
+      free(d.element);
       _pos[0]       = d.posX;
       _pos[1]       = d.posY;
       _pos[2]       = d.posZ;

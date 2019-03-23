@@ -118,8 +118,7 @@ class CheckpointWriter {
 
   template<typename T>
       CptTable createTable(const std::string& name, T& Obj, std::size_t nRows){
-
-      CptTable table(name, sizeof(T::data), nRows);
+      CptTable table(name, sizeof(typename T::data), nRows);
 
       Obj.SetupCptTable(table);
       table.initialize(_loc);

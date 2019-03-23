@@ -37,7 +37,6 @@ public:
 CptTable(): CptTable("empty", 0, 0) {};
 CptTable(const std::string& name, const std::size_t& rowSize, const std::size_t& nRows)
 :_name(name), _rowStructure(rowSize), _nRows(nRows){};
-    ~CptTable(){};
 
 CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc):
     _name(name), _loc(loc), _inited(true), _rowStructure(rowSize){
@@ -141,15 +140,18 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
 
     static const std::size_t _maxStringSize = 512;
 private:
+    
+    std::string _name;
     CptLoc _loc;
+    bool _inited=false;
     H5::CompType _rowStructure;
     std::size_t _nRows;
     hsize_t _dims[2];
     H5::DataSpace _dp;
     H5::DataSet _dataset;
-    std::string _name;
+    
 
-    bool _inited;
+    
 };
 
 } // xtp

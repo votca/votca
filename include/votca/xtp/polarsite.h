@@ -36,16 +36,11 @@ class PolarSite : public StaticSite
 
 public:
 
-
     PolarSite(int id, std::string element, Eigen::Vector3d pos);
 
     PolarSite(int id, std::string element)
                     :PolarSite(id,element,Eigen::Vector3d::Zero()){
                 };
-
-    PolarSite(const CheckpointReader& r):StaticSite(r){
-        ReadFromCpt(r);
-    }
 
     PolarSite(CptTable& table, const std::size_t& idx):StaticSite(table, idx){
         ReadFromCpt(table, idx);
@@ -85,9 +80,31 @@ public:
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
 
     struct data{
-        /* double psX; */
-        /* double psY; */
-        /* double psZ; */
+        
+      int id;
+      char* element;
+      double posX;
+      double posY;
+      double posZ;
+
+      int rank;
+
+      double multipoleQ00;
+      double multipoleQ11c;
+      double multipoleQ11s;
+      double multipoleQ10;
+      double multipoleQ20;
+      double multipoleQ21c;
+      double multipoleQ21s;
+      double multipoleQ22c;
+      double multipoleQ22s;
+        
+        double pxx;
+        double pxy;
+        double pxz;
+        double pyy;
+        double pyz;
+        double pzz;
 
         double fieldX;
         double fieldY;
@@ -107,9 +124,7 @@ public:
 
     void SetupCptTable(CptTable& table) const;
     void WriteToCpt(CptTable& table, const std::size_t& idx) const;
-    void WriteToCpt(const CheckpointWriter& w)const;
 
-    void ReadFromCpt(const CheckpointReader& r);
     void ReadFromCpt(CptTable& table, const std::size_t& idx);
 
     std::string identify()const{return "polarsite";}
@@ -123,7 +138,7 @@ public:
     }
 private:
 
-     virtual std::string writePolarisation()const;
+    std::string writePolarisation()const;
 
     Eigen::Matrix3d _Ps=Eigen::Matrix3d::Zero();;
     Eigen::Vector3d _localinducedField=Eigen::Vector3d::Zero();

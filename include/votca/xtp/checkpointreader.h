@@ -113,7 +113,7 @@ CheckpointReader(const CptLoc& loc, const std::string path):
     template<typename T>
         CptTable openTable(const std::string& name, const T& obj){
         try{
-            CptTable table = CptTable(name, sizeof(T::data), _loc);
+            CptTable table = CptTable(name, sizeof(typename T::data), _loc);
             obj.SetupCptTable(table);
             return table;
         } catch (H5::Exception& error){
