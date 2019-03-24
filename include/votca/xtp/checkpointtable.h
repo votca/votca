@@ -68,7 +68,7 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
         _rowStructure.insertMember(name, offset, fixedWidth);
     }
 
-    void initialize(const CptLoc& loc){
+    void initialize(const CptLoc& loc, bool compact){
         // create the dataspace...
         if (_inited){
             std::stringstream message;
@@ -82,11 +82,18 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
         }
         _dims[0] = _nRows;
         _dims[1] = 1;
+        
         _dp = H5::DataSpace(2, _dims);
         _loc = loc;
-
+        if(compact){
+            _props=H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT);
+            _props.setLayout(H5D_layout_t::H5D_COMPACT);
+        _dataset=_loc.createDataSet(_name.c_str(), _rowStructure,
+                                      _dp,_props);
+    }else{
         _dataset = _loc.createDataSet(_name.c_str(), _rowStructure,
                                       _dp);
+    }
         _inited=true;
     }
 
@@ -149,6 +156,7 @@ private:
     hsize_t _dims[2];
     H5::DataSpace _dp;
     H5::DataSet _dataset;
+    H5::DSetCreatPropList _props;
     
 
     

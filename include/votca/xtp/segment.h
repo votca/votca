@@ -66,13 +66,13 @@ class Segment : public AtomContainer<Atom> {
   double getU_xN_xX(QMStateType state) const {return  _U_xN_xX.getValue(state); }
 
   double getSiteEnergy(QMStateType state) const {
-   return _eMpoles.getValue(state) + _U_xX_nN.getValue(state);
+   return _site_eng.getValue(state) + _U_xX_nN.getValue(state);
   }
 
-  double getEMpoles(QMStateType state) const {return _eMpoles.getValue(state); }
+  double getEMpoles(QMStateType state) const {return _site_eng.getValue(state); }
 
   void setEMpoles(QMStateType state, double energy) {
-    _eMpoles.setValue(energy, state);
+    _site_eng.setValue(energy, state);
   }
 
   void AddMoleculeId(int id) { _molecule_ids.push_back(id); }
@@ -100,7 +100,7 @@ class Segment : public AtomContainer<Atom> {
   QMStateCarrierStorage<double> _U_xX_nN;
   QMStateCarrierStorage<double> _U_nX_nN;
   QMStateCarrierStorage<double> _U_xN_xX;
-  QMStateCarrierStorage<double> _eMpoles;
+  QMStateCarrierStorage<double> _site_eng;
 
   // using caching for approximate size
   mutable double _approxsize = 0.0;

@@ -132,7 +132,8 @@ class AtomContainer {
     w(_id, "id");
     w(int(_atomlist.size()),"size");
     T element(0, "H", Eigen::Vector3d::Zero());
-    CptTable table = w.createTable(element.identify() + "s", element, _atomlist.size());
+    bool compact=true;
+    CptTable table = w.createTable(element.identify() + "s", element, _atomlist.size(),compact);
 
     for (unsigned i = 0; i < _atomlist.size(); i++) {
         _atomlist[i].WriteToCpt(table, i);
