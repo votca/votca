@@ -54,15 +54,13 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   template <class T>
   void ReadFile(T &container) {
     if (!ReadFrame<true, T>(container)) {
-      throw std::runtime_error("Reading xyz file '"+_file+"' failed");
+      throw std::runtime_error("Reading xyz file '" + _file + "' failed");
     }
   }
 
   void Close();
 
  private:
-
-
   template <class T>
   int getContainerSize(T &container) {
     return container.size();
@@ -76,7 +74,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
     // the typedef returns the type of the objects the container holds
     typedef
         typename std::iterator_traits<decltype(container.begin())>::value_type
-                    atom;
+            atom;
     Eigen::Vector3d pos2 = pos * tools::conv::ang2bohr;
     container.push_back(atom(id, name, pos2));
   }
@@ -84,7 +82,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   template <bool topology, class T>
   void AddAtom(Topology &container, std::string name, int id,
                const Eigen::Vector3d &pos) {
-    Bead *          b;
+    Bead *b;
     Eigen::Vector3d posnm = pos * tools::conv::ang2nm;
     if (topology) {
       b = container.CreateBead(1, name + boost::lexical_cast<string>(id), name,
@@ -110,7 +108,7 @@ inline bool XYZReader::ReadFrame(T &container) {
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
-    Tokenizer                tok1(line, " \t");
+    Tokenizer tok1(line, " \t");
     std::vector<std::string> line1;
     tok1.ToVector(line1);
     if (line1.size() != 1) {
@@ -134,7 +132,7 @@ inline bool XYZReader::ReadFrame(T &container) {
         throw std::runtime_error("unexpected end of file in xyz file");
       }
       vector<string> fields;
-      Tokenizer      tok(line, " ");
+      Tokenizer tok(line, " ");
       tok.ToVector(fields);
       if (fields.size() != 4) {
         throw std::runtime_error("invalide line " +

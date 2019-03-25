@@ -23,7 +23,7 @@ using namespace votca::csg;
 
 class CsgDumpApp : public CsgApplication {
   string ProgramName() { return "csg_dump"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Print atoms that are read from topology file to help"
            " debugging atom naming.";
   }

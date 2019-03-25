@@ -64,9 +64,9 @@ class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
   Eigen::Vector3d _r12;
   Eigen::Vector3d _r13;
   Eigen::Vector3d _r23;
-  double          _dist12;
-  double          _dist13;
-  double          _dist23;
+  double _dist12;
+  double _dist13;
+  double _dist23;
 };
 
 }  // namespace csg

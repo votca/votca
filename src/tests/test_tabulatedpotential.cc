@@ -32,12 +32,12 @@ using namespace votca::tools;
 
 Eigen::VectorXd getColumnFromFile(string file_name, int column) {
   vector<double> data;
-  ifstream       file;
+  ifstream file;
   file.open(file_name);
   string line;
   if (file.is_open()) {
     while (getline(file, line)) {
-      string        word;
+      string word;
       istringstream ss(line);
       for (int i = 0; i < column; ++i) {
         ss >> word;
@@ -62,18 +62,18 @@ BOOST_AUTO_TEST_CASE(test_tabulatedpotential_constructor) {
 }
 
 BOOST_AUTO_TEST_CASE(test_register) {
-  TabulatedPotential          tablulatedpotential;
+  TabulatedPotential tablulatedpotential;
   map<string, AnalysisTool *> commands;
   tablulatedpotential.Register(commands);
 }
 
 BOOST_AUTO_TEST_CASE(test_command) {
 
-  Topology         top;
+  Topology top;
   BondedStatistics bonded_statistics;
-  string           interaction_group      = "interaction";
-  string           interaction_group_name = ":interaction";
-  vector<string>   interactions;
+  string interaction_group = "interaction";
+  string interaction_group_name = ":interaction";
+  vector<string> interactions;
   interactions.push_back("file_interactions.txt");
   // Setup BondedStatistics Object
   {
@@ -87,21 +87,21 @@ BOOST_AUTO_TEST_CASE(test_command) {
     string bead_type_name = "H2";
     top.RegisterBeadType(bead_type_name);
 
-    double mass   = 0.9;
+    double mass = 0.9;
     double charge = 0.0;
 
     // Create a bunch of H2 molecules, each bead is considered a molecule they
     // are placed on a regular grid so the table properties can be compared
     // consistently
 
-    int number_of_H2   = 0;
+    int number_of_H2 = 0;
     int residue_number = 0;
     for (double x = 2.0; x < (box(0, 0) - 2.0); x += 4.0) {
       for (double y = 2.0; y < (box(1, 1) - 2.0); y += 3.0) {
         for (double z = 2.0; z < (box(2, 2) - 2.0); z += 4.0) {
           residue_number++;
 
-          string          bead_name = to_string(number_of_H2) + "_H2";
+          string bead_name = to_string(number_of_H2) + "_H2";
           Eigen::Vector3d bead_pos(x, y, z);
           auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                          residue_number, mass, charge);
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
   cout << "bonded_values after pulling out of statistics "
        << bonded_values.size() << endl;
 
-  TabulatedPotential          tabulatedpotential;
+  TabulatedPotential tabulatedpotential;
   map<string, AnalysisTool *> commands;
   tabulatedpotential.Register(commands);
 
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     arguments.push_back("5");
 
     vector<string> arguments2{"set", "smooth_pdf", "2"};
-    string         command = "tab";
+    string command = "tab";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
@@ -210,7 +210,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     vector<string> arguments2{"set", "smooth_pdf", "2"};
     vector<string> arguments3{"set", "smooth_pot", "1"};
-    string         command = "tab";
+    string command = "tab";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, arguments3);
@@ -243,7 +243,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     arguments.push_back("5");
 
     vector<string> arguments2{"set", "periodic", "1"};
-    string         command = "hist";
+    string command = "hist";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
@@ -272,7 +272,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     vector<string> arguments2{"set", "periodic", "1"};
     vector<string> arguments3{"set", "normalize", "0"};
-    string         command = "hist";
+    string command = "hist";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, arguments3);
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     vector<string> arguments2{"set", "periodic", "1"};
     vector<string> arguments3{"set", "extend", "0"};
     vector<string> arguments4{"set", "auto", "0"};
-    string         command = "hist";
+    string command = "hist";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, arguments3);
@@ -332,7 +332,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     arguments.push_back("5");
 
     vector<string> arguments2{"set", "scale", "bond"};
-    string         command = "hist";
+    string command = "hist";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);
@@ -360,7 +360,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
     arguments.push_back("5");
 
     vector<string> arguments2{"set", "scale", "angle"};
-    string         command = "hist";
+    string command = "hist";
     tabulatedpotential.Command(bonded_statistics, command, arguments);
     tabulatedpotential.Command(bonded_statistics, command, arguments2);
     tabulatedpotential.Command(bonded_statistics, command, interactions);

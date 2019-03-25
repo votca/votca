@@ -322,10 +322,10 @@ class Bead : public BaseBead {
     setMass(m);
     bead_position_set_ = false;
     bead_velocity_set_ = false;
-    bU_                = false;
-    bV_                = false;
-    bW_                = false;
-    bead_force_set_    = false;
+    bU_ = false;
+    bV_ = false;
+    bW_ = false;
+    bead_force_set_ = false;
   }
 
   // void *_userdata;
@@ -336,7 +336,7 @@ class Bead : public BaseBead {
 
 inline void Bead::setVel(const Eigen::Vector3d &r) {
   bead_velocity_set_ = true;
-  velocity_          = r;
+  velocity_ = r;
 }
 
 inline const Eigen::Vector3d &Bead::getVel() const {
@@ -347,7 +347,7 @@ inline const Eigen::Vector3d &Bead::getVel() const {
 
 inline void Bead::setU(const Eigen::Vector3d &u) {
   bU_ = true;
-  u_  = u;
+  u_ = u;
 }
 
 inline const Eigen::Vector3d &Bead::getU() const {
@@ -357,7 +357,7 @@ inline const Eigen::Vector3d &Bead::getU() const {
 
 inline void Bead::setV(const Eigen::Vector3d &v) {
   bV_ = true;
-  v_  = v;
+  v_ = v;
 }
 
 inline const Eigen::Vector3d &Bead::getV() const {
@@ -367,7 +367,7 @@ inline const Eigen::Vector3d &Bead::getV() const {
 
 inline void Bead::setW(const Eigen::Vector3d &w) {
   bW_ = true;
-  w_  = w;
+  w_ = w;
 }
 
 inline const Eigen::Vector3d &Bead::getW() const {
@@ -377,7 +377,7 @@ inline const Eigen::Vector3d &Bead::getW() const {
 
 inline void Bead::setF(const Eigen::Vector3d &bead_force) {
   bead_force_set_ = true;
-  bead_force_     = bead_force;
+  bead_force_ = bead_force;
 }
 
 inline const Eigen::Vector3d &Bead::getF() const {

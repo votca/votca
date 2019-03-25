@@ -131,7 +131,7 @@ class NBList : public PairList<Bead *, BeadPair> {
     }
 
    private:
-    T *   _cls;
+    T *_cls;
     fkt_t _fkt;
   };
 

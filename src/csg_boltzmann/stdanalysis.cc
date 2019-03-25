@@ -28,9 +28,9 @@ namespace votca {
 namespace csg {
 
 void StdAnalysis::Register(map<string, AnalysisTool *> &lib) {
-  lib["list"]    = this;
-  lib["vals"]    = this;
-  lib["cor"]     = this;
+  lib["list"] = this;
+  lib["vals"] = this;
+  lib["cor"] = this;
   lib["autocor"] = this;
 }
 
@@ -96,8 +96,8 @@ void StdAnalysis::WriteValues(BondedStatistics &bs, vector<string> &args) {
 }
 
 void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs,
-                                       vector<string> &  args) {
-  ofstream                           out;
+                                       vector<string> &args) {
+  ofstream out;
   DataCollection<double>::selection *sel = NULL;
 
   for (size_t i = 1; i < args.size(); i++)
@@ -114,8 +114,8 @@ void StdAnalysis::WriteAutocorrelation(BondedStatistics &bs,
 }
 
 void StdAnalysis::WriteCorrelations(BondedStatistics &bs,
-                                    vector<string> &  args) {
-  ofstream                           out;
+                                    vector<string> &args) {
+  ofstream out;
   DataCollection<double>::selection *sel = NULL;
 
   for (size_t i = 1; i < args.size(); i++)

@@ -40,7 +40,7 @@ class StdAnalysis : public AnalysisTool {
 
   void WriteValues(BondedStatistics &bs, std::vector<std::string> &args);
   void WriteCorrelations(BondedStatistics &bs, std::vector<std::string> &args);
-  void WriteAutocorrelation(BondedStatistics &        bs,
+  void WriteAutocorrelation(BondedStatistics &bs,
                             std::vector<std::string> &args);
 };
 

@@ -51,7 +51,7 @@ CGMoleculeDef::~CGMoleculeDef() {
 void CGMoleculeDef::Load(string filename) {
   load_property_from_xml(_options, filename);
   // parse xml tree
-  _name  = _options.get("cg_molecule.name").as<string>();
+  _name = _options.get("cg_molecule.name").as<string>();
   _ident = _options.get("cg_molecule.ident").as<string>();
 
   ParseTopology(_options.get("cg_molecule.topology"));
@@ -67,10 +67,10 @@ void CGMoleculeDef::ParseBeads(Property &options) {
 
   for (Property *p : options.Select("cg_bead")) {
     beaddef_t *beaddef = new beaddef_t;
-    beaddef->_options  = p;
+    beaddef->_options = p;
 
-    beaddef->_name    = p->get("name").as<string>();
-    beaddef->_type    = p->get("type").as<string>();
+    beaddef->_name = p->get("name").as<string>();
+    beaddef->_type = p->get("type").as<string>();
     beaddef->_mapping = p->get("mapping").as<string>();
     if (p->exists("symmetry"))
       beaddef->_symmetry = p->get("symmetry").as<int>();
@@ -97,7 +97,7 @@ void CGMoleculeDef::ParseMapping(Property &options) {
 }
 Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   // add the residue names
-  Residue * res   = top.CreateResidue(_name);
+  Residue *res = top.CreateResidue(_name);
   Molecule *minfo = top.CreateMolecule(_name);
 
   // create the atoms
@@ -119,7 +119,7 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
 
   for (Property *prop : _bonded) {
     list<int> atoms;
-    string    iagroup = prop->get("name").as<string>();
+    string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes")
       throw runtime_error(

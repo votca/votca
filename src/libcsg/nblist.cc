@@ -55,7 +55,7 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
       Eigen::Vector3d v = (*iter2)->getPos();
 
       Eigen::Vector3d r = top->BCShortestConnection(u, v);
-      double          d = r.norm();
+      double d = r.norm();
       if (d < _cutoff) {
         if (_do_exclusions)
           if (top->getExclusions().IsExcluded(*iter1, *iter2)) {

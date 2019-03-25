@@ -29,7 +29,7 @@ using namespace votca::csg;
 class CsgMapApp : public CsgApplication {
  public:
   string ProgramName() { return "csg_map"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Convert a reference atomistic trajectory or configuration into a "
            "coarse-grained one \n"
         << "based on a mapping xml-file. The mapping can be applied to either "
@@ -80,7 +80,7 @@ class CsgMapApp : public CsgApplication {
       // we want to combine atomistic and coarse-grained into one topology
       Topology *hybtol = new Topology();
 
-      ResidueContainer::iterator  it_res;
+      ResidueContainer::iterator it_res;
       MoleculeContainer::iterator it_mol;
 
       hybtol->setBox(top->getBox());
@@ -129,7 +129,7 @@ class CsgMapApp : public CsgApplication {
             // todo: this is a bit dirty as a cg bead will always have the resid
             // of its first parent
             Bead *bparent = (*it_mol)->getBead(0);
-            Bead *bn      = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
+            Bead *bn = hybtol->CreateBead(bi->getSymmetry(), bi->getName(),
                                           bi->getType(), bparent->getResnr(),
                                           bi->getMass(), bi->getQ());
             bn->setPos(bi->getPos());
@@ -151,9 +151,9 @@ class CsgMapApp : public CsgApplication {
 
  protected:
   TrajectoryWriter *_writer;
-  bool              _do_hybrid;
-  bool              _do_vel;
-  bool              _do_force;
+  bool _do_hybrid;
+  bool _do_vel;
+  bool _do_force;
 };
 
 void CsgMapApp::BeginEvaluate(Topology *top, Topology *top_atom) {

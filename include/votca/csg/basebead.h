@@ -22,9 +22,9 @@
 #include <memory>
 #include <votca/csg/moleculeitem.h>
 #include <votca/csg/topologyitem.h>
+#include <votca/tools/eigen.h>
 #include <votca/tools/identity.h>
 #include <votca/tools/name.h>
-#include <votca/tools/eigen.h>
 namespace TOOLS = votca::tools;
 
 namespace votca {
@@ -128,10 +128,10 @@ class BaseBead {
   MoleculeItem molecule_item_;
 
   TOOLS::Identity<int> id_;
-  TOOLS::Name          name_;
-  TOOLS::Name          type_;
+  TOOLS::Name name_;
+  TOOLS::Name type_;
 
-  double          mass_;
+  double mass_;
   Eigen::Vector3d bead_position_;
 
   bool bead_position_set_;
@@ -139,7 +139,7 @@ class BaseBead {
 
 inline void BaseBead::setPos(const Eigen::Vector3d &bead_position) {
   bead_position_set_ = true;
-  bead_position_     = bead_position;
+  bead_position_ = bead_position;
 }
 
 inline const Eigen::Vector3d &BaseBead::getPos() const {

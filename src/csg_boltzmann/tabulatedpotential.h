@@ -137,7 +137,7 @@ class TabulatedPotential : public AnalysisTool {
   std::pair<int, int> getSmoothIterations() const;
 
  private:
-  bool SetOption_(TOOLS::Histogram::options_t &   op,
+  bool SetOption_(TOOLS::Histogram::options_t &op,
                   const std::vector<std::string> &args);
 
   bool SetOption_(const std::vector<std::string> &args);

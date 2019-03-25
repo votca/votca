@@ -62,8 +62,8 @@ class PotentialFunctionCBSPL : public PotentialFunction {
   // zero potential and force values near cut-off
   int _ncutcoeff;
 
-  int             _nbreak;
-  double          _dr;
+  int _nbreak;
+  double _dr;
   Eigen::VectorXd _rbreak;
 
   Eigen::MatrixXd _M;

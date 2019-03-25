@@ -56,7 +56,7 @@ class BeadList {
 
  private:
   std::vector<Bead *> _beads;
-  Topology *          _topology;
+  Topology *_topology;
 };
 
 }  // namespace csg

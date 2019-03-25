@@ -27,7 +27,7 @@ using boost::format;
 class GmxTopolApp : public CsgApplication {
  public:
   string ProgramName() { return "csg_gmxtopol"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Create skeleton for gromacs topology based on atomistic topology\n"
            "and a mapping file. File still needs to be modified by the user.";
   }
@@ -80,7 +80,7 @@ void GmxTopolApp::WriteAtoms(ostream &out, Molecule &cg) {
 void GmxTopolApp::WriteInteractions(ostream &out, Molecule &cg) {
   int nb = -1;
 
-  Interaction *                   ic;
+  Interaction *ic;
   vector<Interaction *>::iterator iter;
 
   InteractionContainer &ics = cg.getParent()->BondedInteractions();

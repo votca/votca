@@ -74,10 +74,10 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     chunk_rows[0] = 1;
     chunk_rows[1] = N_particles_;
     chunk_rows[2] = vec_components_;
-    hid_t dsp     = H5Dget_space(ds);
+    hid_t dsp = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
-    hid_t  mspace1  = H5Screate_simple(vec_components_, chunk_rows, NULL);
-    T1 *   data_out = new T1[N_particles_ * vec_components_];
+    hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
+    T1 *data_out = new T1[N_particles_ * vec_components_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
@@ -96,10 +96,10 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     hsize_t ch_rows[2];
     ch_rows[0] = 1;
     ch_rows[1] = N_particles_;
-    hid_t dsp  = H5Dget_space(ds);
+    hid_t dsp = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
-    hid_t  mspace1  = H5Screate_simple(2, ch_rows, NULL);
-    T1 *   data_out = new T1[N_particles_];
+    hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
+    T1 *data_out = new T1[N_particles_];
     herr_t status =
         H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
@@ -128,7 +128,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
-    herr_t     status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
+    herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
     if (status < 0) return false;
     return info.type == H5G_GROUP;
   }
@@ -150,7 +150,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   int rank_;
 
   std::string fname_;
-  bool        first_frame_;
+  bool first_frame_;
 
   // Flags about datasets.
   DatasetState has_velocity_;

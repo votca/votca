@@ -42,9 +42,9 @@ namespace csg {
 class Interaction;
 class ExclusionList;
 
-typedef std::vector<Molecule *>    MoleculeContainer;
-typedef std::vector<Bead *>        BeadContainer;
-typedef std::vector<Residue *>     ResidueContainer;
+typedef std::vector<Molecule *> MoleculeContainer;
+typedef std::vector<Bead *> BeadContainer;
+typedef std::vector<Residue *> ResidueContainer;
 typedef std::vector<Interaction *> InteractionContainer;
 
 /**
@@ -57,9 +57,7 @@ typedef std::vector<Interaction *> InteractionContainer;
 class Topology {
  public:
   /// constructor
-  Topology(){
-    _bc = new OpenBox();
-  }
+  Topology() { _bc = new OpenBox(); }
   virtual ~Topology();
 
   /**
@@ -172,7 +170,7 @@ class Topology {
    * access  containter with all molecules
    * @return molecule container
    */
-  MoleculeContainer &      Molecules() { return _molecules; }
+  MoleculeContainer &Molecules() { return _molecules; }
   const MoleculeContainer &Molecules() const { return _molecules; }
 
   /**
@@ -181,7 +179,7 @@ class Topology {
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
 
-  void                     AddBondedInteraction(Interaction *ic);
+  void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
 
   /**
@@ -214,8 +212,8 @@ class Topology {
    * @param[in] int i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *    getBead(const int i) const { return _beads[i]; }
-  Residue * getResidue(const int i) const { return _residues[i]; }
+  Bead *getBead(const int i) const { return _beads[i]; }
+  Residue *getResidue(const int i) const { return _residues[i]; }
   Molecule *getMolecule(const int i) const { return _molecules[i]; }
 
   /**
@@ -417,10 +415,10 @@ class Topology {
 
   std::map<std::string, std::list<Interaction *> > _interactions_by_group;
 
-  double _time=0.0;
-  int    _step=0;
-  bool   _has_vel=false;
-  bool   _has_force=false;
+  double _time = 0.0;
+  int _step = 0;
+  bool _has_vel = false;
+  bool _has_force = false;
 
   /// The particle group (For H5MD file format)
   std::string _particle_group;

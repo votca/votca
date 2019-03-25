@@ -31,15 +31,15 @@ void GROWriter::Open(string file, bool bAppend) {
 void GROWriter::Close() { fclose(_out); }
 
 void GROWriter::Write(Topology *conf) {
-  char      format[100];
-  int       i, resnr, l, vpr;
+  char format[100];
+  int i, resnr, l, vpr;
   Topology *top = conf;
 
   fprintf(_out, "%s\n", "what a nice title");
   fprintf(_out, "%5d\n", top->BeadCount());
 
-  bool v  = top->HasVel();
-  int  pr = 3;  // precision of writeout, given by the spec
+  bool v = top->HasVel();
+  int pr = 3;  // precision of writeout, given by the spec
 
   /* build format string for printing,
      something like "%8.3f" for x and "%8.4f" for v */
@@ -47,7 +47,7 @@ void GROWriter::Write(Topology *conf) {
     pr=0;
   if (pr>30)
     pr=30;*/
-  l   = pr + 5;
+  l = pr + 5;
   vpr = pr + 1;
   if (v)
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n", l, pr,
@@ -56,8 +56,8 @@ void GROWriter::Write(Topology *conf) {
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
 
   for (i = 0; i < top->BeadCount(); i++) {
-    resnr           = top->getBead(i)->getResnr();
-    string resname  = top->getResidue(resnr)->getName();
+    resnr = top->getBead(i)->getResnr();
+    string resname = top->getResidue(resnr)->getName();
     string atomname = top->getBead(i)->getName();
 
     fprintf(_out, "%5d%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),

@@ -63,9 +63,9 @@ class DLPOLYTrajectoryReader : public TrajectoryReader {
 
  private:
   std::ifstream _fl;
-  std::string   _fname;
-  bool          _first_frame;
-  bool          _isConfig;
+  std::string _fname;
+  bool _first_frame;
+  bool _isConfig;
 };
 
 }  // namespace csg

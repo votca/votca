@@ -42,7 +42,7 @@ class NematicOrder {
   }
 
  private:
-  Eigen::Matrix3d                                _mu, _mv, _mw;
+  Eigen::Matrix3d _mu, _mv, _mw;
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> _nemat_u, _nemat_v, _nemat_w;
 };
 

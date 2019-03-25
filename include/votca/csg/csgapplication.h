@@ -111,9 +111,9 @@ class CsgApplication : public Application {
 
    protected:
     CsgApplication *_app;
-    Topology        _top, _top_cg;
-    TopologyMap *   _map;
-    int             _id;
+    Topology _top, _top_cg;
+    TopologyMap *_map;
+    int _id;
 
     void Run(void);
 
@@ -148,19 +148,19 @@ class CsgApplication : public Application {
 
  protected:
   std::list<CGObserver *> _observers;
-  bool                    _do_mapping;
-  std::vector<Worker *>   _myWorkers;
-  int                     _nframes;
-  bool                    _is_first_frame;
-  int                     _nthreads;
-  Mutex                   _nframesMutex;
-  Mutex                   _traj_readerMutex;
+  bool _do_mapping;
+  std::vector<Worker *> _myWorkers;
+  int _nframes;
+  bool _is_first_frame;
+  int _nthreads;
+  Mutex _nframesMutex;
+  Mutex _traj_readerMutex;
 
   /// \brief stores Mutexes used to impose order for input
   std::vector<Mutex *> _threadsMutexesIn;
   /// \brief stores Mutexes used to impose order for output
   std::vector<Mutex *> _threadsMutexesOut;
-  TrajectoryReader *   _traj_reader;
+  TrajectoryReader *_traj_reader;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer) {

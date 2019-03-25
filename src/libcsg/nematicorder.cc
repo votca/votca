@@ -23,10 +23,10 @@ namespace csg {
 using namespace std;
 
 void NematicOrder::Process(Topology &top, const string &filter) {
-  _mu    = Eigen::Matrix3d::Zero();
-  _mv    = Eigen::Matrix3d::Zero();
-  _mw    = Eigen::Matrix3d::Zero();
-  int  N = 0;
+  _mu = Eigen::Matrix3d::Zero();
+  _mv = Eigen::Matrix3d::Zero();
+  _mw = Eigen::Matrix3d::Zero();
+  int N = 0;
   bool bU, bV, bW;
   bU = bV = bW = false;
 
@@ -60,9 +60,9 @@ void NematicOrder::Process(Topology &top, const string &filter) {
   }
 
   double f = 1. / (double)N * 3. / 2.;
-  _mu      = f * _mu;
-  _mv      = f * _mv;
-  _mw      = f * _mw;
+  _mu = f * _mu;
+  _mv = f * _mv;
+  _mw = f * _mw;
 
   if (bU) _nemat_u.computeDirect(_mu);
   if (bV) _nemat_v.computeDirect(_mv);

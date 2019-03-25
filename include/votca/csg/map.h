@@ -40,7 +40,7 @@ class Map {
   void Apply();
 
  protected:
-  Molecule               _in, _out;
+  Molecule _in, _out;
   std::vector<BeadMap *> _maps;
 };
 
@@ -55,8 +55,8 @@ class BeadMap {
                           tools::Property *opts_bead);
 
  protected:
-  Molecule *       _in;
-  Bead *           _out;
+  Molecule *_in;
+  Bead *_out;
   tools::Property *_opts_map;
   tools::Property *_opts_bead;
 };
@@ -64,9 +64,9 @@ class BeadMap {
 inline void BeadMap::Initialize(Molecule *in, Bead *out,
                                 tools::Property *opts_bead,
                                 tools::Property *opts_map) {
-  _in        = in;
-  _out       = out;
-  _opts_map  = opts_map;
+  _in = in;
+  _out = out;
+  _opts_map = opts_map;
   _opts_bead = opts_bead;
 }
 
@@ -85,7 +85,7 @@ class Map_Sphere : public BeadMap {
   void AddElem(Bead *in, double weight, double force_weight);
 
   struct element_t {
-    Bead * _in;
+    Bead *_in;
     double _weight;
     double _force_weight;
   };
@@ -94,8 +94,8 @@ class Map_Sphere : public BeadMap {
 
 inline void Map_Sphere::AddElem(Bead *in, double weight, double force_weight) {
   element_t el;
-  el._in           = in;
-  el._weight       = weight;
+  el._in = in;
+  el._weight = weight;
   el._force_weight = force_weight;
   _matrix.push_back(el);
 }

@@ -31,7 +31,7 @@ void LAMMPSDumpWriter::Open(std::string file, bool bAppend) {
 void LAMMPSDumpWriter::Close() { fclose(_out); }
 
 void LAMMPSDumpWriter::Write(Topology *conf) {
-  Topology *      top = conf;
+  Topology *top = conf;
   Eigen::Matrix3d box = conf->getBox();
   fprintf(_out, "ITEM: TIMESTEP\n%i\n", top->getStep());
   fprintf(_out, "ITEM: NUMBER OF ATOMS\n%i\n", (int)top->Beads().size());

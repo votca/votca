@@ -47,11 +47,11 @@ class ExclusionList {
   void ExcludeList(iteratable &l);
 
   struct exclusion_t {
-    Bead *            _atom;
+    Bead *_atom;
     std::list<Bead *> _exclude;
   };
 
-  void         CreateExclusions(Topology *top);
+  void CreateExclusions(Topology *top);
   exclusion_t *GetExclusions(Bead *bead);
 
   typedef std::list<exclusion_t *>::iterator iterator;
@@ -69,7 +69,7 @@ class ExclusionList {
   void RemoveExclusion(Bead *bead1, Bead *bead2);
 
  private:
-  std::list<exclusion_t *>        _exclusions;
+  std::list<exclusion_t *> _exclusions;
   std::map<Bead *, exclusion_t *> _excl_by_bead;
 
   friend std::ostream &operator<<(std::ostream &out, ExclusionList &exl);
@@ -114,7 +114,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l) {
     if (IsExcluded(bead1, bead2)) continue;
     exclusion_t *e;
     if ((e = GetExclusions(bead1)) == NULL) {
-      e        = new exclusion_t;
+      e = new exclusion_t;
       e->_atom = bead1;
       _exclusions.push_back(e);
       _excl_by_bead[bead1] = e;
@@ -131,7 +131,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
 
   exclusion_t *e;
   if ((e = GetExclusions(bead1)) == NULL) {
-    e        = new exclusion_t;
+    e = new exclusion_t;
     e->_atom = bead1;
     _exclusions.push_back(e);
     _excl_by_bead[bead1] = e;
