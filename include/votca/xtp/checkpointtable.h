@@ -34,9 +34,10 @@ namespace xtp {
 
 class CptTable{
 public:
-CptTable(): CptTable("empty", 0, 0) {};
+CptTable() {};
 CptTable(const std::string& name, const std::size_t& rowSize, const std::size_t& nRows)
-:_name(name), _rowStructure(rowSize), _nRows(nRows){};
+    :_name(name), _rowStructure(rowSize), _nRows(nRows),
+     _props(H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT)) {};
 
 CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc):
     _name(name), _loc(loc), _inited(true), _rowStructure(rowSize){
@@ -82,18 +83,16 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
         }
         _dims[0] = _nRows;
         _dims[1] = 1;
-        
+
         _dp = H5::DataSpace(2, _dims);
         _loc = loc;
-        if(compact){
-            _props=H5::DSetCreatPropList(H5::DSetCreatPropList::DEFAULT);
+
+        if (compact){
             _props.setLayout(H5D_layout_t::H5D_COMPACT);
+        }
+
         _dataset=_loc.createDataSet(_name.c_str(), _rowStructure,
-                                      _dp,_props);
-    }else{
-        _dataset = _loc.createDataSet(_name.c_str(), _rowStructure,
-                                      _dp);
-    }
+                                    _dp,_props);
         _inited=true;
     }
 
@@ -147,7 +146,6 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
 
     static const std::size_t _maxStringSize = 512;
 private:
-    
     std::string _name;
     CptLoc _loc;
     bool _inited=false;
@@ -157,9 +155,7 @@ private:
     H5::DataSpace _dp;
     H5::DataSet _dataset;
     H5::DSetCreatPropList _props;
-    
 
-    
 };
 
 } // xtp

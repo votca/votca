@@ -116,14 +116,40 @@ class CheckpointWriter {
     }
   }
 
-  template<typename T>
-      CptTable createTable(const std::string& name, T& Obj, std::size_t nRows, bool compact=false){
-      CptTable table(name, sizeof(typename T::data), nRows);
+  /* template<typename T> */
+  /*     CptTable createTable(const std::string& name, T& Obj, std::size_t nRows, bool compact=false){ */
+  /*     CptTable table(name, sizeof(typename T::data), nRows); */
 
-      Obj.SetupCptTable(table);
-      table.initialize(_loc,compact);
+  /*     Obj.SetupCptTable(table); */
+  /*     table.initialize(_loc, compact); */
+  /*     return table; */
+  /* } */
+
+
+  template<typename T>
+      CptTable openTable(const std::string& name, const T& obj, std::size_t nRows, bool compact=false){
+      CptTable table;
+      try{
+          table = CptTable(name, sizeof(typename T::data), _loc);
+          obj.SetupCptTable(table);
+      } catch (H5::Exception& error){
+          try{
+              table = CptTable(name, sizeof(typename T::data), nRows);
+              obj.SetupCptTable(table);
+              table.initialize(_loc, compact);
+          } catch (H5::Exception& error){
+              std::stringstream message;
+              message << "Could not open table " << name
+                      << " in " << _loc.getFileName() << ":" << _path
+                      << std::endl;
+              throw std::runtime_error(message.str());
+          }
+      }
+
       return table;
   }
+
+
 
 
  private:

@@ -121,7 +121,6 @@ CheckpointReader(const CptLoc& loc, const std::string path):
             message << "Could not open table " << name
                     << " in " << _loc.getFileName() << ":" << _path
                     << std::endl;
-            std::cout << error.getDetailMsg();
             throw std::runtime_error(message.str());
         }
 

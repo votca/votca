@@ -78,7 +78,7 @@ class AtomContainer {
     }
     return _pos;
   }
-  
+
 
   // calculates the lowest and highest point in the cube, sorrounding the
   // molecule
@@ -133,7 +133,7 @@ class AtomContainer {
     w(int(_atomlist.size()),"size");
     T element(0, "H", Eigen::Vector3d::Zero());
     bool compact=true;
-    CptTable table = w.createTable(element.identify() + "s", element, _atomlist.size(),compact);
+    CptTable table = w.openTable(element.identify() + "s", element, _atomlist.size(), compact);
 
     for (unsigned i = 0; i < _atomlist.size(); i++) {
         _atomlist[i].WriteToCpt(table, i);
