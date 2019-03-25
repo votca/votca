@@ -28,6 +28,7 @@ if [[ $ENV -eq 1 ]]; then
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) && ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   export WERROR=yes
+  add_to_docker_opts DOXYGEN=yes
   [[ ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts DOXYGEN_COVERAGE=yes
 elif [[ $ENV -eq 2 ]]; then
   # Release build, which gets push to dockerhub, first half of the tests (for tools, csg, csg-tutorials and votca)
