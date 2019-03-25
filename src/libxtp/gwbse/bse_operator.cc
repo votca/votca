@@ -105,17 +105,13 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_col(int index) const {
   const int cmin = _bse_cmin - _opt.rpamin;
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  int factor = 1;
-  const Eigen::MatrixXd Mmn1 =
-      factor *
-      (_Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize)).transpose();
-
+  const Eigen::VectorXd Mmn1Tc1 =_Mmn[v1 + vmin].row(c1+cmin);
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     const Eigen::MatrixXd& Mmn2 = _Mmn[v2 + vmin];
-    const Eigen::VectorXd Mmnx2 =
-        Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
+    auto Mmnx2 =
+        Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1Tc1;
     int i2 = vc.I(v2, 0);
-    Hcol.segment(i2, _bse_ctotal) = Mmnx2;
+    Hcol.segment(i2, _bse_ctotal).noalias() = Mmnx2;
   }
   return Hcol;
 }
