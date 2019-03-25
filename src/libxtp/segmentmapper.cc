@@ -53,7 +53,7 @@ void SegmentMapper<AtomContainer, mapAtom>::ParseFragment(Seginfo& seginfo, cons
                 "If you want to leave a qmatom out, place a ':' instead");
     }
 
-    tools::Tokenizer tok_weights(frag.get("weights").as<std::string>(), " \t\n");
+    tools::Tokenizer tok_weights(getWeights(frag), " \t\n");
     std::vector<double> weights;
     tok_weights.ConvertToVector(weights);
 
@@ -98,13 +98,14 @@ void SegmentMapper<AtomContainer, mapAtom>::ParseFragment(Seginfo& seginfo, cons
     }
     for(int atomid:frame){
         if(std::find (mapatom_ids.begin(), mapatom_ids.end(), atomid)==mapatom_ids.end()){
-            throw std::runtime_error("Atom "+std::to_string(atomid)+" in local frame cannot be found in qmatoms.");
+            throw std::runtime_error("Atom "+std::to_string(atomid)+" in local frame cannot be found in "+_mapatom_xml["atoms"]+".");
         }
     }
 
     mapfragment._map_local_frame=frame;
     seginfo.fragments.push_back(mapfragment);
 }
+
 template <class AtomContainer, class mapAtom>
 void SegmentMapper<AtomContainer, mapAtom>::LoadMappingFile(const std::string& mapfile){
 

@@ -91,14 +91,19 @@ private:
 	return atom.getRank();
     }
 
+    std::string getWeights(const tools::Property & frag)const{
+	if (frag.exists(_mapatom_xml.at("weights"))){
+	    return frag.get( _mapatom_xml.at("weights")).as<std::string>();
+	}
+	return frag.get("weights").as<std::string>();
+    }
+
     std::string getFrame(const tools::Property & frag)const{
 	if (frag.exists(_mapatom_xml.at("frame"))){
 	    return frag.get( _mapatom_xml.at("frame")).as<std::string>();
-	} else{
-	    return frag.get("localframe").as<std::string>();
-	} 
+	}
+	return frag.get("localframe").as<std::string>();
     }
-
     
     void FillMap(){
            _mapatom_xml["tag"]="MP";
@@ -108,9 +113,6 @@ private:
 	   _mapatom_xml["weights"]="mp_weights";
 	   _mapatom_xml["frame"]="mp_localframe";
     }
-    
-
-
 
 };
 

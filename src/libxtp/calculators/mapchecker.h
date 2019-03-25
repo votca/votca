@@ -59,7 +59,7 @@ class MapChecker : public QMCalculator {
 void MapChecker::Initialize(tools::Property &opt) {
     std::string key = "options." + Identify();
 _segmentfile = opt.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".segment_pdbfile", "segments.pdb");
+      key + ".md_pdbfile", "md_segments.pdb");
 
 _qmfile = opt.ifExistsReturnElseReturnDefault<std::string>(
       key + ".qm_pdbfile", "qm_segments.pdb");

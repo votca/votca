@@ -38,7 +38,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename){
 
     int readinmultipoles=0;
     int numberofmultipoles=0;
-    Eigen::VectorXd multipoles;
+    Vector9d multipoles;
     int rank=0;
 
     if (!intt.is_open() ) {
@@ -87,7 +87,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename){
             pos[2] = boost::lexical_cast<double>(split[3]);
             rank = boost::lexical_cast<int>(split[5]);
             numberofmultipoles=(rank+1)*(rank+1);
-            multipoles=Eigen::VectorXd::Zero(numberofmultipoles);
+            multipoles=Vector9d::Zero();
             pos*=unit_conversion;
             this->_atomlist.push_back(T(id,name,pos));
             }
@@ -133,7 +133,6 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename){
             }
             if(readinmultipoles==numberofmultipoles){
                 this->_atomlist.back().setMultipole(multipoles,rank);
-                multipoles.resize(0);
                 readinmultipoles=0;
             }
         }
