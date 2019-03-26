@@ -110,6 +110,8 @@ class QMPair {
 
   struct data{
       int id;
+      int Seg1Id;
+      int Seg2Id;
       double RX;
       double RY;
       double RZ;
@@ -125,9 +127,7 @@ class QMPair {
       double jeff2h;
       double jeff2s;
       double jeff2t;
-
-      int Seg1Id;
-      int Seg2Id;
+      
   };
 
   void SetupCptTable(CptTable& table) const;
@@ -136,9 +136,9 @@ class QMPair {
                    const std::vector<Segment>& segments);
 
  private:
-  std::pair<const Segment*, const Segment*> _segments;
-
   int _id = -1;
+  std::pair<const Segment*, const Segment*> _segments;
+  
   Eigen::Vector3d _R = Eigen::Vector3d::Zero();
 
   std::unique_ptr<Segment> _ghost = nullptr;

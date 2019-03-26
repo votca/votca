@@ -44,7 +44,10 @@ QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   int size = this->size();
   w(size,"size");
-  QMPair pair(1,nullptr,nullptr,Eigen::Vector3d::Zero());
+  if(size==0){return;}
+  Segment seg1("test1",0);
+  Segment seg2("test2",1);
+  QMPair pair(1,&seg1,&seg2,Eigen::Vector3d::Zero());
   CptTable table = w.openTable("pairs", pair, size);
   for (int i=0;i<size;i++) {
     _pairs[i]->WriteToCpt(table,i);

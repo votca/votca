@@ -55,6 +55,8 @@ const Segment* QMPair::Seg2PbCopy() {
 
 void QMPair::SetupCptTable(CptTable& table) const {
     table.addCol(_id, "index", HOFFSET(data, id));
+    table.addCol(_segments.first->getId(), "Seg1Id", HOFFSET(data, Seg1Id));
+    table.addCol(_segments.second->getId(), "Seg2Id", HOFFSET(data, Seg2Id));
 
     table.addCol(_R[0], "delta_Rx", HOFFSET(data, RX));
     table.addCol(_R[1], "delta_Ry", HOFFSET(data, RY));
@@ -72,14 +74,16 @@ void QMPair::SetupCptTable(CptTable& table) const {
     table.addCol(_Jeff2.getValue(QMStateType::statetype::Singlet) , "jeff2s", HOFFSET(data, jeff2s));
     table.addCol(_Jeff2.getValue(QMStateType::statetype::Triplet) , "jeff2t", HOFFSET(data, jeff2t));
 
-    table.addCol(_segments.first->getId(), "Seg1Id", HOFFSET(data, Seg1Id));
-    table.addCol(_segments.second->getId(), "Seg2Id", HOFFSET(data, Seg2Id));
+    
 }
 
 void QMPair::WriteToCpt(CptTable& table, const std::size_t& idx) const {
     data d;
 
     d.id       = _id;
+
+    d.Seg1Id   = _segments.first->getId();
+    d.Seg2Id   = _segments.second->getId();
     d.RX       = _R[0];
     d.RY       = _R[1];
     d.RZ       = _R[2];
@@ -96,8 +100,7 @@ void QMPair::WriteToCpt(CptTable& table, const std::size_t& idx) const {
     d.jeff2s   = _Jeff2.getValue(QMStateType::statetype::Singlet);
     d.jeff2t   = _Jeff2.getValue(QMStateType::statetype::Triplet);
 
-    d.Seg1Id   = _segments.first->getId();
-    d.Seg2Id   = _segments.second->getId();
+
 
     table.writeToRow(&d, idx);
 }

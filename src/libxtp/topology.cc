@@ -133,7 +133,7 @@ Eigen::Vector3d Topology::PbShortestConnect(const Eigen::Vector3d &r1,
 
 double Topology::GetShortestDist(const Segment &seg1,
                                  const Segment &seg2) const {
-  double R2 = 0;
+  double R2 = std::numeric_limits<double>::max();
   for (const Atom &atom1 : seg1) {
     for (const Atom &atom2 : seg2) {
       double R2_test =
