@@ -124,8 +124,8 @@ class Graph : public EdgeContainer {
  *
  * sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePair);
  */
-bool cmpVertNodePair(const std::pair<int, GraphNode> gn1_pr,
-                     const std::pair<int, GraphNode> gn2_pr);
+bool cmpVertNodePair(const std::pair<int, GraphNode>& gn1_pr,
+                     const std::pair<int, GraphNode>& gn2_pr);
 }  // namespace tools
 }  // namespace votca
 #endif  // _VOTCA_TOOLS_GRAPH_H
