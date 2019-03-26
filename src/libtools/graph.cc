@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -83,18 +83,18 @@ vector<int> Graph::getVerticesMissingNodes(void) {
   return missing;
 }
 
-vector<pair<int,GraphNode>> Graph::getNeighNodes(int vert){
+vector<pair<int, GraphNode>> Graph::getNeighNodes(int vert) {
   auto neigh_vertices = getNeighVertices(vert);
-  vector<pair<int,GraphNode>> neigh_vertices_pr;
-  for(auto neigh_vert : neigh_vertices){
-    auto node_pr = pair<int,GraphNode>(neigh_vert,nodes_[neigh_vert]);
+  vector<pair<int, GraphNode>> neigh_vertices_pr;
+  for (auto neigh_vert : neigh_vertices) {
+    auto node_pr = pair<int, GraphNode>(neigh_vert, nodes_[neigh_vert]);
     neigh_vertices_pr.push_back(node_pr);
   }
   return neigh_vertices_pr;
 }
 
-void Graph::setNode(int vert, GraphNode gn){
-  if(nodes_.count(vert)){
+void Graph::setNode(int vert, GraphNode gn) {
+  if (nodes_.count(vert)) {
     nodes_[vert] = gn;
   } else {
     string errMsg = "Vertex does not exist within graph cannot, reset node";
@@ -107,9 +107,9 @@ void Graph::setNode(std::pair<int, GraphNode> p_gn) {
   setNode(p_gn.first, p_gn.second);
 }
 
-GraphNode Graph::getNode(int vert) { 
+GraphNode Graph::getNode(int vert) {
   assert(nodes_.count(vert));
-  return nodes_[vert]; 
+  return nodes_[vert];
 }
 
 vector<pair<int, GraphNode>> Graph::getNodes(void) {
@@ -140,9 +140,10 @@ ostream& operator<<(ostream& os, const Graph g) {
   return os;
 }
 
-bool cmpVertNodePair(pair<int, GraphNode> gn1_pr, pair<int, GraphNode> gn2_pr) {
+bool cmpVertNodePair(const pair<int, GraphNode> gn1_pr,
+                     const pair<int, GraphNode> gn2_pr) {
   string str1_Id = gn1_pr.second.getStringId();
   return str1_Id.compare(gn2_pr.second.getStringId()) < 0;
 }
-}
-}
+}  // namespace tools
+}  // namespace votca
