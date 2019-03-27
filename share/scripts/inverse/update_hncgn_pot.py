@@ -20,6 +20,9 @@ import numpy as np
 import sys
 
 
+BAR_PER_MD_PRESSURE = 16.6053904
+
+
 def readin_table(filename):
     table_dtype = {'names': ('x', 'y', 'y_flag'),
                    'formats': ('f', 'f', 'S1')}
@@ -175,9 +178,9 @@ def calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min,
     for c, constraint in enumerate(constraints):
         if constraint['type'] == 'pressure':
             # current pressure
-            p = constraint['current']
+            p = constraint['current'] / BAR_PER_MD_PRESSURE
             # target pressure
-            p_tgt = constraint['target']
+            p_tgt = constraint['target'] / BAR_PER_MD_PRESSURE
             # g_tgt(r_{i+1})
             g_tgt_ip1 = g_tgt[main][1:]
             # g_tgt(r_{i})
