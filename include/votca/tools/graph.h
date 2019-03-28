@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -32,7 +32,7 @@ namespace votca {
 namespace tools {
 
 /**
- * \brief A graph object that contains the graph nodes and the edges describing 
+ * \brief A graph object that contains the graph nodes and the edges describing
  * the bonds between nodes.
  *
  */
@@ -124,8 +124,8 @@ class Graph : public EdgeContainer {
  *
  * sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePair);
  */
-bool cmpVertNodePair(std::pair<int, GraphNode> gn1_pr,
-                     std::pair<int, GraphNode> gn2_pr);
-}
-}
+bool cmpVertNodePair(const std::pair<int, GraphNode>& gn1_pr,
+                     const std::pair<int, GraphNode>& gn2_pr);
+}  // namespace tools
+}  // namespace votca
 #endif  // _VOTCA_TOOLS_GRAPH_H
