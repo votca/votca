@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,7 +17,6 @@
  *
  */
 
-
 #ifndef _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
 #define _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
 
@@ -30,24 +29,22 @@
  * Implements relative method - do not use for comparing with zero
  * use this most of the time, tolerance needs to be meaningful in your context
  *
- * Function taken from https://stackoverflow.com/questions/17333/what-is-the-most-effective-way-for-float-and-double-comparison
+ * Function taken from
+ * https://stackoverflow.com/questions/17333/what-is-the-most-effective-way-for-float-and-double-comparison
  * user ShitalShal
  */
 namespace votca {
 namespace tools {
 
-template<typename T>
-static bool isApproximatelyEqual(T a, T b, T tolerance )
-{
-    T diff = std::abs(a - b);
-    if (diff <= tolerance)
-        return true;
+template <typename T>
+static bool isApproximatelyEqual(T a, T b, T tolerance) {
+  T diff = std::abs(a - b);
+  if (diff <= tolerance) return true;
 
-    if (diff < std::max(std::abs(a), std::abs(b)) * tolerance)
-        return true;
-    return false;
+  if (diff < std::max(std::abs(a), std::abs(b)) * tolerance) return true;
+  return false;
 }
 
-}
-}
-#endif // _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H
+}  // namespace tools
+}  // namespace votca
+#endif  // _VOTCA_TOOLS_FLOATINGPOINTCOMPARISON_H

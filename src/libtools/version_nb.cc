@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@
 // This file is for netbeans only
 #include <votca/tools/version.h>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
-static const std::string version_str = "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
+static const std::string version_str =
+    "VERSION NOT SET (compiled " __DATE__ ", " __TIME__ ")";
 
-const std::string &ToolsVersionStr()
-{
-    return version_str;
-}
+const std::string &ToolsVersionStr() { return version_str; }
 
-}}
-
+}  // namespace tools
+}  // namespace votca

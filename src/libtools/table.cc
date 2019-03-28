@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  *
  */
 
-#include <fstream>
-#include <vector>
-#include <votca/tools/tokenizer.h>
-#include <votca/tools/table.h>
-#include <stdexcept>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/range/algorithm.hpp>
+#include <fstream>
+#include <stdexcept>
+#include <vector>
 #include <votca/tools/lexical_cast.h>
+#include <votca/tools/table.h>
+#include <votca/tools/tokenizer.h>
 
 namespace votca {
 namespace tools {
@@ -72,21 +72,13 @@ void Table::clear(void) {
   _yerr.resize(0);
 }
 
-double Table::getMaxY() const {
-  return _y.maxCoeff();
-}
+double Table::getMaxY() const { return _y.maxCoeff(); }
 
-double Table::getMinY() const {
-  return _y.minCoeff();
-}
+double Table::getMinY() const { return _y.minCoeff(); }
 
-double Table::getMaxX() const {
- return _x.maxCoeff();
-}
+double Table::getMaxX() const { return _x.maxCoeff(); }
 
-double Table::getMinX() const {
- return _x.minCoeff();
-}
+double Table::getMinX() const { return _x.minCoeff(); }
 
 // TODO: this functon is weired, reading occours twice, cleanup!!
 // TODO: modify function to work properly, when _has_yerr is true
@@ -120,15 +112,13 @@ istream &operator>>(istream &in, Table &t) {
       N = lexical_cast<int>(tokens[0], conversion_error);
       bHasN = true;
     } else if (tokens.size() == 2) {
-    // it's the first data line with 2 or 3 entries
-          t.push_back(std::stod(tokens[0]),
-                  std::stod(tokens[1]), 'i');
+      // it's the first data line with 2 or 3 entries
+      t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), 'i');
     } else if (tokens.size() > 2) {
       char flag = 'i';
       string sflag = tokens.back();
       if (sflag == "i" || sflag == "o" || sflag == "u") flag = sflag.c_str()[0];
-      t.push_back(std::stod(tokens[0]),
-                  std::stod(tokens[1]), flag);
+      t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), flag);
     } else {
       throw runtime_error("error, wrong table format");
     }
@@ -154,20 +144,18 @@ istream &operator>>(istream &in, Table &t) {
 
     // it's a data line
     if (tokens.size() == 2) {
-      t.push_back(std::stod(tokens[0]),
-                  std::stod(tokens[1]), 'i');
+      t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), 'i');
     } else if (tokens.size() > 2) {
       char flag = 'i';
       if (tokens[2] == "i" || tokens[2] == "o" || tokens[2] == "u")
         flag = tokens[2].c_str()[0];
-      t.push_back(std::stod(tokens[0]),
-                  std::stod(tokens[1]), flag);
-    }else{
-    // otherwise error
+      t.push_back(std::stod(tokens[0]), std::stod(tokens[1]), flag);
+    } else {
+      // otherwise error
       throw runtime_error("error, wrong table format");
     }
     // was size given and did we read N values?
-    if (bHasN){
+    if (bHasN) {
       if (--N == 0) break;
     }
   }
@@ -184,9 +172,9 @@ void Table::GenerateGridSpacing(double min, double max, double spacing) {
 
 void Table::Smooth(int Nsmooth) {
   while (Nsmooth-- > 0)
-    for ( int i = 1; i < size() - 1; ++i){
+    for (int i = 1; i < size() - 1; ++i) {
       _y[i] = 0.25 * (_y[i - 1] + 2 * _y[i] + _y[i + 1]);
     }
 }
-}
-}
+}  // namespace tools
+}  // namespace votca

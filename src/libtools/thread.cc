@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,9 @@
  *
  */
 
-#include <stdexcept>
-#include "../../include/votca/tools/lexical_cast.h"
 #include "../../include/votca/tools/thread.h"
+#include "../../include/votca/tools/lexical_cast.h"
+#include <stdexcept>
 
 using namespace std;
 
@@ -71,5 +71,5 @@ void Thread::WaitDone() {
 }
 
 bool Thread::IsFinished() const { return _finished; }
-}
-}
+}  // namespace tools
+}  // namespace votca
