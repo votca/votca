@@ -224,10 +224,43 @@ def calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min,
     return dU
 
 
+def extrapolate_U_cubic(r, dpot_dU, dpot_flag, rdf_current_g, pot_current_U):
+    """Extrapolate the potential in the core region up to
+    the point, where the RDF becomes larger than 0.1 or where
+    the new potential is convex. A cubic function is used.
+    The first five valid points are uset for the fit.
+
+    Fitting is done, because p-HNCGN often has artifacs at
+    small RDF values, especially when pressure is far of
+
+    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    # make copy
+    dpot_dU_extrap = dpot_dU.copy()
+    # region to fit
+    fit_start1 = np.where(rdf_current_g > 1e-1)[0][0]
+    fit_start2 = np.where(np.nan_to_num(np.diff(np.diff(
+        pot_current_U + dpot_dU))) > 0)[0][0]
+    fit_start = max(fit_start1, fit_start2)
+    fit_end = fit_start + 5
+    fit_region = slice(fit_start, fit_end)
+    fit_x = r[fit_region]
+    fit_y = (pot_current_U + dpot_dU)[fit_region]
+    # fit p[0] x² + p[1] x + p[2]
+    p = np.polyfit(fit_x, fit_y, 3)
+    U_extrap = np.polyval(p, r)
+    # region to extrapolate
+    extrap_region = slice(0, fit_start)
+    # extrapolate
+    dpot_dU_extrap[extrap_region] = (U_extrap[extrap_region]
+                                     - pot_current_U[extrap_region])
+    return dpot_dU_extrap
+
+
 def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                     rdf_current_g, rdf_current_flag,
                     pot_current_U, pot_current_flag,
-                    kBT, density, cut_off, g_min, constraints):
+                    kBT, density, cut_off, g_min,
+                    constraints, extrap_near_core):
     """calculate dU for the hncgn method with constraint pressure"""
 
     # allways raise an error
@@ -239,7 +272,8 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
 
     # full range dU
     dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g,
-                                   kBT, density, g_min, cut_off, pot_current_U, constraints)
+                                   kBT, density, g_min, cut_off, pot_current_U,
+                                   constraints)
 
     # calculate dpot
     for i in range(len(r)):
@@ -250,20 +284,16 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
             dpot_dU[i] = dU_full[i]
             dpot_flag[i] = 'i'
 
-    # find first valid dU value
-    first_dU_index = np.where(dpot_flag == 'i')[0][0]
-    first_dU = dpot_dU[first_dU_index]
-
-    # replace out of range dU values
-    dpot_dU = np.where(dpot_flag == 'i', dpot_dU, first_dU)
-
-    # shift dU to be zero at cut_off and beyond
-    index_cut_off = np.searchsorted(r, cut_off)
-    U_cut_off = pot_current_U[index_cut_off] + dpot_dU[index_cut_off]
-    dpot_dU -= U_cut_off
-    dpot_dU[index_cut_off:] = - pot_current_U[index_cut_off:]
-
-    return dpot_dU, dpot_flag
+    # extrapolation in near core region
+    if extrap_near_core == 'none':
+        dpot_dU_extrap = dpot_dU
+    elif extrap_near_core == 'cubic':
+        dpot_dU_extrap = extrapolate_U_cubic(r, dpot_dU, dpot_flag,
+                                             rdf_current_g, pot_current_U)
+    else:
+        raise Exception("unknow extrapolation scheme near core region:"
+                        + extrap_near_core)
+    return dpot_dU_extrap, dpot_flag
 
 
 description = """\
@@ -280,7 +310,11 @@ parser.add_argument('dpot', type=argparse.FileType('wb'))
 parser.add_argument('kBT', type=float)
 parser.add_argument('density', type=float)
 parser.add_argument('cut_off', type=float)
-parser.add_argument('--pressure_constraint', type=str, default=None)
+parser.add_argument('--pressure-constraint', dest='pressure_constraint',
+                    type=str, default=None)
+parser.add_argument('--extrap-near-core', dest='extrap_near_core',
+                    type=str, default='cubic',
+                    choices=['none', 'cubic'])
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -292,20 +326,23 @@ if __name__ == '__main__':
 
     # sanity checks on grid
     compare_grids(rdf_target_r, rdf_current_r)
+    compare_grids(rdf_target_r, pot_current_r)
     r = rdf_target_r
 
     constraints = []
     if args.pressure_constraint is not None:
         p_target = float(args.pressure_constraint.split(',')[0])
         p_current = float(args.pressure_constraint.split(',')[1])
-        constraints.append({'type': 'pressure', 'target': p_target, 'current': p_current})
+        constraints.append({'type': 'pressure', 'target': p_target,
+                            'current': p_current})
 
     # calculate dpot
     dpot_dU, dpot_flag = calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                                          rdf_current_g, rdf_current_flag,
                                          pot_current_U, pot_current_flag,
-                                         args.kBT, args.density, args.cut_off, 1e-10,
-                                         constraints)
+                                         args.kBT, args.density, args.cut_off,
+                                         1e-10, constraints,
+                                         args.extrap_near_core)
 
     # save dpot
     comment = "created by: {}".format(" ".join(sys.argv))
