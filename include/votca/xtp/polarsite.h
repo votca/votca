@@ -35,6 +35,47 @@ class PolarSite : public StaticSite
 {
 
 public:
+    struct data{
+        int id;
+        char* element;
+        double posX;
+        double posY;
+        double posZ;
+
+        int rank;
+
+        double multipoleQ00;
+        double multipoleQ11c;
+        double multipoleQ11s;
+        double multipoleQ10;
+        double multipoleQ20;
+        double multipoleQ21c;
+        double multipoleQ21s;
+        double multipoleQ22c;
+        double multipoleQ22s;
+
+        double pxx;
+        double pxy;
+        double pxz;
+        double pyy;
+        double pyz;
+        double pzz;
+
+        double fieldX;
+        double fieldY;
+        double fieldZ;
+
+        double dipoleX;
+        double dipoleY;
+        double dipoleZ;
+
+        double dipoleXOld;
+        double dipoleYOld;
+        double dipoleZOld;
+
+        double eigendamp;
+        double phiU;
+    };
 
     PolarSite(int id, std::string element, Eigen::Vector3d pos);
 
@@ -45,6 +86,8 @@ public:
     PolarSite(CptTable& table, const std::size_t& idx):StaticSite(table, idx){
         ReadFromCpt(table, idx);
     }
+
+PolarSite(data& d): StaticSite(d){ ReadData(d); }
 
 
     void setPolarisation(const Eigen::Matrix3d pol){
@@ -79,53 +122,13 @@ public:
 
     double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
 
-    struct data{
-        
-      int id;
-      char* element;
-      double posX;
-      double posY;
-      double posZ;
-
-      int rank;
-
-      double multipoleQ00;
-      double multipoleQ11c;
-      double multipoleQ11s;
-      double multipoleQ10;
-      double multipoleQ20;
-      double multipoleQ21c;
-      double multipoleQ21s;
-      double multipoleQ22c;
-      double multipoleQ22s;
-        
-        double pxx;
-        double pxy;
-        double pxz;
-        double pyy;
-        double pyz;
-        double pzz;
-
-        double fieldX;
-        double fieldY;
-        double fieldZ;
-
-        double dipoleX;
-        double dipoleY;
-        double dipoleZ;
-
-        double dipoleXOld;
-        double dipoleYOld;
-        double dipoleZOld;
-
-        double eigendamp;
-        double phiU;
-    };
-
     void SetupCptTable(CptTable& table) const;
     void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+    void WriteData(data& d) const;
 
     void ReadFromCpt(CptTable& table, const std::size_t& idx);
+    void ReadData(data& d);
+
 
     std::string identify()const{return "polarsite";}
 

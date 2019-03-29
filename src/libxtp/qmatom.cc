@@ -28,13 +28,13 @@ namespace xtp {
     tools::Elements elements;
     _nuccharge = elements.getNucCrg(_element);
   }
-    
+
  void QMAtom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
     Eigen::Vector3d dir=_pos - refPos;
     dir = R * dir;
     _pos = refPos + dir;  // Rotated Position
   }
- 
+
   void QMAtom::SetupCptTable(CptTable& table) const {
       table.addCol(_index, "index", HOFFSET(data, index));
       table.addCol(_element, "element", HOFFSET(data, element));
@@ -58,6 +58,16 @@ namespace xtp {
       table.writeToRow(&d, idx);
   };
 
+  void QMAtom::WriteData(data& d) const{
+      d.index     = _index;
+      d.element   = const_cast<char*>(_element.c_str());
+      d.x         = _pos[0];
+      d.y         = _pos[1];
+      d.z         = _pos[2];
+      d.nuccharge = _nuccharge;
+      d.ecpcharge = _ecpcharge;
+  }
+
   void QMAtom::ReadFromCpt(CptTable& table, const std::size_t& idx){
       data d;
       table.readFromRow(&d, idx);
@@ -71,6 +81,17 @@ namespace xtp {
       _ecpcharge = d.ecpcharge;
   }
 
+
+  void QMAtom::ReadData(data& d){
+      _element=std::string(d.element);
+      free(d.element);
+      _index     = d.index;
+      _pos[0]    = d.x;
+      _pos[1]    = d.y;
+      _pos[2]    = d.z;
+      _nuccharge = d.nuccharge;
+      _ecpcharge = d.ecpcharge;
+  }
 
 }  // namespace xtp
 }  // namespace votca

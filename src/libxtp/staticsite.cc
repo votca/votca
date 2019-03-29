@@ -159,11 +159,52 @@ namespace votca {
       table.writeToRow(&d, idx);
   }
 
+  void StaticSite::WriteData(data& d) const{
+      d.id = _id;
+      d.element = const_cast<char*>(_element.c_str());
+      d.posX = _pos[0];
+      d.posY = _pos[1];
+      d.posZ = _pos[2];
+
+      d.rank = _rank;
+
+      d.multipoleQ00  = _multipole[0];
+      d.multipoleQ11c = _multipole[1];
+      d.multipoleQ11s = _multipole[2];
+      d.multipoleQ10  = _multipole[3];
+      d.multipoleQ20  = _multipole[4];
+      d.multipoleQ21c = _multipole[5];
+      d.multipoleQ21s = _multipole[6];
+      d.multipoleQ22c = _multipole[7];
+      d.multipoleQ22s = _multipole[8];
+  }
+
 
   void StaticSite::ReadFromCpt(CptTable& table, const std::size_t& idx){
       data d;
       table.readFromRow(&d, idx);
 
+      _id           = d.id;
+      _element      = std::string(d.element);
+      free(d.element);
+      _pos[0]       = d.posX;
+      _pos[1]       = d.posY;
+      _pos[2]       = d.posZ;
+
+      _rank         = d.rank;
+
+      _multipole[0] = d.multipoleQ00;
+      _multipole[1] = d.multipoleQ11c;
+      _multipole[2] = d.multipoleQ11s;
+      _multipole[3] = d.multipoleQ10;
+      _multipole[4] = d.multipoleQ20;
+      _multipole[5] = d.multipoleQ21c;
+      _multipole[6] = d.multipoleQ21s;
+      _multipole[7] = d.multipoleQ22c;
+      _multipole[8] = d.multipoleQ22s;
+  }
+
+  void StaticSite::ReadData(data& data){
       _id           = d.id;
       _element      = std::string(d.element);
       free(d.element);

@@ -74,7 +74,7 @@ void QMPair::SetupCptTable(CptTable& table) const {
     table.addCol(_Jeff2.getValue(QMStateType::statetype::Singlet) , "jeff2s", HOFFSET(data, jeff2s));
     table.addCol(_Jeff2.getValue(QMStateType::statetype::Triplet) , "jeff2t", HOFFSET(data, jeff2t));
 
-    
+
 }
 
 void QMPair::WriteToCpt(CptTable& table, const std::size_t& idx) const {
@@ -89,7 +89,7 @@ void QMPair::WriteToCpt(CptTable& table, const std::size_t& idx) const {
     d.RZ       = _R[2];
     std::string ptype=get_name(_pair_type);
     d.pair_type = const_cast<char*>(ptype.c_str());
-    
+
     d.lambda0e = _lambda0.getValue(QMStateType::statetype::Electron);
     d.lambda0h = _lambda0.getValue(QMStateType::statetype::Hole);
     d.lambda0s = _lambda0.getValue(QMStateType::statetype::Singlet);
@@ -105,6 +105,28 @@ void QMPair::WriteToCpt(CptTable& table, const std::size_t& idx) const {
     table.writeToRow(&d, idx);
 }
 
+void QMPair::WriteData(data& d) const{
+    d.id       = _id;
+
+    d.Seg1Id   = _segments.first->getId();
+    d.Seg2Id   = _segments.second->getId();
+    d.RX       = _R[0];
+    d.RY       = _R[1];
+    d.RZ       = _R[2];
+    std::string ptype=get_name(_pair_type);
+    d.pair_type = const_cast<char*>(ptype.c_str());
+
+    d.lambda0e = _lambda0.getValue(QMStateType::statetype::Electron);
+    d.lambda0h = _lambda0.getValue(QMStateType::statetype::Hole);
+    d.lambda0s = _lambda0.getValue(QMStateType::statetype::Singlet);
+    d.lambda0t = _lambda0.getValue(QMStateType::statetype::Triplet);
+
+    d.jeff2e   = _Jeff2.getValue(QMStateType::statetype::Electron);
+    d.jeff2h   = _Jeff2.getValue(QMStateType::statetype::Hole);
+    d.jeff2s   = _Jeff2.getValue(QMStateType::statetype::Singlet);
+    d.jeff2t   = _Jeff2.getValue(QMStateType::statetype::Triplet);
+}
+
 void QMPair::ReadFromCpt(CptTable& table, const std::size_t& idx,
                          const std::vector<Segment>& segments){
     data d;
@@ -118,7 +140,31 @@ void QMPair::ReadFromCpt(CptTable& table, const std::size_t& idx,
     std::string type_enum = std::string(d.pair_type);
     _pair_type            = QMPair::get_Enum(type_enum);
     free(d.pair_type);
-    
+
+    _lambda0.setValue(d.lambda0e, QMStateType::statetype::Electron);
+    _lambda0.setValue(d.lambda0h, QMStateType::statetype::Hole);
+    _lambda0.setValue(d.lambda0s, QMStateType::statetype::Singlet);
+    _lambda0.setValue(d.lambda0t, QMStateType::statetype::Triplet);
+
+    _Jeff2.setValue(d.jeff2e, QMStateType::statetype::Electron);
+    _Jeff2.setValue(d.jeff2h, QMStateType::statetype::Hole);
+    _Jeff2.setValue(d.jeff2s, QMStateType::statetype::Singlet);
+    _Jeff2.setValue(d.jeff2t, QMStateType::statetype::Triplet);
+
+    _segments.first       = &segments[d.Seg1Id];
+    _segments.second      = &segments[d.Seg2Id];
+}
+
+void QMPair::ReadData(data& d){
+    _id                   = d.id;
+    _R[0]                 = d.RX;
+    _R[1]                 = d.RY;
+    _R[2]                 = d.RZ;
+
+    std::string type_enum = std::string(d.pair_type);
+    _pair_type            = QMPair::get_Enum(type_enum);
+    free(d.pair_type);
+
     _lambda0.setValue(d.lambda0e, QMStateType::statetype::Electron);
     _lambda0.setValue(d.lambda0h, QMStateType::statetype::Hole);
     _lambda0.setValue(d.lambda0s, QMStateType::statetype::Singlet);

@@ -35,9 +35,21 @@ class QMAtom {
   friend class AOBasis;
 
  public:
+  struct data{
+      int index;
+      char* element;
+      double x;
+      double y;
+      double z;
+      int nuccharge;
+      int ecpcharge;
+  };
+
   QMAtom(int index, std::string element, Eigen::Vector3d pos);
 
   QMAtom(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx); }
+
+  QMAtom(data& d) { ReadData(d); }
 
   const Eigen::Vector3d& getPos() const { return _pos; }
 
@@ -69,21 +81,16 @@ class QMAtom {
   int _nuccharge=0;        // nuc charge is set in aobasis fill and ecpfill
   int _ecpcharge=0;
  public:
-  struct data{
-      int index;
-      char* element;
-      double x;
-      double y;
-      double z;
-      int nuccharge;
-      int ecpcharge;
-  };
 
   void SetupCptTable(CptTable& table) const;
+
+  void WriteData(data& d) const;
 
   void WriteToCpt(CptTable& table, const std::size_t& idx) const;
 
   void ReadFromCpt(CptTable& table, const std::size_t& idx);
+
+  void ReadData(data& d);
 
 };
 }  // namespace xtp

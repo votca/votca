@@ -46,6 +46,28 @@ class QMPair {
     return "";
   }
 
+  struct data{
+      int id;
+      int Seg1Id;
+      int Seg2Id;
+      double RX;
+      double RY;
+      double RZ;
+
+      char* pair_type;
+
+      double lambda0e;
+      double lambda0h;
+      double lambda0s;
+      double lambda0t;
+
+      double jeff2e;
+      double jeff2h;
+      double jeff2s;
+      double jeff2t;
+
+  };
+
   static PairType get_Enum(std::string type) {
     if (type == "Hopping") {
       return PairType::Hopping;
@@ -63,6 +85,8 @@ class QMPair {
                    const std::vector<Segment>& segments){
     ReadFromCpt(table,idx, segments);
  }
+
+ QMPair(data& d, const std::vector<Segment>& segments) { ReadData(d, segments); }
 
   int getId() const { return _id; }
   void setId(int id){_id=id;}
@@ -108,37 +132,19 @@ class QMPair {
   void setType(PairType pair_type) { _pair_type = pair_type; }
   const PairType& getType() const { return _pair_type; }
 
-  struct data{
-      int id;
-      int Seg1Id;
-      int Seg2Id;
-      double RX;
-      double RY;
-      double RZ;
-
-      char* pair_type;
-
-      double lambda0e;
-      double lambda0h;
-      double lambda0s;
-      double lambda0t;
-
-      double jeff2e;
-      double jeff2h;
-      double jeff2s;
-      double jeff2t;
-      
-  };
-
   void SetupCptTable(CptTable& table) const;
   void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+  void WriteData(data& d) const;
+
   void ReadFromCpt(CptTable& table, const std::size_t& idx,
                    const std::vector<Segment>& segments);
+  void ReadData(data& d, const std::vector<Segment>& segments);
+
 
  private:
   int _id = -1;
   std::pair<const Segment*, const Segment*> _segments;
-  
+
   Eigen::Vector3d _R = Eigen::Vector3d::Zero();
 
   std::unique_ptr<Segment> _ghost = nullptr;

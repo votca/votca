@@ -34,12 +34,33 @@ namespace xtp {
 class StaticSite {
 
  public:
+    struct data{
+        int id;
+        char* element;
+        double posX;
+        double posY;
+        double posZ;
+
+        int rank;
+
+        double multipoleQ00;
+        double multipoleQ11c;
+        double multipoleQ11s;
+        double multipoleQ10;
+        double multipoleQ20;
+        double multipoleQ21c;
+        double multipoleQ21s;
+        double multipoleQ22c;
+        double multipoleQ22s;
+    };
   StaticSite(int id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
 
   StaticSite(int id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
   StaticSite(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx);}
+
+  StaticSite(data& d) { ReadData(d); }
 
   StaticSite(const QMAtom& atom, double charge)
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
@@ -57,7 +78,7 @@ class StaticSite {
   }
 
   void setCharge(double q) { _multipole(0) = q; }
-  
+
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
   // COORDINATES TRANSFORMATION
@@ -84,31 +105,14 @@ class StaticSite {
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
-  struct data{
-      int id;
-      char* element;
-      double posX;
-      double posY;
-      double posZ;
 
-      int rank;
-
-      double multipoleQ00;
-      double multipoleQ11c;
-      double multipoleQ11s;
-      double multipoleQ10;
-      double multipoleQ20;
-      double multipoleQ21c;
-      double multipoleQ21s;
-      double multipoleQ22c;
-      double multipoleQ22s;
-  };
 
   virtual void SetupCptTable(CptTable& table) const;
 
   virtual void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+  virtual void WriteData(data& d) const;
   virtual void ReadFromCpt(CptTable& table, const std::size_t& idx);
-
+  virtual void ReadData(data& d);
   virtual void setPolarisation(const Eigen::Matrix3d pol) { return; }
 
   virtual std::string identify() const { return "staticsite"; }

@@ -20,13 +20,13 @@
 
 namespace votca {
 namespace xtp {
-    
+
      Atom::Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos)
       : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
     _element=GetElementFromMDName(md_atom_name);
   }
 
-      
+
 Atom::Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1, md_atom_name, atom_id, pos)    {
       _element=GetElementFromMDName(md_atom_name);
     }
@@ -40,14 +40,14 @@ Atom::Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1,
         }
       return element;
   }
- 
+
  void Atom::Rotate(const Eigen::Matrix3d &R, const Eigen::Vector3d &refPos) {
    Eigen::Vector3d dir=_pos - refPos;
     dir = R * dir;
     _pos = refPos + dir;  // Rotated Position
   }
- 
- 
+
+
   void Atom::SetupCptTable(CptTable& table) const{
       table.addCol(_id, "index", HOFFSET(data, id));
       table.addCol(_element, "element", HOFFSET(data, element));
@@ -69,6 +69,15 @@ Atom::Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1,
       table.writeToRow(&d, idx);
   }
 
+  void Atom::WriteData(data& d) const{
+      d.id = _id;
+      d.element = const_cast<char*>(_element.c_str());;
+      d.name = const_cast<char*>(_name.c_str());;
+      d.x = _pos[0];
+      d.y = _pos[1];
+      d.z = _pos[2];
+  }
+
   void Atom::ReadFromCpt(CptTable table, const std::size_t& idx){
       data d;
       table.readFromRow(&d, idx);
@@ -82,7 +91,17 @@ Atom::Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos) : Atom(-1,
       _pos[2]  = d.z;
       _pos[1]  = d.y;
   }
-  
+
+  void Atom::ReadData(data& d){
+      _id      = d.id;
+      _element   = std::string(d.element);
+      free(d.element);
+      _name    = std::string(d.name);
+      free(d.name);
+      _pos[0]  = d.x;
+      _pos[2]  = d.z;
+      _pos[1]  = d.y;
+  }
 
 }  // namespace xtp
 }  // namespace votca

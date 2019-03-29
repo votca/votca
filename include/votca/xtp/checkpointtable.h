@@ -22,6 +22,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <vector>
 #include <votca/xtp/checkpoint_utils.h>
 
 
@@ -96,7 +97,7 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
         _inited=true;
     }
 
-    void writeToTable(void* buffer, const std::size_t& startIdx,
+    void write(void* buffer, const std::size_t& startIdx,
                     const std::size_t& endIdx){
 
         if (!_inited){
@@ -126,11 +127,16 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
     }
 
     void writeToRow(void* buffer, const std::size_t idx){
-        writeToTable(buffer, idx, idx+1);
+        write(buffer, idx, idx+1);
     }
 
-    void readFromTable(void* buffer, const std::size_t& startIdx,
-                     const std::size_t& endIdx){
+    template<typename T>
+    void write(std::vector<T>& dataVec){
+        write(dataVec.data(), 0, dataVec.size());
+    }
+
+    void read(void* buffer, const std::size_t& startIdx,
+              const std::size_t& endIdx){
 
         if (!_inited){
             std::stringstream message;
@@ -158,7 +164,12 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
     }
 
     void readFromRow(void* buffer, const std::size_t& idx){
-        readFromTable(buffer, idx, idx+1);
+        read(buffer, idx, idx+1);
+    }
+
+    template<typename T>
+    void read(std::vector<T>& dataVec){
+        read(dataVec.data(), 0, dataVec.size());
     }
 
     std::size_t numRows(){return _nRows;}

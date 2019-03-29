@@ -135,9 +135,13 @@ class AtomContainer {
     bool compact=true;
     CptTable table = w.openTable(element.identify() + "s", element, _atomlist.size(), compact);
 
-    for (unsigned i = 0; i < _atomlist.size(); i++) {
-        _atomlist[i].WriteToCpt(table, i);
+    std::vector<typename T::data> dataVec(_atomlist.size());
+
+    for (std::size_t i; i<_atomlist.size(); ++i) {
+        _atomlist[i].WriteData(dataVec[i]);
     }
+
+    table.write(dataVec);
   }
 
 
@@ -153,8 +157,12 @@ class AtomContainer {
     CptTable table = r.openTable(element.identify() + "s", _atomlist[0]);
     _atomlist.clear();
     _atomlist.reserve(table.numRows());
-    for (std::size_t i = 0; i < table.numRows(); ++i){
-        _atomlist.emplace_back(T(table, i));
+    std::vector<typename T::data> dataVec(table.numRows());
+
+    table.read(dataVec);
+
+    for (std::size_t i; i<_atomlist.size(); ++i) {
+        _atomlist.emplace_back(T(dataVec[i]));
     }
   }
 
