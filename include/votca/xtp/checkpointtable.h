@@ -96,7 +96,8 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
         _inited=true;
     }
 
-    void writeToRow(void* buffer, const std::size_t& idx){
+    void writeToTable(void* buffer, const std::size_t& startIdx,
+                    const std::size_t& endIdx){
 
         if (!_inited){
             std::stringstream message;
@@ -104,13 +105,18 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
             throw std::runtime_error(message.str());
         }
 
-        hsize_t fStart[2] = {idx, 0};
-        hsize_t fCount[2] = {1, 1};
+        hsize_t s = (hsize_t)(startIdx);
+        hsize_t e = (hsize_t)(endIdx);
+        hsize_t l = e - s;
 
-        hsize_t mStart[2] = {0, 0};
-        hsize_t mCount[2] = {1, 1};
 
-        hsize_t mDim[2] = {1,1};
+        hsize_t fStart[2] = {s, 0};
+        hsize_t fCount[2] = {l, 1};
+
+        hsize_t mStart[2] = {s, 0};
+        hsize_t mCount[2] = {l, 1};
+
+        hsize_t mDim[2] = {l,1};
 
         H5::DataSpace mspace(2, mDim);
 
@@ -119,7 +125,12 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
         _dataset.write(buffer, _rowStructure, mspace, _dp);
     }
 
-    void readFromRow(void* buffer, const std::size_t& idx){
+    void writeToRow(void* buffer, const std::size_t idx){
+        writeToTable(buffer, idx, idx+1);
+    }
+
+    void readFromTable(void* buffer, const std::size_t& startIdx,
+                     const std::size_t& endIdx){
 
         if (!_inited){
             std::stringstream message;
@@ -127,19 +138,27 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
             throw std::runtime_error(message.str());
         }
 
-        hsize_t fStart[2] = {idx, 0};
-        hsize_t fCount[2] = {1, 1};
+        hsize_t s = (hsize_t)(startIdx);
+        hsize_t e = (hsize_t)(endIdx);
+        hsize_t l = e - s;
 
-        hsize_t mStart[2] = {0, 0};
-        hsize_t mCount[2] = {1, 1};
+        hsize_t fStart[2] = {s, 0};
+        hsize_t fCount[2] = {l, 1};
 
-        hsize_t mDim[2] = {1, 1};
+        hsize_t mStart[2] = {s, 0};
+        hsize_t mCount[2] = {l, 1};
+
+        hsize_t mDim[2] = {l, 1};
 
         H5::DataSpace mspace(2, mDim);
 
         _dp.selectHyperslab(H5S_SELECT_SET, fCount, fStart);
         mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
         _dataset.read(buffer, _rowStructure, mspace, _dp);
+    }
+
+    void readFromRow(void* buffer, const std::size_t& idx){
+        readFromTable(buffer, idx, idx+1);
     }
 
     std::size_t numRows(){return _nRows;}
