@@ -206,7 +206,6 @@ class DavidsonSolver {
       else {
         
         // orthogonalize the V vectors
-        //V = DavidsonSolver::_QR(V);
         V = DavidsonSolver::_gramschmidt(V,V.cols()-neigen);
 
         // update the T matrix : avoid recomputing V.T A V
@@ -250,7 +249,7 @@ class DavidsonSolver {
 
   ctp::Logger &_log;
   int iter_max = 1000;
-  double tol = 1E-3;
+  double tol = 1E-4;
   int max_search_space = 100;
 
   enum CORR { DPR, OLSEN };

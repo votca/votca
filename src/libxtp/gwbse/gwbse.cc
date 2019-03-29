@@ -199,9 +199,6 @@ void GWBSE::Initialize(tools::Property& options) {
       _bseopt.matrixfree = options.ifExistsReturnElseReturnDefault<bool>(
           key + ".eigensolver.domatrixfree", _bseopt.matrixfree);
 
-      _bseopt.reorder = options.ifExistsReturnElseReturnDefault<bool>(
-          key + ".eigensolver.reorder", _bseopt.reorder);
-
       _bseopt.davidson_correction =
           options.ifExistsReturnElseReturnDefault<std::string>(
               key + ".eigensolver.davidson_correction",

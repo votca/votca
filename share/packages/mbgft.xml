@@ -21,7 +21,7 @@
         <eigensolver>
                 <dodavidson>1</dodavidson>
                 <davidson_correction>DPR</davidson_correction>
-                <davidson_tolerance>1E-6</davidson_tolerance>
+                <davidson_tolerance>1E-4</davidson_tolerance>
                 <domatrixfree>0</domatrixfree>
                 <reorder>0</reorder>
         </eigensolver>

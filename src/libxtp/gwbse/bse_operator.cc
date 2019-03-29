@@ -28,48 +28,7 @@ namespace xtp {
 
 
 template <int cqp, int cx, int cd, int cd2>
-void BSE_OPERATOR<cqp, cx, cd, cd2>::set_operator_reordering()
-{
-    _diag_order_index = Eigen::ArrayXi::LinSpaced(_bse_size,0,_bse_size-1);
-
-    this->do_reorder = true;
-    Eigen::VectorXd V = this->diagonal();
-    std::sort(_diag_order_index.data(),_diag_order_index.data()+_diag_order_index.size(),
-              [&](int i1, int i2){return V[i1]<V[i2];});
-    
-}
-
-template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::_reorder_col(Eigen::VectorXd& col) const
-{
-    int size = col.rows();
-    Eigen::VectorXd out = Eigen::VectorXd::Zero(size,1);
-    for (int j=0; j < size; j++)
-        out(j) = col(_diag_order_index(j));
-    return out;
-}
-
-
-template <int cqp, int cx, int cd, int cd2>
-Eigen::MatrixXd BSE_OPERATOR<cqp, cx, cd, cd2>::reorder_coefficients(Eigen::MatrixXd& U) const
-{
-    int nrows = U.rows();
-    int ncols = U.cols();
-
-    Eigen::MatrixXd _tmp = Eigen::MatrixXd::Zero(nrows,ncols);
-
-    #pragma omp parallel for
-    for (int j=0; j < nrows; j++)
-        _tmp.row(_diag_order_index(j)) = U.row(j);
-    return _tmp;   
-}
-
-template <int cqp, int cx, int cd, int cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index)const {
-
-  if (this->do_reorder) {
-     index = _diag_order_index(index);
-  }
   
   Eigen::VectorXd col = Eigen::VectorXd::Zero(_bse_size);
   if (cx != 0) {
@@ -88,10 +47,6 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index)const {
     col += cqp * Hqp_col(index);
   }
   
-  if(this->do_reorder) {
-        col = BSE_OPERATOR::_reorder_col(col);
-  }
-
   return col;
   
 }

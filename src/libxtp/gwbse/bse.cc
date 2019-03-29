@@ -69,14 +69,6 @@ void BSE::Solve_triplets() {
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
 
-  // Eigen::MatrixXd hfull = Ht.get_full_matrix();
-  // std::ofstream file("bse_triplet.dat");
-  // if (file.is_open())
-  // {
-  //   file << hfull;
-  //   file.close();
-  // }
-
   solve_hermitian(Ht, _bse_triplet_energies, _bse_triplet_coefficients);
 
   return;
@@ -103,14 +95,6 @@ void BSE::Solve_singlets_TDA() {
   configureBSEOperator(Hs);
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA singlet hamiltonian " << flush;
-
-  // Eigen::MatrixXd hfull = Hs.get_full_matrix(); 
-  // std::ofstream file("bse_singlet.dat");
-  // if (file.is_open())
-  // {
-  //   file << hfull;
-  //   file.close();
-  // }
 
   solve_hermitian(Hs, _bse_singlet_energies, _bse_singlet_coefficients);
 }
@@ -150,19 +134,6 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
     DS.set_tolerance(_opt.davidson_tolerance);
     DS.set_max_search_space(10*_opt.nmax);
 
-    if(_opt.reorder)
-    {
-      hstart = std::chrono::system_clock::now();
-      h.set_operator_reordering();
-      hend = std::chrono::system_clock::now(); 
-
-      elapsed_time = hend-hstart;
-
-      CTP_LOG(ctp::logDEBUG, _log)
-            << ctp::TimeStamp() << " Reorder Elements " 
-            << elapsed_time.count() << " secs" << flush;  
-    }
-
     if (_opt.matrixfree) 
     {
       CTP_LOG(ctp::logDEBUG, _log)
@@ -199,18 +170,6 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
 
     energies = DS.eigenvalues();
     coefficients = DS.eigenvectors();
-
-    if(_opt.reorder) {
-      hstart = std::chrono::system_clock::now();
-      coefficients = h.reorder_coefficients(coefficients);
-      hend = std::chrono::system_clock::now(); 
-
-      elapsed_time = hend - hstart;
-      CTP_LOG(ctp::logDEBUG, _log)
-            << ctp::TimeStamp() << " Reorder coefficients done in " 
-            << elapsed_time.count() << " secs" << flush;  
-
-    }
     
   }
 
