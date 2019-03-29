@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -375,6 +375,7 @@ inline T Property::getAttribute(std::map<std::string,std::string>::iterator it)
     if (it != _attributes.end()) {
         return lexical_cast<T>((*it).second);
     } else {
+        cerr << *this << endl;
         throw std::runtime_error("attribute " + (*it).first + " not found\n");
     }
 }
@@ -389,6 +390,7 @@ inline T Property::getAttribute(const std::string &attribute)
     if (it != _attributes.end()) {
         return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
     } else {
+        cerr << *this << endl;
         throw std::runtime_error("attribute " + attribute + " not found\n");
     }
 }
