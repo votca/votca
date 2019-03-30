@@ -125,7 +125,6 @@ void CsgApplication::ShowHelpText(std::ostream &out) {
   HelpText(out);
 
   out << "\n\n" << VisibleOptions() << endl;
-  // out << "\n\n" << OptionsDesc() << endl;
 }
 
 void CsgApplication::Worker::Run(void) {
