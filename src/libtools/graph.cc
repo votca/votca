@@ -164,8 +164,8 @@ ostream& operator<<(ostream& os, const Graph graph) {
   return os;
 }
 
-bool cmpVertNodePair(pair<int, GraphNode>& id_and_node1,
-                     pair<int, GraphNode>& id_and_node2) {
+bool cmpVertNodePair(const pair<int, GraphNode>& id_and_node1,
+                     const pair<int, GraphNode>& id_and_node2) {
   string str1_Id = id_and_node1.second.getStringId();
   return str1_Id.compare(id_and_node2.second.getStringId()) < 0;
 }
