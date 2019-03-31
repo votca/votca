@@ -32,16 +32,16 @@ class NBListGrid : public NBList {
 
  protected:
   struct cell_t {
-    BeadList              _beads;
+    BeadList _beads;
     std::vector<cell_t *> _neighbours;
   };
 
   Eigen::Vector3d _box_a, _box_b, _box_c;
   Eigen::Vector3d _norm_a, _norm_b, _norm_c;
-  int             _box_Na, _box_Nb, _box_Nc;
+  int _box_Na, _box_Nb, _box_Nc;
 
   std::vector<cell_t> _grid;
-  Topology *          _top;
+  Topology *_top;
 
   void InitializeGrid(const Eigen::Matrix3d &box);
 

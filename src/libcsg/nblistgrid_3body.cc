@@ -197,7 +197,7 @@ NBListGrid_3Body::cell_t &NBListGrid_3Body::getCell(const Eigen::Vector3d &r) {
 void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
   BeadList::iterator iter2;
   BeadList::iterator iter3;
-  Eigen::Vector3d    u = bead->getPos();
+  Eigen::Vector3d u = bead->getPos();
 
   // loop over all neighbors (this now includes the cell itself!) to iterate
   // over all beads of type2 of the cell and its neighbors
@@ -231,9 +231,9 @@ void NBListGrid_3Body::TestBead(NBListGrid_3Body::cell_t &cell, Bead *bead) {
           Eigen::Vector3d r12 = _top->BCShortestConnection(u, v);
           Eigen::Vector3d r13 = _top->BCShortestConnection(u, z);
           Eigen::Vector3d r23 = _top->BCShortestConnection(v, z);
-          double          d12 = r12.norm();
-          double          d13 = r13.norm();
-          double          d23 = r23.norm();
+          double d12 = r12.norm();
+          double d13 = r13.norm();
+          double d23 = r23.norm();
 
           // to do: at the moment use only one cutoff value
           // to do: so far only check the distance between bead 1 (central bead)

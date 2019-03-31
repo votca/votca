@@ -23,7 +23,7 @@ namespace votca {
 namespace csg {
 
 void BondedStatistics::BeginCG(Topology *top, Topology *top_atom) {
-  InteractionContainer &         ic = top->BondedInteractions();
+  InteractionContainer &ic = top->BondedInteractions();
   InteractionContainer::iterator ia;
 
   _bonded_values.clear();
@@ -35,7 +35,7 @@ void BondedStatistics::BeginCG(Topology *top, Topology *top_atom) {
 void BondedStatistics::EndCG() {}
 
 void BondedStatistics::EvalConfiguration(Topology *conf, Topology *conv_atom) {
-  InteractionContainer &         ic = conf->BondedInteractions();
+  InteractionContainer &ic = conf->BondedInteractions();
   InteractionContainer::iterator ia;
 
   DataCollection<double>::container::iterator is;

@@ -32,8 +32,8 @@ void help_text() {
 
 int main(int argc, char **argv) {
   string filter, file, path, print;
-  bool   short_output = false;
-  bool   with_path    = false;
+  bool short_output = false;
+  bool with_path = false;
 
   // lets read in some program options
   namespace po = boost::program_options;
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
     for (Property *prop : p.Select(path)) {
       if (filter != "") {
-        Tokenizer           tokenizer(filter, "=");
+        Tokenizer tokenizer(filter, "=");
         Tokenizer::iterator tok;
         tok = tokenizer.begin();
         if (tok == tokenizer.end())

@@ -56,16 +56,16 @@ class Molecule : public TopologyItem {
   void AddBead(Bead *bead, const std::string &name);
   /// get the id of a bead in the molecule
   Bead *getBead(int bead) { return _beads[bead]; }
-  int   getBeadId(int bead) { return _beads[bead]->getId(); }
-  int   getBeadIdByName(const std::string &name);
+  int getBeadId(int bead) { return _beads[bead]->getId(); }
+  int getBeadIdByName(const std::string &name);
 
   /// get the number of beads in the molecule
   int BeadCount() const { return _beads.size(); }
 
   const std::vector<Bead *> &Beads() const { return _beads; }
-  std::vector<Bead *> &      Beads() { return _beads; }
+  std::vector<Bead *> &Beads() { return _beads; }
   /// find a bead by it's name
-  int         getBeadByName(const std::string &name);
+  int getBeadByName(const std::string &name);
   std::string getBeadName(int bead) { return _bead_names[bead]; }
 
   /// Add an interaction to the molecule
@@ -94,7 +94,7 @@ class Molecule : public TopologyItem {
   // name of the molecule
   std::string _name;
   // the beads in the molecule
-  std::vector<Bead *>      _beads;
+  std::vector<Bead *> _beads;
   std::vector<std::string> _bead_names;
 
   void *_userdata;

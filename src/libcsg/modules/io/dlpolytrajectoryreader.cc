@@ -36,7 +36,7 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
 // ".dlpc"="CONFIG", ".dlph"="HISTORY")
 {
   boost::filesystem::path filepath(file.c_str());
-  string                  inp_name = "HISTORY";
+  string inp_name = "HISTORY";
 
   if (boost::filesystem::extension(filepath).size() == 0) {
 
@@ -47,7 +47,7 @@ bool DLPOLYTrajectoryReader::Open(const string &file)
   } else if (boost::filesystem::extension(filepath) == ".dlpc") {
 
     _isConfig = true;
-    inp_name  = "CONFIG";
+    inp_name = "CONFIG";
 
   } else if (boost::filesystem::extension(filepath) == ".dlph") {
 
@@ -79,7 +79,7 @@ void DLPOLYTrajectoryReader::Close() { _fl.close(); }
 
 bool DLPOLYTrajectoryReader::FirstFrame(Topology &conf) {
   _first_frame = true;
-  bool res     = NextFrame(conf);
+  bool res = NextFrame(conf);
   _first_frame = false;
   return res;
 }
@@ -87,11 +87,11 @@ bool DLPOLYTrajectoryReader::FirstFrame(Topology &conf) {
 bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   static bool hasVs = false;
   static bool hasFs = false;
-  static int  mavecs =
+  static int mavecs =
       0;  // number of 3d vectors per atom = keytrj in DL_POLY manuals
-  static int   mpbct  = 0;  // cell PBC type = imcon in DL_POLY manuals
-  static int   matoms = 0;  // number of atoms/beads in a frame
-  const double scale  = tools::conv::ang2nm;
+  static int mpbct = 0;   // cell PBC type = imcon in DL_POLY manuals
+  static int matoms = 0;  // number of atoms/beads in a frame
+  const double scale = tools::conv::ang2nm;
 
   static int nerrt = 0;
 
@@ -115,7 +115,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
          << "' - directives line" << endl;
 #endif
 
-    Tokenizer      tok(line, " \t");
+    Tokenizer tok(line, " \t");
     vector<string> fields;
     tok.ToVector(fields);
 
@@ -124,7 +124,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                _fname + "' header (check its 2-nd line)");
 
     mavecs = boost::lexical_cast<int>(fields[0]);
-    mpbct  = boost::lexical_cast<int>(fields[1]);
+    mpbct = boost::lexical_cast<int>(fields[1]);
     matoms = boost::lexical_cast<int>(fields[2]);
 
     hasVs = (mavecs > 0);  // 1 or 2 => in DL_POLY frame velocity vector follows
@@ -187,10 +187,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
   if (!_fl.eof()) {
     double dtime, stime;
-    int    nstep;
-    int    natoms;
-    int    navecs;
-    int    npbct;
+    int nstep;
+    int natoms;
+    int navecs;
+    int npbct;
 
     if (_isConfig) {
       // use the above read specs from the header, and skip the data missing in
@@ -198,7 +198,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
       natoms = matoms;
       navecs = mavecs;
-      npbct  = mpbct;
+      npbct = mpbct;
 
       conf.SetHasVel(hasVs);
       conf.SetHasForce(hasFs);
@@ -210,7 +210,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
     } else {
 
-      Tokenizer      tok(line, " \t");
+      Tokenizer tok(line, " \t");
       vector<string> fields;
       tok.ToVector(fields);
 
@@ -218,10 +218,10 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
         throw std::runtime_error(
             "Error: too few directive switches (<6) in 'timestep' record");
 
-      nstep  = boost::lexical_cast<int>(fields[1]);
+      nstep = boost::lexical_cast<int>(fields[1]);
       natoms = boost::lexical_cast<int>(fields[2]);
       navecs = boost::lexical_cast<int>(fields[3]);
-      npbct  = boost::lexical_cast<int>(fields[4]);
+      npbct = boost::lexical_cast<int>(fields[4]);
       dtime =
           stod(fields[5]);  // normally it is the 5-th column in 'timestep' line
       stime = stod(fields[fields.size() - 1]);  // normally it is the last
@@ -293,7 +293,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                  _fname + "', when reading box vector" +
                                  boost::lexical_cast<string>(i));
 
-      Tokenizer      tok(line, " \t");
+      Tokenizer tok(line, " \t");
       vector<double> fields;
       tok.ConvertToVector<double>(fields);
       // Angs -> nm
@@ -318,7 +318,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                    boost::lexical_cast<string>(i + 1));
 
         vector<string> fields;
-        Tokenizer      tok(line, " \t");
+        Tokenizer tok(line, " \t");
         tok.ToVector(fields);
         int id = boost::lexical_cast<int>(fields[1]);
         if (i + 1 != id)
@@ -328,7 +328,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
               " but got " + boost::lexical_cast<string>(id));
       }
 
-      Bead *          b         = conf.getBead(i);
+      Bead *b = conf.getBead(i);
       Eigen::Matrix3d atom_vecs = Eigen::Matrix3d::Zero();
       for (int j = 0; j < min(navecs, 2) + 1; j++) {
 
@@ -347,7 +347,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
               boost::lexical_cast<string>(i + 1));
 
         vector<double> fields;
-        Tokenizer      tok(line, " \t");
+        Tokenizer tok(line, " \t");
         tok.ConvertToVector<double>(fields);
         // Angs -> nm
         atom_vecs.col(j) =

@@ -40,9 +40,9 @@ CGEngine::~CGEngine() {
     \todo melts with different molecules
 */
 TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
-  MoleculeContainer &         mols = in.Molecules();
+  MoleculeContainer &mols = in.Molecules();
   MoleculeContainer::iterator iter;
-  TopologyMap *               m = new TopologyMap(&in, &out);
+  TopologyMap *m = new TopologyMap(&in, &out);
   for (iter = mols.begin(); iter != mols.end(); ++iter) {
     Molecule *mol = *iter;
     if (IsIgnored(mol->getName())) continue;
@@ -60,7 +60,7 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
       continue;
     }
     Molecule *mcg = def->CreateMolecule(out);
-    Map *     map = def->CreateMap(*mol, *mcg);
+    Map *map = def->CreateMap(*mol, *mcg);
     m->AddMoleculeMap(map);
   }
   out.RebuildExclusions();
@@ -68,12 +68,12 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
 }
 
 void CGEngine::LoadMoleculeType(string filename) {
-  Tokenizer           tok(filename, ";");
+  Tokenizer tok(filename, ";");
   Tokenizer::iterator iter;
 
   for (iter = tok.begin(); iter != tok.end(); ++iter) {
-    CGMoleculeDef *def  = new CGMoleculeDef();
-    string         file = *iter;
+    CGMoleculeDef *def = new CGMoleculeDef();
+    string file = *iter;
     boost::trim(file);
     def->Load(file);
     _molecule_defs[def->getIdent()] = def;

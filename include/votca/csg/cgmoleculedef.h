@@ -48,7 +48,7 @@ class CGMoleculeDef {
   ~CGMoleculeDef();
 
   Molecule *CreateMolecule(Topology &top);
-  Map *     CreateMap(Molecule &in, Molecule &out);
+  Map *CreateMap(Molecule &in, Molecule &out);
 
   void Load(std::string filename);
 
@@ -59,12 +59,12 @@ class CGMoleculeDef {
   Property _options;
 
   struct beaddef_t {
-    std::string              _name;
-    std::string              _type;
-    byte_t                   _symmetry;
-    std::string              _mapping;
+    std::string _name;
+    std::string _type;
+    byte_t _symmetry;
+    std::string _mapping;
     std::vector<std::string> _subbeads;
-    Property *               _options;
+    Property *_options;
   };
 
   // name of the coarse grained molecule
@@ -73,7 +73,7 @@ class CGMoleculeDef {
   std::string _ident;
 
   // beads of the cg molecule
-  std::vector<beaddef_t *>           _beads;
+  std::vector<beaddef_t *> _beads;
   std::map<std::string, beaddef_t *> _beads_by_name;
 
   // mapping schemes
@@ -87,7 +87,7 @@ class CGMoleculeDef {
   void ParseMapping(Property &options);
 
   beaddef_t *getBeadByName(const std::string &name);
-  Property * getMapByName(const std::string &name);
+  Property *getMapByName(const std::string &name);
 };
 
 }  // namespace csg

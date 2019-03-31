@@ -81,18 +81,18 @@ class Interaction {
   }
 
   virtual Eigen::Vector3d Grad(const Topology &top, int bead) = 0;
-  int                     BeadCount() { return _beads.size(); }
-  int                     getBeadId(int bead) {
+  int BeadCount() { return _beads.size(); }
+  int getBeadId(int bead) {
     assert(bead > -1 && boost::lexical_cast<size_t>(bead) < _beads.size());
     return _beads[bead];
   }
 
  protected:
-  int              _index;
-  std::string      _group;
-  int              _group_id;
-  std::string      _name;
-  int              _mol;
+  int _index;
+  std::string _group;
+  int _group_id;
+  std::string _name;
+  int _mol;
   std::vector<int> _beads;
 
   void RebuildName();
@@ -130,7 +130,7 @@ class IBond : public Interaction {
       beads.pop_front();
     }
   }
-  double          EvaluateVar(const Topology &top);
+  double EvaluateVar(const Topology &top);
   Eigen::Vector3d Grad(const Topology &top, int bead);
 
  private:
@@ -156,7 +156,7 @@ class IAngle : public Interaction {
     }
   }
 
-  double          EvaluateVar(const Topology &top);
+  double EvaluateVar(const Topology &top);
   Eigen::Vector3d Grad(const Topology &top, int bead);
 
  private:
@@ -183,7 +183,7 @@ class IDihedral : public Interaction {
     }
   }
 
-  double          EvaluateVar(const Topology &top);
+  double EvaluateVar(const Topology &top);
   Eigen::Vector3d Grad(const Topology &top, int bead);
 
  private:
@@ -238,9 +238,9 @@ inline double IDihedral::EvaluateVar(const Topology &top) {
   Eigen::Vector3d v1(top.getDist(_beads[0], _beads[1]));
   Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
   Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
-  Eigen::Vector3d n1   = v1.cross(v2);  // calculate the normal vector
-  Eigen::Vector3d n2   = v2.cross(v3);  // calculate the normal vector
-  double          sign = (v1.dot(n2) < 0) ? -1 : 1;
+  Eigen::Vector3d n1 = v1.cross(v2);  // calculate the normal vector
+  Eigen::Vector3d n2 = v2.cross(v3);  // calculate the normal vector
+  double sign = (v1.dot(n2) < 0) ? -1 : 1;
   return sign *
          std::acos(n1.dot(n2) / sqrt(n1.squaredNorm() * n2.squaredNorm()));
 }
@@ -250,9 +250,9 @@ inline Eigen::Vector3d IDihedral::Grad(const Topology &top, int bead) {
   Eigen::Vector3d v2(top.getDist(_beads[1], _beads[2]));
   Eigen::Vector3d v3(top.getDist(_beads[2], _beads[3]));
   Eigen::Vector3d n1, n2;
-  n1                   = v1.cross(v2);  // calculate the normal vector
-  n2                   = v2.cross(v3);  // calculate the normal vector
-  double          sign = (v1.dot(n2) < 0) ? -1 : 1;
+  n1 = v1.cross(v2);  // calculate the normal vector
+  n2 = v2.cross(v3);  // calculate the normal vector
+  double sign = (v1.dot(n2) < 0) ? -1 : 1;
   Eigen::Vector3d returnvec;
 
   Eigen::Matrix3d e = Eigen::Matrix3d::Identity();

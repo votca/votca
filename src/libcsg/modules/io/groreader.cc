@@ -74,9 +74,9 @@ bool GROReader::NextFrame(Topology &top) {
     getline(_fl, line);
     string resNum, resName, atName, x, y, z;
     try {
-      resNum  = string(line, 0, 5);   // %5i
-      resName = string(line, 5, 5);   //%5s
-      atName  = string(line, 10, 5);  // %5s
+      resNum = string(line, 0, 5);   // %5i
+      resName = string(line, 5, 5);  //%5s
+      atName = string(line, 10, 5);  // %5s
       // atNum= string(line,15,5); // %5i not needed
       x = string(line, 20, 8);  // %8.3f
       y = string(line, 28, 8);  // %8.3f
@@ -91,7 +91,7 @@ bool GROReader::NextFrame(Topology &top) {
     boost::algorithm::trim(y);
     boost::algorithm::trim(z);
     string vx, vy, vz;
-    bool   hasVel = true;
+    bool hasVel = true;
     try {
       vx = string(line, 44, 8);  // %8.4f
       vy = string(line, 52, 8);  // %8.4f
@@ -142,7 +142,7 @@ bool GROReader::NextFrame(Topology &top) {
   if (_fl.eof())
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");
-  Tokenizer      tok(tmp, " ");
+  Tokenizer tok(tmp, " ");
   vector<double> fields;
   tok.ConvertToVector<double>(fields);
   Eigen::Matrix3d box;

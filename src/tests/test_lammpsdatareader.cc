@@ -167,7 +167,6 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
  * Internal test functions                                                   *
  *****************************************************************************/
 
-
 // Check if file exists
 bool fexists_(const string filename) {
   std::ifstream ifile(filename);

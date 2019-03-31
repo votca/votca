@@ -31,57 +31,57 @@ void GMXTrajectoryWriter::Open(string file, bool bAppend) {
 void GMXTrajectoryWriter::Close() { close_trx(_file); }
 
 void GMXTrajectoryWriter::Write(Topology *conf) {
-  static int      step = 0;
-  int             N    = conf->BeadCount();
-  t_trxframe      frame;
-  rvec *          x   = new rvec[N];
-  rvec *          v   = NULL;
-  rvec *          f   = NULL;
+  static int step = 0;
+  int N = conf->BeadCount();
+  t_trxframe frame;
+  rvec *x = new rvec[N];
+  rvec *v = NULL;
+  rvec *f = NULL;
   Eigen::Matrix3d box = conf->getBox();
 
   frame.natoms = N;
-  frame.bTime  = true;
-  frame.time   = conf->getTime();
-  frame.bStep  = true;
-  frame.step   = conf->getStep();
+  frame.bTime = true;
+  frame.time = conf->getTime();
+  frame.bStep = true;
+  frame.step = conf->getStep();
   ;
-  frame.x       = x;
+  frame.x = x;
   frame.bLambda = false;
-  frame.bAtoms  = false;
-  frame.bPrec   = false;
-  frame.bX      = true;
-  frame.bF      = conf->HasForce();
-  frame.bBox    = true;
-  frame.bV      = conf->HasVel();
+  frame.bAtoms = false;
+  frame.bPrec = false;
+  frame.bX = true;
+  frame.bF = conf->HasForce();
+  frame.bBox = true;
+  frame.bV = conf->HasVel();
 
   for (int i = 0; i < 3; i++)
     for (int j = 0; j < 3; j++) frame.box[j][i] = box(i, j);
 
   for (int i = 0; i < N; ++i) {
     Eigen::Vector3d pos = conf->getBead(i)->getPos();
-    x[i][0]             = pos.x();
-    x[i][1]             = pos.y();
-    x[i][2]             = pos.z();
+    x[i][0] = pos.x();
+    x[i][1] = pos.y();
+    x[i][2] = pos.z();
   }
 
   if (frame.bV) {
     v = new rvec[N];
     for (int i = 0; i < N; ++i) {
-      frame.v             = v;
+      frame.v = v;
       Eigen::Vector3d vel = conf->getBead(i)->getVel();
-      v[i][0]             = vel.x();
-      v[i][1]             = vel.y();
-      v[i][2]             = vel.z();
+      v[i][0] = vel.x();
+      v[i][1] = vel.y();
+      v[i][2] = vel.z();
     }
   }
   if (frame.bF) {
     f = new rvec[N];
     for (int i = 0; i < N; ++i) {
-      frame.f               = f;
+      frame.f = f;
       Eigen::Vector3d force = conf->getBead(i)->getF();
-      f[i][0]               = force.x();
-      f[i][1]               = force.y();
-      f[i][2]               = force.z();
+      f[i][0] = force.x();
+      f[i][1] = force.y();
+      f[i][2] = force.z();
     }
   }
 

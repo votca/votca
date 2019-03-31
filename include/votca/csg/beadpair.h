@@ -35,7 +35,9 @@ class BeadPair {
  public:
   BeadPair() {}
   BeadPair(Bead *bead1, Bead *bead2, Eigen::Vector3d r)
-      : _pair(std::pair<Bead *, Bead *>(bead1, bead2)), _r(r), _dist(r.norm()) {}
+      : _pair(std::pair<Bead *, Bead *>(bead1, bead2)),
+        _r(r),
+        _dist(r.norm()) {}
 
   Bead *first() { return _pair.first; }
   Bead *second() { return _pair.second; }
@@ -48,7 +50,7 @@ class BeadPair {
   std::pair<Bead *, Bead *> _pair;
 
   Eigen::Vector3d _r;
-  double          _dist;
+  double _dist;
 };
 
 }  // namespace csg

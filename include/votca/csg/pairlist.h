@@ -32,9 +32,9 @@ class PairList {
 
   void AddPair(pair_type *p);
 
-  typedef typename std::vector<pair_type *>::iterator       iterator;
+  typedef typename std::vector<pair_type *>::iterator iterator;
   typedef typename std::vector<pair_type *>::const_iterator const_iterator;
-  typedef typename std::map<element_type, pair_type *>      partners;
+  typedef typename std::map<element_type, pair_type *> partners;
 
   iterator begin() { return _pairs.begin(); }
   iterator end() { return _pairs.end(); }
@@ -43,7 +43,7 @@ class PairList {
   const_iterator end() const { return _pairs.end(); }
   pair_type *front() { return _pairs.front(); }
   pair_type *back() { return _pairs.back(); }
-  bool       empty() { return _pairs.empty(); }
+  bool empty() { return _pairs.empty(); }
 
   int size() const { return _pairs.size(); }
 
@@ -54,7 +54,7 @@ class PairList {
   partners *FindPartners(element_type e1);
 
   typedef element_type element_t;
-  typedef pair_type    pair_t;
+  typedef pair_type pair_t;
 
  protected:
   std::vector<pair_type *> _pairs;

@@ -55,7 +55,7 @@ bool CGForceMatching::EvaluateOptions() {
 
 void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   // set counters to zero value:
-  _nblocks   = 0;
+  _nblocks = 0;
   _line_cntr = _col_cntr = 0;
 
   // Number of CG beads in topology
@@ -165,16 +165,16 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
                                         Property *options) {
   // initialize standard data
   splineIndex = index;
-  _options    = options;
-  splineName  = options->get("name").value();
-  bonded      = bonded_;
+  _options = options;
+  splineName = options->get("name").value();
+  bonded = bonded_;
   // in general natural boundary conditions are used for splines (default is no)
   periodic = 0;
   // check if non-bonded 3-body interaction or not (default is no)
   threebody = 0;
   // initialize additional parameters for threebody interactions
   //(values of Molinero water potential)
-  a     = 0.37;  //(0.37 nm)
+  a = 0.37;      //(0.37 nm)
   sigma = 1;     //(dimensionless)
   gamma = 0.12;  //(0.12 nm = 1.2 Ang)
 
@@ -218,14 +218,14 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
             << std::endl;
 
   // initialize the grid
-  double grid_min  = options->get("fmatch.min").as<double>();
-  double grid_max  = options->get("fmatch.max").as<double>();
+  double grid_min = options->get("fmatch.min").as<double>();
+  double grid_max = options->get("fmatch.max").as<double>();
   double grid_step = options->get("fmatch.step").as<double>();
 
   // GenerateGrid returns number of grid points. We subtract 1 to get
   // the number of spline functions
   num_gridpoints = Spline.GenerateGrid(grid_min, grid_max, grid_step);
-  num_splinefun  = num_gridpoints - 1;
+  num_splinefun = num_gridpoints - 1;
 
   cout << "Number of spline functions for the interaction " << splineName << ":"
        << num_splinefun << endl;
@@ -236,20 +236,20 @@ CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
   dx_out = options->get("fmatch.out_step").as<double>();
   // number of output grid points
   num_outgrid = 1 + (int)((grid_max - grid_min) / dx_out);
-  result      = Eigen::VectorXd::Zero(num_outgrid);
-  error       = Eigen::VectorXd::Zero(num_outgrid);
-  resSum      = Eigen::VectorXd::Zero(num_outgrid);
-  resSum2     = Eigen::VectorXd::Zero(num_outgrid);
+  result = Eigen::VectorXd::Zero(num_outgrid);
+  error = Eigen::VectorXd::Zero(num_outgrid);
+  resSum = Eigen::VectorXd::Zero(num_outgrid);
+  resSum2 = Eigen::VectorXd::Zero(num_outgrid);
 
   // Only if threebody interaction, the derivatives are explicitly calculated
   if (threebody) {
-    resultDer  = Eigen::VectorXd::Zero(num_outgrid);
-    errorDer   = Eigen::VectorXd::Zero(num_outgrid);
-    resSumDer  = Eigen::VectorXd::Zero(num_outgrid);
+    resultDer = Eigen::VectorXd::Zero(num_outgrid);
+    errorDer = Eigen::VectorXd::Zero(num_outgrid);
+    resSumDer = Eigen::VectorXd::Zero(num_outgrid);
     resSumDer2 = Eigen::VectorXd::Zero(num_outgrid);
   }
 
-  block_res_f  = Eigen::VectorXd::Zero(num_outgrid);
+  block_res_f = Eigen::VectorXd::Zero(num_outgrid);
   block_res_f2 = Eigen::VectorXd::Zero(num_outgrid);
 }
 void CGForceMatching::EndEvaluate() {
@@ -273,12 +273,12 @@ void CGForceMatching::EndEvaluate() {
 }
 
 void CGForceMatching::WriteOutFiles() {
-  string file_extension     = ".force";
+  string file_extension = ".force";
   string file_extension_pot = ".pot";
   string file_name;
   string file_nameDer;
-  Table  force_tab;
-  Table  force_tabDer;
+  Table force_tab;
+  Table force_tabDer;
 
   // table with error column
   force_tab.SetHasYErr(true);
@@ -302,7 +302,7 @@ void CGForceMatching::WriteOutFiles() {
     // the derivative represents the force Only then, the derivatives are
     // explicitly calculated
     if (spline->threebody) {
-      file_name    = file_name + file_extension_pot;
+      file_name = file_name + file_extension_pot;
       file_nameDer = spline->splineName;
       file_nameDer = file_nameDer + file_extension;
 
@@ -313,7 +313,7 @@ void CGForceMatching::WriteOutFiles() {
     }
 
     spline->result = (spline->resSum).array() / _nblocks;
-    spline->error  = (((spline->resSum2).array() / _nblocks -
+    spline->error = (((spline->resSum2).array() / _nblocks -
                       (spline->result).array().abs2()) /
                      _nblocks)
                         .abs()
@@ -321,7 +321,7 @@ void CGForceMatching::WriteOutFiles() {
 
     if (spline->threebody) {
       spline->resultDer = (spline->resSumDer).array() / _nblocks;
-      spline->errorDer  = (((spline->resSumDer2).array() / _nblocks -
+      spline->errorDer = (((spline->resSumDer2).array() / _nblocks -
                            (spline->resultDer).array().abs2()) /
                           _nblocks)
                              .abs()
@@ -383,7 +383,7 @@ void CGForceMatching::EvalConfiguration(Topology *conf, Topology *conf_atom) {
       Eigen::Vector3d d =
           conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
       if (d.norm() > _dist) {  // default is 1e-5, otherwise it can be a too
-                             // strict criterion
+                               // strict criterion
         throw std::runtime_error(
             "One or more bead positions in mapped and reference force "
             "trajectory differ by more than 1e-5");
@@ -462,7 +462,7 @@ void CGForceMatching::FmatchAccumulateData() {
   } else {  // Simple Least Squares
 
     Eigen::HouseholderQR<Eigen::MatrixXd> dec(_A);
-    _x                       = dec.solve(_b);
+    _x = dec.solve(_b);
     Eigen::VectorXd residual = _b - _A * _x;
     // calculate FM residual - quality of FM
     // FM residual is initially calculated in (kJ/(mol*nm))^2
@@ -480,13 +480,13 @@ void CGForceMatching::FmatchAccumulateData() {
 
   SplineContainer::iterator is;
   for (is = _splines.begin(); is != _splines.end(); ++is) {
-    int &mp  = (*is)->matr_pos;
+    int &mp = (*is)->matr_pos;
     int &ngp = (*is)->num_gridpoints;
 
     // _x contains results for all splines. Here we cut the results for one
     // spline
     for (int i = 0; i < ngp; i++) {
-      (*is)->block_res_f[i]  = _x[i + mp];
+      (*is)->block_res_f[i] = _x[i + mp];
       (*is)->block_res_f2[i] = _x[i + mp + ngp];
     }
     // result cutted before is assigned to the corresponding spline
@@ -532,7 +532,7 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
   // For constrained least squares - for Eigen::Matrix3d _B_constr
   int line_tmp, col_tmp;
   line_tmp = 0;
-  col_tmp  = 0;
+  col_tmp = 0;
 
   Matrix.setZero();
 
@@ -556,12 +556,12 @@ void CGForceMatching::FmatchAssignSmoothCondsToMatrix(Eigen::MatrixXd &Matrix) {
 
 void CGForceMatching::LoadOptions(const string &file) {
   load_property_from_xml(_options, file);
-  _bonded    = _options.Select("cg.bonded");
+  _bonded = _options.Select("cg.bonded");
   _nonbonded = _options.Select("cg.non-bonded");
 }
 
 void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
-  std::list<Interaction *>           interList;
+  std::list<Interaction *> interList;
   std::list<Interaction *>::iterator interListIter;
 
   interList = conf->InteractionsInGroup(sinfo->splineName);
@@ -581,7 +581,7 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
                                                         // or dihedral
 
     for (int loop = 0; loop < beads_in_int; loop++) {
-      int             ii       = (*interListIter)->getBeadId(loop);
+      int ii = (*interListIter)->getBeadId(loop);
       Eigen::Vector3d gradient = (*interListIter)->Grad(*conf, loop);
 
       SP.AddToFitMatrix(_A, var,
@@ -639,9 +639,9 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   NBList::iterator pair_iter;
   // iterate over all pairs
   for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-    int             iatom    = (*pair_iter)->first()->getId();
-    int             jatom    = (*pair_iter)->second()->getId();
-    double          var      = (*pair_iter)->dist();
+    int iatom = (*pair_iter)->first()->getId();
+    int jatom = (*pair_iter)->second()->getId();
+    double var = (*pair_iter)->dist();
     Eigen::Vector3d gradient = (*pair_iter)->r();
     gradient.normalize();
 
@@ -678,7 +678,7 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   delete nb;
 }
 
-void CGForceMatching::EvalNonbonded_Threebody(Topology *  conf,
+void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
                                               SplineInfo *sinfo) {
   // so far option gridsearch ignored. Only simple search
 
@@ -746,19 +746,19 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *  conf,
   NBList_3Body::iterator triple_iter;
   // iterate over all triples
   for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter) {
-    int             iatom  = (*triple_iter)->bead1()->getId();
-    int             jatom  = (*triple_iter)->bead2()->getId();
-    int             katom  = (*triple_iter)->bead3()->getId();
-    double          distij = (*triple_iter)->dist12();
-    double          distik = (*triple_iter)->dist13();
-    Eigen::Vector3d rij    = (*triple_iter)->r12();
-    Eigen::Vector3d rik    = (*triple_iter)->r13();
+    int iatom = (*triple_iter)->bead1()->getId();
+    int jatom = (*triple_iter)->bead2()->getId();
+    int katom = (*triple_iter)->bead3()->getId();
+    double distij = (*triple_iter)->dist12();
+    double distik = (*triple_iter)->dist13();
+    Eigen::Vector3d rij = (*triple_iter)->r12();
+    Eigen::Vector3d rik = (*triple_iter)->r13();
 
     double gamma_sigma = (sinfo->gamma) * (sinfo->sigma);
-    double denomij     = (distij - (sinfo->a) * (sinfo->sigma));
-    double denomik     = (distik - (sinfo->a) * (sinfo->sigma));
-    double expij       = exp(gamma_sigma / denomij);
-    double expik       = exp(gamma_sigma / denomik);
+    double denomij = (distij - (sinfo->a) * (sinfo->sigma));
+    double denomik = (distik - (sinfo->a) * (sinfo->sigma));
+    double expij = exp(gamma_sigma / denomij);
+    double expik = exp(gamma_sigma / denomik);
 
     Eigen::Vector3d gradient1, gradient2;
 

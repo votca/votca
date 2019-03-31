@@ -106,7 +106,7 @@ void imcio_read_dS(const string &filename, Eigen::VectorXd &r,
   dS.resize(tbl.size());
 
   for (int i = 0; i < tbl.size(); ++i) {
-    r(i)  = tbl.x(i);
+    r(i) = tbl.x(i);
     dS(i) = tbl.y(i);
   }
 }
@@ -118,7 +118,7 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
   bool is_initialized = false;
   if (!in) throw runtime_error(string("error, cannot open file ") + filename);
 
-  int    line_count = 0;
+  int line_count = 0;
   string line;
   // read till the first data line
   while (getline(in, line)) {
@@ -127,7 +127,7 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer      tok(line, " \t");
+    Tokenizer tok(line, " \t");
     vector<string> tokens;
     tok.ToVector(tokens);
 

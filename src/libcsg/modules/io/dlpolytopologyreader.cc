@@ -67,7 +67,7 @@ string DLPOLYTopologyReader::_NextKeyInt(ifstream &fs, const char *wspace,
 // integer value
 {
   stringstream sl(_NextKeyline(fs, wspace));
-  string       line, sval;
+  string line, sval;
 
   sl >> line;  // allow user not to bother about the case
   boost::to_upper(line);
@@ -99,7 +99,7 @@ bool DLPOLYTopologyReader::_isKeyInt(const string &line, const char *wspace,
 {
   // split directives consisting of a few words: the sought keyword must be the
   // first one!
-  Tokenizer      tok(line, wspace);
+  Tokenizer tok(line, wspace);
   vector<string> fields;
   tok.ToVector(fields);
 
@@ -135,7 +135,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
   int matoms = 0;
   int natoms = 0;
 
-  std::ifstream           fl;
+  std::ifstream fl;
   boost::filesystem::path filepath(file.c_str());
 
   string line;
@@ -191,11 +191,11 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 
     for (int nmol_type = 0; nmol_type < nmol_types; nmol_type++) {
 
-      mol_name     = _NextKeyline(fl, WhiteSpace);
+      mol_name = _NextKeyline(fl, WhiteSpace);
       Molecule *mi = top.CreateMolecule(mol_name);
 
       int nreplica = 1;
-      line         = _NextKeyInt(fl, WhiteSpace, "NUMMOL", nreplica);
+      line = _NextKeyInt(fl, WhiteSpace, "NUMMOL", nreplica);
 
 #ifdef DEBUG
       cout << "Read from dlpoly file '" << _fname << "' : '" << mol_name
@@ -231,7 +231,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         line = " ";
         sl >> line;  // rest of the atom line
 
-        Tokenizer      tok(line, WhiteSpace);
+        Tokenizer tok(line, WhiteSpace);
         vector<string> fields;
         tok.ToVector(fields);
 
@@ -246,7 +246,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         for (int j = 0; j < repeater; j++) {
 
           string beadname = beadtype + "#" + boost::lexical_cast<string>(i + 1);
-          Bead * bead =
+          Bead *bead =
               top.CreateBead(1, beadname, beadtype, res->getId(), mass, charge);
 
           stringstream nm;
@@ -277,7 +277,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         line = line.substr(0, 6);
         if ((line == "BONDS") || (line == "ANGLES") || (line == "DIHEDR")) {
           string type = line;
-          int    count;
+          int count;
           nl >> count;
           for (int i = 0; i < count; i++) {
 
@@ -288,7 +288,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
 #endif
             sl >> line;  // internal dlpoly bond/angle/dihedral function types
                          // are merely skipped (ignored)
-            int          ids[4];
+            int ids[4];
             Interaction *ic = NULL;
             sl >> ids[0];
             sl >> ids[1];
@@ -331,9 +331,9 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
       for (int replica = 1; replica < nreplica; replica++) {
         Molecule *mi_replica = top.CreateMolecule(mol_name);
         for (int i = 0; i < mi->BeadCount(); i++) {
-          Bead * bead = mi->getBead(i);
+          Bead *bead = mi->getBead(i);
           string type = bead->getType();
-          Bead * bead_replica =
+          Bead *bead_replica =
               top.CreateBead(1, bead->getName(), type, res->getId(),
                              bead->getMass(), bead->getQ());
           mi_replica->AddBead(bead_replica, bead->getName());
@@ -343,7 +343,7 @@ bool DLPOLYTopologyReader::ReadTopology(string file, Topology &top) {
         for (vector<Interaction *>::iterator ic = ics.begin(); ic != ics.end();
              ++ic) {
           Interaction *ic_replica = NULL;
-          int          offset =
+          int offset =
               mi_replica->getBead(0)->getId() - mi->getBead(0)->getId();
           if ((*ic)->BeadCount() == 2) {
             ic_replica = new IBond((*ic)->getBeadId(0) + offset,

@@ -40,7 +40,7 @@ using namespace std;
 class CGForceMatching : public CsgApplication {
  public:
   string ProgramName() { return "csg_fmatch"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Perform force matching (also called multiscale coarse-graining)";
   }
 
@@ -194,7 +194,7 @@ class CGForceMatching : public CsgApplication {
 
   void OpenForcesTrajectory();
 
-  Topology          _top_force;
+  Topology _top_force;
   TrajectoryReader *_trjreader_force;
 };
 

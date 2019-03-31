@@ -38,7 +38,7 @@ using namespace votca::csg;
 class CsgBoltzmann : public CsgApplication {
  public:
   string ProgramName() { return "csg_boltzmann"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Performs tasks that are needed for simple boltzmann\n"
            "inversion in an interactive environment.";
   }
@@ -53,7 +53,7 @@ class CsgBoltzmann : public CsgApplication {
   bool EvaluateTopology(Topology *top, Topology *top_ref);
 
  protected:
-  ExclusionList *  CreateExclusionList(Molecule &atomistic, Molecule &cg);
+  ExclusionList *CreateExclusionList(Molecule &atomistic, Molecule &cg);
   BondedStatistics _bs;
 };
 void CsgBoltzmann::Initialize() {
@@ -116,7 +116,7 @@ ExclusionList *CsgBoltzmann::CreateExclusionList(Molecule &atomistic,
   Topology *at_top = atomistic.getParent();
   for (int i = 0; i < cg.BeadCount(); ++i) {
     const vector<int> &parent_beads = cg.getBead(i)->ParentBeads();
-    list<Bead *>       excl_list;
+    list<Bead *> excl_list;
 
     for (const int &parent_bead_id : parent_beads) {
       excl_list.push_back(at_top->getBead(parent_bead_id));
@@ -153,8 +153,8 @@ void CsgBoltzmann::Run() {
 
 void CsgBoltzmann::InteractiveMode() {
   std::map<std::string, AnalysisTool *> cmds;
-  TabulatedPotential                    tab;
-  StdAnalysis                           std;
+  TabulatedPotential tab;
+  StdAnalysis std;
   tab.Register(cmds);
   std.Register(cmds);
 
@@ -180,7 +180,7 @@ void CsgBoltzmann::InteractiveMode() {
 
     boost::trim(line);
     vector<string> args;
-    Tokenizer      tok(line, " \t");
+    Tokenizer tok(line, " \t");
     tok.ToVector(args);
 
     if (args.size() == 0) continue;

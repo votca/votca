@@ -32,13 +32,13 @@ namespace TOOLS = votca::tools;
 class BondBead {
  public:
   BondBead(std::string &line) {
-    TOOLS::Tokenizer         tok(line, ":");
+    TOOLS::Tokenizer tok(line, ":");
     std::vector<std::string> tmp_vec;
     tok.ToVector(tmp_vec);
     if (tmp_vec.size() != 2)
       throw std::runtime_error("Wrong number of elements in bead: " + line);
     molname = tmp_vec[0];
-    atname  = tmp_vec[1];
+    atname = tmp_vec[1];
     molname.erase(molname.find_last_not_of(" \n\r\t") + 1);
     atname.erase(atname.find_last_not_of(" \n\r\t") + 1);
   }
@@ -54,22 +54,22 @@ class XMLBead {
       : name(_name), type(_type), mass(_mass), q(_q){};
   XMLBead(){};
 
-  int         pid;
+  int pid;
   std::string name;
   std::string type;
-  double      mass;
-  double      q;
+  double mass;
+  double q;
 };
 
 class XMLMolecule {
  public:
   XMLMolecule(std::string _name, int _nmols) : name(_name), nmols(_nmols) {}
-  std::string                      name;
-  int                              nmols;
-  int                              pid;
-  std::vector<XMLBead *>           beads;
+  std::string name;
+  int nmols;
+  int pid;
+  std::vector<XMLBead *> beads;
   std::map<std::string, XMLBead *> name2beads;
-  Molecule *                       mi;
+  Molecule *mi;
 };
 
 /**
@@ -103,10 +103,10 @@ class XMLTopologyReader : public TopologyReader {
  private:
   ParseXML _parser;
 
-  Topology *   _top;
+  Topology *_top;
   MoleculesMap _molecules;
-  int          _mol_index;
-  int          _bead_index;
+  int _mol_index;
+  int _bead_index;
 
   bool _has_base_topology;
 };

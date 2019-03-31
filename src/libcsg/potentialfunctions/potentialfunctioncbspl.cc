@@ -27,9 +27,9 @@ namespace votca {
 namespace csg {
 
 PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
-                                               const int     nlam_,
-                                               const double  min_,
-                                               const double  max_)
+                                               const int nlam_,
+                                               const double min_,
+                                               const double max_)
     : PotentialFunction(name_, nlam_, min_, max_) {
 
   /* Here nlam_ is the total number of coeff values that are to be optimized
@@ -82,7 +82,7 @@ PotentialFunctionCBSPL::PotentialFunctionCBSPL(const string &name_,
         "3. Use more knot values.\n");
   }
 
-  _M       = Eigen::MatrixXd::Zero(4, 4);
+  _M = Eigen::MatrixXd::Zero(4, 4);
   _M(0, 0) = 1.0;
   _M(0, 1) = 4.0;
   _M(0, 2) = 1.0;
@@ -156,7 +156,7 @@ void PotentialFunctionCBSPL::SavePotTab(const string &filename,
 }
 
 void PotentialFunctionCBSPL::SavePotTab(const string &filename,
-                                        const double  step) {
+                                        const double step) {
   extrapolExclParam();
   PotentialFunction::SavePotTab(filename, step);
 }
@@ -164,7 +164,7 @@ void PotentialFunctionCBSPL::SavePotTab(const string &filename,
 void PotentialFunctionCBSPL::extrapolExclParam() {
 
   double u0 = _lam(_nexcl);
-  double m  = (_lam(_nexcl + 1) - _lam(_nexcl)) /
+  double m = (_lam(_nexcl + 1) - _lam(_nexcl)) /
              (_rbreak(_nexcl + 1) - _rbreak(_nexcl));
   double r0 = _rbreak(_nexcl);
 
@@ -202,18 +202,18 @@ double PotentialFunctionCBSPL::CalculateF(const double r) const {
 
   if (r <= _cut_off) {
 
-    double u    = 0.0;
-    int    indx = min(int(r / _dr), _nbreak - 2);
+    double u = 0.0;
+    int indx = min(int(r / _dr), _nbreak - 2);
     ;
     double rk = indx * _dr;
     ;
     double t = (r - rk) / _dr;
 
     Eigen::VectorXd R = Eigen::VectorXd::Zero(4);
-    R(0)              = 1.0;
-    R(1)              = t;
-    R(2)              = t * t;
-    R(3)              = t * t * t;
+    R(0) = 1.0;
+    R(1) = t;
+    R(2) = t * t;
+    R(3) = t * t * t;
     Eigen::VectorXd B = _lam.segment(indx, 4);
     u += ((R.transpose() * _M) * B).value();
     return u;
@@ -231,10 +231,10 @@ double PotentialFunctionCBSPL::CalculateDF(const int i, const double r) const {
 
     unsigned int i_opt = i + _nexcl;
     unsigned int indx;
-    double       rk;
+    double rk;
 
     indx = min(int((r) / _dr), _nbreak - 2);
-    rk   = indx * _dr;
+    rk = indx * _dr;
 
     if (i_opt >= indx && i_opt <= indx + 3) {
 

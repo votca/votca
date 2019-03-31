@@ -40,7 +40,7 @@ class PDBWriter : public TrajectoryWriter {
 
   void WriteHeader(std::string header);
 
-  void WriteBox(const Eigen::Matrix3d& box);
+  void WriteBox(const Eigen::Matrix3d &box);
 
  private:
   template <class Atom>
@@ -99,9 +99,9 @@ inline void PDBWriter::WriteContainer(T &container) {
       "ATOM  %1$5d %2$-4s %3$-3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
 
   for (auto &atom : getIterable(container)) {
-    Eigen::Vector3d r        = getPos(atom);
-    string          resname  = getResname(container, atom);
-    string          atomname = getName(atom);
+    Eigen::Vector3d r = getPos(atom);
+    string resname = getResname(container, atom);
+    string atomname = getName(atom);
     if (resname.size() > 3) {
       resname = resname.substr(0, 3);
     }

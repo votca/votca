@@ -145,13 +145,13 @@ void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead) {
 
 void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead) {
   BeadList::iterator iter;
-  Eigen::Vector3d    u = bead->getPos();
+  Eigen::Vector3d u = bead->getPos();
 
   for (iter = cell._beads.begin(); iter != cell._beads.end(); ++iter) {
 
     Eigen::Vector3d v = (*iter)->getPos();
     Eigen::Vector3d r = _top->BCShortestConnection(v, u);
-    double          d = r.norm();
+    double d = r.norm();
     if (d < _cutoff) {
       if (_do_exclusions)
         if (_top->getExclusions().IsExcluded((*iter), bead)) {

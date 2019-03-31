@@ -19,8 +19,8 @@
 #define _VOTCA_CSG_FILEFORMATFACTORY_H
 
 #include <string>
-#include <votca/tools/objectfactory.h>
 #include <votca/tools/filesystem.h>
+#include <votca/tools/objectfactory.h>
 
 namespace votca {
 namespace csg {
@@ -37,12 +37,14 @@ class FileFormatFactory : public TOOLS::ObjectFactory<std::string, T> {
 
 template <typename T>
 T *FileFormatFactory<T>::Create(const std::string &file) {
-  std::string      filetype = tools::filesystem::GetFileExtension(file);
+  std::string filetype = tools::filesystem::GetFileExtension(file);
   try {
     return TOOLS::ObjectFactory<std::string, T>::Create(filetype);
   } catch (std::exception &error) {
-      throw std::runtime_error("Error '"+filetype+"' file format of file "
-              "'"+file+"' cannot be read or written");
+    throw std::runtime_error("Error '" + filetype +
+                             "' file format of file "
+                             "'" +
+                             file + "' cannot be read or written");
   }
   return NULL;
 }

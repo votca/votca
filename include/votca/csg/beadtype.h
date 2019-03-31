@@ -33,12 +33,12 @@ using namespace votca::tools;
   */
 class BeadType : public TopologyItem {
  public:
-  const int &        getId() const { return _id; }
+  const int &getId() const { return _id; }
   const std::string &getName() const { return _name; }
-  void               setName(const std::string &name) { _name = name; }
+  void setName(const std::string &name) { _name = name; }
 
  private:
-  int         _id;
+  int _id;
   std::string _name;
 
   BeadType(Topology *parent, int id, const std::string &name)

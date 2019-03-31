@@ -26,7 +26,7 @@ using namespace votca::tools;
 
 class CsgDensityApp : public CsgApplication {
   string ProgramName() { return "csg_density"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Calculates the mass density distribution along a box axis or "
            "radial density profile from reference point";
   }
@@ -52,22 +52,22 @@ class CsgDensityApp : public CsgApplication {
   };
 
  protected:
-  string          _filter, _out;
-  HistogramNew    _dist;
-  string          _dens_type;
-  double          _rmax;
-  int             _nbin;
-  double          _scale;
-  double          _step;
-  int             _frames;
-  int             _nblock;
-  int             _block_length;
+  string _filter, _out;
+  HistogramNew _dist;
+  string _dens_type;
+  double _rmax;
+  int _nbin;
+  double _scale;
+  double _step;
+  int _frames;
+  int _nblock;
+  int _block_length;
   Eigen::Vector3d _ref;
   Eigen::Vector3d _axis;
-  string          _axisname;
-  string          _molname;
-  double          _area;
-  void            WriteDensity(int nframes, const string &suffix = "");
+  string _axisname;
+  string _molname;
+  double _area;
+  void WriteDensity(int nframes, const string &suffix = "");
 };
 
 int main(int argc, char **argv) {
@@ -78,9 +78,9 @@ int main(int argc, char **argv) {
 void CsgDensityApp::BeginEvaluate(Topology *top, Topology *top_atom) {
 
   Eigen::Matrix3d box = top->getBox();
-  Eigen::Vector3d a   = box.col(0);
-  Eigen::Vector3d b   = box.col(1);
-  Eigen::Vector3d c   = box.col(2);
+  Eigen::Vector3d a = box.col(0);
+  Eigen::Vector3d b = box.col(1);
+  Eigen::Vector3d c = box.col(2);
 
   _dist.setPeriodic(true);
   _axis = Eigen::Vector3d::Zero();
@@ -193,7 +193,7 @@ std::istream &operator>>(std::istream &in, Vector3d &v) {
   while (in.good()) {
     in.get(c);
     if (c == ']') {  // found end of vector
-      Tokenizer           tok(str, ",");
+      Tokenizer tok(str, ",");
       std::vector<double> d;
       tok.ConvertToVector(d);
       if (d.size() != 3)

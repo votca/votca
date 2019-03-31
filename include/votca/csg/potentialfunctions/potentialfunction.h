@@ -70,10 +70,10 @@ class PotentialFunction {
   PotentialFunction(const std::string &name_, const int nlam_,
                     const double min_, const double max_);
 
-  std::string     _name;
+  std::string _name;
   Eigen::VectorXd _lam;
-  double          _cut_off;
-  double          _min;
+  double _cut_off;
+  double _min;
 };
 }  // namespace csg
 }  // namespace votca
