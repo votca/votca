@@ -32,18 +32,18 @@ class DensityAnalysis : public ctp::QMTool {
  public:
   string Identify() { return "densityanalysis"; }
 
-  void Initialize(Property *options);
+  void Initialize(tools::Property *options);
   bool Evaluate();
 
  private:
   string _orbfile;
   string _output_file;
-  Property _gyration_options;
+  tools::Property _gyration_options;
 
   ctp::Logger _log;
 };
 
-void DensityAnalysis::Initialize(Property *options) {
+void DensityAnalysis::Initialize(tools::Property *options) {
 
   string key = "options." + Identify();
   _orbfile = options->get(key + ".input").as<string>();
