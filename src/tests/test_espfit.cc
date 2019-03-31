@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,6 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   }
   BOOST_CHECK_EQUAL(check_esp_num, 1);
 
-
   std::vector<std::pair<int, int> > pairconstraint;
   std::pair<int, int> p1;
   p1.first = 1;
@@ -234,10 +233,9 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   BOOST_CHECK_EQUAL(check_reg, 1);
 }
 
-
 BOOST_AUTO_TEST_CASE(analytic_vs_numeric) {
 
-ofstream xyzfile("molecule.xyz");
+  ofstream xyzfile("molecule.xyz");
   xyzfile << " 1" << endl;
   xyzfile << " carbon" << endl;
   xyzfile << " C            .000000     .000000     .000000" << endl;
@@ -286,7 +284,6 @@ ofstream xyzfile("molecule.xyz");
   basisfile << "</basis>" << endl;
   basisfile.close();
 
-
   Orbitals orbitals;
   orbitals.LoadFromXYZ("molecule.xyz");
   BasisSet basis;
@@ -294,15 +291,14 @@ ofstream xyzfile("molecule.xyz");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis, orbitals.QMAtoms());
 
-  Eigen::MatrixXd dmat = 0.01*Eigen::MatrixXd::Ones(9, 9);
-  Eigen::VectorXd diag=Eigen::VectorXd::Zero(9);
-  diag<<1,2,3,4,5,8,1,2,2;
-  dmat.diagonal()=diag;
+  Eigen::MatrixXd dmat = 0.01 * Eigen::MatrixXd::Ones(9, 9);
+  Eigen::VectorXd diag = Eigen::VectorXd::Zero(9);
+  diag << 1, 2, 3, 4, 5, 8, 1, 2, 2;
+  dmat.diagonal() = diag;
   votca::ctp::Logger log;
 
   Espfit esp = Espfit(&log);
   esp.setUseSVD(1e-8);
-
 
   esp.Fit2Density_analytic(orbitals.QMAtoms(), dmat, aobasis);
   Eigen::VectorXd pcharges_anal =
@@ -315,13 +311,12 @@ ofstream xyzfile("molecule.xyz");
 
   esp.Fit2Density(orbitals.QMAtoms(), dmat, aobasis, "medium");
   Eigen::VectorXd pcharges = Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
-   index = 0;
+  index = 0;
   for (QMAtom* atom : orbitals.QMAtoms()) {
     pcharges(index) = atom->getPartialcharge();
     index++;
     atom->setPartialcharge(0.0);
   }
-
 
   bool check_esp_ana = pcharges.isApprox(pcharges_anal, 0.01);
   if (!check_esp_ana) {
