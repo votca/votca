@@ -404,8 +404,8 @@ void GWBSE::addoutput(tools::Property& summary) {
       if (_orbitals.hasTransitionDipoles()) {
 
         const Eigen::Vector3d& dipoles = (_orbitals.TransitionDipoles())[state];
-        double f =
-            2 * dipoles.squaredNorm()* _orbitals.BSESingletEnergies()(state) / 3.0;
+        double f = 2 * dipoles.squaredNorm() *
+                   _orbitals.BSESingletEnergies()(state) / 3.0;
 
         level_summary.add("f", (format("%1$+1.6f ") % f).str());
         tools::Property& dipol_summary = level_summary.add(

@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,250 +17,276 @@
  *
  */
 
-#include <votca/xtp/statefilter.h>
 #include "votca/xtp/aomatrix.h"
+#include <votca/xtp/statefilter.h>
 
 namespace votca {
-    namespace xtp {
-      using std::flush;
-      
-   void Statefilter::Initialize(tools::Property& options){
-        if (options.exists("oscillator_strength")) {
-          _use_oscfilter = true;
-          _oscthreshold = options.ifExistsReturnElseThrowRuntimeError<double>("oscillator_strength");
-        }
-        if (options.exists("overlap")) {
-          _use_overlapfilter = true;
-          _overlapthreshold = options.ifExistsReturnElseReturnDefault<double>("overlap",0.0);
-        }
-        if (options.exists("localisation")) {
-            _use_localisationfilter = true;
-            std::string indices = options.ifExistsReturnElseThrowRuntimeError<std::string>("localisation.fragment");
-            QMFragment<BSE_Population> reg=QMFragment<BSE_Population>("Fragment",0,indices);
-            _loc_threshold=options.ifExistsReturnElseThrowRuntimeError<double>("localisation.threshold");
-            _fragment_loc.push_back(reg);
-        }
-          
-        if (options.exists("charge_transfer")) {
-            _use_dQfilter = true;
-            std::string indices = options.ifExistsReturnElseThrowRuntimeError<std::string>("charge_transfer.fragment");
-            QMFragment<BSE_Population> reg=QMFragment<BSE_Population>("Fragment",0,indices);
-            _dQ_threshold=options.ifExistsReturnElseThrowRuntimeError<double>("charge_transfer.threshold");
-           _fragment_dQ.push_back(reg);
-        }
-        if (_use_dQfilter && _use_localisationfilter) {
-          throw std::runtime_error("Cannot use localisation and charge_transfer filter at the same time.");
-        }
-       
-   }
-   
-   void Statefilter::PrintInfo()const{
-     XTP_LOG(logDEBUG, *_log) << "Initial state: "<<_statehist[0].ToString() << flush;
-     if(_statehist.size()>1){
-     XTP_LOG(logDEBUG, *_log) << "Last state: "<<_statehist.back().ToString() << flush;
-     }
-     if(_use_oscfilter){
-       XTP_LOG(logDEBUG, *_log) << "Using oscillator strength filter with cutoff "<<_oscthreshold << flush;
-     }
-     if(_use_overlapfilter){
-       if(_overlapthreshold==0.0){
-         XTP_LOG(logDEBUG, *_log) << "Using overlap filer with no cutoff "<< flush;
-       }else{
-       XTP_LOG(logDEBUG, *_log) << "Using overlap filer with cutoff "<<_overlapthreshold << flush;
-       }
-     }
-     if(_use_localisationfilter){
-       XTP_LOG(logDEBUG, *_log) << "Using localisation filter for fragment"<<_fragment_loc[0].name()<<" with cutoff "<<_loc_threshold << flush;
-     }
-     if(_use_dQfilter){
-       XTP_LOG(logDEBUG, *_log) << "Using Delta Q filter for fragment"<<_fragment_dQ[0].name()<<"with cutoff  "<<_dQ_threshold << flush;
-     }
-    if (_use_oscfilter && _use_dQfilter) {
-          XTP_LOG(logDEBUG, *_log) << "WARNING: filtering for optically active CT transition - might not make sense... " << flush;
-        }
-      if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_use_oscfilter<1){
-         XTP_LOG(logDEBUG, *_log) << "WARNING: No filter is used " << flush;
-      }
-     
-   }
-   
-   
-   std::vector<int> Statefilter::ComparePairofVectors(std::vector<int> & vec1,std::vector<int> & vec2)const{
-    std::vector<int> result(std::min(vec1,vec2));
-    std::vector<int>::iterator it;
-    std::sort (vec1.begin(), vec1.end());
-    std::sort (vec2.begin(), vec2.end());
-    it=std::set_intersection (vec1.begin(), vec1.end(), vec2.begin(), vec2.end(), result.begin());
-    result.resize(it-result.begin());   
-    return result;
-   }
-   
-   std::vector<int> Statefilter::CollapseResults(std::vector< std::vector<int> >& results)const{
-     if(results.size()==1){
-       return results[0];
-     }else{
-      std::vector<int> result=results[0];
-      for(unsigned i=1;i<results.size();i++){
-        result=ComparePairofVectors(result,results[i]);
-      }
-      return result;
-     }
-   }
-   
-   QMState Statefilter::CalcState(Orbitals& orbitals)const{
+namespace xtp {
+using std::flush;
 
-     if(_use_dQfilter+_use_oscfilter+_use_localisationfilter+_use_oscfilter<1){
-         return _statehist[0];
-     }
-      
-     std::vector< std::vector<int> > results;
-     if(_use_oscfilter){
-       results.push_back(OscFilter(orbitals));
-     }
-     if(_use_localisationfilter){
-       results.push_back(LocFilter(orbitals));
-     }
-     if(_use_overlapfilter){
-       results.push_back(OverlapFilter(orbitals));
-     }
-     if(_use_dQfilter){
-       results.push_back(DeltaQFilter(orbitals));
-     }
+void Statefilter::Initialize(tools::Property& options) {
+  if (options.exists("oscillator_strength")) {
+    _use_oscfilter = true;
+    _oscthreshold = options.ifExistsReturnElseThrowRuntimeError<double>(
+        "oscillator_strength");
+  }
+  if (options.exists("overlap")) {
+    _use_overlapfilter = true;
+    _overlapthreshold =
+        options.ifExistsReturnElseReturnDefault<double>("overlap", 0.0);
+  }
+  if (options.exists("localisation")) {
+    _use_localisationfilter = true;
+    std::string indices =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(
+            "localisation.fragment");
+    QMFragment<BSE_Population> reg =
+        QMFragment<BSE_Population>("Fragment", 0, indices);
+    _loc_threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
+        "localisation.threshold");
+    _fragment_loc.push_back(reg);
+  }
 
-    std::vector<int> result=CollapseResults(results);
-    QMState state;
-    if(result.size()<1){
-      state=_statehist.back();  
-      XTP_LOG(logDEBUG, *_log) << "No State found by filter using last state: "<<state.ToString()<< flush;
-    }else{
-      state=QMState(_statehist.back().Type(),result[0],false);
-      XTP_LOG(logDEBUG, *_log) << "Next State is: "<<state.ToString()<< flush;
+  if (options.exists("charge_transfer")) {
+    _use_dQfilter = true;
+    std::string indices =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(
+            "charge_transfer.fragment");
+    QMFragment<BSE_Population> reg =
+        QMFragment<BSE_Population>("Fragment", 0, indices);
+    _dQ_threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
+        "charge_transfer.threshold");
+    _fragment_dQ.push_back(reg);
+  }
+  if (_use_dQfilter && _use_localisationfilter) {
+    throw std::runtime_error(
+        "Cannot use localisation and charge_transfer filter at the same time.");
+  }
+}
+
+void Statefilter::PrintInfo() const {
+  XTP_LOG(logDEBUG, *_log) << "Initial state: " << _statehist[0].ToString()
+                           << flush;
+  if (_statehist.size() > 1) {
+    XTP_LOG(logDEBUG, *_log)
+        << "Last state: " << _statehist.back().ToString() << flush;
+  }
+  if (_use_oscfilter) {
+    XTP_LOG(logDEBUG, *_log) << "Using oscillator strength filter with cutoff "
+                             << _oscthreshold << flush;
+  }
+  if (_use_overlapfilter) {
+    if (_overlapthreshold == 0.0) {
+      XTP_LOG(logDEBUG, *_log)
+          << "Using overlap filer with no cutoff " << flush;
+    } else {
+      XTP_LOG(logDEBUG, *_log)
+          << "Using overlap filer with cutoff " << _overlapthreshold << flush;
     }
-    return state;
-   }
-   
-   
-   QMState Statefilter::CalcStateAndUpdate(Orbitals& orbitals){
-    QMState result=CalcState(orbitals);
-    _statehist.push_back(result);
-    if(_use_overlapfilter){
-        UpdateLastCoeff(orbitals);
+  }
+  if (_use_localisationfilter) {
+    XTP_LOG(logDEBUG, *_log)
+        << "Using localisation filter for fragment" << _fragment_loc[0].name()
+        << " with cutoff " << _loc_threshold << flush;
+  }
+  if (_use_dQfilter) {
+    XTP_LOG(logDEBUG, *_log)
+        << "Using Delta Q filter for fragment" << _fragment_dQ[0].name()
+        << "with cutoff  " << _dQ_threshold << flush;
+  }
+  if (_use_oscfilter && _use_dQfilter) {
+    XTP_LOG(logDEBUG, *_log) << "WARNING: filtering for optically active CT "
+                                "transition - might not make sense... "
+                             << flush;
+  }
+  if (_use_dQfilter + _use_oscfilter + _use_localisationfilter +
+          _use_oscfilter <
+      1) {
+    XTP_LOG(logDEBUG, *_log) << "WARNING: No filter is used " << flush;
+  }
+}
+
+std::vector<int> Statefilter::ComparePairofVectors(
+    std::vector<int>& vec1, std::vector<int>& vec2) const {
+  std::vector<int> result(std::min(vec1, vec2));
+  std::vector<int>::iterator it;
+  std::sort(vec1.begin(), vec1.end());
+  std::sort(vec2.begin(), vec2.end());
+  it = std::set_intersection(vec1.begin(), vec1.end(), vec2.begin(), vec2.end(),
+                             result.begin());
+  result.resize(it - result.begin());
+  return result;
+}
+
+std::vector<int> Statefilter::CollapseResults(
+    std::vector<std::vector<int> >& results) const {
+  if (results.size() == 1) {
+    return results[0];
+  } else {
+    std::vector<int> result = results[0];
+    for (unsigned i = 1; i < results.size(); i++) {
+      result = ComparePairofVectors(result, results[i]);
     }
     return result;
-   }
-   
-   std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals)const{
-     const std::vector<double>oscs = orbitals.Oscillatorstrengths();
-     std::vector<int> indexes;
-     for (unsigned i = 0; i < oscs.size(); i++) {
-              if (oscs[i] > _oscthreshold) indexes.push_back(i);
-            }
-     return indexes;
-   }
-   
-   std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals)const {
-    std::vector<int> indexes;
-    Lowdin low;
-    low.CalcChargeperFragment(_fragment_loc, orbitals, _statehist[0].Type());
-    const Eigen::VectorXd& popE = _fragment_loc[0].value().E;
-    const Eigen::VectorXd& popH = _fragment_loc[0].value().H;
-    for (int i = 0; i < popE.size(); i++) {
-        if (popE[i] > _loc_threshold && popH[i] > _loc_threshold) {
-            indexes.push_back(i);
-        }
+  }
+}
+
+QMState Statefilter::CalcState(Orbitals& orbitals) const {
+
+  if (_use_dQfilter + _use_oscfilter + _use_localisationfilter +
+          _use_oscfilter <
+      1) {
+    return _statehist[0];
+  }
+
+  std::vector<std::vector<int> > results;
+  if (_use_oscfilter) {
+    results.push_back(OscFilter(orbitals));
+  }
+  if (_use_localisationfilter) {
+    results.push_back(LocFilter(orbitals));
+  }
+  if (_use_overlapfilter) {
+    results.push_back(OverlapFilter(orbitals));
+  }
+  if (_use_dQfilter) {
+    results.push_back(DeltaQFilter(orbitals));
+  }
+
+  std::vector<int> result = CollapseResults(results);
+  QMState state;
+  if (result.size() < 1) {
+    state = _statehist.back();
+    XTP_LOG(logDEBUG, *_log)
+        << "No State found by filter using last state: " << state.ToString()
+        << flush;
+  } else {
+    state = QMState(_statehist.back().Type(), result[0], false);
+    XTP_LOG(logDEBUG, *_log) << "Next State is: " << state.ToString() << flush;
+  }
+  return state;
+}
+
+QMState Statefilter::CalcStateAndUpdate(Orbitals& orbitals) {
+  QMState result = CalcState(orbitals);
+  _statehist.push_back(result);
+  if (_use_overlapfilter) {
+    UpdateLastCoeff(orbitals);
+  }
+  return result;
+}
+
+std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals) const {
+  const std::vector<double> oscs = orbitals.Oscillatorstrengths();
+  std::vector<int> indexes;
+  for (unsigned i = 0; i < oscs.size(); i++) {
+    if (oscs[i] > _oscthreshold) indexes.push_back(i);
+  }
+  return indexes;
+}
+
+std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
+  std::vector<int> indexes;
+  Lowdin low;
+  low.CalcChargeperFragment(_fragment_loc, orbitals, _statehist[0].Type());
+  const Eigen::VectorXd& popE = _fragment_loc[0].value().E;
+  const Eigen::VectorXd& popH = _fragment_loc[0].value().H;
+  for (int i = 0; i < popE.size(); i++) {
+    if (popE[i] > _loc_threshold && popH[i] > _loc_threshold) {
+      indexes.push_back(i);
     }
+  }
+  return indexes;
+}
+
+std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals) const {
+  std::vector<int> indexes;
+  Lowdin low;
+  low.CalcChargeperFragment(_fragment_dQ, orbitals, _statehist[0].Type());
+  Eigen::VectorXd dq =
+      (_fragment_dQ[0].value().H - _fragment_dQ[0].value().E).cwiseAbs();
+
+  for (int i = 0; i < dq.size(); i++) {
+    if (dq[i] > _dQ_threshold) {
+      indexes.push_back(i);
+    }
+  }
+  return indexes;
+}
+
+Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals& orbitals) const {
+  BasisSet dftbs;
+  dftbs.LoadBasisSet(orbitals.getDFTbasisName());
+  AOBasis dftbasis;
+  dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
+  AOOverlap dftoverlap;
+  dftoverlap.Fill(dftbasis);
+  _S_onehalf = dftoverlap.Pseudo_InvSqrt(1e-8);
+  Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
+  Eigen::VectorXd overlap = (ortho_coeffs * _laststatecoeff).cwiseAbs2();
+  return overlap;
+}
+
+Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals) const {
+  QMStateType type = _statehist[0].Type();
+  Eigen::MatrixXd ortho_coeffs;
+  if (type.isSingleParticleState()) {
+    Eigen::MatrixXd coeffs;
+    if (type == QMStateType::DQPstate) {
+      coeffs = orbitals.CalculateQParticleAORepresentation();
+    } else {
+      coeffs = orbitals.MOCoefficients();
+    }
+    ortho_coeffs = _S_onehalf * coeffs;
+  } else {
+    throw std::runtime_error("Overlap for excitons not implemented yet");
+  }
+  return ortho_coeffs;
+}
+
+void Statefilter::UpdateLastCoeff(Orbitals& orbitals) {
+  Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
+  int offset = 0;
+  if (_statehist[0].Type() == QMStateType::DQPstate) {
+    offset = orbitals.getGWAmin();
+  }
+  _laststatecoeff = ortho_coeffs.col(_statehist.back().Index() - offset);
+}
+
+std::vector<int> Statefilter::OverlapFilter(Orbitals& orbitals) const {
+  std::vector<int> indexes;
+  if (_statehist.size() <= 1) {
+    indexes = std::vector<int>{_statehist[0].Index()};
     return indexes;
-}
-   
-   std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals)const{
-    std::vector<int> indexes;
-    Lowdin low;
-    low.CalcChargeperFragment(_fragment_dQ, orbitals, _statehist[0].Type());
-    Eigen::VectorXd dq=(_fragment_dQ[0].value().H-_fragment_dQ[0].value().E).cwiseAbs();
+  }
 
-    for (int i = 0; i < dq.size(); i++) {
-      if (dq[i] > _dQ_threshold) {
-        indexes.push_back(i);
-      }
+  Eigen::VectorXd Overlap = CalculateOverlap(orbitals);
+  int validelements = Overlap.size();
+  for (int i = 0; i < Overlap.size(); i++) {
+    if (Overlap(i) < _overlapthreshold) {
+      validelements--;
     }
-     return indexes;
-   }
-   
-   
-   Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals & orbitals)const{
-    BasisSet dftbs;
-    dftbs.LoadBasisSet(orbitals.getDFTbasisName());
-    AOBasis dftbasis;
-    dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
-    AOOverlap dftoverlap;
-    dftoverlap.Fill(dftbasis);
-    _S_onehalf=dftoverlap.Pseudo_InvSqrt(1e-8);
-    Eigen::MatrixXd ortho_coeffs=CalcOrthoCoeffs(orbitals);
-    Eigen::VectorXd overlap=(ortho_coeffs*_laststatecoeff).cwiseAbs2();
-    return overlap;   
-   }
+  }
 
-   Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals)const{
-       QMStateType type=_statehist[0].Type();
-       Eigen::MatrixXd ortho_coeffs;
-       if(type.isSingleParticleState()){
-           Eigen::MatrixXd coeffs; 
-           if(type==QMStateType::DQPstate){
-               coeffs=orbitals.CalculateQParticleAORepresentation();
-           }else{
-               coeffs=orbitals.MOCoefficients();
-           }
-           ortho_coeffs=_S_onehalf*coeffs;
-       }else{
-           throw std::runtime_error("Overlap for excitons not implemented yet");
-       }
-       return ortho_coeffs;
-   }
-   
-   void Statefilter::UpdateLastCoeff(Orbitals& orbitals){
-       Eigen::MatrixXd ortho_coeffs=CalcOrthoCoeffs(orbitals);
-       int offset=0;
-        if(_statehist[0].Type()==QMStateType::DQPstate){
-            offset=orbitals.getGWAmin();
-        }
-       _laststatecoeff=ortho_coeffs.col(_statehist.back().Index()-offset); 
-   }
+  std::vector<int> index = std::vector<int>(Overlap.size());
+  std::iota(index.begin(), index.end(), 0);
+  std::stable_sort(index.begin(), index.end(), [&Overlap](int i1, int i2) {
+    return Overlap[i1] > Overlap[i2];
+  });
 
-      std::vector<int> Statefilter::OverlapFilter(Orbitals & orbitals)const{
-        std::vector<int> indexes;
-        if (_statehist.size() <= 1) {
-          indexes=std::vector<int>{_statehist[0].Index()};
-          return indexes;
-        }
-        
-        Eigen::VectorXd Overlap=CalculateOverlap(orbitals);
-        int validelements=Overlap.size();
-        for(int i=0;i<Overlap.size();i++){
-          if(Overlap(i)<_overlapthreshold){
-            validelements--;
-          }
-        }
-        
-        std::vector<int>index = std::vector<int>(Overlap.size());
-        std::iota(index.begin(), index.end(), 0);
-        std::stable_sort(index.begin(), index.end(), [&Overlap](int i1, int i2) {
-            return Overlap[i1] > Overlap[i2];
-        });
+  int offset = 0;
+  if (_statehist[0].Type() == QMStateType::DQPstate) {
+    offset = orbitals.getGWAmin();
+  }
 
-        int offset=0;
-        if(_statehist[0].Type()==QMStateType::DQPstate){
-            offset=orbitals.getGWAmin();
-        }
-
-        for (int i:index){
-          if(int(indexes.size())==validelements){
-            break;
-          }
-          indexes.push_back(i+offset); 
-        }
-        return indexes;
-      }
-   
-
+  for (int i : index) {
+    if (int(indexes.size()) == validelements) {
+      break;
     }
+    indexes.push_back(i + offset);
+  }
+  return indexes;
 }
+
+}  // namespace xtp
+}  // namespace votca

@@ -39,13 +39,13 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17, 17);
 
   QMMolecule atoms = QMMolecule(" ", 0);
-  for (int i =0; i < 10; ++i){
-      atoms.push_back(QMAtom(0, "O", Eigen::Vector3d::Random()));
-      atoms.push_back(QMAtom(25, "O", Eigen::Vector3d::Random()));
-      atoms.push_back(QMAtom(32, "O", Eigen::Vector3d::Random()));
-      atoms.push_back(QMAtom(100, "O", Eigen::Vector3d::Random()));
-      atoms.push_back(QMAtom(2, "Si", Eigen::Vector3d::Random()));
-      atoms.push_back(QMAtom(3145, "N", Eigen::Vector3d::Random()));
+  for (int i = 0; i < 10; ++i) {
+    atoms.push_back(QMAtom(0, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(25, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(32, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(100, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(2, "Si", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(3145, "N", Eigen::Vector3d::Random()));
   }
 
   double qmEnergy = -2.1025e-3;

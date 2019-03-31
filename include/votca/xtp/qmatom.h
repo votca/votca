@@ -55,10 +55,10 @@ class QMAtom {
 
   std::string identify() const { return "qmatom"; }
 
-  friend std::ostream &operator<<(std::ostream &out, const QMAtom& atom) {
-    out <<atom.getId()<<" "<<atom.getElement();
-    out <<" "<<atom.getPos().x()<<","
-	    <<atom.getPos().y()<<","<<atom.getPos().z()<<" "<<atom.getNuccharge()<<"\n";
+  friend std::ostream& operator<<(std::ostream& out, const QMAtom& atom) {
+    out << atom.getId() << " " << atom.getElement();
+    out << " " << atom.getPos().x() << "," << atom.getPos().y() << ","
+        << atom.getPos().z() << " " << atom.getNuccharge() << "\n";
     return out;
   }
 
@@ -66,17 +66,18 @@ class QMAtom {
   int _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
-  int _nuccharge=0;        // nuc charge is set in aobasis fill and ecpfill
-  int _ecpcharge=0;
+  int _nuccharge = 0;    // nuc charge is set in aobasis fill and ecpfill
+  int _ecpcharge = 0;
+
  public:
-  struct data{
-      int index;
-      char* element;
-      double x;
-      double y;
-      double z;
-      int nuccharge;
-      int ecpcharge;
+  struct data {
+    int index;
+    char* element;
+    double x;
+    double y;
+    double z;
+    int nuccharge;
+    int ecpcharge;
   };
 
   void SetupCptTable(CptTable& table) const;
@@ -84,7 +85,6 @@ class QMAtom {
   void WriteToCpt(CptTable& table, const std::size_t& idx) const;
 
   void ReadFromCpt(CptTable& table, const std::size_t& idx);
-
 };
 }  // namespace xtp
 }  // namespace votca

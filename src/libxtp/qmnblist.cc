@@ -39,32 +39,34 @@ QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
   return *pair;
 }
 
-
-
 void QMNBList::WriteToCpt(CheckpointWriter& w) const {
   int size = this->size();
-  w(size,"size");
-  if(size==0){return;}
-  Segment seg1("test1",0);
-  Segment seg2("test2",1);
-  QMPair pair(1,&seg1,&seg2,Eigen::Vector3d::Zero());
+  w(size, "size");
+  if (size == 0) {
+    return;
+  }
+  Segment seg1("test1", 0);
+  Segment seg2("test2", 1);
+  QMPair pair(1, &seg1, &seg2, Eigen::Vector3d::Zero());
   CptTable table = w.openTable("pairs", pair, size);
-  for (int i=0;i<size;i++) {
-    _pairs[i]->WriteToCpt(table,i);
+  for (int i = 0; i < size; i++) {
+    _pairs[i]->WriteToCpt(table, i);
   }
 }
 
 void QMNBList::ReadFromCpt(CheckpointReader& r,
                            const std::vector<Segment>& segments) {
   Cleanup();
-  int size=0;
-  r(size,"size");
-  if(size==0){return;}
-  QMPair pair(1,&segments[0],&segments[1],Eigen::Vector3d::Zero());
+  int size = 0;
+  r(size, "size");
+  if (size == 0) {
+    return;
+  }
+  QMPair pair(1, &segments[0], &segments[1], Eigen::Vector3d::Zero());
   CptTable table = r.openTable("pairs", pair);
-    for (std::size_t i = 0; i < table.numRows(); ++i){
-        this->AddPair(new QMPair(table, i, segments));
-    }
+  for (std::size_t i = 0; i < table.numRows(); ++i) {
+    this->AddPair(new QMPair(table, i, segments));
+  }
 }
 
 }  // namespace xtp

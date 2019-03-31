@@ -39,7 +39,9 @@ class StaticSite {
 
   StaticSite(int id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
-  StaticSite(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx);}
+  StaticSite(CptTable& table, const std::size_t& idx) {
+    ReadFromCpt(table, idx);
+  }
 
   StaticSite(const QMAtom& atom, double charge)
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
@@ -57,7 +59,7 @@ class StaticSite {
   }
 
   void setCharge(double q) { _multipole(0) = q; }
-  
+
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
   // COORDINATES TRANSFORMATION
@@ -84,24 +86,24 @@ class StaticSite {
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
-  struct data{
-      int id;
-      char* element;
-      double posX;
-      double posY;
-      double posZ;
+  struct data {
+    int id;
+    char* element;
+    double posX;
+    double posY;
+    double posZ;
 
-      int rank;
+    int rank;
 
-      double multipoleQ00;
-      double multipoleQ11c;
-      double multipoleQ11s;
-      double multipoleQ10;
-      double multipoleQ20;
-      double multipoleQ21c;
-      double multipoleQ21s;
-      double multipoleQ22c;
-      double multipoleQ22s;
+    double multipoleQ00;
+    double multipoleQ11c;
+    double multipoleQ11s;
+    double multipoleQ10;
+    double multipoleQ20;
+    double multipoleQ21c;
+    double multipoleQ21s;
+    double multipoleQ22c;
+    double multipoleQ22s;
   };
 
   virtual void SetupCptTable(CptTable& table) const;
@@ -113,12 +115,13 @@ class StaticSite {
 
   virtual std::string identify() const { return "staticsite"; }
 
-  friend std::ostream &operator<<(std::ostream &out, const StaticSite& site) {
-    out <<site.getId()<<" "<<site.getElement()<<" "<<site.getRank();
-    out <<" "<<site.getPos().x()<<","<<
-        site.getPos().y()<<","<<site.getPos().z()<<"\n";
+  friend std::ostream& operator<<(std::ostream& out, const StaticSite& site) {
+    out << site.getId() << " " << site.getElement() << " " << site.getRank();
+    out << " " << site.getPos().x() << "," << site.getPos().y() << ","
+        << site.getPos().z() << "\n";
     return out;
   }
+
  protected:
   virtual std::string writePolarisation() const { return "P 0.0 0.0 0.0"; };
 

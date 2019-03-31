@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,135 +23,131 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/staticsite.h>
 
-namespace votca { namespace xtp {\
+namespace votca {
+namespace xtp {
 
+/**
+\brief Class to represent Atom/Site in electrostatic+polarisation
 
-    /**
-    \brief Class to represent Atom/Site in electrostatic+polarisation
-
-     The units are atomic units, e.g. Bohr, Hartree.By default a PolarSite cannot be polarised.
+ The units are atomic units, e.g. Bohr, Hartree.By default a PolarSite cannot be
+polarised.
 */
-class PolarSite : public StaticSite
-{
+class PolarSite : public StaticSite {
 
-public:
+ public:
+  PolarSite(int id, std::string element, Eigen::Vector3d pos);
 
-    PolarSite(int id, std::string element, Eigen::Vector3d pos);
+  PolarSite(int id, std::string element)
+      : PolarSite(id, element, Eigen::Vector3d::Zero()){};
 
-    PolarSite(int id, std::string element)
-                    :PolarSite(id,element,Eigen::Vector3d::Zero()){
-                };
+  PolarSite(CptTable& table, const std::size_t& idx) : StaticSite(table, idx) {
+    ReadFromCpt(table, idx);
+  }
 
-    PolarSite(CptTable& table, const std::size_t& idx):StaticSite(table, idx){
-        ReadFromCpt(table, idx);
-    }
+  void setPolarisation(const Eigen::Matrix3d pol) {
+    _Ps = pol;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+    es.computeDirect(_Ps, Eigen::EigenvaluesOnly);
+    _eigendamp = es.eigenvalues().maxCoeff();
+  }
 
+  void ResetInduction() {
+    PhiU = 0.0;
+    _inducedDipole = Eigen::Vector3d::Zero();
+    _inducedDipole_old = Eigen::Vector3d::Zero();
+    _localinducedField = Eigen::Vector3d::Zero();
+  }
 
-    void setPolarisation(const Eigen::Matrix3d pol){
-        _Ps=pol;
-        Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-        es.computeDirect(_Ps,Eigen::EigenvaluesOnly);
-        _eigendamp=es.eigenvalues().maxCoeff();
-    }
+  // MULTIPOLES DEFINITION
 
-    void ResetInduction(){
-        PhiU=0.0;
-        _inducedDipole=Eigen::Vector3d::Zero();
-        _inducedDipole_old=Eigen::Vector3d::Zero();
-        _localinducedField=Eigen::Vector3d::Zero();
-    }
+  Eigen::Vector3d getDipole() const {
+    Eigen::Vector3d dipole = _multipole.segment<3>(1);
+    dipole += _inducedDipole;
+    return dipole;
+  }
 
-    // MULTIPOLES DEFINITION
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
+    StaticSite::Rotate(R, ref_pos);
+    _Ps = R * _Ps * R.transpose();
+  }
 
-    Eigen::Vector3d getDipole()const{
-        Eigen::Vector3d dipole=_multipole.segment<3>(1);
-        dipole+=_inducedDipole;
-        return dipole;
-    }
+  void Induce(double wSOR);
 
+  double InductionWork() const {
+    return -0.5 * _inducedDipole.transpose() * getField();
+  }
 
-    void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos){
-        StaticSite::Rotate(R,ref_pos);
-        _Ps = R * _Ps * R.transpose();
-    }
+  struct data {
 
-    void Induce(double wSOR);
+    int id;
+    char* element;
+    double posX;
+    double posY;
+    double posZ;
 
-    double InductionWork() const{ return -0.5*_inducedDipole.transpose()*getField();}
+    int rank;
 
-    struct data{
-        
-      int id;
-      char* element;
-      double posX;
-      double posY;
-      double posZ;
+    double multipoleQ00;
+    double multipoleQ11c;
+    double multipoleQ11s;
+    double multipoleQ10;
+    double multipoleQ20;
+    double multipoleQ21c;
+    double multipoleQ21s;
+    double multipoleQ22c;
+    double multipoleQ22s;
 
-      int rank;
+    double pxx;
+    double pxy;
+    double pxz;
+    double pyy;
+    double pyz;
+    double pzz;
 
-      double multipoleQ00;
-      double multipoleQ11c;
-      double multipoleQ11s;
-      double multipoleQ10;
-      double multipoleQ20;
-      double multipoleQ21c;
-      double multipoleQ21s;
-      double multipoleQ22c;
-      double multipoleQ22s;
-        
-        double pxx;
-        double pxy;
-        double pxz;
-        double pyy;
-        double pyz;
-        double pzz;
+    double fieldX;
+    double fieldY;
+    double fieldZ;
 
-        double fieldX;
-        double fieldY;
-        double fieldZ;
+    double dipoleX;
+    double dipoleY;
+    double dipoleZ;
 
-        double dipoleX;
-        double dipoleY;
-        double dipoleZ;
+    double dipoleXOld;
+    double dipoleYOld;
+    double dipoleZOld;
 
-        double dipoleXOld;
-        double dipoleYOld;
-        double dipoleZOld;
+    double eigendamp;
+    double phiU;
+  };
 
-        double eigendamp;
-        double phiU;
-    };
+  void SetupCptTable(CptTable& table) const;
+  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
 
-    void SetupCptTable(CptTable& table) const;
-    void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+  void ReadFromCpt(CptTable& table, const std::size_t& idx);
 
-    void ReadFromCpt(CptTable& table, const std::size_t& idx);
+  std::string identify() const { return "polarsite"; }
 
-    std::string identify()const{return "polarsite";}
-
-
-    friend std::ostream &operator<<(std::ostream &out, const PolarSite& site) {
-    out <<site.getId()<<" "<<site.getElement()<<" "<<site.getRank();
-    out <<" "<<site.getPos().x()<<","<<
-        site.getPos().y()<<","<<site.getPos().z()<<"\n";
+  friend std::ostream& operator<<(std::ostream& out, const PolarSite& site) {
+    out << site.getId() << " " << site.getElement() << " " << site.getRank();
+    out << " " << site.getPos().x() << "," << site.getPos().y() << ","
+        << site.getPos().z() << "\n";
     return out;
-    }
-private:
+  }
 
-    std::string writePolarisation()const;
+ private:
+  std::string writePolarisation() const;
 
-    Eigen::Matrix3d _Ps=Eigen::Matrix3d::Zero();;
-    Eigen::Vector3d _localinducedField=Eigen::Vector3d::Zero();
-    Eigen::Vector3d _inducedDipole=Eigen::Vector3d::Zero();
-    Eigen::Vector3d _inducedDipole_old=Eigen::Vector3d::Zero();
-    double _eigendamp=0.0;
+  Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
+  ;
+  Eigen::Vector3d _localinducedField = Eigen::Vector3d::Zero();
+  Eigen::Vector3d _inducedDipole = Eigen::Vector3d::Zero();
+  Eigen::Vector3d _inducedDipole_old = Eigen::Vector3d::Zero();
+  double _eigendamp = 0.0;
 
-    double PhiU=0.0;                            // Electric potential (due to indu.)
-
+  double PhiU = 0.0;  // Electric potential (due to indu.)
 };
 
-
-}}
-
+}  // namespace xtp
+}  // namespace votca
 
 #endif

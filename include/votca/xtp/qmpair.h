@@ -33,7 +33,7 @@ namespace xtp {
 
 class QMPair {
  public:
-  enum PairType { Hopping=0, Excitoncl=1 };
+  enum PairType { Hopping = 0, Excitoncl = 1 };
 
   static std::string get_name(PairType type) {
     switch (type) {
@@ -59,13 +59,13 @@ class QMPair {
   QMPair(int id, const Segment* seg1, const Segment* seg2,
          const Eigen::Vector3d& delta_R);
 
- QMPair(CptTable& table, const std::size_t& idx,
-                   const std::vector<Segment>& segments){
-    ReadFromCpt(table,idx, segments);
- }
+  QMPair(CptTable& table, const std::size_t& idx,
+         const std::vector<Segment>& segments) {
+    ReadFromCpt(table, idx, segments);
+  }
 
   int getId() const { return _id; }
-  void setId(int id){_id=id;}
+  void setId(int id) { _id = id; }
 
   const Eigen::Vector3d& R() const { return _R; }
   double Dist() const { return _R.norm(); }
@@ -108,26 +108,25 @@ class QMPair {
   void setType(PairType pair_type) { _pair_type = pair_type; }
   const PairType& getType() const { return _pair_type; }
 
-  struct data{
-      int id;
-      int Seg1Id;
-      int Seg2Id;
-      double RX;
-      double RY;
-      double RZ;
+  struct data {
+    int id;
+    int Seg1Id;
+    int Seg2Id;
+    double RX;
+    double RY;
+    double RZ;
 
-      char* pair_type;
+    char* pair_type;
 
-      double lambda0e;
-      double lambda0h;
-      double lambda0s;
-      double lambda0t;
+    double lambda0e;
+    double lambda0h;
+    double lambda0s;
+    double lambda0t;
 
-      double jeff2e;
-      double jeff2h;
-      double jeff2s;
-      double jeff2t;
-      
+    double jeff2e;
+    double jeff2h;
+    double jeff2s;
+    double jeff2t;
   };
 
   void SetupCptTable(CptTable& table) const;
@@ -138,7 +137,7 @@ class QMPair {
  private:
   int _id = -1;
   std::pair<const Segment*, const Segment*> _segments;
-  
+
   Eigen::Vector3d _R = Eigen::Vector3d::Zero();
 
   std::unique_ptr<Segment> _ghost = nullptr;

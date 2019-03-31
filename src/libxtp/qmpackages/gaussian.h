@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,15 +18,14 @@
  */
 
 #ifndef __VOTCA_XTP_GAUSSIAN_H
-#define	__VOTCA_XTP_GAUSSIAN_H
+#define __VOTCA_XTP_GAUSSIAN_H
 
 #include <votca/xtp/qmpackage.h>
 
 #include <string>
 
-
-
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 /**
     \brief Wrapper for the Gaussian program
 
@@ -34,51 +33,47 @@ namespace votca { namespace xtp {
     and extracts information from its log and io files
 
 */
-class Gaussian : public QMPackage
-{
-public:
+class Gaussian : public QMPackage {
+ public:
+  std::string getPackageName() const { return "gaussian"; }
 
-   std::string getPackageName() const{ return "gaussian"; }
+  void Initialize(tools::Property& options);
 
-   void Initialize( tools::Property &options );
+  bool WriteInputFile(const Orbitals& orbitals);
 
-   bool WriteInputFile(const Orbitals& orbitals);
+  bool Run();
 
-   bool Run();
+  void CleanUp();
 
-   void CleanUp();
+  bool ParseLogFile(Orbitals& orbitals);
 
-   bool ParseLogFile( Orbitals& orbitals );
+  bool ParseOrbitalsFile(Orbitals& orbitals);
 
-   bool ParseOrbitalsFile( Orbitals& orbitals );
-   
+ private:
+  bool WriteShellScript();
 
-private:
-    
-    bool WriteShellScript();
+  bool CheckLogFile();
 
-    bool CheckLogFile();
-    
-    std::string                              _input_vxc_file_name;
-    std::string                              _vdWfooter;
+  std::string _input_vxc_file_name;
+  std::string _vdWfooter;
 
-    bool ReadESPCharges(Orbitals& orbitals, std::string& line, std::ifstream& input_file);
-    
-    std::string FortranFormat(double number);
+  bool ReadESPCharges(Orbitals& orbitals, std::string& line,
+                      std::ifstream& input_file);
 
-    void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
-    void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
-    void WriteBackgroundCharges(std::ofstream& com_file);
-    void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
-    void WriteVXCRunInputFile();
-    void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
-    void WriteHeader(std::ofstream& com_file);
+  std::string FortranFormat(double number);
 
-    void WriteChargeOption();
-    
+  void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteBackgroundCharges(std::ofstream& com_file);
+  void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
+  void WriteVXCRunInputFile();
+  void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteHeader(std::ofstream& com_file);
+
+  void WriteChargeOption();
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-}}
-
-#endif	/* __VOTCA_XTP_GAUSSAIN_H */
+#endif /* __VOTCA_XTP_GAUSSAIN_H */

@@ -75,7 +75,7 @@ class Topology {
 
   void WriteToCpt(CheckpointWriter &w) const;
 
-  void WriteToPdb(std::string filename)const;
+  void WriteToPdb(std::string filename) const;
 
   void ReadFromCpt(CheckpointReader &r);
 

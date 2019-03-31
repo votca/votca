@@ -18,15 +18,15 @@
  */
 
 #include <boost/interprocess/sync/file_lock.hpp>
+#include <votca/tools/filesystem.h>
 #include <votca/xtp/statesaver.h>
 #include <votca/xtp/topology.h>
-#include <votca/tools/filesystem.h>
 
 namespace votca {
 namespace xtp {
 
 std::vector<int> StateSaver::getFrames() const {
-    if(!tools::filesystem::FileExists(_hdf5file)){
+  if (!tools::filesystem::FileExists(_hdf5file)) {
     return std::vector<int>();
   }
 
@@ -47,9 +47,8 @@ void StateSaver::WriteFrame(const Topology &top) {
     CheckpointFile cpf(_hdf5file, CheckpointAccessLevel::MODIFY);
     CheckpointWriter w = cpf.getWriter();
     w(frames, "frames");
-    std::cout << "Frame with id " << top.getStep()
-              << " was not in statefile " << _hdf5file << " ,adding it now."
-              << std::endl;
+    std::cout << "Frame with id " << top.getStep() << " was not in statefile "
+              << _hdf5file << " ,adding it now." << std::endl;
   }
   boost::interprocess::file_lock flock(_hdf5file.c_str());
   flock.lock();

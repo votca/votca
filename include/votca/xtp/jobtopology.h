@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,33 +18,30 @@
  */
 
 #ifndef VOTCA_XTP_JOBTOPOLOGY_H
-#define	VOTCA_XTP_JOBTOPOLOGY_H
-#include <votca/xtp/region.h>
+#define VOTCA_XTP_JOBTOPOLOGY_H
 #include <votca/tools/elements.h>
 #include <votca/xtp/checkpoint.h>
+#include <votca/xtp/region.h>
 
 /**
-* \brief Class to set up the toplogy, e.g division of molecules into different regions for a specific job.
+ * \brief Class to set up the toplogy, e.g division of molecules into different
+ * regions for a specific job.
  *
-*
-* 
-* 
-*/
+ *
+ *
+ *
+ */
 
-namespace votca { namespace xtp {
-   
-class JobTopology{
-    public:
+namespace votca {
+namespace xtp {
 
+class JobTopology {
+ public:
+  void BuildRegions(Topology& top, Mapper& mapper);
 
-    void BuildRegions(Topology& top,Mapper& mapper);
-   
-            
-  protected:
+ protected:
+  std::vector<std::unique_ptr<Region> > _regions;
+}
+}  // namespace xtp
 
-      std::vector<std::unique_ptr<Region> > _regions;
-    
-    
-}}
-
-#endif	// VOTCA_XTP_JOBTOPOLOGY_H
+#endif  // VOTCA_XTP_JOBTOPOLOGY_H

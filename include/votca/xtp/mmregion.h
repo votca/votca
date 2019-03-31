@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,51 +17,43 @@
  *
  */
 
-
 #ifndef VOTCA_XTP_MMREGION_H
-#define	VOTCA_XTP_MMREGION_H
+#define VOTCA_XTP_MMREGION_H
 
-
-#include <votca/xtp/region.h>
 #include <votca/xtp/classicalsegment.h>
+#include <votca/xtp/region.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 template <class T>
-class MMRegion: public Region{
-    public:
+class MMRegion : public Region {
+ public:
+  void WriteToCpt(CheckpointWriter& w) const { return; }
 
-        void WriteToCpt(CheckpointWriter& w)const{
-            return;
-        }
+  void ReadFromCpt(CheckpointReader& r) { return; }
 
-        void ReadFromCpt(CheckpointReader& r){
-            return;
-        }
+  int size() const { return _segments.size(); }
 
-        int size()const{return _segments.size();}
+  typename std::vector<T>::iterator begin() { return _segments.begin(); }
+  typename std::vector<T>::iterator end() { return _segments.end(); }
 
-       typename std::vector<T>::iterator begin(){return _segments.begin();}
-       typename std::vector<T>::iterator end(){return _segments.end();}
+  typename std::vector<T>::const_iterator begin() const {
+    return _segments.begin();
+  }
+  typename std::vector<T>::const_iterator end() const {
+    return _segments.end();
+  }
 
-       typename std::vector<T>::const_iterator begin()const{return _segments.begin();}
-       typename std::vector<T>::const_iterator end()const{return _segments.end();}
+  void push_back(const T& seg) { _segments.push_back(seg); }
 
-        void push_back(const T& seg){
-            _segments.push_back(seg);
-        }
-        
-    private:
-
-        std::vector<T> _segments;
-
+ private:
+  std::vector<T> _segments;
 };
 
 typedef MMRegion<PolarSegment> PolarRegion;
 typedef MMRegion<StaticSegment> StaticRegion;
 
-
-
-}}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* VOTCA_XTP_MMREGION_H */
-

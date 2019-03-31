@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,31 +19,31 @@
 #include <votca/xtp/checkpoint.h>
 
 #ifndef VOTCA_XTP_REGION_H
-#define	VOTCA_XTP_REGION_H
+#define VOTCA_XTP_REGION_H
 
 /**
-* \brief base class to derive regions from
-*
-* 
-* 
-*/
+ * \brief base class to derive regions from
+ *
+ *
+ *
+ */
 
-namespace votca { namespace xtp {
-   
-class Region{
+namespace votca {
+namespace xtp {
 
-    public:
+class Region {
 
-        virtual ~Region() {};
-               
-        virtual void WriteToCpt(CheckpointWriter& w)const =0 ;
+ public:
+  virtual ~Region(){};
 
-        virtual void ReadFromCpt(CheckpointReader& r)=0;
+  virtual void WriteToCpt(CheckpointWriter& w) const = 0;
 
-        virtual int size()const=0;
-    
+  virtual void ReadFromCpt(CheckpointReader& r) = 0;
+
+  virtual int size() const = 0;
 };
-    
-}}
 
-#endif	// VOTCA_XTP_REGION_H
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_REGION_H

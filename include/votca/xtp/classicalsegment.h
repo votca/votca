@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -24,47 +24,38 @@
 #include <votca/xtp/polarsite.h>
 #include <votca/xtp/staticsite.h>
 
-
 namespace votca {
-    namespace xtp {
+namespace xtp {
 template <class T>
-class ClassicalSegment : public AtomContainer<T>
-{
-public:
-    ClassicalSegment(std::string name,int id):AtomContainer<T>(name,id){};
-    
-    void LoadFromFile(std::string filename);
+class ClassicalSegment : public AtomContainer<T> {
+ public:
+  ClassicalSegment(std::string name, int id) : AtomContainer<T>(name, id){};
 
-    void WriteMPS(std::string filename, std::string header) const;
+  void LoadFromFile(std::string filename);
 
-    double CalcTotalQ()const;
+  void WriteMPS(std::string filename, std::string header) const;
 
-    Eigen::Vector3d CalcDipole()const;
+  double CalcTotalQ() const;
 
-    friend std::ostream &operator<<(std::ostream &out, const ClassicalSegment<T>& container) {
-    out <<container.getId()<<" "<<container.getName()<<"\n";
-    for(const T& atom:container){
-	out<<atom;
+  Eigen::Vector3d CalcDipole() const;
+
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const ClassicalSegment<T>& container) {
+    out << container.getId() << " " << container.getName() << "\n";
+    for (const T& atom : container) {
+      out << atom;
     }
-    out<<std::endl;
+    out << std::endl;
     return out;
-    }
+  }
 
-protected:
-
-
-
-    
+ protected:
 };
 
 typedef ClassicalSegment<PolarSite> PolarSegment;
 typedef ClassicalSegment<StaticSite> StaticSegment;
-        
-        
-        
-        
-    }
-}
+
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* VOTCA_XTP_CLASSICALSEGMENT_H */
-

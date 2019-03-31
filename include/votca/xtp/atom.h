@@ -30,7 +30,7 @@
 
 namespace votca {
 namespace xtp {
-typedef std::pair<int,std::string> MD_atom_id;
+typedef std::pair<int, std::string> MD_atom_id;
 /**
     \brief information about an atom
 
@@ -41,42 +41,43 @@ class Atom {
  public:
   Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos);
 
-    Atom(int atom_id,std::string md_atom_name, Eigen::Vector3d pos);
+  Atom(int atom_id, std::string md_atom_name, Eigen::Vector3d pos);
 
-Atom(CptTable table, const std::size_t& idx ) { ReadFromCpt(table, idx); }
+  Atom(CptTable table, const std::size_t& idx) { ReadFromCpt(table, idx); }
 
   static std::string GetElementFromMDName(const std::string& MDName);
-  
+
   int getId() const { return _id; }
-  const std::string &getName() const { return _name; }
+  const std::string& getName() const { return _name; }
   std::string getElement() const { return _element; }
 
   int getResnr() const { return _resnr; }
 
   void setResnr(int resnr) { _resnr = resnr; }
-  void Translate(const Eigen::Vector3d &shift) { _pos = _pos + shift; }
+  void Translate(const Eigen::Vector3d& shift) { _pos = _pos + shift; }
 
-  void Rotate(const Eigen::Matrix3d &R, const Eigen::Vector3d &refPos);
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos);
 
-  const Eigen::Vector3d &getPos() const { return _pos; }
-  void setPos(const Eigen::Vector3d &r) { _pos = r; }
+  const Eigen::Vector3d& getPos() const { return _pos; }
+  void setPos(const Eigen::Vector3d& r) { _pos = r; }
 
   std::string identify() const { return "atom"; }
 
-  friend std::ostream &operator<<(std::ostream &out, const Atom& atom) {
-    out <<atom.getId()<<" "<<atom.getName()<<" "<<atom.getElement()<<" "<<atom.getResnr();
-    out <<" "<<atom.getPos().x()<<","<<
-        atom.getPos().y()<<","<<atom.getPos().z()<<"\n";
+  friend std::ostream& operator<<(std::ostream& out, const Atom& atom) {
+    out << atom.getId() << " " << atom.getName() << " " << atom.getElement()
+        << " " << atom.getResnr();
+    out << " " << atom.getPos().x() << "," << atom.getPos().y() << ","
+        << atom.getPos().z() << "\n";
     return out;
   }
 
-  struct data{
-      int id;
-      char* element;
-      char* name;
-      double x;
-      double y;
-      double z;
+  struct data {
+    int id;
+    char* element;
+    char* name;
+    double x;
+    double y;
+    double z;
   };
 
   void SetupCptTable(CptTable& table) const;

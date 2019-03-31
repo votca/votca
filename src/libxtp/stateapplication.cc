@@ -71,7 +71,7 @@ void StateApplication::Run() {
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculators " << std::endl;
   BeginEvaluate(nThreads);
-  std::cout <<frames.size()<<" frames in statefile, Ids are: ";
+  std::cout << frames.size() << " frames in statefile, Ids are: ";
   for (int frame : frames) {
     std::cout << frame << " ";
   }

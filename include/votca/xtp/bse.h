@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,13 +20,13 @@
 #ifndef _VOTCA_XTP_BSE_H
 #define _VOTCA_XTP_BSE_H
 
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/threecenter.h>
-#include <votca/xtp/qmstate.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/populationanalysis.h>
 #include <votca/xtp/qmfragment.h>
+#include <votca/xtp/qmstate.h>
+#include <votca/xtp/rpa.h>
+#include <votca/xtp/threecenter.h>
 
 namespace votca {
 namespace xtp {
@@ -34,9 +34,9 @@ namespace xtp {
 class BSE {
 
  public:
- 
-  BSE(Orbitals& orbitals,Logger &log,TCMatrix_gwbse& Mmn,const Eigen::MatrixXd& Hqp):
-        _log(log),
+  BSE(Orbitals& orbitals, Logger& log, TCMatrix_gwbse& Mmn,
+      const Eigen::MatrixXd& Hqp)
+      : _log(log),
         _orbitals(orbitals),
         _eh_s(orbitals.eh_s()),
         _eh_t(orbitals.eh_t()),
@@ -45,28 +45,28 @@ class BSE {
         _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
         _bse_triplet_energies(orbitals.BSETripletEnergies()),
         _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
-        _Mmn(Mmn),_Hqp(Hqp){};
+        _Mmn(Mmn),
+        _Hqp(Hqp){};
 
-    struct options{
-        bool useTDA=true;
-        int homo;
-        int rpamin;
-        int rpamax;
-        int qpmin;
-        int vmin;
-        int cmax;
-        int nmax=5; //number of eigenvectors to calculate
-        double min_print_weight=0.5;  //minimium contribution for state to print it
-        };
-  
- 
+  struct options {
+    bool useTDA = true;
+    int homo;
+    int rpamin;
+    int rpamax;
+    int qpmin;
+    int vmin;
+    int cmax;
+    int nmax = 5;  // number of eigenvectors to calculate
+    double min_print_weight =
+        0.5;  // minimium contribution for state to print it
+  };
 
-   void configure(const options& opt){
-    _opt=opt;
+  void configure(const options& opt) {
+    _opt = opt;
     _bse_vmax = _opt.homo;
-    _bse_cmin = _opt.homo+1;
+    _bse_cmin = _opt.homo + 1;
     _bse_vtotal = _bse_vmax - _opt.vmin + 1;
-    _bse_ctotal =_opt.cmax - _bse_cmin + 1;
+    _bse_ctotal = _opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
     SetupDirectInteractionOperator();
   }
@@ -75,55 +75,50 @@ class BSE {
 
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
   void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
-   
-  void FreeMatrices(){
-      _eh_t.resize(0, 0);
-      _eh_s.resize(0, 0);
-  }
-  
-  void SetupHs();
-  
-  void SetupHt();
-  
-  void FreeTriplets(){
-      _bse_triplet_coefficients.resize(0,0);
-  }
-  
-  void FreeSinglets(){
-      _bse_singlet_coefficients.resize(0,0);
-      _bse_singlet_coefficients_AR.resize(0,0);
-  }
- 
- private:
-    options _opt;
 
-     struct Interaction {
+  void FreeMatrices() {
+    _eh_t.resize(0, 0);
+    _eh_s.resize(0, 0);
+  }
+
+  void SetupHs();
+
+  void SetupHt();
+
+  void FreeTriplets() { _bse_triplet_coefficients.resize(0, 0); }
+
+  void FreeSinglets() {
+    _bse_singlet_coefficients.resize(0, 0);
+    _bse_singlet_coefficients_AR.resize(0, 0);
+  }
+
+ private:
+  options _opt;
+
+  struct Interaction {
     Eigen::VectorXd exchange_contrib;
     Eigen::VectorXd direct_contrib;
     Eigen::VectorXd qp_contrib;
-};
+  };
 
+  Logger& _log;
+  int _bse_vmax;
+  int _bse_cmin;
+  int _bse_size;
+  int _bse_vtotal;
+  int _bse_ctotal;
 
- 
-      
-Logger &_log;
-  int  _bse_vmax;
-  int  _bse_cmin;
-  int  _bse_size;
-  int  _bse_vtotal;
-  int  _bse_ctotal;
-  
   Orbitals& _orbitals;
-    // BSE variables and functions
+  // BSE variables and functions
   MatrixXfd& _eh_s;  // only for storage in orbitals object
   MatrixXfd& _eh_t;  // only for storage in orbitals object
-   // references are stored in orbitals object
-  VectorXfd& _bse_singlet_energies;  
-  MatrixXfd& _bse_singlet_coefficients;                                                 
-  MatrixXfd& _bse_singlet_coefficients_AR;  
-  VectorXfd& _bse_triplet_energies;  
-  MatrixXfd& _bse_triplet_coefficients; 
-  
+                     // references are stored in orbitals object
+  VectorXfd& _bse_singlet_energies;
+  MatrixXfd& _bse_singlet_coefficients;
+  MatrixXfd& _bse_singlet_coefficients_AR;
+  VectorXfd& _bse_triplet_energies;
+  MatrixXfd& _bse_triplet_coefficients;
+
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
 
@@ -131,25 +126,26 @@ Logger &_log;
 
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
-   template <typename T>
+  template <typename T>
   void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T,int factor>
+  template <typename T, int factor>
   void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T>
-   void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-   template <typename T, int factor>
+  template <typename T>
+  void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
+  template <typename T, int factor>
   void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
 
- void printFragInfo(const std::vector<QMFragment<BSE_Population> > & frags, int state)const;
- void printWeights(int i_bse, double weight)const;
+  void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+                     int state) const;
+  void printWeights(int i_bse, double weight) const;
 
- void SetupDirectInteractionOperator();
- 
+  void SetupDirectInteractionOperator();
+
   Interaction Analyze_eh_interaction(const QMStateType& type);
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type, const MatrixXfd& H);
-
+  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
+                                                 const MatrixXfd& H);
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _VOTCA_XTP_BSE_H */
