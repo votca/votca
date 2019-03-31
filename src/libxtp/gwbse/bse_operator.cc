@@ -26,10 +26,9 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-
 template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index)const {
-  
+Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index) const {
+
   Eigen::VectorXd col = Eigen::VectorXd::Zero(_bse_size);
   if (cx != 0) {
     col += cx * Hx_col(index);
@@ -46,9 +45,8 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index)const {
   if (cqp != 0) {
     col += cqp * Hqp_col(index);
   }
-  
+
   return col;
-  
 }
 
 template <int cqp, int cx, int cd, int cd2>
@@ -60,11 +58,10 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_col(int index) const {
   const int cmin = _bse_cmin - _opt.rpamin;
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  const Eigen::VectorXd Mmn1Tc1 =_Mmn[v1 + vmin].row(c1+cmin);
+  const Eigen::VectorXd Mmn1Tc1 = _Mmn[v1 + vmin].row(c1 + cmin);
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     const Eigen::MatrixXd& Mmn2 = _Mmn[v2 + vmin];
-    auto Mmnx2 =
-        Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1Tc1;
+    auto Mmnx2 = Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1Tc1;
     int i2 = vc.I(v2, 0);
     Hcol.segment(i2, _bse_ctotal).noalias() = Mmnx2;
   }

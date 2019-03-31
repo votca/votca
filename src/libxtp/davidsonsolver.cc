@@ -70,7 +70,7 @@ Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r,
                                                 double lambda) const {
   /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
    */
-  
+
   Eigen::VectorXd delta = r.array() / (lambda - D.array());
   return delta;
 }
@@ -112,26 +112,27 @@ Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const {
   return result;
 }
 
-Eigen::MatrixXd DavidsonSolver::_gramschmidt( Eigen::MatrixXd &A, int nstart ) const
-{
-    Eigen::MatrixXd Q = A;
+Eigen::MatrixXd DavidsonSolver::_gramschmidt(Eigen::MatrixXd &A,
+                                             int nstart) const {
+  Eigen::MatrixXd Q = A;
 
-    for(unsigned int j = nstart; j < A.cols(); ++j) {
-        
-        Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
-        
-        if( Q.col(j).norm() <= 10e-14 * A.col(j).norm() ) {
+  for (unsigned int j = nstart; j < A.cols(); ++j) {
 
-            CTP_LOG(ctp::logDEBUG, _log) 
-            << ctp::TimeStamp() << "Warning : Linear dependencies detected in GS orthogonalization" 
-            << flush;
-            
-            break;
-        } else {
-            Q.col(j).normalize();
-        }
+    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
+
+    if (Q.col(j).norm() <= 10e-14 * A.col(j).norm()) {
+
+      CTP_LOG(ctp::logDEBUG, _log)
+          << ctp::TimeStamp()
+          << "Warning : Linear dependencies detected in GS orthogonalization"
+          << flush;
+
+      break;
+    } else {
+      Q.col(j).normalize();
     }
-    return Q;
+  }
+  return Q;
 }
 
 }  // namespace xtp

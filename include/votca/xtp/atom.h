@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,17 +16,17 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For earlier commit history see ctp commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef __VOTCA_XTP_ATOM_H
 #define __VOTCA_XTP_ATOM_H
 
-#include <string>
-#include <map>
-#include <votca/tools/vec.h>
-#include <votca/tools/matrix.h>
 #include <exception>
 #include <map>
+#include <string>
+#include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
 
 namespace votca {
 namespace xtp {
@@ -78,7 +78,7 @@ class Atom {
         _qmPos(stencil->getQMPos()),
         _element(stencil->getElement()) {}
 
-  Atom() {};
+  Atom(){};
   ~Atom() { _Q.clear(); }
 
   const int &getId() const { return _id; }
@@ -196,7 +196,7 @@ inline void Atom::setQMPart(const int &qmid, votca::tools::vec qmPos) {
     _qmId = -1;
   }
 }
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* __VOTCA_XTP_ATOM_H */

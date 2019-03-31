@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,73 +17,44 @@
  *
  */
 
-
 #ifndef VOTCA_XTP_SQLAPPLICATION_H
-#define	VOTCA_XTP_SQLAPPLICATION_H
+#define VOTCA_XTP_SQLAPPLICATION_H
 
-
-#include <votca/ctp/topology.h>
 #include <votca/ctp/qmcalculator.h>
+#include <votca/ctp/topology.h>
 
-#include <votca/xtp/xtpapplication.h>
 #include <votca/xtp/statesaversqlite.h>
+#include <votca/xtp/xtpapplication.h>
 
+namespace votca {
+namespace xtp {
 
+class SqlApplication : public XtpApplication {
+ public:
+  SqlApplication();
 
+  ~SqlApplication() {
+    for (ctp::QMCalculator* calculator : _calculators) {
+      delete calculator;
+    }
+  };
 
-namespace votca { namespace xtp {
+  void Initialize();
+  bool EvaluateOptions();
+  void Run(void);
 
+  virtual void BeginEvaluate(int nThreads);
+  virtual bool EvaluateFrame();
+  virtual void EndEvaluate();
 
-class SqlApplication : public XtpApplication
-{
-public:
-    SqlApplication();
+  void AddCalculator(ctp::QMCalculator* calculator);
 
-    ~SqlApplication() {
-        for (ctp::QMCalculator* calculator : _calculators) {
-            delete calculator;
-        }
-    };
-
-   void Initialize();
-   bool EvaluateOptions();
-   void Run(void);
-
-   virtual void BeginEvaluate(int nThreads);
-   virtual bool EvaluateFrame();
-   virtual void EndEvaluate();
-
-   void AddCalculator(ctp::QMCalculator *calculator);
-
-protected:
-
-    ctp::Topology           _top;
-    list< ctp::QMCalculator* >   _calculators;
-
+ protected:
+  ctp::Topology _top;
+  list<ctp::QMCalculator*> _calculators;
 };
 
-}}
-
-
-
-
-
-
-
-
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* _QMApplication_H */
-
-
-
-
-
-
-
-
-
-
-
-
-
-

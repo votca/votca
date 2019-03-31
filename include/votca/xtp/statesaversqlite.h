@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,73 +17,70 @@
  *
  */
 
-
 #ifndef __VOTCA_MD2QM_StateSaverSQLite_H
-#define	__VOTCA_MD2QM_StateSaverSQLite_H
+#define __VOTCA_MD2QM_StateSaverSQLite_H
 
-#include <stdio.h>
-#include <map>
-#include <votca/xtp/qmdatabase.h>
-#include <votca/ctp/topology.h>
 #include <boost/interprocess/sync/file_lock.hpp>
+#include <map>
+#include <stdio.h>
+#include <votca/ctp/topology.h>
+#include <votca/xtp/qmdatabase.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
+class StateSaverSQLite {
+ public:
+  StateSaverSQLite(){};
+  ~StateSaverSQLite() { _db.Close(); }
 
+  void Open(ctp::Topology &qmtop, const std::string &file, bool lock = true);
+  void Close() { _db.Close(); }
+  bool NextFrame();
 
-class StateSaverSQLite
-{
-public:
-    StateSaverSQLite() { };
-   ~StateSaverSQLite() { _db.Close(); }
+  void WriteFrame();
+  void WriteMeta(bool update);
+  void WriteMolecules(bool update);
+  void WriteSegTypes(bool update);
+  void WriteSegments(bool update);
+  void WriteFragments(bool update);
+  void WriteAtoms(bool update);
+  void WritePairs(bool update);
+  void WriteSuperExchange(bool update);
 
-    void Open(ctp::Topology &qmtop, const std::string &file, bool lock = true);
-    void Close() { _db.Close(); }
-    bool NextFrame();
+  void ReadFrame();
+  void ReadMeta(int topId);
+  void ReadMolecules(int topId);
+  void ReadSegTypes(int topId);
+  void ReadSegments(int topId);
+  void ReadFragments(int topId);
+  void ReadAtoms(int topId);
+  void ReadPairs(int topId);
+  void ReadSuperExchange(int topId);
 
-    void WriteFrame();
-    void WriteMeta(bool update);
-    void WriteMolecules(bool update);
-    void WriteSegTypes(bool update);
-    void WriteSegments(bool update);
-    void WriteFragments(bool update);
-    void WriteAtoms(bool update);
-    void WritePairs(bool update);
-    void WriteSuperExchange(bool update);
+  int FramesInDatabase();
+  ctp::Topology *getTopology() { return _qmtop; }
+  bool HasTopology(ctp::Topology *top);
 
-    void ReadFrame();
-    void ReadMeta(int topId);
-    void ReadMolecules(int topId);
-    void ReadSegTypes(int topId);
-    void ReadSegments(int topId);
-    void ReadFragments(int topId);
-    void ReadAtoms(int topId);
-    void ReadPairs(int topId);
-    void ReadSuperExchange(int topId);
+  void LockStateFile();
+  void UnlockStateFile();
 
-    int  FramesInDatabase();
-    ctp::Topology *getTopology() { return _qmtop; }
-    bool HasTopology(ctp::Topology *top);
-    
-    void LockStateFile();
-    void UnlockStateFile();
-    
-private:
-    ctp::Topology       *_qmtop;
-    QMDatabase      _db;
+ private:
+  ctp::Topology *_qmtop;
+  QMDatabase _db;
 
-    int             _frame;
-    int             _current_frame;
-    std::vector<int>     _frames;
-    std::vector<int>     _topIds;
+  int _frame;
+  int _current_frame;
+  std::vector<int> _frames;
+  std::vector<int> _topIds;
 
-    std::string          _sqlfile;
-    bool            _was_read;
-    
-    boost::interprocess::file_lock *_flock;
+  std::string _sqlfile;
+  bool _was_read;
+
+  boost::interprocess::file_lock *_flock;
 };
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* __VOTCA_MD2QM_StateSaverSQLite2_H */
-
+#endif /* __VOTCA_MD2QM_StateSaverSQLite2_H */

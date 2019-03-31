@@ -117,7 +117,6 @@ template <typename BSE_OPERATOR>
 void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
                           Eigen::MatrixXd& coefficients) {
 
-
   std::chrono::time_point<std::chrono::system_clock> start, end;
   std::chrono::time_point<std::chrono::system_clock> hstart, hend;
   std::chrono::duration<double> elapsed_time;
@@ -126,51 +125,48 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
   CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Solving for first "
                                << _opt.nmax << " eigenvectors" << flush;
 
-
   if (_opt.davidson) {
 
     DavidsonSolver DS(_log);
     DS.set_correction(_opt.davidson_correction);
     DS.set_tolerance(_opt.davidson_tolerance);
-    DS.set_max_search_space(10*_opt.nmax);
+    DS.set_max_search_space(10 * _opt.nmax);
 
-    if (_opt.matrixfree) 
-    {
+    if (_opt.matrixfree) {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using matrix free method" << flush;
       DS.solve(h, _opt.nmax);
     }
 
-    else 
-    {
+    else {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Using full matrix method" << flush;
 
-      // get the full matrix    
+      // get the full matrix
       hstart = std::chrono::system_clock::now();
-      Eigen::MatrixXd hfull = h.get_full_matrix();   
-      hend = std::chrono::system_clock::now(); 
+      Eigen::MatrixXd hfull = h.get_full_matrix();
+      hend = std::chrono::system_clock::now();
 
-      elapsed_time = hend-hstart;
+      elapsed_time = hend - hstart;
 
       CTP_LOG(ctp::logDEBUG, _log)
-            << ctp::TimeStamp() << " Full matrix assembled in " 
-            << elapsed_time.count() << " secs" << flush;  
+          << ctp::TimeStamp() << " Full matrix assembled in "
+          << elapsed_time.count() << " secs" << flush;
 
       // solve theeigenalue problem
       hstart = std::chrono::system_clock::now();
       DS.solve(hfull, _opt.nmax);
-      hend = std::chrono::system_clock::now(); 
+      hend = std::chrono::system_clock::now();
 
       elapsed_time = hend - hstart;
       CTP_LOG(ctp::logDEBUG, _log)
-            << ctp::TimeStamp() << " Davidson solve done in " 
-            << elapsed_time.count() << " secs" << flush;  
+          << ctp::TimeStamp() << " Davidson solve done in "
+          << elapsed_time.count() << " secs" << flush;
     }
 
     energies = DS.eigenvalues();
     coefficients = DS.eigenvectors();
-    
+
   }
 
   else {
@@ -180,30 +176,28 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
 
     hstart = std::chrono::system_clock::now();
     Eigen::MatrixXd hfull = h.get_full_matrix();
-    hend = std::chrono::system_clock::now(); 
+    hend = std::chrono::system_clock::now();
 
     elapsed_time = hend - hstart;
     CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << " Full matrix assembled in " 
-          << elapsed_time.count() << " secs" << flush;  
+        << ctp::TimeStamp() << " Full matrix assembled in "
+        << elapsed_time.count() << " secs" << flush;
 
     hstart = std::chrono::system_clock::now();
     tools::linalg_eigenvalues(hfull, energies, coefficients, _opt.nmax);
-    hend = std::chrono::system_clock::now(); 
+    hend = std::chrono::system_clock::now();
 
     elapsed_time = hend - hstart;
-    CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << " Lapack solve done in " 
-          << elapsed_time.count() << " secs" << flush;  
-
+    CTP_LOG(ctp::logDEBUG, _log) << ctp::TimeStamp() << " Lapack solve done in "
+                                 << elapsed_time.count() << " secs" << flush;
   }
 
   end = std::chrono::system_clock::now();
-  elapsed_time = end-start;
+  elapsed_time = end - start;
 
   CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Diagonalization done in " 
-        << elapsed_time.count() << " secs" << flush;
+      << ctp::TimeStamp() << " Diagonalization done in " << elapsed_time.count()
+      << " secs" << flush;
 
   return;
 }

@@ -55,7 +55,6 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   }
 
  protected:
-  
   Eigen::VectorXd col(int index) const;
 
   Eigen::VectorXd Hqp_col(int index) const;

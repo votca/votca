@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,89 +17,68 @@
  *
  */
 
-
 #ifndef SANDBOX2_H
 #define SANDBOX2_H
 
 #include <votca/ctp/parallelpaircalc.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-class Sandbox : public ctp::ParallelPairCalculator
-{
+class Sandbox : public ctp::ParallelPairCalculator {
 
-public:
-    
-    Sandbox() { };
-   ~Sandbox() { };
+ public:
+  Sandbox(){};
+  ~Sandbox(){};
 
-    string  Identify() { return "Sandbox"; }
-    void    Initialize(Property *options);
-    using ctp::ParallelPairCalculator::EvalPair;
-    void    EvalPair(ctp::Topology *top, ctp::QMPair *qmpair, int slot);
-
+  string Identify() { return "Sandbox"; }
+  void Initialize(Property *options);
+  using ctp::ParallelPairCalculator::EvalPair;
+  void EvalPair(ctp::Topology *top, ctp::QMPair *qmpair, int slot);
 };
-
 
 void Sandbox::Initialize(Property *options) {
 
-    // update options with the VOTCASHARE defaults   
-    UpdateWithDefaults( options, "xtp" );
+  // update options with the VOTCASHARE defaults
+  UpdateWithDefaults(options, "xtp");
 
-    _nThreads = 1;
+  _nThreads = 1;
 
-    cout << endl << "... ... Initialize with " << _nThreads << " threads ";    
-
+  cout << endl << "... ... Initialize with " << _nThreads << " threads ";
 }
-
 
 void Sandbox::EvalPair(ctp::Topology *top, ctp::QMPair *qmpair, int slot) {
-  
-    this->LockCout();
-    cout << "\r... ... Overloading pair " << qmpair->getId() << ". " << flush;
-    this->UnlockCout();
 
-    //int ij;
-    for (int i = 0; i < 2000; i++) {
-        for (int j = 0; j < 2000; j++) {
-            //ij = i+j;
-        }
+  this->LockCout();
+  cout << "\r... ... Overloading pair " << qmpair->getId() << ". " << flush;
+  this->UnlockCout();
+
+  // int ij;
+  for (int i = 0; i < 2000; i++) {
+    for (int j = 0; j < 2000; j++) {
+      // ij = i+j;
+    }
+  }
+
+  vector<ctp::Segment *>::iterator sit;
+  for (sit = top->Segments().begin(); sit != top->Segments().end(); sit++) {
+    // Segment *seg = *sit;
+
+    vector<ctp::Atom *>::iterator ait;
+    for (ait = top->Atoms().begin(); ait != top->Atoms().end(); ait++) {
+      // Atom *atm = *ait;
+
+      // int id = atm->getId();
     }
 
-    vector<ctp::Segment*> ::iterator sit;
-    for (sit = top->Segments().begin(); sit != top->Segments().end(); sit++) {
-        //Segment *seg = *sit;
-
-        vector<ctp::Atom*> ::iterator ait;
-        for (ait= top->Atoms().begin(); ait != top->Atoms().end(); ait++) {
-            //Atom *atm = *ait;
-
-            //int id = atm->getId();
-
-        }
-
-        //Atom *atm = seg->Atoms()[1];
-        //atm = seg->Atoms()[2];
-        //atm = seg->Atoms()[10000];
-        //atm = seg->Atoms()[14300];
-
-    }
-
-
+    // Atom *atm = seg->Atoms()[1];
+    // atm = seg->Atoms()[2];
+    // atm = seg->Atoms()[10000];
+    // atm = seg->Atoms()[14300];
+  }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-}} /* exit namespace votca::xtp */
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* SANDBOX2_H */
