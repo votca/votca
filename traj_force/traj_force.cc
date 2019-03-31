@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,8 @@ void TrajForce::EvalConfiguration(Topology *conf, Topology *conf_atom) {
 
     _top_force.getBead(i)->F() =
         conf->getBead(i)->getF() + _scale * _top_force.getBead(i)->getF();
-    Eigen::Vector3d d = conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
+    Eigen::Vector3d d =
+        conf->getBead(i)->getPos() - _top_force.getBead(i)->getPos();
     if (d.norm() > 1e-6)
       throw std::runtime_error(
           "One or more bead positions in trajectory and reference force "

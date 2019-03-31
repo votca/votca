@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ void RDFCalculator::Initialize() {
         "No interactions defined in options xml-file - nothing to be done");
 
   // initialize non-bonded structures
-  for (Property *prop:_nonbonded) {
+  for (Property *prop : _nonbonded) {
     interaction_t *i = AddInteraction(prop);
     i->_is_bonded = false;
   }
@@ -69,7 +69,7 @@ void RDFCalculator::BeginEvaluate(Topology *top, Topology *top_atom) {
   _processed_some_frames = false;
 
   // initialize non-bonded structures
-   for (Property *prop:_nonbonded) {
+  for (Property *prop : _nonbonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_interactions[name];
@@ -186,8 +186,8 @@ void RDFCalculator::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  IMCNBSearchHandler(HistogramNew *hist, double subvol_rad, Eigen::Vector3d boxc,
-                     bool do_vol_corr)
+  IMCNBSearchHandler(HistogramNew *hist, double subvol_rad,
+                     Eigen::Vector3d boxc, bool do_vol_corr)
       : _hist(hist),
         _subvol_rad(subvol_rad),
         _boxc(boxc),
@@ -198,7 +198,8 @@ class IMCNBSearchHandler {
   Eigen::Vector3d _boxc;  // center of box
   bool _do_vol_corr;
 
-  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r, const double dist) {
+  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
+                 const double dist) {
 
     if (_do_vol_corr) {
       double dr = (b1->Pos() - _boxc).norm();
@@ -224,7 +225,7 @@ class IMCNBSearchHandler {
 
 // process non-bonded interactions for current frame
 void RDFCalculator::Worker::DoNonbonded(Topology *top) {
-  for (Property *prop: _rdfcalculator->_nonbonded) {
+  for (Property *prop : _rdfcalculator->_nonbonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_rdfcalculator->_interactions[name];
@@ -298,7 +299,7 @@ void RDFCalculator::Worker::DoNonbonded(Topology *top) {
 
 // process non-bonded interactions for current frame
 void RDFCalculator::Worker::DoBonded(Topology *top) {
-  for (Property *prop:_rdfcalculator->_bonded) {
+  for (Property *prop : _rdfcalculator->_bonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_rdfcalculator->_interactions[name];

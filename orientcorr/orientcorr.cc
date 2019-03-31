@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,7 +85,8 @@ class MyWorker : public CsgApplication::Worker {
   void EvalConfiguration(Topology *top, Topology *top_ref);
 
   // callback if neighborsearch finds a pair
-  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r, const double dist);
+  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
+                 const double dist);
 
   // accumulator of the 3/2*u(0)u(r) - 1/2
   HistogramNew _cor;
@@ -211,7 +212,8 @@ void MyWorker::EvalConfiguration(Topology *top, Topology *top_ref) {
 
 // process a pair, since return value is falsed, pairs are not cached which
 // saves a lot of memory for the big systems
-bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r, const double dist) {
+bool MyWorker::FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
+                         const double dist) {
   double tmp = b1->getV().dot(b2->getV());
   double P2 = 3. / 2. * tmp * tmp - 0.5;
 
