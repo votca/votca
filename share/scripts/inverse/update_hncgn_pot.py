@@ -256,11 +256,30 @@ def extrapolate_U_cubic(r, dpot_dU, dpot_flag, rdf_current_g, pot_current_U):
     return dpot_dU_extrap
 
 
+def extrapolate_U_times_g(r, dpot_dU, dpot_flag, rdf_current_g):
+    """Extrapolate the potential in the core region up to
+    the point, where the RDF becomes larger than 0.1.
+
+    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    # fill core with first value
+    first_dU_index = np.asarray(dpot_flag == 'i').nonzero()[0][0]
+    first_dU = dpot_dU[first_dU_index]
+    # replace out of range dU values with constant first value
+    dpot_dU_extrap = np.where(dpot_flag == 'i', dpot_dU, first_dU)
+    # region to extrapolate
+    extrap_end = np.where(rdf_current_g > 1e-0)[0][0]
+    extrap_region = slice(0, extrap_end)
+    # extrapolate
+    dpot_dU_extrap[extrap_region] *= rdf_current_g[extrap_region]
+    dpot_dU_extrap = np.nan_to_num(dpot_dU_extrap)
+    return dpot_dU_extrap
+
+
 def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                     rdf_current_g, rdf_current_flag,
                     pot_current_U, pot_current_flag,
                     kBT, density, cut_off, g_min,
-                    constraints, extrap_near_core):
+                    constraints, extrapolation):
     """calculate dU for the hncgn method with constraint pressure"""
 
     # allways raise an error
@@ -271,8 +290,8 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
     dpot_flag = np.array([''] * len(dpot_dU))
 
     # full range dU
-    dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g,
-                                   kBT, density, g_min, cut_off, pot_current_U,
+    dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT,
+                                   density, g_min, cut_off, pot_current_U,
                                    constraints)
 
     # calculate dpot
@@ -284,15 +303,18 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
             dpot_dU[i] = dU_full[i]
             dpot_flag[i] = 'i'
 
-    # extrapolation in near core region
-    if extrap_near_core == 'none':
+    # extrapolation in and near core region
+    if extrapolation == 'none':
         dpot_dU_extrap = dpot_dU
-    elif extrap_near_core == 'cubic':
+    elif extrapolation == 'cubic':
         dpot_dU_extrap = extrapolate_U_cubic(r, dpot_dU, dpot_flag,
                                              rdf_current_g, pot_current_U)
+    elif extrapolation == 'times_g':
+        dpot_dU_extrap = extrapolate_U_times_g(r, dpot_dU, dpot_flag,
+                                               rdf_current_g)
     else:
-        raise Exception("unknow extrapolation scheme near core region:"
-                        + extrap_near_core)
+        raise Exception("unknow extrapolation scheme for inside and near core"
+                        "region:" + extrapolation)
     return dpot_dU_extrap, dpot_flag
 
 
@@ -313,8 +335,8 @@ parser.add_argument('cut_off', type=float)
 parser.add_argument('--pressure-constraint', dest='pressure_constraint',
                     type=str, default=None)
 parser.add_argument('--extrap-near-core', dest='extrap_near_core',
-                    type=str, default='cubic',
-                    choices=['none', 'cubic'])
+                    type=str, default='times_g',
+                    choices=['times_g', 'none', 'cubic'])
 
 if __name__ == '__main__':
     args = parser.parse_args()
