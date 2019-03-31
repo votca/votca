@@ -307,6 +307,14 @@ class Orbitals {
     return _BSE_triplet_coefficients;
   }
 
+  const Eigen::MatrixXd& BSETripletCoefficientsAR() const {
+    return _BSE_triplet_coefficients_AR;
+  }
+
+  Eigen::MatrixXd& BSETripletCoefficientsAR() {
+    return _BSE_triplet_coefficients_AR;
+  }
+
   // access to singlet energies and wave function coefficients
 
   bool hasBSESinglets() const {
@@ -543,6 +551,7 @@ class Orbitals {
   std::vector<tools::vec> _transition_dipoles;
   Eigen::VectorXd _BSE_triplet_energies;
   Eigen::MatrixXd _BSE_triplet_coefficients;
+  Eigen::MatrixXd _BSE_triplet_coefficients_AR;
 
   std::vector<Eigen::VectorXd> _DqS_frag;  // fragment charge changes in exciton
 

@@ -80,7 +80,8 @@ typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
 
 typedef BSE_OPERATOR<1, 4, 1, 1> SingletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1, 0, 1, -1> SingletOperator_BTDA_AmB;
+typedef BSE_OPERATOR<1, 0, 1, 1> TripletOperator_BTDA_ApB;
+typedef BSE_OPERATOR<1, 0, 1, -1> Operator_BTDA_AmB;
 
 typedef BSE_OPERATOR<1, 0, 0, 0> HqpOperator;
 typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;
