@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,43 +18,36 @@
  */
 
 #ifndef __XTP_LOWDIN__H
-#define	__XTP_LOWDIN__H
-
+#define __XTP_LOWDIN__H
 
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
 
-
 /**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of mulliken partial charges
-*
-* 
-* 
-*/
+ * \brief Takes a list of atoms, and the corresponding density matrix and puts
+ * out a table of mulliken partial charges
+ *
+ *
+ *
+ */
 
+namespace votca {
+namespace xtp {
 
+class Lowdin {
+ public:
+  Lowdin() {}
+  ~Lowdin(){};
 
-namespace votca { namespace xtp {
-    
-class Lowdin{
-public:
-    
-    Lowdin(){}
-   ~Lowdin(){};
+  void EvaluateLowdin(std::vector<QMAtom*>& _atomlist,
+                      const Eigen::MatrixXd& _dmat, AOBasis& basis,
+                      bool _do_transition);
 
-    void EvaluateLowdin(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,AOBasis &basis, bool _do_transition);
-  
-   
-private:
-   
- 
-    
+ private:
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-}}
-
-#endif	/* ESPFIT_H */
+#endif /* ESPFIT_H */

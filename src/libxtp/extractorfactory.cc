@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,30 +17,28 @@
  *
  */
 
-
 #include <votca/xtp/extractorfactory.h>
 
 #include "extractors/energyextractor.h"
 #include "extractors/integralsextractor.h"
-#include "extractors/ratesextractor.h"
-#include "extractors/trajextractor.h"
-#include "extractors/segmentsextractor.h"
-#include "extractors/pairsextractor.h"
 #include "extractors/occupationsextractor.h"
+#include "extractors/pairsextractor.h"
+#include "extractors/ratesextractor.h"
+#include "extractors/segmentsextractor.h"
+#include "extractors/trajextractor.h"
 
+namespace votca {
+namespace xtp {
 
-
-namespace votca { namespace xtp {
-
-void ExtractorFactory::RegisterAll(void)
-{	
-        Extractors().Register<EnergyExtractor>             ("energy2xml");
-        Extractors().Register<IntegralsExtractor>          ("integrals2xml");
-        Extractors().Register<RatesExtractor>              ("rates2xml");
-        Extractors().Register<OccupationsExtractor>        ("occupations2xml");
-        Extractors().Register<TrajExtractor>               ("trajectory2pdb");
-        Extractors().Register<SegmentsExtractor>           ("segments2xml");
-        Extractors().Register<PairsExtractor>              ("pairs2xml");
+void ExtractorFactory::RegisterAll(void) {
+  Extractors().Register<EnergyExtractor>("energy2xml");
+  Extractors().Register<IntegralsExtractor>("integrals2xml");
+  Extractors().Register<RatesExtractor>("rates2xml");
+  Extractors().Register<OccupationsExtractor>("occupations2xml");
+  Extractors().Register<TrajExtractor>("trajectory2pdb");
+  Extractors().Register<SegmentsExtractor>("segments2xml");
+  Extractors().Register<PairsExtractor>("pairs2xml");
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca

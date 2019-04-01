@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,83 +17,72 @@
  *
  */
 
-
 #ifndef VOTCA_XTP_TRAJEXTRACTOR_H
 #define VOTCA_XTP_TRAJEXTRACTOR_H
 
 #include <cstdlib>
 #include <votca/ctp/qmcalculator.h>
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
+class TrajExtractor : public ctp::QMCalculator {
 
+ public:
+  TrajExtractor(){};
+  ~TrajExtractor(){};
 
+  std::string Identify() { return "extract.trajectory"; }
 
+  void Initialize(tools::Property *options);
+  bool EvaluateFrame(ctp::Topology *top);
 
-class TrajExtractor : public ctp::QMCalculator
-{
-
-public:
-
-    TrajExtractor() { };
-   ~TrajExtractor() { };
-
-    std::string Identify() { return "extract.trajectory"; }
-
-    void Initialize(tools::Property *options);
-    bool EvaluateFrame(ctp::Topology *top);
-
-private:
-
-    std::string _outPDBmd;
-    std::string _outPDBqm;
-    
+ private:
+  std::string _outPDBmd;
+  std::string _outPDBqm;
 };
-
 
 void TrajExtractor::Initialize(tools::Property *options) {
 
-    _outPDBmd = Identify() + "_md.pdb";
-    _outPDBqm = Identify() + "_qm.pdb";
+  _outPDBmd = Identify() + "_md.pdb";
+  _outPDBqm = Identify() + "_qm.pdb";
 }
 
 bool TrajExtractor::EvaluateFrame(ctp::Topology *top) {
 
-    // Rigidify std::system (if possible)
-    if (!top->Rigidify()) return 0;
+  // Rigidify std::system (if possible)
+  if (!top->Rigidify()) return 0;
 
-    // Print coordinates
-    FILE *outPDBmd = NULL;
-    FILE *outPDBqm = NULL;
+  // Print coordinates
+  FILE *outPDBmd = NULL;
+  FILE *outPDBqm = NULL;
 
-    outPDBmd = fopen(_outPDBmd.c_str(), "w");
-    outPDBqm = fopen(_outPDBqm.c_str(), "w");
+  outPDBmd = fopen(_outPDBmd.c_str(), "w");
+  outPDBqm = fopen(_outPDBqm.c_str(), "w");
 
-    std::fprintf(outPDBmd, "TITLE     VOT CAtastrophic title \n");
-    std::fprintf(outPDBmd, "Model %8d \n" , 1);
+  std::fprintf(outPDBmd, "TITLE     VOT CAtastrophic title \n");
+  std::fprintf(outPDBmd, "Model %8d \n", 1);
 
-    std::fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
-    std::fprintf(outPDBqm, "Model %8d \n", 1);
+  std::fprintf(outPDBqm, "TITLE     VOT CAtastrophic title \n");
+  std::fprintf(outPDBqm, "Model %8d \n", 1);
 
-    std::vector< ctp::Segment* > ::iterator sit;
-    for (sit = top->Segments().begin();
-         sit < top->Segments().end();
-         sit++) {
+  std::vector<ctp::Segment *>::iterator sit;
+  for (sit = top->Segments().begin(); sit < top->Segments().end(); sit++) {
 
-        (*sit)->WritePDB(outPDBmd, "Atoms", "MD");
-        (*sit)->WritePDB(outPDBqm, "Atoms", "QM");
-    }
+    (*sit)->WritePDB(outPDBmd, "Atoms", "MD");
+    (*sit)->WritePDB(outPDBqm, "Atoms", "QM");
+  }
 
-    std::fprintf(outPDBmd, "TER\nENDMDL\n");
-    std::fprintf(outPDBqm, "TER\nENDMDL\n");
+  std::fprintf(outPDBmd, "TER\nENDMDL\n");
+  std::fprintf(outPDBqm, "TER\nENDMDL\n");
 
-    std::fclose(outPDBmd);
-    std::fclose(outPDBqm);
-    
-    return true;
+  std::fclose(outPDBmd);
+  std::fclose(outPDBqm);
+
+  return true;
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-
-#endif // VOTCA_XTP_TRAJEXTRACTOR_H
+#endif  // VOTCA_XTP_TRAJEXTRACTOR_H

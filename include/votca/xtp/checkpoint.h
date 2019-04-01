@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,19 +17,18 @@
 #ifndef _VOTCA_XTP_CHECKPOINT_H
 #define _VOTCA_XTP_CHECKPOINT_H
 
-
 #include <H5Cpp.h>
 #include <votca/xtp/checkpoint_utils.h>
-#include <votca/xtp/checkpointwriter.h>
 #include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointwriter.h>
 
 namespace votca {
 namespace xtp {
 
-enum class CheckpointAccessLevel{
-        READ = 0,//only read no write access
-        MODIFY = 1,//if file exists, change it
-        CREATE = 2//create new file
+enum class CheckpointAccessLevel {
+  READ = 0,    // only read no write access
+  MODIFY = 1,  // if file exists, change it
+  CREATE = 2   // create new file
 };
 
 std::ostream& operator<<(std::ostream& s, CheckpointAccessLevel l);
@@ -54,9 +53,7 @@ class CheckpointFile {
   H5::H5File _fileHandle;
   CptLoc _rootLoc;
   CheckpointAccessLevel _accessLevel;
-
 };
-
 
 }  // namespace xtp
 }  // namespace votca

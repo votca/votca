@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,44 +18,34 @@
  */
 
 #ifndef __XTP_MULLIKEN__H
-#define	__XTP_MULLIKEN__H
-
+#define __XTP_MULLIKEN__H
 
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/qmatom.h>
 
-
 /**
-* \brief Takes a list of atoms, and the corresponding density matrix and puts out a table of mulliken partial charges
-*
-* 
-* 
-*/
+ * \brief Takes a list of atoms, and the corresponding density matrix and puts
+ * out a table of mulliken partial charges
+ *
+ *
+ *
+ */
 
+namespace votca {
+namespace xtp {
 
+class Mulliken {
+ public:
+  Mulliken() {}
+  ~Mulliken(){};
 
-namespace votca { namespace xtp {
-    
-class Mulliken{
-public:
-    
-    Mulliken(){}
-   ~Mulliken(){};
-    
-  
-    void EvaluateMulliken(std::vector< QMAtom* >& _atomlist,const Eigen::MatrixXd &_dmat,const AOBasis &basis,bool _do_transition);
-  
-
-   
-     
- 
-    
+  void EvaluateMulliken(std::vector<QMAtom*>& _atomlist,
+                        const Eigen::MatrixXd& _dmat, const AOBasis& basis,
+                        bool _do_transition);
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-}}
-
-#endif	/* ESPFIT_H */
+#endif /* ESPFIT_H */

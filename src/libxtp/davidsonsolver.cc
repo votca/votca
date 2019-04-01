@@ -41,7 +41,7 @@ void DavidsonSolver::set_correction(std::string method) {
                              " is not a valid Davidson correction method");
 }
 
-Eigen::ArrayXi DavidsonSolver::_sort_index(Eigen::VectorXd &V) const {
+Eigen::ArrayXi DavidsonSolver::sort_index(Eigen::VectorXd &V) const {
   /* return the index of the sorted vector */
   Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(), 0, V.rows() - 1);
   std::sort(idx.data(), idx.data() + idx.size(),
@@ -49,14 +49,14 @@ Eigen::ArrayXi DavidsonSolver::_sort_index(Eigen::VectorXd &V) const {
   return idx;
 }
 
-Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(
+Eigen::MatrixXd DavidsonSolver::get_initial_eigenvectors(
     Eigen::VectorXd &d, int size_initial_guess) const {
 
   /* Initialize the guess eigenvector so that they 'target' the lowest diagonal
    * elements */
 
   Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(), size_initial_guess);
-  Eigen::ArrayXi idx = DavidsonSolver::_sort_index(d);
+  Eigen::ArrayXi idx = DavidsonSolver::sort_index(d);
 
   for (int j = 0; j < size_initial_guess; j++) {
     guess(idx(j), j) = 1.0;
@@ -70,7 +70,7 @@ Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
                                                 double lambda) const {
   /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
    */
-  
+
   Eigen::VectorXd delta = r.array() / (lambda - D.array());
   return delta;
 }
@@ -112,26 +112,27 @@ Eigen::MatrixXd DavidsonSolver::QR_ortho(Eigen::MatrixXd &A) const {
   return result;
 }
 
-Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho( Eigen::MatrixXd &A, int nstart ) const
-{
-    Eigen::MatrixXd Q = A;
 
-    for(int j = nstart; j < A.cols(); ++j) {
-        
-        Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
-        
-        if( Q.col(j).norm() <= 1e-14 * A.col(j).norm() ) {
+Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho( Eigen::MatrixXd &A, 
+                                                      int nstart ) const {
+  Eigen::MatrixXd Q = A;
 
-            CTP_LOG(ctp::logDEBUG, _log) 
-            << ctp::TimeStamp() << "Warning : Linear dependencies detected in GS orthogonalization" 
-            << flush;
-            
-            break;
-        } else {
-            Q.col(j).normalize();
-        }
-    }
-    return Q;
+  for(int j = nstart; j < A.cols(); ++j) {
+      
+      Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
+      
+      if( Q.col(j).norm() <= 1e-14 * A.col(j).norm() ) {
+
+          CTP_LOG(ctp::logDEBUG, _log) 
+          << ctp::TimeStamp() << "Warning : Linear dependencies detected in GS orthogonalization" 
+          << flush;
+          
+          break;
+      } else {
+          Q.col(j).normalize();
+      }
+  }
+  return Q;
 }
 
 }  // namespace xtp

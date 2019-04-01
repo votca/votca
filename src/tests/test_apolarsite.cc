@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ BOOST_AUTO_TEST_SUITE(apolararsite_test)
 BOOST_AUTO_TEST_CASE(constructors_test) { APolarSite ps(1, "ps1"); }
 
 BOOST_AUTO_TEST_CASE(getters_test) {
-  APolarSite ps(1,"ps2");
-  BOOST_CHECK_EQUAL(ps.getId(),1);
-  BOOST_CHECK_EQUAL(ps.getName(),"ps2");
+  APolarSite ps(1, "ps2");
+  BOOST_CHECK_EQUAL(ps.getId(), 1);
+  BOOST_CHECK_EQUAL(ps.getName(), "ps2");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

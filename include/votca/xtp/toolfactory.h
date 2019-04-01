@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,33 +18,31 @@
  */
 
 #ifndef __XTP_QMTOOLFACTORY__H
-#define	__XTP_QMTOOLFACTORY__H
+#define __XTP_QMTOOLFACTORY__H
 
-#include <votca/tools/objectfactory.h>
 #include <votca/ctp/qmtool.h>
+#include <votca/tools/objectfactory.h>
 
-namespace votca { namespace xtp {
+namespace votca {
+namespace xtp {
 
-class QMToolFactory : public tools::ObjectFactory<std::string, ctp::QMTool>
-{
-    
-private:
-    QMToolFactory() {}
-    
-public:
-    
-    static void RegisterAll(void);
+class QMToolFactory : public tools::ObjectFactory<std::string, ctp::QMTool> {
 
-    friend QMToolFactory &QMTools();
+ private:
+  QMToolFactory() {}
+
+ public:
+  static void RegisterAll(void);
+
+  friend QMToolFactory &QMTools();
 };
 
-inline QMToolFactory &QMTools()
-{
-    static QMToolFactory _instance;
-    return _instance;
+inline QMToolFactory &QMTools() {
+  static QMToolFactory _instance;
+  return _instance;
 }
 
-}}
+}  // namespace xtp
+}  // namespace votca
 
-#endif	/* __QMTOOLFACTORY__H */
-
+#endif /* __QMTOOLFACTORY__H */

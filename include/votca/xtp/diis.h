@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -20,39 +20,29 @@
 #ifndef _VOTCA_XTP_DIIS__H
 #define _VOTCA_XTP_DIIS__H
 
-
-
-#include <votca/xtp/eigen.h>
 #include <vector>
+#include <votca/xtp/eigen.h>
 
-namespace votca { namespace xtp {
- 
- 
- class DIIS{
-public:
-   
-    void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
-    Eigen::VectorXd CalcCoeff();
-    
-    void setHistLength(int length){_histlength=length;}
-   
-    bool Info(){return success;}
-    
+namespace votca {
+namespace xtp {
+
+class DIIS {
+ public:
+  void Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix);
+  Eigen::VectorXd CalcCoeff();
+
+  void setHistLength(int length) { _histlength = length; }
+
+  bool Info() { return success; }
+
  private:
-     
-     
-     
-     
-     bool success=true;
-     int _histlength;
-     std::vector< std::vector<double> >  _Diis_Bs;
-     std::vector< Eigen::MatrixXd >   _errormatrixhist;
-  
- };
- 
- 
-    
-}}
+  bool success = true;
+  int _histlength;
+  std::vector<std::vector<double> > _Diis_Bs;
+  std::vector<Eigen::MatrixXd> _errormatrixhist;
+};
 
-#endif	
+}  // namespace xtp
+}  // namespace votca
 
+#endif

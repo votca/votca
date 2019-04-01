@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,11 +31,9 @@ struct GLink {
   double Jeff2;
   double reorg_out;
   double initialrate;
-  double getValue(){
-  	return rate;
-  }
+  double getValue() { return rate; }
 };
-}
-}
+}  // namespace xtp
+}  // namespace votca
 
 #endif  // _VOTCA_KMC_GLINK_H

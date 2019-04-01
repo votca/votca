@@ -1,5 +1,5 @@
-/* 
- *            Copyright 2009-2018 The VOTCA Development Team
+/*
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -18,84 +18,93 @@
  */
 
 #ifndef __VOTCA_XTP_QMATOM_H
-#define	__VOTCA_XTP_QMATOM_H
+#define __VOTCA_XTP_QMATOM_H
 
-#include <votca/tools/vec.h> 
-#include <votca/xtp/checkpointwriter.h>
+#include <votca/tools/vec.h>
 #include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointwriter.h>
 
+namespace votca {
+namespace xtp {
 
-namespace votca { namespace xtp {
-    
 /**
- *    \brief container for QM atoms 
+ *    \brief container for QM atoms
  *
  *    Stores atom type, coordinates, charge
- */    
-class QMAtom
-{
-     friend class AOBasis;
-public:
-    
-   QMAtom (int index,std::string element, double x, double y, double z)
-            :_index(index), _type( element), _nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=tools::vec(x,y,z);}
-            
-   QMAtom (int index,std::string element,const tools::vec& pos)
-            :_index(index), _type(element ),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=pos;}
-   
-   
-   QMAtom ()
-            :_index(0), _type(""),_nuccharge(0), _ecpcharge(0),_partialcharge(0.0)
-            {_pos=tools::vec(0.0);}
-       
-   const tools::vec & getPos() const {return _pos;}
-   
-  
-   void setPos(tools::vec position){_pos=position;}
-
-   const std::string & getType() const { return _type;}
-   
-  int getAtomID()const{ return _index;}
-   
-   int getNuccharge() const{ return _nuccharge-_ecpcharge;}
-       
-   void setPartialcharge(double q){_partialcharge=q;}
-   const double & getPartialcharge() const { return _partialcharge;}
-
-private:
-    
-   int _index;
-   std::string _type;
-   tools::vec _pos;// Bohr
-   int _nuccharge;//nuc charge is set in aobasis fill and ecpfill
-   int _ecpcharge;
-   double _partialcharge;
-
+ */
+class QMAtom {
+  friend class AOBasis;
 
  public:
+  QMAtom(int index, std::string element, double x, double y, double z)
+      : _index(index),
+        _type(element),
+        _nuccharge(0),
+        _ecpcharge(0),
+        _partialcharge(0.0) {
+    _pos = tools::vec(x, y, z);
+  }
 
-   void WriteToCpt(CheckpointWriter& w){
-       w(_index, "index");
-       w(_type, "type");
-       w(_pos, "pos");
-       w(_nuccharge, "nuccharge");
-       w(_ecpcharge, "ecpcharge");
-       w(_partialcharge, "partialcharge");
-   }
+  QMAtom(int index, std::string element, const tools::vec& pos)
+      : _index(index),
+        _type(element),
+        _nuccharge(0),
+        _ecpcharge(0),
+        _partialcharge(0.0) {
+    _pos = pos;
+  }
 
-   void ReadFromCpt(CheckpointReader& r){
-       r(_index, "index");
-       r(_type, "type");
-       r(_pos, "pos");
-       r(_nuccharge, "nuccharge");
-       r(_ecpcharge, "ecpcharge");
-       r(_partialcharge, "partialcharge");
-   }
+  QMAtom()
+      : _index(0),
+        _type(""),
+        _nuccharge(0),
+        _ecpcharge(0),
+        _partialcharge(0.0) {
+    _pos = tools::vec(0.0);
+  }
+
+  const tools::vec& getPos() const { return _pos; }
+
+  void setPos(tools::vec position) { _pos = position; }
+
+  const std::string& getType() const { return _type; }
+
+  int getAtomID() const { return _index; }
+
+  int getNuccharge() const { return _nuccharge - _ecpcharge; }
+
+  void setPartialcharge(double q) { _partialcharge = q; }
+  const double& getPartialcharge() const { return _partialcharge; }
+
+ private:
+  int _index;
+  std::string _type;
+  tools::vec _pos;  // Bohr
+  int _nuccharge;   // nuc charge is set in aobasis fill and ecpfill
+  int _ecpcharge;
+  double _partialcharge;
+
+ public:
+  void WriteToCpt(CheckpointWriter& w) {
+    w(_index, "index");
+    w(_type, "type");
+    w(_pos, "pos");
+    w(_nuccharge, "nuccharge");
+    w(_ecpcharge, "ecpcharge");
+    w(_partialcharge, "partialcharge");
+  }
+
+  void ReadFromCpt(CheckpointReader& r) {
+    r(_index, "index");
+    r(_type, "type");
+    r(_pos, "pos");
+    r(_nuccharge, "nuccharge");
+    r(_ecpcharge, "ecpcharge");
+    r(_partialcharge, "partialcharge");
+  }
 };
-    
-}}
 
-#endif	/* __VOTCA_XTP_QMATOM_H */
+}  // namespace xtp
+}  // namespace votca
 
+#endif /* __VOTCA_XTP_QMATOM_H */
