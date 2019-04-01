@@ -155,7 +155,7 @@ void QMPair::ReadFromCpt(CptTable& table, const std::size_t& idx,
     _segments.second      = &segments[d.Seg2Id];
 }
 
-void QMPair::ReadData(data& d){
+void QMPair::ReadData(data& d, const std::vector<Segment>& segments){
     _id                   = d.id;
     _R[0]                 = d.RX;
     _R[1]                 = d.RY;
