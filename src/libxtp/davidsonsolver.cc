@@ -65,7 +65,7 @@ Eigen::MatrixXd DavidsonSolver::_get_initial_eigenvectors(
   return guess;
 }
 
-Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r,
+Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
                                                 Eigen::VectorXd &D,
                                                 double lambda) const {
   /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
@@ -75,7 +75,7 @@ Eigen::VectorXd DavidsonSolver::_dpr_correction(Eigen::VectorXd &r,
   return delta;
 }
 
-Eigen::VectorXd DavidsonSolver::_olsen_correction(Eigen::VectorXd &r,
+Eigen::VectorXd DavidsonSolver::olsen_correction(Eigen::VectorXd &r,
                                                   Eigen::VectorXd &x,
                                                   Eigen::VectorXd &D,
                                                   double lambda) const {
@@ -88,19 +88,19 @@ Eigen::VectorXd DavidsonSolver::_olsen_correction(Eigen::VectorXd &r,
   int size = r.rows();
   Eigen::VectorXd delta = Eigen::VectorXd::Zero(size);
 
-  delta = DavidsonSolver::_dpr_correction(r, D, lambda);
+  delta = DavidsonSolver::dpr_correction(r, D, lambda);
 
-  double _num = -x.transpose() * delta;
-  double _denom =
-      -x.transpose() * DavidsonSolver::_dpr_correction(x, D, lambda);
-  double eps = _num / _denom;
+  double num = -x.transpose() * delta;
+  double denom =
+      -x.transpose() * DavidsonSolver::dpr_correction(x, D, lambda);
+  double eps = num / denom;
 
   delta += eps * x;
 
   return delta;
 }
 
-Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const {
+Eigen::MatrixXd DavidsonSolver::QR_ortho(Eigen::MatrixXd &A) const {
 
   int nrows = A.rows();
   int ncols = A.cols();
@@ -112,15 +112,15 @@ Eigen::MatrixXd DavidsonSolver::_QR(Eigen::MatrixXd &A) const {
   return result;
 }
 
-Eigen::MatrixXd DavidsonSolver::_gramschmidt( Eigen::MatrixXd &A, int nstart ) const
+Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho( Eigen::MatrixXd &A, int nstart ) const
 {
     Eigen::MatrixXd Q = A;
 
-    for(unsigned int j = nstart; j < A.cols(); ++j) {
+    for(int j = nstart; j < A.cols(); ++j) {
         
         Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
         
-        if( Q.col(j).norm() <= 10e-14 * A.col(j).norm() ) {
+        if( Q.col(j).norm() <= 1e-14 * A.col(j).norm() ) {
 
             CTP_LOG(ctp::logDEBUG, _log) 
             << ctp::TimeStamp() << "Warning : Linear dependencies detected in GS orthogonalization" 

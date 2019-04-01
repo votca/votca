@@ -169,7 +169,6 @@ class DavidsonSolver {
         root_converged[j] = res_norm[j] < tol;
       }
 
-
       iend = std::chrono::system_clock::now();
       elapsed_time = iend - istart;
 
@@ -188,7 +187,6 @@ class DavidsonSolver {
         has_converged = true;
         break;
       }
-
       // check if we need to restart
       if (search_space > max_search_space or search_space > size) {
         V = q.block(0, 0, V.rows(), neigen);
@@ -196,23 +194,17 @@ class DavidsonSolver {
           V.col(j).normalize();
         }
         search_space = neigen;
-
         // recompute the projected matrix
         T = V.transpose()*(A * V);
-
       }
 
       // continue otherwise
       else {
-        
         // orthogonalize the V vectors
-        V = DavidsonSolver::_gramschmidt(V,V.cols()-neigen);
-
+        V = DavidsonSolver::gramschmidt_ortho(V,V.cols()-neigen);
         // update the T matrix : avoid recomputing V.T A V
         // just recompute the element relative to the new eigenvectors
         DavidsonSolver::_update_projected_matrix<MatrixReplacement>(T, A, V);
-        
-
       } 
 
     }
@@ -223,11 +215,7 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << "-----------------------------------" << flush;
     if (!has_converged) {
-      CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << "- Warning : Davidson didn't converge ! " << elapsed_time.count() << "secs."
-          << flush;
-      this->_eigenvalues = Eigen::VectorXd::Zero(neigen);
-      this->_eigenvectors = Eigen::MatrixXd::Zero(size, neigen);
+      throw runtime_error("Error : Davidosn didn't converge");
     } else {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << "- Davidson converged in " << elapsed_time.count() << "secs." << flush;
@@ -261,11 +249,11 @@ class DavidsonSolver {
   Eigen::ArrayXi _sort_index(Eigen::VectorXd &V) const;
   Eigen::MatrixXd _get_initial_eigenvectors(Eigen::VectorXd &D, int size) const;
 
-  Eigen::MatrixXd _QR(Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd _gramschmidt( Eigen::MatrixXd &A, int nstart ) const;
-  Eigen::VectorXd _dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0,
+  Eigen::MatrixXd QR_ortho(Eigen::MatrixXd &A) const;
+  Eigen::MatrixXd gramschmidt_ortho( Eigen::MatrixXd &A, int nstart ) const;
+  Eigen::VectorXd dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0,
                                   double lambda) const;
-  Eigen::VectorXd _olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x,
+  Eigen::VectorXd olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x,
                                     Eigen::VectorXd &D, double lambda) const;
 
   template <class MatrixReplacement>
