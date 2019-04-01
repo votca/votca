@@ -148,7 +148,7 @@ namespace votca {
       table.writeToRow(&d, idx);
   }
 
-  void QMAtom::WriteData(data& d) const{
+  void PolarSite::WriteData(data& d) const{
       d.id = _id;
       d.element = const_cast<char*>(_element.c_str());
       d.posX = _pos[0];
@@ -239,7 +239,7 @@ namespace votca {
       PhiU                  = d.phiU;
   }
 
-  void QMAtom::ReadData(data& d){
+  void PolarSite::ReadData(data& d){
       _id           = d.id;
       _element      = std::string(d.element);
       free(d.element);
