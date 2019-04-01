@@ -275,6 +275,43 @@ def extrapolate_U_times_g(r, dpot_dU, dpot_flag, rdf_current_g):
     return dpot_dU_extrap
 
 
+def extrapolate_U_monotonic(r, dU, flag, U_cur):
+    """Ensure that U is monotonous decaying in core region
+    and close to the core. Also enforces min and max on the
+    (negative) derivative of the potential.
+
+    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    # first dU
+    first_dU_index = np.where(flag == 'i')[0][0]
+    U_new = U_cur + np.nan_to_num(dU)
+    # first negative derivative in bad_U
+    first_decay_index = np.where(np.diff(U_new[first_dU_index:]) < 0)[0][0] + first_dU_index
+    # derivative from just inside core
+    # note: this is repulsive regime, so deriv is negative
+    core_end_deriv = U_cur[first_dU_index] - U_cur[first_dU_index-1]
+    # double of this value is used for min derivative
+    min_deriv = core_end_deriv * 1.2
+    # half of this value is used for max derivative
+    max_deriv = core_end_deriv * 0.8
+    # make potential outside core monotonic
+    U_new_mono = U_new.copy()
+    for i in range(first_decay_index, first_dU_index, -1):
+        if U_new_mono[i-1] < U_new_mono[i]:
+            U_new_mono[i-1] = U_new_mono[i] - max_deriv
+    # shift potential inside core
+    U_new_mono[:first_dU_index] += U_new_mono[first_dU_index] - U_cur[first_dU_index]
+    # mid of potential
+    mid_index = (first_dU_index + len(dU)) // 2
+    # ensure min deriv. is min_deriv
+    for i in range(mid_index, first_dU_index, -1):
+        if U_new_mono[i] - U_new_mono[i-1] < min_deriv:
+            # shift up, such that deriv is min_deriv
+            U_new_mono[:i] += U_new_mono[i] - U_new_mono[i-1] - min_deriv
+    # substract since votca does addition later
+    dU_extrap = U_new_mono - U_cur
+    return dU_extrap
+
+
 def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                     rdf_current_g, rdf_current_flag,
                     pot_current_U, pot_current_flag,
@@ -312,6 +349,9 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
     elif extrapolation == 'times_g':
         dpot_dU_extrap = extrapolate_U_times_g(r, dpot_dU, dpot_flag,
                                                rdf_current_g)
+    elif extrapolation == 'monotonic':
+        dpot_dU_extrap = extrapolate_U_monotonic(r, dpot_dU, dpot_flag,
+                                                 pot_current_U)
     else:
         raise Exception("unknow extrapolation scheme for inside and near core"
                         "region:" + extrapolation)
@@ -336,7 +376,7 @@ parser.add_argument('--pressure-constraint', dest='pressure_constraint',
                     type=str, default=None)
 parser.add_argument('--extrap-near-core', dest='extrap_near_core',
                     type=str, default='times_g',
-                    choices=['times_g', 'none', 'cubic'])
+                    choices=['times_g', 'none', 'cubic', 'monotonic'])
 
 if __name__ == '__main__':
     args = parser.parse_args()

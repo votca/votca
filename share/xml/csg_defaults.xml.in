@@ -422,8 +422,8 @@
       <pressure_constraint>
         <DESC>Apply pressure constraint.</DESC>
       </pressure_constraint>
-      <extrap_near_core>cubic
-        <DESC>Method for extrapolation in and close to core region. Valid values are: times_g (default), cubic, none</DESC>
+      <extrap_near_core>monotonic
+        <DESC>Method for extrapolation in and close to core region. Valid values are: monotonic (default), times_g, cubic, none</DESC>
       </extrap_near_core>
     </hncgn>
     <optimizer>
