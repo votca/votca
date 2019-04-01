@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,13 @@ using namespace std;
  * \brief This class handles a set of arrays which can be identified by name
  * tags
  *
- * This class is a Container of arrays. The arrays can be accessed by 
+ * This class is a Container of arrays. The arrays can be accessed by
  * specifying a name, or whole groups of arrays can be selected using select an
- * regular expressions. Regular expressions are not fully implemented at the 
+ * regular expressions. Regular expressions are not fully implemented at the
  * moment. Instead, selections are performed using wildcard compare.
  *
  * Be aware that you might specify as typename if you define a container, array
- * or iterator! There is currently no suppurt for user created groups, but will 
+ * or iterator! There is currently no suppurt for user created groups, but will
  * follow later.
  *
  * This class is relatively outdated and only used in csg_boltzmann!
@@ -106,7 +106,7 @@ class DataCollection {
   size_t size() { return _data.size(); }
   bool empty() { return _data.empty(); }
   array &operator[](int i) {
-    assert(i < _data.size());
+    assert(static_cast<size_t>(i) < _data.size());
     return *(_data[i]);
   }
   iterator begin() { return _data.begin(); }
@@ -129,6 +129,10 @@ class DataCollection {
 
   /**
    * \brief select a set of arrays
+   *
+   * WARNING If attempting to append to an existing selection you must be
+   * careful if there exist more than one array with the same name the
+   * first array name that matches 'strselection' will be appended.
    */
   selection *select(string strselection, selection *sel_append = NULL);
 
@@ -167,8 +171,7 @@ typename DataCollection<T>::array *DataCollection<T>::ArrayByName(string name) {
 
 template <typename T>
 typename DataCollection<T>::selection *DataCollection<T>::select(
-    string strselection, 
-    selection *sel_append) {
+    string strselection, selection *sel_append) {
 
   typename DataCollection<T>::selection *sel = sel_append;
   if (!sel_append) sel = new typename DataCollection<T>::selection;
@@ -182,7 +185,7 @@ typename DataCollection<T>::selection *DataCollection<T>::select(
 }
 
 ostream &operator<<(ostream &out, DataCollection<double>::selection &sel);
-}
-}
+}  // namespace tools
+}  // namespace votca
 
 #endif  // _VOTCA_TOOLS_DATACOLLECTION_H

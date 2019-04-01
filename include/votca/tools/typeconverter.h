@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ namespace tools {
 template <class T, class G>
 class TypeConverter {
  private:
-  std::unordered_map<std::string, std::vector<int>>         integers;
-  std::unordered_map<std::string, std::vector<double>>      doubles;
+  std::unordered_map<std::string, std::vector<int>> integers;
+  std::unordered_map<std::string, std::vector<double>> doubles;
   std::unordered_map<std::string, std::vector<std::string>> strings;
 
   /// Generic functions that must be defined in the T class
@@ -57,17 +57,17 @@ class TypeConverter {
  public:
   /// Constructor
   TypeConverter() {
-    writeInt_    = &(T::writeInt);
+    writeInt_ = &(T::writeInt);
     writeDouble_ = &T::writeDouble;
-    writeStr_    = &T::writeStr;
-    readData_    = &G::readData;
+    writeStr_ = &T::writeStr;
+    readData_ = &G::readData;
   }
 
   /// Imports data from type T
   void importData(T temp) {
     this->integers = writeInt_(temp);
-    this->doubles  = writeDouble_(temp);
-    this->strings  = writeStr_(temp);
+    this->doubles = writeDouble_(temp);
+    this->strings = writeStr_(temp);
   }
 
   /// Exports the data from type T and places it in type G
@@ -75,6 +75,6 @@ class TypeConverter {
     return readData_(this->integers, this->doubles, this->strings, g);
   }
 };
-}
-}
+}  // namespace tools
+}  // namespace votca
 #endif  // # __TOOLS_TYPECONVERTER__H_

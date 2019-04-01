@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ BOOST_AUTO_TEST_CASE(constructors_test) {
 
 BOOST_AUTO_TEST_CASE(accessors_test) {
   Name nm;
-  BOOST_CHECK_THROW(nm.getName(), runtime_error);
   nm.setName("New Name");
   BOOST_CHECK_EQUAL(nm.getName(), "New Name");
   Name nm2("Name2");

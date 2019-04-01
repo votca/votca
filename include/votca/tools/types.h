@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
  */
 
 #ifndef _types_H
-#define	_types_H
+#define _types_H
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
 typedef unsigned char byte_t;
 typedef unsigned short word_t;
 typedef unsigned long dword_t;
 
-}}
+}  // namespace tools
+}  // namespace votca
 
-#endif	/* _types_H */
-
+#endif /* _types_H */

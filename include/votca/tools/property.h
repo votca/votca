@@ -18,30 +18,30 @@
 #ifndef _VOTCA_TOOLS_PROPERTY_H
 #define	_VOTCA_TOOLS_PROPERTY_H
 
-#include <map>
-#include <string>
-#include <iostream>
-#include <list>
-#include <stdexcept>
 #include "lexical_cast.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/format.hpp>
+#include <iostream>
+#include <list>
+#include <map>
+#include <stdexcept>
 #include <stdlib.h>
+#include <string>
 
-#include "vec.h"
 #include "tokenizer.h"
+#include "vec.h"
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
     
 /**
  * \brief class to manage program options with xml serialization functionality
  *
  * This class stores tags and content in a hierarchical (tree) structure similar
- * to the one used in the XML format. The structure can be either filled manually
- * or read in from an XML file using load_property_from_xml.
- * The supported XML constructs are TAGS, ATTRIBUTES, and CONTENT:
- * <tag attribute_name="attribute_value">
- *      content
+ * to the one used in the XML format. The structure can be either filled
+ * manually or read in from an XML file using load_property_from_xml. The
+ * supported XML constructs are TAGS, ATTRIBUTES, and CONTENT: <tag
+ * attribute_name="attribute_value"> content
  * </tag> 
  * The property object can be output to an ostream using format modifiers:
  * cout << XML << property;
@@ -55,7 +55,8 @@ class Property {
 public:
     Property() : _path("") {}
     
-    Property(const std::string &name, const std::string &value, const std::string &path) 
+  Property(const std::string &name, const std::string &value,
+           const std::string &path)
         : _name(name), _value(value), _path(path) {}
     
     /**
@@ -134,8 +135,8 @@ public:
     T ifExistsReturnElseThrowRuntimeError(const std::string &key);
     
     template<typename T>
-    T ifExistsAndinListReturnElseThrowRuntimeError(const std::string &key,std::vector<T> possibleReturns);
-    
+  T ifExistsAndinListReturnElseThrowRuntimeError(
+      const std::string &key, std::vector<T> possibleReturns);
     
     /**
      * \brief does the property has childs?
@@ -180,7 +181,9 @@ public:
     /**
      * \brief returns an iterator to an attribute
      */    
-    AttributeIterator findAttribute(const std::string &attribute){ return _attributes.find(attribute); }
+  AttributeIterator findAttribute(const std::string &attribute) {
+    return _attributes.find(attribute);
+  }
     /**
      * \brief returns an iterator to the first attribute
      */    
@@ -210,19 +213,17 @@ private:
     std::string _path;
 
     static const int IOindex; 
- 
 };
   
-
-inline Property &Property::set(const std::string &key, const std::string &value)
-{
+inline Property &Property::set(const std::string &key,
+                               const std::string &value) {
     Property &p = get(key);
     p.value() = value;
     return p;
 }
 
-inline Property &Property::add(const std::string &key, const std::string &value)
-{
+inline Property &Property::add(const std::string &key,
+                               const std::string &value) {
     std::string path = _path;
     if(path != "") path = path + ".";
     _properties.push_back(Property(key, value, path + _name ));
@@ -230,10 +231,12 @@ inline Property &Property::add(const std::string &key, const std::string &value)
     return _properties.back();
 }
 
-inline bool Property::exists(const std::string &key)
-{
-    try { get(key); }
-    catch(std::exception &err) { return false;}
+inline bool Property::exists(const std::string &key) {
+  try {
+    get(key);
+  } catch (std::exception &err) {
+    return false;
+  }
     return true;
 }
     
@@ -241,26 +244,25 @@ bool load_property_from_xml(Property &p, std::string file);
 
 // TO DO: write a better function for this!!!!
 template<>
-inline bool Property::as<bool>() const
-{
-    if(_value == "true" || _value == "TRUE" || _value == "1") return true;
-    else return false;
+inline bool Property::as<bool>() const {
+  if (_value == "true" || _value == "TRUE" || _value == "1")
+    return true;
+  else
+    return false;
 }
 
 template<typename T>
-inline T Property::as() const
-{
+inline T Property::as() const {
     return lexical_cast<T>(_value, "wrong type in " + _path + "."  + _name + "\n");
 }
 
-
  template<typename T>
-  inline T Property::ifExistsReturnElseReturnDefault(const std::string &key, T defaultvalue){
+inline T Property::ifExistsReturnElseReturnDefault(const std::string &key,
+                                                   T defaultvalue) {
      T result;
      if (this->exists(key)) {
 	    result = this->get(key).as<T>();
-            }
-    else{
+  } else {
             result = defaultvalue;
             }
      return result;
@@ -271,32 +273,32 @@ inline T Property::as() const
      T result;
      if (this->exists(key)) {
 	    result = this->get(key).as<T>();
-            }
-    else{
+  } else {
              throw runtime_error((boost::format("Error: %s is not found") %key).str());
             }
      return result;
   }
  
- 
   template<typename T>
-  inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(const std::string &key,std::vector<T> possibleReturns){
+inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
+    const std::string &key, std::vector<T> possibleReturns) {
      T result;
      result=ifExistsReturnElseThrowRuntimeError<T>(key);
-     if(std::find(possibleReturns.begin(), possibleReturns.end(), result) == possibleReturns.end()){
+  if (std::find(possibleReturns.begin(), possibleReturns.end(), result) ==
+      possibleReturns.end()) {
     cerr<<"Allowed options are: ";
     for(unsigned i=0;i<possibleReturns.size();++i){
         cerr<<possibleReturns[i]<<" ";
     }
     cerr<<endl;
-    throw runtime_error((boost::format("Error: %s is not allowed") %key).str());
+    throw runtime_error(
+        (boost::format("Error: %s is not allowed") % key).str());
 }
      return result;
   }
 
 template<>
-inline std::string Property::as<std::string>() const
-{
+inline std::string Property::as<std::string>() const {
     std::string tmp(_value);
     boost::trim(tmp);
     return tmp;
@@ -308,7 +310,9 @@ inline vec Property::as<vec>() const {
     Tokenizer tok(as<std::string > (), " ,");
     tok.ConvertToVector<double>(tmp);
     if (tmp.size() != 3)
-        throw std::runtime_error("Vector has " + boost::lexical_cast<std::string > (tmp.size()) + " instead of three entries");
+    throw std::runtime_error("Vector has " +
+                             boost::lexical_cast<std::string>(tmp.size()) +
+                             " instead of three entries");
     return vec(tmp[0], tmp[1], tmp[2]);
 }
 
@@ -332,14 +336,17 @@ inline Eigen::Vector3d Property::as<Eigen::Vector3d>() const {
     tok.ConvertToVector<double>(tmp);
     Eigen::Vector3d result;
     if(int(tmp.size())!=result.size()){
-         throw std::runtime_error("Vector has " + boost::lexical_cast<std::string > (tmp.size()) + " instead of three entries");
+    throw std::runtime_error("Vector has " +
+                             boost::lexical_cast<std::string>(tmp.size()) +
+                             " instead of three entries");
     }
     result<<tmp[0],tmp[1],tmp[2];
     return result;
 }
 
 template<>
-inline std::vector<unsigned int> Property::as<std::vector <unsigned int> >() const {
+inline std::vector<unsigned int> Property::as<std::vector<unsigned int> >()
+    const {
     std::vector<unsigned int> tmp;
     Tokenizer tok(as<std::string > (), " ,");
     tok.ConvertToVector<unsigned int>(tmp);
@@ -370,8 +377,8 @@ inline bool Property::hasAttribute(const std::string &attribute) {
 }
 
 template<typename T>
-inline T Property::getAttribute(std::map<std::string,std::string>::iterator it)
-{
+inline T Property::getAttribute(
+    std::map<std::string, std::string>::iterator it) {
     if (it != _attributes.end()) {
         return lexical_cast<T>((*it).second);
     } else {
@@ -381,31 +388,30 @@ inline T Property::getAttribute(std::map<std::string,std::string>::iterator it)
 }
 
 template<typename T>
-inline T Property::getAttribute(const std::string &attribute)
-{
+inline T Property::getAttribute(const std::string &attribute) {
     std::map<std::string,std::string>::iterator it;
     
     it = _attributes.find(attribute);
     
     if (it != _attributes.end()) {
-        return lexical_cast<T>(_attributes[attribute], "wrong type in attribute " + attribute + " of element " + _path + "."  + _name + "\n");
+    return lexical_cast<T>(_attributes[attribute],
+                           "wrong type in attribute " + attribute +
+                               " of element " + _path + "." + _name + "\n");
     } else {
         std::cerr << *this << std::endl;
         throw std::runtime_error("attribute " + attribute + " not found\n");
     }
 }
 template<typename T>
-inline void Property::setAttribute(const std::string &attribute, const T &value)
-{
-     _attributes[attribute] = lexical_cast<std::string>(value, "wrong type to set attribute");
+inline void Property::setAttribute(const std::string &attribute,
+                                   const T &value) {
+  _attributes[attribute] =
+      lexical_cast<std::string>(value, "wrong type to set attribute");
 }
 
-inline void throwRuntimeError(std::string message) {
-    
-}
+inline void throwRuntimeError(std::string message) {}
 
-
-
-}}
+}  // namespace tools
+}  // namespace votca
 
 #endif	/* _VOTCA_TOOLS_PROPERTY_H */

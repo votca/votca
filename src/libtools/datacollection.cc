@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +18,35 @@
 #include <sstream>
 #include <votca/tools/datacollection.h>
 
-namespace votca { namespace tools {
+namespace votca {
+namespace tools {
 
-ostream& operator<<(ostream& out, DataCollection<double>::selection &sel)
-{
-    if(sel.empty()) {
-        out << "-- empty selection --" << endl;
-        return out;
-    }
-    
-    stringstream s;
-    int written;
-    for(size_t i=0; ; ++i) {
-        s.clear();
-        s.str("");
-        s.setf(ios::scientific);
-        written = 0;
-        for(size_t j=0; j<sel.size(); j++) {      
-            if(i >= sel[j].size()) {
-                s << " -";
-                continue;
-            }
-            written++;
-            s << " " << (double)sel[j][i];
-            
-        }
-        if(written == 0) return out;
-        out << i << s.str() << endl;        
-    }
+ostream& operator<<(ostream& out, DataCollection<double>::selection& sel) {
+  if (sel.empty()) {
+    out << "-- empty selection --" << endl;
     return out;
+  }
+
+  stringstream s;
+  int written;
+  for (size_t i = 0;; ++i) {
+    s.clear();
+    s.str("");
+    s.setf(ios::scientific);
+    written = 0;
+    for (size_t j = 0; j < sel.size(); j++) {
+      if (i >= sel[j].size()) {
+        s << " -";
+        continue;
+      }
+      written++;
+      s << " " << (double)sel[j][i];
+    }
+    if (written == 0) return out;
+    out << i << s.str() << endl;
+  }
+  return out;
 }
 
-}}
+}  // namespace tools
+}  // namespace votca
