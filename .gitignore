@@ -37,6 +37,7 @@ src/tools/csg_density
 src/tools/csg_reupdate
 src/tools/csg_dlptopol
 share/scripts/inverse/*.pyc
+__pycache__/
 
 src/libcsg/gitversion.h
 src/libcsg/votca_config.h

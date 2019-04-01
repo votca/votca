@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,28 +18,27 @@
 #ifndef SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 #define SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
 
-#include <votca/csg/trajectoryreader.h>
 #include <votca/csg/topologyreader.h>
+#include <votca/csg/trajectoryreader.h>
 
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <cstdio>
 
 #include "hdf5.h"
 
 namespace votca {  // NOLINT
 namespace csg {
-using namespace votca::tools;  // NOLINT
 
 /**
     \brief class for reading H5MD trajectory.
 
-    This class implements the H5MD trajectory reading function. The format of the H5MD
-    file is defined in
-    Pierre de Buyl, Peter H. Colberg, Felix Höfling, H5MD: A structured, efficient, and portable file
-    format for molecular data, http://dx.doi.org/10.1016/j.cpc.2014.01.018
-    The current reference is available here: http://nongnu.org/h5md/
+    This class implements the H5MD trajectory reading function. The format of
+   the H5MD file is defined in Pierre de Buyl, Peter H. Colberg, Felix Höfling,
+   H5MD: A structured, efficient, and portable file format for molecular data,
+   http://dx.doi.org/10.1016/j.cpc.2014.01.018 The current reference is
+   available here: http://nongnu.org/h5md/
 */
 class H5MDTrajectoryReader : public TrajectoryReader {
  public:
@@ -47,7 +46,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   ~H5MDTrajectoryReader();
 
   /// Opens original trajectory file.
-  bool Open(const string &file);
+  bool Open(const std::string &file);
 
   /// Initialize data structures.
   void Initialize(Topology &top);
@@ -66,45 +65,55 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   /// Reads dataset that contains vectors.
   template <typename T1>
-  T1* ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
-    hsize_t offset[3]; offset[0] = row; offset[1] = 0; offset[2] = 0;
-    hsize_t chunk_rows[3]; chunk_rows[0] = 1; chunk_rows[1] = N_particles_; chunk_rows[2] = vec_components_;
+  T1 *ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
+    hsize_t offset[3];
+    offset[0] = row;
+    offset[1] = 0;
+    offset[2] = 0;
+    hsize_t chunk_rows[3];
+    chunk_rows[0] = 1;
+    chunk_rows[1] = N_particles_;
+    chunk_rows[2] = vec_components_;
     hid_t dsp = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, chunk_rows, NULL);
     hid_t mspace1 = H5Screate_simple(vec_components_, chunk_rows, NULL);
     T1 *data_out = new T1[N_particles_ * vec_components_];
-    herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
+    herr_t status =
+        H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      throw std::runtime_error("Error ReadVectorData: " + boost::lexical_cast<string>(status));
+      throw std::runtime_error("Error ReadVectorData: " +
+                               boost::lexical_cast<std::string>(status));
     } else
       return data_out;
   }
 
   /// Reads dataset with scalar values.
   template <typename T1>
-  T1* ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
-    hsize_t offset[2]; offset[0] = row; offset[1] = 0;
-    hsize_t ch_rows[2]; ch_rows[0] = 1; ch_rows[1] = N_particles_;
+  T1 *ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
+    hsize_t offset[2];
+    offset[0] = row;
+    offset[1] = 0;
+    hsize_t ch_rows[2];
+    ch_rows[0] = 1;
+    ch_rows[1] = N_particles_;
     hid_t dsp = H5Dget_space(ds);
     H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
     hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
     T1 *data_out = new T1[N_particles_];
-    herr_t status = H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
+    herr_t status =
+        H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
     if (status < 0) {
-      throw std::runtime_error("Error ReadScalarData: " + boost::lexical_cast<string>(status));
+      throw std::runtime_error("Error ReadScalarData: " +
+                               boost::lexical_cast<std::string>(status));
     } else {
       return data_out;
     }
   }
 
-  template<typename T1>
+  template <typename T1>
   void ReadStaticData(hid_t ds, hid_t ds_data_type, T1 &outbuf) {
-    herr_t status = H5Dread(
-        ds,
-        ds_data_type,
-        H5S_ALL,
-        H5S_ALL,
-        H5P_DEFAULT, outbuf);
+    herr_t status =
+        H5Dread(ds, ds_data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, outbuf);
     if (status < 0) {
       H5Eprint(H5E_DEFAULT, stderr);
     }
@@ -112,16 +121,15 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
-      //H5Eprint(H5E_DEFAULT, stderr);
+      // H5Eprint(H5E_DEFAULT, stderr);
       throw std::runtime_error(error_message);
     }
   }
 
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
-    herr_t status = H5Gget_objinfo (file_id, path.c_str(), 0, &info);
-    if (status < 0)
-      return false;
+    herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
+    if (status < 0) return false;
     return info.type == H5G_GROUP;
   }
 
@@ -141,7 +149,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   int rank_;
 
-  string fname_;
+  std::string fname_;
   bool first_frame_;
 
   // Flags about datasets.
@@ -166,6 +174,6 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 };
 
 }  // namespace csg
-}  // namespace votca  // NOLINT
+}  // namespace votca
 
 #endif  // SRC_LIBCSG_MODULES_IO_H5MDTRAJECTORYREADER_H_
