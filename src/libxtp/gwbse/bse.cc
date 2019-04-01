@@ -130,6 +130,7 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
     DavidsonSolver DS(_log);
     DS.set_correction(_opt.davidson_correction);
     DS.set_tolerance(_opt.davidson_tolerance);
+    DS.set_iter_max(_opt.davidson_maxiter);
     DS.set_max_search_space(10 * _opt.nmax);
 
     if (_opt.matrixfree) {
