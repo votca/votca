@@ -231,7 +231,7 @@ class DavidsonSolver {
     if (!has_converged) {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << "- Warning : Davidson " << percent_converged 
-          << "%% converged after " << iter_max << "iterations." << flush;        
+          << "% converged after " << iter_max << " iterations." << flush;        
     
       for (int i=0; i< neigen; i++){
         if (not root_converged[i]){
@@ -252,7 +252,7 @@ class DavidsonSolver {
 
  private:
   ctp::Logger &_log;
-  int iter_max = 1000;
+  int iter_max = 50;
   double tol = 1E-4;
   int max_search_space = 100;
 

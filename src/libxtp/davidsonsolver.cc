@@ -42,7 +42,7 @@ void DavidsonSolver::set_correction(std::string method) {
 }
 
 Eigen::ArrayXi DavidsonSolver::sort_index(Eigen::VectorXd &V) const {
-  /* return the index of the sorted vector */
+  /* \brief return the index of the sorted vector */
   Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(), 0, V.rows() - 1);
   std::sort(idx.data(), idx.data() + idx.size(),
             [&](int i1, int i2) { return V[i1] < V[i2]; });
@@ -52,7 +52,7 @@ Eigen::ArrayXi DavidsonSolver::sort_index(Eigen::VectorXd &V) const {
 Eigen::MatrixXd DavidsonSolver::get_initial_eigenvectors(
     Eigen::VectorXd &d, int size_initial_guess) const {
 
-  /* Initialize the guess eigenvector so that they 'target' the lowest diagonal
+  /* \brief Initialize the guess eigenvector so that they 'target' the lowest diagonal
    * elements */
 
   Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(), size_initial_guess);
@@ -68,7 +68,7 @@ Eigen::MatrixXd DavidsonSolver::get_initial_eigenvectors(
 Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
                                                 Eigen::VectorXd &D,
                                                 double lambda) const {
-  /* Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
+  /* \brief Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
    */
 
   Eigen::VectorXd delta = r.array() / (lambda - D.array());
@@ -79,7 +79,7 @@ Eigen::VectorXd DavidsonSolver::olsen_correction(Eigen::VectorXd &r,
                                                   Eigen::VectorXd &x,
                                                   Eigen::VectorXd &D,
                                                   double lambda) const {
-  /* Compute the olsen correction :
+  /* \brief Compute the olsen correction :
 
   \delta = (D-\lambda)^{-1} (-r + \epsilon x)
 
