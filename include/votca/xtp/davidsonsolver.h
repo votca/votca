@@ -145,6 +145,8 @@ class DavidsonSolver {
       // correction vectors
       for (int j = 0; j < neigen; j++) {
 
+        if (root_converged[j]) continue;
+
         // residue vector
         w = A * q.col(j) - lambda(j) * q.col(j);
         res_norm[j] = w.norm();
@@ -182,6 +184,7 @@ class DavidsonSolver {
                  iiter % search_space % res_norm.maxCoeff() %
                  percent_converged % elapsed_time.count()
           << flush;
+          
       // update
       search_space = V.cols();
 
@@ -193,6 +196,7 @@ class DavidsonSolver {
       
       // check if we need to restart
       if (search_space > max_search_space or search_space > size) {
+        
         V = q.block(0, 0, V.rows(), neigen);
         for (int j = 0; j < neigen; j++) {
           V.col(j).normalize();
@@ -289,7 +293,7 @@ class DavidsonSolver {
     T.block(0, old_dim, new_dim, nvec) = V.transpose() * _tmp;
 
     T.block(old_dim, 0, nvec, old_dim) =
-        T.block(0, old_dim, old_dim, nvec).transpose();
+    T.block(0, old_dim, old_dim, nvec).transpose();
 
     return;
   }
