@@ -55,13 +55,13 @@ void DavidsonSolver::set_tolerance(std::string tol) {
 
 void DavidsonSolver::set_size_update(std::string update_size) {
 
-  if (update_size == "minimal")
+  if (update_size == "min")
     this->davidson_update = UPDATE::MIN;
 
   else if (update_size == "safe")
     this->davidson_update = UPDATE::SAFE;
 
-  else if (update_size == "maximal")
+  else if (update_size == "max")
     this->davidson_update = UPDATE::MAX;
 
   else
