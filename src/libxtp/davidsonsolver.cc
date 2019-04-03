@@ -41,6 +41,50 @@ void DavidsonSolver::set_correction(std::string method) {
                              " is not a valid Davidson correction method");
 }
 
+void DavidsonSolver::set_tolerance(std::string tol) {
+  if (tol=="loose")
+    this->tol = 1E-3;
+  else if (tol=="normal")
+    this->tol = 1E-4;
+  else if (tol == "strict")
+    this->tol = 1E-5;
+  else
+    throw std::runtime_error(tol +
+                             " is not a valid Davidson tolerance");
+}
+
+void DavidsonSolver::set_size_update(std::string update_size) {
+
+  if (update_size == "minimal")
+    this->davidson_update = UPDATE::MIN;
+
+  else if (update_size == "safe")
+    this->davidson_update = UPDATE::SAFE;
+
+  else if (update_size == "maximal")
+    this->davidson_update = UPDATE::MAX;
+
+  else
+    throw std::runtime_error(update_size +
+                             " is not a valid Davidson update"); 
+}
+
+int DavidsonSolver::get_size_update(int neigen) {
+  int size_update;
+  switch (this->davidson_update) {
+    case UPDATE::MIN:
+      size_update = neigen;
+      break;
+    case UPDATE::SAFE:
+      size_update = neigen + 10;
+      break;
+    case UPDATE::MAX:
+      size_update = 2*neigen;
+      break;
+  }
+  return size_update;
+}
+
 Eigen::ArrayXi DavidsonSolver::sort_index(Eigen::VectorXd &V) const {
   /* \brief return the index of the sorted vector */
   Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(), 0, V.rows() - 1);
@@ -121,7 +165,7 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho( Eigen::MatrixXd &A,
       
       Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
       
-      if( Q.col(j).norm() <= 1e-14 * A.col(j).norm() ) {
+      if( Q.col(j).norm() <= 1e-6 * A.col(j).norm() ) {
 
           CTP_LOG(ctp::logDEBUG, _log) 
           << ctp::TimeStamp() << "Warning : Linear dependencies detected in GS orthogonalization" 

@@ -46,10 +46,13 @@ class DavidsonSolver {
   DavidsonSolver(ctp::Logger &log);
 
   void set_iter_max(int N) { this->iter_max = N; }
-  void set_tolerance(double eps) { this->tol = eps; }
+  
   void set_max_search_space(int N) { this->max_search_space = N; }
 
+  void set_tolerance(std::string tol);
   void set_correction(std::string method);
+  void set_size_update(std::string method);
+  int get_size_update(int neigen);
 
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
@@ -78,13 +81,7 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Tolerance : " << this->tol << flush;
 
-    Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(neigen);
-    Eigen::ArrayXd root_converged = Eigen::ArrayXd::Zero(neigen);
-
-    double percent_converged;
-    double conv;
     int size = A.rows();
-    bool has_converged = false;
 
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Matrix size : " << size << 'x' << size
@@ -107,7 +104,15 @@ class DavidsonSolver {
     }
     int search_space = size_initial_guess;
     int size_restart = size_initial_guess;
+    int size_update = DavidsonSolver::get_size_update(neigen);
     int nupdate;
+
+    Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(size_update);
+    Eigen::ArrayXd root_converged = Eigen::ArrayXd::Zero(size_update);
+
+    double percent_converged;
+    double conv;
+    bool has_converged = false;
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();
@@ -147,7 +152,7 @@ class DavidsonSolver {
 
       // correction vectors
       nupdate = 0;
-      for (int j = 0; j < neigen; j++) {
+      for (int j = 0; j < size_update; j++) {
 
         if (root_converged[j]) continue;
         nupdate += 1;
@@ -180,13 +185,13 @@ class DavidsonSolver {
       elapsed_time = iend - istart;
 
       // Print iteration data
-      percent_converged = 100 * root_converged.sum() / neigen;
+      percent_converged = 100 * root_converged.head(neigen).sum() / neigen;
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp()
           << format(
                  " %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged done ine "
                  "%5$f secs") %
-                 iiter % search_space % res_norm.maxCoeff() %
+                 iiter % search_space % res_norm.head(neigen).maxCoeff() %
                  percent_converged % elapsed_time.count()
           << flush;
           
@@ -194,7 +199,7 @@ class DavidsonSolver {
       search_space = V.cols();
 
       // break if converged
-      if ((res_norm < tol).all()) {
+      if ((res_norm.head(neigen) < tol).all()) {
         has_converged = true;
         break;
       }
@@ -229,7 +234,7 @@ class DavidsonSolver {
 
     // store the eigenvalues/eigenvectors
     this->_eigenvalues = lambda.head(neigen);
-    this->_eigenvectors = q.block(0, 0, q.rows(), neigen);
+    this->_eigenvectors = q.leftCols(neigen);
 
       // normalize the eigenvectors
     for (int i = 0; i < neigen; i++) {
@@ -269,6 +274,9 @@ class DavidsonSolver {
 
   enum CORR { DPR, OLSEN };
   CORR davidson_correction = CORR::DPR;
+
+  enum UPDATE {MIN, SAFE, MAX};
+  UPDATE davidson_update = UPDATE::SAFE;
 
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
