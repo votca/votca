@@ -106,6 +106,7 @@ class DavidsonSolver {
       size_initial_guess = 2 * neigen;
     }
     int search_space = size_initial_guess;
+    int size_restart = size_initial_guess;
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();
@@ -197,11 +198,12 @@ class DavidsonSolver {
       // check if we need to restart
       if (search_space > max_search_space or search_space > size) {
         
-        V = q.block(0, 0, V.rows(), neigen);
-        for (int j = 0; j < neigen; j++) {
+        V = q.leftCols(size_restart);
+        for (int j = 0; j < size_restart; j++) {
           V.col(j).normalize();
         }
-        search_space = neigen;
+        search_space = size_restart;
+
         // recompute the projected matrix
         T = V.transpose()*(A * V);
       }
