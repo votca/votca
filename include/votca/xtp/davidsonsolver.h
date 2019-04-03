@@ -107,6 +107,7 @@ class DavidsonSolver {
     }
     int search_space = size_initial_guess;
     int size_restart = size_initial_guess;
+    int nupdate;
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();
@@ -131,6 +132,7 @@ class DavidsonSolver {
     std::chrono::time_point<std::chrono::system_clock> istart, iend;
     std::chrono::duration<double> elapsed_time;
 
+
     for (int iiter = 0; iiter < iter_max; iiter++) {
 
       istart = std::chrono::system_clock::now();
@@ -144,9 +146,11 @@ class DavidsonSolver {
       q = V.block(0, 0, V.rows(), search_space) * U;
 
       // correction vectors
+      nupdate = 0;
       for (int j = 0; j < neigen; j++) {
 
         if (root_converged[j]) continue;
+        nupdate += 1;
 
         // residue vector
         w = A * q.col(j) - lambda(j) * q.col(j);
@@ -210,8 +214,9 @@ class DavidsonSolver {
 
       // continue otherwise
       else {
+        
         // orthogonalize the V vectors
-        V = DavidsonSolver::gramschmidt_ortho(V,V.cols()-neigen);
+        V = DavidsonSolver::gramschmidt_ortho(V,V.cols()-nupdate);
 
         // update the T matrix : avoid recomputing V.T A V
         // just recompute the element relative to the new eigenvectors
