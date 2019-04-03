@@ -120,6 +120,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
     edges_group_ = H5Gopen(g_box, "edges", H5P_DEFAULT);
     ds_edges_group_ = H5Dopen(edges_group_, "value", H5P_DEFAULT);
     cout << "H5MD: has /box/edges" << endl;
+    cout << "H5MD: time dependent box size" << endl;
     has_box_ = H5MDTrajectoryReader::TIMEDEPENDENT;
   } else {
     cout << "H5MD: static box" << endl;
@@ -200,7 +201,8 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   delete particle_group_name_;
 }
 
-bool H5MDTrajectoryReader::FirstFrame(Topology &top) {  // NOLINT const reference
+bool H5MDTrajectoryReader::FirstFrame(Topology &top) { // NOLINT const
+  // reference
   if (first_frame_) {
     first_frame_ = false;
     Initialize(top);
@@ -216,11 +218,23 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   if (idx_frame_ > max_idx_frame_)
     return false;
 
-  // Set volume of box because top on workers somehow does not have this information.
+  cout << '\r' << "Reading frame: " << idx_frame_ << "\n";
+  cout.flush();
+  // Set volume of box because top on workers somehow does not have this
+  // information.
+  if (has_box_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
+    double *box = NULL;
+    box = ReadBox(ds_edges_group_, H5T_NATIVE_DOUBLE, idx_frame_);
+    m.ZeroMatrix();
+    m[0][0] = box[0];
+    m[1][1] = box[1];
+    m[2][2] = box[2];
+    cout << "Time dependent box:" << endl;
+    cout << m << endl;
+    delete[] box;
+  }
   top.setBox(m);
 
-  cout << '\r' << "Reading frame: " << idx_frame_;
-  cout.flush();
   double *positions;
   double *forces = NULL;
   double *velocities = NULL;
@@ -295,6 +309,26 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   return true;
 }
 
-}  // end csg
-}  // end votca
+double* H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row) {
+  hsize_t offset[2];
+  offset[0] = row;
+  offset[1] = 0;
+  hsize_t ch_rows[2];
+  ch_rows[0] = 1;
+  ch_rows[1] = 3;
+  hid_t dsp = H5Dget_space(ds);
+  H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
+  hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
+  double *data_out = new double[3];
+  herr_t status =
+      H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
+  if (status < 0) {
+    throw std::runtime_error("Error ReadScalarData: " +
+                             boost::lexical_cast<std::string>(status));
+  } else {
+    return data_out;
+  }
+}
 
+} // namespace csg
+} // namespace votca

@@ -110,6 +110,8 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     }
   }
 
+  double* ReadBox(hid_t ds, hid_t ds_data_type, int row);
+
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
       //H5Eprint(H5E_DEFAULT, stderr);
