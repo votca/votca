@@ -1,3 +1,5 @@
+#include <memory>
+
 /*
  * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
  *
@@ -89,20 +91,23 @@ void H5MDTrajectoryReader::Close() {
 }
 
 void H5MDTrajectoryReader::Initialize(Topology &top) {
-  string *particle_group_name_ = new string(top.getParticleGroup());
-  if(*particle_group_name_ == "")
+  unique_ptr<string> particle_group_name_ = std::make_unique<string>(top.getParticleGroup());
+  if (particle_group_name_->empty())
     throw ios_base::failure(
-        "Missing particle group in topology. Please set `h5md_particle_group` tag with `name` attribute set to the particle group.");
-  string *position_group_name = new string(*particle_group_name_ + "/position");
-  atom_position_group_ = H5Gopen(particle_group_, position_group_name->c_str(), H5P_DEFAULT);
-  CheckError(atom_position_group_, "Unable to open " + *position_group_name + " group");
+        "Missing particle group in topology. Please set `h5md_particle_group` "
+        "tag with `name` attribute set to the particle group.");
+  unique_ptr<string> position_group_name = std::make_unique<string>(*particle_group_name_ + "/position");
+  atom_position_group_ =
+      H5Gopen(particle_group_, position_group_name->c_str(), H5P_DEFAULT);
+  CheckError(atom_position_group_,
+             "Unable to open " + *position_group_name + " group");
 
   idx_frame_ = -1;
   ds_atom_position_ = H5Dopen(atom_position_group_, "value", H5P_DEFAULT);
   CheckError(ds_atom_position_, "Unable to open " + *position_group_name + "/value dataset");
 
   // Reads the box information.
-  string *box_gr_name = new string(*particle_group_name_ + "/box");
+  unique_ptr<string> box_gr_name = std::make_unique<string>(*particle_group_name_ + "/box");
   hid_t g_box = H5Gopen(particle_group_, box_gr_name->c_str(), H5P_DEFAULT);
   CheckError(g_box, "Unable to open " + *box_gr_name + " group");
   hid_t at_box_dimension = H5Aopen(g_box, "dimension", H5P_DEFAULT);
@@ -114,7 +119,7 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
         "Wrong dimension " + boost::lexical_cast<string>(dimension));
   }
   // TODO: check if boundary is periodic.
-  string *box_edges_name = new string(*particle_group_name_ + "/box/edges");
+  unique_ptr<string> box_edges_name = std::make_unique<string>(*particle_group_name_ + "/box/edges");
   if (GroupExists(particle_group_, *box_edges_name)) {
     g_box = H5Gopen(particle_group_, box_gr_name->c_str(), H5P_DEFAULT);
     edges_group_ = H5Gopen(g_box, "edges", H5P_DEFAULT);
@@ -126,10 +131,10 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
     cout << "H5MD: static box" << endl;
     hid_t ds_edges = H5Dopen(g_box, "edges", H5P_DEFAULT);
     CheckError(ds_edges, "Unable to open /box/edges");
-    double *box = new double[3];
-    ReadStaticData(ds_edges, H5T_NATIVE_DOUBLE, box);
-    cout << "H5MD: Found box " << box[0] << " x " << box[1] <<
-        " x " << box[2] << endl;
+    unique_ptr<double[]> box = unique_ptr<double[]>{new double[3]};
+    ReadStaticData<double[]>(ds_edges, H5T_NATIVE_DOUBLE, box);
+    cout << "H5MD: Found box " << box[0] << " x " << box[1] << " x " << box[2]
+         << endl;
     // Sets box size.
     m.ZeroMatrix();
     m[0][0] = box[0];
@@ -197,8 +202,6 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   delete id_group_name;
   delete velocity_group_name;
   delete force_group_name;
-  delete box_edges_name;
-  delete particle_group_name_;
 }
 
 bool H5MDTrajectoryReader::FirstFrame(Topology &top) { // NOLINT const
@@ -223,15 +226,14 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   // Set volume of box because top on workers somehow does not have this
   // information.
   if (has_box_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
-    double *box = NULL;
-    box = ReadBox(ds_edges_group_, H5T_NATIVE_DOUBLE, idx_frame_);
+    unique_ptr<double[]> box = unique_ptr<double[]>{new double[3]};
+    ReadBox(ds_edges_group_, H5T_NATIVE_DOUBLE, idx_frame_, box);
     m.ZeroMatrix();
-    m[0][0] = box[0];
-    m[1][1] = box[1];
-    m[2][2] = box[2];
+    m[0][0] = box.get()[0];
+    m[1][1] = box.get()[1];
+    m[2][2] = box.get()[2];
     cout << "Time dependent box:" << endl;
     cout << m << endl;
-    delete[] box;
   }
   top.setBox(m);
 
@@ -276,8 +278,9 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     // Topology has to be defined in the xml file or in other
     // topology files. The h5md only stores the trajectory data.
     Bead *b = top.getBead(atom_id);
-    if (b == NULL)
-      throw runtime_error("Bead not found: " + boost::lexical_cast<string>(atom_id));
+    if (b == nullptr)
+      throw runtime_error("Bead not found: " +
+                          boost::lexical_cast<string>(atom_id));
 
     b->setPos(vec(x, y, z));
     if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
@@ -309,7 +312,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   return true;
 }
 
-double* H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row) {
+void H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row, unique_ptr<double[]> &data_out) {
   hsize_t offset[2];
   offset[0] = row;
   offset[1] = 0;
@@ -319,14 +322,11 @@ double* H5MDTrajectoryReader::ReadBox(hid_t ds, hid_t ds_data_type, int row) {
   hid_t dsp = H5Dget_space(ds);
   H5Sselect_hyperslab(dsp, H5S_SELECT_SET, offset, NULL, ch_rows, NULL);
   hid_t mspace1 = H5Screate_simple(2, ch_rows, NULL);
-  double *data_out = new double[3];
   herr_t status =
-      H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out);
+      H5Dread(ds, ds_data_type, mspace1, dsp, H5P_DEFAULT, data_out.get());
   if (status < 0) {
     throw std::runtime_error("Error ReadScalarData: " +
                              boost::lexical_cast<std::string>(status));
-  } else {
-    return data_out;
   }
 }
 
