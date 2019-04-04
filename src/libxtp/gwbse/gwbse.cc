@@ -606,6 +606,9 @@ bool GWBSE::Evaluate() {
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
                  _gwopt.rpamin, _gwopt.rpamax);
+  CTP_LOG(ctp::logDEBUG, *_pLog)
+      << ctp::TimeStamp()
+      << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
   Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " Removed " << Mmn.Removedfunctions()

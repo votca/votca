@@ -68,7 +68,6 @@ void BSE::Solve_triplets_TDA() {
   configureBSEOperator(Ht);
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
-
   solve_hermitian(Ht, _bse_triplet_energies, _bse_triplet_coefficients);
 
   return;
@@ -225,7 +224,7 @@ void BSE::Solve_singlets_BTDA() {
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup Full singlet hamiltonian " << flush;
   Solve_antihermitian(Hs_ApB, Hs_AmB, _bse_singlet_energies,
-                      _bse_singlet_coefficients, _bse_singlet_coefficients);
+                      _bse_singlet_coefficients, _bse_singlet_coefficients_AR);
 }
 
 void BSE::Solve_triplets_BTDA() {
@@ -237,7 +236,7 @@ void BSE::Solve_triplets_BTDA() {
       << ctp::TimeStamp() << " Setup Full triplet hamiltonian " << flush;
 
   Solve_antihermitian(Ht_ApB, Ht_AmB, _bse_triplet_energies,
-                      _bse_triplet_coefficients, _bse_triplet_coefficients);
+                      _bse_triplet_coefficients, _bse_triplet_coefficients_AR);
 }
 
 template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
@@ -301,6 +300,9 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
         << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
   }
   ApB.resize(0, 0);
+  if ((eigenvalues.array() < 0).any()) {
+    throw std::runtime_error("Negative eigenvalues in BTDA");
+  }
   Eigen::VectorXd tempvec =
       eigenvalues.cwiseSqrt();  // has to stay otherwise mkl complains
   energies = tempvec;

@@ -85,13 +85,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // put into correct position
     for (int m_level = 0; m_level < this->msize(); m_level++) {
       for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
-        for (int n_level = 0; n_level < this->nsize(); n_level++) {
-          _matrix[m_level](n_level, shell->getStartIndex() + i_gw) =
-              block[m_level](n_level, i_gw);
-        }  // n-th DFT orbital
-      }    // GW basis function in shell
-    }      // m-th DFT orbital
-  }        // shells of GW basis set
+        _matrix[m_level].col(shell->getStartIndex() + i_gw) =
+            block[m_level].col(i_gw);
+      }  // GW basis function in shell
+    }    // m-th DFT orbital
+  }      // shells of GW basis set
 
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);
@@ -152,9 +150,9 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
             for (int _col = 0; _col < shell_col->getNumFunc(); _col++) {
               // symmetry
               if ((col_start + _col) > (row_start + _row)) {
-                continue;
+                break;
               }
-              symmstorage[_aux](row_start + _row, col_start + _col) =
+              symmstorage[_aux](col_start + _col, row_start + _row) =
                   threec_block[_aux][_row][_col];
             }  // ROW copy
           }    // COL copy
@@ -163,17 +161,11 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
     }  // gamma-loop
   }    // alpha-loop
   for (int k = 0; k < auxshell->getNumFunc(); ++k) {
-    Eigen::MatrixXd& matrix = symmstorage[k];
-    for (int i = 0; i < matrix.rows(); ++i) {
-      for (int j = 0; j < i; ++j) {
-        matrix(j, i) = matrix(i, j);
-      }
-    }
-    Eigen::MatrixXd threec_inMo = dftn.transpose() * matrix * dftm;
+    const Eigen::MatrixXd& matrix = symmstorage[k];
+    Eigen::MatrixXd threec_inMo =
+        dftn.transpose() * matrix.selfadjointView<Eigen::Upper>() * dftm;
     for (int i = 0; i < threec_inMo.cols(); ++i) {
-      for (int j = 0; j < threec_inMo.rows(); ++j) {
-        block[i](j, k) = threec_inMo(j, i);
-      }
+      block[i].col(k) = threec_inMo.col(i);
     }
   }
   return;
