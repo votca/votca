@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -407,7 +407,7 @@ protected:
     bool _has_force;
 
     /// The particle group (For H5MD file format)
-    string _particle_group;
+    string _particle_group = "unassigned";
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, string name, std::weak_ptr<BeadType> type, int resnr, double m, double q)
