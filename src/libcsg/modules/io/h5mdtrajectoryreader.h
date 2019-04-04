@@ -65,7 +65,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   /// Reads dataset that contains vectors.
   template <typename T1>
-  T1* ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
+  T1 *ReadVectorData(hid_t ds, hid_t ds_data_type, int row) {
     hsize_t offset[3];
     offset[0] = row;
     offset[1] = 0;
@@ -89,7 +89,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
 
   /// Reads dataset with scalar values.
   template <typename T1>
-  T1* ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
+  T1 *ReadScalarData(hid_t ds, hid_t ds_data_type, int row) {
     hsize_t offset[2];
     offset[0] = row;
     offset[1] = 0;
@@ -119,18 +119,19 @@ class H5MDTrajectoryReader : public TrajectoryReader {
     }
   }
 
-  void ReadBox(hid_t ds, hid_t ds_data_type, int row, unique_ptr<double[]> &data_out);
+  void ReadBox(hid_t ds, hid_t ds_data_type, int row,
+               unique_ptr<double[]> &data_out);
 
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
-      //H5Eprint(H5E_DEFAULT, stderr);
+      // H5Eprint(H5E_DEFAULT, stderr);
       throw std::runtime_error(error_message);
     }
   }
 
   bool GroupExists(hid_t file_id, std::string path) {
     H5G_stat_t info;
-    herr_t status = H5Gget_objinfo (file_id, path.c_str(), 0, &info);
+    herr_t status = H5Gget_objinfo(file_id, path.c_str(), 0, &info);
     if (status < 0) return false;
     return info.type == H5G_GROUP;
   }
