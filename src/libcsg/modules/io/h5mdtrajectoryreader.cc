@@ -25,6 +25,8 @@
 namespace votca {
 namespace csg {
 
+using namespace std;
+
 H5MDTrajectoryReader::H5MDTrajectoryReader(){
   has_velocity_ = H5MDTrajectoryReader::NONE;
   has_force_ = H5MDTrajectoryReader::NONE;
@@ -115,8 +117,8 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
   int dimension;
   H5Aread(at_box_dimension, H5Aget_type(at_box_dimension), &dimension);
   if (dimension != 3 ) {
-    throw ios_base::failure(
-        "Wrong dimension " + boost::lexical_cast<string>(dimension));
+    throw ios_base::failure("Wrong dimension " +
+                            boost::lexical_cast<string>(dimension));
   }
   // TODO: check if boundary is periodic.
   string box_edges_name = particle_group_name_ + "/box/edges";
@@ -191,7 +193,8 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
 
   // TODO: reads mass, charge and particle type.
 
-  if (has_id_group_ == H5MDTrajectoryReader::NONE && top.BeadCount() > 0 && N_particles_ != top.BeadCount()) {
+  if (has_id_group_ == H5MDTrajectoryReader::NONE && top.BeadCount() > 0 &&
+      N_particles_ != top.BeadCount()) {
     cout << "Warning: The number of beads (" << N_particles_ << ")";
     cout << " in the trajectory is different than defined in the topology ("
         << top.BeadCount() << ")" << endl;
@@ -215,8 +218,7 @@ bool H5MDTrajectoryReader::FirstFrame(Topology &top) { // NOLINT const
 bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   // Reads the position row.
   idx_frame_++;
-  if (idx_frame_ > max_idx_frame_)
-    return false;
+  if (idx_frame_ > max_idx_frame_) return false;
 
   cout << '\r' << "Reading frame: " << idx_frame_ << "\n";
   cout.flush();
@@ -240,17 +242,20 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   int *ids = NULL;
 
   try {
-    positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE, idx_frame_);
+    positions = ReadVectorData<double>(ds_atom_position_, H5T_NATIVE_DOUBLE,
+                                       idx_frame_);
   } catch (const runtime_error &e) {
     return false;
   }
 
   if (has_velocity_ != H5MDTrajectoryReader::NONE) {
-    velocities = ReadVectorData<double>(ds_atom_velocity_, H5T_NATIVE_DOUBLE, idx_frame_);
+    velocities = ReadVectorData<double>(ds_atom_velocity_, H5T_NATIVE_DOUBLE,
+                                        idx_frame_);
   }
 
   if (has_force_ != H5MDTrajectoryReader::NONE) {
-    forces = ReadVectorData<double>(ds_atom_force_, H5T_NATIVE_DOUBLE, idx_frame_);
+    forces =
+        ReadVectorData<double>(ds_atom_force_, H5T_NATIVE_DOUBLE, idx_frame_);
   }
 
   if (has_id_group_ != H5MDTrajectoryReader::NONE) {
@@ -299,12 +304,9 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
 
   // Clean up pointers.
   delete[] positions;
-  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT)
-    delete[] forces;
-  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT)
-    delete[] velocities;
-  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT)
-    delete[] ids;
+  if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] forces;
+  if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] velocities;
+  if (has_id_group_ == H5MDTrajectoryReader::TIMEDEPENDENT) delete[] ids;
 
   return true;
 }

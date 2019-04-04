@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2015 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,98 +15,97 @@
  *
  */
 
+#include "gmxtrajectoryreader.h"
 #include <cstdlib>
+#include <gromacs/utility/programcontext.h>
 #include <iostream>
 #include <votca/csg/topology.h>
-#include "gmxtrajectoryreader.h"
-#include <gromacs/utility/programcontext.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
 using namespace std;
 
-bool GMXTrajectoryReader::Open(const string &file)
-{
-       _filename = file;
-       return true;
+bool GMXTrajectoryReader::Open(const string &file) {
+  _filename = file;
+  return true;
 }
 
-void GMXTrajectoryReader::Close()
-{
-    close_trx(_gmx_status);
-}
+void GMXTrajectoryReader::Close() { close_trx(_gmx_status); }
 
-bool GMXTrajectoryReader::FirstFrame(Topology &conf)
-{
-    gmx_output_env_t *oenv;
-    output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
-    if(!read_first_frame(oenv, &_gmx_status,(char*)_filename.c_str(),&_gmx_frame,TRX_READ_X | TRX_READ_V | TRX_READ_F))
-        throw std::runtime_error(string("cannot open ") + _filename);
-    output_env_done(oenv);
+bool GMXTrajectoryReader::FirstFrame(Topology &conf) {
+  gmx_output_env_t *oenv;
+  output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
+  if (!read_first_frame(oenv, &_gmx_status, (char *)_filename.c_str(),
+                        &_gmx_frame, TRX_READ_X | TRX_READ_V | TRX_READ_F))
+    throw std::runtime_error(string("cannot open ") + _filename);
+  output_env_done(oenv);
 
-    matrix m;
-    for(int i=0; i<3; i++)
-        for(int j=0; j<3; j++)
-            m[i][j] = _gmx_frame.box[j][i];
-    conf.setBox(m);
-    conf.setTime(_gmx_frame.time);
-    conf.setStep(_gmx_frame.step);
-    cout << endl;
-    
-    if(_gmx_frame.natoms != (int)conf.Beads().size())
-        throw std::runtime_error("number of beads in trajectory do not match topology");
+  matrix m;
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) m[i][j] = _gmx_frame.box[j][i];
+  conf.setBox(m);
+  conf.setTime(_gmx_frame.time);
+  conf.setStep(_gmx_frame.step);
+  cout << endl;
 
-    //conf.HasPos(true);
-    //conf.HasF(_gmx_frame.bF);
-    
-    for(int i=0; i<_gmx_frame.natoms; i++) {
-        double r[3] = { _gmx_frame.x[i][XX],  _gmx_frame.x[i][YY], _gmx_frame.x[i][ZZ] };
-        conf.getBead(i)->setPos(r);
-        if(_gmx_frame.bF) {
-            double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
-            conf.getBead(i)->setF(f);
-        }
-        if(_gmx_frame.bV) {
-            double v[3] = { _gmx_frame.v[i][XX],  _gmx_frame.v[i][YY], _gmx_frame.v[i][ZZ] };
-            conf.getBead(i)->setVel(v);
-        }
+  if (_gmx_frame.natoms != (int)conf.Beads().size())
+    throw std::runtime_error(
+        "number of beads in trajectory do not match topology");
+
+  // conf.HasPos(true);
+  // conf.HasF(_gmx_frame.bF);
+
+  for (int i = 0; i < _gmx_frame.natoms; i++) {
+    double r[3] = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
+                   _gmx_frame.x[i][ZZ]};
+    conf.getBead(i)->setPos(r);
+    if (_gmx_frame.bF) {
+      double f[3] = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
+                     _gmx_frame.f[i][ZZ]};
+      conf.getBead(i)->setF(f);
     }
-    return true;
-}
-
-bool GMXTrajectoryReader::NextFrame(Topology &conf)
-{
-    gmx_output_env_t *oenv;
-    output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
-    if(!read_next_frame(oenv, _gmx_status,&_gmx_frame))
-        return false;
-    output_env_done(oenv);
-
-    matrix m;
-    for(int i=0; i<3; i++)
-        for(int j=0; j<3; j++)
-            m[i][j] = _gmx_frame.box[j][i];
-    conf.setTime(_gmx_frame.time);
-    conf.setStep(_gmx_frame.step);
-    conf.setBox(m);
-    
-    //conf.HasF(_gmx_frame.bF);
-    
-    for(int i=0; i<_gmx_frame.natoms; i++) {
-        double r[3] = { _gmx_frame.x[i][XX],  _gmx_frame.x[i][YY], _gmx_frame.x[i][ZZ] };
-        conf.getBead(i)->setPos(r);
-        if(_gmx_frame.bF) {
-            double f[3] = { _gmx_frame.f[i][XX],  _gmx_frame.f[i][YY], _gmx_frame.f[i][ZZ] };        
-            conf.getBead(i)->setF(f);
-        }
-        if(_gmx_frame.bV) {
-            double v[3] = { _gmx_frame.v[i][XX],  _gmx_frame.v[i][YY], _gmx_frame.v[i][ZZ] };
-            conf.getBead(i)->setVel(v);
-        }
-
-
+    if (_gmx_frame.bV) {
+      double v[3] = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
+                     _gmx_frame.v[i][ZZ]};
+      conf.getBead(i)->setVel(v);
     }
-    return true;
+  }
+  return true;
 }
 
-}}
+bool GMXTrajectoryReader::NextFrame(Topology &conf) {
+  gmx_output_env_t *oenv;
+  output_env_init(&oenv, gmx::getProgramContext(), time_ps, FALSE, exvgNONE, 0);
+  if (!read_next_frame(oenv, _gmx_status, &_gmx_frame)) return false;
+  output_env_done(oenv);
+
+  matrix m;
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) m[i][j] = _gmx_frame.box[j][i];
+  conf.setTime(_gmx_frame.time);
+  conf.setStep(_gmx_frame.step);
+  conf.setBox(m);
+
+  // conf.HasF(_gmx_frame.bF);
+
+  for (int i = 0; i < _gmx_frame.natoms; i++) {
+    double r[3] = {_gmx_frame.x[i][XX], _gmx_frame.x[i][YY],
+                   _gmx_frame.x[i][ZZ]};
+    conf.getBead(i)->setPos(r);
+    if (_gmx_frame.bF) {
+      double f[3] = {_gmx_frame.f[i][XX], _gmx_frame.f[i][YY],
+                     _gmx_frame.f[i][ZZ]};
+      conf.getBead(i)->setF(f);
+    }
+    if (_gmx_frame.bV) {
+      double v[3] = {_gmx_frame.v[i][XX], _gmx_frame.v[i][YY],
+                     _gmx_frame.v[i][ZZ]};
+      conf.getBead(i)->setVel(v);
+    }
+  }
+  return true;
+}
+
+}  // namespace csg
+}  // namespace votca
