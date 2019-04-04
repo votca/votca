@@ -13,7 +13,7 @@
 using namespace votca::xtp;
 using namespace std;
 
-Eigen::MatrixXd init_matrix(int N, double eps, bool diag)
+Eigen::MatrixXd init_matrix(int N, double eps)
 {
     Eigen::MatrixXd matrix;
     matrix =  eps * Eigen::MatrixXd::Random(N,N);
@@ -21,8 +21,7 @@ Eigen::MatrixXd init_matrix(int N, double eps, bool diag)
     matrix = matrix + tmat; 
 
     for (int i = 0; i<N; i++) {
-        if(diag)    matrix(i,i) = static_cast<double> (i+1);   
-        else        matrix(i,i) =  static_cast<double> (1. + (std::rand() %1000 ) / 10.);
+        matrix(i,i) =  static_cast<double> (1. + (std::rand() %1000 ) / 10.);
     }
     return matrix;
 }
@@ -58,7 +57,7 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
     int size = 100;
     int neigen = 10;
     double eps = 0.01;
-    Eigen::MatrixXd A = init_matrix(size,eps,false);
+    Eigen::MatrixXd A = init_matrix(size,eps);
 
     DavidsonSolver DS;
     DS.solve(A,neigen);
@@ -69,6 +68,26 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
     bool check_eigenvalues = lambda.isApprox(lambda_ref,1E-6);
     
     BOOST_CHECK_EQUAL(check_eigenvalues,1);
+
+}
+
+BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
+
+    int size = 100;
+    int neigen = 10;
+    double eps = 0.01;
+    Eigen::MatrixXd A = init_matrix(size,eps);
+
+    DavidsonSolver DS;
+    DS.set_iter_max(1);
+    DS.solve(A,neigen);
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
+
+    auto lambda = DS.eigenvalues();
+    auto lambda_ref = es.eigenvalues().head(neigen);
+    bool check_eigenvalues = lambda.isApprox(lambda_ref,1E-6);
+    
+    BOOST_CHECK_EQUAL(check_eigenvalues,0);
 
 }
 

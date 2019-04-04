@@ -205,13 +205,32 @@ void GWBSE::Initialize(tools::Property& options) {
               _bseopt.davidson_correction);
 
       _bseopt.davidson_tolerance =
-          options.ifExistsReturnElseReturnDefault<double>(
+          options.ifExistsReturnElseReturnDefault<std::string>(
               key + ".eigensolver.davidson_tolerance",
               _bseopt.davidson_tolerance);
+
+      _bseopt.davidson_update =
+          options.ifExistsReturnElseReturnDefault<std::string>(
+              key + ".eigensolver.davidson_update",
+              _bseopt.davidson_update);
+
+      _bseopt.davidson_maxiter =
+          options.ifExistsReturnElseReturnDefault<int>(
+              key + ".eigensolver.davidson_maxiter",
+              _bseopt.davidson_maxiter);
 
       std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           key + ".eigensolver.davidson_correction", _dcorr);
+
+      std::vector<std::string> _dtol = {"strict", "normal", "loose"};
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          key + ".eigensolver.davidson_tolerance", _dtol);
+
+      std::vector<std::string> _dup = {"min", "safe", "max"};
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          key + ".eigensolver.davidson_update", _dup);
+
 
       // check size
       if (_bseopt.nmax > bse_size / 4) {
