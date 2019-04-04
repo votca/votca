@@ -211,13 +211,10 @@ void GWBSE::Initialize(tools::Property& options) {
 
       _bseopt.davidson_update =
           options.ifExistsReturnElseReturnDefault<std::string>(
-              key + ".eigensolver.davidson_update",
-              _bseopt.davidson_update);
+              key + ".eigensolver.davidson_update", _bseopt.davidson_update);
 
-      _bseopt.davidson_maxiter =
-          options.ifExistsReturnElseReturnDefault<int>(
-              key + ".eigensolver.davidson_maxiter",
-              _bseopt.davidson_maxiter);
+      _bseopt.davidson_maxiter = options.ifExistsReturnElseReturnDefault<int>(
+          key + ".eigensolver.davidson_maxiter", _bseopt.davidson_maxiter);
 
       std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
@@ -230,7 +227,6 @@ void GWBSE::Initialize(tools::Property& options) {
       std::vector<std::string> _dup = {"min", "safe", "max"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           key + ".eigensolver.davidson_update", _dup);
-
 
       // check size
       if (_bseopt.nmax > bse_size / 4) {

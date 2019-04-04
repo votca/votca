@@ -42,15 +42,14 @@ void DavidsonSolver::set_correction(std::string method) {
 }
 
 void DavidsonSolver::set_tolerance(std::string tol) {
-  if (tol=="loose")
+  if (tol == "loose")
     this->tol = 1E-3;
-  else if (tol=="normal")
+  else if (tol == "normal")
     this->tol = 1E-4;
   else if (tol == "strict")
     this->tol = 1E-5;
   else
-    throw std::runtime_error(tol +
-                             " is not a valid Davidson tolerance");
+    throw std::runtime_error(tol + " is not a valid Davidson tolerance");
 }
 
 void DavidsonSolver::set_size_update(std::string update_size) {
@@ -65,8 +64,7 @@ void DavidsonSolver::set_size_update(std::string update_size) {
     this->davidson_update = UPDATE::MAX;
 
   else
-    throw std::runtime_error(update_size +
-                             " is not a valid Davidson update"); 
+    throw std::runtime_error(update_size + " is not a valid Davidson update");
 }
 
 int DavidsonSolver::get_size_update(int neigen) {
@@ -79,7 +77,7 @@ int DavidsonSolver::get_size_update(int neigen) {
       size_update = neigen + 10;
       break;
     case UPDATE::MAX:
-      size_update = 2*neigen;
+      size_update = 2 * neigen;
       break;
   }
   return size_update;
@@ -96,8 +94,8 @@ Eigen::ArrayXi DavidsonSolver::sort_index(Eigen::VectorXd &V) const {
 Eigen::MatrixXd DavidsonSolver::get_initial_eigenvectors(
     Eigen::VectorXd &d, int size_initial_guess) const {
 
-  /* \brief Initialize the guess eigenvector so that they 'target' the lowest diagonal
-   * elements */
+  /* \brief Initialize the guess eigenvector so that they 'target' the lowest
+   * diagonal elements */
 
   Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(), size_initial_guess);
   Eigen::ArrayXi idx = DavidsonSolver::sort_index(d);
@@ -110,9 +108,10 @@ Eigen::MatrixXd DavidsonSolver::get_initial_eigenvectors(
 }
 
 Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
-                                                Eigen::VectorXd &D,
-                                                double lambda) const {
-  /* \brief Compute the diagonal preconditoned residue : delta = - (D - lambda)^{-1} r
+                                               Eigen::VectorXd &D,
+                                               double lambda) const {
+  /* \brief Compute the diagonal preconditoned residue : delta = - (D -
+   * lambda)^{-1} r
    */
 
   Eigen::VectorXd delta = r.array() / (lambda - D.array());
@@ -120,9 +119,9 @@ Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
 }
 
 Eigen::VectorXd DavidsonSolver::olsen_correction(Eigen::VectorXd &r,
-                                                  Eigen::VectorXd &x,
-                                                  Eigen::VectorXd &D,
-                                                  double lambda) const {
+                                                 Eigen::VectorXd &x,
+                                                 Eigen::VectorXd &D,
+                                                 double lambda) const {
   /* \brief Compute the olsen correction :
 
   \delta = (D-\lambda)^{-1} (-r + \epsilon x)
@@ -135,8 +134,7 @@ Eigen::VectorXd DavidsonSolver::olsen_correction(Eigen::VectorXd &r,
   delta = DavidsonSolver::dpr_correction(r, D, lambda);
 
   double num = -x.transpose() * delta;
-  double denom =
-      -x.transpose() * DavidsonSolver::dpr_correction(x, D, lambda);
+  double denom = -x.transpose() * DavidsonSolver::dpr_correction(x, D, lambda);
   double eps = num / denom;
 
   delta += eps * x;
@@ -156,25 +154,25 @@ Eigen::MatrixXd DavidsonSolver::QR_ortho(Eigen::MatrixXd &A) const {
   return result;
 }
 
-
-Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho( Eigen::MatrixXd &A, 
-                                                      int nstart ) const {
+Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho(Eigen::MatrixXd &A,
+                                                  int nstart) const {
   Eigen::MatrixXd Q = A;
 
-  for(int j = nstart; j < A.cols(); ++j) {
-      
-      Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
-      
-      if( Q.col(j).norm() <= 1e-6 * A.col(j).norm() ) {
+  for (int j = nstart; j < A.cols(); ++j) {
 
-          CTP_LOG(ctp::logDEBUG, _log) 
-          << ctp::TimeStamp() << "Warning : Linear dependencies detected in GS orthogonalization" 
+    Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
+
+    if (Q.col(j).norm() <= 1e-6 * A.col(j).norm()) {
+
+      CTP_LOG(ctp::logDEBUG, _log)
+          << ctp::TimeStamp()
+          << "Warning : Linear dependencies detected in GS orthogonalization"
           << flush;
-          
-          break;
-      } else {
-          Q.col(j).normalize();
-      }
+
+      break;
+    } else {
+      Q.col(j).normalize();
+    }
   }
   return Q;
 }

@@ -59,11 +59,11 @@ class BSE {
     int nmax;             // number of eigenvectors to calculate
     bool davidson = 1;    // use davidson to diagonalize the matrix
     bool matrixfree = 0;  // use matrix free method
-    
-    std::string davidson_correction = "DPR";  
+
+    std::string davidson_correction = "DPR";
     std::string davidson_tolerance = "normal";
     std::string davidson_update = "safe";
-    
+
     int davidson_maxiter = 50;
     double min_print_weight =
         0.5;  // minimium contribution for state to print it
