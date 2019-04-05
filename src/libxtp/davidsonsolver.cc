@@ -31,6 +31,16 @@ using namespace std;
 
 DavidsonSolver::DavidsonSolver(ctp::Logger &log) : _log(log) {}
 
+void DavidsonSolver::set_ortho(std::string method) {
+  if (method == "GS")
+    this->davidson_ortho = ORTHO::GS;
+  else if (method == "QR")
+    this->davidson_ortho = ORTHO::QR;
+  else
+    throw std::runtime_error(method +
+                  " is not a valid Davidson orthogonalization method");
+}
+
 void DavidsonSolver::set_correction(std::string method) {
   if (method == "DPR")
     this->davidson_correction = CORR::DPR;
@@ -165,17 +175,12 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho(Eigen::MatrixXd &A,
 
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
 
-    if (Q.col(j).norm() <= 1e-6 * A.col(j).norm()) {
-
-      CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp()
-          << "Warning : Linear dependencies detected in GS orthogonalization"
-          << flush;
-
-      break;
-    } else {
-      Q.col(j).normalize();
-    }
+    if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
+      throw std::runtime_error("Linear dependencies in Gram-Schmidt. Switch to QR");
+      
+    } 
+    Q.col(j).normalize();
+    
   }
   return Q;
 }

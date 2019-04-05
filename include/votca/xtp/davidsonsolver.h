@@ -51,6 +51,7 @@ class DavidsonSolver {
 
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
+  void set_ortho(std::string method);
   void set_size_update(std::string method);
   int get_size_update(int neigen);
 
@@ -78,6 +79,20 @@ class DavidsonSolver {
             << ctp::TimeStamp() << " Olsen Correction" << flush;
         break;
     }
+
+    switch (this->davidson_ortho) {
+
+      case ORTHO::GS:
+        CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " Gram-Schmidt Ortgonalization" << flush;
+        break;
+
+      case ORTHO::QR:
+        CTP_LOG(ctp::logDEBUG, _log)
+            << ctp::TimeStamp() << " QR Ortgonalization" << flush;
+        break;
+    }
+
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " Tolerance : " << this->tol << flush;
 
@@ -145,6 +160,7 @@ class DavidsonSolver {
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
       lambda = es.eigenvalues();
       U = es.eigenvectors();
+
 
       // Ritz eigenvectors
       q = V.block(0, 0, V.rows(), search_space) * U;
@@ -219,12 +235,17 @@ class DavidsonSolver {
       // continue otherwise
       else {
 
-        // orthogonalize the V vectors
-        V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
-
-        // update the T matrix : avoid recomputing V.T A V
-        // just recompute the element relative to the new eigenvectors
-        DavidsonSolver::update_projected_matrix<MatrixReplacement>(T, A, V);
+        switch (this->davidson_ortho){
+          case ORTHO::GS:
+            // orthogonalize the V vectors
+            V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
+            DavidsonSolver::update_projected_matrix<MatrixReplacement>(T, A, V);
+            break;
+          case ORTHO::QR:
+            V = DavidsonSolver::QR_ortho(V);
+            T = V.transpose() * (A * V);
+            break;
+        }
       }
     }
 
@@ -268,13 +289,16 @@ class DavidsonSolver {
   ctp::Logger &_log;
   int iter_max = 50;
   double tol = 1E-4;
-  int max_search_space = 100;
+  int max_search_space = 1000;
 
   enum CORR { DPR, OLSEN };
   CORR davidson_correction = CORR::DPR;
 
   enum UPDATE { MIN, SAFE, MAX };
   UPDATE davidson_update = UPDATE::SAFE;
+
+  enum ORTHO { GS, QR};
+  ORTHO davidson_ortho = ORTHO::GS;
 
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;

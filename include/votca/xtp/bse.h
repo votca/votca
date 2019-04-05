@@ -61,6 +61,7 @@ class BSE {
     bool matrixfree = 0;  // use matrix free method
 
     std::string davidson_correction = "DPR";
+    std::string davidson_ortho = "GS";
     std::string davidson_tolerance = "normal";
     std::string davidson_update = "safe";
 

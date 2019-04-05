@@ -204,6 +204,11 @@ void GWBSE::Initialize(tools::Property& options) {
               key + ".eigensolver.davidson_correction",
               _bseopt.davidson_correction);
 
+      _bseopt.davidson_ortho =
+          options.ifExistsReturnElseReturnDefault<std::string>(
+              key + ".eigensolver.davidson_ortho",
+              _bseopt.davidson_ortho);
+
       _bseopt.davidson_tolerance =
           options.ifExistsReturnElseReturnDefault<std::string>(
               key + ".eigensolver.davidson_tolerance",
@@ -219,6 +224,10 @@ void GWBSE::Initialize(tools::Property& options) {
       std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           key + ".eigensolver.davidson_correction", _dcorr);
+
+      std::vector<std::string> _dortho = {"GS", "QR"};
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          key + ".eigensolver.davidson_ortho", _dortho);
 
       std::vector<std::string> _dtol = {"strict", "normal", "loose"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
