@@ -48,7 +48,8 @@ void DensityAnalysis::Initialize(tools::Property *options) {
   std::string key = "options." + Identify();
   _orbfile = options->get(key + ".input").as<std::string>();
 
-  std::string _gyration_xml = options->get(key + ".gyration_options").as<std::string>();
+  std::string _gyration_xml =
+      options->get(key + ".gyration_options").as<std::string>();
   load_property_from_xml(_gyration_options, _gyration_xml.c_str());
 
   // get the path to the shared folders with xml files

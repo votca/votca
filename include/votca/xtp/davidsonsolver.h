@@ -46,7 +46,7 @@ class DavidsonSolver {
   DavidsonSolver(ctp::Logger &log);
 
   void set_iter_max(int N) { this->iter_max = N; }
-  
+
   void set_max_search_space(int N) { this->max_search_space = N; }
 
   void set_tolerance(std::string tol);
@@ -137,7 +137,6 @@ class DavidsonSolver {
     std::chrono::time_point<std::chrono::system_clock> istart, iend;
     std::chrono::duration<double> elapsed_time;
 
-
     for (int iiter = 0; iiter < iter_max; iiter++) {
 
       istart = std::chrono::system_clock::now();
@@ -194,7 +193,7 @@ class DavidsonSolver {
                  iiter % search_space % res_norm.head(neigen).maxCoeff() %
                  percent_converged % elapsed_time.count()
           << flush;
-          
+
       // update
       search_space = V.cols();
 
@@ -203,10 +202,10 @@ class DavidsonSolver {
         has_converged = true;
         break;
       }
-      
+
       // check if we need to restart
       if (search_space > max_search_space or search_space > size) {
-        
+
         V = q.leftCols(size_restart);
         for (int j = 0; j < size_restart; j++) {
           V.col(j).normalize();
@@ -214,19 +213,19 @@ class DavidsonSolver {
         search_space = size_restart;
 
         // recompute the projected matrix
-        T = V.transpose()*(A * V);
+        T = V.transpose() * (A * V);
       }
 
       // continue otherwise
       else {
-        
+
         // orthogonalize the V vectors
-        V = DavidsonSolver::gramschmidt_ortho(V,V.cols()-nupdate);
+        V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
 
         // update the T matrix : avoid recomputing V.T A V
         // just recompute the element relative to the new eigenvectors
         DavidsonSolver::update_projected_matrix<MatrixReplacement>(T, A, V);
-      } 
+      }
     }
 
     end = std::chrono::system_clock::now();
@@ -236,7 +235,7 @@ class DavidsonSolver {
     this->_eigenvalues = lambda.head(neigen);
     this->_eigenvectors = q.leftCols(neigen);
 
-      // normalize the eigenvectors
+    // normalize the eigenvectors
     for (int i = 0; i < neigen; i++) {
       this->_eigenvectors.col(i).normalize();
     }
@@ -246,11 +245,11 @@ class DavidsonSolver {
 
     if (!has_converged) {
       CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << "- Warning : Davidson " << percent_converged 
-          << "% converged after " << iter_max << " iterations." << flush;        
-    
-      for (int i=0; i< neigen; i++){
-        if (not root_converged[i]){
+          << ctp::TimeStamp() << "- Warning : Davidson " << percent_converged
+          << "% converged after " << iter_max << " iterations." << flush;
+
+      for (int i = 0; i < neigen; i++) {
+        if (not root_converged[i]) {
           this->_eigenvalues(i) = 0;
           this->_eigenvectors.col(i) = Eigen::VectorXd::Zero(size);
         }
@@ -260,7 +259,6 @@ class DavidsonSolver {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << "- Davidson converged in "
           << elapsed_time.count() << "secs." << flush;
-
     }
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << "-----------------------------------" << flush;
@@ -275,7 +273,7 @@ class DavidsonSolver {
   enum CORR { DPR, OLSEN };
   CORR davidson_correction = CORR::DPR;
 
-  enum UPDATE {MIN, SAFE, MAX};
+  enum UPDATE { MIN, SAFE, MAX };
   UPDATE davidson_update = UPDATE::SAFE;
 
   Eigen::VectorXd _eigenvalues;
@@ -285,15 +283,15 @@ class DavidsonSolver {
   Eigen::MatrixXd get_initial_eigenvectors(Eigen::VectorXd &D, int size) const;
 
   Eigen::MatrixXd QR_ortho(Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd gramschmidt_ortho( Eigen::MatrixXd &A, int nstart ) const;
+  Eigen::MatrixXd gramschmidt_ortho(Eigen::MatrixXd &A, int nstart) const;
   Eigen::VectorXd dpr_correction(Eigen::VectorXd &w, Eigen::VectorXd &A0,
-                                  double lambda) const;
+                                 double lambda) const;
   Eigen::VectorXd olsen_correction(Eigen::VectorXd &r, Eigen::VectorXd &x,
-                                    Eigen::VectorXd &D, double lambda) const;
+                                   Eigen::VectorXd &D, double lambda) const;
 
   template <class MatrixReplacement>
   void update_projected_matrix(Eigen::MatrixXd &T, MatrixReplacement &A,
-                                Eigen::MatrixXd &V) const {
+                               Eigen::MatrixXd &V) const {
 
     int size = V.rows();
 
@@ -308,7 +306,7 @@ class DavidsonSolver {
     T.block(0, old_dim, new_dim, nvec) = V.transpose() * _tmp;
 
     T.block(old_dim, 0, nvec, old_dim) =
-    T.block(0, old_dim, old_dim, nvec).transpose();
+        T.block(0, old_dim, old_dim, nvec).transpose();
 
     return;
   }
