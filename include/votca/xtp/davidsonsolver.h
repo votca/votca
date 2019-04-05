@@ -136,12 +136,16 @@ class DavidsonSolver {
     Eigen::MatrixXd V =
         DavidsonSolver::get_initial_eigenvectors(Adiag, size_initial_guess);
 
-    // eigenvalues holder
+    // eigenvalues/eigenvectors holder
     Eigen::VectorXd lambda;
+    Eigen::MatrixXd U;
+
+    // Projected matrix
+    Eigen::MatrixXd T;
 
     // temp varialbes
-    Eigen::MatrixXd T, U, q;
-    Eigen::VectorXd w, tmp;
+    Eigen::MatrixXd Aq, q;
+    Eigen::VectorXd w,tmp;
 
     // project the matrix on the trial subspace
     T = V.transpose() * (A * V);
@@ -161,9 +165,11 @@ class DavidsonSolver {
       lambda = es.eigenvalues();
       U = es.eigenvectors();
 
-
       // Ritz eigenvectors
       q = V.block(0, 0, V.rows(), search_space) * U;
+
+      // precompute A*Q - lambda Q
+      Aq = A * q - q * lambda.asDiagonal();
 
       // correction vectors
       nupdate = 0;
@@ -173,7 +179,7 @@ class DavidsonSolver {
         nupdate += 1;
 
         // residue vector
-        w = A * q.col(j) - lambda(j) * q.col(j);
+        w = Aq.col(j);
         res_norm[j] = w.norm();
 
         switch (this->davidson_correction) {
