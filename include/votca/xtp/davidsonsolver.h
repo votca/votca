@@ -166,7 +166,7 @@ class DavidsonSolver {
       U = es.eigenvectors();
 
       // Ritz eigenvectors
-      q = V.block(0, 0, V.rows(), search_space) * U;
+      q = V*U;
 
       // precompute A*Q - lambda Q
       Aq = A * q - q * lambda.asDiagonal();
@@ -175,6 +175,7 @@ class DavidsonSolver {
       nupdate = 0;
       for (int j = 0; j < size_update; j++) {
 
+        // skip the root that have already converged
         if (root_converged[j]) continue;
         nupdate += 1;
 
@@ -182,6 +183,7 @@ class DavidsonSolver {
         w = Aq.col(j);
         res_norm[j] = w.norm();
 
+        // compute correction vector
         switch (this->davidson_correction) {
 
           case CORR::DPR:
