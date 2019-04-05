@@ -76,7 +76,10 @@ int DavidsonSolver::get_size_update(int neigen) {
       size_update = neigen;
       break;
     case UPDATE::SAFE:
-      size_update = neigen + 10;
+      if (neigen < 20)
+        size_update = static_cast<int>(1.5*neigen);
+      else
+        size_update = neigen + 10;
       break;
     case UPDATE::MAX:
       size_update = 2*neigen;

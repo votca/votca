@@ -189,8 +189,8 @@ class DavidsonSolver {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp()
           << format(
-                 " %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged done ine "
-                 "%5$f secs") %
+                 " %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged "
+                 "%5$f sec.") %
                  iiter % search_space % res_norm.head(neigen).maxCoeff() %
                  percent_converged % elapsed_time.count()
           << flush;
