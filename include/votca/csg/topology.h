@@ -424,7 +424,7 @@ class Topology {
   bool _has_force;
 
   /// The particle group (For H5MD file format)
-  std::string _particle_group;
+  std::string _particle_group = "unassigned";
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, std::string name,
