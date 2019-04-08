@@ -116,7 +116,6 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
-
   // make the mat mat product
   #pragma omp parallel for
     for (int i = 0; i < op.cols(); i++) {

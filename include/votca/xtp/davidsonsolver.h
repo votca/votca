@@ -62,6 +62,7 @@ class DavidsonSolver {
   void solve(MatrixReplacement &A, int neigen, int size_initial_guess = 0) {
 
     std::chrono::time_point<std::chrono::system_clock> start, end;
+    std::chrono::duration<double> elapsed_time;
     start = std::chrono::system_clock::now();
 
     CTP_LOG(ctp::logDEBUG, _log)
