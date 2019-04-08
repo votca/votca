@@ -311,6 +311,134 @@ def extrapolate_U_monotonic(r, dU, flag, U_cur):
     dU_extrap = U_new_mono - U_cur
     return dU_extrap
 
+def extrapolate_U_scale(r, dU, flag, U_cur, g_cur):
+    """
+
+    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    # first dU
+    first_dU_index = np.where(flag == 'i')[0][0]
+    U_new = U_cur + np.nan_to_num(dU)
+    # first negative derivative in bad_U
+    first_decay_index = np.where(np.diff(U_new[first_dU_index:]) < 0)[0][0] + first_dU_index
+    # derivative from just inside core
+    # note: this is repulsive regime, so deriv is negative
+    core_end_deriv = U_cur[first_dU_index] - U_cur[first_dU_index-1]
+    # this value is used for min derivative
+    min_deriv = core_end_deriv * 2.0
+    # this value is used for max derivative
+    max_deriv = core_end_deriv * 0.8
+    # make potential outside core monotonic decaying
+    # if there is a dip downwards in U_new
+    if first_decay_index != first_dU_index:
+        #print('fixing dip downwards')
+        U_new_mono = U_new.copy()
+        for i in range(first_decay_index, first_dU_index, -1):
+            if U_new_mono[i] - U_new_mono[i-1] > max_deriv:
+                U_new_mono[i-1] = U_new_mono[i] - max_deriv
+        # shift potential inside core
+        U_new_mono[:first_dU_index] += U_new_mono[first_dU_index] - U_cur[first_dU_index]
+        # substract since votca does addition later
+        dU_extrap = U_new_mono - U_cur
+    elif U_new[first_dU_index+1] - U_new[first_dU_index] < min_deriv:
+        #print('fixing dip upwards')
+        # end of scaling region
+        scale_end = np.where(g_cur > 1e-1)[0][0]
+        # ensure deriv. at end of core is min_deriv
+        # if there is a dip upwards in U_new
+        dU_extrap = dU.copy()
+        # scaling factor
+        a = (min_deriv - (U_cur[first_dU_index+1] - U_cur[first_dU_index])) / (dU[first_dU_index+1] - dU[first_dU_index])
+        dU_extrap = np.nan_to_num(dU)
+        dU_extrap[first_dU_index:scale_end] = a * dU[first_dU_index:scale_end]
+        # shift to be continuous at scale_end
+        dU_extrap[first_dU_index:scale_end] += dU[scale_end]
+        # shift to be continuous in core
+        dU_extrap[0:first_dU_index] += dU_extrap[first_dU_index]
+        # ramp to be continuous in core
+        dU_extrap[0:first_dU_index] += (dU_extrap[first_dU_index+1] - dU_extrap[first_dU_index]) * (np.arange(first_dU_index) - (first_dU_index))
+    else:
+        dU_extrap = np.nan_to_num(dU)
+    return dU_extrap
+
+
+def extrapolate_U_power(r, dU, flag, g, U, g_tgt, g_min, kBT):
+    """Extrapolate the potential in the core region up to
+    the point, where the RDF becomes larger than 0.5 or where
+    the new potential is convex. A power function is used.
+    The PMF is fitted, not U+dU. The fit is then shifted such
+    that the graph is monotonous.
+
+    Fitting is done, because p-HNCGN often has artifacs at
+    small RDF values, especially when pressure is far of
+
+    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
+    # make copy
+    dU_extrap = dU.copy()
+    # calc PMF
+    with np.errstate(divide='ignore', over='ignore'):
+        pmf = np.nan_to_num(-kBT * np.log(g_tgt))
+    # index first minimum
+    ndx_fm = np.where(np.nan_to_num(np.diff(pmf)) > 0)[0][0]
+    # index core end
+    ndx_ce = np.where(g_tgt > g_min)[0][0]
+    # fit pmf region
+    fit_region = slice(ndx_ce, ndx_ce + 3)
+    # fit pmf with power function a*x^b
+    pmf_shift = -pmf[ndx_fm] + 0.01
+    fit_x = np.log(r[fit_region])
+    fit_y = np.log(pmf[fit_region] + pmf_shift)
+    b, log_a = np.polyfit(fit_x, fit_y, 1)
+    a = np.exp(log_a)
+    print('pmf fit coefficients a and b:', a, b)
+    # r without zero at start
+    with np.errstate(divide='ignore', over='ignore'):
+        pmf_fit = np.nan_to_num(a * r**b - pmf_shift)
+
+    # region to extrapolate
+    ndx_ex1 = np.where(g_tgt > 0.5)[0][0]
+    ndx_ex2 = np.where(np.nan_to_num(np.diff(np.diff(U + dU))) > 0)[0][0]
+    ndx_ex = max(ndx_ex1, ndx_ex2)
+    # extrapolate
+    U_extrap = U + dU
+    U_extrap[:ndx_ex] = pmf_fit[:ndx_ex] + (U_extrap[ndx_ex] - pmf_fit[ndx_ex])
+    dU_extrap = U_extrap - U
+    return dU_extrap
+
+
+def find_nearest_ndx(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+
+def shift_U_cutoff_zero(dU, r, U, cut_off):
+    """Make potential zero at and beyond cut-off"""
+    dU_shift = dU.copy()
+    # shift dU to be zero at cut_off and beyond
+    ndx_co = find_nearest_ndx(r, cut_off)
+    U_cut_off = U[ndx_co] + dU[ndx_co]
+    dU_shift -= U_cut_off
+    dU_shift[ndx_co:] = -1 * U[ndx_co:]
+    return dU_shift
+
+
+def shift_U_last_half(dU, r, U, cut_off):
+    """Modify the potential close to the cut-off in
+    a way, such that it is more smooth. The derivative
+    of the potential between the last two points will
+    be half the derivative between the two points
+    before.
+
+    This also helps agains an artifact of p-HNCGN,
+    where the last value of dU is a spike."""
+    dU_shift = dU.copy()
+    ndx_co = find_nearest_ndx(r, cut_off)
+    U_thirdlast = U[ndx_co-2] + dU[ndx_co-2]
+    shift = 0.25 * U_thirdlast - (U[ndx_co-1] + dU[ndx_co-1])
+    # modify up to second last value
+    dU_shift[:ndx_co] += shift
+    return dU_shift
+
 
 def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
                     rdf_current_g, rdf_current_flag,
@@ -352,10 +480,24 @@ def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
     elif extrapolation == 'monotonic':
         dpot_dU_extrap = extrapolate_U_monotonic(r, dpot_dU, dpot_flag,
                                                  pot_current_U)
+    elif extrapolation == 'scale':
+        dpot_dU_extrap = extrapolate_U_scale(r, dpot_dU, dpot_flag,
+                                             pot_current_U, rdf_current_g)
+    elif extrapolation == 'power':
+        dpot_dU_extrap = extrapolate_U_power(r, dpot_dU, dpot_flag,
+                                             rdf_current_g, pot_current_U,
+                                             rdf_target_g, g_min, kBT)
     else:
         raise Exception("unknow extrapolation scheme for inside and near core"
                         "region:" + extrapolation)
-    return dpot_dU_extrap, dpot_flag
+
+    # shifts to correct potential near cut-off
+    dpot_dU_shift1 = shift_U_cutoff_zero(dpot_dU_extrap, r,
+                                         pot_current_U, cut_off)
+    dpot_dU_shift2 = shift_U_last_half(dpot_dU_shift1, r,
+                                       pot_current_U, cut_off)
+
+    return dpot_dU_shift2, dpot_flag
 
 
 description = """\
@@ -376,7 +518,8 @@ parser.add_argument('--pressure-constraint', dest='pressure_constraint',
                     type=str, default=None)
 parser.add_argument('--extrap-near-core', dest='extrap_near_core',
                     type=str, default='times_g',
-                    choices=['times_g', 'none', 'cubic', 'monotonic'])
+                    choices=['times_g', 'none', 'cubic', 'monotonic',
+                             'scale', 'power'])
 
 if __name__ == '__main__':
     args = parser.parse_args()
