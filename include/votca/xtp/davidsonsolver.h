@@ -153,13 +153,7 @@ class DavidsonSolver {
     CTP_LOG(ctp::logDEBUG, _log)
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
-    std::chrono::time_point<std::chrono::system_clock> istart, iend;
-    std::chrono::time_point<std::chrono::system_clock> tstart, tend;
-    std::chrono::duration<double> elapsed_time;
-
     for (int iiter = 0; iiter < iter_max; iiter++) {
-
-      istart = std::chrono::system_clock::now();
 
       // diagonalize the small subspace
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
@@ -205,18 +199,14 @@ class DavidsonSolver {
         root_converged[j] = res_norm[j] < tol;
       }
 
-      iend = std::chrono::system_clock::now();
-      elapsed_time = iend - istart;
-
       // Print iteration data
       percent_converged = 100 * root_converged.head(neigen).sum() / neigen;
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp()
           << format(
-                 " %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged "
-                 "%5$f sec.") %
+                 " %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") %
                  iiter % search_space % res_norm.head(neigen).maxCoeff() %
-                 percent_converged % elapsed_time.count()
+                 percent_converged
           << flush;
 
       // update
