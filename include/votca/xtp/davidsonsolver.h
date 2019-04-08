@@ -154,6 +154,7 @@ class DavidsonSolver {
         << ctp::TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
     std::chrono::time_point<std::chrono::system_clock> istart, iend;
+    std::chrono::time_point<std::chrono::system_clock> tstart, tend;
     std::chrono::duration<double> elapsed_time;
 
     for (int iiter = 0; iiter < iter_max; iiter++) {
@@ -170,7 +171,7 @@ class DavidsonSolver {
 
       // precompute A*Q - lambda Q
       Aq = A * q - q * lambda.asDiagonal();
-
+      
       // correction vectors
       nupdate = 0;
       for (int j = 0; j < size_update; j++) {
@@ -245,10 +246,10 @@ class DavidsonSolver {
 
         switch (this->davidson_ortho){
           case ORTHO::GS:
-            // orthogonalize the V vectors
             V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
             DavidsonSolver::update_projected_matrix<MatrixReplacement>(T, A, V);
             break;
+
           case ORTHO::QR:
             V = DavidsonSolver::QR_ortho(V);
             T = V.transpose() * (A * V);

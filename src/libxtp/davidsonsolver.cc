@@ -177,7 +177,6 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho(Eigen::MatrixXd &A,
 
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
       throw std::runtime_error("Linear dependencies in Gram-Schmidt. Switch to QR");
-      
     } 
     Q.col(j).normalize();
     
