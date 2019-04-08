@@ -120,7 +120,7 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
   // make the mat mat product
   #pragma omp parallel for
     for (int i = 0; i < op.cols(); i++) {
-      auto c = op.col(i);
+      const Eigen::Matrix<Scalar,Eigen::Dynamic,1> c = op.col(i);
       for (int j = 0; j < m.cols(); j++) {
         #pragma omp critical
         dst.col(j) += m(i, j) * c;
