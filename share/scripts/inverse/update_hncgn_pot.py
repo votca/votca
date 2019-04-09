@@ -320,7 +320,7 @@ parser.add_argument('--extrap-near-core', dest='extrap_near_core',
 parser.add_argument('--fix-near-cut-off', dest='fix_near_cut_off',
                     type=str, choices=['none', 'half-deriv'])
 parser.add_argument('-v', '--verbose', dest='verbose',
-                    action='store_const', type=bool, const=True, default=False)
+                    action='store_const', const=True, default=False)
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -355,16 +355,16 @@ if __name__ == '__main__':
     dU_flag = np.where(np.isnan(dU_pure), 'o', 'i')
 
     # select extrapolation
-    if args.extrapolation == 'none':
+    if args.extrap_near_core == 'none':
         dU_extrap = np.nan_to_num(dU_pure)
-    if args.extrapolation == 'constant':
+    if args.extrap_near_core == 'constant':
         dU_extrap = extrapolate_U_constant(dU_pure, dU_flag)
-    elif args.extrapolation == 'power':
+    elif args.extrap_near_core == 'power':
         dU_extrap = extrapolate_U_power(r, dU_pure, g_cur, U_cur, g_tgt, G_MIN,
                                         args.kBT, args.verbose)
     else:
         raise Exception("unknow extrapolation scheme for inside and near core"
-                        "region:" + args.extrapolation)
+                        "region:" + args.extrap_near_core)
     # shifts to correct potential after cut-off
     dU_shift = shift_U_cutoff_zero(dU_extrap, r, U_cur, args.cut_off)
     # shifts to correct potential near cut-off
