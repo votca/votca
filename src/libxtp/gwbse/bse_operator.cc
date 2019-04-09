@@ -93,7 +93,6 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_col(int index) const {
   vc2index vc = vc2index(0, 0, _bse_ctotal);
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  int index_vc = vc.I(v1, c1);
   Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
 
   // v->c
