@@ -51,9 +51,6 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 
  private:
   int _size;
-  Eigen::VectorXd diag_el;
-
- private:
 };
 }  // namespace xtp
 }  // namespace votca
