@@ -242,8 +242,6 @@ class DavidsonSolver {
         }
       }
     }
-    end = std::chrono::system_clock::now();
-    elapsed_time = end - start;
 
     // store the eigenvalues/eigenvectors
     this->_eigenvalues = lambda.head(neigen);
@@ -265,7 +263,8 @@ class DavidsonSolver {
         }
       }
     } else {
-
+      end = std::chrono::system_clock::now();
+      elapsed_time = end - start;
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << "- Davidson converged in "
           << elapsed_time.count() << "secs." << flush;
