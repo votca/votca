@@ -511,7 +511,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   bool check_tpsi_dav = tpsi_ref.cwiseAbs2().isApprox(
       orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
-  check_tpsi_dav = true;
   if (!check_tpsi_dav) {
     cout << "Triplet psi" << endl;
     cout << orbitals.BSETripletCoefficients() << endl;
@@ -537,7 +536,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   bool check_tpsi_dav2 = tpsi_ref.cwiseAbs2().isApprox(
       orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
-  check_tpsi_dav2 = true;
   if (!check_tpsi_dav2) {
     cout << "Triplet psi" << endl;
     cout << orbitals.BSETripletCoefficients() << endl;
