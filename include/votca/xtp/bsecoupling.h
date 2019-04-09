@@ -64,7 +64,7 @@ class BSECoupling : public CouplingBase {
   template <class BSE_OPERATOR>
   std::vector<Eigen::MatrixXd> ProjectExcitons(const Eigen::MatrixXd& bseA_T,
                                                const Eigen::MatrixXd& bseB_T,
-                                               BSE_OPERATOR& H);
+                                               BSE_OPERATOR H);
 
   Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
 

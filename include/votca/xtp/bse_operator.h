@@ -69,9 +69,9 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   int _bse_ctotal;
   int _bse_cmin;
 
-  Eigen::VectorXd _epsilon_0_inv;
+  const Eigen::VectorXd& _epsilon_0_inv;
   ctp::Logger& _log;
-  TCMatrix_gwbse& _Mmn;
+  const TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
 };
 

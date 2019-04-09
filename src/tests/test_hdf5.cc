@@ -65,8 +65,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Random(21);
   Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(42, 42);
 
-  Eigen::MatrixXd eh_dTest = Eigen::MatrixXd::Random(32, 290);
-  Eigen::MatrixXd eh_xTest = Eigen::MatrixXd::Random(3, 22);
   Eigen::VectorXd BSESingletEnergiesTest = Eigen::VectorXd::Random(25);
   Eigen::MatrixXd BSESingletCoefficientsTest = Eigen::MatrixXd::Random(25, 38);
   Eigen::MatrixXd BSESingletCoefficientsARTest =
@@ -108,8 +106,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.QPpertEnergies() = QPpertEnergiesTest;
     orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
     orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
-    orbWrite.eh_t() = eh_dTest;
-    orbWrite.eh_s() = eh_xTest;
     orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
     orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
     orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
@@ -150,8 +146,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
   BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
   BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));
-  BOOST_CHECK(orbRead.eh_t().isApprox(eh_dTest, tol));
-  BOOST_CHECK(orbRead.eh_s().isApprox(eh_xTest, tol));
   BOOST_CHECK(
       orbRead.BSESingletEnergies().isApprox(BSESingletEnergiesTest, tol));
   BOOST_CHECK(orbRead.BSESingletCoefficients().isApprox(

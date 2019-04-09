@@ -113,18 +113,18 @@ void BSE::Solve_singlets_TDA() {
   solve_hermitian(Hs, _bse_singlet_energies, _bse_singlet_coefficients);
 }
 
-void BSE::SetupHs() {
+SingletOperator_TDA BSE::getSingletOperator_TDA() {
 
   SingletOperator_TDA Hs(_epsilon_0_inv, _log, _Mmn, _Hqp);
   configureBSEOperator(Hs);
-  _eh_s = Hs.get_full_matrix();
+  return Hs;
 }
 
-void BSE::SetupHt() {
+TripletOperator_TDA BSE::getTripletOperator_TDA() {
 
   TripletOperator_TDA Ht(_epsilon_0_inv, _log, _Mmn, _Hqp);
   configureBSEOperator(Ht);
-  _eh_t = Ht.get_full_matrix();
+  return Ht;
 }
 
 template <typename BSE_OPERATOR>

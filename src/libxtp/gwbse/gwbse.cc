@@ -339,57 +339,37 @@ void GWBSE::Initialize(tools::Property& options) {
       key + ".bse_print_weight", _bseopt.min_print_weight);
   // print exciton WF composition weight larger than minimum
 
-  // setting some defaults
-  _do_qp_diag = false;
-  _do_bse_singlets = false;
-  _do_bse_triplets = false;
   // possible tasks
-  // diagQP, singlets, triplets, all, ibse
-  std::string _tasks_string =
+  std::string tasks_string =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
-  if (_tasks_string.find("all") != std::string::npos) {
-    _do_qp_diag = true;
+  if (tasks_string.find("all") != std::string::npos) {
+    _do_gw = true;
     _do_bse_singlets = true;
     _do_bse_triplets = true;
   }
-  if (_tasks_string.find("qpdiag") != std::string::npos) _do_qp_diag = true;
-  if (_tasks_string.find("singlets") != std::string::npos)
+  if (tasks_string.find("gw") != std::string::npos) _do_gw = true;
+  if (tasks_string.find("singlets") != std::string::npos)
     _do_bse_singlets = true;
-  if (_tasks_string.find("triplets") != std::string::npos)
+  if (tasks_string.find("triplets") != std::string::npos)
     _do_bse_triplets = true;
-  _store_eh_interaction = false;
-  _do_bse_diag = true;
   // special construction for ibse mode
-  if (_tasks_string.find("iqm") != std::string::npos) {
-    _do_qp_diag = false;   // no qp diagonalization
-    _do_bse_diag = false;  // no diagonalization of BSE Hamiltonian
-    _store_eh_interaction = true;
-  }
-  _store_qp_pert = true;
 
-  _store_qp_diag = false;
-  _store_bse_triplets = false;
-  _store_bse_singlets = false;
-  std::string _store_string =
+  std::string store_string =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
-  if ((_store_string.find("all") != std::string::npos) ||
-      (_store_string.find("") != std::string::npos)) {
+  if ((store_string.find("all") != std::string::npos) ||
+      (store_string.find("") != std::string::npos)) {
     // store according to tasks choice
-    if (_do_qp_diag) _store_qp_diag = true;
-    if (_do_bse_singlets && _do_bse_diag) _store_bse_singlets = true;
-    if (_do_bse_triplets && _do_bse_diag) _store_bse_triplets = true;
+    if (_do_bse_singlets) _store_bse_singlets = true;
+    if (_do_bse_triplets) _store_bse_triplets = true;
   }
-  if (_store_string.find("qpdiag") != std::string::npos) _store_qp_diag = true;
-  if (_store_string.find("singlets") != std::string::npos)
+  if (store_string.find("singlets") != std::string::npos)
     _store_bse_singlets = true;
-  if (_store_string.find("triplets") != std::string::npos)
+  if (store_string.find("triplets") != std::string::npos)
     _store_bse_triplets = true;
-  if (_store_string.find("ehint") != std::string::npos)
-    _store_eh_interaction = true;
 
   CTP_LOG(ctp::logDEBUG, *_pLog) << " Tasks: " << flush;
-  if (_do_qp_diag) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " qpdiag " << flush;
+  if (_do_gw) {
+    CTP_LOG(ctp::logDEBUG, *_pLog) << " GW " << flush;
   }
   if (_do_bse_singlets) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << " singlets " << flush;
@@ -398,17 +378,14 @@ void GWBSE::Initialize(tools::Property& options) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << " triplets " << flush;
   }
   CTP_LOG(ctp::logDEBUG, *_pLog) << " Store: " << flush;
-  if (_store_qp_diag) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " qpdiag " << flush;
+  if (_do_gw) {
+    CTP_LOG(ctp::logDEBUG, *_pLog) << " GW " << flush;
   }
   if (_store_bse_singlets) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << " singlets " << flush;
   }
   if (_store_bse_triplets) {
     CTP_LOG(ctp::logDEBUG, *_pLog) << " triplets " << flush;
-  }
-  if (_store_eh_interaction) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " ehint " << flush;
   }
 
   return;
@@ -418,36 +395,34 @@ void GWBSE::addoutput(tools::Property& summary) {
 
   const double hrt2ev = tools::conv::hrt2ev;
   tools::Property& gwbse_summary = summary.add("GWBSE", "");
-  gwbse_summary.setAttribute("units", "eV");
-  gwbse_summary.setAttribute(
-      "DFTEnergy",
-      (format("%1$+1.6f ") % (_orbitals.getQMEnergy() * hrt2ev)).str());
+  if (_do_gw) {
+    gwbse_summary.setAttribute("units", "eV");
+    gwbse_summary.setAttribute(
+        "DFTEnergy",
+        (format("%1$+1.6f ") % (_orbitals.getQMEnergy() * hrt2ev)).str());
 
-  tools::Property& dft_summary = gwbse_summary.add("dft", "");
-  dft_summary.setAttribute("HOMO", _gwopt.homo);
-  dft_summary.setAttribute("LUMO", _gwopt.homo + 1);
+    tools::Property& dft_summary = gwbse_summary.add("dft", "");
+    dft_summary.setAttribute("HOMO", _gwopt.homo);
+    dft_summary.setAttribute("LUMO", _gwopt.homo + 1);
 
-  for (int state = 0; state < _gwopt.qpmax + 1 - _gwopt.qpmin; state++) {
+    for (int state = 0; state < _gwopt.qpmax + 1 - _gwopt.qpmin; state++) {
+      tools::Property& level_summary = dft_summary.add("level", "");
+      level_summary.setAttribute("number", state + _gwopt.qpmin);
+      level_summary.add("dft_energy",
+                        (format("%1$+1.6f ") %
+                         (_orbitals.QPpertEnergies().col(0)(state) * hrt2ev))
+                            .str());
+      level_summary.add("gw_energy",
+                        (format("%1$+1.6f ") %
+                         (_orbitals.QPpertEnergies().col(4)(state) * hrt2ev))
+                            .str());
 
-    tools::Property& level_summary = dft_summary.add("level", "");
-    level_summary.setAttribute("number", state + _gwopt.qpmin);
-    level_summary.add("dft_energy",
-                      (format("%1$+1.6f ") %
-                       (_orbitals.QPpertEnergies().col(0)(state) * hrt2ev))
-                          .str());
-    level_summary.add("gw_energy",
-                      (format("%1$+1.6f ") %
-                       (_orbitals.QPpertEnergies().col(4)(state) * hrt2ev))
-                          .str());
-
-    if (_do_qp_diag) {
       level_summary.add(
           "qp_energy",
           (format("%1$+1.6f ") % (_orbitals.QPdiagEnergies()(state) * hrt2ev))
               .str());
     }
   }
-
   if (_do_bse_singlets) {
     tools::Property& singlet_summary = gwbse_summary.add("singlets", "");
     for (int state = 0; state < _bseopt.nmax; ++state) {
@@ -658,17 +633,18 @@ bool GWBSE::Evaluate() {
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp()
       << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
-  GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOEnergies());
-  gw.configure(_gwopt);
-  gw.CalculateGWPerturbation();
 
-  // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
-  // E_qp)
-  if (_store_qp_pert) {
+  Eigen::MatrixXd Hqp;
+
+  if (_do_gw) {
+    GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOEnergies());
+    gw.configure(_gwopt);
+    gw.CalculateGWPerturbation();
+
+    // store perturbative QP energy data in orbitals object (DFT, S_x,S_c, V_xc,
+    // E_qp)
     _orbitals.QPpertEnergies() = gw.getGWAResults();
-  }
 
-  if (_do_qp_diag || _do_bse_singlets || _do_bse_triplets) {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Calculating offdiagonal part of Sigma  "
         << flush;
@@ -676,54 +652,49 @@ bool GWBSE::Evaluate() {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  "
         << flush;
-    Eigen::MatrixXd Hqp = gw.getHQP();
+    Hqp = gw.getHQP();
 
-    if (_do_qp_diag) {
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
-          gw.DiagonalizeQPHamiltonian();
-      if (es.info() == Eigen::ComputationInfo::Success) {
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
-      }
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
+        gw.DiagonalizeQPHamiltonian();
+    if (es.info() == Eigen::ComputationInfo::Success) {
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+          << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+    }
 
-      if (_store_qp_diag) {
-        _orbitals.QPdiagCoefficients() = es.eigenvectors();
-        _orbitals.QPdiagEnergies() = es.eigenvalues();
+    _orbitals.QPdiagCoefficients() = es.eigenvectors();
+    _orbitals.QPdiagEnergies() = es.eigenvalues();
+  } else {
+    if (_orbitals.hasQPdiag()) {
+      const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiagCoefficients();
+      Hqp = qpcoeff * _orbitals.QPdiagEnergies().asDiagonal() *
+            qpcoeff.transpose();
+    } else {
+      throw std::runtime_error("orb file has no QPcoefficients");
+    }
+  }
+
+  // proceed only if BSE requested
+  if (_do_bse_singlets || _do_bse_triplets) {
+    BSE bse = BSE(_orbitals, *_pLog, Mmn, Hqp);
+    bse.configure(_bseopt);
+
+    if (_do_bse_triplets) {
+      bse.Solve_triplets();
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+          << ctp::TimeStamp() << " Solved BSE for triplets " << flush;
+      bse.Analyze_triplets(dftbasis);
+      if (!_store_bse_triplets) {
+        bse.FreeTriplets();
       }
     }
 
-    // proceed only if BSE requested
-    if (_do_bse_singlets || _do_bse_triplets) {
-      BSE bse = BSE(_orbitals, *_pLog, Mmn, Hqp);
-      bse.configure(_bseopt);
-
-      if (_do_bse_triplets && _do_bse_diag) {
-        bse.Solve_triplets();
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp() << " Solved BSE for triplets " << flush;
-        bse.Analyze_triplets(dftbasis);
-        if (!_store_bse_triplets) {
-          bse.FreeTriplets();
-        }
-      }
-
-      if (_do_bse_singlets && _do_bse_diag) {
-        bse.Solve_singlets();
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp() << " Solved BSE for singlets " << flush;
-        bse.Analyze_singlets(dftbasis);
-        if (!_store_bse_singlets) {
-          bse.FreeSinglets();
-        }
-      }
-
-      if (_store_eh_interaction) {
-        if (_do_bse_singlets) {
-          bse.SetupHs();
-        }
-        if (_do_bse_triplets) {
-          bse.SetupHt();
-        }
+    if (_do_bse_singlets) {
+      bse.Solve_singlets();
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+          << ctp::TimeStamp() << " Solved BSE for singlets " << flush;
+      bse.Analyze_singlets(dftbasis);
+      if (!_store_bse_singlets) {
+        bse.FreeSinglets();
       }
     }
   }

@@ -28,6 +28,11 @@
 namespace votca {
 namespace xtp {
 
+template <int cqp, int cx, int cd, int cd2>
+class BSE_OPERATOR;
+typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
+typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
+
 class BSE {
 
  public:
@@ -35,8 +40,6 @@ class BSE {
       const Eigen::MatrixXd& Hqp)
       : _log(log),
         _orbitals(orbitals),
-        _eh_s(orbitals.eh_s()),
-        _eh_t(orbitals.eh_t()),
         _bse_singlet_energies(orbitals.BSESingletEnergies()),
         _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
@@ -84,16 +87,11 @@ class BSE {
   void Solve_singlets();
   void Solve_triplets();
 
-  void SetupHs();
-  void SetupHt();
+  SingletOperator_TDA getSingletOperator_TDA();
+  TripletOperator_TDA getTripletOperator_TDA();
 
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
-
-  void FreeMatrices() {
-    _eh_t.resize(0, 0);
-    _eh_s.resize(0, 0);
-  }
 
   void FreeTriplets() { _bse_triplet_coefficients.resize(0, 0); }
 
@@ -126,9 +124,6 @@ class BSE {
   int _bse_ctotal;
 
   Orbitals& _orbitals;
-  // BSE variables and functions
-  Eigen::MatrixXd& _eh_s;  // only for storage in orbitals object
-  Eigen::MatrixXd& _eh_t;  // only for storage in orbitals object
 
   // references are stored in orbitals object
   Eigen::VectorXd& _bse_singlet_energies;

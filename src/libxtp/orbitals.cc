@@ -125,8 +125,6 @@ void Orbitals::copy(const Orbitals& orbital) {
   _QPdiag_coefficients = orbital._QPdiag_coefficients;
   // excitons
 
-  _eh_t = orbital._eh_t;
-  _eh_s = orbital._eh_s;
   _BSE_singlet_energies = orbital._BSE_singlet_energies;
   _BSE_singlet_coefficients = orbital._BSE_singlet_coefficients;
   _BSE_singlet_coefficients_AR = orbital._BSE_singlet_coefficients_AR;
@@ -774,9 +772,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_QPdiag_energies, "QPdiag_energies");
 
   w(_QPdiag_coefficients, "QPdiag_coefficients");
-  w(_eh_t, "eh_t");
-
-  w(_eh_s, "eh_s");
 
   w(_BSE_singlet_energies, "BSE_singlet_energies");
 
@@ -859,9 +854,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_QPdiag_energies, "QPdiag_energies");
 
   r(_QPdiag_coefficients, "QPdiag_coefficients");
-  r(_eh_t, "eh_t");
-
-  r(_eh_s, "eh_s");
 
   r(_BSE_singlet_energies, "BSE_singlet_energies");
 

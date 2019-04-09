@@ -22,6 +22,9 @@
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/bsecoupling.h>
 
+#include "votca/xtp/bse.h"
+#include "votca/xtp/bse_operator.h"
+
 namespace votca {
 namespace xtp {
 
@@ -327,26 +330,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
   int bseAB_size = bseAB_vtotal * bseAB_ctotal;
   // check if electron-hole interaction matrices are stored
-  if (!orbitalsAB.hasEHinteraction_triplet() && _doTriplets) {
-    throw std::runtime_error("BSE EH for triplets not stored ");
-  }
-  if (!orbitalsAB.hasEHinteraction_singlet() && _doSinglets) {
-    throw std::runtime_error("BSE EH for singlets not stored ");
-  }
-  const Eigen::MatrixXd& eh_t = orbitalsAB.eh_t();
-  const Eigen::MatrixXd& eh_s = orbitalsAB.eh_s();
-  if (_doTriplets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
-        << "   dimer AB has BSE EH interaction triplet with dimension "
-        << eh_t.rows() << " x " << eh_t.cols() << flush;
-  }
-  if (_doSinglets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
-        << "   dimer AB has BSE EH interaction singlet with dimension "
-        << eh_s.rows() << " x " << eh_s.cols() << flush;
-  }
   // now, two storage assignment matrices for two-particle functions
   Eigen::MatrixXi combAB;
   combAB.resize(bseAB_size, 2);
@@ -521,11 +504,41 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   combAB.resize(0, 0);
   combA.resize(0, 0);
   combB.resize(0, 0);
+
+  BasisSet dftbs;
+  dftbs.LoadBasisSet(orbitalsAB.getDFTbasisName());
+  AOBasis dftbasis;
+  dftbasis.AOBasisFill(dftbs, orbitalsAB.QMAtoms());
+  BasisSet auxbs;
+  auxbs.LoadBasisSet(orbitalsAB.getAuxbasisName());
+  AOBasis auxbasis;
+  auxbasis.AOBasisFill(auxbs, orbitalsAB.QMAtoms());
+
+  TCMatrix_gwbse Mmn;
+  // rpamin here, because RPA needs till rpamin
+  Mmn.Initialize(auxbasis.AOBasisSize(), orbitalsAB.getRPAmin(),
+                 orbitalsAB.getGWAmax(), orbitalsAB.getRPAmin(),
+                 orbitalsAB.getRPAmax());
+  Mmn.Fill(auxbasis, dftbasis, orbitalsAB.MOCoefficients());
+
+  const Eigen::MatrixXd& qpcoeff = orbitalsAB.QPdiagCoefficients();
+  Eigen::MatrixXd Hqp =
+      qpcoeff * orbitalsAB.QPdiagEnergies().asDiagonal() * qpcoeff.transpose();
+  BSE::options opt;
+  opt.cmax = orbitalsAB.getBSEcmax();
+  opt.homo = orbitalsAB.getHomo();
+  opt.qpmin = orbitalsAB.getGWAmin();
+  opt.rpamax = orbitalsAB.getRPAmax();
+  opt.rpamin = orbitalsAB.getRPAmin();
+  opt.useTDA = true;
+  opt.vmin = orbitalsAB.getBSEvmin();
+  BSE bse(orbitalsAB, *_pLog, Mmn, Hqp);
+  bse.configure(opt);
+
   // now the different spin types
   if (_doSinglets) {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << "   Evaluating singlets" << flush;
-    Eigen::MatrixXd Hamiltonian_AB = eh_s.cast<double>();
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << "   Setup Hamiltonian" << flush;
     const Eigen::MatrixXd bseA_T =
@@ -537,7 +550,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
             .block(0, 0, orbitalsB.BSESingletCoefficients().rows(), _levB)
             .transpose();
 
-    JAB_singlet = ProjectExcitons(bseA_T, bseB_T, Hamiltonian_AB);
+    JAB_singlet = ProjectExcitons(bseA_T, bseB_T, bse.getSingletOperator_TDA());
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << "   calculated singlet couplings " << flush;
   }
@@ -545,7 +558,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   if (_doTriplets) {
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << "   Evaluating triplets" << flush;
-    Eigen::MatrixXd Hamiltonian_AB = eh_s.cast<double>();
 
     const Eigen::MatrixXd bseA_T =
         orbitalsA.BSETripletCoefficients()
@@ -555,7 +567,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
         orbitalsB.BSETripletCoefficients()
             .block(0, 0, orbitalsB.BSETripletCoefficients().rows(), _levB)
             .transpose();
-    JAB_triplet = ProjectExcitons(bseA_T, bseB_T, Hamiltonian_AB);
+    JAB_triplet = ProjectExcitons(bseA_T, bseB_T, bse.getTripletOperator_TDA());
     CTP_LOG(ctp::logDEBUG, *_pLog)
         << ctp::TimeStamp() << "   calculated triplet couplings " << flush;
   }
@@ -568,7 +580,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 template <class BSE_OPERATOR>
 std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
     const Eigen::MatrixXd& bseA_T, const Eigen::MatrixXd& bseB_T,
-    BSE_OPERATOR& H) {
+    BSE_OPERATOR H) {
 
   // get projection of monomer excitons on dimer product functions
   Eigen::MatrixXd proj_excA = bseA_T * _kap;
@@ -616,13 +628,13 @@ std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
           << " norm is only " << minnorm << flush;
     }
   }
-  Eigen::MatrixXd projection(_bse_exc + _ct, nobasisfunc);
+  Eigen::MatrixXd projection(nobasisfunc, _bse_exc + _ct);
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " merging projections into one vector  " << flush;
-  projection.block(0, 0, _bse_exc, nobasisfunc) = fe_states;
+  projection.block(0, 0, nobasisfunc, _bse_exc) = fe_states;
 
   if (_ct > 0) {
-    projection.block(_bse_exc, 0, _ct, nobasisfunc) = ct_states;
+    projection.block(0, _bse_exc, nobasisfunc, _ct) = ct_states;
   }
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << "   Setting up coupling matrix size "
@@ -634,12 +646,14 @@ std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
   //  J_BACT_A   J_BACT_B    J_BACT_ABCT     E_BACT
 
   // this only works for hermitian/symmetric H so only in TDA
-  Eigen::MatrixXd J_dimer = projection * H * projection.transpose();
+
+  Eigen::MatrixXd temp = H * projection;
+  Eigen::MatrixXd J_dimer = projection.transpose() * temp;
 
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << "   Setting up overlap matrix size "
       << _bse_exc + _ct << "x" << _bse_exc + _ct << flush;
-  Eigen::MatrixXd S_dimer = projection * projection.transpose();
+  Eigen::MatrixXd S_dimer = projection.transpose() * projection;
 
   projection.resize(0, 0);
   if (tools::globals::verbose && _bse_exc + _ct < 100) {

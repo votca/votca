@@ -34,18 +34,6 @@ namespace votca {
 namespace xtp {
 
 void IQM::Initialize(votca::tools::Property* options) {
-
-  _do_dft_input = false;
-  _do_dft_run = false;
-  _do_dft_parse = false;
-  _do_dftcoupling = false;
-  _do_gwbse = false;
-  _do_bsecoupling = false;
-
-  _store_dft = false;
-  _store_singlets = false;
-  _store_triplets = false;
-  _store_ehint = false;
   ParseOptionsXML(*options);
 
   // register all QM packages (Gaussian, turbomole, etc))
@@ -66,7 +54,7 @@ void IQM::ParseOptionsXML(votca::tools::Property& opt) {
   if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
   if (tasks_string.find("dftcoupling") != std::string::npos)
     _do_dftcoupling = true;
-  if (tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+  if (tasks_string.find("gw") != std::string::npos) _do_gwbse = true;
   if (tasks_string.find("bsecoupling") != std::string::npos)
     _do_bsecoupling = true;
 
@@ -77,7 +65,7 @@ void IQM::ParseOptionsXML(votca::tools::Property& opt) {
     _store_singlets = true;
   if (store_string.find("triplets") != std::string::npos)
     _store_triplets = true;
-  if (store_string.find("ehint") != std::string::npos) _store_ehint = true;
+  if (store_string.find("gw") != std::string::npos) _store_gw = true;
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     string _package_xml = opt.get(key + ".dftpackage").as<string>();
@@ -546,13 +534,18 @@ ctp::Job::JobResult IQM::EvalJob(ctp::Topology* top, ctp::Job* job,
   CTP_LOG(ctp::logINFO, *pLog)
       << ctp::TimeStamp() << " Finished evaluating pair " << ID_A << ":" << ID_B
       << flush;
-  if (_store_dft || _store_singlets || _store_triplets || _store_ehint) {
+  if (_store_dft || _store_gw || _store_singlets || _store_triplets) {
     boost::filesystem::create_directories(orb_dir);
     CTP_LOG(ctp::logDEBUG, *pLog)
         << "Saving orbitals to " << orbFileAB << flush;
     if (!_store_dft) {
       orbitalsAB.AOVxc().resize(0, 0);
       orbitalsAB.MOCoefficients().resize(0, 0);
+    }
+    if (!_store_gw) {
+      orbitalsAB.QPdiagCoefficients().resize(0, 0);
+      orbitalsAB.QPdiagEnergies().resize(0);
+      orbitalsAB.QPpertEnergies().resize(0, 0);
     }
     if (!_store_singlets) {
       orbitalsAB.BSESingletCoefficients().resize(0, 0);
@@ -561,10 +554,6 @@ ctp::Job::JobResult IQM::EvalJob(ctp::Topology* top, ctp::Job* job,
     if (!_store_triplets) {
       orbitalsAB.BSETripletCoefficients().resize(0, 0);
       orbitalsAB.BSETripletEnergies().resize(0, 0);
-    }
-    if (!_store_ehint) {
-      orbitalsAB.eh_t().resize(0, 0);
-      orbitalsAB.eh_s().resize(0, 0);
     }
     orbitalsAB.WriteToCpt(orbFileAB);
   } else {
