@@ -34,6 +34,12 @@ name=$(csg_get_interaction_property name)
 bondtype="$(csg_get_interaction_property bondtype)"
 extrap_near_core=$(csg_get_property cg.inverse.hncgn.extrap_near_core)
 fix_near_cut_off=$(csg_get_property cg.inverse.hncgn.fix_near_cut_off)
+verbose=$(csg_get_property cg.inverse.hncgn.verbose)
+if [ "${verbose}" = 'True' ]; then
+    verbose_flag="--verbose"
+else
+    verbose_flag=""
+fi
 
 pressure_constraint=$(csg_get_property cg.inverse.hncgn.pressure_constraint)
 if is_num ${pressure_constraint}; then
@@ -54,10 +60,11 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
     is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
     if is_num ${pressure_constraint}; then
         do_external update hncgn_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_hncgn "${kBT}" "${density}" "${cut_off}" \
-        "--pressure-constraint=${pressure_constraint},${p_now}" "--extrap-near-core=${extrap_near_core}" "--fix-near-cut-off=${fix_near_cut_off}"
+        "--pressure-constraint=${pressure_constraint},${p_now}" "--extrap-near-core=${extrap_near_core}" "--fix-near-cut-off=${fix_near_cut_off}" \
+        "${verbose_flag}"
     else
         do_external update hncgn_pot ${name}.dist.tgt ${name}.dist.new ${name}.pot.cur ${name}.dpot.pure_hncgn "${kBT}" "${density}" "${cut_off}" \
-        "--extrap-near-core=${extrap_near_core}" "--fix-near-cut-off=${fix_near_cut_off}"
+        "--extrap-near-core=${extrap_near_core}" "--fix-near-cut-off=${fix_near_cut_off}" "${verbose_flag}"
     fi
    do_external potential shift --type "${bondtype}" ${name}.dpot.pure_hncgn ${name}.dpot.new
 else

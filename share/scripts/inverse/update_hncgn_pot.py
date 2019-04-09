@@ -319,6 +319,8 @@ parser.add_argument('--extrap-near-core', dest='extrap_near_core',
                     type=str, choices=['none', 'power'])
 parser.add_argument('--fix-near-cut-off', dest='fix_near_cut_off',
                     type=str, choices=['none', 'half-deriv'])
+parser.add_argument('-v', '--verbose', dest='verbose',
+                    action='store_const', type=bool, const=True, default=False)
 
 if __name__ == '__main__':
     args = parser.parse_args()

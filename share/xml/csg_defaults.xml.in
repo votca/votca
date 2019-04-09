@@ -428,6 +428,9 @@
       <fix_near_cut_off>half-deriv
         <DESC>Method for fixing discontinuity at end of potential. Valid values are: half-deriv (default), none</DESC>
       </fix_near_cut_off>
+      <verbose>True
+        <DESC>Print some info and dump compressed numpy arrays. Valid values are: True (default), False</DESC>
+      </verbose>
     </hncgn>
     <optimizer>
       <cma>
