@@ -422,9 +422,12 @@
       <pressure_constraint>
         <DESC>Apply pressure constraint.</DESC>
       </pressure_constraint>
-      <extrap_near_core>monotonic
-        <DESC>Method for extrapolation in and close to core region. Valid values are: monotonic (default), times_g, cubic, none</DESC>
+      <extrap_near_core>power
+        <DESC>Method for extrapolation in and close to core region. Valid values are: power (default), constant, none</DESC>
       </extrap_near_core>
+      <fix_near_cut_off>half-deriv
+        <DESC>Method for fixing discontinuity at end of potential. Valid values are: half-deriv (default), none</DESC>
+      </fix_near_cut_off>
     </hncgn>
     <optimizer>
       <cma>
