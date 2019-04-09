@@ -15,6 +15,15 @@
 # limitations under the License.
 #
 
+# suffixes:
+# _cur: current or of step k if currently doing iteration k
+# _tgt: target
+# _ce: core_end (where RDF gets > 0)
+# _co: cut_off
+#
+# prefixes:
+# ndx_: index
+
 import argparse
 import numpy as np
 import sys
@@ -24,34 +33,40 @@ BAR_PER_MD_PRESSURE = 16.6053904
 
 
 def readin_table(filename):
+    """read in votca table"""
     table_dtype = {'names': ('x', 'y', 'y_flag'),
                    'formats': ('f', 'f', 'S1')}
-    x, y, y_flag = np.loadtxt(filename, dtype=table_dtype, comments=['#', '@'], unpack=True)
+    x, y, y_flag = np.loadtxt(filename, dtype=table_dtype, comments=['#', '@'],
+                              unpack=True)
     return x, y, y_flag
 
 
 def saveto_table(filename, x, y, y_flag, comment=""):
+    """save votca table"""
     data = np.column_stack((x.T, y.T, y_flag.T))
     np.savetxt(filename, data, header=comment, fmt='%s')
 
 
 def compare_grids(grid_a, grid_b):
+    """check two grids for no point differing more than 0.1 picometer"""
     if np.any(grid_a - grid_b > 0.0001):
-        print("Different grids!")
-        sys.exit(1)
+        raise Exception("Different grids!")
 
 
 def fourier(r, y, omega):
+    """fourier transform real data y on grid r into reciprocal space omega"""
     Delta_r = r[1] - r[0]
     y_hat = np.zeros_like(omega)
     np.seterr(divide='ignore', invalid='ignore', under='ignore')
     for i, omega_i in enumerate(omega):
-        y_hat[i] = 2 / omega_i * Delta_r * np.sum(r * y * np.sin(2 * np.pi * omega_i * r))
+        y_hat[i] = (2 / omega_i * Delta_r
+                    * np.sum(r * y * np.sin(2 * np.pi * omega_i * r)))
     np.seterr(all='raise')
     return y_hat
 
 
 def gen_fourier_matrix(r_nz, omega_nz, fourier_function):
+    """make a fourier matrix"""
     fourier_matrix = np.identity(len(omega_nz))
     for col_index, col in enumerate(fourier_matrix.T):
         fourier_matrix.T[col_index] = fourier_function(r_nz, col, omega_nz)
@@ -59,8 +74,9 @@ def gen_fourier_matrix(r_nz, omega_nz, fourier_function):
 
 
 def gauss_newton_constrained(A, C, b, d):
-    m,n = A.shape
-    p,n = C.shape
+    """do a gauss-newton update, but eliminate Cx=d first"""
+    m, n = A.shape
+    p, n = C.shape
     b.shape = (m)
     d.shape = (p)
 
@@ -70,110 +86,94 @@ def gauss_newton_constrained(A, C, b, d):
     A_elim = A.copy()
     b_elim = b.copy()
     for i in range(p):
-
         pivot = np.argmax(abs(C[i]))  # find max value of C
-
-        A_elim = A - np.ones_like(A) * A[:, pivot][:, np.newaxis] * C[i] / C[i, pivot]
+        A_elim = A - (np.ones_like(A) * A[:, pivot][:, np.newaxis]
+                      * C[i] / C[i, pivot])
         b_elim = b - A[:, pivot] * d[i] / C[i, pivot]
         A_elim = np.delete(A_elim, pivot, 1)
-
     if p == n:
         print("Warning: solution determined fully by constraints")
         x_elim = []
     else:
-        #x_elim = np.linalg.solve(A_elim.T @ A_elim, A_elim.T @ b_elim)
-        x_elim = np.linalg.solve(np.matmul(A_elim.T, A_elim), np.matmul(A_elim.T, b_elim))
-
+        x_elim = np.linalg.solve(np.matmul(A_elim.T, A_elim),
+                                 np.matmul(A_elim.T, b_elim))
     if p == 0:
         # no constraints
         x = x_elim
     else:
-        #x_pivot = (d[i] - np.delete(C, pivot, 1) @ x_elim) / C[i, pivot]
-        x_pivot = (d[i] - np.matmul(np.delete(C, pivot, 1), x_elim)) / C[i, pivot]
+        x_pivot = (d[i] - np.matmul(np.delete(C, pivot, 1),
+                                    x_elim)) / C[i, pivot]
         x = np.insert(x_elim, pivot, x_pivot)
-
     return x
 
 
-def calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min,
-                         r_cut_off, pot_current_U, constraints, dump_steps=False):
-    """Apply the (constrained) HNCGN method.
-    Matrix multiplication was done with @ in earlier versions, now
-    with numpy.matmul"""
+def find_nearest_ndx(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+
+def calc_dU_hncgn(r, g_cur, g_tgt, kBT, density,
+                  g_min, cut_off, constraints,
+                  verbose):
+    """Apply the (constrained) HNCGN method."""
 
     # for convenience grids (real and reciprocal) are without the zero value
     r = r[1:]
-    delta_r = r[1] - r[0]
-    g = rdf_current_g[1:]
-    g_tgt = rdf_target_g[1:]
-    u = pot_current_U[1:]
-
+    g = g_cur[1:]
+    g_tgt = g_tgt[1:]
     # there are different regions in r used in the method
     #              |       main        |                     # regions
     # |   core     |                 nocore               |
-    # 0 --------core_end------------cut_off----------len(r)  # those are indices
+    #  ---------core_end------------cut_off-----------r[-1]  # distances
+    # 0----------ndx_ce--------------ndx_co----------len(r)  # indices
     #
     # Δ from the paper equals nocore
     # Δ' from the paper equals main
     # note: Vector w is in region main, but with one element less, because of
     #       the antiderivative operator A0
-
-    core_end = np.where(g_tgt > g_min)[0][0]
-    cut_off = np.searchsorted(r, r_cut_off)
-    main = slice(core_end, cut_off+1)
-    nocore = slice(core_end, len(r))
-    #print("core_end:", core_end, r[core_end])
-    #print("cut_off:", cut_off, r[cut_off])
-    #print("r_end:", len(r)-1, r[-1])
-    #print("r", 0, len(r), min(r), max(r))
-    #print("main:", core_end, cut_off+1, min(r[main]), max(r[main]))
-    #print("nocore:", core_end, len(r), min(r[nocore]), max(r[nocore]))
+    ndx_ce = np.where(g_tgt > g_min)[0][0]
+    ndx_co = find_nearest_ndx(r, cut_off)
+    main = slice(ndx_ce, ndx_co+1)
+    nocore = slice(ndx_ce, len(r))
+    delta_r = (r[-1] - r[0]) / (len(r) - 1)
+    if verbose:
+        print("core_end:", ndx_ce, r[ndx_ce])
+        print("cut_off:", ndx_co, r[ndx_co])
+        print("r_end:", len(r)-1, r[-1])
+        print("r", 0, len(r), min(r), max(r))
+        print("main:", ndx_ce, ndx_co+1, min(r[main]), max(r[main]))
+        print("nocore:", ndx_ce, len(r), min(r[nocore]), max(r[nocore]))
 
     # reciprocal grid up to Nyquist frequency
-    delta_r = (r[-1] - r[0]) / (len(r) - 1)
     nyquist_freq = 1 / delta_r / 2
     omega = np.linspace(nyquist_freq/len(r), nyquist_freq, len(r))
     # This ensures max(omega) becomes not to large due to numerical accuracy
     # because if it does there are artifacts
     omega *= 0.9999
-
     # Fourier matrix
     F = gen_fourier_matrix(r, omega, fourier)
-
     # density 'ρ0'
     rho = density
-
     # pair correlation function 'h'
     h = g - 1
-
     # special Fourier of h
     h_hat = fourier(r, h, omega)
-
     # H matrix
     H = np.diag((2 + rho * h_hat) / (1 + rho * h_hat)**2 * rho * h_hat)
-
     # T matrix
-    #T = np.linalg.inv(F) @ H @ F
     T = np.matmul(np.linalg.inv(F), np.matmul(H, F))
-
     # D matrix
-    D = np.diag(g_tgt[core_end:])
-
+    D = np.diag(g_tgt[ndx_ce:])
     # U matrix
-    U = -kBT * np.linalg.inv(D) + kBT * T[core_end:, core_end:]
-
+    U = -kBT * np.linalg.inv(D) + kBT * T[ndx_ce:, ndx_ce:]
     # A0 matrix
     A0 = delta_r * np.triu(np.ones((len(r[nocore]), len(r[main])-1)), k=0)
-
     # Jacobian matrix
-    #J = np.linalg.inv(U) @ A0
     J = np.matmul(np.linalg.inv(U), A0)
-    print('J', J.shape)
-
     # constraint matrix and vector
     C = np.zeros((len(constraints), len(r[main])-1))
     d = np.zeros(len(constraints))
-
     # build constraint matrix and vector from constraints
     for c, constraint in enumerate(constraints):
         if constraint['type'] == 'pressure':
@@ -192,176 +192,40 @@ def calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT, density, g_min,
             # l vector
             l = (g_tgt_i + g_tgt_ip1) * (r_ip1**4 - r_i**4)
             l *= 1/12 * np.pi * rho**2
-
             # set C row and d element
             C[c, :] = l
             d[c] = p_tgt - p
         else:
             raise Exception("not implemented constraint type")
-
     # residuum vector
     res = g_tgt - g
-
     # switching to notation of Gander et al. for solving
-    #A = J.T @ J
-    #b = J.T @ res[nocore]
     A = J
     b = res[nocore]
-    print('d =', d)
     w = gauss_newton_constrained(A, C, b, d)
-
     # dU
-    #dU = A0 @ w
     dU = np.matmul(A0, w)
-
     # fill core with nans
-    dU = np.concatenate((np.full(core_end + 1, np.nan), dU))
-
+    dU = np.concatenate((np.full(ndx_ce + 1, np.nan), dU))
     # dump files
-    if dump_steps:
-        np.savetxt("hncgn_h_hat.xvg", (omega, h_hat), header="omega, h_hat")
-
+    if verbose:
+        np.savez_compressed('hncgn-arrays.npz', A=A, b=b, C=C, d=d,
+                            H=H, T=T, D=D, U=U, A0=A0, J=J)
     return dU
 
 
-def extrapolate_U_cubic(r, dpot_dU, dpot_flag, rdf_current_g, pot_current_U):
-    """Extrapolate the potential in the core region up to
-    the point, where the RDF becomes larger than 0.1 or where
-    the new potential is convex. A cubic function is used.
-    The first five valid points are uset for the fit.
+def extrapolate_U_constant(dU, dU_flag):
+    dU_extrap = dU.copy()
+    # find first valid dU value
+    first_dU_index = np.where(dU_flag == 'i')[0][0]
+    first_dU = dU[first_dU_index]
 
-    Fitting is done, because p-HNCGN often has artifacs at
-    small RDF values, especially when pressure is far of
-
-    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
-    # make copy
-    dpot_dU_extrap = dpot_dU.copy()
-    # region to fit
-    fit_start1 = np.where(rdf_current_g > 1e-1)[0][0]
-    fit_start2 = np.where(np.nan_to_num(np.diff(np.diff(
-        pot_current_U + dpot_dU))) > 0)[0][0]
-    fit_start = max(fit_start1, fit_start2)
-    fit_end = fit_start + 5
-    fit_region = slice(fit_start, fit_end)
-    fit_x = r[fit_region]
-    fit_y = (pot_current_U + dpot_dU)[fit_region]
-    # fit p[0] x² + p[1] x + p[2]
-    p = np.polyfit(fit_x, fit_y, 3)
-    U_extrap = np.polyval(p, r)
-    # region to extrapolate
-    extrap_region = slice(0, fit_start)
-    # extrapolate
-    dpot_dU_extrap[extrap_region] = (U_extrap[extrap_region]
-                                     - pot_current_U[extrap_region])
-    return dpot_dU_extrap
-
-
-def extrapolate_U_times_g(r, dpot_dU, dpot_flag, rdf_current_g):
-    """Extrapolate the potential in the core region up to
-    the point, where the RDF becomes larger than 0.1.
-
-    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
-    # fill core with first value
-    first_dU_index = np.asarray(dpot_flag == 'i').nonzero()[0][0]
-    first_dU = dpot_dU[first_dU_index]
     # replace out of range dU values with constant first value
-    dpot_dU_extrap = np.where(dpot_flag == 'i', dpot_dU, first_dU)
-    # region to extrapolate
-    extrap_end = np.where(rdf_current_g > 1e-0)[0][0]
-    extrap_region = slice(0, extrap_end)
-    # extrapolate
-    dpot_dU_extrap[extrap_region] *= rdf_current_g[extrap_region]
-    dpot_dU_extrap = np.nan_to_num(dpot_dU_extrap)
-    return dpot_dU_extrap
-
-
-def extrapolate_U_monotonic(r, dU, flag, U_cur):
-    """Ensure that U is monotonous decaying in core region
-    and close to the core. Also enforces min and max on the
-    (negative) derivative of the potential.
-
-    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
-    # first dU
-    first_dU_index = np.where(flag == 'i')[0][0]
-    U_new = U_cur + np.nan_to_num(dU)
-    # first negative derivative in bad_U
-    first_decay_index = np.where(np.diff(U_new[first_dU_index:]) < 0)[0][0] + first_dU_index
-    # derivative from just inside core
-    # note: this is repulsive regime, so deriv is negative
-    core_end_deriv = U_cur[first_dU_index] - U_cur[first_dU_index-1]
-    # double of this value is used for min derivative
-    min_deriv = core_end_deriv * 1.2
-    # half of this value is used for max derivative
-    max_deriv = core_end_deriv * 0.8
-    # make potential outside core monotonic
-    U_new_mono = U_new.copy()
-    for i in range(first_decay_index, first_dU_index, -1):
-        if U_new_mono[i-1] < U_new_mono[i]:
-            U_new_mono[i-1] = U_new_mono[i] - max_deriv
-    # shift potential inside core
-    U_new_mono[:first_dU_index] += U_new_mono[first_dU_index] - U_cur[first_dU_index]
-    # mid of potential
-    mid_index = (first_dU_index + len(dU)) // 2
-    # ensure min deriv. is min_deriv
-    for i in range(mid_index, first_dU_index, -1):
-        if U_new_mono[i] - U_new_mono[i-1] < min_deriv:
-            # shift up, such that deriv is min_deriv
-            U_new_mono[:i] += U_new_mono[i] - U_new_mono[i-1] - min_deriv
-    # substract since votca does addition later
-    dU_extrap = U_new_mono - U_cur
-    return dU_extrap
-
-def extrapolate_U_scale(r, dU, flag, U_cur, g_cur):
-    """
-
-    Returns dU. U_{k+1} = U_k + dU is done by Votca."""
-    # first dU
-    first_dU_index = np.where(flag == 'i')[0][0]
-    U_new = U_cur + np.nan_to_num(dU)
-    # first negative derivative in bad_U
-    first_decay_index = np.where(np.diff(U_new[first_dU_index:]) < 0)[0][0] + first_dU_index
-    # derivative from just inside core
-    # note: this is repulsive regime, so deriv is negative
-    core_end_deriv = U_cur[first_dU_index] - U_cur[first_dU_index-1]
-    # this value is used for min derivative
-    min_deriv = core_end_deriv * 2.0
-    # this value is used for max derivative
-    max_deriv = core_end_deriv * 0.8
-    # make potential outside core monotonic decaying
-    # if there is a dip downwards in U_new
-    if first_decay_index != first_dU_index:
-        #print('fixing dip downwards')
-        U_new_mono = U_new.copy()
-        for i in range(first_decay_index, first_dU_index, -1):
-            if U_new_mono[i] - U_new_mono[i-1] > max_deriv:
-                U_new_mono[i-1] = U_new_mono[i] - max_deriv
-        # shift potential inside core
-        U_new_mono[:first_dU_index] += U_new_mono[first_dU_index] - U_cur[first_dU_index]
-        # substract since votca does addition later
-        dU_extrap = U_new_mono - U_cur
-    elif U_new[first_dU_index+1] - U_new[first_dU_index] < min_deriv:
-        #print('fixing dip upwards')
-        # end of scaling region
-        scale_end = np.where(g_cur > 1e-1)[0][0]
-        # ensure deriv. at end of core is min_deriv
-        # if there is a dip upwards in U_new
-        dU_extrap = dU.copy()
-        # scaling factor
-        a = (min_deriv - (U_cur[first_dU_index+1] - U_cur[first_dU_index])) / (dU[first_dU_index+1] - dU[first_dU_index])
-        dU_extrap = np.nan_to_num(dU)
-        dU_extrap[first_dU_index:scale_end] = a * dU[first_dU_index:scale_end]
-        # shift to be continuous at scale_end
-        dU_extrap[first_dU_index:scale_end] += dU[scale_end]
-        # shift to be continuous in core
-        dU_extrap[0:first_dU_index] += dU_extrap[first_dU_index]
-        # ramp to be continuous in core
-        dU_extrap[0:first_dU_index] += (dU_extrap[first_dU_index+1] - dU_extrap[first_dU_index]) * (np.arange(first_dU_index) - (first_dU_index))
-    else:
-        dU_extrap = np.nan_to_num(dU)
+    dU_extrap = np.where(dU_flag == 'i', dU, first_dU)
     return dU_extrap
 
 
-def extrapolate_U_power(r, dU, flag, g, U, g_tgt, g_min, kBT):
+def extrapolate_U_power(r, dU, g, U, g_tgt, g_min, kBT, verbose):
     """Extrapolate the potential in the core region up to
     the point, where the RDF becomes larger than 0.5 or where
     the new potential is convex. A power function is used.
@@ -389,7 +253,8 @@ def extrapolate_U_power(r, dU, flag, g, U, g_tgt, g_min, kBT):
     fit_y = np.log(pmf[fit_region] + pmf_shift)
     b, log_a = np.polyfit(fit_x, fit_y, 1)
     a = np.exp(log_a)
-    print('pmf fit coefficients a and b:', a, b)
+    if verbose:
+        print('pmf fit a*x^b. Coefficients a, b:', a, b)
     # r without zero at start
     with np.errstate(divide='ignore', over='ignore'):
         pmf_fit = np.nan_to_num(a * r**b - pmf_shift)
@@ -403,12 +268,6 @@ def extrapolate_U_power(r, dU, flag, g, U, g_tgt, g_min, kBT):
     U_extrap[:ndx_ex] = pmf_fit[:ndx_ex] + (U_extrap[ndx_ex] - pmf_fit[ndx_ex])
     dU_extrap = U_extrap - U
     return dU_extrap
-
-
-def find_nearest_ndx(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
 
 
 def shift_U_cutoff_zero(dU, r, U, cut_off):
@@ -427,113 +286,57 @@ def shift_U_last_half(dU, r, U, cut_off):
     a way, such that it is more smooth. The derivative
     of the potential between the last two points will
     be half the derivative between the two points
-    before.
+    before. The original last two points of dU are
+    therefore ignored.
 
     This also helps agains an artifact of p-HNCGN,
     where the last value of dU is a spike."""
     dU_shift = dU.copy()
     ndx_co = find_nearest_ndx(r, cut_off)
-    U_thirdlast = U[ndx_co-2] + dU[ndx_co-2]
-    shift = 0.25 * U_thirdlast - (U[ndx_co-1] + dU[ndx_co-1])
+    U_new = U + dU
+    second_last_deriv = U_new[ndx_co-1] - U_new[ndx_co-2]
+    shift = -0.5 * second_last_deriv - U_new[ndx_co-1]
     # modify up to second last value
     dU_shift[:ndx_co] += shift
     return dU_shift
 
 
-def calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
-                    rdf_current_g, rdf_current_flag,
-                    pot_current_U, pot_current_flag,
-                    kBT, density, cut_off, g_min,
-                    constraints, extrapolation):
-    """calculate dU for the hncgn method with constraint pressure"""
-
-    # allways raise an error
-    np.seterr(all='raise')
-
-    # prepare dpot
-    dpot_dU = np.zeros_like(pot_current_U)
-    dpot_flag = np.array([''] * len(dpot_dU))
-
-    # full range dU
-    dU_full = calc_dpot_hncgn_core(r, rdf_current_g, rdf_target_g, kBT,
-                                   density, g_min, cut_off, pot_current_U,
-                                   constraints)
-
-    # calculate dpot
-    for i in range(len(r)):
-        if (np.isnan(dU_full[i])) or ('u' in str(pot_current_flag[i])):
-            dpot_dU[i] = np.nan
-            dpot_flag[i] = 'o'
-        else:
-            dpot_dU[i] = dU_full[i]
-            dpot_flag[i] = 'i'
-
-    # extrapolation in and near core region
-    if extrapolation == 'none':
-        dpot_dU_extrap = dpot_dU
-    elif extrapolation == 'cubic':
-        dpot_dU_extrap = extrapolate_U_cubic(r, dpot_dU, dpot_flag,
-                                             rdf_current_g, pot_current_U)
-    elif extrapolation == 'times_g':
-        dpot_dU_extrap = extrapolate_U_times_g(r, dpot_dU, dpot_flag,
-                                               rdf_current_g)
-    elif extrapolation == 'monotonic':
-        dpot_dU_extrap = extrapolate_U_monotonic(r, dpot_dU, dpot_flag,
-                                                 pot_current_U)
-    elif extrapolation == 'scale':
-        dpot_dU_extrap = extrapolate_U_scale(r, dpot_dU, dpot_flag,
-                                             pot_current_U, rdf_current_g)
-    elif extrapolation == 'power':
-        dpot_dU_extrap = extrapolate_U_power(r, dpot_dU, dpot_flag,
-                                             rdf_current_g, pot_current_U,
-                                             rdf_target_g, g_min, kBT)
-    else:
-        raise Exception("unknow extrapolation scheme for inside and near core"
-                        "region:" + extrapolation)
-
-    # shifts to correct potential near cut-off
-    dpot_dU_shift1 = shift_U_cutoff_zero(dpot_dU_extrap, r,
-                                         pot_current_U, cut_off)
-    dpot_dU_shift2 = shift_U_last_half(dpot_dU_shift1, r,
-                                       pot_current_U, cut_off)
-
-    return dpot_dU_shift2, dpot_flag
-
-
 description = """\
 This script calculatess dU with the HNCGN scheme.
-It uses some magic tricks:
-- beyond the cut_off dU is set to -U such that U becomes zero.
 """
 
 parser = argparse.ArgumentParser(description=description)
-parser.add_argument('rdf_target', type=argparse.FileType('r'))
-parser.add_argument('rdf_current', type=argparse.FileType('r'))
-parser.add_argument('pot_current', type=argparse.FileType('r'))
-parser.add_argument('dpot', type=argparse.FileType('wb'))
+parser.add_argument('g_tgt', type=argparse.FileType('r'))
+parser.add_argument('g_cur', type=argparse.FileType('r'))
+parser.add_argument('U_cur', type=argparse.FileType('r'))
+parser.add_argument('dU', type=argparse.FileType('wb'))
 parser.add_argument('kBT', type=float)
 parser.add_argument('density', type=float)
 parser.add_argument('cut_off', type=float)
 parser.add_argument('--pressure-constraint', dest='pressure_constraint',
                     type=str, default=None)
 parser.add_argument('--extrap-near-core', dest='extrap_near_core',
-                    type=str, default='times_g',
-                    choices=['times_g', 'none', 'cubic', 'monotonic',
-                             'scale', 'power'])
+                    type=str, choices=['none', 'power'])
+parser.add_argument('--fix-near-cut-off', dest='fix_near_cut_off',
+                    type=str, choices=['none', 'half-deriv'])
 
 if __name__ == '__main__':
     args = parser.parse_args()
 
     # load rdf and potential
-    rdf_target_r, rdf_target_g, rdf_target_flag = readin_table(args.rdf_target)
-    rdf_current_r, rdf_current_g, rdf_current_flag = readin_table(args.rdf_current)
-    pot_current_r, pot_current_U, pot_current_flag = readin_table(args.pot_current)
+    g_tgt_r, g_tgt, g_tgt_flag = readin_table(args.g_tgt)
+    g_cur_r, g_cur, g_cur_flag = readin_table(args.g_cur)
+    U_cur_r, U_cur, U_cur_flag = readin_table(args.U_cur)
+
+    np.seterr(all='raise')
+    G_MIN = 1e-10
 
     # sanity checks on grid
-    compare_grids(rdf_target_r, rdf_current_r)
-    compare_grids(rdf_target_r, pot_current_r)
-    r = rdf_target_r
+    compare_grids(g_tgt_r, g_cur_r)
+    compare_grids(g_tgt_r, U_cur_r)
+    r = g_tgt_r
 
+    # parse constraints
     constraints = []
     if args.pressure_constraint is not None:
         p_target = float(args.pressure_constraint.split(',')[0])
@@ -541,14 +344,40 @@ if __name__ == '__main__':
         constraints.append({'type': 'pressure', 'target': p_target,
                             'current': p_current})
 
-    # calculate dpot
-    dpot_dU, dpot_flag = calc_dpot_hncgn(r, rdf_target_g, rdf_target_flag,
-                                         rdf_current_g, rdf_current_flag,
-                                         pot_current_U, pot_current_flag,
-                                         args.kBT, args.density, args.cut_off,
-                                         1e-10, constraints,
-                                         args.extrap_near_core)
+    # calc dU_pure
+    dU_pure = calc_dU_hncgn(r, g_cur, g_tgt, args.kBT,
+                            args.density, G_MIN, args.cut_off,
+                            constraints, args.verbose)
 
-    # save dpot
+    # set dU_flag to 'o' inside the core
+    dU_flag = np.where(np.isnan(dU_pure), 'o', 'i')
+
+    # select extrapolation
+    if args.extrapolation == 'none':
+        dU_extrap = np.nan_to_num(dU_pure)
+    if args.extrapolation == 'constant':
+        dU_extrap = extrapolate_U_constant(dU_pure, dU_flag)
+    elif args.extrapolation == 'power':
+        dU_extrap = extrapolate_U_power(r, dU_pure, g_cur, U_cur, g_tgt, G_MIN,
+                                        args.kBT, args.verbose)
+    else:
+        raise Exception("unknow extrapolation scheme for inside and near core"
+                        "region:" + args.extrapolation)
+    # shifts to correct potential after cut-off
+    dU_shift = shift_U_cutoff_zero(dU_extrap, r, U_cur, args.cut_off)
+    # shifts to correct potential near cut-off
+    if args.fix_near_cut_off == 'none':
+        dU = dU_shift.copy()
+    elif args.fix_near_cut_off == 'half-deriv':
+        dU = shift_U_last_half(dU_shift, r, U_cur, args.cut_off)
+    else:
+        raise Exception("unknow fix scheme for near cut-off: "
+                        + args.fix_near_cut_off)
+
+    if args.verbose:
+        np.savez_compressed('hncgn-dU.npz', r=r, dU_pure=dU_pure,
+                            dU_extrap=dU_extrap, dU_shift=dU_shift)
+
+    # save dU
     comment = "created by: {}".format(" ".join(sys.argv))
-    saveto_table(args.dpot, r, dpot_dU, dpot_flag, comment)
+    saveto_table(args.dU, r, dU, dU_flag, comment)
