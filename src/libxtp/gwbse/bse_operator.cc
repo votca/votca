@@ -28,24 +28,19 @@ namespace xtp {
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index) const {
-
   Eigen::VectorXd col = Eigen::VectorXd::Zero(_bse_size);
   if (cx != 0) {
     col += cx * Hx_col(index);
   }
-
   if (cd != 0) {
     col += cd * Hd_col(index);
   }
-
   if (cd2 != 0) {
     col += cd2 * Hd2_col(index);
   }
-
   if (cqp != 0) {
     col += cqp * Hqp_col(index);
   }
-
   return col;
 }
 
@@ -98,7 +93,6 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_col(int index) const {
   vc2index vc = vc2index(0, 0, _bse_ctotal);
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  int index_vc = vc.I(v1, c1);
   Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
 
   // v->c

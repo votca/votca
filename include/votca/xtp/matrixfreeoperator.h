@@ -51,9 +51,6 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 
  private:
   int _size;
-  Eigen::VectorXd diag_el;
-
- private:
 };
 }  // namespace xtp
 }  // namespace votca
@@ -118,8 +115,12 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
 
 // make the mat mat product
 #pragma omp parallel for
-    for (int j = 0; j < m.cols(); j++) {
-      for (int i = 0; i < op.cols(); i++) dst.col(j) += m(i, j) * op.col(i);
+    for (int i = 0; i < op.cols(); i++) {
+      const Eigen::Matrix<Scalar, Eigen::Dynamic, 1> c = op.col(i);
+      for (int j = 0; j < m.cols(); j++) {
+#pragma omp critical
+        dst.col(j) += m(i, j) * c;
+      }
     }
   }
 };

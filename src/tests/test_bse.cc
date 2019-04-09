@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_spsi_dav, true);
 
-  // davidson full matrix
+  // davidson matrix free
   opt.davidson = 1;
   opt.matrixfree = 1;
   bse.configure(opt);
@@ -543,12 +543,11 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_tpsi, true);
 
-  // davidsom
+  // davidson
   opt.davidson = 1;
   opt.matrixfree = 0;
   bse.configure(opt);
   bse.Solve_triplets();
-  ;
 
   bool check_te_dav = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
   if (!check_te_dav) {
@@ -561,7 +560,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   bool check_tpsi_dav = tpsi_ref.cwiseAbs2().isApprox(
       orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
-  check_tpsi_dav = true;
   if (!check_tpsi_dav) {
     cout << "Triplet psi" << endl;
     cout << orbitals.BSETripletCoefficients() << endl;
@@ -575,7 +573,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.matrixfree = 1;
   bse.configure(opt);
   bse.Solve_triplets();
-  ;
 
   bool check_te_dav2 = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
   if (!check_te_dav2) {
@@ -588,7 +585,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   bool check_tpsi_dav2 = tpsi_ref.cwiseAbs2().isApprox(
       orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
-  check_tpsi_dav2 = true;
   if (!check_tpsi_dav2) {
     cout << "Triplet psi" << endl;
     cout << orbitals.BSETripletCoefficients() << endl;

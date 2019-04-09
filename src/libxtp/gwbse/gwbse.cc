@@ -204,14 +204,37 @@ void GWBSE::Initialize(tools::Property& options) {
               key + ".eigensolver.davidson_correction",
               _bseopt.davidson_correction);
 
+      _bseopt.davidson_ortho =
+          options.ifExistsReturnElseReturnDefault<std::string>(
+              key + ".eigensolver.davidson_ortho", _bseopt.davidson_ortho);
+
       _bseopt.davidson_tolerance =
-          options.ifExistsReturnElseReturnDefault<double>(
+          options.ifExistsReturnElseReturnDefault<std::string>(
               key + ".eigensolver.davidson_tolerance",
               _bseopt.davidson_tolerance);
+
+      _bseopt.davidson_update =
+          options.ifExistsReturnElseReturnDefault<std::string>(
+              key + ".eigensolver.davidson_update", _bseopt.davidson_update);
+
+      _bseopt.davidson_maxiter = options.ifExistsReturnElseReturnDefault<int>(
+          key + ".eigensolver.davidson_maxiter", _bseopt.davidson_maxiter);
 
       std::vector<std::string> _dcorr = {"DPR", "OLSEN"};
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           key + ".eigensolver.davidson_correction", _dcorr);
+
+      std::vector<std::string> _dortho = {"GS", "QR"};
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          key + ".eigensolver.davidson_ortho", _dortho);
+
+      std::vector<std::string> _dtol = {"strict", "normal", "loose"};
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          key + ".eigensolver.davidson_tolerance", _dtol);
+
+      std::vector<std::string> _dup = {"min", "safe", "max"};
+      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+          key + ".eigensolver.davidson_update", _dup);
 
       // check size
       if (_bseopt.nmax > bse_size / 4) {
@@ -250,8 +273,26 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".gwbasis");
+  if (options.exists(key + ".gwbasis")) {
+    _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".gwbasis");
+    if (options.exists(key + ".auxbasis")) {
+      throw std::runtime_error(
+          std::string() +
+          "Cannot use the options \"gwbasis\" and \"auxbasis\" "
+          "simultaneously. " +
+          " Use option \"auxbasis\" to specify the auxiliary basis instead.");
+    } else {
+      CTP_LOG(ctp::logDEBUG, *_pLog)
+          << " Warning: The option \"gwbasis\" is outdated."
+          << " Use option \"auxbasis\" to specify the auxiliary basis instead. "
+          << flush;
+    }
+  } else {
+    _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".auxbasis");
+  }
+
   _dftbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".dftbasis");
   if (_dftbasis_name != _orbitals.getDFTbasisName()) {
@@ -653,7 +694,6 @@ bool GWBSE::Evaluate() {
 
     // proceed only if BSE requested
     if (_do_bse_singlets || _do_bse_triplets) {
-
       BSE bse = BSE(_orbitals, *_pLog, Mmn, Hqp);
       bse.configure(_bseopt);
 

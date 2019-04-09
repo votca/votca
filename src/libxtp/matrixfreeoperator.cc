@@ -39,7 +39,6 @@ Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
   for (int i = 0; i < _size; i++) {
     matrix.col(i) = this->col(i);
   }
-
   return matrix;
 }
 
