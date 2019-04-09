@@ -93,7 +93,10 @@ class BSE {
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
 
-  void FreeTriplets() { _bse_triplet_coefficients.resize(0, 0); }
+  void FreeTriplets() {
+    _bse_triplet_coefficients.resize(0, 0);
+    _bse_triplet_coefficients_AR.resize(0, 0);
+  }
 
   void FreeSinglets() {
     _bse_singlet_coefficients.resize(0, 0);
