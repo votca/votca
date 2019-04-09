@@ -35,12 +35,8 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   _basissize = basissize;
 
   // vector has mtotal elements
-  _matrix.resize(_mtotal);
-
-  // each element is a gwabasis-by-n matrix, initialize to zero
-  for (int i = 0; i < this->msize(); i++) {
-    _matrix[i] = Eigen::MatrixXd::Zero(_ntotal, _basissize);
-  }
+  _matrix = std::vector<Eigen::MatrixXd>(
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
 }
 
 /*
@@ -83,13 +79,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     FillBlock(block, shell, dftbasis, dft_orbitals);
 
     // put into correct position
-    for (int m_level = 0; m_level < this->msize(); m_level++) {
-      for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
-        _matrix[m_level].col(shell->getStartIndex() + i_gw) =
-            block[m_level].col(i_gw);
-      }  // GW basis function in shell
-    }    // m-th DFT orbital
-  }      // shells of GW basis set
+    for (int m_level = 0; m_level < _mtotal; m_level++) {
+      _matrix[m_level].block(0, shell->getStartIndex(), _ntotal,
+                             shell->getNumFunc()) = block[m_level];
+    }  // m-th DFT orbital
+  }    // shells of GW basis set
 
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);

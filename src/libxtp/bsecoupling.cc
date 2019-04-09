@@ -303,9 +303,9 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
         << "  Number of unoccupied orbitals in molecule A for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
-    v = bseA_vtotal;
-  } else if (v < 0) {
-    v = bseA_vtotal;
+    _occA = bseA_vtotal;
+  } else if (_occA < 0) {
+    _occA = bseA_vtotal;
   }
   if (_occB > bseB_vtotal) {
     CTP_LOG(ctp::logDEBUG, *_pLog)
