@@ -55,12 +55,12 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   }
 
  protected:
-  Eigen::VectorXd col(int index) const;
+  Eigen::RowVectorXd row(int index) const;
 
-  Eigen::VectorXd Hqp_col(int index) const;
-  Eigen::VectorXd Hx_col(int index) const;
-  Eigen::VectorXd Hd_col(int index) const;
-  Eigen::VectorXd Hd2_col(int index) const;
+  Eigen::RowVectorXd Hqp_row(int index) const;
+  Eigen::RowVectorXd Hx_row(int index) const;
+  Eigen::RowVectorXd Hd_row(int index) const;
+  Eigen::RowVectorXd Hd2_row(int index) const;
 
  private:
   BSEOperator_Options _opt;

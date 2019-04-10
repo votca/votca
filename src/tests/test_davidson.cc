@@ -75,7 +75,7 @@ class TestOperator : public MatrixFreeOperator
 {
     public : 
         TestOperator() {};
-        Eigen::VectorXd col(int index) const;
+        Eigen::RowVectorXd row(int index) const;
         void set_diag();
         Eigen::VectorXd diag_el;
 
@@ -94,20 +94,20 @@ void TestOperator::set_diag()
 }
 
 //  get a col of the operator
-Eigen::VectorXd TestOperator::col(int index) const
+Eigen::RowVectorXd TestOperator::row(int index) const
 {
     int lsize = this->size();
-    Eigen::VectorXd col_out = Eigen::VectorXd::Zero(lsize,1);    
+    Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);    
     for (int j=0; j < lsize; j++)
     {
         if (j==index) {
-            col_out(j) = diag_el(j); 
+            row_out(j) = diag_el(j); 
         }
         else{
-            col_out(j) = 0.01 / std::pow( static_cast<double>(j-index),2) ;
+            row_out(j) = 0.01 / std::pow( static_cast<double>(j-index),2) ;
         }
     }
-    return col_out;
+    return row_out;
 }
 
 

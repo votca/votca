@@ -47,10 +47,10 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
   void set_size(int size);
 
   // extract row/col of the operator
-  virtual Eigen::VectorXd col(int index) const = 0;
+  virtual Eigen::RowVectorXd row(int index) const = 0;
 
  private:
-  int _size;
+  int _size;  
 };
 }  // namespace xtp
 }  // namespace votca
@@ -86,10 +86,10 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Vtype, DenseShape,
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
 
-// make the mat vect product
-#pragma omp parallel for reduction(+ : dst)
-    for (int i = 0; i < op.cols(); i++) {
-      dst += v(i) * op.col(i);
+    // make the mat vect product
+    #pragma omp parallel for 
+    for (int i = 0; i < op.rows(); i++) {
+      dst(i) = op.row(i) * v;
     }
   }
 };
@@ -115,11 +115,10 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
 
   // make the mat mat product
   #pragma omp parallel for
-    for (int i = 0; i < op.cols(); i++) {
-      const Eigen::Matrix<Scalar,Eigen::Dynamic,1> c = op.col(i);
+    for (int i = 0; i < op.rows(); i++) {
+      const Eigen::Matrix<Scalar,1,Eigen::Dynamic> r = op.row(i);
       for (int j = 0; j < m.cols(); j++) {
-        #pragma omp critical
-        dst.col(j) += m(i, j) * c;
+        dst(i,j) += r * m.col(j);
       }
     }
   }

@@ -23,10 +23,10 @@ namespace xtp {
 
 Eigen::VectorXd MatrixFreeOperator::diagonal() const {
   Eigen::VectorXd D = Eigen::VectorXd::Zero(_size);
-  Eigen::VectorXd col_data;
+  Eigen::RowVectorXd row_data;
   for (int i = 0; i < _size; i++) {
-    col_data = this->col(i);
-    D(i) = col_data(i);
+    row_data = this->row(i);
+    D(i) = row_data(i);
   }
   return D;
 }
@@ -34,10 +34,9 @@ Eigen::VectorXd MatrixFreeOperator::diagonal() const {
 // get the full matrix if we have to
 Eigen::MatrixXd MatrixFreeOperator::get_full_matrix() const {
   Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
-
 #pragma omp parallel for
   for (int i = 0; i < _size; i++) {
-    matrix.col(i) = this->col(i);
+    matrix.row(i) = this->row(i);
   }
   return matrix;
 }
