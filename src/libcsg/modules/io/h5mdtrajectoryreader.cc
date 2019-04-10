@@ -228,10 +228,10 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   if (has_box_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
     unique_ptr<double[]> box = unique_ptr<double[]>{new double[3]};
     ReadBox(ds_edges_group_, H5T_NATIVE_DOUBLE, idx_frame_, box);
-    m.ZeroMatrix();
-    m[0][0] = box.get()[0];
-    m[1][1] = box.get()[1];
-    m[2][2] = box.get()[2];
+    m = Eigen::Matrix3d::Zero();
+    m(0, 0) = box.get()[0];
+    m(1, 1) = box.get()[1];
+    m(2, 2) = box.get()[2];
     cout << "Time dependent box:" << endl;
     cout << m << endl;
   }
