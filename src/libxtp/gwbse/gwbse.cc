@@ -206,8 +206,7 @@ void GWBSE::Initialize(tools::Property& options) {
 
       _bseopt.davidson_ortho =
           options.ifExistsReturnElseReturnDefault<std::string>(
-              key + ".eigensolver.davidson_ortho",
-              _bseopt.davidson_ortho);
+              key + ".eigensolver.davidson_ortho", _bseopt.davidson_ortho);
 
       _bseopt.davidson_tolerance =
           options.ifExistsReturnElseReturnDefault<std::string>(
@@ -273,7 +272,7 @@ void GWBSE::Initialize(tools::Property& options) {
           key + ".vxc.grid", "medium");
     }
   }
-  
+
   if (options.exists(key + ".gwbasis")) {
     _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
         key + ".gwbasis");

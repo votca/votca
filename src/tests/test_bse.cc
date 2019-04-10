@@ -472,7 +472,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.matrixfree = 0;
   bse.configure(opt);
   bse.Solve_triplets();
-  
 
   bool check_te = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
   if (!check_te) {
