@@ -128,13 +128,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
 
       tensor3d threec_block(extents[range(0, auxshell->getNumFunc())][range(
           0, shell_row->getNumFunc())][range(0, shell_col->getNumFunc())]);
-      for (int i = 0; i < auxshell->getNumFunc(); ++i) {
-        for (int j = 0; j < shell_row->getNumFunc(); ++j) {
-          for (int k = 0; k < shell_col->getNumFunc(); ++k) {
-            threec_block[i][j][k] = 0.0;
-          }
-        }
-      }
+      std::fill_n(threec_block.data(), threec_block.num_elements(), 0.0);
 
       bool nonzero =
           FillThreeCenterRepBlock(threec_block, auxshell, shell_row, shell_col);

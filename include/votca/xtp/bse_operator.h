@@ -44,6 +44,8 @@ class BSE_OPERATOR : public MatrixFreeOperator {
                TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
       : _epsilon_0_inv(Hd_operator), _log(log), _Mmn(Mmn), _Hqp(Hqp){};
 
+  ~BSE_OPERATOR(){};
+
   void configure(BSEOperator_Options opt) {
     _opt = opt;
     int bse_vmax = _opt.homo;
@@ -52,6 +54,10 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     _bse_ctotal = _opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
     this->set_size(_bse_size);
+
+    if (cx != 0) {
+      _Hx_cache = std::vector<Eigen::VectorXd>(_bse_size, Eigen::VectorXd(0));
+    }
   }
 
  protected:
@@ -68,6 +74,8 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   int _bse_vtotal;
   int _bse_ctotal;
   int _bse_cmin;
+
+  mutable std::vector<Eigen::VectorXd> _Hx_cache;
 
   const Eigen::VectorXd& _epsilon_0_inv;
   ctp::Logger& _log;

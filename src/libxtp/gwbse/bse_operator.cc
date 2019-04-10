@@ -46,21 +46,36 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index) const {
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_col(int index) const {
+  if (_Hx_cache[index].size() > 0) {
+    return std::move(_Hx_cache[index]);
+  }
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
-  Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
+
   const int vmin = _opt.vmin - _opt.rpamin;
   const int cmin = _bse_cmin - _opt.rpamin;
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  const Eigen::VectorXd Mmn1Tc1 = _Mmn[v1 + vmin].row(c1 + cmin);
+  int cache_size = 10;
+  if ((_bse_ctotal - c1) < cache_size) {
+    cache_size = _bse_ctotal - c1;
+  }
+  Eigen::MatrixXd H_cache = Eigen::MatrixXd::Zero(_bse_size, cache_size);
+  const Eigen::MatrixXd Mmn1T =
+      _Mmn[v1 + vmin].block(c1 + cmin, 0, cache_size, auxsize).transpose();
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     const Eigen::MatrixXd& Mmn2 = _Mmn[v2 + vmin];
-    auto Mmnx2 = Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1Tc1;
     int i2 = vc.I(v2, 0);
-    Hcol.segment(i2, _bse_ctotal).noalias() = Mmnx2;
+    H_cache.block(i2, 0, _bse_ctotal, cache_size) =
+        Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
   }
-  return Hcol;
+#pragma omp critical
+  {
+    for (int i = 1; i < cache_size; i++) {
+      _Hx_cache[index + i] = H_cache.col(i);
+    }
+  }
+  return H_cache.col(0);
 }
 
 template <int cqp, int cx, int cd, int cd2>

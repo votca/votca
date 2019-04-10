@@ -616,8 +616,6 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " Filled Auxbasis of size "
       << auxbasis.AOBasisSize() << flush;
 
-  Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
-
   TCMatrix_gwbse Mmn;
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
@@ -637,6 +635,7 @@ bool GWBSE::Evaluate() {
   Eigen::MatrixXd Hqp;
 
   if (_do_gw) {
+    Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
     GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOEnergies());
     gw.configure(_gwopt);
     gw.CalculateGWPerturbation();
