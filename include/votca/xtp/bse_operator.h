@@ -56,17 +56,18 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     this->set_size(_bse_size);
 
     if (cx != 0) {
-      _Hx_cache = std::vector<Eigen::VectorXd>(_bse_size, Eigen::VectorXd(0));
+      _Hx_cache =
+          std::vector<Eigen::RowVectorXd>(_bse_size, Eigen::RowVectorXd(0));
     }
   }
 
  protected:
-  Eigen::VectorXd col(int index) const;
+  Eigen::RowVectorXd row(int index) const;
 
-  Eigen::VectorXd Hqp_col(int index) const;
-  Eigen::VectorXd Hx_col(int index) const;
-  Eigen::VectorXd Hd_col(int index) const;
-  Eigen::VectorXd Hd2_col(int index) const;
+  Eigen::RowVectorXd Hqp_row(int index) const;
+  Eigen::RowVectorXd Hx_row(int index) const;
+  Eigen::RowVectorXd Hd_row(int index) const;
+  Eigen::RowVectorXd Hd2_row(int index) const;
 
  private:
   BSEOperator_Options _opt;
@@ -75,7 +76,7 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   int _bse_ctotal;
   int _bse_cmin;
 
-  mutable std::vector<Eigen::VectorXd> _Hx_cache;
+  mutable std::vector<Eigen::RowVectorXd> _Hx_cache;
 
   const Eigen::VectorXd& _epsilon_0_inv;
   ctp::Logger& _log;

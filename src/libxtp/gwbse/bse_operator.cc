@@ -27,25 +27,25 @@ namespace votca {
 namespace xtp {
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::col(int index) const {
-  Eigen::VectorXd col = Eigen::VectorXd::Zero(_bse_size);
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
+  Eigen::RowVectorXd row = Eigen::RowVectorXd::Zero(_bse_size);
   if (cx != 0) {
-    col += cx * Hx_col(index);
+    row += cx * Hx_row(index);
   }
   if (cd != 0) {
-    col += cd * Hd_col(index);
+    row += cd * Hd_row(index);
   }
   if (cd2 != 0) {
-    col += cd2 * Hd2_col(index);
+    row += cd2 * Hd2_row(index);
   }
   if (cqp != 0) {
-    col += cqp * Hqp_col(index);
+    row += cqp * Hqp_row(index);
   }
-  return col;
+  return row;
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_col(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
   if (_Hx_cache[index].size() > 0) {
     return std::move(_Hx_cache[index]);
   }
@@ -72,17 +72,17 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_col(int index) const {
 #pragma omp critical
   {
     for (int i = 1; i < cache_size; i++) {
-      _Hx_cache[index + i] = H_cache.col(i);
+      _Hx_cache[index + i] = H_cache.col(i).transpose();
     }
   }
-  return H_cache.col(0);
+  return H_cache.col(0).transpose();
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_col(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(int index) const {
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
-  Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
+  Eigen::RowVectorXd Hrow = Eigen::RowVectorXd::Zero(_bse_size);
   const int vmin = _opt.vmin - _opt.rpamin;
   const int cmin = _bse_cmin - _opt.rpamin;
   int v1 = vc.v(index);
@@ -98,35 +98,35 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_col(int index) const {
 
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     int i2 = vc.I(v2, 0);
-    Hcol.segment(i2, _bse_ctotal) = -Mmn2xMmn1T.col(v2);
+    Hrow.segment(i2, _bse_ctotal) = -Mmn2xMmn1T.col(v2);
   }
-  return Hcol;
+  return Hrow;
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_col(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(int index) const {
   vc2index vc = vc2index(0, 0, _bse_ctotal);
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
+  Eigen::RowVectorXd Hrow = Eigen::RowVectorXd::Zero(_bse_size);
 
   // v->c
   for (int c2 = 0; c2 < _bse_ctotal; c2++) {
     int index_vc2 = vc.I(v1, c2);
-    Hcol(index_vc2) +=
+    Hrow(index_vc2) +=
         _Hqp(c2 + _bse_vtotal - _opt.qpmin, c1 + _bse_vtotal - _opt.qpmin);
   }
   // c-> v
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     int index_vc2 = vc.I(v2, c1);
-    Hcol(index_vc2) -= _Hqp(v2 - _opt.qpmin, v1 - _opt.qpmin);
+    Hrow(index_vc2) -= _Hqp(v2 - _opt.qpmin, v1 - _opt.qpmin);
   }
 
-  return Hcol;
+  return Hrow;
 }
 
 template <int cqp, int cx, int cd, int cd2>
-Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_col(int index) const {
+Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_row(int index) const {
 
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
@@ -135,7 +135,7 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_col(int index) const {
   int v1 = vc.v(index);
   int c1 = vc.c(index);
 
-  Eigen::VectorXd Hcol = Eigen::VectorXd::Zero(_bse_size);
+  Eigen::RowVectorXd Hrow = Eigen::VectorXd::Zero(_bse_size);
 
   const Eigen::MatrixXd Mmn2T =
       (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
@@ -147,10 +147,10 @@ Eigen::VectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_col(int index) const {
 
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     int i2 = vc.I(v2, 0);
-    Hcol.segment(i2, _bse_ctotal) = -Mmn1xMmn2T.col(v2);
+    Hrow.segment(i2, _bse_ctotal) = -Mmn1xMmn2T.col(v2);
   }
 
-  return Hcol;
+  return Hrow;
 }
 
 template class BSE_OPERATOR<1, 2, 1, 0>;

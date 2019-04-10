@@ -90,6 +90,8 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA();
   TripletOperator_TDA getTripletOperator_TDA();
 
+  Eigen::MatrixXd GetComponentMatrix(std::string name);
+
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
 

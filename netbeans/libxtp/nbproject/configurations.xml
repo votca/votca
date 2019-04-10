@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -207,7 +207,6 @@
         <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
-        <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/bse_operator.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gw.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
@@ -3629,8 +3628,6 @@
       </item>
       <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/gwbse/bse_operator.cc"
             ex="false"
             tool="1"
@@ -4636,8 +4633,6 @@
       <item path="../../src/libxtp/grid.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse_operator.cc"
             ex="false"
