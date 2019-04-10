@@ -19,6 +19,7 @@
 
 #ifndef VOTCA_XTP_GWBSE_H
 #define VOTCA_XTP_GWBSE_H
+
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/eigen.h>
@@ -67,17 +68,14 @@ class GWBSE {
   Orbitals& _orbitals;
 
   // program tasks
-  bool _do_qp_diag;
-  bool _do_bse_diag;
-  bool _do_bse_singlets;
-  bool _do_bse_triplets;
+
+  bool _do_gw = false;
+  bool _do_bse_singlets = false;
+  bool _do_bse_triplets = false;
 
   // storage tasks
-  bool _store_qp_pert;
-  bool _store_qp_diag;
-  bool _store_bse_singlets;
-  bool _store_bse_triplets;
-  bool _store_eh_interaction;
+  bool _store_bse_singlets = false;
+  bool _store_bse_triplets = false;
 
   // options for own Vxc calculation
   bool _doVxc;

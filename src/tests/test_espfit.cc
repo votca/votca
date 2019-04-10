@@ -229,23 +229,6 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   }
   BOOST_CHECK_EQUAL(check_esp_num, 1);
 
-  esp.Fit2Density_analytic(orbitals, gs);
-  Eigen::VectorXd pcharges_anal =
-      Eigen::VectorXd::Zero(orbitals.Multipoles().size());
-  index = 0;
-  for (const auto& site : orbitals.Multipoles()) {
-    pcharges_anal(index) = site.getCharge();
-    index++;
-  }
-
-  bool check_esp_ana = p_ref.isApprox(pcharges_anal, 0.01);
-  if (!check_esp_ana) {
-    cout << "ref" << endl;
-    cout << p_ref << endl;
-    cout << "calc" << endl;
-    cout << pcharges_anal << endl;
-  }
-  BOOST_CHECK_EQUAL(check_esp_ana, 1);
   std::vector<std::pair<int, int> > pairconstraint;
   std::pair<int, int> p1;
   p1.first = 1;
@@ -297,6 +280,94 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
               << pcharges_reg.segment(1, 3).sum() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_reg, 1);
+}
+
+BOOST_AUTO_TEST_CASE(analytic_vs_numeric) {
+
+  ofstream xyzfile("molecule.xyz");
+  xyzfile << " 1" << endl;
+  xyzfile << " carbon" << endl;
+  xyzfile << " C            .000000     .000000     .000000" << endl;
+  xyzfile.close();
+
+  ofstream basisfile("3-21G.xml");
+  basisfile << "<basis name=\"3-21G\">" << endl;
+  basisfile << "  <element name=\"C\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+  basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+  basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+  basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+  basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
+            << endl;
+  basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
+            << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "</basis>" << endl;
+  basisfile.close();
+
+  Orbitals orbitals;
+  orbitals.setDFTbasisName("3-21G.xml");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
+  QMState gs = QMState("n");
+  orbitals.MOCoefficients() = Eigen::MatrixXd::Identity(9, 9);
+  Logger log;
+
+  Espfit esp = Espfit(log);
+  esp.setUseSVD(1e-8);
+
+  esp.Fit2Density_analytic(orbitals, gs);
+  Eigen::VectorXd pcharges_anal =
+      Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
+  int index = 0;
+  for (const StaticSite& atom : orbitals.Multipoles()) {
+    pcharges_anal(index) = atom.getCharge();
+    index++;
+  }
+
+  esp.Fit2Density(orbitals, gs, "medium");
+  Eigen::VectorXd pcharges = Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
+  index = 0;
+  for (const StaticSite& atom : orbitals.Multipoles()) {
+    pcharges(index) = atom.getCharge();
+    index++;
+  }
+
+  bool check_esp_ana = pcharges.isApprox(pcharges_anal, 0.01);
+  if (!check_esp_ana) {
+    cout << "numeric" << endl;
+    cout << pcharges << endl;
+    cout << "analytic" << endl;
+    cout << pcharges_anal << endl;
+  }
+  BOOST_CHECK_EQUAL(check_esp_ana, 1);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

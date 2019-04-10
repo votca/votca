@@ -19,22 +19,9 @@
 
 #ifndef VOTCA_XTP_EIGEN_H
 #define VOTCA_XTP_EIGEN_H
+
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
-#if (GWBSE_DOUBLE)
-#define real_gwbse double
-#else
-#define real_gwbse float
-#endif
-
-namespace votca {
-namespace xtp {
-
-typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, Eigen::Dynamic> MatrixXfd;
-typedef Eigen::Matrix<real_gwbse, Eigen::Dynamic, 1> VectorXfd;
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
-
-}  // namespace xtp
-}  // namespace votca
 
 #endif  // VOTCA_XTP_EIGEN_H

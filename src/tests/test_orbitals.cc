@@ -295,7 +295,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
   }
   BOOST_CHECK_EQUAL(check_dmat_gs, 1);
   orb.setTDAApprox(false);
-  orb.BSESingletCoefficients() = MatrixXfd::Zero(25, 2);
+  orb.BSESingletCoefficients() = Eigen::MatrixXd::Zero(25, 2);
 
   orb.BSESingletCoefficients() << -9.172325499316926E-6, 6.465589452839982E-6,
       3.7017109343430703E-4, -9.603903429750687E-5, -1.1309760027198494E-4,
@@ -315,7 +315,7 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
       0.02011572854778333, -0.022825383620618405, 0.016907164519736315,
       -8.594057567669325E-4, -0.01566776126491342, -0.0036991931035359783;
 
-  orb.BSESingletCoefficientsAR() = MatrixXfd::Zero(25, 2);
+  orb.BSESingletCoefficientsAR() = Eigen::MatrixXd::Zero(25, 2);
   orb.BSESingletCoefficientsAR() << 8.507035131871254E-6, -7.771078153320694E-6,
       -6.592414632166431E-4, 1.8308223920734227E-4, 1.9536776547437147E-4,
       6.525900973931339E-4, 3.278603510053265E-5, -9.958063857447739E-5,
@@ -623,7 +623,7 @@ BOOST_AUTO_TEST_CASE(dipole_test) {
   orbitals.setBSEindices(0, 16);
   orbitals.setTDAApprox(true);
 
-  MatrixXfd spsi_ref = MatrixXfd::Zero(60, 1);
+  Eigen::MatrixXd spsi_ref = Eigen::MatrixXd::Zero(60, 1);
   spsi_ref << -0.000150849, 0.00516987, 0.0511522, 0.00428958, -0.00966668,
       -0.000155227, 1.02978e-08, 5.82225e-05, -0.00216177, 0.00907102,
       6.297e-09, -9.84993e-11, 0.00159727, 0.0039042, 0.0481196, 0.00495382,

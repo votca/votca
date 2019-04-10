@@ -75,20 +75,20 @@ class IQM : public ParallelXJobCalc<std::vector<Job*>, Job*, Job::JobResult> {
   tools::Property _dftcoupling_options;
 
   // what to do
-  bool _do_dft_input;
-  bool _do_dft_run;
-  bool _do_dft_parse;
-  bool _do_dftcoupling;
-  bool _do_gwbse;
-  bool _do_bsecoupling;
+  bool _do_dft_input = false;
+  bool _do_dft_run = false;
+  bool _do_dft_parse = false;
+  bool _do_dftcoupling = false;
+  bool _do_gwbse = false;
+  bool _do_bsecoupling = false;
 
   std::vector<std::string> _linker_names;
 
   // what to write in the storage
-  bool _store_dft;
-  bool _store_singlets;
-  bool _store_triplets;
-  bool _store_ehint;
+  bool _store_dft = false;
+  bool _store_singlets = false;
+  bool _store_triplets = false;
+  bool _store_gw = false;
 
   // parsing options
   std::map<std::string, QMState> _singlet_levels;
