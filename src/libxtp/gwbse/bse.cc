@@ -122,26 +122,22 @@ Eigen::MatrixXd BSE::GetComponentMatrix(std::string name) {
     HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
     configureBSEOperator(H);
     hmat = H.get_full_matrix();
-  }
-  else if (name == "Hx") {
+  } else if (name == "Hx") {
     HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
     configureBSEOperator(H);
     hmat = H.get_full_matrix();
-  }
-  else if (name == "Hd") {
-    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);  
+  } else if (name == "Hd") {
+    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
     configureBSEOperator(H);
     hmat = H.get_full_matrix();
-  }
-  else if (name == "Hd2") {
-    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);  
+  } else if (name == "Hd2") {
+    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
     configureBSEOperator(H);
     hmat = H.get_full_matrix();
   }
 
   return hmat;
 }
-
 
 template <typename BSE_OPERATOR>
 void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
@@ -158,7 +154,7 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
   if (_opt.davidson) {
 
     DavidsonSolver DS(_log);
-    
+
     DS.set_correction(_opt.davidson_correction);
     DS.set_tolerance(_opt.davidson_tolerance);
     DS.set_ortho(_opt.davidson_ortho);

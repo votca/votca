@@ -37,8 +37,8 @@ void DavidsonSolver::set_ortho(std::string method) {
   else if (method == "QR")
     this->_davidson_ortho = ORTHO::QR;
   else
-    throw std::runtime_error(method +
-                  " is not a valid Davidson orthogonalization method");
+    throw std::runtime_error(
+        method + " is not a valid Davidson orthogonalization method");
 }
 
 void DavidsonSolver::set_correction(std::string method) {
@@ -85,17 +85,16 @@ int DavidsonSolver::get_size_update(int neigen) {
       break;
     case UPDATE::SAFE:
       if (neigen < 20)
-        size_update = static_cast<int>(1.5*neigen);
+        size_update = static_cast<int>(1.5 * neigen);
       else
         size_update = neigen + 10;
       break;
     case UPDATE::MAX:
       size_update = 2 * neigen;
       break;
-    default :
+    default:
       size_update = 2 * neigen;
-      break; 
-
+      break;
   }
   return size_update;
 }
@@ -170,8 +169,9 @@ Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho(const Eigen::MatrixXd &A,
   for (int j = nstart; j < A.cols(); ++j) {
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
-      throw std::runtime_error("Linear dependencies in Gram-Schmidt. Switch to QR");
-    } 
+      throw std::runtime_error(
+          "Linear dependencies in Gram-Schmidt. Switch to QR");
+    }
     Q.col(j).normalize();
   }
   return Q;

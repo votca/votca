@@ -273,7 +273,7 @@ void GWBSE::Initialize(tools::Property& options) {
           key + ".vxc.grid", "medium");
     }
   }
-
+  
   if (options.exists(key + ".gwbasis")) {
     _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
         key + ".gwbasis");

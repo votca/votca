@@ -15,8 +15,8 @@
  * limitations under the License.
  *
  */
-#include <iostream>
 #include <votca/xtp/matrixfreeoperator.h>
+#include <iostream>
 
 namespace votca {
 namespace xtp {

@@ -107,11 +107,12 @@ class DavidsonSolver {
     if (_max_search_space > op_size) {
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp() << " Warning Max search space ("
-          << _max_search_space << ") larger than system size (" << op_size << ")"
-          << flush;
+          << _max_search_space << ") larger than system size (" << op_size
+          << ")" << flush;
       _max_search_space = op_size;
       CTP_LOG(ctp::logDEBUG, _log)
-          << ctp::TimeStamp() << " Max search space set to " << op_size << flush;
+          << ctp::TimeStamp() << " Max search space set to " << op_size
+          << flush;
     }
 
     // initial guess size
@@ -155,18 +156,18 @@ class DavidsonSolver {
       Eigen::MatrixXd U = es.eigenvectors();
 
       // Ritz eigenvectors
-      q = V*U;
+      q = V * U;
 
       // precompute A*Q - lambda Q
       Eigen::MatrixXd Aq = A * q - q * lambda.asDiagonal();
-      
+
       // correction vectors
       nupdate = 0;
       for (int j = 0; j < size_update; j++) {
 
         // skip the root that have already converged
         if (root_converged[j]) {
-          continue; 
+          continue;
         }
         nupdate += 1;
 
@@ -197,13 +198,12 @@ class DavidsonSolver {
       percent_converged = 100 * root_converged.head(neigen).sum() / neigen;
       CTP_LOG(ctp::logDEBUG, _log)
           << ctp::TimeStamp()
-          << format(
-                 " %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") %
-                 iiter % search_space % res_norm.head(neigen).maxCoeff() %
+          << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % iiter %
+                 search_space % res_norm.head(neigen).maxCoeff() %
                  percent_converged
           << flush;
 
-      // update 
+      // update
       search_space = V.cols();
 
       // break if converged
@@ -226,7 +226,7 @@ class DavidsonSolver {
       // continue otherwise
       else {
 
-        switch (this->_davidson_ortho){
+        switch (this->_davidson_ortho) {
           case ORTHO::GS:
             V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
             DavidsonSolver::update_projected_matrix<MatrixReplacement>(T, A, V);
@@ -270,7 +270,6 @@ class DavidsonSolver {
   }
 
  private:
-
   ctp::Logger &_log;
   int _iter_max = 50;
   double _tol = 1E-4;
@@ -282,7 +281,7 @@ class DavidsonSolver {
   enum UPDATE { MIN, SAFE, MAX };
   UPDATE _davidson_update = UPDATE::SAFE;
 
-  enum ORTHO { GS, QR};
+  enum ORTHO { GS, QR };
   ORTHO _davidson_ortho = ORTHO::GS;
 
   Eigen::VectorXd _eigenvalues;

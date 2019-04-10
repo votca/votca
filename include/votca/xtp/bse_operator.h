@@ -73,7 +73,6 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   ctp::Logger& _log;
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
-  
 };
 
 // type defs for the different operators
