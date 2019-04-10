@@ -17,6 +17,8 @@
  *
  */
 
+#include <iostream>
+
 #include <votca/tools/linalg.h>
 #include <votca/xtp/bse.h>
 
@@ -112,6 +114,34 @@ void BSE::SetupHt() {
   configureBSEOperator(Ht);
   _eh_t = Ht.get_full_matrix();
 }
+
+Eigen::MatrixXd BSE::GetComponentMatrix(std::string name) {
+
+  Eigen::MatrixXd hmat;
+  if (name == "Hqp") {
+    HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  }
+  else if (name == "Hx") {
+    HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  }
+  else if (name == "Hd") {
+    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);  
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  }
+  else if (name == "Hd2") {
+    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);  
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  }
+
+  return hmat;
+}
+
 
 template <typename BSE_OPERATOR>
 void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,

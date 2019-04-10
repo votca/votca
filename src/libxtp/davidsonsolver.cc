@@ -92,6 +92,10 @@ int DavidsonSolver::get_size_update(int neigen) {
     case UPDATE::MAX:
       size_update = 2 * neigen;
       break;
+    default :
+      size_update = 2 * neigen;
+      break; 
+
   }
   return size_update;
 }

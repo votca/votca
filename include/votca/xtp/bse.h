@@ -86,6 +86,8 @@ class BSE {
   void SetupHs();
   void SetupHt();
 
+  Eigen::MatrixXd GetComponentMatrix(std::string name);
+
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
 

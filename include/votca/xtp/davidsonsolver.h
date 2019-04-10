@@ -136,13 +136,9 @@ class DavidsonSolver {
     Eigen::MatrixXd V =
         DavidsonSolver::SetupInitialEigenvectors(Adiag, size_initial_guess);
 
-    // eigenvalues/eigenvectors holder
+    // eigenvalues and Ritz Eigenvector
     Eigen::VectorXd lambda;
-    Eigen::MatrixXd U;
-
-    // temp varialbes
-    Eigen::MatrixXd Aq, q;
-    Eigen::VectorXd w,tmp;
+    Eigen::MatrixXd q;
 
     // project the matrix on the trial subspace
     Eigen::MatrixXd T = V.transpose() * (A * V);
@@ -156,13 +152,13 @@ class DavidsonSolver {
       // diagonalize the small subspace
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
       lambda = es.eigenvalues();
-      U = es.eigenvectors();
+      Eigen::MatrixXd U = es.eigenvectors();
 
       // Ritz eigenvectors
       q = V*U;
 
       // precompute A*Q - lambda Q
-      Aq = A * q - q * lambda.asDiagonal();
+      Eigen::MatrixXd Aq = A * q - q * lambda.asDiagonal();
       
       // correction vectors
       nupdate = 0;
@@ -175,7 +171,7 @@ class DavidsonSolver {
         nupdate += 1;
 
         // residue vector
-        w = Aq.col(j);
+        Eigen::VectorXd w = Aq.col(j);
         res_norm[j] = w.norm();
 
         // compute correction vector
@@ -184,7 +180,7 @@ class DavidsonSolver {
             w = DavidsonSolver::dpr_correction(w, Adiag, lambda(j));
             break;
           case CORR::OLSEN:
-            tmp = q.col(j);
+            Eigen::VectorXd tmp = q.col(j);
             w = DavidsonSolver::olsen_correction(w, tmp, Adiag, lambda(j));
             break;
         }
