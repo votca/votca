@@ -19,7 +19,7 @@ enable_language(CXX)
 #####################################################################
 
 include(CheckCXXCompilerFlag)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
@@ -40,7 +40,7 @@ endif(ENABLE_TESTING)
 #Find external packages
 ########################################################################
 
-find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options )
+find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options )
 include_directories(${Boost_INCLUDE_DIRS})
 set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
 
