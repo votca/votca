@@ -111,13 +111,16 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   }
 
   template <typename T1>
-  void ReadStaticData(hid_t ds, hid_t ds_data_type, T1 &outbuf) {
+  void ReadStaticData(hid_t ds, hid_t ds_data_type, unique_ptr<T1> &outbuf) {
     herr_t status =
-        H5Dread(ds, ds_data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, outbuf);
+        H5Dread(ds, ds_data_type, H5S_ALL, H5S_ALL, H5P_DEFAULT, outbuf.get());
     if (status < 0) {
       H5Eprint(H5E_DEFAULT, stderr);
     }
   }
+
+  void ReadBox(hid_t ds, hid_t ds_data_type, int row,
+               unique_ptr<double[]> &data_out);
 
   void CheckError(hid_t hid, std::string error_message) {
     if (hid < 0) {
