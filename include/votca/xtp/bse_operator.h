@@ -44,6 +44,8 @@ class BSE_OPERATOR : public MatrixFreeOperator {
                TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
       : _epsilon_0_inv(Hd_operator), _log(log), _Mmn(Mmn), _Hqp(Hqp){};
 
+  ~BSE_OPERATOR(){};
+
   void configure(BSEOperator_Options opt) {
     _opt = opt;
     int bse_vmax = _opt.homo;
@@ -52,6 +54,11 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     _bse_ctotal = _opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
     this->set_size(_bse_size);
+
+    if (cx != 0) {
+      _Hx_cache =
+          std::vector<Eigen::RowVectorXd>(_bse_size, Eigen::RowVectorXd(0));
+    }
   }
 
  protected:
@@ -69,9 +76,11 @@ class BSE_OPERATOR : public MatrixFreeOperator {
   int _bse_ctotal;
   int _bse_cmin;
 
-  Eigen::VectorXd _epsilon_0_inv;
+  mutable std::vector<Eigen::RowVectorXd> _Hx_cache;
+
+  const Eigen::VectorXd& _epsilon_0_inv;
   ctp::Logger& _log;
-  TCMatrix_gwbse& _Mmn;
+  const TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
 };
 
@@ -80,7 +89,8 @@ typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
 
 typedef BSE_OPERATOR<1, 4, 1, 1> SingletOperator_BTDA_ApB;
-typedef BSE_OPERATOR<1, 0, 1, -1> SingletOperator_BTDA_AmB;
+typedef BSE_OPERATOR<1, 0, 1, 1> TripletOperator_BTDA_ApB;
+typedef BSE_OPERATOR<1, 0, 1, -1> Operator_BTDA_AmB;
 
 typedef BSE_OPERATOR<1, 0, 0, 0> HqpOperator;
 typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;

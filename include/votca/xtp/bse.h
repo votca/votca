@@ -30,6 +30,11 @@
 namespace votca {
 namespace xtp {
 
+template <int cqp, int cx, int cd, int cd2>
+class BSE_OPERATOR;
+typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
+typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
+
 class BSE {
 
  public:
@@ -37,13 +42,12 @@ class BSE {
       const Eigen::MatrixXd& Hqp)
       : _log(log),
         _orbitals(orbitals),
-        _eh_s(orbitals.eh_s()),
-        _eh_t(orbitals.eh_t()),
         _bse_singlet_energies(orbitals.BSESingletEnergies()),
         _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
         _bse_triplet_energies(orbitals.BSETripletEnergies()),
         _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
+        _bse_triplet_coefficients_AR(orbitals.BSETripletCoefficientsAR()),
         _Mmn(Mmn),
         _Hqp(Hqp){};
 
@@ -96,20 +100,18 @@ class BSE {
   void Solve_singlets();
   void Solve_triplets();
 
-  void SetupHs();
-  void SetupHt();
+  SingletOperator_TDA getSingletOperator_TDA();
+  TripletOperator_TDA getTripletOperator_TDA();
 
   Eigen::MatrixXd GetComponentMatrix(std::string name);
 
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
 
-  void FreeMatrices() {
-    _eh_t.resize(0, 0);
-    _eh_s.resize(0, 0);
+  void FreeTriplets() {
+    _bse_triplet_coefficients.resize(0, 0);
+    _bse_triplet_coefficients_AR.resize(0, 0);
   }
-
-  void FreeTriplets() { _bse_triplet_coefficients.resize(0, 0); }
 
   void FreeSinglets() {
     _bse_singlet_coefficients.resize(0, 0);
@@ -140,9 +142,6 @@ class BSE {
   int _bse_ctotal;
 
   Orbitals& _orbitals;
-  // BSE variables and functions
-  Eigen::MatrixXd& _eh_s;  // only for storage in orbitals object
-  Eigen::MatrixXd& _eh_t;  // only for storage in orbitals object
 
   // references are stored in orbitals object
   Eigen::VectorXd& _bse_singlet_energies;
@@ -150,6 +149,7 @@ class BSE {
   Eigen::MatrixXd& _bse_singlet_coefficients_AR;
   Eigen::VectorXd& _bse_triplet_energies;
   Eigen::MatrixXd& _bse_triplet_coefficients;
+  Eigen::MatrixXd& _bse_triplet_coefficients_AR;
 
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
@@ -159,9 +159,20 @@ class BSE {
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
 
+  void Solve_triplets_TDA();
+  void Solve_triplets_BTDA();
+
+  void PrintWeight(int i, int i_bse, QMStateType type);
+
   template <typename BSE_OPERATOR>
   void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,
                        Eigen::MatrixXd& coefficients);
+
+  template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
+  void Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
+                           Eigen::VectorXd& energies,
+                           Eigen::MatrixXd& coefficients,
+                           Eigen::MatrixXd& coefficients_AR);
 
   void printFragInfo(const Population& pop, int i);
   void printWeights(int i_bse, double weight);

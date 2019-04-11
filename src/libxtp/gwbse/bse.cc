@@ -64,13 +64,12 @@ void BSE::SetupDirectInteractionOperator() {
 //   H.configure(opt);
 // }
 
-void BSE::Solve_triplets() {
+void BSE::Solve_triplets_TDA() {
 
   TripletOperator_TDA Ht(_epsilon_0_inv, _log, _Mmn, _Hqp);
   configureBSEOperator(Ht);
   CTP_LOG(ctp::logDEBUG, _log)
       << ctp::TimeStamp() << " Setup TDA triplet hamiltonian " << flush;
-
   solve_hermitian(Ht, _bse_triplet_energies, _bse_triplet_coefficients);
 
   return;
@@ -91,6 +90,21 @@ void BSE::Solve_singlets() {
   }
 }
 
+void BSE::Solve_triplets() {
+  if (_opt.useTDA) {
+    Solve_triplets_TDA();
+  } else {
+    if (_opt.davidson) {
+      CTP_LOG(ctp::logDEBUG, _log)
+          << ctp::TimeStamp()
+          << " Davidson solver not implemented for BTDA. Full diagonalization."
+          << flush;
+      _opt.davidson = 0;
+    }
+    Solve_triplets_BTDA();
+  }
+}
+
 void BSE::Solve_singlets_TDA() {
 
   SingletOperator_TDA Hs(_epsilon_0_inv, _log, _Mmn, _Hqp);
@@ -101,18 +115,18 @@ void BSE::Solve_singlets_TDA() {
   solve_hermitian(Hs, _bse_singlet_energies, _bse_singlet_coefficients);
 }
 
-void BSE::SetupHs() {
+SingletOperator_TDA BSE::getSingletOperator_TDA() {
 
   SingletOperator_TDA Hs(_epsilon_0_inv, _log, _Mmn, _Hqp);
   configureBSEOperator(Hs);
-  _eh_s = Hs.get_full_matrix();
+  return Hs;
 }
 
-void BSE::SetupHt() {
+TripletOperator_TDA BSE::getTripletOperator_TDA() {
 
   TripletOperator_TDA Ht(_epsilon_0_inv, _log, _Mmn, _Hqp);
   configureBSEOperator(Ht);
-  _eh_t = Ht.get_full_matrix();
+  return Ht;
 }
 
 template <typename BSE_OPERATOR>
@@ -209,6 +223,33 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
 }
 
 void BSE::Solve_singlets_BTDA() {
+  SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  configureBSEOperator(Hs_ApB);
+  Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  configureBSEOperator(Hs_AmB);
+  CTP_LOG(ctp::logDEBUG, _log)
+      << ctp::TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+  Solve_antihermitian(Hs_ApB, Hs_AmB, _bse_singlet_energies,
+                      _bse_singlet_coefficients, _bse_singlet_coefficients_AR);
+}
+
+void BSE::Solve_triplets_BTDA() {
+  TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  configureBSEOperator(Ht_ApB);
+  Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  configureBSEOperator(Ht_AmB);
+  CTP_LOG(ctp::logDEBUG, _log)
+      << ctp::TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+
+  Solve_antihermitian(Ht_ApB, Ht_AmB, _bse_triplet_energies,
+                      _bse_triplet_coefficients, _bse_triplet_coefficients_AR);
+}
+
+template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
+void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
+                              Eigen::VectorXd& energies,
+                              Eigen::MatrixXd& coefficients,
+                              Eigen::MatrixXd& coefficients_AR) {
 
   // For details of the method, see EPL,78(2007)12001,
   // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
@@ -217,18 +258,9 @@ void BSE::Solve_singlets_BTDA() {
   // _ApB = (_eh_d +_eh_qp + _eh_d2 + 4.0 * _eh_x);
   // _AmB = (_eh_d +_eh_qp - _eh_d2);
 
-  SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _log, _Mmn, _Hqp);
-  configureBSEOperator(Hs_ApB);
+  Eigen::MatrixXd ApB = apb.get_full_matrix();
+  Eigen::MatrixXd AmB = amb.get_full_matrix();
 
-  // BSE_OPERATOR Hs_AmB(_orbitals, _log, _Mmn, _Hqp);
-  SingletOperator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _log, _Mmn, _Hqp);
-  configureBSEOperator(Hs_AmB);
-
-  Eigen::MatrixXd ApB = Hs_ApB.get_full_matrix();
-  Eigen::MatrixXd AmB = Hs_AmB.get_full_matrix();
-
-  CTP_LOG(ctp::logDEBUG, _log)
-      << ctp::TimeStamp() << " Setup singlet hamiltonian " << flush;
   // calculate Cholesky decomposition of A-B = LL^T. It throws an error if not
   // positive definite
   //(A-B) is not needed any longer and can be overwritten
@@ -274,9 +306,12 @@ void BSE::Solve_singlets_BTDA() {
         << ctp::TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
   }
   ApB.resize(0, 0);
+  if ((eigenvalues.array() < 0).any()) {
+    throw std::runtime_error("Negative eigenvalues in BTDA");
+  }
   Eigen::VectorXd tempvec =
       eigenvalues.cwiseSqrt();  // has to stay otherwise mkl complains
-  _bse_singlet_energies = tempvec;
+  energies = tempvec;
   // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 +
   // 1/sqrt(eps_l)L ] R_l
   //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 -
@@ -284,17 +319,15 @@ void BSE::Solve_singlets_BTDA() {
   // determine inverse of L^T
   Eigen::MatrixXd LmT = AmB.inverse().transpose();
   int dim = LmT.rows();
-  _bse_singlet_coefficients.resize(dim, _opt.nmax);  // resonant part (_X_evec)
-  _bse_singlet_coefficients_AR.resize(
-      dim, _opt.nmax);  // anti-resonant part (_Y_evec)
+  coefficients.resize(dim, _opt.nmax);     // resonant part (_X_evec)
+  coefficients_AR.resize(dim, _opt.nmax);  // anti-resonant part (_Y_evec)
   for (int level = 0; level < _opt.nmax; level++) {
-    double sqrt_eval = std::sqrt(_bse_singlet_energies(level));
+    double sqrt_eval = std::sqrt(energies(level));
     // get l-th reduced EV
-    _bse_singlet_coefficients.col(level) =
-        (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT + AmB) *
-         eigenvectors.col(level));
-    _bse_singlet_coefficients_AR.col(level) =
-        (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) *
+    coefficients.col(level) = (0.5 / sqrt_eval * (energies(level) * LmT + AmB) *
+                               eigenvectors.col(level));
+    coefficients_AR.col(level) =
+        (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
          eigenvectors.col(level));
   }
   return;
@@ -318,8 +351,18 @@ void BSE::printFragInfo(const Population& pop, int i) {
   return;
 }
 
-void BSE::printWeights(int i_bse, double weight) {
+void BSE::PrintWeight(int i, int i_bse, QMStateType state) {
 
+  const Eigen::MatrixXd& BSECoefs_AR = (state == QMStateType::Singlet)
+                                           ? _bse_singlet_coefficients_AR
+                                           : _bse_triplet_coefficients_AR;
+  const Eigen::MatrixXd& BSECoefs = (state == QMStateType::Singlet)
+                                        ? _bse_singlet_coefficients
+                                        : _bse_triplet_coefficients;
+  double weight = std::pow(BSECoefs(i_bse, i), 2);
+  if (!_opt.useTDA) {
+    weight -= std::pow(BSECoefs_AR(i_bse, i), 2);
+  }
   vc2index vc = vc2index(_opt.vmin, _bse_cmin, _bse_ctotal);
   if (weight > _opt.min_print_weight) {
     CTP_LOG(ctp::logINFO, _log)
@@ -385,11 +428,7 @@ void BSE::Analyze_singlets(const AOBasis& dftbasis) {
         << flush;
     for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
       // if contribution is larger than 0.2, print
-      double weight = std::pow(_bse_singlet_coefficients(i_bse, i), 2);
-      if (_bse_singlet_coefficients_AR.rows() > 0) {
-        weight -= std::pow(_bse_singlet_coefficients_AR(i_bse, i), 2);
-      }
-      printWeights(i_bse, weight);
+      PrintWeight(i, i_bse, singlet);
     }
     // results of fragment population analysis
     if (dftbasis.getAOBasisFragA() > 0 && dftbasis.getAOBasisFragB() > 0) {
@@ -438,8 +477,7 @@ void BSE::Analyze_triplets(const AOBasis& dftbasis) {
     }
     for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
       // if contribution is larger than 0.2, print
-      double weight = pow(_bse_triplet_coefficients(i_bse, i), 2);
-      printWeights(i_bse, weight);
+      PrintWeight(i, i_bse, triplet);
     }
     // results of fragment population analysis
     if (dftbasis.getAOBasisFragA() > 0) {
@@ -456,26 +494,21 @@ template <typename BSE_OPERATOR>
 Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type,
                                                     const BSE_OPERATOR& H) {
   Eigen::VectorXd contrib = Eigen::VectorXd::Zero(_opt.nmax);
-  if (type == QMStateType::Singlet) {
-    for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
-      Eigen::MatrixXd slice_R =
-          _bse_singlet_coefficients.block(0, i_exc, _bse_size, 1);
-      contrib(i_exc) = (slice_R.transpose() * (H * slice_R)).value();
-      if (_bse_singlet_coefficients_AR.cols() > 0) {
-        Eigen::MatrixXd slice_AR =
-            _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
-        // get anti-resonant contribution from direct Keh
-        contrib(i_exc) -= (slice_AR.transpose() * (H * slice_AR)).value();
-      }
+  const Eigen::MatrixXd& BSECoefs_AR = (type == QMStateType::Singlet)
+                                           ? _bse_singlet_coefficients_AR
+                                           : _bse_triplet_coefficients_AR;
+  const Eigen::MatrixXd& BSECoefs = (type == QMStateType::Singlet)
+                                        ? _bse_singlet_coefficients
+                                        : _bse_triplet_coefficients;
+
+  for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
+    Eigen::MatrixXd slice_R = BSECoefs.block(0, i_exc, _bse_size, 1);
+    contrib(i_exc) = (slice_R.transpose() * (H * slice_R)).value();
+    if (!_opt.useTDA) {
+      Eigen::MatrixXd slice_AR = BSECoefs_AR.block(0, i_exc, _bse_size, 1);
+      // get anti-resonant contribution from direct Keh
+      contrib(i_exc) -= (slice_AR.transpose() * (H * slice_AR)).value();
     }
-  } else if (type == QMStateType::Triplet) {
-    for (int i_exc = 0; i_exc < _opt.nmax; i_exc++) {
-      Eigen::MatrixXd slice_R =
-          _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
-      contrib(i_exc) = (slice_R.transpose() * (H * slice_R)).value();
-    }
-  } else {
-    throw std::runtime_error("BSE::Analyze_eh_interaction:Spin not known!");
   }
   return contrib;
 }

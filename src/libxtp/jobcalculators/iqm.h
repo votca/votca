@@ -47,7 +47,7 @@ class IQM : public ctp::ParallelXJobCalc<vector<ctp::Job*>, ctp::Job*,
                                          ctp::Job::JobResult> {
  public:
   void Initialize(tools::Property* options);
-  string Identify() { return "iqm"; }
+  std::string Identify() { return "iqm"; }
   ctp::Job::JobResult EvalJob(ctp::Topology* top, ctp::Job* job,
                               ctp::QMThread* Thread);
   void WriteJobFile(ctp::Topology* top);
@@ -59,8 +59,8 @@ class IQM : public ctp::ParallelXJobCalc<vector<ctp::Job*>, ctp::Job*,
   double GetDFTCouplingFromProp(tools::Property& dftprop, int stateA,
                                 int stateB);
   void SetJobToFailed(ctp::Job::JobResult& jres, ctp::Logger* pLog,
-                      const string& errormessage);
-  void WriteLoggerToFile(const string& logfile, ctp::Logger& logger);
+                      const std::string& errormessage);
+  void WriteLoggerToFile(const std::string& logfile, ctp::Logger& logger);
   void addLinkers(std::vector<ctp::Segment*>& segments, ctp::Topology* top);
   bool isLinker(const std::string& name);
   void WriteCoordinatesToOrbitalsPBC(ctp::QMPair& pair, Orbitals& orbitals);
@@ -70,27 +70,27 @@ class IQM : public ctp::ParallelXJobCalc<vector<ctp::Job*>, ctp::Job*,
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,
                             const std::string& elementname) const;
 
-  string _package;
+  std::string _package;
   Property _dftpackage_options;
   Property _gwbse_options;
   Property _bsecoupling_options;
   Property _dftcoupling_options;
 
   // what to do
-  bool _do_dft_input;
-  bool _do_dft_run;
-  bool _do_dft_parse;
-  bool _do_dftcoupling;
-  bool _do_gwbse;
-  bool _do_bsecoupling;
+  bool _do_dft_input = false;
+  bool _do_dft_run = false;
+  bool _do_dft_parse = false;
+  bool _do_dftcoupling = false;
+  bool _do_gwbse = false;
+  bool _do_bsecoupling = false;
 
   std::vector<std::string> _linker_names;
 
   // what to write in the storage
-  bool _store_dft;
-  bool _store_singlets;
-  bool _store_triplets;
-  bool _store_ehint;
+  bool _store_dft = false;
+  bool _store_singlets = false;
+  bool _store_triplets = false;
+  bool _store_gw = false;
 
   // parsing options
   std::map<std::string, QMState> _singlet_levels;

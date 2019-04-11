@@ -270,25 +270,6 @@ class Orbitals {
 
   Eigen::MatrixXd& QPdiagCoefficients() { return _QPdiag_coefficients; }
 
-  // access to eh interaction
-  bool hasEHinteraction_triplet() const {
-    return (_eh_t.cols() > 0) ? true : false;
-  }
-
-  bool hasEHinteraction_singlet() const {
-    return (_eh_s.cols() > 0) ? true : false;
-  }
-
-  const Eigen::MatrixXd& eh_s() const { return _eh_s; }
-
-  Eigen::MatrixXd& eh_s() { return _eh_s; }
-
-  const Eigen::MatrixXd& eh_t() const { return _eh_t; }
-
-  Eigen::MatrixXd& eh_t() { return _eh_t; }
-
-  // access to triplet energies and wave function coefficients
-
   bool hasBSETriplets() const {
     return (_BSE_triplet_energies.cols() > 0) ? true : false;
   }
@@ -305,6 +286,14 @@ class Orbitals {
 
   Eigen::MatrixXd& BSETripletCoefficients() {
     return _BSE_triplet_coefficients;
+  }
+
+  const Eigen::MatrixXd& BSETripletCoefficientsAR() const {
+    return _BSE_triplet_coefficients_AR;
+  }
+
+  Eigen::MatrixXd& BSETripletCoefficientsAR() {
+    return _BSE_triplet_coefficients_AR;
   }
 
   // access to singlet energies and wave function coefficients
@@ -533,9 +522,6 @@ class Orbitals {
   Eigen::VectorXd _QPdiag_energies;
   Eigen::MatrixXd _QPdiag_coefficients;
   // excitons
-
-  Eigen::MatrixXd _eh_t;
-  Eigen::MatrixXd _eh_s;
   Eigen::VectorXd _BSE_singlet_energies;
   Eigen::MatrixXd _BSE_singlet_coefficients;
   Eigen::MatrixXd _BSE_singlet_coefficients_AR;
@@ -543,6 +529,7 @@ class Orbitals {
   std::vector<tools::vec> _transition_dipoles;
   Eigen::VectorXd _BSE_triplet_energies;
   Eigen::MatrixXd _BSE_triplet_coefficients;
+  Eigen::MatrixXd _BSE_triplet_coefficients_AR;
 
   std::vector<Eigen::VectorXd> _DqS_frag;  // fragment charge changes in exciton
 

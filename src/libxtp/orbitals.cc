@@ -125,8 +125,6 @@ void Orbitals::copy(const Orbitals& orbital) {
   _QPdiag_coefficients = orbital._QPdiag_coefficients;
   // excitons
 
-  _eh_t = orbital._eh_t;
-  _eh_s = orbital._eh_s;
   _BSE_singlet_energies = orbital._BSE_singlet_energies;
   _BSE_singlet_coefficients = orbital._BSE_singlet_coefficients;
   _BSE_singlet_coefficients_AR = orbital._BSE_singlet_coefficients_AR;
@@ -134,6 +132,7 @@ void Orbitals::copy(const Orbitals& orbital) {
   _transition_dipoles = orbital._transition_dipoles;
   _BSE_triplet_energies = orbital._BSE_triplet_energies;
   _BSE_triplet_coefficients = orbital._BSE_triplet_coefficients;
+  _BSE_triplet_coefficients_AR = orbital._BSE_triplet_coefficients_AR;
 
   _DqS_frag = orbital._DqS_frag;  // fragment charge changes in exciton
   _DqT_frag = orbital._DqT_frag;
@@ -344,7 +343,7 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
 std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
   std::vector<Eigen::MatrixXd> dmat = DensityMatrixExcitedState_R(state);
-  if (!_useTDA && state.Type() == QMStateType::Singlet) {
+  if (!_useTDA) {
     std::vector<Eigen::MatrixXd> dmat_AR = DensityMatrixExcitedState_AR(state);
     dmat[0] -= dmat_AR[0];
     dmat[1] -= dmat_AR[1];
@@ -440,12 +439,16 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs) const {
 
 std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
     const QMState& state) const {
-  if (state.Type() != QMStateType::Singlet) {
+
+  if (!state.Type().isExciton()) {
     throw runtime_error(
-        "Spin type not known for density matrix. Available is singlet");
+        "Spin type not known for density matrix. Available are singlet and "
+        "triplet");
   }
 
-  const Eigen::MatrixXd& BSECoefs_AR = _BSE_singlet_coefficients_AR;
+  const Eigen::MatrixXd& BSECoefs_AR = (state.Type() == QMStateType::Singlet)
+                                           ? _BSE_singlet_coefficients_AR
+                                           : _BSE_triplet_coefficients_AR;
   if (BSECoefs_AR.cols() < state.Index() + 1 || BSECoefs_AR.rows() < 2) {
     throw runtime_error("Orbitals object has no information about state:" +
                         state.ToString());
@@ -769,9 +772,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_QPdiag_energies, "QPdiag_energies");
 
   w(_QPdiag_coefficients, "QPdiag_coefficients");
-  w(_eh_t, "eh_t");
-
-  w(_eh_s, "eh_s");
 
   w(_BSE_singlet_energies, "BSE_singlet_energies");
 
@@ -783,6 +783,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(_BSE_triplet_energies, "BSE_triplet_energies");
   w(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
+  w(_BSE_triplet_coefficients_AR, "BSE_triplet_coefficients_AR");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -853,9 +854,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_QPdiag_energies, "QPdiag_energies");
 
   r(_QPdiag_coefficients, "QPdiag_coefficients");
-  r(_eh_t, "eh_t");
-
-  r(_eh_s, "eh_s");
 
   r(_BSE_singlet_energies, "BSE_singlet_energies");
 
@@ -867,6 +865,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(_BSE_triplet_energies, "BSE_triplet_energies");
   r(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
+  r(_BSE_triplet_coefficients_AR, "BSE_triplet_coefficients_AR");
 }
 }  // namespace xtp
 }  // namespace votca
