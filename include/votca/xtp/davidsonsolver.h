@@ -22,9 +22,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include <votca/xtp/eigen.h>
-#include <votca/ctp/logger.h>
 #include <boost/format.hpp>
+#include <votca/ctp/logger.h>
+#include <votca/xtp/eigen.h>
 
 using boost::format;
 using std::flush;
