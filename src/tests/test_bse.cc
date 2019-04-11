@@ -18,6 +18,7 @@
 #define BOOST_TEST_MODULE bse_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/bse.h>
+#include <votca/xtp/bse_operator.h>
 #include <votca/xtp/convergenceacc.h>
 
 using namespace votca::xtp;

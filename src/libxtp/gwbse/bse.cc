@@ -53,16 +53,16 @@ void BSE::SetupDirectInteractionOperator() {
   }
 }
 
-template <typename BSE_OPERATOR>
-void BSE::configureBSEOperator(BSE_OPERATOR& H) {
-  BSEOperator_Options opt;
-  opt.cmax = _opt.cmax;
-  opt.homo = _opt.homo;
-  opt.qpmin = _opt.qpmin;
-  opt.rpamin = _opt.rpamin;
-  opt.vmin = _opt.vmin;
-  H.configure(opt);
-}
+// template <typename BSE_OPERATOR>
+// void BSE::configureBSEOperator(BSE_OPERATOR& H) {
+//   BSEOperator_Options opt;
+//   opt.cmax = _opt.cmax;
+//   opt.homo = _opt.homo;
+//   opt.qpmin = _opt.qpmin;
+//   opt.rpamin = _opt.rpamin;
+//   opt.vmin = _opt.vmin;
+//   H.configure(opt);
+// }
 
 void BSE::Solve_triplets() {
 
@@ -113,30 +113,6 @@ void BSE::SetupHt() {
   TripletOperator_TDA Ht(_epsilon_0_inv, _log, _Mmn, _Hqp);
   configureBSEOperator(Ht);
   _eh_t = Ht.get_full_matrix();
-}
-
-Eigen::MatrixXd BSE::GetComponentMatrix(std::string name) {
-
-  Eigen::MatrixXd hmat;
-  if (name == "Hqp") {
-    HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  } else if (name == "Hx") {
-    HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  } else if (name == "Hd") {
-    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  } else if (name == "Hd2") {
-    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  }
-
-  return hmat;
 }
 
 template <typename BSE_OPERATOR>

@@ -25,6 +25,8 @@
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 
+#include <votca/xtp/bse_operator.h>
+
 namespace votca {
 namespace xtp {
 
@@ -78,6 +80,17 @@ class BSE {
     _bse_ctotal = _opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
     SetupDirectInteractionOperator();
+  }
+
+  template <typename BSE_OPERATOR>
+  void configureBSEOperator(BSE_OPERATOR& H) {
+    BSEOperator_Options opt;
+    opt.cmax = _opt.cmax;
+    opt.homo = _opt.homo;
+    opt.qpmin = _opt.qpmin;
+    opt.rpamin = _opt.rpamin;
+    opt.vmin = _opt.vmin;
+    H.configure(opt);
   }
 
   void Solve_singlets();
@@ -146,8 +159,8 @@ class BSE {
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
 
-  template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H);
+  //template <typename BSE_OPERATOR>
+  //void configureBSEOperator(BSE_OPERATOR& H);
 
   template <typename BSE_OPERATOR>
   void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,

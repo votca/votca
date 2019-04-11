@@ -23,11 +23,8 @@
 #include <stdexcept>
 
 #include <votca/xtp/eigen.h>
-
-#include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmstate.h>
-#include <votca/xtp/rpa.h>
-#include <votca/xtp/threecenter.h>
+#include <votca/ctp/logger.h>
+#include <boost/format.hpp>
 
 using boost::format;
 using std::flush;
