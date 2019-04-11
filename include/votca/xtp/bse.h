@@ -159,9 +159,6 @@ class BSE {
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
 
-  //template <typename BSE_OPERATOR>
-  //void configureBSEOperator(BSE_OPERATOR& H);
-
   template <typename BSE_OPERATOR>
   void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,
                        Eigen::MatrixXd& coefficients);

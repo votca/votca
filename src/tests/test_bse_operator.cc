@@ -26,36 +26,34 @@
 using namespace votca::xtp;
 using namespace std;
 
-
 namespace votca {
 namespace xtp {
 
-  Eigen::MatrixXd BSE::GetComponentMatrix(std::string name) {
+Eigen::MatrixXd BSE::GetComponentMatrix(std::string name) {
 
-    Eigen::MatrixXd hmat;
-    if (name == "Hqp") {
-      HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-      BSE::configureBSEOperator(H);
-      hmat = H.get_full_matrix();
-    } else if (name == "Hx") {
-      HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-      BSE::configureBSEOperator(H);
-      hmat = H.get_full_matrix();
-    } else if (name == "Hd") {
-      HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-      BSE::configureBSEOperator(H);
-      hmat = H.get_full_matrix();
-    } else if (name == "Hd2") {
-      Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-      BSE::configureBSEOperator(H);
-      hmat = H.get_full_matrix();
-    }
-
-    return hmat;
+  Eigen::MatrixXd hmat;
+  if (name == "Hqp") {
+    HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    BSE::configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  } else if (name == "Hx") {
+    HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    BSE::configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  } else if (name == "Hd") {
+    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    BSE::configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  } else if (name == "Hd2") {
+    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    BSE::configureBSEOperator(H);
+    hmat = H.get_full_matrix();
   }
-}
-}
 
+  return hmat;
+}
+}  // namespace xtp
+}  // namespace votca
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 
