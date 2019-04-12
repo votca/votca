@@ -34,10 +34,10 @@ class BSE_TEST : public BSE {
 
   ~BSE_TEST(){};
 
-  Eigen::MatrixXd GetComponentMatrix(std::string name);
+  Eigen::MatrixXd GetComponentMatrix(const std::string &name);
 };
 
-Eigen::MatrixXd BSE_TEST::GetComponentMatrix(std::string name) {
+Eigen::MatrixXd BSE_TEST::GetComponentMatrix(const std::string &name) {
 
   Eigen::MatrixXd hmat;
   if (name == "Hqp") {
