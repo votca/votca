@@ -103,8 +103,6 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA();
   TripletOperator_TDA getTripletOperator_TDA();
 
-  Eigen::MatrixXd GetComponentMatrix(std::string name);
-
   void Analyze_triplets(const AOBasis& dftbasis);
   void Analyze_singlets(const AOBasis& dftbasis);
 
@@ -117,6 +115,12 @@ class BSE {
     _bse_singlet_coefficients.resize(0, 0);
     _bse_singlet_coefficients_AR.resize(0, 0);
   }
+
+ protected:
+  TCMatrix_gwbse& _Mmn;
+  const Eigen::MatrixXd& _Hqp;
+  Eigen::VectorXd _epsilon_0_inv;
+  ctp::Logger& _log;
 
  private:
   options _opt;
@@ -134,7 +138,6 @@ class BSE {
     Eigen::VectorXd popGs;
   };
 
-  ctp::Logger& _log;
   int _bse_vmax;
   int _bse_cmin;
   int _bse_size;
@@ -150,11 +153,6 @@ class BSE {
   Eigen::VectorXd& _bse_triplet_energies;
   Eigen::MatrixXd& _bse_triplet_coefficients;
   Eigen::MatrixXd& _bse_triplet_coefficients_AR;
-
-  TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
-
-  Eigen::VectorXd _epsilon_0_inv;
 
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
