@@ -22,12 +22,11 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <stdexcept>
-
+#include <string>
 namespace votca {
-namespace tools {
-
-using namespace std;
+namespace csg {
 
 /**
     \brief template class for object factory
@@ -48,7 +47,7 @@ class ObjectFactory {
 
  public:
   typedef T abstract_type;
-  typedef map<key_t, creator_t> assoc_map;
+  typedef std::map<key_t, creator_t> assoc_map;
 
   ObjectFactory() {}
   ~ObjectFactory(){};
@@ -70,7 +69,7 @@ class ObjectFactory {
   /**
      Create an instance of the object identified by key.
   */
-  T *Create(const key_t &key);
+  std::unique_ptr<T> Create(const key_t &key);
   bool IsRegistered(const key_t &_id) const;
 
   static ObjectFactory<key_t, T> &Instance() {
@@ -102,13 +101,13 @@ inline void ObjectFactory<key_t, T>::Register(const key_t &key) {
 }
 
 template <typename key_t, typename T>
-inline T *ObjectFactory<key_t, T>::Create(const key_t &key) {
+inline std::unique_ptr<T> ObjectFactory<key_t, T>::Create(const key_t &key) {
   typename assoc_map::const_iterator it(_objects.find(key));
   if (it != _objects.end())
-    return (it->second)();
+    return std::unique_ptr<T>((it->second)());
   else
-    throw std::runtime_error("factory key " + boost::lexical_cast<string>(key) +
-                             " not found.");
+    throw std::runtime_error(
+        "factory key " + boost::lexical_cast<std::string>(key) + " not found.");
 }
 
 template <typename key_t, typename T>
@@ -127,7 +126,7 @@ class ObjectFactoryRegister {
   }
 };
 
-}  // namespace tools
+}  // namespace csg
 }  // namespace votca
 
 #endif  // VOTCA_TOOLS_OBJECTFACTORY
