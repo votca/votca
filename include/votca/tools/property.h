@@ -150,8 +150,8 @@ class Property {
   bool HasChilds() const { return !_map.empty(); }
 
   /// iterator to iterate over properties
-  typedef std::list<Property>::iterator iterator;
-  typedef std::list<Property>::const_iterator const_iterator;
+  typedef std::vector<Property>::iterator iterator;
+  typedef std::vector<Property>::const_iterator const_iterator;
   /// \brief iterator to first child property
   iterator begin() { return _properties.begin(); }
   const_iterator begin() const { return _properties.begin(); }
@@ -159,7 +159,7 @@ class Property {
   iterator end() { return _properties.end(); }
   const_iterator end() const { return _properties.end(); }
   /// \brief number of child properties
-  std::list<Property>::size_type size() const { return _properties.size(); }
+  std::vector<Property>::size_type size() const { return _properties.size(); }
 
   /**
    * \brief return attribute as type
@@ -222,7 +222,7 @@ class Property {
  private:
   std::map<std::string, Property *> _map;
   std::map<std::string, std::string> _attributes;
-  std::list<Property> _properties;
+  std::vector<Property> _properties;
 
   std::string _name;
   std::string _value;
@@ -388,6 +388,7 @@ inline T Property::getAttribute(
   if (it != _attributes.end()) {
     return lexical_cast<T>((*it).second);
   } else {
+    std::cerr << *this << std::endl;
     throw std::runtime_error("attribute " + (*it).first + " not found\n");
   }
 }
@@ -403,6 +404,7 @@ inline T Property::getAttribute(const std::string &attribute) const {
                            "wrong type in attribute " + attribute +
                                " of element " + _path + "." + _name + "\n");
   } else {
+    std::cerr << *this << std::endl;
     throw std::runtime_error("attribute " + attribute + " not found\n");
   }
 }
