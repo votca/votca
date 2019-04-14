@@ -26,7 +26,7 @@
 #include <stdexcept>
 #include <string>
 namespace votca {
-namespace csg {
+namespace tools {
 
 /**
     \brief template class for object factory
@@ -126,7 +126,7 @@ class ObjectFactoryRegister {
   }
 };
 
-}  // namespace csg
+}  // namespace tools
 }  // namespace votca
 
 #endif  // VOTCA_TOOLS_OBJECTFACTORY
