@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -265,6 +265,7 @@
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
+      <itemPath>../../src/tests/test_bse_operator.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
@@ -3877,6 +3878,11 @@
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -4882,6 +4888,11 @@
       <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"

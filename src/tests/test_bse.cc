@@ -466,7 +466,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       7.73334e-09, 3.38363e-10;
 
   orbitals.setTDAApprox(true);
-
+  opt.useTDA = true;
   // lapack
   opt.davidson = 0;
   opt.matrixfree = 0;
