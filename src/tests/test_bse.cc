@@ -409,8 +409,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets();
-  std::vector<QMFragment<BSE_Population> > triplets;
-  bse.Analyze_triplets(triplets);
+
   bool check_se_btda =
       se_ref_btda.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_btda) {
@@ -468,12 +467,14 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       7.73334e-09, 3.38363e-10;
 
   orbitals.setTDAApprox(true);
-
+  opt.useTDA = true;
   // lapack
   opt.davidson = 0;
   opt.matrixfree = 0;
   bse.configure(opt);
   bse.Solve_triplets();
+  std::vector<QMFragment<BSE_Population> > triplets;
+  bse.Analyze_triplets(triplets);
 
   bool check_te = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
   if (!check_te) {

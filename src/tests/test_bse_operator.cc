@@ -17,50 +17,11 @@
 
 #define BOOST_TEST_MODULE bse_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/bse.h>
-#include <votca/xtp/bse_operator.h>
-#include <votca/xtp/convergenceacc.h>
-
 #include <fstream>
+#include <votca/xtp/bse_operator.h>
 
 using namespace votca::xtp;
 using namespace std;
-
-class BSE_TEST : public BSE {
-
- public:
-  BSE_TEST(Orbitals& orbitals, votca::ctp::Logger& log, TCMatrix_gwbse& Mmn,
-           const Eigen::MatrixXd& Hqp)
-      : BSE(orbitals, log, Mmn, Hqp) {}
-
-  ~BSE_TEST(){};
-
-  Eigen::MatrixXd GetComponentMatrix(const std::string& name);
-};
-
-Eigen::MatrixXd BSE_TEST::GetComponentMatrix(const std::string& name) {
-
-  Eigen::MatrixXd hmat;
-  if (name == "Hqp") {
-    HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  } else if (name == "Hx") {
-    HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  } else if (name == "Hd") {
-    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  } else if (name == "Hd2") {
-    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
-    configureBSEOperator(H);
-    hmat = H.get_full_matrix();
-  }
-
-  return hmat;
-}
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 
@@ -264,24 +225,79 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
 
-  BSE::options opt;
+  Eigen::MatrixXd rpa_op =
+      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  rpa_op << -0.0819076, 0.873256, -0.378469, 1.68023e-06, -2.36934e-06,
+      3.41943e-06, 6.54367e-07, -1.99125e-07, -7.11838e-07, 3.2758e-06,
+      -2.64521e-06, -3.24863e-06, 0.0686844, 2.15553e-06, 2.93749e-06,
+      -4.11309e-07, 0.287679, 0.0240972, -0.426346, -0.333171, 1.65383e-06,
+      -2.28096e-06, 3.29356e-06, 9.00551e-07, -1.53341e-07, -9.39699e-07,
+      6.0863e-06, -5.047e-06, -6.01352e-06, 0.146325, 6.04035e-06, 8.27975e-06,
+      -8.64375e-07, 0.827789, -8.39873e-07, -8.90182e-08, -3.00985e-06,
+      -0.289232, -0.329216, -0.368304, -0.175029, -0.124768, -0.260247,
+      -0.167733, -0.432036, 0.489164, 9.22329e-06, -0.221579, 0.0579262,
+      -0.227726, 1.09716e-06, -3.57458e-06, -3.57667e-07, -8.10118e-06,
+      -0.245541, 0.466143, -0.223846, 0.119718, -0.308333, 0.0673053, -0.42415,
+      0.456019, 0.257321, 3.32182e-05, -0.0937161, -0.308819, 0.0126313,
+      4.8962e-06, -1.16485e-06, -1.28266e-07, -2.65886e-06, 0.428652, 0.0448793,
+      -0.376736, -0.262609, -0.0574013, 0.204137, 0.496016, 0.24385, 0.385456,
+      3.50738e-06, -0.215483, 0.0747438, 0.228675, 1.25422e-06, -0.204121,
+      0.199358, 0.842556, -3.45133e-06, 4.58146e-06, -6.81122e-06, -1.26095e-06,
+      7.92269e-07, 1.35382e-06, -2.86268e-06, 2.12005e-06, 2.865e-06,
+      -0.0410056, 3.57738e-06, 4.80023e-06, -1.85119e-07, 0.454982, 8.28886e-07,
+      1.3967e-07, 3.57945e-06, 0.389537, 0.44339, 0.496036, -0.233035,
+      -0.166118, -0.346501, -0.0621401, -0.160059, 0.181223, 3.07702e-06,
+      -0.257915, 0.0674255, -0.265072, 9.72181e-07, 2.53048e-06, 3.30071e-07,
+      7.41356e-06, 0.330695, -0.627804, 0.301479, 0.159393, -0.41052, 0.0896121,
+      -0.157137, 0.168943, 0.0953314, 1.06852e-05, -0.109084, -0.359464,
+      0.0147028, 4.73825e-06, -5.68061e-07, -1.32258e-07, 1.03008e-06,
+      -0.577308, -0.0604421, 0.507392, -0.349645, -0.0764239, 0.271796,
+      0.183761, 0.09034, 0.142801, 1.52225e-06, -0.250819, 0.0870013, 0.266177,
+      1.2118e-06, -0.0325802, 0.00156618, 0.0506931, -0.0258426, 0.0442732,
+      -0.235944, -0.24355, -0.37576, 0.00857695, 0.0494365, -0.138083,
+      -0.583542, 0.492079, -0.340925, -0.113144, 0.00872256, -0.0648254,
+      0.48652, 0.0630491, 0.0799668, 0.00130198, -0.00223089, 0.0118918,
+      0.30399, 0.469011, -0.0107047, 0.00216364, -0.00604935, -0.0255728,
+      0.0297364, -0.62698, -0.208076, 0.0160413, 0.0452451, -0.0325854,
+      0.00156536, 0.0506936, -0.115027, -0.204617, 0.0565651, -0.0246178,
+      0.184595, -0.407309, 0.123532, 0.583497, 0.0791735, 0.492113, 0.0562797,
+      0.187558, -0.301269, -0.0648315, 0.486516, 0.0630483, 0.0799646,
+      0.00579876, 0.0103157, -0.00285252, 0.0307262, -0.230407, 0.508395,
+      0.00541004, 0.0255707, 0.00347233, 0.0297353, 0.103503, 0.344932,
+      -0.55405, 0.0452339, -0.0325877, 0.00156503, 0.0506913, 0.234616,
+      -0.022415, 0.0524573, -0.158801, 0.287808, 0.304185, -0.560812, -0.113356,
+      0.186099, 0.492121, 0.0641106, 0.209163, 0.285043, -0.0648311, 0.486518,
+      0.0630486, 0.0799664, -0.0118291, 0.00113049, -0.00264498, 0.198213,
+      -0.359236, -0.379678, -0.0245742, -0.00496569, 0.00815754, 0.0297341,
+      0.117904, 0.384664, 0.524209, 0.0452344, -0.0325816, 0.00156597,
+      0.0506945, -0.0937463, 0.182757, 0.126922, 0.426971, -0.096647, 0.094546,
+      0.387903, -0.332107, 0.318209, 0.49209, 0.220536, -0.283577, 0.0075039,
+      -0.0648279, 0.486517, 0.0630486, 0.0799651, 0.00472491, -0.00921029,
+      -0.00640003, -0.532934, 0.120634, -0.118008, 0.0169963, -0.0145519,
+      0.0139477, 0.0297365, 0.40558, -0.521511, 0.0138003, 0.0452407;
+  Eigen::VectorXd epsilon_inv = Eigen::VectorXd::Zero(aobasis.AOBasisSize());
+  Mmn.MultiplyRightWithAuxMatrix(rpa_op);
+  epsilon_inv << 0.999807798016267, 0.994206065211371, 0.917916768047073,
+      0.902913813951883, 0.902913745974602, 0.902913584797742,
+      0.853352878674581, 0.853352727016914, 0.853352541699637, 0.79703468058566,
+      0.797034577207669, 0.797034400395582, 0.787701833916331,
+      0.518976361745313, 0.518975064844033, 0.518973712898761,
+      0.459286057710524;
+
+  BSEOperator_Options opt;
   opt.cmax = 8;
-  opt.rpamax = 16;
-  opt.rpamin = 0;
-  opt.vmin = 0;
-  opt.nmax = 3;
-  opt.min_print_weight = 0.1;
-  opt.useTDA = true;
   opt.homo = 4;
   opt.qpmin = 0;
+  opt.rpamin = 0;
+  opt.vmin = 0;
 
   orbitals.setBSEindices(0, 16);
   Logger log;
 
-  BSE_TEST bse = BSE_TEST(orbitals, log, Mmn, Hqp);
-  bse.configure(opt);
+  HqpOperator Hqp_op(epsilon_inv, log, Mmn, Hqp);
+  Hqp_op.configure(opt);
+  Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();
 
-  Eigen::MatrixXd hqp_mat = bse.GetComponentMatrix("Hqp");
   Eigen::MatrixXd hqp_ref = Eigen::MatrixXd::Zero(20, 20);
   hqp_ref << 1.25798, 1.65813e-07, -1.51122e-08, -2.98465e-05, -4.16082e-07, 0,
       0, 0, 1.3401e-07, 0, 0, 0, -1.36475e-07, 0, 0, 0, -0.031166, 0, 0, 0,
@@ -326,7 +342,9 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   bool check_hqp = hqp_mat.isApprox(hqp_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hqp, true);
 
-  Eigen::MatrixXd hx_mat = bse.GetComponentMatrix("Hx");
+  HxOperator Hx(epsilon_inv, log, Mmn, Hqp);
+  Hx.configure(opt);
+  Eigen::MatrixXd hx_mat = Hx.get_full_matrix();
   Eigen::MatrixXd hx_ref = Eigen::MatrixXd::Zero(20, 20);
   hx_ref << 0.0317015, 4.06992e-08, -4.14577e-09, 9.36138e-06, 0.00091091,
       -1.20607e-05, -1.09028e-05, 2.24371e-05, -1.01492e-05, -0.000420091,
@@ -404,8 +422,9 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
 
   bool check_hx = hx_mat.isApprox(hx_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hx, true);
-
-  Eigen::MatrixXd hd_mat = bse.GetComponentMatrix("Hd");
+  HdOperator Hd(epsilon_inv, log, Mmn, Hqp);
+  Hd.configure(opt);
+  Eigen::MatrixXd hd_mat = Hd.get_full_matrix();
   Eigen::MatrixXd hd_ref = Eigen::MatrixXd::Zero(20, 20);
   hd_ref << -0.335802, -8.4393e-08, 4.23805e-08, -1.06274e-05, 0.00516896,
       -6.87255e-05, -6.18472e-05, -3.07981e-05, -5.76426e-05, -0.00238218,
@@ -484,9 +503,18 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
       0.000714173, -8.81468e-06, -0.00354179, 0.00202007, -0.297356;
 
   bool check_hd = hd_mat.isApprox(hd_ref, 0.001);
+
+  if (!check_hd) {
+    cout << "hd ref" << endl;
+    cout << hd_ref << endl;
+    cout << "hd result" << endl;
+    cout << hd_mat << endl;
+  }
   BOOST_CHECK_EQUAL(check_hd, true);
 
-  Eigen::MatrixXd hd2_mat = bse.GetComponentMatrix("Hd2");
+  Hd2Operator Hd2(epsilon_inv, log, Mmn, Hqp);
+  Hd2.configure(opt);
+  Eigen::MatrixXd hd2_mat = Hd2.get_full_matrix();
   Eigen::MatrixXd hd2_ref = Eigen::MatrixXd::Zero(20, 20);
   hd2_ref << -0.0256069, -2.91928e-08, 2.83015e-09, -7.52901e-06, -0.000289686,
       3.7802e-06, 3.45517e-06, -6.09283e-06, 3.22908e-06, 0.00013358,
@@ -566,6 +594,12 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
       -2.51858e-05, -0.0101552, 0.00579189, -0.0145753;
 
   bool check_hd2 = hd2_mat.isApprox(hd2_ref, 0.001);
+  if (!check_hd2) {
+    cout << "hd2 ref" << endl;
+    cout << hd2_ref << endl;
+    cout << "hd2 result" << endl;
+    cout << hd2_mat << endl;
+  }
   BOOST_CHECK_EQUAL(check_hd2, true);
 }
 

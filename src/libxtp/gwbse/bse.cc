@@ -26,6 +26,7 @@
 #include <votca/xtp/davidsonsolver.h>
 
 #include <chrono>
+#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
 
 using boost::format;
 using std::flush;
@@ -50,16 +51,16 @@ void BSE::SetupDirectInteractionOperator() {
   }
 }
 
-// template <typename BSE_OPERATOR>
-// void BSE::configureBSEOperator(BSE_OPERATOR& H) {
-//   BSEOperator_Options opt;
-//   opt.cmax = _opt.cmax;
-//   opt.homo = _opt.homo;
-//   opt.qpmin = _opt.qpmin;
-//   opt.rpamin = _opt.rpamin;
-//   opt.vmin = _opt.vmin;
-//   H.configure(opt);
-// }
+template <typename BSE_OPERATOR>
+void BSE::configureBSEOperator(BSE_OPERATOR& H) {
+  BSEOperator_Options opt;
+  opt.cmax = _opt.cmax;
+  opt.homo = _opt.homo;
+  opt.qpmin = _opt.qpmin;
+  opt.rpamin = _opt.rpamin;
+  opt.vmin = _opt.vmin;
+  H.configure(opt);
+}
 
 void BSE::Solve_triplets_TDA() {
 

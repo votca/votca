@@ -337,7 +337,12 @@ BOOST_AUTO_TEST_CASE(analytic_vs_numeric) {
   orbitals.setDFTbasisName("3-21G.xml");
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   QMState gs = QMState("n");
-  orbitals.MOCoefficients() = Eigen::MatrixXd::Identity(9, 9);
+  AOBasis basis = orbitals.SetupDftBasis();
+  orbitals.setBasisSetSize(8);
+  orbitals.setNumberOfOccupiedLevels(2);
+
+  orbitals.MOCoefficients() =
+      Eigen::MatrixXd::Zero(basis.AOBasisSize(), basis.AOBasisSize());
   Logger log;
 
   Espfit esp = Espfit(log);

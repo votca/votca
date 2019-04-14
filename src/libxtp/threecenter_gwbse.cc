@@ -151,7 +151,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   for (int k = 0; k < auxshell.getNumFunc(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
-        dftn.transpose() * matrix.selfadjointView<Eigen::Upper>() * dftm;
+        dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
     for (int i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }

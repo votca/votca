@@ -55,9 +55,7 @@ class BSE {
         _Hqp(Hqp){};
 
   struct options {
-
     bool useTDA = true;
-
     int homo;
     int rpamin;
     int rpamax;
@@ -67,12 +65,10 @@ class BSE {
     int nmax = 5;             // number of eigenvectors to calculate
     bool davidson = true;     // use davidson to diagonalize the matrix
     bool matrixfree = false;  // use matrix free method
-
     std::string davidson_correction = "DPR";
     std::string davidson_ortho = "GS";
     std::string davidson_tolerance = "normal";
     std::string davidson_update = "safe";
-
     int davidson_maxiter = 50;
     double min_print_weight =
         0.5;  // minimium contribution for state to print it
@@ -86,17 +82,6 @@ class BSE {
     _bse_ctotal = _opt.cmax - _bse_cmin + 1;
     _bse_size = _bse_vtotal * _bse_ctotal;
     SetupDirectInteractionOperator();
-  }
-
-  template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H) {
-    BSEOperator_Options opt;
-    opt.cmax = _opt.cmax;
-    opt.homo = _opt.homo;
-    opt.qpmin = _opt.qpmin;
-    opt.rpamin = _opt.rpamin;
-    opt.vmin = _opt.vmin;
-    H.configure(opt);
   }
 
   void Solve_singlets();
@@ -118,12 +103,6 @@ class BSE {
     _bse_singlet_coefficients_AR.resize(0, 0);
   }
 
- protected:
-  TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
-  Eigen::VectorXd _epsilon_0_inv;
-  ctp::Logger& _log;
-
  private:
   options _opt;
 
@@ -141,6 +120,7 @@ class BSE {
   int _bse_ctotal;
 
   Orbitals& _orbitals;
+  Eigen::VectorXd _epsilon_0_inv;
 
   // references are stored in orbitals object
   Eigen::VectorXd& _bse_singlet_energies;
@@ -149,6 +129,8 @@ class BSE {
   Eigen::VectorXd& _bse_triplet_energies;
   Eigen::MatrixXd& _bse_triplet_coefficients;
   Eigen::MatrixXd& _bse_triplet_coefficients_AR;
+  TCMatrix_gwbse& _Mmn;
+  const Eigen::MatrixXd& _Hqp;
 
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
@@ -157,6 +139,9 @@ class BSE {
   void Solve_triplets_BTDA();
 
   void PrintWeight(int i, int i_bse, QMStateType type);
+
+  template <typename BSE_OPERATOR>
+  void configureBSEOperator(BSE_OPERATOR& H);
 
   template <typename BSE_OPERATOR>
   void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,
