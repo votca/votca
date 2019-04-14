@@ -14,7 +14,7 @@
         </vxc>
         <shift>0.2</shift> <!-- preshift of DFT energies in Rydberg -->
         <mode>evGW</mode>
-        <tasks>singlets,triplets</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
+        <tasks>gw,singlets,triplets</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
         <store></store>
         <exctotal>25</exctotal>
 

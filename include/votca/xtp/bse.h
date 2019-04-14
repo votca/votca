@@ -28,6 +28,8 @@
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 
+#include <votca/xtp/bse_operator.h>
+
 namespace votca {
 namespace xtp {
 
@@ -86,13 +88,23 @@ class BSE {
     SetupDirectInteractionOperator();
   }
 
+  template <typename BSE_OPERATOR>
+  void configureBSEOperator(BSE_OPERATOR& H) {
+    BSEOperator_Options opt;
+    opt.cmax = _opt.cmax;
+    opt.homo = _opt.homo;
+    opt.qpmin = _opt.qpmin;
+    opt.rpamin = _opt.rpamin;
+    opt.vmin = _opt.vmin;
+    H.configure(opt);
+  }
+
   void Solve_singlets();
   void Solve_triplets();
 
   SingletOperator_TDA getSingletOperator_TDA();
   TripletOperator_TDA getTripletOperator_TDA();
 
-  Eigen::MatrixXd GetComponentMatrix(std::string name);
   void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
   void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
 
@@ -105,6 +117,12 @@ class BSE {
     _bse_singlet_coefficients.resize(0, 0);
     _bse_singlet_coefficients_AR.resize(0, 0);
   }
+
+ protected:
+  TCMatrix_gwbse& _Mmn;
+  const Eigen::MatrixXd& _Hqp;
+  Eigen::VectorXd _epsilon_0_inv;
+  ctp::Logger& _log;
 
  private:
   options _opt;
@@ -132,11 +150,6 @@ class BSE {
   Eigen::MatrixXd& _bse_triplet_coefficients;
   Eigen::MatrixXd& _bse_triplet_coefficients_AR;
 
-  TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
-
-  Eigen::VectorXd _epsilon_0_inv;
-
   void Solve_singlets_TDA();
   void Solve_singlets_BTDA();
 
@@ -144,9 +157,6 @@ class BSE {
   void Solve_triplets_BTDA();
 
   void PrintWeight(int i, int i_bse, QMStateType type);
-
-  template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H);
 
   template <typename BSE_OPERATOR>
   void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,

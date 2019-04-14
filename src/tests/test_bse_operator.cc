@@ -18,12 +18,49 @@
 #define BOOST_TEST_MODULE bse_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/bse.h>
+#include <votca/xtp/bse_operator.h>
 #include <votca/xtp/convergenceacc.h>
 
 #include <fstream>
 
 using namespace votca::xtp;
 using namespace std;
+
+class BSE_TEST : public BSE {
+
+ public:
+  BSE_TEST(Orbitals& orbitals, votca::ctp::Logger& log, TCMatrix_gwbse& Mmn,
+           const Eigen::MatrixXd& Hqp)
+      : BSE(orbitals, log, Mmn, Hqp) {}
+
+  ~BSE_TEST(){};
+
+  Eigen::MatrixXd GetComponentMatrix(const std::string& name);
+};
+
+Eigen::MatrixXd BSE_TEST::GetComponentMatrix(const std::string& name) {
+
+  Eigen::MatrixXd hmat;
+  if (name == "Hqp") {
+    HqpOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  } else if (name == "Hx") {
+    HxOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  } else if (name == "Hd") {
+    HdOperator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  } else if (name == "Hd2") {
+    Hd2Operator H(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    configureBSEOperator(H);
+    hmat = H.get_full_matrix();
+  }
+
+  return hmat;
+}
 
 BOOST_AUTO_TEST_SUITE(bse_test)
 
@@ -241,7 +278,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   orbitals.setBSEindices(0, 16);
   Logger log;
 
-  BSE bse = BSE(orbitals, log, Mmn, Hqp);
+  BSE_TEST bse = BSE_TEST(orbitals, log, Mmn, Hqp);
   bse.configure(opt);
 
   Eigen::MatrixXd hqp_mat = bse.GetComponentMatrix("Hqp");
