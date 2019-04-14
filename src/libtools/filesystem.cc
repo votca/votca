@@ -18,38 +18,35 @@
  */
 
 #include <boost/algorithm/string.hpp>
-#include <votca/tools/filesystem.h>
 #include <fstream>
+#include <votca/tools/filesystem.h>
 
 namespace votca {
 namespace tools {
 
 namespace filesystem {
 
-std::string GetFileExtension(const std::string & filename) {
-    size_t i = filename.rfind('.', filename.length());
-    if (i != std::string::npos) {
-        return (filename.substr(i + 1, filename.length() - i));
-    }
-    return ("");
+std::string GetFileExtension(const std::string& filename) {
+  size_t i = filename.rfind('.', filename.length());
+  if (i != std::string::npos) {
+    return (filename.substr(i + 1, filename.length() - i));
+  }
+  return ("");
 }
 
-    
-std::string GetFileBase(const std::string & filename){
-    size_t i = filename.rfind('.', filename.length());
-    if (i != std::string::npos) {
-        return (filename.substr(0, i));
-    }
-    return filename;
-    }
-
-    
-bool FileExists(const std::string & filename){
-    std::ifstream infile(filename);
-    return infile.good();
-    }
-
-
+std::string GetFileBase(const std::string& filename) {
+  size_t i = filename.rfind('.', filename.length());
+  if (i != std::string::npos) {
+    return (filename.substr(0, i));
+  }
+  return filename;
 }
+
+bool FileExists(const std::string& filename) {
+  std::ifstream infile(filename);
+  return infile.good();
 }
-}
+
+}  // namespace filesystem
+}  // namespace tools
+}  // namespace votca

@@ -76,10 +76,11 @@ class Tokenizer {
     for (iterator iter = begin(); iter != end(); ++iter) v.push_back(*iter);
   }
 
-  std::vector<std::string> ToVector(){
-      std::vector<std::string> result;
-      for (iterator iter = begin(); iter != end(); ++iter) result.push_back(*iter);
-      return result;
+  std::vector<std::string> ToVector() {
+    std::vector<std::string> result;
+    for (iterator iter = begin(); iter != end(); ++iter)
+      result.push_back(*iter);
+    return result;
   }
 
   /**

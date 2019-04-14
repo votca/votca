@@ -25,16 +25,15 @@ namespace tools {
 
 namespace filesystem {
 
-    //return the file ending like .jpg .gro etc.., returns an empty string otherwise
-    std::string GetFileExtension(const std::string & filename);
+// return the file ending like .jpg .gro etc.., returns an empty string
+// otherwise
+std::string GetFileExtension(const std::string& filename);
 
-    //return the filename without the file extension
-    std::string GetFileBase(const std::string & filename);
+// return the filename without the file extension
+std::string GetFileBase(const std::string& filename);
 
-    //returns true if file exists otherwise false
-    bool FileExists(const std::string & filename);
-
-    
+// returns true if file exists otherwise false
+bool FileExists(const std::string& filename);
 
 }  // namespace filesystem
 }  // namespace tools
