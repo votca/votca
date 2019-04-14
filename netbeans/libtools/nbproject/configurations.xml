@@ -13,11 +13,12 @@
       <itemPath>../../include/votca/tools/correlate.h</itemPath>
       <itemPath>../../include/votca/tools/crosscorrelate.h</itemPath>
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
+      <itemPath>../../include/votca/tools/database.h</itemPath>
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
+      <itemPath>../../include/votca/tools/edge.h</itemPath>
+      <itemPath>../../include/votca/tools/edgecontainer.h</itemPath>
       <itemPath>../../include/votca/tools/eigen.h</itemPath>
       <itemPath>../../include/votca/tools/elements.h</itemPath>
-      <itemPath>../../include/votca/tools/filesystem.h</itemPath>
-      <itemPath>../../include/votca/tools/floatingpointcomparison.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
@@ -25,17 +26,21 @@
       <itemPath>../../include/votca/tools/lexical_cast.h</itemPath>
       <itemPath>../../include/votca/tools/linalg.h</itemPath>
       <itemPath>../../include/votca/tools/linspline.h</itemPath>
+      <itemPath>../../include/votca/tools/matrix.h</itemPath>
       <itemPath>../../include/votca/tools/mutex.h</itemPath>
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
       <itemPath>../../include/votca/tools/property.h</itemPath>
       <itemPath>../../include/votca/tools/random2.h</itemPath>
       <itemPath>../../include/votca/tools/rangeparser.h</itemPath>
+      <itemPath>../../include/votca/tools/reducededge.h</itemPath>
       <itemPath>../../include/votca/tools/spline.h</itemPath>
+      <itemPath>../../include/votca/tools/statement.h</itemPath>
       <itemPath>../../include/votca/tools/table.h</itemPath>
       <itemPath>../../include/votca/tools/thread.h</itemPath>
       <itemPath>../../include/votca/tools/tokenizer.h</itemPath>
       <itemPath>../../include/votca/tools/types.h</itemPath>
+      <itemPath>../../include/votca/tools/vec.h</itemPath>
       <itemPath>../../include/votca/tools/version.h</itemPath>
       <itemPath>../../include/votca/tools/votca_config.h.in</itemPath>
     </logicalFolder>
@@ -51,15 +56,16 @@
       <itemPath>../../src/libtools/correlate.cc</itemPath>
       <itemPath>../../src/libtools/crosscorrelate.cc</itemPath>
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
+      <itemPath>../../src/libtools/database.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
       <itemPath>../../src/libtools/elements.cc</itemPath>
-      <itemPath>../../src/libtools/filesystem.cc</itemPath>
       <itemPath>../../src/libtools/globals.cc</itemPath>
       <itemPath>../../src/libtools/graphnode.cc</itemPath>
       <itemPath>../../src/libtools/histogram.cc</itemPath>
       <itemPath>../../src/libtools/histogramnew.cc</itemPath>
       <itemPath>../../src/libtools/linalg.cc</itemPath>
       <itemPath>../../src/libtools/linspline.cc</itemPath>
+      <itemPath>../../src/libtools/matrix.cc</itemPath>
       <itemPath>../../src/libtools/mutex.cc</itemPath>
       <itemPath>../../src/libtools/parcer.cc</itemPath>
       <itemPath>../../src/libtools/parsexml.cc</itemPath>
@@ -67,6 +73,7 @@
       <itemPath>../../src/libtools/random2.cc</itemPath>
       <itemPath>../../src/libtools/rangeparser.cc</itemPath>
       <itemPath>../../src/libtools/spline.cc</itemPath>
+      <itemPath>../../src/libtools/statement.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/thread.cc</itemPath>
       <itemPath>../../src/libtools/tokenizer.cc</itemPath>
@@ -77,14 +84,15 @@
       <itemPath>../../src/tests/test_edge_base.cc</itemPath>
       <itemPath>../../src/tests/test_edgecontainer.cc</itemPath>
       <itemPath>../../src/tests/test_elements.cc</itemPath>
-      <itemPath>../../../tools/src/tests/test_filesystem.cc</itemPath>
       <itemPath>../../src/tests/test_floatingpointcomparison.cc</itemPath>
       <itemPath>../../src/tests/test_graphnode.cc</itemPath>
       <itemPath>../../src/tests/test_identity.cc</itemPath>
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
+      <itemPath>../../src/tests/test_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
       <itemPath>../../src/tests/test_property.cc</itemPath>
       <itemPath>../../src/tests/test_typeconverter.cc</itemPath>
+      <itemPath>../../src/tests/test_vec.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -122,11 +130,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../tools/src/tests/test_filesystem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -169,7 +172,19 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/database.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/edge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/edgecontainer.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -177,16 +192,6 @@
       <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/elements.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/filesystem.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/floatingpointcomparison.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -223,6 +228,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/matrix.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/mutex.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/objectfactory.h"
@@ -250,7 +257,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/reducededge.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/spline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/statement.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/table.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -262,6 +279,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/types.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/vec.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/version.h"
             ex="false"
@@ -286,14 +305,14 @@
       </item>
       <item path="../../src/libtools/cubicspline.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/database.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/filesystem.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -306,6 +325,8 @@
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/mutex.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -320,6 +341,8 @@
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/statement.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -354,6 +377,8 @@
       </item>
       <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
@@ -362,6 +387,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vec.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="3">
@@ -391,11 +418,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../tools/src/tests/test_filesystem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -438,7 +460,19 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/database.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/edge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/edgecontainer.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -446,16 +480,6 @@
       <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/elements.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/filesystem.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/floatingpointcomparison.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -492,6 +516,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/matrix.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/mutex.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/objectfactory.h"
@@ -519,7 +545,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/reducededge.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/spline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/statement.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/table.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -531,6 +567,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/types.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/vec.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/version.h"
             ex="false"
@@ -555,14 +593,14 @@
       </item>
       <item path="../../src/libtools/cubicspline.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/database.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/filesystem.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -575,6 +613,8 @@
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/mutex.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -589,6 +629,8 @@
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/statement.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -623,6 +665,8 @@
       </item>
       <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
@@ -631,6 +675,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vec.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="profile_release" type="3">
@@ -660,11 +706,6 @@
           <output>../../src/libtools/libtools.a</output>
         </archiverTool>
       </compileType>
-      <item path="../../../tools/src/tests/test_filesystem.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/akimaspline.h"
             ex="false"
             tool="3"
@@ -707,7 +748,19 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/database.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/datacollection.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/edge.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/edgecontainer.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -715,16 +768,6 @@
       <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/elements.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/filesystem.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/floatingpointcomparison.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -761,6 +804,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/matrix.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/tools/mutex.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/objectfactory.h"
@@ -788,7 +833,17 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/reducededge.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/spline.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/statement.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/tools/table.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -800,6 +855,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/types.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/vec.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/version.h"
             ex="false"
@@ -824,14 +881,14 @@
       </item>
       <item path="../../src/libtools/cubicspline.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libtools/database.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/filesystem.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -844,6 +901,8 @@
       <item path="../../src/libtools/linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/linspline.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/matrix.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/mutex.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -858,6 +917,8 @@
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/statement.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/table.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -892,6 +953,8 @@
       </item>
       <item path="../../src/tests/test_linalg.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_matrix.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
@@ -900,6 +963,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_vec.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

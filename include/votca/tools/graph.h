@@ -158,8 +158,8 @@ class Graph {
  *
  * sort(vec_pr_gn.begin(),vec_pr_gn.end(),cmpVertNodePair);
  */
-bool cmpVertNodePair(std::pair<int, GraphNode>& id_and_node1,
-                     std::pair<int, GraphNode>& id_and_node2);
+bool cmpVertNodePair(const std::pair<int, GraphNode>& id_and_node1,
+                     const std::pair<int, GraphNode>& id_and_node2);
 }  // namespace tools
 }  // namespace votca
 #endif  // _VOTCA_TOOLS_GRAPH_H

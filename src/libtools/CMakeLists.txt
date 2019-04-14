@@ -24,7 +24,7 @@ add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOU
 add_dependencies(votca_tools gitversion)
 
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_tools ${Boost_LIBRARIES} ${MKL_LIBRARIES} ${SQLITE3_LIBRARIES}
+target_link_libraries(votca_tools PUBLIC ${Boost_LIBRARIES} ${MKL_LIBRARIES} PRIVATE ${SQLITE3_LIBRARIES}
   ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
