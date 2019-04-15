@@ -35,20 +35,16 @@ class Job {
  public:
   enum JobStatus { AVAILABLE, ASSIGNED, FAILED, COMPLETE };
 
-  Job(tools::Property *prop);
+  Job(tools::Property &prop);
   Job(int id, std::string &tag, std::string &input, std::string stat);
   Job(int id, std::string &tag, tools::Property &input, JobStatus stat);
-  ~Job() { ; }
 
   std::string ConvertStatus(JobStatus) const;
   JobStatus ConvertStatus(std::string) const;
 
   class JobResult {
    public:
-    JobResult() { ; }
-
     void setStatus(JobStatus stat) { _status = stat; }
-    void setStatus(std::string stat) { assert(false); }
     void setOutput(std::string output) {
       _has_output = true;
       _output = tools::Property().add("output", output);
@@ -64,15 +60,15 @@ class Job {
 
     JobStatus _status;
     tools::Property _output;
-    bool _has_output;
+    bool _has_output = false;
     std::string _error;
-    bool _has_error;
+    bool _has_error = false;
   };
 
   void Reset();
   void ToStream(std::ofstream &ofs, std::string fileformat);
-  void UpdateFrom(Job *ext);
-  void SaveResults(JobResult *res);
+  void UpdateFrom(const Job &ext);
+  void SaveResults(JobResult &res);
 
   int getId() const { return _id; }
   std::string getTag() const { return _tag; }
@@ -107,19 +103,19 @@ class Job {
   }
 
   const std::string &getHost() const {
-    assert(_has_host);
+    assert(_has_host && "Job has no host");
     return _host;
   }
   const std::string &getTime() const {
-    assert(_has_time);
+    assert(_has_time && "Job has no time");
     return _time;
   }
   const tools::Property &getOutput() const {
-    assert(_has_output);
+    assert(_has_output && "Job has no output");
     return _output;
   }
   const std::string &getError() const {
-    assert(_has_error);
+    assert(_has_error && "Job has no error");
     return _error;
   }
 
@@ -128,20 +124,18 @@ class Job {
   int _id;
   std::string _tag;
   JobStatus _status;
-  int _attemptsCount;
+  int _attemptsCount = 0;
   tools::Property _input;
-  std::string _sqlcmd;
 
   // Generated during runtime
   std::string _host;
-  bool _has_host;
+  bool _has_host = false;
   std::string _time;
-  bool _has_time;
+  bool _has_time = false;
   tools::Property _output;
-  bool _has_error;
-  bool _has_output;
+  bool _has_error = false;
+  bool _has_output = false;
   std::string _error;
-  bool _has_sqlcmd;
 };
 
 }  // namespace xtp

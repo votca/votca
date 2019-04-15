@@ -28,20 +28,8 @@ using boost::format;
 namespace votca {
 namespace xtp {
 
-template <typename JobContainer, typename pJob, typename rJob>
-bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology &top) {
-
-  // CONVERT THREADS INTO SUBTHREADS IF BENEFICIAL
-  if (_XJobs.size() < _nThreads && false) {
-    _subthreads = (_nThreads - _XJobs.size()) / _XJobs.size() + 1;
-    _nThreads = _XJobs.size();
-
-    std::cout << std::endl
-              << "... ... "
-              << "Converted threads into subthreads to increase efficiency: "
-              << "NT = " << _nThreads << ", NST = " << _subthreads
-              << std::flush;
-  }
+template <typename Job>
+bool ParallelXJobCalc<Job>::EvaluateFrame(Topology &top) {
 
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
@@ -97,12 +85,12 @@ bool ParallelXJobCalc<JobContainer, pJob, rJob>::EvaluateFrame(Topology &top) {
 }
 
 template <typename JobContainer, typename pJob, typename rJob>
-void ParallelXJobCalc<JobContainer, pJob, rJob>::JobOperator::Run(void) {
+void ParallelXJobCalc<JobContainer, pJob, rJob>::JobOperator::Run() {
 
   while (true) {
     _job = _master->_progObs->RequestNextJob(this);
 
-    if (_job == NULL) {
+    if (_job == nullptr) {
       break;
     } else {
       rJob res = this->_master->EvalJob(*_top, _job, this);

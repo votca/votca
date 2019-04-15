@@ -41,6 +41,8 @@ class AtomContainer {
   AtomContainer(std::string name, int id)
       : _name(name), _id(id), _position_valid(false){};
 
+  typedef typename std::vector<T>::iterator iterator;
+
   const std::string& getName() const { return _name; }
 
   int getId() const { return _id; }

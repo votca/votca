@@ -47,7 +47,7 @@ class IQM : public ParallelXJobCalc<std::vector<Job*>, Job*, Job::JobResult> {
  public:
   void Initialize(tools::Property& options);
   std::string Identify() { return "iqm"; }
-  Job::JobResult EvalJob(Topology& top, Job* job, QMThread* Thread);
+  Job::JobResult EvalJob(Topology& top, Job* job, QMThread& Thread);
   void WriteJobFile(Topology& top);
   void ReadJobFile(Topology& top);
 

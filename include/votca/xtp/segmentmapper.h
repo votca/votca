@@ -28,7 +28,7 @@
 
 namespace votca {
 namespace xtp {
-template <class AtomContainer, class mapAtom>
+template <class AtomContainer>
 class SegmentMapper {
  public:
   SegmentMapper(Logger& log);
@@ -38,6 +38,9 @@ class SegmentMapper {
   AtomContainer map(const Segment& seg, QMState state) const;
 
  private:
+  typedef typename std::iterator_traits<AtomContainer::iterator>::value_type
+      mapAtom;
+
   typedef std::pair<int, std::string> mapsite_id;
 
   struct FragInfo {
@@ -127,9 +130,9 @@ inline int SegmentMapper<QMMolecule, QMAtom>::getRank(
   return 0;
 }
 
-typedef SegmentMapper<QMMolecule, QMAtom> QMMapper;
-typedef SegmentMapper<StaticSegment, StaticSite> StaticMapper;
-typedef SegmentMapper<PolarSegment, PolarSite> PolarMapper;
+typedef SegmentMapper<QMMolecule> QMMapper;
+typedef SegmentMapper<StaticSegment> StaticMapper;
+typedef SegmentMapper<PolarSegment> PolarMapper;
 
 }  // namespace xtp
 }  // namespace votca
