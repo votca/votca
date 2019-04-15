@@ -47,6 +47,10 @@ class ParallelXJobCalc : public JobCalculator {
 
  public:
   class JobOperator;
+  typedef
+      typename std::iterator_traits<typename JobContainer::iterator>::value_type
+          Job;
+  typedef typename Job::JobResult Result;
 
   ParallelXJobCalc(){};
   virtual ~ParallelXJobCalc() { ; };
@@ -55,7 +59,7 @@ class ParallelXJobCalc : public JobCalculator {
 
   bool EvaluateFrame(Topology &top);
   virtual void CustomizeLogger(QMThread &thread);
-  virtual rJob EvalJob(Topology &top, pJob job, QMThread &thread) = 0;
+  virtual Result EvalJob(Topology &top, Job &job, QMThread &thread) = 0;
 
   void LockCout() { _coutMutex.Lock(); }
   void UnlockCout() { _coutMutex.Unlock(); }
@@ -68,8 +72,7 @@ class ParallelXJobCalc : public JobCalculator {
 
   class JobOperator : public QMThread {
    public:
-    JobOperator(int id, Topology *top,
-                ParallelXJobCalc<JobContainer, pJob, rJob> *master)
+    JobOperator(int id, Topology *top, ParallelXJobCalc<JobContainer> *master)
         : _top(top), _master(master) {
       _id = id;
     };
@@ -80,8 +83,8 @@ class ParallelXJobCalc : public JobCalculator {
 
    public:
     Topology *_top;
-    ParallelXJobCalc<JobContainer, pJob, rJob> *_master;
-    pJob _job;
+    ParallelXJobCalc<JobContainer> *_master;
+    Job *_job;
   };
 
  protected:

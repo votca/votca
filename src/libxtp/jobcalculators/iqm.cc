@@ -78,7 +78,7 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
   // read linker groups
   std::string linker = opt.ifExistsReturnElseReturnDefault<std::string>(
       key + ".linker_names", "");
-  tools::Tokenizer toker(linker, ",");
+  tools::Tokenizer toker(linker, ", \t\n");
   toker.ToVector(_linker_names);
 
   if (_do_dftcoupling) {
@@ -118,11 +118,10 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
   // job file specification
   key = "options." + Identify();
 
-  if (opt.exists(key + ".job_file")) {
-    _jobfile = opt.get(key + ".job_file").as<std::string>();
-  } else {
-    throw std::runtime_error("Job-file not set. Abort.");
-  }
+  _jobfile =
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".job_file");
+  _mapfile =
+      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".map_file");
 
   return;
 }
@@ -170,7 +169,7 @@ bool IQM::isLinker(const std::string& name) {
           _linker_names.end());
 }
 
-void IQM::WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals) {
+QMMolecule IQM::WriteCoordinatesToOrbitalsPBC(const QMPair& pair) {
   const Segment* seg1 = pair.Seg1();
   const Segment* seg2 = pair.Seg2PbCopy();
 
@@ -197,7 +196,7 @@ void IQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs.close();
 }
 
-Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
+Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
@@ -207,16 +206,33 @@ Job::JobResult IQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
 
-  Logger& pLog = opThread->getLogger();
+  Logger& pLog = opThread.getLogger();
+
+  SegmentMapper mapper(pLog);
+  mapper.LoadMappingFile(_mapfile);
 
   // get the information about the job executed by the thread
-  int job_ID = job->getId();
-  tools::Property job_input = job->getInput();
+  int job_ID = job.getId();
+  tools::Property job_input = job.getInput();
   std::vector<tools::Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
   std::string type_A = segment_list.front()->getAttribute<std::string>("type");
   int ID_B = segment_list.back()->getAttribute<int>("id");
   std::string type_B = segment_list.back()->getAttribute<std::string>("type");
+
+  std::string qmgeo_state_A = "n";
+  if (segment_list.front() > exists("qm_geometry")) {
+    qmgeo_state_A =
+        segment_list.front()->getAttribute<std::string>("qm_geometry");
+  }
+
+  std::string qmgeo_state_B = "n";
+  if (segment_list.back() > exists("qm_geometry")) {
+    qmgeo_state_B =
+        segment_list.back()->getAttribute<std::string>("qm_geometry");
+  }
+  QMState stateA(qmgeo_state_A);
+  QMState stateB(qmgeo_state_B);
 
   // set the folders
   std::string pair_dir =
@@ -550,7 +566,7 @@ void IQM::WriteJobFile(Topology& top) {
 
   std::cout << std::endl << "... ... Writing job file " << std::flush;
   std::ofstream ofs;
-  ofs.open(_jobfile.c_str(), std::ofstream::out);
+  ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
 

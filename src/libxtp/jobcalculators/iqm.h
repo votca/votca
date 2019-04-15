@@ -43,11 +43,11 @@ namespace xtp {
  * Callname: iqm
  */
 
-class IQM : public ParallelXJobCalc<std::vector<Job*>, Job*, Job::JobResult> {
+class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   void Initialize(tools::Property& options);
   std::string Identify() { return "iqm"; }
-  Job::JobResult EvalJob(Topology& top, Job* job, QMThread& Thread);
+  Job::JobResult EvalJob(Topology& top, Job& job, QMThread& Thread);
   void WriteJobFile(Topology& top);
   void ReadJobFile(Topology& top);
 
@@ -73,6 +73,8 @@ class IQM : public ParallelXJobCalc<std::vector<Job*>, Job*, Job::JobResult> {
   tools::Property _gwbse_options;
   tools::Property _bsecoupling_options;
   tools::Property _dftcoupling_options;
+
+  std::string _mapfile;
 
   // what to do
   bool _do_dft_input = false;

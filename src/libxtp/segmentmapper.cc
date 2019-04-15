@@ -21,14 +21,14 @@
 namespace votca {
 namespace xtp {
 
-template <class AtomContainer, class mapAtom>
-SegmentMapper<AtomContainer, mapAtom>::SegmentMapper(Logger& log) : _log(log) {
+template <class AtomContainer>
+SegmentMapper<AtomContainer>::SegmentMapper(Logger& log) : _log(log) {
   FillMap();
 };
 
-template <class AtomContainer, class mapAtom>
+template <class AtomContainer>
 template <typename T>
-Eigen::Vector3d SegmentMapper<AtomContainer, mapAtom>::CalcWeightedPos(
+Eigen::Vector3d SegmentMapper<AtomContainer>::CalcWeightedPos(
     const std::vector<double>& weights, const T& atoms) const {
   Eigen::Vector3d map_pos = Eigen::Vector3d::Zero();
   double map_weight = 0.0;
@@ -39,9 +39,9 @@ Eigen::Vector3d SegmentMapper<AtomContainer, mapAtom>::CalcWeightedPos(
   return map_pos = map_pos / map_weight;
 }
 
-template <class AtomContainer, class mapAtom>
-void SegmentMapper<AtomContainer, mapAtom>::ParseFragment(
-    Seginfo& seginfo, const tools::Property& frag) {
+template <class AtomContainer>
+void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
+                                                 const tools::Property& frag) {
   tools::Tokenizer tok_map_atoms(
       frag.get(_mapatom_xml["atoms"]).as<std::string>(), " \t\n");
   std::vector<std::string> map_atoms = tok_map_atoms.ToVector();
@@ -123,9 +123,8 @@ void SegmentMapper<AtomContainer, mapAtom>::ParseFragment(
   seginfo.fragments.push_back(mapfragment);
 }
 
-template <class AtomContainer, class mapAtom>
-void SegmentMapper<AtomContainer, mapAtom>::LoadMappingFile(
-    const std::string& mapfile) {
+template <class AtomContainer>
+void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
 
   tools::Property topology_map;
   tools::load_property_from_xml(topology_map, mapfile);
@@ -173,10 +172,9 @@ void SegmentMapper<AtomContainer, mapAtom>::LoadMappingFile(
   }
 }
 
-template <class AtomContainer, class mapAtom>
-std::pair<int, std::string>
-    SegmentMapper<AtomContainer, mapAtom>::StringToMapIndex(
-        const std::string& map_string) const {
+template <class AtomContainer>
+std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
+    const std::string& map_string) const {
   tools::Tokenizer tok(map_string, ":");
   std::vector<std::string> result = tok.ToVector();
   if (result.size() != 2) {
@@ -185,8 +183,8 @@ std::pair<int, std::string>
   }
   return std::pair<int, std::string>(std::stoi(result[0]), result[1]);
 }
-template <class AtomContainer, class mapAtom>
-MD_atom_id SegmentMapper<AtomContainer, mapAtom>::StringToMDIndex(
+template <class AtomContainer>
+MD_atom_id SegmentMapper<AtomContainer>::StringToMDIndex(
     const std::string& md_string) const {
   tools::Tokenizer tok(md_string, ":");
   std::vector<std::string> result = tok.ToVector();
@@ -197,8 +195,8 @@ MD_atom_id SegmentMapper<AtomContainer, mapAtom>::StringToMDIndex(
   return MD_atom_id(std::stoi(result[0]), result[2]);
 }
 
-template <class AtomContainer, class mapAtom>
-std::pair<int, int> SegmentMapper<AtomContainer, mapAtom>::CalcResidueRange(
+template <class AtomContainer>
+std::pair<int, int> SegmentMapper<AtomContainer>::CalcResidueRange(
     const std::vector<MD_atom_id>& seg) const {
   int max_res_id =
       std::min_element(seg.begin(), seg.end(),
@@ -214,8 +212,8 @@ std::pair<int, int> SegmentMapper<AtomContainer, mapAtom>::CalcResidueRange(
           ->first;
   return std::pair<int, int>(min_res_id, max_res_id);
 }
-template <class AtomContainer, class mapAtom>
-std::pair<int, int> SegmentMapper<AtomContainer, mapAtom>::CalcResidueRange(
+template <class AtomContainer>
+std::pair<int, int> SegmentMapper<AtomContainer>::CalcResidueRange(
     const Segment& seg) const {
   int max_res_id = std::min_element(seg.begin(), seg.end(),
                                     [](const Atom& a, const Atom& b) {
@@ -231,8 +229,8 @@ std::pair<int, int> SegmentMapper<AtomContainer, mapAtom>::CalcResidueRange(
   return std::pair<int, int>(min_res_id, max_res_id);
 }
 
-template <class AtomContainer, class mapAtom>
-void SegmentMapper<AtomContainer, mapAtom>::PlaceMapAtomonMD(
+template <class AtomContainer>
+void SegmentMapper<AtomContainer>::PlaceMapAtomonMD(
     const std::vector<mapAtom*>& fragment_mapatoms,
     const std::vector<const Atom*>& fragment_mdatoms) const {
   for (unsigned i = 0; i < fragment_mapatoms.size(); i++) {
@@ -242,8 +240,8 @@ void SegmentMapper<AtomContainer, mapAtom>::PlaceMapAtomonMD(
   }
 }
 
-template <class AtomContainer, class mapAtom>
-int SegmentMapper<AtomContainer, mapAtom>::FindVectorIndexFromAtomId(
+template <class AtomContainer>
+int SegmentMapper<AtomContainer>::FindVectorIndexFromAtomId(
     int atomid, const std::vector<mapAtom*>& fragment_mapatoms) const {
   unsigned i = 0;
   for (; i < fragment_mapatoms.size(); i++) {
@@ -253,8 +251,8 @@ int SegmentMapper<AtomContainer, mapAtom>::FindVectorIndexFromAtomId(
   }
   return i;
 }
-template <class AtomContainer, class mapAtom>
-void SegmentMapper<AtomContainer, mapAtom>::MapMapAtomonMD(
+template <class AtomContainer>
+void SegmentMapper<AtomContainer>::MapMapAtomonMD(
     const FragInfo& frag, const std::vector<mapAtom*>& fragment_mapatoms,
     const std::vector<const Atom*>& fragment_mdatoms) const {
   std::vector<Eigen::Vector3d> local_map_frame;
@@ -335,9 +333,9 @@ void SegmentMapper<AtomContainer, mapAtom>::MapMapAtomonMD(
     atom->Rotate(rotateMAP2MD, md_com);
   }
 }
-template <class AtomContainer, class mapAtom>
-AtomContainer SegmentMapper<AtomContainer, mapAtom>::map(const Segment& seg,
-                                                         QMState state) const {
+template <class AtomContainer>
+AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
+                                                QMState state) const {
   Seginfo seginfo = _segment_info.at(seg.getName());
 
   if (int(seginfo.mdatoms.size()) != seg.size()) {
@@ -421,9 +419,9 @@ AtomContainer SegmentMapper<AtomContainer, mapAtom>::map(const Segment& seg,
   return Result;
 }
 
-template class SegmentMapper<QMMolecule, QMAtom>;
-template class SegmentMapper<StaticSegment, StaticSite>;
-template class SegmentMapper<PolarSegment, PolarSite>;
+template class SegmentMapper<QMMolecule>;
+template class SegmentMapper<StaticSegment>;
+template class SegmentMapper<PolarSegment>;
 
 }  // namespace xtp
 }  // namespace votca

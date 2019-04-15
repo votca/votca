@@ -45,23 +45,10 @@ void IEXCITON::Initialize(tools::Property& options) {
   _maverick = (_nThreads == 1) ? true : false;
 
   string key = "options." + Identify();
-
-  if (options.exists(key + ".job_file")) {
-    _jobfile = options.get(key + ".job_file").as<string>();
-  } else {
-    throw std::runtime_error("Job-file not set. Abort.");
-  }
-  key = "options." + Identify();
-  if (options.exists(key + ".mapping")) {
-    _xml_file = options.get(key + ".mapping").as<string>();
-  } else {
-    throw std::runtime_error("Mapping-file not set. Abort.");
-  }
-  if (options.exists(key + ".emp_file")) {
-    _emp_file = options.get(key + ".emp_file").as<string>();
-  } else {
-    throw std::runtime_error("Emp-file not set. Abort.");
-  }
+  _jobfile = options.ifExistsReturnElseThrowRuntimeErrorget<std::string>(
+      key + ".job_file");
+  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".map_file");
 
   if (options.exists(key + ".states")) {
     string parse_string = options.get(key + ".states").as<string>();
@@ -93,17 +80,17 @@ std::map<std::string, QMState> IEXCITON::FillParseMaps(
   return type2level;
 }
 
-Job::JobResult IEXCITON::EvalJob(Topology& top, Job* job, QMThread* opThread) {
+Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
 
   // get the logger from the thread
-  Logger& pLog = opThread->getLogger();
+  Logger& pLog = opThread.getLogger();
 
   // get the information about the job executed by the thread
-  int job_ID = job->getId();
-  Property job_input = job->getInput();
+  int job_ID = job.getId();
+  Property job_input = job.getInput();
   vector<Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
   string type_A = segment_list.front()->getAttribute<string>("type");
@@ -158,7 +145,7 @@ void IEXCITON::WriteJobFile(Topology& top) {
 
   cout << endl << "... ... Writing job file " << flush;
   std::ofstream ofs;
-  ofs.open(_jobfile.c_str(), std::ofstream::out);
+  ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
   QMNBList& nblist = top.NBList();

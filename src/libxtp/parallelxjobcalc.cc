@@ -28,12 +28,11 @@ using boost::format;
 namespace votca {
 namespace xtp {
 
-template <typename Job>
-bool ParallelXJobCalc<Job>::EvaluateFrame(Topology &top) {
+template <typename JobContainer>
+bool ParallelXJobCalc<JobContainer>::EvaluateFrame(Topology &top) {
 
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
-  assert(_jobfile != "__NOFILE__");
   std::unique_ptr<JobOperator> master =
       std::unique_ptr<JobOperator>(new JobOperator(-1, &top, this));
   master->getLogger().setReportLevel(logDEBUG);
@@ -42,10 +41,10 @@ bool ParallelXJobCalc<Job>::EvaluateFrame(Topology &top) {
   master->getLogger().setPreface(logERROR, "\nMST ERR");
   master->getLogger().setPreface(logWARNING, "\nMST WAR");
   master->getLogger().setPreface(logDEBUG, "\nMST DBG");
-  _progObs->InitFromProgFile(progFile, master.get());
+  _progObs->InitFromProgFile(progFile, *(master.get()));
 
   // CREATE + EXECUTE THREADS (XJOB HANDLERS)
-  std::vector<std::unique_ptr<JobOperator> > jobOps;
+  std::vector<std::unique_ptr<JobOperator>> jobOps;
 
   for (unsigned int id = 0; id < _nThreads; id++) {
     jobOps.push_back(
@@ -79,29 +78,28 @@ bool ParallelXJobCalc<Job>::EvaluateFrame(Topology &top) {
   jobOps.clear();
 
   // SYNC REMAINING COMPLETE JOBS
-  _progObs->SyncWithProgFile(master.get());
+  _progObs->SyncWithProgFile(*(master.get()));
 
   return true;
 }
 
-template <typename JobContainer, typename pJob, typename rJob>
-void ParallelXJobCalc<JobContainer, pJob, rJob>::JobOperator::Run() {
+template <typename JobContainer>
+void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
 
   while (true) {
-    _job = _master->_progObs->RequestNextJob(this);
+    _job = _master->_progObs->RequestNextJob(*this);
 
     if (_job == nullptr) {
       break;
     } else {
-      rJob res = this->_master->EvalJob(*_top, _job, this);
-      this->_master->_progObs->ReportJobDone(_job, &res, this);
+      Result res = this->_master->EvalJob(*_top, *_job, *this);
+      this->_master->_progObs->ReportJobDone(*_job, res, *this);
     }
   }
 }
 
-template <typename JobContainer, typename pJob, typename rJob>
-void ParallelXJobCalc<JobContainer, pJob, rJob>::CustomizeLogger(
-    QMThread &thread) {
+template <typename JobContainer>
+void ParallelXJobCalc<JobContainer>::CustomizeLogger(QMThread &thread) {
 
   // CONFIGURE LOGGER
   Logger &log = thread.getLogger();
@@ -118,7 +116,7 @@ void ParallelXJobCalc<JobContainer, pJob, rJob>::CustomizeLogger(
 }
 
 // REGISTER PARALLEL CALCULATORS
-template class ParallelXJobCalc<std::vector<Job *>, Job *, Job::JobResult>;
+template class ParallelXJobCalc<std::vector<Job>>;
 
 }  // namespace xtp
 }  // namespace votca

@@ -43,13 +43,10 @@ class JobCalculator : public QMCalculator {
   virtual void WriteJobFile(Topology &top) = 0;
   virtual void ReadJobFile(Topology &top) = 0;
 
-  void setProgObserver(
-      ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *obs) {
-    _progObs = obs;
-  }
+  void setProgObserver(ProgObserver<std::vector<Job> > *obs) { _progObs = obs; }
 
  protected:
-  ProgObserver<std::vector<Job *>, Job *, Job::JobResult> *_progObs;
+  ProgObserver<std::vector<Job> > *_progObs;
 };
 
 }  // namespace xtp

@@ -36,7 +36,8 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-Job *ProgObserver<JobContainer>::RequestNextJob(QMThread &thread) {
+ProgObserver<JobContainer>::Job *ProgObserver<JobContainer>::RequestNextJob(
+    QMThread &thread) {
 
   _lockThread.Lock();
   Job *jobToProc = nullptr;
@@ -67,7 +68,7 @@ Job *ProgObserver<JobContainer>::RequestNextJob(QMThread &thread) {
   }
   // TAKE A BITE
   else {
-    jobToProc = _nextjit;
+    jobToProc = *_nextjit;
     ++_nextjit;
     XTP_LOG(logDEBUG, thread.getLogger())
         << "Next job: ID = " << jobToProc->getId() << std::flush;
@@ -89,15 +90,15 @@ Job *ProgObserver<JobContainer>::RequestNextJob(QMThread &thread) {
 }
 
 template <typename JobContainer>
-void ProgObserver<JobContainer>::ReportJobDone(pJob job, rJob *res,
-                                               QMThread *thread) {
+void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
+                                               QMThread &thread) {
   _lockThread.Lock();
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Reporting job results" << std::flush;
   // RESULTS, TIME, HOST
-  job->SaveResults(res);
-  job->setTime(GenerateTime());
-  job->setHost(GenerateHost(thread));
+  job.SaveResults(res);
+  job.setTime(GenerateTime());
+  job.setHost(GenerateHost(thread));
   // PRINT PROGRESS BAR
   _jobsReported += 1;
   if (!thread.isMaverick())
@@ -107,18 +108,15 @@ void ProgObserver<JobContainer>::ReportJobDone(pJob job, rJob *res,
 }
 
 template <typename JobContainer>
-std::string ProgObserver<JobContainer, pJob, rJob>::GenerateHost(
-    QMThread *thread) {
+std::string ProgObserver<JobContainer>::GenerateHost(QMThread &thread) {
   char host[128];
-  // int h =
   (void)gethostname(host, sizeof host);
   pid_t pid = getpid();
-  // int tid = thread.getId(); // not used
   return (format("%1$s:%2$d") % host % pid).str();
 }
 
 template <typename JobContainer>
-std::string ProgObserver<JobContainer, pJob, rJob>::GenerateTime() {
+std::string ProgObserver<JobContainer>::GenerateTime() {
   boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
   return (format("%1$s") % now.time_of_day()).str();
 }
@@ -139,45 +137,38 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Update internal structures from job file" << std::flush;
-  JobContainer jobs_ext = LOAD_JOBS<JobContainer, pJob, rJob>(progFile);
-  UPDATE_JOBS<JobContainer, pJob, rJob>(jobs_ext, _jobs, GenerateHost(thread));
-
-  JobItVec it;
-  for (it = jobs_ext.begin(); it != jobs_ext.end(); ++it) {
-    pJob pj = *it;
-    delete pj;
-  }
-  jobs_ext.clear();
+  JobContainer jobs_ext = LOAD_JOBS(progFile);
+  UPDATE_JOBS(jobs_ext, _jobs, GenerateHost(thread));
 
   // GENERATE BACK-UP FOR SHARED XML
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Create job-file back-up" << std::flush;
-  WRITE_JOBS<JobContainer, pJob, rJob>(_jobs, progBackFile, "xml");
-  WRITE_JOBS<JobContainer, pJob, rJob>(_jobs, tabBackFile, "tab");
+  WRITE_JOBS(_jobs, progBackFile, "xml");
+  WRITE_JOBS(_jobs, tabBackFile, "tab");
 
   // ASSIGN NEW JOBS IF AVAILABLE
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Assign jobs from stack" << std::flush;
   _jobsToProc.clear();
 
-  unsigned int cacheSize = _cacheSize;
-  while (_jobsToProc.size() < cacheSize) {
+  int cacheSize = _cacheSize;
+  while (int(_jobsToProc.size()) < cacheSize) {
     if (_metajit == _jobs.end() || _startJobsCount == _maxJobs) break;
 
     bool startJob = false;
 
     // Start if job available or restart patterns matched
-    if (((*_metajit)->isAvailable()) ||
-        (_restartMode && _restart_stats.count((*_metajit)->getStatusStr())) ||
-        (_restartMode && _restart_hosts.count((*_metajit)->getHost())))
+    if ((_metajit->isAvailable()) ||
+        (_restartMode && _restart_stats.count(_metajit->getStatusStr())) ||
+        (_restartMode && _restart_hosts.count(_metajit->getHost())))
       startJob = true;
 
     if (startJob) {
-      (*_metajit)->Reset();
-      (*_metajit)->setStatus("ASSIGNED");
-      (*_metajit)->setHost(GenerateHost(thread));
-      (*_metajit)->setTime(GenerateTime());
-      _jobsToProc.push_back(*_metajit);
+      _metajit->Reset();
+      _metajit->setStatus("ASSIGNED");
+      _metajit->setHost(GenerateHost(thread));
+      _metajit->setTime(GenerateTime());
+      _jobsToProc.push_back(&*_metajit);
       _startJobsCount += 1;
     }
 
@@ -185,8 +176,8 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   }
 
   // UPDATE PROGRESS STATUS FILE
-  WRITE_JOBS<JobContainer>(_jobs, progFile, "xml");
-  WRITE_JOBS<JobContainer>(_jobs, tabFile, "tab");
+  WRITE_JOBS(_jobs, progFile, "xml");
+  WRITE_JOBS(_jobs, tabFile, "tab");
 
   // RELEASE PROGRESS STATUS FILE
   this->ReleaseProgFile(thread);
@@ -194,7 +185,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
 }
 
 template <typename JobContainer>
-void ProgObserver<JobContainer, pJob, rJob>::LockProgFile(QMThread &thread) {
+void ProgObserver<JobContainer>::LockProgFile(QMThread &thread) {
   _flock = std::unique_ptr<boost::interprocess::file_lock>(
       new boost::interprocess::file_lock(_lockFile.c_str()));
   _flock->lock();
@@ -207,14 +198,14 @@ void ProgObserver<JobContainer, pJob, rJob>::LockProgFile(QMThread &thread) {
 }
 
 template <typename JobContainer>
-void ProgObserver<JobContainer, pJob, rJob>::ReleaseProgFile(QMThread &thread) {
+void ProgObserver<JobContainer>::ReleaseProgFile(QMThread &thread) {
   _flock->unlock();
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Releasing " << _lockFile << ". " << std::flush;
 }
 
 template <typename JobContainer>
-void ProgObserver<JobContainer, pJob, rJob>::InitCmdLineOpts(
+void ProgObserver<JobContainer>::InitCmdLineOpts(
     const boost::program_options::variables_map &optsMap) {
 
   _lockFile = optsMap["file"].as<std::string>();
@@ -257,8 +248,8 @@ void ProgObserver<JobContainer, pJob, rJob>::InitCmdLineOpts(
 }
 
 template <typename JobContainer>
-void ProgObserver<JobContainer, pJob, rJob>::InitFromProgFile(
-    std::string progFile, QMThread &thread) {
+void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
+                                                  QMThread &thread) {
 
   _progFile = progFile;
   _jobsReported = 0;
@@ -276,17 +267,12 @@ void ProgObserver<JobContainer, pJob, rJob>::InitFromProgFile(
   this->LockProgFile(thread);
 
   // ... Clear container
-  JobItCnt it;
-  for (it = _jobs.begin(); it != _jobs.end(); ++it) {
-    pJob job = *it;
-    delete job;
-  }
   _jobs.clear();
 
   // ... Load new, set availability bool
-  _jobs = LOAD_JOBS<JobContainer, pJob, rJob>(progFile);
+  _jobs = LOAD_JOBS(progFile);
   _metajit = _jobs.begin();
-  WRITE_JOBS<JobContainer, pJob, rJob>(_jobs, progFile + "~", "xml");
+  WRITE_JOBS(_jobs, progFile + "~", "xml");
   XTP_LOG(logINFO, thread.getLogger())
       << "Registered " << _jobs.size() << " jobs." << std::flush;
   if (_jobs.size() > 0)
@@ -297,17 +283,15 @@ void ProgObserver<JobContainer, pJob, rJob>::InitFromProgFile(
   // SUMMARIZE OBSERVER VARIABLES: RESTART PATTERN, CACHE, LOCK FILE
   if (_restartMode && _restart_hosts.size()) {
     std::string infostr = "Restart if host == ";
-    std::map<std::string, bool>::iterator mit;
-    for (mit = _restart_hosts.begin(); mit != _restart_hosts.end(); ++mit) {
-      infostr += mit->first + " ";
+    for (const std::pair<std::string, bool> &host : _restart_hosts) {
+      infostr += host.first + " ";
     }
     XTP_LOG(logINFO, thread.getLogger()) << infostr << std::flush;
   }
   if (_restartMode && _restart_stats.size()) {
     std::string infostr = "Restart if stat == ";
-    std::map<std::string, bool>::iterator mit;
-    for (mit = _restart_stats.begin(); mit != _restart_stats.end(); ++mit) {
-      infostr += mit->first + " ";
+    for (const std::pair<std::string, bool> &host : _restart_hosts) {
+      infostr += host.first + " ";
     }
     XTP_LOG(logINFO, thread.getLogger()) << infostr << std::flush;
   }
@@ -317,47 +301,23 @@ void ProgObserver<JobContainer, pJob, rJob>::InitFromProgFile(
   return;
 }
 
-// ========================================================================== //
-//                         TEMPLATE SPECIALIZATIONS
-// ========================================================================== //
+std::vector<Job> LOAD_JOBS(const std::string &job_file) {
 
-template <typename JobContainer, typename pJob, typename rJob>
-JobContainer LOAD_JOBS(const std::string &job_file) {
-
-  throw std::runtime_error("LOAD_JOBS not specialized for this type.");
-  JobContainer jobcnt;
-  return jobcnt;
-}
-
-template <>
-std::vector<Job *> LOAD_JOBS<std::vector<Job *>, Job *, Job::JobResult>(
-    const std::string &job_file) {
-
-  std::vector<Job *> jobs;
   tools::Property xml;
   load_property_from_xml(xml, job_file);
 
   std::vector<tools::Property *> jobProps = xml.Select("jobs.job");
+  std::vector<Job> jobs;
+  jobs.reserve(jobProps.size());
   for (tools::Property *prop : jobProps) {
-    Job *newJob = new Job(prop);
-    jobs.push_back(newJob);
+    jobs.push_back(Job(*prop));
   }
 
   return jobs;
 }
 
-template <typename JobContainer, typename pJob, typename rJob>
-void WRITE_JOBS(JobContainer &jobs, const std::string &job_file,
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
                 std::string fileformat) {
-
-  throw std::runtime_error("WRITE_JOBS not specialized for this type.");
-  return;
-}
-
-template <>
-void WRITE_JOBS<std::vector<Job *>, Job *, Job::JobResult>(
-    std::vector<Job *> &jobs, const std::string &job_file,
-    std::string fileformat) {
   std::ofstream ofs;
   ofs.open(job_file.c_str(), std::ofstream::out);
   if (!ofs.is_open()) {
@@ -365,8 +325,8 @@ void WRITE_JOBS<std::vector<Job *>, Job *, Job::JobResult>(
   }
   if (fileformat == "xml") ofs << "<jobs>" << std::endl;
   for (auto &job : jobs) {
-    if (fileformat == "tab" && !job->isComplete()) continue;
-    job->ToStream(ofs, fileformat);
+    if (fileformat == "tab" && !job.isComplete()) continue;
+    job.ToStream(ofs, fileformat);
   }
   if (fileformat == "xml") ofs << "</jobs>" << std::endl;
 
@@ -374,41 +334,29 @@ void WRITE_JOBS<std::vector<Job *>, Job *, Job::JobResult>(
   return;
 }
 
-template <typename JobContainer, typename pJob, typename rJob>
-void UPDATE_JOBS(JobContainer &from, JobContainer &to, std::string thisHost) {
-
-  throw std::runtime_error("UPDATE_JOBS not specialized for this type.");
-  return;
-}
-
-template <>
-void UPDATE_JOBS<std::vector<Job *>, Job *, Job::JobResult>(
-    std::vector<Job *> &from, std::vector<Job *> &to, std::string thisHost) {
-
-  std::vector<Job *>::iterator it_int;
-  std::vector<Job *>::iterator it_ext;
+void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
+                 std::string thisHost) {
+  std::vector<Job>::iterator it_int;
+  std::vector<Job>::const_iterator it_ext;
 
   if (to.size() != from.size())
     throw std::runtime_error("Progress file out of sync (::size), abort.");
 
   for (it_int = to.begin(), it_ext = from.begin(); it_int != to.end();
        ++it_int, ++it_ext) {
-
-    Job *job_int = *it_int;
-    Job *job_ext = *it_ext;
-
-    if (job_int->getId() != job_ext->getId())
+    Job &job_int = *it_int;
+    const Job &job_ext = *it_ext;
+    if (job_int.getId() != job_ext.getId())
       throw std::runtime_error("Progress file out of sync (::id), abort.");
-
-    if (job_ext->hasHost() && job_ext->getHost() != thisHost)
-      job_int->UpdateFrom(job_ext);
+    if (job_ext.hasHost() && job_ext.getHost() != thisHost)
+      job_int.UpdateFrom(job_ext);
   }
 
   return;
 }
 
 // REGISTER
-template class ProgObserver<std::vector<Job *>, Job *, Job::JobResult>;
+template class ProgObserver<std::vector<Job> >;
 
 }  // namespace xtp
 }  // namespace votca

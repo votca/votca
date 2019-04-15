@@ -35,13 +35,17 @@ class QMThread;
 template <typename JobContainer>
 class ProgObserver {
 
-  typedef typename std::iterator_traits<JobContainer::iterator>::value_type Job;
+  typedef
+      typename std::iterator_traits<typename JobContainer::iterator>::value_type
+          Job;
+
+  typedef typename Job::JobResult Result;
 
  public:
   void InitCmdLineOpts(const boost::program_options::variables_map &optsMap);
   void InitFromProgFile(std::string progFile, QMThread &master);
-  Job *RequestNextJob(QMThread &thread);
-  void ReportJobDone(Job &job, Job::Result &res, QMThread &thread);
+  ProgObserver::Job *RequestNextJob(QMThread &thread);
+  void ReportJobDone(Job &job, Result &res, QMThread &thread);
 
   void SyncWithProgFile(QMThread &thread);
   void LockProgFile(QMThread &thread);
@@ -59,8 +63,10 @@ class ProgObserver {
   std::vector<Job *> _jobsToProc;
   std::vector<Job *> _jobsToSync;
 
-  JobContainer::iterator _nextjit = nullptr;
-  std::vector<*Job>::iterator _metajit = nullptr;
+  typedef typename JobContainer::iterator iterator;
+  iterator _metajit;
+  typedef typename std::vector<Job *>::iterator iterator_vec;
+  iterator_vec _nextjit;
   tools::Mutex _lockThread;
   std::unique_ptr<boost::interprocess::file_lock> _flock;
 
@@ -74,15 +80,13 @@ class ProgObserver {
   int _maxJobs = 0;
 };
 
-template <typename JobContainer>
-JobContainer LOAD_JOBS(const std::string &xml_file);
+std::vector<Job> LOAD_JOBS(const std::string &xml_file);
 
-template <typename JobContainer>
-void WRITE_JOBS(const JobContainer &jobs, const std::string &job_file,
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
                 std::string fileformat);
 
-template <typename JobContainer>
-void UPDATE_JOBS(JobContainer &from, JobContainer &to, std::string thisHost);
+void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
+                 std::string thisHost);
 
 }  // namespace xtp
 }  // namespace votca

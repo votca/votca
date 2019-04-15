@@ -84,8 +84,7 @@ void JobApplication::Run() {
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
-  ProgObserver<std::vector<Job*>, Job*, Job::JobResult> progObs =
-      ProgObserver<std::vector<Job*>, Job*, Job::JobResult>();
+  ProgObserver<std::vector<Job>> progObs = ProgObserver<std::vector<Job>>();
   progObs.InitCmdLineOpts(OptionsMap());
 
   // INITIALIZE & RUN CALCULATORS
@@ -133,8 +132,7 @@ void JobApplication::AddCalculator(JobCalculator* calculator) {
 }
 
 void JobApplication::BeginEvaluate(
-    int nThreads = 1,
-    ProgObserver<std::vector<Job*>, Job*, Job::JobResult>* obs = NULL) {
+    int nThreads = 1, ProgObserver<std::vector<Job>>* obs = nullptr) {
 
   for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " ";

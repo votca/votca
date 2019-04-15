@@ -120,7 +120,7 @@ void Job::Reset() {
   return;
 }
 
-void Job::ToStream(std::ofstream &ofs, std::string fileformat) {
+void Job::ToStream(std::ofstream &ofs, std::string fileformat) const {
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 0,
                                       "\t\t");

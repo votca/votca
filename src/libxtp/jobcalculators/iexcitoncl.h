@@ -38,14 +38,13 @@ namespace xtp {
  * Callname: iexcitoncl
  */
 
-class IEXCITON
-    : public ParallelXJobCalc<std::vector<Job *>, Job *, Job::JobResult> {
+class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
  public:
   void Initialize(tools::Property &options);
 
   std::string Identify() { return "iexcitoncl"; }
 
-  Job::JobResult EvalJob(Topology &top, Job *job, QMThread *Thread);
+  Job::JobResult EvalJob(Topology &top, Job &job, QMThread &Thread);
 
   void WriteJobFile(Topology &top);
   void ReadJobFile(Topology &top);
@@ -55,8 +54,8 @@ class IEXCITON
   std::map<std::string, QMState> FillParseMaps(const std::string &Mapstring);
   double _cutoff;
   std::map<std::string, QMState> _statemap;
-  std::string _emp_file;
   std::string _xml_file;
+  std::string _mapfile;
 };
 
 }  // namespace xtp

@@ -58,6 +58,13 @@ class AtomContainer {
     _position_valid = false;
   }
 
+  void AddContainer(const AtomContainer<T>& container) {
+    _name += "_" + container._name;
+    _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
+                     container._atomlist.end());
+    _position_valid = false;
+  }
+
   const T& at(int index) const { return _atomlist.at(index); }
   T& at(int index) { return _atomlist.at(index); }
 

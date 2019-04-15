@@ -37,7 +37,7 @@ namespace xtp {
  * Callname: eqm
  */
 
-class EQM : public ParallelXJobCalc<Job> {
+class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   std::string Identify() { return "eqm"; }
   void Initialize(tools::Property &options);
@@ -58,6 +58,8 @@ class EQM : public ParallelXJobCalc<Job> {
   tools::Property _package_options;
   tools::Property _gwbse_options;
   tools::Property _esp_options;
+
+  std::string _mapfile;
 
   // what to do
   bool _do_dft_input;

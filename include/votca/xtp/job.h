@@ -35,7 +35,7 @@ class Job {
  public:
   enum JobStatus { AVAILABLE, ASSIGNED, FAILED, COMPLETE };
 
-  Job(tools::Property &prop);
+  Job(const tools::Property &prop);
   Job(int id, std::string &tag, std::string &input, std::string stat);
   Job(int id, std::string &tag, tools::Property &input, JobStatus stat);
 
@@ -66,7 +66,7 @@ class Job {
   };
 
   void Reset();
-  void ToStream(std::ofstream &ofs, std::string fileformat);
+  void ToStream(std::ofstream &ofs, std::string fileformat) const;
   void UpdateFrom(const Job &ext);
   void SaveResults(JobResult &res);
 
