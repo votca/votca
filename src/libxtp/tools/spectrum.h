@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -128,7 +128,7 @@ bool Spectrum::Evaluate() {
         "BSE transition dipoles not stored in QM data file!");
   }
 
-  const VectorXfd& BSESingletEnergies = _orbitals.BSESingletEnergies();
+  const Eigen::VectorXd& BSESingletEnergies = _orbitals.BSESingletEnergies();
   const std::vector<tools::vec>& TransitionDipoles =
       _orbitals.TransitionDipoles();
   std::vector<double> _osc = _orbitals.Oscillatorstrengths();

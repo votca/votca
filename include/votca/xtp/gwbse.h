@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -19,6 +19,7 @@
 
 #ifndef _VOTCA_XTP_GWBSE_H
 #define _VOTCA_XTP_GWBSE_H
+
 #include <fstream>
 #include <votca/ctp/logger.h>
 #include <votca/tools/property.h>
@@ -67,17 +68,14 @@ class GWBSE {
   Orbitals& _orbitals;
 
   // program tasks
-  bool _do_qp_diag;
-  bool _do_bse_diag;
-  bool _do_bse_singlets;
-  bool _do_bse_triplets;
+
+  bool _do_gw = false;
+  bool _do_bse_singlets = false;
+  bool _do_bse_triplets = false;
 
   // storage tasks
-  bool _store_qp_pert;
-  bool _store_qp_diag;
-  bool _store_bse_singlets;
-  bool _store_bse_triplets;
-  bool _store_eh_interaction;
+  bool _store_bse_singlets = false;
+  bool _store_bse_triplets = false;
 
   // options for own Vxc calculation
   bool _doVxc;
