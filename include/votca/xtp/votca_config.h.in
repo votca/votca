@@ -34,4 +34,6 @@
 
 #cmakedefine MKL
 
+#cmakedefine USE_GPU
+
 #endif  // _VOTCA_XTP_CONFIG_H

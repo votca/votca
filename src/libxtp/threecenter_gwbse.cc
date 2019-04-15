@@ -18,6 +18,9 @@
  */
 
 #include <votca/xtp/threecenter.h>
+#ifdef USE_GPU
+#include "eigencuda.h"
+#endif
 
 namespace votca {
 namespace xtp {
