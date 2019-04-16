@@ -240,20 +240,19 @@ void GenCube::subtractCubes() {
   // open infiles for reading
   ifstream in1;
   XTP_LOG(logDEBUG, _log) << " Reading first cube from " << _infile1 << flush;
-  in1.open(_infile1.c_str(), ios::in);
+  in1.open(_infile1, ios::in);
   ifstream in2;
   XTP_LOG(logDEBUG, _log) << " Reading second cube from " << _infile2 << flush;
-  in2.open(_infile2.c_str(), ios::in);
+  in2.open(_infile2, ios::in);
   string s;
 
-  FILE* out;
-  out = fopen(_output_file.c_str(), "w");
+  std::ofstream out(_output_file);
 
   // first two lines of header are garbage
   getline(in1, s);
-  fprintf(out, "%s\n", s.c_str());
+  out << s << "\n";
   getline(in1, s);
-  fprintf(out, "%s subtraction \n", s.c_str());
+  out << s << " substraction\n";
   getline(in2, s);
   getline(in2, s);
 
@@ -289,7 +288,8 @@ void GenCube::subtractCubes() {
     throw std::runtime_error("Zstart does not match");
   }
 
-  fprintf(out, "%d %f %f %f \n", natoms, xstart, ystart, zstart);
+  out << boost::format("%1$lu %2$f %3$f %4$f \n") % natoms % xstart % ystart %
+             zstart;
 
   // grid information from first cube
   double xincr;
@@ -340,9 +340,10 @@ void GenCube::subtractCubes() {
     throw std::runtime_error("zincr does not match");
   }
 
-  fprintf(out, "%d %f 0.0 0.0 \n", _xsteps, xincr);
-  fprintf(out, "%d 0.0 %f 0.0 \n", _ysteps, yincr);
-  fprintf(out, "%d 0.0 0.0 %f \n", _zsteps, zincr);
+  out << boost::format("%1$d %2$f 0.0 0.0 \n") % _xsteps % xincr;
+  out << boost::format("%1$d 0.0 %2$f 0.0 \n") % _ysteps % yincr;
+  out << boost::format("%1$d 0.0 0.0 %2$f \n") % _zsteps % zincr;
+
   // atom information
 
   for (int iatom = 0; iatom < std::abs(natoms); iatom++) {
@@ -381,8 +382,8 @@ void GenCube::subtractCubes() {
     if (tempdouble != z) {
       throw std::runtime_error("z does not match");
     }
-
-    fprintf(out, "%d %f %f %f %f\n", atnum, crg, x, y, z);
+    out << boost::format("%1$d %2$f %3$f %4$f %5$f\n") % atnum % crg % x % y %
+               z;
   }
 
   if (do_amplitude) {
@@ -399,7 +400,7 @@ void GenCube::subtractCubes() {
     if (tempint != nis) {
       throw std::runtime_error("nis does not match");
     }
-    fprintf(out, "  1 %d \n", nis);
+    out << boost::format("  1 %1$d \n") % nis;
   }
   // now read data
   double val1;
@@ -412,16 +413,16 @@ void GenCube::subtractCubes() {
         in1 >> val1;
         in2 >> val2;
         if (Nrecord == 6 || iz == _zsteps - 1) {
-          fprintf(out, "%E \n", val1 - val2);
+          out << boost::format("%1$E \n") % (val1 - val2);
           Nrecord = 0;
         } else {
-          fprintf(out, "%E ", val1 - val2);
+          out << boost::format("%1$E ") % (val1 - val2);
         }
       }
     }
   }
 
-  fclose(out);
+  out.close();
   XTP_LOG(logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file
                           << flush;
 }

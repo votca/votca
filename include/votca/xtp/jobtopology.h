@@ -37,9 +37,9 @@ namespace xtp {
 
 class JobTopology {
  public:
-  void BuildRegions(Topology& top, Mapper& mapper);
+  void BuildRegions(const Topology& top);
 
- protected:
+ private:
   std::vector<std::unique_ptr<Region> > _regions;
 }
 }  // namespace xtp
