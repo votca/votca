@@ -37,6 +37,8 @@ class SegmentMapper {
 
   AtomContainer map(const Segment& seg, QMState state) const;
 
+  AtomContainer map(const Segment& seg, std::string coordfilename) const;
+
  private:
   typedef typename std::iterator_traits<
       typename AtomContainer::iterator>::value_type mapAtom;

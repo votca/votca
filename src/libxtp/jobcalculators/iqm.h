@@ -61,7 +61,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
   void addLinkers(std::vector<const Segment*>& segments, Topology& top);
   bool isLinker(const std::string& name);
-  void WriteCoordinatesToOrbitalsPBC(QMPair& pair, Orbitals& orbitals);
   void ParseOptionsXML(tools::Property& opt);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);
 
@@ -84,7 +83,7 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   bool _do_gwbse = false;
   bool _do_bsecoupling = false;
 
-  std::vector<std::string> _linker_names;
+  std::map<std::string, QMState> _linkers;
 
   // what to write in the storage
   bool _store_dft = false;

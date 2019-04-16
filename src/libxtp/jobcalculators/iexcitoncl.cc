@@ -18,6 +18,7 @@
  */
 
 #include "iexcitoncl.h"
+#include "votca/xtp/segmentmapper.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
@@ -45,7 +46,7 @@ void IEXCITON::Initialize(tools::Property& options) {
   _maverick = (_nThreads == 1) ? true : false;
 
   string key = "options." + Identify();
-  _jobfile = options.ifExistsReturnElseThrowRuntimeErrorget<std::string>(
+  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".job_file");
   _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".map_file");
@@ -101,9 +102,21 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
   Segment& seg_A = top.getSegment(ID_A);
   Segment& seg_B = top.getSegment(ID_B);
+  QMNBList& nblist = top.NBList();
+  QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
+  if (pair == nullptr) {
+    throw std::runtime_error(
+        "pair between segments " + std::to_string(seg_A.getId()) + ":" +
+        std::to_string(seg_B.getId()) + " not found in neighborlist ");
+  }
 
   XTP_LOG(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID << " ["
                          << ID_A << ":" << ID_B << "]" << flush;
+
+  StaticMapper map(pLog);
+  map.LoadMappingFile(_mapfile);
+  StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
+  StaticSegment seg2 = map.map(*(pair->Seg2PbCopy()), mps_fileB);
 
   double JAB = 0;
   _cutoff = 0;

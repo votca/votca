@@ -74,7 +74,7 @@ void EQM::ParseOptionsXML(tools::Property& options) {
     std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
     load_property_from_xml(_esp_options, _esp_xml.c_str());
   }
-  _jobfile = options.ifExistsReturnElseThrowRuntimeErrorget<std::string>(
+  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".job_file");
   _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".map_file");
@@ -144,7 +144,7 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   Segment& seg = top.getSegment(segId);
 
   Logger& pLog = opThread.getLogger();
-  SegmentMapper mapper(pLog);
+  QMMapper mapper(pLog);
   mapper.LoadMappingFile(_mapfile);
   orbitals.QMAtoms() = mapper.map(seg, state);
   XTP_LOG(logINFO, pLog) << TimeStamp() << " Evaluating site " << seg.getId()

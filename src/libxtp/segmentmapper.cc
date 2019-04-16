@@ -337,6 +337,20 @@ template <class AtomContainer>
 AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
                                                 QMState state) const {
   Seginfo seginfo = _segment_info.at(seg.getName());
+  std::string coordsfiletag =
+      _mapatom_xml.at("coords") + "_" + state.ToString();
+  if (seginfo.coordfiles.count(coordsfiletag) == 0) {
+    throw std::runtime_error(
+        "Could not find a coordinate file for segment/state: " + coordsfiletag);
+  }
+  std::string coordsfilename = seginfo.coordfiles.at(coordsfiletag);
+  return map(seg, coordsfilename);
+}
+
+template <class AtomContainer>
+AtomContainer SegmentMapper<AtomContainer>::map(
+    const Segment& seg, std::string coordfilename) const {
+  Seginfo seginfo = _segment_info.at(seg.getName());
 
   if (int(seginfo.mdatoms.size()) != seg.size()) {
     throw std::runtime_error(
@@ -361,18 +375,9 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
   }
 
   int residueoffset = minmax.first - minmax_map.first;
-  std::string coordsfilename =
-      _mapatom_xml.at("coords") + "_" + state.ToString();
-  if (seginfo.coordfiles.count(coordsfilename) == 0) {
-    throw std::runtime_error(
-        "Could not find a coordinate file for segment/state: " +
-        coordsfilename);
-  }
-  std::string template_coordinates_filename =
-      seginfo.coordfiles.at(coordsfilename);
 
   AtomContainer Result(seg.getName(), seg.getId());
-  Result.LoadFromFile(template_coordinates_filename);
+  Result.LoadFromFile(coordfilename);
 
   if (int(seginfo.mapatoms.size()) != Result.size()) {
     throw std::runtime_error(
