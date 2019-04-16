@@ -46,8 +46,12 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
-  if (_Hx_cache[index].size() > 0) {
-    return std::move(_Hx_cache[index]);
+  Eigen::RowVectorXd result;
+#pragma omp critical
+  {
+    if (_Hx_cache[index].size() > 0) {
+      _Hx_cache[index].swap(result);
+    }
   }
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
@@ -75,7 +79,8 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
       _Hx_cache[index + i] = H_cache.col(i).transpose();
     }
   }
-  return H_cache.col(0).transpose();
+  result = H_cache.col(0).transpose();
+  return result;
 }
 
 template <int cqp, int cx, int cd, int cd2>
