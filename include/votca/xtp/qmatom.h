@@ -37,7 +37,7 @@ class QMAtom {
  public:
   struct data{
       int index;
-      char* element;
+      char element[CptTable::MaxStringSize];
       double x;
       double y;
       double z;
@@ -49,7 +49,7 @@ class QMAtom {
 
   QMAtom(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx); }
 
-  QMAtom(data& d) { ReadData(d); }
+  QMAtom(data& d);
 
   const Eigen::Vector3d& getPos() const { return _pos; }
 

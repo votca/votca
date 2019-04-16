@@ -66,6 +66,9 @@ class StaticSite {
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
     setCharge(charge);
   }
+protected:
+  StaticSite(){};
+public:
 
   int getId() const { return _id; }
   int getRank() const { return _rank; }

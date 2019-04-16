@@ -41,6 +41,10 @@ namespace votca {
                 setPolarisation(default_pol*Eigen::Matrix3d::Identity());
             };
 
+  PolarSite::PolarSite(data& d){
+      ReadData(d);
+  };
+
 
     void PolarSite::Induce(double wSOR) {
       // SUCCESSIVE OVERRELAXATION

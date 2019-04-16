@@ -75,7 +75,30 @@ public:
 
         double eigendamp;
         double phiU;
+
+        operator StaticSite::data(){
+            StaticSite::data d2;
+            d2.id = id;
+            d2.element = element;
+            d2.posX = posX;
+            d2.posY = posY;
+            d2.posZ = posZ;
+
+            d2.rank = rank;
+
+            d2.multipoleQ00  = multipoleQ00;
+            d2.multipoleQ11c = multipoleQ11c;
+            d2.multipoleQ11s = multipoleQ11s;
+            d2.multipoleQ10  = multipoleQ10;
+            d2.multipoleQ20  = multipoleQ20;
+            d2.multipoleQ21c = multipoleQ21c;
+            d2.multipoleQ21s = multipoleQ21s;
+            d2.multipoleQ22c = multipoleQ22c;
+            d2.multipoleQ22s = multipoleQ22s;
+            return d2;
+        }
     };
+
 
     PolarSite(int id, std::string element, Eigen::Vector3d pos);
 
@@ -87,8 +110,9 @@ public:
         ReadFromCpt(table, idx);
     }
 
-PolarSite(data& d): StaticSite(d){ ReadData(d); }
 
+
+    PolarSite(data& d);
 
     void setPolarisation(const Eigen::Matrix3d pol){
         _Ps=pol;
@@ -152,7 +176,6 @@ private:
     double PhiU=0.0;                            // Electric potential (due to indu.)
 
 };
-
 
 }}
 

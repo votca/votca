@@ -18,6 +18,7 @@
 
 #include <H5Cpp.h>
 #include <string>
+#include <cstring>
 #include <cstddef>
 #include <stdexcept>
 #include <sstream>
@@ -65,7 +66,7 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
     void addCol(const char* item, const std::string& name,
                 const size_t& offset){
 
-        H5::DataType fixedWidth (H5T_STRING, _maxStringSize);
+        H5::DataType fixedWidth (H5T_STRING, MaxStringSize);
 
         _rowStructure.insertMember(name, offset, fixedWidth);
     }
@@ -174,7 +175,7 @@ CptTable(const std::string& name, const std::size_t& rowSize, const CptLoc& loc)
 
     std::size_t numRows(){return _nRows;}
 
-    static const std::size_t _maxStringSize = 512;
+    static const std::size_t MaxStringSize = 512;
 private:
     std::string _name;
     CptLoc _loc;

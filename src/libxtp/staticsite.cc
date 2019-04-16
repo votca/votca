@@ -204,7 +204,7 @@ namespace votca {
       _multipole[8] = d.multipoleQ22s;
   }
 
-  void StaticSite::ReadData(data& data){
+  void StaticSite::ReadData(data& d){
       _id           = d.id;
       _element      = std::string(d.element);
       free(d.element);
