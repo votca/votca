@@ -46,12 +46,12 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
-  Eigen::RowVectorXd result;
-#pragma omp critical
-  {
-    if (_Hx_cache[index].size() > 0) {
-      _Hx_cache[index].swap(result);
-    }
+  int thread_id = 0;
+#ifdef _OPENMP
+  thread_id = omp_get_thread_num();
+#endif
+  if (_Hx_cache[thread_id].hasValue(index)) {
+    return _Hx_cache[thread_id].getValue(index);
   }
   int auxsize = _Mmn.auxsize();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
@@ -60,7 +60,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
   const int cmin = _bse_cmin - _opt.rpamin;
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  int cache_size = 10;
+  int cache_size = 20;
   if ((_bse_ctotal - c1) < cache_size) {
     cache_size = _bse_ctotal - c1;
   }
@@ -73,14 +73,8 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
     H_cache.block(i2, 0, _bse_ctotal, cache_size) =
         Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
   }
-#pragma omp critical
-  {
-    for (int i = 1; i < cache_size; i++) {
-      _Hx_cache[index + i] = H_cache.col(i).transpose();
-    }
-  }
-  result = H_cache.col(0).transpose();
-  return result;
+  _Hx_cache[thread_id].FillCache(H_cache, index);
+  return H_cache.col(0).transpose();
 }
 
 template <int cqp, int cx, int cd, int cd2>
