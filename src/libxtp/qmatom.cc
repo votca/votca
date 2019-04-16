@@ -66,7 +66,6 @@ namespace xtp {
 
   void QMAtom::WriteData(data& d) const{
       d.index     = _index;
-      d.element   = const_cast<char*>(_element.c_str());
       std::strcpy(d.element, _element.c_str());
       d.x         = _pos[0];
       d.y         = _pos[1];
