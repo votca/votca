@@ -52,8 +52,8 @@ class Property {
   friend std::ostream &operator<<(std::ostream &out, const Property &p);
 
  public:
-  Property() : _path("") {}
 
+         Property(){};
   Property(const std::string &name, const std::string &value,
            const std::string &path)
       : _name(name), _value(value), _path(path) {}
@@ -220,13 +220,13 @@ class Property {
   static int getIOindex() { return IOindex; };
 
  private:
-  std::map<std::string, Property *> _map;
+  std::map<std::string, int> _map;
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
   std::string _name;
   std::string _value;
-  std::string _path;
+  std::string _path="";
 
   static const int IOindex;
 };
@@ -243,7 +243,7 @@ inline Property &Property::add(const std::string &key,
   std::string path = _path;
   if (path != "") path = path + ".";
   _properties.push_back(Property(key, value, path + _name));
-  _map[key] = &(_properties.back());
+  _map[key] = _properties.size()-1;
   return _properties.back();
 }
 
