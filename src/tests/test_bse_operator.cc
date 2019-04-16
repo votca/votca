@@ -292,9 +292,8 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   opt.vmin = 0;
 
   orbitals.setBSEindices(0, 16);
-  Logger log;
 
-  HqpOperator Hqp_op(epsilon_inv, log, Mmn, Hqp);
+  HqpOperator Hqp_op(epsilon_inv, Mmn, Hqp);
   Hqp_op.configure(opt);
   Eigen::MatrixXd hqp_mat = Hqp_op.get_full_matrix();
 
@@ -342,7 +341,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   bool check_hqp = hqp_mat.isApprox(hqp_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hqp, true);
 
-  HxOperator Hx(epsilon_inv, log, Mmn, Hqp);
+  HxOperator Hx(epsilon_inv, Mmn, Hqp);
   Hx.configure(opt);
   Eigen::MatrixXd hx_mat = Hx.get_full_matrix();
   Eigen::MatrixXd hx_ref = Eigen::MatrixXd::Zero(20, 20);
@@ -422,7 +421,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
 
   bool check_hx = hx_mat.isApprox(hx_ref, 0.001);
   BOOST_CHECK_EQUAL(check_hx, true);
-  HdOperator Hd(epsilon_inv, log, Mmn, Hqp);
+  HdOperator Hd(epsilon_inv, Mmn, Hqp);
   Hd.configure(opt);
   Eigen::MatrixXd hd_mat = Hd.get_full_matrix();
   Eigen::MatrixXd hd_ref = Eigen::MatrixXd::Zero(20, 20);
@@ -512,7 +511,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   }
   BOOST_CHECK_EQUAL(check_hd, true);
 
-  Hd2Operator Hd2(epsilon_inv, log, Mmn, Hqp);
+  Hd2Operator Hd2(epsilon_inv, Mmn, Hqp);
   Hd2.configure(opt);
   Eigen::MatrixXd hd2_mat = Hd2.get_full_matrix();
   Eigen::MatrixXd hd2_ref = Eigen::MatrixXd::Zero(20, 20);

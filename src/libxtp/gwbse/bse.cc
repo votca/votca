@@ -64,7 +64,7 @@ void BSE::configureBSEOperator(BSE_OPERATOR& H) {
 
 void BSE::Solve_triplets_TDA() {
 
-  TripletOperator_TDA Ht(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  TripletOperator_TDA Ht(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Ht);
   solve_hermitian(Ht, _bse_triplet_energies, _bse_triplet_coefficients);
 
@@ -103,7 +103,7 @@ void BSE::Solve_triplets() {
 
 void BSE::Solve_singlets_TDA() {
 
-  SingletOperator_TDA Hs(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  SingletOperator_TDA Hs(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hs);
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Setup TDA singlet hamiltonian "
                           << flush;
@@ -113,14 +113,14 @@ void BSE::Solve_singlets_TDA() {
 
 SingletOperator_TDA BSE::getSingletOperator_TDA() {
 
-  SingletOperator_TDA Hs(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  SingletOperator_TDA Hs(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hs);
   return Hs;
 }
 
 TripletOperator_TDA BSE::getTripletOperator_TDA() {
 
-  TripletOperator_TDA Ht(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  TripletOperator_TDA Ht(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Ht);
   return Ht;
 }
@@ -212,9 +212,9 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
 }
 
 void BSE::Solve_singlets_BTDA() {
-  SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hs_ApB);
-  Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hs_AmB);
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Setup Full singlet hamiltonian "
                           << flush;
@@ -223,9 +223,9 @@ void BSE::Solve_singlets_BTDA() {
 }
 
 void BSE::Solve_triplets_BTDA() {
-  TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Ht_ApB);
-  Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Ht_AmB);
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Setup Full triplet hamiltonian "
                           << flush;
@@ -490,16 +490,16 @@ Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type,
 BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type) {
   Interaction analysis;
 
-  HqpOperator hqp(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hqp);
   analysis.qp_contrib = Analyze_IndividualContribution(type, hqp);
 
-  HdOperator hd(_epsilon_0_inv, _log, _Mmn, _Hqp);
+  HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hd);
   analysis.direct_contrib = Analyze_IndividualContribution(type, hd);
 
   if (type == QMStateType::Singlet) {
-    HxOperator hx(_epsilon_0_inv, _log, _Mmn, _Hqp);
+    HxOperator hx(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hx);
     analysis.exchange_contrib = Analyze_IndividualContribution(type, hx);
   } else {

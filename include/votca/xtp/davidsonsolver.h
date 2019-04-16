@@ -79,12 +79,12 @@ class DavidsonSolver {
 
       case ORTHO::GS:
         XTP_LOG(logDEBUG, _log)
-            << TimeStamp() << " Gram-Schmidt Ortgonalization" << flush;
+            << TimeStamp() << " Gram-Schmidt Orthogonalization" << flush;
         break;
 
       case ORTHO::QR:
         XTP_LOG(logDEBUG, _log)
-            << TimeStamp() << " QR Ortgonalization" << flush;
+            << TimeStamp() << " QR Orthogonalization" << flush;
         break;
     }
 

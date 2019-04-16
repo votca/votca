@@ -55,10 +55,6 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 }  // namespace xtp
 }  // namespace votca
 
-// user defined reduction
-#pragma omp declare reduction(+: Eigen::VectorXd: omp_out=omp_out+omp_in )\
-  initializer(omp_priv=Eigen::VectorXd::Zero(omp_orig.size()))
-
 namespace Eigen {
 
 namespace internal {
