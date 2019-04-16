@@ -241,7 +241,7 @@ void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
 }
 
 void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
-                 std::string thisHost) {
+                 const std::string &thisHost) {
   std::vector<Job>::iterator it_int;
   std::vector<Job>::const_iterator it_ext;
 

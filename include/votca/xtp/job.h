@@ -144,7 +144,7 @@ void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
                 std::string fileformat);
 
 void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
-                 std::string thisHost);
+                 const std::string &thisHost);
 
 }  // namespace xtp
 }  // namespace votca
