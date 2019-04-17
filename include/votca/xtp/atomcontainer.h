@@ -79,7 +79,6 @@ class AtomContainer {
     return _pos;
   }
 
-
   // calculates the lowest and highest point in the cube, sorrounding the
   // molecule
   std::pair<Eigen::Vector3d, Eigen::Vector3d> CalcSpatialMinMax() const {
@@ -130,27 +129,29 @@ class AtomContainer {
   virtual void WriteToCpt(CheckpointWriter& w) const {
     w(_name, "name");
     w(_id, "id");
-    w(int(_atomlist.size()),"size");
+    w(int(_atomlist.size()), "size");
     T element(0, "H", Eigen::Vector3d::Zero());
-    bool compact=true;
-    CptTable table = w.openTable(element.identify() + "s", element, _atomlist.size(), compact);
+    bool compact = true;
+    CptTable table = w.openTable(element.identify() + "s", element,
+                                 _atomlist.size(), compact);
 
     std::vector<typename T::data> dataVec(_atomlist.size());
 
-    for (std::size_t i; i<_atomlist.size(); ++i) {
-        _atomlist[i].WriteData(dataVec[i]);
+    for (std::size_t i; i < _atomlist.size(); ++i) {
+      _atomlist[i].WriteData(dataVec[i]);
     }
 
     table.write(dataVec);
   }
 
-
   virtual void ReadFromCpt(CheckpointReader& r) {
     r(_name, "name");
     r(_id, "id");
-    int size=0;
-    r(size,"size");
-    if(size==0){return;}
+    int size = 0;
+    r(size, "size");
+    if (size == 0) {
+      return;
+    }
     T element(0, "H", Eigen::Vector3d::Zero());  // dummy element to get
                                                  // .identify for type
 
@@ -161,8 +162,8 @@ class AtomContainer {
 
     table.read(dataVec);
 
-    for (std::size_t i; i<_atomlist.size(); ++i) {
-        _atomlist.emplace_back(T(dataVec[i]));
+    for (std::size_t i; i < _atomlist.size(); ++i) {
+      _atomlist.emplace_back(T(dataVec[i]));
     }
   }
 

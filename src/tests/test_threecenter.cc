@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #define BOOST_TEST_MODULE threecenter_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ERIs.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
-#include <votca/xtp/aomatrix.h>
 
 using namespace votca::xtp;
 using namespace std;

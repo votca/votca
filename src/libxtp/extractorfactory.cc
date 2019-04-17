@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2017 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -17,17 +17,12 @@
  *
  */
 
-
 #include <votca/xtp/extractorfactory.h>
 
+namespace votca {
+namespace xtp {
 
+void ExtractorFactory::RegisterAll(void) {}
 
-
-namespace votca { namespace xtp {
-
-void ExtractorFactory::RegisterAll(void)
-{	
-
-}
-
-}}
+}  // namespace xtp
+}  // namespace votca

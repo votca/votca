@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -23,34 +23,29 @@
 #include <votca/xtp/atomcontainer.h>
 #include <votca/xtp/qmatom.h>
 
-
 namespace votca {
-    namespace xtp {
+namespace xtp {
 
-class QMMolecule : public AtomContainer<QMAtom>
-{
-public:
-    QMMolecule(std::string name,int id):AtomContainer<QMAtom>(name,id){};
-        
-    void LoadFromFile(std::string filename);
+class QMMolecule : public AtomContainer<QMAtom> {
+ public:
+  QMMolecule(std::string name, int id) : AtomContainer<QMAtom>(name, id){};
 
-    void WriteXYZ(std::string filename, std::string header) const;
+  void LoadFromFile(std::string filename);
 
-    friend std::ostream &operator<<(std::ostream &out, const QMMolecule& container) {
-    out <<container.getId()<<" "<<container.getName()<<"\n";
-    for(const QMAtom& atom:container){
-	out<<atom;
+  void WriteXYZ(std::string filename, std::string header) const;
+
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const QMMolecule& container) {
+    out << container.getId() << " " << container.getName() << "\n";
+    for (const QMAtom& atom : container) {
+      out << atom;
     }
-    out<<std::endl;
+    out << std::endl;
     return out;
-    }
+  }
 };
-        
-        
-        
-        
-    }
-}
+
+}  // namespace xtp
+}  // namespace votca
 
 #endif /* VOTCA_XTP_QMMOLECULE_H */
-

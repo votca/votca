@@ -57,19 +57,27 @@ class Segment : public AtomContainer<Atom> {
     _U_xN_xX.setValue(dU, state);
   }
 
-  const Atom* getAtom(const MD_atom_id & id)const;
+  const Atom* getAtom(const MD_atom_id& id) const;
 
-  double getU_xX_nN(QMStateType state) const {return _U_xX_nN.getValue(state); }
-
-  double getU_nX_nN(QMStateType state) const {return _U_nX_nN.getValue(state); }
-
-  double getU_xN_xX(QMStateType state) const {return  _U_xN_xX.getValue(state); }
-
-  double getSiteEnergy(QMStateType state) const {
-   return _site_eng.getValue(state) + _U_xX_nN.getValue(state);
+  double getU_xX_nN(QMStateType state) const {
+    return _U_xX_nN.getValue(state);
   }
 
-  double getEMpoles(QMStateType state) const {return _site_eng.getValue(state); }
+  double getU_nX_nN(QMStateType state) const {
+    return _U_nX_nN.getValue(state);
+  }
+
+  double getU_xN_xX(QMStateType state) const {
+    return _U_xN_xX.getValue(state);
+  }
+
+  double getSiteEnergy(QMStateType state) const {
+    return _site_eng.getValue(state) + _U_xX_nN.getValue(state);
+  }
+
+  double getEMpoles(QMStateType state) const {
+    return _site_eng.getValue(state);
+  }
 
   void setEMpoles(QMStateType state, double energy) {
     _site_eng.setValue(energy, state);
@@ -85,12 +93,12 @@ class Segment : public AtomContainer<Atom> {
 
   void ReadFromCpt(CheckpointReader& r);
 
-  friend std::ostream &operator<<(std::ostream &out, const Segment& container) {
-    out <<container.getId()<<" "<<container.getName()<<"\n";
-    for(const Atom& atom:container){
-	out<<atom;
+  friend std::ostream& operator<<(std::ostream& out, const Segment& container) {
+    out << container.getId() << " " << container.getName() << "\n";
+    for (const Atom& atom : container) {
+      out << atom;
     }
-    out<<std::endl;
+    out << std::endl;
     return out;
   }
 

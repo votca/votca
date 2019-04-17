@@ -97,7 +97,9 @@ void XtpMap::Run() {
   if (infile.good()) {
     cout << endl
          << "xtp_map : state file '" << _outdb
-         << "' already in use. Delete the current statefile or specify a different name." << endl;
+         << "' already in use. Delete the current statefile or specify a "
+            "different name."
+         << endl;
     return;
   }
 
@@ -177,20 +179,21 @@ void XtpMap::Run() {
   }
   if (TOOLS::globals::verbose) {
     cout << "Read MD trajectory from " << trjfile << ": found " << nFrames
-         << " frames, starting from frame " << firstFrame<< endl;
+         << " frames, starting from frame " << firstFrame << endl;
   }
   // +++++++++++++++++++++++++ //
   // Convert MD to QM Topology //
   // +++++++++++++++++++++++++ //
-  int laststep=-1;//for some formats no step is given out so we check if the step
+  int laststep =
+      -1;  // for some formats no step is given out so we check if the step
 
   XTP::StateSaver statsav(_outdb);
   for (int saved = 0; hasFrame && saved < nFrames;
        hasFrame = trjread->NextFrame(mdtopol), saved++) {
-    if(mdtopol.getStep()==laststep){
-        mdtopol.setStep(laststep+1);
+    if (mdtopol.getStep() == laststep) {
+      mdtopol.setStep(laststep + 1);
     }
-    laststep=mdtopol.getStep();
+    laststep = mdtopol.getStep();
     XTP::Topology qmtopol = md2qm.map(mdtopol);
     statsav.WriteFrame(qmtopol);
   }

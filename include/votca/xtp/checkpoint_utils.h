@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #define VOTCA_XTP_CHECKPOINT_UTILS_H
 
 #include <H5Cpp.h>
-#include <string>
 #include <cstddef>
 #include <cstring>
+#include <string>
 
 namespace votca {
 namespace xtp {
@@ -69,7 +69,6 @@ struct InferDataType<std::string> {
 };
 
 H5::DataSpace str_scalar(H5::DataSpace(H5S_SCALAR));
-
 
 }  // namespace checkpoint_utils
 }  // namespace xtp

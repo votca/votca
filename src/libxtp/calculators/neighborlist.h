@@ -63,7 +63,7 @@ void Neighborlist::Initialize(tools::Property& options) {
 
   for (tools::Property* segprop : segs) {
     std::string types = segprop->get("type").as<std::string>();
-    double cutoff = segprop->get("cutoff").as<double>()*tools::conv::nm2bohr;
+    double cutoff = segprop->get("cutoff").as<double>() * tools::conv::nm2bohr;
 
     tools::Tokenizer tok(types, " ");
     std::vector<std::string> names;
@@ -88,47 +88,45 @@ void Neighborlist::Initialize(tools::Property& options) {
 
   if (options.exists(key + ".constant")) {
     _useConstantCutoff = true;
-    _constantCutoff = options.get(key + ".constant").as<double>()*tools::conv::nm2bohr;
+    _constantCutoff =
+        options.get(key + ".constant").as<double>() * tools::conv::nm2bohr;
   } else {
     _useConstantCutoff = false;
   }
   if (options.exists(key + ".exciton_cutoff")) {
     _useExcitonCutoff = true;
-    _excitonqmCutoff = options.get(key + ".exciton_cutoff").as<double>()*tools::conv::nm2bohr;
+    _excitonqmCutoff = options.get(key + ".exciton_cutoff").as<double>() *
+                       tools::conv::nm2bohr;
   } else {
     _useExcitonCutoff = false;
   }
 }
 
-int Neighborlist::DetClassicalPairs(Topology& top){
-    int classical_pairs = 0;
+int Neighborlist::DetClassicalPairs(Topology& top) {
+  int classical_pairs = 0;
 #pragma omp parallel for
-    for (int i = 0; i < top.NBList().size(); i++)    {
-        const Segment* seg1 = top.NBList()[i]->Seg1();
-        const Segment* seg2 = top.NBList()[i]->Seg2();
-        if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff){
-            top.NBList()[i]->setType(QMPair::Excitoncl);
+  for (int i = 0; i < top.NBList().size(); i++) {
+    const Segment* seg1 = top.NBList()[i]->Seg1();
+    const Segment* seg2 = top.NBList()[i]->Seg2();
+    if (top.GetShortestDist(*seg1, *seg2) > _excitonqmCutoff) {
+      top.NBList()[i]->setType(QMPair::Excitoncl);
 #pragma omp critical
-            {
-                classical_pairs++;
-            }
-        }else{
-            top.NBList()[i]->setType(QMPair::Hopping);
-        }
-    } // Type 3 Exciton_classical approx
-    return classical_pairs;
+      { classical_pairs++; }
+    } else {
+      top.NBList()[i]->setType(QMPair::Hopping);
+    }
+  }  // Type 3 Exciton_classical approx
+  return classical_pairs;
 }
 
 bool Neighborlist::EvaluateFrame(Topology& top) {
 
- #ifdef _OPENMP
+#ifdef _OPENMP
   if (_nThreads > 0) {
     omp_set_num_threads(_nThreads);
-    std::cout << " Using "<< omp_get_max_threads() << " threads" << std::flush;
+    std::cout << " Using " << omp_get_max_threads() << " threads" << std::flush;
   }
 #endif
-
- 
 
   if (tools::globals::verbose) {
     std::cout << std::endl << "... ..." << std::flush;
@@ -147,11 +145,12 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   }
   std::cout << std::endl;
   std::cout << "Evaluating " << segs.size() << " segments for neighborlist. ";
-  if((top.Segments().size() - segs.size())!=0){
-            std::cout<< top.Segments().size() - segs.size()
-            << " segments are not taken into account as specified" << std::endl;
-  }else{
-      std::cout<<std::endl;
+  if ((top.Segments().size() - segs.size()) != 0) {
+    std::cout << top.Segments().size() - segs.size()
+              << " segments are not taken into account as specified"
+              << std::endl;
+  } else {
+    std::cout << std::endl;
   }
   if (!_useConstantCutoff) {
     std::cout << "The following segments are used in the neigborlist creation"
@@ -171,10 +170,10 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   boost::progress_display progress(segs.size());
 
 #pragma omp parallel for schedule(guided)
-  for (unsigned i=0;i<segs.size();i++) {
+  for (unsigned i = 0; i < segs.size(); i++) {
     Segment* seg1 = segs[i];
-    double cutoff=_constantCutoff;
-   for (unsigned j=i+1;j<segs.size();j++) {
+    double cutoff = _constantCutoff;
+    for (unsigned j = i + 1; j < segs.size(); j++) {
       Segment* seg2 = segs[j];
       if (!_useConstantCutoff) {
         try {
@@ -183,11 +182,8 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
           std::string pairstring = seg1->getName() + "/" + seg2->getName();
           if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
               skippedpairs.end()) {
-             #pragma omp critical
-            {
-                skippedpairs.push_back(pairstring);
-            }
-            
+#pragma omp critical
+            { skippedpairs.push_back(pairstring); }
           }
           continue;
         }
@@ -205,30 +201,24 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
           top.PbShortestConnect(seg1->getPos(), seg2->getPos());
       double segdistance2 = segdistance.squaredNorm();
       double outside = cutoff + seg1->getApproxSize() + seg2->getApproxSize();
-      
+
       if (segdistance2 < cutoff2) {
-          #pragma omp critical
-            {
-                top.NBList().Add(seg1, seg2, segdistance);
-            }
-        
+#pragma omp critical
+        { top.NBList().Add(seg1, seg2, segdistance); }
+
       } else if (segdistance2 > (outside * outside)) {
         continue;
       } else {
         double R = top.GetShortestDist(*seg1, *seg2);
         if ((R * R) < cutoff2) {
-            #pragma omp critical
-            {
-                top.NBList().Add(seg1, seg2, segdistance);
-            }    
+#pragma omp critical
+          { top.NBList().Add(seg1, seg2, segdistance); }
         }
       }
     } /* exit loop seg2 */
- #pragma omp critical
-            {
-            ++progress;
-            }
-  }   /* exit loop seg1 */
+#pragma omp critical
+    { ++progress; }
+  } /* exit loop seg1 */
 
   if (skippedpairs.size() > 0) {
     std::cout << "WARNING: No cut-off specified for segment pairs of type "
@@ -242,16 +232,20 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   std::cout << std::endl
             << " ... ... Created " << top.NBList().size() << " direct pairs.";
   if (_useExcitonCutoff) {
-      std::cout << std::endl
-            << " ... ... Determining classical pairs " << std::endl;
-    int classical_pairs=DetClassicalPairs(top);
-    std::cout<< " ... ... Found "<<classical_pairs<<" classical pairs " << std::endl;
+    std::cout << std::endl
+              << " ... ... Determining classical pairs " << std::endl;
+    int classical_pairs = DetClassicalPairs(top);
+    std::cout << " ... ... Found " << classical_pairs << " classical pairs "
+              << std::endl;
   }
 
-  //sort qmpairs by seg1id and then by seg2id then reindex the pair id according to that.
-top.NBList().sortAndReindex([](QMPair* a, QMPair* b) {
-    if (a->Seg1()->getId() != b->Seg1()->getId()) return a->Seg1()->getId() < b->Seg1()->getId();
-    return a->Seg2()->getId() < b->Seg2()->getId();});
+  // sort qmpairs by seg1id and then by seg2id then reindex the pair id
+  // according to that.
+  top.NBList().sortAndReindex([](QMPair* a, QMPair* b) {
+    if (a->Seg1()->getId() != b->Seg1()->getId())
+      return a->Seg1()->getId() < b->Seg1()->getId();
+    return a->Seg2()->getId() < b->Seg2()->getId();
+  });
 
   return true;
 }

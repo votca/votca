@@ -18,11 +18,11 @@
 #define BOOST_TEST_MODULE topology_test
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
+#include <votca/csg/boundarycondition.h>
 #include <votca/xtp/atom.h>
 #include <votca/xtp/qmpair.h>
 #include <votca/xtp/segment.h>
 #include <votca/xtp/topology.h>
-#include <votca/csg/boundarycondition.h>
 
 using namespace votca::tools;
 

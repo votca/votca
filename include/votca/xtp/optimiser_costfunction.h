@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -43,4 +43,4 @@ class Optimiser_costfunction {
 
 }  // namespace xtp
 }  // namespace votca
-#endif // VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
+#endif  // VOTCA_XTP_OPTIMISER_COSTFUNCTION_H

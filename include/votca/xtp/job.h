@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,131 +16,135 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit 77795ea591b29e664153f9404c8655ba28dc14e9
+/// For an earlier history see ctp repo commit
+/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef VOTCA_XTP_JOB_H
-#define	VOTCA_XTP_JOB_H
+#define VOTCA_XTP_JOB_H
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <votca/tools/property.h>
 
+namespace votca {
+namespace xtp {
 
+class Job {
 
-namespace votca { namespace xtp {
-    
+ public:
+  enum JobStatus { AVAILABLE, ASSIGNED, FAILED, COMPLETE };
 
-    
-    
-class Job
-{
+  Job(tools::Property *prop);
+  Job(int id, std::string &tag, std::string &input, std::string stat);
+  Job(int id, std::string &tag, tools::Property &input, JobStatus stat);
+  ~Job() { ; }
 
-public:
-    
-    enum JobStatus 
-    { 
-        AVAILABLE, 
-        ASSIGNED, 
-        FAILED, 
-        COMPLETE
-    };
-    
+  std::string ConvertStatus(JobStatus) const;
+  JobStatus ConvertStatus(std::string) const;
 
-    Job(tools::Property *prop);
-    Job(int id, std::string &tag, std::string &input, std::string stat);
-    Job(int id, std::string &tag, tools::Property &input, JobStatus stat);
-   ~Job() {;}
-    
-    std::string    ConvertStatus(JobStatus) const;
-    JobStatus ConvertStatus(std::string) const;
-   
-    class JobResult
-    {
-    public:
-        
-        JobResult() { ; }
-        
-        void setStatus(JobStatus stat) { _status = stat; }
-        void setStatus(std::string stat) { assert(false); }
-        void setOutput(std::string output) 
-            { _has_output = true; _output = tools::Property().add("output", output); }
-        void setOutput(tools::Property &output)
-            { _has_output = true; _output = output.get("output"); }
-        void setError(std::string error) { _has_error = true; _error = error; }
-        
-        JobStatus _status;
-        tools::Property _output;
-        bool _has_output;
-        std::string _error;
-        bool _has_error;
-    };
+  class JobResult {
+   public:
+    JobResult() { ; }
 
-    void Reset();
-    void ToStream(std::ofstream &ofs, std::string fileformat);
-    void UpdateFrom(Job *ext);
-    void SaveResults(JobResult *res);
-   
-    int getId() const { return _id; }
-    std::string getTag() const { return _tag; }
-    tools::Property &getInput() { return _input; }    
-    const JobStatus &getStatus() const { return _status; }
-    std::string getStatusStr() const { return ConvertStatus(_status); }
-    
-    bool hasHost() const { return _has_host; }
-    bool hasTime() const { return _has_time; }
-    bool hasOutput() const { return _has_output; }
-    bool hasError() const { return _has_error; }
-    
-    bool isAvailable() const { return (_status == AVAILABLE) ? true : false; }
-    bool isAssigned() const { return (_status == ASSIGNED) ? true : false; }
-    bool isFailed() const { return (_status == FAILED) ? true : false; }
-    bool isComplete() const { return (_status == COMPLETE) ? true : false; }
-    bool isFresh() const { return (_attemptsCount < 1) ? true : false; }
-    
     void setStatus(JobStatus stat) { _status = stat; }
-    void setStatus(std::string stat) { _status = ConvertStatus(stat); }
-    void setTime(std::string time) { _time = time; _has_time = true; }
-    void setHost(std::string host) { _host = host; _has_host = true; }
-    void setOutput(std::string output) { _output = tools::Property().add("output", output); _has_output = true; }
-   
-    const std::string &getHost() const { assert(_has_host); return _host; }
-    const std::string &getTime() const { assert(_has_time); return _time; }
-    const tools::Property &getOutput() const { assert(_has_output); return _output; }
-    const std::string &getError() const { assert(_has_error); return _error; }
+    void setStatus(std::string stat) { assert(false); }
+    void setOutput(std::string output) {
+      _has_output = true;
+      _output = tools::Property().add("output", output);
+    }
+    void setOutput(tools::Property &output) {
+      _has_output = true;
+      _output = output.get("output");
+    }
+    void setError(std::string error) {
+      _has_error = true;
+      _error = error;
+    }
 
-protected:
+    JobStatus _status;
+    tools::Property _output;
+    bool _has_output;
+    std::string _error;
+    bool _has_error;
+  };
 
-    
-     // Defined by user
-     int _id;
-     std::string _tag;    
-     JobStatus _status;
-     int _attemptsCount;
-     tools::Property _input;
-     std::string _sqlcmd;
-    
-     // Generated during runtime
-     std::string _host;
-     bool   _has_host;
-     std::string _time;
-     bool   _has_time;
-     tools::Property _output;
-     bool   _has_error;
-     bool   _has_output;
-     std::string _error;
-     bool   _has_sqlcmd;
+  void Reset();
+  void ToStream(std::ofstream &ofs, std::string fileformat);
+  void UpdateFrom(Job *ext);
+  void SaveResults(JobResult *res);
+
+  int getId() const { return _id; }
+  std::string getTag() const { return _tag; }
+  tools::Property &getInput() { return _input; }
+  const JobStatus &getStatus() const { return _status; }
+  std::string getStatusStr() const { return ConvertStatus(_status); }
+
+  bool hasHost() const { return _has_host; }
+  bool hasTime() const { return _has_time; }
+  bool hasOutput() const { return _has_output; }
+  bool hasError() const { return _has_error; }
+
+  bool isAvailable() const { return (_status == AVAILABLE) ? true : false; }
+  bool isAssigned() const { return (_status == ASSIGNED) ? true : false; }
+  bool isFailed() const { return (_status == FAILED) ? true : false; }
+  bool isComplete() const { return (_status == COMPLETE) ? true : false; }
+  bool isFresh() const { return (_attemptsCount < 1) ? true : false; }
+
+  void setStatus(JobStatus stat) { _status = stat; }
+  void setStatus(std::string stat) { _status = ConvertStatus(stat); }
+  void setTime(std::string time) {
+    _time = time;
+    _has_time = true;
+  }
+  void setHost(std::string host) {
+    _host = host;
+    _has_host = true;
+  }
+  void setOutput(std::string output) {
+    _output = tools::Property().add("output", output);
+    _has_output = true;
+  }
+
+  const std::string &getHost() const {
+    assert(_has_host);
+    return _host;
+  }
+  const std::string &getTime() const {
+    assert(_has_time);
+    return _time;
+  }
+  const tools::Property &getOutput() const {
+    assert(_has_output);
+    return _output;
+  }
+  const std::string &getError() const {
+    assert(_has_error);
+    return _error;
+  }
+
+ protected:
+  // Defined by user
+  int _id;
+  std::string _tag;
+  JobStatus _status;
+  int _attemptsCount;
+  tools::Property _input;
+  std::string _sqlcmd;
+
+  // Generated during runtime
+  std::string _host;
+  bool _has_host;
+  std::string _time;
+  bool _has_time;
+  tools::Property _output;
+  bool _has_error;
+  bool _has_output;
+  std::string _error;
+  bool _has_sqlcmd;
 };
 
+}  // namespace xtp
+}  // namespace votca
 
-
-
-    
-    
-    
-    
-    
-}}
-
-
-#endif // VOTCA_XTP_JOB_H
+#endif  // VOTCA_XTP_JOB_H

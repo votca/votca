@@ -35,14 +35,14 @@ class QMAtom {
   friend class AOBasis;
 
  public:
-  struct data{
-      int index;
-      char element[CptTable::MaxStringSize];
-      double x;
-      double y;
-      double z;
-      int nuccharge;
-      int ecpcharge;
+  struct data {
+    int index;
+    char element[CptTable::MaxStringSize];
+    double x;
+    double y;
+    double z;
+    int nuccharge;
+    int ecpcharge;
   };
 
   QMAtom(int index, std::string element, Eigen::Vector3d pos);
@@ -67,10 +67,10 @@ class QMAtom {
 
   std::string identify() const { return "qmatom"; }
 
-  friend std::ostream &operator<<(std::ostream &out, const QMAtom& atom) {
-    out <<atom.getId()<<" "<<atom.getElement();
-    out <<" "<<atom.getPos().x()<<","
-	    <<atom.getPos().y()<<","<<atom.getPos().z()<<" "<<atom.getNuccharge()<<"\n";
+  friend std::ostream& operator<<(std::ostream& out, const QMAtom& atom) {
+    out << atom.getId() << " " << atom.getElement();
+    out << " " << atom.getPos().x() << "," << atom.getPos().y() << ","
+        << atom.getPos().z() << " " << atom.getNuccharge() << "\n";
     return out;
   }
 
@@ -78,10 +78,10 @@ class QMAtom {
   int _index;
   std::string _element;
   Eigen::Vector3d _pos;  // Bohr
-  int _nuccharge=0;        // nuc charge is set in aobasis fill and ecpfill
-  int _ecpcharge=0;
- public:
+  int _nuccharge = 0;    // nuc charge is set in aobasis fill and ecpfill
+  int _ecpcharge = 0;
 
+ public:
   void SetupCptTable(CptTable& table) const;
 
   void WriteData(data& d) const;
@@ -91,7 +91,6 @@ class QMAtom {
   void ReadFromCpt(CptTable& table, const std::size_t& idx);
 
   void ReadData(data& d);
-
 };
 }  // namespace xtp
 }  // namespace votca

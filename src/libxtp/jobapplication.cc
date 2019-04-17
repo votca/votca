@@ -82,7 +82,6 @@ void JobApplication::Run() {
   int fframe = OptionsMap()["first-frame"].as<int>();
   bool save = OptionsMap()["save"].as<bool>();
 
-
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
   ProgObserver<std::vector<Job*>, Job*, Job::JobResult> progObs =
@@ -99,7 +98,7 @@ void JobApplication::Run() {
 
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculators " << std::endl;
-  std::cout <<frames.size()<<" frames in statefile, Ids are: ";
+  std::cout << frames.size() << " frames in statefile, Ids are: ";
   for (int frame : frames) {
     std::cout << frame << " ";
   }

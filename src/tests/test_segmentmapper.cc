@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@
 
 #define BOOST_TEST_MODULE segmentmapper_test
 #include <boost/test/unit_test.hpp>
-#include <votca/xtp/segmentmapper.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <votca/xtp/segmentmapper.h>
 
 using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(segmentmapper_test)
 
-BOOST_AUTO_TEST_CASE(mapping_test) {
-  
-}
+BOOST_AUTO_TEST_CASE(mapping_test) {}
 BOOST_AUTO_TEST_SUITE_END()

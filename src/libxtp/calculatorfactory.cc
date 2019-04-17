@@ -25,8 +25,8 @@
 #include "calculators/jobwriter.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
-#include "calculators/neighborlist.h"
 #include "calculators/mapchecker.h"
+#include "calculators/neighborlist.h"
 
 namespace votca {
 namespace xtp {

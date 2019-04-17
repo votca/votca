@@ -38,79 +38,76 @@ double Segment::getApproxSize() const {
   return _approxsize;
 }
 
-const Atom* Segment::getAtom(const MD_atom_id& id)const{
-    int resnum=id.first;
-    std::string atomname=id.second;
-    for(const Atom& atom:*this){
-        if(atom.getResnr()==resnum && atom.getName()==atomname){
-            return &atom;
-        }
+const Atom* Segment::getAtom(const MD_atom_id& id) const {
+  int resnum = id.first;
+  std::string atomname = id.second;
+  for (const Atom& atom : *this) {
+    if (atom.getResnr() == resnum && atom.getName() == atomname) {
+      return &atom;
     }
-    return nullptr;
+  }
+  return nullptr;
 }
-
 
 void Segment::WriteToCpt(CheckpointWriter& w) const {
   AtomContainer<Atom>::WriteToCpt(w);
   w(_molecule_ids, "mol_ids");
- 
-  w(_U_xX_nN.getValue(QMStateType::Electron),"U_xX_nN_e");
-  w(_U_xX_nN.getValue(QMStateType::Hole),"U_xX_nN_h");
-  w(_U_xX_nN.getValue(QMStateType::Singlet),"U_xX_nN_s");
-  w(_U_xX_nN.getValue(QMStateType::Triplet),"U_xX_nN_t");
-  w(_U_nX_nN.getValue(QMStateType::Electron),"U_nX_nN_e");
-  w(_U_nX_nN.getValue(QMStateType::Hole),"U_nX_nN_h");
-  w(_U_nX_nN.getValue(QMStateType::Singlet),"U_nX_nN_s");
-  w(_U_nX_nN.getValue(QMStateType::Triplet),"U_nX_nN_t");
-  w(_U_xN_xX.getValue(QMStateType::Electron),"U_xN_xX_e");
-  w(_U_xN_xX.getValue(QMStateType::Hole),"U_xN_xX_h");
-  w(_U_xN_xX.getValue(QMStateType::Singlet),"U_xN_xX_s");
-  w(_U_xN_xX.getValue(QMStateType::Triplet),"U_xN_xX_t");
-  w(_site_eng.getValue(QMStateType::Electron),"site_eng_e");
-  w(_site_eng.getValue(QMStateType::Hole),"site_eng_h");
-  w(_site_eng.getValue(QMStateType::Singlet),"site_eng_s");
-  w(_site_eng.getValue(QMStateType::Triplet),"site_eng_t");
+
+  w(_U_xX_nN.getValue(QMStateType::Electron), "U_xX_nN_e");
+  w(_U_xX_nN.getValue(QMStateType::Hole), "U_xX_nN_h");
+  w(_U_xX_nN.getValue(QMStateType::Singlet), "U_xX_nN_s");
+  w(_U_xX_nN.getValue(QMStateType::Triplet), "U_xX_nN_t");
+  w(_U_nX_nN.getValue(QMStateType::Electron), "U_nX_nN_e");
+  w(_U_nX_nN.getValue(QMStateType::Hole), "U_nX_nN_h");
+  w(_U_nX_nN.getValue(QMStateType::Singlet), "U_nX_nN_s");
+  w(_U_nX_nN.getValue(QMStateType::Triplet), "U_nX_nN_t");
+  w(_U_xN_xX.getValue(QMStateType::Electron), "U_xN_xX_e");
+  w(_U_xN_xX.getValue(QMStateType::Hole), "U_xN_xX_h");
+  w(_U_xN_xX.getValue(QMStateType::Singlet), "U_xN_xX_s");
+  w(_U_xN_xX.getValue(QMStateType::Triplet), "U_xN_xX_t");
+  w(_site_eng.getValue(QMStateType::Electron), "site_eng_e");
+  w(_site_eng.getValue(QMStateType::Hole), "site_eng_h");
+  w(_site_eng.getValue(QMStateType::Singlet), "site_eng_s");
+  w(_site_eng.getValue(QMStateType::Triplet), "site_eng_t");
 }
 
 void Segment::ReadFromCpt(CheckpointReader& r) {
   AtomContainer<Atom>::ReadFromCpt(r);
   r(_molecule_ids, "mol_ids");
   double value;
-  r(value,"U_xX_nN_e");
-  _U_xX_nN.setValue(value,QMStateType::Electron);
-  r(value,"U_xX_nN_h");
-  _U_xX_nN.setValue(value,QMStateType::Hole);
-  r(value,"U_xX_nN_s");
-  _U_xX_nN.setValue(value,QMStateType::Singlet);
-  r(value,"U_xX_nN_t");
-  _U_xX_nN.setValue(value,QMStateType::Triplet);
-  r(value,"U_nX_nN_e");
-  _U_nX_nN.setValue(value,QMStateType::Electron);
-  r(value,"U_nX_nN_h");
-  _U_nX_nN.setValue(value,QMStateType::Hole);
-  r(value,"U_nX_nN_s");
-  _U_nX_nN.setValue(value,QMStateType::Singlet);
-  r(value,"U_nX_nN_t");
-  _U_nX_nN.setValue(value,QMStateType::Triplet); 
-  r(value,"U_xN_xX_e");
-  _U_xN_xX.setValue(value,QMStateType::Electron);
-  r(value,"U_xN_xX_h");
-  _U_xN_xX.setValue(value,QMStateType::Hole);
-  r(value,"U_xN_xX_s");
-  _U_xN_xX.setValue(value,QMStateType::Singlet);
-  r(value,"U_xN_xX_t");
-  _U_xN_xX.setValue(value,QMStateType::Triplet);
-  r(value,"site_eng_e");
-  _site_eng.setValue(value,QMStateType::Electron);
-  r(value,"site_eng_h");
-  _site_eng.setValue(value,QMStateType::Hole);
-  r(value,"site_eng_s");
-  _site_eng.setValue(value,QMStateType::Singlet);
-  r(value,"site_eng_t");
-  _site_eng.setValue(value,QMStateType::Triplet);
-  
+  r(value, "U_xX_nN_e");
+  _U_xX_nN.setValue(value, QMStateType::Electron);
+  r(value, "U_xX_nN_h");
+  _U_xX_nN.setValue(value, QMStateType::Hole);
+  r(value, "U_xX_nN_s");
+  _U_xX_nN.setValue(value, QMStateType::Singlet);
+  r(value, "U_xX_nN_t");
+  _U_xX_nN.setValue(value, QMStateType::Triplet);
+  r(value, "U_nX_nN_e");
+  _U_nX_nN.setValue(value, QMStateType::Electron);
+  r(value, "U_nX_nN_h");
+  _U_nX_nN.setValue(value, QMStateType::Hole);
+  r(value, "U_nX_nN_s");
+  _U_nX_nN.setValue(value, QMStateType::Singlet);
+  r(value, "U_nX_nN_t");
+  _U_nX_nN.setValue(value, QMStateType::Triplet);
+  r(value, "U_xN_xX_e");
+  _U_xN_xX.setValue(value, QMStateType::Electron);
+  r(value, "U_xN_xX_h");
+  _U_xN_xX.setValue(value, QMStateType::Hole);
+  r(value, "U_xN_xX_s");
+  _U_xN_xX.setValue(value, QMStateType::Singlet);
+  r(value, "U_xN_xX_t");
+  _U_xN_xX.setValue(value, QMStateType::Triplet);
+  r(value, "site_eng_e");
+  _site_eng.setValue(value, QMStateType::Electron);
+  r(value, "site_eng_h");
+  _site_eng.setValue(value, QMStateType::Hole);
+  r(value, "site_eng_s");
+  _site_eng.setValue(value, QMStateType::Singlet);
+  r(value, "site_eng_t");
+  _site_eng.setValue(value, QMStateType::Triplet);
 }
-
 
 }  // namespace xtp
 }  // namespace votca

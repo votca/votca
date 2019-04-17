@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -71,13 +71,13 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
         _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);
         break;
       case CheckpointAccessLevel::CREATE:
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
+        _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
         break;
       case CheckpointAccessLevel::MODIFY:
         if (!FileExists(_fileName))
-            _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
+          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
         else
-            _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR, fcpList);
+          _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR, fcpList);
     }
 
   } catch (H5::Exception& error) {
