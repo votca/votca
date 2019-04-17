@@ -37,7 +37,7 @@ class JobTopology {
 
   void WriteToHdf5(std::string filename) const;
 
- protected:
+ private:
   std::vector<std::unique_ptr<Region> > _regions;
 }
 }  // namespace xtp

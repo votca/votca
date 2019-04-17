@@ -25,7 +25,6 @@
 #include <boost/program_options.hpp>
 #include <votca/tools/mutex.h>
 #include <votca/tools/property.h>
-#include <votca/xtp/job.h>
 
 namespace votca {
 namespace xtp {
@@ -79,14 +78,6 @@ class ProgObserver {
   int _startJobsCount = 0;
   int _maxJobs = 0;
 };
-
-std::vector<Job> LOAD_JOBS(const std::string &xml_file);
-
-void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
-                std::string fileformat);
-
-void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
-                 std::string thisHost);
 
 }  // namespace xtp
 }  // namespace votca

@@ -138,6 +138,14 @@ class Job {
   std::string _error;
 };
 
+std::vector<Job> LOAD_JOBS(const std::string &xml_file);
+
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
+                std::string fileformat);
+
+void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
+                 const std::string &thisHost);
+
 }  // namespace xtp
 }  // namespace votca
 

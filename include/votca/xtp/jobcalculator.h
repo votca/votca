@@ -22,6 +22,7 @@
 #ifndef VOTCA_XTP_JOBCALCULATOR_H
 #define VOTCA_XTP_JOBCALCULATOR_H
 
+#include <votca/xtp/job.h>
 #include <votca/xtp/progressobserver.h>
 #include <votca/xtp/qmcalculator.h>
 #include <votca/xtp/topology.h>

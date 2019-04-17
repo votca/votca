@@ -131,7 +131,6 @@ Topology Md2QmEngine::map(const csg::Topology& top) {
           }
           int resnr = std::stoi(entries[0]);
           resnums.push_back(resnr);
-          std::string resname = entries[1];
           std::string name = entries[2];
           MolToSegMap[molname][resnr][name] = segid;
         }

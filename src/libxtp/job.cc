@@ -207,5 +207,59 @@ void Job::SaveResults(JobResult &res) {
   return;
 }
 
+std::vector<Job> LOAD_JOBS(const std::string &job_file) {
+
+  tools::Property xml;
+  load_property_from_xml(xml, job_file);
+
+  std::vector<tools::Property *> jobProps = xml.Select("jobs.job");
+  std::vector<Job> jobs;
+  jobs.reserve(jobProps.size());
+  for (tools::Property *prop : jobProps) {
+    jobs.push_back(Job(*prop));
+  }
+
+  return jobs;
+}
+
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
+                std::string fileformat) {
+  std::ofstream ofs;
+  ofs.open(job_file.c_str(), std::ofstream::out);
+  if (!ofs.is_open()) {
+    throw std::runtime_error("Bad file handle: " + job_file);
+  }
+  if (fileformat == "xml") ofs << "<jobs>" << std::endl;
+  for (auto &job : jobs) {
+    if (fileformat == "tab" && !job.isComplete()) continue;
+    job.ToStream(ofs, fileformat);
+  }
+  if (fileformat == "xml") ofs << "</jobs>" << std::endl;
+
+  ofs.close();
+  return;
+}
+
+void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
+                 const std::string &thisHost) {
+  std::vector<Job>::iterator it_int;
+  std::vector<Job>::const_iterator it_ext;
+
+  if (to.size() != from.size())
+    throw std::runtime_error("Progress file out of sync (::size), abort.");
+
+  for (it_int = to.begin(), it_ext = from.begin(); it_int != to.end();
+       ++it_int, ++it_ext) {
+    Job &job_int = *it_int;
+    const Job &job_ext = *it_ext;
+    if (job_int.getId() != job_ext.getId())
+      throw std::runtime_error("Progress file out of sync (::id), abort.");
+    if (job_ext.hasHost() && job_ext.getHost() != thisHost)
+      job_int.UpdateFrom(job_ext);
+  }
+
+  return;
+}
+
 }  // namespace xtp
 }  // namespace votca
