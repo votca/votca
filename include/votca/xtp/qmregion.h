@@ -16,30 +16,39 @@
  * limitations under the License.
  *
  */
-
-#ifndef VOTCA_XTP_JOBTOPOLOGY_H
-#define VOTCA_XTP_JOBTOPOLOGY_H
-#include <votca/tools/elements.h>
-#include <votca/xtp/checkpoint.h>
 #include <votca/xtp/region.h>
 
+#ifndef VOTCA_XTP_QMREGION_H
+#define VOTCA_XTP_QMREGION_H
+
 /**
- * \brief Class to set up the toplogy, e.g division of molecules into different
- * regions for a specific job.
+ * \brief base class to derive regions from
+ *
+ *
+ *
  */
 
 namespace votca {
 namespace xtp {
 
-class JobTopology {
+class QMRegion : public Region {
+
  public:
-  void BuildRegions(Topology& top);
+  ~QMRegion(){};
 
-  void WriteToHdf5(std::string filename) const;
+  void WriteToCpt(CheckpointWriter& w) const;
 
- protected:
-  std::vector<std::unique_ptr<Region> > _regions;
-}
+  void ReadFromCpt(CheckpointReader& r);
+
+  int size() const { return 1; }
+
+  std::string identify() const { return "QMRegion"; }
+
+ private:
+  Orbitals _orb;
+};
+
 }  // namespace xtp
+}  // namespace votca
 
-#endif  // VOTCA_XTP_JOBTOPOLOGY_H
+#endif  // VOTCA_XTP_REGION_H

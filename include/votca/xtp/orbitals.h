@@ -387,6 +387,9 @@ class Orbitals {
 
   void ReadFromCpt(const std::string &filename);
 
+  void WriteToCpt(CheckpointWriter w) const;
+  void ReadFromCpt(CheckpointReader parent);
+
  private:
   std::vector<Eigen::MatrixXd> CalcFreeTransition_Dipoles() const;
 
@@ -407,10 +410,8 @@ class Orbitals {
   }
 
   void WriteToCpt(CheckpointFile f) const;
-  void WriteToCpt(CheckpointWriter w) const;
 
   void ReadFromCpt(CheckpointFile f);
-  void ReadFromCpt(CheckpointReader parent);
 
   Eigen::MatrixXd TransitionDensityMatrix(const QMState &state) const;
   std::vector<Eigen::MatrixXd> DensityMatrixExcitedState_R(

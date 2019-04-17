@@ -37,6 +37,8 @@ class ClassicalSegment : public AtomContainer<T> {
 
   double CalcTotalQ() const;
 
+  std::string identify() const;
+
   Eigen::Vector3d CalcDipole() const;
 
   friend std::ostream& operator<<(std::ostream& out,

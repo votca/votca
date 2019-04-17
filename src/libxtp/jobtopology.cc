@@ -17,29 +17,20 @@
  *
  */
 
-#ifndef VOTCA_XTP_JOBTOPOLOGY_H
-#define VOTCA_XTP_JOBTOPOLOGY_H
-#include <votca/tools/elements.h>
-#include <votca/xtp/checkpoint.h>
-#include <votca/xtp/region.h>
-
-/**
- * \brief Class to set up the toplogy, e.g division of molecules into different
- * regions for a specific job.
- */
+#include <math.h>
+#include <votca/xtp/jobtopology.h>
 
 namespace votca {
 namespace xtp {
 
-class JobTopology {
- public:
-  void BuildRegions(Topology& top);
-
-  void WriteToHdf5(std::string filename) const;
-
- protected:
-  std::vector<std::unique_ptr<Region> > _regions;
+void JobTopology::WriteToHdf5(std::string filename) const {
+  CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
+  CheckpointWriter w = cpf.getWriter();
+  for (const auto& region : _regions) {
+    w = cpf.getWriter("region_" + std::to_string(region->getId()));
+    region->WriteToCpt(w);
+  }
 }
-}  // namespace xtp
 
-#endif  // VOTCA_XTP_JOBTOPOLOGY_H
+}  // namespace xtp
+}  // namespace votca
