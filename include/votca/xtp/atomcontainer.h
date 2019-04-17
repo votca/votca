@@ -41,6 +41,8 @@ class AtomContainer {
   AtomContainer(std::string name, int id)
       : _name(name), _id(id), _position_valid(false){};
 
+  typedef typename std::vector<T>::iterator iterator;
+
   const std::string& getName() const { return _name; }
 
   int getId() const { return _id; }
@@ -53,6 +55,13 @@ class AtomContainer {
   }
   void push_back(T&& atom) {
     _atomlist.push_back(atom);
+    _position_valid = false;
+  }
+
+  void AddContainer(const AtomContainer<T>& container) {
+    _name += "_" + container._name;
+    _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
+                     container._atomlist.end());
     _position_valid = false;
   }
 
@@ -143,7 +152,6 @@ class AtomContainer {
 
     table.write(dataVec);
   }
-
   virtual void ReadFromCpt(CheckpointReader& r) {
     r(_name, "name");
     r(_id, "id");

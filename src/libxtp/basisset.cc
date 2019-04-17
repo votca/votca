@@ -23,7 +23,8 @@ namespace votca {
 namespace xtp {
 
 int FindLmax(const std::string& type) {
-  int lmax;
+  int lmax = std::numeric_limits<int>::min();
+  ;
   // single type shells
   if (type.length() == 1) {
     if (type == "S") {
@@ -44,7 +45,6 @@ int FindLmax(const std::string& type) {
       throw std::runtime_error("FindLmax: Shelltype not known");
     }
   } else {
-    lmax = -1;
     for (unsigned i = 0; i < type.length(); ++i) {
       std::string local_shell = std::string(type, i, 1);
       int test = FindLmax(local_shell);
@@ -57,7 +57,8 @@ int FindLmax(const std::string& type) {
 }
 
 int FindLmin(const std::string& type) {
-  int lmin;
+  int lmin = std::numeric_limits<int>::max();
+  ;
   if (type.length() == 1) {
     if (type == "S") {
       lmin = 0;
@@ -79,7 +80,6 @@ int FindLmin(const std::string& type) {
       throw std::runtime_error("FindLmax: Shelltype not known");
     }
   } else {
-    lmin = 1000;
     for (unsigned i = 0; i < type.length(); ++i) {
       std::string local_shell = std::string(type, i, 1);
       int test = FindLmin(local_shell);
@@ -95,7 +95,7 @@ int FindLmin(const std::string& type) {
 }
 
 int OffsetFuncShell(const std::string& shell_type) {
-  int nbf;
+  int nbf = std::numeric_limits<int>::max();
   // single type shells
   if (shell_type.length() == 1) {
     if (shell_type == "S") {
@@ -117,7 +117,6 @@ int OffsetFuncShell(const std::string& shell_type) {
     }
   } else {
     // for combined shells, go over all contributions and find minimal offset
-    nbf = 1000;
     for (unsigned i = 0; i < shell_type.length(); ++i) {
       std::string local_shell = std::string(shell_type, i, 1);
       int test = OffsetFuncShell(local_shell);
@@ -152,7 +151,6 @@ int NumFuncShell(const std::string& shell_type) {
     }
   } else {
     // for combined shells, go over all contributions and add functions
-    nbf = 0;
     for (unsigned i = 0; i < shell_type.length(); ++i) {
       std::string local_shell = std::string(shell_type, i, 1);
       nbf += NumFuncShell(local_shell);
@@ -177,7 +175,7 @@ std::vector<int> NumFuncSubShell(const std::string& shell_type) {
 }
 
 int NumFuncShell_cartesian(const std::string& shell_type) {
-  int nbf;
+  int nbf = 0;
   // single type shells defined here
   if (shell_type.length() == 1) {
     if (shell_type == "S") {
@@ -199,7 +197,6 @@ int NumFuncShell_cartesian(const std::string& shell_type) {
     }
   } else {
     // for combined shells, sum over all contributions
-    nbf = 0;
     for (unsigned i = 0; i < shell_type.length(); ++i) {
       std::string local_shell = std::string(shell_type, i, 1);
       nbf += NumFuncShell_cartesian(local_shell);

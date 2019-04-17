@@ -91,6 +91,5 @@ void QMAtom::ReadData(data& d) {
   _nuccharge = d.nuccharge;
   _ecpcharge = d.ecpcharge;
 }
-
 }  // namespace xtp
 }  // namespace votca

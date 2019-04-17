@@ -34,4 +34,4 @@
 
 #cmakedefine MKL
 
-#endif  // VOTCA_XTP_CONFIG_H
+#endif  // _VOTCA_XTP_CONFIG_H

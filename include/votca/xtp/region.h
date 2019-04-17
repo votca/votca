@@ -41,6 +41,15 @@ class Region {
   virtual void ReadFromCpt(CheckpointReader& r) = 0;
 
   virtual int size() const = 0;
+
+  virtual std::string identify() const = 0;
+
+  const std::string& getName() const { return _name; }
+  int getId() const { return _id; }
+
+ protected:
+  std::string _name;
+  int _id;
 };
 
 }  // namespace xtp

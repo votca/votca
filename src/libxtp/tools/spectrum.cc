@@ -61,8 +61,6 @@ bool Spectrum::Evaluate() {
 
   Orbitals orbitals;
   // load the QM data from serialized orbitals object
-
-  std::ifstream ifs((_orbfile).c_str());
   XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
@@ -77,7 +75,7 @@ bool Spectrum::Evaluate() {
         "BSE transition dipoles not stored in QM data file!");
   }
 
-  const VectorXfd& BSESingletEnergies = orbitals.BSESingletEnergies();
+  const Eigen::VectorXd& BSESingletEnergies = orbitals.BSESingletEnergies();
   const std::vector<Eigen::Vector3d>& TransitionDipoles =
       orbitals.TransitionDipoles();
   std::vector<double> osc = orbitals.Oscillatorstrengths();
@@ -131,7 +129,7 @@ bool Spectrum::Evaluate() {
    *
    */
 
-  std::ofstream ofs(_output_file.c_str(), std::ofstream::out);
+  std::ofstream ofs(_output_file, std::ofstream::out);
 
   if (_spectrum_type == "energy") {
     _fwhm /= tools::conv::hrt2ev;

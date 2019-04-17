@@ -26,10 +26,6 @@
 /**
  * \brief Class to set up the toplogy, e.g division of molecules into different
  * regions for a specific job.
- *
- *
- *
- *
  */
 
 namespace votca {
@@ -37,9 +33,10 @@ namespace xtp {
 
 class JobTopology {
  public:
-  void BuildRegions(Topology& top, Mapper& mapper);
+  void BuildRegions(Topology& top);
+  void WriteToHdf5(std::string filename) const;
 
- protected:
+ private:
   std::vector<std::unique_ptr<Region> > _regions;
 }
 }  // namespace xtp

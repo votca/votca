@@ -28,8 +28,15 @@
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
 
+#include <votca/xtp/bse_operator.h>
+
 namespace votca {
 namespace xtp {
+
+template <int cqp, int cx, int cd, int cd2>
+class BSE_OPERATOR;
+typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
+typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
 
 class BSE {
 
@@ -38,13 +45,12 @@ class BSE {
       const Eigen::MatrixXd& Hqp)
       : _log(log),
         _orbitals(orbitals),
-        _eh_s(orbitals.eh_s()),
-        _eh_t(orbitals.eh_t()),
         _bse_singlet_energies(orbitals.BSESingletEnergies()),
         _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
         _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
         _bse_triplet_energies(orbitals.BSETripletEnergies()),
         _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
+        _bse_triplet_coefficients_AR(orbitals.BSETripletCoefficientsAR()),
         _Mmn(Mmn),
         _Hqp(Hqp){};
 
@@ -56,7 +62,14 @@ class BSE {
     int qpmin;
     int vmin;
     int cmax;
-    int nmax = 5;  // number of eigenvectors to calculate
+    int nmax = 5;             // number of eigenvectors to calculate
+    bool davidson = true;     // use davidson to diagonalize the matrix
+    bool matrixfree = false;  // use matrix free method
+    std::string davidson_correction = "DPR";
+    std::string davidson_ortho = "GS";
+    std::string davidson_tolerance = "normal";
+    std::string davidson_update = "safe";
+    int davidson_maxiter = 50;
     double min_print_weight =
         0.5;  // minimium contribution for state to print it
   };
@@ -70,82 +83,91 @@ class BSE {
     _bse_size = _bse_vtotal * _bse_ctotal;
     SetupDirectInteractionOperator();
   }
+
   void Solve_singlets();
   void Solve_triplets();
 
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
+  SingletOperator_TDA getSingletOperator_TDA();
+  TripletOperator_TDA getTripletOperator_TDA();
+
   void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
 
-  void FreeMatrices() {
-    _eh_t.resize(0, 0);
-    _eh_s.resize(0, 0);
-  }
+  void FreeTriplets() {
+    _bse_triplet_coefficients.resize(0, 0);
+    _bse_triplet_coefficients_AR.resize(0, 0);
 
-  void SetupHs();
+    void FreeSinglets() {
+      _bse_singlet_coefficients.resize(0, 0);
+      _bse_singlet_coefficients_AR.resize(0, 0);
+    }
 
-  void SetupHt();
+   private:
+    options _opt;
 
-  void FreeTriplets() { _bse_triplet_coefficients.resize(0, 0); }
+    struct Interaction {
+      Eigen::VectorXd exchange_contrib;
+      Eigen::VectorXd direct_contrib;
+      Eigen::VectorXd qp_contrib;
+    };
 
-  void FreeSinglets() {
-    _bse_singlet_coefficients.resize(0, 0);
-    _bse_singlet_coefficients_AR.resize(0, 0);
-  }
+    Logger& _log;
+    int _bse_vmax;
+    int _bse_cmin;
+    int _bse_size;
+    int _bse_vtotal;
+    int _bse_ctotal;
 
- private:
-  options _opt;
+    Orbitals& _orbitals;
+    Eigen::VectorXd _epsilon_0_inv;
 
-  struct Interaction {
-    Eigen::VectorXd exchange_contrib;
-    Eigen::VectorXd direct_contrib;
-    Eigen::VectorXd qp_contrib;
-  };
+    // references are stored in orbitals object
+    Eigen::VectorXd& _bse_singlet_energies;
+    Eigen::MatrixXd& _bse_singlet_coefficients;
+    Eigen::MatrixXd& _bse_singlet_coefficients_AR;
+    Eigen::VectorXd& _bse_triplet_energies;
+    Eigen::MatrixXd& _bse_triplet_coefficients;
+    Eigen::MatrixXd& _bse_triplet_coefficients_AR;
+    TCMatrix_gwbse& _Mmn;
+    const Eigen::MatrixXd& _Hqp;
 
-  Logger& _log;
-  int _bse_vmax;
-  int _bse_cmin;
-  int _bse_size;
-  int _bse_vtotal;
-  int _bse_ctotal;
+    void Solve_singlets_TDA();
+    void Solve_singlets_BTDA();
 
-  Orbitals& _orbitals;
-  // BSE variables and functions
-  MatrixXfd& _eh_s;  // only for storage in orbitals object
-  MatrixXfd& _eh_t;  // only for storage in orbitals object
-                     // references are stored in orbitals object
-  VectorXfd& _bse_singlet_energies;
-  MatrixXfd& _bse_singlet_coefficients;
-  MatrixXfd& _bse_singlet_coefficients_AR;
-  VectorXfd& _bse_triplet_energies;
-  MatrixXfd& _bse_triplet_coefficients;
+    void Solve_triplets_TDA();
+    void Solve_triplets_BTDA();
 
-  TCMatrix_gwbse& _Mmn;
-  const Eigen::MatrixXd& _Hqp;
+    void PrintWeight(int i, int i_bse, QMStateType type);
 
-  VectorXfd _epsilon_0_inv;
+    template <typename BSE_OPERATOR>
+    void configureBSEOperator(BSE_OPERATOR & H);
 
-  void Solve_singlets_TDA();
-  void Solve_singlets_BTDA();
-  template <typename T>
-  void Add_Hqp(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-  template <typename T, int factor>
-  void Add_Hx(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-  template <typename T>
-  void Add_Hd(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
-  template <typename T, int factor>
-  void Add_Hd2(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& H);
+    template <typename BSE_OPERATOR>
+    void solve_hermitian(BSE_OPERATOR & H, Eigen::VectorXd & eigenvalues,
+                         Eigen::MatrixXd & coefficients);
 
-  void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
-                     int state) const;
-  void printWeights(int i_bse, double weight) const;
+    template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
+    void Solve_antihermitian(BSE_OPERATOR_ApB & apb, BSE_OPERATOR_AmB & amb,
+                             Eigen::VectorXd & energies,
+                             Eigen::MatrixXd & coefficients,
+                             Eigen::MatrixXd & coefficients_AR);
 
-  void SetupDirectInteractionOperator();
+    void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+                       int state) const;
+    void printWeights(int i_bse, double weight) const;
+    void SetupDirectInteractionOperator();
 
-  Interaction Analyze_eh_interaction(const QMStateType& type);
-  Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
+    Interaction Analyze_eh_interaction(const QMStateType& type);
                                                  const MatrixXfd& H);
-};
+                                                 template <
+                                                     typename BSE_OPERATOR>
+                                                 Eigen::VectorXd
+                                                     Analyze_IndividualContribution(
+                                                         const QMStateType&
+                                                             type,
+                                                         const BSE_OPERATOR& H);
+  };
 }  // namespace xtp
-}  // namespace votca
+}  // namespace xtp
 
 #endif /* _VOTCA_XTP_BSE_H */

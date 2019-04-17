@@ -73,10 +73,10 @@ class TCMatrix_dft : public TCMatrix {
 class TCMatrix_gwbse : public TCMatrix {
  public:
   // returns one level as a constant reference
-  const MatrixXfd& operator[](int i) const { return _matrix[i]; }
+  const Eigen::MatrixXd& operator[](int i) const { return _matrix[i]; }
 
   // returns one level as a reference
-  MatrixXfd& operator[](int i) { return _matrix[i]; }
+  Eigen::MatrixXd& operator[](int i) { return _matrix[i]; }
   // returns auxbasissize
   int auxsize() const { return _basissize; }
 
@@ -104,7 +104,7 @@ class TCMatrix_gwbse : public TCMatrix {
 
  private:
   // store vector of matrices
-  std::vector<MatrixXfd> _matrix;
+  std::vector<Eigen::MatrixXd> _matrix;
 
   // band summation indices
   int _mmin;

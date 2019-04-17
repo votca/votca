@@ -106,10 +106,8 @@ void QMPair::WriteToCpt(CptTable& table, const std::size_t& idx) const {
 
   table.writeToRow(&d, idx);
 }
-
 void QMPair::WriteData(data& d) const {
   d.id = _id;
-
   d.Seg1Id = _segments.first->getId();
   d.Seg2Id = _segments.second->getId();
   d.RX = _R[0];

@@ -18,6 +18,7 @@
  */
 
 #include "eqm.h"
+#include "votca/xtp/segmentmapper.h"
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
 #include <boost/math/constants/constants.hpp>
@@ -55,12 +56,6 @@ void EQM::ParseOptionsXML(tools::Property& options) {
 
   key = "options." + Identify();
 
-  if (options.exists(key + ".job_file")) {
-    _jobfile = options.get(key + ".job_file").as<std::string>();
-  } else {
-    throw std::runtime_error("Job-file not set. Abort.");
-  }
-
   // options for gwbse
   key = "options." + Identify();
   std::string _gwbse_xml =
@@ -79,13 +74,17 @@ void EQM::ParseOptionsXML(tools::Property& options) {
     std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
     load_property_from_xml(_esp_options, _esp_xml.c_str());
   }
+  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".job_file");
+  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".map_file");
 }
 
 void EQM::WriteJobFile(Topology& top) {
 
   std::cout << std::endl << "... ... Writing job file: " << std::flush;
   std::ofstream ofs;
-  ofs.open(_jobfile.c_str(), std::ofstream::out);
+  ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
   ofs << "<jobs>" << std::endl;
@@ -121,25 +120,33 @@ void EQM::SetJobToFailed(Job::JobResult& jres, Logger& pLog,
 
 void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   std::ofstream ofs;
-  ofs.open(logfile.c_str(), std::ofstream::out);
+  ofs.open(logfile, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + logfile);
   }
   ofs << logger << std::endl;
   ofs.close();
 }
-Job::JobResult EQM::EvalJob(Topology& top, Job* job, QMThread* opThread) {
+Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
   Orbitals orbitals;
   Job::JobResult jres = Job::JobResult();
-  tools::Property _job_input = job->getInput();
+  tools::Property _job_input = job.getInput();
   std::vector<tools::Property*> lSegments = _job_input.Select("segment");
   int segId = lSegments.front()->getAttribute<int>("id");
   std::string segType = lSegments.front()->getAttribute<std::string>("type");
+  std::string qmgeo_state = "n";
+  if (lSegments.front()->exists("qm_geometry")) {
+    qmgeo_state = lSegments.front()->getAttribute<std::string>("qm_geometry");
+  }
+
+  QMState state(qmgeo_state);
   Segment& seg = top.getSegment(segId);
 
-  Logger& pLog = opThread->getLogger();
-
+  Logger& pLog = opThread.getLogger();
+  QMMapper mapper(pLog);
+  mapper.LoadMappingFile(_mapfile);
+  orbitals.QMAtoms() = mapper.map(seg, state);
   XTP_LOG(logINFO, pLog) << TimeStamp() << " Evaluating site " << seg.getId()
                          << std::flush;
 

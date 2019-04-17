@@ -179,7 +179,6 @@ void StaticSite::WriteData(data& d) const {
   d.multipoleQ22c = _multipole[7];
   d.multipoleQ22s = _multipole[8];
 }
-
 void StaticSite::ReadFromCpt(CptTable& table, const std::size_t& idx) {
   data d;
   table.readFromRow(&d, idx);

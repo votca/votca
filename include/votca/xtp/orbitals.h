@@ -61,7 +61,9 @@ class Orbitals {
     return ((_occupied_levels > 0) ? true : false);
   }
 
-  void setNumberOfOccupiedLevels(int occupied_levels);
+  void setNumberOfOccupiedLevels(int occupied_levels) {
+    _occupied_levels = occupied_levels;
+  }
 
   // access to DFT number of electrons, new, tested
 
@@ -291,38 +293,31 @@ class Orbitals {
 
   Eigen::MatrixXd &QPdiagCoefficients() { return _QPdiag_coefficients; }
 
-  // access to eh interaction
-  bool hasEHinteraction_triplet() const {
-    return (_eh_t.cols() > 0) ? true : false;
-  }
-
-  bool hasEHinteraction_singlet() const {
-    return (_eh_s.cols() > 0) ? true : false;
-  }
-
-  const MatrixXfd &eh_s() const { return _eh_s; }
-
-  MatrixXfd &eh_s() { return _eh_s; }
-
-  const MatrixXfd &eh_t() const { return _eh_t; }
-
-  MatrixXfd &eh_t() { return _eh_t; }
-
-  // access to triplet energies and wave function coefficients
-
   bool hasBSETriplets() const {
     return (_BSE_triplet_energies.cols() > 0) ? true : false;
   }
 
-  const VectorXfd &BSETripletEnergies() const { return _BSE_triplet_energies; }
+  const Eigen::VectorXd &BSETripletEnergies() const {
+    return _BSE_triplet_energies;
+  }
 
-  VectorXfd &BSETripletEnergies() { return _BSE_triplet_energies; }
+  Eigen::VectorXd &BSETripletEnergies() { return _BSE_triplet_energies; }
 
-  const MatrixXfd &BSETripletCoefficients() const {
+  const Eigen::MatrixXd &BSETripletCoefficients() const {
     return _BSE_triplet_coefficients;
   }
 
-  MatrixXfd &BSETripletCoefficients() { return _BSE_triplet_coefficients; }
+  Eigen::MatrixXd &BSETripletCoefficients() {
+    return _BSE_triplet_coefficients;
+  }
+
+  const Eigen::MatrixXd &BSETripletCoefficientsAR() const {
+    return _BSE_triplet_coefficients_AR;
+  }
+
+  Eigen::MatrixXd &BSETripletCoefficientsAR() {
+    return _BSE_triplet_coefficients_AR;
+  }
 
   // access to singlet energies and wave function coefficients
 
@@ -330,23 +325,29 @@ class Orbitals {
     return (_BSE_singlet_energies.cols() > 0) ? true : false;
   }
 
-  const VectorXfd &BSESingletEnergies() const { return _BSE_singlet_energies; }
+  const Eigen::VectorXd &BSESingletEnergies() const {
+    return _BSE_singlet_energies;
+  }
 
-  VectorXfd &BSESingletEnergies() { return _BSE_singlet_energies; }
+  Eigen::VectorXd &BSESingletEnergies() { return _BSE_singlet_energies; }
 
-  const MatrixXfd &BSESingletCoefficients() const {
+  const Eigen::MatrixXd &BSESingletCoefficients() const {
     return _BSE_singlet_coefficients;
   }
 
-  MatrixXfd &BSESingletCoefficients() { return _BSE_singlet_coefficients; }
+  Eigen::MatrixXd &BSESingletCoefficients() {
+    return _BSE_singlet_coefficients;
+  }
 
   // for anti-resonant part in full BSE
 
-  const MatrixXfd &BSESingletCoefficientsAR() const {
+  const Eigen::MatrixXd &BSESingletCoefficientsAR() const {
     return _BSE_singlet_coefficients_AR;
   }
 
-  MatrixXfd &BSESingletCoefficientsAR() { return _BSE_singlet_coefficients_AR; }
+  Eigen::MatrixXd &BSESingletCoefficientsAR() {
+    return _BSE_singlet_coefficients_AR;
+  }
 
   // access to transition dipole moments
 
@@ -386,6 +387,9 @@ class Orbitals {
 
   void ReadFromCpt(const std::string &filename);
 
+  void WriteToCpt(CheckpointWriter w) const;
+  void ReadFromCpt(CheckpointReader parent);
+
  private:
   std::vector<Eigen::MatrixXd> CalcFreeTransition_Dipoles() const;
 
@@ -406,11 +410,8 @@ class Orbitals {
   }
 
   void WriteToCpt(CheckpointFile f) const;
-  void WriteToCpt(CheckpointWriter w) const;
 
   void ReadFromCpt(CheckpointFile f);
-  void ReadFromCpt(CheckpointReader parent);
-
   Eigen::MatrixXd TransitionDensityMatrix(const QMState &state) const;
   std::vector<Eigen::MatrixXd> DensityMatrixExcitedState_R(
       const QMState &state) const;
@@ -467,16 +468,14 @@ class Orbitals {
   Eigen::VectorXd _QPdiag_energies;
   Eigen::MatrixXd _QPdiag_coefficients;
   // excitons
-
-  MatrixXfd _eh_t;
-  MatrixXfd _eh_s;
-  VectorXfd _BSE_singlet_energies;
-  MatrixXfd _BSE_singlet_coefficients;
-  MatrixXfd _BSE_singlet_coefficients_AR;
+  Eigen::VectorXd _BSE_singlet_energies;
+  Eigen::MatrixXd _BSE_singlet_coefficients;
+  Eigen::MatrixXd _BSE_singlet_coefficients_AR;
 
   std::vector<Eigen::Vector3d> _transition_dipoles;
-  VectorXfd _BSE_triplet_energies;
-  MatrixXfd _BSE_triplet_coefficients;
+  Eigen::VectorXd _BSE_triplet_energies;
+  Eigen::MatrixXd _BSE_triplet_coefficients;
+  Eigen::MatrixXd _BSE_triplet_coefficients_AR;
 
   std::vector<Eigen::VectorXd> _DqS_frag;  // fragment charge changes in exciton
 

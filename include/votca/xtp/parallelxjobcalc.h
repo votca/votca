@@ -42,20 +42,24 @@
 namespace votca {
 namespace xtp {
 
-template <typename JobContainer, typename pJob, typename rJob>
+template <typename JobContainer>
 class ParallelXJobCalc : public JobCalculator {
 
  public:
   class JobOperator;
+  typedef
+      typename std::iterator_traits<typename JobContainer::iterator>::value_type
+          Job;
+  typedef typename Job::JobResult Result;
 
-  ParallelXJobCalc() : _jobfile("__NOFILE__"){};
-  ~ParallelXJobCalc() { ; };
+  ParallelXJobCalc(){};
+  virtual ~ParallelXJobCalc() { ; };
 
   std::string Identify() = 0;
 
   bool EvaluateFrame(Topology &top);
   virtual void CustomizeLogger(QMThread &thread);
-  virtual rJob EvalJob(Topology &top, const pJob job, QMThread *thread) = 0;
+  virtual Result EvalJob(Topology &top, Job &job, QMThread &thread) = 0;
 
   void LockCout() { _coutMutex.Lock(); }
   void UnlockCout() { _coutMutex.Unlock(); }
@@ -68,28 +72,26 @@ class ParallelXJobCalc : public JobCalculator {
 
   class JobOperator : public QMThread {
    public:
-    JobOperator(int id, Topology *top,
-                ParallelXJobCalc<JobContainer, pJob, rJob> *master)
+    JobOperator(int id, Topology *top, ParallelXJobCalc<JobContainer> *master)
         : _top(top), _master(master) {
       _id = id;
     };
     ~JobOperator(){};
 
     void InitData(Topology &top) { ; }
-    void Run(void);
+    void Run();
 
    public:
     Topology *_top;
-    ParallelXJobCalc<JobContainer, pJob, rJob> *_master;
-    pJob _job;
+    ParallelXJobCalc<JobContainer> *_master;
+    Job *_job;
   };
 
  protected:
   JobContainer _XJobs;
   tools::Mutex _coutMutex;
   tools::Mutex _logMutex;
-  std::string _jobfile;
-  int _subthreads;
+  std::string _jobfile = "";
 };
 
 }  // namespace xtp

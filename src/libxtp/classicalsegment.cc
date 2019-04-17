@@ -94,16 +94,14 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
     else if (split[0] == "P") {
       Eigen::Matrix3d p1;
       // Angstroem to bohr
-      double pxx, pxy, pxz;
-      double pyy, pyz;
-      double pzz;
+      double pxx = 0.0;
       if (split.size() == 7) {
         pxx = boost::lexical_cast<double>(split[1]);
-        pxy = boost::lexical_cast<double>(split[2]);
-        pxz = boost::lexical_cast<double>(split[3]);
-        pyy = boost::lexical_cast<double>(split[4]);
-        pyz = boost::lexical_cast<double>(split[5]);
-        pzz = boost::lexical_cast<double>(split[6]);
+        double pxy = boost::lexical_cast<double>(split[2]);
+        double pxz = boost::lexical_cast<double>(split[3]);
+        double pyy = boost::lexical_cast<double>(split[4]);
+        double pyz = boost::lexical_cast<double>(split[5]);
+        double pzz = boost::lexical_cast<double>(split[6]);
         p1 << pxx, pxy, pxz, pxy, pyy, pyz, pxz, pyz, pzz;
       } else if (split.size() == 2) {
         pxx = boost::lexical_cast<double>(split[1]);
@@ -176,6 +174,15 @@ void ClassicalSegment<T>::WriteMPS(std::string filename,
     ofs << site.WriteMpsLine("angstrom");
   }
   ofs.close();
+}
+
+template <>
+std::string ClassicalSegment<PolarSite>::identify() const {
+  return "PolarSegment";
+}
+template <>
+std::string ClassicalSegment<StaticSite>::identify() const {
+  return "StaticSegment";
 }
 
 template class ClassicalSegment<PolarSite>;

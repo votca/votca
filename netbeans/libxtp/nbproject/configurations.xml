@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -67,9 +67,11 @@
       <itemPath>../../include/votca/xtp/checkpointreader.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointtable.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointwriter.h</itemPath>
+      <itemPath>../../include/votca/xtp/classicalregion.h</itemPath>
       <itemPath>../../include/votca/xtp/classicalsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
       <itemPath>../../include/votca/xtp/couplingbase.h</itemPath>
+      <itemPath>../../include/votca/xtp/davidsonsolver.h</itemPath>
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
@@ -119,6 +121,7 @@
       <itemPath>../../include/votca/xtp/qmpackage.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpackagefactory.h</itemPath>
       <itemPath>../../include/votca/xtp/qmpair.h</itemPath>
+      <itemPath>../../include/votca/xtp/qmregion.h</itemPath>
       <itemPath>../../include/votca/xtp/qmstate.h</itemPath>
       <itemPath>../../include/votca/xtp/qmthread.h</itemPath>
       <itemPath>../../include/votca/xtp/qmtool.h</itemPath>
@@ -210,6 +213,7 @@
       </logicalFolder>
       <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
         <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/bse_operator.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gw.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
@@ -233,6 +237,7 @@
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
       <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
+      <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -240,6 +245,7 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
+      <itemPath>../../src/libxtp/jobtopology.cc</itemPath>
       <itemPath>../../src/libxtp/md2qmengine.cc</itemPath>
       <itemPath>../../src/libxtp/mmregion.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
@@ -274,7 +280,9 @@
       <itemPath>../../src/tests/test_basisset.cc</itemPath>
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
+      <itemPath>../../src/tests/test_bse_operator.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
+      <itemPath>../../src/tests/test_davidson.cc</itemPath>
       <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
@@ -3914,6 +3922,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/classicalregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/classicalsegment.h"
             ex="false"
             tool="3"
@@ -3925,6 +3938,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/couplingbase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/davidsonsolver.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4113,6 +4131,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -4504,6 +4524,8 @@
       </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
@@ -4547,6 +4569,11 @@
       <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4611,6 +4638,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobtopology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4801,10 +4830,17 @@
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_davidson.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_dftcoupling.cc"
             ex="false"
@@ -4996,6 +5032,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/classicalregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/classicalsegment.h"
             ex="false"
             tool="3"
@@ -5007,6 +5048,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/couplingbase.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/davidsonsolver.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5195,6 +5241,8 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/qmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmstate.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -5586,6 +5634,8 @@
       </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
@@ -5629,6 +5679,11 @@
       <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/gwbse/bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5693,6 +5748,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobtopology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5883,10 +5940,17 @@
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_davidson.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_dftcoupling.cc"
             ex="false"

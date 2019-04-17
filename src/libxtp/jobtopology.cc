@@ -17,39 +17,20 @@
  *
  */
 
-#ifndef VOTCA_XTP_JOBAPPLICATION
-#define VOTCA_XTP_JOBAPPLICATION
-
-#include <votca/xtp/xtpapplication.h>
-
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/topology.h>
-
-#include "statesaver.h"
-#include <votca/xtp/jobcalculator.h>
+#include <math.h>
+#include <votca/xtp/jobtopology.h>
 
 namespace votca {
 namespace xtp {
 
-class JobApplication : public XtpApplication {
- public:
-  JobApplication();
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
-
-  void BeginEvaluate(int nThreads, ProgObserver<std::vector<Job> > *obs);
-  bool EvaluateFrame(Topology &top);
-  void AddCalculator(JobCalculator *calculator);
-
- protected:
-  bool _generate_input = false;
-  bool _run = false;
-  bool _import = false;
-  std::vector<std::unique_ptr<JobCalculator> > _calculators;
-};
+void JobTopology::WriteToHdf5(std::string filename) const {
+  CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
+  CheckpointWriter w = cpf.getWriter();
+  for (const auto& region : _regions) {
+    w = cpf.getWriter("region_" + std::to_string(region->getId()));
+    region->WriteToCpt(w);
+  }
+}
 
 }  // namespace xtp
 }  // namespace votca
-
-#endif  // VOTCA_XTP_JOBAPPLICATION

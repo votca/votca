@@ -240,26 +240,13 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
         tensor3d R_temp;
         R_temp.resize(extents[range(0, ncombined)][range(0, ngamma)]
                              [range(0, max(2, mmax + 1))]);
-        // initialize to zero
-        for (index3d i = 0; i != ncombined; ++i) {
-          for (index3d j = 0; j != ngamma; ++j) {
-            for (index3d k = 0; k != mmax + 1; ++k) {
-              R_temp[i][j][k] = 0.0;
-            }
-          }
-        }
+
+        std::fill_n(R_temp.data(), R_temp.num_elements(), 0.0);
 
         tensor3d R;
         R.resize(
             extents[range(0, ncombined)][range(0, nbeta)][range(0, ngamma)]);
-        // initialize to zero
-        for (index3d i = 0; i != ncombined; ++i) {
-          for (index3d j = 0; j != nbeta; ++j) {
-            for (index3d k = 0; k != ngamma; ++k) {
-              R[i][j][k] = 0.0;
-            }
-          }
-        }
+        std::fill_n(R.data(), R.num_elements(), 0.0);
 
         const std::vector<double> FmT =
             AOMatrix<double>::XIntegrate(mmax + 1, U);

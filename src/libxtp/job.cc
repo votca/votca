@@ -28,75 +28,51 @@ using boost::format;
 namespace votca {
 namespace xtp {
 
-Job::Job(tools::Property *prop)
-    : _has_host(false),
-      _has_time(false),
-      _has_error(false),
-      _has_output(false),
-      _has_sqlcmd(false) {
+Job::Job(const tools::Property &prop) {
 
   // DEFINED BY USER
-  _id = prop->get("id").as<int>();
-  _tag = prop->get("tag").as<std::string>();
-  _input = prop->get("input");
-  _attemptsCount = 0;
-
-  if (prop->exists("status"))
-    _status = ConvertStatus(prop->get("status").as<std::string>());
+  _id = prop.get("id").as<int>();
+  _tag = prop.get("tag").as<std::string>();
+  _input = prop.get("input");
+  if (prop.exists("status"))
+    _status = ConvertStatus(prop.get("status").as<std::string>());
   else
     _status = AVAILABLE;
 
-  if (prop->exists("sqlcmd")) {
-    _sqlcmd = prop->get("sqlcmd").as<std::string>();
-    _has_sqlcmd = true;
-  }
-
   // GENERATED DURING RUNTIME
-  if (prop->exists("host")) {
-    _host = prop->get("host").as<std::string>();
+  if (prop.exists("host")) {
+    _host = prop.get("host").as<std::string>();
     _has_host = true;
   }
-  if (prop->exists("time")) {
-    _time = prop->get("time").as<std::string>();
+  if (prop.exists("time")) {
+    _time = prop.get("time").as<std::string>();
     _has_time = true;
   }
-  if (prop->exists("output")) {
-    _output = prop->get("output");
+  if (prop.exists("output")) {
+    _output = prop.get("output");
     _has_output = true;
   }
-  if (prop->exists("error")) {
-    _error = prop->get("error").as<std::string>();
+  if (prop.exists("error")) {
+    _error = prop.get("error").as<std::string>();
     _has_error = true;
   }
 }
 
-Job::Job(int id, std::string &tag, std::string &inputstr, std::string status)
-    : _has_host(false),
-      _has_time(false),
-      _has_error(false),
-      _has_output(false),
-      _has_sqlcmd(false) {
+Job::Job(int id, std::string &tag, std::string &inputstr, std::string status) {
 
   _id = id;
   _tag = tag;
   tools::Property input("input", inputstr, "");
   _input = input;
   _status = ConvertStatus(status);
-  _attemptsCount = 0;
 }
 
-Job::Job(int id, std::string &tag, tools::Property &input, JobStatus status)
-    : _has_host(false),
-      _has_time(false),
-      _has_error(false),
-      _has_output(false),
-      _has_sqlcmd(false) {
+Job::Job(int id, std::string &tag, tools::Property &input, JobStatus status) {
 
   _id = id;
   _tag = tag;
   _input = input.get("input");
   _status = status;
-  _attemptsCount = 0;
 }
 
 std::string Job::ConvertStatus(JobStatus status) const {
@@ -144,7 +120,7 @@ void Job::Reset() {
   return;
 }
 
-void Job::ToStream(std::ofstream &ofs, std::string fileformat) {
+void Job::ToStream(std::ofstream &ofs, std::string fileformat) const {
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 0,
                                       "\t\t");
@@ -159,8 +135,6 @@ void Job::ToStream(std::ofstream &ofs, std::string fileformat) {
     ofs << tab << tab
         << (format("<status>%1$s</status>\n") % ConvertStatus(_status)).str();
 
-    if (_has_sqlcmd)
-      ofs << tab << tab << (format("<sqlcmd>%1$s</sqlcmd>\n") % _sqlcmd).str();
     if (_has_host)
       ofs << tab << tab << (format("<host>%1$s</host>\n") % _host).str();
     if (_has_time)
@@ -186,48 +160,103 @@ void Job::ToStream(std::ofstream &ofs, std::string fileformat) {
             output.str())
                .str();
   } else {
-    assert(false);
+    throw std::runtime_error("Writing job, fileformat '" + fileformat +
+                             "' not recognized.");
   }
 
   return;
 }
 
-void Job::UpdateFrom(Job *ext) {
+void Job::UpdateFrom(const Job &ext) {
 
-  _status = ext->getStatus();
-  if (ext->hasHost()) {
+  _status = ext.getStatus();
+  if (ext.hasHost()) {
     _has_host = true;
-    _host = ext->getHost();
+    _host = ext.getHost();
   }
-  if (ext->hasTime()) {
+  if (ext.hasTime()) {
     _has_time = true;
-    _time = ext->getTime();
+    _time = ext.getTime();
   }
-  if (ext->hasOutput()) {
+  if (ext.hasOutput()) {
     _has_output = true;
-    _output = ext->getOutput();
+    _output = ext.getOutput();
   }
-  if (ext->hasError()) {
+  if (ext.hasError()) {
     _has_error = true;
-    _error = ext->getError();
+    _error = ext.getError();
   }
 
   return;
 }
 
-void Job::SaveResults(JobResult *res) {
+void Job::SaveResults(JobResult &res) {
 
-  _status = res->_status;
-  if (res->_has_output) {
-    _output = res->_output;
+  _status = res._status;
+  if (res._has_output) {
+    _output = res._output;
     _has_output = true;
   }
-  if (res->_has_error) {
-    _error = res->_error;
+  if (res._has_error) {
+    _error = res._error;
     _has_error = true;
   }
 
-  _attemptsCount += 1;
+  _attemptsCount++;
+
+  return;
+}
+
+std::vector<Job> LOAD_JOBS(const std::string &job_file) {
+
+  tools::Property xml;
+  load_property_from_xml(xml, job_file);
+
+  std::vector<tools::Property *> jobProps = xml.Select("jobs.job");
+  std::vector<Job> jobs;
+  jobs.reserve(jobProps.size());
+  for (tools::Property *prop : jobProps) {
+    jobs.push_back(Job(*prop));
+  }
+
+  return jobs;
+}
+
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
+                std::string fileformat) {
+  std::ofstream ofs;
+  ofs.open(job_file.c_str(), std::ofstream::out);
+  if (!ofs.is_open()) {
+    throw std::runtime_error("Bad file handle: " + job_file);
+  }
+  if (fileformat == "xml") ofs << "<jobs>" << std::endl;
+  for (auto &job : jobs) {
+    if (fileformat == "tab" && !job.isComplete()) continue;
+    job.ToStream(ofs, fileformat);
+  }
+  if (fileformat == "xml") ofs << "</jobs>" << std::endl;
+
+  ofs.close();
+  return;
+}
+
+void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
+                 const std::string &thisHost) {
+  std::vector<Job>::iterator it_int;
+  std::vector<Job>::const_iterator it_ext;
+
+  if (to.size() != from.size())
+    throw std::runtime_error("Progress file out of sync (::size), abort.");
+
+  for (it_int = to.begin(), it_ext = from.begin(); it_int != to.end();
+       ++it_int, ++it_ext) {
+    Job &job_int = *it_int;
+    const Job &job_ext = *it_ext;
+    if (job_int.getId() != job_ext.getId())
+      throw std::runtime_error("Progress file out of sync (::id), abort.");
+    if (job_ext.hasHost() && job_ext.getHost() != thisHost)
+      job_int.UpdateFrom(job_ext);
+  }
 
   return;
 }

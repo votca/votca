@@ -106,6 +106,5 @@ void Atom::ReadData(data& d) {
   _pos[2] = d.z;
   _pos[1] = d.y;
 }
-
 }  // namespace xtp
 }  // namespace votca

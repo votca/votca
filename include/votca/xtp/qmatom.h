@@ -89,7 +89,6 @@ class QMAtom {
   void WriteToCpt(CptTable& table, const std::size_t& idx) const;
 
   void ReadFromCpt(CptTable& table, const std::size_t& idx);
-
   void ReadData(data& d);
 };
 }  // namespace xtp

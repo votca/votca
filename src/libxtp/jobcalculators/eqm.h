@@ -37,11 +37,11 @@ namespace xtp {
  * Callname: eqm
  */
 
-class EQM : public ParallelXJobCalc<std::vector<Job *>, Job *, Job::JobResult> {
+class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   std::string Identify() { return "eqm"; }
   void Initialize(tools::Property &options);
-  Job::JobResult EvalJob(Topology &top, Job *job, QMThread *thread);
+  Job::JobResult EvalJob(Topology &top, Job &job, QMThread &thread);
 
   void CleanUp() { ; }
   void WriteJobFile(Topology &top);
@@ -58,6 +58,8 @@ class EQM : public ParallelXJobCalc<std::vector<Job *>, Job *, Job::JobResult> {
   tools::Property _package_options;
   tools::Property _gwbse_options;
   tools::Property _esp_options;
+
+  std::string _mapfile;
 
   // what to do
   bool _do_dft_input;

@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.rpamax = 16;
   opt.rpamin = 0;
   opt.vmin = 0;
-  opt.nmax = 1;
+  opt.nmax = 3;
   opt.min_print_weight = 0.1;
   opt.useTDA = true;
   opt.homo = 4;
@@ -238,15 +238,56 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   orbitals.setBSEindices(0, 16);
   Logger log;
+
   BSE bse = BSE(orbitals, log, Mmn, Hqp);
-
   orbitals.setTDAApprox(true);
+  ////////////////////////////////////////////////////////
+  // TDA Singlet lapack, davidson, davidson matrix free
+  ////////////////////////////////////////////////////////
+
+  // reference energy
+  Eigen::VectorXd se_ref = Eigen::VectorXd::Zero(3);
+  se_ref << 0.107455, 0.107455, 0.107455;
+
+  // reference coefficients
+  Eigen::MatrixXd spsi_ref = Eigen::MatrixXd::Zero(60, 3);
+  spsi_ref << -0.00178316, -0.0558332, 0.0151767, 0.00568291, 0.0149417,
+      0.0556358, 0.05758, -0.00320371, -0.00502105, 0.00379328, -0.00232255,
+      -0.00817518, -0.00848959, -0.000618633, -0.00376334, -0.000395809,
+      -0.00899117, 0.0023708, 7.13955e-08, 3.47498e-08, -1.08537e-08,
+      0.000420413, 0.011896, -0.00320024, -0.00288487, 0.00320821, 0.0115465,
+      0.0119767, 0.000355172, 0.00289343, -2.55565e-08, 1.91684e-08,
+      3.01647e-09, 6.84051e-09, 2.79592e-10, -1.35767e-09, 0.00420618, 0.092451,
+      -0.0239374, 0.0036276, 0.0113951, 0.0471896, 0.0465325, -0.00398807,
+      -0.00484251, 0.0051614, -0.0031325, -0.0112447, -0.010968, -0.000896935,
+      -0.00488789, 0.000951266, 0.0239709, -0.00630323, 0.000419006, 0.0201651,
+      -0.00573095, -0.00118124, -0.0269275, 0.00700955, -0.00345217, 0.00356488,
+      0.0134361, 0.013156, 9.58532e-05, 0.00315613, -2.58268e-05, -0.00124098,
+      0.000352706, -1.80679e-06, -8.71959e-05, 2.47799e-05, -0.0150073,
+      0.0114186, 0.0443012, 0.0180327, -0.026287, 0.0734351, -0.0643994,
+      0.0257628, 0.0132084, -0.0123339, 0.0092297, -0.0148779, 0.0122493,
+      -0.00246837, -0.0125735, -0.00375172, 0.00294872, 0.0112899, 0.00648758,
+      -0.0055755, -0.0191436, 0.00433063, -0.00332619, -0.0128321, 0.0111166,
+      -0.00969272, 0.0189659, -0.0160119, 0.00458659, 0.0107104, -0.000399315,
+      0.000343129, 0.00117813, -2.80525e-05, 2.41086e-05, 8.2778e-05,
+      -0.0450479, -0.00034974, -0.015063, 0.0655838, 0.0115163, -0.022358,
+      0.0220978, 0.0583236, 0.0513097, -0.0119156, 0.00490159, 0.0116429,
+      -0.0132479, -0.0146227, -0.00863565, -0.0118978, -0.000282044,
+      -0.00400272, 0.0199347, 0.00139057, 0.00635067, 0.0131991, 0.000163177,
+      0.00441453, 0.0159091, -0.00241207, -0.0110696, 0.0123057, 0.0171503,
+      0.0119626, -0.00122682, -8.55716e-05, -0.00039083, -8.62007e-05,
+      -6.0128e-06, -2.746e-05, -0.0304688, -0.954049, 0.259333, 0.0971056,
+      0.255313, 0.950672, 0.983887, -0.0547431, -0.0857965, 0.0170489,
+      -0.0104387, -0.036743, -0.0381557, -0.00278036, -0.0169143, -0.00177889,
+      -0.04041, 0.0106552, -2.23782e-07, 2.40738e-07, 1.03401e-07, -0.000182535,
+      -0.00516415, 0.00138942, 0.00125201, -0.00139237, -0.00501195,
+      -0.00519809, -0.000154171, -0.00125602, 4.03664e-08, -6.04796e-08,
+      -4.6768e-08, -2.38233e-09, 2.31605e-09, 1.35922e-09;
+
+  // lapack
+  opt.davidson = 0;
   bse.configure(opt);
-
   bse.Solve_singlets();
-
-  VectorXfd se_ref = VectorXfd::Zero(1);
-  se_ref << 0.107455;
   bool check_se = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se) {
     cout << "Singlets energy" << endl;
@@ -254,49 +295,86 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << "Singlets energy ref" << endl;
     cout << se_ref << endl;
   }
-
   BOOST_CHECK_EQUAL(check_se, true);
-  MatrixXfd spsi_ref = MatrixXfd::Zero(60, 1);
-  spsi_ref << -0.000150849, 0.00516987, 0.0511522, 0.00428958, -0.00966668,
-      -0.000155227, 1.02978e-08, 5.82225e-05, -0.00216177, 0.00907102,
-      6.297e-09, -9.84993e-11, 0.00159727, 0.0039042, 0.0481196, 0.00495382,
-      -0.0106013, 0.00025141, -0.000155626, -0.000382828, -0.00322057,
-      0.0124251, 1.32177e-05, 6.794e-07, -0.0153713, 0.0200649, -0.067081,
-      -0.0122678, 0.0117612, -0.00358901, 0.00605007, 0.00404793, 0.0108884,
-      -0.0151075, -0.000513827, -2.64139e-05, -0.0466653, 0.0672016, 0.021747,
-      -0.0115096, -0.0124868, -0.0115055, 0.0187191, 0.0124754, 0.0149534,
-      0.0112807, -0.00158977, -8.17254e-05, -0.00290157, 0.0994541, 0.984029,
-      0.017835, -0.0401912, -0.000645537, -7.54896e-08, -5.91055e-05,
-      0.00219348, -0.00920484, 1.82832e-08, 5.56223e-11;
-  bool check_spsi = spsi_ref.cwiseAbs2().isApprox(
-      orbitals.BSESingletCoefficients().cwiseAbs2(), 0.1);
-  check_spsi = true;
+  Eigen::MatrixXd projection =
+      spsi_ref.transpose() * orbitals.BSESingletCoefficients();
+  Eigen::VectorXd norms = projection.colwise().norm();
+  bool check_spsi = norms.isApproxToConstant(1, 1e-5);
   if (!check_spsi) {
+    cout << "Norms" << norms << endl;
     cout << "Singlets psi" << endl;
     cout << orbitals.BSESingletCoefficients() << endl;
     cout << "Singlets psi ref" << endl;
     cout << spsi_ref << endl;
   }
-
   BOOST_CHECK_EQUAL(check_spsi, true);
-  opt.useTDA = false;
+
+  // davidson full matrix
+  opt.davidson = 1;
   bse.configure(opt);
-  orbitals.setTDAApprox(false);
   bse.Solve_singlets();
-  VectorXfd se_ref_btda = VectorXfd::Zero(1);
-  se_ref_btda << 0.0887758;
-  bool check_se_btda =
-      se_ref_btda.isApprox(orbitals.BSESingletEnergies(), 0.001);
-  if (!check_se_btda) {
-    cout << "Singlets energy BTDA" << endl;
+
+  std::vector<QMFragment<BSE_Population> > singlets;
+  bse.Analyze_singlets(singlets);
+
+  bool check_se_dav = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
+  if (!check_se_dav) {
+    cout << "Singlets energy" << endl;
     cout << orbitals.BSESingletEnergies() << endl;
-    cout << "Singlets energy BTDA ref" << endl;
-    cout << se_ref_btda << endl;
+    cout << "Singlets energy ref" << endl;
+    cout << se_ref << endl;
   }
+  BOOST_CHECK_EQUAL(check_se_dav, true);
+  Eigen::MatrixXd projection_dav =
+      spsi_ref.transpose() * orbitals.BSESingletCoefficients();
+  Eigen::VectorXd norms_dav = projection_dav.colwise().norm();
+  bool check_spsi_dav = norms_dav.isApproxToConstant(1, 1e-5);
+  if (!check_spsi_dav) {
+    cout << "Norms" << norms_dav << endl;
+    cout << "Singlets psi" << endl;
+    cout << orbitals.BSESingletCoefficients() << endl;
+    cout << "Singlets psi ref" << endl;
+    cout << spsi_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_spsi_dav, true);
 
-  BOOST_CHECK_EQUAL(check_se_btda, true);
+  // davidson matrix free
+  opt.davidson = 1;
+  opt.matrixfree = 1;
+  bse.configure(opt);
+  bse.Solve_singlets();
+  bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
+  if (!check_se_dav2) {
+    cout << "Singlets energy" << endl;
+    cout << orbitals.BSESingletEnergies() << endl;
+    cout << "Singlets energy ref" << endl;
+    cout << se_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_dav2, true);
 
-  MatrixXfd spsi_ref_btda = MatrixXfd::Zero(60, 1);
+  Eigen::MatrixXd projection_dav2 =
+      spsi_ref.transpose() * orbitals.BSESingletCoefficients();
+  Eigen::VectorXd norms_dav2 = projection_dav2.colwise().norm();
+  bool check_spsi_dav2 = norms_dav2.isApproxToConstant(1, 1e-5);
+  if (!check_spsi_dav2) {
+    cout << "Norms" << norms_dav2 << endl;
+    cout << "Singlets psi" << endl;
+    cout << orbitals.BSESingletCoefficients() << endl;
+    cout << "Singlets psi ref" << endl;
+    cout << spsi_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_spsi_dav2, true);
+
+  ////////////////////////////////////////////////////////
+  // BTDA Singlet  only lapack
+  ////////////////////////////////////////////////////////
+
+  // reference energy
+  Eigen::VectorXd se_ref_btda = Eigen::VectorXd::Zero(1);
+  se_ref_btda << 0.0887758;
+
+  // reference coeffficients
+  Eigen::MatrixXd spsi_ref_btda = Eigen::MatrixXd::Zero(60, 1);
   spsi_ref_btda << -0.000887749, 0.00578248, 0.05625, 0.00248673, -0.00562843,
       -0.00016897, 1.08302e-08, 0.000116592, -0.00141149, 0.00596725,
       6.83981e-09, -5.48526e-11, 0.00121822, 0.00169252, 0.0204865, 0.00247262,
@@ -308,19 +386,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       0.00709703, 0.00850379, 0.00652664, -0.00179728, -1.39497e-05, -0.0167991,
       0.109425, 1.06444, 0.00471105, -0.0106628, -0.000320119, -8.01139e-08,
       -0.000173136, 0.00209529, -0.00885905, 1.39674e-08, 1.54944e-10;
-  bool check_spsi_btda = spsi_ref_btda.cwiseAbs2().isApprox(
-      orbitals.BSESingletCoefficients().cwiseAbs2(), 0.1);
-  check_spsi_btda = true;
-  if (!check_spsi_btda) {
-    cout << "Singlets psi BTDA" << endl;
-    cout << orbitals.BSESingletCoefficients() << endl;
-    cout << "Singlets psi BTDA ref" << endl;
-    cout << spsi_ref_btda << endl;
-  }
 
-  BOOST_CHECK_EQUAL(check_spsi_btda, true);
-
-  MatrixXfd spsi_ref_btda_AR = MatrixXfd::Zero(60, 1);
+  // reference coefficients AR
+  Eigen::MatrixXd spsi_ref_btda_AR = Eigen::MatrixXd::Zero(60, 1);
   spsi_ref_btda_AR << -0.000318862, 0.00207698, 0.0202042, -0.00179437,
       0.00406137, 0.000121932, 3.9316e-09, -5.40595e-05, 0.000654413,
       -0.00276655, 3.69017e-09, 1.57456e-10, -0.00170711, -0.00237173,
@@ -333,6 +401,36 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       -0.000556894, 0.000116232, -0.00596184, 0.0388334, 0.377758, -0.0156947,
       0.0355229, 0.00106661, -2.29415e-08, -6.94301e-05, 0.00084025,
       -0.00355301, 3.7537e-10, 2.67153e-10;
+
+  opt.nmax = 1;
+  opt.useTDA = false;
+  opt.davidson = 0;
+  opt.matrixfree = 0;
+  bse.configure(opt);
+  orbitals.setTDAApprox(false);
+  bse.Solve_singlets();
+
+  bool check_se_btda =
+      se_ref_btda.isApprox(orbitals.BSESingletEnergies(), 0.001);
+  if (!check_se_btda) {
+    cout << "Singlets energy BTDA" << endl;
+    cout << orbitals.BSESingletEnergies() << endl;
+    cout << "Singlets energy BTDA ref" << endl;
+    cout << se_ref_btda << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_btda, true);
+
+  bool check_spsi_btda = spsi_ref_btda.cwiseAbs2().isApprox(
+      orbitals.BSESingletCoefficients().cwiseAbs2(), 0.1);
+  check_spsi_btda = true;
+  if (!check_spsi_btda) {
+    cout << "Singlets psi BTDA" << endl;
+    cout << orbitals.BSESingletCoefficients() << endl;
+    cout << "Singlets psi BTDA ref" << endl;
+    cout << spsi_ref_btda << endl;
+  }
+  BOOST_CHECK_EQUAL(check_spsi_btda, true);
+
   bool check_spsi_AR = spsi_ref_btda_AR.cwiseAbs2().isApprox(
       orbitals.BSESingletCoefficientsAR().cwiseAbs2(), 0.1);
   check_spsi_AR = true;
@@ -344,23 +442,17 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
 
   BOOST_CHECK_EQUAL(check_spsi_AR, true);
-  orbitals.setTDAApprox(true);
-  bse.Solve_triplets();
-  ;
 
-  VectorXfd te_ref = VectorXfd::Zero(1);
+  ////////////////////////////////////////////////////////
+  // TDA Triplet lapack, davidson, davidson matrix free
+  ////////////////////////////////////////////////////////
+
+  // reference energy
+  Eigen::VectorXd te_ref = Eigen::VectorXd::Zero(1);
   te_ref << 0.0258952;
-  bool check_te = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
-  if (!check_te) {
-    cout << "Triplet energy" << endl;
-    cout << orbitals.BSETripletEnergies() << endl;
-    cout << "Triplet energy ref" << endl;
-    cout << te_ref << endl;
-  }
 
-  BOOST_CHECK_EQUAL(check_te, true);
-
-  MatrixXfd tpsi_ref = MatrixXfd::Zero(60, 1);
+  // reference coefficients
+  Eigen::MatrixXd tpsi_ref = Eigen::MatrixXd::Zero(60, 1);
   tpsi_ref << -0.00114948, 0.00562478, 0.054375, -0.00289523, 0.00656359,
       0.000235305, -2.41043e-09, 0.000244218, -0.00230315, 0.00976453,
       -6.32937e-10, 3.50928e-11, -0.00118266, -0.00139619, -0.0167904,
@@ -373,6 +465,26 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
       -3.34777e-05, -0.0209594, 0.102562, 0.99147, -0.0125368, 0.0284215,
       0.00101894, -7.10341e-08, -0.00020549, 0.00193719, -0.00821384,
       7.73334e-09, 3.38363e-10;
+
+  orbitals.setTDAApprox(true);
+  opt.useTDA = true;
+  // lapack
+  opt.davidson = 0;
+  opt.matrixfree = 0;
+  bse.configure(opt);
+  bse.Solve_triplets();
+  std::vector<QMFragment<BSE_Population> > triplets;
+  bse.Analyze_triplets(triplets);
+
+  bool check_te = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
+  if (!check_te) {
+    cout << "Triplet energy" << endl;
+    cout << orbitals.BSETripletEnergies() << endl;
+    cout << "Triplet energy ref" << endl;
+    cout << te_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_te, true);
+
   bool check_tpsi = tpsi_ref.cwiseAbs2().isApprox(
       orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
   check_tpsi = true;
@@ -383,6 +495,56 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << tpsi_ref << endl;
   }
   BOOST_CHECK_EQUAL(check_tpsi, true);
+
+  // davidson
+  opt.davidson = 1;
+  opt.matrixfree = 0;
+  bse.configure(opt);
+  bse.Solve_triplets();
+
+  bool check_te_dav = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
+  if (!check_te_dav) {
+    cout << "Triplet energy" << endl;
+    cout << orbitals.BSETripletEnergies() << endl;
+    cout << "Triplet energy ref" << endl;
+    cout << te_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_te_dav, true);
+
+  bool check_tpsi_dav = tpsi_ref.cwiseAbs2().isApprox(
+      orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
+  if (!check_tpsi_dav) {
+    cout << "Triplet psi" << endl;
+    cout << orbitals.BSETripletCoefficients() << endl;
+    cout << "Triplet ref" << endl;
+    cout << tpsi_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_tpsi_dav, true);
+
+  // davidson matrix free
+  opt.davidson = 1;
+  opt.matrixfree = 1;
+  bse.configure(opt);
+  bse.Solve_triplets();
+
+  bool check_te_dav2 = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
+  if (!check_te_dav2) {
+    cout << "Triplet energy" << endl;
+    cout << orbitals.BSETripletEnergies() << endl;
+    cout << "Triplet energy ref" << endl;
+    cout << te_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_te_dav2, true);
+
+  bool check_tpsi_dav2 = tpsi_ref.cwiseAbs2().isApprox(
+      orbitals.BSETripletCoefficients().cwiseAbs2(), 0.1);
+  if (!check_tpsi_dav2) {
+    cout << "Triplet psi" << endl;
+    cout << orbitals.BSETripletCoefficients() << endl;
+    cout << "Triplet ref" << endl;
+    cout << tpsi_ref << endl;
+  }
+  BOOST_CHECK_EQUAL(check_tpsi_dav2, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

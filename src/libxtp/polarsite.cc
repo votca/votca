@@ -42,7 +42,6 @@ PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
 };
 
 PolarSite::PolarSite(data& d) { ReadData(d); };
-
 void PolarSite::Induce(double wSOR) {
   // SUCCESSIVE OVERRELAXATION
   _inducedDipole_old = _inducedDipole;  // Remember all previous moments
@@ -290,7 +289,6 @@ void PolarSite::ReadData(data& d) {
 
   _eigendamp = d.eigendamp;
   PhiU = d.phiU;
-}
 
 }  // namespace xtp
-}  // namespace votca
+}  // namespace xtp

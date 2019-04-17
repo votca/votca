@@ -16,40 +16,39 @@
  * limitations under the License.
  *
  */
+#include <votca/xtp/region.h>
 
-#ifndef VOTCA_XTP_JOBAPPLICATION
-#define VOTCA_XTP_JOBAPPLICATION
+#ifndef VOTCA_XTP_QMREGION_H
+#define VOTCA_XTP_QMREGION_H
 
-#include <votca/xtp/xtpapplication.h>
-
-#include <votca/xtp/progressobserver.h>
-#include <votca/xtp/topology.h>
-
-#include "statesaver.h"
-#include <votca/xtp/jobcalculator.h>
+/**
+ * \brief base class to derive regions from
+ *
+ *
+ *
+ */
 
 namespace votca {
 namespace xtp {
 
-class JobApplication : public XtpApplication {
+class QMRegion : public Region {
+
  public:
-  JobApplication();
-  void Initialize();
-  bool EvaluateOptions();
-  void Run();
+  ~QMRegion(){};
 
-  void BeginEvaluate(int nThreads, ProgObserver<std::vector<Job> > *obs);
-  bool EvaluateFrame(Topology &top);
-  void AddCalculator(JobCalculator *calculator);
+  void WriteToCpt(CheckpointWriter& w) const;
 
- protected:
-  bool _generate_input = false;
-  bool _run = false;
-  bool _import = false;
-  std::vector<std::unique_ptr<JobCalculator> > _calculators;
+  void ReadFromCpt(CheckpointReader& r);
+
+  int size() const { return 1; }
+
+  std::string identify() const { return "QMRegion"; }
+
+ private:
+  Orbitals _orb;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_JOBAPPLICATION
+#endif  // VOTCA_XTP_REGION_H

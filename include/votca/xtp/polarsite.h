@@ -35,6 +35,38 @@ polarised.
 class PolarSite : public StaticSite {
 
  public:
+  PolarSite(int id, std::string element, Eigen::Vector3d pos);
+  PolarSite(int id, std::string element)
+      : PolarSite(id, element, Eigen::Vector3d::Zero()){};
+  PolarSite(CptTable& table, const std::size_t& idx) : StaticSite(table, idx) {
+    ReadFromCpt(table, idx);
+  }
+  void setPolarisation(const Eigen::Matrix3d pol) {
+    _Ps = pol;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
+    es.computeDirect(_Ps, Eigen::EigenvaluesOnly);
+    _eigendamp = es.eigenvalues().maxCoeff();
+  }
+  void ResetInduction() {
+    PhiU = 0.0;
+    _inducedDipole = Eigen::Vector3d::Zero();
+    _inducedDipole_old = Eigen::Vector3d::Zero();
+    _localinducedField = Eigen::Vector3d::Zero();
+  }
+  // MULTIPOLES DEFINITION
+  Eigen::Vector3d getDipole() const {
+    Eigen::Vector3d dipole = _multipole.segment<3>(1);
+    dipole += _inducedDipole;
+    return dipole;
+  }
+  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
+    StaticSite::Rotate(R, ref_pos);
+    _Ps = R * _Ps * R.transpose();
+  }
+  void Induce(double wSOR);
+  double InductionWork() const {
+    return -0.5 * _inducedDipole.transpose() * getField();
+  }
   struct data {
     int id;
     char* element;
