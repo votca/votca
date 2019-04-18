@@ -63,18 +63,20 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
 
   try {
     H5::Exception::dontPrint();
+    hid_t fcpl_id = H5Pcreate(H5P_FILE_CREATE);
+    H5::FileCreatPropList fcpList(fcpl_id);
     switch (_accessLevel) {
       case CheckpointAccessLevel::READ:
         _fileHandle = H5::H5File(_fileName, H5F_ACC_RDONLY);
         break;
       case CheckpointAccessLevel::CREATE:
-        _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+        _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
         break;
       case CheckpointAccessLevel::MODIFY:
         if (!FileExists(_fileName))
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC);
+          _fileHandle = H5::H5File(_fileName, H5F_ACC_TRUNC, fcpList);
         else
-          _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR);
+          _fileHandle = H5::H5File(_fileName, H5F_ACC_RDWR, fcpList);
     }
 
   } catch (H5::Exception& error) {

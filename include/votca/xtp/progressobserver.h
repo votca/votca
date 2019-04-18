@@ -23,6 +23,7 @@
 #define VOTCA_XTP_PROGRESSOBSERVER_H
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
+#include <vector>
 #include <votca/tools/mutex.h>
 #include <votca/tools/property.h>
 
@@ -81,5 +82,4 @@ class ProgObserver {
 
 }  // namespace xtp
 }  // namespace votca
-
 #endif  // VOTCA_XTP_PROGRESSOBSERVER_H

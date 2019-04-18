@@ -53,11 +53,19 @@ class Job {
       _has_output = true;
       _output = output.get("output");
     }
+
+    JobStatus getStatus() const { return _status; }
+    bool hasOutput() const { return _has_output; }
+    const tools::Property &getOutput() const { return _output; }
+    bool hasError() const { return _has_error; }
+    const std::string &getError() const { return _error; }
+
     void setError(std::string error) {
       _has_error = true;
       _error = error;
     }
 
+   private:
     JobStatus _status;
     tools::Property _output;
     bool _has_output = false;
@@ -68,7 +76,7 @@ class Job {
   void Reset();
   void ToStream(std::ofstream &ofs, std::string fileformat) const;
   void UpdateFrom(const Job &ext);
-  void SaveResults(JobResult &res);
+  void UpdateFromResult(const JobResult &res);
 
   int getId() const { return _id; }
   std::string getTag() const { return _tag; }
@@ -119,7 +127,7 @@ class Job {
     return _error;
   }
 
- protected:
+ private:
   // Defined by user
   int _id;
   std::string _tag;
@@ -136,16 +144,13 @@ class Job {
   bool _has_error = false;
   bool _has_output = false;
   std::string _error;
-};
+};  // namespace xtp
 
 std::vector<Job> LOAD_JOBS(const std::string &xml_file);
-
 void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
                 std::string fileformat);
-
 void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
                  const std::string &thisHost);
-
 }  // namespace xtp
 }  // namespace votca
 

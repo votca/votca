@@ -27,7 +27,6 @@
 
 namespace votca {
 namespace xtp {
-
 using namespace std;
 using boost::format;
 using namespace tools;
@@ -288,6 +287,11 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     _unoccA = bseA_ctotal;
   } else if (_unoccA < 0) {
     _unoccA = bseA_ctotal;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
+        << "  Number of occupied orbitals in molecule B for CT creation "
+           "exceeds number of KS-orbitals in BSE"
+        << flush;
   }
   if (_unoccB > bseB_ctotal) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -329,7 +333,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseAB_vtotal = bseAB_vmax - bseAB_vmin + 1;
   int bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
   int bseAB_size = bseAB_vtotal * bseAB_ctotal;
-  // check if electron-hole interaction matrices are stored
+
   // now, two storage assignment matrices for two-particle functions
   Eigen::MatrixXi combAB;
   combAB.resize(bseAB_size, 2);

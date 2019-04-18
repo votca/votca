@@ -96,7 +96,7 @@ void ProgObserver<JobContainer>::ReportJobDone(Job &job, Result &res,
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Reporting job results" << std::flush;
   // RESULTS, TIME, HOST
-  job.SaveResults(res);
+  job.UpdateFromResult(res);
   job.setTime(GenerateTime());
   job.setHost(GenerateHost(thread));
   // PRINT PROGRESS BAR

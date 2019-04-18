@@ -176,6 +176,11 @@ void ClassicalSegment<T>::WriteMPS(std::string filename,
   ofs.close();
 }
 
+template <class T>
+std::string ClassicalSegment<T>::identify() const {
+  return "";
+}
+
 template <>
 std::string ClassicalSegment<PolarSite>::identify() const {
   return "PolarSegment";

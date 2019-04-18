@@ -24,10 +24,9 @@
 #include <votca/tools/propertyiomanipulator.h>
 #include <votca/xtp/job.h>
 
-using boost::format;
 namespace votca {
 namespace xtp {
-
+using boost::format;
 Job::Job(const tools::Property &prop) {
 
   // DEFINED BY USER
@@ -168,7 +167,6 @@ void Job::ToStream(std::ofstream &ofs, std::string fileformat) const {
 }
 
 void Job::UpdateFrom(const Job &ext) {
-
   _status = ext.getStatus();
   if (ext.hasHost()) {
     _has_host = true;
@@ -186,24 +184,20 @@ void Job::UpdateFrom(const Job &ext) {
     _has_error = true;
     _error = ext.getError();
   }
-
   return;
 }
 
-void Job::SaveResults(JobResult &res) {
-
-  _status = res._status;
-  if (res._has_output) {
-    _output = res._output;
+void Job::UpdateFromResult(const JobResult &res) {
+  _status = res.getStatus();
+  if (res.hasOutput()) {
+    _output = res.getOutput();
     _has_output = true;
   }
-  if (res._has_error) {
-    _error = res._error;
+  if (res.hasError()) {
+    _error = res.getError();
     _has_error = true;
   }
-
   _attemptsCount++;
-
   return;
 }
 

@@ -134,7 +134,6 @@ inline int SegmentMapper<QMMolecule>::getRank(const QMAtom& atom) const {
 typedef SegmentMapper<QMMolecule> QMMapper;
 typedef SegmentMapper<StaticSegment> StaticMapper;
 typedef SegmentMapper<PolarSegment> PolarMapper;
-
 }  // namespace xtp
 }  // namespace votca
 

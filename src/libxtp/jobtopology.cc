@@ -25,9 +25,9 @@ namespace xtp {
 
 void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
-  CheckpointWriter w = cpf.getWriter();
   for (const auto& region : _regions) {
-    w = cpf.getWriter("region_" + std::to_string(region->getId()));
+    CheckpointWriter w =
+        cpf.getWriter("region_" + std::to_string(region->getId()));
     region->WriteToCpt(w);
   }
 }

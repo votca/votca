@@ -236,6 +236,7 @@
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
+      <itemPath>../../src/libxtp/classicalregion.cc</itemPath>
       <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
       <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
@@ -4517,6 +4518,11 @@
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/classicalregion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/classicalsegment.cc"
             ex="false"
             tool="1"
@@ -5626,6 +5632,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/classicalregion.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/classicalsegment.cc"
             ex="false"

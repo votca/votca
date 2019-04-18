@@ -74,15 +74,7 @@ class BSE {
         0.5;  // minimium contribution for state to print it
   };
 
-  void configure(const options& opt) {
-    _opt = opt;
-    _bse_vmax = _opt.homo;
-    _bse_cmin = _opt.homo + 1;
-    _bse_vtotal = _bse_vmax - _opt.vmin + 1;
-    _bse_ctotal = _opt.cmax - _bse_cmin + 1;
-    _bse_size = _bse_vtotal * _bse_ctotal;
-    SetupDirectInteractionOperator();
-  }
+  void configure(const options& opt);
 
   void Solve_singlets();
   void Solve_triplets();
@@ -159,7 +151,6 @@ class BSE {
   void SetupDirectInteractionOperator();
 
   Interaction Analyze_eh_interaction(const QMStateType& type);
-
   template <typename BSE_OPERATOR>
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
                                                  const BSE_OPERATOR& H);

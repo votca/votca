@@ -412,7 +412,6 @@ class Orbitals {
   void WriteToCpt(CheckpointFile f) const;
 
   void ReadFromCpt(CheckpointFile f);
-
   Eigen::MatrixXd TransitionDensityMatrix(const QMState &state) const;
   std::vector<Eigen::MatrixXd> DensityMatrixExcitedState_R(
       const QMState &state) const;

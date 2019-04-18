@@ -18,10 +18,12 @@
 
 #include <H5Cpp.h>
 #include <cstddef>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 #include <votca/xtp/checkpoint_utils.h>
 
 #define CPT_MEM_FROM_STRUCT(m, s) HOFFSET(s, m)
@@ -67,7 +69,7 @@ class CptTable {
 
   void addCol(const char* item, const std::string& name, const size_t& offset) {
 
-    H5::DataType fixedWidth(H5T_STRING, _maxStringSize);
+    H5::DataType fixedWidth(H5T_STRING, MaxStringSize);
 
     _rowStructure.insertMember(name, offset, fixedWidth);
   }
@@ -97,7 +99,8 @@ class CptTable {
     _inited = true;
   }
 
-  void writeToRow(void* buffer, const std::size_t& idx) {
+  void write(void* buffer, const std::size_t& startIdx,
+             const std::size_t& endIdx) {
 
     if (!_inited) {
       std::stringstream message;
@@ -105,13 +108,17 @@ class CptTable {
       throw std::runtime_error(message.str());
     }
 
-    hsize_t fStart[2] = {idx, 0};
-    hsize_t fCount[2] = {1, 1};
+    hsize_t s = (hsize_t)(startIdx);
+    hsize_t e = (hsize_t)(endIdx);
+    hsize_t l = e - s;
 
-    hsize_t mStart[2] = {0, 0};
-    hsize_t mCount[2] = {1, 1};
+    hsize_t fStart[2] = {s, 0};
+    hsize_t fCount[2] = {l, 1};
 
-    hsize_t mDim[2] = {1, 1};
+    hsize_t mStart[2] = {s, 0};
+    hsize_t mCount[2] = {l, 1};
+
+    hsize_t mDim[2] = {l, 1};
 
     H5::DataSpace mspace(2, mDim);
 
@@ -120,7 +127,17 @@ class CptTable {
     _dataset.write(buffer, _rowStructure, mspace, _dp);
   }
 
-  void readFromRow(void* buffer, const std::size_t& idx) {
+  void writeToRow(void* buffer, const std::size_t idx) {
+    write(buffer, idx, idx + 1);
+  }
+
+  template <typename T>
+  void write(std::vector<T>& dataVec) {
+    write(dataVec.data(), 0, dataVec.size());
+  }
+
+  void read(void* buffer, const std::size_t& startIdx,
+            const std::size_t& endIdx) {
 
     if (!_inited) {
       std::stringstream message;
@@ -128,13 +145,17 @@ class CptTable {
       throw std::runtime_error(message.str());
     }
 
-    hsize_t fStart[2] = {idx, 0};
-    hsize_t fCount[2] = {1, 1};
+    hsize_t s = (hsize_t)(startIdx);
+    hsize_t e = (hsize_t)(endIdx);
+    hsize_t l = e - s;
 
-    hsize_t mStart[2] = {0, 0};
-    hsize_t mCount[2] = {1, 1};
+    hsize_t fStart[2] = {s, 0};
+    hsize_t fCount[2] = {l, 1};
 
-    hsize_t mDim[2] = {1, 1};
+    hsize_t mStart[2] = {s, 0};
+    hsize_t mCount[2] = {l, 1};
+
+    hsize_t mDim[2] = {l, 1};
 
     H5::DataSpace mspace(2, mDim);
 
@@ -143,9 +164,18 @@ class CptTable {
     _dataset.read(buffer, _rowStructure, mspace, _dp);
   }
 
+  void readFromRow(void* buffer, const std::size_t& idx) {
+    read(buffer, idx, idx + 1);
+  }
+
+  template <typename T>
+  void read(std::vector<T>& dataVec) {
+    read(dataVec.data(), 0, dataVec.size());
+  }
+
   std::size_t numRows() { return _nRows; }
 
-  static const std::size_t _maxStringSize = 512;
+  static const std::size_t MaxStringSize = 512;
 
  private:
   std::string _name;

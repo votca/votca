@@ -17,9 +17,8 @@
  *
  */
 
-#include <iostream>
-
 #include "votca/xtp/vc2index.h"
+#include <iostream>
 #include <votca/tools/linalg.h>
 #include <votca/xtp/bse.h>
 #include <votca/xtp/bse_operator.h>
@@ -33,6 +32,16 @@ using std::flush;
 
 namespace votca {
 namespace xtp {
+
+void BSE::configure(const options& opt) {
+  _opt = opt;
+  _bse_vmax = _opt.homo;
+  _bse_cmin = _opt.homo + 1;
+  _bse_vtotal = _bse_vmax - _opt.vmin + 1;
+  _bse_ctotal = _opt.cmax - _bse_cmin + 1;
+  _bse_size = _bse_vtotal * _bse_ctotal;
+  SetupDirectInteractionOperator();
+}
 
 void BSE::SetupDirectInteractionOperator() {
   RPA rpa = RPA(_Mmn);
@@ -305,6 +314,7 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
   // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 +
   // 1/sqrt(eps_l)L ] R_l
   //                               Y_l = 1/2 [sqrt(eps_l) (L^T)^-1 -
+  //                               1/sqrt(eps_l)L ] R_l
   //                               1/sqrt(eps_l)L ] R_l
   // determine inverse of L^T
   Eigen::MatrixXd LmT = AmB.inverse().transpose();

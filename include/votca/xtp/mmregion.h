@@ -28,9 +28,9 @@ namespace xtp {
 template <class T>
 class MMRegion : public Region {
  public:
-  void WriteToCpt(CheckpointWriter& w) const { return; }
+  void WriteToCpt(CheckpointWriter& w) const;
 
-  void ReadFromCpt(CheckpointReader& r) { return; }
+  void ReadFromCpt(CheckpointReader& r);
 
   int size() const { return _segments.size(); }
 
@@ -44,6 +44,7 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
+  std::string identify() const;
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  private:

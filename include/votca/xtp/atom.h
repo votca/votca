@@ -39,11 +39,22 @@ typedef std::pair<int, std::string> MD_atom_id;
 */
 class Atom {
  public:
+  struct data {
+    int id;
+    char* element;
+    char* name;
+    double x;
+    double y;
+    double z;
+    int resnr;
+  };
   Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos);
 
   Atom(int atom_id, std::string md_atom_name, Eigen::Vector3d pos);
 
   Atom(CptTable table, const std::size_t& idx) { ReadFromCpt(table, idx); }
+
+  Atom(data& d) { ReadData(d); }
 
   static std::string GetElementFromMDName(const std::string& MDName);
 
@@ -71,18 +82,13 @@ class Atom {
     return out;
   }
 
-  struct data {
-    int id;
-    char* element;
-    char* name;
-    double x;
-    double y;
-    double z;
-  };
-
   void SetupCptTable(CptTable& table) const;
 
+  void WriteData(data& d) const;
+
   void WriteToCpt(CptTable& table, const std::size_t& idx) const;
+
+  void ReadData(data& d);
 
   void ReadFromCpt(CptTable table, const std::size_t& idx);
 

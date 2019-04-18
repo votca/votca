@@ -19,7 +19,6 @@
 
 #ifndef VOTCA_XTP_GWBSE_H
 #define VOTCA_XTP_GWBSE_H
-
 #include <fstream>
 #include <votca/tools/property.h>
 #include <votca/xtp/eigen.h>

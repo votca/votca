@@ -17,6 +17,7 @@
  *
  */
 #include "votca/xtp/qmatom.h"
+#include <iostream>
 
 namespace votca {
 namespace xtp {
@@ -26,6 +27,8 @@ QMAtom::QMAtom(int index, std::string element, Eigen::Vector3d pos)
   tools::Elements elements;
   _nuccharge = elements.getNucCrg(_element);
 }
+
+QMAtom::QMAtom(data& d) { ReadData(d); }
 
 void QMAtom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
   Eigen::Vector3d dir = _pos - refPos;
@@ -43,8 +46,7 @@ void QMAtom::SetupCptTable(CptTable& table) const {
   table.addCol(_ecpcharge, "ecpcharge", HOFFSET(data, ecpcharge));
 }
 
-void QMAtom::WriteToCpt(CptTable& table, const std::size_t& idx) const {
-  data d;
+void QMAtom::WriteData(data& d) const {
   d.index = _index;
   d.element = const_cast<char*>(_element.c_str());
   d.x = _pos[0];
@@ -52,13 +54,9 @@ void QMAtom::WriteToCpt(CptTable& table, const std::size_t& idx) const {
   d.z = _pos[2];
   d.nuccharge = _nuccharge;
   d.ecpcharge = _ecpcharge;
+}
 
-  table.writeToRow(&d, idx);
-};
-
-void QMAtom::ReadFromCpt(CptTable& table, const std::size_t& idx) {
-  data d;
-  table.readFromRow(&d, idx);
+void QMAtom::ReadData(data& d) {
   _element = std::string(d.element);
   free(d.element);
   _index = d.index;
@@ -68,6 +66,5 @@ void QMAtom::ReadFromCpt(CptTable& table, const std::size_t& idx) {
   _nuccharge = d.nuccharge;
   _ecpcharge = d.ecpcharge;
 }
-
 }  // namespace xtp
 }  // namespace votca
