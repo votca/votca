@@ -33,6 +33,16 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
+void BSE::configure(const options& opt) {
+  _opt = opt;
+  _bse_vmax = _opt.homo;
+  _bse_cmin = _opt.homo + 1;
+  _bse_vtotal = _bse_vmax - _opt.vmin + 1;
+  _bse_ctotal = _opt.cmax - _bse_cmin + 1;
+  _bse_size = _bse_vtotal * _bse_ctotal;
+  SetupDirectInteractionOperator();
+}
+
 void BSE::SetupDirectInteractionOperator() {
   RPA rpa = RPA(_Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
@@ -311,37 +321,16 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
   int dim = LmT.rows();
   coefficients.resize(dim, _opt.nmax);     // resonant part (_X_evec)
   coefficients_AR.resize(dim, _opt.nmax);  // anti-resonant part (_Y_evec)
-      dim, _opt.nmax);  // anti-resonant part (_Y_evec)
-      for (int level = 0; level < _opt.nmax; level++) {
-        double sqrt_eval = std::sqrt(energies(level));
-        // get l-th reduced EV
-        coefficients.col(level) =
-            (0.5 / sqrt_eval * (energies(level) * LmT + AmB) *
-             eigenvectors.col(level));
-        coefficients_AR.col(level) =
-            (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
-             eigenvectors.col(level));
-        (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) *
+  for (int level = 0; level < _opt.nmax; level++) {
+    double sqrt_eval = std::sqrt(energies(level));
+    // get l-th reduced EV
+    coefficients.col(level) = (0.5 / sqrt_eval * (energies(level) * LmT + AmB) *
+                               eigenvectors.col(level));
+    coefficients_AR.col(level) =
+        (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
          eigenvectors.col(level));
-         eigenvectors.col(level))
-            .cast<float>();
-         _bse_singlet_coefficients_AR.col(level) =
-             (0.5 / sqrt_eval * (_bse_singlet_energies(level) * LmT - AmB) *
-              eigenvectors.col(level))
-                 .cast<float>();
-         _Hqp(c2 + _bse_vtotal + offset, c1 + _bse_vtotal + offset);
-         (_Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize) *
-          _epsilon_0_inv.asDiagonal())
-             .transpose();
-         Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
-         factor*(_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
-                 _epsilon_0_inv.asDiagonal())
-             .transpose();
-         factor*(_Mmn[v1 + vmin].block(cmin, 0, _bse_ctotal, auxsize))
-             .transpose();
-         Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1.col(c1);
-      }
-      return;
+  }
+  return;
 }
 
 void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
@@ -501,12 +490,10 @@ Eigen::VectorXd BSE::Analyze_IndividualContribution(const QMStateType& type,
     contrib(i_exc) = (slice_R.transpose() * (H * slice_R)).value();
     if (!_opt.useTDA) {
       Eigen::MatrixXd slice_AR = BSECoefs_AR.block(0, i_exc, _bse_size, 1);
-      _bse_singlet_coefficients_AR.block(0, i_exc, _bse_size, 1);
       // get anti-resonant contribution from direct Keh
       contrib(i_exc) -= (slice_AR.transpose() * (H * slice_AR)).value();
     }
   }
-  _bse_triplet_coefficients.block(0, i_exc, _bse_size, 1);
   return contrib;
 }
 

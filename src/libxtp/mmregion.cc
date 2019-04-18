@@ -20,5 +20,37 @@
 #include <votca/xtp/mmregion.h>
 
 namespace votca {
-namespace xtp {}
+namespace xtp {
+template <class T>
+std::string MMRegion<T>::identify() const {
+  return "";
+}
+
+template <>
+std::string PolarRegion::identify() const {
+  return "PolarRegion";
+}
+
+template <>
+std::string StaticRegion::identify() const {
+  return "StaticRegion";
+}
+
+template <class T>
+void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
+  w(_name, "name");
+  w(_id, "id");
+  w(identify(), "type");
+  for (const auto& seg : _segments) {
+    w.openChild(seg.identify() + "_" + std::to_string(seg.getId()));
+    seg.WriteToCpt(w);
+  }
+}
+template <class T>
+void MMRegion<T>::ReadFromCpt(CheckpointReader& r) {}
+
+template class MMRegion<PolarSegment>;
+template class MMRegion<StaticSegment>;
+
+}  // namespace xtp
 }  // namespace votca

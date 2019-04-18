@@ -38,27 +38,13 @@ class PolarSite : public StaticSite {
   PolarSite(int id, std::string element, Eigen::Vector3d pos);
   PolarSite(int id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
-  PolarSite(CptTable& table, const std::size_t& idx) : StaticSite(table, idx) {
-    ReadFromCpt(table, idx);
-  }
-  void setPolarisation(const Eigen::Matrix3d pol) {
-    _Ps = pol;
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-    es.computeDirect(_Ps, Eigen::EigenvaluesOnly);
-    _eigendamp = es.eigenvalues().maxCoeff();
-  }
-  void ResetInduction() {
-    PhiU = 0.0;
-    _inducedDipole = Eigen::Vector3d::Zero();
-    _inducedDipole_old = Eigen::Vector3d::Zero();
-    _localinducedField = Eigen::Vector3d::Zero();
-  }
+
+  void setPolarisation(const Eigen::Matrix3d pol);
+  void ResetInduction();
+
   // MULTIPOLES DEFINITION
-  Eigen::Vector3d getDipole() const {
-    Eigen::Vector3d dipole = _multipole.segment<3>(1);
-    dipole += _inducedDipole;
-    return dipole;
-  }
+  Eigen::Vector3d getDipole() const;
+
   void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
     StaticSite::Rotate(R, ref_pos);
     _Ps = R * _Ps * R.transpose();
@@ -67,6 +53,7 @@ class PolarSite : public StaticSite {
   double InductionWork() const {
     return -0.5 * _inducedDipole.transpose() * getField();
   }
+
   struct data {
     int id;
     char* element;
@@ -97,6 +84,12 @@ class PolarSite : public StaticSite {
     double fieldY;
     double fieldZ;
 
+    double PhiP;
+
+    double fieldX_induced;
+    double fieldY_induced;
+    double fieldZ_induced;
+
     double dipoleX;
     double dipoleY;
     double dipoleZ;
@@ -107,79 +100,12 @@ class PolarSite : public StaticSite {
 
     double eigendamp;
     double phiU;
-
-    operator StaticSite::data() {
-      StaticSite::data d2;
-      d2.id = id;
-      d2.element = element;
-      d2.posX = posX;
-      d2.posY = posY;
-      d2.posZ = posZ;
-
-      d2.rank = rank;
-
-      d2.multipoleQ00 = multipoleQ00;
-      d2.multipoleQ11c = multipoleQ11c;
-      d2.multipoleQ11s = multipoleQ11s;
-      d2.multipoleQ10 = multipoleQ10;
-      d2.multipoleQ20 = multipoleQ20;
-      d2.multipoleQ21c = multipoleQ21c;
-      d2.multipoleQ21s = multipoleQ21s;
-      d2.multipoleQ22c = multipoleQ22c;
-      d2.multipoleQ22s = multipoleQ22s;
-      return d2;
-    }
   };
-
-  PolarSite(int id, std::string element, Eigen::Vector3d pos);
-
-  PolarSite(int id, std::string element)
-      : PolarSite(id, element, Eigen::Vector3d::Zero()){};
-
-  PolarSite(CptTable& table, const std::size_t& idx) : StaticSite(table, idx) {
-    ReadFromCpt(table, idx);
-  }
-
+  // do not move up has to be below data definition
   PolarSite(data& d);
 
-  void setPolarisation(const Eigen::Matrix3d pol) {
-    _Ps = pol;
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-    es.computeDirect(_Ps, Eigen::EigenvaluesOnly);
-    _eigendamp = es.eigenvalues().maxCoeff();
-  }
-
-  void ResetInduction() {
-    PhiU = 0.0;
-    _inducedDipole = Eigen::Vector3d::Zero();
-    _inducedDipole_old = Eigen::Vector3d::Zero();
-    _localinducedField = Eigen::Vector3d::Zero();
-  }
-
-  // MULTIPOLES DEFINITION
-
-  Eigen::Vector3d getDipole() const {
-    Eigen::Vector3d dipole = _multipole.segment<3>(1);
-    dipole += _inducedDipole;
-    return dipole;
-  }
-
-  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
-    StaticSite::Rotate(R, ref_pos);
-    _Ps = R * _Ps * R.transpose();
-  }
-
-  void Induce(double wSOR);
-
-  double InductionWork() const {
-    return -0.5 * _inducedDipole.transpose() * getField();
-  }
-
   void SetupCptTable(CptTable& table) const;
-  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
   void WriteData(data& d) const;
-
-  void ReadFromCpt(CptTable& table, const std::size_t& idx);
   void ReadData(data& d);
 
   std::string identify() const { return "polarsite"; }
@@ -192,7 +118,7 @@ class PolarSite : public StaticSite {
   }
 
  private:
-  std::string writePolarisation() const;
+  std::string writePolarisation() const override;
 
   Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
   ;

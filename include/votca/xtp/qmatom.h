@@ -37,7 +37,7 @@ class QMAtom {
  public:
   struct data {
     int index;
-    char element[CptTable::MaxStringSize];
+    char* element;
     double x;
     double y;
     double z;
@@ -46,8 +46,6 @@ class QMAtom {
   };
 
   QMAtom(int index, std::string element, Eigen::Vector3d pos);
-
-  QMAtom(CptTable& table, const std::size_t& idx) { ReadFromCpt(table, idx); }
 
   QMAtom(data& d);
 
@@ -86,9 +84,6 @@ class QMAtom {
 
   void WriteData(data& d) const;
 
-  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
-
-  void ReadFromCpt(CptTable& table, const std::size_t& idx);
   void ReadData(data& d);
 };
 }  // namespace xtp

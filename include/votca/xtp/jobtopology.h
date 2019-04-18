@@ -22,6 +22,7 @@
 #include <votca/tools/elements.h>
 #include <votca/xtp/checkpoint.h>
 #include <votca/xtp/region.h>
+#include <votca/xtp/topology.h>
 
 /**
  * \brief Class to set up the toplogy, e.g division of molecules into different
@@ -38,7 +39,8 @@ class JobTopology {
 
  private:
   std::vector<std::unique_ptr<Region> > _regions;
-}
+};
 }  // namespace xtp
+}  // namespace votca
 
 #endif  // VOTCA_XTP_JOBTOPOLOGY_H

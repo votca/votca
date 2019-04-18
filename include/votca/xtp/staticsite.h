@@ -52,15 +52,18 @@ class StaticSite {
     double multipoleQ21s;
     double multipoleQ22c;
     double multipoleQ22s;
+
+    double fieldX;
+    double fieldY;
+    double fieldZ;
+
+    double PhiP;
   };
   StaticSite(int id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
 
   StaticSite(int id, std::string element)
       : StaticSite(id, element, Eigen::Vector3d::Zero()){};
-  StaticSite(CptTable& table, const std::size_t& idx) {
-    ReadFromCpt(table, idx);
-  }
 
   StaticSite(data& d) { ReadData(d); }
 
@@ -113,9 +116,7 @@ class StaticSite {
 
   virtual void SetupCptTable(CptTable& table) const;
 
-  virtual void WriteToCpt(CptTable& table, const std::size_t& idx) const;
   virtual void WriteData(data& d) const;
-  virtual void ReadFromCpt(CptTable& table, const std::size_t& idx);
   virtual void ReadData(data& d);
   virtual void setPolarisation(const Eigen::Matrix3d pol) { return; }
 

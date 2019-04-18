@@ -55,45 +55,17 @@ void Atom::SetupCptTable(CptTable& table) const {
   table.addCol(_pos[0], "pos.x", HOFFSET(data, x));
   table.addCol(_pos[1], "pos.y", HOFFSET(data, y));
   table.addCol(_pos[2], "pos.z", HOFFSET(data, z));
-}
-
-void Atom::WriteToCpt(CptTable& table, const std::size_t& idx) const {
-  data d;
-  d.id = _id;
-  d.element = const_cast<char*>(_element.c_str());
-  ;
-  d.name = const_cast<char*>(_name.c_str());
-  ;
-  d.x = _pos[0];
-  d.y = _pos[1];
-  d.z = _pos[2];
-
-  table.writeToRow(&d, idx);
+  table.addCol(_resnr, "resnr", HOFFSET(data, resnr));
 }
 
 void Atom::WriteData(data& d) const {
   d.id = _id;
   d.element = const_cast<char*>(_element.c_str());
-  ;
   d.name = const_cast<char*>(_name.c_str());
-  ;
   d.x = _pos[0];
   d.y = _pos[1];
   d.z = _pos[2];
-}
-
-void Atom::ReadFromCpt(CptTable table, const std::size_t& idx) {
-  data d;
-  table.readFromRow(&d, idx);
-
-  _id = d.id;
-  _element = std::string(d.element);
-  free(d.element);
-  _name = std::string(d.name);
-  free(d.name);
-  _pos[0] = d.x;
-  _pos[2] = d.z;
-  _pos[1] = d.y;
+  d.resnr = _resnr;
 }
 
 void Atom::ReadData(data& d) {
@@ -105,6 +77,7 @@ void Atom::ReadData(data& d) {
   _pos[0] = d.x;
   _pos[2] = d.z;
   _pos[1] = d.y;
+  _resnr = d.resnr;
 }
 }  // namespace xtp
 }  // namespace votca

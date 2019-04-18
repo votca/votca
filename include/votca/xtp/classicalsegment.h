@@ -50,8 +50,6 @@ class ClassicalSegment : public AtomContainer<T> {
     out << std::endl;
     return out;
   }
-
- protected:
 };
 
 typedef ClassicalSegment<PolarSite> PolarSegment;

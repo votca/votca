@@ -128,14 +128,13 @@ inline void SegmentMapper<QMMolecule>::FillMap() {
 
 template <>
 inline int SegmentMapper<QMMolecule>::getRank(const QMAtom& atom) const {
-    const QMAtom& atom) const {
   return 0;
 }
 
-    typedef SegmentMapper<QMMolecule> QMMapper;
-    typedef SegmentMapper<StaticSegment> StaticMapper;
-    typedef SegmentMapper<PolarSegment> PolarMapper;
+typedef SegmentMapper<QMMolecule> QMMapper;
+typedef SegmentMapper<StaticSegment> StaticMapper;
+typedef SegmentMapper<PolarSegment> PolarMapper;
 }  // namespace xtp
-}  // namespace xtp
+}  // namespace votca
 
 #endif  // VOTCA_XTP_SEGMENTMAPPER_H

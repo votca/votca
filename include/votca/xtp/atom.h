@@ -46,6 +46,7 @@ class Atom {
     double x;
     double y;
     double z;
+    int resnr;
   };
   Atom(int resnr, std::string md_atom_name, int atom_id, Eigen::Vector3d pos);
 

@@ -64,7 +64,6 @@ CheckpointFile::CheckpointFile(std::string fN, CheckpointAccessLevel access)
   try {
     H5::Exception::dontPrint();
     hid_t fcpl_id = H5Pcreate(H5P_FILE_CREATE);
-    H5Pset_file_space(fcpl_id, H5F_FILE_SPACE_ALL_PERSIST, 1);
     H5::FileCreatPropList fcpList(fcpl_id);
     switch (_accessLevel) {
       case CheckpointAccessLevel::READ:

@@ -133,31 +133,15 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_multipole[6], "multipoleQ21s", HOFFSET(data, multipoleQ21s));
   table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
   table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
-}
 
-void StaticSite::WriteToCpt(CptTable& table, const std::size_t& idx) const {
+  table.addCol(_localpermanetField[0], "localPermFieldX",
+               HOFFSET(data, fieldX));
+  table.addCol(_localpermanetField[1], "localPermFieldY",
+               HOFFSET(data, fieldY));
+  table.addCol(_localpermanetField[2], "localPermFieldZ",
+               HOFFSET(data, fieldZ));
 
-  data d;
-
-  d.id = _id;
-  d.element = const_cast<char*>(_element.c_str());
-  d.posX = _pos[0];
-  d.posY = _pos[1];
-  d.posZ = _pos[2];
-
-  d.rank = _rank;
-
-  d.multipoleQ00 = _multipole[0];
-  d.multipoleQ11c = _multipole[1];
-  d.multipoleQ11s = _multipole[2];
-  d.multipoleQ10 = _multipole[3];
-  d.multipoleQ20 = _multipole[4];
-  d.multipoleQ21c = _multipole[5];
-  d.multipoleQ21s = _multipole[6];
-  d.multipoleQ22c = _multipole[7];
-  d.multipoleQ22s = _multipole[8];
-
-  table.writeToRow(&d, idx);
+  table.addCol(PhiP, "PhiP", HOFFSET(data, PhiP));
 }
 
 void StaticSite::WriteData(data& d) const {
@@ -178,29 +162,11 @@ void StaticSite::WriteData(data& d) const {
   d.multipoleQ21s = _multipole[6];
   d.multipoleQ22c = _multipole[7];
   d.multipoleQ22s = _multipole[8];
-}
-void StaticSite::ReadFromCpt(CptTable& table, const std::size_t& idx) {
-  data d;
-  table.readFromRow(&d, idx);
 
-  _id = d.id;
-  _element = std::string(d.element);
-  free(d.element);
-  _pos[0] = d.posX;
-  _pos[1] = d.posY;
-  _pos[2] = d.posZ;
-
-  _rank = d.rank;
-
-  _multipole[0] = d.multipoleQ00;
-  _multipole[1] = d.multipoleQ11c;
-  _multipole[2] = d.multipoleQ11s;
-  _multipole[3] = d.multipoleQ10;
-  _multipole[4] = d.multipoleQ20;
-  _multipole[5] = d.multipoleQ21c;
-  _multipole[6] = d.multipoleQ21s;
-  _multipole[7] = d.multipoleQ22c;
-  _multipole[8] = d.multipoleQ22s;
+  d.fieldX = _localpermanetField[0];
+  d.fieldY = _localpermanetField[1];
+  d.fieldZ = _localpermanetField[2];
+  d.PhiP = PhiP;
 }
 
 void StaticSite::ReadData(data& d) {
@@ -222,6 +188,12 @@ void StaticSite::ReadData(data& d) {
   _multipole[6] = d.multipoleQ21s;
   _multipole[7] = d.multipoleQ22c;
   _multipole[8] = d.multipoleQ22s;
+
+  _localpermanetField[0] = d.fieldX;
+  _localpermanetField[1] = d.fieldY;
+  _localpermanetField[2] = d.fieldZ;
+
+  PhiP = d.PhiP;
 }
 
 }  // namespace xtp

@@ -46,44 +46,19 @@ void QMAtom::SetupCptTable(CptTable& table) const {
   table.addCol(_ecpcharge, "ecpcharge", HOFFSET(data, ecpcharge));
 }
 
-void QMAtom::WriteToCpt(CptTable& table, const std::size_t& idx) const {
-  data d;
-  d.index = _index;
-  std::strcpy(d.element, _element.c_str());
-  d.x = _pos[0];
-  d.y = _pos[1];
-  d.z = _pos[2];
-  d.nuccharge = _nuccharge;
-  d.ecpcharge = _ecpcharge;
-
-  table.writeToRow(&d, idx);
-};
-
 void QMAtom::WriteData(data& d) const {
   d.index = _index;
-  std::strcpy(d.element, _element.c_str());
+  d.element = const_cast<char*>(_element.c_str());
   d.x = _pos[0];
   d.y = _pos[1];
   d.z = _pos[2];
   d.nuccharge = _nuccharge;
   d.ecpcharge = _ecpcharge;
-}
-
-void QMAtom::ReadFromCpt(CptTable& table, const std::size_t& idx) {
-  data d;
-  table.readFromRow(&d, idx);
-  _element = std::string(d.element);
-  // free(d.element);
-  _index = d.index;
-  _pos[0] = d.x;
-  _pos[1] = d.y;
-  _pos[2] = d.z;
-  _nuccharge = d.nuccharge;
-  _ecpcharge = d.ecpcharge;
 }
 
 void QMAtom::ReadData(data& d) {
   _element = std::string(d.element);
+  free(d.element);
   _index = d.index;
   _pos[0] = d.x;
   _pos[1] = d.y;

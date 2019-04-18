@@ -80,11 +80,6 @@ class QMPair {
   QMPair(int id, const Segment* seg1, const Segment* seg2,
          const Eigen::Vector3d& delta_R);
 
-  QMPair(CptTable& table, const std::size_t& idx,
-         const std::vector<Segment>& segments) {
-    ReadFromCpt(table, idx, segments);
-  }
-
   QMPair(data& d, const std::vector<Segment>& segments) {
     ReadData(d, segments);
   }
@@ -134,11 +129,8 @@ class QMPair {
   const PairType& getType() const { return _pair_type; }
 
   void SetupCptTable(CptTable& table) const;
-  void WriteToCpt(CptTable& table, const std::size_t& idx) const;
   void WriteData(data& d) const;
 
-  void ReadFromCpt(CptTable& table, const std::size_t& idx,
-                   const std::vector<Segment>& segments);
   void ReadData(data& d, const std::vector<Segment>& segments);
 
  private:

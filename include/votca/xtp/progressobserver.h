@@ -21,6 +21,7 @@
 
 #ifndef VOTCA_XTP_PROGRESSOBSERVER_H
 #define VOTCA_XTP_PROGRESSOBSERVER_H
+#include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/program_options.hpp>
 #include <vector>
 #include <votca/tools/mutex.h>
@@ -37,7 +38,6 @@ class ProgObserver {
   typedef
       typename std::iterator_traits<typename JobContainer::iterator>::value_type
           Job;
-  _cacheSize(-1), _nextjit(NULL), _metajit(NULL), _startJobsCount(0) { ; }
 
   typedef typename Job::JobResult Result;
 
@@ -82,6 +82,4 @@ class ProgObserver {
 
 }  // namespace xtp
 }  // namespace votca
-                std::string fileformat);
-
 #endif  // VOTCA_XTP_PROGRESSOBSERVER_H

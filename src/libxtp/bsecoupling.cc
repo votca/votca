@@ -33,7 +33,6 @@ using namespace tools;
 
 void BSECoupling::Initialize(Property& options) {
 
-  << " Compiled with float/double mixture (standard)" << flush;
   std::string key = Identify();
   _doSinglets = false;
   _doTriplets = false;
@@ -288,10 +287,11 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     _unoccA = bseA_ctotal;
   } else if (_unoccA < 0) {
     _unoccA = bseA_ctotal;
-    << TimeStamp()
-    << "  Number of occupied orbitals in molecule B for CT creation "
-       "exceeds number of KS-orbitals in BSE"
-    << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
+        << "  Number of occupied orbitals in molecule B for CT creation "
+           "exceeds number of KS-orbitals in BSE"
+        << flush;
   }
   if (_unoccB > bseB_ctotal) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -333,11 +333,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseAB_vtotal = bseAB_vmax - bseAB_vmin + 1;
   int bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
   int bseAB_size = bseAB_vtotal * bseAB_ctotal;
-  // check if electron-hole interaction matrices are stored
-  << TimeStamp() << "   dimer AB has BSE EH interaction triplet with dimension "
-  << eh_t.rows() << " x " << eh_t.cols() << flush;
-  << TimeStamp() << "   dimer AB has BSE EH interaction singlet with dimension "
-  << eh_s.rows() << " x " << eh_s.cols() << flush;
+
   // now, two storage assignment matrices for two-particle functions
   Eigen::MatrixXi combAB;
   combAB.resize(bseAB_size, 2);
@@ -359,7 +355,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "   levels used in BSE of molB: " << bseB_vmin << " to "
       << bseB_cmax << " total: " << bseB_vtotal + bseB_ctotal << flush;
-  << " to " << _bseB_cmax << " total: " << _bseB_vtotal + _bseB_ctotal << flush;
 
   if ((levelsA == 0) || (levelsB == 0)) {
     throw std::runtime_error(
@@ -552,7 +547,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
         orbitalsB.BSESingletCoefficients()
             .block(0, 0, orbitalsB.BSESingletCoefficients().rows(), _levB)
             .transpose();
-    .transpose().cast<double>();
 
     JAB_singlet = ProjectExcitons(bseA_T, bseB_T, bse.getSingletOperator_TDA());
     XTP_LOG(logDEBUG, *_pLog)
@@ -574,8 +568,6 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     JAB_triplet = ProjectExcitons(bseA_T, bseB_T, bse.getTripletOperator_TDA());
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << "   calculated triplet couplings " << flush;
-    .cast<double>();
-    << TimeStamp() << "   calculated triplet couplings " << flush;
   }
 
   XTP_LOG(logDEBUG, *_pLog)
