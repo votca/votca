@@ -55,6 +55,9 @@ void QMNBList::WriteToCpt(CheckpointWriter& w) const {
     (_pairs[i]->WriteData(dataVec[i]));
   }
   table.write(dataVec);
+  for (QMPair::data data : dataVec) {
+    delete[] data.pair_type;
+  }
 }
 
 void QMNBList::ReadFromCpt(CheckpointReader& r,

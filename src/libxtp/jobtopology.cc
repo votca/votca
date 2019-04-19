@@ -23,6 +23,8 @@
 namespace votca {
 namespace xtp {
 
+void JobTopology::BuildRegions(Topology& top) {}
+
 void JobTopology::WriteToHdf5(std::string filename) const {
   CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
   for (const auto& region : _regions) {

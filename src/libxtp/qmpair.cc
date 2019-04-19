@@ -89,7 +89,8 @@ void QMPair::WriteData(data& d) const {
   d.RY = _R[1];
   d.RZ = _R[2];
   std::string ptype = get_name(_pair_type);
-  d.pair_type = const_cast<char*>(ptype.c_str());
+  d.pair_type = new char[ptype.length() + 1];
+  strcpy(d.pair_type, ptype.c_str());
 
   d.lambda0e = _lambda0.getValue(QMStateType::Electron);
   d.lambda0h = _lambda0.getValue(QMStateType::Hole);

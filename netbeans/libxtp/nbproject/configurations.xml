@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -67,7 +67,6 @@
       <itemPath>../../include/votca/xtp/checkpointreader.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointtable.h</itemPath>
       <itemPath>../../include/votca/xtp/checkpointwriter.h</itemPath>
-      <itemPath>../../include/votca/xtp/classicalregion.h</itemPath>
       <itemPath>../../include/votca/xtp/classicalsegment.h</itemPath>
       <itemPath>../../include/votca/xtp/convergenceacc.h</itemPath>
       <itemPath>../../include/votca/xtp/couplingbase.h</itemPath>
@@ -236,7 +235,6 @@
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
-      <itemPath>../../src/libxtp/classicalregion.cc</itemPath>
       <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
       <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
@@ -3923,11 +3921,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/classicalregion.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/classicalsegment.h"
             ex="false"
             tool="3"
@@ -4518,11 +4511,6 @@
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/classicalregion.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/classicalsegment.cc"
             ex="false"
             tool="1"
@@ -5034,11 +5022,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/checkpointwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/classicalregion.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5632,11 +5615,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/classicalregion.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/classicalsegment.cc"
             ex="false"
