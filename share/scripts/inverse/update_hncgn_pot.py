@@ -226,14 +226,14 @@ def extrapolate_U_constant(dU, dU_flag):
 
 
 def extrapolate_U_power(r, dU, g, U, g_tgt, g_min, kBT, verbose):
-    """Extrapolate the potential in the core region up to
-    the point, where the RDF becomes larger than 0.5 or where
+    """Extrapolate the potential in the core region including
+    the point, where the RDF becomes larger than g_min or where
     the new potential is convex. A power function is used.
     The PMF is fitted, not U+dU. The fit is then shifted such
     that the graph is monotonous.
 
-    Fitting is done, because p-HNCGN often has artifacs at
-    small RDF values, especially when pressure is far of
+    Extrapolation is done, because p-HNCGN often has artifacs at
+    the core, especially when pressure is far off.
 
     Returns dU. U_{k+1} = U_k + dU is done by Votca."""
     # make copy
@@ -260,7 +260,7 @@ def extrapolate_U_power(r, dU, g, U, g_tgt, g_min, kBT, verbose):
         pmf_fit = np.nan_to_num(a * r**b - pmf_shift)
 
     # region to extrapolate
-    ndx_ex1 = np.where(g_tgt > 0.5)[0][0]
+    ndx_ex1 = ndx_ce + 1
     ndx_ex2 = np.where(np.nan_to_num(np.diff(np.diff(U + dU))) > 0)[0][0]
     ndx_ex = max(ndx_ex1, ndx_ex2)
     # extrapolate
@@ -281,24 +281,24 @@ def shift_U_cutoff_zero(dU, r, U, cut_off):
     return dU_shift
 
 
-def shift_U_last_half(dU, r, U, cut_off):
+def fix_U_near_cut_off_full(dU, r, U, cut_off):
     """Modify the potential close to the cut-off in
     a way, such that it is more smooth. The derivative
     of the potential between the last two points will
-    be half the derivative between the two points
+    be equal to the derivative between the two points
     before. The original last two points of dU are
     therefore ignored.
 
     This also helps agains an artifact of p-HNCGN,
     where the last value of dU is a spike."""
-    dU_shift = dU.copy()
+    dU_fixed = dU.copy()
     ndx_co = find_nearest_ndx(r, cut_off)
     U_new = U + dU
     second_last_deriv = U_new[ndx_co-1] - U_new[ndx_co-2]
-    shift = -0.5 * second_last_deriv - U_new[ndx_co-1]
+    shift = -1.0 * second_last_deriv - U_new[ndx_co-1]
     # modify up to second last value
-    dU_shift[:ndx_co] += shift
-    return dU_shift
+    dU_fixed[:ndx_co] += shift
+    return dU_fixed
 
 
 description = """\
@@ -318,7 +318,7 @@ parser.add_argument('--pressure-constraint', dest='pressure_constraint',
 parser.add_argument('--extrap-near-core', dest='extrap_near_core',
                     type=str, choices=['none', 'power'])
 parser.add_argument('--fix-near-cut-off', dest='fix_near_cut_off',
-                    type=str, choices=['none', 'half-deriv'])
+                    type=str, choices=['none', 'full-deriv'])
 parser.add_argument('-v', '--verbose', dest='verbose',
                     action='store_const', const=True, default=False)
 
@@ -370,8 +370,8 @@ if __name__ == '__main__':
     # shifts to correct potential near cut-off
     if args.fix_near_cut_off == 'none':
         dU = dU_shift.copy()
-    elif args.fix_near_cut_off == 'half-deriv':
-        dU = shift_U_last_half(dU_shift, r, U_cur, args.cut_off)
+    elif args.fix_near_cut_off == 'full-deriv':
+        dU = fix_U_near_cut_off_full(dU_shift, r, U_cur, args.cut_off)
     else:
         raise Exception("unknow fix scheme for near cut-off: "
                         + args.fix_near_cut_off)
