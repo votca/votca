@@ -26,33 +26,79 @@ namespace votca {
 namespace tools {
 
 /**
-    \brief Provides a means to reduce cross dependency of header files
+ * \breif Supported and Standardized parameter types
+ **/
+enum Parameter {
+  Mass,
+  Position,
+  MoleculeId,
+  ResidueId,
+  Charge,
+  Element,
+  Symmetry,
+  ResidueType,
+  BeadId,
+  BeadType,
+  MoleculeType
+};
+
+/**
+ * \brief Provides a means to standardise the constructors of different classes
  *
- * This templace class allows the conversion of one type of object to another
- * this is done by breaking the said object up into the standard types.
+ * The purpose of this class is for use primarily in io readers, it provides
+ * a means to standardize the use of templated classes in the readers.
  *
- * For the type converter to work each object it is converting between must
- * have defined at least one write function and or one read function.
+ * E.g. Say I have two atom classes
  *
- * This tempalte object only allows converting between doubles,strings,ints.
- */
+ * class Atom1 {
+ *   public:
+ *     Atom1(Parameters parameters) :
+ *        id_(parameters.get<int>(Parameter::BeadId)),
+ *        mass_(parameters.get<double>(Parameter::Mass)){};
+ *
+ *   private:
+ *    int id_;
+ *    double mass_;
+ * };
+ *
+ * class Atom2 {
+ *   public:
+ *     Atom2(Parameters parameters) :
+ *        id_(parameters.get<int>(Parameter::BeadId)),
+ *        element_(parameters.get<string>(Parameter::Element)){};
+ *
+ *   private:
+ *    int id_;
+ *    string element_;
+ * };
+ *
+ * Pseudo code below, our file reader has a method that creates the atoms
+ * (shown below), now because we have a standardized constructor the templated
+ * file method can be used with either class without specialization.
+ *
+ * class FileReader {
+ *
+ *   template<class T>
+ *   T CreateAtomOrBead {
+ *
+ *     string element = "C";
+ *     int id = 1;
+ *     double mass = 12.01;
+ *
+ *     Parameters parameters;
+ *     parameters.set(Parameter::Element,element);
+ *     parameters.set(Parameter::Mass,mass);
+ *     parameters.set(Parameter::BeadId,id);
+ *
+ *     T atom_or_bead(parameters);
+ *     return atom_or_bead;
+ *   }
+ *
+ * };
+ **/
 class Parameters {
 
  public:
-  enum Parameter {
-    Mass,
-    Position,
-    MoleculeId,
-    ResidueId,
-    Charge,
-    Element,
-    Symmetry,
-    ResidueType,
-    BeadId,
-    BeadType,
-    MoleculeType
-  };
-
   void set(const Parameter parameter, boost::any value);
 
   template <class T>
@@ -70,9 +116,12 @@ template <class T>
 T Parameters::get(const Parameter parameter) const {
   assert(parameters.count(parameter) &&
          "Parameter is not stored in Parameters class");
-  return parameters.at(parameter);
+  assert(typeid(T) == parameters.at(parameter).type() &&
+         "Cannot return boost any value from parameters class because it is "
+         "not being cast to the correct type");
+  return boost::any_cast<T>(parameters.at(parameter));
 }
 
 }  // namespace tools
 }  // namespace votca
-#endif  // # VOTCA_TOOL_PARAMETERS_H
+#endif  // VOTCA_TOOL_PARAMETERS_H

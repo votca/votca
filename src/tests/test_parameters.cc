@@ -36,36 +36,28 @@ BOOST_AUTO_TEST_CASE(set_test) {
   Parameters parameters;
 
   double mass = 2.0;
-  parameters.set(Parameters::Parameter::Mass, mass);
+  parameters.set(Parameter::Mass, mass);
+  string element_type = "C";
+  parameters.set(Parameter::Element, element_type);
 }
 
 BOOST_AUTO_TEST_CASE(get_test) {
   Parameters parameters;
 
   double mass = 2.0;
-  parameters.set(Parameters::Parameter::Mass, mass);
-  double mass_check = parameters.get<double>(Parameters::Parameter::Mass);
+  parameters.set(Parameter::Mass, mass);
+  double mass_check = parameters.get<double>(Parameter::Mass);
   BOOST_CHECK_EQUAL(mass, mass_check);
+
+  string element_type = "C";
+  parameters.set(Parameter::Element, element_type);
+  string element_type_check = parameters.get<string>(Parameter::Element);
+  BOOST_CHECK_EQUAL(element_type, element_type_check);
+
+  int molecule_id = 201;
+  parameters.set(Parameter::MoleculeId, molecule_id);
+  int molecule_id_check = parameters.get<int>(Parameter::MoleculeId);
+  BOOST_CHECK_EQUAL(molecule_id, molecule_id_check);
 }
-/*
-BOOST_AUTO_TEST_CASE(export_test) {
-  int num = 87094;
-  string name = "John Doe";
-  double height = 167.8;
-  string address = "12 Koogler St, Dayton, OH 32345";
-  int age = 24;
-  string fav_col = "mauve";
-  Person John(num, name, address, age, fav_col, height);
-
-  TypeConverter<Person, ContactInfo> converter;
-
-  converter.importData(John);
-  ContactInfo cont_info;
-  converter.exportData(cont_info);
-
-  BOOST_CHECK_EQUAL(cont_info.getPhoneNum(), num);
-  BOOST_CHECK_EQUAL(cont_info.getName(), name);
-  BOOST_CHECK_EQUAL(cont_info.getAddress(), address);
-}*/
 
 BOOST_AUTO_TEST_SUITE_END()
