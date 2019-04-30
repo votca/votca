@@ -2,33 +2,33 @@ find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
 
 # Each test listed in Alphabetical order
 foreach(PROG
-		test_constants
-		test_cubicspline
-		test_datacollection
-		test_edge_base
-		test_edgecontainer
-		test_elements
-		test_floatingpointcomparison
-		test_graph_base
-		test_graph_bf_visitor
-		test_graph_df_visitor
-		test_graphalgorithm
-		test_graphdistvisitor
-		test_graphnode
-		test_graphvisitor
-		test_histogramnew
-		test_identity
-		test_linalg
-		test_matrix
-		test_name
+    test_constants
+    test_cubicspline
+    test_datacollection
+    test_edge_base
+    test_edgecontainer
+    test_elements
+    test_floatingpointcomparison
+    test_graph_base
+    test_graph_bf_visitor
+    test_graph_df_visitor
+    test_graphalgorithm
+    test_graphdistvisitor
+    test_graphnode
+    test_graphvisitor
+    test_histogramnew
+    test_identity
+    test_linalg
+    test_matrix
+    test_name
     test_parameters
-		test_reducededge
-		test_reducedgraph
-		test_table
-		test_thread
-		test_tokenizer
-		test_vec
-		test_property)
+    test_reducededge
+    test_reducedgraph
+    test_table
+    test_thread
+    test_tokenizer
+    test_vec
+    test_property)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
