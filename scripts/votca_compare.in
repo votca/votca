@@ -44,6 +44,9 @@ def RepresentsFloat(s):
         return True
     except ValueError:
         return False
+    
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 # =============================================================================
 # PROGRAM OPTIONS
@@ -93,8 +96,8 @@ for i, (line1, line2) in enumerate(zip(OPTIONS.file1, OPTIONS.file2)):
     if line1.startswith('#') or line2.startswith('#'):
         continue
     for j, (entry1, entry2) in enumerate(zip(line1.split(), line2.split())):
-        if RepresentsFloat(entry1) and RepresentsFloat(entry2):
-            if abs(float(entry1) - float(entry2)) > OPTIONS.etol:
+        if RepresentsFloat(entry1) or RepresentsFloat(entry2):
+            if isclose(entry1,entry2,OPTIONS.etol,OPTIONS.etol):
                 logs.append([i, j, entry1, entry2])
         elif entry1 != entry2:
             logs.append([i, j, entry1, entry2])
