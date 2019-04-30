@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -38,12 +38,8 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   _basissize = basissize;
 
   // vector has mtotal elements
-  _matrix.resize(_mtotal);
-
-  // each element is a gwabasis-by-n matrix, initialize to zero
-  for (int i = 0; i < this->msize(); i++) {
-    _matrix[i] = MatrixXfd::Zero(_ntotal, _basissize);
-  }
+  _matrix = std::vector<Eigen::MatrixXd>(
+      _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
 }
 
 /*
@@ -54,13 +50,8 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
 #pragma omp parallel for
   for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
-#if (GWBSE_DOUBLE)
     Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
     _matrix[i_occ] = temp;
-#else
-    const Eigen::MatrixXd m = _matrix[i_occ].cast<double>();
-    _matrix[i_occ].noalias() = (m * matrix).cast<float>();
-#endif
   }
   return;
 }
@@ -91,15 +82,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     FillBlock(block, shell, dftbasis, dft_orbitals);
 
     // put into correct position
-    for (int m_level = 0; m_level < this->msize(); m_level++) {
-      for (int i_gw = 0; i_gw < shell->getNumFunc(); i_gw++) {
-        for (int n_level = 0; n_level < this->nsize(); n_level++) {
-          _matrix[m_level](n_level, shell->getStartIndex() + i_gw) =
-              block[m_level](n_level, i_gw);
-        }  // n-th DFT orbital
-      }    // GW basis function in shell
-    }      // m-th DFT orbital
-  }        // shells of GW basis set
+    for (int m_level = 0; m_level < _mtotal; m_level++) {
+      _matrix[m_level].block(0, shell->getStartIndex(), _ntotal,
+                             shell->getNumFunc()) = block[m_level];
+    }  // m-th DFT orbital
+  }    // shells of GW basis set
 
   AOOverlap auxoverlap;
   auxoverlap.Fill(gwbasis);
@@ -144,13 +131,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
 
       tensor3d threec_block(extents[range(0, auxshell->getNumFunc())][range(
           0, shell_row->getNumFunc())][range(0, shell_col->getNumFunc())]);
-      for (int i = 0; i < auxshell->getNumFunc(); ++i) {
-        for (int j = 0; j < shell_row->getNumFunc(); ++j) {
-          for (int k = 0; k < shell_col->getNumFunc(); ++k) {
-            threec_block[i][j][k] = 0.0;
-          }
-        }
-      }
+      std::fill_n(threec_block.data(), threec_block.num_elements(), 0.0);
 
       bool nonzero =
           FillThreeCenterRepBlock(threec_block, auxshell, shell_row, shell_col);
@@ -160,9 +141,9 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
             for (int _col = 0; _col < shell_col->getNumFunc(); _col++) {
               // symmetry
               if ((col_start + _col) > (row_start + _row)) {
-                continue;
+                break;
               }
-              symmstorage[_aux](row_start + _row, col_start + _col) =
+              symmstorage[_aux](col_start + _col, row_start + _row) =
                   threec_block[_aux][_row][_col];
             }  // ROW copy
           }    // COL copy
@@ -171,17 +152,11 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
     }  // gamma-loop
   }    // alpha-loop
   for (int k = 0; k < auxshell->getNumFunc(); ++k) {
-    Eigen::MatrixXd& matrix = symmstorage[k];
-    for (int i = 0; i < matrix.rows(); ++i) {
-      for (int j = 0; j < i; ++j) {
-        matrix(j, i) = matrix(i, j);
-      }
-    }
-    Eigen::MatrixXd threec_inMo = dftn.transpose() * matrix * dftm;
+    const Eigen::MatrixXd& matrix = symmstorage[k];
+    Eigen::MatrixXd threec_inMo =
+        dftn.transpose() * matrix.selfadjointView<Eigen::Upper>() * dftm;
     for (int i = 0; i < threec_inMo.cols(); ++i) {
-      for (int j = 0; j < threec_inMo.rows(); ++j) {
-        block[i](j, k) = threec_inMo(j, i);
-      }
+      block[i].col(k) = threec_inMo.col(i);
     }
   }
   return;

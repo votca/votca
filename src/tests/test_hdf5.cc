@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   int rpaMin = '?';
   int rpaMax = 1e3;
 
-  unsigned int bseVmin = -6019386;
+  unsigned int bseVmin = 6019386;
   unsigned int bseCmax = 42;
 
   double scaHfx = 3.14159;
@@ -65,14 +65,13 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::MatrixXd QPdiagEnergiesTest = Eigen::VectorXd::Random(21);
   Eigen::MatrixXd QPdiagCoefficientsTest = Eigen::MatrixXd::Identity(42, 42);
 
-  MatrixXfd eh_dTest = MatrixXfd::Random(32, 290);
-  MatrixXfd eh_xTest = MatrixXfd::Random(3, 22);
-  VectorXfd BSESingletEnergiesTest = VectorXfd::Random(25);
-  MatrixXfd BSESingletCoefficientsTest = MatrixXfd::Random(25, 38);
-  MatrixXfd BSESingletCoefficientsARTest = MatrixXfd::Random(42, 42);
+  Eigen::VectorXd BSESingletEnergiesTest = Eigen::VectorXd::Random(25);
+  Eigen::MatrixXd BSESingletCoefficientsTest = Eigen::MatrixXd::Random(25, 38);
+  Eigen::MatrixXd BSESingletCoefficientsARTest =
+      Eigen::MatrixXd::Random(42, 42);
 
-  VectorXfd BSETripletEnergiesTest = VectorXfd::Random(33);
-  MatrixXfd BSETripletCoefficientsTest = MatrixXfd::Random(33, 31);
+  Eigen::VectorXd BSETripletEnergiesTest = Eigen::VectorXd::Random(33);
+  Eigen::MatrixXd BSETripletCoefficientsTest = Eigen::MatrixXd::Random(33, 31);
 
   std::vector<votca::tools::vec> transitionDipolesTest;
   for (size_t i = 0; i < 1000; ++i) {
@@ -107,8 +106,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.QPpertEnergies() = QPpertEnergiesTest;
     orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
     orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
-    orbWrite.eh_t() = eh_dTest;
-    orbWrite.eh_s() = eh_xTest;
     orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
     orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
     orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
@@ -149,8 +146,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
   BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
   BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));
-  BOOST_CHECK(orbRead.eh_t().isApprox(eh_dTest, tol));
-  BOOST_CHECK(orbRead.eh_s().isApprox(eh_xTest, tol));
   BOOST_CHECK(
       orbRead.BSESingletEnergies().isApprox(BSESingletEnergiesTest, tol));
   BOOST_CHECK(orbRead.BSESingletCoefficients().isApprox(

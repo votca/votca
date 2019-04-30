@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -53,13 +53,8 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(
         continue;
       }
 
-#if (GWBSE_DOUBLE)
       const Eigen::VectorXd Mmn2 =
           _Mmn[gw_level + qpmin_offset].col(i_gw).cwiseAbs2();
-#else
-      const Eigen::VectorXd Mmn2 =
-          _Mmn[gw_level + qpmin_offset].col(i_gw).cwiseAbs2().cast<double>();
-#endif
       const double ppm_freq = _ppm.getPpm_freq()(i_gw);
       const double fac = 0.5 * _ppm.getPpm_weight()(i_gw) * ppm_freq;
       Eigen::ArrayXd denom = qpmin - RPAEnergies.array();
@@ -99,12 +94,13 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
     const int qpmin_offset = _opt.qpmin - _opt.rpamin;
 
     const Eigen::VectorXd rpaenergies_thread = _rpa.getRPAInputEnergies();
+    ;
 #pragma omp for schedule(dynamic)
     for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
-      const MatrixXfd& Mmn1 = _Mmn[gw_level1 + qpmin_offset];
+      const Eigen::MatrixXd& Mmn1 = _Mmn[gw_level1 + qpmin_offset];
       const double qpmin1 = frequencies(gw_level1);
       for (int gw_level2 = gw_level1 + 1; gw_level2 < _qptotal; gw_level2++) {
-        const MatrixXfd& Mmn2 = _Mmn[gw_level2 + qpmin_offset];
+        const Eigen::MatrixXd& Mmn2 = _Mmn[gw_level2 + qpmin_offset];
         const double qpmin2 = frequencies(gw_level2);
         double sigma_c = 0;
         for (int i_gw = 0; i_gw < gwsize; i_gw++) {
@@ -113,13 +109,9 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
           if (ppm_weight(i_gw) < 1.e-9) {
             continue;
           }
-#if (GWBSE_DOUBLE)
+
           const Eigen::VectorXd Mmn1xMmn2 =
               Mmn1.col(i_gw).cwiseProduct(Mmn2.col(i_gw));
-#else
-          const Eigen::VectorXd Mmn1xMmn2 =
-              (Mmn1.col(i_gw).cwiseProduct(Mmn2.col(i_gw))).cast<double>();
-#endif
           Eigen::ArrayXd denom1 = rpaenergies_thread;
           denom1.segment(0, lumo) -= ppm_freqs(i_gw);
           denom1.segment(lumo, levelsum - lumo) += ppm_freqs(i_gw);

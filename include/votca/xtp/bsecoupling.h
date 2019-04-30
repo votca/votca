@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -61,9 +61,10 @@ class BSECoupling : public CouplingBase {
 
   double getTripletCouplingElement(int levelA, int levelB, int methodindex);
 
+  template <class BSE_OPERATOR>
   std::vector<Eigen::MatrixXd> ProjectExcitons(const Eigen::MatrixXd& bseA_T,
                                                const Eigen::MatrixXd& bseB_T,
-                                               Eigen::MatrixXd& H);
+                                               BSE_OPERATOR H);
 
   Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
 

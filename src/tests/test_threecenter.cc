@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -303,7 +303,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
   tc.Fill(aobasis, aobasis, MOs);
 
-  MatrixXfd ref0b = MatrixXfd::Zero(8, 17);
+  Eigen::MatrixXd ref0b = Eigen::MatrixXd::Zero(8, 17);
   ref0b << 0.052453955915, 0.26945204403, -4.9641876153e-13, -4.3017169895e-13,
       -4.5508824269e-13, 0.27735882244, -7.0243260325e-13, -6.6612945222e-13,
       -6.7921572331e-13, 0.090104440628, 0.28902528964, 0.090104440629,
@@ -348,7 +348,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
   }
   BOOST_CHECK_EQUAL(check0_before, true);
 
-  MatrixXfd ref2b = MatrixXfd::Zero(8, 17);
+  Eigen::MatrixXd ref2b = Eigen::MatrixXd::Zero(8, 17);
   ref2b << -3.58044e-09, -1.08028e-08, -0.0262857, 0.142316, -0.113057,
       -1.15391e-08, -0.0265915, 0.143972, -0.114372, 0.00123206, 0.00108266,
       -0.0230138, -0.020223, -0.0949172, -0.083407, 0.116699, 0.102547,
@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
 
   BOOST_CHECK_EQUAL(check2_before, true);
 
-  MatrixXfd ref4b = MatrixXfd::Zero(8, 17);
+  Eigen::MatrixXd ref4b = Eigen::MatrixXd::Zero(8, 17);
   ref4b << 0.0472538, 0.192218, 3.2613e-11, 3.26223e-11, 3.23861e-11, 0.109122,
       4.16604e-11, 4.16302e-11, 4.13551e-11, -0.00314721, 0.0108472,
       -0.00314721, 0.0108472, -0.00314721, 0.0108472, -0.00314721, 0.0108472,

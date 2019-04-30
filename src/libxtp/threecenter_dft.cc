@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2018 The VOTCA Development Team
+ *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -82,13 +82,7 @@ void TCMatrix_dft::FillBlock(std::vector<Eigen::MatrixXd>& block,
       int col_start = shell_col->getStartIndex();
       tensor3d threec_block(extents[range(0, shell_aux->getNumFunc())][range(
           0, left_dftshell->getNumFunc())][range(0, shell_col->getNumFunc())]);
-      for (int i = 0; i < shell_aux->getNumFunc(); ++i) {
-        for (int j = 0; j < left_dftshell->getNumFunc(); ++j) {
-          for (int k = 0; k < shell_col->getNumFunc(); ++k) {
-            threec_block[i][j][k] = 0.0;
-          }
-        }
-      }
+      std::fill_n(threec_block.data(), threec_block.num_elements(), 0.0);
 
       bool nonzero = FillThreeCenterRepBlock(threec_block, shell_aux,
                                              left_dftshell, shell_col);

@@ -207,10 +207,11 @@
         <itemPath>../../src/libxtp/kmccalculator.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f4" displayName="mbgft" projectFiles="true">
-        <itemPath>../../src/libxtp/gwbse/bse.cc</itemPath>
+        <itemPath>../../src/libxtp/gwbse/bse_operator.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gw.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbse.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/gwbseengine.cc</itemPath>
+        <itemPath>../../src/libxtp/matrixfreeoperator.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/ppm.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_base.cc</itemPath>
@@ -231,6 +232,7 @@
       <itemPath>../../src/libxtp/bfgs-trm.cc</itemPath>
       <itemPath>../../src/libxtp/bsecoupling.cc</itemPath>
       <itemPath>../../src/libxtp/checkpoint.cc</itemPath>
+      <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -263,6 +265,7 @@
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
+      <itemPath>../../src/tests/test_bse_operator.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
@@ -3547,6 +3550,8 @@
       </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
@@ -3624,7 +3629,10 @@
       </item>
       <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/gwbse/bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3701,6 +3709,11 @@
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/matrixfreeoperator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -3864,6 +3877,11 @@
       <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
@@ -4543,6 +4561,8 @@
       </item>
       <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
@@ -4620,7 +4640,10 @@
       </item>
       <item path="../../src/libxtp/gridbox.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libxtp/gwbse/bse.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/gwbse/bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/gwbse/gw.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4697,6 +4720,11 @@
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/lowdin.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/matrixfreeoperator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/mulliken.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4860,6 +4888,11 @@
       <item path="../../src/tests/test_bfgs-trm.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_bse.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_bse_operator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
