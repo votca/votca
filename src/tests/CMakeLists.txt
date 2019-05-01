@@ -22,11 +22,11 @@ foreach(PROG
 		test_name
 		test_reducededge
 		test_reducedgraph
+    test_structureparameters
 		test_table
 		test_thread
 		test_tokenizer
-		test_typeconverter
-        test_filesystem
+    test_filesystem
 		test_property)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
