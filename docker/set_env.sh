@@ -23,7 +23,7 @@ done
 if [[ $ENV -eq 1 ]]; then
   # Release build with doxygen, which gets push to dockerhub, first half of the tests
   add_to_docker_opts TESTING=ON
-  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re"
+  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools, csg-tutorials and votca
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) && ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
@@ -33,7 +33,7 @@ if [[ $ENV -eq 1 ]]; then
 elif [[ $ENV -eq 2 ]]; then
   # Release build, which gets push to dockerhub, first half of the tests (for tools, csg, csg-tutorials and votca)
   add_to_docker_opts TESTING=ON
-  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re"
+  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools, csg-tutorials and votca
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools|csg-tutorials|votca) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
@@ -50,7 +50,7 @@ elif [[ $ENV -eq 4 ]]; then
   # superbuild has no code, so no coverage, but test "None" build type
   export DISTRO=ubuntu
   add_to_docker_opts TESTING=ON
-  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re"
+  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=None
@@ -61,7 +61,7 @@ elif [[ $ENV -eq 5 ]]; then
   # superbuild has no code, so no coverage, but test "None" build type
   export DISTRO=ubuntu
   add_to_docker_opts TESTING=ON
-  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re"
+  add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
   add_to_docker_opts CMAKE_BUILD_TYPE=None
