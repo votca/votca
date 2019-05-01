@@ -20,12 +20,11 @@ add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -P ${CMAKE_MODULE_PATH}/gitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
-add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_SQL_SOURCES} ${VOTCA_LINALG_SOURCES})
+add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 add_dependencies(votca_tools gitversion)
 
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_tools PUBLIC ${Boost_LIBRARIES} ${MKL_LIBRARIES} PRIVATE ${SQLITE3_LIBRARIES}
-  ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
+target_link_libraries(votca_tools PUBLIC ${Boost_LIBRARIES} ${MKL_LIBRARIES} PRIVATE ${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 configure_file(libvotca_tools.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_tools.pc @ONLY)

@@ -46,13 +46,13 @@ const Property &Property::get(const string &key) const {
   if (n == tok.end()) return *this;
 
   const Property *p;
-  map<string, Property *>::const_iterator iter;
+  map<string, int>::const_iterator iter;
   if (*n == "") {
     p = this;
   } else {
     iter = _map.find(*n);
     if (iter == _map.end()) throw runtime_error("property not found: " + key);
-    p = ((*iter).second);
+    p = &_properties[((*iter).second)];
   }
   ++n;
   try {
