@@ -15,6 +15,8 @@
       <itemPath>../../include/votca/tools/cubicspline.h</itemPath>
       <itemPath>../../include/votca/tools/database.h</itemPath>
       <itemPath>../../include/votca/tools/datacollection.h</itemPath>
+      <itemPath>../../include/votca/tools/edge.h</itemPath>
+      <itemPath>../../include/votca/tools/edgecontainer.h</itemPath>
       <itemPath>../../include/votca/tools/eigen.h</itemPath>
       <itemPath>../../include/votca/tools/elements.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
@@ -31,6 +33,7 @@
       <itemPath>../../include/votca/tools/property.h</itemPath>
       <itemPath>../../include/votca/tools/random2.h</itemPath>
       <itemPath>../../include/votca/tools/rangeparser.h</itemPath>
+      <itemPath>../../include/votca/tools/reducededge.h</itemPath>
       <itemPath>../../include/votca/tools/spline.h</itemPath>
       <itemPath>../../include/votca/tools/statement.h</itemPath>
       <itemPath>../../include/votca/tools/table.h</itemPath>
@@ -193,11 +196,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/floatingpointcomparison.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
@@ -208,49 +206,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/graph.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graph_bf_visitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graph_df_visitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphalgorithm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphdistvisitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphnode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphvisitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/histogram.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/histogramnew.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/identity.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -271,8 +232,6 @@
       </item>
       <item path="../../include/votca/tools/mutex.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/tools/name.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/tools/objectfactory.h"
             ex="false"
             tool="3"
@@ -284,11 +243,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/property.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/propertyiomanipulator.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -308,11 +262,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/reducedgraph.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/spline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/statement.h"
@@ -325,11 +274,6 @@
       <item path="../../include/votca/tools/thread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/tokenizer.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/typeconverter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -352,8 +296,6 @@
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/colors.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libtools/correlate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/crosscorrelate.cc"
@@ -370,42 +312,11 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libtools/edge.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/edgecontainer.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/graph.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/graph_bf_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graph_df_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphalgorithm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphdistvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphvisitor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -425,18 +336,9 @@
       </item>
       <item path="../../src/libtools/property.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/propertyiomanipulator.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/reducededge.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/reducedgraph.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -450,14 +352,7 @@
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_cubicspline.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -476,39 +371,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_graph_base.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graph_bf_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graph_df_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphalgorithm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphdistvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_graphnode.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_histogramnew.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -519,22 +382,6 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_reducededge.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_reducedgraph.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_table.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_thread.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_tokenizer.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
@@ -637,11 +484,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/floatingpointcomparison.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
@@ -652,49 +494,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/graph.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graph_bf_visitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graph_df_visitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphalgorithm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphdistvisitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphnode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphvisitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/histogram.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/histogramnew.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/identity.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -715,8 +520,6 @@
       </item>
       <item path="../../include/votca/tools/mutex.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/tools/name.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/tools/objectfactory.h"
             ex="false"
             tool="3"
@@ -728,11 +531,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/property.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/propertyiomanipulator.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -752,11 +550,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/reducedgraph.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/spline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/statement.h"
@@ -769,11 +562,6 @@
       <item path="../../include/votca/tools/thread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/tokenizer.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/typeconverter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -796,8 +584,6 @@
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/colors.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libtools/correlate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/crosscorrelate.cc"
@@ -814,42 +600,11 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libtools/edge.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/edgecontainer.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/graph.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/graph_bf_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graph_df_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphalgorithm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphdistvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphvisitor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -869,18 +624,9 @@
       </item>
       <item path="../../src/libtools/property.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/propertyiomanipulator.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/reducededge.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/reducedgraph.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -894,14 +640,7 @@
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_cubicspline.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -920,39 +659,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_graph_base.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graph_bf_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graph_df_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphalgorithm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphdistvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_graphnode.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_histogramnew.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -963,22 +670,6 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_reducededge.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_reducedgraph.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_table.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_thread.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_tokenizer.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"
@@ -1081,11 +772,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/floatingpointcomparison.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
@@ -1096,49 +782,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/graph.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graph_bf_visitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graph_df_visitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphalgorithm.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphdistvisitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphnode.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/graphvisitor.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/histogram.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/histogramnew.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/identity.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1159,8 +808,6 @@
       </item>
       <item path="../../include/votca/tools/mutex.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../include/votca/tools/name.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/tools/objectfactory.h"
             ex="false"
             tool="3"
@@ -1172,11 +819,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/tools/property.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/propertyiomanipulator.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1196,11 +838,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/reducedgraph.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../include/votca/tools/spline.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/statement.h"
@@ -1213,11 +850,6 @@
       <item path="../../include/votca/tools/thread.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/tokenizer.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/tools/typeconverter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1240,8 +872,6 @@
       </item>
       <item path="../../src/libtools/application.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/colors.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libtools/correlate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/crosscorrelate.cc"
@@ -1258,42 +888,11 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libtools/edge.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/edgecontainer.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/globals.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/graph.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/graph_bf_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graph_df_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphalgorithm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphdistvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/graphnode.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/graphvisitor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/histogram.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1313,18 +912,9 @@
       </item>
       <item path="../../src/libtools/property.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/propertyiomanipulator.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libtools/random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/reducededge.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libtools/reducedgraph.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1338,14 +928,7 @@
       </item>
       <item path="../../src/libtools/version.cc" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../src/libtools/version_nb.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/tests/test_cubicspline.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_datacollection.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -1364,39 +947,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_graph_base.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graph_bf_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graph_df_visitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphalgorithm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphdistvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/tests/test_graphnode.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_graphvisitor.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_histogramnew.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
       </item>
       <item path="../../src/tests/test_identity.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1407,22 +958,6 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_reducededge.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_reducedgraph.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/tests/test_table.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_thread.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/tests/test_tokenizer.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_typeconverter.cc"
             ex="false"

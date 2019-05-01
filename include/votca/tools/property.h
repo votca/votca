@@ -382,6 +382,7 @@ inline T Property::getAttribute(
   if (it != _attributes.end()) {
     return lexical_cast<T>((*it).second);
   } else {
+    std::cerr << *this << std::endl;
     throw std::runtime_error("attribute " + (*it).first + " not found\n");
   }
 }
@@ -397,6 +398,7 @@ inline T Property::getAttribute(const std::string &attribute) {
                            "wrong type in attribute " + attribute +
                                " of element " + _path + "." + _name + "\n");
   } else {
+    std::cerr << *this << std::endl;
     throw std::runtime_error("attribute " + attribute + " not found\n");
   }
 }
