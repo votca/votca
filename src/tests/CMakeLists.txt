@@ -21,9 +21,9 @@ foreach(PROG
     test_linalg
     test_matrix
     test_name
-    test_parameters
     test_reducededge
     test_reducedgraph
+    test_structureparameters
     test_table
     test_thread
     test_tokenizer

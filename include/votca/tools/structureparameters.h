@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef VOTCA_TOOLS_PARAMETERS_H
-#define VOTCA_TOOLS_PARAMETERS_H
+#ifndef VOTCA_TOOLS_STRUCTUREPARAMETERS_H
+#define VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 
 #include <boost/any.hpp>
 #include <cassert>
@@ -28,7 +28,7 @@ namespace tools {
 /**
  * \breif Supported and Standardized parameter types
  **/
-enum Parameter {
+enum StructureParameter {
   Mass,
   Position,
   MoleculeId,
@@ -52,9 +52,9 @@ enum Parameter {
  *
  * class Atom1 {
  *   public:
- *     Atom1(Parameters parameters) :
- *        id_(parameters.get<int>(Parameter::BeadId)),
- *        mass_(parameters.get<double>(Parameter::Mass)){};
+ *     Atom1(StructureParameters parameters) :
+ *        id_(parameters.get<int>(StructureParameter::BeadId)),
+ *        mass_(parameters.get<double>(StructureParameter::Mass)){};
  *
  *   private:
  *    int id_;
@@ -63,9 +63,9 @@ enum Parameter {
  *
  * class Atom2 {
  *   public:
- *     Atom2(Parameters parameters) :
- *        id_(parameters.get<int>(Parameter::BeadId)),
- *        element_(parameters.get<string>(Parameter::Element)){};
+ *     Atom2(StructureParameters parameters) :
+ *        id_(parameters.get<int>(StructureParameter::BeadId)),
+ *        element_(parameters.get<string>(StructureParameter::Element)){};
  *
  *   private:
  *    int id_;
@@ -85,10 +85,10 @@ enum Parameter {
  *     int id = 1;
  *     double mass = 12.01;
  *
- *     Parameters parameters;
- *     parameters.set(Parameter::Element,element);
- *     parameters.set(Parameter::Mass,mass);
- *     parameters.set(Parameter::BeadId,id);
+ *     StructureParameters parameters;
+ *     parameters.set(StructureParameter::Element,element);
+ *     parameters.set(StructureParameter::Mass,mass);
+ *     parameters.set(StructureParameter::BeadId,id);
  *
  *     T atom_or_bead(parameters);
  *     return atom_or_bead;
@@ -96,26 +96,27 @@ enum Parameter {
  *
  * };
  **/
-class Parameters {
+class StructureParameters {
 
  public:
-  void set(const Parameter parameter, boost::any value);
+  void set(const StructureParameter parameter, boost::any value) noexcept;
 
   template <class T>
-  T get(const Parameter parameter) const;
+  T get(const StructureParameter parameter) const;
 
  private:
-  std::unordered_map<Parameter, boost::any> parameters;
+  std::unordered_map<StructureParameter, boost::any> parameters;
 };
 
-void Parameters::set(const Parameter parameter, boost::any value) {
+void StructureParameters::set(const StructureParameter parameter,
+                              boost::any value) noexcept {
   parameters[parameter] = value;
 }
 
 template <class T>
-T Parameters::get(const Parameter parameter) const {
+T StructureParameters::get(const StructureParameter parameter) const {
   assert(parameters.count(parameter) &&
-         "Parameter is not stored in Parameters class");
+         "StructureParameter is not stored in StructureParameters class");
   assert(typeid(T) == parameters.at(parameter).type() &&
          "Cannot return boost any value from parameters class because it is "
          "not being cast to the correct type");
@@ -124,4 +125,4 @@ T Parameters::get(const Parameter parameter) const {
 
 }  // namespace tools
 }  // namespace votca
-#endif  // VOTCA_TOOL_PARAMETERS_H
+#endif  // VOTCA_TOOL_STRUCTUREPARAMETERS_H

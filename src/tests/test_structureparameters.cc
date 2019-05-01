@@ -16,9 +16,9 @@
  */
 
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE parameters_test
+#define BOOST_TEST_MODULE structureparameters_test
 
-#include "../../include/votca/tools/parameters.h"
+#include "../../include/votca/tools/structureparameters.h"
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
@@ -28,35 +28,36 @@
 using namespace std;
 using namespace votca::tools;
 
-BOOST_AUTO_TEST_SUITE(parameters_test)
+BOOST_AUTO_TEST_SUITE(structureparameters_test)
 
-BOOST_AUTO_TEST_CASE(constructors_test) { Parameters parameters; }
+BOOST_AUTO_TEST_CASE(constructors_test) { StructureParameters parameters; }
 
 BOOST_AUTO_TEST_CASE(set_test) {
-  Parameters parameters;
+  StructureParameters parameters;
 
   double mass = 2.0;
-  parameters.set(Parameter::Mass, mass);
+  parameters.set(StructureParameter::Mass, mass);
   string element_type = "C";
-  parameters.set(Parameter::Element, element_type);
+  parameters.set(StructureParameter::Element, element_type);
 }
 
 BOOST_AUTO_TEST_CASE(get_test) {
-  Parameters parameters;
+  StructureParameters parameters;
 
   double mass = 2.0;
-  parameters.set(Parameter::Mass, mass);
-  double mass_check = parameters.get<double>(Parameter::Mass);
+  parameters.set(StructureParameter::Mass, mass);
+  double mass_check = parameters.get<double>(StructureParameter::Mass);
   BOOST_CHECK_EQUAL(mass, mass_check);
 
   string element_type = "C";
-  parameters.set(Parameter::Element, element_type);
-  string element_type_check = parameters.get<string>(Parameter::Element);
+  parameters.set(StructureParameter::Element, element_type);
+  string element_type_check =
+      parameters.get<string>(StructureParameter::Element);
   BOOST_CHECK_EQUAL(element_type, element_type_check);
 
   int molecule_id = 201;
-  parameters.set(Parameter::MoleculeId, molecule_id);
-  int molecule_id_check = parameters.get<int>(Parameter::MoleculeId);
+  parameters.set(StructureParameter::MoleculeId, molecule_id);
+  int molecule_id_check = parameters.get<int>(StructureParameter::MoleculeId);
   BOOST_CHECK_EQUAL(molecule_id, molecule_id_check);
 }
 
