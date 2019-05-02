@@ -38,4 +38,8 @@ foreach(PROG
   # run tests for tools (for coverage) as well
   set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca")
 
+  if(VALGRIND_FOUND)
+    add_test(NAME memory_${PROG} COMMAND "${VALGRIND_EXECUTABLE}" --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --error-exitcode=1 $<TARGET_FILE:unit_${PROG}>)
+    set_tests_properties(memory_${PROG} PROPERTIES LABELS "tools;votca;memory")
+  endif(VALGRIND_FOUND) 
 endforeach(PROG)
