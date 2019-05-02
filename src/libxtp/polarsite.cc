@@ -43,24 +43,46 @@ PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
 
 PolarSite::PolarSite(data& d) { ReadData(d); };
 
-void PolarSite::Induce(double wSOR) {
-  // SUCCESSIVE OVERRELAXATION
-  _inducedDipole_old = _inducedDipole;  // Remember all previous moments
-  _inducedDipole = (1 - wSOR) * _inducedDipole_old -
-                   wSOR * _Ps * (_localpermanetField + _localinducedField);
-  return;
+void PolarSite::calcDIIS_InducedDipole() {
+  Eigen::Vector3d induced_dipole =
+      _Ps * (_localpermanetField + _localinducedField);
+  _dipole_hist.push_back(induced_dipole);
+
+  int hist_size = _dipole_hist.size();
+  if (hist_size == 1) {
+    _induced_dipole = induced_dipole;
+    return;
+  }
+
+  Eigen::MatrixXd B = -1 * Eigen::MatrixXd::Ones(hist_size + 1, hist_size + 1);
+  B(hist_size, hist_size) = 0;
+  Eigen::VectorXd a = Eigen::VectorXd::Zero(hist_size);
+  a(hist_size) = -1;
+  for (int i = 1; i < hist_size; i++) {
+    const Eigen::Vector3d dmui = _dipole_hist[i] - _dipole_hist[i - 1];
+    for (int j = 1; j <= i; j++) {
+      const Eigen::Vector3d dmuj = _dipole_hist[j] - _dipole_hist[j - 1];
+      B(j, i) = dmui.dot(dmuj);
+      if (i != j) {
+        B(i, j) = B(j, i);
+      }
+    }
+  }
+  Eigen::VectorXd coeffs = B.colPivHouseholderQr().solve(a);
+  _induced_dipole = Eigen::Vector3d::Zero();
+  for (int i = 0; i < hist_size; i++) {
+    _induced_dipole += coeffs[i] * _dipole_hist[i];
+  }
 }
 
 Eigen::Vector3d PolarSite::getDipole() const {
   Eigen::Vector3d dipole = _multipole.segment<3>(1);
-  dipole += _inducedDipole;
+  dipole += getInduced_Dipole();
   return dipole;
 }
 
 void PolarSite::ResetInduction() {
-  PhiU = 0.0;
-  _inducedDipole = Eigen::Vector3d::Zero();
-  _inducedDipole_old = Eigen::Vector3d::Zero();
+  _phi_induced = 0.0;
   _localinducedField = Eigen::Vector3d::Zero();
 }
 
@@ -100,21 +122,20 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
   table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
 
-  table.addCol(_Ps(0, 0), "pxx", HOFFSET(data, pxx));
-  table.addCol(_Ps(0, 1), "pxy", HOFFSET(data, pxy));
-  table.addCol(_Ps(0, 2), "pxz", HOFFSET(data, pxz));
-  table.addCol(_Ps(1, 1), "pyy", HOFFSET(data, pyy));
-  table.addCol(_Ps(1, 2), "pyz", HOFFSET(data, pyz));
-  table.addCol(_Ps(2, 2), "pzz", HOFFSET(data, pzz));
-
   table.addCol(_localpermanetField[0], "localPermFieldX",
                HOFFSET(data, fieldX));
   table.addCol(_localpermanetField[1], "localPermFieldY",
                HOFFSET(data, fieldY));
   table.addCol(_localpermanetField[2], "localPermFieldZ",
                HOFFSET(data, fieldZ));
+  table.addCol(_phi, "phi", HOFFSET(data, phi));
 
-  table.addCol(PhiP, "PhiP", HOFFSET(data, PhiP));
+  table.addCol(_Ps(0, 0), "pxx", HOFFSET(data, pxx));
+  table.addCol(_Ps(0, 1), "pxy", HOFFSET(data, pxy));
+  table.addCol(_Ps(0, 2), "pxz", HOFFSET(data, pxz));
+  table.addCol(_Ps(1, 1), "pyy", HOFFSET(data, pyy));
+  table.addCol(_Ps(1, 2), "pyz", HOFFSET(data, pyz));
+  table.addCol(_Ps(2, 2), "pzz", HOFFSET(data, pzz));
 
   table.addCol(_localinducedField[0], "localInducedFieldX",
                HOFFSET(data, fieldX_induced));
@@ -123,19 +144,7 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_localinducedField[2], "localInducedFieldZ",
                HOFFSET(data, fieldZ_induced));
 
-  table.addCol(_inducedDipole[0], "inducedDipoleX", HOFFSET(data, dipoleX));
-  table.addCol(_inducedDipole[1], "inducedDipoleY", HOFFSET(data, dipoleY));
-  table.addCol(_inducedDipole[2], "inducedDipoleZ", HOFFSET(data, dipoleZ));
-
-  table.addCol(_inducedDipole_old[0], "inducedDipoleXOld",
-               HOFFSET(data, dipoleXOld));
-  table.addCol(_inducedDipole_old[1], "inducedDipoleYOld",
-               HOFFSET(data, dipoleYOld));
-  table.addCol(_inducedDipole_old[2], "inducedDipoleZOld",
-               HOFFSET(data, dipoleZOld));
-
-  table.addCol(_eigendamp, "eigendamp", HOFFSET(data, eigendamp));
-  table.addCol(PhiU, "PhiU", HOFFSET(data, phiU));
+  table.addCol(_phi_induced, "phiInduced", HOFFSET(data, phi_induced));
 }
 
 void PolarSite::WriteData(data& d) const {
@@ -157,6 +166,11 @@ void PolarSite::WriteData(data& d) const {
   d.multipoleQ22c = _multipole[7];
   d.multipoleQ22s = _multipole[8];
 
+  d.fieldX = _localpermanetField[0];
+  d.fieldY = _localpermanetField[1];
+  d.fieldZ = _localpermanetField[2];
+  d.phi = _phi;
+
   d.pxx = _Ps(0, 0);
   d.pxy = _Ps(0, 1);
   d.pxz = _Ps(0, 2);
@@ -164,25 +178,11 @@ void PolarSite::WriteData(data& d) const {
   d.pyz = _Ps(1, 2);
   d.pzz = _Ps(2, 2);
 
-  d.fieldX = _localpermanetField[0];
-  d.fieldY = _localpermanetField[1];
-  d.fieldZ = _localpermanetField[2];
-  d.PhiP = PhiP;
-
   d.fieldX_induced = _localinducedField[0];
   d.fieldY_induced = _localinducedField[1];
   d.fieldZ_induced = _localinducedField[2];
 
-  d.dipoleX = _inducedDipole[0];
-  d.dipoleY = _inducedDipole[1];
-  d.dipoleZ = _inducedDipole[2];
-
-  d.dipoleXOld = _inducedDipole_old[0];
-  d.dipoleYOld = _inducedDipole_old[1];
-  d.dipoleZOld = _inducedDipole_old[2];
-
-  d.eigendamp = _eigendamp;
-  d.phiU = PhiU;
+  d.phi_induced = _phi_induced;
 }
 
 void PolarSite::ReadData(data& d) {
@@ -208,33 +208,25 @@ void PolarSite::ReadData(data& d) {
   _localpermanetField[0] = d.fieldX;
   _localpermanetField[1] = d.fieldY;
   _localpermanetField[2] = d.fieldZ;
+  _phi = d.phi;
 
-  PhiP = d.PhiP;
+  Eigen::Matrix3d Ps;
+  Ps(0, 0) = d.pxx;
+  Ps(0, 1) = d.pxy;
+  Ps(1, 0) = d.pxy;
+  Ps(0, 2) = d.pxz;
+  Ps(2, 0) = d.pxz;
+  Ps(1, 1) = d.pyy;
+  Ps(1, 2) = d.pyz;
+  Ps(2, 1) = d.pyz;
+  Ps(2, 2) = d.pzz;
+
+  this->setPolarisation(Ps);
 
   _localinducedField[0] = d.fieldX_induced;
   _localinducedField[1] = d.fieldY_induced;
   _localinducedField[2] = d.fieldZ_induced;
-
-  _inducedDipole[0] = d.dipoleX;
-  _inducedDipole[1] = d.dipoleY;
-  _inducedDipole[2] = d.dipoleZ;
-
-  _inducedDipole_old[0] = d.dipoleXOld;
-  _inducedDipole_old[1] = d.dipoleYOld;
-  _inducedDipole_old[2] = d.dipoleZOld;
-
-  _Ps(0, 0) = d.pxx;
-  _Ps(0, 1) = d.pxy;
-  _Ps(1, 0) = d.pxy;
-  _Ps(0, 2) = d.pxz;
-  _Ps(2, 0) = d.pxz;
-  _Ps(1, 1) = d.pyy;
-  _Ps(1, 2) = d.pyz;
-  _Ps(2, 1) = d.pyz;
-  _Ps(2, 2) = d.pzz;
-
-  _eigendamp = d.eigendamp;
-  PhiU = d.phiU;
+  _phi_induced = d.phi_induced;
 }
 
 }  // namespace xtp

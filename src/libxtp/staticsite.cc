@@ -141,7 +141,7 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_localpermanetField[2], "localPermFieldZ",
                HOFFSET(data, fieldZ));
 
-  table.addCol(PhiP, "PhiP", HOFFSET(data, PhiP));
+  table.addCol(_phi, "phi", HOFFSET(data, phi));
 }
 
 void StaticSite::WriteData(data& d) const {
@@ -166,7 +166,7 @@ void StaticSite::WriteData(data& d) const {
   d.fieldX = _localpermanetField[0];
   d.fieldY = _localpermanetField[1];
   d.fieldZ = _localpermanetField[2];
-  d.PhiP = PhiP;
+  d.phi = _phi;
 }
 
 void StaticSite::ReadData(data& d) {
@@ -193,7 +193,7 @@ void StaticSite::ReadData(data& d) {
   _localpermanetField[1] = d.fieldY;
   _localpermanetField[2] = d.fieldZ;
 
-  PhiP = d.PhiP;
+  _phi = d.phi;
 }
 
 }  // namespace xtp

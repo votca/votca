@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
+        <itemPath>../../src/libxtp/calculators/eanalyze.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/eanalyze.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/einternal.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/einternal.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/ianalyze.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/ianalyze.h</itemPath>
         <itemPath>../../src/libxtp/calculators/jobwriter.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/jobwriter.h</itemPath>
@@ -13,6 +16,7 @@
         <itemPath>../../src/libxtp/calculators/kmcmultiple.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/kmcmultiple.h</itemPath>
         <itemPath>../../src/libxtp/calculators/mapchecker.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/neighborlist.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
@@ -4454,14 +4458,29 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/eanalyze.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/eanalyze.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/einternal.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/einternal.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/ianalyze.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/ianalyze.h"
@@ -4502,6 +4521,11 @@
       <item path="../../src/libxtp/calculators/mapchecker.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/neighborlist.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"
@@ -5559,14 +5583,29 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/eanalyze.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/eanalyze.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/einternal.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/calculators/einternal.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/ianalyze.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/ianalyze.h"
@@ -5607,6 +5646,11 @@
       <item path="../../src/libxtp/calculators/mapchecker.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/neighborlist.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/neighborlist.h"

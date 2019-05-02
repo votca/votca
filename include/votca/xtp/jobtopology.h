@@ -19,8 +19,8 @@
 
 #ifndef VOTCA_XTP_JOBTOPOLOGY_H
 #define VOTCA_XTP_JOBTOPOLOGY_H
-#include <votca/tools/elements.h>
-#include <votca/xtp/checkpoint.h>
+
+#include <votca/xtp/job.h>
 #include <votca/xtp/region.h>
 #include <votca/xtp/topology.h>
 
@@ -34,10 +34,14 @@ namespace xtp {
 
 class JobTopology {
  public:
-  void BuildRegions(Topology& top);
+  void BuildRegions(const Topology& top, const Job& job,
+                    const tools::Property& options);
   void WriteToHdf5(std::string filename) const;
 
  private:
+  void CheckEnumerationOfRegions(const std::vector<int>& reg_ids);
+
+  int _job_id = -1;
   std::vector<std::unique_ptr<Region> > _regions;
 };
 }  // namespace xtp

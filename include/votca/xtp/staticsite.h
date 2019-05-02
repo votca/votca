@@ -57,7 +57,7 @@ class StaticSite {
     double fieldY;
     double fieldZ;
 
-    double PhiP;
+    double phi;
   };
   StaticSite(int id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
@@ -110,7 +110,7 @@ class StaticSite {
 
   virtual Eigen::Vector3d getField() const { return _localpermanetField; }
 
-  virtual double getPotential() const { return PhiP; }
+  virtual double getPotential() const { return _phi; }
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
@@ -141,7 +141,7 @@ class StaticSite {
       Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
 
   Eigen::Vector3d _localpermanetField = Eigen::Vector3d::Zero();
-  double PhiP = 0.0;  // Electric potential (due to perm.)
+  double _phi = 0.0;  // Electric potential (due to perm.)
 };
 }  // namespace xtp
 }  // namespace votca

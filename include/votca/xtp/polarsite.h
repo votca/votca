@@ -49,9 +49,12 @@ class PolarSite : public StaticSite {
     StaticSite::Rotate(R, ref_pos);
     _Ps = R * _Ps * R.transpose();
   }
-  void Induce(double wSOR);
+  void calcDIIS_InducedDipole();
+
+  const Eigen::Vector3d& getInduced_Dipole() const { return _induced_dipole; }
+
   double InductionWork() const {
-    return -0.5 * _inducedDipole.transpose() * getField();
+    return -0.5 * getInduced_Dipole().transpose() * getField();
   }
 
   struct data {
@@ -73,6 +76,11 @@ class PolarSite : public StaticSite {
     double multipoleQ22c;
     double multipoleQ22s;
 
+    double fieldX;
+    double fieldY;
+    double fieldZ;
+    double phi;
+
     double pxx;
     double pxy;
     double pxz;
@@ -80,29 +88,15 @@ class PolarSite : public StaticSite {
     double pyz;
     double pzz;
 
-    double fieldX;
-    double fieldY;
-    double fieldZ;
-
-    double PhiP;
-
     double fieldX_induced;
     double fieldY_induced;
     double fieldZ_induced;
-
-    double dipoleX;
-    double dipoleY;
-    double dipoleZ;
-
-    double dipoleXOld;
-    double dipoleYOld;
-    double dipoleZOld;
-
-    double eigendamp;
-    double phiU;
+    double phi_induced;
   };
   // do not move up has to be below data definition
   PolarSite(data& d);
+
+  void ResetDIIS() { _dipole_hist.clear(); }
 
   void SetupCptTable(CptTable& table) const;
   void WriteData(data& d) const;
@@ -121,13 +115,13 @@ class PolarSite : public StaticSite {
   std::string writePolarisation() const override;
 
   Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
-  ;
   Eigen::Vector3d _localinducedField = Eigen::Vector3d::Zero();
-  Eigen::Vector3d _inducedDipole = Eigen::Vector3d::Zero();
-  Eigen::Vector3d _inducedDipole_old = Eigen::Vector3d::Zero();
-  double _eigendamp = 0.0;
+  double _phi_induced = 0.0;  // Electric potential (due to indu.)
 
-  double PhiU = 0.0;  // Electric potential (due to indu.)
+  // cached data
+  Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
+  std::vector<Eigen::Vector3d> _dipole_hist;
+  double _eigendamp = 0.0;
 };
 
 }  // namespace xtp
