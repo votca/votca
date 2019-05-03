@@ -16,8 +16,6 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit
-/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #ifndef VOTCA_XTP_QMCALCULATOR_H
 #define VOTCA_XTP_QMCALCULATOR_H
