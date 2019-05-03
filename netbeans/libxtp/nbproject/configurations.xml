@@ -261,6 +261,7 @@
       <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/qmpair.cc</itemPath>
+      <itemPath>../../src/libxtp/qmregion.cc</itemPath>
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
       <itemPath>../../src/libxtp/rate_engine.cc</itemPath>
       <itemPath>../../src/libxtp/segment.cc</itemPath>
@@ -4748,6 +4749,8 @@
       </item>
       <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/qmregion.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/rate_engine.cc" ex="false" tool="1" flavor2="0">
@@ -5872,6 +5875,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/qmpair.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/qmregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>

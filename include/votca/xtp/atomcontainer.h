@@ -38,8 +38,9 @@ namespace xtp {
 template <class T>
 class AtomContainer {
  public:
-  AtomContainer(std::string name, int id)
-      : _name(name), _id(id), _position_valid(false){};
+  AtomContainer(std::string name, int id) : _name(name), _id(id){};
+
+  AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
 
   typedef typename std::vector<T>::iterator iterator;
 
@@ -178,7 +179,7 @@ class AtomContainer {
   bool PosIsValid() const { return _position_valid; }
 
  private:
-  mutable bool _position_valid;
+  mutable bool _position_valid = false;
   mutable Eigen::Vector3d _pos;
 
   void calcPos() const {

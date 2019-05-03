@@ -16,51 +16,30 @@
  * limitations under the License.
  *
  */
-#include <votca/xtp/region.h>
 
-#include "orbitals.h"
-
-#ifndef VOTCA_XTP_QMREGION_H
-#define VOTCA_XTP_QMREGION_H
-
-/**
- * \brief base class to derive regions from
- *
- *
- *
- */
+#include <votca/xtp/qmregion.h>
 
 namespace votca {
 namespace xtp {
 
-class QMRegion : public Region {
+void QMRegion::WritePDB(csg::PDBWriter& writer) const {
+  writer.WriteContainer(_orb.QMAtoms());
+}
 
- public:
-  ~QMRegion(){};
+void QMRegion::WriteToCpt(CheckpointWriter& w) const {
+  w(_name, "name");
+  w(_id, "id");
+  w(identify(), "type");
+  CheckpointWriter v = w.openChild("orbitals");
+  _orb.WriteToCpt(v);
+}
 
-  void WriteToCpt(CheckpointWriter& w) const;
-
-  void ReadFromCpt(CheckpointReader& r);
-
-  int size() const { return 1; }
-
-  void WritePDB(csg::PDBWriter& writer) const;
-
-  std::string identify() const { return "QMRegion"; }
-
-  void push_back(const QMMolecule& mol) {
-    if (_orb.QMAtoms().size() == 0) {
-      _orb.QMAtoms() = mol;
-    } else {
-      _orb.QMAtoms().AddContainer(mol);
-    }
-  }
-
- private:
-  Orbitals _orb;
-};
+void QMRegion::ReadFromCpt(CheckpointReader& r) {
+  r(_name, "name");
+  r(_id, "id");
+  CheckpointReader rr = r.openChild("orbitals");
+  _orb.ReadFromCpt(rr);
+}
 
 }  // namespace xtp
 }  // namespace votca
-
-#endif  // VOTCA_XTP_REGION_H

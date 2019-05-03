@@ -31,6 +31,8 @@ class ClassicalSegment : public AtomContainer<T> {
  public:
   ClassicalSegment(std::string name, int id) : AtomContainer<T>(name, id){};
 
+  ClassicalSegment(CheckpointReader& r) : AtomContainer<T>(r){};
+
   void LoadFromFile(std::string filename);
 
   void WriteMPS(std::string filename, std::string header) const;

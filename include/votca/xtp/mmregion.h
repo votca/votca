@@ -44,6 +44,8 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
+  void WritePDB(csg::PDBWriter& writer) const;
+
   std::string identify() const;
   void push_back(const T& seg) { _segments.push_back(seg); }
 

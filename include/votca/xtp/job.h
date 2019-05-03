@@ -81,6 +81,7 @@ class Job {
   int getId() const { return _id; }
   std::string getTag() const { return _tag; }
   tools::Property &getInput() { return _input; }
+  const tools::Property &getInput() const { return _input; }
   const JobStatus &getStatus() const { return _status; }
   std::string getStatusStr() const { return ConvertStatus(_status); }
 
