@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  */
-
 #ifndef VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 #define VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 
@@ -99,29 +98,23 @@ enum StructureParameter {
 class StructureParameters {
 
  public:
-  void set(const StructureParameter parameter, boost::any value) noexcept;
+  void set(const StructureParameter parameter, boost::any value) noexcept {
+    parameters[parameter] = value;
+  }
 
   template <class T>
-  T get(const StructureParameter parameter) const;
+  T get(const StructureParameter parameter) const {
+    assert(parameters.count(parameter) &&
+           "StructureParameter is not stored in StructureParameters class");
+    assert(typeid(T) == parameters.at(parameter).type() &&
+           "Cannot return boost any value from parameters class because it is "
+           "not being cast to the correct type");
+    return boost::any_cast<T>(parameters.at(parameter));
+  }
 
  private:
   std::unordered_map<StructureParameter, boost::any> parameters;
 };
-
-void StructureParameters::set(const StructureParameter parameter,
-                              boost::any value) noexcept {
-  parameters[parameter] = value;
-}
-
-template <class T>
-T StructureParameters::get(const StructureParameter parameter) const {
-  assert(parameters.count(parameter) &&
-         "StructureParameter is not stored in StructureParameters class");
-  assert(typeid(T) == parameters.at(parameter).type() &&
-         "Cannot return boost any value from parameters class because it is "
-         "not being cast to the correct type");
-  return boost::any_cast<T>(parameters.at(parameter));
-}
 
 }  // namespace tools
 }  // namespace votca
