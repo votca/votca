@@ -14,6 +14,7 @@
  * limitations under the License.
  *
  */
+#pragma once
 #ifndef VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 #define VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 

@@ -25,6 +25,7 @@
 #include <votca/tools/edgecontainer.h>
 #include <votca/tools/graphnode.h>
 
+#pragma once
 #ifndef _VOTCA_TOOLS_GRAPH_H
 #define _VOTCA_TOOLS_GRAPH_H
 

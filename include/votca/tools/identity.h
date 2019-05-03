@@ -16,6 +16,7 @@
  * limitations under the License.
  *
  */
+#pragma once
 #ifndef __VOTCA_TOOLS_IDENTITY_H
 #define __VOTCA_TOOLS_IDENTITY_H
 #include <cassert>

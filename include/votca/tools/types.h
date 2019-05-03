@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _types_H
 #define _types_H
 

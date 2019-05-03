@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _RANGEPARSER_H
 #define _RANGEPARSER_H
 

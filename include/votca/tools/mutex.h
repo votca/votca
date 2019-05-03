@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef MUTEX_H
 #define MUTEX_H
 #include <pthread.h>

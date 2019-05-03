@@ -19,6 +19,7 @@
 
 #include <votca/tools/edge.h>
 
+#pragma once
 #ifndef _VOTCA_TOOLS_REDUCEDEDGE_H
 #define _VOTCA_TOOLS_REDUCEDEDGE_H
 

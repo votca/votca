@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _crosscorrelate_H
 #define _crosscorrelate_H
 

@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_TOOLS_OBJECTFACTORY
 #define VOTCA_TOOLS_OBJECTFACTORY
 

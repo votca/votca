@@ -21,6 +21,7 @@
 #include <votca/tools/graph.h>
 #include <votca/tools/reducededge.h>
 
+#pragma once
 #ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
 #define _VOTCA_TOOLS_REDUCEDGRAPH_H
 

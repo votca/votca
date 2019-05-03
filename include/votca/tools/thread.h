@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_TOOLS_THREAD_H
 #define VOTCA_TOOLS_THREAD_H
 

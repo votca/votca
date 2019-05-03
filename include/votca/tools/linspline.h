@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _LINSPLINE_H
 #define _LINSPLINE_H
 
