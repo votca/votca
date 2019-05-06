@@ -291,8 +291,6 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   jres.setOutput(job_summary);
   jres.setStatus(Job::COMPLETE);
 
-  // dump the LOG
-
   return jres;
 }
 }  // namespace xtp
