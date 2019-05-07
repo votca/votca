@@ -58,6 +58,7 @@ class UnitConverter {
       case DistanceUnit::bohr:
         return 0.529177;
     }
+    return 0.0;
   }
 
   /// All times with respect to pico seconds
@@ -74,6 +75,7 @@ class UnitConverter {
       case TimeUnit::femtoseconds:
         return 0.001;
     }
+    return 0.0;
   }
 
   /// All masses with respect to atomic mass units
@@ -106,6 +108,7 @@ class UnitConverter {
       case EnergyUnit::electron_volts:
         return 1.0;
     }
+    return 0.0;
   }
 
  public:
