@@ -53,7 +53,7 @@ class GROReader : public TrajectoryReader, public TopologyReader {
 
  private:
   std::ifstream _fl;
-  bool          _topology;
+  bool _topology;
 };
 
 }  // namespace csg

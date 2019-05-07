@@ -125,7 +125,6 @@ void CsgApplication::ShowHelpText(std::ostream &out) {
   HelpText(out);
 
   out << "\n\n" << VisibleOptions() << endl;
-  // out << "\n\n" << OptionsDesc() << endl;
 }
 
 void CsgApplication::Worker::Run(void) {
@@ -229,7 +228,7 @@ void CsgApplication::Run(void) {
     // create the mapping + cg topology
 
     if (_op_vm.count("map-ignore") != 0) {
-      Tokenizer           tok(_op_vm["map-ignore"].as<string>(), ";");
+      Tokenizer tok(_op_vm["map-ignore"].as<string>(), ";");
       Tokenizer::iterator iter;
       for (iter = tok.begin(); iter != tok.end(); ++iter) {
         string str = *iter;
@@ -253,12 +252,12 @@ void CsgApplication::Run(void) {
   //////////////////////////////////////////////////
   if (DoTrajectory() && _op_vm.count("trj")) {
     double begin = 0;
-    int    first_frame;
-    bool   has_begin = false;
+    int first_frame;
+    bool has_begin = false;
 
     if (_op_vm.count("begin")) {
       has_begin = true;
-      begin     = _op_vm["begin"].as<double>();
+      begin = _op_vm["begin"].as<double>();
     }
 
     _nframes = -1;

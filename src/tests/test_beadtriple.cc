@@ -26,7 +26,6 @@
 #include <votca/csg/beadtriple.h>
 #include <votca/csg/beadtype.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -39,27 +38,27 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
 
   string bead_type_name = "CG";
 
-  int    symmetry = 1;
-  string name     = "dummy1";
-  int    resnr    = 0;
-  double mass     = 1.0;
-  double charge   = -1.0;
+  int symmetry = 1;
+  string name = "dummy1";
+  int resnr = 0;
+  double mass = 1.0;
+  double charge = -1.0;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
   symmetry = 1;
-  name     = "dummy2";
-  resnr    = 0;
-  mass     = 1.0;
-  charge   = -1.0;
+  name = "dummy2";
+  resnr = 0;
+  mass = 1.0;
+  charge = -1.0;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
   symmetry = 1;
-  name     = "dummy3";
-  resnr    = 0;
-  mass     = 1.0;
-  charge   = -1.0;
+  name = "dummy3";
+  resnr = 0;
+  mass = 1.0;
+  charge = -1.0;
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 

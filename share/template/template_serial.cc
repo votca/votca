@@ -40,7 +40,7 @@ class CsgTestApp : public CsgApplication {
 
  protected:
   HistogramNew _rdf;
-  double       _cut_off;
+  double _cut_off;
 };
 
 int main(int argc, char **argv) {

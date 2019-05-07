@@ -26,13 +26,13 @@ using namespace std;
 
 int BeadList::Generate(Topology &top, const string &select) {
   BeadContainer::iterator iter;
-  _topology           = &top;
-  bool   selectByName = false;
+  _topology = &top;
+  bool selectByName = false;
   string pSelect;  // parsed selection string
 
   if (select.substr(0, 5) == "name:") {
     // select according to bead name instead of type
-    pSelect      = select.substr(5);
+    pSelect = select.substr(5);
     selectByName = true;
   } else {
     pSelect = select;
@@ -41,11 +41,11 @@ int BeadList::Generate(Topology &top, const string &select) {
   for (iter = top.Beads().begin(); iter != top.Beads().end(); ++iter) {
     if (!selectByName) {
       if (wildcmp(pSelect.c_str(), (*iter)->getType().c_str())) {
-        push_back(*iter);
+        _beads.push_back(*iter);
       }
     } else {
       if (wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-        push_back(*iter);
+        _beads.push_back(*iter);
       }
     }
   }
@@ -55,28 +55,28 @@ int BeadList::Generate(Topology &top, const string &select) {
 int BeadList::GenerateInSphericalSubvolume(Topology &top, const string &select,
                                            Eigen::Vector3d ref, double radius) {
   BeadContainer::iterator iter;
-  _topology           = &top;
-  bool   selectByName = false;
+  _topology = &top;
+  bool selectByName = false;
   string pSelect;  // parsed selection string
 
   if (select.substr(0, 5) == "name:") {
     // select according to bead name instead of type
-    pSelect      = select.substr(5);
+    pSelect = select.substr(5);
     selectByName = true;
   } else {
     pSelect = select;
   }
 
   for (iter = top.Beads().begin(); iter != top.Beads().end(); ++iter) {
-    if (abs(_topology->BCShortestConnection(ref, (*iter)->getPos())) > radius)
+    if (_topology->BCShortestConnection(ref, (*iter)->getPos()).norm() > radius)
       continue;
     if (!selectByName) {
       if (wildcmp(pSelect.c_str(), (*iter)->getType().c_str())) {
-        push_back(*iter);
+        _beads.push_back(*iter);
       }
     } else {
       if (wildcmp(pSelect.c_str(), (*iter)->getName().c_str())) {
-        push_back(*iter);
+        _beads.push_back(*iter);
       }
     }
   }

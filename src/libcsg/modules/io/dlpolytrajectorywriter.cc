@@ -35,7 +35,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
         "Error: appending to dlpoly files not implemented");
 
   boost::filesystem::path filepath(file.c_str());
-  string                  out_name = "HISTORY_CGV";
+  string out_name = "HISTORY_CGV";
 
   if (boost::filesystem::extension(filepath).size() == 0) {
 
@@ -45,7 +45,7 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
   } else if (boost::filesystem::extension(filepath) == ".dlpc") {
 
     _isConfig = true;
-    out_name  = "CONFIG_CGV";
+    out_name = "CONFIG_CGV";
 
   } else if (boost::filesystem::extension(filepath) == ".dlph") {
 
@@ -75,12 +75,12 @@ void DLPOLYTrajectoryWriter::Open(string file, bool bAppend)
 void DLPOLYTrajectoryWriter::Close() { _fl.close(); }
 
 void DLPOLYTrajectoryWriter::Write(Topology *conf) {
-  static int    nstep  = 1;
-  static double dstep  = 0.0;
-  const double  scale  = 10.0;  // nm -> A factor
-  int           mavecs = 0;
-  int           mpbct  = 0;
-  double        energy = 0.0;
+  static int nstep = 1;
+  static double dstep = 0.0;
+  const double scale = 10.0;  // nm -> A factor
+  int mavecs = 0;
+  int mpbct = 0;
+  double energy = 0.0;
 
   if (conf->HasForce() && conf->HasVel()) {
     mavecs = 2;

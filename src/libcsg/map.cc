@@ -57,7 +57,7 @@ void Map_Sphere::Initialize(Molecule *in, Bead *out, Property *opts_bead,
   vector<double> fweights;
 
   // get the beads
-  string    s(_opts_bead->get("beads").value());
+  string s(_opts_bead->get("beads").value());
   Tokenizer tok_beads(s, " \n\t");
   tok_beads.ToVector(beads);
 
@@ -131,22 +131,22 @@ void Map_Sphere::Apply() {
   _out->ClearParentBeads();
 
   // the following is needed for pbc treatment
-  Topology *      top      = _out->getParent();
-  double          max_dist = 0.5 * top->ShortestBoxSize();
-  Eigen::Vector3d r0       = Eigen::Vector3d::Zero();
-  string          name0;
-  int             id0 = 0;
+  Topology *top = _out->getParent();
+  double max_dist = 0.5 * top->ShortestBoxSize();
+  Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
+  string name0;
+  int id0 = 0;
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
-      r0    = _matrix.front()._in->getPos();
+      r0 = _matrix.front()._in->getPos();
       name0 = _matrix.front()._in->getName();
-      id0   = _matrix.front()._in->getId();
+      id0 = _matrix.front()._in->getId();
     }
   }
 
-  double          M   = 0;
-  Eigen::Vector3d cg  = Eigen::Vector3d::Zero();
-  Eigen::Vector3d f   = Eigen::Vector3d::Zero();
+  double M = 0;
+  Eigen::Vector3d cg = Eigen::Vector3d::Zero();
+  Eigen::Vector3d f = Eigen::Vector3d::Zero();
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
   for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
@@ -155,7 +155,7 @@ void Map_Sphere::Apply() {
     M += bead->getMass();
     if (bead->HasPos()) {
       Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (abs(r) > max_dist) {
+      if (r.norm() > max_dist) {
         cout << r0 << " " << bead->getPos() << endl;
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box \n (atoms " +
@@ -192,17 +192,17 @@ void Map_Ellipsoid::Apply() {
   bPos = bVel = bF = false;
 
   // the following is needed for pbc treatment
-  Topology *      top      = _out->getParent();
-  double          max_dist = 0.5 * top->ShortestBoxSize();
-  Eigen::Vector3d r0       = Eigen::Vector3d::Zero();
+  Topology *top = _out->getParent();
+  double max_dist = 0.5 * top->ShortestBoxSize();
+  Eigen::Vector3d r0 = Eigen::Vector3d::Zero();
   if (_matrix.size() > 0) {
     if (_matrix.front()._in->HasPos()) {
       r0 = _matrix.front()._in->getPos();
     }
   }
-  Eigen::Vector3d cg  = Eigen::Vector3d::Zero();
-  Eigen::Vector3d c   = Eigen::Vector3d::Zero();
-  Eigen::Vector3d f   = Eigen::Vector3d::Zero();
+  Eigen::Vector3d cg = Eigen::Vector3d::Zero();
+  Eigen::Vector3d c = Eigen::Vector3d::Zero();
+  Eigen::Vector3d f = Eigen::Vector3d::Zero();
   Eigen::Vector3d vel = Eigen::Vector3d::Zero();
 
   int n;
@@ -213,7 +213,7 @@ void Map_Ellipsoid::Apply() {
     _out->AddParentBead(bead->getId());
     if (bead->HasPos()) {
       Eigen::Vector3d r = top->BCShortestConnection(r0, bead->getPos());
-      if (abs(r) > max_dist)
+      if (r.norm() > max_dist)
         throw std::runtime_error(
             "coarse-grained bead is bigger than half the box");
       cg += (*iter)._weight * (r + r0);
@@ -253,8 +253,8 @@ void Map_Ellipsoid::Apply() {
   c = c / (double)n;
   for (iter = _matrix.begin(); iter != _matrix.end(); ++iter) {
     if ((*iter)._weight == 0) continue;
-    Bead *          bead = iter->_in;
-    Eigen::Vector3d v    = bead->getPos() - c;
+    Bead *bead = iter->_in;
+    Eigen::Vector3d v = bead->getPos() - c;
     // v = vec(1, 0.5, 0) * 0.*(drand48()-0.5)
     //    + vec(0.5, -1, 0) * (drand48()-0.5)
     //    + vec(0, 0, 1) * (drand48()-0.5);

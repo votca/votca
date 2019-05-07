@@ -75,9 +75,9 @@ void Topology::Cleanup() {
 /// \todo implement checking, only used in xml topology reader
 void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
                                       int nmolecules) {
-  Molecule *mol        = CreateMolecule(name);
-  int       beadcount  = 0;
-  int       res_offset = 0;
+  Molecule *mol = CreateMolecule(name);
+  int beadcount = 0;
+  int res_offset = 0;
 
   BeadContainer::iterator bead;
   for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
@@ -95,7 +95,7 @@ void Topology::CreateMoleculesByRange(string name, int first, int nbeads,
     mol->AddBead((*bead), bname.str());
     if (++beadcount == nbeads) {
       if (--nmolecules <= 0) break;
-      mol       = CreateMolecule(name);
+      mol = CreateMolecule(name);
       beadcount = 0;
     }
   }
@@ -135,14 +135,14 @@ void Topology::CreateOneBigMolecule(string name) {
 }
 
 void Topology::Add(Topology *top) {
-  BeadContainer::iterator     bead;
-  ResidueContainer::iterator  res;
+  BeadContainer::iterator bead;
+  ResidueContainer::iterator res;
   MoleculeContainer::iterator mol;
 
   int res0 = ResidueCount();
 
   for (bead = top->_beads.begin(); bead != top->_beads.end(); ++bead) {
-    Bead * bi   = *bead;
+    Bead *bi = *bead;
     string type = bi->getType();
     CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr() + res0,
                bi->getMass(), bi->getQ());
@@ -162,8 +162,8 @@ void Topology::Add(Topology *top) {
 }
 
 void Topology::CopyTopologyData(Topology *top) {
-  BeadContainer::iterator     it_bead;
-  ResidueContainer::iterator  it_res;
+  BeadContainer::iterator it_bead;
+  ResidueContainer::iterator it_res;
   MoleculeContainer::iterator it_mol;
 
   _bc->setBox(top->getBox());
@@ -181,7 +181,7 @@ void Topology::CopyTopologyData(Topology *top) {
 
   // create all beads
   for (it_bead = top->_beads.begin(); it_bead != top->_beads.end(); ++it_bead) {
-    Bead * bi   = *it_bead;
+    Bead *bi = *it_bead;
     string type = bi->getType();
     CreateBead(bi->getSymmetry(), bi->getName(), type, bi->getResnr(),
                bi->getMass(), bi->getQ());
@@ -204,7 +204,7 @@ int Topology::getBeadTypeId(string type) const {
 }
 
 void Topology::RenameMolecules(string range, string name) {
-  RangeParser           rp;
+  RangeParser rp;
   RangeParser::iterator i;
 
   rp.Parse(range);
@@ -261,7 +261,7 @@ void Topology::AddBondedInteraction(Interaction *ic) {
   if (iter != _interaction_groups.end())
     ic->setGroupId((*iter).second);
   else {
-    int i                               = _interaction_groups.size();
+    int i = _interaction_groups.size();
     _interaction_groups[ic->getGroup()] = i;
     ic->setGroupId(i);
   }
@@ -314,12 +314,12 @@ Eigen::Vector3d Topology::getDist(int bead1, int bead2) const {
                               getBead(bead2)->getPos());
 }
 
-double Topology::BoxVolume() { return _bc->BoxVolume(); }
+double Topology::BoxVolume() const { return _bc->BoxVolume(); }
 
 void Topology::RebuildExclusions() { _exclusions.CreateExclusions(this); }
 
 BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
-    const Eigen::Matrix3d &box) {
+    const Eigen::Matrix3d &box) const {
   // set the box type to OpenBox in case "box" is the zero matrix,
   // to OrthorhombicBox in case "box" is a diagonal matrix,
   // or to TriclinicBox otherwise
@@ -334,7 +334,7 @@ BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
   return BoundaryCondition::typeOpen;
 }
 
-double Topology::ShortestBoxSize() {
+double Topology::ShortestBoxSize() const {
   Eigen::Vector3d box_a = getBox().col(0);
   Eigen::Vector3d box_b = getBox().col(1);
   Eigen::Vector3d box_c = getBox().col(2);

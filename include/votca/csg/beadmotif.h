@@ -157,11 +157,11 @@ class BeadMotif : public BeadStructure<BaseBead> {
   void ConnectBeads(int bead1_id, int bead2_id);
 
  private:
-  MotifType type_              = MotifType::undefined;
-  bool      junctionsUpToDate_ = false;
-  bool      type_up_to_date_   = false;
+  MotifType type_ = MotifType::undefined;
+  bool junctionsUpToDate_ = false;
+  bool type_up_to_date_ = false;
 
-  std::vector<int>    junctions_;
+  std::vector<int> junctions_;
   TOOLS::ReducedGraph reduced_graph_;
 
   void InitializeGraph_();

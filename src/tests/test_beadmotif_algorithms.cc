@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
 
   vector<BaseBead> fused_ring;
   for (int index = 0; index < 6; ++index) {
-    int      id = index + 13;
+    int id = index + 13;
     TestBead temp;
     temp.setName("Carbon");
     temp.setId(id);
@@ -184,11 +184,11 @@ BOOST_AUTO_TEST_CASE(test_breakintomotifs) {
 
   BOOST_CHECK_EQUAL(bead_motifs.size(), 5);
 
-  bool found_type_line             = false;
-  bool found_type_loop             = false;
+  bool found_type_line = false;
+  bool found_type_loop = false;
   bool found_type_single_structure = false;
-  bool found_type_single           = false;
-  bool found_type_fused_ring       = false;
+  bool found_type_single = false;
+  bool found_type_fused_ring = false;
 
   for (BeadMotif &motif : bead_motifs) {
     if (motif.getType() == BeadMotif::MotifType::single_bead) {
@@ -276,8 +276,8 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs) {
   }
   BOOST_CHECK_EQUAL(single_type_count, 5);
 
-  BeadMotifConnector connector  = simple_motifs_and_connector.second;
-  vector<Edge>       bead_edges = connector.getBeadEdges();
+  BeadMotifConnector connector = simple_motifs_and_connector.second;
+  vector<Edge> bead_edges = connector.getBeadEdges();
 
   BOOST_CHECK_EQUAL(bead_edges.size(), 4);
   Edge ed1_2(1, 2);
@@ -383,8 +383,8 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs2) {
 
   // There should be a single edge connecting the motifs, motif id will start
   // at 0 that means motifs 0 and 1 should be connected via edge 5 and 5
-  Edge         edge_motif(5, 6);
-  Edge         edge_bead4_5(4, 5);
+  Edge edge_motif(5, 6);
+  Edge edge_bead4_5(4, 5);
   vector<Edge> bead_edges = connector.getBeadEdges(edge_motif);
   BOOST_CHECK_EQUAL(bead_edges.size(), 1);
   BOOST_CHECK_EQUAL(bead_edges.at(0), edge_bead4_5);
@@ -508,9 +508,9 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
   BOOST_CHECK_EQUAL(simple_motifs.size(), 4);
 
   // Should have found two loops a single and a line
-  int line_count   = 0;
+  int line_count = 0;
   int single_count = 0;
-  int loop_count   = 0;
+  int loop_count = 0;
   for (pair<const int, BeadMotif> &id_and_motif : simple_motifs) {
     if (id_and_motif.second.getType() == BeadMotif::MotifType::single_bead) {
       ++single_count;
@@ -525,8 +525,8 @@ BOOST_AUTO_TEST_CASE(test_breakintosimplemotifs3) {
   BOOST_CHECK_EQUAL(line_count, 1);
   BOOST_CHECK_EQUAL(loop_count, 2);
 
-  BeadMotifConnector connector  = simple_motifs_and_connector.second;
-  vector<Edge>       bead_edges = connector.getBeadEdges();
+  BeadMotifConnector connector = simple_motifs_and_connector.second;
+  vector<Edge> bead_edges = connector.getBeadEdges();
   // How many edges should have been removed
   BOOST_CHECK_EQUAL(bead_edges.size(), 3);
   // Edges that should have been removed

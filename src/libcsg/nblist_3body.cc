@@ -89,9 +89,9 @@ void NBList_3Body::Generate(BeadList &list1, BeadList &list2, BeadList &list3,
         Eigen::Vector3d r12 = top->BCShortestConnection(u, v);
         Eigen::Vector3d r13 = top->BCShortestConnection(u, z);
         Eigen::Vector3d r23 = top->BCShortestConnection(v, z);
-        double          d12 = r12.norm();
-        double          d13 = r13.norm();
-        double          d23 = r23.norm();
+        double d12 = r12.norm();
+        double d13 = r13.norm();
+        double d23 = r23.norm();
         // to do: at the moment use only one cutoff value
         // to do: so far only check the distance between bead 1 (central bead)
         // and bead2 and bead 3

@@ -41,14 +41,14 @@ class TripleList {
   }
   triple_type *front() { return _triples.front(); }
   triple_type *back() { return _triples.back(); }
-  bool         empty() { return _triples.empty(); }
+  bool empty() { return _triples.empty(); }
 
   void Cleanup();
 
   triple_type *FindTriple(element_type e1, element_type e2, element_type e3);
 
   typedef element_type element_t;
-  typedef triple_type  triple_t;
+  typedef triple_type triple_t;
 
  private:
   std::vector<triple_type *> _triples;

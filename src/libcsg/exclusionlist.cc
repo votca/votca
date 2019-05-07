@@ -33,11 +33,11 @@ void ExclusionList::Clear(void) {
 }
 
 void ExclusionList::CreateExclusions(Topology *top) {
-  InteractionContainer &         ic = top->BondedInteractions();
+  InteractionContainer &ic = top->BondedInteractions();
   InteractionContainer::iterator ia;
 
   for (ia = ic.begin(); ia != ic.end(); ++ia) {
-    int          beads_in_int = (*ia)->BeadCount();
+    int beads_in_int = (*ia)->BeadCount();
     list<Bead *> l;
 
     for (int ibead = 0; ibead < beads_in_int; ibead++) {

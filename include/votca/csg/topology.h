@@ -42,9 +42,9 @@ namespace csg {
 class Interaction;
 class ExclusionList;
 
-typedef std::vector<Molecule *>    MoleculeContainer;
-typedef std::vector<Bead *>        BeadContainer;
-typedef std::vector<Residue *>     ResidueContainer;
+typedef std::vector<Molecule *> MoleculeContainer;
+typedef std::vector<Bead *> BeadContainer;
+typedef std::vector<Residue *> ResidueContainer;
 typedef std::vector<Interaction *> InteractionContainer;
 
 /**
@@ -57,9 +57,7 @@ typedef std::vector<Interaction *> InteractionContainer;
 class Topology {
  public:
   /// constructor
-  Topology() : _time(0.0), _has_vel(false), _has_force(false) {
-    _bc = new OpenBox();
-  }
+  Topology() { _bc = new OpenBox(); }
   virtual ~Topology();
 
   /**
@@ -135,19 +133,19 @@ class Topology {
    * \brief number of molecules in the system
    * @return number of molecule in topology
    */
-  int MoleculeCount() { return _molecules.size(); }
+  int MoleculeCount() const { return _molecules.size(); }
 
   /**
    * number of beads in the system
    * @return number of beads in the system
    */
-  int BeadCount() { return _beads.size(); }
+  int BeadCount() const { return _beads.size(); }
 
   /**
    * number of residues in the system
    * \return number of residues
    */
-  int ResidueCount() { return _residues.size(); }
+  int ResidueCount() const { return _residues.size(); }
 
   /**
    * get molecule by index
@@ -173,6 +171,7 @@ class Topology {
    * @return molecule container
    */
   MoleculeContainer &Molecules() { return _molecules; }
+  const MoleculeContainer &Molecules() const { return _molecules; }
 
   /**
    * access containter with all bonded interactions
@@ -180,7 +179,7 @@ class Topology {
    */
   InteractionContainer &BondedInteractions() { return _interactions; }
 
-  void                     AddBondedInteraction(Interaction *ic);
+  void AddBondedInteraction(Interaction *ic);
   std::list<Interaction *> InteractionsInGroup(const std::string &group);
 
   /**
@@ -213,8 +212,8 @@ class Topology {
    * @param[in] int i is the id of the bead
    * @return Bead * is a pointer to the bead
    **/
-  Bead *    getBead(const int i) const { return _beads[i]; }
-  Residue * getResidue(const int i) const { return _residues[i]; }
+  Bead *getBead(const int i) const { return _beads[i]; }
+  Residue *getResidue(const int i) const { return _residues[i]; }
   Molecule *getMolecule(const int i) const { return _molecules[i]; }
 
   /**
@@ -290,7 +289,7 @@ class Topology {
    * get the simulation box
    * \return triclinic box matrix
    */
-  const Eigen::Matrix3d &getBox() { return _bc->getBox(); };
+  const Eigen::Matrix3d &getBox() const { return _bc->getBox(); };
 
   /**
    * set the time of current frame
@@ -302,7 +301,7 @@ class Topology {
    * get the time of current frame
    * \return simulation time in ns
    */
-  double getTime() { return _time; };
+  double getTime() const { return _time; };
 
   /**
    * set the step number of current frame
@@ -314,7 +313,7 @@ class Topology {
    * get the step number of current frame
    * \return step number
    */
-  int getStep() { return _step; };
+  int getStep() const { return _step; };
 
   /**
    * Sets the particle group. (For the H5MD file format)
@@ -328,7 +327,7 @@ class Topology {
    * Gets the particle group.
    * \return The name of a particle group.
    */
-  std::string getParticleGroup() { return _particle_group; };
+  std::string getParticleGroup() const { return _particle_group; };
 
   /**
    * \brief pbc correct distance of two beads
@@ -359,13 +358,13 @@ class Topology {
    *
    * Calculates the shortest length to connect two sides of the box
    */
-  double ShortestBoxSize();
+  double ShortestBoxSize() const;
 
   /**
    *  calculates the box volume
    *  \return box volume
    */
-  double BoxVolume();
+  double BoxVolume() const;
 
   /**
    *  rebuild exclusion list
@@ -378,7 +377,7 @@ class Topology {
    */
   ExclusionList &getExclusions() { return _exclusions; }
 
-  BoundaryCondition::eBoxtype getBoxType() { return _bc->getBoxType(); }
+  BoundaryCondition::eBoxtype getBoxType() const { return _bc->getBoxType(); }
 
   template <typename iteratable>
   void InsertExclusion(Bead *bead1, iteratable &l);
@@ -392,7 +391,8 @@ class Topology {
  protected:
   BoundaryCondition *_bc;
 
-  BoundaryCondition::eBoxtype autoDetectBoxType(const Eigen::Matrix3d &box);
+  BoundaryCondition::eBoxtype autoDetectBoxType(
+      const Eigen::Matrix3d &box) const;
 
   /// bead types in the topology
   std::unordered_map<std::string, int> beadtypes_;
@@ -415,13 +415,13 @@ class Topology {
 
   std::map<std::string, std::list<Interaction *> > _interactions_by_group;
 
-  double _time;
-  int    _step;
-  bool   _has_vel;
-  bool   _has_force;
+  double _time = 0.0;
+  int _step = 0;
+  bool _has_vel = false;
+  bool _has_force = false;
 
   /// The particle group (For H5MD file format)
-  std::string _particle_group;
+  std::string _particle_group = "unassigned";
 };
 
 inline Bead *Topology::CreateBead(byte_t symmetry, std::string name,

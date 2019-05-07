@@ -53,7 +53,7 @@ class PDBReader : public TopologyReader, public TrajectoryReader {
 
  private:
   std::ifstream _fl;
-  bool          _topology;
+  bool _topology;
 };
 }  // namespace csg
 }  // namespace votca

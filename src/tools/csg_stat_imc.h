@@ -56,29 +56,29 @@ class Imc {
  protected:
   Average<double> _avg_vol;
 
-  typedef Eigen::MatrixXd            group_matrix;
+  typedef Eigen::MatrixXd group_matrix;
   typedef Eigen::Block<group_matrix> pair_matrix;
 
   /// struct to store collected information for interactions
   struct interaction_t {
-    int          _index;
-    Property *   _p;
+    int _index;
+    Property *_p;
     HistogramNew _average;
     HistogramNew _average_force;
-    double       _min, _max, _step;
-    double       _norm;
-    double       _cut;
-    bool         _is_bonded;
-    bool         _threebody;
-    bool         _force;
+    double _min, _max, _step;
+    double _norm;
+    double _cut;
+    bool _is_bonded;
+    bool _threebody;
+    bool _force;
   };
 
   // a pair of interactions which are correlated
   struct pair_t {
     interaction_t *_i1;
     interaction_t *_i2;
-    int            _offset_i, _offset_j;
-    pair_matrix    _corr;
+    int _offset_i, _offset_j;
+    pair_matrix _corr;
     pair_t(interaction_t *i1, interaction_t *i2, int offset_i, int offset_j,
            const pair_matrix &corr);
   };
@@ -86,8 +86,8 @@ class Imc {
   /// struct to store collected information for groups (e.g. crosscorrelations)
   struct group_t {
     std::list<interaction_t *> _interactions;
-    group_matrix               _corr;
-    std::vector<pair_t>        _pairs;
+    group_matrix _corr;
+    std::vector<pair_t> _pairs;
   };
 
   /// the options parsed from cg definition file
@@ -127,7 +127,7 @@ class Imc {
   void WriteIMCData(const std::string &suffix = "");
   void WriteIMCBlock(const std::string &suffix);
 
-  void CalcDeltaS(interaction_t *                      interaction,
+  void CalcDeltaS(interaction_t *interaction,
                   Eigen::VectorBlock<Eigen::VectorXd> &dS);
 
   void ClearAverages();
@@ -136,8 +136,8 @@ class Imc {
    public:
     std::vector<HistogramNew> _current_hists;
     std::vector<HistogramNew> _current_hists_force;
-    Imc *                     _imc;
-    double                    _cur_vol;
+    Imc *_imc;
+    double _cur_vol;
 
     /// evaluate current conformation
     void EvalConfiguration(Topology *top, Topology *top_atom);
@@ -153,7 +153,7 @@ class Imc {
 
  public:
   CsgApplication::Worker *ForkWorker();
-  void                    MergeWorker(CsgApplication::Worker *worker);
+  void MergeWorker(CsgApplication::Worker *worker);
 };
 
 inline Imc::pair_t::pair_t(Imc::interaction_t *i1, Imc::interaction_t *i2,

@@ -29,9 +29,9 @@ namespace csg {
 PotentialFunction::PotentialFunction(const string &name_, const int nlam_,
                                      const double min_, const double max_) {
 
-  _name    = name_;
-  _lam     = Eigen::VectorXd::Zero(nlam_);
-  _min     = min_;
+  _name = name_;
+  _lam = Eigen::VectorXd::Zero(nlam_);
+  _min = min_;
   _cut_off = max_;
 }
 
@@ -65,12 +65,12 @@ void PotentialFunction::SaveParam(const string &filename) {
 }
 
 void PotentialFunction::SavePotTab(const string &filename, const double step) {
-  int   ngrid = (int)((_cut_off - _min) / step + 1.00000001);
+  int ngrid = (int)((_cut_off - _min) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
   pot_tab.resize(ngrid);
   double r_init;
-  int    i;
+  int i;
 
   for (r_init = _min, i = 0; i < ngrid - 1; r_init += step)
     pot_tab.set(i++, r_init, CalculateF(r_init), 'i');
@@ -81,13 +81,13 @@ void PotentialFunction::SavePotTab(const string &filename, const double step) {
 
 void PotentialFunction::SavePotTab(const string &filename, const double step,
                                    const double rmin, const double rcut) {
-  int   ngrid = (int)((rcut - rmin) / step + 1.00000001);
+  int ngrid = (int)((rcut - rmin) / step + 1.00000001);
   Table pot_tab;
   pot_tab.SetHasYErr(false);
   pot_tab.resize(ngrid);
   double r_init;
-  int    i;
-  char   flag = 'i';
+  int i;
+  char flag = 'i';
 
   for (r_init = rmin, i = 0; i < ngrid - 1; r_init += step)
     pot_tab.set(i++, r_init, CalculateF(r_init), flag);

@@ -76,7 +76,7 @@ class CsgTestApp : public CsgApplication {
  protected:
   // data belonging to the main class CsgTestApp
   HistogramNew _rdf;
-  double       _cut_off;
+  double _cut_off;
 };
 
 // derive from CsgApplication::Worker and define your worker
@@ -87,7 +87,7 @@ class RDFWorker : public CsgApplication::Worker {
   void EvalConfiguration(Topology *top, Topology *top_ref);
   // data belonging to this particular worker
   HistogramNew _rdf;
-  double       _cut_off;
+  double _cut_off;
 };
 
 int main(int argc, char **argv) {

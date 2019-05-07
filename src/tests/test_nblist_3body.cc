@@ -27,7 +27,6 @@
 #include <votca/csg/beadtype.h>
 #include <votca/csg/nblist_3body.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;

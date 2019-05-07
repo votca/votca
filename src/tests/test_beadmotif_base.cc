@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_beadcount) {
 
 BOOST_AUTO_TEST_CASE(test_beadmotif_getType) {
   BeadMotif beadmotif;
-  auto      type = beadmotif.getType();
+  auto type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type, BeadMotif::MotifType::empty);
 
   TestBead testbead;
@@ -66,7 +66,7 @@ BOOST_AUTO_TEST_CASE(test_beadmotif_getType) {
 
 BOOST_AUTO_TEST_CASE(test_beadmotif_getType2) {
   BeadMotif beadmotif;
-  auto      type = beadmotif.getType();
+  auto type = beadmotif.getType();
   BOOST_CHECK_EQUAL(type, BeadMotif::MotifType::empty);
   TestBead testbead1;
   testbead1.setId(1);

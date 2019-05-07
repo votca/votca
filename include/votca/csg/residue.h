@@ -41,7 +41,7 @@ class Residue : public TopologyItem {
   const int &getId() const { return _id; }
 
  private:
-  int         _id;
+  int _id;
   std::string _name;
 
  private:

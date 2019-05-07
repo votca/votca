@@ -48,7 +48,7 @@ bool GMXTopologyReader::ReadTopology(string file, Topology &top) {
   top.Cleanup();
 
   t_inputrec ir;
-  ::matrix   gbox;
+  ::matrix gbox;
 
   (void)read_tpx((char *)file.c_str(), &ir, gbox, &natoms, NULL, NULL, &mtop);
 

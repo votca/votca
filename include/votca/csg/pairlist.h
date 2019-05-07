@@ -32,15 +32,20 @@ class PairList {
 
   void AddPair(pair_type *p);
 
-  typedef typename std::vector<pair_type *>::iterator  iterator;
+  typedef typename std::vector<pair_type *>::iterator iterator;
+  typedef typename std::vector<pair_type *>::const_iterator const_iterator;
   typedef typename std::map<element_type, pair_type *> partners;
 
   iterator begin() { return _pairs.begin(); }
   iterator end() { return _pairs.end(); }
-  typename std::vector<pair_type *>::size_type size() { return _pairs.size(); }
+
+  const_iterator begin() const { return _pairs.begin(); }
+  const_iterator end() const { return _pairs.end(); }
   pair_type *front() { return _pairs.front(); }
   pair_type *back() { return _pairs.back(); }
-  bool       empty() { return _pairs.empty(); }
+  bool empty() { return _pairs.empty(); }
+
+  int size() const { return _pairs.size(); }
 
   void Cleanup();
 
@@ -49,7 +54,7 @@ class PairList {
   partners *FindPartners(element_type e1);
 
   typedef element_type element_t;
-  typedef pair_type    pair_t;
+  typedef pair_type pair_t;
 
  protected:
   std::vector<pair_type *> _pairs;
@@ -61,8 +66,8 @@ template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::AddPair(pair_type *p) {
   /// \todo be careful, same pair object is used, some values might change (e.g.
   /// sign of distance vector)
-  _pair_map[p->first][p->second] = p;
-  _pair_map[p->second][p->first] = p;
+  _pair_map[p->first()][p->second()] = p;
+  _pair_map[p->second()][p->first()] = p;
   /// \todo check if unique
   _pairs.push_back(p);
 }

@@ -34,7 +34,7 @@ using boost::format;
 class DLPTopolApp : public CsgApplication {
  public:
   string ProgramName() { return "csg_dlptopol"; }
-  void   HelpText(ostream &out) {
+  void HelpText(ostream &out) {
     out << "Create a dlpoly topology template based on an existing (atomistic) "
            "topology and \n"
         << "a mapping xml-file. The created template file needs to be "
@@ -104,12 +104,12 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
   // do CG mapping
 
-  MoleculeContainer &         mols = top->Molecules();
-  MoleculeContainer           MolecularTypes;
+  MoleculeContainer &mols = top->Molecules();
+  MoleculeContainer MolecularTypes;
   MoleculeContainer::iterator iter;
 
-  int         prv_mol_number = 1;
-  string      prv_mol_name;
+  int prv_mol_number = 1;
+  string prv_mol_name;
   vector<int> nummols;
 
   vector<string> vdw_pairs;
@@ -130,7 +130,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     nummols.push_back(prv_mol_number);
     prv_mol_number = 1;
-    prv_mol_name   = mol->getName();
+    prv_mol_name = mol->getName();
 
     //#ifdef DEBUG
     cout << "'" << mol->getName() << "' added to CG molecular types" << endl;
@@ -142,7 +142,7 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     for (int ib1 = 0; ib1 < mol->BeadCount(); ib1++) {
       string bead_name1 = mol->getBead(ib1)->getType();
-      bead_name1        = bead_name1.substr(
+      bead_name1 = bead_name1.substr(
           0,
           bead_name1.find_first_of("#"));  // skip #index of atom from its name
 
@@ -151,9 +151,9 @@ bool DLPTopolApp::EvaluateTopology(Topology *top, Topology *top_ref) {
         for (int ib2 = 0; ib2 < MolecularTypes[imt]->BeadCount(); ib2++) {
 
           string bead_name2 = MolecularTypes[imt]->getBead(ib2)->getType();
-          bead_name2        = bead_name2.substr(
+          bead_name2 = bead_name2.substr(
               0, bead_name2.find_first_of("#"));  // skip #index of atom from
-                                                         // its name
+                                                  // its name
 
           stringstream ss_bp1, ss_bp2;
 
@@ -242,13 +242,13 @@ void DLPTopolApp::WriteMoleculeAtoms(ostream &out, Molecule &cg) {
 }
 
 void DLPTopolApp::WriteMoleculeInteractions(ostream &out, Molecule &cg) {
-  InteractionContainer            ics = cg.Interactions();
+  InteractionContainer ics = cg.Interactions();
   vector<Interaction *>::iterator iter;
 
   stringstream sout;
 
   int n_entries = 0;
-  int nb        = -1;
+  int nb = -1;
 
   for (iter = ics.begin(); iter != ics.end(); ++iter) {
     Interaction *ic = *iter;

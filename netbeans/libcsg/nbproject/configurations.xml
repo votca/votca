@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="100">
+<configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="executables" projectFiles="true">
       <itemPath>../../src/tools/csg_density.cc</itemPath>
@@ -152,6 +152,8 @@
       <itemPath>../../src/tests/test_beadtriple.cc</itemPath>
       <itemPath>../../src/tests/test_bondedstatistics.cc</itemPath>
       <itemPath>../../src/tests/test_csg_topology.cc</itemPath>
+      <itemPath>../../../tools/src/tests/test_elements.cc</itemPath>
+      <itemPath>../../../tools/src/tests/test_filesystem.cc</itemPath>
       <itemPath>../../src/tests/test_interaction.cc</itemPath>
       <itemPath>../../src/tests/test_lammpsdatareader.cc</itemPath>
       <itemPath>../../src/tests/test_lammpsdumpreaderwriter.cc</itemPath>
@@ -192,6 +194,16 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../../tools/src/tests/test_elements.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../tools/src/tests/test_filesystem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
@@ -730,6 +742,16 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../../tools/src/tests/test_elements.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../tools/src/tests/test_filesystem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
@@ -1269,6 +1291,16 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../../tools/src/tests/test_elements.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../tools/src/tests/test_filesystem.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">

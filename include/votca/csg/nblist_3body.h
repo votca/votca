@@ -116,7 +116,7 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
   /// policy function to create new bead types
   template <typename triple_type>
   static BeadTriple *beadtriple_create_policy(Bead *bead1, Bead *bead2,
-                                              Bead *                 bead3,
+                                              Bead *bead3,
                                               const Eigen::Vector3d &r12,
                                               const Eigen::Vector3d &r13,
                                               const Eigen::Vector3d &r23) {
@@ -163,7 +163,7 @@ class NBList_3Body : public TripleList<Bead *, BeadTriple> {
     }
 
    private:
-    T *   _cls;
+    T *_cls;
     fkt_t _fkt;
   };
 

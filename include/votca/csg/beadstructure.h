@@ -112,18 +112,18 @@ class BeadStructure {
   bool BeadExist(int bead_id) const { return beads_.count(bead_id); }
 
  protected:
-  void             InitializeGraph_();
-  void             CalculateStructure_();
+  void InitializeGraph_();
+  void CalculateStructure_();
   TOOLS::GraphNode BaseBeadToGraphNode_(T *basebead);
 
-  bool                                      structureIdUpToDate       = false;
-  bool                                      graphUpToDate             = false;
-  bool                                      single_structureUpToDate_ = false;
-  bool                                      single_structure_         = false;
-  std::string                               structure_id_             = "";
-  TOOLS::Graph                              graph_;
-  std::set<TOOLS::Edge>                     connections_;
-  std::unordered_map<int, T *>              beads_;
+  bool structureIdUpToDate = false;
+  bool graphUpToDate = false;
+  bool single_structureUpToDate_ = false;
+  bool single_structure_ = false;
+  std::string structure_id_ = "";
+  TOOLS::Graph graph_;
+  std::set<TOOLS::Edge> connections_;
+  std::unordered_map<int, T *> beads_;
   std::unordered_map<int, TOOLS::GraphNode> graphnodes_;
 };
 
@@ -143,7 +143,7 @@ void BeadStructure<T>::InitializeGraph_() {
       graphnodes_[id_bead_ptr_pair.first] =
           BaseBeadToGraphNode_(id_bead_ptr_pair.second);
     }
-    graph_        = TOOLS::Graph(connections_vector, graphnodes_);
+    graph_ = TOOLS::Graph(connections_vector, graphnodes_);
     graphUpToDate = true;
   }
 }
@@ -160,7 +160,7 @@ void BeadStructure<T>::CalculateStructure_() {
 
 template <class T>
 TOOLS::GraphNode BeadStructure<T>::BaseBeadToGraphNode_(T *basebead) {
-  std::unordered_map<std::string, double>      attributes1;
+  std::unordered_map<std::string, double> attributes1;
   std::unordered_map<std::string, std::string> attributes2;
 
   attributes1["Mass"] = basebead->getMass();
@@ -187,13 +187,13 @@ void BeadStructure<T>::AddBead(T *bead) {
     err += "already exists within the beadstructure";
     throw std::invalid_argument(err);
   }
-  size_t numberOfBeads  = beads_.size();
+  size_t numberOfBeads = beads_.size();
   beads_[bead->getId()] = bead;
 
   if (numberOfBeads != beads_.size()) {
     single_structureUpToDate_ = false;
-    graphUpToDate             = false;
-    structureIdUpToDate       = false;
+    graphUpToDate = false;
+    structureIdUpToDate = false;
   }
 }
 
@@ -212,8 +212,8 @@ void BeadStructure<T>::ConnectBeads(int bead1_id, int bead2_id) {
   connections_.insert(TOOLS::Edge(bead1_id, bead2_id));
   if (numberOfConnections != connections_.size()) {
     single_structureUpToDate_ = false;
-    graphUpToDate             = false;
-    structureIdUpToDate       = false;
+    graphUpToDate = false;
+    structureIdUpToDate = false;
   }
 }
 
@@ -248,7 +248,7 @@ bool BeadStructure<T>::isSingleStructure() {
       single_structure_ = false;
       return single_structure_;
     }
-    single_structure_         = true;
+    single_structure_ = true;
     single_structureUpToDate_ = true;
   }
   return single_structure_;

@@ -40,9 +40,9 @@ class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
         _r12(r12),
         _r13(r13),
         _r23(r23),
-        _dist12(abs(r12)),
-        _dist13(abs(r13)),
-        _dist23(abs(r23)) {}
+        _dist12(r12.norm()),
+        _dist13(r13.norm()),
+        _dist23(r23.norm()) {}
 
   virtual ~BeadTriple() {}
 
@@ -64,9 +64,9 @@ class BeadTriple : public std::tuple<Bead *, Bead *, Bead *> {
   Eigen::Vector3d _r12;
   Eigen::Vector3d _r13;
   Eigen::Vector3d _r23;
-  double          _dist12;
-  double          _dist13;
-  double          _dist23;
+  double _dist12;
+  double _dist13;
+  double _dist23;
 };
 
 }  // namespace csg

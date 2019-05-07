@@ -60,8 +60,8 @@ class DLPOLYTrajectoryWriter : public TrajectoryWriter {
 
  private:
   std::ofstream _fl;
-  std::string   _fname;
-  bool          _isConfig;
+  std::string _fname;
+  bool _isConfig;
 };
 
 }  // namespace csg
