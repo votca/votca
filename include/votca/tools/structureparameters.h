@@ -103,6 +103,10 @@ class StructureParameters {
     parameters[parameter] = value;
   }
 
+  bool ParameterExist(StructureParameter parameter) const noexcept {
+    return parameters.count(parameter);
+  }
+
   template <class T>
   T get(const StructureParameter parameter) const {
     assert(parameters.count(parameter) &&
