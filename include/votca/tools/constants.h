@@ -78,6 +78,9 @@ const std::string unassigned_residue_type = "unassigned";
 /// Used to indicate that a valid molecule type variable has not been assigned
 const std::string unassigned_molecule_type = "unassigned";
 
+/// Used to indicate that a valid segment type variable has not been assigned
+const std::string unassigned_segment_type = "unassigned";
+
 /// Used to indicate a valid residue id has not been assigned
 const int unassigned_residue_id = -1;
 
