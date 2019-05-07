@@ -29,20 +29,23 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_distance) {
   UnitConverter converter;
 
   double distance = 1;  // Assuming in meters
-  double distance_new = converter.convert(DistanceUnit::meters,
-                                          DistanceUnit::nanometers, distance);
+  double distance_new =
+      converter.convert(DistanceUnit::meters, DistanceUnit::nanometers) *
+      distance;
   BOOST_CHECK_EQUAL(1E9, distance_new);
 
-  distance_new = converter.convert(DistanceUnit::meters,
-                                   DistanceUnit::centimeters, distance);
+  distance_new =
+      converter.convert(DistanceUnit::meters, DistanceUnit::centimeters) *
+      distance;
   BOOST_CHECK_EQUAL(100, distance_new);
 
-  distance_new = converter.convert(DistanceUnit::meters,
-                                   DistanceUnit::angstroms, distance);
+  distance_new =
+      converter.convert(DistanceUnit::meters, DistanceUnit::angstroms) *
+      distance;
   BOOST_CHECK_EQUAL(1E10, distance_new);
 
   distance_new =
-      converter.convert(DistanceUnit::meters, DistanceUnit::bohr, distance);
+      converter.convert(DistanceUnit::meters, DistanceUnit::bohr) * distance;
   BOOST_CHECK_CLOSE(1.8897e+10, distance_new, 0.01);
 }
 
@@ -51,16 +54,17 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_time) {
 
   double time = 1;  // Assuming in seconds
   double time_new =
-      converter.convert(TimeUnit::seconds, TimeUnit::microseconds, time);
+      converter.convert(TimeUnit::seconds, TimeUnit::microseconds) * time;
   BOOST_CHECK_CLOSE(1E6, time_new, 0.01);
 
-  time_new = converter.convert(TimeUnit::seconds, TimeUnit::nanoseconds, time);
+  time_new = converter.convert(TimeUnit::seconds, TimeUnit::nanoseconds) * time;
   BOOST_CHECK_CLOSE(1E9, time_new, 0.01);
 
-  time_new = converter.convert(TimeUnit::seconds, TimeUnit::picoseconds, time);
+  time_new = converter.convert(TimeUnit::seconds, TimeUnit::picoseconds) * time;
   BOOST_CHECK_CLOSE(1E12, time_new, 0.01);
 
-  time_new = converter.convert(TimeUnit::seconds, TimeUnit::femtoseconds, time);
+  time_new =
+      converter.convert(TimeUnit::seconds, TimeUnit::femtoseconds) * time;
   BOOST_CHECK_CLOSE(1E15, time_new, 0.01);
 }
 
@@ -69,20 +73,22 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_mass) {
 
   double mass = 1;  // Assuming in kilograms
   double mass_new =
-      converter.convert(MassUnit::kilograms, MassUnit::grams, mass);
+      converter.convert(MassUnit::kilograms, MassUnit::grams) * mass;
   BOOST_CHECK_CLOSE(1E3, mass_new, 0.01);
 
-  mass_new = converter.convert(MassUnit::kilograms, MassUnit::picograms, mass);
+  mass_new = converter.convert(MassUnit::kilograms, MassUnit::picograms) * mass;
   BOOST_CHECK_CLOSE(1E12, mass_new, 0.01);
 
-  mass_new = converter.convert(MassUnit::kilograms, MassUnit::femtograms, mass);
+  mass_new =
+      converter.convert(MassUnit::kilograms, MassUnit::femtograms) * mass;
   BOOST_CHECK_CLOSE(1E15, mass_new, 0.01);
 
-  mass_new = converter.convert(MassUnit::kilograms, MassUnit::attograms, mass);
+  mass_new = converter.convert(MassUnit::kilograms, MassUnit::attograms) * mass;
   BOOST_CHECK_CLOSE(1E21, mass_new, 0.01);
 
   mass_new =
-      converter.convert(MassUnit::kilograms, MassUnit::atomic_mass_units, mass);
+      converter.convert(MassUnit::kilograms, MassUnit::atomic_mass_units) *
+      mass;
   BOOST_CHECK_CLOSE(6.022E26, mass_new, 0.01);
 }
 
@@ -91,19 +97,23 @@ BOOST_AUTO_TEST_CASE(unitconverter_test_energy) {
 
   double energy = 1;  // Assuming in electron volts
   double energy_new = converter.convert(EnergyUnit::electron_volts,
-                                        EnergyUnit::electron_volts, energy);
+                                        EnergyUnit::electron_volts) *
+                      energy;
   BOOST_CHECK_CLOSE(1, energy_new, 0.01);
 
-  energy_new = converter.convert(EnergyUnit::electron_volts,
-                                 EnergyUnit::kilocalories, energy);
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::kilocalories) *
+      energy;
   BOOST_CHECK_CLOSE(3.826732982229865E-23, energy_new, 0.01);
 
   energy_new =
-      converter.convert(EnergyUnit::electron_volts, EnergyUnit::joules, energy);
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::joules) *
+      energy;
   BOOST_CHECK_CLOSE(1.60218E-19, energy_new, 0.01);
 
-  energy_new = converter.convert(EnergyUnit::electron_volts,
-                                 EnergyUnit::hartrees, energy);
+  energy_new =
+      converter.convert(EnergyUnit::electron_volts, EnergyUnit::hartrees) *
+      energy;
   BOOST_CHECK_CLOSE(0.0367493, energy_new, 0.01);
 }
 

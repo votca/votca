@@ -44,50 +44,86 @@ enum EnergyUnit { electron_volts, kilocalories, hartrees, joules };
 class UnitConverter {
  private:
   /// All distances with respect to Ang
-  const std::map<DistanceUnit, double> distance_map_ = {
-      {DistanceUnit::meters, 1E10},
-      {DistanceUnit::centimeters, 1E8},
-      {DistanceUnit::nanometers, 10.0},
-      {DistanceUnit::angstroms, 1.0},
-      {DistanceUnit::bohr, 0.529177}};
+  constexpr double getDistanceValue_(const DistanceUnit& enum_type) const
+      noexcept {
+    switch (enum_type) {
+      case DistanceUnit::meters:
+        return 1E10;
+      case DistanceUnit::centimeters:
+        return 1E8;
+      case DistanceUnit::nanometers:
+        return 10.0;
+      case DistanceUnit::angstroms:
+        return 1.0;
+      case DistanceUnit::bohr:
+        return 0.529177;
+    }
+  }
 
-  // All times with respect to pico seconds
-  const std::map<TimeUnit, double> time_map_ = {
-      {TimeUnit::seconds, 1E12},
-      {TimeUnit::microseconds, 1E6},
-      {TimeUnit::nanoseconds, 1000},
-      {TimeUnit::picoseconds, 1.0},
-      {TimeUnit::femtoseconds, 0.001}};
+  /// All times with respect to pico seconds
+  constexpr double getTimeValue_(const TimeUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case TimeUnit::seconds:
+        return 1E12;
+      case TimeUnit::microseconds:
+        return 1E6;
+      case TimeUnit::nanoseconds:
+        return 1000;
+      case TimeUnit::picoseconds:
+        return 1.0;
+      case TimeUnit::femtoseconds:
+        return 0.001;
+    }
+  }
 
-  // All masses in terms of atomic mass units
-  const std::map<MassUnit, double> mass_map_ = {
-      {MassUnit::kilograms, 6.02214E26}, {MassUnit::grams, 6.02214E23},
-      {MassUnit::picograms, 6.02214E14}, {MassUnit::femtograms, 6.02214E11},
-      {MassUnit::attograms, 602214},     {MassUnit::atomic_mass_units, 1.0}};
+  /// All masses with respect to atomic mass units
+  constexpr double getMassValue_(const MassUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case MassUnit::kilograms:
+        return 6.02214E26;
+      case MassUnit::grams:
+        return 6.02214E23;
+      case MassUnit::picograms:
+        return 6.02214E14;
+      case MassUnit::femtograms:
+        return 6.02214E11;
+      case MassUnit::attograms:
+        return 602214;
+      case MassUnit::atomic_mass_units:
+        return 1.0;
+    }
+  }
 
-  // All energies in terms of electron volts
-  const std::map<EnergyUnit, double> energy_map_ = {
-      {EnergyUnit::kilocalories, 2.613195131836172E22},
-      {EnergyUnit::joules, 6.242E18},
-      {EnergyUnit::hartrees, 27.2114},
-      {EnergyUnit::electron_volts, 1.0}};
+  /// All energies in terms of electron volts
+  constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case EnergyUnit::kilocalories:
+        return 2.613195131836172E22;
+      case EnergyUnit::joules:
+        return 6.242E18;
+      case EnergyUnit::hartrees:
+        return 27.2114;
+      case EnergyUnit::electron_volts:
+        return 1.0;
+    }
+  }
 
  public:
-  double convert(const DistanceUnit& from, const DistanceUnit& to,
-                 const double& from_value) const noexcept {
-    return distance_map_.at(from) / distance_map_.at(to) * from_value;
+  constexpr double convert(const DistanceUnit& from,
+                           const DistanceUnit& to) const noexcept {
+    return getDistanceValue_(from) / getDistanceValue_(to);
   }
-  double convert(const TimeUnit& from, const TimeUnit& to,
-                 const double& from_value) const noexcept {
-    return time_map_.at(from) / time_map_.at(to) * from_value;
+  constexpr double convert(const TimeUnit& from, const TimeUnit& to) const
+      noexcept {
+    return getTimeValue_(from) / getTimeValue_(to);
   }
-  double convert(const MassUnit& from, const MassUnit& to,
-                 const double& from_value) const noexcept {
-    return mass_map_.at(from) / mass_map_.at(to) * from_value;
+  constexpr double convert(const MassUnit& from, const MassUnit& to) const
+      noexcept {
+    return getMassValue_(from) / getMassValue_(to);
   }
-  double convert(const EnergyUnit& from, const EnergyUnit& to,
-                 const double& from_value) const noexcept {
-    return energy_map_.at(from) / energy_map_.at(to) * from_value;
+  constexpr double convert(const EnergyUnit& from, const EnergyUnit& to) const
+      noexcept {
+    return getEnergyValue_(from) / getEnergyValue_(to);
   }
 };
 }  // namespace tools
