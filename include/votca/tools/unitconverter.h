@@ -94,6 +94,7 @@ class UnitConverter {
       case MassUnit::atomic_mass_units:
         return 1.0;
     }
+    return 0.0;
   }
 
   /// All energies in terms of electron volts
