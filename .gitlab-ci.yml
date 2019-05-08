@@ -130,6 +130,7 @@ Debug GCC Rawhide:
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "fedora_rawhide"
   extends: .build
+  allow_failure: true
 
 Debug Clang Rawhide:
   variables:
@@ -138,6 +139,7 @@ Debug Clang Rawhide:
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "fedora_rawhide"
   extends: .build
+  allow_failure: true
 
 Release GCC Rawhide:
   variables:
@@ -146,6 +148,7 @@ Release GCC Rawhide:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_rawhide"
   extends: .build
+  allow_failure: true
 
 Release Clang Rawhide:
   variables:
@@ -154,6 +157,7 @@ Release Clang Rawhide:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_rawhide"
   extends: .build
+  allow_failure: true
 
 Release GCC Minimal:
   variables:
