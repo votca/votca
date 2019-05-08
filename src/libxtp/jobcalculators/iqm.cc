@@ -258,9 +258,9 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   QMNBList& nblist = top.NBList();
   QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
 
-  XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID << " ["
-                         << ID_A << ":" << ID_B << "] out of "
-                         << (top.NBList()).size() << std::flush;
+  XTP_LOG_SAVE(logINFO, pLog)
+      << TimeStamp() << " Evaluating pair " << job_ID << " [" << ID_A << ":"
+      << ID_B << "] out of " << (top.NBList()).size() << std::flush;
 
   std::string package_append = _package + "_" + Identify();
   std::vector<const Segment*> segments;
@@ -538,11 +538,12 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
   std::stringstream sout;
   sout << iomXML << job_summary;
-  XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Finished evaluating pair " << ID_A
-                         << ":" << ID_B << std::flush;
+  XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Finished evaluating pair "
+                              << ID_A << ":" << ID_B << std::flush;
   if (_store_dft || _store_gw || _store_singlets || _store_triplets) {
     boost::filesystem::create_directories(orb_dir);
-    XTP_LOG_SAVE(logDEBUG, pLog) << "Saving orbitals to " << orbFileAB << std::flush;
+    XTP_LOG_SAVE(logDEBUG, pLog)
+        << "Saving orbitals to " << orbFileAB << std::flush;
     if (!_store_dft) {
       orbitalsAB.AOVxc().resize(0, 0);
       orbitalsAB.MOCoefficients().resize(0, 0);

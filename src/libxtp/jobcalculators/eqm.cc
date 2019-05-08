@@ -147,8 +147,8 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   QMMapper mapper(pLog);
   mapper.LoadMappingFile(_mapfile);
   orbitals.QMAtoms() = mapper.map(seg, state);
-  XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Evaluating site " << seg.getId()
-                         << std::flush;
+  XTP_LOG_SAVE(logINFO, pLog)
+      << TimeStamp() << " Evaluating site " << seg.getId() << std::flush;
 
   // directories and files
   boost::filesystem::path arg_path;
@@ -277,7 +277,7 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
     }
   }
   XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Finished evaluating site "
-                         << seg.getId() << std::flush;
+                              << seg.getId() << std::flush;
 
   if (_do_dft_parse || _do_gwbse) {
     XTP_LOG_SAVE(logDEBUG, pLog) << "Saving data to " << orb_file << std::flush;
