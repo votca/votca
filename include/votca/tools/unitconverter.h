@@ -37,7 +37,14 @@ enum MassUnit {
 
 enum TimeUnit { seconds, microseconds, nanoseconds, femtoseconds, picoseconds };
 
-enum EnergyUnit { electron_volts, kilocalories, hartrees, joules };
+enum EnergyUnit {
+  electron_volts,
+  kilocalories,
+  hartrees,
+  joules,
+  kilojoules_per_mole,
+  kilocalories_per_mole
+};
 
 enum ChargeUnit { e, coulombs };
 /**
@@ -104,6 +111,10 @@ class UnitConverter {
   /// All energies in terms of electron volts
   constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
+      case EnergyUnit::kilojoules_per_mole:
+        return 96.0;
+      case EnergyUnit::kilocalories_per_mole:
+        return 23.0;
       case EnergyUnit::kilocalories:
         return 2.613195131836172E22;
       case EnergyUnit::joules:
