@@ -38,6 +38,7 @@ enum TimeUnit { seconds, microseconds, nanoseconds, femtoseconds, picoseconds };
 
 enum EnergyUnit { electron_volts, kilocalories, hartrees, joules };
 
+enum ChargeUnit { e, coulombs };
 /**
  * @brief Class converts between different unit types
  */
@@ -112,6 +113,17 @@ class UnitConverter {
     return 0.0;
   }
 
+  /// All charge in terms of elementary charge e
+  constexpr double getChargeValue_(const ChargeUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case ChargeUnit::e:
+        return 1.0;
+      case ChargeUnit::coulombs:
+        return 1.602176565E-19;
+    }
+    return 0.0;
+  }
+
  public:
   constexpr double convert(const DistanceUnit& from,
                            const DistanceUnit& to) const noexcept {
@@ -128,6 +140,10 @@ class UnitConverter {
   constexpr double convert(const EnergyUnit& from, const EnergyUnit& to) const
       noexcept {
     return getEnergyValue_(from) / getEnergyValue_(to);
+  }
+  constexpr double convert(const ChargeUnit& from, const ChargeUnit& to) const
+      noexcept {
+    return getChargeValue_(from) / getChargeValue_(to);
   }
 };
 }  // namespace tools
