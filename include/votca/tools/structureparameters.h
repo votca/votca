@@ -39,7 +39,9 @@ enum StructureParameter {
   ResidueType,
   BeadId,
   BeadType,
-  MoleculeType
+  MoleculeType,
+  SegmentType,
+  SegmentId
 };
 
 /**

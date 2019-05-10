@@ -87,6 +87,8 @@ const int unassigned_residue_id = -1;
 /// Used to indicate a valid molecule id has not been assigned
 const int unassigned_molecule_id = -1;
 
+/// Used to indicate a valid segment id has not been assigned
+const int unassigned_segment_id = -1;
 }  // namespace topology_constants
 }  // namespace tools
 }  // namespace votca
