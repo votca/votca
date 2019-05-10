@@ -102,6 +102,8 @@ class StructureParameters {
 
  public:
   void set(const StructureParameter parameter, boost::any value) noexcept {
+    assert(parameters.count(parameter) == 0 &&
+           "Cannot set parameter it has already been set.");
     parameters[parameter] = value;
   }
 
