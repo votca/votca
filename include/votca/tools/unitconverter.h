@@ -47,6 +47,8 @@ enum EnergyUnit {
 };
 
 enum ChargeUnit { e, coulombs };
+
+enum VelocityUnit { angstroms_per_femtosecond, nanometers_per_picosecond };
 /**
  * @brief Class converts between different unit types
  */
@@ -138,6 +140,19 @@ class UnitConverter {
     return 0.0;
   }
 
+  /// All velocities in terms of nanometers per picosecond
+  constexpr double getVelocityValue_(const VelocityUnit& enum_type) const
+      noexcept {
+    switch (enum_type) {
+      case VelocityUnit::nanometers_per_picosecond:
+        return 1.0;
+      case VelocityUnit::angstroms_per_femtosecond:
+        return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) /
+               convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
+    }
+    return 0.0;
+  }
+
  public:
   constexpr double convert(const DistanceUnit& from,
                            const DistanceUnit& to) const noexcept {
@@ -158,6 +173,10 @@ class UnitConverter {
   constexpr double convert(const ChargeUnit& from, const ChargeUnit& to) const
       noexcept {
     return getChargeValue_(from) / getChargeValue_(to);
+  }
+  constexpr double convert(const VelocityUnit& from,
+                           const VelocityUnit& to) const noexcept {
+    return getVelocityValue_(from) / getVelocityValue_(to);
   }
 };
 }  // namespace tools
