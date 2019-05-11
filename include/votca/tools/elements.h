@@ -21,6 +21,7 @@
 #ifndef __VOTCA_TOOLS_ELEMENTS_H
 #define __VOTCA_TOOLS_ELEMENTS_H
 
+#include "unitconverter.h"
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -116,6 +117,9 @@ class Elements {
   /// Provided the element symbol returns the element name
   /// "Pb" = "LEAD", "Na" = "SODIUM", ....
   std::string getEleFull(std::string eleshort);
+
+  const MassUnit mass_unit = MassUnit::atomic_mass_units;
+  const ChargeUnit charge_unit = ChargeUnit::e;
 
  private:
   // cache variables
