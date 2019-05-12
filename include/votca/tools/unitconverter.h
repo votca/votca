@@ -203,8 +203,13 @@ class UnitConverter {
                            const VelocityUnit& to) const noexcept {
     return getVelocityValue_(from) / getVelocityValue_(to);
   }
+  constexpr double convert(const ForceUnit& from, const ForceUnit& to) const
+      noexcept {
+    return getForceValue_(from) / getForceValue_(to);
+  }
 };
-}  // namespace tools
+};  // namespace tools
+}  // namespace votca
 }  // namespace votca
 
 #endif  // VOTCA_TOOLS_UNITCONVERTER_H
