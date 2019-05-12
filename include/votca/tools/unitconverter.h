@@ -42,6 +42,7 @@ enum EnergyUnit {
   kilocalories,
   hartrees,
   joules,
+  kilojoules,
   kilojoules_per_mole,
   kilocalories_per_mole
 };
@@ -49,6 +50,12 @@ enum EnergyUnit {
 enum ChargeUnit { e, coulombs };
 
 enum VelocityUnit { angstroms_per_femtosecond, nanometers_per_picosecond };
+
+enum ForceUnit {
+  kilocalories_per_mole_ansgtrom,
+  newtons,
+  kilojoules_per_mole_nanometer
+};
 /**
  * @brief Class converts between different unit types
  */
@@ -121,6 +128,8 @@ class UnitConverter {
         return 2.613195131836172E22;
       case EnergyUnit::joules:
         return 6.242E18;
+      case EnergyUnit::kilojoules:
+        return 6.242E21;
       case EnergyUnit::hartrees:
         return 27.2114;
       case EnergyUnit::electron_volts:
@@ -149,6 +158,22 @@ class UnitConverter {
       case VelocityUnit::angstroms_per_femtosecond:
         return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) /
                convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
+    }
+    return 0.0;
+  }
+
+  /// Default force unit is the kilojoules per mole nanometer
+  constexpr double getForceValue_(const ForceUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case ForceUnit::kilocalories_per_mole_ansgtrom:
+        return convert(EnergyUnit::kilojoules_per_mole,
+                       EnergyUnit::kilocalories_per_mole) /
+               convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+      case ForceUnit::newtons:
+        return convert(EnergyUnit::kilojoules, EnergyUnit::joules) /
+               convert(DistanceUnit::nanometers, DistanceUnit::meters);
+      case ForceUnit::kilojoules_per_mole_nanometer:
+        return 1.0;
     }
     return 0.0;
   }
