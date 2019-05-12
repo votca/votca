@@ -207,9 +207,8 @@ class UnitConverter {
       noexcept {
     return getForceValue_(from) / getForceValue_(to);
   }
-};
 };  // namespace tools
-}  // namespace votca
+}  // namespace tools
 }  // namespace votca
 
 #endif  // VOTCA_TOOLS_UNITCONVERTER_H
