@@ -45,7 +45,7 @@ PolarSite::PolarSite(data& d) { ReadData(d); };
 
 void PolarSite::calcDIIS_InducedDipole() {
   Eigen::Vector3d induced_dipole =
-      _Ps * (_localpermanetField + _localinducedField);
+      _Ps * (_localpermanentField + _localinducedField);
   _dipole_hist.push_back(induced_dipole);
 
   int hist_size = _dipole_hist.size();
@@ -122,11 +122,11 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
   table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
 
-  table.addCol(_localpermanetField[0], "localPermFieldX",
+  table.addCol(_localpermanentField[0], "localPermFieldX",
                HOFFSET(data, fieldX));
-  table.addCol(_localpermanetField[1], "localPermFieldY",
+  table.addCol(_localpermanentField[1], "localPermFieldY",
                HOFFSET(data, fieldY));
-  table.addCol(_localpermanetField[2], "localPermFieldZ",
+  table.addCol(_localpermanentField[2], "localPermFieldZ",
                HOFFSET(data, fieldZ));
   table.addCol(_phi, "phi", HOFFSET(data, phi));
 
@@ -166,9 +166,9 @@ void PolarSite::WriteData(data& d) const {
   d.multipoleQ22c = _multipole[7];
   d.multipoleQ22s = _multipole[8];
 
-  d.fieldX = _localpermanetField[0];
-  d.fieldY = _localpermanetField[1];
-  d.fieldZ = _localpermanetField[2];
+  d.fieldX = _localpermanentField[0];
+  d.fieldY = _localpermanentField[1];
+  d.fieldZ = _localpermanentField[2];
   d.phi = _phi;
 
   d.pxx = _Ps(0, 0);
@@ -205,9 +205,9 @@ void PolarSite::ReadData(data& d) {
   _multipole[7] = d.multipoleQ22c;
   _multipole[8] = d.multipoleQ22s;
 
-  _localpermanetField[0] = d.fieldX;
-  _localpermanetField[1] = d.fieldY;
-  _localpermanetField[2] = d.fieldZ;
+  _localpermanentField[0] = d.fieldX;
+  _localpermanentField[1] = d.fieldY;
+  _localpermanentField[2] = d.fieldZ;
   _phi = d.phi;
 
   Eigen::Matrix3d Ps;

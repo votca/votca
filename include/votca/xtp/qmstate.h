@@ -97,13 +97,7 @@ class QMStateType {
 template <class T>
 class QMStateCarrierStorage {
  public:
-  QMStateCarrierStorage() {
-    if (std::is_integral<T>::value) {
-      _content = {0, 0, 0, 0};
-    } else if (std::is_floating_point<T>::value) {
-      _content = {0.0, 0.0, 0.0, 0.0};
-    }
-  }
+  QMStateCarrierStorage() { _content = {0, 0, 0, 0}; }
 
   void setValue(T value, QMStateType t) {
     assert(t.isKMCState() &&

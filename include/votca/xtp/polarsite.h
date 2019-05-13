@@ -35,6 +35,11 @@ polarised.
 class PolarSite : public StaticSite {
 
  public:
+  // delete these two functions because we do not want to be able to read
+  // StaticSite::data but PolarSite::data
+  void WriteData(StaticSite::data& d) const = delete;
+  void ReadData(StaticSite::data& d) = delete;
+
   PolarSite(int id, std::string element, Eigen::Vector3d pos);
   PolarSite(int id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
@@ -43,9 +48,16 @@ class PolarSite : public StaticSite {
   void ResetInduction();
 
   // MULTIPOLES DEFINITION
-  Eigen::Vector3d getDipole() const;
+  Eigen::Vector3d getDipole() const override;
 
-  void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos) {
+  Eigen::Vector3d getField() const override {
+    return _localpermanentField + _localinducedField;
+  }
+
+  double getPotential() const override { return _phi + _phi_induced; }
+
+  void Rotate(const Eigen::Matrix3d& R,
+              const Eigen::Vector3d& ref_pos) override {
     StaticSite::Rotate(R, ref_pos);
     _Ps = R * _Ps * R.transpose();
   }
@@ -98,11 +110,11 @@ class PolarSite : public StaticSite {
 
   void ResetDIIS() { _dipole_hist.clear(); }
 
-  void SetupCptTable(CptTable& table) const;
+  void SetupCptTable(CptTable& table) const override;
   void WriteData(data& d) const;
   void ReadData(data& d);
 
-  std::string identify() const { return "polarsite"; }
+  std::string identify() const override { return "polarsite"; }
 
   friend std::ostream& operator<<(std::ostream& out, const PolarSite& site) {
     out << site.getId() << " " << site.getElement() << " " << site.getRank();

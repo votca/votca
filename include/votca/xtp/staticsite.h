@@ -108,7 +108,7 @@ class StaticSite {
   static Eigen::VectorXd CalculateSphericalMultipole(
       const Eigen::Matrix3d& quadrupole_cartesian);
 
-  virtual Eigen::Vector3d getField() const { return _localpermanetField; }
+  virtual Eigen::Vector3d getField() const { return _localpermanentField; }
 
   virtual double getPotential() const { return _phi; }
 
@@ -116,8 +116,8 @@ class StaticSite {
 
   virtual void SetupCptTable(CptTable& table) const;
 
-  virtual void WriteData(data& d) const;
-  virtual void ReadData(data& d);
+  void WriteData(data& d) const;
+  void ReadData(data& d);
   virtual void setPolarisation(const Eigen::Matrix3d pol) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
@@ -140,7 +140,7 @@ class StaticSite {
   Vector9d _multipole =
       Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
 
-  Eigen::Vector3d _localpermanetField = Eigen::Vector3d::Zero();
+  Eigen::Vector3d _localpermanentField = Eigen::Vector3d::Zero();
   double _phi = 0.0;  // Electric potential (due to perm.)
 };
 }  // namespace xtp

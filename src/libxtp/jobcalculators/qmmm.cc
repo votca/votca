@@ -19,9 +19,17 @@
 
 #include "qmmm.h"
 
-using boost::format;
-using namespace boost::filesystem;
-
 namespace votca {
-namespace xtp {}  // namespace xtp
-};                // namespace votca
+namespace xtp {
+
+void QMMM::Initialize(tools::Property& options) {}
+
+Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
+
+  return Job::JobResult();
+}
+void QMMM::WriteJobFile(Topology& top) {}
+void QMMM::ReadJobFile(Topology& top) {}
+
+}  // namespace xtp
+};  // namespace votca

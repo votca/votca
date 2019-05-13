@@ -41,6 +41,7 @@ class AtomContainer {
   AtomContainer(std::string name, int id) : _name(name), _id(id){};
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
+  virtual ~AtomContainer(){};
 
   typedef typename std::vector<T>::iterator iterator;
 
