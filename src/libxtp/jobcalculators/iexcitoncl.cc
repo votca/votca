@@ -110,8 +110,8 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
         std::to_string(seg_B.getId()) + " not found in neighborlist ");
   }
 
-  XTP_LOG(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID << " ["
-                         << ID_A << ":" << ID_B << "]" << flush;
+  XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Evaluating pair " << job_ID
+                              << " [" << ID_A << ":" << ID_B << "]" << flush;
 
   StaticMapper map(pLog);
   map.LoadMappingFile(_mapfile);

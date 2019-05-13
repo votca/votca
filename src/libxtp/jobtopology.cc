@@ -23,6 +23,8 @@
 #include <votca/xtp/qmregion.h>
 #include <votca/xtp/segmentmapper.h>
 
+#include <numeric>
+
 namespace votca {
 namespace xtp {
 
@@ -47,7 +49,6 @@ void JobTopology::BuildRegions(const Topology& top,
       PartitionRegions(regions_def, top);
 
   // around this point the whole jobtopology will be centered
-  Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0]).getPos();
   CreateRegions(options, top, region_seg_ids);
   return;
 }
@@ -98,13 +99,10 @@ void JobTopology::CreateRegions(
     const std::vector<int>& seg_ids = region_seg_ids[id];
     std::string type =
         region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
-    bool geometry_found = true;
     std::string qmstate_string = "n";
     if (region_def->exists("geometry")) {
       qmstate_string =
           GetInputFromXMLorJob<std::string>(region_def, "geometry");
-    } else {
-      geometry_found = false;
     }
     QMState geometry = QMState(qmstate_string);
     std::unique_ptr<Region> region;
