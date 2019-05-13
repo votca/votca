@@ -44,12 +44,17 @@ enum EnergyUnit {
   joules,
   kilojoules,
   kilojoules_per_mole,
+  joules_per_mole,
   kilocalories_per_mole
 };
 
 enum ChargeUnit { e, coulombs };
 
-enum VelocityUnit { angstroms_per_femtosecond, nanometers_per_picosecond };
+enum VelocityUnit {
+  angstroms_per_femtosecond,
+  angstroms_per_picosecond,
+  nanometers_per_picosecond
+};
 
 enum ForceUnit {
   kilocalories_per_mole_ansgtrom,
@@ -122,6 +127,8 @@ class UnitConverter {
     switch (enum_type) {
       case EnergyUnit::kilojoules_per_mole:
         return 96.0;
+      case EnergyUnit::joules_per_mole:
+        return 96.0E3;
       case EnergyUnit::kilocalories_per_mole:
         return 23.0;
       case EnergyUnit::kilocalories:
@@ -155,6 +162,8 @@ class UnitConverter {
     switch (enum_type) {
       case VelocityUnit::nanometers_per_picosecond:
         return 1.0;
+      case VelocityUnit::angstroms_per_picosecond:
+        return convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
       case VelocityUnit::angstroms_per_femtosecond:
         return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) /
                convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
