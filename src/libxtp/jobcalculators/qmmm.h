@@ -42,6 +42,8 @@ class QMMM : public ParallelXJobCalc<std::vector<Job> > {
   void ReadJobFile(Topology& top);
 
  private:
+  tools::Property _regions_def;
+  tools::Property _interactor_def;
 };
 
 }  // namespace xtp

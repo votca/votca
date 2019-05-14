@@ -22,7 +22,25 @@
 namespace votca {
 namespace xtp {
 
-void QMMM::Initialize(tools::Property& options) {}
+void QMMM::Initialize(tools::Property& options) {
+
+  std::string key = "options." + Identify();
+
+  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".job_file");
+
+  if (options.exists(key + ".regions")) {
+    _regions_def = options.get(key + ".regions");
+  } else {
+    throw std::runtime_error("No region definitions found in optionsfile");
+  }
+
+  if (options.exists(key + ".interactors")) {
+    _interactor_def = options.get(key + ".interactors");
+  } else {
+    throw std::runtime_error("No interactor definitions found in optionsfile");
+  }
+}
 
 Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
 

@@ -29,8 +29,7 @@ namespace xtp {
 /**
 \brief Class to represent Atom/Site in electrostatic+polarisation
 
- The units are atomic units, e.g. Bohr, Hartree.By default a PolarSite cannot be
-polarised.
+ The units are atomic units, e.g. Bohr, Hartree.
 */
 class PolarSite : public StaticSite {
 
@@ -43,6 +42,8 @@ class PolarSite : public StaticSite {
   PolarSite(int id, std::string element, Eigen::Vector3d pos);
   PolarSite(int id, std::string element)
       : PolarSite(id, element, Eigen::Vector3d::Zero()){};
+
+  ~PolarSite(){};
 
   void setPolarisation(const Eigen::Matrix3d pol) override;
   void ResetInduction();

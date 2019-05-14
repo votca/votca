@@ -71,6 +71,7 @@ class StaticSite {
       : StaticSite(atom.getId(), atom.getElement(), atom.getPos()) {
     setCharge(charge);
   }
+  virtual ~StaticSite(){};
 
  protected:
   StaticSite(){};
