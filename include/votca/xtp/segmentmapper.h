@@ -96,14 +96,14 @@ class SegmentMapper {
     if (frag.exists(_mapatom_xml.at("weights"))) {
       return frag.get(_mapatom_xml.at("weights")).as<std::string>();
     }
-    return frag.get("weights").as<std::string>();
+    return frag.get("weights").template as<std::string>();
   }
 
   std::string getFrame(const tools::Property& frag) const {
     if (frag.exists(_mapatom_xml.at("frame"))) {
       return frag.get(_mapatom_xml.at("frame")).as<std::string>();
     }
-    return frag.get("localframe").as<std::string>();
+    return frag.get("localframe").template as<std::string>();
   }
 
   void FillMap() {

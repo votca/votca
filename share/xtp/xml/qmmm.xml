@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<qmmm>
-   
+<qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+   <print_regions_pdb>true</print_regions_pdb>
    <regions>
       <mapfile>map.xml</mapfile>
       <region>

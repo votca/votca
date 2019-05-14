@@ -52,6 +52,9 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   Logger& pLog = Thread.getLogger();
   JobTopology jobtop = JobTopology(job, pLog);
   jobtop.BuildRegions(top, _regions_def);
+  std::string qmmm_work_dir = "QMMM";
+  std::string frame_dir =
+      "frame_" + boost::lexical_cast<std::string>(top.getStep());
 
   jobtop.WriteToPdb("jobtopology_job_" + std::to_string(job.getId()));
   return Job::JobResult();
