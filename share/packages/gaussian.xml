@@ -3,7 +3,8 @@
   <executable>g03</executable>
   <checkpoint>system.chk</checkpoint>
   <scratch>/tmp/gaussian</scratch>
-
+  <basisset>ubecppol</basisset>
+<ecp>ecp</ecp>
   <charge>0</charge>
   <spin>1</spin>  
   <options># pop=minimal pbepbe/gen pseudo=read punch=mo nosymm test</options>

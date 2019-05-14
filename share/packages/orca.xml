@@ -9,6 +9,7 @@
   <memory></memory>
   <basisset>ubecppol</basisset>
   <writebasisset>true</writebasisset>
+<ecp>ecp</ecp>
   <writepseudopotentials>true</writepseudopotentials>
   <outputVxc>0</outputVxc>
   <options>

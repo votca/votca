@@ -1,6 +1,0 @@
-<options>
-	<vaverage help="Computes site-centered velocity averages from site occupancies">
-		<carriers help="Carrier types for which to compute velocity averages">-1 +1</carriers>
-		<tabulate help="Tabulate 'atoms' or 'segments'">segments</tabulate>
-	</vaverage>
-</options>	

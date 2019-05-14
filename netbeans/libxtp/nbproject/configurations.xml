@@ -26,6 +26,8 @@
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/qmmm.cc</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
         <itemPath>../../src/libxtp/tools/coupling.h</itemPath>
@@ -325,32 +327,25 @@
       <logicalFolder name="f1" displayName="packages" projectFiles="true">
         <itemPath>../../share/packages/bsecoupling.xml</itemPath>
         <itemPath>../../share/packages/esp2multipole.xml</itemPath>
-        <itemPath>../../share/packages/gaussian_edft_molecule.xml</itemPath>
-        <itemPath>../../share/packages/gaussian_egwbse_molecule.xml</itemPath>
-        <itemPath>../../share/packages/gaussian_idft_molecule.xml</itemPath>
-        <itemPath>../../share/packages/gaussian_idft_pair.xml</itemPath>
-        <itemPath>../../share/packages/gaussian_igwbse_pair.xml</itemPath>
-        <itemPath>../../share/packages/gwbse_egwbse_molecule.xml</itemPath>
-        <itemPath>../../share/packages/gwbse_igwbse_pair.xml</itemPath>
-        <itemPath>../../share/packages/mbgft.xml</itemPath>
+        <itemPath>../../share/packages/gaussian.xml</itemPath>
+        <itemPath>../../share/packages/gaussian_iqm_pair.xml</itemPath>
+        <itemPath>../../share/packages/gwbse.xml</itemPath>
+        <itemPath>../../share/packages/gwbse_iqm_pair.xml</itemPath>
         <itemPath>../../share/packages/nwchem.xml</itemPath>
-        <itemPath>../../share/packages/orca_edft.xml</itemPath>
-        <itemPath>../../share/packages/orca_gwbse.xml</itemPath>
-        <itemPath>../../share/packages/orca_idft.xml</itemPath>
+        <itemPath>../../share/packages/orca.xml</itemPath>
+        <itemPath>../../share/packages/orca_iqm_pair.xml</itemPath>
         <itemPath>../../share/packages/xtpdft.xml</itemPath>
       </logicalFolder>
       <itemPath>../../share/xtp/xml/coupling.xml</itemPath>
       <itemPath>../../share/xtp/xml/dftgwbse.xml</itemPath>
       <itemPath>../../share/xtp/xml/eanalyze.xml</itemPath>
       <itemPath>../../share/xtp/xml/einternal.xml</itemPath>
-      <itemPath>../../share/xtp/xml/energy2xml.xml</itemPath>
       <itemPath>../../share/xtp/xml/eqm.xml</itemPath>
       <itemPath>../../share/xtp/xml/excitoncoupling.xml</itemPath>
       <itemPath>../../share/xtp/xml/gencube.xml</itemPath>
       <itemPath>../../share/xtp/xml/ianalyze.xml</itemPath>
       <itemPath>../../share/xtp/xml/iexcitoncl.xml</itemPath>
       <itemPath>../../share/xtp/xml/iimport.xml</itemPath>
-      <itemPath>../../share/xtp/xml/integrals2xml.xml</itemPath>
       <itemPath>../../share/xtp/xml/iqm.xml</itemPath>
       <itemPath>../../share/xtp/xml/jobwriter.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmclifetime.xml</itemPath>
@@ -358,23 +353,12 @@
       <itemPath>../../share/xtp/xml/log2mps.xml</itemPath>
       <itemPath>../../share/xtp/xml/map.xml</itemPath>
       <itemPath>../../share/xtp/xml/neighborlist.xml</itemPath>
-      <itemPath>../../share/xtp/xml/occupations2xml.xml</itemPath>
       <itemPath>../../share/xtp/xml/options.xml</itemPath>
-      <itemPath>../../share/xtp/xml/pairs2xml.xml</itemPath>
       <itemPath>../../share/xtp/xml/partialcharges.xml</itemPath>
-      <itemPath>../../share/xtp/xml/pdb2map.xml</itemPath>
-      <itemPath>../../share/xtp/xml/pdb2top.xml</itemPath>
-      <itemPath>../../share/xtp/xml/qmape.xml</itemPath>
       <itemPath>../../share/xtp/xml/qmmm.xml</itemPath>
-      <itemPath>../../share/xtp/xml/rates.xml</itemPath>
-      <itemPath>../../share/xtp/xml/rates2xml.xml</itemPath>
       <itemPath>../../share/xtp/xml/sandbox.xml</itemPath>
-      <itemPath>../../share/xtp/xml/segments2xml.xml</itemPath>
       <itemPath>../../share/xtp/xml/spectrum.xml</itemPath>
       <itemPath>../../share/xtp/xml/stateserver.xml</itemPath>
-      <itemPath>../../share/xtp/xml/tdump.xml</itemPath>
-      <itemPath>../../share/xtp/xml/trajectory2pdb.xml</itemPath>
-      <itemPath>../../share/xtp/xml/vaverage.xml</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -4237,53 +4221,28 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/packages/gaussian_edft_molecule.xml"
+      <item path="../../share/packages/gaussian.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_iqm_pair.xml"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/packages/gaussian_egwbse_molecule.xml"
+      <item path="../../share/packages/gwbse.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/gwbse_iqm_pair.xml"
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../share/packages/gaussian_idft_molecule.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gaussian_idft_pair.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gaussian_igwbse_pair.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gwbse_egwbse_molecule.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gwbse_igwbse_pair.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/mbgft.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/packages/nwchem.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/packages/orca_edft.xml" ex="false" tool="3" flavor2="0">
+      <item path="../../share/packages/orca.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/packages/orca_gwbse.xml"
+      <item path="../../share/packages/orca_iqm_pair.xml"
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../share/packages/orca_idft.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/packages/xtpdft.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -4294,8 +4253,6 @@
       <item path="../../share/xtp/xml/eanalyze.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/einternal.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/energy2xml.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/eqm.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -4311,11 +4268,6 @@
       <item path="../../share/xtp/xml/iexcitoncl.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/iimport.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/integrals2xml.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -4340,38 +4292,16 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/occupations2xml.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/options.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/pairs2xml.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/partialcharges.xml"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/pdb2map.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/pdb2top.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/qmape.xml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/qmmm.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/rates.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/rates2xml.xml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/sandbox.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/segments2xml.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -4379,15 +4309,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/tdump.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/trajectory2pdb.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4655,6 +4576,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iqm.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/qmmm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5364,53 +5295,28 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/packages/gaussian_edft_molecule.xml"
+      <item path="../../share/packages/gaussian.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/gaussian_iqm_pair.xml"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/packages/gaussian_egwbse_molecule.xml"
+      <item path="../../share/packages/gwbse.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/packages/gwbse_iqm_pair.xml"
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../share/packages/gaussian_idft_molecule.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gaussian_idft_pair.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gaussian_igwbse_pair.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gwbse_egwbse_molecule.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/gwbse_igwbse_pair.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/packages/mbgft.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/packages/nwchem.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/packages/orca_edft.xml" ex="false" tool="3" flavor2="0">
+      <item path="../../share/packages/orca.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/packages/orca_gwbse.xml"
+      <item path="../../share/packages/orca_iqm_pair.xml"
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../share/packages/orca_idft.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/packages/xtpdft.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -5421,8 +5327,6 @@
       <item path="../../share/xtp/xml/eanalyze.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/einternal.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/energy2xml.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/eqm.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -5438,11 +5342,6 @@
       <item path="../../share/xtp/xml/iexcitoncl.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/iimport.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/integrals2xml.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -5467,38 +5366,16 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/occupations2xml.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/options.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/pairs2xml.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/partialcharges.xml"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/pdb2map.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/pdb2top.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/qmape.xml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/qmmm.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/rates.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/rates2xml.xml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/sandbox.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/segments2xml.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
       </item>
@@ -5506,15 +5383,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/tdump.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/trajectory2pdb.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
@@ -5782,6 +5650,16 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/iqm.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/qmmm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
             flavor2="0">

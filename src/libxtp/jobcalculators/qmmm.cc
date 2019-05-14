@@ -18,6 +18,7 @@
  */
 
 #include "qmmm.h"
+#include <votca/xtp/jobtopology.h>
 
 namespace votca {
 namespace xtp {
@@ -28,6 +29,9 @@ void QMMM::Initialize(tools::Property& options) {
 
   _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".job_file");
+
+  _print_regions_pdb = options.ifExistsReturnElseReturnDefault(
+      key + ".print_regions_pdb", _print_regions_pdb);
 
   if (options.exists(key + ".regions")) {
     _regions_def = options.get(key + ".regions");
@@ -44,6 +48,12 @@ void QMMM::Initialize(tools::Property& options) {
 
 Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
 
+  Job::JobResult jres = Job::JobResult();
+  Logger& pLog = Thread.getLogger();
+  JobTopology jobtop = JobTopology(job, pLog);
+  jobtop.BuildRegions(top, _regions_def);
+
+  jobtop.WriteToPdb("jobtopology_job_" + std::to_string(job.getId()));
   return Job::JobResult();
 }
 void QMMM::WriteJobFile(Topology& top) {}
