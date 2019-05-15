@@ -71,10 +71,7 @@ add_custom_target(manpages ALL)
 
 find_package(MKL)
 if (MKL_FOUND)
-  include_directories(${MKL_INCLUDE_DIRS})
   set (MKL TRUE )
-else()
-  set(MKL_LIBRARIES)
 endif()
 
 find_package(Eigen3 3.3.0 REQUIRED)

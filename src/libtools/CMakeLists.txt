@@ -27,7 +27,10 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 add_dependencies(votca_tools gitversion)
 
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options ${MKL_LIBRARIES} Eigen3::Eigen PRIVATE
+target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
 	Boost::filesystem Boost::system
 	FFTW3::FFTW3 EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
+if(MKL_FOUND)
+  target_link_libraries(votca_tools PRIVATE MKL::MKL)
+endif()
 install(TARGETS votca_tools LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
