@@ -15,8 +15,13 @@ if (WITH_SQLITE3)
 endif(WITH_SQLITE3)
 
 
-#for gitversion.h
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+#CMAKE_CURRENT_BINARY_DIR for gitversion.h
+#PROJECT_BINARY_DIR/include for votca_config.h
+target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
