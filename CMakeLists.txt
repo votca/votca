@@ -58,7 +58,6 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Threads REQUIRED)
-set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 include_directories(${Boost_INCLUDE_DIRS})
