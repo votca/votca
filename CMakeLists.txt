@@ -89,11 +89,7 @@ find_package(Eigen3 3.3.0 REQUIRED)
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
 if (WITH_FFTW)
-  find_package(FFTW3)
-  if(NOT FFTW3_FOUND)
-    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package (it can be disable with -DWITH_FFTW=OFF)")
-  endif(NOT FFTW3_FOUND)
-  include_directories(${FFTW3_INCLUDE_DIRS})
+  find_package(FFTW3 REQUIRED)
 else(WITH_FFTW)
   #used in votca_config.h
   set(NOFFTW TRUE)
