@@ -36,7 +36,7 @@ find_package_handle_standard_args(FFTW3 DEFAULT_MSG FFTW3_LIBRARY FFTW3_INCLUDE_
 if (FFTW3_FOUND)
   include(CheckLibraryExists)
   #adding MATH_LIBRARIES here to allow static libs, this does not harm us as we are anyway using it
-  check_library_exists("${FFTW3_LIBRARIES};${MATH_LIBRARIES}" fftw_plan_r2r_1d "" FOUND_FFTW_PLAN)
+  check_library_exists("${FFTW3_LIBRARY};${MATH_LIBRARIES}" fftw_plan_r2r_1d "" FOUND_FFTW_PLAN)
   if(NOT FOUND_FFTW_PLAN)
     message(FATAL_ERROR "Could not find fftw_plan_r2r_1d in ${FFTW3_LIBRARY}, take a look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you are using a static lib (.a) make sure you have specified all dependencies of fftw3 in FFTW3_LIBRARY by hand (i.e. -DFFTW3_LIBRARY='/path/to/libfftw3.so;/path/to/libm.so') !")
   endif(NOT FOUND_FFTW_PLAN)
