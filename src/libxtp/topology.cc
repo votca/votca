@@ -200,6 +200,7 @@ void Topology::ReadFromCpt(CheckpointReader &r) {
   CheckpointReader v = r.openChild("segments");
   _segments.clear();
   int count = v.getNumDataSets();
+  _segments.reserve(count);
   for (int i = 0; i < count; i++) {
     CheckpointReader w = v.openChild("segment" + std::to_string(i));
     _segments.push_back(Segment(w));

@@ -112,7 +112,7 @@ bool DftGwBse::Evaluate() {
   qmpackage->setRunDir(".");
 
   if (_do_external) {
-    StaticRegion region;
+    StaticRegion region(0);
     StaticSegment seg = StaticSegment("", 0);
     seg.LoadFromFile(_mpsfile);
     region.push_back(seg);

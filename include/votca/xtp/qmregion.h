@@ -36,13 +36,14 @@ namespace xtp {
 class QMRegion : public Region {
 
  public:
+  QMRegion(int id) : Region(id){};
   ~QMRegion(){};
 
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r);
 
-  int size() const { return 1; }
+  int size() const { return _size; }
 
   void WritePDB(csg::PDBWriter& writer) const;
 
@@ -54,9 +55,11 @@ class QMRegion : public Region {
     } else {
       _orb.QMAtoms().AddContainer(mol);
     }
+    _size++;
   }
 
  private:
+  int _size = 0;
   Orbitals _orb;
 };
 

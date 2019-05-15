@@ -28,6 +28,7 @@ namespace xtp {
 template <class T>
 class MMRegion : public Region {
  public:
+  MMRegion(int id) : Region(id){};
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r);

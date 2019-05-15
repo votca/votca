@@ -162,7 +162,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
         throw std::runtime_error(
             (boost::format("Cutoff is larger than half the box size. Maximum "
                            "allowed cutoff is %1$1.1f") %
-             (0.5 * min))
+             (tools::conv::nm2bohr * 0.5 * min))
                 .str());
       }
       double cutoff2 = cutoff * cutoff;

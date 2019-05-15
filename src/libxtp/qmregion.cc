@@ -27,7 +27,6 @@ void QMRegion::WritePDB(csg::PDBWriter& writer) const {
 }
 
 void QMRegion::WriteToCpt(CheckpointWriter& w) const {
-  w(_name, "name");
   w(_id, "id");
   w(identify(), "type");
   CheckpointWriter v = w.openChild("orbitals");
@@ -35,7 +34,6 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
 }
 
 void QMRegion::ReadFromCpt(CheckpointReader& r) {
-  r(_name, "name");
   r(_id, "id");
   CheckpointReader rr = r.openChild("orbitals");
   _orb.ReadFromCpt(rr);

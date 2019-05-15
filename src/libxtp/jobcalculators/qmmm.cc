@@ -55,8 +55,13 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   std::string qmmm_work_dir = "QMMM";
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
-
-  jobtop.WriteToPdb("jobtopology_job_" + std::to_string(job.getId()));
+  if (_print_regions_pdb) {
+    std::string pdb_filename =
+        "jobtopology_job_" + std::to_string(job.getId()) + ".pdb";
+    XTP_LOG_SAVE(logINFO, pLog)
+        << "Writing jobtopology to " << pdb_filename << std::flush;
+    jobtop.WriteToPdb(pdb_filename);
+  }
   return Job::JobResult();
 }
 void QMMM::WriteJobFile(Topology& top) {}

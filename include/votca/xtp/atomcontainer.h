@@ -47,6 +47,8 @@ class AtomContainer {
 
   const std::string& getName() const { return _name; }
 
+  void setName(std::string name) { _name = name; }
+
   int getId() const { return _id; }
 
   int size() const { return _atomlist.size(); }

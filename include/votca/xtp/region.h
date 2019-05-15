@@ -16,9 +16,9 @@
  * limitations under the License.
  *
  */
+#include <iostream>
 #include <votca/csg/pdbwriter.h>
 #include <votca/xtp/checkpoint.h>
-
 #ifndef VOTCA_XTP_REGION_H
 #define VOTCA_XTP_REGION_H
 
@@ -35,6 +35,7 @@ namespace xtp {
 class Region {
 
  public:
+  Region(int id) : _id(id){};
   virtual ~Region(){};
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;
@@ -47,12 +48,16 @@ class Region {
 
   virtual void WritePDB(csg::PDBWriter& writer) const = 0;
 
-  const std::string& getName() const { return _name; }
   int getId() const { return _id; }
 
+  friend std::ostream& operator<<(std::ostream& out, const Region& region) {
+    out << "Id: " << region.getId() << " type: " << region.identify()
+        << " size: " << region.size();
+    return out;
+  }
+
  protected:
-  std::string _name;
-  int _id;
+  int _id = -1;
 };
 
 }  // namespace xtp

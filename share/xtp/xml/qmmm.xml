@@ -1,56 +1,57 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
-   <print_regions_pdb>true</print_regions_pdb>
-   <regions>
-      <mapfile>map.xml</mapfile>
-      <region>
-         <id>0</id>
-         <type>gwbse</type>
-         <options_dft />
-         <options_gwbse />
-         <filter />
-<geometry>n<geometry>
-         <segments>0 1 2 3</segments>
-      </region>
-      <region>
-         <id>1</id>
-         <type>dft</type>
-         <options_dft />
-         <segments>jobfile</segments>
-      </region>
-      <region>
-         <id>2</id>
-         <type>polar</type>
-         <options>polar.xml</options>
-	<segments></segments>
-         <cutoff>
-		<radius>3</radius>
-		<region>0</region>
-	 </cutoff>
-      </region>
-      <region>
-         <id>3</id>
-         <type>static</type>
-         <cutoff>5</cutoff>
-      </region>
-   </regions>
-   <interactors>
-      <interactor>
-         <id>0</id>
-         <regions>0 1</regions>
-         <type>self-consistent</type>
-         <max_iterations>50</max_iterations>
-         <deltaE>1e-5</deltaE>
-         <deltaQ>1e-5</deltaQ>
-      </interactor>
-      <interactor>
-         <id>1</id>
-         <regions>0 2</regions>
-         <type>self-consistent</type>
-         <max_iterations>50</max_iterations>
-         <deltaE>1e-5</deltaE>
-         <deltaQ>1e-5</deltaQ>
-      </interactor>
-   </interactors>
-</qmmm>
+<options>
+    <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+        <print_regions_pdb>true</print_regions_pdb>
+        <regions>
+            <mapfile>map.xml</mapfile>
+            <region>
+                <id>0</id>
+                <type>gwbse</type>
+                <options_dft />
+                <options_gwbse />
+                <filter />
+                <geometry>n</geometry>
+                <segments>0 1 2 3</segments>
+            </region>
+            <region>
+                <id>1</id>
+                <type>dft</type>
+                <options_dft />
+                <segments>jobfile</segments>
+            </region>
+            <region>
+                <id>2</id>
+                <type>polar</type>
+                <options>polar.xml</options>
+                <segments></segments>
+                <cutoff>
+                    <radius>3</radius>
+                    <region>0</region>
+                </cutoff>
+            </region>
+            <region>
+                <id>3</id>
+                <type>static</type>
+                <cutoff>5</cutoff>
+            </region>
+        </regions>
+        <interactors>
+            <interactor>
+                <id>0</id>
+                <regions>0 1</regions>
+                <type>self-consistent</type>
+                <max_iterations>50</max_iterations>
+                <deltaE>1e-5</deltaE>
+                <deltaQ>1e-5</deltaQ>
+            </interactor>
+            <interactor>
+                <id>1</id>
+                <regions>0 2</regions>
+                <type>self-consistent</type>
+                <max_iterations>50</max_iterations>
+                <deltaE>1e-5</deltaE>
+                <deltaQ>1e-5</deltaQ>
+            </interactor>
+        </interactors>
+    </qmmm>
 
+</options>

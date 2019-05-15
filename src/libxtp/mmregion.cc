@@ -45,7 +45,6 @@ void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
 
 template <class T>
 void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
-  w(_name, "name");
   w(_id, "id");
   w(identify(), "type");
   int size = _segments.size();
@@ -59,7 +58,6 @@ void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
 }
 template <class T>
 void MMRegion<T>::ReadFromCpt(CheckpointReader& r) {
-  r(_name, "name");
   r(_id, "id");
   int size;
   r(size, "size");
