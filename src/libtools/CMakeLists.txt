@@ -1,8 +1,4 @@
-find_package(EXPAT)
-if(NOT EXPAT_FOUND)
-  message(FATAL_ERROR "EXPAT not found,  make sure you have also installed the expat and it's dev package")
-endif(NOT EXPAT_FOUND)
-include_directories(${EXPAT_INCLUDE_DIR})
+find_package(EXPAT REQUIRED)
 
 file(GLOB VOTCA_SOURCES *.cc)
 file(GLOB NOT_VOTCA_SOURCES version_nb.cc)
@@ -35,5 +31,5 @@ add_dependencies(votca_tools gitversion)
 
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC ${Boost_LIBRARIES} ${MKL_LIBRARIES} Eigen3::Eigen PRIVATE ${SQLITE3_LIBRARIES}
-	${FFTW3_LIBRARIES} ${EXPAT_LIBRARIES} ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
+	${FFTW3_LIBRARIES} EXPAT::EXPAT ${THREAD_LIBRARIES} ${MATH_LIBRARIES})
 install(TARGETS votca_tools LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
