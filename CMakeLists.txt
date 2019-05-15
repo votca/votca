@@ -60,13 +60,6 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 find_package(Threads REQUIRED)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
-include_directories(${Boost_INCLUDE_DIRS})
-if(NOT Boost_INCLUDE_DIRS)
-  if(NOT TARGET Boost::boost)
-    message(FATAL_ERROR "Incomplete Boost configuration (empty Boost_INCLUDE_DIRS, but no Boost::boost target)")
-  endif()
-  set(Boost_LIBRARIES Boost::boost Boost::program_options Boost::filesystem Boost::system)
-endif()
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
 #define this target here, so that individual man pages can append to it.
