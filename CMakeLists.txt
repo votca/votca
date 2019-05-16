@@ -66,7 +66,6 @@ else (BUILD_MANPAGES)
 endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
-include_directories(${Boost_INCLUDE_DIRS})
 
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
