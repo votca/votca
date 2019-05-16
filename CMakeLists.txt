@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(votca-csg)
 
@@ -31,9 +31,6 @@ include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
-  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
-endif()
 
 ########################################################################
 # User input options                                                   #
