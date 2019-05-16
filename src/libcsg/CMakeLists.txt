@@ -38,5 +38,5 @@ set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES gitversion.h)
 
 add_dependencies(votca_csg gitversion-csg)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
-target_link_libraries(votca_csg PUBLIC ${VOTCA_TOOLS_LIBRARIES} Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system ${MKL_LIBRARIES} ${THREAD_LIBRARIES})
+target_link_libraries(votca_csg PUBLIC ${VOTCA_TOOLS_LIBRARIES} Boost::boost PRIVATE Boost::program_options Boost::filesystem Boost::system ${MKL_LIBRARIES} Threads::Threads)
 install(TARGETS votca_csg LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
