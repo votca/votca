@@ -511,8 +511,8 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
         << TimeStamp() << " Integrating Vxc in VOTCA with functional "
         << _functional << flush;
     Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
-
-    vxc_ao = numint.IntegrateVXC(DMAT);
+    NumericalIntegration::E_Vxc e_vxc_ao = numint.IntegrateVXC(DMAT);
+    vxc_ao = e_vxc_ao.Vxc;
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 

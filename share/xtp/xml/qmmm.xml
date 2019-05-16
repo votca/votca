@@ -9,8 +9,7 @@
                 <options_dft />
                 <options_gwbse />
                 <filter />
-                <geometry>n</geometry>
-                <segments>0 1 2 3</segments>
+                <segments>0:n 1:n 2:n 3</segments>
             </region>
             <region>
                 <id>1</id>
@@ -24,6 +23,7 @@
                 <options>polar.xml</options>
                 <segments></segments>
                 <cutoff>
+                    <state>n</state>
                     <radius>3</radius>
                     <region>0</region>
                 </cutoff>

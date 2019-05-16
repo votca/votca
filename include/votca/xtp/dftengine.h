@@ -50,25 +50,10 @@ class DFTEngine {
 
   void setLogger(Logger* pLog) { _pLog = pLog; }
 
-  void ConfigureExternalGrid(const std::string& grid_name_ext) {
-    _grid_name_ext = grid_name_ext;
-    _do_externalfield = true;
-  }
-
   void setExternalcharges(
       std::vector<std::unique_ptr<StaticSite> >* externalsites) {
     _externalsites = externalsites;
     _addexternalsites = true;
-  }
-
-  void setExternalGrid(std::vector<double> electrongrid,
-                       std::vector<double> nucleigrid) {
-    _externalgrid = electrongrid;
-    _externalgrid_nuc = nucleigrid;
-  }
-
-  std::vector<const Eigen::Vector3d*> getExternalGridpoints() {
-    return _gridIntegration_ext.getGridpoints();
   }
 
   bool Evaluate();
@@ -93,7 +78,6 @@ class DFTEngine {
 
   void NuclearRepulsion();
   double ExternalRepulsion();
-  double ExternalGridRepulsion(std::vector<double> externalpotential_nuc);
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          AOBasis& dftbasis);
 
@@ -130,15 +114,6 @@ class DFTEngine {
   bool _use_small_grid;
   NumericalIntegration _gridIntegration;
   NumericalIntegration _gridIntegration_small;
-  // used to store Vxc after final iteration
-
-  // numerical integration externalfield;
-  // this will not remain here but be moved to qmape
-  bool _do_externalfield = false;
-  std::string _grid_name_ext;
-  NumericalIntegration _gridIntegration_ext;
-  std::vector<double> _externalgrid;
-  std::vector<double> _externalgrid_nuc;
 
   Eigen::MatrixXd _dftAOdmat;
 

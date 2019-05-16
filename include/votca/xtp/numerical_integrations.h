@@ -44,67 +44,79 @@ struct Gyrationtensor {
 
 class NumericalIntegration {
  public:
-  NumericalIntegration() : _density_set(false), _setXC(false){};
-
   ~NumericalIntegration();
 
   void GridSetup(const std::string& type, const QMMolecule& atoms,
                  const AOBasis& basis);
 
-  double getExactExchange(const std::string& functional);
+  double getExactExchange(const std::string& functional) const;
   std::vector<const Eigen::Vector3d*> getGridpoints() const;
   std::vector<double> getWeightedDensities() const;
   int getGridSize() const { return _totalgridsize; }
-  unsigned getBoxesSize() const { return _grid_boxes.size(); }
+  int getBoxesSize() const { return _grid_boxes.size(); }
 
   void setXCfunctional(const std::string& functional);
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
-  double IntegratePotential(const Eigen::Vector3d& rvector);
-  Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis);
+  double IntegratePotential(const Eigen::Vector3d& rvector) const;
+  Eigen::Vector3d IntegrateField(const Eigen::Vector3d& rvector) const;
+  Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis) const;
 
-  Eigen::MatrixXd IntegrateExternalPotential(
-      const std::vector<double>& Potentialvalues);
   Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);
-  Eigen::MatrixXd IntegrateVXC(const Eigen::MatrixXd& density_matrix);
-  double getTotEcontribution() { return _EXC; }
+
+  struct E_Vxc {
+    Eigen::MatrixXd Vxc;
+    double Exc;
+  };
+
+  E_Vxc IntegrateVXC(const Eigen::MatrixXd& density_matrix);
 
  private:
+  struct XC_entry {
+    double f_xc = 0;  // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r
+    double df_drho = 0;    // v_xc_rho(r) = df/drho
+    double df_dsigma = 0;  // df/dsigma ( df/dgrad(rho) = df/dsigma *
+                           // dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
+  };
+
+  Eigen::VectorXd CalcAOValue_and_Grad(Eigen::MatrixX3d& ao_grad,
+                                       const GridBox& box,
+                                       const Eigen::Vector3d& point) const;
+  Eigen::VectorXd CalcAOValues(const GridBox& box,
+                               const Eigen::Vector3d& pos) const;
   void FindSignificantShells(const AOBasis& basis);
-  void EvaluateXC(const double rho, const double sigma, double& f_xc,
-                  double& df_drho, double& df_dsigma);
-  double erf1c(double x);
+  XC_entry EvaluateXC(double rho, double sigma) const;
+  double erf1c(double x) const;
 
   void SortGridpointsintoBlocks(
       std::vector<std::vector<GridContainers::Cartesian_gridpoint> >& grid);
 
-  Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms);
+  Eigen::MatrixXd CalcInverseAtomDist(const QMMolecule& atoms) const;
   int UpdateOrder(LebedevGrid& sphericalgridofElement, int maxorder,
-                  std::vector<double>& PruningIntervals, double r);
+                  std::vector<double>& PruningIntervals, double r) const;
 
   GridContainers::Cartesian_gridpoint CreateCartesianGridpoint(
       const Eigen::Vector3d& atomA_pos,
       GridContainers::radial_grid& radial_grid,
-      GridContainers::spherical_grid& spherical_grid, int i_rad, int i_sph);
+      GridContainers::spherical_grid& spherical_grid, int i_rad,
+      int i_sph) const;
 
   Eigen::VectorXd SSWpartition(const Eigen::VectorXd& rq_i,
-                               const Eigen::MatrixXd& Rij);
+                               const Eigen::MatrixXd& Rij) const;
   void SSWpartitionAtom(
       const QMMolecule& atoms,
       std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, int i_atom,
-      const Eigen::MatrixXd& Rij);
+      const Eigen::MatrixXd& Rij) const;
   Eigen::MatrixXd CalcDistanceAtomsGridpoints(
       const QMMolecule& atoms,
-      std::vector<GridContainers::Cartesian_gridpoint>& atomgrid);
+      std::vector<GridContainers::Cartesian_gridpoint>& atomgrid) const;
 
   int _totalgridsize;
   std::vector<GridBox> _grid_boxes;
   std::vector<unsigned> thread_start;
   std::vector<unsigned> thread_stop;
   int xfunc_id;
-  double _EXC;
-  bool _density_set;
-  bool _setXC;
-  int _AOBasisSize;
+  bool _density_set = false;
+  bool _setXC = false;
 
   bool _use_separate;
   int cfunc_id;

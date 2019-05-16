@@ -208,17 +208,6 @@ bool DFTEngine::Evaluate() {
     H0 += IntegrateExternalDensity(extdensity);
   }
 
-  if (_do_externalfield) {
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Integrated external potential on grid " << flush;
-    double externalgrid_nucint = ExternalGridRepulsion(_externalgrid_nuc);
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Nuclei external potential interaction "
-        << externalgrid_nucint << " Hartree" << flush;
-    H0 += _gridIntegration_ext.IntegrateExternalPotential(_externalgrid);
-    _E_nucnuc += externalgrid_nucint;
-  }
-
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Nuclear Repulsion Energy is " << _E_nucnuc << flush;
 
@@ -240,11 +229,15 @@ bool DFTEngine::Evaluate() {
       CalculateERIs(_dftbasis, _dftAOdmat);
 
       if (_use_small_grid) {
-        _orbitals.AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
+        NumericalIntegration::E_Vxc e_vxc =
+            _gridIntegration_small.IntegrateVXC(_dftAOdmat);
+        _orbitals.AOVxc() = e_vxc.Vxc;
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
       } else {
-        _orbitals.AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
+        NumericalIntegration::E_Vxc e_vxc =
+            _gridIntegration.IntegrateVXC(_dftAOdmat);
+        _orbitals.AOVxc() = e_vxc.Vxc;
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled DFT Vxc matrix " << flush;
       }
@@ -282,13 +275,17 @@ bool DFTEngine::Evaluate() {
 
     double vxcenergy = 0.0;
     if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
-      _orbitals.AOVxc() = _gridIntegration_small.IntegrateVXC(_dftAOdmat);
-      vxcenergy = _gridIntegration_small.getTotEcontribution();
+      NumericalIntegration::E_Vxc e_vxc =
+          _gridIntegration_small.IntegrateVXC(_dftAOdmat);
+      _orbitals.AOVxc() = e_vxc.Vxc;
+      vxcenergy = e_vxc.Exc;
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
     } else {
-      _orbitals.AOVxc() = _gridIntegration.IntegrateVXC(_dftAOdmat);
-      vxcenergy = _gridIntegration.getTotEcontribution();
+      NumericalIntegration::E_Vxc e_vxc =
+          _gridIntegration.IntegrateVXC(_dftAOdmat);
+      _orbitals.AOVxc() = e_vxc.Vxc;
+      vxcenergy = e_vxc.Exc;
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled DFT Vxc matrix " << flush;
     }
@@ -572,14 +569,17 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) {
     Eigen::MatrixXd H_alpha = H0 + ERIs_atom.getERIs();
     Eigen::MatrixXd H_beta = H0 + ERIs_atom.getERIs();
 
-    Eigen::MatrixXd AOVxc_alpha = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
-    double E_vxc_alpha = gridIntegration.getTotEcontribution();
-
-    Eigen::MatrixXd AOVxc_beta = gridIntegration.IntegrateVXC(dftAOdmat_beta);
-    double E_vxc_beta = gridIntegration.getTotEcontribution();
+    NumericalIntegration::E_Vxc e_vxc =
+        gridIntegration.IntegrateVXC(dftAOdmat_alpha);
+    Eigen::MatrixXd AOVxc_alpha = e_vxc.Vxc;
+    double E_vxc_alpha = e_vxc.Exc;
     H_alpha += AOVxc_alpha;
-    H_beta += AOVxc_beta;
     E_two_alpha += E_vxc_alpha;
+
+    e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_beta);
+    Eigen::MatrixXd AOVxc_beta = e_vxc.Vxc;
+    double E_vxc_beta = e_vxc.Exc;
+    H_beta += AOVxc_beta;
     E_two_beta += E_vxc_beta;
 
     if (_ScaHFX > 0) {
@@ -856,15 +856,6 @@ void DFTEngine::Prepare() {
         << flush;
   }
 
-  if (_do_externalfield) {
-    _gridIntegration_ext.GridSetup(_grid_name_ext, _orbitals.QMAtoms(),
-                                   _dftbasis);
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Setup numerical integration grid " << _grid_name_ext
-        << " for external field with "
-        << _gridIntegration_ext.getGridpoints().size() << " points" << flush;
-  }
-
   for (auto& atom : _orbitals.QMAtoms()) {
     _numofelectrons += atom.getNuccharge();
   }
@@ -908,19 +899,6 @@ double DFTEngine::ExternalRepulsion() {
               ;
       }
   }*/
-  return E_ext;
-}
-
-double DFTEngine::ExternalGridRepulsion(
-    std::vector<double> externalpotential_nuc) {
-  double E_ext = 0.0;
-  if (!_do_externalfield) {
-    return 0;
-  }
-  for (int i = 0; i < _orbitals.QMAtoms().size(); i++) {
-    double Q = _orbitals.QMAtoms()[i].getNuccharge();
-    E_ext += Q * externalpotential_nuc[i];
-  }
   return E_ext;
 }
 

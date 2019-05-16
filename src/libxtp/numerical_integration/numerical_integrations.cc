@@ -43,7 +43,8 @@ NumericalIntegration::~NumericalIntegration() {
   }
 }
 
-double NumericalIntegration::getExactExchange(const std::string& functional) {
+double NumericalIntegration::getExactExchange(
+    const std::string& functional) const {
 
   double exactexchange = 0.0;
   Vxc_Functionals map;
@@ -124,47 +125,44 @@ void NumericalIntegration::setXCfunctional(const std::string& functional) {
   return;
 }
 
-void NumericalIntegration::EvaluateXC(const double rho, const double sigma,
-                                      double& f_xc, double& df_drho,
-                                      double& df_dsigma) {
+NumericalIntegration::XC_entry NumericalIntegration::EvaluateXC(
+    double rho, double sigma) const {
 
-  double exc[1];
-  double vsigma[1];  // libxc
-  double vrho[1];    // libxc df/drho
+  NumericalIntegration::XC_entry result;
   switch (xfunc.info->family) {
     case XC_FAMILY_LDA:
-      xc_lda_exc_vxc(&xfunc, 1, &rho, exc, vrho);
+      xc_lda_exc_vxc(&xfunc, 1, &rho, &result.f_xc, &result.df_drho);
       break;
     case XC_FAMILY_GGA:
     case XC_FAMILY_HYB_GGA:
-      xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, exc, vrho, vsigma);
+      xc_gga_exc_vxc(&xfunc, 1, &rho, &sigma, &result.f_xc, &result.df_drho,
+                     &result.df_dsigma);
       break;
   }
-  f_xc = exc[0];
-  df_drho = vrho[0];
-  df_dsigma = vsigma[0];
   if (_use_separate) {
+    NumericalIntegration::XC_entry temp;
     // via libxc correlation part only
     switch (cfunc.info->family) {
       case XC_FAMILY_LDA:
-        xc_lda_exc_vxc(&cfunc, 1, &rho, exc, vrho);
+        xc_lda_exc_vxc(&cfunc, 1, &rho, &temp.f_xc, &temp.df_drho);
         break;
       case XC_FAMILY_GGA:
       case XC_FAMILY_HYB_GGA:
-        xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, exc, vrho, vsigma);
+        xc_gga_exc_vxc(&cfunc, 1, &rho, &sigma, &temp.f_xc, &temp.df_drho,
+                       &temp.df_dsigma);
         break;
     }
 
-    f_xc += exc[0];
-    df_drho += vrho[0];
-    df_dsigma += vsigma[0];
+    result.f_xc += temp.f_xc;
+    result.df_drho += temp.df_drho;
+    result.df_dsigma += temp.df_dsigma;
   }
 
-  return;
+  return result;
 }
 
 double NumericalIntegration::IntegratePotential(
-    const Eigen::Vector3d& rvector) {
+    const Eigen::Vector3d& rvector) const {
 
   double result = 0.0;
   assert(_density_set && "Density not calculated");
@@ -175,6 +173,24 @@ double NumericalIntegration::IntegratePotential(
     for (unsigned j = 0; j < points.size(); j++) {
       double dist = (points[j] - rvector).norm();
       result -= weights[j] * densities[j] / dist;
+    }
+  }
+  return result;
+}
+
+Eigen::Vector3d NumericalIntegration::IntegrateField(
+    const Eigen::Vector3d& rvector) const {
+
+  Eigen::Vector3d result = Eigen::Vector3d::Zero();
+  assert(_density_set && "Density not calculated");
+  for (unsigned i = 0; i < _grid_boxes.size(); i++) {
+    const std::vector<Eigen::Vector3d>& points = _grid_boxes[i].getGridPoints();
+    const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
+    const std::vector<double>& densities = _grid_boxes[i].getGridDensities();
+    for (unsigned j = 0; j < points.size(); j++) {
+      Eigen::Vector3d direction = points[j] - rvector;
+      double dist = direction.norm();
+      result += weights[j] * densities[j] * direction / std::pow(dist, 3);
     }
   }
   return result;
@@ -361,11 +377,27 @@ void NumericalIntegration::FindSignificantShells(const AOBasis& basis) {
   return;
 }
 
-Eigen::MatrixXd NumericalIntegration::IntegrateVXC(
+Eigen::VectorXd NumericalIntegration::CalcAOValue_and_Grad(
+    Eigen::MatrixX3d& ao_grad, const GridBox& box,
+    const Eigen::Vector3d& point) const {
+  Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
+  const std::vector<GridboxRange>& aoranges = box.getAOranges();
+  const std::vector<const AOShell*>& shells = box.getShells();
+  for (unsigned j = 0; j < box.Shellsize(); ++j) {
+    Eigen::Block<Eigen::MatrixX3d> grad_block =
+        ao_grad.block(aoranges[j].start, 0, aoranges[j].size, 3);
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
+        ao.segment(aoranges[j].start, aoranges[j].size);
+    shells[j]->EvalAOspace(ao_block, grad_block, point);
+  }
+  return ao;
+}
+
+NumericalIntegration::E_Vxc NumericalIntegration::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) {
   Eigen::MatrixXd Vxc =
       Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols());
-  _EXC = 0;
+  double EXC = 0;
   unsigned nthreads = 1;
 #ifdef _OPENMP
   nthreads = omp_get_max_threads();
@@ -393,20 +425,12 @@ Eigen::MatrixXd NumericalIntegration::IntegrateVXC(
           Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
       const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
       const std::vector<double>& weights = box.getGridWeights();
-      const std::vector<GridboxRange>& aoranges = box.getAOranges();
-      const std::vector<const AOShell*>& shells = box.getShells();
 
       // iterate over gridpoints
       for (unsigned p = 0; p < box.size(); p++) {
-        Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
+
         Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(), 3);
-        for (unsigned j = 0; j < box.Shellsize(); ++j) {
-          Eigen::Block<Eigen::MatrixX3d> grad_block =
-              ao_grad.block(aoranges[j].start, 0, aoranges[j].size, 3);
-          Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-              ao.segment(aoranges[j].start, aoranges[j].size);
-          shells[j]->EvalAOspace(ao_block, grad_block, points[p]);
-        }
+        Eigen::VectorXd ao = CalcAOValue_and_Grad(ao_grad, box, points[p]);
         const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
         const double weight = weights[p];
         if (rho * weight < 1.e-20)
@@ -414,15 +438,10 @@ Eigen::MatrixXd NumericalIntegration::IntegrateVXC(
         const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
         const double sigma = (rho_grad.transpose() * rho_grad).value();
         const Eigen::VectorXd grad = ao_grad * rho_grad;
-        double f_xc;  // E_xc[n] = int{n(r)*eps_xc[n(r)] d3r} = int{ f_xc(r) d3r
-                      // }
-        double df_drho;    // v_xc_rho(r) = df/drho
-        double df_dsigma;  // df/dsigma ( df/dgrad(rho) = df/dsigma *
-                           // dsigma/dgrad(rho) = df/dsigma * 2*grad(rho))
-        EvaluateXC(rho, sigma, f_xc, df_drho, df_dsigma);
-        EXC_box += weight * rho * f_xc;
-        auto addXC = weight * (0.5 * df_drho * ao + 2.0 * df_dsigma * grad);
-        // Exchange correlation energy
+        NumericalIntegration::XC_entry xc = EvaluateXC(rho, sigma);
+        EXC_box += weight * rho * xc.f_xc;
+        auto addXC =
+            weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
         Vxc_here.noalias() += addXC * ao.transpose();
       }
       box.AddtoBigMatrix(vxc_thread[thread], Vxc_here);
@@ -431,61 +450,13 @@ Eigen::MatrixXd NumericalIntegration::IntegrateVXC(
   }
   for (unsigned i = 0; i < nthreads; ++i) {
     Vxc += vxc_thread[i];
-    _EXC += Exc_thread[i];
-  }
-  return Vxc + Vxc.transpose();
-}
-
-Eigen::MatrixXd NumericalIntegration::IntegrateExternalPotential(
-    const std::vector<double>& Potentialvalues) {
-
-  Eigen::MatrixXd ExternalMat =
-      Eigen::MatrixXd::Zero(_AOBasisSize, _AOBasisSize);
-  unsigned nthreads = 1;
-#ifdef _OPENMP
-  nthreads = omp_get_max_threads();
-#endif
-  std::vector<Eigen::MatrixXd> vex_thread;
-  std::vector<double> Exc_thread = std::vector<double>(nthreads, 0.0);
-  for (unsigned i = 0; i < nthreads; ++i) {
-    Eigen::MatrixXd Vex_thread =
-        Eigen::MatrixXd::Zero(ExternalMat.rows(), ExternalMat.cols());
-    vex_thread.push_back(Vex_thread);
+    EXC += Exc_thread[i];
   }
 
-#pragma omp parallel for
-  for (unsigned thread = 0; thread < nthreads; ++thread) {
-    for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
-
-      const GridBox& box = _grid_boxes[i];
-      Eigen::MatrixXd Vex_here =
-          Eigen::MatrixXd::Zero(box.Matrixsize(), box.Matrixsize());
-      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-      const std::vector<double>& weights = box.getGridWeights();
-
-      // iterate over gridpoints
-      for (unsigned p = 0; p < box.size(); p++) {
-        Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
-        const std::vector<GridboxRange>& aoranges = box.getAOranges();
-        const std::vector<const AOShell*> shells = box.getShells();
-        for (unsigned j = 0; j < box.Shellsize(); ++j) {
-          Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-              ao.segment(aoranges[j].start, aoranges[j].size);
-          shells[j]->EvalAOspace(ao_block, points[p]);
-        }
-        Eigen::VectorXd addEX =
-            weights[p] * Potentialvalues[box.getIndexoffirstgridpoint() + p] *
-            ao;
-        Vex_here += addEX.transpose() * ao;
-      }
-      box.AddtoBigMatrix(vex_thread[thread], Vex_here);
-    }
-  }
-  for (unsigned i = 0; i < nthreads; ++i) {
-    ExternalMat += vex_thread[i];
-  }
-  ExternalMat += ExternalMat.transpose();
-  return ExternalMat;
+  NumericalIntegration::E_Vxc result;
+  result.Vxc = Vxc + Vxc.transpose();
+  result.Exc = EXC;
+  return result;
 }
 
 double NumericalIntegration::IntegrateDensity(
@@ -509,14 +480,7 @@ double NumericalIntegration::IntegrateDensity(
       box.prepareDensity();
       // iterate over gridpoints
       for (unsigned p = 0; p < box.size(); p++) {
-        Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
-        const std::vector<GridboxRange>& aoranges = box.getAOranges();
-        const std::vector<const AOShell*> shells = box.getShells();
-        for (unsigned j = 0; j < box.Shellsize(); ++j) {
-          Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-              ao.segment(aoranges[j].start, aoranges[j].size);
-          shells[j]->EvalAOspace(ao_block, points[p]);
-        }
+        Eigen::VectorXd ao = CalcAOValues(box, points[p]);
         double rho = (ao.transpose() * DMAT_here * ao)(0, 0);
         box.addDensity(rho);
         N_box += rho * weights[p];
@@ -529,6 +493,19 @@ double NumericalIntegration::IntegrateDensity(
   }
   _density_set = true;
   return N;
+}
+
+Eigen::VectorXd NumericalIntegration::CalcAOValues(
+    const GridBox& box, const Eigen::Vector3d& pos) const {
+  const std::vector<GridboxRange>& aoranges = box.getAOranges();
+  const std::vector<const AOShell*> shells = box.getShells();
+  Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
+  for (unsigned j = 0; j < box.Shellsize(); ++j) {
+    Eigen::VectorBlock<Eigen::VectorXd> ao_block =
+        ao.segment(aoranges[j].start, aoranges[j].size);
+    shells[j]->EvalAOspace(ao_block, pos);
+  }
+  return ao;
 }
 
 Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
@@ -564,14 +541,7 @@ Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
       box.prepareDensity();
       // iterate over gridpoints
       for (unsigned p = 0; p < box.size(); p++) {
-        Eigen::VectorXd ao = Eigen::VectorXd::Zero(box.Matrixsize());
-        const std::vector<GridboxRange>& aoranges = box.getAOranges();
-        const std::vector<const AOShell*> shells = box.getShells();
-        for (unsigned j = 0; j < box.Shellsize(); ++j) {
-          Eigen::VectorBlock<Eigen::VectorXd> ao_block =
-              ao.segment(aoranges[j].start, aoranges[j].size);
-          shells[j]->EvalAOspace(ao_block, points[p]);
-        }
+        Eigen::VectorXd ao = CalcAOValues(box, points[p]);
         double rho = (ao.transpose() * DMAT_here * ao).value();
         box.addDensity(rho);
         N_box += rho * weights[p];
@@ -614,7 +584,7 @@ std::vector<const Eigen::Vector3d*> NumericalIntegration::getGridpoints()
 }
 
 Eigen::MatrixXd NumericalIntegration::IntegratePotential(
-    const AOBasis& externalbasis) {
+    const AOBasis& externalbasis) const {
   Eigen::MatrixXd Potential = Eigen::MatrixXd::Zero(
       externalbasis.AOBasisSize(), externalbasis.AOBasisSize());
 
@@ -638,7 +608,7 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(
 }
 
 Eigen::MatrixXd NumericalIntegration::CalcInverseAtomDist(
-    const QMMolecule& atoms) {
+    const QMMolecule& atoms) const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(atoms.size(), atoms.size());
 #pragma omp parallel for
   for (int i = 0; i < atoms.size(); ++i) {
@@ -654,7 +624,7 @@ Eigen::MatrixXd NumericalIntegration::CalcInverseAtomDist(
 int NumericalIntegration::UpdateOrder(LebedevGrid& sphericalgridofElement,
                                       int maxorder,
                                       std::vector<double>& PruningIntervals,
-                                      double r) {
+                                      double r) const {
   int order;
   int maxindex = sphericalgridofElement.getIndexFromOrder(maxorder);
   if (maxindex == 1) {
@@ -692,7 +662,8 @@ GridContainers::Cartesian_gridpoint
     NumericalIntegration::CreateCartesianGridpoint(
         const Eigen::Vector3d& atomA_pos,
         GridContainers::radial_grid& radial_grid,
-        GridContainers::spherical_grid& spherical_grid, int i_rad, int i_sph) {
+        GridContainers::spherical_grid& spherical_grid, int i_rad,
+        int i_sph) const {
   GridContainers::Cartesian_gridpoint gridpoint;
   double p = spherical_grid.phi[i_sph];
   double t = spherical_grid.theta[i_sph];
@@ -707,7 +678,7 @@ GridContainers::Cartesian_gridpoint
 
 Eigen::MatrixXd NumericalIntegration::CalcDistanceAtomsGridpoints(
     const QMMolecule& atoms,
-    std::vector<GridContainers::Cartesian_gridpoint>& atomgrid) {
+    std::vector<GridContainers::Cartesian_gridpoint>& atomgrid) const {
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(atoms.size(), atomgrid.size());
 #pragma omp parallel for
   for (int i = 0; i < atoms.size(); ++i) {
@@ -723,7 +694,7 @@ Eigen::MatrixXd NumericalIntegration::CalcDistanceAtomsGridpoints(
 void NumericalIntegration::SSWpartitionAtom(
     const QMMolecule& atoms,
     std::vector<GridContainers::Cartesian_gridpoint>& atomgrid, int i_atom,
-    const Eigen::MatrixXd& Rij) {
+    const Eigen::MatrixXd& Rij) const {
   Eigen::MatrixXd AtomGridDist = CalcDistanceAtomsGridpoints(atoms, atomgrid);
 
 #pragma omp parallel for schedule(guided)
@@ -745,7 +716,6 @@ void NumericalIntegration::SSWpartitionAtom(
 void NumericalIntegration::GridSetup(const std::string& type,
                                      const QMMolecule& atoms,
                                      const AOBasis& basis) {
-  _AOBasisSize = basis.AOBasisSize();
   GridContainers initialgrids;
   // get radial grid per element
   EulerMaclaurinGrid radialgridofElement;
@@ -816,8 +786,8 @@ void NumericalIntegration::GridSetup(const std::string& type,
   return;
 }
 
-Eigen::VectorXd NumericalIntegration::SSWpartition(const Eigen::VectorXd& rq_i,
-                                                   const Eigen::MatrixXd& Rij) {
+Eigen::VectorXd NumericalIntegration::SSWpartition(
+    const Eigen::VectorXd& rq_i, const Eigen::MatrixXd& Rij) const {
   const double ass = 0.725;
   // initialize partition vector to 1.0
   Eigen::VectorXd p = Eigen::VectorXd::Ones(rq_i.size());
@@ -851,7 +821,7 @@ Eigen::VectorXd NumericalIntegration::SSWpartition(const Eigen::VectorXd& rq_i,
   return p;
 }
 
-double NumericalIntegration::erf1c(double x) {
+double NumericalIntegration::erf1c(double x) const {
   const static double alpha_erf1 = 1.0 / 0.30;
   return 0.5 * std::erfc(std::abs(x / (1.0 - x * x)) * alpha_erf1);
 }
