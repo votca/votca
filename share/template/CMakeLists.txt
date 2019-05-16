@@ -1,5 +1,3 @@
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
 foreach(PROG template_serial template_threaded)
   file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})

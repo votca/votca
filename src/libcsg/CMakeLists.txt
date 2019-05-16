@@ -28,7 +28,11 @@ else(HDF5_FOUND)
 endif(HDF5_FOUND)
 
 configure_file(votca_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/votca_config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+#CMAKE_CURRENT_BINARY_DIR for gitversion.h /votca_config.h
+target_include_directories(votca_csg PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+  PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_custom_target(gitversion-csg COMMAND ${CMAKE_COMMAND}
   -DTOP_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
