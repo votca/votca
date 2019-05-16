@@ -69,6 +69,14 @@ endif()
 ########################################################################
 #Find external packages
 ########################################################################
+
+#neat trick to not call find_package(VOTCA_*)
+macro(find_package)
+  if(NOT "${ARGV0}" MATCHES "^VOTCA_")
+    _find_package(${ARGV})
+  endif()
+endmacro()
+
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
@@ -78,10 +86,6 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 ######################################
 add_subdirectory(tools)
 set(ENABLED_VOTCA_PACKAGES tools)
-set(VOTCA_TOOLS_LIBRARY votca_tools CACHE STRING "tools library name")
-set(VOTCA_TOOLS_INCLUDE_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include"
-  CACHE PATH "tools include path")
 set(VOTCA_COMPARE ${CMAKE_BINARY_DIR}/tools/scripts/votca_compare)
 add_subdirectory(csg)
 list(APPEND ENABLED_VOTCA_PACKAGES csg)
