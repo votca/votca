@@ -125,9 +125,6 @@ add_subdirectory(src)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
 
-file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake)
-install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/template/CMakeModules)
-
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
