@@ -67,12 +67,6 @@ endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
-set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
-foreach(_blib ${Boost_LIBRARIES})
-  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
-  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
-endforeach(_blib)
 
 find_package(VOTCA_TOOLS REQUIRED)
 include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})

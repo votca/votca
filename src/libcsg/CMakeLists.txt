@@ -42,6 +42,3 @@ add_dependencies(votca_csg gitversion-csg)
 set_target_properties(votca_csg PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_csg PUBLIC ${VOTCA_TOOLS_LIBRARIES} ${Boost_LIBRARIES} PRIVATE ${GROMACS_LIBRARIES}  ${MKL_LIBRARIES} ${THREAD_LIBRARIES} ${HDF5_LIBRARIES})
 install(TARGETS votca_csg LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-configure_file(libvotca_csg.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libvotca_csg.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
