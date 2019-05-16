@@ -46,13 +46,9 @@ void Density2Gyration::Initialize(tools::Property& options) {
 }
 
 void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
-  int threads = 1;
-#ifdef _OPENMP
-  if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
-  threads = omp_get_max_threads();
-#endif
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << "===== Running on " << threads << " threads ===== " << flush;
+  OPENMP::setMaxThreads(_openmp_threads);
+  XTP_LOG_SAVE(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
+                               << " threads ===== " << flush;
 
   const QMMolecule& Atomlist = orbitals.QMAtoms();
   Eigen::MatrixXd DMAT_tot;

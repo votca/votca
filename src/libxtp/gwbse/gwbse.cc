@@ -511,8 +511,8 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
         << TimeStamp() << " Integrating Vxc in VOTCA with functional "
         << _functional << flush;
     Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
-    NumericalIntegration::E_Vxc e_vxc_ao = numint.IntegrateVXC(DMAT);
-    vxc_ao = e_vxc_ao.Vxc;
+    Mat_p_Energy e_vxc_ao = numint.IntegrateVXC(DMAT);
+    vxc_ao = e_vxc_ao.matrix();
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
 
@@ -540,14 +540,10 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
 
 bool GWBSE::Evaluate() {
 
-// set the parallelization
-#ifdef _OPENMP
-  if (_openmp_threads > 0) {
-    omp_set_num_threads(_openmp_threads);
-    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
-                              << omp_get_max_threads() << " threads" << flush;
-  }
-#endif
+  // set the parallelization
+  OPENMP::setMaxThreads(_openmp_threads);
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
+                            << OPENMP::getMaxThreads() << " threads" << flush;
 
   if (tools::globals::VOTCA_MKL) {
     XTP_LOG(logDEBUG, *_pLog)

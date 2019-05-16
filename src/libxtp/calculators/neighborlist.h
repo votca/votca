@@ -28,10 +28,6 @@
 #include <votca/xtp/qmnblist.h>
 #include <votca/xtp/topology.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 namespace votca {
 namespace xtp {
 

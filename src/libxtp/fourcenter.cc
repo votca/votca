@@ -58,15 +58,7 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 
           tensor4d block(extents[range(0, NumFunc_1)][range(0, NumFunc_2)]
                                 [range(0, NumFunc_3)][range(0, NumFunc_4)]);
-          for (int i = 0; i < shell_1.getNumFunc(); ++i) {
-            for (int j = 0; j < shell_2.getNumFunc(); ++j) {
-              for (int k = 0; k < shell_3.getNumFunc(); ++k) {
-                for (int l = 0; l < shell_4.getNumFunc(); ++l) {
-                  block[i][j][k][l] = 0.0;
-                }
-              }
-            }
-          }
+          std::fill_n(block.data(), block.num_elements(), 0.0);
           bool nonzero =
               FillFourCenterRepBlock(block, shell_1, shell_2, shell_3, shell_4);
 

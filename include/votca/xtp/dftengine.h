@@ -46,8 +46,6 @@ class DFTEngine {
 
   void Initialize(tools::Property& options);
 
-  void CleanUp();
-
   void setLogger(Logger* pLog) { _pLog = pLog; }
 
   void setExternalcharges(
@@ -66,21 +64,22 @@ class DFTEngine {
   Eigen::MatrixXd OrthogonalizeGuess(const Eigen::MatrixXd& GuessMOs) const;
   void PrintMOs(const Eigen::VectorXd& MOEnergies);
   void CalcElDipole() const;
-  void CalculateERIs(const AOBasis& dftbasis, const Eigen::MatrixXd& DMAT);
+  Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalcEXXs(const Eigen::MatrixXd& MOs,
+                        const Eigen::MatrixXd& DMAT) const;
   void ConfigOrbfile();
   void SetupInvariantMatrices();
-  Eigen::MatrixXd AtomicGuess();
+  Eigen::MatrixXd AtomicGuess() const;
   std::string ReturnSmallGrid(const std::string& largegrid);
 
-  Eigen::MatrixXd IntegrateExternalDensity(const Orbitals& extdensity);
+  Mat_p_Energy IntegrateExternalDensity(const Orbitals& extdensity) const;
 
-  Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom);
+  Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
 
-  void NuclearRepulsion();
-  double ExternalRepulsion();
+  double NuclearRepulsion() const;
+  double ExternalRepulsion() const;
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
-                                         AOBasis& dftbasis);
-
+                                         const AOBasis& dftbasis) const;
   Logger* _pLog;
 
   int _openmp_threads;
@@ -115,8 +114,6 @@ class DFTEngine {
   NumericalIntegration _gridIntegration;
   NumericalIntegration _gridIntegration_small;
 
-  Eigen::MatrixXd _dftAOdmat;
-
   // AO Matrices
   AOOverlap _dftAOoverlap;
   AOKinetic _dftAOkinetic;
@@ -125,7 +122,6 @@ class DFTEngine {
   AODipole_Potential _dftAODipole_Potential;
   AOQuadrupole_Potential _dftAOQuadrupole_Potential;
   AOPlanewave _dftAOplanewave;
-  double _E_nucnuc;
 
   bool _with_guess;
   std::string _initial_guess;

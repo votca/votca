@@ -163,12 +163,10 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      Orbitals& orbitalsAB) {
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "  Calculating exciton couplings" << flush;
-#ifdef _OPENMP
-
-  if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using " << omp_get_max_threads()
-                            << " threads" << flush;
-#endif
+  // set the parallelization
+  OPENMP::setMaxThreads(_openmp_threads);
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
+                            << OPENMP::getMaxThreads() << " threads" << flush;
 
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 

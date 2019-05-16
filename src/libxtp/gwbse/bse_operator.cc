@@ -46,10 +46,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::row(int index) const {
 
 template <int cqp, int cx, int cd, int cd2>
 Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
-  int thread_id = 0;
-#ifdef _OPENMP
-  thread_id = omp_get_thread_num();
-#endif
+  int thread_id = OPENMP::getThreadId();
   if (_Hx_cache[thread_id].hasValue(index)) {
     return _Hx_cache[thread_id].getValue(index);
   }

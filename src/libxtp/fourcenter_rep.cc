@@ -40,7 +40,7 @@ namespace xtp {
 bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                                       const AOShell& shell_2,
                                       const AOShell& shell_3,
-                                      const AOShell& shell_4) {
+                                      const AOShell& shell_4) const {
 
   const double pi = boost::math::constants::pi<double>();
 

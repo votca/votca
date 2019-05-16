@@ -36,29 +36,23 @@ namespace xtp {
 class ERIs {
 
  public:
-  void Initialize(AOBasis& _dftbasis, AOBasis& _auxbasis);
-  void Initialize_4c_small_molecule(AOBasis& _dftbasis);
-  void Initialize_4c_screening(AOBasis& _dftbasis,
+  void Initialize(const AOBasis& dftbasis, const AOBasis& auxbasis);
+  void Initialize_4c_small_molecule(const AOBasis& dftbasis);
+  void Initialize_4c_screening(const AOBasis& dftbasis,
                                double eps);  // Pre-screening
 
-  const Eigen::MatrixXd& getEXX() const { return _EXXs; }
+  Mat_p_Energy CalculateERIs(const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateEXX(const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateEXX(const Eigen::MatrixXd& occMos,
+                            const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateERIs_4c_small_molecule(
+      const Eigen::MatrixXd& DMAT) const;
+  Mat_p_Energy CalculateEXX_4c_small_molecule(
+      const Eigen::MatrixXd& DMAT) const;
 
-  const Eigen::MatrixXd& getERIs() const { return _ERIs; }
-  double& getERIsenergy() { return _ERIsenergy; }
-  double& getEXXsenergy() { return _EXXsenergy; }
+  Mat_p_Energy CalculateERIs_4c_direct(const AOBasis& dftbasis,
+                                       const Eigen::MatrixXd& DMAT) const;
 
-  void CalculateERIs(const Eigen::MatrixXd& DMAT);
-  void CalculateEXX(const Eigen::MatrixXd& DMAT);
-  void CalculateEXX(const Eigen::Block<Eigen::MatrixXd>& occMos,
-                    const Eigen::MatrixXd& DMAT);
-  void CalculateERIs_4c_small_molecule(const Eigen::MatrixXd& DMAT);
-  void CalculateEXX_4c_small_molecule(const Eigen::MatrixXd& DMAT);
-
-  void CalculateERIs_4c_direct(const AOBasis& dftbasis,
-                               const Eigen::MatrixXd& DMAT);
-
-  int getSize1() { return _ERIs.rows(); }
-  int getSize2() { return _ERIs.cols(); }
   int Removedfunctions() const { return _threecenter.Removedfunctions(); }
 
  private:
@@ -70,24 +64,18 @@ class ERIs {
   void CalculateERIsDiagonals(const AOBasis& dftbasis);
 
   bool CheckScreen(double eps, const AOShell& shell_1, const AOShell& shell_2,
-                   const AOShell& shell_3, const AOShell& shell_4);
+                   const AOShell& shell_3, const AOShell& shell_4) const;
 
   TCMatrix_dft _threecenter;
   FCMatrix _fourcenter;
 
-  Eigen::MatrixXd _ERIs;
-  Eigen::MatrixXd _EXXs;
-
-  double _ERIsenergy;
-  double _EXXsenergy;
-
-  void CalculateEnergy(const Eigen::MatrixXd& DMAT);
-  void CalculateEXXEnergy(const Eigen::MatrixXd& DMAT);
-
+  double CalculateEnergy(const Eigen::MatrixXd& DMAT,
+                         const Eigen::MatrixXd& matrix_operator) const;
+  template <bool transposed_block>
   void FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
                      const tensor4d& block, const AOShell& shell_1,
                      const AOShell& shell_2, const AOShell& shell_3,
-                     const AOShell& shell_4);
+                     const AOShell& shell_4) const;
 };
 
 }  // namespace xtp

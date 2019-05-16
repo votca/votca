@@ -39,11 +39,11 @@ class FCMatrix {
  public:
   void Fill_4c_small_molecule(const AOBasis& dftbasis);
 
-  const Eigen::VectorXd& get_4c_vector() { return _4c_vector; }
+  const Eigen::VectorXd& get_4c_vector() const { return _4c_vector; }
 
   bool FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                               const AOShell& shell_2, const AOShell& shell_3,
-                              const AOShell& shell_4);
+                              const AOShell& shell_4) const;
 
  private:
   Eigen::VectorXd _4c_vector;

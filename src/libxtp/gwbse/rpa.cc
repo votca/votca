@@ -54,13 +54,9 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   for (int m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
 
-#if (GWBSE_DOUBLE)
     const Eigen::MatrixXd Mmn_RPA =
         _Mmn[m_level].block(n_occ, 0, n_unocc, size);
-#else
-    const Eigen::MatrixXd Mmn_RPA =
-        _Mmn[m_level].block(n_occ, 0, n_unocc, size).cast<double>();
-#endif
+
     const Eigen::ArrayXd deltaE =
         _energies.segment(n_occ, n_unocc).array() - qp_energy_m;
     Eigen::VectorXd denom;

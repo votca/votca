@@ -167,11 +167,25 @@ void DFTEngine::CalcElDipole() const {
   return;
 }
 
+Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
+                                 const Eigen::MatrixXd& Dmat) const {
+  if (_with_RI) {
+    if (_conv_accelerator.getUseMixing()) {
+      return _ERIs.CalculateEXX(Dmat);
+    } else {
+      Eigen::MatrixXd occblock =
+          MOCoeff.block(0, 0, MOCoeff.rows(), _numofelectrons / 2);
+      return _ERIs.CalculateEXX(occblock, Dmat);
+    }
+  } else {
+    return _ERIs.CalculateEXX_4c_small_molecule(Dmat);
+  }
+}
+
 bool DFTEngine::Evaluate() {
   // set the parallelization
-#ifdef _OPENMP
-  omp_set_num_threads(_openmp_threads);
-#endif
+
+  OPENMP::setMaxThreads(_openmp_threads);
 
   Eigen::VectorXd& MOEnergies = _orbitals.MOEnergies();
   Eigen::MatrixXd& MOCoeff = _orbitals.MOCoefficients();
@@ -188,7 +202,7 @@ bool DFTEngine::Evaluate() {
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Constructed independent particle hamiltonian "
       << flush;
-  NuclearRepulsion();
+  double E_nucnuc = NuclearRepulsion();
   if (_with_ecp) {
     H0 += _dftAOECP.Matrix();
   }
@@ -199,65 +213,61 @@ bool DFTEngine::Evaluate() {
     double estat = ExternalRepulsion();
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " E_electrostatic " << estat << flush;
-    _E_nucnuc += estat;
+    E_nucnuc += estat;
   }
 
   if (_integrate_ext_density) {
     Orbitals extdensity;
     extdensity.ReadFromCpt(_orbfilename);
-    H0 += IntegrateExternalDensity(extdensity);
+    Mat_p_Energy extdensity_result = IntegrateExternalDensity(extdensity);
+    E_nucnuc += extdensity_result.energy();
+    H0 += extdensity_result.matrix();
   }
 
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << " Nuclear Repulsion Energy is " << _E_nucnuc << flush;
-
+      << TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
+  Eigen::MatrixXd Dmat;
   if (_with_guess) {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Reading guess from orbitals object/file" << flush;
     _orbitals.MOCoefficients() = OrthogonalizeGuess(_orbitals.MOCoefficients());
-    _dftAOdmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
+    Dmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
   } else {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Setup Initial Guess using: " << _initial_guess
         << flush;
     if (_initial_guess == "independent") {
       _conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H0);
-      _dftAOdmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
+      Dmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
 
     } else if (_initial_guess == "atom") {
-      _dftAOdmat = AtomicGuess();
-      CalculateERIs(_dftbasis, _dftAOdmat);
+      Dmat = AtomicGuess();
+      Mat_p_Energy ERIs = CalculateERIs(Dmat);
 
       if (_use_small_grid) {
-        NumericalIntegration::E_Vxc e_vxc =
-            _gridIntegration_small.IntegrateVXC(_dftAOdmat);
-        _orbitals.AOVxc() = e_vxc.Vxc;
+        Mat_p_Energy e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
+        _orbitals.AOVxc() = e_vxc.matrix();
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
       } else {
-        NumericalIntegration::E_Vxc e_vxc =
-            _gridIntegration.IntegrateVXC(_dftAOdmat);
-        _orbitals.AOVxc() = e_vxc.Vxc;
+        Mat_p_Energy e_vxc = _gridIntegration.IntegrateVXC(Dmat);
+        _orbitals.AOVxc() = e_vxc.matrix();
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled DFT Vxc matrix " << flush;
       }
-      Eigen::MatrixXd H = H0 + _ERIs.getERIs() + _orbitals.AOVxc();
+      Eigen::MatrixXd H = H0 + ERIs.matrix() + _orbitals.AOVxc();
       if (_ScaHFX > 0) {
-        if (_with_RI) {
-          _ERIs.CalculateEXX(_dftAOdmat);
-        } else {
-          _ERIs.CalculateEXX_4c_small_molecule(_dftAOdmat);
-        }
-        H -= 0.5 * _ScaHFX * _ERIs.getEXX();
+        Mat_p_Energy EXXs = CalcEXXs(MOCoeff, Dmat);
+        H -= 0.5 * _ScaHFX * EXXs.matrix();
       }
       _conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H);
-      _dftAOdmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
+      Dmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
 
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp()
           << " Full atomic density Matrix gives N=" << std::setprecision(9)
-          << _dftAOdmat.cwiseProduct(_dftAOoverlap.Matrix()).sum()
-          << " electrons." << flush;
+          << Dmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons."
+          << flush;
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
@@ -275,45 +285,32 @@ bool DFTEngine::Evaluate() {
 
     double vxcenergy = 0.0;
     if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
-      NumericalIntegration::E_Vxc e_vxc =
-          _gridIntegration_small.IntegrateVXC(_dftAOdmat);
-      _orbitals.AOVxc() = e_vxc.Vxc;
-      vxcenergy = e_vxc.Exc;
+      Mat_p_Energy e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
+      _orbitals.AOVxc() = e_vxc.matrix();
+      vxcenergy = e_vxc.energy();
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
     } else {
-      NumericalIntegration::E_Vxc e_vxc =
-          _gridIntegration.IntegrateVXC(_dftAOdmat);
-      _orbitals.AOVxc() = e_vxc.Vxc;
-      vxcenergy = e_vxc.Exc;
+      Mat_p_Energy e_vxc = _gridIntegration.IntegrateVXC(Dmat);
+      _orbitals.AOVxc() = e_vxc.matrix();
+      vxcenergy = e_vxc.energy();
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled DFT Vxc matrix " << flush;
     }
-    CalculateERIs(_dftbasis, _dftAOdmat);
-    Eigen::MatrixXd H = H0 + _ERIs.getERIs() + _orbitals.AOVxc();
+    Mat_p_Energy ERIs = CalculateERIs(Dmat);
+    Eigen::MatrixXd H = H0 + ERIs.matrix() + _orbitals.AOVxc();
+    double Eone = Dmat.cwiseProduct(H0).sum();
+    double Etwo = 0.5 * ERIs.energy() + vxcenergy;
+    double exx = 0.0;
     if (_ScaHFX > 0) {
-      if (_with_RI) {
-        if (_conv_accelerator.getUseMixing()) {
-          _ERIs.CalculateEXX(_dftAOdmat);
-        } else {
-          Eigen::Block<Eigen::MatrixXd> occblock =
-              MOCoeff.block(0, 0, MOEnergies.rows(), _numofelectrons / 2);
-          _ERIs.CalculateEXX(occblock, _dftAOdmat);
-        }
-      } else {
-        _ERIs.CalculateEXX_4c_small_molecule(_dftAOdmat);
-      }
+      Mat_p_Energy EXXs = CalcEXXs(MOCoeff, Dmat);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled DFT Electron exchange matrix" << flush;
-      H -= 0.5 * _ScaHFX * _ERIs.getEXX();
+      H -= 0.5 * _ScaHFX * EXXs.matrix();
+      exx = -_ScaHFX / 4 * EXXs.energy();
     }
-
-    double Eone = _dftAOdmat.cwiseProduct(H0).sum();
-    double Etwo = 0.5 * _ERIs.getERIsenergy() + vxcenergy;
-    if (_ScaHFX > 0) {
-      Etwo -= _ScaHFX / 4 * _ERIs.getEXXsenergy();
-    }
-    double totenergy = Eone + _E_nucnuc + Etwo;
+    Etwo += exx;
+    double totenergy = Eone + E_nucnuc + Etwo;
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Single particle energy "
                               << std::setprecision(12) << Eone << flush;
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Two particle energy "
@@ -324,14 +321,12 @@ bool DFTEngine::Evaluate() {
     if (_ScaHFX > 0) {
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << std::setprecision(12)
-          << " Non local Ex contribution "
-          << -_ScaHFX / 4 * _ERIs.getEXXsenergy() << flush;
+          << " Non local Ex contribution " << exx << flush;
     }
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Total Energy "
                               << std::setprecision(12) << totenergy << flush;
 
-    _dftAOdmat = _conv_accelerator.Iterate(_dftAOdmat, H, MOEnergies, MOCoeff,
-                                           totenergy);
+    Dmat = _conv_accelerator.Iterate(Dmat, H, MOEnergies, MOCoeff, totenergy);
 
     if (tools::globals::verbose) {
       PrintMOs(MOEnergies);
@@ -470,7 +465,8 @@ void DFTEngine::SetupInvariantMatrices() {
   return;
 }
 
-Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) {
+Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
+    const QMAtom& uniqueAtom) const {
   bool with_ecp = _with_ecp;
   if (uniqueAtom.getElement() == "H" || uniqueAtom.getElement() == "He") {
     with_ecp = false;
@@ -562,37 +558,36 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) {
 
   int maxiter = 80;
   for (int this_iter = 0; this_iter < maxiter; this_iter++) {
-    ERIs_atom.CalculateERIs_4c_small_molecule(dftAOdmat_alpha + dftAOdmat_beta);
-    double E_two_alpha =
-        ERIs_atom.getERIs().cwiseProduct(dftAOdmat_alpha).sum();
-    double E_two_beta = ERIs_atom.getERIs().cwiseProduct(dftAOdmat_beta).sum();
-    Eigen::MatrixXd H_alpha = H0 + ERIs_atom.getERIs();
-    Eigen::MatrixXd H_beta = H0 + ERIs_atom.getERIs();
+    Mat_p_Energy ERIs = ERIs_atom.CalculateERIs_4c_small_molecule(
+        dftAOdmat_alpha + dftAOdmat_beta);
+    double E_two_alpha = ERIs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
+    double E_two_beta = ERIs.matrix().cwiseProduct(dftAOdmat_beta).sum();
+    Eigen::MatrixXd H_alpha = H0 + ERIs.matrix();
+    Eigen::MatrixXd H_beta = H0 + ERIs.matrix();
 
-    NumericalIntegration::E_Vxc e_vxc =
-        gridIntegration.IntegrateVXC(dftAOdmat_alpha);
-    Eigen::MatrixXd AOVxc_alpha = e_vxc.Vxc;
-    double E_vxc_alpha = e_vxc.Exc;
+    Mat_p_Energy e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_alpha);
+    Eigen::MatrixXd AOVxc_alpha = e_vxc.matrix();
+    double E_vxc_alpha = e_vxc.energy();
     H_alpha += AOVxc_alpha;
     E_two_alpha += E_vxc_alpha;
 
     e_vxc = gridIntegration.IntegrateVXC(dftAOdmat_beta);
-    Eigen::MatrixXd AOVxc_beta = e_vxc.Vxc;
-    double E_vxc_beta = e_vxc.Exc;
+    Eigen::MatrixXd AOVxc_beta = e_vxc.matrix();
+    double E_vxc_beta = e_vxc.energy();
     H_beta += AOVxc_beta;
     E_two_beta += E_vxc_beta;
 
     if (_ScaHFX > 0) {
-      ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
+      Mat_p_Energy EXXs =
+          ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_alpha);
       double E_exx_alpha =
-          -0.5 * _ScaHFX *
-          ERIs_atom.getEXX().cwiseProduct(dftAOdmat_alpha).sum();
-      H_alpha -= _ScaHFX * ERIs_atom.getEXX();
+          -0.5 * _ScaHFX * EXXs.matrix().cwiseProduct(dftAOdmat_alpha).sum();
+      H_alpha -= _ScaHFX * EXXs.matrix();
       E_two_alpha += E_exx_alpha;
       ERIs_atom.CalculateEXX_4c_small_molecule(dftAOdmat_beta);
-      double E_exx_beta = -0.5 * _ScaHFX *
-                          ERIs_atom.getEXX().cwiseProduct(dftAOdmat_beta).sum();
-      H_beta -= _ScaHFX * ERIs_atom.getEXX();
+      double E_exx_beta =
+          -0.5 * _ScaHFX * EXXs.matrix().cwiseProduct(dftAOdmat_beta).sum();
+      H_beta -= _ScaHFX * EXXs.matrix();
       E_two_beta += E_exx_beta;
     }
 
@@ -648,7 +643,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) {
   return avgmatrix;
 }
 
-Eigen::MatrixXd DFTEngine::AtomicGuess() {
+Eigen::MatrixXd DFTEngine::AtomicGuess() const {
 
   QMMolecule uniqueelements = QMMolecule("uniqueelements", 0);
 
@@ -763,13 +758,10 @@ void DFTEngine::ConfigOrbfile() {
 }
 
 void DFTEngine::Prepare() {
-#ifdef _OPENMP
+  OPENMP::setMaxThreads(_openmp_threads);
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
+                            << OPENMP::getMaxThreads() << " threads" << flush;
 
-  omp_set_num_threads(_openmp_threads);
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using " << omp_get_max_threads()
-                            << " threads" << flush;
-
-#endif
   if (tools::globals::VOTCA_MKL) {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Using MKL overload for Eigen " << flush;
@@ -856,7 +848,7 @@ void DFTEngine::Prepare() {
         << flush;
   }
 
-  for (auto& atom : _orbitals.QMAtoms()) {
+  for (const QMAtom& atom : _orbitals.QMAtoms()) {
     _numofelectrons += atom.getNuccharge();
   }
 
@@ -871,8 +863,8 @@ void DFTEngine::Prepare() {
   return;
 }
 
-void DFTEngine::NuclearRepulsion() {
-  _E_nucnuc = 0.0;
+double DFTEngine::NuclearRepulsion() const {
+  double E_nucnuc = 0.0;
 
   for (int i = 0; i < _orbitals.QMAtoms().size(); i++) {
     const Eigen::Vector3d& r1 = _orbitals.QMAtoms()[i].getPos();
@@ -880,13 +872,13 @@ void DFTEngine::NuclearRepulsion() {
     for (int j = 0; j < i; j++) {
       const Eigen::Vector3d& r2 = _orbitals.QMAtoms()[j].getPos();
       double charge2 = _orbitals.QMAtoms()[j].getNuccharge();
-      _E_nucnuc += charge1 * charge2 / (r1 - r2).norm();
+      E_nucnuc += charge1 * charge2 / (r1 - r2).norm();
     }
   }
-  return;
+  return E_nucnuc;
 }
 
-double DFTEngine::ExternalRepulsion() {
+double DFTEngine::ExternalRepulsion() const {
 
   if (_externalsites->size() == 0) {
     return 0;
@@ -926,8 +918,8 @@ string DFTEngine::ReturnSmallGrid(const string& largegrid) {
 
 // average atom densities matrices, for SP and other combined shells average
 // each subshell separately.
-Eigen::MatrixXd DFTEngine::SphericalAverageShells(const Eigen::MatrixXd& dmat,
-                                                  AOBasis& dftbasis) {
+Eigen::MatrixXd DFTEngine::SphericalAverageShells(
+    const Eigen::MatrixXd& dmat, const AOBasis& dftbasis) const {
   Eigen::MatrixXd avdmat = Eigen::MatrixXd::Zero(dmat.rows(), dmat.cols());
   int start = 0.0;
   std::vector<int> starts;
@@ -987,12 +979,11 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(const Eigen::MatrixXd& dmat,
       }
     }
   }
-
   return avdmat;
 }
 
-Eigen::MatrixXd DFTEngine::IntegrateExternalDensity(
-    const Orbitals& extdensity) {
+Mat_p_Energy DFTEngine::IntegrateExternalDensity(
+    const Orbitals& extdensity) const {
   BasisSet basis;
   basis.LoadBasisSet(extdensity.getDFTbasisName());
   AOBasis aobasis;
@@ -1023,19 +1014,19 @@ Eigen::MatrixXd DFTEngine::IntegrateExternalDensity(
       << TimeStamp() << " Calculated potential from nuclei" << flush;
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Elelctrostatic: " << nuc_energy << flush;
-  _E_nucnuc += nuc_energy;
-  return e_contrib + esp.getNuclearpotential();
+  return Mat_p_Energy(nuc_energy, e_contrib + esp.getNuclearpotential());
 }
 
-void DFTEngine::CalculateERIs(const AOBasis& dftbasis,
-                              const Eigen::MatrixXd& DMAT) {
-
-  if (_with_RI)
-    _ERIs.CalculateERIs(_dftAOdmat);
-  else if (_four_center_method.compare("cache") == 0)
-    _ERIs.CalculateERIs_4c_small_molecule(_dftAOdmat);
-  else if (_four_center_method.compare("direct") == 0)
-    _ERIs.CalculateERIs_4c_direct(_dftbasis, _dftAOdmat);
+Mat_p_Energy DFTEngine::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
+  if (_with_RI) {
+    return _ERIs.CalculateERIs(DMAT);
+  } else if (_four_center_method == "cache") {
+    return _ERIs.CalculateERIs_4c_small_molecule(DMAT);
+  } else if (_four_center_method == "direct") {
+    return _ERIs.CalculateERIs_4c_direct(_dftbasis, DMAT);
+  } else {
+    throw std::runtime_error("ERI method not known.");
+  }
 }
 
 Eigen::MatrixXd DFTEngine::OrthogonalizeGuess(

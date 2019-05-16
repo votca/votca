@@ -137,12 +137,8 @@ void Esp2multipole::PrintDipoles(Orbitals& orbitals) {
 }
 
 void Esp2multipole::Extractingcharges(Orbitals& orbitals) {
-  int threads = 1;
-#ifdef _OPENMP
-  if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
-  threads = omp_get_max_threads();
-#endif
-  XTP_LOG(logDEBUG, _log) << "===== Running on " << threads
+  OPENMP::setMaxThreads(_openmp_threads);
+  XTP_LOG(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
                           << " threads ===== " << flush;
 
   if (_use_mulliken) {

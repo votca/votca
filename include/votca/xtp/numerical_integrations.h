@@ -68,7 +68,7 @@ class NumericalIntegration {
     double Exc;
   };
 
-  E_Vxc IntegrateVXC(const Eigen::MatrixXd& density_matrix);
+  Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix);
 
  private:
   struct XC_entry {

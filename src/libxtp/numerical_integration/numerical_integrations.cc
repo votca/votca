@@ -200,9 +200,6 @@ void NumericalIntegration::SortGridpointsintoBlocks(
     std::vector<std::vector<GridContainers::Cartesian_gridpoint> >& grid) {
   const double boxsize = 1;  // 1 bohr
 
-  std::vector<std::vector<
-      std::vector<std::vector<GridContainers::Cartesian_gridpoint*> > > >
-      boxes;
   Eigen::Vector3d min =
       Eigen::Vector3d::Ones() * std::numeric_limits<double>::max();
   Eigen::Vector3d max =
@@ -235,6 +232,9 @@ void NumericalIntegration::SortGridpointsintoBlocks(
                                   std::ceil(numberofboxes[1]),
                                   std::ceil(numberofboxes[2]));
 
+  std::vector<std::vector<
+      std::vector<std::vector<GridContainers::Cartesian_gridpoint*> > > >
+      boxes;
   // creating temparray
   for (unsigned i = 0; i < unsigned(roundednumofbox[0]); i++) {
     std::vector<
@@ -333,16 +333,11 @@ void NumericalIntegration::FindSignificantShells(const AOBasis& basis) {
     return sizes[i1] > sizes[i2];
   });
 
-  unsigned nthreads = 1;
-#ifdef _OPENMP
-  nthreads = omp_get_max_threads();
-#endif
+  int nthreads = OPENMP::getMaxThreads();
   std::vector<unsigned> scores = std::vector<unsigned>(nthreads, 0);
-  std::vector<std::vector<unsigned> > indices;
-  for (unsigned i = 0; i < nthreads; ++i) {
-    std::vector<unsigned> thread_box_indices;
-    indices.push_back(thread_box_indices);
-  }
+  std::vector<std::vector<unsigned> > indices =
+      std::vector<std::vector<unsigned> >(nthreads);
+
   for (const auto index : indexes) {
     unsigned thread = 0;
     unsigned minimum = std::numeric_limits<unsigned>::max();
@@ -393,24 +388,18 @@ Eigen::VectorXd NumericalIntegration::CalcAOValue_and_Grad(
   return ao;
 }
 
-NumericalIntegration::E_Vxc NumericalIntegration::IntegrateVXC(
+Mat_p_Energy NumericalIntegration::IntegrateVXC(
     const Eigen::MatrixXd& density_matrix) {
-  Eigen::MatrixXd Vxc =
-      Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols());
-  double EXC = 0;
-  unsigned nthreads = 1;
-#ifdef _OPENMP
-  nthreads = omp_get_max_threads();
-#endif
-  std::vector<Eigen::MatrixXd> vxc_thread;
+
+  int nthreads = OPENMP::getMaxThreads();
+
+  std::vector<Eigen::MatrixXd> vxc_thread = std::vector<Eigen::MatrixXd>(
+      nthreads,
+      Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols()));
   std::vector<double> Exc_thread = std::vector<double>(nthreads, 0.0);
-  for (unsigned i = 0; i < nthreads; ++i) {
-    vxc_thread.push_back(
-        Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols()));
-  }
 
 #pragma omp parallel for
-  for (unsigned thread = 0; thread < nthreads; ++thread) {
+  for (int thread = 0; thread < nthreads; ++thread) {
     for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
 
       double EXC_box = 0.0;
@@ -448,28 +437,25 @@ NumericalIntegration::E_Vxc NumericalIntegration::IntegrateVXC(
       Exc_thread[thread] += EXC_box;
     }
   }
-  for (unsigned i = 0; i < nthreads; ++i) {
-    Vxc += vxc_thread[i];
-    EXC += Exc_thread[i];
-  }
 
-  NumericalIntegration::E_Vxc result;
-  result.Vxc = Vxc + Vxc.transpose();
-  result.Exc = EXC;
-  return result;
+  double EXC = std::accumulate(Exc_thread.begin(), Exc_thread.end(), 0.0);
+  Eigen::MatrixXd Vxc = std::accumulate(
+      vxc_thread.begin(), vxc_thread.end(),
+      Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols())
+          .eval());
+
+  Mat_p_Energy Oxc(EXC, Vxc + Vxc.transpose());
+  return Oxc;
 }
 
 double NumericalIntegration::IntegrateDensity(
     const Eigen::MatrixXd& density_matrix) {
-  double N = 0;
-  unsigned nthreads = 1;
-#ifdef _OPENMP
-  nthreads = omp_get_max_threads();
-#endif
+
+  int nthreads = OPENMP::getMaxThreads();
   std::vector<double> N_thread = std::vector<double>(nthreads, 0.0);
 
 #pragma omp parallel for
-  for (unsigned thread = 0; thread < nthreads; ++thread) {
+  for (int thread = 0; thread < nthreads; ++thread) {
     for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
 
       double N_box = 0.0;
@@ -488,9 +474,7 @@ double NumericalIntegration::IntegrateDensity(
       N_thread[thread] += N_box;
     }
   }
-  for (unsigned i = 0; i < nthreads; ++i) {
-    N += N_thread[i];
-  }
+  double N = std::accumulate(N_thread.begin(), N_thread.end(), 0.0);
   _density_set = true;
   return N;
 }
@@ -510,26 +494,16 @@ Eigen::VectorXd NumericalIntegration::CalcAOValues(
 
 Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
     const Eigen::MatrixXd& density_matrix) {
-  double N = 0;
-  Eigen::Vector3d centroid = Eigen::Vector3d::Zero();
-  Eigen::Matrix3d gyration = Eigen::Matrix3d::Zero();
-  unsigned nthreads = 1;
-#ifdef _OPENMP
-  nthreads = omp_get_max_threads();
-#endif
+
+  int nthreads = OPENMP::getMaxThreads();
   std::vector<double> N_thread = std::vector<double>(nthreads, 0.0);
-  // centroid
-  std::vector<Eigen::Vector3d> centroid_thread;
-  std::vector<Eigen::Matrix3d> gyration_thread;
-  for (unsigned thread = 0; thread < nthreads; ++thread) {
-    Eigen::Vector3d tempvec = Eigen::Vector3d::Zero();
-    centroid_thread.push_back(tempvec);
-    Eigen::Matrix3d tempmatrix = Eigen::Matrix3d::Zero();
-    gyration_thread.push_back(tempmatrix);
-  }
+  std::vector<Eigen::Vector3d> centroid_thread =
+      std::vector<Eigen::Vector3d>(nthreads, Eigen::Vector3d::Zero());
+  std::vector<Eigen::Matrix3d> gyration_thread =
+      std::vector<Eigen::Matrix3d>(nthreads, Eigen::Matrix3d::Zero());
 
 #pragma omp parallel for
-  for (unsigned thread = 0; thread < nthreads; ++thread) {
+  for (int thread = 0; thread < nthreads; ++thread) {
     for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
       double N_box = 0.0;
       Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
@@ -553,11 +527,14 @@ Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
       gyration_thread[thread] += gyration_box;
     }
   }
-  for (unsigned i = 0; i < nthreads; ++i) {
-    N += N_thread[i];
-    centroid += centroid_thread[i];
-    gyration += gyration_thread[i];
-  }
+  double N = std::accumulate(N_thread.begin(), N_thread.end(), 0.0);
+  Eigen::Vector3d centroid =
+      std::accumulate(centroid_thread.begin(), centroid_thread.end(),
+                      Eigen::Vector3d::Zero().eval());
+  Eigen::Matrix3d gyration =
+      std::accumulate(gyration_thread.begin(), gyration_thread.end(),
+                      Eigen::Matrix3d::Zero().eval());
+
   _density_set = true;
   // Normalize
   centroid = centroid / N;
@@ -574,6 +551,7 @@ Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
 std::vector<const Eigen::Vector3d*> NumericalIntegration::getGridpoints()
     const {
   std::vector<const Eigen::Vector3d*> gridpoints;
+  gridpoints.reserve(this->getGridSize());
   for (unsigned i = 0; i < _grid_boxes.size(); i++) {
     const std::vector<Eigen::Vector3d>& points = _grid_boxes[i].getGridPoints();
     for (unsigned j = 0; j < points.size(); j++) {
