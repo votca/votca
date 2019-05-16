@@ -66,7 +66,7 @@ endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
 
-find_package(VOTCA_TOOLS REQUIRED)
+find_package(VOTCA_TOOLS NO_MODULE REQUIRED)
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
