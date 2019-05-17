@@ -18,6 +18,8 @@
 #ifndef VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 #define VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 
+#include "unitconverter.h"
+#include <Eigen/Dense>
 #include <boost/any.hpp>
 #include <cassert>
 #include <unordered_map>
@@ -29,19 +31,22 @@ namespace tools {
  * \breif Supported and Standardized parameter types
  **/
 enum StructureParameter {
-  Mass,
-  Position,
+  CSG_Mass,
+  XTP_Mass,
+  CSG_Position,
+  XTP_Position,
   MoleculeId,
   ResidueId,
-  Charge,
+  CSG_Charge,
+  XTP_Charge,
   Element,
   Symmetry,
   ResidueType,
   BeadId,
   BeadType,
   MoleculeType,
-  SegmentType,
-  SegmentId
+  AtomContainerId,
+  AtomContainerType
 };
 
 /**
@@ -102,27 +107,31 @@ class StructureParameters {
 
  public:
   void set(const StructureParameter parameter, boost::any value) noexcept {
-    assert(parameters.count(parameter) == 0 &&
+    assert(parameters_.count(parameter) == 0 &&
            "Cannot set parameter it has already been set.");
-    parameters[parameter] = value;
+    parameters_[parameter] = value;
   }
 
   bool ParameterExist(StructureParameter parameter) const noexcept {
-    return parameters.count(parameter);
+    return parameters_.count(parameter);
   }
 
   template <class T>
-  T get(const StructureParameter parameter) const {
-    assert(parameters.count(parameter) &&
+  T get(const StructureParameter parameter) {
+    if (parameters_.count(parameter) == 0) {
+      convertParameterIfPossible_(parameter);
+    }
+    assert(parameters_.count(parameter) &&
            "StructureParameter is not stored in StructureParameters class");
-    assert(typeid(T) == parameters.at(parameter).type() &&
+    assert(typeid(T) == parameters_.at(parameter).type() &&
            "Cannot return boost any value from parameters class because it is "
            "not being cast to the correct type");
-    return boost::any_cast<T>(parameters.at(parameter));
+    return boost::any_cast<T>(parameters_.at(parameter));
   }
 
  private:
-  std::unordered_map<StructureParameter, boost::any> parameters;
+  void convertParameterIfPossible_(const StructureParameter parameter);
+  std::unordered_map<StructureParameter, boost::any> parameters_;
 };
 
 }  // namespace tools
