@@ -48,7 +48,6 @@ endif()
 ########################################################################
 
 find_package(LIBXC REQUIRED)
-include_directories(${LIBXC_INCLUDE_DIRS})
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 include_directories(${HDF5_INCLUDE_DIRS})
