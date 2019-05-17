@@ -79,12 +79,6 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options filesystem system timer)
 include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
-set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
-foreach(_blib ${Boost_LIBRARIES})
-  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
-  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
-endforeach(_blib)
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.

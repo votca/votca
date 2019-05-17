@@ -13,6 +13,3 @@ set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 add_dependencies(votca_xtp gitversion-xtp)
 target_link_libraries(votca_xtp PRIVATE ${MKL_LIBRARIES} ${LIBXC_LIBRARIES} PUBLIC ${Boost_LIBRARIES} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${VOTCA_CTP_LIBRARIES} ${HDF5_LIBRARIES} )
 install(TARGETS votca_xtp LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-configure_file(libvotca_xtp.pc.in ${CMAKE_CURRENT_BINARY_DIR}/libvotca_xtp.pc @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libvotca_xtp.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
