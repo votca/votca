@@ -87,7 +87,9 @@ if(NOT TARGET manpages)
 endif()
 
 find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
+message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
 find_package(VOTCA_CSG REQUIRED NO_MODULE)
+message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 find_package(VOTCA_CTP REQUIRED)
 ########################################################################
 # Checks what linear algebra packages are installed                    #
