@@ -33,10 +33,12 @@ add_dependencies(votca_tools gitversion)
 
 set_target_properties(votca_tools PROPERTIES SOVERSION ${SOVERSION})
 target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eigen3::Eigen PRIVATE
-	Boost::filesystem Boost::system
-	FFTW3::FFTW3 EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
+	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(MKL_FOUND)
   target_link_libraries(votca_tools PRIVATE MKL::MKL)
+endif()
+if(FFTW3_FOUND)
+  target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
 endif()
 install(TARGETS votca_tools EXPORT VOTCA_TOOLS_Targets
 	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
