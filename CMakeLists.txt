@@ -62,6 +62,7 @@ else (BUILD_MANPAGES)
 endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
+find_package(Eigen3 3.3.0 REQUIRED)
 
 find_package(VOTCA_TOOLS NO_MODULE REQUIRED)
 message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
