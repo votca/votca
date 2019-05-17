@@ -79,7 +79,7 @@ class UnitConverter {
       case DistanceUnit::angstroms:
         return 1.0;
       case DistanceUnit::bohr:
-        return 0.529177;
+        return 0.52917721092;
     }
     return 0.0;
   }
@@ -105,15 +105,15 @@ class UnitConverter {
   constexpr double getMassValue_(const MassUnit& enum_type) const noexcept {
     switch (enum_type) {
       case MassUnit::kilograms:
-        return 6.02214E26;
+        return 6.0221366517E26;
       case MassUnit::grams:
-        return 6.02214E23;
+        return 6.0221366517E23;
       case MassUnit::picograms:
-        return 6.02214E14;
+        return 6.0221366517E14;
       case MassUnit::femtograms:
-        return 6.02214E11;
+        return 6.0221366517E11;
       case MassUnit::attograms:
-        return 602214;
+        return 602213.66517;
       case MassUnit::atomic_mass_units:
         return 1.0;
       case MassUnit::grams_per_mole:
@@ -126,19 +126,19 @@ class UnitConverter {
   constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
       case EnergyUnit::kilojoules_per_mole:
-        return 96.0;
+        return 96.485;
       case EnergyUnit::joules_per_mole:
-        return 96.0E3;
+        return 96.485E3;
       case EnergyUnit::kilocalories_per_mole:
-        return 23.0;
+        return 23.061;
       case EnergyUnit::kilocalories:
         return 2.613195131836172E22;
       case EnergyUnit::joules:
-        return 6.242E18;
+        return 6.241510E18;
       case EnergyUnit::kilojoules:
-        return 6.242E21;
+        return 6.241510E21;
       case EnergyUnit::hartrees:
-        return 27.2114;
+        return 27.21138602;
       case EnergyUnit::electron_volts:
         return 1.0;
     }
