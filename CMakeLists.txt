@@ -50,7 +50,6 @@ endif()
 find_package(LIBXC REQUIRED)
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
-include_directories(${HDF5_INCLUDE_DIRS})
 
 if (${HDF5_VERSION} GREATER 1.8)
   message(WARNING "HDF5 will be used such that it is compatible with version 1.8.")
@@ -66,9 +65,6 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-#for votca_config.h
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
