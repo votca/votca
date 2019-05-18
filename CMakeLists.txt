@@ -73,7 +73,8 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options filesystem system timer)
-find_package(Eigen3 3.3.0 REQUIRED)
+find_package(Eigen3 3.3.0 REQUIRED NO_MODULE)
+message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.
