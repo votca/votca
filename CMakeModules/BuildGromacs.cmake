@@ -19,6 +19,8 @@ ExternalProject_Add(Gromacs_build
 ExternalProject_get_property(Gromacs_build INSTALL_DIR)
 set(GROMACS_LIBRARY "${INSTALL_DIR}/${CMAKE_INSTALL_LIBDIR}/libgromacs.so" CACHE STRING "gromacs library" FORCE)
 set(GROMACS_INCLUDE_DIR "${INSTALL_DIR}/${CMAKE_INSTALL_INCLUDEDIR}" CACHE PATH "gromacs inclde dir" FORCE)
+# create emtpy directory for imported target
+file(MAKE_DIRECTORY "${GROMACS_INCLUDE_DIR}")
 set(GROMACS_VERSION 20180006)
 set(FOUND_GROMACS_VERSION_CXX TRUE CACHE INTERNAL "" FORCE)
 set(FOUND_GMX_IS_SINGLE_PRECISION TRUE CACHE INTERNAL "" FORCE)
