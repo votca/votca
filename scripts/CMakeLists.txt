@@ -32,7 +32,12 @@ foreach(SCRIPT csg_call csg_inverse)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}.man DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${SCRIPT}.1)
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${SCRIPT}.help ${SCRIPT}.t2t)
   endif(TXT2TAGS_FOUND AND BASH)
+  add_executable(VOTCA::${SCRIPT} IMPORTED GLOBAL)
+  set_property(TARGET VOTCA::${SCRIPT} PROPERTY IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/${SCRIPT}")
 endforeach(SCRIPT)
+
+set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE ${PROJECT_SOURCE_DIR}/share)
+set_target_properties(VOTCA::csg_inverse PROPERTIES VOTCA_CSG_DEFAULTS "${PROJECT_BINARY_DIR}/share/xml/csg_defaults.xml")
 
 option(WITH_RC_FILES "Install votca rc files, no need when installing under /usr" ON)
 install(FILES csg-completion.bash DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/rc)
