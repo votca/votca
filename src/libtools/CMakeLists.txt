@@ -49,6 +49,7 @@ install(EXPORT VOTCA_TOOLS_Targets FILE VOTCA_TOOLS_Targets.cmake NAMESPACE VOTC
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("VOTCA_TOOLSConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
-install(FILES "VOTCA_TOOLSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
+configure_file(VOTCA_TOOLSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfig.cmake @ONLY)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 add_library(VOTCA::votca_tools ALIAS votca_tools)
 
