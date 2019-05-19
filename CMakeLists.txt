@@ -86,7 +86,6 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 ######################################
 add_subdirectory(tools)
 set(ENABLED_VOTCA_PACKAGES tools)
-set(VOTCA_COMPARE ${CMAKE_BINARY_DIR}/tools/scripts/votca_compare)
 add_subdirectory(csg)
 list(APPEND ENABLED_VOTCA_PACKAGES csg)
 set(VOTCA_SHARE ${CMAKE_SOURCE_DIR}/csg/share)
