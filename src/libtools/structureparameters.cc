@@ -21,7 +21,7 @@ namespace votca {
 namespace tools {
 
 static UnitConverter converter_;
-
+/*
 void StructureParameters::convertParameterIfPossible_(
     const StructureParameter parameter) {
   if (parameter == StructureParameter::XTP_Position) {
@@ -41,7 +41,7 @@ void StructureParameters::convertParameterIfPossible_(
               parameters_[StructureParameter::XTP_Position]);
     }
   }
-}
+}*/
 
 }  // namespace tools
 }  // namespace votca
