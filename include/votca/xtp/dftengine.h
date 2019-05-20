@@ -91,9 +91,6 @@ class DFTEngine {
   std::string _auxbasis_name;
   std::string _dftbasis_name;
   std::string _ecp_name;
-  BasisSet _dftbasisset;
-  BasisSet _auxbasisset;
-  BasisSet _ecpbasisset;
   AOBasis _dftbasis;
   AOBasis _auxbasis;
   AOBasis _ecp;

@@ -475,12 +475,16 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   QMMolecule atom = QMMolecule("individual_atom", 0);
   atom.push_back(uniqueAtom);
 
+  BasisSet basisset;
+  basisset.LoadBasisSet(_dftbasis_name);
   AOBasis dftbasis;
   NumericalIntegration gridIntegration;
-  dftbasis.AOBasisFill(_dftbasisset, atom);
+  dftbasis.AOBasisFill(basisset, atom);
   AOBasis ecp;
   if (with_ecp) {
-    ecp.ECPFill(_ecpbasisset, atom);
+    BasisSet ecps;
+    ecps.LoadPseudopotentialSet(_ecp_name);
+    ecp.ECPFill(ecps, atom);
   }
   gridIntegration.GridSetup(_grid_name, atom, dftbasis);
   gridIntegration.setXCfunctional(_xc_functional_name);
@@ -781,28 +785,30 @@ void DFTEngine::Prepare() {
 
     XTP_LOG(logDEBUG, *_pLog) << output << flush;
   }
+  BasisSet dftbasisset;
+  dftbasisset.LoadBasisSet(_dftbasis_name);
 
-  _dftbasisset.LoadBasisSet(_dftbasis_name);
-
-  _dftbasis.AOBasisFill(_dftbasisset, _orbitals.QMAtoms());
+  _dftbasis.AOBasisFill(dftbasisset, _orbitals.QMAtoms());
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << " with "
       << _dftbasis.AOBasisSize() << " functions" << flush;
 
   if (_with_RI) {
-    _auxbasisset.LoadBasisSet(_auxbasis_name);
-    _auxbasis.AOBasisFill(_auxbasisset, _orbitals.QMAtoms());
+    BasisSet auxbasisset;
+    auxbasisset.LoadBasisSet(_auxbasis_name);
+    _auxbasis.AOBasisFill(auxbasisset, _orbitals.QMAtoms());
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << " with "
         << _auxbasis.AOBasisSize() << " functions" << flush;
   }
   if (_with_ecp) {
-    _ecpbasisset.LoadPseudopotentialSet(_ecp_name);
+    BasisSet ecpbasisset;
+    ecpbasisset.LoadPseudopotentialSet(_ecp_name);
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Loaded ECP library " << _ecp_name << flush;
 
     std::vector<std::string> results =
-        _ecp.ECPFill(_ecpbasisset, _orbitals.QMAtoms());
+        _ecp.ECPFill(ecpbasisset, _orbitals.QMAtoms());
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled ECP Basis of size "
                               << _ecp.getNumofShells() << flush;
     if (results.size() > 0) {
