@@ -9,3 +9,4 @@ set_target_properties(VOTCA::csg_inverse PROPERTIES VOTCA_CSG_DEFAULTS "@CMAKE_I
 add_executable(VOTCA::csg_call IMPORTED)
 set_property(TARGET VOTCA::csg_call PROPERTY IMPORTED_LOCATION "@CMAKE_INSTALL_FULL_BINDIR@/csg_call")
 set_target_properties(VOTCA::csg_call PROPERTIES VOTCASHARE "@CMAKE_INSTALL_FULL_DATADIR@/votca")
+set_target_properties(VOTCA::csg_call PROPERTIES VOTCA_PATH "@CMAKE_INSTALL_FULL_BINDIR@")
