@@ -10,11 +10,11 @@ file(GLOB NOT_VOTCA_SOURCES version_nb.cc test.cc)
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 add_library(votca_csg ${VOTCA_SOURCES} ${IO_SOURCES})
-if (WITH_GMX)
+if (TARGET GMX::libgromacs)
   #general to a gmx builds
   target_sources(votca_csg PRIVATE ${GMX_SOURCES})
   target_link_libraries(votca_csg PRIVATE GMX::libgromacs)
-endif(WITH_GMX)
+endif()
 
 
 find_package(HDF5 COMPONENTS "C")
