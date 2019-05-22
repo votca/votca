@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(votca-tools)
 
@@ -29,9 +29,6 @@ include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
-  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
-endif()
 
 
 ########################################################################
@@ -43,12 +40,10 @@ include(GNUInstallDirs)
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 if(ENABLE_TESTING)
   enable_testing()
+  include(FindPackageHandleStandardArgs) 
+  find_program(VALGRIND_EXECUTABLE "valgrind")
+  find_package_handle_standard_args(VALGRIND REQUIRED_VARS VALGRIND_EXECUTABLE)
 endif(ENABLE_TESTING)
-
-#this has to be the first include directive
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-#for votca_config.h
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 ########################################################################
 #Find external packages
@@ -58,16 +53,8 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Threads REQUIRED)
-set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
-include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
-set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
-foreach(_blib ${Boost_LIBRARIES})
-  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
-  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
-endforeach(_blib)
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" ON)
 #define this target here, so that individual man pages can append to it.
@@ -79,28 +66,18 @@ add_custom_target(manpages ALL)
 
 find_package(MKL)
 if (MKL_FOUND)
-  include_directories(${MKL_INCLUDE_DIRS})
   set (MKL TRUE )
-else()
-  set(MKL_LIBRARIES)
 endif()
 
-find_package(Eigen3 3.3.0 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-set(EIGEN3_PKG eigen3)
+find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
+message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 option(WITH_FFTW "Use FFTW3, disabling leads to reduced functionality!" ON)
 if (WITH_FFTW)
-  find_package(FFTW3)
-  if(NOT FFTW3_FOUND)
-    message(FATAL_ERROR "FFTW3 not found,  make sure you have also installed the fftw3 and it's dev package (it can be disable with -DWITH_FFTW=OFF)")
-  endif(NOT FFTW3_FOUND)
-  include_directories(${FFTW3_INCLUDE_DIRS})
-  set(FFTW3_PKG "fftw3")
+  find_package(FFTW3 REQUIRED)
 else(WITH_FFTW)
   #used in votca_config.h
   set(NOFFTW TRUE)
-  set(FFTW3_PKG)
 endif(WITH_FFTW)
 
 ########################################################################
