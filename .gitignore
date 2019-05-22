@@ -2,7 +2,6 @@
 csg_*.man
 csg_*.t2t
 csg_*.help
-libvotca*.pc
 libvotca*.a
 libvotca*.so
 libvotca*.so.*

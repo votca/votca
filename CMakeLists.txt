@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(votca-csg)
 
@@ -31,9 +31,6 @@ include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
-  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
-endif()
 
 ########################################################################
 # User input options                                                   #
@@ -46,9 +43,6 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-# this has to be the include specification!
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 ########################################################################
 #Find external packages
 ########################################################################
@@ -57,7 +51,6 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Threads REQUIRED)
-set(THREAD_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
 option(BUILD_MANPAGES "Build manpages" ON)
 if (BUILD_MANPAGES)
   find_package(TXT2TAGS)
@@ -69,16 +62,11 @@ else (BUILD_MANPAGES)
 endif (BUILD_MANPAGES)
 
 find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options filesystem system )
-include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
-set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
-foreach(_blib ${Boost_LIBRARIES})
-  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
-  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
-endforeach(_blib)
+find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)
+message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
-find_package(VOTCA_TOOLS REQUIRED)
-include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
+find_package(VOTCA_TOOLS NO_MODULE REQUIRED)
+message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
 
 option(WITH_GMX "Build gromacs reader/writer, disabling leads to reduced functionality!" ON)
 if (WITH_GMX)
@@ -86,14 +74,6 @@ if (WITH_GMX)
 endif(WITH_GMX) 
 
 if(ENABLE_TESTING)
-  foreach(prog votca_compare)
-    string(TOUPPER "${prog}" PROG)
-    find_program(${PROG} ${prog})
-    find_package_handle_standard_args(${PROG} REQUIRED_VARS ${PROG})
-    if(NOT ${PROG}_FOUND)
-      message(FATAL_ERROR "Could not find ${prog}")
-    endif()
-  endforeach()
   set(REGRESSIONTEST_TOLERANCE "5e-5" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
   find_package(UnixCommands)
@@ -138,9 +118,6 @@ add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
-
-file(GLOB VOTCA_CMAKE_MODULES CMakeModules/FindVOTCA* CMakeModules/FindSQLITE3.cmake)
-install(FILES ${VOTCA_CMAKE_MODULES} DESTINATION ${CMAKE_INSTALL_DATADIR}/votca/template/CMakeModules)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
