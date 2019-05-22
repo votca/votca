@@ -27,10 +27,19 @@ pkg_check_modules(PC_SQLITE3 sqlite3)
 find_path(SQLITE3_INCLUDE_DIR sqlite3.h HINTS ${PC_SQLITE3_INCLUDE_DIRS})
 find_library(SQLITE3_LIBRARY NAMES sqlite3 HINTS ${PC_SQLITE3_LIBRARY_DIRS} )
 
-set(SQLITE3_LIBRARIES "${SQLITE3_LIBRARY}" )
-set(SQLITE3_INCLUDE_DIRS "${SQLITE3_INCLUDE_DIR}" )
-
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(SQLITE3 DEFAULT_MSG SQLITE3_LIBRARY SQLITE3_INCLUDE_DIR )
+
+# Create the imported target
+if(SQLITE3_FOUND)
+    set(SQLITE3_INCLUDE_DIRS ${SQLITE3_INCLUDE_DIR})
+    set(SQLITE3_LIBRARIES ${SQLITE3_LIBRARY})
+    if(NOT TARGET SQLite::SQLite3)
+        add_library(SQLite::SQLite3 UNKNOWN IMPORTED)
+        set_target_properties(SQLite::SQLite3 PROPERTIES
+            IMPORTED_LOCATION             "${SQLITE3_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${SQLITE3_INCLUDE_DIR}")
+    endif()
+endif()
 
 mark_as_advanced(SQLITE3_INCLUDE_DIR SQLITE3_LIBRARY )
