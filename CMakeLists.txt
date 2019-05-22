@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(csgapps)
 
@@ -22,9 +22,6 @@ include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
-  message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
-endif()
 
 ########################################################################
 # User input options                                                   #
@@ -39,15 +36,8 @@ endif(ENABLE_TESTING)
 ########################################################################
 #Find external packages
 ########################################################################
-
-find_package(Boost 1.53.0 REQUIRED COMPONENTS program_options )
-include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_LIBRARIES ${Boost_PROGRAM_OPTIONS_LIBRARY})
-
-find_package(VOTCA_TOOLS REQUIRED)
-include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
-find_package(VOTCA_CSG REQUIRED)
-include_directories(${VOTCA_CSG_INCLUDE_DIRS})
+find_package(VOTCA_CSG REQUIRED NO_MODULE)
+message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
 file(GLOB_RECURSE FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} */*.cc)
 foreach(DIR ${FILES})
@@ -58,7 +48,7 @@ list(REMOVE_DUPLICATES DIRS)
 foreach(DIR ${DIRS})
   file(GLOB SRC ${DIR}/*.cc)
   add_executable(${DIR} ${SRC})
-  target_link_libraries(${DIR} ${VOTCA_CSG_LIBRARIES} ${VOTCA_TOOLS_LIBRARIES} ${BOOST_LIBRARIES})
+  target_link_libraries(${DIR} VOTCA::votca_csg)
   install(TARGETS ${DIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   set_target_properties(${DIR} PROPERTIES OUTPUT_NAME csg_${DIR} RUNTIME_OUTPUT_DIRECTORY ${DIR})
   if(ENABLE_TESTING)
