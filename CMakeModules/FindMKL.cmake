@@ -326,8 +326,10 @@ if (MKL_FOUND)
     if(NOT TARGET MKL::MKL)
         add_library(MKL::MKL UNKNOWN IMPORTED)
         set_target_properties(MKL::MKL PROPERTIES
-            IMPORTED_LOCATION             "${MKL_LIBRARIES}"
             INTERFACE_INCLUDE_DIRECTORIES "${MKL_INCLUDE_DIR}")
+        foreach(_lib ${MKL_LIBRARIES})
+	  set_property(TARGET MKL::MKL APPEND_STRING PROPERTY INTERFACE_LINK_LIBRARIES " ${_lib}")
+	endforeach()
     endif()
 else()
     if (MKL_FIND_REQUIRED)
