@@ -27,9 +27,6 @@ find_path(VOTCA_CTP_INCLUDE_DIR votca/ctp/ctpapplication.h HINTS ${PC_VOTCA_CTP_
 
 find_library(VOTCA_CTP_LIBRARY NAMES votca_ctp HINTS ${PC_VOTCA_CTP_LIBRARY_DIRS} )
 
-set(VOTCA_CTP_LIBRARIES "${VOTCA_CTP_LIBRARY}" )
-set(VOTCA_CTP_INCLUDE_DIRS "${VOTCA_CTP_INCLUDE_DIR}" )
-
 include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set VOTCA_CTP_FOUND to TRUE
 # if all listed variables are TRUE
@@ -42,5 +39,17 @@ if (VOTCA_CTP_FOUND AND NOT VOTCA_CTP_LIBRARY STREQUAL "votca_ctp")
     message(FATAL_ERROR "Could not find VotcaMd2QmFromC in ${VOTCA_CTP_LIBRARY};${VOTCA_CTP_DEP_LIBRARIES}, take look at the error message in ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log to find out what was going wrong. If you don't have pkg-config installed you will most likely have to set VOTCA_CTP_LIBRARY and VOTCA_CTP_DEP_LIBRARIES by hand, which set votca_ctp lib  it's depencies (i.e. -DVOTCA_CTP_LIBRARY='/path/to/libvotca_ctp.so' -VOTCA_CTP_DEP_LIBRARIES='/path/to/libgsl.so;/path/to/libm.so') !")
   endif(NOT FOUND_VOTCA_CTP_VERSION)
 endif ()
+
+if(VOTCA_CTP_FOUND)
+  set(VOTCA_CTP_LIBRARIES "${VOTCA_CTP_LIBRARY}" )
+  set(VOTCA_CTP_INCLUDE_DIRS "${VOTCA_CTP_INCLUDE_DIR}" )
+
+  if(NOT TARGET VOTCA::votca_ctp)
+    add_library(VOTCA::votca_ctp UNKNOWN IMPORTED)
+    set_target_properties(VOTCA::votca_ctp PROPERTIES
+      IMPORTED_LOCATION "${VOTCA_CTP_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${VOTCA_CTP_INCLUDE_DIRS}")
+  endif()
+endif()
 
 mark_as_advanced(VOTCA_CTP_INCLUDE_DIR VOTCA_CTP_LIBRARY )
