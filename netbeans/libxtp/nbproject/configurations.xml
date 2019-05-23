@@ -241,6 +241,7 @@
         <itemPath>../../src/libxtp/mmregion.cc</itemPath>
         <itemPath>../../src/libxtp/polarregion.cc</itemPath>
         <itemPath>../../src/libxtp/qmregion.cc</itemPath>
+        <itemPath>../../src/libxtp/region.cc</itemPath>
       </logicalFolder>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
@@ -4707,6 +4708,8 @@
       </item>
       <item path="../../src/libxtp/rate_engine.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/region.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/segmentmapper.cc" ex="false" tool="1" flavor2="0">
@@ -5794,6 +5797,8 @@
       <item path="../../src/libxtp/qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/rate_engine.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/region.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/segment.cc" ex="false" tool="1" flavor2="0">
       </item>

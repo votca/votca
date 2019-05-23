@@ -81,9 +81,9 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
     }
     if (std::all_of(converged_regions.begin(), converged_regions.end(),
                     [](bool i) { return i; })) {
-      break;
       XTP_LOG_SAVE(logINFO, pLog) << "Job converged after " << iteration + 1
                                   << " iterations." << std::flush;
+      break;
     }
     if (iteration == _max_iterations - 1) {
       XTP_LOG_SAVE(logINFO, pLog)

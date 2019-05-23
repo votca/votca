@@ -18,20 +18,35 @@
  */
 
 #include <votca/xtp/polarregion.h>
+#include <votca/xtp/qmregion.h>
+#include <votca/xtp/staticregion.h>
 
 namespace votca {
 namespace xtp {
 
-void PolarRegion::Initialize(const tools::Property& prop) { return; }
+void PolarRegion::Initialize(const tools::Property& prop) {
+
+  std::string filename =
+      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options");
+  tools::Property polar_xml;
+  tools::load_property_from_xml(polar_xml, filename);
+  _max_iter = polar_xml.ifExistsReturnElseReturnDefault("max_iter", _max_iter);
+  _deltaE = polar_xml.ifExistsReturnElseReturnDefault("tolerance", _deltaE);
+  _exp_damp = polar_xml.ifExistsReturnElseReturnDefault("exp_damp", _exp_damp);
+  _induce_intra_mol = polar_xml.ifExistsReturnElseReturnDefault(
+      "induce_intra_molecule", _induce_intra_mol);
+
+  return;
+}
 
 bool PolarRegion::Converged() const { return false; }
 
 void PolarRegion::Evaluate() { return; }
 
-void PolarRegion::ApplyInfluenceOfOtherRegions(
-    const std::vector<std::unique_ptr<Region> >& regions) {
-  return;
-}
+void PolarRegion::ResetRegion() { return; }
+void PolarRegion::InteractwithQMRegion(QMRegion& region) { return; }
+void PolarRegion::InteractwithPolarRegion(PolarRegion& region) { return; }
+void PolarRegion::InteractwithStaticRegion(StaticRegion& region) { return; }
 
 }  // namespace xtp
 }  // namespace votca

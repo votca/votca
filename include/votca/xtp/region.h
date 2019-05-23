@@ -35,6 +35,10 @@
 namespace votca {
 namespace xtp {
 
+class QMRegion;
+class PolarRegion;
+class StaticRegion;
+
 class Region {
 
  public:
@@ -51,8 +55,8 @@ class Region {
 
   virtual void Evaluate() = 0;
 
-  virtual void ApplyInfluenceOfOtherRegions(
-      const std::vector<std::unique_ptr<Region> >& regions) = 0;
+  void ApplyInfluenceOfOtherRegions(
+      std::vector<std::unique_ptr<Region> >& regions);
 
   virtual int size() const = 0;
 
@@ -69,6 +73,11 @@ class Region {
   }
 
  protected:
+  virtual void ResetRegion() = 0;
+  virtual void InteractwithQMRegion(QMRegion& region) = 0;
+  virtual void InteractwithPolarRegion(PolarRegion& region) = 0;
+  virtual void InteractwithStaticRegion(StaticRegion& region) = 0;
+
   Logger& _log;
 
   int _id = -1;

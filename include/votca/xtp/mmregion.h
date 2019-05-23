@@ -26,6 +26,11 @@
 
 namespace votca {
 namespace xtp {
+
+class QMRegion;
+class PolarRegion;
+class StaticRegion;
+
 template <class T>
 class MMRegion : public Region {
  public:
@@ -44,9 +49,6 @@ class MMRegion : public Region {
 
   virtual void Evaluate() = 0;
 
-  virtual void ApplyInfluenceOfOtherRegions(
-      const std::vector<std::unique_ptr<Region> >& regions) = 0;
-
   virtual std::string identify() const = 0;
 
   typename std::vector<T>::iterator begin() { return _segments.begin(); }
@@ -63,7 +65,12 @@ class MMRegion : public Region {
 
   void push_back(const T& seg) { _segments.push_back(seg); }
 
- private:
+ protected:
+  virtual void ResetRegion() = 0;
+  virtual void InteractwithQMRegion(QMRegion& region) = 0;
+  virtual void InteractwithPolarRegion(PolarRegion& region) = 0;
+  virtual void InteractwithStaticRegion(StaticRegion& region) = 0;
+
   std::vector<T> _segments;
 };
 

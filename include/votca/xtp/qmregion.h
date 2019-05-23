@@ -34,6 +34,8 @@
 namespace votca {
 namespace xtp {
 
+class PolarRegion;
+class StaticRegion;
 class QMRegion : public Region {
 
  public:
@@ -67,6 +69,12 @@ class QMRegion : public Region {
     }
     _size++;
   }
+
+ protected:
+  void ResetRegion();
+  void InteractwithQMRegion(QMRegion& region);
+  void InteractwithPolarRegion(PolarRegion& region);
+  void InteractwithStaticRegion(StaticRegion& region);
 
  private:
   int _size = 0;

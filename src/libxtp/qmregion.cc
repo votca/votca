@@ -17,7 +17,9 @@
  *
  */
 
+#include <votca/xtp/polarregion.h>
 #include <votca/xtp/qmregion.h>
+#include <votca/xtp/staticregion.h>
 
 namespace votca {
 namespace xtp {
@@ -26,12 +28,12 @@ void QMRegion::Initialize(const tools::Property& prop) { return; }
 
 bool QMRegion::Converged() const { return true; }
 
-void QMRegion::Evaluate() {}
+void QMRegion::Evaluate() { return; }
 
-void QMRegion::ApplyInfluenceOfOtherRegions(
-    const std::vector<std::unique_ptr<Region> >& regions) {
-  return;
-}
+void QMRegion::ResetRegion() { return; }
+void QMRegion::InteractwithQMRegion(QMRegion& region) { return; }
+void QMRegion::InteractwithPolarRegion(PolarRegion& region) { return; }
+void QMRegion::InteractwithStaticRegion(StaticRegion& region) { return; }
 
 void QMRegion::WritePDB(csg::PDBWriter& writer) const {
   writer.WriteContainer(_orb.QMAtoms());
