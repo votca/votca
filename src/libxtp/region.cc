@@ -33,13 +33,17 @@ void Region::ApplyInfluenceOfOtherRegions(
       continue;
     }
 
-    if (reg->identify() == "QMRegion") {
+    QMRegion QMdummy = QMRegion(0, _log);
+    StaticRegion Staticdummy = StaticRegion(0, _log);
+    PolarRegion Polardummy = PolarRegion(0, _log);
+
+    if (reg->identify() == QMdummy.identify()) {
       QMRegion* qmregion = dynamic_cast<QMRegion*>(reg.get());
       InteractwithQMRegion(*qmregion);
-    } else if (reg->identify() == "StaticRegion") {
+    } else if (reg->identify() == Staticdummy.identify()) {
       StaticRegion* staticregion = dynamic_cast<StaticRegion*>(reg.get());
       InteractwithStaticRegion(*staticregion);
-    } else if (reg->identify() == "PolarRegion") {
+    } else if (reg->identify() == Polardummy.identify()) {
       PolarRegion* polarregion = dynamic_cast<PolarRegion*>(reg.get());
       InteractwithPolarRegion(*polarregion);
     } else {

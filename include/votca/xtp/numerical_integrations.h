@@ -26,7 +26,6 @@
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/gridbox.h>
-#include <votca/xtp/qmatom.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/vxc_functionals.h>
 

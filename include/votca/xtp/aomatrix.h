@@ -23,8 +23,8 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/mmregion.h>
 #include <votca/xtp/multiarray.h>
+#include <votca/xtp/staticsite.h>
 
 namespace votca {
 namespace xtp {

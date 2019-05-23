@@ -17,11 +17,8 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-
-#include <votca/xtp/aobasis.h>
-
 #include <vector>
+#include <votca/xtp/aomatrix.h>
 
 namespace votca {
 namespace xtp {
