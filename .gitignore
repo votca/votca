@@ -1,7 +1,6 @@
 *~
 Makefile
 
-libvotca*.pc
 libvotca*.a
 libvotca*.so
 libvotca*.so.*

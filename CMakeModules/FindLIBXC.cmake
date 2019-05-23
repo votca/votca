@@ -27,14 +27,21 @@ pkg_check_modules(PC_libxc libxc)
 find_path(LIBXC_INCLUDE_DIR NAMES xc.h HINTS HINTS ${PC_libxc_INCLUDE_DIRS})
 find_library(LIBXC_LIBRARY NAMES xc HINTS ${PC_libxc_LIBRARY_DIRS} )
 
-
-set(LIBXC_LIBRARIES "${LIBXC_LIBRARY}" )
-set(LIBXC_INCLUDE_DIRS "${LIBXC_INCLUDE_DIR}" )
-
 #include(FindPackageHandleStandardArgs)
 # handle the QUIETLY and REQUIRED arguments and set LIBXC_FOUND to TRUE
 # if all listed variables are TRUE
 find_package_handle_standard_args(LIBXC DEFAULT_MSG LIBXC_LIBRARY LIBXC_INCLUDE_DIR )
 
+if(LIBXC_FOUND)
+  set(LIBXC_LIBRARIES ${LIBXC_LIBRARY} )
+  set(LIBXC_INCLUDE_DIRS ${LIBXC_INCLUDE_DIR} )
+
+  if(NOT TARGET LIBXC::LIBXC)
+    add_library(LIBXC::LIBXC UNKNOWN IMPORTED)
+    set_target_properties(LIBXC::LIBXC PROPERTIES
+      IMPORTED_LOCATION "${LIBXC_LIBRARY}"
+      INTERFACE_INCLUDE_DIRECTORIES "${LIBXC_INCLUDE_DIRS}")
+  endif()
+endif()
 
 mark_as_advanced(LIBXC_INCLUDE_DIR LIBXC_LIBRARY )
