@@ -339,6 +339,7 @@
         <itemPath>../../share/packages/nwchem.xml</itemPath>
         <itemPath>../../share/packages/orca.xml</itemPath>
         <itemPath>../../share/packages/orca_iqm_pair.xml</itemPath>
+        <itemPath>../../share/packages/polar.xml</itemPath>
         <itemPath>../../share/packages/xtpdft.xml</itemPath>
       </logicalFolder>
       <itemPath>../../share/xtp/xml/coupling.xml</itemPath>
@@ -4259,6 +4260,8 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../share/packages/polar.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/packages/xtpdft.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/coupling.xml" ex="false" tool="3" flavor2="0">
@@ -5344,6 +5347,8 @@
             ex="false"
             tool="3"
             flavor2="0">
+      </item>
+      <item path="../../share/packages/polar.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/packages/xtpdft.xml" ex="false" tool="3" flavor2="0">
       </item>

@@ -1,0 +1,6 @@
+<polarregion>
+ <tolerance help="Relative tolerance as convergence criterion">0.001</tolerance>
+ <max_iter help="Maximum number of iterations">512</max_iter>
+ <exp_damp help="Thole sharpness parameter">0.39</exp_damp>
+ <induce_intra_molecule help="Induce mutually within each molecule">1</induce_intra_molecule>
+</polarregion>
