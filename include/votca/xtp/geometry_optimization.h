@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef XTP_GEOMETRY_OPTIMIZATION_H
 #define XTP_GEOMETRY_OPTIMIZATION_H
 

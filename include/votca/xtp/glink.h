@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_GLINK_H
 #define VOTCA_XTP_GLINK_H
 #include <votca/xtp/eigen.h>

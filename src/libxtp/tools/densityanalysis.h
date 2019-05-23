@@ -16,6 +16,7 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_DENSITYANALYSIS_H
 #define _VOTCA_XTP_DENSITYANALYSIS_H
 

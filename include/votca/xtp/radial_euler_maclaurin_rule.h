@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_EULER_MACLAURIN_H
 #define VOTCA_XTP_EULER_MACLAURIN_H
 

@@ -114,6 +114,7 @@
       <itemPath>../../include/votca/xtp/orbitals.h</itemPath>
       <itemPath>../../include/votca/xtp/paircalculator.h</itemPath>
       <itemPath>../../include/votca/xtp/parallelxjobcalc.h</itemPath>
+      <itemPath>../../include/votca/xtp/polarregion.h</itemPath>
       <itemPath>../../include/votca/xtp/polarsite.h</itemPath>
       <itemPath>../../include/votca/xtp/populationanalysis.h</itemPath>
       <itemPath>../../include/votca/xtp/ppm.h</itemPath>
@@ -195,6 +196,7 @@
         <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
+        <itemPath>../../src/libxtp/ERIs.cc</itemPath>
         <itemPath>../../src/libxtp/adiis.cc</itemPath>
         <itemPath>../../src/libxtp/convergenceacc.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
@@ -233,7 +235,6 @@
         <itemPath>../../src/libxtp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
-      <itemPath>../../src/libxtp/ERIs.cc</itemPath>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/atom.cc</itemPath>
@@ -4068,6 +4069,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/polarregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/polarsite.h"
             ex="false"
             tool="3"
@@ -5138,6 +5144,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/parallelxjobcalc.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/polarregion.h"
             ex="false"
             tool="3"
             flavor2="0">

@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_JOBAPPLICATION
 #define VOTCA_XTP_JOBAPPLICATION
 

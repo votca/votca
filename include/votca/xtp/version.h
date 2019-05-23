@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_MD2QM_VERSION_H
 #define VOTCA_MD2QM_VERSION_H
 

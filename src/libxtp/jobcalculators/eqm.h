@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef _CALC_XTP_EQM_H
 #define _CALC_XTP_EQM_H
 

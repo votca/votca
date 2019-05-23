@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_ATOMCONTAINER_H
 #define VOTCA_XTP_ATOMCONTAINER_H
 #include <limits>

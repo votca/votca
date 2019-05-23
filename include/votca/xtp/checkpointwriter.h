@@ -14,6 +14,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_CHECKPOINT_WRITER_H
 #define VOTCA_XTP_CHECKPOINT_WRITER_H
 

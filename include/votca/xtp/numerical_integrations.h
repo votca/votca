@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef XTP_NUMERICAL_INTEGRATION_H
 #define XTP_NUMERICAL_INTEGRATION_H
 

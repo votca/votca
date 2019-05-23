@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_ERIS_H
 #define VOTCA_XTP_ERIS_H
 
@@ -27,7 +28,7 @@ namespace votca {
 namespace xtp {
 
 /**
- * \brief Takes a density matrix and and an auxillary basis set and calculates
+ * \brief Takes a density matrix and and an auxiliary basis set and calculates
  * the electron repulsion integrals.
  *
  *

@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef _CALC_COUPLING_EXCL_H
 #define _CALC_COUPLING_EXCL_H
 

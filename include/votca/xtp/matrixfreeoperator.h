@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
 #define __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
 #include <votca/xtp/eigen.h>

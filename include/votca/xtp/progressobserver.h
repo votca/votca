@@ -19,6 +19,7 @@
 /// For an earlier history see ctp repo commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_PROGRESSOBSERVER_H
 #define VOTCA_XTP_PROGRESSOBSERVER_H
 #include <boost/interprocess/sync/file_lock.hpp>

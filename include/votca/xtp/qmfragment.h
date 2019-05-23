@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_QMFRAGMENT_H
 #define VOTCA_XTP_QMFRAGMENT_H
 #include <boost/lexical_cast.hpp>

@@ -16,6 +16,7 @@
  * author: Kordt
  */
 
+#pragma once
 #ifndef VOTCA_XTP_CALCULATOR_H
 #define VOTCA_XTP_CALCULATOR_H
 

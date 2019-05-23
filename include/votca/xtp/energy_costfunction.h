@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_ENERGY_COSTFUNCTION_H
 #define VOTCA_XTP_ENERGY_COSTFUNCTION_H
 

@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#pragma once
 #ifndef VOTCA_XTP_CHECKPOINT_READER_H
 #define VOTCA_XTP_CHECKPOINT_READER_H
 

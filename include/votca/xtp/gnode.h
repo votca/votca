@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_GNODE_H
 #define VOTCA_XTP_GNODE_H
 

@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 

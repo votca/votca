@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_BSE_OPERATOR_H
 #define _VOTCA_XTP_BSE_OPERATOR_H
 

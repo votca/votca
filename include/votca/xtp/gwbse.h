@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_GWBSE_H
 #define VOTCA_XTP_GWBSE_H
 #include <fstream>

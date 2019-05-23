@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_SEGMENTMAPPER_H
 #define VOTCA_XTP_SEGMENTMAPPER_H
 

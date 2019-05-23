@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_TOOLS_DAVIDSON_SOLVER_H
 #define __VOTCA_TOOLS_DAVIDSON_SOLVER_H
 

@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_IANALYZE_H
 #define VOTCA_XTP_IANALYZE_H
 #include <votca/xtp/qmcalculator.h>

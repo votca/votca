@@ -13,6 +13,7 @@
  * limitations under the License.
  *
  */
+#pragma once
 #ifndef HUFFMANTREE_H
 #define HUFFMANTREE_H
 #include <list>

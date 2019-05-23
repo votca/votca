@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_NWCHEM_H
 #define __VOTCA_XTP_NWCHEM_H
 

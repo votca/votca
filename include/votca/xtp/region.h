@@ -19,6 +19,7 @@
 #include <iostream>
 #include <votca/csg/pdbwriter.h>
 #include <votca/xtp/checkpoint.h>
+#pragma once
 #ifndef VOTCA_XTP_REGION_H
 #define VOTCA_XTP_REGION_H
 

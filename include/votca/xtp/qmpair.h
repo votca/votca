@@ -19,6 +19,7 @@
 /// For earlier commit history see ctp commit
 /// 77795ea591b29e664153f9404c8655ba28dc14e9
 
+#pragma once
 #ifndef VOTCA_XTP_QMPAIR_H
 #define VOTCA_XTP_QMPAIR_H
 

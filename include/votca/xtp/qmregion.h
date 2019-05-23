@@ -20,6 +20,7 @@
 
 #include "orbitals.h"
 
+#pragma once
 #ifndef VOTCA_XTP_QMREGION_H
 #define VOTCA_XTP_QMREGION_H
 

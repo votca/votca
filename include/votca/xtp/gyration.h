@@ -16,6 +16,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_GYRATION_H
 #define VOTCA_XTP_GYRATION_H
 

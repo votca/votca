@@ -16,6 +16,7 @@
  * author: Kordt
  */
 
+#pragma once
 #ifndef __VOTCA_KMC_MULTIPLE_H
 #define __VOTCA_KMC_MULTIPLE_H
 

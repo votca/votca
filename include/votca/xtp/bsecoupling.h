@@ -20,6 +20,7 @@
 #include <votca/xtp/couplingbase.h>
 #include <votca/xtp/qmstate.h>
 
+#pragma once
 #ifndef VOTCA_XTP_BSECOUPLING_H
 #define VOTCA_XTP_BSECOUPLING_H
 
