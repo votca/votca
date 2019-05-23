@@ -26,7 +26,7 @@ void PolarRegion::Initialize(const tools::Property& prop) { return; }
 
 bool PolarRegion::Converged() const { return false; }
 
-void PolarRegion::Evaluate() { retur n; }
+void PolarRegion::Evaluate() { return; }
 
 void PolarRegion::ApplyInfluenceOfOtherRegions(
     const std::vector<std::unique_ptr<Region> >& regions) {

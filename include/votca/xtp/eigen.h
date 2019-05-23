@@ -47,7 +47,7 @@ class Mat_p_Energy {
 };
 
 namespace OPENMP {
-int getMaxThreads() {
+inline int getMaxThreads() {
   int nthreads = 1;
 #ifdef _OPENMP
   nthreads = omp_get_max_threads();
@@ -55,7 +55,7 @@ int getMaxThreads() {
   return nthreads;
 }
 
-int getThreadId() {
+inline int getThreadId() {
   int thread_id = 0;
 #ifdef _OPENMP
   thread_id = omp_get_thread_num();
@@ -63,7 +63,7 @@ int getThreadId() {
   return thread_id;
 }
 
-void setMaxThreads(int threads) {
+inline void setMaxThreads(int threads) {
 #ifdef _OPENMP
   if (threads > 0) {
     omp_set_num_threads(threads);

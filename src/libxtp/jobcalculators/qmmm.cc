@@ -83,12 +83,12 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
                     [](bool i) { return i; })) {
       break;
       XTP_LOG_SAVE(logINFO, pLog) << "Job converged after " << iteration + 1
-                                  << " iterations." std::flush;
+                                  << " iterations." << std::flush;
     }
     if (iteration == _max_iterations - 1) {
       XTP_LOG_SAVE(logINFO, pLog)
           << "Job did not converge after " << iteration + 1
-          << " iterations.\n Writing results to jobfile." std::flush;
+          << " iterations.\n Writing results to jobfile." << std::flush;
     }
   }
 

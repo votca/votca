@@ -19,9 +19,10 @@
 
 #include <votca/xtp/checkpoint.h>
 #include <votca/xtp/jobtopology.h>
-#include <votca/xtp/mmregion.h>
+#include <votca/xtp/polarregion.h>
 #include <votca/xtp/qmregion.h>
 #include <votca/xtp/segmentmapper.h>
+#include <votca/xtp/staticregion.h>
 
 #include <numeric>
 

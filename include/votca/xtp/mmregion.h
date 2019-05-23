@@ -36,6 +36,8 @@ class MMRegion : public Region {
 
   int size() const { return _segments.size(); }
 
+  typedef typename std::vector<T>::iterator iterator;
+
   virtual void Initialize(const tools::Property& prop) = 0;
 
   virtual bool Converged() const = 0;

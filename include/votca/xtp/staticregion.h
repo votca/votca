@@ -33,7 +33,7 @@ class StaticRegion : public MMRegion<StaticSegment> {
 
   void Initialize(const tools::Property& prop) { return; }
 
-  bool Converged() { return true; }
+  bool Converged() const { return true; }
 
   void Evaluate() { return; }
 

@@ -25,8 +25,8 @@
 #include <boost/format.hpp>
 #include <votca/tools/property.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/mmregion.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/staticregion.h>
 
 namespace votca {
 namespace xtp {
@@ -54,11 +54,18 @@ class QMPackage {
 
   virtual void CleanUp() = 0;
 
-  template <class T>
-  void AddRegion(const MMRegion<ClassicalSegment<T> >& region) {
-    for (const auto& segment : region) {
-      for (const auto& site : segment) {
-        _externalsites.push_back(std::unique_ptr<StaticSite>(new T(site)));
+  template <class MMRegion>
+  void AddRegion(const MMRegion& mmregion) {
+
+    typedef
+        typename std::iterator_traits<typename MMRegion::iterator>::value_type
+            Segmenttype;
+    typedef typename std::iterator_traits<
+        typename Segmenttype::iterator>::value_type Sitetype;
+    for (const Segmenttype& segment : mmregion) {
+      for (const Sitetype& site : segment) {
+        _externalsites.push_back(
+            std::unique_ptr<StaticSite>(new Sitetype(site)));
       }
     }
     if (!_write_charges) {
