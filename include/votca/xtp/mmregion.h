@@ -29,12 +29,23 @@ namespace xtp {
 template <class T>
 class MMRegion : public Region {
  public:
-  MMRegion(int id) : Region(id){};
+  MMRegion(int id, Logger& log) : Region(id, log){};
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r);
 
   int size() const { return _segments.size(); }
+
+  virtual void Initialize(const tools::Property& prop) = 0;
+
+  virtual bool Converged() const = 0;
+
+  virtual void Evaluate() = 0;
+
+  virtual void ApplyInfluenceOfOtherRegions(
+      const std::vector<std::unique_ptr<Region> >& regions) = 0;
+
+  virtual std::string identify() const = 0;
 
   typename std::vector<T>::iterator begin() { return _segments.begin(); }
   typename std::vector<T>::iterator end() { return _segments.end(); }
@@ -48,15 +59,11 @@ class MMRegion : public Region {
 
   void WritePDB(csg::PDBWriter& writer) const;
 
-  std::string identify() const;
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  private:
   std::vector<T> _segments;
 };
-
-typedef MMRegion<PolarSegment> PolarRegion;
-typedef MMRegion<StaticSegment> StaticRegion;
 
 }  // namespace xtp
 }  // namespace votca

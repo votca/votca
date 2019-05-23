@@ -21,20 +21,6 @@
 
 namespace votca {
 namespace xtp {
-template <class T>
-std::string MMRegion<T>::identify() const {
-  return "";
-}
-
-template <>
-std::string PolarRegion::identify() const {
-  return "PolarRegion";
-}
-
-template <>
-std::string StaticRegion::identify() const {
-  return "StaticRegion";
-}
 
 template <class T>
 void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {

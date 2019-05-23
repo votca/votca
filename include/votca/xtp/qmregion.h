@@ -37,8 +37,17 @@ namespace xtp {
 class QMRegion : public Region {
 
  public:
-  QMRegion(int id) : Region(id){};
+  QMRegion(int id, Logger& log) : Region(id, log){};
   ~QMRegion(){};
+
+  void Initialize(const tools::Property& prop);
+
+  bool Converged() const;
+
+  void Evaluate();
+
+  void ApplyInfluenceOfOtherRegions(
+      const std::vector<std::unique_ptr<Region> >& regions);
 
   void WriteToCpt(CheckpointWriter& w) const;
 

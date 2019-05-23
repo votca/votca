@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <logicalFolder name="f1" displayName="Calculators" projectFiles="true">
       <logicalFolder name="f2" displayName="Calculators" projectFiles="true">
@@ -141,6 +141,7 @@
       <itemPath>../../include/votca/xtp/stateapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaver.h</itemPath>
+      <itemPath>../../include/votca/xtp/staticregion.h</itemPath>
       <itemPath>../../include/votca/xtp/staticsite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
@@ -235,6 +236,12 @@
         <itemPath>../../src/libxtp/numerical_integration/radial_euler_maclaurin_rule.cc</itemPath>
         <itemPath>../../src/libxtp/numerical_integration/sphere_lebedev_rule.cc</itemPath>
       </logicalFolder>
+      <logicalFolder name="f10" displayName="QMMM" projectFiles="true">
+        <itemPath>../../src/libxtp/jobtopology.cc</itemPath>
+        <itemPath>../../src/libxtp/mmregion.cc</itemPath>
+        <itemPath>../../src/libxtp/polarregion.cc</itemPath>
+        <itemPath>../../src/libxtp/qmregion.cc</itemPath>
+      </logicalFolder>
       <itemPath>../../src/libxtp/aobasis.cc</itemPath>
       <itemPath>../../src/libxtp/aoshell.cc</itemPath>
       <itemPath>../../src/libxtp/atom.cc</itemPath>
@@ -251,9 +258,7 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
-      <itemPath>../../src/libxtp/jobtopology.cc</itemPath>
       <itemPath>../../src/libxtp/md2qmengine.cc</itemPath>
-      <itemPath>../../src/libxtp/mmregion.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
@@ -264,7 +269,6 @@
       <itemPath>../../src/libxtp/qmnblist.cc</itemPath>
       <itemPath>../../src/libxtp/qmpackage.cc</itemPath>
       <itemPath>../../src/libxtp/qmpair.cc</itemPath>
-      <itemPath>../../src/libxtp/qmregion.cc</itemPath>
       <itemPath>../../src/libxtp/qmstate.cc</itemPath>
       <itemPath>../../src/libxtp/rate_engine.cc</itemPath>
       <itemPath>../../src/libxtp/segment.cc</itemPath>
@@ -4171,6 +4175,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/staticregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/staticsite.h"
             ex="false"
             tool="3"
@@ -4627,6 +4636,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5250,6 +5261,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/staticregion.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/staticsite.h"
             ex="false"
             tool="3"
@@ -5706,6 +5722,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/libxtp/polarregion.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -42,12 +42,12 @@ class Mat_p_Energy {
   double energy() const { return _energy; }
 
  private:
-  Eigen::MatrixXd _matrix;
   double _energy;
+  Eigen::MatrixXd _matrix;
 };
 
 namespace OPENMP {
-static int getMaxThreads() {
+int getMaxThreads() {
   int nthreads = 1;
 #ifdef _OPENMP
   nthreads = omp_get_max_threads();
@@ -55,7 +55,7 @@ static int getMaxThreads() {
   return nthreads;
 }
 
-static int getThreadId() {
+int getThreadId() {
   int thread_id = 0;
 #ifdef _OPENMP
   thread_id = omp_get_thread_num();
@@ -63,7 +63,7 @@ static int getThreadId() {
   return thread_id;
 }
 
-static void setMaxThreads(int threads) {
+void setMaxThreads(int threads) {
 #ifdef _OPENMP
   if (threads > 0) {
     omp_set_num_threads(threads);

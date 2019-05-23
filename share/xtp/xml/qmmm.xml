@@ -1,6 +1,7 @@
 <options>
     <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
         <print_regions_pdb>true</print_regions_pdb>
+        <max_iterations>50</max_iterations>
         <regions>
             <mapfile>map.xml</mapfile>
             <region>
@@ -34,24 +35,6 @@
                 <cutoff>5</cutoff>
             </region>
         </regions>
-        <interactors>
-            <interactor>
-                <id>0</id>
-                <regions>0 1</regions>
-                <type>self-consistent</type>
-                <max_iterations>50</max_iterations>
-                <deltaE>1e-5</deltaE>
-                <deltaQ>1e-5</deltaQ>
-            </interactor>
-            <interactor>
-                <id>1</id>
-                <regions>0 2</regions>
-                <type>self-consistent</type>
-                <max_iterations>50</max_iterations>
-                <deltaE>1e-5</deltaE>
-                <deltaQ>1e-5</deltaQ>
-            </interactor>
-        </interactors>
     </qmmm>
 
 </options>

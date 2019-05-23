@@ -17,21 +17,35 @@
  *
  */
 
-#include <votca/xtp/polarregion.h>
+#pragma once
+#ifndef VOTCA_XTP_STATICREGION_H
+#define VOTCA_XTP_STATICREGION_H
+
+#include <votca/xtp/mmregion.h>
 
 namespace votca {
 namespace xtp {
+class StaticRegion : public MMRegion<StaticSegment> {
+ public:
+  StaticRegion(int id, Logger& log) : MMRegion<StaticSegment>(id, log){};
 
-void PolarRegion::Initialize(const tools::Property& prop) { return; }
+  std::string identify() const { return "StaticRegion"; }
 
-bool PolarRegion::Converged() const { return false; }
+  void Initialize(const tools::Property& prop) { return; }
 
-void PolarRegion::Evaluate() { retur n; }
+  bool Converged() { return true; }
 
-void PolarRegion::ApplyInfluenceOfOtherRegions(
-    const std::vector<std::unique_ptr<Region> >& regions) {
-  return;
-}
+  void Evaluate() { return; }
+
+  void ApplyInfluenceOfOtherRegions(
+      const std::vector<std::unique_ptr<Region> >& regions) {
+    return;
+  }
+
+ private:
+};
 
 }  // namespace xtp
 }  // namespace votca
+
+#endif /* VOTCA_XTP_MMREGION_H */

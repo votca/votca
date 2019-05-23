@@ -25,36 +25,21 @@
 
 namespace votca {
 namespace xtp {
-template <class T>
-class MMRegion : public Region {
+class PolarRegion : public MMRegion<PolarSegment> {
  public:
-  MMRegion(int id) : Region(id){};
-  void WriteToCpt(CheckpointWriter& w) const;
+  PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log){};
 
-  void ReadFromCpt(CheckpointReader& r);
+  std::string identify() const { return "PolarRegion"; }
 
-  int size() const { return _segments.size(); }
+  void Initialize(const tools::Property& prop);
 
-  typename std::vector<T>::iterator begin() { return _segments.begin(); }
-  typename std::vector<T>::iterator end() { return _segments.end(); }
+  bool Converged() const;
 
-  typename std::vector<T>::const_iterator begin() const {
-    return _segments.begin();
-  }
-  typename std::vector<T>::const_iterator end() const {
-    return _segments.end();
-  }
+  void Evaluate();
 
-  void WritePDB(csg::PDBWriter& writer) const;
-
-  std::string identify() const;
-  void push_back(const T& seg) { _segments.push_back(seg); }
-
- private:
-  std::vector<T> _segments;
+  void ApplyInfluenceOfOtherRegions(
+      const std::vector<std::unique_ptr<Region> >& regions);
 };
-
-typedef MMRegion<StaticSegment> StaticRegion;
 
 }  // namespace xtp
 }  // namespace votca

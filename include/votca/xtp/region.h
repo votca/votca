@@ -16,12 +16,14 @@
  * limitations under the License.
  *
  */
-#include <iostream>
-#include <votca/csg/pdbwriter.h>
-#include <votca/xtp/checkpoint.h>
 #pragma once
 #ifndef VOTCA_XTP_REGION_H
 #define VOTCA_XTP_REGION_H
+
+#include <iostream>
+#include <votca/csg/pdbwriter.h>
+#include <votca/xtp/checkpoint.h>
+#include <votca/xtp/logger.h>
 
 /**
  * \brief base class to derive regions from
@@ -36,12 +38,21 @@ namespace xtp {
 class Region {
 
  public:
-  Region(int id) : _id(id){};
+  Region(int id, Logger& log) : _id(id), _log(log){};
   virtual ~Region(){};
 
   virtual void WriteToCpt(CheckpointWriter& w) const = 0;
 
   virtual void ReadFromCpt(CheckpointReader& r) = 0;
+
+  virtual void Initialize(const tools::Property& prop) = 0;
+
+  virtual bool Converged() const = 0;
+
+  virtual void Evaluate() = 0;
+
+  virtual void ApplyInfluenceOfOtherRegions(
+      const std::vector<std::unique_ptr<Region> >& regions) = 0;
 
   virtual int size() const = 0;
 
@@ -58,6 +69,8 @@ class Region {
   }
 
  protected:
+  Logger& _log;
+
   int _id = -1;
 };
 

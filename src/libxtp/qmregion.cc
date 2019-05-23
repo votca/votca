@@ -22,6 +22,17 @@
 namespace votca {
 namespace xtp {
 
+void QMRegion::Initialize(const tools::Property& prop) { return; }
+
+bool QMRegion::Converged() const { return true; }
+
+void QMRegion::Evaluate() {}
+
+void QMRegion::ApplyInfluenceOfOtherRegions(
+    const std::vector<std::unique_ptr<Region> >& regions) {
+  return;
+}
+
 void QMRegion::WritePDB(csg::PDBWriter& writer) const {
   writer.WriteContainer(_orb.QMAtoms());
 }

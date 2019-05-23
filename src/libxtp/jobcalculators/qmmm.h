@@ -44,8 +44,8 @@ class QMMM : public ParallelXJobCalc<std::vector<Job> > {
 
  private:
   tools::Property _regions_def;
-  tools::Property _interactor_def;
 
+  int _max_iterations = 100;
   bool _print_regions_pdb = false;
 };
 

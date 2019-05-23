@@ -120,7 +120,7 @@ void JobTopology::CreateRegions(
     std::unique_ptr<Region> region;
     if (type == "gwbse" || type == "dft") {
       std::unique_ptr<QMRegion> qmregion =
-          std::unique_ptr<QMRegion>(new QMRegion(id));
+          std::unique_ptr<QMRegion>(new QMRegion(id, _log));
       QMMapper qmmapper(_log);
       qmmapper.LoadMappingFile(mapfile);
       for (int seg_index : seg_ids) {
@@ -133,7 +133,7 @@ void JobTopology::CreateRegions(
       region = std::move(qmregion);
     } else if (type == "polar") {
       std::unique_ptr<PolarRegion> polarregion =
-          std::unique_ptr<PolarRegion>(new PolarRegion(id));
+          std::unique_ptr<PolarRegion>(new PolarRegion(id, _log));
       PolarMapper polmap(_log);
       polmap.LoadMappingFile(mapfile);
       for (int seg_index : seg_ids) {
@@ -146,7 +146,7 @@ void JobTopology::CreateRegions(
       region = std::move(polarregion);
     } else if (type == "static") {
       std::unique_ptr<StaticRegion> staticregion =
-          std::unique_ptr<StaticRegion>(new StaticRegion(id));
+          std::unique_ptr<StaticRegion>(new StaticRegion(id, _log));
       StaticMapper staticmap(_log);
       staticmap.LoadMappingFile(mapfile);
       for (int seg_index : seg_ids) {
@@ -161,6 +161,7 @@ void JobTopology::CreateRegions(
     } else {
       throw std::runtime_error("Region type not known!");
     }
+    region->Initialize(*region_def);
     _regions.push_back(std::move(region));
   }
 }
