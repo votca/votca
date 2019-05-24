@@ -52,11 +52,13 @@ class PolarSite : public StaticSite {
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const override;
 
-  Eigen::Vector3d getField() const override {
-    return _localpermanentField + _localinducedField;
-  }
+  Eigen::Vector3d& getInducedField() { return _localinducedField; }
 
-  double getPotential() const override { return _phi + _phi_induced; }
+  const Eigen::Vector3d& getInducedField() const { return _localinducedField; }
+
+  double getEigenDamp() const { return _eigendamp; }
+  const double& getInducedPotential() const { return _phi_induced; }
+  double& getInducedPotential() { return _phi_induced; }
 
   void Rotate(const Eigen::Matrix3d& R,
               const Eigen::Vector3d& ref_pos) override {

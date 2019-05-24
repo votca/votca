@@ -24,6 +24,7 @@
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
 typedef Eigen::Matrix<double, 9, 1> Vector9d;
+typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 
 namespace votca {
 namespace xtp {

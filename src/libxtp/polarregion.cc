@@ -41,7 +41,7 @@ void PolarRegion::Initialize(const tools::Property& prop) {
 
 bool PolarRegion::Converged() const { return false; }
 
-void PolarRegion::Evaluate() { return; }
+void PolarRegion::Evaluate() {}
 
 void PolarRegion::ResetRegion() { return; }
 void PolarRegion::InteractwithQMRegion(QMRegion& region) { return; }

@@ -24,7 +24,7 @@
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
 #include <votca/tools/propertyiomanipulator.h>
-
+#include <votca/xtp/eeinteractor.h>
 #include <votca/xtp/logger.h>
 
 using namespace std;
@@ -117,8 +117,9 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   map.LoadMappingFile(_mapfile);
   StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
   StaticSegment seg2 = map.map(*(pair->Seg2PbCopy()), mps_fileB);
+  eeInteractor actor = eeInteractor(0);
 
-  double JAB = 0;
+  double JAB = actor.InteractStatic(seg1, seg2);
   _cutoff = 0;
   Property job_summary;
   Property& job_output = job_summary.add("output", "");

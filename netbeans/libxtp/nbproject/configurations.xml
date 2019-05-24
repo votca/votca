@@ -80,6 +80,7 @@
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
+      <itemPath>../../include/votca/xtp/eeinteractor.h</itemPath>
       <itemPath>../../include/votca/xtp/eigen.h</itemPath>
       <itemPath>../../include/votca/xtp/energy_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/esp2multipole.h</itemPath>
@@ -253,6 +254,7 @@
       <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
       <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/eeinteractor.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
       <itemPath>../../src/libxtp/gdma.cc</itemPath>
@@ -3950,6 +3952,11 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/eeinteractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/energy_costfunction.h"
@@ -4494,6 +4501,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/eeinteractor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/energy_costfunction.cc"
             ex="false"
@@ -5040,6 +5049,11 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/eeinteractor.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/energy_costfunction.h"
@@ -5584,6 +5598,8 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/eeinteractor.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/energy_costfunction.cc"
             ex="false"

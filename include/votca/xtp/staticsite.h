@@ -110,9 +110,11 @@ class StaticSite {
   static Eigen::VectorXd CalculateSphericalMultipole(
       const Eigen::Matrix3d& quadrupole_cartesian);
 
-  virtual Eigen::Vector3d getField() const { return _localpermanentField; }
+  const Eigen::Vector3d& getField() const { return _localpermanentField; }
+  Eigen::Vector3d& getField() { return _localpermanentField; }
 
-  virtual double getPotential() const { return _phi; }
+  const double& getPotential() const { return _phi; }
+  double& getPotential() { return _phi; }
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
