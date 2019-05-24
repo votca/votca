@@ -17,19 +17,16 @@
  *
  */
 
-#include <boost/math/constants/constants.hpp>
-#include <votca/tools/constants.h>
-#include <votca/xtp/aoshell.h>
-#include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/radial_euler_maclaurin_rule.h>
-#include <votca/xtp/sphere_lebedev_rule.h>
-
 #include <boost/algorithm/string.hpp>
-#include <cmath>
 #include <fstream>
 #include <iterator>
 #include <string>
-#include <votca/xtp/aomatrix.h>
+#include <votca/tools/constants.h>
+#include <votca/xtp/numerical_integrations.h>
+#include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/radial_euler_maclaurin_rule.h>
+#include <votca/xtp/sphere_lebedev_rule.h>
+#include <votca/xtp/vxc_functionals.h>
 
 namespace votca {
 namespace xtp {

@@ -39,7 +39,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   bool Converged() const;
 
-  void Evaluate();
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
  protected:
   void ResetRegion();

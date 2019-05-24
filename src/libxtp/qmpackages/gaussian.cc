@@ -36,36 +36,15 @@ void Gaussian::Initialize(tools::Property& options) {
   _input_file_name = fileName + ".com";
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
-  _orb_file_name = "fort.7";
+  _mo_file_name = "fort.7";
   _input_vxc_file_name = fileName + "-2.com";
-
   std::string key = "package";
-  std::string _name = options.get(key + ".name").as<std::string>();
-
-  if (_name != "gaussian") {
-    cerr << "Tried to use " << _name << " package. ";
-    throw std::runtime_error("Wrong options file");
-  }
-
-  _executable = options.get(key + ".executable").as<std::string>();
-  _charge = options.get(key + ".charge").as<int>();
-  _spin = options.get(key + ".spin").as<int>();
-  _options = options.get(key + ".options").as<std::string>();
-  _memory = options.get(key + ".memory").as<std::string>();
-  _threads = options.get(key + ".threads").as<int>();
-  _chk_file_name = options.get(key + ".checkpoint").as<std::string>();
-  _scratch_dir = options.get(key + ".scratch").as<std::string>();
-  _cleanup = options.get(key + ".cleanup").as<std::string>();
+  ParseCommonOptions(options);
 
   if (options.exists(key + ".vdWRadii")) {
     _vdWfooter = options.get(key + ".vdWRadii").as<std::string>();
   } else
     _vdWfooter = "";
-
-  if (options.exists(key + ".outputVxc")) {
-    _output_Vxc = options.get(key + ".outputVxc").as<bool>();
-  } else
-    _output_Vxc = false;
 
   /* G09 by default deletes functions from the basisset according to some
    * criterion based on, a.o., the contraction coefficients. This can lead
@@ -81,21 +60,20 @@ void Gaussian::Initialize(tools::Property& options) {
       _options = _options + " int=nobasistransform ";
     }
   }
-
+  std::string::size_type iop_pos;
   // check if the guess keyword is present, if yes, append the guess later
-  std::string::size_type iop_pos = _options.find("cards");
-  if (iop_pos != std::string::npos) {
-    _write_guess = true;
-  } else {
-    _write_guess = false;
+  if (_write_guess) {
+    ;
+    iop_pos = _options.find("cards");
+    if (iop_pos != std::string::npos) {
+      _options = _options + " cards ";
+    }
   }
 
   // check if the pop keyword is present, if yes, get the charges and save them
   iop_pos = _options.find("pop");
   if (iop_pos != std::string::npos) {
     _get_charges = true;
-  } else {
-    _get_charges = false;
   }
 
   // check if the charge keyword is present, if yes, get the self energy and
@@ -105,7 +83,6 @@ void Gaussian::Initialize(tools::Property& options) {
   iop_pos = _options.find("gen");
   if (iop_pos != std::string::npos) {
     _write_basis_set = true;
-    _basisset_name = options.get(key + ".basisset").as<std::string>();
   } else {
     _write_basis_set = false;
   }
@@ -114,7 +91,6 @@ void Gaussian::Initialize(tools::Property& options) {
   iop_pos = _options.find("pseudo");
   if (iop_pos != std::string::npos) {
     _write_pseudopotentials = true;
-    _ecp_name = options.get(key + ".ecp").as<std::string>();
   } else {
     _write_pseudopotentials = false;
   }
@@ -296,40 +272,6 @@ void Gaussian::WriteGuess(const Orbitals& orbitals_guess,
   return;
 }
 
-/* For output of the AO matrix of Vxc using the patched g03 version,
- * g03 has to be called a second time after completing the single-point
- * SCF calculation. A second input file is generated based on the
- * originally specified options by forcing to read the converged
- * electron density from the checkpoint file, setting run to serial.
- */
-void Gaussian::WriteVXCRunInputFile() {
-  std::ofstream com_file2;
-
-  std::string com_file_name_full2 = _run_dir + "/" + _input_vxc_file_name;
-
-  com_file2.open(com_file_name_full2.c_str());
-  // header
-  if (_chk_file_name.size()) com_file2 << "%chk=" << _chk_file_name << endl;
-  if (_memory.size()) com_file2 << "%mem=" << _memory << endl;
-  com_file2 << "%nprocshared=1" << endl;
-
-  // adjusting the options line to Vxc output only
-  std::string options_vxc = _options;
-  boost::algorithm::replace_all(options_vxc, "pseudo=read", "Geom=AllCheck");
-  boost::algorithm::replace_all(options_vxc, "/gen", " chkbasis");
-  boost::algorithm::replace_all(options_vxc, "punch=mo", "guess=read");
-  boost::algorithm::replace_all(options_vxc, "guess=tcheck", "");
-  boost::algorithm::replace_all(options_vxc, "guess=huckel", "");
-  boost::algorithm::replace_all(options_vxc, "charge", "charge=check");
-  if (options_vxc.size()) com_file2 << options_vxc << endl;
-
-  com_file2 << endl;
-  com_file2 << "VXC output run \n";
-  com_file2 << endl;
-  com_file2.close();
-  return;
-}
-
 /* Coordinates are written in standard Element,x,y,z format to the
  * input file.
  */
@@ -426,9 +368,6 @@ bool Gaussian::WriteInputFile(const Orbitals& orbitals) {
         "Gaussian executable unknown. Must be either g03 or g09.");
   }
 
-  // for Vxc AO matrix output only with pre-compiled G03
-  if (_output_Vxc) WriteVXCRunInputFile();
-
   com_file << _vdWfooter << endl;
 
   com_file << endl;
@@ -460,14 +399,6 @@ bool Gaussian::WriteShellScript() {
   shell_file << "mkdir -p " << _scratch_dir << endl;
   shell_file << "setenv GAUSS_SCRDIR " << _scratch_dir << endl;
   shell_file << _executable << " " << _input_file_name << endl;
-  if (_output_Vxc) {
-    shell_file << "rm fort.22" << endl;
-    shell_file << "setenv DoPrtXC YES" << endl;
-    shell_file << _executable << " " << _input_vxc_file_name << " >& /dev/null "
-               << endl;
-    shell_file << "setenv DoPrtXC NO" << endl;
-    shell_file << "rm $GAUSS_SCRDIR/*" << endl;
-  }
   shell_file.close();
 
   return true;
@@ -484,7 +415,7 @@ bool Gaussian::Run() {
     // if scratch is provided, run the shell script;
     // otherwise run gaussian directly and rely on global variables
     std::string command;
-    if (_scratch_dir.size() != 0 || _output_Vxc) {
+    if (_scratch_dir.size() != 0) {
       command = "cd " + _run_dir + "; tcsh " + _shell_file_name;
       //            _command  = "cd " + _run_dir + "; mkdir -p " + _scratch_dir
       //            +"; " + _executable + " " + _input_file_name;
@@ -529,10 +460,6 @@ void Gaussian::CleanUp() {
       if (substring == "com") {
         std::string file_name = _run_dir + "/" + _input_file_name;
         remove(file_name.c_str());
-        if (_output_Vxc) {
-          std::string file_name = _run_dir + "/" + _input_vxc_file_name;
-          remove(file_name.c_str());
-        }
       }
 
       if (substring == "sh") {
@@ -543,15 +470,6 @@ void Gaussian::CleanUp() {
       if (substring == "log") {
         std::string file_name = _run_dir + "/" + _log_file_name;
         remove(file_name.c_str());
-        if (_output_Vxc) {
-          size_t lastdot = _log_file_name.find_last_of(".");
-          if (lastdot == std::string::npos) {
-            cerr << endl;
-            cerr << "Could not remove Vxc log file" << flush;
-          }
-          std::string file_name2 = file_name.substr(0, lastdot) + "-2.log";
-          remove(file_name2.c_str());
-        }
       }
 
       if (substring == "chk") {
@@ -562,10 +480,6 @@ void Gaussian::CleanUp() {
       if (substring == "fort.7") {
         std::string file_name = _run_dir + "/" + substring;
         remove(file_name.c_str());
-        if (_output_Vxc) {
-          std::string file_name = _run_dir + "/" + "fort.24";
-          remove(file_name.c_str());
-        }
       }
 
       if (substring == "gbs" && _write_basis_set) {
@@ -591,7 +505,7 @@ void Gaussian::CleanUp() {
 /**
  * Reads in the MO coefficients from a GAUSSIAN fort.7 file
  */
-bool Gaussian::ParseOrbitalsFile(Orbitals& orbitals) {
+bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   std::map<int, std::vector<double> > coefficients;
   std::map<int, double> energies;
 
@@ -600,17 +514,17 @@ bool Gaussian::ParseOrbitalsFile(Orbitals& orbitals) {
   unsigned level = 0;
   unsigned basis_size = 0;
 
-  std::string orb_file_name_full = _orb_file_name;
-  if (_run_dir != "") orb_file_name_full = _run_dir + "/" + _orb_file_name;
+  std::string orb_file_name_full = _mo_file_name;
+  if (_run_dir != "") orb_file_name_full = _run_dir + "/" + _mo_file_name;
   std::ifstream input_file(orb_file_name_full.c_str());
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog)
-        << "File " << _orb_file_name << " with molecular orbitals is not found "
+        << "File " << _mo_file_name << " with molecular orbitals is not found "
         << flush;
     return false;
   } else {
-    XTP_LOG(logDEBUG, *_pLog) << "Reading MOs from " << _orb_file_name << flush;
+    XTP_LOG(logDEBUG, *_pLog) << "Reading MOs from " << _mo_file_name << flush;
   }
 
   // number of coefficients per line is  in the first line of the file (5D15.8)
@@ -658,7 +572,7 @@ bool Gaussian::ParseOrbitalsFile(Orbitals& orbitals) {
   for (iter = coefficients.begin()++; iter != coefficients.end(); iter++) {
     if (iter->second.size() != basis_size) {
       XTP_LOG(logERROR, *_pLog)
-          << "Error reading " << _orb_file_name
+          << "Error reading " << _mo_file_name
           << ". Basis set size change from level to level." << flush;
       return false;
     }
@@ -779,11 +693,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   bool has_unoccupied_levels = false;
   bool has_number_of_electrons = false;
   bool has_basis_set_size = false;
-  bool has_overlap_matrix = false;
   bool has_charges = false;
   bool has_self_energy = false;
-
-  bool read_vxc = false;
 
   int occupied_levels = 0;
   int unoccupied_levels = 0;
@@ -800,15 +711,14 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   if (!CheckLogFile()) return false;
 
   // save qmpackage name
-  orbitals.setQMpackage("gaussian");
+  orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(_basisset_name);
 
   if (_write_pseudopotentials) {
     orbitals.setECPName(_ecp_name);
   }
 
-  read_vxc = _output_Vxc;
-  bool vxc_found = false;
+  bool ScaHFX_found = false;
   // Start parsing the file line by line
   ifstream input_file(log_file_name_full.c_str());
   while (input_file) {
@@ -823,7 +733,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
                               boost::algorithm::token_compress_on);
       double ScaHFX = boost::lexical_cast<double>(results.back());
       orbitals.setScaHFX(ScaHFX);
-      vxc_found = true;
+      ScaHFX_found = true;
       XTP_LOG(logDEBUG, *_pLog)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
     }
@@ -854,13 +764,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
       has_basis_set_size = true;
       basis_set_size = boost::lexical_cast<int>(results.front());
       orbitals.setBasisSetSize(basis_set_size);
-      cart_basis_set_size = boost::lexical_cast<int>(results[6]);
       XTP_LOG(logDEBUG, *_pLog)
           << "Basis functions: " << basis_set_size << flush;
-      if (read_vxc) {
-        XTP_LOG(logDEBUG, *_pLog)
-            << "Cartesian functions: " << cart_basis_set_size << flush;
-      }
     }
 
     /*
@@ -1004,55 +909,9 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
       XTP_LOG(logDEBUG, *_pLog)
           << "Self energy " << orbitals.getSelfEnergy() << flush;
     }
-
-    std::string::size_type overlap_pos = line.find("*** Overlap ***");
-    if (overlap_pos != std::string::npos) {
-
-      // prepare the container
-      Eigen::MatrixXd& overlap = orbitals.AOOverlap();
-      overlap.resize(basis_set_size, basis_set_size);
-      has_overlap_matrix = true;
-      std::vector<int> j_indeces;
-      int n_blocks = 1 + ((basis_set_size - 1) / 5);
-      getline(input_file, line);
-      boost::trim(line);
-
-      for (int _block = 0; _block < n_blocks; _block++) {
-        // first line gives the j index in the matrix
-        boost::tokenizer<> tok(line);
-        std::transform(tok.begin(), tok.end(), std::back_inserter(j_indeces),
-                       &boost::lexical_cast<int, std::string>);
-
-        // read the block of max _basis_size lines + the following header
-        for (int i = 0; i <= basis_set_size; i++) {
-          getline(input_file, line);
-          if (std::string::npos == line.find("D")) break;
-          // split the line on the i index and the rest
-          std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-          int i_index = boost::lexical_cast<int>(row.front());
-          row.erase(row.begin());
-          std::vector<int>::iterator j_iter = j_indeces.begin();
-
-          for (std::string& coefficient : row) {
-            boost::replace_first(coefficient, "D", "e");
-            int j_index = *j_iter;
-            overlap(i_index - 1, j_index - 1) =
-                boost::lexical_cast<double>(coefficient);
-            overlap(j_index - 1, i_index - 1) =
-                boost::lexical_cast<double>(coefficient);
-            j_iter++;
-          }
-        }
-        // clear the index for the next block
-        j_indeces.clear();
-      }  // end of the blocks
-
-      XTP_LOG(logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
-    }  // end of the if "Overlap" found
     // check if all information has been accumulated and quit
     if (has_number_of_electrons && has_basis_set_size && has_occupied_levels &&
-        has_unoccupied_levels && has_overlap_matrix && has_charges &&
-        has_self_energy)
+        has_unoccupied_levels && has_charges && has_self_energy)
       break;
 
   }  // end of reading the file line-by-line
@@ -1060,7 +919,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
   input_file.close();
 
-  if (!vxc_found) {
+  if (!ScaHFX_found) {
     XTP_LOG(logDEBUG, *_pLog)
         << "WARNING === WARNING \n, could not find ScaHFX= entry in log."
            "\n probably you forgt #P in the beginning of the input file.\n"
@@ -1069,56 +928,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         << flush;
     orbitals.setScaHFX(0.0);
   }
-  // - parse atomic orbitals Vxc matrix
 
-  if (read_vxc) {
-    XTP_LOG(logDEBUG, *_pLog) << "Parsing fort.24 for Vxc" << flush;
-    std::string log_file_name_full;
-    if (_run_dir == "") {
-      log_file_name_full = "fort.24";
-    } else {
-      log_file_name_full = _run_dir + "/fort.24";
-    }
-
-    ifstream input_file(log_file_name_full.c_str());
-    if (input_file.good()) {
-      // prepare the container
-      Eigen::MatrixXd vxc =
-          Eigen::MatrixXd::Zero(cart_basis_set_size, cart_basis_set_size);
-      std::vector<int> j_indeces;
-      // Start parsing the file line by line
-
-      while (input_file) {
-        getline(input_file, line);
-        if (input_file.eof()) break;
-
-        std::vector<std::string> row;
-        boost::trim(line);
-        boost::algorithm::split(row, line, boost::is_any_of("\t "),
-                                boost::algorithm::token_compress_on);
-
-        int i_index = boost::lexical_cast<int>(row[0]);
-        int j_index = boost::lexical_cast<int>(row[1]);
-        vxc(i_index - 1, j_index - 1) = boost::lexical_cast<double>(row[2]);
-        vxc(j_index - 1, i_index - 1) = boost::lexical_cast<double>(row[2]);
-      }
-
-      XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
-      input_file.close();
-      BasisSet dftbasisset;
-      dftbasisset.LoadBasisSet(_basisset_name);
-      if (!orbitals.hasQMAtoms()) {
-        throw runtime_error("Orbitals object has no QMAtoms");
-      }
-      AOBasis dftbasis;
-      dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
-      Eigen::MatrixXd carttrafo =
-          dftbasis.getTransformationCartToSpherical(getPackageName());
-      orbitals.AOVxc() = carttrafo * vxc * carttrafo.transpose();
-    } else {
-      throw std::runtime_error("Vxc file does not exist.");
-    }
-  }
   return true;
 }
 

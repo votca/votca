@@ -38,6 +38,8 @@ class Mat_p_Energy {
   Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
       : _energy(e), _matrix(std::move(mat)){};
 
+  int rows() const { return _matrix.rows(); }
+  int cols() const { return _matrix.cols(); }
   const Eigen::MatrixXd& matrix() const { return _matrix; }
   double energy() const { return _energy; }
 

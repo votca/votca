@@ -71,8 +71,10 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
              jobtop.end();
          reg_pointer-- != jobtop.begin();) {
       std::unique_ptr<Region>& region = *reg_pointer;
-      region->ApplyInfluenceOfOtherRegions(jobtop.Regions());
-      region->Evaluate();
+      XTP_LOG_SAVE(logINFO, pLog)
+          << "Running calculations for Region:" << region->identify() << " "
+          << region->getId() << std::flush;
+      region->Evaluate(jobtop.Regions());
     }
 
     std::vector<bool> converged_regions;

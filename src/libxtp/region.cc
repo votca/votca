@@ -36,7 +36,10 @@ void Region::ApplyInfluenceOfOtherRegions(
     QMRegion QMdummy = QMRegion(0, _log);
     StaticRegion Staticdummy = StaticRegion(0, _log);
     PolarRegion Polardummy = PolarRegion(0, _log);
-
+    XTP_LOG_SAVE(logINFO, _log)
+        << "Evaluating interaction between:" << this->identify() << " "
+        << this->getId() << "and " << reg->identify() << " " << reg->getId()
+        << std::flush;
     if (reg->identify() == QMdummy.identify()) {
       QMRegion* qmregion = dynamic_cast<QMRegion*>(reg.get());
       InteractwithQMRegion(*qmregion);

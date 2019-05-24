@@ -91,7 +91,7 @@ bool Log2Mps::Evaluate() {
 
   // Create orbitals, fill with life & extract QM atoms
   Orbitals orbs;
-  int cdx = qmpack->ParseLogFile(orbs);
+  bool cdx = qmpack->ParseLogFile(orbs);
   if (!cdx) {
     throw std::runtime_error("\nERROR Parsing " + _logfile + "failed.");
   }

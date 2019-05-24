@@ -243,19 +243,17 @@ bool DFTEngine::Evaluate() {
     } else if (_initial_guess == "atom") {
       Dmat = AtomicGuess();
       Mat_p_Energy ERIs = CalculateERIs(Dmat);
-
+      Mat_p_Energy e_vxc(Dmat.rows(), Dmat.cols());
       if (_use_small_grid) {
-        Mat_p_Energy e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
-        _orbitals.AOVxc() = e_vxc.matrix();
+        e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
       } else {
         Mat_p_Energy e_vxc = _gridIntegration.IntegrateVXC(Dmat);
-        _orbitals.AOVxc() = e_vxc.matrix();
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled DFT Vxc matrix " << flush;
       }
-      Eigen::MatrixXd H = H0 + ERIs.matrix() + _orbitals.AOVxc();
+      Eigen::MatrixXd H = H0 + ERIs.matrix() + e_vxc.matrix();
       if (_ScaHFX > 0) {
         Mat_p_Energy EXXs = CalcEXXs(MOCoeff, Dmat);
         H -= 0.5 * _ScaHFX * EXXs.matrix();
@@ -284,23 +282,20 @@ bool DFTEngine::Evaluate() {
                               << " of " << _max_iter << flush;
 
     double vxcenergy = 0.0;
+    Mat_p_Energy e_vxc(Dmat.rows(), Dmat.cols());
     if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
-      Mat_p_Energy e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
-      _orbitals.AOVxc() = e_vxc.matrix();
-      vxcenergy = e_vxc.energy();
+      e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled approximate DFT Vxc matrix " << flush;
     } else {
-      Mat_p_Energy e_vxc = _gridIntegration.IntegrateVXC(Dmat);
-      _orbitals.AOVxc() = e_vxc.matrix();
-      vxcenergy = e_vxc.energy();
+      e_vxc = _gridIntegration.IntegrateVXC(Dmat);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Filled DFT Vxc matrix " << flush;
     }
     Mat_p_Energy ERIs = CalculateERIs(Dmat);
-    Eigen::MatrixXd H = H0 + ERIs.matrix() + _orbitals.AOVxc();
+    Eigen::MatrixXd H = H0 + ERIs.matrix() + e_vxc.matrix();
     double Eone = Dmat.cwiseProduct(H0).sum();
-    double Etwo = 0.5 * ERIs.energy() + vxcenergy;
+    double Etwo = 0.5 * ERIs.energy() + e_vxc.energy();
     double exx = 0.0;
     if (_ScaHFX > 0) {
       Mat_p_Energy EXXs = CalcEXXs(MOCoeff, Dmat);
@@ -317,7 +312,7 @@ bool DFTEngine::Evaluate() {
                               << std::setprecision(12) << Etwo << flush;
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << std::setprecision(12) << " Local Exc contribution "
-        << vxcenergy << flush;
+        << e_vxc.energy() << flush;
     if (_ScaHFX > 0) {
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << std::setprecision(12)
@@ -720,7 +715,6 @@ void DFTEngine::ConfigOrbfile() {
           << _dftbasis_name << flush;
     }
   }
-  _orbitals.setQMpackage("xtp");
   _orbitals.setDFTbasisName(_dftbasis_name);
   _orbitals.setBasisSetSize(_dftbasis.AOBasisSize());
   _orbitals.setScaHFX(_ScaHFX);

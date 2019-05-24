@@ -48,7 +48,7 @@ class NWChem : public QMPackage {
 
   bool ParseLogFile(Orbitals& orbitals);
 
-  bool ParseOrbitalsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals);
 
  private:
   bool CheckLogFile();

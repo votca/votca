@@ -36,84 +36,29 @@ void NWChem::Initialize(tools::Property& options) {
   _input_file_name = fileName + ".nw";
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
-  _orb_file_name = fileName + ".movecs";
+  _mo_file_name = fileName + ".movecs";
 
-  string key = "package";
-  string _name = options.get(key + ".name").as<string>();
-
-  if (_name != "nwchem") {
-    cerr << "Tried to use " << _name << " package. ";
-    throw std::runtime_error("Wrong options file");
-  }
-
-  _executable = options.get(key + ".executable").as<string>();
-  _charge = options.get(key + ".charge").as<int>();
-  _spin = options.get(key + ".spin").as<int>();
-  _options = options.get(key + ".options").as<string>();
-  _memory = options.get(key + ".memory").as<string>();
-  _threads = options.get(key + ".threads").as<int>();
-  _scratch_dir = options.get(key + ".scratch").as<string>();
-  _cleanup = options.get(key + ".cleanup").as<string>();
-
-  _basisset_name = options.get(key + ".basisset").as<std::string>();
-  _write_basis_set = options.get(key + ".writebasisset").as<bool>();
-  _write_pseudopotentials =
-      options.get(key + ".writepseudopotentials").as<bool>();
-
-  if (_write_pseudopotentials)
-    _ecp_name = options.get(key + ".ecp").as<std::string>();
-
-  if (options.exists(key + ".outputVxc")) {
-    _output_Vxc = options.get(key + ".outputVxc").as<bool>();
-  } else
-    _output_Vxc = false;
-  // check whether options string contains vxc output, the _outputVxc is set to
-  // true
-  std::string::size_type iop_pos = _options.find(" intermediate tXC matrix");
-  if (iop_pos != std::string::npos) {
-    if (_output_Vxc) {
-      cout << "=== You do not have to specify outputting Vxc twice. Next time "
-              "remove "
-              "the print "
-              "intermediate tXC matrix"
-              " part from your options string. Please continue"
-           << endl;
-    } else {
-      cout << "=== So you do not want to output Vxc but still put it in the "
-              "options string? "
-              "I will assume that you want to output Vxc, be more consistent "
-              "next time. "
-           << endl;
-    }
-    _output_Vxc = true;
-  } else if (_output_Vxc == true) {
-    _options = _options +
-               "\n\ndft\nprint \"intermediate tXC matrix\"\nvectors input "
-               "system.movecs\nnoscf\nend\ntask dft";
-  }
+  ParseCommonOptions(options);
 
   // check if the optimize keyword is present, if yes, read updated coords
-  iop_pos = _options.find(" optimize");
+  std::string::size_type iop_pos = _options.find(" optimize");
   if (iop_pos != std::string::npos) {
     _is_optimization = true;
-  } else {
-    _is_optimization = false;
   }
 
   // check if the esp keyword is present, if yes, get the charges and save them
   iop_pos = _options.find(" esp");
   if (iop_pos != std::string::npos) {
     _get_charges = true;
-  } else {
-    _get_charges = false;
   }
 
-  // check if the guess should be prepared, if yes, append the guess later
-  _write_guess = false;
-  iop_pos = _options.find("iterations 1 ");
-  if (iop_pos != std::string::npos) _write_guess = true;
-  iop_pos = _options.find("iterations 1\n");
-  if (iop_pos != std::string::npos) _write_guess = true;
+  if (_write_guess) {
+    ;
+    iop_pos = _options.find("iterations 1");
+    if (iop_pos != std::string::npos) {
+      _options = _options + "\n iterations 1 ";
+    }
+  }
 }
 
 /* For QM/MM the molecules in the MM environment are represented by
@@ -156,10 +101,10 @@ int NWChem::WriteBackgroundCharges(ofstream& nw_file) {
 
 bool NWChem::WriteGuess(const Orbitals& orbitals) {
   ofstream orb_file;
-  std::string orb_file_name_full = _run_dir + "/" + _orb_file_name;
+  std::string orb_file_name_full = _run_dir + "/" + _mo_file_name;
   // get name of temporary ascii file and open it
   std::vector<std::string> results;
-  boost::algorithm::split(results, _orb_file_name, boost::is_any_of("."),
+  boost::algorithm::split(results, _mo_file_name, boost::is_any_of("."),
                           boost::algorithm::token_compress_on);
   std::string orb_file_name_ascii = _run_dir + "/" + results.front() + ".mos";
   orb_file.open(orb_file_name_ascii.c_str());
@@ -423,7 +368,7 @@ void NWChem::CleanUp() {
       }
 
       if (substring == "movecs") {
-        std::string file_name = _run_dir + "/" + _orb_file_name;
+        std::string file_name = _run_dir + "/" + _mo_file_name;
         remove(file_name.c_str());
       }
 
@@ -438,7 +383,7 @@ void NWChem::CleanUp() {
 /**
  * Reads in the MO coefficients from a NWChem movecs file
  */
-bool NWChem::ParseOrbitalsFile(Orbitals& orbitals) {
+bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   std::map<int, std::vector<double> > coefficients;
   std::map<int, double> energies;
   std::map<int, double> occupancy;
@@ -451,7 +396,7 @@ bool NWChem::ParseOrbitalsFile(Orbitals& orbitals) {
 
   /* maybe we DO need to convert from fortran binary to ASCII first to avoid
      compiler-dependent issues */
-  std::string orb_file_name_bin = _run_dir + "/" + _orb_file_name;
+  std::string orb_file_name_bin = _run_dir + "/" + _mo_file_name;
   std::string command;
   command = "cd " + _run_dir +
             "; mov2asc 10000 system.movecs system.mos > convert.log";
@@ -654,7 +599,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   std::string line;
   std::vector<std::string> results;
 
-  bool has_overlap_matrix = false;
   bool has_charges = false;
   bool has_qm_energy = false;
   bool has_self_energy = false;
@@ -669,7 +613,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   if (!CheckLogFile()) return false;
 
   // save qmpackage name
-  orbitals.setQMpackage("nwchem");
+  orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(_basisset_name);
   if (_write_pseudopotentials) {
     orbitals.setECPName(_ecp_name);
@@ -791,54 +735,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       }
     }
 
-    /*
-     * Vxc matrix
-     * stored after the global array: g vxc
-     */
-    if (_output_Vxc) {
-      std::string::size_type vxc_pos = line.find("global array: g vxc");
-      if (vxc_pos != std::string::npos) {
-        Eigen::MatrixXd vxc = orbitals.AOVxc();
-        vxc.resize(basis_set_size, basis_set_size);
-        std::vector<int> j_indeces;
-        int n_blocks = 1 + ((basis_set_size - 1) / 6);
-
-        for (int block = 0; block < n_blocks; block++) {
-          // first line is garbage
-          getline(input_file, line);
-          // second line gives the j index in the matrix
-          getline(input_file, line);
-          boost::tokenizer<> tok(line);
-
-          /// COMPILATION IS BROKEN DUE TO A BUG IN BOOST 1.53
-          std::transform(tok.begin(), tok.end(), std::back_inserter(j_indeces),
-                         &boost::lexical_cast<int, std::string>);
-
-          // third line is garbage again
-          getline(input_file, line);
-
-          // read the block of max _basis_size lines + the following header
-          for (int i = 0; i < basis_set_size; i++) {
-            std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-            int i_index = boost::lexical_cast<int>(row.front());
-            row.erase(row.begin());
-            std::vector<int>::iterator j_iter = j_indeces.begin();
-            for (std::string& coefficient : row) {
-              int j_index = *j_iter;
-              vxc(i_index - 1, j_index - 1) =
-                  boost::lexical_cast<double>(coefficient);
-              vxc(j_index - 1, i_index - 1) =
-                  boost::lexical_cast<double>(coefficient);
-              j_iter++;
-            }
-          }
-          // clear the index for the next block
-          j_indeces.clear();
-        }  // end of the blocks
-        XTP_LOG(logDEBUG, *_pLog) << "Read the Vxc matrix" << flush;
-      }
-    }
-
     // Check for ScaHFX = factor of HF exchange included in functional
     std::string::size_type HFX_pos = line.find("Hartree-Fock (Exact) Exchange");
     if (HFX_pos != std::string::npos) {
@@ -850,52 +746,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       XTP_LOG(logDEBUG, *_pLog)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
     }
-
-    // overlap matrix
-    // stored after the global array: Temp Over line
-    std::string::size_type overlap_pos = line.find("global array: Temp Over");
-    if (overlap_pos != std::string::npos) {
-      // prepare the container
-      (orbitals.AOOverlap()).resize(basis_set_size, basis_set_size);
-      has_overlap_matrix = true;
-      std::vector<int> j_indeces;
-
-      int n_blocks = 1 + ((basis_set_size - 1) / 6);
-
-      for (int block = 0; block < n_blocks; block++) {
-        // first line is garbage
-        getline(input_file, line);
-        // second line gives the j index in the matrix
-        getline(input_file, line);
-        boost::tokenizer<> tok(line);
-
-        /// COMPILATION IS BROKEN DUE TO A BUG IN BOOST 1.53
-        std::transform(tok.begin(), tok.end(), std::back_inserter(j_indeces),
-                       &boost::lexical_cast<int, std::string>);
-
-        // third line is garbage again
-        getline(input_file, line);
-
-        // read the block of max _basis_size lines + the following header
-        for (int i = 0; i < basis_set_size; i++) {
-          std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-          int i_index = boost::lexical_cast<int>(row.front());
-          row.erase(row.begin());
-          std::vector<int>::iterator j_iter = j_indeces.begin();
-          for (std::string& coefficient : row) {
-            int j_index = *j_iter;
-            orbitals.AOOverlap()(i_index - 1, j_index - 1) =
-                boost::lexical_cast<double>(coefficient);
-            orbitals.AOOverlap()(j_index - 1, i_index - 1) =
-                boost::lexical_cast<double>(coefficient);
-            j_iter++;
-          }
-        }
-        // clear the index for the next block
-        j_indeces.clear();
-      }  // end of the blocks
-      XTP_LOG(logDEBUG, *_pLog) << "Read the overlap matrix" << flush;
-    }  // end of the if "Overlap" found
 
     /*
      * TODO Self-energy of external charges
@@ -916,8 +766,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
     }
 
     // check if all information has been accumulated and quit
-    if (has_basis_set_size && has_overlap_matrix && has_charges &&
-        has_qm_energy && has_self_energy)
+    if (has_basis_set_size && has_charges && has_qm_energy && has_self_energy)
       break;
 
   }  // end of reading the file line-by-line

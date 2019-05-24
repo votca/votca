@@ -47,7 +47,7 @@ class MMRegion : public Region {
 
   virtual bool Converged() const = 0;
 
-  virtual void Evaluate() = 0;
+  virtual void Evaluate(std::vector<std::unique_ptr<Region> >& regions) = 0;
 
   virtual std::string identify() const = 0;
 

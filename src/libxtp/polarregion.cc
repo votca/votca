@@ -41,7 +41,9 @@ void PolarRegion::Initialize(const tools::Property& prop) {
 
 bool PolarRegion::Converged() const { return false; }
 
-void PolarRegion::Evaluate() { return; }
+void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+  return;
+}
 
 void PolarRegion::ResetRegion() { return; }
 void PolarRegion::InteractwithQMRegion(QMRegion& region) { return; }

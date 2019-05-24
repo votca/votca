@@ -28,7 +28,9 @@ void QMRegion::Initialize(const tools::Property& prop) { return; }
 
 bool QMRegion::Converged() const { return true; }
 
-void QMRegion::Evaluate() { return; }
+void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+  return;
+}
 
 void QMRegion::ResetRegion() { return; }
 void QMRegion::InteractwithQMRegion(QMRegion& region) { return; }

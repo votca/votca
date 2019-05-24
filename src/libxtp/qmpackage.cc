@@ -25,6 +25,53 @@ namespace votca {
 namespace xtp {
 using std::flush;
 
+void QMPackage::ParseCommonOptions(tools::Property& options) {
+
+  std::string key = "package";
+  std::string name = options.get(key + ".name").as<std::string>();
+
+  if (name != getPackageName()) {
+    throw std::runtime_error("Tried to use " + name +
+                             " package. Wrong options file");
+  }
+
+  if (getPackageName() != "xtp") {
+    _executable = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".executable");
+    _memory = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".memory");
+    _options = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".options");
+    _scratch_dir = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".scratch");
+  }
+
+  _charge = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".charge");
+  _spin = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".spin");
+  _threads = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".threads");
+  _cleanup =
+      options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
+  _dpl_spacing = options.ifExistsReturnElseReturnDefault(
+      key + ".dipole_spacing", _dpl_spacing);
+
+  _write_guess = options.ifExistsReturnElseReturnDefault<bool>(
+      key + ".read_guess", _write_guess);
+
+  if (options.exists(key + ".basisset")) {
+    _basisset_name = options.get(key + ".basisset").as<std::string>();
+    _write_basis_set = true;
+  }
+  if (options.exists(key + ".auxbasisset")) {
+    _auxbasisset_name = options.get(key + ".auxbasisset").as<std::string>();
+    _write_auxbasis_set = true;
+  }
+
+  if (options.exists(key + ".ecp")) {
+    _write_pseudopotentials = true;
+    _ecp_name = options.get(key + ".ecp").as<std::string>();
+  }
+}
+
 void QMPackage::ReorderOutput(Orbitals& orbitals) {
   BasisSet dftbasisset;
   dftbasisset.LoadBasisSet(_basisset_name);
@@ -42,14 +89,6 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) {
     ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
   }
 
-  if (orbitals.hasAOOverlap()) {
-    dftbasis.ReorderMatrix(orbitals.AOOverlap(), getPackageName(), "xtp");
-    XTP_LOG(logDEBUG, *_pLog) << "Reordered Overlap matrix" << flush;
-  }
-  if (orbitals.hasAOVxc()) {
-    dftbasis.ReorderMatrix(orbitals.AOVxc(), getPackageName(), "xtp");
-    XTP_LOG(logDEBUG, *_pLog) << "Reordered VXC matrix" << flush;
-  }
   if (orbitals.hasMOCoefficients()) {
     dftbasis.ReorderMOs(orbitals.MOCoefficients(), getPackageName(), "xtp");
     XTP_LOG(logDEBUG, *_pLog) << "Reordered MOs" << flush;

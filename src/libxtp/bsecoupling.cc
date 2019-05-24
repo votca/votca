@@ -375,16 +375,9 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "   projecting monomer onto dimer orbitals" << flush;
 
-  Eigen::MatrixXd overlapAB;
-  if (orbitalsAB.hasAOOverlap()) {
-    XTP_LOG(logDEBUG, *_pLog)
-        << "Reading overlap matrix from orbitals" << flush;
-    overlapAB = orbitalsAB.AOOverlap();
-  } else {
-    XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
-                              << orbitalsAB.getDFTbasisName() << flush;
-    overlapAB = CalculateOverlapMatrix(orbitalsAB);
-  }
+  XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
+                            << orbitalsAB.getDFTbasisName() << flush;
+  Eigen::MatrixXd overlapAB = CalculateOverlapMatrix(orbitalsAB);
 
   Eigen::MatrixXd psi_AxB_dimer_basis =
       psi_AxB.transpose() * overlapAB * orbitalsAB.MOCoefficients();

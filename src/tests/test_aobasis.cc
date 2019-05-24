@@ -257,14 +257,6 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   Eigen::MatrixXd ref = orbitals.MOCoefficients();
   aobasis.ReorderMOs(orbitals.MOCoefficients(), "xtp", "gaussian");
   aobasis.ReorderMOs(orbitals.MOCoefficients(), "gaussian", "xtp");
-  AOOverlap ov;
-  ov.Fill(aobasis);
-
-  Eigen::MatrixXd overlap_b = ov.Matrix();
-  aobasis.ReorderMatrix(overlap_b, "xtp", "nwchem");
-  aobasis.ReorderMatrix(overlap_b, "nwchem", "xtp");
-  bool check_reorder_overlap = overlap_b.isApprox(ov.Matrix(), 1e-7);
-  BOOST_CHECK_EQUAL(check_reorder_overlap, 1);
 
   bool check_reorder_gaus = ref.isApprox(orbitals.MOCoefficients(), 1e-7);
   if (!check_reorder_gaus) {

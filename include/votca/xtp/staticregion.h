@@ -39,7 +39,7 @@ class StaticRegion : public MMRegion<StaticSegment> {
 
   bool Converged() const { return true; }
 
-  void Evaluate() { return; }
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions) { return; }
 
  protected:
   void ResetRegion() { return; }

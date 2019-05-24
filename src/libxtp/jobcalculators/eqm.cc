@@ -210,7 +210,7 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
         SetJobToFailed(jres, pLog, output);
         return jres;
       }
-      parse_orbitals_status = qmpackage->ParseOrbitalsFile(orbitals);
+      parse_orbitals_status = qmpackage->ParseMOsFile(orbitals);
       if (!parse_orbitals_status) {
         std::string output = "orbfile failed; ";
         SetJobToFailed(jres, pLog, output);

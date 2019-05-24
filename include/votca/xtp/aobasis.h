@@ -54,8 +54,6 @@ class AOBasis {
   AOShellIterator begin() const { return _aoshells.begin(); }
   AOShellIterator end() const { return _aoshells.end(); }
 
-  Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
-
   const AOShell& getShell(int idx) const { return _aoshells[idx]; }
 
   const std::vector<const AOShell*> getShellsofAtom(int AtomId) const;
@@ -91,8 +89,6 @@ class AOBasis {
                           const std::string& shell,
                           std::vector<int>& multiplier);
 
-  void addTrafoCartShell(const AOShell& shell,
-                         Eigen::Block<Eigen::MatrixXd>& submatrix);
   std::vector<AOShell> _aoshells;
 
   std::vector<int> _FuncperAtom;

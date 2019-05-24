@@ -46,7 +46,7 @@ class QMRegion : public Region {
 
   bool Converged() const;
 
-  void Evaluate();
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
   void ApplyInfluenceOfOtherRegions(
       const std::vector<std::unique_ptr<Region> >& regions);
