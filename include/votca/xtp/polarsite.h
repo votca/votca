@@ -112,7 +112,11 @@ class PolarSite : public StaticSite {
   // do not move up has to be below data definition
   PolarSite(data& d);
 
-  void ResetDIIS() { _dipole_hist.clear(); }
+  void Reset() {
+    StaticSite::Reset();
+    ResetInduction();
+    _dipole_hist.clear();
+  }
 
   void SetupCptTable(CptTable& table) const override;
   void WriteData(data& d) const;

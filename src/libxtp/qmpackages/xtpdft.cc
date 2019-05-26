@@ -33,32 +33,11 @@ void XTPDFT::Initialize(tools::Property& options) {
   _xtpdft_options = options;
   _log_file_name = "system_dft.orb";
   std::string key = "package";
-  std::string packagename =
-      _xtpdft_options.get(key + ".name").as<std::string>();
-
-  if (packagename != "xtp") {
-    cerr << "Tried to use " << packagename << " package. ";
-    throw std::runtime_error("Wrong options file");
-  }
-
-  _charge = _xtpdft_options.get(key + ".charge").as<int>();
-  _spin = _xtpdft_options.get(key + ".spin").as<int>();
-  _threads = _xtpdft_options.get(key + ".threads").as<int>();
-  _cleanup = _xtpdft_options.get(key + ".cleanup").as<std::string>();
-
-  _write_guess = _xtpdft_options.ifExistsReturnElseReturnDefault<bool>(
-      key + ".read_guess", false);
-
-  // check if ECPs are used in xtpdft
-  _write_pseudopotentials = false;
-  if (_xtpdft_options.exists(key + ".ecp")) {
-    if (_xtpdft_options.get(key + ".ecp").as<std::string>() != "") {
-      _write_pseudopotentials = true;
-    }
-  }
+  ParseCommonOptions(options);
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
+  _orbitals.setQMpackage(getPackageName());
   _orbitals = orbitals;
   return true;
 }
@@ -103,7 +82,7 @@ void XTPDFT::CleanUp() {
 /**
  * Dummy, because XTPDFT adds info to orbitals directly
  */
-bool XTPDFT::ParseOrbitalsFile(Orbitals& orbitals) { return true; }
+bool XTPDFT::ParseMOsFile(Orbitals& orbitals) { return true; }
 
 /**
  * Dummy, because information is directly stored in orbitals

@@ -28,12 +28,14 @@ void QMRegion::Initialize(const tools::Property& prop) { return; }
 
 bool QMRegion::Converged() const { return true; }
 
-void QMRegion::Evaluate() { return; }
+void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+  return;
+}
 
 void QMRegion::ResetRegion() { return; }
-void QMRegion::InteractwithQMRegion(QMRegion& region) { return; }
-void QMRegion::InteractwithPolarRegion(PolarRegion& region) { return; }
-void QMRegion::InteractwithStaticRegion(StaticRegion& region) { return; }
+void QMRegion::InteractwithQMRegion(const QMRegion& region) { return; }
+void QMRegion::InteractwithPolarRegion(const PolarRegion& region) { return; }
+void QMRegion::InteractwithStaticRegion(const StaticRegion& region) { return; }
 
 void QMRegion::WritePDB(csg::PDBWriter& writer) const {
   writer.WriteContainer(_orb.QMAtoms());

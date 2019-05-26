@@ -51,7 +51,7 @@ class XTPDFT : public QMPackage {
 
   bool ParseLogFile(Orbitals& orbitals);
 
-  bool ParseOrbitalsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals);
 
  private:
   void WriteChargeOption() { return; }

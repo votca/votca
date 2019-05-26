@@ -92,16 +92,7 @@ class Orbitals {
 
   void setQMpackage(const std::string &qmpackage) { _qm_package = qmpackage; }
 
-  // access to DFT AO overlap matrix, new, tested
-
-  bool hasAOOverlap() const { return (_overlap.rows() > 0) ? true : false; }
-
-  const Eigen::MatrixXd &AOOverlap() const { return _overlap; }
-
-  Eigen::MatrixXd &AOOverlap() { return _overlap; }
-
   // access to DFT molecular orbital energies, new, tested
-
   bool hasMOEnergies() const {
     return (_mo_energies.size() > 0) ? true : false;
   }
@@ -195,14 +186,6 @@ class Orbitals {
   /*
    *  ======= GW-BSE related functions =======
    */
-
-  // access to exchange-correlation AO matrix, new, tested
-
-  bool hasAOVxc() const { return (_vxc.rows() > 0) ? true : false; }
-
-  Eigen::MatrixXd &AOVxc() { return _vxc; }
-
-  const Eigen::MatrixXd &AOVxc() const { return _vxc; }
 
   // access to auxiliary basis set name
 
@@ -429,9 +412,6 @@ class Orbitals {
 
   Eigen::VectorXd _mo_energies;
   Eigen::MatrixXd _mo_coefficients;
-
-  Eigen::MatrixXd _overlap;
-  Eigen::MatrixXd _vxc;
 
   QMMolecule _atoms;
 

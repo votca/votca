@@ -116,6 +116,11 @@ class StaticSite {
   const double& getPotential() const { return _phi; }
   double& getPotential() { return _phi; }
 
+  virtual void Reset() {
+    _localpermanentField.setZero();
+    _phi = 0.0;
+  }
+
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
   virtual void SetupCptTable(CptTable& table) const;

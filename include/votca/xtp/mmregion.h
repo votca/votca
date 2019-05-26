@@ -47,7 +47,7 @@ class MMRegion : public Region {
 
   virtual bool Converged() const = 0;
 
-  virtual void Evaluate() = 0;
+  virtual void Evaluate(std::vector<std::unique_ptr<Region> >& regions) = 0;
 
   virtual std::string identify() const = 0;
 
@@ -61,15 +61,16 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
+  void ResetRegion();
+
   void WritePDB(csg::PDBWriter& writer) const;
 
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  protected:
-  virtual void ResetRegion() = 0;
-  virtual void InteractwithQMRegion(QMRegion& region) = 0;
-  virtual void InteractwithPolarRegion(PolarRegion& region) = 0;
-  virtual void InteractwithStaticRegion(StaticRegion& region) = 0;
+  virtual void InteractwithQMRegion(const QMRegion& region) = 0;
+  virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
+  virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;
 
   std::vector<T> _segments;
 };

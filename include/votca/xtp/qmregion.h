@@ -46,7 +46,7 @@ class QMRegion : public Region {
 
   bool Converged() const;
 
-  void Evaluate();
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
   void ApplyInfluenceOfOtherRegions(
       const std::vector<std::unique_ptr<Region> >& regions);
@@ -72,9 +72,9 @@ class QMRegion : public Region {
 
  protected:
   void ResetRegion();
-  void InteractwithQMRegion(QMRegion& region);
-  void InteractwithPolarRegion(PolarRegion& region);
-  void InteractwithStaticRegion(StaticRegion& region);
+  void InteractwithQMRegion(const QMRegion& region);
+  void InteractwithPolarRegion(const PolarRegion& region);
+  void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
   int _size = 0;

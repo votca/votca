@@ -39,13 +39,12 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   bool Converged() const;
 
-  void Evaluate();
+  void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
  protected:
-  void ResetRegion();
-  void InteractwithQMRegion(QMRegion& region);
-  void InteractwithPolarRegion(PolarRegion& region);
-  void InteractwithStaticRegion(StaticRegion& region);
+  void InteractwithQMRegion(const QMRegion& region);
+  void InteractwithPolarRegion(const PolarRegion& region);
+  void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
   double _deltaE = 1e-5;

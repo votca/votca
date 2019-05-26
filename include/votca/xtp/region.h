@@ -53,10 +53,7 @@ class Region {
 
   virtual bool Converged() const = 0;
 
-  virtual void Evaluate() = 0;
-
-  void ApplyInfluenceOfOtherRegions(
-      std::vector<std::unique_ptr<Region> >& regions);
+  virtual void Evaluate(std::vector<std::unique_ptr<Region> >& regions) = 0;
 
   virtual int size() const = 0;
 
@@ -73,14 +70,16 @@ class Region {
   }
 
  protected:
-  virtual void ResetRegion() = 0;
-  virtual void InteractwithQMRegion(QMRegion& region) = 0;
-  virtual void InteractwithPolarRegion(PolarRegion& region) = 0;
-  virtual void InteractwithStaticRegion(StaticRegion& region) = 0;
+  void ApplyInfluenceOfOtherRegions(
+      std::vector<std::unique_ptr<Region> >& regions);
 
-  Logger& _log;
+  virtual void ResetRegion() = 0;
+  virtual void InteractwithQMRegion(const QMRegion& region) = 0;
+  virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
+  virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;
 
   int _id = -1;
+  Logger& _log;
 };
 
 }  // namespace xtp

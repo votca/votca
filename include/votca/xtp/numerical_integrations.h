@@ -21,13 +21,9 @@
 #ifndef XTP_NUMERICAL_INTEGRATION_H
 #define XTP_NUMERICAL_INTEGRATION_H
 
-#include <votca/xtp/aobasis.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/gridbox.h>
-#include <votca/xtp/qmmolecule.h>
-#include <votca/xtp/vxc_functionals.h>
 
 #include <xc.h>
 #undef LOG
@@ -35,6 +31,7 @@
 namespace votca {
 namespace xtp {
 class LebedevGrid;
+class QMMolecule;
 
 struct Gyrationtensor {
   double mass;
@@ -62,11 +59,6 @@ class NumericalIntegration {
   Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis) const;
 
   Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);
-
-  struct E_Vxc {
-    Eigen::MatrixXd Vxc;
-    double Exc;
-  };
 
   Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix);
 

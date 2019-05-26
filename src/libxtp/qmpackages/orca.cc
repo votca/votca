@@ -39,69 +39,29 @@ void Orca::Initialize(tools::Property& options) {
   _input_file_name = fileName + ".inp";
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
-  _orb_file_name = fileName + ".gbw";
+  _mo_file_name = fileName + ".gbw";
 
-  std::string key = "package";
-  std::string _name = options.get(key + ".name").as<std::string>();
-
-  if (_name != "orca") {
-    cerr << "Tried to use " << _name << " package. ";
-    throw std::runtime_error("Wrong options file");
-  }
-
-  _executable = options.get(key + ".executable").as<std::string>();
-  _charge = options.get(key + ".charge").as<int>();
-  _spin = options.get(key + ".spin").as<int>();
-  _options = options.get(key + ".options").as<std::string>();
-  _memory = options.get(key + ".memory").as<std::string>();
-  _threads = options.get(key + ".threads").as<int>();
-  _scratch_dir = options.get(key + ".scratch").as<std::string>();
-  _cleanup = options.get(key + ".cleanup").as<std::string>();
-  _auxbasisset_name = options.get(key + ".auxbasisset").as<std::string>();
-
-  if (options.exists(key + ".outputVxc")) {
-    _output_Vxc = options.get(key + ".outputVxc").as<bool>();
-  } else
-    _output_Vxc = false;
-  if (_output_Vxc) {
-    throw std::runtime_error("Sorry " + _name + " does not support Vxc output");
-  }
-
-  if (_write_pseudopotentials)
-    _ecp_name = options.get(key + ".ecp").as<std::string>();
-  _basisset_name = options.get(key + ".basisset").as<std::string>();
-  _write_basis_set = options.get(key + ".writebasisset").as<bool>();
-  _write_pseudopotentials =
-      options.get(key + ".writepseudopotentials").as<bool>();
-  if (_write_pseudopotentials)
-    _ecp_name = options.get(key + ".ecp").as<std::string>();
+  ParseCommonOptions(options);
 
   // check if the optimize keyword is present, if yes, read updated coords
   std::string::size_type iop_pos =
       _options.find(" Opt"); /*optimization word in orca*/
   if (iop_pos != std::string::npos) {
     _is_optimization = true;
-  } else {
-    _is_optimization = false;
   }
-
   // check if the esp keyword is present, if yes, get the charges and save them
-  iop_pos = _options.find(" chelpg"); /*electrostatic potential related to
-                                         partial atomic charges I guess is
-                                         chelpg in orca but check */
-  if (iop_pos != std::string::npos ||
+  if (_options.find(" chelpg") != std::string::npos ||
       _options.find(" CHELPG") != std::string::npos) {
     _get_charges = true;
-  } else {
-    _get_charges = false;
   }
 
-  // check if the guess should be prepared, if yes, append the guess later
-  _write_guess = false;
-  iop_pos = _options.find("Guess MORead");
-  if (iop_pos != std::string::npos) _write_guess = true;
-  iop_pos = _options.find("Guess MORead\n");
-  if (iop_pos != std::string::npos) _write_guess = true;
+  if (_write_guess) {
+    ;
+    iop_pos = _options.find("Guess MORead");
+    if (iop_pos != std::string::npos) {
+      _options = _options + "\n Guess MORead ";
+    }
+  }
 }
 
 /* Custom basis sets are written on a per-element basis to
@@ -119,7 +79,7 @@ void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
   ofstream el_file;
 
-  el_file.open(el_file_name.c_str());
+  el_file.open(el_file_name);
   el_file << "$DATA" << endl;
 
   for (const std::string& element_name : UniqueElements) {
@@ -296,7 +256,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
              << " "
              << "="
              << "\"system.bas\";" << endl;
-    if (_auxbasisset_name != "") {
+    if (_write_auxbasis_set) {
       std::string aux_file_name = _run_dir + "/" + "system.aux";
       WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
       inp_file << "GTOAuxName"
@@ -418,7 +378,7 @@ void Orca::CleanUp() {
       }
 
       if (substring == "gbw") {
-        std::string file_name = _run_dir + "/" + _orb_file_name;
+        std::string file_name = _run_dir + "/" + _mo_file_name;
         remove(file_name.c_str());
       }
 
@@ -437,7 +397,7 @@ void Orca::CleanUp() {
 
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
-  orbitals.setQMpackage("orca");
+  orbitals.setQMpackage(getPackageName());
   orbitals.setDFTbasisName(_basisset_name);
   if (_write_pseudopotentials) {
     orbitals.setECPName(_ecp_name);
@@ -695,7 +655,7 @@ bool Orca::CheckLogFile() {
 
 // Parses the Orca gbw file and stores data in the Orbitals object
 
-bool Orca::ParseOrbitalsFile(Orbitals& orbitals) {
+bool Orca::ParseMOsFile(Orbitals& orbitals) {
   if (!CheckLogFile()) return false;
   std::vector<double> coefficients;
   int basis_size = orbitals.getBasisSetSize();
@@ -709,9 +669,9 @@ bool Orca::ParseOrbitalsFile(Orbitals& orbitals) {
       << "Reading the gbw file, this may or may not work so be careful: "
       << flush;
   ifstream infile;
-  infile.open((_run_dir + "/" + _orb_file_name).c_str(), ios::binary | ios::in);
+  infile.open((_run_dir + "/" + _mo_file_name).c_str(), ios::binary | ios::in);
   if (!infile) {
-    throw runtime_error("Could not open " + _orb_file_name + " file");
+    throw runtime_error("Could not open " + _mo_file_name + " file");
   }
   infile.seekg(24, ios::beg);
   std::array<char, 8> buffer;

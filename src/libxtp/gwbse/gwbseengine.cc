@@ -41,18 +41,13 @@ void GWBSEEngine::Initialize(tools::Property& options,
   std::string key = Identify();
 
   // get the tasks
-  std::string _tasks_string = options.get(".tasks").as<std::string>();
-  _do_guess = false;
-  _do_dft_input = false;
-  _do_dft_run = false;
-  _do_dft_parse = false;
-  _do_gwbse = false;
+  std::string tasks_string = options.get(".tasks").as<std::string>();
 
-  if (_tasks_string.find("guess") != std::string::npos) _do_guess = true;
-  if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+  if (tasks_string.find("guess") != std::string::npos) _do_guess = true;
+  if (tasks_string.find("input") != std::string::npos) _do_dft_input = true;
+  if (tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
+  if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
+  if (tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
 
   // XML option file for GWBSE
   if (_do_gwbse) {
@@ -64,8 +59,8 @@ void GWBSEEngine::Initialize(tools::Property& options,
   _dftlog_file = options.get(".dftlog").as<std::string>();
 
   // Logger redirection
-  _redirect_logger =
-      options.ifExistsReturnElseReturnDefault<bool>(".redirect_logger", false);
+  _redirect_logger = options.ifExistsReturnElseReturnDefault<bool>(
+      ".redirect_logger", _redirect_logger);
   _logger_file = "gwbse.log";
 
   // for requested merged guess, two archived orbitals objects are needed
@@ -124,14 +119,14 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     XTP_LOG_SAVE(logINFO, *logger) << "Parsing DFT data from " << _dftlog_file
                                    << " and " << _MO_file << flush;
     _qmpackage->setLogFileName(_dftlog_file);
-    _qmpackage->setOrbitalsFileName(_MO_file);
+    _qmpackage->setMOsFileName(_MO_file);
 
     bool Logfile_parse = _qmpackage->ParseLogFile(orbitals);
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile " + _dftlog_file +
                                " failed. Stopping!");
     }
-    bool Orbfile_parse = _qmpackage->ParseOrbitalsFile(orbitals);
+    bool Orbfile_parse = _qmpackage->ParseMOsFile(orbitals);
     if (!Orbfile_parse) {
       throw std::runtime_error("\n Parsing DFT orbfile " + _MO_file +
                                " failed. Stopping!");

@@ -52,7 +52,6 @@ class DftGwBse : public QMTool {
 
   std::string _mpsfile;
   bool _do_external;
-  double _dipole_spacing;
 
   std::string _xyzfile;
   std::string _xml_output;  // .xml output

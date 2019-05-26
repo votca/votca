@@ -41,12 +41,21 @@ void PolarRegion::Initialize(const tools::Property& prop) {
 
 bool PolarRegion::Converged() const { return false; }
 
-void PolarRegion::Evaluate() {}
+void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
+  ResetRegion();
+  ApplyInfluenceOfOtherRegions(regions);
+  for (int iteration = 0; iteration < _max_iter; iteration++) {
+    break;
+  }
 
-void PolarRegion::ResetRegion() { return; }
-void PolarRegion::InteractwithQMRegion(QMRegion& region) { return; }
-void PolarRegion::InteractwithPolarRegion(PolarRegion& region) { return; }
-void PolarRegion::InteractwithStaticRegion(StaticRegion& region) { return; }
+  return;
+}
+
+void PolarRegion::InteractwithQMRegion(const QMRegion& region) { return; }
+void PolarRegion::InteractwithPolarRegion(const PolarRegion& region) { return; }
+void PolarRegion::InteractwithStaticRegion(const StaticRegion& region) {
+  return;
+}
 
 }  // namespace xtp
 }  // namespace votca

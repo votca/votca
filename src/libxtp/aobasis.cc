@@ -60,15 +60,12 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
   }
 
   // actual swapping of coefficients
-  for (unsigned _i_orbital = 0; _i_orbital < v.cols(); _i_orbital++) {
-    for (unsigned s = 1, d; s < order.size(); ++s) {
-      for (d = order[s]; d < s; d = order[d]) {
-        ;
-      }
-      if (d == s)
-        while (d = order[d], d != s)
-          std::swap(v(s, _i_orbital), v(d, _i_orbital));
+  for (int s = 1, d; s < int(order.size()); ++s) {
+    for (d = order[s]; d < s; d = order[d]) {
+      ;
     }
+    if (d == s)
+      while (d = order[d], d != s) v.row(s).swap(v.row(d));
   }
 
   // NWChem has some strange minus in d-functions
@@ -77,40 +74,6 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
     // and reorder rows of _orbitals->_mo_coefficients() accordingly
     MultiplyMOs(v, multiplier);
   }
-  return;
-}
-
-void AOBasis::ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
-                            const std::string& target) {
-  if (start == target) {
-    return;
-  }
-  std::vector<int> order = getReorderVector(start, target);
-  std::vector<int> multiplier = getMultiplierVector(start, target);
-
-  if (v.cols() != int(order.size())) {
-    std::cerr << "Size mismatch in ReorderMatrix" << v.cols() << ":"
-              << order.size() << std::endl;
-    throw std::runtime_error("Abort!");
-  }
-
-  if (start != "xtp") {
-    std::vector<int> newmultiplier = std::vector<int>(multiplier.size());
-    for (unsigned i = 0; i < newmultiplier.size(); i++) {
-      newmultiplier[i] = multiplier[order[i]];
-    }
-    multiplier = newmultiplier;
-  }
-
-  Eigen::MatrixXd temp = v;
-  for (int i = 0; i < temp.cols(); i++) {
-    int i_index = order[i];
-    for (int j = 0; j < temp.rows(); j++) {
-      int j_index = order[j];
-      v(i_index, j_index) = multiplier[i] * multiplier[j] * temp(i, j);
-    }
-  }
-
   return;
 }
 
@@ -125,89 +88,6 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd& v,
   for (int i_basis = 0; i_basis < v.cols(); i_basis++) {
     for (int i_orbital = 0; i_orbital < v.rows(); i_orbital++) {
       v(i_basis, i_orbital) = multiplier[i_basis] * v(i_basis, i_orbital);
-    }
-  }
-  return;
-}
-
-// this is for gaussian only to transform from gaussian ordering cartesian to
-// gaussian spherical
-Eigen::MatrixXd AOBasis::getTransformationCartToSpherical(
-    const std::string& package) {
-  Eigen::MatrixXd trafomatrix;
-  if (package != "gaussian") {
-    std::cout << " I should not have been called, will do nothing! "
-              << std::endl;
-  } else {
-    // go through basisset, determine function sizes
-    int dim_sph = 0;
-    int dim_cart = 0;
-    for (const AOShell& shell : (*this)) {
-      const std::string& _type = shell.getType();
-
-      dim_sph += NumFuncShell(_type);
-      dim_cart += NumFuncShell_cartesian(_type);
-    }
-    trafomatrix = Eigen::MatrixXd::Zero(dim_sph, dim_cart);
-
-    int row_start = 0;
-    int col_start = 0;
-    for (const AOShell& shell : (*this)) {
-      const std::string& type = shell.getType();
-      int row_end = row_start + NumFuncShell(type);
-      int col_end = col_start + NumFuncShell_cartesian(type);
-      Eigen::Block<Eigen::MatrixXd> block =
-          trafomatrix.block(row_start, col_start, NumFuncShell(type),
-                            NumFuncShell_cartesian(type));
-      addTrafoCartShell(shell, block);
-      row_start = row_end;
-      col_start = col_end;
-    }
-  }
-  return trafomatrix;
-}
-
-void AOBasis::addTrafoCartShell(const AOShell& shell,
-                                Eigen::Block<Eigen::MatrixXd>& submatrix) {
-
-  // fill _local according to _lmax;
-  int lmax = shell.getLmax();
-  std::string type = shell.getType();
-
-  int sph_size = NumFuncShell(type) + OffsetFuncShell(type);
-  int cart_size =
-      NumFuncShell_cartesian(type) + OffsetFuncShell_cartesian(type);
-  Eigen::MatrixXd local = Eigen::MatrixXd::Zero(sph_size, cart_size);
-
-  // s-functions
-  local(0, 0) = 1.0;  // s
-  // p-functions
-  if (lmax > 0) {
-    local(1, 1) = 1.0;
-    local(2, 2) = 1.0;
-    local(3, 3) = 1.0;
-  }
-  // d-functions
-  if (lmax > 1) {
-    local(4, 4) = -0.5;             // d3z2-r2 (dxx)
-    local(4, 5) = -0.5;             // d3z2-r2 (dyy)
-    local(4, 6) = 1.0;              // d3z2-r2 (dzz)
-    local(5, 8) = 1.0;              // dxz
-    local(6, 9) = 1.0;              // dyz
-    local(7, 4) = 0.5 * sqrt(3.0);  // dx2-y2 (dxx)
-    local(7, 5) = -local(7, 4);     // dx2-y2 (dyy)
-    local(8, 7) = 1.0;              // dxy
-  }
-  if (lmax > 2) {
-    throw std::runtime_error(
-        " Gaussian input with f- functions or higher not yet supported!");
-  }
-  // now copy to _trafo
-  for (int i_sph = 0; i_sph < NumFuncShell(type); i_sph++) {
-    for (int i_cart = 0; i_cart < NumFuncShell_cartesian(type); i_cart++) {
-      submatrix(i_sph, i_cart) =
-          local(i_sph + OffsetFuncShell(type),
-                i_cart + OffsetFuncShell_cartesian(type));
     }
   }
   return;

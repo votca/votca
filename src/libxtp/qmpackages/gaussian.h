@@ -48,7 +48,7 @@ class Gaussian : public QMPackage {
 
   bool ParseLogFile(Orbitals& orbitals);
 
-  bool ParseOrbitalsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals);
 
  private:
   bool WriteShellScript();
@@ -67,7 +67,6 @@ class Gaussian : public QMPackage {
   void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteBackgroundCharges(std::ofstream& com_file);
   void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
-  void WriteVXCRunInputFile();
   void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteHeader(std::ofstream& com_file);
 

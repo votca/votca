@@ -402,7 +402,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
         return jres;
       }
 
-      bool parse_orbitals_status = qmpackage->ParseOrbitalsFile(orbitalsAB);
+      bool parse_orbitals_status = qmpackage->ParseMOsFile(orbitalsAB);
 
       if (!parse_orbitals_status) {
         SetJobToFailed(jres, pLog, "Orbitals parsing failed");
@@ -545,7 +545,6 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
     XTP_LOG_SAVE(logDEBUG, pLog)
         << "Saving orbitals to " << orbFileAB << std::flush;
     if (!_store_dft) {
-      orbitalsAB.AOVxc().resize(0, 0);
       orbitalsAB.MOCoefficients().resize(0, 0);
     }
     if (!_store_gw) {

@@ -41,7 +41,7 @@ class Coupling : public QMTool {
   bool Evaluate();
 
  private:
-  std::string _orbA, _orbB, _orbAB;
+  std::string _MOsA, _MOsB, _MOsAB;
   std::string _logA, _logB, _logAB;
   double _degeneracy;
 
@@ -59,9 +59,9 @@ void Coupling::Initialize(tools::Property &options) {
 
   _degeneracy = options.get(key + ".degeneracy").as<double>();
 
-  _orbA = options.get(key + ".moleculeA.orbitals").as<std::string>();
-  _orbB = options.get(key + ".moleculeB.orbitals").as<std::string>();
-  _orbAB = options.get(key + ".dimerAB.orbitals").as<std::string>();
+  _MOsA = options.get(key + ".moleculeA.orbitals").as<std::string>();
+  _MOsB = options.get(key + ".moleculeB.orbitals").as<std::string>();
+  _MOsAB = options.get(key + ".dimerAB.orbitals").as<std::string>();
 
   _logA = options.get(key + ".moleculeA.log").as<std::string>();
   _logB = options.get(key + ".moleculeB.log").as<std::string>();
@@ -97,41 +97,41 @@ bool Coupling::Evaluate() {
   Orbitals orbitalsA, orbitalsB, orbitalsAB;
 
   qmpackage->setLogFileName(_logA);
-  bool _parse_logA_status = qmpackage->ParseLogFile(orbitalsA);
-  if (!_parse_logA_status) {
+  bool parse_logA_status = qmpackage->ParseLogFile(orbitalsA);
+  if (!parse_logA_status) {
     XTP_LOG(logERROR, _log) << "Failed to read log of molecule A" << std::flush;
   }
 
   qmpackage->setLogFileName(_logB);
-  bool _parse_logB_status = qmpackage->ParseLogFile(orbitalsB);
-  if (!_parse_logB_status) {
+  bool parse_logB_status = qmpackage->ParseLogFile(orbitalsB);
+  if (!parse_logB_status) {
     XTP_LOG(logERROR, _log) << "Failed to read log of molecule B" << std::flush;
   }
 
   qmpackage->setLogFileName(_logAB);
-  bool _parse_logAB_status = qmpackage->ParseLogFile(orbitalsAB);
-  if (!_parse_logAB_status) {
+  bool parse_logAB_status = qmpackage->ParseLogFile(orbitalsAB);
+  if (!parse_logAB_status) {
     XTP_LOG(logERROR, _log)
         << "Failed to read log of molecule AB" << std::flush;
   }
 
-  qmpackage->setOrbitalsFileName(_orbA);
-  bool _parse_orbitalsA_status = qmpackage->ParseOrbitalsFile(orbitalsA);
-  if (!_parse_orbitalsA_status) {
+  qmpackage->setMOsFileName(_MOsA);
+  bool parse_orbitalsA_status = qmpackage->ParseMOsFile(orbitalsA);
+  if (!parse_orbitalsA_status) {
     XTP_LOG(logERROR, _log)
         << "Failed to read orbitals of molecule A" << std::flush;
   }
 
-  qmpackage->setOrbitalsFileName(_orbB);
-  bool _parse_orbitalsB_status = qmpackage->ParseOrbitalsFile(orbitalsB);
-  if (!_parse_orbitalsB_status) {
+  qmpackage->setMOsFileName(_MOsB);
+  bool parse_orbitalsB_status = qmpackage->ParseMOsFile(orbitalsB);
+  if (!parse_orbitalsB_status) {
     XTP_LOG(logERROR, _log)
         << "Failed to read orbitals of molecule B" << std::flush;
   }
 
-  qmpackage->setOrbitalsFileName(_orbAB);
-  bool _parse_orbitalsAB_status = qmpackage->ParseOrbitalsFile(orbitalsAB);
-  if (!_parse_orbitalsAB_status) {
+  qmpackage->setMOsFileName(_MOsAB);
+  bool parse_orbitalsAB_status = qmpackage->ParseMOsFile(orbitalsAB);
+  if (!parse_orbitalsAB_status) {
     XTP_LOG(logERROR, _log)
         << "Failed to read orbitals of dimer AB" << std::flush;
   }

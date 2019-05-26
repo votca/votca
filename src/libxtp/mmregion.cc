@@ -30,6 +30,15 @@ void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
 }
 
 template <class T>
+void MMRegion<T>::ResetRegion() {
+  for (auto& seg : _segments) {
+    for (auto& site : seg) {
+      site.Reset();
+    }
+  }
+}
+
+template <class T>
 void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
   w(_id, "id");
   w(identify(), "type");
