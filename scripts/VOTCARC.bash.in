@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2009-2017 The VOTCA Development Team (http://www.votca.org)
+# Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@ PATH="@CMAKE_INSTALL_FULL_BINDIR@:${PATH}"
 #debian wants to have : at the end
 MANPATH="@CMAKE_INSTALL_FULL_MANDIR@:${MANPATH}"
 @LD_LIBRARY_PATH@="@CMAKE_INSTALL_FULL_LIBDIR@${@LD_LIBRARY_PATH@:+:}${@LD_LIBRARY_PATH@}"
-PKG_CONFIG_PATH="@CMAKE_INSTALL_FULL_LIBDIR@/pkgconfig${PKG_CONFIG_PATH:+:}${PKG_CONFIG_PATH}"
 
 VOTCASHARE="@CMAKE_INSTALL_FULL_DATADIR@/votca"
 
-export PATH MANPATH @LD_LIBRARY_PATH@ PKG_CONFIG_PATH VOTCASHARE
+export PATH MANPATH @LD_LIBRARY_PATH@ VOTCASHARE
 
 #votca rc files
 for rc in "${VOTCASHARE}"/rc/*rc.bash; do
