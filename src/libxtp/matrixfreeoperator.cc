@@ -24,10 +24,9 @@ namespace xtp {
 
 Eigen::VectorXd MatrixFreeOperator::diagonal() const {
   Eigen::VectorXd D = Eigen::VectorXd::Zero(_size);
-  Eigen::RowVectorXd row_data;
-  #pragma omp parallel for
+#pragma omp parallel for
   for (int i = 0; i < _size; i++) {
-    row_data = this->row(i);
+    Eigen::RowVectorXd row_data = this->row(i);
     D(i) = row_data(i);
   }
   return D;
