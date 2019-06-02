@@ -261,6 +261,7 @@
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
+      <itemPath>../../src/libxtp/matrixfreeoperator.cc</itemPath>
       <itemPath>../../src/libxtp/md2qmengine.cc</itemPath>
       <itemPath>../../src/libxtp/nbo.cc</itemPath>
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
@@ -4622,6 +4623,11 @@
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/matrixfreeoperator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/md2qmengine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/mmregion.cc" ex="false" tool="1" flavor2="0">
@@ -5718,6 +5724,11 @@
       <item path="../../src/libxtp/jobtopology.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/kmccalculator.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/matrixfreeoperator.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/md2qmengine.cc" ex="false" tool="1" flavor2="0">
       </item>

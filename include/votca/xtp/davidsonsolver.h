@@ -63,7 +63,8 @@ class DavidsonSolver {
     std::chrono::duration<double> elapsed_time;
     start = std::chrono::system_clock::now();
 
-    XTP_LOG(logDEBUG, _log) << TimeStamp() << " Davidson Solver" << flush;
+    XTP_LOG(logDEBUG, _log) << TimeStamp() << " Davidson Solver using "
+                            << OPENMP::getMaxThreads() << " threads." << flush;
 
     switch (this->_davidson_correction) {
 
@@ -297,8 +298,8 @@ class DavidsonSolver {
     int nvec = new_dim - old_dim;
 
     T.conservativeResize(new_dim, new_dim);
-    Eigen::MatrixXd _tmp = A * V.block(0, old_dim, size, nvec);
-    T.block(0, old_dim, new_dim, nvec) = V.transpose() * _tmp;
+    Eigen::MatrixXd tmp = A * V.block(0, old_dim, size, nvec);
+    T.block(0, old_dim, new_dim, nvec) = V.transpose() * tmp;
     T.block(old_dim, 0, nvec, old_dim) =
         T.block(0, old_dim, old_dim, nvec).transpose();
     return;

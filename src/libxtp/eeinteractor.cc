@@ -312,18 +312,35 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   return interaction;  // in units of 4piepsilon0
 }
 
-template <class T>
-double eeInteractor::InteractStatic(T& site1, StaticSite& site2) const {
+double eeInteractor::InteractStatic_site(StaticSite& site1,
+                                         StaticSite& site2) const {
 
   const Matrix9d Tab = FillInteraction(site1, site2);      // T^(ab)_tu
   const Vector9d& multipolesA = site1.getPermMultipole();  // Q^(a)_t
 
   const Vector9d& multipolesB = site2.getPermMultipole();  // Q^(b)_u
 
-  if (!std::is_const<T>()) {
-    site1.getField() += (Tab.block(1, 0, 3, 9) * multipolesB).rowwise().sum();
-    site1.getPotential() += (Tab.row(0) * multipolesB).sum();
-  }
+  site1.getField() += (Tab.block(1, 0, 3, 9) * multipolesB).rowwise().sum();
+  site1.getPotential() += (Tab.row(0) * multipolesB).sum();
+  site2.getPotential() += (multipolesA.transpose() * Tab.col(0)).sum();
+  site2.getField() += (multipolesA.transpose() * Tab.block(0, 1, 9, 3))
+                          .colwise()
+                          .sum()
+                          .transpose();
+  double EnergyAB = multipolesA.transpose() * Tab *
+                    multipolesB;  // Interaction Energy between sites A and B
+
+  return EnergyAB;
+}
+
+double eeInteractor::InteractStatic_site(const StaticSite& site1,
+                                         StaticSite& site2) const {
+
+  const Matrix9d Tab = FillInteraction(site1, site2);      // T^(ab)_tu
+  const Vector9d& multipolesA = site1.getPermMultipole();  // Q^(a)_t
+
+  const Vector9d& multipolesB = site2.getPermMultipole();  // Q^(b)_u\
+
   site2.getPotential() += (multipolesA.transpose() * Tab.col(0)).sum();
   site2.getField() += (multipolesA.transpose() * Tab.block(0, 1, 9, 3))
                           .colwise()
@@ -336,32 +353,39 @@ double eeInteractor::InteractStatic(T& site1, StaticSite& site2) const {
 }
 
 template <class T>
-double eeInteractor::InteractPolar(T& site1, PolarSite& site2) const {
+double eeInteractor::InteractPolar_site(const T& site1,
+                                        PolarSite& site2) const {
+
+  double EnergyAB = 0;
+  const Eigen::Matrix3d tTab =
+      FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
+
+  site2.getPotential() +=
+      (site1.getInduced_Dipole().transpose() * tTab.col(0)).sum();
+  site2.getField() += (site1.getInduced_Dipole().transpose() * tTab)
+                          .colwise()
+                          .sum()
+                          .transpose();
+  EnergyAB +=
+      site1.getInduced_Dipole().transpose() * tTab * site2.getInduced_Dipole();
+  return EnergyAB;
+}
+
+double eeInteractor::InteractPolar_site(PolarSite& site1,
+                                        PolarSite& site2) const {
 
   double EnergyAB = 0;
   const Eigen::Matrix3d tTab =
       FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
   // Calculate Potential due to induced Dipoles
-
-  if (std::is_const<T>()) {
-    site2.getPotential() +=
-        (site1.getInduced_Dipole().transpose() * tTab.col(0)).sum();
-    site2.getField() += (site1.getInduced_Dipole().transpose() * tTab)
-                            .colwise()
-                            .sum()
-                            .transpose();
-  } else {
-    site1.getInducedPotential() += tTab.row(0) * site2.getInduced_Dipole();
-    site1.getInducedField() +=
-        (tTab * site2.getInduced_Dipole()).rowwise().sum();
-    site2.getInducedPotential() +=
-        (site1.getInduced_Dipole().transpose() * tTab.col(0)).sum();
-    site2.getInducedField() += (site1.getInduced_Dipole().transpose() * tTab)
-                                   .colwise()
-                                   .sum()
-                                   .transpose();
-  }
-  // Calculate Field due to induced Dipoles
+  site1.getInducedPotential() += tTab.row(0) * site2.getInduced_Dipole();
+  site1.getInducedField() += (tTab * site2.getInduced_Dipole()).rowwise().sum();
+  site2.getInducedPotential() +=
+      (site1.getInduced_Dipole().transpose() * tTab.col(0)).sum();
+  site2.getInducedField() += (site1.getInduced_Dipole().transpose() * tTab)
+                                 .colwise()
+                                 .sum()
+                                 .transpose();
 
   // Calculate Interaction induced Dipole induced Dipole
   EnergyAB +=
@@ -374,11 +398,12 @@ double eeInteractor::InteractStatic(T1& seg1, T2& seg2) const {
   double energy = 0.0;
   for (auto& site1 : seg1) {
     for (auto& site2 : seg2) {
-      energy += InteractStatic(site1, site2);
+      energy += InteractStatic_site(site1, site2);
     }
   }
   return energy;
 }
+
 template double eeInteractor::InteractStatic(StaticSegment& seg1,
                                              StaticSegment& seg2) const;
 template double eeInteractor::InteractStatic(const StaticSegment& seg1,
@@ -388,21 +413,27 @@ template double eeInteractor::InteractStatic(const PolarSegment& seg1,
 template double eeInteractor::InteractStatic(PolarSegment& seg1,
                                              PolarSegment& seg2) const;
 
-template <class T>
-double eeInteractor::InteractPolar(T& seg1, PolarSegment& seg2) const {
+double eeInteractor::InteractPolar(PolarSegment& seg1,
+                                   PolarSegment& seg2) const {
   double energy = 0.0;
   for (PolarSite& site1 : seg1) {
     for (PolarSite& site2 : seg2) {
-      energy += InteractPolar(site1, site2);
+      energy += InteractPolar_site(site1, site2);
     }
   }
   return energy;
 }
 
-template double eeInteractor::InteractPolar(const PolarSite& seg1,
-                                            PolarSite& seg2) const;
-template double eeInteractor::InteractPolar(PolarSite& seg1,
-                                            PolarSite& seg2) const;
+double eeInteractor::InteractPolar(const PolarSegment& seg1,
+                                   PolarSegment& seg2) const {
+  double energy = 0.0;
+  for (const PolarSite& site1 : seg1) {
+    for (PolarSite& site2 : seg2) {
+      energy += InteractPolar_site(site1, site2);
+    }
+  }
+  return energy;
+}
 
 }  // namespace xtp
 }  // namespace votca

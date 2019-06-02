@@ -25,7 +25,6 @@
 #include <votca/xtp/davidsonsolver.h>
 
 #include <chrono>
-#include <eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h>
 
 using boost::format;
 using std::flush;

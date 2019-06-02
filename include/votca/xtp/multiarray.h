@@ -21,7 +21,7 @@
 #ifndef VOTCA_XTP_MULTIARRAY_H
 #define VOTCA_XTP_MULTIARRAY_H
 
-#define BOOST_DISABLE_ASSERTS
+//#define BOOST_DISABLE_ASSERTS
 #include <boost/multi_array.hpp>
 namespace votca {
 namespace xtp {

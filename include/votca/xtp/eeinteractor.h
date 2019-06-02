@@ -35,14 +35,19 @@ class eeInteractor {
 
   template <class T1, class T2>
   double InteractStatic(T1& seg1, T2& seg2) const;
-  template <class T>
-  double InteractPolar(T& seg1, PolarSegment& seg2) const;
+
+  double InteractPolar(PolarSegment& seg1, PolarSegment& seg2) const;
+
+  double InteractPolar(const PolarSegment& seg1, PolarSegment& seg2) const;
 
  private:
+  double InteractStatic_site(StaticSite& site1, StaticSite& site2) const;
+  double InteractStatic_site(const StaticSite& site1, StaticSite& site2) const;
+
+  double InteractPolar_site(PolarSite& site1, PolarSite& site2) const;
+
   template <class T>
-  double InteractStatic(T& site1, StaticSite& site2) const;
-  template <class T>
-  double InteractPolar(T& site1, PolarSite& site2) const;
+  double InteractPolar_site(const T& site1, PolarSite& site2) const;
   Matrix9d FillInteraction(const StaticSite& site1,
                            const StaticSite& site2) const;
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
