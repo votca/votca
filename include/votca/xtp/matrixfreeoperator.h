@@ -113,8 +113,8 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
 // make the mat mat product
 #pragma omp parallel for
     for (int i = 0; i < op.rows(); i++) {
-      const Eigen::Matrix<Scalar, 1, Eigen::Dynamic> r = op.row(i);
-      dst.row(i) = r * m;
+      const Eigen::RowVectorXd row = op.row(i) * m;
+      dst.row(i) = row;
     }
   }
 };

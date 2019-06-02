@@ -27,7 +27,8 @@ namespace votca {
 namespace xtp {
 
 void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                          const AOShell& shell_row, const AOShell& shell_col) {
+                          const AOShell& shell_row,
+                          const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
   int lmax_row = shell_row.getLmax();

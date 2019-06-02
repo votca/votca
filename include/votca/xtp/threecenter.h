@@ -51,7 +51,7 @@ class TCMatrix {
 
   bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell,
                                const AOShell& shell_row,
-                               const AOShell& shell_col);
+                               const AOShell& shell_col) const;
 };
 
 class TCMatrix_dft : public TCMatrix {

@@ -114,11 +114,11 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(int index) const {
     Hrow(index_vc2) += _Hqp(c2 + cmin, c1 + cmin);
   }
   // c-> v
+  int v1_qp = v1 - _opt.qpmin;
   for (int v2 = 0; v2 < _bse_vtotal; v2++) {
     int index_vc2 = vc.I(v2, c1);
-    Hrow(index_vc2) -= _Hqp(v2 - _opt.qpmin, v1 - _opt.qpmin);
+    Hrow(index_vc2) -= _Hqp(v2 - _opt.qpmin, v1_qp);
   }
-
   return Hrow;
 }
 

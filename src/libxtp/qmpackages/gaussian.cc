@@ -700,7 +700,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   int unoccupied_levels = 0;
   int number_of_electrons = 0;
   int basis_set_size = 0;
-  int cart_basis_set_size = 0;
 
   XTP_LOG(logDEBUG, *_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
 

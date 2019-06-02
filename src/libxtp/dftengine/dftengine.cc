@@ -281,7 +281,6 @@ bool DFTEngine::Evaluate() {
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Iteration " << this_iter + 1
                               << " of " << _max_iter << flush;
 
-    double vxcenergy = 0.0;
     Mat_p_Energy e_vxc(Dmat.rows(), Dmat.cols());
     if (_use_small_grid && _conv_accelerator.getDIIsError() > 1e-3) {
       e_vxc = _gridIntegration_small.IntegrateVXC(Dmat);

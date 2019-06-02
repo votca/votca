@@ -27,7 +27,8 @@ namespace votca {
 namespace xtp {
 
 void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
-                           const AOShell& shell_row, const AOShell& shell_col) {
+                           const AOShell& shell_row,
+                           const AOShell& shell_col) const {
 
   /* Calculating the AO matrix of the gradient operator requires
    * the raw overlap matrix (i.e. in unnormalized cartesians)

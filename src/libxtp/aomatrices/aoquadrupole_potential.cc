@@ -30,12 +30,10 @@ namespace xtp {
 
 void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                                        const AOShell& shell_row,
-                                       const AOShell& shell_col) {
+                                       const AOShell& shell_col) const {
 
   const double pi = boost::math::constants::pi<double>();
 
-  // I am not sure the order definition or anything is correct apolarsite object
-  // orders them as Q20, Q21c, Q21s, Q22c, Q22s
   // q_01 etc are cartesian tensor multipole moments according to
   // https://en.wikipedia.org/wiki/Quadrupole so transform apolarsite into
   // cartesian and then multiply by 2 (difference stone definition/wiki

@@ -270,8 +270,6 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
 
   const Eigen::Vector3d& posB = site2.getPos();
   const Eigen::Vector3d& posA = site1.getPos();
-  int rankA = site1.getRank();
-  int rankB = site2.getRank();
 
   const Eigen::Vector3d r_AB =
       posB - posA;               // Vector of the distance between polar sites
@@ -279,15 +277,11 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   if (R < 1e-9) {
     return Eigen::Matrix3d::Zero();
   }
-  const Eigen::Vector3d pos_a =
-      r_AB /
-      R;  // unit vector on the sites reciprocal direction; This points toward A
+  const Eigen::Vector3d pos_a = r_AB / R;
+  // unit vector on the sites reciprocal direction; This points toward A
   const Eigen::Vector3d pos_b = -pos_a;  // unit vector on the sites reciprocal
                                          // direction; This points toward B
 
-  const double sqr3 = std::sqrt(3);
-  const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
-  const Eigen::Matrix3d& BxB = AxA;
   const double fac0 = 1 / R;
   const double fac2 = std::pow(fac0, 3);
   const double au3 =
@@ -339,7 +333,7 @@ double eeInteractor::InteractStatic_site(const StaticSite& site1,
   const Matrix9d Tab = FillInteraction(site1, site2);      // T^(ab)_tu
   const Vector9d& multipolesA = site1.getPermMultipole();  // Q^(a)_t
 
-  const Vector9d& multipolesB = site2.getPermMultipole();  // Q^(b)_u\
+  const Vector9d& multipolesB = site2.getPermMultipole();  // Q^(b)_u
 
   site2.getPotential() += (multipolesA.transpose() * Tab.col(0)).sum();
   site2.getField() += (multipolesA.transpose() * Tab.block(0, 1, 9, 3))

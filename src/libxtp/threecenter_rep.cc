@@ -42,7 +42,7 @@ namespace xtp {
 bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
                                        const AOShell& shell_3,
                                        const AOShell& shell_1,
-                                       const AOShell& shell_2) {
+                                       const AOShell& shell_2) const {
 
   const double pi = boost::math::constants::pi<double>();
   const double gwaccuracy = 1.e-11;

@@ -23,7 +23,8 @@ namespace votca {
 namespace xtp {
 
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                      const AOShell& shell_row, const AOShell& shell_col) {
+                      const AOShell& shell_row,
+                      const AOShell& shell_col) const {
 
   /*
    *
@@ -180,7 +181,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     int lmax_ecp, const Eigen::Vector3d& posC, const AOGaussianPrimitive& g_row,
     const AOGaussianPrimitive& g_col, const Eigen::Matrix<int, 4, 5>& power_ecp,
     const Eigen::Matrix<double, 4, 5>& gamma_ecp,
-    const Eigen::Matrix<double, 4, 5>& pref_ecp) {
+    const Eigen::Matrix<double, 4, 5>& pref_ecp) const {
 
   /* calculate the contribution of the nonlocal
    *     ECP of atom at posC with
@@ -866,7 +867,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   return matrix;
 }
 
-Eigen::VectorXd AOECP::CalcNorms(double decay, int size) {
+Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
   Eigen::VectorXd Norms = Eigen::VectorXd(size);
   const double PI = boost::math::constants::pi<double>();
   double SQ2, SQ3, SQ5;
@@ -929,7 +930,7 @@ Eigen::VectorXd AOECP::CalcNorms(double decay, int size) {
 }
 
 void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
-                      tensor3d& BLC, tensor3d& C) {
+                      tensor3d& BLC, tensor3d& C) const {
 
   tensor3d::extent_gen extents;
 

@@ -33,7 +33,8 @@ namespace votca {
 namespace xtp {
 
 void AOESP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                      const AOShell& shell_row, const AOShell& shell_col) {
+                      const AOShell& shell_row,
+                      const AOShell& shell_col) const {
 
   const double pi = boost::math::constants::pi<double>();
 

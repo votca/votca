@@ -27,7 +27,8 @@ namespace votca {
 namespace xtp {
 
 void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                          const AOShell& shell_row, const AOShell& shell_col) {
+                          const AOShell& shell_row,
+                          const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
   int lmax_row = shell_row.getLmax();
@@ -644,7 +645,7 @@ void AOOverlap::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   }    // shell_row Gaussians
 }
 
-Eigen::MatrixXd AOOverlap::FillShell(const AOShell& shell) {
+Eigen::MatrixXd AOOverlap::FillShell(const AOShell& shell) const {
   Eigen::MatrixXd block =
       Eigen::MatrixXd::Zero(shell.getNumFunc(), shell.getNumFunc());
   Eigen::Block<Eigen::MatrixXd> submatrix =
