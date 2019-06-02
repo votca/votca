@@ -77,7 +77,7 @@ void DavidsonSolver::set_size_update(std::string update_size) {
     throw std::runtime_error(update_size + " is not a valid Davidson update");
 }
 
-int DavidsonSolver::get_size_update(int neigen) {
+int DavidsonSolver::get_size_update(int neigen) const {
   int size_update;
   switch (this->_davidson_update) {
     case UPDATE::MIN:
@@ -99,7 +99,7 @@ int DavidsonSolver::get_size_update(int neigen) {
   return size_update;
 }
 
-Eigen::ArrayXi DavidsonSolver::argsort(Eigen::VectorXd &V) const {
+Eigen::ArrayXi DavidsonSolver::argsort(const Eigen::VectorXd &V) const {
   /* \brief return the index of the sorted vector */
   Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(), 0, V.rows() - 1);
   std::sort(idx.data(), idx.data() + idx.size(),
@@ -122,8 +122,8 @@ Eigen::MatrixXd DavidsonSolver::SetupInitialEigenvectors(
   return guess;
 }
 
-Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
-                                               Eigen::VectorXd &D,
+Eigen::VectorXd DavidsonSolver::dpr_correction(const Eigen::VectorXd &r,
+                                               const Eigen::VectorXd &D,
                                                double lambda) const {
   /* \brief Compute the diagonal preconditoned residue : delta = - (D -
    * lambda)^{-1} r
@@ -132,9 +132,9 @@ Eigen::VectorXd DavidsonSolver::dpr_correction(Eigen::VectorXd &r,
   return delta;
 }
 
-Eigen::VectorXd DavidsonSolver::olsen_correction(Eigen::VectorXd &r,
-                                                 Eigen::VectorXd &x,
-                                                 Eigen::VectorXd &D,
+Eigen::VectorXd DavidsonSolver::olsen_correction(const Eigen::VectorXd &r,
+                                                 const Eigen::VectorXd &x,
+                                                 const Eigen::VectorXd &D,
                                                  double lambda) const {
   /* \brief Compute the olsen correction :
 
