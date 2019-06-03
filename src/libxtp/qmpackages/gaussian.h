@@ -55,8 +55,7 @@ class Gaussian : public QMPackage {
 
   bool CheckLogFile();
 
-  std::string _input_vxc_file_name;
-  std::string _vdWfooter;
+  std::string _vdWfooter = "";
 
   bool ReadESPCharges(Orbitals& orbitals, std::string& line,
                       std::ifstream& input_file);

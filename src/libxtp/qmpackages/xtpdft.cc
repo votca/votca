@@ -84,9 +84,6 @@ void XTPDFT::CleanUp() {
  */
 bool XTPDFT::ParseMOsFile(Orbitals& orbitals) { return true; }
 
-/**
- * Dummy, because information is directly stored in orbitals
- */
 bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {
     std::string file_name = _run_dir + "/" + _log_file_name;

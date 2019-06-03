@@ -316,6 +316,7 @@ void GWBSE::Initialize(tools::Property& options) {
   // possible tasks
   std::string tasks_string =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
+  boost::algorithm::to_lower(tasks_string);
   if (tasks_string.find("all") != std::string::npos) {
     _do_gw = true;
     _do_bse_singlets = true;
@@ -330,6 +331,7 @@ void GWBSE::Initialize(tools::Property& options) {
 
   std::string store_string =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
+  boost::algorithm::to_lower(store_string);
   if ((store_string.find("all") != std::string::npos) ||
       (store_string.find("") != std::string::npos)) {
     // store according to tasks choice
@@ -577,6 +579,11 @@ bool GWBSE::Evaluate() {
     }
   }
 
+  if (!_do_gw && !_orbitals.hasQPdiag()) {
+    throw std::runtime_error(
+        "You want no GW calculation but the orb file has no QPcoefficients for "
+        "BSE");
+  }
   TCMatrix_gwbse Mmn;
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
@@ -622,13 +629,9 @@ bool GWBSE::Evaluate() {
     _orbitals.QPdiagCoefficients() = es.eigenvectors();
     _orbitals.QPdiagEnergies() = es.eigenvalues();
   } else {
-    if (_orbitals.hasQPdiag()) {
-      const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiagCoefficients();
-      Hqp = qpcoeff * _orbitals.QPdiagEnergies().asDiagonal() *
-            qpcoeff.transpose();
-    } else {
-      throw std::runtime_error("orb file has no QPcoefficients");
-    }
+    const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiagCoefficients();
+    Hqp =
+        qpcoeff * _orbitals.QPdiagEnergies().asDiagonal() * qpcoeff.transpose();
   }
 
   // proceed only if BSE requested

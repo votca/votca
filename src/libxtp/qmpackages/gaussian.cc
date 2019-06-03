@@ -37,14 +37,12 @@ void Gaussian::Initialize(tools::Property& options) {
   _log_file_name = fileName + ".log";
   _shell_file_name = fileName + ".sh";
   _mo_file_name = "fort.7";
-  _input_vxc_file_name = fileName + "-2.com";
   std::string key = "package";
   ParseCommonOptions(options);
 
   if (options.exists(key + ".vdWRadii")) {
     _vdWfooter = options.get(key + ".vdWRadii").as<std::string>();
-  } else
-    _vdWfooter = "";
+  }
 
   /* G09 by default deletes functions from the basisset according to some
    * criterion based on, a.o., the contraction coefficients. This can lead
@@ -393,7 +391,7 @@ bool Gaussian::WriteShellScript() {
 
   std::string shell_file_name_full = _run_dir + "/" + _shell_file_name;
 
-  shell_file.open(shell_file_name_full.c_str());
+  shell_file.open(shell_file_name_full);
 
   shell_file << "#!/bin/tcsh" << endl;
   shell_file << "mkdir -p " << _scratch_dir << endl;

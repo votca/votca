@@ -88,7 +88,6 @@
       <itemPath>../../include/votca/xtp/extractorfactory.h</itemPath>
       <itemPath>../../include/votca/xtp/forces.h</itemPath>
       <itemPath>../../include/votca/xtp/fourcenter.h</itemPath>
-      <itemPath>../../include/votca/xtp/gdma.h</itemPath>
       <itemPath>../../include/votca/xtp/geometry_optimization.h</itemPath>
       <itemPath>../../include/votca/xtp/glink.h</itemPath>
       <itemPath>../../include/votca/xtp/gnode.h</itemPath>
@@ -257,7 +256,6 @@
       <itemPath>../../src/libxtp/eeinteractor.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
-      <itemPath>../../src/libxtp/gdma.cc</itemPath>
       <itemPath>../../src/libxtp/grid.cc</itemPath>
       <itemPath>../../src/libxtp/gyration.cc</itemPath>
       <itemPath>../../src/libxtp/job.cc</itemPath>
@@ -3984,8 +3982,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/geometry_optimization.h"
             ex="false"
             tool="3"
@@ -4524,8 +4520,6 @@
       <item path="../../src/libxtp/fourcenter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/geometry_optimization.cc"
             ex="false"
@@ -5086,8 +5080,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../include/votca/xtp/geometry_optimization.h"
             ex="false"
             tool="3"
@@ -5626,8 +5618,6 @@
       <item path="../../src/libxtp/fourcenter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/fourcenter_rep.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/gdma.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/geometry_optimization.cc"
             ex="false"

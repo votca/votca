@@ -116,7 +116,6 @@ class DavidsonSolver {
     int search_space = size_initial_guess;
     int size_restart = size_initial_guess;
     int size_update = DavidsonSolver::get_size_update(neigen);
-    int nupdate;
 
     Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(size_update);
     Eigen::ArrayXd root_converged = Eigen::ArrayXd::Zero(size_update);
@@ -154,7 +153,7 @@ class DavidsonSolver {
       Eigen::MatrixXd Aq = A * q - q * lambda.asDiagonal();
 
       // correction vectors
-      nupdate = 0;
+      int nupdate = 0;
       for (int j = 0; j < size_update; j++) {
 
         // skip the root that have already converged
@@ -213,10 +212,7 @@ class DavidsonSolver {
 
         // recompute the projected matrix
         T = V.transpose() * (A * V);
-      }
-
-      // continue otherwise
-      else {
+      } else {
 
         switch (this->_davidson_ortho) {
           case ORTHO::GS:
