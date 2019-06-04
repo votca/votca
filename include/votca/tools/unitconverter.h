@@ -59,7 +59,8 @@ enum VelocityUnit {
 enum ForceUnit {
   kilocalories_per_mole_ansgtrom,
   newtons,
-  kilojoules_per_mole_nanometer
+  kilojoules_per_mole_nanometer,
+  kilojoules_per_mole_angstrom
 };
 /**
  * @brief Class converts between different unit types
@@ -183,6 +184,8 @@ class UnitConverter {
                convert(DistanceUnit::nanometers, DistanceUnit::meters);
       case ForceUnit::kilojoules_per_mole_nanometer:
         return 1.0;
+      case ForceUnit::kilojoules_per_mole_angstrom:
+        return 10.0;
     }
     return 0.0;
   }
