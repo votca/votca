@@ -118,9 +118,6 @@ class StructureParameters {
 
   template <class T>
   T get(const StructureParameter parameter) const {
-    //    if (parameters_.count(parameter) == 0) {
-    //      convertParameterIfPossible_(parameter);
-    //    }
     assert(parameters_.count(parameter) &&
            "StructureParameter is not stored in StructureParameters class");
     assert(typeid(T) == parameters_.at(parameter).type() &&
@@ -130,7 +127,6 @@ class StructureParameters {
   }
 
  private:
-  //  void convertParameterIfPossible_(const StructureParameter parameter);
   std::unordered_map<StructureParameter, boost::any> parameters_;
 };
 
