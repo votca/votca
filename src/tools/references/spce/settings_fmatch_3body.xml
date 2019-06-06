@@ -1,0 +1,36 @@
+<cg>
+  <fmatch>
+    <constrainedLS>true</constrainedLS>
+    <frames_per_block>1</frames_per_block>
+  </fmatch>
+  <non-bonded>
+    <name>CG-CG</name>
+    <type1>*</type1>
+    <type2>*</type2>
+    <fmatch>
+      <min>0.24</min>
+      <max>1.2</max>
+      <step>0.02</step>
+      <out_step>0.02</out_step>
+    </fmatch>
+  </non-bonded>
+
+  <!-- non-bonded interaction entry -->
+  <non-bonded>
+  <!-- name of the interaction -->
+    <name>CG-CG-CG</name>
+    <threebody>1</threebody>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    <type3>CG</type3>
+    <fmatch>
+      <a>0.37</a>
+      <sigma>1.0</sigma>
+      <gamma>0.08</gamma>
+      <min>0.8513716217</min>
+      <max>3.1415927</max>
+      <step>0.062831854</step>
+      <out_step>0.062831854</out_step>
+    </fmatch>
+   </non-bonded>
+</cg>

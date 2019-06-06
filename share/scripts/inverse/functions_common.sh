@@ -270,7 +270,7 @@ csg_get_interaction_property () { #gets an interaction property from the xml fil
       for map in ${mapping}; do
         [[ -f "$(get_main_dir)/$map" ]] || die "${FUNCNAME[0]}: Mapping file '$map' for bonded interaction not found in maindir"
 	names+=( $(critical -q csg_property --file "$(get_main_dir)/$map" --path cg_molecule.topology.cg_bonded.*.name --print . --short) )
-	dup=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$dup' appears twice in file(s) $mapping"
+	[[ -n ${names[@]} ]] && dup=$(has_duplicate "${names[@]}") && die "${FUNCNAME[0]}: cg_bonded name '$dup' appears twice in file(s) $mapping"
         ret2="$(critical -q csg_property --file "$(get_main_dir)/$map" --path cg_molecule.topology.cg_bonded.* --filter name="$bondname" --print . --with-path | trim_all)"
         ret2="$(echo "$ret2" | critical sed -n 's/.*cg_bonded\.\([^[:space:]]*\) .*/\1/p')"
 	if [[ -n $ret2 ]]; then
@@ -576,6 +576,11 @@ get_number_tasks() { #get the number of possible tasks from the xml file or dete
       tasks=$(/usr/sbin/lsdev | sed -n '/Processor/p' | sed -n '$=')
     fi
     is_int "${tasks}" || tasks=1 #failback in case we got non-int
+  fi
+  if [[ ${CSG_NUM_THREADS} ]]; then
+    is_int "${CSG_NUM_THREADS}" || die "${FUNCNAME[0]}: value of CSG_NUM_THREADS needs to be a number, but I got ${CSG_NUM_THREADS}"
+    msg --color blue --to-stderr "${FUNCNAME[0]}: Overwriting cg.inverse.simulation.tasks with '${CSG_NUM_THREADS}'"
+    tasks="${CSG_NUM_THREADS}"
   fi
   echo "$tasks"
 }

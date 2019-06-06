@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,104 +15,96 @@
  *
  */
 
-#include <iostream>
-#include <fstream>
-#include <boost/program_options.hpp>
-#include <votca/csg/version.h>
 #include "csg_stat_imc.h"
+#include <boost/program_options.hpp>
+#include <fstream>
+#include <iostream>
 #include <stdlib.h>
 #include <votca/csg/csgapplication.h>
+#include <votca/csg/version.h>
 
-//using namespace votca::tools;
+// using namespace votca::tools;
 using namespace std;
 using namespace votca::csg;
 
-class CsgStatApp
-    : public CsgApplication
-{
-public:
-    string ProgramName() { return "csg_stat"; }
-    void HelpText(ostream &out);
+class CsgStatApp : public CsgApplication {
+ public:
+  string ProgramName() { return "csg_stat"; }
+  void HelpText(ostream &out);
 
-    bool DoTrajectory() {return true;}
-    bool DoMapping() {return true;}
-    bool DoMappingDefault(void) { return false; }
-    bool DoThreaded() {return true; }
-    bool SynchronizeThreads() {return true;}
-    void Initialize();
-    bool EvaluateOptions();
+  bool DoTrajectory() { return true; }
+  bool DoMapping() { return true; }
+  bool DoMappingDefault(void) { return false; }
+  bool DoThreaded() { return true; }
+  bool SynchronizeThreads() { return true; }
+  void Initialize();
+  bool EvaluateOptions();
 
-    void BeginEvaluate(Topology *top, Topology *top_ref);
-    void EndEvaluate();
+  void BeginEvaluate(Topology *top, Topology *top_ref);
+  void EndEvaluate();
 
-    CsgApplication::Worker *ForkWorker() {
-        return _imc.ForkWorker();
-    }
+  CsgApplication::Worker *ForkWorker() { return _imc.ForkWorker(); }
 
-    void MergeWorker(CsgApplication::Worker *worker) {
-        _imc.MergeWorker(worker);
-    }
+  void MergeWorker(CsgApplication::Worker *worker) { _imc.MergeWorker(worker); }
 
-public:
-    Imc _imc;
-    int _block_length;
-    string _extension;
+ public:
+  Imc _imc;
+  int _block_length;
+  string _extension;
 };
 
-void CsgStatApp::HelpText(ostream &out)
-{
-    out << "Calculate all distributions (bonded and non-bonded) specified in options file.\n"
-            "Optionally calculates update matrix for invere Monte Carlo. This program\n"
-            "is called inside the inverse scripts. Unlike csg_boltzmann, big systems\n"
-            "can be treated as well as non-bonded interactions can be evaluated.";
+void CsgStatApp::HelpText(ostream &out) {
+  out << "Calculate all distributions (bonded and non-bonded) specified in "
+         "options file.\n"
+         "Optionally calculates update matrix for invere Monte Carlo. This "
+         "program\n"
+         "is called inside the inverse scripts. Unlike csg_boltzmann, big "
+         "systems\n"
+         "can be treated as well as non-bonded interactions can be evaluated.";
 }
 
-void CsgStatApp::Initialize()
-{
-    CsgApplication::Initialize();
-    AddProgramOptions("Specific options")
-            ("options", boost::program_options::value<string>(), "  options file for coarse graining")
-            ("do-imc", "  write out additional Inverse Monte Carlo data")
-            ("block-length", boost::program_options::value<int>(), "  write blocks of this length, the averages are cleared after every write")
-            ("ext", boost::program_options::value<string>(&_extension)->default_value("dist.new"), "Extension of the output");
+void CsgStatApp::Initialize() {
+  CsgApplication::Initialize();
+  AddProgramOptions("Specific options")("options",
+                                        boost::program_options::value<string>(),
+                                        "  options file for coarse graining")(
+      "do-imc", "  write out additional Inverse Monte Carlo data")(
+      "block-length", boost::program_options::value<int>(),
+      "  write blocks of this length, the averages are cleared after every "
+      "write")("ext",
+               boost::program_options::value<string>(&_extension)
+                   ->default_value("dist.new"),
+               "Extension of the output");
 }
 
-bool CsgStatApp::EvaluateOptions()
-{
-    CsgApplication::EvaluateOptions();
-    CheckRequired("options");
-    CheckRequired("trj", "no trajectory file specified");
-    
-    _imc.LoadOptions(OptionsMap()["options"].as<string>());
+bool CsgStatApp::EvaluateOptions() {
+  CsgApplication::EvaluateOptions();
+  CheckRequired("options");
+  CheckRequired("trj", "no trajectory file specified");
 
-    if(OptionsMap().count("block-length")){
-       _imc.BlockLength(OptionsMap()["block-length"].as<int>());
-    } else {
-      _imc.BlockLength(0);
-    }
+  _imc.LoadOptions(OptionsMap()["options"].as<string>());
 
-    if(OptionsMap().count("do-imc"))
-    _imc.DoImc(true);
+  if (OptionsMap().count("block-length")) {
+    _imc.BlockLength(OptionsMap()["block-length"].as<int>());
+  } else {
+    _imc.BlockLength(0);
+  }
 
-    _imc.Extension(_extension);
+  if (OptionsMap().count("do-imc")) _imc.DoImc(true);
 
-    _imc.Initialize();
-    return true;
+  _imc.Extension(_extension);
+
+  _imc.Initialize();
+  return true;
 }
 
-void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref)
-{
-    _imc.BeginEvaluate(top, top_ref);
+void CsgStatApp::BeginEvaluate(Topology *top, Topology *top_ref) {
+  _imc.BeginEvaluate(top, top_ref);
 }
 
-void CsgStatApp::EndEvaluate()
-{
-    _imc.EndEvaluate();
-}
+void CsgStatApp::EndEvaluate() { _imc.EndEvaluate(); }
 
-int main(int argc, char** argv)
-{
-    CsgStatApp app;
-    return app.Exec(argc, argv);
+int main(int argc, char **argv) {
+  CsgStatApp app;
+  return app.Exec(argc, argv);
 }
-

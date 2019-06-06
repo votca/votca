@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,41 +15,39 @@
  *
  */
 
-#ifndef _BEADPAIR_H
-#define	_BEADPAIR_H
+#ifndef _VOTCA_CSG_BEADPAIR_H
+#define _VOTCA_CSG_BEADPAIR_H
 
-namespace votca { namespace csg {
-using namespace votca::tools;
+namespace votca {
+namespace csg {
 
 /**
    \brief A particle pair
- 
+
    This class defines a particle pair. The future plan is, that the Pair class
    can be overloaded and Particle list creates these inherited pairs.
- 
+
  */
 
-class BeadPair
-    : public std::pair<Bead *, Bead *>
-{
-public:
-    BeadPair() {}
-    BeadPair(Bead *bead1, Bead *bead2, vec r)
-            : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
-        
-    virtual ~BeadPair() {}
+class BeadPair : public std::pair<Bead *, Bead *> {
+ public:
+  BeadPair() {}
+  BeadPair(Bead *bead1, Bead *bead2, tools::vec r)
+      : std::pair<Bead *, Bead *>(bead1, bead2), _r(r), _dist(abs(r)) {}
 
-    /// \brief the vector connecting two beads
-    vec &r() { return _r; }
-    /// \brief the distance of the beads
-    double &dist() { return _dist; }
+  virtual ~BeadPair() {}
 
-protected:
-        vec _r;
-        double _dist;
+  /// \brief the vector connecting two beads
+  tools::vec &r() { return _r; }
+  /// \brief the distance of the beads
+  double &dist() { return _dist; }
+
+ protected:
+  tools::vec _r;
+  double _dist;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _PAIR_H */
-
+#endif /* _VOTCA_CSG_BEADPAIR_H */

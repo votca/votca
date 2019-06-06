@@ -1,0 +1,14 @@
+<cg>
+  <non-bonded>
+    <name>CG-CG-CG</name>
+    <type1>CG</type1>
+    <type2>CG</type2>
+    <type3>CG</type3>
+    <threebody>1</threebody>
+    <min>0.0</min>
+    <max>3.1</max>
+    <step>0.1</step>
+    <cut>0.37</cut>
+  </non-bonded>
+</cg>
+

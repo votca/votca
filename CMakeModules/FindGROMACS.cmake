@@ -23,18 +23,21 @@
 #
 
 function(_GROMACS_GET_VERSION _OUT_ver _version_hdr)
+  if(NOT EXISTS ${_version_hdr})
+    message(FATAL_ERROR "Header file ${_version_hdr} not found (check value of GROMACS_INCLUDE_DIR)")
+  endif()
   file(STRINGS ${_version_hdr} _contents REGEX "#define GMX_VERSION[ \t]+")
   if(_contents)
     string(REGEX REPLACE ".*#define GMX_VERSION[ \t]+([0-9.]+).*" "\\1" ${_OUT_ver} "${_contents}")
-    if(("${${_OUT_ver}}" STREUQAL "") OR (NOT ${${_OUT_ver}} MATCHES "[0-9]+"))
-        message(FATAL_ERROR "Version parsing failed for GMX_VERSION in ${_version_hdr}!")
+    if(NOT ${${_OUT_ver}})
+      message(FATAL_ERROR "Version parsing failed for GMX_VERSION in ${_version_hdr}, got empty return!")
+    elseif(NOT ${${_OUT_ver}} MATCHES "^[0-9]+$")
+      message(FATAL_ERROR "Version parsing failed for GMX_VERSION in ${_version_hdr}, excepted a number but got ${${_OUT_ver}}!")
     endif()
     set(${_OUT_ver} ${${_OUT_ver}} PARENT_SCOPE)
- elseif(EXISTS ${_version_hdr})
-    message(FATAL_ERROR "No GMX_VERSION in ${_version_hdr}")
  else()
-     message(FATAL_ERROR "No GMX_VERSION line found in include file ${_version_hdr}")
-  endif()
+   message(FATAL_ERROR "No GMX_VERSION line found in include file ${_version_hdr}")
+ endif()
 endfunction()
 
 find_package(PkgConfig)
@@ -61,7 +64,7 @@ endif()
 
 find_path(GROMACS_INCLUDE_DIR gromacs/version.h HINTS ${PC_GROMACS_D_INCLUDE_DIRS} ${PC_GROMACS_INCLUDE_DIRS})
 if(GROMACS_VERSION)
-elseif(GROMACS_INCLUDE_DIR AND EXISTS ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
+elseif(GROMACS_INCLUDE_DIR)
   _GROMACS_GET_VERSION(GROMACS_VERSION ${GROMACS_INCLUDE_DIR}/gromacs/version.h)
 else()
   set(GROMACS_VERSION 0)
@@ -76,3 +79,11 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GROMACS REQUIRED_VARS GROMACS_LIBRARY GROMACS_INCLUDE_DIR VERSION_VAR GROMACS_VERSION)
 
 mark_as_advanced(GROMACS_LIBRARY GROMACS_INCLUDE_DIR GROMACS_VERSION)
+
+if(GROMACS_FOUND)
+  add_library(GMX::libgromacs UNKNOWN IMPORTED)
+  set_target_properties(GMX::libgromacs PROPERTIES
+    IMPORTED_LOCATION ${GROMACS_LIBRARY}
+    INTERFACE_INCLUDE_DIRECTORIES ${GROMACS_INCLUDE_DIR}
+    INTERFACE_COMPILE_OPTIONS "${GROMACS_DEFINITIONS}")
+endif()

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2016 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
  */
 
 /* Used gromacs version */
+// clang-format off
 #cmakedefine GROMACS_VERSION @GROMACS_VERSION@
 
 /* Whether h5md is compiled in */
@@ -26,3 +27,4 @@
 
 /* Contact address of package */
 #define PACKAGE_BUGREPORT "@PROJECT_CONTACT@"
+// clang-format on

@@ -1,16 +1,28 @@
-find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.53.0 REQUIRED COMPONENTS unit_test_framework)
+
 foreach(PROG
   test_bead
+  test_beadtriple
   test_basebead
-  test_beadstructure
+  test_beadmotif_algorithms
+  test_beadmotif_base
+  test_beadmotif_connector
+  test_beadstructure_base
+  test_beadstructure_algorithms
+  test_bondedstatistics
+  test_csg_topology
   test_interaction
   test_lammpsdatareader 
   test_lammpsdumpreaderwriter
-  test_pdbreader )
+  test_nblist_3body
+  test_nblistgrid_3body
+  test_pdbreader
+  test_tabulatedpotential
+  test_triplelist )
 
   file(GLOB ${PROG}_SOURCES ${PROG}.cc)
   add_executable(unit_${PROG} ${${PROG}_SOURCES})
-  target_link_libraries(unit_${PROG} votca_csg ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+  target_link_libraries(unit_${PROG} votca_csg_boltzmann votca_csg ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   add_test(unit_${PROG} unit_${PROG})
   # run tests for csg (for coverage) as well

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,57 +15,52 @@
  *
  */
 
-#ifndef __VOTCA_BOUNDARYCONDITION_H
-#define	__VOTCA_BOUNDARYCONDITION_H
+#ifndef _VOTCA_CSG_BOUNDARYCONDITION_H
+#define _VOTCA_CSG_BOUNDARYCONDITION_H
 
 #include <votca/tools/matrix.h>
 
-namespace votca { namespace csg {
-using namespace std;
+namespace votca {
+namespace csg {
 using namespace votca::tools;
 
 class BoundaryCondition {
 
-public:
-    virtual ~BoundaryCondition() {};
+ public:
+  virtual ~BoundaryCondition(){};
 
-    /**
-     * set the simulation box
-     * \param box triclinic box matrix
-     */
-    void setBox(const matrix &box) { _box = box; };
+  /**
+   * set the simulation box
+   * \param box triclinic box matrix
+   */
+  void setBox(const matrix &box) { _box = box; };
 
-    /**
-     * get the simulation box
-     * \return triclinic box matrix
-     */
-    const matrix &getBox() { return _box; };
+  /**
+   * get the simulation box
+   * \return triclinic box matrix
+   */
+  const matrix &getBox() { return _box; };
 
-    /**
-     * get the volume of the box
-     * \return box volume as double
-     */
-    virtual double BoxVolume();
+  /**
+   * get the volume of the box
+   * \return box volume as double
+   */
+  virtual double BoxVolume();
 
-    /**
-     * get shortest connection vector between r_i and r_j with respect to the (periodic) box
-     * \return shortest distance vector
-     */
-    virtual vec BCShortestConnection(const vec &r_i, const vec &r_j) const = 0;
+  /**
+   * get shortest connection vector between r_i and r_j with respect to the
+   * (periodic) box \return shortest distance vector
+   */
+  virtual vec BCShortestConnection(const vec &r_i, const vec &r_j) const = 0;
 
-    enum eBoxtype {
-        typeAuto = 0,
-        typeTriclinic,
-        typeOrthorhombic,
-        typeOpen
-    };
-    virtual eBoxtype getBoxType() = 0;
+  enum eBoxtype { typeAuto = 0, typeTriclinic, typeOrthorhombic, typeOpen };
+  virtual eBoxtype getBoxType() = 0;
 
-protected:
-    matrix _box;
+ protected:
+  matrix _box;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* BOUNDARYCONDITION_H */
-
+#endif /* _VOTCA_CSG_BOUNDARYCONDITION_H */

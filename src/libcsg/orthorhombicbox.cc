@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,21 @@
 
 #include <votca/csg/orthorhombicbox.h>
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 
-vec OrthorhombicBox::BCShortestConnection(const vec &r_i, const vec &r_j) const
-{
-    vec r_ij;
-    double a = _box.get(0,0); double b = _box.get(1,1); double c = _box.get(2,2);
-    r_ij = r_j - r_i;
-    r_ij.setZ( r_ij.getZ() - c*round(r_ij.getZ()/c) );
-    r_ij.setY( r_ij.getY() - b*round(r_ij.getY()/b) );
-    r_ij.setX( r_ij.getX() - a*round(r_ij.getX()/a) );
-    return r_ij;
+vec OrthorhombicBox::BCShortestConnection(const vec &r_i,
+                                          const vec &r_j) const {
+  vec r_ij;
+  double a = _box.get(0, 0);
+  double b = _box.get(1, 1);
+  double c = _box.get(2, 2);
+  r_ij = r_j - r_i;
+  r_ij.setZ(r_ij.getZ() - c * round(r_ij.getZ() / c));
+  r_ij.setY(r_ij.getY() - b * round(r_ij.getY() / b));
+  r_ij.setX(r_ij.getX() - a * round(r_ij.getX() / a));
+  return r_ij;
 }
 
-}}
+}  // namespace csg
+}  // namespace votca

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,28 @@
  *
  */
 
-#ifndef __VOTCA_TRICLINICBOX_H
-#define	__VOTCA_TRICLINICBOX_H
+#ifndef _VOTCA_CSG_TRICLINICBOX_H
+#define _VOTCA_CSG_TRICLINICBOX_H
 
 #include "boundarycondition.h"
 
-namespace votca { namespace csg {
-using namespace std;
-using namespace votca::tools;
+namespace votca {
+namespace csg {
+
+namespace TOOLS = votca::tools;
 
 class TriclinicBox : public BoundaryCondition {
 
-public:
-    vec BCShortestConnection(const vec &r_i, const vec &r_j) const;
+ public:
+  TOOLS::vec BCShortestConnection(const TOOLS::vec &r_i,
+                                  const TOOLS::vec &r_j) const;
 
-    eBoxtype getBoxType() {
-        return typeTriclinic;
-    }
+  eBoxtype getBoxType() { return typeTriclinic; }
 
-protected:
+ protected:
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* TRICLINICBOX_H */
-
+#endif /* _VOTCA_CSG_TRICLINICBOX_H */

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,52 +15,52 @@
  *
  */
 
-#ifndef _NBLISTGRID_H
-#define	_NBLISTGRID_H
+#ifndef _VOTCA_CSG_NBLISTGRID_H
+#define _VOTCA_CSG_NBLISTGRID_H
 
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
 #include "nblist.h"
 #include <vector>
+#include <votca/tools/matrix.h>
+#include <votca/tools/vec.h>
 
-namespace votca { namespace csg {
-using namespace votca::tools;
+namespace votca {
+namespace csg {
 
-class NBListGrid
-    : public NBList
-{
-public:
-    void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
-    void Generate(BeadList &list, bool do_exclusions = true);
+namespace TOOLS = votca::tools;
 
-protected:
-    struct cell_t {
-        BeadList _beads;
-        std::vector<cell_t*> _neighbours;
-    };
+class NBListGrid : public NBList {
+ public:
+  void Generate(BeadList &list1, BeadList &list2, bool do_exclusions = true);
+  void Generate(BeadList &list, bool do_exclusions = true);
 
-    vec _box_a, _box_b, _box_c;
-    vec _norm_a, _norm_b, _norm_c;
-    int _box_Na, _box_Nb, _box_Nc;
+ protected:
+  struct cell_t {
+    BeadList _beads;
+    std::vector<cell_t *> _neighbours;
+  };
 
-    std::vector<cell_t> _grid;
-    Topology *_top;
+  TOOLS::vec _box_a, _box_b, _box_c;
+  TOOLS::vec _norm_a, _norm_b, _norm_c;
+  int _box_Na, _box_Nb, _box_Nc;
 
-    void InitializeGrid(const matrix &box);
-    
-    cell_t &getCell(const vec &r);
-    cell_t &getCell(const int &a, const int &b, const int &c);
+  std::vector<cell_t> _grid;
+  Topology *_top;
 
-    void TestBead(cell_t &cell, Bead *bead);
-    void TestCell(cell_t &cell, Bead *bead);
+  void InitializeGrid(const TOOLS::matrix &box);
+
+  cell_t &getCell(const TOOLS::vec &r);
+  cell_t &getCell(const int &a, const int &b, const int &c);
+
+  void TestBead(cell_t &cell, Bead *bead);
+  void TestCell(cell_t &cell, Bead *bead);
 };
 
-inline NBListGrid::cell_t &NBListGrid::getCell(const int &a, const int &b, const int &c)
-{
-    return _grid[a + _box_Na*b + _box_Na*_box_Nb*c];
+inline NBListGrid::cell_t &NBListGrid::getCell(const int &a, const int &b,
+                                               const int &c) {
+  return _grid[a + _box_Na * b + _box_Na * _box_Nb * c];
 }
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _NBLISTGRID_H */
-
+#endif /* _VOTCA_CSG_NBLISTGRID_H */

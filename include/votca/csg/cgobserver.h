@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2011 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,36 +15,36 @@
  *
  */
 
-#ifndef _CGOBSERVER_H
-#define	_CGOBSERVER_H
+#ifndef _VOTCA_CSG_CGOBSERVER_H
+#define _VOTCA_CSG_CGOBSERVER_H
 
 #include "topology.h"
 
-namespace votca { namespace csg {
+namespace votca {
+namespace csg {
 using namespace votca::tools;
 
 /**
    \brief Observer class for analysis hook
 
-   Each application which performs analysis operations should use CGEngine. It offers
-   a hook (callback class) during the coarse-graining process to evaluate each frame.
-   The user does not have to take care about mapping and other stoff. Just oberload
-   this class and analyze properties of interest.
+   Each application which performs analysis operations should use CGEngine. It
+   offers a hook (callback class) during the coarse-graining process to evaluate
+   each frame. The user does not have to take care about mapping and other
+   stoff. Just oberload this class and analyze properties of interest.
 
  */
 
-class CGObserver
-{
-public:
-    /// \brief called before the first frame
-    virtual void BeginCG(Topology *top, Topology *top_atom = 0) = 0;
-    /// \brief called after the last frame
-    virtual void EndCG() = 0;
-    // \brief called for each frame which is mapped
-    virtual void EvalConfiguration(Topology *top, Topology *top_atom = 0) = 0;
+class CGObserver {
+ public:
+  /// \brief called before the first frame
+  virtual void BeginCG(Topology *top, Topology *top_atom = 0) = 0;
+  /// \brief called after the last frame
+  virtual void EndCG() = 0;
+  // \brief called for each frame which is mapped
+  virtual void EvalConfiguration(Topology *top, Topology *top_atom = 0) = 0;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif	/* _CGOBSERVER_H */
-
+#endif /* _VOTCA_CSG_CGOBSERVER_H */
