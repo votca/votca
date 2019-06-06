@@ -91,7 +91,7 @@ class Elements {
   double getPolarizability(std::string name);
 
   /// Returns the covalent Radii of the atom
-  double getCovRad(std::string name, std::string unit);
+  double getCovRad(std::string name, const DistanceUnit& new_distance_unit);
 
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
@@ -120,8 +120,10 @@ class Elements {
 
   const MassUnit mass_unit = MassUnit::atomic_mass_units;
   const ChargeUnit charge_unit = ChargeUnit::e;
+  const DistanceUnit distance_unit = DistanceUnit::angstroms;
 
  private:
+  UnitConverter converter_;
   // cache variables
   bool _filled_VdWChelpG = false;
   bool _filled_VdWMK = false;
