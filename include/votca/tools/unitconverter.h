@@ -57,7 +57,7 @@ enum VelocityUnit {
 };
 
 enum ForceUnit {
-  kilocalories_per_mole_ansgtrom,
+  kilocalories_per_mole_angstrom,
   newtons,
   kilojoules_per_mole_nanometer,
   kilojoules_per_mole_angstrom,
@@ -176,7 +176,7 @@ class UnitConverter {
   /// Default force unit is the kilojoules per mole nanometer
   constexpr double getForceValue_(const ForceUnit& enum_type) const noexcept {
     switch (enum_type) {
-      case ForceUnit::kilocalories_per_mole_ansgtrom:
+      case ForceUnit::kilocalories_per_mole_angstrom:
         return convert(EnergyUnit::kilojoules_per_mole,
                        EnergyUnit::kilocalories_per_mole) /
                convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
