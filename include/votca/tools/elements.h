@@ -18,16 +18,16 @@
  */
 
 #pragma once
-#ifndef __VOTCA_TOOLS_ELEMENTS_H
-#define __VOTCA_TOOLS_ELEMENTS_H
+#ifndef VOTCA_TOOLS_ELEMENTS_H
+#define VOTCA_TOOLS_ELEMENTS_H
 
-#include "unitconverter.h"
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <votca/tools/constants.h>
+
+#include "unitconverter.h"
 
 namespace votca {
 namespace tools {
@@ -168,4 +168,4 @@ class Elements {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_ELEMENTS_H */
+#endif  // VOTCA_TOOLS_ELEMENTS_H

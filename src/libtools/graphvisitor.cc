@@ -16,9 +16,11 @@
  * limitations under the License.
  *
  */
+#include <set>                      // for set
+#include <stdexcept>                // for runtime_error
+#include <utility>                  // for pair
+#include <votca/tools/graphnode.h>  // for GraphNode
 
-#include <exception>
-#include <iostream>
 #include <vector>
 #include <votca/tools/edge.h>
 #include <votca/tools/graph.h>
@@ -29,7 +31,7 @@ using namespace std;
 namespace votca {
 namespace tools {
 
-class GraphNode;
+// class GraphNode;
 
 bool GraphVisitor::queEmpty() const { return true; }
 

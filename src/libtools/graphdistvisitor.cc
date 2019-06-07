@@ -17,9 +17,8 @@
  *
  */
 
-#include <votca/tools/graph_bf_visitor.h>
-#include <votca/tools/graphdistvisitor.h>
-#include <votca/tools/graphvisitor.h>
+#include "../../include/votca/tools/graphdistvisitor.h"
+#include "../../include/votca/tools/graphvisitor.h"
 
 #include <votca/tools/edge.h>
 #include <votca/tools/graph.h>

@@ -19,9 +19,10 @@
 
 #define BOOST_TEST_MODULE elements_test
 #include <boost/test/unit_test.hpp>
-#include <cmath>
-#include <exception>
-#include <votca/tools/elements.h>
+#include <stdexcept>
+
+#include "../../include/votca/tools/elements.h"
+#include "../../include/votca/tools/unitconverter.h"
 
 using namespace std;
 using namespace votca::tools;

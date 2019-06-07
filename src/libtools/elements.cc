@@ -17,8 +17,19 @@
  *
  */
 
-#include <boost/algorithm/string.hpp>
-#include <votca/tools/elements.h>
+#include <bits/std_abs.h>  // for abs
+#include <map>             // for map, map<>::mapped_type
+#include <math.h>          // for abs
+#include <stdexcept>       // for runtime_error, inval...
+#include <stdlib.h>        // for abs
+#include <string>          // for string, operator+
+#include <utility>         // for pair
+
+#include "../../include/votca/tools/elements.h"
+#include "../../include/votca/tools/unitconverter.h"  // for DistanceUnit, ...
+
+#include <boost/algorithm/string/case_conv.hpp>  // for to_upper_copy
+#include <boost/iterator/iterator_facade.hpp>    // for operator!=
 
 using namespace votca::tools;
 using namespace std;
