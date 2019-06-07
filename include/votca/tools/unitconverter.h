@@ -60,7 +60,8 @@ enum ForceUnit {
   kilocalories_per_mole_ansgtrom,
   newtons,
   kilojoules_per_mole_nanometer,
-  kilojoules_per_mole_angstrom
+  kilojoules_per_mole_angstrom,
+  hatree_per_bohr
 };
 /**
  * @brief Class converts between different unit types
@@ -127,17 +128,17 @@ class UnitConverter {
   constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
       case EnergyUnit::kilojoules_per_mole:
-        return 96.485;
+        return 96.4853074993;
       case EnergyUnit::joules_per_mole:
-        return 96.485E3;
+        return 96.4853074993E3;
       case EnergyUnit::kilocalories_per_mole:
         return 23.061;
       case EnergyUnit::kilocalories:
         return 2.613195131836172E22;
       case EnergyUnit::joules:
-        return 6.241510E18;
+        return 6.2415097E18;
       case EnergyUnit::kilojoules:
-        return 6.241510E21;
+        return 6.2415097E21;
       case EnergyUnit::hartrees:
         return 27.21138602;
       case EnergyUnit::electron_volts:
@@ -186,6 +187,9 @@ class UnitConverter {
         return 1.0;
       case ForceUnit::kilojoules_per_mole_angstrom:
         return 10.0;
+      case ForceUnit::hatree_per_bohr:
+        return convert(EnergyUnit::kilojoules_per_mole, EnergyUnit::hartrees) /
+               convert(DistanceUnit::nanometers, DistanceUnit::bohr);
     }
     return 0.0;
   }
