@@ -21,6 +21,8 @@
 #include <votca/xtp/qmregion.h>
 #include <votca/xtp/staticregion.h>
 
+#include "votca/xtp/eeinteractor.h"
+
 namespace votca {
 namespace xtp {
 
@@ -44,16 +46,37 @@ bool PolarRegion::Converged() const { return false; }
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   ResetRegion();
   ApplyInfluenceOfOtherRegions(regions);
+
   for (int iteration = 0; iteration < _max_iter; iteration++) {
-    break;
   }
 
   return;
 }
 
 void PolarRegion::InteractwithQMRegion(const QMRegion& region) { return; }
-void PolarRegion::InteractwithPolarRegion(const PolarRegion& region) { return; }
+void PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
+#pragma omp parallel for
+  for (int i = 0; i < int(_segments.size()); i++) {
+    PolarSegment& pseg1 = _segments[i];
+    eeInteractor ee;
+
+    for (const PolarSegment& pseg2 : region) {
+      ee.InteractStatic(pseg2, pseg1);
+      ee.InteractPolar(pseg2, pseg1);
+    }
+  }
+}
 void PolarRegion::InteractwithStaticRegion(const StaticRegion& region) {
+#pragma omp parallel for
+  for (int i = 0; i < int(_segments.size()); i++) {
+    PolarSegment& pseg = _segments[i];
+    eeInteractor ee;
+
+    for (const StaticSegment& sseg : region) {
+      ee.InteractStatic(sseg, pseg);
+    }
+  }
+
   return;
 }
 
