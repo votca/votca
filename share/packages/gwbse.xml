@@ -11,7 +11,7 @@
                 <functional>XC_HYB_GGA_XC_PBEH</functional>
                 <grid>medium</grid>
         </vxc>
-        <shift>0.2</shift> <!-- preshift of DFT energies in Rydberg -->
+        <scissor_shift>0.2</scissor_shift> <!-- preshift of DFT energies in Rydberg -->
         <mode>evGW</mode>
         <tasks>gw,singlets,triplets</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
         <store></store>
@@ -26,8 +26,5 @@
                 <davidson_maxiter>50</davidson_maxiter>
                 <domatrixfree>0</domatrixfree>
         </eigensolver>
-
-        <print>25</print>
-        <fragment>0</fragment>  
         <openmp>0</openmp>
 </gwbse>

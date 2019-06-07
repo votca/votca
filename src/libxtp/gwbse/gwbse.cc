@@ -286,8 +286,8 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(logDEBUG, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
 
-  _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(key + ".shift",
-                                                                 _gwopt.shift);
+  _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".scissor_shift", _gwopt.shift);
   _gwopt.g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".g_sc_limit",
       _gwopt.g_sc_limit);  // convergence criteria for qp iteration [Hartree]]
