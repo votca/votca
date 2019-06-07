@@ -19,15 +19,22 @@
 
 #include <algorithm>
 #include <cassert>
+#include <iosfwd>     // for ostream
+#include <stdexcept>  // for invalid_argument
 #include <string>
-#include <votca/tools/graph.h>
+#include <unordered_map>  // for unordered_map
+#include <utility>        // for pair
+#include <vector>         // for vector
+
+#include "../../include/votca/tools/edge.h"  // for Edge
+#include "../../include/votca/tools/edgecontainer.h"
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graphnode.h"
 
 using namespace std;
 
 namespace votca {
 namespace tools {
-
-class GraphNode;
 
 bool nodeForEveryVertex_(vector<int> vertices,
                          unordered_map<int, GraphNode> nodes) {

@@ -17,12 +17,16 @@
  *
  */
 
-#include "../../include/votca/tools/graphdistvisitor.h"
-#include "../../include/votca/tools/graphvisitor.h"
+#include <set>                         // for set
+#include <string>                      // for string
+#include <unordered_map>               // for unordered_map
+#include <votca/tools/graphvisitor.h>  // for GraphVisitor
 
-#include <votca/tools/edge.h>
-#include <votca/tools/graph.h>
-#include <votca/tools/graphnode.h>
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/graph.h"
+#include "../../include/votca/tools/graph_bf_visitor.h"
+#include "../../include/votca/tools/graphdistvisitor.h"
+#include "../../include/votca/tools/graphnode.h"
 
 using namespace std;
 

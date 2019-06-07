@@ -17,13 +17,13 @@
  *
  */
 
+#include "edgecontainer.h"
+#include "graphnode.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <votca/tools/edgecontainer.h>
-#include <votca/tools/graphnode.h>
 
 #pragma once
 #ifndef VOTCA_TOOLS_GRAPH_H

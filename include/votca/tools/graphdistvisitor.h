@@ -18,13 +18,13 @@
  */
 
 #pragma once
-#ifndef __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#ifndef VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#define VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
 
+#include "graph_bf_visitor.h"
 #include <deque>
 #include <iostream>
 #include <queue>
-#include <votca/tools/graph_bf_visitor.h>
 
 /**
  * \brief A graph visitor determines the graph topology
@@ -48,7 +48,6 @@ namespace tools {
 class Graph;
 class Edge;
 class GraphNode;
-class Graph_BF_Visitor;
 
 class GraphDistVisitor : public Graph_BF_Visitor {
 
@@ -62,4 +61,4 @@ class GraphDistVisitor : public Graph_BF_Visitor {
 };
 }  // namespace tools
 }  // namespace votca
-#endif  // __VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
+#endif  // VOTCA_TOOLS_GRAPH_DIST_VISITOR_H
