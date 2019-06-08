@@ -286,7 +286,9 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   const double fac2 = std::pow(fac0, 3);
   const double au3 =
       _expdamping /
-      (fac2 * std::sqrt(site1.getEigenDamp() * site2.getEigenDamp()));
+      (fac2 * std::sqrt(site1.getEigenDamp() *
+                        site2.getEigenDamp()));  // dimensionless eigendamp is
+                                                 // a0^3)
   double lambda3 = 1.0;
   double lambda5 = 1.0;
   if (au3 < 40) {
@@ -390,6 +392,8 @@ double eeInteractor::InteractPolar_site(PolarSite& site1,
 template <class T1, class T2>
 double eeInteractor::InteractStatic(T1& seg1, T2& seg2) const {
   double energy = 0.0;
+  assert(&seg1 != &seg2 &&
+         "InteractStatic(seg1,seg2) needs two distinct objects");
   for (auto& site1 : seg1) {
     for (auto& site2 : seg2) {
       energy += InteractStatic_site(site1, site2);
@@ -407,8 +411,36 @@ template double eeInteractor::InteractStatic(const PolarSegment& seg1,
 template double eeInteractor::InteractStatic(PolarSegment& seg1,
                                              PolarSegment& seg2) const;
 
+template <class T>
+double eeInteractor::InteractStatic_IntraSegment(T& seg) const {
+  double energy = 0.0;
+  for (int i = 0; i < seg.size(); i++) {
+    for (int j = 0; j < i; j++) {
+      energy += InteractStatic_site(seg[i], seg[j]);
+    }
+  }
+  return energy;
+}
+
+template double eeInteractor::InteractStatic_IntraSegment(
+    StaticSegment& seg) const;
+template double eeInteractor::InteractStatic_IntraSegment(
+    PolarSegment& seg) const;
+
+double eeInteractor::InteractPolar_IntraSegment(PolarSegment& seg) const {
+  double energy = 0.0;
+  for (int i = 0; i < seg.size(); i++) {
+    for (int j = 0; j < i; j++) {
+      energy += InteractPolar_site(seg[i], seg[j]);
+    }
+  }
+  return energy;
+}
+
 double eeInteractor::InteractPolar(PolarSegment& seg1,
                                    PolarSegment& seg2) const {
+  assert(&seg1 != &seg2 &&
+         "InteractPolar(seg1,seg2) needs two distinct objects");
   double energy = 0.0;
   for (PolarSite& site1 : seg1) {
     for (PolarSite& site2 : seg2) {
@@ -420,6 +452,8 @@ double eeInteractor::InteractPolar(PolarSegment& seg1,
 
 double eeInteractor::InteractPolar(const PolarSegment& seg1,
                                    PolarSegment& seg2) const {
+  assert(&seg1 != &seg2 &&
+         "InteractPolar(seg1,seg2) needs two distinct objects");
   double energy = 0.0;
   for (const PolarSite& site1 : seg1) {
     for (PolarSite& site2 : seg2) {

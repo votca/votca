@@ -75,6 +75,13 @@ void PolarSite::calcDIIS_InducedDipole() {
   }
 }
 
+double PolarSite::DipoleChange() const {
+  if (_dipole_hist.empty()) {
+    return _induced_dipole.norm();
+  }
+  return (_induced_dipole - _dipole_hist.back()).norm();
+}
+
 Eigen::Vector3d PolarSite::getDipole() const {
   Eigen::Vector3d dipole = _multipole.segment<3>(1);
   dipole += getInduced_Dipole();
@@ -83,7 +90,7 @@ Eigen::Vector3d PolarSite::getDipole() const {
 
 void PolarSite::ResetInduction() {
   _phi_induced = 0.0;
-  _localinducedField = Eigen::Vector3d::Zero();
+  _localinducedField.setZero();
 }
 
 void PolarSite::setPolarisation(const Eigen::Matrix3d pol) {

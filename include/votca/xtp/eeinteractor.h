@@ -31,10 +31,15 @@ namespace xtp {
  */
 class eeInteractor {
  public:
-  eeInteractor(double expdamping) : _expdamping(expdamping){};
+  explicit eeInteractor(double expdamping = 0.39) : _expdamping(expdamping){};
 
   template <class T1, class T2>
   double InteractStatic(T1& seg1, T2& seg2) const;
+
+  template <class T>
+  double InteractStatic_IntraSegment(T& seg) const;
+
+  double InteractPolar_IntraSegment(PolarSegment& seg1) const;
 
   double InteractPolar(PolarSegment& seg1, PolarSegment& seg2) const;
 
@@ -53,7 +58,7 @@ class eeInteractor {
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
                                        const PolarSite& site2) const;
 
-  double _expdamping = 0.0;
+  double _expdamping = 0.39;  // dimensionless
 };
 
 }  // namespace xtp

@@ -47,7 +47,17 @@ class PolarRegion : public MMRegion<PolarSegment> {
   void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
+  std::pair<bool, double> DipolesConverged() const;
+  void ResetFields();
+  void CalcInducedDipoles();
+  double StaticInteraction();
+  double PolarInteraction();
+
+  std::vector<double> _E_hist;
+  std::vector<double> _D_hist;
+
   double _deltaE = 1e-5;
+  double _deltaD = 1e-5;
   int _max_iter = 100;
   double _exp_damp = 0.39;
   bool _induce_intra_mol = true;
