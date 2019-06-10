@@ -24,13 +24,11 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/qmpackagefactory.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -198,34 +196,10 @@ bool DFTEngine::Evaluate() {
                                _dftbasis.AOBasisSize());
   }
 
-  Eigen::MatrixXd H0 = _dftAOkinetic.Matrix() + _dftAOESP.getNuclearpotential();
-  XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << " Constructed independent particle hamiltonian "
-      << flush;
-  double E_nucnuc = NuclearRepulsion();
-  if (_with_ecp) {
-    H0 += _dftAOECP.Matrix();
-  }
-  if (_addexternalsites) {
-    H0 += _dftAOESP.getExternalpotential();
-    H0 += _dftAODipole_Potential.getExternalpotential();
-    H0 += _dftAOQuadrupole_Potential.getExternalpotential();
-    double estat = ExternalRepulsion();
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " E_electrostatic " << estat << flush;
-    E_nucnuc += estat;
-  }
-
-  if (_integrate_ext_density) {
-    Orbitals extdensity;
-    extdensity.ReadFromCpt(_orbfilename);
-    Mat_p_Energy extdensity_result = IntegrateExternalDensity(extdensity);
-    E_nucnuc += extdensity_result.energy();
-    H0 += extdensity_result.matrix();
-  }
+  Mat_p_Energy H0 = SetupH0();
 
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << " Nuclear Repulsion Energy is " << E_nucnuc << flush;
+      << TimeStamp() << " Nuclear Repulsion Energy is " << H0.energy() << flush;
   Eigen::MatrixXd Dmat;
   if (_with_guess) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -237,7 +211,7 @@ bool DFTEngine::Evaluate() {
         << TimeStamp() << " Setup Initial Guess using: " << _initial_guess
         << flush;
     if (_initial_guess == "independent") {
-      _conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H0);
+      _conv_accelerator.SolveFockmatrix(MOEnergies, MOCoeff, H0.matrix());
       Dmat = _conv_accelerator.DensityMatrix(MOCoeff, MOEnergies);
 
     } else if (_initial_guess == "atom") {
@@ -253,7 +227,7 @@ bool DFTEngine::Evaluate() {
         XTP_LOG(logDEBUG, *_pLog)
             << TimeStamp() << " Filled DFT Vxc matrix " << flush;
       }
-      Eigen::MatrixXd H = H0 + ERIs.matrix() + e_vxc.matrix();
+      Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
       if (_ScaHFX > 0) {
         Mat_p_Energy EXXs = CalcEXXs(MOCoeff, Dmat);
         H -= 0.5 * _ScaHFX * EXXs.matrix();
@@ -292,8 +266,8 @@ bool DFTEngine::Evaluate() {
           << TimeStamp() << " Filled DFT Vxc matrix " << flush;
     }
     Mat_p_Energy ERIs = CalculateERIs(Dmat);
-    Eigen::MatrixXd H = H0 + ERIs.matrix() + e_vxc.matrix();
-    double Eone = Dmat.cwiseProduct(H0).sum();
+    Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
+    double Eone = Dmat.cwiseProduct(H0.matrix()).sum();
     double Etwo = 0.5 * ERIs.energy() + e_vxc.energy();
     double exx = 0.0;
     if (_ScaHFX > 0) {
@@ -304,7 +278,7 @@ bool DFTEngine::Evaluate() {
       exx = -_ScaHFX / 4 * EXXs.energy();
     }
     Etwo += exx;
-    double totenergy = Eone + E_nucnuc + Etwo;
+    double totenergy = Eone + H0.energy() + Etwo;
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Single particle energy "
                               << std::setprecision(12) << Eone << flush;
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Two particle energy "
@@ -350,39 +324,35 @@ bool DFTEngine::Evaluate() {
   return true;
 }
 
-void DFTEngine::SetupInvariantMatrices() {
+Mat_p_Energy DFTEngine::SetupH0() const {
 
-  _dftAOoverlap.Fill(_dftbasis);
+  AOKinetic dftAOkinetic;
 
-  XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << " Filled DFT Overlap matrix." << flush;
-
-  _dftAOkinetic.Fill(_dftbasis);
+  dftAOkinetic.Fill(_dftbasis);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Filled DFT Kinetic energy matrix ." << flush;
 
-  _dftAOESP.Fillnucpotential(_dftbasis, _orbitals.QMAtoms());
+  AOESP dftAOESP;
+  dftAOESP.Fillnucpotential(_dftbasis, _orbitals.QMAtoms());
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Filled DFT nuclear potential matrix." << flush;
 
-  if (_addexternalsites) {
-    _dftAOESP.Fillextpotential(_dftbasis, *_externalsites);
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Filled DFT external pointcharge potential matrix"
-        << flush;
+  Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Constructed independent particle hamiltonian "
+      << flush;
+  double E0 = NuclearRepulsion();
 
-    _dftAODipole_Potential.Fillextpotential(_dftbasis, *_externalsites);
-    if (_dftAODipole_Potential.Dimension() > 0) {
-      XTP_LOG(logDEBUG, *_pLog)
-          << TimeStamp() << " Filled DFT external dipole potential matrix"
-          << flush;
-    }
-    _dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, *_externalsites);
-    if (_dftAOQuadrupole_Potential.Dimension()) {
-      XTP_LOG(logDEBUG, *_pLog)
-          << TimeStamp() << " Filled DFT external quadrupole potential matrix."
-          << flush;
-    }
+  if (_with_ecp) {
+    AOECP dftAOECP;
+    dftAOECP.setECP(&_ecp);
+    dftAOECP.Fill(_dftbasis);
+    H0 += dftAOECP.Matrix();
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Filled DFT ECP matrix" << flush;
+  }
+
+  if (_addexternalsites) {
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " External sites" << flush;
     XTP_LOG(logDEBUG, *_pLog)
         << " Name      Coordinates[a0]     charge[e]         dipole[e*a0]    "
@@ -413,14 +383,31 @@ void DFTEngine::SetupInvariantMatrices() {
       }
       XTP_LOG(logDEBUG, *_pLog) << output << flush;
     }
+
+    Mat_p_Energy ext_multipoles = IntegrateExternalMultipoles(*_externalsites);
+    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " E_electrostatic "
+                              << ext_multipoles.energy() << flush;
+    E0 += ext_multipoles.energy();
+    H0 += ext_multipoles.matrix();
   }
 
-  if (_with_ecp) {
-    _dftAOECP.setECP(&_ecp);
-    _dftAOECP.Fill(_dftbasis);
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Filled DFT ECP matrix" << flush;
+  if (_integrate_ext_density) {
+    Orbitals extdensity;
+    extdensity.ReadFromCpt(_orbfilename);
+    Mat_p_Energy extdensity_result = IntegrateExternalDensity(extdensity);
+    E0 += extdensity_result.energy();
+    H0 += extdensity_result.matrix();
   }
+  return Mat_p_Energy(E0, H0);
+}
+
+void DFTEngine::SetupInvariantMatrices() {
+
+  _dftAOoverlap.Fill(_dftbasis);
+
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Filled DFT Overlap matrix." << flush;
+
   _conv_opt.numberofelectrons = _numofelectrons;
   _conv_accelerator.Configure(_conv_opt);
   _conv_accelerator.setLogger(_pLog);
@@ -877,22 +864,6 @@ double DFTEngine::NuclearRepulsion() const {
   return E_nucnuc;
 }
 
-double DFTEngine::ExternalRepulsion() const {
-
-  if (_externalsites->size() == 0) {
-    return 0;
-  }
-
-  double E_ext = 0;
-  /*for (const QMAtom& atom:_orbitals.QMAtoms()){
-      StaticSite nucleus=StaticSite(atom,atom.getNuccharge());
-      for (const std::unique_ptr<StaticSite>&  site : *_externalsites) {
-              ;
-      }
-  }*/
-  return E_ext;
-}
-
 string DFTEngine::ReturnSmallGrid(const string& largegrid) {
   string smallgrid;
 
@@ -979,6 +950,54 @@ Eigen::MatrixXd DFTEngine::SphericalAverageShells(
     }
   }
   return avdmat;
+}
+
+double DFTEngine::ExternalRepulsion(
+    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+
+  if (multipoles.size() == 0) {
+    return 0;
+  }
+
+  double E_ext = 0;
+  for (const QMAtom& atom : _orbitals.QMAtoms()) {
+    StaticSite nucleus = StaticSite(atom, atom.getNuccharge());
+    for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
+      site->getId();
+    }
+  }
+  return E_ext;
+}
+
+Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
+    const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
+
+  Mat_p_Energy result(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
+  AOESP dftAOESP;
+
+  dftAOESP.Fillextpotential(_dftbasis, multipoles);
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Filled DFT external pointcharge potential matrix"
+      << flush;
+  result.matrix() = dftAOESP.Matrix();
+  AODipole_Potential dftAODipole_Potential;
+  dftAODipole_Potential.Fillextpotential(_dftbasis, multipoles);
+  if (dftAODipole_Potential.Dimension() > 0) {
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Filled DFT external dipole potential matrix"
+        << flush;
+  }
+  result.matrix() += dftAODipole_Potential.Matrix();
+  AOQuadrupole_Potential dftAOQuadrupole_Potential;
+  dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, multipoles);
+  if (dftAOQuadrupole_Potential.Dimension()) {
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Filled DFT external quadrupole potential matrix."
+        << flush;
+  }
+  result.matrix() += dftAOQuadrupole_Potential.Matrix();
+  result.energy() = ExternalRepulsion(multipoles);
+  return result;
 }
 
 Mat_p_Energy DFTEngine::IntegrateExternalDensity(

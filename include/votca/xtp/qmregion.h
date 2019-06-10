@@ -19,13 +19,16 @@
 #include <votca/xtp/region.h>
 
 #include "orbitals.h"
+#include "statefilter.h"
+#include <votca/xtp/qmpackage.h>
+#include <votca/xtp/qmpackagefactory.h>
 
 #pragma once
 #ifndef VOTCA_XTP_QMREGION_H
 #define VOTCA_XTP_QMREGION_H
 
 /**
- * \brief base class to derive regions from
+ * \brief defines a qm region and runs dft and gwbse calculations
  *
  *
  *
@@ -39,7 +42,9 @@ class StaticRegion;
 class QMRegion : public Region {
 
  public:
-  QMRegion(int id, Logger& log) : Region(id, log){};
+  QMRegion(int id, Logger& log) : Region(id, log) {
+    QMPackageFactory::RegisterAll();
+  };
   ~QMRegion(){};
 
   void Initialize(const tools::Property& prop);
@@ -48,12 +53,12 @@ class QMRegion : public Region {
 
   void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
-  void ApplyInfluenceOfOtherRegions(
-      const std::vector<std::unique_ptr<Region> >& regions);
-
   void WriteToCpt(CheckpointWriter& w) const;
 
   void ReadFromCpt(CheckpointReader& r);
+
+  template <class T>
+  void ApplyQMFieldToClassicSegments(std::vector<T>& segments) const;
 
   int size() const { return _size; }
 
@@ -79,6 +84,24 @@ class QMRegion : public Region {
  private:
   int _size = 0;
   Orbitals _orb;
+
+  std::unique_ptr<QMPackage> _qmpackage = nullptr;
+
+  std::string _grid_accuracy_for_ext_interaction = "medium";
+
+  hist<double> _E_hist;
+  hist<Eigen::MatrixXd> _Dmat_hist;
+
+  // convergence options
+  double _DeltaD = 1e-5;
+  double _DeltaE = 1e-5;
+
+  bool _do_gwbse = false;
+
+  tools::Property _dftoptions;
+  tools::Property _gwbseoptions;
+
+  Statefilter _filter;
 };
 
 }  // namespace xtp

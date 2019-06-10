@@ -39,30 +39,23 @@ namespace xtp {
 class Statefilter {
 
  public:
-  Statefilter()
-      : _use_oscfilter(false),
-        _use_overlapfilter(false),
-        _use_localisationfilter(false),
-        _use_dQfilter(false) {
-    ;
-  }
   void Initialize(tools::Property& options);
   void setLogger(Logger* log) { _log = log; }
   void setInitialState(const QMState& state) { _statehist.push_back(state); }
   void PrintInfo() const;
-  QMState CalcStateAndUpdate(Orbitals& orbitals);
-  QMState CalcState(Orbitals& orbitals) const;
+  QMState CalcStateAndUpdate(const Orbitals& orbitals);
+  QMState CalcState(const Orbitals& orbitals) const;
 
  private:
   std::vector<int> OscFilter(const Orbitals& orbitals) const;
   std::vector<int> LocFilter(const Orbitals& orbitals) const;
   std::vector<int> DeltaQFilter(const Orbitals& orbitals) const;
-  std::vector<int> OverlapFilter(Orbitals& orbitals) const;
+  std::vector<int> OverlapFilter(const Orbitals& orbitals) const;
 
-  Eigen::VectorXd CalculateOverlap(Orbitals& orbitals) const;
+  Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
 
-  void UpdateLastCoeff(Orbitals& orbitals);
-  Eigen::MatrixXd CalcOrthoCoeffs(Orbitals& orbitals) const;
+  void UpdateLastCoeff(const Orbitals& orbitals);
+  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orbitals) const;
 
   std::vector<int> CollapseResults(
       std::vector<std::vector<int> >& results) const;
@@ -78,20 +71,20 @@ class Statefilter {
                                        // want to introduce more function
                                        // arguments
 
-  bool _use_oscfilter;
+  bool _use_oscfilter = false;
   double _oscthreshold;
 
-  bool _use_overlapfilter;
+  bool _use_overlapfilter = false;
   double _overlapthreshold;
 
-  bool _use_localisationfilter;
+  bool _use_localisationfilter = false;
 
   mutable std::vector<QMFragment<BSE_Population> >
       _fragment_loc;  // contain value and definition but between iterations it
                       // does not change so mutalbe now
   double _loc_threshold;
 
-  bool _use_dQfilter;
+  bool _use_dQfilter = false;
   mutable std::vector<QMFragment<BSE_Population> > _fragment_dQ;  // contain
                                                                   // value and
                                                                   // definition

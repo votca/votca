@@ -16,7 +16,12 @@
  */
 
 #include "dftgwbse.h"
+#include <votca/tools/constants.h>
+#include <votca/xtp/geometry_optimization.h>
 #include <votca/xtp/gwbseengine.h>
+#include <votca/xtp/qmpackagefactory.h>
+#include <votca/xtp/segment.h>
+#include <votca/xtp/staticregion.h>
 
 using namespace std;
 
@@ -59,7 +64,7 @@ void DftGwBse::Initialize(tools::Property& options) {
 
   // options for dft package
   string _package_xml = options.get(key + ".dftpackage").as<string>();
-  load_property_from_xml(_package_options, _package_xml.c_str());
+  load_property_from_xml(_package_options, _package_xml);
   _package = _package_options.get("package.name").as<string>();
 
   // MOLECULE properties

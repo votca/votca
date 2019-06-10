@@ -131,7 +131,7 @@ std::vector<int> Statefilter::CollapseResults(
   }
 }
 
-QMState Statefilter::CalcState(Orbitals& orbitals) const {
+QMState Statefilter::CalcState(const Orbitals& orbitals) const {
 
   if (_use_dQfilter + _use_oscfilter + _use_localisationfilter +
           _use_oscfilter <
@@ -167,7 +167,7 @@ QMState Statefilter::CalcState(Orbitals& orbitals) const {
   return state;
 }
 
-QMState Statefilter::CalcStateAndUpdate(Orbitals& orbitals) {
+QMState Statefilter::CalcStateAndUpdate(const Orbitals& orbitals) {
   QMState result = CalcState(orbitals);
   _statehist.push_back(result);
   if (_use_overlapfilter) {
@@ -214,7 +214,7 @@ std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals) const {
   return indexes;
 }
 
-Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals& orbitals) const {
+Eigen::VectorXd Statefilter::CalculateOverlap(const Orbitals& orbitals) const {
   BasisSet dftbs;
   dftbs.LoadBasisSet(orbitals.getDFTbasisName());
   AOBasis dftbasis;
@@ -227,7 +227,7 @@ Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals& orbitals) const {
   return overlap;
 }
 
-Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals) const {
+Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(const Orbitals& orbitals) const {
   QMStateType type = _statehist[0].Type();
   Eigen::MatrixXd ortho_coeffs;
   if (type.isSingleParticleState()) {
@@ -244,7 +244,7 @@ Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals) const {
   return ortho_coeffs;
 }
 
-void Statefilter::UpdateLastCoeff(Orbitals& orbitals) {
+void Statefilter::UpdateLastCoeff(const Orbitals& orbitals) {
   Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
   int offset = 0;
   if (_statehist[0].Type() == QMStateType::DQPstate) {
@@ -253,7 +253,7 @@ void Statefilter::UpdateLastCoeff(Orbitals& orbitals) {
   _laststatecoeff = ortho_coeffs.col(_statehist.back().Index() - offset);
 }
 
-std::vector<int> Statefilter::OverlapFilter(Orbitals& orbitals) const {
+std::vector<int> Statefilter::OverlapFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
   if (_statehist.size() <= 1) {
     indexes = std::vector<int>{_statehist[0].Index()};

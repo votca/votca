@@ -26,8 +26,7 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/staticregion.h>
-
+#include <votca/xtp/staticsite.h>
 namespace votca {
 namespace xtp {
 

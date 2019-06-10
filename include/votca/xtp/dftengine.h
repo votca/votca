@@ -70,15 +70,20 @@ class DFTEngine {
                         const Eigen::MatrixXd& DMAT) const;
   void ConfigOrbfile();
   void SetupInvariantMatrices();
+
+  Mat_p_Energy SetupH0() const;
+  Mat_p_Energy IntegrateExternalMultipoles(
+      const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
+  Mat_p_Energy IntegrateExternalDensity(const Orbitals& extdensity) const;
+
   Eigen::MatrixXd AtomicGuess() const;
   std::string ReturnSmallGrid(const std::string& largegrid);
-
-  Mat_p_Energy IntegrateExternalDensity(const Orbitals& extdensity) const;
 
   Eigen::MatrixXd RunAtomicDFT_unrestricted(const QMAtom& uniqueAtom) const;
 
   double NuclearRepulsion() const;
-  double ExternalRepulsion() const;
+  double ExternalRepulsion(
+      const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Eigen::MatrixXd SphericalAverageShells(const Eigen::MatrixXd& dmat,
                                          const AOBasis& dftbasis) const;
   Logger* _pLog;
@@ -114,12 +119,6 @@ class DFTEngine {
 
   // AO Matrices
   AOOverlap _dftAOoverlap;
-  AOKinetic _dftAOkinetic;
-  AOESP _dftAOESP;
-  AOECP _dftAOECP;
-  AODipole_Potential _dftAODipole_Potential;
-  AOQuadrupole_Potential _dftAOQuadrupole_Potential;
-  AOPlanewave _dftAOplanewave;
 
   bool _with_guess;
   std::string _initial_guess;

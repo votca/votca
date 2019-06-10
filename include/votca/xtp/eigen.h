@@ -41,6 +41,8 @@ class Mat_p_Energy {
 
   int rows() const { return _matrix.rows(); }
   int cols() const { return _matrix.cols(); }
+  Eigen::MatrixXd& matrix() { return _matrix; }
+  double& energy() { return _energy; }
   const Eigen::MatrixXd& matrix() const { return _matrix; }
   double energy() const { return _energy; }
 

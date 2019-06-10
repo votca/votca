@@ -45,13 +45,9 @@ void PolarRegion::Initialize(const tools::Property& prop) {
 }
 
 bool PolarRegion::Converged() const {
-  if (_E_hist.size() < 2) {
-    return false;
-  }
 
-  double Echange = std::abs(
-      _E_hist.back() - _E_hist.rbegin()[1]);  // last and second last element
-  double Dchange = std::abs(_D_hist.back() - _D_hist.rbegin()[1]);
+  double Echange = std::abs(_E_hist.getDiff());
+  double Dchange = std::abs(_D_hist.getDiff());
   std::string info = "not converged";
   bool converged = false;
   if (Dchange < _deltaD && Echange < _deltaE) {
@@ -203,7 +199,9 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   return;
 }
 
-void PolarRegion::InteractwithQMRegion(const QMRegion& region) { return; }
+void PolarRegion::InteractwithQMRegion(const QMRegion& region) {
+  region.ApplyQMFieldToClassicSegments(_segments);
+}
 void PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
 #pragma omp parallel for
   for (int i = 0; i < int(_segments.size()); i++) {

@@ -53,8 +53,8 @@ class PolarRegion : public MMRegion<PolarSegment> {
   double StaticInteraction();
   double PolarInteraction();
 
-  std::vector<double> _E_hist;
-  std::vector<double> _D_hist;
+  hist<double> _E_hist;
+  hist<double> _D_hist;
 
   double _deltaE = 1e-5;
   double _deltaD = 1e-5;

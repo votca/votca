@@ -22,15 +22,8 @@
 #define _VOTCA_XTP_DFTGWBSE_H
 
 #include <stdio.h>
-
-#include <votca/tools/constants.h>
-#include <votca/xtp/atom.h>
-#include <votca/xtp/geometry_optimization.h>
-#include <votca/xtp/gwbse.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/qmpackagefactory.h>
 #include <votca/xtp/qmtool.h>
-#include <votca/xtp/segment.h>
 
 namespace votca {
 namespace xtp {

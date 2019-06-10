@@ -33,9 +33,9 @@ void Region::ApplyInfluenceOfOtherRegions(
       continue;
     }
 
-    QMRegion QMdummy = QMRegion(0, _log);
-    StaticRegion Staticdummy = StaticRegion(0, _log);
-    PolarRegion Polardummy = PolarRegion(0, _log);
+    QMRegion QMdummy(0, _log);
+    StaticRegion Staticdummy(0, _log);
+    PolarRegion Polardummy(0, _log);
     XTP_LOG_SAVE(logINFO, _log)
         << "Evaluating interaction between:" << this->identify() << " "
         << this->getId() << "and " << reg->identify() << " " << reg->getId()

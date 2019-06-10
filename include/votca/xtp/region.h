@@ -70,6 +70,36 @@ class Region {
   }
 
  protected:
+  template <class T>
+  class hist {
+   public:
+    T getDiff() const {
+      if (_filled > 1) {
+        return _metric - _metric_old;
+      } else if (_filled == 1) {
+        return _metric;
+      } else {
+        throw std::runtime_error("hist is not filled yet");
+      }
+    }
+
+    void push_back(const T& metric) {
+      _metric_old = std::move(_metric);
+      _metric = metric;
+      _filled++;
+    }
+    void push_back(T&& metric) {
+      _metric_old = std::move(_metric);
+      _metric = std::move(metric);
+      _filled++;
+    }
+
+   private:
+    int _filled = 0;
+    T _metric;
+    T _metric_old;
+  };
+
   void ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);
 

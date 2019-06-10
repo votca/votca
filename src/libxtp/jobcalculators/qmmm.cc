@@ -60,6 +60,21 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
     jobtop.WriteToPdb(pdb_filename);
   }
 
+  int no_static_regions = 0;
+  for (std::unique_ptr<Region>& region : jobtop) {
+    no_static_regions += region->Converged();
+  }
+  bool no_top_scf = false;
+  if (jobtop.size() - no_static_regions < 2) {
+    XTP_LOG_SAVE(logINFO, pLog)
+        << "Only " << jobtop.size() - no_static_regions
+        << " scf regions are used. The remaining regions are static. So no "
+           "inter regions scf is required. "
+        << std::flush;
+    no_top_scf = true;
+    _max_iterations = 1;
+  }
+
   for (int iteration = 0; iteration < _max_iterations; iteration++) {
 
     XTP_LOG_SAVE(logINFO, pLog) << "Iteration " << iteration + 1 << " of "
@@ -81,8 +96,12 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
     for (std::unique_ptr<Region>& region : jobtop) {
       converged_regions.push_back(region->Converged());
     }
-    if (std::all_of(converged_regions.begin(), converged_regions.end(),
-                    [](bool i) { return i; })) {
+
+    bool all_regions_converged =
+        std::all_of(converged_regions.begin(), converged_regions.end(),
+                    [](bool i) { return i; });
+
+    if (all_regions_converged || no_top_scf) {
       XTP_LOG_SAVE(logINFO, pLog) << "Job converged after " << iteration + 1
                                   << " iterations." << std::flush;
       break;
