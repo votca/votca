@@ -17,14 +17,13 @@
  *
  */
 
+#include <numeric>
 #include <votca/xtp/checkpoint.h>
 #include <votca/xtp/jobtopology.h>
 #include <votca/xtp/polarregion.h>
 #include <votca/xtp/qmregion.h>
 #include <votca/xtp/segmentmapper.h>
 #include <votca/xtp/staticregion.h>
-
-#include <numeric>
 
 namespace votca {
 namespace xtp {
@@ -45,7 +44,7 @@ void JobTopology::BuildRegions(const Topology& top,
   CheckEnumerationOfRegions(regions_def);
   SortRegionsDefbyId(regions_def);
 
-  std::vector<std::vector<int> > region_seg_ids =
+  std::vector<std::vector<SegId> > region_seg_ids =
       PartitionRegions(regions_def, top);
 
   // around this point the whole jobtopology will be centered
@@ -100,33 +99,27 @@ void JobTopology::ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
 
 void JobTopology::CreateRegions(
     const tools::Property& options, const Topology& top,
-    const std::vector<std::vector<int> >& region_seg_ids) {
+    const std::vector<std::vector<SegId> >& region_seg_ids) {
   std::string mapfile =
       options.ifExistsReturnElseThrowRuntimeError<std::string>("mapfile");
   std::vector<const tools::Property*> regions_def = options.Select("region");
   // around this point the whole jobtopology will be centered for removing pbc
-  Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0]).getPos();
+  Eigen::Vector3d center = top.getSegment(region_seg_ids[0][0].Id()).getPos();
 
   for (const tools::Property* region_def : regions_def) {
     int id = region_def->ifExistsReturnElseThrowRuntimeError<int>("id");
-    const std::vector<int>& seg_ids = region_seg_ids[id];
+    const std::vector<SegId>& seg_ids = region_seg_ids[id];
     std::string type =
         region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
-    std::string qmstate_string = "n";
-    if (region_def->exists("geometry")) {
-      qmstate_string =
-          GetInputFromXMLorJob<std::string>(region_def, "geometry");
-    }
-    QMState geometry = QMState(qmstate_string);
     std::unique_ptr<Region> region;
     if (type == "gwbse" || type == "dft") {
       std::unique_ptr<QMRegion> qmregion =
           std::unique_ptr<QMRegion>(new QMRegion(id, _log));
       QMMapper qmmapper(_log);
       qmmapper.LoadMappingFile(mapfile);
-      for (int seg_index : seg_ids) {
-        const Segment& segment = top.getSegment(seg_index);
-        QMMolecule mol = qmmapper.map(segment, geometry);
+      for (const SegId& seg_index : seg_ids) {
+        const Segment& segment = top.getSegment(seg_index.Id());
+        QMMolecule mol = qmmapper.map(segment, seg_index);
         mol.setName("qm" + std::to_string(id));
         ShiftPBC(top, center, mol);
         qmregion->push_back(mol);
@@ -137,9 +130,9 @@ void JobTopology::CreateRegions(
           std::unique_ptr<PolarRegion>(new PolarRegion(id, _log));
       PolarMapper polmap(_log);
       polmap.LoadMappingFile(mapfile);
-      for (int seg_index : seg_ids) {
-        const Segment& segment = top.getSegment(seg_index);
-        PolarSegment mol = polmap.map(segment, geometry);
+      for (const SegId& seg_index : seg_ids) {
+        const Segment& segment = top.getSegment(seg_index.Id());
+        PolarSegment mol = polmap.map(segment, seg_index);
         ShiftPBC(top, center, mol);
         mol.setName("mm" + std::to_string(id));
         polarregion->push_back(mol);
@@ -150,9 +143,9 @@ void JobTopology::CreateRegions(
           std::unique_ptr<StaticRegion>(new StaticRegion(id, _log));
       StaticMapper staticmap(_log);
       staticmap.LoadMappingFile(mapfile);
-      for (int seg_index : seg_ids) {
-        const Segment& segment = top.getSegment(seg_index);
-        StaticSegment mol = staticmap.map(segment, geometry);
+      for (const SegId& seg_index : seg_ids) {
+        const Segment& segment = top.getSegment(seg_index.Id());
+        StaticSegment mol = staticmap.map(segment, seg_index);
         mol.setName("mm" + std::to_string(id));
         ShiftPBC(top, center, mol);
         staticregion->push_back(mol);
@@ -178,28 +171,33 @@ void JobTopology::WriteToPdb(std::string filename) const {
   writer.Close();
 }
 
-std::vector<std::vector<int> > JobTopology::PartitionRegions(
+std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
     const std::vector<const tools::Property*>& regions_def,
     const Topology& top) const {
 
-  std::vector<std::vector<int> > segids_per_region;
+  std::vector<std::vector<SegId> > segids_per_region;
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
   for (const tools::Property* region_def : regions_def) {
-    std::vector<int> seg_ids;
+
     if (!region_def->exists("segments") && !region_def->exists("cutoff")) {
       throw std::runtime_error(
           "Region definition needs either segments or a cutoff to find "
           "segments");
     }
-
+    std::vector<SegId> seg_ids;
     if (region_def->exists("segments")) {
-      seg_ids = GetInputFromXMLorJob<std::vector<int> >(region_def, "segments");
-      for (int seg_id : seg_ids) {
-        if (seg_id > int(top.Segments().size() - 1)) {
+      std::string seg_ids_string =
+          GetInputFromXMLorJob<std::string>(region_def, "segments");
+      tools::Tokenizer tok(seg_ids_string, " \n\t");
+      for (const std::string& seg_id_string : tok.ToVector()) {
+        seg_ids.push_back(SegId(seg_id_string));
+      }
+      for (const SegId& seg_id : seg_ids) {
+        if (seg_id.Id() > int(top.Segments().size() - 1)) {
           throw std::runtime_error("Segment id is not in topology");
         }
-        processed_segments[seg_id] = true;
+        processed_segments[seg_id.Id()] = true;
       }
     }
     if (region_def->exists("cutoff")) {
@@ -207,6 +205,9 @@ std::vector<std::vector<int> > JobTopology::PartitionRegions(
                       region_def->ifExistsReturnElseThrowRuntimeError<double>(
                           "cutoff.radius");
 
+      std::string seg_geometry =
+          region_def->ifExistsReturnElseReturnDefault<std::string>(
+              "cutoff.geometry", "n");
       double min = top.getBox().diagonal().minCoeff();
       if (cutoff > 0.5 * min) {
         throw std::runtime_error(
@@ -215,7 +216,7 @@ std::vector<std::vector<int> > JobTopology::PartitionRegions(
              (tools::conv::bohr2nm * 0.5 * min))
                 .str());
       }
-      std::vector<int> center = seg_ids;
+      std::vector<SegId> center = seg_ids;
       if (region_def->exists("cutoff.region")) {
         int id = region_def->get("cutoff.region").as<int>();
         if (id < int(segids_per_region.size())) {
@@ -225,15 +226,20 @@ std::vector<std::vector<int> > JobTopology::PartitionRegions(
                                    "' used for cutoff does not exist");
         }
       }
-      for (int id : center) {
-        const Segment& center_seg = top.getSegment(id);
+      if (center.empty()) {
+        throw std::runtime_error(
+            "Region needs either a segment or another region to which to apply "
+            "the cutoff");
+      }
+      for (const SegId& segid : center) {
+        const Segment& center_seg = top.getSegment(segid.Id());
         for (const Segment& otherseg : top.Segments()) {
           if (center_seg.getId() == otherseg.getId() ||
               processed_segments[otherseg.getId()]) {
             continue;
           }
           if (top.GetShortestDist(center_seg, otherseg) < cutoff) {
-            seg_ids.push_back(otherseg.getId());
+            seg_ids.push_back(SegId(otherseg.getId(), seg_geometry));
             processed_segments[otherseg.getId()] = true;
           }
         }

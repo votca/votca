@@ -25,6 +25,7 @@
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/qmmolecule.h>
+#include <votca/xtp/segid.h>
 #include <votca/xtp/topology.h>
 
 namespace votca {
@@ -36,9 +37,11 @@ class SegmentMapper {
 
   void LoadMappingFile(const std::string& mapfile);
 
+  AtomContainer map(const Segment& seg, const SegId& segid) const;
+
   AtomContainer map(const Segment& seg, QMState state) const;
 
-  AtomContainer map(const Segment& seg, std::string coordfilename) const;
+  AtomContainer map(const Segment& seg, const std::string& coordfilename) const;
 
  private:
   typedef typename std::iterator_traits<

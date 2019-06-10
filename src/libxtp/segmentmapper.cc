@@ -16,6 +16,7 @@
  *
  */
 
+#include <regex>
 #include <votca/xtp/segmentmapper.h>
 
 namespace votca {
@@ -25,6 +26,22 @@ template <class AtomContainer>
 SegmentMapper<AtomContainer>::SegmentMapper(Logger& log) : _log(log) {
   FillMap();
 };
+
+template <class AtomContainer>
+AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
+                                                const SegId& segid) const {
+  if (segid.hasFile()) {
+    std::string filename = segid.FileName();
+    filename = std::regex_replace(filename, std::regex("\\$SEGID"),
+                                  std::to_string(seg.getId()));
+    filename =
+        std::regex_replace(filename, std::regex("\\$SEGNAME"), seg.getName());
+    return map(seg, filename);
+  } else {
+    QMState state = segid.getQMState();
+    return map(seg, state);
+  }
+}
 
 template <class AtomContainer>
 template <typename T>
@@ -349,7 +366,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
 
 template <class AtomContainer>
 AtomContainer SegmentMapper<AtomContainer>::map(
-    const Segment& seg, std::string coordfilename) const {
+    const Segment& seg, const std::string& coordfilename) const {
   Seginfo seginfo = _segment_info.at(seg.getName());
 
   if (int(seginfo.mdatoms.size()) != seg.size()) {

@@ -135,6 +135,7 @@
       <itemPath>../../include/votca/xtp/rate_engine.h</itemPath>
       <itemPath>../../include/votca/xtp/region.h</itemPath>
       <itemPath>../../include/votca/xtp/rpa.h</itemPath>
+      <itemPath>../../include/votca/xtp/segid.h</itemPath>
       <itemPath>../../include/votca/xtp/segment.h</itemPath>
       <itemPath>../../include/votca/xtp/segmentmapper.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
@@ -4154,6 +4155,8 @@
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/segid.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segmentmapper.h"
@@ -5251,6 +5254,8 @@
       <item path="../../include/votca/xtp/region.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/segid.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
       </item>

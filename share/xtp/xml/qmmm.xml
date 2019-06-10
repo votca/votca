@@ -22,9 +22,8 @@
                 <id>2</id>
                 <type>polar</type>
                 <options>polar.xml</options>
-                <segments></segments>
                 <cutoff>
-                    <state>n</state>
+                    <geometry>n</geometry>
                     <radius>3</radius>
                     <region>0</region>
                 </cutoff>

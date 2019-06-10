@@ -32,7 +32,7 @@
 
 namespace votca {
 namespace xtp {
-
+class SegId;
 class JobTopology {
  public:
   JobTopology(Job& job, Logger& log) : _job(job), _log(log){};
@@ -65,12 +65,12 @@ class JobTopology {
   }
 
  private:
-  std::vector<std::vector<int> > PartitionRegions(
+  std::vector<std::vector<SegId> > PartitionRegions(
       const std::vector<const tools::Property*>& regions_def,
       const Topology& top) const;
 
   void CreateRegions(const tools::Property& options, const Topology& top,
-                     const std::vector<std::vector<int> >& region_seg_ids);
+                     const std::vector<std::vector<SegId> >& region_seg_ids);
 
   template <class T>
   T GetInputFromXMLorJob(const tools::Property* region_def,
