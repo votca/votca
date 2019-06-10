@@ -16,16 +16,17 @@
  * limitations under the License.
  *
  */
+
+#pragma once
+#ifndef VOTCA_XTP_QMREGION_H
+#define VOTCA_XTP_QMREGION_H
+
 #include <votca/xtp/region.h>
 
 #include "orbitals.h"
 #include "statefilter.h"
 #include <votca/xtp/qmpackage.h>
 #include <votca/xtp/qmpackagefactory.h>
-
-#pragma once
-#ifndef VOTCA_XTP_QMREGION_H
-#define VOTCA_XTP_QMREGION_H
 
 /**
  * \brief defines a qm region and runs dft and gwbse calculations

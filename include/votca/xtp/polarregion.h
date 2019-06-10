@@ -23,6 +23,14 @@
 
 #include <votca/xtp/mmregion.h>
 
+/**
+ * \brief defines a polar region and of interacting electrostatic and induction
+ * segments
+ *
+ *
+ *
+ */
+
 namespace votca {
 namespace xtp {
 class QMRegion;
