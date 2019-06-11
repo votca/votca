@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 project(votca-xtp)
 
 
@@ -33,9 +33,6 @@ include(CheckCXXCompilerFlag)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) #...without compiler extensions like gnu++11
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND CMAKE_VERSION VERSION_LESS "3.6.0")
-message(FATAL_ERROR "Using the intel compiler requires cmake 3.6 or higher")
-endif()
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -51,10 +48,8 @@ endif()
 ########################################################################
 
 find_package(LIBXC REQUIRED)
-include_directories(${LIBXC_INCLUDE_DIRS})
 
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
-include_directories(${HDF5_INCLUDE_DIRS})
 
 if (${HDF5_VERSION} GREATER 1.8)
   message(WARNING "HDF5 will be used such that it is compatible with version 1.8.")
@@ -71,9 +66,6 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
-#for votca_config.h
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 ########################################################################
 #Find external packages
 ########################################################################
@@ -82,13 +74,8 @@ if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(Boost 1.57.0 REQUIRED COMPONENTS program_options filesystem system timer)
-include_directories(${Boost_INCLUDE_DIRS})
-set (BOOST_CFLAGS_PKG "-I${Boost_INCLUDE_DIRS}")
-set(BOOST_LIBS_PKG "-L${Boost_LIBRARY_DIRS}")
-foreach(_blib ${Boost_LIBRARIES})
-  string(REGEX REPLACE ".*/lib([^/]*)\\.[^.]*$" "-l\\1" _blib ${_blib})
-  set(BOOST_LIBS_PKG "${BOOST_LIBS_PKG} ${_blib}")
-endforeach(_blib)
+find_package(Eigen3 3.3.0 REQUIRED NO_MODULE)
+message(STATUS "Found Eigen3: ${Eigen3_DIR}")
 
 option(BUILD_MANPAGES "Build manpages (might lead to problem on system without rpath" OFF)
 #define this target here, so that individual man pages can append to it.
@@ -96,17 +83,17 @@ if(NOT TARGET manpages)
   add_custom_target(manpages ALL)
 endif()
 
-find_package(VOTCA_TOOLS REQUIRED)
-include_directories(${VOTCA_TOOLS_INCLUDE_DIRS})
-find_package(VOTCA_CSG REQUIRED)
-include_directories(${VOTCA_CSG_INCLUDE_DIRS})
+find_package(VOTCA_TOOLS REQUIRED NO_MODULE)
+message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
+find_package(VOTCA_CSG REQUIRED NO_MODULE)
+message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 find_package(VOTCA_CTP REQUIRED)
-include_directories(${VOTCA_CTP_INCLUDE_DIRS})
 
-# Find Cud libraries if USE_GPU is true
+# Find Cuda libraries if USE_GPU is true
 if(USE_GPU)
   find_package(CUDA REQUIRED)
 endif(USE_GPU)
+
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
