@@ -630,7 +630,7 @@ double IQM::GetDFTCouplingFromProp(tools::Property& dftprop, int stateA,
     int state1 = state->getAttribute<int>("levelA");
     int state2 = state->getAttribute<int>("levelB");
     if (state1 == stateA && state2 == stateB) {
-      J = state->getAttribute<double>("j");
+      J = state->getAttribute<double>("j") * tools::conv::ev2hrt;
       found = true;
       break;
     }
@@ -654,7 +654,7 @@ double IQM::GetBSECouplingFromProp(tools::Property& bseprop,
     QMState state2;
     state2.FromString(state->getAttribute<std::string>("stateB"));
     if (state1 == stateA && state2 == stateB) {
-      J = state->getAttribute<double>(algorithm);
+      J = state->getAttribute<double>(algorithm) * tools::conv::ev2hrt;
       found = true;
       break;
     }

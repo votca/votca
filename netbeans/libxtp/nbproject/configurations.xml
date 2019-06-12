@@ -18,6 +18,8 @@
         <itemPath>../../src/libxtp/calculators/mapchecker.h</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/neighborlist.h</itemPath>
+        <itemPath>../../src/libxtp/calculators/vaverage.cc</itemPath>
+        <itemPath>../../src/libxtp/calculators/vaverage.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="JobCalculators" projectFiles="true">
         <itemPath>../../src/libxtp/jobcalculators/eqm.cc</itemPath>
@@ -38,6 +40,8 @@
         <itemPath>../../src/libxtp/tools/gencube.cc</itemPath>
         <itemPath>../../src/libxtp/tools/gencube.h</itemPath>
         <itemPath>../../src/libxtp/tools/log2mps.h</itemPath>
+        <itemPath>../../src/libxtp/tools/molpol.cc</itemPath>
+        <itemPath>../../src/libxtp/tools/molpol.h</itemPath>
         <itemPath>../../src/libxtp/tools/partialcharges.h</itemPath>
         <itemPath>../../src/libxtp/tools/qmsandbox.h</itemPath>
         <itemPath>../../src/libxtp/tools/spectrum.cc</itemPath>
@@ -4482,6 +4486,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/vaverage.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/classicalsegment.cc"
@@ -4780,6 +4794,10 @@
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"
@@ -5582,6 +5600,16 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/calculators/vaverage.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/calculators/vaverage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/checkpoint.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/classicalsegment.cc"
@@ -5880,6 +5908,10 @@
       <item path="../../src/libxtp/tools/gencube.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/log2mps.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/tools/molpol.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/tools/partialcharges.h"
             ex="false"

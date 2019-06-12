@@ -131,7 +131,7 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   pair_summary.setAttribute("typeA", nameA);
   pair_summary.setAttribute("typeB", nameB);
   Property& coupling_summary = pair_summary.add("Coupling", "");
-  coupling_summary.setAttribute("jABstatic", JAB);
+  coupling_summary.setAttribute("jABstatic", JAB * tools::conv::hrt2ev);
 
   jres.setOutput(job_summary);
   jres.setStatus(Job::COMPLETE);
@@ -277,7 +277,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
       for (Property* coup : pCoupling) {
         jAB = coup->getAttribute<double>("jABstatic");
       }
-      Jeff2 = jAB * jAB;
+      Jeff2 = jAB * jAB * tools::conv::ev2hrt * tools::conv::ev2hrt;
       pair->setJeff2(Jeff2, QMStateType::Singlet);
     }
   }

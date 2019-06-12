@@ -457,17 +457,6 @@ class Orbitals {
   Eigen::VectorXd _BSE_triplet_energies;
   Eigen::MatrixXd _BSE_triplet_coefficients;
   Eigen::MatrixXd _BSE_triplet_coefficients_AR;
-
-  std::vector<Eigen::VectorXd> _DqS_frag;  // fragment charge changes in exciton
-
-  std::vector<Eigen::VectorXd> _DqT_frag;
-
-  Eigen::VectorXd _GSq_frag;  // ground state effective fragment charges
-
-  std::vector<Eigen::VectorXd> _popE_s;
-  std::vector<Eigen::VectorXd> _popE_t;
-  std::vector<Eigen::VectorXd> _popH_s;
-  std::vector<Eigen::VectorXd> _popH_t;
 };
 
 }  // namespace xtp

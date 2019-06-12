@@ -43,7 +43,9 @@ class KMCCalculator : public QMCalculator {
   QMStateType _carriertype;
 
   void LoadGraph(Topology& top);
-  virtual void RunVSSM(Topology& top){};
+  virtual void RunVSSM() = 0;
+
+  void ParseCommonOptions(tools::Property& options);
 
   double Promotetime(double cumulated_rate);
   void ResetForbiddenlist(std::vector<GNode*>& forbiddenid) const;
@@ -67,7 +69,10 @@ class KMCCalculator : public QMCalculator {
   std::string _injectionmethod;
   int _seed;
   int _numberofcharges;
-  Eigen::Vector3d _field;
+  Eigen::Vector3d _field = Eigen::Vector3d::Zero();
+  double _maxrealtime;
+  std::string _trajectoryfile;
+  std::string _occfile;
 
   double _temperature;
 };

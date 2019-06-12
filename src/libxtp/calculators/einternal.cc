@@ -86,14 +86,14 @@ void EInternal::ParseEnergies() {
       QMStateCarrierStorage<double> U_nX_nN;
       QMStateCarrierStorage<double> U_xN_xX;
       QMStateCarrierStorage<bool> has_state;
-
+      double eV2hrt = tools::conv::ev2hrt;
       if (segprop->exists("U_cC_nN_e") && segprop->exists("U_nC_nN_e") &&
           segprop->exists("U_cN_cC_e")) {
         QMStateType e(QMStateType::Electron);
 
-        U_xX_nN.setValue(segprop->get("U_cC_nN_e").as<double>(), e);
-        U_nX_nN.setValue(segprop->get("U_nC_nN_e").as<double>(), e);
-        U_xN_xX.setValue(segprop->get("U_cN_cC_e").as<double>(), e);
+        U_xX_nN.setValue(segprop->get("U_cC_nN_e").as<double>() * eV2hrt, e);
+        U_nX_nN.setValue(segprop->get("U_nC_nN_e").as<double>() * eV2hrt, e);
+        U_xN_xX.setValue(segprop->get("U_cN_cC_e").as<double>() * eV2hrt, e);
         has_state.setValue(true, e);
       }
 
@@ -101,26 +101,26 @@ void EInternal::ParseEnergies() {
           segprop->exists("U_cN_cC_h")) {
 
         QMStateType h(QMStateType::Hole);
-        U_xX_nN.setValue(segprop->get("U_cC_nN_h").as<double>(), h);
-        U_nX_nN.setValue(segprop->get("U_nC_nN_h").as<double>(), h);
-        U_xN_xX.setValue(segprop->get("U_cN_cC_h").as<double>(), h);
+        U_xX_nN.setValue(segprop->get("U_cC_nN_h").as<double>() * eV2hrt, h);
+        U_nX_nN.setValue(segprop->get("U_nC_nN_h").as<double>() * eV2hrt, h);
+        U_xN_xX.setValue(segprop->get("U_cN_cC_h").as<double>() * eV2hrt, h);
         has_state.setValue(true, h);
       }
 
       if (segprop->exists("U_xX_nN_s") && segprop->exists("U_nX_nN_s") &&
           segprop->exists("U_xN_xX_s")) {
         QMStateType s(QMStateType::Singlet);
-        U_xX_nN.setValue(segprop->get("U_xX_nN_s").as<double>(), s);
-        U_nX_nN.setValue(segprop->get("U_nX_nN_s").as<double>(), s);
-        U_xN_xX.setValue(segprop->get("U_xN_xX_s").as<double>(), s);
+        U_xX_nN.setValue(segprop->get("U_xX_nN_s").as<double>() * eV2hrt, s);
+        U_nX_nN.setValue(segprop->get("U_nX_nN_s").as<double>() * eV2hrt, s);
+        U_xN_xX.setValue(segprop->get("U_xN_xX_s").as<double>() * eV2hrt, s);
         has_state.setValue(true, s);
       }
       if (segprop->exists("U_xX_nN_t") && segprop->exists("U_nX_nN_t") &&
           segprop->exists("U_xN_xX_t")) {
         QMStateType t(QMStateType::Triplet);
-        U_xX_nN.setValue(segprop->get("U_xX_nN_t").as<double>(), t);
-        U_nX_nN.setValue(segprop->get("U_nX_nN_t").as<double>(), t);
-        U_xN_xX.setValue(segprop->get("U_xN_xX_t").as<double>(), t);
+        U_xX_nN.setValue(segprop->get("U_xX_nN_t").as<double>() * eV2hrt, t);
+        U_nX_nN.setValue(segprop->get("U_nX_nN_t").as<double>() * eV2hrt, t);
+        U_xN_xX.setValue(segprop->get("U_xN_xX_t").as<double>() * eV2hrt, t);
         has_state.setValue(true, t);
       }
       _seg_has_state[segName] = has_state;

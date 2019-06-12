@@ -402,6 +402,9 @@ double eeInteractor::InteractStatic(T1& seg1, T2& seg2) const {
   return energy;
 }
 
+template double eeInteractor::InteractStatic(const StaticSegment& seg1,
+                                             StaticSegment& seg2) const;
+
 template double eeInteractor::InteractStatic(StaticSegment& seg1,
                                              StaticSegment& seg2) const;
 template double eeInteractor::InteractStatic(const StaticSegment& seg1,

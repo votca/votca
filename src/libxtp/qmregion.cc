@@ -17,6 +17,7 @@
  *
  */
 
+#include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/numerical_integrations.h"
 #include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/gwbse.h>
@@ -139,6 +140,16 @@ void QMRegion::WritePDB(csg::PDBWriter& writer) const {
 }
 
 template <class T>
+void QMRegion::AddNucleiFields(std::vector<T>& segments,
+                               const StaticSegment& seg) const {
+  eeInteractor e;
+#pragma omp parallel for
+  for (int i = 0; i < int(segments.size()); ++i) {
+    e.InteractStatic(seg, segments[i]);
+  }
+}
+
+template <class T>
 void QMRegion::ApplyQMFieldToClassicSegments(std::vector<T>& segments) const {
 
   NumericalIntegration numint;
@@ -172,6 +183,12 @@ void QMRegion::ApplyQMFieldToClassicSegments(std::vector<T>& segments) const {
       site.getPotential() += numint.IntegratePotential(site.getPos());
     }
   }
+
+  StaticSegment seg(_orb.QMAtoms().getName(), _orb.QMAtoms().getId());
+  for (const QMAtom& atom : _orb.QMAtoms()) {
+    seg.push_back(StaticSite(atom, atom.getNuccharge()));
+  }
+  AddNucleiFields(segments, seg);
 }
 
 template void QMRegion::ApplyQMFieldToClassicSegments(

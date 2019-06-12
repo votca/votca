@@ -44,18 +44,15 @@ Mat_p_Energy ERIs::CalculateERIs(const Eigen::MatrixXd& DMAT) const {
   int nthreads = OPENMP::getMaxThreads();
   std::vector<Eigen::MatrixXd> ERIS_thread = std::vector<Eigen::MatrixXd>(
       nthreads, Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
-
+  Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
 #pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    Symmetric_Matrix dmat_sym = Symmetric_Matrix(DMAT);
-    for (int i = thread; i < _threecenter.size(); i += nthreads) {
-      const Symmetric_Matrix& threecenter = _threecenter[i];
-      // Trace over prod::DMAT,I(l)=componentwise product over
-      const double factor = threecenter.TraceofProd(dmat_sym);
-      Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper> m =
-          ERIS_thread[thread].selfadjointView<Eigen::Upper>();
-      threecenter.AddtoEigenUpperMatrix(m, factor);
-    }
+  for (int i = 0; i < _threecenter.size(); i++) {
+    const Symmetric_Matrix& threecenter = _threecenter[i];
+    // Trace over prod::DMAT,I(l)=componentwise product over
+    const double factor = threecenter.TraceofProd(dmat_sym);
+    Eigen::SelfAdjointView<Eigen::MatrixXd, Eigen::Upper> m =
+        ERIS_thread[OPENMP::getThreadId()].selfadjointView<Eigen::Upper>();
+    threecenter.AddtoEigenUpperMatrix(m, factor);
   }
 
   Eigen::MatrixXd ERIs =
@@ -73,13 +70,11 @@ Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& DMAT) const {
       nthreads, Eigen::MatrixXd::Zero(DMAT.rows(), DMAT.cols()));
 
 #pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    Eigen::MatrixXd D = DMAT;
-    for (int i = thread; i < _threecenter.size(); i += nthreads) {
-      const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
-      EXX_thread[thread] += threecenter.selfadjointView<Eigen::Upper>() * D *
-                            threecenter.selfadjointView<Eigen::Upper>();
-    }
+  for (int i = 0; i < _threecenter.size(); i++) {
+    const Eigen::MatrixXd threecenter = _threecenter[i].UpperMatrix();
+    EXX_thread[OPENMP::getThreadId()] +=
+        threecenter.selfadjointView<Eigen::Upper>() * DMAT *
+        threecenter.selfadjointView<Eigen::Upper>();
   }
   Eigen::MatrixXd EXXs =
       std::accumulate(EXX_thread.begin(), EXX_thread.end(),
@@ -96,14 +91,11 @@ Mat_p_Energy ERIs::CalculateEXX(const Eigen::MatrixXd& occMos,
       nthreads, Eigen::MatrixXd::Zero(occMos.rows(), occMos.rows()));
 
 #pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    Eigen::MatrixXd occ = occMos;
-    for (int i = thread; i < _threecenter.size(); i += nthreads) {
-      const Eigen::MatrixXd TCxMOs_T =
-          occ.transpose() *
-          _threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
-      EXX_thread[thread] += TCxMOs_T.transpose() * TCxMOs_T;
-    }
+  for (int i = 0; i < _threecenter.size(); i++) {
+    const Eigen::MatrixXd TCxMOs_T =
+        occMos.transpose() *
+        _threecenter[i].UpperMatrix().selfadjointView<Eigen::Upper>();
+    EXX_thread[OPENMP::getThreadId()] += TCxMOs_T.transpose() * TCxMOs_T;
   }
 
   Eigen::MatrixXd EXXs =

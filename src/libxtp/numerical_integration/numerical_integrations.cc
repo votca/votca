@@ -298,7 +298,7 @@ void NumericalIntegration::FindSignificantShells(const AOBasis& basis) {
 
   std::vector<GridBox> grid_boxes_copy;
   int combined = 0;
-  // use vecot of bool to indicate if a gridbox has already been merged into
+  // use vector of bool to indicate if a gridbox has already been merged into
   // another
   std::vector<bool> Merged = std::vector<bool>(_grid_boxes.size(), false);
   for (unsigned i = 0; i < _grid_boxes.size(); i++) {
@@ -319,54 +319,11 @@ void NumericalIntegration::FindSignificantShells(const AOBasis& basis) {
     }
     grid_boxes_copy.push_back(box);
   }
-  std::vector<unsigned> sizes;
-  sizes.reserve(grid_boxes_copy.size());
-  for (auto& box : grid_boxes_copy) {
-    sizes.push_back(box.size() * box.Matrixsize());
-  }
-  std::vector<unsigned> indexes = std::vector<unsigned>(sizes.size());
-  std::iota(indexes.begin(), indexes.end(), 0);
-  std::sort(indexes.begin(), indexes.end(), [&sizes](unsigned i1, unsigned i2) {
-    return sizes[i1] > sizes[i2];
-  });
 
-  int nthreads = OPENMP::getMaxThreads();
-  std::vector<unsigned> scores = std::vector<unsigned>(nthreads, 0);
-  std::vector<std::vector<unsigned> > indices =
-      std::vector<std::vector<unsigned> >(nthreads);
-
-  for (const auto index : indexes) {
-    unsigned thread = 0;
-    unsigned minimum = std::numeric_limits<unsigned>::max();
-    for (unsigned i = 0; i < scores.size(); ++i) {
-      if (scores[i] < minimum) {
-        minimum = scores[i];
-        thread = i;
-      }
-    }
-    indices[thread].push_back(index);
-    scores[thread] += sizes[index];
+  _grid_boxes = grid_boxes_copy;
+  for (auto& box : _grid_boxes) {
+    box.PrepareForIntegration();
   }
-  thread_start = std::vector<unsigned>(0);
-  thread_stop = std::vector<unsigned>(0);
-  unsigned start = 0;
-  unsigned stop = 0;
-  unsigned indexoffirstgridpoint = 0;
-  _grid_boxes.resize(0);
-  for (const std::vector<unsigned>& thread_index : indices) {
-    thread_start.push_back(start);
-    stop = start + thread_index.size();
-    thread_stop.push_back(stop);
-    start = stop;
-    for (const unsigned index : thread_index) {
-      GridBox newbox = grid_boxes_copy[index];
-      newbox.setIndexoffirstgridpoint(indexoffirstgridpoint);
-      indexoffirstgridpoint += newbox.size();
-      newbox.PrepareForIntegration();
-      _grid_boxes.push_back(newbox);
-    }
-  }
-  return;
 }
 
 Eigen::VectorXd NumericalIntegration::CalcAOValue_and_Grad(
@@ -395,44 +352,41 @@ Mat_p_Energy NumericalIntegration::IntegrateVXC(
       Eigen::MatrixXd::Zero(density_matrix.rows(), density_matrix.cols()));
   std::vector<double> Exc_thread = std::vector<double>(nthreads, 0.0);
 
-#pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
+#pragma omp parallel for schedule(guided)
+  for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
 
-      double EXC_box = 0.0;
-      const GridBox& box = _grid_boxes[i];
-      const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-      const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
-      double cutoff = 1.e-40 / density_matrix.rows() / density_matrix.rows();
-      if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
-        continue;
-      }
-      Eigen::MatrixXd Vxc_here =
-          Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
-      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-      const std::vector<double>& weights = box.getGridWeights();
-
-      // iterate over gridpoints
-      for (unsigned p = 0; p < box.size(); p++) {
-
-        Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(), 3);
-        Eigen::VectorXd ao = CalcAOValue_and_Grad(ao_grad, box, points[p]);
-        const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
-        const double weight = weights[p];
-        if (rho * weight < 1.e-20)
-          continue;  // skip the rest, if density is very small
-        const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
-        const double sigma = (rho_grad.transpose() * rho_grad).value();
-        const Eigen::VectorXd grad = ao_grad * rho_grad;
-        NumericalIntegration::XC_entry xc = EvaluateXC(rho, sigma);
-        EXC_box += weight * rho * xc.f_xc;
-        auto addXC =
-            weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
-        Vxc_here.noalias() += addXC * ao.transpose();
-      }
-      box.AddtoBigMatrix(vxc_thread[thread], Vxc_here);
-      Exc_thread[thread] += EXC_box;
+    double EXC_box = 0.0;
+    const GridBox& box = _grid_boxes[i];
+    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
+    const Eigen::MatrixXd DMAT_symm = DMAT_here + DMAT_here.transpose();
+    double cutoff = 1.e-40 / density_matrix.rows() / density_matrix.rows();
+    if (DMAT_here.cwiseAbs2().maxCoeff() < cutoff) {
+      continue;
     }
+    Eigen::MatrixXd Vxc_here =
+        Eigen::MatrixXd::Zero(DMAT_here.rows(), DMAT_here.cols());
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+
+    // iterate over gridpoints
+    for (unsigned p = 0; p < box.size(); p++) {
+
+      Eigen::MatrixX3d ao_grad = Eigen::MatrixX3d::Zero(box.Matrixsize(), 3);
+      Eigen::VectorXd ao = CalcAOValue_and_Grad(ao_grad, box, points[p]);
+      const double rho = 0.5 * (ao.transpose() * DMAT_symm * ao).value();
+      const double weight = weights[p];
+      if (rho * weight < 1.e-20)
+        continue;  // skip the rest, if density is very small
+      const Eigen::Vector3d rho_grad = ao.transpose() * DMAT_symm * ao_grad;
+      const double sigma = (rho_grad.transpose() * rho_grad).value();
+      const Eigen::VectorXd grad = ao_grad * rho_grad;
+      NumericalIntegration::XC_entry xc = EvaluateXC(rho, sigma);
+      EXC_box += weight * rho * xc.f_xc;
+      auto addXC = weight * (0.5 * xc.df_drho * ao + 2.0 * xc.df_dsigma * grad);
+      Vxc_here.noalias() += addXC * ao.transpose();
+    }
+    box.AddtoBigMatrix(vxc_thread[OPENMP::getThreadId()], Vxc_here);
+    Exc_thread[OPENMP::getThreadId()] += EXC_box;
   }
 
   double EXC = std::accumulate(Exc_thread.begin(), Exc_thread.end(), 0.0);
@@ -451,25 +405,23 @@ double NumericalIntegration::IntegrateDensity(
   int nthreads = OPENMP::getMaxThreads();
   std::vector<double> N_thread = std::vector<double>(nthreads, 0.0);
 
-#pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
+#pragma omp parallel for schedule(guided)
+  for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
 
-      double N_box = 0.0;
-      GridBox& box = _grid_boxes[i];
-      const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-      const std::vector<double>& weights = box.getGridWeights();
-      box.prepareDensity();
-      // iterate over gridpoints
-      for (unsigned p = 0; p < box.size(); p++) {
-        Eigen::VectorXd ao = CalcAOValues(box, points[p]);
-        double rho = (ao.transpose() * DMAT_here * ao)(0, 0);
-        box.addDensity(rho);
-        N_box += rho * weights[p];
-      }
-      N_thread[thread] += N_box;
+    double N_box = 0.0;
+    GridBox& box = _grid_boxes[i];
+    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+    box.prepareDensity();
+    // iterate over gridpoints
+    for (unsigned p = 0; p < box.size(); p++) {
+      Eigen::VectorXd ao = CalcAOValues(box, points[p]);
+      double rho = (ao.transpose() * DMAT_here * ao)(0, 0);
+      box.addDensity(rho);
+      N_box += rho * weights[p];
     }
+    N_thread[OPENMP::getThreadId()] += N_box;
   }
   double N = std::accumulate(N_thread.begin(), N_thread.end(), 0.0);
   _density_set = true;
@@ -499,30 +451,28 @@ Gyrationtensor NumericalIntegration::IntegrateGyrationTensor(
   std::vector<Eigen::Matrix3d> gyration_thread =
       std::vector<Eigen::Matrix3d>(nthreads, Eigen::Matrix3d::Zero());
 
-#pragma omp parallel for
-  for (int thread = 0; thread < nthreads; ++thread) {
-    for (unsigned i = thread_start[thread]; i < thread_stop[thread]; ++i) {
-      double N_box = 0.0;
-      Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
-      Eigen::Matrix3d gyration_box = Eigen::Matrix3d::Zero();
-      GridBox& box = _grid_boxes[i];
-      const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
-      const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
-      const std::vector<double>& weights = box.getGridWeights();
-      box.prepareDensity();
-      // iterate over gridpoints
-      for (unsigned p = 0; p < box.size(); p++) {
-        Eigen::VectorXd ao = CalcAOValues(box, points[p]);
-        double rho = (ao.transpose() * DMAT_here * ao).value();
-        box.addDensity(rho);
-        N_box += rho * weights[p];
-        centroid_box += rho * weights[p] * points[p];
-        gyration_box += rho * weights[p] * points[p] * points[p].transpose();
-      }
-      N_thread[thread] += N_box;
-      centroid_thread[thread] += centroid_box;
-      gyration_thread[thread] += gyration_box;
+#pragma omp parallel for schedule(guided)
+  for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
+    double N_box = 0.0;
+    Eigen::Vector3d centroid_box = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d gyration_box = Eigen::Matrix3d::Zero();
+    GridBox& box = _grid_boxes[i];
+    const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);
+    const std::vector<Eigen::Vector3d>& points = box.getGridPoints();
+    const std::vector<double>& weights = box.getGridWeights();
+    box.prepareDensity();
+    // iterate over gridpoints
+    for (unsigned p = 0; p < box.size(); p++) {
+      Eigen::VectorXd ao = CalcAOValues(box, points[p]);
+      double rho = (ao.transpose() * DMAT_here * ao).value();
+      box.addDensity(rho);
+      N_box += rho * weights[p];
+      centroid_box += rho * weights[p] * points[p];
+      gyration_box += rho * weights[p] * points[p] * points[p].transpose();
     }
+    N_thread[OPENMP::getThreadId()] += N_box;
+    centroid_thread[OPENMP::getThreadId()] += centroid_box;
+    gyration_thread[OPENMP::getThreadId()] += gyration_box;
   }
   double N = std::accumulate(N_thread.begin(), N_thread.end(), 0.0);
   Eigen::Vector3d centroid =

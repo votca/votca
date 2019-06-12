@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * author: Kordt
  */
 
 #pragma once
@@ -37,7 +36,7 @@ class KMCLifetime : public KMCCalculator {
  private:
   void WriteDecayProbability(std::string filename);
 
-  void RunVSSM(Topology &top);
+  void RunVSSM();
 
   void ReadLifetimeFile(std::string filename);
   std::string _probfile;
@@ -47,11 +46,6 @@ class KMCLifetime : public KMCCalculator {
   unsigned _outputsteps;
   unsigned int _insertions;
   std::string _lifetimefile;
-  double _maxrealtime;
-  std::string _trajectoryfile;
-  std::string _outputfile;
-  std::string _filename;
-  std::string _occfile;
 };
 
 }  // namespace xtp

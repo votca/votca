@@ -57,7 +57,7 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hx_row(int index) const {
   const int cmin = _bse_cmin - _opt.rpamin;
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  int cache_size = 20;
+  int cache_size = 50;
   if ((_bse_ctotal - c1) < cache_size) {
     cache_size = _bse_ctotal - c1;
   }

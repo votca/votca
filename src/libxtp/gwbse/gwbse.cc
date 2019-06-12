@@ -98,9 +98,9 @@ void GWBSE::Initialize(tools::Property& options) {
   } else if (ranges == "default") {
     rpamax = num_of_levels - 1;
     qpmin = 0;
-    qpmax = 2 * homo + 1;
+    qpmax = 3 * homo + 1;
     bse_vmin = 0;
-    bse_cmax = 2 * homo + 1;
+    bse_cmax = 3 * homo + 1;
   } else if (ranges == "full") {
     rpamax = num_of_levels - 1;
     qpmin = 0;

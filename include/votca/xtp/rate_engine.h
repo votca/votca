@@ -40,11 +40,14 @@ class Rate_Engine {
 
   PairRates Rate(const QMPair& pair, QMStateType carriertype) const;
 
+  friend std::ostream& operator<<(std::ostream& out,
+                                  const Rate_Engine& rate_engine);
+
  private:
   double Markusrate(double Jeff2, double deltaG, double reorg) const;
-
-  double _temperature = 0.0;                         // K
-  Eigen::Vector3d _field = Eigen::Vector3d::Zero();  // units
+  std::string _ratetype = "markus";
+  double _temperature = 0.0;                         // units:Hartree
+  Eigen::Vector3d _field = Eigen::Vector3d::Zero();  // units:Hartree/bohr
 };
 
 }  // namespace xtp

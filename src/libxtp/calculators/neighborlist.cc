@@ -43,8 +43,8 @@ void Neighborlist::Initialize(tools::Property& options) {
           "ERROR: Faulty pair definition for cut-off's: Need two segment names "
           "separated by a space");
     }
-    _cutoffs[names[0]][names[1]] = cutoff;
-    _cutoffs[names[1]][names[0]] = cutoff;
+    _cutoffs[names[0]][names[1]] = cutoff * tools::conv::nm2bohr;
+    _cutoffs[names[1]][names[0]] = cutoff * tools::conv::nm2bohr;
     if (std::find(_included_segments.begin(), _included_segments.end(),
                   names[0]) == _included_segments.end()) {
       _included_segments.push_back(names[0]);

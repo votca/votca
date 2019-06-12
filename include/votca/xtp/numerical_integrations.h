@@ -104,8 +104,6 @@ class NumericalIntegration {
 
   int _totalgridsize;
   std::vector<GridBox> _grid_boxes;
-  std::vector<unsigned> thread_start;
-  std::vector<unsigned> thread_stop;
   int xfunc_id;
   bool _density_set = false;
   bool _setXC = false;

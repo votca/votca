@@ -150,7 +150,7 @@ void EAnalyze::SiteHist(Topology &top, QMStateType state) {
   std::vector<double> Es;
   Es.reserve(_seg_shortlist.size());
   for (Segment *seg : _seg_shortlist) {
-    Es.push_back(seg->getSiteEnergy(state));
+    Es.push_back(seg->getSiteEnergy(state) * tools::conv::hrt2ev);
   }
 
   double MAX = *std::max_element(Es.begin(), Es.end());
@@ -169,7 +169,7 @@ void EAnalyze::SiteHist(Topology &top, QMStateType state) {
   tools::Table &tab = hist.data();
   tab.flags() = std::vector<char>(tab.size(), ' ');
   std::string comment =
-      (boost::format("EANALYZE: SITE-ENERGY HISTOGRAM \n # AVG %1$4.7f STD "
+      (boost::format("EANALYZE: SITE-ENERGY HISTOGRAM[eV] \n # AVG %1$4.7f STD "
                      "%2$4.7f MIN %3$4.7f MAX %4$4.7f") %
        AVG % STD % MIN % MAX)
           .str();
@@ -214,7 +214,7 @@ void EAnalyze::PairHist(Topology &top, QMStateType state) {
   out.open(filenamelist.c_str());
   if (!out) throw std::runtime_error("error, cannot open file " + filenamelist);
   for (QMPair *pair : nblist) {
-    double deltaE = pair->getdE12(state);
+    double deltaE = pair->getdE12(state) * tools::conv::hrt2ev;
     dE.push_back(deltaE);
     dE.push_back(-deltaE);
     out << boost::format("%1$5d %2$5d %3$4.7f \n") % pair->Seg1()->getId() %
@@ -236,7 +236,7 @@ void EAnalyze::PairHist(Topology &top, QMStateType state) {
   hist.ProcessRange<std::vector<double>::iterator>(dE.begin(), dE.end());
   tools::Table &tab = hist.data();
   std::string comment =
-      (boost::format("EANALYZE: PAIR-ENERGY HISTOGRAM \n # AVG %1$4.7f STD "
+      (boost::format("EANALYZE: PAIR-ENERGY HISTOGRAM[eV] \n # AVG %1$4.7f STD "
                      "%2$4.7f MIN %3$4.7f MAX %4$4.7f") %
        AVG % STD % MIN % MAX)
           .str();
@@ -250,7 +250,7 @@ void EAnalyze::SiteCorr(Topology &top, QMStateType state) {
   std::vector<double> Es;
   Es.reserve(_seg_shortlist.size());
   for (Segment *seg : _seg_shortlist) {
-    Es.push_back(seg->getSiteEnergy(state));
+    Es.push_back(seg->getSiteEnergy(state) * tools::conv::hrt2ev);
   }
 
   double sum = std::accumulate(Es.begin(), Es.end(), 0.0);
@@ -323,7 +323,7 @@ void EAnalyze::SiteCorr(Topology &top, QMStateType state) {
 
   std::string filename = "eanalyze.sitecorr_" + state.ToString() + ".out";
   std::string comment =
-      (boost::format("EANALYZE:  SPATIAL SITE-ENERGY CORRELATION \n # AVG "
+      (boost::format("EANALYZE:  SPATIAL SITE-ENERGY CORRELATION[eV] \n # AVG "
                      "%1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") %
        AVG % STD % MIN % MAX)
           .str();

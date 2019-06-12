@@ -30,6 +30,34 @@ using namespace std;
 namespace votca {
 namespace xtp {
 
+void KMCCalculator::ParseCommonOptions(tools::Property& options) {
+  std::string key = "options." + Identify();
+  _seed = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".seed");
+  _numberofcharges = options.ifExistsReturnElseThrowRuntimeError<int>(
+      key + ".numberofcharges");
+  _injection_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".injectionpattern");
+  _maxrealtime = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".maxrealtime", 1E10);
+  _trajectoryfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".trajectoryfile", "trajectory.csv");
+  _temperature = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".temperature", 300);
+  _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
+  _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".occfile", "occupation.dat");
+
+  _injectionmethod = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".injectionmethod", "random");
+
+  if (_injectionmethod != "random") {
+    cout << "WARNING in kmcmultiple: Unknown injection method. It will be set "
+            "to random injection."
+         << endl;
+    _injectionmethod = "random";
+  }
+}
+
 void KMCCalculator::LoadGraph(Topology& top) {
 
   std::vector<Segment>& segs = top.Segments();
@@ -53,11 +81,8 @@ void KMCCalculator::LoadGraph(Topology& top) {
 
   Rate_Engine rate_engine(_temperature, _field);
   cout << endl << "Calculating initial rates." << endl;
-  cout << "    Temperature T = " << _temperature << " K." << endl;
+  cout << rate_engine << endl;
   cout << "    carriertype: " << _carriertype.ToLongString() << endl;
-  cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
-  cout << "electric field[V/nm] =" << _field[0] << " " << _field[1] << " "
-       << _field[2] << endl;
 
   for (const QMPair* pair : nblist) {
     Rate_Engine::PairRates rates = rate_engine.Rate(*pair, _carriertype);
@@ -66,7 +91,7 @@ void KMCCalculator::LoadGraph(Topology& top) {
     _nodes[pair->Seg2()->getId()].AddEventfromQmPair(*pair, _nodes,
                                                      rates.rate21);
   }
-
+  cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
   unsigned events = 0;
   unsigned max = std::numeric_limits<unsigned>::min();
   unsigned min = std::numeric_limits<unsigned>::max();

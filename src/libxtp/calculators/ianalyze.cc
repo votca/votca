@@ -112,7 +112,8 @@ void IAnalyze::IHist(Topology &top, QMStateType state) {
         continue;
       }
     }
-    double test = pair->getJeff2(state);
+    double test =
+        pair->getJeff2(state) * tools::conv::hrt2ev * tools::conv::hrt2ev;
     if (test <= 0) {
       continue;
     }  // avoid -inf in output
@@ -162,8 +163,13 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
   distances.reserve(nblist.size());
 
   for (QMPair *pair : nblist) {
-    double J2 = std::log10(pair->getJeff2(state));
-    double distance = pair->R().norm();
+    double test =
+        pair->getJeff2(state) * tools::conv::hrt2ev * tools::conv::hrt2ev;
+    if (test <= 0) {
+      continue;
+    }  // avoid -inf in output
+    double J2 = std::log10(test);
+    double distance = pair->R().norm() * tools::conv::bohr2nm;
     distances.push_back(distance);
     J2s.push_back(J2);
   }
@@ -205,7 +211,8 @@ void IAnalyze::IRdependence(Topology &top, QMStateType state) {
   }
   std::string filename = "ianalyze.ispatial_" + state.ToString() + ".out";
   std::string comment =
-      "# IANALYZE: SPATIAL DEPENDENCE OF log10(J2) [r,log10(J),error]";
+      "# IANALYZE: SPATIAL DEPENDENCE OF log10(J2) "
+      "[r[nm],log10(J)[eV^2],error]";
   tab.setErrorDetails(comment);
   tab.Save(filename);
 }

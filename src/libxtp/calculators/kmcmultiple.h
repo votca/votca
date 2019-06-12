@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * author: Kordt
  */
 
 #pragma once
 #ifndef __VOTCA_KMC_MULTIPLE_H
 #define __VOTCA_KMC_MULTIPLE_H
 
-#include <votca/tools/tokenizer.h>
+#include <fstream>
 #include <votca/xtp/kmccalculator.h>
-
-#include <votca/tools/constants.h>
 namespace votca {
 namespace xtp {
 
@@ -32,19 +29,31 @@ class KMCMultiple : public KMCCalculator {
   KMCMultiple(){};
   ~KMCMultiple(){};
   std::string Identify() { return "kmcmultiple"; }
-  void Initialize(tools::Property &options);
-  bool EvaluateFrame(Topology &top);
+  void Initialize(tools::Property& options);
+  bool EvaluateFrame(Topology& top);
 
  private:
-  void RunVSSM(Topology &top);
+  void RunVSSM();
+  void PrintChargeVelocity(double simtime) const;
+
+  void PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
+                       double simtime, unsigned long step) const;
+
+  void WriteToEnergyFile(std::fstream& tfile, double simtime,
+                         unsigned long step) const;
+
+  void WriteToTrajectory(std::fstream& traj,
+                         std::vector<Eigen::Vector3d>& startposition,
+                         double simtime, unsigned long step) const;
+
+  void PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor, double simtime,
+                      unsigned long step) const;
 
   double _runtime;
   double _outputtime;
-  std::string _trajectoryfile;
   std::string _timefile;
-  std::string _occfile;
-  double _maxrealtime;
   int _intermediateoutput_frequency;
+  unsigned long _diffusionresolution = 1000;
 };
 
 }  // namespace xtp

@@ -92,9 +92,7 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
     const Eigen::VectorXd ppm_freqs = _ppm.getPpm_freq();
     const Eigen::VectorXd fac = 0.25 * ppm_weight.cwiseProduct(ppm_freqs);
     const int qpmin_offset = _opt.qpmin - _opt.rpamin;
-
     const Eigen::VectorXd rpaenergies_thread = _rpa.getRPAInputEnergies();
-    ;
 #pragma omp for schedule(dynamic)
     for (int gw_level1 = 0; gw_level1 < _qptotal; gw_level1++) {
       const Eigen::MatrixXd& Mmn1 = _Mmn[gw_level1 + qpmin_offset];

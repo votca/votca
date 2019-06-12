@@ -33,26 +33,15 @@ namespace xtp {
 void KMCLifetime::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
-
+  ParseCommonOptions(options);
   _insertions = options.ifExistsReturnElseThrowRuntimeError<unsigned int>(
       key + ".numberofinsertions");
-  _seed = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".seed");
-  _numberofcharges = options.ifExistsReturnElseThrowRuntimeError<int>(
-      key + ".numberofcharges");
-  _injection_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".injectionpattern");
+
   _lifetimefile = options.ifExistsReturnElseThrowRuntimeError<string>(
       key + ".lifetimefile");
 
   _probfile = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".decayprobfile", "");
-
-  _maxrealtime = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".maxrealtime", 1E10);
-  _trajectoryfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".trajectoryfile", "trajectory.csv");
-  _temperature = options.ifExistsReturnElseReturnDefault<double>(
-      key + ".temperature", 300);
 
   std::string subkey = key + ".carrierenergy";
   if (options.exists(subkey)) {
@@ -72,9 +61,6 @@ void KMCLifetime::Initialize(tools::Property& options) {
   _carriertype = QMStateType(QMStateType::Singlet);
   cout << "carrier type:" << _carriertype.ToLongString() << endl;
   _field = Eigen::Vector3d::Zero();
-
-  _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".occfile", "occupation.dat");
 
   return;
 }
@@ -118,7 +104,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
   if (jobProps.size() != _nodes.size()) {
     throw runtime_error(
-        (boost::format("The number of sites in the sqlfile: %i does not match "
+        (boost::format("The number of sites in the topology: %i does not match "
                        "the number in the lifetimefile: %i") %
          _nodes.size() % jobProps.size())
             .str());
@@ -153,7 +139,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   return;
 }
 
-void KMCLifetime::RunVSSM(Topology& top) {
+void KMCLifetime::RunVSSM() {
 
   int realtime_start = time(NULL);
   cout << endl
@@ -246,7 +232,7 @@ void KMCLifetime::RunVSSM(Topology& top) {
       }
       if (print) {
         energyfile << simtime << "\t" << step << "\t" << _carriers[0].getId()
-                   << "\t" << avgenergy << endl;
+                   << "\t" << avgenergy * tools::conv::hrt2ev << endl;
       }
     }
 
@@ -281,18 +267,19 @@ void KMCLifetime::RunVSSM(Topology& top) {
             ChooseHoppingDest(affectedcarrier->getCurrentNode());
 
         if (event.isDecayEvent()) {
-
+          const Eigen::Vector3d& dr_travelled =
+              affectedcarrier->get_dRtravelled();
           avlifetime += affectedcarrier->getLifetime();
-          meanfreepath += affectedcarrier->get_dRtravelled().norm();
-          difflength_squared += affectedcarrier->get_dRtravelled().cwiseAbs2();
+          meanfreepath += dr_travelled.norm();
+          difflength_squared += dr_travelled.cwiseAbs2();
           traj << simtime << "\t" << insertioncount << "\t"
                << affectedcarrier->getId() << "\t"
                << affectedcarrier->getLifetime() << "\t"
                << affectedcarrier->getSteps() << "\t"
                << affectedcarrier->getCurrentNodeId() + 1 << "\t"
-               << affectedcarrier->get_dRtravelled()[0] << "\t"
-               << affectedcarrier->get_dRtravelled()[1] << "\t"
-               << affectedcarrier->get_dRtravelled()[2] << endl;
+               << dr_travelled.x() * tools::conv::bohr2nm << "\t"
+               << dr_travelled.y() * tools::conv::bohr2nm << "\t"
+               << dr_travelled.z() * tools::conv::bohr2nm << endl;
           if (tools::globals::verbose &&
               (_insertions < 1500 ||
                insertioncount % (_insertions / 1000) == 0 ||
@@ -348,10 +335,12 @@ void KMCLifetime::RunVSSM(Topology& top) {
   cout << "Average lifetime:\t\t\t\t" << avlifetime / insertioncount << " s"
        << endl;
   cout << "Mean freepath\t l=<|r_x-r_o|> :\t\t"
-       << (meanfreepath / insertioncount) << " nm" << endl;
-  cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"
-       << std::sqrt(difflength_squared.norm() / insertioncount) << " nm"
+       << (meanfreepath * tools::conv::bohr2nm / insertioncount) << " nm"
        << endl;
+  cout << "Average diffusionlength\t d=sqrt(<(r_x-r_o)^2>)\t"
+       << std::sqrt(difflength_squared.norm() / insertioncount) *
+              tools::conv::bohr2nm
+       << " nm" << endl;
   cout << endl;
 
   WriteOccupationtoFile(simtime, _occfile);
@@ -380,7 +369,7 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   if (_probfile != "") {
     WriteDecayProbability(_probfile);
   }
-  RunVSSM(top);
+  RunVSSM();
 
   time_t now = time(0);
   tm* localtm = localtime(&now);

@@ -83,6 +83,10 @@ class QMRegion : public Region {
   void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
+  template <class T>
+  void AddNucleiFields(std::vector<T>& segments,
+                       const StaticSegment& seg) const;
+
   int _size = 0;
   Orbitals _orb;
 
