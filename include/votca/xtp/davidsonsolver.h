@@ -60,46 +60,11 @@ class DavidsonSolver {
   void solve(const MatrixReplacement &A, int neigen,
              int size_initial_guess = 0) {
 
-    std::chrono::time_point<std::chrono::system_clock> start, end;
-    std::chrono::duration<double> elapsed_time;
-    start = std::chrono::system_clock::now();
-
-    XTP_LOG(logDEBUG, _log) << TimeStamp() << " Davidson Solver using "
-                            << OPENMP::getMaxThreads() << " threads." << flush;
-
-    switch (this->_davidson_correction) {
-
-      case CORR::DPR:
-        XTP_LOG(logDEBUG, _log) << TimeStamp() << " DPR Correction" << flush;
-        break;
-
-      case CORR::OLSEN:
-        XTP_LOG(logDEBUG, _log) << TimeStamp() << " Olsen Correction" << flush;
-        break;
-    }
-
-    switch (this->_davidson_ortho) {
-
-      case ORTHO::GS:
-        XTP_LOG(logDEBUG, _log)
-            << TimeStamp() << " Gram-Schmidt Orthogonalization" << flush;
-        break;
-
-      case ORTHO::QR:
-        XTP_LOG(logDEBUG, _log)
-            << TimeStamp() << " QR Orthogonalization" << flush;
-        break;
-    }
-
-    XTP_LOG(logDEBUG, _log)
-        << TimeStamp() << " Tolerance : " << this->_tol << flush;
-
+    std::chrono::time_point<std::chrono::system_clock> start =
+        std::chrono::system_clock::now();
     int op_size = A.rows();
-
-    XTP_LOG(logDEBUG, _log) << TimeStamp() << " Matrix size : " << op_size
-                            << 'x' << op_size << flush;
-
-    //. search space exeeding the system size
+    PrintOptions(op_size);
+    //. search space exceeding the system size
     if (_max_search_space > op_size) {
       XTP_LOG(logDEBUG, _log)
           << TimeStamp() << " Warning Max search space (" << _max_search_space
@@ -113,80 +78,74 @@ class DavidsonSolver {
     if (size_initial_guess == 0) {
       size_initial_guess = 2 * neigen;
     }
+
     int search_space = size_initial_guess;
     int size_restart = size_initial_guess;
-    int size_update = DavidsonSolver::get_size_update(neigen);
+    int size_update = get_size_update(neigen);
 
-    Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(size_update);
-    Eigen::ArrayXd root_converged = Eigen::ArrayXd::Zero(size_update);
-
-    double percent_converged;
-    bool has_converged = false;
+    std::vector<bool> root_converged = std::vector<bool>(size_update, false);
 
     // initialize the guess eigenvector
     Eigen::VectorXd Adiag = A.diagonal();
 
-    Eigen::VectorXd lambda;
-    Eigen::MatrixXd q;
     // target the lowest diagonal element
-    Eigen::MatrixXd V =
-        DavidsonSolver::SetupInitialEigenvectors(Adiag, size_initial_guess);
-
-    // project the matrix on the trial subspace
-    Eigen::MatrixXd T = V.transpose() * (A * V);
-
+    Eigen::MatrixXd V = SetupInitialEigenvectors(Adiag, size_initial_guess);
+    Eigen::MatrixXd q;
+    Eigen::MatrixXd U;
+    Eigen::MatrixXd AV;
     XTP_LOG(logDEBUG, _log)
         << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
     // Start of the main iteration loop
     for (int iiter = 0; iiter < _iter_max; iiter++) {
 
+      // check if we need to restart
+      bool restart_required =
+          search_space > _max_search_space || search_space > op_size;
+      if (restart_required && iiter > 0) {
+        V = q.leftCols(size_restart);
+        V.colwise().normalize();
+        AV = AV * U.leftCols(size_restart);  // corresponds to replacing V with
+                                             // q.leftCols
+        search_space = size_restart;
+      } else {
+        AV = A * V;
+      }
+
+      Eigen::MatrixXd T = V.transpose() * AV;
       // diagonalize the small subspace
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
-      lambda = es.eigenvalues();
-      const Eigen::MatrixXd &U = es.eigenvectors();
+      const Eigen::VectorXd &lambda = es.eigenvalues();
+      U = es.eigenvectors();
+      q = V * U;  // Ritz vectors
+      Eigen::MatrixXd r =
+          AV * U - q * lambda.asDiagonal();  // compute residual=A*Q - lambda Q
 
-      // Ritz eigenvectors
-      q = V * U;
-
-      // precompute A*Q - lambda Q
-      Eigen::MatrixXd Aq = A * q - q * lambda.asDiagonal();
-
-      // correction vectors
+      Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(size_update);
       int nupdate = 0;
       for (int j = 0; j < size_update; j++) {
-
         // skip the root that have already converged
         if (root_converged[j]) {
           continue;
         }
-        nupdate += 1;
-
+        nupdate++;
+        res_norm[j] = r.col(j).norm();
         // residue vector
-        Eigen::VectorXd w = Aq.col(j);
-        res_norm[j] = w.norm();
-
-        // compute correction vector
-        switch (this->_davidson_correction) {
-          case CORR::DPR:
-            w = DavidsonSolver::dpr_correction(w, Adiag, lambda(j));
-            break;
-          case CORR::OLSEN:
-            Eigen::VectorXd tmp = q.col(j);
-            w = DavidsonSolver::olsen_correction(w, tmp, Adiag, lambda(j));
-            break;
-        }
-
+        Eigen::VectorXd w =
+            ComputeCorrectionVector(Adiag, q.col(j), lambda(j), r.col(j));
         // append the correction vector to the search space
         V.conservativeResize(Eigen::NoChange, V.cols() + 1);
-        V.col(V.cols() - 1) = w.normalized();
-
+        V.rightCols<1>() = w.normalized();
         // track converged root
-        root_converged[j] = res_norm[j] < _tol;
+        root_converged[j] = (res_norm[j] < _tol);
       }
 
       // Print iteration data
-      percent_converged = 100 * root_converged.head(neigen).sum() / neigen;
+      int converged_roots = 0;
+      for (int i = 0; i < neigen; i++) {
+        converged_roots += root_converged[i];
+      }
+      double percent_converged = 100 * double(converged_roots) / double(neigen);
       XTP_LOG(logDEBUG, _log)
           << TimeStamp()
           << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % iiter %
@@ -196,64 +155,41 @@ class DavidsonSolver {
 
       // update
       search_space = V.cols();
-
+      bool converged = (res_norm.head(neigen) < _tol).all();
+      bool last_iter = iiter == (_iter_max - 1);
       // break if converged
-      if ((res_norm.head(neigen) < _tol).all()) {
-        has_converged = true;
+      if (converged || last_iter) {
+
+        // store the eigenvalues/eigenvectors
+        this->_eigenvalues = lambda.head(neigen);
+        this->_eigenvectors = q.leftCols(neigen);
+        this->_eigenvectors.colwise().normalize();
+        if (last_iter && !converged) {
+          XTP_LOG(logDEBUG, _log)
+              << TimeStamp() << "- Warning : Davidson " << percent_converged
+              << "% converged after " << _iter_max << " iterations." << flush;
+
+          for (int i = 0; i < neigen; i++) {
+            if (!root_converged[i]) {
+              _eigenvalues(i) = 0;
+              _eigenvectors.col(i) = Eigen::VectorXd::Zero(op_size);
+            }
+          }
+        }
         break;
       }
 
-      // check if we need to restart
-      if (search_space > _max_search_space or search_space > op_size) {
-
-        V = q.leftCols(size_restart);
-        V.colwise().normalize();
-        search_space = size_restart;
-
-        // recompute the projected matrix
-        T = V.transpose() * (A * V);
-      } else {
-
-        switch (this->_davidson_ortho) {
-          case ORTHO::GS:
-            V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
-            DavidsonSolver::update_projected_matrix<MatrixReplacement>(T, A, V);
-            break;
-          case ORTHO::QR:
-            V = DavidsonSolver::QR_ortho(V);
-            T = V.transpose() * (A * V);
-            break;
-        }
+      switch (this->_davidson_ortho) {
+        case ORTHO::GS:
+          V = DavidsonSolver::gramschmidt_ortho(V, V.cols() - nupdate);
+          break;
+        case ORTHO::QR:
+          V = DavidsonSolver::QR_ortho(V);
+          break;
       }
     }
 
-    // store the eigenvalues/eigenvectors
-    this->_eigenvalues = lambda.head(neigen);
-    this->_eigenvectors = q.leftCols(neigen);
-    this->_eigenvectors.colwise().normalize();
-
-    XTP_LOG(logDEBUG, _log)
-        << TimeStamp() << "-----------------------------------" << flush;
-
-    if (!has_converged) {
-      XTP_LOG(logDEBUG, _log)
-          << TimeStamp() << "- Warning : Davidson " << percent_converged
-          << "% converged after " << _iter_max << " iterations." << flush;
-
-      for (int i = 0; i < neigen; i++) {
-        if (not root_converged[i]) {
-          _eigenvalues(i) = 0;
-          _eigenvectors.col(i) = Eigen::VectorXd::Zero(op_size);
-        }
-      }
-    } else {
-      end = std::chrono::system_clock::now();
-      elapsed_time = end - start;
-      XTP_LOG(logDEBUG, _log) << TimeStamp() << "- Davidson converged in "
-                              << elapsed_time.count() << "secs." << flush;
-    }
-    XTP_LOG(logDEBUG, _log)
-        << TimeStamp() << "-----------------------------------" << flush;
+    PrintTiming(start);
   }
 
  private:
@@ -274,6 +210,14 @@ class DavidsonSolver {
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
 
+  void PrintOptions(int op_size) const;
+  void PrintTiming(
+      const std::chrono::time_point<std::chrono::system_clock> &start) const;
+  Eigen::VectorXd ComputeCorrectionVector(const Eigen::VectorXd &Adiag,
+                                          const Eigen::VectorXd &qj,
+                                          double lambdaj,
+                                          const Eigen::VectorXd &Aqj) const;
+
   Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
   Eigen::MatrixXd SetupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
 
@@ -286,22 +230,6 @@ class DavidsonSolver {
                                    const Eigen::VectorXd &x,
                                    const Eigen::VectorXd &D,
                                    double lambda) const;
-
-  template <class MatrixReplacement>
-  void update_projected_matrix(Eigen::MatrixXd &T, const MatrixReplacement &A,
-                               const Eigen::MatrixXd &V) const {
-    int size = V.rows();
-    int old_dim = T.cols();
-    int new_dim = V.cols();
-    int nvec = new_dim - old_dim;
-
-    T.conservativeResize(new_dim, new_dim);
-    const Eigen::MatrixXd tmp = A * V.block(0, old_dim, size, nvec);
-    T.block(0, old_dim, new_dim, nvec) = V.transpose() * tmp;
-    T.block(old_dim, 0, nvec, old_dim) =
-        T.block(0, old_dim, old_dim, nvec).transpose();
-    return;
-  }
 };
 }  // namespace xtp
 }  // namespace votca
