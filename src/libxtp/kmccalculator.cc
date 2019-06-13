@@ -46,6 +46,8 @@ void KMCCalculator::ParseCommonOptions(tools::Property& options) {
   _temperature *= (tools::conv::kB * tools::conv::ev2hrt);
   _occfile = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".occfile", "occupation.dat");
+  _ratefile = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".ratefile", "rates.dat");
 
   _injectionmethod = options.ifExistsReturnElseReturnDefault<std::string>(
       key + ".injectionmethod", "random");
@@ -63,7 +65,7 @@ void KMCCalculator::LoadGraph(Topology& top) {
   std::vector<Segment>& segs = top.Segments();
 
   if (segs.size() < 1) {
-    throw std::runtime_error("Your sql file contains no segments!");
+    throw std::runtime_error("Your state file contains no segments!");
   }
   _nodes.reserve(segs.size());
   for (Segment& seg : segs) {
@@ -92,6 +94,9 @@ void KMCCalculator::LoadGraph(Topology& top) {
                                                      rates.rate21);
   }
   cout << "    Rates for " << _nodes.size() << " sites are computed." << endl;
+  WriteRatestoFile(_ratefile, nblist);
+  cout << "    Rates for " << _nodes.size() << " sites written to " << _ratefile
+       << endl;
   unsigned events = 0;
   unsigned max = std::numeric_limits<unsigned>::min();
   unsigned min = std::numeric_limits<unsigned>::max();
@@ -249,15 +254,34 @@ Chargecarrier* KMCCalculator::ChooseAffectedCarrier(double cumulated_rate) {
   }
   return carrier;
 }
+void KMCCalculator::WriteRatestoFile(std::string filename,
+                                     const QMNBList& nblist) const {
+  fstream ratefs;
+  ratefs.open(filename, fstream::out);
+  ratefs << "#SiteID1,SiteID2, ,rate12[1/s],rate21[1/s] at "
+         << _temperature * tools::conv::hrt2ev / tools::conv::kB
+         << " for carrier:" << _carriertype.ToString() << endl;
+
+  Rate_Engine rate_engine(_temperature, _field);
+  for (const QMPair* pair : nblist) {
+    Rate_Engine::PairRates rates = rate_engine.Rate(*pair, _carriertype);
+    ratefs << pair->getId() << " " << rates.rate12 << " " << rates.rate21
+           << "\n";
+  }
+  ratefs << std::flush;
+  ratefs.close();
+}
 
 void KMCCalculator::WriteOccupationtoFile(double simtime,
-                                          std::string filename) {
+                                          std::string filename) const {
   fstream probs;
   probs.open(filename, fstream::out);
-  probs << "#SiteID, Occupation prob" << endl;
+  probs << "#SiteID, Occupation prob at "
+        << _temperature * tools::conv::hrt2ev / tools::conv::kB
+        << " for carrier:" << _carriertype.ToString() << endl;
   for (const GNode& node : _nodes) {
     double occupationprobability = node.OccupationTime() / simtime;
-    probs << node.getId() << " " << occupationprobability << endl;
+    probs << node.getId() << "\t" << occupationprobability << endl;
   }
   probs.close();
 }

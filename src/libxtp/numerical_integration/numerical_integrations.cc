@@ -407,7 +407,6 @@ double NumericalIntegration::IntegrateDensity(
 
 #pragma omp parallel for schedule(guided)
   for (unsigned i = 0; i < _grid_boxes.size(); ++i) {
-
     double N_box = 0.0;
     GridBox& box = _grid_boxes[i];
     const Eigen::MatrixXd DMAT_here = box.ReadFromBigMatrix(density_matrix);

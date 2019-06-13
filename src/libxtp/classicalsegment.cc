@@ -33,7 +33,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
 
   std::string line;
   std::ifstream intt;
-  intt.open(filename.c_str());
+  intt.open(filename);
   double unit_conversion = tools::conv::ang2bohr;
 
   int readinmultipoles = 0;

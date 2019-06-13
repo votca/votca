@@ -169,13 +169,13 @@ void GWBSE::Initialize(tools::Property& options) {
   int bse_ctotal = bse_cmax - bse_cmin + 1;
   int bse_size = bse_vtotal * bse_ctotal;
 
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Set RPA level range [" << rpamin
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " RPA level range [" << rpamin
                             << ":" << rpamax << "]" << flush;
-  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Set GW  level range [" << qpmin
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " GW  level range [" << qpmin
                             << ":" << qpmax << "]" << flush;
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << " Set BSE level range occ[" << bse_vmin << ":"
-      << bse_vmax << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
+      << TimeStamp() << " BSE level range occ[" << bse_vmin << ":" << bse_vmax
+      << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
                             << bse_size << "x" << bse_size << flush;
 
