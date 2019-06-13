@@ -153,6 +153,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
             v.y() % v.z())
         << std::endl;
   }
+  return true;
 }
 
 }  // namespace xtp
