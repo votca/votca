@@ -165,6 +165,11 @@ class Orbitals {
 
   void setSelfEnergy(double selfenergy) { _self_energy = selfenergy; }
 
+  void setXCFunctionalName(std::string functionalname) {
+    _functionalname = functionalname;
+  }
+  const std::string &getXCFunctionalName() const { return _functionalname; }
+
   // access to QM total energy, new, tested
   bool hasQMEnergy() const { return (_qm_energy != 0.0) ? true : false; }
 
@@ -407,7 +412,7 @@ class Orbitals {
   int _basis_set_size;
   int _occupied_levels;
   int _number_alpha_electrons;
-  std::string _ECP;
+  std::string _ECP = "";
   bool _useTDA;
 
   Eigen::VectorXd _mo_energies;
@@ -437,10 +442,11 @@ class Orbitals {
 
   double _ScaHFX = 0;
 
-  std::string _dftbasis;
-  std::string _auxbasis;
+  std::string _dftbasis = "";
+  std::string _auxbasis = "";
 
-  std::string _qm_package;
+  std::string _functionalname = "";
+  std::string _qm_package = "";
 
   // perturbative quasiparticle energies
   Eigen::MatrixXd _QPpert_energies;
