@@ -573,7 +573,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_qpmax, "qpmax");
   w(_bse_vmin, "bse_vmin");
   w(_bse_cmax, "bse_cmax");
-
+  w(_functionalname, "XCFunctional");
   w(_ScaHFX, "ScaHFX");
 
   w(_useTDA, "useTDA");
@@ -635,7 +635,11 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_bse_vmin, "bse_vmin");
   r(_bse_cmax, "bse_cmax");
   setBSEindices(_bse_vmin, _bse_cmax);
-
+  try {
+    r(_functionalname, "XCFunctional");
+  } catch (std::runtime_error& e) {
+    ;
+  }
   r(_ScaHFX, "ScaHFX");
   r(_useTDA, "useTDA");
   r(_ECP, "ECP");

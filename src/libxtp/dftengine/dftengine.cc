@@ -703,6 +703,7 @@ void DFTEngine::ConfigOrbfile() {
   }
   _orbitals.setDFTbasisName(_dftbasis_name);
   _orbitals.setBasisSetSize(_dftbasis.AOBasisSize());
+  _orbitals.setXCFunctionalName(_xc_functional_name);
   _orbitals.setScaHFX(_ScaHFX);
   if (_with_ecp) {
     _orbitals.setECPName(_ecp_name);
