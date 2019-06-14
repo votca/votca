@@ -2,8 +2,8 @@ include(ExternalProject)
 include(GNUInstallDirs)
 # ftp://ftp.gromacs.org/pub/gromacs/gromacs-XXX.tar.gz is too unstable for CI, so use Gentoo Mirror
 ExternalProject_Add(Gromacs_build
-  URL http://distfiles.gentoo.org/distfiles/gromacs-2018.6.tar.gz
-  URL_MD5 997f2b8108197780d61b23b5eb05644a
+  URL http://distfiles.gentoo.org/distfiles/gromacs-2018.7.tar.gz https://ftp.gromacs.org/pub/gromacs/gromacs-2018.7.tar.gz
+  URL_MD5 2d6f3534b586aed8b4aaa0359d9071b7
   PREFIX gromacs INSTALL_DIR gromacs/install
   CMAKE_ARGS 
     -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
