@@ -21,7 +21,7 @@
             <region>
                 <id>2</id>
                 <type>polar</type>
-                <options>polar.xml</options>
+                <options_polar>polar.xml</options_polar>
                 <cutoff>
                     <geometry>n</geometry>
                     <radius>3</radius>

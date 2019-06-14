@@ -56,7 +56,7 @@ void PolarSite::calcDIIS_InducedDipole() {
 
   Eigen::MatrixXd B = -1 * Eigen::MatrixXd::Ones(hist_size + 1, hist_size + 1);
   B(hist_size, hist_size) = 0;
-  Eigen::VectorXd a = Eigen::VectorXd::Zero(hist_size);
+  Eigen::VectorXd a = Eigen::VectorXd::Zero(hist_size + 1);
   a(hist_size) = -1;
   for (int i = 1; i < hist_size; i++) {
     const Eigen::Vector3d dmui = _dipole_hist[i] - _dipole_hist[i - 1];

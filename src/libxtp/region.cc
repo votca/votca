@@ -27,7 +27,6 @@ namespace xtp {
 
 void Region::ApplyInfluenceOfOtherRegions(
     std::vector<std::unique_ptr<Region> >& regions) {
-  ResetRegion();
   for (std::unique_ptr<Region>& reg : regions) {
     if (reg->getId() == this->getId()) {
       continue;

@@ -154,7 +154,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
 void GWBSEEngine::WriteLoggerToFile(Logger* pLog) {
   std::ofstream ofs;
-  ofs.open(_logger_file.c_str(), std::ofstream::out);
+  ofs.open(_logger_file, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + _logger_file);
   }

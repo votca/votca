@@ -49,6 +49,8 @@ class PolarSite : public StaticSite {
   void setPolarisation(const Eigen::Matrix3d pol) override;
   void ResetInduction();
 
+  const Eigen::Matrix3d& getPolarisation() const { return _Ps; }
+
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const override;
 

@@ -89,6 +89,7 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
       XTP_LOG_SAVE(logINFO, pLog)
           << "Running calculations for Region:" << region->identify() << " "
           << region->getId() << std::flush;
+      region->Reset();
       region->Evaluate(jobtop.Regions());
     }
 

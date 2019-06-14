@@ -25,6 +25,7 @@
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/log2mps.h"
+#include "tools/molpol.h"
 #include "tools/partialcharges.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
@@ -43,6 +44,7 @@ void QMToolFactory::RegisterAll(void) {
   QMTools().Register<Partialcharges>("partialcharges");
   QMTools().Register<DensityAnalysis>("densityanalysis");
   QMTools().Register<Coupling>("coupling");
+  QMTools().Register<MolPol>("molpol");
 }
 
 }  // namespace xtp

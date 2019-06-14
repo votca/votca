@@ -75,17 +75,6 @@ bool QMRegion::Converged() const {
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
                               << this->getId() << std::flush;
-  ResetRegion();
-  XTP_LOG_SAVE(logINFO, _log)
-      << "Removed all previous values from region" << std::flush;
-
-  std::string dft_package_name =
-      _dftoptions.get("package.name").as<std::string>();
-  _qmpackage =
-      std::unique_ptr<QMPackage>(QMPackages().Create(dft_package_name));
-  _qmpackage->setLog(&_log);
-  _qmpackage->Initialize(_dftoptions);
-
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log) << "Writing inputs" << std::flush;
   _qmpackage->WriteInputFile(_orb);
@@ -123,7 +112,27 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   return;
 }
 
-void QMRegion::ResetRegion() { return; }
+void QMRegion::push_back(const QMMolecule& mol) {
+  if (_orb.QMAtoms().size() == 0) {
+    _orb.QMAtoms() = mol;
+  } else {
+    _orb.QMAtoms().AddContainer(mol);
+  }
+  _size++;
+}
+
+void QMRegion::Reset() {
+  XTP_LOG_SAVE(logINFO, _log)
+      << "Removed all previous values from region" << std::flush;
+
+  std::string dft_package_name =
+      _dftoptions.get("package.name").as<std::string>();
+  _qmpackage =
+      std::unique_ptr<QMPackage>(QMPackages().Create(dft_package_name));
+  _qmpackage->setLog(&_log);
+  _qmpackage->Initialize(_dftoptions);
+  return;
+}
 void QMRegion::InteractwithQMRegion(const QMRegion& region) {
   throw std::runtime_error(
       "QMRegion-QMRegion interaction is not implemented yet.");

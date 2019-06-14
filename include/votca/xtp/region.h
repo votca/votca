@@ -61,6 +61,8 @@ class Region {
 
   virtual void WritePDB(csg::PDBWriter& writer) const = 0;
 
+  virtual void Reset() = 0;
+
   int getId() const { return _id; }
 
   friend std::ostream& operator<<(std::ostream& out, const Region& region) {
@@ -103,7 +105,6 @@ class Region {
   void ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);
 
-  virtual void ResetRegion() = 0;
   virtual void InteractwithQMRegion(const QMRegion& region) = 0;
   virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;

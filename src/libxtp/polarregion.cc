@@ -29,7 +29,7 @@ namespace xtp {
 void PolarRegion::Initialize(const tools::Property& prop) {
 
   std::string filename =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options");
+      prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_polar");
   tools::Property polar_xml;
   tools::load_property_from_xml(polar_xml, filename);
   _max_iter = polar_xml.ifExistsReturnElseReturnDefault("max_iter", _max_iter);
@@ -141,9 +141,7 @@ std::pair<bool, double> PolarRegion::DipolesConverged() const {
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
                               << this->getId() << std::flush;
-  ResetRegion();
-  XTP_LOG_SAVE(logINFO, _log)
-      << "Removed all previous values from region" << std::flush;
+
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log)
       << "Evaluating electrostatics inside region" << std::flush;

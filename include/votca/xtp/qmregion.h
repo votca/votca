@@ -67,17 +67,11 @@ class QMRegion : public Region {
 
   std::string identify() const { return "QMRegion"; }
 
-  void push_back(const QMMolecule& mol) {
-    if (_orb.QMAtoms().size() == 0) {
-      _orb.QMAtoms() = mol;
-    } else {
-      _orb.QMAtoms().AddContainer(mol);
-    }
-    _size++;
-  }
+  void push_back(const QMMolecule& mol);
+
+  void Reset();
 
  protected:
-  void ResetRegion();
   void InteractwithQMRegion(const QMRegion& region);
   void InteractwithPolarRegion(const PolarRegion& region);
   void InteractwithStaticRegion(const StaticRegion& region);

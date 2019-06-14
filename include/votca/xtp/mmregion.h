@@ -51,6 +51,9 @@ class MMRegion : public Region {
 
   virtual std::string identify() const = 0;
 
+  const T& operator[](int index) const { return _segments[index]; }
+  T& operator[](int index) { return _segments[index]; }
+
   typename std::vector<T>::iterator begin() { return _segments.begin(); }
   typename std::vector<T>::iterator end() { return _segments.end(); }
 
@@ -61,7 +64,7 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
-  void ResetRegion();
+  void Reset();
 
   void WritePDB(csg::PDBWriter& writer) const;
 
