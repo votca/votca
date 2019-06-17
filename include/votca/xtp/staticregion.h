@@ -33,7 +33,7 @@ class StaticRegion : public MMRegion<StaticSegment> {
  public:
   StaticRegion(int id, Logger& log) : MMRegion<StaticSegment>(id, log){};
 
-  std::string identify() const { return "StaticRegion"; }
+  std::string identify() const { return "staticregion"; }
 
   void Initialize(const tools::Property& prop) { return; }
 

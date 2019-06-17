@@ -90,23 +90,25 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   log.setPreface(logERROR, (boost::format("\n ...")).str());
   log.setPreface(logWARNING, (boost::format("\n ...")).str());
   log.setPreface(logDEBUG, (boost::format("\n ...")).str());
-  log.setReportLevel(logDEBUG);
-  std::cout << log;
+  if (tools::globals::verbose) {
+    log.setReportLevel(logDEBUG);
+  }
   PolarRegion pol(0, log);
   pol.Initialize(_polar_options);
   pol.push_back(input);
 
   double eVnm_2_hrtbohr = tools::conv::ev2hrt / tools::conv::nm2bohr;
   Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
+  Eigen::Vector3d zero = Polarize(pol, Eigen::Vector3d::Zero());
   Eigen::Vector3d ext_field = 0.1 * eVnm_2_hrtbohr * Eigen::Vector3d::UnitX();
-
   polarisation.col(0) = Polarize(pol, ext_field);
   ext_field = 0.1 * eVnm_2_hrtbohr * Eigen::Vector3d::UnitY();
   polarisation.col(1) = Polarize(pol, ext_field);
   ext_field = 0.1 * eVnm_2_hrtbohr * Eigen::Vector3d::UnitZ();
   polarisation.col(2) = Polarize(pol, ext_field);
+  polarisation.colwise() -= zero;
   std::cout << log;
-  return polarisation / (0.1 * eVnm_2_hrtbohr);
+  return -polarisation / (0.1 * eVnm_2_hrtbohr);
 }
 
 void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
@@ -123,18 +125,17 @@ bool MolPol::Evaluate() {
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(_polarisation_target, Eigen::EigenvaluesOnly);
-  std::cout << "bla " << es.eigenvalues().transpose() << std::endl;
   const double pol_volume_target = std::pow(es.eigenvalues().prod(), 1.0 / 3.0);
   for (int iter = 0; iter < _max_iter; iter++) {
 
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es2;
     Eigen::Matrix3d pol = CalcClassicalPol(polar);
     es2.computeDirect(pol, Eigen::EigenvaluesOnly);
-    std::cout << "bla2 " << es2.eigenvalues().transpose() << std::endl;
     const double pol_volume_iter =
         std::pow(es2.eigenvalues().prod(), 1.0 / 3.0);
     double scale = pol_volume_target / pol_volume_iter - 1;
-    std::cout << "Iteration " << iter + 1 << " target:" << pol_volume_target
+    std::cout << "Iteration " << iter + 1 << " of " << _max_iter
+              << " target:" << pol_volume_target
               << " current:" << pol_volume_iter << std::endl;
 
     if (std::abs(scale) < _tolerance_pol) {

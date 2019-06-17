@@ -27,19 +27,21 @@ namespace votca {
 namespace xtp {
 
 void PolarRegion::Initialize(const tools::Property& prop) {
-
+  std::string key = identify();
   std::string filename =
       prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_polar");
   tools::Property polar_xml;
   tools::load_property_from_xml(polar_xml, filename);
-  _max_iter = polar_xml.ifExistsReturnElseReturnDefault("max_iter", _max_iter);
-  _deltaE =
-      polar_xml.ifExistsReturnElseReturnDefault("tolerance_energy", _deltaE);
-  _deltaD =
-      polar_xml.ifExistsReturnElseReturnDefault("tolerance_dipole", _deltaD);
-  _exp_damp = polar_xml.ifExistsReturnElseReturnDefault("exp_damp", _exp_damp);
+  _max_iter =
+      polar_xml.ifExistsReturnElseReturnDefault(key + ".max_iter", _max_iter);
+  _deltaE = polar_xml.ifExistsReturnElseReturnDefault(key + ".tolerance_energy",
+                                                      _deltaE);
+  _deltaD = polar_xml.ifExistsReturnElseReturnDefault(key + ".tolerance_dipole",
+                                                      _deltaD);
+  _exp_damp =
+      polar_xml.ifExistsReturnElseReturnDefault(key + ".exp_damp", _exp_damp);
   _induce_intra_mol = polar_xml.ifExistsReturnElseReturnDefault(
-      "induce_intra_molecule", _induce_intra_mol);
+      key + ".induce_intra_molecule", _induce_intra_mol);
 
   return;
 }
@@ -119,7 +121,7 @@ std::pair<bool, double> PolarRegion::DipolesConverged() const {
     for (const PolarSite& site : seg) {
       double change = site.DipoleChange();
       if (change > maxchange) {
-        change = maxchange;
+        maxchange = change;
         segid = seg.getId();
         siteid = site.getId();
       }
@@ -160,7 +162,8 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     XTP_LOG_SAVE(logINFO, _log) << "Reset old induced fields" << std::flush;
     double polar_energy = PolarInteraction();
     XTP_LOG_SAVE(logINFO, _log)
-        << "Calculated polar interactions" << std::flush;
+        << "Calculated polar interactions energy[hrt]=" << polar_energy
+        << std::flush;
 
     std::pair<bool, double> d_converged = DipolesConverged();
     bool e_converged = false;
@@ -172,7 +175,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       if (deltaE < _deltaE) {
         e_converged = true;
         XTP_LOG_SAVE(logINFO, _log)
-            << "Energy converged to" << _deltaE << std::flush;
+            << "Energy converged to " << _deltaE << std::flush;
       }
     }
     bool converged = d_converged.first && e_converged;
