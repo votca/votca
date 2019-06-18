@@ -99,20 +99,38 @@ class DavidsonSolver {
     // Start of the main iteration loop
     for (int iiter = 0; iiter < _iter_max; iiter++) {
 
+      Eigen::MatrixXd T;
+
       // check if we need to restart
       bool restart_required =
           search_space > _max_search_space || search_space > op_size;
-      if (restart_required && iiter > 0) {
+      if (iiter == 0 || _davidson_ortho == ORTHO::QR) {
+        AV = A * V;
+        T = V.transpose() * AV;
+      } else if (restart_required) {
         V = q.leftCols(size_restart);
         V.colwise().normalize();
         AV = AV * U.leftCols(size_restart);  // corresponds to replacing V with
                                              // q.leftCols
         search_space = size_restart;
-      } else {
-        AV = A * V;
+        T = V.transpose() * AV;
+      } else if (_davidson_ortho == ORTHO::GS) {  // GS orthogonalisation leaves
+                                                  // old eigenvectors untouched,
+                                                  // so we only have to update
+                                                  // the new ones
+        int size = V.rows();
+        int old_dim = T.cols();
+        int new_dim = V.cols();
+        int nvec = new_dim - old_dim;
+        AV.conservativeResize(Eigen::NoChange, new_dim);
+        AV.block(0, old_dim, size, nvec) = A * V.block(0, old_dim, size, nvec);
+        T.conservativeResize(new_dim, new_dim);
+        T.block(0, old_dim, new_dim, nvec) =
+            V.transpose() * AV.block(0, old_dim, size, nvec);
+        T.block(old_dim, 0, nvec, old_dim) =
+            T.block(0, old_dim, old_dim, nvec).transpose();
       }
 
-      Eigen::MatrixXd T = V.transpose() * AV;
       // diagonalize the small subspace
       Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
       const Eigen::VectorXd &lambda = es.eigenvalues();
