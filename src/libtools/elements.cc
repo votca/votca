@@ -110,7 +110,8 @@ double Elements::getPolarizability(string name) {
   return _ElPolarizability.at(name);
 }
 
-double Elements::getCovRad(string name, const DistanceUnit& new_distance_unit) {
+double Elements::getCovRad(const string& name,
+                           const DistanceUnit& new_distance_unit) {
   // TODO - This should be replaced with an object, an object that should
   //       auto recognise the units and return it in a standard type
   if (!this->_filled_CovRad) {

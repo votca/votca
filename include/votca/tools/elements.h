@@ -91,7 +91,8 @@ class Elements {
   double getPolarizability(std::string name);
 
   /// Returns the covalent Radii of the atom
-  double getCovRad(std::string name, const DistanceUnit& new_distance_unit);
+  double getCovRad(const std::string& name,
+                   const DistanceUnit& new_distance_unit);
 
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
