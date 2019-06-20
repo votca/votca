@@ -60,10 +60,10 @@ BOOST_AUTO_TEST_CASE(load_mps) {
 
   Eigen::VectorXd mul_ref = Eigen::VectorXd::Zero(9);
   mul_ref << 1, 10, 0, 0, 100, 0, 0, 0, 0;
-  bool multipoles_equal = mul_ref.isApprox(seg[0].getPermMultipole(), 1e-5);
+  bool multipoles_equal = mul_ref.isApprox(seg[0].Q(), 1e-5);
   if (!multipoles_equal) {
     std::cout << "result" << std::endl;
-    std::cout << seg[0].getPermMultipole() << std::endl;
+    std::cout << seg[0].Q() << std::endl;
     std::cout << "reference" << std::endl;
     std::cout << mul_ref << std::endl;
   }

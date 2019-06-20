@@ -46,15 +46,15 @@ PolarSite::PolarSite(data& d) { ReadData(d); };
 void PolarSite::calcDIIS_InducedDipole() {
 
   Eigen::Vector3d induced_dipole =
-      -_Ps * (_localpermanentField + _localinducedField);
+      -_Ps * (_V.segment<3>(1) + _V_ind.segment<3>(1));
   _dipole_hist.push_back(induced_dipole);
   int hist_size = _dipole_hist.size();
   if (hist_size == 1) {
     _induced_dipole = induced_dipole;
     return;
-  } else if (hist_size < 1000) {
+  } else if (hist_size < 200) {
     _induced_dipole =
-        _dipole_hist[_dipole_hist.size() - 2] * 0.5 + _dipole_hist.back() * 0.5;
+        _dipole_hist[_dipole_hist.size() - 2] * 0.7 + _dipole_hist.back() * 0.3;
     return;
   }
 
@@ -96,7 +96,7 @@ void PolarSite::calcDIIS_InducedDipole() {
   }
 
   Eigen::VectorXd coeffs = eigenvectors.col(mincoeff);
-  if (std::abs(coeffs[coeffs.size() - 1]) < 1e-9) {
+  if (std::abs(coeffs[coeffs.size() - 1]) < 0.0001) {
     _induced_dipole =
         _dipole_hist[_dipole_hist.size() - 2] * 0.5 + _dipole_hist.back() * 0.5;
     return;
@@ -106,6 +106,19 @@ void PolarSite::calcDIIS_InducedDipole() {
   for (int i = 0; i < hist_size - 1; i++) {
     _induced_dipole += coeffs[i] * _dipole_hist[i + 1];
   }
+}
+
+double PolarSite::FieldEnergy() const {
+  double e = StaticSite::FieldEnergy();
+  e += _V_ind.dot(_Q);
+  e += _V.segment<3>(1).dot(_induced_dipole);
+  e += _V_ind.segment<3>(1).dot(_induced_dipole);
+  return e;
+}
+
+double PolarSite::InternalEnergy() const {
+  auto field = (_V.segment<3>(1) + _V_ind.segment<3>(1));
+  return -0.5 * field.dot(_induced_dipole);  // internal
 }
 
 double PolarSite::DipoleChange() const {
@@ -119,15 +132,12 @@ double PolarSite::DipoleChange() const {
 }
 
 Eigen::Vector3d PolarSite::getDipole() const {
-  Eigen::Vector3d dipole = _multipole.segment<3>(1);
+  Eigen::Vector3d dipole = _Q.segment<3>(1);
   dipole += getInduced_Dipole();
   return dipole;
 }
 
-void PolarSite::ResetInduction() {
-  _phi_induced = 0.0;
-  _localinducedField.setZero();
-}
+void PolarSite::ResetInduction() { _V_ind.setZero(); }
 
 void PolarSite::setPolarisation(const Eigen::Matrix3d pol) {
   _Ps = pol;
@@ -155,23 +165,25 @@ void PolarSite::SetupCptTable(CptTable& table) const {
 
   table.addCol(_rank, "rank", HOFFSET(data, rank));
 
-  table.addCol(_multipole[0], "multipoleQ00", HOFFSET(data, multipoleQ00));
-  table.addCol(_multipole[1], "multipoleQ11c", HOFFSET(data, multipoleQ11c));
-  table.addCol(_multipole[2], "multipoleQ11s", HOFFSET(data, multipoleQ11s));
-  table.addCol(_multipole[3], "multipoleQ10", HOFFSET(data, multipoleQ10));
-  table.addCol(_multipole[4], "multipoleQ20", HOFFSET(data, multipoleQ20));
-  table.addCol(_multipole[5], "multipoleQ21c", HOFFSET(data, multipoleQ21c));
-  table.addCol(_multipole[6], "multipoleQ21s", HOFFSET(data, multipoleQ21s));
-  table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
-  table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
+  table.addCol(_Q[0], "Q00", HOFFSET(data, Q00));
+  table.addCol(_Q[1], "Q11c", HOFFSET(data, Q11c));
+  table.addCol(_Q[2], "Q11s", HOFFSET(data, Q11s));
+  table.addCol(_Q[3], "Q10", HOFFSET(data, Q10));
+  table.addCol(_Q[4], "Q20", HOFFSET(data, Q20));
+  table.addCol(_Q[5], "Q21c", HOFFSET(data, Q21c));
+  table.addCol(_Q[6], "Q21s", HOFFSET(data, Q21s));
+  table.addCol(_Q[7], "Q22c", HOFFSET(data, Q22c));
+  table.addCol(_Q[8], "Q22s", HOFFSET(data, Q22s));
 
-  table.addCol(_localpermanentField[0], "localPermFieldX",
-               HOFFSET(data, fieldX));
-  table.addCol(_localpermanentField[1], "localPermFieldY",
-               HOFFSET(data, fieldY));
-  table.addCol(_localpermanentField[2], "localPermFieldZ",
-               HOFFSET(data, fieldZ));
-  table.addCol(_phi, "phi", HOFFSET(data, phi));
+  table.addCol(_V[0], "V00", HOFFSET(data, V00));
+  table.addCol(_V[1], "V11c", HOFFSET(data, V11c));
+  table.addCol(_V[2], "V11s", HOFFSET(data, V11s));
+  table.addCol(_V[3], "V10", HOFFSET(data, V10));
+  table.addCol(_V[4], "V20", HOFFSET(data, V20));
+  table.addCol(_V[5], "V21c", HOFFSET(data, V21c));
+  table.addCol(_V[6], "V21s", HOFFSET(data, V21s));
+  table.addCol(_V[7], "V22c", HOFFSET(data, V22c));
+  table.addCol(_V[8], "V22s", HOFFSET(data, V22s));
 
   table.addCol(_Ps(0, 0), "pxx", HOFFSET(data, pxx));
   table.addCol(_Ps(0, 1), "pxy", HOFFSET(data, pxy));
@@ -180,14 +192,15 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_Ps(1, 2), "pyz", HOFFSET(data, pyz));
   table.addCol(_Ps(2, 2), "pzz", HOFFSET(data, pzz));
 
-  table.addCol(_localinducedField[0], "localInducedFieldX",
-               HOFFSET(data, fieldX_induced));
-  table.addCol(_localinducedField[1], "localInducedFieldY",
-               HOFFSET(data, fieldY_induced));
-  table.addCol(_localinducedField[2], "localInducedFieldZ",
-               HOFFSET(data, fieldZ_induced));
-
-  table.addCol(_phi_induced, "phiInduced", HOFFSET(data, phi_induced));
+  table.addCol(_V_ind[0], "V_ind00", HOFFSET(data, V00_ind));
+  table.addCol(_V_ind[1], "V_ind11c", HOFFSET(data, V11c_ind));
+  table.addCol(_V_ind[2], "V_ind11s", HOFFSET(data, V11s_ind));
+  table.addCol(_V_ind[3], "V_ind10", HOFFSET(data, V10_ind));
+  table.addCol(_V_ind[4], "V_ind20", HOFFSET(data, V20_ind));
+  table.addCol(_V_ind[5], "V_ind21c", HOFFSET(data, V21c_ind));
+  table.addCol(_V_ind[6], "V_ind21s", HOFFSET(data, V21s_ind));
+  table.addCol(_V_ind[7], "V_ind22c", HOFFSET(data, V22c_ind));
+  table.addCol(_V_ind[8], "V_ind22s", HOFFSET(data, V22s_ind));
 }
 
 void PolarSite::WriteData(data& d) const {
@@ -199,20 +212,24 @@ void PolarSite::WriteData(data& d) const {
 
   d.rank = _rank;
 
-  d.multipoleQ00 = _multipole[0];
-  d.multipoleQ11c = _multipole[1];
-  d.multipoleQ11s = _multipole[2];
-  d.multipoleQ10 = _multipole[3];
-  d.multipoleQ20 = _multipole[4];
-  d.multipoleQ21c = _multipole[5];
-  d.multipoleQ21s = _multipole[6];
-  d.multipoleQ22c = _multipole[7];
-  d.multipoleQ22s = _multipole[8];
+  d.Q00 = _Q[0];
+  d.Q11c = _Q[1];
+  d.Q11s = _Q[2];
+  d.Q10 = _Q[3];
+  d.Q20 = _Q[4];
+  d.Q21c = _Q[5];
+  d.Q21s = _Q[6];
+  d.Q22c = _Q[7];
+  d.Q22s = _Q[8];
 
-  d.fieldX = _localpermanentField[0];
-  d.fieldY = _localpermanentField[1];
-  d.fieldZ = _localpermanentField[2];
-  d.phi = _phi;
+  d.V11c = _V[1];
+  d.V11s = _V[2];
+  d.V10 = _V[3];
+  d.V20 = _V[4];
+  d.V21c = _V[5];
+  d.V21s = _V[6];
+  d.V22c = _V[7];
+  d.V22s = _V[8];
 
   d.pxx = _Ps(0, 0);
   d.pxy = _Ps(0, 1);
@@ -221,11 +238,14 @@ void PolarSite::WriteData(data& d) const {
   d.pyz = _Ps(1, 2);
   d.pzz = _Ps(2, 2);
 
-  d.fieldX_induced = _localinducedField[0];
-  d.fieldY_induced = _localinducedField[1];
-  d.fieldZ_induced = _localinducedField[2];
-
-  d.phi_induced = _phi_induced;
+  d.V11c_ind = _V_ind[1];
+  d.V11s_ind = _V_ind[2];
+  d.V10_ind = _V_ind[3];
+  d.V20_ind = _V_ind[4];
+  d.V21c_ind = _V_ind[5];
+  d.V21s_ind = _V_ind[6];
+  d.V22c_ind = _V_ind[7];
+  d.V22s_ind = _V_ind[8];
 }
 
 void PolarSite::ReadData(data& d) {
@@ -238,20 +258,25 @@ void PolarSite::ReadData(data& d) {
 
   _rank = d.rank;
 
-  _multipole[0] = d.multipoleQ00;
-  _multipole[1] = d.multipoleQ11c;
-  _multipole[2] = d.multipoleQ11s;
-  _multipole[3] = d.multipoleQ10;
-  _multipole[4] = d.multipoleQ20;
-  _multipole[5] = d.multipoleQ21c;
-  _multipole[6] = d.multipoleQ21s;
-  _multipole[7] = d.multipoleQ22c;
-  _multipole[8] = d.multipoleQ22s;
+  _Q[0] = d.Q00;
+  _Q[1] = d.Q11c;
+  _Q[2] = d.Q11s;
+  _Q[3] = d.Q10;
+  _Q[4] = d.Q20;
+  _Q[5] = d.Q21c;
+  _Q[6] = d.Q21s;
+  _Q[7] = d.Q22c;
+  _Q[8] = d.Q22s;
 
-  _localpermanentField[0] = d.fieldX;
-  _localpermanentField[1] = d.fieldY;
-  _localpermanentField[2] = d.fieldZ;
-  _phi = d.phi;
+  _V[0] = d.V00;
+  _V[1] = d.V11c;
+  _V[2] = d.V11s;
+  _V[3] = d.V10;
+  _V[4] = d.V20;
+  _V[5] = d.V21c;
+  _V[6] = d.V21s;
+  _V[7] = d.V22c;
+  _V[8] = d.V22s;
 
   Eigen::Matrix3d Ps;
   Ps(0, 0) = d.pxx;
@@ -266,10 +291,15 @@ void PolarSite::ReadData(data& d) {
 
   this->setPolarisation(Ps);
 
-  _localinducedField[0] = d.fieldX_induced;
-  _localinducedField[1] = d.fieldY_induced;
-  _localinducedField[2] = d.fieldZ_induced;
-  _phi_induced = d.phi_induced;
+  _V_ind[0] = d.V00_ind;
+  _V_ind[1] = d.V11c_ind;
+  _V_ind[2] = d.V11s_ind;
+  _V_ind[3] = d.V10_ind;
+  _V_ind[4] = d.V20_ind;
+  _V_ind[5] = d.V21c_ind;
+  _V_ind[6] = d.V21s_ind;
+  _V_ind[7] = d.V22c_ind;
+  _V_ind[8] = d.V22s_ind;
 }
 
 }  // namespace xtp

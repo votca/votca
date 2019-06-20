@@ -54,13 +54,10 @@ class PolarSite : public StaticSite {
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const override;
 
-  Eigen::Vector3d& getInducedField() { return _localinducedField; }
-
-  const Eigen::Vector3d& getInducedField() const { return _localinducedField; }
+  const Vector9d& V_ind() const { return _V_ind; }
+  Vector9d& V_ind() { return _V_ind; }
 
   double getEigenDamp() const { return _eigendamp; }
-  const double& getInducedPotential() const { return _phi_induced; }
-  double& getInducedPotential() { return _phi_induced; }
 
   void Rotate(const Eigen::Matrix3d& R,
               const Eigen::Vector3d& ref_pos) override {
@@ -71,9 +68,11 @@ class PolarSite : public StaticSite {
 
   const Eigen::Vector3d& getInduced_Dipole() const { return _induced_dipole; }
 
-  double InductionWork() const {
-    return -0.5 * getInduced_Dipole().transpose() * getField();
-  }
+  double Energy() const { return FieldEnergy() + InternalEnergy(); }
+
+  double FieldEnergy() const;
+
+  double InternalEnergy() const;
 
   struct data {
     int id;
@@ -84,20 +83,25 @@ class PolarSite : public StaticSite {
 
     int rank;
 
-    double multipoleQ00;
-    double multipoleQ11c;
-    double multipoleQ11s;
-    double multipoleQ10;
-    double multipoleQ20;
-    double multipoleQ21c;
-    double multipoleQ21s;
-    double multipoleQ22c;
-    double multipoleQ22s;
+    double Q00;
+    double Q11c;
+    double Q11s;
+    double Q10;
+    double Q20;
+    double Q21c;
+    double Q21s;
+    double Q22c;
+    double Q22s;
 
-    double fieldX;
-    double fieldY;
-    double fieldZ;
-    double phi;
+    double V00;
+    double V11c;
+    double V11s;
+    double V10;
+    double V20;
+    double V21c;
+    double V21s;
+    double V22c;
+    double V22s;
 
     double pxx;
     double pxy;
@@ -106,10 +110,15 @@ class PolarSite : public StaticSite {
     double pyz;
     double pzz;
 
-    double fieldX_induced;
-    double fieldY_induced;
-    double fieldZ_induced;
-    double phi_induced;
+    double V00_ind;
+    double V11c_ind;
+    double V11s_ind;
+    double V10_ind;
+    double V20_ind;
+    double V21c_ind;
+    double V21s_ind;
+    double V22c_ind;
+    double V22s_ind;
   };
   // do not move up has to be below data definition
   PolarSite(data& d);
@@ -139,8 +148,7 @@ class PolarSite : public StaticSite {
   std::string writePolarisation() const override;
 
   Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
-  Eigen::Vector3d _localinducedField = Eigen::Vector3d::Zero();
-  double _phi_induced = 0.0;  // Electric potential (due to indu.)
+  Vector9d _V_ind = Vector9d::Zero();
 
   // cached data
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();

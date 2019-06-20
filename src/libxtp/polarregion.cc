@@ -48,11 +48,11 @@ void PolarRegion::Initialize(const tools::Property& prop) {
 
 bool PolarRegion::Converged() const {
 
-  double Echange = std::abs(_E_hist.getDiff());
-  double Dchange = std::abs(_D_hist.getDiff());
+  double Echange = _E_hist.getDiff();
+  double Dchange = _D_hist.getDiff();
   std::string info = "not converged";
   bool converged = false;
-  if (Dchange < _deltaD && Echange < _deltaE) {
+  if (std::abs(Dchange) < _deltaD && std::abs(Echange) < _deltaE) {
     info = "converged";
     converged = true;
   }
@@ -63,35 +63,48 @@ bool PolarRegion::Converged() const {
 }
 
 double PolarRegion::StaticInteraction() {
-  double static_energy = 0.0;
+  double energy_ext = 0.0;
+  for (const PolarSegment& seg : _segments) {
+    for (const PolarSite site : seg) {
+      energy_ext += site.Energy();
+    }
+  }
+  double e_static = 0.0;
   eeInteractor eeinteractor;
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < i; ++j) {
-      static_energy += eeinteractor.InteractStatic(_segments[i], _segments[j]);
+      e_static += eeinteractor.InteractStatic(_segments[i], _segments[j]);
     }
   }
   if (_induce_intra_mol) {
     for (PolarSegment& seg : _segments) {
-      static_energy += eeinteractor.InteractStatic_IntraSegment(seg);
+      e_static += eeinteractor.InteractStatic_IntraSegment(seg);
     }
   }
-  return static_energy;
+  return energy_ext + e_static;
 }
 
 double PolarRegion::PolarInteraction() {
-  double polar_energy = 0.0;
+  double field_energy = 0.0;
   eeInteractor eeinteractor(_exp_damp);
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < i; ++j) {
-      polar_energy += eeinteractor.InteractPolar(_segments[i], _segments[j]);
+      field_energy += eeinteractor.InteractPolar(_segments[i], _segments[j]);
     }
   }
   if (_induce_intra_mol) {
     for (PolarSegment& seg : _segments) {
-      polar_energy += eeinteractor.InteractPolar_IntraSegment(seg);
+      field_energy += eeinteractor.InteractPolar_IntraSegment(seg);
     }
   }
-  return polar_energy;
+
+  double energy_ind = 0.0;
+  for (const PolarSegment& seg : _segments) {
+    for (const PolarSite site : seg) {
+      energy_ind += site.InternalEnergy();
+    }
+  }
+  return field_energy + energy_ind;
 }
 
 void PolarRegion::CalcInducedDipoles() {
@@ -147,7 +160,9 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log)
       << "Evaluating electrostatics inside region" << std::flush;
-  double energy = StaticInteraction();
+  double energy_stat = StaticInteraction();
+  XTP_LOG_SAVE(logINFO, _log)
+      << "Calculated static energy[hrt]= " << energy_stat << std::flush;
   XTP_LOG_SAVE(logINFO, _log)
       << "Starting SCF for classical polarisation" << std::flush;
 
@@ -162,17 +177,17 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     XTP_LOG_SAVE(logINFO, _log) << "Reset old induced fields" << std::flush;
     double polar_energy = PolarInteraction();
     XTP_LOG_SAVE(logINFO, _log)
-        << "Calculated polar interactions energy[hrt]=" << polar_energy
+        << "Calculated total energy[hrt]= " << energy_stat + polar_energy
         << std::flush;
 
     std::pair<bool, double> d_converged = DipolesConverged();
     bool e_converged = false;
-    double deltaE = std::abs(polar_energy - e_old);
+    double deltaE = polar_energy - e_old;
     e_old = polar_energy;
     if (iteration > 0) {
       XTP_LOG_SAVE(logINFO, _log)
-          << "Change from last iteration DeltaE [Ha]:" << deltaE << std::flush;
-      if (deltaE < _deltaE) {
+          << "Change from last iteration DeltaE [Ha]: " << deltaE << std::flush;
+      if (std::abs(deltaE) < _deltaE) {
         e_converged = true;
         XTP_LOG_SAVE(logINFO, _log)
             << "Energy converged to " << _deltaE << std::flush;
@@ -180,8 +195,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
     bool converged = d_converged.first && e_converged;
     if (converged || (iteration == (_max_iter - 1))) {
-      energy += polar_energy;
-      _E_hist.push_back(energy);
+      _E_hist.push_back(polar_energy);
       _D_hist.push_back(d_converged.second);
       if (converged) {
         XTP_LOG_SAVE(logINFO, _log)

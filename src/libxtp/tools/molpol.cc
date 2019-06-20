@@ -73,7 +73,7 @@ Eigen::Vector3d MolPol::Polarize(PolarRegion& pol,
   std::vector<std::unique_ptr<Region>> empty;
   PolarSegment& workmol = pol[0];
   for (PolarSite& site : workmol) {
-    site.getField() = ext_field;
+    site.V().segment<3>(1) = ext_field;
   }
   pol.Evaluate(empty);
   Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
@@ -134,7 +134,7 @@ bool MolPol::Evaluate() {
     const double pol_volume_iter =
         std::pow(es2.eigenvalues().prod(), 1.0 / 3.0);
     double scale = pol_volume_target / pol_volume_iter - 1;
-    std::cout << "Iteration " << iter + 1 << " of " << _max_iter
+    std::cout << "\nIteration " << iter + 1 << " of " << _max_iter
               << " target:" << pol_volume_target
               << " current:" << pol_volume_iter << std::endl;
 

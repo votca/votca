@@ -168,26 +168,38 @@ double NumericalIntegration::IntegratePotential(
     const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
     const std::vector<double>& densities = _grid_boxes[i].getGridDensities();
     for (unsigned j = 0; j < points.size(); j++) {
+      double charge = -weights[j] * densities[j];
       double dist = (points[j] - rvector).norm();
-      result -= weights[j] * densities[j] / dist;
+      result = charge / dist;
     }
   }
   return result;
 }
 
-Eigen::Vector3d NumericalIntegration::IntegrateField(
+Vector9d NumericalIntegration::IntegrateV(
     const Eigen::Vector3d& rvector) const {
 
-  Eigen::Vector3d result = Eigen::Vector3d::Zero();
+  Vector9d result = Vector9d::Zero();
   assert(_density_set && "Density not calculated");
   for (unsigned i = 0; i < _grid_boxes.size(); i++) {
     const std::vector<Eigen::Vector3d>& points = _grid_boxes[i].getGridPoints();
     const std::vector<double>& weights = _grid_boxes[i].getGridWeights();
     const std::vector<double>& densities = _grid_boxes[i].getGridDensities();
     for (unsigned j = 0; j < points.size(); j++) {
-      Eigen::Vector3d direction = points[j] - rvector;
-      double dist = direction.norm();
-      result += weights[j] * densities[j] * direction / std::pow(dist, 3);
+      double charge = -weights[j] * densities[j];
+      Eigen::Vector3d r = points[j] - rvector;
+      double dist = r.norm();
+      result(0) += charge / dist;
+      double dist2 = dist * dist;
+      double dist3 = dist * dist2;
+      result.segment<3>(1) += charge * r / dist3;  // x,y,z
+      double charge_dist5 = charge / std::pow(dist, 5);
+      result(4) += charge_dist5 / 2 * (9 * r.z() * r.z() - 3 * dist2);
+      double fac = 3 * std::sqrt(3) * charge_dist5;
+      result(5) += fac * r.x() * r.z();
+      result(6) += fac * r.y() * r.z();
+      result(7) += fac / 2 * (r.x() * r.x() - r.y() * r.y());
+      result(8) += fac * r.x() * r.y();
     }
   }
   return result;

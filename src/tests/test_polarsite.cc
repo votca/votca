@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(multipole_test) {
   Vector9d multipole = Vector9d::Zero(9);
   multipole << 1, 2, 3, 4, 8, 7, 2, 3.3, -0.5;
   ps.setMultipole(multipole, 2);
-  bool check_mpoles = multipole.isApprox(ps.getPermMultipole(), 0.0001);
+  bool check_mpoles = multipole.isApprox(ps.Q(), 0.0001);
   BOOST_CHECK_EQUAL(check_mpoles, true);
 
   bool check_rank = (ps.getRank() == 2);
@@ -73,10 +73,10 @@ BOOST_AUTO_TEST_CASE(rotation_test) {
 
   Eigen::VectorXd rotmultipoles = Eigen::VectorXd::Zero(9);
   rotmultipoles << 1, 0, 1, 0, 0, 0, 1, 0, 0;  // q=1, mu_y=1 and Q_21s=1 is 0
-  bool equalmultipoles = rotmultipoles.isApprox(ps.getPermMultipole(), 1e-5);
+  bool equalmultipoles = rotmultipoles.isApprox(ps.Q(), 1e-5);
   if (!equalmultipoles) {
     std::cout << "Result " << std::endl;
-    std::cout << ps.getPermMultipole() << std::endl;
+    std::cout << ps.Q() << std::endl;
     std::cout << "Reference" << std::endl;
     std::cout << rotmultipoles << std::endl;
   }

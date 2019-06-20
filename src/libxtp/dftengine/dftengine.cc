@@ -374,7 +374,7 @@ Mat_p_Energy DFTEngine::SetupH0() const {
                       .str();
       }
       if (site->getRank() > 1) {
-        Eigen::VectorXd quadrupole = site->getPermMultipole().tail<5>();
+        Eigen::VectorXd quadrupole = site->Q().tail<5>();
         output +=
             (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f") %
              quadrupole[0] % quadrupole[1] % quadrupole[2] % quadrupole[3] %
