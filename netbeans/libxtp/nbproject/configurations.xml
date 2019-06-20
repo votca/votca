@@ -366,6 +366,7 @@
       <itemPath>../../share/xtp/xml/kmcmultiple.xml</itemPath>
       <itemPath>../../share/xtp/xml/log2mps.xml</itemPath>
       <itemPath>../../share/xtp/xml/map.xml</itemPath>
+      <itemPath>../../share/xtp/xml/molpol.xml</itemPath>
       <itemPath>../../share/xtp/xml/neighborlist.xml</itemPath>
       <itemPath>../../share/xtp/xml/options.xml</itemPath>
       <itemPath>../../share/xtp/xml/partialcharges.xml</itemPath>
@@ -4318,6 +4319,8 @@
       </item>
       <item path="../../share/xtp/xml/map.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../share/xtp/xml/molpol.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/neighborlist.xml"
             ex="false"
             tool="3"
@@ -5436,6 +5439,8 @@
       <item path="../../share/xtp/xml/log2mps.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/map.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/molpol.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/neighborlist.xml"
             ex="false"

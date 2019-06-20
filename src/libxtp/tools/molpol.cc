@@ -60,9 +60,6 @@ void MolPol::Initialize(tools::Property& options) {
   _tolerance_pol = options.ifExistsReturnElseReturnDefault<double>(
       key + ".tolerance", _tolerance_pol);
 
-  _alpha =
-      options.ifExistsReturnElseReturnDefault<double>(key + ".alpha", _alpha);
-
   _max_iter = options.ifExistsReturnElseReturnDefault<int>(key + ".iterations",
                                                            _max_iter);
 }

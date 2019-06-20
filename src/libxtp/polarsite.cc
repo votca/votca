@@ -45,7 +45,7 @@ PolarSite::PolarSite(data& d) { ReadData(d); };
 
 template <bool choleksy>
 void PolarSite::calcDIIS_InducedDipole() {
-  if (!choleksy) {
+  if (!choleksy || _dipole_hist.empty()) {
     _induced_dipole = -_Ps * (_V.segment<3>(1) + _V_ind.segment<3>(1));
   }
   _dipole_hist.push_back(_induced_dipole);
