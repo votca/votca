@@ -63,10 +63,10 @@ if(ENABLE_REGRESSION_TESTING)
       endforeach(FILE ${FILES})
     endif (NOT CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
     string(REGEX REPLACE "/$" "" DIR "${DIR}")
-    string(REPLACE / _ TESTNAME "${DIR}")
+    string(REPLACE / _ TESTNAME "regression_${DIR}")
     add_test(NAME ${TESTNAME} COMMAND $<TARGET_FILE:VOTCA::csg_inverse> --options settings.xml --do-iterations 1 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${DIR})
     # run tests for csg (to test csg) and tools (coverage) as well
-    set_tests_properties(${TESTNAME} PROPERTIES LABELS "csg-tutorials;csg;tools;votca")
+    set_tests_properties(${TESTNAME} PROPERTIES LABELS "csg-tutorials;csg;tools;votca;regression")
     set(CSG_MDRUN_STEPS 500)
     if(DIR MATCHES "/(imc)($|_)")
       set(CSG_MDRUN_STEPS 5000)
@@ -96,8 +96,10 @@ configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BIN
 option(ENABLE_TESTING "Test if cmake worked" OFF)
 if(ENABLE_TESTING)
   enable_testing()
-  add_test(UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+  add_test(regression_UninstallExists ${CMAKE_COMMAND} -DFileToCheck=${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
            -P ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/FileExists.cmake) 
+
+  set_tests_properties(regression_UninstallExists PROPERTIES LABELS "regression")
 endif(ENABLE_TESTING)
 add_custom_target(uninstall-csg-tutorials COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 if(NOT TARGET uninstall)
