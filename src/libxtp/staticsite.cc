@@ -29,10 +29,9 @@ namespace votca {
 namespace xtp {
 
 Eigen::Matrix3d StaticSite::CalculateCartesianMultipole() const {
-  // spherical_multipoles Q = ( Q00,Q10,Q11c,Q11s,Q20,Q21c,Q21s,Q22c,Q22s )
-  // We are trasforming here just quadrupoles
+  // We are transforming here just quadrupoles
   // const  Eigen::VectorXd& MP = _multipole;
-  const Vector9d& MP = _multipole;
+  const Vector9d& MP = _Q;
   Eigen::Matrix3d theta = Eigen::Matrix3d::Zero();
   if (_rank > 1) {
     double sqr3 = std::sqrt(3);
@@ -64,12 +63,12 @@ void StaticSite::Rotate(const Eigen::Matrix3d& R,
   dir = R * dir;
   _pos = refPos + dir;  // Rotated Position
   if (_rank > 0) {
-    _multipole.segment<3>(1) = R * _multipole.segment<3>(1);
+    _Q.segment<3>(1) = R * _Q.segment<3>(1);
   }
   if (_rank > 1) {
     Eigen::Matrix3d cartesianquad = CalculateCartesianMultipole();
     Eigen::Matrix3d rotated = R * cartesianquad * R.transpose();
-    _multipole.segment<5>(4) = CalculateSphericalMultipole(rotated);
+    _Q.segment<5>(4) = CalculateSphericalMultipole(rotated);
   }
   return;
 }
@@ -97,15 +96,14 @@ std::string StaticSite::WriteMpsLine(string unit) const {
   output += (boost::format("    %1$+1.7f\n") % getCharge()).str();
   if (_rank > 0) {
     // Dipole z x y
-    output += (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") %
-               _multipole(1) % _multipole(2) % _multipole(3))
+    output += (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") % _Q(1) %
+               _Q(2) % _Q(3))
                   .str();
     if (_rank > 1) {
       // Quadrupole 20 21c 21s 22c 22s
       output +=
           (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f\n") %
-           _multipole(4) % _multipole(5) % _multipole(6) % _multipole(7) %
-           _multipole(8))
+           _Q(4) % _Q(5) % _Q(6) % _Q(7) % _Q(8))
               .str();
     }
   }
@@ -124,24 +122,25 @@ void StaticSite::SetupCptTable(CptTable& table) const {
 
   table.addCol(_rank, "rank", HOFFSET(data, rank));
 
-  table.addCol(_multipole[0], "multipoleQ00", HOFFSET(data, multipoleQ00));
-  table.addCol(_multipole[1], "multipoleQ11c", HOFFSET(data, multipoleQ11c));
-  table.addCol(_multipole[2], "multipoleQ11s", HOFFSET(data, multipoleQ11s));
-  table.addCol(_multipole[3], "multipoleQ10", HOFFSET(data, multipoleQ10));
-  table.addCol(_multipole[4], "multipoleQ20", HOFFSET(data, multipoleQ20));
-  table.addCol(_multipole[5], "multipoleQ21c", HOFFSET(data, multipoleQ21c));
-  table.addCol(_multipole[6], "multipoleQ21s", HOFFSET(data, multipoleQ21s));
-  table.addCol(_multipole[7], "multipoleQ22c", HOFFSET(data, multipoleQ22c));
-  table.addCol(_multipole[8], "multipoleQ22s", HOFFSET(data, multipoleQ22s));
+  table.addCol(_Q[0], "Q00", HOFFSET(data, Q00));
+  table.addCol(_Q[1], "Q11c", HOFFSET(data, Q11c));
+  table.addCol(_Q[2], "Q11s", HOFFSET(data, Q11s));
+  table.addCol(_Q[3], "Q10", HOFFSET(data, Q10));
+  table.addCol(_Q[4], "Q20", HOFFSET(data, Q20));
+  table.addCol(_Q[5], "Q21c", HOFFSET(data, Q21c));
+  table.addCol(_Q[6], "Q21s", HOFFSET(data, Q21s));
+  table.addCol(_Q[7], "Q22c", HOFFSET(data, Q22c));
+  table.addCol(_Q[8], "Q22s", HOFFSET(data, Q22s));
 
-  table.addCol(_localpermanentField[0], "localPermFieldX",
-               HOFFSET(data, fieldX));
-  table.addCol(_localpermanentField[1], "localPermFieldY",
-               HOFFSET(data, fieldY));
-  table.addCol(_localpermanentField[2], "localPermFieldZ",
-               HOFFSET(data, fieldZ));
-
-  table.addCol(_phi, "phi", HOFFSET(data, phi));
+  table.addCol(_V[0], "V00", HOFFSET(data, V00));
+  table.addCol(_V[1], "V11c", HOFFSET(data, V11c));
+  table.addCol(_V[2], "V11s", HOFFSET(data, V11s));
+  table.addCol(_V[3], "V10", HOFFSET(data, V10));
+  table.addCol(_V[4], "V20", HOFFSET(data, V20));
+  table.addCol(_V[5], "V21c", HOFFSET(data, V21c));
+  table.addCol(_V[6], "V21s", HOFFSET(data, V21s));
+  table.addCol(_V[7], "V22c", HOFFSET(data, V22c));
+  table.addCol(_V[8], "V22s", HOFFSET(data, V22s));
 }
 
 void StaticSite::WriteData(data& d) const {
@@ -153,20 +152,25 @@ void StaticSite::WriteData(data& d) const {
 
   d.rank = _rank;
 
-  d.multipoleQ00 = _multipole[0];
-  d.multipoleQ11c = _multipole[1];
-  d.multipoleQ11s = _multipole[2];
-  d.multipoleQ10 = _multipole[3];
-  d.multipoleQ20 = _multipole[4];
-  d.multipoleQ21c = _multipole[5];
-  d.multipoleQ21s = _multipole[6];
-  d.multipoleQ22c = _multipole[7];
-  d.multipoleQ22s = _multipole[8];
+  d.Q00 = _Q[0];
+  d.Q11c = _Q[1];
+  d.Q11s = _Q[2];
+  d.Q10 = _Q[3];
+  d.Q20 = _Q[4];
+  d.Q21c = _Q[5];
+  d.Q21s = _Q[6];
+  d.Q22c = _Q[7];
+  d.Q22s = _Q[8];
 
-  d.fieldX = _localpermanentField[0];
-  d.fieldY = _localpermanentField[1];
-  d.fieldZ = _localpermanentField[2];
-  d.phi = _phi;
+  d.V00 = _V[0];
+  d.V11c = _V[1];
+  d.V11s = _V[2];
+  d.V10 = _V[3];
+  d.V20 = _V[4];
+  d.V21c = _V[5];
+  d.V21s = _V[6];
+  d.V22c = _V[7];
+  d.V22s = _V[8];
 }
 
 void StaticSite::ReadData(data& d) {
@@ -179,21 +183,25 @@ void StaticSite::ReadData(data& d) {
 
   _rank = d.rank;
 
-  _multipole[0] = d.multipoleQ00;
-  _multipole[1] = d.multipoleQ11c;
-  _multipole[2] = d.multipoleQ11s;
-  _multipole[3] = d.multipoleQ10;
-  _multipole[4] = d.multipoleQ20;
-  _multipole[5] = d.multipoleQ21c;
-  _multipole[6] = d.multipoleQ21s;
-  _multipole[7] = d.multipoleQ22c;
-  _multipole[8] = d.multipoleQ22s;
+  _Q[0] = d.Q00;
+  _Q[1] = d.Q11c;
+  _Q[2] = d.Q11s;
+  _Q[3] = d.Q10;
+  _Q[4] = d.Q20;
+  _Q[5] = d.Q21c;
+  _Q[6] = d.Q21s;
+  _Q[7] = d.Q22c;
+  _Q[8] = d.Q22s;
 
-  _localpermanentField[0] = d.fieldX;
-  _localpermanentField[1] = d.fieldY;
-  _localpermanentField[2] = d.fieldZ;
-
-  _phi = d.phi;
+  _V[0] = d.V00;
+  _V[1] = d.V11c;
+  _V[2] = d.V11s;
+  _V[3] = d.V10;
+  _V[4] = d.V20;
+  _V[5] = d.V21c;
+  _V[6] = d.V21s;
+  _V[7] = d.V22c;
+  _V[8] = d.V22s;
 }
 
 }  // namespace xtp

@@ -303,6 +303,7 @@
       <itemPath>../../src/tests/test_davidson.cc</itemPath>
       <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
+      <itemPath>../../src/tests/test_eeinteractor.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
       <itemPath>../../src/tests/test_espfit.cc</itemPath>
@@ -365,6 +366,7 @@
       <itemPath>../../share/xtp/xml/kmcmultiple.xml</itemPath>
       <itemPath>../../share/xtp/xml/log2mps.xml</itemPath>
       <itemPath>../../share/xtp/xml/map.xml</itemPath>
+      <itemPath>../../share/xtp/xml/molpol.xml</itemPath>
       <itemPath>../../share/xtp/xml/neighborlist.xml</itemPath>
       <itemPath>../../share/xtp/xml/options.xml</itemPath>
       <itemPath>../../share/xtp/xml/partialcharges.xml</itemPath>
@@ -4317,6 +4319,8 @@
       </item>
       <item path="../../share/xtp/xml/map.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../share/xtp/xml/molpol.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/neighborlist.xml"
             ex="false"
             tool="3"
@@ -4854,6 +4858,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_eeinteractor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5431,6 +5440,8 @@
       </item>
       <item path="../../share/xtp/xml/map.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../share/xtp/xml/molpol.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../share/xtp/xml/neighborlist.xml"
             ex="false"
             tool="3"
@@ -5968,6 +5979,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_eeinteractor.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_eigen.cc" ex="false" tool="1" flavor2="0">
       </item>

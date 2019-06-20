@@ -44,21 +44,25 @@ class StaticSite {
 
     int rank;
 
-    double multipoleQ00;
-    double multipoleQ11c;
-    double multipoleQ11s;
-    double multipoleQ10;
-    double multipoleQ20;
-    double multipoleQ21c;
-    double multipoleQ21s;
-    double multipoleQ22c;
-    double multipoleQ22s;
+    double Q00;
+    double Q11c;
+    double Q11s;
+    double Q10;
+    double Q20;
+    double Q21c;
+    double Q21s;
+    double Q22c;
+    double Q22s;
 
-    double fieldX;
-    double fieldY;
-    double fieldZ;
-
-    double phi;
+    double V00;
+    double V11c;
+    double V11s;
+    double V10;
+    double V20;
+    double V21c;
+    double V21s;
+    double V22c;
+    double V22s;
   };
   StaticSite(int id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
@@ -84,11 +88,15 @@ class StaticSite {
   const Eigen::Vector3d& getPos() const { return _pos; }
 
   void setMultipole(const Vector9d& multipole, int rank) {
-    _multipole = multipole;
+    _Q = multipole;
     _rank = rank;
   }
 
-  void setCharge(double q) { _multipole(0) = q; }
+  virtual double FieldEnergy() const { return _V.dot(_Q); }
+
+  virtual double Energy() const { return FieldEnergy(); }
+
+  void setCharge(double q) { _Q(0) = q; }
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
@@ -98,28 +106,23 @@ class StaticSite {
 
   // MULTIPOLES DEFINITION
 
-  double getCharge() const { return _multipole(0); }
-  const Vector9d& getPermMultipole() const {
-    return _multipole;
+  double getCharge() const { return _Q(0); }
+  const Vector9d& Q() const {
+    return _Q;
   }  // Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s,...[NOT following Stone
      // order for dipoles]
 
-  virtual Eigen::Vector3d getDipole() const { return _multipole.segment<3>(1); }
+  virtual Eigen::Vector3d getDipole() const { return _Q.segment<3>(1); }
 
   Eigen::Matrix3d CalculateCartesianMultipole() const;
+
   static Eigen::VectorXd CalculateSphericalMultipole(
       const Eigen::Matrix3d& quadrupole_cartesian);
 
-  const Eigen::Vector3d& getField() const { return _localpermanentField; }
-  Eigen::Vector3d& getField() { return _localpermanentField; }
+  const Vector9d& V() const { return _V; }
+  Vector9d& V() { return _V; }
 
-  const double& getPotential() const { return _phi; }
-  double& getPotential() { return _phi; }
-
-  virtual void Reset() {
-    _localpermanentField.setZero();
-    _phi = 0.0;
-  }
+  virtual void Reset() { _V.setZero(); }
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
@@ -146,11 +149,9 @@ class StaticSite {
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
   int _rank = 0;
 
-  Vector9d _multipole =
-      Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20, Q21c, Q21s, Q22c, Q22s
+  Vector9d _Q = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
 
-  Eigen::Vector3d _localpermanentField = Eigen::Vector3d::Zero();
-  double _phi = 0.0;  // Electric potential (due to perm.)
+  Vector9d _V = Vector9d::Zero();  // V00,V11c,V11s,V10,V20,V21c,V21s,V22c,V22s
 };
 }  // namespace xtp
 }  // namespace votca

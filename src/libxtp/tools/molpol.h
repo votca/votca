@@ -58,7 +58,6 @@ class MolPol : public QMTool {
 
   double _tolerance_pol = 1e-4;
   int _max_iter = 1000;
-  double _alpha = 1.0;
 };
 
 }  // namespace xtp

@@ -188,8 +188,7 @@ void QMRegion::ApplyQMFieldToClassicSegments(std::vector<T>& segments) const {
   for (int i = 0; i < int(segments.size()); ++i) {
     T& seg = segments[i];
     for (auto& site : seg) {
-      site.getField() += numint.IntegrateField(site.getPos());
-      site.getPotential() += numint.IntegratePotential(site.getPos());
+      site.V() += numint.IntegrateV(site.getPos());
     }
   }
 
