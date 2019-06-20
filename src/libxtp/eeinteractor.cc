@@ -265,6 +265,40 @@ Matrix9d eeInteractor::FillInteraction(const StaticSite& site1,
   return interaction;  // in units of 4piepsilon0
 }
 
+Eigen::Matrix3d eeInteractor::FillTholeInteraction_small(
+    const PolarSite& site1, const PolarSite& site2) const {
+
+  const Eigen::Vector3d& posB = site2.getPos();
+  const Eigen::Vector3d& posA = site1.getPos();
+  const Eigen::Vector3d r_AB =
+      posB - posA;               // Vector of the distance between polar sites
+  const double R = r_AB.norm();  // Norm of distance vector
+  const Eigen::Vector3d pos_a =
+      r_AB /
+      R;  // unit vector on the sites reciprocal direction; This points toward A
+  const Eigen::Vector3d pos_b = -pos_a;  // unit vector on the sites reciprocal
+                                         // direction; This points toward B
+
+  const double sqr3 = std::sqrt(3);
+  const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
+  const double fac0 = 1 / R;
+  const double fac2 = std::pow(fac0, 3);
+  const double au3 =
+      _expdamping /
+      (fac2 * std::sqrt(site1.getEigenDamp() *
+                        site2.getEigenDamp()));  // dimensionless eigendamp is
+  double lambda3 = 1.0;
+  double lambda5 = 1.0;
+  if (au3 < 40) {
+    const double exp_ua = std::exp(-au3);
+    lambda3 = 1 - exp_ua;
+    lambda5 = 1 - (1 + au3) * exp_ua;
+  }
+  Eigen::Matrix3d result = 3 * lambda5 * pos_a * pos_b.transpose();
+  result.diagonal().array() += lambda3;
+  return fac2 * result;  // T_1alpha,1beta (alpha,beta=x,y,z)
+}
+
 Matrix9d eeInteractor::FillTholeInteraction(const PolarSite& site1,
                                             const PolarSite& site2) const {
 
@@ -340,8 +374,9 @@ Matrix9d eeInteractor::FillTholeInteraction(const PolarSite& site1,
     interaction.block<1, 3>(8, 1) =
         fac3 * sqr3 *
         (lambda7 * 5 * AxA(0, 1) * pos_b.transpose() +
-         lambda5 * (pos_a(0) * c.row(1) + pos_a(1) * c.row(0)));  // T22s-1beta
-                                                                  // (beta=x,y,z)
+         lambda5 *
+             (pos_a(0) * c.row(1) + pos_a(1) * c.row(0)));  // T22s-1beta
+                                                            // (beta=x,y,z)
   }
   if (rankB > 1) {
     // Dipole-Quadrupole Interaction
@@ -366,8 +401,9 @@ Matrix9d eeInteractor::FillTholeInteraction(const PolarSite& site1,
     interaction.block<3, 1>(1, 8) =
         fac3 * sqr3 *
         (lambda7 * 5 * BxB(0, 1) * pos_a +
-         lambda5 * (pos_b(0) * c.col(1) + pos_b(1) * c.col(0)));  // T1beta-22s
-                                                                  // (beta=x,y,z)
+         lambda5 *
+             (pos_b(0) * c.col(1) + pos_b(1) * c.col(0)));  // T1beta-22s
+                                                            // (beta=x,y,z)
   }
   return interaction;
 }
@@ -404,12 +440,12 @@ double eeInteractor::InteractPolar_site(const PolarSite& site1,
   const Matrix9d tTab =
       FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
   const Vector9d V2 =
-      site1.getInduced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
-  auto V1 = tTab.block<9, 3>(0, 1) * site2.getInduced_Dipole();
+      site1.Induced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
+  auto V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
   site2.V() += V2;
   // indu -indu
-  double e = site1.getInduced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-             site2.getInduced_Dipole();
+  double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
+             site2.Induced_Dipole();
   // indu-stat
   e += site2.V().dot(V2);
   // stat-indu
@@ -422,13 +458,13 @@ double eeInteractor::InteractPolar_site(PolarSite& site1,
   const Matrix9d tTab =
       FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
   const Vector9d V2 =
-      site1.getInduced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
-  const Vector9d V1 = tTab.block<9, 3>(0, 1) * site2.getInduced_Dipole();
+      site1.Induced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
+  const Vector9d V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
 
   site1.V_ind() += V1;
   site2.V_ind() += V2;
-  double e = site1.getInduced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-             site2.getInduced_Dipole();
+  double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
+             site2.Induced_Dipole();
   // indu-stat
   e += site2.V().dot(V2);
   // stat-indu
@@ -464,7 +500,7 @@ template double eeInteractor::InteractStatic(PolarSegment& seg1,
 template <class T>
 double eeInteractor::InteractStatic_IntraSegment(T& seg) const {
   double energy = 0.0;
-  for (int i = 0; i < seg.size(); i++) {
+  for (int i = 1; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
       energy += InteractStatic_site(seg[i], seg[j]);
     }
@@ -479,7 +515,7 @@ template double eeInteractor::InteractStatic_IntraSegment(
 
 double eeInteractor::InteractPolar_IntraSegment(PolarSegment& seg) const {
   double energy = 0.0;
-  for (int i = 0; i < seg.size(); i++) {
+  for (int i = 1; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
       energy += InteractPolar_site(seg[i], seg[j]);
     }
@@ -511,6 +547,34 @@ double eeInteractor::InteractPolar(const PolarSegment& seg1,
     }
   }
   return energy;
+}
+
+void eeInteractor::Cholesky_IntraSegment(PolarSegment& seg) const {
+  int size = 3 * seg.size();
+
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size, size);
+  for (int i = 1; i < seg.size(); i++) {
+    for (int j = 0; j < i; j++) {
+      A.block<3, 3>(3 * i, 3 * j) = FillTholeInteraction_small(seg[i], seg[j]);
+    }
+  }
+
+  for (int i = 0; i < seg.size(); i++) {
+    A.block<3, 3>(3 * i, 3 * i) = seg[i].getPolarisation().inverse();
+  }
+  Eigen::VectorXd b = Eigen::VectorXd(size);
+  for (int i = 0; i < seg.size(); i++) {
+    b.segment<3>(3 * i) =
+        -(seg[i].V().segment<3>(1) + seg[i].V_ind().segment<3>(1));
+  }
+
+  Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > lltOfA(A);
+  Eigen::VectorXd x = lltOfA.solve(b);
+  for (int i = 0; i < seg.size(); i++) {
+    seg[i].Induced_Dipole() = x.segment<3>(3 * i);
+  }
+
+  return;
 }
 
 }  // namespace xtp

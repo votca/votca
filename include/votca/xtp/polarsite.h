@@ -64,9 +64,12 @@ class PolarSite : public StaticSite {
     StaticSite::Rotate(R, ref_pos);
     _Ps = R * _Ps * R.transpose();
   }
+
+  template <bool cholesky>
   void calcDIIS_InducedDipole();
 
-  const Eigen::Vector3d& getInduced_Dipole() const { return _induced_dipole; }
+  const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
+  Eigen::Vector3d& Induced_Dipole() { return _induced_dipole; }
 
   double Energy() const { return FieldEnergy() + InternalEnergy(); }
 

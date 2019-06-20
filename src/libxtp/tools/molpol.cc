@@ -78,7 +78,7 @@ Eigen::Vector3d MolPol::Polarize(PolarRegion& pol,
   pol.Evaluate(empty);
   Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
   for (const PolarSite& site : workmol) {
-    induced_dipole += site.getInduced_Dipole();
+    induced_dipole += site.Induced_Dipole();
   }
   return induced_dipole;
 }
@@ -117,6 +117,12 @@ void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
   std::cout << std::endl << _polarisation_target * conversion << std::flush;
   std::cout << std::endl << "Scaled classical polarisation [A^3]" << std::flush;
   std::cout << std::endl << result * conversion << std::flush;
+  std::cout << std::endl
+            << "EigenValues classical polarisation [A^3]" << std::flush;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es2;
+  es2.computeDirect(result, Eigen::EigenvaluesOnly);
+  Eigen::Matrix3d diag = es2.eigenvalues().asDiagonal();
+  std::cout << std::endl << diag * conversion << std::flush;
 }
 
 bool MolPol::Evaluate() {
@@ -159,7 +165,7 @@ bool MolPol::Evaluate() {
     for (int i = 0; i < polar.size(); i++) {
       PolarSite& site = polar[i];
       Eigen::Matrix3d local_pol = site.getPolarisation();
-      site.setPolarisation(local_pol * (1 + scale * _weights[i]));
+      site.setPolarisation(local_pol * std::pow(1 + scale * _weights[i], 2));
     }
   }
   return true;

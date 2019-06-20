@@ -43,16 +43,16 @@ PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
 
 PolarSite::PolarSite(data& d) { ReadData(d); };
 
+template <bool choleksy>
 void PolarSite::calcDIIS_InducedDipole() {
-
-  Eigen::Vector3d induced_dipole =
-      -_Ps * (_V.segment<3>(1) + _V_ind.segment<3>(1));
-  _dipole_hist.push_back(induced_dipole);
+  if (!choleksy) {
+    _induced_dipole = -_Ps * (_V.segment<3>(1) + _V_ind.segment<3>(1));
+  }
+  _dipole_hist.push_back(_induced_dipole);
   int hist_size = _dipole_hist.size();
   if (hist_size == 1) {
-    _induced_dipole = induced_dipole;
     return;
-  } else if (hist_size < 200) {
+  } else if (hist_size < 3) {
     _induced_dipole =
         _dipole_hist[_dipole_hist.size() - 2] * 0.7 + _dipole_hist.back() * 0.3;
     return;
@@ -108,6 +108,9 @@ void PolarSite::calcDIIS_InducedDipole() {
   }
 }
 
+template void PolarSite::calcDIIS_InducedDipole<true>();
+template void PolarSite::calcDIIS_InducedDipole<false>();
+
 double PolarSite::FieldEnergy() const {
   double e = StaticSite::FieldEnergy();
   e += _V_ind.dot(_Q);
@@ -122,7 +125,7 @@ double PolarSite::InternalEnergy() const {
 }
 
 double PolarSite::DipoleChange() const {
-
+  std::cout << _dipole_hist.back() << std::endl;
   if (_dipole_hist.size() == 1) {
     return _dipole_hist.back().norm();
   } else if (_dipole_hist.empty()) {
@@ -133,7 +136,7 @@ double PolarSite::DipoleChange() const {
 
 Eigen::Vector3d PolarSite::getDipole() const {
   Eigen::Vector3d dipole = _Q.segment<3>(1);
-  dipole += getInduced_Dipole();
+  dipole += Induced_Dipole();
   return dipole;
 }
 

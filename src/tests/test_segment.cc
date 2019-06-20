@@ -26,6 +26,14 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(segment_test)
 
-BOOST_AUTO_TEST_CASE(getElementtest) {}
+BOOST_AUTO_TEST_CASE(getElementtest) {
+  Segment seg("one", 1);
+  Atom atm1(1, "C", Eigen::Vector3d::Zero());
+  Atom atm2(2, "H", Eigen::Vector3d::UnitX());
+  Atom atm3(3, "N", Eigen::Vector3d::UnitY());
+  Atom atm4(4, "Au", Eigen::Vector3d::UnitZ());
+  Atom atm5(5, "C", 2 * Eigen::Vector3d::UnitZ());
+  seg.FindUniqueElements();
+}
 
 BOOST_AUTO_TEST_SUITE_END()

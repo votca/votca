@@ -170,7 +170,7 @@ double NumericalIntegration::IntegratePotential(
     for (unsigned j = 0; j < points.size(); j++) {
       double charge = -weights[j] * densities[j];
       double dist = (points[j] - rvector).norm();
-      result = charge / dist;
+      result += charge / dist;
     }
   }
   return result;

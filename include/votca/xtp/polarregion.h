@@ -69,6 +69,8 @@ class PolarRegion : public MMRegion<PolarSegment> {
   int _max_iter = 100;
   double _exp_damp = 0.39;
   bool _induce_intra_mol = true;
+
+  bool _use_cholesky = true;
 };
 
 }  // namespace xtp

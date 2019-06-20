@@ -33,4 +33,15 @@ BOOST_AUTO_TEST_CASE(getters_test) {
   BOOST_CHECK_EQUAL(atm.getName(), "H");
 }
 
+BOOST_AUTO_TEST_CASE(element_test) {
+  Atom atm1(1, "CA3", Eigen::Vector3d::Zero());
+  BOOST_CHECK_EQUAL(atm1.getElement(), "C");
+
+  Atom atm2(2, "H", Eigen::Vector3d::Zero());
+  BOOST_CHECK_EQUAL(atm2.getElement(), "H");
+
+  Atom atm3(3, "Xacsdf", Eigen::Vector3d::Zero());
+  BOOST_CHECK_EQUAL(atm3.getElement(), "Xa");
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -43,6 +43,9 @@ void PolarRegion::Initialize(const tools::Property& prop) {
   _induce_intra_mol = polar_xml.ifExistsReturnElseReturnDefault(
       key + ".induce_intra_molecule", _induce_intra_mol);
 
+  _use_cholesky = polar_xml.ifExistsReturnElseReturnDefault(key + ".cholesky",
+                                                            _use_cholesky);
+
   return;
 }
 
@@ -93,7 +96,11 @@ double PolarRegion::PolarInteraction() {
     }
   }
   if (_induce_intra_mol) {
+
     for (PolarSegment& seg : _segments) {
+      if (_use_cholesky) {
+        eeinteractor.Cholesky_IntraSegment(seg);
+      }
       field_energy += eeinteractor.InteractPolar_IntraSegment(seg);
     }
   }
@@ -110,7 +117,11 @@ double PolarRegion::PolarInteraction() {
 void PolarRegion::CalcInducedDipoles() {
   for (PolarSegment& seg : _segments) {
     for (PolarSite& site : seg) {
-      site.calcDIIS_InducedDipole();
+      if (_use_cholesky) {
+        site.calcDIIS_InducedDipole<true>();
+      } else {
+        site.calcDIIS_InducedDipole<false>();
+      }
     }
   }
 }
