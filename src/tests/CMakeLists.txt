@@ -36,7 +36,7 @@ foreach(PROG
   target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
   add_test(unit_${PROG} unit_${PROG})
   # run tests for tools (for coverage) as well
-  set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca")
+  set_tests_properties(unit_${PROG} PROPERTIES LABELS "tools;votca;unit")
 
   if(VALGRIND_FOUND)
     add_test(NAME memory_${PROG} COMMAND "${VALGRIND_EXECUTABLE}" --tool=memcheck --leak-check=yes --show-reachable=yes --num-callers=20 --track-fds=yes --error-exitcode=1 $<TARGET_FILE:unit_${PROG}>)
