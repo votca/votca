@@ -245,8 +245,6 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  _fragA = options.ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
-
   _bseopt.useTDA = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".useTDA", _bseopt.useTDA);
   _orbitals.setTDAApprox(_bseopt.useTDA);

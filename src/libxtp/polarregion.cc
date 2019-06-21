@@ -42,15 +42,18 @@ void PolarRegion::Initialize(const tools::Property& prop) {
       polar_xml.ifExistsReturnElseReturnDefault(key + ".exp_damp", _exp_damp);
   _induce_intra_mol = polar_xml.ifExistsReturnElseReturnDefault(
       key + ".induce_intra_molecule", _induce_intra_mol);
+  _openmp_threads = polar_xml.ifExistsReturnElseReturnDefault<int>(
+      key + ".openmp", _openmp_threads);
 
-  _use_cholesky = polar_xml.ifExistsReturnElseReturnDefault(key + ".cholesky",
-                                                            _use_cholesky);
-
+  OPENMP::setMaxThreads(_openmp_threads);
   return;
 }
 
 bool PolarRegion::Converged() const {
 
+  if (!_E_hist.filled()) {
+    return false;
+  }
   double Echange = _E_hist.getDiff();
   double Dchange = _D_hist.getDiff();
   std::string info = "not converged";
@@ -87,41 +90,47 @@ double PolarRegion::StaticInteraction() {
   return energy_ext + e_static;
 }
 
-double PolarRegion::PolarInteraction() {
-  double field_energy = 0.0;
+void PolarRegion::PolarInteraction_scf() {
   eeInteractor eeinteractor(_exp_damp);
+
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < i; ++j) {
-      field_energy += eeinteractor.InteractPolar(_segments[i], _segments[j]);
+      eeinteractor.InteractPolar_small(_segments[i], _segments[j]);
     }
   }
   if (_induce_intra_mol) {
-
     for (PolarSegment& seg : _segments) {
-      if (_use_cholesky) {
-        eeinteractor.Cholesky_IntraSegment(seg);
-      }
-      field_energy += eeinteractor.InteractPolar_IntraSegment(seg);
+      eeinteractor.Cholesky_IntraSegment(seg);
+    }
+  }
+}
+
+double PolarRegion::PolarInteraction_energy() {
+  double e = 0.0;
+  eeInteractor eeinteractor(_exp_damp);
+  for (int i = 0; i < size(); ++i) {
+    for (int j = 0; j < i; ++j) {
+      e += eeinteractor.InteractPolar(_segments[i], _segments[j]);
+    }
+  }
+  if (_induce_intra_mol) {
+    for (PolarSegment& seg : _segments) {
+      e += eeinteractor.InteractPolar_IntraSegment(seg);
+    }
+  }
+  for (PolarSegment& seg : _segments) {
+    for (PolarSite& site : seg) {
+      e += site.InternalEnergy();
     }
   }
 
-  double energy_ind = 0.0;
-  for (const PolarSegment& seg : _segments) {
-    for (const PolarSite site : seg) {
-      energy_ind += site.InternalEnergy();
-    }
-  }
-  return field_energy + energy_ind;
+  return e;
 }
 
 void PolarRegion::CalcInducedDipoles() {
   for (PolarSegment& seg : _segments) {
     for (PolarSite& site : seg) {
-      if (_use_cholesky) {
-        site.calcDIIS_InducedDipole<true>();
-      } else {
-        site.calcDIIS_InducedDipole<false>();
-      }
+      site.calc_InducedDipole();
     }
   }
 }
@@ -171,43 +180,33 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log)
       << "Evaluating electrostatics inside region" << std::flush;
-  double energy_stat = StaticInteraction();
+  double e_static = StaticInteraction();
   XTP_LOG_SAVE(logINFO, _log)
-      << "Calculated static energy[hrt]= " << energy_stat << std::flush;
+      << "Calculated static energy[hrt]= " << e_static << std::flush;
   XTP_LOG_SAVE(logINFO, _log)
       << "Starting SCF for classical polarisation" << std::flush;
 
-  double e_old = 0.0;
+  if (_induce_intra_mol) {
+    eeInteractor eeinteractor(_exp_damp);
+    for (PolarSegment& seg : _segments) {
+      eeinteractor.Cholesky_IntraSegment(seg);
+    }
+  }
   for (int iteration = 0; iteration < _max_iter; iteration++) {
-    XTP_LOG_SAVE(logINFO, _log)
-        << "Iteration " << iteration + 1 << " of " << _max_iter << std::flush;
+    XTP_LOG_SAVE(logINFO, _log) << identify() << " Iteration " << iteration + 1
+                                << " of " << _max_iter << std::flush;
     CalcInducedDipoles();
     XTP_LOG_SAVE(logINFO, _log)
         << "Calculated induced dipoles from fields" << std::flush;
     ResetFields();
     XTP_LOG_SAVE(logINFO, _log) << "Reset old induced fields" << std::flush;
-    double polar_energy = PolarInteraction();
-    XTP_LOG_SAVE(logINFO, _log)
-        << "Calculated total energy[hrt]= " << energy_stat + polar_energy
-        << std::flush;
+    PolarInteraction_scf();
 
     std::pair<bool, double> d_converged = DipolesConverged();
     bool e_converged = false;
-    double deltaE = polar_energy - e_old;
-    e_old = polar_energy;
-    if (iteration > 0) {
-      XTP_LOG_SAVE(logINFO, _log)
-          << "Change from last iteration DeltaE [Ha]: " << deltaE << std::flush;
-      if (std::abs(deltaE) < _deltaE) {
-        e_converged = true;
-        XTP_LOG_SAVE(logINFO, _log)
-            << "Energy converged to " << _deltaE << std::flush;
-      }
-    }
-    bool converged = d_converged.first && e_converged;
+
+    bool converged = d_converged.first;
     if (converged || (iteration == (_max_iter - 1))) {
-      _E_hist.push_back(polar_energy);
-      _D_hist.push_back(d_converged.second);
       if (converged) {
         XTP_LOG_SAVE(logINFO, _log)
             << "SCF calculation converged after " << iteration + 1
@@ -217,11 +216,16 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
             << "WARNING: SCF calculation not converged after " << iteration + 1
             << " iterations!!!" << std::flush;
       }
-
+      _D_hist.push_back(d_converged.second);
       break;
     }
   }
-
+  ResetFields();
+  double e_polar = PolarInteraction_energy();
+  XTP_LOG_SAVE(logINFO, _log)
+      << " E_polar[hrt]= " << e_polar << " E_static[hrt]= " << e_static
+      << " E_total[hrt]= " << e_static + e_polar << std::flush;
+  _E_hist.push_back(e_static + e_polar);
   return;
 }
 

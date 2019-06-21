@@ -96,6 +96,8 @@ class Region {
       _filled++;
     }
 
+    bool filled() const { return _filled > 0; }
+
    private:
     int _filled = 0;
     T _metric;

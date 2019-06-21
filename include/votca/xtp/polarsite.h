@@ -65,8 +65,7 @@ class PolarSite : public StaticSite {
     _Ps = R * _Ps * R.transpose();
   }
 
-  template <bool cholesky>
-  void calcDIIS_InducedDipole();
+  void calc_InducedDipole();
 
   const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
   Eigen::Vector3d& Induced_Dipole() { return _induced_dipole; }

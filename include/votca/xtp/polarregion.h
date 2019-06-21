@@ -59,7 +59,8 @@ class PolarRegion : public MMRegion<PolarSegment> {
   void ResetFields();
   void CalcInducedDipoles();
   double StaticInteraction();
-  double PolarInteraction();
+  void PolarInteraction_scf();
+  double PolarInteraction_energy();
 
   hist<double> _E_hist;
   hist<double> _D_hist;
@@ -70,7 +71,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
   double _exp_damp = 0.39;
   bool _induce_intra_mol = true;
 
-  bool _use_cholesky = true;
+  int _openmp_threads = 1;
 };
 
 }  // namespace xtp

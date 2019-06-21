@@ -43,73 +43,18 @@ PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
 
 PolarSite::PolarSite(data& d) { ReadData(d); };
 
-template <bool choleksy>
-void PolarSite::calcDIIS_InducedDipole() {
-  if (!choleksy || _dipole_hist.empty()) {
-    _induced_dipole = -_Ps * (_V.segment<3>(1) + _V_ind.segment<3>(1));
-  }
+void PolarSite::calc_InducedDipole() {
+  //_induced_dipole is set by eeInteractor
   _dipole_hist.push_back(_induced_dipole);
   int hist_size = _dipole_hist.size();
   if (hist_size == 1) {
     return;
-  } else if (hist_size < 3) {
-    _induced_dipole =
-        _dipole_hist[_dipole_hist.size() - 2] * 0.7 + _dipole_hist.back() * 0.3;
-    return;
-  }
-
-  int matsize = hist_size - 1;
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(matsize, matsize);
-  for (int i = 1; i < B.rows() + 1; i++) {
-    const Eigen::Vector3d dmui = _dipole_hist[i] - _dipole_hist[i - 1];
-    for (int j = 1; j <= i; j++) {
-      const Eigen::Vector3d dmuj = _dipole_hist[j] - _dipole_hist[j - 1];
-      B(j - 1, i - 1) = dmui.dot(dmuj);
-      if (i != j) {
-        B(i - 1, j - 1) = B(j - 1, i - 1);
-      }
-    }
-  }
-
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
-  Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(matsize, matsize);
-  for (int i = 0; i < es.eigenvectors().cols(); i++) {
-    double norm = es.eigenvectors().col(i).sum();
-    eigenvectors.col(i) = es.eigenvectors().col(i) / norm;
-  }
-
-  // Choose solution by picking out solution with smallest error
-  Eigen::VectorXd errors =
-      (eigenvectors.transpose() * B * eigenvectors).diagonal().cwiseAbs();
-
-  double MaxWeight = 10.0;
-  int mincoeff = 0;
-  bool success = false;
-  for (int i = 0; i < errors.size(); i++) {
-    errors.minCoeff(&mincoeff);
-    if (std::abs(eigenvectors.col(mincoeff).maxCoeff()) > MaxWeight) {
-      errors[mincoeff] = std::numeric_limits<double>::max();
-    } else {
-      success = true;
-      break;
-    }
-  }
-
-  Eigen::VectorXd coeffs = eigenvectors.col(mincoeff);
-  if (std::abs(coeffs[coeffs.size() - 1]) < 0.0001) {
+  } else {
     _induced_dipole =
         _dipole_hist[_dipole_hist.size() - 2] * 0.5 + _dipole_hist.back() * 0.5;
     return;
   }
-
-  _induced_dipole = Eigen::Vector3d::Zero();
-  for (int i = 0; i < hist_size - 1; i++) {
-    _induced_dipole += coeffs[i] * _dipole_hist[i + 1];
-  }
 }
-
-template void PolarSite::calcDIIS_InducedDipole<true>();
-template void PolarSite::calcDIIS_InducedDipole<false>();
 
 double PolarSite::FieldEnergy() const {
   double e = StaticSite::FieldEnergy();
@@ -125,7 +70,6 @@ double PolarSite::InternalEnergy() const {
 }
 
 double PolarSite::DipoleChange() const {
-  std::cout << _dipole_hist.back() << std::endl;
   if (_dipole_hist.size() == 1) {
     return _dipole_hist.back().norm();
   } else if (_dipole_hist.empty()) {

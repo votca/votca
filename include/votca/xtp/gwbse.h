@@ -78,16 +78,10 @@ class GWBSE {
   bool _store_bse_triplets = false;
 
   // options for own Vxc calculation
-  bool _doVxc;
   std::string _functional;
   std::string _grid;
 
   int _openmp_threads;
-
-  // fragment definitions
-  int _fragA;
-
-  // BSE variant
 
   GW::options _gwopt;
   BSE::options _bseopt;
