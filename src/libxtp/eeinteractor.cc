@@ -37,8 +37,6 @@ Eigen::Matrix4d eeInteractor::FillInteraction_noQuadrupoles(
 
   // Charge-Charge Interaction
   interaction(0, 0) = fac0;  // T_00,00
-  const double sqr3 = std::sqrt(3);
-
   const double fac1 = std::pow(fac0, 2);
   const double fac2 = std::pow(fac0, 3);
 
@@ -227,7 +225,6 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction_diponly(
   const Eigen::Vector3d pos_a =
       r_AB /
       R;  // unit vector on the sites reciprocal direction; This points toward A
-  const double sqr3 = std::sqrt(3);
   const double fac2 = std::pow(R, -3);
   const double au3 =
       _expdamping /
@@ -250,8 +247,6 @@ Eigen::Matrix4d eeInteractor::FillTholeInteraction_noQuadrupoles(
   Eigen::Matrix4d interaction = Eigen::Matrix4d::Zero();
   const Eigen::Vector3d& posB = site2.getPos();
   const Eigen::Vector3d& posA = site1.getPos();
-  int rankA = site1.getRank();
-  int rankB = site2.getRank();
   const Eigen::Vector3d r_AB =
       posB - posA;               // Vector of the distance between polar sites
   const double R = r_AB.norm();  // Norm of distance vector
@@ -259,7 +254,6 @@ Eigen::Matrix4d eeInteractor::FillTholeInteraction_noQuadrupoles(
       r_AB /
       R;  // unit vector on the sites reciprocal direction; This points toward A
 
-  const double sqr3 = std::sqrt(3);
   const double fac0 = 1 / R;
   const double fac1 = std::pow(fac0, 2);
   const double fac2 = std::pow(fac0, 3);

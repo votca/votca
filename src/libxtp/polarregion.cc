@@ -169,7 +169,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   cg.setMaxIterations(_max_iter);
   cg.setTolerance(_deltaD);
   cg.compute(A);
-  Eigen::VectorXd x = cg.solve(b);
+  Eigen::VectorXd x = cg.solveWithGuess(b, initial_induced_dipoles);
 
   XTP_LOG_SAVE(logINFO, _log)
       << "CG: #iterations: " << cg.iterations()

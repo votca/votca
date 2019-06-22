@@ -106,7 +106,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
             << "... ... Computing velocity average for all sites\n";
   std::cout << "Reading in site occupations from " << _occfile << std::flush;
   std::vector<double> occ = ReadOccfile(_occfile);
-  if (top.Segments().size() != int(occ.size())) {
+  if (top.Segments().size() != occ.size()) {
     throw std::runtime_error(
         "Number of occupations is" + std::to_string(occ.size()) +
         " Topology has size:" + std::to_string(top.Segments().size()));
