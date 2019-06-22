@@ -515,7 +515,7 @@ Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
     b.segment<3>(3 * i) = -seg[i].V().segment<3>(1);
   }
 
-  Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > lltOfA(A);
+  Eigen::LLT<Eigen::Ref<Eigen::MatrixXd>> lltOfA(A);
   return lltOfA.solve(b);
 }
 

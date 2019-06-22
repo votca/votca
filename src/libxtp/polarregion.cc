@@ -104,7 +104,7 @@ double PolarRegion::PolarInteraction_energy() {
   return e;
 }
 
-void PolarRegion::ResetSegments() {
+void PolarRegion::Reset() {
   for (PolarSegment& seg : _segments) {
     for (PolarSite& site : seg) {
       site.Reset();
@@ -115,7 +115,6 @@ void PolarRegion::ResetSegments() {
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
                               << this->getId() << std::flush;
-  ResetSegments();
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log)
       << "Evaluating electrostatics inside region" << std::flush;
@@ -138,9 +137,9 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     eeInteractor interactor(_exp_damp);
     int index = 0;
     for (PolarSegment& seg : _segments) {
-      initial_induced_dipoles.segment(index, seg.size()) =
+      initial_induced_dipoles.segment(index, 3 * seg.size()) =
           interactor.Cholesky_IntraSegment(seg);
-      index += seg.size();
+      index += 3 * seg.size();
     }
   } else {
     int index = 0;
@@ -151,7 +150,6 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
       }
     }
   }
-
   Eigen::VectorXd b = Eigen::VectorXd::Zero(dof_polarisation);
   int index = 0;
   for (PolarSegment& seg : _segments) {

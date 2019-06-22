@@ -49,7 +49,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
-  void Reset() { ResetSegments(); }
+  void Reset();
 
  protected:
   void InteractwithQMRegion(const QMRegion& region);
@@ -57,8 +57,6 @@ class PolarRegion : public MMRegion<PolarSegment> {
   void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
-  void ResetSegments();
-
   void CalcInducedDipoles();
   double StaticInteraction();
   void PolarInteraction_scf();

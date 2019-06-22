@@ -64,23 +64,8 @@ void MolPol::Initialize(tools::Property& options) {
                                                            _max_iter);
 }
 
-Eigen::Vector3d MolPol::Polarize(PolarRegion& pol,
+Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
                                  const Eigen::Vector3d& ext_field) const {
-  pol.Reset();
-  std::vector<std::unique_ptr<Region>> empty;
-  PolarSegment& workmol = pol[0];
-  for (PolarSite& site : workmol) {
-    site.V().segment<3>(1) = ext_field;
-  }
-  pol.Evaluate(empty);
-  Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
-  for (const PolarSite& site : workmol) {
-    induced_dipole += site.Induced_Dipole();
-  }
-  return induced_dipole;
-}
-
-Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   Logger log;
   log.setMultithreading(false);
   log.setPreface(logINFO, (boost::format("\n ...")).str());
@@ -94,18 +79,34 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   pol.Initialize(_polar_options);
   pol.push_back(input);
 
-  double eVnm_2_hrtbohr = tools::conv::ev2hrt / tools::conv::nm2bohr;
-  Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
-  Eigen::Vector3d zero = Polarize(pol, Eigen::Vector3d::Zero());
-  Eigen::Vector3d ext_field = 0.1 * eVnm_2_hrtbohr * Eigen::Vector3d::UnitX();
-  polarisation.col(0) = Polarize(pol, ext_field);
-  ext_field = 0.1 * eVnm_2_hrtbohr * Eigen::Vector3d::UnitY();
-  polarisation.col(1) = Polarize(pol, ext_field);
-  ext_field = 0.1 * eVnm_2_hrtbohr * Eigen::Vector3d::UnitZ();
-  polarisation.col(2) = Polarize(pol, ext_field);
-  polarisation.colwise() -= zero;
+  std::vector<std::unique_ptr<Region>> empty;
+  PolarSegment& workmol = pol[0];
+  for (PolarSite& site : workmol) {
+    site.V().segment<3>(1) = ext_field;
+  }
+  pol.Evaluate(empty);
+  Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
+  for (const PolarSite& site : workmol) {
+    induced_dipole += site.Induced_Dipole();
+  }
   std::cout << log;
-  return -polarisation / (0.1 * eVnm_2_hrtbohr);
+  return induced_dipole;
+}
+
+Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
+
+  double eVnm_2_hrtbohr = tools::conv::ev2hrt / tools::conv::nm2bohr;
+  double fieldstrength = (0.1 * eVnm_2_hrtbohr);
+  Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
+  Eigen::Vector3d zero = Polarize(input, Eigen::Vector3d::Zero());
+  Eigen::Vector3d ext_field = fieldstrength * Eigen::Vector3d::UnitX();
+  polarisation.col(0) = Polarize(input, ext_field);
+  ext_field = fieldstrength * Eigen::Vector3d::UnitY();
+  polarisation.col(1) = Polarize(input, ext_field);
+  ext_field = fieldstrength * Eigen::Vector3d::UnitZ();
+  polarisation.col(2) = Polarize(input, ext_field);
+  polarisation.colwise() -= zero;
+  return -polarisation / fieldstrength;
 }
 
 void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {

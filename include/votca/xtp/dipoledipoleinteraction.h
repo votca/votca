@@ -57,9 +57,9 @@ class DipoleDipoleInteraction
     for (const PolarSegment seg : segs) {
       _size += 3 * seg.size();
     }
-    _sites.reserve(_size);
-    for (const PolarSegment seg : segs) {
-      for (const PolarSite site : seg) {
+    _sites.reserve(_size / 3);
+    for (const PolarSegment& seg : segs) {
+      for (const PolarSite& site : seg) {
         _sites.push_back(&site);
       }
     }
@@ -76,14 +76,15 @@ class DipoleDipoleInteraction
   }
 
   Eigen::Matrix3Xd ThreeRows(int index) const {
-    const PolarSite& seg1 = *_sites[index];
+    const PolarSite& site1 = *_sites[index];
     Eigen::Matrix3Xd result = Eigen::Matrix3Xd(3, _size);
     for (int i = 0; i < _size / 3; i++) {
       if (i == index) {
-        result.block<3, 3>(0, 3 * i) = seg1.getPInv();
+        result.block<3, 3>(0, 3 * i) = site1.getPInv();
       } else {
+        const PolarSite& site2 = *_sites[i];
         result.block<3, 3>(0, 3 * i) =
-            _interactor.FillTholeInteraction_diponly(seg1, *_sites[i]);
+            _interactor.FillTholeInteraction_diponly(site1, site2);
       }
     }
     return result;
@@ -121,8 +122,8 @@ struct generic_product_impl<votca::xtp::DipoleDipoleInteraction, Vtype,
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
     int iterations = op.rows() / 3;
-// make the mat vect product
-#pragma omp parallel for
+    // make the mat vect product
+    //#pragma omp parallel for
     for (int i = 0; i < iterations; i++) {
       const Eigen::Vector3d result = op.ThreeRows(i) * v;
       dst(3 * i) = result.x();
