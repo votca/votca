@@ -54,8 +54,6 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
   if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
-  key = "options." + Identify();
-
   // options for gwbse
   key = "options." + Identify();
   std::string _gwbse_xml =
