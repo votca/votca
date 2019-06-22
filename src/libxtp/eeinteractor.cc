@@ -382,40 +382,66 @@ double eeInteractor::InteractStatic_site(const StaticSite& site1,
 
 double eeInteractor::InteractPolar_site(const PolarSite& site1,
                                         PolarSite& site2) const {
+  if (site1.getRank() < 2 && site2.getRank() < 2) {
+    const Eigen::Matrix4d tTab =
+        this->FillTholeInteraction_noQuadrupoles(site1, site2);
+    const Eigen::Vector4d V2 =
+        tTab.block<3, 4>(1, 0).transpose() * site1.Induced_Dipole();
+    site2.V().head<4>() += V2;
+    auto V1 = tTab.block<4, 3>(0, 1) * site2.Induced_Dipole();
+    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
+               site2.Induced_Dipole();
+    // indu-stat
+    e += site2.Q().head<4>().dot(V2);
+    // stat-indu
+    e += site1.Q().head<4>().dot(V1);
+    return e;
+  } else {
 
-  const Matrix9d tTab =
-      FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
-  const Vector9d V2 =
-      tTab.block<3, 9>(1, 0).transpose() * site1.Induced_Dipole();
-  auto V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
-  site2.V() += V2;
-  // indu -indu
-  double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-             site2.Induced_Dipole();
-  // indu-stat
-  e += site2.Q().dot(V2);
-  // stat-indu
-  e += site1.Q().dot(V1);
-  return e;
+    const Matrix9d tTab =
+        FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
+    const Vector9d V2 =
+        tTab.block<3, 9>(1, 0).transpose() * site1.Induced_Dipole();
+    auto V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
+    site2.V() += V2;
+    // indu -indu
+    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
+               site2.Induced_Dipole();
+    // indu-stat
+    e += site2.Q().dot(V2);
+    // stat-indu
+    e += site1.Q().dot(V1);
+    return e;
+  }
 }
 
-double eeInteractor::InteractPolar_site(PolarSite& site1,
-                                        PolarSite& site2) const {
-  const Matrix9d tTab =
-      FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
-  const Vector9d V2 =
-      site1.Induced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
-  const Vector9d V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
-
-  site1.V() += V1;
-  site2.V() += V2;
-  double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-             site2.Induced_Dipole();
-  // indu-stat
-  e += site2.Q().dot(V2);
-  // stat-indu
-  e += site1.Q().dot(V1);
-  return e;
+double eeInteractor::InteractPolar_site(const PolarSite& site1,
+                                        const PolarSite& site2) const {
+  if (site1.getRank() < 2 && site2.getRank() < 2) {
+    const Eigen::Matrix4d tTab =
+        this->FillTholeInteraction_noQuadrupoles(site1, site2);
+    auto V2 = site1.Induced_Dipole().transpose() * tTab.block<3, 4>(1, 0);
+    auto V1 = tTab.block<4, 3>(0, 1) * site2.Induced_Dipole();
+    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
+               site2.Induced_Dipole();
+    // indu-stat
+    e += site2.Q().head<4>().dot(V2);
+    // stat-indu
+    e += site1.Q().head<4>().dot(V1);
+    return e;
+  } else {
+    const Matrix9d tTab =
+        FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
+    auto V2 = site1.Induced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
+    auto V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
+    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
+               site2.Induced_Dipole();
+    // indu-stat
+    e += site2.Q().dot(V2);
+    // stat-indu
+    e += site1.Q().dot(V1);
+    return e;
+  }
 }
 
 template <class T1, class T2>
@@ -459,7 +485,7 @@ template double eeInteractor::InteractStatic_IntraSegment(
 template double eeInteractor::InteractStatic_IntraSegment(
     PolarSegment& seg) const;
 
-double eeInteractor::InteractPolar_IntraSegment(PolarSegment& seg) const {
+double eeInteractor::InteractPolar_IntraSegment(const PolarSegment& seg) const {
   double energy = 0.0;
   for (int i = 1; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
@@ -469,21 +495,21 @@ double eeInteractor::InteractPolar_IntraSegment(PolarSegment& seg) const {
   return energy;
 }
 
-double eeInteractor::InteractPolar(PolarSegment& seg1,
-                                   PolarSegment& seg2) const {
+double eeInteractor::InteractPolar(const PolarSegment& seg1,
+                                   const PolarSegment& seg2) const {
   assert(&seg1 != &seg2 &&
          "InteractPolar(seg1,seg2) needs two distinct objects");
   double energy = 0.0;
-  for (PolarSite& site1 : seg1) {
-    for (PolarSite& site2 : seg2) {
+  for (const PolarSite& site1 : seg1) {
+    for (const PolarSite& site2 : seg2) {
       energy += InteractPolar_site(site1, site2);
     }
   }
   return energy;
 }
 
-double eeInteractor::InteractPolar(const PolarSegment& seg1,
-                                   PolarSegment& seg2) const {
+double eeInteractor::InteractPolar_ext(const PolarSegment& seg1,
+                                       PolarSegment& seg2) const {
   assert(&seg1 != &seg2 &&
          "InteractPolar(seg1,seg2) needs two distinct objects");
   double energy = 0.0;

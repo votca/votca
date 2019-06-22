@@ -31,7 +31,8 @@ namespace xtp {
  */
 class eeInteractor {
  public:
-  explicit eeInteractor(double expdamping = 0.39) : _expdamping(expdamping){};
+  explicit eeInteractor(){};
+  explicit eeInteractor(double expdamping) : _expdamping(expdamping){};
 
   template <class T1, class T2>
   double InteractStatic(T1& seg1, T2& seg2) const;
@@ -39,11 +40,12 @@ class eeInteractor {
   template <class T>
   double InteractStatic_IntraSegment(T& seg) const;
 
-  double InteractPolar_IntraSegment(PolarSegment& seg1) const;
+  double InteractPolar_IntraSegment(const PolarSegment& seg1) const;
 
-  double InteractPolar(PolarSegment& seg1, PolarSegment& seg2) const;
+  double InteractPolar(const PolarSegment& seg1,
+                       const PolarSegment& seg2) const;
 
-  double InteractPolar(const PolarSegment& seg1, PolarSegment& seg2) const;
+  double InteractPolar_ext(const PolarSegment& seg1, PolarSegment& seg2) const;
 
   Eigen::Matrix3d FillTholeInteraction_diponly(const PolarSite& site1,
                                                const PolarSite& site2) const;
@@ -54,8 +56,8 @@ class eeInteractor {
   double InteractStatic_site(StaticSite& site1, StaticSite& site2) const;
   double InteractStatic_site(const StaticSite& site1, StaticSite& site2) const;
 
-  double InteractPolar_site(PolarSite& site1, PolarSite& site2) const;
-  void InteractPolar_site_small(PolarSite& site1, PolarSite& site2) const;
+  double InteractPolar_site(const PolarSite& site1,
+                            const PolarSite& site2) const;
   double InteractPolar_site(const PolarSite& site1, PolarSite& site2) const;
   Matrix9d FillInteraction(const StaticSite& site1,
                            const StaticSite& site2) const;

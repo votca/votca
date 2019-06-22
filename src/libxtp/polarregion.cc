@@ -174,7 +174,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   index = 0;
   for (PolarSegment& seg : _segments) {
     for (PolarSite& site : seg) {
-      site.Induced_Dipole() = x.segment<3>(index);
+      site.setInduced_Dipole(x.segment<3>(index));
       index += 3;
     }
   }
@@ -198,7 +198,7 @@ void PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
 
     for (const PolarSegment& pseg2 : region) {
       ee.InteractStatic(pseg2, pseg1);
-      ee.InteractPolar(pseg2, pseg1);
+      ee.InteractPolar_ext(pseg2, pseg1);
     }
   }
 }
