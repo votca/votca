@@ -124,6 +124,9 @@ class DipoleDipoleInteraction
         result += site1.getPInv() * v.segment<3>(3 * j);
       } else {
         const PolarSite& site2 = *_sites[j];
+        if (_interactor.DipoleBelowEtol(site1, site2)) {
+          continue;
+        }
         result += _interactor.FillTholeInteraction_diponly(site1, site2) *
                   v.segment<3>(3 * j);
       }
