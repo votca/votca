@@ -420,7 +420,7 @@ double eeInteractor::InteractPolar_site(PolarSite& site1,
 
 template <class T1, class T2>
 double eeInteractor::InteractStatic(T1& seg1, T2& seg2) const {
-  assert(&seg1 != &seg2 &&
+  assert(&seg1 != reinterpret_cast<T1*>(&seg2)  &&
          "InteractStatic(seg1,seg2) needs two distinct objects");
   double energy = 0.0;
   for (auto& site1 : seg1) {
