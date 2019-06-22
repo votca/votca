@@ -41,12 +41,14 @@ class eeInteractor {
 
   double InteractPolar_IntraSegment(PolarSegment& seg1) const;
 
-  void InteractPolar_small(PolarSegment& seg1, PolarSegment& seg2) const;
   double InteractPolar(PolarSegment& seg1, PolarSegment& seg2) const;
 
   double InteractPolar(const PolarSegment& seg1, PolarSegment& seg2) const;
 
-  void Cholesky_IntraSegment(PolarSegment& seg) const;
+  Eigen::Matrix3d FillTholeInteraction_diponly(const PolarSite& site1,
+                                               const PolarSite& site2) const;
+
+  Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
  private:
   double InteractStatic_site(StaticSite& site1, StaticSite& site2) const;
@@ -65,9 +67,6 @@ class eeInteractor {
 
   Eigen::Matrix4d FillTholeInteraction_noQuadrupoles(
       const PolarSite& site1, const PolarSite& site2) const;
-
-  Eigen::Matrix3d FillTholeInteraction_diponly(const PolarSite& site1,
-                                               const PolarSite& site2) const;
 
   double _expdamping = 0.39;  // dimensionless
 };

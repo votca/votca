@@ -43,39 +43,15 @@ PolarSite::PolarSite(int id, std::string element, Eigen::Vector3d pos)
 
 PolarSite::PolarSite(data& d) { ReadData(d); };
 
-void PolarSite::calc_InducedDipole() {
-  //_induced_dipole is set by eeInteractor
-  _dipole_hist.push_back(_induced_dipole);
-  int hist_size = _dipole_hist.size();
-  if (hist_size == 1) {
-    return;
-  } else {
-    _induced_dipole =
-        _dipole_hist[_dipole_hist.size() - 2] * 0.5 + _dipole_hist.back() * 0.5;
-    return;
-  }
-}
-
 double PolarSite::FieldEnergy() const {
-  double e = StaticSite::FieldEnergy();
-  e += _V_ind.dot(_Q);
+  double e = _V.dot(_Q);
   e += _V.segment<3>(1).dot(_induced_dipole);
-  e += _V_ind.segment<3>(1).dot(_induced_dipole);
   return e;
 }
 
 double PolarSite::InternalEnergy() const {
-  auto field = (_V.segment<3>(1) + _V_ind.segment<3>(1));
-  return -0.5 * field.dot(_induced_dipole);  // internal
-}
-
-double PolarSite::DipoleChange() const {
-  if (_dipole_hist.size() == 1) {
-    return _dipole_hist.back().norm();
-  } else if (_dipole_hist.empty()) {
-    return std::numeric_limits<double>::max();
-  }
-  return (_dipole_hist.back() - _dipole_hist[_dipole_hist.size() - 2]).norm();
+  return -0.5 * _induced_dipole.transpose() * _pinv *
+         _induced_dipole;  // internal
 }
 
 Eigen::Vector3d PolarSite::getDipole() const {
@@ -84,12 +60,12 @@ Eigen::Vector3d PolarSite::getDipole() const {
   return dipole;
 }
 
-void PolarSite::ResetInduction() { _V_ind.setZero(); }
-
 void PolarSite::setPolarisation(const Eigen::Matrix3d pol) {
   _Ps = pol;
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-  es.computeDirect(_Ps, Eigen::EigenvaluesOnly);
+  es.computeDirect(_Ps);
+  _pinv = es.eigenvectors() * es.eigenvalues().cwiseInverse().asDiagonal() *
+          es.eigenvectors().transpose();
   _eigendamp = es.eigenvalues().maxCoeff();
 }
 
@@ -138,16 +114,6 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_Ps(1, 1), "pyy", HOFFSET(data, pyy));
   table.addCol(_Ps(1, 2), "pyz", HOFFSET(data, pyz));
   table.addCol(_Ps(2, 2), "pzz", HOFFSET(data, pzz));
-
-  table.addCol(_V_ind[0], "V_ind00", HOFFSET(data, V00_ind));
-  table.addCol(_V_ind[1], "V_ind11c", HOFFSET(data, V11c_ind));
-  table.addCol(_V_ind[2], "V_ind11s", HOFFSET(data, V11s_ind));
-  table.addCol(_V_ind[3], "V_ind10", HOFFSET(data, V10_ind));
-  table.addCol(_V_ind[4], "V_ind20", HOFFSET(data, V20_ind));
-  table.addCol(_V_ind[5], "V_ind21c", HOFFSET(data, V21c_ind));
-  table.addCol(_V_ind[6], "V_ind21s", HOFFSET(data, V21s_ind));
-  table.addCol(_V_ind[7], "V_ind22c", HOFFSET(data, V22c_ind));
-  table.addCol(_V_ind[8], "V_ind22s", HOFFSET(data, V22s_ind));
 }
 
 void PolarSite::WriteData(data& d) const {
@@ -184,15 +150,6 @@ void PolarSite::WriteData(data& d) const {
   d.pyy = _Ps(1, 1);
   d.pyz = _Ps(1, 2);
   d.pzz = _Ps(2, 2);
-
-  d.V11c_ind = _V_ind[1];
-  d.V11s_ind = _V_ind[2];
-  d.V10_ind = _V_ind[3];
-  d.V20_ind = _V_ind[4];
-  d.V21c_ind = _V_ind[5];
-  d.V21s_ind = _V_ind[6];
-  d.V22c_ind = _V_ind[7];
-  d.V22s_ind = _V_ind[8];
 }
 
 void PolarSite::ReadData(data& d) {
@@ -237,16 +194,6 @@ void PolarSite::ReadData(data& d) {
   Ps(2, 2) = d.pzz;
 
   this->setPolarisation(Ps);
-
-  _V_ind[0] = d.V00_ind;
-  _V_ind[1] = d.V11c_ind;
-  _V_ind[2] = d.V11s_ind;
-  _V_ind[3] = d.V10_ind;
-  _V_ind[4] = d.V20_ind;
-  _V_ind[5] = d.V21c_ind;
-  _V_ind[6] = d.V21s_ind;
-  _V_ind[7] = d.V22c_ind;
-  _V_ind[8] = d.V22s_ind;
 }
 
 }  // namespace xtp

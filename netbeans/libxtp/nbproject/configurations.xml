@@ -83,6 +83,7 @@
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
+      <itemPath>../../include/votca/xtp/dipoledipoleinteraction.h</itemPath>
       <itemPath>../../include/votca/xtp/eeinteractor.h</itemPath>
       <itemPath>../../include/votca/xtp/eigen.h</itemPath>
       <itemPath>../../include/votca/xtp/energy_costfunction.h</itemPath>
@@ -3957,6 +3958,11 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/dipoledipoleinteraction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/eeinteractor.h"
             ex="false"
             tool="3"
@@ -5072,6 +5078,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/dipoledipoleinteraction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/eeinteractor.h"
             ex="false"

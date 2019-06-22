@@ -413,8 +413,8 @@ double eeInteractor::InteractPolar_site(PolarSite& site1,
       site1.Induced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
   const Vector9d V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
 
-  site1.V_ind() += V1;
-  site2.V_ind() += V2;
+  site1.V() += V1;
+  site2.V() += V2;
   double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
              site2.Induced_Dipole();
   // indu-stat
@@ -422,16 +422,6 @@ double eeInteractor::InteractPolar_site(PolarSite& site1,
   // stat-indu
   e += site1.Q().dot(V1);
   return e;
-}
-
-void eeInteractor::InteractPolar_site_small(PolarSite& site1,
-                                            PolarSite& site2) const {
-  const Eigen::Matrix3d tTab =
-      FillTholeInteraction_diponly(site1, site2);  // \tilde{T}^(ab)_tu
-  auto field2 = site1.Induced_Dipole().transpose() * tTab;
-  site2.V_ind().segment<3>(1) += field2;
-  auto field1 = tTab * site2.Induced_Dipole();
-  site1.V_ind().segment<3>(1) += field1;
 }
 
 template <class T1, class T2>
@@ -485,17 +475,6 @@ double eeInteractor::InteractPolar_IntraSegment(PolarSegment& seg) const {
   return energy;
 }
 
-void eeInteractor::InteractPolar_small(PolarSegment& seg1,
-                                       PolarSegment& seg2) const {
-  assert(&seg1 != &seg2 &&
-         "InteractPolar(seg1,seg2) needs two distinct objects");
-  for (PolarSite& site1 : seg1) {
-    for (PolarSite& site2 : seg2) {
-      InteractPolar_site_small(site1, site2);
-    }
-  }
-}
-
 double eeInteractor::InteractPolar(PolarSegment& seg1,
                                    PolarSegment& seg2) const {
   assert(&seg1 != &seg2 &&
@@ -522,7 +501,8 @@ double eeInteractor::InteractPolar(const PolarSegment& seg1,
   return energy;
 }
 
-void eeInteractor::Cholesky_IntraSegment(PolarSegment& seg) const {
+Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
+    const PolarSegment& seg) const {
   int size = 3 * seg.size();
 
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size, size);
@@ -534,21 +514,15 @@ void eeInteractor::Cholesky_IntraSegment(PolarSegment& seg) const {
   }
 
   for (int i = 0; i < seg.size(); i++) {
-    A.block<3, 3>(3 * i, 3 * i) = seg[i].getPolarisation().inverse();
+    A.block<3, 3>(3 * i, 3 * i) = seg[i].getPInv();
   }
   Eigen::VectorXd b = Eigen::VectorXd(size);
   for (int i = 0; i < seg.size(); i++) {
-    b.segment<3>(3 * i) =
-        -(seg[i].V().segment<3>(1) + seg[i].V_ind().segment<3>(1));
+    b.segment<3>(3 * i) = -seg[i].V().segment<3>(1);
   }
 
   Eigen::LLT<Eigen::Ref<Eigen::MatrixXd> > lltOfA(A);
-  Eigen::VectorXd x = lltOfA.solve(b);
-  for (int i = 0; i < seg.size(); i++) {
-    seg[i].Induced_Dipole() = x.segment<3>(3 * i);
-  }
-
-  return;
+  return lltOfA.solve(b);
 }
 
 }  // namespace xtp

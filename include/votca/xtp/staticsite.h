@@ -122,7 +122,7 @@ class StaticSite {
   const Vector9d& V() const { return _V; }
   Vector9d& V() { return _V; }
 
-  virtual void Reset() { _V.setZero(); }
+  void Reset() { _V.setZero(); }
 
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
