@@ -253,13 +253,12 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   if (_do_esp) {
     XTP_LOG_SAVE(logDEBUG, pLog) << "Running ESPFIT" << std::flush;
     try {
-      std::string mps_file = "";
       Esp2multipole esp2multipole = Esp2multipole(pLog);
       esp2multipole.Initialize(_esp_options);
       std::string ESPDIR =
           "MP_FILES/" + frame_dir + "/" + esp2multipole.GetStateString();
       esp2multipole.Extractingcharges(orbitals);
-      mps_file = (format("%1%_%2%_%3%.mps") % segType % segId %
+      std::string mps_file = (format("%1%_%2%_%3%.mps") % segType % segId %
                   esp2multipole.GetStateString())
                      .str();
       boost::filesystem::create_directories(ESPDIR);
