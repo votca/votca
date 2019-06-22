@@ -33,8 +33,6 @@ class eeInteractor {
  public:
   explicit eeInteractor(){};
   explicit eeInteractor(double expdamping) : _expdamping(expdamping){};
-  explicit eeInteractor(double expdamping, double etol)
-      : _expdamping(expdamping), _etol(etol){};
 
   template <class T1, class T2>
   double InteractStatic(T1& seg1, T2& seg2) const;
@@ -53,8 +51,6 @@ class eeInteractor {
                                                const PolarSite& site2) const;
 
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
-
-  bool DipoleBelowEtol(const PolarSite& site1, const PolarSite& site2) const;
 
  private:
   double InteractStatic_site(StaticSite& site1, StaticSite& site2) const;
@@ -75,7 +71,6 @@ class eeInteractor {
       const PolarSite& site1, const PolarSite& site2) const;
 
   double _expdamping = 0.39;  // dimensionless
-  double _etol = 1e-9;        // hrt
 };
 
 }  // namespace xtp

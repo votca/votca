@@ -67,10 +67,7 @@ class PolarSite : public StaticSite {
   const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
   void setInduced_Dipole(const Eigen::Vector3d& induced_dipole) {
     _induced_dipole = induced_dipole;
-    _dinduced_max = std::sqrt(3) * _induced_dipole.cwiseAbs().maxCoeff();
   }
-
-  double D_ind_upperbound() const { return _dinduced_max; }
 
   double Energy() const { return FieldEnergy() + InternalEnergy(); }
 
@@ -134,12 +131,13 @@ class PolarSite : public StaticSite {
 
  private:
   std::string writePolarisation() const override;
+
+  Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
+
   // cached data
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
-  double _eigendamp = 0.0;
-  double _dinduced_max = 0.0;
   Eigen::Matrix3d _pinv = Eigen::Matrix3d::Zero();
-  Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
+  double _eigendamp = 0.0;
 };
 
 }  // namespace xtp

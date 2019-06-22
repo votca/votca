@@ -56,18 +56,6 @@ Eigen::Matrix4d eeInteractor::FillInteraction_noQuadrupoles(
   return interaction;
 }
 
-bool eeInteractor::DipoleBelowEtol(const PolarSite& site1,
-                                   const PolarSite& site2) const {
-  double r = (site1.getPos() - site2.getPos()).norm();
-  double uppbound =
-      site1.D_ind_upperbound() * site2.D_ind_upperbound() / std::pow(r, 3);
-  if (uppbound < _etol) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
 Matrix9d eeInteractor::FillInteraction(const StaticSite& site1,
                                        const StaticSite& site2) const {
 
