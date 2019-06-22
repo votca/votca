@@ -28,7 +28,6 @@
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.h</itemPath>
-        <itemPath>../../src/libxtp/jobcalculators/qmmm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
@@ -84,6 +83,7 @@
       <itemPath>../../include/votca/xtp/dftcoupling.h</itemPath>
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
+      <itemPath>../../include/votca/xtp/dipoledipoleinteraction.h</itemPath>
       <itemPath>../../include/votca/xtp/eeinteractor.h</itemPath>
       <itemPath>../../include/votca/xtp/eigen.h</itemPath>
       <itemPath>../../include/votca/xtp/energy_costfunction.h</itemPath>
@@ -303,6 +303,7 @@
       <itemPath>../../src/tests/test_davidson.cc</itemPath>
       <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
+      <itemPath>../../src/tests/test_dipoledipoleinteraction.cc</itemPath>
       <itemPath>../../src/tests/test_eeinteractor.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
@@ -3958,6 +3959,11 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/dipoledipoleinteraction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/eeinteractor.h"
             ex="false"
             tool="3"
@@ -4624,11 +4630,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/qmmm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -4859,6 +4860,11 @@
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_dipoledipoleinteraction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_eeinteractor.cc"
             ex="false"
             tool="1"
@@ -5078,6 +5084,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/dipoledipoleinteraction.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/eeinteractor.h"
             ex="false"
@@ -5745,11 +5756,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/jobcalculators/qmmm.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -5979,6 +5985,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dipoledipoleinteraction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_eeinteractor.cc"
             ex="false"

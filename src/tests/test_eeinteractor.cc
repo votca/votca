@@ -216,4 +216,45 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_orientation) {
   BOOST_CHECK_CLOSE(energy_field, ref, 1e-12);
 }
 
+BOOST_AUTO_TEST_CASE(static_case_quadrupoles_dipoles_orientation) {
+  // using Stone page 55 fig 3.5
+  Vector9d mpoles1;
+  mpoles1 << 0, 0, 0, 0, 1, 0, 0, 0, 0;
+  Vector9d mpoles2;
+  mpoles2 << 0, 0, 0, 1, 0, 0, 0, 0, 0;
+
+  StaticSegment seg1("one", 1);
+  StaticSegment seg2("two", 2);
+  StaticSite one(1, "H");
+  one.setPos(Eigen::Vector3d::Zero());
+  one.setMultipole(mpoles1, 2);
+  StaticSite two(2, "H");
+  // site 2 is above site 1
+  two.setPos(Eigen::Vector3d::UnitZ());
+  two.setMultipole(mpoles2, 2);
+
+  seg1.push_back(one);
+  seg2.push_back(two);
+
+  eeInteractor interactor;
+  double energy_field = interactor.InteractStatic(seg1, seg2);
+  // config a
+  BOOST_CHECK_CLOSE(energy_field, -3, 1e-12);
+  // config b
+  StaticSite& site1 = seg1[0];
+  StaticSite& site2 = seg2[0];
+  // site1 is at origin
+  Eigen::Matrix3d rot;
+  rot << 1, 0, 0, 0, 1, 0, 0, 0, -1;
+  site2.Rotate(rot, Eigen::Vector3d::UnitZ());
+  energy_field = interactor.InteractStatic(seg1, seg2);
+  BOOST_CHECK_CLOSE(energy_field, 3, 1e-12);
+  // config c
+  Eigen::Matrix3d rot2;
+  rot2 << 1, 0, 0, 0, 0, 1, 0, 1, 0;
+  site1.Rotate(rot2, Eigen::Vector3d::Zero());
+  energy_field = interactor.InteractStatic(seg2, seg1);
+  BOOST_CHECK_CLOSE(energy_field, -1.5, 1e-12);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

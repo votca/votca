@@ -68,7 +68,7 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   if (jobtop.size() - no_static_regions < 2) {
     XTP_LOG_SAVE(logINFO, pLog)
         << "Only " << jobtop.size() - no_static_regions
-        << " scf regions are used. The remaining regions are static. So no "
+        << " scf region is used. The remaining regions are static. So no "
            "inter regions scf is required. "
         << std::flush;
     no_top_scf = true;
@@ -77,8 +77,9 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
 
   for (int iteration = 0; iteration < _max_iterations; iteration++) {
 
-    XTP_LOG_SAVE(logINFO, pLog) << "Iteration " << iteration + 1 << " of "
-                                << _max_iterations << std::flush;
+    XTP_LOG_SAVE(logINFO, pLog)
+        << " Inter Region SCF Iteration " << iteration + 1 << " of "
+        << _max_iterations << std::flush;
 
     // reverse iterator over regions because the cheapest regions have to be
     // evaluated first
@@ -87,30 +88,32 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
          reg_pointer-- != jobtop.begin();) {
       std::unique_ptr<Region>& region = *reg_pointer;
       XTP_LOG_SAVE(logINFO, pLog)
-          << "Running calculations for Region:" << region->identify() << " "
+          << "Running calculations for " << region->identify() << " "
           << region->getId() << std::flush;
       region->Reset();
       region->Evaluate(jobtop.Regions());
     }
 
-    std::vector<bool> converged_regions;
-    for (std::unique_ptr<Region>& region : jobtop) {
-      converged_regions.push_back(region->Converged());
-    }
+    if (!no_top_scf) {
+      std::vector<bool> converged_regions;
+      for (std::unique_ptr<Region>& region : jobtop) {
+        converged_regions.push_back(region->Converged());
+      }
 
-    bool all_regions_converged =
-        std::all_of(converged_regions.begin(), converged_regions.end(),
-                    [](bool i) { return i; });
+      bool all_regions_converged =
+          std::all_of(converged_regions.begin(), converged_regions.end(),
+                      [](bool i) { return i; });
 
-    if (all_regions_converged || no_top_scf) {
-      XTP_LOG_SAVE(logINFO, pLog) << "Job converged after " << iteration + 1
-                                  << " iterations." << std::flush;
-      break;
-    }
-    if (iteration == _max_iterations - 1) {
-      XTP_LOG_SAVE(logINFO, pLog)
-          << "Job did not converge after " << iteration + 1
-          << " iterations.\n Writing results to jobfile." << std::flush;
+      if (all_regions_converged) {
+        XTP_LOG_SAVE(logINFO, pLog) << "Job converged after " << iteration + 1
+                                    << " iterations." << std::flush;
+        break;
+      }
+      if (iteration == _max_iterations - 1) {
+        XTP_LOG_SAVE(logINFO, pLog)
+            << "Job did not converge after " << iteration + 1
+            << " iterations.\n Writing results to jobfile." << std::flush;
+      }
     }
   }
 

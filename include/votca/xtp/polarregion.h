@@ -49,28 +49,26 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   void Evaluate(std::vector<std::unique_ptr<Region> >& regions);
 
+  void Reset();
+
  protected:
   void InteractwithQMRegion(const QMRegion& region);
   void InteractwithPolarRegion(const PolarRegion& region);
   void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
-  std::pair<bool, double> DipolesConverged() const;
-  void ResetFields();
   void CalcInducedDipoles();
   double StaticInteraction();
-  double PolarInteraction();
+  void PolarInteraction_scf();
+  double PolarInteraction_energy();
 
   hist<double> _E_hist;
-  hist<double> _D_hist;
-
   double _deltaE = 1e-5;
   double _deltaD = 1e-5;
   int _max_iter = 100;
   double _exp_damp = 0.39;
-  bool _induce_intra_mol = true;
 
-  bool _use_cholesky = true;
+  int _openmp_threads = 1;
 };
 
 }  // namespace xtp

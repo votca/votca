@@ -80,7 +80,7 @@ Eigen::MatrixXd NBO::IntercenterOrthogonalisation(
   for (unsigned i = 0; i < sorting.size(); i++) {
     // shell
     for (it_type iterator = sorting[i].begin(); iterator != sorting[i].end();
-         iterator++) {
+         ++iterator) {
       int ll = 2 * (iterator->first) + 1;
       std::vector<int>& index = iterator->second;
       unsigned size = index.size();

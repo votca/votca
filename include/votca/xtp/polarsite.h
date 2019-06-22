@@ -47,15 +47,13 @@ class PolarSite : public StaticSite {
   ~PolarSite(){};
 
   void setPolarisation(const Eigen::Matrix3d pol) override;
-  void ResetInduction();
 
   const Eigen::Matrix3d& getPolarisation() const { return _Ps; }
 
+  const Eigen::Matrix3d& getPInv() const { return _pinv; }
+
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const override;
-
-  const Vector9d& V_ind() const { return _V_ind; }
-  Vector9d& V_ind() { return _V_ind; }
 
   double getEigenDamp() const { return _eigendamp; }
 
@@ -63,10 +61,8 @@ class PolarSite : public StaticSite {
               const Eigen::Vector3d& ref_pos) override {
     StaticSite::Rotate(R, ref_pos);
     _Ps = R * _Ps * R.transpose();
+    _pinv = R.transpose() * _pinv * R;
   }
-
-  template <bool cholesky>
-  void calcDIIS_InducedDipole();
 
   const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
   Eigen::Vector3d& Induced_Dipole() { return _induced_dipole; }
@@ -112,25 +108,9 @@ class PolarSite : public StaticSite {
     double pyy;
     double pyz;
     double pzz;
-
-    double V00_ind;
-    double V11c_ind;
-    double V11s_ind;
-    double V10_ind;
-    double V20_ind;
-    double V21c_ind;
-    double V21s_ind;
-    double V22c_ind;
-    double V22s_ind;
   };
   // do not move up has to be below data definition
   PolarSite(data& d);
-
-  void Reset() override {
-    StaticSite::Reset();
-    ResetInduction();
-    _dipole_hist.clear();
-  }
 
   double DipoleChange() const;
 
@@ -151,11 +131,10 @@ class PolarSite : public StaticSite {
   std::string writePolarisation() const override;
 
   Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
-  Vector9d _V_ind = Vector9d::Zero();
 
   // cached data
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
-  std::vector<Eigen::Vector3d> _dipole_hist;
+  Eigen::Matrix3d _pinv = Eigen::Matrix3d::Zero();
   double _eigendamp = 0.0;
 };
 

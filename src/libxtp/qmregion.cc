@@ -56,12 +56,16 @@ void QMRegion::Initialize(const tools::Property& prop) {
 }
 
 bool QMRegion::Converged() const {
-  double Echange = std::abs(_E_hist.getDiff());
+  if (!_E_hist.filled()) {
+    return false;
+  }
+
+  double Echange = _E_hist.getDiff();
   double Dchange = _Dmat_hist.getDiff().norm();
-  double Dmax = _Dmat_hist.getDiff().maxCoeff();
+  double Dmax = _Dmat_hist.getDiff().cwiseAbs().maxCoeff();
   std::string info = "not converged";
   bool converged = false;
-  if (Dchange < _DeltaD && Dmax < _DeltaD && Echange < _DeltaE) {
+  if (Dchange < _DeltaD && Dmax < _DeltaD && std::abs(Echange) < _DeltaE) {
     info = "converged";
     converged = true;
   }

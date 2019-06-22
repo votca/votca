@@ -257,9 +257,6 @@ void KMCMultiple::RunVSSM() {
              "Vs]\tdistance_fielddirection[nm]\tdistance_absolute[nm]"
           << endl;
   }
-
-  double absolute_field = _field.norm();
-
   RandomlyCreateCharges();
   vector<Eigen::Vector3d> startposition(_numberofcharges,
                                         Eigen::Vector3d::Zero());

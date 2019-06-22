@@ -36,7 +36,7 @@ stages:
     - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON -DBUILD_CTP=ON -DBUILD_XTP_MANUAL=ON
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON -DBUILD_CTP=OFF -DBUILD_XTP_MANUAL=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
     - make -O -k -j${j} -l${j} VERBOSE=1
