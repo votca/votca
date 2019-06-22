@@ -303,6 +303,7 @@
       <itemPath>../../src/tests/test_davidson.cc</itemPath>
       <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
+      <itemPath>../../src/tests/test_dipoledipoleinteraction.cc</itemPath>
       <itemPath>../../src/tests/test_eeinteractor.cc</itemPath>
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
@@ -4859,6 +4860,11 @@
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_dipoledipoleinteraction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_eeinteractor.cc"
             ex="false"
             tool="1"
@@ -5979,6 +5985,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dipoledipoleinteraction.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_eeinteractor.cc"
             ex="false"

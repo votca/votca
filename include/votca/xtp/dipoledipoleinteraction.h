@@ -65,8 +65,33 @@ class DipoleDipoleInteraction
     }
   }
 
+  class InnerIterator {
+   public:
+    InnerIterator(const DipoleDipoleInteraction& xpr, const Index& id)
+        : _xpr(xpr), _id(id){};
+
+    InnerIterator& operator++() {
+      _row++;
+      return *this;
+    }
+    operator bool() const {
+      return _row < _xpr._size;
+    }  // DO not use the size method, it returns linear dimension*linear
+       // dimension i.e _size^2
+    double value() const { return _xpr(_row, _id); }
+    Index row() const { return _row; }
+    Index col() const { return _id; }
+    Index index() const { return row(); }
+
+   private:
+    const DipoleDipoleInteraction& _xpr;
+    const Index _id;
+    Index _row = 0;
+  };
+
   Index rows() const { return this->_size; }
   Index cols() const { return this->_size; }
+  Index outerSize() const { return this->_size; }
 
   template <typename Vtype>
   Eigen::Product<DipoleDipoleInteraction, Vtype, Eigen::AliasFreeProduct>
@@ -74,6 +99,22 @@ class DipoleDipoleInteraction
     return Eigen::Product<DipoleDipoleInteraction, Vtype,
                           Eigen::AliasFreeProduct>(*this, x.derived());
   }
+
+  // this is not a fast method
+  const double& operator()(const size_t i, const size_t j) const {
+    int seg1id = i / 3;
+    int xyz1 = i % 3;
+    int seg2id = j / 3;
+    int xyz2 = j % 3;
+
+    if (seg1id == seg2id) {
+      return _sites[seg1id]->getPInv()(xyz1, xyz2);
+    } else {
+      const PolarSite& site1 = *_sites[seg1id];
+      const PolarSite& site2 = *_sites[seg2id];
+      return _interactor.FillTholeInteraction_diponly(site1, site2)(xyz1, xyz2);
+    }
+  };
 
   Eigen::Matrix3Xd ThreeRows(int index) const {
     const PolarSite& site1 = *_sites[index];
@@ -122,8 +163,8 @@ struct generic_product_impl<votca::xtp::DipoleDipoleInteraction, Vtype,
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
     int iterations = op.rows() / 3;
-    // make the mat vect product
-    //#pragma omp parallel for
+// make the mat vect product
+#pragma omp parallel for
     for (int i = 0; i < iterations; i++) {
       const Eigen::Vector3d result = op.ThreeRows(i) * v;
       dst(3 * i) = result.x();

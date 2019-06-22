@@ -161,8 +161,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
   eeInteractor interactor(_exp_damp);
   DipoleDipoleInteraction A(interactor, _segments);
-  Eigen::ConjugateGradient<DipoleDipoleInteraction, Eigen::Lower | Eigen::Upper,
-                           Eigen::IdentityPreconditioner>
+  Eigen::ConjugateGradient<DipoleDipoleInteraction, Eigen::Lower | Eigen::Upper>
       cg;
   cg.setMaxIterations(_max_iter);
   cg.setTolerance(_deltaD);
