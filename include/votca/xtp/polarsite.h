@@ -46,9 +46,9 @@ class PolarSite : public StaticSite {
 
   ~PolarSite(){};
 
-  void setPolarisation(const Eigen::Matrix3d pol) override;
+  void setPolarisation(const Eigen::Matrix3d& pol) override;
 
-  const Eigen::Matrix3d& getPolarisation() const { return _Ps; }
+  Eigen::Matrix3d getPolarisation() const { return _pinv.inverse(); }
 
   const Eigen::Matrix3d& getPInv() const { return _pinv; }
 
@@ -60,7 +60,6 @@ class PolarSite : public StaticSite {
   void Rotate(const Eigen::Matrix3d& R,
               const Eigen::Vector3d& ref_pos) override {
     StaticSite::Rotate(R, ref_pos);
-    _Ps = R * _Ps * R.transpose();
     _pinv = R.transpose() * _pinv * R;
   }
 
@@ -110,6 +109,10 @@ class PolarSite : public StaticSite {
     double pyy;
     double pyz;
     double pzz;
+    
+    double d_x_ind;
+    double d_y_ind;
+    double d_z_ind;
   };
   // do not move up has to be below data definition
   PolarSite(data& d);
@@ -131,8 +134,6 @@ class PolarSite : public StaticSite {
 
  private:
   std::string writePolarisation() const override;
-
-  Eigen::Matrix3d _Ps = Eigen::Matrix3d::Zero();
 
   // cached data
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();

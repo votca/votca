@@ -60,10 +60,9 @@ Eigen::Vector3d PolarSite::getDipole() const {
   return dipole;
 }
 
-void PolarSite::setPolarisation(const Eigen::Matrix3d pol) {
-  _Ps = pol;
+void PolarSite::setPolarisation(const Eigen::Matrix3d& pol) {
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
-  es.computeDirect(_Ps);
+  es.computeDirect(pol);
   _pinv = es.eigenvectors() * es.eigenvalues().cwiseInverse().asDiagonal() *
           es.eigenvectors().transpose();
   _eigendamp = es.eigenvalues().maxCoeff();
@@ -71,7 +70,7 @@ void PolarSite::setPolarisation(const Eigen::Matrix3d pol) {
 
 std::string PolarSite::writePolarisation() const {
   double conv_pol = std::pow(tools::conv::bohr2ang, 3);
-  Eigen::MatrixX3d pol = _Ps * conv_pol;
+  Eigen::MatrixX3d pol = _pinv.inverse() * conv_pol;
   return (boost::format("     P %1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f %5$+1.7f "
                         "%6$+1.7f\n") %
           pol(0, 0) % pol(1, 0) % pol(2, 0) % pol(1, 1) % pol(1, 2) % pol(2, 2))
@@ -107,13 +106,17 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_V[6], "V21s", HOFFSET(data, V21s));
   table.addCol(_V[7], "V22c", HOFFSET(data, V22c));
   table.addCol(_V[8], "V22s", HOFFSET(data, V22s));
-
-  table.addCol(_Ps(0, 0), "pxx", HOFFSET(data, pxx));
-  table.addCol(_Ps(0, 1), "pxy", HOFFSET(data, pxy));
-  table.addCol(_Ps(0, 2), "pxz", HOFFSET(data, pxz));
-  table.addCol(_Ps(1, 1), "pyy", HOFFSET(data, pyy));
-  table.addCol(_Ps(1, 2), "pyz", HOFFSET(data, pyz));
-  table.addCol(_Ps(2, 2), "pzz", HOFFSET(data, pzz));
+// P_inv and P have same polarisation so no problem, as only data type counts
+  table.addCol(_pinv(0, 0), "pxx", HOFFSET(data, pxx));
+  table.addCol(_pinv(0, 1), "pxy", HOFFSET(data, pxy));
+  table.addCol(_pinv(0, 2), "pxz", HOFFSET(data, pxz));
+  table.addCol(_pinv(1, 1), "pyy", HOFFSET(data, pyy));
+  table.addCol(_pinv(1, 2), "pyz", HOFFSET(data, pyz));
+  table.addCol(_pinv(2, 2), "pzz", HOFFSET(data, pzz));
+  
+  table.addCol(_induced_dipole.x(), "d_ind_x", HOFFSET(data, d_x_ind));
+  table.addCol(_induced_dipole.y(), "d_ind_y", HOFFSET(data, d_y_ind));
+  table.addCol(_induced_dipole.z(), "d_ind_z", HOFFSET(data, d_z_ind));
 }
 
 void PolarSite::WriteData(data& d) const {
@@ -143,13 +146,17 @@ void PolarSite::WriteData(data& d) const {
   d.V21s = _V[6];
   d.V22c = _V[7];
   d.V22s = _V[8];
-
-  d.pxx = _Ps(0, 0);
-  d.pxy = _Ps(0, 1);
-  d.pxz = _Ps(0, 2);
-  d.pyy = _Ps(1, 1);
-  d.pyz = _Ps(1, 2);
-  d.pzz = _Ps(2, 2);
+  Eigen::Matrix3d P=_pinv.inverse();
+  d.pxx = P(0, 0);
+  d.pxy = P(0, 1);
+  d.pxz = P(0, 2);
+  d.pyy = P(1, 1);
+  d.pyz = P(1, 2);
+  d.pzz = P(2, 2);
+  
+   d.d_x_ind=_induced_dipole.x();
+   d.d_y_ind=_induced_dipole.y();
+   d.d_z_ind=_induced_dipole.z();
 }
 
 void PolarSite::ReadData(data& d) {
@@ -194,6 +201,10 @@ void PolarSite::ReadData(data& d) {
   Ps(2, 2) = d.pzz;
 
   this->setPolarisation(Ps);
+  
+   _induced_dipole.x()=d.d_x_ind;
+   _induced_dipole.y()=d.d_y_ind;
+   _induced_dipole.z()=d.d_z_ind;
 }
 
 }  // namespace xtp
