@@ -60,8 +60,8 @@ bool PolarRegion::Converged() const {
     converged = true;
   }
   XTP_LOG_SAVE(logINFO, _log)
-      << "Region:" << this->identify() << " " << this->getId() << " is " << info
-      << " deltaE=" << Echange << std::flush;
+      << TimeStamp() << "Region:" << this->identify() << " " << this->getId()
+      << " is " << info << " deltaE=" << Echange << std::flush;
   return converged;
 }
 
@@ -114,23 +114,26 @@ void PolarRegion::Reset() {
 }
 
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
-  XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
-                              << this->getId() << std::flush;
+  XTP_LOG_SAVE(logINFO, _log)
+      << TimeStamp() << " Evaluating:" << this->identify() << " "
+      << this->getId() << std::flush;
 
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log)
-      << "Evaluating electrostatics inside region" << std::flush;
+      << TimeStamp() << " Evaluating electrostatics inside region"
+      << std::flush;
   StaticInteraction();
   XTP_LOG_SAVE(logINFO, _log)
-      << "Calculated static interaction in region" << std::flush;
+      << TimeStamp() << " Calculated static interaction in region"
+      << std::flush;
 
   int dof_polarisation = 0;
   for (const PolarSegment& seg : _segments) {
     dof_polarisation += seg.size() * 3;
   }
   XTP_LOG_SAVE(logINFO, _log)
-      << "Starting Solving for classical polarisation with " << dof_polarisation
-      << " degrees of freedom." << std::flush;
+      << TimeStamp() << " Starting Solving for classical polarisation with "
+      << dof_polarisation << " degrees of freedom." << std::flush;
 
   Eigen::VectorXd initial_induced_dipoles =
       Eigen::VectorXd::Zero(dof_polarisation);
@@ -171,7 +174,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   Eigen::VectorXd x = cg.solveWithGuess(b, initial_induced_dipoles);
 
   XTP_LOG_SAVE(logINFO, _log)
-      << "CG: #iterations: " << cg.iterations()
+      << TimeStamp() << " CG: #iterations: " << cg.iterations()
       << ", estimated error: " << cg.error() << std::endl;
   index = 0;
   for (PolarSegment& seg : _segments) {
@@ -181,10 +184,9 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
   }
 
-  double polar_energy = x.transpose() * (A * x);
-
   double e_total = Energy();
-  XTP_LOG_SAVE(logINFO, _log) << " E_total[hrt]= " << e_total << std::flush;
+  XTP_LOG_SAVE(logINFO, _log)
+      << TimeStamp() << " E_total[hrt]= " << e_total << std::flush;
   _E_hist.push_back(e_total);
   return;
 }

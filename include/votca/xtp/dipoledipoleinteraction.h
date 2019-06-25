@@ -167,9 +167,7 @@ struct generic_product_impl<votca::xtp::DipoleDipoleInteraction, Vtype,
 #pragma omp parallel for
     for (int i = 0; i < sites; i++) {
       const Eigen::Vector3d result = op.Block(i, v);
-      dst(3 * i) = result.x();
-      dst(3 * i + 1) = result.y();
-      dst(3 * i + 2) = result.z();
+      dst.segment<3>(3 * i) = result;
     }
   }
 };

@@ -43,9 +43,7 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
   interaction(0, 0) = fac0;
   if (N > 1 || M > 1) {
     const double fac1 = std::pow(fac0, 2);
-    const double fac2 = std::pow(fac0, 3);
-    const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
-    const Eigen::Matrix3d& BxB = AxA;
+
     // Dipole-Charge Interaction
     if (N > 1) {
       interaction.block(1, 0, 3, 1) =
@@ -56,6 +54,10 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
       interaction.block(0, 1, 1, 3) =
           -fac1 * pos_a.transpose();  // T_00,1alpha (alpha=x,y,z)
     }
+
+    const double fac2 = std::pow(fac0, 3);
+    const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
+    const Eigen::Matrix3d& BxB = AxA;
     if (N > 1 && M > 1) {
       // Dipole-Dipole Interaction
       interaction.block(1, 1, 3, 3) =
@@ -83,7 +85,7 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
     }
 
     if (N > 1 && M > 1) {
-      const Eigen::Matrix3d AxB = -AxA;
+
       const Eigen::Matrix3d c = Eigen::Matrix3d::Identity();
       const double fac3 = std::pow(fac0, 4);
       if (N > 4 || M > 4) {
@@ -95,16 +97,16 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
                         3 * pos_b);  // T20-1beta (beta=x,y,z)
         block.col(1) = fac3 * sqr3 *
                        (pos_a.x() * c.col(2) + c.col(0) * pos_a.z() +
-                        5 * AxA(0, 2) * pos_b);  // T21c-1beta (beta=x,y,z)
+                        5 * AxA(2, 0) * pos_b);  // T21c-1beta (beta=x,y,z)
         block.col(2) = fac3 * sqr3 *
                        (pos_a.y() * c.col(2) + c.col(1) * pos_a.z() +
-                        5 * AxA(1, 2) * pos_b);  // T21s-1beta (beta=x,y,z)
+                        5 * AxA(2, 1) * pos_b);  // T21s-1beta (beta=x,y,z)
         block.col(3) =
             fac3 * 0.5 * sqr3 *
             (5 * (AxA(0, 0) - AxA(1, 1)) * pos_b + 2 * pos_a.x() * c.col(0) -
              2 * pos_a.y() * c.col(1));  // T22c-1beta (beta=x,y,z)
         block.col(4) = fac3 * sqr3 *
-                       (5 * AxA(0, 1) * pos_b + pos_a.x() * c.col(1) +
+                       (5 * AxA(1, 0) * pos_b + pos_a.x() * c.col(1) +
                         pos_a.y() * c.col(0));  // T22s-1beta (beta=x,y,z)
 
         if (N > 4) {
@@ -116,6 +118,7 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
       }
 
       if (N > 4 && M > 4) {
+        const Eigen::Matrix3d AxB = -AxA;
         const double fac4 = std::pow(fac0, 5);
         // Quadrupole-Quadrupole Interaction
         Eigen::Matrix<double, 5, 5> block;
@@ -263,6 +266,12 @@ double eeInteractor::CalcStaticEnergy_site(const StaticSite& site1,
   if (site1.getRank() < 1 && site2.getRank() < 1) {
     return site1.getCharge() * FillInteraction<1, 1>(site1, site2)(0, 0) *
            site2.getCharge();
+  } else if (site1.getRank() == 0 && site2.getRank() == 2) {
+    const Eigen::Matrix<double, 1, 9> Tab = FillInteraction<1, 9>(site1, site2);
+    return site1.Q()(0) * Tab.dot(site2.Q());
+  } else if (site1.getRank() == 2 && site2.getRank() == 0) {
+    const Eigen::Matrix<double, 9, 1> Tab = FillInteraction<9, 1>(site1, site2);
+    return site1.Q().dot(Tab) * site2.Q()(0);
   } else if (site1.getRank() < 2 && site2.getRank() < 2) {
     const Eigen::Matrix<double, 4, 4> Tab = FillInteraction<4, 4>(site1, site2);
     return site1.Q().head<4>().transpose() * Tab * site2.Q().head<4>();

@@ -55,6 +55,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
     }
   }
   bool op_check = elementwise.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(op_check, 1);
   if (!op_check) {
     std::cout << "ref" << std::endl;
     std::cout << ref << std::endl;
@@ -69,6 +70,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
     gemv.col(i) = dipdip * ident.col(i);
   }
   bool gemv_check = gemv.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(gemv_check, 1);
   if (!gemv_check) {
     std::cout << "ref" << std::endl;
     std::cout << ref << std::endl;
@@ -83,6 +85,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
     }
   }
   bool iterator_check = iterator.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(iterator_check, 1);
   if (!iterator_check) {
     std::cout << "ref" << std::endl;
     std::cout << ref << std::endl;

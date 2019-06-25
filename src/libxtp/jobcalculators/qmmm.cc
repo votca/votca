@@ -55,8 +55,8 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   if (_print_regions_pdb) {
     std::string pdb_filename =
         "jobtopology_job_" + std::to_string(job.getId()) + ".pdb";
-    XTP_LOG_SAVE(logINFO, pLog)
-        << "Writing jobtopology to " << pdb_filename << std::flush;
+    XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << "Writing jobtopology to "
+                                << pdb_filename << std::flush;
     jobtop.WriteToPdb(pdb_filename);
   }
 
@@ -67,7 +67,7 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   bool no_top_scf = false;
   if (jobtop.size() - no_static_regions < 2) {
     XTP_LOG_SAVE(logINFO, pLog)
-        << "Only " << jobtop.size() - no_static_regions
+        << TimeStamp() << "Only " << jobtop.size() - no_static_regions
         << " scf region is used. The remaining regions are static. So no "
            "inter regions scf is required. "
         << std::flush;
@@ -78,8 +78,8 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   for (int iteration = 0; iteration < _max_iterations; iteration++) {
 
     XTP_LOG_SAVE(logINFO, pLog)
-        << " Inter Region SCF Iteration " << iteration + 1 << " of "
-        << _max_iterations << std::flush;
+        << TimeStamp() << " Inter Region SCF Iteration " << iteration + 1
+        << " of " << _max_iterations << std::flush;
 
     // reverse iterator over regions because the cheapest regions have to be
     // evaluated first
@@ -88,8 +88,8 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
          reg_pointer-- != jobtop.begin();) {
       std::unique_ptr<Region>& region = *reg_pointer;
       XTP_LOG_SAVE(logINFO, pLog)
-          << "Running calculations for " << region->identify() << " "
-          << region->getId() << std::flush;
+          << TimeStamp() << "Running calculations for " << region->identify()
+          << " " << region->getId() << std::flush;
       region->Reset();
       region->Evaluate(jobtop.Regions());
     }
@@ -105,13 +105,14 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
                       [](bool i) { return i; });
 
       if (all_regions_converged) {
-        XTP_LOG_SAVE(logINFO, pLog) << "Job converged after " << iteration + 1
-                                    << " iterations." << std::flush;
+        XTP_LOG_SAVE(logINFO, pLog)
+            << TimeStamp() << "Job converged after " << iteration + 1
+            << " iterations." << std::flush;
         break;
       }
       if (iteration == _max_iterations - 1) {
         XTP_LOG_SAVE(logINFO, pLog)
-            << "Job did not converge after " << iteration + 1
+            << TimeStamp() << "Job did not converge after " << iteration + 1
             << " iterations.\n Writing results to jobfile." << std::flush;
       }
     }

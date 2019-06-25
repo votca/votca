@@ -32,7 +32,8 @@ void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
 template <class T>
 void MMRegion<T>::Reset() {
   XTP_LOG_SAVE(logINFO, _log)
-      << "Removed all previous values from region" << std::flush;
+      << TimeStamp() << " Removed all previous values from region"
+      << std::flush;
   for (auto& seg : _segments) {
     for (auto& site : seg) {
       site.Reset();
