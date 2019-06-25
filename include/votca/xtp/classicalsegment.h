@@ -44,11 +44,10 @@ class ClassicalSegment : public AtomContainer<T> {
 
   Eigen::Vector3d CalcDipole() const;
 
-  double Energy() const;
-
   friend std::ostream& operator<<(std::ostream& out,
                                   const ClassicalSegment<T>& container) {
-    out << container.getId() << " " << container.getName() << "\n";
+    out << container.getId() << " " << container.identify() << " "
+        << container.getName() << "\n";
     for (const T& atom : container) {
       out << atom;
     }

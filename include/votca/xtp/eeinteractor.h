@@ -34,41 +34,48 @@ class eeInteractor {
   explicit eeInteractor(){};
   explicit eeInteractor(double expdamping) : _expdamping(expdamping){};
 
-  template <class T1, class T2>
-  double InteractStatic(T1& seg1, T2& seg2) const;
-
-  template <class T>
-  double InteractStatic_IntraSegment(T& seg) const;
-
-  double InteractPolar_IntraSegment(const PolarSegment& seg1) const;
-
-  double InteractPolar(const PolarSegment& seg1,
-                       const PolarSegment& seg2) const;
-
-  double InteractPolar_ext(const PolarSegment& seg1, PolarSegment& seg2) const;
-
-  Eigen::Matrix3d FillTholeInteraction_diponly(const PolarSite& site1,
-                                               const PolarSite& site2) const;
+  Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
+                                       const PolarSite& site2) const;
 
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
+  template <class T>
+  void ApplyStaticField(const T& segment1, PolarSegment& segment2) const;
+  void ApplyStaticField_IntraSegment(PolarSegment& seg) const;
+
+  void ApplyInducedField(const PolarSegment& segment1,
+                         PolarSegment& segment2) const;
+
+  template <class S1, class S2>
+  double CalcStaticEnergy(const S1& segment1, const S2& segment2) const;
+
+  template <class S1, class S2>
+  double CalcPolarEnergy(const S1& segment1, const S2& segment2) const;
+
+  template <class S>
+  double CalcStaticEnergy_IntraSegment(const S& seg) const;
+
+  double CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
+
  private:
-  double InteractStatic_site(StaticSite& site1, StaticSite& site2) const;
-  double InteractStatic_site(const StaticSite& site1, StaticSite& site2) const;
+  template <int N, int M>
+  Eigen::Matrix<double, N, M> FillInteraction(const StaticSite& site1,
+                                              const StaticSite& site2) const;
 
-  double InteractPolar_site(const PolarSite& site1,
-                            const PolarSite& site2) const;
-  double InteractPolar_site(const PolarSite& site1, PolarSite& site2) const;
-  Matrix9d FillInteraction(const StaticSite& site1,
-                           const StaticSite& site2) const;
-  Matrix9d FillTholeInteraction(const PolarSite& site1,
-                                const PolarSite& site2) const;
+  void ApplyInducedField_site(const PolarSite& site1, PolarSite& site2) const;
+  void ApplyStaticField_site(const StaticSite& site1, PolarSite& site2) const;
 
-  Eigen::Matrix4d FillInteraction_noQuadrupoles(const StaticSite& site1,
-                                                const StaticSite& site2) const;
+  double CalcStaticEnergy_site(const StaticSite& site1,
+                               const StaticSite& site2) const;
 
-  Eigen::Matrix4d FillTholeInteraction_noQuadrupoles(
-      const PolarSite& site1, const PolarSite& site2) const;
+  double CalcPolar_stat_Energy_site(const PolarSite& site1,
+                                    const StaticSite& site2) const;
+
+  double CalcPolarEnergy_site(const PolarSite& site1,
+                              const StaticSite& site2) const;
+
+  double CalcPolarEnergy_site(const PolarSite& site1,
+                              const PolarSite& site2) const;
 
   double _expdamping = 0.39;  // dimensionless
 };

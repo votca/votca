@@ -53,16 +53,6 @@ class StaticSite {
     double Q21s;
     double Q22c;
     double Q22s;
-
-    double V00;
-    double V11c;
-    double V11s;
-    double V10;
-    double V20;
-    double V21c;
-    double V21s;
-    double V22c;
-    double V22s;
   };
   StaticSite(int id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
@@ -92,9 +82,7 @@ class StaticSite {
     _rank = rank;
   }
 
-  virtual double FieldEnergy() const { return _V.dot(_Q); }
-
-  virtual double Energy() const { return FieldEnergy(); }
+  virtual void Reset() { return; }
 
   void setCharge(double q) { _Q(0) = q; }
 
@@ -119,11 +107,6 @@ class StaticSite {
   static Eigen::VectorXd CalculateSphericalMultipole(
       const Eigen::Matrix3d& quadrupole_cartesian);
 
-  const Vector9d& V() const { return _V; }
-  Vector9d& V() { return _V; }
-
-  void Reset() { _V.setZero(); }
-
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
   virtual void SetupCptTable(CptTable& table) const;
@@ -136,8 +119,7 @@ class StaticSite {
 
   friend std::ostream& operator<<(std::ostream& out, const StaticSite& site) {
     out << site.getId() << " " << site.getElement() << " " << site.getRank();
-    out << " " << site.getPos().x() << "," << site.getPos().y() << ","
-        << site.getPos().z() << "\n";
+    out << " " << site.getPos().transpose() << "\n";
     return out;
   }
 
@@ -150,8 +132,6 @@ class StaticSite {
   int _rank = 0;
 
   Vector9d _Q = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
-
-  Vector9d _V = Vector9d::Zero();  // V00,V11c,V11s,V10,V20,V21c,V21s,V22c,V22s
 };
 }  // namespace xtp
 }  // namespace votca

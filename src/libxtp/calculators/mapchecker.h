@@ -112,12 +112,10 @@ bool MapChecker::EvaluateFrame(Topology& top) {
   log.setPreface(logDEBUG, "\n... ...");
 
   QMMapper map(log);
-  PolarMapper mp(log);
+
   for (QMState state : _qmstates) {
     map.LoadMappingFile(_mapfile);
-    mp.LoadMappingFile(_mapfile);
     std::string filename_qm = AddStatetoFilename(_qmfile, state);
-
     csg::PDBWriter qmwriter;
     std::string filename_qm_state =
         AddSteptoFilename(filename_qm, top.getStep());
@@ -131,9 +129,12 @@ bool MapChecker::EvaluateFrame(Topology& top) {
       qmwriter.WriteContainer(mol);
     }
     qmwriter.Close();
+  }
 
+  PolarMapper mp(log);
+  for (QMState state : _mdstates) {
+    mp.LoadMappingFile(_mapfile);
     std::string filename_mp = AddStatetoFilename(_mpfile, state);
-
     csg::PDBWriter mpwriter;
     std::string filename_mp_state =
         AddSteptoFilename(filename_mp, top.getStep());

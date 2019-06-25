@@ -152,18 +152,17 @@ void QMRegion::WritePDB(csg::PDBWriter& writer) const {
   writer.WriteContainer(_orb.QMAtoms());
 }
 
-template <class T>
-void QMRegion::AddNucleiFields(std::vector<T>& segments,
+void QMRegion::AddNucleiFields(std::vector<PolarSegment>& segments,
                                const StaticSegment& seg) const {
   eeInteractor e;
 #pragma omp parallel for
   for (int i = 0; i < int(segments.size()); ++i) {
-    e.InteractStatic(seg, segments[i]);
+    e.ApplyStaticField(seg, segments[i]);
   }
 }
 
-template <class T>
-void QMRegion::ApplyQMFieldToClassicSegments(std::vector<T>& segments) const {
+void QMRegion::ApplyQMFieldToPolarSegments(
+    std::vector<PolarSegment>& segments) const {
 
   NumericalIntegration numint;
   AOBasis basis =
@@ -190,9 +189,9 @@ void QMRegion::ApplyQMFieldToClassicSegments(std::vector<T>& segments) const {
   }
 #pragma omp parallel for
   for (int i = 0; i < int(segments.size()); ++i) {
-    T& seg = segments[i];
-    for (auto& site : seg) {
-      site.V() += numint.IntegrateV(site.getPos());
+    PolarSegment& seg = segments[i];
+    for (PolarSite& site : seg) {
+      site.V() += numint.IntegrateField(site.getPos());
     }
   }
 
@@ -202,11 +201,6 @@ void QMRegion::ApplyQMFieldToClassicSegments(std::vector<T>& segments) const {
   }
   AddNucleiFields(segments, seg);
 }
-
-template void QMRegion::ApplyQMFieldToClassicSegments(
-    std::vector<PolarSegment>& segments) const;
-template void QMRegion::ApplyQMFieldToClassicSegments(
-    std::vector<StaticSegment>& segments) const;
 
 void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   w(_id, "id");

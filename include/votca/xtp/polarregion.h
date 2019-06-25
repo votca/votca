@@ -58,9 +58,9 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
  private:
   void CalcInducedDipoles();
-  double StaticInteraction();
+  void StaticInteraction();
   void PolarInteraction_scf();
-  double PolarInteraction_energy();
+  double Energy() const;
 
   hist<double> _E_hist;
   double _deltaE = 1e-5;

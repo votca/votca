@@ -22,49 +22,14 @@
 namespace votca {
 namespace xtp {
 
-Eigen::Matrix4d eeInteractor::FillInteraction_noQuadrupoles(
+template <int N, int M>
+Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
     const StaticSite& site1, const StaticSite& site2) const {
-  const Eigen::Vector3d& posB = site2.getPos();
-  const Eigen::Vector3d& posA = site1.getPos();
-  int rankA = site1.getRank();
-  int rankB = site2.getRank();
-  Eigen::Matrix4d interaction = Eigen::Matrix4d::Zero();
-  const Eigen::Vector3d r_AB =
-      posB - posA;               // Vector of the distance between polar sites
-  const double R = r_AB.norm();  // Norm of distance vector
-  const Eigen::Vector3d pos_a = r_AB / R;
-  const double fac0 = 1 / R;
-
-  // Charge-Charge Interaction
-  interaction(0, 0) = fac0;  // T_00,00
-  const double fac1 = std::pow(fac0, 2);
-  const double fac2 = std::pow(fac0, 3);
-
-  // Dipole-Charge Interaction
-  interaction.block<3, 1>(1, 0) = fac1 * pos_a;  // T_1alpha,00 (alpha=x,y,z)
-  // Charge-Dipole Interaction
-  interaction.block<1, 3>(0, 1) =
-      -fac1 * pos_a.transpose();  // T_00,1alpha (alpha=x,y,z)
-
-  if (rankA > 0 && rankB > 0) {
-    // Dipole-Dipole Interaction
-    interaction.block<3, 3>(1, 1) =
-        fac2 *
-        (-3 * pos_a * pos_a.transpose() +
-         Eigen::Matrix3d::Identity());  // T_1alpha,1beta (alpha,beta=x,y,z)
-  }
-  return interaction;
-}
-
-Matrix9d eeInteractor::FillInteraction(const StaticSite& site1,
-                                       const StaticSite& site2) const {
 
   const Eigen::Vector3d& posB = site2.getPos();
   const Eigen::Vector3d& posA = site1.getPos();
-  int rankA = site1.getRank();
-  int rankB = site2.getRank();
 
-  Matrix9d interaction = Matrix9d::Zero();
+  Eigen::Matrix<double, N, M> interaction = Eigen::Matrix<double, N, M>::Zero();
   const Eigen::Vector3d r_AB =
       posB - posA;               // Vector of the distance between polar sites
   const double R = r_AB.norm();  // Norm of distance vector
@@ -75,146 +40,173 @@ Matrix9d eeInteractor::FillInteraction(const StaticSite& site1,
                                          // direction; This points toward B
 
   const double fac0 = 1 / R;
+  interaction(0, 0) = fac0;
+  if (N > 1 || M > 1) {
+    const double fac1 = std::pow(fac0, 2);
+    const double fac2 = std::pow(fac0, 3);
+    const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
+    const Eigen::Matrix3d& BxB = AxA;
+    // Dipole-Charge Interaction
+    if (N > 1) {
+      interaction.block(1, 0, 3, 1) =
+          fac1 * pos_a;  // T_1alpha,00 (alpha=x,y,z)
+    }
+    // Charge-Dipole Interaction
+    if (M > 1) {
+      interaction.block(0, 1, 1, 3) =
+          -fac1 * pos_a.transpose();  // T_00,1alpha (alpha=x,y,z)
+    }
+    if (N > 1 && M > 1) {
+      // Dipole-Dipole Interaction
+      interaction.block(1, 1, 3, 3) =
+          fac2 *
+          (-3 * AxA + Eigen::Matrix3d::Identity());  // T_1alpha,1beta
+                                                     // (alpha,beta=x,y,z)
+    }
 
-  interaction.block<4, 4>(0, 0) = FillInteraction_noQuadrupoles(site1, site2);
-  const double sqr3 = std::sqrt(3);
-  const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
-  const Eigen::Matrix3d& BxB = AxA;
-  const double fac2 = std::pow(fac0, 3);
+    const double sqr3 = std::sqrt(3);
+    if (N > 4 || M > 4) {
 
-  // Quadrupole-Charge interaction
-  Eigen::Matrix<double, 1, 5> block;
-  block(0) = fac2 * 0.5 * (3 * AxA(2, 2) - 1);             // T20,00
-  block(1) = fac2 * sqr3 * AxA(0, 2);                      // 21c,00
-  block(2) = fac2 * sqr3 * AxA(1, 2);                      // T21s,000
-  block(3) = fac2 * 0.5 * sqr3 * (AxA(0, 0) - AxA(1, 1));  // T22c,00
-  block(4) = fac2 * sqr3 * AxA(0, 1);                      // T22s,00
-  if (rankA > 1) {
-    interaction.block<5, 1>(4, 0) = block.transpose();
-  }
-  if (rankB > 1) {
-    interaction.block<1, 5>(0, 4) = block;
-  }
-
-  if (rankA > 0 && rankB > 0) {
-    const Eigen::Matrix3d AxB = -AxA;
-    const Eigen::Matrix3d c = Eigen::Matrix3d::Identity();
-    const double fac3 = std::pow(fac0, 4);
-    if (rankA > 1 || rankB > 1) {
-
-      Eigen::Matrix<double, 3, 5> block;
-      // Quadrupole-Dipole Interaction
-      block.col(0) = 0.5 * fac3 *
-                     (15 * AxA(2, 2) * pos_b + 6 * pos_a.z() * c.col(2) -
-                      3 * pos_b);  // T20-1beta (beta=x,y,z)
-      block.col(1) = fac3 * sqr3 *
-                     (pos_a.x() * c.col(2) + c.col(0) * pos_a.z() +
-                      5 * AxA(0, 2) * pos_b);  // T21c-1beta (beta=x,y,z)
-      block.col(2) = fac3 * sqr3 *
-                     (pos_a.y() * c.col(2) + c.col(1) * pos_a.z() +
-                      5 * AxA(1, 2) * pos_b);  // T21s-1beta (beta=x,y,z)
-      block.col(3) =
-          fac3 * 0.5 * sqr3 *
-          (5 * (AxA(0, 0) - AxA(1, 1)) * pos_b + 2 * pos_a.x() * c.col(0) -
-           2 * pos_a.y() * c.col(1));  // T22c-1beta (beta=x,y,z)
-      block.col(4) = fac3 * sqr3 *
-                     (5 * AxA(0, 1) * pos_b + pos_a.x() * c.col(1) +
-                      pos_a.y() * c.col(0));  // T22s-1beta (beta=x,y,z)
-
-      if (rankA > 1) {
-        interaction.block<5, 3>(4, 1) = block.transpose();
+      // Quadrupole-Charge interaction
+      Eigen::Matrix<double, 1, 5> block;
+      block(0) = fac2 * 0.5 * (3 * AxA(2, 2) - 1);             // T20,00
+      block(1) = fac2 * sqr3 * AxA(0, 2);                      // 21c,00
+      block(2) = fac2 * sqr3 * AxA(1, 2);                      // T21s,000
+      block(3) = fac2 * 0.5 * sqr3 * (AxA(0, 0) - AxA(1, 1));  // T22c,00
+      block(4) = fac2 * sqr3 * AxA(0, 1);                      // T22s,00
+      if (N > 4) {
+        interaction.block(4, 0, 5, 1) = block.transpose();
       }
-      if (rankB > 1) {
-        interaction.block<3, 5>(1, 4) = -block;
+      if (M > 4) {
+        interaction.block(0, 4, 1, 5) = block;
       }
     }
 
-    if (rankA > 1 && rankB > 1) {
-      const double fac4 = std::pow(fac0, 5);
-      // Quadrupole-Quadrupole Interaction
-      Eigen::Matrix<double, 5, 5> block;
-      block(0, 0) =
-          fac4 * (3. / 4.) *
-          (35 * AxA(2, 2) * BxB(2, 2) - 5 * AxA(2, 2) - 5 * BxB(2, 2) +
-           20 * AxB(2, 2) * c(2, 2) + 2 * c(2, 2) * c(2, 2) + 1);  // T20,20
-      block(1, 0) = 0.5 * fac4 * sqr3 *
-                    (35 * AxA(2, 2) * BxB(0, 2) - 5 * BxB(0, 2) +
-                     10 * AxB(2, 0) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) +
-                     2 * c(2, 0) * c(2, 2));  // T20,21c
-      block(2, 0) = 0.5 * fac4 * sqr3 *
-                    (35 * AxA(2, 2) * BxB(1, 2) - 5 * BxB(1, 2) +
-                     10 * AxB(2, 1) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) +
-                     2 * c(2, 1) * c(2, 2));  // T20,21s
-      block(3, 0) =
-          0.25 * fac4 * sqr3 *
-          (35 * AxB(2, 0) - 35 * AxB(2, 1) - 5 * BxB(0, 0) + 5 * BxB(1, 1) +
-           20 * AxB(2, 0) * c(2, 0) - 20 * AxB(2, 1) * c(2, 1) +
-           2 * c(2, 0) * c(2, 0) - 2 * c(2, 1) * c(2, 1));  // T20,22c
-      block(4, 0) = 0.5 * fac4 * sqr3 *
-                    (35 * AxA(2, 2) * BxB(0, 1) - 5 * BxB(0, 1) +
-                     10 * AxB(2, 0) * c(2, 1) + 10 * AxB(2, 1) * c(2, 0) +
-                     2 * c(2, 0) * c(2, 1));  // T20,22s
-      block(1, 1) = fac4 * (35 * AxA(0, 2) * BxB(0, 2) +
-                            5 * AxB(0, 0) * c(2, 2) + 5 * AxB(0, 2) * c(2, 0) +
-                            5 * AxB(2, 0) * c(0, 2) + 5 * AxB(2, 2) * c(0, 0) +
-                            c(0, 0) * c(2, 2) + c(0, 2) * c(2, 0));  // T21c,21c
-      block(2, 1) = fac4 * (35 * AxA(0, 2) * BxB(1, 2) +
-                            5 * AxB(0, 1) * c(2, 2) + 5 * AxB(0, 2) * c(2, 1) +
-                            5 * AxB(2, 1) * c(0, 2) + 5 * AxB(2, 2) * c(0, 1) +
-                            c(0, 1) * c(2, 2) + c(0, 2) * c(2, 1));  // T21c,21s
-      block(3, 1) =
-          0.5 * fac4 *
-          (35 * AxA(0, 2) * BxB(0, 0) - 35 * AxA(0, 2) * BxB(1, 1) +
-           10 * AxB(0, 0) * c(2, 0) - 10 * AxB(0, 1) * c(2, 1) +
-           10 * AxB(0, 0) * c(0, 0) - 10 * AxB(2, 1) * c(0, 1) +
-           2 * c(0, 0) * c(2, 0) - 2 * c(0, 1) * c(2, 1));  // T21c,22c
-      block(4, 1) = fac4 * (35 * AxA(0, 2) * BxB(0, 1) +
-                            5 * AxB(0, 0) * c(2, 1) + 5 * AxB(0, 1) * c(2, 0) +
-                            5 * AxB(2, 0) * c(0, 1) + 5 * AxB(2, 1) * c(0, 0) +
-                            c(0, 0) * c(2, 1) + c(0, 1) * c(2, 0));  // T21c,22s
-      block(2, 2) = fac4 * (35 * AxA(1, 2) * BxB(1, 2) +
-                            5 * AxB(1, 1) * c(2, 2) + 5 * AxB(1, 2) * c(2, 1) +
-                            5 * AxB(2, 1) * c(1, 2) + 5 * AxB(2, 2) * c(1, 1) +
-                            c(1, 1) * c(2, 2) + c(1, 2) * c(2, 1));  // T21s,21s
-      block(3, 2) =
-          0.5 * fac4 *
-          (35 * AxA(1, 2) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) +
-           10 * AxB(1, 2) * c(2, 0) - 10 * AxB(1, 1) * c(2, 1) +
-           10 * AxB(2, 0) * c(1, 0) - 10 * AxB(2, 1) * c(1, 1) +
-           2 * c(1, 0) * c(2, 0) - 2 * c(1, 1) * c(2, 1));  // T21s,22c
-      block(4, 2) = fac4 * (35 * AxA(1, 2) * BxB(0, 1) +
-                            5 * AxB(1, 0) * c(2, 1) + 5 * AxB(1, 1) * c(2, 1) +
-                            5 * AxB(2, 0) * c(1, 1) + 5 * AxB(2, 1) * c(1, 2) +
-                            c(1, 0) * c(2, 1) + c(1, 1) * c(2, 0));  // T21s,22s
-      block(3, 3) =
-          0.25 * fac4 *
-          (35 * AxA(0, 0) * BxB(0, 0) - 35 * AxA(0, 0) * BxB(1, 1) -
-           35 * AxA(1, 1) * BxB(0, 0) + 35 * AxA(1, 1) * BxB(1, 1) +
-           20 * AxB(0, 0) * c(0, 0) - 20 * AxB(0, 1) * c(0, 1) -
-           20 * AxB(1, 0) * c(1, 0) + 20 * AxB(0, 0) * c(1, 1) +
-           2 * c(0, 0) * c(0, 0) - 2 * c(0, 1) * c(0, 1) -
-           2 * c(1, 0) * c(1, 0) + 2 * c(1, 1) * c(1, 1));  // T22c,22c
-      block(4, 3) =
-          0.5 * fac4 *
-          (35 * BxB(0, 1) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) +
-           10 * AxB(0, 0) * c(0, 1) + 10 * AxB(0, 1) * c(0, 0) -
-           10 * AxB(1, 0) * c(1, 1) - 10 * AxB(1, 1) * c(1, 2) +
-           2 * c(0, 0) * c(0, 1) - 2 * c(1, 0) * c(1, 1));  // T22c,22s
-      block(4, 4) = 0.5 * fac4 *
-                    (35 * AxA(0, 1) * BxB(0, 1) + 5 * AxB(0, 0) * c(1, 1) +
-                     5 * AxB(0, 1) * c(1, 0) + 5 * AxB(1, 0) * c(0, 1) +
-                     5 * AxB(1, 1) * c(0, 0) + c(0, 0) * c(1, 1) +
-                     c(0, 1) * c(1, 0));  // T22s,22s
+    if (N > 1 && M > 1) {
+      const Eigen::Matrix3d AxB = -AxA;
+      const Eigen::Matrix3d c = Eigen::Matrix3d::Identity();
+      const double fac3 = std::pow(fac0, 4);
+      if (N > 4 || M > 4) {
 
-      block.triangularView<Eigen::StrictlyUpper>() =
-          block.triangularView<Eigen::StrictlyLower>().transpose();
-      interaction.block<5, 5>(4, 4) = block;
+        Eigen::Matrix<double, 3, 5> block;
+        // Quadrupole-Dipole Interaction
+        block.col(0) = 0.5 * fac3 *
+                       (15 * AxA(2, 2) * pos_b + 6 * pos_a.z() * c.col(2) -
+                        3 * pos_b);  // T20-1beta (beta=x,y,z)
+        block.col(1) = fac3 * sqr3 *
+                       (pos_a.x() * c.col(2) + c.col(0) * pos_a.z() +
+                        5 * AxA(0, 2) * pos_b);  // T21c-1beta (beta=x,y,z)
+        block.col(2) = fac3 * sqr3 *
+                       (pos_a.y() * c.col(2) + c.col(1) * pos_a.z() +
+                        5 * AxA(1, 2) * pos_b);  // T21s-1beta (beta=x,y,z)
+        block.col(3) =
+            fac3 * 0.5 * sqr3 *
+            (5 * (AxA(0, 0) - AxA(1, 1)) * pos_b + 2 * pos_a.x() * c.col(0) -
+             2 * pos_a.y() * c.col(1));  // T22c-1beta (beta=x,y,z)
+        block.col(4) = fac3 * sqr3 *
+                       (5 * AxA(0, 1) * pos_b + pos_a.x() * c.col(1) +
+                        pos_a.y() * c.col(0));  // T22s-1beta (beta=x,y,z)
+
+        if (N > 4) {
+          interaction.block(4, 1, 5, 3) = block.transpose();
+        }
+        if (M > 4) {
+          interaction.block(1, 4, 3, 5) = -block;
+        }
+      }
+
+      if (N > 4 && M > 4) {
+        const double fac4 = std::pow(fac0, 5);
+        // Quadrupole-Quadrupole Interaction
+        Eigen::Matrix<double, 5, 5> block;
+        block(0, 0) =
+            fac4 * (3. / 4.) *
+            (35 * AxA(2, 2) * BxB(2, 2) - 5 * AxA(2, 2) - 5 * BxB(2, 2) +
+             20 * AxB(2, 2) * c(2, 2) + 2 * c(2, 2) * c(2, 2) + 1);  // T20,20
+        block(1, 0) = 0.5 * fac4 * sqr3 *
+                      (35 * AxA(2, 2) * BxB(0, 2) - 5 * BxB(0, 2) +
+                       10 * AxB(2, 0) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) +
+                       2 * c(2, 0) * c(2, 2));  // T20,21c
+        block(2, 0) = 0.5 * fac4 * sqr3 *
+                      (35 * AxA(2, 2) * BxB(1, 2) - 5 * BxB(1, 2) +
+                       10 * AxB(2, 1) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) +
+                       2 * c(2, 1) * c(2, 2));  // T20,21s
+        block(3, 0) =
+            0.25 * fac4 * sqr3 *
+            (35 * AxB(2, 0) - 35 * AxB(2, 1) - 5 * BxB(0, 0) + 5 * BxB(1, 1) +
+             20 * AxB(2, 0) * c(2, 0) - 20 * AxB(2, 1) * c(2, 1) +
+             2 * c(2, 0) * c(2, 0) - 2 * c(2, 1) * c(2, 1));  // T20,22c
+        block(4, 0) = 0.5 * fac4 * sqr3 *
+                      (35 * AxA(2, 2) * BxB(0, 1) - 5 * BxB(0, 1) +
+                       10 * AxB(2, 0) * c(2, 1) + 10 * AxB(2, 1) * c(2, 0) +
+                       2 * c(2, 0) * c(2, 1));  // T20,22s
+        block(1, 1) =
+            fac4 * (35 * AxA(0, 2) * BxB(0, 2) + 5 * AxB(0, 0) * c(2, 2) +
+                    5 * AxB(0, 2) * c(2, 0) + 5 * AxB(2, 0) * c(0, 2) +
+                    5 * AxB(2, 2) * c(0, 0) + c(0, 0) * c(2, 2) +
+                    c(0, 2) * c(2, 0));  // T21c,21c
+        block(2, 1) =
+            fac4 * (35 * AxA(0, 2) * BxB(1, 2) + 5 * AxB(0, 1) * c(2, 2) +
+                    5 * AxB(0, 2) * c(2, 1) + 5 * AxB(2, 1) * c(0, 2) +
+                    5 * AxB(2, 2) * c(0, 1) + c(0, 1) * c(2, 2) +
+                    c(0, 2) * c(2, 1));  // T21c,21s
+        block(3, 1) =
+            0.5 * fac4 *
+            (35 * AxA(0, 2) * BxB(0, 0) - 35 * AxA(0, 2) * BxB(1, 1) +
+             10 * AxB(0, 0) * c(2, 0) - 10 * AxB(0, 1) * c(2, 1) +
+             10 * AxB(0, 0) * c(0, 0) - 10 * AxB(2, 1) * c(0, 1) +
+             2 * c(0, 0) * c(2, 0) - 2 * c(0, 1) * c(2, 1));  // T21c,22c
+        block(4, 1) =
+            fac4 * (35 * AxA(0, 2) * BxB(0, 1) + 5 * AxB(0, 0) * c(2, 1) +
+                    5 * AxB(0, 1) * c(2, 0) + 5 * AxB(2, 0) * c(0, 1) +
+                    5 * AxB(2, 1) * c(0, 0) + c(0, 0) * c(2, 1) +
+                    c(0, 1) * c(2, 0));  // T21c,22s
+        block(2, 2) =
+            fac4 * (35 * AxA(1, 2) * BxB(1, 2) + 5 * AxB(1, 1) * c(2, 2) +
+                    5 * AxB(1, 2) * c(2, 1) + 5 * AxB(2, 1) * c(1, 2) +
+                    5 * AxB(2, 2) * c(1, 1) + c(1, 1) * c(2, 2) +
+                    c(1, 2) * c(2, 1));  // T21s,21s
+        block(3, 2) =
+            0.5 * fac4 *
+            (35 * AxA(1, 2) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) +
+             10 * AxB(1, 2) * c(2, 0) - 10 * AxB(1, 1) * c(2, 1) +
+             10 * AxB(2, 0) * c(1, 0) - 10 * AxB(2, 1) * c(1, 1) +
+             2 * c(1, 0) * c(2, 0) - 2 * c(1, 1) * c(2, 1));  // T21s,22c
+        block(4, 2) =
+            fac4 * (35 * AxA(1, 2) * BxB(0, 1) + 5 * AxB(1, 0) * c(2, 1) +
+                    5 * AxB(1, 1) * c(2, 1) + 5 * AxB(2, 0) * c(1, 1) +
+                    5 * AxB(2, 1) * c(1, 2) + c(1, 0) * c(2, 1) +
+                    c(1, 1) * c(2, 0));  // T21s,22s
+        block(3, 3) =
+            0.25 * fac4 *
+            (35 * AxA(0, 0) * BxB(0, 0) - 35 * AxA(0, 0) * BxB(1, 1) -
+             35 * AxA(1, 1) * BxB(0, 0) + 35 * AxA(1, 1) * BxB(1, 1) +
+             20 * AxB(0, 0) * c(0, 0) - 20 * AxB(0, 1) * c(0, 1) -
+             20 * AxB(1, 0) * c(1, 0) + 20 * AxB(0, 0) * c(1, 1) +
+             2 * c(0, 0) * c(0, 0) - 2 * c(0, 1) * c(0, 1) -
+             2 * c(1, 0) * c(1, 0) + 2 * c(1, 1) * c(1, 1));  // T22c,22c
+        block(4, 3) =
+            0.5 * fac4 *
+            (35 * BxB(0, 1) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) +
+             10 * AxB(0, 0) * c(0, 1) + 10 * AxB(0, 1) * c(0, 0) -
+             10 * AxB(1, 0) * c(1, 1) - 10 * AxB(1, 1) * c(1, 2) +
+             2 * c(0, 0) * c(0, 1) - 2 * c(1, 0) * c(1, 1));  // T22c,22s
+        block(4, 4) = 0.5 * fac4 *
+                      (35 * AxA(0, 1) * BxB(0, 1) + 5 * AxB(0, 0) * c(1, 1) +
+                       5 * AxB(0, 1) * c(1, 0) + 5 * AxB(1, 0) * c(0, 1) +
+                       5 * AxB(1, 1) * c(0, 0) + c(0, 0) * c(1, 1) +
+                       c(0, 1) * c(1, 0));  // T22s,22s
+
+        block.triangularView<Eigen::StrictlyUpper>() =
+            block.triangularView<Eigen::StrictlyLower>().transpose();
+        interaction.block(4, 4, 5, 5) = block;
+      }
     }
   }
   return interaction;  // in units of 4piepsilon0
 }
 
-Eigen::Matrix3d eeInteractor::FillTholeInteraction_diponly(
+Eigen::Matrix3d eeInteractor::FillTholeInteraction(
     const PolarSite& site1, const PolarSite& site2) const {
 
   const Eigen::Vector3d& posB = site2.getPos();
@@ -242,283 +234,173 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction_diponly(
   return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
 }
 
-Eigen::Matrix4d eeInteractor::FillTholeInteraction_noQuadrupoles(
-    const PolarSite& site1, const PolarSite& site2) const {
-  Eigen::Matrix4d interaction = Eigen::Matrix4d::Zero();
-  const Eigen::Vector3d& posB = site2.getPos();
-  const Eigen::Vector3d& posA = site1.getPos();
-  const Eigen::Vector3d r_AB =
-      posB - posA;               // Vector of the distance between polar sites
-  const double R = r_AB.norm();  // Norm of distance vector
-  const Eigen::Vector3d pos_a =
-      r_AB /
-      R;  // unit vector on the sites reciprocal direction; This points toward A
-
-  const double fac0 = 1 / R;
-  const double fac1 = std::pow(fac0, 2);
-  const double fac2 = std::pow(fac0, 3);
-  const double au3 =
-      _expdamping /
-      (fac2 * std::sqrt(site1.getEigenDamp() *
-                        site2.getEigenDamp()));  // dimensionless eigendamp is
-  double lambda3 = 1.0;
-
-  if (au3 < 40) {
-    const double exp_ua = std::exp(-au3);
-    lambda3 = 1 - exp_ua;
-  }
-  // Dipole-Charge Interaction
-  interaction.block<3, 1>(1, 0) =
-      lambda3 * fac1 * pos_a;  // T_1alpha,00 (alpha=x,y,z)
-  // Charge-Dipole Interaction
-  interaction.block<1, 3>(0, 1) =
-      -lambda3 * fac1 * pos_a;  // T_00,1alpha (alpha=x,y,z)
-  interaction.block<3, 3>(1, 1) = FillTholeInteraction_diponly(site1, site2);
-  return interaction;
-}
-
-Matrix9d eeInteractor::FillTholeInteraction(const PolarSite& site1,
-                                            const PolarSite& site2) const {
-
-  const Eigen::Vector3d& posB = site2.getPos();
-  const Eigen::Vector3d& posA = site1.getPos();
-  int rankA = site1.getRank();
-  int rankB = site2.getRank();
-
-  Matrix9d interaction = Matrix9d::Zero();
-  const Eigen::Vector3d r_AB =
-      posB - posA;               // Vector of the distance between polar sites
-  const double R = r_AB.norm();  // Norm of distance vector
-  const Eigen::Vector3d pos_a =
-      r_AB /
-      R;  // unit vector on the sites reciprocal direction; This points toward A
-  const Eigen::Vector3d pos_b = -pos_a;  // unit vector on the sites reciprocal
-                                         // direction; This points toward B
-
-  const double sqr3 = std::sqrt(3);
-  const double fac0 = 1 / R;
-  const double fac2 = std::pow(fac0, 3);
-  const double au3 =
-      _expdamping /
-      (fac2 * std::sqrt(site1.getEigenDamp() *
-                        site2.getEigenDamp()));  // dimensionless eigendamp is
-  double lambda5 = 1.0;
-  double lambda7 = 1.0;
-  if (au3 < 40) {
-    const double exp_ua = std::exp(-au3);
-    lambda5 = 1 - (1 + au3) * exp_ua;
-    lambda7 = 1 - (1 + au3 + 0.6 * au3 * au3) * exp_ua;
-  }
-  interaction.block<4, 4>(0, 0) =
-      FillTholeInteraction_noQuadrupoles(site1, site2);
-  const double fac3 = std::pow(fac0, 4);
-  const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
-  const Eigen::Matrix3d c = Eigen::Matrix3d::Identity();
-  Eigen::Matrix<double, 3, 5> block;
-  // Quadrupole-Dipole Interaction
-  block.col(0) = 0.5 * fac3 *
-                 (lambda7 * 15 * AxA(2, 2) * pos_b +
-                  lambda5 * (6 * pos_a.z() * c.col(2) -
-                             3 * pos_b));  // T20-1beta (beta=x,y,z)
-  block.col(1) = fac3 * sqr3 *
-                 (lambda5 * (pos_a.x() * c.col(2) + c.col(0) * pos_a.z()) +
-                  lambda7 * 5 * AxA(0, 2) * pos_b);  // T21c-1beta (beta=x,y,z)
-  block.col(2) = fac3 * sqr3 *
-                 (lambda5 * (pos_a.y() * c.col(2) + c.col(1) * pos_a.z()) +
-                  lambda7 * 5 * AxA(1, 2) * pos_b);  // T21s-1beta (beta=x,y,z)
-  block.col(3) =
-      fac3 * 0.5 * sqr3 *
-      (lambda7 * 5 * (AxA(0, 0) - AxA(1, 1)) * pos_b +
-       lambda5 * (2 * pos_a.x() * c.col(0) -
-                  2 * pos_a.y() * c.col(1)));  // T22c-1beta (beta=x,y,z)
-  block.col(4) = fac3 * sqr3 *
-                 (lambda7 * 5 * AxA(0, 1) * pos_b +
-                  lambda5 * (pos_a.x() * c.col(1) +
-                             pos_a.y() * c.col(0)));  // T22s-1beta (beta=x,y,z)
-
-  if (rankA > 1) {
-    interaction.block<5, 3>(4, 1) = block.transpose();
-  }
-  if (rankB > 1) {
-    interaction.block<3, 5>(1, 4) = -block;
-  }
-  return interaction;
-}
-
-double eeInteractor::InteractStatic_site(StaticSite& site1,
-                                         StaticSite& site2) const {
-
-  if (site1.getRank() < 2 && site2.getRank() < 2) {
-    const Eigen::Matrix4d Tab = FillInteraction_noQuadrupoles(site1, site2);
-    auto V1 = Tab * (site2.Q().segment<4>(0));
-    const Eigen::Vector4d V2 = Tab.transpose() * (site1.Q().segment<4>(0));
-    site1.V().segment<4>(0) += V1;
-    site2.V().segment<4>(0) += V2;
-    return (site2.Q().segment<4>(0)).dot(V2);
+void eeInteractor::ApplyStaticField_site(const StaticSite& site1,
+                                         PolarSite& site2) const {
+  if (site1.getRank() == 0) {
+    const Eigen::RowVector4d Tab0 = FillInteraction<1, 4>(site1, site2);
+    site2.V() += site1.Q()[0] * Tab0.tail<3>();
+  } else if (site1.getRank() == 1) {
+    const Eigen::Matrix4d Tab1 = FillInteraction<4, 4>(site1, site2);
+    site2.V() += Tab1.block<4, 3>(0, 1).transpose() * (site1.Q().head<4>());
+  } else if (site1.getRank() == 2) {
+    const Eigen::Matrix<double, 9, 4> Tab2 =
+        FillInteraction<9, 4>(site1, site2);
+    site2.V() += Tab2.block<9, 3>(0, 1).transpose() * (site1.Q());
   } else {
-    const Matrix9d Tab = FillInteraction(site1, site2);
-    auto V1 = Tab * site2.Q();
-    const Vector9d V2 = Tab.transpose() * site1.Q();
-    site1.V() += V1;
-    site2.V() += V2;
-    return site2.Q().dot(V2);
+    throw std::runtime_error("Ranks higher 2 not implemented");
   }
 }
 
-double eeInteractor::InteractStatic_site(const StaticSite& site1,
-                                         StaticSite& site2) const {
-  if (site1.getRank() < 2 && site2.getRank() < 2) {
-    const Eigen::Matrix4d Tab = FillInteraction_noQuadrupoles(site1, site2);
-    const Eigen::Vector4d V2 = Tab.transpose() * (site1.Q().segment<4>(0));
-    site2.V().segment<4>(0) += V2;
-    return (site2.Q().segment<4>(0)).dot(V2);
+void eeInteractor::ApplyInducedField_site(const PolarSite& site1,
+                                          PolarSite& site2) const {
+  const Eigen::Matrix3d tTab = FillTholeInteraction(site1, site2);
+  site2.V() += tTab.transpose() * site1.Induced_Dipole();
+}
+
+double eeInteractor::CalcStaticEnergy_site(const StaticSite& site1,
+                                           const StaticSite& site2) const {
+  // you can optimise these for all possible configs;
+  if (site1.getRank() < 1 && site2.getRank() < 1) {
+    return site1.getCharge() * FillInteraction<1, 1>(site1, site2)(0, 0) *
+           site2.getCharge();
+  } else if (site1.getRank() < 2 && site2.getRank() < 2) {
+    const Eigen::Matrix<double, 4, 4> Tab = FillInteraction<4, 4>(site1, site2);
+    return site1.Q().head<4>().transpose() * Tab * site2.Q().head<4>();
   } else {
-    const Matrix9d Tab = FillInteraction(site1, site2);
-    const Vector9d V2 = Tab.transpose() * site1.Q();
-    site2.V() += V2;
-    return site2.Q().dot(V2);
+    const Eigen::Matrix<double, 9, 9> Tab = FillInteraction<9, 9>(site1, site2);
+    return site1.Q().transpose() * Tab * site2.Q();
   }
 }
 
-double eeInteractor::InteractPolar_site(const PolarSite& site1,
-                                        PolarSite& site2) const {
-  if (site1.getRank() < 2 && site2.getRank() < 2) {
-    const Eigen::Matrix4d tTab =
-        this->FillTholeInteraction_noQuadrupoles(site1, site2);
-    const Eigen::Vector4d V2 =
-        tTab.block<3, 4>(1, 0).transpose() * site1.Induced_Dipole();
-    site2.V().head<4>() += V2;
-    auto V1 = tTab.block<4, 3>(0, 1) * site2.Induced_Dipole();
-    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-               site2.Induced_Dipole();
-    // indu-stat
-    e += site2.Q().head<4>().dot(V2);
-    // stat-indu
-    e += site1.Q().head<4>().dot(V1);
-    return e;
+double eeInteractor::CalcPolar_stat_Energy_site(const PolarSite& site1,
+                                                const StaticSite& site2) const {
+  if (site2.getRank() == 0) {
+    const Eigen::Vector4d Tab0 = FillInteraction<4, 1>(site1, site2);
+    return site1.Induced_Dipole().dot(Tab0.tail<3>()) * site2.Q()[0];
+  } else if (site2.getRank() == 1) {
+    const Eigen::Matrix4d Tab1 = FillInteraction<4, 4>(site1, site2);
+    return site1.Induced_Dipole().transpose() * Tab1.block<3, 4>(1, 0) *
+           (site2.Q().head<4>());
+  } else if (site2.getRank() == 2) {
+    const Eigen::Matrix<double, 4, 9> Tab2 =
+        FillInteraction<4, 9>(site1, site2);
+    return site1.Induced_Dipole().transpose() * Tab2.block<3, 9>(1, 0) *
+           (site2.Q());
   } else {
-
-    const Matrix9d tTab =
-        FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
-    const Vector9d V2 =
-        tTab.block<3, 9>(1, 0).transpose() * site1.Induced_Dipole();
-    auto V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
-    site2.V() += V2;
-    // indu -indu
-    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-               site2.Induced_Dipole();
-    // indu-stat
-    e += site2.Q().dot(V2);
-    // stat-indu
-    e += site1.Q().dot(V1);
-    return e;
+    throw std::runtime_error("Ranks higher 2 not implemented");
   }
 }
 
-double eeInteractor::InteractPolar_site(const PolarSite& site1,
-                                        const PolarSite& site2) const {
-  if (site1.getRank() < 2 && site2.getRank() < 2) {
-    const Eigen::Matrix4d tTab =
-        this->FillTholeInteraction_noQuadrupoles(site1, site2);
-    auto V2 = site1.Induced_Dipole().transpose() * tTab.block<3, 4>(1, 0);
-    auto V1 = tTab.block<4, 3>(0, 1) * site2.Induced_Dipole();
-    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-               site2.Induced_Dipole();
-    // indu-stat
-    e += site2.Q().head<4>().dot(V2);
-    // stat-indu
-    e += site1.Q().head<4>().dot(V1);
-    return e;
-  } else {
-    const Matrix9d tTab =
-        FillTholeInteraction(site1, site2);  // \tilde{T}^(ab)_tu
-    auto V2 = site1.Induced_Dipole().transpose() * tTab.block<3, 9>(1, 0);
-    auto V1 = tTab.block<9, 3>(0, 1) * site2.Induced_Dipole();
-    double e = site1.Induced_Dipole().transpose() * tTab.block<3, 3>(1, 1) *
-               site2.Induced_Dipole();
-    // indu-stat
-    e += site2.Q().dot(V2);
-    // stat-indu
-    e += site1.Q().dot(V1);
-    return e;
-  }
+double eeInteractor::CalcPolarEnergy_site(const PolarSite& site1,
+                                          const StaticSite& site2) const {
+  return CalcPolar_stat_Energy_site(site1, site2);
 }
 
-template <class T1, class T2>
-double eeInteractor::InteractStatic(T1& seg1, T2& seg2) const {
-  assert(&seg1 != &seg2 &&
-         "InteractStatic(seg1,seg2) needs two distinct objects");
-  double energy = 0.0;
-  for (auto& site1 : seg1) {
-    for (auto& site2 : seg2) {
-      energy += InteractStatic_site(site1, site2);
-    }
-  }
-  return energy;
+double eeInteractor::CalcPolarEnergy_site(const PolarSite& site1,
+                                          const PolarSite& site2) const {
+  // contributions are stat-induced, induced-stat and induced induced
+  double indu_indu = site1.Induced_Dipole().transpose() *
+                     FillTholeInteraction(site1, site2) *
+                     site2.Induced_Dipole();
+  double indu_stat = CalcPolar_stat_Energy_site(site1, site2);
+  double stat_indu = CalcPolar_stat_Energy_site(site2, site1);
+  return indu_indu + indu_stat + stat_indu;
 }
-
-template double eeInteractor::InteractStatic(const StaticSegment& seg1,
-                                             StaticSegment& seg2) const;
-
-template double eeInteractor::InteractStatic(StaticSegment& seg1,
-                                             StaticSegment& seg2) const;
-template double eeInteractor::InteractStatic(const StaticSegment& seg1,
-                                             PolarSegment& seg2) const;
-template double eeInteractor::InteractStatic(const PolarSegment& seg1,
-                                             PolarSegment& seg2) const;
-template double eeInteractor::InteractStatic(PolarSegment& seg1,
-                                             PolarSegment& seg2) const;
 
 template <class T>
-double eeInteractor::InteractStatic_IntraSegment(T& seg) const {
-  double energy = 0.0;
-  for (int i = 1; i < seg.size(); i++) {
+void eeInteractor::ApplyStaticField(const T& segment1,
+                                    PolarSegment& segment2) const {
+  for (PolarSite& s2 : segment2) {
+    for (const auto& s1 : segment1) {
+      ApplyStaticField_site(s1, s2);
+    }
+  }
+}
+
+template void eeInteractor::ApplyStaticField(const StaticSegment& seg1,
+                                             PolarSegment& seg2) const;
+template void eeInteractor::ApplyStaticField(const PolarSegment& seg1,
+                                             PolarSegment& seg2) const;
+
+void eeInteractor::ApplyInducedField(const PolarSegment& segment1,
+                                     PolarSegment& segment2) const {
+  for (PolarSite& s2 : segment2) {
+    for (const PolarSite& s1 : segment1) {
+      ApplyInducedField_site(s1, s2);
+    }
+  }
+}
+
+void eeInteractor::ApplyStaticField_IntraSegment(PolarSegment& seg) const {
+  for (int i = 0; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
-      energy += InteractStatic_site(seg[i], seg[j]);
+      ApplyStaticField_site(seg[i], seg[j]);
+      ApplyStaticField_site(seg[j], seg[i]);
     }
   }
-  return energy;
 }
 
-template double eeInteractor::InteractStatic_IntraSegment(
-    StaticSegment& seg) const;
-template double eeInteractor::InteractStatic_IntraSegment(
-    PolarSegment& seg) const;
+template <class S1, class S2>
+double eeInteractor::CalcStaticEnergy(const S1& segment1,
+                                      const S2& segment2) const {
+  double e = 0;
+  for (const auto& s1 : segment2) {
+    for (const auto& s2 : segment1) {
+      e += CalcStaticEnergy_site(s2, s1);
+    }
+  }
+  return e;
+}
 
-double eeInteractor::InteractPolar_IntraSegment(const PolarSegment& seg) const {
-  double energy = 0.0;
-  for (int i = 1; i < seg.size(); i++) {
+template double eeInteractor::CalcStaticEnergy(const StaticSegment& seg1,
+                                               const PolarSegment& seg2) const;
+template double eeInteractor::CalcStaticEnergy(const StaticSegment& seg1,
+                                               const StaticSegment& seg2) const;
+template double eeInteractor::CalcStaticEnergy(const PolarSegment& seg1,
+                                               const PolarSegment& seg2) const;
+template double eeInteractor::CalcStaticEnergy(const PolarSegment& seg1,
+                                               const StaticSegment& seg2) const;
+template <class S>
+double eeInteractor::CalcStaticEnergy_IntraSegment(const S& seg) const {
+  double e = 0;
+  for (int i = 0; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
-      energy += InteractPolar_site(seg[i], seg[j]);
+      e += CalcStaticEnergy_site(seg[i], seg[j]);
     }
   }
-  return energy;
+  return e;
+}
+template double eeInteractor::CalcStaticEnergy_IntraSegment(
+    const PolarSegment& seg1) const;
+template double eeInteractor::CalcStaticEnergy_IntraSegment(
+    const StaticSegment& seg2) const;
+
+template <class S1, class S2>
+double eeInteractor::CalcPolarEnergy(const S1& segment1,
+                                     const S2& segment2) const {
+  double e = 0;
+  for (const auto& s1 : segment2) {
+    for (const auto& s2 : segment1) {
+      e += CalcPolarEnergy_site(s2, s1);
+    }
+  }
+  return e;
 }
 
-double eeInteractor::InteractPolar(const PolarSegment& seg1,
-                                   const PolarSegment& seg2) const {
-  assert(&seg1 != &seg2 &&
-         "InteractPolar(seg1,seg2) needs two distinct objects");
-  double energy = 0.0;
-  for (const PolarSite& site1 : seg1) {
-    for (const PolarSite& site2 : seg2) {
-      energy += InteractPolar_site(site1, site2);
-    }
-  }
-  return energy;
-}
+template double eeInteractor::CalcPolarEnergy(const PolarSegment& seg1,
+                                              const PolarSegment& seg2) const;
+template double eeInteractor::CalcPolarEnergy(const PolarSegment& seg1,
+                                              const StaticSegment& seg2) const;
 
-double eeInteractor::InteractPolar_ext(const PolarSegment& seg1,
-                                       PolarSegment& seg2) const {
-  assert(&seg1 != &seg2 &&
-         "InteractPolar(seg1,seg2) needs two distinct objects");
-  double energy = 0.0;
-  for (const PolarSite& site1 : seg1) {
-    for (PolarSite& site2 : seg2) {
-      energy += InteractPolar_site(site1, site2);
+double eeInteractor::CalcPolarEnergy_IntraSegment(
+    const PolarSegment& seg) const {
+  double e = 0;
+  for (int i = 0; i < seg.size(); i++) {
+    for (int j = 0; j < i; j++) {
+      e += CalcPolarEnergy_site(seg[i], seg[j]);
     }
   }
-  return energy;
+  return e;
 }
 
 Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
@@ -528,8 +410,7 @@ Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(size, size);
   for (int i = 1; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
-      A.block<3, 3>(3 * i, 3 * j) =
-          FillTholeInteraction_diponly(seg[i], seg[j]);
+      A.block<3, 3>(3 * i, 3 * j) = FillTholeInteraction(seg[i], seg[j]);
     }
   }
 

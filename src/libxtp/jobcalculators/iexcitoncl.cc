@@ -118,7 +118,7 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
   StaticSegment seg2 = map.map(*(pair->Seg2PbCopy()), mps_fileB);
   eeInteractor actor;
-  double JAB = actor.InteractStatic(seg1, seg2);
+  double JAB = actor.CalcStaticEnergy(seg1, seg2);
   _cutoff = 0;
   Property job_summary;
   Property& job_output = job_summary.add("output", "");

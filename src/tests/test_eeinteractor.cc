@@ -39,20 +39,14 @@ BOOST_AUTO_TEST_CASE(static_case_charges) {
   seg2.push_back(two);
 
   eeInteractor interactor;
-  double energy_field = interactor.InteractStatic(seg1, seg2);
+  double energy_field = interactor.CalcStaticEnergy(seg1, seg2);
 
   BOOST_CHECK_CLOSE(energy_field, 1, 1e-12);
-  double energy = seg1.Energy();
-  energy += seg2.Energy();
-  BOOST_CHECK_CLOSE(energy, 2 * energy_field, 1e-12);
-  seg1[0].Reset();
-  seg2[0].Reset();
+
   seg2[0].setPos(Eigen::Vector3d::UnitZ());
-  double energy_field2 = interactor.InteractStatic(seg1, seg2);
-  double energy2 = seg1.Energy();
-  energy2 += seg2.Energy();
+  double energy_field2 = interactor.CalcStaticEnergy(seg1, seg2);
+
   BOOST_CHECK_CLOSE(energy_field, energy_field2, 1e-12);
-  BOOST_CHECK_CLOSE(energy, energy2, 1e-12);
 }
 
 double CalcDipoleEnergy(StaticSegment& seg1, StaticSegment& seg2) {
@@ -85,26 +79,18 @@ BOOST_AUTO_TEST_CASE(static_case_dipoles) {
   seg2.push_back(two);
 
   eeInteractor interactor;
-  double energy_field = interactor.InteractStatic(seg1, seg2);
+  double energy_field = interactor.CalcStaticEnergy(seg1, seg2);
 
   // explicit formula
   double e_ref = CalcDipoleEnergy(seg1, seg2);
   BOOST_CHECK_CLOSE(energy_field, e_ref, 1e-12);
 
-  double energy = seg1.Energy();
-  energy += seg2.Energy();
-  BOOST_CHECK_CLOSE(energy, 2 * energy_field, 1e-12);
-
-  seg1[0].Reset();
-  seg2[0].Reset();
   seg2[0].setPos(Eigen::Vector3d::UnitZ());
-  double energy_field2 = interactor.InteractStatic(seg1, seg2);
+  double energy_field2 = interactor.CalcStaticEnergy(seg1, seg2);
   double e_ref2 = CalcDipoleEnergy(seg1, seg2);
   BOOST_CHECK_CLOSE(energy_field2, e_ref2, 1e-12);
 
-  seg1[0].Reset();
-  seg2[0].Reset();
-  double energy_field3 = interactor.InteractStatic(seg2, seg1);
+  double energy_field3 = interactor.CalcStaticEnergy(seg2, seg1);
   double e_ref3 = CalcDipoleEnergy(seg2, seg1);
   BOOST_CHECK_CLOSE(e_ref2, e_ref3, 1e-12);
   BOOST_CHECK_CLOSE(energy_field3, e_ref3, 1e-12);
@@ -149,15 +135,32 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles) {
   seg2.push_back(two);
 
   eeInteractor interactor;
-  double energy_field = interactor.InteractStatic(seg1, seg2);
+  double energy_field = interactor.CalcStaticEnergy(seg1, seg2);
 
   // explicit formula
   double e_ref = CalcQuadrupoleEnergy(seg1, seg2);
   BOOST_CHECK_CLOSE(energy_field, e_ref, 1e-12);
+}
 
-  double energy = seg1.Energy();
-  energy += seg2.Energy();
-  BOOST_CHECK_CLOSE(energy, 2 * energy_field, 1e-12);
+BOOST_AUTO_TEST_CASE(polar_case_quadrupoles_field) {
+
+  Vector9d mpoles1;
+  mpoles1 << -1, 1, 0, 0, 1, 1, 1, 1, 1;
+
+  StaticSegment seg1("one", 1);
+  PolarSegment seg2("two", 2);
+  StaticSite one(1, "H");
+  one.setPos(Eigen::Vector3d::Zero());
+
+  PolarSite two(2, "H");
+  // for the quadrupole formulathe second molecule must be along the z axis
+  two.setPos(3 * Eigen::Vector3d::UnitZ());
+
+  seg1.push_back(one);
+  seg2.push_back(two);
+
+  eeInteractor interactor;
+  interactor.ApplyStaticField(seg1, seg2);
 }
 
 BOOST_AUTO_TEST_CASE(static_case_quadrupoles_orientation) {
@@ -181,7 +184,7 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_orientation) {
   seg2.push_back(two);
 
   eeInteractor interactor;
-  double energy_field = interactor.InteractStatic(seg1, seg2);
+  double energy_field = interactor.CalcStaticEnergy(seg1, seg2);
   // config a
   BOOST_CHECK_CLOSE(energy_field, 6, 1e-12);
   StaticSite& site1 = seg1[0];
@@ -190,17 +193,17 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_orientation) {
   Eigen::Matrix3d rot;
   rot << 1, 0, 0, 0, 0, 1, 0, 1, 0;
   site1.Rotate(rot, Eigen::Vector3d::Zero());
-  energy_field = interactor.InteractStatic(seg1, seg2);
+  energy_field = interactor.CalcStaticEnergy(seg1, seg2);
   BOOST_CHECK_CLOSE(energy_field, -3, 1e-12);
   // config c
   site2.Rotate(rot, Eigen::Vector3d::UnitZ());
-  energy_field = interactor.InteractStatic(seg1, seg2);
+  energy_field = interactor.CalcStaticEnergy(seg1, seg2);
   BOOST_CHECK_CLOSE(energy_field, 2.25, 1e-12);
   // config d
   Eigen::Matrix3d rot2;
   rot2 << 0, 1, 0, 1, 0, 0, 0, 0, 1;
   site1.Rotate(rot2, Eigen::Vector3d::Zero());
-  energy_field = interactor.InteractStatic(seg1, seg2);
+  energy_field = interactor.CalcStaticEnergy(seg1, seg2);
   BOOST_CHECK_CLOSE(energy_field, 0.75, 1e-12);
 
   // reset to config a
@@ -211,7 +214,7 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_orientation) {
   rot3 << 1, 0, 0, 0, sqrt2, sqrt2, 0, -sqrt2, sqrt2;
   site2.Rotate(rot3, Eigen::Vector3d::UnitZ());
   site1.Rotate(rot3, Eigen::Vector3d::Zero());
-  energy_field = interactor.InteractStatic(seg1, seg2);
+  energy_field = interactor.CalcStaticEnergy(seg1, seg2);
   double ref = -(2.0 + 7.0 / 16.0);
   BOOST_CHECK_CLOSE(energy_field, ref, 1e-12);
 }
@@ -237,9 +240,11 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_dipoles_orientation) {
   seg2.push_back(two);
 
   eeInteractor interactor;
-  double energy_field = interactor.InteractStatic(seg1, seg2);
+  double energy_field = interactor.CalcStaticEnergy(seg1, seg2);
+  double energy_field_rev = interactor.CalcStaticEnergy(seg2, seg1);
   // config a
   BOOST_CHECK_CLOSE(energy_field, -3, 1e-12);
+  BOOST_CHECK_CLOSE(energy_field, energy_field_rev, 1e-12);
   // config b
   StaticSite& site1 = seg1[0];
   StaticSite& site2 = seg2[0];
@@ -247,14 +252,18 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_dipoles_orientation) {
   Eigen::Matrix3d rot;
   rot << 1, 0, 0, 0, 1, 0, 0, 0, -1;
   site2.Rotate(rot, Eigen::Vector3d::UnitZ());
-  energy_field = interactor.InteractStatic(seg1, seg2);
+  energy_field = interactor.CalcStaticEnergy(seg1, seg2);
+  energy_field_rev = interactor.CalcStaticEnergy(seg2, seg1);
   BOOST_CHECK_CLOSE(energy_field, 3, 1e-12);
+  BOOST_CHECK_CLOSE(energy_field, energy_field_rev, 1e-12);
   // config c
   Eigen::Matrix3d rot2;
   rot2 << 1, 0, 0, 0, 0, 1, 0, 1, 0;
   site1.Rotate(rot2, Eigen::Vector3d::Zero());
-  energy_field = interactor.InteractStatic(seg2, seg1);
+  energy_field = interactor.CalcStaticEnergy(seg2, seg1);
+  energy_field_rev = interactor.CalcStaticEnergy(seg2, seg1);
   BOOST_CHECK_CLOSE(energy_field, -1.5, 1e-12);
+  BOOST_CHECK_CLOSE(energy_field, energy_field_rev, 1e-12);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

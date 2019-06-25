@@ -120,6 +120,7 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_pos[1], "posY", HOFFSET(data, posY));
   table.addCol(_pos[2], "posZ", HOFFSET(data, posZ));
 
+  // same type as rank
   table.addCol(_rank, "rank", HOFFSET(data, rank));
 
   table.addCol(_Q[0], "Q00", HOFFSET(data, Q00));
@@ -131,16 +132,6 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_Q[6], "Q21s", HOFFSET(data, Q21s));
   table.addCol(_Q[7], "Q22c", HOFFSET(data, Q22c));
   table.addCol(_Q[8], "Q22s", HOFFSET(data, Q22s));
-
-  table.addCol(_V[0], "V00", HOFFSET(data, V00));
-  table.addCol(_V[1], "V11c", HOFFSET(data, V11c));
-  table.addCol(_V[2], "V11s", HOFFSET(data, V11s));
-  table.addCol(_V[3], "V10", HOFFSET(data, V10));
-  table.addCol(_V[4], "V20", HOFFSET(data, V20));
-  table.addCol(_V[5], "V21c", HOFFSET(data, V21c));
-  table.addCol(_V[6], "V21s", HOFFSET(data, V21s));
-  table.addCol(_V[7], "V22c", HOFFSET(data, V22c));
-  table.addCol(_V[8], "V22s", HOFFSET(data, V22s));
 }
 
 void StaticSite::WriteData(data& d) const {
@@ -161,16 +152,6 @@ void StaticSite::WriteData(data& d) const {
   d.Q21s = _Q[6];
   d.Q22c = _Q[7];
   d.Q22s = _Q[8];
-
-  d.V00 = _V[0];
-  d.V11c = _V[1];
-  d.V11s = _V[2];
-  d.V10 = _V[3];
-  d.V20 = _V[4];
-  d.V21c = _V[5];
-  d.V21s = _V[6];
-  d.V22c = _V[7];
-  d.V22s = _V[8];
 }
 
 void StaticSite::ReadData(data& d) {
@@ -192,16 +173,6 @@ void StaticSite::ReadData(data& d) {
   _Q[6] = d.Q21s;
   _Q[7] = d.Q22c;
   _Q[8] = d.Q22s;
-
-  _V[0] = d.V00;
-  _V[1] = d.V11c;
-  _V[2] = d.V11s;
-  _V[3] = d.V10;
-  _V[4] = d.V20;
-  _V[5] = d.V21c;
-  _V[6] = d.V21s;
-  _V[7] = d.V22c;
-  _V[8] = d.V22s;
 }
 
 }  // namespace xtp

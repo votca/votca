@@ -38,9 +38,9 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   for (int i = 1; i < seg_ref.size(); i++) {
     for (int j = 0; j < i; j++) {
       ref.block<3, 3>(3 * i, 3 * j) =
-          interactor.FillTholeInteraction_diponly(seg_ref[i], seg_ref[j]);
+          interactor.FillTholeInteraction(seg_ref[i], seg_ref[j]);
       ref.block<3, 3>(3 * j, 3 * i) =
-          interactor.FillTholeInteraction_diponly(seg_ref[j], seg_ref[i]);
+          interactor.FillTholeInteraction(seg_ref[j], seg_ref[i]);
     }
   }
 

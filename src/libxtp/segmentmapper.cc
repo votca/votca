@@ -353,6 +353,10 @@ void SegmentMapper<AtomContainer>::MapMapAtomonMD(
 template <class AtomContainer>
 AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
                                                 QMState state) const {
+  if (_segment_info.count(seg.getName()) == 0) {
+    throw std::runtime_error(
+        "Could not find a Segment of name: " + seg.getName() + " in mapfile.");
+  }
   Seginfo seginfo = _segment_info.at(seg.getName());
   std::string coordsfiletag =
       _mapatom_xml.at("coords") + "_" + state.ToString();
@@ -367,8 +371,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
 template <class AtomContainer>
 AtomContainer SegmentMapper<AtomContainer>::map(
     const Segment& seg, const std::string& coordfilename) const {
-  Seginfo seginfo = _segment_info.at(seg.getName());
 
+  if (_segment_info.count(seg.getName()) == 0) {
+    throw std::runtime_error(
+        "Could not find a Segment of name: " + seg.getName() + " in mapfile.");
+  }
+  Seginfo seginfo = _segment_info.at(seg.getName());
   if (int(seginfo.mdatoms.size()) != seg.size()) {
     throw std::runtime_error(
         "Segment '" + seg.getName() +

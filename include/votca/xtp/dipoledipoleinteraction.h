@@ -112,7 +112,7 @@ class DipoleDipoleInteraction
     } else {
       const PolarSite& site1 = *_sites[seg1id];
       const PolarSite& site2 = *_sites[seg2id];
-      return _interactor.FillTholeInteraction_diponly(site1, site2)(xyz1, xyz2);
+      return _interactor.FillTholeInteraction(site1, site2)(xyz1, xyz2);
     }
   };
 
@@ -124,7 +124,7 @@ class DipoleDipoleInteraction
         result += site1.getPInv() * v.segment<3>(3 * j);
       } else {
         const PolarSite& site2 = *_sites[j];
-        result += _interactor.FillTholeInteraction_diponly(site1, site2) *
+        result += _interactor.FillTholeInteraction(site1, site2) *
                   v.segment<3>(3 * j);
       }
     }

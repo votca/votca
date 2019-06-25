@@ -156,15 +156,6 @@ Eigen::Vector3d ClassicalSegment<T>::CalcDipole() const {
 }
 
 template <class T>
-double ClassicalSegment<T>::Energy() const {
-  double e = 0.0;
-  for (const T& site : this->_atomlist) {
-    e += site.Energy();
-  }
-  return e;
-}
-
-template <class T>
 void ClassicalSegment<T>::WriteMPS(std::string filename,
                                    std::string header) const {
 

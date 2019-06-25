@@ -63,16 +63,20 @@ class PolarSite : public StaticSite {
     _pinv = R.transpose() * _pinv * R;
   }
 
+  const Eigen::Vector3d& V() const { return _V_static; }
+
+  Eigen::Vector3d& V() { return _V_static; }
+
+  void Reset() override { _V_static.setZero(); }
+
+  double InternalEnergy() const {
+    return 0.5 * _induced_dipole.transpose() * _pinv * _induced_dipole;
+  }
+
   const Eigen::Vector3d& Induced_Dipole() const { return _induced_dipole; }
   void setInduced_Dipole(const Eigen::Vector3d& induced_dipole) {
     _induced_dipole = induced_dipole;
   }
-
-  double Energy() const { return FieldEnergy() + InternalEnergy(); }
-
-  double FieldEnergy() const;
-
-  double InternalEnergy() const;
 
   struct data {
     int id;
@@ -93,15 +97,9 @@ class PolarSite : public StaticSite {
     double Q22c;
     double Q22s;
 
-    double V00;
     double V11c;
     double V11s;
     double V10;
-    double V20;
-    double V21c;
-    double V21s;
-    double V22c;
-    double V22s;
 
     double pxx;
     double pxy;
@@ -109,7 +107,7 @@ class PolarSite : public StaticSite {
     double pyy;
     double pyz;
     double pzz;
-    
+
     double d_x_ind;
     double d_y_ind;
     double d_z_ind;
@@ -127,13 +125,14 @@ class PolarSite : public StaticSite {
 
   friend std::ostream& operator<<(std::ostream& out, const PolarSite& site) {
     out << site.getId() << " " << site.getElement() << " " << site.getRank();
-    out << " " << site.getPos().x() << "," << site.getPos().y() << ","
-        << site.getPos().z() << "\n";
+    out << " " << site.getPos().transpose() << " "
+        << site.Induced_Dipole().transpose() << "\n";
     return out;
   }
 
  private:
   std::string writePolarisation() const override;
+  Eigen::Vector3d _V_static;
 
   // cached data
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();

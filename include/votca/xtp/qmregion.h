@@ -58,8 +58,7 @@ class QMRegion : public Region {
 
   void ReadFromCpt(CheckpointReader& r);
 
-  template <class T>
-  void ApplyQMFieldToClassicSegments(std::vector<T>& segments) const;
+  void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
   int size() const { return _size; }
 
@@ -77,8 +76,7 @@ class QMRegion : public Region {
   void InteractwithStaticRegion(const StaticRegion& region);
 
  private:
-  template <class T>
-  void AddNucleiFields(std::vector<T>& segments,
+  void AddNucleiFields(std::vector<PolarSegment>& segments,
                        const StaticSegment& seg) const;
 
   int _size = 0;

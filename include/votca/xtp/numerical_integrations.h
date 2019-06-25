@@ -55,7 +55,7 @@ class NumericalIntegration {
   void setXCfunctional(const std::string& functional);
   double IntegrateDensity(const Eigen::MatrixXd& density_matrix);
   double IntegratePotential(const Eigen::Vector3d& rvector) const;
-  Vector9d IntegrateV(const Eigen::Vector3d& rvector) const;
+  Eigen::Vector3d IntegrateField(const Eigen::Vector3d& rvector) const;
   Eigen::MatrixXd IntegratePotential(const AOBasis& externalbasis) const;
 
   Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);

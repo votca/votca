@@ -65,39 +65,40 @@ bool PolarRegion::Converged() const {
   return converged;
 }
 
-double PolarRegion::StaticInteraction() {
-  double energy_ext = 0.0;
-  for (const PolarSegment& seg : _segments) {
-    for (const PolarSite site : seg) {
-      energy_ext += site.Energy();
-    }
-  }
-  double e_static = 0.0;
+void PolarRegion::StaticInteraction() {
+
   eeInteractor eeinteractor;
+#pragma omp parallel for
   for (int i = 0; i < size(); ++i) {
-    for (int j = 0; j < i; ++j) {
-      e_static += eeinteractor.InteractStatic(_segments[i], _segments[j]);
+    for (int j = 0; j < size(); ++j) {
+      if (i == j) {
+        continue;
+      }
+      eeinteractor.ApplyStaticField(_segments[i], _segments[j]);
     }
   }
-  for (PolarSegment& seg : _segments) {
-    e_static += eeinteractor.InteractStatic_IntraSegment(seg);
+#pragma omp parallel for
+  for (int i = 0; i < size(); ++i) {
+    eeinteractor.ApplyStaticField_IntraSegment(_segments[i]);
   }
-  return energy_ext + e_static;
 }
 
-double PolarRegion::PolarInteraction_energy() {
+double PolarRegion::Energy() const {
   double e = 0.0;
   eeInteractor eeinteractor(_exp_damp);
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < i; ++j) {
-      e += eeinteractor.InteractPolar(_segments[i], _segments[j]);
+      e += eeinteractor.CalcStaticEnergy(_segments[i], _segments[j]);
+      e += eeinteractor.CalcPolarEnergy(_segments[i], _segments[j]);
     }
   }
-  for (PolarSegment& seg : _segments) {
-    e += eeinteractor.InteractPolar_IntraSegment(seg);
+
+  for (const PolarSegment& seg : _segments) {
+    e += eeinteractor.CalcPolarEnergy_IntraSegment(seg);
+    e += eeinteractor.CalcStaticEnergy_IntraSegment(seg);
   }
-  for (PolarSegment& seg : _segments) {
-    for (PolarSite& site : seg) {
+  for (const PolarSegment& seg : _segments) {
+    for (const PolarSite& site : seg) {
       e += site.InternalEnergy();
     }
   }
@@ -115,12 +116,13 @@ void PolarRegion::Reset() {
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
                               << this->getId() << std::flush;
+
   ApplyInfluenceOfOtherRegions(regions);
   XTP_LOG_SAVE(logINFO, _log)
       << "Evaluating electrostatics inside region" << std::flush;
-  double e_static = StaticInteraction();
+  StaticInteraction();
   XTP_LOG_SAVE(logINFO, _log)
-      << "Calculated static energy[hrt]= " << e_static << std::flush;
+      << "Calculated static interaction in region" << std::flush;
 
   int dof_polarisation = 0;
   for (const PolarSegment& seg : _segments) {
@@ -179,38 +181,36 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
   }
 
-  double e_polar = PolarInteraction_energy();
-  XTP_LOG_SAVE(logINFO, _log)
-      << " E_polar[hrt]= " << e_polar << " E_static[hrt]= " << e_static
-      << " E_total[hrt]= " << e_static + e_polar << std::flush;
-  _E_hist.push_back(e_static + e_polar);
+  double polar_energy = x.transpose() * (A * x);
+
+  double e_total = Energy();
+  XTP_LOG_SAVE(logINFO, _log) << " E_total[hrt]= " << e_total << std::flush;
+  _E_hist.push_back(e_total);
   return;
 }
 
 void PolarRegion::InteractwithQMRegion(const QMRegion& region) {
-  region.ApplyQMFieldToClassicSegments(_segments);
+  region.ApplyQMFieldToPolarSegments(_segments);
 }
 void PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
 #pragma omp parallel for
-  for (int i = 0; i < int(_segments.size()); i++) {
+  for (unsigned i = 0; i < _segments.size(); i++) {
     PolarSegment& pseg1 = _segments[i];
     eeInteractor ee;
-
     for (const PolarSegment& pseg2 : region) {
-      ee.InteractStatic(pseg2, pseg1);
-      ee.InteractPolar_ext(pseg2, pseg1);
+      ee.ApplyStaticField(pseg2, pseg1);
+      ee.ApplyInducedField(pseg2, pseg1);
     }
   }
 }
 
 void PolarRegion::InteractwithStaticRegion(const StaticRegion& region) {
 #pragma omp parallel for
-  for (int i = 0; i < int(_segments.size()); i++) {
+  for (unsigned i = 0; i < _segments.size(); i++) {
     PolarSegment& pseg = _segments[i];
     eeInteractor ee;
-
     for (const StaticSegment& sseg : region) {
-      ee.InteractStatic(sseg, pseg);
+      ee.ApplyStaticField(sseg, pseg);
     }
   }
 
