@@ -52,15 +52,15 @@ class PolarRegion : public MMRegion<PolarSegment> {
   void Reset();
 
  protected:
-  void InteractwithQMRegion(const QMRegion& region);
-  void InteractwithPolarRegion(const PolarRegion& region);
-  void InteractwithStaticRegion(const StaticRegion& region);
+  double InteractwithQMRegion(const QMRegion& region);
+  double InteractwithPolarRegion(const PolarRegion& region);
+  double InteractwithStaticRegion(const StaticRegion& region);
 
  private:
   void CalcInducedDipoles();
-  void StaticInteraction();
+  double StaticInteraction();
   void PolarInteraction_scf();
-  double Energy() const;
+  double PolarEnergy() const;
 
   hist<double> _E_hist;
   double _deltaE = 1e-5;

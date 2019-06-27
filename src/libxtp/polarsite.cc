@@ -86,9 +86,13 @@ void PolarSite::SetupCptTable(CptTable& table) const {
   table.addCol(_Q[7], "Q22c", HOFFSET(data, Q22c));
   table.addCol(_Q[8], "Q22s", HOFFSET(data, Q22s));
 
-  table.addCol(_V_static[0], "V11c", HOFFSET(data, V11c));
-  table.addCol(_V_static[1], "V11s", HOFFSET(data, V11s));
-  table.addCol(_V_static[2], "V10", HOFFSET(data, V10));
+  table.addCol(_V[0], "Vx", HOFFSET(data, Vx));
+  table.addCol(_V[1], "Vy", HOFFSET(data, Vy));
+  table.addCol(_V[2], "Vz", HOFFSET(data, Vz));
+
+  table.addCol(_V_noE[0], "Vx_noE", HOFFSET(data, Vx_noE));
+  table.addCol(_V_noE[1], "Vy_NoE", HOFFSET(data, Vy_noE));
+  table.addCol(_V_noE[2], "Vz_noE", HOFFSET(data, Vz_noE));
   // P_inv and P have same polarisation so no problem, as only data type counts
   table.addCol(_pinv(0, 0), "pxx", HOFFSET(data, pxx));
   table.addCol(_pinv(0, 1), "pxy", HOFFSET(data, pxy));
@@ -121,9 +125,14 @@ void PolarSite::WriteData(data& d) const {
   d.Q22c = _Q[7];
   d.Q22s = _Q[8];
 
-  d.V11c = _V_static[0];
-  d.V11s = _V_static[1];
-  d.V10 = _V_static[2];
+  d.Vx = _V[0];
+  d.Vy = _V[1];
+  d.Vz = _V[2];
+
+  d.Vx_noE = _V_noE[0];
+  d.Vy_noE = _V_noE[1];
+  d.Vz_noE = _V_noE[2];
+
   Eigen::Matrix3d P = _pinv.inverse();
   d.pxx = P(0, 0);
   d.pxy = P(0, 1);
@@ -157,9 +166,13 @@ void PolarSite::ReadData(data& d) {
   _Q[7] = d.Q22c;
   _Q[8] = d.Q22s;
 
-  _V_static[0] = d.V11c;
-  _V_static[1] = d.V11s;
-  _V_static[2] = d.V10;
+  _V[0] = d.Vx;
+  _V[1] = d.Vy;
+  _V[2] = d.Vz;
+
+  _V_noE[0] = d.Vx_noE;
+  _V_noE[1] = d.Vy_noE;
+  _V_noE[2] = d.Vz_noE;
 
   Eigen::Matrix3d Ps;
   Ps(0, 0) = d.pxx;

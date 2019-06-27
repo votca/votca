@@ -361,8 +361,9 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
   std::string coordsfiletag =
       _mapatom_xml.at("coords") + "_" + state.ToString();
   if (seginfo.coordfiles.count(coordsfiletag) == 0) {
-    throw std::runtime_error(
-        "Could not find a coordinate file for segment/state: " + coordsfiletag);
+    throw std::runtime_error("Could not find a coordinate file for " +
+                             seg.getName() + std::to_string(seg.getId()) +
+                             "segment/state: " + coordsfiletag);
   }
   std::string coordsfilename = seginfo.coordfiles.at(coordsfiletag);
   return map(seg, coordsfilename);

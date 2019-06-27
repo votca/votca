@@ -60,10 +60,9 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
     const Eigen::Matrix3d& BxB = AxA;
     if (N > 1 && M > 1) {
       // Dipole-Dipole Interaction
-      interaction.block(1, 1, 3, 3) =
-          fac2 *
-          (-3 * AxA + Eigen::Matrix3d::Identity());  // T_1alpha,1beta
-                                                     // (alpha,beta=x,y,z)
+      interaction.block(1, 1, 3, 3) = -3 * fac2 * AxA;
+      interaction.block(1, 1, 3, 3).diagonal().array() += fac2;
+      // T_1alpha,1beta // (alpha,beta=x,y,z)
     }
 
     const double sqr3 = std::sqrt(3);
@@ -86,28 +85,30 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
 
     if (N > 1 && M > 1) {
 
-      const Eigen::Matrix3d c = Eigen::Matrix3d::Identity();
       const double fac3 = std::pow(fac0, 4);
       if (N > 4 || M > 4) {
 
         Eigen::Matrix<double, 3, 5> block;
         // Quadrupole-Dipole Interaction
-        block.col(0) = 0.5 * fac3 *
-                       (15 * AxA(2, 2) * pos_b + 6 * pos_a.z() * c.col(2) -
-                        3 * pos_b);  // T20-1beta (beta=x,y,z)
-        block.col(1) = fac3 * sqr3 *
-                       (pos_a.x() * c.col(2) + c.col(0) * pos_a.z() +
-                        5 * AxA(2, 0) * pos_b);  // T21c-1beta (beta=x,y,z)
-        block.col(2) = fac3 * sqr3 *
-                       (pos_a.y() * c.col(2) + c.col(1) * pos_a.z() +
-                        5 * AxA(2, 1) * pos_b);  // T21s-1beta (beta=x,y,z)
-        block.col(3) =
-            fac3 * 0.5 * sqr3 *
-            (5 * (AxA(0, 0) - AxA(1, 1)) * pos_b + 2 * pos_a.x() * c.col(0) -
-             2 * pos_a.y() * c.col(1));  // T22c-1beta (beta=x,y,z)
-        block.col(4) = fac3 * sqr3 *
-                       (5 * AxA(1, 0) * pos_b + pos_a.x() * c.col(1) +
-                        pos_a.y() * c.col(0));  // T22s-1beta (beta=x,y,z)
+        block.col(0) = 0.5 * fac3 * (15 * AxA(2, 2) - 3) * pos_b;
+        block.col(0).z() += 3 * fac3 * pos_a.z();  // T20-1beta (beta=x,y,z)
+
+        double faccol = fac3 * sqr3;
+        block.col(1) = faccol * 5 * AxA(2, 0) * pos_b;
+        block.col(1).z() += faccol * pos_a.x();
+        block.col(1).x() += faccol * pos_a.z();  // T21c-1beta (beta=x,y,z)
+
+        block.col(2) = faccol * 5 * AxA(2, 1) * pos_b;
+        block.col(2).z() += faccol * pos_a.y();
+        block.col(2).y() += faccol * pos_a.z();
+
+        block.col(3) = faccol * 2.5 * (AxA(0, 0) - AxA(1, 1)) * pos_b;
+        block.col(3).x() += faccol * pos_a.x();
+        block.col(3).y() -= faccol * pos_a.y();  // T22c-1beta (beta=x,y,z)
+
+        block.col(4) = faccol * 5 * AxA(1, 0) * pos_b;
+        block.col(4).y() += faccol * pos_a.x();
+        block.col(4).x() += faccol * pos_a.y();  // T22s-1beta (beta=x,y,z)
 
         if (N > 4) {
           interaction.block(4, 1, 5, 3) = block.transpose();
@@ -122,83 +123,48 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
         const double fac4 = std::pow(fac0, 5);
         // Quadrupole-Quadrupole Interaction
         Eigen::Matrix<double, 5, 5> block;
-        block(0, 0) =
-            fac4 * (3. / 4.) *
-            (35 * AxA(2, 2) * BxB(2, 2) - 5 * AxA(2, 2) - 5 * BxB(2, 2) +
-             20 * AxB(2, 2) * c(2, 2) + 2 * c(2, 2) * c(2, 2) + 1);  // T20,20
+        block(0, 0) = fac4 * (3. / 4.) *
+                      (35 * AxA(2, 2) * BxB(2, 2) - 5 * AxA(2, 2) -
+                       5 * BxB(2, 2) + 20 * AxB(2, 2) * 1 + 3);  // T20,20
         block(1, 0) = 0.5 * fac4 * sqr3 *
                       (35 * AxA(2, 2) * BxB(0, 2) - 5 * BxB(0, 2) +
-                       10 * AxB(2, 0) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) +
-                       2 * c(2, 0) * c(2, 2));  // T20,21c
+                       10 * AxB(2, 0));  // T20,21c
         block(2, 0) = 0.5 * fac4 * sqr3 *
                       (35 * AxA(2, 2) * BxB(1, 2) - 5 * BxB(1, 2) +
-                       10 * AxB(2, 1) * c(2, 2) + 10 * AxB(2, 2) * c(2, 1) +
-                       2 * c(2, 1) * c(2, 2));  // T20,21s
-        block(3, 0) =
-            0.25 * fac4 * sqr3 *
-            (35 * AxB(2, 0) - 35 * AxB(2, 1) - 5 * BxB(0, 0) + 5 * BxB(1, 1) +
-             20 * AxB(2, 0) * c(2, 0) - 20 * AxB(2, 1) * c(2, 1) +
-             2 * c(2, 0) * c(2, 0) - 2 * c(2, 1) * c(2, 1));  // T20,22c
+                       10 * AxB(2, 1));  // T20,21s
+        block(3, 0) = 0.25 * fac4 * sqr3 *
+                      (35 * AxB(2, 0) - 35 * AxB(2, 1) - 5 * BxB(0, 0) +
+                       5 * BxB(1, 1));  // T20,22c
         block(4, 0) = 0.5 * fac4 * sqr3 *
-                      (35 * AxA(2, 2) * BxB(0, 1) - 5 * BxB(0, 1) +
-                       10 * AxB(2, 0) * c(2, 1) + 10 * AxB(2, 1) * c(2, 0) +
-                       2 * c(2, 0) * c(2, 1));  // T20,22s
-        block(1, 1) =
-            fac4 * (35 * AxA(0, 2) * BxB(0, 2) + 5 * AxB(0, 0) * c(2, 2) +
-                    5 * AxB(0, 2) * c(2, 0) + 5 * AxB(2, 0) * c(0, 2) +
-                    5 * AxB(2, 2) * c(0, 0) + c(0, 0) * c(2, 2) +
-                    c(0, 2) * c(2, 0));  // T21c,21c
+                      (35 * AxA(2, 2) * BxB(0, 1) - 5 * BxB(0, 1));  // T20,22s
+        block(1, 1) = fac4 * (35 * AxA(0, 2) * BxB(0, 2) + 5 * AxB(0, 0) +
+                              5 * AxB(2, 2) + 1);  // T21c,21c
+
         block(2, 1) =
-            fac4 * (35 * AxA(0, 2) * BxB(1, 2) + 5 * AxB(0, 1) * c(2, 2) +
-                    5 * AxB(0, 2) * c(2, 1) + 5 * AxB(2, 1) * c(0, 2) +
-                    5 * AxB(2, 2) * c(0, 1) + c(0, 1) * c(2, 2) +
-                    c(0, 2) * c(2, 1));  // T21c,21s
-        block(3, 1) =
-            0.5 * fac4 *
-            (35 * AxA(0, 2) * BxB(0, 0) - 35 * AxA(0, 2) * BxB(1, 1) +
-             10 * AxB(0, 0) * c(2, 0) - 10 * AxB(0, 1) * c(2, 1) +
-             10 * AxB(0, 0) * c(0, 0) - 10 * AxB(2, 1) * c(0, 1) +
-             2 * c(0, 0) * c(2, 0) - 2 * c(0, 1) * c(2, 1));  // T21c,22c
+            fac4 * (35 * AxA(0, 2) * BxB(1, 2) + 5 * AxB(0, 1));  // T21c,21s
+        block(3, 1) = 0.5 * fac4 *
+                      (35 * AxA(0, 2) * BxB(0, 0) - 35 * AxA(0, 2) * BxB(1, 1) +
+                       10 * AxB(0, 0));  // T21c,22c
+
         block(4, 1) =
-            fac4 * (35 * AxA(0, 2) * BxB(0, 1) + 5 * AxB(0, 0) * c(2, 1) +
-                    5 * AxB(0, 1) * c(2, 0) + 5 * AxB(2, 0) * c(0, 1) +
-                    5 * AxB(2, 1) * c(0, 0) + c(0, 0) * c(2, 1) +
-                    c(0, 1) * c(2, 0));  // T21c,22s
-        block(2, 2) =
-            fac4 * (35 * AxA(1, 2) * BxB(1, 2) + 5 * AxB(1, 1) * c(2, 2) +
-                    5 * AxB(1, 2) * c(2, 1) + 5 * AxB(2, 1) * c(1, 2) +
-                    5 * AxB(2, 2) * c(1, 1) + c(1, 1) * c(2, 2) +
-                    c(1, 2) * c(2, 1));  // T21s,21s
-        block(3, 2) =
-            0.5 * fac4 *
-            (35 * AxA(1, 2) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) +
-             10 * AxB(1, 2) * c(2, 0) - 10 * AxB(1, 1) * c(2, 1) +
-             10 * AxB(2, 0) * c(1, 0) - 10 * AxB(2, 1) * c(1, 1) +
-             2 * c(1, 0) * c(2, 0) - 2 * c(1, 1) * c(2, 1));  // T21s,22c
+            fac4 * (35 * AxA(0, 2) * BxB(0, 1) + 5 * AxB(2, 1));  // T21c,22s
+        block(2, 2) = fac4 * (35 * AxA(1, 2) * BxB(1, 2) + 5 * AxB(1, 1) +
+                              5 * AxB(2, 2) + 1);  // T21s,21s
+        block(3, 2) = 0.5 * fac4 *
+                      (35 * AxA(1, 2) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) -
+                       10 * AxB(2, 1));  // T21s,22c
         block(4, 2) =
-            fac4 * (35 * AxA(1, 2) * BxB(0, 1) + 5 * AxB(1, 0) * c(2, 1) +
-                    5 * AxB(1, 1) * c(2, 1) + 5 * AxB(2, 0) * c(1, 1) +
-                    5 * AxB(2, 1) * c(1, 2) + c(1, 0) * c(2, 1) +
-                    c(1, 1) * c(2, 0));  // T21s,22s
-        block(3, 3) =
-            0.25 * fac4 *
-            (35 * AxA(0, 0) * BxB(0, 0) - 35 * AxA(0, 0) * BxB(1, 1) -
-             35 * AxA(1, 1) * BxB(0, 0) + 35 * AxA(1, 1) * BxB(1, 1) +
-             20 * AxB(0, 0) * c(0, 0) - 20 * AxB(0, 1) * c(0, 1) -
-             20 * AxB(1, 0) * c(1, 0) + 20 * AxB(0, 0) * c(1, 1) +
-             2 * c(0, 0) * c(0, 0) - 2 * c(0, 1) * c(0, 1) -
-             2 * c(1, 0) * c(1, 0) + 2 * c(1, 1) * c(1, 1));  // T22c,22c
-        block(4, 3) =
-            0.5 * fac4 *
-            (35 * BxB(0, 1) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) +
-             10 * AxB(0, 0) * c(0, 1) + 10 * AxB(0, 1) * c(0, 0) -
-             10 * AxB(1, 0) * c(1, 1) - 10 * AxB(1, 1) * c(1, 2) +
-             2 * c(0, 0) * c(0, 1) - 2 * c(1, 0) * c(1, 1));  // T22c,22s
+            fac4 * (35 * AxA(1, 2) * BxB(0, 1) + 5 * AxB(2, 0));  // T21s,22s
+        block(3, 3) = 0.25 * fac4 *
+                      (35 * AxA(0, 0) * BxB(0, 0) - 35 * AxA(0, 0) * BxB(1, 1) -
+                       35 * AxA(1, 1) * BxB(0, 0) + 35 * AxA(1, 1) * BxB(1, 1) +
+                       20 * AxB(0, 0) + 20 * AxB(0, 0) + 4);  // T22c,22c
+        block(4, 3) = 0.5 * fac4 *
+                      (35 * BxB(0, 1) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) +
+                       10 * AxB(0, 1) - 10 * AxB(1, 0));  // T22c,22s
         block(4, 4) = 0.5 * fac4 *
-                      (35 * AxA(0, 1) * BxB(0, 1) + 5 * AxB(0, 0) * c(1, 1) +
-                       5 * AxB(0, 1) * c(1, 0) + 5 * AxB(1, 0) * c(0, 1) +
-                       5 * AxB(1, 1) * c(0, 0) + c(0, 0) * c(1, 1) +
-                       c(0, 1) * c(1, 0));  // T22s,22s
+                      (35 * AxA(0, 1) * BxB(0, 1) + 5 * AxB(0, 0) +
+                       5 * AxB(1, 1) + 1);  // T22s,22s
 
         block.triangularView<Eigen::StrictlyUpper>() =
             block.triangularView<Eigen::StrictlyLower>().transpose();
@@ -237,27 +203,69 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
 }
 
-void eeInteractor::ApplyStaticField_site(const StaticSite& site1,
-                                         PolarSite& site2) const {
+template <bool noE>
+double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
+                                           PolarSite& site2) const {
+  Eigen::Vector3d V;
+  double e = 0.0;
   if (site1.getRank() == 0) {
-    const Eigen::RowVector4d Tab0 = FillInteraction<1, 4>(site1, site2);
-    site2.V() += site1.Q()[0] * Tab0.tail<3>();
+    if (site2.getRank() < 2) {
+      const Eigen::RowVector4d Tab0 = FillInteraction<1, 4>(site1, site2);
+      V = site1.Q()[0] * Tab0.tail<3>();
+      e = site1.Q()[0] * Tab0.dot(site2.Q().head<4>());
+    } else {
+      const Eigen::Matrix<double, 1, 9> Tab0 =
+          FillInteraction<1, 9>(site1, site2);
+      V = site1.Q()[0] * Tab0.segment<3>(1);
+      e = site1.Q()[0] * Tab0.dot(site2.Q());
+    }
   } else if (site1.getRank() == 1) {
-    const Eigen::Matrix4d Tab1 = FillInteraction<4, 4>(site1, site2);
-    site2.V() += Tab1.block<4, 3>(0, 1).transpose() * (site1.Q().head<4>());
+    if (site2.getRank() < 2) {
+      const Eigen::Matrix4d Tab1 = FillInteraction<4, 4>(site1, site2);
+      V = Tab1.block<4, 3>(0, 1).transpose() * (site1.Q().head<4>());
+      e = site1.Q().head<4>().transpose() * Tab1 * site2.Q().head<4>();
+    } else {
+      const Eigen::Matrix<double, 4, 9> Tab1 =
+          FillInteraction<4, 9>(site1, site2);
+      V = Tab1.block<4, 3>(0, 1).transpose() * (site1.Q().head<4>());
+      e = site1.Q().head<4>().transpose() * Tab1 * site2.Q();
+    }
   } else if (site1.getRank() == 2) {
-    const Eigen::Matrix<double, 9, 4> Tab2 =
-        FillInteraction<9, 4>(site1, site2);
-    site2.V() += Tab2.block<9, 3>(0, 1).transpose() * (site1.Q());
+    if (site2.getRank() < 2) {
+      const Eigen::Matrix<double, 9, 4> Tab2 =
+          FillInteraction<9, 4>(site1, site2);
+      V = Tab2.block<9, 3>(0, 1).transpose() * (site1.Q());
+    } else {
+      const Eigen::Matrix<double, 9, 9> Tab2 =
+          FillInteraction<9, 9>(site1, site2);
+      V = Tab2.block<9, 3>(0, 1).transpose() * (site1.Q());
+      e = site1.Q().transpose() * Tab2 * site2.Q();
+    }
   } else {
     throw std::runtime_error("Ranks higher 2 not implemented");
   }
+
+  if (noE) {
+    site2.V_noE() += V;
+  } else {
+    site2.V() += V;
+  }
+  return e;
 }
 
-void eeInteractor::ApplyInducedField_site(const PolarSite& site1,
-                                          PolarSite& site2) const {
+template <bool noE>
+double eeInteractor::ApplyInducedField_site(const PolarSite& site1,
+                                            PolarSite& site2) const {
   const Eigen::Matrix3d tTab = FillTholeInteraction(site1, site2);
-  site2.V() += tTab.transpose() * site1.Induced_Dipole();
+  const Eigen::Vector3d V = tTab.transpose() * site1.Induced_Dipole();
+  double e = 0.0;
+  if (noE) {
+    site2.V_noE() += V;
+  } else {
+    site2.V() += V;
+    e = CalcPolar_stat_Energy_site(site1, site2);
+  }
+  return e;
 }
 
 double eeInteractor::CalcStaticEnergy_site(const StaticSite& site1,
@@ -316,37 +324,53 @@ double eeInteractor::CalcPolarEnergy_site(const PolarSite& site1,
   return indu_indu + indu_stat + stat_indu;
 }
 
-template <class T>
-void eeInteractor::ApplyStaticField(const T& segment1,
-                                    PolarSegment& segment2) const {
+template <class T, bool noE>
+double eeInteractor::ApplyStaticField(const T& segment1,
+                                      PolarSegment& segment2) const {
+  double e = 0.0;
   for (PolarSite& s2 : segment2) {
     for (const auto& s1 : segment1) {
-      ApplyStaticField_site(s1, s2);
+      e += ApplyStaticField_site<noE>(s1, s2);
     }
   }
+  return e;
 }
 
-template void eeInteractor::ApplyStaticField(const StaticSegment& seg1,
-                                             PolarSegment& seg2) const;
-template void eeInteractor::ApplyStaticField(const PolarSegment& seg1,
-                                             PolarSegment& seg2) const;
+template double eeInteractor::ApplyStaticField<StaticSegment, true>(
+    const StaticSegment& seg1, PolarSegment& seg2) const;
+template double eeInteractor::ApplyStaticField<StaticSegment, false>(
+    const StaticSegment& seg1, PolarSegment& seg2) const;
+template double eeInteractor::ApplyStaticField<PolarSegment, true>(
+    const PolarSegment& seg1, PolarSegment& seg2) const;
+template double eeInteractor::ApplyStaticField<PolarSegment, false>(
+    const PolarSegment& seg1, PolarSegment& seg2) const;
 
-void eeInteractor::ApplyInducedField(const PolarSegment& segment1,
-                                     PolarSegment& segment2) const {
+template <bool noE>
+double eeInteractor::ApplyInducedField(const PolarSegment& segment1,
+                                       PolarSegment& segment2) const {
+  double e = 0;
   for (PolarSite& s2 : segment2) {
     for (const PolarSite& s1 : segment1) {
-      ApplyInducedField_site(s1, s2);
+      e += ApplyInducedField_site<noE>(s1, s2);
     }
   }
+  return e;
 }
 
-void eeInteractor::ApplyStaticField_IntraSegment(PolarSegment& seg) const {
+template double eeInteractor::ApplyInducedField<true>(const PolarSegment& seg1,
+                                                      PolarSegment& seg2) const;
+template double eeInteractor::ApplyInducedField<false>(
+    const PolarSegment& seg1, PolarSegment& seg2) const;
+
+double eeInteractor::ApplyStaticField_IntraSegment(PolarSegment& seg) const {
+  double e = 0;
   for (int i = 0; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
-      ApplyStaticField_site(seg[i], seg[j]);
-      ApplyStaticField_site(seg[j], seg[i]);
+      e += ApplyStaticField_site<true>(seg[i], seg[j]);
+      ApplyStaticField_site<true>(seg[j], seg[i]);
     }
   }
+  return e;
 }
 
 template <class S1, class S2>
@@ -428,7 +452,8 @@ Eigen::VectorXd eeInteractor::Cholesky_IntraSegment(
   }
   Eigen::VectorXd b = Eigen::VectorXd(size);
   for (int i = 0; i < seg.size(); i++) {
-    b.segment<3>(3 * i) = -seg[i].V().segment<3>(1);
+    const Eigen::Vector3d V = seg[i].V() + seg[i].V_noE();
+    b.segment<3>(3 * i) = -V;
   }
 
   Eigen::LLT<Eigen::Ref<Eigen::MatrixXd>> lltOfA(A);

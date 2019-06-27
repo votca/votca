@@ -39,12 +39,14 @@ class eeInteractor {
 
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
-  template <class T>
-  void ApplyStaticField(const T& segment1, PolarSegment& segment2) const;
-  void ApplyStaticField_IntraSegment(PolarSegment& seg) const;
+  template <class T, bool noE>
+  double ApplyStaticField(const T& segment1, PolarSegment& segment2) const;
 
-  void ApplyInducedField(const PolarSegment& segment1,
-                         PolarSegment& segment2) const;
+  double ApplyStaticField_IntraSegment(PolarSegment& seg) const;
+
+  template <bool noE>
+  double ApplyInducedField(const PolarSegment& segment1,
+                           PolarSegment& segment2) const;
 
   template <class S1, class S2>
   double CalcStaticEnergy(const S1& segment1, const S2& segment2) const;
@@ -61,9 +63,10 @@ class eeInteractor {
   template <int N, int M>
   Eigen::Matrix<double, N, M> FillInteraction(const StaticSite& site1,
                                               const StaticSite& site2) const;
-
-  void ApplyInducedField_site(const PolarSite& site1, PolarSite& site2) const;
-  void ApplyStaticField_site(const StaticSite& site1, PolarSite& site2) const;
+  template <bool noE>
+  double ApplyInducedField_site(const PolarSite& site1, PolarSite& site2) const;
+  template <bool noE>
+  double ApplyStaticField_site(const StaticSite& site1, PolarSite& site2) const;
 
   double CalcStaticEnergy_site(const StaticSite& site1,
                                const StaticSite& site2) const;

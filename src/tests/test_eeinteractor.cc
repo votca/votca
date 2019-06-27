@@ -142,25 +142,47 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles) {
   BOOST_CHECK_CLOSE(energy_field, e_ref, 1e-12);
 }
 
-BOOST_AUTO_TEST_CASE(polar_case_quadrupoles_field) {
+BOOST_AUTO_TEST_CASE(static_case_monopole_field) {
 
   Vector9d mpoles1;
-  mpoles1 << -1, 1, 0, 0, 1, 1, 1, 1, 1;
+  mpoles1 << -3, 0, 0, 0, 0, 0, 0, 0, 0;
 
   StaticSegment seg1("one", 1);
   PolarSegment seg2("two", 2);
   StaticSite one(1, "H");
+  one.setMultipole(mpoles1, 0);
   one.setPos(Eigen::Vector3d::Zero());
 
   PolarSite two(2, "H");
-  // for the quadrupole formulathe second molecule must be along the z axis
   two.setPos(3 * Eigen::Vector3d::UnitZ());
 
   seg1.push_back(one);
   seg2.push_back(two);
 
   eeInteractor interactor;
-  interactor.ApplyStaticField(seg1, seg2);
+  interactor.ApplyStaticField<StaticSegment, false>(seg1, seg2);
+
+  Eigen::Vector3d field_ref;
+  field_ref << 0, 0, 0.33333333;
+  bool field_check = field_ref.isApprox(seg2[0].V(), 1e-6);
+  BOOST_CHECK_EQUAL(field_check, true);
+  if (!field_check) {
+    std::cout << "ref" << std::endl;
+    std::cout << field_ref << std::endl;
+    std::cout << "field" << std::endl;
+    std::cout << seg2[0].V() << std::endl;
+  }
+
+  interactor.ApplyStaticField<StaticSegment, true>(seg1, seg2);
+
+  bool field_check_2 = field_ref.isApprox(seg2[0].V_noE(), 1e-6);
+  BOOST_CHECK_EQUAL(field_check, true);
+  if (!field_check_2) {
+    std::cout << "ref" << std::endl;
+    std::cout << field_ref << std::endl;
+    std::cout << "field" << std::endl;
+    std::cout << seg2[0].V_noE() << std::endl;
+  }
 }
 
 BOOST_AUTO_TEST_CASE(static_case_quadrupoles_orientation) {

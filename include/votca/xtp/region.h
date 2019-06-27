@@ -104,12 +104,12 @@ class Region {
     T _metric_old;
   };
 
-  void ApplyInfluenceOfOtherRegions(
+  std::vector<double> ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);
 
-  virtual void InteractwithQMRegion(const QMRegion& region) = 0;
-  virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
-  virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;
+  virtual double InteractwithQMRegion(const QMRegion& region) = 0;
+  virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
+  virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
   int _id = -1;
   Logger& _log;

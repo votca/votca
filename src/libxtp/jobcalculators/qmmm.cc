@@ -53,9 +53,9 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   if (_print_regions_pdb) {
-    std::string pdb_filename =
-        "jobtopology_job_" + std::to_string(job.getId()) + ".pdb";
-    XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << "Writing jobtopology to "
+    std::string pdb_filename = "jobtopology_job_" + job.getTag() + "_" +
+                               std::to_string(job.getId()) + ".pdb";
+    XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Writing jobtopology to "
                                 << pdb_filename << std::flush;
     jobtop.WriteToPdb(pdb_filename);
   }
@@ -67,7 +67,7 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   bool no_top_scf = false;
   if (jobtop.size() - no_static_regions < 2) {
     XTP_LOG_SAVE(logINFO, pLog)
-        << TimeStamp() << "Only " << jobtop.size() - no_static_regions
+        << TimeStamp() << " Only " << jobtop.size() - no_static_regions
         << " scf region is used. The remaining regions are static. So no "
            "inter regions scf is required. "
         << std::flush;
@@ -88,7 +88,7 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
          reg_pointer-- != jobtop.begin();) {
       std::unique_ptr<Region>& region = *reg_pointer;
       XTP_LOG_SAVE(logINFO, pLog)
-          << TimeStamp() << "Running calculations for " << region->identify()
+          << TimeStamp() << " Running calculations for " << region->identify()
           << " " << region->getId() << std::flush;
       region->Reset();
       region->Evaluate(jobtop.Regions());
@@ -106,13 +106,13 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
 
       if (all_regions_converged) {
         XTP_LOG_SAVE(logINFO, pLog)
-            << TimeStamp() << "Job converged after " << iteration + 1
+            << TimeStamp() << " Job converged after " << iteration + 1
             << " iterations." << std::flush;
         break;
       }
       if (iteration == _max_iterations - 1) {
         XTP_LOG_SAVE(logINFO, pLog)
-            << TimeStamp() << "Job did not converge after " << iteration + 1
+            << TimeStamp() << " Job did not converge after " << iteration + 1
             << " iterations.\n Writing results to jobfile." << std::flush;
       }
     }

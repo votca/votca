@@ -71,9 +71,9 @@ class MMRegion : public Region {
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  protected:
-  virtual void InteractwithQMRegion(const QMRegion& region) = 0;
-  virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
-  virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;
+  virtual double InteractwithQMRegion(const QMRegion& region) = 0;
+  virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
+  virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
   std::vector<T> _segments;
 };

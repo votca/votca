@@ -63,11 +63,20 @@ class PolarSite : public StaticSite {
     _pinv = R.transpose() * _pinv * R;
   }
 
-  const Eigen::Vector3d& V() const { return _V_static; }
+  const Eigen::Vector3d& V() const { return _V; }
 
-  Eigen::Vector3d& V() { return _V_static; }
+  Eigen::Vector3d& V() { return _V; }
 
-  void Reset() override { _V_static.setZero(); }
+  const Eigen::Vector3d& V_noE() const { return _V_noE; }
+
+  Eigen::Vector3d& V_noE() { return _V_noE; }
+
+  void Reset() override {
+    _V.setZero();
+    _V_noE.setZero();
+  }
+
+  double deltaQ_V_ext() const { return _induced_dipole.dot(_V); }
 
   double InternalEnergy() const {
     return 0.5 * _induced_dipole.transpose() * _pinv * _induced_dipole;
@@ -97,9 +106,13 @@ class PolarSite : public StaticSite {
     double Q22c;
     double Q22s;
 
-    double V11c;
-    double V11s;
-    double V10;
+    double Vx;
+    double Vy;
+    double Vz;
+
+    double Vx_noE;
+    double Vy_noE;
+    double Vz_noE;
 
     double pxx;
     double pxy;
@@ -132,9 +145,15 @@ class PolarSite : public StaticSite {
 
  private:
   std::string writePolarisation() const override;
-  Eigen::Vector3d _V_static;
 
-  // cached data
+  // PolarSite has two external fields,
+  // the first is used for interaction with regions, which are further out, i.e.
+  // the interaction energy with it is included in the polar region energy
+  Eigen::Vector3d _V = Eigen::Vector3d::Zero();
+  // the second is used for interaction with regions, which are further inside,
+  // i.e. the interaction energy with it is included in the other region's energy
+  Eigen::Vector3d _V_noE = Eigen::Vector3d::Zero();
+
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
   Eigen::Matrix3d _pinv = Eigen::Matrix3d::Zero();
   double _eigendamp = 0.0;

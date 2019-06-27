@@ -29,7 +29,11 @@ namespace votca {
 namespace xtp {
 
 void QMRegion::Initialize(const tools::Property& prop) {
-
+  if (this->_id != 0) {
+    throw std::runtime_error(
+        this->identify() +
+        " must always be region 0. Currently only one qm region is possible.");
+  }
   std::string type =
       prop.ifExistsReturnElseThrowRuntimeError<std::string>("type");
   if (type == "gwbse") {
@@ -79,7 +83,8 @@ bool QMRegion::Converged() const {
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
                               << this->getId() << std::flush;
-  ApplyInfluenceOfOtherRegions(regions);
+  std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
+
   XTP_LOG_SAVE(logINFO, _log) << "Writing inputs" << std::flush;
   _qmpackage->WriteInputFile(_orb);
   XTP_LOG_SAVE(logINFO, _log) << "Running DFT calculation" << std::flush;
@@ -137,15 +142,18 @@ void QMRegion::Reset() {
   _qmpackage->Initialize(_dftoptions);
   return;
 }
-void QMRegion::InteractwithQMRegion(const QMRegion& region) {
+double QMRegion::InteractwithQMRegion(const QMRegion& region) {
   throw std::runtime_error(
       "QMRegion-QMRegion interaction is not implemented yet.");
+  return 0.0;
 }
-void QMRegion::InteractwithPolarRegion(const PolarRegion& region) {
+double QMRegion::InteractwithPolarRegion(const PolarRegion& region) {
   _qmpackage->AddRegion(region);
+  return 0.0;
 }
-void QMRegion::InteractwithStaticRegion(const StaticRegion& region) {
+double QMRegion::InteractwithStaticRegion(const StaticRegion& region) {
   _qmpackage->AddRegion(region);
+  return 0.0;
 }
 
 void QMRegion::WritePDB(csg::PDBWriter& writer) const {
@@ -157,7 +165,7 @@ void QMRegion::AddNucleiFields(std::vector<PolarSegment>& segments,
   eeInteractor e;
 #pragma omp parallel for
   for (int i = 0; i < int(segments.size()); ++i) {
-    e.ApplyStaticField(seg, segments[i]);
+    e.ApplyStaticField<StaticSegment, true>(seg, segments[i]);
   }
 }
 
@@ -191,7 +199,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   for (int i = 0; i < int(segments.size()); ++i) {
     PolarSegment& seg = segments[i];
     for (PolarSite& site : seg) {
-      site.V() += numint.IntegrateField(site.getPos());
+      site.V_noE() += numint.IntegrateField(site.getPos());
     }
   }
 

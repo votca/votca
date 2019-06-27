@@ -71,9 +71,9 @@ class QMRegion : public Region {
   void Reset();
 
  protected:
-  void InteractwithQMRegion(const QMRegion& region);
-  void InteractwithPolarRegion(const PolarRegion& region);
-  void InteractwithStaticRegion(const StaticRegion& region);
+  double InteractwithQMRegion(const QMRegion& region);
+  double InteractwithPolarRegion(const PolarRegion& region);
+  double InteractwithStaticRegion(const StaticRegion& region);
 
  private:
   void AddNucleiFields(std::vector<PolarSegment>& segments,

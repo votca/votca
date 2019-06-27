@@ -43,9 +43,9 @@ class StaticRegion : public MMRegion<StaticSegment> {
 
  protected:
   void ResetRegion() { return; }
-  void InteractwithQMRegion(const QMRegion& region) { return; }
-  void InteractwithPolarRegion(const PolarRegion& region) { return; }
-  void InteractwithStaticRegion(const StaticRegion& region) { return; }
+  double InteractwithQMRegion(const QMRegion& region) { return 0.0; }
+  double InteractwithPolarRegion(const PolarRegion& region) { return 0.0; }
+  double InteractwithStaticRegion(const StaticRegion& region) { return 0.0; }
 
  private:
 };
