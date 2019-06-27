@@ -100,13 +100,20 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
   Eigen::Vector3d zero = Polarize(input, Eigen::Vector3d::Zero());
   Eigen::Vector3d ext_field = fieldstrength * Eigen::Vector3d::UnitX();
-  polarisation.col(0) = Polarize(input, ext_field);
+  // central differences scheme
+  Eigen::Vector3d xplus = Polarize(input, ext_field);
+  Eigen::Vector3d xminus = Polarize(input, -ext_field);
+  polarisation.col(0) = xplus - xminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitY();
-  polarisation.col(1) = Polarize(input, ext_field);
+  Eigen::Vector3d yplus = Polarize(input, ext_field);
+  Eigen::Vector3d yminus = Polarize(input, -ext_field);
+  polarisation.col(1) = yplus - yminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitZ();
-  polarisation.col(2) = Polarize(input, ext_field);
-  polarisation.colwise() -= zero;
-  return -polarisation / fieldstrength;
+  Eigen::Vector3d zplus = Polarize(input, ext_field);
+  Eigen::Vector3d zminus = Polarize(input, -ext_field);
+  polarisation.col(2) = zplus - zminus;
+
+  return -polarisation / (2 * fieldstrength);
 }
 
 void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
