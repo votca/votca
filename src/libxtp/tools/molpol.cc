@@ -82,7 +82,7 @@ Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
   std::vector<std::unique_ptr<Region>> empty;
   PolarSegment& workmol = pol[0];
   for (PolarSite& site : workmol) {
-    site.V().segment<3>(1) = ext_field;
+    site.V() = ext_field;
   }
   pol.Evaluate(empty);
   Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();

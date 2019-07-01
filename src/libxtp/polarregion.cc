@@ -77,17 +77,15 @@ double PolarRegion::StaticInteraction() {
       }
       PolarSegment& seg1 = _segments[i];
       const PolarSegment& seg2 = _segments[j];
-      double e_thread =
-          eeinteractor.ApplyStaticField<PolarSegment, true>(seg2, seg1);
-      e += e_thread;
+      e += eeinteractor.ApplyStaticField<PolarSegment, true>(seg2, seg1);
     }
   }
 
-#pragma omp parallel for reduction(+ : e)
-  for (int i = 0; i < size(); ++i) {
-    double e_thread = eeinteractor.ApplyStaticField_IntraSegment(_segments[i]);
-    e += e_thread;
-  }
+  //#pragma omp parallel for reduction(+ : e)
+  //  for (int i = 0; i < size(); ++i) {
+  //    double e_thread =
+  //    eeinteractor.ApplyStaticField_IntraSegment(_segments[i]); e += e_thread;
+  //  }
   return e;
 }
 
