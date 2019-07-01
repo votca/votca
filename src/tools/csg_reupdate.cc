@@ -1,5 +1,5 @@
 /* 
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -689,7 +689,7 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
           // an unphysical non-zero RDF value may occur,
           // so it would be better to estimate Rmin loop
           // through RDF values from Rcut to zero instead of zero to Rcut.
-          for( int i = dist.size()-1; i > 0; i--)
+          for( int i = dist.size()-2; i > 0; i--)
             {
               if(dist.y(i) < 1.0e-4)
                 {
