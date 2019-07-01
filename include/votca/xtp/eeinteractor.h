@@ -51,13 +51,35 @@ class eeInteractor {
   template <class S1, class S2>
   double CalcStaticEnergy(const S1& segment1, const S2& segment2) const;
 
+  class E_terms {
+   public:
+    E_terms& operator+=(const E_terms& right) {
+      this->_data += right._data;
+      return *this;
+    }
+
+    E_terms operator+(E_terms right) const {
+      right._data += this->_data;
+      return right;
+    }
+
+    double sum() { return _data.sum(); }
+
+    double& E_indu_indu() { return _data.x(); }
+    double& E_indu_stat() { return _data.y(); }
+    double& E_internal() { return _data.z(); }
+
+   private:
+    Eigen::Vector3d _data = Eigen::Vector3d::Zero();
+  };
+
   template <class S1, class S2>
-  double CalcPolarEnergy(const S1& segment1, const S2& segment2) const;
+  E_terms CalcPolarEnergy(const S1& segment1, const S2& segment2) const;
 
   template <class S>
   double CalcStaticEnergy_IntraSegment(const S& seg) const;
 
-  double CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
+  E_terms CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
 
  private:
   template <int N, int M>
@@ -74,11 +96,11 @@ class eeInteractor {
   double CalcPolar_stat_Energy_site(const PolarSite& site1,
                                     const StaticSite& site2) const;
 
-  double CalcPolarEnergy_site(const PolarSite& site1,
-                              const StaticSite& site2) const;
+  E_terms CalcPolarEnergy_site(const PolarSite& site1,
+                               const StaticSite& site2) const;
 
-  double CalcPolarEnergy_site(const PolarSite& site1,
-                              const PolarSite& site2) const;
+  E_terms CalcPolarEnergy_site(const PolarSite& site1,
+                               const PolarSite& site2) const;
 
   double _expdamping = 0.39;  // dimensionless
 };

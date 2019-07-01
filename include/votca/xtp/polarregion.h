@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_POLARREGION_H
 #define VOTCA_XTP_POLARREGION_H
 
+#include <votca/xtp/eeinteractor.h>
 #include <votca/xtp/mmregion.h>
 
 /**
@@ -60,7 +61,9 @@ class PolarRegion : public MMRegion<PolarSegment> {
   void CalcInducedDipoles();
   double StaticInteraction();
   void PolarInteraction_scf();
-  double PolarEnergy() const;
+
+  double PolarEnergy_extern() const;
+  eeInteractor::E_terms PolarEnergy() const;
 
   hist<double> _E_hist;
   double _deltaE = 1e-5;

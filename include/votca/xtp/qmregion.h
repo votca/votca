@@ -70,6 +70,8 @@ class QMRegion : public Region {
 
   void Reset();
 
+  double charge() const;
+
  protected:
   double InteractwithQMRegion(const QMRegion& region);
   double InteractwithPolarRegion(const PolarRegion& region);

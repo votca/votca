@@ -403,7 +403,6 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   int residueoffset = minmax.first - minmax_map.first;
 
   AtomContainer Result(seg.getName(), seg.getId());
-  std::cout << coordfilename << std::endl;
   Result.LoadFromFile(coordfilename);
 
   if (int(seginfo.mapatoms.size()) != Result.size()) {

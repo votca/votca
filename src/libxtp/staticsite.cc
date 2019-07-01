@@ -36,7 +36,7 @@ Eigen::Matrix3d StaticSite::CalculateCartesianMultipole() const {
   if (_rank > 1) {
     double sqr3 = std::sqrt(3);
     theta(0, 0) = 0.5 * (-MP(4) + sqr3 * MP(7));     // theta_xx
-    theta(1, 1) = 0.5 * (-MP(4) + sqr3 * (-MP(7)));  // theta_yy
+    theta(1, 1) = 0.5 * (-MP(4) - sqr3 * MP(7));     // theta_yy
     theta(2, 2) = MP(4);                             // theta_zz
     theta(0, 1) = theta(1, 0) = 0.5 * sqr3 * MP(8);  // theta_xy = theta_yx
     theta(0, 2) = theta(2, 0) = 0.5 * sqr3 * MP(5);  // theta_xz = theta_zx

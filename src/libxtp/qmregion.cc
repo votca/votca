@@ -130,6 +130,16 @@ void QMRegion::push_back(const QMMolecule& mol) {
   _size++;
 }
 
+double QMRegion::charge() const {
+  double nuccharge = 0.0;
+  for (const QMAtom& a : _orb.QMAtoms()) {
+    nuccharge += a.getNuccharge();
+  }
+
+  double electrons = _orb.getNumberOfAlphaElectrons() * 2;
+  return nuccharge - electrons;
+}
+
 void QMRegion::Reset() {
   XTP_LOG_SAVE(logINFO, _log)
       << "Removed all previous values from region" << std::flush;

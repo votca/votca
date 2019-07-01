@@ -63,11 +63,13 @@ class Region {
 
   virtual void Reset() = 0;
 
+  virtual double charge() const = 0;
+
   int getId() const { return _id; }
 
   friend std::ostream& operator<<(std::ostream& out, const Region& region) {
     out << "Id: " << region.getId() << " type: " << region.identify()
-        << " size: " << region.size();
+        << " size: " << region.size() << " charge[e]= " << region.charge();
     return out;
   }
 

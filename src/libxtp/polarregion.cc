@@ -69,7 +69,7 @@ double PolarRegion::StaticInteraction() {
 
   eeInteractor eeinteractor;
   double e = 0.0;
-#pragma omp parallel for reduction(+ : e)
+  //#pragma omp parallel for reduction(+ : e)
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < size(); ++j) {
       if (i == j) {
@@ -91,24 +91,32 @@ double PolarRegion::StaticInteraction() {
   return e;
 }
 
-double PolarRegion::PolarEnergy() const {
-  double e = 0.0;
+eeInteractor::E_terms PolarRegion::PolarEnergy() const {
   eeInteractor eeinteractor(_exp_damp);
-#pragma omp parallel for reduction(+ : e)
+
+  eeInteractor::E_terms terms;
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < i; ++j) {
-      double e_thread =
-          eeinteractor.CalcPolarEnergy(_segments[i], _segments[j]);
-      e += e_thread;
+      terms += eeinteractor.CalcPolarEnergy(_segments[i], _segments[j]);
     }
   }
 
   for (const PolarSegment& seg : _segments) {
-    e += eeinteractor.CalcPolarEnergy_IntraSegment(seg);
+    terms += eeinteractor.CalcPolarEnergy_IntraSegment(seg);
   }
+
   for (const PolarSegment& seg : _segments) {
     for (const PolarSite& site : seg) {
-      e += site.InternalEnergy();
+      terms.E_internal() += site.InternalEnergy();
+    }
+  }
+  return terms;
+}
+
+double PolarRegion::PolarEnergy_extern() const {
+  double e = 0.0;
+  for (const PolarSegment& seg : _segments) {
+    for (const PolarSite& site : seg) {
       e += site.deltaQ_V_ext();
     }
   }
@@ -132,15 +140,18 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
   double estat_outside = std::accumulate(energies.begin(), energies.end(), 0.0);
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp()
+      << TimeStamp() << std::setprecision(12)
       << " Calculated static interaction with other regions E[hrt]= "
       << estat_outside << std::flush;
   double estat = StaticInteraction();
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp()
+      << TimeStamp() << std::setprecision(12)
       << " Calculated static interaction in region E[hrt]= " << estat
       << std::flush;
-
+  XTP_LOG_SAVE(logINFO, _log)
+      << TimeStamp() << std::setprecision(12)
+      << " Total static interaction E[hrt]= " << estat + estat_outside
+      << std::flush;
   int dof_polarisation = 0;
   for (const PolarSegment& seg : _segments) {
     dof_polarisation += seg.size() * 3;
@@ -190,7 +201,7 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 
   XTP_LOG_SAVE(logINFO, _log)
       << TimeStamp() << " CG: #iterations: " << cg.iterations()
-      << ", estimated error: " << cg.error() << std::endl;
+      << ", estimated error: " << cg.error() << std::flush;
   index = 0;
   for (PolarSegment& seg : _segments) {
     for (PolarSite& site : seg) {
@@ -199,14 +210,27 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
   }
 
-  double e_polar = PolarEnergy();
-  XTP_LOG_SAVE(logINFO, _log) << TimeStamp()
-                              << " Calculated polar interaction in region and "
-                                 "with other regions [hrt]= "
-                              << e_polar << std::flush;
-  double e_total = e_polar + estat_outside + estat;
+  eeInteractor::E_terms e_polar = PolarEnergy();
+
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " E_total[hrt]= " << e_total << std::flush;
+      << TimeStamp() << std::setprecision(12)
+      << " Calculated polar interaction in region E_dQ-dQ[hrt]= "
+      << e_polar.E_indu_indu() << " E_Q-dQ[hrt]= " << e_polar.E_indu_stat()
+      << " E_interal[hrt]= " << e_polar.E_internal() << std::flush;
+  double e_polar_extern = this->PolarEnergy_extern();
+  XTP_LOG_SAVE(logINFO, _log) << TimeStamp() << std::setprecision(10)
+                              << " Calculated polar interaction with other "
+                                 "regions [dQ-dQ] and [dQ-Q] [hrt]= "
+                              << e_polar_extern << std::flush;
+  XTP_LOG_SAVE(logINFO, _log)
+      << TimeStamp() << std::setprecision(10)
+      << " Total polar interaction [hrt]= " << e_polar_extern + e_polar.sum()
+      << std::flush;
+
+  double e_total = e_polar_extern + estat_outside + estat + e_polar.sum();
+  XTP_LOG_SAVE(logINFO, _log)
+      << TimeStamp() << " E_total[hrt]= " << std::setprecision(12) << e_total
+      << std::flush;
   _E_hist.push_back(e_total);
   return;
 }

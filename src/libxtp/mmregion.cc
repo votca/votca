@@ -23,6 +23,17 @@ namespace votca {
 namespace xtp {
 
 template <class T>
+double MMRegion<T>::charge() const {
+  double charge = 0.0;
+  for (const auto& seg : _segments) {
+    for (const auto& site : seg) {
+      charge += site.getCharge();
+    }
+  }
+  return charge;
+}
+
+template <class T>
 void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
   for (const auto& seg : _segments) {
     writer.WriteContainer(seg);

@@ -39,29 +39,29 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
   const Eigen::Vector3d pos_b = -pos_a;  // unit vector on the sites reciprocal
                                          // direction; This points toward B
 
-  const double fac0 = 1 / R;
-  interaction(0, 0) = fac0;
+  const double fac1 = 1.0 / R;
+  interaction(0, 0) = fac1;
   if (N > 1 || M > 1) {
-    const double fac1 = std::pow(fac0, 2);
+    const double fac2 = std::pow(fac1, 2);
 
     // Dipole-Charge Interaction
     if (N > 1) {
       interaction.block(1, 0, 3, 1) =
-          fac1 * pos_a;  // T_1alpha,00 (alpha=x,y,z)
+          fac2 * pos_a;  // T_1alpha,00 (alpha=x,y,z)
     }
     // Charge-Dipole Interaction
     if (M > 1) {
       interaction.block(0, 1, 1, 3) =
-          -fac1 * pos_a.transpose();  // T_00,1alpha (alpha=x,y,z)
+          -fac2 * pos_a.transpose();  // T_00,1alpha (alpha=x,y,z)
     }
 
-    const double fac2 = std::pow(fac0, 3);
+    const double fac3 = std::pow(fac1, 3);
     const Eigen::Matrix3d AxA = pos_a * pos_a.transpose();
     const Eigen::Matrix3d& BxB = AxA;
     if (N > 1 && M > 1) {
       // Dipole-Dipole Interaction
-      interaction.block(1, 1, 3, 3) = -3 * fac2 * AxA;
-      interaction.block(1, 1, 3, 3).diagonal().array() += fac2;
+      interaction.block(1, 1, 3, 3) = -3 * fac3 * AxA;
+      interaction.block(1, 1, 3, 3).diagonal().array() += fac3;
       // T_1alpha,1beta // (alpha,beta=x,y,z)
     }
 
@@ -70,11 +70,11 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
 
       // Quadrupole-Charge interaction
       Eigen::Matrix<double, 1, 5> block;
-      block(0) = fac2 * 0.5 * (3 * AxA(2, 2) - 1);             // T20,00
-      block(1) = fac2 * sqr3 * AxA(0, 2);                      // 21c,00
-      block(2) = fac2 * sqr3 * AxA(1, 2);                      // T21s,000
-      block(3) = fac2 * 0.5 * sqr3 * (AxA(0, 0) - AxA(1, 1));  // T22c,00
-      block(4) = fac2 * sqr3 * AxA(0, 1);                      // T22s,00
+      block(0) = fac3 * 0.5 * (3 * AxA(2, 2) - 1);             // T20,00
+      block(1) = fac3 * sqr3 * AxA(0, 2);                      // 21c,00
+      block(2) = fac3 * sqr3 * AxA(1, 2);                      // T21s,000
+      block(3) = fac3 * 0.5 * sqr3 * (AxA(0, 0) - AxA(1, 1));  // T22c,00
+      block(4) = fac3 * sqr3 * AxA(0, 1);                      // T22s,00
       if (N > 4) {
         interaction.block(4, 0, 5, 1) = block.transpose();
       }
@@ -85,15 +85,15 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
 
     if (N > 1 && M > 1) {
 
-      const double fac3 = std::pow(fac0, 4);
+      const double fac4 = std::pow(fac1, 4);
       if (N > 4 || M > 4) {
 
         Eigen::Matrix<double, 3, 5> block;
         // Quadrupole-Dipole Interaction
-        block.col(0) = 0.5 * fac3 * (15 * AxA(2, 2) - 3) * pos_b;
-        block.col(0).z() += 3 * fac3 * pos_a.z();  // T20-1beta (beta=x,y,z)
+        block.col(0) = 0.5 * fac4 * (15 * AxA(2, 2) - 3) * pos_b;
+        block.col(0).z() += 3 * fac4 * pos_a.z();  // T20-1beta (beta=x,y,z)
 
-        double faccol = fac3 * sqr3;
+        double faccol = fac4 * sqr3;
         block.col(1) = faccol * 5 * AxA(2, 0) * pos_b;
         block.col(1).z() += faccol * pos_a.x();
         block.col(1).x() += faccol * pos_a.z();  // T21c-1beta (beta=x,y,z)
@@ -120,49 +120,49 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
 
       if (N > 4 && M > 4) {
         const Eigen::Matrix3d AxB = -AxA;
-        const double fac4 = std::pow(fac0, 5);
+        const double fac5 = std::pow(fac1, 5);
         // Quadrupole-Quadrupole Interaction
         Eigen::Matrix<double, 5, 5> block;
-        block(0, 0) = fac4 * (3. / 4.) *
+        block(0, 0) = fac5 * (3. / 4.) *
                       (35 * AxA(2, 2) * BxB(2, 2) - 5 * AxA(2, 2) -
                        5 * BxB(2, 2) + 20 * AxB(2, 2) * 1 + 3);  // T20,20
-        block(1, 0) = 0.5 * fac4 * sqr3 *
+        block(1, 0) = 0.5 * fac5 * sqr3 *
                       (35 * AxA(2, 2) * BxB(0, 2) - 5 * BxB(0, 2) +
                        10 * AxB(2, 0));  // T20,21c
-        block(2, 0) = 0.5 * fac4 * sqr3 *
+        block(2, 0) = 0.5 * fac5 * sqr3 *
                       (35 * AxA(2, 2) * BxB(1, 2) - 5 * BxB(1, 2) +
                        10 * AxB(2, 1));  // T20,21s
-        block(3, 0) = 0.25 * fac4 * sqr3 *
+        block(3, 0) = 0.25 * fac5 * sqr3 *
                       (35 * AxB(2, 0) - 35 * AxB(2, 1) - 5 * BxB(0, 0) +
                        5 * BxB(1, 1));  // T20,22c
-        block(4, 0) = 0.5 * fac4 * sqr3 *
+        block(4, 0) = 0.5 * fac5 * sqr3 *
                       (35 * AxA(2, 2) * BxB(0, 1) - 5 * BxB(0, 1));  // T20,22s
-        block(1, 1) = fac4 * (35 * AxA(0, 2) * BxB(0, 2) + 5 * AxB(0, 0) +
+        block(1, 1) = fac5 * (35 * AxA(0, 2) * BxB(0, 2) + 5 * AxB(0, 0) +
                               5 * AxB(2, 2) + 1);  // T21c,21c
 
         block(2, 1) =
-            fac4 * (35 * AxA(0, 2) * BxB(1, 2) + 5 * AxB(0, 1));  // T21c,21s
-        block(3, 1) = 0.5 * fac4 *
+            fac5 * (35 * AxA(0, 2) * BxB(1, 2) + 5 * AxB(0, 1));  // T21c,21s
+        block(3, 1) = 0.5 * fac5 *
                       (35 * AxA(0, 2) * BxB(0, 0) - 35 * AxA(0, 2) * BxB(1, 1) +
                        10 * AxB(0, 0));  // T21c,22c
 
         block(4, 1) =
-            fac4 * (35 * AxA(0, 2) * BxB(0, 1) + 5 * AxB(2, 1));  // T21c,22s
-        block(2, 2) = fac4 * (35 * AxA(1, 2) * BxB(1, 2) + 5 * AxB(1, 1) +
+            fac5 * (35 * AxA(0, 2) * BxB(0, 1) + 5 * AxB(2, 1));  // T21c,22s
+        block(2, 2) = fac5 * (35 * AxA(1, 2) * BxB(1, 2) + 5 * AxB(1, 1) +
                               5 * AxB(2, 2) + 1);  // T21s,21s
-        block(3, 2) = 0.5 * fac4 *
+        block(3, 2) = 0.5 * fac5 *
                       (35 * AxA(1, 2) * BxB(0, 0) - 35 * AxA(1, 2) * BxB(1, 1) -
                        10 * AxB(2, 1));  // T21s,22c
         block(4, 2) =
-            fac4 * (35 * AxA(1, 2) * BxB(0, 1) + 5 * AxB(2, 0));  // T21s,22s
-        block(3, 3) = 0.25 * fac4 *
+            fac5 * (35 * AxA(1, 2) * BxB(0, 1) + 5 * AxB(2, 0));  // T21s,22s
+        block(3, 3) = 0.25 * fac5 *
                       (35 * AxA(0, 0) * BxB(0, 0) - 35 * AxA(0, 0) * BxB(1, 1) -
                        35 * AxA(1, 1) * BxB(0, 0) + 35 * AxA(1, 1) * BxB(1, 1) +
                        20 * AxB(0, 0) + 20 * AxB(0, 0) + 4);  // T22c,22c
-        block(4, 3) = 0.5 * fac4 *
+        block(4, 3) = 0.5 * fac5 *
                       (35 * BxB(0, 1) * AxA(0, 0) - 35 * BxB(1, 2) * AxA(1, 1) +
                        10 * AxB(0, 1) - 10 * AxB(1, 0));  // T22c,22s
-        block(4, 4) = 0.5 * fac4 *
+        block(4, 4) = 0.5 * fac5 *
                       (35 * AxA(0, 1) * BxB(0, 1) + 5 * AxB(0, 0) +
                        5 * AxB(1, 1) + 1);  // T22s,22s
 
@@ -206,7 +206,7 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
 template <bool noE>
 double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
                                            PolarSite& site2) const {
-  Eigen::Vector3d V;
+  Eigen::Vector3d V = Eigen::Vector3d::Zero();
   double e = 0.0;
   if (site1.getRank() == 0) {
     if (site2.getRank() < 2) {
@@ -235,6 +235,7 @@ double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
       const Eigen::Matrix<double, 9, 4> Tab2 =
           FillInteraction<9, 4>(site1, site2);
       V = Tab2.block<9, 3>(0, 1).transpose() * (site1.Q());
+      e = site1.Q().transpose() * Tab2 * site2.Q().head<4>();
     } else {
       const Eigen::Matrix<double, 9, 9> Tab2 =
           FillInteraction<9, 9>(site1, site2);
@@ -308,20 +309,23 @@ double eeInteractor::CalcPolar_stat_Energy_site(const PolarSite& site1,
   }
 }
 
-double eeInteractor::CalcPolarEnergy_site(const PolarSite& site1,
-                                          const StaticSite& site2) const {
-  return CalcPolar_stat_Energy_site(site1, site2);
+eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
+    const PolarSite& site1, const StaticSite& site2) const {
+  eeInteractor::E_terms val;
+  val.E_indu_stat() = CalcPolar_stat_Energy_site(site1, site2);
+  return val;
 }
 
-double eeInteractor::CalcPolarEnergy_site(const PolarSite& site1,
-                                          const PolarSite& site2) const {
+eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
+    const PolarSite& site1, const PolarSite& site2) const {
   // contributions are stat-induced, induced-stat and induced induced
-  double indu_indu = site1.Induced_Dipole().transpose() *
-                     FillTholeInteraction(site1, site2) *
-                     site2.Induced_Dipole();
-  double indu_stat = CalcPolar_stat_Energy_site(site1, site2);
-  double stat_indu = CalcPolar_stat_Energy_site(site2, site1);
-  return indu_indu + indu_stat + stat_indu;
+  eeInteractor::E_terms val;
+  val.E_indu_indu() = site1.Induced_Dipole().transpose() *
+                      FillTholeInteraction(site1, site2) *
+                      site2.Induced_Dipole();
+  val.E_indu_stat() = CalcPolar_stat_Energy_site(site1, site2);
+  val.E_indu_stat() += CalcPolar_stat_Energy_site(site2, site1);
+  return val;
 }
 
 template <class T, bool noE>
@@ -409,9 +413,9 @@ template double eeInteractor::CalcStaticEnergy_IntraSegment(
     const StaticSegment& seg2) const;
 
 template <class S1, class S2>
-double eeInteractor::CalcPolarEnergy(const S1& segment1,
-                                     const S2& segment2) const {
-  double e = 0;
+eeInteractor::E_terms eeInteractor::CalcPolarEnergy(const S1& segment1,
+                                                    const S2& segment2) const {
+  eeInteractor::E_terms e;
   for (const auto& s1 : segment2) {
     for (const auto& s2 : segment1) {
       e += CalcPolarEnergy_site(s2, s1);
@@ -420,14 +424,14 @@ double eeInteractor::CalcPolarEnergy(const S1& segment1,
   return e;
 }
 
-template double eeInteractor::CalcPolarEnergy(const PolarSegment& seg1,
-                                              const PolarSegment& seg2) const;
-template double eeInteractor::CalcPolarEnergy(const PolarSegment& seg1,
-                                              const StaticSegment& seg2) const;
+template eeInteractor::E_terms eeInteractor::CalcPolarEnergy(
+    const PolarSegment& seg1, const PolarSegment& seg2) const;
+template eeInteractor::E_terms eeInteractor::CalcPolarEnergy(
+    const PolarSegment& seg1, const StaticSegment& seg2) const;
 
-double eeInteractor::CalcPolarEnergy_IntraSegment(
+eeInteractor::E_terms eeInteractor::CalcPolarEnergy_IntraSegment(
     const PolarSegment& seg) const {
-  double e = 0;
+  eeInteractor::E_terms e;
   for (int i = 0; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
       e += CalcPolarEnergy_site(seg[i], seg[j]);

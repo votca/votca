@@ -66,6 +66,8 @@ class MMRegion : public Region {
 
   void Reset();
 
+  double charge() const;
+
   void WritePDB(csg::PDBWriter& writer) const;
 
   void push_back(const T& seg) { _segments.push_back(seg); }
