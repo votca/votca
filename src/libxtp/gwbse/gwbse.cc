@@ -28,6 +28,7 @@
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/sternheimer.h>
 
 using boost::format;
 using namespace boost::filesystem;
@@ -339,6 +340,9 @@ void GWBSE::Initialize(tools::Property& options) {
       key + ".bse_print_weight", _bseopt.min_print_weight);
   // print exciton WF composition weight larger than minimum
 
+  _do_Sternheimer=options.ifExistsReturnElseReturnDefault<bool>(
+      key + ".sternheimer", _do_Sternheimer);
+  
   // possible tasks
   std::string tasks_string =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
@@ -392,7 +396,7 @@ void GWBSE::Initialize(tools::Property& options) {
 }
 
 void GWBSE::addoutput(tools::Property& summary) {
-
+    if(_do_Sternheimer){return;}
   const double hrt2ev = tools::conv::hrt2ev;
   tools::Property& gwbse_summary = summary.add("GWBSE", "");
   if (_do_gw) {
@@ -583,6 +587,14 @@ bool GWBSE::Evaluate() {
       << ctp::TimeStamp() << " DFT data was created by " << dft_package
       << flush;
 
+  if(_do_Sternheimer){
+      Sternheimer sternheimer(_orbitals,*_pLog);
+      sternheimer.evaluate();
+      
+      
+  }else{
+  
+  
   BasisSet dftbs;
   dftbs.LoadBasisSet(_dftbasis_name);
 
@@ -699,6 +711,7 @@ bool GWBSE::Evaluate() {
   }
   CTP_LOG(ctp::logDEBUG, *_pLog)
       << ctp::TimeStamp() << " GWBSE calculation finished " << flush;
+  }
   return true;
 }
 }  // namespace xtp

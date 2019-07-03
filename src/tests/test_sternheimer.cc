@@ -19,10 +19,16 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <votca/xtp/sternheimer.h>
-
+using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(sternheimer_test)
 
 BOOST_AUTO_TEST_CASE(sternheimer_test_input) {
     std::cout<<"hello"<<std::endl;
+    votca::ctp::Logger log;
+    log.setReportLevel(votca::ctp::logDEBUG);
+    Orbitals orb;
+    Sternheimer sterni(orb,log);
+    sterni.evaluate();
+    std::cout<<log;
 }
 BOOST_AUTO_TEST_SUITE_END()

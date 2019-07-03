@@ -18,10 +18,27 @@
 
 #include <votca/xtp/sternheimer.h>
 
+#include "votca/xtp/aomatrix.h"
+
 namespace votca {
 namespace xtp {
 
-
+    void Sternheimer::evaluate(){
+        CTP_LOG(ctp::logDEBUG, _log)
+        << ctp::TimeStamp() << " Sternheimer in progress" << std::flush;
+        
+  BasisSet basis;
+  basis.LoadBasisSet(_orb.getDFTbasisName());
+  AOBasis aobasis;
+  aobasis.AOBasisFill(basis, _orb.QMAtoms());
+  AOOverlap overlap;
+  overlap.Fill(aobasis);
+  
+ 
+ 
+        return;
+    
+    }
 
 }  // namespace xtp
 }  // namespace votca
