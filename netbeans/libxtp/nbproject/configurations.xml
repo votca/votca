@@ -131,6 +131,7 @@
       <itemPath>../../include/votca/xtp/sqlapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaversqlite.h</itemPath>
+      <itemPath>../../include/votca/xtp/sternheimer.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
       <itemPath>../../include/votca/xtp/threecenter.h</itemPath>
       <itemPath>../../include/votca/xtp/toolfactory.h</itemPath>
@@ -216,6 +217,7 @@
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_base.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_ppm.cc</itemPath>
+        <itemPath>../../src/libxtp/sternheimer.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libxtp/gridbox.cc</itemPath>
@@ -285,6 +287,7 @@
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmenttype.cc</itemPath>
       <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
+      <itemPath>../../src/tests/test_sternheimer.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -3207,6 +3210,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/sternheimer.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/symmetric_matrix.h"
             ex="false"
             tool="3"
@@ -3799,6 +3807,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/sternheimer.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
             tool="1"
@@ -3929,6 +3939,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sternheimer.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
@@ -4214,6 +4229,11 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/statesaversqlite.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/sternheimer.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4810,6 +4830,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/sternheimer.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
             tool="1"
@@ -4940,6 +4962,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sternheimer.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_symmetric_matrix.cc"
             ex="false"
