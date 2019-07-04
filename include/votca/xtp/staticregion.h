@@ -39,10 +39,14 @@ class StaticRegion : public MMRegion<StaticSegment> {
 
   bool Converged() const { return true; }
 
+  double Etotal() const { return 0.0; }
+
   void Evaluate(std::vector<std::unique_ptr<Region> >& regions) { return; }
+  void Reset() { return; };
 
  protected:
   void ResetRegion() { return; }
+  void AppendResult(tools::Property& prop) const { return; }
   double InteractwithQMRegion(const QMRegion& region) { return 0.0; }
   double InteractwithPolarRegion(const PolarRegion& region) { return 0.0; }
   double InteractwithStaticRegion(const StaticRegion& region) { return 0.0; }

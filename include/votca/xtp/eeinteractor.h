@@ -26,6 +26,11 @@
 namespace votca {
 namespace xtp {
 
+enum Estatic : bool {
+  noE_V = true,
+  V = false,
+};
+
 /**
  * \brief Mediates interaction between polar and static sites
  */
@@ -39,12 +44,10 @@ class eeInteractor {
 
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
-  template <class T, bool noE>
+  template <class T, enum Estatic>
   double ApplyStaticField(const T& segment1, PolarSegment& segment2) const;
 
-  double ApplyStaticField_IntraSegment(PolarSegment& seg) const;
-
-  template <bool noE>
+  template <enum Estatic>
   double ApplyInducedField(const PolarSegment& segment1,
                            PolarSegment& segment2) const;
 
@@ -69,6 +72,8 @@ class eeInteractor {
     double& E_indu_stat() { return _data.y(); }
     double& E_internal() { return _data.z(); }
 
+    const Eigen::Vector3d& data() const { return _data; }
+
    private:
     Eigen::Vector3d _data = Eigen::Vector3d::Zero();
   };
@@ -79,15 +84,15 @@ class eeInteractor {
   template <class S>
   double CalcStaticEnergy_IntraSegment(const S& seg) const;
 
-  E_terms CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
+  double CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
 
  private:
   template <int N, int M>
   Eigen::Matrix<double, N, M> FillInteraction(const StaticSite& site1,
                                               const StaticSite& site2) const;
-  template <bool noE>
+  template <enum Estatic>
   double ApplyInducedField_site(const PolarSite& site1, PolarSite& site2) const;
-  template <bool noE>
+  template <enum Estatic>
   double ApplyStaticField_site(const StaticSite& site1, PolarSite& site2) const;
 
   double CalcStaticEnergy_site(const StaticSite& site1,

@@ -60,5 +60,14 @@ std::vector<double> Region::ApplyInfluenceOfOtherRegions(
   return energies;
 }
 
+void Region::AddResults(tools::Property& prop) const {
+  tools::Property& region = prop.add("region", "");
+  region.setAttribute("type", identify());
+  region.setAttribute("id", getId());
+  region.setAttribute("size", size());
+  region.setAttribute("Tot_charge", (boost::format("%1$1.6e") % charge()));
+  AppendResult(region);
+}
+
 }  // namespace xtp
 }  // namespace votca

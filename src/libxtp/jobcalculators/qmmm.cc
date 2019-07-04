@@ -18,6 +18,7 @@
  */
 
 #include "qmmm.h"
+#include <chrono>
 #include <votca/xtp/jobtopology.h>
 
 namespace votca {
@@ -44,6 +45,8 @@ void QMMM::Initialize(tools::Property& options) {
 }
 
 Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
+  std::chrono::time_point<std::chrono::system_clock> start =
+      std::chrono::system_clock::now();
 
   Job::JobResult jres = Job::JobResult();
   Logger& pLog = Thread.getLogger();
@@ -88,10 +91,15 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
          reg_pointer-- != jobtop.begin();) {
       std::unique_ptr<Region>& region = *reg_pointer;
       XTP_LOG_SAVE(logINFO, pLog)
-          << TimeStamp() << " Running calculations for " << region->identify()
-          << " " << region->getId() << std::flush;
+          << TimeStamp() << " Evaluating " << region->identify() << " "
+          << region->getId() << std::flush;
       region->Reset();
       region->Evaluate(jobtop.Regions());
+      if (!region->Successful()) {
+        jres.setStatus(Job::JobStatus::FAILED);
+        jres.setError(region->ErrorMsg());
+        return jres;
+      }
     }
 
     if (!no_top_scf) {
@@ -108,17 +116,37 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
         XTP_LOG_SAVE(logINFO, pLog)
             << TimeStamp() << " Job converged after " << iteration + 1
             << " iterations." << std::flush;
+        jres.setStatus(Job::JobStatus::COMPLETE);
         break;
       }
       if (iteration == _max_iterations - 1) {
         XTP_LOG_SAVE(logINFO, pLog)
             << TimeStamp() << " Job did not converge after " << iteration + 1
             << " iterations.\n Writing results to jobfile." << std::flush;
+        jres.setStatus(Job::JobStatus::FAILED);
+        jres.setError("Inter Region SCF did not converge in " +
+                      std::to_string(_max_iterations) + " iterations.");
       }
+    } else {
+      jres.setStatus(Job::JobStatus::COMPLETE);
     }
   }
 
-  return Job::JobResult();
+  tools::Property results;
+  tools::Property& jobresult = results.add("output", "");
+  tools::Property& regionsresults = jobresult.add("regions", "");
+  double etot = 0.0;
+  for (const std::unique_ptr<Region>& reg : jobtop) {
+    reg->AddResults(regionsresults);
+    etot += reg->Etotal();
+  }
+  std::chrono::time_point<std::chrono::system_clock> end =
+      std::chrono::system_clock::now();
+  std::chrono::duration<double> elapsed_time = end - start;
+  jobresult.add("E_tot", std::to_string(etot * tools::conv::hrt2ev));
+  jobresult.add("Compute_Time", std::to_string(int(elapsed_time.count())));
+  jres.setOutput(results);
+  return jres;
 }
 void QMMM::WriteJobFile(Topology& top) {}
 void QMMM::ReadJobFile(Topology& top) {}

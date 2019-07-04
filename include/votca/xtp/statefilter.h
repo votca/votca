@@ -43,6 +43,7 @@ class Statefilter {
   void setLogger(Logger* log) { _log = log; }
   void setInitialState(const QMState& state) { _statehist.push_back(state); }
   void PrintInfo() const;
+  QMState InitialState() const { return _statehist[0]; }
   QMState CalcStateAndUpdate(const Orbitals& orbitals);
   QMState CalcState(const Orbitals& orbitals) const;
 

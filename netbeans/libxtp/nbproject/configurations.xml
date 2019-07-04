@@ -28,6 +28,7 @@
         <itemPath>../../src/libxtp/jobcalculators/iexcitoncl.h</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/iqm.h</itemPath>
+        <itemPath>../../src/libxtp/jobcalculators/qmmm.cc</itemPath>
         <itemPath>../../src/libxtp/jobcalculators/qmmm.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f3" displayName="Tools" projectFiles="true">
@@ -4630,6 +4631,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/jobcalculators/qmmm.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"
             ex="false"
             tool="3"
@@ -5754,6 +5760,11 @@
       <item path="../../src/libxtp/jobcalculators/iqm.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/jobcalculators/qmmm.cc"
+            ex="false"
+            tool="1"
             flavor2="0">
       </item>
       <item path="../../src/libxtp/jobcalculators/qmmm.h"

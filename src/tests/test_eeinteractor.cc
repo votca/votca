@@ -19,6 +19,7 @@
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
+#include <votca/xtp/dipoledipoleinteraction.h>
 #include <votca/xtp/eeinteractor.h>
 using namespace votca::xtp;
 
@@ -160,7 +161,7 @@ BOOST_AUTO_TEST_CASE(static_case_monopole_field) {
   seg2.push_back(two);
 
   eeInteractor interactor;
-  interactor.ApplyStaticField<StaticSegment, false>(seg1, seg2);
+  interactor.ApplyStaticField<StaticSegment, Estatic::V>(seg1, seg2);
 
   Eigen::Vector3d field_ref;
   field_ref << 0, 0, 0.33333333;
@@ -173,7 +174,7 @@ BOOST_AUTO_TEST_CASE(static_case_monopole_field) {
     std::cout << seg2[0].V() << std::endl;
   }
 
-  interactor.ApplyStaticField<StaticSegment, true>(seg1, seg2);
+  interactor.ApplyStaticField<StaticSegment, Estatic::noE_V>(seg1, seg2);
 
   bool field_check_2 = field_ref.isApprox(seg2[0].V_noE(), 1e-6);
   BOOST_CHECK_EQUAL(field_check, true);
@@ -286,6 +287,110 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_dipoles_orientation) {
   energy_field_rev = interactor.CalcStaticEnergy(seg2, seg1);
   BOOST_CHECK_CLOSE(energy_field, -1.5, 1e-12);
   BOOST_CHECK_CLOSE(energy_field, energy_field_rev, 1e-12);
+}
+
+BOOST_AUTO_TEST_CASE(polar_case_monopole) {
+
+  Vector9d mpoles1;
+  mpoles1 << 1, 0, 0, 0, 0, 0, 0, 0, 0;
+
+  PolarSegment seg1("one", 1);
+  PolarSegment seg2("two", 2);
+  PolarSite one(1, "H");
+  one.setPolarisation(Eigen::Matrix3d::Identity());
+  one.setMultipole(mpoles1, 0);
+  one.setPos(Eigen::Vector3d::Zero());
+
+  PolarSite two(2, "H");
+  two.setPolarisation(Eigen::Matrix3d::Identity());
+  two.setMultipole(mpoles1, 0);
+  two.setPos(Eigen::Vector3d::UnitZ());
+
+  seg1.push_back(one);
+  seg2.push_back(two);
+  double exp_damp =
+      std::numeric_limits<double>::max();  // should disable thole damping
+  eeInteractor interactor(exp_damp);
+  double estat =
+      interactor.ApplyStaticField<PolarSegment, Estatic::noE_V>(seg1, seg2);
+  interactor.ApplyStaticField<PolarSegment, Estatic::noE_V>(seg2, seg1);
+  BOOST_CHECK_CLOSE(estat, 1, 1e-12);
+  Eigen::Vector3d field_ref;
+  field_ref << 0, 0, -1;
+  bool field_check = field_ref.isApprox(seg2[0].V_noE(), 1e-6);
+  BOOST_CHECK_EQUAL(field_check, true);
+  if (!field_check) {
+    std::cout << "ref" << std::endl;
+    std::cout << field_ref << std::endl;
+    std::cout << "field" << std::endl;
+    std::cout << seg2[0].V_noE() << std::endl;
+  }
+
+  bool field_check_2 = field_ref.isApprox(-seg1[0].V_noE(), 1e-6);
+  BOOST_CHECK_EQUAL(field_check, true);
+  if (!field_check_2) {
+    std::cout << "ref" << std::endl;
+    std::cout << -field_ref << std::endl;
+    std::cout << "field" << std::endl;
+    std::cout << seg1[0].V_noE() << std::endl;
+  }
+
+  std::vector<PolarSegment> segments = {seg1, seg2};
+  Eigen::VectorXd b = Eigen::VectorXd::Zero(6);
+  int index = 0;
+  for (PolarSegment& seg : segments) {
+    for (const PolarSite& site : seg) {
+      const Eigen::Vector3d V = site.V() + site.V_noE();
+      b.segment<3>(index) = -V;
+      index += 3;
+    }
+  }
+
+  DipoleDipoleInteraction A(interactor, segments);
+  Eigen::ConjugateGradient<DipoleDipoleInteraction, Eigen::Lower | Eigen::Upper>
+      cg;
+  cg.setMaxIterations(100);
+  cg.setTolerance(1e-9);
+  cg.compute(A);
+  Eigen::VectorXd x = cg.solve(b);
+  index = 0;
+  for (PolarSegment& seg : segments) {
+    for (PolarSite& site : seg) {
+      site.setInduced_Dipole(x.segment<3>(index));
+      index += 3;
+    }
+  }
+
+  Eigen::Vector3d dipole_ref;
+  dipole_ref << 0, 0, 1.0 / 3.0;
+
+  bool dipole_check =
+      dipole_ref.isApprox(-segments[0][0].Induced_Dipole(), 1e-6);
+  BOOST_CHECK_EQUAL(field_check, true);
+  if (!dipole_check) {
+    std::cout << "ref" << std::endl;
+    std::cout << -dipole_ref << std::endl;
+    std::cout << "dipole" << std::endl;
+    std::cout << segments[0][0].Induced_Dipole() << std::endl;
+  }
+
+  bool dipole_check2 =
+      dipole_ref.isApprox(segments[1][0].Induced_Dipole(), 1e-6);
+  if (!dipole_check2) {
+    std::cout << "ref" << std::endl;
+    std::cout << dipole_ref << std::endl;
+    std::cout << "dipole" << std::endl;
+    std::cout << segments[1][0].Induced_Dipole() << std::endl;
+  }
+
+  eeInteractor::E_terms epolar =
+      interactor.CalcPolarEnergy(segments[0], segments[1]);
+  double einternal = segments[0][0].InternalEnergy();
+  einternal += segments[1][0].InternalEnergy();
+
+  BOOST_CHECK_CLOSE(epolar.E_indu_indu(), 2.0 / 9.0, 1e-12);
+  BOOST_CHECK_CLOSE(epolar.E_indu_stat(), -2.0 / 3.0, 1e-12);
+  BOOST_CHECK_CLOSE(einternal, 1.0 / 9.0, 1e-12);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

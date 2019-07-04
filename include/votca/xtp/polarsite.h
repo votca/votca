@@ -71,7 +71,7 @@ class PolarSite : public StaticSite {
 
   Eigen::Vector3d& V_noE() { return _V_noE; }
 
-  void Reset() override {
+  void Reset() {
     _V.setZero();
     _V_noE.setZero();
   }
@@ -151,7 +151,8 @@ class PolarSite : public StaticSite {
   // the interaction energy with it is included in the polar region energy
   Eigen::Vector3d _V = Eigen::Vector3d::Zero();
   // the second is used for interaction with regions, which are further inside,
-  // i.e. the interaction energy with it is included in the other region's energy
+  // i.e. the interaction energy with it is included in the other region's
+  // energy
   Eigen::Vector3d _V_noE = Eigen::Vector3d::Zero();
 
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();

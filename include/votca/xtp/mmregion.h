@@ -64,7 +64,9 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
-  void Reset();
+  virtual double Etotal() const = 0;
+
+  virtual void Reset() = 0;
 
   double charge() const;
 
@@ -73,6 +75,7 @@ class MMRegion : public Region {
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  protected:
+  virtual void AppendResult(tools::Property& prop) const = 0;
   virtual double InteractwithQMRegion(const QMRegion& region) = 0;
   virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;

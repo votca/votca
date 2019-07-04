@@ -23,9 +23,9 @@
 #ifndef VOTCA_XTP_LOG_H
 #define VOTCA_XTP_LOG_H
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
-
 namespace votca {
 namespace xtp {
 
@@ -235,11 +235,10 @@ class Logger : public std::ostream {
 class TimeStamp {
  public:
   friend std::ostream &operator<<(std::ostream &os, const TimeStamp &ts) {
-    time_t rawtime;
-    tm *timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    os << (timeinfo->tm_year) + 1900 << "-" << timeinfo->tm_mon + 1 << "-"
+    std::time_t now_time =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::tm *timeinfo = std::localtime(&now_time);
+    os << timeinfo->tm_year + 1900 << "-" << timeinfo->tm_mon + 1 << "-"
        << timeinfo->tm_mday << " " << timeinfo->tm_hour << ":"
        << timeinfo->tm_min << ":" << timeinfo->tm_sec;
     return os;

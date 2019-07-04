@@ -203,7 +203,7 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
   return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
 }
 
-template <bool noE>
+template <enum Estatic CE>
 double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
                                            PolarSite& site2) const {
   Eigen::Vector3d V = Eigen::Vector3d::Zero();
@@ -246,7 +246,7 @@ double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
     throw std::runtime_error("Ranks higher 2 not implemented");
   }
 
-  if (noE) {
+  if (CE == Estatic::noE_V) {
     site2.V_noE() += V;
   } else {
     site2.V() += V;
@@ -254,13 +254,13 @@ double eeInteractor::ApplyStaticField_site(const StaticSite& site1,
   return e;
 }
 
-template <bool noE>
+template <enum Estatic CE>
 double eeInteractor::ApplyInducedField_site(const PolarSite& site1,
                                             PolarSite& site2) const {
   const Eigen::Matrix3d tTab = FillTholeInteraction(site1, site2);
   const Eigen::Vector3d V = tTab.transpose() * site1.Induced_Dipole();
   double e = 0.0;
-  if (noE) {
+  if (CE == Estatic::noE_V) {
     site2.V_noE() += V;
   } else {
     site2.V() += V;
@@ -328,54 +328,43 @@ eeInteractor::E_terms eeInteractor::CalcPolarEnergy_site(
   return val;
 }
 
-template <class T, bool noE>
+template <class T, enum Estatic CE>
 double eeInteractor::ApplyStaticField(const T& segment1,
                                       PolarSegment& segment2) const {
   double e = 0.0;
   for (PolarSite& s2 : segment2) {
     for (const auto& s1 : segment1) {
-      e += ApplyStaticField_site<noE>(s1, s2);
+      e += ApplyStaticField_site<CE>(s1, s2);
     }
   }
   return e;
 }
 
-template double eeInteractor::ApplyStaticField<StaticSegment, true>(
+template double eeInteractor::ApplyStaticField<StaticSegment, Estatic::V>(
     const StaticSegment& seg1, PolarSegment& seg2) const;
-template double eeInteractor::ApplyStaticField<StaticSegment, false>(
+template double eeInteractor::ApplyStaticField<StaticSegment, Estatic::noE_V>(
     const StaticSegment& seg1, PolarSegment& seg2) const;
-template double eeInteractor::ApplyStaticField<PolarSegment, true>(
+template double eeInteractor::ApplyStaticField<PolarSegment, Estatic::V>(
     const PolarSegment& seg1, PolarSegment& seg2) const;
-template double eeInteractor::ApplyStaticField<PolarSegment, false>(
+template double eeInteractor::ApplyStaticField<PolarSegment, Estatic::noE_V>(
     const PolarSegment& seg1, PolarSegment& seg2) const;
 
-template <bool noE>
+template <enum Estatic CE>
 double eeInteractor::ApplyInducedField(const PolarSegment& segment1,
                                        PolarSegment& segment2) const {
   double e = 0;
   for (PolarSite& s2 : segment2) {
     for (const PolarSite& s1 : segment1) {
-      e += ApplyInducedField_site<noE>(s1, s2);
+      e += ApplyInducedField_site<CE>(s1, s2);
     }
   }
   return e;
 }
 
-template double eeInteractor::ApplyInducedField<true>(const PolarSegment& seg1,
-                                                      PolarSegment& seg2) const;
-template double eeInteractor::ApplyInducedField<false>(
+template double eeInteractor::ApplyInducedField<Estatic::V>(
     const PolarSegment& seg1, PolarSegment& seg2) const;
-
-double eeInteractor::ApplyStaticField_IntraSegment(PolarSegment& seg) const {
-  double e = 0;
-  for (int i = 0; i < seg.size(); i++) {
-    for (int j = 0; j < i; j++) {
-      e += ApplyStaticField_site<true>(seg[i], seg[j]);
-      ApplyStaticField_site<true>(seg[j], seg[i]);
-    }
-  }
-  return e;
-}
+template double eeInteractor::ApplyInducedField<Estatic::noE_V>(
+    const PolarSegment& seg1, PolarSegment& seg2) const;
 
 template <class S1, class S2>
 double eeInteractor::CalcStaticEnergy(const S1& segment1,
@@ -429,12 +418,13 @@ template eeInteractor::E_terms eeInteractor::CalcPolarEnergy(
 template eeInteractor::E_terms eeInteractor::CalcPolarEnergy(
     const PolarSegment& seg1, const StaticSegment& seg2) const;
 
-eeInteractor::E_terms eeInteractor::CalcPolarEnergy_IntraSegment(
+double eeInteractor::CalcPolarEnergy_IntraSegment(
     const PolarSegment& seg) const {
-  eeInteractor::E_terms e;
+  double e = 0;
   for (int i = 0; i < seg.size(); i++) {
     for (int j = 0; j < i; j++) {
-      e += CalcPolarEnergy_site(seg[i], seg[j]);
+      e += seg[i].Induced_Dipole().transpose() *
+           FillTholeInteraction(seg[i], seg[j]) * seg[j].Induced_Dipole();
     }
   }
   return e;

@@ -82,8 +82,6 @@ class StaticSite {
     _rank = rank;
   }
 
-  virtual void Reset() { return; }
-
   void setCharge(double q) { _Q(0) = q; }
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }

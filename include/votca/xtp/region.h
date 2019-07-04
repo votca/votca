@@ -65,7 +65,15 @@ class Region {
 
   virtual double charge() const = 0;
 
+  bool Successful() const { return _info; }
+
+  std::string ErrorMsg() const { return _errormsg; }
+
+  void AddResults(tools::Property& prop) const;
+
   int getId() const { return _id; }
+
+  virtual double Etotal() const = 0;
 
   friend std::ostream& operator<<(std::ostream& out, const Region& region) {
     out << "Id: " << region.getId() << " type: " << region.identify()
@@ -87,6 +95,7 @@ class Region {
       }
     }
 
+    const T& back() const { return _metric; }
     void push_back(const T& metric) {
       _metric_old = std::move(_metric);
       _metric = metric;
@@ -106,9 +115,11 @@ class Region {
     T _metric_old;
   };
 
+  bool _info = true;
+  std::string _errormsg = "";
   std::vector<double> ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);
-
+  virtual void AppendResult(tools::Property& prop) const = 0;
   virtual double InteractwithQMRegion(const QMRegion& region) = 0;
   virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
   virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;

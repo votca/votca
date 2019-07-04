@@ -71,8 +71,10 @@ class QMRegion : public Region {
   void Reset();
 
   double charge() const;
+  double Etotal() const { return _E_hist.back(); }
 
  protected:
+  void AppendResult(tools::Property& prop) const;
   double InteractwithQMRegion(const QMRegion& region);
   double InteractwithPolarRegion(const PolarRegion& region);
   double InteractwithStaticRegion(const StaticRegion& region);

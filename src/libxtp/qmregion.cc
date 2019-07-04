@@ -90,16 +90,22 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Running DFT calculation" << std::flush;
   bool run_success = _qmpackage->Run();
   if (!run_success) {
-    throw std::runtime_error("\n DFT-run failed. Stopping!");
+    _info = false;
+    _errormsg = "DFT-run failed";
+    return;
   }
 
   bool Logfile_parse = _qmpackage->ParseLogFile(_orb);
   if (!Logfile_parse) {
-    throw std::runtime_error("\n Parsing DFT logfile failed. Stopping!");
+    _info = false;
+    _errormsg = "Parsing DFT logfile failed.";
+    return;
   }
   bool Orbfile_parse = _qmpackage->ParseMOsFile(_orb);
   if (!Orbfile_parse) {
-    throw std::runtime_error("\n Parsing DFT orbfile failed. Stopping!");
+    _info = false;
+    _errormsg = "Parsing DFT orbfile failed.";
+    return;
   }
   QMState state = QMState("groundstate");
   double energy = _orb.getQMEnergy();
@@ -131,18 +137,39 @@ void QMRegion::push_back(const QMMolecule& mol) {
 }
 
 double QMRegion::charge() const {
-  double nuccharge = 0.0;
-  for (const QMAtom& a : _orb.QMAtoms()) {
-    nuccharge += a.getNuccharge();
-  }
+  double charge = 0.0;
+  if (!_do_gwbse) {
+    double nuccharge = 0.0;
+    for (const QMAtom& a : _orb.QMAtoms()) {
+      nuccharge += a.getNuccharge();
+    }
 
-  double electrons = _orb.getNumberOfAlphaElectrons() * 2;
-  return nuccharge - electrons;
+    double electrons = _orb.getNumberOfAlphaElectrons() * 2;
+    charge = nuccharge - electrons;
+  } else {
+    QMState state = _filter.InitialState();
+    if (state.Type().isExciton()) {
+      charge = 0.0;
+    } else if (state.Type().isSingleParticleState()) {
+      if (state.Index() <= _orb.getHomo()) {
+        charge = +1.0;
+      } else {
+        charge = -1.0;
+      }
+    }
+  }
+  return charge;
+}
+
+void QMRegion::AppendResult(tools::Property& prop) const {
+  prop.add("E_total", std::to_string(_E_hist.back() * tools::conv::hrt2ev));
+  if (_do_gwbse) {
+    prop.add("Initial State:", _filter.InitialState().ToString());
+    prop.add("Final State:", _filter.CalcState(_orb).ToString());
+  }
 }
 
 void QMRegion::Reset() {
-  XTP_LOG_SAVE(logINFO, _log)
-      << "Removed all previous values from region" << std::flush;
 
   std::string dft_package_name =
       _dftoptions.get("package.name").as<std::string>();
@@ -175,7 +202,7 @@ void QMRegion::AddNucleiFields(std::vector<PolarSegment>& segments,
   eeInteractor e;
 #pragma omp parallel for
   for (int i = 0; i < int(segments.size()); ++i) {
-    e.ApplyStaticField<StaticSegment, true>(seg, segments[i]);
+    e.ApplyStaticField<StaticSegment, Estatic::noE_V>(seg, segments[i]);
   }
 }
 
@@ -223,12 +250,16 @@ void QMRegion::ApplyQMFieldToPolarSegments(
 void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   w(_id, "id");
   w(identify(), "type");
+  w(_size, "size");
+  w(_do_gwbse, "GWBSE");
   CheckpointWriter v = w.openChild("orbitals");
   _orb.WriteToCpt(v);
 }
 
 void QMRegion::ReadFromCpt(CheckpointReader& r) {
   r(_id, "id");
+  r(_size, "size");
+  r(_do_gwbse, "GWBSE");
   CheckpointReader rr = r.openChild("orbitals");
   _orb.ReadFromCpt(rr);
 }

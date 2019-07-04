@@ -52,7 +52,7 @@ bool PolarRegion::Converged() const {
   if (!_E_hist.filled()) {
     return false;
   }
-  double Echange = _E_hist.getDiff();
+  double Echange = _E_hist.getDiff().Etotal();
   std::string info = "not converged";
   bool converged = false;
   if (std::abs(Echange) < _deltaE) {
@@ -69,7 +69,7 @@ double PolarRegion::StaticInteraction() {
 
   eeInteractor eeinteractor;
   double e = 0.0;
-  //#pragma omp parallel for reduction(+ : e)
+#pragma omp parallel for reduction(+ : e)
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < size(); ++j) {
       if (i == j) {
@@ -77,15 +77,11 @@ double PolarRegion::StaticInteraction() {
       }
       PolarSegment& seg1 = _segments[i];
       const PolarSegment& seg2 = _segments[j];
-      e += eeinteractor.ApplyStaticField<PolarSegment, true>(seg2, seg1);
+      e += eeinteractor.ApplyStaticField<PolarSegment, Estatic::noE_V>(seg2,
+                                                                       seg1);
     }
   }
 
-  //#pragma omp parallel for reduction(+ : e)
-  //  for (int i = 0; i < size(); ++i) {
-  //    double e_thread =
-  //    eeinteractor.ApplyStaticField_IntraSegment(_segments[i]); e += e_thread;
-  //  }
   return e;
 }
 
@@ -100,7 +96,7 @@ eeInteractor::E_terms PolarRegion::PolarEnergy() const {
   }
 
   for (const PolarSegment& seg : _segments) {
-    terms += eeinteractor.CalcPolarEnergy_IntraSegment(seg);
+    terms.E_indu_indu() += eeinteractor.CalcPolarEnergy_IntraSegment(seg);
   }
 
   for (const PolarSegment& seg : _segments) {
@@ -129,26 +125,25 @@ void PolarRegion::Reset() {
   }
 }
 
+void PolarRegion::AppendResult(tools::Property& prop) const {
+  const Energy_terms& e = this->_E_hist.back();
+  prop.add("E_static", std::to_string(e.Estatic() * tools::conv::hrt2ev));
+  prop.add("E_polar", std::to_string(e.Epolar() * tools::conv::hrt2ev));
+  prop.add("E_total", std::to_string(e.Etotal() * tools::conv::hrt2ev));
+}
+
 void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " Evaluating:" << this->identify() << " "
-      << this->getId() << std::flush;
 
   std::vector<double> energies = ApplyInfluenceOfOtherRegions(regions);
-
-  double estat_outside = std::accumulate(energies.begin(), energies.end(), 0.0);
+  Energy_terms e_contrib;
+  e_contrib.E_static_ext() =
+      std::accumulate(energies.begin(), energies.end(), 0.0);
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << std::setprecision(12)
-      << " Calculated static interaction with other regions E[hrt]= "
-      << estat_outside << std::flush;
-  double estat = StaticInteraction();
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << std::setprecision(12)
-      << " Calculated static interaction in region E[hrt]= " << estat
+      << TimeStamp() << " Calculated static interaction with other regions"
       << std::flush;
+  e_contrib.E_static_static() = StaticInteraction();
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << std::setprecision(12)
-      << " Total static interaction E[hrt]= " << estat + estat_outside
+      << TimeStamp() << " Calculated static interaction in region "
       << std::flush;
   int dof_polarisation = 0;
   for (const PolarSegment& seg : _segments) {
@@ -200,6 +195,13 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log)
       << TimeStamp() << " CG: #iterations: " << cg.iterations()
       << ", estimated error: " << cg.error() << std::flush;
+
+  if (cg.info() == Eigen::ComputationInfo::NoConvergence) {
+    _info = false;
+    _errormsg = "PCG iterations did not converge";
+    return;
+  }
+
   index = 0;
   for (PolarSegment& seg : _segments) {
     for (PolarSite& site : seg) {
@@ -208,28 +210,53 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     }
   }
 
-  eeInteractor::E_terms e_polar = PolarEnergy();
-
+  e_contrib.addInternalPolarContrib(PolarEnergy());
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << std::setprecision(12)
-      << " Calculated polar interaction in region E_dQ-dQ[hrt]= "
-      << e_polar.E_indu_indu() << " E_Q-dQ[hrt]= " << e_polar.E_indu_stat()
-      << " E_interal[hrt]= " << e_polar.E_internal() << std::flush;
-  double e_polar_extern = this->PolarEnergy_extern();
-  XTP_LOG_SAVE(logINFO, _log) << TimeStamp() << std::setprecision(10)
-                              << " Calculated polar interaction with other "
-                                 "regions [dQ-dQ] and [dQ-Q] [hrt]= "
-                              << e_polar_extern << std::flush;
+      << TimeStamp() << " Calculated polar interaction in region" << std::flush;
+  e_contrib.E_polar_ext() = PolarEnergy_extern();
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << std::setprecision(10)
-      << " Total polar interaction [hrt]= " << e_polar_extern + e_polar.sum()
+      << TimeStamp() << " Calculated polar interaction with other regions"
       << std::flush;
 
-  double e_total = e_polar_extern + estat_outside + estat + e_polar.sum();
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " E_total[hrt]= " << std::setprecision(12) << e_total
+      << std::setprecision(10)
+      << "   Internal static energy [hrt]= " << e_contrib.E_static_static()
       << std::flush;
-  _E_hist.push_back(e_total);
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "   External static energy [hrt]= " << e_contrib.E_static_ext()
+      << std::flush;
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "  Total static energy [hrt]= " << e_contrib.Estatic() << std::flush;
+
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "   internal dQ-dQ energy [hrt]= " << e_contrib.E_indu_indu()
+      << std::flush;
+
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "   internal Q-dQ energy [hrt]= " << e_contrib.E_indu_stat()
+      << std::flush;
+
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "   Internal energy [hrt]= " << e_contrib.E_internal() << std::flush;
+
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "   External polar energy [hrt]= " << e_contrib.E_polar_ext()
+      << std::flush;
+
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10)
+      << "  Total polar energy [hrt]= " << e_contrib.Epolar() << std::flush;
+
+  XTP_LOG_SAVE(logINFO, _log)
+      << std::setprecision(10) << " Total energy [hrt]= " << e_contrib.Etotal()
+      << std::flush;
+  _E_hist.push_back(e_contrib);
   return;
 }
 
@@ -240,9 +267,9 @@ double PolarRegion::InteractwithQMRegion(const QMRegion& region) {
   return 0.0;
 }
 double PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
-  bool noE = true;
+  bool noE_V = true;
   if (this->getId() < region.getId()) {
-    noE = false;
+    noE_V = false;
   }
 
   double e = 0;
@@ -252,12 +279,12 @@ double PolarRegion::InteractwithPolarRegion(const PolarRegion& region) {
     double e_thread = 0.0;
     eeInteractor ee;
     for (const PolarSegment& pseg2 : region) {
-      if (noE) {
-        ee.ApplyStaticField<PolarSegment, true>(pseg2, pseg1);
-        ee.ApplyInducedField<true>(pseg2, pseg1);
+      if (noE_V) {
+        ee.ApplyStaticField<PolarSegment, Estatic::noE_V>(pseg2, pseg1);
+        ee.ApplyInducedField<Estatic::noE_V>(pseg2, pseg1);
       } else {
-        e_thread += ee.ApplyStaticField<PolarSegment, false>(pseg2, pseg1);
-        e_thread += ee.ApplyInducedField<false>(pseg2, pseg1);
+        e_thread += ee.ApplyStaticField<PolarSegment, Estatic::V>(pseg2, pseg1);
+        e_thread += ee.ApplyInducedField<Estatic::V>(pseg2, pseg1);
       }
       e += e_thread;
     }
@@ -275,7 +302,7 @@ double PolarRegion::InteractwithStaticRegion(const StaticRegion& region) {
     PolarSegment& pseg = _segments[i];
     eeInteractor ee;
     for (const StaticSegment& sseg : region) {
-      e_thread += ee.ApplyStaticField<StaticSegment, false>(sseg, pseg);
+      e_thread += ee.ApplyStaticField<StaticSegment, Estatic::V>(sseg, pseg);
     }
     e += e_thread;
   }

@@ -41,18 +41,6 @@ void MMRegion<T>::WritePDB(csg::PDBWriter& writer) const {
 }
 
 template <class T>
-void MMRegion<T>::Reset() {
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " Removed all previous values from region"
-      << std::flush;
-  for (auto& seg : _segments) {
-    for (auto& site : seg) {
-      site.Reset();
-    }
-  }
-}
-
-template <class T>
 void MMRegion<T>::WriteToCpt(CheckpointWriter& w) const {
   w(_id, "id");
   w(identify(), "type");
