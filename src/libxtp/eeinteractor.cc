@@ -54,14 +54,15 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
     const double fac3 = std::pow(fac1, 3);
     if (N > 1 && M > 1) {
       // Dipole-Dipole Interaction
-      interaction.block(1, 1, 3, 3) = -3 * fac3 * pos_a * pos_a.transpose();
-      interaction.block(1, 1, 3, 3).diagonal().array() += fac3;
+      Eigen::Matrix3d block = -3 * fac3 * pos_a * pos_a.transpose();
+      block.diagonal().array() += fac3;
+      interaction.block(1, 1, 3, 3) = block;
       // T_1alpha,1beta // (alpha,beta=x,y,z)
     }
 
     const double sqr3 = std::sqrt(3);
     if (N > 4 || M > 4) {
-      AxA aa(pos_a);
+      const AxA aa(pos_a);
       // Quadrupole-Charge interaction
       Eigen::Matrix<double, 1, 5> block;
       block(0) = fac3 * 0.5 * (3 * aa.zz() - 1);           // T20,00
@@ -114,48 +115,36 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
         const double fac5 = std::pow(fac1, 5);
         // Quadrupole-Quadrupole Interaction
         Eigen::Matrix<double, 5, 5> block;
-        block(0, 0) = fac5 * (3. / 4.) *
-                      (35 * aa.zz() * aa.zz() - 5 * aa.zz() - 5 * aa.zz() -
-                       20 * aa.zz() + 3);  // T20,20
+        block(0, 0) =
+            fac5 * (3. / 4.) * ((35 * aa.zz() - 30) * aa.zz() + 3);  // T20,20
         block(1, 0) =
-            0.5 * fac5 * sqr3 *
-            (35 * aa.zz() * aa.xz() - 5 * aa.xz() - 10 * aa.xz());  // T20,21c
+            0.5 * fac5 * sqr3 * aa.xz() * (35 * aa.zz() - 15);  // T20,21c
         block(2, 0) =
-            0.5 * fac5 * sqr3 *
-            (35 * aa.zz() * aa.yz() - 5 * aa.yz() - 10 * aa.yz());  // T20,21s
-        block(3, 0) = 0.25 * fac5 * sqr3 *
-                      (-35 * aa.xz() + 35 * aa.yz() - 5 * aa.xx() +
-                       5 * aa.yy());  // T20,22c
-        block(4, 0) = 0.5 * fac5 * sqr3 *
-                      (35 * aa.zz() * aa.xy() - 5 * aa.xy());  // T20,22s
-        block(1, 1) = fac5 * (35 * aa.xz() * aa.xz() - 5 * aa.xx() -
-                              5 * aa.zz() + 1);  // T21c,21c
-
-        block(2, 1) =
-            fac5 * (35 * aa.xz() * aa.yz() - 5 * aa.xy());  // T21c,21s
-        block(3, 1) = 0.5 * fac5 *
-                      (35 * aa.xz() * aa.xx() - 35 * aa.xz() * aa.yy() -
-                       10 * aa.xx());  // T21c,22c
-
-        block(4, 1) =
-            fac5 * (35 * aa.xz() * aa.xy() - 5 * aa.yz());  // T21c,22s
-        block(2, 2) = fac5 * (35 * aa.yz() * aa.yz() - 5 * aa.yy() -
-                              5 * aa.zz() + 1);  // T21s,21s
-        block(3, 2) = 0.5 * fac5 *
-                      (35 * aa.yz() * aa.xx() - 35 * aa.yz() * aa.yy() +
-                       10 * aa.yz());  // T21s,22c
-        block(4, 2) =
-            fac5 * (35 * aa.yz() * aa.xy() - 5 * aa.xz());  // T21s,22s
+            0.5 * fac5 * sqr3 * aa.yz() * (35 * aa.zz() - 15);  // T20,21s
+        block(3, 0) = 0.25 * fac5 * sqr3 * 5 *
+                      (7 * (aa.yz() - aa.xz()) - aa.xx() + aa.yy());  // T20,22c
+        block(4, 0) =
+            0.5 * fac5 * sqr3 * 5 * aa.xy() * (7 * aa.zz() - 1);  // T20,22s
+        block(1, 1) = fac5 * (35 * aa.xz() * aa.xz() - 5 * (aa.xx() + aa.zz()) +
+                              1);                                    // T21c,21c
+        block(2, 1) = fac5 * 5 * (7 * aa.xz() * aa.yz() - aa.xy());  // T21c,21s
+        block(3, 1) =
+            0.5 * fac5 *
+            (35 * aa.xz() * (aa.xx() - aa.yy()) - 10 * aa.xx());     // T21c,22c
+        block(4, 1) = fac5 * 7 * (5 * aa.xz() * aa.xy() - aa.yz());  // T21c,22s
+        block(2, 2) = fac5 * (35 * aa.yz() * aa.yz() - 5 * (aa.yy() + aa.zz()) +
+                              1);  // T21s,21s
+        block(3, 2) =
+            0.5 * fac5 * 35 * aa.yz() * (aa.xx() - aa.yy() + 10);    // T21s,22c
+        block(4, 2) = fac5 * 5 * (7 * aa.yz() * aa.xy() - aa.xz());  // T21s,22s
         block(3, 3) = 0.25 * fac5 *
-                      (35 * aa.xx() * aa.xx() - 35 * aa.xx() * aa.yy() -
-                       35 * aa.yy() * aa.xx() + 35 * aa.yy() * aa.yy() -
-                       20 * aa.xx() - 20 * aa.xx() + 4);  // T22c,22c
-        block(4, 3) = 0.5 * fac5 *
-                      (35 * aa.xy() * aa.xx() - 35 * aa.yz() * aa.yy() -
-                       10 * aa.xy() + 10 * aa.xy());  // T22c,22s
-        block(4, 4) = 0.5 * fac5 *
-                      (35 * aa.xy() * aa.xy() - 5 * aa.xx() - 5 * aa.yy() +
-                       1);  // T22s,22s
+                      (35 * std::pow(aa.xx() - aa.yy(), 2) - 40 * aa.xx() +
+                       4);  // T22c,22c
+        block(4, 3) = 0.5 * fac5 * 35 *
+                      (aa.xy() * aa.xx() - aa.yz() * aa.yy());  // T22c,22s
+        block(4, 4) =
+            0.5 * fac5 *
+            (35 * aa.xy() * aa.xy() - 5 * (aa.xx() + aa.yy()) + 1);  // T22s,22s
 
         block.triangularView<Eigen::StrictlyUpper>() =
             block.triangularView<Eigen::StrictlyLower>().transpose();

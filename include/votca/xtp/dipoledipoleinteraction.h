@@ -119,7 +119,8 @@ class DipoleDipoleInteraction
   Eigen::Vector3d Block(int i, const Eigen::VectorXd& v) const {
     Eigen::Vector3d result = Eigen::Vector3d::Zero();
     const PolarSite& site1 = *_sites[i];
-    for (int j = 0; j < int(_sites.size()); j++) {
+    const int segment_size = _sites.size();
+    for (int j = 0; j < segment_size; j++) {
       if (i == j) {
         result += site1.getPInv() * v.segment<3>(3 * j);
       } else {
