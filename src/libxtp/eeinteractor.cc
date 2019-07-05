@@ -54,9 +54,9 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
     const double fac3 = std::pow(fac1, 3);
     if (N > 1 && M > 1) {
       // Dipole-Dipole Interaction
-      Eigen::Matrix3d block = -3 * fac3 * pos_a * pos_a.transpose();
-      block.diagonal().array() += fac3;
-      interaction.block(1, 1, 3, 3) = block;
+      Eigen::Matrix3d dd = -3 * fac3 * pos_a * pos_a.transpose();
+      dd.diagonal().array() += fac3;
+      interaction.block(1, 1, 3, 3) = dd;
       // T_1alpha,1beta // (alpha,beta=x,y,z)
     }
 
@@ -64,91 +64,91 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
     if (N > 4 || M > 4) {
       const AxA aa(pos_a);
       // Quadrupole-Charge interaction
-      Eigen::Matrix<double, 1, 5> block;
-      block(0) = fac3 * 0.5 * (3 * aa.zz() - 1);           // T20,00
-      block(1) = fac3 * sqr3 * aa.xz();                    // T21c,00
-      block(2) = fac3 * sqr3 * aa.yz();                    // T21s,000
-      block(3) = fac3 * 0.5 * sqr3 * (aa.xx() - aa.yy());  // T22c,00
-      block(4) = fac3 * sqr3 * aa.xy();                    // T22s,00
+      Eigen::Matrix<double, 1, 5> Qq;
+      Qq(0) = fac3 * 0.5 * (3 * aa.zz() - 1);           // T20,00
+      Qq(1) = fac3 * sqr3 * aa.xz();                    // T21c,00
+      Qq(2) = fac3 * sqr3 * aa.yz();                    // T21s,000
+      Qq(3) = fac3 * 0.5 * sqr3 * (aa.xx() - aa.yy());  // T22c,00
+      Qq(4) = fac3 * sqr3 * aa.xy();                    // T22s,00
       if (N > 4) {
-        interaction.block(4, 0, 5, 1) = block.transpose();
+        interaction.block(4, 0, 5, 1) = Qq.transpose();
       }
       if (M > 4) {
-        interaction.block(0, 4, 1, 5) = block;
+        interaction.block(0, 4, 1, 5) = Qq;
       }
 
       if (N > 1 && M > 1) {
 
         const double fac4 = std::pow(fac1, 4);
 
-        Eigen::Matrix<double, 3, 5> block;
+        Eigen::Matrix<double, 3, 5> dQ;
         // Quadrupole-Dipole Interaction
-        block.col(0) = -0.5 * fac4 * (15 * aa.zz() - 3) * pos_a;
-        block.col(0).z() += 3 * fac4 * pos_a.z();  // T20-1beta (beta=x,y,z)
+        dQ.col(0) = -0.5 * fac4 * (15 * aa.zz() - 3) * pos_a;
+        dQ.col(0).z() += 3 * fac4 * pos_a.z();  // T20-1beta (beta=x,y,z)
 
         double faccol = fac4 * sqr3;
-        block.col(1) = -faccol * 5 * aa.xz() * pos_a;
-        block.col(1).z() += faccol * pos_a.x();
-        block.col(1).x() += faccol * pos_a.z();  // T21c-1beta (beta=x,y,z)
+        dQ.col(1) = -faccol * 5 * aa.xz() * pos_a;
+        dQ.col(1).z() += faccol * pos_a.x();
+        dQ.col(1).x() += faccol * pos_a.z();  // T21c-1beta (beta=x,y,z)
 
-        block.col(2) = -faccol * 5 * aa.yz() * pos_a;
-        block.col(2).z() += faccol * pos_a.y();
-        block.col(2).y() += faccol * pos_a.z();
+        dQ.col(2) = -faccol * 5 * aa.yz() * pos_a;
+        dQ.col(2).z() += faccol * pos_a.y();
+        dQ.col(2).y() += faccol * pos_a.z();
 
-        block.col(3) = -faccol * 2.5 * (aa.xx() - aa.yy()) * pos_a;
-        block.col(3).x() += faccol * pos_a.x();
-        block.col(3).y() -= faccol * pos_a.y();  // T22c-1beta (beta=x,y,z)
+        dQ.col(3) = -faccol * 2.5 * (aa.xx() - aa.yy()) * pos_a;
+        dQ.col(3).x() += faccol * pos_a.x();
+        dQ.col(3).y() -= faccol * pos_a.y();  // T22c-1beta (beta=x,y,z)
 
-        block.col(4) = -faccol * 5 * aa.xy() * pos_a;
-        block.col(4).y() += faccol * pos_a.x();
-        block.col(4).x() += faccol * pos_a.y();  // T22s-1beta (beta=x,y,z)
+        dQ.col(4) = -faccol * 5 * aa.xy() * pos_a;
+        dQ.col(4).y() += faccol * pos_a.x();
+        dQ.col(4).x() += faccol * pos_a.y();  // T22s-1beta (beta=x,y,z)
 
         if (N > 4) {
-          interaction.block(4, 1, 5, 3) = block.transpose();
+          interaction.block(4, 1, 5, 3) = dQ.transpose();
         }
         if (M > 4) {
-          interaction.block(1, 4, 3, 5) = -block;
+          interaction.block(1, 4, 3, 5) = -dQ;
         }
       }
 
       if (N > 4 && M > 4) {
         const double fac5 = std::pow(fac1, 5);
         // Quadrupole-Quadrupole Interaction
-        Eigen::Matrix<double, 5, 5> block;
-        block(0, 0) =
+        Eigen::Matrix<double, 5, 5> QQ;
+        QQ(0, 0) =
             fac5 * (3. / 4.) * ((35 * aa.zz() - 30) * aa.zz() + 3);  // T20,20
-        block(1, 0) =
+        QQ(1, 0) =
             0.5 * fac5 * sqr3 * aa.xz() * (35 * aa.zz() - 15);  // T20,21c
-        block(2, 0) =
+        QQ(2, 0) =
             0.5 * fac5 * sqr3 * aa.yz() * (35 * aa.zz() - 15);  // T20,21s
-        block(3, 0) = 0.25 * fac5 * sqr3 * 5 *
-                      (7 * (aa.yz() - aa.xz()) - aa.xx() + aa.yy());  // T20,22c
-        block(4, 0) =
+        QQ(3, 0) = 0.25 * fac5 * sqr3 * 5 *
+                   (7 * (aa.yz() - aa.xz()) - aa.xx() + aa.yy());  // T20,22c
+        QQ(4, 0) =
             0.5 * fac5 * sqr3 * 5 * aa.xy() * (7 * aa.zz() - 1);  // T20,22s
-        block(1, 1) = fac5 * (35 * aa.xz() * aa.xz() - 5 * (aa.xx() + aa.zz()) +
-                              1);                                    // T21c,21c
-        block(2, 1) = fac5 * 5 * (7 * aa.xz() * aa.yz() - aa.xy());  // T21c,21s
-        block(3, 1) =
+        QQ(1, 1) = fac5 * (35 * aa.xz() * aa.xz() - 5 * (aa.xx() + aa.zz()) +
+                           1);                                    // T21c,21c
+        QQ(2, 1) = fac5 * 5 * (7 * aa.xz() * aa.yz() - aa.xy());  // T21c,21s
+        QQ(3, 1) =
             0.5 * fac5 *
-            (35 * aa.xz() * (aa.xx() - aa.yy()) - 10 * aa.xx());     // T21c,22c
-        block(4, 1) = fac5 * 7 * (5 * aa.xz() * aa.xy() - aa.yz());  // T21c,22s
-        block(2, 2) = fac5 * (35 * aa.yz() * aa.yz() - 5 * (aa.yy() + aa.zz()) +
-                              1);  // T21s,21s
-        block(3, 2) =
-            0.5 * fac5 * 35 * aa.yz() * (aa.xx() - aa.yy() + 10);    // T21s,22c
-        block(4, 2) = fac5 * 5 * (7 * aa.yz() * aa.xy() - aa.xz());  // T21s,22s
-        block(3, 3) = 0.25 * fac5 *
-                      (35 * std::pow(aa.xx() - aa.yy(), 2) - 40 * aa.xx() +
-                       4);  // T22c,22c
-        block(4, 3) = 0.5 * fac5 * 35 *
-                      (aa.xy() * aa.xx() - aa.yz() * aa.yy());  // T22c,22s
-        block(4, 4) =
+            (35 * aa.xz() * (aa.xx() - aa.yy()) - 10 * aa.xx());  // T21c,22c
+        QQ(4, 1) = fac5 * 7 * (5 * aa.xz() * aa.xy() - aa.yz());  // T21c,22s
+        QQ(2, 2) = fac5 * (35 * aa.yz() * aa.yz() - 5 * (aa.yy() + aa.zz()) +
+                           1);  // T21s,21s
+        QQ(3, 2) =
+            0.5 * fac5 * 35 * aa.yz() * (aa.xx() - aa.yy() + 10);  // T21s,22c
+        QQ(4, 2) = fac5 * 5 * (7 * aa.yz() * aa.xy() - aa.xz());   // T21s,22s
+        QQ(3, 3) = 0.25 * fac5 *
+                   (35 * std::pow(aa.xx() - aa.yy(), 2) - 40 * aa.xx() +
+                    4);  // T22c,22c
+        QQ(4, 3) = 0.5 * fac5 * 35 *
+                   (aa.xy() * aa.xx() - aa.yz() * aa.yy());  // T22c,22s
+        QQ(4, 4) =
             0.5 * fac5 *
             (35 * aa.xy() * aa.xy() - 5 * (aa.xx() + aa.yy()) + 1);  // T22s,22s
 
-        block.triangularView<Eigen::StrictlyUpper>() =
-            block.triangularView<Eigen::StrictlyLower>().transpose();
-        interaction.block(4, 4, 5, 5) = block;
+        QQ.triangularView<Eigen::StrictlyUpper>() =
+            QQ.triangularView<Eigen::StrictlyLower>().transpose();
+        interaction.block(4, 4, 5, 5) = QQ;
       }
     }
   }
