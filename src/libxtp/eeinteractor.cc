@@ -99,7 +99,7 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
         dQ.col(3).x() += afac.x();
         dQ.col(3).y() -= afac.y();  // T22c-1beta (beta=x,y,z)
 
-        dQ.col(4) = -5 * r.xy() * a;
+        dQ.col(4) = -5 * r.xy() * afac;
         dQ.col(4).y() += afac.x();
         dQ.col(4).x() += afac.y();  // T22s-1beta (beta=x,y,z)
 

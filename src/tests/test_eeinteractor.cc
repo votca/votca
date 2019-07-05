@@ -289,6 +289,104 @@ BOOST_AUTO_TEST_CASE(static_case_quadrupoles_dipoles_orientation) {
   BOOST_CHECK_CLOSE(energy_field, energy_field_rev, 1e-12);
 }
 
+BOOST_AUTO_TEST_CASE(static_case_full_tensor_1) {
+  eeInteractor interactor;
+  Eigen::Matrix<double, 9, 9> result;
+  for (int i = 0; i < 9; i++) {
+    Vector9d mpoles1 = Vector9d::Zero();
+    mpoles1(i) = 1.0;
+    StaticSegment seg1("one", 1);
+    StaticSite one(1, "H");
+    one.setPos(Eigen::Vector3d::Zero());
+    one.setMultipole(mpoles1, 2);
+    seg1.push_back(one);
+    for (int j = 0; j < 9; j++) {
+      Vector9d mpoles2 = Vector9d::Zero();
+      mpoles2(j) = 1.0;
+      StaticSegment seg2("two", 2);
+      StaticSite two(2, "H");
+      two.setPos(3 * Eigen::Vector3d::Ones());
+      two.setMultipole(mpoles2, 2);
+      seg2.push_back(two);
+      result(i, j) = interactor.CalcStaticEnergy(seg1, seg2);
+    }
+  }
+
+  Eigen::Matrix<double, 9, 9> ref = Eigen::Matrix<double, 9, 9>::Zero();
+  ref << 0.19245, -0.0213833, -0.0213833, -0.0213833, 0, 0.00411523, 0.00411523,
+      0, 0.00411523, 0.0213833, 8.67362e-19, -0.00712778, -0.00712778,
+      0.000791976, 0.000914495, 0.00228624, -0.00137174, 0.000914495, 0.0213833,
+      -0.00712778, 8.67362e-19, -0.00712778, 0.000791976, 0.00228624,
+      0.000914495, 0.00137174, 0.000914495, 0.0213833, -0.00712778, -0.00712778,
+      8.67362e-19, -0.00158395, 0.000914495, 0.000914495, 0, 0.00228624, 0,
+      -0.000791976, -0.000791976, 0.00158395, -0.000615981, -0.000254026,
+      -0.000254026, 0, 0.000508053, 0.00411523, -0.000914495, -0.00228624,
+      -0.000914495, -0.000254026, 0.000410654, 0.000586649, -0.000439986,
+      0.000586649, 0.00411523, -0.00228624, -0.000914495, -0.000914495,
+      -0.000254026, 0.000586649, 0.000410654, 0.000439986, 0.000586649, 0,
+      0.00137174, -0.00137174, 0, 0, -0.000439986, 0.000439986, -0.000615981, 0,
+      0.00411523, -0.000914495, -0.000914495, -0.00228624, 0.000508053,
+      0.000586649, 0.000586649, 0, 0.000410654;
+
+  bool tensor_check = result.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(tensor_check, true);
+  if (!tensor_check) {
+    std::cout << "result" << std::endl;
+    std::cout << result << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << ref << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(static_case_full_tensor_2) {
+  eeInteractor interactor;
+  Eigen::Matrix<double, 9, 9> result;
+  for (int i = 0; i < 9; i++) {
+    Vector9d mpoles1 = Vector9d::Zero();
+    mpoles1(i) = 1.0;
+    StaticSegment seg1("one", 1);
+    StaticSite one(1, "H");
+    one.setPos(Eigen::Vector3d::Zero());
+    one.setMultipole(mpoles1, 2);
+    seg1.push_back(one);
+    for (int j = 0; j < 9; j++) {
+      Vector9d mpoles2 = Vector9d::Zero();
+      mpoles2(j) = 1.0;
+      StaticSegment seg2("two", 2);
+      StaticSite two(2, "H");
+      two.setPos(-2.1 * Eigen::Vector3d::Ones() + Eigen::Vector3d::UnitX());
+      two.setMultipole(mpoles2, 2);
+      seg2.push_back(two);
+      result(i, j) = interactor.CalcStaticEnergy(seg1, seg2);
+    }
+  }
+
+  Eigen::Matrix<double, 9, 9> ref = Eigen::Matrix<double, 9, 9>::Zero();
+  ref << 0.315754, 0.0346291, 0.0661101, 0.0661101, 0.0050219, 0.012558,
+      0.0239744, -0.00869818, 0.012558, -0.0346291, 0.0200876, -0.0217511,
+      -0.0217511, -0.00620633, 0.00453012, -0.0131465, 0.0107497, 0.00453012,
+      -0.0661101, -0.0217511, -0.0100438, -0.0415248, -0.0118485, -0.0131465,
+      -0.0136814, -0.00231059, -0.00716646, -0.0661101, -0.0217511, -0.0415248,
+      -0.0100438, 0.00792526, -0.00716646, -0.0136814, 0.00910577, -0.0131465,
+      0.0050219, 0.00620633, 0.0118485, -0.00792526, -0.00806073, 0.000243418,
+      0.000464707, -0.00450468, 0.00650363, 0.012558, -0.00453012, 0.0131465,
+      0.00716646, 0.000243418, 0.000172264, 0.00750975, -0.00765029, 0.0143368,
+      0.0239744, 0.0131465, 0.0136814, 0.0136814, 0.000464707, 0.00750975,
+      0.0105754, -0.000804897, 0.00750975, -0.00869818, -0.0107497, 0.00231059,
+      -0.00910577, -0.00450468, -0.00765029, -0.000804897, -0.00285918,
+      -0.00403595, 0.012558, -0.00453012, 0.00716646, 0.0131465, 0.00650363,
+      0.0143368, 0.00750975, -0.00403595, 0.000172264;
+
+  bool tensor_check = result.isApprox(ref, 1e-5);
+  BOOST_CHECK_EQUAL(tensor_check, true);
+  if (!tensor_check) {
+    std::cout << "result" << std::endl;
+    std::cout << result << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << ref << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_CASE(polar_case_monopole) {
 
   Vector9d mpoles1;
