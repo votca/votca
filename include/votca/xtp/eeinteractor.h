@@ -87,6 +87,24 @@ class eeInteractor {
   double CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
 
  private:
+  class AxA {
+   public:
+    AxA(const Eigen::Vector3d& a) {
+      _data.segment<3>(0) = a.x() * a;
+      _data.segment<2>(3) = a.y() * a.segment<2>(1);
+      _data[5] = a.z() * a.z();
+    }
+    double xx() const { return _data[0]; }
+    double xy() const { return _data[1]; }
+    double xz() const { return _data[2]; }
+    double yy() const { return _data[3]; }
+    double yz() const { return _data[4]; }
+    double zz() const { return _data[5]; }
+
+   private:
+    Eigen::Matrix<double, 6, 1> _data;
+  };
+
   template <int N, int M>
   Eigen::Matrix<double, N, M> FillInteraction(const StaticSite& site1,
                                               const StaticSite& site2) const;

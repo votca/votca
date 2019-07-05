@@ -98,7 +98,6 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   double eVnm_2_hrtbohr = tools::conv::ev2hrt / tools::conv::nm2bohr;
   double fieldstrength = (0.1 * eVnm_2_hrtbohr);
   Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
-  Eigen::Vector3d zero = Polarize(input, Eigen::Vector3d::Zero());
   Eigen::Vector3d ext_field = fieldstrength * Eigen::Vector3d::UnitX();
   // central differences scheme
   Eigen::Vector3d xplus = Polarize(input, ext_field);
