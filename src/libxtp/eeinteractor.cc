@@ -33,11 +33,7 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
   const Eigen::Vector3d r_AB =
       posB - posA;               // Vector of the distance between polar sites
   const double R = r_AB.norm();  // Norm of distance vector
-  const Eigen::Vector3d pos_a =
-      r_AB /
-      R;  // unit vector on the sites reciprocal direction; This points toward A
-  const Eigen::Vector3d pos_b = -pos_a;  // unit vector on the sites reciprocal
-                                         // direction; This points toward B
+  const Eigen::Vector3d pos_a = r_AB / R;  // unit vector pointing from A to B
 
   const double fac1 = 1.0 / R;
   interaction(0, 0) = fac1;
@@ -69,7 +65,7 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
       // Quadrupole-Charge interaction
       Eigen::Matrix<double, 1, 5> block;
       block(0) = fac3 * 0.5 * (3 * aa.zz() - 1);           // T20,00
-      block(1) = fac3 * sqr3 * aa.xz();                    // 21c,00
+      block(1) = fac3 * sqr3 * aa.xz();                    // T21c,00
       block(2) = fac3 * sqr3 * aa.yz();                    // T21s,000
       block(3) = fac3 * 0.5 * sqr3 * (aa.xx() - aa.yy());  // T22c,00
       block(4) = fac3 * sqr3 * aa.xy();                    // T22s,00
@@ -86,23 +82,23 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
 
         Eigen::Matrix<double, 3, 5> block;
         // Quadrupole-Dipole Interaction
-        block.col(0) = 0.5 * fac4 * (15 * aa.zz() - 3) * pos_b;
+        block.col(0) = -0.5 * fac4 * (15 * aa.zz() - 3) * pos_a;
         block.col(0).z() += 3 * fac4 * pos_a.z();  // T20-1beta (beta=x,y,z)
 
         double faccol = fac4 * sqr3;
-        block.col(1) = faccol * 5 * aa.xz() * pos_b;
+        block.col(1) = -faccol * 5 * aa.xz() * pos_a;
         block.col(1).z() += faccol * pos_a.x();
         block.col(1).x() += faccol * pos_a.z();  // T21c-1beta (beta=x,y,z)
 
-        block.col(2) = faccol * 5 * aa.yz() * pos_b;
+        block.col(2) = -faccol * 5 * aa.yz() * pos_a;
         block.col(2).z() += faccol * pos_a.y();
         block.col(2).y() += faccol * pos_a.z();
 
-        block.col(3) = faccol * 2.5 * (aa.xx() - aa.yy()) * pos_b;
+        block.col(3) = -faccol * 2.5 * (aa.xx() - aa.yy()) * pos_a;
         block.col(3).x() += faccol * pos_a.x();
         block.col(3).y() -= faccol * pos_a.y();  // T22c-1beta (beta=x,y,z)
 
-        block.col(4) = faccol * 5 * aa.xy() * pos_b;
+        block.col(4) = -faccol * 5 * aa.xy() * pos_a;
         block.col(4).y() += faccol * pos_a.x();
         block.col(4).x() += faccol * pos_a.y();  // T22s-1beta (beta=x,y,z)
 
