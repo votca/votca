@@ -29,32 +29,30 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
   const Eigen::Vector3d& posB = site2.getPos();
   const Eigen::Vector3d& posA = site1.getPos();
 
-  Eigen::Matrix<double, N, M> interaction = Eigen::Matrix<double, N, M>::Zero();
-  const Eigen::Vector3d r_AB =
-      posB - posA;               // Vector of the distance between polar sites
-  const double R = r_AB.norm();  // Norm of distance vector
-  const Eigen::Vector3d pos_a = r_AB / R;  // unit vector pointing from A to B
-
+  Eigen::Vector3d a =
+      posB - posA;  // Vector of the distance between polar sites
+  const double R = a.norm();
   const double fac1 = 1.0 / R;
+  a *= fac1;  // unit vector pointing from A to B
+  Eigen::Matrix<double, N, M> interaction;
   interaction(0, 0) = fac1;
   if (N > 1 || M > 1) {
     const double fac2 = std::pow(fac1, 2);
 
     // Dipole-Charge Interaction
     if (N > 1) {
-      interaction.block(1, 0, 3, 1) =
-          fac2 * pos_a;  // T_1alpha,00 (alpha=x,y,z)
+      interaction.block(1, 0, 3, 1) = fac2 * a;  // T_1alpha,00 (alpha=x,y,z)
     }
     // Charge-Dipole Interaction
     if (M > 1) {
       interaction.block(0, 1, 1, 3) =
-          -fac2 * pos_a.transpose();  // T_00,1alpha (alpha=x,y,z)
+          -fac2 * a.transpose();  // T_00,1alpha (alpha=x,y,z)
     }
 
     const double fac3 = std::pow(fac1, 3);
     if (N > 1 && M > 1) {
       // Dipole-Dipole Interaction
-      Eigen::Matrix3d dd = -3 * fac3 * pos_a * pos_a.transpose();
+      Eigen::Matrix3d dd = -3 * fac3 * a * a.transpose();
       dd.diagonal().array() += fac3;
       interaction.block(1, 1, 3, 3) = dd;
       // T_1alpha,1beta // (alpha,beta=x,y,z)
@@ -62,46 +60,50 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
 
     const double sqr3 = std::sqrt(3);
     if (N > 4 || M > 4) {
-      const AxA aa(pos_a);
-      // Quadrupole-Charge interaction
-      Eigen::Matrix<double, 1, 5> Qq;
-      Qq(0) = fac3 * 0.5 * (3 * aa.zz() - 1);           // T20,00
-      Qq(1) = fac3 * sqr3 * aa.xz();                    // T21c,00
-      Qq(2) = fac3 * sqr3 * aa.yz();                    // T21s,000
-      Qq(3) = fac3 * 0.5 * sqr3 * (aa.xx() - aa.yy());  // T22c,00
-      Qq(4) = fac3 * sqr3 * aa.xy();                    // T22s,00
-      if (N > 4) {
-        interaction.block(4, 0, 5, 1) = Qq.transpose();
+      const AxA r(a);
+      {
+        // Quadrupole-Charge interaction
+        Eigen::Matrix<double, 1, 5> Qq;
+        Qq(0) = fac3 * (1.5 * r.zz() - 0.5);  // T20,00
+        Qq(1) = r.xz();                       // T21c,00
+        Qq(2) = r.yz();                       // T21s,000
+        Qq(3) = 0.5 * (r.xx() - r.yy());      // T22c,00
+        Qq(4) = r.xy();                       // T22s,00
+        Qq.tail<4>() *= (fac3 * sqr3);
+        if (N > 4) {
+          interaction.block(4, 0, 5, 1) = Qq.transpose();
+        }
+        if (M > 4) {
+          interaction.block(0, 4, 1, 5) = Qq;
+        }
       }
-      if (M > 4) {
-        interaction.block(0, 4, 1, 5) = Qq;
-      }
-
       if (N > 1 && M > 1) {
 
-        const double fac4 = std::pow(fac1, 4);
-
         Eigen::Matrix<double, 3, 5> dQ;
+        const double fac4 = std::pow(fac1, 4);
         // Quadrupole-Dipole Interaction
-        dQ.col(0) = -0.5 * fac4 * (15 * aa.zz() - 3) * pos_a;
-        dQ.col(0).z() += 3 * fac4 * pos_a.z();  // T20-1beta (beta=x,y,z)
+        const Eigen::Vector3d afac = a * fac4;
 
-        double faccol = fac4 * sqr3;
-        dQ.col(1) = -faccol * 5 * aa.xz() * pos_a;
-        dQ.col(1).z() += faccol * pos_a.x();
-        dQ.col(1).x() += faccol * pos_a.z();  // T21c-1beta (beta=x,y,z)
+        dQ.col(0) = (1.5 - 7.5 * r.zz()) * afac;
+        dQ.col(0).z() += 3 * afac.z();  // T20-1beta (beta=x,y,z)
 
-        dQ.col(2) = -faccol * 5 * aa.yz() * pos_a;
-        dQ.col(2).z() += faccol * pos_a.y();
-        dQ.col(2).y() += faccol * pos_a.z();
+        dQ.col(1) = -5 * r.xz() * afac;
+        dQ.col(1).z() += afac.x();
+        dQ.col(1).x() += afac.z();  // T21c-1beta (beta=x,y,z)
 
-        dQ.col(3) = -faccol * 2.5 * (aa.xx() - aa.yy()) * pos_a;
-        dQ.col(3).x() += faccol * pos_a.x();
-        dQ.col(3).y() -= faccol * pos_a.y();  // T22c-1beta (beta=x,y,z)
+        dQ.col(2) = -5 * r.yz() * afac;
+        dQ.col(2).z() += afac.y();
+        dQ.col(2).y() += afac.z();
 
-        dQ.col(4) = -faccol * 5 * aa.xy() * pos_a;
-        dQ.col(4).y() += faccol * pos_a.x();
-        dQ.col(4).x() += faccol * pos_a.y();  // T22s-1beta (beta=x,y,z)
+        dQ.col(3) = -2.5 * (r.xx() - r.yy()) * afac;
+        dQ.col(3).x() += afac.x();
+        dQ.col(3).y() -= afac.y();  // T22c-1beta (beta=x,y,z)
+
+        dQ.col(4) = -5 * r.xy() * a;
+        dQ.col(4).y() += afac.x();
+        dQ.col(4).x() += afac.y();  // T22s-1beta (beta=x,y,z)
+
+        dQ.rightCols<4>() *= sqr3;
 
         if (N > 4) {
           interaction.block(4, 1, 5, 3) = dQ.transpose();
@@ -112,42 +114,36 @@ Eigen::Matrix<double, N, M> eeInteractor::FillInteraction(
       }
 
       if (N > 4 && M > 4) {
-        const double fac5 = std::pow(fac1, 5);
+
         // Quadrupole-Quadrupole Interaction
         Eigen::Matrix<double, 5, 5> QQ;
-        QQ(0, 0) =
-            fac5 * (3. / 4.) * ((35 * aa.zz() - 30) * aa.zz() + 3);  // T20,20
-        QQ(1, 0) =
-            0.5 * fac5 * sqr3 * aa.xz() * (35 * aa.zz() - 15);  // T20,21c
-        QQ(2, 0) =
-            0.5 * fac5 * sqr3 * aa.yz() * (35 * aa.zz() - 15);  // T20,21s
-        QQ(3, 0) = 0.25 * fac5 * sqr3 * 5 *
-                   (7 * (aa.yz() - aa.xz()) - aa.xx() + aa.yy());  // T20,22c
-        QQ(4, 0) =
-            0.5 * fac5 * sqr3 * 5 * aa.xy() * (7 * aa.zz() - 1);  // T20,22s
-        QQ(1, 1) = fac5 * (35 * aa.xz() * aa.xz() - 5 * (aa.xx() + aa.zz()) +
-                           1);                                    // T21c,21c
-        QQ(2, 1) = fac5 * 5 * (7 * aa.xz() * aa.yz() - aa.xy());  // T21c,21s
-        QQ(3, 1) =
-            0.5 * fac5 *
-            (35 * aa.xz() * (aa.xx() - aa.yy()) - 10 * aa.xx());  // T21c,22c
-        QQ(4, 1) = fac5 * 7 * (5 * aa.xz() * aa.xy() - aa.yz());  // T21c,22s
-        QQ(2, 2) = fac5 * (35 * aa.yz() * aa.yz() - 5 * (aa.yy() + aa.zz()) +
-                           1);  // T21s,21s
-        QQ(3, 2) =
-            0.5 * fac5 * 35 * aa.yz() * (aa.xx() - aa.yy() + 10);  // T21s,22c
-        QQ(4, 2) = fac5 * 5 * (7 * aa.yz() * aa.xy() - aa.xz());   // T21s,22s
-        QQ(3, 3) = 0.25 * fac5 *
-                   (35 * std::pow(aa.xx() - aa.yy(), 2) - 40 * aa.xx() +
-                    4);  // T22c,22c
-        QQ(4, 3) = 0.5 * fac5 * 35 *
-                   (aa.xy() * aa.xx() - aa.yz() * aa.yy());  // T22c,22s
-        QQ(4, 4) =
-            0.5 * fac5 *
-            (35 * aa.xy() * aa.xy() - 5 * (aa.xx() + aa.yy()) + 1);  // T22s,22s
+        QQ(0, 0) = 0.75 * ((35 * r.zz() - 30) * r.zz() + 3);  // T20,20
+        double temp = 0.5 * sqr3 * (35 * r.zz() - 15);
+        QQ(1, 0) = temp * r.xz();  // T20,21c
+        QQ(2, 0) = temp * r.yz();  // T20,21s
 
+        temp = 5 * (7 * r.zz() - 1);
+        QQ(3, 0) = sqr3 * 0.25 * temp * (r.xx() - r.yy());  // T20,22c
+        QQ(4, 0) = sqr3 * 0.5 * temp * r.xy();              // T20,22s
+        QQ(1, 1) =
+            35 * r.zz() * r.xx() - 5 * (r.xx() + r.zz()) + 1;     // T21c,21c
+        QQ(2, 1) = r.xy() * temp;                                 // T21c,21s
+        QQ(3, 1) = 0.5 * r.xz() * (35 * (r.xx() - r.yy()) - 10);  // T21c,22c
+        QQ(4, 1) = r.yz() * temp;                                 // T21c,22s
+        QQ(2, 2) =
+            5 * (7 * r.yy() * r.zz() - (r.yy() + r.zz())) + 1;    // T21s,21s
+        QQ(3, 2) = 0.5 * r.yz() * (35 * (r.xx() - r.yy()) + 10);  // T21s,22c
+        QQ(4, 2) = r.xz() * temp;                                 // T21s,22s
+        QQ(3, 3) = 8.75 * std::pow(r.xx() - r.yy(), 2) - 5 * (r.xx() + r.yy()) +
+                   1;                                  // T22c,22c
+        QQ(4, 3) = 17.5 * r.xy() * (r.xx() - r.yy());  // T22c,22s
+        QQ(4, 4) =
+            5 * (7 * r.xx() * r.yy() - (r.xx() + r.yy())) + 1;  // T22s,22s
+        const double fac5 = std::pow(fac1, 5);
+        QQ.triangularView<Eigen::Lower>() *= fac5;
         QQ.triangularView<Eigen::StrictlyUpper>() =
             QQ.triangularView<Eigen::StrictlyLower>().transpose();
+
         interaction.block(4, 4, 5, 5) = QQ;
       }
     }
@@ -160,25 +156,24 @@ Eigen::Matrix3d eeInteractor::FillTholeInteraction(
 
   const Eigen::Vector3d& posB = site2.getPos();
   const Eigen::Vector3d& posA = site1.getPos();
-  const Eigen::Vector3d r_AB =
-      posB - posA;               // Vector of the distance between polar sites
-  const double R = r_AB.norm();  // Norm of distance vector
-  const Eigen::Vector3d pos_a =
-      r_AB /
-      R;  // unit vector on the sites reciprocal direction; This points toward A
-  const double fac2 = std::pow(R, -3);
+  Eigen::Vector3d a =
+      posB - posA;            // Vector of the distance between polar sites
+  const double R = a.norm();  // Norm of distance vector
+  const double fac1 = 1 / R;
+  a *= fac1;  // unit vector pointing from A to B
+
+  double lambda3 = std::pow(fac1, 3);
+  double lambda5 = lambda3;
   const double au3 =
       _expdamping /
-      (fac2 * std::sqrt(site1.getEigenDamp() *
-                        site2.getEigenDamp()));  // dimensionless eigendamp is
-  double lambda3 = fac2;
-  double lambda5 = fac2;
+      (lambda3 * std::sqrt(site1.getEigenDamp() *
+                           site2.getEigenDamp()));  // au3 is dimensionless
   if (au3 < 40) {
     const double exp_ua = std::exp(-au3);
-    lambda3 *= 1 - exp_ua;
-    lambda5 *= 1 - (1 + au3) * exp_ua;
+    lambda3 *= (1 - exp_ua);
+    lambda5 *= (1 - (1 + au3) * exp_ua);
   }
-  Eigen::Matrix3d result = -3 * lambda5 * pos_a * pos_a.transpose();
+  Eigen::Matrix3d result = -3 * lambda5 * a * a.transpose();
   result.diagonal().array() += lambda3;
   return result;  // T_1alpha,1beta (alpha,beta=x,y,z)
 }
