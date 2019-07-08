@@ -55,7 +55,7 @@ class PolarSite : public StaticSite {
   // MULTIPOLES DEFINITION
   Eigen::Vector3d getDipole() const override;
 
-  double getEigenDamp() const { return _eigendamp; }
+  double getSqrtInvEigenDamp() const { return _eigendamp_invsqrt; }
 
   void Rotate(const Eigen::Matrix3d& R,
               const Eigen::Vector3d& ref_pos) override {
@@ -157,7 +157,7 @@ class PolarSite : public StaticSite {
 
   Eigen::Vector3d _induced_dipole = Eigen::Vector3d::Zero();
   Eigen::Matrix3d _pinv = Eigen::Matrix3d::Zero();
-  double _eigendamp = 0.0;
+  double _eigendamp_invsqrt = 0.0;
 };
 
 }  // namespace xtp

@@ -121,12 +121,13 @@ class DipoleDipoleInteraction
     const PolarSite& site1 = *_sites[i];
     const int segment_size = _sites.size();
     for (int j = 0; j < segment_size; j++) {
+      const Eigen::Vector3d v_small = v.segment<3>(3 * j);
+
       if (i == j) {
-        result += site1.getPInv() * v.segment<3>(3 * j);
+        result += site1.getPInv() * v_small;
       } else {
         const PolarSite& site2 = *_sites[j];
-        result += _interactor.FillTholeInteraction(site1, site2) *
-                  v.segment<3>(3 * j);
+        result += _interactor.VThole(site1, site2, v_small);
       }
     }
     return result;

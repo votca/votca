@@ -42,6 +42,9 @@ class eeInteractor {
   Eigen::Matrix3d FillTholeInteraction(const PolarSite& site1,
                                        const PolarSite& site2) const;
 
+  Eigen::Vector3d VThole(const PolarSite& site1, const PolarSite& site2,
+                         const Eigen::Vector3d& dQ) const;
+
   Eigen::VectorXd Cholesky_IntraSegment(const PolarSegment& seg) const;
 
   template <class T, enum Estatic>
@@ -94,20 +97,20 @@ class eeInteractor {
       _data.segment<2>(3) = a.y() * a.segment<2>(1);
       _data[5] = a.z() * a.z();
     }
-    double xx() const { return _data[0]; }
-    double xy() const { return _data[1]; }
-    double xz() const { return _data[2]; }
-    double yy() const { return _data[3]; }
-    double yz() const { return _data[4]; }
-    double zz() const { return _data[5]; }
+    inline const double& xx() const { return _data[0]; }
+    inline const double& xy() const { return _data[1]; }
+    inline const double& xz() const { return _data[2]; }
+    inline const double& yy() const { return _data[3]; }
+    inline const double& yz() const { return _data[4]; }
+    inline const double& zz() const { return _data[5]; }
 
    private:
     Eigen::Matrix<double, 6, 1> _data;
   };
 
-  template <int N, int M>
-  Eigen::Matrix<double, N, M> FillInteraction(const StaticSite& site1,
-                                              const StaticSite& site2) const;
+  template <int N>
+  Eigen::Matrix<double, N, 1> VSiteA(const StaticSite& site1,
+                                     const StaticSite& site2) const;
   template <enum Estatic>
   double ApplyInducedField_site(const PolarSite& site1, PolarSite& site2) const;
   template <enum Estatic>
