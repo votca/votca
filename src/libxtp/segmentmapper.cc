@@ -177,10 +177,11 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
                            })
               ->first;
       if (map_atom_min_id != 0) {
-        throw std::runtime_error(_mapatom_xml["atoms"] + " for segment " +
-                                 seginfo.segname +
-                                 " do not start at zero index. Each segment "
-                                 "should have its own coordinate file");
+        throw std::runtime_error(
+            _mapatom_xml["atoms"] + " for segment " + seginfo.segname +
+            " do not start at zero index. Each segment "
+            "should have its own coordinate file. If you use an old ctp "
+            "mapping file run 'xtp_update_mapfile' on it.");
       }
 
       seginfo.minmax = CalcResidueRange(seginfo.mdatoms);
