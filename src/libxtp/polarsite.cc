@@ -54,7 +54,7 @@ void PolarSite::setPolarisation(const Eigen::Matrix3d& pol) {
   es.computeDirect(pol);
   _pinv = es.eigenvectors() * es.eigenvalues().cwiseInverse().asDiagonal() *
           es.eigenvectors().transpose();
-  _eigendamp = es.eigenvalues().maxCoeff();
+  _eigendamp_invsqrt = 1.0 / std::sqrt(es.eigenvalues().maxCoeff());
 }
 
 std::string PolarSite::writePolarisation() const {

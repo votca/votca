@@ -177,7 +177,7 @@ void IEXCITON::WriteJobFile(Topology& top) {
       string name1 = pair->Seg1()->getName();
       int id2 = pair->Seg2()->getId();
       string name2 = pair->Seg2()->getName();
-      int id = ++jobCount;
+      int id = jobCount;
       QMState state1 = GetElementFromMap(name1);
       QMState state2 = GetElementFromMap(name2);
 
@@ -203,6 +203,7 @@ void IEXCITON::WriteJobFile(Topology& top) {
 
       Job job(id, tag, Input, Job::AVAILABLE);
       job.ToStream(ofs, "xml");
+      jobCount++;
     }
   }
 
