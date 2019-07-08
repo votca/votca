@@ -80,7 +80,7 @@ typename ProgObserver<JobContainer>::Job *
     int rounded = int(double(_jobs.size()) / frac) * frac;
     int tenth = rounded / frac;
     if (idx % tenth == 0) {
-      double percent = double(idx - 1) / rounded * 100 + 0.5;
+      double percent = double(idx) / rounded * 100 + 0.5;
       std::cout << (format("=> [%1$2.0f%%] ") % percent).str() << std::flush;
     }
   }

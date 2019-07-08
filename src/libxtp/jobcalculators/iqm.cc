@@ -600,7 +600,7 @@ void IQM::WriteJobFile(Topology& top) {
     std::string name1 = pair->Seg1()->getName();
     int id2 = pair->Seg2()->getId();
     std::string name2 = pair->Seg2()->getName();
-    int id = pair->getId();
+    int id = jobCount;
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
     tools::Property& pSegmentA =
@@ -613,6 +613,7 @@ void IQM::WriteJobFile(Topology& top) {
     pSegmentB.setAttribute<int>("id", id2);
     Job job(id, tag, Input, Job::AVAILABLE);
     job.ToStream(ofs, "xml");
+    jobCount++;
   }
   // CLOSE STREAM
   ofs << "</jobs>" << std::endl;

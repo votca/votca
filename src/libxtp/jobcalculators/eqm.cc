@@ -92,7 +92,7 @@ void EQM::WriteJobFile(Topology& top) {
 
   const std::vector<Segment>& segments = top.Segments();
   for (const Segment& segment : segments) {
-    int id = ++jobCount;
+    int id = segment.getId();
     std::string tag = "";
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
@@ -102,6 +102,7 @@ void EQM::WriteJobFile(Topology& top) {
     pSegment.setAttribute<int>("id", segment.getId());
     Job job(id, tag, Input, Job::AVAILABLE);
     job.ToStream(ofs, "xml");
+    jobCount++;
   }
 
   ofs << "</jobs>" << std::endl;
