@@ -82,7 +82,7 @@ double PolarRegion::StaticInteraction() {
     }
   }
 
-  return e;
+  return e / 2.0;
 }
 
 eeInteractor::E_terms PolarRegion::PolarEnergy() const {

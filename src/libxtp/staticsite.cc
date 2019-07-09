@@ -63,7 +63,8 @@ void StaticSite::Rotate(const Eigen::Matrix3d& R,
   dir = R * dir;
   _pos = refPos + dir;  // Rotated Position
   if (_rank > 0) {
-    _Q.segment<3>(1) = R * _Q.segment<3>(1);
+    const Eigen::Vector3d temp = R * _Q.segment<3>(1);
+    _Q.segment<3>(1) = temp;
   }
   if (_rank > 1) {
     Eigen::Matrix3d cartesianquad = CalculateCartesianMultipole();
@@ -96,8 +97,8 @@ std::string StaticSite::WriteMpsLine(string unit) const {
   output += (boost::format("    %1$+1.7f\n") % getCharge()).str();
   if (_rank > 0) {
     // Dipole z x y
-    output += (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") % _Q(1) %
-               _Q(2) % _Q(3))
+    output += (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") % _Q(3) %
+               _Q(1) % _Q(2))
                   .str();
     if (_rank > 1) {
       // Quadrupole 20 21c 21s 22c 22s

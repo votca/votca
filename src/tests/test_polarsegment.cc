@@ -64,7 +64,7 @@ BOOST_AUTO_TEST_CASE(load_mps) {
   BOOST_CHECK_EQUAL(seg[1].getElement(), "H");
 
   Eigen::VectorXd mul_ref = Eigen::VectorXd::Zero(9);
-  mul_ref << 1, 10, 0, 0, 100, 0, 0, 0, 0;
+  mul_ref << 1, 0, 0, 10, 100, 0, 0, 0, 0;
   bool multipoles_equal = mul_ref.isApprox(seg[0].Q(), 1e-5);
   if (!multipoles_equal) {
     std::cout << "result" << std::endl;

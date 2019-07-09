@@ -127,6 +127,12 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
         readinmultipoles++;
       }
       if (readinmultipoles == numberofmultipoles) {
+        Eigen::Vector3d temp_dipoles = multipoles.segment<3>(1);
+        // mps format for dipoles is z x y
+        // we need x y z
+        multipoles(1) = temp_dipoles(1);
+        multipoles(2) = temp_dipoles(2);
+        multipoles(3) = temp_dipoles(0);
         this->_atomlist.back().setMultipole(multipoles, rank);
         readinmultipoles = 0;
       }

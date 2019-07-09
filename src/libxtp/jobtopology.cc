@@ -232,11 +232,10 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
               throw std::runtime_error("Region with id '" + std::to_string(id) +
                                        "' does not have");
             }
-            center.resize(
-                no_of_segs,
-                SegId(0, "n"));  // need the second argument because resize can
-                                 // also increase capacity of vector and then
-                                 // needs a constructor, should not happen here
+            center.resize(no_of_segs, SegId(0, "n"));
+            // need the second argument because resize can also increase
+            // capacity of vector and then needs a constructor,
+            // here we shrink, so should not happen
           }
         } else {
           throw std::runtime_error("Region with id '" + std::to_string(id) +
