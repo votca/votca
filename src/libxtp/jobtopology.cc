@@ -175,6 +175,7 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
     const std::vector<const tools::Property*>& regions_def,
     const Topology& top) const {
 
+  std::vector<int> explicitly_named_segs_per_region;
   std::vector<std::vector<SegId> > segids_per_region;
   std::vector<bool> processed_segments =
       std::vector<bool>(top.Segments().size(), false);
@@ -200,6 +201,8 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
         processed_segments[seg_id.Id()] = true;
       }
     }
+    explicitly_named_segs_per_region.push_back(seg_ids.size());
+
     if (region_def->exists("cutoff")) {
       double cutoff = tools::conv::nm2bohr *
                       region_def->ifExistsReturnElseThrowRuntimeError<double>(
@@ -219,8 +222,18 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
       std::vector<SegId> center = seg_ids;
       if (region_def->exists("cutoff.region")) {
         int id = region_def->get("cutoff.region").as<int>();
+        bool only_explicit = region_def->ifExistsReturnElseReturnDefault<bool>(
+            "cutoff.relative_to_explicit_segs", false);
         if (id < int(segids_per_region.size())) {
           center = segids_per_region[id];
+          if (only_explicit) {
+            int no_of_segs = explicitly_named_segs_per_region[id];
+            if (no_of_segs == 0) {
+              throw std::runtime_error("Region with id '" + std::to_string(id) +
+                                       "' does not have");
+            }
+            center.resize(no_of_segs);
+          }
         } else {
           throw std::runtime_error("Region with id '" + std::to_string(id) +
                                    "' used for cutoff does not exist");
@@ -238,7 +251,8 @@ std::vector<std::vector<SegId> > JobTopology::PartitionRegions(
               processed_segments[otherseg.getId()]) {
             continue;
           }
-          if (top.GetShortestDist(center_seg, otherseg) < cutoff) {
+          if (top.PbShortestConnect(center_seg.getPos(), otherseg.getPos())
+                  .norm() < cutoff) {
             seg_ids.push_back(SegId(otherseg.getId(), seg_geometry));
             processed_segments[otherseg.getId()] = true;
           }
