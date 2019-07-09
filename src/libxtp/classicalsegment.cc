@@ -38,7 +38,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
 
   int readinmultipoles = 0;
   int numberofmultipoles = 0;
-  Vector9d multipoles;
+  Vector9d multipoles = Vector9d::Zero();
   int rank = 0;
 
   if (!intt.is_open()) {
@@ -160,7 +160,7 @@ void ClassicalSegment<T>::WriteMPS(std::string filename,
                                    std::string header) const {
 
   std::ofstream ofs;
-  ofs.open(filename.c_str(), std::ofstream::out);
+  ofs.open(filename, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + filename);
   }

@@ -38,12 +38,15 @@ BOOST_AUTO_TEST_CASE(load_mps) {
   mpsfile << "10 0 0" << endl;
   mpsfile << "     100 0 0 0 0" << endl;
   mpsfile
-      << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "
+      << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387"
       << endl;
+  mpsfile << "  H +0 0 1 Rank 0" << endl;
+  mpsfile << "-1" << endl;
+  mpsfile << "P +1.0000000" << endl;
 
   seg.LoadFromFile("polarsite.mps");
   Eigen::Vector3d ref_pos =
-      Eigen::Vector3d(0, 0, 3 * votca::tools::conv::ang2bohr);
+      Eigen::Vector3d(0, 0, 2.845154333 * votca::tools::conv::ang2bohr);
 
   bool is_equal = seg.getPos().isApprox(ref_pos, 0.0001);
   if (!is_equal) {
@@ -54,9 +57,11 @@ BOOST_AUTO_TEST_CASE(load_mps) {
   }
 
   BOOST_CHECK_EQUAL(is_equal, true);
-
+  BOOST_CHECK_EQUAL(seg.size(), 2);
   BOOST_CHECK_EQUAL(seg[0].getRank(), 2);
   BOOST_CHECK_EQUAL(seg[0].getElement(), "C");
+  BOOST_CHECK_EQUAL(seg[1].getRank(), 0);
+  BOOST_CHECK_EQUAL(seg[1].getElement(), "H");
 
   Eigen::VectorXd mul_ref = Eigen::VectorXd::Zero(9);
   mul_ref << 1, 10, 0, 0, 100, 0, 0, 0, 0;
@@ -67,6 +72,17 @@ BOOST_AUTO_TEST_CASE(load_mps) {
     std::cout << "reference" << std::endl;
     std::cout << mul_ref << std::endl;
   }
+  BOOST_CHECK_EQUAL(multipoles_equal, true);
+  Eigen::VectorXd mul_ref2 = Eigen::VectorXd::Zero(9);
+  mul_ref2 << -1, 0, 0, 0, 0, 0, 0, 0, 0;
+  bool multipoles_equal2 = mul_ref2.isApprox(seg[1].Q(), 1e-5);
+  if (!multipoles_equal2) {
+    std::cout << "result" << std::endl;
+    std::cout << seg[1].Q() << std::endl;
+    std::cout << "reference" << std::endl;
+    std::cout << mul_ref2 << std::endl;
+  }
+  BOOST_CHECK_EQUAL(multipoles_equal2, true);
 
   std::string ref_string =
       "  C +0.0000000 +0.0000000 +3.0000000 Rank 2\n"
@@ -75,6 +91,11 @@ BOOST_AUTO_TEST_CASE(load_mps) {
       "    +100.0000000 +0.0000000 +0.0000000 +0.0000000 +0.0000000\n"
       "     P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 "
       "+1.9445387\n";
+  "  H +0.0000000 +0.0000000 +3.0000000 Rank 1\n"
+  "    -1.0000000\n"
+  "     P +1.0000000 +0.0000000 +0.0000000 +1.0000000 +0.0000000 "
+  "+1.0000000\n";
+
   bool string_equal = (ref_string == seg[0].WriteMpsLine("angstrom"));
   if (!string_equal) {
     std::string result = seg[0].WriteMpsLine("angstrom");
