@@ -238,13 +238,13 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   inp_file.open(inp_file_name_full.c_str());
   // header
   inp_file << "* xyz  " << _charge << " " << _spin << endl;
-
+  int threads = OPENMP::getMaxThreads();
   const QMMolecule& qmatoms = orbitals.QMAtoms();
   // put coordinates
   WriteCoordinates(inp_file, qmatoms);
   // add parallelization info
   inp_file << "%pal\n "
-           << "nprocs " << _threads << "\nend"
+           << "nprocs " << threads << "\nend"
            << "\n"
            << endl;
   // basis set info

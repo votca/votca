@@ -2,6 +2,8 @@
 
 <iqm help="QM calculator for pairs" section="sec:iqm">
 		<job_file>iqm.jobs</job_file>
+                <map_file>system.xml</map_file>
+                <openmp_threads>1</openmp_threads>
 		<tasks>input,dft,parse,dftcoupling,gwbse,bsecoupling</tasks>
 		<store></store>
         <gwbse_options></gwbse_options>

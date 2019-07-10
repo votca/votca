@@ -288,11 +288,12 @@ bool NWChem::WriteShellScript() {
   shell_file.open(shell_file_name_full.c_str());
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << _scratch_dir << endl;
-  if (_threads == 1) {
+  int threads = OPENMP::getMaxThreads();
+  if (threads == 1) {
     shell_file << _executable << " " << _input_file_name << " > "
                << _log_file_name << " 2> run.error" << endl;
   } else {
-    shell_file << "mpirun -np " << boost::lexical_cast<std::string>(_threads)
+    shell_file << "mpirun -np " << boost::lexical_cast<std::string>(threads)
                << " " << _executable << " " << _input_file_name << " > "
                << _log_file_name << " 2> run.error" << endl;
   }

@@ -5,7 +5,6 @@
   <scratch>temp</scratch>
   <charge>0</charge>
   <spin>1</spin>  
-  <threads>4</threads>
   <memory></memory>
   <basisset>ubecppol</basisset>
   <writebasisset>true</writebasisset>

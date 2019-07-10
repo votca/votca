@@ -36,8 +36,6 @@ void Density2Gyration::Initialize(tools::Property& options) {
       key + ".difference_to_groundstate", false);
   _gridsize = options.ifExistsReturnElseReturnDefault<string>(key + ".gridsize",
                                                               "medium");
-  _openmp_threads =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 1);
 
   // get the path to the shared folders with xml files
   char* votca_share = getenv("VOTCASHARE");
@@ -46,7 +44,6 @@ void Density2Gyration::Initialize(tools::Property& options) {
 }
 
 void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
-  OPENMP::setMaxThreads(_openmp_threads);
   XTP_LOG_SAVE(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
                                << " threads ===== " << flush;
 

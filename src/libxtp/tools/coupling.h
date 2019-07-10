@@ -79,7 +79,7 @@ void Coupling::Initialize(tools::Property &options) {
 }
 
 bool Coupling::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

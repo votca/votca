@@ -40,10 +40,7 @@ void PolarRegion::Initialize(const tools::Property& prop) {
                                                       _deltaE);
   _exp_damp =
       polar_xml.ifExistsReturnElseReturnDefault(key + ".exp_damp", _exp_damp);
-  _openmp_threads = polar_xml.ifExistsReturnElseReturnDefault<int>(
-      key + ".openmp", _openmp_threads);
 
-  OPENMP::setMaxThreads(_openmp_threads);
   return;
 }
 
@@ -86,21 +83,29 @@ double PolarRegion::StaticInteraction() {
 }
 
 eeInteractor::E_terms PolarRegion::PolarEnergy() const {
+#pragma omp declare reduction(CustomPlus              \
+                              : eeInteractor::E_terms \
+                              : omp_out += omp_in)
+
   eeInteractor eeinteractor(_exp_damp);
 
   eeInteractor::E_terms terms;
+
+#pragma omp parallel for reduction(CustomPlus : terms)
   for (int i = 0; i < size(); ++i) {
     for (int j = 0; j < i; ++j) {
       terms += eeinteractor.CalcPolarEnergy(_segments[i], _segments[j]);
     }
   }
 
-  for (const PolarSegment& seg : _segments) {
-    terms.E_indu_indu() += eeinteractor.CalcPolarEnergy_IntraSegment(seg);
+#pragma omp parallel for reduction(CustomPlus : terms)
+  for (int i = 0; i < size(); ++i) {
+    terms.E_indu_indu() +=
+        eeinteractor.CalcPolarEnergy_IntraSegment(_segments[i]);
   }
-
-  for (const PolarSegment& seg : _segments) {
-    for (const PolarSite& site : seg) {
+#pragma omp parallel for reduction(CustomPlus : terms)
+  for (int i = 0; i < size(); ++i) {
+    for (const PolarSite& site : _segments[i]) {
       terms.E_internal() += site.InternalEnergy();
     }
   }
@@ -109,8 +114,9 @@ eeInteractor::E_terms PolarRegion::PolarEnergy() const {
 
 double PolarRegion::PolarEnergy_extern() const {
   double e = 0.0;
-  for (const PolarSegment& seg : _segments) {
-    for (const PolarSite& site : seg) {
+#pragma omp parallel for reduction(+ : e)
+  for (int i = 0; i < size(); ++i) {
+    for (const PolarSite& site : _segments[i]) {
       e += site.deltaQ_V_ext();
     }
   }

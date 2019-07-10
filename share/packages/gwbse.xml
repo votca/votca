@@ -26,5 +26,4 @@
                 <davidson_maxiter>50</davidson_maxiter>
                 <domatrixfree>0</domatrixfree>
         </eigensolver>
-        <openmp>0</openmp>
 </gwbse>

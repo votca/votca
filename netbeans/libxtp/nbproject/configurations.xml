@@ -9,8 +9,6 @@
         <itemPath>../../src/libxtp/calculators/einternal.h</itemPath>
         <itemPath>../../src/libxtp/calculators/ianalyze.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/ianalyze.h</itemPath>
-        <itemPath>../../src/libxtp/calculators/jobwriter.cc</itemPath>
-        <itemPath>../../src/libxtp/calculators/jobwriter.h</itemPath>
         <itemPath>../../src/libxtp/calculators/kmclifetime.cc</itemPath>
         <itemPath>../../src/libxtp/calculators/kmclifetime.h</itemPath>
         <itemPath>../../src/libxtp/calculators/kmcmultiple.cc</itemPath>
@@ -361,9 +359,7 @@
       <itemPath>../../share/xtp/xml/gencube.xml</itemPath>
       <itemPath>../../share/xtp/xml/ianalyze.xml</itemPath>
       <itemPath>../../share/xtp/xml/iexcitoncl.xml</itemPath>
-      <itemPath>../../share/xtp/xml/iimport.xml</itemPath>
       <itemPath>../../share/xtp/xml/iqm.xml</itemPath>
-      <itemPath>../../share/xtp/xml/jobwriter.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmclifetime.xml</itemPath>
       <itemPath>../../share/xtp/xml/kmcmultiple.xml</itemPath>
       <itemPath>../../share/xtp/xml/log2mps.xml</itemPath>
@@ -375,7 +371,6 @@
       <itemPath>../../share/xtp/xml/qmmm.xml</itemPath>
       <itemPath>../../share/xtp/xml/sandbox.xml</itemPath>
       <itemPath>../../share/xtp/xml/spectrum.xml</itemPath>
-      <itemPath>../../share/xtp/xml/stateserver.xml</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -4306,11 +4301,7 @@
       </item>
       <item path="../../share/xtp/xml/iexcitoncl.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/iimport.xml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/jobwriter.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/kmclifetime.xml"
             ex="false"
@@ -4345,11 +4336,6 @@
       <item path="../../share/xtp/xml/sandbox.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/stateserver.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4448,16 +4434,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/ianalyze.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5437,11 +5413,7 @@
       </item>
       <item path="../../share/xtp/xml/iexcitoncl.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../share/xtp/xml/iimport.xml" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="../../share/xtp/xml/iqm.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/jobwriter.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/kmclifetime.xml"
             ex="false"
@@ -5476,11 +5448,6 @@
       <item path="../../share/xtp/xml/sandbox.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../share/xtp/xml/stateserver.xml"
-            ex="false"
-            tool="3"
-            flavor2="0">
       </item>
       <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
       </item>
@@ -5579,16 +5546,6 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/calculators/ianalyze.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.cc"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libxtp/calculators/jobwriter.h"
             ex="false"
             tool="3"
             flavor2="0">

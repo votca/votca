@@ -54,7 +54,7 @@ void DensityAnalysis::Initialize(tools::Property& options) {
 }
 
 bool DensityAnalysis::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

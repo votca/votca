@@ -43,9 +43,6 @@ void DFTEngine::Initialize(Property& options) {
 
   string key = "package";
 
-  _openmp_threads =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".threads", 0);
-
   _dftbasis_name =
       options.ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
 
@@ -182,8 +179,6 @@ Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
 
 bool DFTEngine::Evaluate() {
   // set the parallelization
-
-  OPENMP::setMaxThreads(_openmp_threads);
 
   Eigen::VectorXd& MOEnergies = _orbitals.MOEnergies();
   Eigen::MatrixXd& MOCoeff = _orbitals.MOCoefficients();
@@ -743,7 +738,6 @@ void DFTEngine::ConfigOrbfile() {
 }
 
 void DFTEngine::Prepare() {
-  OPENMP::setMaxThreads(_openmp_threads);
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
                             << OPENMP::getMaxThreads() << " threads" << flush;
 

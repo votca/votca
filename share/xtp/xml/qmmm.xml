@@ -2,8 +2,9 @@
     <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
         <print_regions_pdb>true</print_regions_pdb>
         <max_iterations>50</max_iterations>
+        <openmp_threads>1</openmp_threads>
+        <map_file>map.xml</map_file>
         <regions>
-            <mapfile>map.xml</mapfile>
             <region>
                 <id>0</id>
                 <type>gwbse</type>
@@ -23,6 +24,7 @@
                 <type>polar</type>
                 <options_polar>polar.xml</options_polar>
                 <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
                     <geometry>n</geometry>
                     <radius>3</radius>
                     <region>0</region>
@@ -31,7 +33,12 @@
             <region>
                 <id>3</id>
                 <type>static</type>
-                <cutoff>5</cutoff>
+                <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
+                    <geometry>n</geometry>
+                    <radius>3</radius>
+                    <region>0</region>
+                </cutoff>
             </region>
         </regions>
     </qmmm>

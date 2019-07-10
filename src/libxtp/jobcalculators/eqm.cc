@@ -37,14 +37,13 @@ void EQM::Initialize(tools::Property& options) {
   _do_dft_parse = false;
   _do_gwbse = false;
   _do_esp = false;
-
+  ParseCommonOptions(options);
   ParseOptionsXML(options);
   QMPackageFactory::RegisterAll();
 }
 
 void EQM::ParseOptionsXML(tools::Property& options) {
 
-  _maverick = (_nThreads == 1) ? true : false;
   std::string key = "options." + Identify();
   // job tasks
   std::string _tasks_string = options.get(key + ".tasks").as<std::string>();
@@ -54,10 +53,6 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
   if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
-  key = "options." + Identify();
-
-  // options for gwbse
-  key = "options." + Identify();
   std::string _gwbse_xml =
       options.get(key + ".gwbse_options").as<std::string>();
   load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
@@ -65,8 +60,8 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   // options for dft package
   std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
   load_property_from_xml(_package_options, _package_xml.c_str());
-  key = "package";
-  _package = _package_options.get(key + ".name").as<std::string>();
+  std::string dft_key = "package";
+  _package = _package_options.get(dft_key + ".name").as<std::string>();
 
   // options for esp/partialcharges
   if (_do_esp) {
@@ -129,7 +124,7 @@ void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs.close();
 }
 Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
-
+  OPENMP::setMaxThreads(_nThreads);
   Orbitals orbitals;
   Job::JobResult jres = Job::JobResult();
   tools::Property _job_input = job.getInput();

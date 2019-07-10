@@ -10,7 +10,6 @@
   <options># pop=minimal pbepbe/gen pseudo=read punch=mo nosymm test</options>
   <!--options># pop=minimal int=zindos scf=tight punch=mo nosymm pop=mk test</options-->
   <memory>1Gb</memory>
-  <threads>2</threads>
-  
+ 
   <cleanup></cleanup>
 </package>

@@ -16,7 +16,6 @@
 		<pair>0 1</pair>
 	</pairs>
 </constraints>
-	<openmp>4</openmp>
 
 </esp2multipole>
 

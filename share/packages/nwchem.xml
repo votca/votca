@@ -5,7 +5,6 @@
   <scratch>/tmp/nwchem</scratch>
   <charge>0</charge>
   <spin>1</spin>
-  <threads>1</threads>
   <memory></memory>
   <basisset>cc-pVTZ</basisset>
   <auxbasisset>aux-cc-pVTZ</auxbasisset>

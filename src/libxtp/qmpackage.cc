@@ -48,7 +48,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   _charge = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".charge");
   _spin = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".spin");
-  _threads = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".threads");
   _cleanup =
       options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
   _dpl_spacing = options.ifExistsReturnElseReturnDefault(

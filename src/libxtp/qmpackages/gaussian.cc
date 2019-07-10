@@ -294,7 +294,9 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
 void Gaussian::WriteHeader(std::ofstream& com_file) {
   if (_chk_file_name.size()) com_file << "%chk=" << _chk_file_name << endl;
   if (_memory.size()) com_file << "%mem=" << _memory << endl;
-  if (_threads > 0) com_file << "%nprocshared=" << _threads << endl;
+
+  int threads = OPENMP::getMaxThreads();
+  if (threads > 0) com_file << "%nprocshared=" << threads << endl;
   if (_options.size()) com_file << _options << endl;
 
   com_file << endl;

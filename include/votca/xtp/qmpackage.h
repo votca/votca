@@ -111,7 +111,6 @@ class QMPackage {
 
   int _charge;
   int _spin;  // 2S+1
-  int _threads;
   std::string _memory;
   std::string _options;
 

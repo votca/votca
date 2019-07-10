@@ -47,7 +47,7 @@ void Spectrum::Initialize(tools::Property& options) {
 }
 
 bool Spectrum::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

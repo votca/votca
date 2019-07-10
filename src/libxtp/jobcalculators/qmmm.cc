@@ -27,7 +27,7 @@ namespace xtp {
 void QMMM::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
-
+  ParseCommonOptions(options);
   _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".job_file");
 
@@ -39,6 +39,7 @@ void QMMM::Initialize(tools::Property& options) {
 
   if (options.exists(key + ".regions")) {
     _regions_def = options.get(key + ".regions");
+    _regions_def.add("mapfile", _mapfile);
   } else {
     throw std::runtime_error("No region definitions found in optionsfile");
   }

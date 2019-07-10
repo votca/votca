@@ -84,7 +84,7 @@ void DftGwBse::Initialize(tools::Property& options) {
 }
 
 bool DftGwBse::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   if (_reporting == "silent")
     _log.setReportLevel(logERROR);  // only output ERRORS, GEOOPT info, and
                                     // excited state info for trial geometry

@@ -428,7 +428,7 @@ void GenCube::subtractCubes() {
 }
 
 bool GenCube::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

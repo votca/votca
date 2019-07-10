@@ -88,8 +88,6 @@ class DFTEngine {
                                          const AOBasis& dftbasis) const;
   Logger* _pLog;
 
-  int _openmp_threads;
-
   // atoms
   Orbitals& _orbitals;
 

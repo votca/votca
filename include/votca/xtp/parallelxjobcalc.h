@@ -89,9 +89,31 @@ class ParallelXJobCalc : public JobCalculator {
   };
 
  protected:
+  void ParseCommonOptions(const tools::Property &options) {
+    std::cout << std::endl
+              << "... ... Initialized with " << _nThreads << " threads. "
+              << std::flush;
+
+    _maverick = (_nThreads == 1) ? true : false;
+
+    std::string key = "options." + Identify();
+    int threads = options.ifExistsReturnElseReturnDefault<int>(
+        key + ".openmp_threads", 1);
+    std::cout << std::endl
+              << "... ... Using " << threads << " openmp threads for "
+              << _nThreads << "x" << threads << "=" << _nThreads * threads
+              << " total threads." << std::flush;
+    OPENMP::setMaxThreads(threads);
+    _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".job_file");
+    _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".map_file");
+  }
+
   JobContainer _XJobs;
   tools::Mutex _coutMutex;
   tools::Mutex _logMutex;
+  std::string _mapfile = "";
   std::string _jobfile = "";
 };
 

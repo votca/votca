@@ -45,6 +45,7 @@ void IQM::Initialize(tools::Property& options) {
 
 void IQM::ParseOptionsXML(tools::Property& opt) {
 
+  ParseCommonOptions(opt);
   // parsing general ibse options
   std::string key = "options." + Identify();
   // _energy_difference = opt.get( key + ".degeneracy" ).as< double > ();
@@ -106,32 +107,27 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
   }
 
   // options for parsing data into sql file
-  key = "options." + Identify() + ".readjobfile";
-  if (opt.exists(key + ".singlet")) {
-    std::string parse_string_s = opt.get(key + ".singlet").as<std::string>();
+  std::string key_read = "options." + Identify() + ".readjobfile";
+  if (opt.exists(key_read + ".singlet")) {
+    std::string parse_string_s =
+        opt.get(key_read + ".singlet").as<std::string>();
     _singlet_levels = FillParseMaps(parse_string_s);
   }
-  if (opt.exists(key + ".triplet")) {
-    std::string parse_string_t = opt.get(key + ".triplet").as<std::string>();
+  if (opt.exists(key_read + ".triplet")) {
+    std::string parse_string_t =
+        opt.get(key_read + ".triplet").as<std::string>();
     _triplet_levels = FillParseMaps(parse_string_t);
   }
 
-  if (opt.exists(key + ".hole")) {
-    std::string parse_string_h = opt.get(key + ".hole").as<std::string>();
+  if (opt.exists(key_read + ".hole")) {
+    std::string parse_string_h = opt.get(key_read + ".hole").as<std::string>();
     _hole_levels = FillParseMaps(parse_string_h);
   }
-  if (opt.exists(key + ".electron")) {
-    std::string parse_string_e = opt.get(key + ".electron").as<std::string>();
+  if (opt.exists(key_read + ".electron")) {
+    std::string parse_string_e =
+        opt.get(key_read + ".electron").as<std::string>();
     _electron_levels = FillParseMaps(parse_string_e);
   }
-
-  // job file specification
-  key = "options." + Identify();
-
-  _jobfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".job_file");
-  _mapfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".map_file");
 
   return;
 }

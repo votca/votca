@@ -40,16 +40,8 @@ namespace xtp {
 
 void IEXCITON::Initialize(tools::Property& options) {
 
-  cout << endl
-       << "... ... Initialized with " << _nThreads << " threads. " << flush;
-
-  _maverick = (_nThreads == 1) ? true : false;
-
   string key = "options." + Identify();
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
-  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".map_file");
+  ParseCommonOptions(options);
 
   if (options.exists(key + ".states")) {
     string parse_string = options.get(key + ".states").as<string>();

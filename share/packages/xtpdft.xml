@@ -2,7 +2,6 @@
 <spin>1</spin>
 <name>xtp</name>
 <charge>0</charge>
-  <threads>0</threads>
 <convergence>
     <energy>1e-7</energy>
     <method>DIIS</method>

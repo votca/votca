@@ -86,7 +86,7 @@ void ExcitonCoupling::Initialize(tools::Property& options) {
 }
 
 bool ExcitonCoupling::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

@@ -58,7 +58,7 @@ void Partialcharges::Initialize(tools::Property& options) {
 }
 
 bool Partialcharges::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 
