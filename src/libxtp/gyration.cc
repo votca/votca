@@ -36,11 +36,6 @@ void Density2Gyration::Initialize(tools::Property& options) {
       key + ".difference_to_groundstate", false);
   _gridsize = options.ifExistsReturnElseReturnDefault<string>(key + ".gridsize",
                                                               "medium");
-
-  // get the path to the shared folders with xml files
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 }
 
 void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {

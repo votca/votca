@@ -103,6 +103,7 @@ eeInteractor::E_terms PolarRegion::PolarEnergy() const {
     terms.E_indu_indu() +=
         eeinteractor.CalcPolarEnergy_IntraSegment(_segments[i]);
   }
+
 #pragma omp parallel for reduction(CustomPlus : terms)
   for (int i = 0; i < size(); ++i) {
     for (const PolarSite& site : _segments[i]) {

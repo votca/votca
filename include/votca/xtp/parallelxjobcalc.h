@@ -73,48 +73,30 @@ class ParallelXJobCalc : public JobCalculator {
 
   class JobOperator : public QMThread {
    public:
-    JobOperator(int id, Topology *top, ParallelXJobCalc<JobContainer> *master)
-        : _top(top), _master(master) {
-      _id = id;
-    };
+    JobOperator(int id, Topology &top, ParallelXJobCalc<JobContainer> &master,
+                int openmp_threads)
+        : _top(top), _master(master), _openmp_threads(openmp_threads) {
+      setId(id);
+    }  // comes from baseclass so Id cannot be in initializer list
     ~JobOperator(){};
 
-    void InitData(Topology &top) { ; }
     void Run();
 
-   public:
-    Topology *_top;
-    ParallelXJobCalc<JobContainer> *_master;
-    Job *_job;
+   private:
+    Topology &_top;
+    ParallelXJobCalc<JobContainer> &_master;
+    int _openmp_threads = 1;
   };
 
  protected:
-  void ParseCommonOptions(const tools::Property &options) {
-    std::cout << std::endl
-              << "... ... Initialized with " << _nThreads << " threads. "
-              << std::flush;
-
-    _maverick = (_nThreads == 1) ? true : false;
-
-    std::string key = "options." + Identify();
-    int threads = options.ifExistsReturnElseReturnDefault<int>(
-        key + ".openmp_threads", 1);
-    std::cout << std::endl
-              << "... ... Using " << threads << " openmp threads for "
-              << _nThreads << "x" << threads << "=" << _nThreads * threads
-              << " total threads." << std::flush;
-    OPENMP::setMaxThreads(threads);
-    _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".job_file");
-    _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".map_file");
-  }
+  void ParseCommonOptions(const tools::Property &options);
 
   JobContainer _XJobs;
   tools::Mutex _coutMutex;
   tools::Mutex _logMutex;
   std::string _mapfile = "";
   std::string _jobfile = "";
+  int _openmp_threads = 1;
 };
 
 }  // namespace xtp

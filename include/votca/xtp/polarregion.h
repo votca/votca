@@ -122,8 +122,6 @@ class PolarRegion : public MMRegion<PolarSegment> {
   double _deltaD = 1e-5;
   int _max_iter = 100;
   double _exp_damp = 0.39;
-
-  int _openmp_threads = 1;
 };
 
 }  // namespace xtp
