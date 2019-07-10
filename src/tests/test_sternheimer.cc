@@ -24,8 +24,8 @@ BOOST_AUTO_TEST_SUITE(sternheimer_test)
 
 BOOST_AUTO_TEST_CASE(sternheimer_test_input) {
     std::cout<<"hello"<<std::endl;
-    votca::ctp::Logger log;
-    log.setReportLevel(votca::ctp::logDEBUG);
+    votca::xtp::Logger log;
+    log.setReportLevel(votca::xtp::logDEBUG);
     Orbitals orb;
     Sternheimer sterni(orb,log);
     sterni.evaluate();

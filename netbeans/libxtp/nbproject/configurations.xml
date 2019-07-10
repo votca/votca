@@ -146,7 +146,6 @@
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/stateapplication.h</itemPath>
       <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
-      <itemPath>../../include/votca/xtp/sternheimer.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaver.h</itemPath>
       <itemPath>../../include/votca/xtp/staticregion.h</itemPath>
       <itemPath>../../include/votca/xtp/staticsite.h</itemPath>
@@ -236,7 +235,6 @@
         <itemPath>../../src/libxtp/gwbse/rpa.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_base.cc</itemPath>
         <itemPath>../../src/libxtp/gwbse/sigma_ppm.cc</itemPath>
-        <itemPath>../../src/libxtp/sternheimer.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f6" displayName="NumInt" projectFiles="true">
         <itemPath>../../src/libxtp/gridbox.cc</itemPath>
@@ -332,12 +330,9 @@
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmentmapper.cc</itemPath>
       <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
-<<<<<<< HEAD
-      <itemPath>../../src/tests/test_sternheimer.cc</itemPath>
-=======
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
       <itemPath>../../src/tests/test_statefilter.cc</itemPath>
->>>>>>> electrostatics
+      <itemPath>../../src/tests/test_sternheimer.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -2977,8 +2972,6 @@
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
-<<<<<<< HEAD
-=======
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
@@ -3843,7 +3836,6 @@
     <Elem>../../../../include</Elem>
     <Elem>../../include</Elem>
     <Elem>../../../../include</Elem>
->>>>>>> electrostatics
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -3855,10 +3847,7 @@
       </toolsSet>
       <compileType>
         <ccTool>
-<<<<<<< HEAD
-=======
           <standard>11</standard>
->>>>>>> electrostatics
           <incDir>
             <pElem>../../include</pElem>
             <pElem>../../../tools/include</pElem>
@@ -3887,22 +3876,13 @@
       </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/apolarsite.h"
-=======
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/atomcontainer.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
-      </item>
-=======
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/basisset.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/bfgs-trm.h" ex="false" tool="3" flavor2="0">
@@ -3939,34 +3919,26 @@
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-=======
       <item path="../../include/votca/xtp/checkpointtable.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/checkpointwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-=======
       <item path="../../include/votca/xtp/classicalsegment.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/convergenceacc.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-=======
       <item path="../../include/votca/xtp/couplingbase.h"
             ex="false"
             tool="3"
@@ -3977,7 +3949,6 @@
             tool="3"
             flavor2="0">
       </item>
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/dftcoupling.h"
             ex="false"
             tool="3"
@@ -3990,10 +3961,6 @@
       </item>
       <item path="../../include/votca/xtp/diis.h" ex="false" tool="3" flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/eigen.h" ex="false" tool="3" flavor2="0">
-      </item>
-=======
       <item path="../../include/votca/xtp/dipoledipoleinteraction.h"
             ex="false"
             tool="3"
@@ -4011,7 +3978,6 @@
             tool="3"
             flavor2="0">
       </item>
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/esp2multipole.h"
             ex="false"
             tool="3"
@@ -4031,13 +3997,6 @@
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/fragment.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/gdma.h" ex="false" tool="3" flavor2="0">
-      </item>
-=======
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/geometry_optimization.h"
             ex="false"
             tool="3"
@@ -4056,11 +4015,6 @@
       </item>
       <item path="../../include/votca/xtp/gridbox.h" ex="false" tool="3" flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/gw.h" ex="false" tool="3" flavor2="0">
-      </item>
-=======
->>>>>>> electrostatics
       <item path="../../include/votca/xtp/gwbse.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/gwbseengine.h"
@@ -4070,203 +4024,101 @@
       </item>
       <item path="../../include/votca/xtp/gyration.h" ex="false" tool="3" flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/jobapplication.h"
-=======
       <item path="../../include/votca/xtp/huffmantree.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/jobcalculatorfactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/kmccalculator.h"
-=======
       <item path="../../include/votca/xtp/job.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/jobapplication.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/lowdin.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/molecule.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/mulliken.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/numerical_integrations.h"
-=======
       <item path="../../include/votca/xtp/jobcalculator.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmapemachine.h"
-=======
       <item path="../../include/votca/xtp/jobcalculatorfactory.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmdatabase.h"
-=======
       <item path="../../include/votca/xtp/jobtopology.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/qminterface.h"
-=======
       <item path="../../include/votca/xtp/kmccalculator.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/qmiter.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmnblist.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmpackage.h"
-=======
       <item path="../../include/votca/xtp/logger.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/md2qmengine.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/qmpackagefactory.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/qmpair.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/radial_euler_maclaurin_rule.h"
-=======
       <item path="../../include/votca/xtp/mmregion.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/multiarray.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/rpa.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/segment.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/segmenttype.h"
-=======
       <item path="../../include/votca/xtp/nbo.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/numerical_integrations.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/sigma_base.h"
-=======
       <item path="../../include/votca/xtp/optimiser_costfunction.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/sigma_ppm.h"
-=======
       <item path="../../include/votca/xtp/orbitals.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/paircalculator.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/sphere_lebedev_rule.h"
-=======
       <item path="../../include/votca/xtp/parallelxjobcalc.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/sqlapplication.h"
-=======
       <item path="../../include/votca/xtp/polarregion.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/statefilter.h"
-=======
       <item path="../../include/votca/xtp/polarsite.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/statesaversqlite.h"
-=======
       <item path="../../include/votca/xtp/populationanalysis.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/sternheimer.h"
-=======
       <item path="../../include/votca/xtp/ppm.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/progressobserver.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../include/votca/xtp/symmetric_matrix.h"
-=======
       <item path="../../include/votca/xtp/qmatom.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/qmcalculator.h"
->>>>>>> electrostatics
             ex="false"
             tool="3"
             flavor2="0">
@@ -4905,15 +4757,11 @@
             tool="1"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../src/libxtp/sternheimer.cc" ex="false" tool="1" flavor2="0">
-=======
       <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
->>>>>>> electrostatics
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
@@ -5089,16 +4937,17 @@
       </item>
       <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../src/tests/test_sternheimer.cc"
-=======
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/tests/test_statefilter.cc"
->>>>>>> electrostatics
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sternheimer.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -5491,11 +5340,6 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/xtp/staticsite.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../include/votca/xtp/sternheimer.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -6049,15 +5893,11 @@
             tool="1"
             flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../src/libxtp/sternheimer.cc" ex="false" tool="1" flavor2="0">
-=======
       <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
->>>>>>> electrostatics
       </item>
       <item path="../../src/libxtp/symmetric_matrix.cc"
             ex="false"
@@ -6233,16 +6073,17 @@
       </item>
       <item path="../../src/tests/test_sigma_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
-<<<<<<< HEAD
-      <item path="../../src/tests/test_sternheimer.cc"
-=======
       <item path="../../src/tests/test_sphere_lebedev_rule.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
       <item path="../../src/tests/test_statefilter.cc"
->>>>>>> electrostatics
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_sternheimer.cc"
             ex="false"
             tool="1"
             flavor2="0">

@@ -20,24 +20,33 @@
 
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
+
+
 
 namespace votca {
 namespace xtp {
 
 class Sternheimer{
 public:
-    Sternheimer(Orbitals& orb, ctp::Logger& log):_orb(orb),_log(log){};
+    Sternheimer(Orbitals& orb, Logger& log) : _orb(orb),_log(log){};
     void evaluate();
     
 private:
     
     Orbitals& _orb;
-    ctp::Logger& _log;
+    Logger& _log;
     
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_STERNHEIMER_H */
+
+
+#endif 
+
+
+
+
+

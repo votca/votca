@@ -24,8 +24,8 @@ namespace votca {
 namespace xtp {
 
     void Sternheimer::evaluate(){
-        CTP_LOG(ctp::logDEBUG, _log)
-        << ctp::TimeStamp() << " Sternheimer in progress" << std::flush;
+        XTP_LOG(logDEBUG, _log)
+        << TimeStamp() << " Sternheimer in progress" << std::flush;
         
   BasisSet basis;
   basis.LoadBasisSet(_orb.getDFTbasisName());
