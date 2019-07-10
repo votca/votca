@@ -43,13 +43,15 @@ class PairList {
   const_iterator end() const { return _pairs.end(); }
   pair_type *front() { return _pairs.front(); }
   pair_type *back() { return _pairs.back(); }
-  bool empty() { return _pairs.empty(); }
+  bool empty() const { return _pairs.empty(); }
 
   int size() const { return _pairs.size(); }
 
   void Cleanup();
 
   pair_type *FindPair(element_type e1, element_type e2);
+
+  const pair_type *FindPair(element_type e1, element_type e2) const;
 
   partners *FindPartners(element_type e1);
 
@@ -90,6 +92,21 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1,
 
   // typename map<element_type, pair_type *>::iterator iter2;
   typename partners::iterator iter2;
+  iter2 = iter1->second.find(e2);
+  if (iter2 == iter1->second.end()) return NULL;
+
+  return iter2->second;
+}
+
+template <typename element_type, typename pair_type>
+inline const pair_type *PairList<element_type, pair_type>::FindPair(
+    element_type e1, element_type e2) const {
+  typename std::map<element_type,
+                    std::map<element_type, pair_type *>>::const_iterator iter1;
+  iter1 = _pair_map.find(e1);
+  if (iter1 == _pair_map.end()) return NULL;
+
+  typename partners::const_iterator iter2;
   iter2 = iter1->second.find(e2);
   if (iter2 == iter1->second.end()) return NULL;
 
