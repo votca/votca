@@ -111,10 +111,6 @@ class Segment : public AtomContainer<Atom> {
   QMStateCarrierStorage<double> _U_nX_nN;
   QMStateCarrierStorage<double> _U_xN_xX;
   QMStateCarrierStorage<double> _site_eng;
-
-  // using caching for approximate size
-  mutable double _approxsize = 0.0;
-  mutable bool _has_approxsize = false;
 };
 
 }  // namespace xtp

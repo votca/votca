@@ -25,15 +25,8 @@ namespace votca {
 namespace xtp {
 
 double Segment::getApproxSize() const {
-  if (!_has_approxsize || !this->PosIsValid()) {
-    if (!PosIsValid()) {
-      this->getPos();
-    }
-    std::pair<Eigen::Vector3d, Eigen::Vector3d> minmax = CalcSpatialMinMax();
-    _approxsize = (minmax.first - minmax.second).norm();
-    _has_approxsize = true;
-  }
-  return _approxsize;
+  std::pair<Eigen::Vector3d, Eigen::Vector3d> minmax = CalcSpatialMinMax();
+  return (minmax.first - minmax.second).norm();
 }
 
 const Atom* Segment::getAtom(const MD_atom_id& id) const {

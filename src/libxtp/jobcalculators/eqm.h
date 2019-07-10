@@ -42,10 +42,10 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   std::string Identify() { return "eqm"; }
   void Initialize(tools::Property &options);
-  Job::JobResult EvalJob(Topology &top, Job &job, QMThread &thread);
+  Job::JobResult EvalJob(const Topology &top, Job &job, QMThread &thread);
 
   void CleanUp() { ; }
-  void WriteJobFile(Topology &top);
+  void WriteJobFile(const Topology &top);
   void ReadJobFile(Topology &top) { return; }
 
  private:

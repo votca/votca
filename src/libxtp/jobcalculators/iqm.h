@@ -48,8 +48,8 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   void Initialize(tools::Property& options);
   std::string Identify() { return "iqm"; }
-  Job::JobResult EvalJob(Topology& top, Job& job, QMThread& Thread);
-  void WriteJobFile(Topology& top);
+  Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& Thread);
+  void WriteJobFile(const Topology& top);
   void ReadJobFile(Topology& top);
 
  private:
@@ -60,7 +60,7 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   void SetJobToFailed(Job::JobResult& jres, Logger& pLog,
                       const std::string& errormessage);
   void WriteLoggerToFile(const std::string& logfile, Logger& logger);
-  void addLinkers(std::vector<const Segment*>& segments, Topology& top);
+  void addLinkers(std::vector<const Segment*>& segments, const Topology& top);
   bool isLinker(const std::string& name);
   void ParseOptionsXML(tools::Property& opt);
   std::map<std::string, QMState> FillParseMaps(const std::string& Mapstring);

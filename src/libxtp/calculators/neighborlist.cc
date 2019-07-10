@@ -132,7 +132,12 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   top.NBList().Cleanup();
 
   boost::progress_display progress(segs.size());
-
+  // cache approx sizes
+  std::vector<double> approxsize = std::vector<double>(segs.size(), 0.0);
+#pragma omp parallel for
+  for (unsigned i = 0; i < segs.size(); i++) {
+    approxsize[i] = segs[i]->getApproxSize();
+  }
 #pragma omp parallel for schedule(guided)
   for (unsigned i = 0; i < segs.size(); i++) {
     Segment* seg1 = segs[i];
@@ -164,7 +169,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       Eigen::Vector3d segdistance =
           top.PbShortestConnect(seg1->getPos(), seg2->getPos());
       double segdistance2 = segdistance.squaredNorm();
-      double outside = cutoff + seg1->getApproxSize() + seg2->getApproxSize();
+      double outside = cutoff + approxsize[i] + approxsize[j];
 
       if (segdistance2 < cutoff2) {
 #pragma omp critical

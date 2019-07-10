@@ -29,7 +29,7 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-bool ParallelXJobCalc<JobContainer>::EvaluateFrame(Topology &top) {
+bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
 
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;

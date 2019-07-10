@@ -151,7 +151,8 @@ std::map<std::string, QMState> IQM::FillParseMaps(
   return type2level;
 }
 
-void IQM::addLinkers(std::vector<const Segment*>& segments, Topology& top) {
+void IQM::addLinkers(std::vector<const Segment*>& segments,
+                     const Topology& top) {
   std::vector<QMState> result;
   const Segment* seg1 = segments[0];
   const Segment* seg2 = segments[1];
@@ -190,7 +191,7 @@ void IQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs.close();
 }
 
-Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
+Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
@@ -249,10 +250,10 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   std::string orb_dir =
       (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
 
-  Segment& seg_A = top.getSegment(ID_A);
-  Segment& seg_B = top.getSegment(ID_B);
-  QMNBList& nblist = top.NBList();
-  QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
+  const Segment& seg_A = top.getSegment(ID_A);
+  const Segment& seg_B = top.getSegment(ID_B);
+  const QMNBList& nblist = top.NBList();
+  const QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
 
   XTP_LOG_SAVE(logINFO, pLog)
       << TimeStamp() << " Evaluating pair " << job_ID << " [" << ID_A << ":"
@@ -289,9 +290,9 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
   } else {
     const Segment* seg1 = pair->Seg1();
-    const Segment* seg2 = pair->Seg2PbCopy();
     orbitalsAB.QMAtoms() = mapper.map(*seg1, stateA);
-    orbitalsAB.QMAtoms().AddContainer(mapper.map(*seg2, stateB));
+    Segment seg2 = pair->Seg2PbCopy();
+    orbitalsAB.QMAtoms().AddContainer(mapper.map(seg2, stateB));
   }
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
@@ -568,7 +569,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   return jres;
 }
 
-void IQM::WriteJobFile(Topology& top) {
+void IQM::WriteJobFile(const Topology& top) {
 
   std::cout << std::endl << "... ... Writing job file " << std::flush;
   std::ofstream ofs;
@@ -576,7 +577,7 @@ void IQM::WriteJobFile(Topology& top) {
   if (!ofs.is_open())
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-  QMNBList& nblist = top.NBList();
+  const QMNBList& nblist = top.NBList();
 
   int jobCount = 0;
   if (nblist.size() == 0) {
@@ -588,7 +589,7 @@ void IQM::WriteJobFile(Topology& top) {
   ofs << "<jobs>" << std::endl;
   std::string tag = "";
 
-  for (QMPair* pair : nblist) {
+  for (const QMPair* pair : nblist) {
     if (pair->getType() == QMPair::Excitoncl) {
       continue;
     }

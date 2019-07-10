@@ -45,9 +45,9 @@ class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
 
   std::string Identify() { return "iexcitoncl"; }
 
-  Job::JobResult EvalJob(Topology &top, Job &job, QMThread &Thread);
+  Job::JobResult EvalJob(const Topology &top, Job &job, QMThread &Thread);
 
-  void WriteJobFile(Topology &top);
+  void WriteJobFile(const Topology &top);
   void ReadJobFile(Topology &top);
 
  private:

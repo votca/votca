@@ -51,7 +51,7 @@ void JobApplication::Initialize(void) {
                       "  assigns jobs in blocks of this size");
   AddProgramOptions()("jobs,j",
                       propt::value<std::string>()->default_value("run"),
-                      "  task(s) to perform: input, run, import");
+                      "  task(s) to perform: write, run, read");
   AddProgramOptions()("maxjobs,m", propt::value<int>()->default_value(-1),
                       "  maximum number of jobs to process (-1 = inf)");
 }
@@ -62,9 +62,9 @@ bool JobApplication::EvaluateOptions(void) {
   CheckRequired("file", "Please provide the state file");
 
   std::string jobstr = _op_vm["jobs"].as<std::string>();
-  _generate_input = jobstr.find("write") != std::string::npos;
-  _run = jobstr.find("run") != std::string::npos;
-  _import = jobstr.find("read") != std::string::npos;
+  _generate_input = (jobstr == "write");
+  _run = (jobstr == "run");
+  _import = (jobstr == "read");
 
   return true;
 }
@@ -131,8 +131,8 @@ void JobApplication::AddCalculator(JobCalculator* calculator) {
   _calculators.push_back(std::unique_ptr<JobCalculator>(calculator));
 }
 
-void JobApplication::BeginEvaluate(
-    int nThreads = 1, ProgObserver<std::vector<Job>>* obs = nullptr) {
+void JobApplication::BeginEvaluate(int nThreads,
+                                   ProgObserver<std::vector<Job>>* obs) {
 
   for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
     std::cout << "... " << calculator->Identify() << " ";

@@ -38,8 +38,8 @@ class QMMM : public ParallelXJobCalc<std::vector<Job> > {
  public:
   void Initialize(tools::Property& options);
   std::string Identify() { return "qmmm"; }
-  Job::JobResult EvalJob(Topology& top, Job& job, QMThread& Thread);
-  void WriteJobFile(Topology& top);
+  Job::JobResult EvalJob(const Topology& top, Job& job, QMThread& Thread);
+  void WriteJobFile(const Topology& top);
   void ReadJobFile(Topology& top);
 
  private:

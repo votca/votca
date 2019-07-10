@@ -45,7 +45,7 @@ void QMMM::Initialize(tools::Property& options) {
   }
 }
 
-Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
+Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();
 
@@ -149,7 +149,7 @@ Job::JobResult QMMM::EvalJob(Topology& top, Job& job, QMThread& Thread) {
   jres.setOutput(results);
   return jres;
 }
-void QMMM::WriteJobFile(Topology& top) {}
+void QMMM::WriteJobFile(const Topology& top) {}
 void QMMM::ReadJobFile(Topology& top) {}
 
 }  // namespace xtp

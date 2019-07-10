@@ -73,7 +73,8 @@ std::map<std::string, QMState> IEXCITON::FillParseMaps(
   return type2level;
 }
 
-Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
+Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
+                                 QMThread& opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
@@ -92,10 +93,10 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   string type_B = segment_list.back()->getAttribute<string>("type");
   string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
 
-  Segment& seg_A = top.getSegment(ID_A);
-  Segment& seg_B = top.getSegment(ID_B);
-  QMNBList& nblist = top.NBList();
-  QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
+  const Segment& seg_A = top.getSegment(ID_A);
+  const Segment& seg_B = top.getSegment(ID_B);
+  const QMNBList& nblist = top.NBList();
+  const QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
   if (pair == nullptr) {
     throw std::runtime_error(
         "pair between segments " + std::to_string(seg_A.getId()) + ":" +
@@ -108,7 +109,7 @@ Job::JobResult IEXCITON::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   StaticMapper map(pLog);
   map.LoadMappingFile(_mapfile);
   StaticSegment seg1 = map.map(*(pair->Seg1()), mps_fileA);
-  StaticSegment seg2 = map.map(*(pair->Seg2PbCopy()), mps_fileB);
+  StaticSegment seg2 = map.map(pair->Seg2PbCopy(), mps_fileB);
   eeInteractor actor;
   double JAB = actor.CalcStaticEnergy(seg1, seg2);
   _cutoff = 0;
@@ -146,14 +147,14 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
   return state;
 }
 
-void IEXCITON::WriteJobFile(Topology& top) {
+void IEXCITON::WriteJobFile(const Topology& top) {
 
   cout << endl << "... ... Writing job file " << flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
     throw runtime_error("\nERROR: bad file handle: " + _jobfile);
-  QMNBList& nblist = top.NBList();
+  const QMNBList& nblist = top.NBList();
   int jobCount = 0;
   if (nblist.size() == 0) {
     cout << endl << "... ... No pairs in neighbor list, skip." << flush;
@@ -163,7 +164,7 @@ void IEXCITON::WriteJobFile(Topology& top) {
   ofs << "<jobs>" << endl;
   string tag = "";
 
-  for (QMPair* pair : nblist) {
+  for (const QMPair* pair : nblist) {
     if (pair->getType() == QMPair::PairType::Excitoncl) {
       int id1 = pair->Seg1()->getId();
       string name1 = pair->Seg1()->getName();

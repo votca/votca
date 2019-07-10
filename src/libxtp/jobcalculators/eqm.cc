@@ -75,7 +75,7 @@ void EQM::ParseOptionsXML(tools::Property& options) {
       key + ".map_file");
 }
 
-void EQM::WriteJobFile(Topology& top) {
+void EQM::WriteJobFile(const Topology& top) {
 
   std::cout << std::endl << "... ... Writing job file: " << std::flush;
   std::ofstream ofs;
@@ -123,8 +123,8 @@ void EQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs << logger << std::endl;
   ofs.close();
 }
-Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
-  OPENMP::setMaxThreads(_nThreads);
+
+Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   Orbitals orbitals;
   Job::JobResult jres = Job::JobResult();
   tools::Property _job_input = job.getInput();
@@ -137,7 +137,7 @@ Job::JobResult EQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   }
 
   QMState state(qmgeo_state);
-  Segment& seg = top.getSegment(segId);
+  const Segment& seg = top.getSegment(segId);
 
   Logger& pLog = opThread.getLogger();
   QMMapper mapper(pLog);

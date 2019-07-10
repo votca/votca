@@ -58,9 +58,9 @@ class ParallelXJobCalc : public JobCalculator {
 
   std::string Identify() = 0;
 
-  bool EvaluateFrame(Topology &top);
+  bool EvaluateFrame(const Topology &top);
   virtual void CustomizeLogger(QMThread &thread);
-  virtual Result EvalJob(Topology &top, Job &job, QMThread &thread) = 0;
+  virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
   void LockCout() { _coutMutex.Lock(); }
   void UnlockCout() { _coutMutex.Unlock(); }
@@ -73,8 +73,8 @@ class ParallelXJobCalc : public JobCalculator {
 
   class JobOperator : public QMThread {
    public:
-    JobOperator(int id, Topology &top, ParallelXJobCalc<JobContainer> &master,
-                int openmp_threads)
+    JobOperator(int id, const Topology &top,
+                ParallelXJobCalc<JobContainer> &master, int openmp_threads)
         : _top(top), _master(master), _openmp_threads(openmp_threads) {
       setId(id);
     }  // comes from baseclass so Id cannot be in initializer list
@@ -83,7 +83,7 @@ class ParallelXJobCalc : public JobCalculator {
     void Run();
 
    private:
-    Topology &_top;
+    const Topology &_top;
     ParallelXJobCalc<JobContainer> &_master;
     int _openmp_threads = 1;
   };
