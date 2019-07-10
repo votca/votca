@@ -17,15 +17,16 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_CONVERGENCEACC__H
 #define _VOTCA_XTP_CONVERGENCEACC__H
 
 #include <memory>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/diis.h>
+#include <votca/xtp/logger.h>
 namespace votca {
 namespace xtp {
 
@@ -60,7 +61,7 @@ class ConvergenceAcc {
     }
     _diis.setHistLength(_opt.histlength);
   }
-  void setLogger(ctp::Logger* log) { _log = log; }
+  void setLogger(Logger* log) { _log = log; }
 
   void PrintConfigOptions() const;
 
@@ -107,7 +108,7 @@ class ConvergenceAcc {
 
   bool _usedmixing = true;
   double _diiserror = std::numeric_limits<double>::max();
-  ctp::Logger* _log;
+  Logger* _log;
   const AOOverlap* _S;
 
   Eigen::MatrixXd Sminusahalf;

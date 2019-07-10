@@ -8,7 +8,7 @@
   <threads>1</threads>
   <memory></memory>
   <basisset>cc-pVTZ</basisset>
-  <auxbasisset>cc-pVTZ</auxbasisset>
+  <auxbasisset>aux-cc-pVTZ</auxbasisset>
   <ecp>ecp</ecp>
   <writebasisset>true</writebasisset>
   <writepseudopotentials>false</writepseudopotentials>

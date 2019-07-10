@@ -25,7 +25,7 @@ namespace xtp {
 
 void AOShell::normalizeContraction() {
   AOOverlap overlap;
-  Eigen::MatrixXd block = overlap.FillShell(this);
+  Eigen::MatrixXd block = overlap.FillShell(*this);
   std::vector<int> numsubshells = NumFuncSubShell(_type);
   int contraction_index = FindLmin(_type);
   int aoindex = 0;
@@ -42,10 +42,10 @@ void AOShell::normalizeContraction() {
 
 void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
                           Eigen::Block<Eigen::MatrixX3d>& gradAOvalues,
-                          const tools::vec& grid_pos) const {
+                          const Eigen::Vector3d& grid_pos) const {
 
   // need position of shell
-  const Eigen::Vector3d center = (grid_pos - _pos).toEigen();
+  const Eigen::Vector3d center = (grid_pos - _pos);
   const double& center_x = center.x();
   const double& center_y = center.y();
   const double& center_z = center.z();
@@ -299,14 +299,9 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
             4 * factor * coeff.matrix() + second_term * AOvalue;
 
         i_func += 9;
-      } else if (single_shell == 'H') {
-        std::cerr << "H functions not implemented in AOeval at the moment!"
-                  << std::endl;
-        exit(1);
       } else {
-        std::cerr << "Single shell type" << single_shell << " not known "
-                  << std::endl;
-        exit(1);
+        throw std::runtime_error("Shell type:" + std::string(1, single_shell) +
+                                 " not known");
       }
     }
   }  // contractions
@@ -314,14 +309,14 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
 }
 
 void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                          const tools::vec& grid_pos) const {
+                          const Eigen::Vector3d& grid_pos) const {
 
   // need position of shell
-  const tools::vec center = grid_pos - _pos;
-  const double center_x = center.getX();
-  const double center_y = center.getY();
-  const double center_z = center.getZ();
-  const double distsq = center * center;
+  const Eigen::Vector3d center = grid_pos - _pos;
+  const double center_x = center[0];
+  const double center_y = center[1];
+  const double center_z = center[2];
+  const double distsq = center.squaredNorm();
 
   // iterate over Gaussians in this shell
   for (const AOGaussianPrimitive& gaussian : _gaussians) {
@@ -422,9 +417,8 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
 
         i_func += 9;
       } else {
-        std::cerr << "Single shell type" << single_shell << " not known "
-                  << std::endl;
-        exit(1);
+        throw std::runtime_error("Single shell type " +
+                                 std::string(1, single_shell) + " not known ");
       }
     }
   }  // contractions
@@ -434,7 +428,8 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
 std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   out << "AtomIndex:" << shell.getAtomIndex();
   out << " Shelltype:" << shell.getType() << " Scale:" << shell.getScale()
-      << " Func: " << shell.getNumFunc() << "\n";
+      << " Lmax:" << shell.getLmax() << " MinDecay:" << shell.getMinDecay()
+      << " Func:" << shell.getNumFunc() << "\n";
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contractions:";

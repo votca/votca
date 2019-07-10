@@ -53,17 +53,17 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
   xyzfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("Al.xyz");
+  orbitals.QMAtoms().LoadFromFile("Al.xyz");
   BasisSet basis;
   basis.LoadBasisSet("notnormalized.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis, orbitals.QMAtoms());
 
-  const AOShell* shell = aobasis.getShell(0);
+  const AOShell& shell = aobasis.getShell(0);
   std::vector<double> ref_results = {0.1831079647, 0.9155398233};
   int i = 0;
   bool check_norm = true;
-  for (const AOGaussianPrimitive& gaussian : *shell) {
+  for (const AOGaussianPrimitive& gaussian : shell) {
     if (std::abs(ref_results[i] - gaussian.getContraction()[2]) > 1e-7) {
       check_norm = false;
       break;
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
 
   i = 0;
   if (!check_norm) {
-    for (const AOGaussianPrimitive& gaussian : *shell) {
+    for (const AOGaussianPrimitive& gaussian : shell) {
       std::cout << "Ref:" << ref_results[i]
                 << " result:" << gaussian.getContraction()[2] << std::endl;
       i++;
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -257,14 +257,6 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   Eigen::MatrixXd ref = orbitals.MOCoefficients();
   aobasis.ReorderMOs(orbitals.MOCoefficients(), "xtp", "gaussian");
   aobasis.ReorderMOs(orbitals.MOCoefficients(), "gaussian", "xtp");
-  AOOverlap ov;
-  ov.Fill(aobasis);
-
-  Eigen::MatrixXd overlap_b = ov.Matrix();
-  aobasis.ReorderMatrix(overlap_b, "xtp", "nwchem");
-  aobasis.ReorderMatrix(overlap_b, "nwchem", "xtp");
-  bool check_reorder_overlap = overlap_b.isApprox(ov.Matrix(), 1e-7);
-  BOOST_CHECK_EQUAL(check_reorder_overlap, 1);
 
   bool check_reorder_gaus = ref.isApprox(orbitals.MOCoefficients(), 1e-7);
   if (!check_reorder_gaus) {

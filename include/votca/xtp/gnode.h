@@ -15,55 +15,60 @@
  *
  */
 
-#ifndef _VOTCA_KMC_GNODE_H
-#define _VOTCA_KMC_GNODE_H
+#pragma once
+#ifndef VOTCA_XTP_GNODE_H
+#define VOTCA_XTP_GNODE_H
 
-#include <vector>
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/segment.h>
-#include <votca/tools/vec.h>
 #include <votca/xtp/glink.h>
 #include <votca/xtp/huffmantree.h>
-
-using namespace std;
+#include <votca/xtp/qmpair.h>
+#include <votca/xtp/segment.h>
 
 namespace votca {
 namespace xtp {
 
 class GNode {
  public:
-  GNode()
-      : occupied(false),
-        occupationtime(0.0),
-        escape_rate(0.0),
-        hasdecay(false){};
+  GNode(const Segment& seg, QMStateType carriertype, bool injectable)
+      : _id(seg.getId()),
+        _siteenergy(seg.getSiteEnergy(carriertype)),
+        _position(seg.getPos()),
+        _injectable(injectable){};
 
-  ~GNode(){};
+  GNode(int id, Eigen::Vector3d pos) : _id(id), _position(pos){};
 
-  int id;
-  bool occupied;
-  bool injectable;
-  double occupationtime;
-  double escape_rate;
-  bool hasdecay;
-  tools::vec position;
-  std::vector<GLink> events;
-  // stuff for Coulomb interaction:
-  double siteenergy;
-  double reorg_intorig;  // UnCnN
-  double reorg_intdest;  // UcNcC
-  void AddEvent(int seg2, double rate12, tools::vec dr, double Jeff2,
-                double reorg_out);
-  const double& getEscapeRate() { return escape_rate; }
+  bool isOccupied() const { return _occupied; }
+  void setOccupation(bool occupied) { _occupied = occupied; }
+  bool isInjectable() const { return _injectable; }
+  bool canDecay() const { return _hasdecay; }
+  const Eigen::Vector3d& getPos() const { return _position; }
+  int getId() const { return _id; }
+  void UpdateOccupationTime(double deltat) { _occupationtime += deltat; }
+
+  const std::vector<GLink>& Events() const { return _events; }
+  double OccupationTime() const { return _occupationtime; }
+  void AddEvent(GNode* seg2, const Eigen::Vector3d& dr, double rate);
+  double getEscapeRate() const { return _escape_rate; }
   void InitEscapeRate();
   void AddDecayEvent(double decayrate);
-  void ReadfromSegment(ctp::Segment* seg, int carriertype);
-  void AddEventfromQmPair(ctp::QMPair* pair, int carriertype);
+  void AddEventfromQmPair(const QMPair& pair, std::vector<GNode>& nodes,
+                          double rate);
+  double getSitenergy() const { return _siteenergy; }
 
-  GLink* findHoppingDestination(double p);
+  GLink* findHoppingDestination(double p) const;
   void MakeHuffTree();
 
  private:
+  int _id = 0;
+  bool _occupied = false;
+  double _occupationtime = 0.0;
+  double _escape_rate = 0.0;
+  bool _hasdecay = false;
+  double _siteenergy;
+  Eigen::Vector3d _position;
+  bool _injectable = true;
+  std::vector<GLink> _events;
+
   huffmanTree<GLink> hTree;
   void organizeProbabilities(int id, double add);
   void moveProbabilities(int id);
@@ -72,4 +77,4 @@ class GNode {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_KMC_GNODE_H */
+#endif  // VOTCA_XTP_GNODE_H

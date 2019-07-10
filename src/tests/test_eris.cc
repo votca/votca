@@ -18,7 +18,7 @@
 #define BOOST_TEST_MODULE eris_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ERIs.h>
-
+#include <votca/xtp/orbitals.h>
 using namespace votca::xtp;
 using namespace std;
 
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
 
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
 
   ERIs eris;
   eris.Initialize_4c_small_molecule(aobasis);
-  eris.CalculateERIs_4c_small_molecule(dmat);
+  Mat_p_Energy erissmall = eris.CalculateERIs_4c_small_molecule(dmat);
 
   Eigen::MatrixXd eris_ref = Eigen::MatrixXd::Zero(17, 17);
   eris_ref << 7.97316, 1.45564, -3.0651e-17, 8.17169e-17, 3.42098e-16, 1.39992,
@@ -204,10 +204,10 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
       3.82992, 2.41107, 0.627171, 2.29374, -0.693449, 0.693449, -0.693449,
       2.8438, -1.13632, 1.13632, -1.13632, 0.512709, 1.4449, 0.512709, 1.4449,
       0.512709, 1.4449, 2.41107, 3.3433;
-  bool eris_check = eris.getERIs().isApprox(eris_ref, 0.00001);
+  bool eris_check = erissmall.matrix().isApprox(eris_ref, 0.00001);
   BOOST_CHECK_EQUAL(eris_check, 1);
 
-  eris.CalculateEXX_4c_small_molecule(dmat);
+  Mat_p_Energy exx_small = eris.CalculateEXX_4c_small_molecule(dmat);
 
   Eigen::MatrixXd exx_ref = Eigen::MatrixXd::Zero(17, 17);
   exx_ref << 0.389974, 0.688493, 3.79471e-17, 7.81168e-17, 1.08518e-15,
@@ -255,7 +255,7 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
       -0.296396, 0.296396, -0.296396, 0.909896, -0.180503, 0.180503, -0.180503,
       0.204984, 0.451934, 0.204984, 0.451934, 0.204984, 0.451934, 0.51555,
       0.66257;
-  bool exxs_check = eris.getEXX().isApprox(exx_ref, 0.00001);
+  bool exxs_check = exx_small.matrix().isApprox(exx_ref, 0.00001);
   BOOST_CHECK_EQUAL(exxs_check, 1);
 }
 
@@ -333,7 +333,7 @@ BOOST_AUTO_TEST_CASE(threecenter) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
 
@@ -443,12 +443,10 @@ BOOST_AUTO_TEST_CASE(threecenter) {
 
   ERIs eris;
   eris.Initialize(aobasis, aobasis);
-  eris.CalculateEXX(dmat);
-  Eigen::MatrixXd exx_d = eris.getEXX();
-  eris.CalculateEXX(mos.block(0, 0, 17, 4), dmat);
-  Eigen::MatrixXd exx_mo = eris.getEXX();
+  Mat_p_Energy exx_dmat = eris.CalculateEXX(dmat);
+  Mat_p_Energy exx_mo = eris.CalculateEXX(mos.block(0, 0, 17, 4), dmat);
 
-  bool compare_exx = exx_mo.isApprox(exx_d, 1e-4);
+  bool compare_exx = exx_mo.matrix().isApprox(exx_dmat.matrix(), 1e-4);
   BOOST_CHECK_EQUAL(compare_exx, true);
 
   Eigen::MatrixXd exx_ref = Eigen::MatrixXd::Zero(17, 17);
@@ -497,17 +495,16 @@ BOOST_AUTO_TEST_CASE(threecenter) {
       1.07244, -0.271864, 0.271863, -0.271864, 0.909255, -0.166363, 0.166363,
       -0.166363, 0.208545, 0.455288, 0.208545, 0.455288, 0.208545, 0.455288,
       0.503332, 0.651756;
-  bool compare_exx_ref = exx_ref.isApprox(exx_mo, 1e-5);
+  bool compare_exx_ref = exx_ref.isApprox(exx_mo.matrix(), 1e-5);
   if (!compare_exx_ref) {
     std::cout << "result exx" << std::endl;
-    std::cout << exx_mo << std::endl;
+    std::cout << exx_mo.matrix() << std::endl;
     std::cout << "ref exx" << std::endl;
     std::cout << exx_ref << std::endl;
   }
   BOOST_CHECK_EQUAL(compare_exx_ref, true);
 
-  eris.CalculateERIs(dmat);
-  Eigen::MatrixXd eris_mat = eris.getERIs();
+  Mat_p_Energy eri = eris.CalculateERIs(dmat);
 
   Eigen::MatrixXd eris_ref = Eigen::MatrixXd::Zero(17, 17);
   eris_ref << 8.10755, 1.44196, 1.60751e-15, -4.02544e-16, -1.4569e-18, 1.40053,
@@ -553,10 +550,10 @@ BOOST_AUTO_TEST_CASE(threecenter) {
       0.513107, 0.0415293, 0.513107, 3.82379, 2.41047, 0.627296, 2.29232,
       -0.694388, 0.694388, -0.694388, 2.8457, -1.13659, 1.13659, -1.13659,
       0.513107, 1.44563, 0.513107, 1.44563, 0.513107, 1.44563, 2.41047, 3.3442;
-  bool compare_eris = eris_ref.isApprox(eris_mat, 1e-5);
+  bool compare_eris = eris_ref.isApprox(eri.matrix(), 1e-5);
   if (!compare_eris) {
     std::cout << "result eris" << std::endl;
-    std::cout << eris_mat << std::endl;
+    std::cout << eri.matrix() << std::endl;
     std::cout << "ref eris" << std::endl;
     std::cout << eris_ref << std::endl;
   }
@@ -637,7 +634,7 @@ BOOST_AUTO_TEST_CASE(fourcenter_direct) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
 
@@ -699,13 +696,15 @@ BOOST_AUTO_TEST_CASE(fourcenter_direct) {
   ERIs eris2;
   eris1.Initialize_4c_screening(aobasis, 1e-10);
   eris2.Initialize_4c_small_molecule(aobasis);
-  eris1.CalculateERIs_4c_direct(aobasis, dmat);
-  eris2.CalculateERIs_4c_small_molecule(dmat);
+  Mat_p_Energy eris_direct = eris1.CalculateERIs_4c_direct(aobasis, dmat);
+  Mat_p_Energy eris_cached = eris2.CalculateERIs_4c_small_molecule(dmat);
 
-  bool check_eris = eris1.getERIs().isApprox(eris2.getERIs(), 0.001);
+  bool check_eris = eris_direct.matrix().isApprox(eris_cached.matrix(), 0.001);
   if (!check_eris) {
-    std::cout << eris1.getERIs() << std::endl;
-    std::cout << eris2.getERIs() << std::endl;
+    std::cout << "eris_direct.matrix()" << std::endl;
+    std::cout << eris_direct.matrix() << std::endl;
+    std::cout << "eris_cached.matrix()" << std::endl;
+    std::cout << eris_cached.matrix() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_eris, 1);
 }

@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_AOSHELL__H
-#define __XTP_AOSHELL__H
+#pragma once
+#ifndef VOTCA_XTP_AOSHELL_H
+#define VOTCA_XTP_AOSHELL_H
 
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
@@ -41,16 +42,16 @@ class AOGaussianPrimitive {
   int getPower() const { return _power; }
   double getDecay() const { return _decay; }
   const std::vector<double>& getContraction() const { return _contraction; }
-  const AOShell* getShell() const { return _aoshell; }
+  const AOShell& getShell() const { return _aoshell; }
 
  private:
   int _power;  // used in pseudopotenials only
   double _decay;
   std::vector<double> _contraction;
-  AOShell* _aoshell;
+  const AOShell& _aoshell;
   double _powfactor;  // used in evalspace to speed up DFT
   // private constructor, only a shell can create a primitive
-  AOGaussianPrimitive(const GaussianPrimitive& gaussian, AOShell* aoshell)
+  AOGaussianPrimitive(const GaussianPrimitive& gaussian, const AOShell& aoshell)
       : _power(gaussian._power),
         _decay(gaussian._decay),
         _contraction(gaussian._contraction),
@@ -59,7 +60,8 @@ class AOGaussianPrimitive {
         std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75);
   }
 
-  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian, AOShell* aoshell)
+  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
+                      const AOShell& aoshell)
       : _power(gaussian._power),
         _decay(gaussian._decay),
         _contraction(gaussian._contraction),
@@ -90,7 +92,7 @@ class AOShell {
     _nonlocal = shell._nonlocal;
     _gaussians.reserve(shell._gaussians.size());
     for (const auto& gaus : shell._gaussians) {
-      _gaussians.push_back(AOGaussianPrimitive(gaus, this));
+      _gaussians.push_back(AOGaussianPrimitive(gaus, *this));
     }
   }
 
@@ -106,7 +108,7 @@ class AOShell {
 
   bool isNonLocal() const { return _nonlocal; }
 
-  const tools::vec& getPos() const { return _pos; }
+  const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }
 
   int getSize() const { return _gaussians.size(); }
@@ -124,10 +126,10 @@ class AOShell {
   double getMinDecay() const { return _mindecay; }
 
   void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                   const tools::vec& grid_pos) const;
+                   const Eigen::Vector3d& grid_pos) const;
   void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
                    Eigen::Block<Eigen::MatrixX3d>& AODervalues,
-                   const tools::vec& grid_pos) const;
+                   const Eigen::Vector3d& grid_pos) const;
 
   // iterator over pairs (decay constant; contraction coefficient)
   typedef std::vector<AOGaussianPrimitive>::const_iterator GaussianIterator;
@@ -136,8 +138,8 @@ class AOShell {
 
   // adds a Gaussian
   void addGaussian(const GaussianPrimitive& gaussian) {
-    AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, this);
-    _gaussians.push_back(aogaussian);
+    AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, *this);
+    _gaussians.emplace_back(aogaussian);
     return;
   }
 
@@ -155,7 +157,7 @@ class AOShell {
         _startIndex(startIndex),
         _offset(shell.getOffset()),
         _pos(atom.getPos()),
-        _atomindex(atom.getAtomID()) {
+        _atomindex(atom.getId()) {
     ;
   }
   // for ECPs
@@ -167,13 +169,10 @@ class AOShell {
         _startIndex(startIndex),
         _offset(shell.getOffset()),
         _pos(atom.getPos()),
-        _atomindex(atom.getAtomID()),
+        _atomindex(atom.getId()),
         _nonlocal(nonlocal) {
     ;
   }
-
-  // only class aobasis can destruct shells
-  ~AOShell(){};
 
   // shell type (S, P, D))
   std::string _type;
@@ -185,7 +184,7 @@ class AOShell {
   double _mindecay;
   int _startIndex;
   int _offset;
-  tools::vec _pos;
+  Eigen::Vector3d _pos;
   int _atomindex;
   // used for ecp calculations
   bool _nonlocal;
@@ -193,8 +192,7 @@ class AOShell {
   // vector of pairs of decay constants and contraction coefficients
   std::vector<AOGaussianPrimitive> _gaussians;
 };
-
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* AOSHELL_H */
+#endif  // VOTCA_XTP_AOSHELL_H

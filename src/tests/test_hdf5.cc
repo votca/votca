@@ -38,7 +38,15 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::VectorXd moeTest = Eigen::VectorXd::Random(17);
   Eigen::MatrixXd mocTest = Eigen::MatrixXd::Random(17, 17);
 
-  std::vector<QMAtom> atomsTest(1000);
+  QMMolecule atoms = QMMolecule(" ", 0);
+  for (int i = 0; i < 10; ++i) {
+    atoms.push_back(QMAtom(0, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(25, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(32, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(100, "O", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(2, "Si", Eigen::Vector3d::Random()));
+    atoms.push_back(QMAtom(3145, "N", Eigen::Vector3d::Random()));
+  }
 
   double qmEnergy = -2.1025e-3;
 
@@ -51,8 +59,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   int rpaMin = '?';
   int rpaMax = 1e3;
 
-  unsigned int bseVmin = 6019386;
-  unsigned int bseCmax = 42;
+  int bseVmin = -6019386;
+  int bseCmax = 42;
 
   double scaHfx = 3.14159;
 
@@ -73,11 +81,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   Eigen::VectorXd BSETripletEnergiesTest = Eigen::VectorXd::Random(33);
   Eigen::MatrixXd BSETripletCoefficientsTest = Eigen::MatrixXd::Random(33, 31);
 
-  std::vector<votca::tools::vec> transitionDipolesTest;
-  for (size_t i = 0; i < 1000; ++i) {
-    transitionDipolesTest.push_back(votca::tools::vec(1, 2, 3));
-  }
-
   {
     // Write orbitals
     Orbitals orbWrite;
@@ -88,9 +91,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.MOEnergies() = moeTest;
     orbWrite.MOCoefficients() = mocTest;
 
-    for (auto const& qma : atomsTest) {
-      orbWrite.AddAtom(qma);
-    }
+    orbWrite.QMAtoms() = atoms;
 
     orbWrite.setQMEnergy(qmEnergy);
     orbWrite.setQMpackage(qmPackage);
@@ -109,7 +110,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
     orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
     orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
-    orbWrite.TransitionDipoles() = transitionDipolesTest;
     orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
     orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
 
@@ -157,24 +157,15 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK(orbRead.BSETripletCoefficients().isApprox(
       BSETripletCoefficientsTest, tol));
 
-  BOOST_REQUIRE_EQUAL(orbRead.TransitionDipoles().size(),
-                      transitionDipolesTest.size());
+  BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
 
-  for (size_t c = 0; c < transitionDipolesTest.size(); ++c) {
-    BOOST_CHECK(
-        orbRead.TransitionDipoles()[c].isClose(transitionDipolesTest[c], tol));
-  }
-
-  BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atomsTest.size());
-
-  for (size_t i = 0; i < atomsTest.size(); ++i) {
-    auto atomRead = *(orbRead.QMAtoms()[i]);
-    auto atomTest = atomsTest[i];
-    BOOST_CHECK_EQUAL(atomRead.getAtomID(), atomTest.getAtomID());
-    BOOST_CHECK(atomRead.getPos().isClose(atomTest.getPos(), tol));
+  for (int i = 0; i < atoms.size(); ++i) {
+    const auto& atomRead = orbRead.QMAtoms()[i];
+    const auto& atomTest = atoms[i];
+    BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());
+    BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
     BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
-    BOOST_CHECK_EQUAL(atomRead.getPartialcharge(), atomTest.getPartialcharge());
-    // no way to get qmatom index
+    BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
   }
 }
 

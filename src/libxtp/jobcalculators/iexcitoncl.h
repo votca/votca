@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef _CALC_COUPLING_EXCL_H
 #define _CALC_COUPLING_EXCL_H
 
@@ -24,9 +25,7 @@
 
 #include <boost/filesystem.hpp>
 #include <sys/stat.h>
-#include <votca/ctp/parallelxjobcalc.h>
-#include <votca/ctp/xjob.h>
-#include <votca/ctp/xmapper.h>
+#include <votca/xtp/parallelxjobcalc.h>
 #include <votca/xtp/qmstate.h>
 
 namespace votca {
@@ -37,36 +36,27 @@ namespace xtp {
  *
  * Evaluates the electrostatic classical coupling between molecules in
  * their excited states.
-
  * Callname: iexcitoncl
  */
 
-class IEXCITON : public ctp::ParallelXJobCalc<vector<ctp::Job *>, ctp::Job *,
-                                              ctp::Job::JobResult> {
+class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
  public:
-  void Initialize(tools::Property *options);
+  void Initialize(tools::Property &options);
 
-  string Identify() { return "iexcitoncl"; }
+  std::string Identify() { return "iexcitoncl"; }
 
-  ctp::Job::JobResult EvalJob(ctp::Topology *top, ctp::Job *job,
-                              ctp::QMThread *Thread);
+  Job::JobResult EvalJob(Topology &top, Job &job, QMThread &Thread);
 
-  void WriteJobFile(ctp::Topology *top);
-  void ReadJobFile(ctp::Topology *top);
+  void WriteJobFile(Topology &top);
+  void ReadJobFile(Topology &top);
 
  private:
   QMState GetElementFromMap(const std::string &elementname) const;
-  std::map<std::string, QMState> FillParseMaps(const string &Mapstring);
+  std::map<std::string, QMState> FillParseMaps(const std::string &Mapstring);
   double _cutoff;
-  double _epsilon;
-  ctp::XMpsMap _mps_mapper;
-  bool _induce;
   std::map<std::string, QMState> _statemap;
-  string _emp_file;
-  string _xml_file;
-  void PreProcess(ctp::Topology *top);
-  double EvaluatePair(ctp::Topology *top, ctp::PolarSeg *Seg1,
-                      ctp::PolarSeg *Seg2, ctp::Logger *pLog);
+  std::string _xml_file;
+  std::string _mapfile;
 };
 
 }  // namespace xtp

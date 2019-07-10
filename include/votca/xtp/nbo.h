@@ -17,12 +17,13 @@
  *
  */
 
-#ifndef __VOTCA_XTP_NBO__H
-#define __VOTCA_XTP_NBO__H
+#pragma once
+#ifndef VOTCA_XTP_NBO_H
+#define VOTCA_XTP_NBO_H
 
-#include <votca/ctp/logger.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmatom.h>
 
 /**
@@ -38,7 +39,7 @@ namespace xtp {
 
 class NBO {
  public:
-  NBO(ctp::Logger *log) { _log = log; }
+  NBO(Logger *log) { _log = log; }
   ~NBO(){};
 
   void EvaluateNBO(std::vector<QMAtom *> &_atomlist,
@@ -46,7 +47,7 @@ class NBO {
                    BasisSet &bs);
 
  private:
-  ctp::Logger *_log;
+  Logger *_log;
   votca::tools::Elements _elements;
 
   Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd &P,
@@ -57,4 +58,4 @@ class NBO {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_NBO_H */
+#endif  // VOTCA_XTP_NBO_H

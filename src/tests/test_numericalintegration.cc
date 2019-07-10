@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -159,8 +159,7 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
   NumericalIntegration num;
   num.GridSetup("medium", orbitals.QMAtoms(), aobasis);
   num.setXCfunctional("XC_GGA_X_PBE XC_GGA_C_PBE");
-  Eigen::MatrixXd vxc = num.IntegrateVXC(dmat);
-
+  Mat_p_Energy e_vxc = num.IntegrateVXC(dmat);
   Eigen::MatrixXd vxc_ref = Eigen::MatrixXd::Zero(17, 17);
   vxc_ref << -0.604846, -0.193724, 1.4208e-12, 1.24779e-12, 1.33915e-12,
       -0.158347, 2.77358e-12, 2.74891e-12, 2.76197e-12, -0.0171771, -0.0712393,
@@ -210,12 +209,12 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
       -0.287372, 0.0814687, -0.0814687, 0.0814687, -0.288594, 0.0917206,
       -0.0917206, 0.0917206, -0.0554951, -0.140797, -0.0554951, -0.140797,
       -0.0554951, -0.140797, -0.237903, -0.2758;
-  bool check_vxc = vxc.isApprox(vxc_ref, 0.0001);
+  bool check_vxc = e_vxc.matrix().isApprox(vxc_ref, 0.0001);
   if (!check_vxc) {
     std::cout << "ref" << std::endl;
     std::cout << vxc_ref << std::endl;
     std::cout << "calc" << std::endl;
-    std::cout << vxc << std::endl;
+    std::cout << e_vxc.matrix() << std::endl;
   }
   BOOST_CHECK_EQUAL(check_vxc, 1);
 }

@@ -104,7 +104,7 @@ BOOST_AUTO_TEST_CASE(sigma_full) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
 

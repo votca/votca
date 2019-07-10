@@ -58,11 +58,11 @@ std::vector<double> EulerMaclaurinGrid::CalculatePruningIntervals(
 }
 
 void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
-                                             std::vector<QMAtom*>& atoms,
+                                             const QMMolecule& atoms,
                                              double eps) {
   std::map<std::string, min_exp>::iterator it;
-  for (QMAtom* atom : atoms) {
-    std::string name = atom->getType();
+  for (const QMAtom& atom : atoms) {
+    std::string name = atom.getElement();
     // is this element already in map?
     it = _element_ranges.find(name);
     // only proceed, if element data does not exist yet
@@ -72,7 +72,7 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
       double decaymin = std::numeric_limits<double>::max();
       int lvalue = std::numeric_limits<int>::min();
       const std::vector<const AOShell*> shells =
-          aobasis.getShellsofAtom(atom->getAtomID());
+          aobasis.getShellsofAtom(atom.getId());
       // and loop over all shells to figure out minimum decay constant and
       // angular momentum of this function
       for (const AOShell* shell : shells) {
@@ -95,7 +95,7 @@ void EulerMaclaurinGrid::FillElementRangeMap(const AOBasis& aobasis,
 }
 
 void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,
-                                               std::vector<QMAtom*>& atoms,
+                                               const QMMolecule& atoms,
                                                double eps) {
   AOOverlap overlap;
   overlap.Fill(aobasis);
@@ -109,24 +109,24 @@ void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,
     start += size;
   }
   // refining by going through all atom combinations
-  for (unsigned i = 0; i < atoms.size(); ++i) {
-    QMAtom* atom_a = atoms[i];
+  for (int i = 0; i < atoms.size(); ++i) {
+    const QMAtom& atom_a = atoms[i];
     int a_start = idxstart[i];
     int a_size = idxsize[i];
     double range_max = std::numeric_limits<double>::min();
     // get preset values for this atom type
-    double alpha_a = _element_ranges.at(atom_a->getType()).alpha;
-    int l_a = _element_ranges.at(atom_a->getType()).l;
-    const tools::vec& pos_a = atom_a->getPos();
+    double alpha_a = _element_ranges.at(atom_a.getElement()).alpha;
+    int l_a = _element_ranges.at(atom_a.getElement()).l;
+    const Eigen::Vector3d& pos_a = atom_a.getPos();
     // Cannot iterate only over j<i because it is not symmetric due to shift_2g
-    for (unsigned j = 0; j < atoms.size(); ++j) {
+    for (int j = 0; j < atoms.size(); ++j) {
       if (i == j) {
         continue;
       }
-      QMAtom* atom_b = atoms[j];
+      const QMAtom& atom_b = atoms[j];
       int b_start = idxstart[j];
       int b_size = idxsize[j];
-      const tools::vec& pos_b = atom_b->getPos();
+      const Eigen::Vector3d& pos_b = atom_b.getPos();
       // find overlap block of these two atoms
       Eigen::MatrixXd overlapblock =
           overlap.Matrix().block(a_start, b_start, a_size, b_size);
@@ -135,27 +135,27 @@ void EulerMaclaurinGrid::RefineElementRangeMap(const AOBasis& aobasis,
 
       if (s_max > 1e-5) {
         double range = DetermineCutoff(
-            alpha_a + _element_ranges.at(atom_b->getType()).alpha,
-            l_a + _element_ranges.at(atom_b->getType()).l + 2, eps);
+            alpha_a + _element_ranges.at(atom_b.getElement()).alpha,
+            l_a + _element_ranges.at(atom_b.getElement()).l + 2, eps);
         // now do some update trickery from Gaussian product formula
-        double dist = tools::abs(pos_b - pos_a);
+        double dist = (pos_b - pos_a).norm();
         double shift_2g =
             dist * alpha_a /
-            (alpha_a + _element_ranges.at(atom_b->getType()).alpha);
+            (alpha_a + _element_ranges.at(atom_b.getElement()).alpha);
         range += (shift_2g + dist);
         if (range > range_max) {
           range_max = range;
         }
       }
     }
-    if (std::round(range_max) > _element_ranges.at(atom_a->getType()).range) {
-      _element_ranges.at(atom_a->getType()).range = std::round(range_max);
+    if (std::round(range_max) > _element_ranges.at(atom_a.getElement()).range) {
+      _element_ranges.at(atom_a.getElement()).range = std::round(range_max);
     }
   }
 }
 
 void EulerMaclaurinGrid::CalculateRadialCutoffs(const AOBasis& aobasis,
-                                                std::vector<QMAtom*> atoms,
+                                                const QMMolecule& atoms,
                                                 const std::string& gridtype) {
 
   double eps = Accuracy[gridtype];
@@ -166,7 +166,7 @@ void EulerMaclaurinGrid::CalculateRadialCutoffs(const AOBasis& aobasis,
 
 std::map<std::string, GridContainers::radial_grid>
     EulerMaclaurinGrid::CalculateAtomicRadialGrids(const AOBasis& aobasis,
-                                                   std::vector<QMAtom*> atoms,
+                                                   const QMMolecule& atoms,
                                                    const std::string& type) {
 
   CalculateRadialCutoffs(aobasis, atoms, type);
@@ -272,6 +272,5 @@ int EulerMaclaurinGrid::getGridParameters(const std::string& element,
   throw std::runtime_error("Grid type " + type + " is not implemented");
   return -1;
 }
-
 }  // namespace xtp
 }  // namespace votca

@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef _VOTCA_XTP_DFTCOUPLING_H
-#define _VOTCA_XTP_DFTCOUPLING_H
+#pragma once
+#ifndef VOTCA_XTP_DFTCOUPLING_H
+#define VOTCA_XTP_DFTCOUPLING_H
 
 #include <votca/xtp/couplingbase.h>
 
@@ -70,4 +71,4 @@ class DFTcoupling : public CouplingBase {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_DFTCOUPLING_H */
+#endif  // VOTCA_XTP_DFTCOUPLING_H

@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels = 5;
-  votca::ctp::Logger log;
+  Logger log;
   ConvergenceAcc::options opt;
   opt.mode = ConvergenceAcc::KSmode::closed;
   opt.levelshift = 0.1;

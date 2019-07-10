@@ -17,11 +17,8 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-
-#include <votca/xtp/aobasis.h>
-
 #include <vector>
+#include <votca/xtp/aomatrix.h>
 
 namespace votca {
 namespace xtp {
@@ -30,27 +27,27 @@ template <class T>
 void AOMatrix<T>::Fill(const AOBasis& aobasis) {
   _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(
       aobasis.AOBasisSize(), aobasis.AOBasisSize());
-  // loop row
+// loop row
 #pragma omp parallel for schedule(guided)
-  for (unsigned row = 0; row < aobasis.getNumofShells(); row++) {
-    const AOShell* shell_row = aobasis.getShell(row);
-    int row_start = shell_row->getStartIndex();
+  for (int row = 0; row < aobasis.getNumofShells(); row++) {
+    const AOShell& shell_row = aobasis.getShell(row);
+    int row_start = shell_row.getStartIndex();
 
     // AOMatrix is symmetric, restrict explicit calculation to triangular matrix
-    for (unsigned col = row; col < aobasis.getNumofShells(); col++) {
-      const AOShell* shell_col = aobasis.getShell(col);
+    for (int col = row; col < aobasis.getNumofShells(); col++) {
+      const AOShell& shell_col = aobasis.getShell(col);
       // figure out the submatrix
-      int col_start = shell_col->getStartIndex();
+      int col_start = shell_col.getStartIndex();
       Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block =
-          _aomatrix.block(row_start, col_start, shell_row->getNumFunc(),
-                          shell_col->getNumFunc());
+          _aomatrix.block(row_start, col_start, shell_row.getNumFunc(),
+                          shell_col.getNumFunc());
       // Fill block
       FillBlock(block, shell_row, shell_col);
     }
   }
   // Fill whole matrix by copying
-  for (unsigned i = 0; i < _aomatrix.rows(); i++) {
-    for (unsigned j = 0; j < i; j++) {
+  for (int i = 0; i < _aomatrix.rows(); i++) {
+    for (int j = 0; j < i; j++) {
       _aomatrix(i, j) = _aomatrix(j, i);
     }
   }
@@ -59,25 +56,24 @@ void AOMatrix<T>::Fill(const AOBasis& aobasis) {
 }
 
 void AOMatrix3D::Fill(const AOBasis& aobasis) {
-  _aomatrix.resize(3);
   for (int i = 0; i < 3; i++) {
     _aomatrix[i] =
         Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   }
   // loop row
 #pragma omp parallel for
-  for (unsigned row = 0; row < aobasis.getNumofShells(); row++) {
-    const AOShell* shell_row = aobasis.getShell(row);
-    int row_start = shell_row->getStartIndex();
+  for (int row = 0; row < aobasis.getNumofShells(); row++) {
+    const AOShell& shell_row = aobasis.getShell(row);
+    int row_start = shell_row.getStartIndex();
     // loop column
-    for (const AOShell* shell_col : aobasis) {
+    for (const AOShell& shell_col : aobasis) {
       // figure out the submatrix
-      int col_start = shell_col->getStartIndex();
+      int col_start = shell_col.getStartIndex();
       std::vector<Eigen::Block<Eigen::MatrixXd> > submatrix;
       for (int i = 0; i < 3; i++) {
         Eigen::Block<Eigen::MatrixXd> block =
-            _aomatrix[i].block(row_start, col_start, shell_row->getNumFunc(),
-                               shell_col->getNumFunc());
+            _aomatrix[i].block(row_start, col_start, shell_row.getNumFunc(),
+                               shell_col.getNumFunc());
         submatrix.push_back(block);
       }
       // Fill block
@@ -93,10 +89,10 @@ Eigen::MatrixXd AOSuperMatrix::getTrafo(const AOGaussianPrimitive& gaussian) {
   ///         30    31    32    33    34 s,   x, y, z,   xy xz yz xx yy zz, xxy
   ///         xyy xyz xxz xzz yyz yzz xxx yyy zzz,    xxxy, xxxz, xxyy, xxyz,
   ///         xxzz, xyyy, xyyz, xyzz, xzzz, yyyz, yyzz, yzzz, xxxx, yyyy, zzzz,
-  const AOShell* shell = gaussian.getShell();
-  const int ntrafo = shell->getNumFunc() + shell->getOffset();
+  const AOShell& shell = gaussian.getShell();
+  const int ntrafo = shell.getNumFunc() + shell.getOffset();
   const double decay = gaussian.getDecay();
-  const int lmax = shell->getLmax();
+  const int lmax = shell.getLmax();
   const int n = getBlockSize(lmax);
   Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(n, ntrafo);
   const std::vector<double>& contractions = gaussian.getContraction();
@@ -374,15 +370,13 @@ std::vector<double> AOMatrix<T>::XIntegrate(int size, double U) {
   const int mm = FmU.size() - 1;
   const double pi = boost::math::constants::pi<double>();
   if (mm < 0) {
-    std::cerr << "mm is: " << mm << " This should not have happened!"
-              << std::flush;
-    exit(1);
+    throw std::runtime_error("mm is: " + std::to_string(mm) +
+                             " This should not have happened!");
   }
 
   if (U < 0.0) {
-    std::cerr << "U is: " << U << " This should not have happened!"
-              << std::flush;
-    exit(1);
+    throw std::runtime_error("U is: " + std::to_string(U) +
+                             " This should not have happened!");
   }
 
   if (U >= 10.0) {

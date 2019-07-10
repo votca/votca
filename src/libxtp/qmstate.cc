@@ -28,24 +28,6 @@
 namespace votca {
 namespace xtp {
 
-int QMStateType::ToCTPIndex() const {
-  if (_type == QMStateType::Singlet) {
-    return 2;
-  } else if (_type == QMStateType::Triplet) {
-    return 3;
-  } else if (_type == QMStateType::Hole) {
-    return 1;
-  } else if (_type == QMStateType::Electron) {
-    return -1;
-  } else if (_type == QMStateType::Gstate) {
-    return 0;
-  } else {
-    throw std::runtime_error("For state " + this->ToString() +
-                             " no conversion to ctp exists");
-  }
-  return 0;
-}
-
 std::string QMStateType::ToString() const {
   std::string identifier = "";
   switch (_type) {

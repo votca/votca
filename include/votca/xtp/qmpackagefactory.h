@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __QMPACKAGEFACTORY__H
-#define __QMPACKAGEFACTORY__H
+#pragma once
+#ifndef VOTCA_XTP_QMPACKAGEFACTORY_H
+#define VOTCA_XTP_QMPACKAGEFACTORY_H
 
 #include <votca/tools/objectfactory.h>
 #include <votca/xtp/qmpackage.h>
@@ -43,4 +44,4 @@ inline QMPackageFactory &QMPackages() {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __QMPACKAGEFACTORY__H */
+#endif  // VOTCA_XTP_QMPACKAGEFACTORY_H

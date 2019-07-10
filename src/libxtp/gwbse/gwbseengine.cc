@@ -19,9 +19,9 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/gwbseengine.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmpackage.h>
 
 using boost::format;
@@ -41,18 +41,13 @@ void GWBSEEngine::Initialize(tools::Property& options,
   std::string key = Identify();
 
   // get the tasks
-  std::string _tasks_string = options.get(".tasks").as<std::string>();
-  _do_guess = false;
-  _do_dft_input = false;
-  _do_dft_run = false;
-  _do_dft_parse = false;
-  _do_gwbse = false;
+  std::string tasks_string = options.get(".tasks").as<std::string>();
 
-  if (_tasks_string.find("guess") != std::string::npos) _do_guess = true;
-  if (_tasks_string.find("input") != std::string::npos) _do_dft_input = true;
-  if (_tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
-  if (_tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
-  if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
+  if (tasks_string.find("guess") != std::string::npos) _do_guess = true;
+  if (tasks_string.find("input") != std::string::npos) _do_dft_input = true;
+  if (tasks_string.find("dft") != std::string::npos) _do_dft_run = true;
+  if (tasks_string.find("parse") != std::string::npos) _do_dft_parse = true;
+  if (tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
 
   // XML option file for GWBSE
   if (_do_gwbse) {
@@ -64,8 +59,8 @@ void GWBSEEngine::Initialize(tools::Property& options,
   _dftlog_file = options.get(".dftlog").as<std::string>();
 
   // Logger redirection
-  _redirect_logger =
-      options.ifExistsReturnElseReturnDefault<bool>(".redirect_logger", false);
+  _redirect_logger = options.ifExistsReturnElseReturnDefault<bool>(
+      ".redirect_logger", _redirect_logger);
   _logger_file = "gwbse.log";
 
   // for requested merged guess, two archived orbitals objects are needed
@@ -88,14 +83,14 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
   // redirect log, if required
   // define own logger for GW-BSE that is written into a runFolder logfile
-  ctp::Logger gwbse_engine_logger(_pLog->getReportLevel());
-  ctp::Logger* logger = _pLog;
+  Logger gwbse_engine_logger(_pLog->getReportLevel());
+  Logger* logger = _pLog;
   if (_redirect_logger) {
     gwbse_engine_logger.setMultithreading(false);
-    gwbse_engine_logger.setPreface(ctp::logINFO, (format("\n ...")).str());
-    gwbse_engine_logger.setPreface(ctp::logERROR, (format("\n ...")).str());
-    gwbse_engine_logger.setPreface(ctp::logWARNING, (format("\n ...")).str());
-    gwbse_engine_logger.setPreface(ctp::logDEBUG, (format("\n ...")).str());
+    gwbse_engine_logger.setPreface(logINFO, (format("\n ...")).str());
+    gwbse_engine_logger.setPreface(logERROR, (format("\n ...")).str());
+    gwbse_engine_logger.setPreface(logWARNING, (format("\n ...")).str());
+    gwbse_engine_logger.setPreface(logDEBUG, (format("\n ...")).str());
     logger = &gwbse_engine_logger;
   }
   _qmpackage->setLog(logger);
@@ -103,7 +98,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
     // required for merged guess
     if (_qmpackage->GuessRequested() && _do_guess) {  // do not want to do an
                                                       // SCF loop for a dimer
-      CTP_LOG_SAVE(ctp::logINFO, *logger)
+      XTP_LOG_SAVE(logINFO, *logger)
           << "Guess requested, reading molecular orbitals" << flush;
       Orbitals orbitalsA, orbitalsB;
       orbitalsA.ReadFromCpt(_guess_archiveA);
@@ -121,18 +116,17 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
   // parse DFT data, if required
   if (_do_dft_parse) {
-    CTP_LOG_SAVE(ctp::logINFO, *logger)
-        << "Parsing DFT data from " << _dftlog_file << " and " << _MO_file
-        << flush;
+    XTP_LOG_SAVE(logINFO, *logger) << "Parsing DFT data from " << _dftlog_file
+                                   << " and " << _MO_file << flush;
     _qmpackage->setLogFileName(_dftlog_file);
-    _qmpackage->setOrbitalsFileName(_MO_file);
+    _qmpackage->setMOsFileName(_MO_file);
 
     bool Logfile_parse = _qmpackage->ParseLogFile(orbitals);
     if (!Logfile_parse) {
       throw std::runtime_error("\n Parsing DFT logfile " + _dftlog_file +
                                " failed. Stopping!");
     }
-    bool Orbfile_parse = _qmpackage->ParseOrbitalsFile(orbitals);
+    bool Orbfile_parse = _qmpackage->ParseMOsFile(orbitals);
     if (!Orbfile_parse) {
       throw std::runtime_error("\n Parsing DFT orbfile " + _MO_file +
                                " failed. Stopping!");
@@ -142,7 +136,7 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
 
   // if no parsing of DFT data is requested, reload serialized orbitals object
   if (!_do_dft_parse && _do_gwbse) {
-    CTP_LOG_SAVE(ctp::logINFO, *logger)
+    XTP_LOG_SAVE(logINFO, *logger)
         << "Loading serialized data from " << _archive_file << flush;
     orbitals.ReadFromCpt(_archive_file);
   }
@@ -158,9 +152,9 @@ void GWBSEEngine::ExcitationEnergies(Orbitals& orbitals) {
   return;
 }
 
-void GWBSEEngine::WriteLoggerToFile(ctp::Logger* pLog) {
+void GWBSEEngine::WriteLoggerToFile(Logger* pLog) {
   std::ofstream ofs;
-  ofs.open(_logger_file.c_str(), std::ofstream::out);
+  ofs.open(_logger_file, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + _logger_file);
   }

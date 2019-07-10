@@ -17,10 +17,14 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_BSE_H
 #define _VOTCA_XTP_BSE_H
 
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/populationanalysis.h>
+#include <votca/xtp/qmfragment.h>
 #include <votca/xtp/qmstate.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
@@ -38,7 +42,7 @@ typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
 class BSE {
 
  public:
-  BSE(Orbitals& orbitals, ctp::Logger& log, TCMatrix_gwbse& Mmn,
+  BSE(Orbitals& orbitals, Logger& log, TCMatrix_gwbse& Mmn,
       const Eigen::MatrixXd& Hqp)
       : _log(log),
         _orbitals(orbitals),
@@ -59,9 +63,9 @@ class BSE {
     int qpmin;
     int vmin;
     int cmax;
-    int nmax;             // number of eigenvectors to calculate
-    bool davidson = 1;    // use davidson to diagonalize the matrix
-    bool matrixfree = 0;  // use matrix free method
+    int nmax = 5;             // number of eigenvectors to calculate
+    bool davidson = true;     // use davidson to diagonalize the matrix
+    bool matrixfree = false;  // use matrix free method
     std::string davidson_correction = "DPR";
     std::string davidson_ortho = "GS";
     std::string davidson_tolerance = "normal";
@@ -71,15 +75,7 @@ class BSE {
         0.5;  // minimium contribution for state to print it
   };
 
-  void configure(const options& opt) {
-    _opt = opt;
-    _bse_vmax = _opt.homo;
-    _bse_cmin = _opt.homo + 1;
-    _bse_vtotal = _bse_vmax - _opt.vmin + 1;
-    _bse_ctotal = _opt.cmax - _bse_cmin + 1;
-    _bse_size = _bse_vtotal * _bse_ctotal;
-    SetupDirectInteractionOperator();
-  }
+  void configure(const options& opt);
 
   void Solve_singlets();
   void Solve_triplets();
@@ -87,8 +83,8 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA();
   TripletOperator_TDA getTripletOperator_TDA();
 
-  void Analyze_triplets(const AOBasis& dftbasis);
-  void Analyze_singlets(const AOBasis& dftbasis);
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
 
   void FreeTriplets() {
     _bse_triplet_coefficients.resize(0, 0);
@@ -109,20 +105,13 @@ class BSE {
     Eigen::VectorXd qp_contrib;
   };
 
-  struct Population {
-    std::vector<Eigen::VectorXd> popH;
-    std::vector<Eigen::VectorXd> popE;
-    std::vector<Eigen::VectorXd> Crgs;
-    Eigen::VectorXd popGs;
-  };
-
+  Logger& _log;
   int _bse_vmax;
   int _bse_cmin;
   int _bse_size;
   int _bse_vtotal;
   int _bse_ctotal;
 
-  ctp::Logger& _log;
   Orbitals& _orbitals;
   Eigen::VectorXd _epsilon_0_inv;
 
@@ -157,24 +146,15 @@ class BSE {
                            Eigen::MatrixXd& coefficients,
                            Eigen::MatrixXd& coefficients_AR);
 
-  void printFragInfo(const Population& pop, int i);
-  void printWeights(int i_bse, double weight);
+  void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
+                     int state) const;
+  void printWeights(int i_bse, double weight) const;
   void SetupDirectInteractionOperator();
 
   Interaction Analyze_eh_interaction(const QMStateType& type);
-
   template <typename BSE_OPERATOR>
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
                                                  const BSE_OPERATOR& H);
-
-  Population FragmentPopulations(const QMStateType& type,
-                                 const AOBasis& dftbasis);
-
-  std::vector<Eigen::MatrixXd> CalcFreeTransition_Dipoles(
-      const AOBasis& dftbasis);
-
-  std::vector<tools::vec> CalcCoupledTransition_Dipoles(
-      const AOBasis& dftbasis);
 };
 }  // namespace xtp
 }  // namespace votca

@@ -17,9 +17,9 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_SIGMA_BASE_H
 #define _VOTCA_XTP_SIGMA_BASE_H
-#include <votca/ctp/logger.h>
 #include <votca/xtp/eigen.h>
 
 namespace votca {

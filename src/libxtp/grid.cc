@@ -19,78 +19,54 @@
 
 #include <math.h> /* ceil */
 #include <votca/tools/constants.h>
+#include <votca/tools/elements.h>
 #include <votca/xtp/grid.h>
 
 namespace votca {
 namespace xtp {
-using namespace tools;
 
 void Grid::printGridtoxyzfile(std::string filename) {
   // unit is Angstrom in xyz file
   std::ofstream points;
   points.open(filename.c_str(), std::ofstream::out);
-  points << _gridpoints.size() << endl;
-  points << endl;
+  points << _gridpoints.size() << std::endl;
+  points << std::endl;
   for (const auto& point : _gridpoints) {
-    points << "X " << point.getX() * conv::bohr2ang << " "
-           << point.getY() * conv::bohr2ang << " "
-           << point.getZ() * conv::bohr2ang << endl;
+    points << "X " << point.x() * tools::conv::bohr2ang << " "
+           << point.y() * tools::conv::bohr2ang << " "
+           << point.z() * tools::conv::bohr2ang << std::endl;
   }
   points.close();
   return;
 }
 
-void Grid::setupgrid(std::vector<QMAtom*>& Atomlist) {
+void Grid::setupgrid(const QMMolecule& Atomlist) {
 
-  Elements elements;
-
-  double xmin = std::numeric_limits<double>::max();
-  double ymin = xmin;
-  double zmin = xmin;
-
-  double xmax = std::numeric_limits<double>::min();
-  double ymax = xmax;
-  double zmax = xmax;
-  double xtemp, ytemp, ztemp;
-
-  for (const QMAtom* atom : Atomlist) {
-    const tools::vec& pos = atom->getPos();
-    xtemp = pos.getX();
-    ytemp = pos.getY();
-    ztemp = pos.getZ();
-    if (xtemp < xmin) xmin = xtemp;
-    if (xtemp > xmax) xmax = xtemp;
-    if (ytemp < ymin) ymin = ytemp;
-    if (ytemp > ymax) ymax = ytemp;
-    if (ztemp < zmin) zmin = ztemp;
-    if (ztemp > zmax) zmax = ztemp;
-  }
-
-  vec lowerbound = vec(xmin - _padding, ymin - _padding, zmin - _padding);
-  vec upperbound = vec(xmax + _padding, ymax + _padding, zmax + _padding);
-  vec steps = (upperbound - lowerbound) / _gridspacing;
-  int xsteps = int(ceil(steps.getX()));
-  int ysteps = int(ceil(steps.getY()));
-  int zsteps = int(ceil(steps.getZ()));
+  tools::Elements elements;
+  std::pair<Eigen::Vector3d, Eigen::Vector3d> extension =
+      Atomlist.CalcSpatialMinMax();
+  Eigen::Array3d min = extension.first.array();
+  Eigen::Array3d max = extension.second.array();
+  Eigen::Array3d doublesteps = (max - min + 2 * _padding) / _gridspacing;
+  Eigen::Array3i steps = (doublesteps.ceil()).cast<int>();
 
   // needed to symmetrize grid around molecule
-  double padding_x = (steps.getX() - xsteps) * _gridspacing * 0.5 + _padding;
-  double padding_y = (steps.getY() - ysteps) * _gridspacing * 0.5 + _padding;
-  double padding_z = (steps.getZ() - zsteps) * _gridspacing * 0.5 + _padding;
-
-  for (int i = 0; i <= xsteps; i++) {
-    double x = xmin - padding_x + i * _gridspacing;
-    for (int j = 0; j <= ysteps; j++) {
-      double y = ymin - padding_y + j * _gridspacing;
-      for (int k = 0; k <= zsteps; k++) {
-        double z = zmin - padding_z + k * _gridspacing;
+  Eigen::Array3d padding =
+      (doublesteps - steps.cast<double>()) * _gridspacing * 0.5 + _padding;
+  Eigen::Array3d minpos = min - padding;
+  for (int i = 0; i <= steps.x(); i++) {
+    double x = minpos.x() + i * _gridspacing;
+    for (int j = 0; j <= steps.y(); j++) {
+      double y = minpos.y() + j * _gridspacing;
+      for (int k = 0; k <= steps.z(); k++) {
+        double z = minpos.z() + k * _gridspacing;
         bool is_valid = false;
-        vec gridpos = vec(x, y, z);
-        for (const QMAtom* atom : Atomlist) {
-          vec atompos = atom->getPos();
-          double distance2 = (gridpos - atompos) * (gridpos - atompos);
+        Eigen::Vector3d gridpos(x, y, z);
+        for (const QMAtom& atom : Atomlist) {
+          const Eigen::Vector3d& atompos = atom.getPos();
+          double distance2 = (gridpos - atompos).squaredNorm();
           double atomcutoff =
-              elements.getVdWChelpG(atom->getType()) * tools::conv::ang2bohr;
+              elements.getVdWChelpG(atom.getElement()) * tools::conv::ang2bohr;
           if (distance2 < (atomcutoff * atomcutoff)) {
             is_valid = false;
             break;

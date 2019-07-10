@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_SYMMETRIC_MATRIX__H
-#define __XTP_SYMMETRIC_MATRIX__H
+#pragma once
+#ifndef VOTCA_XTP_SYMMETRIC_MATRIX_H
+#define VOTCA_XTP_SYMMETRIC_MATRIX_H
 
 #include <iostream>
 #include <vector>
@@ -74,4 +75,4 @@ class Symmetric_Matrix {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* AOBASIS_H */
+#endif  // VOTCA_XTP_SYMMETRIC_MATRIX_H

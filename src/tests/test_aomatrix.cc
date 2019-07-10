@@ -17,8 +17,6 @@
 
 #define BOOST_TEST_MODULE aomatrix_test
 #include <boost/test/unit_test.hpp>
-#include <votca/ctp/polarseg.h>
-#include <votca/tools/vec.h>
 #include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 
@@ -102,7 +100,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -493,7 +491,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
 
 BOOST_AUTO_TEST_CASE(externalmatrices_test) {
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -511,12 +509,16 @@ BOOST_AUTO_TEST_CASE(externalmatrices_test) {
       << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "
       << endl;
 
-  std::vector<ctp::APolarSite*> sites = ctp::APS_FROM_MPS("polarsite.mps", 0);
-  std::vector<std::shared_ptr<ctp::PolarSeg> > polar_segments;
-  std::shared_ptr<ctp::PolarSeg> newPolarSegment(new ctp::PolarSeg(0, sites));
-  polar_segments.push_back(newPolarSegment);
+  StaticSegment seg("", 0);
+  seg.LoadFromFile("polarsite.mps");
+
   AODipole_Potential dip;
-  dip.Fillextpotential(aobasis, polar_segments);
+  std::vector<std::unique_ptr<StaticSite> > externalsites;
+  for (const StaticSite& site : seg) {
+    externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+  }
+
+  dip.Fillextpotential(aobasis, externalsites);
 
   Eigen::MatrixXd dip_ref = Eigen::MatrixXd::Zero(17, 17);
   dip_ref << 0.31114997753, 0.059568868026, 0.0090978711864, 0, 0,
@@ -580,8 +582,7 @@ BOOST_AUTO_TEST_CASE(externalmatrices_test) {
       0.16730389611, -0.024078433641, 0.076591108649, -0.076591108649,
       0.043208755867, 0.10354578683, 0.043208755867, 0.10354578683,
       0.023957628139, 0.075477416664, 0.12582094161, 0.19479972247;
-
-  bool dip_check = dip_ref.isApprox(dip.Matrix(), 1e-5);
+  bool dip_check = dip_ref.isApprox(dip.Matrix(), 1e-4);
   BOOST_CHECK_EQUAL(dip_check, 1);
   if (!dip_check) {
     std::cout << "dip Ref" << endl;
@@ -591,9 +592,10 @@ BOOST_AUTO_TEST_CASE(externalmatrices_test) {
   }
 
   AOQuadrupole_Potential quad;
-  quad.Fillextpotential(aobasis, polar_segments);
+  quad.Fillextpotential(aobasis, externalsites);
 
   Eigen::MatrixXd quad_ref = Eigen::MatrixXd::Zero(17, 17);
+
   quad_ref << -0.54885754461, -0.10507737426, -0.024072484017, 0, 0,
       -0.098966700337, -0.0035715464751, 0, 0, -0.011179037808, -0.045172910673,
       -0.011179037808, -0.045172910673, -0.0096466958333, -0.043589632176,
@@ -656,7 +658,8 @@ BOOST_AUTO_TEST_CASE(externalmatrices_test) {
       -0.008774945581, -0.10623084333, 0.10623084333, -0.077959498143,
       -0.1710846496, -0.077959498143, -0.1710846496, -0.033638947738,
       -0.11005918435, -0.16786646053, -0.259895667;
-  bool quad_check = quad_ref.isApprox(quad.Matrix(), 1e-5);
+
+  bool quad_check = quad_ref.isApprox(quad.Matrix(), 1e-4);
   BOOST_CHECK_EQUAL(quad_check, 1);
   if (!quad_check) {
     std::cout << "Quad Ref" << endl;
@@ -857,7 +860,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_contracted_test) {
   xyzfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("C.xyz");
+  orbitals.QMAtoms().LoadFromFile("C.xyz");
   BasisSet basis;
   basis.LoadBasisSet("contracted.xml");
   AOBasis aobasis;
@@ -925,7 +928,7 @@ BOOST_AUTO_TEST_CASE(aomatrices_contracted_test) {
 
 BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;

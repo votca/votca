@@ -18,6 +18,7 @@
  */
 
 #include <boost/format.hpp>
+#include <votca/xtp/atom.h>
 #include <votca/xtp/bfgs-trm.h>
 #include <votca/xtp/trustregion.h>
 
@@ -66,7 +67,7 @@ void BFGSTRM::Optimize(const Eigen::VectorXd& initialparameters) {
     } else if (_iteration == _max_iteration) {
       _success = false;
       if (_logging) {
-        CTP_LOG(ctp::logINFO, *_pLog)
+        XTP_LOG(logINFO, *_pLog)
             << (boost::format("BFGS-TRM @iteration %1$d: not converged after "
                               "%2$d iterations ") %
                 _iteration % _max_iteration)
@@ -87,13 +88,13 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
     // total energy has unexpectedly increased, half the trust radius
     _trust_radius = 0.25 * _trust_radius;
     if (_logging) {
-      CTP_LOG(ctp::logINFO, *_pLog)
+      XTP_LOG(logINFO, *_pLog)
           << (boost::format("BFGS-TRM @iteration %1$d: DeltaCost %2$2.4e step "
                             "rejected ") %
               _iteration % cost_delta)
                  .str()
           << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog)
+      XTP_LOG(logINFO, *_pLog)
           << (boost::format(
                   "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
               _iteration % _trust_radius)
@@ -114,14 +115,14 @@ bool BFGSTRM::AcceptRejectStep(const Eigen::VectorXd& delta_p,
       _trust_radius = 0.25 * _trust_radius;
     }
     if (_logging) {
-      CTP_LOG(ctp::logINFO, *_pLog)
+      XTP_LOG(logINFO, *_pLog)
           << (boost::format(
                   "BFGS-TRM @iteration %1$d: DeltaCost/QuadraticApprox %2$2.4f "
                   "step accepted ") %
               _iteration % tr_check)
                  .str()
           << std::flush;
-      CTP_LOG(ctp::logINFO, *_pLog)
+      XTP_LOG(logINFO, *_pLog)
           << (boost::format(
                   "BFGS-TRM @iteration %1$d: new trust radius %2$2.4e") %
               _iteration % _trust_radius)

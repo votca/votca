@@ -17,12 +17,13 @@
  *
  */
 
-#ifndef __XTP_BFGSTRM__H
-#define __XTP_BFGSTRM__H
+#pragma once
+#ifndef VOTCA_XTP_BFGSTRM_H
+#define VOTCA_XTP_BFGSTRM_H
 
 #include <functional>
 #include <vector>
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/optimiser_costfunction.h>
 
 namespace votca {
@@ -36,7 +37,7 @@ class BFGSTRM {
                                          costfunction.NumParameters());
   }
 
-  void setLog(ctp::Logger* pLog) {
+  void setLog(Logger* pLog) {
     _logging = true;
     _pLog = pLog;
   }
@@ -90,9 +91,9 @@ class BFGSTRM {
 
   int _max_iteration = 200;
 
-  ctp::Logger* _pLog;
+  Logger* _pLog;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* BFGSTRM_H */
+#endif  // VOTCA_XTP_BFGSTRM_H

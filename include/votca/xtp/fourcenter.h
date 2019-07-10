@@ -17,12 +17,13 @@
  *
  */
 
-#ifndef __XTP_FOURCENTER__H
-#define __XTP_FOURCENTER__H
+#pragma once
+#ifndef VOTCA_XTP_FOURCENTER_H
+#define VOTCA_XTP_FOURCENTER_H
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/orbitals.h>
+#include <votca/xtp/multiarray.h>
 
 /**
  * \brief Calculates four center electron overlap integrals for DFT.
@@ -39,11 +40,11 @@ class FCMatrix {
  public:
   void Fill_4c_small_molecule(const AOBasis& dftbasis);
 
-  const Eigen::VectorXd& get_4c_vector() { return _4c_vector; }
+  const Eigen::VectorXd& get_4c_vector() const { return _4c_vector; }
 
-  bool FillFourCenterRepBlock(tensor4d& block, const AOShell* _shell_1,
-                              const AOShell* _shell_2, const AOShell* _shell_3,
-                              const AOShell* _shell_4);
+  bool FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
+                              const AOShell& shell_2, const AOShell& shell_3,
+                              const AOShell& shell_4) const;
 
  private:
   Eigen::VectorXd _4c_vector;
@@ -52,4 +53,4 @@ class FCMatrix {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* FOURCENTER_H */
+#endif  // VOTCA_XTP_FOURCENTER_H

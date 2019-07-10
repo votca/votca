@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_XTPAPPLICATION_H
 #define VOTCA_XTP_XTPAPPLICATION_H
 
@@ -29,7 +30,7 @@ namespace xtp {
 class XtpApplication : public votca::tools::Application {
  public:
   XtpApplication();
-  ~XtpApplication(){};
+  virtual ~XtpApplication(){};
 
   void Initialize();
   bool EvaluateOptions();
@@ -43,4 +44,4 @@ class XtpApplication : public votca::tools::Application {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _QMApplication_H */
+#endif  // VOTCA_XTP_XTPAPPLICATION_H

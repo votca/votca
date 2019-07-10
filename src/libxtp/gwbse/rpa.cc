@@ -44,7 +44,8 @@ void RPA::UpdateRPAInputEnergies(const Eigen::VectorXd& dftenergies,
 template <bool imag>
 Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   const int size = _Mmn.auxsize();
-  Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
+  std::vector<Eigen::MatrixXd> thread_result = std::vector<Eigen::MatrixXd>(
+      OPENMP::getMaxThreads(), Eigen::MatrixXd::Zero(size, size));
   const int lumo = _homo + 1;
   const int n_occ = lumo - _rpamin;
   const int n_unocc = _rpamax - lumo + 1;
@@ -54,13 +55,9 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
   for (int m_level = 0; m_level < n_occ; m_level++) {
     const double qp_energy_m = _energies(m_level);
 
-#if (GWBSE_DOUBLE)
     const Eigen::MatrixXd Mmn_RPA =
         _Mmn[m_level].block(n_occ, 0, n_unocc, size);
-#else
-    const Eigen::MatrixXd Mmn_RPA =
-        _Mmn[m_level].block(n_occ, 0, n_unocc, size).cast<double>();
-#endif
+
     const Eigen::ArrayXd deltaE =
         _energies.segment(n_occ, n_unocc).array() - qp_energy_m;
     Eigen::VectorXd denom;
@@ -75,9 +72,11 @@ Eigen::MatrixXd RPA::calculate_epsilon(double frequency) const {
     }
     auto temp = Mmn_RPA.transpose() * denom.asDiagonal();
     Eigen::MatrixXd tempresult = temp * Mmn_RPA;
-
-#pragma omp critical
-    { result += tempresult; }
+    thread_result[OPENMP::getThreadId()] += tempresult;
+  }
+  Eigen::MatrixXd result = Eigen::MatrixXd::Identity(size, size);
+  for (const auto& mat : thread_result) {
+    result += mat;
   }
   return result;
 }

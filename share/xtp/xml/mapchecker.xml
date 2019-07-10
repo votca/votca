@@ -1,0 +1,6 @@
+<options>
+
+<mapchecker help="Outputs .pdb files for segments, qmmolecules and classical segments to check the mapping" section="sec:mapchecker">
+</mapchecker>
+
+</options>

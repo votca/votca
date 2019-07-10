@@ -17,10 +17,10 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_NWCHEM_H
 #define __VOTCA_XTP_NWCHEM_H
 
-#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
 
 #include <string>
@@ -36,11 +36,11 @@ namespace xtp {
 */
 class NWChem : public QMPackage {
  public:
-  std::string getPackageName() { return "nwchem"; }
+  std::string getPackageName() const { return "nwchem"; }
 
   void Initialize(tools::Property& options);
 
-  bool WriteInputFile(Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals);
 
   bool Run();
 
@@ -48,24 +48,15 @@ class NWChem : public QMPackage {
 
   bool ParseLogFile(Orbitals& orbitals);
 
-  bool ParseOrbitalsFile(Orbitals& orbitals);
-
-  std::string getScratchDir() { return _scratch_dir; }
+  bool ParseMOsFile(Orbitals& orbitals);
 
  private:
   bool CheckLogFile();
   bool WriteShellScript();
-  bool WriteGuess(Orbitals& orbitals);
+  bool WriteGuess(const Orbitals& orbitals);
 
-  std::string _shell_file_name;
-  std::string _chk_file_name;
-  std::string _scratch_dir;
-  bool _is_optimization;
-
-  std::string _cleanup;
-
-  void WriteBasisset(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);
-  void WriteECP(std::ofstream& nw_file, std::vector<QMAtom*>& qmatoms);
+  void WriteBasisset(std::ofstream& nw_file, const QMMolecule& qmatoms);
+  void WriteECP(std::ofstream& nw_file, const QMMolecule& qmatoms);
 
   std::string FortranFormat(const double& number);
   int WriteBackgroundCharges(std::ofstream& nw_file);

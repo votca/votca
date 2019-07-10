@@ -31,122 +31,13 @@
 #include <votca/xtp/vc2index.h>
 #include <votca/xtp/version.h>
 
+using namespace std;
 using namespace votca::tools;
 
 namespace votca {
 namespace xtp {
 
-Orbitals::Orbitals() {
-
-  _basis_set_size = 0;
-  _occupied_levels = 0;
-  _number_alpha_electrons = 0;
-  _self_energy = 0.0;
-  _qm_energy = 0.0;
-  _ECP = "";
-  _useTDA = false;
-
-  _qpmin = 0;
-  _qpmax = 0;
-
-  _rpamin = 0;
-  _rpamax = 0;
-
-  _ScaHFX = 0.0;
-
-  _bse_cmin = 0;
-  _bse_cmax = 0;
-  _bse_vmin = 0;
-  _bse_vmax = 0;
-  _bse_vtotal = 0;
-  _bse_ctotal = 0;
-  _bse_size = 0;
-};
-
-Orbitals& Orbitals::operator=(const Orbitals& orbital) {
-  copy(orbital);
-  return *this;
-}
-
-Orbitals::Orbitals(const Orbitals& orbital) { copy(orbital); }
-
-Orbitals::~Orbitals() {
-  for (QMAtom* atom : _atoms) delete atom;
-};
-
-void Orbitals::copy(const Orbitals& orbital) {
-  _basis_set_size = orbital._basis_set_size;
-  _occupied_levels = orbital._occupied_levels;
-  _number_alpha_electrons = orbital._number_alpha_electrons;
-  _ECP = orbital._ECP;
-  _useTDA = orbital._useTDA;
-
-  _mo_energies = orbital._mo_energies;
-  _mo_coefficients = orbital._mo_coefficients;
-
-  _overlap = orbital._overlap;
-  _vxc = orbital._vxc;
-  for (QMAtom* atom : _atoms) delete atom;
-  _atoms.clear();
-  _atoms.reserve(orbital._atoms.size());
-  for (const QMAtom* atom : orbital._atoms) {
-    QMAtom* copy = new QMAtom(*atom);
-    _atoms.push_back(copy);
-  }
-  _qm_energy = orbital._qm_energy;
-  _self_energy = orbital._self_energy;
-
-  // new variables for GW-BSE storage
-  _rpamin = orbital._rpamin;
-  _rpamax = orbital._rpamax;
-
-  _qpmin = orbital._qpmin;
-  _qpmax = orbital._qpmax;
-
-  _bse_vmin = orbital._bse_vmin;
-  _bse_vmax = orbital._bse_vmax;
-  _bse_cmin = orbital._bse_cmin;
-  _bse_cmax = orbital._bse_cmax;
-  _bse_size = orbital._bse_size;
-  _bse_vtotal = orbital._bse_vtotal;
-  _bse_ctotal = orbital._bse_ctotal;
-
-  _ScaHFX = orbital._ScaHFX;
-
-  _dftbasis = orbital._dftbasis;
-  _auxbasis = orbital._auxbasis;
-  _qm_package = orbital._qm_package;
-
-  // perturbative quasiparticle energies
-  _QPpert_energies = orbital._QPpert_energies;
-
-  // quasiparticle energies and coefficients after diagonalization
-  _QPdiag_energies = orbital._QPdiag_energies;
-  _QPdiag_coefficients = orbital._QPdiag_coefficients;
-  // excitons
-
-  _BSE_singlet_energies = orbital._BSE_singlet_energies;
-  _BSE_singlet_coefficients = orbital._BSE_singlet_coefficients;
-  _BSE_singlet_coefficients_AR = orbital._BSE_singlet_coefficients_AR;
-
-  _transition_dipoles = orbital._transition_dipoles;
-  _BSE_triplet_energies = orbital._BSE_triplet_energies;
-  _BSE_triplet_coefficients = orbital._BSE_triplet_coefficients;
-  _BSE_triplet_coefficients_AR = orbital._BSE_triplet_coefficients_AR;
-
-  _DqS_frag = orbital._DqS_frag;  // fragment charge changes in exciton
-  _DqT_frag = orbital._DqT_frag;
-  _GSq_frag = orbital._GSq_frag;  // ground state effective fragment charges
-
-  _popE_s = orbital._popE_s;
-  _popE_t = orbital._popE_t;
-  _popH_s = orbital._popH_s;
-  _popH_t = orbital._popH_t;
-}
-
-void Orbitals::setNumberOfOccupiedLevels(int occupied_levels) {
-  _occupied_levels = occupied_levels;
-}
+Orbitals::Orbitals() : _atoms("", 0), _multipoles("", 0) { ; }
 
 /**
  *
@@ -181,26 +72,6 @@ std::vector<int> Orbitals::SortEnergies() {
     return this->MOEnergies()[i1] < this->MOEnergies()[i2];
   });
   return index;
-}
-
-/// Writes a PDB file
-// TODO move to filewriter PDB
-
-void Orbitals::WriteXYZ(const std::string& filename, string header) const {
-
-  std::ofstream out(filename);
-  if (!out.is_open()) {
-    throw std::runtime_error("Bad file handle: " + filename);
-  }
-  out << _atoms.size() << endl;
-  out << header << endl;
-  for (const QMAtom* atom : _atoms) {
-    const tools::vec pos = atom->getPos() * tools::conv::bohr2ang;
-    out << atom->getType() << " " << pos.getX() << " " << pos.getY() << " "
-        << pos.getZ() << endl;
-  }
-  out.close();
-  return;
 }
 
 Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
@@ -262,36 +133,18 @@ Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
   return dmatQP;
 }
 
-Eigen::Vector3d Orbitals::CalcCoM() const {
-  tools::Elements elements;
-
-  Eigen::Vector3d CoM = Eigen::Vector3d::Zero();
-  double totalmass = 0.0;
-  for (QMAtom* atom : _atoms) {
-    double mass = elements.getMass(atom->getType());
-    totalmass += mass;
-    CoM += mass * atom->getPos().toEigen();
-  }
-  CoM /= totalmass;
-  return CoM;
-}
-
-Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) {
-  Eigen::Vector3d CoM = CalcCoM();
+Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
   Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
   if (!state.isTransition()) {
-    for (QMAtom* atom : _atoms) {
-      nuclei_dip += (atom->getPos().toEigen() - CoM) * atom->getNuccharge();
+    for (const QMAtom& atom : _atoms) {
+      nuclei_dip += (atom.getPos() - _atoms.getPos()) * atom.getNuccharge();
     }
   }
-
-  BasisSet basis;
-  basis.LoadBasisSet(this->getDFTbasisName());
-  AOBasis aobasis;
-  aobasis.AOBasisFill(basis, _atoms);
+  AOBasis basis = SetupDftBasis();
   AODipole dipole;
-  dipole.setCenter(CoM);
-  dipole.Fill(aobasis);
+  dipole.setCenter(_atoms.getPos());
+  dipole.Fill(basis);
+
   Eigen::MatrixXd dmat = this->DensityMatrixFull(state);
   Eigen::Vector3d electronic_dip;
   for (int i = 0; i < 3; ++i) {
@@ -490,26 +343,6 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
   return dmatAR;
 }
 
-Eigen::VectorXd Orbitals::LoewdinPopulation(
-    const Eigen::MatrixXd& densitymatrix, const Eigen::MatrixXd& overlapmatrix,
-    int frag) {
-
-  Eigen::VectorXd fragmentCharges = Eigen::VectorXd::Zero(2);
-  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es;
-  es.compute(overlapmatrix);
-  Eigen::MatrixXd sqrt = es.operatorSqrt();
-  Eigen::MatrixXd prodmat = sqrt * densitymatrix * sqrt;
-
-  for (int i = 0; i < frag; i++) {
-    fragmentCharges(0) += prodmat(i, i);
-  }
-  for (int i = frag; i < overlapmatrix.rows(); i++) {
-    fragmentCharges(1) += prodmat(i, i);
-  }
-
-  return fragmentCharges;
-}
-
 std::vector<double> Orbitals::Oscillatorstrengths() const {
   std::vector<double> oscs;
   int size = _transition_dipoles.size();
@@ -517,7 +350,7 @@ std::vector<double> Orbitals::Oscillatorstrengths() const {
     size = _BSE_singlet_energies.size();
   }
   for (int i = 0; i < size; ++i) {
-    double osc = (_transition_dipoles[i] * _transition_dipoles[i]) * 2.0 / 3.0 *
+    double osc = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 *
                  (_BSE_singlet_energies(i));
     oscs.push_back(osc);
   }
@@ -525,7 +358,7 @@ std::vector<double> Orbitals::Oscillatorstrengths() const {
 }
 
 double Orbitals::getTotalStateEnergy(const QMState& state) const {
-  double total_energy = getQMEnergy();
+  double total_energy = getQMEnergy() * tools::conv::ev2hrt;
   if (state.Type() == QMStateType::Gstate) {
     return total_energy;
   }
@@ -583,40 +416,68 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
   return omega;  //  e.g. hartree
 }
 
-Eigen::VectorXd Orbitals::FragmentNuclearCharges(int frag) const {
+std::vector<Eigen::MatrixXd> Orbitals::CalcFreeTransition_Dipoles() const {
+  const Eigen::MatrixXd& dft_orbitals = MOCoefficients();
+  AOBasis basis = SetupDftBasis();
+  // Testing electric dipole AOMatrix
+  AODipole dft_dipole;
+  dft_dipole.Fill(basis);
 
-  if (frag < 0) {
-    throw runtime_error(
-        "Orbitals::FragmentNuclearCharges Fragment index is smaller than zero");
+  // now transition dipole elements for free interlevel transitions
+  std::vector<Eigen::MatrixXd> interlevel_dipoles;
+
+  Eigen::MatrixXd empty =
+      dft_orbitals.block(0, _bse_cmin, basis.AOBasisSize(), _bse_ctotal);
+  Eigen::MatrixXd occ =
+      dft_orbitals.block(0, _bse_vmin, basis.AOBasisSize(), _bse_vtotal);
+  for (int i_comp = 0; i_comp < 3; i_comp++) {
+    interlevel_dipoles.push_back(empty.transpose() *
+                                 dft_dipole.Matrix()[i_comp] * occ);
   }
+  return interlevel_dipoles;
+}
 
-  Eigen::VectorXd fragmentNuclearCharges = Eigen::VectorXd::Zero(2);
-  int id = 0;
-  for (const QMAtom* atom : _atoms) {
-    id++;
-    // get element type and determine its nuclear charge
-    double crg = atom->getNuccharge();
-    // add to either fragment
-    if (id <= frag) {
-      fragmentNuclearCharges(0) += crg;
-    } else {
-      fragmentNuclearCharges(1) += crg;
+void Orbitals::CalcCoupledTransition_Dipoles() {
+  std::vector<Eigen::MatrixXd> interlevel_dipoles =
+      CalcFreeTransition_Dipoles();
+  vc2index vc = vc2index(0, 0, _bse_ctotal);
+  int numofstates = _BSE_singlet_energies.size();
+  _transition_dipoles.resize(0);
+  _transition_dipoles.reserve(numofstates);
+  std::vector<Eigen::Vector3d> dipols;
+  const double sqrt2 = sqrt(2.0);
+  for (int i_exc = 0; i_exc < numofstates; i_exc++) {
+    Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
+    for (int i = 0; i < 3; i++) {
+      for (int v = 0; v < _bse_vtotal; v++) {
+        for (int c = 0; c < _bse_ctotal; c++) {
+          int index_vc = vc.I(v, c);
+          double factor = BSESingletCoefficients()(index_vc, i_exc);
+          if (!_useTDA) {
+            factor += BSESingletCoefficientsAR()(index_vc, i_exc);
+          }
+          // The Transition dipole is sqrt2 bigger because of the spin, the
+          // excited state is a linear combination of 2 slater determinants,
+          // where either alpha or beta spin electron is excited
+          tdipole[i] += factor * interlevel_dipoles[i](c, v);
+        }
+      }
     }
+    _transition_dipoles.push_back(-sqrt2 * tdipole);  //- because electrons are
+                                                      // negative
   }
-  return fragmentNuclearCharges;
 }
 
 void Orbitals::OrderMOsbyEnergy() {
-  std::vector<int> sort_index = this->SortEnergies();
-
-  Eigen::MatrixXd MOcopy = this->MOCoefficients();
-  Eigen::VectorXd Energy = this->MOEnergies();
+  std::vector<int> sort_index = SortEnergies();
+  Eigen::MatrixXd MOcopy = MOCoefficients();
+  Eigen::VectorXd Energy = MOEnergies();
 
   for (int i = 0; i < Energy.size(); ++i) {
-    this->MOEnergies()(i) = Energy(sort_index[i]);
+    MOEnergies()(i) = Energy(sort_index[i]);
   }
   for (int i = 0; i < Energy.size(); ++i) {
-    this->MOCoefficients().col(i) = MOcopy.col(sort_index[i]);
+    MOCoefficients().col(i) = MOcopy.col(sort_index[i]);
   }
 }
 
@@ -640,8 +501,7 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   int electronsA = orbitalsA.getNumberOfAlphaElectrons();
   int electronsB = orbitalsB.getNumberOfAlphaElectrons();
 
-  this->MOCoefficients() =
-      Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
+  MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
 
   // AxB = | A 0 |  //   A = [EA, EB]  //
   //       | 0 B |  //                 //
@@ -672,53 +532,8 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   energies.segment(0, levelsA) = orbitalsA.MOEnergies();
   energies.segment(levelsA, levelsB) = orbitalsB.MOEnergies();
 
-  this->OrderMOsbyEnergy();
+  OrderMOsbyEnergy();
 
-  return;
-}
-// TODO move to Filereader
-void Orbitals::LoadFromXYZ(const std::string& filename) {
-
-  string line;
-  std::ifstream in;
-  string type;
-  in.open(filename.c_str(), std::ios::in);
-  if (!in)
-    throw runtime_error(string("Error reading coordinates from: ") + filename);
-  int atomCount = 0;
-  std::getline(in, line);
-
-  Tokenizer tok1(line, " \t");
-  std::vector<std::string> line1;
-  tok1.ToVector(line1);
-  if (line1.size() != 1) {
-    throw std::runtime_error(
-        "First line of xyz file should contain number of atoms, nothing else.");
-  }
-  std::getline(in, line);  // Comment line
-
-  if (in.is_open()) {
-    while (in.good()) {
-      std::getline(in, line);
-
-      vector<string> split;
-      Tokenizer toker(line, " \t");
-      toker.ToVector(split);
-      if (split.size() < 4) {
-        continue;
-      }
-      // Interesting information written here: e.g. 'C 0.000 0.000 0.000'
-      string element = split[0];
-      double x = boost::lexical_cast<double>(split[1]);
-      double y = boost::lexical_cast<double>(split[2]);
-      double z = boost::lexical_cast<double>(split[3]);
-      tools::vec pos = tools::vec(x, y, z);
-      AddAtom(atomCount, element, pos * tools::conv::ang2bohr);
-      atomCount++;
-    }
-  } else {
-    throw std::runtime_error("No such file: '" + filename + "'.");
-  }
   return;
 }
 
@@ -740,14 +555,10 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_mo_energies, "mo_energies");
   w(_mo_coefficients, "mo_coefficients");
 
-  // write qmatoms
-  {
-    CheckpointWriter qmasWriter = w.openChild("qmatoms");
-    for (size_t idx = 0; idx < _atoms.size(); ++idx) {
-      auto qmaWriter = qmasWriter.openChild("atom" + std::to_string(idx));
-      _atoms[idx]->WriteToCpt(qmaWriter);
-    }
-  }
+  CheckpointWriter molgroup = w.openChild("qmmolecule");
+  _atoms.WriteToCpt(molgroup);
+  CheckpointWriter multigroup = w.openChild("multipoles");
+  _multipoles.WriteToCpt(multigroup);
 
   w(_qm_energy, "qm_energy");
   w(_qm_package, "qm_package");
@@ -762,7 +573,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_qpmax, "qpmax");
   w(_bse_vmin, "bse_vmin");
   w(_bse_cmax, "bse_cmax");
-
+  w(_functionalname, "XCFunctional");
   w(_ScaHFX, "ScaHFX");
 
   w(_useTDA, "useTDA");
@@ -804,32 +615,11 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_mo_coefficients, "mo_coefficients");
 
   // Read qmatoms
-  {
-    CheckpointReader qmasReader = r.openChild("qmatoms");
-    size_t count = qmasReader.getNumDataSets();
-    if (count == QMAtoms().size()) {
-      for (size_t i = 0; i < count; ++i) {
-        CheckpointReader qmaReader =
-            qmasReader.openChild("atom" + std::to_string(i));
-        QMAtoms()[i]->ReadFromCpt(qmaReader);
-      }
-    } else {
+  CheckpointReader molgroup = r.openChild("qmmolecule");
+  _atoms.ReadFromCpt(molgroup);
 
-      if (this->QMAtoms().size() > 0) {
-        std::vector<QMAtom*>::iterator it;
-        for (it = _atoms.begin(); it != _atoms.end(); ++it) delete *it;
-        _atoms.clear();
-      }
-
-      for (size_t i = 0; i < count; ++i) {
-        CheckpointReader qmaReader =
-            qmasReader.openChild("atom" + std::to_string(i));
-        QMAtom temp;
-        temp.ReadFromCpt(qmaReader);
-        AddAtom(temp);
-      }
-    }
-  }
+  CheckpointReader multigroup = r.openChild("multipoles");
+  _multipoles.ReadFromCpt(multigroup);
 
   r(_qm_energy, "qm_energy");
   r(_qm_package, "qm_package");
@@ -845,7 +635,11 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_bse_vmin, "bse_vmin");
   r(_bse_cmax, "bse_cmax");
   setBSEindices(_bse_vmin, _bse_cmax);
-
+  try {
+    r(_functionalname, "XCFunctional");
+  } catch (std::runtime_error& e) {
+    ;
+  }
   r(_ScaHFX, "ScaHFX");
   r(_useTDA, "useTDA");
   r(_ECP, "ECP");

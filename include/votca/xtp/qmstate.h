@@ -17,10 +17,14 @@
  *
  */
 
-#ifndef _VOTCA_XTP_QMSTATE_H
-#define _VOTCA_XTP_QMSTATE_H
+#pragma once
+#ifndef VOTCA_XTP_QMSTATE_H
+#define VOTCA_XTP_QMSTATE_H
 
 #include <string>
+
+#include "checkpointreader.h"
+#include "checkpointwriter.h"
 
 namespace votca {
 namespace xtp {
@@ -28,14 +32,14 @@ namespace xtp {
 class QMStateType {
  public:
   enum statetype {
-    Singlet,
-    Triplet,
+    Electron = 0,
+    Hole = 1,
+    Singlet = 2,
+    Triplet = 3,
+    Gstate = 4,
     PQPstate,
     DQPstate,
-    KSstate,
-    Gstate,
-    Electron,
-    Hole
+    KSstate
   };
 
   QMStateType(const statetype& type) : _type(type) { ; }
@@ -47,8 +51,6 @@ class QMStateType {
   void FromString(const std::string& statetypestring);
 
   std::string ToString() const;
-
-  int ToCTPIndex() const;  // returns ctp::segment id for statetype
 
   std::string ToLongString() const;
 
@@ -68,6 +70,11 @@ class QMStateType {
     return (_type == statetype::Singlet || _type == statetype::Triplet);
   }
 
+  bool isKMCState() const {
+    return (_type == statetype::Singlet || _type == statetype::Triplet ||
+            _type == statetype::Hole || _type == statetype::Electron);
+  }
+
   bool isSingleParticleState() const {
     return (_type == statetype::PQPstate || _type == statetype::DQPstate ||
             _type == KSstate);
@@ -80,6 +87,35 @@ class QMStateType {
  private:
   statetype _type;
 };
+
+/**
+ *  \brief  Storage class for properties of QMStateTypes, which can be used in
+ * KMC
+ *
+ *
+ */
+
+template <class T>
+class QMStateCarrierStorage {
+ public:
+  QMStateCarrierStorage() { _content = {0, 0, 0, 0}; }
+
+  void setValue(T value, QMStateType t) {
+    assert(t.isKMCState() &&
+           "QMStateCarrierStorage QMStateType is not for KMC simulations");
+    _content[t.Type()] = value;
+  }
+
+  T getValue(QMStateType t) const {
+    assert(t.isKMCState() &&
+           "QMStateCarrierStorage QMStateType is not for KMC simulations");
+    return _content[t.Type()];
+  }
+
+ private:
+  std::array<T, 4> _content;
+};
+
 /**
  *  \brief  Identifier for QMstates. Strings like S1 are converted into enum
  * +zero indexed int
@@ -132,4 +168,4 @@ class QMState {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_QMSTATE_H */
+#endif  // VOTCA_XTP_QMSTATE_H

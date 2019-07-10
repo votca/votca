@@ -14,10 +14,13 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_CHECKPOINT_UTILS_H
 #define VOTCA_XTP_CHECKPOINT_UTILS_H
 
 #include <H5Cpp.h>
+#include <cstddef>
+#include <cstring>
 #include <string>
 
 namespace votca {

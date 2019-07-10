@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_BSE_OPERATOR_H
 #define _VOTCA_XTP_BSE_OPERATOR_H
 
@@ -54,10 +55,8 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     _bse_size = _bse_vtotal * _bse_ctotal;
     this->set_size(_bse_size);
 
-    int threads = 1;
-#ifdef _OPENMP
-    threads = omp_get_max_threads();
-#endif
+    int threads = OPENMP::getMaxThreads();
+
     if (cx != 0) {
       _Hx_cache = std::vector<cache_block>(threads);
     }

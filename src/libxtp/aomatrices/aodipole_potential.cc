@@ -17,31 +17,29 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-
-#include <votca/xtp/aobasis.h>
-
+#include "votca/xtp/polarsite.h"
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
 
 namespace votca {
 namespace xtp {
 
 void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                                   const AOShell* shell_row,
-                                   const AOShell* shell_col) {
+                                   const AOShell& shell_row,
+                                   const AOShell& shell_col) const {
 
   const double pi = boost::math::constants::pi<double>();
 
   // Get components of dipole vector somehow
 
-  tools::vec dipole =
-      -(apolarsite->getU1() + apolarsite->getQ1()) * tools::conv::nm2bohr;
-  tools::vec position = apolarsite->getPos() * tools::conv::nm2bohr;
+  const Eigen::Vector3d dipole = -_site->getDipole();
+  const Eigen::Vector3d position = _site->getPos();
 
   // shell info, only lmax tells how far to go
-  int lmax_row = shell_row->getLmax();
-  int lmax_col = shell_col->getLmax();
+  int lmax_row = shell_row.getLmax();
+  int lmax_col = shell_col.getLmax();
   int lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
   int nrows = this->getBlockSize(lmax_row);
@@ -74,24 +72,22 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                     11, 12, 0, 13, 14, 15, 0, 16, 17, 18, 19};
 
   // get shell positions
-  const tools::vec& pos_row = shell_row->getPos();
-  const tools::vec& _pos_col = shell_col->getPos();
-  const tools::vec diff = pos_row - _pos_col;
+  const Eigen::Vector3d& pos_row = shell_row.getPos();
+  const Eigen::Vector3d& pos_col = shell_col.getPos();
+  const Eigen::Vector3d diff = pos_row - pos_col;
   // initialize some helper
 
-  double distsq = diff * diff;
+  double distsq = diff.squaredNorm();
 
   // iterate over Gaussians in this shell_row
-  for (AOShell::GaussianIterator itr = shell_row->begin();
-       itr != shell_row->end(); ++itr) {
+  for (const auto& gaussian_row : shell_row) {
     // iterate over Gaussians in this shell_col
     // get decay constant
-    const double decay_row = itr->getDecay();
+    const double decay_row = gaussian_row.getDecay();
 
-    for (AOShell::GaussianIterator itc = shell_col->begin();
-         itc != shell_col->end(); ++itc) {
+    for (const auto& gaussian_col : shell_col) {
       // get decay constant
-      const double decay_col = itc->getDecay();
+      const double decay_col = gaussian_col.getDecay();
 
       const double zeta = decay_row + decay_col;
       const double fak = 0.5 / zeta;
@@ -105,37 +101,14 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       }
 
       // some helpers
-      double PmA0 =
-          fak2 * (decay_row * pos_row.getX() + decay_col * _pos_col.getX()) -
-          pos_row.getX();
-      double PmA1 =
-          fak2 * (decay_row * pos_row.getY() + decay_col * _pos_col.getY()) -
-          pos_row.getY();
-      double PmA2 =
-          fak2 * (decay_row * pos_row.getZ() + decay_col * _pos_col.getZ()) -
-          pos_row.getZ();
+      const Eigen::Vector3d PmA =
+          fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_row;
+      const Eigen::Vector3d PmB =
+          fak2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
+      const Eigen::Vector3d PmC =
+          fak2 * (decay_row * pos_row + decay_col * pos_col) - position;
 
-      double PmB0 =
-          fak2 * (decay_row * pos_row.getX() + decay_col * _pos_col.getX()) -
-          _pos_col.getX();
-      double PmB1 =
-          fak2 * (decay_row * pos_row.getY() + decay_col * _pos_col.getY()) -
-          _pos_col.getY();
-      double PmB2 =
-          fak2 * (decay_row * pos_row.getZ() + decay_col * _pos_col.getZ()) -
-          _pos_col.getZ();
-
-      double PmC0 =
-          fak2 * (decay_row * pos_row.getX() + decay_col * _pos_col.getX()) -
-          position.getX();
-      double PmC1 =
-          fak2 * (decay_row * pos_row.getY() + decay_col * _pos_col.getY()) -
-          position.getY();
-      double PmC2 =
-          fak2 * (decay_row * pos_row.getZ() + decay_col * _pos_col.getZ()) -
-          position.getZ();
-
-      const double U = zeta * (PmC0 * PmC0 + PmC1 * PmC1 + PmC2 * PmC2);
+      const double U = zeta * PmC.squaredNorm();
 
       const std::vector<double> FmU = XIntegrate(lsum + 2, U);
 
@@ -175,9 +148,12 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       // Integrals     p - s
       if (lmax_row > 0) {
         for (int m = 0; m < lsum; m++) {
-          nuc3[Cart::x][0][m] = PmA0 * nuc3[0][0][m] - PmC0 * nuc3[0][0][m + 1];
-          nuc3[Cart::y][0][m] = PmA1 * nuc3[0][0][m] - PmC1 * nuc3[0][0][m + 1];
-          nuc3[Cart::z][0][m] = PmA2 * nuc3[0][0][m] - PmC2 * nuc3[0][0][m + 1];
+          nuc3[Cart::x][0][m] =
+              PmA(0) * nuc3[0][0][m] - PmC(0) * nuc3[0][0][m + 1];
+          nuc3[Cart::y][0][m] =
+              PmA(1) * nuc3[0][0][m] - PmC(1) * nuc3[0][0][m + 1];
+          nuc3[Cart::z][0][m] =
+              PmA(2) * nuc3[0][0][m] - PmC(2) * nuc3[0][0][m + 1];
         }
       }
       //------------------------------------------------------
@@ -186,18 +162,18 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_row > 1) {
         for (int m = 0; m < lsum - 1; m++) {
           double term = fak * (nuc3[0][0][m] - nuc3[0][0][m + 1]);
-          nuc3[Cart::xx][0][m] = PmA0 * nuc3[Cart::x][0][m] -
-                                 PmC0 * nuc3[Cart::x][0][m + 1] + term;
+          nuc3[Cart::xx][0][m] = PmA(0) * nuc3[Cart::x][0][m] -
+                                 PmC(0) * nuc3[Cart::x][0][m + 1] + term;
           nuc3[Cart::xy][0][m] =
-              PmA0 * nuc3[Cart::y][0][m] - PmC0 * nuc3[Cart::y][0][m + 1];
+              PmA(0) * nuc3[Cart::y][0][m] - PmC(0) * nuc3[Cart::y][0][m + 1];
           nuc3[Cart::xz][0][m] =
-              PmA0 * nuc3[Cart::z][0][m] - PmC0 * nuc3[Cart::z][0][m + 1];
-          nuc3[Cart::yy][0][m] = PmA1 * nuc3[Cart::y][0][m] -
-                                 PmC1 * nuc3[Cart::y][0][m + 1] + term;
+              PmA(0) * nuc3[Cart::z][0][m] - PmC(0) * nuc3[Cart::z][0][m + 1];
+          nuc3[Cart::yy][0][m] = PmA(1) * nuc3[Cart::y][0][m] -
+                                 PmC(1) * nuc3[Cart::y][0][m + 1] + term;
           nuc3[Cart::yz][0][m] =
-              PmA1 * nuc3[Cart::z][0][m] - PmC1 * nuc3[Cart::z][0][m + 1];
-          nuc3[Cart::zz][0][m] = PmA2 * nuc3[Cart::z][0][m] -
-                                 PmC2 * nuc3[Cart::z][0][m + 1] + term;
+              PmA(1) * nuc3[Cart::z][0][m] - PmC(1) * nuc3[Cart::z][0][m + 1];
+          nuc3[Cart::zz][0][m] = PmA(2) * nuc3[Cart::z][0][m] -
+                                 PmC(2) * nuc3[Cart::z][0][m + 1] + term;
         }
       }
       //------------------------------------------------------
@@ -206,27 +182,30 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_row > 2) {
         for (int m = 0; m < lsum - 2; m++) {
           nuc3[Cart::xxx][0][m] =
-              PmA0 * nuc3[Cart::xx][0][m] - PmC0 * nuc3[Cart::xx][0][m + 1] +
+              PmA(0) * nuc3[Cart::xx][0][m] -
+              PmC(0) * nuc3[Cart::xx][0][m + 1] +
               2 * fak * (nuc3[Cart::x][0][m] - nuc3[Cart::x][0][m + 1]);
           nuc3[Cart::xxy][0][m] =
-              PmA1 * nuc3[Cart::xx][0][m] - PmC1 * nuc3[Cart::xx][0][m + 1];
+              PmA(1) * nuc3[Cart::xx][0][m] - PmC(1) * nuc3[Cart::xx][0][m + 1];
           nuc3[Cart::xxz][0][m] =
-              PmA2 * nuc3[Cart::xx][0][m] - PmC2 * nuc3[Cart::xx][0][m + 1];
+              PmA(2) * nuc3[Cart::xx][0][m] - PmC(2) * nuc3[Cart::xx][0][m + 1];
           nuc3[Cart::xyy][0][m] =
-              PmA0 * nuc3[Cart::yy][0][m] - PmC0 * nuc3[Cart::yy][0][m + 1];
+              PmA(0) * nuc3[Cart::yy][0][m] - PmC(0) * nuc3[Cart::yy][0][m + 1];
           nuc3[Cart::xyz][0][m] =
-              PmA0 * nuc3[Cart::yz][0][m] - PmC0 * nuc3[Cart::yz][0][m + 1];
+              PmA(0) * nuc3[Cart::yz][0][m] - PmC(0) * nuc3[Cart::yz][0][m + 1];
           nuc3[Cart::xzz][0][m] =
-              PmA0 * nuc3[Cart::zz][0][m] - PmC0 * nuc3[Cart::zz][0][m + 1];
+              PmA(0) * nuc3[Cart::zz][0][m] - PmC(0) * nuc3[Cart::zz][0][m + 1];
           nuc3[Cart::yyy][0][m] =
-              PmA1 * nuc3[Cart::yy][0][m] - PmC1 * nuc3[Cart::yy][0][m + 1] +
+              PmA(1) * nuc3[Cart::yy][0][m] -
+              PmC(1) * nuc3[Cart::yy][0][m + 1] +
               2 * fak * (nuc3[Cart::y][0][m] - nuc3[Cart::y][0][m + 1]);
           nuc3[Cart::yyz][0][m] =
-              PmA2 * nuc3[Cart::yy][0][m] - PmC2 * nuc3[Cart::yy][0][m + 1];
+              PmA(2) * nuc3[Cart::yy][0][m] - PmC(2) * nuc3[Cart::yy][0][m + 1];
           nuc3[Cart::yzz][0][m] =
-              PmA1 * nuc3[Cart::zz][0][m] - PmC1 * nuc3[Cart::zz][0][m + 1];
+              PmA(1) * nuc3[Cart::zz][0][m] - PmC(1) * nuc3[Cart::zz][0][m + 1];
           nuc3[Cart::zzz][0][m] =
-              PmA2 * nuc3[Cart::zz][0][m] - PmC2 * nuc3[Cart::zz][0][m + 1] +
+              PmA(2) * nuc3[Cart::zz][0][m] -
+              PmC(2) * nuc3[Cart::zz][0][m + 1] +
               2 * fak * (nuc3[Cart::z][0][m] - nuc3[Cart::z][0][m + 1]);
         }
       }
@@ -241,38 +220,38 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               fak * (nuc3[Cart::yy][0][m] - nuc3[Cart::yy][0][m + 1]);
           double term_zz =
               fak * (nuc3[Cart::zz][0][m] - nuc3[Cart::zz][0][m + 1]);
-          nuc3[Cart::xxxx][0][m] = PmA0 * nuc3[Cart::xxx][0][m] -
-                                   PmC0 * nuc3[Cart::xxx][0][m + 1] +
+          nuc3[Cart::xxxx][0][m] = PmA(0) * nuc3[Cart::xxx][0][m] -
+                                   PmC(0) * nuc3[Cart::xxx][0][m + 1] +
                                    3 * term_xx;
-          nuc3[Cart::xxxy][0][m] =
-              PmA1 * nuc3[Cart::xxx][0][m] - PmC1 * nuc3[Cart::xxx][0][m + 1];
-          nuc3[Cart::xxxz][0][m] =
-              PmA2 * nuc3[Cart::xxx][0][m] - PmC2 * nuc3[Cart::xxx][0][m + 1];
-          nuc3[Cart::xxyy][0][m] = PmA0 * nuc3[Cart::xyy][0][m] -
-                                   PmC0 * nuc3[Cart::xyy][0][m + 1] + term_yy;
-          nuc3[Cart::xxyz][0][m] =
-              PmA1 * nuc3[Cart::xxz][0][m] - PmC1 * nuc3[Cart::xxz][0][m + 1];
-          nuc3[Cart::xxzz][0][m] = PmA0 * nuc3[Cart::xzz][0][m] -
-                                   PmC0 * nuc3[Cart::xzz][0][m + 1] + term_zz;
-          nuc3[Cart::xyyy][0][m] =
-              PmA0 * nuc3[Cart::yyy][0][m] - PmC0 * nuc3[Cart::yyy][0][m + 1];
-          nuc3[Cart::xyyz][0][m] =
-              PmA0 * nuc3[Cart::yyz][0][m] - PmC0 * nuc3[Cart::yyz][0][m + 1];
-          nuc3[Cart::xyzz][0][m] =
-              PmA0 * nuc3[Cart::yzz][0][m] - PmC0 * nuc3[Cart::yzz][0][m + 1];
-          nuc3[Cart::xzzz][0][m] =
-              PmA0 * nuc3[Cart::zzz][0][m] - PmC0 * nuc3[Cart::zzz][0][m + 1];
-          nuc3[Cart::yyyy][0][m] = PmA1 * nuc3[Cart::yyy][0][m] -
-                                   PmC1 * nuc3[Cart::yyy][0][m + 1] +
+          nuc3[Cart::xxxy][0][m] = PmA(1) * nuc3[Cart::xxx][0][m] -
+                                   PmC(1) * nuc3[Cart::xxx][0][m + 1];
+          nuc3[Cart::xxxz][0][m] = PmA(2) * nuc3[Cart::xxx][0][m] -
+                                   PmC(2) * nuc3[Cart::xxx][0][m + 1];
+          nuc3[Cart::xxyy][0][m] = PmA(0) * nuc3[Cart::xyy][0][m] -
+                                   PmC(0) * nuc3[Cart::xyy][0][m + 1] + term_yy;
+          nuc3[Cart::xxyz][0][m] = PmA(1) * nuc3[Cart::xxz][0][m] -
+                                   PmC(1) * nuc3[Cart::xxz][0][m + 1];
+          nuc3[Cart::xxzz][0][m] = PmA(0) * nuc3[Cart::xzz][0][m] -
+                                   PmC(0) * nuc3[Cart::xzz][0][m + 1] + term_zz;
+          nuc3[Cart::xyyy][0][m] = PmA(0) * nuc3[Cart::yyy][0][m] -
+                                   PmC(0) * nuc3[Cart::yyy][0][m + 1];
+          nuc3[Cart::xyyz][0][m] = PmA(0) * nuc3[Cart::yyz][0][m] -
+                                   PmC(0) * nuc3[Cart::yyz][0][m + 1];
+          nuc3[Cart::xyzz][0][m] = PmA(0) * nuc3[Cart::yzz][0][m] -
+                                   PmC(0) * nuc3[Cart::yzz][0][m + 1];
+          nuc3[Cart::xzzz][0][m] = PmA(0) * nuc3[Cart::zzz][0][m] -
+                                   PmC(0) * nuc3[Cart::zzz][0][m + 1];
+          nuc3[Cart::yyyy][0][m] = PmA(1) * nuc3[Cart::yyy][0][m] -
+                                   PmC(1) * nuc3[Cart::yyy][0][m + 1] +
                                    3 * term_yy;
-          nuc3[Cart::yyyz][0][m] =
-              PmA2 * nuc3[Cart::yyy][0][m] - PmC2 * nuc3[Cart::yyy][0][m + 1];
-          nuc3[Cart::yyzz][0][m] = PmA1 * nuc3[Cart::yzz][0][m] -
-                                   PmC1 * nuc3[Cart::yzz][0][m + 1] + term_zz;
-          nuc3[Cart::yzzz][0][m] =
-              PmA1 * nuc3[Cart::zzz][0][m] - PmC1 * nuc3[Cart::zzz][0][m + 1];
-          nuc3[Cart::zzzz][0][m] = PmA2 * nuc3[Cart::zzz][0][m] -
-                                   PmC2 * nuc3[Cart::zzz][0][m + 1] +
+          nuc3[Cart::yyyz][0][m] = PmA(2) * nuc3[Cart::yyy][0][m] -
+                                   PmC(2) * nuc3[Cart::yyy][0][m + 1];
+          nuc3[Cart::yyzz][0][m] = PmA(1) * nuc3[Cart::yzz][0][m] -
+                                   PmC(1) * nuc3[Cart::yzz][0][m + 1] + term_zz;
+          nuc3[Cart::yzzz][0][m] = PmA(1) * nuc3[Cart::zzz][0][m] -
+                                   PmC(1) * nuc3[Cart::zzz][0][m + 1];
+          nuc3[Cart::zzzz][0][m] = PmA(2) * nuc3[Cart::zzz][0][m] -
+                                   PmC(2) * nuc3[Cart::zzz][0][m + 1] +
                                    3 * term_zz;
         }
       }
@@ -282,9 +261,12 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
         // Integrals     s - p
         for (int m = 0; m < lmax_col; m++) {
-          nuc3[0][Cart::x][m] = PmB0 * nuc3[0][0][m] - PmC0 * nuc3[0][0][m + 1];
-          nuc3[0][Cart::y][m] = PmB1 * nuc3[0][0][m] - PmC1 * nuc3[0][0][m + 1];
-          nuc3[0][Cart::z][m] = PmB2 * nuc3[0][0][m] - PmC2 * nuc3[0][0][m + 1];
+          nuc3[0][Cart::x][m] =
+              PmB(0) * nuc3[0][0][m] - PmC(0) * nuc3[0][0][m + 1];
+          nuc3[0][Cart::y][m] =
+              PmB(1) * nuc3[0][0][m] - PmC(1) * nuc3[0][0][m + 1];
+          nuc3[0][Cart::z][m] =
+              PmB(2) * nuc3[0][0][m] - PmC(2) * nuc3[0][0][m + 1];
         }
         //------------------------------------------------------
 
@@ -293,12 +275,12 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           for (int m = 0; m < lmax_col; m++) {
             double term = fak * (nuc3[0][0][m] - nuc3[0][0][m + 1]);
             for (int i = 1; i < 4; i++) {
-              nuc3[i][Cart::x][m] = PmB0 * nuc3[i][0][m] -
-                                    PmC0 * nuc3[i][0][m + 1] + nx[i] * term;
-              nuc3[i][Cart::y][m] = PmB1 * nuc3[i][0][m] -
-                                    PmC1 * nuc3[i][0][m + 1] + ny[i] * term;
-              nuc3[i][Cart::z][m] = PmB2 * nuc3[i][0][m] -
-                                    PmC2 * nuc3[i][0][m + 1] + nz[i] * term;
+              nuc3[i][Cart::x][m] = PmB(0) * nuc3[i][0][m] -
+                                    PmC(0) * nuc3[i][0][m + 1] + nx[i] * term;
+              nuc3[i][Cart::y][m] = PmB(1) * nuc3[i][0][m] -
+                                    PmC(1) * nuc3[i][0][m + 1] + ny[i] * term;
+              nuc3[i][Cart::z][m] = PmB(2) * nuc3[i][0][m] -
+                                    PmC(2) * nuc3[i][0][m + 1] + nz[i] * term;
             }
           }
         }
@@ -314,13 +296,13 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             int ily_i = i_less_y[i];
             int ilz_i = i_less_z[i];
             nuc3[i][Cart::x][m] =
-                PmB0 * nuc3[i][0][m] - PmC0 * nuc3[i][0][m + 1] +
+                PmB(0) * nuc3[i][0][m] - PmC(0) * nuc3[i][0][m + 1] +
                 nx_i * fak * (nuc3[ilx_i][0][m] - nuc3[ilx_i][0][m + 1]);
             nuc3[i][Cart::y][m] =
-                PmB1 * nuc3[i][0][m] - PmC1 * nuc3[i][0][m + 1] +
+                PmB(1) * nuc3[i][0][m] - PmC(1) * nuc3[i][0][m + 1] +
                 ny_i * fak * (nuc3[ily_i][0][m] - nuc3[ily_i][0][m + 1]);
             nuc3[i][Cart::z][m] =
-                PmB2 * nuc3[i][0][m] - PmC2 * nuc3[i][0][m + 1] +
+                PmB(2) * nuc3[i][0][m] - PmC(2) * nuc3[i][0][m + 1] +
                 nz_i * fak * (nuc3[ilz_i][0][m] - nuc3[ilz_i][0][m + 1]);
           }
         }
@@ -333,18 +315,18 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         // Integrals     s - d
         for (int m = 0; m < lmax_col - 1; m++) {
           double term = fak * (nuc3[0][0][m] - nuc3[0][0][m + 1]);
-          nuc3[0][Cart::xx][m] = PmB0 * nuc3[0][Cart::x][m] -
-                                 PmC0 * nuc3[0][Cart::x][m + 1] + term;
+          nuc3[0][Cart::xx][m] = PmB(0) * nuc3[0][Cart::x][m] -
+                                 PmC(0) * nuc3[0][Cart::x][m + 1] + term;
           nuc3[0][Cart::xy][m] =
-              PmB0 * nuc3[0][Cart::y][m] - PmC0 * nuc3[0][Cart::y][m + 1];
+              PmB(0) * nuc3[0][Cart::y][m] - PmC(0) * nuc3[0][Cart::y][m + 1];
           nuc3[0][Cart::xz][m] =
-              PmB0 * nuc3[0][Cart::z][m] - PmC0 * nuc3[0][Cart::z][m + 1];
-          nuc3[0][Cart::yy][m] = PmB1 * nuc3[0][Cart::y][m] -
-                                 PmC1 * nuc3[0][Cart::y][m + 1] + term;
+              PmB(0) * nuc3[0][Cart::z][m] - PmC(0) * nuc3[0][Cart::z][m + 1];
+          nuc3[0][Cart::yy][m] = PmB(1) * nuc3[0][Cart::y][m] -
+                                 PmC(1) * nuc3[0][Cart::y][m + 1] + term;
           nuc3[0][Cart::yz][m] =
-              PmB1 * nuc3[0][Cart::z][m] - PmC1 * nuc3[0][Cart::z][m + 1];
-          nuc3[0][Cart::zz][m] = PmB2 * nuc3[0][Cart::z][m] -
-                                 PmC2 * nuc3[0][Cart::z][m + 1] + term;
+              PmB(1) * nuc3[0][Cart::z][m] - PmC(1) * nuc3[0][Cart::z][m + 1];
+          nuc3[0][Cart::zz][m] = PmB(2) * nuc3[0][Cart::z][m] -
+                                 PmC(2) * nuc3[0][Cart::z][m + 1] + term;
         }
         //------------------------------------------------------
 
@@ -359,29 +341,35 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             int ilz_i = i_less_z[i];
             double term = fak * (nuc3[i][0][m] - nuc3[i][0][m + 1]);
             nuc3[i][Cart::xx][m] =
-                PmB0 * nuc3[i][Cart::x][m] - PmC0 * nuc3[i][Cart::x][m + 1] +
+                PmB(0) * nuc3[i][Cart::x][m] -
+                PmC(0) * nuc3[i][Cart::x][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::x][m] - nuc3[ilx_i][Cart::x][m + 1]) +
                 term;
             nuc3[i][Cart::xy][m] =
-                PmB0 * nuc3[i][Cart::y][m] - PmC0 * nuc3[i][Cart::y][m + 1] +
+                PmB(0) * nuc3[i][Cart::y][m] -
+                PmC(0) * nuc3[i][Cart::y][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::y][m] - nuc3[ilx_i][Cart::y][m + 1]);
             nuc3[i][Cart::xz][m] =
-                PmB0 * nuc3[i][Cart::z][m] - PmC0 * nuc3[i][Cart::z][m + 1] +
+                PmB(0) * nuc3[i][Cart::z][m] -
+                PmC(0) * nuc3[i][Cart::z][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::z][m] - nuc3[ilx_i][Cart::z][m + 1]);
             nuc3[i][Cart::yy][m] =
-                PmB1 * nuc3[i][Cart::y][m] - PmC1 * nuc3[i][Cart::y][m + 1] +
+                PmB(1) * nuc3[i][Cart::y][m] -
+                PmC(1) * nuc3[i][Cart::y][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::y][m] - nuc3[ily_i][Cart::y][m + 1]) +
                 term;
             nuc3[i][Cart::yz][m] =
-                PmB1 * nuc3[i][Cart::z][m] - PmC1 * nuc3[i][Cart::z][m + 1] +
+                PmB(1) * nuc3[i][Cart::z][m] -
+                PmC(1) * nuc3[i][Cart::z][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::z][m] - nuc3[ily_i][Cart::z][m + 1]);
             nuc3[i][Cart::zz][m] =
-                PmB2 * nuc3[i][Cart::z][m] - PmC2 * nuc3[i][Cart::z][m + 1] +
+                PmB(2) * nuc3[i][Cart::z][m] -
+                PmC(2) * nuc3[i][Cart::z][m + 1] +
                 nz_i * fak *
                     (nuc3[ilz_i][Cart::z][m] - nuc3[ilz_i][Cart::z][m + 1]) +
                 term;
@@ -396,27 +384,30 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         // Integrals     s - f
         for (int m = 0; m < lmax_col - 2; m++) {
           nuc3[0][Cart::xxx][m] =
-              PmB0 * nuc3[0][Cart::xx][m] - PmC0 * nuc3[0][Cart::xx][m + 1] +
+              PmB(0) * nuc3[0][Cart::xx][m] -
+              PmC(0) * nuc3[0][Cart::xx][m + 1] +
               2 * fak * (nuc3[0][Cart::x][m] - nuc3[0][Cart::x][m + 1]);
           nuc3[0][Cart::xxy][m] =
-              PmB1 * nuc3[0][Cart::xx][m] - PmC1 * nuc3[0][Cart::xx][m + 1];
+              PmB(1) * nuc3[0][Cart::xx][m] - PmC(1) * nuc3[0][Cart::xx][m + 1];
           nuc3[0][Cart::xxz][m] =
-              PmB2 * nuc3[0][Cart::xx][m] - PmC2 * nuc3[0][Cart::xx][m + 1];
+              PmB(2) * nuc3[0][Cart::xx][m] - PmC(2) * nuc3[0][Cart::xx][m + 1];
           nuc3[0][Cart::xyy][m] =
-              PmB0 * nuc3[0][Cart::yy][m] - PmC0 * nuc3[0][Cart::yy][m + 1];
+              PmB(0) * nuc3[0][Cart::yy][m] - PmC(0) * nuc3[0][Cart::yy][m + 1];
           nuc3[0][Cart::xyz][m] =
-              PmB0 * nuc3[0][Cart::yz][m] - PmC0 * nuc3[0][Cart::yz][m + 1];
+              PmB(0) * nuc3[0][Cart::yz][m] - PmC(0) * nuc3[0][Cart::yz][m + 1];
           nuc3[0][Cart::xzz][m] =
-              PmB0 * nuc3[0][Cart::zz][m] - PmC0 * nuc3[0][Cart::zz][m + 1];
+              PmB(0) * nuc3[0][Cart::zz][m] - PmC(0) * nuc3[0][Cart::zz][m + 1];
           nuc3[0][Cart::yyy][m] =
-              PmB1 * nuc3[0][Cart::yy][m] - PmC1 * nuc3[0][Cart::yy][m + 1] +
+              PmB(1) * nuc3[0][Cart::yy][m] -
+              PmC(1) * nuc3[0][Cart::yy][m + 1] +
               2 * fak * (nuc3[0][Cart::y][m] - nuc3[0][Cart::y][m + 1]);
           nuc3[0][Cart::yyz][m] =
-              PmB2 * nuc3[0][Cart::yy][m] - PmC2 * nuc3[0][Cart::yy][m + 1];
+              PmB(2) * nuc3[0][Cart::yy][m] - PmC(2) * nuc3[0][Cart::yy][m + 1];
           nuc3[0][Cart::yzz][m] =
-              PmB1 * nuc3[0][Cart::zz][m] - PmC1 * nuc3[0][Cart::zz][m + 1];
+              PmB(1) * nuc3[0][Cart::zz][m] - PmC(1) * nuc3[0][Cart::zz][m + 1];
           nuc3[0][Cart::zzz][m] =
-              PmB2 * nuc3[0][Cart::zz][m] - PmC2 * nuc3[0][Cart::zz][m + 1] +
+              PmB(2) * nuc3[0][Cart::zz][m] -
+              PmC(2) * nuc3[0][Cart::zz][m + 1] +
               2 * fak * (nuc3[0][Cart::z][m] - nuc3[0][Cart::z][m + 1]);
         }
         //------------------------------------------------------
@@ -437,45 +428,55 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             double term_z =
                 2 * fak * (nuc3[i][Cart::z][m] - nuc3[i][Cart::z][m + 1]);
             nuc3[i][Cart::xxx][m] =
-                PmB0 * nuc3[i][Cart::xx][m] - PmC0 * nuc3[i][Cart::xx][m + 1] +
+                PmB(0) * nuc3[i][Cart::xx][m] -
+                PmC(0) * nuc3[i][Cart::xx][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::xx][m] - nuc3[ilx_i][Cart::xx][m + 1]) +
                 term_x;
             nuc3[i][Cart::xxy][m] =
-                PmB1 * nuc3[i][Cart::xx][m] - PmC1 * nuc3[i][Cart::xx][m + 1] +
+                PmB(1) * nuc3[i][Cart::xx][m] -
+                PmC(1) * nuc3[i][Cart::xx][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::xx][m] - nuc3[ily_i][Cart::xx][m + 1]);
             nuc3[i][Cart::xxz][m] =
-                PmB2 * nuc3[i][Cart::xx][m] - PmC2 * nuc3[i][Cart::xx][m + 1] +
+                PmB(2) * nuc3[i][Cart::xx][m] -
+                PmC(2) * nuc3[i][Cart::xx][m + 1] +
                 nz_i * fak *
                     (nuc3[ilz_i][Cart::xx][m] - nuc3[ilz_i][Cart::xx][m + 1]);
             nuc3[i][Cart::xyy][m] =
-                PmB0 * nuc3[i][Cart::yy][m] - PmC0 * nuc3[i][Cart::yy][m + 1] +
+                PmB(0) * nuc3[i][Cart::yy][m] -
+                PmC(0) * nuc3[i][Cart::yy][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::yy][m] - nuc3[ilx_i][Cart::yy][m + 1]);
             nuc3[i][Cart::xyz][m] =
-                PmB0 * nuc3[i][Cart::yz][m] - PmC0 * nuc3[i][Cart::yz][m + 1] +
+                PmB(0) * nuc3[i][Cart::yz][m] -
+                PmC(0) * nuc3[i][Cart::yz][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::yz][m] - nuc3[ilx_i][Cart::yz][m + 1]);
             nuc3[i][Cart::xzz][m] =
-                PmB0 * nuc3[i][Cart::zz][m] - PmC0 * nuc3[i][Cart::zz][m + 1] +
+                PmB(0) * nuc3[i][Cart::zz][m] -
+                PmC(0) * nuc3[i][Cart::zz][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::zz][m] - nuc3[ilx_i][Cart::zz][m + 1]);
             nuc3[i][Cart::yyy][m] =
-                PmB1 * nuc3[i][Cart::yy][m] - PmC1 * nuc3[i][Cart::yy][m + 1] +
+                PmB(1) * nuc3[i][Cart::yy][m] -
+                PmC(1) * nuc3[i][Cart::yy][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::yy][m] - nuc3[ily_i][Cart::yy][m + 1]) +
                 term_y;
             nuc3[i][Cart::yyz][m] =
-                PmB2 * nuc3[i][Cart::yy][m] - PmC2 * nuc3[i][Cart::yy][m + 1] +
+                PmB(2) * nuc3[i][Cart::yy][m] -
+                PmC(2) * nuc3[i][Cart::yy][m + 1] +
                 nz_i * fak *
                     (nuc3[ilz_i][Cart::yy][m] - nuc3[ilz_i][Cart::yy][m + 1]);
             nuc3[i][Cart::yzz][m] =
-                PmB1 * nuc3[i][Cart::zz][m] - PmC1 * nuc3[i][Cart::zz][m + 1] +
+                PmB(1) * nuc3[i][Cart::zz][m] -
+                PmC(1) * nuc3[i][Cart::zz][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::zz][m] - nuc3[ily_i][Cart::zz][m + 1]);
             nuc3[i][Cart::zzz][m] =
-                PmB2 * nuc3[i][Cart::zz][m] - PmC2 * nuc3[i][Cart::zz][m + 1] +
+                PmB(2) * nuc3[i][Cart::zz][m] -
+                PmC(2) * nuc3[i][Cart::zz][m + 1] +
                 nz_i * fak *
                     (nuc3[ilz_i][Cart::zz][m] - nuc3[ilz_i][Cart::zz][m + 1]) +
                 term_z;
@@ -495,38 +496,38 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               fak * (nuc3[0][Cart::yy][m] - nuc3[0][Cart::yy][m + 1]);
           double term_zz =
               fak * (nuc3[0][Cart::zz][m] - nuc3[0][Cart::zz][m + 1]);
-          nuc3[0][Cart::xxxx][m] = PmB0 * nuc3[0][Cart::xxx][m] -
-                                   PmC0 * nuc3[0][Cart::xxx][m + 1] +
+          nuc3[0][Cart::xxxx][m] = PmB(0) * nuc3[0][Cart::xxx][m] -
+                                   PmC(0) * nuc3[0][Cart::xxx][m + 1] +
                                    3 * term_xx;
-          nuc3[0][Cart::xxxy][m] =
-              PmB1 * nuc3[0][Cart::xxx][m] - PmC1 * nuc3[0][Cart::xxx][m + 1];
-          nuc3[0][Cart::xxxz][m] =
-              PmB2 * nuc3[0][Cart::xxx][m] - PmC2 * nuc3[0][Cart::xxx][m + 1];
-          nuc3[0][Cart::xxyy][m] = PmB0 * nuc3[0][Cart::xyy][m] -
-                                   PmC0 * nuc3[0][Cart::xyy][m + 1] + term_yy;
-          nuc3[0][Cart::xxyz][m] =
-              PmB1 * nuc3[0][Cart::xxz][m] - PmC1 * nuc3[0][Cart::xxz][m + 1];
-          nuc3[0][Cart::xxzz][m] = PmB0 * nuc3[0][Cart::xzz][m] -
-                                   PmC0 * nuc3[0][Cart::xzz][m + 1] + term_zz;
-          nuc3[0][Cart::xyyy][m] =
-              PmB0 * nuc3[0][Cart::yyy][m] - PmC0 * nuc3[0][Cart::yyy][m + 1];
-          nuc3[0][Cart::xyyz][m] =
-              PmB0 * nuc3[0][Cart::yyz][m] - PmC0 * nuc3[0][Cart::yyz][m + 1];
-          nuc3[0][Cart::xyzz][m] =
-              PmB0 * nuc3[0][Cart::yzz][m] - PmC0 * nuc3[0][Cart::yzz][m + 1];
-          nuc3[0][Cart::xzzz][m] =
-              PmB0 * nuc3[0][Cart::zzz][m] - PmC0 * nuc3[0][Cart::zzz][m + 1];
-          nuc3[0][Cart::yyyy][m] = PmB1 * nuc3[0][Cart::yyy][m] -
-                                   PmC1 * nuc3[0][Cart::yyy][m + 1] +
+          nuc3[0][Cart::xxxy][m] = PmB(1) * nuc3[0][Cart::xxx][m] -
+                                   PmC(1) * nuc3[0][Cart::xxx][m + 1];
+          nuc3[0][Cart::xxxz][m] = PmB(2) * nuc3[0][Cart::xxx][m] -
+                                   PmC(2) * nuc3[0][Cart::xxx][m + 1];
+          nuc3[0][Cart::xxyy][m] = PmB(0) * nuc3[0][Cart::xyy][m] -
+                                   PmC(0) * nuc3[0][Cart::xyy][m + 1] + term_yy;
+          nuc3[0][Cart::xxyz][m] = PmB(1) * nuc3[0][Cart::xxz][m] -
+                                   PmC(1) * nuc3[0][Cart::xxz][m + 1];
+          nuc3[0][Cart::xxzz][m] = PmB(0) * nuc3[0][Cart::xzz][m] -
+                                   PmC(0) * nuc3[0][Cart::xzz][m + 1] + term_zz;
+          nuc3[0][Cart::xyyy][m] = PmB(0) * nuc3[0][Cart::yyy][m] -
+                                   PmC(0) * nuc3[0][Cart::yyy][m + 1];
+          nuc3[0][Cart::xyyz][m] = PmB(0) * nuc3[0][Cart::yyz][m] -
+                                   PmC(0) * nuc3[0][Cart::yyz][m + 1];
+          nuc3[0][Cart::xyzz][m] = PmB(0) * nuc3[0][Cart::yzz][m] -
+                                   PmC(0) * nuc3[0][Cart::yzz][m + 1];
+          nuc3[0][Cart::xzzz][m] = PmB(0) * nuc3[0][Cart::zzz][m] -
+                                   PmC(0) * nuc3[0][Cart::zzz][m + 1];
+          nuc3[0][Cart::yyyy][m] = PmB(1) * nuc3[0][Cart::yyy][m] -
+                                   PmC(1) * nuc3[0][Cart::yyy][m + 1] +
                                    3 * term_yy;
-          nuc3[0][Cart::yyyz][m] =
-              PmB2 * nuc3[0][Cart::yyy][m] - PmC2 * nuc3[0][Cart::yyy][m + 1];
-          nuc3[0][Cart::yyzz][m] = PmB1 * nuc3[0][Cart::yzz][m] -
-                                   PmC1 * nuc3[0][Cart::yzz][m + 1] + term_zz;
-          nuc3[0][Cart::yzzz][m] =
-              PmB1 * nuc3[0][Cart::zzz][m] - PmC1 * nuc3[0][Cart::zzz][m + 1];
-          nuc3[0][Cart::zzzz][m] = PmB2 * nuc3[0][Cart::zzz][m] -
-                                   PmC2 * nuc3[0][Cart::zzz][m + 1] +
+          nuc3[0][Cart::yyyz][m] = PmB(2) * nuc3[0][Cart::yyy][m] -
+                                   PmC(2) * nuc3[0][Cart::yyy][m + 1];
+          nuc3[0][Cart::yyzz][m] = PmB(1) * nuc3[0][Cart::yzz][m] -
+                                   PmC(1) * nuc3[0][Cart::yzz][m + 1] + term_zz;
+          nuc3[0][Cart::yzzz][m] = PmB(1) * nuc3[0][Cart::zzz][m] -
+                                   PmC(1) * nuc3[0][Cart::zzz][m + 1];
+          nuc3[0][Cart::zzzz][m] = PmB(2) * nuc3[0][Cart::zzz][m] -
+                                   PmC(2) * nuc3[0][Cart::zzz][m + 1] +
                                    3 * term_zz;
         }
         //------------------------------------------------------
@@ -546,83 +547,83 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                 fak * (nuc3[i][Cart::yy][m] - nuc3[i][Cart::yy][m + 1]);
             double term_zz =
                 fak * (nuc3[i][Cart::zz][m] - nuc3[i][Cart::zz][m + 1]);
-            nuc3[i][Cart::xxxx][m] = PmB0 * nuc3[i][Cart::xxx][m] -
-                                     PmC0 * nuc3[i][Cart::xxx][m + 1] +
+            nuc3[i][Cart::xxxx][m] = PmB(0) * nuc3[i][Cart::xxx][m] -
+                                     PmC(0) * nuc3[i][Cart::xxx][m + 1] +
                                      nx_i * fak *
                                          (nuc3[ilx_i][Cart::xxx][m] -
                                           nuc3[ilx_i][Cart::xxx][m + 1]) +
                                      3 * term_xx;
             nuc3[i][Cart::xxxy][m] =
-                PmB1 * nuc3[i][Cart::xxx][m] -
-                PmC1 * nuc3[i][Cart::xxx][m + 1] +
+                PmB(1) * nuc3[i][Cart::xxx][m] -
+                PmC(1) * nuc3[i][Cart::xxx][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::xxx][m] - nuc3[ily_i][Cart::xxx][m + 1]);
             nuc3[i][Cart::xxxz][m] =
-                PmB2 * nuc3[i][Cart::xxx][m] -
-                PmC2 * nuc3[i][Cart::xxx][m + 1] +
+                PmB(2) * nuc3[i][Cart::xxx][m] -
+                PmC(2) * nuc3[i][Cart::xxx][m + 1] +
                 nz_i * fak *
                     (nuc3[ilz_i][Cart::xxx][m] - nuc3[ilz_i][Cart::xxx][m + 1]);
-            nuc3[i][Cart::xxyy][m] = PmB0 * nuc3[i][Cart::xyy][m] -
-                                     PmC0 * nuc3[i][Cart::xyy][m + 1] +
+            nuc3[i][Cart::xxyy][m] = PmB(0) * nuc3[i][Cart::xyy][m] -
+                                     PmC(0) * nuc3[i][Cart::xyy][m + 1] +
                                      nx_i * fak *
                                          (nuc3[ilx_i][Cart::xyy][m] -
                                           nuc3[ilx_i][Cart::xyy][m + 1]) +
                                      term_yy;
             nuc3[i][Cart::xxyz][m] =
-                PmB1 * nuc3[i][Cart::xxz][m] -
-                PmC1 * nuc3[i][Cart::xxz][m + 1] +
+                PmB(1) * nuc3[i][Cart::xxz][m] -
+                PmC(1) * nuc3[i][Cart::xxz][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::xxz][m] - nuc3[ily_i][Cart::xxz][m + 1]);
-            nuc3[i][Cart::xxzz][m] = PmB0 * nuc3[i][Cart::xzz][m] -
-                                     PmC0 * nuc3[i][Cart::xzz][m + 1] +
+            nuc3[i][Cart::xxzz][m] = PmB(0) * nuc3[i][Cart::xzz][m] -
+                                     PmC(0) * nuc3[i][Cart::xzz][m + 1] +
                                      nx_i * fak *
                                          (nuc3[ilx_i][Cart::xzz][m] -
                                           nuc3[ilx_i][Cart::xzz][m + 1]) +
                                      term_zz;
             nuc3[i][Cart::xyyy][m] =
-                PmB0 * nuc3[i][Cart::yyy][m] -
-                PmC0 * nuc3[i][Cart::yyy][m + 1] +
+                PmB(0) * nuc3[i][Cart::yyy][m] -
+                PmC(0) * nuc3[i][Cart::yyy][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::yyy][m] - nuc3[ilx_i][Cart::yyy][m + 1]);
             nuc3[i][Cart::xyyz][m] =
-                PmB0 * nuc3[i][Cart::yyz][m] -
-                PmC0 * nuc3[i][Cart::yyz][m + 1] +
+                PmB(0) * nuc3[i][Cart::yyz][m] -
+                PmC(0) * nuc3[i][Cart::yyz][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::yyz][m] - nuc3[ilx_i][Cart::yyz][m + 1]);
             nuc3[i][Cart::xyzz][m] =
-                PmB0 * nuc3[i][Cart::yzz][m] -
-                PmC0 * nuc3[i][Cart::yzz][m + 1] +
+                PmB(0) * nuc3[i][Cart::yzz][m] -
+                PmC(0) * nuc3[i][Cart::yzz][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::yzz][m] - nuc3[ilx_i][Cart::yzz][m + 1]);
             nuc3[i][Cart::xzzz][m] =
-                PmB0 * nuc3[i][Cart::zzz][m] -
-                PmC0 * nuc3[i][Cart::zzz][m + 1] +
+                PmB(0) * nuc3[i][Cart::zzz][m] -
+                PmC(0) * nuc3[i][Cart::zzz][m + 1] +
                 nx_i * fak *
                     (nuc3[ilx_i][Cart::zzz][m] - nuc3[ilx_i][Cart::zzz][m + 1]);
-            nuc3[i][Cart::yyyy][m] = PmB1 * nuc3[i][Cart::yyy][m] -
-                                     PmC1 * nuc3[i][Cart::yyy][m + 1] +
+            nuc3[i][Cart::yyyy][m] = PmB(1) * nuc3[i][Cart::yyy][m] -
+                                     PmC(1) * nuc3[i][Cart::yyy][m + 1] +
                                      ny_i * fak *
                                          (nuc3[ily_i][Cart::yyy][m] -
                                           nuc3[ily_i][Cart::yyy][m + 1]) +
                                      3 * term_yy;
             nuc3[i][Cart::yyyz][m] =
-                PmB2 * nuc3[i][Cart::yyy][m] -
-                PmC2 * nuc3[i][Cart::yyy][m + 1] +
+                PmB(2) * nuc3[i][Cart::yyy][m] -
+                PmC(2) * nuc3[i][Cart::yyy][m + 1] +
                 nz_i * fak *
                     (nuc3[ilz_i][Cart::yyy][m] - nuc3[ilz_i][Cart::yyy][m + 1]);
-            nuc3[i][Cart::yyzz][m] = PmB1 * nuc3[i][Cart::yzz][m] -
-                                     PmC1 * nuc3[i][Cart::yzz][m + 1] +
+            nuc3[i][Cart::yyzz][m] = PmB(1) * nuc3[i][Cart::yzz][m] -
+                                     PmC(1) * nuc3[i][Cart::yzz][m + 1] +
                                      ny_i * fak *
                                          (nuc3[ily_i][Cart::yzz][m] -
                                           nuc3[ily_i][Cart::yzz][m + 1]) +
                                      term_zz;
             nuc3[i][Cart::yzzz][m] =
-                PmB1 * nuc3[i][Cart::zzz][m] -
-                PmC1 * nuc3[i][Cart::zzz][m + 1] +
+                PmB(1) * nuc3[i][Cart::zzz][m] -
+                PmC(1) * nuc3[i][Cart::zzz][m + 1] +
                 ny_i * fak *
                     (nuc3[ily_i][Cart::zzz][m] - nuc3[ily_i][Cart::zzz][m + 1]);
-            nuc3[i][Cart::zzzz][m] = PmB2 * nuc3[i][Cart::zzz][m] -
-                                     PmC2 * nuc3[i][Cart::zzz][m + 1] +
+            nuc3[i][Cart::zzzz][m] = PmB(2) * nuc3[i][Cart::zzz][m] -
+                                     PmC(2) * nuc3[i][Cart::zzz][m + 1] +
                                      nz_i * fak *
                                          (nuc3[ilz_i][Cart::zzz][m] -
                                           nuc3[ilz_i][Cart::zzz][m + 1]) +
@@ -636,9 +637,9 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       // (s-s element normiert )
       double _prefactor_dip = 2. * zeta * _prefactor;
       for (int m = 0; m < lsum + 1; m++) {
-        dip4[0][0][0][m] = PmC0 * _prefactor_dip * FmU[m + 1];
-        dip4[0][0][1][m] = PmC1 * _prefactor_dip * FmU[m + 1];
-        dip4[0][0][2][m] = PmC2 * _prefactor_dip * FmU[m + 1];
+        dip4[0][0][0][m] = PmC(0) * _prefactor_dip * FmU[m + 1];
+        dip4[0][0][1][m] = PmC(1) * _prefactor_dip * FmU[m + 1];
+        dip4[0][0][2][m] = PmC(2) * _prefactor_dip * FmU[m + 1];
       }
       //------------------------------------------------------
 
@@ -646,14 +647,14 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_row > 0) {
         for (int m = 0; m < lsum; m++) {
           for (int k = 0; k < 3; k++) {
-            dip4[Cart::x][0][k][m] = PmA0 * dip4[0][0][k][m] -
-                                     PmC0 * dip4[0][0][k][m + 1] +
+            dip4[Cart::x][0][k][m] = PmA(0) * dip4[0][0][k][m] -
+                                     PmC(0) * dip4[0][0][k][m + 1] +
                                      (k == 0) * nuc3[0][0][m + 1];
-            dip4[Cart::y][0][k][m] = PmA1 * dip4[0][0][k][m] -
-                                     PmC1 * dip4[0][0][k][m + 1] +
+            dip4[Cart::y][0][k][m] = PmA(1) * dip4[0][0][k][m] -
+                                     PmC(1) * dip4[0][0][k][m + 1] +
                                      (k == 1) * nuc3[0][0][m + 1];
-            dip4[Cart::z][0][k][m] = PmA2 * dip4[0][0][k][m] -
-                                     PmC2 * dip4[0][0][k][m + 1] +
+            dip4[Cart::z][0][k][m] = PmA(2) * dip4[0][0][k][m] -
+                                     PmC(2) * dip4[0][0][k][m + 1] +
                                      (k == 2) * nuc3[0][0][m + 1];
           }
         }
@@ -665,23 +666,23 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int m = 0; m < lsum - 1; m++) {
           for (int k = 0; k < 3; k++) {
             double term = fak * (dip4[0][0][k][m] - dip4[0][0][k][m + 1]);
-            dip4[Cart::xx][0][k][m] = PmA0 * dip4[Cart::x][0][k][m] -
-                                      PmC0 * dip4[Cart::x][0][k][m + 1] +
+            dip4[Cart::xx][0][k][m] = PmA(0) * dip4[Cart::x][0][k][m] -
+                                      PmC(0) * dip4[Cart::x][0][k][m + 1] +
                                       (k == 0) * nuc3[Cart::x][0][m + 1] + term;
-            dip4[Cart::xy][0][k][m] = PmA0 * dip4[Cart::y][0][k][m] -
-                                      PmC0 * dip4[Cart::y][0][k][m + 1] +
+            dip4[Cart::xy][0][k][m] = PmA(0) * dip4[Cart::y][0][k][m] -
+                                      PmC(0) * dip4[Cart::y][0][k][m + 1] +
                                       (k == 0) * nuc3[Cart::y][0][m + 1];
-            dip4[Cart::xz][0][k][m] = PmA0 * dip4[Cart::z][0][k][m] -
-                                      PmC0 * dip4[Cart::z][0][k][m + 1] +
+            dip4[Cart::xz][0][k][m] = PmA(0) * dip4[Cart::z][0][k][m] -
+                                      PmC(0) * dip4[Cart::z][0][k][m + 1] +
                                       (k == 0) * nuc3[Cart::z][0][m + 1];
-            dip4[Cart::yy][0][k][m] = PmA1 * dip4[Cart::y][0][k][m] -
-                                      PmC1 * dip4[Cart::y][0][k][m + 1] +
+            dip4[Cart::yy][0][k][m] = PmA(1) * dip4[Cart::y][0][k][m] -
+                                      PmC(1) * dip4[Cart::y][0][k][m + 1] +
                                       (k == 1) * nuc3[Cart::y][0][m + 1] + term;
-            dip4[Cart::yz][0][k][m] = PmA1 * dip4[Cart::z][0][k][m] -
-                                      PmC1 * dip4[Cart::z][0][k][m + 1] +
+            dip4[Cart::yz][0][k][m] = PmA(1) * dip4[Cart::z][0][k][m] -
+                                      PmC(1) * dip4[Cart::z][0][k][m + 1] +
                                       (k == 1) * nuc3[Cart::z][0][m + 1];
-            dip4[Cart::zz][0][k][m] = PmA2 * dip4[Cart::z][0][k][m] -
-                                      PmC2 * dip4[Cart::z][0][k][m + 1] +
+            dip4[Cart::zz][0][k][m] = PmA(2) * dip4[Cart::z][0][k][m] -
+                                      PmC(2) * dip4[Cart::z][0][k][m + 1] +
                                       (k == 2) * nuc3[Cart::z][0][m + 1] + term;
           }
         }
@@ -693,39 +694,39 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int m = 0; m < lsum - 2; m++) {
           for (int k = 0; k < 3; k++) {
             dip4[Cart::xxx][0][k][m] =
-                PmA0 * dip4[Cart::xx][0][k][m] -
-                PmC0 * dip4[Cart::xx][0][k][m + 1] +
+                PmA(0) * dip4[Cart::xx][0][k][m] -
+                PmC(0) * dip4[Cart::xx][0][k][m + 1] +
                 (k == 0) * nuc3[Cart::xx][0][m + 1] +
                 2 * fak * (dip4[Cart::x][0][k][m] - dip4[Cart::x][0][k][m + 1]);
-            dip4[Cart::xxy][0][k][m] = PmA1 * dip4[Cart::xx][0][k][m] -
-                                       PmC1 * dip4[Cart::xx][0][k][m + 1] +
+            dip4[Cart::xxy][0][k][m] = PmA(1) * dip4[Cart::xx][0][k][m] -
+                                       PmC(1) * dip4[Cart::xx][0][k][m + 1] +
                                        (k == 1) * nuc3[Cart::xx][0][m + 1];
-            dip4[Cart::xxz][0][k][m] = PmA2 * dip4[Cart::xx][0][k][m] -
-                                       PmC2 * dip4[Cart::xx][0][k][m + 1] +
+            dip4[Cart::xxz][0][k][m] = PmA(2) * dip4[Cart::xx][0][k][m] -
+                                       PmC(2) * dip4[Cart::xx][0][k][m + 1] +
                                        (k == 2) * nuc3[Cart::xx][0][m + 1];
-            dip4[Cart::xyy][0][k][m] = PmA0 * dip4[Cart::yy][0][k][m] -
-                                       PmC0 * dip4[Cart::yy][0][k][m + 1] +
+            dip4[Cart::xyy][0][k][m] = PmA(0) * dip4[Cart::yy][0][k][m] -
+                                       PmC(0) * dip4[Cart::yy][0][k][m + 1] +
                                        (k == 0) * nuc3[Cart::yy][0][m + 1];
-            dip4[Cart::xyz][0][k][m] = PmA0 * dip4[Cart::yz][0][k][m] -
-                                       PmC0 * dip4[Cart::yz][0][k][m + 1] +
+            dip4[Cart::xyz][0][k][m] = PmA(0) * dip4[Cart::yz][0][k][m] -
+                                       PmC(0) * dip4[Cart::yz][0][k][m + 1] +
                                        (k == 0) * nuc3[Cart::yz][0][m + 1];
-            dip4[Cart::xzz][0][k][m] = PmA0 * dip4[Cart::zz][0][k][m] -
-                                       PmC0 * dip4[Cart::zz][0][k][m + 1] +
+            dip4[Cart::xzz][0][k][m] = PmA(0) * dip4[Cart::zz][0][k][m] -
+                                       PmC(0) * dip4[Cart::zz][0][k][m + 1] +
                                        (k == 0) * nuc3[Cart::zz][0][m + 1];
             dip4[Cart::yyy][0][k][m] =
-                PmA1 * dip4[Cart::yy][0][k][m] -
-                PmC1 * dip4[Cart::yy][0][k][m + 1] +
+                PmA(1) * dip4[Cart::yy][0][k][m] -
+                PmC(1) * dip4[Cart::yy][0][k][m + 1] +
                 (k == 1) * nuc3[Cart::yy][0][m + 1] +
                 2 * fak * (dip4[Cart::y][0][k][m] - dip4[Cart::y][0][k][m + 1]);
-            dip4[Cart::yyz][0][k][m] = PmA2 * dip4[Cart::yy][0][k][m] -
-                                       PmC2 * dip4[Cart::yy][0][k][m + 1] +
+            dip4[Cart::yyz][0][k][m] = PmA(2) * dip4[Cart::yy][0][k][m] -
+                                       PmC(2) * dip4[Cart::yy][0][k][m + 1] +
                                        (k == 2) * nuc3[Cart::yy][0][m + 1];
-            dip4[Cart::yzz][0][k][m] = PmA1 * dip4[Cart::zz][0][k][m] -
-                                       PmC1 * dip4[Cart::zz][0][k][m + 1] +
+            dip4[Cart::yzz][0][k][m] = PmA(1) * dip4[Cart::zz][0][k][m] -
+                                       PmC(1) * dip4[Cart::zz][0][k][m + 1] +
                                        (k == 1) * nuc3[Cart::zz][0][m + 1];
             dip4[Cart::zzz][0][k][m] =
-                PmA2 * dip4[Cart::zz][0][k][m] -
-                PmC2 * dip4[Cart::zz][0][k][m + 1] +
+                PmA(2) * dip4[Cart::zz][0][k][m] -
+                PmC(2) * dip4[Cart::zz][0][k][m + 1] +
                 (k == 2) * nuc3[Cart::zz][0][m + 1] +
                 2 * fak * (dip4[Cart::z][0][k][m] - dip4[Cart::z][0][k][m + 1]);
           }
@@ -743,55 +744,55 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                 fak * (dip4[Cart::yy][0][k][m] - dip4[Cart::yy][0][k][m + 1]);
             double term_zz =
                 fak * (dip4[Cart::zz][0][k][m] - dip4[Cart::zz][0][k][m + 1]);
-            dip4[Cart::xxxx][0][k][m] = PmA0 * dip4[Cart::xxx][0][k][m] -
-                                        PmC0 * dip4[Cart::xxx][0][k][m + 1] +
+            dip4[Cart::xxxx][0][k][m] = PmA(0) * dip4[Cart::xxx][0][k][m] -
+                                        PmC(0) * dip4[Cart::xxx][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::xxx][0][m + 1] +
                                         3 * term_xx;
-            dip4[Cart::xxxy][0][k][m] = PmA1 * dip4[Cart::xxx][0][k][m] -
-                                        PmC1 * dip4[Cart::xxx][0][k][m + 1] +
+            dip4[Cart::xxxy][0][k][m] = PmA(1) * dip4[Cart::xxx][0][k][m] -
+                                        PmC(1) * dip4[Cart::xxx][0][k][m + 1] +
                                         (k == 1) * nuc3[Cart::xxx][0][m + 1];
-            dip4[Cart::xxxz][0][k][m] = PmA2 * dip4[Cart::xxx][0][k][m] -
-                                        PmC2 * dip4[Cart::xxx][0][k][m + 1] +
+            dip4[Cart::xxxz][0][k][m] = PmA(2) * dip4[Cart::xxx][0][k][m] -
+                                        PmC(2) * dip4[Cart::xxx][0][k][m + 1] +
                                         (k == 2) * nuc3[Cart::xxx][0][m + 1];
-            dip4[Cart::xxyy][0][k][m] = PmA0 * dip4[Cart::xyy][0][k][m] -
-                                        PmC0 * dip4[Cart::xyy][0][k][m + 1] +
+            dip4[Cart::xxyy][0][k][m] = PmA(0) * dip4[Cart::xyy][0][k][m] -
+                                        PmC(0) * dip4[Cart::xyy][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::xyy][0][m + 1] +
                                         term_yy;
-            dip4[Cart::xxyz][0][k][m] = PmA1 * dip4[Cart::xxz][0][k][m] -
-                                        PmC1 * dip4[Cart::xxz][0][k][m + 1] +
+            dip4[Cart::xxyz][0][k][m] = PmA(1) * dip4[Cart::xxz][0][k][m] -
+                                        PmC(1) * dip4[Cart::xxz][0][k][m + 1] +
                                         (k == 1) * nuc3[Cart::xxz][0][m + 1];
-            dip4[Cart::xxzz][0][k][m] = PmA0 * dip4[Cart::xzz][0][k][m] -
-                                        PmC0 * dip4[Cart::xzz][0][k][m + 1] +
+            dip4[Cart::xxzz][0][k][m] = PmA(0) * dip4[Cart::xzz][0][k][m] -
+                                        PmC(0) * dip4[Cart::xzz][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::xzz][0][m + 1] +
                                         term_zz;
-            dip4[Cart::xyyy][0][k][m] = PmA0 * dip4[Cart::yyy][0][k][m] -
-                                        PmC0 * dip4[Cart::yyy][0][k][m + 1] +
+            dip4[Cart::xyyy][0][k][m] = PmA(0) * dip4[Cart::yyy][0][k][m] -
+                                        PmC(0) * dip4[Cart::yyy][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::yyy][0][m + 1];
-            dip4[Cart::xyyz][0][k][m] = PmA0 * dip4[Cart::yyz][0][k][m] -
-                                        PmC0 * dip4[Cart::yyz][0][k][m + 1] +
+            dip4[Cart::xyyz][0][k][m] = PmA(0) * dip4[Cart::yyz][0][k][m] -
+                                        PmC(0) * dip4[Cart::yyz][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::yyz][0][m + 1];
-            dip4[Cart::xyzz][0][k][m] = PmA0 * dip4[Cart::yzz][0][k][m] -
-                                        PmC0 * dip4[Cart::yzz][0][k][m + 1] +
+            dip4[Cart::xyzz][0][k][m] = PmA(0) * dip4[Cart::yzz][0][k][m] -
+                                        PmC(0) * dip4[Cart::yzz][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::yzz][0][m + 1];
-            dip4[Cart::xzzz][0][k][m] = PmA0 * dip4[Cart::zzz][0][k][m] -
-                                        PmC0 * dip4[Cart::zzz][0][k][m + 1] +
+            dip4[Cart::xzzz][0][k][m] = PmA(0) * dip4[Cart::zzz][0][k][m] -
+                                        PmC(0) * dip4[Cart::zzz][0][k][m + 1] +
                                         (k == 0) * nuc3[Cart::zzz][0][m + 1];
-            dip4[Cart::yyyy][0][k][m] = PmA1 * dip4[Cart::yyy][0][k][m] -
-                                        PmC1 * dip4[Cart::yyy][0][k][m + 1] +
+            dip4[Cart::yyyy][0][k][m] = PmA(1) * dip4[Cart::yyy][0][k][m] -
+                                        PmC(1) * dip4[Cart::yyy][0][k][m + 1] +
                                         (k == 1) * nuc3[Cart::yyy][0][m + 1] +
                                         3 * term_yy;
-            dip4[Cart::yyyz][0][k][m] = PmA2 * dip4[Cart::yyy][0][k][m] -
-                                        PmC2 * dip4[Cart::yyy][0][k][m + 1] +
+            dip4[Cart::yyyz][0][k][m] = PmA(2) * dip4[Cart::yyy][0][k][m] -
+                                        PmC(2) * dip4[Cart::yyy][0][k][m + 1] +
                                         (k == 2) * nuc3[Cart::yyy][0][m + 1];
-            dip4[Cart::yyzz][0][k][m] = PmA1 * dip4[Cart::yzz][0][k][m] -
-                                        PmC1 * dip4[Cart::yzz][0][k][m + 1] +
+            dip4[Cart::yyzz][0][k][m] = PmA(1) * dip4[Cart::yzz][0][k][m] -
+                                        PmC(1) * dip4[Cart::yzz][0][k][m + 1] +
                                         (k == 1) * nuc3[Cart::yzz][0][m + 1] +
                                         term_zz;
-            dip4[Cart::yzzz][0][k][m] = PmA1 * dip4[Cart::zzz][0][k][m] -
-                                        PmC1 * dip4[Cart::zzz][0][k][m + 1] +
+            dip4[Cart::yzzz][0][k][m] = PmA(1) * dip4[Cart::zzz][0][k][m] -
+                                        PmC(1) * dip4[Cart::zzz][0][k][m + 1] +
                                         (k == 1) * nuc3[Cart::zzz][0][m + 1];
-            dip4[Cart::zzzz][0][k][m] = PmA2 * dip4[Cart::zzz][0][k][m] -
-                                        PmC2 * dip4[Cart::zzz][0][k][m + 1] +
+            dip4[Cart::zzzz][0][k][m] = PmA(2) * dip4[Cart::zzz][0][k][m] -
+                                        PmC(2) * dip4[Cart::zzz][0][k][m + 1] +
                                         (k == 2) * nuc3[Cart::zzz][0][m + 1] +
                                         3 * term_zz;
           }
@@ -804,14 +805,14 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         // Integrals     s - p
         for (int m = 0; m < lmax_col; m++) {
           for (int k = 0; k < 3; k++) {
-            dip4[0][Cart::x][k][m] = PmB0 * dip4[0][0][k][m] -
-                                     PmC0 * dip4[0][0][k][m + 1] +
+            dip4[0][Cart::x][k][m] = PmB(0) * dip4[0][0][k][m] -
+                                     PmC(0) * dip4[0][0][k][m + 1] +
                                      (k == 0) * nuc3[0][0][m + 1];
-            dip4[0][Cart::y][k][m] = PmB1 * dip4[0][0][k][m] -
-                                     PmC1 * dip4[0][0][k][m + 1] +
+            dip4[0][Cart::y][k][m] = PmB(1) * dip4[0][0][k][m] -
+                                     PmC(1) * dip4[0][0][k][m + 1] +
                                      (k == 1) * nuc3[0][0][m + 1];
-            dip4[0][Cart::z][k][m] = PmB2 * dip4[0][0][k][m] -
-                                     PmC2 * dip4[0][0][k][m + 1] +
+            dip4[0][Cart::z][k][m] = PmB(2) * dip4[0][0][k][m] -
+                                     PmC(2) * dip4[0][0][k][m + 1] +
                                      (k == 2) * nuc3[0][0][m + 1];
           }
         }
@@ -824,13 +825,13 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               for (int k = 0; k < 3; k++) {
                 double term = fak * (dip4[0][0][k][m] - dip4[0][0][k][m + 1]);
                 dip4[i][Cart::x][k][m] =
-                    PmB0 * dip4[i][0][k][m] - PmC0 * dip4[i][0][k][m + 1] +
+                    PmB(0) * dip4[i][0][k][m] - PmC(0) * dip4[i][0][k][m + 1] +
                     (k == 0) * nuc3[i][0][m + 1] + nx[i] * term;
                 dip4[i][Cart::y][k][m] =
-                    PmB1 * dip4[i][0][k][m] - PmC1 * dip4[i][0][k][m + 1] +
+                    PmB(1) * dip4[i][0][k][m] - PmC(1) * dip4[i][0][k][m + 1] +
                     (k == 1) * nuc3[i][0][m + 1] + ny[i] * term;
                 dip4[i][Cart::z][k][m] =
-                    PmB2 * dip4[i][0][k][m] - PmC2 * dip4[i][0][k][m + 1] +
+                    PmB(2) * dip4[i][0][k][m] - PmC(2) * dip4[i][0][k][m + 1] +
                     (k == 2) * nuc3[i][0][m + 1] + nz[i] * term;
               }
             }
@@ -849,17 +850,17 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             int ilz_i = i_less_z[i];
             for (int k = 0; k < 3; k++) {
               dip4[i][Cart::x][k][m] =
-                  PmB0 * dip4[i][0][k][m] - PmC0 * dip4[i][0][k][m + 1] +
+                  PmB(0) * dip4[i][0][k][m] - PmC(0) * dip4[i][0][k][m + 1] +
                   (k == 0) * nuc3[i][0][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][0][k][m] - dip4[ilx_i][0][k][m + 1]);
               dip4[i][Cart::y][k][m] =
-                  PmB1 * dip4[i][0][k][m] - PmC1 * dip4[i][0][k][m + 1] +
+                  PmB(1) * dip4[i][0][k][m] - PmC(1) * dip4[i][0][k][m + 1] +
                   (k == 1) * nuc3[i][0][m + 1] +
                   ny_i * fak *
                       (dip4[ily_i][0][k][m] - dip4[ily_i][0][k][m + 1]);
               dip4[i][Cart::z][k][m] =
-                  PmB2 * dip4[i][0][k][m] - PmC2 * dip4[i][0][k][m + 1] +
+                  PmB(2) * dip4[i][0][k][m] - PmC(2) * dip4[i][0][k][m + 1] +
                   (k == 2) * nuc3[i][0][m + 1] +
                   nz_i * fak *
                       (dip4[ilz_i][0][k][m] - dip4[ilz_i][0][k][m + 1]);
@@ -876,23 +877,23 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int m = 0; m < lmax_col - 1; m++) {
           for (int k = 0; k < 3; k++) {
             double term = fak * (dip4[0][0][k][m] - dip4[0][0][k][m + 1]);
-            dip4[0][Cart::xx][k][m] = PmB0 * dip4[0][Cart::x][k][m] -
-                                      PmC0 * dip4[0][Cart::x][k][m + 1] +
+            dip4[0][Cart::xx][k][m] = PmB(0) * dip4[0][Cart::x][k][m] -
+                                      PmC(0) * dip4[0][Cart::x][k][m + 1] +
                                       (k == 0) * nuc3[0][Cart::x][m + 1] + term;
-            dip4[0][Cart::xy][k][m] = PmB0 * dip4[0][Cart::y][k][m] -
-                                      PmC0 * dip4[0][Cart::y][k][m + 1] +
+            dip4[0][Cart::xy][k][m] = PmB(0) * dip4[0][Cart::y][k][m] -
+                                      PmC(0) * dip4[0][Cart::y][k][m + 1] +
                                       (k == 0) * nuc3[0][Cart::y][m + 1];
-            dip4[0][Cart::xz][k][m] = PmB0 * dip4[0][Cart::z][k][m] -
-                                      PmC0 * dip4[0][Cart::z][k][m + 1] +
+            dip4[0][Cart::xz][k][m] = PmB(0) * dip4[0][Cart::z][k][m] -
+                                      PmC(0) * dip4[0][Cart::z][k][m + 1] +
                                       (k == 0) * nuc3[0][Cart::z][m + 1];
-            dip4[0][Cart::yy][k][m] = PmB1 * dip4[0][Cart::y][k][m] -
-                                      PmC1 * dip4[0][Cart::y][k][m + 1] +
+            dip4[0][Cart::yy][k][m] = PmB(1) * dip4[0][Cart::y][k][m] -
+                                      PmC(1) * dip4[0][Cart::y][k][m + 1] +
                                       (k == 1) * nuc3[0][Cart::y][m + 1] + term;
-            dip4[0][Cart::yz][k][m] = PmB1 * dip4[0][Cart::z][k][m] -
-                                      PmC1 * dip4[0][Cart::z][k][m + 1] +
+            dip4[0][Cart::yz][k][m] = PmB(1) * dip4[0][Cart::z][k][m] -
+                                      PmC(1) * dip4[0][Cart::z][k][m + 1] +
                                       (k == 1) * nuc3[0][Cart::z][m + 1];
-            dip4[0][Cart::zz][k][m] = PmB2 * dip4[0][Cart::z][k][m] -
-                                      PmC2 * dip4[0][Cart::z][k][m + 1] +
+            dip4[0][Cart::zz][k][m] = PmB(2) * dip4[0][Cart::z][k][m] -
+                                      PmC(2) * dip4[0][Cart::z][k][m + 1] +
                                       (k == 2) * nuc3[0][Cart::z][m + 1] + term;
           }
         }
@@ -909,40 +910,40 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             int ilz_i = i_less_z[i];
             for (int k = 0; k < 3; k++) {
               double term = fak * (dip4[i][0][k][m] - dip4[i][0][k][m + 1]);
-              dip4[i][Cart::xx][k][m] = PmB0 * dip4[i][Cart::x][k][m] -
-                                        PmC0 * dip4[i][Cart::x][k][m + 1] +
+              dip4[i][Cart::xx][k][m] = PmB(0) * dip4[i][Cart::x][k][m] -
+                                        PmC(0) * dip4[i][Cart::x][k][m + 1] +
                                         (k == 0) * nuc3[i][Cart::x][m + 1] +
                                         nx_i * fak *
                                             (dip4[ilx_i][Cart::x][k][m] -
                                              dip4[ilx_i][Cart::x][k][m + 1]) +
                                         term;
-              dip4[i][Cart::xy][k][m] = PmB0 * dip4[i][Cart::y][k][m] -
-                                        PmC0 * dip4[i][Cart::y][k][m + 1] +
+              dip4[i][Cart::xy][k][m] = PmB(0) * dip4[i][Cart::y][k][m] -
+                                        PmC(0) * dip4[i][Cart::y][k][m + 1] +
                                         (k == 0) * nuc3[i][Cart::y][m + 1] +
                                         nx_i * fak *
                                             (dip4[ilx_i][Cart::y][k][m] -
                                              dip4[ilx_i][Cart::y][k][m + 1]);
-              dip4[i][Cart::xz][k][m] = PmB0 * dip4[i][Cart::z][k][m] -
-                                        PmC0 * dip4[i][Cart::z][k][m + 1] +
+              dip4[i][Cart::xz][k][m] = PmB(0) * dip4[i][Cart::z][k][m] -
+                                        PmC(0) * dip4[i][Cart::z][k][m + 1] +
                                         (k == 0) * nuc3[i][Cart::z][m + 1] +
                                         nx_i * fak *
                                             (dip4[ilx_i][Cart::z][k][m] -
                                              dip4[ilx_i][Cart::z][k][m + 1]);
-              dip4[i][Cart::yy][k][m] = PmB1 * dip4[i][Cart::y][k][m] -
-                                        PmC1 * dip4[i][Cart::y][k][m + 1] +
+              dip4[i][Cart::yy][k][m] = PmB(1) * dip4[i][Cart::y][k][m] -
+                                        PmC(1) * dip4[i][Cart::y][k][m + 1] +
                                         (k == 1) * nuc3[i][Cart::y][m + 1] +
                                         ny_i * fak *
                                             (dip4[ily_i][Cart::y][k][m] -
                                              dip4[ily_i][Cart::y][k][m + 1]) +
                                         term;
-              dip4[i][Cart::yz][k][m] = PmB1 * dip4[i][Cart::z][k][m] -
-                                        PmC1 * dip4[i][Cart::z][k][m + 1] +
+              dip4[i][Cart::yz][k][m] = PmB(1) * dip4[i][Cart::z][k][m] -
+                                        PmC(1) * dip4[i][Cart::z][k][m + 1] +
                                         (k == 1) * nuc3[i][Cart::z][m + 1] +
                                         ny_i * fak *
                                             (dip4[ily_i][Cart::z][k][m] -
                                              dip4[ily_i][Cart::z][k][m + 1]);
-              dip4[i][Cart::zz][k][m] = PmB2 * dip4[i][Cart::z][k][m] -
-                                        PmC2 * dip4[i][Cart::z][k][m + 1] +
+              dip4[i][Cart::zz][k][m] = PmB(2) * dip4[i][Cart::z][k][m] -
+                                        PmC(2) * dip4[i][Cart::z][k][m + 1] +
                                         (k == 2) * nuc3[i][Cart::z][m + 1] +
                                         nz_i * fak *
                                             (dip4[ilz_i][Cart::z][k][m] -
@@ -961,39 +962,39 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int m = 0; m < lmax_col - 2; m++) {
           for (int k = 0; k < 3; k++) {
             dip4[0][Cart::xxx][k][m] =
-                PmB0 * dip4[0][Cart::xx][k][m] -
-                PmC0 * dip4[0][Cart::xx][k][m + 1] +
+                PmB(0) * dip4[0][Cart::xx][k][m] -
+                PmC(0) * dip4[0][Cart::xx][k][m + 1] +
                 (k == 0) * nuc3[0][Cart::xx][m + 1] +
                 2 * fak * (dip4[0][Cart::x][k][m] - dip4[0][Cart::x][k][m + 1]);
-            dip4[0][Cart::xxy][k][m] = PmB1 * dip4[0][Cart::xx][k][m] -
-                                       PmC1 * dip4[0][Cart::xx][k][m + 1] +
+            dip4[0][Cart::xxy][k][m] = PmB(1) * dip4[0][Cart::xx][k][m] -
+                                       PmC(1) * dip4[0][Cart::xx][k][m + 1] +
                                        (k == 1) * nuc3[0][Cart::xx][m + 1];
-            dip4[0][Cart::xxz][k][m] = PmB2 * dip4[0][Cart::xx][k][m] -
-                                       PmC2 * dip4[0][Cart::xx][k][m + 1] +
+            dip4[0][Cart::xxz][k][m] = PmB(2) * dip4[0][Cart::xx][k][m] -
+                                       PmC(2) * dip4[0][Cart::xx][k][m + 1] +
                                        (k == 2) * nuc3[0][Cart::xx][m + 1];
-            dip4[0][Cart::xyy][k][m] = PmB0 * dip4[0][Cart::yy][k][m] -
-                                       PmC0 * dip4[0][Cart::yy][k][m + 1] +
+            dip4[0][Cart::xyy][k][m] = PmB(0) * dip4[0][Cart::yy][k][m] -
+                                       PmC(0) * dip4[0][Cart::yy][k][m + 1] +
                                        (k == 0) * nuc3[0][Cart::yy][m + 1];
-            dip4[0][Cart::xyz][k][m] = PmB0 * dip4[0][Cart::yz][k][m] -
-                                       PmC0 * dip4[0][Cart::yz][k][m + 1] +
+            dip4[0][Cart::xyz][k][m] = PmB(0) * dip4[0][Cart::yz][k][m] -
+                                       PmC(0) * dip4[0][Cart::yz][k][m + 1] +
                                        (k == 0) * nuc3[0][Cart::yz][m + 1];
-            dip4[0][Cart::xzz][k][m] = PmB0 * dip4[0][Cart::zz][k][m] -
-                                       PmC0 * dip4[0][Cart::zz][k][m + 1] +
+            dip4[0][Cart::xzz][k][m] = PmB(0) * dip4[0][Cart::zz][k][m] -
+                                       PmC(0) * dip4[0][Cart::zz][k][m + 1] +
                                        (k == 0) * nuc3[0][Cart::zz][m + 1];
             dip4[0][Cart::yyy][k][m] =
-                PmB1 * dip4[0][Cart::yy][k][m] -
-                PmC1 * dip4[0][Cart::yy][k][m + 1] +
+                PmB(1) * dip4[0][Cart::yy][k][m] -
+                PmC(1) * dip4[0][Cart::yy][k][m + 1] +
                 (k == 1) * nuc3[0][Cart::yy][m + 1] +
                 2 * fak * (dip4[0][Cart::y][k][m] - dip4[0][Cart::y][k][m + 1]);
-            dip4[0][Cart::yyz][k][m] = PmB2 * dip4[0][Cart::yy][k][m] -
-                                       PmC2 * dip4[0][Cart::yy][k][m + 1] +
+            dip4[0][Cart::yyz][k][m] = PmB(2) * dip4[0][Cart::yy][k][m] -
+                                       PmC(2) * dip4[0][Cart::yy][k][m + 1] +
                                        (k == 2) * nuc3[0][Cart::yy][m + 1];
-            dip4[0][Cart::yzz][k][m] = PmB1 * dip4[0][Cart::zz][k][m] -
-                                       PmC1 * dip4[0][Cart::zz][k][m + 1] +
+            dip4[0][Cart::yzz][k][m] = PmB(1) * dip4[0][Cart::zz][k][m] -
+                                       PmC(1) * dip4[0][Cart::zz][k][m + 1] +
                                        (k == 1) * nuc3[0][Cart::zz][m + 1];
             dip4[0][Cart::zzz][k][m] =
-                PmB2 * dip4[0][Cart::zz][k][m] -
-                PmC2 * dip4[0][Cart::zz][k][m + 1] +
+                PmB(2) * dip4[0][Cart::zz][k][m] -
+                PmC(2) * dip4[0][Cart::zz][k][m + 1] +
                 (k == 2) * nuc3[0][Cart::zz][m + 1] +
                 2 * fak * (dip4[0][Cart::z][k][m] - dip4[0][Cart::z][k][m + 1]);
           }
@@ -1019,64 +1020,64 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               double term_z =
                   2 * fak *
                   (dip4[i][Cart::z][k][m] - dip4[i][Cart::z][k][m + 1]);
-              dip4[i][Cart::xxx][k][m] = PmB0 * dip4[i][Cart::xx][k][m] -
-                                         PmC0 * dip4[i][Cart::xx][k][m + 1] +
+              dip4[i][Cart::xxx][k][m] = PmB(0) * dip4[i][Cart::xx][k][m] -
+                                         PmC(0) * dip4[i][Cart::xx][k][m + 1] +
                                          (k == 0) * nuc3[i][Cart::xx][m + 1] +
                                          nx_i * fak *
                                              (dip4[ilx_i][Cart::xx][k][m] -
                                               dip4[ilx_i][Cart::xx][k][m + 1]) +
                                          term_x;
-              dip4[i][Cart::xxy][k][m] = PmB1 * dip4[i][Cart::xx][k][m] -
-                                         PmC1 * dip4[i][Cart::xx][k][m + 1] +
+              dip4[i][Cart::xxy][k][m] = PmB(1) * dip4[i][Cart::xx][k][m] -
+                                         PmC(1) * dip4[i][Cart::xx][k][m + 1] +
                                          (k == 1) * nuc3[i][Cart::xx][m + 1] +
                                          ny_i * fak *
                                              (dip4[ily_i][Cart::xx][k][m] -
                                               dip4[ily_i][Cart::xx][k][m + 1]);
-              dip4[i][Cart::xxz][k][m] = PmB2 * dip4[i][Cart::xx][k][m] -
-                                         PmC2 * dip4[i][Cart::xx][k][m + 1] +
+              dip4[i][Cart::xxz][k][m] = PmB(2) * dip4[i][Cart::xx][k][m] -
+                                         PmC(2) * dip4[i][Cart::xx][k][m + 1] +
                                          (k == 2) * nuc3[i][Cart::xx][m + 1] +
                                          nz_i * fak *
                                              (dip4[ilz_i][Cart::xx][k][m] -
                                               dip4[ilz_i][Cart::xx][k][m + 1]);
-              dip4[i][Cart::xyy][k][m] = PmB0 * dip4[i][Cart::yy][k][m] -
-                                         PmC0 * dip4[i][Cart::yy][k][m + 1] +
+              dip4[i][Cart::xyy][k][m] = PmB(0) * dip4[i][Cart::yy][k][m] -
+                                         PmC(0) * dip4[i][Cart::yy][k][m + 1] +
                                          (k == 0) * nuc3[i][Cart::yy][m + 1] +
                                          nx_i * fak *
                                              (dip4[ilx_i][Cart::yy][k][m] -
                                               dip4[ilx_i][Cart::yy][k][m + 1]);
-              dip4[i][Cart::xyz][k][m] = PmB0 * dip4[i][Cart::yz][k][m] -
-                                         PmC0 * dip4[i][Cart::yz][k][m + 1] +
+              dip4[i][Cart::xyz][k][m] = PmB(0) * dip4[i][Cart::yz][k][m] -
+                                         PmC(0) * dip4[i][Cart::yz][k][m + 1] +
                                          (k == 0) * nuc3[i][Cart::yz][m + 1] +
                                          nx_i * fak *
                                              (dip4[ilx_i][Cart::yz][k][m] -
                                               dip4[ilx_i][Cart::yz][k][m + 1]);
-              dip4[i][Cart::xzz][k][m] = PmB0 * dip4[i][Cart::zz][k][m] -
-                                         PmC0 * dip4[i][Cart::zz][k][m + 1] +
+              dip4[i][Cart::xzz][k][m] = PmB(0) * dip4[i][Cart::zz][k][m] -
+                                         PmC(0) * dip4[i][Cart::zz][k][m + 1] +
                                          (k == 0) * nuc3[i][Cart::zz][m + 1] +
                                          nx_i * fak *
                                              (dip4[ilx_i][Cart::zz][k][m] -
                                               dip4[ilx_i][Cart::zz][k][m + 1]);
-              dip4[i][Cart::yyy][k][m] = PmB1 * dip4[i][Cart::yy][k][m] -
-                                         PmC1 * dip4[i][Cart::yy][k][m + 1] +
+              dip4[i][Cart::yyy][k][m] = PmB(1) * dip4[i][Cart::yy][k][m] -
+                                         PmC(1) * dip4[i][Cart::yy][k][m + 1] +
                                          (k == 1) * nuc3[i][Cart::yy][m + 1] +
                                          ny_i * fak *
                                              (dip4[ily_i][Cart::yy][k][m] -
                                               dip4[ily_i][Cart::yy][k][m + 1]) +
                                          term_y;
-              dip4[i][Cart::yyz][k][m] = PmB2 * dip4[i][Cart::yy][k][m] -
-                                         PmC2 * dip4[i][Cart::yy][k][m + 1] +
+              dip4[i][Cart::yyz][k][m] = PmB(2) * dip4[i][Cart::yy][k][m] -
+                                         PmC(2) * dip4[i][Cart::yy][k][m + 1] +
                                          (k == 2) * nuc3[i][Cart::yy][m + 1] +
                                          nz_i * fak *
                                              (dip4[ilz_i][Cart::yy][k][m] -
                                               dip4[ilz_i][Cart::yy][k][m + 1]);
-              dip4[i][Cart::yzz][k][m] = PmB1 * dip4[i][Cart::zz][k][m] -
-                                         PmC1 * dip4[i][Cart::zz][k][m + 1] +
+              dip4[i][Cart::yzz][k][m] = PmB(1) * dip4[i][Cart::zz][k][m] -
+                                         PmC(1) * dip4[i][Cart::zz][k][m + 1] +
                                          (k == 1) * nuc3[i][Cart::zz][m + 1] +
                                          ny_i * fak *
                                              (dip4[ily_i][Cart::zz][k][m] -
                                               dip4[ily_i][Cart::zz][k][m + 1]);
-              dip4[i][Cart::zzz][k][m] = PmB2 * dip4[i][Cart::zz][k][m] -
-                                         PmC2 * dip4[i][Cart::zz][k][m + 1] +
+              dip4[i][Cart::zzz][k][m] = PmB(2) * dip4[i][Cart::zz][k][m] -
+                                         PmC(2) * dip4[i][Cart::zz][k][m + 1] +
                                          (k == 2) * nuc3[i][Cart::zz][m + 1] +
                                          nz_i * fak *
                                              (dip4[ilz_i][Cart::zz][k][m] -
@@ -1100,55 +1101,55 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                 fak * (dip4[0][Cart::yy][k][m] - dip4[0][Cart::yy][k][m + 1]);
             double term_zz =
                 fak * (dip4[0][Cart::zz][k][m] - dip4[0][Cart::zz][k][m + 1]);
-            dip4[0][Cart::xxxx][k][m] = PmB0 * dip4[0][Cart::xxx][k][m] -
-                                        PmC0 * dip4[0][Cart::xxx][k][m + 1] +
+            dip4[0][Cart::xxxx][k][m] = PmB(0) * dip4[0][Cart::xxx][k][m] -
+                                        PmC(0) * dip4[0][Cart::xxx][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::xxx][m + 1] +
                                         3 * term_xx;
-            dip4[0][Cart::xxxy][k][m] = PmB1 * dip4[0][Cart::xxx][k][m] -
-                                        PmC1 * dip4[0][Cart::xxx][k][m + 1] +
+            dip4[0][Cart::xxxy][k][m] = PmB(1) * dip4[0][Cart::xxx][k][m] -
+                                        PmC(1) * dip4[0][Cart::xxx][k][m + 1] +
                                         (k == 1) * nuc3[0][Cart::xxx][m + 1];
-            dip4[0][Cart::xxxz][k][m] = PmB2 * dip4[0][Cart::xxx][k][m] -
-                                        PmC2 * dip4[0][Cart::xxx][k][m + 1] +
+            dip4[0][Cart::xxxz][k][m] = PmB(2) * dip4[0][Cart::xxx][k][m] -
+                                        PmC(2) * dip4[0][Cart::xxx][k][m + 1] +
                                         (k == 2) * nuc3[0][Cart::xxx][m + 1];
-            dip4[0][Cart::xxyy][k][m] = PmB0 * dip4[0][Cart::xyy][k][m] -
-                                        PmC0 * dip4[0][Cart::xyy][k][m + 1] +
+            dip4[0][Cart::xxyy][k][m] = PmB(0) * dip4[0][Cart::xyy][k][m] -
+                                        PmC(0) * dip4[0][Cart::xyy][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::xyy][m + 1] +
                                         term_yy;
-            dip4[0][Cart::xxyz][k][m] = PmB1 * dip4[0][Cart::xxz][k][m] -
-                                        PmC1 * dip4[0][Cart::xxz][k][m + 1] +
+            dip4[0][Cart::xxyz][k][m] = PmB(1) * dip4[0][Cart::xxz][k][m] -
+                                        PmC(1) * dip4[0][Cart::xxz][k][m + 1] +
                                         (k == 1) * nuc3[0][Cart::xxz][m + 1];
-            dip4[0][Cart::xxzz][k][m] = PmB0 * dip4[0][Cart::xzz][k][m] -
-                                        PmC0 * dip4[0][Cart::xzz][k][m + 1] +
+            dip4[0][Cart::xxzz][k][m] = PmB(0) * dip4[0][Cart::xzz][k][m] -
+                                        PmC(0) * dip4[0][Cart::xzz][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::xzz][m + 1] +
                                         term_zz;
-            dip4[0][Cart::xyyy][k][m] = PmB0 * dip4[0][Cart::yyy][k][m] -
-                                        PmC0 * dip4[0][Cart::yyy][k][m + 1] +
+            dip4[0][Cart::xyyy][k][m] = PmB(0) * dip4[0][Cart::yyy][k][m] -
+                                        PmC(0) * dip4[0][Cart::yyy][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::yyy][m + 1];
-            dip4[0][Cart::xyyz][k][m] = PmB0 * dip4[0][Cart::yyz][k][m] -
-                                        PmC0 * dip4[0][Cart::yyz][k][m + 1] +
+            dip4[0][Cart::xyyz][k][m] = PmB(0) * dip4[0][Cart::yyz][k][m] -
+                                        PmC(0) * dip4[0][Cart::yyz][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::yyz][m + 1];
-            dip4[0][Cart::xyzz][k][m] = PmB0 * dip4[0][Cart::yzz][k][m] -
-                                        PmC0 * dip4[0][Cart::yzz][k][m + 1] +
+            dip4[0][Cart::xyzz][k][m] = PmB(0) * dip4[0][Cart::yzz][k][m] -
+                                        PmC(0) * dip4[0][Cart::yzz][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::yzz][m + 1];
-            dip4[0][Cart::xzzz][k][m] = PmB0 * dip4[0][Cart::zzz][k][m] -
-                                        PmC0 * dip4[0][Cart::zzz][k][m + 1] +
+            dip4[0][Cart::xzzz][k][m] = PmB(0) * dip4[0][Cart::zzz][k][m] -
+                                        PmC(0) * dip4[0][Cart::zzz][k][m + 1] +
                                         (k == 0) * nuc3[0][Cart::zzz][m + 1];
-            dip4[0][Cart::yyyy][k][m] = PmB1 * dip4[0][Cart::yyy][k][m] -
-                                        PmC1 * dip4[0][Cart::yyy][k][m + 1] +
+            dip4[0][Cart::yyyy][k][m] = PmB(1) * dip4[0][Cart::yyy][k][m] -
+                                        PmC(1) * dip4[0][Cart::yyy][k][m + 1] +
                                         (k == 1) * nuc3[0][Cart::yyy][m + 1] +
                                         3 * term_yy;
-            dip4[0][Cart::yyyz][k][m] = PmB2 * dip4[0][Cart::yyy][k][m] -
-                                        PmC2 * dip4[0][Cart::yyy][k][m + 1] +
+            dip4[0][Cart::yyyz][k][m] = PmB(2) * dip4[0][Cart::yyy][k][m] -
+                                        PmC(2) * dip4[0][Cart::yyy][k][m + 1] +
                                         (k == 2) * nuc3[0][Cart::yyy][m + 1];
-            dip4[0][Cart::yyzz][k][m] = PmB1 * dip4[0][Cart::yzz][k][m] -
-                                        PmC1 * dip4[0][Cart::yzz][k][m + 1] +
+            dip4[0][Cart::yyzz][k][m] = PmB(1) * dip4[0][Cart::yzz][k][m] -
+                                        PmC(1) * dip4[0][Cart::yzz][k][m + 1] +
                                         (k == 1) * nuc3[0][Cart::yzz][m + 1] +
                                         term_zz;
-            dip4[0][Cart::yzzz][k][m] = PmB1 * dip4[0][Cart::zzz][k][m] -
-                                        PmC1 * dip4[0][Cart::zzz][k][m + 1] +
+            dip4[0][Cart::yzzz][k][m] = PmB(1) * dip4[0][Cart::zzz][k][m] -
+                                        PmC(1) * dip4[0][Cart::zzz][k][m + 1] +
                                         (k == 1) * nuc3[0][Cart::zzz][m + 1];
-            dip4[0][Cart::zzzz][k][m] = PmB2 * dip4[0][Cart::zzz][k][m] -
-                                        PmC2 * dip4[0][Cart::zzz][k][m + 1] +
+            dip4[0][Cart::zzzz][k][m] = PmB(2) * dip4[0][Cart::zzz][k][m] -
+                                        PmC(2) * dip4[0][Cart::zzz][k][m + 1] +
                                         (k == 2) * nuc3[0][Cart::zzz][m + 1] +
                                         3 * term_zz;
           }
@@ -1172,111 +1173,111 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               double term_zz =
                   fak * (dip4[i][Cart::zz][k][m] - dip4[i][Cart::zz][k][m + 1]);
               dip4[i][Cart::xxxx][k][m] =
-                  PmB0 * dip4[i][Cart::xxx][k][m] -
-                  PmC0 * dip4[i][Cart::xxx][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::xxx][k][m] -
+                  PmC(0) * dip4[i][Cart::xxx][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::xxx][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::xxx][k][m] -
                        dip4[ilx_i][Cart::xxx][k][m + 1]) +
                   3 * term_xx;
               dip4[i][Cart::xxxy][k][m] =
-                  PmB1 * dip4[i][Cart::xxx][k][m] -
-                  PmC1 * dip4[i][Cart::xxx][k][m + 1] +
+                  PmB(1) * dip4[i][Cart::xxx][k][m] -
+                  PmC(1) * dip4[i][Cart::xxx][k][m + 1] +
                   (k == 1) * nuc3[i][Cart::xxx][m + 1] +
                   ny_i * fak *
                       (dip4[ily_i][Cart::xxx][k][m] -
                        dip4[ily_i][Cart::xxx][k][m + 1]);
               dip4[i][Cart::xxxz][k][m] =
-                  PmB2 * dip4[i][Cart::xxx][k][m] -
-                  PmC2 * dip4[i][Cart::xxx][k][m + 1] +
+                  PmB(2) * dip4[i][Cart::xxx][k][m] -
+                  PmC(2) * dip4[i][Cart::xxx][k][m + 1] +
                   (k == 2) * nuc3[i][Cart::xxx][m + 1] +
                   nz_i * fak *
                       (dip4[ilz_i][Cart::xxx][k][m] -
                        dip4[ilz_i][Cart::xxx][k][m + 1]);
               dip4[i][Cart::xxyy][k][m] =
-                  PmB0 * dip4[i][Cart::xyy][k][m] -
-                  PmC0 * dip4[i][Cart::xyy][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::xyy][k][m] -
+                  PmC(0) * dip4[i][Cart::xyy][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::xyy][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::xyy][k][m] -
                        dip4[ilx_i][Cart::xyy][k][m + 1]) +
                   term_yy;
               dip4[i][Cart::xxyz][k][m] =
-                  PmB1 * dip4[i][Cart::xxz][k][m] -
-                  PmC1 * dip4[i][Cart::xxz][k][m + 1] +
+                  PmB(1) * dip4[i][Cart::xxz][k][m] -
+                  PmC(1) * dip4[i][Cart::xxz][k][m + 1] +
                   (k == 1) * nuc3[i][Cart::xxz][m + 1] +
                   ny_i * fak *
                       (dip4[ily_i][Cart::xxz][k][m] -
                        dip4[ily_i][Cart::xxz][k][m + 1]);
               dip4[i][Cart::xxzz][k][m] =
-                  PmB0 * dip4[i][Cart::xzz][k][m] -
-                  PmC0 * dip4[i][Cart::xzz][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::xzz][k][m] -
+                  PmC(0) * dip4[i][Cart::xzz][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::xzz][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::xzz][k][m] -
                        dip4[ilx_i][Cart::xzz][k][m + 1]) +
                   term_zz;
               dip4[i][Cart::xyyy][k][m] =
-                  PmB0 * dip4[i][Cart::yyy][k][m] -
-                  PmC0 * dip4[i][Cart::yyy][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::yyy][k][m] -
+                  PmC(0) * dip4[i][Cart::yyy][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::yyy][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::yyy][k][m] -
                        dip4[ilx_i][Cart::yyy][k][m + 1]);
               dip4[i][Cart::xyyz][k][m] =
-                  PmB0 * dip4[i][Cart::yyz][k][m] -
-                  PmC0 * dip4[i][Cart::yyz][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::yyz][k][m] -
+                  PmC(0) * dip4[i][Cart::yyz][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::yyz][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::yyz][k][m] -
                        dip4[ilx_i][Cart::yyz][k][m + 1]);
               dip4[i][Cart::xyzz][k][m] =
-                  PmB0 * dip4[i][Cart::yzz][k][m] -
-                  PmC0 * dip4[i][Cart::yzz][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::yzz][k][m] -
+                  PmC(0) * dip4[i][Cart::yzz][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::yzz][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::yzz][k][m] -
                        dip4[ilx_i][Cart::yzz][k][m + 1]);
               dip4[i][Cart::xzzz][k][m] =
-                  PmB0 * dip4[i][Cart::zzz][k][m] -
-                  PmC0 * dip4[i][Cart::zzz][k][m + 1] +
+                  PmB(0) * dip4[i][Cart::zzz][k][m] -
+                  PmC(0) * dip4[i][Cart::zzz][k][m + 1] +
                   (k == 0) * nuc3[i][Cart::zzz][m + 1] +
                   nx_i * fak *
                       (dip4[ilx_i][Cart::zzz][k][m] -
                        dip4[ilx_i][Cart::zzz][k][m + 1]);
               dip4[i][Cart::yyyy][k][m] =
-                  PmB1 * dip4[i][Cart::yyy][k][m] -
-                  PmC1 * dip4[i][Cart::yyy][k][m + 1] +
+                  PmB(1) * dip4[i][Cart::yyy][k][m] -
+                  PmC(1) * dip4[i][Cart::yyy][k][m + 1] +
                   (k == 1) * nuc3[i][Cart::yyy][m + 1] +
                   ny_i * fak *
                       (dip4[ily_i][Cart::yyy][k][m] -
                        dip4[ily_i][Cart::yyy][k][m + 1]) +
                   3 * term_yy;
               dip4[i][Cart::yyyz][k][m] =
-                  PmB2 * dip4[i][Cart::yyy][k][m] -
-                  PmC2 * dip4[i][Cart::yyy][k][m + 1] +
+                  PmB(2) * dip4[i][Cart::yyy][k][m] -
+                  PmC(2) * dip4[i][Cart::yyy][k][m + 1] +
                   (k == 2) * nuc3[i][Cart::yyy][m + 1] +
                   nz_i * fak *
                       (dip4[ilz_i][Cart::yyy][k][m] -
                        dip4[ilz_i][Cart::yyy][k][m + 1]);
               dip4[i][Cart::yyzz][k][m] =
-                  PmB1 * dip4[i][Cart::yzz][k][m] -
-                  PmC1 * dip4[i][Cart::yzz][k][m + 1] +
+                  PmB(1) * dip4[i][Cart::yzz][k][m] -
+                  PmC(1) * dip4[i][Cart::yzz][k][m + 1] +
                   (k == 1) * nuc3[i][Cart::yzz][m + 1] +
                   ny_i * fak *
                       (dip4[ily_i][Cart::yzz][k][m] -
                        dip4[ily_i][Cart::yzz][k][m + 1]) +
                   term_zz;
               dip4[i][Cart::yzzz][k][m] =
-                  PmB1 * dip4[i][Cart::zzz][k][m] -
-                  PmC1 * dip4[i][Cart::zzz][k][m + 1] +
+                  PmB(1) * dip4[i][Cart::zzz][k][m] -
+                  PmC(1) * dip4[i][Cart::zzz][k][m + 1] +
                   (k == 1) * nuc3[i][Cart::zzz][m + 1] +
                   ny_i * fak *
                       (dip4[ily_i][Cart::zzz][k][m] -
                        dip4[ily_i][Cart::zzz][k][m + 1]);
               dip4[i][Cart::zzzz][k][m] =
-                  PmB2 * dip4[i][Cart::zzz][k][m] -
-                  PmC2 * dip4[i][Cart::zzz][k][m + 1] +
+                  PmB(2) * dip4[i][Cart::zzz][k][m] -
+                  PmC(2) * dip4[i][Cart::zzz][k][m + 1] +
                   (k == 2) * nuc3[i][Cart::zzz][m + 1] +
                   nz_i * fak *
                       (dip4[ilz_i][Cart::zzz][k][m] -
@@ -1288,23 +1289,22 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         //------------------------------------------------------
 
       }  // end if (lmax_col > 3)
-      // votca dipoles are spherical in ordering z,y,x
       for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncols; j++) {
-          dip(i, j) = dipole.getX() * dip4[i][j][0][0] +
-                      dipole.getY() * dip4[i][j][1][0] +
-                      dipole.getZ() * dip4[i][j][2][0];
+          dip(i, j) = dipole.z() * dip4[i][j][0][0] +
+                      dipole.y() * dip4[i][j][1][0] +
+                      dipole.x() * dip4[i][j][2][0];
         }
       }
 
       Eigen::MatrixXd dip_sph =
-          getTrafo(*itr).transpose() * dip * getTrafo(*itc);
+          getTrafo(gaussian_row).transpose() * dip * getTrafo(gaussian_col);
       // save to matrix
 
       for (unsigned i = 0; i < matrix.rows(); i++) {
         for (unsigned j = 0; j < matrix.cols(); j++) {
           matrix(i, j) +=
-              dip_sph(i + shell_row->getOffset(), j + shell_col->getOffset());
+              dip_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
         }
       }
 
@@ -1314,24 +1314,19 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
 void AODipole_Potential::Fillextpotential(
     const AOBasis& aobasis,
-    const std::vector<std::shared_ptr<ctp::PolarSeg> >& sites) {
+    const std::vector<std::unique_ptr<StaticSite>>& externalsites) {
 
   _externalpotential =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-  for (unsigned int i = 0; i < sites.size(); i++) {
-    for (ctp::APolarSite* site : *(sites[i])) {
-
-      if (site->getRank() > 0 || site->IsPolarizable()) {
-        if (tools::abs(site->getU1() + site->getQ1()) < 1e-12) {
-          continue;
-        }
-        _aomatrix =
-            Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
-        setAPolarSite(site);
-        Fill(aobasis);
-        _externalpotential += _aomatrix;
-      }
+  for (const std::unique_ptr<StaticSite>& site : externalsites) {
+    if (site->getDipole().norm() < 1e-12) {
+      continue;
     }
+    _aomatrix =
+        Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+    setSite(site.get());
+    Fill(aobasis);
+    _externalpotential += _aomatrix;
   }
   return;
 }

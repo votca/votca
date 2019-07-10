@@ -20,8 +20,9 @@
 #include <votca/xtp/couplingbase.h>
 #include <votca/xtp/qmstate.h>
 
-#ifndef _VOTCA_XTP_BSECOUPLING_H
-#define _VOTCA_XTP_BSECOUPLING_H
+#pragma once
+#ifndef VOTCA_XTP_BSECOUPLING_H
+#define VOTCA_XTP_BSECOUPLING_H
 
 namespace votca {
 namespace xtp {
@@ -97,4 +98,4 @@ class BSECoupling : public CouplingBase {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_BSECOUPLING_H */
+#endif  // VOTCA_XTP_BSECOUPLING_H

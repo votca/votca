@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
@@ -48,9 +49,9 @@ class TCMatrix {
   int _removedfunctions = 0;
   Eigen::MatrixXd _inv_sqrt;
 
-  bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell* shell,
-                               const AOShell* shell_row,
-                               const AOShell* shell_col);
+  bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell,
+                               const AOShell& shell_row,
+                               const AOShell& shell_col) const;
 };
 
 class TCMatrix_dft : public TCMatrix {
@@ -119,7 +120,7 @@ class TCMatrix_gwbse : public TCMatrix {
   const AOBasis* _dftbasis = nullptr;
   const Eigen::MatrixXd* _dft_orbitals = nullptr;
 
-  void FillBlock(std::vector<Eigen::MatrixXd>& matrix, const AOShell* auxshell,
+  void FillBlock(std::vector<Eigen::MatrixXd>& matrix, const AOShell& auxshell,
                  const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 };
 

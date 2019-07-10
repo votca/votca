@@ -25,11 +25,12 @@ namespace votca {
 namespace xtp {
 
 void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                          const AOShell* shell_row, const AOShell* shell_col) {
+                          const AOShell& shell_row,
+                          const AOShell& shell_col) const {
 
   // shell info, only lmax tells how far to go
-  const int lmax_row = shell_row->getLmax();
-  const int lmax_col = shell_col->getLmax();
+  const int lmax_row = shell_row.getLmax();
+  const int lmax_col = shell_col.getLmax();
 
   // set size of internal block for recursion
   int nrows = this->getBlockSize(lmax_row);
@@ -38,16 +39,12 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   const int nextra = mmax + 1;
 
   // get shell positions
-  const tools::vec& pos_row = shell_row->getPos();
-  const tools::vec& pos_col = shell_col->getPos();
-  const tools::vec diff = pos_row - pos_col;
-  double distsq = (diff.getX() * diff.getX()) + (diff.getY() * diff.getY()) +
-                  (diff.getZ() * diff.getZ());
+  const Eigen::Vector3d& pos_row = shell_row.getPos();
+  const Eigen::Vector3d& pos_col = shell_col.getPos();
+  const Eigen::Vector3d diff = pos_row - pos_col;
+  double distsq = diff.squaredNorm();
 
   const double pi = boost::math::constants::pi<double>();
-  // some helpers
-  std::vector<double> wmp = std::vector<double>(3);
-  std::vector<double> wmq = std::vector<double>(3);
 
   int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
 
@@ -90,19 +87,17 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                     44, 0,  45, 46, 47, 48, 49, 0,  50, 51, 52, 53, 54, 55};
 
   // iterate over Gaussians in this shell_row
-  for (AOShell::GaussianIterator itr = shell_row->begin();
-       itr != shell_row->end(); ++itr) {
+  for (const auto& gaussian_row : shell_row) {
     // iterate over Gaussians in this shell_col
-    const double decay_row = itr->getDecay();
+    const double decay_row = gaussian_row.getDecay();
     const double rdecay_row = 0.5 / decay_row;
-    const double powfactor_row = itr->getPowfactor();
-    for (AOShell::GaussianIterator itc = shell_col->begin();
-         itc != shell_col->end(); ++itc) {
+    const double powfactor_row = gaussian_row.getPowfactor();
+    for (const auto& gaussian_col : shell_col) {
 
       // get decay constants
-      const double decay_col = itc->getDecay();
+      const double decay_col = gaussian_col.getDecay();
       const double rdecay_col = 0.5 / decay_col;
-      const double powfactor_col = itc->getPowfactor();
+      const double powfactor_col = gaussian_col.getPowfactor();
 
       tensor3d cou(boost::extents[nrows][ncols][nextra]);
 
@@ -120,25 +115,10 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double fac_a_ac = decay_row / decay;
       const double fac_c_ac = decay_col / decay;
 
-      const double wmp0 = r_decay_2 * (decay_row * pos_row.getX() +
-                                       decay_col * pos_col.getX()) -
-                          pos_row.getX();
-      const double wmp1 = r_decay_2 * (decay_row * pos_row.getY() +
-                                       decay_col * pos_col.getY()) -
-                          pos_row.getY();
-      const double wmp2 = r_decay_2 * (decay_row * pos_row.getZ() +
-                                       decay_col * pos_col.getZ()) -
-                          pos_row.getZ();
-
-      const double wmq0 = r_decay_2 * (decay_row * pos_row.getX() +
-                                       decay_col * pos_col.getX()) -
-                          pos_col.getX();
-      const double wmq1 = r_decay_2 * (decay_row * pos_row.getY() +
-                                       decay_col * pos_col.getY()) -
-                          pos_col.getY();
-      const double wmq2 = r_decay_2 * (decay_row * pos_row.getZ() +
-                                       decay_col * pos_col.getZ()) -
-                          pos_col.getZ();
+      const Eigen::Vector3d wmp =
+          r_decay_2 * (decay_row * pos_row + decay_col * pos_col) - pos_row;
+      const Eigen::Vector3d wmq =
+          r_decay_2 * (decay_row * pos_row + decay_col * pos_col) - pos_col;
 
       const double T = fac_a_ac * decay_col * distsq;
 
@@ -156,9 +136,9 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       // Integrals     p - s
       if (lmax_row > 0) {
         for (int m = 0; m < mmax; m++) {
-          cou[Cart::x][0][m] = wmp0 * cou[0][0][m + 1];
-          cou[Cart::y][0][m] = wmp1 * cou[0][0][m + 1];
-          cou[Cart::z][0][m] = wmp2 * cou[0][0][m + 1];
+          cou[Cart::x][0][m] = wmp(0) * cou[0][0][m + 1];
+          cou[Cart::y][0][m] = wmp(1) * cou[0][0][m + 1];
+          cou[Cart::z][0][m] = wmp(2) * cou[0][0][m + 1];
         }
       }
       //------------------------------------------------------
@@ -168,12 +148,12 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int m = 0; m < mmax - 1; m++) {
           double term =
               rdecay_row * (cou[0][0][m] - fac_c_ac * cou[0][0][m + 1]);
-          cou[Cart::xx][0][m] = wmp0 * cou[Cart::x][0][m + 1] + term;
-          cou[Cart::xy][0][m] = wmp0 * cou[Cart::y][0][m + 1];
-          cou[Cart::xz][0][m] = wmp0 * cou[Cart::z][0][m + 1];
-          cou[Cart::yy][0][m] = wmp1 * cou[Cart::y][0][m + 1] + term;
-          cou[Cart::yz][0][m] = wmp1 * cou[Cart::z][0][m + 1];
-          cou[Cart::zz][0][m] = wmp2 * cou[Cart::z][0][m + 1] + term;
+          cou[Cart::xx][0][m] = wmp(0) * cou[Cart::x][0][m + 1] + term;
+          cou[Cart::xy][0][m] = wmp(0) * cou[Cart::y][0][m + 1];
+          cou[Cart::xz][0][m] = wmp(0) * cou[Cart::z][0][m + 1];
+          cou[Cart::yy][0][m] = wmp(1) * cou[Cart::y][0][m + 1] + term;
+          cou[Cart::yz][0][m] = wmp(1) * cou[Cart::z][0][m + 1];
+          cou[Cart::zz][0][m] = wmp(2) * cou[Cart::z][0][m + 1] + term;
         }
       }
       //------------------------------------------------------
@@ -182,22 +162,22 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       if (lmax_row > 2) {
         for (int m = 0; m < mmax - 2; m++) {
           cou[Cart::xxx][0][m] =
-              wmp0 * cou[Cart::xx][0][m + 1] +
+              wmp(0) * cou[Cart::xx][0][m + 1] +
               2 * rdecay_row *
                   (cou[Cart::x][0][m] - fac_c_ac * cou[Cart::x][0][m + 1]);
-          cou[Cart::xxy][0][m] = wmp1 * cou[Cart::xx][0][m + 1];
-          cou[Cart::xxz][0][m] = wmp2 * cou[Cart::xx][0][m + 1];
-          cou[Cart::xyy][0][m] = wmp0 * cou[Cart::yy][0][m + 1];
-          cou[Cart::xyz][0][m] = wmp0 * cou[Cart::yz][0][m + 1];
-          cou[Cart::xzz][0][m] = wmp0 * cou[Cart::zz][0][m + 1];
+          cou[Cart::xxy][0][m] = wmp(1) * cou[Cart::xx][0][m + 1];
+          cou[Cart::xxz][0][m] = wmp(2) * cou[Cart::xx][0][m + 1];
+          cou[Cart::xyy][0][m] = wmp(0) * cou[Cart::yy][0][m + 1];
+          cou[Cart::xyz][0][m] = wmp(0) * cou[Cart::yz][0][m + 1];
+          cou[Cart::xzz][0][m] = wmp(0) * cou[Cart::zz][0][m + 1];
           cou[Cart::yyy][0][m] =
-              wmp1 * cou[Cart::yy][0][m + 1] +
+              wmp(1) * cou[Cart::yy][0][m + 1] +
               2 * rdecay_row *
                   (cou[Cart::y][0][m] - fac_c_ac * cou[Cart::y][0][m + 1]);
-          cou[Cart::yyz][0][m] = wmp2 * cou[Cart::yy][0][m + 1];
-          cou[Cart::yzz][0][m] = wmp1 * cou[Cart::zz][0][m + 1];
+          cou[Cart::yyz][0][m] = wmp(2) * cou[Cart::yy][0][m + 1];
+          cou[Cart::yzz][0][m] = wmp(1) * cou[Cart::zz][0][m + 1];
           cou[Cart::zzz][0][m] =
-              wmp2 * cou[Cart::zz][0][m + 1] +
+              wmp(2) * cou[Cart::zz][0][m + 1] +
               2 * rdecay_row *
                   (cou[Cart::z][0][m] - fac_c_ac * cou[Cart::z][0][m + 1]);
         }
@@ -213,21 +193,24 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                                          fac_c_ac * cou[Cart::yy][0][m + 1]);
           double term_zz = rdecay_row * (cou[Cart::zz][0][m] -
                                          fac_c_ac * cou[Cart::zz][0][m + 1]);
-          cou[Cart::xxxx][0][m] = wmp0 * cou[Cart::xxx][0][m + 1] + 3 * term_xx;
-          cou[Cart::xxxy][0][m] = wmp1 * cou[Cart::xxx][0][m + 1];
-          cou[Cart::xxxz][0][m] = wmp2 * cou[Cart::xxx][0][m + 1];
-          cou[Cart::xxyy][0][m] = wmp0 * cou[Cart::xyy][0][m + 1] + term_yy;
-          cou[Cart::xxyz][0][m] = wmp1 * cou[Cart::xxz][0][m + 1];
-          cou[Cart::xxzz][0][m] = wmp0 * cou[Cart::xzz][0][m + 1] + term_zz;
-          cou[Cart::xyyy][0][m] = wmp0 * cou[Cart::yyy][0][m + 1];
-          cou[Cart::xyyz][0][m] = wmp0 * cou[Cart::yyz][0][m + 1];
-          cou[Cart::xyzz][0][m] = wmp0 * cou[Cart::yzz][0][m + 1];
-          cou[Cart::xzzz][0][m] = wmp0 * cou[Cart::zzz][0][m + 1];
-          cou[Cart::yyyy][0][m] = wmp1 * cou[Cart::yyy][0][m + 1] + 3 * term_yy;
-          cou[Cart::yyyz][0][m] = wmp2 * cou[Cart::yyy][0][m + 1];
-          cou[Cart::yyzz][0][m] = wmp1 * cou[Cart::yzz][0][m + 1] + term_zz;
-          cou[Cart::yzzz][0][m] = wmp1 * cou[Cart::zzz][0][m + 1];
-          cou[Cart::zzzz][0][m] = wmp2 * cou[Cart::zzz][0][m + 1] + 3 * term_zz;
+          cou[Cart::xxxx][0][m] =
+              wmp(0) * cou[Cart::xxx][0][m + 1] + 3 * term_xx;
+          cou[Cart::xxxy][0][m] = wmp(1) * cou[Cart::xxx][0][m + 1];
+          cou[Cart::xxxz][0][m] = wmp(2) * cou[Cart::xxx][0][m + 1];
+          cou[Cart::xxyy][0][m] = wmp(0) * cou[Cart::xyy][0][m + 1] + term_yy;
+          cou[Cart::xxyz][0][m] = wmp(1) * cou[Cart::xxz][0][m + 1];
+          cou[Cart::xxzz][0][m] = wmp(0) * cou[Cart::xzz][0][m + 1] + term_zz;
+          cou[Cart::xyyy][0][m] = wmp(0) * cou[Cart::yyy][0][m + 1];
+          cou[Cart::xyyz][0][m] = wmp(0) * cou[Cart::yyz][0][m + 1];
+          cou[Cart::xyzz][0][m] = wmp(0) * cou[Cart::yzz][0][m + 1];
+          cou[Cart::xzzz][0][m] = wmp(0) * cou[Cart::zzz][0][m + 1];
+          cou[Cart::yyyy][0][m] =
+              wmp(1) * cou[Cart::yyy][0][m + 1] + 3 * term_yy;
+          cou[Cart::yyyz][0][m] = wmp(2) * cou[Cart::yyy][0][m + 1];
+          cou[Cart::yyzz][0][m] = wmp(1) * cou[Cart::yzz][0][m + 1] + term_zz;
+          cou[Cart::yzzz][0][m] = wmp(1) * cou[Cart::zzz][0][m + 1];
+          cou[Cart::zzzz][0][m] =
+              wmp(2) * cou[Cart::zzz][0][m + 1] + 3 * term_zz;
         }
       }
       //------------------------------------------------------
@@ -242,29 +225,35 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           double term_zzz = rdecay_row * (cou[Cart::zzz][0][m] -
                                           fac_c_ac * cou[Cart::zzz][0][m + 1]);
           cou[Cart::xxxxx][0][m] =
-              wmp0 * cou[Cart::xxxx][0][m + 1] + 4 * term_xxx;
-          cou[Cart::xxxxy][0][m] = wmp1 * cou[Cart::xxxx][0][m + 1];
-          cou[Cart::xxxxz][0][m] = wmp2 * cou[Cart::xxxx][0][m + 1];
-          cou[Cart::xxxyy][0][m] = wmp1 * cou[Cart::xxxy][0][m + 1] + term_xxx;
-          cou[Cart::xxxyz][0][m] = wmp1 * cou[Cart::xxxz][0][m + 1];
-          cou[Cart::xxxzz][0][m] = wmp2 * cou[Cart::xxxz][0][m + 1] + term_xxx;
-          cou[Cart::xxyyy][0][m] = wmp0 * cou[Cart::xyyy][0][m + 1] + term_yyy;
-          cou[Cart::xxyyz][0][m] = wmp2 * cou[Cart::xxyy][0][m + 1];
-          cou[Cart::xxyzz][0][m] = wmp1 * cou[Cart::xxzz][0][m + 1];
-          cou[Cart::xxzzz][0][m] = wmp0 * cou[Cart::xzzz][0][m + 1] + term_zzz;
-          cou[Cart::xyyyy][0][m] = wmp0 * cou[Cart::yyyy][0][m + 1];
-          cou[Cart::xyyyz][0][m] = wmp0 * cou[Cart::yyyz][0][m + 1];
-          cou[Cart::xyyzz][0][m] = wmp0 * cou[Cart::yyzz][0][m + 1];
-          cou[Cart::xyzzz][0][m] = wmp0 * cou[Cart::yzzz][0][m + 1];
-          cou[Cart::xzzzz][0][m] = wmp0 * cou[Cart::zzzz][0][m + 1];
+              wmp(0) * cou[Cart::xxxx][0][m + 1] + 4 * term_xxx;
+          cou[Cart::xxxxy][0][m] = wmp(1) * cou[Cart::xxxx][0][m + 1];
+          cou[Cart::xxxxz][0][m] = wmp(2) * cou[Cart::xxxx][0][m + 1];
+          cou[Cart::xxxyy][0][m] =
+              wmp(1) * cou[Cart::xxxy][0][m + 1] + term_xxx;
+          cou[Cart::xxxyz][0][m] = wmp(1) * cou[Cart::xxxz][0][m + 1];
+          cou[Cart::xxxzz][0][m] =
+              wmp(2) * cou[Cart::xxxz][0][m + 1] + term_xxx;
+          cou[Cart::xxyyy][0][m] =
+              wmp(0) * cou[Cart::xyyy][0][m + 1] + term_yyy;
+          cou[Cart::xxyyz][0][m] = wmp(2) * cou[Cart::xxyy][0][m + 1];
+          cou[Cart::xxyzz][0][m] = wmp(1) * cou[Cart::xxzz][0][m + 1];
+          cou[Cart::xxzzz][0][m] =
+              wmp(0) * cou[Cart::xzzz][0][m + 1] + term_zzz;
+          cou[Cart::xyyyy][0][m] = wmp(0) * cou[Cart::yyyy][0][m + 1];
+          cou[Cart::xyyyz][0][m] = wmp(0) * cou[Cart::yyyz][0][m + 1];
+          cou[Cart::xyyzz][0][m] = wmp(0) * cou[Cart::yyzz][0][m + 1];
+          cou[Cart::xyzzz][0][m] = wmp(0) * cou[Cart::yzzz][0][m + 1];
+          cou[Cart::xzzzz][0][m] = wmp(0) * cou[Cart::zzzz][0][m + 1];
           cou[Cart::yyyyy][0][m] =
-              wmp1 * cou[Cart::yyyy][0][m + 1] + 4 * term_yyy;
-          cou[Cart::yyyyz][0][m] = wmp2 * cou[Cart::yyyy][0][m + 1];
-          cou[Cart::yyyzz][0][m] = wmp2 * cou[Cart::yyyz][0][m + 1] + term_yyy;
-          cou[Cart::yyzzz][0][m] = wmp1 * cou[Cart::yzzz][0][m + 1] + term_zzz;
-          cou[Cart::yzzzz][0][m] = wmp1 * cou[Cart::zzzz][0][m + 1];
+              wmp(1) * cou[Cart::yyyy][0][m + 1] + 4 * term_yyy;
+          cou[Cart::yyyyz][0][m] = wmp(2) * cou[Cart::yyyy][0][m + 1];
+          cou[Cart::yyyzz][0][m] =
+              wmp(2) * cou[Cart::yyyz][0][m + 1] + term_yyy;
+          cou[Cart::yyzzz][0][m] =
+              wmp(1) * cou[Cart::yzzz][0][m + 1] + term_zzz;
+          cou[Cart::yzzzz][0][m] = wmp(1) * cou[Cart::zzzz][0][m + 1];
           cou[Cart::zzzzz][0][m] =
-              wmp2 * cou[Cart::zzzz][0][m + 1] + 4 * term_zzz;
+              wmp(2) * cou[Cart::zzzz][0][m + 1] + 4 * term_zzz;
         }
       }
       //------------------------------------------------------
@@ -294,46 +283,46 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               rdecay_row *
               (cou[Cart::zzzz][0][m] - fac_c_ac * cou[Cart::zzzz][0][m + 1]);
           cou[Cart::xxxxxx][0][m] =
-              wmp0 * cou[Cart::xxxxx][0][m + 1] + 5 * term_xxxx;
-          cou[Cart::xxxxxy][0][m] = wmp1 * cou[Cart::xxxxx][0][m + 1];
-          cou[Cart::xxxxxz][0][m] = wmp2 * cou[Cart::xxxxx][0][m + 1];
+              wmp(0) * cou[Cart::xxxxx][0][m + 1] + 5 * term_xxxx;
+          cou[Cart::xxxxxy][0][m] = wmp(1) * cou[Cart::xxxxx][0][m + 1];
+          cou[Cart::xxxxxz][0][m] = wmp(2) * cou[Cart::xxxxx][0][m + 1];
           cou[Cart::xxxxyy][0][m] =
-              wmp1 * cou[Cart::xxxxy][0][m + 1] + term_xxxx;
-          cou[Cart::xxxxyz][0][m] = wmp1 * cou[Cart::xxxxz][0][m + 1];
+              wmp(1) * cou[Cart::xxxxy][0][m + 1] + term_xxxx;
+          cou[Cart::xxxxyz][0][m] = wmp(1) * cou[Cart::xxxxz][0][m + 1];
           cou[Cart::xxxxzz][0][m] =
-              wmp2 * cou[Cart::xxxxz][0][m + 1] + term_xxxx;
+              wmp(2) * cou[Cart::xxxxz][0][m + 1] + term_xxxx;
           cou[Cart::xxxyyy][0][m] =
-              wmp0 * cou[Cart::xxyyy][0][m + 1] + 2 * term_xyyy;
-          cou[Cart::xxxyyz][0][m] = wmp2 * cou[Cart::xxxyy][0][m + 1];
-          cou[Cart::xxxyzz][0][m] = wmp1 * cou[Cart::xxxzz][0][m + 1];
+              wmp(0) * cou[Cart::xxyyy][0][m + 1] + 2 * term_xyyy;
+          cou[Cart::xxxyyz][0][m] = wmp(2) * cou[Cart::xxxyy][0][m + 1];
+          cou[Cart::xxxyzz][0][m] = wmp(1) * cou[Cart::xxxzz][0][m + 1];
           cou[Cart::xxxzzz][0][m] =
-              wmp0 * cou[Cart::xxzzz][0][m + 1] + 2 * term_xzzz;
+              wmp(0) * cou[Cart::xxzzz][0][m + 1] + 2 * term_xzzz;
           cou[Cart::xxyyyy][0][m] =
-              wmp0 * cou[Cart::xyyyy][0][m + 1] + term_yyyy;
-          cou[Cart::xxyyyz][0][m] = wmp2 * cou[Cart::xxyyy][0][m + 1];
+              wmp(0) * cou[Cart::xyyyy][0][m + 1] + term_yyyy;
+          cou[Cart::xxyyyz][0][m] = wmp(2) * cou[Cart::xxyyy][0][m + 1];
           cou[Cart::xxyyzz][0][m] =
-              wmp0 * cou[Cart::xyyzz][0][m + 1] + term_yyzz;
-          cou[Cart::xxyzzz][0][m] = wmp1 * cou[Cart::xxzzz][0][m + 1];
+              wmp(0) * cou[Cart::xyyzz][0][m + 1] + term_yyzz;
+          cou[Cart::xxyzzz][0][m] = wmp(1) * cou[Cart::xxzzz][0][m + 1];
           cou[Cart::xxzzzz][0][m] =
-              wmp0 * cou[Cart::xzzzz][0][m + 1] + term_zzzz;
-          cou[Cart::xyyyyy][0][m] = wmp0 * cou[Cart::yyyyy][0][m + 1];
-          cou[Cart::xyyyyz][0][m] = wmp0 * cou[Cart::yyyyz][0][m + 1];
-          cou[Cart::xyyyzz][0][m] = wmp0 * cou[Cart::yyyzz][0][m + 1];
-          cou[Cart::xyyzzz][0][m] = wmp0 * cou[Cart::yyzzz][0][m + 1];
-          cou[Cart::xyzzzz][0][m] = wmp0 * cou[Cart::yzzzz][0][m + 1];
-          cou[Cart::xzzzzz][0][m] = wmp0 * cou[Cart::zzzzz][0][m + 1];
+              wmp(0) * cou[Cart::xzzzz][0][m + 1] + term_zzzz;
+          cou[Cart::xyyyyy][0][m] = wmp(0) * cou[Cart::yyyyy][0][m + 1];
+          cou[Cart::xyyyyz][0][m] = wmp(0) * cou[Cart::yyyyz][0][m + 1];
+          cou[Cart::xyyyzz][0][m] = wmp(0) * cou[Cart::yyyzz][0][m + 1];
+          cou[Cart::xyyzzz][0][m] = wmp(0) * cou[Cart::yyzzz][0][m + 1];
+          cou[Cart::xyzzzz][0][m] = wmp(0) * cou[Cart::yzzzz][0][m + 1];
+          cou[Cart::xzzzzz][0][m] = wmp(0) * cou[Cart::zzzzz][0][m + 1];
           cou[Cart::yyyyyy][0][m] =
-              wmp1 * cou[Cart::yyyyy][0][m + 1] + 5 * term_yyyy;
-          cou[Cart::yyyyyz][0][m] = wmp2 * cou[Cart::yyyyy][0][m + 1];
+              wmp(1) * cou[Cart::yyyyy][0][m + 1] + 5 * term_yyyy;
+          cou[Cart::yyyyyz][0][m] = wmp(2) * cou[Cart::yyyyy][0][m + 1];
           cou[Cart::yyyyzz][0][m] =
-              wmp2 * cou[Cart::yyyyz][0][m + 1] + term_yyyy;
+              wmp(2) * cou[Cart::yyyyz][0][m + 1] + term_yyyy;
           cou[Cart::yyyzzz][0][m] =
-              wmp1 * cou[Cart::yyzzz][0][m + 1] + 2 * term_yzzz;
+              wmp(1) * cou[Cart::yyzzz][0][m + 1] + 2 * term_yzzz;
           cou[Cart::yyzzzz][0][m] =
-              wmp1 * cou[Cart::yzzzz][0][m + 1] + term_zzzz;
-          cou[Cart::yzzzzz][0][m] = wmp1 * cou[Cart::zzzzz][0][m + 1];
+              wmp(1) * cou[Cart::yzzzz][0][m + 1] + term_zzzz;
+          cou[Cart::yzzzzz][0][m] = wmp(1) * cou[Cart::zzzzz][0][m + 1];
           cou[Cart::zzzzzz][0][m] =
-              wmp2 * cou[Cart::zzzzz][0][m + 1] + 5 * term_zzzz;
+              wmp(2) * cou[Cart::zzzzz][0][m + 1] + 5 * term_zzzz;
         }
       }
       //------------------------------------------------------
@@ -342,9 +331,9 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
         // Integrals     s - p
         for (int m = 0; m < lmax_col; m++) {
-          cou[0][Cart::x][m] = wmq0 * cou[0][0][m + 1];
-          cou[0][Cart::y][m] = wmq1 * cou[0][0][m + 1];
-          cou[0][Cart::z][m] = wmq2 * cou[0][0][m + 1];
+          cou[0][Cart::x][m] = wmq(0) * cou[0][0][m + 1];
+          cou[0][Cart::y][m] = wmq(1) * cou[0][0][m + 1];
+          cou[0][Cart::z][m] = wmq(2) * cou[0][0][m + 1];
         }
         //------------------------------------------------------
 
@@ -353,9 +342,9 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           for (int m = 0; m < lmax_col; m++) {
             double term = r_decay * cou[0][0][m + 1];
             for (int i = 1; i < 4; i++) {
-              cou[i][Cart::x][m] = wmq0 * cou[i][0][m + 1] + nx[i] * term;
-              cou[i][Cart::y][m] = wmq1 * cou[i][0][m + 1] + ny[i] * term;
-              cou[i][Cart::z][m] = wmq2 * cou[i][0][m + 1] + nz[i] * term;
+              cou[i][Cart::x][m] = wmq(0) * cou[i][0][m + 1] + nx[i] * term;
+              cou[i][Cart::y][m] = wmq(1) * cou[i][0][m + 1] + ny[i] * term;
+              cou[i][Cart::z][m] = wmq(2) * cou[i][0][m + 1] + nz[i] * term;
             }
           }
         }
@@ -365,11 +354,11 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int i_row = 2; i_row < lmax_row + 1; i_row++) {
           for (int m = 0; m < lmax_col; m++) {
             for (int i = 4; i < n_orbitals[lmax_row]; i++) {
-              cou[i][Cart::x][m] = wmq0 * cou[i][0][m + 1] +
+              cou[i][Cart::x][m] = wmq(0) * cou[i][0][m + 1] +
                                    nx[i] * r_decay * cou[i_less_x[i]][0][m + 1];
-              cou[i][Cart::y][m] = wmq1 * cou[i][0][m + 1] +
+              cou[i][Cart::y][m] = wmq(1) * cou[i][0][m + 1] +
                                    ny[i] * r_decay * cou[i_less_y[i]][0][m + 1];
-              cou[i][Cart::z][m] = wmq2 * cou[i][0][m + 1] +
+              cou[i][Cart::z][m] = wmq(2) * cou[i][0][m + 1] +
                                    nz[i] * r_decay * cou[i_less_z[i]][0][m + 1];
             }
           }
@@ -384,12 +373,12 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         for (int m = 0; m < lmax_col - 1; m++) {
           double term =
               rdecay_col * (cou[0][0][m] - fac_a_ac * cou[0][0][m + 1]);
-          cou[0][Cart::xx][m] = wmq0 * cou[0][Cart::x][m + 1] + term;
-          cou[0][Cart::xy][m] = wmq0 * cou[0][Cart::y][m + 1];
-          cou[0][Cart::xz][m] = wmq0 * cou[0][Cart::z][m + 1];
-          cou[0][Cart::yy][m] = wmq1 * cou[0][Cart::y][m + 1] + term;
-          cou[0][Cart::yz][m] = wmq1 * cou[0][Cart::z][m + 1];
-          cou[0][Cart::zz][m] = wmq2 * cou[0][Cart::z][m + 1] + term;
+          cou[0][Cart::xx][m] = wmq(0) * cou[0][Cart::x][m + 1] + term;
+          cou[0][Cart::xy][m] = wmq(0) * cou[0][Cart::y][m + 1];
+          cou[0][Cart::xz][m] = wmq(0) * cou[0][Cart::z][m + 1];
+          cou[0][Cart::yy][m] = wmq(1) * cou[0][Cart::y][m + 1] + term;
+          cou[0][Cart::yz][m] = wmq(1) * cou[0][Cart::z][m + 1];
+          cou[0][Cart::zz][m] = wmq(2) * cou[0][Cart::z][m + 1] + term;
         }
         //------------------------------------------------------
 
@@ -399,22 +388,22 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             double term =
                 rdecay_col * (cou[i][0][m] - fac_a_ac * cou[i][0][m + 1]);
             cou[i][Cart::xx][m] =
-                wmq0 * cou[i][Cart::x][m + 1] +
+                wmq(0) * cou[i][Cart::x][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::x][m + 1] + term;
             cou[i][Cart::xy][m] =
-                wmq0 * cou[i][Cart::y][m + 1] +
+                wmq(0) * cou[i][Cart::y][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::y][m + 1];
             cou[i][Cart::xz][m] =
-                wmq0 * cou[i][Cart::z][m + 1] +
+                wmq(0) * cou[i][Cart::z][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::z][m + 1];
             cou[i][Cart::yy][m] =
-                wmq1 * cou[i][Cart::y][m + 1] +
+                wmq(1) * cou[i][Cart::y][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::y][m + 1] + term;
             cou[i][Cart::yz][m] =
-                wmq1 * cou[i][Cart::z][m + 1] +
+                wmq(1) * cou[i][Cart::z][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::z][m + 1];
             cou[i][Cart::zz][m] =
-                wmq2 * cou[i][Cart::z][m + 1] +
+                wmq(2) * cou[i][Cart::z][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::z][m + 1] + term;
           }
         }
@@ -427,22 +416,22 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         // Integrals     s - f
         for (int m = 0; m < lmax_col - 2; m++) {
           cou[0][Cart::xxx][m] =
-              wmq0 * cou[0][Cart::xx][m + 1] +
+              wmq(0) * cou[0][Cart::xx][m + 1] +
               2 * rdecay_col *
                   (cou[0][Cart::x][m] - fac_a_ac * cou[0][Cart::x][m + 1]);
-          cou[0][Cart::xxy][m] = wmq1 * cou[0][Cart::xx][m + 1];
-          cou[0][Cart::xxz][m] = wmq2 * cou[0][Cart::xx][m + 1];
-          cou[0][Cart::xyy][m] = wmq0 * cou[0][Cart::yy][m + 1];
-          cou[0][Cart::xyz][m] = wmq0 * cou[0][Cart::yz][m + 1];
-          cou[0][Cart::xzz][m] = wmq0 * cou[0][Cart::zz][m + 1];
+          cou[0][Cart::xxy][m] = wmq(1) * cou[0][Cart::xx][m + 1];
+          cou[0][Cart::xxz][m] = wmq(2) * cou[0][Cart::xx][m + 1];
+          cou[0][Cart::xyy][m] = wmq(0) * cou[0][Cart::yy][m + 1];
+          cou[0][Cart::xyz][m] = wmq(0) * cou[0][Cart::yz][m + 1];
+          cou[0][Cart::xzz][m] = wmq(0) * cou[0][Cart::zz][m + 1];
           cou[0][Cart::yyy][m] =
-              wmq1 * cou[0][Cart::yy][m + 1] +
+              wmq(1) * cou[0][Cart::yy][m + 1] +
               2 * rdecay_col *
                   (cou[0][Cart::y][m] - fac_a_ac * cou[0][Cart::y][m + 1]);
-          cou[0][Cart::yyz][m] = wmq2 * cou[0][Cart::yy][m + 1];
-          cou[0][Cart::yzz][m] = wmq1 * cou[0][Cart::zz][m + 1];
+          cou[0][Cart::yyz][m] = wmq(2) * cou[0][Cart::yy][m + 1];
+          cou[0][Cart::yzz][m] = wmq(1) * cou[0][Cart::zz][m + 1];
           cou[0][Cart::zzz][m] =
-              wmq2 * cou[0][Cart::zz][m + 1] +
+              wmq(2) * cou[0][Cart::zz][m + 1] +
               2 * rdecay_col *
                   (cou[0][Cart::z][m] - fac_a_ac * cou[0][Cart::z][m + 1]);
         }
@@ -461,34 +450,34 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                 2 * rdecay_col *
                 (cou[i][Cart::z][m] - fac_a_ac * cou[i][Cart::z][m + 1]);
             cou[i][Cart::xxx][m] =
-                wmq0 * cou[i][Cart::xx][m + 1] +
+                wmq(0) * cou[i][Cart::xx][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xx][m + 1] + term_x;
             cou[i][Cart::xxy][m] =
-                wmq1 * cou[i][Cart::xx][m + 1] +
+                wmq(1) * cou[i][Cart::xx][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xx][m + 1];
             cou[i][Cart::xxz][m] =
-                wmq2 * cou[i][Cart::xx][m + 1] +
+                wmq(2) * cou[i][Cart::xx][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xx][m + 1];
             cou[i][Cart::xyy][m] =
-                wmq0 * cou[i][Cart::yy][m + 1] +
+                wmq(0) * cou[i][Cart::yy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yy][m + 1];
             cou[i][Cart::xyz][m] =
-                wmq0 * cou[i][Cart::yz][m + 1] +
+                wmq(0) * cou[i][Cart::yz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yz][m + 1];
             cou[i][Cart::xzz][m] =
-                wmq0 * cou[i][Cart::zz][m + 1] +
+                wmq(0) * cou[i][Cart::zz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::zz][m + 1];
             cou[i][Cart::yyy][m] =
-                wmq1 * cou[i][Cart::yy][m + 1] +
+                wmq(1) * cou[i][Cart::yy][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yy][m + 1] + term_y;
             cou[i][Cart::yyz][m] =
-                wmq2 * cou[i][Cart::yy][m + 1] +
+                wmq(2) * cou[i][Cart::yy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::yy][m + 1];
             cou[i][Cart::yzz][m] =
-                wmq1 * cou[i][Cart::zz][m + 1] +
+                wmq(1) * cou[i][Cart::zz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::zz][m + 1];
             cou[i][Cart::zzz][m] =
-                wmq2 * cou[i][Cart::zz][m + 1] +
+                wmq(2) * cou[i][Cart::zz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::zz][m + 1] + term_z;
           }
         }
@@ -506,21 +495,24 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                                          fac_a_ac * cou[0][Cart::yy][m + 1]);
           double term_zz = rdecay_col * (cou[0][Cart::zz][m] -
                                          fac_a_ac * cou[0][Cart::zz][m + 1]);
-          cou[0][Cart::xxxx][m] = wmq0 * cou[0][Cart::xxx][m + 1] + 3 * term_xx;
-          cou[0][Cart::xxxy][m] = wmq1 * cou[0][Cart::xxx][m + 1];
-          cou[0][Cart::xxxz][m] = wmq2 * cou[0][Cart::xxx][m + 1];
-          cou[0][Cart::xxyy][m] = wmq0 * cou[0][Cart::xyy][m + 1] + term_yy;
-          cou[0][Cart::xxyz][m] = wmq1 * cou[0][Cart::xxz][m + 1];
-          cou[0][Cart::xxzz][m] = wmq0 * cou[0][Cart::xzz][m + 1] + term_zz;
-          cou[0][Cart::xyyy][m] = wmq0 * cou[0][Cart::yyy][m + 1];
-          cou[0][Cart::xyyz][m] = wmq0 * cou[0][Cart::yyz][m + 1];
-          cou[0][Cart::xyzz][m] = wmq0 * cou[0][Cart::yzz][m + 1];
-          cou[0][Cart::xzzz][m] = wmq0 * cou[0][Cart::zzz][m + 1];
-          cou[0][Cart::yyyy][m] = wmq1 * cou[0][Cart::yyy][m + 1] + 3 * term_yy;
-          cou[0][Cart::yyyz][m] = wmq2 * cou[0][Cart::yyy][m + 1];
-          cou[0][Cart::yyzz][m] = wmq1 * cou[0][Cart::yzz][m + 1] + term_zz;
-          cou[0][Cart::yzzz][m] = wmq1 * cou[0][Cart::zzz][m + 1];
-          cou[0][Cart::zzzz][m] = wmq2 * cou[0][Cart::zzz][m + 1] + 3 * term_zz;
+          cou[0][Cart::xxxx][m] =
+              wmq(0) * cou[0][Cart::xxx][m + 1] + 3 * term_xx;
+          cou[0][Cart::xxxy][m] = wmq(1) * cou[0][Cart::xxx][m + 1];
+          cou[0][Cart::xxxz][m] = wmq(2) * cou[0][Cart::xxx][m + 1];
+          cou[0][Cart::xxyy][m] = wmq(0) * cou[0][Cart::xyy][m + 1] + term_yy;
+          cou[0][Cart::xxyz][m] = wmq(1) * cou[0][Cart::xxz][m + 1];
+          cou[0][Cart::xxzz][m] = wmq(0) * cou[0][Cart::xzz][m + 1] + term_zz;
+          cou[0][Cart::xyyy][m] = wmq(0) * cou[0][Cart::yyy][m + 1];
+          cou[0][Cart::xyyz][m] = wmq(0) * cou[0][Cart::yyz][m + 1];
+          cou[0][Cart::xyzz][m] = wmq(0) * cou[0][Cart::yzz][m + 1];
+          cou[0][Cart::xzzz][m] = wmq(0) * cou[0][Cart::zzz][m + 1];
+          cou[0][Cart::yyyy][m] =
+              wmq(1) * cou[0][Cart::yyy][m + 1] + 3 * term_yy;
+          cou[0][Cart::yyyz][m] = wmq(2) * cou[0][Cart::yyy][m + 1];
+          cou[0][Cart::yyzz][m] = wmq(1) * cou[0][Cart::yzz][m + 1] + term_zz;
+          cou[0][Cart::yzzz][m] = wmq(1) * cou[0][Cart::zzz][m + 1];
+          cou[0][Cart::zzzz][m] =
+              wmq(2) * cou[0][Cart::zzz][m + 1] + 3 * term_zz;
         }
         //------------------------------------------------------
 
@@ -534,51 +526,51 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
             double term_zz = rdecay_col * (cou[i][Cart::zz][m] -
                                            fac_a_ac * cou[i][Cart::zz][m + 1]);
             cou[i][Cart::xxxx][m] =
-                wmq0 * cou[i][Cart::xxx][m + 1] +
+                wmq(0) * cou[i][Cart::xxx][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xxx][m + 1] +
                 3 * term_xx;
             cou[i][Cart::xxxy][m] =
-                wmq1 * cou[i][Cart::xxx][m + 1] +
+                wmq(1) * cou[i][Cart::xxx][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxx][m + 1];
             cou[i][Cart::xxxz][m] =
-                wmq2 * cou[i][Cart::xxx][m + 1] +
+                wmq(2) * cou[i][Cart::xxx][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxx][m + 1];
             cou[i][Cart::xxyy][m] =
-                wmq0 * cou[i][Cart::xyy][m + 1] +
+                wmq(0) * cou[i][Cart::xyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xyy][m + 1] + term_yy;
             cou[i][Cart::xxyz][m] =
-                wmq1 * cou[i][Cart::xxz][m + 1] +
+                wmq(1) * cou[i][Cart::xxz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxz][m + 1];
             cou[i][Cart::xxzz][m] =
-                wmq0 * cou[i][Cart::xzz][m + 1] +
+                wmq(0) * cou[i][Cart::xzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xzz][m + 1] + term_zz;
             cou[i][Cart::xyyy][m] =
-                wmq0 * cou[i][Cart::yyy][m + 1] +
+                wmq(0) * cou[i][Cart::yyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyy][m + 1];
             cou[i][Cart::xyyz][m] =
-                wmq0 * cou[i][Cart::yyz][m + 1] +
+                wmq(0) * cou[i][Cart::yyz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyz][m + 1];
             cou[i][Cart::xyzz][m] =
-                wmq0 * cou[i][Cart::yzz][m + 1] +
+                wmq(0) * cou[i][Cart::yzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yzz][m + 1];
             cou[i][Cart::xzzz][m] =
-                wmq0 * cou[i][Cart::zzz][m + 1] +
+                wmq(0) * cou[i][Cart::zzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::zzz][m + 1];
             cou[i][Cart::yyyy][m] =
-                wmq1 * cou[i][Cart::yyy][m + 1] +
+                wmq(1) * cou[i][Cart::yyy][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yyy][m + 1] +
                 3 * term_yy;
             cou[i][Cart::yyyz][m] =
-                wmq2 * cou[i][Cart::yyy][m + 1] +
+                wmq(2) * cou[i][Cart::yyy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::yyy][m + 1];
             cou[i][Cart::yyzz][m] =
-                wmq1 * cou[i][Cart::yzz][m + 1] +
+                wmq(1) * cou[i][Cart::yzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yzz][m + 1] + term_zz;
             cou[i][Cart::yzzz][m] =
-                wmq1 * cou[i][Cart::zzz][m + 1] +
+                wmq(1) * cou[i][Cart::zzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::zzz][m + 1];
             cou[i][Cart::zzzz][m] =
-                wmq2 * cou[i][Cart::zzz][m + 1] +
+                wmq(2) * cou[i][Cart::zzz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::zzz][m + 1] +
                 3 * term_zz;
           }
@@ -598,29 +590,35 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           double term_zzz = rdecay_col * (cou[0][Cart::zzz][m] -
                                           fac_a_ac * cou[0][Cart::zzz][m + 1]);
           cou[0][Cart::xxxxx][m] =
-              wmq0 * cou[0][Cart::xxxx][m + 1] + 4 * term_xxx;
-          cou[0][Cart::xxxxy][m] = wmq1 * cou[0][Cart::xxxx][m + 1];
-          cou[0][Cart::xxxxz][m] = wmq2 * cou[0][Cart::xxxx][m + 1];
-          cou[0][Cart::xxxyy][m] = wmq1 * cou[0][Cart::xxxy][m + 1] + term_xxx;
-          cou[0][Cart::xxxyz][m] = wmq1 * cou[0][Cart::xxxz][m + 1];
-          cou[0][Cart::xxxzz][m] = wmq2 * cou[0][Cart::xxxz][m + 1] + term_xxx;
-          cou[0][Cart::xxyyy][m] = wmq0 * cou[0][Cart::xyyy][m + 1] + term_yyy;
-          cou[0][Cart::xxyyz][m] = wmq2 * cou[0][Cart::xxyy][m + 1];
-          cou[0][Cart::xxyzz][m] = wmq1 * cou[0][Cart::xxzz][m + 1];
-          cou[0][Cart::xxzzz][m] = wmq0 * cou[0][Cart::xzzz][m + 1] + term_zzz;
-          cou[0][Cart::xyyyy][m] = wmq0 * cou[0][Cart::yyyy][m + 1];
-          cou[0][Cart::xyyyz][m] = wmq0 * cou[0][Cart::yyyz][m + 1];
-          cou[0][Cart::xyyzz][m] = wmq0 * cou[0][Cart::yyzz][m + 1];
-          cou[0][Cart::xyzzz][m] = wmq0 * cou[0][Cart::yzzz][m + 1];
-          cou[0][Cart::xzzzz][m] = wmq0 * cou[0][Cart::zzzz][m + 1];
+              wmq(0) * cou[0][Cart::xxxx][m + 1] + 4 * term_xxx;
+          cou[0][Cart::xxxxy][m] = wmq(1) * cou[0][Cart::xxxx][m + 1];
+          cou[0][Cart::xxxxz][m] = wmq(2) * cou[0][Cart::xxxx][m + 1];
+          cou[0][Cart::xxxyy][m] =
+              wmq(1) * cou[0][Cart::xxxy][m + 1] + term_xxx;
+          cou[0][Cart::xxxyz][m] = wmq(1) * cou[0][Cart::xxxz][m + 1];
+          cou[0][Cart::xxxzz][m] =
+              wmq(2) * cou[0][Cart::xxxz][m + 1] + term_xxx;
+          cou[0][Cart::xxyyy][m] =
+              wmq(0) * cou[0][Cart::xyyy][m + 1] + term_yyy;
+          cou[0][Cart::xxyyz][m] = wmq(2) * cou[0][Cart::xxyy][m + 1];
+          cou[0][Cart::xxyzz][m] = wmq(1) * cou[0][Cart::xxzz][m + 1];
+          cou[0][Cart::xxzzz][m] =
+              wmq(0) * cou[0][Cart::xzzz][m + 1] + term_zzz;
+          cou[0][Cart::xyyyy][m] = wmq(0) * cou[0][Cart::yyyy][m + 1];
+          cou[0][Cart::xyyyz][m] = wmq(0) * cou[0][Cart::yyyz][m + 1];
+          cou[0][Cart::xyyzz][m] = wmq(0) * cou[0][Cart::yyzz][m + 1];
+          cou[0][Cart::xyzzz][m] = wmq(0) * cou[0][Cart::yzzz][m + 1];
+          cou[0][Cart::xzzzz][m] = wmq(0) * cou[0][Cart::zzzz][m + 1];
           cou[0][Cart::yyyyy][m] =
-              wmq1 * cou[0][Cart::yyyy][m + 1] + 4 * term_yyy;
-          cou[0][Cart::yyyyz][m] = wmq2 * cou[0][Cart::yyyy][m + 1];
-          cou[0][Cart::yyyzz][m] = wmq2 * cou[0][Cart::yyyz][m + 1] + term_yyy;
-          cou[0][Cart::yyzzz][m] = wmq1 * cou[0][Cart::yzzz][m + 1] + term_zzz;
-          cou[0][Cart::yzzzz][m] = wmq1 * cou[0][Cart::zzzz][m + 1];
+              wmq(1) * cou[0][Cart::yyyy][m + 1] + 4 * term_yyy;
+          cou[0][Cart::yyyyz][m] = wmq(2) * cou[0][Cart::yyyy][m + 1];
+          cou[0][Cart::yyyzz][m] =
+              wmq(2) * cou[0][Cart::yyyz][m + 1] + term_yyy;
+          cou[0][Cart::yyzzz][m] =
+              wmq(1) * cou[0][Cart::yzzz][m + 1] + term_zzz;
+          cou[0][Cart::yzzzz][m] = wmq(1) * cou[0][Cart::zzzz][m + 1];
           cou[0][Cart::zzzzz][m] =
-              wmq2 * cou[0][Cart::zzzz][m + 1] + 4 * term_zzz;
+              wmq(2) * cou[0][Cart::zzzz][m + 1] + 4 * term_zzz;
         }
         //------------------------------------------------------
 
@@ -637,75 +635,75 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                 rdecay_col *
                 (cou[i][Cart::zzz][m] - fac_a_ac * cou[i][Cart::zzz][m + 1]);
             cou[i][Cart::xxxxx][m] =
-                wmq0 * cou[i][Cart::xxxx][m + 1] +
+                wmq(0) * cou[i][Cart::xxxx][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xxxx][m + 1] +
                 4 * term_xxx;
             cou[i][Cart::xxxxy][m] =
-                wmq1 * cou[i][Cart::xxxx][m + 1] +
+                wmq(1) * cou[i][Cart::xxxx][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxx][m + 1];
             cou[i][Cart::xxxxz][m] =
-                wmq2 * cou[i][Cart::xxxx][m + 1] +
+                wmq(2) * cou[i][Cart::xxxx][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxxx][m + 1];
             cou[i][Cart::xxxyy][m] =
-                wmq1 * cou[i][Cart::xxxy][m + 1] +
+                wmq(1) * cou[i][Cart::xxxy][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxy][m + 1] +
                 term_xxx;
             cou[i][Cart::xxxyz][m] =
-                wmq1 * cou[i][Cart::xxxz][m + 1] +
+                wmq(1) * cou[i][Cart::xxxz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxz][m + 1];
             cou[i][Cart::xxxzz][m] =
-                wmq2 * cou[i][Cart::xxxz][m + 1] +
+                wmq(2) * cou[i][Cart::xxxz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxxz][m + 1] +
                 term_xxx;
             cou[i][Cart::xxyyy][m] =
-                wmq0 * cou[i][Cart::xyyy][m + 1] +
+                wmq(0) * cou[i][Cart::xyyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xyyy][m + 1] +
                 term_yyy;
             cou[i][Cart::xxyyz][m] =
-                wmq2 * cou[i][Cart::xxyy][m + 1] +
+                wmq(2) * cou[i][Cart::xxyy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxyy][m + 1];
             cou[i][Cart::xxyzz][m] =
-                wmq1 * cou[i][Cart::xxzz][m + 1] +
+                wmq(1) * cou[i][Cart::xxzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxzz][m + 1];
             cou[i][Cart::xxzzz][m] =
-                wmq0 * cou[i][Cart::xzzz][m + 1] +
+                wmq(0) * cou[i][Cart::xzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xzzz][m + 1] +
                 term_zzz;
             cou[i][Cart::xyyyy][m] =
-                wmq0 * cou[i][Cart::yyyy][m + 1] +
+                wmq(0) * cou[i][Cart::yyyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyyy][m + 1];
             cou[i][Cart::xyyyz][m] =
-                wmq0 * cou[i][Cart::yyyz][m + 1] +
+                wmq(0) * cou[i][Cart::yyyz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyyz][m + 1];
             cou[i][Cart::xyyzz][m] =
-                wmq0 * cou[i][Cart::yyzz][m + 1] +
+                wmq(0) * cou[i][Cart::yyzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyzz][m + 1];
             cou[i][Cart::xyzzz][m] =
-                wmq0 * cou[i][Cart::yzzz][m + 1] +
+                wmq(0) * cou[i][Cart::yzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yzzz][m + 1];
             cou[i][Cart::xzzzz][m] =
-                wmq0 * cou[i][Cart::zzzz][m + 1] +
+                wmq(0) * cou[i][Cart::zzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::zzzz][m + 1];
             cou[i][Cart::yyyyy][m] =
-                wmq1 * cou[i][Cart::yyyy][m + 1] +
+                wmq(1) * cou[i][Cart::yyyy][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yyyy][m + 1] +
                 4 * term_yyy;
             cou[i][Cart::yyyyz][m] =
-                wmq2 * cou[i][Cart::yyyy][m + 1] +
+                wmq(2) * cou[i][Cart::yyyy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::yyyy][m + 1];
             cou[i][Cart::yyyzz][m] =
-                wmq2 * cou[i][Cart::yyyz][m + 1] +
+                wmq(2) * cou[i][Cart::yyyz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::yyyz][m + 1] +
                 term_yyy;
             cou[i][Cart::yyzzz][m] =
-                wmq1 * cou[i][Cart::yzzz][m + 1] +
+                wmq(1) * cou[i][Cart::yzzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yzzz][m + 1] +
                 term_zzz;
             cou[i][Cart::yzzzz][m] =
-                wmq1 * cou[i][Cart::zzzz][m + 1] +
+                wmq(1) * cou[i][Cart::zzzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::zzzz][m + 1];
             cou[i][Cart::zzzzz][m] =
-                wmq2 * cou[i][Cart::zzzz][m + 1] +
+                wmq(2) * cou[i][Cart::zzzz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::zzzz][m + 1] +
                 4 * term_zzz;
           }
@@ -740,46 +738,46 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               rdecay_col *
               (cou[0][Cart::zzzz][m] - fac_a_ac * cou[0][Cart::zzzz][m + 1]);
           cou[0][Cart::xxxxxx][m] =
-              wmq0 * cou[0][Cart::xxxxx][m + 1] + 5 * term_xxxx;
-          cou[0][Cart::xxxxxy][m] = wmq1 * cou[0][Cart::xxxxx][m + 1];
-          cou[0][Cart::xxxxxz][m] = wmq2 * cou[0][Cart::xxxxx][m + 1];
+              wmq(0) * cou[0][Cart::xxxxx][m + 1] + 5 * term_xxxx;
+          cou[0][Cart::xxxxxy][m] = wmq(1) * cou[0][Cart::xxxxx][m + 1];
+          cou[0][Cart::xxxxxz][m] = wmq(2) * cou[0][Cart::xxxxx][m + 1];
           cou[0][Cart::xxxxyy][m] =
-              wmq1 * cou[0][Cart::xxxxy][m + 1] + term_xxxx;
-          cou[0][Cart::xxxxyz][m] = wmq1 * cou[0][Cart::xxxxz][m + 1];
+              wmq(1) * cou[0][Cart::xxxxy][m + 1] + term_xxxx;
+          cou[0][Cart::xxxxyz][m] = wmq(1) * cou[0][Cart::xxxxz][m + 1];
           cou[0][Cart::xxxxzz][m] =
-              wmq2 * cou[0][Cart::xxxxz][m + 1] + term_xxxx;
+              wmq(2) * cou[0][Cart::xxxxz][m + 1] + term_xxxx;
           cou[0][Cart::xxxyyy][m] =
-              wmq0 * cou[0][Cart::xxyyy][m + 1] + 2 * term_xyyy;
-          cou[0][Cart::xxxyyz][m] = wmq2 * cou[0][Cart::xxxyy][m + 1];
-          cou[0][Cart::xxxyzz][m] = wmq1 * cou[0][Cart::xxxzz][m + 1];
+              wmq(0) * cou[0][Cart::xxyyy][m + 1] + 2 * term_xyyy;
+          cou[0][Cart::xxxyyz][m] = wmq(2) * cou[0][Cart::xxxyy][m + 1];
+          cou[0][Cart::xxxyzz][m] = wmq(1) * cou[0][Cart::xxxzz][m + 1];
           cou[0][Cart::xxxzzz][m] =
-              wmq0 * cou[0][Cart::xxzzz][m + 1] + 2 * term_xzzz;
+              wmq(0) * cou[0][Cart::xxzzz][m + 1] + 2 * term_xzzz;
           cou[0][Cart::xxyyyy][m] =
-              wmq0 * cou[0][Cart::xyyyy][m + 1] + term_yyyy;
-          cou[0][Cart::xxyyyz][m] = wmq2 * cou[0][Cart::xxyyy][m + 1];
+              wmq(0) * cou[0][Cart::xyyyy][m + 1] + term_yyyy;
+          cou[0][Cart::xxyyyz][m] = wmq(2) * cou[0][Cart::xxyyy][m + 1];
           cou[0][Cart::xxyyzz][m] =
-              wmq0 * cou[0][Cart::xyyzz][m + 1] + term_yyzz;
-          cou[0][Cart::xxyzzz][m] = wmq1 * cou[0][Cart::xxzzz][m + 1];
+              wmq(0) * cou[0][Cart::xyyzz][m + 1] + term_yyzz;
+          cou[0][Cart::xxyzzz][m] = wmq(1) * cou[0][Cart::xxzzz][m + 1];
           cou[0][Cart::xxzzzz][m] =
-              wmq0 * cou[0][Cart::xzzzz][m + 1] + term_zzzz;
-          cou[0][Cart::xyyyyy][m] = wmq0 * cou[0][Cart::yyyyy][m + 1];
-          cou[0][Cart::xyyyyz][m] = wmq0 * cou[0][Cart::yyyyz][m + 1];
-          cou[0][Cart::xyyyzz][m] = wmq0 * cou[0][Cart::yyyzz][m + 1];
-          cou[0][Cart::xyyzzz][m] = wmq0 * cou[0][Cart::yyzzz][m + 1];
-          cou[0][Cart::xyzzzz][m] = wmq0 * cou[0][Cart::yzzzz][m + 1];
-          cou[0][Cart::xzzzzz][m] = wmq0 * cou[0][Cart::zzzzz][m + 1];
+              wmq(0) * cou[0][Cart::xzzzz][m + 1] + term_zzzz;
+          cou[0][Cart::xyyyyy][m] = wmq(0) * cou[0][Cart::yyyyy][m + 1];
+          cou[0][Cart::xyyyyz][m] = wmq(0) * cou[0][Cart::yyyyz][m + 1];
+          cou[0][Cart::xyyyzz][m] = wmq(0) * cou[0][Cart::yyyzz][m + 1];
+          cou[0][Cart::xyyzzz][m] = wmq(0) * cou[0][Cart::yyzzz][m + 1];
+          cou[0][Cart::xyzzzz][m] = wmq(0) * cou[0][Cart::yzzzz][m + 1];
+          cou[0][Cart::xzzzzz][m] = wmq(0) * cou[0][Cart::zzzzz][m + 1];
           cou[0][Cart::yyyyyy][m] =
-              wmq1 * cou[0][Cart::yyyyy][m + 1] + 5 * term_yyyy;
-          cou[0][Cart::yyyyyz][m] = wmq2 * cou[0][Cart::yyyyy][m + 1];
+              wmq(1) * cou[0][Cart::yyyyy][m + 1] + 5 * term_yyyy;
+          cou[0][Cart::yyyyyz][m] = wmq(2) * cou[0][Cart::yyyyy][m + 1];
           cou[0][Cart::yyyyzz][m] =
-              wmq2 * cou[0][Cart::yyyyz][m + 1] + term_yyyy;
+              wmq(2) * cou[0][Cart::yyyyz][m + 1] + term_yyyy;
           cou[0][Cart::yyyzzz][m] =
-              wmq1 * cou[0][Cart::yyzzz][m + 1] + 2 * term_yzzz;
+              wmq(1) * cou[0][Cart::yyzzz][m + 1] + 2 * term_yzzz;
           cou[0][Cart::yyzzzz][m] =
-              wmq1 * cou[0][Cart::yzzzz][m + 1] + term_zzzz;
-          cou[0][Cart::yzzzzz][m] = wmq1 * cou[0][Cart::zzzzz][m + 1];
+              wmq(1) * cou[0][Cart::yzzzz][m + 1] + term_zzzz;
+          cou[0][Cart::yzzzzz][m] = wmq(1) * cou[0][Cart::zzzzz][m + 1];
           cou[0][Cart::zzzzzz][m] =
-              wmq2 * cou[0][Cart::zzzzz][m + 1] + 5 * term_zzzz;
+              wmq(2) * cou[0][Cart::zzzzz][m + 1] + 5 * term_zzzz;
         }
         //------------------------------------------------------
 
@@ -808,100 +806,100 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                 rdecay_col *
                 (cou[i][Cart::zzzz][m] - fac_a_ac * cou[i][Cart::zzzz][m + 1]);
             cou[i][Cart::xxxxxx][m] =
-                wmq0 * cou[i][Cart::xxxxx][m + 1] +
+                wmq(0) * cou[i][Cart::xxxxx][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xxxxx][m + 1] +
                 5 * term_xxxx;
             cou[i][Cart::xxxxxy][m] =
-                wmq1 * cou[i][Cart::xxxxx][m + 1] +
+                wmq(1) * cou[i][Cart::xxxxx][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxxx][m + 1];
             cou[i][Cart::xxxxxz][m] =
-                wmq2 * cou[i][Cart::xxxxx][m + 1] +
+                wmq(2) * cou[i][Cart::xxxxx][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxxxx][m + 1];
             cou[i][Cart::xxxxyy][m] =
-                wmq1 * cou[i][Cart::xxxxy][m + 1] +
+                wmq(1) * cou[i][Cart::xxxxy][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxxy][m + 1] +
                 term_xxxx;
             cou[i][Cart::xxxxyz][m] =
-                wmq1 * cou[i][Cart::xxxxz][m + 1] +
+                wmq(1) * cou[i][Cart::xxxxz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxxz][m + 1];
             cou[i][Cart::xxxxzz][m] =
-                wmq2 * cou[i][Cart::xxxxz][m + 1] +
+                wmq(2) * cou[i][Cart::xxxxz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxxxz][m + 1] +
                 term_xxxx;
             cou[i][Cart::xxxyyy][m] =
-                wmq0 * cou[i][Cart::xxyyy][m + 1] +
+                wmq(0) * cou[i][Cart::xxyyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xxyyy][m + 1] +
                 2 * term_xyyy;
             cou[i][Cart::xxxyyz][m] =
-                wmq2 * cou[i][Cart::xxxyy][m + 1] +
+                wmq(2) * cou[i][Cart::xxxyy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxxyy][m + 1];
             cou[i][Cart::xxxyzz][m] =
-                wmq1 * cou[i][Cart::xxxzz][m + 1] +
+                wmq(1) * cou[i][Cart::xxxzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxxzz][m + 1];
             cou[i][Cart::xxxzzz][m] =
-                wmq0 * cou[i][Cart::xxzzz][m + 1] +
+                wmq(0) * cou[i][Cart::xxzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xxzzz][m + 1] +
                 2 * term_xzzz;
             cou[i][Cart::xxyyyy][m] =
-                wmq0 * cou[i][Cart::xyyyy][m + 1] +
+                wmq(0) * cou[i][Cart::xyyyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xyyyy][m + 1] +
                 term_yyyy;
             cou[i][Cart::xxyyyz][m] =
-                wmq2 * cou[i][Cart::xxyyy][m + 1] +
+                wmq(2) * cou[i][Cart::xxyyy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::xxyyy][m + 1];
             cou[i][Cart::xxyyzz][m] =
-                wmq0 * cou[i][Cart::xyyzz][m + 1] +
+                wmq(0) * cou[i][Cart::xyyzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xyyzz][m + 1] +
                 term_yyzz;
             cou[i][Cart::xxyzzz][m] =
-                wmq1 * cou[i][Cart::xxzzz][m + 1] +
+                wmq(1) * cou[i][Cart::xxzzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::xxzzz][m + 1];
             cou[i][Cart::xxzzzz][m] =
-                wmq0 * cou[i][Cart::xzzzz][m + 1] +
+                wmq(0) * cou[i][Cart::xzzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::xzzzz][m + 1] +
                 term_zzzz;
             cou[i][Cart::xyyyyy][m] =
-                wmq0 * cou[i][Cart::yyyyy][m + 1] +
+                wmq(0) * cou[i][Cart::yyyyy][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyyyy][m + 1];
             cou[i][Cart::xyyyyz][m] =
-                wmq0 * cou[i][Cart::yyyyz][m + 1] +
+                wmq(0) * cou[i][Cart::yyyyz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyyyz][m + 1];
             cou[i][Cart::xyyyzz][m] =
-                wmq0 * cou[i][Cart::yyyzz][m + 1] +
+                wmq(0) * cou[i][Cart::yyyzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyyzz][m + 1];
             cou[i][Cart::xyyzzz][m] =
-                wmq0 * cou[i][Cart::yyzzz][m + 1] +
+                wmq(0) * cou[i][Cart::yyzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yyzzz][m + 1];
             cou[i][Cart::xyzzzz][m] =
-                wmq0 * cou[i][Cart::yzzzz][m + 1] +
+                wmq(0) * cou[i][Cart::yzzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::yzzzz][m + 1];
             cou[i][Cart::xzzzzz][m] =
-                wmq0 * cou[i][Cart::zzzzz][m + 1] +
+                wmq(0) * cou[i][Cart::zzzzz][m + 1] +
                 nx[i] * r_decay * cou[i_less_x[i]][Cart::zzzzz][m + 1];
             cou[i][Cart::yyyyyy][m] =
-                wmq1 * cou[i][Cart::yyyyy][m + 1] +
+                wmq(1) * cou[i][Cart::yyyyy][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yyyyy][m + 1] +
                 5 * term_yyyy;
             cou[i][Cart::yyyyyz][m] =
-                wmq2 * cou[i][Cart::yyyyy][m + 1] +
+                wmq(2) * cou[i][Cart::yyyyy][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::yyyyy][m + 1];
             cou[i][Cart::yyyyzz][m] =
-                wmq2 * cou[i][Cart::yyyyz][m + 1] +
+                wmq(2) * cou[i][Cart::yyyyz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::yyyyz][m + 1] +
                 term_yyyy;
             cou[i][Cart::yyyzzz][m] =
-                wmq1 * cou[i][Cart::yyzzz][m + 1] +
+                wmq(1) * cou[i][Cart::yyzzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yyzzz][m + 1] +
                 2 * term_yzzz;
             cou[i][Cart::yyzzzz][m] =
-                wmq1 * cou[i][Cart::yzzzz][m + 1] +
+                wmq(1) * cou[i][Cart::yzzzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::yzzzz][m + 1] +
                 term_zzzz;
             cou[i][Cart::yzzzzz][m] =
-                wmq1 * cou[i][Cart::zzzzz][m + 1] +
+                wmq(1) * cou[i][Cart::zzzzz][m + 1] +
                 ny[i] * r_decay * cou[i_less_y[i]][Cart::zzzzz][m + 1];
             cou[i][Cart::zzzzzz][m] =
-                wmq2 * cou[i][Cart::zzzzz][m + 1] +
+                wmq(2) * cou[i][Cart::zzzzz][m + 1] +
                 nz[i] * r_decay * cou[i_less_z[i]][Cart::zzzzz][m + 1] +
                 5 * term_zzzz;
           }
@@ -911,12 +909,14 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       }  // end if (lmax_col > 5)
 
       // normalization and cartesian -> spherical factors
-      int ntrafo_row = shell_row->getNumFunc() + shell_row->getOffset();
-      int ntrafo_col = shell_col->getNumFunc() + shell_col->getOffset();
+      int ntrafo_row = shell_row.getNumFunc() + shell_row.getOffset();
+      int ntrafo_col = shell_col.getNumFunc() + shell_col.getOffset();
 
       // get transformation matrices including contraction coefficients
-      const std::vector<double>& contractions_row = itr->getContraction();
-      const std::vector<double>& contractions_col = itc->getContraction();
+      const std::vector<double>& contractions_row =
+          gaussian_row.getContraction();
+      const std::vector<double>& contractions_col =
+          gaussian_col.getContraction();
 
       // put cou[i][j][0] into eigen matrix
       Eigen::MatrixXd coumat = Eigen::MatrixXd::Zero(nrows, ncols);
@@ -1468,7 +1468,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       for (unsigned i = 0; i < matrix.rows(); i++) {
         for (unsigned j = 0; j < matrix.cols(); j++) {
           matrix(i, j) +=
-              cou_sph(i + shell_row->getOffset(), j + shell_col->getOffset());
+              cou_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
         }
       }
 

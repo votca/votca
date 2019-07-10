@@ -14,12 +14,14 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CHECKPOINT_H
-#define _VOTCA_XTP_CHECKPOINT_H
+#pragma once
+#ifndef VOTCA_XTP_CHECKPOINT_H
+#define VOTCA_XTP_CHECKPOINT_H
 
 #include <H5Cpp.h>
 #include <votca/xtp/checkpoint_utils.h>
 #include <votca/xtp/checkpointreader.h>
+#include <votca/xtp/checkpointtable.h>
 #include <votca/xtp/checkpointwriter.h>
 
 namespace votca {
@@ -57,4 +59,4 @@ class CheckpointFile {
 
 }  // namespace xtp
 }  // namespace votca
-#endif  // _VOTCA_XTP_CHECKPOINT_H
+#endif  // VOTCA_XTP_CHECKPOINT_H

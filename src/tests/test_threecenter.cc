@@ -18,6 +18,7 @@
 #define BOOST_TEST_MODULE threecenter_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ERIs.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
 
@@ -100,7 +101,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
@@ -242,14 +243,85 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
 }
 
 BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
+  ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << endl;
+  xyzfile << " methane" << endl;
+  xyzfile << " C            .000000     .000000     .000000" << endl;
+  xyzfile << " H            .629118     .629118     .629118" << endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  xyzfile.close();
+
+  ofstream basisfile("3-21G.xml");
+  basisfile << "<basis name=\"3-21G\">" << endl;
+  basisfile << "  <element name=\"H\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"5.447178e+00\">" << endl;
+  basisfile << "        <contractions factor=\"1.562850e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"8.245470e-01\">" << endl;
+  basisfile << "        <contractions factor=\"9.046910e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.831920e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "  <element name=\"C\">" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"S\">" << endl;
+  basisfile << "      <constant decay=\"1.722560e+02\">" << endl;
+  basisfile << "        <contractions factor=\"6.176690e-02\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"2.591090e+01\">" << endl;
+  basisfile << "        <contractions factor=\"3.587940e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"5.533350e+00\">" << endl;
+  basisfile << "        <contractions factor=\"7.007130e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"3.664980e+00\">" << endl;
+  basisfile << "        <contractions factor=\"-3.958970e-01\" type=\"S\"/>"
+            << endl;
+  basisfile << "        <contractions factor=\"2.364600e-01\" type=\"P\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "      <constant decay=\"7.705450e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.215840e+00\" type=\"S\"/>"
+            << endl;
+  basisfile << "        <contractions factor=\"8.606190e-01\" type=\"P\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "    <shell scale=\"1.0\" type=\"SP\">" << endl;
+  basisfile << "      <constant decay=\"1.958570e-01\">" << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"S\"/>"
+            << endl;
+  basisfile << "        <contractions factor=\"1.000000e+00\" type=\"P\"/>"
+            << endl;
+  basisfile << "      </constant>" << endl;
+  basisfile << "    </shell>" << endl;
+  basisfile << "  </element>" << endl;
+  basisfile << "</basis>" << endl;
+  basisfile.close();
+
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   AOBasis aobasis;
   aobasis.AOBasisFill(basis, orbitals.QMAtoms());
 
-  Eigen::MatrixXd MOs = Eigen::MatrixXd::Ones(17, 17);
+  Eigen::MatrixXd MOs = Eigen::MatrixXd::Zero(17, 17);
   MOs << -0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169,
       -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15,
       2.89043e-13, -0.00949189, 1.95787e-12, 1.22168e-14, -2.63092e-15,

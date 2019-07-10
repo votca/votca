@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_LEBEDEV__H
-#define __XTP_LEBEDEV__H
+#pragma once
+#ifndef VOTCA_XTP_LEBEDEV_H
+#define VOTCA_XTP_LEBEDEV_H
 
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/property.h>
@@ -37,7 +38,7 @@ class LebedevGrid {
   };
 
   std::map<std::string, GridContainers::spherical_grid> CalculateSphericalGrids(
-      std::vector<QMAtom *> atoms, const std::string &type);
+      const QMMolecule &atoms, const std::string &type);
   GridContainers::spherical_grid CalculateUnitSphereGrid(
       const std::string &element, const std::string &type);
   GridContainers::spherical_grid CalculateUnitSphereGrid(int order);
@@ -415,4 +416,4 @@ class LebedevGrid {
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* LEBEDEV_H */
+#endif  // VOTCA_XTP_LEBEDEV_H

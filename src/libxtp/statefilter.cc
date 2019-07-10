@@ -37,29 +37,26 @@ void Statefilter::Initialize(tools::Property& options) {
   }
   if (options.exists("localisation")) {
     _use_localisationfilter = true;
-    std::string temp = options.get("localisation").as<std::string>();
-    tools::Tokenizer tok_cleanup(temp, ", \n\t");
-    std::vector<std::string> strings_vec;
-    tok_cleanup.ToVector(strings_vec);
-    if (strings_vec.size() != 2) {
-      throw std::runtime_error(
-          "statefiler: Fragment and localisation threshold are not separated");
-    }
-    if (strings_vec[0] == "a" || strings_vec[0] == "A") {
-      _localiseonA = true;
-    } else if (strings_vec[0] == "b" || strings_vec[0] == "B") {
-      _localiseonA = false;
-    } else {
-      throw std::runtime_error(
-          "statefiler: Fragment label not known, either A or B");
-    }
-    _loc_threshold = boost::lexical_cast<double>(strings_vec[1]);
+    std::string indices =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(
+            "localisation.fragment");
+    QMFragment<BSE_Population> reg =
+        QMFragment<BSE_Population>("Fragment", 0, indices);
+    _loc_threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
+        "localisation.threshold");
+    _fragment_loc.push_back(reg);
   }
 
   if (options.exists("charge_transfer")) {
     _use_dQfilter = true;
-    _dQ_threshold =
-        options.ifExistsReturnElseThrowRuntimeError<double>("charge_transfer");
+    std::string indices =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(
+            "charge_transfer.fragment");
+    QMFragment<BSE_Population> reg =
+        QMFragment<BSE_Population>("Fragment", 0, indices);
+    _dQ_threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
+        "charge_transfer.threshold");
+    _fragment_dQ.push_back(reg);
   }
   if (_use_dQfilter && _use_localisationfilter) {
     throw std::runtime_error(
@@ -68,48 +65,44 @@ void Statefilter::Initialize(tools::Property& options) {
 }
 
 void Statefilter::PrintInfo() const {
-  CTP_LOG(ctp::logDEBUG, *_log)
-      << "Initial state: " << _statehist[0].ToString() << flush;
+  XTP_LOG(logDEBUG, *_log) << "Initial state: " << _statehist[0].ToString()
+                           << flush;
   if (_statehist.size() > 1) {
-    CTP_LOG(ctp::logDEBUG, *_log)
+    XTP_LOG(logDEBUG, *_log)
         << "Last state: " << _statehist.back().ToString() << flush;
   }
   if (_use_oscfilter) {
-    CTP_LOG(ctp::logDEBUG, *_log)
-        << "Using oscillator strength filter with cutoff " << _oscthreshold
-        << flush;
+    XTP_LOG(logDEBUG, *_log) << "Using oscillator strength filter with cutoff "
+                             << _oscthreshold << flush;
   }
   if (_use_overlapfilter) {
     if (_overlapthreshold == 0.0) {
-      CTP_LOG(ctp::logDEBUG, *_log)
+      XTP_LOG(logDEBUG, *_log)
           << "Using overlap filer with no cutoff " << flush;
     } else {
-      CTP_LOG(ctp::logDEBUG, *_log)
+      XTP_LOG(logDEBUG, *_log)
           << "Using overlap filer with cutoff " << _overlapthreshold << flush;
     }
   }
   if (_use_localisationfilter) {
-    std::string fragment = "A";
-    if (!_localiseonA) {
-      fragment = "B";
-    }
-    CTP_LOG(ctp::logDEBUG, *_log)
-        << "Using localisation filter for fragment" << fragment
+    XTP_LOG(logDEBUG, *_log)
+        << "Using localisation filter for fragment" << _fragment_loc[0].name()
         << " with cutoff " << _loc_threshold << flush;
   }
   if (_use_dQfilter) {
-    CTP_LOG(ctp::logDEBUG, *_log)
-        << "Using Delta Q filter with cutoff " << _dQ_threshold << flush;
+    XTP_LOG(logDEBUG, *_log)
+        << "Using Delta Q filter for fragment" << _fragment_dQ[0].name()
+        << "with cutoff  " << _dQ_threshold << flush;
   }
   if (_use_oscfilter && _use_dQfilter) {
-    CTP_LOG(ctp::logDEBUG, *_log) << "WARNING: filtering for optically active "
-                                     "CT transition - might not make sense... "
-                                  << flush;
+    XTP_LOG(logDEBUG, *_log) << "WARNING: filtering for optically active CT "
+                                "transition - might not make sense... "
+                             << flush;
   }
   if (_use_dQfilter + _use_oscfilter + _use_localisationfilter +
           _use_oscfilter <
       1) {
-    CTP_LOG(ctp::logDEBUG, *_log) << "WARNING: No filter is used " << flush;
+    XTP_LOG(logDEBUG, *_log) << "WARNING: No filter is used " << flush;
   }
 }
 
@@ -138,7 +131,7 @@ std::vector<int> Statefilter::CollapseResults(
   }
 }
 
-QMState Statefilter::CalcState(Orbitals& orbitals) const {
+QMState Statefilter::CalcState(const Orbitals& orbitals) const {
 
   if (_use_dQfilter + _use_oscfilter + _use_localisationfilter +
           _use_oscfilter <
@@ -164,18 +157,17 @@ QMState Statefilter::CalcState(Orbitals& orbitals) const {
   QMState state;
   if (result.size() < 1) {
     state = _statehist.back();
-    CTP_LOG(ctp::logDEBUG, *_log)
+    XTP_LOG(logDEBUG, *_log)
         << "No State found by filter using last state: " << state.ToString()
         << flush;
   } else {
     state = QMState(_statehist.back().Type(), result[0], false);
-    CTP_LOG(ctp::logDEBUG, *_log)
-        << "Next State is: " << state.ToString() << flush;
+    XTP_LOG(logDEBUG, *_log) << "Next State is: " << state.ToString() << flush;
   }
   return state;
 }
 
-QMState Statefilter::CalcStateAndUpdate(Orbitals& orbitals) {
+QMState Statefilter::CalcStateAndUpdate(const Orbitals& orbitals) {
   QMState result = CalcState(orbitals);
   _statehist.push_back(result);
   if (_use_overlapfilter) {
@@ -195,21 +187,12 @@ std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals) const {
 
 std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
-  const std::vector<Eigen::VectorXd>& popE =
-      (_statehist[0].Type() == QMStateType::Singlet)
-          ? orbitals.getFragment_E_localisation_singlet()
-          : orbitals.getFragment_E_localisation_triplet();
-  const std::vector<Eigen::VectorXd>& popH =
-      (_statehist[0].Type() == QMStateType::Singlet)
-          ? orbitals.getFragment_H_localisation_singlet()
-          : orbitals.getFragment_H_localisation_triplet();
-  int fragmentindex = 1;
-  if (_localiseonA) {
-    fragmentindex = 0;
-  }
-  for (unsigned i = 0; i < popE.size(); i++) {
-    if (popE[i](fragmentindex) > _loc_threshold &&
-        popH[i](fragmentindex) > _loc_threshold) {
+  Lowdin low;
+  low.CalcChargeperFragment(_fragment_loc, orbitals, _statehist[0].Type());
+  const Eigen::VectorXd& popE = _fragment_loc[0].value().E;
+  const Eigen::VectorXd& popH = _fragment_loc[0].value().H;
+  for (int i = 0; i < popE.size(); i++) {
+    if (popE[i] > _loc_threshold && popH[i] > _loc_threshold) {
       indexes.push_back(i);
     }
   }
@@ -218,19 +201,20 @@ std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
 
 std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
-  const std::vector<Eigen::VectorXd>& dQ_frag =
-      (_statehist[0].Type() == QMStateType::Singlet)
-          ? orbitals.getFragmentChargesSingEXC()
-          : orbitals.getFragmentChargesTripEXC();
-  for (unsigned i = 0; i < dQ_frag.size(); i++) {
-    if (std::abs(dQ_frag[i](0)) > _dQ_threshold) {
+  Lowdin low;
+  low.CalcChargeperFragment(_fragment_dQ, orbitals, _statehist[0].Type());
+  Eigen::VectorXd dq =
+      (_fragment_dQ[0].value().H - _fragment_dQ[0].value().E).cwiseAbs();
+
+  for (int i = 0; i < dq.size(); i++) {
+    if (dq[i] > _dQ_threshold) {
       indexes.push_back(i);
     }
   }
   return indexes;
 }
 
-Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals& orbitals) const {
+Eigen::VectorXd Statefilter::CalculateOverlap(const Orbitals& orbitals) const {
   BasisSet dftbs;
   dftbs.LoadBasisSet(orbitals.getDFTbasisName());
   AOBasis dftbasis;
@@ -243,7 +227,7 @@ Eigen::VectorXd Statefilter::CalculateOverlap(Orbitals& orbitals) const {
   return overlap;
 }
 
-Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals) const {
+Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(const Orbitals& orbitals) const {
   QMStateType type = _statehist[0].Type();
   Eigen::MatrixXd ortho_coeffs;
   if (type.isSingleParticleState()) {
@@ -260,7 +244,7 @@ Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(Orbitals& orbitals) const {
   return ortho_coeffs;
 }
 
-void Statefilter::UpdateLastCoeff(Orbitals& orbitals) {
+void Statefilter::UpdateLastCoeff(const Orbitals& orbitals) {
   Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
   int offset = 0;
   if (_statehist[0].Type() == QMStateType::DQPstate) {
@@ -269,7 +253,7 @@ void Statefilter::UpdateLastCoeff(Orbitals& orbitals) {
   _laststatecoeff = ortho_coeffs.col(_statehist.back().Index() - offset);
 }
 
-std::vector<int> Statefilter::OverlapFilter(Orbitals& orbitals) const {
+std::vector<int> Statefilter::OverlapFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
   if (_statehist.size() <= 1) {
     indexes = std::vector<int>{_statehist[0].Index()};

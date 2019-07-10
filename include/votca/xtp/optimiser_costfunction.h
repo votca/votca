@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_OPTIMISER_COSTFUNCTION__H
-#define __XTP_OPTIMISER_COSTFUNCTION__H
+#pragma once
+#ifndef VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
+#define VOTCA_XTP_OPTIMISER_COSTFUNCTION_H
 
 #include <votca/xtp/eigen.h>
 
@@ -43,4 +44,4 @@ class Optimiser_costfunction {
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* FORCES_H */
+#endif  // VOTCA_XTP_OPTIMISER_COSTFUNCTION_H

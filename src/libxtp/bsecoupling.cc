@@ -27,7 +27,7 @@
 
 namespace votca {
 namespace xtp {
-
+using namespace std;
 using boost::format;
 using namespace tools;
 
@@ -161,15 +161,12 @@ double BSECoupling::getTripletCouplingElement(int levelA, int levelB,
 void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
                                      Orbitals& orbitalsAB) {
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "  Calculating exciton couplings" << flush;
-#ifdef _OPENMP
-
-  if (_openmp_threads > 0) omp_set_num_threads(_openmp_threads);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads"
-      << flush;
-#endif
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "  Calculating exciton couplings" << flush;
+  // set the parallelization
+  OPENMP::setMaxThreads(_openmp_threads);
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
+                            << OPENMP::getMaxThreads() << " threads" << flush;
 
   CheckAtomCoordinates(orbitalsA, orbitalsB, orbitalsAB);
 
@@ -196,11 +193,11 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseA_singlet_exc = orbitalsA.BSESingletCoefficients().cols();
   int bseA_triplet_exc = orbitalsA.BSETripletCoefficients().cols();
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   molecule A has " << bseA_singlet_exc
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   molecule A has " << bseA_singlet_exc
       << " singlet excitons with dimension " << bseA_size << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   molecule A has " << bseA_triplet_exc
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   molecule A has " << bseA_triplet_exc
       << " triplet excitons with dimension " << bseA_size << flush;
 
   // now, two storage assignment matrices for two-particle functions
@@ -226,11 +223,11 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseB_singlet_exc = orbitalsB.BSESingletCoefficients().cols();
   int bseB_triplet_exc = orbitalsB.BSETripletCoefficients().cols();
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   molecule B has " << bseB_singlet_exc
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   molecule B has " << bseB_singlet_exc
       << " singlet excitons with dimension " << bseB_size << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   molecule B has " << bseB_triplet_exc
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   molecule B has " << bseB_triplet_exc
       << " triplet excitons with dimension " << bseB_size << flush;
 
   // now, two storage assignment matrices for two-particle functions
@@ -246,16 +243,16 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   }
 
   if (_levA > bseA_singlet_exc) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of excitons you want is greater than stored for molecule "
            "A. Setting to max number available"
         << flush;
     _levA = bseA_singlet_exc;
   }
   if (_levB > bseB_singlet_exc) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of excitons you want is greater than stored for molecule "
            "B. Setting to max number available"
         << flush;
@@ -263,16 +260,16 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   }
 
   if (_levA > bseA_singlet_exc) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of Frenkel states you want is greater than stored for "
            "molecule A. Setting to max number available"
         << flush;
     _levA = bseA_singlet_exc;
   }
   if (_levB > bseB_singlet_exc) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of Frenkel states you want is greater than stored for "
            "molecule B. Setting to max number available"
         << flush;
@@ -280,18 +277,23 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   }
 
   if (_unoccA > bseA_ctotal) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of occupied orbitals in molecule A for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
     _unoccA = bseA_ctotal;
   } else if (_unoccA < 0) {
     _unoccA = bseA_ctotal;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
+        << "  Number of occupied orbitals in molecule B for CT creation "
+           "exceeds number of KS-orbitals in BSE"
+        << flush;
   }
   if (_unoccB > bseB_ctotal) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of occupied orbitals in molecule B for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
@@ -301,8 +303,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   }
 
   if (_occA > bseA_vtotal) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of unoccupied orbitals in molecule A for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
@@ -311,8 +313,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     _occA = bseA_vtotal;
   }
   if (_occB > bseB_vtotal) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << "  Number of unoccupied orbitals in molecule B for CT creation "
            "exceeds number of KS-orbitals in BSE"
         << flush;
@@ -329,7 +331,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseAB_vtotal = bseAB_vmax - bseAB_vmin + 1;
   int bseAB_ctotal = bseAB_cmax - bseAB_cmin + 1;
   int bseAB_size = bseAB_vtotal * bseAB_ctotal;
-  // check if electron-hole interaction matrices are stored
+
   // now, two storage assignment matrices for two-particle functions
   Eigen::MatrixXi combAB;
   combAB.resize(bseAB_size, 2);
@@ -345,14 +347,12 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   // DFT levels of monomers can be reduced to those used in BSE
   levelsA = bseA_vtotal + bseA_ctotal;
   levelsB = bseB_vtotal + bseB_ctotal;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   levels used in BSE of molA: " << bseA_vmin
-      << " to " << bseA_cmax << " total: " << bseA_vtotal + bseA_ctotal
-      << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   levels used in BSE of molB: " << bseB_vmin
-      << " to " << bseB_cmax << " total: " << bseB_vtotal + bseB_ctotal
-      << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   levels used in BSE of molA: " << bseA_vmin << " to "
+      << bseA_cmax << " total: " << bseA_vtotal + bseA_ctotal << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   levels used in BSE of molB: " << bseB_vmin << " to "
+      << bseB_cmax << " total: " << bseB_vtotal + bseB_ctotal << flush;
 
   if ((levelsA == 0) || (levelsB == 0)) {
     throw std::runtime_error(
@@ -372,21 +372,12 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                        basisB);
 
   // psi_AxB * S_AB * psi_AB
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   projecting monomer onto dimer orbitals"
-      << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   projecting monomer onto dimer orbitals" << flush;
 
-  Eigen::MatrixXd overlapAB;
-  if (orbitalsAB.hasAOOverlap()) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << "Reading overlap matrix from orbitals" << flush;
-    overlapAB = orbitalsAB.AOOverlap();
-  } else {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << "Calculating overlap matrix for basisset: "
-        << orbitalsAB.getDFTbasisName() << flush;
-    overlapAB = CalculateOverlapMatrix(orbitalsAB);
-  }
+  XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
+                            << orbitalsAB.getDFTbasisName() << flush;
+  Eigen::MatrixXd overlapAB = CalculateOverlapMatrix(orbitalsAB);
 
   Eigen::MatrixXd psi_AxB_dimer_basis =
       psi_AxB.transpose() * overlapAB * orbitalsAB.MOCoefficients();
@@ -404,20 +395,19 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
         monomer = 2;
         level = bseB_vmin + i - levelsA;
       }
-      CTP_LOG(ctp::logERROR, *_pLog)
-          << "\nERROR: " << i << " Projection of orbital " << level
-          << " of monomer " << monomer
-          << " on dimer is insufficient,mag=" << mag
-          << " maybe the orbital order is screwed up, otherwise increase dimer "
-             "basis.\n"
-          << flush;
+      XTP_LOG(logERROR, *_pLog) << "\nERROR: " << i << " Projection of orbital "
+                                << level << " of monomer " << monomer
+                                << " on dimer is insufficient,mag=" << mag
+                                << " maybe the orbital order is screwed up, "
+                                   "otherwise increase dimer basis.\n"
+                                << flush;
     }
   }
 
   // notation AB is CT states with A+B-, BA is the counterpart
   // Setting up CT-states:
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   Setting up CT-states" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   Setting up CT-states" << flush;
   // Number of A+B- states
   int noAB = _occA * _unoccB;
   // Number of A-B+ states
@@ -435,8 +425,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       cnt++;
     }
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "  " << noAB << " CT states A+B- created" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "  " << noAB << " CT states A+B- created" << flush;
 
   Eigen::MatrixXi comb_CTBA = Eigen::MatrixXi::Zero(noBA, 2);
   cnt = 0;
@@ -450,8 +440,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       cnt++;
     }
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "  " << noBA << " CT states B+A- created" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "  " << noBA << " CT states B+A- created" << flush;
 
   // these 4 matrixes, matrix(i,j) contains the j-th dimer MO component of the
   // i-th excitation
@@ -496,8 +486,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
     }
   }
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   construct projection of product functions "
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   construct projection of product functions "
       << flush;
 
   psi_AxB_dimer_basis.resize(0, 0);
@@ -537,10 +527,9 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
   // now the different spin types
   if (_doSinglets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << "   Evaluating singlets" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << "   Setup Hamiltonian" << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << "   Evaluating singlets" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << "   Setup Hamiltonian" << flush;
     const Eigen::MatrixXd bseA_T =
         orbitalsA.BSESingletCoefficients()
             .block(0, 0, orbitalsA.BSESingletCoefficients().rows(), _levA)
@@ -551,13 +540,13 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
             .transpose();
 
     JAB_singlet = ProjectExcitons(bseA_T, bseB_T, bse.getSingletOperator_TDA());
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << "   calculated singlet couplings " << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << "   calculated singlet couplings " << flush;
   }
 
   if (_doTriplets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << "   Evaluating triplets" << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << "   Evaluating triplets" << flush;
 
     const Eigen::MatrixXd bseA_T =
         orbitalsA.BSETripletCoefficients()
@@ -568,12 +557,12 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
             .block(0, 0, orbitalsB.BSETripletCoefficients().rows(), _levB)
             .transpose();
     JAB_triplet = ProjectExcitons(bseA_T, bseB_T, bse.getTripletOperator_TDA());
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << "   calculated triplet couplings " << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << "   calculated triplet couplings " << flush;
   }
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "  Done with exciton couplings" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "  Done with exciton couplings" << flush;
   return;
 };
 
@@ -597,12 +586,11 @@ std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
   fe_states.block(_levA, 0, _levB, nobasisfunc) = proj_excB;
 
   Eigen::MatrixXd ct_states = Eigen::MatrixXd::Zero(_ct, nobasisfunc);
-
   if (_ct > 0) {
     // orthogonalize ct-states with respect to the FE states.
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
-        << " Orthogonalizing CT-states with respect to FE-states" << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Orthogonalizing CT-states with respect to FE-states"
+        << flush;
 
     if (ctABsize > 0) {
       ct_states.block(0, 0, ctABsize, nobasisfunc) = ctAB;
@@ -623,22 +611,22 @@ std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
     int minstateindex = 0;
     double minnorm = norm.minCoeff(&minstateindex);
     if (minnorm < 0.95) {
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " WARNING: CT-state " << minstateindex
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << " WARNING: CT-state " << minstateindex
           << " norm is only " << minnorm << flush;
     }
   }
   Eigen::MatrixXd projection(nobasisfunc, _bse_exc + _ct);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " merging projections into one vector  " << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " merging projections into one vector  " << flush;
   projection.block(0, 0, nobasisfunc, _bse_exc) = fe_states;
 
   if (_ct > 0) {
     projection.block(0, _bse_exc, nobasisfunc, _ct) = ct_states;
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   Setting up coupling matrix size "
-      << _bse_exc + _ct << "x" << _bse_exc + _ct << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   Setting up coupling matrix size " << _bse_exc + _ct
+      << "x" << _bse_exc + _ct << flush;
   // matrix _J
   //  E_A         J_AB        J_A_ABCT        J_A_BACT
   //  J_BA        E_B         J_B_ABCT        J_B_BACT
@@ -650,22 +638,22 @@ std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
   Eigen::MatrixXd temp = H * projection;
   Eigen::MatrixXd J_dimer = projection.transpose() * temp;
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   Setting up overlap matrix size "
-      << _bse_exc + _ct << "x" << _bse_exc + _ct << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   Setting up overlap matrix size " << _bse_exc + _ct
+      << "x" << _bse_exc + _ct << flush;
   Eigen::MatrixXd S_dimer = projection.transpose() * projection;
 
   projection.resize(0, 0);
   if (tools::globals::verbose && _bse_exc + _ct < 100) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "_J_dimer[Ryd]" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << "_J_dimer[Ryd]" << flush;
 
-    CTP_LOG(ctp::logDEBUG, *_pLog) << J_dimer << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "_S_dimer" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << J_dimer << flush;
+    XTP_LOG(logDEBUG, *_pLog) << "_S_dimer" << flush;
 
-    CTP_LOG(ctp::logDEBUG, *_pLog) << S_dimer << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog) << S_dimer << flush;
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
   }
 
@@ -674,36 +662,36 @@ std::vector<Eigen::MatrixXd> BSECoupling::ProjectExcitons(
   J_dimer = Sm1 * J_dimer * Sm1;
 
   if (tools::globals::verbose && _bse_exc + _ct < 100) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "_J_ortho[Ryd]" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << J_dimer << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "_S-1/2" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << Sm1 << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog) << "_J_ortho[Ryd]" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << J_dimer << flush;
+    XTP_LOG(logDEBUG, *_pLog) << "_S-1/2" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << Sm1 << flush;
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   Smallest value of dimer overlapmatrix is "
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   Smallest value of dimer overlapmatrix is "
       << es.eigenvalues()(0) << flush;
 
   std::vector<Eigen::MatrixXd> J;
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "   Running Perturbation algorithm" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "   Running Perturbation algorithm" << flush;
   J.push_back(Perturbation(J_dimer));
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << "    Running Projection algorithm" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << "    Running Projection algorithm" << flush;
   J.push_back(Fulldiag(J_dimer));
 
   if (tools::globals::verbose) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "Jeff_pert[Hrt]" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << J[0] << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "Jeff_diag[Hrt]" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << J[1] << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog) << "Jeff_pert[Hrt]" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << J[0] << flush;
+    XTP_LOG(logDEBUG, *_pLog) << "Jeff_diag[Hrt]" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << J[1] << flush;
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
   }
 
@@ -724,22 +712,22 @@ Eigen::MatrixXd BSECoupling::Perturbation(const Eigen::MatrixXd& J_dimer) {
     Ct.resize(0, 0);
 
     if (tools::globals::verbose) {
-      CTP_LOG(ctp::logDEBUG, *_pLog) << "FE state hamiltonian" << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog)
+      XTP_LOG(logDEBUG, *_pLog) << "FE state hamiltonian" << flush;
+      XTP_LOG(logDEBUG, *_pLog)
           << J_dimer.block(0, 0, _bse_exc, _bse_exc) << flush;
       if (_ct > 0) {
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "eigenvalues of CT states" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << es.eigenvalues() << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "eigenvalues of CT states" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << es.eigenvalues() << flush;
       }
     }
 
     J_result = transformation.transpose() * J_dimer * transformation;
     if (tools::globals::verbose && _bse_exc + _ct < 100) {
-      CTP_LOG(ctp::logDEBUG, *_pLog)
+      XTP_LOG(logDEBUG, *_pLog)
           << "---------------------------------------" << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog) << "_J_ortho[Hrt] CT-state diag" << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog) << J_result << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog)
+      XTP_LOG(logDEBUG, *_pLog) << "_J_ortho[Hrt] CT-state diag" << flush;
+      XTP_LOG(logDEBUG, *_pLog) << J_result << flush;
+      XTP_LOG(logDEBUG, *_pLog)
           << "---------------------------------------" << flush;
     }
   }
@@ -747,8 +735,8 @@ Eigen::MatrixXd BSECoupling::Perturbation(const Eigen::MatrixXd& J_dimer) {
     double Ea = J_result(stateA, stateA);
     for (int stateB = 0; stateB < _levB; stateB++) {
       int stateBd = stateB + _levA;
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << "   Calculating coupling between exciton A"
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
       double J = J_result(stateA, stateBd);
 
@@ -756,14 +744,14 @@ Eigen::MatrixXd BSECoupling::Perturbation(const Eigen::MatrixXd& J_dimer) {
       for (int k = _bse_exc; k < (_bse_exc + _ct); k++) {
         double Eab = J_result(k, k);
         if (std::abs(Eab - Ea) < 0.001) {
-          CTP_LOG(ctp::logDEBUG, *_pLog)
-              << ctp::TimeStamp() << "Energydifference between state A "
+          XTP_LOG(logDEBUG, *_pLog)
+              << TimeStamp() << "Energydifference between state A "
               << stateA + 1 << "and CT state " << k + 1 << " is " << Eab - Ea
               << "[Hrt]" << flush;
         }
         if (std::abs(Eab - Eb) < 0.001) {
-          CTP_LOG(ctp::logDEBUG, *_pLog)
-              << ctp::TimeStamp() << "Energydifference between state B "
+          XTP_LOG(logDEBUG, *_pLog)
+              << TimeStamp() << "Energydifference between state B "
               << stateB + 1 << "and CT state " << k + 1 << " is " << Eab - Eb
               << "[Hrt]" << flush;
         }
@@ -782,21 +770,21 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) {
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(J_dimer);
   if (tools::globals::verbose && _bse_exc + _ct < 10) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "Eigenvectors of J" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << es.eigenvectors() << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << "J_eigenvalues[Hrt]" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << es.eigenvalues() << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog) << "Eigenvectors of J" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << es.eigenvectors() << flush;
+    XTP_LOG(logDEBUG, *_pLog) << "J_eigenvalues[Hrt]" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << es.eigenvalues() << flush;
+    XTP_LOG(logDEBUG, *_pLog)
         << "---------------------------------------" << flush;
   }
   // Calculate projection on subspace for every pair of excitons separately
   for (int stateA = 0; stateA < _levA; stateA++) {
     for (int stateB = 0; stateB < _levB; stateB++) {
       int stateBd = stateB + _levA;
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << "   Calculating coupling between exciton A"
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << "   Calculating coupling between exciton A"
           << stateA + 1 << " and exciton B" << stateB + 1 << flush;
       std::vector<int> index;
       std::vector<int> signvec;
@@ -831,15 +819,13 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) {
         }
       }
 
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp()
-          << "   Order is: [Initial state n->nth eigenvalue]" << flush;
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << "    A" << stateA + 1 << ":" << stateA + 1 << "->" << index[0] + 1
-          << " ";
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << "    B" << stateB + 1 << ":" << stateBd + 1 << "->" << index[1] + 1
-          << " " << flush;
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << "   Order is: [Initial state n->nth eigenvalue]"
+          << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "    A" << stateA + 1 << ":" << stateA + 1
+                                << "->" << index[0] + 1 << " ";
+      XTP_LOG(logDEBUG, *_pLog) << "    B" << stateB + 1 << ":" << stateBd + 1
+                                << "->" << index[1] + 1 << " " << flush;
 
       // setting up transformation matrix Tmat and diagonal matrix Emat for the
       // eigenvalues;
@@ -860,7 +846,7 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) {
       }
 
       if ((Tmat(1, 1) * Tmat(0, 0) - Tmat(1, 0) * Tmat(0, 1)) < 0) {
-        CTP_LOG(ctp::logDEBUG, *_pLog)
+        XTP_LOG(logDEBUG, *_pLog)
             << " Reduced state matrix is not in a right handed basis, "
                "multiplying second eigenvector by -1 "
             << flush;
@@ -869,17 +855,17 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) {
       }
 
       if (tools::globals::verbose) {
-        CTP_LOG(ctp::logDEBUG, *_pLog)
+        XTP_LOG(logDEBUG, *_pLog)
             << "---------------------------------------" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "_T" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << Tmat << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "_T" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << Tmat << flush;
       }
 
       Eigen::MatrixXd S_small = Tmat * Tmat.transpose();
       if (tools::globals::verbose) {
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "S_small" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << S_small << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "S_small" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << S_small << flush;
       }
       // orthogonalize that matrix
 
@@ -887,30 +873,30 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) {
       Eigen::MatrixXd sm1 = ss.operatorInverseSqrt();
       Emat = sm1 * Emat * sm1;
 
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << "   Smallest value of dimer overlapmatrix is "
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << "   Smallest value of dimer overlapmatrix is "
           << ss.eigenvalues()(0) << flush;
       if (tools::globals::verbose) {
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "S-1/2" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << sm1 << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "E_ortho" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << Emat << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "S-1/2" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << sm1 << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "E_ortho" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << Emat << flush;
       }
       Tmat = Tmat * sm1;
 
       if (tools::globals::verbose) {
 
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "T_ortho" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << Tmat << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog)
+        XTP_LOG(logDEBUG, *_pLog) << "T_ortho" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << Tmat << flush;
+        XTP_LOG(logDEBUG, *_pLog)
             << "---------------------------------------" << flush;
       }
 
       Eigen::MatrixXd J_small = Tmat * Emat * Tmat.transpose();
       if (tools::globals::verbose) {
-        CTP_LOG(ctp::logDEBUG, *_pLog) << "T_ortho*E_ortho*T_ortho^T" << flush;
-        CTP_LOG(ctp::logDEBUG, *_pLog) << J_small << flush;
+        XTP_LOG(logDEBUG, *_pLog) << "T_ortho*E_ortho*T_ortho^T" << flush;
+        XTP_LOG(logDEBUG, *_pLog) << J_small << flush;
       }
 
       Jmat(stateA, stateBd) = J_small(0, 1);

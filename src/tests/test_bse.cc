@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.qpmin = 0;
 
   orbitals.setBSEindices(0, 16);
-  votca::ctp::Logger log;
+  Logger log;
 
   BSE bse = BSE(orbitals, log, Mmn, Hqp);
   orbitals.setTDAApprox(true);
@@ -288,7 +288,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.davidson = 0;
   bse.configure(opt);
   bse.Solve_singlets();
-  bse.Analyze_singlets(aobasis);
   bool check_se = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se) {
     cout << "Singlets energy" << endl;
@@ -314,7 +313,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.davidson = 1;
   bse.configure(opt);
   bse.Solve_singlets();
-  bse.Analyze_singlets(aobasis);
+
+  std::vector<QMFragment<BSE_Population> > singlets;
+  bse.Analyze_singlets(singlets);
 
   bool check_se_dav = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_dav) {
@@ -342,7 +343,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.matrixfree = 1;
   bse.configure(opt);
   bse.Solve_singlets();
-  bse.Analyze_singlets(aobasis);
   bool check_se_dav2 = se_ref.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_dav2) {
     cout << "Singlets energy" << endl;
@@ -409,6 +409,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt);
   orbitals.setTDAApprox(false);
   bse.Solve_singlets();
+
   bool check_se_btda =
       se_ref_btda.isApprox(orbitals.BSESingletEnergies(), 0.001);
   if (!check_se_btda) {
@@ -472,6 +473,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   opt.matrixfree = 0;
   bse.configure(opt);
   bse.Solve_triplets();
+  std::vector<QMFragment<BSE_Population> > triplets;
+  bse.Analyze_triplets(triplets);
 
   bool check_te = te_ref.isApprox(orbitals.BSETripletEnergies(), 0.001);
   if (!check_te) {

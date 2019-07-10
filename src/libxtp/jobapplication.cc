@@ -34,21 +34,23 @@ void JobApplication::Initialize(void) {
 
   namespace propt = boost::program_options;
 
-  AddProgramOptions()("file,f", propt::value<string>(),
-                      "  sqlite state file, *.sql");
-  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(1),
+  AddProgramOptions()("file,f", propt::value<std::string>(),
+                      "  hdf5 state file, *.hdf5");
+  AddProgramOptions()("first-frame,i", propt::value<int>()->default_value(0),
                       "  start from this frame");
   AddProgramOptions()("nframes,n", propt::value<int>()->default_value(1),
                       "  number of frames to process");
   AddProgramOptions()("nthreads,t", propt::value<int>()->default_value(1),
                       "  number of threads to create");
-  AddProgramOptions()("save,s", propt::value<int>()->default_value(1),
+  AddProgramOptions()("save,s", propt::value<bool>()->default_value(true),
                       "  whether or not to save changes to state file");
-  AddProgramOptions()("restart,r", propt::value<string>()->default_value(""),
+  AddProgramOptions()("restart,r",
+                      propt::value<std::string>()->default_value(""),
                       "  restart pattern: 'host(pc1:234) stat(FAILED)'");
   AddProgramOptions()("cache,c", propt::value<int>()->default_value(8),
                       "  assigns jobs in blocks of this size");
-  AddProgramOptions()("jobs,j", propt::value<string>()->default_value("run"),
+  AddProgramOptions()("jobs,j",
+                      propt::value<std::string>()->default_value("run"),
                       "  task(s) to perform: input, run, import");
   AddProgramOptions()("maxjobs,m", propt::value<int>()->default_value(-1),
                       "  maximum number of jobs to process (-1 = inf)");
@@ -59,7 +61,7 @@ bool JobApplication::EvaluateOptions(void) {
                 "Please provide an xml file with calculator options");
   CheckRequired("file", "Please provide the state file");
 
-  string jobstr = _op_vm["jobs"].as<string>();
+  std::string jobstr = _op_vm["jobs"].as<std::string>();
   _generate_input = jobstr.find("write") != std::string::npos;
   _run = jobstr.find("run") != std::string::npos;
   _import = jobstr.find("read") != std::string::npos;
@@ -70,89 +72,86 @@ bool JobApplication::EvaluateOptions(void) {
 void JobApplication::Run() {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
-  votca::xtp::HelpTextHeader(name);
+  HelpTextHeader(name);
 
-  load_property_from_xml(_options, _op_vm["options"].as<string>());
+  load_property_from_xml(_options, _op_vm["options"].as<std::string>());
 
   // EVALUATE OPTIONS
   int nThreads = OptionsMap()["nthreads"].as<int>();
   int nframes = OptionsMap()["nframes"].as<int>();
   int fframe = OptionsMap()["first-frame"].as<int>();
-  if (fframe-- == 0)
-    throw runtime_error(
-        "ERROR: First frame is 0, counting "
-        "in VOTCA::XTP starts from 1.");
-  int save = OptionsMap()["save"].as<int>();
+  bool save = OptionsMap()["save"].as<bool>();
 
   // STATESAVER & PROGRESS OBSERVER
-  string statefile = OptionsMap()["file"].as<string>();
-  StateSaverSQLite statsav;
-  statsav.Open(_top, statefile);
-
-  ctp::ProgObserver<std::vector<ctp::Job*>, ctp::Job*, ctp::Job::JobResult>
-      progObs = ctp::ProgObserver<std::vector<ctp::Job*>, ctp::Job*,
-                                  ctp::Job::JobResult>();
+  std::string statefile = OptionsMap()["file"].as<std::string>();
+  ProgObserver<std::vector<Job>> progObs = ProgObserver<std::vector<Job>>();
   progObs.InitCmdLineOpts(OptionsMap());
 
   // INITIALIZE & RUN CALCULATORS
-  cout << "Initializing calculators " << endl;
+  std::cout << "Initializing calculators " << std::endl;
   BeginEvaluate(nThreads, &progObs);
 
-  int frameId = -1;
-  int framesDone = 0;
-  while (statsav.NextFrame() && framesDone < nframes) {
-    frameId += 1;
-    if (frameId < fframe) continue;
-    cout << "Evaluating frame " << _top.getDatabaseId() << endl;
-    EvaluateFrame();
-    if (save == 1) {
-      statsav.WriteFrame();
-    } else {
-      cout << "Changes have not been written to state file." << endl;
-    }
-    framesDone += 1;
+  StateSaver statsav(statefile);
+
+  std::vector<int> frames = statsav.getFrames();
+
+  // INITIALIZE & RUN CALCULATORS
+  std::cout << "Initializing calculators " << std::endl;
+  std::cout << frames.size() << " frames in statefile, Ids are: ";
+  for (int frame : frames) {
+    std::cout << frame << " ";
+  }
+  std::cout << std::endl;
+  if (fframe < int(frames.size())) {
+    std::cout << "Starting at frame " << frames[fframe] << std::endl;
+  } else {
+    std::cout << "First frame:" << fframe
+              << " is larger than number of frames:" << int(frames.size())
+              << std::endl;
+    return;
   }
 
-  if (framesDone == 0)
-    cout << "Input requires first frame = " << fframe + 1
-         << ", # frames = " << nframes << " => No frames processed.";
+  if ((fframe + nframes) > int(frames.size())) {
+    nframes = frames.size() - fframe;
+  }
 
-  statsav.Close();
-  EndEvaluate();
+  for (int i = fframe; i < nframes; i++) {
+    std::cout << "Evaluating frame " << i << std::endl;
+    Topology top = statsav.ReadFrame(i);
+    EvaluateFrame(top);
+    if (save) {
+      statsav.WriteFrame(top);
+    } else {
+      std::cout << "Changes have not been written to state file." << std::endl;
+    }
+  }
 }
 
-void JobApplication::AddCalculator(ctp::JobCalculator* calculator) {
-  _calculators.push_back(calculator);
+void JobApplication::AddCalculator(JobCalculator* calculator) {
+  _calculators.push_back(std::unique_ptr<JobCalculator>(calculator));
 }
 
 void JobApplication::BeginEvaluate(
-    int nThreads = 1, ctp::ProgObserver<std::vector<ctp::Job*>, ctp::Job*,
-                                        ctp::Job::JobResult>* obs = NULL) {
+    int nThreads = 1, ProgObserver<std::vector<Job>>* obs = nullptr) {
 
-  for (ctp::JobCalculator* calculator : _calculators) {
-    cout << "... " << calculator->Identify() << " ";
+  for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
+    std::cout << "... " << calculator->Identify() << " ";
     calculator->setnThreads(nThreads);
     calculator->setProgObserver(obs);
-    calculator->Initialize(&_options);
-    cout << endl;
+    calculator->Initialize(_options);
+    std::cout << std::endl;
   }
 }
 
-bool JobApplication::EvaluateFrame() {
-  for (ctp::JobCalculator* calculator : _calculators) {
-    cout << "... " << calculator->Identify() << " " << flush;
-    if (_generate_input) calculator->WriteJobFile(&_top);
-    if (_run) calculator->EvaluateFrame(&_top);
-    if (_import) calculator->ReadJobFile(&_top);
-    cout << endl;
+bool JobApplication::EvaluateFrame(Topology& top) {
+  for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
+    std::cout << "... " << calculator->Identify() << " " << std::flush;
+    if (_generate_input) calculator->WriteJobFile(top);
+    if (_run) calculator->EvaluateFrame(top);
+    if (_import) calculator->ReadJobFile(top);
+    std::cout << std::endl;
   }
   return true;
-}
-
-void JobApplication::EndEvaluate() {
-  for (ctp::JobCalculator* calculator : _calculators) {
-    calculator->EndEvaluate(&_top);
-  }
 }
 
 }  // namespace xtp

@@ -17,6 +17,7 @@
  *
  */
 #include "votca/xtp/diis.h"
+#include <iostream>
 
 namespace votca {
 namespace xtp {
@@ -56,14 +57,15 @@ Eigen::VectorXd DIIS::CalcCoeff() {
 
     Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size + 1, size + 1);
     Eigen::VectorXd a = Eigen::VectorXd::Zero(size + 1);
-    a(0) = -1;
-    for (int i = 1; i < B.rows(); i++) {
-      B(i, 0) = -1;
-      B(0, i) = -1;
+    a(size) = -1;
+    for (int i = 0; i < B.rows() - 1; i++) {
+      B(i, size) = -1;
+      B(size, i) = -1;
     }
-    for (int i = 1; i < B.rows(); i++) {
-      for (int j = 1; j <= i; j++) {
-        B(i, j) = _Diis_Bs[i - 1][j - 1];
+
+    for (int i = 0; i < B.rows() - 1; i++) {
+      for (int j = 0; j <= i; j++) {
+        B(i, j) = _Diis_Bs[i][j];
         if (i != j) {
           B(j, i) = B(i, j);
         }
@@ -71,7 +73,7 @@ Eigen::VectorXd DIIS::CalcCoeff() {
     }
 
     Eigen::VectorXd result = B.colPivHouseholderQr().solve(a);
-    coeffs = result.segment(1, size);
+    coeffs = result.head(size);
   } else {
 
     // C2-DIIS
@@ -94,39 +96,27 @@ Eigen::VectorXd DIIS::CalcCoeff() {
       eigenvectors.col(i) = es.eigenvectors().col(i) / norm;
     }
 
-    // Choose solution by picking out solution with smallest error
+    // Choose solution by picking out solution with smallest absolute error
     Eigen::VectorXd errors =
-        (eigenvectors.transpose() * B * eigenvectors).diagonal();
+        (eigenvectors.transpose() * B * eigenvectors).diagonal().cwiseAbs();
 
     double MaxWeight = 10.0;
-    double min = std::numeric_limits<double>::max();
-    int minloc = -1;
-
+    int mincoeff = 0;
+    success = false;
     for (int i = 0; i < errors.size(); i++) {
-      if (std::abs(errors(i)) < min) {
-
-        bool ok = true;
-        for (int k = 0; k < eigenvectors.rows(); k++) {
-          if (eigenvectors(k, i) > MaxWeight) {
-            ok = false;
-            break;
-          }
-        }
-        if (ok) {
-          min = std::abs(errors(i));
-          minloc = int(i);
-        }
+      errors.minCoeff(&mincoeff);
+      if (std::abs(eigenvectors.col(mincoeff).maxCoeff()) > MaxWeight) {
+        errors[mincoeff] = std::numeric_limits<double>::max();
+      } else {
+        success = true;
+        break;
       }
     }
 
-    if (minloc != -1) {
-      coeffs = eigenvectors.col(minloc);
-    } else {
-      success = false;
-    }
+    coeffs = eigenvectors.col(mincoeff);
   }
 
-  if (std::abs(coeffs.tail(1).value()) < 0.001) {
+  if (std::abs(coeffs[coeffs.size() - 1]) < 0.001) {
     success = false;
   }
 

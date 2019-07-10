@@ -16,87 +16,70 @@
  * author: Kordt
  */
 
-#ifndef __VOTCA_KMC_CALCULATOR_H
-#define __VOTCA_KMC_CALCULATOR_H
-
-// #include <votca/xtp/vssmgroup.h>
-#include <cmath>  // needed for abs(double)
-#include <fstream>
-#include <iostream>
-#include <map>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string>
-#include <time.h>
-#include <vector>
+#pragma once
+#ifndef VOTCA_XTP_CALCULATOR_H
+#define VOTCA_XTP_CALCULATOR_H
 
 #include <votca/tools/globals.h>
-#include <votca/tools/matrix.h>
 #include <votca/tools/random2.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/tools/vec.h>
 #include <votca/xtp/chargecarrier.h>
+#include <votca/xtp/qmstate.h>
 
-#include <votca/ctp/qmcalculator.h>
 #include <votca/xtp/gnode.h>
-using namespace std;
+#include <votca/xtp/qmcalculator.h>
 
 namespace votca {
 namespace xtp {
-
-class KMCCalculator : public ctp::QMCalculator {
+class QMNBList;
+class KMCCalculator : public QMCalculator {
  public:
-  KMCCalculator();
   virtual ~KMCCalculator(){};
 
   virtual std::string Identify() = 0;
-  virtual void Initialize(tools::Property* options) = 0;
+  virtual void Initialize(tools::Property& options) = 0;
 
  protected:
-  int _carriertype;
+  QMStateType _carriertype;
 
-  std::string CarrierInttoLongString(int carriertype);
-  std::string CarrierInttoShortString(int carriertype);
-  int StringtoCarriertype(std::string name);
+  void LoadGraph(Topology& top);
+  virtual void RunVSSM() = 0;
 
-  void LoadGraph(ctp::Topology* top);
-  virtual void RunVSSM(ctp::Topology* top){};
-  void InitialRates();
+  void ParseCommonOptions(tools::Property& options);
 
   double Promotetime(double cumulated_rate);
-  void ResetForbiddenlist(std::vector<int>& forbiddenid);
-  void AddtoForbiddenlist(int id, std::vector<int>& forbiddenid);
-  bool CheckForbidden(int id, const std::vector<int>& forbiddenlist);
-  bool CheckSurrounded(GNode* node, const std::vector<int>& forbiddendests);
-  GLink* ChooseHoppingDest(GNode* node);
+  void ResetForbiddenlist(std::vector<GNode*>& forbiddenid) const;
+  void AddtoForbiddenlist(GNode& node, std::vector<GNode*>& forbiddenid) const;
+  bool CheckForbidden(const GNode& node,
+                      const std::vector<GNode*>& forbiddenlist) const;
+  bool CheckSurrounded(const GNode& node,
+                       const std::vector<GNode*>& forbiddendests) const;
+  const GLink& ChooseHoppingDest(const GNode& node);
   Chargecarrier* ChooseAffectedCarrier(double cumulated_rate);
 
+  void WriteOccupationtoFile(double simtime, std::string filename) const;
+  void WriteRatestoFile(std::string filename, const QMNBList& list) const;
+
   void RandomlyCreateCharges();
-  void RandomlyAssignCarriertoSite(Chargecarrier* Charge);
-  void AddtoJumplengthdistro(const GLink* event, double dt);
-  void PrintJumplengthdistro();
-  std::vector<GNode*> _nodes;
-  std::vector<Chargecarrier*> _carriers;
+  void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
+  std::vector<GNode> _nodes;
+  std::vector<Chargecarrier> _carriers;
   tools::Random2 _RandomVariable;
 
   std::string _injection_name;
   std::string _injectionmethod;
-  std::vector<long unsigned> _jumplengthdistro;
-  std::vector<double> _jumplengthdistro_weighted;
-
-  unsigned lengthdistribution;
-  bool dolengthdistributon = false;
-  double lengthresolution;
-  double minlength;
   int _seed;
-  unsigned _numberofcharges;
-  tools::vec _field;
+  int _numberofcharges;
+  Eigen::Vector3d _field = Eigen::Vector3d::Zero();
+  double _maxrealtime;
+  std::string _trajectoryfile;
+  std::string _ratefile;
+  std::string _occfile;
 
   double _temperature;
-  std::string _rates;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_KMC_MULTIPLE_H */
+#endif  // VOTCA_XTP_CALCULATOR_H

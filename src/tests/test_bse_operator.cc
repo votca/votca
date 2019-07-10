@@ -99,7 +99,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
   basis.LoadBasisSet("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
