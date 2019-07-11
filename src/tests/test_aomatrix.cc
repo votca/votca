@@ -503,7 +503,7 @@ BOOST_AUTO_TEST_CASE(externalmatrices_test) {
   mpsfile << "Units angstrom" << endl;
   mpsfile << "  C +0 0 3 Rank 2" << endl;
   mpsfile << "+0" << endl;
-  mpsfile << "10 0 0" << endl;
+  mpsfile << "0 10 0" << endl;
   mpsfile << "     100 0 0 0 0" << endl;
   mpsfile
       << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "
