@@ -42,10 +42,10 @@ class StateApplication : public XtpApplication {
   void BeginEvaluate(int nThreads);
   bool EvaluateFrame(Topology& top);
 
-  void AddCalculator(QMCalculator* calculator);
+  void SetCalculator(QMCalculator* calculator);
 
  protected:
-  std::vector<std::unique_ptr<QMCalculator> > _calculators;
+  std::unique_ptr<QMCalculator> _calculator;
 };
 
 }  // namespace xtp

@@ -88,15 +88,13 @@ void JobApplication::Run() {
   progObs.InitCmdLineOpts(OptionsMap());
 
   // INITIALIZE & RUN CALCULATORS
-  std::cout << "Initializing calculators " << std::endl;
-  BeginEvaluate(nThreads, &progObs);
+  std::cout << "Initializing calculator " << std::endl;
+  BeginEvaluate(nThreads, progObs);
 
   StateSaver statsav(statefile);
 
   std::vector<int> frames = statsav.getFrames();
 
-  // INITIALIZE & RUN CALCULATORS
-  std::cout << "Initializing calculators " << std::endl;
   std::cout << frames.size() << " frames in statefile, Ids are: ";
   for (int frame : frames) {
     std::cout << frame << " ";
@@ -119,7 +117,7 @@ void JobApplication::Run() {
     std::cout << "Evaluating frame " << i << std::endl;
     Topology top = statsav.ReadFrame(i);
     EvaluateFrame(top);
-    if (save) {
+    if (save && _import) {
       statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
@@ -127,30 +125,32 @@ void JobApplication::Run() {
   }
 }
 
-void JobApplication::AddCalculator(JobCalculator* calculator) {
-  _calculators.push_back(std::unique_ptr<JobCalculator>(calculator));
+void JobApplication::SetCalculator(JobCalculator* calculator) {
+  _calculator = std::unique_ptr<JobCalculator>(calculator);
 }
 
 void JobApplication::BeginEvaluate(int nThreads,
-                                   ProgObserver<std::vector<Job>>* obs) {
+                                   ProgObserver<std::vector<Job>>& obs) {
 
-  for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
-    std::cout << "... " << calculator->Identify() << " ";
-    calculator->setnThreads(nThreads);
-    calculator->setProgObserver(obs);
-    calculator->Initialize(_options);
-    std::cout << std::endl;
-  }
+  std::cout << "... " << _calculator->Identify() << " ";
+  _calculator->setnThreads(nThreads);
+  _calculator->setProgObserver(&obs);
+  _calculator->Initialize(_options);
+  std::cout << std::endl;
 }
 
 bool JobApplication::EvaluateFrame(Topology& top) {
-  for (std::unique_ptr<JobCalculator>& calculator : _calculators) {
-    std::cout << "... " << calculator->Identify() << " " << std::flush;
-    if (_generate_input) calculator->WriteJobFile(top);
-    if (_run) calculator->EvaluateFrame(top);
-    if (_import) calculator->ReadJobFile(top);
-    std::cout << std::endl;
+  std::cout << "... " << _calculator->Identify() << " " << std::flush;
+  if (_generate_input) {
+    _calculator->WriteJobFile(top);
+  } else if (_run) {
+    _calculator->EvaluateFrame(top);
+  } else if (_import) {
+    _calculator->ReadJobFile(top);
+  } else {
+    ;
   }
+  std::cout << std::endl;
   return true;
 }
 

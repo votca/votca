@@ -42,8 +42,8 @@ class XtpTools : public xtp::XtpApplication {
     out << "Runs excitation/charge transport tools" << endl;
   }
 
-  void AddTool(xtp::QMTool* tool) {
-    _tools.push_back(std::unique_ptr<xtp::QMTool>(tool));
+  void SetTool(xtp::QMTool* tool) {
+    _tool = std::unique_ptr<xtp::QMTool>(tool);
   }
   void Initialize();
   bool EvaluateOptions();
@@ -54,7 +54,7 @@ class XtpTools : public xtp::XtpApplication {
 
  private:
   tools::Property _options;
-  vector<std::unique_ptr<xtp::QMTool> > _tools;
+  std::unique_ptr<xtp::QMTool> _tool;
 };
 
 namespace propt = boost::program_options;
@@ -97,7 +97,7 @@ bool XtpTools::EvaluateOptions() {
       // loop over tools
       bool printerror = true;
       for (const auto& tool : xtp::QMTools().getObjects()) {
-        if (n.compare(tool.first.c_str()) == 0) {
+        if (n.compare(tool.first) == 0) {
           PrintDescription(std::cout, tool.first, helpdir,
                            Application::HelpLong);
           printerror = false;
@@ -115,23 +115,29 @@ bool XtpTools::EvaluateOptions() {
   CheckRequired("options", "Please provide an xml file with tool options");
 
   tools::Tokenizer xtools(OptionsMap()["execute"].as<string>(), " ,\n\t");
-  for (const std::string& n : xtools) {
-    bool found_calc = false;
-    for (const auto& tool : xtp::QMTools().getObjects()) {
-      if (n.compare(tool.first.c_str()) == 0) {
-        cout << " This is a XTP app" << endl;
-        this->AddTool(xtp::QMTools().Create(n.c_str()));
-        found_calc = true;
-      }
-    }
-    if (!found_calc) {
-      cout << "Tool " << n << " does not exist\n";
-      StopExecution();
-    } else {
-      cout << "Registered " << n << endl;
+  std::vector<std::string> calc_string = xtools.ToVector();
+  if (calc_string.size() != 1) {
+    throw std::runtime_error(
+        "You can only run one calculator at the same time.");
+  }
+
+  bool found_calc = false;
+  for (const auto& tool : xtp::QMTools().getObjects()) {
+    if (calc_string[0].compare(tool.first) == 0) {
+      cout << " This is a XTP app" << endl;
+      this->SetTool(xtp::QMTools().Create(n));
+      found_calc = true;
+      break;
     }
   }
-  return 1;
+  if (!found_calc) {
+    cout << "Tool " << n << " does not exist\n";
+    StopExecution();
+  } else {
+    cout << "Registered " << n << endl;
+  }
+}
+return 1;
 }
 
 void XtpTools::Run() {
@@ -143,10 +149,10 @@ void XtpTools::Run() {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
   xtp::HelpTextHeader(name);
-  cout << "Initializing tools " << endl;
+  cout << "Initializing tool " << endl;
   BeginEvaluate(nThreads);
 
-  cout << "Evaluating tools " << endl;
+  cout << "Evaluating tool " << endl;
 
   Evaluate();
 }

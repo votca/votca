@@ -129,10 +129,6 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
 
   std::string progFile = _progFile;
   std::string progBackFile = _progFile + "~";
-  std::string tabFile = progFile;
-  boost::algorithm::replace_last(tabFile, ".xml", ".tab");
-  if (tabFile == progFile) tabFile += ".tab";
-  std::string tabBackFile = tabFile + "~";
 
   // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
   XTP_LOG(logDEBUG, thread.getLogger())
@@ -143,8 +139,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   // GENERATE BACK-UP FOR SHARED XML
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Create job-file back-up" << std::flush;
-  WRITE_JOBS(_jobs, progBackFile, "xml");
-  WRITE_JOBS(_jobs, tabBackFile, "tab");
+  WRITE_JOBS(_jobs, progBackFile);
 
   // ASSIGN NEW JOBS IF AVAILABLE
   XTP_LOG(logDEBUG, thread.getLogger())
@@ -176,8 +171,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   }
 
   // UPDATE PROGRESS STATUS FILE
-  WRITE_JOBS(_jobs, progFile, "xml");
-  WRITE_JOBS(_jobs, tabFile, "tab");
+  WRITE_JOBS(_jobs, progFile);
 
   // RELEASE PROGRESS STATUS FILE
   this->ReleaseProgFile(thread);

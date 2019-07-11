@@ -69,7 +69,7 @@ void StateApplication::Run() {
   StateSaver statsav(statefile);
   std::vector<int> frames = statsav.getFrames();
   // INITIALIZE & RUN CALCULATORS
-  std::cout << "Initializing calculators " << std::endl;
+  std::cout << "Initializing calculator" << std::endl;
   BeginEvaluate(nThreads);
   std::cout << frames.size() << " frames in statefile, Ids are: ";
   for (int frame : frames) {
@@ -93,7 +93,7 @@ void StateApplication::Run() {
     std::cout << "Evaluating frame " << i << std::endl;
     Topology top = statsav.ReadFrame(i);
     EvaluateFrame(top);
-    if (save) {
+    if (save && _calculator->WriteToStateFile()) {
       statsav.WriteFrame(top);
     } else {
       std::cout << "Changes have not been written to state file." << std::endl;
@@ -101,25 +101,21 @@ void StateApplication::Run() {
   }
 }
 
-void StateApplication::AddCalculator(QMCalculator* calculator) {
-  _calculators.push_back(std::unique_ptr<QMCalculator>(calculator));
+void StateApplication::SetCalculator(QMCalculator* calculator) {
+  _calculator = std::unique_ptr<QMCalculator>(calculator);
 }
 
 void StateApplication::BeginEvaluate(int nThreads = 1) {
-  for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
-    std::cout << "... " << calculator->Identify() << " ";
-    calculator->setnThreads(nThreads);
-    calculator->Initialize(_options);
-    std::cout << std::endl;
-  }
+  std::cout << "... " << _calculator->Identify() << " ";
+  _calculator->setnThreads(nThreads);
+  _calculator->Initialize(_options);
+  std::cout << std::endl;
 }
 
 bool StateApplication::EvaluateFrame(Topology& top) {
-  for (std::unique_ptr<QMCalculator>& calculator : _calculators) {
-    std::cout << "... " << calculator->Identify() << " " << std::flush;
-    calculator->EvaluateFrame(top);
-    std::cout << std::endl;
-  }
+  std::cout << "... " << _calculator->Identify() << " " << std::flush;
+  _calculator->EvaluateFrame(top);
+  std::cout << std::endl;
   return true;
 }
 
