@@ -195,7 +195,7 @@ void IEXCITON::WriteJobFile(const Topology& top) {
       pSegment2.setAttribute<string>("mps_file", mps_file2);
 
       Job job(id, tag, Input, Job::AVAILABLE);
-      job.ToStream(ofs, "xml");
+      job.ToStream(ofs);
       jobCount++;
     }
   }

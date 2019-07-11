@@ -29,6 +29,7 @@ class KMCLifetime : public KMCCalculator {
  public:
   KMCLifetime(){};
   ~KMCLifetime(){};
+  bool WriteToStateFile() const { return false; }
   std::string Identify() { return "kmclifetime"; }
   void Initialize(tools::Property &options);
   bool EvaluateFrame(Topology &top);

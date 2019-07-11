@@ -38,7 +38,7 @@ class VAverage : public QMCalculator {
   ~VAverage(){};
 
   std::string Identify() { return "vaverage"; }
-
+  bool WriteToStateFile() const { return false; }
   void Initialize(tools::Property& options);
   bool EvaluateFrame(Topology& top);
 

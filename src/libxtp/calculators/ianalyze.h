@@ -30,7 +30,7 @@ namespace xtp {
 class IAnalyze : public QMCalculator {
  public:
   std::string Identify() { return "ianalyze"; }
-
+  bool WriteToStateFile() const { return false; }
   void Initialize(tools::Property &options);
   bool EvaluateFrame(Topology &top);
   void IHist(Topology &top, QMStateType state);

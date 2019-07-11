@@ -40,7 +40,7 @@ class JobApplication : public XtpApplication {
   bool EvaluateOptions();
   void Run();
 
-  void BeginEvaluate(int nThreads, ProgObserver<std::vector<Job> > *obs);
+  void BeginEvaluate(int nThreads, ProgObserver<std::vector<Job> > &obs);
   bool EvaluateFrame(Topology &top);
   void SetCalculator(JobCalculator *calculator);
 

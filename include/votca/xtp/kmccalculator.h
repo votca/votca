@@ -37,6 +37,7 @@ class KMCCalculator : public QMCalculator {
   virtual ~KMCCalculator(){};
 
   virtual std::string Identify() = 0;
+  virtual bool WriteToStateFile() const = 0;
   virtual void Initialize(tools::Property& options) = 0;
 
  protected:

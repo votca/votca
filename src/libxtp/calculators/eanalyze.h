@@ -38,7 +38,7 @@ class EAnalyze : public QMCalculator {
   EAnalyze(){};
 
   ~EAnalyze(){};
-
+  bool WriteToStateFile() const { return false; }
   std::string Identify() { return "eanalyze"; }
 
   void Initialize(tools::Property &opt);

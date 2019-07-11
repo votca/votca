@@ -75,7 +75,7 @@ class Job {
   };
 
   void Reset();
-  void ToStream(std::ofstream &ofs, std::string fileformat) const;
+  void ToStream(std::ofstream &ofs) const;
   void UpdateFrom(const Job &ext);
   void UpdateFromResult(const JobResult &res);
 
@@ -149,8 +149,7 @@ class Job {
 };  // namespace xtp
 
 std::vector<Job> LOAD_JOBS(const std::string &xml_file);
-void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
-                std::string fileformat);
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file);
 void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
                  const std::string &thisHost);
 }  // namespace xtp

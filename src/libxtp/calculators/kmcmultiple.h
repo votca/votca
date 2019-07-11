@@ -28,6 +28,7 @@ class KMCMultiple : public KMCCalculator {
  public:
   KMCMultiple(){};
   ~KMCMultiple(){};
+  bool WriteToStateFile() const { return false; }
   std::string Identify() { return "kmcmultiple"; }
   void Initialize(tools::Property& options);
   bool EvaluateFrame(Topology& top);

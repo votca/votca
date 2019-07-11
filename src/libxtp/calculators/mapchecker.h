@@ -35,7 +35,7 @@ class MapChecker : public QMCalculator {
   ~MapChecker(){};
 
   std::string Identify() { return "mapchecker"; }
-
+  bool WriteToStateFile() const { return false; }
   void Initialize(tools::Property& opt);
   bool EvaluateFrame(Topology& top);
 

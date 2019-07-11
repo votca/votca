@@ -33,6 +33,7 @@ class EInternal : public QMCalculator {
   ~EInternal(){};
 
   std::string Identify() { return "einternal"; }
+  bool WriteToStateFile() const { return true; }
   void Initialize(tools::Property &options);
   void ParseEnergies();
   bool EvaluateFrame(Topology &top);

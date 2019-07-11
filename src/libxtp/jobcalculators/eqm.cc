@@ -96,7 +96,7 @@ void EQM::WriteJobFile(const Topology& top) {
     pSegment.setAttribute<std::string>("type", segment.getName());
     pSegment.setAttribute<int>("id", segment.getId());
     Job job(id, tag, Input, Job::AVAILABLE);
-    job.ToStream(ofs, "xml");
+    job.ToStream(ofs);
     jobCount++;
   }
 

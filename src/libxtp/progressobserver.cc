@@ -266,7 +266,7 @@ void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
   // ... Load new, set availability bool
   _jobs = LOAD_JOBS(progFile);
   _metajit = _jobs.begin();
-  WRITE_JOBS(_jobs, progFile + "~", "xml");
+  WRITE_JOBS(_jobs, progFile + "~");
   XTP_LOG(logINFO, thread.getLogger())
       << "Registered " << _jobs.size() << " jobs." << std::flush;
   if (_jobs.size() > 0)

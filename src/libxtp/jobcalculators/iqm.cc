@@ -609,7 +609,7 @@ void IQM::WriteJobFile(const Topology& top) {
     pSegmentB.setAttribute<std::string>("type", name2);
     pSegmentB.setAttribute<int>("id", id2);
     Job job(id, tag, Input, Job::AVAILABLE);
-    job.ToStream(ofs, "xml");
+    job.ToStream(ofs);
     jobCount++;
   }
   // CLOSE STREAM
