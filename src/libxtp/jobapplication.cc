@@ -72,9 +72,7 @@ bool JobApplication::EvaluateOptions(void) {
 void JobApplication::Run() {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
-  HelpTextHeader(name);
-
-  load_property_from_xml(_options, _op_vm["options"].as<std::string>());
+  xtp::HelpTextHeader(name);
 
   // EVALUATE OPTIONS
   int nThreads = OptionsMap()["nthreads"].as<int>();

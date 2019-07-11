@@ -48,12 +48,11 @@ void XtpParallel::Initialize() {
   xtp::JobCalculatorfactory::RegisterAll();
   xtp::JobApplication::Initialize();
 
-  AddProgramOptions("Calculators")(
-      "execute,e", propt::value<string>(),
-      "List of calculators separated by ',' or ' '");
-  AddProgramOptions("Calculators")("list,l", "Lists all available calculators");
-  AddProgramOptions("Calculators")("description,d", propt::value<string>(),
-                                   "Short description of a calculator");
+  AddProgramOptions("Calculator")("execute,e", propt::value<string>(),
+                                  "Name of calculator to run");
+  AddProgramOptions("Calculator")("list,l", "Lists all available calculators");
+  AddProgramOptions("Calculator")("description,d", propt::value<string>(),
+                                  "Short description of a calculator");
 }
 
 bool XtpParallel::EvaluateOptions() {
@@ -103,14 +102,15 @@ bool XtpParallel::EvaluateOptions() {
   for (const auto& jobcalc : xtp::JobCalculators().getObjects()) {
     if (calc_string[0].compare(jobcalc.first) == 0) {
       cout << " This is a XTP app" << endl;
-      xtp::JobApplication::SetCalculator(xtp::JobCalculators().Create(n));
+      xtp::JobApplication::SetCalculator(
+          xtp::JobCalculators().Create(calc_string[0]));
       found_calc = true;
       break;
     }
   }
 
   if (!found_calc) {
-    cout << "Jobcalculator " << n << " does not exist\n";
+    cout << "Jobcalculator " << calc_string[0] << " does not exist\n";
     StopExecution();
   }
 

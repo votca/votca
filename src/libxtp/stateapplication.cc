@@ -57,8 +57,9 @@ void StateApplication::Run() {
 
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
-  HelpTextHeader(name);
+  xtp::HelpTextHeader(name);
 
+  load_property_from_xml(_options, _op_vm["options"].as<std::string>());
   int nThreads = OptionsMap()["nthreads"].as<int>();
   int nframes = OptionsMap()["nframes"].as<int>();
   int fframe = OptionsMap()["first-frame"].as<int>();

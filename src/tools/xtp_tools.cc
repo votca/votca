@@ -110,7 +110,6 @@ bool XtpTools::EvaluateOptions() {
     return true;
   }
 
-  Application::EvaluateOptions();
   CheckRequired("execute", "Nothing to do here: Abort.");
   CheckRequired("options", "Please provide an xml file with tool options");
 
@@ -125,19 +124,18 @@ bool XtpTools::EvaluateOptions() {
   for (const auto& tool : xtp::QMTools().getObjects()) {
     if (calc_string[0].compare(tool.first) == 0) {
       cout << " This is a XTP app" << endl;
-      this->SetTool(xtp::QMTools().Create(n));
+      this->SetTool(xtp::QMTools().Create(calc_string[0]));
       found_calc = true;
       break;
     }
   }
   if (!found_calc) {
-    cout << "Tool " << n << " does not exist\n";
+    cout << "Tool " << calc_string[0] << " does not exist\n";
     StopExecution();
   } else {
-    cout << "Registered " << n << endl;
+    cout << "Registered " << calc_string[0] << endl;
   }
-}
-return 1;
+  return 1;
 }
 
 void XtpTools::Run() {
@@ -158,22 +156,17 @@ void XtpTools::Run() {
 }
 
 void XtpTools::BeginEvaluate(int nThreads = 1) {
-  for (std::unique_ptr<xtp::QMTool>& tool : _tools) {
-    cout << "... " << tool->Identify() << " " << flush;
-    tool->setnThreads(nThreads);
-    tool->Initialize(_options);
-    cout << endl;
-  }
+  cout << "... " << _tool->Identify() << " " << flush;
+  _tool->setnThreads(nThreads);
+  _tool->Initialize(_options);
+  cout << endl;
 }
 
 bool XtpTools::Evaluate() {
 
-  for (std::unique_ptr<xtp::QMTool>& tool : _tools) {
-    cout << "... " << tool->Identify() << " " << flush;
-    tool->Evaluate();
-    cout << endl;
-  }
-
+  cout << "... " << _tool->Identify() << " " << flush;
+  _tool->Evaluate();
+  cout << endl;
   return true;
 }
 

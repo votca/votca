@@ -49,16 +49,12 @@ class XtpMap : public TOOLS::Application {
   void Run();
 
  protected:
-  TOOLS::Property _options;
-
   string _outdb;
 };
 
 namespace propt = boost::program_options;
 
 void XtpMap::Initialize() {
-
-  TOOLS::Application::Initialize();
 
   CSG::TrajectoryWriter::RegisterPlugins();
   CSG::TrajectoryReader::RegisterPlugins();

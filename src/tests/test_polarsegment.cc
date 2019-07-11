@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(load_mps) {
 
   seg.LoadFromFile("polarsite.mps");
   Eigen::Vector3d ref_pos =
-      Eigen::Vector3d(0, 0, 2.845154333 * votca::tools::conv::ang2bohr);
+      Eigen::Vector3d(0, 0, 3 * votca::tools::conv::ang2bohr);
 
   bool is_equal = seg.getPos().isApprox(ref_pos, 0.0001);
   if (!is_equal) {

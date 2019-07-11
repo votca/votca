@@ -49,13 +49,11 @@ void XtpRun::Initialize() {
   xtp::Calculatorfactory::RegisterAll();
   xtp::StateApplication::Initialize();
 
-  AddProgramOptions(
-      "Calculators)(
-      "execute,e",
-      propt::value<string>(), "Name of calculator to run");
-  AddProgramOptions("Calculators")("list,l", "Lists all available calculators");
-  AddProgramOptions("Calculators")("description,d", propt::value<string>(),
-                                   "Short description of a calculator");
+  AddProgramOptions("Calculator")("execute,e", propt::value<string>(),
+                                  "Name of calculator to run");
+  AddProgramOptions("Calculator")("list,l", "Lists all available calculators");
+  AddProgramOptions("Calculator")("description,d", propt::value<string>(),
+                                  "Short description of a calculator");
 }
 
 bool XtpRun::EvaluateOptions() {
@@ -108,17 +106,17 @@ bool XtpRun::EvaluateOptions() {
 
     if (calc_string[0].compare(calc.first) == 0) {
       cout << " This is a XTP app" << endl;
-      xtp::StateApplication::SetCalculator(xtp::Calculators().Create(n));
+      xtp::StateApplication::SetCalculator(
+          xtp::Calculators().Create(calc_string[0]));
       found_calc = true;
       break;
     }
-
-    if (!found_calc) {
-      cout << "Calculator " << n << " does not exist\n";
-      StopExecution();
-    } else {
-      load_property_from_xml(_options, _op_vm["options"].as<string>());
-    }
+  }
+  if (!found_calc) {
+    cout << "Calculator " << calc_string[0] << " does not exist\n";
+    StopExecution();
+  } else {
+    load_property_from_xml(_options, _op_vm["options"].as<string>());
   }
   return true;
 }

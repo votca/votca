@@ -33,7 +33,7 @@ class StateApplication : public XtpApplication {
  public:
   StateApplication();
 
-  ~StateApplication(){};
+  virtual ~StateApplication(){};
 
   void Initialize();
   bool EvaluateOptions();

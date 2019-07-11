@@ -35,7 +35,7 @@ namespace xtp {
 class JobApplication : public XtpApplication {
  public:
   JobApplication();
-  ~JobApplication();
+  virtual ~JobApplication(){};
   void Initialize();
   bool EvaluateOptions();
   void Run();
