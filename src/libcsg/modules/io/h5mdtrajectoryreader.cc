@@ -275,7 +275,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
     if (has_id_group_ != H5MDTrajectoryReader::NONE) {
       if (ids[at_idx] == -1)  // ignore values where id == -1
         continue;
-      atom_id = ids[at_idx] - 1;
+      atom_id = ids[at_idx];
     }
 
     // Topology has to be defined in the xml file or in other
