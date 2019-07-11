@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configurationDescriptor version="97">
+<configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="f4"
+                   displayName="boltzmann"
+                   projectFiles="true"
+                   kind="ROOT">
+      <itemPath>../../src/csg_boltzmann/analysistool.h</itemPath>
+      <itemPath>../../src/csg_boltzmann/bondedstatistics.cc</itemPath>
+      <itemPath>../../src/csg_boltzmann/bondedstatistics.h</itemPath>
+      <itemPath>../../src/csg_boltzmann/main.cc</itemPath>
+      <itemPath>../../src/csg_boltzmann/stdanalysis.cc</itemPath>
+      <itemPath>../../src/csg_boltzmann/stdanalysis.h</itemPath>
+      <itemPath>../../src/csg_boltzmann/tabulatedpotential.cc</itemPath>
+      <itemPath>../../src/csg_boltzmann/tabulatedpotential.h</itemPath>
+    </logicalFolder>
     <logicalFolder name="f1" displayName="executables" projectFiles="true">
       <itemPath>../../src/tools/csg_density.cc</itemPath>
       <itemPath>../../src/tools/csg_dlptopol.cc</itemPath>
@@ -370,6 +383,43 @@
       <item path="../../share/template/template_threaded.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/analysistool.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/bondedstatistics.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/main.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/stdanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/stdanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/tabulatedpotential.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
@@ -920,6 +970,43 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/csg_boltzmann/analysistool.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/bondedstatistics.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/main.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/stdanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/stdanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/tabulatedpotential.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libcsg/boundarycondition.cc"
@@ -1467,6 +1554,43 @@
       <item path="../../share/template/template_threaded.cc"
             ex="false"
             tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/analysistool.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/bondedstatistics.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/bondedstatistics.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/main.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/stdanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/stdanalysis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/tabulatedpotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/csg_boltzmann/tabulatedpotential.h"
+            ex="false"
+            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/beadlist.cc" ex="false" tool="1" flavor2="0">
