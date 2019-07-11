@@ -93,8 +93,7 @@ class Application {
    * Run is called after command line was parsed + evaluated. All
    * the work should be done in here.
    */
-  virtual void Run() {}
-  virtual void RunThreaded() {}
+  virtual void Run() = 0;
 
   /**
    * \brief add option for command line

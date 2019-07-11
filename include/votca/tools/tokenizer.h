@@ -34,7 +34,7 @@ namespace tools {
  */
 class Tokenizer {
  public:
-  typedef boost::tokenizer<boost::char_separator<char> >::iterator iterator;
+  typedef boost::tokenizer<boost::char_separator<char>>::iterator iterator;
 
   /**
    * \brief startup tokenization
@@ -44,16 +44,11 @@ class Tokenizer {
    * After initialization,the words can be accessed using the iterator
    * interface or directly transferred to a vector ToVector of ConvertToVector.
    */
-  Tokenizer(const std::string &str, const char *separators) {
-    _str = str;
+  Tokenizer(const std::string &str, const char *separators) : _str(str) {
     boost::char_separator<char> sep(separators);
-    tok = new boost::tokenizer<boost::char_separator<char> >(_str, sep);
-    // boost::escaped_list_separator<char> sep(" ", separators, "\"");
-    // tok = new boost::tokenizer<boost::escaped_list_separator<char> >(str,
-    // sep);
+    tok = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
+                                                                          sep);
   }
-
-  ~Tokenizer() { delete tok; }
 
   /**
    * \brief iterator to first element
@@ -102,7 +97,7 @@ class Tokenizer {
   }
 
  private:
-  boost::tokenizer<boost::char_separator<char> > *tok;
+  std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok;
   std::string _str;
 };
 
