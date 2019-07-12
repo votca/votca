@@ -18,12 +18,14 @@
  */
 
 #include "votca/xtp/aobasis.h"
+#include "votca/xtp/eeinteractor.h"
 #include "votca/xtp/mmregion.h"
 #include "votca/xtp/qmmolecule.h"
 #include <votca/xtp/dftengine.h>
 
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
+#include <vector>
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aomatrix.h>
@@ -42,12 +44,11 @@ namespace xtp {
 void DFTEngine::Initialize(Property& options) {
 
   string key = "package";
-
   _dftbasis_name =
-      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".dftbasis");
+      options.ifExistsReturnElseThrowRuntimeError<string>(key + ".basisset");
 
-  if (options.exists(key + ".auxbasis")) {
-    _auxbasis_name = options.get(key + ".auxbasis").as<string>();
+  if (options.exists(key + ".auxbasisset")) {
+    _auxbasis_name = options.get(key + ".auxbasisset").as<string>();
     _with_RI = true;
   } else {
     _with_RI = false;
@@ -348,35 +349,38 @@ Mat_p_Energy DFTEngine::SetupH0() const {
   }
 
   if (_addexternalsites) {
-    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " External sites" << flush;
-    XTP_LOG(logDEBUG, *_pLog)
-        << " Name      Coordinates[a0]     charge[e]         dipole[e*a0]    "
-           "              quadrupole[e*a0^2]         "
-        << flush;
+    XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " " << _externalsites->size()
+                              << "External sites" << flush;
+    if (_externalsites->size() < 200) {
+      XTP_LOG(logDEBUG, *_pLog)
+          << " Name      Coordinates[a0]     charge[e]         dipole[e*a0]    "
+             "              quadrupole[e*a0^2]         "
+          << flush;
 
-    for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
-      std::string output =
-          (boost::format("  %1$s"
-                         "   %2$+1.4f %3$+1.4f %4$+1.4f"
-                         "   %5$+1.4f") %
-           site->getElement() % site->getPos()[0] % site->getPos()[1] %
-           site->getPos()[2] % site->getCharge())
-              .str();
-      if (site->getRank() > 0) {
-        const Eigen::Vector3d& dipole = site->getDipole();
-        output += (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f") % dipole[0] %
-                   dipole[1] % dipole[2])
-                      .str();
-      }
-      if (site->getRank() > 1) {
-        Eigen::VectorXd quadrupole = site->Q().tail<5>();
-        output +=
-            (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f") %
-             quadrupole[0] % quadrupole[1] % quadrupole[2] % quadrupole[3] %
-             quadrupole[4])
+      for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
+        std::string output =
+            (boost::format("  %1$s"
+                           "   %2$+1.4f %3$+1.4f %4$+1.4f"
+                           "   %5$+1.4f") %
+             site->getElement() % site->getPos()[0] % site->getPos()[1] %
+             site->getPos()[2] % site->getCharge())
                 .str();
+        if (site->getRank() > 0) {
+          const Eigen::Vector3d& dipole = site->getDipole();
+          output += (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f") %
+                     dipole[0] % dipole[1] % dipole[2])
+                        .str();
+        }
+        if (site->getRank() > 1) {
+          Eigen::VectorXd quadrupole = site->Q().tail<5>();
+          output += (boost::format(
+                         "   %1$+1.4f %2$+1.4f %3$+1.4f %4$+1.4f %5$+1.4f") %
+                     quadrupole[0] % quadrupole[1] % quadrupole[2] %
+                     quadrupole[3] % quadrupole[4])
+                        .str();
+        }
+        XTP_LOG(logDEBUG, *_pLog) << output << flush;
       }
-      XTP_LOG(logDEBUG, *_pLog) << output << flush;
     }
 
     Mat_p_Energy ext_multipoles = IntegrateExternalMultipoles(*_externalsites);
@@ -955,10 +959,11 @@ double DFTEngine::ExternalRepulsion(
   }
 
   double E_ext = 0;
+  eeInteractor interactor;
   for (const QMAtom& atom : _orbitals.QMAtoms()) {
     StaticSite nucleus = StaticSite(atom, atom.getNuccharge());
     for (const std::unique_ptr<StaticSite>& site : *_externalsites) {
-      site->getId();
+      interactor.CalcStaticEnergy_site(*site, nucleus);
     }
   }
   return E_ext;

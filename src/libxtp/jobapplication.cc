@@ -82,6 +82,8 @@ void JobApplication::Run() {
 
   // STATESAVER & PROGRESS OBSERVER
   std::string statefile = OptionsMap()["file"].as<std::string>();
+  tools::load_property_from_xml(_options,
+                                OptionsMap()["options"].as<std::string>());
   ProgObserver<std::vector<Job>> progObs = ProgObserver<std::vector<Job>>();
   progObs.InitCmdLineOpts(OptionsMap());
 

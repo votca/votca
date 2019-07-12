@@ -55,11 +55,11 @@ void EQM::ParseOptionsXML(tools::Property& options) {
 
   std::string _gwbse_xml =
       options.get(key + ".gwbse_options").as<std::string>();
-  load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+  load_property_from_xml(_gwbse_options, _gwbse_xml);
 
   // options for dft package
   std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
-  load_property_from_xml(_package_options, _package_xml.c_str());
+  load_property_from_xml(_package_options, _package_xml);
   std::string dft_key = "package";
   _package = _package_options.get(dft_key + ".name").as<std::string>();
 
@@ -67,7 +67,7 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   if (_do_esp) {
     key = "options." + Identify();
     std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
-    load_property_from_xml(_esp_options, _esp_xml.c_str());
+    load_property_from_xml(_esp_options, _esp_xml);
   }
   _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".job_file");
@@ -156,7 +156,8 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   std::string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
   std::string package_append = _package + "_" + Identify();
   std::string work_dir =
-      (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir).c_str();
+      (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir)
+          .generic_string();
 
   tools::Property job_summary;
   tools::Property& output_summary = job_summary.add("output", "");
@@ -263,9 +264,8 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       boost::filesystem::create_directories(ESPDIR);
       esp2multipole.WritetoFile(ESPDIR + "/" + mps_file, orbitals);
       XTP_LOG_SAVE(logDEBUG, pLog)
-          << "Written charges to " << (ESPDIR + "/" + mps_file).c_str()
-          << std::flush;
-      segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file).c_str());
+          << "Written charges to " << (ESPDIR + "/" + mps_file) << std::flush;
+      segment_summary.add("partialcharges", (ESPDIR + "/" + mps_file));
     } catch (std::runtime_error& error) {
       std::string errormessage(error.what());
       SetJobToFailed(jres, pLog, "ESPFIT:" + errormessage);

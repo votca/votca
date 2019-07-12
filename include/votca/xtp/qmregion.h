@@ -43,7 +43,8 @@ class StaticRegion;
 class QMRegion : public Region {
 
  public:
-  QMRegion(int id, Logger& log) : Region(id, log) {
+  QMRegion(int id, Logger& log, std::string workdir)
+      : Region(id, log), _workdir(workdir) {
     QMPackageFactory::RegisterAll();
   };
   ~QMRegion(){};
@@ -86,6 +87,7 @@ class QMRegion : public Region {
   int _size = 0;
   Orbitals _orb;
 
+  std::string _workdir = "";
   std::unique_ptr<QMPackage> _qmpackage = nullptr;
 
   std::string _grid_accuracy_for_ext_interaction = "medium";
@@ -94,8 +96,8 @@ class QMRegion : public Region {
   hist<Eigen::MatrixXd> _Dmat_hist;
 
   // convergence options
-  double _DeltaD = 1e-5;
-  double _DeltaE = 1e-5;
+  double _DeltaD = 5e-5;
+  double _DeltaE = 5e-5;
 
   bool _do_gwbse = false;
 

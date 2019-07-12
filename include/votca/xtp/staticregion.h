@@ -31,7 +31,9 @@ class StaticRegion;
 
 class StaticRegion : public MMRegion<StaticSegment> {
  public:
-  StaticRegion(int id, Logger& log) : MMRegion<StaticSegment>(id, log){};
+  StaticRegion(int id, Logger& log) : MMRegion<StaticSegment>(id, log) {
+    _evaluated = true;
+  }
 
   std::string identify() const { return "staticregion"; }
 

@@ -35,10 +35,10 @@ void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   const double pi = boost::math::constants::pi<double>();
 
   // q_01 etc are cartesian tensor multipole moments according to
-  // https://en.wikipedia.org/wiki/Quadrupole so transform apolarsite into
+  // https://en.wikipedia.org/wiki/Quadrupole so transform polarsite into
   // cartesian and then multiply by 2 (difference stone definition/wiki
   // definition) not sure about unit conversion
-  Eigen::Matrix3d quadrupole = -2 * _site->CalculateCartesianMultipole();
+  Eigen::Matrix3d quadrupole = 2 * _site->CalculateCartesianMultipole();
   // shell info, only lmax tells how far to go
   int lmax_row = shell_row.getLmax();
   int lmax_col = shell_col.getLmax();
@@ -48,13 +48,7 @@ void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   int ncols = this->getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
-
   Eigen::MatrixXd quad = Eigen::MatrixXd::Zero(nrows, ncols);
-
-  /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
-   * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION
-   * COEFFICIENTS, AND ADD TO matrix(i,j)
-   */
 
   int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
 

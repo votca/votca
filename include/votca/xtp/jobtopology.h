@@ -44,7 +44,8 @@ namespace xtp {
 class SegId;
 class JobTopology {
  public:
-  JobTopology(Job& job, Logger& log) : _job(job), _log(log){};
+  JobTopology(Job& job, Logger& log, std::string workdir)
+      : _job(job), _log(log), _workdir(workdir){};
   void BuildRegions(const Topology& top, const tools::Property& options);
 
   void WriteToHdf5(std::string filename) const;
@@ -97,6 +98,7 @@ class JobTopology {
   Job& _job;
   Logger& _log;
   std::vector<std::unique_ptr<Region> > _regions;
+  std::string _workdir = "";
 };
 }  // namespace xtp
 }  // namespace votca

@@ -72,7 +72,7 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     std::string _package_xml = opt.get(key + ".dftpackage").as<std::string>();
-    load_property_from_xml(_dftpackage_options, _package_xml.c_str());
+    load_property_from_xml(_dftpackage_options, _package_xml);
     std::string dftname = "package.name";
     _package = _dftpackage_options.get(dftname).as<std::string>();
   }
@@ -98,12 +98,12 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
 
   if (_do_gwbse) {
     std::string _gwbse_xml = opt.get(key + ".gwbse_options").as<std::string>();
-    load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+    load_property_from_xml(_gwbse_options, _gwbse_xml);
   }
   if (_do_bsecoupling) {
     std::string _coupling_xml =
         opt.get(key + ".bsecoupling_options").as<std::string>();
-    load_property_from_xml(_bsecoupling_options, _coupling_xml.c_str());
+    load_property_from_xml(_bsecoupling_options, _coupling_xml);
   }
 
   // options for parsing data into sql file
@@ -183,7 +183,7 @@ void IQM::SetJobToFailed(Job::JobResult& jres, Logger& pLog,
 
 void IQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   std::ofstream ofs;
-  ofs.open(logfile.c_str(), std::ofstream::out);
+  ofs.open(logfile, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + logfile);
   }
@@ -238,17 +238,21 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   std::string orbFileA =
       (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
        (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str())
-          .c_str();
+          .generic_string();
+  ;
   std::string orbFileB =
       (arg_pathB / eqm_work_dir / "molecules" / frame_dir /
        (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str())
-          .c_str();
+          .generic_string();
+  ;
   std::string orbFileAB =
       (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir /
        (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str())
-          .c_str();
+          .generic_string();
+  ;
   std::string orb_dir =
-      (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
+      (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).generic_string();
+  ;
 
   const Segment& seg_A = top.getSegment(ID_A);
   const Segment& seg_B = top.getSegment(ID_B);
@@ -264,7 +268,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   segments.push_back(&seg_A);
   segments.push_back(&seg_B);
   std::string work_dir =
-      (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir).c_str();
+      (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
+          .generic_string();
 
   if (_linkers.size() > 0) {
     addLinkers(segments, top);
@@ -298,7 +303,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     std::string qmpackage_work_dir =
         (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
-            .c_str();
+            .generic_string();
+    ;
 
     Logger dft_logger(logDEBUG);
     dft_logger.setMultithreading(false);
@@ -333,17 +339,21 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
           std::string gbwFileA =
               (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
                (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str())
-                  .c_str();
+                  .generic_string();
+          ;
           std::string gbwFileB =
               (arg_pathB / eqm_work_dir / "molecules" / frame_dir /
                (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str())
-                  .c_str();
+                  .generic_string();
+          ;
           std::string gbwFileA_workdir =
               (boost::filesystem::path(qmpackage_work_dir) / "molA.gbw")
-                  .c_str();
+                  .generic_string();
+          ;
           std::string gbwFileB_workdir =
               (boost::filesystem::path(qmpackage_work_dir) / "molB.gbw")
-                  .c_str();
+                  .generic_string();
+          ;
           boost::filesystem::copy_file(
               gbwFileA, gbwFileA_workdir,
               boost::filesystem::copy_option::overwrite_if_exists);

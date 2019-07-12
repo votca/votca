@@ -268,7 +268,6 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
 }
 
 double PolarRegion::InteractwithQMRegion(const QMRegion& region) {
-
   // QMregions always have lower ids than other regions
   region.ApplyQMFieldToPolarSegments(_segments);
   return 0.0;

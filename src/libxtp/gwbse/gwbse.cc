@@ -265,9 +265,9 @@ void GWBSE::Initialize(tools::Property& options) {
   }
 
   _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".gwbasis");
+      key + ".basisset");
   _dftbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".dftbasis");
+      key + ".auxbasisset");
   if (_dftbasis_name != _orbitals.getDFTbasisName()) {
     throw std::runtime_error(
         "Name of the Basisset from .orb file: " + _orbitals.getDFTbasisName() +

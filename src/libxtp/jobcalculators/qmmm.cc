@@ -18,6 +18,7 @@
  */
 
 #include "qmmm.h"
+#include <boost/filesystem.hpp>
 #include <chrono>
 #include <votca/xtp/jobtopology.h>
 
@@ -49,19 +50,25 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   std::chrono::time_point<std::chrono::system_clock> start =
       std::chrono::system_clock::now();
 
-  Job::JobResult jres = Job::JobResult();
-  Logger& pLog = Thread.getLogger();
-  JobTopology jobtop = JobTopology(job, pLog);
-  jobtop.BuildRegions(top, _regions_def);
   std::string qmmm_work_dir = "QMMM";
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
+  std::string job_dir =
+      "job_" + std::to_string(job.getId()) + "_" + job.getTag();
+  boost::filesystem::path arg_path;
+  std::string workdir =
+      (arg_path / qmmm_work_dir / frame_dir / job_dir).generic_string();
+  boost::filesystem::create_directories(workdir);
+  Job::JobResult jres = Job::JobResult();
+  Logger& pLog = Thread.getLogger();
+  JobTopology jobtop = JobTopology(job, pLog, workdir);
+  jobtop.BuildRegions(top, _regions_def);
+
   if (_print_regions_pdb) {
-    std::string pdb_filename = "jobtopology_job_" + job.getTag() + "_" +
-                               std::to_string(job.getId()) + ".pdb";
+    std::string pdb_filename = "regions.pdb";
     XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Writing jobtopology to "
-                                << pdb_filename << std::flush;
-    jobtop.WriteToPdb(pdb_filename);
+                                << (workdir + "/" + pdb_filename) << std::flush;
+    jobtop.WriteToPdb(workdir + "/" + pdb_filename);
   }
 
   int no_static_regions = 0;
@@ -78,19 +85,14 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
     no_top_scf = true;
     _max_iterations = 1;
   }
-
-  for (int iteration = 0; iteration < _max_iterations; iteration++) {
+  int iteration = 0;
+  for (; iteration < _max_iterations; iteration++) {
 
     XTP_LOG_SAVE(logINFO, pLog)
-        << TimeStamp() << " Inter Region SCF Iteration " << iteration + 1
+        << TimeStamp() << " --Inter Region SCF Iteration " << iteration + 1
         << " of " << _max_iterations << std::flush;
 
-    // reverse iterator over regions because the cheapest regions have to be
-    // evaluated first
-    for (std::vector<std::unique_ptr<Region>>::iterator reg_pointer =
-             jobtop.end();
-         reg_pointer-- != jobtop.begin();) {
-      std::unique_ptr<Region>& region = *reg_pointer;
+    for (std::unique_ptr<Region>& region : jobtop) {
       XTP_LOG_SAVE(logINFO, pLog)
           << TimeStamp() << " Evaluating " << region->identify() << " "
           << region->getId() << std::flush;
@@ -103,11 +105,23 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
       }
     }
 
+    std::string checkpointfilename =
+        "checkpoint_iter_" + std::to_string(iteration + 1) + ".hdf5";
+    jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
+
     if (!no_top_scf) {
       std::vector<bool> converged_regions;
       for (std::unique_ptr<Region>& region : jobtop) {
         converged_regions.push_back(region->Converged());
       }
+
+      double etot = 0.0;
+      for (const std::unique_ptr<Region>& reg : jobtop) {
+        etot += reg->Etotal();
+      }
+      XTP_LOG_SAVE(logINFO, pLog)
+          << TimeStamp() << " --Total Energy all regions " << etot
+          << std::flush;
 
       bool all_regions_converged =
           std::all_of(converged_regions.begin(), converged_regions.end(),
@@ -146,6 +160,9 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   std::chrono::duration<double> elapsed_time = end - start;
   jobresult.add("E_tot", std::to_string(etot * tools::conv::hrt2ev));
   jobresult.add("Compute_Time", std::to_string(int(elapsed_time.count())));
+  if (!no_top_scf) {
+    jobresult.add("Iterations", std::to_string(iteration));
+  }
   jres.setOutput(results);
   return jres;
 }

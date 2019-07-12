@@ -65,6 +65,8 @@ class Region {
 
   virtual double charge() const = 0;
 
+  bool Evaluated() const { return _evaluated; }
+
   bool Successful() const { return _info; }
 
   std::string ErrorMsg() const { return _errormsg; }
@@ -116,6 +118,7 @@ class Region {
   };
 
   bool _info = true;
+  bool _evaluated = false;
   std::string _errormsg = "";
   std::vector<double> ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);

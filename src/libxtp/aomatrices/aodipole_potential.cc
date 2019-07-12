@@ -32,8 +32,6 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
   const double pi = boost::math::constants::pi<double>();
 
-  // Get components of dipole vector somehow
-
   const Eigen::Vector3d dipole = -_site->getDipole();
   const Eigen::Vector3d position = _site->getPos();
 
@@ -1291,9 +1289,9 @@ void AODipole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       }  // end if (lmax_col > 3)
       for (int i = 0; i < nrows; i++) {
         for (int j = 0; j < ncols; j++) {
-          dip(i, j) = dipole.z() * dip4[i][j][0][0] +
+          dip(i, j) = dipole.x() * dip4[i][j][0][0] +
                       dipole.y() * dip4[i][j][1][0] +
-                      dipole.x() * dip4[i][j][2][0];
+                      dipole.z() * dip4[i][j][2][0];
         }
       }
 

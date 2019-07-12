@@ -38,7 +38,6 @@ void JobTopology::SortRegionsDefbyId(
 
 void JobTopology::BuildRegions(const Topology& top,
                                const tools::Property& options) {
-
   std::vector<const tools::Property*> regions_def = options.Select("region");
 
   CheckEnumerationOfRegions(regions_def);
@@ -114,7 +113,7 @@ void JobTopology::CreateRegions(
     std::unique_ptr<Region> region;
     if (type == "gwbse" || type == "dft") {
       std::unique_ptr<QMRegion> qmregion =
-          std::unique_ptr<QMRegion>(new QMRegion(id, _log));
+          std::unique_ptr<QMRegion>(new QMRegion(id, _log, _workdir));
       QMMapper qmmapper(_log);
       qmmapper.LoadMappingFile(mapfile);
       for (const SegId& seg_index : seg_ids) {

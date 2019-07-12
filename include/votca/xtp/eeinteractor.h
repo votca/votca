@@ -89,6 +89,9 @@ class eeInteractor {
 
   double CalcPolarEnergy_IntraSegment(const PolarSegment& seg) const;
 
+  double CalcStaticEnergy_site(const StaticSite& site1,
+                               const StaticSite& site2) const;
+
  private:
   class AxA {
    public:
@@ -115,9 +118,6 @@ class eeInteractor {
   double ApplyInducedField_site(const PolarSite& site1, PolarSite& site2) const;
   template <enum Estatic>
   double ApplyStaticField_site(const StaticSite& site1, PolarSite& site2) const;
-
-  double CalcStaticEnergy_site(const StaticSite& site1,
-                               const StaticSite& site2) const;
 
   double CalcPolar_stat_Energy_site(const PolarSite& site1,
                                     const StaticSite& site2) const;

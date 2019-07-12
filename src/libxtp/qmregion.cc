@@ -65,7 +65,8 @@ bool QMRegion::Converged() const {
   }
 
   double Echange = _E_hist.getDiff();
-  double Dchange = _Dmat_hist.getDiff().norm();
+  double Dchange =
+      _Dmat_hist.getDiff().norm() / double(_Dmat_hist.back().cols());
   double Dmax = _Dmat_hist.getDiff().cwiseAbs().maxCoeff();
   std::string info = "not converged";
   bool converged = false;
@@ -74,9 +75,9 @@ bool QMRegion::Converged() const {
     converged = true;
   }
   XTP_LOG_SAVE(logINFO, _log)
-      << "Region:" << this->identify() << " " << this->getId() << " is " << info
-      << " deltaE=" << Echange << " RMS Dmat=" << Dchange << " MaxDmat=" << Dmax
-      << std::flush;
+      << " Region:" << this->identify() << " " << this->getId() << " is "
+      << info << " deltaE=" << Echange << " RMS Dmat=" << Dchange
+      << " MaxDmat=" << Dmax << std::flush;
   return converged;
 }
 
@@ -86,6 +87,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
 
   XTP_LOG_SAVE(logINFO, _log) << "Writing inputs" << std::flush;
+  _qmpackage->setRunDir(_workdir);
   _qmpackage->WriteInputFile(_orb);
   XTP_LOG_SAVE(logINFO, _log) << "Running DFT calculation" << std::flush;
   bool run_success = _qmpackage->Run();
@@ -123,7 +125,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
   _E_hist.push_back(energy);
   _Dmat_hist.push_back(_orb.DensityMatrixFull(state));
-
+  _evaluated = true;
   return;
 }
 
