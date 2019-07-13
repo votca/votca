@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # DON'T RUN THIS MANUALLY
 # RUN "csg_inverse --options settings.xml" instead
