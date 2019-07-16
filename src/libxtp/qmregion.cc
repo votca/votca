@@ -34,23 +34,34 @@ void QMRegion::Initialize(const tools::Property& prop) {
         this->identify() +
         " must always be region 0. Currently only one qm region is possible.");
   }
-  std::string type =
-      prop.ifExistsReturnElseThrowRuntimeError<std::string>("type");
-  if (type == "gwbse") {
+
+  std::string statestring =
+      prop.ifExistsReturnElseThrowRuntimeError<std::string>("state");
+  _initstate.FromString(statestring);
+  if (_initstate.Type() == QMStateType::Hole ||
+      _initstate.Type() == QMStateType::Electron) {
+    throw std::runtime_error(
+        "Charged QM Regions are not implemented currently");
+  }
+  if (_initstate.Type().isExciton() || _initstate.Type().isGWState()) {
+
     _do_gwbse = true;
     std::string gwbsexml =
         prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_gwbse");
     tools::load_property_from_xml(_gwbseoptions, gwbsexml);
-    if (prop.exists("filer")) {
+    if (prop.exists("filter")) {
       tools::Property filter = prop.get("filter");
       _filter.setLogger(&_log);
       _filter.Initialize(filter);
+      _filter.setInitialState(_initstate);
       _filter.PrintInfo();
     } else {
       throw std::runtime_error("No filter for excited states specified");
     }
   }
 
+  _grid_accuracy_for_ext_interaction = prop.ifExistsReturnElseReturnDefault(
+      "grid_for_potential", _grid_accuracy_for_ext_interaction);
   _DeltaE = prop.ifExistsReturnElseReturnDefault("tolerance_energy", _DeltaE);
   _DeltaD = prop.ifExistsReturnElseReturnDefault("tolerance_density", _DeltaD);
 
@@ -166,8 +177,8 @@ double QMRegion::charge() const {
 void QMRegion::AppendResult(tools::Property& prop) const {
   prop.add("E_total", std::to_string(_E_hist.back() * tools::conv::hrt2ev));
   if (_do_gwbse) {
-    prop.add("Initial State:", _filter.InitialState().ToString());
-    prop.add("Final State:", _filter.CalcState(_orb).ToString());
+    prop.add("Initial_State", _filter.InitialState().ToString());
+    prop.add("Final_State:", _filter.CalcState(_orb).ToString());
   }
 }
 
@@ -179,6 +190,13 @@ void QMRegion::Reset() {
       std::unique_ptr<QMPackage>(QMPackages().Create(dft_package_name));
   _qmpackage->setLog(&_log);
   _qmpackage->Initialize(_dftoptions);
+  int charge = 0;
+  if (_initstate.Type() == QMStateType::Electron) {
+    charge = -1;
+  } else if (_initstate.Type() == QMStateType::Hole) {
+    charge = +1;
+  }
+  _qmpackage->setCharge(charge);
   return;
 }
 double QMRegion::InteractwithQMRegion(const QMRegion& region) {
@@ -254,6 +272,8 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   w(identify(), "type");
   w(_size, "size");
   w(_do_gwbse, "GWBSE");
+  w(_initstate.ToString(), "initial_state");
+  w(_grid_accuracy_for_ext_interaction, "ext_grid");
   CheckpointWriter v = w.openChild("orbitals");
   _orb.WriteToCpt(v);
 }
@@ -262,6 +282,10 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
   r(_id, "id");
   r(_size, "size");
   r(_do_gwbse, "GWBSE");
+  std::string state;
+  r(state, "initial_state");
+  _initstate.FromString(state);
+  r(_grid_accuracy_for_ext_interaction, "ext_grid");
   CheckpointReader rr = r.openChild("orbitals");
   _orb.ReadFromCpt(rr);
 }

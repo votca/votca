@@ -77,7 +77,8 @@ void EQM::ParseOptionsXML(tools::Property& options) {
 
 void EQM::WriteJobFile(const Topology& top) {
 
-  std::cout << std::endl << "... ... Writing job file: " << std::flush;
+  std::cout << std::endl
+            << "... ... Writing job file: " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())

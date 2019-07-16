@@ -31,7 +31,7 @@ namespace xtp {
 
 class QMStateType {
  public:
-  enum statetype {
+  enum statetype {  // never change the values
     Electron = 0,
     Hole = 1,
     Singlet = 2,

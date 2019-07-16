@@ -188,9 +188,10 @@ std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals) const {
 std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
   Lowdin low;
-  low.CalcChargeperFragment(_fragment_loc, orbitals, _statehist[0].Type());
-  const Eigen::VectorXd& popE = _fragment_loc[0].value().E;
-  const Eigen::VectorXd& popH = _fragment_loc[0].value().H;
+  std::vector<QMFragment<BSE_Population> > loc = _fragment_loc;
+  low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
+  const Eigen::VectorXd& popE = loc[0].value().E;
+  const Eigen::VectorXd& popH = loc[0].value().H;
   for (int i = 0; i < popE.size(); i++) {
     if (popE[i] > _loc_threshold && popH[i] > _loc_threshold) {
       indexes.push_back(i);
@@ -202,9 +203,9 @@ std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
 std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
   Lowdin low;
-  low.CalcChargeperFragment(_fragment_dQ, orbitals, _statehist[0].Type());
-  Eigen::VectorXd dq =
-      (_fragment_dQ[0].value().H - _fragment_dQ[0].value().E).cwiseAbs();
+  std::vector<QMFragment<BSE_Population> > loc = _fragment_dQ;
+  low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
+  Eigen::VectorXd dq = (loc[0].value().H - loc[0].value().E).cwiseAbs();
 
   for (int i = 0; i < dq.size(); i++) {
     if (dq[i] > _dQ_threshold) {
@@ -215,33 +216,24 @@ std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals) const {
 }
 
 Eigen::VectorXd Statefilter::CalculateOverlap(const Orbitals& orbitals) const {
-  BasisSet dftbs;
-  dftbs.LoadBasisSet(orbitals.getDFTbasisName());
-  AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
-  AOOverlap dftoverlap;
-  dftoverlap.Fill(dftbasis);
-  _S_onehalf = dftoverlap.Pseudo_InvSqrt(1e-8);
-  Eigen::MatrixXd ortho_coeffs = CalcOrthoCoeffs(orbitals);
-  Eigen::VectorXd overlap = (ortho_coeffs * _laststatecoeff).cwiseAbs2();
+  Eigen::MatrixXd coeffs = CalcOrthoCoeffs(orbitals);
+  Eigen::VectorXd overlap = (coeffs * _laststatecoeff).cwiseAbs2();
   return overlap;
 }
 
 Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(const Orbitals& orbitals) const {
   QMStateType type = _statehist[0].Type();
-  Eigen::MatrixXd ortho_coeffs;
+  Eigen::MatrixXd coeffs;
   if (type.isSingleParticleState()) {
-    Eigen::MatrixXd coeffs;
     if (type == QMStateType::DQPstate) {
       coeffs = orbitals.CalculateQParticleAORepresentation();
     } else {
       coeffs = orbitals.MOCoefficients();
     }
-    ortho_coeffs = _S_onehalf * coeffs;
   } else {
     throw std::runtime_error("Overlap for excitons not implemented yet");
   }
-  return ortho_coeffs;
+  return coeffs;
 }
 
 void Statefilter::UpdateLastCoeff(const Orbitals& orbitals) {

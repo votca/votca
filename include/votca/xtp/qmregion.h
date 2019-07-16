@@ -87,6 +87,7 @@ class QMRegion : public Region {
   int _size = 0;
   Orbitals _orb;
 
+  QMState _initstate;
   std::string _workdir = "";
   std::unique_ptr<QMPackage> _qmpackage = nullptr;
 

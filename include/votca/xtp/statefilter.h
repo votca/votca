@@ -67,28 +67,19 @@ class Statefilter {
 
   std::vector<QMState> _statehist;
 
-  Eigen::VectorXd _laststatecoeff;
-  mutable Eigen::MatrixXd _S_onehalf;  // only used in one iteration, do not
-                                       // want to introduce more function
-                                       // arguments
-
   bool _use_oscfilter = false;
   double _oscthreshold;
 
   bool _use_overlapfilter = false;
+  Eigen::VectorXd _laststatecoeff;
   double _overlapthreshold;
 
   bool _use_localisationfilter = false;
-
-  mutable std::vector<QMFragment<BSE_Population> >
-      _fragment_loc;  // contain value and definition but between iterations it
-                      // does not change so mutalbe now
+  std::vector<QMFragment<BSE_Population> > _fragment_loc;
   double _loc_threshold;
 
   bool _use_dQfilter = false;
-  mutable std::vector<QMFragment<BSE_Population> > _fragment_dQ;  // contain
-                                                                  // value and
-                                                                  // definition
+  std::vector<QMFragment<BSE_Population> > _fragment_dQ;
   double _dQ_threshold;
 };
 }  // namespace xtp

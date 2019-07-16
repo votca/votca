@@ -47,6 +47,9 @@ class QMMM : public ParallelXJobCalc<std::vector<Job> > {
 
   int _max_iterations = 100;
   bool _print_regions_pdb = false;
+
+  bool _write_parse = false;
+  std::vector<QMStateType> _states;
 };
 
 }  // namespace xtp

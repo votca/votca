@@ -581,7 +581,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
 void IQM::WriteJobFile(const Topology& top) {
 
-  std::cout << std::endl << "... ... Writing job file " << std::flush;
+  std::cout << std::endl
+            << "... ... Writing job file " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
@@ -712,12 +713,14 @@ void IQM::ReadJobFile(Topology& top) {
 
   // loop over all jobs = pair records in the job file
   for (tools::Property* job : jobProps) {
-    if (job->exists("status")) {
-      if (job->get("status").as<std::string>() != "COMPLETE" ||
-          !job->exists("output")) {
-        incomplete_jobs++;
-        continue;
-      }
+    if (!job->exists("status")) {
+      throw std::runtime_error(
+          "Jobfile is malformed. <status> tag missing on job.");
+    }
+    if (job->get("status").as<std::string>() != "COMPLETE" ||
+        !job->exists("output")) {
+      incomplete_jobs++;
+      continue;
     }
 
     // get the output records

@@ -87,6 +87,11 @@ class QMPackage {
 
   void setLog(Logger* pLog) { _pLog = pLog; }
 
+  void setCharge(double charge) {
+    _charge = charge;
+    _spin = std::abs(charge) + 1;
+  }
+
   bool GuessRequested() const { return _write_guess; }
 
   void setGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }

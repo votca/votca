@@ -44,6 +44,26 @@ void QMMM::Initialize(tools::Property& options) {
   } else {
     throw std::runtime_error("No region definitions found in optionsfile");
   }
+
+  if (options.exists(key + ".write_parse")) {
+    _write_parse = true;
+
+    std::string states = options.ifExistsReturnElseReturnDefault<std::string>(
+        key + ".write_parse.states", "e h");
+    tools::Tokenizer tok(states, " ,;\n\t");
+    std::vector<std::string> statestrings = tok.ToVector();
+    _states.reserve(statestrings.size());
+    for (std::string s : statestrings) {
+      _states.push_back(QMStateType(s));
+    }
+    bool groundstate_found = false;
+    for (const QMStateType& state : _states) {
+      if (state.Type() == QMStateType::Gstate) groundstate_found = true;
+    }
+    if (!groundstate_found) {
+      _states.push_back(QMStateType("n"));
+    }
+  }
 }
 
 Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
@@ -151,23 +171,148 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   tools::Property& jobresult = results.add("output", "");
   tools::Property& regionsresults = jobresult.add("regions", "");
   double etot = 0.0;
+  double charge = 0.0;
   for (const std::unique_ptr<Region>& reg : jobtop) {
     reg->AddResults(regionsresults);
     etot += reg->Etotal();
+    charge += reg->charge();
   }
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
   jobresult.add("E_tot", std::to_string(etot * tools::conv::hrt2ev));
   jobresult.add("Compute_Time", std::to_string(int(elapsed_time.count())));
+  jobresult.add("Total_Charge", std::to_string(charge));
   if (!no_top_scf) {
-    jobresult.add("Iterations", std::to_string(iteration));
+    jobresult.add("Iterations", std::to_string(iteration + 1));
   }
   jres.setOutput(results);
   return jres;
 }
-void QMMM::WriteJobFile(const Topology& top) {}
-void QMMM::ReadJobFile(Topology& top) {}
+void QMMM::WriteJobFile(const Topology& top) {
+
+  if (!_write_parse) {
+    throw std::runtime_error(
+        "Cannot write jobfile, please add <write_parse><states>e "
+        "s1</states></write_parse> to your options.");
+  }
+
+  std::cout << std::endl
+            << "... ... Writing job file " << _jobfile << std::flush;
+
+  std::ofstream ofs;
+  ofs.open(_jobfile, std::ofstream::out);
+  if (!ofs.is_open())
+    throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
+
+  ofs << "<jobs>" << std::endl;
+  int jobid = 0;
+  for (const Segment& seg : top.Segments()) {
+    for (const QMStateType& state : _states) {
+
+      std::string marker = std::to_string(seg.getId()) + ":" + state.ToString();
+      std::string tag = seg.getName() + "_" + marker;
+
+      tools::Property Input;
+      tools::Property& pInput = Input.add("input", "");
+      pInput.add("site_energies", marker);
+      tools::Property& regions = pInput.add("regions", "");
+      tools::Property& region = regions.add("region", "");
+      region.add("id", "0");
+      region.add("segments", marker);
+      Job job(jobid, tag, Input, Job::AVAILABLE);
+      job.ToStream(ofs);
+      jobid++;
+    }
+  }
+
+  ofs << "</jobs>" << std::endl;
+  ofs.close();
+  std::cout << std::endl
+            << "... ... In total " << jobid + 1 << " jobs" << std::flush;
+  return;
+}
+void QMMM::ReadJobFile(Topology& top) {
+
+  if (!_write_parse) {
+    throw std::runtime_error(
+        "Cannot read jobfile, please add <write_parse><states>n e "
+        "h</states></write_parse> to your options.");
+  }
+
+  int incomplete_jobs = 0;
+
+  Eigen::Matrix<double, Eigen::Dynamic, 5> energies =
+      Eigen::Matrix<double, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
+  Eigen::Matrix<int, Eigen::Dynamic, 5> found =
+      Eigen::Matrix<int, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
+
+  tools::Property xml;
+  load_property_from_xml(xml, _jobfile);
+  std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
+  for (tools::Property* job : jobProps) {
+
+    int jobid = job->get("id").as<int>();
+    if (!job->exists("status")) {
+      throw std::runtime_error(
+          "Jobfile is malformed. <status> tag missing for job " +
+          std::to_string(jobid));
+    }
+    if (job->get("status").as<std::string>() != "COMPLETE" ||
+        !job->exists("output")) {
+      incomplete_jobs++;
+      continue;
+    }
+
+    std::string marker = job->get("input.site_energies").as<std::string>();
+    tools::Tokenizer tok(marker, ":");
+    std::vector<std::string> split = tok.ToVector();
+    int segid = std::stoi(split[0]);
+    if (segid < 0 || segid >= top.Segments().size()) {
+      throw std::runtime_error("JobSegment id" + std::to_string(segid) +
+                               " is not in topology for job " +
+                               std::to_string(jobid));
+    }
+    QMStateType state;
+    try {
+      state.FromString(split[1]);
+    } catch (std::runtime_error& e) {
+      std::stringstream message;
+      message << e.what() << " for job " << jobid;
+      throw std::runtime_error(message.str());
+    }
+
+    double energy = job->get("output.E_tot").as<double>();
+    if (found(segid, state.Type()) != 0) {
+      throw std::runtime_error("There are two entries in jobfile for segment " +
+                               std::to_string(segid) +
+                               " state:" + state.ToString());
+    }
+
+    energies(segid, state.Type()) = energy;
+    found(segid, state.Type()) = 1;
+  }
+
+  Eigen::Matrix<int, 1, 5> found_states = found.colwise().sum();
+  for (int i = 0; i < 5; i++) {
+    if (found_states(i) > 0) {
+      QMStateType type(static_cast<QMStateType::statetype>(i));
+      std::cout << "Found " << found_states(i) << " states of type "
+                << type.ToString() << std::endl;
+    }
+  }
+
+  for (Segment& seg : top.Segments()) {
+    int segid = seg.getId();
+    for (int i = 0; i < 4; i++) {
+      QMStateType type(static_cast<QMStateType::statetype>(i));
+      if (found(segid, i) && found(segid, 4)) {
+        double energy = energies(segid, i) - energies(segid, 4);
+        seg.setEMpoles(type, energy);
+      }
+    }
+  }
+}
 
 }  // namespace xtp
 };  // namespace votca

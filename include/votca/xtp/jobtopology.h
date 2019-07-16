@@ -46,7 +46,7 @@ class JobTopology {
  public:
   JobTopology(Job& job, Logger& log, std::string workdir)
       : _job(job), _log(log), _workdir(workdir){};
-  void BuildRegions(const Topology& top, const tools::Property& options);
+  void BuildRegions(const Topology& top, tools::Property options);
 
   void WriteToHdf5(std::string filename) const;
 
@@ -76,24 +76,29 @@ class JobTopology {
 
  private:
   std::vector<std::vector<SegId> > PartitionRegions(
-      const std::vector<const tools::Property*>& regions_def,
+      const std::vector<tools::Property*>& regions_def,
       const Topology& top) const;
 
   void CreateRegions(const tools::Property& options, const Topology& top,
                      const std::vector<std::vector<SegId> >& region_seg_ids);
 
-  template <class T>
-  T GetInputFromXMLorJob(const tools::Property* region_def,
-                         std::string keyword) const;
+  void UpdateFromJobfile(tools::Property& options,
+                         const tools::Property& job_opt,
+                         const std::vector<std::string>& paths) const;
+  std::vector<std::string> FindReplacePathsInOptions(
+      const tools::Property& options, std::string tag) const;
+  void ModifyOptionsByJobFile(std::vector<tools::Property*>& regions_def) const;
+  void UpdateFromJobfile(tools::Property& options,
+                         const tools::Property& job_opt,
+                         const std::string& tag) const;
 
   template <class T>
   void ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
                 T& mol) const;
 
   void CheckEnumerationOfRegions(
-      const std::vector<const tools::Property*>& regions_def) const;
-  void SortRegionsDefbyId(
-      std::vector<const tools::Property*>& regions_def) const;
+      const std::vector<tools::Property*>& regions_def) const;
+  void SortRegionsDefbyId(std::vector<tools::Property*>& regions_def) const;
 
   Job& _job;
   Logger& _log;

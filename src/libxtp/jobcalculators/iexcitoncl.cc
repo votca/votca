@@ -149,7 +149,7 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
 
 void IEXCITON::WriteJobFile(const Topology& top) {
 
-  cout << endl << "... ... Writing job file " << flush;
+  cout << endl << "... ... Writing job file " << _jobfile << flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())

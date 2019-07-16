@@ -4,6 +4,11 @@
         <max_iterations>50</max_iterations>
         <openmp_threads>1</openmp_threads>
         <map_file>map.xml</map_file>
+        <write_parse>
+            <states>n e h s t</states>
+            <mm_qm>mm</mm_qm>
+        </write_parse>
+        
         <regions>
             <region>
                 <id>0</id>
