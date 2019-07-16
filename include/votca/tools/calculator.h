@@ -146,7 +146,7 @@ inline void Calculator::AddDefaults(Property &p, const Property &defaults) {
     Property rootp = *p.begin();
     if (prop.hasAttribute("default")) {
       if (rootp.exists(name)) {
-        if (rootp.HasChilds()) rootp.value() = prop.value();
+        if (rootp.HasChildren()) rootp.value() = prop.value();
       } else {
         rootp.add(prop.name(), prop.value());
       }

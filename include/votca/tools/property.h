@@ -146,7 +146,7 @@ class Property {
    * \brief does the property has childs?
    * \return true or false
    */
-  bool HasChilds() const { return !_map.empty(); }
+  bool HasChildren() const { return !_map.empty(); }
 
   /// iterator to iterate over properties
   typedef std::vector<Property>::iterator iterator;
@@ -223,8 +223,8 @@ class Property {
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
-  std::string _name;
-  std::string _value;
+  std::string _name = "";
+  std::string _value = "";
   std::string _path = "";
 
   static const int IOindex;
