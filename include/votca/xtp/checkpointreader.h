@@ -209,6 +209,22 @@ class CheckpointReader {
     dataset.read(&(v[0]), *dataType);
   }
 
+  void ReadData(const CptLoc& loc, std::vector<std::string>& v,
+                const std::string& name) const {
+
+    H5::DataSet dataset = loc.openDataSet(name);
+    H5::DataSpace dp = dataset.getSpace();
+
+    const H5::DataType* dataType = InferDataType<std::string>::get();
+
+    hsize_t dims[2];
+    dp.getSimpleExtentDims(dims, NULL);
+
+    v.resize(dims[0]);
+
+    dataset.read(&(v[0]), *dataType);
+  }
+
   void ReadData(const CptLoc& loc, std::vector<Eigen::Vector3d>& v,
                 const std::string& name) const {
 

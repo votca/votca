@@ -301,6 +301,9 @@ void QMMM::ReadJobFile(Topology& top) {
                 << type.ToString() << std::endl;
     }
   }
+  if (incomplete_jobs > 0) {
+    std::cout << incomplete_jobs << " incomplete jobs found." << std::endl;
+  }
 
   for (Segment& seg : top.Segments()) {
     int segid = seg.getId();

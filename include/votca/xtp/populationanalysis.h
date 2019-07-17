@@ -36,32 +36,6 @@
 namespace votca {
 namespace xtp {
 
-struct BSE_Population {
-  Eigen::VectorXd H;
-  Eigen::VectorXd E;
-  double Gs = 0;
-
-  void Initialize(int size) {
-    H = Eigen::VectorXd::Zero(size);
-    E = Eigen::VectorXd::Zero(size);
-    Gs = 0;
-  }
-  friend std::ostream& operator<<(std::ostream& out,
-                                  const BSE_Population& pop) {
-    if (pop.H.size() < 1) {
-      return out;
-    }
-    Eigen::VectorXd diff = pop.H - pop.E;
-    out << "GroundstateCharge:" << pop.Gs << std::endl;
-    out << "Index hole electron dQ Qeff" << std::endl;
-    for (int i = 0; i < pop.H.size(); ++i) {
-      out << i << " " << pop.H(i) << " " << pop.E(i) << " " << diff(i) << " "
-          << diff(i) + pop.Gs << std::endl;
-    }
-    return out;
-  }
-};
-
 template <bool T>
 class Populationanalysis {
  public:

@@ -138,6 +138,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
       }
     }
   }
+  this->calcPos();
 }
 
 template <class T>

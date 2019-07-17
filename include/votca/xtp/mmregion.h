@@ -35,9 +35,9 @@ template <class T>
 class MMRegion : public Region {
  public:
   MMRegion(int id, Logger& log) : Region(id, log){};
-  void WriteToCpt(CheckpointWriter& w) const;
+  virtual void WriteToCpt(CheckpointWriter& w) const;
 
-  void ReadFromCpt(CheckpointReader& r);
+  virtual void ReadFromCpt(CheckpointReader& r);
 
   int size() const { return _segments.size(); }
 

@@ -33,13 +33,6 @@ std::vector<double> Region::ApplyInfluenceOfOtherRegions(
     if (id == this->getId()) {
       continue;
     }
-    if (!reg->Evaluated()) {
-      XTP_LOG_SAVE(logINFO, _log)
-          << TimeStamp() << " Skipping interaction between " << this->identify()
-          << " " << this->getId() << " and " << reg->identify() << " "
-          << reg->getId() << std::flush;
-      continue;
-    }
 
     QMRegion QMdummy(0, _log, "");
     StaticRegion Staticdummy(0, _log);

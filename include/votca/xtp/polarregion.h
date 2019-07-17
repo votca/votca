@@ -22,8 +22,9 @@
 #define VOTCA_XTP_POLARREGION_H
 
 #include <votca/xtp/eeinteractor.h>
+#include <votca/xtp/energy_terms.h>
+#include <votca/xtp/hist.h>
 #include <votca/xtp/mmregion.h>
-
 /**
  * \brief defines a polar region and of interacting electrostatic and induction
  * segments
@@ -40,9 +41,7 @@ class StaticRegion;
 
 class PolarRegion : public MMRegion<PolarSegment> {
  public:
-  PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log) {
-    _evaluated = true;
-  }
+  PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log) {}
 
   std::string identify() const { return "polarregion"; }
 
@@ -56,6 +55,10 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   double Etotal() const { return _E_hist.back().Etotal(); }
 
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
  protected:
   void AppendResult(tools::Property& prop) const;
   double InteractwithQMRegion(const QMRegion& region);
@@ -63,55 +66,6 @@ class PolarRegion : public MMRegion<PolarSegment> {
   double InteractwithStaticRegion(const StaticRegion& region);
 
  private:
-  class Energy_terms {
-   public:
-    Energy_terms& operator+=(const Energy_terms& right) {
-      this->_data += right._data;
-      return *this;
-    }
-
-    Energy_terms operator+(Energy_terms right) const {
-      right._data += this->_data;
-      return right;
-    }
-
-    Energy_terms operator-(Energy_terms right) const {
-      right._data *= (-1);
-      right._data += this->_data;
-      return right;
-    }
-
-    void addInternalPolarContrib(const eeInteractor::E_terms& induction_terms) {
-      _data.segment<3>(0) += induction_terms.data();
-    }
-
-    double Etotal() const { return _data.sum(); }  // total energy
-    double Epolar() const {
-      return _data.segment<4>(0).sum();
-    }  // all polar inside region and from outside contributions
-       // dQ-dQ,Q-dQ,E_internal
-    double Estatic() const {
-      return _data.segment<2>(4).sum();
-    }  // all static contributions Q-Q inside region and from outside
-    double Eextern() const {
-      return _data.segment<2>(3).sum();
-    }  // all external contributions
-    double Eintern() const {
-      return Etotal() - Eextern();
-    }  // all internal contributions
-
-    double& E_indu_indu() { return _data[0]; }  // dQ-dQ inside region
-    double& E_indu_stat() { return _data[1]; }  // dQ-Q inside region
-    double& E_internal() { return _data[2]; }   // e_internal
-    double& E_polar_ext() {
-      return _data[3];
-    }  // dQ-Q and dQ-dQ from outside regions
-    double& E_static_ext() { return _data[4]; }     // Q-Q from outside regions
-    double& E_static_static() { return _data[5]; }  // Q-Q inside region
-
-   private:
-    Eigen::Matrix<double, 6, 1> _data = Eigen::Matrix<double, 6, 1>::Zero();
-  };
   void CalcInducedDipoles();
   double StaticInteraction();
   void PolarInteraction_scf();

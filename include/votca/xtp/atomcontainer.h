@@ -176,9 +176,6 @@ class AtomContainer {
   std::string _name;
   int _id;
 
- private:
-  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
-
   void calcPos() {
     tools::Elements element;
     Eigen::Vector3d pos = Eigen::Vector3d::Zero();
@@ -190,6 +187,9 @@ class AtomContainer {
     }
     _pos = pos / totalmass;
   }
+
+ private:
+  Eigen::Vector3d _pos = Eigen::Vector3d::Zero();
 };
 }  // namespace xtp
 }  // namespace votca

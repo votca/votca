@@ -101,7 +101,6 @@ int NWChem::WriteBackgroundCharges(ofstream& nw_file) {
 
 bool NWChem::WriteGuess(const Orbitals& orbitals) {
   ofstream orb_file;
-  std::string orb_file_name_full = _run_dir + "/" + _mo_file_name;
   // get name of temporary ascii file and open it
   std::vector<std::string> results;
   boost::algorithm::split(results, _mo_file_name, boost::is_any_of("."),

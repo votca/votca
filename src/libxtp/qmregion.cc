@@ -96,7 +96,12 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
                               << this->getId() << std::flush;
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
-
+  double e_ext =
+      std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);
+  XTP_LOG_SAVE(logINFO, _log)
+      << TimeStamp()
+      << " Calculated interaction potentials with other regions. E[hrt]= "
+      << e_ext << std::flush;
   XTP_LOG_SAVE(logINFO, _log) << "Writing inputs" << std::flush;
   _qmpackage->setRunDir(_workdir);
   _qmpackage->WriteInputFile(_orb);
@@ -136,7 +141,6 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   }
   _E_hist.push_back(energy);
   _Dmat_hist.push_back(_orb.DensityMatrixFull(state));
-  _evaluated = true;
   return;
 }
 
@@ -276,6 +280,15 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   w(_grid_accuracy_for_ext_interaction, "ext_grid");
   CheckpointWriter v = w.openChild("orbitals");
   _orb.WriteToCpt(v);
+
+  CheckpointWriter v2 = w.openChild("E-hist");
+  _E_hist.WriteToCpt(v2);
+
+  CheckpointWriter v3 = w.openChild("D-hist");
+  _Dmat_hist.WriteToCpt(v3);
+
+  CheckpointWriter v4 = w.openChild("statefilter");
+  _filter.WriteToCpt(v4);
 }
 
 void QMRegion::ReadFromCpt(CheckpointReader& r) {
@@ -288,6 +301,15 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
   r(_grid_accuracy_for_ext_interaction, "ext_grid");
   CheckpointReader rr = r.openChild("orbitals");
   _orb.ReadFromCpt(rr);
+
+  CheckpointReader rr2 = r.openChild("E-hist");
+  _E_hist.ReadFromCpt(rr2);
+
+  CheckpointReader rr3 = r.openChild("D-hist");
+  _Dmat_hist.ReadFromCpt(rr3);
+
+  CheckpointReader rr4 = r.openChild("statefilter");
+  _filter.ReadFromCpt(rr4);
 }
 
 }  // namespace xtp

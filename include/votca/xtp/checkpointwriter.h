@@ -247,6 +247,22 @@ class CheckpointWriter {
     dataset.write(&(v[0]), *dataType);
   }
 
+  void WriteData(const CptLoc& loc, const std::vector<std::string>& v,
+                 const std::string& name) const {
+
+    hsize_t dims[2] = {(hsize_t)v.size(), 1};
+
+    const H5::DataType* dataType = InferDataType<std::string>::get();
+    H5::DataSet dataset;
+    H5::DataSpace dp(2, dims);
+    try {
+      dataset = loc.createDataSet(name.c_str(), *dataType, dp);
+    } catch (H5::GroupIException& error) {
+      dataset = loc.openDataSet(name.c_str());
+    }
+    dataset.write(&(v[0]), *dataType);
+  }
+
   void WriteData(const CptLoc& loc, const std::vector<Eigen::Vector3d>& v,
                  const std::string& name) const {
 

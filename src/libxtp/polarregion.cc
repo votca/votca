@@ -145,9 +145,10 @@ void PolarRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
   Energy_terms e_contrib;
   e_contrib.E_static_ext() =
       std::accumulate(energies.begin(), energies.end(), 0.0);
-  XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << " Calculated static interaction with other regions"
-      << std::flush;
+  XTP_LOG_SAVE(logINFO, _log) << TimeStamp()
+                              << " Calculated static-static and polar-static "
+                                 "interaction with other regions"
+                              << std::flush;
   e_contrib.E_static_static() = StaticInteraction();
   XTP_LOG_SAVE(logINFO, _log)
       << TimeStamp() << " Calculated static interaction in region "
@@ -314,6 +315,14 @@ double PolarRegion::InteractwithStaticRegion(const StaticRegion& region) {
   }
 
   return e;
+}
+
+void PolarRegion::WriteToCpt(CheckpointWriter& w) const {
+  MMRegion<PolarSegment>::WriteToCpt(w);
+}
+
+void PolarRegion::ReadFromCpt(CheckpointReader& r) {
+  MMRegion<PolarSegment>::ReadFromCpt(r);
 }
 
 }  // namespace xtp

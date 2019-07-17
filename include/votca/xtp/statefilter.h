@@ -47,6 +47,10 @@ class Statefilter {
   QMState CalcStateAndUpdate(const Orbitals& orbitals);
   QMState CalcState(const Orbitals& orbitals) const;
 
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
  private:
   std::vector<int> OscFilter(const Orbitals& orbitals) const;
   std::vector<int> LocFilter(const Orbitals& orbitals) const;
@@ -68,19 +72,19 @@ class Statefilter {
   std::vector<QMState> _statehist;
 
   bool _use_oscfilter = false;
-  double _oscthreshold;
+  double _oscthreshold = 0.0;
 
   bool _use_overlapfilter = false;
   Eigen::VectorXd _laststatecoeff;
-  double _overlapthreshold;
+  double _overlapthreshold = 0.0;
 
   bool _use_localisationfilter = false;
   std::vector<QMFragment<BSE_Population> > _fragment_loc;
-  double _loc_threshold;
+  double _loc_threshold = 0.0;
 
   bool _use_dQfilter = false;
   std::vector<QMFragment<BSE_Population> > _fragment_dQ;
-  double _dQ_threshold;
+  double _dQ_threshold = 0.0;
 };
 }  // namespace xtp
 }  // namespace votca

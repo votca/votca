@@ -65,8 +65,6 @@ class Region {
 
   virtual double charge() const = 0;
 
-  bool Evaluated() const { return _evaluated; }
-
   bool Successful() const { return _info; }
 
   std::string ErrorMsg() const { return _errormsg; }
@@ -84,41 +82,7 @@ class Region {
   }
 
  protected:
-  template <class T>
-  class hist {
-   public:
-    T getDiff() const {
-      if (_filled > 1) {
-        return _metric - _metric_old;
-      } else if (_filled == 1) {
-        return _metric;
-      } else {
-        throw std::runtime_error("hist is not filled yet");
-      }
-    }
-
-    const T& back() const { return _metric; }
-    void push_back(const T& metric) {
-      _metric_old = std::move(_metric);
-      _metric = metric;
-      _filled++;
-    }
-    void push_back(T&& metric) {
-      _metric_old = std::move(_metric);
-      _metric = std::move(metric);
-      _filled++;
-    }
-
-    bool filled() const { return _filled > 0; }
-
-   private:
-    int _filled = 0;
-    T _metric;
-    T _metric_old;
-  };
-
   bool _info = true;
-  bool _evaluated = false;
   std::string _errormsg = "";
   std::vector<double> ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);

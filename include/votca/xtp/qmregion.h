@@ -25,9 +25,8 @@
 
 #include "orbitals.h"
 #include "statefilter.h"
-#include <votca/xtp/qmpackage.h>
+#include <votca/xtp/hist.h>
 #include <votca/xtp/qmpackagefactory.h>
-
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
  *

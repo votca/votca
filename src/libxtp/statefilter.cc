@@ -280,5 +280,48 @@ std::vector<int> Statefilter::OverlapFilter(const Orbitals& orbitals) const {
   return indexes;
 }
 
+void Statefilter::WriteToCpt(CheckpointWriter& w) const {
+  std::vector<std::string> statehiststring;
+  statehiststring.reserve(_statehist.size());
+  for (const QMState& s : _statehist) {
+    statehiststring.push_back(s.ToString());
+  }
+  w(statehiststring, "statehist");
+  w(_use_oscfilter, "oscfilter");
+  w(_oscthreshold, "oscthreshold");
+
+  w(_use_overlapfilter, "overlapfilter");
+  w(_overlapthreshold, "overlapthreshold");
+  w(_laststatecoeff, "laststatecoeff");
+
+  w(_use_localisationfilter, "localisationfilter");
+  w(_loc_threshold, "locthreshold");
+
+  w(_use_dQfilter, "dQfilter");
+  w(_dQ_threshold, "dQthreshold");
+}
+
+void Statefilter::ReadFromCpt(CheckpointReader& r) {
+  std::vector<std::string> statehiststring;
+  r(statehiststring, "statehist");
+  _statehist.clear();
+  _statehist.reserve(statehiststring.size());
+  for (const std::string& s : statehiststring) {
+    _statehist.push_back(QMState(s));
+  }
+  r(_use_oscfilter, "oscfilter");
+  r(_oscthreshold, "oscthreshold");
+
+  r(_use_overlapfilter, "overlapfilter");
+  r(_overlapthreshold, "overlapthreshold");
+  r(_laststatecoeff, "laststatecoeff");
+
+  r(_use_localisationfilter, "localisationfilter");
+  r(_loc_threshold, "locthreshold");
+
+  r(_use_dQfilter, "dQfilter");
+  r(_dQ_threshold, "dQthreshold");
+}
+
 }  // namespace xtp
 }  // namespace votca

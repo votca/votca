@@ -30,25 +30,25 @@ BOOST_AUTO_TEST_CASE(load_mps) {
 
   PolarSegment seg = PolarSegment("seg1", 0);
   std::ofstream mpsfile("polarsite.mps");
-  mpsfile << "! One Site" << endl;
-  mpsfile << "! N=1 " << endl;
+  mpsfile << "! Two Sites" << endl;
+  mpsfile << "! N=2 " << endl;
   mpsfile << "Units angstrom" << endl;
-  mpsfile << "  C +0 0 3 Rank 2" << endl;
+  mpsfile << "C +0 0 3 Rank 2" << endl;
   mpsfile << "+1" << endl;
   mpsfile << "10 0 0" << endl;
-  mpsfile << "     100 0 0 0 0" << endl;
+  mpsfile << "100 0 0 0 0" << endl;
   mpsfile
       << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387"
       << endl;
-  mpsfile << "  H +0 0 1 Rank 0" << endl;
+  mpsfile << "H +0 0 1 Rank 0" << endl;
   mpsfile << "-1" << endl;
   mpsfile << "P +1.0000000" << endl;
 
   seg.LoadFromFile("polarsite.mps");
   Eigen::Vector3d ref_pos =
-      Eigen::Vector3d(0, 0, 3 * votca::tools::conv::ang2bohr);
-
+      Eigen::Vector3d(0, 0, 2.845154333 * votca::tools::conv::ang2bohr);
   bool is_equal = seg.getPos().isApprox(ref_pos, 0.0001);
+  BOOST_CHECK_EQUAL(is_equal, true);
   if (!is_equal) {
     std::cout << "result" << std::endl;
     std::cout << seg.getPos() << std::endl;
@@ -56,7 +56,6 @@ BOOST_AUTO_TEST_CASE(load_mps) {
     std::cout << ref_pos << std::endl;
   }
 
-  BOOST_CHECK_EQUAL(is_equal, true);
   BOOST_CHECK_EQUAL(seg.size(), 2);
   BOOST_CHECK_EQUAL(seg[0].getRank(), 2);
   BOOST_CHECK_EQUAL(seg[0].getElement(), "C");
@@ -91,12 +90,8 @@ BOOST_AUTO_TEST_CASE(load_mps) {
       "    +100.0000000 +0.0000000 +0.0000000 +0.0000000 +0.0000000\n"
       "     P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 "
       "+1.9445387\n";
-  "  H +0.0000000 +0.0000000 +3.0000000 Rank 1\n"
-  "    -1.0000000\n"
-  "     P +1.0000000 +0.0000000 +0.0000000 +1.0000000 +0.0000000 "
-  "+1.0000000\n";
-
   bool string_equal = (ref_string == seg[0].WriteMpsLine("angstrom"));
+  BOOST_CHECK_EQUAL(string_equal, true);
   if (!string_equal) {
     std::string result = seg[0].WriteMpsLine("angstrom");
     std::cout << "result" << std::endl;
@@ -104,8 +99,21 @@ BOOST_AUTO_TEST_CASE(load_mps) {
     std::cout << "reference" << std::endl;
     std::cout << ref_string << std::endl;
   }
+  std::string ref_string2 =
+      "  H +0.0000000 +0.0000000 +1.0000000 Rank 0\n"
+      "    -1.0000000\n"
+      "     P +1.0000000 +0.0000000 +0.0000000 +1.0000000 +0.0000000 "
+      "+1.0000000\n";
 
-  BOOST_CHECK_EQUAL(string_equal, true);
+  bool string_equal2 = (ref_string2 == seg[1].WriteMpsLine("angstrom"));
+  BOOST_CHECK_EQUAL(string_equal2, true);
+  if (!string_equal2) {
+    std::string result = seg[1].WriteMpsLine("angstrom");
+    std::cout << "result" << std::endl;
+    std::cout << result << std::endl;
+    std::cout << "reference" << std::endl;
+    std::cout << ref_string2 << std::endl;
+  }
 }
 
 BOOST_AUTO_TEST_CASE(add_atom_test) {
