@@ -20,9 +20,6 @@
 #include <votca/xtp/bse_operator.h>
 #include <votca/xtp/vc2index.h>
 
-using boost::format;
-using std::flush;
-
 namespace votca {
 namespace xtp {
 

@@ -18,10 +18,7 @@
  */
 
 #include <votca/xtp/aomatrix.h>
-
-#include <votca/xtp/aobasis.h>
-
-#include <vector>
+#include <votca/xtp/aotransform.h>
 
 namespace votca {
 namespace xtp {
@@ -41,8 +38,8 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   }
 
   // set size of internal block for recursion
-  int nrows = this->getBlockSize(lmax_row);
-  int ncols = this->getBlockSize(lmax_col);
+  int nrows = AOTransform::getBlockSize(lmax_row);
+  int ncols = AOTransform::getBlockSize(lmax_col);
 
   // get shell positions
   const Eigen::Vector3d& pos_row = shell_row.getPos();
@@ -632,15 +629,12 @@ void AOKinetic::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       // normalization and cartesian -> spherical factors
       Eigen::MatrixXd kin_sph =
-          getTrafo(gaussian_row).transpose() * kin * getTrafo(gaussian_col);
+          AOTransform::getTrafo(gaussian_row).transpose() * kin *
+          AOTransform::getTrafo(gaussian_col);
       // save to matrix
 
-      for (unsigned i = 0; i < matrix.rows(); i++) {
-        for (unsigned j = 0; j < matrix.cols(); j++) {
-          matrix(i, j) +=
-              kin_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
-        }
-      }
+      matrix += kin_sph.block(shell_row.getOffset(), shell_col.getOffset(),
+                              matrix.rows(), matrix.cols());
 
     }  // col
   }    // row

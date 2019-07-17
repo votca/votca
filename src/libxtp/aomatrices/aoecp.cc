@@ -9,15 +9,17 @@
  *
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aotransform.h>
+#include <votca/xtp/multiarray.h>
 
 namespace votca {
 namespace xtp {
@@ -142,8 +144,8 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               // consider contractions
               // cut out block that is needed. sum
 
-              for (unsigned i = 0; i < matrix.rows(); i++) {
-                for (unsigned j = 0; j < matrix.cols(); j++) {
+              for (int i = 0; i < matrix.rows(); i++) {
+                for (int j = 0; j < matrix.cols(); j++) {
                   matrix(i, j) +=
                       VNL_ECP(i + shell_row.getOffset(),
                               j + shell_col.getOffset()) *

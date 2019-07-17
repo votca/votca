@@ -9,25 +9,16 @@
  *
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
 #include <votca/xtp/aomatrix.h>
-
-#include <map>
-#include <string>
-#include <vector>
-#include <votca/tools/constants.h>
-#include <votca/tools/elements.h>
-#include <votca/tools/property.h>
-#include <votca/xtp/aobasis.h>
-
-#include "votca/xtp/qmatom.h"
+#include <votca/xtp/aotransform.h>
 
 namespace votca {
 namespace xtp {
@@ -43,18 +34,11 @@ void AOESP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   int lmax_col = shell_col.getLmax();
   int lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
-  int nrows = this->getBlockSize(lmax_row);
-  int ncols = this->getBlockSize(lmax_col);
+  int nrows = AOTransform::getBlockSize(lmax_row);
+  int ncols = AOTransform::getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
   Eigen::MatrixXd nuc = Eigen::MatrixXd::Zero(nrows, ncols);
-
-  // cout << nuc.size1() << ":" << nuc.size2() << endl;
-
-  /* FOR CONTRACTED FUNCTIONS, ADD LOOP OVER ALL DECAYS IN CONTRACTION
-   * MULTIPLY THE TRANSFORMATION MATRICES BY APPROPRIATE CONTRACTION
-   * COEFFICIENTS, AND ADD TO matrix(i,j)
-   */
 
   int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
   int nx[] = {0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 3, 2, 2, 1, 1, 1, 0, 0,
@@ -119,8 +103,7 @@ void AOESP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double U =
           zeta * (PmC(0) * PmC(0) + PmC(1) * PmC(1) + PmC(2) * PmC(2));
 
-      const std::vector<double> _FmU = XIntegrate(lsum + 1, U);
-      // cout << endl;
+      const std::vector<double> _FmU = AOTransform::XIntegrate(lsum + 1, U);
 
       // (s-s element normiert )
       double prefactor = 2 * sqrt(1.0 / pi) *
@@ -132,13 +115,7 @@ void AOESP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       ma_type nuc3(boost::extents[nrows][ncols][lsum + 1]);
       typedef ma_type::index index;
 
-      for (index i = 0; i < nrows; ++i) {
-        for (index j = 0; j < ncols; ++j) {
-          for (index k = 0; k < lsum + 1; ++k) {
-            nuc3[i][j][k] = 0.;
-          }
-        }
-      }
+      std::fill_n(nuc3.data(), nuc3.num_elements(), 0.0);
 
       for (int i = 0; i < lsum + 1; i++) {  //////////////////////
         nuc3[0][0][i] = prefactor * _FmU[i];
@@ -619,15 +596,11 @@ void AOESP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       }
 
       Eigen::MatrixXd nuc_sph =
-          getTrafo(gaussian_row).transpose() * nuc * getTrafo(gaussian_col);
+          AOTransform::getTrafo(gaussian_row).transpose() * nuc *
+          AOTransform::getTrafo(gaussian_col);
       // save to matrix
-
-      for (unsigned i = 0; i < matrix.rows(); i++) {
-        for (unsigned j = 0; j < matrix.cols(); j++) {
-          matrix(i, j) +=
-              nuc_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
-        }
-      }
+      matrix += nuc_sph.block(shell_row.getOffset(), shell_col.getOffset(),
+                              matrix.rows(), matrix.cols());
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians

@@ -9,20 +9,16 @@
  *
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-
-#include <votca/xtp/aobasis.h>
-
-#include <vector>
-
+#include <votca/xtp/aomatrix3d.h>
+#include <votca/xtp/aotransform.h>
 namespace votca {
 namespace xtp {
 
@@ -63,23 +59,23 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
   }
 
   // set size of internal block for recursion
-  int nrows = this->getBlockSize(lmax_row);
-  int ncols = this->getBlockSize(lmax_col);
+  int nrows = AOTransform::getBlockSize(lmax_row);
+  int ncols = AOTransform::getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
-  std::vector<Eigen::MatrixXd> mom;
+  std::array<Eigen::MatrixXd, 3> mom;
   for (int i_comp = 0; i_comp < 3; i_comp++) {
-    mom.push_back(Eigen::MatrixXd ::Zero(nrows, ncols));
+    mom[i_comp] = Eigen::MatrixXd ::Zero(nrows, ncols);
   }
 
-  std::vector<Eigen::MatrixXd> scd_mom;
+  std::array<Eigen::MatrixXd, 6> scd_mom;
   for (int i_comp = 0; i_comp < 6; i_comp++) {
-    scd_mom.push_back(Eigen::MatrixXd ::Zero(nrows, ncols));
+    scd_mom[i_comp] = Eigen::MatrixXd ::Zero(nrows, ncols);
   }
 
   // initialize local matrix block for unnormalized cartesians of overlap
-  int nrows_ol = this->getBlockSize(lmax_row + 1);
-  int ncols_ol = this->getBlockSize(lmax_col + 1);
+  int nrows_ol = AOTransform::getBlockSize(lmax_row + 1);
+  int ncols_ol = AOTransform::getBlockSize(lmax_col + 1);
 
   Eigen::MatrixXd ol = Eigen::MatrixXd::Zero(nrows_ol, ncols_ol);
 
@@ -556,19 +552,14 @@ void AOMomentum::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
         }
       }
 
-      Eigen::MatrixXd trafo_row = getTrafo(gaussian_row);
-      Eigen::MatrixXd trafo_col = getTrafo(gaussian_col);
+      Eigen::MatrixXd trafo_row = AOTransform::getTrafo(gaussian_row);
+      Eigen::MatrixXd trafo_col = AOTransform::getTrafo(gaussian_col);
       // cartesian -> spherical
-      for (int i_comp = 0; i_comp < 3; i_comp++) {
-        Eigen::MatrixXd mom_sph =
-            trafo_row.transpose() * mom[i_comp] * trafo_col;
+      for (int i = 0; i < 3; i++) {
+        Eigen::MatrixXd mom_sph = trafo_row.transpose() * mom[i] * trafo_col;
         // save to matrix
-        for (unsigned i = 0; i < matrix[0].rows(); i++) {
-          for (unsigned j = 0; j < matrix[0].cols(); j++) {
-            matrix[i_comp](i, j) +=
-                mom_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
-          }
-        }
+        matrix[i] += mom_sph.block(shell_row.getOffset(), shell_col.getOffset(),
+                                   matrix[i].rows(), matrix[i].cols());
       }
 
     }  // shell_col Gaussians

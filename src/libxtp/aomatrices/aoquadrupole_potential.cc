@@ -9,21 +9,17 @@
  *
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
 #include <votca/xtp/aomatrix.h>
 
-#include <votca/xtp/aobasis.h>
-
-#include <vector>
-
-#include <votca/tools/constants.h>
+#include <votca/xtp/aotransform.h>
 
 namespace votca {
 namespace xtp {
@@ -38,14 +34,14 @@ void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   // https://en.wikipedia.org/wiki/Quadrupole so transform polarsite into
   // cartesian and then multiply by 2 (difference stone definition/wiki
   // definition) not sure about unit conversion
-  Eigen::Matrix3d quadrupole = 2 * _site->CalculateCartesianMultipole();
+  Eigen::Matrix3d quadrupole = -2 * _site->CalculateCartesianMultipole();
   // shell info, only lmax tells how far to go
   int lmax_row = shell_row.getLmax();
   int lmax_col = shell_col.getLmax();
   int lsum = lmax_row + lmax_col;
   // set size of internal block for recursion
-  int nrows = this->getBlockSize(lmax_row);
-  int ncols = this->getBlockSize(lmax_col);
+  int nrows = AOTransform::getBlockSize(lmax_row);
+  int ncols = AOTransform::getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
   Eigen::MatrixXd quad = Eigen::MatrixXd::Zero(nrows, ncols);
@@ -113,7 +109,7 @@ void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double U = zeta * PmC.squaredNorm();
 
       // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
-      const std::vector<double> FmU = XIntegrate(lsum + 3, U);
+      const std::vector<double> FmU = AOTransform::XIntegrate(lsum + 3, U);
 
       typedef boost::multi_array<double, 3> ma_type;
       typedef boost::multi_array<double, 4> ma4_type;  //////////////////
@@ -121,34 +117,9 @@ void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       ma4_type dip4(boost::extents[nrows][ncols][3][lsum + 1]);
       ma4_type quad4(boost::extents[nrows][ncols][5][lsum + 1]);
       typedef ma_type::index index;
-
-      for (index i = 0; i < nrows; ++i) {
-        for (index j = 0; j < ncols; ++j) {
-          for (index m = 0; m < lsum + 1; ++m) {
-            nuc3[i][j][m] = 0.;
-          }
-        }
-      }
-
-      for (index i = 0; i < nrows; ++i) {
-        for (index j = 0; j < ncols; ++j) {
-          for (index k = 0; k < 3; ++k) {
-            for (index m = 0; m < lsum + 1; ++m) {
-              dip4[i][j][k][m] = 0.;
-            }
-          }
-        }
-      }
-
-      for (index i = 0; i < nrows; ++i) {
-        for (index j = 0; j < ncols; ++j) {
-          for (index k = 0; k < 5; ++k) {
-            for (index m = 0; m < lsum + 1; ++m) {
-              quad4[i][j][k][m] = 0.;
-            }
-          }
-        }
-      }
+      std::fill_n(nuc3.data(), nuc3.num_elements(), 0.0);
+      std::fill_n(dip4.data(), dip4.num_elements(), 0.0);
+      std::fill_n(quad4.data(), dip4.num_elements(), 0.0);
 
       // (s-s element normiert )
       double _prefactor = 4. * sqrt(2. / pi) * pow(decay_row * decay_col, .75) *
@@ -2052,15 +2023,12 @@ void AOQuadrupole_Potential::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       }
 
       Eigen::MatrixXd quad_sph =
-          getTrafo(gaussian_row).transpose() * quad * getTrafo(gaussian_col);
+          AOTransform::getTrafo(gaussian_row).transpose() * quad *
+          AOTransform::getTrafo(gaussian_col);
       // save to matrix
 
-      for (unsigned i = 0; i < matrix.rows(); i++) {
-        for (unsigned j = 0; j < matrix.cols(); j++) {
-          matrix(i, j) +=
-              quad_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
-        }
-      }
+      matrix += quad_sph.block(shell_row.getOffset(), shell_col.getOffset(),
+                               matrix.rows(), matrix.cols());
 
     }  // shell_col Gaussians
   }    // shell_row Gaussians

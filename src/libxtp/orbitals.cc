@@ -19,20 +19,15 @@
 
 #include "votca/xtp/orbitals.h"
 #include "votca/xtp/aomatrix.h"
+#include "votca/xtp/aomatrix3d.h"
 #include "votca/xtp/qmstate.h"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <stdio.h>
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/vc2index.h>
 #include <votca/xtp/version.h>
-
-using namespace std;
-using namespace votca::tools;
 
 namespace votca {
 namespace xtp {
@@ -155,14 +150,14 @@ Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
 
 Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
   if (state.Type() != QMStateType::Singlet) {
-    throw runtime_error(
+    throw std::runtime_error(
         "Spin type not known for transition density matrix. Available only for "
         "singlet");
   }
   const Eigen::MatrixXd& BSECoefs = _BSE_singlet_coefficients;
   if (BSECoefs.cols() < state.Index() + 1 || BSECoefs.rows() < 2) {
-    throw runtime_error("Orbitals object has no information about state:" +
-                        state.ToString());
+    throw std::runtime_error("Orbitals object has no information about state:" +
+                             state.ToString());
   }
 
   // The Transition dipole is sqrt2 bigger because of the spin, the excited
@@ -209,7 +204,7 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState(
 std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(
     const QMState& state) const {
   if (!state.Type().isExciton()) {
-    throw runtime_error(
+    throw std::runtime_error(
         "Spin type not known for density matrix. Available are singlet and "
         "triplet");
   }
@@ -218,8 +213,8 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(
                                         ? _BSE_singlet_coefficients
                                         : _BSE_triplet_coefficients;
   if (BSECoefs.cols() < state.Index() + 1 || BSECoefs.rows() < 2) {
-    throw runtime_error("Orbitals object has no information about state:" +
-                        state.ToString());
+    throw std::runtime_error("Orbitals object has no information about state:" +
+                             state.ToString());
   }
   /******
    *
@@ -294,7 +289,7 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
     const QMState& state) const {
 
   if (!state.Type().isExciton()) {
-    throw runtime_error(
+    throw std::runtime_error(
         "Spin type not known for density matrix. Available are singlet and "
         "triplet");
   }
@@ -303,8 +298,8 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
                                            ? _BSE_singlet_coefficients_AR
                                            : _BSE_triplet_coefficients_AR;
   if (BSECoefs_AR.cols() < state.Index() + 1 || BSECoefs_AR.rows() < 2) {
-    throw runtime_error("Orbitals object has no information about state:" +
-                        state.ToString());
+    throw std::runtime_error("Orbitals object has no information about state:" +
+                             state.ToString());
   }
   /******
    *

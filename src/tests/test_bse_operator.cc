@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <votca/xtp/bse_operator.h>
+#include <votca/xtp/orbitals.h>
 
 using namespace votca::xtp;
 using namespace std;

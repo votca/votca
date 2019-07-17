@@ -365,12 +365,10 @@ Mat_p_Energy DFTEngine::SetupH0() const {
              site->getElement() % site->getPos()[0] % site->getPos()[1] %
              site->getPos()[2] % site->getCharge())
                 .str();
-        if (site->getRank() > 0) {
-          const Eigen::Vector3d& dipole = site->getDipole();
-          output += (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f") %
-                     dipole[0] % dipole[1] % dipole[2])
-                        .str();
-        }
+        const Eigen::Vector3d& dipole = site->getDipole();
+        output += (boost::format("   %1$+1.4f %2$+1.4f %3$+1.4f") % dipole[0] %
+                   dipole[1] % dipole[2])
+                      .str();
         if (site->getRank() > 1) {
           Eigen::VectorXd quadrupole = site->Q().tail<5>();
           output += (boost::format(

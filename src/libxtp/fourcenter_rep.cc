@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aotransform.h>
 #include <votca/xtp/fourcenter.h>
 
 namespace votca {
@@ -228,10 +228,10 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                     138, 139, 140, 142, 143, 144, 145, 146, 147, 149, 150, 151,
                     152, 153, 154, 155, 157, 158, 159, 160, 161, 162, 163, 164};
 
-  int nbeta = AOSuperMatrix::getBlockSize(lmax_beta);
-  int ndelta = AOSuperMatrix::getBlockSize(lmax_delta);
-  int ncombined_ab = AOSuperMatrix::getBlockSize(lmax_alpha + lmax_beta);
-  int ncombined_cd = AOSuperMatrix::getBlockSize(lmax_gamma + lmax_delta);
+  int nbeta = AOTransform::getBlockSize(lmax_beta);
+  int ndelta = AOTransform::getBlockSize(lmax_delta);
+  int ncombined_ab = AOTransform::getBlockSize(lmax_alpha + lmax_beta);
+  int ncombined_cd = AOTransform::getBlockSize(lmax_gamma + lmax_delta);
 
   tensor3d::extent_gen extents;
   tensor4d::extent_gen extents4;
@@ -300,8 +300,7 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             }
           }
 
-          const std::vector<double> FmT =
-              AOMatrix<double>::XIntegrate(mmax + 1, U);
+          const std::vector<double> FmT = AOTransform::XIntegrate(mmax + 1, U);
 
           double exp_AB = exp(-2. * decay_alpha * decay_beta * rzeta * dist_AB);
           double exp_CD = exp(-2. * decay_gamma * decay_delta * reta * dist_CD);
@@ -938,9 +937,9 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
 
           // get transformation matrices
           const Eigen::MatrixXd trafo_alpha =
-              AOSuperMatrix::getTrafo(gaussian_alpha);
+              AOTransform::getTrafo(gaussian_alpha);
           const Eigen::MatrixXd trafo_beta =
-              AOSuperMatrix::getTrafo(gaussian_beta);
+              AOTransform::getTrafo(gaussian_beta);
 
           tensor3d R3_ab_sph;
           R3_ab_sph.resize(extents[ntrafo_alpha][ntrafo_beta][ncombined_cd]);
@@ -1128,9 +1127,9 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           int ntrafo_delta = shell_delta->getNumFunc() + offset_delta;
 
           const Eigen::MatrixXd trafo_gamma =
-              AOSuperMatrix::getTrafo(gaussian_gamma);
+              AOTransform::getTrafo(gaussian_gamma);
           const Eigen::MatrixXd trafo_delta =
-              AOSuperMatrix::getTrafo(gaussian_delta);
+              AOTransform::getTrafo(gaussian_delta);
 
           tensor4d R4_sph;
           R4_sph.resize(

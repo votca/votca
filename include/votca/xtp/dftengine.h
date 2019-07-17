@@ -21,13 +21,12 @@
 #ifndef VOTCA_XTP_DFTENGINE_H
 #define VOTCA_XTP_DFTENGINE_H
 
-#include <boost/filesystem.hpp>
+#include <votca/tools/property.h>
 #include <votca/xtp/ERIs.h>
-#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/numerical_integrations.h>
-#include <votca/xtp/topology.h>
+#include <votca/xtp/staticsite.h>
 
 namespace votca {
 namespace xtp {

@@ -21,11 +21,9 @@
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
-#include <cstddef>
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/multiarray.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/xtp/symmetric_matrix.h>
 
 /**

@@ -17,6 +17,7 @@
  *
  */
 
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/symmetric_matrix.h>
 #include <votca/xtp/threecenter.h>

@@ -61,7 +61,9 @@
       <itemPath>../../include/votca/xtp/adiis_costfunction.h</itemPath>
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
+      <itemPath>../../include/votca/xtp/aomatrix3d.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
+      <itemPath>../../include/votca/xtp/aotransform.h</itemPath>
       <itemPath>../../include/votca/xtp/atom.h</itemPath>
       <itemPath>../../include/votca/xtp/atomcontainer.h</itemPath>
       <itemPath>../../include/votca/xtp/basisset.h</itemPath>
@@ -193,10 +195,12 @@
         <itemPath>../../src/libxtp/aomatrices/aoesp.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aokinetic.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomatrix.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aomatrix3d.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoplanewave.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoquadrupole_potential.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aotransform.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f2" displayName="Applications" projectFiles="true">
         <itemPath>../../src/libxtp/jobapplication.cc</itemPath>
@@ -3871,7 +3875,17 @@
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/aomatrix3d.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/aotransform.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -4388,6 +4402,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/aomatrices/aomatrix3d.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/aomatrices/aomomentum.cc"
             ex="false"
             tool="1"
@@ -4404,6 +4423,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aotransform.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -4995,7 +5019,17 @@
       </item>
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/aomatrix3d.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/aotransform.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/xtp/atom.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -5512,6 +5546,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/aomatrices/aomatrix3d.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/aomatrices/aomomentum.cc"
             ex="false"
             tool="1"
@@ -5528,6 +5567,11 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/aomatrices/aotransform.cc"
             ex="false"
             tool="1"
             flavor2="0">

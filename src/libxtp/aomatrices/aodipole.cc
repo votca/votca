@@ -9,19 +9,16 @@
  *
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
-#include <votca/xtp/aomatrix.h>
-
-#include <string>
-#include <vector>
-#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix3d.h>
+#include <votca/xtp/aotransform.h>
 
 namespace votca {
 namespace xtp {
@@ -39,20 +36,20 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
   int lmax_row = shell_row.getLmax();
   int lmax_col = shell_col.getLmax();
 
-  if (lmax_col > 4) {
+  if (std::max(lmax_col, lmax_row) > 4) {
     throw std::runtime_error(
         "Dipole transition dipoles only implemented for S,P,D,F,G functions in "
         "DFT basis!");
   }
 
   // set size of internal block for recursion
-  int nrows = this->getBlockSize(lmax_row);
-  int ncols = this->getBlockSize(lmax_col);
+  int nrows = AOTransform::getBlockSize(lmax_row);
+  int ncols = AOTransform::getBlockSize(lmax_col);
 
   // initialize local matrix block for unnormalized cartesians
-  std::vector<Eigen::MatrixXd> dip;
+  std::array<Eigen::MatrixXd, 3> dip;
   for (int i_comp = 0; i_comp < 3; i_comp++) {
-    dip.push_back(Eigen::MatrixXd::Zero(nrows, ncols));
+    dip[i_comp] = Eigen::MatrixXd::Zero(nrows, ncols);
   }
 
   // initialize local matrix block for unnormalized cartesians of overlap
@@ -718,23 +715,15 @@ void AODipole::FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd> >& matrix,
 
       }  // end if (lmax_col > 3)
 
-      Eigen::MatrixXd trafo_row = getTrafo(gaussian_row);
-      Eigen::MatrixXd trafo_col = getTrafo(gaussian_col);
+      Eigen::MatrixXd trafo_row = AOTransform::getTrafo(gaussian_row);
+      Eigen::MatrixXd trafo_col = AOTransform::getTrafo(gaussian_col);
 
       // cartesian -> spherical
 
-      for (int i_comp = 0; i_comp < 3; i_comp++) {
-
-        Eigen::MatrixXd dip_sph =
-            trafo_row.transpose() * dip[i_comp] * trafo_col;
-
-        // save to matrix
-        for (unsigned i = 0; i < matrix[0].rows(); i++) {
-          for (unsigned j = 0; j < matrix[0].cols(); j++) {
-            matrix[i_comp](i, j) +=
-                dip_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
-          }
-        }
+      for (int i = 0; i < 3; i++) {
+        Eigen::MatrixXd dip_sph = trafo_row.transpose() * dip[i] * trafo_col;
+        matrix[i] += dip_sph.block(shell_row.getOffset(), shell_col.getOffset(),
+                                   matrix[i].rows(), matrix[i].cols());
       }
 
     }  // shell_col Gaussians

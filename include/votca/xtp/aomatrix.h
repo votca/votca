@@ -22,253 +22,27 @@
 #define VOTCA_XTP_AOMATRIX_H
 
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/aoshell.h>
 #include <votca/xtp/multiarray.h>
 #include <votca/xtp/staticsite.h>
 
 namespace votca {
 namespace xtp {
 
-namespace Cart {
-enum Index {
-  s,  // s
-  x,
-  y,
-  z,  // p
-  xx,
-  xy,
-  xz,
-  yy,
-  yz,
-  zz,  // d
-  xxx,
-  xxy,
-  xxz,
-  xyy,
-  xyz,
-  xzz,
-  yyy,
-  yyz,
-  yzz,
-  zzz,  // f
-  xxxx,
-  xxxy,
-  xxxz,
-  xxyy,
-  xxyz,
-  xxzz,
-  xyyy,
-  xyyz,
-  xyzz,
-  xzzz,
-  yyyy,
-  yyyz,
-  yyzz,
-  yzzz,
-  zzzz,  // g
-  xxxxx,
-  xxxxy,
-  xxxxz,
-  xxxyy,
-  xxxyz,
-  xxxzz,
-  xxyyy,
-  xxyyz,
-  xxyzz,
-  xxzzz,
-  xyyyy,
-  xyyyz,
-  xyyzz,
-  xyzzz,
-  xzzzz,
-  yyyyy,
-  yyyyz,
-  yyyzz,
-  yyzzz,
-  yzzzz,
-  zzzzz,  // h
-
-  xxxxxx,
-  xxxxxy,
-  xxxxxz,
-  xxxxyy,
-  xxxxyz,
-  xxxxzz,
-  xxxyyy,
-  xxxyyz,
-  xxxyzz,
-  xxxzzz,
-  xxyyyy,
-  xxyyyz,
-  xxyyzz,
-  xxyzzz,  // i
-  xxzzzz,
-  xyyyyy,
-  xyyyyz,
-  xyyyzz,
-  xyyzzz,
-  xyzzzz,
-  xzzzzz,
-  yyyyyy,
-  yyyyyz,
-  yyyyzz,
-  yyyzzz,
-  yyzzzz,
-  yzzzzz,
-  zzzzzz,
-
-  xxxxxxx,
-  xxxxxxy,
-  xxxxxxz,
-  xxxxxyy,
-  xxxxxyz,
-  xxxxxzz,
-  xxxxyyy,
-  xxxxyyz,
-  xxxxyzz,
-  xxxxzzz,
-  xxxyyyy,
-  xxxyyyz,  // j
-  xxxyyzz,
-  xxxyzzz,
-  xxxzzzz,
-  xxyyyyy,
-  xxyyyyz,
-  xxyyyzz,
-  xxyyzzz,
-  xxyzzzz,
-  xxzzzzz,
-  xyyyyyy,
-  xyyyyyz,
-  xyyyyzz,
-  xyyyzzz,
-  xyyzzzz,
-  xyzzzzz,
-  xzzzzzz,
-  yyyyyyy,
-  yyyyyyz,
-  yyyyyzz,
-  yyyyzzz,
-  yyyzzzz,
-  yyzzzzz,
-  yzzzzzz,
-  zzzzzzz,
-
-  xxxxxxxx,
-  xxxxxxxy,
-  xxxxxxxz,
-  xxxxxxyy,
-  xxxxxxyz,
-  xxxxxxzz,
-  xxxxxyyy,
-  xxxxxyyz,
-  xxxxxyzz,
-  xxxxxzzz,
-  xxxxyyyy,
-  xxxxyyyz,
-  xxxxyyzz,
-  xxxxyzzz,
-  xxxxzzzz,  // k
-  xxxyyyyy,
-  xxxyyyyz,
-  xxxyyyzz,
-  xxxyyzzz,
-  xxxyzzzz,
-  xxxzzzzz,
-  xxyyyyyy,
-  xxyyyyyz,
-  xxyyyyzz,
-  xxyyyzzz,
-  xxyyzzzz,
-  xxyzzzzz,
-  xxzzzzzz,
-  xyyyyyyy,
-  xyyyyyyz,
-  xyyyyyzz,
-  xyyyyzzz,
-  xyyyzzzz,
-  xyyzzzzz,
-  xyzzzzzz,
-  xzzzzzzz,
-  yyyyyyyy,
-  yyyyyyyz,
-  yyyyyyzz,
-  yyyyyzzz,
-  yyyyzzzz,
-  yyyzzzzz,
-  yyzzzzzz,
-  yzzzzzzz,
-  zzzzzzzz,
-};
-}
-
-/* "superclass" AOSuperMatrix contains all common functionality for
- * atomic orbital matrix types
- */
-class AOSuperMatrix {
- public:
-  static int getBlockSize(int _lmax);
-  static Eigen::MatrixXd getTrafo(const AOGaussianPrimitive& gaussian);
-};
-
 // base class for 1D atomic orbital matrix types (overlap, Coulomb, ESP)
 template <class T>
-class AOMatrix : public AOSuperMatrix {
+class AOMatrix {
  public:
-  // Access functions
   int Dimension() { return _aomatrix.rows(); }
   const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Matrix() const {
     return _aomatrix;
   }
   void Fill(const AOBasis& aobasis);
-  // integrate F
-  static std::vector<double> XIntegrate(int size, double U);
 
  protected:
   virtual void FillBlock(
       Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>& matrix,
       const AOShell& shell_row, const AOShell& shell_col) const = 0;
   Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;
-};
-
-/* base class class for 3D atomic orbital matrix types
- * (in principle, we could make nD and 1D and 3D are just special types)
- */
-class AOMatrix3D : public AOSuperMatrix {
- public:
-  const std::array<Eigen::MatrixXd, 3>& Matrix() const { return _aomatrix; }
-  void Fill(const AOBasis& aobasis);
-
- protected:
-  std::array<Eigen::MatrixXd, 3> _aomatrix;
-  virtual void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                         const AOShell& shell_row,
-                         const AOShell& shell_col) const = 0;
-};
-
-/* derived class for atomic orbital gradient matrices, required for
- * momentum transition dipoles
- */
-class AOMomentum : public AOMatrix3D {
- protected:
-  void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
-};
-
-/* derived class for atomic orbital electrical dipole matrices, required for
- * electical transition dipoles
- */
-class AODipole : public AOMatrix3D {
- public:
-  void setCenter(const Eigen::Vector3d& r) {
-    _r = r;
-  }  // definition of a center around which the moment should be calculated
- protected:
-  void FillBlock(std::vector<Eigen::Block<Eigen::MatrixXd>>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
-
- private:
-  Eigen::Vector3d _r = Eigen::Vector3d::Zero();
 };
 
 // derived class for atomic orbital nuclear potential
