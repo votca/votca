@@ -18,8 +18,8 @@
  */
 
 #include <votca/xtp/aopotential.h>
-
 #include <votca/xtp/aotransform.h>
+#include <votca/xtp/qmmolecule.h>
 
 namespace votca {
 namespace xtp {
@@ -30,18 +30,14 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
   const double pi = boost::math::constants::pi<double>();
 
-  // q_01 etc are cartesian tensor multipole moments according to
-  // https://en.wikipedia.org/wiki/Quadrupole so transform polarsite into
-  // cartesian and then multiply by 2 (difference stone definition/wiki
-  // definition) not sure about unit conversion
-
   int rank = _site->getRank();
   if (rank < 1 && _site->getDipole().norm() > 1e-12) {
     rank = 1;
   }
   const double charge = _site->getCharge();
   const Eigen::Vector3d dipole = _site->getDipole();
-  const Eigen::Matrix3d quadrupole = 2 * _site->CalculateCartesianMultipole();
+  // factor 1.5 I am not sure about but then 6 monopoles and this tensor agree
+  const Eigen::Matrix3d quadrupole = 1.5 * _site->CalculateCartesianMultipole();
   // shell info, only lmax tells how far to go
   int lmax_row = shell_row.getLmax();
   int lmax_col = shell_col.getLmax();

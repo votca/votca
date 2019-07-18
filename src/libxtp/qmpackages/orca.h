@@ -23,8 +23,6 @@
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
 namespace votca {
 namespace xtp {
 /**
@@ -34,6 +32,7 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+class Orbitals;
 class Orca : public QMPackage {
  public:
   std::string getPackageName() const { return "orca"; }

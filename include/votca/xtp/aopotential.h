@@ -28,6 +28,8 @@
 namespace votca {
 namespace xtp {
 
+class QMMolecule;
+
 // base class for 1D atomic orbital matrix types (overlap, Coulomb, ESP)
 template <class T>
 class AOPotential {

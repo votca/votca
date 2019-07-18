@@ -18,8 +18,8 @@
  */
 
 #include "votca/xtp/qmpackage.h"
-
 #include <boost/algorithm/string.hpp>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {

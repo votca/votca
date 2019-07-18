@@ -153,7 +153,6 @@ class Element {
   }
 
   // only class BasisSet can destruct Elements
-
   std::string _type;
   // lmax is used in the pseudopotentials only (applies to the highest angular
   // momentum lmax)

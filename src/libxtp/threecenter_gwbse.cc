@@ -18,6 +18,7 @@
  */
 
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/multiarray.h>
 #include <votca/xtp/threecenter.h>
 
 namespace votca {

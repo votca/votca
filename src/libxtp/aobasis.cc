@@ -17,9 +17,8 @@
  *
  */
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/qmatom.h"
-#include <votca/tools/constants.h>
+#include <votca/xtp/basisset.h>
+#include <votca/xtp/qmmolecule.h>
 
 namespace votca {
 namespace xtp {

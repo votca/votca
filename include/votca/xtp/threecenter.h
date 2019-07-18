@@ -21,9 +21,7 @@
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
-#include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 
 /**
@@ -35,6 +33,10 @@
 
 namespace votca {
 namespace xtp {
+
+class AOShell;
+class AOBasis;
+class tensor3d;
 
 // due to different requirements for the data format for DFT and GW we have two
 // different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix

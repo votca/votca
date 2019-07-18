@@ -21,14 +21,13 @@
 #ifndef VOTCA_XTP_AOBASIS_H
 #define VOTCA_XTP_AOBASIS_H
 
-#include <boost/math/constants/constants.hpp>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/qmmolecule.h>
 
 namespace votca {
 namespace xtp {
+class QMMolecule;
+class BasisSet;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms

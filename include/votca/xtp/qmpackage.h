@@ -22,13 +22,13 @@
 #define VOTCA_XTP_QM_PACKAGE_H
 
 #include "votca/xtp/aobasis.h"
-#include <boost/format.hpp>
 #include <votca/tools/property.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/xtp/staticsite.h>
 namespace votca {
 namespace xtp {
+
+class Orbitals;
 
 // ========================================================================== //
 // QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
