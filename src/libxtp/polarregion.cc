@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/eeinteractor.h"
+#include <numeric>
 #include <votca/xtp/dipoledipoleinteraction.h>
 #include <votca/xtp/polarregion.h>
 #include <votca/xtp/qmregion.h>

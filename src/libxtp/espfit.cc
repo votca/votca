@@ -17,11 +17,12 @@
  *
  */
 
-#include <math.h>
 #include <votca/tools/constants.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/espfit.h>
-#include <votca/xtp/logger.h>
+#include <votca/xtp/grid.h>
 #include <votca/xtp/numerical_integrations.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
@@ -111,45 +112,6 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
       gridvalues(i) += Znuc / dist_j;
     }
   }
-  return;
-}
-
-void Espfit::Fit2Density_analytic(Orbitals& orbitals, const QMState& state) {
-  // setting up grid
-  Grid grid;
-  grid.setupCHELPGGrid(orbitals.QMAtoms());
-  const Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
-  XTP_LOG(logDEBUG, _log) << TimeStamp() << " Done setting up CHELPG grid with "
-                          << grid.size() << " points " << std::endl;
-  // Calculating nuclear potential at gridpoints
-  AOBasis basis = orbitals.SetupDftBasis();
-  AOOverlap overlap;
-  overlap.Fill(basis);
-  double N = dmat.cwiseProduct(overlap.Matrix()).sum();
-
-  double netcharge = 0.0;
-  if (!state.isTransition()) {
-    EvalNuclearPotential(orbitals.QMAtoms(), grid);
-    double Znuc = 0.0;
-    for (const QMAtom& atom : orbitals.QMAtoms()) {
-      Znuc += atom.getNuccharge();
-    }
-    netcharge = Znuc - N;
-  }
-  netcharge = std::round(netcharge);
-
-  XTP_LOG(logDEBUG, _log) << TimeStamp()
-                          << " Calculating ESP at CHELPG grid points" << flush;
-#pragma omp parallel for
-  for (unsigned i = 0; i < grid.size(); i++) {
-    AOESP aoesp;
-    aoesp.setPosition(grid.getGridPositions()[i]);
-    aoesp.Fill(basis);
-    grid.getGridValues()(i) -= dmat.cwiseProduct(aoesp.Matrix()).sum();
-  }
-
-  FitPartialCharges(orbitals, grid, netcharge);
-
   return;
 }
 

@@ -21,7 +21,6 @@
 #ifndef XTP_NUMERICAL_INTEGRATION_H
 #define XTP_NUMERICAL_INTEGRATION_H
 
-#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/grid_containers.h>
 #include <votca/xtp/gridbox.h>
 
@@ -32,7 +31,7 @@ namespace votca {
 namespace xtp {
 class LebedevGrid;
 class QMMolecule;
-
+class aobasis;
 struct Gyrationtensor {
   double mass;
   Eigen::Vector3d centroid;

@@ -20,8 +20,10 @@
 #include <boost/algorithm/string.hpp>
 #include <fstream>
 #include <iterator>
+#include <numeric>
 #include <string>
 #include <votca/tools/constants.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/radial_euler_maclaurin_rule.h>
@@ -524,8 +526,7 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(
         continue;
       }
       AOESP esp;
-      esp.setPosition(points[j]);
-      esp.Fill(externalbasis);
+      esp.FillPotential(externalbasis, points[j]);
       Potential += weighteddensity * esp.Matrix();
     }
   }

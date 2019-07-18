@@ -21,9 +21,7 @@
 #ifndef VOTCA_XTP_ESPFIT_H
 #define VOTCA_XTP_ESPFIT_H
 
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/grid.h>
-#include <votca/xtp/orbitals.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmfragment.h>
 /**
  * \brief Takes a list of atoms, and the corresponding density matrix and puts
@@ -35,6 +33,10 @@
 
 namespace votca {
 namespace xtp {
+class Orbitals;
+class Grid;
+class QMState;
+class QMMolecule;
 
 class Espfit {
  public:
@@ -55,11 +57,9 @@ class Espfit {
   void setRegionConstraint(std::vector<QMFragment<double> > regionconstraint) {
     _regionconstraint = regionconstraint;
   }
-  // on grid very fast
+
   void Fit2Density(Orbitals& orbitals, const QMState& state,
                    std::string gridsize);
-  // not so fast
-  void Fit2Density_analytic(Orbitals& orbitals, const QMState& state);
 
  private:
   Logger& _log;

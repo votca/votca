@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/aotransform.h>
 
 namespace votca {
@@ -623,6 +623,13 @@ void AOESP::Fillnucpotential(const AOBasis& aobasis, const QMMolecule& atoms) {
     _nuclearpotential -= (Znuc)*_aomatrix;
   }
   return;
+}
+
+void AOESP::FillPotential(const AOBasis& aobasis, const Eigen::Vector3d& r) {
+  _aomatrix =
+      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+  setPosition(r);
+  Fill(aobasis);
 }
 
 void AOESP::Fillextpotential(

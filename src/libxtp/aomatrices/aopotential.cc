@@ -18,14 +18,15 @@
  */
 
 #include <vector>
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 
 namespace votca {
 namespace xtp {
 
-void AOMatrix::Fill(const AOBasis& aobasis) {
-  _aomatrix =
-      Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
+template <class T>
+void AOPotential<T>::Fill(const AOBasis& aobasis) {
+  _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(
+      aobasis.AOBasisSize(), aobasis.AOBasisSize());
   // AOMatrix is symmetric, restrict explicit calculation of lower triangular
   // matrix
 #pragma omp parallel for schedule(guided)
@@ -36,17 +37,22 @@ void AOMatrix::Fill(const AOBasis& aobasis) {
       const AOShell& shell_row = aobasis.getShell(row);
       int row_start = shell_row.getStartIndex();
       // figure out the submatrix
-      Eigen::Block<Eigen::MatrixXd> block = _aomatrix.block(
-          row_start, col_start, shell_row.getNumFunc(), shell_col.getNumFunc());
+      Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block =
+          _aomatrix.block(row_start, col_start, shell_row.getNumFunc(),
+                          shell_col.getNumFunc());
       // Fill block
       FillBlock(block, shell_row, shell_col);
     }
   }
+
   // Fill whole matrix by copying
   _aomatrix.template triangularView<Eigen::StrictlyUpper>() =
       _aomatrix.template triangularView<Eigen::StrictlyLower>().adjoint();
   return;
 }
+
+template class AOPotential<double>;
+template class AOPotential<std::complex<double> >;
 
 }  // namespace xtp
 }  // namespace votca

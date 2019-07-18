@@ -21,7 +21,7 @@
 #ifndef VOTCA_XTP_ORBITALS_H
 #define VOTCA_XTP_ORBITALS_H
 
-#include <boost/format.hpp>
+#include "aobasis.h"
 #include <votca/tools/constants.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
@@ -30,9 +30,6 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/qmmolecule.h>
 #include <votca/xtp/qmstate.h>
-
-#include "aobasis.h"
-#include "basisset.h"
 
 namespace votca {
 namespace xtp {

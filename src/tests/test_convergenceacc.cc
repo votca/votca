@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/convergenceacc.h>
 #include <votca/xtp/orbitals.h>
 using namespace votca::xtp;

@@ -52,7 +52,6 @@ class Esp2multipole {
   QMState _state;
   int _openmp_threads;
   std::string _method;
-  std::string _integrationmethod;
   std::string _gridsize;
   bool _use_mulliken;
   bool _use_lowdin;

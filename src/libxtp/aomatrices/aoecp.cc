@@ -17,12 +17,16 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/aotransform.h>
-#include <votca/xtp/multiarray.h>
 
 namespace votca {
 namespace xtp {
+
+void AOECP::Fillnucpotential(const AOBasis& aobasis, const AOBasis& ecp) {
+  this->setECP(&ecp);
+  this->Fill(aobasis);
+}
 
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                       const AOShell& shell_row,

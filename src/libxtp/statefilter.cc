@@ -18,6 +18,7 @@
  */
 
 #include "votca/xtp/aomatrix.h"
+#include <numeric>
 #include <votca/xtp/statefilter.h>
 
 namespace votca {

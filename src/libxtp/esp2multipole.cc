@@ -50,15 +50,6 @@ void Esp2multipole::Initialize(tools::Property& options) {
   else if (_method == "CHELPG")
     _use_CHELPG = true;
 
-  if (_use_CHELPG) {
-    _integrationmethod = options.ifExistsReturnElseReturnDefault<std::string>(
-        key + ".integrationmethod", "numeric");
-  }
-  if (!(_integrationmethod == "numeric" || _integrationmethod == "analytic")) {
-    std::runtime_error(
-        "Method not recognized. Only numeric and analytic available");
-  }
-
   if (options.exists(key + ".constraints")) {
     if (options.exists(key + ".constraints.regions")) {
       std::vector<tools::Property*> prop_region =
@@ -158,11 +149,7 @@ void Esp2multipole::Extractingcharges(Orbitals& orbitals) {
     if (_do_svd) {
       esp.setUseSVD(_conditionnumber);
     }
-    if (_integrationmethod == "numeric") {
-      esp.Fit2Density(orbitals, _state, _gridsize);
-    } else if (_integrationmethod == "analytic") {
-      esp.Fit2Density_analytic(orbitals, _state);
-    }
+    esp.Fit2Density(orbitals, _state, _gridsize);
   }
 
   PrintDipoles(orbitals);

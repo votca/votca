@@ -91,7 +91,6 @@ class StaticSite {
   virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
 
   // MULTIPOLES DEFINITION
-
   double getCharge() const { return _Q(0); }
   const Vector9d& Q() const {
     return _Q;

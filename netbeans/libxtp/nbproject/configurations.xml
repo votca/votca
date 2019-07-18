@@ -62,6 +62,7 @@
       <itemPath>../../include/votca/xtp/aobasis.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix.h</itemPath>
       <itemPath>../../include/votca/xtp/aomatrix3d.h</itemPath>
+      <itemPath>../../include/votca/xtp/aopotential.h</itemPath>
       <itemPath>../../include/votca/xtp/aoshell.h</itemPath>
       <itemPath>../../include/votca/xtp/aotransform.h</itemPath>
       <itemPath>../../include/votca/xtp/atom.h</itemPath>
@@ -199,6 +200,7 @@
         <itemPath>../../src/libxtp/aomatrices/aomomentum.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aooverlap.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoplanewave.cc</itemPath>
+        <itemPath>../../src/libxtp/aomatrices/aopotential.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aoquadrupole_potential.cc</itemPath>
         <itemPath>../../src/libxtp/aomatrices/aotransform.cc</itemPath>
       </logicalFolder>
@@ -299,7 +301,10 @@
       <itemPath>../../src/tests/test_adiis.cc</itemPath>
       <itemPath>../../src/tests/test_aobasis.cc</itemPath>
       <itemPath>../../src/tests/test_aomatrix.cc</itemPath>
+      <itemPath>../../src/tests/test_aomatrix3d.cc</itemPath>
+      <itemPath>../../src/tests/test_aopotential.cc</itemPath>
       <itemPath>../../src/tests/test_aoshell.cc</itemPath>
+      <itemPath>../../src/tests/test_aotransform.cc</itemPath>
       <itemPath>../../src/tests/test_atom.cc</itemPath>
       <itemPath>../../src/tests/test_basisset.cc</itemPath>
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
@@ -3880,6 +3885,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/aopotential.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/aoshell.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aotransform.h"
@@ -4422,6 +4432,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/aomatrices/aopotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
             ex="false"
             tool="1"
@@ -4852,7 +4867,19 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aomatrix3d.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_aopotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_aoshell.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_aotransform.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5020,6 +5047,11 @@
       <item path="../../include/votca/xtp/aomatrix.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/xtp/aomatrix3d.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/aopotential.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -5566,6 +5598,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libxtp/aomatrices/aopotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/aomatrices/aoquadrupole_potential.cc"
             ex="false"
             tool="1"
@@ -5996,7 +6033,19 @@
       </item>
       <item path="../../src/tests/test_aomatrix.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_aomatrix3d.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_aopotential.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_aoshell.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_aotransform.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_atom.cc" ex="false" tool="1" flavor2="0">
       </item>

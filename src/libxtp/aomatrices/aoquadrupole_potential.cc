@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 
 #include <votca/xtp/aotransform.h>
 

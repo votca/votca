@@ -127,7 +127,7 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 
     std::string checkpointfilename =
         "checkpoint_iter_" + std::to_string(iteration + 1) + ".hdf5";
-    jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
+    // jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
 
     if (!no_top_scf) {
       std::vector<bool> converged_regions;

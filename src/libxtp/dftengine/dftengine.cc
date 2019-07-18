@@ -29,6 +29,7 @@
 #include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 
@@ -341,8 +342,7 @@ Mat_p_Energy DFTEngine::SetupH0() const {
 
   if (_with_ecp) {
     AOECP dftAOECP;
-    dftAOECP.setECP(&_ecp);
-    dftAOECP.Fill(_dftbasis);
+    dftAOECP.Fillnucpotential(_dftbasis, _ecp);
     H0 += dftAOECP.Matrix();
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Filled DFT ECP matrix" << flush;
@@ -523,8 +523,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
 
   Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
   if (with_ecp) {
-    dftAOECP.setECP(&ecp);
-    dftAOECP.Fill(dftbasis);
+    dftAOECP.Fillnucpotential(dftbasis, ecp);
     H0 += dftAOECP.Matrix();
   }
   Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
