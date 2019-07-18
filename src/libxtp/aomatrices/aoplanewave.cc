@@ -714,18 +714,15 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
 }  // End AOPlanewave
 
-void AOPlanewave::Fillextpotential(
-    const AOBasis& aobasis, const std::vector<Eigen::Vector3d>& kpoints) {
+void AOPlanewave::FillPotential(const AOBasis& aobasis,
+                                const std::vector<Eigen::Vector3d>& kpoints) {
 
-  _externalpotential =
+  _aopotential =
       Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   for (const auto& kpoint : kpoints) {
-    _aomatrix =
-        Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
     setkVector(kpoint);
-    Fill(aobasis);
-    _externalpotential += _aomatrix;
+    _aopotential += Fill(aobasis);
   }
 
   return;

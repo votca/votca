@@ -115,8 +115,8 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
   AOKinetic kinetic;
   kinetic.Fill(aobasis);
 
-  AOESP esp;
-  esp.Fillnucpotential(aobasis, orbitals.QMAtoms());
+  AOMultipole esp;
+  esp.FillPotential(aobasis, orbitals.QMAtoms());
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(kinetic.Matrix() +
                                                     esp.Matrix());
@@ -133,13 +133,13 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
   ppm.PPM_construct_parameters(rpa);
 
   Eigen::VectorXd ppm_freq = Eigen::VectorXd::Zero(17);
-  ppm_freq << 2.04748, 1.90379, 0.9627, 0.9627, 1.36437, 1.88394, 0.979326,
-      1.01522, 1.01522, 1.09165, 1.09165, 0.80298, 0.837678, 0.282465, 1.88758,
-      0.23266, 0.23266;
+  ppm_freq << 19.4503, 12.2429, 10.2167, 10.2167, 10.2167, 17.0832, 12.7117,
+      12.7117, 12.7117, 10.9455, 10.9455, 10.9455, 11.1861, 9.60843, 9.60843,
+      9.60843, 9.61518;
   Eigen::VectorXd ppm_w = Eigen::VectorXd::Zero(17);
-  ppm_w << 0.000231545, 0.000323424, 0.000383456, 0.000383456, 0.000583222,
-      0.00111183, 0.00244362, 0.00351714, 0.00351714, 0.0163704, 0.0163704,
-      0.0246761, 0.0290079, 0.120546, 0.406604, 0.582834, 0.582834;
+  ppm_w << 3.59422e-05, 0.00121795, 0.00343632, 0.00343632, 0.00343632,
+      0.00394659, 0.012066, 0.012066, 0.012066, 0.0241118, 0.0241118, 0.0241118,
+      0.0286786, 0.11036, 0.11036, 0.11036, 0.191732;
 
   bool f_check = ppm_freq.isApprox(ppm.getPpm_freq(), 0.0001);
 

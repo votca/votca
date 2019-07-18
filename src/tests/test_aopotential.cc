@@ -106,8 +106,8 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   AOBasis aobasis;
   aobasis.AOBasisFill(basis, orbitals.QMAtoms());
 
-  AOESP esp;
-  esp.Fillnucpotential(aobasis, orbitals.QMAtoms());
+  AOMultipole esp;
+  esp.FillPotential(aobasis, orbitals.QMAtoms());
   Eigen::MatrixXd esp_ref = Eigen::MatrixXd::Zero(17, 17);
 
   esp_ref << -36.3803, -2.68098, 0, 0, 0, -3.82378, 0, 0, 0, -0.366604,
@@ -147,13 +147,13 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
       1.4276, -1.4276, 1.4276, -0.668246, -1.83787, -0.668246, -1.83787,
       -0.668246, -1.83787, -3.23475, -4.25826;
 
-  bool check_esp = esp.getNuclearpotential().isApprox(esp_ref, 0.00001);
+  bool check_esp = esp.Matrix().isApprox(esp_ref, 0.00001);
   BOOST_CHECK_EQUAL(check_esp, 1);
   if (!check_esp) {
     std::cout << "esp Ref" << endl;
     std::cout << esp_ref << endl;
     std::cout << "esp" << endl;
-    std::cout << esp.getNuclearpotential() << endl;
+    std::cout << esp.Matrix() << endl;
   }
 
   ofstream ecpfile("ecp.xml");
@@ -173,14 +173,14 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
           << endl;
   ecpfile << "  </element>" << endl;
   ecpfile << "</pseudopotential>" << endl;
-
+  ecpfile.close();
   BasisSet ecps;
   ecps.LoadPseudopotentialSet("ecp.xml");
   AOBasis ecpbasis;
   ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
 
   AOECP ecp;
-  ecp.Fillnucpotential(aobasis, ecpbasis);
+  ecp.FillPotential(aobasis, ecpbasis);
   Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(17, 17);
   ecp_ref << 21.6188, 1.34835, 0, 0, 0, 2.29744, 0, 0, 0, 0.209711, 1.01592,
       0.209711, 1.01592, 0.209711, 1.01592, 0.209711, 1.01592, 1.34835,
@@ -238,24 +238,23 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   mpsfile << "! One Site" << endl;
   mpsfile << "! N=1 " << endl;
   mpsfile << "Units angstrom" << endl;
-  mpsfile << "  C +0 0 3 Rank 2" << endl;
+  mpsfile << "  C +0 0 3 Rank 1" << endl;
   mpsfile << "+0" << endl;
   mpsfile << "10 0 0" << endl;
-  mpsfile << "     100 0 0 0 0" << endl;
+  mpsfile << "0 0 0 0 0" << endl;
   mpsfile
       << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "
       << endl;
-
+  mpsfile.close();
   StaticSegment seg("", 0);
   seg.LoadFromFile("polarsite.mps");
 
-  AODipole_Potential dip;
   std::vector<std::unique_ptr<StaticSite> > externalsites;
   for (const StaticSite& site : seg) {
     externalsites.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
   }
-
-  dip.Fillextpotential(aobasis, externalsites);
+  AOMultipole dip;
+  dip.FillPotential(aobasis, externalsites);
 
   Eigen::MatrixXd dip_ref = Eigen::MatrixXd::Zero(17, 17);
   dip_ref << 0.31114997753, 0.059568868026, 0.0090978711864, 0, 0,
@@ -319,7 +318,7 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
       0.16730389611, -0.024078433641, 0.076591108649, -0.076591108649,
       0.043208755867, 0.10354578683, 0.043208755867, 0.10354578683,
       0.023957628139, 0.075477416664, 0.12582094161, 0.19479972247;
-  bool dip_check = dip_ref.isApprox(dip.getExternalpotential(), 1e-4);
+  bool dip_check = dip_ref.isApprox(dip.Matrix(), 1e-4);
   BOOST_CHECK_EQUAL(dip_check, 1);
   if (!dip_check) {
     std::cout << "dip Ref" << endl;
@@ -328,8 +327,28 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
     std::cout << dip.Matrix() << endl;
   }
 
-  AOQuadrupole_Potential quad;
-  quad.Fillextpotential(aobasis, externalsites);
+  ofstream mpsfile2("polarsite2.mps");
+  mpsfile2 << "! One Site" << endl;
+  mpsfile2 << "! N=1 " << endl;
+  mpsfile2 << "Units angstrom" << endl;
+  mpsfile2 << "  C +0 0 3 Rank 2" << endl;
+  mpsfile2 << "+0" << endl;
+  mpsfile2 << "0 0 0" << endl;
+  mpsfile2 << "100 0 0 0 0" << endl;
+  mpsfile2
+      << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387 "
+      << endl;
+  mpsfile2.close();
+  StaticSegment seg2("", 0);
+  seg2.LoadFromFile("polarsite2.mps");
+
+  std::vector<std::unique_ptr<StaticSite> > externalsites2;
+  for (const StaticSite& site : seg2) {
+    externalsites2.push_back(std::unique_ptr<StaticSite>(new StaticSite(site)));
+  }
+
+  AOMultipole quad;
+  quad.FillPotential(aobasis, externalsites2);
 
   Eigen::MatrixXd quad_ref = Eigen::MatrixXd::Zero(17, 17);
 
@@ -396,7 +415,7 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
       -0.1710846496, -0.077959498143, -0.1710846496, -0.033638947738,
       -0.11005918435, -0.16786646053, -0.259895667;
 
-  bool quad_check = quad_ref.isApprox(quad.getExternalpotential(), 1e-4);
+  bool quad_check = quad_ref.isApprox(quad.Matrix(), 1e-4);
   BOOST_CHECK_EQUAL(quad_check, 1);
   if (!quad_check) {
     std::cout << "Quad Ref" << endl;

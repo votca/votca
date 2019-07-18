@@ -127,6 +127,8 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
 
     std::string checkpointfilename =
         "checkpoint_iter_" + std::to_string(iteration + 1) + ".hdf5";
+    XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Writing checkpoint to "
+                                << checkpointfilename << std::flush;
     // jobtop.WriteToHdf5(workdir + "/" + checkpointfilename);
 
     if (!no_top_scf) {

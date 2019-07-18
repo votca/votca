@@ -329,12 +329,12 @@ Mat_p_Energy DFTEngine::SetupH0() const {
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Filled DFT Kinetic energy matrix ." << flush;
 
-  AOESP dftAOESP;
-  dftAOESP.Fillnucpotential(_dftbasis, _orbitals.QMAtoms());
+  AOMultipole dftAOESP;
+  dftAOESP.FillPotential(_dftbasis, _orbitals.QMAtoms());
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Filled DFT nuclear potential matrix." << flush;
 
-  Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
+  Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Constructed independent particle hamiltonian "
       << flush;
@@ -342,7 +342,7 @@ Mat_p_Energy DFTEngine::SetupH0() const {
 
   if (_with_ecp) {
     AOECP dftAOECP;
-    dftAOECP.Fillnucpotential(_dftbasis, _ecp);
+    dftAOECP.FillPotential(_dftbasis, _ecp);
     H0 += dftAOECP.Matrix();
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Filled DFT ECP matrix" << flush;
@@ -480,7 +480,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
 
   AOOverlap dftAOoverlap;
   AOKinetic dftAOkinetic;
-  AOESP dftAOESP;
+  AOMultipole dftAOESP;
   AOECP dftAOECP;
   ERIs ERIs_atom;
 
@@ -489,7 +489,7 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   dftAOoverlap.Fill(dftbasis);
   dftAOkinetic.Fill(dftbasis);
 
-  dftAOESP.Fillnucpotential(dftbasis, atom);
+  dftAOESP.FillPotential(dftbasis, atom);
   ERIs_atom.Initialize_4c_small_molecule(dftbasis);
 
   Eigen::VectorXd MOEnergies_alpha;
@@ -521,9 +521,9 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   Convergence_beta.setOverlap(dftAOoverlap, 1e-8);
   /**** Construct initial density  ****/
 
-  Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.getNuclearpotential();
+  Eigen::MatrixXd H0 = dftAOkinetic.Matrix() + dftAOESP.Matrix();
   if (with_ecp) {
-    dftAOECP.Fillnucpotential(dftbasis, ecp);
+    dftAOECP.FillPotential(dftbasis, ecp);
     H0 += dftAOECP.Matrix();
   }
   Convergence_alpha.SolveFockmatrix(MOEnergies_alpha, MOCoeff_alpha, H0);
@@ -970,29 +970,13 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
     const std::vector<std::unique_ptr<StaticSite> >& multipoles) const {
 
   Mat_p_Energy result(_dftbasis.AOBasisSize(), _dftbasis.AOBasisSize());
-  AOESP dftAOESP;
+  AOMultipole dftAOESP;
 
-  dftAOESP.Fillextpotential(_dftbasis, multipoles);
+  dftAOESP.FillPotential(_dftbasis, multipoles);
   XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp() << " Filled DFT external pointcharge potential matrix"
+      << TimeStamp() << " Filled DFT external multipole potential matrix"
       << flush;
   result.matrix() = dftAOESP.Matrix();
-  AODipole_Potential dftAODipole_Potential;
-  dftAODipole_Potential.Fillextpotential(_dftbasis, multipoles);
-  if (dftAODipole_Potential.Dimension() > 0) {
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Filled DFT external dipole potential matrix"
-        << flush;
-  }
-  result.matrix() += dftAODipole_Potential.Matrix();
-  AOQuadrupole_Potential dftAOQuadrupole_Potential;
-  dftAOQuadrupole_Potential.Fillextpotential(_dftbasis, multipoles);
-  if (dftAOQuadrupole_Potential.Dimension()) {
-    XTP_LOG(logDEBUG, *_pLog)
-        << TimeStamp() << " Filled DFT external quadrupole potential matrix."
-        << flush;
-  }
-  result.matrix() += dftAOQuadrupole_Potential.Matrix();
   result.energy() = ExternalRepulsion(multipoles);
   return result;
 }
@@ -1013,8 +997,8 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
   Eigen::MatrixXd e_contrib = numint.IntegratePotential(_dftbasis);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Calculated potential from electron density" << flush;
-  AOESP esp;
-  esp.Fillnucpotential(_dftbasis, extdensity.QMAtoms());
+  AOMultipole esp;
+  esp.FillPotential(_dftbasis, extdensity.QMAtoms());
 
   double nuc_energy = 0.0;
   for (const QMAtom& atom : _orbitals.QMAtoms()) {
@@ -1029,7 +1013,7 @@ Mat_p_Energy DFTEngine::IntegrateExternalDensity(
       << TimeStamp() << " Calculated potential from nuclei" << flush;
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Elelctrostatic: " << nuc_energy << flush;
-  return Mat_p_Energy(nuc_energy, e_contrib + esp.getNuclearpotential());
+  return Mat_p_Energy(nuc_energy, e_contrib + esp.Matrix());
 }
 
 Mat_p_Energy DFTEngine::CalculateERIs(const Eigen::MatrixXd& DMAT) const {

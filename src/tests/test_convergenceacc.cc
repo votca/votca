@@ -111,9 +111,9 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
 
   AOKinetic kinetic;
   kinetic.Fill(aobasis);
-  AOESP esp;
-  esp.Fillnucpotential(aobasis, orbitals.QMAtoms());
-  Eigen::MatrixXd H = kinetic.Matrix() + esp.getNuclearpotential();
+  AOMultipole esp;
+  esp.FillPotential(aobasis, orbitals.QMAtoms());
+  Eigen::MatrixXd H = kinetic.Matrix() + esp.Matrix();
   ConvergenceAcc d;
   Orbitals orb;
   int occlevels = 5;

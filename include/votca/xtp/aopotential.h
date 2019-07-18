@@ -32,49 +32,24 @@ namespace xtp {
 template <class T>
 class AOPotential {
  public:
-  int Dimension() { return _aomatrix.rows(); }
+  int Dimension() { return _aopotential.rows(); }
   const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>& Matrix() const {
-    return _aomatrix;
+    return _aopotential;
   }
 
  protected:
-  void Fill(const AOBasis& aobasis);
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> Fill(
+      const AOBasis& aobasis) const;
   virtual void FillBlock(
       Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>>& matrix,
       const AOShell& shell_row, const AOShell& shell_col) const = 0;
-  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aomatrix;
-};
-
-// derived class for atomic orbital nuclear potential
-class AOESP : public AOPotential<double> {
- public:
-  void Fillnucpotential(const AOBasis& aobasis, const QMMolecule& atoms);
-  void FillPotential(const AOBasis& aobasis, const Eigen::Vector3d& r);
-  void Fillextpotential(
-      const AOBasis& aobasis,
-      const std::vector<std::unique_ptr<StaticSite>>& externalsites);
-  const Eigen::MatrixXd& getNuclearpotential() const {
-    return _nuclearpotential;
-  }
-  const Eigen::MatrixXd& getExternalpotential() const {
-    return _externalpotential;
-  }
-
- protected:
-  void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
-
- private:
-  void setPosition(const Eigen::Vector3d& r) { _r = r; };
-  Eigen::Vector3d _r;
-  Eigen::MatrixXd _nuclearpotential;
-  Eigen::MatrixXd _externalpotential;
+  Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> _aopotential;
 };
 
 // derived class for Effective Core Potentials
 class AOECP : public AOPotential<double> {
  public:
-  void Fillnucpotential(const AOBasis& aobasis, const AOBasis& ecp);
+  void FillPotential(const AOBasis& aobasis, const AOBasis& ecp);
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -96,33 +71,13 @@ class AOECP : public AOPotential<double> {
   Eigen::VectorXd CalcInt_r_exp(int nmax, double decay) const;
 };
 
-class AODipole_Potential : public AOPotential<double> {
+class AOMultipole : public AOPotential<double> {
  public:
-  void Fillextpotential(
+  void FillPotential(const AOBasis& aobasis, const QMMolecule& atoms);
+  void FillPotential(const AOBasis& aobasis, const Eigen::Vector3d& r);
+  void FillPotential(
       const AOBasis& aobasis,
       const std::vector<std::unique_ptr<StaticSite>>& externalsites);
-  const Eigen::MatrixXd& getExternalpotential() const {
-    return _externalpotential;
-  }
-
- protected:
-  void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                 const AOShell& shell_row, const AOShell& shell_col) const;
-
- private:
-  void setSite(const StaticSite* site) { _site = site; };
-  const StaticSite* _site;
-  Eigen::MatrixXd _externalpotential;
-};
-
-class AOQuadrupole_Potential : public AOPotential<double> {
- public:
-  void Fillextpotential(
-      const AOBasis& aobasis,
-      const std::vector<std::unique_ptr<StaticSite>>& externalsites);
-  const Eigen::MatrixXd& getExternalpotential() const {
-    return _externalpotential;
-  }
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -132,16 +87,12 @@ class AOQuadrupole_Potential : public AOPotential<double> {
   void setSite(const StaticSite* site) { _site = site; };
 
   const StaticSite* _site;
-  Eigen::MatrixXd _externalpotential;
 };
 
 class AOPlanewave : public AOPotential<std::complex<double>> {
  public:
-  void Fillextpotential(const AOBasis& aobasis,
-                        const std::vector<Eigen::Vector3d>& kpoints);
-  Eigen::MatrixXd getExternalpotential() const {
-    return _externalpotential.real();
-  }
+  void FillPotential(const AOBasis& aobasis,
+                     const std::vector<Eigen::Vector3d>& kpoints);
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
@@ -150,7 +101,6 @@ class AOPlanewave : public AOPotential<std::complex<double>> {
  private:
   void setkVector(const Eigen::Vector3d& k) { _k = k; };
   Eigen::Vector3d _k;
-  Eigen::MatrixXcd _externalpotential;
 };
 
 }  // namespace xtp

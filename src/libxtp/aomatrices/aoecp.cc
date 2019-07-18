@@ -23,9 +23,9 @@
 namespace votca {
 namespace xtp {
 
-void AOECP::Fillnucpotential(const AOBasis& aobasis, const AOBasis& ecp) {
+void AOECP::FillPotential(const AOBasis& aobasis, const AOBasis& ecp) {
   this->setECP(&ecp);
-  this->Fill(aobasis);
+  _aopotential = Fill(aobasis);
 }
 
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,

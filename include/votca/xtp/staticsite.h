@@ -81,8 +81,11 @@ class StaticSite {
     _Q = multipole;
     _rank = rank;
   }
-
-  void setCharge(double q) { _Q(0) = q; }
+  // sets rank to 0 as well
+  void setCharge(double q) {
+    _Q(0) = q;
+    _rank = 0;
+  }
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 

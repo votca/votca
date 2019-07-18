@@ -10,23 +10,25 @@
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
-#include <vector>
 #include <votca/xtp/aopotential.h>
 
 namespace votca {
 namespace xtp {
 
 template <class T>
-void AOPotential<T>::Fill(const AOBasis& aobasis) {
-  _aomatrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(
-      aobasis.AOBasisSize(), aobasis.AOBasisSize());
+Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> AOPotential<T>::Fill(
+    const AOBasis& aobasis) const {
+  typedef Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> MatrixXcdd;
+
+  MatrixXcdd result =
+      MatrixXcdd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
   // AOMatrix is symmetric, restrict explicit calculation of lower triangular
   // matrix
 #pragma omp parallel for schedule(guided)
@@ -37,18 +39,16 @@ void AOPotential<T>::Fill(const AOBasis& aobasis) {
       const AOShell& shell_row = aobasis.getShell(row);
       int row_start = shell_row.getStartIndex();
       // figure out the submatrix
-      Eigen::Block<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > block =
-          _aomatrix.block(row_start, col_start, shell_row.getNumFunc(),
-                          shell_col.getNumFunc());
+      Eigen::Block<MatrixXcdd> block = result.block(
+          row_start, col_start, shell_row.getNumFunc(), shell_col.getNumFunc());
       // Fill block
       FillBlock(block, shell_row, shell_col);
     }
   }
-
   // Fill whole matrix by copying
-  _aomatrix.template triangularView<Eigen::StrictlyUpper>() =
-      _aomatrix.template triangularView<Eigen::StrictlyLower>().adjoint();
-  return;
+  result.template triangularView<Eigen::StrictlyUpper>() =
+      result.template triangularView<Eigen::StrictlyLower>().adjoint();
+  return result;
 }
 
 template class AOPotential<double>;

@@ -525,7 +525,7 @@ Eigen::MatrixXd NumericalIntegration::IntegratePotential(
       if (weighteddensity < 1e-12) {
         continue;
       }
-      AOESP esp;
+      AOMultipole esp;
       esp.FillPotential(externalbasis, points[j]);
       Potential += weighteddensity * esp.Matrix();
     }
