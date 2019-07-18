@@ -270,7 +270,7 @@ void QMMM::ReadJobFile(Topology& top) {
     tools::Tokenizer tok(marker, ":");
     std::vector<std::string> split = tok.ToVector();
     int segid = std::stoi(split[0]);
-    if (segid < 0 || segid >= top.Segments().size()) {
+    if (segid < 0 || segid >= int(top.Segments().size())) {
       throw std::runtime_error("JobSegment id" + std::to_string(segid) +
                                " is not in topology for job " +
                                std::to_string(jobid));

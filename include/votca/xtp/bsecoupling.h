@@ -83,7 +83,6 @@ class BSECoupling : public CouplingBase {
   int _unoccA;
   int _occB;
   int _unoccB;
-  int _openmp_threads;
 
   int _bse_exc;
 

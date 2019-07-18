@@ -254,9 +254,6 @@ void GWBSE::Initialize(tools::Property& options) {
     XTP_LOG(logDEBUG, *_pLog) << " BSE type: TDA" << flush;
   }
 
-  _openmp_threads =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
-
   if (options.exists(key + ".vxc")) {
     _functional = options.ifExistsReturnElseThrowRuntimeError<std::string>(
         key + ".vxc.functional");

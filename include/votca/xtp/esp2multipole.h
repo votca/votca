@@ -50,7 +50,6 @@ class Esp2multipole {
   void PrintDipoles(Orbitals& orbitals);
 
   QMState _state;
-  int _openmp_threads;
   std::string _method;
   std::string _gridsize;
   bool _use_mulliken;

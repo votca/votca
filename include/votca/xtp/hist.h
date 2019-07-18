@@ -82,24 +82,26 @@ class hist {
 };
 
 template <class T>
-void hist<T>::ReadMetric(T& metric, std::string tag, CheckpointReader& r) {
+inline void hist<T>::ReadMetric(T& metric, std::string tag,
+                                CheckpointReader& r) {
   r(metric, tag);
 }
 template <class T>
-void hist<T>::WriteMetric(const T& metric, std::string tag,
-                          CheckpointWriter& w) const {
+inline void hist<T>::WriteMetric(const T& metric, std::string tag,
+                                 CheckpointWriter& w) const {
   w(metric, tag);
 }
 
 template <>
-void hist<Energy_terms>::ReadMetric(Energy_terms& metric, std::string tag,
-                                    CheckpointReader& r) {
+inline void hist<Energy_terms>::ReadMetric(Energy_terms& metric,
+                                           std::string tag,
+                                           CheckpointReader& r) {
   r(metric.data(), tag);
 }
 template <>
-void hist<Energy_terms>::WriteMetric(const Energy_terms& metric,
-                                     std::string tag,
-                                     CheckpointWriter& w) const {
+inline void hist<Energy_terms>::WriteMetric(const Energy_terms& metric,
+                                            std::string tag,
+                                            CheckpointWriter& w) const {
   w(metric.data(), tag);
 }
 

@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <votca/tools/constants.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {

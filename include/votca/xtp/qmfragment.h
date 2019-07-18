@@ -47,7 +47,7 @@ class QMFragment {
 
   QMFragment(){};
 
-  QMFragment(CheckpointReader& r){ReadFromCpt(r)};
+  QMFragment(CheckpointReader& r) { ReadFromCpt(r); }
 
   void setName(std::string name) { _name = name; }
   void setId(int id) { _id = id; }
@@ -136,22 +136,22 @@ class QMFragment {
 };
 
 template <class T>
-void QMFragment<T>::ReadValue(CheckpointReader& r) {
+inline void QMFragment<T>::ReadValue(CheckpointReader& r) {
   r(_value, "value");
 }
 template <class T>
-void QMFragment<T>::WriteValue(CheckpointWriter& w) const {
+inline void QMFragment<T>::WriteValue(CheckpointWriter& w) const {
   w(_value, "value");
 }
 
 template <>
-void QMFragment<BSE_Population>::ReadValue(CheckpointReader& r) {
+inline void QMFragment<BSE_Population>::ReadValue(CheckpointReader& r) {
   CheckpointReader rr = r.openChild("BSE_pop");
   _value.ReadFromCpt(rr);
 }
 
 template <>
-void QMFragment<BSE_Population>::WriteValue(CheckpointWriter& w) const {
+inline void QMFragment<BSE_Population>::WriteValue(CheckpointWriter& w) const {
   CheckpointWriter ww = w.openChild("BSE_pop");
   _value.WriteToCpt(ww);
 }

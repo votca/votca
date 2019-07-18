@@ -18,6 +18,8 @@
  */
 
 #include <votca/xtp/ERIs.h>
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {

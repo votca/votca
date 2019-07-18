@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/bse.h>
 #include <votca/xtp/convergenceacc.h>
+#include <votca/xtp/qmfragment.h>
 
 using namespace votca::xtp;
 using namespace std;

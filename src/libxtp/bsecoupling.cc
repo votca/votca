@@ -38,12 +38,6 @@ void BSECoupling::Initialize(Property& options) {
   _doTriplets = false;
   _output_perturbation = false;
 
-  _openmp_threads = 0;
-
-  if (options.exists(key + ".openmp")) {
-    _openmp_threads = options.get(key + ".openmp").as<int>();
-  }
-
   string spintype = options.get(key + ".spin").as<string>();
   if (spintype == "all") {
     _doSinglets = true;

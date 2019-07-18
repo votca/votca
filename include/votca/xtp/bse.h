@@ -23,21 +23,18 @@
 
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/populationanalysis.h>
-#include <votca/xtp/qmfragment.h>
 #include <votca/xtp/qmstate.h>
-#include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
-
-#include <votca/xtp/bse_operator.h>
 
 namespace votca {
 namespace xtp {
-
+class BSE_Population;
 template <int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR;
 typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
+template <class T>
+class QMFragment;
 
 class BSE {
 

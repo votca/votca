@@ -25,6 +25,7 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
 #include <votca/xtp/logger.h>
+#include <votca/xtp/qmfragment.h>
 
 #include "bse.h"
 
@@ -80,8 +81,6 @@ class GWBSE {
   // options for own Vxc calculation
   std::string _functional;
   std::string _grid;
-
-  int _openmp_threads;
 
   GW::options _gwopt;
   BSE::options _bseopt;

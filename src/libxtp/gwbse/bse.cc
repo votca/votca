@@ -23,6 +23,9 @@
 #include <votca/xtp/bse.h>
 #include <votca/xtp/bse_operator.h>
 #include <votca/xtp/davidsonsolver.h>
+#include <votca/xtp/populationanalysis.h>
+#include <votca/xtp/qmfragment.h>
+#include <votca/xtp/rpa.h>
 
 #include <chrono>
 

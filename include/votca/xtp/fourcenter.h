@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_FOURCENTER_H
 #define VOTCA_XTP_FOURCENTER_H
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/multiarray.h>
 
 /**
  * \brief Calculates four center electron overlap integrals for DFT.

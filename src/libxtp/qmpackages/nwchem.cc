@@ -23,6 +23,7 @@
 #include <boost/format.hpp>
 #include <iomanip>
 #include <stdio.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
