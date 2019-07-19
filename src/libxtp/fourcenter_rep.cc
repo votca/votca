@@ -300,7 +300,7 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             }
           }
 
-          const std::vector<double> FmT = AOTransform::XIntegrate(mmax + 1, U);
+          const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
 
           double exp_AB = exp(-2. * decay_alpha * decay_beta * rzeta * dist_AB);
           double exp_CD = exp(-2. * decay_gamma * decay_delta * reta * dist_CD);

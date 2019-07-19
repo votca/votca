@@ -58,6 +58,8 @@ class AOECP : public AOPotential<double> {
                  const AOShell& shell_row, const AOShell& shell_col) const;
 
  private:
+  Eigen::VectorXd ExpandContractions(const AOGaussianPrimitive& gaussian,
+                                     const AOShell& shell) const;
   void setECP(const AOBasis* ecp) { _ecp = ecp; }
   const AOBasis* _ecp;
   Eigen::MatrixXd calcVNLmatrix(

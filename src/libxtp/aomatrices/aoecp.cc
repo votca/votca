@@ -28,6 +28,18 @@ void AOECP::FillPotential(const AOBasis& aobasis, const AOBasis& ecp) {
   _aopotential = Fill(aobasis);
 }
 
+Eigen::VectorXd AOECP::ExpandContractions(const AOGaussianPrimitive& gaussian,
+                                          const AOShell& shell) const {
+  const Eigen::VectorXd& contractions_row = gaussian.getContraction();
+  Eigen::VectorXd result = Eigen::VectorXd::Zero(shell.getNumFunc());
+  for (int L = shell.getLmin(); L <= shell.getLmax(); L++) {
+    for (int M = L * L; M < (L + 1) * (L + 1); M++) {
+      result[M - shell.getOffset()] = contractions_row[L];
+    }
+  }
+  return result;
+}
+
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                       const AOShell& shell_row,
                       const AOShell& shell_col) const {
@@ -46,12 +58,6 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
    *
    */
 
-  int lmax_row = shell_row.getLmax();
-  std::vector<double> contractions_row_full((lmax_row + 1) * (lmax_row + 1));
-
-  int lmax_col = shell_col.getLmax();
-  std::vector<double> contractions_col_full((lmax_col + 1) * (lmax_col + 1));
-
   const Eigen::Vector3d& pos_row = shell_row.getPos();
   const Eigen::Vector3d& pos_col = shell_col.getPos();
   const Eigen::Vector3d diff = pos_row - pos_col;
@@ -61,14 +67,8 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   for (const auto& gaussian_row : shell_row) {
 
     const double decay_row = gaussian_row.getDecay();
-
-    const std::vector<double>& contractions_row = gaussian_row.getContraction();
-    // shitty magic
-    for (int L = 0; L <= lmax_row; L++) {
-      for (int M = L * L; M < (L + 1) * (L + 1); M++) {
-        contractions_row_full[M] = contractions_row[L];
-      }
-    }
+    Eigen::VectorXd contractions_row_full =
+        ExpandContractions(gaussian_row, shell_row);
 
     for (const auto& gaussian_col : shell_col) {
       // get decay constant
@@ -78,21 +78,14 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       double exparg = fak2 * decay_row * decay_col * distsq;
 
-      // check if distance between postions is big, then skip step
-
+      // check if distance between positons is large, then skip step
       if (exparg > 30.0) {
         continue;
       }
 
-      const std::vector<double>& contractions_col =
-          gaussian_col.getContraction();
-      for (int L = 0; L <= lmax_col; L++) {
-        for (int M = L * L; M < (L + 1) * (L + 1); M++) {
-          contractions_col_full[M] = contractions_col[L];
-        }
-      }
+      Eigen::VectorXd contractions_col_full =
+          ExpandContractions(gaussian_col, shell_col);
       // for each atom and its pseudopotential, get a matrix
-      int atomidx = 0;
 
       Eigen::Matrix<int, 4, 5> powermatrix =
           Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components, non-local ECPs
@@ -104,14 +97,8 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
 
       Eigen::Vector3d ecp_eval_pos = Eigen::Vector3d::Zero();
       int lmax_ecp = 0;
+      int atomidx = 0;
       for (const AOShell& shell_ecp : *_ecp) {
-
-        const Eigen::Vector3d& ecp_pos = shell_ecp.getPos();
-
-        int this_atom = shell_ecp.getAtomIndex();
-
-        const int ecp_l = shell_ecp.getLmax();  // as ECP shells are never
-                                                // combined Lmax=Lmin=l
 
         // only do the non-local parts
         if (shell_ecp.isNonLocal()) {
@@ -121,42 +108,34 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
           for (const auto& gaussian_ecp : shell_ecp) {
             i_fit++;
 
-            // get info for this angular momentum shell
-            const int power_ecp = gaussian_ecp.getPower();
-            const double decay_ecp = gaussian_ecp.getDecay();
-            const double contraction_ecp = gaussian_ecp.getContraction()[0];
-
             // collect atom ECP
-            if (this_atom == atomidx) {
-              ecp_eval_pos = ecp_pos;
-              powermatrix(i_fit, ecp_l) = power_ecp;
-              decaymatrix(i_fit, ecp_l) = decay_ecp;
-              coefmatrix(i_fit, ecp_l) = contraction_ecp;
+            if (shell_ecp.getAtomIndex() == atomidx) {
+              ecp_eval_pos = shell_ecp.getPos();
+              powermatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getPower();
+              decaymatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getDecay();
+              coefmatrix(i_fit, shell_ecp.getLmax()) =
+                  gaussian_ecp.getContraction()[0];
             }
 
-            if ((this_atom != atomidx) || (&shell_ecp == &(_ecp->back()))) {
-              if (this_atom != atomidx) {
+            if ((shell_ecp.getAtomIndex() != atomidx) ||
+                (&shell_ecp == &(_ecp->back()))) {
+              if (shell_ecp.getAtomIndex() != atomidx) {
                 lmax_ecp = lmax_ecp_old;
               }
 
-              // evaluate collected data, returns a (10x10) matrix of already
+              // evaluate collected data, returns a matrix of already
               // normalized matrix elements
               Eigen::MatrixXd VNL_ECP = calcVNLmatrix(
                   lmax_ecp, ecp_eval_pos, gaussian_row, gaussian_col,
                   powermatrix, decaymatrix, coefmatrix);
 
+              // cut out block that is needed
+              Eigen::MatrixXd VNL_ECP_small =
+                  VNL_ECP.block(shell_row.getOffset(), shell_col.getOffset(),
+                                matrix.rows(), matrix.cols());
               // consider contractions
-              // cut out block that is needed. sum
-
-              for (int i = 0; i < matrix.rows(); i++) {
-                for (int j = 0; j < matrix.cols(); j++) {
-                  matrix(i, j) +=
-                      VNL_ECP(i + shell_row.getOffset(),
-                              j + shell_col.getOffset()) *
-                      contractions_row_full[i + shell_row.getOffset()] *
-                      contractions_col_full[j + shell_col.getOffset()];
-                }
-              }
+              matrix += contractions_row_full.asDiagonal() * VNL_ECP_small *
+                        contractions_col_full.asDiagonal();
 
               // reset atom ECP containers
               powermatrix =
@@ -167,9 +146,10 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
               coefmatrix = Eigen::Matrix<double, 4, 5>::Zero();
               atomidx++;
               i_fit = 0;
-              powermatrix(i_fit, ecp_l) = power_ecp;
-              decaymatrix(i_fit, ecp_l) = decay_ecp;
-              coefmatrix(i_fit, ecp_l) = contraction_ecp;
+              powermatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getPower();
+              decaymatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getDecay();
+              coefmatrix(i_fit, shell_ecp.getLmax()) =
+                  gaussian_ecp.getContraction()[0];
             }  // evaluate if new atom is found
 
           }  // all Gaussians in ecp_shell

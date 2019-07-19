@@ -33,7 +33,7 @@ Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
   const int lmax = shell.getLmax();
   const int n = getBlockSize(lmax);
   Eigen::MatrixXd trafo = Eigen::MatrixXd::Zero(n, ntrafo);
-  const std::vector<double>& contractions = gaussian.getContraction();
+  const Eigen::VectorXd& contractions = gaussian.getContraction();
 
   // s-functions
   trafo(0, 0) = contractions[0];  //  // s  Y 0,0
@@ -302,8 +302,8 @@ Eigen::MatrixXd AOTransform::getTrafo(const AOGaussianPrimitive& gaussian) {
   return trafo;
 }
 
-std::vector<double> AOTransform::XIntegrate(int size, double U) {
-  std::vector<double> FmU = std::vector<double>(size, 0.0);
+Eigen::VectorXd AOTransform::XIntegrate(int size, double U) {
+  Eigen::VectorXd FmU = Eigen::VectorXd::Zero(size);
   const int mm = size - 1;
   const double pi = boost::math::constants::pi<double>();
   if (mm < 0) {

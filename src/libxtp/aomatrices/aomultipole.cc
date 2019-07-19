@@ -111,8 +111,7 @@ void AOMultipole::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
       const double U = zeta * PmC.squaredNorm();
 
       // +3 quadrupole, +2 dipole, +1 nuclear attraction integrals
-      const std::vector<double> FmU =
-          AOTransform::XIntegrate(lsum + rank + 1, U);
+      const Eigen::VectorXd FmU = AOTransform::XIntegrate(lsum + rank + 1, U);
 
       tensor3d nuc3(boost::extents[nrows][ncols][lsum + 1]);
       std::fill_n(nuc3.data(), nuc3.num_elements(), 0.0);

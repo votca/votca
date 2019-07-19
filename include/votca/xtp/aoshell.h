@@ -41,21 +41,20 @@ class AOGaussianPrimitive {
   double getPowfactor() const { return _powfactor; }
   int getPower() const { return _power; }
   double getDecay() const { return _decay; }
-  const std::vector<double>& getContraction() const { return _contraction; }
+  const Eigen::VectorXd& getContraction() const { return _contraction; }
   const AOShell& getShell() const { return _aoshell; }
 
  private:
   int _power;  // used in pseudopotenials only
   double _decay;
-  std::vector<double> _contraction;
+  Eigen::VectorXd _contraction;
   const AOShell& _aoshell;
   double _powfactor;  // used in evalspace to speed up DFT
   // private constructor, only a shell can create a primitive
   AOGaussianPrimitive(const GaussianPrimitive& gaussian, const AOShell& aoshell)
-      : _power(gaussian._power),
-        _decay(gaussian._decay),
-        _contraction(gaussian._contraction),
-        _aoshell(aoshell) {
+      : _power(gaussian._power), _decay(gaussian._decay), _aoshell(aoshell) {
+    _contraction = Eigen::VectorXd::Map(gaussian._contraction.data(),
+                                        gaussian._contraction.size());
     _powfactor =
         std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75);
   }
@@ -82,6 +81,7 @@ class AOShell {
 
     _type = shell._type;
     _Lmax = shell._Lmax;
+    _Lmin = shell._Lmin;
     _scale = shell._scale;
     _numFunc = shell._numFunc;
     _mindecay = shell._mindecay;
@@ -103,6 +103,7 @@ class AOShell {
   int getAtomIndex() const { return _atomindex; }
 
   int getLmax() const { return _Lmax; }
+  int getLmin() const { return _Lmin; }
 
   bool isCombined() const { return _type.length() > 1; }
 
@@ -152,6 +153,7 @@ class AOShell {
   AOShell(const Shell& shell, const QMAtom& atom, int startIndex)
       : _type(shell.getType()),
         _Lmax(shell.getLmax()),
+        _Lmin(shell.getLmin()),
         _scale(shell.getScale()),
         _numFunc(shell.getnumofFunc()),
         _startIndex(startIndex),
@@ -164,6 +166,7 @@ class AOShell {
   AOShell(const Shell& shell, const QMAtom& atom, int startIndex, bool nonlocal)
       : _type(shell.getType()),
         _Lmax(shell.getLmax()),
+        _Lmin(shell.getLmin()),
         _scale(shell.getScale()),
         _numFunc(shell.getnumofFunc()),
         _startIndex(startIndex),
@@ -174,9 +177,9 @@ class AOShell {
     ;
   }
 
-  // shell type (S, P, D))
   std::string _type;
   int _Lmax;
+  int _Lmin;
   // scaling factor
   double _scale;
   // number of functions in shell
@@ -187,7 +190,7 @@ class AOShell {
   Eigen::Vector3d _pos;
   int _atomindex;
   // used for ecp calculations
-  bool _nonlocal;
+  bool _nonlocal = false;
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<AOGaussianPrimitive> _gaussians;

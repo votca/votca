@@ -80,6 +80,8 @@ class Shell {
 
   int getLmax() const { return FindLmax(_type); }
 
+  int getLmin() const { return FindLmin(_type); }
+
   int getnumofFunc() const { return NumFuncShell(_type); };
 
   int getOffset() const { return OffsetFuncShell(_type); }

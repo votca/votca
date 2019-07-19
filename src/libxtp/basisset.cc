@@ -24,7 +24,6 @@ namespace xtp {
 
 int FindLmax(const std::string& type) {
   int lmax = std::numeric_limits<int>::min();
-  ;
   // single type shells
   if (type.length() == 1) {
     if (type == "S") {
@@ -58,7 +57,6 @@ int FindLmax(const std::string& type) {
 
 int FindLmin(const std::string& type) {
   int lmin = std::numeric_limits<int>::max();
-  ;
   if (type.length() == 1) {
     if (type == "S") {
       lmin = 0;

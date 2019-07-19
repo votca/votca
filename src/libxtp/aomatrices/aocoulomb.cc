@@ -125,7 +125,7 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
                    (decay_row * decay_col * sqrt(decay_row + decay_col));
       fak = fak * powfactor_col * powfactor_row;
 
-      const std::vector<double> FmT = AOTransform::XIntegrate(nextra, T);
+      const Eigen::VectorXd FmT = AOTransform::XIntegrate(nextra, T);
 
       // get initial data from FmT -> s-s element
       for (index3d i = 0; i != nextra; ++i) {

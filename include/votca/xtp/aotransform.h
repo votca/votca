@@ -206,7 +206,7 @@ class AOTransform {
  public:
   static int getBlockSize(int lmax);
   static Eigen::MatrixXd getTrafo(const AOGaussianPrimitive& gaussian);
-  static std::vector<double> XIntegrate(int size, double U);
+  static Eigen::VectorXd XIntegrate(int size, double U);
 };
 
 }  // namespace xtp

@@ -248,7 +248,7 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
             extents[range(0, ncombined)][range(0, nbeta)][range(0, ngamma)]);
         std::fill_n(R.data(), R.num_elements(), 0.0);
 
-        const std::vector<double> FmT = AOTransform::XIntegrate(mmax + 1, U);
+        const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
 
         // ss integrals
 
@@ -1446,7 +1446,7 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
 
         }  // end if (lmax_gamma > 5)
 
-        const std::vector<double>& contractions_gamma =
+        const Eigen::VectorXd& contractions_gamma =
             gaussian_gamma.getContraction();
 
         // s-functions
