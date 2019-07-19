@@ -101,10 +101,10 @@ BOOST_AUTO_TEST_CASE(gw_full) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
   orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
   Eigen::MatrixXd& MOs = orbitals.MOCoefficients();

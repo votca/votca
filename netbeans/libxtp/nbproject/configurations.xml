@@ -87,6 +87,9 @@
       <itemPath>../../include/votca/xtp/dftengine.h</itemPath>
       <itemPath>../../include/votca/xtp/diis.h</itemPath>
       <itemPath>../../include/votca/xtp/dipoledipoleinteraction.h</itemPath>
+      <itemPath>../../include/votca/xtp/ecpaobasis.h</itemPath>
+      <itemPath>../../include/votca/xtp/ecpaoshell.h</itemPath>
+      <itemPath>../../include/votca/xtp/ecpbasisset.h</itemPath>
       <itemPath>../../include/votca/xtp/eeinteractor.h</itemPath>
       <itemPath>../../include/votca/xtp/eigen.h</itemPath>
       <itemPath>../../include/votca/xtp/energy_costfunction.h</itemPath>
@@ -264,6 +267,9 @@
       <itemPath>../../src/libxtp/classicalsegment.cc</itemPath>
       <itemPath>../../src/libxtp/davidsonsolver.cc</itemPath>
       <itemPath>../../src/libxtp/dftcoupling.cc</itemPath>
+      <itemPath>../../src/libxtp/ecpaobasis.cc</itemPath>
+      <itemPath>../../src/libxtp/ecpaoshell.cc</itemPath>
+      <itemPath>../../src/libxtp/ecpbasisset.cc</itemPath>
       <itemPath>../../src/libxtp/eeinteractor.cc</itemPath>
       <itemPath>../../src/libxtp/esp2multipole.cc</itemPath>
       <itemPath>../../src/libxtp/espfit.cc</itemPath>
@@ -3990,6 +3996,21 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/ecpaobasis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/ecpaoshell.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/ecpbasisset.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/eeinteractor.h"
             ex="false"
             tool="3"
@@ -4544,6 +4565,12 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ecpaobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ecpaoshell.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ecpbasisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/eeinteractor.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5146,6 +5173,21 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/xtp/ecpaobasis.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/ecpaoshell.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/xtp/ecpbasisset.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/xtp/eeinteractor.h"
             ex="false"
             tool="3"
@@ -5700,6 +5742,12 @@
             flavor2="0">
       </item>
       <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ecpaobasis.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ecpaoshell.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/ecpbasisset.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/eeinteractor.cc" ex="false" tool="1" flavor2="0">
       </item>

@@ -55,9 +55,9 @@ BOOST_AUTO_TEST_CASE(FillNormBasis_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("Al.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("notnormalized.xml");
+  basis.Load("notnormalized.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   const AOShell& shell = aobasis.getShell(0);
   std::vector<double> ref_results = {0.1831079647, 0.9155398233};
@@ -164,9 +164,9 @@ BOOST_AUTO_TEST_CASE(ReorderMos_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   orbitals.MOCoefficients() =
       Eigen::MatrixXd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());

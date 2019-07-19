@@ -45,9 +45,9 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
   const QMMolecule& Atomlist = orbitals.QMAtoms();
   Eigen::MatrixXd DMAT_tot;
   BasisSet bs;
-  bs.LoadBasisSet(orbitals.getDFTbasisName());
+  bs.Load(orbitals.getDFTbasisName());
   AOBasis basis;
-  basis.AOBasisFill(bs, Atomlist);
+  basis.Fill(bs, Atomlist);
   AnalyzeGeometry(Atomlist);
   std::vector<Eigen::MatrixXd> DMAT;
 

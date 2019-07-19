@@ -102,9 +102,9 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   AOMultipole esp;
   esp.FillPotential(aobasis, orbitals.QMAtoms());
@@ -174,12 +174,12 @@ BOOST_AUTO_TEST_CASE(aopotentials_test) {
   ecpfile << "  </element>" << endl;
   ecpfile << "</pseudopotential>" << endl;
   ecpfile.close();
-  BasisSet ecps;
-  ecps.LoadPseudopotentialSet("ecp.xml");
-  AOBasis ecpbasis;
-  ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
-
+  ECPBasisSet ecps;
+  ecps.Load("ecp.xml");
+  ECPAOBasis ecpbasis;
+  ecpbasis.Fill(ecps, orbitals.QMAtoms());
   AOECP ecp;
+  OPENMP::setMaxThreads(1);
   ecp.FillPotential(aobasis, ecpbasis);
   Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(17, 17);
   ecp_ref << 21.6188, 1.34835, 0, 0, 0, 2.29744, 0, 0, 0, 0.209711, 1.01592,
@@ -481,9 +481,9 @@ BOOST_AUTO_TEST_CASE(aomultipole_comparison) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   {
     ofstream mpsfile("polarsite.mps");

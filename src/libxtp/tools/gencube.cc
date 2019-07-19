@@ -148,13 +148,13 @@ void GenCube::calculateCube() {
 
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
-  dftbs.LoadBasisSet(orbitals.getDFTbasisName());
+  dftbs.Load(orbitals.getDFTbasisName());
   XTP_LOG(logDEBUG, _log) << " Loaded DFT Basis Set "
                           << orbitals.getDFTbasisName() << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
+  dftbasis.Fill(dftbs, orbitals.QMAtoms());
 
   Eigen::MatrixXd mat =
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());

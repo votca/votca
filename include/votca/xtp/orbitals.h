@@ -386,12 +386,12 @@ class Orbitals {
   AOBasis SetupBasis() const {
     BasisSet bs;
     if (dftbasis) {
-      bs.LoadBasisSet(this->getDFTbasisName());
+      bs.Load(this->getDFTbasisName());
     } else {
-      bs.LoadBasisSet(this->getAuxbasisName());
+      bs.Load(this->getAuxbasisName());
     }
     AOBasis basis;
-    basis.AOBasisFill(bs, this->QMAtoms());
+    basis.Fill(bs, this->QMAtoms());
     return basis;
   }
 

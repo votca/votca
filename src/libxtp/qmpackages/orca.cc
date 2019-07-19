@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <votca/tools/elements.h>
+#include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
 namespace votca {
@@ -76,7 +77,7 @@ void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
 
   tools::Elements elementInfo;
   BasisSet bs;
-  bs.LoadBasisSet(bs_name);
+  bs.Load(bs_name);
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
   ofstream el_file;
 
@@ -134,8 +135,8 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
   inp_file << endl;
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
-  BasisSet ecp;
-  ecp.LoadPseudopotentialSet(_ecp_name);
+  ECPBasisSet ecp;
+  ecp.Load(_ecp_name);
 
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
@@ -147,7 +148,7 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
           << "No pseudopotential for " << element_name << " available" << flush;
       continue;
     }
-    const Element& element = ecp.getElement(element_name);
+    const ECPElement& element = ecp.getElement(element_name);
 
     inp_file << "\n"
              << "NewECP"
@@ -159,16 +160,15 @@ void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
     // For Orca the order doesn't matter but let's write it in ascending order
     // write remaining shells in ascending order s,p,d...
     for (int i = 0; i <= element.getLmax(); i++) {
-      for (const Shell& shell : element) {
-        if (shell.getLmax() == i) {
+      for (const ECPShell& shell : element) {
+        if (shell.getL() == i) {
           // shell type, number primitives, scale factor
           inp_file << shell.getType() << " " << shell.getSize() << endl;
           int sh_idx = 0;
-          for (const GaussianPrimitive& gaussian : shell) {
+          for (const ECPGaussianPrimitive& gaussian : shell) {
             sh_idx++;
             inp_file << sh_idx << " " << gaussian._decay << " "
-                     << gaussian._contraction[0] << " " << gaussian._power
-                     << endl;
+                     << gaussian._contraction << " " << gaussian._power << endl;
           }
         }
       }

@@ -103,10 +103,10 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Orbitals orb;
   orb.setBasisSetSize(17);

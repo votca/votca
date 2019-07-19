@@ -19,6 +19,7 @@
 
 #include "votca/xtp/qmpackage.h"
 #include <boost/algorithm/string.hpp>
+#include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
 namespace votca {
@@ -73,19 +74,19 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 
 void QMPackage::ReorderOutput(Orbitals& orbitals) {
   BasisSet dftbasisset;
-  dftbasisset.LoadBasisSet(_basisset_name);
+  dftbasisset.Load(_basisset_name);
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
 
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
+  dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
   // necessary to update nuclear charges on qmatoms
   if (_write_pseudopotentials) {
-    BasisSet ecps;
-    ecps.LoadPseudopotentialSet(_ecp_name);
-    AOBasis ecpbasis;
-    ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
+    ECPBasisSet ecps;
+    ecps.Load(_ecp_name);
+    ECPAOBasis ecpbasis;
+    ecpbasis.Fill(ecps, orbitals.QMAtoms());
   }
 
   if (orbitals.hasMOCoefficients()) {
@@ -98,12 +99,12 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) {
 
 Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   BasisSet dftbasisset;
-  dftbasisset.LoadBasisSet(_basisset_name);
+  dftbasisset.Load(_basisset_name);
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
+  dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
   Eigen::MatrixXd result = orbitals.MOCoefficients();
   dftbasis.ReorderMOs(result, "xtp", getPackageName());
   return result;

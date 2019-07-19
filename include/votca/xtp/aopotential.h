@@ -22,6 +22,7 @@
 #define VOTCA_XTP_AOPOTENTIAL_H
 
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/multiarray.h>
 #include <votca/xtp/staticsite.h>
 
@@ -51,7 +52,7 @@ class AOPotential {
 // derived class for Effective Core Potentials
 class AOECP : public AOPotential<double> {
  public:
-  void FillPotential(const AOBasis& aobasis, const AOBasis& ecp);
+  void FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp);
 
  protected:
   void FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
@@ -60,8 +61,8 @@ class AOECP : public AOPotential<double> {
  private:
   Eigen::VectorXd ExpandContractions(const AOGaussianPrimitive& gaussian,
                                      const AOShell& shell) const;
-  void setECP(const AOBasis* ecp) { _ecp = ecp; }
-  const AOBasis* _ecp;
+  void setECP(const ECPAOBasis* ecp) { _ecp = ecp; }
+  const ECPAOBasis* _ecp;
   Eigen::MatrixXd calcVNLmatrix(
       int lmax_ecp, const Eigen::Vector3d& posC,
       const AOGaussianPrimitive& g_row, const AOGaussianPrimitive& g_col,

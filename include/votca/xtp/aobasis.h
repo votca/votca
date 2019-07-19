@@ -42,10 +42,7 @@ class AOBasis {
   void ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
                      const std::string& target);
 
-  void AOBasisFill(const BasisSet& bs, const QMMolecule& atoms);
-
-  // returns element names for which no ecp was found
-  std::vector<std::string> ECPFill(const BasisSet& bs, QMMolecule& atoms);
+  void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
   int AOBasisSize() const { return _AOBasisSize; }
 
@@ -59,17 +56,10 @@ class AOBasis {
 
   int getNumofShells() const { return _aoshells.size(); }
 
-  int getFuncOfAtom(int AtomIndex) const { return _FuncperAtom[AtomIndex]; }
-
   const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
-
-  const AOShell& back() const { return _aoshells.back(); }
 
  private:
   AOShell& addShell(const Shell& shell, const QMAtom& atom, int startIndex);
-
-  AOShell& addECPShell(const Shell& shell, const QMAtom& atom, int startIndex,
-                       bool nonlocal);
 
   void MultiplyMOs(Eigen::MatrixXd& v, std::vector<int> const& multiplier);
 

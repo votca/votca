@@ -24,6 +24,7 @@
 #include <iomanip>
 #include <stdio.h>
 #include <votca/tools/constants.h>
+#include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
 namespace votca {
@@ -116,7 +117,7 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
 
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
   BasisSet bs;
-  bs.LoadBasisSet(_basisset_name);
+  bs.Load(_basisset_name);
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
   for (const std::string& element_name : UniqueElements) {
@@ -178,8 +179,8 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
 void Gaussian::WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms) {
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
-  BasisSet ecp;
-  ecp.LoadPseudopotentialSet(_ecp_name);
+  ECPBasisSet ecp;
+  ecp.Load(_ecp_name);
 
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
@@ -191,20 +192,20 @@ void Gaussian::WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms) {
           << "No pseudopotential for " << element_name << " available" << flush;
       continue;
     }
-    const Element& element = ecp.getElement(element_name);
+    const ECPElement& element = ecp.getElement(element_name);
     // element name, [possibly indeces of centers], zero to indicate the end
     com_file << element_name << " 0\n"
              << _ecp_name << " " << element.getLmax() << " "
              << element.getNcore() << endl;
 
-    for (const Shell& shell : element) {
+    for (const ECPShell& shell : element) {
       // shell type, number primitives, scale factor
       com_file << shell.getType() << endl;
       com_file << shell.getSize() << endl;
 
-      for (const GaussianPrimitive& gaussian : shell) {
+      for (const ECPGaussianPrimitive& gaussian : shell) {
         com_file << gaussian._power << " " << FortranFormat(gaussian._decay)
-                 << " " << FortranFormat(gaussian._contraction[0]) << endl;
+                 << " " << FortranFormat(gaussian._contraction) << endl;
       }
     }
   }

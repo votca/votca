@@ -489,13 +489,13 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   combB.resize(0, 0);
 
   BasisSet dftbs;
-  dftbs.LoadBasisSet(orbitalsAB.getDFTbasisName());
+  dftbs.Load(orbitalsAB.getDFTbasisName());
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, orbitalsAB.QMAtoms());
+  dftbasis.Fill(dftbs, orbitalsAB.QMAtoms());
   BasisSet auxbs;
-  auxbs.LoadBasisSet(orbitalsAB.getAuxbasisName());
+  auxbs.Load(orbitalsAB.getAuxbasisName());
   AOBasis auxbasis;
-  auxbasis.AOBasisFill(auxbs, orbitalsAB.QMAtoms());
+  auxbasis.Fill(auxbs, orbitalsAB.QMAtoms());
 
   TCMatrix_gwbse Mmn;
   // rpamin here, because RPA needs till rpamin

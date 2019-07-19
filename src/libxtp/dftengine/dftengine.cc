@@ -454,15 +454,15 @@ Eigen::MatrixXd DFTEngine::RunAtomicDFT_unrestricted(
   atom.push_back(uniqueAtom);
 
   BasisSet basisset;
-  basisset.LoadBasisSet(_dftbasis_name);
+  basisset.Load(_dftbasis_name);
   AOBasis dftbasis;
   NumericalIntegration gridIntegration;
-  dftbasis.AOBasisFill(basisset, atom);
-  AOBasis ecp;
+  dftbasis.Fill(basisset, atom);
+  ECPAOBasis ecp;
   if (with_ecp) {
-    BasisSet ecps;
-    ecps.LoadPseudopotentialSet(_ecp_name);
-    ecp.ECPFill(ecps, atom);
+    ECPBasisSet ecps;
+    ecps.Load(_ecp_name);
+    ecp.Fill(ecps, atom);
   }
   gridIntegration.GridSetup(_grid_name, atom, dftbasis);
   gridIntegration.setXCfunctional(_xc_functional_name);
@@ -762,31 +762,31 @@ void DFTEngine::Prepare() {
     XTP_LOG(logDEBUG, *_pLog) << output << flush;
   }
   BasisSet dftbasisset;
-  dftbasisset.LoadBasisSet(_dftbasis_name);
+  dftbasisset.Load(_dftbasis_name);
 
-  _dftbasis.AOBasisFill(dftbasisset, _orbitals.QMAtoms());
+  _dftbasis.Fill(dftbasisset, _orbitals.QMAtoms());
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << " with "
       << _dftbasis.AOBasisSize() << " functions" << flush;
 
   if (_with_RI) {
     BasisSet auxbasisset;
-    auxbasisset.LoadBasisSet(_auxbasis_name);
-    _auxbasis.AOBasisFill(auxbasisset, _orbitals.QMAtoms());
+    auxbasisset.Load(_auxbasis_name);
+    _auxbasis.Fill(auxbasisset, _orbitals.QMAtoms());
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Loaded AUX Basis Set " << _auxbasis_name << " with "
         << _auxbasis.AOBasisSize() << " functions" << flush;
   }
   if (_with_ecp) {
-    BasisSet ecpbasisset;
-    ecpbasisset.LoadPseudopotentialSet(_ecp_name);
+    ECPBasisSet ecpbasisset;
+    ecpbasisset.Load(_ecp_name);
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Loaded ECP library " << _ecp_name << flush;
 
     std::vector<std::string> results =
-        _ecp.ECPFill(ecpbasisset, _orbitals.QMAtoms());
+        _ecp.Fill(ecpbasisset, _orbitals.QMAtoms());
     XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled ECP Basis of size "
-                              << _ecp.getNumofShells() << flush;
+                              << _ecp.ECPAOBasisSize() << flush;
     if (results.size() > 0) {
       std::string message = "";
       for (const std::string& element : results) {
@@ -984,9 +984,9 @@ Mat_p_Energy DFTEngine::IntegrateExternalMultipoles(
 Mat_p_Energy DFTEngine::IntegrateExternalDensity(
     const Orbitals& extdensity) const {
   BasisSet basis;
-  basis.LoadBasisSet(extdensity.getDFTbasisName());
+  basis.Load(extdensity.getDFTbasisName());
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, extdensity.QMAtoms());
+  aobasis.Fill(basis, extdensity.QMAtoms());
   NumericalIntegration numint;
   numint.GridSetup(_gridquality, extdensity.QMAtoms(), aobasis);
   Eigen::MatrixXd dmat = extdensity.DensityMatrixGroundState();

@@ -17,6 +17,7 @@
  *
  */
 #include "votca/xtp/aobasis.h"
+#include <vector>
 #include <votca/xtp/basisset.h>
 #include <votca/xtp/qmmolecule.h>
 
@@ -26,12 +27,6 @@ namespace xtp {
 AOShell& AOBasis::addShell(const Shell& shell, const QMAtom& atom,
                            int startIndex) {
   _aoshells.push_back(AOShell(shell, atom, startIndex));
-  return _aoshells.back();
-}
-
-AOShell& AOBasis::addECPShell(const Shell& shell, const QMAtom& atom,
-                              int startIndex, bool nonlocal) {
-  _aoshells.push_back(AOShell(shell, atom, startIndex, nonlocal));
   return _aoshells.back();
 }
 
@@ -390,9 +385,10 @@ const std::vector<const AOShell*> AOBasis::getShellsofAtom(int AtomId) const {
   return result;
 }
 
-void AOBasis::AOBasisFill(const BasisSet& bs, const QMMolecule& atoms) {
+void AOBasis::Fill(const BasisSet& bs, const QMMolecule& atoms) {
   _AOBasisSize = 0;
-  _FuncperAtom = std::vector<int>(0);
+  _aoshells.clear();
+  _FuncperAtom.clear();
   // loop over atoms
   for (const QMAtom& atom : atoms) {
     int atomfunc = 0;
@@ -412,56 +408,6 @@ void AOBasis::AOBasisFill(const BasisSet& bs, const QMMolecule& atoms) {
     _FuncperAtom.push_back(atomfunc);
   }
   return;
-}
-
-std::vector<std::string> AOBasis::ECPFill(const BasisSet& bs,
-                                          QMMolecule& atoms) {
-  _FuncperAtom = std::vector<int>(0);
-  _AOBasisSize = 0;
-
-  std::vector<std::string> non_ecp_elements;
-  for (QMAtom& atom : atoms) {
-    std::string name = atom.getElement();
-    int atomfunc = 0;
-    bool element_exists = true;
-
-    try {
-      bs.getElement(name);
-    } catch (std::runtime_error& error) {
-      _FuncperAtom.push_back(0);
-      element_exists = false;
-      if (std::find(non_ecp_elements.begin(), non_ecp_elements.end(), name) !=
-          non_ecp_elements.end()) {
-        non_ecp_elements.push_back(name);
-      }
-    }
-
-    if (element_exists) {
-      const Element& element = bs.getElement(name);
-      atom._ecpcharge = element.getNcore();
-      int lmax = element.getLmax();
-      for (const Shell& shell : element) {
-        if (shell.getType().size() > 1) {
-          throw std::runtime_error(
-              "In ecps no combined shells e.g. SP are allowed");
-        }
-        // Local part is with L=Lmax
-        bool nonlocal = false;
-        if (shell.getLmax() < lmax) {
-          nonlocal = true;
-        }
-        AOShell& aoshell = addECPShell(shell, atom, _AOBasisSize, nonlocal);
-        _AOBasisSize += NumFuncShell(shell.getType());
-        atomfunc += NumFuncShell(shell.getType());
-        for (const GaussianPrimitive& gaussian : shell) {
-          aoshell.addGaussian(gaussian);
-        }
-        aoshell.CalcMinDecay();
-      }
-      _FuncperAtom.push_back(atomfunc);
-    }
-  }
-  return non_ecp_elements;
 }
 
 }  // namespace xtp

@@ -24,6 +24,7 @@
 #include <votca/tools/property.h>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/convergenceacc.h>
+#include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/staticsite.h>
@@ -96,7 +97,7 @@ class DFTEngine {
   std::string _ecp_name;
   AOBasis _dftbasis;
   AOBasis _auxbasis;
-  AOBasis _ecp;
+  ECPAOBasis _ecp;
 
   bool _with_ecp;
   bool _with_RI;

@@ -102,9 +102,9 @@ BOOST_AUTO_TEST_CASE(aomatrices3d_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

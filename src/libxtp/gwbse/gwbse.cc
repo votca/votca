@@ -22,11 +22,11 @@
 #include <boost/format.hpp>
 #include <votca/tools/constants.h>
 #include <votca/xtp/bse.h>
+#include <votca/xtp/ecpbasisset.h>
 #include <votca/xtp/gwbse.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
-
 using boost::format;
 using namespace boost::filesystem;
 using std::flush;
@@ -36,8 +36,8 @@ namespace xtp {
 int GWBSE::CountCoreLevels() {
   int ignored_corelevels = 0;
   if (!_orbitals.hasECPName()) {
-    BasisSet basis;
-    basis.LoadPseudopotentialSet("corelevels");
+    ECPBasisSet basis;
+    basis.Load("corelevels");
     int coreElectrons = 0;
     for (const auto& atom : _orbitals.QMAtoms()) {
       coreElectrons += basis.getElement(atom.getElement()).getNcore();
@@ -538,26 +538,26 @@ bool GWBSE::Evaluate() {
       << TimeStamp() << " DFT data was created by " << dft_package << flush;
 
   BasisSet dftbs;
-  dftbs.LoadBasisSet(_dftbasis_name);
+  dftbs.Load(_dftbasis_name);
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, _orbitals.QMAtoms());
+  dftbasis.Fill(dftbs, _orbitals.QMAtoms());
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
                             << dftbasis.AOBasisSize() << flush;
 
   // load auxiliary basis set (element-wise information) from xml file
   BasisSet auxbs;
-  auxbs.LoadBasisSet(_auxbasis_name);
+  auxbs.Load(_auxbasis_name);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Loaded Auxbasis Set " << _auxbasis_name << flush;
 
   // fill auxiliary AO basis by going through all atoms
   AOBasis auxbasis;
-  auxbasis.AOBasisFill(auxbs, _orbitals.QMAtoms());
+  auxbasis.Fill(auxbs, _orbitals.QMAtoms());
   _orbitals.setAuxbasisName(_auxbasis_name);
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
                             << auxbasis.AOBasisSize() << flush;

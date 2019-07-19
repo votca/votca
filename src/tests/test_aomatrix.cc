@@ -102,9 +102,9 @@ BOOST_AUTO_TEST_CASE(aomatrices_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Eigen::MatrixXd overlap_ref = Eigen::MatrixXd::Zero(17, 17);
@@ -566,9 +566,9 @@ BOOST_AUTO_TEST_CASE(aomatrices_contracted_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("C.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("contracted.xml");
+  basis.Load("contracted.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
   AOOverlap overlap;
   overlap.Fill(aobasis);
   Eigen::MatrixXd overlap_ref =
@@ -634,9 +634,9 @@ BOOST_AUTO_TEST_CASE(aocoulomb_inv_test) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   AOCoulomb cou;
   cou.Fill(aobasis);

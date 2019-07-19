@@ -23,7 +23,7 @@
 namespace votca {
 namespace xtp {
 
-void AOECP::FillPotential(const AOBasis& aobasis, const AOBasis& ecp) {
+void AOECP::FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp) {
   this->setECP(&ecp);
   _aopotential = Fill(aobasis);
 }
@@ -67,7 +67,7 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   for (const auto& gaussian_row : shell_row) {
 
     const double decay_row = gaussian_row.getDecay();
-    Eigen::VectorXd contractions_row_full =
+    Eigen::VectorXd contractions_row =
         ExpandContractions(gaussian_row, shell_row);
 
     for (const auto& gaussian_col : shell_col) {
@@ -83,84 +83,52 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
         continue;
       }
 
-      Eigen::VectorXd contractions_col_full =
+      Eigen::VectorXd contractions_col =
           ExpandContractions(gaussian_col, shell_col);
       // for each atom and its pseudopotential, get a matrix
 
-      Eigen::Matrix<int, 4, 5> powermatrix =
-          Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components, non-local ECPs
-                                             // l = 0, 1, 2, 3, 4
-      Eigen::Matrix<double, 4, 5> decaymatrix =
-          Eigen::Matrix<double, 4, 5>::Zero();
-      Eigen::Matrix<double, 4, 5> coefmatrix =
-          Eigen::Matrix<double, 4, 5>::Zero();
+      for (const std::vector<const ECPAOShell*>& shells_perAtom :
+           _ecp->ShellsPerAtom()) {
+        if (shells_perAtom.empty()) {
+          continue;
+        }
 
-      Eigen::Vector3d ecp_eval_pos = Eigen::Vector3d::Zero();
-      int lmax_ecp = 0;
-      int atomidx = 0;
-      for (const AOShell& shell_ecp : *_ecp) {
+        Eigen::Matrix<int, 4, 5> powermatrix =
+            Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components, non-local
+                                               // ECPs l = 0, 1, 2, 3, 4
+        Eigen::Matrix<double, 4, 5> decaymatrix =
+            Eigen::Matrix<double, 4, 5>::Zero();
+        Eigen::Matrix<double, 4, 5> coefmatrix =
+            Eigen::Matrix<double, 4, 5>::Zero();
 
-        // only do the non-local parts
-        if (shell_ecp.isNonLocal()) {
-          int lmax_ecp_old = lmax_ecp;
-          lmax_ecp = shell_ecp.getNumFunc() - 1;
-          int i_fit = -1;
-          for (const auto& gaussian_ecp : shell_ecp) {
-            i_fit++;
+        for (const ECPAOShell* shell_ecp : shells_perAtom) {
+          // only do the non-local parts
+          if (!shell_ecp->isNonLocal()) {
+            continue;
+          }
+          int index = 0;
+          for (const auto& gaussian_ecp : *shell_ecp) {
+            powermatrix(index, shell_ecp->getL()) = gaussian_ecp.getPower();
+            decaymatrix(index, shell_ecp->getL()) = gaussian_ecp.getDecay();
+            coefmatrix(index, shell_ecp->getL()) =
+                gaussian_ecp.getContraction();
+            index++;
+          }
+        }
 
-            // collect atom ECP
-            if (shell_ecp.getAtomIndex() == atomidx) {
-              ecp_eval_pos = shell_ecp.getPos();
-              powermatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getPower();
-              decaymatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getDecay();
-              coefmatrix(i_fit, shell_ecp.getLmax()) =
-                  gaussian_ecp.getContraction()[0];
-            }
+        Eigen::MatrixXd VNL_ECP = calcVNLmatrix(
+            shells_perAtom[0]->getLmaxElement(), shells_perAtom[0]->getPos(),
+            gaussian_row, gaussian_col, powermatrix, decaymatrix, coefmatrix);
 
-            if ((shell_ecp.getAtomIndex() != atomidx) ||
-                (&shell_ecp == &(_ecp->back()))) {
-              if (shell_ecp.getAtomIndex() != atomidx) {
-                lmax_ecp = lmax_ecp_old;
-              }
-
-              // evaluate collected data, returns a matrix of already
-              // normalized matrix elements
-              Eigen::MatrixXd VNL_ECP = calcVNLmatrix(
-                  lmax_ecp, ecp_eval_pos, gaussian_row, gaussian_col,
-                  powermatrix, decaymatrix, coefmatrix);
-
-              // cut out block that is needed
-              Eigen::MatrixXd VNL_ECP_small =
-                  VNL_ECP.block(shell_row.getOffset(), shell_col.getOffset(),
-                                matrix.rows(), matrix.cols());
-              // consider contractions
-              matrix += contractions_row_full.asDiagonal() * VNL_ECP_small *
-                        contractions_col_full.asDiagonal();
-
-              // reset atom ECP containers
-              powermatrix =
-                  Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components,
-                                                     // non-local ECPs l = 0, 1,
-                                                     // 2, 3, 4
-              decaymatrix = Eigen::Matrix<double, 4, 5>::Zero();
-              coefmatrix = Eigen::Matrix<double, 4, 5>::Zero();
-              atomidx++;
-              i_fit = 0;
-              powermatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getPower();
-              decaymatrix(i_fit, shell_ecp.getLmax()) = gaussian_ecp.getDecay();
-              coefmatrix(i_fit, shell_ecp.getLmax()) =
-                  gaussian_ecp.getContraction()[0];
-            }  // evaluate if new atom is found
-
-          }  // all Gaussians in ecp_shell
-        }    // only for non local parts
-
-      }  // all ecp_shells
-
-    }  // shell_col Gaussians
-  }    // shell_row Gaussians
-
-  return;
+        auto VNL_ECP_small =
+            VNL_ECP.block(shell_row.getOffset(), shell_col.getOffset(),
+                          matrix.rows(), matrix.cols());
+        // consider contractions
+        matrix += contractions_row.asDiagonal() * VNL_ECP_small *
+                  contractions_col.asDiagonal();
+      }
+    }
+  }
 }
 
 Eigen::MatrixXd AOECP::calcVNLmatrix(
