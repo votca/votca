@@ -60,9 +60,9 @@ class ECPAOGaussianPrimitive {
 
   ECPAOGaussianPrimitive(const ECPAOGaussianPrimitive& gaussian,
                          const ECPAOShell& aoshell)
-      : _decay(gaussian._decay),
+      : _power(gaussian._power),
+        _decay(gaussian._decay),
         _contraction(gaussian._contraction),
-        _power(gaussian._power),
         _aoshell(aoshell) {
     ;
   }
