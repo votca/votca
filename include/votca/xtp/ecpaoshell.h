@@ -41,29 +41,16 @@ class ECPAOGaussianPrimitive {
   int getPower() const { return _power; }
   double getDecay() const { return _decay; }
   double getContraction() const { return _contraction; }
-  const ECPAOShell& getShell() const { return _aoshell; }
 
  private:
   int _power = 0;
   double _decay = 0.0;
   double _contraction = 0.0;
-  const ECPAOShell& _aoshell;
   // private constructor, only a shell can create a primitive
-  ECPAOGaussianPrimitive(const ECPGaussianPrimitive& gaussian,
-                         const ECPAOShell& aoshell)
+  ECPAOGaussianPrimitive(const ECPGaussianPrimitive& gaussian)
       : _power(gaussian._power),
         _decay(gaussian._decay),
-        _contraction(gaussian._contraction),
-        _aoshell(aoshell) {
-    ;
-  }
-
-  ECPAOGaussianPrimitive(const ECPAOGaussianPrimitive& gaussian,
-                         const ECPAOShell& aoshell)
-      : _power(gaussian._power),
-        _decay(gaussian._decay),
-        _contraction(gaussian._contraction),
-        _aoshell(aoshell) {
+        _contraction(gaussian._contraction) {
     ;
   }
 };
@@ -75,21 +62,6 @@ class ECPAOShell {
   friend class ECPAOBasis;
 
  public:
-  ECPAOShell(const ECPAOShell& shell) {
-    _type = shell._type;
-    _L = shell._L;
-    _numFunc = shell._numFunc;
-    _startIndex = shell._startIndex;
-    _offset = shell._offset;
-    _pos = shell._pos;
-    _atomindex = shell._atomindex;
-    _Lmax_element = shell._Lmax_element;
-    _gaussians.reserve(shell._gaussians.size());
-    for (const auto& gaus : shell._gaussians) {
-      _gaussians.push_back(ECPAOGaussianPrimitive(gaus, *this));
-    }
-  }
-
   const std::string& getType() const { return _type; }
   int getNumFunc() const { return _numFunc; }
   int getStartIndex() const { return _startIndex; }
@@ -112,7 +84,7 @@ class ECPAOShell {
 
   // adds a Gaussian
   void addGaussian(const ECPGaussianPrimitive& gaussian) {
-    _gaussians.push_back(ECPAOGaussianPrimitive(gaussian, *this));
+    _gaussians.push_back(ECPAOGaussianPrimitive(gaussian));
     return;
   }
 

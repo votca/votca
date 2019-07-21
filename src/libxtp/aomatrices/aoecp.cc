@@ -213,14 +213,14 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
           int power = power_ecp(I, L);
           double DLI = (alpha + beta + gamma_ecp(I, L));
           if (power == 2) {
-            XI(L, N) +=
-                f_even_r2 * pref_ecp(I, L) / pow(DLI, DFAK_r2);  // r^2 terms
+            XI(L, N) += f_even_r2 * pref_ecp(I, L) /
+                        std::pow(DLI, DFAK_r2);  // r^2 terms
           } else if (power == 0) {
-            XI(L, N) +=
-                f_even_r0 * pref_ecp(I, L) / pow(DLI, DFAK_r0);  // r^0 terms
+            XI(L, N) += f_even_r0 * pref_ecp(I, L) /
+                        std::pow(DLI, DFAK_r0);  // r^0 terms
           } else if (power == 1) {
-            XI(L, N) +=
-                f_even_r1 * pref_ecp(I, L) / pow(DLI, DFAK_r1);  // r^1 terms
+            XI(L, N) += f_even_r1 * pref_ecp(I, L) /
+                        std::pow(DLI, DFAK_r1);  // r^1 terms
           }
         }
       }
@@ -236,7 +236,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   int NMAX1 = 0;
   if (AVS2 > 0.01) {
 
-    G1 = exp(-alpha * AVS2);
+    G1 = std::exp(-alpha * AVS2);
     AVSSQ = sqrt(AVS2);
     double AMAX = 0.0;
     double fak = 2.0 * alpha * AVSSQ;
@@ -284,7 +284,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   int NMAX2 = 0;
   if (BVS2 > 0.01) {
 
-    G2 = exp(-beta * BVS2);
+    G2 = std::exp(-beta * BVS2);
     BVSSQ = sqrt(BVS2);
     double BMAX = 0.0;
     double fak = 2.0 * beta * BVSSQ;
@@ -347,9 +347,9 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       lmin_dft_ecp = std::min(lmax_col, lmax_ecp);
       lmax_dft_ecp = std::max(lmax_col, lmax_ecp);
     } else if (INULL == 3) {
-      int _lmax_dft = std::max(lmax_row, lmax_col);
-      lmin_dft_ecp = std::min(_lmax_dft, lmax_ecp);
-      lmax_dft_ecp = std::max(_lmax_dft, lmax_ecp);
+      int lmax_dft = std::max(lmax_row, lmax_col);
+      lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
+      lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
     }
 
     for (index4d i4 = 0; i4 <= NMAX; i4++) {
