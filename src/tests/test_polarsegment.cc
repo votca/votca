@@ -118,12 +118,18 @@ BOOST_AUTO_TEST_CASE(load_mps) {
 
 BOOST_AUTO_TEST_CASE(add_atom_test) {
   PolarSegment seg = PolarSegment("seg1", 0);
-  Eigen::Vector3d pos = Eigen::Vector3d::Zero();
+
+  bool check_pos = seg.getPos().isApprox(Eigen::Vector3d::Zero());
+  BOOST_CHECK_EQUAL(check_pos, true);
+  Eigen::Vector3d pos = Eigen::Vector3d::Ones();
   PolarSite site = PolarSite(0, "C", pos);
   Eigen::VectorXd poles = Vector9d::Ones(9);
   int rank = 2;
   site.setMultipole(poles, rank);
   seg.push_back(site);
+
+  bool check_pos2 = seg.getPos().isApprox(Eigen::Vector3d::Ones());
+  BOOST_CHECK_EQUAL(check_pos2, true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

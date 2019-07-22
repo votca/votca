@@ -63,14 +63,22 @@ class hist {
 
   void WriteToCpt(CheckpointWriter& w) const {
     w(_filled, "filled");
-    WriteMetric(_metric, "metric", w);
-    WriteMetric(_metric_old, "metric_old", w);
+    if (_filled > 0) {
+      WriteMetric(_metric, "metric", w);
+    }
+    if (_filled > 1) {
+      WriteMetric(_metric_old, "metric_old", w);
+    }
   }
 
   void ReadFromCpt(CheckpointReader& r) {
     r(_filled, "filled");
-    ReadMetric(_metric, "metric", r);
-    ReadMetric(_metric_old, "metric_old", r);
+    if (_filled > 0) {
+      ReadMetric(_metric, "metric", r);
+    }
+    if (_filled > 1) {
+      ReadMetric(_metric_old, "metric_old", r);
+    }
   }
 
  private:

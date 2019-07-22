@@ -57,16 +57,8 @@ Job::Job(const tools::Property &prop) {
   }
 }
 
-Job::Job(int id, std::string &tag, std::string &inputstr, std::string status) {
-
-  _id = id;
-  _tag = tag;
-  tools::Property input("input", inputstr, "");
-  _input = input;
-  _status = ConvertStatus(status);
-}
-
-Job::Job(int id, std::string &tag, tools::Property &input, JobStatus status) {
+Job::Job(int id, const std::string &tag, const tools::Property &input,
+         JobStatus status) {
 
   _id = id;
   _tag = tag;

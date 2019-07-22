@@ -328,6 +328,8 @@
       <itemPath>../../src/tests/test_grid.cc</itemPath>
       <itemPath>../../src/tests/test_gw.cc</itemPath>
       <itemPath>../../src/tests/test_hdf5.cc</itemPath>
+      <itemPath>../../src/tests/test_hist.cc</itemPath>
+      <itemPath>../../src/tests/test_jobtopology.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
       <itemPath>../../src/tests/test_polarsegment.cc</itemPath>
@@ -4949,6 +4951,13 @@
       </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_hist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_jobtopology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_numericalintegration.cc"
             ex="false"
             tool="1"
@@ -6125,6 +6134,13 @@
       <item path="../../src/tests/test_gw.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_hdf5.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_hist.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_jobtopology.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_numericalintegration.cc"
             ex="false"

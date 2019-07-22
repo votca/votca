@@ -199,8 +199,7 @@ enum Index {
 };
 }
 
-/* "superclass" AOSuperMatrix contains all common functionality for
- * atomic orbital matrix types
+/* contains cartesian to spherical conversion
  */
 class AOTransform {
  public:

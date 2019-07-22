@@ -42,4 +42,7 @@ BOOST_AUTO_TEST_CASE(stringprocessing) {
     }
   }
 }
+
+BOOST_AUTO_TEST_CASE(readinandwritinghdf5) {}
+
 BOOST_AUTO_TEST_SUITE_END()

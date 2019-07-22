@@ -21,6 +21,7 @@
 #ifndef VOTCA_XTP_ENERGY_TERMS_H
 #define VOTCA_XTP_ENERGY_TERMS_H
 
+#include <votca/xtp/eeinteractor.h>
 #include <votca/xtp/eigen.h>
 /**
  * \brief Small container for the individual energy terms in a polar region

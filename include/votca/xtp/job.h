@@ -35,8 +35,8 @@ class Job {
   enum JobStatus { AVAILABLE, ASSIGNED, FAILED, COMPLETE };
 
   Job(const tools::Property &prop);
-  Job(int id, std::string &tag, std::string &input, std::string stat);
-  Job(int id, std::string &tag, tools::Property &input, JobStatus stat);
+  Job(int id, const std::string &tag, const tools::Property &input,
+      JobStatus stat);
 
   std::string ConvertStatus(JobStatus) const;
   JobStatus ConvertStatus(std::string) const;
