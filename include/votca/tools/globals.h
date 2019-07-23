@@ -61,23 +61,6 @@ struct globals {
     static std::string options;
     static std::string option;
   };
-
-  // constants
-  struct constants {
-    static const double pi;
-    static const double kB;    // eV/K
-    static const double hbar;  // eV*s
-  };
-
-  // conversion factors
-  struct conversion {
-    static const double Bohr2nm;
-    static const double nm2Bohr;
-    static const double Ang2Bohr;
-    static const double Ryd2eV;
-    static const double Hrt2eV;
-    static const double int2eV;  // ewald internal to eV conversion
-  };
 };
 
 }  // namespace tools
