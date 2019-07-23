@@ -78,7 +78,7 @@ bool Spectrum::Evaluate() {
   const Eigen::VectorXd& BSESingletEnergies = orbitals.BSESingletEnergies();
   const std::vector<Eigen::Vector3d>& TransitionDipoles =
       orbitals.TransitionDipoles();
-  std::vector<double> osc = orbitals.Oscillatorstrengths();
+  Eigen::VectorXd osc = orbitals.Oscillatorstrengths();
 
   int n_exc = exc_lambda - _minexc + 1;
 

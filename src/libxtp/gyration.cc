@@ -67,7 +67,7 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
 
   } else {
     // hole density first
-    std::vector<Eigen::MatrixXd> DMAT =
+    std::array<Eigen::MatrixXd, 2> DMAT =
         orbitals.DensityMatrixExcitedState(_state);
     Gyrationtensor gyro_hole = numway.IntegrateGyrationTensor(DMAT[0]);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es_h;

@@ -655,10 +655,10 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       std::string energy = results.back();
       boost::trim(energy);
       orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
-      XTP_LOG(logDEBUG, *_pLog)
-          << (boost::format("QM energy[Hrt]: %4.6f ") % orbitals.getQMEnergy())
-                 .str()
-          << flush;
+      XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
+                                    orbitals.getDFTTotalEnergy())
+                                       .str()
+                                << flush;
       has_qm_energy = true;
     }
 

@@ -378,7 +378,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets) {
   Interaction act;
   QMStateType singlet = QMStateType(QMStateType::Singlet);
   _orbitals.CalcCoupledTransition_Dipoles();
-  std::vector<double> oscs = _orbitals.Oscillatorstrengths();
+  Eigen::VectorXd oscs = _orbitals.Oscillatorstrengths();
   if (tools::globals::verbose) {
     act = Analyze_eh_interaction(singlet);
   }

@@ -22,7 +22,6 @@
 #define VOTCA_XTP_ORBITALS_H
 
 #include "aobasis.h"
-#include <votca/tools/constants.h>
 #include <votca/tools/globals.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/checkpoint.h>
@@ -99,9 +98,9 @@ class Orbitals {
   Eigen::VectorXd &MOEnergies() { return _mo_energies; }
 
   // access to DFT molecular orbital energy of a specific level (in eV)
-  double getEnergy(int level) const {
+  double getMOEnergy(int level) const {
     if (level < _mo_energies.size()) {
-      return votca::tools::conv::hrt2ev * _mo_energies[level];
+      return _mo_energies[level];
     } else {
       throw std::runtime_error("Level index is outside array range");
     }
@@ -170,7 +169,7 @@ class Orbitals {
   // access to QM total energy, new, tested
   bool hasQMEnergy() const { return (_qm_energy != 0.0) ? true : false; }
 
-  double getQMEnergy() const { return _qm_energy; }
+  double getDFTTotalEnergy() const { return _qm_energy; }
 
   void setQMEnergy(double qmenergy) { _qm_energy = qmenergy; }
 
@@ -345,7 +344,7 @@ class Orbitals {
     return _transition_dipoles;
   }
 
-  std::vector<double> Oscillatorstrengths() const;
+  Eigen::VectorXd Oscillatorstrengths() const;
 
   Eigen::Vector3d CalcElDipole(const QMState &state) const;
 
@@ -356,7 +355,7 @@ class Orbitals {
 
   // functions for calculating density matrices
   Eigen::MatrixXd DensityMatrixGroundState() const;
-  std::vector<Eigen::MatrixXd> DensityMatrixExcitedState(
+  std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState(
       const QMState &state) const;
   Eigen::MatrixXd DensityMatrixQuasiParticle(const QMState &state) const;
   Eigen::MatrixXd CalculateQParticleAORepresentation() const;
@@ -377,7 +376,7 @@ class Orbitals {
   void ReadFromCpt(CheckpointReader parent);
 
  private:
-  std::vector<Eigen::MatrixXd> CalcFreeTransition_Dipoles() const;
+  std::array<Eigen::MatrixXd, 3> CalcFreeTransition_Dipoles() const;
 
   // returns indeces of a re-sorted vector of energies from lowest to highest
   std::vector<int> SortEnergies();
@@ -399,9 +398,9 @@ class Orbitals {
 
   void ReadFromCpt(CheckpointFile f);
   Eigen::MatrixXd TransitionDensityMatrix(const QMState &state) const;
-  std::vector<Eigen::MatrixXd> DensityMatrixExcitedState_R(
+  std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState_R(
       const QMState &state) const;
-  std::vector<Eigen::MatrixXd> DensityMatrixExcitedState_AR(
+  std::array<Eigen::MatrixXd, 2> DensityMatrixExcitedState_AR(
       const QMState &state) const;
   Eigen::MatrixXd CalcAuxMat_cc(const Eigen::VectorXd &coeffs) const;
   Eigen::MatrixXd CalcAuxMat_vv(const Eigen::VectorXd &coeffs) const;

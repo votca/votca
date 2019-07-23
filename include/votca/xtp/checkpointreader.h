@@ -221,8 +221,10 @@ class CheckpointReader {
     dp.getSimpleExtentDims(dims, NULL);
 
     v.resize(dims[0]);
-
     dataset.read(&(v[0]), *dataType);
+    for (std::string& s : v) {
+      s = std::string(s.c_str());
+    }
   }
 
   void ReadData(const CptLoc& loc, std::vector<Eigen::Vector3d>& v,

@@ -88,10 +88,10 @@ bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {
     std::string file_name = _run_dir + "/" + _log_file_name;
     orbitals.ReadFromCpt(file_name);
-    XTP_LOG(logDEBUG, *_pLog)
-        << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy())
-               .str()
-        << flush;
+    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") %
+                                  orbitals.getDFTTotalEnergy())
+                                     .str()
+                              << flush;
   } catch (std::runtime_error& error) {
     XTP_LOG(logDEBUG, *_pLog)
         << "Reading" << _log_file_name << " failed" << flush;

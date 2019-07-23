@@ -886,7 +886,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
         orbitals.setQMEnergy(energy_hartree);
         XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
-                                      orbitals.getQMEnergy())
+                                      orbitals.getDFTTotalEnergy())
                                          .str()
                                   << flush;
       } else {

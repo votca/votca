@@ -126,7 +126,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     return;
   }
   QMState state = QMState("groundstate");
-  double energy = _orb.getQMEnergy();
+  double energy = _orb.getDFTTotalEnergy();
   if (_do_gwbse) {
     GWBSE gwbse(_orb);
     gwbse.setLogger(&_log);
@@ -286,9 +286,10 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
 
   CheckpointWriter v3 = w.openChild("D-hist");
   _Dmat_hist.WriteToCpt(v3);
-
-  CheckpointWriter v4 = w.openChild("statefilter");
-  _filter.WriteToCpt(v4);
+  if (_do_gwbse) {
+    CheckpointWriter v4 = w.openChild("statefilter");
+    _filter.WriteToCpt(v4);
+  }
 }
 
 void QMRegion::ReadFromCpt(CheckpointReader& r) {
@@ -307,9 +308,10 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
 
   CheckpointReader rr3 = r.openChild("D-hist");
   _Dmat_hist.ReadFromCpt(rr3);
-
-  CheckpointReader rr4 = r.openChild("statefilter");
-  _filter.ReadFromCpt(rr4);
+  if (_do_gwbse) {
+    CheckpointReader rr4 = r.openChild("statefilter");
+    _filter.ReadFromCpt(rr4);
+  }
 }
 
 }  // namespace xtp

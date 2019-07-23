@@ -389,7 +389,7 @@ void GWBSE::addoutput(tools::Property& summary) {
     gwbse_summary.setAttribute("units", "eV");
     gwbse_summary.setAttribute(
         "DFTEnergy",
-        (format("%1$+1.6f ") % (_orbitals.getQMEnergy() * hrt2ev)).str());
+        (format("%1$+1.6f ") % (_orbitals.getDFTTotalEnergy() * hrt2ev)).str());
 
     tools::Property& dft_summary = gwbse_summary.add("dft", "");
     dft_summary.setAttribute("HOMO", _gwopt.homo);

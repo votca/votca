@@ -160,7 +160,7 @@ void GenCube::calculateCube() {
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
   if (_dostateonly) {
     if (_state.Type().isExciton()) {
-      std::vector<Eigen::MatrixXd> DMAT =
+      std::array<Eigen::MatrixXd, 2> DMAT =
           orbitals.DensityMatrixExcitedState(_state);
       mat = DMAT[1] - DMAT[0];
     }

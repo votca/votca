@@ -178,9 +178,9 @@ QMState Statefilter::CalcStateAndUpdate(const Orbitals& orbitals) {
 }
 
 std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals) const {
-  const std::vector<double> oscs = orbitals.Oscillatorstrengths();
+  Eigen::VectorXd oscs = orbitals.Oscillatorstrengths();
   std::vector<int> indexes;
-  for (unsigned i = 0; i < oscs.size(); i++) {
+  for (int i = 0; i < oscs.size(); i++) {
     if (oscs[i] > _oscthreshold) indexes.push_back(i);
   }
   return indexes;
@@ -297,9 +297,19 @@ void Statefilter::WriteToCpt(CheckpointWriter& w) const {
 
   w(_use_localisationfilter, "localisationfilter");
   w(_loc_threshold, "locthreshold");
+  w(int(_fragment_loc.size()), "loc_fragments");
+  for (unsigned i = 0; i < _fragment_loc.size(); i++) {
+    CheckpointWriter ww = w.openChild("fragment_loc_" + std::to_string(i));
+    _fragment_loc[i].WriteToCpt(ww);
+  }
 
   w(_use_dQfilter, "dQfilter");
   w(_dQ_threshold, "dQthreshold");
+  w(int(_fragment_dQ.size()), "dQ_fragments");
+  for (unsigned i = 0; i < _fragment_dQ.size(); i++) {
+    CheckpointWriter ww = w.openChild("fragment_dQ_" + std::to_string(i));
+    _fragment_dQ[i].WriteToCpt(ww);
+  }
 }
 
 void Statefilter::ReadFromCpt(CheckpointReader& r) {
@@ -319,9 +329,25 @@ void Statefilter::ReadFromCpt(CheckpointReader& r) {
 
   r(_use_localisationfilter, "localisationfilter");
   r(_loc_threshold, "locthreshold");
+  _fragment_loc.clear();
+  int loc_size = 0;
+  r(loc_size, "loc_fragments");
+  _fragment_loc.resize(loc_size);
+  for (unsigned i = 0; i < _fragment_loc.size(); i++) {
+    CheckpointReader rr = r.openChild("fragment_loc_" + std::to_string(i));
+    _fragment_loc[i].ReadFromCpt(rr);
+  }
 
   r(_use_dQfilter, "dQfilter");
   r(_dQ_threshold, "dQthreshold");
+  _fragment_dQ.clear();
+  int dQ_size = 0;
+  r(dQ_size, "dQ_fragments");
+  _fragment_dQ.resize(dQ_size);
+  for (unsigned i = 0; i < _fragment_dQ.size(); i++) {
+    CheckpointReader rr = r.openChild("fragment_dQ_" + std::to_string(i));
+    _fragment_dQ[i].ReadFromCpt(rr);
+  }
 }
 
 }  // namespace xtp

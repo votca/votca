@@ -282,6 +282,7 @@
       <itemPath>../../src/libxtp/orbitals.cc</itemPath>
       <itemPath>../../src/libxtp/parallelxjobcalc.cc</itemPath>
       <itemPath>../../src/libxtp/polarsite.cc</itemPath>
+      <itemPath>../../src/libxtp/populationanalysis.cc</itemPath>
       <itemPath>../../src/libxtp/progressobserver.cc</itemPath>
       <itemPath>../../src/libxtp/qmatom.cc</itemPath>
       <itemPath>../../src/libxtp/qmmolecule.cc</itemPath>
@@ -334,6 +335,7 @@
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
       <itemPath>../../src/tests/test_polarsegment.cc</itemPath>
       <itemPath>../../src/tests/test_polarsite.cc</itemPath>
+      <itemPath>../../src/tests/test_populationanalysis.cc</itemPath>
       <itemPath>../../src/tests/test_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_qmatom.cc</itemPath>
       <itemPath>../../src/tests/test_qmfragment.cc</itemPath>
@@ -4729,6 +4731,11 @@
       </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/populationanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/progressobserver.cc"
             ex="false"
             tool="1"
@@ -4971,6 +4978,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_populationanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5913,6 +5925,11 @@
       </item>
       <item path="../../src/libxtp/polarsite.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/libxtp/populationanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/libxtp/progressobserver.cc"
             ex="false"
             tool="1"
@@ -6155,6 +6172,11 @@
             flavor2="0">
       </item>
       <item path="../../src/tests/test_polarsite.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_populationanalysis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/tests/test_ppm.cc" ex="false" tool="1" flavor2="0">
       </item>

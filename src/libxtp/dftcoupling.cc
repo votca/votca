@@ -46,8 +46,8 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary,
                                   const Orbitals& orbitalsB, int a, int b) {
   double J = getCouplingElement(a, b, orbitalsA, orbitalsB);
   tools::Property& coupling = type_summary.add("coupling", "");
-  double energyA = orbitalsA.getEnergy(a);
-  double energyB = orbitalsB.getEnergy(b);
+  double energyA = orbitalsA.getMOEnergy(a) * tools::conv::hrt2ev;
+  double energyB = orbitalsB.getMOEnergy(b) * tools::conv::hrt2ev;
   coupling.setAttribute("levelA", a);
   coupling.setAttribute("levelB", b);
   coupling.setAttribute("j", (format("%1$1.6e") % J).str());

@@ -75,7 +75,7 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
   }
   Eigen::MatrixXd result = this->DensityMatrixGroundState();
   if (state.Type().isExciton()) {
-    std::vector<Eigen::MatrixXd> DMAT = DensityMatrixExcitedState(state);
+    std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
     result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
                                           // electron contribution
   } else if (state.Type() == QMStateType::DQPstate) {
@@ -188,11 +188,12 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
   return dmatTS;
 }
 
-std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState(
+std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
     const QMState& state) const {
-  std::vector<Eigen::MatrixXd> dmat = DensityMatrixExcitedState_R(state);
+  std::array<Eigen::MatrixXd, 2> dmat = DensityMatrixExcitedState_R(state);
   if (!_useTDA) {
-    std::vector<Eigen::MatrixXd> dmat_AR = DensityMatrixExcitedState_AR(state);
+    std::array<Eigen::MatrixXd, 2> dmat_AR =
+        DensityMatrixExcitedState_AR(state);
     dmat[0] -= dmat_AR[0];
     dmat[1] -= dmat_AR[1];
   }
@@ -201,7 +202,7 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState(
 
 // Excited state density matrix
 
-std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(
+std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_R(
     const QMState& state) const {
   if (!state.Type().isExciton()) {
     throw std::runtime_error(
@@ -241,7 +242,7 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_R(
 
   Eigen::VectorXd coeffs = BSECoefs.col(state.Index());
 
-  std::vector<Eigen::MatrixXd> dmatEX(2);
+  std::array<Eigen::MatrixXd, 2> dmatEX;
   // hole part as matrix products
   Eigen::MatrixXd occlevels = _mo_coefficients.block(
       0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
@@ -285,7 +286,7 @@ Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs) const {
   return Mcc;
 }
 
-std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
+std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
     const QMState& state) const {
 
   if (!state.Type().isExciton()) {
@@ -326,7 +327,7 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
 
   Eigen::VectorXd coeffs = BSECoefs_AR.col(state.Index());
 
-  std::vector<Eigen::MatrixXd> dmatAR(2);
+  std::array<Eigen::MatrixXd, 2> dmatAR;
   Eigen::MatrixXd virtlevels = _mo_coefficients.block(
       0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
   dmatAR[0] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
@@ -338,22 +339,22 @@ std::vector<Eigen::MatrixXd> Orbitals::DensityMatrixExcitedState_AR(
   return dmatAR;
 }
 
-std::vector<double> Orbitals::Oscillatorstrengths() const {
-  std::vector<double> oscs;
+Eigen::VectorXd Orbitals::Oscillatorstrengths() const {
+
   int size = _transition_dipoles.size();
   if (size > _BSE_singlet_energies.size()) {
     size = _BSE_singlet_energies.size();
   }
+  Eigen::VectorXd oscs = Eigen::VectorXd::Zero(size);
   for (int i = 0; i < size; ++i) {
-    double osc = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 *
-                 (_BSE_singlet_energies(i));
-    oscs.push_back(osc);
+    oscs(i) = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 *
+              (_BSE_singlet_energies(i));
   }
   return oscs;
 }
 
 double Orbitals::getTotalStateEnergy(const QMState& state) const {
-  double total_energy = getQMEnergy() * tools::conv::ev2hrt;
+  double total_energy = getDFTTotalEnergy();
   if (state.Type() == QMStateType::Gstate) {
     return total_energy;
   }
@@ -411,7 +412,7 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
   return omega;  //  e.g. hartree
 }
 
-std::vector<Eigen::MatrixXd> Orbitals::CalcFreeTransition_Dipoles() const {
+std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
   const Eigen::MatrixXd& dft_orbitals = MOCoefficients();
   AOBasis basis = SetupDftBasis();
   // Testing electric dipole AOMatrix
@@ -419,21 +420,20 @@ std::vector<Eigen::MatrixXd> Orbitals::CalcFreeTransition_Dipoles() const {
   dft_dipole.Fill(basis);
 
   // now transition dipole elements for free interlevel transitions
-  std::vector<Eigen::MatrixXd> interlevel_dipoles;
+  std::array<Eigen::MatrixXd, 3> interlevel_dipoles;
 
   Eigen::MatrixXd empty =
       dft_orbitals.block(0, _bse_cmin, basis.AOBasisSize(), _bse_ctotal);
   Eigen::MatrixXd occ =
       dft_orbitals.block(0, _bse_vmin, basis.AOBasisSize(), _bse_vtotal);
-  for (int i_comp = 0; i_comp < 3; i_comp++) {
-    interlevel_dipoles.push_back(empty.transpose() *
-                                 dft_dipole.Matrix()[i_comp] * occ);
+  for (int i = 0; i < 3; i++) {
+    interlevel_dipoles[i] = empty.transpose() * dft_dipole.Matrix()[i] * occ;
   }
   return interlevel_dipoles;
 }
 
 void Orbitals::CalcCoupledTransition_Dipoles() {
-  std::vector<Eigen::MatrixXd> interlevel_dipoles =
+  std::array<Eigen::MatrixXd, 3> interlevel_dipoles =
       CalcFreeTransition_Dipoles();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
   int numofstates = _BSE_singlet_energies.size();

@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK(orbRead.MOEnergies().isApprox(moeTest, tol));
 
   BOOST_CHECK(orbRead.MOCoefficients().isApprox(mocTest, tol));
-  BOOST_CHECK_CLOSE(orbRead.getQMEnergy(), qmEnergy, tol);
+  BOOST_CHECK_CLOSE(orbRead.getDFTTotalEnergy(), qmEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
   BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
