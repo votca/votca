@@ -24,7 +24,7 @@ using the 'run.sh' script you can calculate all data necessary to run kmc simula
 For some more expensive parts the parameters are calculated only for one pair.
 The KMC calculators are thus not tested
 
-In the folder 'tools' are calculators which are independent of '.sql' files:
+In the folder 'tools' are calculators which are independent of state files:
 
 'dftgwbse_CH4' runs a DFT and GWBSE on CH4 and then performs an espfit on it, outputting a '.mps' file
 additionally a '.cube' file is produced for visualisation. 
