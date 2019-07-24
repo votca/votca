@@ -153,7 +153,11 @@ void JobTopology::CreateRegions(
     std::string type =
         region_def->ifExistsReturnElseThrowRuntimeError<std::string>("type");
     std::unique_ptr<Region> region;
-    if (type == "qm") {
+    QMRegion QMdummy(0, _log, "");
+    StaticRegion Staticdummy(0, _log);
+    PolarRegion Polardummy(0, _log);
+
+    if (type == QMdummy.identify()) {
       std::unique_ptr<QMRegion> qmregion =
           std::unique_ptr<QMRegion>(new QMRegion(id, _log, _workdir));
       QMMapper qmmapper(_log);
@@ -166,7 +170,7 @@ void JobTopology::CreateRegions(
         qmregion->push_back(mol);
       }
       region = std::move(qmregion);
-    } else if (type == "polar") {
+    } else if (type == Polardummy.identify()) {
       std::unique_ptr<PolarRegion> polarregion =
           std::unique_ptr<PolarRegion>(new PolarRegion(id, _log));
       PolarMapper polmap(_log);
@@ -179,7 +183,7 @@ void JobTopology::CreateRegions(
         polarregion->push_back(mol);
       }
       region = std::move(polarregion);
-    } else if (type == "static") {
+    } else if (type == Staticdummy.identify()) {
       std::unique_ptr<StaticRegion> staticregion =
           std::unique_ptr<StaticRegion>(new StaticRegion(id, _log));
       StaticMapper staticmap(_log);

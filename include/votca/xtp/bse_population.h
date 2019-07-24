@@ -61,11 +61,11 @@ struct BSE_Population {
       return out;
     }
     Eigen::VectorXd diff = pop.H - pop.E;
-    out << "GroundstateCharge:" << pop.Gs << std::endl;
-    out << "Index hole electron dQ Qeff" << std::endl;
+    out << "GroundstateCharge:" << pop.Gs << "\n";
+    out << "Index hole electron dQ Qeff\n";
     for (int i = 0; i < pop.H.size(); ++i) {
       out << i << " " << pop.H(i) << " " << pop.E(i) << " " << diff(i) << " "
-          << diff(i) + pop.Gs << std::endl;
+          << diff(i) + pop.Gs << "\n";
     }
     return out;
   }

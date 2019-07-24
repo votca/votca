@@ -153,6 +153,11 @@ int QMState::DetermineIndex(const std::string& statestring) {
 
   bool found_integer = std::regex_search(statestring, search, reg);
   if (!found_integer) {
+
+    if (_type == QMStateType::Hole || _type == QMStateType::Electron) {
+      return 0;
+    }
+
     throw std::runtime_error("Found no index in string: " + statestring);
   }
   if (search.size() > 1) {
@@ -206,11 +211,10 @@ void QMState::FromString(const std::string& statestring) {
   if (_type != QMStateType::Singlet && _transition == true) {
     throw std::runtime_error("Transition states only exist for singlets.");
   }
-  if (_type != QMStateType::Gstate && _type != QMStateType::Electron &&
-      _type != QMStateType::Hole) {
-    _index = DetermineIndex(rest);
-  } else {
+  if (_type == QMStateType::Gstate) {
     _index = -1;
+  } else {
+    _index = DetermineIndex(rest);
   }
 }
 

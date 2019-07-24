@@ -365,6 +365,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
           Orbitals orbitalsA;
 
           try {
+            XTP_LOG_SAVE(logINFO, pLog)
+                << "Reading MoleculeA from " << orbFileA << std::flush;
             orbitalsA.ReadFromCpt(orbFileA);
           } catch (std::runtime_error& error) {
             SetJobToFailed(
@@ -374,6 +376,8 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
           }
 
           try {
+            XTP_LOG_SAVE(logINFO, pLog)
+                << "Reading MoleculeB from " << orbFileB << std::flush;
             orbitalsB.ReadFromCpt(orbFileB);
           } catch (std::runtime_error& error) {
             SetJobToFailed(
@@ -787,7 +791,7 @@ void IQM::ReadJobFile(Topology& top) {
         int levelA = homoA - stateA.Index();  // h1 is is homo;
         int levelB = homoB - stateB.Index();
         double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, hole);
           dft_h++;
         }
@@ -802,7 +806,7 @@ void IQM::ReadJobFile(Topology& top) {
         int levelA = homoA + 1 + stateA.Index();  // e1 is lumo;
         int levelB = homoB + 1 + stateB.Index();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, electron);
           dft_e++;
         }
@@ -818,7 +822,7 @@ void IQM::ReadJobFile(Topology& top) {
         QMState stateB =
             GetElementFromMap(_singlet_levels, segmentB->getName());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, singlet);
           bse_s++;
         }
@@ -831,7 +835,7 @@ void IQM::ReadJobFile(Topology& top) {
         QMState stateB =
             GetElementFromMap(_triplet_levels, segmentB->getName());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, triplet);
           bse_t++;
         }

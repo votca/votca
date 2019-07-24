@@ -81,14 +81,13 @@ class QMFragment {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMFragment& fragment) {
-    out << "Fragment name:" << fragment._name << " id:" << fragment._name
-        << std::endl;
+    out << "Fragment name:" << fragment._name << " id:" << fragment._id << "\n";
     out << "AtomIndices[" << fragment.size() << "]:";
     for (int id : fragment._atomindices) {
       out << id << " ";
     }
-    out << std::endl;
-    out << "Value:" << fragment._value;
+    out << "\nValue:" << fragment._value;
+    out << "\n";
     return out;
   };
 

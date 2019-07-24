@@ -93,8 +93,7 @@ bool QMRegion::Converged() const {
 }
 
 void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
-  XTP_LOG_SAVE(logINFO, _log) << "Evaluating:" << this->identify() << " "
-                              << this->getId() << std::flush;
+
   std::vector<double> interact_energies = ApplyInfluenceOfOtherRegions(regions);
   double e_ext =
       std::accumulate(interact_energies.begin(), interact_energies.end(), 0.0);

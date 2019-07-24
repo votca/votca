@@ -121,7 +121,6 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_pos[1], "posY", HOFFSET(data, posY));
   table.addCol(_pos[2], "posZ", HOFFSET(data, posZ));
 
-  // same type as rank
   table.addCol(_rank, "rank", HOFFSET(data, rank));
 
   table.addCol(_Q[0], "Q00", HOFFSET(data, Q00));

@@ -74,8 +74,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   tools::Property _bsecoupling_options;
   tools::Property _dftcoupling_options;
 
-  std::string _mapfile;
-
   // what to do
   bool _do_dft_input = false;
   bool _do_dft_run = false;

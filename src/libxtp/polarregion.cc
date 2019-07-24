@@ -58,7 +58,7 @@ bool PolarRegion::Converged() const {
     converged = true;
   }
   XTP_LOG_SAVE(logINFO, _log)
-      << TimeStamp() << "Region:" << this->identify() << " " << this->getId()
+      << TimeStamp() << " Region:" << this->identify() << " " << this->getId()
       << " is " << info << " deltaE=" << Echange << std::flush;
   return converged;
 }

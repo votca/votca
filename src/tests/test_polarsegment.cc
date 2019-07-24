@@ -132,4 +132,31 @@ BOOST_AUTO_TEST_CASE(add_atom_test) {
   BOOST_CHECK_EQUAL(check_pos2, true);
 }
 
+BOOST_AUTO_TEST_CASE(readwritehdf) {
+  PolarSegment seg = PolarSegment("seg1", 0);
+  std::ofstream mpsfile("polarsite.mps");
+  mpsfile << "! Two Sites" << endl;
+  mpsfile << "! N=2 " << endl;
+  mpsfile << "Units angstrom" << endl;
+  mpsfile << "C +0 0 3 Rank 2" << endl;
+  mpsfile << "+1" << endl;
+  mpsfile << "10 0 0" << endl;
+  mpsfile << "100 0 0 0 0" << endl;
+  mpsfile
+      << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387"
+      << endl;
+  mpsfile << "H +0 0 1 Rank 0" << endl;
+  mpsfile << "-1" << endl;
+  mpsfile << "P +1.0000000" << endl;
+
+  seg.LoadFromFile("polarsite.mps");
+
+  CheckpointFile ff("polarsegment_test.hdf5");
+  CheckpointWriter ww = ff.getWriter();
+  seg.WriteToCpt(ww);
+
+  CheckpointReader rr = ff.getReader();
+  PolarSegment seg2(rr);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

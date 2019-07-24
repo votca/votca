@@ -3,45 +3,42 @@
         <print_regions_pdb>true</print_regions_pdb>
         <max_iterations>50</max_iterations>
         <openmp_threads>1</openmp_threads>
-        <map_file>map.xml</map_file>
+        <map_file>system.xml</map_file>
+        <job_file>qmmm_jobs.xml</job_file>
         <write_parse>
-            <states>n e h s t</states>
-            <mm_qm>mm</mm_qm>
+            <states>n s1 t1</states>
         </write_parse>
         
         <regions>
             <region>
                 <id>0</id>
-                <type>gwbse</type>
-                <options_dft />
-                <options_gwbse />
-                <filter />
-                <segments>0:n 1:n 2:n 3</segments>
-            </region>
-            <region>
-                <id>1</id>
-                <type>dft</type>
-                <options_dft />
+                <type>qm</type>
+                <options_dft>xtpdft.xml</options_dft>
+                <options_gwbse>gwbse.xml</options_gwbse>
+                <filter>
+                    <oscillator_strength>0.5</oscillator_strength>
+                </filter>
+                <state>jobfile</state>
                 <segments>jobfile</segments>
             </region>
             <region>
-                <id>2</id>
+                <id>1</id>
                 <type>polar</type>
                 <options_polar>polar.xml</options_polar>
                 <cutoff>
                     <relative_to_explicit_segs>true</relative_to_explicit_segs>
                     <geometry>n</geometry>
-                    <radius>3</radius>
+                    <radius>1</radius>
                     <region>0</region>
                 </cutoff>
             </region>
             <region>
-                <id>3</id>
+                <id>2</id>
                 <type>static</type>
                 <cutoff>
                     <relative_to_explicit_segs>true</relative_to_explicit_segs>
                     <geometry>n</geometry>
-                    <radius>3</radius>
+                    <radius>1.4</radius>
                     <region>0</region>
                 </cutoff>
             </region>

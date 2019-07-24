@@ -67,4 +67,26 @@ BOOST_AUTO_TEST_CASE(load_xyz_test) {
   seg.WriteXYZ("moltest.xyz", "heloo");
 }
 
+BOOST_AUTO_TEST_CASE(readwritehdf) {
+  ofstream xyzfile("molecule.xyz");
+  xyzfile << " 5" << endl;
+  xyzfile << " methane" << endl;
+  xyzfile << " C            .000000     .000000     .000000" << endl;
+  xyzfile << " H            .629118     .629118     .629118" << endl;
+  xyzfile << " H           -.629118    -.629118     .629118" << endl;
+  xyzfile << " H            .629118    -.629118    -.629118" << endl;
+  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  xyzfile.close();
+
+  QMMolecule seg("seg1", 1);
+  seg.LoadFromFile("molecule.xyz");
+
+  CheckpointFile ff("qmmolecule.hdf5");
+  CheckpointWriter ww = ff.getWriter();
+  seg.WriteToCpt(ww);
+
+  CheckpointReader rr = ff.getReader();
+  QMMolecule seg2(rr);
+}
+
 BOOST_AUTO_TEST_SUITE_END()

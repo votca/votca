@@ -75,7 +75,7 @@ void MapChecker::Initialize(tools::Property& opt) {
   _mdstates = StringToStates(output_md);
   if (!(_qmstates.empty() && _mdstates.empty())) {
     _mapfile =
-        opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".mapfile");
+        opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".map_file");
   }
 }
 

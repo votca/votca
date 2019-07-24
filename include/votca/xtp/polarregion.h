@@ -43,7 +43,7 @@ class PolarRegion : public MMRegion<PolarSegment> {
  public:
   PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log) {}
 
-  std::string identify() const { return "polarregion"; }
+  std::string identify() const { return "polar"; }
 
   void Initialize(const tools::Property& prop);
 

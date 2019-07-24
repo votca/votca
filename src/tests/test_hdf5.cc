@@ -48,6 +48,16 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     atoms.push_back(QMAtom(3145, "N", Eigen::Vector3d::Random()));
   }
 
+  StaticSegment seg = StaticSegment(" ", 0);
+  for (int i = 0; i < 10; ++i) {
+    seg.push_back(StaticSite(0, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(25, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(32, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(100, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(2, "Si", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(3145, "N", Eigen::Vector3d::Random()));
+  }
+
   double qmEnergy = -2.1025e-3;
 
   std::string qmPackage = "NOPE";
@@ -92,7 +102,7 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.MOCoefficients() = mocTest;
 
     orbWrite.QMAtoms() = atoms;
-
+    orbWrite.Multipoles() = seg;
     orbWrite.setQMEnergy(qmEnergy);
     orbWrite.setQMpackage(qmPackage);
     orbWrite.setSelfEnergy(selfEnergy);
@@ -165,6 +175,16 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());
     BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
     BOOST_CHECK_EQUAL(atomRead.getNuccharge(), atomTest.getNuccharge());
+    BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
+  }
+
+  BOOST_REQUIRE_EQUAL(orbRead.Multipoles().size(), seg.size());
+  for (int i = 0; i < seg.size(); ++i) {
+    const auto& atomRead = orbRead.Multipoles()[i];
+    const auto& atomTest = seg[i];
+    BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());
+    BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), tol));
+    BOOST_CHECK_EQUAL(atomRead.getCharge(), atomTest.getCharge());
     BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
   }
 }

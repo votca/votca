@@ -18,6 +18,7 @@
  */
 
 #include "qmmm.h"
+#include "votca/xtp/qmregion.h"
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <votca/xtp/jobtopology.h>
@@ -54,14 +55,14 @@ void QMMM::Initialize(tools::Property& options) {
     std::vector<std::string> statestrings = tok.ToVector();
     _states.reserve(statestrings.size());
     for (std::string s : statestrings) {
-      _states.push_back(QMStateType(s));
+      _states.push_back(QMState(s));
     }
     bool groundstate_found = false;
-    for (const QMStateType& state : _states) {
+    for (const QMState& state : _states) {
       if (state.Type() == QMStateType::Gstate) groundstate_found = true;
     }
     if (!groundstate_found) {
-      _states.push_back(QMStateType("n"));
+      _states.push_back(QMState("n"));
     }
   }
 }
@@ -71,6 +72,9 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
       std::chrono::system_clock::now();
 
   std::string qmmm_work_dir = "QMMM";
+  if (!this->hasQMRegion()) {
+    qmmm_work_dir = "MMMM";
+  }
   std::string frame_dir =
       "frame_" + boost::lexical_cast<std::string>(top.getStep());
   std::string job_dir =
@@ -191,6 +195,24 @@ Job::JobResult QMMM::EvalJob(const Topology& top, Job& job, QMThread& Thread) {
   jres.setOutput(results);
   return jres;
 }
+
+bool QMMM::hasQMRegion() const {
+  Logger log;
+  QMRegion QMdummy(0, log, "");
+  bool found_qm = false;
+  std::vector<const tools::Property*> regions_def =
+      _regions_def.Select("region");
+  for (const tools::Property* reg : regions_def) {
+    std::string type =
+        reg->ifExistsReturnElseThrowRuntimeError<std::string>("type");
+    if (QMdummy.identify() == type) {
+      found_qm = true;
+      break;
+    }
+  }
+  return found_qm;
+}
+
 void QMMM::WriteJobFile(const Topology& top) {
 
   if (!_write_parse) {
@@ -202,6 +224,8 @@ void QMMM::WriteJobFile(const Topology& top) {
   std::cout << std::endl
             << "... ... Writing job file " << _jobfile << std::flush;
 
+  bool hasQMRegion = this->hasQMRegion();
+
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
@@ -210,7 +234,7 @@ void QMMM::WriteJobFile(const Topology& top) {
   ofs << "<jobs>" << std::endl;
   int jobid = 0;
   for (const Segment& seg : top.Segments()) {
-    for (const QMStateType& state : _states) {
+    for (const QMState& state : _states) {
 
       std::string marker = std::to_string(seg.getId()) + ":" + state.ToString();
       std::string tag = seg.getName() + "_" + marker;
@@ -221,6 +245,9 @@ void QMMM::WriteJobFile(const Topology& top) {
       tools::Property& regions = pInput.add("regions", "");
       tools::Property& region = regions.add("region", "");
       region.add("id", "0");
+      if (hasQMRegion) {
+        region.add("state", state.ToString());
+      }
       region.add("segments", marker);
       Job job(jobid, tag, Input, Job::AVAILABLE);
       job.ToStream(ofs);
@@ -275,7 +302,7 @@ void QMMM::ReadJobFile(Topology& top) {
                                " is not in topology for job " +
                                std::to_string(jobid));
     }
-    QMStateType state;
+    QMState state;
     try {
       state.FromString(split[1]);
     } catch (std::runtime_error& e) {
@@ -283,16 +310,15 @@ void QMMM::ReadJobFile(Topology& top) {
       message << e.what() << " for job " << jobid;
       throw std::runtime_error(message.str());
     }
-
     double energy = job->get("output.E_tot").as<double>();
-    if (found(segid, state.Type()) != 0) {
+    if (found(segid, state.Type().Type()) != 0) {
       throw std::runtime_error("There are two entries in jobfile for segment " +
                                std::to_string(segid) +
                                " state:" + state.ToString());
     }
 
-    energies(segid, state.Type()) = energy;
-    found(segid, state.Type()) = 1;
+    energies(segid, state.Type().Type()) = energy;
+    found(segid, state.Type().Type()) = 1;
   }
 
   Eigen::Matrix<int, 1, 5> found_states = found.colwise().sum();

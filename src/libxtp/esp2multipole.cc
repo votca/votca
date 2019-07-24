@@ -75,8 +75,9 @@ void Esp2multipole::Initialize(tools::Property& options) {
         pair.first = pairvec[0];
         pair.second = pairvec[1];
         _pairconstraint.push_back(pair);
-        XTP_LOG(logDEBUG, _log) << "Charge " << pair.first << " " << pair.second
-                                << " constrained to be equal." << flush;
+        XTP_LOG(logDEBUG, _log)
+            << "Charges " << pair.first << " " << pair.second
+            << " constrained to be equal." << flush;
       }
     }
   }
