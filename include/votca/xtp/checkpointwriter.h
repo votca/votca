@@ -117,16 +117,6 @@ class CheckpointWriter {
     }
   }
 
-  /* template<typename T> */
-  /*     CptTable createTable(const std::string& name, T& Obj, std::size_t
-   * nRows, bool compact=false){ */
-  /*     CptTable table(name, sizeof(typename T::data), nRows); */
-
-  /*     Obj.SetupCptTable(table); */
-  /*     table.initialize(_loc, compact); */
-  /*     return table; */
-  /* } */
-
   template <typename T>
   CptTable openTable(const std::string& name, const T& obj, std::size_t nRows,
                      bool compact = false) {
@@ -244,27 +234,28 @@ class CheckpointWriter {
     } catch (H5::GroupIException& error) {
       dataset = loc.openDataSet(name.c_str());
     }
-    dataset.write(&(v[0]), *dataType);
+    dataset.write(v.data(), *dataType);
   }
 
   void WriteData(const CptLoc& loc, const std::vector<std::string>& v,
                  const std::string& name) const {
 
-    hsize_t dims[2] = {(hsize_t)v.size(), 1};
+    hsize_t dims[1] = {(hsize_t)v.size()};
 
-    const char* c_str_copy[v.size()];
+    std::vector<const char*> c_str_copy;
+    c_str_copy.reserve(v.size());
     for (unsigned i = 0; i < v.size(); i++) {
-      c_str_copy[i] = v[i].c_str();
+      c_str_copy.push_back(v[i].c_str());
     }
     const H5::DataType* dataType = InferDataType<std::string>::get();
     H5::DataSet dataset;
-    H5::DataSpace dp(2, dims);
+    H5::DataSpace dp(1, dims);
     try {
       dataset = loc.createDataSet(name.c_str(), *dataType, dp);
     } catch (H5::GroupIException& error) {
       dataset = loc.openDataSet(name.c_str());
     }
-    dataset.write(c_str_copy, *dataType);
+    dataset.write(c_str_copy.data(), *dataType);
   }
 
   void WriteData(const CptLoc& loc, const std::vector<Eigen::Vector3d>& v,

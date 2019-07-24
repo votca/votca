@@ -64,7 +64,7 @@ struct InferDataType<unsigned int> {
 template <>
 struct InferDataType<std::string> {
   static const H5::DataType* get(void) {
-    static const H5::StrType strtype(0, H5T_VARIABLE);
+    static const H5::StrType strtype(H5T_C_S1, H5T_VARIABLE);
     return &strtype;
   }
 };
