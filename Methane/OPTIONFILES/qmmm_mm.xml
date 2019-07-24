@@ -1,0 +1,36 @@
+<options>
+    <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+        <print_regions_pdb>true</print_regions_pdb>
+        <max_iterations>50</max_iterations>
+        <openmp_threads>1</openmp_threads>
+        <map_file>system.xml</map_file>
+ <job_file>qmmm_mm_jobs.xml</job_file>
+        <write_parse>
+            <states>n e h s1</states>
+        </write_parse>
+        
+        <regions>
+            <region>
+                <id>0</id>
+                <type>polar</type>
+                <options_polar>OPTIONFILES/polar.xml</options_polar>
+                <segments>jobfile</segments>
+                <cutoff>
+                    <geometry>n</geometry>
+                    <radius>0.5</radius>
+                </cutoff>
+            </region>
+            <region>
+                <id>1</id>
+                <type>static</type>
+                <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
+                    <geometry>n</geometry>
+                    <radius>1.4</radius>
+                    <region>0</region>
+                </cutoff>
+            </region>
+        </regions>
+    </qmmm>
+
+</options>
