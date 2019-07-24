@@ -30,7 +30,7 @@ void Populationanalysis<T>::CalcChargeperAtom(Orbitals& orbitals,
   Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
   AOOverlap overlap;
   overlap.Fill(basis);
-  Eigen::VectorXd charges = CalcElecChargeperAtom(dmat, overlap, basis);
+  Eigen::VectorXd charges = -CalcElecChargeperAtom(dmat, overlap, basis);
   if (!state.isTransition()) {
     charges += CalcNucChargeperAtom(orbitals.QMAtoms());
   }
@@ -69,7 +69,7 @@ void Populationanalysis<T>::CalcChargeperFragment(
     std::array<Eigen::MatrixXd, 2> dmat_ex =
         orbitals.DensityMatrixExcitedState(state);
     Eigen::VectorXd atom_h = CalcElecChargeperAtom(dmat_ex[0], overlap, basis);
-    Eigen::VectorXd atom_e = CalcElecChargeperAtom(dmat_ex[1], overlap, basis);
+    Eigen::VectorXd atom_e = -CalcElecChargeperAtom(dmat_ex[1], overlap, basis);
     for (auto& frag : frags) {
       frag.value().E(i_state) = frag.ExtractFromVector(atom_e);
       frag.value().H(i_state) = frag.ExtractFromVector(atom_h);
