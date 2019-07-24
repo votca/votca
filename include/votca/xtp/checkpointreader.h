@@ -220,10 +220,12 @@ class CheckpointReader {
     hsize_t dims[2];
     dp.getSimpleExtentDims(dims, NULL);
 
-    v.resize(dims[0]);
-    dataset.read(&(v[0]), *dataType);
-    for (std::string& s : v) {
-      s = std::string(s.c_str());
+    std::vector<char*> temp(dims[0]);
+    dataset.read(&(temp[0]), *dataType);
+    v.reserve(dims[0]);
+    for (char* s : temp) {
+      v.push_back(std::string(s));
+      free(s);
     }
   }
 

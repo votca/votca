@@ -252,6 +252,10 @@ class CheckpointWriter {
 
     hsize_t dims[2] = {(hsize_t)v.size(), 1};
 
+    const char* c_str_copy[v.size()];
+    for (unsigned i = 0; i < v.size(); i++) {
+      c_str_copy[i] = v[i].c_str();
+    }
     const H5::DataType* dataType = InferDataType<std::string>::get();
     H5::DataSet dataset;
     H5::DataSpace dp(2, dims);
@@ -260,7 +264,7 @@ class CheckpointWriter {
     } catch (H5::GroupIException& error) {
       dataset = loc.openDataSet(name.c_str());
     }
-    dataset.write(&(v[0]), *dataType);
+    dataset.write(c_str_copy, *dataType);
   }
 
   void WriteData(const CptLoc& loc, const std::vector<Eigen::Vector3d>& v,

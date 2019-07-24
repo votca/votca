@@ -200,4 +200,23 @@ BOOST_AUTO_TEST_CASE(read_non_existing_scalar) {
   BOOST_REQUIRE_THROW(r(someThing, "someThing"), std::runtime_error);
 }
 
+BOOST_AUTO_TEST_CASE(read_vector_strings) {
+  CheckpointFile cpf("xtp_vector_string.hdf5");
+  CheckpointWriter w = cpf.getWriter();
+
+  std::vector<std::string> test_vec = {
+      "a", "b", "advhsbsavc", "dumuunnadnjdsahjads", "DASASDFAFNADDH blasndd"};
+  w(test_vec, "vec");
+
+  std::vector<std::string> test_vec2;
+  CheckpointReader r = cpf.getReader();
+  r(test_vec2, "vec");
+
+  BOOST_CHECK_EQUAL(test_vec.size(), test_vec2.size());
+
+  for (unsigned i = 0; i > test_vec.size(); i++) {
+    BOOST_CHECK_EQUAL(test_vec[i], test_vec2[i]);
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
