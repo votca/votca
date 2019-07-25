@@ -41,16 +41,7 @@ class BSE {
  public:
   BSE(Orbitals& orbitals, Logger& log, TCMatrix_gwbse& Mmn,
       const Eigen::MatrixXd& Hqp)
-      : _log(log),
-        _orbitals(orbitals),
-        _bse_singlet_energies(orbitals.BSESingletEnergies()),
-        _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
-        _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
-        _bse_triplet_energies(orbitals.BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
-        _bse_triplet_coefficients_AR(orbitals.BSETripletCoefficientsAR()),
-        _Mmn(Mmn),
-        _Hqp(Hqp){};
+      : _log(log), _orbitals(orbitals), _Mmn(Mmn), _Hqp(Hqp){};
 
   struct options {
     bool useTDA = true;
@@ -77,21 +68,13 @@ class BSE {
   void Solve_singlets();
   void Solve_triplets();
 
-  SingletOperator_TDA getSingletOperator_TDA();
-  TripletOperator_TDA getTripletOperator_TDA();
+  SingletOperator_TDA getSingletOperator_TDA() const;
+  TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
-
-  void FreeTriplets() {
-    _bse_triplet_coefficients.resize(0, 0);
-    _bse_triplet_coefficients_AR.resize(0, 0);
-  }
-
-  void FreeSinglets() {
-    _bse_singlet_coefficients.resize(0, 0);
-    _bse_singlet_coefficients_AR.resize(0, 0);
-  }
+  void Analyze_singlets(
+      std::vector<QMFragment<BSE_Population> >& singlets) const;
+  void Analyze_triplets(
+      std::vector<QMFragment<BSE_Population> >& triplets) const;
 
  private:
   options _opt;
@@ -112,46 +95,36 @@ class BSE {
   Orbitals& _orbitals;
   Eigen::VectorXd _epsilon_0_inv;
 
-  // references are stored in orbitals object
-  Eigen::VectorXd& _bse_singlet_energies;
-  Eigen::MatrixXd& _bse_singlet_coefficients;
-  Eigen::MatrixXd& _bse_singlet_coefficients_AR;
-  Eigen::VectorXd& _bse_triplet_energies;
-  Eigen::MatrixXd& _bse_triplet_coefficients;
-  Eigen::MatrixXd& _bse_triplet_coefficients_AR;
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
 
-  void Solve_singlets_TDA();
-  void Solve_singlets_BTDA();
+  tools::EigenSystem Solve_singlets_TDA() const;
+  tools::EigenSystem Solve_singlets_BTDA() const;
 
-  void Solve_triplets_TDA();
-  void Solve_triplets_BTDA();
+  tools::EigenSystem Solve_triplets_TDA() const;
+  tools::EigenSystem Solve_triplets_BTDA() const;
 
-  void PrintWeight(int i, int i_bse, QMStateType type);
-
-  template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H);
+  void PrintWeight(int i, int i_bse, QMStateType type) const;
 
   template <typename BSE_OPERATOR>
-  void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,
-                       Eigen::MatrixXd& coefficients);
+  void configureBSEOperator(BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  tools::EigenSystem solve_hermitian(BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
-  void Solve_nonhermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
-                          Eigen::VectorXd& energies,
-                          Eigen::MatrixXd& coefficients,
-                          Eigen::MatrixXd& coefficients_AR);
+  tools::EigenSystem Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
+                                        BSE_OPERATOR_AmB&) const;
 
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;
   void printWeights(int i_bse, double weight) const;
   void SetupDirectInteractionOperator();
 
-  Interaction Analyze_eh_interaction(const QMStateType& type);
+  Interaction Analyze_eh_interaction(const QMStateType& type) const;
   template <typename BSE_OPERATOR>
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
-                                                 const BSE_OPERATOR& H);
+                                                 const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca

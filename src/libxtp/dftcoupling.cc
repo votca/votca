@@ -82,7 +82,7 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
 
 std::pair<int, int> DFTcoupling::DetermineRangeOfStates(
     const Orbitals& orbital, int numberofstates) const {
-  const Eigen::VectorXd& MOEnergies = orbital.MOEnergies();
+  const Eigen::VectorXd& MOEnergies = orbital.MOs().eigenvalues();
   if (std::abs(MOEnergies(orbital.getHomo()) - MOEnergies(orbital.getLumo())) <
       _degeneracy) {
     throw std::runtime_error(
@@ -190,11 +190,11 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
       << psi_AxB.cols() << "]" << flush;
 
   // constructing merged orbitals
-  psi_AxB.block(0, 0, basisA, levelsA) = orbitalsA.MOCoefficients().block(
+  psi_AxB.topLeftCorner(basisA, levelsA) = orbitalsA.MOs().eigenvectors().block(
       0, Range_orbA.first, basisA, Range_orbA.second);
-  psi_AxB.block(basisA, levelsA, basisB, levelsB) =
-      orbitalsB.MOCoefficients().block(0, Range_orbB.first, basisB,
-                                       Range_orbB.second);
+  psi_AxB.bottomRightCorner(basisB, levelsB) =
+      orbitalsB.MOs().eigenvectors().block(0, Range_orbB.first, basisB,
+                                           Range_orbB.second);
 
   XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
                             << orbitalsAB.getDFTbasisName() << flush;
@@ -202,7 +202,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   XTP_LOG(logDEBUG, *_pLog)
       << "Projecting dimer onto monomer orbitals" << flush;
   Eigen::MatrixXd psi_AxB_dimer_basis =
-      psi_AxB.transpose() * overlap * orbitalsAB.MOCoefficients();
+      psi_AxB.transpose() * overlap * orbitalsAB.MOs().eigenvectors();
 
   unsigned int LevelsA = levelsA;
   for (unsigned i = 0; i < psi_AxB_dimer_basis.rows(); i++) {
@@ -229,7 +229,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   XTP_LOG(logDEBUG, *_pLog)
       << "Projecting the Fock matrix onto the dimer basis" << flush;
   Eigen::MatrixXd JAB_dimer = psi_AxB_dimer_basis *
-                              orbitalsAB.MOEnergies().asDiagonal() *
+                              orbitalsAB.MOs().eigenvalues().asDiagonal() *
                               psi_AxB_dimer_basis.transpose();
   XTP_LOG(logDEBUG, *_pLog) << "Constructing Overlap matrix" << flush;
   Eigen::MatrixXd S_AxB = psi_AxB_dimer_basis * psi_AxB_dimer_basis.transpose();

@@ -45,14 +45,14 @@ std::vector<int> Orbitals::CheckDegeneracy(int level,
                                            double energy_difference) const {
 
   std::vector<int> result = std::vector<int>(0);
-  if (level > _mo_energies.size()) {
+  if (level > _mos.eigenvalues().size()) {
     throw std::runtime_error(
         "Level for degeneracy is higher than maximum level");
   }
-  double MOEnergyLevel = _mo_energies(level);
+  double MOEnergyLevel = _mos.eigenvalues()(level);
 
-  for (int i = 0; i < _mo_energies.size(); ++i) {
-    if (std::abs(_mo_energies(i) - MOEnergyLevel) * tools::conv::hrt2ev <
+  for (int i = 0; i < _mos.eigenvalues().size(); ++i) {
+    if (std::abs(_mos.eigenvalues()(i) - MOEnergyLevel) * tools::conv::hrt2ev <
         energy_difference) {
       result.push_back(i);
     }
@@ -61,10 +61,10 @@ std::vector<int> Orbitals::CheckDegeneracy(int level,
 }
 
 std::vector<int> Orbitals::SortEnergies() {
-  std::vector<int> index = std::vector<int>(_mo_energies.size());
+  std::vector<int> index = std::vector<int>(_mos.eigenvalues().size());
   std::iota(index.begin(), index.end(), 0);
   std::stable_sort(index.begin(), index.end(), [this](int i1, int i2) {
-    return this->MOEnergies()[i1] < this->MOEnergies()[i2];
+    return this->MOs().eigenvalues()[i1] < this->MOs().eigenvalues()[i2];
   });
   return index;
 }
@@ -96,10 +96,10 @@ Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
 // Determine ground state density matrix
 
 Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
-  if (!hasMOCoefficients()) {
+  if (!hasMOs()) {
     throw std::runtime_error("Orbitals file does not contain MO coefficients");
   }
-  Eigen::MatrixXd occstates = _mo_coefficients.leftCols(_occupied_levels);
+  Eigen::MatrixXd occstates = _mos.eigenvectors().leftCols(_occupied_levels);
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
@@ -108,9 +108,9 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
   if (!hasQPdiag()) {
     throw std::runtime_error("Orbitals file does not contain QP coefficients");
   }
-  return _mo_coefficients.block(0, _qpmin, _mo_coefficients.rows(),
-                                _qpmax - _qpmin + 1) *
-         _QPdiag_coefficients;
+  return _mos.eigenvectors().block(0, _qpmin, _mos.eigenvectors().rows(),
+                                   _qpmax - _qpmin + 1) *
+         _QPdiag.eigenvectors();
 }
 
 // Determine QuasiParticle Density Matrix
@@ -153,7 +153,7 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
         "Spin type not known for transition density matrix. Available only for "
         "singlet");
   }
-  const Eigen::MatrixXd& BSECoefs = _BSE_singlet_coefficients;
+  const Eigen::MatrixXd& BSECoefs = _BSE_singlet.eigenvectors();
   if (BSECoefs.cols() < state.Index() + 1 || BSECoefs.rows() < 2) {
     throw std::runtime_error("Orbitals object has no information about state:" +
                              state.ToString());
@@ -172,7 +172,7 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
   Eigen::VectorXd coeffs = BSECoefs.col(state.Index());
 
   if (!_useTDA) {
-    coeffs += _BSE_singlet_coefficients_AR.col(state.Index());
+    coeffs += _BSE_singlet.eigenvectors2().col(state.Index());
   }
   coeffs *= std::sqrt(2.0);
   vc2index index = vc2index(_bse_vmin, _bse_cmin, _bse_ctotal);
@@ -180,8 +180,8 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
       Eigen::MatrixXd::Zero(_basis_set_size, _basis_set_size);
 
   for (int i = 0; i < _bse_size; i++) {
-    dmatTS.noalias() += coeffs(i) * _mo_coefficients.col(index.v(i)) *
-                        _mo_coefficients.col(index.c(i)).transpose();
+    dmatTS.noalias() += coeffs(i) * _mos.eigenvectors().col(index.v(i)) *
+                        _mos.eigenvectors().col(index.c(i)).transpose();
   }
 
   return dmatTS;
@@ -210,8 +210,8 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_R(
   }
 
   const Eigen::MatrixXd& BSECoefs = (state.Type() == QMStateType::Singlet)
-                                        ? _BSE_singlet_coefficients
-                                        : _BSE_triplet_coefficients;
+                                        ? _BSE_singlet.eigenvectors()
+                                        : _BSE_triplet.eigenvectors();
   if (BSECoefs.cols() < state.Index() + 1 || BSECoefs.rows() < 2) {
     throw std::runtime_error("Orbitals object has no information about state:" +
                              state.ToString());
@@ -243,13 +243,13 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_R(
 
   std::array<Eigen::MatrixXd, 2> dmatEX;
   // hole part as matrix products
-  Eigen::MatrixXd occlevels = _mo_coefficients.block(
-      0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
+  Eigen::MatrixXd occlevels = _mos.eigenvectors().block(
+      0, _bse_vmin, _mos.eigenvectors().rows(), _bse_vtotal);
   dmatEX[0] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
 
   // electron part as matrix products
-  Eigen::MatrixXd virtlevels = _mo_coefficients.block(
-      0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
+  Eigen::MatrixXd virtlevels = _mos.eigenvectors().block(
+      0, _bse_cmin, _mos.eigenvectors().rows(), _bse_ctotal);
   dmatEX[1] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
 
   return dmatEX;
@@ -295,8 +295,8 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
   }
 
   const Eigen::MatrixXd& BSECoefs_AR = (state.Type() == QMStateType::Singlet)
-                                           ? _BSE_singlet_coefficients_AR
-                                           : _BSE_triplet_coefficients_AR;
+                                           ? _BSE_singlet.eigenvectors2()
+                                           : _BSE_triplet.eigenvectors2();
   if (BSECoefs_AR.cols() < state.Index() + 1 || BSECoefs_AR.rows() < 2) {
     throw std::runtime_error("Orbitals object has no information about state:" +
                              state.ToString());
@@ -327,12 +327,12 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
   Eigen::VectorXd coeffs = BSECoefs_AR.col(state.Index());
 
   std::array<Eigen::MatrixXd, 2> dmatAR;
-  Eigen::MatrixXd virtlevels = _mo_coefficients.block(
-      0, _bse_cmin, _mo_coefficients.rows(), _bse_ctotal);
+  Eigen::MatrixXd virtlevels = _mos.eigenvectors().block(
+      0, _bse_cmin, _mos.eigenvectors().rows(), _bse_ctotal);
   dmatAR[0] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
   // electron part as matrix products
-  Eigen::MatrixXd occlevels = _mo_coefficients.block(
-      0, _bse_vmin, _mo_coefficients.rows(), _bse_vtotal);
+  Eigen::MatrixXd occlevels = _mos.eigenvectors().block(
+      0, _bse_vmin, _mos.eigenvectors().rows(), _bse_vtotal);
   dmatAR[1] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
 
   return dmatAR;
@@ -341,13 +341,13 @@ std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
 Eigen::VectorXd Orbitals::Oscillatorstrengths() const {
 
   int size = _transition_dipoles.size();
-  if (size > _BSE_singlet_energies.size()) {
-    size = _BSE_singlet_energies.size();
+  if (size > _BSE_singlet.eigenvalues().size()) {
+    size = _BSE_singlet.eigenvalues().size();
   }
   Eigen::VectorXd oscs = Eigen::VectorXd::Zero(size);
   for (int i = 0; i < size; ++i) {
     oscs(i) = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 *
-              (_BSE_singlet_energies(i));
+              (_BSE_singlet.eigenvalues()(i));
   }
   return oscs;
 }
@@ -370,33 +370,33 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
   }
 
   if (state.Type() == QMStateType::Singlet) {
-    if (BSESingletEnergies().size() < state.Index() + 1) {
+    if (_BSE_singlet.eigenvalues().size() < state.Index() + 1) {
       throw std::runtime_error("Orbitals::getTotalEnergy You want " +
                                state.ToString() +
                                " which has not been calculated");
     }
-    omega = BSESingletEnergies()[state.Index()];
+    omega = _BSE_singlet.eigenvalues()()[state.Index()];
   } else if (state.Type() == QMStateType::Triplet) {
-    if (BSETripletEnergies().size() < state.Index() + 1) {
+    if (_BSE_triplet.eigenvalues().size() < state.Index() + 1) {
       throw std::runtime_error("Orbitals::getTotalEnergy You want " +
                                state.ToString() +
                                " which has not been calculated");
     }
-    omega = BSETripletEnergies()[state.Index()];
+    omega = _BSE_triplet.eigenvalues()[state.Index()];
   } else if (state.Type() == QMStateType::DQPstate) {
-    if (this->QPdiagEnergies().size() < state.Index() + 1 - getGWAmin()) {
+    if (_QPdiag.eigenvalues().size() < state.Index() + 1 - getGWAmin()) {
       throw std::runtime_error("Orbitals::getTotalEnergy You want " +
                                state.ToString() +
                                " which has not been calculated");
     }
-    return QPdiagEnergies()[state.Index() - getGWAmin()];
+    return _QPdiag.eigenvalues()[state.Index() - getGWAmin()];
   } else if (state.Type() == QMStateType::KSstate) {
-    if (this->MOEnergies().size() < state.Index() + 1) {
+    if (_mos.eigenvalues().size() < state.Index() + 1) {
       throw std::runtime_error("Orbitals::getTotalEnergy You want " +
                                state.ToString() +
                                " which has not been calculated");
     }
-    return QPdiagEnergies()[state.Index()];
+    return _mos.eigenvalues()[state.Index()];
   } else if (state.Type() == QMStateType::PQPstate) {
     if (this->_QPpert_energies.rows() < state.Index() + 1 - getGWAmin()) {
       throw std::runtime_error("Orbitals::getTotalEnergy You want " +
@@ -412,7 +412,7 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
 }
 
 std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
-  const Eigen::MatrixXd& dft_orbitals = MOCoefficients();
+  const Eigen::MatrixXd& dft_orbitals = _mos.eigenvectors();
   AOBasis basis = SetupDftBasis();
   // Testing electric dipole AOMatrix
   AODipole dft_dipole;
@@ -464,14 +464,13 @@ void Orbitals::CalcCoupledTransition_Dipoles() {
 
 void Orbitals::OrderMOsbyEnergy() {
   std::vector<int> sort_index = SortEnergies();
-  Eigen::MatrixXd MOcopy = MOCoefficients();
-  Eigen::VectorXd Energy = MOEnergies();
+  tools::EigenSystem MO_copy = _mos;
 
   for (int i = 0; i < Energy.size(); ++i) {
-    MOEnergies()(i) = Energy(sort_index[i]);
+    _mos.eigenvalues()(i) = MO_copy.eigenvalues()(sort_index[i]);
   }
   for (int i = 0; i < Energy.size(); ++i) {
-    MOCoefficients().col(i) = MOcopy.col(sort_index[i]);
+    _mos.eigenvectors().col(i) = MOcopy.eigenvectors().col(sort_index[i]);
   }
 }
 
@@ -489,13 +488,10 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   int basisA = orbitalsA.getBasisSetSize();
   int basisB = orbitalsB.getBasisSetSize();
 
-  int levelsA = orbitalsA.getBasisSetSize();
-  int levelsB = orbitalsB.getBasisSetSize();
-
   int electronsA = orbitalsA.getNumberOfAlphaElectrons();
   int electronsB = orbitalsB.getNumberOfAlphaElectrons();
 
-  MOCoefficients() = Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
+  _mos.eigenvectors() = Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
 
   // AxB = | A 0 |  //   A = [EA, EB]  //
   //       | 0 B |  //                 //
@@ -515,16 +511,15 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   this->setNumberOfOccupiedLevels(electronsA + electronsB);
   this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
-  this->MOCoefficients().block(0, 0, basisA, levelsA) =
+  _mos.eigenvectors().topLeftCorner(basisA, basisA) =
       orbitalsA.MOCoefficients();
-  this->MOCoefficients().block(basisA, levelsA, basisB, levelsB) =
+  _mos.eigenvectors().bottomRightCorner(basisB, basisB) =
       orbitalsB.MOCoefficients();
 
-  Eigen::VectorXd& energies = this->MOEnergies();
-  energies.resize(levelsA + levelsB);
+  _mos.eigenvalues().resize(basisA + basisB);
 
-  energies.segment(0, levelsA) = orbitalsA.MOEnergies();
-  energies.segment(levelsA, levelsB) = orbitalsB.MOEnergies();
+  _mos.eigenvalues().head(basisA) = orbitalsA.MOEnergies();
+  energies.tail(basisB) = orbitalsB.MOEnergies();
 
   OrderMOsbyEnergy();
 
@@ -546,8 +541,7 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_occupied_levels, "occupied_levels");
   w(_number_alpha_electrons, "number_alpha_electrons");
 
-  w(_mo_energies, "mo_energies");
-  w(_mo_coefficients, "mo_coefficients");
+  w(_mos, "mos");
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   _atoms.WriteToCpt(molgroup);
@@ -574,21 +568,14 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
   w(_ECP, "ECP");
 
   w(_QPpert_energies, "QPpert_energies");
-  w(_QPdiag_energies, "QPdiag_energies");
 
-  w(_QPdiag_coefficients, "QPdiag_coefficients");
+  w(_QPdiag, "QPdiag");
 
-  w(_BSE_singlet_energies, "BSE_singlet_energies");
-
-  w(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
-
-  w(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
+  w(_BSE_singlet, "BSE_singlet");
 
   w(_transition_dipoles, "transition_dipoles");
 
-  w(_BSE_triplet_energies, "BSE_triplet_energies");
-  w(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
-  w(_BSE_triplet_coefficients_AR, "BSE_triplet_coefficients_AR");
+  w(_BSE_triplet, "BSE_triplet");
 }
 
 void Orbitals::ReadFromCpt(const std::string& filename) {
@@ -605,8 +592,7 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_occupied_levels, "occupied_levels");
   r(_number_alpha_electrons, "number_alpha_electrons");
 
-  r(_mo_energies, "mo_energies");
-  r(_mo_coefficients, "mo_coefficients");
+  r(_mos, "mos");
 
   // Read qmatoms
   CheckpointReader molgroup = r.openChild("qmmolecule");
@@ -639,21 +625,13 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   r(_ECP, "ECP");
 
   r(_QPpert_energies, "QPpert_energies");
-  r(_QPdiag_energies, "QPdiag_energies");
+  r(_QPdiag, "QPdiag");
 
-  r(_QPdiag_coefficients, "QPdiag_coefficients");
-
-  r(_BSE_singlet_energies, "BSE_singlet_energies");
-
-  r(_BSE_singlet_coefficients, "BSE_singlet_coefficients");
-
-  r(_BSE_singlet_coefficients_AR, "BSE_singlet_coefficients_AR");
+  r(_BSE_singlet, "BSE_singlet");
 
   r(_transition_dipoles, "transition_dipoles");
 
-  r(_BSE_triplet_energies, "BSE_triplet_energies");
-  r(_BSE_triplet_coefficients, "BSE_triplet_coefficients");
-  r(_BSE_triplet_coefficients_AR, "BSE_triplet_coefficients_AR");
+  r(_BSE_triplet, "BSE_triplet");
 }
 }  // namespace xtp
 }  // namespace votca

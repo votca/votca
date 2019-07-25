@@ -407,10 +407,10 @@ void GWBSE::addoutput(tools::Property& summary) {
                          (_orbitals.QPpertEnergies().col(4)(state) * hrt2ev))
                             .str());
 
-      level_summary.add(
-          "qp_energy",
-          (format("%1$+1.6f ") % (_orbitals.QPdiagEnergies()(state) * hrt2ev))
-              .str());
+      level_summary.add("qp_energy",
+                        (format("%1$+1.6f ") %
+                         (_orbitals.QPdiag().eigenvalues()(state) * hrt2ev))
+                            .str());
     }
   }
   if (_do_bse_singlets) {
@@ -418,10 +418,10 @@ void GWBSE::addoutput(tools::Property& summary) {
     for (int state = 0; state < _bseopt.nmax; ++state) {
       tools::Property& level_summary = singlet_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
-      level_summary.add("omega",
-                        (format("%1$+1.6f ") %
-                         (_orbitals.BSESingletEnergies()(state) * hrt2ev))
-                            .str());
+      level_summary.add(
+          "omega", (format("%1$+1.6f ") %
+                    (_orbitals.BSESinglets().eigenvalues()(state) * hrt2ev))
+                       .str());
       if (_orbitals.hasTransitionDipoles()) {
 
         const Eigen::Vector3d& dipoles = (_orbitals.TransitionDipoles())[state];
@@ -443,10 +443,10 @@ void GWBSE::addoutput(tools::Property& summary) {
     for (int state = 0; state < _bseopt.nmax; ++state) {
       tools::Property& level_summary = triplet_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
-      level_summary.add("omega",
-                        (format("%1$+1.6f ") %
-                         (_orbitals.BSETripletEnergies()(state) * hrt2ev))
-                            .str());
+      level_summary.add(
+          "omega", (format("%1$+1.6f ") %
+                    (_orbitals.BSETriplets().eigenvalues()(state) * hrt2ev))
+                       .str());
     }
   }
   return;
@@ -501,9 +501,9 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
       << TimeStamp() << " Set hybrid exchange factor: " << _orbitals.getScaHFX()
       << flush;
   int qptotal = _gwopt.qpmax - _gwopt.qpmin + 1;
-  int basissize = _orbitals.MOCoefficients().rows();
+  int basissize = _orbitals.MOs().eigenvectors().rows();
   Eigen::MatrixXd mos =
-      _orbitals.MOCoefficients().block(0, _gwopt.qpmin, basissize, qptotal);
+      _orbitals.MOs().eigenvectors().block(0, _gwopt.qpmin, basissize, qptotal);
 
   Eigen::MatrixXd vxc = mos.transpose() * e_vxc_ao.matrix() * mos;
   XTP_LOG(logDEBUG, *_pLog)
@@ -596,7 +596,7 @@ bool GWBSE::Evaluate() {
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
-  Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
+  Mmn.Fill(auxbasis, dftbasis, _orbitals.MOs().eigenvectors());
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Removed " << Mmn.Removedfunctions()
       << " functions from Aux Coulomb matrix to avoid near linear dependencies"
@@ -609,7 +609,7 @@ bool GWBSE::Evaluate() {
 
   if (_do_gw) {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
-    GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOEnergies());
+    GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOs().eigenvalues());
     gw.configure(_gwopt);
     gw.CalculateGWPerturbation();
 
@@ -631,12 +631,12 @@ bool GWBSE::Evaluate() {
           << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
     }
 
-    _orbitals.QPdiagCoefficients() = es.eigenvectors();
-    _orbitals.QPdiagEnergies() = es.eigenvalues();
+    _orbitals.QPdiag().eigenvectors() = es.eigenvectors();
+    _orbitals.QPdiag().eigenvalues() = es.eigenvalues();
   } else {
-    const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiagCoefficients();
-    Hqp =
-        qpcoeff * _orbitals.QPdiagEnergies().asDiagonal() * qpcoeff.transpose();
+    const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiag().eigenvectors();
+    Hqp = qpcoeff * _orbitals.QPdiag().eigenvalues().asDiagonal() *
+          qpcoeff.transpose();
   }
 
   // proceed only if BSE requested
@@ -649,9 +649,6 @@ bool GWBSE::Evaluate() {
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Solved BSE for triplets " << flush;
       bse.Analyze_triplets(_triplets);
-      if (!_store_bse_triplets) {
-        bse.FreeTriplets();
-      }
     }
 
     if (_do_bse_singlets) {
@@ -659,9 +656,6 @@ bool GWBSE::Evaluate() {
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Solved BSE for singlets " << flush;
       bse.Analyze_singlets(_singlets);
-      if (!_store_bse_singlets) {
-        bse.FreeSinglets();
-      }
     }
   }
   XTP_LOG(logDEBUG, *_pLog)

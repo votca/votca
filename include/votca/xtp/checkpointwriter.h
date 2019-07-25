@@ -24,10 +24,10 @@
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
-#include <votca/xtp/eigen.h>
-
+#include <votca/tools/linalg.h>
 #include <votca/xtp/checkpoint_utils.h>
 #include <votca/xtp/checkpointtable.h>
+#include <votca/xtp/eigen.h>
 
 namespace votca {
 namespace xtp {
@@ -274,6 +274,22 @@ class CheckpointWriter {
       WriteData(parent, x, "ind" + r);
       ++c;
     }
+  }
+
+  void WriteData(const CptLoc& loc, const tools::EigenSystem& sys,
+                 const std::string& name) const {
+
+    CptLoc parent;
+    try {
+      parent = loc.createGroup(name);
+    } catch (H5::GroupIException& error) {
+      parent = loc.openGroup(name);
+    }
+
+    WriteData(parent, sys.eigenvalues(), "eigenvalues");
+    WriteData(parent, sys.eigenvectors(), "eigenvectors");
+    WriteData(parent, sys.eigenvectors2(), "eigenvectors2");
+    WriteScalar(parent, int(sys.info()), "info");
   }
 
   template <typename T1, typename T2>

@@ -225,8 +225,8 @@ bool DFTEngine::Evaluate() {
   if (_with_guess) {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Reading guess from orbitals object/file" << flush;
-    MOs.eigenvalues() = _orbitals.MOEnergies();
-    MOs.eigenvectors() = OrthogonalizeGuess(_orbitals.MOCoefficients());
+    MOs = _orbitals.MOs();
+    MOs.eigenvectors() = OrthogonalizeGuess(MOs.eigenvectors());
     Dmat = _conv_accelerator.DensityMatrix(MOs);
   } else {
     XTP_LOG(logDEBUG, *_pLog)
@@ -313,8 +313,7 @@ bool DFTEngine::Evaluate() {
           << std::setprecision(12) << totenergy << " Ha" << flush;
       PrintMOs(MOs.eigenvalues());
       _orbitals.setQMEnergy(totenergy);
-      _orbitals.MOCoefficients() = MOs.eigenvectors();
-      _orbitals.MOEnergies() = MOs.eigenvalues();
+      _orbitals.MOs() = MOs;
       CalcElDipole();
       break;
     }

@@ -89,32 +89,20 @@ class Orbitals {
   void setQMpackage(const std::string &qmpackage) { _qm_package = qmpackage; }
 
   // access to DFT molecular orbital energies, new, tested
-  bool hasMOEnergies() const {
-    return (_mo_energies.size() > 0) ? true : false;
-  }
+  bool hasMOs() const { return (_mos.eigenvalues().size() > 0) ? true : false; }
 
-  const Eigen::VectorXd &MOEnergies() const { return _mo_energies; }
+  const tools::EigenSystem &MOs() const { return _mos; }
+  tools::EigenSystem &MOs() { return _mos; }
 
-  Eigen::VectorXd &MOEnergies() { return _mo_energies; }
-
-  // access to DFT molecular orbital energy of a specific level (in eV)
+  // access to DFT molecular orbital energy of a specific level
   double getMOEnergy(int level) const {
-    if (level < _mo_energies.size()) {
-      return _mo_energies[level];
+    if (level < _mos.eigenvalues().size()) {
+      return _mos.eigenvalues()[level];
     } else {
       throw std::runtime_error("Level index is outside array range");
     }
     return 0;
   }
-
-  // access to DFT molecular orbital coefficients, new, tested
-  bool hasMOCoefficients() const {
-    return (_mo_coefficients.cols() > 0) ? true : false;
-  }
-
-  const Eigen::MatrixXd &MOCoefficients() const { return _mo_coefficients; }
-
-  Eigen::MatrixXd &MOCoefficients() { return _mo_coefficients; }
 
   // determine (pseudo-)degeneracy of a DFT molecular orbital
   std::vector<int> CheckDegeneracy(int level, double energy_difference) const;
@@ -122,19 +110,19 @@ class Orbitals {
   int NumberofStates(QMStateType type) const {
     switch (type.Type()) {
       case QMStateType::Singlet:
-        return BSESingletEnergies().size();
+        return _BSE_singlet.eigenvalues().size();
         break;
       case QMStateType::Triplet:
-        return BSETripletEnergies().size();
+        return _BSE_triplet.eigenvalues().size();
         break;
       case QMStateType::KSstate:
-        return MOEnergies().size();
+        return _mos.eigenvalues().size();
         break;
       case QMStateType::PQPstate:
         return _QPpert_energies.rows();
         break;
       case QMStateType::DQPstate:
-        return QPdiagEnergies().size();
+        return _QPdiag.eigenvalues().size();
         break;
       default:
         return 1;
@@ -253,7 +241,6 @@ class Orbitals {
   void setScaHFX(double ScaHFX) { _ScaHFX = ScaHFX; }
 
   // access to perturbative QP energies
-
   bool hasQPpert() const {
     return (_QPpert_energies.size() > 0) ? true : false;
   }
@@ -265,74 +252,28 @@ class Orbitals {
   // access to diagonalized QP energies and wavefunctions
 
   bool hasQPdiag() const {
-    return (_QPdiag_energies.size() > 0) ? true : false;
+    return (_QPdiag.eigenvalues().size() > 0) ? true : false;
   }
-
-  const Eigen::VectorXd &QPdiagEnergies() const { return _QPdiag_energies; }
-
-  Eigen::VectorXd &QPdiagEnergies() { return _QPdiag_energies; }
-
-  const Eigen::MatrixXd &QPdiagCoefficients() const {
-    return _QPdiag_coefficients;
-  }
-
-  Eigen::MatrixXd &QPdiagCoefficients() { return _QPdiag_coefficients; }
+  const tools::EigenSystem &QPdiag() const { return _QPdiag; }
+  tools::EigenSystem &QPdiag() { return _QPdiag; }
 
   bool hasBSETriplets() const {
-    return (_BSE_triplet_energies.cols() > 0) ? true : false;
+    return (_BSE_triplet.eigenvectors().cols() > 0) ? true : false;
   }
 
-  const Eigen::VectorXd &BSETripletEnergies() const {
-    return _BSE_triplet_energies;
-  }
+  const tools::EigenSystem &BSETriplets() const { return _BSE_triplet; }
 
-  Eigen::VectorXd &BSETripletEnergies() { return _BSE_triplet_energies; }
-
-  const Eigen::MatrixXd &BSETripletCoefficients() const {
-    return _BSE_triplet_coefficients;
-  }
-
-  Eigen::MatrixXd &BSETripletCoefficients() {
-    return _BSE_triplet_coefficients;
-  }
-
-  const Eigen::MatrixXd &BSETripletCoefficientsAR() const {
-    return _BSE_triplet_coefficients_AR;
-  }
-
-  Eigen::MatrixXd &BSETripletCoefficientsAR() {
-    return _BSE_triplet_coefficients_AR;
-  }
+  tools::EigenSystem &BSETriplets() { return _BSE_triplet; }
 
   // access to singlet energies and wave function coefficients
 
   bool hasBSESinglets() const {
-    return (_BSE_singlet_energies.cols() > 0) ? true : false;
+    return (_BSE_singlet.eigenvectors().cols() > 0) ? true : false;
   }
 
-  const Eigen::VectorXd &BSESingletEnergies() const {
-    return _BSE_singlet_energies;
-  }
+  const tools::EigenSystem &BSESinglets() const { return _BSE_singlet; }
 
-  Eigen::VectorXd &BSESingletEnergies() { return _BSE_singlet_energies; }
-
-  const Eigen::MatrixXd &BSESingletCoefficients() const {
-    return _BSE_singlet_coefficients;
-  }
-
-  Eigen::MatrixXd &BSESingletCoefficients() {
-    return _BSE_singlet_coefficients;
-  }
-
-  // for anti-resonant part in full BSE
-
-  const Eigen::MatrixXd &BSESingletCoefficientsAR() const {
-    return _BSE_singlet_coefficients_AR;
-  }
-
-  Eigen::MatrixXd &BSESingletCoefficientsAR() {
-    return _BSE_singlet_coefficients_AR;
-  }
+  tools::EigenSystem &BSESinglets() { return _BSE_singlet; }
 
   // access to transition dipole moments
 
@@ -411,8 +352,7 @@ class Orbitals {
   std::string _ECP = "";
   bool _useTDA;
 
-  Eigen::VectorXd _mo_energies;
-  Eigen::MatrixXd _mo_coefficients;
+  tools::EigenSystem _mos;
 
   QMMolecule _atoms;
 
@@ -448,17 +388,12 @@ class Orbitals {
   Eigen::MatrixXd _QPpert_energies;
 
   // quasiparticle energies and coefficients after diagonalization
-  Eigen::VectorXd _QPdiag_energies;
-  Eigen::MatrixXd _QPdiag_coefficients;
-  // excitons
-  Eigen::VectorXd _BSE_singlet_energies;
-  Eigen::MatrixXd _BSE_singlet_coefficients;
-  Eigen::MatrixXd _BSE_singlet_coefficients_AR;
 
+  tools::EigenSystem _QPdiag;
+
+  tools::EigenSystem _BSE_singlet;
   std::vector<Eigen::Vector3d> _transition_dipoles;
-  Eigen::VectorXd _BSE_triplet_energies;
-  Eigen::MatrixXd _BSE_triplet_coefficients;
-  Eigen::MatrixXd _BSE_triplet_coefficients_AR;
+  tools::EigenSystem _BSE_triplet;
 };
 
 }  // namespace xtp

@@ -22,10 +22,10 @@
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
-#include <votca/xtp/eigen.h>
-
+#include <votca/tools/linalg.h>
 #include <votca/xtp/checkpoint_utils.h>
 #include <votca/xtp/checkpointtable.h>
+#include <votca/xtp/eigen.h>
 
 namespace votca {
 namespace xtp {
@@ -227,6 +227,18 @@ class CheckpointReader {
       v.push_back(std::string(s));
       free(s);
     }
+  }
+
+  void ReadData(const CptLoc& loc, tools::EigenSystem& sys,
+                const std::string& name) const {
+
+    CptLoc parent = loc.openGroup(name);
+    ReadData(parent, sys.eigenvalues(), "eigenvalues");
+    ReadData(parent, sys.eigenvectors(), "eigenvectors");
+    ReadData(parent, sys.eigenvectors2(), "eigenvectors2");
+    int info;
+    ReadScalar(parent, info, "info");
+    sys.info() = static_cast<Eigen::ComputationInfo>(info);
   }
 
   void ReadData(const CptLoc& loc, std::vector<Eigen::Vector3d>& v,

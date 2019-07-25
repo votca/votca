@@ -40,11 +40,9 @@ template <int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR : public MatrixFreeOperator {
 
  public:
-  BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, TCMatrix_gwbse& Mmn,
+  BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
                const Eigen::MatrixXd& Hqp)
       : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp){};
-
-  ~BSE_OPERATOR() {}
 
   void configure(BSEOperator_Options opt) {
     _opt = opt;
