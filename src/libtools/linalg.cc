@@ -63,9 +63,9 @@ void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
   return;
 }
 
-tools::EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
+EigenSystem linalg_eigenvalues(Eigen::MatrixXd &A, int nmax) {
 
-  tools::EigenSystem result;
+  EigenSystem result;
 #if defined(MKL)
   double wkopt;
   double *work;

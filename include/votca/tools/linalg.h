@@ -18,31 +18,10 @@
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define __VOTCA_TOOLS_LINALG_H
 #include <votca/tools/eigen.h>
+#include <votca/tools/eigensystem.h>
 
 namespace votca {
 namespace tools {
-
-class EigenSystem {
- public:
-  // returns eigenvalues
-  const Eigen::VectorXd& eigenvalues() const { return _eigenvalues; }
-  Eigen::VectorXd& eigenvalues() { return _eigenvalues; }
-  // returns eigenvectors
-  const Eigen::MatrixXd& eigenvectors() const { return _eigenvectors; }
-  Eigen::MatrixXd& eigenvectors() { return _eigenvectors; }
-  // returns left eigenvectors or other in case of nonhermititan problem
-  const Eigen::MatrixXd& eigenvectors2() const { return _eigenvectors_2; }
-  Eigen::MatrixXd& eigenvectors2() { return _eigenvectors_2; }
-
-  Eigen::ComputationInfo info() const { return _info; }
-  Eigen::ComputationInfo& info() { return _info; }
-
- private:
-  Eigen::ComputationInfo _info = Eigen::Success;
-  Eigen::VectorXd _eigenvalues;
-  Eigen::MatrixXd _eigenvectors;
-  Eigen::MatrixXd _eigenvectors_2;
-};
 
 /**
  * \brief solves A*x=b under the constraint B*x = 0
@@ -65,7 +44,7 @@ void linalg_constrained_qrsolve(Eigen::VectorXd& x, Eigen::MatrixXd& A,
  * This function is only useful if MKL is used, wraps
  * LAPACKE_dsyevx
  */
-tools::EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, int nmax);
+EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, int nmax);
 
 }  // namespace tools
 }  // namespace votca
