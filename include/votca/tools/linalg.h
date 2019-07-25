@@ -22,6 +22,28 @@
 namespace votca {
 namespace tools {
 
+class EigenSystem {
+ public:
+  // returns eigenvalues
+  const Eigen::VectorXd& eigenvalues() const { return _eigenvalues; }
+  Eigen::VectorXd& eigenvalues() { return _eigenvalues; }
+  // returns eigenvectors
+  const Eigen::MatrixXd& eigenvectors() const { return _eigenvectors; }
+  Eigen::MatrixXd& eigenvectors() { return _eigenvectors; }
+  // returns left eigenvectors or other in case of nonhermititan problem
+  const Eigen::MatrixXd& eigenvectors2() const { return _eigenvectors_2; }
+  Eigen::MatrixXd& eigenvectors2() { return _eigenvectors_2; }
+
+  Eigen::ComputationInfo info() const { return _info; }
+  Eigen::ComputationInfo& info() { return _info; }
+
+ private:
+  Eigen::ComputationInfo _info = Eigen::Success;
+  Eigen::VectorXd _eigenvalues;
+  Eigen::MatrixXd _eigenvectors;
+  Eigen::MatrixXd _eigenvectors_2;
+};
+
 /**
  * \brief solves A*x=b under the constraint B*x = 0
  * @param x storage for x
@@ -31,24 +53,19 @@ namespace tools {
  *
  * This function implements the qrsolver under constraints
  */
-void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
-                                const Eigen::VectorXd &b,
-                                const Eigen::MatrixXd &constr);
+void linalg_constrained_qrsolve(Eigen::VectorXd& x, Eigen::MatrixXd& A,
+                                const Eigen::VectorXd& b,
+                                const Eigen::MatrixXd& constr);
 
 /**
  * \brief solves A*V=E*V for the first n eigenvalues
  * @param A symmetric matrix to diagonalize, is destroyed during iteration
- * @param E, eigenvalues
- * @param V, eigenvectors, each column is one eigenvector
  * @param nmax number of eigenvalues to return
  *
  * This function is only useful if MKL is used, wraps
- * LAPACKE_ssyevx/LAPACKE_dsyevx
+ * LAPACKE_dsyevx
  */
-bool linalg_eigenvalues(Eigen::MatrixXd &A, Eigen::VectorXd &E,
-                        Eigen::MatrixXd &V, int nmax);
-bool linalg_eigenvalues(Eigen::MatrixXf &A, Eigen::VectorXf &E,
-                        Eigen::MatrixXf &V, int nmax);
+tools::EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, int nmax);
 
 }  // namespace tools
 }  // namespace votca

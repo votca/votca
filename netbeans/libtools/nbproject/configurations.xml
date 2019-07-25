@@ -21,6 +21,7 @@
       <itemPath>../../include/votca/tools/edgecontainer.h</itemPath>
       <itemPath>../../include/votca/tools/eigen.h</itemPath>
       <itemPath>../../include/votca/tools/elements.h</itemPath>
+      <itemPath>../../include/votca/tools/floatingpointcomparison.h</itemPath>
       <itemPath>../../include/votca/tools/getline.h</itemPath>
       <itemPath>../../include/votca/tools/globals.h</itemPath>
       <itemPath>../../include/votca/tools/histogram.h</itemPath>
@@ -198,6 +199,11 @@
       <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/elements.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/floatingpointcomparison.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -532,6 +538,11 @@
             tool="3"
             flavor2="0">
       </item>
+      <item path="../../include/votca/tools/floatingpointcomparison.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/tools/getline.h"
             ex="false"
             tool="3"
@@ -858,6 +869,11 @@
       <item path="../../include/votca/tools/eigen.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/elements.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/tools/floatingpointcomparison.h"
             ex="false"
             tool="3"
             flavor2="0">
