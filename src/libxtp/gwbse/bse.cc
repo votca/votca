@@ -205,9 +205,10 @@ void BSE::solve_hermitian(BSE_OPERATOR& h, Eigen::VectorXd& energies,
                             << elapsed_time.count() << " secs" << flush;
 
     hstart = std::chrono::system_clock::now();
-    tools::linalg_eigenvalues(hfull, energies, coefficients, _opt.nmax);
+    tools::EigenSystem result = tools::linalg_eigenvalues(hfull, _opt.nmax);
     hend = std::chrono::system_clock::now();
-
+    energies = result.eigenvalues();
+    coefficients = result.eigenvectors();
     elapsed_time = hend - hstart;
     XTP_LOG(logDEBUG, _log) << TimeStamp() << " Lapack solve done in "
                             << elapsed_time.count() << " secs" << flush;
@@ -229,8 +230,8 @@ void BSE::Solve_singlets_BTDA() {
   configureBSEOperator(Hs_AmB);
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Setup Full singlet hamiltonian "
                           << flush;
-  Solve_antihermitian(Hs_ApB, Hs_AmB, _bse_singlet_energies,
-                      _bse_singlet_coefficients, _bse_singlet_coefficients_AR);
+  Solve_nonhermitian(Hs_ApB, Hs_AmB, _bse_singlet_energies,
+                     _bse_singlet_coefficients, _bse_singlet_coefficients_AR);
 }
 
 void BSE::Solve_triplets_BTDA() {
@@ -241,15 +242,15 @@ void BSE::Solve_triplets_BTDA() {
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Setup Full triplet hamiltonian "
                           << flush;
 
-  Solve_antihermitian(Ht_ApB, Ht_AmB, _bse_triplet_energies,
-                      _bse_triplet_coefficients, _bse_triplet_coefficients_AR);
+  Solve_nonhermitian(Ht_ApB, Ht_AmB, _bse_triplet_energies,
+                     _bse_triplet_coefficients, _bse_triplet_coefficients_AR);
 }
 
 template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
-void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
-                              Eigen::VectorXd& energies,
-                              Eigen::MatrixXd& coefficients,
-                              Eigen::MatrixXd& coefficients_AR) {
+void BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
+                             Eigen::VectorXd& energies,
+                             Eigen::MatrixXd& coefficients,
+                             Eigen::MatrixXd& coefficients_AR) {
 
   // For details of the method, see EPL,78(2007)12001,
   // Nuclear Physics A146(1970)449, Nuclear Physics A163(1971)257.
@@ -276,7 +277,7 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
       AmB(i, j) = 0;
     }
   }
-  if (L.info() != 0) {
+  if (L.info() != Eigen::ComputationInfo::Success) {
     XTP_LOG(logDEBUG, _log)
         << TimeStamp()
         << " Cholesky decomposition of KAA-KAB was unsucessful. Try a smaller "
@@ -288,18 +289,16 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
         << TimeStamp() << " Cholesky decomposition of KAA-KAB was successful"
         << flush;
   }
-  Eigen::MatrixXd temp = ApB * AmB;
-  ApB.noalias() = AmB.transpose() * temp;
-  temp.resize(0, 0);
+
+  ApB = AmB.transpose() * ApB * AmB;
+
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Calculated H = L^T(A+B)L "
                           << flush;
-  Eigen::VectorXd eigenvalues;
-  Eigen::MatrixXd eigenvectors;
+
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Solving for first " << _opt.nmax
                           << " eigenvectors" << flush;
-  bool success_diag =
-      tools::linalg_eigenvalues(ApB, eigenvalues, eigenvectors, _opt.nmax);
-  if (!success_diag) {
+  tools::EigenSystem eigensys = tools::linalg_eigenvalues(ApB, _opt.nmax);
+  if (eigensys.info() != Eigen::ComputationInfo::Success) {
     XTP_LOG(logDEBUG, _log)
         << TimeStamp() << " Could not solve problem" << flush;
   } else {
@@ -307,11 +306,12 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
         << TimeStamp() << " Solved HR_l = eps_l^2 R_l " << flush;
   }
   ApB.resize(0, 0);
-  if ((eigenvalues.array() < 0).any()) {
+  if ((eigensys.eigenvalues().array() < 0).any()) {
     throw std::runtime_error("Negative eigenvalues in BTDA");
   }
   Eigen::VectorXd tempvec =
-      eigenvalues.cwiseSqrt();  // has to stay otherwise mkl complains
+      eigensys.eigenvalues().cwiseSqrt();  // has to stay otherwise mkl
+                                           // complains
   energies = tempvec;
   // reconstruct real eigenvectors X_l = 1/2 [sqrt(eps_l) (L^T)^-1 +
   // 1/sqrt(eps_l)L ] R_l
@@ -327,10 +327,10 @@ void BSE::Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
     double sqrt_eval = std::sqrt(energies(level));
     // get l-th reduced EV
     coefficients.col(level) = (0.5 / sqrt_eval * (energies(level) * LmT + AmB) *
-                               eigenvectors.col(level));
+                               eigensys.eigenvectors().col(level));
     coefficients_AR.col(level) =
         (0.5 / sqrt_eval * (energies(level) * LmT - AmB) *
-         eigenvectors.col(level));
+         eigensys.eigenvectors().col(level));
   }
   return;
 }

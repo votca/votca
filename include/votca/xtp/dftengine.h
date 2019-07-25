@@ -76,6 +76,9 @@ class DFTEngine {
       const std::vector<std::unique_ptr<StaticSite> >& multipoles) const;
   Mat_p_Energy IntegrateExternalDensity(const Orbitals& extdensity) const;
 
+  Eigen::MatrixXd IndependentElectronGuess(const Mat_p_Energy& H0);
+  Eigen::MatrixXd ModelPotentialGuess(const Mat_p_Energy& H0);
+
   Eigen::MatrixXd AtomicGuess() const;
   std::string ReturnSmallGrid(const std::string& largegrid);
 

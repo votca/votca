@@ -463,6 +463,15 @@ void GWBSE::addoutput(tools::Property& summary) {
  */
 
 Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
+  if (!_orbitals.getXCFunctionalName().empty()) {
+    _orbitals.setXCFunctionalName(_functional);
+  } else {
+    if (!(_functional == _orbitals.getXCFunctionalName())) {
+      throw std::runtime_error("Functionals from DFT " +
+                               _orbitals.getXCFunctionalName() + " GWBSE " +
+                               _functional + " differ!");
+    }
+  }
 
   NumericalIntegration numint;
   numint.setXCfunctional(_functional);
@@ -475,7 +484,7 @@ Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
          ScaHFX_temp % _orbitals.getScaHFX())
             .str());
   }
-  _orbitals.setXCFunctionalName(_functional);
+
   numint.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Setup grid for integration with gridsize: " << _grid

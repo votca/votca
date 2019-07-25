@@ -212,17 +212,18 @@ Eigen::MatrixXd DavidsonSolver::QR_ortho(const Eigen::MatrixXd &A) const {
   ncols = std::min(nrows, ncols);
 
   Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
-  Eigen::MatrixXd result =
-      qr.householderQ() * Eigen::MatrixXd::Identity(nrows, ncols);
+  Eigen::MatrixXd result = qr.householderQ();
+  result.conservativeResize(nrows, ncols);
   return result;
 }
 
 Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho(const Eigen::MatrixXd &A,
-                                                  int nstart) const {
+                                                  int nstart) {
   Eigen::MatrixXd Q = A;
   for (int j = nstart; j < A.cols(); ++j) {
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
+      _info = Eigen::ComputationInfo::NumericalIssue;
       throw std::runtime_error(
           "Linear dependencies in Gram-Schmidt. Switch to QR");
     }

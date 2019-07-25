@@ -17,7 +17,6 @@
  *
  */
 #include "votca/xtp/convergenceacc.h"
-#include "votca/xtp/aomatrix.h"
 
 namespace votca {
 namespace xtp {
@@ -38,8 +37,7 @@ void ConvergenceAcc::setOverlap(AOOverlap& S, double etol) {
 
 Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
                                         Eigen::MatrixXd& H,
-                                        Eigen::VectorXd& MOenergies,
-                                        Eigen::MatrixXd& MOs, double totE) {
+                                        tools::EigenSystem& MOs, double totE) {
   Eigen::MatrixXd H_guess = Eigen::MatrixXd::Zero(H.rows(), H.cols());
 
   if (int(_mathist.size()) == _opt.histlength) {
@@ -50,7 +48,8 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
 
   _totE.push_back(totE);
   if (_opt.mode != KSmode::fractional) {
-    double gap = MOenergies(_nocclevels) - MOenergies(_nocclevels - 1);
+    double gap =
+        MOs.eigenvalues()(_nocclevels) - MOs.eigenvalues()(_nocclevels - 1);
     if ((_diiserror > _opt.levelshiftend && _opt.levelshift > 0.0) ||
         gap < 1e-6) {
       Levelshift(H);
@@ -115,8 +114,8 @@ Eigen::MatrixXd ConvergenceAcc::Iterate(const Eigen::MatrixXd& dmat,
     H_guess = H;
   }
 
-  SolveFockmatrix(MOenergies, MOs, H_guess);
-  Eigen::MatrixXd dmatout = DensityMatrix(MOs, MOenergies);
+  MOs = SolveFockmatrix(H_guess);
+  Eigen::MatrixXd dmatout = DensityMatrix(MOs);
 
   if (_diiserror > _opt.adiis_start || !_opt.usediis || diis_error ||
       _mathist.size() <= 2) {
@@ -161,9 +160,7 @@ void ConvergenceAcc::PrintConfigOptions() const {
                            << _opt.mixingparameter << std::flush;
 }
 
-void ConvergenceAcc::SolveFockmatrix(Eigen::VectorXd& MOenergies,
-                                     Eigen::MatrixXd& MOs,
-                                     const Eigen::MatrixXd& H) {
+tools::EigenSystem ConvergenceAcc::SolveFockmatrix(const Eigen::MatrixXd& H) {
   // transform to orthogonal for
   Eigen::MatrixXd H_ortho = Sminusahalf.transpose() * H * Sminusahalf;
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(H_ortho);
@@ -174,10 +171,11 @@ void ConvergenceAcc::SolveFockmatrix(Eigen::VectorXd& MOenergies,
   }
 
   MOsinv = es.eigenvectors().transpose() * Sonehalf;
-  MOenergies = es.eigenvalues();
+  tools::EigenSystem result;
+  result.eigenvalues() = es.eigenvalues();
 
-  MOs = Sminusahalf * es.eigenvectors();
-  return;
+  result.eigenvectors() = Sminusahalf * es.eigenvectors();
+  return result;
 }
 
 void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H) const {
@@ -203,21 +201,21 @@ void ConvergenceAcc::Levelshift(Eigen::MatrixXd& H) const {
 }
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrix(
-    const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) const {
+    const tools::EigenSystem& MOs) const {
   Eigen::MatrixXd result;
   if (_opt.mode == KSmode::closed) {
-    result = DensityMatrixGroundState(MOs);
+    result = DensityMatrixGroundState(MOs.eigenvectors());
   } else if (_opt.mode == KSmode::open) {
-    result = DensityMatrixGroundState_unres(MOs);
+    result = DensityMatrixGroundState_unres(MOs.eigenvectors());
   } else if (_opt.mode == KSmode::fractional) {
-    result = DensityMatrixGroundState_frac(MOs, MOEnergies);
+    result = DensityMatrixGroundState_frac(MOs);
   }
   return result;
 }
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(
     const Eigen::MatrixXd& MOs) const {
-  const Eigen::MatrixXd occstates = MOs.block(0, 0, MOs.rows(), _nocclevels);
+  const Eigen::MatrixXd occstates = MOs.leftCols(_nocclevels);
   Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
   return dmatGS;
 }
@@ -225,27 +223,28 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState(
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_unres(
     const Eigen::MatrixXd& MOs) const {
   if (_nocclevels == 0) {
-    return Eigen::MatrixXd::Zero(MOs.cols(), MOs.rows());
+    return Eigen::MatrixXd::Zero(MOs.rows(), MOs.rows());
   }
-  Eigen::MatrixXd occstates = MOs.block(0, 0, MOs.rows(), _nocclevels);
+  Eigen::MatrixXd occstates = MOs.leftCols(_nocclevels);
   Eigen::MatrixXd dmatGS = occstates * occstates.transpose();
   return dmatGS;
 }
 
 Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
-    const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) const {
+    const tools::EigenSystem& MOs) const {
   if (_opt.numberofelectrons == 0) {
-    return Eigen::MatrixXd::Zero(MOs.rows(), MOs.cols());
+    return Eigen::MatrixXd::Zero(MOs.eigenvectors().rows(),
+                                 MOs.eigenvectors().rows());
   }
   int numofelec = _opt.numberofelectrons;
-  Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOEnergies.size());
+  Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOs.eigenvalues().size());
 
   std::vector<std::vector<int> > degeneracies;
   double buffer = 1e-4;
   degeneracies.push_back(std::vector<int>{0});
   for (int i = 1; i < occupation.size(); i++) {
-    if (MOEnergies(i) <
-        MOEnergies(degeneracies[degeneracies.size() - 1][0]) + buffer) {
+    if (MOs.eigenvalues()(i) <
+        MOs.eigenvalues()(degeneracies[degeneracies.size() - 1][0]) + buffer) {
       degeneracies[degeneracies.size() - 1].push_back(i);
     } else {
       degeneracies.push_back(std::vector<int>{i});
@@ -266,7 +265,8 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
       break;
     }
   }
-  Eigen::MatrixXd dmatGS = MOs * occupation.asDiagonal() * MOs.transpose();
+  Eigen::MatrixXd dmatGS = MOs.eigenvectors() * occupation.asDiagonal() *
+                           MOs.eigenvectors().transpose();
   return dmatGS;
 }
 

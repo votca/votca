@@ -40,7 +40,6 @@ void GWBSEEngine::Initialize(tools::Property& options,
   _archive_file = archive_filename;
   std::string key = Identify();
 
-  // get the tasks
   std::string tasks_string = options.get(".tasks").as<std::string>();
 
   if (tasks_string.find("guess") != std::string::npos) _do_guess = true;

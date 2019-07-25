@@ -51,7 +51,8 @@ class DavidsonSolver {
   void set_correction(std::string method);
   void set_ortho(std::string method);
   void set_size_update(std::string method);
-  int get_size_update(int neigen) const;
+
+  Eigen::ComputationInfo info() const { return _info; }
 
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
@@ -174,6 +175,9 @@ class DavidsonSolver {
       // update
       search_space = V.cols();
       bool converged = (res_norm.head(neigen) < _tol).all();
+      if (converged) {
+        _info = Eigen::ComputationInfo::Success;
+      }
       bool last_iter = iiter == (_iter_max - 1);
       // break if converged
       if (converged || last_iter) {
@@ -186,7 +190,7 @@ class DavidsonSolver {
           XTP_LOG(logDEBUG, _log)
               << TimeStamp() << "- Warning : Davidson " << percent_converged
               << "% converged after " << _iter_max << " iterations." << flush;
-
+          _info = Eigen::ComputationInfo::NoConvergence;
           for (int i = 0; i < neigen; i++) {
             if (!root_converged[i]) {
               _eigenvalues(i) = 0;
@@ -227,6 +231,8 @@ class DavidsonSolver {
 
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
+  Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
+  int get_size_update(int neigen) const;
 
   void PrintOptions(int op_size) const;
   void PrintTiming(
@@ -240,7 +246,7 @@ class DavidsonSolver {
   Eigen::MatrixXd SetupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
 
   Eigen::MatrixXd QR_ortho(const Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd gramschmidt_ortho(const Eigen::MatrixXd &A, int nstart) const;
+  Eigen::MatrixXd gramschmidt_ortho(const Eigen::MatrixXd &A, int nstart);
   Eigen::VectorXd dpr_correction(const Eigen::VectorXd &w,
                                  const Eigen::VectorXd &A0,
                                  double lambda) const;

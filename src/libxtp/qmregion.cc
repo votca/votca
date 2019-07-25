@@ -181,7 +181,7 @@ void QMRegion::AppendResult(tools::Property& prop) const {
   prop.add("E_total", std::to_string(_E_hist.back() * tools::conv::hrt2ev));
   if (_do_gwbse) {
     prop.add("Initial_State", _filter.InitialState().ToString());
-    prop.add("Final_State:", _filter.CalcState(_orb).ToString());
+    prop.add("Final_State", _filter.CalcState(_orb).ToString());
   }
 }
 

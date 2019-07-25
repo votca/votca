@@ -138,10 +138,10 @@ class BSE {
                        Eigen::MatrixXd& coefficients);
 
   template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
-  void Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
-                           Eigen::VectorXd& energies,
-                           Eigen::MatrixXd& coefficients,
-                           Eigen::MatrixXd& coefficients_AR);
+  void Solve_nonhermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
+                          Eigen::VectorXd& energies,
+                          Eigen::MatrixXd& coefficients,
+                          Eigen::MatrixXd& coefficients_AR);
 
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;
