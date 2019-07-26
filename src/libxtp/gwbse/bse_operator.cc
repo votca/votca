@@ -82,18 +82,15 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd_row(int index) const {
   int c1 = vc.c(index);
 
   const Eigen::MatrixXd Mmn1T =
-      (_Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize) *
-       _epsilon_0_inv.asDiagonal())
-          .transpose();
+      -(_Mmn[v1 + vmin].block(vmin, 0, _bse_vtotal, auxsize) *
+        _epsilon_0_inv.asDiagonal())
+           .transpose();
   const Eigen::MatrixXd& Mmn2 = _Mmn[c1 + cmin];
-  const Eigen::MatrixXd Mmn2xMmn1T =
+  Eigen::MatrixXd Mmn2xMmn1T =
       Mmn2.block(cmin, 0, _bse_ctotal, auxsize) * Mmn1T;
 
-  Eigen::RowVectorXd Hrow = Eigen::RowVectorXd::Zero(_bse_size);
-  for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-    int i2 = vc.I(v2, 0);
-    Hrow.segment(i2, _bse_ctotal) = -Mmn2xMmn1T.col(v2);
-  }
+  Eigen::RowVectorXd Hrow =
+      Eigen::Map<Eigen::RowVectorXd>(Mmn2xMmn1T.data(), Mmn2xMmn1T.size());
   return Hrow;
 }
 
@@ -102,21 +99,15 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hqp_row(int index) const {
   vc2index vc = vc2index(0, 0, _bse_ctotal);
   int v1 = vc.v(index);
   int c1 = vc.c(index);
-  Eigen::RowVectorXd Hrow = Eigen::RowVectorXd::Zero(_bse_size);
-
-  int cmin = _bse_vtotal - _opt.qpmin;
+  Eigen::MatrixXd Result = Eigen::MatrixXd::Zero(_bse_ctotal, _bse_vtotal);
+  int cmin = _bse_cmin - _opt.qpmin;
   // v->c
-  for (int c2 = 0; c2 < _bse_ctotal; c2++) {
-    int index_vc2 = vc.I(v1, c2);
-    Hrow(index_vc2) += _Hqp(c2 + cmin, c1 + cmin);
-  }
+  Result.col(v1) = _Hqp.col(c1 + cmin).segment(cmin, _bse_ctotal);
   // c-> v
-  int v1_qp = v1 - _opt.qpmin;
-  for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-    int index_vc2 = vc.I(v2, c1);
-    Hrow(index_vc2) -= _Hqp(v2 - _opt.qpmin, v1_qp);
-  }
-  return Hrow;
+  int vmin = _opt.vmin - _opt.qpmin;
+  Result.row(c1) -= _Hqp.col(v1 + vmin).segment(vmin, _bse_vtotal);
+  return Eigen::Map<Eigen::RowVectorXd>(Result.data(), Result.size());
+  ;
 }
 
 template <int cqp, int cx, int cd, int cd2>
@@ -130,18 +121,14 @@ Eigen::RowVectorXd BSE_OPERATOR<cqp, cx, cd, cd2>::Hd2_row(int index) const {
   int c1 = vc.c(index);
 
   const Eigen::MatrixXd Mmn2T =
-      (_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
-       _epsilon_0_inv.asDiagonal())
-          .transpose();
+      -(_Mmn[c1 + cmin].block(vmin, 0, _bse_vtotal, auxsize) *
+        _epsilon_0_inv.asDiagonal())
+           .transpose();
   const Eigen::MatrixXd& Mmn1 = _Mmn[v1 + vmin];
   Eigen::MatrixXd Mmn1xMmn2T =
       Mmn1.block(cmin, 0, _bse_ctotal, auxsize) * Mmn2T;
-  Eigen::RowVectorXd Hrow = Eigen::VectorXd::Zero(_bse_size);
-  for (int v2 = 0; v2 < _bse_vtotal; v2++) {
-    int i2 = vc.I(v2, 0);
-    Hrow.segment(i2, _bse_ctotal) = -Mmn1xMmn2T.col(v2);
-  }
-
+  Eigen::RowVectorXd Hrow =
+      Eigen::Map<Eigen::RowVectorXd>(Mmn1xMmn2T.data(), Mmn1xMmn2T.size());
   return Hrow;
 }
 

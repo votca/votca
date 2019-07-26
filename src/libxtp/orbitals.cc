@@ -175,14 +175,14 @@ Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
     coeffs += _BSE_singlet.eigenvectors2().col(state.Index());
   }
   coeffs *= std::sqrt(2.0);
-  Eigen::MatrixXd occlevels = _mos.eigenvectors().block(
+  auto occlevels = _mos.eigenvectors().block(
       0, _bse_vmin, _mos.eigenvectors().rows(), _bse_vtotal);
-  Eigen::MatrixXd virtlevels = _mos.eigenvectors().block(
+  auto virtlevels = _mos.eigenvectors().block(
       0, _bse_cmin, _mos.eigenvectors().rows(), _bse_ctotal);
   Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal,
                                         _bse_vtotal);
 
-  return virtlevels * mat * occlevels.transpose();
+  return occlevels * mat.transpose() * virtlevels.transpose();
 }
 
 std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
@@ -408,14 +408,15 @@ void Orbitals::CalcCoupledTransition_Dipoles() {
   _transition_dipoles.reserve(numofstates);
   const double sqrt2 = sqrt(2.0);
   for (int i_exc = 0; i_exc < numofstates; i_exc++) {
-    Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
+
     Eigen::VectorXd coeffs = _BSE_singlet.eigenvectors().col(i_exc);
-    Eigen::Map<Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal, _bse_vtotal);
     if (!_useTDA) {
       coeffs += _BSE_singlet.eigenvectors2().col(i_exc);
     }
+    Eigen::Map<Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal, _bse_vtotal);
+    Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
     for (int i = 0; i < 3; i++) {
-      tdipole[i] += mat.cwiseProduct(interlevel_dipoles[i]).sum();
+      tdipole[i] = mat.cwiseProduct(interlevel_dipoles[i]).sum();
     }
     // The Transition dipole is sqrt2 bigger because of the spin, the
     // excited state is a linear combination of 2 slater determinants,
