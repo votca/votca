@@ -371,7 +371,6 @@ BOOST_AUTO_TEST_CASE(densmat_test) {
 
   QMState n2s1 = QMState("n2s1");
   Eigen::MatrixXd dmat_n2s1 = orb.DensityMatrixFull(n2s1);
-
   Eigen::MatrixXd dmat_n2s1_ref = Eigen::MatrixXd::Zero(17, 17);
   dmat_n2s1_ref << -0.000397846, 0.000176625, -0.00881468, 0.00292497,
       -5.88628e-05, 0.00567658, -0.0158532, -0.00993011, 0.00907284,
