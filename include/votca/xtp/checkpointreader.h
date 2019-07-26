@@ -221,7 +221,7 @@ class CheckpointReader {
     dp.getSimpleExtentDims(dims, NULL);
 
     std::vector<char*> temp(dims[0]);
-    dataset.read(&(temp[0]), *dataType);
+    dataset.read(temp.data(), *dataType);
     v.reserve(dims[0]);
     for (char* s : temp) {
       v.push_back(std::string(s));

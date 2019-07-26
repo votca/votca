@@ -105,7 +105,8 @@ BOOST_AUTO_TEST_CASE(osc) {
   orb.setBSEindices(0, 16);
   orb.setTDAApprox(true);
 
-  Eigen::MatrixXd& MOs = orb.MOCoefficients();
+  Eigen::MatrixXd& MOs = orb.MOs().eigenvectors();
+  orb.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
   MOs = Eigen::MatrixXd::Zero(17, 17);
   MOs << -0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169,
       -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15,
@@ -158,7 +159,7 @@ BOOST_AUTO_TEST_CASE(osc) {
 
   Eigen::VectorXd se_ref = Eigen::VectorXd::Zero(3);
   se_ref << 0.107455, 0.107455, 0.107455;
-  orb.BSESingletEnergies() = se_ref;
+  orb.BSESinglets().eigenvalues() = se_ref;
   // reference coefficients
   Eigen::MatrixXd spsi_ref = Eigen::MatrixXd::Zero(60, 3);
   spsi_ref << -0.00178316, -0.0558332, 0.0151767, 0.00568291, 0.0149417,
@@ -193,7 +194,7 @@ BOOST_AUTO_TEST_CASE(osc) {
       -0.00516415, 0.00138942, 0.00125201, -0.00139237, -0.00501195,
       -0.00519809, -0.000154171, -0.00125602, 4.03664e-08, -6.04796e-08,
       -4.6768e-08, -2.38233e-09, 2.31605e-09, 1.35922e-09;
-  orb.BSESingletCoefficients() = spsi_ref;
+  orb.BSESinglets().eigenvectors() = spsi_ref;
   orb.CalcCoupledTransition_Dipoles();
 
   {

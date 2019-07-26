@@ -229,7 +229,7 @@ Eigen::MatrixXd Statefilter::CalcOrthoCoeffs(const Orbitals& orbitals) const {
     if (type == QMStateType::DQPstate) {
       coeffs = orbitals.CalculateQParticleAORepresentation();
     } else {
-      coeffs = orbitals.MOCoefficients();
+      coeffs = orbitals.MOs().eigenvectors();
     }
   } else {
     throw std::runtime_error("Overlap for excitons not implemented yet");

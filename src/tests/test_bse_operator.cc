@@ -109,7 +109,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
 
   orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
-  Eigen::MatrixXd& MOs = orbitals.MOCoefficients();
+  Eigen::MatrixXd& MOs = orbitals.MOs().eigenvectors();
   MOs = Eigen::MatrixXd::Zero(17, 17);
   MOs << -0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169,
       -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15,
@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
       -9.14928e-09, -6.52056e-09, -1.90439e-08, 0.0229724, -7.73601e-08,
       -7.18964e-08, -4.85316e-09, 0.0330278, 19.4256;
 
-  Eigen::VectorXd& mo_energy = orbitals.MOEnergies();
+  Eigen::VectorXd& mo_energy = orbitals.MOs().eigenvalues();
   mo_energy = Eigen::VectorXd::Zero(17);
   mo_energy << -0.612601, -0.341755, -0.341755, -0.341755, 0.137304, 0.16678,
       0.16678, 0.16678, 0.671592, 0.671592, 0.671592, 0.974255, 1.01205,

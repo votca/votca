@@ -89,8 +89,8 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) {
     ecpbasis.Fill(ecps, orbitals.QMAtoms());
   }
 
-  if (orbitals.hasMOCoefficients()) {
-    dftbasis.ReorderMOs(orbitals.MOCoefficients(), getPackageName(), "xtp");
+  if (orbitals.hasMOs()) {
+    dftbasis.ReorderMOs(orbitals.MOs().eigenvectors(), getPackageName(), "xtp");
     XTP_LOG(logDEBUG, *_pLog) << "Reordered MOs" << flush;
   }
 
@@ -105,7 +105,7 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   }
   AOBasis dftbasis;
   dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
-  Eigen::MatrixXd result = orbitals.MOCoefficients();
+  Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
   dftbasis.ReorderMOs(result, "xtp", getPackageName());
   return result;
 }

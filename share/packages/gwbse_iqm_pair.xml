@@ -9,7 +9,6 @@
         <bsemax></bsemax> <!-- needed, if ranges is factor or explicit -->
 	<shift>0.3</shift> <!-- preshift of DFT energies in Rydberg -->
 	<tasks>gw</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
-	<store></store>
         <exctotal>1</exctotal>
         <print>1</print>
 </mbgft>

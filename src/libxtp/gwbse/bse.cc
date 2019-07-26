@@ -352,9 +352,9 @@ void BSE::PrintWeight(int i, int i_bse, QMStateType state) const {
   const tools::EigenSystem& BSECoefs = (state == QMStateType::Singlet)
                                            ? _orbitals.BSESinglets()
                                            : _orbitals.BSETriplets();
-  double weight = std::pow(BSECoefs.eigenvectors(i_bse, i), 2);
+  double weight = std::pow(BSECoefs.eigenvectors()(i_bse, i), 2);
   if (!_opt.useTDA) {
-    weight -= std::pow(BSECoefs.eigenvectors2(i_bse, i), 2);
+    weight -= std::pow(BSECoefs.eigenvectors2()(i_bse, i), 2);
   }
   vc2index vc = vc2index(_opt.vmin, _bse_cmin, _bse_ctotal);
   if (weight > _opt.min_print_weight) {

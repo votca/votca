@@ -74,10 +74,6 @@ class GWBSE {
   bool _do_bse_singlets = false;
   bool _do_bse_triplets = false;
 
-  // storage tasks
-  bool _store_bse_singlets = false;
-  bool _store_bse_triplets = false;
-
   // options for own Vxc calculation
   std::string _functional;
   std::string _grid;

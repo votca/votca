@@ -173,7 +173,7 @@ void GenCube::calculateCube() {
       mat = orbitals.CalculateQParticleAORepresentation();
       amplitudeindex = _state.Index() - orbitals.getGWAmin();
     } else {
-      mat = orbitals.MOCoefficients();
+      mat = orbitals.MOs().eigenvectors();
       amplitudeindex = _state.Index();
     }
   }

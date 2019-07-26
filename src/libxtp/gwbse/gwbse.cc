@@ -323,21 +323,6 @@ void GWBSE::Initialize(tools::Property& options) {
     _do_bse_singlets = true;
   if (tasks_string.find("triplets") != std::string::npos)
     _do_bse_triplets = true;
-  // special construction for ibse mode
-
-  std::string store_string =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
-  boost::algorithm::to_lower(store_string);
-  if ((store_string.find("all") != std::string::npos) ||
-      (store_string.find("") != std::string::npos)) {
-    // store according to tasks choice
-    if (_do_bse_singlets) _store_bse_singlets = true;
-    if (_do_bse_triplets) _store_bse_triplets = true;
-  }
-  if (store_string.find("singlets") != std::string::npos)
-    _store_bse_singlets = true;
-  if (store_string.find("triplets") != std::string::npos)
-    _store_bse_triplets = true;
 
   XTP_LOG(logDEBUG, *_pLog) << " Tasks: " << flush;
   if (_do_gw) {
@@ -352,12 +337,6 @@ void GWBSE::Initialize(tools::Property& options) {
   XTP_LOG(logDEBUG, *_pLog) << " Store: " << flush;
   if (_do_gw) {
     XTP_LOG(logDEBUG, *_pLog) << " GW " << flush;
-  }
-  if (_store_bse_singlets) {
-    XTP_LOG(logDEBUG, *_pLog) << " singlets " << flush;
-  }
-  if (_store_bse_triplets) {
-    XTP_LOG(logDEBUG, *_pLog) << " triplets " << flush;
   }
 
   if (options.exists(key + ".fragments")) {
@@ -426,7 +405,7 @@ void GWBSE::addoutput(tools::Property& summary) {
 
         const Eigen::Vector3d& dipoles = (_orbitals.TransitionDipoles())[state];
         double f = 2 * dipoles.squaredNorm() *
-                   _orbitals.BSESingletEnergies()(state) / 3.0;
+                   _orbitals.BSESinglets().eigenvalues()(state) / 3.0;
 
         level_summary.add("f", (format("%1$+1.6f ") % f).str());
         tools::Property& dipol_summary = level_summary.add(

@@ -98,8 +98,8 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.setBasisSetSize(basisSetSize);
     orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
     orbWrite.setNumberOfAlphaElectrons(numElectrons);
-    orbWrite.MOEnergies() = moeTest;
-    orbWrite.MOCoefficients() = mocTest;
+    orbWrite.MOs().eigenvalues() = moeTest;
+    orbWrite.MOs().eigenvectors() = mocTest;
 
     orbWrite.QMAtoms() = atoms;
     orbWrite.Multipoles() = seg;
@@ -115,13 +115,13 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.setTDAApprox(useTDA);
     orbWrite.setECPName(someECP);
     orbWrite.QPpertEnergies() = QPpertEnergiesTest;
-    orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
-    orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
-    orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
-    orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
-    orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
-    orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
-    orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
+    orbWrite.QPdiag().eigenvalues() = QPdiagEnergiesTest;
+    orbWrite.QPdiag().eigenvectors() = QPdiagCoefficientsTest;
+    orbWrite.BSESinglets().eigenvalues() = BSESingletEnergiesTest;
+    orbWrite.BSESinglets().eigenvectors() = BSESingletCoefficientsTest;
+    orbWrite.BSESinglets().eigenvectors2() = BSESingletCoefficientsARTest;
+    orbWrite.BSETriplets().eigenvalues() = BSETripletEnergiesTest;
+    orbWrite.BSETriplets().eigenvectors() = BSETripletCoefficientsTest;
 
     orbWrite.WriteToCpt("xtp_testing.hdf5");
   }
@@ -136,9 +136,9 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK_EQUAL(orbRead.getBasisSetSize(),
                     occupiedLevels + unoccupiedLevels);
   BOOST_CHECK_EQUAL(orbRead.getNumberOfAlphaElectrons(), numElectrons);
-  BOOST_CHECK(orbRead.MOEnergies().isApprox(moeTest, tol));
+  BOOST_CHECK(orbRead.MOs().eigenvalues().isApprox(moeTest, tol));
 
-  BOOST_CHECK(orbRead.MOCoefficients().isApprox(mocTest, tol));
+  BOOST_CHECK(orbRead.MOs().eigenvectors().isApprox(mocTest, tol));
   BOOST_CHECK_CLOSE(orbRead.getDFTTotalEnergy(), qmEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
   BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
@@ -154,17 +154,17 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK_EQUAL(orbRead.getTDAApprox(), useTDA);
   BOOST_CHECK_EQUAL(orbRead.getECPName(), someECP);
   BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
-  BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
-  BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));
-  BOOST_CHECK(
-      orbRead.BSESingletEnergies().isApprox(BSESingletEnergiesTest, tol));
-  BOOST_CHECK(orbRead.BSESingletCoefficients().isApprox(
+  BOOST_CHECK(orbRead.QPdiag().eigenvalues().isApprox(QPdiagEnergiesTest, tol));
+  BOOST_CHECK(orbRead.QPdiag().eigenvectors().isApprox(QPdiagCoefficientsTest));
+  BOOST_CHECK(orbRead.BSESinglets().eigenvalues().isApprox(
+      BSESingletEnergiesTest, tol));
+  BOOST_CHECK(orbRead.BSESinglets().eigenvectors().isApprox(
       BSESingletCoefficientsTest, tol));
-  BOOST_CHECK(orbRead.BSESingletCoefficientsAR().isApprox(
+  BOOST_CHECK(orbRead.BSESinglets().eigenvectors2().isApprox(
       BSESingletCoefficientsARTest, tol));
-  BOOST_CHECK(
-      orbRead.BSETripletEnergies().isApprox(BSETripletEnergiesTest, tol));
-  BOOST_CHECK(orbRead.BSETripletCoefficients().isApprox(
+  BOOST_CHECK(orbRead.BSETriplets().eigenvalues().isApprox(
+      BSETripletEnergiesTest, tol));
+  BOOST_CHECK(orbRead.BSETriplets().eigenvectors().isApprox(
       BSETripletCoefficientsTest, tol));
 
   BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());

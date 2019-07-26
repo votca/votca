@@ -586,12 +586,12 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   orbitals.setBasisSetSize(basis_size);  // = _basis_size;
 
   // copying energies to the orbitals object
-  Eigen::VectorXd& mo_energies = orbitals.MOEnergies();
+  Eigen::VectorXd& mo_energies = orbitals.MOs().eigenvalues();
   mo_energies.resize(levels);
   for (int i = 0; i < mo_energies.size(); i++) mo_energies[i] = energies[i + 1];
 
   // copying mo coefficients to the orbitals object
-  Eigen::MatrixXd& mo_coefficients = orbitals.MOCoefficients();
+  Eigen::MatrixXd& mo_coefficients = orbitals.MOs().eigenvectors();
   mo_coefficients.resize(levels, basis_size);
   for (int i = 0; i < mo_coefficients.rows(); i++) {
     for (int j = 0; j < mo_coefficients.cols(); j++) {

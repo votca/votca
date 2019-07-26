@@ -556,20 +556,17 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     XTP_LOG_SAVE(logDEBUG, pLog)
         << "Saving orbitals to " << orbFileAB << std::flush;
     if (!_store_dft) {
-      orbitalsAB.MOCoefficients().resize(0, 0);
+      orbitalsAB.MOs().clear();
     }
     if (!_store_gw) {
-      orbitalsAB.QPdiagCoefficients().resize(0, 0);
-      orbitalsAB.QPdiagEnergies().resize(0);
+      orbitalsAB.QPdiag().clear();
       orbitalsAB.QPpertEnergies().resize(0, 0);
     }
     if (!_store_singlets) {
-      orbitalsAB.BSESingletCoefficients().resize(0, 0);
-      orbitalsAB.BSESingletEnergies().resize(0, 0);
+      orbitalsAB.BSESinglets().clear();
     }
     if (!_store_triplets) {
-      orbitalsAB.BSETripletCoefficients().resize(0, 0);
-      orbitalsAB.BSETripletEnergies().resize(0, 0);
+      orbitalsAB.BSETriplets().clear();
     }
     orbitalsAB.WriteToCpt(orbFileAB);
   } else {

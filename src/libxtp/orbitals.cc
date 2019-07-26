@@ -375,7 +375,7 @@ double Orbitals::getExcitedStateEnergy(const QMState& state) const {
                                state.ToString() +
                                " which has not been calculated");
     }
-    omega = _BSE_singlet.eigenvalues()()[state.Index()];
+    omega = _BSE_singlet.eigenvalues()[state.Index()];
   } else if (state.Type() == QMStateType::Triplet) {
     if (_BSE_triplet.eigenvalues().size() < state.Index() + 1) {
       throw std::runtime_error("Orbitals::getTotalEnergy You want " +
@@ -435,25 +435,23 @@ void Orbitals::CalcCoupledTransition_Dipoles() {
   std::array<Eigen::MatrixXd, 3> interlevel_dipoles =
       CalcFreeTransition_Dipoles();
   vc2index vc = vc2index(0, 0, _bse_ctotal);
-  int numofstates = _BSE_singlet_energies.size();
+  int numofstates = _BSE_singlet.eigenvalues().size();
   _transition_dipoles.resize(0);
   _transition_dipoles.reserve(numofstates);
-  std::vector<Eigen::Vector3d> dipols;
   const double sqrt2 = sqrt(2.0);
   for (int i_exc = 0; i_exc < numofstates; i_exc++) {
     Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
+    Eigen::VectorXd coeffs = _BSE_singlet.eigenvectors().col(i_exc);
+    if (!_useTDA) {
+      coeffs += _BSE_singlet.eigenvectors2().col(i_exc);
+    }
     for (int i = 0; i < 3; i++) {
       for (int v = 0; v < _bse_vtotal; v++) {
         for (int c = 0; c < _bse_ctotal; c++) {
-          int index_vc = vc.I(v, c);
-          double factor = BSESingletCoefficients()(index_vc, i_exc);
-          if (!_useTDA) {
-            factor += BSESingletCoefficientsAR()(index_vc, i_exc);
-          }
           // The Transition dipole is sqrt2 bigger because of the spin, the
           // excited state is a linear combination of 2 slater determinants,
           // where either alpha or beta spin electron is excited
-          tdipole[i] += factor * interlevel_dipoles[i](c, v);
+          tdipole[i] += coeffs(vc.I(v, c)) * interlevel_dipoles[i](c, v);
         }
       }
     }
@@ -465,12 +463,12 @@ void Orbitals::CalcCoupledTransition_Dipoles() {
 void Orbitals::OrderMOsbyEnergy() {
   std::vector<int> sort_index = SortEnergies();
   tools::EigenSystem MO_copy = _mos;
-
-  for (int i = 0; i < Energy.size(); ++i) {
+  int size = _mos.eigenvalues().size();
+  for (int i = 0; i < size; ++i) {
     _mos.eigenvalues()(i) = MO_copy.eigenvalues()(sort_index[i]);
   }
-  for (int i = 0; i < Energy.size(); ++i) {
-    _mos.eigenvectors().col(i) = MOcopy.eigenvectors().col(sort_index[i]);
+  for (int i = 0; i < size; ++i) {
+    _mos.eigenvectors().col(i) = MO_copy.eigenvectors().col(sort_index[i]);
   }
 }
 
@@ -512,14 +510,14 @@ void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
   this->setNumberOfAlphaElectrons(electronsA + electronsB);
 
   _mos.eigenvectors().topLeftCorner(basisA, basisA) =
-      orbitalsA.MOCoefficients();
+      orbitalsA.MOs().eigenvectors();
   _mos.eigenvectors().bottomRightCorner(basisB, basisB) =
-      orbitalsB.MOCoefficients();
+      orbitalsB.MOs().eigenvectors();
 
   _mos.eigenvalues().resize(basisA + basisB);
 
-  _mos.eigenvalues().head(basisA) = orbitalsA.MOEnergies();
-  energies.tail(basisB) = orbitalsB.MOEnergies();
+  _mos.eigenvalues().head(basisA) = orbitalsA.MOs().eigenvalues();
+  _mos.eigenvalues().tail(basisB) = orbitalsB.MOs().eigenvalues();
 
   OrderMOsbyEnergy();
 

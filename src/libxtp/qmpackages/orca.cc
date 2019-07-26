@@ -610,10 +610,10 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   orbitals.setSelfEnergy(0.0);
 
   // copying energies to a vector
-  orbitals.MOEnergies().resize(levels);
+  orbitals.MOs().eigenvalues().resize(levels);
   //_level = 1;
-  for (int i = 0; i < orbitals.MOEnergies().size(); i++) {
-    orbitals.MOEnergies()[i] = energies[i];
+  for (unsigned i = 0; i < levels; i++) {
+    orbitals.MOs().eigenvalues()[i] = energies[i];
   }
 
   XTP_LOG(logDEBUG, *_pLog) << "Done reading Log file" << flush;
@@ -660,8 +660,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   if (!CheckLogFile()) return false;
   std::vector<double> coefficients;
   int basis_size = orbitals.getBasisSetSize();
-  int levels = orbitals.getBasisSetSize();
-  if (basis_size == 0 || levels == 0) {
+  if (basis_size == 0) {
     throw runtime_error(
         "Basis size not set, calculator does not parse log file first");
   }
@@ -697,10 +696,10 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
 
   infile.close();
   // i -> MO, j -> AO
-  (orbitals.MOCoefficients()).resize(levels, basis_size);
-  for (int i = 0; i < orbitals.MOCoefficients().rows(); i++) {
-    for (int j = 0; j < orbitals.MOCoefficients().cols(); j++) {
-      orbitals.MOCoefficients()(j, i) = coefficients[j * basis_size + i];
+  orbitals.MOs().eigenvectors().resize(basis_size, basis_size);
+  for (int i = 0; i < basis_size; i++) {
+    for (int j = 0; j < basis_size; j++) {
+      orbitals.MOs().eigenvectors()(j, i) = coefficients[j * basis_size + i];
     }
   }
   ReorderOutput(orbitals);

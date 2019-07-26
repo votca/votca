@@ -205,7 +205,8 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
       -1.4513934569079558, 0.35380449165354727, 0.1762091332478184,
       0.7783793751383817;
 
-  orbitals.MOCoefficients() = MOs;
+  orbitals.MOs().eigenvectors() = MOs;
+  orbitals.MOs().eigenvalues() = Eigen::VectorXd::Ones(17);
   QMState gs = QMState("n");
   Logger log;
   Espfit esp = Espfit(log);

@@ -75,7 +75,8 @@ bool Spectrum::Evaluate() {
         "BSE transition dipoles not stored in QM data file!");
   }
 
-  const Eigen::VectorXd& BSESingletEnergies = orbitals.BSESingletEnergies();
+  const Eigen::VectorXd& BSESingletEnergies =
+      orbitals.BSESinglets().eigenvalues();
   const std::vector<Eigen::Vector3d>& TransitionDipoles =
       orbitals.TransitionDipoles();
   Eigen::VectorXd osc = orbitals.Oscillatorstrengths();
