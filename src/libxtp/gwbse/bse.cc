@@ -79,35 +79,34 @@ tools::EigenSystem BSE::Solve_triplets_TDA() const {
   return solve_hermitian(Ht);
 }
 
-void BSE::Solve_singlets() {
-
+void BSE::Solve_singlets(Orbitals& orb) const {
+  orb.setTDAApprox(_opt.useTDA);
   if (_opt.useTDA) {
-    _orbitals.BSESinglets() = Solve_singlets_TDA();
+    orb.BSESinglets() = Solve_singlets_TDA();
   } else {
     if (_opt.davidson) {
       XTP_LOG(logDEBUG, _log)
           << TimeStamp()
-          << " Davidson solver not implemented for BTDA. Full diagonalization."
+          << " Davidson solver not implemented for BTDA. Using LAPACK."
           << flush;
-      _opt.davidson = 0;
     }
-    _orbitals.BSESinglets() = Solve_singlets_BTDA();
+    orb.BSESinglets() = Solve_singlets_BTDA();
   }
-  _orbitals.CalcCoupledTransition_Dipoles();
+  orb.CalcCoupledTransition_Dipoles();
 }
 
-void BSE::Solve_triplets() {
+void BSE::Solve_triplets(Orbitals& orb) const {
+  orb.setTDAApprox(_opt.useTDA);
   if (_opt.useTDA) {
-    _orbitals.BSETriplets() = Solve_triplets_TDA();
+    orb.BSETriplets() = Solve_triplets_TDA();
   } else {
     if (_opt.davidson) {
       XTP_LOG(logDEBUG, _log)
           << TimeStamp()
-          << " Davidson solver not implemented for BTDA. Full diagonalization."
+          << " Davidson solver not implemented for BTDA. Using LAPACK."
           << flush;
-      _opt.davidson = 0;
     }
-    _orbitals.BSETriplets() = Solve_triplets_BTDA();
+    orb.BSETriplets() = Solve_triplets_BTDA();
   }
 }
 
@@ -158,9 +157,7 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
       XTP_LOG(logDEBUG, _log)
           << TimeStamp() << " Using matrix free method" << flush;
       DS.solve(h, _opt.nmax);
-    }
-
-    else {
+    } else {
       XTP_LOG(logDEBUG, _log)
           << TimeStamp() << " Using full matrix method" << flush;
 
@@ -183,13 +180,10 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
       XTP_LOG(logDEBUG, _log) << TimeStamp() << " Davidson solve done in "
                               << elapsed_time.count() << " secs" << flush;
     }
-
     result.eigenvalues() = DS.eigenvalues();
     result.eigenvectors() = DS.eigenvectors();
 
-  }
-
-  else {
+  } else {
 
     XTP_LOG(logDEBUG, _log)
         << TimeStamp() << " Lapack Diagonalization" << flush;
@@ -201,7 +195,6 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
     elapsed_time = hend - hstart;
     XTP_LOG(logDEBUG, _log) << TimeStamp() << " Full matrix assembled in "
                             << elapsed_time.count() << " secs" << flush;
-
     hstart = std::chrono::system_clock::now();
     result = tools::linalg_eigenvalues(hfull, _opt.nmax);
     hend = std::chrono::system_clock::now();
@@ -209,7 +202,6 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
     XTP_LOG(logDEBUG, _log) << TimeStamp() << " Lapack solve done in "
                             << elapsed_time.count() << " secs" << flush;
   }
-
   end = std::chrono::system_clock::now();
   elapsed_time = end - start;
 
@@ -347,21 +339,17 @@ void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
   return;
 }
 
-void BSE::PrintWeight(int i, int i_bse, QMStateType state) const {
-  const tools::EigenSystem& BSECoefs = (state == QMStateType::Singlet)
-                                           ? _orbitals.BSESinglets()
-                                           : _orbitals.BSETriplets();
-  double weight = std::pow(BSECoefs.eigenvectors()(i_bse, i), 2);
-  if (!_opt.useTDA) {
-    weight -= std::pow(BSECoefs.eigenvectors2()(i_bse, i), 2);
-  }
+void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
   vc2index vc = vc2index(_opt.vmin, _bse_cmin, _bse_ctotal);
-  if (weight > _opt.min_print_weight) {
-    XTP_LOG(logINFO, _log)
-        << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
-               (_opt.homo - vc.v(i_bse)) % (vc.c(i_bse) - _opt.homo - 1) %
-               (100.0 * weight)
-        << flush;
+  for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
+    double weight = weights(i_bse);
+    if (weight > _opt.min_print_weight) {
+      XTP_LOG(logINFO, _log)
+          << format("           HOMO-%1$-3d -> LUMO+%2$-3d  : %3$3.1f%%") %
+                 (_opt.homo - vc.v(i_bse)) % (vc.c(i_bse) - _opt.homo - 1) %
+                 (100.0 * weight)
+          << flush;
+    }
   }
   return;
 }
@@ -374,7 +362,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
 
   Eigen::VectorXd oscs = orb.Oscillatorstrengths();
   if (tools::globals::verbose) {
-    act = Analyze_eh_interaction(singlet);
+    act = Analyze_eh_interaction(singlet, orb);
   }
   if (singlets.size() > 0) {
     Lowdin low;
@@ -386,6 +374,12 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
   double hrt2ev = tools::conv::hrt2ev;
   XTP_LOG(logINFO, _log) << "  ====== singlet energies (eV) ====== " << flush;
   for (int i = 0; i < _opt.nmax; ++i) {
+    Eigen::VectorXd weights =
+        orb.BSESinglets().eigenvectors().col(i).cwiseAbs2();
+    if (!orb.getTDAApprox()) {
+      weights -= orb.BSESinglets().eigenvectors2().col(i).cwiseAbs2();
+    }
+
     double osc = oscs[i];
     if (tools::globals::verbose) {
       XTP_LOG(logINFO, _log)
@@ -412,11 +406,8 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
                "%2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f f = %5$+1.4f") %
                trdip[0] % trdip[1] % trdip[2] % (trdip.squaredNorm()) % osc
         << flush;
-    for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
-      // if contribution is larger than 0.2, print
-      PrintWeight(i, i_bse, singlet);
-    }
-    // results of fragment population analysis
+
+    PrintWeights(weights);
     if (singlets.size() > 0) {
       printFragInfo(singlets, i);
     }
@@ -432,7 +423,7 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
   Interaction act;
   QMStateType triplet = QMStateType(QMStateType::Triplet);
   if (tools::globals::verbose) {
-    act = Analyze_eh_interaction(triplet);
+    act = Analyze_eh_interaction(triplet, orb);
   }
   if (triplets.size() > 0) {
     Lowdin low;
@@ -442,6 +433,11 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
   const Eigen::VectorXd& energies = orb.BSETriplets().eigenvalues();
   XTP_LOG(logINFO, _log) << "  ====== triplet energies (eV) ====== " << flush;
   for (int i = 0; i < _opt.nmax; ++i) {
+    Eigen::VectorXd weights =
+        orb.BSETriplets().eigenvectors().col(i).cwiseAbs2();
+    if (!orb.getTDAApprox()) {
+      weights -= orb.BSETriplets().eigenvectors2().col(i).cwiseAbs2();
+    }
     if (tools::globals::verbose) {
       XTP_LOG(logINFO, _log)
           << format(
@@ -459,11 +455,8 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
                  (1240.0 / (tools::conv::hrt2ev * energies(i)))
           << flush;
     }
-    for (int i_bse = 0; i_bse < _bse_size; ++i_bse) {
-      // if contribution is larger than 0.2, print
-      PrintWeight(i, i_bse, triplet);
-    }
-    // results of fragment population analysis
+
+    PrintWeights(weights);
     if (triplets.size() > 0) {
       printFragInfo(triplets, i);
     }

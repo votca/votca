@@ -64,16 +64,16 @@ class BSE {
 
   void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
 
-  void Solve_singlets(Orbitals& orb);
-  void Solve_triplets(Orbitals& orb);
+  void Solve_singlets(Orbitals& orb) const;
+  void Solve_triplets(Orbitals& orb) const;
 
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(
-      std::vector<QMFragment<BSE_Population> >& singlets) const;
-  void Analyze_triplets(
-      std::vector<QMFragment<BSE_Population> >& triplets) const;
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
+                        const Orbitals& orb) const;
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
+                        const Orbitals& orb) const;
 
  private:
   options _opt;
@@ -102,7 +102,7 @@ class BSE {
   tools::EigenSystem Solve_triplets_TDA() const;
   tools::EigenSystem Solve_triplets_BTDA() const;
 
-  void PrintWeight(int i, int i_bse, QMStateType type) const;
+  void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
   void configureBSEOperator(BSE_OPERATOR& H) const;

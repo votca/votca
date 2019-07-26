@@ -43,7 +43,8 @@ void DFTcoupling::Initialize(tools::Property& options) {
 
 void DFTcoupling::WriteToProperty(tools::Property& type_summary,
                                   const Orbitals& orbitalsA,
-                                  const Orbitals& orbitalsB, int a, int b) {
+                                  const Orbitals& orbitalsB, int a,
+                                  int b) const {
   double J = getCouplingElement(a, b, orbitalsA, orbitalsB);
   tools::Property& coupling = type_summary.add("coupling", "");
   double energyA = orbitalsA.getMOEnergy(a) * tools::conv::hrt2ev;
@@ -57,7 +58,7 @@ void DFTcoupling::WriteToProperty(tools::Property& type_summary,
 
 void DFTcoupling::Addoutput(tools::Property& type_summary,
                             const Orbitals& orbitalsA,
-                            const Orbitals& orbitalsB) {
+                            const Orbitals& orbitalsB) const {
   tools::Property& dftcoupling = type_summary.add(Identify(), "");
   dftcoupling.setAttribute("homoA", orbitalsA.getHomo());
   dftcoupling.setAttribute("homoB", orbitalsB.getHomo());
@@ -193,7 +194,7 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
   XTP_LOG(logDEBUG, *_pLog)
       << "Projecting monomers onto dimer orbitals" << flush;
   Eigen::MatrixXd A_AB = MOsA.transpose() * overlap.topRows(basisA);
-  Eigen::MatrixXd B_AB = MOsA.transpose() * overlap.bottomRows(basisB);
+  Eigen::MatrixXd B_AB = MOsB.transpose() * overlap.bottomRows(basisB);
   Eigen::VectorXd mag_A = A_AB.rowwise().squaredNorm();
   if (mag_A.any() < 0.95) {
     XTP_LOG(logERROR, *_pLog)

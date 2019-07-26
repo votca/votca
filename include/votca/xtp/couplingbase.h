@@ -32,9 +32,6 @@ namespace xtp {
 /**
  * \brief Base Class to derive DFT and BSE coupling from
  *
- * B. Baumeier, J. Kirkpatrick, D. Andrienko,
- * Phys. Chem. Chem. Phys., 12, 11103-11113, 2010
- *
  */
 
 class CouplingBase {
@@ -47,7 +44,7 @@ class CouplingBase {
 
   virtual void Addoutput(tools::Property& type_summary,
                          const Orbitals& orbitalsA,
-                         const Orbitals& orbitalsB) = 0;
+                         const Orbitals& orbitalsB) const = 0;
 
   void setLogger(Logger* pLog) { _pLog = pLog; }
 
@@ -55,13 +52,13 @@ class CouplingBase {
   Logger* _pLog;
   void CheckAtomCoordinates(const Orbitals& orbitalsA,
                             const Orbitals& orbitalsB,
-                            const Orbitals& orbitalsAB);
+                            const Orbitals& orbitalsAB) const;
 
-  Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB);
+  Eigen::MatrixXd CalculateOverlapMatrix(const Orbitals& orbitalsAB) const;
 };
 
 inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(
-    const Orbitals& orbitalsAB) {
+    const Orbitals& orbitalsAB) const {
   AOBasis dftbasis = orbitalsAB.SetupDftBasis();
   AOOverlap dftAOoverlap;
   dftAOoverlap.Fill(dftbasis);
@@ -69,9 +66,9 @@ inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(
   return overlapAB;
 }
 
-inline void CouplingBase::CheckAtomCoordinates(const Orbitals& orbitalsA,
-                                               const Orbitals& orbitalsB,
-                                               const Orbitals& orbitalsAB) {
+inline void CouplingBase::CheckAtomCoordinates(
+    const Orbitals& orbitalsA, const Orbitals& orbitalsB,
+    const Orbitals& orbitalsAB) const {
   const QMMolecule& atomsA = orbitalsA.QMAtoms();
   const QMMolecule& atomsB = orbitalsB.QMAtoms();
   const QMMolecule& atomsAll = orbitalsAB.QMAtoms();

@@ -36,22 +36,19 @@ namespace xtp {
 
 class DFTcoupling : public CouplingBase {
  public:
-  std::string Identify() { return "dftcoupling"; }
-  DFTcoupling() : _degeneracy(0.0), _numberofstatesA(0), _numberofstatesB(0) {
-    ;
-  }
+  std::string Identify() const { return "dftcoupling"; }
 
   void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                          Orbitals& orbitalsAB);
+                          const Orbitals& orbitalsAB);
 
   void Initialize(tools::Property&);
 
   void Addoutput(tools::Property& type_summary, const Orbitals& orbitalsA,
-                 const Orbitals& orbitalsB);
+                 const Orbitals& orbitalsB) const;
 
  private:
   void WriteToProperty(tools::Property& type_summary, const Orbitals& orbitalsA,
-                       const Orbitals& orbitalsB, int a, int b);
+                       const Orbitals& orbitalsB, int a, int b) const;
   double getCouplingElement(int levelA, int levelB, const Orbitals& orbitalsA,
                             const Orbitals& orbitalsB) const;
 
@@ -60,9 +57,9 @@ class DFTcoupling : public CouplingBase {
 
   Eigen::MatrixXd JAB;
 
-  double _degeneracy;
-  int _numberofstatesA;
-  int _numberofstatesB;
+  double _degeneracy = 0.0;
+  int _numberofstatesA = 0;
+  int _numberofstatesB = 0;
 
   std::pair<int, int> Range_orbA;
   std::pair<int, int> Range_orbB;
