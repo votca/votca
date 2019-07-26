@@ -51,7 +51,7 @@ class BSECoupling : public CouplingBase {
                  const Orbitals& orbitalsB);
 
   void CalculateCouplings(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                          Orbitals& orbitalsAB);
+                          const Orbitals& orbitalsAB);
 
  private:
   void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
@@ -62,17 +62,22 @@ class BSECoupling : public CouplingBase {
 
   double getTripletCouplingElement(int levelA, int levelB, int methodindex);
 
+  Eigen::MatrixXd SetupCTStates(int bseA_vtotal, int bseB_vtotal,
+                                int bseAB_vtotal, int bseAB_ctotal,
+                                const Eigen::MatrixXd& A_AB,
+                                const Eigen::MatrixXd& B_AB) const;
+
   template <class BSE_OPERATOR>
-  std::vector<Eigen::MatrixXd> ProjectExcitons(const Eigen::MatrixXd& bseA,
-                                               const Eigen::MatrixXd& bseB,
-                                               BSE_OPERATOR H);
+  std::array<Eigen::MatrixXd, 2> ProjectExcitons(const Eigen::MatrixXd& bseA,
+                                                 const Eigen::MatrixXd& bseB,
+                                                 BSE_OPERATOR H);
 
   Eigen::MatrixXd Fulldiag(const Eigen::MatrixXd& J_dimer);
 
   Eigen::MatrixXd Perturbation(const Eigen::MatrixXd& J_dimer);
 
-  std::vector<Eigen::MatrixXd> JAB_singlet;
-  std::vector<Eigen::MatrixXd> JAB_triplet;
+  std::array<Eigen::MatrixXd, 2> JAB_singlet;
+  std::array<Eigen::MatrixXd, 2> JAB_triplet;
 
   bool _doTriplets;
   bool _doSinglets;
@@ -83,10 +88,6 @@ class BSECoupling : public CouplingBase {
   int _unoccA;
   int _occB;
   int _unoccB;
-
-  int _bse_exc;
-
-  int _ct;
 
   Eigen::MatrixXd ctAB;
   Eigen::MatrixXd ctBA;

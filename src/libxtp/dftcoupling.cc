@@ -150,7 +150,7 @@ double DFTcoupling::getCouplingElement(int levelA, int levelB,
  */
 void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
                                      const Orbitals& orbitalsB,
-                                     Orbitals& orbitalsAB) {
+                                     const Orbitals& orbitalsAB) {
 
   XTP_LOG(logDEBUG, *_pLog) << "Calculating electronic couplings" << flush;
 
@@ -179,53 +179,40 @@ void DFTcoupling::CalculateCouplings(const Orbitals& orbitalsA,
         "No information about number of occupied/unoccupied levels is stored");
   }
 
-  //       | Orbitals_A          0 |      | Overlap_A |
-  //       | 0          Orbitals_B |.T  X   | Overlap_B |  X  ( Orbitals_AB )
-
-  Eigen::MatrixXd psi_AxB =
-      Eigen::MatrixXd::Zero(basisA + basisB, levelsA + levelsB);
-
-  XTP_LOG(logDEBUG, *_pLog)
-      << "Constructing direct product AxB [" << psi_AxB.rows() << "x"
-      << psi_AxB.cols() << "]" << flush;
-
   // constructing merged orbitals
-  psi_AxB.topLeftCorner(basisA, levelsA) = orbitalsA.MOs().eigenvectors().block(
-      0, Range_orbA.first, basisA, Range_orbA.second);
-  psi_AxB.bottomRightCorner(basisB, levelsB) =
-      orbitalsB.MOs().eigenvectors().block(0, Range_orbB.first, basisB,
-                                           Range_orbB.second);
+  auto MOsA = orbitalsA.MOs().eigenvectors().block(0, Range_orbA.first, basisA,
+                                                   Range_orbA.second);
+  auto MOsB = orbitalsB.MOs().eigenvectors().block(0, Range_orbB.first, basisB,
+                                                   Range_orbB.second);
 
   XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
                             << orbitalsAB.getDFTbasisName() << flush;
-  Eigen::MatrixXd overlap = CalculateOverlapMatrix(orbitalsAB);
-  XTP_LOG(logDEBUG, *_pLog)
-      << "Projecting dimer onto monomer orbitals" << flush;
-  Eigen::MatrixXd psi_AxB_dimer_basis =
-      psi_AxB.transpose() * overlap * orbitalsAB.MOs().eigenvectors();
+  Eigen::MatrixXd overlap =
+      CalculateOverlapMatrix(orbitalsAB) * orbitalsAB.MOs().eigenvectors();
 
-  unsigned int LevelsA = levelsA;
-  for (unsigned i = 0; i < psi_AxB_dimer_basis.rows(); i++) {
-    double mag = psi_AxB_dimer_basis.row(i).squaredNorm();
-    if (mag < 0.95) {
-      int monomer = 0;
-      int level = 0;
-      if (i < LevelsA) {
-        monomer = 1;
-        level = i;
-      } else {
-        monomer = 2;
-        level = i - levelsA;
-      }
-      XTP_LOG(logERROR, *_pLog)
-          << "\nWarning: " << i << " Projection of orbital " << level
-          << " of monomer " << monomer
-          << " on dimer is insufficient,mag=" << mag
-          << " maybe the orbital order is screwed up, otherwise increase dimer "
-             "basis.\n"
-          << flush;
-    }
+  XTP_LOG(logDEBUG, *_pLog)
+      << "Projecting monomers onto dimer orbitals" << flush;
+  Eigen::MatrixXd A_AB = MOsA.transpose() * overlap.topRows(basisA);
+  Eigen::MatrixXd B_AB = MOsA.transpose() * overlap.bottomRows(basisB);
+  Eigen::VectorXd mag_A = A_AB.rowwise().squaredNorm();
+  if (mag_A.any() < 0.95) {
+    XTP_LOG(logERROR, *_pLog)
+        << "\nWarning: "
+        << "Projection of orbitals of monomer A on dimer is insufficient,mag="
+        << mag_A.minCoeff() << flush;
   }
+  Eigen::VectorXd mag_B = B_AB.rowwise().squaredNorm();
+  if (mag_B.any() < 0.95) {
+    XTP_LOG(logERROR, *_pLog)
+        << "\nWarning: "
+        << "Projection of orbitals of monomer B on dimer is insufficient,mag="
+        << mag_B.minCoeff() << flush;
+  }
+
+  Eigen::MatrixXd psi_AxB_dimer_basis(A_AB.rows() + B_AB.rows(), A_AB.cols());
+  psi_AxB_dimer_basis.topRows(A_AB.rows()) = A_AB;
+  psi_AxB_dimer_basis.bottomRows(B_AB.rows()) = B_AB;
+
   XTP_LOG(logDEBUG, *_pLog)
       << "Projecting the Fock matrix onto the dimer basis" << flush;
   Eigen::MatrixXd JAB_dimer = psi_AxB_dimer_basis *

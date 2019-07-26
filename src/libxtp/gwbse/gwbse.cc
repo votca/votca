@@ -620,21 +620,21 @@ bool GWBSE::Evaluate() {
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-    BSE bse = BSE(_orbitals, *_pLog, Mmn, Hqp);
-    bse.configure(_bseopt);
+    BSE bse = BSE(*_pLog, Mmn, Hqp);
+    bse.configure(_bseopt, _orbitals.MOs().eigenvalues());
 
     if (_do_bse_triplets) {
-      bse.Solve_triplets();
+      bse.Solve_triplets(_orbitals);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Solved BSE for triplets " << flush;
-      bse.Analyze_triplets(_triplets);
+      bse.Analyze_triplets(_triplets, _orbitals);
     }
 
     if (_do_bse_singlets) {
-      bse.Solve_singlets();
+      bse.Solve_singlets(_orbitals);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Solved BSE for singlets " << flush;
-      bse.Analyze_singlets(_singlets);
+      bse.Analyze_singlets(_singlets, _orbitals);
     }
   }
   XTP_LOG(logDEBUG, *_pLog)

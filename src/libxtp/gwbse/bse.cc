@@ -35,21 +35,20 @@ using std::flush;
 namespace votca {
 namespace xtp {
 
-void BSE::configure(const options& opt) {
+void BSE::configure(const options& opt, const Eigen::VectorXd& DFTenergies) {
   _opt = opt;
   _bse_vmax = _opt.homo;
   _bse_cmin = _opt.homo + 1;
   _bse_vtotal = _bse_vmax - _opt.vmin + 1;
   _bse_ctotal = _opt.cmax - _bse_cmin + 1;
   _bse_size = _bse_vtotal * _bse_ctotal;
-  SetupDirectInteractionOperator();
+  SetupDirectInteractionOperator(DFTenergies);
 }
 
-void BSE::SetupDirectInteractionOperator() {
+void BSE::SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies) {
   RPA rpa = RPA(_Mmn);
   rpa.configure(_opt.homo, _opt.rpamin, _opt.rpamax);
-  rpa.UpdateRPAInputEnergies(_orbitals.MOs().eigenvalues(), _Hqp.diagonal(),
-                             _opt.qpmin);
+  rpa.UpdateRPAInputEnergies(DFTenergies, _Hqp.diagonal(), _opt.qpmin);
 
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(rpa.calculate_epsilon_r(0));
   _Mmn.MultiplyRightWithAuxMatrix(es.eigenvectors());
@@ -367,22 +366,22 @@ void BSE::PrintWeight(int i, int i_bse, QMStateType state) const {
   return;
 }
 
-void BSE::Analyze_singlets(
-    std::vector<QMFragment<BSE_Population> >& singlets) const {
+void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
+                           const Orbitals& orb) const {
 
   Interaction act;
   QMStateType singlet = QMStateType(QMStateType::Singlet);
 
-  Eigen::VectorXd oscs = _orbitals.Oscillatorstrengths();
+  Eigen::VectorXd oscs = orb.Oscillatorstrengths();
   if (tools::globals::verbose) {
     act = Analyze_eh_interaction(singlet);
   }
   if (singlets.size() > 0) {
     Lowdin low;
-    low.CalcChargeperFragment(singlets, _orbitals, singlet);
+    low.CalcChargeperFragment(singlets, orb, singlet);
   }
 
-  const Eigen::VectorXd& energies = _orbitals.BSESinglets().eigenvalues();
+  const Eigen::VectorXd& energies = orb.BSESinglets().eigenvalues();
 
   double hrt2ev = tools::conv::hrt2ev;
   XTP_LOG(logINFO, _log) << "  ====== singlet energies (eV) ====== " << flush;
@@ -406,7 +405,7 @@ void BSE::Analyze_singlets(
                  (1240.0 / (hrt2ev * energies(i)))
           << flush;
     }
-    const Eigen::Vector3d& trdip = _orbitals.TransitionDipoles()[i];
+    const Eigen::Vector3d& trdip = orb.TransitionDipoles()[i];
     XTP_LOG(logINFO, _log)
         << format(
                "           TrDipole length gauge[e*bohr]  dx = %1$+1.4f dy = "
@@ -427,8 +426,8 @@ void BSE::Analyze_singlets(
   return;
 }
 
-void BSE::Analyze_triplets(
-    std::vector<QMFragment<BSE_Population> >& triplets) const {
+void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
+                           const Orbitals& orb) const {
 
   Interaction act;
   QMStateType triplet = QMStateType(QMStateType::Triplet);
@@ -437,10 +436,10 @@ void BSE::Analyze_triplets(
   }
   if (triplets.size() > 0) {
     Lowdin low;
-    low.CalcChargeperFragment(triplets, _orbitals, triplet);
+    low.CalcChargeperFragment(triplets, orb, triplet);
   }
 
-  const Eigen::VectorXd& energies = _orbitals.BSETriplets().eigenvalues();
+  const Eigen::VectorXd& energies = orb.BSETriplets().eigenvalues();
   XTP_LOG(logINFO, _log) << "  ====== triplet energies (eV) ====== " << flush;
   for (int i = 0; i < _opt.nmax; ++i) {
     if (tools::globals::verbose) {
@@ -477,18 +476,17 @@ void BSE::Analyze_triplets(
 
 template <typename BSE_OPERATOR>
 Eigen::VectorXd BSE::Analyze_IndividualContribution(
-    const QMStateType& type, const BSE_OPERATOR& H) const {
+    const QMStateType& type, const Orbitals& orb, const BSE_OPERATOR& H) const {
 
-  const tools::EigenSystem& BSECoefs = (type == QMStateType::Singlet)
-                                           ? _orbitals.BSESinglets()
-                                           : _orbitals.BSETriplets();
+  const tools::EigenSystem& BSECoefs =
+      (type == QMStateType::Singlet) ? orb.BSESinglets() : orb.BSETriplets();
 
   Eigen::VectorXd contrib = BSECoefs.eigenvectors()
                                 .cwiseProduct((H * BSECoefs.eigenvectors()))
                                 .colwise()
                                 .sum()
                                 .transpose();
-  if (!_opt.useTDA) {
+  if (!orb.getTDAApprox()) {
     contrib -= BSECoefs.eigenvectors2()
                    .cwiseProduct((H * BSECoefs.eigenvectors2()))
                    .colwise()
@@ -498,21 +496,22 @@ Eigen::VectorXd BSE::Analyze_IndividualContribution(
   return contrib;
 }
 
-BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type) const {
+BSE::Interaction BSE::Analyze_eh_interaction(const QMStateType& type,
+                                             const Orbitals& orb) const {
   Interaction analysis;
 
   HqpOperator hqp(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hqp);
-  analysis.qp_contrib = Analyze_IndividualContribution(type, hqp);
+  analysis.qp_contrib = Analyze_IndividualContribution(type, orb, hqp);
 
   HdOperator hd(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(hd);
-  analysis.direct_contrib = Analyze_IndividualContribution(type, hd);
+  analysis.direct_contrib = Analyze_IndividualContribution(type, orb, hd);
 
   if (type == QMStateType::Singlet) {
     HxOperator hx(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(hx);
-    analysis.exchange_contrib = Analyze_IndividualContribution(type, hx);
+    analysis.exchange_contrib = Analyze_IndividualContribution(type, orb, hx);
   } else {
     analysis.exchange_contrib = Eigen::VectorXd::Zero(0);
   }

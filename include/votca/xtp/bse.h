@@ -39,9 +39,8 @@ class QMFragment;
 class BSE {
 
  public:
-  BSE(Orbitals& orbitals, Logger& log, TCMatrix_gwbse& Mmn,
-      const Eigen::MatrixXd& Hqp)
-      : _log(log), _orbitals(orbitals), _Mmn(Mmn), _Hqp(Hqp){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
+      : _log(log), _Mmn(Mmn), _Hqp(Hqp){};
 
   struct options {
     bool useTDA = true;
@@ -63,10 +62,10 @@ class BSE {
         0.5;  // minimium contribution for state to print it
   };
 
-  void configure(const options& opt);
+  void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
 
-  void Solve_singlets();
-  void Solve_triplets();
+  void Solve_singlets(Orbitals& orb);
+  void Solve_triplets(Orbitals& orb);
 
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
@@ -92,7 +91,6 @@ class BSE {
   int _bse_vtotal;
   int _bse_ctotal;
 
-  Orbitals& _orbitals;
   Eigen::VectorXd _epsilon_0_inv;
 
   TCMatrix_gwbse& _Mmn;
@@ -119,11 +117,13 @@ class BSE {
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;
   void printWeights(int i_bse, double weight) const;
-  void SetupDirectInteractionOperator();
+  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
 
-  Interaction Analyze_eh_interaction(const QMStateType& type) const;
+  Interaction Analyze_eh_interaction(const QMStateType& type,
+                                     const Orbitals& orb) const;
   template <typename BSE_OPERATOR>
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
+                                                 const Orbitals& orb,
                                                  const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp

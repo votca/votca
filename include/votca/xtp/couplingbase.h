@@ -41,7 +41,7 @@ class CouplingBase {
  public:
   virtual void CalculateCouplings(const Orbitals& orbitalsA,
                                   const Orbitals& orbitalsB,
-                                  Orbitals& orbitalsAB) = 0;
+                                  const Orbitals& orbitalsAB) = 0;
 
   virtual void Initialize(tools::Property&) = 0;
 
