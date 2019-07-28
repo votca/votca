@@ -258,7 +258,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   int bseA_vmin = orbitalsA.getBSEvmin();
   int bseA_vtotal = bseA_vmax - bseA_vmin + 1;
   int bseA_ctotal = bseA_cmax - bseA_cmin + 1;
-  int bseA_total = bseA_vtotal + bseA_vtotal;
+  int bseA_total = bseA_vtotal + bseA_ctotal;
   int bseA_size = bseA_vtotal * bseA_ctotal;
   int bseA_singlet_exc = orbitalsA.BSESinglets().eigenvectors().cols();
   int bseA_triplet_exc = orbitalsA.BSETriplets().eigenvectors().cols();
@@ -392,22 +392,24 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
       << TimeStamp() << "   levels used in BSE of dimer AB: " << bseAB_vmin
       << " to " << bseAB_cmax << " total: " << bseAB_total << flush;
 
-  auto MOsA =
+  Eigen::MatrixXd MOsA =
       orbitalsA.MOs().eigenvectors().block(0, bseA_vmin, basisA, bseA_total);
-  auto MOsB =
+  Eigen::MatrixXd MOsB =
       orbitalsB.MOs().eigenvectors().block(0, bseB_vmin, basisB, bseB_total);
-  auto MOsAB =
-      orbitalsB.MOs().eigenvectors().block(0, bseAB_vmin, basisAB, bseAB_total);
+  Eigen::MatrixXd MOsAB = orbitalsAB.MOs().eigenvectors().block(
+      0, bseAB_vmin, basisAB, bseAB_total);
 
   XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
                             << orbitalsAB.getDFTbasisName() << flush;
-  Eigen::MatrixXd overlap = CalculateOverlapMatrix(orbitalsAB) * MOsAB;
 
+  Eigen::MatrixXd overlap = CalculateOverlapMatrix(orbitalsAB) * MOsAB;
   XTP_LOG(logDEBUG, *_pLog)
       << "Projecting monomers onto dimer orbitals" << flush;
   Eigen::MatrixXd A_AB = overlap.topRows(basisA).transpose() * MOsA;
   Eigen::MatrixXd B_AB = overlap.bottomRows(basisB).transpose() * MOsB;
   Eigen::VectorXd mag_A = A_AB.colwise().squaredNorm();
+  std::cout << A_AB.rows() << "x" << A_AB.cols() << std::endl;
+  std::cout << B_AB.rows() << "x" << B_AB.cols() << std::endl;
   if (mag_A.any() < 0.95) {
     XTP_LOG(logERROR, *_pLog)
         << "\nWarning: "

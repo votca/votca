@@ -46,7 +46,6 @@ void AOCoulomb::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
   const double pi = boost::math::constants::pi<double>();
 
   int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84};
-
   // for alphabetical order
 
   int nx[] = {0, 1, 0, 0, 2, 1, 1, 0, 0, 0, 3, 2, 2, 1, 1, 1, 0, 0, 0, 0, 4,

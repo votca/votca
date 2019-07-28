@@ -37,8 +37,8 @@ void XTPDFT::Initialize(tools::Property& options) {
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
-  _orbitals.setQMpackage(getPackageName());
   _orbitals = orbitals;
+  _orbitals.setQMpackage(getPackageName());
   return true;
 }
 

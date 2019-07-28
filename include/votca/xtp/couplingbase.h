@@ -62,8 +62,7 @@ inline Eigen::MatrixXd CouplingBase::CalculateOverlapMatrix(
   AOBasis dftbasis = orbitalsAB.SetupDftBasis();
   AOOverlap dftAOoverlap;
   dftAOoverlap.Fill(dftbasis);
-  Eigen::MatrixXd overlapAB = dftAOoverlap.Matrix();
-  return overlapAB;
+  return dftAOoverlap.Matrix();
 }
 
 inline void CouplingBase::CheckAtomCoordinates(
