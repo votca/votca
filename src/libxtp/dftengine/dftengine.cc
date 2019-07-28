@@ -199,7 +199,7 @@ Eigen::MatrixXd DFTEngine::ModelPotentialGuess(const Mat_p_Energy& H0) {
   }
   Eigen::MatrixXd H = H0.matrix() + ERIs.matrix() + e_vxc.matrix();
   if (_ScaHFX > 0) {
-    Mat_p_Energy EXXs = CalcEXXs(Dmat, Eigen::MatrixXd::Zero(0, 0));
+    Mat_p_Energy EXXs = CalcEXXs(Eigen::MatrixXd::Zero(0, 0), Dmat);
     H -= 0.5 * _ScaHFX * EXXs.matrix();
   }
 
@@ -218,6 +218,8 @@ bool DFTEngine::Evaluate() {
 
   Mat_p_Energy H0 = SetupH0();
   tools::EigenSystem MOs;
+  MOs.eigenvalues() = Eigen::VectorXd::Zero(H0.cols());
+  MOs.eigenvectors() = Eigen::MatrixXd::Zero(H0.rows(), H0.cols());
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Nuclear Repulsion Energy is " << H0.energy() << flush;
