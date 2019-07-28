@@ -64,17 +64,11 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
   // storage options
   std::string store_string = opt.get(key + ".store").as<std::string>();
   if (store_string.find("dft") != std::string::npos) _store_dft = true;
-  if (store_string.find("singlets") != std::string::npos)
-    _store_singlets = true;
-  if (store_string.find("triplets") != std::string::npos)
-    _store_triplets = true;
   if (store_string.find("gw") != std::string::npos) _store_gw = true;
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-    std::string _package_xml = opt.get(key + ".dftpackage").as<std::string>();
-    load_property_from_xml(_dftpackage_options, _package_xml);
-    std::string dftname = "package.name";
-    _package = _dftpackage_options.get(dftname).as<std::string>();
+    std::string package_xml = opt.get(key + ".dftpackage").as<std::string>();
+    load_property_from_xml(_dftpackage_options, package_xml);
   }
 
   // read linker groups
@@ -263,7 +257,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
       << TimeStamp() << " Evaluating pair " << job_ID << " [" << ID_A << ":"
       << ID_B << "] out of " << (top.NBList()).size() << std::flush;
 
-  std::string package_append = _package + "_" + Identify();
+  std::string package_append = "workdir_" + Identify();
   std::vector<const Segment*> segments;
   segments.push_back(&seg_A);
   segments.push_back(&seg_B);
@@ -312,9 +306,10 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(logERROR, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(logWARNING, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(logDEBUG, (format("\nDFT DBG ...")).str());
-
+    std::string dftname = "package.name";
+    std::string package = _dftpackage_options.get(dftname).as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+        std::unique_ptr<QMPackage>(QMPackages().Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(_dftpackage_options);
@@ -551,7 +546,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   sout << iomXML << job_summary;
   XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Finished evaluating pair "
                               << ID_A << ":" << ID_B << std::flush;
-  if (_store_dft || _store_gw || _store_singlets || _store_triplets) {
+  if (_store_dft || _store_gw) {
     boost::filesystem::create_directories(orb_dir);
     XTP_LOG_SAVE(logDEBUG, pLog)
         << "Saving orbitals to " << orbFileAB << std::flush;
@@ -561,12 +556,6 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     if (!_store_gw) {
       orbitalsAB.QPdiag().clear();
       orbitalsAB.QPpertEnergies().resize(0, 0);
-    }
-    if (!_store_singlets) {
-      orbitalsAB.BSESinglets().clear();
-    }
-    if (!_store_triplets) {
-      orbitalsAB.BSETriplets().clear();
     }
     orbitalsAB.WriteToCpt(orbFileAB);
   } else {

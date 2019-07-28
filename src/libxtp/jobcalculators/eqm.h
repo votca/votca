@@ -55,7 +55,6 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
                       const std::string &errormessage);
   void ParseOptionsXML(tools::Property &options);
 
-  std::string _package;
   tools::Property _package_options;
   tools::Property _gwbse_options;
   tools::Property _esp_options;

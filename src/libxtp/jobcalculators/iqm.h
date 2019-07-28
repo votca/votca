@@ -68,7 +68,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
   QMState GetElementFromMap(const std::map<std::string, QMState>& elementmap,
                             const std::string& elementname) const;
 
-  std::string _package;
   tools::Property _dftpackage_options;
   tools::Property _gwbse_options;
   tools::Property _bsecoupling_options;
@@ -86,8 +85,6 @@ class IQM : public ParallelXJobCalc<std::vector<Job> > {
 
   // what to write in the storage
   bool _store_dft = false;
-  bool _store_singlets = false;
-  bool _store_triplets = false;
   bool _store_gw = false;
 
   // parsing options

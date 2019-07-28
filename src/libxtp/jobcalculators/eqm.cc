@@ -53,15 +53,18 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   if (_tasks_string.find("gwbse") != std::string::npos) _do_gwbse = true;
   if (_tasks_string.find("esp") != std::string::npos) _do_esp = true;
 
-  std::string _gwbse_xml =
-      options.get(key + ".gwbse_options").as<std::string>();
-  load_property_from_xml(_gwbse_options, _gwbse_xml);
+  if (_do_gwbse) {
+    std::string gwbse_xml =
+        options.get(key + ".gwbse_options").as<std::string>();
+    load_property_from_xml(_gwbse_options, gwbse_xml);
+  }
 
-  // options for dft package
-  std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
-  load_property_from_xml(_package_options, _package_xml);
-  std::string dft_key = "package";
-  _package = _package_options.get(dft_key + ".name").as<std::string>();
+  if (_do_dft_input || _do_dft_run || _do_dft_parse) {
+    // options for dft package
+    std::string package_xml =
+        options.get(key + ".dftpackage").as<std::string>();
+    load_property_from_xml(_package_options, package_xml);
+  }
 
   // options for esp/partialcharges
   if (_do_esp) {
@@ -69,10 +72,6 @@ void EQM::ParseOptionsXML(tools::Property& options) {
     std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
     load_property_from_xml(_esp_options, _esp_xml);
   }
-  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".job_file");
-  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".map_file");
 }
 
 void EQM::WriteJobFile(const Topology& top) {
@@ -155,7 +154,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   std::string orb_file =
       (format("%1%_%2%%3%") % "molecule" % segId % ".orb").str();
   std::string mol_dir = (format("%1%%2%%3%") % "molecule" % "_" % segId).str();
-  std::string package_append = _package + "_" + Identify();
+  std::string package_append = "workdir_" + Identify();
   std::string work_dir =
       (arg_path / eqm_work_dir / package_append / frame_dir / mol_dir)
           .generic_string();
@@ -175,9 +174,11 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(logERROR, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(logWARNING, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(logDEBUG, (format("\nDFT DBG ...")).str());
-
+    std::string dft_key = "package";
+    std::string package =
+        _package_options.get(dft_key + ".name").as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+        std::unique_ptr<QMPackage>(QMPackages().Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(work_dir);
     qmpackage->Initialize(_package_options);
