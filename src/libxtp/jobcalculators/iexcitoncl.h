@@ -55,8 +55,6 @@ class IEXCITON : public ParallelXJobCalc<std::vector<Job> > {
   std::map<std::string, QMState> FillParseMaps(const std::string &Mapstring);
   double _cutoff;
   std::map<std::string, QMState> _statemap;
-  std::string _xml_file;
-  std::string _mapfile;
 };
 
 }  // namespace xtp
