@@ -59,8 +59,6 @@ class EQM : public ParallelXJobCalc<std::vector<Job> > {
   tools::Property _gwbse_options;
   tools::Property _esp_options;
 
-  std::string _mapfile;
-
   // what to do
   bool _do_dft_input;
   bool _do_dft_run;
