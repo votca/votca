@@ -39,7 +39,8 @@ namespace xtp {
 template <bool T>
 class Populationanalysis {
  public:
-  void CalcChargeperAtom(Orbitals& orbitals, const QMState& state) const;
+  StaticSegment CalcChargeperAtom(const Orbitals& orbitals,
+                                  const QMState& state) const;
 
   void CalcChargeperFragment(std::vector<QMFragment<BSE_Population> >& frags,
                              const Orbitals& orbitals, QMStateType type) const;

@@ -23,8 +23,8 @@ namespace votca {
 namespace xtp {
 
 template <bool T>
-void Populationanalysis<T>::CalcChargeperAtom(Orbitals& orbitals,
-                                              const QMState& state) const {
+StaticSegment Populationanalysis<T>::CalcChargeperAtom(
+    const Orbitals& orbitals, const QMState& state) const {
 
   AOBasis basis = orbitals.SetupDftBasis();
   Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
@@ -40,8 +40,7 @@ void Populationanalysis<T>::CalcChargeperAtom(Orbitals& orbitals,
   for (int i = 0; i < orbitals.QMAtoms().size(); ++i) {
     seg.push_back(StaticSite(orbitals.QMAtoms()[i], charges(i)));
   }
-  orbitals.Multipoles() = seg;
-  return;
+  return seg;
 }
 
 template <bool T>

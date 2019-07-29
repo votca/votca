@@ -531,11 +531,53 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   return true;
 }
 
+StaticSegment NWChem::GetCharges() const {
+
+  this->CheckLogFile();
+  std::string line;
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+
+    std::string::size_type charge_pos = line.find("ESP");
+    if (charge_pos != std::string::npos) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      has_charges = true;
+      // two empty lines
+      getline(input_file, line);
+      getline(input_file, line);
+
+      // now starts the data in format
+      // _id type x y z q
+
+      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
+      int nfields = row.size();
+      bool hasAtoms = orbitals.hasQMAtoms();
+      while (nfields == 6) {
+        int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
+        std::string atom_type = row.at(1);
+        double atom_charge = boost::lexical_cast<double>(row.at(5));
+        row = GetLineAndSplit(input_file, "\t ");
+        nfields = row.size();
+        if (!hasAtoms) {
+          StaticSite temp =
+              StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+          temp.setCharge(atom_charge);
+          orbitals.Multipoles().push_back(temp);
+        } else {
+          orbitals.Multipoles().push_back(
+              StaticSite(orbitals.QMAtoms().at(atom_id), atom_charge));
+        }
+      }
+    }
+  }
+}
+
 bool NWChem::CheckLogFile() {
 
   // check if the log file exists
 
-  ifstream input_file((_run_dir + "/" + _log_file_name).c_str());
+  ifstream input_file((_run_dir + "/" + _log_file_name));
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog) << "NWChem LOG is not found" << flush;
@@ -626,7 +668,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   }
 
   // Start parsing the file line by line
-  ifstream input_file(log_file_name_full.c_str());
+  ifstream input_file(log_file_name_full);
   while (input_file) {
     getline(input_file, line);
     boost::trim(line);
@@ -660,38 +702,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
                                        .str()
                                 << flush;
       has_qm_energy = true;
-    }
-
-    std::string::size_type charge_pos = line.find("ESP");
-    if (charge_pos != std::string::npos && _get_charges) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
-      has_charges = true;
-      // two empty lines
-      getline(input_file, line);
-      getline(input_file, line);
-
-      // now starts the data in format
-      // _id type x y z q
-
-      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-      int nfields = row.size();
-      bool hasAtoms = orbitals.hasQMAtoms();
-      while (nfields == 6) {
-        int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
-        std::string atom_type = row.at(1);
-        double atom_charge = boost::lexical_cast<double>(row.at(5));
-        row = GetLineAndSplit(input_file, "\t ");
-        nfields = row.size();
-        if (!hasAtoms) {
-          StaticSite temp =
-              StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
-          temp.setCharge(atom_charge);
-          orbitals.Multipoles().push_back(temp);
-        } else {
-          orbitals.Multipoles().push_back(
-              StaticSite(orbitals.QMAtoms().at(atom_id), atom_charge));
-        }
-      }
     }
 
     // Coordinates of the final configuration

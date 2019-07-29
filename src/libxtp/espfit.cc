@@ -28,8 +28,8 @@ namespace votca {
 namespace xtp {
 using std::flush;
 
-void Espfit::Fit2Density(Orbitals& orbitals, const QMState& state,
-                         std::string gridsize) {
+StaticSegment Espfit::Fit2Density(const Orbitals& orbitals,
+                                  const QMState& state, std::string gridsize) {
 
   const Eigen::MatrixXd dmat = orbitals.DensityMatrixFull(state);
   // setting up grid
@@ -91,9 +91,8 @@ void Espfit::Fit2Density(Orbitals& orbitals, const QMState& state,
   netcharge = std::round(netcharge);
   XTP_LOG(logDEBUG, _log) << TimeStamp() << " Netcharge constrained to "
                           << netcharge << flush;
-
-  FitPartialCharges(orbitals, grid, netcharge);
-  return;
+  return FitPartialCharges(orbitals, grid, netcharge);
+  ;
 }
 
 void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
@@ -115,8 +114,8 @@ void Espfit::EvalNuclearPotential(const QMMolecule& atoms, Grid& grid) {
   return;
 }
 
-void Espfit::FitPartialCharges(Orbitals& orbitals, const Grid& grid,
-                               double netcharge) {
+StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
+                                        const Grid& grid, double netcharge) {
   const QMMolecule& atomlist = orbitals.QMAtoms();
   const int NoOfConstraints =
       1 + _regionconstraint.size() + _pairconstraint.size();
@@ -216,7 +215,6 @@ void Espfit::FitPartialCharges(Orbitals& orbitals, const Grid& grid,
   for (int i = 0; i < atomlist.size(); i++) {
     seg.push_back(StaticSite(atomlist[i], charges(i)));
   }
-  orbitals.Multipoles() = seg;
   // get RMSE
   double rmse = 0.0;
   double totalPotSq = 0.0;
@@ -234,7 +232,7 @@ void Espfit::FitPartialCharges(Orbitals& orbitals, const Grid& grid,
   XTP_LOG(logDEBUG, _log) << " RRMSE of fit: " << sqrt(rmse / totalPotSq)
                           << flush;
 
-  return;
+  return seg;
 }
 
 }  // namespace xtp

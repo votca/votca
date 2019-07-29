@@ -58,8 +58,8 @@ class Espfit {
     _regionconstraint = regionconstraint;
   }
 
-  void Fit2Density(Orbitals& orbitals, const QMState& state,
-                   std::string gridsize);
+  StaticSegment Fit2Density(const Orbitals& orbitals, const QMState& state,
+                            std::string gridsize);
 
  private:
   Logger& _log;
@@ -76,8 +76,8 @@ class Espfit {
   void EvalNuclearPotential(const QMMolecule& atoms, Grid& grid);
 
   // Fits partial charges to Potential on a grid, constrains net charge
-  void FitPartialCharges(Orbitals& orbitals, const Grid& grid,
-                         double netcharge);
+  StaticSegment FitPartialCharges(const Orbitals& orbitals, const Grid& grid,
+                                  double netcharge);
 };
 }  // namespace xtp
 }  // namespace votca
