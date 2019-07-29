@@ -38,13 +38,13 @@ Orbitals::Orbitals() : _atoms("", 0), _multipoles("", 0) { ; }
  *
  * @param _energy_difference [ev] Two levels are degenerate if their energy is
  * smaller than this value
- * @return vector with indices off all aorbitals degenerate to this including
+ * @return vector with indices off all orbitals degenerate to this including
  * itself
  */
 std::vector<int> Orbitals::CheckDegeneracy(int level,
                                            double energy_difference) const {
 
-  std::vector<int> result = std::vector<int>(0);
+  std::vector<int> result;
   if (level > _mos.eigenvalues().size()) {
     throw std::runtime_error(
         "Level for degeneracy is higher than maximum level");
@@ -52,10 +52,13 @@ std::vector<int> Orbitals::CheckDegeneracy(int level,
   double MOEnergyLevel = _mos.eigenvalues()(level);
 
   for (int i = 0; i < _mos.eigenvalues().size(); ++i) {
-    if (std::abs(_mos.eigenvalues()(i) - MOEnergyLevel) * tools::conv::hrt2ev <
-        energy_difference) {
+    if (std::abs(_mos.eigenvalues()(i) - MOEnergyLevel) < energy_difference) {
       result.push_back(i);
     }
+  }
+
+  if (result.empty()) {
+    result.push_back(level);
   }
   return result;
 }

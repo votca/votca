@@ -58,8 +58,8 @@ class DFTcoupling : public CouplingBase {
   Eigen::MatrixXd JAB;
 
   double _degeneracy = 0.0;
-  int _numberofstatesA = 0;
-  int _numberofstatesB = 0;
+  int _numberofstatesA = 1;
+  int _numberofstatesB = 1;
 
   std::pair<int, int> Range_orbA;
   std::pair<int, int> Range_orbB;

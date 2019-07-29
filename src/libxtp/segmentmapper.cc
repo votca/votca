@@ -142,7 +142,6 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
 
 template <class AtomContainer>
 void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
-
   tools::Property topology_map;
   tools::load_property_from_xml(topology_map, mapfile);
 

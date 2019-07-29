@@ -56,6 +56,8 @@ class Job {
     JobStatus getStatus() const { return _status; }
     bool hasOutput() const { return _has_output; }
     const tools::Property &getOutput() const { return _output; }
+
+    tools::Property &getOutput() { return _output; }
     bool hasError() const { return _has_error; }
     const std::string &getError() const { return _error; }
 

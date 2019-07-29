@@ -33,12 +33,13 @@ using std::flush;
 void DFTcoupling::Initialize(tools::Property& options) {
 
   std::string key = "";
-  _degeneracy =
-      options.ifExistsReturnElseReturnDefault<bool>(key + "degeneracy", 0.0);
-  _numberofstatesA =
-      options.ifExistsReturnElseReturnDefault<int>(key + "levA", 1);
-  _numberofstatesB =
-      options.ifExistsReturnElseReturnDefault<int>(key + "levB", 1);
+  _degeneracy = options.ifExistsReturnElseReturnDefault<bool>(
+      key + "degeneracy", _degeneracy);
+  _degeneracy *= tools::conv::ev2hrt;
+  _numberofstatesA = options.ifExistsReturnElseReturnDefault<int>(
+      key + "levA", _numberofstatesA);
+  _numberofstatesB = options.ifExistsReturnElseReturnDefault<int>(
+      key + "levB", _numberofstatesB);
 }
 
 void DFTcoupling::WriteToProperty(tools::Property& type_summary,
@@ -70,11 +71,11 @@ void DFTcoupling::Addoutput(tools::Property& type_summary,
     }
   }
   tools::Property& electron_summary = dftcoupling.add("electron", "");
-  // electron-//electron
-  for (int a = orbitalsA.getLumo(); a <= Range_orbA.first + Range_orbA.second;
-       ++a) {
-    for (int b = orbitalsB.getLumo(); b <= Range_orbB.first + Range_orbB.second;
-         ++b) {
+  // electron-electron
+  for (int a = orbitalsA.getLumo();
+       a <= Range_orbA.first + Range_orbA.second - 1; ++a) {
+    for (int b = orbitalsB.getLumo();
+         b <= Range_orbB.first + Range_orbB.second - 1; ++b) {
       WriteToProperty(electron_summary, orbitalsA, orbitalsB, a, b);
     }
   }
@@ -96,18 +97,10 @@ std::pair<int, int> DFTcoupling::DetermineRangeOfStates(
   int maximal = orbital.getLumo() + numberofstates - 1;
 
   std::vector<int> deg_min = orbital.CheckDegeneracy(minimal, _degeneracy);
-  for (int i : deg_min) {
-    if (i < minimal) {
-      minimal = i;
-    }
-  }
+  minimal = *std::min_element(deg_min.begin(), deg_min.end());
 
   std::vector<int> deg_max = orbital.CheckDegeneracy(maximal, _degeneracy);
-  for (int i : deg_max) {
-    if (i > maximal) {
-      maximal = i;
-    }
-  }
+  maximal = *std::max_element(deg_max.begin(), deg_max.end());
 
   std::pair<int, int> result;
   result.first = minimal;                 // start
@@ -121,7 +114,6 @@ double DFTcoupling::getCouplingElement(int levelA, int levelB,
                                        const Orbitals& orbitalsB) const {
 
   int levelsA = Range_orbA.second;
-
   if (_degeneracy != 0) {
     std::vector<int> list_levelsA =
         orbitalsA.CheckDegeneracy(levelA, _degeneracy);
@@ -131,15 +123,19 @@ double DFTcoupling::getCouplingElement(int levelA, int levelB,
     double JAB_sq = 0;
 
     for (int iA : list_levelsA) {
+      int indexA = iA - Range_orbA.first;
       for (int iB : list_levelsB) {
-        double JAB_one_level = JAB(iA - 1, iB - 1 + levelsA);
+        int indexB = iB - Range_orbB.first + levelsA;
+        double JAB_one_level = JAB(indexA, indexB);
         JAB_sq += JAB_one_level * JAB_one_level;
       }
     }
     return std::sqrt(JAB_sq / (list_levelsA.size() * list_levelsB.size())) *
            tools::conv::hrt2ev;
   } else {
-    return JAB(levelA - 1, levelB - 1 + levelsA) * tools::conv::hrt2ev;
+    int indexA = levelA - Range_orbA.first;
+    int indexB = levelB - Range_orbB.first + levelsA;
+    return JAB(indexA, indexB) * tools::conv::hrt2ev;
   }
 }
 
