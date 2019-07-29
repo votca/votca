@@ -33,6 +33,7 @@ namespace xtp {
 
 */
 
+class StaticSegment;
 class Orbitals;
 class Gaussian : public QMPackage {
  public:
@@ -49,6 +50,8 @@ class Gaussian : public QMPackage {
   bool ParseLogFile(Orbitals& orbitals);
 
   bool ParseMOsFile(Orbitals& orbitals);
+
+  StaticSegment GetCharges() const;
 
  private:
   bool WriteShellScript();

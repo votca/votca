@@ -41,9 +41,8 @@ class Esp2multipole {
 
   void Initialize(tools::Property& options);
 
-  void Extractingcharges(Orbitals& orbitals);
+  StaticSegment Extractingcharges(const Orbitals& orbitals);
 
-  void WritetoFile(std::string output_file, const Orbitals& orbitals);
   std::string GetStateString() const { return _state.ToString(); }
 
  private:

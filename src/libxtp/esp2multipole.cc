@@ -93,28 +93,15 @@ void Esp2multipole::Initialize(tools::Property& options) {
   return;
 }
 
-void Esp2multipole::WritetoFile(std::string output_file,
-                                const Orbitals& orbitals) {
-
-  std::string data_format = boost::filesystem::extension(output_file);
-  if (!(data_format == ".mps")) {
-    throw std::runtime_error(
-        "Outputfile format not recognized. Export only to .mps");
-  }
-  std::string tag = "TOOL:" + Identify() + "_" + _state.ToString();
-
-  orbitals.Multipoles().WriteMPS(output_file, tag);
-  return;
-}
-
-void Esp2multipole::PrintDipoles(Orbitals& orbitals) {
-  Eigen::Vector3d classical_dip = orbitals.Multipoles().CalcDipole();
+void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
+                                 const StaticSegment& seg) {
+  Eigen::Vector3d classical_dip = seg.CalcDipole();
 
   XTP_LOG(logDEBUG, _log)
       << "El Dipole from fitted charges [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
-             classical_dip[0] % classical_dip[1] % classical_dip[2] %
+             classical_dip.x() % classical_dip.y() % classical_dip.z() %
              classical_dip.squaredNorm()
       << flush;
   Eigen::Vector3d qm_dip = orbitals.CalcElDipole(_state);
@@ -122,20 +109,20 @@ void Esp2multipole::PrintDipoles(Orbitals& orbitals) {
       << "El Dipole from exact qm density [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
-             qm_dip[0] % qm_dip[1] % qm_dip[2] % qm_dip.squaredNorm()
+             qm_dip.x() % qm_dip.y() % qm_dip.z() % qm_dip.squaredNorm()
       << flush;
 }
 
-void Esp2multipole::Extractingcharges(Orbitals& orbitals) {
+StaticSegment Esp2multipole::Extractingcharges(Orbitals& orbitals) {
   XTP_LOG(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
                           << " threads ===== " << flush;
-
+  StaticSegment result("result", 0);
   if (_use_mulliken) {
     Mulliken mulliken;
-    mulliken.CalcChargeperAtom(orbitals, _state);
+    result = mulliken.CalcChargeperAtom(orbitals, _state);
   } else if (_use_lowdin) {
     Lowdin lowdin;
-    lowdin.CalcChargeperAtom(orbitals, _state);
+    result = lowdin.CalcChargeperAtom(orbitals, _state);
   } else if (_use_CHELPG) {
     Espfit esp = Espfit(_log);
     if (_pairconstraint.size() > 0) {
@@ -148,10 +135,11 @@ void Esp2multipole::Extractingcharges(Orbitals& orbitals) {
     if (_do_svd) {
       esp.setUseSVD(_conditionnumber);
     }
-    esp.Fit2Density(orbitals, _state, _gridsize);
+    result = esp.Fit2Density(orbitals, _state, _gridsize);
   }
 
   PrintDipoles(orbitals);
+  return result;
 }
 
 }  // namespace xtp

@@ -673,7 +673,7 @@ bool Gaussian::ReadESPCharges(Orbitals& orbitals, std::string& line,
       nfields = row.size();
       if (!has_atoms) {
         StaticSite temp =
-            PolarSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+            StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
         temp.setCharge(atom_charge);
         orbitals.Multipoles().push_back(temp);
       } else {

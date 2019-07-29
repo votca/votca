@@ -49,6 +49,8 @@ class NWChem : public QMPackage {
 
   bool ParseMOsFile(Orbitals& orbitals);
 
+  StaticSegment GetCharges() const;
+
  private:
   bool CheckLogFile();
   bool WriteShellScript();

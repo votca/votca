@@ -98,7 +98,6 @@ bool Log2Mps::Evaluate() {
 
   const StaticSegment &atoms = orbs.Multipoles();
   // Sanity checks, total charge
-  double Q = atoms.CalcTotalQ();
 
   if (atoms.size() < 1) {
     std::cout << "\nERROR No charges extracted from " << _logfile
@@ -106,6 +105,8 @@ bool Log2Mps::Evaluate() {
               << std::flush;
     throw std::runtime_error("(see above, input or parsing error)");
   }
+
+  double Q = atoms.CalcTotalQ();
   XTP_LOG_SAVE(logINFO, log)
       << atoms.size() << " QM atoms, total charge Q = " << Q << std::flush;
 

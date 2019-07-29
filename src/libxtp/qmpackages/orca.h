@@ -53,6 +53,8 @@ class Orca : public QMPackage {
 
   bool ParseMOsFile(Orbitals& orbitals);
 
+  StaticSegment GetCharges() const;
+
  private:
   std::string indent(const double& number);
   std::string getLName(int lnum);

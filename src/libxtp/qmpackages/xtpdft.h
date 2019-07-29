@@ -54,6 +54,11 @@ class XTPDFT : public QMPackage {
 
   bool ParseMOsFile(Orbitals& orbitals);
 
+  StaticSegment GetCharges() const {
+    throw std::runtime_error(
+        "If you want partial charges just run the 'partialcharges' calculator");
+  }
+
  private:
   void WriteChargeOption() { return; }
   tools::Property _xtpdft_options;

@@ -684,7 +684,7 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
         nfields = row.size();
         if (!hasAtoms) {
           StaticSite temp =
-              PolarSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+              StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
           temp.setCharge(atom_charge);
           orbitals.Multipoles().push_back(temp);
         } else {

@@ -643,7 +643,7 @@ Eigen::MatrixXd BSECoupling::Perturbation(
           << J_dimer.topLeftCorner(bse_exc, bse_exc) << flush;
       if (ct > 0) {
         XTP_LOG(logDEBUG, *_pLog) << "eigenvalues of CT states" << flush;
-        XTP_LOG(logDEBUG, *_pLog) << es.eigenvalues() << flush;
+        XTP_LOG(logDEBUG, *_pLog) << es.eigenvalues().transpose() << flush;
       }
     }
 

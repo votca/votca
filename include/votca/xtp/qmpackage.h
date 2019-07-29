@@ -94,7 +94,7 @@ class QMPackage {
 
   bool GuessRequested() const { return _write_guess; }
 
-  void setGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
+  virtual StaticSegment GetCharges() const = 0;
 
  protected:
   struct MinimalMMCharge {
