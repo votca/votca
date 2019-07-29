@@ -100,15 +100,15 @@ class BSECoupling : public CouplingBase {
   std::array<Eigen::MatrixXd, 2> JAB_singlet;
   std::array<Eigen::MatrixXd, 2> JAB_triplet;
 
-  bool _doTriplets;
-  bool _doSinglets;
-  bool _output_perturbation;
-  int _levA;
-  int _levB;
-  int _occA;
-  int _unoccA;
-  int _occB;
-  int _unoccB;
+  bool _doTriplets = false;
+  bool _doSinglets = false;
+  bool _output_perturbation = true;
+  int _levA = std::numeric_limits<int>::max();
+  int _levB = std::numeric_limits<int>::max();
+  int _occA = 5;
+  int _unoccA = 5;
+  int _occB = 5;
+  int _unoccB = 5;
 };
 
 }  // namespace xtp

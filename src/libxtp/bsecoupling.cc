@@ -34,11 +34,9 @@ using namespace tools;
 void BSECoupling::Initialize(Property& options) {
 
   std::string key = Identify();
-  _doSinglets = false;
-  _doTriplets = false;
-  _output_perturbation = false;
 
-  string spintype = options.get(key + ".spin").as<string>();
+  string spintype =
+      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".spin");
   if (spintype == "all") {
     _doSinglets = true;
     _doTriplets = true;
@@ -54,19 +52,21 @@ void BSECoupling::Initialize(Property& options) {
             .str());
   }
 
-  if (options.exists(key + ".algorithm")) {
-    string algorithm = options.get(key + ".algorithm").as<string>();
-    if (algorithm == "perturbation") {
-      _output_perturbation = true;
-    }
-  }
+  _output_perturbation = options.ifExistsReturnElseReturnDefault<bool>(
+      key + ".use_perturbation", _output_perturbation);
 
-  _levA = options.get(key + ".moleculeA.states").as<int>();
-  _levB = options.get(key + ".moleculeB.states").as<int>();
-  _occA = options.get(key + ".moleculeA.occLevels").as<int>();
-  _occB = options.get(key + ".moleculeB.occLevels").as<int>();
-  _unoccA = options.get(key + ".moleculeA.unoccLevels").as<int>();
-  _unoccB = options.get(key + ".moleculeB.unoccLevels").as<int>();
+  _levA =
+      options.ifExistsReturnElseReturnDefault(key + ".moleculeA.states", _levA);
+  _levB =
+      options.ifExistsReturnElseReturnDefault(key + ".moleculeB.states", _levB);
+  _occA = options.ifExistsReturnElseReturnDefault(key + ".moleculeA.occLevels",
+                                                  _occA);
+  _occB = options.ifExistsReturnElseReturnDefault(key + ".moleculeB.occLevels",
+                                                  _occB);
+  _unoccA = options.ifExistsReturnElseReturnDefault(
+      key + ".moleculeA.unoccLevels", _unoccA);
+  _unoccB = options.ifExistsReturnElseReturnDefault(
+      key + ".moleculeB.unoccLevels", _unoccB);
 }
 
 void BSECoupling::WriteToProperty(const Orbitals& orbitalsA,
@@ -168,7 +168,9 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
   const Eigen::MatrixXd A_occ_occ = A_occ.topRows(bseAB_vtotal);
   const Eigen::MatrixXd A_occ_unocc = A_occ.bottomRows(bseAB_ctotal);
   const Eigen::MatrixXd B_unocc_occ = B_unocc.topRows(bseAB_vtotal);
+
   const Eigen::MatrixXd B_unocc_unocc = B_unocc.bottomRows(bseAB_ctotal);
+
   // notation AB is CT states with A+B-, BA is the counterpart
   // Setting up CT-states:
   XTP_LOG(logDEBUG, *_pLog)
@@ -226,9 +228,9 @@ Eigen::MatrixXd BSECoupling::ProjectFrenkelExcitons(
     Eigen::VectorXd coeff = BSE_Coeffs.col(i);
     Eigen::Map<Eigen::MatrixXd> coeffmatrix =
         Eigen::Map<Eigen::MatrixXd>(coeff.data(), bseX_ctotal, bseX_vtotal);
-    Eigen::MatrixXd proj = X_unocc_unocc.transpose() * coeffmatrix * X_occ_occ;
-    proj += X_occ_unocc.transpose() * coeffmatrix.transpose() * X_unocc_occ;
-    result.col(i) = Eigen::Map<Eigen::VectorXd>(proj.data(), bseAB_size);
+    Eigen::MatrixXd proj = X_unocc_unocc * coeffmatrix * X_occ_occ.transpose();
+    proj += X_occ_unocc * coeffmatrix.transpose() * X_unocc_occ.transpose();
+    result.col(i) = Eigen::Map<Eigen::VectorXd>(proj.data(), proj.size());
   }
   return result;
 }
@@ -399,17 +401,17 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   Eigen::MatrixXd MOsAB = orbitalsAB.MOs().eigenvectors().block(
       0, bseAB_vmin, basisAB, bseAB_total);
 
-  XTP_LOG(logDEBUG, *_pLog) << "Calculating overlap matrix for basisset: "
-                            << orbitalsAB.getDFTbasisName() << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Calculating overlap matrix for basisset: "
+      << orbitalsAB.getDFTbasisName() << flush;
 
   Eigen::MatrixXd overlap = CalculateOverlapMatrix(orbitalsAB) * MOsAB;
   XTP_LOG(logDEBUG, *_pLog)
-      << "Projecting monomers onto dimer orbitals" << flush;
+      << TimeStamp() << " Projecting monomers onto dimer orbitals" << flush;
+
   Eigen::MatrixXd A_AB = overlap.topRows(basisA).transpose() * MOsA;
   Eigen::MatrixXd B_AB = overlap.bottomRows(basisB).transpose() * MOsB;
   Eigen::VectorXd mag_A = A_AB.colwise().squaredNorm();
-  std::cout << A_AB.rows() << "x" << A_AB.cols() << std::endl;
-  std::cout << B_AB.rows() << "x" << B_AB.cols() << std::endl;
   if (mag_A.any() < 0.95) {
     XTP_LOG(logERROR, *_pLog)
         << "\nWarning: "
@@ -447,6 +449,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   opt.vmin = orbitalsAB.getBSEvmin();
   BSE bse(*_pLog, Mmn, Hqp);
   bse.configure(opt, orbitalsAB.MOs().eigenvalues());
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Setup BSE operator" << flush;
 
   // now the different spin types
   if (_doSinglets) {
@@ -498,12 +501,12 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
                                               Eigen::MatrixXd& CTStates) const {
   int ct = CTStates.cols();
+
   if (ct > 0) {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Orthogonalizing CT-states with respect to FE-states"
         << flush;
-
-    Eigen::MatrixXd correction = FE_AB.transpose() * CTStates * FE_AB;
+    Eigen::MatrixXd correction = FE_AB * (FE_AB.transpose() * CTStates);
     CTStates -= correction;
 
     // normalize
@@ -523,7 +526,6 @@ Eigen::MatrixXd BSECoupling::OrthogonalizeCTs(Eigen::MatrixXd& FE_AB,
 
   int bseAB_size = CTStates.rows();
   Eigen::MatrixXd projection(bseAB_size, bse_exc + ct);
-
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " merging projections into one vector  " << flush;
   projection.leftCols(bse_exc) = FE_AB;
@@ -758,29 +760,25 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
 
       // setting up transformation matrix Tmat and diagonal matrix Emat for the
       // eigenvalues;
-      Eigen::MatrixXd Emat = Eigen::MatrixXd::Zero(2, 2);
-      Eigen::MatrixXd Tmat = Eigen::MatrixXd::Zero(2, 2);
+      Eigen::Matrix2d Emat = Eigen::Matrix2d::Zero();
+      Eigen::Matrix2d Tmat = Eigen::Matrix2d::Zero();
       // find the eigenvectors which are most similar to the initial states
       // row
       for (int i = 0; i < 2; i++) {
         int k = index[i];
         double sign = signvec[i];
-        double normr = 1 / std::sqrt(es.eigenvectors()(stateA, k) *
-                                         es.eigenvectors()(stateA, k) +
-                                     es.eigenvectors()(stateBd, k) *
-                                         es.eigenvectors()(stateBd, k));
-        Tmat(0, i) = sign * es.eigenvectors()(stateA, k) * normr;
-        Tmat(1, i) = sign * es.eigenvectors()(stateBd, k) * normr;
-        Emat(i, i) = es.eigenvectors()(k);
+        Tmat(0, i) = sign * es.eigenvectors()(stateA, k);
+        Tmat(1, i) = sign * es.eigenvectors()(stateBd, k);
+        Emat(i, i) = es.eigenvalues()(k);
       }
+      Tmat.colwise().normalize();
 
-      if ((Tmat(1, 1) * Tmat(0, 0) - Tmat(1, 0) * Tmat(0, 1)) < 0) {
+      if (Tmat.determinant() < 0) {
         XTP_LOG(logDEBUG, *_pLog)
             << " Reduced state matrix is not in a right handed basis, "
                "multiplying second eigenvector by -1 "
             << flush;
-        Tmat(0, 1) = -Tmat(0, 1);
-        Tmat(1, 1) = -Tmat(1, 1);
+        Tmat.col(1) *= -1;
       }
 
       if (tools::globals::verbose) {
@@ -790,7 +788,7 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
         XTP_LOG(logDEBUG, *_pLog) << Tmat << flush;
       }
 
-      Eigen::MatrixXd S_small = Tmat * Tmat.transpose();
+      Eigen::Matrix2d S_small = Tmat * Tmat.transpose();
       if (tools::globals::verbose) {
 
         XTP_LOG(logDEBUG, *_pLog) << "S_small" << flush;
@@ -798,8 +796,8 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
       }
       // orthogonalize that matrix
 
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> ss(S_small);
-      Eigen::MatrixXd sm1 = ss.operatorInverseSqrt();
+      Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> ss(S_small);
+      Eigen::Matrix2d sm1 = ss.operatorInverseSqrt();
       Emat = sm1 * Emat * sm1;
 
       XTP_LOG(logDEBUG, *_pLog)
@@ -822,7 +820,7 @@ Eigen::MatrixXd BSECoupling::Fulldiag(const Eigen::MatrixXd& J_dimer) const {
             << "---------------------------------------" << flush;
       }
 
-      Eigen::MatrixXd J_small = Tmat * Emat * Tmat.transpose();
+      Eigen::Matrix2d J_small = Tmat * Emat * Tmat.transpose();
       if (tools::globals::verbose) {
         XTP_LOG(logDEBUG, *_pLog) << "T_ortho*E_ortho*T_ortho^T" << flush;
         XTP_LOG(logDEBUG, *_pLog) << J_small << flush;
