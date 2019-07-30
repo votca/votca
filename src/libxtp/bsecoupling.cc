@@ -166,9 +166,6 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
   auto B_unocc = B_AB.block(0, bseB_vtotal, bseAB_total, _unoccB);
 
   const Eigen::MatrixXd A_occ_occ = A_occ.topRows(bseAB_vtotal);
-  const Eigen::MatrixXd A_occ_unocc = A_occ.bottomRows(bseAB_ctotal);
-  const Eigen::MatrixXd B_unocc_occ = B_unocc.topRows(bseAB_vtotal);
-
   const Eigen::MatrixXd B_unocc_unocc = B_unocc.bottomRows(bseAB_ctotal);
 
   // notation AB is CT states with A+B-, BA is the counterpart
@@ -183,17 +180,15 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
       int index = a_occ * _unoccB + b_unocc;
       Eigen::MatrixXd Coeff =
           B_unocc_unocc.col(b_unocc) * A_occ_occ.col(a_occ).transpose();
-      Coeff += A_occ_unocc.col(a_occ) * B_unocc_occ.col(b_unocc).transpose();
       CTstates.col(index) =
           Eigen::Map<Eigen::VectorXd>(Coeff.data(), bseAB_size);
     }
   }
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << "  " << noBA << " CT states A+B- created" << flush;
-  const Eigen::MatrixXd A_unocc_occ = A_unocc.topRows(bseAB_vtotal);
+
   const Eigen::MatrixXd A_unocc_unocc = A_unocc.bottomRows(bseAB_ctotal);
   const Eigen::MatrixXd B_occ_occ = B_occ.topRows(bseAB_vtotal);
-  const Eigen::MatrixXd B_occ_unocc = B_occ.bottomRows(bseAB_ctotal);
 
 #pragma omp parallel for
   for (int b_occ = 0; b_occ < _occB; b_occ++) {
@@ -201,7 +196,6 @@ Eigen::MatrixXd BSECoupling::SetupCTStates(int bseA_vtotal, int bseB_vtotal,
       int index = b_occ * _unoccA + a_unocc + noAB;
       Eigen::MatrixXd Coeff =
           A_unocc_unocc.col(a_unocc) * B_occ_occ.col(b_occ).transpose();
-      Coeff += B_occ_unocc.col(b_occ) * A_unocc_occ.col(a_unocc).transpose();
       CTstates.col(index) =
           Eigen::Map<Eigen::VectorXd>(Coeff.data(), bseAB_size);
     }
@@ -219,8 +213,6 @@ Eigen::MatrixXd BSECoupling::ProjectFrenkelExcitons(
   auto X_occ = X_AB.leftCols(bseX_vtotal);
   auto X_unocc = X_AB.rightCols(bseX_ctotal);
   const Eigen::MatrixXd X_occ_occ = X_occ.topRows(bseAB_vtotal);
-  const Eigen::MatrixXd X_occ_unocc = X_occ.bottomRows(bseAB_ctotal);
-  const Eigen::MatrixXd X_unocc_occ = X_unocc.topRows(bseAB_vtotal);
   const Eigen::MatrixXd X_unocc_unocc = X_unocc.bottomRows(bseAB_ctotal);
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(bseAB_size, BSE_Coeffs.cols());
   // no pragma here because often we will only have one Coeff
@@ -229,7 +221,6 @@ Eigen::MatrixXd BSECoupling::ProjectFrenkelExcitons(
     Eigen::Map<Eigen::MatrixXd> coeffmatrix =
         Eigen::Map<Eigen::MatrixXd>(coeff.data(), bseX_ctotal, bseX_vtotal);
     Eigen::MatrixXd proj = X_unocc_unocc * coeffmatrix * X_occ_occ.transpose();
-    proj += X_occ_unocc * coeffmatrix.transpose() * X_unocc_occ.transpose();
     result.col(i) = Eigen::Map<Eigen::VectorXd>(proj.data(), proj.size());
   }
   return result;
