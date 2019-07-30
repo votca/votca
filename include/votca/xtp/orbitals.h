@@ -136,12 +136,6 @@ class Orbitals {
 
   QMMolecule &QMAtoms() { return _atoms; }
 
-  bool hasMultipoles() const { return (_multipoles.size() > 0) ? true : false; }
-
-  StaticSegment &Multipoles() { return _multipoles; }
-
-  const StaticSegment &Multipoles() const { return _multipoles; }
-
   // access to classical self-energy in MM environment, new, tested
   bool hasSelfEnergy() const { return (_self_energy != 0.0) ? true : false; }
 
@@ -355,8 +349,6 @@ class Orbitals {
   tools::EigenSystem _mos;
 
   QMMolecule _atoms;
-
-  StaticSegment _multipoles;
 
   double _qm_energy = 0;
   double _self_energy = 0;

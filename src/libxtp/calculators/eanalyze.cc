@@ -181,7 +181,7 @@ void EAnalyze::SiteHist(Topology &top, QMStateType state) {
   if (_doenergy_landscape) {
     std::string filename = "eanalyze.landscape_" + state.ToString() + ".out";
     std::ofstream out;
-    out.open(filename.c_str());
+    out.open(filename);
     if (!out) throw std::runtime_error("error, cannot open file " + filename);
     for (Segment *seg : _seg_shortlist) {
       if (seg->getId() < _first_seg) {
@@ -211,7 +211,7 @@ void EAnalyze::PairHist(Topology &top, QMStateType state) {
   std::vector<double> dE;
   dE.reserve(2 * nblist.size());
   std::ofstream out;
-  out.open(filenamelist.c_str());
+  out.open(filenamelist);
   if (!out) throw std::runtime_error("error, cannot open file " + filenamelist);
   for (QMPair *pair : nblist) {
     double deltaE = pair->getdE12(state) * tools::conv::hrt2ev;

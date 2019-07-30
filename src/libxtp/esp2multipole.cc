@@ -94,7 +94,7 @@ void Esp2multipole::Initialize(tools::Property& options) {
 }
 
 void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
-                                 const StaticSegment& seg) {
+                                 const StaticSegment& seg) const {
   Eigen::Vector3d classical_dip = seg.CalcDipole();
 
   XTP_LOG(logDEBUG, _log)
@@ -113,7 +113,7 @@ void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
       << flush;
 }
 
-StaticSegment Esp2multipole::Extractingcharges(Orbitals& orbitals) {
+StaticSegment Esp2multipole::Extractingcharges(const Orbitals& orbitals) const {
   XTP_LOG(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
                           << " threads ===== " << flush;
   StaticSegment result("result", 0);
@@ -138,7 +138,7 @@ StaticSegment Esp2multipole::Extractingcharges(Orbitals& orbitals) {
     result = esp.Fit2Density(orbitals, _state, _gridsize);
   }
 
-  PrintDipoles(orbitals);
+  PrintDipoles(orbitals, result);
   return result;
 }
 

@@ -129,7 +129,7 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
     std::ofstream el_file;
     std::string el_file_name = _run_dir + "/" + element_name + ".gbs";
 
-    el_file.open(el_file_name.c_str());
+    el_file.open(el_file_name);
     // element name, [possibly indeces of centers], zero to indicate the end
     com_file << "@" << element_name << ".gbs" << endl;
     el_file << element_name << " 0" << endl;
@@ -279,7 +279,7 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
                                 const QMMolecule& qmatoms) {
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
-    com_file << setw(3) << atom.getElement().c_str() << setw(12)
+    com_file << setw(3) << atom.getElement() << setw(12)
              << setiosflags(ios::fixed) << setprecision(5) << pos.x()
              << setw(12) << setiosflags(ios::fixed) << setprecision(5)
              << pos.y() << setw(12) << setiosflags(ios::fixed)
@@ -320,7 +320,7 @@ bool Gaussian::WriteInputFile(const Orbitals& orbitals) {
 
   std::ofstream com_file;
   std::string com_file_name_full = _run_dir + "/" + _input_file_name;
-  com_file.open(com_file_name_full.c_str());
+  com_file.open(com_file_name_full);
 
   // header
   WriteHeader(com_file);
@@ -518,7 +518,7 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
 
   std::string orb_file_name_full = _mo_file_name;
   if (_run_dir != "") orb_file_name_full = _run_dir + "/" + _mo_file_name;
-  std::ifstream input_file(orb_file_name_full.c_str());
+  std::ifstream input_file(orb_file_name_full);
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog)
@@ -605,14 +605,14 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   return true;
 }
 
-bool Gaussian::CheckLogFile() {
+bool Gaussian::CheckLogFile() const {
 
   // check if the log file exists
   boost::filesystem::path arg_path;
   char ch;
 
   std::string full_name = (arg_path / _run_dir / _log_file_name).c_str();
-  ifstream input_file(full_name.c_str());
+  ifstream input_file(full_name);
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog)
@@ -650,39 +650,49 @@ bool Gaussian::CheckLogFile() {
   }
 }
 
-bool Gaussian::ReadESPCharges(Orbitals& orbitals, std::string& line,
-                              ifstream& input_file) {
-  std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
+StaticSegment Gaussian::GetCharges() const {
+  XTP_LOG(logDEBUG, *_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
+
+  StaticSegment result("charges", 0);
+  std::string log_file_name_full = _log_file_name;
+  if (_run_dir != "") log_file_name_full = _run_dir + "/" + _log_file_name;
+
+  // check if LOG file is complete
+  if (!CheckLogFile()) throw std::runtime_error("logfile is not complete");
+  std::string line;
+  ifstream input_file(log_file_name_full);
   bool has_charges = false;
-  if (charge_pos != std::string::npos && _get_charges) {
-    XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
-    has_charges = true;
+  while (input_file) {
+
     getline(input_file, line);
-    getline(input_file, line);
+    boost::trim(line);
+    std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
+    bool has_charges = false;
+    if (charge_pos != std::string::npos && _get_charges) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      has_charges = true;
+      getline(input_file, line);
+      getline(input_file, line);
 
-    bool has_atoms = orbitals.hasQMAtoms();
+      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
+      int nfields = row.size();
 
-    std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-    int nfields = row.size();
+      while (nfields == 3) {
+        int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
+        std::string atom_type = row.at(1);
+        double atom_charge = boost::lexical_cast<double>(row.at(2));
+        row = GetLineAndSplit(input_file, "\t ");
+        nfields = row.size();
 
-    while (nfields == 3) {
-      int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
-      std::string atom_type = row.at(1);
-      double atom_charge = boost::lexical_cast<double>(row.at(2));
-      row = GetLineAndSplit(input_file, "\t ");
-      nfields = row.size();
-      if (!has_atoms) {
         StaticSite temp =
             StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
         temp.setCharge(atom_charge);
-        orbitals.Multipoles().push_back(temp);
-      } else {
-        orbitals.Multipoles().push_back(
-            StaticSite(orbitals.QMAtoms().at(atom_id), atom_charge));
+        result.push_back(temp);
       }
     }
   }
-  return has_charges;
+
+  return result;
 }
 
 /**
@@ -695,7 +705,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   bool has_unoccupied_levels = false;
   bool has_number_of_electrons = false;
   bool has_basis_set_size = false;
-  bool has_charges = false;
   bool has_self_energy = false;
 
   int occupied_levels = 0;
@@ -721,7 +730,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
 
   bool ScaHFX_found = false;
   // Start parsing the file line by line
-  ifstream input_file(log_file_name_full.c_str());
+  ifstream input_file(log_file_name_full);
   while (input_file) {
 
     getline(input_file, line);
@@ -809,11 +818,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         }
       }  // end of the while loop
     }    // end of the eigenvalue parsing
-
-    /*
-     *  Partial charges from the input file
-     */
-    has_charges = ReadESPCharges(orbitals, line, input_file);
 
     /*
      * Coordinates of the final configuration
@@ -912,7 +916,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     }
     // check if all information has been accumulated and quit
     if (has_number_of_electrons && has_basis_set_size && has_occupied_levels &&
-        has_unoccupied_levels && has_charges && has_self_energy)
+        has_unoccupied_levels && has_self_energy)
       break;
 
   }  // end of reading the file line-by-line

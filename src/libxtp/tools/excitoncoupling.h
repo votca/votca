@@ -65,9 +65,9 @@ void ExcitonCoupling::Initialize(tools::Property& options) {
 
   if (!_classical) {
 
-    std::string _coupling_xml =
+    std::string coupling_xml =
         options.get(key + ".bsecoupling_options").as<std::string>();
-    load_property_from_xml(_coupling_options, _coupling_xml.c_str());
+    load_property_from_xml(_coupling_options, coupling_xml);
 
     _orbA = options.get(key + ".orbitalsA").as<std::string>();
     _orbB = options.get(key + ".orbitalsB").as<std::string>();
@@ -148,7 +148,7 @@ bool ExcitonCoupling::Evaluate() {
 
   tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1, "");
 
-  std::ofstream ofs(_output_file.c_str(), std::ofstream::out);
+  std::ofstream ofs(_output_file, std::ofstream::out);
   ofs << job_output;
   ofs.close();
   return true;

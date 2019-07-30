@@ -52,7 +52,7 @@ class NWChem : public QMPackage {
   StaticSegment GetCharges() const;
 
  private:
-  bool CheckLogFile();
+  bool CheckLogFile() const;
   bool WriteShellScript();
   bool WriteGuess(const Orbitals& orbitals);
 

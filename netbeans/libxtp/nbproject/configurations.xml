@@ -211,11 +211,11 @@
         <itemPath>../../src/libxtp/xtpapplication.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f7" displayName="dftengine" projectFiles="true">
-        <itemPath>../../src/libxtp/ERIs.cc</itemPath>
-        <itemPath>../../src/libxtp/adiis.cc</itemPath>
-        <itemPath>../../src/libxtp/convergenceacc.cc</itemPath>
+        <itemPath>../../src/libxtp/dftengine/ERIs.cc</itemPath>
+        <itemPath>../../src/libxtp/dftengine/adiis.cc</itemPath>
+        <itemPath>../../src/libxtp/dftengine/convergenceacc.cc</itemPath>
         <itemPath>../../src/libxtp/dftengine/dftengine.cc</itemPath>
-        <itemPath>../../src/libxtp/diis.cc</itemPath>
+        <itemPath>../../src/libxtp/dftengine/diis.cc</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="Factories" projectFiles="true">
         <itemPath>../../src/libxtp/calculatorfactory.cc</itemPath>
@@ -324,6 +324,7 @@
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
       <itemPath>../../src/tests/test_espfit.cc</itemPath>
+      <itemPath>../../src/tests/test_gaussian.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_gnode.cc</itemPath>
       <itemPath>../../src/tests/test_grid.cc</itemPath>
@@ -332,7 +333,9 @@
       <itemPath>../../src/tests/test_hist.cc</itemPath>
       <itemPath>../../src/tests/test_jobtopology.cc</itemPath>
       <itemPath>../../src/tests/test_numericalintegration.cc</itemPath>
+      <itemPath>../../src/tests/test_nwchem.cc</itemPath>
       <itemPath>../../src/tests/test_orbitals.cc</itemPath>
+      <itemPath>../../src/tests/test_orca.cc</itemPath>
       <itemPath>../../src/tests/test_polarsegment.cc</itemPath>
       <itemPath>../../src/tests/test_polarsite.cc</itemPath>
       <itemPath>../../src/tests/test_populationanalysis.cc</itemPath>
@@ -4402,10 +4405,6 @@
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/ERIs.cc" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -4560,18 +4559,28 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/dftengine/ERIs.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/dftengine/adiis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/dftengine/convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/dftengine/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ecpaobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -4951,6 +4960,8 @@
       </item>
       <item path="../../src/tests/test_espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gaussian.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_gnode.cc" ex="false" tool="1" flavor2="0">
@@ -4973,7 +4984,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_nwchem.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_orca.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_polarsegment.cc"
             ex="false"
@@ -5598,10 +5613,6 @@
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../src/libxtp/ERIs.cc" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../src/libxtp/adiis.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -5756,18 +5767,28 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/convergenceacc.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/davidsonsolver.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/dftcoupling.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/dftengine/ERIs.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/dftengine/adiis.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libxtp/dftengine/convergenceacc.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
       <item path="../../src/libxtp/dftengine/dftengine.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/diis.cc" ex="false" tool="1" flavor2="0">
+      <item path="../../src/libxtp/dftengine/diis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/ecpaobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -6147,6 +6168,8 @@
       </item>
       <item path="../../src/tests/test_espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_gaussian.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_gnode.cc" ex="false" tool="1" flavor2="0">
@@ -6169,7 +6192,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_nwchem.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_orbitals.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_orca.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_polarsegment.cc"
             ex="false"

@@ -33,7 +33,6 @@ namespace xtp {
 
 */
 
-class StaticSegment;
 class Orbitals;
 class Gaussian : public QMPackage {
  public:
@@ -56,12 +55,9 @@ class Gaussian : public QMPackage {
  private:
   bool WriteShellScript();
 
-  bool CheckLogFile();
+  bool CheckLogFile() const;
 
   std::string _vdWfooter = "";
-
-  bool ReadESPCharges(Orbitals& orbitals, std::string& line,
-                      std::ifstream& input_file);
 
   std::string FortranFormat(double number);
 

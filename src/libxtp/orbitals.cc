@@ -32,7 +32,7 @@
 namespace votca {
 namespace xtp {
 
-Orbitals::Orbitals() : _atoms("", 0), _multipoles("", 0) { ; }
+Orbitals::Orbitals() : _atoms("", 0) { ; }
 
 /**
  *
@@ -512,8 +512,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   CheckpointWriter molgroup = w.openChild("qmmolecule");
   _atoms.WriteToCpt(molgroup);
-  CheckpointWriter multigroup = w.openChild("multipoles");
-  _multipoles.WriteToCpt(multigroup);
 
   w(_qm_energy, "qm_energy");
   w(_qm_package, "qm_package");
@@ -564,9 +562,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
   // Read qmatoms
   CheckpointReader molgroup = r.openChild("qmmolecule");
   _atoms.ReadFromCpt(molgroup);
-
-  CheckpointReader multigroup = r.openChild("multipoles");
-  _multipoles.ReadFromCpt(multigroup);
 
   r(_qm_energy, "qm_energy");
   r(_qm_package, "qm_package");

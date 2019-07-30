@@ -23,6 +23,7 @@
 
 #include "votca/xtp/aobasis.h"
 #include <votca/tools/property.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/staticsite.h>
 namespace votca {
@@ -106,13 +107,13 @@ class QMPackage {
   void ParseCommonOptions(tools::Property& options);
 
   virtual void WriteChargeOption() = 0;
-  std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site);
-  void ReorderOutput(Orbitals& orbitals);
+  std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
+  void ReorderOutput(Orbitals& orbitals) const;
   Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals) const;
   bool isLinker(std::string name, std::vector<std::string> linker_names);
 
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
-                                           const std::string separators);
+                                           const std::string separators) const;
 
   int _charge;
   int _spin;  // 2S+1

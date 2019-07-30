@@ -117,7 +117,7 @@ void Orca::WriteCoordinates(std::ofstream& inp_file,
 
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
-    inp_file << setw(3) << atom.getElement().c_str() << setw(12)
+    inp_file << setw(3) << atom.getElement() << setw(12)
              << setiosflags(ios::fixed) << setprecision(5) << pos.x()
              << setw(12) << setiosflags(ios::fixed) << setprecision(5)
              << pos.y() << setw(12) << setiosflags(ios::fixed)
@@ -195,7 +195,7 @@ void Orca::WriteBackgroundCharges() {
 
   std::ofstream crg_file;
   std::string _crg_file_name_full = _run_dir + "/background.crg";
-  crg_file.open(_crg_file_name_full.c_str());
+  crg_file.open(_crg_file_name_full);
   int total_background = 0;
 
   for (const std::unique_ptr<StaticSite>& site : _externalsites) {
@@ -236,7 +236,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   std::string scratch_dir_backup = _scratch_dir;
   std::ofstream inp_file;
   std::string inp_file_name_full = _run_dir + "/" + _input_file_name;
-  inp_file.open(inp_file_name_full.c_str());
+  inp_file.open(inp_file_name_full);
   // header
   inp_file << "* xyz  " << _charge << " " << _spin << endl;
   int threads = OPENMP::getMaxThreads();
@@ -296,7 +296,7 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
 bool Orca::WriteShellScript() {
   ofstream shell_file;
   std::string shell_file_name_full = _run_dir + "/" + _shell_file_name;
-  shell_file.open(shell_file_name_full.c_str());
+  shell_file.open(shell_file_name_full);
   shell_file << "#!/bin/bash" << endl;
   shell_file << "mkdir -p " << _scratch_dir << endl;
 
@@ -325,8 +325,8 @@ bool Orca::Run() {
 
   if (std::system(NULL)) {
 
-    std::string _command = "cd " + _run_dir + "; sh " + _shell_file_name;
-    int check = std::system(_command.c_str());
+    std::string command = "cd " + _run_dir + "; sh " + _shell_file_name;
+    int check = std::system(command.c_str());
     if (check == -1) {
       XTP_LOG(logERROR, *_pLog)
           << _input_file_name << " failed to start" << flush;
@@ -396,6 +396,41 @@ void Orca::CleanUp() {
   return;
 }
 
+StaticSegment Orca::GetCharges() const {
+
+  StaticSegment result("charges", 0);
+
+  XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+  std::string log_file_name_full = _run_dir + "/" + _log_file_name;
+  std::string line;
+
+  std::ifstream input_file(log_file_name_full);
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+    std::string::size_type charge_pos = line.find("CHELPG Charges");
+
+    if (charge_pos != std::string::npos && _get_charges) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      getline(input_file, line);
+      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
+      int nfields = row.size();
+      while (nfields == 4) {
+        int atom_id = boost::lexical_cast<int>(row.at(0));
+        std::string atom_type = row.at(1);
+        double atom_charge = boost::lexical_cast<double>(row.at(3));
+        row = GetLineAndSplit(input_file, "\t ");
+        nfields = row.size();
+        StaticSite temp =
+            PolarSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+        temp.setCharge(atom_charge);
+        result.push_back(temp);
+      }
+    }
+  }
+  return result;
+}
+
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());
@@ -416,7 +451,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   int number_of_electrons = 0;
   std::vector<std::string> results;
 
-  std::ifstream input_file(log_file_name_full.c_str());
+  std::ifstream input_file(log_file_name_full);
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog)
@@ -556,34 +591,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
         energies[i] = boost::lexical_cast<double>(e);
       }
     }
-    /*
-     *  Partial charges from the input file
-     */
-    std::string::size_type charge_pos = line.find("CHELPG Charges");
-
-    if (charge_pos != std::string::npos && _get_charges) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
-      getline(input_file, line);
-      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-      int nfields = row.size();
-      bool hasAtoms = orbitals.hasQMAtoms();
-      while (nfields == 4) {
-        int atom_id = boost::lexical_cast<int>(row.at(0));
-        std::string atom_type = row.at(1);
-        double atom_charge = boost::lexical_cast<double>(row.at(3));
-        row = GetLineAndSplit(input_file, "\t ");
-        nfields = row.size();
-        if (!hasAtoms) {
-          StaticSite temp =
-              PolarSite(atom_id, atom_type, Eigen::Vector3d::Zero());
-          temp.setCharge(atom_charge);
-          orbitals.Multipoles().push_back(temp);
-        } else {
-          orbitals.Multipoles().push_back(
-              StaticSite(orbitals.QMAtoms().at(atom_id), atom_charge));
-        }
-      }
-    }
 
     std::string::size_type success =
         line.find("*                     SUCCESS                       *");
@@ -623,7 +630,7 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
 
 bool Orca::CheckLogFile() {
   // check if the log file exists
-  ifstream input_file((_run_dir + "/" + _log_file_name).c_str());
+  ifstream input_file(_run_dir + "/" + _log_file_name);
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog) << "Orca LOG is not found" << flush;
@@ -669,7 +676,7 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
       << "Reading the gbw file, this may or may not work so be careful: "
       << flush;
   ifstream infile;
-  infile.open((_run_dir + "/" + _mo_file_name).c_str(), ios::binary | ios::in);
+  infile.open(_run_dir + "/" + _mo_file_name, ios::binary | ios::in);
   if (!infile) {
     throw runtime_error("Could not open " + _mo_file_name + " file");
   }

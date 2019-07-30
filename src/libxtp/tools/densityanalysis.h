@@ -50,7 +50,7 @@ void DensityAnalysis::Initialize(tools::Property& options) {
 
   std::string gyration_xml =
       options.get(key + ".gyration_options").as<std::string>();
-  load_property_from_xml(_gyration_options, gyration_xml.c_str());
+  load_property_from_xml(_gyration_options, gyration_xml);
 }
 
 bool DensityAnalysis::Evaluate() {

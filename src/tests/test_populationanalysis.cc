@@ -159,11 +159,11 @@ BOOST_AUTO_TEST_CASE(atompop) {
   Orbitals orb2 = orb;
   QMState s("n");
   Lowdin low;
-  low.CalcChargeperAtom(orb, s);
+  StaticSegment result = low.CalcChargeperAtom(orb, s);
 
-  Eigen::VectorXd charge = Eigen::VectorXd::Zero(orb.Multipoles().size());
-  for (int i = 0; i < orb.Multipoles().size(); i++) {
-    charge(i) = orb.Multipoles()[i].getCharge();
+  Eigen::VectorXd charge = Eigen::VectorXd::Zero(result.size());
+  for (int i = 0; i < result.size(); i++) {
+    charge(i) = result[i].getCharge();
   }
 
   Eigen::VectorXd charge_ref = Eigen::VectorXd::Zero(5);
@@ -179,10 +179,10 @@ BOOST_AUTO_TEST_CASE(atompop) {
   }
 
   Mulliken mul;
-  mul.CalcChargeperAtom(orb2, s);
-  Eigen::VectorXd charge2 = Eigen::VectorXd::Zero(orb2.Multipoles().size());
-  for (int i = 0; i < orb2.Multipoles().size(); i++) {
-    charge2(i) = orb2.Multipoles()[i].getCharge();
+  StaticSegment result2 = mul.CalcChargeperAtom(orb2, s);
+  Eigen::VectorXd charge2 = Eigen::VectorXd::Zero(result2.size());
+  for (int i = 0; i < result2.size(); i++) {
+    charge2(i) = result2[i].getCharge();
   }
 
   Eigen::VectorXd charge_ref2 = Eigen::VectorXd::Zero(5);

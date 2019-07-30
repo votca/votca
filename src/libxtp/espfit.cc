@@ -220,7 +220,7 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   double totalPotSq = 0.0;
   for (unsigned k = 0; k < gridpoints.size(); k++) {
     double temp = 0.0;
-    for (const StaticSite& atom : orbitals.Multipoles()) {
+    for (const StaticSite& atom : seg) {
       double dist = (gridpoints[k] - atom.getPos()).norm();
       temp += atom.getCharge() / dist;
     }

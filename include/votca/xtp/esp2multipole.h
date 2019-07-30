@@ -24,6 +24,7 @@
 #include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <votca/tools/property.h>
+#include <votca/xtp/classicalsegment.h>
 #include <votca/xtp/espfit.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
@@ -41,12 +42,12 @@ class Esp2multipole {
 
   void Initialize(tools::Property& options);
 
-  StaticSegment Extractingcharges(const Orbitals& orbitals);
+  StaticSegment Extractingcharges(const Orbitals& orbitals) const;
 
   std::string GetStateString() const { return _state.ToString(); }
 
  private:
-  void PrintDipoles(Orbitals& orbitals);
+  void PrintDipoles(const Orbitals& orbitals, const StaticSegment& seg) const;
 
   QMState _state;
   std::string _method;

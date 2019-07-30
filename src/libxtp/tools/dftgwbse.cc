@@ -146,7 +146,7 @@ bool DftGwBse::Evaluate() {
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1,
                                         "");
     XTP_LOG(logDEBUG, _log) << "Writing output to " << _xml_output << flush;
-    std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
+    std::ofstream ofout(_xml_output, std::ofstream::out);
     ofout << (summary.get("output"));
     ofout.close();
   }

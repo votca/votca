@@ -189,9 +189,9 @@ void GeometryOptimization::WriteTrajectory(const std::string& filename,
                                            const BFGSTRM& bfgstrm) {
   std::ofstream ofs;
   if (bfgstrm.getIteration() == 0) {
-    ofs.open(filename.c_str(), std::ofstream::out);
+    ofs.open(filename, std::ofstream::out);
   } else {
-    ofs.open(filename.c_str(), std::ofstream::app);
+    ofs.open(filename, std::ofstream::app);
   }
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + filename);

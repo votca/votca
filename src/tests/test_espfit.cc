@@ -211,10 +211,10 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   Logger log;
   Espfit esp = Espfit(log);
   esp.setUseSVD(1e-8);
-  esp.Fit2Density(orbitals, gs, "medium");
+  StaticSegment result = esp.Fit2Density(orbitals, gs, "medium");
   Eigen::VectorXd pcharges = Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
   int index = 0;
-  for (const auto& site : orbitals.Multipoles()) {
+  for (const auto& site : result) {
     pcharges(index) = site.getCharge();
     index++;
   }
@@ -242,11 +242,10 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   Espfit esp2 = Espfit(log);
   esp2.setUseSVD(1e-8);
   esp2.setPairConstraint(pairconstraint);
-  esp2.Fit2Density(orbitals, gs, "medium");
-  Eigen::VectorXd pcharges_equal =
-      Eigen::VectorXd::Zero(orbitals.Multipoles().size());
+  StaticSegment result2 = esp2.Fit2Density(orbitals, gs, "medium");
+  Eigen::VectorXd pcharges_equal = Eigen::VectorXd::Zero(result2.size());
   index = 0;
-  for (const auto& site : orbitals.Multipoles()) {
+  for (const auto& site : result2) {
     pcharges_equal(index) = site.getCharge();
     index++;
   }
@@ -264,12 +263,12 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   Espfit esp3 = Espfit(log);
   esp3.setRegionConstraint(regionconstraint);
   esp3.setUseSVD(1e-8);
-  esp3.Fit2Density(orbitals, gs, "medium");
+  StaticSegment result3 = esp3.Fit2Density(orbitals, gs, "medium");
   Eigen::VectorXd pcharges_reg =
       Eigen::VectorXd::Zero(orbitals.QMAtoms().size());
   index = 0;
 
-  for (const auto& site : orbitals.Multipoles()) {
+  for (const auto& site : result3) {
     pcharges_reg(index) = site.getCharge();
     index++;
   }

@@ -72,7 +72,7 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   }
 }
 
-void QMPackage::ReorderOutput(Orbitals& orbitals) {
+void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   BasisSet dftbasisset;
   dftbasisset.Load(_basisset_name);
   if (!orbitals.hasQMAtoms()) {
@@ -111,7 +111,7 @@ Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
 }
 
 std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
-    const StaticSite& aps) {
+    const StaticSite& aps) const {
 
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
@@ -146,7 +146,7 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 }
 
 std::vector<std::string> QMPackage::GetLineAndSplit(
-    std::ifstream& input_file, const std::string separators) {
+    std::ifstream& input_file, const std::string separators) const {
   std::string line;
   getline(input_file, line);
   boost::trim(line);
