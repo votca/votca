@@ -37,6 +37,13 @@ class EigenSystem {
   Eigen::ComputationInfo info() const { return _info; }
   Eigen::ComputationInfo& info() { return _info; }
 
+  void clear() {
+    _info = Eigen::Success;
+    _eigenvalues.resize(0);
+    _eigenvectors.resize(0, 0);
+    _eigenvectors_2.resize(0, 0);
+  }
+
  private:
   Eigen::ComputationInfo _info = Eigen::Success;
   Eigen::VectorXd _eigenvalues;

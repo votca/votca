@@ -51,7 +51,8 @@ const Property &Property::get(const string &key) const {
     p = this;
   } else {
     iter = _map.find(*n);
-    if (iter == _map.end()) throw runtime_error("property not found: " + key);
+    if (iter == _map.end())
+      throw std::runtime_error("property not found: " + key);
     p = &_properties[((*iter).second)];
   }
   ++n;
@@ -59,8 +60,9 @@ const Property &Property::get(const string &key) const {
     for (; n != tok.end(); ++n) {
       p = &p->get(*n);
     }
-  } catch (string err) {  // catch here to get full key in exception
-    throw runtime_error("property not found: " + key);
+  } catch (std::runtime_error &err) {  // catch here to get full key in
+                                       // exception
+    throw std::runtime_error("property not found: " + key);
   }
 
   return *p;
@@ -68,6 +70,14 @@ const Property &Property::get(const string &key) const {
 
 Property &Property::get(const string &key) {
   return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+}
+
+Property &Property::getOradd(const std::string &key) {
+  if (exists(key)) {
+    return get(key);
+  } else {
+    return add(key, "");
+  }
 }
 
 std::vector<const Property *> Property::Select(const string &filter) const {

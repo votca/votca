@@ -85,6 +85,17 @@ class Property {
   const Property &get(const std::string &key) const;
 
   /**
+   * \brief adds new or gets existing property
+   * @param key identifier
+   * @return Reference to property object
+   *
+   * This function tries to find a property specified by key separated
+   * by "." to step down hierarchy. If the property is not
+   * found a property with that name is added and returned.
+   */
+  Property &getOradd(const std::string &key);
+
+  /**
    * \brief check whether property exists
    * @param key identifier
    * @return true or false

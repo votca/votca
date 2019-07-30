@@ -44,11 +44,14 @@ class Tokenizer {
    * After initialization,the words can be accessed using the iterator
    * interface or directly transferred to a vector ToVector of ConvertToVector.
    */
+
   Tokenizer(const std::string &str, const char *separators) : _str(str) {
     boost::char_separator<char> sep(separators);
     tok = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
                                                                           sep);
   }
+  Tokenizer(const std::string &str, const std::string &separators)
+      : Tokenizer(str, separators.c_str()){};
 
   /**
    * \brief iterator to first element
