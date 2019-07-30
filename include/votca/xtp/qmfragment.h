@@ -51,8 +51,8 @@ class QMFragment {
 
   void setName(std::string name) { _name = name; }
   void setId(int id) { _id = id; }
-  void getName() const { return _name; }
-  void getId() const { return _id; }
+  const std::string& getName() const { return _name; }
+  int getId() const { return _id; }
   void FillFromString(std::string atoms) { FillAtomIndices(atoms); }
 
   const T& value() const { return _value; }

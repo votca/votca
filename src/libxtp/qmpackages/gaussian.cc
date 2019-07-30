@@ -656,10 +656,9 @@ StaticSegment Gaussian::GetCharges() const {
     getline(input_file, line);
     boost::trim(line);
     std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
-    bool has_charges = false;
     if (charge_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
       has_charges = true;
+      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
       getline(input_file, line);
       getline(input_file, line);
 
@@ -681,6 +680,9 @@ StaticSegment Gaussian::GetCharges() const {
     }
   }
 
+  if (!has_charges) {
+    throw std::runtime_error("Charges not found in logfile.");
+  }
   return result;
 }
 
