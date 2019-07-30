@@ -515,7 +515,6 @@ void Orbitals::WriteToCpt(CheckpointWriter w) const {
 
   w(_qm_energy, "qm_energy");
   w(_qm_package, "qm_package");
-  w(_self_energy, "self_energy");
 
   w(_dftbasis, "dftbasis");
   w(_auxbasis, "auxbasis");
@@ -565,7 +564,6 @@ void Orbitals::ReadFromCpt(CheckpointReader r) {
 
   r(_qm_energy, "qm_energy");
   r(_qm_package, "qm_package");
-  r(_self_energy, "self_energy");
 
   r(_dftbasis, "dftbasis");
   r(_auxbasis, "auxbasis");

@@ -7,9 +7,7 @@
   <spin>1</spin>  
   <memory></memory>
   <basisset>ubecppol</basisset>
-  <writebasisset>true</writebasisset>
 <ecp>ecp</ecp>
-  <writepseudopotentials>true</writepseudopotentials>
   <options>
 ! DFT  B3LYP Grid7 DIRECT  TightSCF PAL4 
 ! D3BJ 

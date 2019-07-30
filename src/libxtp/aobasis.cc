@@ -267,11 +267,6 @@ void AOBasis::addReorderShell(const std::string& start,
           order.push_back(cur_pos + 3);
           order.push_back(cur_pos + 2);
           order.push_back(cur_pos + 1);
-        } else if (start == "votca") {  // for usage with old orb files
-          // old votca x,y,z Y1,1 Y1,-1 Y1,0
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 1);
         } else {
           std::cerr << "Tried to reorder p-functions from package " << start
                     << ".";
@@ -296,12 +291,6 @@ void AOBasis::addReorderShell(const std::string& start,
           order.push_back(cur_pos + 2);
           order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 5);
-        } else if (start == "votca") {  // for usage with old orb files
-          order.push_back(cur_pos + 3);
-          order.push_back(cur_pos + 2);
-          order.push_back(cur_pos + 4);
-          order.push_back(cur_pos + 1);
           order.push_back(cur_pos + 5);
         } else {
           std::cerr << "Tried to reorder d-functions from package " << start

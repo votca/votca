@@ -63,21 +63,11 @@ void Gaussian::Initialize(tools::Property& options) {
   std::string::size_type iop_pos;
   // check if the guess keyword is present, if yes, append the guess later
   if (_write_guess) {
-    ;
     iop_pos = _options.find("cards");
     if (iop_pos != std::string::npos) {
       _options = _options + " cards ";
     }
   }
-
-  // check if the pop keyword is present, if yes, get the charges and save them
-  iop_pos = _options.find("pop");
-  if (iop_pos != std::string::npos) {
-    _get_charges = true;
-  }
-
-  // check if the charge keyword is present, if yes, get the self energy and
-  // save it
 
   // check if the basis set is available ("/gen")
   iop_pos = _options.find("gen");
@@ -639,9 +629,8 @@ bool Gaussian::CheckLogFile() const {
   getline(input_file, line);
   input_file.close();
 
-  std::string::size_type self_energy_pos =
-      line.find("Normal termination of Gaussian");
-  if (self_energy_pos == std::string::npos) {
+  std::string::size_type success = line.find("Normal termination of Gaussian");
+  if (success == std::string::npos) {
     XTP_LOG(logERROR, *_pLog)
         << "GAUSSIAN: " << full_name << " is incomplete" << flush;
     return false;
@@ -668,7 +657,7 @@ StaticSegment Gaussian::GetCharges() const {
     boost::trim(line);
     std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
     bool has_charges = false;
-    if (charge_pos != std::string::npos && _get_charges) {
+    if (charge_pos != std::string::npos) {
       XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
       has_charges = true;
       getline(input_file, line);
@@ -728,6 +717,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     orbitals.setECPName(_ecp_name);
   }
 
+  double self_energy = 0.0;
+  double qm_energy = 0.0;
   bool ScaHFX_found = false;
   // Start parsing the file line by line
   ifstream input_file(log_file_name_full);
@@ -887,12 +878,11 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         properties[property[0]] = property[1];
       }
       if (properties.count("HF") > 0) {
-        double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-        orbitals.setQMEnergy(energy_hartree);
-        XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
-                                      orbitals.getDFTTotalEnergy())
-                                         .str()
-                                  << flush;
+        qm_energy = boost::lexical_cast<double>(properties["HF"]);
+
+        XTP_LOG(logDEBUG, *_pLog)
+            << (boost::format("QM energy[Hrt]: %4.6f ") % qm_energy).str()
+            << flush;
       } else {
         cout << endl;
         throw std::runtime_error("ERROR No energy in archive");
@@ -910,9 +900,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
                               boost::algorithm::token_compress_on);
       boost::algorithm::split(energy, block[1], boost::is_any_of("\t "),
                               boost::algorithm::token_compress_on);
-      orbitals.setSelfEnergy(boost::lexical_cast<double>(energy[1]));
-      XTP_LOG(logDEBUG, *_pLog)
-          << "Self energy " << orbitals.getSelfEnergy() << flush;
+      self_energy = boost::lexical_cast<double>(energy[1]);
+      XTP_LOG(logDEBUG, *_pLog) << "Self energy " << self_energy << flush;
     }
     // check if all information has been accumulated and quit
     if (has_number_of_electrons && has_basis_set_size && has_occupied_levels &&
@@ -921,6 +910,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
 
   }  // end of reading the file line-by-line
 
+  orbitals.setQMEnergy(qm_energy - self_energy);
   XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
   input_file.close();
 

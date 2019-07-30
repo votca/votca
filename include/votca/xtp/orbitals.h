@@ -136,13 +136,6 @@ class Orbitals {
 
   QMMolecule &QMAtoms() { return _atoms; }
 
-  // access to classical self-energy in MM environment, new, tested
-  bool hasSelfEnergy() const { return (_self_energy != 0.0) ? true : false; }
-
-  double getSelfEnergy() const { return _self_energy; }
-
-  void setSelfEnergy(double selfenergy) { _self_energy = selfenergy; }
-
   void setXCFunctionalName(std::string functionalname) {
     _functionalname = functionalname;
   }
@@ -351,7 +344,6 @@ class Orbitals {
   QMMolecule _atoms;
 
   double _qm_energy = 0;
-  double _self_energy = 0;
 
   // new variables for GW-BSE storage
   int _rpamin = 0;

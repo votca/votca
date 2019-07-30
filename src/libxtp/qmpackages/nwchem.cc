@@ -21,8 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <iomanip>
-#include <stdio.h>
+#include <votca/tools/filesystem.h>
 #include <votca/xtp/ecpaobasis.h>
 #include <votca/xtp/orbitals.h>
 
@@ -48,14 +47,7 @@ void NWChem::Initialize(tools::Property& options) {
     _is_optimization = true;
   }
 
-  // check if the esp keyword is present, if yes, get the charges and save them
-  iop_pos = _options.find(" esp");
-  if (iop_pos != std::string::npos) {
-    _get_charges = true;
-  }
-
   if (_write_guess) {
-    ;
     iop_pos = _options.find("iterations 1");
     if (iop_pos != std::string::npos) {
       _options = _options + "\n iterations 1 ";
@@ -104,10 +96,8 @@ int NWChem::WriteBackgroundCharges(ofstream& nw_file) {
 bool NWChem::WriteGuess(const Orbitals& orbitals) {
   ofstream orb_file;
   // get name of temporary ascii file and open it
-  std::vector<std::string> results;
-  boost::algorithm::split(results, _mo_file_name, boost::is_any_of("."),
-                          boost::algorithm::token_compress_on);
-  std::string orb_file_name_ascii = _run_dir + "/" + results.front() + ".mos";
+  std::string filebase = tools::filesystem::GetFileBase(_mo_file_name);
+  std::string orb_file_name_ascii = _run_dir + "/" + filebase + ".mos";
   orb_file.open(orb_file_name_ascii);
 
   // header
@@ -176,9 +166,8 @@ bool NWChem::WriteGuess(const Orbitals& orbitals) {
   orb_file << " 0.0000   0.0000" << endl;
   orb_file.close();
   // now convert this ascii file to binary
-  std::string command;
-  command = "cd " + _run_dir +
-            "; asc2mov 5000 system.mos system.movecs > convert.log";
+  std::string command = "cd " + _run_dir +
+                        "; asc2mov 5000 system.mos system.movecs > convert.log";
   int i = std::system(command.c_str());
   if (i == 0) {
     XTP_LOG(logDEBUG, *_pLog)
@@ -647,7 +636,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   std::vector<std::string> results;
 
   bool has_qm_energy = false;
-  bool has_self_energy = false;
   bool has_basis_set_size = false;
 
   bool found_optimization = false;
@@ -680,9 +668,8 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
      */
     std::string::size_type basis_pos = line.find("number of functions");
     if (basis_pos != std::string::npos) {
-      // cout << _line << endl;
-      boost::algorithm::split(results, line, boost::is_any_of(":"),
-                              boost::algorithm::token_compress_on);
+      tools::Tokenizer tok(line, ":");
+      results = tok.ToVector();
       has_basis_set_size = true;
       std::string bf = results.back();
       boost::trim(bf);
@@ -694,8 +681,9 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
 
     std::string::size_type energy_pos = line.find("Total DFT energy");
     if (energy_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of("="),
-                              boost::algorithm::token_compress_on);
+
+      tools::Tokenizer tok(line, "=");
+      results = tok.ToVector();
       std::string energy = results.back();
       boost::trim(energy);
       orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
@@ -753,34 +741,16 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
     std::string::size_type HFX_pos = line.find("Hartree-Fock (Exact) Exchange");
     if (HFX_pos != std::string::npos) {
 
-      boost::algorithm::split(results, line, boost::is_any_of("\t "),
-                              boost::algorithm::token_compress_on);
+      tools::Tokenizer tok(line, "\t ");
+      results = tok.ToVector();
       double ScaHFX = boost::lexical_cast<double>(results.back());
       orbitals.setScaHFX(ScaHFX);
       XTP_LOG(logDEBUG, *_pLog)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
     }
 
-    /*
-     * TODO Self-energy of external charges
-     */
-    std::string::size_type self_energy_pos =
-        line.find("Self energy of the charges");
-    if (self_energy_pos != std::string::npos) {
-      XTP_LOG(logDEBUG, *_pLog) << "Getting the self energy\n";
-      std::vector<std::string> block;
-      std::vector<std::string> energy;
-      boost::algorithm::split(block, line, boost::is_any_of("="),
-                              boost::algorithm::token_compress_on);
-      boost::algorithm::split(energy, block[1], boost::is_any_of("\t "),
-                              boost::algorithm::token_compress_on);
-      orbitals.setSelfEnergy(boost::lexical_cast<double>(energy[1]));
-      XTP_LOG(logDEBUG, *_pLog)
-          << "Self energy " << orbitals.getSelfEnergy() << flush;
-    }
-
     // check if all information has been accumulated and quit
-    if (has_basis_set_size && has_qm_energy && has_self_energy) break;
+    if (has_basis_set_size && has_qm_energy) break;
 
   }  // end of reading the file line-by-line
 

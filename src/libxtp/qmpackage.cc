@@ -150,10 +150,8 @@ std::vector<std::string> QMPackage::GetLineAndSplit(
   std::string line;
   getline(input_file, line);
   boost::trim(line);
-  std::vector<std::string> row;
-  boost::algorithm::split(row, line, boost::is_any_of(separators),
-                          boost::algorithm::token_compress_on);
-  return row;
+  tools::Tokenizer tok(line, separators.c_str());
+  return tok.ToVector();
 }
 
 }  // namespace xtp

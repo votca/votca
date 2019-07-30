@@ -51,14 +51,8 @@ void Orca::Initialize(tools::Property& options) {
   if (iop_pos != std::string::npos) {
     _is_optimization = true;
   }
-  // check if the esp keyword is present, if yes, get the charges and save them
-  if (_options.find(" chelpg") != std::string::npos ||
-      _options.find(" CHELPG") != std::string::npos) {
-    _get_charges = true;
-  }
 
   if (_write_guess) {
-    ;
     iop_pos = _options.find("Guess MORead");
     if (iop_pos != std::string::npos) {
       _options = _options + "\n Guess MORead ";
@@ -268,11 +262,9 @@ bool Orca::WriteInputFile(const Orbitals& orbitals) {
   }  // write_basis set
 
   // ECPs
-  /* WRITING ECP INTO system.inp FILE for ORCA**/
   if (_write_pseudopotentials) {
     WriteECP(inp_file, qmatoms);
-  }  // write pseudopotentials
-  /* END   OF WRITING BASISSET/ECP INTO system.inp FILE for ORCA*************/
+  }
   inp_file << "end\n "
            << "\n"
            << endl;  // This end is for the basis set block
@@ -410,7 +402,7 @@ StaticSegment Orca::GetCharges() const {
     boost::trim(line);
     std::string::size_type charge_pos = line.find("CHELPG Charges");
 
-    if (charge_pos != std::string::npos && _get_charges) {
+    if (charge_pos != std::string::npos) {
       XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
       getline(input_file, line);
       std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
@@ -614,7 +606,6 @@ bool Orca::ParseLogFile(Orbitals& orbitals) {
   orbitals.setBasisSetSize(levels);
   orbitals.setNumberOfAlphaElectrons(number_of_electrons);
   orbitals.setNumberOfOccupiedLevels(occupied_levels);
-  orbitals.setSelfEnergy(0.0);
 
   // copying energies to a vector
   orbitals.MOs().eigenvalues().resize(levels);

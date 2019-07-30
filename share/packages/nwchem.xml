@@ -9,9 +9,6 @@
   <basisset>cc-pVTZ</basisset>
   <auxbasisset>aux-cc-pVTZ</auxbasisset>
   <ecp>ecp</ecp>
-  <writebasisset>true</writebasisset>
-  <writepseudopotentials>false</writepseudopotentials>
-  <outputVxc>0</outputVxc>
   <options>
 dft
 xc pbe0

@@ -51,7 +51,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   double qmEnergy = -2.1025e-3;
 
   std::string qmPackage = "NOPE";
-  double selfEnergy = 3.14159e23;
 
   std::string dftBasis = "AWESOME basis*,, 2/.8";
   std::string auxBasis = "cos(theta) = pretty okay basis";
@@ -94,7 +93,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.QMAtoms() = atoms;
     orbWrite.setQMEnergy(qmEnergy);
     orbWrite.setQMpackage(qmPackage);
-    orbWrite.setSelfEnergy(selfEnergy);
     orbWrite.setDFTbasisName(dftBasis);
     orbWrite.setAuxbasisName(auxBasis);
     orbWrite.setRPAindices(rpaMin, rpaMax);
@@ -130,7 +128,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK(orbRead.MOs().eigenvectors().isApprox(mocTest, tol));
   BOOST_CHECK_CLOSE(orbRead.getDFTTotalEnergy(), qmEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
-  BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
   BOOST_CHECK_EQUAL(orbRead.getAuxbasisName(), auxBasis);
   BOOST_CHECK_EQUAL(orbRead.getRPAmin(), rpaMin);
