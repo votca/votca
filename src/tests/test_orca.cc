@@ -217,6 +217,10 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   ext << "   Scaling of DF-LDA-C  ScalLDAC        ....  1.000000" << std::endl;
   ext << "   Perturbative correction              ....  0.000000" << std::endl;
   ext << "   NL short-range parameter             ....  6.900000" << std::endl;
+  ext << " Total Charge           Charge          ....    0" << std::endl;
+  ext << " Multiplicity           Mult            ....    1" << std::endl;
+  ext << " Number of Electrons    NEL             ....   10" << std::endl;
+  ext << " Basis Dimension        Dim             ....   17" << std::endl;
   ext << "Now organizing SCF variables                       ... done"
       << std::endl;
   ext << "                      ------------------" << std::endl;
@@ -374,7 +378,7 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   Logger log;
   orca->setLog(&log);
   orca->setRunDir(".");
-  orca->setLogFileName("orca_charges.log");
+  orca->setLogFileName("orca_ext_charges.log");
   Orbitals orb;
   orca->ParseLogFile(orb);
   BOOST_CHECK_CLOSE(orb.getScaHFX(), 0.25, 1e-5);
@@ -6890,11 +6894,9 @@ BOOST_AUTO_TEST_CASE(ext_charges_test) {
   gbwfile.write((char*)&system_gbw[0], system_gbw_len * sizeof(char));
   orca->ParseMOsFile(orb);
   Eigen::VectorXd MOs_energy_ref = Eigen::VectorXd::Zero(17);
-  MOs_energy_ref << -10.1447, -0.712065, -0.400849, -0.400674, -0.400623,
-      0.162735, 0.20798, 0.208515, 0.209452, 0.724346, 0.724822, 0.726572,
-      1.06013, 1.09099, 1.09141, 1.09197, 1.71464;
-  ;
-
+  MOs_energy_ref << -10.1441, -0.712523, -0.405481, -0.403251, -0.392086,
+      0.157504, 0.196706, 0.202667, 0.240538, 0.718397, 0.727724, 0.728746,
+      1.0577, 1.08125, 1.08607, 1.11627, 1.71596;
   bool check_eng = MOs_energy_ref.isApprox(orb.MOs().eigenvalues(), 1e-5);
   BOOST_CHECK_EQUAL(check_eng, true);
   if (!check_eng) {

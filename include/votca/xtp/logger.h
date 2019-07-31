@@ -52,13 +52,7 @@ enum TLogLevel { logERROR, logWARNING, logINFO, logDEBUG };
 class LogBuffer : public std::stringbuf {
 
  public:
-  LogBuffer()
-      : std::stringbuf(),
-        _errorPreface(" ERROR   "),
-        _warnPreface(" WARNING "),
-        _infoPreface("         "),
-        _dbgPreface(" DEBUG   "),
-        _writePreface(true) {}
+  LogBuffer() : std::stringbuf() {}
 
   // sets the log level (needed for output)
   void setLogLevel(TLogLevel LogLevel) { _LogLevel = LogLevel; }
@@ -112,12 +106,11 @@ class LogBuffer : public std::stringbuf {
   // Multithreading
   bool _maverick;
 
-  std::string _errorPreface;
-  std::string _warnPreface;
-  std::string _infoPreface;
-  std::string _dbgPreface;
-  std::string _timePreface;
-  bool _writePreface;
+  std::string _errorPreface = " ERROR   ";
+  std::string _warnPreface = " WARNING ";
+  std::string _infoPreface = "         ";
+  std::string _dbgPreface = " DEBUG   ";
+  bool _writePreface = true;
 
  protected:
   virtual int sync() {
@@ -180,10 +173,9 @@ class Logger : public std::ostream {
   }
 
  public:
-  Logger(TLogLevel ReportLevel = logWARNING) : std::ostream(new LogBuffer()) {
-    _ReportLevel = ReportLevel;
-    _maverick = false;
-  }
+  Logger() : std::ostream(new LogBuffer()){};
+  Logger(TLogLevel ReportLevel)
+      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {}
 
   ~Logger() {
     // dynamic_cast<LogBuffer *>( rdbuf())->FlushBuffer();
@@ -218,10 +210,10 @@ class Logger : public std::ostream {
 
  private:
   // at what level of detail output messages
-  TLogLevel _ReportLevel = TLogLevel::logDEBUG;
+  TLogLevel _ReportLevel = TLogLevel::logERROR;
 
   // if true, only a single processor job is executed
-  bool _maverick;
+  bool _maverick = false;
 
   std::string Messages() {
     return dynamic_cast<LogBuffer *>(rdbuf())->Messages();

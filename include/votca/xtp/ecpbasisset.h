@@ -27,23 +27,21 @@ namespace votca {
 namespace xtp {
 
 class ECPGaussianPrimitive {
+ public:
   ECPGaussianPrimitive(int power, double decay, double contraction)
       : _power(power), _decay(decay), _contraction(contraction) {
     ;
   }
 
- public:
   int _power;
   double _decay;
   double _contraction;
-
- private:
 };
 
 class ECPShell {
-  friend class ECPElement;
 
  public:
+  ECPShell(std::string type) : _type(type) { ; }
   const std::string& getType() const { return _type; }
 
   int getL() const { return FindLmax(_type); }
@@ -68,11 +66,7 @@ class ECPShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPShell& shell);
 
  private:
-  // only class Element can construct shells
-  ECPShell(std::string type) : _type(type) { ; }
-
   std::string _type;
-  // scaling factor
   // vector of pairs of decay constants and contraction coefficients
   std::vector<ECPGaussianPrimitive> _gaussians;
 };
@@ -81,9 +75,11 @@ class ECPShell {
  * A collection of shells associated with a specific element
  */
 class ECPElement {
-  friend class ECPBasisSet;
-
  public:
+  ECPElement(std::string type, int lmax, int ncore)
+      : _type(type), _lmax(lmax), _ncore(ncore) {
+    ;
+  }
   typedef std::vector<ECPShell>::const_iterator ECPShellIterator;
   ECPShellIterator begin() const { return _shells.begin(); }
   ECPShellIterator end() const { return _shells.end(); }
@@ -104,11 +100,6 @@ class ECPElement {
   friend std::ostream& operator<<(std::ostream& out, const ECPElement& element);
 
  private:
-  ECPElement(std::string type, int lmax, int ncore)
-      : _type(type), _lmax(lmax), _ncore(ncore) {
-    ;
-  }
-
   std::string _type;
   //  applies to the highest angular momentum lmax
   int _lmax;

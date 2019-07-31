@@ -694,9 +694,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   std::vector<std::string> results;
   bool has_occupied_levels = false;
   bool has_unoccupied_levels = false;
-  bool has_number_of_electrons = false;
-  bool has_basis_set_size = false;
-  bool has_self_energy = false;
 
   int occupied_levels = 0;
   int unoccupied_levels = 0;
@@ -724,6 +721,8 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   bool ScaHFX_found = false;
   // Start parsing the file line by line
   ifstream input_file(log_file_name_full);
+
+  QMMolecule& mol = orbitals.QMAtoms();
   while (input_file) {
 
     getline(input_file, line);
@@ -749,7 +748,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     if (electrons_pos != std::string::npos) {
       boost::algorithm::split(results, line, boost::is_any_of("\t "),
                               boost::algorithm::token_compress_on);
-      has_number_of_electrons = true;
       number_of_electrons = boost::lexical_cast<int>(results.front());
       orbitals.setNumberOfAlphaElectrons(number_of_electrons);
       XTP_LOG(logDEBUG, *_pLog)
@@ -764,7 +762,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     if (basis_pos != std::string::npos) {
       boost::algorithm::split(results, line, boost::is_any_of("\t "),
                               boost::algorithm::token_compress_on);
-      has_basis_set_size = true;
       basis_set_size = boost::lexical_cast<int>(results.front());
       orbitals.setBasisSetSize(basis_set_size);
       XTP_LOG(logDEBUG, *_pLog)
@@ -830,7 +827,7 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         archive += line;
       }
 
-      bool has_atoms = orbitals.hasQMAtoms();
+      bool has_atoms = mol.size() > 0;
       std::list<std::string> stringList;
       std::vector<std::string> results;
       boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
@@ -858,9 +855,9 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
         Eigen::Vector3d pos(x, y, z);
         pos *= tools::conv::ang2bohr;
         if (has_atoms == false) {
-          orbitals.QMAtoms().push_back(QMAtom(aindex, atom_type, pos));
+          mol.push_back(QMAtom(aindex, atom_type, pos));
         } else {
-          QMAtom& pAtom = orbitals.QMAtoms().at(aindex);
+          QMAtom& pAtom = mol.at(aindex);
           pAtom.setPos(pos);
         }
         aindex++;

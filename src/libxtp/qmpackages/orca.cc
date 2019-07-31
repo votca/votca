@@ -17,581 +17,739 @@
  *
  */
 
-#include "votca/xtp/aomatrix.h"
-#include "votca/xtp/aomatrix3d.h"
-#include "votca/xtp/orbitals.h"
-#include "votca/xtp/qmstate.h"
-#include <fstream>
+#include "orca.h"
+#include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 #include <iomanip>
-#include <iostream>
-#include <numeric>
 #include <stdio.h>
-#include <votca/xtp/vc2index.h>
-#include <votca/xtp/version.h>
+#include <votca/tools/elements.h>
+#include <votca/xtp/ecpaobasis.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
+using namespace std;
 
-Orbitals::Orbitals() : _atoms("", 0) { ; }
+void Orca::Initialize(tools::Property& options) {
 
-/**
- *
- * @param _energy_difference [ev] Two levels are degenerate if their energy is
- * smaller than this value
- * @return vector with indices off all orbitals degenerate to this including
- * itself
+  // good luck
+
+  // Orca file names
+  std::string fileName = "system";
+
+  _input_file_name = fileName + ".inp";
+  _log_file_name = fileName + ".log";
+  _shell_file_name = fileName + ".sh";
+  _mo_file_name = fileName + ".gbw";
+
+  ParseCommonOptions(options);
+
+  // check if the optimize keyword is present, if yes, read updated coords
+  std::string::size_type iop_pos =
+      _options.find(" Opt"); /*optimization word in orca*/
+  if (iop_pos != std::string::npos) {
+    _is_optimization = true;
+  }
+
+  if (_write_guess) {
+    iop_pos = _options.find("Guess MORead");
+    if (iop_pos != std::string::npos) {
+      _options = _options + "\n Guess MORead ";
+    }
+  }
+}
+
+/* Custom basis sets are written on a per-element basis to
+ * the system.bas/aux file(s), which are then included in the
+ * Orca input file using GTOName = "system.bas/aux"
  */
-std::vector<int> Orbitals::CheckDegeneracy(int level,
-                                           double energy_difference) const {
+void Orca::WriteBasisset(const QMMolecule& qmatoms, std::string& bs_name,
+                         std::string& el_file_name) {
 
-  std::vector<int> result;
-  if (level > _mos.eigenvalues().size()) {
-    throw std::runtime_error(
-        "Level for degeneracy is higher than maximum level");
-  }
-  double MOEnergyLevel = _mos.eigenvalues()(level);
+  std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
-  for (int i = 0; i < _mos.eigenvalues().size(); ++i) {
-    if (std::abs(_mos.eigenvalues()(i) - MOEnergyLevel) < energy_difference) {
-      result.push_back(i);
+  tools::Elements elementInfo;
+  BasisSet bs;
+  bs.Load(bs_name);
+  XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << bs_name << flush;
+  ofstream el_file;
+
+  el_file.open(el_file_name);
+  el_file << "$DATA" << endl;
+
+  for (const std::string& element_name : UniqueElements) {
+    const Element& element = bs.getElement(element_name);
+    el_file << elementInfo.getEleFull(element_name) << endl;
+    for (const Shell& shell : element) {
+      string type = shell.getType();
+      // check combined shells
+      for (unsigned i = 0; i < type.size(); ++i) {
+        string subtype = string(type, i, 1);
+        el_file << subtype << " " << shell.getSize() << endl;
+        int sh_idx = 0;
+        for (const GaussianPrimitive& gaussian : shell) {
+          sh_idx++;
+          el_file << " " << sh_idx << " " << indent(gaussian._decay);
+          el_file << " " << indent(gaussian._contraction[FindLmax(subtype)]);
+          el_file << endl;
+        }
+      }
     }
   }
-
-  if (result.empty()) {
-    result.push_back(level);
-  }
-  return result;
-}
-
-std::vector<int> Orbitals::SortEnergies() {
-  std::vector<int> index = std::vector<int>(_mos.eigenvalues().size());
-  std::iota(index.begin(), index.end(), 0);
-  std::stable_sort(index.begin(), index.end(), [this](int i1, int i2) {
-    return this->MOs().eigenvalues()[i1] < this->MOs().eigenvalues()[i2];
-  });
-  return index;
-}
-
-Eigen::MatrixXd Orbitals::DensityMatrixFull(const QMState& state) const {
-  if (state.isTransition()) {
-    return this->TransitionDensityMatrix(state);
-  }
-  Eigen::MatrixXd result = this->DensityMatrixGroundState();
-  if (state.Type().isExciton()) {
-    std::array<Eigen::MatrixXd, 2> DMAT = DensityMatrixExcitedState(state);
-    result = result - DMAT[0] + DMAT[1];  // Ground state + hole_contribution +
-                                          // electron contribution
-  } else if (state.Type() == QMStateType::DQPstate) {
-    Eigen::MatrixXd DMATQP = DensityMatrixQuasiParticle(state);
-    if (state.Index() > getHomo()) {
-      result += DMATQP;
-    } else {
-      result -= DMATQP;
-    }
-  } else if (state.Type() != QMStateType::Gstate) {
-    throw std::runtime_error(
-        "DensityMatrixFull does not yet implement QMStateType:" +
-        state.Type().ToLongString());
-  }
-  return result;
-}
-
-// Determine ground state density matrix
-
-Eigen::MatrixXd Orbitals::DensityMatrixGroundState() const {
-  if (!hasMOs()) {
-    throw std::runtime_error("Orbitals file does not contain MO coefficients");
-  }
-  Eigen::MatrixXd occstates = _mos.eigenvectors().leftCols(_occupied_levels);
-  Eigen::MatrixXd dmatGS = 2.0 * occstates * occstates.transpose();
-  return dmatGS;
-}
-
-Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
-  if (!hasQPdiag()) {
-    throw std::runtime_error("Orbitals file does not contain QP coefficients");
-  }
-  return _mos.eigenvectors().block(0, _qpmin, _mos.eigenvectors().rows(),
-                                   _qpmax - _qpmin + 1) *
-         _QPdiag.eigenvectors();
-}
-
-// Determine QuasiParticle Density Matrix
-
-Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
-    const QMState& state) const {
-  if (state.Type() != QMStateType::PQPstate) {
-    throw std::runtime_error("State:" + state.ToString() +
-                             " is not a quasiparticle state");
-  }
-  Eigen::MatrixXd lambda = CalculateQParticleAORepresentation();
-  Eigen::MatrixXd dmatQP = lambda.col(state.Index() - _qpmin) *
-                           lambda.col(state.Index() - _qpmin).transpose();
-  return dmatQP;
-}
-
-Eigen::Vector3d Orbitals::CalcElDipole(const QMState& state) const {
-  Eigen::Vector3d nuclei_dip = Eigen::Vector3d::Zero();
-  if (!state.isTransition()) {
-    for (const QMAtom& atom : _atoms) {
-      nuclei_dip += (atom.getPos() - _atoms.getPos()) * atom.getNuccharge();
-    }
-  }
-  AOBasis basis = SetupDftBasis();
-  AODipole dipole;
-  dipole.setCenter(_atoms.getPos());
-  dipole.Fill(basis);
-
-  Eigen::MatrixXd dmat = this->DensityMatrixFull(state);
-  Eigen::Vector3d electronic_dip;
-  for (int i = 0; i < 3; ++i) {
-    electronic_dip(i) = dmat.cwiseProduct(dipole.Matrix()[i]).sum();
-  }
-  return nuclei_dip - electronic_dip;
-}
-
-Eigen::MatrixXd Orbitals::TransitionDensityMatrix(const QMState& state) const {
-  if (state.Type() != QMStateType::Singlet) {
-    throw std::runtime_error(
-        "Spin type not known for transition density matrix. Available only for "
-        "singlet");
-  }
-  const Eigen::MatrixXd& BSECoefs = _BSE_singlet.eigenvectors();
-  if (BSECoefs.cols() < state.Index() + 1 || BSECoefs.rows() < 2) {
-    throw std::runtime_error("Orbitals object has no information about state:" +
-                             state.ToString());
-  }
-
-  // The Transition dipole is sqrt2 bigger because of the spin, the excited
-  // state is a linear combination of 2 slater determinants, where either alpha
-  // or beta spin electron is excited
-
-  /*Trying to implement D_{alpha,beta}=
-   * sqrt2*sum_{i}^{occ}sum_{j}^{virt}{BSEcoef(i,j)*MOcoef(alpha,i)*MOcoef(beta,j)}
-   */
-  // c stands for conduction band and thus virtual orbitals
-  // v stand for valence band and thus occupied orbitals
-
-  Eigen::VectorXd coeffs = BSECoefs.col(state.Index());
-
-  if (!_useTDA) {
-    coeffs += _BSE_singlet.eigenvectors2().col(state.Index());
-  }
-  coeffs *= std::sqrt(2.0);
-  auto occlevels = _mos.eigenvectors().block(
-      0, _bse_vmin, _mos.eigenvectors().rows(), _bse_vtotal);
-  auto virtlevels = _mos.eigenvectors().block(
-      0, _bse_cmin, _mos.eigenvectors().rows(), _bse_ctotal);
-  Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal,
-                                        _bse_vtotal);
-
-  return occlevels * mat.transpose() * virtlevels.transpose();
-}
-
-std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState(
-    const QMState& state) const {
-  std::array<Eigen::MatrixXd, 2> dmat = DensityMatrixExcitedState_R(state);
-  if (!_useTDA) {
-    std::array<Eigen::MatrixXd, 2> dmat_AR =
-        DensityMatrixExcitedState_AR(state);
-    dmat[0] -= dmat_AR[0];
-    dmat[1] -= dmat_AR[1];
-  }
-  return dmat;
-}
-
-// Excited state density matrix
-
-std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_R(
-    const QMState& state) const {
-  if (!state.Type().isExciton()) {
-    throw std::runtime_error(
-        "Spin type not known for density matrix. Available are singlet and "
-        "triplet");
-  }
-
-  const Eigen::MatrixXd& BSECoefs = (state.Type() == QMStateType::Singlet)
-                                        ? _BSE_singlet.eigenvectors()
-                                        : _BSE_triplet.eigenvectors();
-  if (BSECoefs.cols() < state.Index() + 1 || BSECoefs.rows() < 2) {
-    throw std::runtime_error("Orbitals object has no information about state:" +
-                             state.ToString());
-  }
-  /******
-   *
-   *    Density matrix for GW-BSE based excitations
-   *
-   *    - electron contribution
-   *      D_ab = \sum{vc} \sum{c'} A_{vc}A_{vc'} mo_a(c)mo_b(c')
-   *
-   *    - hole contribution
-   *      D_ab = \sum{vc} \sum{v'} A_{vc}A_{v'c} mo_a(v)mo_b(v')
-   *
-   */
-
-  Eigen::VectorXd coeffs = BSECoefs.col(state.Index());
-
-  std::array<Eigen::MatrixXd, 2> dmatEX;
-  // hole part as matrix products
-  Eigen::MatrixXd occlevels = _mos.eigenvectors().block(
-      0, _bse_vmin, _mos.eigenvectors().rows(), _bse_vtotal);
-  dmatEX[0] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
-
-  // electron part as matrix products
-  Eigen::MatrixXd virtlevels = _mos.eigenvectors().block(
-      0, _bse_cmin, _mos.eigenvectors().rows(), _bse_ctotal);
-  dmatEX[1] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
-
-  return dmatEX;
-}
-
-Eigen::MatrixXd Orbitals::CalcAuxMat_vv(const Eigen::VectorXd& coeffs) const {
-  const Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal,
-                                              _bse_vtotal);
-  return mat.transpose() * mat;
-}
-
-Eigen::MatrixXd Orbitals::CalcAuxMat_cc(const Eigen::VectorXd& coeffs) const {
-  const Eigen::Map<const Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal,
-                                              _bse_vtotal);
-  return mat * mat.transpose();
-}
-
-std::array<Eigen::MatrixXd, 2> Orbitals::DensityMatrixExcitedState_AR(
-    const QMState& state) const {
-
-  if (!state.Type().isExciton()) {
-    throw std::runtime_error(
-        "Spin type not known for density matrix. Available are singlet and "
-        "triplet");
-  }
-
-  const Eigen::MatrixXd& BSECoefs_AR = (state.Type() == QMStateType::Singlet)
-                                           ? _BSE_singlet.eigenvectors2()
-                                           : _BSE_triplet.eigenvectors2();
-  if (BSECoefs_AR.cols() < state.Index() + 1 || BSECoefs_AR.rows() < 2) {
-    throw std::runtime_error("Orbitals object has no information about state:" +
-                             state.ToString());
-  }
-  /******
-   *
-   *    Density matrix for GW-BSE based excitations
-   *
-   *    - electron contribution
-   *      D_ab = \sum{vc} \sum{v'} B_{vc}B_{v'c} mo_a(v)mo_b(v')
-   *
-   *    - hole contribution
-   *      D_ab = \sum{vc} \sum{c'} B_{vc}B_{vc'} mo_a(c)mo_b(c')
-   *
-   *
-   *   more efficient:
-   *
-   *   - electron contribution
-   *      D_ab = \sum{v} \sum{v'} mo_a(v)mo_b(v') [ \sum{c} B_{vc}B_{v'c} ]
-   *           = \sum{v} \sum{v'} mo_a(v)mo_b(v') B_{vv'}
-   *
-   *   - hole contribution
-   *      D_ab = \sum{c} \sum{c'} mo_a(c)mo_b(c') [ \sum{v} B_{vc}B_{vc'} ]
-   *           = \sum{c} \sum{c'} mo_a(c)mo_b(c') B_{cc'}
-   *
-   */
-
-  Eigen::VectorXd coeffs = BSECoefs_AR.col(state.Index());
-
-  std::array<Eigen::MatrixXd, 2> dmatAR;
-  Eigen::MatrixXd virtlevels = _mos.eigenvectors().block(
-      0, _bse_cmin, _mos.eigenvectors().rows(), _bse_ctotal);
-  dmatAR[0] = virtlevels * CalcAuxMat_cc(coeffs) * virtlevels.transpose();
-  // electron part as matrix products
-  Eigen::MatrixXd occlevels = _mos.eigenvectors().block(
-      0, _bse_vmin, _mos.eigenvectors().rows(), _bse_vtotal);
-  dmatAR[1] = occlevels * CalcAuxMat_vv(coeffs) * occlevels.transpose();
-
-  return dmatAR;
-}
-
-Eigen::VectorXd Orbitals::Oscillatorstrengths() const {
-
-  int size = _transition_dipoles.size();
-  if (size > _BSE_singlet.eigenvalues().size()) {
-    size = _BSE_singlet.eigenvalues().size();
-  }
-  Eigen::VectorXd oscs = Eigen::VectorXd::Zero(size);
-  for (int i = 0; i < size; ++i) {
-    oscs(i) = _transition_dipoles[i].squaredNorm() * 2.0 / 3.0 *
-              (_BSE_singlet.eigenvalues()(i));
-  }
-  return oscs;
-}
-
-double Orbitals::getTotalStateEnergy(const QMState& state) const {
-  double total_energy = getDFTTotalEnergy();
-  if (state.Type() == QMStateType::Gstate) {
-    return total_energy;
-  }
-  total_energy += getExcitedStateEnergy(state);
-  return total_energy;
-}
-
-double Orbitals::getExcitedStateEnergy(const QMState& state) const {
-
-  double omega = 0.0;
-  if (state.isTransition()) {
-    throw std::runtime_error(
-        "Total Energy does not exist for transition state");
-  }
-
-  if (state.Type() == QMStateType::Singlet) {
-    if (_BSE_singlet.eigenvalues().size() < state.Index() + 1) {
-      throw std::runtime_error("Orbitals::getTotalEnergy You want " +
-                               state.ToString() +
-                               " which has not been calculated");
-    }
-    omega = _BSE_singlet.eigenvalues()[state.Index()];
-  } else if (state.Type() == QMStateType::Triplet) {
-    if (_BSE_triplet.eigenvalues().size() < state.Index() + 1) {
-      throw std::runtime_error("Orbitals::getTotalEnergy You want " +
-                               state.ToString() +
-                               " which has not been calculated");
-    }
-    omega = _BSE_triplet.eigenvalues()[state.Index()];
-  } else if (state.Type() == QMStateType::DQPstate) {
-    if (_QPdiag.eigenvalues().size() < state.Index() + 1 - getGWAmin()) {
-      throw std::runtime_error("Orbitals::getTotalEnergy You want " +
-                               state.ToString() +
-                               " which has not been calculated");
-    }
-    return _QPdiag.eigenvalues()[state.Index() - getGWAmin()];
-  } else if (state.Type() == QMStateType::KSstate) {
-    if (_mos.eigenvalues().size() < state.Index() + 1) {
-      throw std::runtime_error("Orbitals::getTotalEnergy You want " +
-                               state.ToString() +
-                               " which has not been calculated");
-    }
-    return _mos.eigenvalues()[state.Index()];
-  } else if (state.Type() == QMStateType::PQPstate) {
-    if (this->_QPpert_energies.rows() < state.Index() + 1 - getGWAmin()) {
-      throw std::runtime_error("Orbitals::getTotalEnergy You want " +
-                               state.ToString() +
-                               " which has not been calculated");
-    }
-    return _QPpert_energies(state.Index() - getGWAmin(), 3);
-  } else {
-    throw std::runtime_error(
-        "GetTotalEnergy only knows states:singlet,triplet,KS,DQP,PQP");
-  }
-  return omega;  //  e.g. hartree
-}
-
-std::array<Eigen::MatrixXd, 3> Orbitals::CalcFreeTransition_Dipoles() const {
-  const Eigen::MatrixXd& dft_orbitals = _mos.eigenvectors();
-  AOBasis basis = SetupDftBasis();
-  // Testing electric dipole AOMatrix
-  AODipole dft_dipole;
-  dft_dipole.Fill(basis);
-
-  // now transition dipole elements for free interlevel transitions
-  std::array<Eigen::MatrixXd, 3> interlevel_dipoles;
-
-  Eigen::MatrixXd empty =
-      dft_orbitals.block(0, _bse_cmin, basis.AOBasisSize(), _bse_ctotal);
-  Eigen::MatrixXd occ =
-      dft_orbitals.block(0, _bse_vmin, basis.AOBasisSize(), _bse_vtotal);
-  for (int i = 0; i < 3; i++) {
-    interlevel_dipoles[i] = empty.transpose() * dft_dipole.Matrix()[i] * occ;
-  }
-  return interlevel_dipoles;
-}
-
-void Orbitals::CalcCoupledTransition_Dipoles() {
-  std::array<Eigen::MatrixXd, 3> interlevel_dipoles =
-      CalcFreeTransition_Dipoles();
-  int numofstates = _BSE_singlet.eigenvalues().size();
-  _transition_dipoles.resize(0);
-  _transition_dipoles.reserve(numofstates);
-  const double sqrt2 = sqrt(2.0);
-  for (int i_exc = 0; i_exc < numofstates; i_exc++) {
-
-    Eigen::VectorXd coeffs = _BSE_singlet.eigenvectors().col(i_exc);
-    if (!_useTDA) {
-      coeffs += _BSE_singlet.eigenvectors2().col(i_exc);
-    }
-    Eigen::Map<Eigen::MatrixXd> mat(coeffs.data(), _bse_ctotal, _bse_vtotal);
-    Eigen::Vector3d tdipole = Eigen::Vector3d::Zero();
-    for (int i = 0; i < 3; i++) {
-      tdipole[i] = mat.cwiseProduct(interlevel_dipoles[i]).sum();
-    }
-    // The Transition dipole is sqrt2 bigger because of the spin, the
-    // excited state is a linear combination of 2 slater determinants,
-    // where either alpha or beta spin electron is excited
-    _transition_dipoles.push_back(-sqrt2 * tdipole);  //- because electrons are
-                                                      // negative
-  }
-}
-
-void Orbitals::OrderMOsbyEnergy() {
-  std::vector<int> sort_index = SortEnergies();
-  tools::EigenSystem MO_copy = _mos;
-  int size = _mos.eigenvalues().size();
-  for (int i = 0; i < size; ++i) {
-    _mos.eigenvalues()(i) = MO_copy.eigenvalues()(sort_index[i]);
-  }
-  for (int i = 0; i < size; ++i) {
-    _mos.eigenvectors().col(i) = MO_copy.eigenvectors().col(sort_index[i]);
-  }
-}
-
-/**
- * \brief Guess for a dimer based on monomer orbitals
- *
- * Given two monomer orbitals (A and B) constructs a guess for dimer
- * orbitals: | A 0 | and energies: [EA, EB]
- *           | 0 B |
- */
-void Orbitals::PrepareDimerGuess(const Orbitals& orbitalsA,
-                                 const Orbitals& orbitalsB) {
-
-  // constructing the direct product orbA x orbB
-  int basisA = orbitalsA.getBasisSetSize();
-  int basisB = orbitalsB.getBasisSetSize();
-
-  int electronsA = orbitalsA.getNumberOfAlphaElectrons();
-  int electronsB = orbitalsB.getNumberOfAlphaElectrons();
-
-  _mos.eigenvectors() = Eigen::MatrixXd::Zero(basisA + basisB, basisA + basisB);
-
-  // AxB = | A 0 |  //   A = [EA, EB]  //
-  //       | 0 B |  //                 //
-  if (orbitalsA.getDFTbasisName() != orbitalsB.getDFTbasisName()) {
-    throw std::runtime_error("Basissets of Orbitals A and B differ " +
-                             orbitalsA.getDFTbasisName() + ":" +
-                             orbitalsB.getDFTbasisName());
-  }
-  this->setDFTbasisName(orbitalsA.getDFTbasisName());
-  if (orbitalsA.getECPName() != orbitalsB.getECPName()) {
-    throw std::runtime_error("ECPs of Orbitals A and B differ " +
-                             orbitalsA.getECPName() + ":" +
-                             orbitalsB.getECPName());
-  }
-  this->setECPName(orbitalsA.getECPName());
-  this->setBasisSetSize(basisA + basisB);
-  this->setNumberOfOccupiedLevels(electronsA + electronsB);
-  this->setNumberOfAlphaElectrons(electronsA + electronsB);
-
-  _mos.eigenvectors().topLeftCorner(basisA, basisA) =
-      orbitalsA.MOs().eigenvectors();
-  _mos.eigenvectors().bottomRightCorner(basisB, basisB) =
-      orbitalsB.MOs().eigenvectors();
-
-  _mos.eigenvalues().resize(basisA + basisB);
-
-  _mos.eigenvalues().head(basisA) = orbitalsA.MOs().eigenvalues();
-  _mos.eigenvalues().tail(basisB) = orbitalsB.MOs().eigenvalues();
-
-  OrderMOsbyEnergy();
+  el_file << "STOP\n";
+  el_file.close();
 
   return;
 }
 
-void Orbitals::WriteToCpt(const std::string& filename) const {
-  CheckpointFile cpf(filename, CheckpointAccessLevel::CREATE);
-  WriteToCpt(cpf);
-}
+/* Coordinates are written in standard Element,x,y,z format to the
+ * input file.
+ */
+void Orca::WriteCoordinates(std::ofstream& inp_file,
+                            const QMMolecule& qmatoms) {
 
-void Orbitals::WriteToCpt(CheckpointFile f) const {
-  WriteToCpt(f.getWriter("/QMdata"));
-}
-
-void Orbitals::WriteToCpt(CheckpointWriter w) const {
-  w(XtpVersionStr(), "Version");
-  w(_basis_set_size, "basis_set_size");
-  w(_occupied_levels, "occupied_levels");
-  w(_number_alpha_electrons, "number_alpha_electrons");
-
-  w(_mos, "mos");
-
-  CheckpointWriter molgroup = w.openChild("qmmolecule");
-  _atoms.WriteToCpt(molgroup);
-
-  w(_qm_energy, "qm_energy");
-  w(_qm_package, "qm_package");
-
-  w(_dftbasis, "dftbasis");
-  w(_auxbasis, "auxbasis");
-
-  w(_rpamin, "rpamin");
-  w(_rpamax, "rpamax");
-  w(_qpmin, "qpmin");
-  w(_qpmax, "qpmax");
-  w(_bse_vmin, "bse_vmin");
-  w(_bse_cmax, "bse_cmax");
-  w(_functionalname, "XCFunctional");
-  w(_ScaHFX, "ScaHFX");
-
-  w(_useTDA, "useTDA");
-  w(_ECP, "ECP");
-
-  w(_QPpert_energies, "QPpert_energies");
-
-  w(_QPdiag, "QPdiag");
-
-  w(_BSE_singlet, "BSE_singlet");
-
-  w(_transition_dipoles, "transition_dipoles");
-
-  w(_BSE_triplet, "BSE_triplet");
-}
-
-void Orbitals::ReadFromCpt(const std::string& filename) {
-  CheckpointFile cpf(filename, CheckpointAccessLevel::READ);
-  ReadFromCpt(cpf);
-}
-
-void Orbitals::ReadFromCpt(CheckpointFile f) {
-  ReadFromCpt(f.getReader("/QMdata"));
-}
-
-void Orbitals::ReadFromCpt(CheckpointReader r) {
-  r(_basis_set_size, "basis_set_size");
-  r(_occupied_levels, "occupied_levels");
-  r(_number_alpha_electrons, "number_alpha_electrons");
-
-  r(_mos, "mos");
-
-  // Read qmatoms
-  CheckpointReader molgroup = r.openChild("qmmolecule");
-  _atoms.ReadFromCpt(molgroup);
-
-  r(_qm_energy, "qm_energy");
-  r(_qm_package, "qm_package");
-
-  r(_dftbasis, "dftbasis");
-  r(_auxbasis, "auxbasis");
-
-  r(_rpamin, "rpamin");
-  r(_rpamax, "rpamax");
-  r(_qpmin, "qpmin");
-  r(_qpmax, "qpmax");
-  r(_bse_vmin, "bse_vmin");
-  r(_bse_cmax, "bse_cmax");
-  setBSEindices(_bse_vmin, _bse_cmax);
-  try {
-    r(_functionalname, "XCFunctional");
-  } catch (std::runtime_error& e) {
-    ;
+  for (const QMAtom& atom : qmatoms) {
+    Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
+    inp_file << setw(3) << atom.getElement() << setw(12)
+             << setiosflags(ios::fixed) << setprecision(5) << pos.x()
+             << setw(12) << setiosflags(ios::fixed) << setprecision(5)
+             << pos.y() << setw(12) << setiosflags(ios::fixed)
+             << setprecision(5) << pos.z() << endl;
   }
-  r(_ScaHFX, "ScaHFX");
-  r(_useTDA, "useTDA");
-  r(_ECP, "ECP");
-
-  r(_QPpert_energies, "QPpert_energies");
-  r(_QPdiag, "QPdiag");
-
-  r(_BSE_singlet, "BSE_singlet");
-
-  r(_transition_dipoles, "transition_dipoles");
-
-  r(_BSE_triplet, "BSE_triplet");
+  inp_file << "* \n" << endl;
+  return;
 }
+
+/* If custom ECPs are used, they need to be specified in the input file
+ * in a section following the basis set includes.
+ */
+void Orca::WriteECP(std::ofstream& inp_file, const QMMolecule& qmatoms) {
+
+  inp_file << endl;
+  std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
+
+  ECPBasisSet ecp;
+  ecp.Load(_ecp_name);
+
+  XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
+
+  for (const std::string& element_name : UniqueElements) {
+    try {
+      ecp.getElement(element_name);
+    } catch (std::runtime_error& error) {
+      XTP_LOG(logDEBUG, *_pLog)
+          << "No pseudopotential for " << element_name << " available" << flush;
+      continue;
+    }
+    const ECPElement& element = ecp.getElement(element_name);
+
+    inp_file << "\n"
+             << "NewECP"
+             << " " << element_name << endl;
+    inp_file << "N_core"
+             << " " << element.getNcore() << endl;
+    inp_file << "lmax"
+             << " " << getLName(element.getLmax()) << endl;
+    // For Orca the order doesn't matter but let's write it in ascending order
+    // write remaining shells in ascending order s,p,d...
+    for (int i = 0; i <= element.getLmax(); i++) {
+      for (const ECPShell& shell : element) {
+        if (shell.getL() == i) {
+          // shell type, number primitives, scale factor
+          inp_file << shell.getType() << " " << shell.getSize() << endl;
+          int sh_idx = 0;
+          for (const ECPGaussianPrimitive& gaussian : shell) {
+            sh_idx++;
+            inp_file << sh_idx << " " << gaussian._decay << " "
+                     << gaussian._contraction << " " << gaussian._power << endl;
+          }
+        }
+      }
+    }
+    inp_file << "end\n "
+             << "\n"
+             << endl;
+  }
+  return;
+}
+
+void Orca::WriteChargeOption() {
+  std::string::size_type iop_pos = _options.find("pointcharges");
+  if (iop_pos == std::string::npos) {
+    _options = _options + "\n %pointcharges \"background.crg\"";
+  }
+}
+
+/* For QM/MM the molecules in the MM environment are represented by
+ * their atomic partial charge distributions. ORCA expects them in
+ * q,x,y,z format in a separate file "background.crg"
+ */
+void Orca::WriteBackgroundCharges() {
+
+  std::ofstream crg_file;
+  std::string _crg_file_name_full = _run_dir + "/background.crg";
+  crg_file.open(_crg_file_name_full);
+  int total_background = 0;
+
+  for (const std::unique_ptr<StaticSite>& site : _externalsites) {
+    if (site->getCharge() != 0.0) total_background++;
+    std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
+    total_background += split_multipoles.size();
+  }  // counting only
+
+  crg_file << total_background << endl;
+  boost::format fmt("%1$+1.7f %2$+1.7f %3$+1.7f %4$+1.7f");
+  // now write
+  for (const std::unique_ptr<StaticSite>& site : _externalsites) {
+    Eigen::Vector3d pos = site->getPos() * tools::conv::bohr2ang;
+    string sitestring =
+        boost::str(fmt % site->getCharge() % pos.x() % pos.y() % pos.z());
+    if (site->getCharge() != 0.0) crg_file << sitestring << endl;
+    std::vector<MinimalMMCharge> split_multipoles = SplitMultipoles(*site);
+    for (const auto& mpoles : split_multipoles) {
+      Eigen::Vector3d pos = mpoles._pos * tools::conv::bohr2ang;
+      string multipole =
+          boost::str(fmt % mpoles._q % pos.x() % pos.y() % pos.z());
+      crg_file << multipole << endl;
+    }
+  }
+
+  return;
+}
+
+/**
+ * Prepares the *.inp file from a vector of segments
+ * Appends a guess constructed from monomer orbitals if supplied, Not
+ * implemented yet
+ */
+bool Orca::WriteInputFile(const Orbitals& orbitals) {
+
+  std::vector<std::string> results;
+  std::string temp_suffix = "/id";
+  std::string scratch_dir_backup = _scratch_dir;
+  std::ofstream inp_file;
+  std::string inp_file_name_full = _run_dir + "/" + _input_file_name;
+  inp_file.open(inp_file_name_full);
+  // header
+  inp_file << "* xyz  " << _charge << " " << _spin << endl;
+  int threads = OPENMP::getMaxThreads();
+  const QMMolecule& qmatoms = orbitals.QMAtoms();
+  // put coordinates
+  WriteCoordinates(inp_file, qmatoms);
+  // add parallelization info
+  inp_file << "%pal\n "
+           << "nprocs " << threads << "\nend"
+           << "\n"
+           << endl;
+  // basis set info
+  if (_write_basis_set) {
+    std::string el_file_name = _run_dir + "/" + "system.bas";
+    WriteBasisset(qmatoms, _basisset_name, el_file_name);
+    inp_file << "%basis\n " << endl;
+    inp_file << "GTOName"
+             << " "
+             << "="
+             << "\"system.bas\";" << endl;
+    if (_write_auxbasis_set) {
+      std::string aux_file_name = _run_dir + "/" + "system.aux";
+      WriteBasisset(qmatoms, _auxbasisset_name, aux_file_name);
+      inp_file << "GTOAuxName"
+               << " "
+               << "="
+               << "\"system.aux\";" << endl;
+    }
+  }  // write_basis set
+
+  // ECPs
+  if (_write_pseudopotentials) {
+    WriteECP(inp_file, qmatoms);
+  }
+  inp_file << "end\n "
+           << "\n"
+           << endl;  // This end is for the basis set block
+  if (_write_charges) {
+    WriteBackgroundCharges();
+  }
+
+  inp_file << _options << "\n";
+  inp_file << endl;
+  inp_file.close();
+  // and now generate a shell script to run both jobs, if neccessary
+
+  XTP_LOG(logDEBUG, *_pLog)
+      << "Setting the scratch dir to " << _scratch_dir + temp_suffix << flush;
+  _scratch_dir = scratch_dir_backup + temp_suffix;
+  WriteShellScript();
+  _scratch_dir = scratch_dir_backup;
+  return true;
+}
+
+bool Orca::WriteShellScript() {
+  ofstream shell_file;
+  std::string shell_file_name_full = _run_dir + "/" + _shell_file_name;
+  shell_file.open(shell_file_name_full);
+  shell_file << "#!/bin/bash" << endl;
+  shell_file << "mkdir -p " << _scratch_dir << endl;
+
+  if (_write_guess) {
+    if (!(boost::filesystem::exists(_run_dir + "/molA.gbw") &&
+          boost::filesystem::exists(_run_dir + "/molB.gbw"))) {
+      throw runtime_error(
+          "Using guess relies on a molA.gbw and a molB.gbw file being in the "
+          "directory.");
+    }
+    shell_file << _executable
+               << "_mergefrag molA.gbw molB.gbw dimer.gbw > merge.log" << endl;
+  }
+  shell_file << _executable << " " << _input_file_name << " > "
+             << _log_file_name << endl;  //" 2> run.error" << endl;
+  shell_file.close();
+  return true;
+}
+
+/**
+ * Runs the Orca job.
+ */
+bool Orca::Run() {
+
+  XTP_LOG(logDEBUG, *_pLog) << "Running Orca job" << flush;
+
+  if (std::system(NULL)) {
+
+    std::string command = "cd " + _run_dir + "; sh " + _shell_file_name;
+    int check = std::system(command.c_str());
+    if (check == -1) {
+      XTP_LOG(logERROR, *_pLog)
+          << _input_file_name << " failed to start" << flush;
+      return false;
+    }
+    if (CheckLogFile()) {
+      XTP_LOG(logDEBUG, *_pLog) << "Finished Orca job" << flush;
+      return true;
+    } else {
+      XTP_LOG(logDEBUG, *_pLog) << "Orca job failed" << flush;
+    }
+  } else {
+    XTP_LOG(logERROR, *_pLog)
+        << _input_file_name << " failed to start" << flush;
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Cleans up after the Orca job
+ */
+void Orca::CleanUp() {
+
+  if (_write_guess) {
+    remove((_run_dir + "/" + "molA.gbw").c_str());
+    remove((_run_dir + "/" + "molB.gbw").c_str());
+    remove((_run_dir + "/" + "dimer.gbw").c_str());
+  }
+  // cleaning up the generated files
+  if (_cleanup.size() != 0) {
+    tools::Tokenizer tok_cleanup(_cleanup, ",");
+    std::vector<std::string> cleanup_info;
+    tok_cleanup.ToVector(cleanup_info);
+    for (const std::string& substring : cleanup_info) {
+      if (substring == "inp") {
+        std::string file_name = _run_dir + "/" + _input_file_name;
+        remove(file_name.c_str());
+      }
+
+      if (substring == "bas") {
+        std::string file_name = _run_dir + "/system.bas";
+        remove(file_name.c_str());
+      }
+
+      if (substring == "log") {
+        std::string file_name = _run_dir + "/" + _log_file_name;
+        remove(file_name.c_str());
+      }
+
+      if (substring == "gbw") {
+        std::string file_name = _run_dir + "/" + _mo_file_name;
+        remove(file_name.c_str());
+      }
+
+      if (substring == "ges") {
+        std::string file_name = _run_dir + "/system.ges";
+        remove(file_name.c_str());
+      }
+      if (substring == "prop") {
+        std::string file_name = _run_dir + "/system.prop";
+        remove(file_name.c_str());
+      }
+    }
+  }
+  return;
+}
+
+StaticSegment Orca::GetCharges() const {
+
+  StaticSegment result("charges", 0);
+
+  XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+  std::string log_file_name_full = _run_dir + "/" + _log_file_name;
+  std::string line;
+
+  std::ifstream input_file(log_file_name_full);
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+    GetCoordinates(result, line, input_file);
+
+    std::string::size_type charge_pos = line.find("CHELPG Charges");
+
+    if (charge_pos != std::string::npos) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      getline(input_file, line);
+      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
+      int nfields = row.size();
+      bool hasAtoms = result.size() > 0;
+      while (nfields == 4) {
+        int atom_id = boost::lexical_cast<int>(row.at(0));
+        std::string atom_type = row.at(1);
+        double atom_charge = boost::lexical_cast<double>(row.at(3));
+        row = GetLineAndSplit(input_file, "\t ");
+        nfields = row.size();
+        if (hasAtoms) {
+          StaticSite& temp = result.at(atom_id);
+          if (temp.getElement() != atom_type) {
+            throw std::runtime_error(
+                "Getting charges failed. Mismatch in elemts:" +
+                temp.getElement() + " vs " + atom_type);
+          }
+          temp.setCharge(atom_charge);
+        } else {
+          StaticSite temp =
+              StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+          temp.setCharge(atom_charge);
+          result.push_back(temp);
+        }
+      }
+    }
+  }
+  return result;
+}
+
+bool Orca::ParseLogFile(Orbitals& orbitals) {
+  bool found_success = false;
+  orbitals.setQMpackage(getPackageName());
+  orbitals.setDFTbasisName(_basisset_name);
+  if (_write_pseudopotentials) {
+    orbitals.setECPName(_ecp_name);
+  }
+
+  XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
+  std::string log_file_name_full = _run_dir + "/" + _log_file_name;
+  // check if LOG file is complete
+  if (!CheckLogFile()) return false;
+  std::map<int, double> energies;
+  std::map<int, double> occupancy;
+
+  std::string line;
+  int levels = 0;
+  int number_of_electrons = 0;
+  std::vector<std::string> results;
+
+  std::ifstream input_file(log_file_name_full);
+
+  if (input_file.fail()) {
+    XTP_LOG(logERROR, *_pLog)
+        << "File " << log_file_name_full << " not found " << flush;
+    return false;
+  } else {
+    XTP_LOG(logDEBUG, *_pLog)
+        << "Reading Coordinates and occupationnumbers and energies from "
+        << log_file_name_full << flush;
+  }
+  // Coordinates of the final configuration depending on whether it is an
+  // optimization or not
+
+  QMMolecule& mol = orbitals.QMAtoms();
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+
+    GetCoordinates(mol, line, input_file);
+
+    std::string::size_type energy_pos = line.find("FINAL SINGLE");
+    if (energy_pos != std::string::npos) {
+
+      boost::algorithm::split(results, line, boost::is_any_of(" "),
+                              boost::algorithm::token_compress_on);
+      std::string energy = results[4];
+      boost::trim(energy);
+      orbitals.setQMEnergy(boost::lexical_cast<double>(energy));
+      XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
+                                    orbitals.getDFTTotalEnergy())
+                                       .str()
+                                << flush;
+    }
+
+    std::string::size_type HFX_pos = line.find("Fraction HF Exchange ScalHFX");
+    if (HFX_pos != std::string::npos) {
+      boost::algorithm::split(results, line, boost::is_any_of(" "),
+                              boost::algorithm::token_compress_on);
+      double ScaHFX = boost::lexical_cast<double>(results.back());
+      orbitals.setScaHFX(ScaHFX);
+      XTP_LOG(logDEBUG, *_pLog)
+          << "DFT with " << ScaHFX << " of HF exchange!" << flush;
+    }
+
+    std::string::size_type dim_pos = line.find("Basis Dimension");
+    if (dim_pos != std::string::npos) {
+      boost::algorithm::split(results, line, boost::is_any_of(" "),
+                              boost::algorithm::token_compress_on);
+      std::string dim =
+          results[4];  // The 4th element of results vector is the Basis Dim
+      boost::trim(dim);
+      levels = boost::lexical_cast<int>(dim);
+      XTP_LOG(logDEBUG, *_pLog) << "Basis Dimension: " << levels << flush;
+      XTP_LOG(logDEBUG, *_pLog) << "Energy levels: " << levels << flush;
+    }
+
+    std::string::size_type OE_pos = line.find("ORBITAL ENERGIES");
+    if (OE_pos != std::string::npos) {
+
+      number_of_electrons = 0;
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      if (line.find("E(Eh)") == std::string::npos) {
+        XTP_LOG(logDEBUG, *_pLog)
+            << "Warning: Orbital Energies not found in log file" << flush;
+      }
+      for (int i = 0; i < levels; i++) {
+        results = GetLineAndSplit(input_file, " ");
+        std::string no = results[0];
+        boost::trim(no);
+        int levelnumber = boost::lexical_cast<int>(no);
+        if (levelnumber != i) {
+          XTP_LOG(logDEBUG, *_pLog) << "Have a look at the orbital energies "
+                                       "something weird is going on"
+                                    << flush;
+        }
+        std::string oc = results[1];
+        boost::trim(oc);
+        double occ = boost::lexical_cast<double>(oc);
+        // We only count alpha electrons, each orbital must be empty or doubly
+        // occupied
+        if (occ == 2 || occ == 1) {
+          number_of_electrons++;
+          occupancy[i] = occ;
+        } else if (occ == 0) {
+          occupancy[i] = occ;
+        } else {
+          if (occ == 1) {
+            XTP_LOG(logDEBUG, *_pLog)
+                << "Watch out! No distinction between alpha and beta "
+                   "electrons. Check if occ = 1 is suitable for your "
+                   "calculation "
+                << flush;
+            number_of_electrons++;
+            occupancy[i] = occ;
+          } else {
+            throw runtime_error(
+                "Only empty or doubly occupied orbitals are allowed not "
+                "running the right kind of DFT calculation");
+          }
+        }
+        std::string e = results[2];
+        boost::trim(e);
+        energies[i] = boost::lexical_cast<double>(e);
+      }
+    }
+
+    std::string::size_type success =
+        line.find("*                     SUCCESS                       *");
+    if (success != std::string::npos) {
+      found_success = true;
+    }
+  }
+
+  XTP_LOG(logDEBUG, *_pLog)
+      << "Alpha electrons: " << number_of_electrons << flush;
+  int occupied_levels = number_of_electrons;
+  int unoccupied_levels = levels - occupied_levels;
+  XTP_LOG(logDEBUG, *_pLog) << "Occupied levels: " << occupied_levels << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << "Unoccupied levels: " << unoccupied_levels << flush;
+
+  /************************************************************/
+
+  // copying information to the orbitals object
+
+  orbitals.setBasisSetSize(levels);
+  orbitals.setNumberOfAlphaElectrons(number_of_electrons);
+  orbitals.setNumberOfOccupiedLevels(occupied_levels);
+
+  // copying energies to a vector
+  orbitals.MOs().eigenvalues().resize(levels);
+  //_level = 1;
+  for (int i = 0; i < levels; i++) {
+    orbitals.MOs().eigenvalues()[i] = energies[i];
+  }
+
+  XTP_LOG(logDEBUG, *_pLog) << "Done reading Log file" << flush;
+
+  return found_success;
+}
+template <class T>
+void Orca::GetCoordinates(T& mol, string& line, ifstream& input_file) const {
+  std::string::size_type coordinates_pos =
+      line.find("CARTESIAN COORDINATES (ANGSTROEM)");
+
+  typedef typename std::iterator_traits<typename T::iterator>::value_type Atom;
+
+  if (coordinates_pos != std::string::npos) {
+    XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+    bool has_QMAtoms = mol.size() > 0;
+    // three garbage lines
+    getline(input_file, line);
+    // now starts the data in format
+    // _id type Qnuc x y z
+    vector<string> row = GetLineAndSplit(input_file, "\t ");
+    int nfields = row.size();
+    int atom_id = 0;
+    while (nfields == 4) {
+      string atom_type = row.at(0);
+      double x = boost::lexical_cast<double>(row.at(1));
+      double y = boost::lexical_cast<double>(row.at(2));
+      double z = boost::lexical_cast<double>(row.at(3));
+      row = GetLineAndSplit(input_file, "\t ");
+      nfields = row.size();
+      Eigen::Vector3d pos(x, y, z);
+      pos *= tools::conv::ang2bohr;
+      if (has_QMAtoms == false) {
+        mol.push_back(Atom(atom_id, atom_type, pos));
+      } else {
+        Atom& pAtom = mol.at(atom_id);
+        pAtom.setPos(pos);
+      }
+      atom_id++;
+    }
+  }
+}
+
+bool Orca::CheckLogFile() {
+  // check if the log file exists
+  ifstream input_file(_run_dir + "/" + _log_file_name);
+
+  if (input_file.fail()) {
+    XTP_LOG(logERROR, *_pLog) << "Orca LOG is not found" << flush;
+    return false;
+  };
+
+  std::string line;
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+    std::string::size_type error = line.find("FATAL ERROR ENCOUNTERED");
+    if (error != std::string::npos) {
+      XTP_LOG(logERROR, *_pLog) << "ORCA encountered a fatal error, maybe a "
+                                   "look in the log file may help."
+                                << flush;
+      return false;
+    }
+    error = line.find(
+        "mpirun detected that one or more processes exited with non-zero "
+        "status");
+    if (error != std::string::npos) {
+      XTP_LOG(logERROR, *_pLog)
+          << "ORCA had an mpi problem, maybe your openmpi version is not good."
+          << flush;
+      return false;
+    }
+  }
+  return true;
+}
+
+// Parses the Orca gbw file and stores data in the Orbitals object
+
+bool Orca::ParseMOsFile(Orbitals& orbitals) {
+  if (!CheckLogFile()) return false;
+  std::vector<double> coefficients;
+  int basis_size = orbitals.getBasisSetSize();
+  if (basis_size == 0) {
+    throw runtime_error(
+        "Basis size not set, calculator does not parse log file first");
+  }
+
+  XTP_LOG(logDEBUG, *_pLog)
+      << "Reading the gbw file, this may or may not work so be careful: "
+      << flush;
+  ifstream infile;
+  infile.open(_run_dir + "/" + _mo_file_name, ios::binary | ios::in);
+  if (!infile) {
+    throw runtime_error("Could not open " + _mo_file_name + " file");
+  }
+  infile.seekg(24, ios::beg);
+  std::array<char, 8> buffer;
+  infile.read(buffer.data(), 8);
+  long int offset = *((long int*)buffer.data());
+
+  infile.seekg(offset, ios::beg);
+  infile.read(buffer.data(), 4);
+  int op_read = *((int*)buffer.data());
+  infile.seekg(offset + 4, ios::beg);
+  infile.read(buffer.data(), 4);
+  int dim_read = *((int*)buffer.data());
+  infile.seekg(offset + 8, ios::beg);
+  XTP_LOG(logDEBUG, *_pLog) << "Number of operators: " << op_read
+                            << " Basis dimension: " << dim_read << flush;
+  int n = op_read * dim_read * dim_read;
+  for (int i = 0; i < n; i++) {
+    infile.read(buffer.data(), 8);
+    double mocoeff = *((double*)buffer.data());
+    coefficients.push_back(mocoeff);
+  }
+
+  infile.close();
+  // i -> MO, j -> AO
+  orbitals.MOs().eigenvectors().resize(basis_size, basis_size);
+  for (int i = 0; i < basis_size; i++) {
+    for (int j = 0; j < basis_size; j++) {
+      orbitals.MOs().eigenvectors()(j, i) = coefficients[j * basis_size + i];
+    }
+  }
+  ReorderOutput(orbitals);
+  XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
+  return true;
+}
+
+std::string Orca::getLName(int lnum) {
+  if (lnum == 0) {
+    return "S";
+  } else if (lnum == 1) {
+    return "P";
+  } else if (lnum == 2) {
+    return "D";
+  } else if (lnum == 3) {
+    return "F";
+  } else {
+    throw runtime_error(
+        "Orca::getLName functions higher than F not implemented");
+  }
+  return "0";
+}
+
+std::string Orca::indent(const double& number) {
+  std::stringstream ssnumber;
+  if (number >= 0) {
+    ssnumber << "    ";
+  } else {
+    ssnumber << "   ";
+  }
+  ssnumber << setiosflags(ios::fixed) << setprecision(15) << std::scientific
+           << number;
+  std::string snumber = ssnumber.str();
+  return snumber;
+}
+
 }  // namespace xtp
 }  // namespace votca

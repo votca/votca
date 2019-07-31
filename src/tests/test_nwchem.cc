@@ -812,7 +812,7 @@ BOOST_AUTO_TEST_CASE(getcharges) {
 
   double ang2bohr = votca::tools::conv::ang2bohr;
   StaticSegment ref("ref", 0);
-  Eigen::Vector3d pos1 = {0.52881, 0.16101, 0.93592};
+  Eigen::Vector3d pos1 = {0.052881, 0.016101, 0.093592};
   StaticSite s1(0, "H", pos1 * ang2bohr);
   s1.setCharge(0.116609);
   pos1 = {0.000001, 0.000001, 0.000002};
@@ -836,7 +836,14 @@ BOOST_AUTO_TEST_CASE(getcharges) {
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
   for (int i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(ref[i].Q().isApprox(seg[i].Q(), 1e-5), true);
-    BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
+    bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
+    BOOST_CHECK_EQUAL(check_pos, true);
+    if (!check_pos) {
+      std::cout << "res" << i << std::endl;
+      std::cout << seg[i].getPos().transpose() << std::endl;
+      std::cout << "ref " << i << std::endl;
+      std::cout << ref[i].getPos().transpose() << std::endl;
+    }
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
 }

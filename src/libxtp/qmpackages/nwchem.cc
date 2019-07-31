@@ -541,12 +541,16 @@ StaticSegment NWChem::GetCharges() const {
       while (nfields == 6) {
         int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
         std::string atom_type = row.at(1);
+        double x = boost::lexical_cast<double>(row.at(2));
+        double y = boost::lexical_cast<double>(row.at(3));
+        double z = boost::lexical_cast<double>(row.at(4));
+        Eigen::Vector3d pos = {x, y, z};
+        pos *= tools::conv::ang2bohr;
         double atom_charge = boost::lexical_cast<double>(row.at(5));
         row = GetLineAndSplit(input_file, "\t ");
         nfields = row.size();
 
-        StaticSite temp =
-            StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+        StaticSite temp = StaticSite(atom_id, atom_type, pos);
         temp.setCharge(atom_charge);
         result.push_back(temp);
       }
@@ -628,9 +632,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   std::string line;
   std::vector<std::string> results;
 
-  bool has_qm_energy = false;
-  bool has_basis_set_size = false;
-
   int basis_set_size = 0;
 
   XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
@@ -658,7 +659,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
     if (basis_pos != std::string::npos) {
       tools::Tokenizer tok(line, ":");
       results = tok.ToVector();
-      has_basis_set_size = true;
       std::string bf = results.back();
       boost::trim(bf);
       basis_set_size = boost::lexical_cast<int>(bf);
@@ -679,7 +679,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
                                     orbitals.getDFTTotalEnergy())
                                        .str()
                                 << flush;
-      has_qm_energy = true;
     }
 
     std::string::size_type coordinates_pos = line.find("Output coordinates");

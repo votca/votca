@@ -66,6 +66,9 @@ class Orca : public QMPackage {
   void WriteBackgroundCharges();
 
   void WriteChargeOption();
+  template <class T>
+  void GetCoordinates(T& mol, std::string& line,
+                      std::ifstream& input_file) const;
 };
 
 }  // namespace xtp
