@@ -32,15 +32,12 @@ class BasisSet;
 /**
  * \brief Container to hold Basisfunctions for all atoms
  *
- * It is constructed from a vector of QMAtoms and a BasisSet.
+ * It is constructed from a QMMolecule and a BasisSet.
  */
 class AOBasis {
  public:
   void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                  const std::string& target);
-
-  void ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
-                     const std::string& target);
+                  const std::string& target) const;
 
   void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
@@ -61,22 +58,24 @@ class AOBasis {
  private:
   AOShell& addShell(const Shell& shell, const QMAtom& atom, int startIndex);
 
-  void MultiplyMOs(Eigen::MatrixXd& v, std::vector<int> const& multiplier);
+  void MultiplyMOs(Eigen::MatrixXd& v,
+                   const std::vector<int>& multiplier) const;
 
-  std::vector<int> invertOrder(const std::vector<int>& order);
+  std::vector<int> invertOrder(const std::vector<int>& order) const;
 
   std::vector<int> getReorderVector(const std::string& start,
-                                    const std::string& target);
+                                    const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
-                       const std::string& shell, std::vector<int>& neworder);
+                       const std::string& shell,
+                       std::vector<int>& neworder) const;
 
   std::vector<int> getMultiplierVector(const std::string& start,
-                                       const std::string& target);
+                                       const std::string& target) const;
 
   void addMultiplierShell(const std::string& start, const std::string& target,
                           const std::string& shell,
-                          std::vector<int>& multiplier);
+                          std::vector<int>& multiplier) const;
 
   std::vector<AOShell> _aoshells;
 

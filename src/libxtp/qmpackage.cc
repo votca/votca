@@ -73,18 +73,15 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 }
 
 void QMPackage::ReorderOutput(Orbitals& orbitals) const {
-  BasisSet dftbasisset;
-  dftbasisset.Load(_basisset_name);
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
 
-  AOBasis dftbasis;
-  dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
+  AOBasis dftbasis = orbitals.SetupDftBasis();
   // necessary to update nuclear charges on qmatoms
-  if (_write_pseudopotentials) {
+  if (orbitals.hasECPName()) {
     ECPBasisSet ecps;
-    ecps.Load(_ecp_name);
+    ecps.Load(orbitals.getECPName());
     ECPAOBasis ecpbasis;
     ecpbasis.Fill(ecps, orbitals.QMAtoms());
   }

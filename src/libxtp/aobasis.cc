@@ -31,7 +31,7 @@ AOShell& AOBasis::addShell(const Shell& shell, const QMAtom& atom,
 }
 
 void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                         const std::string& target) {
+                         const std::string& target) const {
 
   if (start == target) {
     return;
@@ -48,9 +48,9 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
 
   // Sanity check
   if (v.rows() != int(order.size())) {
-    std::cerr << "Size mismatch in ReorderMOs" << v.rows() << ":"
-              << order.size() << std::endl;
-    throw std::runtime_error("Abort!");
+    throw std::runtime_error("Size mismatch in ReorderMOs " +
+                             std::to_string(v.rows()) + ":" +
+                             std::to_string(order.size()));
   }
 
   // actual swapping of coefficients
@@ -72,7 +72,7 @@ void AOBasis::ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
 }
 
 void AOBasis::MultiplyMOs(Eigen::MatrixXd& v,
-                          std::vector<int> const& multiplier) {
+                          const std::vector<int>& multiplier) const {
   // Sanity check
   if (v.cols() != int(multiplier.size())) {
     std::cerr << "Size mismatch in MultiplyMOs" << v.cols() << ":"
@@ -88,17 +88,14 @@ void AOBasis::MultiplyMOs(Eigen::MatrixXd& v,
 }
 
 std::vector<int> AOBasis::getMultiplierVector(const std::string& start,
-                                              const std::string& target) {
+                                              const std::string& target) const {
   std::vector<int> multiplier;
   multiplier.reserve(_AOBasisSize);
-  std::string s;
-  std::string t;
+  std::string s = start;
+  std::string t = target;
   if (start == "xtp") {
     s = target;
     t = start;
-  } else {
-    s = start;
-    t = target;
   }
   // go through basisset
   for (const AOShell& shell : (*this)) {
@@ -110,13 +107,10 @@ std::vector<int> AOBasis::getMultiplierVector(const std::string& start,
 void AOBasis::addMultiplierShell(const std::string& start,
                                  const std::string& target,
                                  const std::string& shell_type,
-                                 std::vector<int>& multiplier) {
+                                 std::vector<int>& multiplier) const {
   // multipliers were all found using code, hard to establish
 
   if (target == "xtp") {
-    // current length of vector
-    // int _cur_pos = multiplier.size() - 1;
-
     // single type shells defined here
     if (shell_type.length() == 1) {
       if (shell_type == "S") {
@@ -190,7 +184,6 @@ void AOBasis::addMultiplierShell(const std::string& start,
       }
     } else {
       // for combined shells, iterate over all contributions
-      //_nbf = 0;
       for (unsigned i = 0; i < shell_type.length(); ++i) {
         std::string local_shell = std::string(shell_type, i, 1);
         addMultiplierShell(start, target, local_shell, multiplier);
@@ -206,7 +199,7 @@ void AOBasis::addMultiplierShell(const std::string& start,
 }
 
 std::vector<int> AOBasis::getReorderVector(const std::string& start,
-                                           const std::string& target) {
+                                           const std::string& target) const {
   std::vector<int> neworder;
   neworder.reserve(_AOBasisSize);
   std::string s;
@@ -228,7 +221,7 @@ std::vector<int> AOBasis::getReorderVector(const std::string& start,
   return neworder;
 }
 
-std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) {
+std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) const {
 
   std::vector<int> neworder = std::vector<int>(order.size());
   for (unsigned i = 0; i < order.size(); i++) {
@@ -240,7 +233,7 @@ std::vector<int> AOBasis::invertOrder(const std::vector<int>& order) {
 void AOBasis::addReorderShell(const std::string& start,
                               const std::string& target,
                               const std::string& shell_type,
-                              std::vector<int>& order) {
+                              std::vector<int>& order) const {
   // Reordering is given by email from gaussian, orca output MOs, and
   // http://www.nwchem-sw.org/index.php/Release66:Basis for nwchem
 
