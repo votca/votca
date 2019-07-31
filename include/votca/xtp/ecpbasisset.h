@@ -26,12 +26,11 @@
 namespace votca {
 namespace xtp {
 
-class ECPShell;
-class ECPElement;
-class ECPBasisSet;
-
 class ECPGaussianPrimitive {
-  friend class ECPShell;
+  ECPGaussianPrimitive(int power, double decay, double contraction)
+      : _power(power), _decay(decay), _contraction(contraction) {
+    ;
+  }
 
  public:
   int _power;
@@ -39,10 +38,6 @@ class ECPGaussianPrimitive {
   double _contraction;
 
  private:
-  ECPGaussianPrimitive(int power, double decay, double contraction)
-      : _power(power), _decay(decay), _contraction(contraction) {
-    ;
-  }
 };
 
 class ECPShell {

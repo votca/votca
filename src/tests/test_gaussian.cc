@@ -366,6 +366,7 @@ BOOST_AUTO_TEST_CASE(read_withexternal) {
   ref.push_back(s3);
   ref.push_back(s4);
   ref.push_back(s5);
+  BOOST_CHECK_CLOSE(orb.getScaHFX(), 0.25, 1e-5);
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
   for (int i = 0; i < seg.size(); i++) {
@@ -740,82 +741,6 @@ BOOST_AUTO_TEST_CASE(getcharges) {
   chelpg << " H                     0.2051    0.824    -0.6786 " << std::endl;
   chelpg << " H                     0.3345   -0.9314   -0.4496 " << std::endl;
   chelpg << " H                    -1.0685   -0.0537    0.1921 " << std::endl;
-  chelpg << " " << std::endl;
-  chelpg << " NAtoms=      5 NQM=      5 NQMF=      0 NMic=      0 NMicF=      "
-            "0 NTot=      5."
-         << std::endl;
-  chelpg << "                    Isotopes and Nuclear Properties:" << std::endl;
-  chelpg << " (Nuclear quadrupole moments (NQMom) in fm**2, nuclear magnetic "
-            "moments (NMagM)"
-         << std::endl;
-  chelpg << "  in nuclear magnetons)" << std::endl;
-  chelpg << "" << std::endl;
-  chelpg << "  Atom         1           2           3           4           5"
-         << std::endl;
-  chelpg
-      << " IAtWgt=           1          12           1           1           1"
-      << std::endl;
-  chelpg
-      << " AtmWgt=   1.0078250  12.0000000   1.0078250   1.0078250   1.0078250"
-      << std::endl;
-  chelpg
-      << " NucSpn=           1           0           1           1           1"
-      << std::endl;
-  chelpg
-      << " AtZEff=   0.0000000   0.0000000   0.0000000   0.0000000   0.0000000"
-      << std::endl;
-  chelpg
-      << " NQMom=    0.0000000   0.0000000   0.0000000   0.0000000   0.0000000"
-      << std::endl;
-  chelpg
-      << " NMagM=    2.7928460   0.0000000   2.7928460   2.7928460   2.7928460"
-      << std::endl;
-  chelpg << " Leave Link  101 at Tue Jul 30 12:35:31 2019, MaxMem=  134217728 "
-            "cpu:       0.1"
-         << std::endl;
-  chelpg << " (Enter /home/apps/gaussian_6_9/g09/l202.exe)" << std::endl;
-  chelpg << "                          Input orientation:                      "
-            "    "
-         << std::endl;
-  chelpg << " -----------------------------------------------------------------"
-            "----"
-         << std::endl;
-  chelpg << " Center     Atomic      Atomic             Coordinates (Angstroms)"
-         << std::endl;
-  chelpg
-      << " Number     Number       Type             X           Y           Z"
-      << std::endl;
-  chelpg << " -----------------------------------------------------------------"
-            "----"
-         << std::endl;
-  chelpg << "      1          1           0        0.528800    0.161000    "
-            "0.935900"
-         << std::endl;
-  chelpg << "      2          6           0        0.000000    0.000000    "
-            "0.000000"
-         << std::endl;
-  chelpg << "      3          1           0        0.205100    0.824000   "
-            "-0.678600"
-         << std::endl;
-  chelpg << "      4          1           0        0.334500   -0.931400   "
-            "-0.449600"
-         << std::endl;
-  chelpg << "      5          1           0       -1.068500   -0.053700    "
-            "0.192100"
-         << std::endl;
-  chelpg << " -----------------------------------------------------------------"
-            "----"
-         << std::endl;
-  chelpg << "                    Distance matrix (angstroms):" << std::endl;
-  chelpg << "                    1          2          3          4          5"
-         << std::endl;
-  chelpg << "     1  H    0.000000" << std::endl;
-  chelpg << "     2  C    1.086950   0.000000" << std::endl;
-  chelpg << "     3  H    1.775095   1.086987   0.000000" << std::endl;
-  chelpg << "     4  H    1.775021   1.086985   1.774997   0.000000"
-         << std::endl;
-  chelpg << "     5  H    1.775022   1.086958   1.774974   1.774978   0.000000"
-         << std::endl;
   chelpg << " Symmetry turned off by external request." << std::endl;
   chelpg << " Stoichiometry    CH4" << std::endl;
   chelpg << " Framework group  C1[X(CH4)]" << std::endl;

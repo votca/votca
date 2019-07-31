@@ -31,13 +31,15 @@
 namespace votca {
 namespace xtp {
 
-class ECPAOBasis;
-class ECPAOShell;
-
 class ECPAOGaussianPrimitive {
-  friend class ECPAOShell;
 
  public:
+  ECPAOGaussianPrimitive(const ECPGaussianPrimitive& gaussian)
+      : _power(gaussian._power),
+        _decay(gaussian._decay),
+        _contraction(gaussian._contraction) {
+    ;
+  }
   int getPower() const { return _power; }
   double getDecay() const { return _decay; }
   double getContraction() const { return _contraction; }
@@ -46,22 +48,26 @@ class ECPAOGaussianPrimitive {
   int _power = 0;
   double _decay = 0.0;
   double _contraction = 0.0;
-  // private constructor, only a shell can create a primitive
-  ECPAOGaussianPrimitive(const ECPGaussianPrimitive& gaussian)
-      : _power(gaussian._power),
-        _decay(gaussian._decay),
-        _contraction(gaussian._contraction) {
-    ;
-  }
 };
 
 /*
  * shells in a Gaussian-basis expansion
  */
 class ECPAOShell {
-  friend class ECPAOBasis;
-
  public:
+  ECPAOShell(const ECPShell& shell, const QMAtom& atom, int startIndex,
+             int Lmax)
+      : _type(shell.getType()),
+        _L(shell.getL()),
+        _numFunc(shell.getnumofFunc()),
+        _startIndex(startIndex),
+        _offset(shell.getOffset()),
+        _pos(atom.getPos()),
+        _atomindex(atom.getId()),
+        _Lmax_element(Lmax) {
+    ;
+  }
+
   const std::string& getType() const { return _type; }
   int getNumFunc() const { return _numFunc; }
   int getStartIndex() const { return _startIndex; }
@@ -91,20 +97,6 @@ class ECPAOShell {
   friend std::ostream& operator<<(std::ostream& out, const ECPAOShell& shell);
 
  private:
-  // only class aobasis can construct shells
-  ECPAOShell(const ECPShell& shell, const QMAtom& atom, int startIndex,
-             int Lmax)
-      : _type(shell.getType()),
-        _L(shell.getL()),
-        _numFunc(shell.getnumofFunc()),
-        _startIndex(startIndex),
-        _offset(shell.getOffset()),
-        _pos(atom.getPos()),
-        _atomindex(atom.getId()),
-        _Lmax_element(Lmax) {
-    ;
-  }
-
   std::string _type;
   int _L;
   // number of functions in shell

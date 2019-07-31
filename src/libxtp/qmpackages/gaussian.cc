@@ -905,10 +905,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
       self_energy = boost::lexical_cast<double>(energy[1]);
       XTP_LOG(logDEBUG, *_pLog) << "Self energy " << self_energy << flush;
     }
-    // check if all information has been accumulated and quit
-    if (has_number_of_electrons && has_basis_set_size && has_occupied_levels &&
-        has_unoccupied_levels && has_self_energy)
-      break;
 
   }  // end of reading the file line-by-line
 

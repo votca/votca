@@ -41,14 +41,8 @@ void NWChem::Initialize(tools::Property& options) {
 
   ParseCommonOptions(options);
 
-  // check if the optimize keyword is present, if yes, read updated coords
-  std::string::size_type iop_pos = _options.find(" optimize");
-  if (iop_pos != std::string::npos) {
-    _is_optimization = true;
-  }
-
   if (_write_guess) {
-    iop_pos = _options.find("iterations 1");
+    std::string::size_type iop_pos = _options.find("iterations 1");
     if (iop_pos != std::string::npos) {
       _options = _options + "\n iterations 1 ";
     }
@@ -318,6 +312,23 @@ bool NWChem::Run() {
 
     if (CheckLogFile()) {
       XTP_LOG(logDEBUG, *_pLog) << "Finished NWChem job" << flush;
+      /* maybe we DO need to convert from fortran binary to ASCII first to avoid
+    compiler-dependent issues */
+      std::string command;
+      ascii_mo_file_name =
+          tools::filesystem::GetFileBase(_mo_file_name) + ".mos";
+      command = "cd " + _run_dir + "; mov2asc 10000 " + _mo_file_name + " " +
+                ascii_mo_file_name + "> convert.log";
+      int i = std::system(command.c_str());
+      if (i == 0) {
+        XTP_LOG(logDEBUG, *_pLog)
+            << "Converted MO file from binary to ascii" << flush;
+      } else {
+        XTP_LOG(logERROR, *_pLog)
+            << "Conversion of binary MO file to ascii failed. " << flush;
+        return false;
+      }
+
       return true;
     } else {
       XTP_LOG(logDEBUG, *_pLog) << "NWChem job failed" << flush;
@@ -361,6 +372,8 @@ void NWChem::CleanUp() {
       if (substring == "movecs") {
         std::string file_name = _run_dir + "/" + _mo_file_name;
         remove(file_name.c_str());
+        std::string file_name2 = _run_dir + "/" + ascii_mo_file_name;
+        remove(file_name2.c_str());
       }
 
       if (substring == "gridpts") {
@@ -385,24 +398,8 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   unsigned basis_size = 0;
   int number_of_electrons = 0;
 
-  /* maybe we DO need to convert from fortran binary to ASCII first to avoid
-     compiler-dependent issues */
-  std::string orb_file_name_bin = _run_dir + "/" + _mo_file_name;
-  std::string command;
-  command = "cd " + _run_dir +
-            "; mov2asc 10000 system.movecs system.mos > convert.log";
-  int i = std::system(command.c_str());
-  if (i == 0) {
-    XTP_LOG(logDEBUG, *_pLog)
-        << "Converted MO file from binary to ascii" << flush;
-  } else {
-    XTP_LOG(logERROR, *_pLog)
-        << "Conversion of binary MO file to ascii failed. " << flush;
-    return false;
-  }
-
   // opening the ascii MO file
-  std::string orb_file_name_full = _run_dir + "/" + "system.mos";
+  std::string orb_file_name_full = _run_dir + "/" + ascii_mo_file_name;
   std::ifstream input_file(orb_file_name_full);
 
   if (input_file.fail()) {
@@ -416,7 +413,7 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   }
 
   // the first 12 lines are garbage info
-  for (i = 1; i < 13; i++) {
+  for (int i = 0; i < 12; i++) {
     getline(input_file, line);
   }
   // next line has basis set size
@@ -434,7 +431,7 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   int n_rest = levels - 3 * n_lines;
   // read in the data
   int imo = 0;
-  for (i = 1; i <= n_lines; i++) {
+  for (int i = 0; i < n_lines; i++) {
     for (int j = 0; j < 3; j++) {
       input_file >> occupancy[imo];
       if (occupancy[imo] == 2.0) {
@@ -444,7 +441,7 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
     }
   }
   if (n_rest != 0) {
-    for (i = 0; i < n_rest; i++) {
+    for (int i = 0; i < n_rest; i++) {
       input_file >> occupancy[imo];
       imo++;
     }
@@ -461,14 +458,14 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
 
   // reset index and read MO energies the same way
   imo = 0;
-  for (i = 1; i <= n_lines; i++) {
+  for (int i = 0; i < n_lines; i++) {
     for (int j = 0; j < 3; j++) {
       input_file >> energies[imo];
       imo++;
     }
   }
   if (n_rest != 0) {
-    for (i = 0; i < n_rest; i++) {
+    for (int i = 0; i < n_rest; i++) {
       input_file >> energies[imo];
       imo++;
     }
@@ -477,14 +474,14 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
   // Now, the same for the coefficients
   double coef;
   for (unsigned imo = 0; imo < levels; imo++) {
-    for (i = 1; i <= n_lines; i++) {
+    for (int i = 0; i < n_lines; i++) {
       for (int j = 0; j < 3; j++) {
         input_file >> coef;
         coefficients[imo].push_back(coef);
       }
     }
     if (n_rest != 0) {
-      for (i = 0; i < n_rest; i++) {
+      for (int i = 0; i < n_rest; i++) {
         input_file >> coef;
         coefficients[imo].push_back(coef);
       }
@@ -509,10 +506,6 @@ bool NWChem::ParseMOsFile(Orbitals& orbitals) {
       orbitals.MOs().eigenvectors()(j, i) = coefficients[i][j];
     }
   }
-
-  // when all is done, we can trash the ascii file
-  std::string file_name = _run_dir + "/system.mos";
-  remove(file_name.c_str());
 
   ReorderOutput(orbitals);
   XTP_LOG(logDEBUG, *_pLog) << "Done reading MOs" << flush;
@@ -638,7 +631,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   bool has_qm_energy = false;
   bool has_basis_set_size = false;
 
-  bool found_optimization = false;
   int basis_set_size = 0;
 
   XTP_LOG(logDEBUG, *_pLog) << "Parsing " << _log_file_name << flush;
@@ -651,10 +643,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
   orbitals.setDFTbasisName(_basisset_name);
   if (_write_pseudopotentials) {
     orbitals.setECPName(_ecp_name);
-  }
-  // set _found_optimization to true if this is a run without optimization
-  if (!_is_optimization) {
-    found_optimization = true;
   }
 
   // Start parsing the file line by line
@@ -694,17 +682,8 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       has_qm_energy = true;
     }
 
-    // Coordinates of the final configuration
-    // depending on whether it is an optimization or not
-    if (_is_optimization) {
-      std::string::size_type optimize_pos = line.find("Optimization converged");
-      if (optimize_pos != std::string::npos) {
-        found_optimization = true;
-      }
-    }
-
     std::string::size_type coordinates_pos = line.find("Output coordinates");
-    if (found_optimization && coordinates_pos != std::string::npos) {
+    if (coordinates_pos != std::string::npos) {
       XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
       //_has_coordinates = true;
       bool has_QMAtoms = orbitals.hasQMAtoms();
@@ -748,9 +727,6 @@ bool NWChem::ParseLogFile(Orbitals& orbitals) {
       XTP_LOG(logDEBUG, *_pLog)
           << "DFT with " << ScaHFX << " of HF exchange!" << flush;
     }
-
-    // check if all information has been accumulated and quit
-    if (has_basis_set_size && has_qm_energy) break;
 
   }  // end of reading the file line-by-line
 
