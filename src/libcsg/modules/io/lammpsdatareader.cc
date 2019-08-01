@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,11 +135,12 @@ bool LAMMPSDataReader::FirstFrame(Topology &top) {
 
 bool LAMMPSDataReader::NextFrame(Topology &top) {
 
-  string line;
-  getline(fl_, line);
+  string header;
+  getline(fl_, header);
   while (!fl_.eof()) {
 
     bool labelMatched = false;
+    string line;
     Tokenizer tok(line, " ");
     vector<string> fields;
     tok.ToVector(fields);
