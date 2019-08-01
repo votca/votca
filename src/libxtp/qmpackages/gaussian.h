@@ -60,6 +60,13 @@ class Gaussian : public QMPackage {
   std::string _vdWfooter = "";
 
   std::string FortranFormat(double number);
+  void GetArchive(std::vector<std::string>& archive, std::string& line,
+                  std::ifstream& input_file) const;
+
+  template <class T>
+  void GetCoordinates(T& mol, const std::vector<std::string>& archive) const;
+
+  double GetQMEnergy(const std::vector<std::string>& archive) const;
 
   void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);

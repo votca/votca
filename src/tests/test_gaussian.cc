@@ -327,13 +327,7 @@ BOOST_AUTO_TEST_CASE(read_withexternal) {
       << std::endl;
   ext << " 249764\\PG=C01 [X(C1H4)]\\\\@" << std::endl;
   ext << "" << std::endl;
-  ext << "" << std::endl;
-  ext << " ANYONE WHO IS NOT SHOCKED BY QUANTUM THEORY HAS" << std::endl;
-  ext << " NOT UNDERSTOOD IT. -- NIELS BOHR(1885-1962)" << std::endl;
   ext << " Job cpu time:  0 days  0 hours  0 minutes  2.4 seconds."
-      << std::endl;
-  ext << " File lengths (MBytes):  RWF=      5 Int=      0 D2E=      0 Chk=    "
-         "  1 Scr=      1"
       << std::endl;
   ext << " Normal termination of Gaussian 09 at Tue Jul 30 12:36:54 2019."
       << std::endl;
@@ -370,7 +364,14 @@ BOOST_AUTO_TEST_CASE(read_withexternal) {
 
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
   for (int i = 0; i < seg.size(); i++) {
-    BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
+    bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
+    BOOST_CHECK_EQUAL(check_pos, true);
+    if (!check_pos) {
+      std::cout << "result " << i << std::endl;
+      std::cout << seg[i].getPos().transpose() << std::endl;
+      std::cout << "ref " << i << std::endl;
+      std::cout << ref[i].getPos().transpose() << std::endl;
+    }
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
   double ref_tot =
@@ -999,7 +1000,14 @@ BOOST_AUTO_TEST_CASE(getcharges) {
   BOOST_CHECK_EQUAL(seg.size(), ref.size());
   for (int i = 0; i < seg.size(); i++) {
     BOOST_CHECK_EQUAL(ref[i].Q().isApprox(seg[i].Q(), 1e-5), true);
-    BOOST_CHECK_EQUAL(ref[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
+    bool check_pos = ref[i].getPos().isApprox(seg[i].getPos(), 1e-5);
+    BOOST_CHECK_EQUAL(check_pos, true);
+    if (!check_pos) {
+      std::cout << "result " << i << std::endl;
+      std::cout << seg[i].getPos().transpose() << std::endl;
+      std::cout << "ref " << i << std::endl;
+      std::cout << ref[i].getPos().transpose() << std::endl;
+    }
     BOOST_CHECK_EQUAL(ref[i].getElement(), seg[i].getElement());
   }
 }
