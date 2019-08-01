@@ -61,8 +61,7 @@ class BSECoupling : public CouplingBase {
                           const Orbitals& orbitalsAB);
 
  private:
-  void WriteToProperty(const Orbitals& orbitalsA, const Orbitals& orbitalsB,
-                       tools::Property& summary, const QMState& stateA,
+  void WriteToProperty(tools::Property& summary, const QMState& stateA,
                        const QMState& stateB) const;
 
   double getSingletCouplingElement(int levelA, int levelB,
