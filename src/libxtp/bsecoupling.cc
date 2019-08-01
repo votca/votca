@@ -72,8 +72,6 @@ void BSECoupling::Initialize(Property& options) {
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
                                   const QMState& stateB) const {
   Property& coupling_summary = summary.add("coupling", "");
-  double energyA = 0;
-  double energyB = 0;
   double JAB_pert = 0;
   double JAB_diag = 0;
   if (stateA.Type() == QMStateType::Singlet) {
