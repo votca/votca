@@ -30,12 +30,16 @@ using namespace votca::xtp;
 BOOST_AUTO_TEST_SUITE(gnode_test)
 
 BOOST_AUTO_TEST_CASE(chosen_id_test) {
+
+  QMStateType electron = QMStateType::Electron;
+
   vector<GNode> dests;
   for (int i = 0; i < 6; i++) {
-    dests.push_back(GNode(i, Eigen::Vector3d::Zero()));
+    Segment seg("one", i);
+    dests.push_back(GNode(seg, electron, true));
   }
-
-  GNode g(6, Eigen::Vector3d::Zero());
+  Segment seg("one", 6);
+  GNode g(seg, electron, true);
   g.AddEvent(&dests[0], Eigen::Vector3d::Zero(), 10);
   g.AddEvent(&dests[1], Eigen::Vector3d::Zero(), 20);
   g.AddEvent(&dests[2], Eigen::Vector3d::Zero(), 15);
@@ -71,11 +75,15 @@ BOOST_AUTO_TEST_CASE(chosen_id_test) {
 }
 
 BOOST_AUTO_TEST_CASE(count_test) {
-  GNode g(11, Eigen::Vector3d::Zero());
+  QMStateType electron = QMStateType::Electron;
+
   vector<GNode> dests;
   for (int i = 0; i < 11; i++) {
-    dests.push_back(GNode(i, Eigen::Vector3d::Zero()));
+    Segment seg("one", i);
+    dests.push_back(GNode(seg, electron, true));
   }
+  Segment seg("one", 12);
+  GNode g(seg, electron, true);
 
   g.AddEvent(&dests[0], Eigen::Vector3d::Zero(), 15);
   g.AddEvent(&dests[1], Eigen::Vector3d::Zero(), 9);

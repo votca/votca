@@ -45,7 +45,7 @@ class Rate_Engine {
 
  private:
   double Markusrate(double Jeff2, double deltaG, double reorg) const;
-  std::string _ratetype = "markus";
+  std::string _ratetype = "marcus";
   double _temperature = 0.0;                         // units:Hartree
   Eigen::Vector3d _field = Eigen::Vector3d::Zero();  // units:Hartree/bohr
 };

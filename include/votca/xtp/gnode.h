@@ -35,8 +35,6 @@ class GNode {
         _position(seg.getPos()),
         _injectable(injectable){};
 
-  GNode(int id, Eigen::Vector3d pos) : _id(id), _position(pos){};
-
   bool isOccupied() const { return _occupied; }
   void setOccupation(bool occupied) { _occupied = occupied; }
   bool isInjectable() const { return _injectable; }
@@ -47,7 +45,7 @@ class GNode {
 
   const std::vector<GLink>& Events() const { return _events; }
   double OccupationTime() const { return _occupationtime; }
-  void AddEvent(GNode* seg2, const Eigen::Vector3d& dr, double rate);
+
   double getEscapeRate() const { return _escape_rate; }
   void InitEscapeRate();
   void AddDecayEvent(double decayrate);
@@ -57,6 +55,7 @@ class GNode {
 
   GLink* findHoppingDestination(double p) const;
   void MakeHuffTree();
+  void AddEvent(GNode* seg2, const Eigen::Vector3d& dr, double rate);
 
  private:
   int _id = 0;
@@ -70,6 +69,7 @@ class GNode {
   std::vector<GLink> _events;
 
   huffmanTree<GLink> hTree;
+
   void organizeProbabilities(int id, double add);
   void moveProbabilities(int id);
 };

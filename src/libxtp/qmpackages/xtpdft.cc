@@ -46,15 +46,14 @@ bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
  * Run calls DFTENGINE
  */
 bool XTPDFT::Run() {
-  DFTEngine xtpdft = DFTEngine(_orbitals);
+  DFTEngine xtpdft;
   xtpdft.Initialize(_xtpdft_options);
   xtpdft.setLogger(_pLog);
 
   if (_write_charges) {
     xtpdft.setExternalcharges(&_externalsites);
   }
-  xtpdft.Prepare();
-  bool success = xtpdft.Evaluate();
+  bool success = xtpdft.Evaluate(_orbitals);
   _basisset_name = xtpdft.getDFTBasisName();
   std::string file_name = _run_dir + "/" + _log_file_name;
   XTP_LOG(logDEBUG, *_pLog) << "Writing result to " << _log_file_name << flush;

@@ -315,9 +315,11 @@
       <itemPath>../../src/tests/test_bfgs-trm.cc</itemPath>
       <itemPath>../../src/tests/test_bse.cc</itemPath>
       <itemPath>../../src/tests/test_bse_operator.cc</itemPath>
+      <itemPath>../../src/tests/test_bsecoupling.cc</itemPath>
       <itemPath>../../src/tests/test_convergenceacc.cc</itemPath>
       <itemPath>../../src/tests/test_davidson.cc</itemPath>
       <itemPath>../../src/tests/test_dftcoupling.cc</itemPath>
+      <itemPath>../../src/tests/test_dftengine.cc</itemPath>
       <itemPath>../../src/tests/test_diis.cc</itemPath>
       <itemPath>../../src/tests/test_dipoledipoleinteraction.cc</itemPath>
       <itemPath>../../src/tests/test_eeinteractor.cc</itemPath>
@@ -347,6 +349,7 @@
       <itemPath>../../src/tests/test_qmpair.cc</itemPath>
       <itemPath>../../src/tests/test_qmstate.cc</itemPath>
       <itemPath>../../src/tests/test_radial_euler_maclaurin_rule.cc</itemPath>
+      <itemPath>../../src/tests/test_rate_engine.cc</itemPath>
       <itemPath>../../src/tests/test_rpa.cc</itemPath>
       <itemPath>../../src/tests/test_segment.cc</itemPath>
       <itemPath>../../src/tests/test_segmentmapper.cc</itemPath>
@@ -4930,6 +4933,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_bsecoupling.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -4941,6 +4949,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dftengine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5017,6 +5027,11 @@
       <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_rate_engine.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -6138,6 +6153,11 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/tests/test_bsecoupling.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
       <item path="../../src/tests/test_convergenceacc.cc"
             ex="false"
             tool="1"
@@ -6149,6 +6169,8 @@
             ex="false"
             tool="1"
             flavor2="0">
+      </item>
+      <item path="../../src/tests/test_dftengine.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_diis.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -6225,6 +6247,11 @@
       <item path="../../src/tests/test_qmstate.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_radial_euler_maclaurin_rule.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/tests/test_rate_engine.cc"
             ex="false"
             tool="1"
             flavor2="0">

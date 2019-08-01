@@ -61,9 +61,11 @@ Rate_Engine::PairRates Rate_Engine::Rate(const QMPair& pair,
   double J2 = pair.getJeff2(carriertype);
   PairRates result;
 
-  if (_ratetype == "markus") {
+  if (_ratetype == "marcus") {
     result.rate12 = Markusrate(J2, dG, reorg12);
     result.rate21 = Markusrate(J2, -dG, reorg21);
+  } else {
+    throw std::runtime_error("Only marcus rates implemented.");
   }
   return result;
 }
