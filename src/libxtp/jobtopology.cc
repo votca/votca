@@ -133,12 +133,6 @@ void JobTopology::ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
   Eigen::Vector3d r_pbc = top.PbShortestConnect(center, mol.getPos());
   Eigen::Vector3d r = mol.getPos() - center;
   Eigen::Vector3d shift = r_pbc - r;
-  std::cout << "mol.getPos().transpose()<<"
-               "<<center"
-            << std::endl;
-  std::cout << mol.getPos().transpose() << " " << center.transpose()
-            << std::endl;
-  std::cout << r_pbc.transpose() << " " << r.transpose() << std::endl;
   if (shift.norm() > 1e-9) {
     mol.Translate(shift);
   }
@@ -185,9 +179,7 @@ void JobTopology::CreateRegions(
         const Segment& segment = top.getSegment(seg_index.Id());
 
         PolarSegment mol = polmap.map(segment, seg_index);
-        std::cout << "id" << seg_index.Id() << " " << segment.getId() << " "
-                  << segment.getPos().transpose() << " "
-                  << mol.getPos().transpose() << std::endl;
+
         ShiftPBC(top, center, mol);
         mol.setName("mm" + std::to_string(id));
         polarregion->push_back(mol);
