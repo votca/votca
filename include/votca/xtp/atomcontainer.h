@@ -170,11 +170,6 @@ class AtomContainer {
     calcPos();
   }
 
- protected:
-  std::vector<T> _atomlist;
-  std::string _name;
-  int _id;
-
   void calcPos() {
     tools::Elements element;
     Eigen::Vector3d pos = Eigen::Vector3d::Zero();
@@ -186,6 +181,11 @@ class AtomContainer {
     }
     _pos = pos / totalmass;
   }
+
+ protected:
+  std::vector<T> _atomlist;
+  std::string _name;
+  int _id;
 
  private:
   Eigen::Vector3d _pos = Eigen::Vector3d::Zero();

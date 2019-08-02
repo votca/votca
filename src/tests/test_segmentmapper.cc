@@ -155,6 +155,8 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
   pos_ref.push_back(pos5);
   BOOST_CHECK_EQUAL(qmmol.getId(), 1);
   BOOST_CHECK_EQUAL(qmmol.getName(), "Methane");
+  Eigen::Vector3d ref = {0.000140384, 0.000354522, 0};
+  BOOST_CHECK_EQUAL(qmmol.getPos().isApprox(ref, 1e-5), true);
   for (int i = 0; i < qmmol.size(); i++) {
     BOOST_CHECK_EQUAL(qmmol[i].getElement(), name_ref[i]);
     bool pos_equal = qmmol[i].getPos().isApprox(pos_ref[i], 1e-5);

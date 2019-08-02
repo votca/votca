@@ -446,7 +446,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
     }
   }
 
-  Result.getPos();
+  Result.calcPos();
   return Result;
 }
 
