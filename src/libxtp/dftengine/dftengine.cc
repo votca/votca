@@ -55,11 +55,15 @@ void DFTEngine::Initialize(Property& options) {
   }
 
   if (!_with_RI) {
-    std::vector<std::string> choices = {"direct", "cache"};
-    _four_center_method =
-        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-            key + ".four_center_method", choices);
 
+    if (options.exists(key + ".four_center_method")) {
+      std::vector<std::string> choices = {"direct", "cache"};
+      _four_center_method =
+          options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+              key + ".four_center_method", choices);
+    } else {
+      _four_center_method = "cache";
+    }
     _with_screening = options.ifExistsReturnElseReturnDefault<bool>(
         key + ".with_screening", true);
     _screening_eps = options.ifExistsReturnElseReturnDefault<double>(
@@ -174,6 +178,10 @@ Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
       return _ERIs.CalculateEXX(occblock, Dmat);
     }
   } else {
+    if (_four_center_method == "direct") {
+      throw std::runtime_error(
+          "direct 4c method only works with LDA and GGA functionals.");
+    }
     return _ERIs.CalculateEXX_4c_small_molecule(Dmat);
   }
 }
