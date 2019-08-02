@@ -23,33 +23,66 @@
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(rateengine_test)
+BOOST_AUTO_TEST_CASE(sign) {
+
+  Segment seg1("null", 0);
+
+  Segment seg2("one", 0);
+  Eigen::Vector3d deltaR = {5, 0, 0};
+  QMPair pair(0, &seg1, &seg2, deltaR);
+  QMStateType e = QMStateType::Electron;
+  QMStateType h = QMStateType::Hole;
+  seg1.setU_nX_nN(0.002, e);
+  seg1.setU_xN_xX(0.001, e);
+  seg1.setU_xX_nN(0.001, e);
+  seg2.setU_nX_nN(0.002, e);
+  seg2.setU_xN_xX(0.001, e);
+  seg2.setU_xX_nN(0.001, e);
+  seg1.setU_nX_nN(0.002, h);
+  seg1.setU_xN_xX(0.001, h);
+  seg1.setU_xX_nN(0.001, h);
+  seg2.setU_nX_nN(0.002, h);
+  seg2.setU_xN_xX(0.001, h);
+  seg2.setU_xX_nN(0.001, h);
+  pair.setJeff2(1.00e-06, h);
+  pair.setJeff2(1.00e-06, e);
+
+  Eigen::Vector3d field = {1.0, 0.0, 0.0};
+  field *= 9.72345198649679e-05;
+  double temperature = 0.000950043476927;  // 300K
+  Rate_Engine engine(temperature, field);
+  Rate_Engine::PairRates pr_e = engine.Rate(pair, e);
+  Rate_Engine::PairRates pr_h = engine.Rate(pair, h);
+  BOOST_CHECK_EQUAL(pr_e.rate12 < pr_e.rate21, true);
+  BOOST_CHECK_EQUAL(pr_h.rate12 > pr_h.rate21, true);
+}
+
 BOOST_AUTO_TEST_CASE(markus) {
 
   Segment seg1("null", 0);
 
   Segment seg2("one", 0);
-  Eigen::Vector3d deltaR = {2, 1.5, 3};
+  Eigen::Vector3d deltaR = {5, 0, 0};
   QMPair pair(0, &seg1, &seg2, deltaR);
   QMStateType e = QMStateType::Electron;
-  seg1.setEMpoles(e, 0.3);
-  seg2.setEMpoles(e, 0.4);
-  seg1.setU_nX_nN(0.05, e);
-  seg1.setU_xN_xX(0.02, e);
-  seg1.setU_xX_nN(0.8, e);
-  seg2.setU_nX_nN(0.04, e);
-  seg2.setU_xN_xX(0.02, e);
-  seg2.setU_xX_nN(0.7, e);
-  pair.setJeff2(0.1, e);
+  seg1.setEMpoles(e, -0.003674932248085);
+  seg2.setEMpoles(e, -0.005512398372128);
+  seg1.setU_nX_nN(0.003674932248085, e);
+  seg1.setU_xN_xX(0.004042425472894, e);
+  seg1.setU_xX_nN(0.036749322480855, e);
+  seg2.setU_nX_nN(0.006614878046554, e);
+  seg2.setU_xN_xX(0.004777411922511, e);
+  seg2.setU_xX_nN(0.062473848217453, e);
+  double J = 1.00e-03;
+  pair.setJeff2(J * J, e);
 
-  Eigen::Vector3d field = {1.0, 1.0, 1.0};
-  double temperature =
-      300 * votca::tools::conv::kB * votca::tools::conv::ev2hrt;
+  Eigen::Vector3d field = {1.0, 0.0, 0.0};
+  field *= 9.72345198649679e-05;
+  double temperature = 0.000950043476927;  // 300K
   Rate_Engine engine(temperature, field);
   Rate_Engine::PairRates pr = engine.Rate(pair, e);
-  std::cout << pr.rate12 << std::endl;
-  std::cout << pr.rate21 << std::endl;
-  BOOST_CHECK_CLOSE(pr.rate12, 0.0, 1e-6);
-  BOOST_CHECK_CLOSE(pr.rate21, 0.0, 1e-6);
+  BOOST_CHECK_CLOSE(pr.rate12, 0.069766184455863, 1e-5);
+  BOOST_CHECK_CLOSE(pr.rate21, 221259502589.522, 1e-5);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

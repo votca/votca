@@ -113,8 +113,8 @@ class QMPair {
   }
 
   double getdE12(QMStateType state) const {
-    return _segments.second->getSiteEnergy(state) -
-           _segments.first->getSiteEnergy(state);
+    return _segments.first->getSiteEnergy(state) -
+           _segments.second->getSiteEnergy(state);
   }
 
   Segment Seg2PbCopy() const;
