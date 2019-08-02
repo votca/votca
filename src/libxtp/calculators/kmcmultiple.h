@@ -52,8 +52,8 @@ class KMCMultiple : public KMCCalculator {
 
   double _runtime;
   double _outputtime;
-  std::string _timefile;
-  int _intermediateoutput_frequency;
+  std::string _timefile = "";
+  int _intermediateoutput_frequency = 10000;
   unsigned long _diffusionresolution = 1000;
 };
 

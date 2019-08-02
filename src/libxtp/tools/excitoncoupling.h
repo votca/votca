@@ -28,6 +28,7 @@
 #include <votca/tools/constants.h>
 #include <votca/xtp/bsecoupling.h>
 #include <votca/xtp/classicalsegment.h>
+#include <votca/xtp/eeinteractor.h>
 
 #include <votca/xtp/qmpackagefactory.h>
 
@@ -134,8 +135,8 @@ bool ExcitonCoupling::Evaluate() {
     PolarSegment seg2 = PolarSegment("B", 1);
     seg1.LoadFromFile(_mpsA);
     seg2.LoadFromFile(_mpsB);
-
-    double J = 0;
+    eeInteractor ee;
+    double J = ee.CalcStaticEnergy(seg1, seg2);
 
     tools::Property& pair_summary = job_output.add("pair", "");
     pair_summary.setAttribute("idA", 1);

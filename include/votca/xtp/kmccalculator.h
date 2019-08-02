@@ -70,12 +70,12 @@ class KMCCalculator : public QMCalculator {
   std::string _injection_name;
   std::string _injectionmethod;
   int _seed;
-  int _numberofcharges;
+  int _numberofcarriers;
   Eigen::Vector3d _field = Eigen::Vector3d::Zero();
   double _maxrealtime;
-  std::string _trajectoryfile;
-  std::string _ratefile;
-  std::string _occfile;
+  std::string _trajectoryfile = "trajectory.csv";
+  std::string _ratefile = "rates.dat";
+  std::string _occfile = "occupation.dat";
 
   double _temperature;
 };

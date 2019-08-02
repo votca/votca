@@ -141,7 +141,7 @@ std::string QMState::ToString() const {
   }
   std::string result = _type.ToString() + (boost::format("%i") % index).str();
   if (_transition) {
-    result = "N2" + result;
+    result = "n2" + result;
   }
   return result;
 }

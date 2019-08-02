@@ -144,10 +144,10 @@ void KMCLifetime::RunVSSM() {
   int realtime_start = time(NULL);
   cout << endl
        << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
-  cout << "number of charges: " << _numberofcharges << endl;
+  cout << "number of charges: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
 
-  if (_numberofcharges > int(_nodes.size())) {
+  if (_numberofcarriers > int(_nodes.size())) {
     throw runtime_error(
         "ERROR in kmclifetime: specified number of charges is greater than the "
         "number of nodes. This conflicts with single occupation.");
@@ -291,7 +291,7 @@ void KMCLifetime::RunVSSM() {
           RandomlyAssignCarriertoSite(*affectedcarrier);
           affectedcarrier->resetCarrier();
           insertioncount++;
-          affectedcarrier->setId(_numberofcharges - 1 + insertioncount);
+          affectedcarrier->setId(_numberofcarriers - 1 + insertioncount);
           secondlevel = false;
           break;
         } else {

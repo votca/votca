@@ -93,10 +93,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
     // 'P', dipole polarizability
     else if (split[0] == "P") {
       Eigen::Matrix3d p1;
-      // Angstroem to bohr
-      double pxx = 0.0;
       if (split.size() == 7) {
-        pxx = boost::lexical_cast<double>(split[1]);
+        double pxx = boost::lexical_cast<double>(split[1]);
         double pxy = boost::lexical_cast<double>(split[2]);
         double pxz = boost::lexical_cast<double>(split[3]);
         double pyy = boost::lexical_cast<double>(split[4]);
@@ -104,9 +102,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
         double pzz = boost::lexical_cast<double>(split[6]);
         p1 << pxx, pxy, pxz, pxy, pyy, pyz, pxz, pyz, pzz;
       } else if (split.size() == 2) {
-        pxx = boost::lexical_cast<double>(split[1]);
+        double pxx = boost::lexical_cast<double>(split[1]);
         p1 = pxx * Eigen::Matrix3d::Identity();
-        ;
       } else {
         throw std::runtime_error("Invalid line in " + filename + ": " + line);
       }

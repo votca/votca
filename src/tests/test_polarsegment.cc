@@ -157,6 +157,47 @@ BOOST_AUTO_TEST_CASE(readwritehdf) {
 
   CheckpointReader rr = ff.getReader();
   PolarSegment seg2(rr);
+  BOOST_CHECK_EQUAL(seg.size(), seg2.size());
+  for (int i = 0; i < seg.size(); i++) {
+    BOOST_CHECK_EQUAL(seg2[i].Q().isApprox(seg[i].Q(), 1e-5), true);
+    BOOST_CHECK_EQUAL(seg2[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
+    BOOST_CHECK_EQUAL(seg2[i].getElement(), seg[i].getElement());
+    BOOST_CHECK_EQUAL(
+        seg2[i].getPolarisation().isApprox(seg[i].getPolarisation(), 1e-5),
+        true);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(readwritemps) {
+  PolarSegment seg = PolarSegment("seg1", 0);
+  std::ofstream mpsfile("polarsite.mps");
+  mpsfile << "! Two Sites" << endl;
+  mpsfile << "! N=2 " << endl;
+  mpsfile << "Units angstrom" << endl;
+  mpsfile << "C +0 0 3 Rank 2" << endl;
+  mpsfile << "+1" << endl;
+  mpsfile << "10 0 0" << endl;
+  mpsfile << "100 0 0 0 0" << endl;
+  mpsfile
+      << "P +1.9445387 +0.0000000 +0.0000000 +1.9445387 +0.0000000 +1.9445387"
+      << endl;
+  mpsfile << "H +0 0 1 Rank 0" << endl;
+  mpsfile << "-1" << endl;
+  mpsfile << "P +1.0000000" << endl;
+
+  seg.LoadFromFile("polarsite.mps");
+  seg.WriteMPS("test.mps", "test");
+  PolarSegment seg2("seg2", 1);
+  seg2.LoadFromFile("test.mps");
+  BOOST_CHECK_EQUAL(seg.size(), seg2.size());
+  for (int i = 0; i < seg.size(); i++) {
+    BOOST_CHECK_EQUAL(seg2[i].Q().isApprox(seg[i].Q(), 1e-5), true);
+    BOOST_CHECK_EQUAL(seg2[i].getPos().isApprox(seg[i].getPos(), 1e-5), true);
+    BOOST_CHECK_EQUAL(seg2[i].getElement(), seg[i].getElement());
+    BOOST_CHECK_EQUAL(
+        seg2[i].getPolarisation().isApprox(seg[i].getPolarisation(), 1e-5),
+        true);
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
