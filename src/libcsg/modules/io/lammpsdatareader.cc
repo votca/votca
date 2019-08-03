@@ -143,7 +143,6 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
   getline(fl_, line);
   while (!fl_.eof()) {
 
-    bool labelMatched = false;
     Tokenizer tok(line, " ");
     vector<string> fields;
     tok.ToVector(fields);
@@ -151,13 +150,13 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
-      labelMatched = MatchOneFieldLabel_(fields, top);
+      MatchOneFieldLabel_(fields, top);
     } else if (fields.size() == 2) {
-      labelMatched = MatchTwoFieldLabels_(fields, top);
+      MatchTwoFieldLabels_(fields, top);
     } else if (fields.size() == 3) {
-      labelMatched = MatchThreeFieldLabels_(fields, top);
+      MatchThreeFieldLabels_(fields, top);
     } else if (fields.size() == 4) {
-      labelMatched = MatchFourFieldLabels_(fields, top);
+      MatchFourFieldLabels_(fields, top);
     } else if (fields.size() != 0) {
       string err = "Unrecognized line in lammps .data file:\n" + line;
       throw runtime_error(err);
