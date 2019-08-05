@@ -77,6 +77,7 @@ elif [[ $ENV -eq 9 ]]; then
   [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
+  export SKIP=yes # bug votca/csg#387
 elif [[ $ENV -eq 10 ]]; then
   # Release build with gromacs master (double)
   export DISTRO=fedora_gmx9999_d
@@ -85,6 +86,7 @@ elif [[ $ENV -eq 10 ]]; then
   [[ ${TRAVIS_REPO_SLUG} = */csg-tutorials ]] && add_to_docker_opts REGRESSION_TESTING=ON
   add_to_docker_opts CMAKE_BUILD_TYPE=Release
   [[ ${TRAVIS_REPO_SLUG} = */csg || ${TRAVIS_REPO_SLUG} = */votca ]] || export SKIP=yes # only csg uses gromacs
+  export SKIP=yes # bug votca/csg#387
 elif [[ $ENV -eq 11 ]]; then
   # Release build on Ubuntu
   export DISTRO=ubuntu
