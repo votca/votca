@@ -398,6 +398,7 @@
       <itemPath>../../share/xtp/xml/qmmm.xml</itemPath>
       <itemPath>../../share/xtp/xml/sandbox.xml</itemPath>
       <itemPath>../../share/xtp/xml/spectrum.xml</itemPath>
+      <itemPath>../../share/xtp/xml/vaverage.xml</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -4408,6 +4409,8 @@
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/aomatrices/aodipole.cc"
@@ -5627,6 +5630,8 @@
       <item path="../../share/xtp/xml/sandbox.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../share/xtp/xml/spectrum.xml" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../share/xtp/xml/vaverage.xml" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/libxtp/aobasis.cc" ex="false" tool="1" flavor2="0">
       </item>

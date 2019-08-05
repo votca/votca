@@ -171,7 +171,8 @@ void KMCMultiple::PrintChargeVelocity(double simtime) const {
   Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
   for (int i = 0; i < _numberofcarriers; i++) {
     cout << std::scientific << "    carrier " << i + 1 << ": "
-         << _carriers[i].get_dRtravelled() / simtime * tools::conv::bohr2nm
+         << _carriers[i].get_dRtravelled().transpose() / simtime *
+                tools::conv::bohr2nm
          << endl;
     avg_dr_travelled += _carriers[i].get_dRtravelled();
   }
@@ -179,7 +180,7 @@ void KMCMultiple::PrintChargeVelocity(double simtime) const {
 
   Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
   cout << std::scientific << "  Overall average velocity (nm/s): "
-       << avgvelocity * tools::conv::bohr2nm << endl;
+       << avgvelocity.transpose() * tools::conv::bohr2nm << endl;
 }
 
 void KMCMultiple::RunVSSM() {

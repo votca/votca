@@ -1,0 +1,6 @@
+<options><vaverage>
+    <ratefile>rates.dat</ratefile>
+    <occfile>occupation.dat</occfile>
+    <outputfile>velocities.dat</outputfile>
+</vaverage>
+</options>

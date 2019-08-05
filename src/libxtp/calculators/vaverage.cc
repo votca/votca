@@ -94,8 +94,8 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
     }
     id++;
     Rate_Engine::PairRates pair;
-    pair.rate12 = std::stod(split[2]);
-    pair.rate21 = std::stod(split[3]);
+    pair.rate12 = std::stod(split[1]);
+    pair.rate21 = std::stod(split[2]);
     result.push_back(pair);
   }
   return result;
@@ -104,14 +104,14 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
 bool VAverage::EvaluateFrame(Topology& top) {
   std::cout << std::endl
             << "... ... Computing velocity average for all sites\n";
-  std::cout << "Reading in site occupations from " << _occfile << std::flush;
+  std::cout << "Reading in site occupations from " << _occfile << std::endl;
   std::vector<double> occ = ReadOccfile(_occfile);
   if (top.Segments().size() != occ.size()) {
     throw std::runtime_error(
         "Number of occupations is" + std::to_string(occ.size()) +
         " Topology has size:" + std::to_string(top.Segments().size()));
   }
-  std::cout << "Reading in rates from " << _ratefile << std::flush;
+  std::cout << "Reading in rates from " << _ratefile << std::endl;
   std::vector<Rate_Engine::PairRates> rates = ReadRatefile(_ratefile);
   if (top.NBList().size() != int(rates.size())) {
     throw std::runtime_error(
@@ -153,6 +153,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
             v.y() % v.z())
         << std::endl;
   }
+  std::cout << "Writing velocities to " << _outputfile << std::endl;
   return true;
 }
 
