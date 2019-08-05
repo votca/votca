@@ -252,6 +252,7 @@ Release GCC GMX9999:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx9999"
   extends: .build
+  allow_failure: true
 
 Release Clang GMX9999:
   variables:
@@ -260,6 +261,7 @@ Release Clang GMX9999:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx9999"
   extends: .build
+  allow_failure: true
 
 Release GCC GMX9999D:
   variables:
@@ -268,6 +270,7 @@ Release GCC GMX9999D:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx9999_d"
   extends: .build
+  allow_failure: true
 
 Release Clang GMX9999D:
   variables:
@@ -276,6 +279,7 @@ Release Clang GMX9999D:
     CMAKE_BUILD_TYPE: "Release"
     DISTRO: "fedora_gmx9999_d"
   extends: .build
+  allow_failure: true
 
 Release GCC OWN GMX:
   variables:
