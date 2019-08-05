@@ -8,10 +8,12 @@ ARG CXXFLAGS
 ARG CMAKE_BUILD_TYPE
 ARG TESTING
 ARG DOXYGEN
+ARG DOXYGEN_COVERAGE
 ARG MINIMAL
 ARG MODULE_BUILD
 ARG BUILD_GROMACS
 ARG REGRESSION_TESTING
+ARG CLANG_FORMAT
 
 #for coverage
 ARG CI
@@ -47,13 +49,17 @@ RUN cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
     -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DBUILD_CTP=OFF -DBUILD_XTP_MANUAL=OFF \
     -DBUILD_CTP_MANUAL=OFF} \
   ..
-RUN make -j2
+RUN make -j2 VERBOSE=1
 RUN ccache -s
 RUN if [ ${DOXYGEN} ]; then \
       make doxygen; \
-      python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
-      codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F doxygen -X gcov -f doxygen.coverage.info; \
-      rm -f doxygen.coverage.info; \
+      if [ ${DOXYGEN_COVERAGE} ]; then \
+        python -m coverxygen --xml-dir share/doc/xml/ --src-dir .. --output doxygen.coverage.info; \
+        codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+          -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+          -F doxygen -X gcov -f doxygen.coverage.info; \
+        rm -f doxygen.coverage.info; \
+      fi; \
     fi
 RUN if [ ${TESTING} = ON ]; then make test CTEST_OUTPUT_ON_FAILURE=1 ARGS="${TESTOPTS}"; fi
 RUN if [ ! ${MODULE_BUILD} ]; then \
@@ -61,13 +67,18 @@ RUN if [ ! ${MODULE_BUILD} ]; then \
     fi
 RUN if [ ${COVERAGE} ]; then \
   if [ ${CC} = clang ]; then \
-    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" -x "llvm-cov gcov" 2>&1 | grep -v "arcs.*block"; \
+    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+      -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+      -F "${CC}" -X "gcovout" -x "llvm-cov gcov"; \
   else \
-    codecov -R ${PWD}/../${TRAVIS_REPO_SLUG#*/} -F "${CC}" 2>&1 | grep -v "arcs.*block"; \
+    codecov -R ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) \
+      -C "${TRAVIS_PULL_REQUEST_SHA:-$TRAVIS_COMMIT}" \
+      -F "${CC}" -X "gcovout"; \
   fi; \
 fi
-USER root
-RUN make install
-USER votca
-RUN ccache -s
+RUN if [[ ${CLANG_FORMAT} && ${TRAVIS_BRANCH} != next ]]; then \
+      make format && \
+      git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
+    fi
+RUN sudo make install
 WORKDIR ../csg-tutorials

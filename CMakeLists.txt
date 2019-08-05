@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 
 project(votca)
 
-set(PROJECT_VERSION "1.5")
+set(PROJECT_VERSION "1.6-dev")
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -19,7 +19,11 @@ include(GNUInstallDirs)
 option(BUILD_CSGAPPS "Build csgapps" OFF)
 option(BUILD_CTP "Build ctp" OFF)
 option(BUILD_XTP "Build xtp" OFF)
+if(BUILD_XTP AND NOT BUILD_CTP)
+  message(FATAL_ERROR "xtp needs ctp to be build")
+endif(BUILD_XTP AND NOT BUILD_CTP)
 option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
+set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG VOTCA_CTP)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 if(ENABLE_TESTING)
@@ -61,11 +65,20 @@ endif()
 option(BUILD_OWN_GROMACS "Build our own gromacs" OFF)
 if(BUILD_OWN_GROMACS)
   include(${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules/BuildGromacs.cmake)
+  list(APPEND VOTCA_SKIP_FIND_PACKAGE GROMACS)
 endif()
 
 ########################################################################
 #Find external packages
 ########################################################################
+
+#neat trick to not call find_package(VOTCA_*)
+macro(find_package)
+  if(NOT "${ARGV0}" IN_LIST VOTCA_SKIP_FIND_PACKAGE)
+    _find_package(${ARGV})
+  endif()
+endmacro()
+
 if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
   find_package(Git)
 endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
@@ -75,30 +88,13 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 ######################################
 add_subdirectory(tools)
 set(ENABLED_VOTCA_PACKAGES tools)
-set(VOTCA_TOOLS_LIBRARY votca_tools CACHE STRING "tools library name")
-set(VOTCA_TOOLS_INCLUDE_DIR
-  "${CMAKE_CURRENT_SOURCE_DIR}/tools/include;${CMAKE_CURRENT_BINARY_DIR}/tools/include"
-  CACHE PATH "tools include path")
-set(VOTCA_COMPARE ${CMAKE_BINARY_DIR}/tools/scripts/votca_compare)
 add_subdirectory(csg)
 list(APPEND ENABLED_VOTCA_PACKAGES csg)
-set(VOTCA_SHARE ${CMAKE_SOURCE_DIR}/csg/share)
-set(CSG_INVERSE ${CMAKE_BINARY_DIR}/csg/scripts/csg_inverse)
-set(CSG_CALL ${CMAKE_BINARY_DIR}/csg/scripts/csg_call)
-set(VOTCA_PATH "${CMAKE_BINARY_DIR}/csg/scripts:${CMAKE_BINARY_DIR}/csg/src/tools")
-if(BUILD_OWN_GROMACS)
-  add_dependencies(votca_csg Gromacs_build)
-  set(VOTCA_PATH "${VOTCA_PATH}:${GROMACS_PATH}")
-endif()
-set(VOTCA_CSG_DEFAULTS ${CMAKE_BINARY_DIR}/csg/share/xml/csg_defaults.xml)
 add_subdirectory(csg-tutorials)
 list(APPEND ENABLED_VOTCA_PACKAGES csg-tutorials)
 if(BUILD_CSG_MANUAL)
   add_subdirectory(csg-manual)
 endif()
-set(VOTCA_CSG_LIBRARY votca_csg CACHE STRING "csg library name")
-set(VOTCA_CSG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/csg/include
-	CACHE PATH "csg include path")
 if(BUILD_CSGAPPS)
   add_subdirectory(csgapps)
   list(APPEND ENABLED_VOTCA_PACKAGES csgapps)
@@ -106,9 +102,6 @@ endif()
 if(BUILD_CTP)
   add_subdirectory(ctp)
   list(APPEND ENABLED_VOTCA_PACKAGES ctp)
-  set(VOTCA_CTP_LIBRARY votca_ctp CACHE STRING "ctp library name")
-  set(VOTCA_CTP_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ctp/include
-	  CACHE PATH "ctp include path")
 endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
