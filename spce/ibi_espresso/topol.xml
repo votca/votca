@@ -1,4 +1,5 @@
 <topology base="spce.gro">
+  <h5md_particle_group name="atoms" />
   <box xx="4.03100" yy="4.03100" zz="4.03100"/>
   <molecules>
     <clear/>

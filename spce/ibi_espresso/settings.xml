@@ -31,15 +31,15 @@
     <!-- espresso specific options -->
     <espresso>
       <!-- espresso script to run !-->
-      <script>spce.tcl</script>
+      <script>spce.py</script>
       <!-- topology to be used by  csg_stat !-->
       <topol>topol.xml</topol>
       <!-- traj file created by espresso !-->
-      <traj>traj.gro</traj>
+      <traj>traj.h5</traj>
     </espresso>
     <initial_configuration>maindir</initial_configuration>
     <!-- these files are copied for each new run -->
-    <filelist>spce.tcl spce.gro topol.xml</filelist>
+    <filelist>spce.py spce.gro topol.xml</filelist>
     <!-- do so many iterations -->
     <iterations_max>300</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
