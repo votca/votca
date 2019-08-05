@@ -27,6 +27,10 @@
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/symmetric_matrix.h>
 
+#ifdef USE_GPU
+#include "eigencuda.h"
+#endif
+
 /**
  * \brief Calculates three electron overlap integrals for GW and DFT.
  *
