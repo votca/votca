@@ -416,7 +416,8 @@ void KMCMultiple::RunVSSM() {
   cout << endl << "Distances travelled (nm): " << endl;
   for (int i = 0; i < _numberofcarriers; i++) {
     cout << std::scientific << "    carrier " << i + 1 << ": "
-         << _carriers[i].get_dRtravelled() * tools::conv::bohr2nm << endl;
+         << _carriers[i].get_dRtravelled().transpose() * tools::conv::bohr2nm
+         << endl;
   }
 
   PrintDiffandMu(avgdiffusiontensor, simtime, step);
