@@ -105,7 +105,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   void ReadBonds_(Topology &top);
   void ReadAngles_(Topology &top);
   void ReadDihedrals_(Topology &top);
-  void ReadImpropers_(Topology &top);
+  void SkipImpropers_();
 
   void RenameMolecule(Molecule &mol) const;
 
