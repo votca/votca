@@ -31,6 +31,22 @@
 namespace votca {
 namespace xtp {
 
+// Structure with the sizes to call ?GEMM
+struct Shapes {
+  int A_rows;
+  int A_cols;
+  int B_rows;
+  int B_cols;
+  int C_rows;
+
+  Shapes(long int _a_rows, long int _a_cols, long int _b_rows, long int _b_cols,
+         long int _c_rows)
+      : A_rows{static_cast<int>(_a_rows)},
+        A_cols{static_cast<int>(_a_cols)},
+        B_rows{static_cast<int>(_b_rows)},
+        B_cols{static_cast<int>(_b_cols)},
+        C_rows{static_cast<int>(_c_rows)} {}
+};
 // col Major for CUDA
 template <typename T>
 using Mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
@@ -52,7 +68,7 @@ class EigenCuda {
   // Matrix matrix multiplication
   Mat<T> dot(Mat<T> &A, Mat<T> &B);
 
-  // Perform the triple matrix multiplication A^T * matrix * C, for the vector
+  // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
   std::vector<Mat<T>> triple_tensor_product(Mat<T> &A, Mat<T> &C,
                                             std::vector<Mat<T>> &tensor);
@@ -68,8 +84,7 @@ class EigenCuda {
   unsigned initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
 
   // Invoke the ?gemm function of cublas
-  Mat<T> gemm(std::tuple<Mat<T> &, Mat<T> &, Mat<T> &> matrices,
-              std::tuple<unsigned, unsigned, unsigned> ids);
+  void gemm(Shapes shapes, std::tuple<unsigned, unsigned, unsigned> ids);
 
   // Deallocate certain matrix from the device
   void free_matrix(unsigned id);
