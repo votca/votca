@@ -112,6 +112,9 @@ bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
   NextFrame(top);
 
   fl_.close();
+  for (Molecule *mol : top.Molecules()) {
+    RenameMolecule(*mol);
+  }
 
   return true;
 }
@@ -140,8 +143,7 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
 
     bool labelMatched = false;
     Tokenizer tok(line, " ");
-    vector<string> fields;
-    tok.ToVector(fields);
+    vector<string> fields = tok.ToVector();
     fields = TrimCommentsFrom_(fields);
     // If not check the size of the vector and parse according
     // to the number of fields
@@ -171,6 +173,25 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
 /*****************************************************************************
  * Private Facing Methods                                                    *
  *****************************************************************************/
+
+void LAMMPSDataReader::RenameMolecule(Molecule &mol) const {
+  std::cout << mol.getName() << std::endl;
+  if (mol.getName() == "UNKNOWN") {
+    std::map<std::string, int> molname_map;
+    for (const Bead *atom : mol.Beads()) {
+      std::cout << "hi " << atom->getName() << " " << atom->getType()
+                << std::endl;
+      molname_map[atom->getName()]++;
+    }
+
+    std::string molname = "";
+    for (auto const &pair : molname_map) {
+      std::cout << molname << std::endl;
+      molname += (pair.first + std::to_string(pair.second));
+    }
+    mol.setName(molname);
+  }
+}
 
 bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,
                                            Topology &top) {
@@ -367,8 +388,7 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
     vector<string> mini_group;
     trim_(line);
     Tokenizer tok(line, " ");
-    vector<string> fields;
-    tok.ToVector(fields);
+    vector<string> fields = tok.ToVector();
     for (auto field : fields) {
       trim_(field);
       mini_group.push_back(field);
@@ -410,8 +430,7 @@ LAMMPSDataReader::lammps_format LAMMPSDataReader::determineDataFileFormat_(
     string line) {
 
   Tokenizer tok(line, " ");
-  vector<string> fields;
-  tok.ConvertToVector(fields);
+  vector<string> fields = tok.ToVector();
   lammps_format format;
   if (fields.size() == 5 || fields.size() == 8) {
     format = style_atomic;

@@ -107,6 +107,8 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   void ReadDihedrals_(Topology &top);
   void ReadImpropers_(Topology &top);
 
+  void RenameMolecule(Molecule &mol) const;
+
   enum lammps_format {
     style_angle_bond_molecule = 0,
     style_atomic = 1,
@@ -120,11 +122,11 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
    * The purpose of this function is to take lammps output where there are more
    * than a single atom type of the same element. For instance there may be 4
    * atom types with mass of 12.01. Well this means that they are all carbon but
-   * are treated differently in lammps. It makes since to keep track of this. If
+   * are treated differently in lammps. It makes sense to keep track of this. If
    * a mass cannot be associated with an element we will assume it is pseudo
-   * atom or course grained watom which we will represent with as a bead. So
-   * when creating the atom names we will take into account so say we have the
-   * following masses in the lammps .data file:
+   * atom or course grained watom which we will represent as a bead. So
+   * when creating the atom names we will take this into account. So say we have
+   *the following masses in the lammps .data file:
    *
    * Masses
    *
