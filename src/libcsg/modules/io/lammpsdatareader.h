@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,8 +89,6 @@ private:
   bool MatchTwoFieldLabels_(std::vector<std::string> fields, Topology &top);
   bool MatchThreeFieldLabels_(std::vector<std::string> fields, Topology &top);
   bool MatchFourFieldLabels_(std::vector<std::string> fields, Topology &top);
-  bool MatchFieldsTimeStepLabel_(std::vector<std::string> fields,
-                                 Topology &top);
 
   void ReadBox_(std::vector<std::string> fields, Topology &top);
   void SortIntoDataGroup_(std::string tag);

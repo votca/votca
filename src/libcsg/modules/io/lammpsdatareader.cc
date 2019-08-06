@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,6 +82,8 @@ string getStringGivenDoubleAndMap_(double value, map<string, double> nameValue,
  * Public Facing Methods                                                     *
  *****************************************************************************/
 
+// Data file should follow this format: 
+// https://lammps.sandia.gov/doc/2001/data_format.html
 bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
   cout << endl;
@@ -135,11 +137,12 @@ bool LAMMPSDataReader::FirstFrame(Topology &top) {
 
 bool LAMMPSDataReader::NextFrame(Topology &top) {
 
+  string header;
+  getline(fl_, header);
   string line;
   getline(fl_, line);
   while (!fl_.eof()) {
 
-    bool labelMatched = false;
     Tokenizer tok(line, " ");
     vector<string> fields;
     tok.ToVector(fields);
@@ -147,22 +150,16 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
-      labelMatched = MatchOneFieldLabel_(fields, top);
+      MatchOneFieldLabel_(fields, top);
     } else if (fields.size() == 2) {
-      labelMatched = MatchTwoFieldLabels_(fields, top);
+      MatchTwoFieldLabels_(fields, top);
     } else if (fields.size() == 3) {
-      labelMatched = MatchThreeFieldLabels_(fields, top);
+      MatchThreeFieldLabels_(fields, top);
     } else if (fields.size() == 4) {
-      labelMatched = MatchFourFieldLabels_(fields, top);
+      MatchFourFieldLabels_(fields, top);
     } else if (fields.size() != 0) {
-
-      // See if the line is the lammps .data header/info line
-      labelMatched = MatchFieldsTimeStepLabel_(fields, top);
-
-      if (!labelMatched) {
-        string err = "Unrecognized line in lammps .data file:\n" + line;
-        throw runtime_error(err);
-      }
+      string err = "Unrecognized line in lammps .data file:\n" + line;
+      throw runtime_error(err);
     }
     getline(fl_, line);
   }
@@ -251,19 +248,6 @@ bool LAMMPSDataReader::MatchFourFieldLabels_(vector<string> fields,
     return false;
   }
   return true;
-}
-
-bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
-                                                 Topology &top) {
-  size_t index = 0;
-  for (auto field : fields) {
-    if (field == "timestep" && (index + 2) < fields.size()) {
-      top.setStep(stoi(fields.at(index + 2)));
-      return true;
-    }
-    ++index;
-  }
-  return false;
 }
 
 void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
