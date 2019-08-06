@@ -31,13 +31,15 @@ class KMCLifetime : public KMCCalculator {
   ~KMCLifetime(){};
   bool WriteToStateFile() const { return false; }
   std::string Identify() { return "kmclifetime"; }
-  void Initialize(tools::Property &options);
-  bool EvaluateFrame(Topology &top);
+  void Initialize(tools::Property& options);
+  bool EvaluateFrame(Topology& top);
 
  private:
   void WriteDecayProbability(std::string filename);
 
   void RunVSSM();
+  void WriteToTraj(fstream& traj, unsigned insertioncount, double simtime,
+                   const Chargecarrier& carrier) const;
 
   void ReadLifetimeFile(std::string filename);
   std::string _probfile;

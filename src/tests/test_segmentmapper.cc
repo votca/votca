@@ -128,11 +128,11 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
   QMMapper mapper = QMMapper(log);
   mapper.LoadMappingFile("ch4.xml");
   Segment seg("Methane", 1);
-  Atom atm1(1, "CB", 1, Eigen::Vector3d::Zero());
-  Atom atm2(1, "HB1", 2, Eigen::Vector3d::UnitX());
-  Atom atm3(1, "HB2", 3, Eigen::Vector3d::UnitY());
-  Atom atm4(1, "HB3", 4, -Eigen::Vector3d::UnitX());
-  Atom atm5(1, "HB4", 5, -Eigen::Vector3d::UnitY());
+  Atom atm1(1, "CB", 1, Eigen::Vector3d::Zero(), "C");
+  Atom atm2(1, "HB1", 2, Eigen::Vector3d::UnitX(), "H");
+  Atom atm3(1, "HB2", 3, Eigen::Vector3d::UnitY(), "H");
+  Atom atm4(1, "HB3", 4, -Eigen::Vector3d::UnitX(), "H");
+  Atom atm5(1, "HB4", 5, -Eigen::Vector3d::UnitY(), "H");
   seg.push_back(atm1);
   seg.push_back(atm2);
   seg.push_back(atm3);

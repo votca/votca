@@ -111,7 +111,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   }
 
   for (tools::Property* prop : jobProps) {
-    int site_id = prop->getAttribute<int>("id") - 1;
+    int site_id = prop->getAttribute<int>("id");
     double lifetime = boost::lexical_cast<double>(prop->value());
     bool check = false;
     for (auto& node : _nodes) {
@@ -127,7 +127,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
     }
     if (!check) {
       throw runtime_error(
-          (boost::format("Site from file with id: %i not found in sql") %
+          (boost::format("Site from file with id: %i not found in state file") %
            site_id)
               .str());
     }
@@ -137,6 +137,19 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
     node.MakeHuffTree();
   }
   return;
+}
+
+void KMCLifetime::WriteToTraj(fstream& traj, unsigned insertioncount,
+                              double simtime,
+                              const Chargecarrier& affectedcarrier) const {
+  const Eigen::Vector3d& dr_travelled = affectedcarrier.get_dRtravelled();
+  traj << simtime << "\t" << insertioncount << "\t" << affectedcarrier.getId()
+       << "\t" << affectedcarrier.getLifetime() << "\t"
+       << affectedcarrier.getSteps() << "\t"
+       << affectedcarrier.getCurrentNodeId() + 1 << "\t"
+       << dr_travelled.x() * tools::conv::bohr2nm << "\t"
+       << dr_travelled.y() * tools::conv::bohr2nm << "\t"
+       << dr_travelled.z() * tools::conv::bohr2nm << endl;
 }
 
 void KMCLifetime::RunVSSM() {
@@ -272,14 +285,7 @@ void KMCLifetime::RunVSSM() {
           avlifetime += affectedcarrier->getLifetime();
           meanfreepath += dr_travelled.norm();
           difflength_squared += dr_travelled.cwiseAbs2();
-          traj << simtime << "\t" << insertioncount << "\t"
-               << affectedcarrier->getId() << "\t"
-               << affectedcarrier->getLifetime() << "\t"
-               << affectedcarrier->getSteps() << "\t"
-               << affectedcarrier->getCurrentNodeId() + 1 << "\t"
-               << dr_travelled.x() * tools::conv::bohr2nm << "\t"
-               << dr_travelled.y() * tools::conv::bohr2nm << "\t"
-               << dr_travelled.z() * tools::conv::bohr2nm << endl;
+          WriteToTraj(traj, insertioncount, simtime, *affectedcarrier);
           if (tools::globals::verbose &&
               (_insertions < 1500 ||
                insertioncount % (_insertions / 1000) == 0 ||
@@ -366,7 +372,7 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   LoadGraph(top);
   ReadLifetimeFile(_lifetimefile);
 
-  if (_probfile != "") {
+  if (!_probfile.empty()) {
     WriteDecayProbability(_probfile);
   }
   RunVSSM();

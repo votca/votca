@@ -29,7 +29,7 @@ class Md2QmEngine {
  public:
   Md2QmEngine(std::string mapfile) : _mapfile(mapfile){};
 
-  Topology map(const csg::Topology& top);
+  Topology map(const csg::Topology& top) const;
 
  private:
   void CheckMappingFile(tools::Property& topology_map) const;
@@ -38,7 +38,10 @@ class Md2QmEngine {
                                    std::string tag) const;
 
   int DetermineResNumOffset(const csg::Molecule* mol,
-                            const std::vector<int>& resnums_map);
+                            const std::vector<int>& resnums_map) const;
+
+  void MakeSegmentsWholePBC(Topology& top) const;
+  bool CheckMolWhole(const Topology& top, const Segment& mol) const;
 
   std::string _mapfile;
 };

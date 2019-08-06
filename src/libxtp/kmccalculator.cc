@@ -136,12 +136,13 @@ void KMCCalculator::LoadGraph(Topology& top) {
   cout << "Nblist has " << nblist.size() << " pairs. Nodes contain " << events
        << " jump events" << endl;
   cout << "with avg=" << avg << " std=" << deviation << " max=" << max
-       << " min=" << min << endl;
-  cout << "Minimum jumpdistance =" << minlength
-       << " nm Maximum distance =" << maxlength << " nm" << endl;
-
-  cout << "spatial density: " << _numberofcarriers / top.BoxVolume() << " nm^-3"
+       << " min=" << min << " jumps per site" << endl;
+  cout << "Minimum jumpdistance =" << minlength * tools::conv::bohr2nm
+       << " nm Maximum distance =" << maxlength * tools::conv::bohr2nm << " nm"
        << endl;
+  double conv = std::pow(tools::conv::bohr2nm, 3);
+  cout << "spatial carrier density: "
+       << _numberofcarriers / (top.BoxVolume() * conv) << " nm^-3" << endl;
 
   for (auto& node : _nodes) {
     node.InitEscapeRate();

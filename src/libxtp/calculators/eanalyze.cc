@@ -104,7 +104,7 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
   // ... Pair-energy histogram, mean, width
   // ... Site-energy correlation
 
-  QMNBList &nblist = top.NBList();
+  const QMNBList &nblist = top.NBList();
 
   for (QMStateType state : _states) {
     std::cout << std::endl
@@ -119,7 +119,7 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
         std::cout << std::endl
                   << "... ... ... Skip site-energy hist." << std::flush;
       } else {
-        SiteHist(top, state);
+        SiteHist(state);
       }
       if (_skip_corr) {
         std::cout << std::endl
@@ -145,7 +145,7 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
   return true;
 }
 
-void EAnalyze::SiteHist(Topology &top, QMStateType state) {
+void EAnalyze::SiteHist(QMStateType state) const {
 
   std::vector<double> Es;
   Es.reserve(_seg_shortlist.size());
@@ -201,9 +201,9 @@ void EAnalyze::SiteHist(Topology &top, QMStateType state) {
   }
 }
 
-void EAnalyze::PairHist(Topology &top, QMStateType state) {
+void EAnalyze::PairHist(const Topology &top, QMStateType state) const {
 
-  QMNBList &nblist = top.NBList();
+  const QMNBList &nblist = top.NBList();
 
   std::string filenamelist = "eanalyze.pairlist_" + state.ToString() + ".out";
 
@@ -245,7 +245,7 @@ void EAnalyze::PairHist(Topology &top, QMStateType state) {
   tab.Save(filename2);
 }
 
-void EAnalyze::SiteCorr(Topology &top, QMStateType state) {
+void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
 
   std::vector<double> Es;
   Es.reserve(_seg_shortlist.size());
@@ -260,25 +260,23 @@ void EAnalyze::SiteCorr(Topology &top, QMStateType state) {
   double STD = std::sqrt(VAR);
 
   // Collect inter-site distances, correlation product
-  std::vector<Segment *>::iterator sit1;
-  std::vector<Segment *>::iterator sit2;
-
   tools::Table tabcorr;
   int length = _seg_shortlist.size() * (_seg_shortlist.size() - 1) / 2;
   tabcorr.resize(length);
   int index = 0;
-  for (sit1 = _seg_shortlist.begin(); sit1 < _seg_shortlist.end(); ++sit1) {
-    for (sit2 = sit1 + 1; sit2 < _seg_shortlist.end(); ++sit2) {
+  for (unsigned i = 0; i < _seg_shortlist.size(); i++) {
+    const Segment &segi = *_seg_shortlist[i];
+    for (unsigned j = i + 1; j < _seg_shortlist.size(); j++) {
+      const Segment &segj = *_seg_shortlist[j];
       double R = 0;
       if (_atomdistances) {
-        R = top.GetShortestDist(*(*sit1), *(*sit2));
+        R = top.GetShortestDist(segi, segj);
       } else {
-        R = (top.PbShortestConnect((*sit1)->getPos(), (*sit2)->getPos()))
-                .norm();
+        R = (top.PbShortestConnect(segi.getPos(), segj.getPos())).norm();
       }
 
-      double C = ((*sit1)->getSiteEnergy(state) - AVG) *
-                 ((*sit2)->getSiteEnergy(state) - AVG);
+      double C =
+          (segi.getSiteEnergy(state) - AVG) * (segj.getSiteEnergy(state) - AVG);
       tabcorr.set(index, R, C);
       index++;
     }

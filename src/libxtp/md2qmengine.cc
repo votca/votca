@@ -65,8 +65,8 @@ void Md2QmEngine::CheckMappingFile(tools::Property& topology_map) const {
   }
 }
 
-int Md2QmEngine::DetermineResNumOffset(const csg::Molecule* mol,
-                                       const std::vector<int>& resnums_map) {
+int Md2QmEngine::DetermineResNumOffset(
+    const csg::Molecule* mol, const std::vector<int>& resnums_map) const {
   std::vector<int> resnums;
   for (const csg::Bead* bead : mol->Beads()) {
     resnums.push_back(bead->getResnr());
@@ -83,7 +83,40 @@ int Md2QmEngine::DetermineResNumOffset(const csg::Molecule* mol,
   return offset;
 }
 
-Topology Md2QmEngine::map(const csg::Topology& top) {
+bool Md2QmEngine::CheckMolWhole(const Topology& top, const Segment& seg) const {
+  Eigen::Vector3d CoM = seg.getPos();
+  bool whole = true;
+  for (const Atom& a : seg) {
+    Eigen::Vector3d r = a.getPos() - CoM;
+    Eigen::Vector3d r_pbc = top.PbShortestConnect(CoM, a.getPos());
+    Eigen::Vector3d shift = r_pbc - r;
+    if (shift.norm() > 1e-9) {
+      whole = false;
+      break;
+    }
+  }
+  return whole;
+}
+
+void Md2QmEngine::MakeSegmentsWholePBC(Topology& top) const {
+  for (Segment& seg : top.Segments()) {
+    seg.calcPos();
+    while (!CheckMolWhole(top, seg)) {
+      Eigen::Vector3d CoM = seg.getPos();
+      for (Atom& a : seg) {
+        Eigen::Vector3d r = a.getPos() - CoM;
+        Eigen::Vector3d r_pbc = top.PbShortestConnect(CoM, a.getPos());
+        Eigen::Vector3d shift = r_pbc - r;
+        if (shift.norm() > 1e-9) {
+          a.Translate(shift);
+        }
+      }
+      seg.calcPos();
+    }
+  }
+}
+
+Topology Md2QmEngine::map(const csg::Topology& top) const {
 
   tools::Property topology_map;
   tools::load_property_from_xml(topology_map, _mapfile);
@@ -164,11 +197,13 @@ Topology Md2QmEngine::map(const csg::Topology& top) {
                               [bead->getName()]];
 
       Atom atom(bead->getResnr(), bead->getName(), atomid,
-                bead->getPos() * tools::conv::nm2bohr);
+                bead->getPos() * tools::conv::nm2bohr, bead->getType());
       seg->push_back(atom);
       atomid++;
     }
   }
+
+  MakeSegmentsWholePBC(xtptop);
 
   return xtptop;
 }

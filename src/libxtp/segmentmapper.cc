@@ -103,7 +103,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
     mapsite_id map_result = StringToMapIndex(map_string);
     mapatom_ids.push_back(map_result.first);
     seginfo.mapatoms.push_back(map_result);
-    if (Atom::GetElementFromMDName(md_result.second) != map_result.second) {
+    if (Atom::GetElementFromString(md_result.second) != map_result.second) {
       XTP_LOG_SAVE(logINFO, _log)
           << "WARNING: mdatom'" << md_result.second << "' and "
           << _mapatom_xml["name"] << " '" << map_result.second

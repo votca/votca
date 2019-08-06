@@ -26,6 +26,7 @@
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
+#include <votca/tools/filesystem.h>
 #include <votca/tools/globals.h>
 #include <votca/xtp/md2qmengine.h>
 #include <votca/xtp/topology.h>
@@ -41,15 +42,14 @@ class XtpMap : public TOOLS::Application {
 
  public:
   string ProgramName() { return "xtp_map"; }
-  void HelpText(ostream &out) { out << "Generates QM|MD topology" << endl; }
-  void ShowHelpText(std::ostream &out);
+  void HelpText(ostream& out) { out << "Generates QM|MD topology" << endl; }
+  void ShowHelpText(std::ostream& out);
 
   void Initialize();
   bool EvaluateOptions();
   void Run();
 
  protected:
-  string _outdb;
 };
 
 namespace propt = boost::program_options;
@@ -65,6 +65,7 @@ void XtpMap::Initialize() {
                       "  coordinates or trajectory");
   AddProgramOptions()("segments,s", propt::value<string>(),
                       "  definition of segments and fragments");
+  AddProgramOptions()("makesegments,m", "  write out a skeleton segments file");
   AddProgramOptions()("file,f", propt::value<string>(), "  state file");
 }
 
@@ -73,8 +74,9 @@ bool XtpMap::EvaluateOptions() {
   CheckRequired("topology", "Missing topology file");
   CheckRequired("segments", "Missing segment definition file");
   CheckRequired("coordinates", "Missing trajectory input");
-  CheckRequired("file", "Missing state file");
-
+  if (!(_op_vm.count("makesegments"))) {
+    CheckRequired("file", "Missing state file");
+  }
   return 1;
 }
 
@@ -83,24 +85,6 @@ void XtpMap::Run() {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
   XTP::HelpTextHeader(name);
-
-  // +++++++++++++++++++++++++++++++++++++ //
-  // Initialize MD2QM Engine and SQLite Db //
-  // +++++++++++++++++++++++++++++++++++++ //
-
-  _outdb = _op_vm["file"].as<string>();
-  std::ifstream infile(_outdb);
-  if (infile.good()) {
-    cout << endl
-         << "xtp_map : state file '" << _outdb
-         << "' already in use. Delete the current statefile or specify a "
-            "different name."
-         << endl;
-    return;
-  }
-
-  string cgfile = _op_vm["segments"].as<string>();
-  XTP::Md2QmEngine md2qm(cgfile);
 
   // ++++++++++++++++++++++++++++ //
   // Create MD topology from file //
@@ -123,6 +107,48 @@ void XtpMap::Run() {
          << mdtopol.BeadCount() << " atoms in " << mdtopol.MoleculeCount()
          << " molecules. " << endl;
   }
+
+  string mapfile = _op_vm["segments"].as<string>();
+  if (_op_vm.count("makesegments")) {
+    if (TOOLS::filesystem::FileExists(mapfile)) {
+      cout << endl
+           << "xtp_map : map file '" << mapfile
+           << "' already in use. Delete the current mapfile or specify a "
+              "different name."
+           << endl;
+      return;
+    }
+
+    TOOLS::Property mapfile_prop("topology", "", "");
+    TOOLS::Property& molecules = mapfile_prop.add("molecules", "");
+
+    std::map<std::string, int> molecule_names;
+    for (CSG::Molecule* mol : mdtopol.Molecules()) {
+      molecule_names[mol->getName()]++;
+    }
+    for (const auto& mol : molecule_names) {
+      std::cout << "Found " << mol.second << " with name " << mol.first
+                << std::endl;
+    }
+    for (const auto& mol : molecule_names) {
+      TOOLS::Property& molecule = molecules.add("molecule", "");
+      molecule.add("mdname", mol.first);
+      molecule.add("segments", "");
+    }
+
+    std::ofstream template_mapfile(mapfile);
+    template_mapfile << mapfile_prop << std::flush;
+    template_mapfile.close();
+    return;
+  }
+
+  if (!TOOLS::filesystem::FileExists(mapfile)) {
+    cout << endl
+         << "xtp_map : map file '" << mapfile << "' could not be found."
+         << endl;
+    return;
+  }
+  XTP::Md2QmEngine md2qm(mapfile);
 
   // ++++++++++++++++++++++++++++++ //
   // Create MD trajectory from file //
@@ -183,7 +209,17 @@ void XtpMap::Run() {
   int laststep =
       -1;  // for some formats no step is given out so we check if the step
 
-  XTP::StateSaver statsav(_outdb);
+  string statefile = _op_vm["file"].as<string>();
+  if (TOOLS::filesystem::FileExists(statefile)) {
+    cout << endl
+         << "xtp_map : state file '" << statefile
+         << "' already in use. Delete the current statefile or specify a "
+            "different name."
+         << endl;
+    return;
+  }
+
+  XTP::StateSaver statsav(statefile);
   for (int saved = 0; hasFrame && saved < nFrames;
        hasFrame = trjread->NextFrame(mdtopol), saved++) {
     if (mdtopol.getStep() == laststep) {
@@ -195,7 +231,7 @@ void XtpMap::Run() {
   }
 }
 
-void XtpMap::ShowHelpText(std::ostream &out) {
+void XtpMap::ShowHelpText(std::ostream& out) {
   string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
   XTP::HelpTextHeader(name);
@@ -203,7 +239,7 @@ void XtpMap::ShowHelpText(std::ostream &out) {
   out << "\n\n" << VisibleOptions() << endl;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   XtpMap xtpmap;
   return xtpmap.Exec(argc, argv);
 }
