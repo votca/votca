@@ -32,8 +32,7 @@ using namespace std;
 vector<string> TrimCommentsFrom_(vector<string> fields) {
   vector<string> tempFields;
   for (auto field : fields) {
-    if (field.at(0) == '#')
-      return tempFields;
+    if (field.at(0) == '#') return tempFields;
     tempFields.push_back(field);
   }
   return tempFields;
@@ -326,8 +325,7 @@ map<string, int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
   matrix m;
   m.ZeroMatrix();
-  m[0][0] = stod(fields.at(1)) -
-            stod(fields.at(0));
+  m[0][0] = stod(fields.at(1)) - stod(fields.at(0));
 
   for (int i = 1; i < 3; ++i) {
     string line;
@@ -338,8 +336,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
       throw runtime_error("invalid box format in the lammps data file");
     }
 
-    m[i][i] = stod(fields.at(1)) -
-              stod(fields.at(0));
+    m[i][i] = stod(fields.at(1)) - stod(fields.at(0));
   }
   top.setBox(m);
 }
@@ -394,8 +391,8 @@ void LAMMPSDataReader::ReadNumOfImpropers_(vector<string> fields) {
   numberOf_["impropers"] = stoi(fields.at(0));
 }
 
-LAMMPSDataReader::lammps_format
-LAMMPSDataReader::determineDataFileFormat_(string line) {
+LAMMPSDataReader::lammps_format LAMMPSDataReader::determineDataFileFormat_(
+    string line) {
 
   Tokenizer tok(line, " ");
   vector<string> fields;
@@ -408,8 +405,9 @@ LAMMPSDataReader::determineDataFileFormat_(string line) {
   } else if (fields.size() == 7 || fields.size() == 10) {
     format = style_full;
   } else {
-    throw runtime_error("You have submitted a lammps data file with an "
-                        "unsupported format.");
+    throw runtime_error(
+        "You have submitted a lammps data file with an "
+        "unsupported format.");
   }
   return format;
 }
@@ -423,8 +421,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
   lammps_format format = determineDataFileFormat_(line);
   bool chargeRead = false;
   bool moleculeRead = false;
-  if (format == style_angle_bond_molecule)
-    moleculeRead = true;
+  if (format == style_angle_bond_molecule) moleculeRead = true;
   if (format == style_full) {
     moleculeRead = true;
     chargeRead = true;
@@ -453,10 +450,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
     sorted_file[atomId] = line;
     getline(fl_, line);
     trim_(line);
-    if (atomId < startingIndex)
-      startingIndex = atomId;
-    if (moleculeId < startingIndexMolecule)
-      startingIndexMolecule = moleculeId;
+    if (atomId < startingIndex) startingIndex = atomId;
+    if (moleculeId < startingIndexMolecule) startingIndexMolecule = moleculeId;
   }
 
   for (int atomIndex = startingIndex;
@@ -475,8 +470,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       moleculeId = atomId;
     }
     iss >> atomTypeId;
-    if (chargeRead)
-      iss >> charge;
+    if (chargeRead) iss >> charge;
     iss >> x;
     iss >> y;
     iss >> z;
@@ -500,9 +494,8 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       } else {
         mol = molecules_[moleculeId];
       }
-      int symmetry = 1; // spherical
-      double mass = 
-        stod(data_["Masses"].at(atomTypeId).at(1));
+      int symmetry = 1;  // spherical
+      double mass = stod(data_["Masses"].at(atomTypeId).at(1));
 
       int residue_index = moleculeId;
       if (residue_index >= top.ResidueCount()) {
@@ -513,15 +506,18 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
       }
 
       string bead_type_name = to_string(atomTypeId + 1);
-      auto bead_type = top.GetOrCreateBeadType(bead_type_name);
+      if (!top.BeadTypeExist(bead_type_name)) {
+        top.RegisterBeadType(bead_type_name);
+      }
       if (atomtypes_.count(atomTypeId) == 0) {
-        string err = "Unrecognized atomTypeId, the atomtypes map "
-                     "may be uninitialized";
+        string err =
+            "Unrecognized atomTypeId, the atomtypes map "
+            "may be uninitialized";
         throw runtime_error(err);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type, residue_index,
-                         mass, charge);
+      b = top.CreateBead(symmetry, bead_type_name, bead_type_name,
+                         residue_index, mass, charge);
 
       mol->AddBead(b, bead_type_name);
       b->setMolecule(mol);
@@ -718,5 +714,5 @@ void LAMMPSDataReader::ReadDihedrals_(Topology &top) {
     throw runtime_error(err);
   }
 }
-}
-}
+}  // namespace csg
+}  // namespace votca

@@ -1,5 +1,5 @@
-/* 
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+/*
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,42 +21,50 @@
 #include <votca/csg/topology.h>
 #include <votca/csg/trajectorywriter.h>
 
-namespace votca { namespace csg {
-using namespace votca::tools;
+namespace votca {
+namespace csg {
 
 /**
     \brief class for writing dlpoly trajectory and configuration files
 
-    This class encapsulates the dlpoly trajectory and configuration writing function
+    This class encapsulates the dlpoly trajectory and configuration writing
+   function
 
 */
 
-class DLPOLYTrajectoryWriter
-   : public TrajectoryWriter
-{
+class DLPOLYTrajectoryWriter : public TrajectoryWriter {
  public:
   // open transformed trajectory file
-  void Open(string file, bool bAppend=false);
+  void Open(std::string file, bool bAppend = false);
   // close transformed trajectory file
   void Close();
   // write a frame into transformed trajectory file
   void Write(Topology *conf);
-  
-  /// set/get the created configuration or trajectory file name: 
-  /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV", ".dlph"="HISTORY_CGV")
-  void   setFname(string name) { _fname = name; return; }
-  string getFname()            { return _fname; }
-  
-  /// set/check the flag for the created file as configuration, i.e. not trajectory format
-  void setIsConfig(bool isConf) { _isConfig=isConf;  return; }
-  bool getIsConfig()            { return _isConfig; }
-  
+
+  /// set/get the created configuration or trajectory file name:
+  /// <name>.dlpc or <name>.dlph (convention: ".dlpc"="CONFIG_CGV",
+  /// ".dlph"="HISTORY_CGV")
+  void setFname(std::string name) {
+    _fname = name;
+    return;
+  }
+  std::string getFname() { return _fname; }
+
+  /// set/check the flag for the created file as configuration, i.e. not
+  /// trajectory format
+  void setIsConfig(bool isConf) {
+    _isConfig = isConf;
+    return;
+  }
+  bool getIsConfig() { return _isConfig; }
+
  private:
-  ofstream _fl;
-  string _fname;
+  std::ofstream _fl;
+  std::string _fname;
   bool _isConfig;
 };
 
-}}
+}  // namespace csg
+}  // namespace votca
 
-#endif  /* _DLPOLYTRAJECTORYWRITER_H */
+#endif /* _DLPOLYTRAJECTORYWRITER_H */

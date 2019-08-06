@@ -21,9 +21,11 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>../../include/votca/csg/basebead.h</itemPath>
       <itemPath>../../include/votca/csg/bead.h</itemPath>
       <itemPath>../../include/votca/csg/beadlist.h</itemPath>
       <itemPath>../../include/votca/csg/beadpair.h</itemPath>
+      <itemPath>../../include/votca/csg/beadstructure.h</itemPath>
       <itemPath>../../include/votca/csg/beadtriple.h</itemPath>
       <itemPath>../../include/votca/csg/beadtype.h</itemPath>
       <itemPath>../../include/votca/csg/boundarycondition.h</itemPath>
@@ -85,18 +87,22 @@
             <itemPath>../../src/libcsg/modules/io/growriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/h5mdtrajectoryreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/h5mdtrajectoryreader.h</itemPath>
-            <itemPath>../../src/libcsg/modules/io/lammpsreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/lammpsreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdatareader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdatareader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpreader.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpreader.h</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpwriter.cc</itemPath>
+            <itemPath>../../src/libcsg/modules/io/lammpsdumpwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/pdbwriter.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/pdbwriter.h</itemPath>
+            <itemPath>../../include/votca/csg/pdbwriter.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.cc</itemPath>
             <itemPath>../../src/libcsg/modules/io/xmltopologyreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzreader.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/xyzreader.h</itemPath>
+            <itemPath>../../include/votca/csg/xyzreader.h</itemPath>
             <itemPath>../../src/libcsg/modules/io/xyzwriter.cc</itemPath>
-            <itemPath>../../src/libcsg/modules/io/xyzwriter.h</itemPath>
+            <itemPath>../../include/votca/csg/xyzwriter.h</itemPath>
           </logicalFolder>
         </logicalFolder>
       </logicalFolder>
@@ -167,11 +173,18 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadstructure.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadtriple.h"
             ex="false"
@@ -244,6 +257,11 @@
       </item>
       <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/csg/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
             ex="false"
             tool="3"
@@ -299,6 +317,16 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/csg/triplelist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/xyzreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/xyzwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -422,12 +450,32 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -447,11 +495,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
             ex="false"
             tool="1"
@@ -467,19 +510,9 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/xyzreader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libcsg/modules/io/xyzwriter.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libcsg/modules/io/xyzwriter.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/molecule.cc" ex="false" tool="1" flavor2="0">
@@ -598,11 +631,18 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadstructure.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadtriple.h"
             ex="false"
@@ -675,6 +715,11 @@
       </item>
       <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/csg/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
             ex="false"
             tool="3"
@@ -730,6 +775,16 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/csg/triplelist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/xyzreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/xyzwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -853,12 +908,32 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -878,11 +953,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
             ex="false"
             tool="1"
@@ -898,19 +968,9 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/xyzreader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libcsg/modules/io/xyzwriter.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libcsg/modules/io/xyzwriter.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/molecule.cc" ex="false" tool="1" flavor2="0">
@@ -1030,11 +1090,18 @@
           <output>../../src/libcsg/libcsg.a</output>
         </archiverTool>
       </compileType>
+      <item path="../../include/votca/csg/basebead.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/votca/csg/bead.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadlist.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadpair.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/beadstructure.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
       <item path="../../include/votca/csg/beadtriple.h"
             ex="false"
@@ -1107,6 +1174,11 @@
       </item>
       <item path="../../include/votca/csg/pairlist.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../../include/votca/csg/pdbwriter.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
       <item path="../../include/votca/csg/potentialfunctions/potentialfunction.h"
             ex="false"
             tool="3"
@@ -1162,6 +1234,16 @@
             flavor2="0">
       </item>
       <item path="../../include/votca/csg/triplelist.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/xyzreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../include/votca/csg/xyzwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1285,12 +1367,32 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.cc"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.cc"
             ex="false"
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/lammpsreader.h"
+      <item path="../../src/libcsg/modules/io/lammpsdatareader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpreader.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.cc"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../src/libcsg/modules/io/lammpsdumpwriter.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -1310,11 +1412,6 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/pdbwriter.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libcsg/modules/io/xmltopologyreader.cc"
             ex="false"
             tool="1"
@@ -1330,19 +1427,9 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libcsg/modules/io/xyzreader.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="../../src/libcsg/modules/io/xyzwriter.cc"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../src/libcsg/modules/io/xyzwriter.h"
-            ex="false"
-            tool="3"
             flavor2="0">
       </item>
       <item path="../../src/libcsg/molecule.cc" ex="false" tool="1" flavor2="0">
