@@ -81,7 +81,7 @@ string getStringGivenDoubleAndMap_(double value, map<string, double> nameValue,
  * Public Facing Methods                                                     *
  *****************************************************************************/
 
-// Data file should follow this format: 
+// Data file should follow this format:
 // https://lammps.sandia.gov/doc/2001/data_format.html
 bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
