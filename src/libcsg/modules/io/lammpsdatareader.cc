@@ -208,6 +208,11 @@ bool LAMMPSDataReader::MatchOneFieldLabel_(vector<string> fields,
   } else if (fields.at(0) == "Dihedrals") {
     ReadDihedrals_(top);
   } else if (fields.at(0) == "Impropers") {
+    cout << endl;
+    cout << "WARNING Impropers are not currently supported, skipping." << endl;
+    cout << endl;
+    // Impropers are not yet supported
+    SkipImpropers_();
   } else {
     return false;
   }
@@ -306,15 +311,14 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
 
     auto baseName =
         getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesMasses, 0.01);
-
     string label = baseName;
     if (baseNamesCount[baseName] > 1) {
       if (baseNameIndices.count(baseName) == 0) {
-        label += label + " Type 1";
+        label += "1";
         baseNameIndices[baseName] = 1;
       } else {
         baseNameIndices[baseName]++;
-        label += label + " Type " + to_string(baseNameIndices[baseName]);
+        label += "" + to_string(baseNameIndices[baseName]);
       }
     }
     atomtypes_[index].push_back(baseName);
@@ -334,6 +338,7 @@ map<string, double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
       beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
     } else {
       beadElementName = "Bead" + to_string(bead_index_type);
+      cout << "Unable to associate mass " << mass.at(1) << " with element assuming pseudo atom, assigning name " << beadElementName << "." << endl;
       ++bead_index_type;
     }
     baseNamesAndMasses[beadElementName] = mass_atom_bead;
@@ -448,6 +453,11 @@ LAMMPSDataReader::lammps_format LAMMPSDataReader::determineDataFileFormat_(
 
 void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
+  if(data_.count("Masses")==0){
+    string err = "You are attempting to read in the atom block before the masses, or you have failed to include the masses in the data file.";
+    throw runtime_error(err);
+  }
+
   string line;
   getline(fl_, line);
   getline(fl_, line);
@@ -529,7 +539,14 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         mol = molecules_[moleculeId];
       }
       int symmetry = 1;  // spherical
+
+      
       double mass = stod(data_["Masses"].at(atomTypeId).at(1));
+
+      if(data_.at("Masses").size()<=atomTypeId){
+        string err = "The atom block contains an atom of type "+to_string(atomTypeId)+" however, the masses are only specified for atoms up to type " + to_string(data_.at("Masses").size()-1);
+        throw runtime_error(err);
+      }
 
       int residue_index = moleculeId;
       if (residue_index >= top.ResidueCount()) {
@@ -538,20 +555,22 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         }
         top.CreateResidue("DUM");
       }
-
-      string bead_type_name = to_string(atomTypeId + 1);
-      if (!top.BeadTypeExist(bead_type_name)) {
-        top.RegisterBeadType(bead_type_name);
-      }
+      
       if (atomtypes_.count(atomTypeId) == 0) {
         string err =
-            "Unrecognized atomTypeId, the atomtypes map "
-            "may be uninitialized";
+          "Unrecognized atomTypeId, the atomtypes map "
+          "may be uninitialized";
         throw runtime_error(err);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type_name,
-                         residue_index, mass, charge);
+      string bead_type_name = atomtypes_[atomTypeId].at(1);
+      string bead_type = atomtypes_[atomTypeId].at(0);
+      if (!top.BeadTypeExist(bead_type_name)) {
+        top.RegisterBeadType(bead_type_name);
+      }
+   
+      b = top.CreateBead(symmetry, bead_type_name, bead_type,
+          residue_index, mass, charge);
 
       mol->AddBead(b, bead_type_name);
       b->setMolecule(mol);
@@ -685,6 +704,15 @@ void LAMMPSDataReader::ReadAngles_(Topology &top) {
         to_string(numberOf_["angles"]) +
         "\nNumber of angles that were read in " + to_string(angle_count) + "\n";
     throw runtime_error(err);
+  }
+}
+
+void LAMMPSDataReader::SkipImpropers_() {
+  string line;
+  getline(fl_, line);
+  getline(fl_, line);
+  while (!line.empty()) {
+    getline(fl_, line);
   }
 }
 
