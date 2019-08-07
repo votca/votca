@@ -1,7 +1,7 @@
 <options>
 
 <!-- xtp_tools -e coupling options.xml -->
-<spectrum>
+<spectrum help="Convolutes spectrum with gaussian or lorentzian function">
 
     <input>system.orb</input>
     <output>spectrum.dat</output>

@@ -198,6 +198,9 @@ Topology Md2QmEngine::map(const csg::Topology& top) const {
 
       Atom atom(bead->getResnr(), bead->getName(), atomid,
                 bead->getPos() * tools::conv::nm2bohr, bead->getType());
+      std::cout << bead->getName() << " " << bead->getId() << " "
+                << bead->getType() << " " << bead->getResnr() << " "
+                << atom.getName() << std::endl;
       seg->push_back(atom);
       atomid++;
     }

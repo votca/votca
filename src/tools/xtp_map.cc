@@ -122,8 +122,13 @@ void XtpMap::Run() {
     TOOLS::Property mapfile_prop("topology", "", "");
     TOOLS::Property& molecules = mapfile_prop.add("molecules", "");
 
+    std::map<std::string, int> firstmoleculeid;
+
     std::map<std::string, int> molecule_names;
-    for (CSG::Molecule* mol : mdtopol.Molecules()) {
+    for (const CSG::Molecule* mol : mdtopol.Molecules()) {
+      if (!molecule_names.count(mol->getName())) {
+        firstmoleculeid[mol->getName()] = mol->getId();
+      }
       molecule_names[mol->getName()]++;
     }
     for (const auto& mol : molecule_names) {
@@ -133,7 +138,18 @@ void XtpMap::Run() {
     for (const auto& mol : molecule_names) {
       TOOLS::Property& molecule = molecules.add("molecule", "");
       molecule.add("mdname", mol.first);
-      molecule.add("segments", "");
+      TOOLS::Property& segments = molecule.add("segments", "");
+      TOOLS::Property& segment = segments.add("segment", "");
+      TOOLS::Property& fragments = segment.add("fragments", "");
+      TOOLS::Property& fragment = fragments.add("fragment", "");
+      std::string atomnames = "";
+      const CSG::Molecule* csgmol =
+          mdtopol.getMolecule(firstmoleculeid[mol.first]);
+      for (const CSG::Bead* bead : csgmol->Beads()) {
+        atomnames +=
+            "\t" + std::to_string(bead->getId()) + ":" + bead->getName();
+      }
+      TOOLS::Property& mdatoms = fragment.add("mdatoms", atomnames);
     }
 
     std::ofstream template_mapfile(mapfile);
