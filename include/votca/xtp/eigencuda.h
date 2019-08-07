@@ -51,6 +51,7 @@ struct Shapes {
 template <typename T>
 using Mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
+// Class to manage the GPU resourcess to perform matrix-matrix multiplications
 template <typename T>
 class EigenCuda {
 
@@ -80,7 +81,7 @@ class EigenCuda {
   // Deallocate memory from the device
   void fun_free(T *x) const;
 
-  // Copy matricex to the device
+  // Copy matrices to the device
   unsigned initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
 
   // Invoke the ?gemm function of cublas

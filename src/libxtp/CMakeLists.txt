@@ -7,6 +7,12 @@ file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc )
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
+message(STATUS "Votca sources: " ${VOTCA_SOURCES})
+
+if(NOT USE_GPU)
+  list(FILTER VOTCA_SOURCES EXCLUDE REGEX ".*eigencuda.cc")
+endif()
+
 add_library(votca_xtp  ${VOTCA_SOURCES})
 set_target_properties(votca_xtp PROPERTIES SOVERSION ${SOVERSION})
 add_dependencies(votca_xtp gitversion-xtp)
