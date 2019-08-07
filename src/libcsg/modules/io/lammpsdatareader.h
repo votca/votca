@@ -64,7 +64,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   // .at(0) - element symbol or bead
   // .at(1) - atom name may be the same as the element symbol or bead depending
   //          on if there is more than one atom type for a given element
-  std::map<int, std::vector<std::string>> atomtypes_;
+  std::map<int, std::array<std::string, 2>> atomtypes_;
 
   // String is the type .e.g. "atom","bond" etc
   // int is the number of different types
