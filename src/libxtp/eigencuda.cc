@@ -49,7 +49,7 @@ void EigenCuda<T>::free_matrix(unsigned id) {
 
 template <typename T>
 unsigned EigenCuda<T>::initialize_Matrix(Mat<T> &A, bool copy_to_device) {
-  // Copy two matrices to the device
+  // Copy a matrices to the device
 
   // size of the Matrices
   std::size_t size_A = A.size() * sizeof(T);
