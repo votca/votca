@@ -19,9 +19,8 @@
 
 #ifndef __XTP_EIGEN_CUDA__H
 #define __XTP_EIGEN_CUDA__H
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <algorithm>
+
+#include <votca/xtp/eigen.h>
 #include <cublas_v2.h>
 #include <curand.h>
 #include <tuple>

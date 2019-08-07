@@ -7,8 +7,6 @@ file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc )
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
-message(STATUS "Votca sources: " ${VOTCA_SOURCES})
-
 if(NOT USE_GPU)
   list(FILTER VOTCA_SOURCES EXCLUDE REGEX ".*eigencuda.cc")
 endif()

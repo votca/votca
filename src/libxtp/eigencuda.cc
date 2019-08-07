@@ -52,7 +52,7 @@ unsigned EigenCuda<T>::initialize_Matrix(Mat<T> &A, bool copy_to_device) {
   // Copy two matrices to the device
 
   // size of the Matrices
-  std::size_t size_A = A.rows() * A.cols() * sizeof(T);
+  std::size_t size_A = A.size() * sizeof(T);
 
   // Pointer in the device
   T *dA;
@@ -106,7 +106,7 @@ Mat<T> EigenCuda<T>::dot(Mat<T> &A, Mat<T> &B) {
 
   // Matrix to store the result
   Mat<T> C = Mat<T>::Zero(A.rows(), B.cols());
-  std::size_t size_C = C.rows() * C.cols() * sizeof(T);
+  std::size_t size_C = C.size() * sizeof(T);
 
   // Indices of the matrices on the device
   std::tuple<unsigned, unsigned, unsigned> ids = std::make_tuple(
