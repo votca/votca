@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_AOSHELL__H
-#define __XTP_AOSHELL__H
+#pragma once
+#ifndef VOTCA_XTP_AOSHELL_H
+#define VOTCA_XTP_AOSHELL_H
 
 #include <boost/math/constants/constants.hpp>
 #include <votca/tools/constants.h>
@@ -38,30 +39,27 @@ class AOGaussianPrimitive {
 
  public:
   double getPowfactor() const { return _powfactor; }
-  int getPower() const { return _power; }
   double getDecay() const { return _decay; }
-  const std::vector<double>& getContraction() const { return _contraction; }
-  const AOShell* getShell() const { return _aoshell; }
+  const Eigen::VectorXd& getContraction() const { return _contraction; }
+  const AOShell& getShell() const { return _aoshell; }
 
  private:
-  int _power;  // used in pseudopotenials only
   double _decay;
-  std::vector<double> _contraction;
-  AOShell* _aoshell;
+  Eigen::VectorXd _contraction;
+  const AOShell& _aoshell;
   double _powfactor;  // used in evalspace to speed up DFT
   // private constructor, only a shell can create a primitive
-  AOGaussianPrimitive(const GaussianPrimitive& gaussian, AOShell* aoshell)
-      : _power(gaussian._power),
-        _decay(gaussian._decay),
-        _contraction(gaussian._contraction),
-        _aoshell(aoshell) {
+  AOGaussianPrimitive(const GaussianPrimitive& gaussian, const AOShell& aoshell)
+      : _decay(gaussian._decay), _aoshell(aoshell) {
+    _contraction = Eigen::VectorXd::Map(gaussian._contraction.data(),
+                                        gaussian._contraction.size());
     _powfactor =
         std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75);
   }
 
-  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian, AOShell* aoshell)
-      : _power(gaussian._power),
-        _decay(gaussian._decay),
+  AOGaussianPrimitive(const AOGaussianPrimitive& gaussian,
+                      const AOShell& aoshell)
+      : _decay(gaussian._decay),
         _contraction(gaussian._contraction),
         _aoshell(aoshell),
         _powfactor(gaussian._powfactor) {
@@ -80,6 +78,7 @@ class AOShell {
 
     _type = shell._type;
     _Lmax = shell._Lmax;
+    _Lmin = shell._Lmin;
     _scale = shell._scale;
     _numFunc = shell._numFunc;
     _mindecay = shell._mindecay;
@@ -87,10 +86,9 @@ class AOShell {
     _offset = shell._offset;
     _pos = shell._pos;
     _atomindex = shell._atomindex;
-    _nonlocal = shell._nonlocal;
     _gaussians.reserve(shell._gaussians.size());
     for (const auto& gaus : shell._gaussians) {
-      _gaussians.push_back(AOGaussianPrimitive(gaus, this));
+      _gaussians.push_back(AOGaussianPrimitive(gaus, *this));
     }
   }
 
@@ -101,12 +99,11 @@ class AOShell {
   int getAtomIndex() const { return _atomindex; }
 
   int getLmax() const { return _Lmax; }
+  int getLmin() const { return _Lmin; }
 
   bool isCombined() const { return _type.length() > 1; }
 
-  bool isNonLocal() const { return _nonlocal; }
-
-  const tools::vec& getPos() const { return _pos; }
+  const Eigen::Vector3d& getPos() const { return _pos; }
   double getScale() const { return _scale; }
 
   int getSize() const { return _gaussians.size(); }
@@ -124,10 +121,10 @@ class AOShell {
   double getMinDecay() const { return _mindecay; }
 
   void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
-                   const tools::vec& grid_pos) const;
+                   const Eigen::Vector3d& grid_pos) const;
   void EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
                    Eigen::Block<Eigen::MatrixX3d>& AODervalues,
-                   const tools::vec& grid_pos) const;
+                   const Eigen::Vector3d& grid_pos) const;
 
   // iterator over pairs (decay constant; contraction coefficient)
   typedef std::vector<AOGaussianPrimitive>::const_iterator GaussianIterator;
@@ -136,8 +133,7 @@ class AOShell {
 
   // adds a Gaussian
   void addGaussian(const GaussianPrimitive& gaussian) {
-    AOGaussianPrimitive aogaussian = AOGaussianPrimitive(gaussian, this);
-    _gaussians.push_back(aogaussian);
+    _gaussians.push_back(AOGaussianPrimitive(gaussian, *this));
     return;
   }
 
@@ -150,34 +146,19 @@ class AOShell {
   AOShell(const Shell& shell, const QMAtom& atom, int startIndex)
       : _type(shell.getType()),
         _Lmax(shell.getLmax()),
+        _Lmin(shell.getLmin()),
         _scale(shell.getScale()),
         _numFunc(shell.getnumofFunc()),
         _startIndex(startIndex),
         _offset(shell.getOffset()),
         _pos(atom.getPos()),
-        _atomindex(atom.getAtomID()) {
-    ;
-  }
-  // for ECPs
-  AOShell(const Shell& shell, const QMAtom& atom, int startIndex, bool nonlocal)
-      : _type(shell.getType()),
-        _Lmax(shell.getLmax()),
-        _scale(shell.getScale()),
-        _numFunc(shell.getnumofFunc()),
-        _startIndex(startIndex),
-        _offset(shell.getOffset()),
-        _pos(atom.getPos()),
-        _atomindex(atom.getAtomID()),
-        _nonlocal(nonlocal) {
+        _atomindex(atom.getId()) {
     ;
   }
 
-  // only class aobasis can destruct shells
-  ~AOShell(){};
-
-  // shell type (S, P, D))
   std::string _type;
   int _Lmax;
+  int _Lmin;
   // scaling factor
   double _scale;
   // number of functions in shell
@@ -185,16 +166,13 @@ class AOShell {
   double _mindecay;
   int _startIndex;
   int _offset;
-  tools::vec _pos;
+  Eigen::Vector3d _pos;
   int _atomindex;
-  // used for ecp calculations
-  bool _nonlocal;
 
   // vector of pairs of decay constants and contraction coefficients
   std::vector<AOGaussianPrimitive> _gaussians;
 };
-
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* AOSHELL_H */
+#endif  // VOTCA_XTP_AOSHELL_H

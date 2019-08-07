@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
 #define __VOTCA_TOOLS_MATRIX_FREE_OPERATOR_H
 #include <votca/xtp/eigen.h>
@@ -112,10 +113,8 @@ struct generic_product_impl<votca::xtp::MatrixFreeOperator, Mtype, DenseShape,
 // make the mat mat product
 #pragma omp parallel for
     for (int i = 0; i < op.rows(); i++) {
-      const Eigen::Matrix<Scalar, 1, Eigen::Dynamic> r = op.row(i);
-      for (int j = 0; j < m.cols(); j++) {
-        dst(i, j) = r * m.col(j);
-      }
+      const Eigen::RowVectorXd row = op.row(i) * m;
+      dst.row(i) = row;
     }
   }
 };

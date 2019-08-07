@@ -1,9 +1,7 @@
 <options>
     <iexcitoncl help="Classical coupling of transition charges" section="sec:iexcitoncl">
-        <mapping>system.xml</mapping>
+        <map_file>system.xml</map_file>
         <job_file>exciton.jobs</job_file>
-        <emp_file>mps.tab</emp_file>
-        <induce>0</induce>
-        <spin>singlet</spin>
+        <states>Methane:n2s1</states>
     </iexcitoncl>
 </options>

@@ -17,20 +17,19 @@
  *
  */
 
-#ifndef _XTP_QM_PACKAGE_H
-#define _XTP_QM_PACKAGE_H
+#pragma once
+#ifndef VOTCA_XTP_QM_PACKAGE_H
+#define VOTCA_XTP_QM_PACKAGE_H
 
-#include <boost/format.hpp>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/polarseg.h>
-#include <votca/ctp/qmpair.h>
-#include <votca/ctp/segment.h>
-#include <votca/ctp/topology.h>
+#include "votca/xtp/aobasis.h"
 #include <votca/tools/property.h>
-#include <votca/xtp/orbitals.h>
-
+#include <votca/xtp/classicalsegment.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/staticsite.h>
 namespace votca {
 namespace xtp {
+
+class Orbitals;
 
 // ========================================================================== //
 // QMPackage base class for wrappers of ORCA, GAUSSIAN, NWCHEM etc //
@@ -38,28 +37,42 @@ namespace xtp {
 
 class QMPackage {
  public:
-  static std::vector<std::string> FindUniqueElements(
-      const std::vector<QMAtom*> atoms);
-
   virtual ~QMPackage(){};
 
-  virtual std::string getPackageName() = 0;
+  virtual std::string getPackageName() const = 0;
 
   virtual void Initialize(tools::Property& options) = 0;
 
   /// writes a coordinate file WITHOUT taking into account PBCs
-  virtual bool WriteInputFile(Orbitals& orbitals) = 0;
+  virtual bool WriteInputFile(const Orbitals& orbitals) = 0;
 
   virtual bool Run() = 0;
 
   virtual bool ParseLogFile(Orbitals& orbitals) = 0;
 
-  virtual bool ParseOrbitalsFile(Orbitals& orbitals) = 0;
+  virtual bool ParseMOsFile(Orbitals& orbitals) = 0;
 
   virtual void CleanUp() = 0;
 
-  void setMultipoleBackground(
-      std::vector<std::shared_ptr<ctp::PolarSeg> > PolarSegments);
+  template <class MMRegion>
+  void AddRegion(const MMRegion& mmregion) {
+
+    typedef
+        typename std::iterator_traits<typename MMRegion::iterator>::value_type
+            Segmenttype;
+    typedef typename std::iterator_traits<
+        typename Segmenttype::iterator>::value_type Sitetype;
+    for (const Segmenttype& segment : mmregion) {
+      for (const Sitetype& site : segment) {
+        _externalsites.push_back(
+            std::unique_ptr<StaticSite>(new Sitetype(site)));
+      }
+    }
+    if (!_write_charges) {
+      _write_charges = true;
+      WriteChargeOption();
+    }
+  }
 
   void setRunDir(const std::string& run_dir) { _run_dir = run_dir; }
 
@@ -71,62 +84,46 @@ class QMPackage {
     _log_file_name = log_file_name;
   }
 
-  void setOrbitalsFileName(const std::string& orb_file) {
-    _orb_file_name = orb_file;
+  void setMOsFileName(const std::string& mo_file) { _mo_file_name = mo_file; }
+
+  void setLog(Logger* pLog) { _pLog = pLog; }
+
+  void setCharge(double charge) {
+    _charge = charge;
+    _spin = std::abs(charge) + 1;
   }
 
-  void setLog(ctp::Logger* pLog) { _pLog = pLog; }
+  bool GuessRequested() const { return _write_guess; }
 
-  bool GuessRequested() { return _write_guess; }
-
-  bool ECPRequested() { return _write_pseudopotentials; }
-
-  bool VXCRequested() { return _output_Vxc; }
-
-  void setCharge(const int charge) { _charge = charge; }
-
-  void setSpin(const int spin) { _spin = spin; }
-
-  void setThreads(const int threads) { _threads = threads; }
-
-  void doGetCharges(bool do_get_charges) { _get_charges = do_get_charges; }
-
-  const std::string& getBasisSetName() { return _basisset_name; }
-
-  const std::string& getExecutable() { return _executable; };
-
-  void setWithPolarization(bool polar) {
-    _with_polarization = polar;
-    return;
-  }
-
-  void setDipoleSpacing(double spacing) {
-    _dpl_spacing = spacing;
-    return;
-  }
+  virtual StaticSegment GetCharges() const = 0;
 
  protected:
+  struct MinimalMMCharge {
+    MinimalMMCharge(const Eigen::Vector3d& pos, double q) : _pos(pos), _q(q){};
+    Eigen::Vector3d _pos;
+    double _q;
+  };
+
+  void ParseCommonOptions(tools::Property& options);
+
   virtual void WriteChargeOption() = 0;
-  std::vector<std::vector<double> > SplitMultipoles(ctp::APolarSite* site);
-  void ReorderOutput(Orbitals& _orbitals);
-  void ReorderMOsBack(Orbitals& _orbitals);
-  void addLinkers(std::vector<ctp::Segment*>& segments, ctp::QMPair* pair,
-                  std::vector<std::string> linker_names);
+  std::vector<MinimalMMCharge> SplitMultipoles(const StaticSite& site) const;
+  void ReorderOutput(Orbitals& orbitals) const;
+  Eigen::MatrixXd ReorderMOsBack(const Orbitals& orbitals) const;
   bool isLinker(std::string name, std::vector<std::string> linker_names);
 
   std::vector<std::string> GetLineAndSplit(std::ifstream& input_file,
-                                           const std::string separators);
+                                           const std::string separators) const;
 
   int _charge;
   int _spin;  // 2S+1
-  int _threads;
   std::string _memory;
   std::string _options;
 
   std::string _executable;
   std::string _input_file_name;
   std::string _log_file_name;
-  std::string _orb_file_name;
+  std::string _mo_file_name;
 
   std::string _run_dir;
 
@@ -134,27 +131,28 @@ class QMPackage {
   std::string _auxbasisset_name;
   std::string _ecp_name;
 
-  std::list<std::string> _cleanup_list;
+  std::string _shell_file_name;
+  std::string _chk_file_name;
+  std::string _scratch_dir;
+  bool _is_optimization = false;
 
-  bool _get_orbitals;
-  bool _get_overlap;
-  bool _get_charges;
+  std::string _cleanup = "";
 
-  bool _write_guess;
-  bool _write_charges;
-  bool _write_basis_set;
-  bool _write_pseudopotentials;
+  bool _get_charges = false;
 
-  bool _output_Vxc;
+  bool _write_guess = false;
+  bool _write_charges = false;
+  bool _write_basis_set = false;
+  bool _write_auxbasis_set = false;
+  bool _write_pseudopotentials = false;
 
-  ctp::Logger* _pLog;
+  Logger* _pLog;
 
-  std::vector<std::shared_ptr<ctp::PolarSeg> > _PolarSegments;
-  double _dpl_spacing;
-  bool _with_polarization;
+  std::vector<std::unique_ptr<StaticSite> > _externalsites;
+  double _dpl_spacing = 0.1;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _XTP_QM_PACKAGE_H */
+#endif  // VOTCA_XTP_QM_PACKAGE_H

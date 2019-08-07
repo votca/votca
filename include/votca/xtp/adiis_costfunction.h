@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_ADIIS_COSTFUNCTION__H
-#define __XTP_ADIIS_COSTFUNCTION__H
+#pragma once
+#ifndef VOTCA_XTP_ADIIS_COSTFUNCTION_H
+#define VOTCA_XTP_ADIIS_COSTFUNCTION_H
 
 #include <votca/xtp/optimiser_costfunction.h>
 
@@ -69,4 +70,4 @@ class ADIIS_costfunction : public Optimiser_costfunction {
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* FORCES_H */
+#endif  // VOTCA_XTP_ADIIS_COSTFUNCTION_H

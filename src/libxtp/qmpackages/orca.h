@@ -17,13 +17,11 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_ORCA_H
 #define __VOTCA_XTP_ORCA_H
 
-#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
-
-#include <string>
 
 namespace votca {
 namespace xtp {
@@ -34,13 +32,14 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+class Orbitals;
 class Orca : public QMPackage {
  public:
-  std::string getPackageName() { return "orca"; }
+  std::string getPackageName() const { return "orca"; }
 
   void Initialize(tools::Property& options);
 
-  bool WriteInputFile(Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals);
 
   bool WriteShellScript();
 
@@ -52,28 +51,24 @@ class Orca : public QMPackage {
 
   bool ParseLogFile(Orbitals& orbitals);
 
-  bool ParseOrbitalsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals);
 
-  std::string getScratchDir() { return _scratch_dir; }
+  StaticSegment GetCharges() const;
 
  private:
-  std::string _shell_file_name;
-  std::string _scratch_dir;
-  bool _is_optimization;
-
-  std::string _cleanup;
-
   std::string indent(const double& number);
   std::string getLName(int lnum);
 
-  void WriteBasisset(std::vector<QMAtom*>& qmatoms, std::string& _bs_name,
-                     std::string& _el_file_name);
-  void WriteCoordinates(std::ofstream& _com_file,
-                        std::vector<QMAtom*>& qmatoms);
-  void WriteECP(std::ofstream& _com_file, std::vector<QMAtom*>& qmatoms);
+  void WriteBasisset(const QMMolecule& qmatoms, std::string& _bs_name,
+                     std::string& el_file_name);
+  void WriteCoordinates(std::ofstream& com_file, const QMMolecule&);
+  void WriteECP(std::ofstream& com_file, const QMMolecule&);
   void WriteBackgroundCharges();
 
   void WriteChargeOption();
+  template <class T>
+  void GetCoordinates(T& mol, std::string& line,
+                      std::ifstream& input_file) const;
 };
 
 }  // namespace xtp

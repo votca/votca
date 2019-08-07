@@ -17,14 +17,15 @@
  *
  */
 
-#ifndef _VOTCA_XTP_GWBSE_H
-#define _VOTCA_XTP_GWBSE_H
-
+#pragma once
+#ifndef VOTCA_XTP_GWBSE_H
+#define VOTCA_XTP_GWBSE_H
 #include <fstream>
-#include <votca/ctp/logger.h>
 #include <votca/tools/property.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/gw.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/qmfragment.h>
 
 #include "bse.h"
 
@@ -55,7 +56,7 @@ class GWBSE {
 
   std::string Identify() { return "gwbse"; }
 
-  void setLogger(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLogger(Logger* pLog) { _pLog = pLog; }
 
   bool Evaluate();
 
@@ -64,7 +65,7 @@ class GWBSE {
  private:
   Eigen::MatrixXd CalculateVXC(const AOBasis& dftbasis);
   int CountCoreLevels();
-  ctp::Logger* _pLog;
+  Logger* _pLog;
   Orbitals& _orbitals;
 
   // program tasks
@@ -73,21 +74,9 @@ class GWBSE {
   bool _do_bse_singlets = false;
   bool _do_bse_triplets = false;
 
-  // storage tasks
-  bool _store_bse_singlets = false;
-  bool _store_bse_triplets = false;
-
   // options for own Vxc calculation
-  bool _doVxc;
   std::string _functional;
   std::string _grid;
-
-  int _openmp_threads;
-
-  // fragment definitions
-  int _fragA;
-
-  // BSE variant
 
   GW::options _gwopt;
   BSE::options _bseopt;
@@ -95,8 +84,11 @@ class GWBSE {
   // basis sets
   std::string _auxbasis_name;
   std::string _dftbasis_name;
+
+  std::vector<QMFragment<BSE_Population> > _triplets;
+  std::vector<QMFragment<BSE_Population> > _singlets;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_GWBSE_H */
+#endif  // VOTCA_XTP_GWBSE_H

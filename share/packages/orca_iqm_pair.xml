@@ -1,0 +1,30 @@
+<package>
+  <name>orca</name>
+  <executable>/opt/orca-4.0.1/orca</executable>
+  <checkpoint></checkpoint>
+  <scratch>temp</scratch>
+  <charge>0</charge>
+  <spin>1</spin>
+  <memory></memory>
+  <basisset>OPTIONFILES/def2-TZVP.xml</basisset>
+  <auxbasisset></auxbasisset>
+  <writebasisset>true</writebasisset>
+  <writepseudopotentials>false</writepseudopotentials>
+  <outputVxc>0</outputVxc>
+  <options>
+! DFT PBE NoFinalGrid
+
+%scf
+  TolE  1e-2
+  ConvCheckMode 1
+  Guess MORead
+  MOInp "dimer.gbw"
+end 
+%output
+Print [P_Mayer] 0
+Print [P_Mulliken] 0
+Print [P_Loewdin] 0
+end
+  </options>
+  <cleanup></cleanup>
+  </package>

@@ -23,7 +23,7 @@ namespace votca {
 namespace xtp {
 
 int FindLmax(const std::string& type) {
-  int lmax;
+  int lmax = std::numeric_limits<int>::min();
   // single type shells
   if (type.length() == 1) {
     if (type == "S") {
@@ -44,7 +44,6 @@ int FindLmax(const std::string& type) {
       throw std::runtime_error("FindLmax: Shelltype not known");
     }
   } else {
-    lmax = -1;
     for (unsigned i = 0; i < type.length(); ++i) {
       std::string local_shell = std::string(type, i, 1);
       int test = FindLmax(local_shell);
@@ -57,7 +56,7 @@ int FindLmax(const std::string& type) {
 }
 
 int FindLmin(const std::string& type) {
-  int lmin;
+  int lmin = std::numeric_limits<int>::max();
   if (type.length() == 1) {
     if (type == "S") {
       lmin = 0;
@@ -79,7 +78,6 @@ int FindLmin(const std::string& type) {
       throw std::runtime_error("FindLmax: Shelltype not known");
     }
   } else {
-    lmin = 1000;
     for (unsigned i = 0; i < type.length(); ++i) {
       std::string local_shell = std::string(type, i, 1);
       int test = FindLmin(local_shell);
@@ -95,7 +93,7 @@ int FindLmin(const std::string& type) {
 }
 
 int OffsetFuncShell(const std::string& shell_type) {
-  int nbf;
+  int nbf = std::numeric_limits<int>::max();
   // single type shells
   if (shell_type.length() == 1) {
     if (shell_type == "S") {
@@ -117,7 +115,6 @@ int OffsetFuncShell(const std::string& shell_type) {
     }
   } else {
     // for combined shells, go over all contributions and find minimal offset
-    nbf = 1000;
     for (unsigned i = 0; i < shell_type.length(); ++i) {
       std::string local_shell = std::string(shell_type, i, 1);
       int test = OffsetFuncShell(local_shell);
@@ -152,7 +149,6 @@ int NumFuncShell(const std::string& shell_type) {
     }
   } else {
     // for combined shells, go over all contributions and add functions
-    nbf = 0;
     for (unsigned i = 0; i < shell_type.length(); ++i) {
       std::string local_shell = std::string(shell_type, i, 1);
       nbf += NumFuncShell(local_shell);
@@ -177,7 +173,7 @@ std::vector<int> NumFuncSubShell(const std::string& shell_type) {
 }
 
 int NumFuncShell_cartesian(const std::string& shell_type) {
-  int nbf;
+  int nbf = 0;
   // single type shells defined here
   if (shell_type.length() == 1) {
     if (shell_type == "S") {
@@ -199,7 +195,6 @@ int NumFuncShell_cartesian(const std::string& shell_type) {
     }
   } else {
     // for combined shells, sum over all contributions
-    nbf = 0;
     for (unsigned i = 0; i < shell_type.length(); ++i) {
       std::string local_shell = std::string(shell_type, i, 1);
       nbf += NumFuncShell_cartesian(local_shell);
@@ -245,7 +240,7 @@ int OffsetFuncShell_cartesian(const std::string& shell_type) {
   return nbf;
 }
 
-void BasisSet::LoadBasisSet(const std::string& name) {
+void BasisSet::Load(const std::string& name) {
   tools::Property basis_property;
   _name = name;
   // if name contains .xml, assume a basisset .xml file is located in the
@@ -267,24 +262,24 @@ void BasisSet::LoadBasisSet(const std::string& name) {
   if (!success) {
     ;
   }
-  std::list<tools::Property*> elementProps =
+  std::vector<tools::Property*> elementProps =
       basis_property.Select("basis.element");
 
   for (tools::Property* elementProp : elementProps) {
     std::string elementName = elementProp->getAttribute<std::string>("name");
     Element& element = addElement(elementName);
-    std::list<tools::Property*> shellProps = elementProp->Select("shell");
+    std::vector<tools::Property*> shellProps = elementProp->Select("shell");
     for (tools::Property* shellProp : shellProps) {
       std::string shellType = shellProp->getAttribute<std::string>("type");
       double shellScale = shellProp->getAttribute<double>("scale");
 
       Shell& shell = element.addShell(shellType, shellScale);
-      std::list<tools::Property*> constProps = shellProp->Select("constant");
+      std::vector<tools::Property*> constProps = shellProp->Select("constant");
       for (tools::Property* constProp : constProps) {
         double decay = constProp->getAttribute<double>("decay");
         std::vector<double> contraction =
             std::vector<double>(shell.getLmax() + 1, 0.0);
-        std::list<tools::Property*> contrProps =
+        std::vector<tools::Property*> contrProps =
             constProp->Select("contractions");
         for (tools::Property* contrProp : contrProps) {
           std::string contrType = contrProp->getAttribute<std::string>("type");
@@ -314,69 +309,9 @@ void BasisSet::LoadBasisSet(const std::string& name) {
   return;
 }
 
-void BasisSet::LoadPseudopotentialSet(const std::string& name) {
-  tools::Property basis_property;
-  _name = name;
-  // if name contains .xml, assume a ecp .xml file is located in the working
-  // directory
-  std::size_t found_xml = name.find(".xml");
-  std::string xmlFile;
-  if (found_xml != std::string::npos) {
-    xmlFile = name;
-  } else {
-    // get the path to the shared folders with xml files
-    char* votca_share = getenv("VOTCASHARE");
-    if (votca_share == NULL)
-      throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
-    xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/ecps/") +
-              name + std::string(".xml");
-  }
-  bool success = load_property_from_xml(basis_property, xmlFile);
-
-  if (!success) {
-    throw std::runtime_error("Basisset could not be loaded!");
-  }
-
-  std::list<tools::Property*> elementProps =
-      basis_property.Select("pseudopotential.element");
-
-  for (tools::Property* elementProp : elementProps) {
-    std::string elementName = elementProp->getAttribute<std::string>("name");
-    int lmax = elementProp->getAttribute<int>("lmax");
-    int ncore = elementProp->getAttribute<int>("ncore");
-
-    Element& element = addElement(elementName, lmax, ncore);
-
-    std::list<tools::Property*> shellProps = elementProp->Select("shell");
-    for (tools::Property* shellProp : shellProps) {
-      std::string shellType = shellProp->getAttribute<std::string>("type");
-      double shellScale = 1.0;
-
-      Shell& shell = element.addShell(shellType, shellScale);
-
-      std::list<tools::Property*> constProps = shellProp->Select("constant");
-      for (tools::Property* constProp : constProps) {
-        int power = constProp->getAttribute<int>("power");
-        double decay = constProp->getAttribute<double>("decay");
-        std::vector<double> contraction;
-        contraction.push_back(constProp->getAttribute<double>("contraction"));
-        shell.addGaussian(power, decay, contraction);
-      }
-    }
-  }
-  return;
-}
-
 // adding an Element to a Basis Set
 Element& BasisSet::addElement(std::string elementType) {
   std::shared_ptr<Element> element(new Element(elementType));
-  _elements[elementType] = element;
-  return *element;
-};
-
-// adding an Element to a Pseudopotential Library
-Element& BasisSet::addElement(std::string elementType, int lmax, int ncore) {
-  std::shared_ptr<Element> element(new Element(elementType, lmax, ncore));
   _elements[elementType] = element;
   return *element;
 };
@@ -427,13 +362,6 @@ std::ostream& operator<<(std::ostream& out, const BasisSet& basis) {
 GaussianPrimitive& Shell::addGaussian(double decay,
                                       std::vector<double> contraction) {
   _gaussians.push_back(GaussianPrimitive(decay, contraction));
-  return _gaussians.back();
-}
-
-// adds a Gaussian of a pseudopotential
-GaussianPrimitive& Shell::addGaussian(int power, double decay,
-                                      std::vector<double> contraction) {
-  _gaussians.push_back(GaussianPrimitive(power, decay, contraction));
   return _gaussians.back();
 }
 

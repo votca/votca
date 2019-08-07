@@ -18,6 +18,7 @@
 #define BOOST_TEST_MODULE rpa_test
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
@@ -125,12 +126,12 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Eigen::VectorXd eigenvals = Eigen::VectorXd::Zero(17);
   eigenvals << 0.0468207, 0.0907801, 0.0907801, 0.104563, 0.592491, 0.663355,

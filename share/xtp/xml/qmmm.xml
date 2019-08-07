@@ -1,58 +1,48 @@
 <options>
-
-<!-- xtp_run -e qmmm -f state.db -o options.xml -t 1 -c 1 -->
-<qmmm help="QM/MM with the Thole MM model for excited states" section="sec:qmmm">
-
-	<mapping help="XML file with multipole moments and polarizabilities" default="system.xml">system.xml</mapping>
-        <job_file help="Job control file" default="job.xml">qmmm.jobs</job_file>
-        <emp_file help="Allocation of .mps file to segments, run 'stateserver' with key = 'emp' to create a template" default="mps.tab">mps.tab</emp_file>
-        <dftpackage help="DFT package to use for the QM region">gaussian.xml</dftpackage>
-
-
-    <gwbse help="Specify if GW/BSE excited state calculation ist needed">
-          <gwbse_options help="GW/BSE options file">mbgft.xml</gwbse_options>
-          <filter  help="Filter with which to find the excited state after each calculation">
-            <oscillator_strength help="Oscillator strength filter, only states with higher oscillator strength are considered">0.5</oscillator_strength>
-            <charge_transfer help="Charge transfer filter , only states with charge transfer above threshold are consdered">0.5</charge_transfer>
-          </filter>
-    </gwbse>
-
-    <split_dpl>true</split_dpl>
-    <dipole_spacing>0.01</dipole_spacing>
-    <archiving></archiving>
-	<qmmmconvg help="convergence criteria for the QM/MM">
-		<dR help="RMS of coordinates" default="0.001" unit="nm">0.001</dR>
-		<dQ help="RMS of charges" default="0.001" unit="e">0.001</dQ>
-		<dE_QM help="Energy change of the QM region" unit="eV" default="0.0001">0.0001</dE_QM>
-		<dE_MM help="Energy change of the MM region" unit="eV" default="0.0001">0.0001</dE_MM>
-		<max_iter help="Number of iterations" default="10">32</max_iter>
-                <alpha help="Mixing parameter to accelerate convergence" >0.0</alpha>
-	</qmmmconvg>
-
-	<coulombmethod help="Options for the MM embedding">
-		<method help="Method for evaluation of electrostatics" default="cut-off">cut-off</method>
-		<cutoff1 help="Cut-off for the polarizable MM1 shell">3.0</cutoff1>
-		<cutoff2 help="Cut-off for the static MM2 shell">5.0</cutoff2>
-                <subthreads>1</subthreads>
-	</coulombmethod>
-
-	<tholemodel help="Parameters for the Thole model">
-		<induce help="'1' - induce '0' - no induction">1</induce>
-		<induce_intra_pair help="'1' - include mutual interaction of induced dipoles in the QM region. '0' - do not">1</induce_intra_pair>
-		<exp_damp help="Sharpness parameter" default="0.39">0.39</exp_damp>
-		<scaling help="Bond scaling factors">0.25 0.50 0.75</scaling>
-	</tholemodel>
-
-	<convergence help="Convergence parameters for the MM1 (polarizable) region">
-		<wSOR_N help="Mixing factor for the succesive overrelaxation algorithm for a neutral QM region">0.30</wSOR_N>
-		<wSOR_C help="Mixing factor for the succesive overrelaxation algorithm for a charged QM region">0.30</wSOR_C>
-		<max_iter help="Maximal number of iterations to converge induced dipoles" default="512">512</max_iter>
-		<tolerance help="Maximum RMS change allowed in induced dipoles">0.001</tolerance>
-	</convergence>
-
-
-</qmmm>
+    <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+        <print_regions_pdb>true</print_regions_pdb>
+        <max_iterations>50</max_iterations>
+        <openmp_threads>1</openmp_threads>
+        <map_file>system.xml</map_file>
+        <job_file>qmmm_jobs.xml</job_file>
+        <write_parse>
+            <states>n s1 t1</states>
+        </write_parse>
+        
+        <regions>
+            <region>
+                <id>0</id>
+                <type>qm</type>
+                <options_dft>xtpdft.xml</options_dft>
+                <options_gwbse>gwbse.xml</options_gwbse>
+                <filter>
+                    <oscillator_strength>0.5</oscillator_strength>
+                </filter>
+                <state>jobfile</state>
+                <segments>jobfile</segments>
+            </region>
+            <region>
+                <id>1</id>
+                <type>polar</type>
+                <options_polar>polar.xml</options_polar>
+                <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
+                    <geometry>n</geometry>
+                    <radius>1</radius>
+                    <region>0</region>
+                </cutoff>
+            </region>
+            <region>
+                <id>2</id>
+                <type>static</type>
+                <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
+                    <geometry>n</geometry>
+                    <radius>1.4</radius>
+                    <region>0</region>
+                </cutoff>
+            </region>
+        </regions>
+    </qmmm>
 
 </options>
-
-

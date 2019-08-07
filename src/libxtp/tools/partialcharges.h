@@ -17,80 +17,66 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_PARTIALCHARGES_H
 #define _VOTCA_XTP_PARTIALCHARGES_H
 
 #include <boost/filesystem.hpp>
 #include <stdio.h>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/esp2multipole.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
 namespace xtp {
-using namespace std;
 
-class Partialcharges : public ctp::QMTool {
+class Partialcharges : public QMTool {
  public:
   Partialcharges(){};
   ~Partialcharges(){};
 
-  string Identify() { return "partialcharges"; }
+  std::string Identify() { return "partialcharges"; }
 
-  void Initialize(Property *options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
-  // two access functions for egwbse interface
 
  private:
-  string _orbfile;
-  string _output_file;
-  Property _esp_options;
+  std::string _orbfile;
+  std::string _output_file;
+  tools::Property _esp_options;
 
-  ctp::Logger _log;
+  Logger _log;
 };
 
-void Partialcharges::Initialize(Property *options) {
+void Partialcharges::Initialize(tools::Property& options) {
 
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(options, "xtp");
-  string key = "options." + Identify();
-
-  _orbfile = options->get(key + ".input").as<string>();
-  _output_file = options->get(key + ".output").as<string>();
-  string _esp2multipole_xml = options->get(key + ".esp_options").as<string>();
-  load_property_from_xml(_esp_options, _esp2multipole_xml.c_str());
-  // get the path to the shared folders with xml files
-  char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  std::string key = "options." + Identify();
+  _orbfile = options.get(key + ".input").as<std::string>();
+  _output_file = options.get(key + ".output").as<std::string>();
+  std::string _esp2multipole_xml =
+      options.get(key + ".esp_options").as<std::string>();
+  load_property_from_xml(_esp_options, _esp2multipole_xml);
 }
 
 bool Partialcharges::Evaluate() {
-
-  _log.setReportLevel(ctp::logDEBUG);
+  OPENMP::setMaxThreads(_nThreads);
+  _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 
-  _log.setPreface(ctp::logINFO, "\n... ...");
-  _log.setPreface(ctp::logERROR, "\n... ...");
-  _log.setPreface(ctp::logWARNING, "\n... ...");
-  _log.setPreface(ctp::logDEBUG, "\n... ...");
-
-  CTP_LOG(ctp::logDEBUG, _log)
-      << "Converting serialized QM data in " << _orbfile << flush;
-
-  Orbitals _orbitals;
-  // load the QM data from serialized orbitals object
-
-  CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
-  _orbitals.ReadFromCpt(_orbfile);
-
-  Esp2multipole esp2multipole = Esp2multipole(&_log);
+  _log.setPreface(logINFO, "\n... ...");
+  _log.setPreface(logERROR, "\n... ...");
+  _log.setPreface(logWARNING, "\n... ...");
+  _log.setPreface(logDEBUG, "\n... ...");
+  Orbitals orbitals;
+  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
+  orbitals.ReadFromCpt(_orbfile);
+  XTP_LOG(logDEBUG, _log) << "Loaded QM data from " << _orbfile << std::flush;
+  Esp2multipole esp2multipole = Esp2multipole(_log);
   esp2multipole.Initialize(_esp_options);
-  esp2multipole.Extractingcharges(_orbitals);
+  StaticSegment seg = esp2multipole.Extractingcharges(orbitals);
+  seg.WriteMPS(_output_file, esp2multipole.GetStateString());
 
-  esp2multipole.WritetoFile(_output_file);
-
-  CTP_LOG(ctp::logDEBUG, _log)
-      << "Written charges to " << _output_file << flush;
+  XTP_LOG(logDEBUG, _log) << "Written charges to " << _output_file
+                          << std::flush;
 
   return true;
 }

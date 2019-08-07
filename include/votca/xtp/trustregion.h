@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef __XTP_TRUSTREGION__H
 #define __XTP_TRUSTREGION__H
 

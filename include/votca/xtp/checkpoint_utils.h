@@ -14,10 +14,13 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_CHECKPOINT_UTILS_H
 #define VOTCA_XTP_CHECKPOINT_UTILS_H
 
 #include <H5Cpp.h>
+#include <cstddef>
+#include <cstring>
 #include <string>
 
 namespace votca {
@@ -61,7 +64,7 @@ struct InferDataType<unsigned int> {
 template <>
 struct InferDataType<std::string> {
   static const H5::DataType* get(void) {
-    static const H5::StrType strtype(0, H5T_VARIABLE);
+    static const H5::StrType strtype(H5T_C_S1, H5T_VARIABLE);
     return &strtype;
   }
 };

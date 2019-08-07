@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef _VOTCA_XTP_PPM_H
-#define _VOTCA_XTP_PPM_H
+#pragma once
+#ifndef VOTCA_XTP_PPM_H
+#define VOTCA_XTP_PPM_H
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/rpa.h>
 
@@ -53,4 +54,4 @@ class PPM {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_GWBSE_H */
+#endif  // VOTCA_XTP_GWBSE_H

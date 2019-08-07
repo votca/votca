@@ -17,10 +17,66 @@
  *
  */
 
-#ifndef __XTP_EIGEN__H
-#define __XTP_EIGEN__H
+#pragma once
+#ifndef VOTCA_XTP_EIGEN_H
+#define VOTCA_XTP_EIGEN_H
 
 #include <votca/tools/eigen.h>
 #include <votca/xtp/votca_config.h>
+typedef Eigen::Matrix<double, 9, 1> Vector9d;
+typedef Eigen::Matrix<double, 9, 9> Matrix9d;
 
-#endif /*XTP_EIGEN__H */
+namespace votca {
+namespace xtp {
+
+// Stores matrix and energy together
+class Mat_p_Energy {
+ public:
+  Mat_p_Energy(int rows, int cols)
+      : _energy(0.0), _matrix(Eigen::MatrixXd::Zero(rows, cols)){};
+  Mat_p_Energy(double e, const Eigen::MatrixXd& mat)
+      : _energy(e), _matrix(mat){};
+  Mat_p_Energy(double e, Eigen::MatrixXd&& mat)
+      : _energy(e), _matrix(std::move(mat)){};
+
+  int rows() const { return _matrix.rows(); }
+  int cols() const { return _matrix.cols(); }
+  Eigen::MatrixXd& matrix() { return _matrix; }
+  double& energy() { return _energy; }
+  const Eigen::MatrixXd& matrix() const { return _matrix; }
+  double energy() const { return _energy; }
+
+ private:
+  double _energy;
+  Eigen::MatrixXd _matrix;
+};
+
+namespace OPENMP {
+inline int getMaxThreads() {
+  int nthreads = 1;
+#ifdef _OPENMP
+  nthreads = omp_get_max_threads();
+#endif
+  return nthreads;
+}
+
+inline int getThreadId() {
+  int thread_id = 0;
+#ifdef _OPENMP
+  thread_id = omp_get_thread_num();
+#endif
+  return thread_id;
+}
+
+inline void setMaxThreads(int threads) {
+#ifdef _OPENMP
+  if (threads > 0) {
+    omp_set_num_threads(threads);
+  }
+#endif
+}
+}  // namespace OPENMP
+}  // namespace xtp
+}  // namespace votca
+
+#endif  // VOTCA_XTP_EIGEN_H

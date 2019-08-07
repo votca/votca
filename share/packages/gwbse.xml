@@ -1,0 +1,28 @@
+<gwbse>
+        <basisset>ubecppol</basisset>
+        <auxbasisset>aux-ubecppol</auxbasisset>
+        <ranges>default</ranges> <!-- default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit -->
+        <rpamax></rpamax> <!-- only needed, if ranges is factor or explicit -->
+        <qpmin></qpmin> <!-- needed, if ranges is factor or explicit -->
+        <qpmax></qpmax> <!-- needed, if ranges is factor or explicit -->
+        <bsemin></bsemin> <!-- needed, if ranges is factor or explicit -->
+        <bsemax></bsemax> <!-- needed, if ranges is factor or explicit -->
+        <vxc>
+                <functional>XC_HYB_GGA_XC_PBEH</functional>
+                <grid>medium</grid>
+        </vxc>
+        <scissor_shift>0.2</scissor_shift> <!-- preshift of DFT energies in Rydberg -->
+        <mode>evGW</mode>
+        <tasks>gw,singlets,triplets</tasks> <!-- default task is perturbative QP only, other options: qpdiag, singlets, triplets, all -->
+        <exctotal>25</exctotal>
+
+        <eigensolver>
+                <dodavidson>1</dodavidson>
+                <davidson_correction>DPR</davidson_correction>
+                <davidson_tolerance>normal</davidson_tolerance>
+                <davidson_ortho>GS</davidson_ortho>
+                <davidson_update>safe</davidson_update>
+                <davidson_maxiter>50</davidson_maxiter>
+                <domatrixfree>0</domatrixfree>
+        </eigensolver>
+</gwbse>

@@ -19,9 +19,9 @@
 #include <boost/format.hpp>
 #include <boost/test/unit_test.hpp>
 #include <iostream>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/adiis_costfunction.h>
 #include <votca/xtp/bfgs-trm.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/optimiser_costfunction.h>
 using namespace votca::xtp;
 using namespace votca;
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(adiis_test) {
       0.0131825, -0.0631915, 0, 0.032739, 0.0131883, 0.0038493, -0.0110991, 0,
       -0.192873, -0.0631203, -0.0111063, 0.0633221, 0, 0, 0, 0, 0, 0;
 
-  ctp::Logger log;
+  Logger log;
 
   ADIIS_costfunction a_cost = ADIIS_costfunction(DiF, DiFj);
   BFGSTRM optimizer = BFGSTRM(a_cost);

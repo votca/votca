@@ -17,13 +17,11 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_XTP_GAUSSIAN_H
 #define __VOTCA_XTP_GAUSSIAN_H
 
-#include <votca/ctp/apolarsite.h>
 #include <votca/xtp/qmpackage.h>
-
-#include <string>
 
 namespace votca {
 namespace xtp {
@@ -34,13 +32,15 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+
+class Orbitals;
 class Gaussian : public QMPackage {
  public:
-  std::string getPackageName() { return "gaussian"; }
+  std::string getPackageName() const { return "gaussian"; }
 
   void Initialize(tools::Property& options);
 
-  bool WriteInputFile(Orbitals& orbitals);
+  bool WriteInputFile(const Orbitals& orbitals);
 
   bool Run();
 
@@ -48,32 +48,31 @@ class Gaussian : public QMPackage {
 
   bool ParseLogFile(Orbitals& orbitals);
 
-  bool ParseOrbitalsFile(Orbitals& orbitals);
+  bool ParseMOsFile(Orbitals& orbitals);
 
-  std::string getScratchDir() { return _scratch_dir; }
+  StaticSegment GetCharges() const;
 
  private:
   bool WriteShellScript();
 
-  bool CheckLogFile();
+  bool CheckLogFile() const;
 
-  std::string _shell_file_name;
-  std::string _chk_file_name;
-  std::string _scratch_dir;
-  std::string _input_vxc_file_name;
-  std::string _cleanup;
-  std::string _vdWfooter;
-
-  bool ReadESPCharges(Orbitals& orbitals, std::string& line,
-                      std::ifstream& input_file);
+  std::string _vdWfooter = "";
 
   std::string FortranFormat(double number);
-  void WriteBasisset(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
-  void WriteECP(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+  void GetArchive(std::vector<std::string>& archive, std::string& line,
+                  std::ifstream& input_file) const;
+
+  template <class T>
+  void GetCoordinates(T& mol, const std::vector<std::string>& archive) const;
+
+  double GetQMEnergy(const std::vector<std::string>& archive) const;
+
+  void WriteBasisset(std::ofstream& com_file, const QMMolecule& qmatoms);
+  void WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteBackgroundCharges(std::ofstream& com_file);
-  void WriteGuess(Orbitals& orbitals_guess, std::ofstream& com_file);
-  void WriteVXCRunInputFile();
-  void WriteCoordinates(std::ofstream& com_file, std::vector<QMAtom*>& qmatoms);
+  void WriteGuess(const Orbitals& orbitals_guess, std::ofstream& com_file);
+  void WriteCoordinates(std::ofstream& com_file, const QMMolecule& qmatoms);
   void WriteHeader(std::ofstream& com_file);
 
   void WriteChargeOption();

@@ -25,9 +25,8 @@
 #include "tools/excitoncoupling.h"
 #include "tools/gencube.h"
 #include "tools/log2mps.h"
+#include "tools/molpol.h"
 #include "tools/partialcharges.h"
-#include "tools/pdb2map.h"
-#include "tools/pdb2top.h"
 #include "tools/qmsandbox.h"
 #include "tools/spectrum.h"
 
@@ -36,17 +35,16 @@ namespace xtp {
 
 void QMToolFactory::RegisterAll(void) {
 
-  QMTools().Register<PDB2Map>("pdb2map");
   QMTools().Register<Log2Mps>("log2mps");
   QMTools().Register<DftGwBse>("dftgwbse");
   QMTools().Register<QMSandbox>("qmsandbox");
   QMTools().Register<Spectrum>("spectrum");
   QMTools().Register<ExcitonCoupling>("excitoncoupling");
-  QMTools().Register<PDB2Top>("pdb2top");
   QMTools().Register<GenCube>("gencube");
   QMTools().Register<Partialcharges>("partialcharges");
   QMTools().Register<DensityAnalysis>("densityanalysis");
   QMTools().Register<Coupling>("coupling");
+  QMTools().Register<MolPol>("molpol");
 }
 
 }  // namespace xtp

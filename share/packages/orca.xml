@@ -1,0 +1,21 @@
+<package>
+  <name>orca</name>
+  <executable>/opt/orca/orca</executable>
+  <checkpoint></checkpoint>
+  <scratch>temp</scratch>
+  <charge>0</charge>
+  <spin>1</spin>  
+  <memory></memory>
+  <basisset>ubecppol</basisset>
+<ecp>ecp</ecp>
+  <options>
+! DFT  B3LYP Grid7 DIRECT  TightSCF PAL4 
+! D3BJ 
+
+!SmallPrint
+%output
+Print[ P_MOs ] 1
+end
+  </options>
+  <cleanup></cleanup>
+  </package>

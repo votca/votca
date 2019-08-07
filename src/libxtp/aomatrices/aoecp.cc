@@ -9,21 +9,40 @@
  *
  *              http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "A_ol I_ol" BA_olI_ol,
- * WITHOUT WARRANTIE_ol OR CONDITION_ol OF ANY KIND, either express or implied.
- * _olee the License for the specific language governing permissions and
+ *Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
+#include <votca/xtp/aotransform.h>
 
 namespace votca {
 namespace xtp {
 
+void AOECP::FillPotential(const AOBasis& aobasis, const ECPAOBasis& ecp) {
+  this->setECP(&ecp);
+  _aopotential = Fill(aobasis);
+}
+
+Eigen::VectorXd AOECP::ExpandContractions(const AOGaussianPrimitive& gaussian,
+                                          const AOShell& shell) const {
+  const Eigen::VectorXd& contractions_row = gaussian.getContraction();
+  Eigen::VectorXd result = Eigen::VectorXd::Zero(shell.getNumFunc());
+  for (int L = shell.getLmin(); L <= shell.getLmax(); L++) {
+    for (int M = L * L; M < (L + 1) * (L + 1); M++) {
+      result[M - shell.getOffset()] = contractions_row[L];
+    }
+  }
+  return result;
+}
+
 void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
-                      const AOShell* shell_row, const AOShell* shell_col) {
+                      const AOShell& shell_row,
+                      const AOShell& shell_col) const {
 
   /*
    *
@@ -39,163 +58,84 @@ void AOECP::FillBlock(Eigen::Block<Eigen::MatrixXd>& matrix,
    *
    */
 
-  int lmax_row = shell_row->getLmax();
-  std::vector<double> contractions_row_full((lmax_row + 1) * (lmax_row + 1));
-
-  int lmax_col = shell_col->getLmax();
-  std::vector<double> contractions_col_full((lmax_col + 1) * (lmax_col + 1));
-
-  const tools::vec& pos_row = shell_row->getPos();
-  const tools::vec& pos_col = shell_col->getPos();
-  const tools::vec diff = pos_row - pos_col;
+  const Eigen::Vector3d& pos_row = shell_row.getPos();
+  const Eigen::Vector3d& pos_col = shell_col.getPos();
+  const Eigen::Vector3d diff = pos_row - pos_col;
   // initialize some helper
-  double distsq = diff * diff;
+  double distsq = diff.squaredNorm();
 
-  // iterate over Gaussians in this shell_row
-  for (AOShell::GaussianIterator itr = shell_row->begin();
-       itr != shell_row->end(); ++itr) {
-    // iterate over Gaussians in this shell_col
-    // get decay constant
-    const double decay_row = itr->getDecay();
+  for (const auto& gaussian_row : shell_row) {
 
-    // if ( decay_row > 0.08 ) continue;
+    const double decay_row = gaussian_row.getDecay();
+    Eigen::VectorXd contractions_row =
+        ExpandContractions(gaussian_row, shell_row);
 
-    const std::vector<double>& _contractions_row = itr->getContraction();
-    // shitty magic
-    for (int L = 0; L <= lmax_row; L++) {
-      for (int M = L * L; M < (L + 1) * (L + 1); M++) {
-        contractions_row_full[M] = _contractions_row[L];
-      }
-    }
-
-    for (AOShell::GaussianIterator itc = shell_col->begin();
-         itc != shell_col->end(); ++itc) {
+    for (const auto& gaussian_col : shell_col) {
       // get decay constant
-      const double decay_col = itc->getDecay();
+      const double decay_col = gaussian_col.getDecay();
       const double fak = 0.5 / (decay_row + decay_col);
       const double fak2 = 2.0 * fak;
 
       double exparg = fak2 * decay_row * decay_col * distsq;
 
-      // check if distance between postions is big, then skip step
-
+      // check if distance between positons is large, then skip step
       if (exparg > 30.0) {
         continue;
       }
 
-      const std::vector<double>& _contractions_col = itc->getContraction();
-      for (int L = 0; L <= lmax_col; L++) {
-        for (int M = L * L; M < (L + 1) * (L + 1); M++) {
-          contractions_col_full[M] = _contractions_col[L];
-        }
-      }
+      Eigen::VectorXd contractions_col =
+          ExpandContractions(gaussian_col, shell_col);
       // for each atom and its pseudopotential, get a matrix
-      int atomidx = 0;
 
-      Eigen::Matrix<int, 4, 5> powermatrix =
-          Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components, non-local ECPs
-                                             // l = 0, 1, 2, 3, 4
-      Eigen::Matrix<double, 4, 5> decaymatrix =
-          Eigen::Matrix<double, 4, 5>::Zero();
-      Eigen::Matrix<double, 4, 5> coefmatrix =
-          Eigen::Matrix<double, 4, 5>::Zero();
+      for (const std::vector<const ECPAOShell*>& shells_perAtom :
+           _ecp->ShellsPerAtom()) {
+        if (shells_perAtom.empty()) {
+          continue;
+        }
 
-      AOBasis::AOShellIterator final_iter = _ecp->end();
-      --final_iter;
-      tools::vec ecp_eval_pos = tools::vec(0.0);
-      int lmax_ecp = 0;
-      for (AOBasis::AOShellIterator ecpit = _ecp->begin(); ecpit != _ecp->end();
-           ++ecpit) {
+        Eigen::Matrix<int, 4, 5> powermatrix =
+            Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components, non-local
+                                               // ECPs l = 0, 1, 2, 3, 4
+        Eigen::Matrix<double, 4, 5> decaymatrix =
+            Eigen::Matrix<double, 4, 5>::Zero();
+        Eigen::Matrix<double, 4, 5> coefmatrix =
+            Eigen::Matrix<double, 4, 5>::Zero();
 
-        const AOShell* shell_ecp = *ecpit;
-        const tools::vec& ecp_pos = shell_ecp->getPos();
+        for (const ECPAOShell* shell_ecp : shells_perAtom) {
+          // only do the non-local parts
+          if (!shell_ecp->isNonLocal()) {
+            continue;
+          }
+          int index = 0;
+          for (const auto& gaussian_ecp : *shell_ecp) {
+            powermatrix(index, shell_ecp->getL()) = gaussian_ecp.getPower();
+            decaymatrix(index, shell_ecp->getL()) = gaussian_ecp.getDecay();
+            coefmatrix(index, shell_ecp->getL()) =
+                gaussian_ecp.getContraction();
+            index++;
+          }
+        }
 
-        int this_atom = shell_ecp->getAtomIndex();
+        Eigen::MatrixXd VNL_ECP = calcVNLmatrix(
+            shells_perAtom[0]->getLmaxElement(), shells_perAtom[0]->getPos(),
+            gaussian_row, gaussian_col, powermatrix, decaymatrix, coefmatrix);
 
-        const int ecp_l = shell_ecp->getLmax();  // as ECP shells are never
-                                                 // combined Lmax=Lmin=l
-
-        // only do the non-local parts
-        if (shell_ecp->isNonLocal()) {
-          int _lmax_ecp_old = lmax_ecp;
-          lmax_ecp = shell_ecp->getNumFunc() - 1;
-          int i_fit = -1;
-          for (AOShell::GaussianIterator itecp = shell_ecp->begin();
-               itecp != shell_ecp->end(); ++itecp) {
-            i_fit++;
-
-            // get info for this angular momentum shell
-            const int _power_ecp = itecp->getPower();
-            const double _decay_ecp = itecp->getDecay();
-            const double _contraction_ecp = itecp->getContraction()[0];
-
-            // collect atom ECP
-            if (this_atom == atomidx) {
-              ecp_eval_pos = ecp_pos;
-              powermatrix(i_fit, ecp_l) = _power_ecp;
-              decaymatrix(i_fit, ecp_l) = _decay_ecp;
-              coefmatrix(i_fit, ecp_l) = _contraction_ecp;
-            }
-
-            if ((this_atom != atomidx) || (ecpit == final_iter)) {
-              if (this_atom != atomidx) {
-                lmax_ecp = _lmax_ecp_old;
-              }
-
-              // evaluate collected data, returns a (10x10) matrix of already
-              // normalized matrix elements
-              Eigen::MatrixXd VNL_ECP =
-                  calcVNLmatrix(lmax_ecp, ecp_eval_pos, *itr, *itc, powermatrix,
-                                decaymatrix, coefmatrix);
-
-              // consider contractions
-              // cut out block that is needed. sum
-              //                                   cout << "matrix.size1,2()   "
-              //                                   << matrix.size1() << "    "
-              //                                   << matrix.size2() << endl;
-              for (unsigned i = 0; i < matrix.rows(); i++) {
-                for (unsigned j = 0; j < matrix.cols(); j++) {
-                  matrix(i, j) +=
-                      VNL_ECP(i + shell_row->getOffset(),
-                              j + shell_col->getOffset()) *
-                      contractions_row_full[i + shell_row->getOffset()] *
-                      contractions_col_full[j + shell_col->getOffset()];
-                }
-              }
-
-              // reset atom ECP containers
-              powermatrix =
-                  Eigen::Matrix<int, 4, 5>::Zero();  // 4 fit components,
-                                                     // non-local ECPs l = 0, 1,
-                                                     // 2, 3, 4
-              decaymatrix = Eigen::Matrix<double, 4, 5>::Zero();
-              coefmatrix = Eigen::Matrix<double, 4, 5>::Zero();
-              atomidx++;
-              i_fit = 0;
-              // cout << "setting new matrix " << i_fit << " l " << _ecp_l << "
-              // alpha  " << _decay_ecp <<  " pref " << _contraction_ecp <<
-              // endl;
-              powermatrix(i_fit, ecp_l) = _power_ecp;
-              decaymatrix(i_fit, ecp_l) = _decay_ecp;
-              coefmatrix(i_fit, ecp_l) = _contraction_ecp;
-            }  // evaluate if new atom is found
-
-          }  // all Gaussians in ecp_shell
-        }    // only for non local parts
-
-      }  // all ecp_shells
-
-    }  // shell_col Gaussians
-  }    // shell_row Gaussians
-
-  return;
+        auto VNL_ECP_small =
+            VNL_ECP.block(shell_row.getOffset(), shell_col.getOffset(),
+                          matrix.rows(), matrix.cols());
+        // consider contractions
+        matrix += contractions_row.asDiagonal() * VNL_ECP_small *
+                  contractions_col.asDiagonal();
+      }
+    }
+  }
 }
 
 Eigen::MatrixXd AOECP::calcVNLmatrix(
-    int lmax_ecp, const tools::vec& posC, const AOGaussianPrimitive& g_row,
+    int lmax_ecp, const Eigen::Vector3d& posC, const AOGaussianPrimitive& g_row,
     const AOGaussianPrimitive& g_col, const Eigen::Matrix<int, 4, 5>& power_ecp,
     const Eigen::Matrix<double, 4, 5>& gamma_ecp,
-    const Eigen::Matrix<double, 4, 5>& pref_ecp) {
+    const Eigen::Matrix<double, 4, 5>& pref_ecp) const {
 
   /* calculate the contribution of the nonlocal
    *     ECP of atom at posC with
@@ -219,19 +159,19 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
   double alpha = g_row.getDecay();
   double beta = g_col.getDecay();
-  const tools::vec& posA = g_row.getShell()->getPos();
-  const tools::vec& posB = g_col.getShell()->getPos();
-  int lmax_row = g_row.getShell()->getLmax();
-  int lmax_col = g_col.getShell()->getLmax();
+  const Eigen::Vector3d& posA = g_row.getShell().getPos();
+  const Eigen::Vector3d& posB = g_col.getShell().getPos();
+  int lmax_row = g_row.getShell().getLmax();
+  int lmax_col = g_col.getShell().getLmax();
   int lmin = std::min({lmax_row, lmax_col, lmax_ecp});
   int lmax = std::max({lmax_row, lmax_col, lmax_ecp});
   int nsph_row = (lmax_row + 1) * (lmax_row + 1);
   int nsph_col = (lmax_col + 1) * (lmax_col + 1);
 
-  tools::vec AVS = posA - posC;
-  tools::vec BVS = posB - posC;
-  double AVS2 = AVS * AVS;
-  double BVS2 = BVS * BVS;
+  Eigen::Vector3d AVS = posA - posC;
+  Eigen::Vector3d BVS = posB - posC;
+  double AVS2 = AVS.squaredNorm();
+  double BVS2 = BVS.squaredNorm();
 
   int INULL = 0;
   if (AVS2 > 0.01) INULL = 2;
@@ -273,14 +213,14 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
           int power = power_ecp(I, L);
           double DLI = (alpha + beta + gamma_ecp(I, L));
           if (power == 2) {
-            XI(L, N) +=
-                f_even_r2 * pref_ecp(I, L) / pow(DLI, DFAK_r2);  // r^2 terms
+            XI(L, N) += f_even_r2 * pref_ecp(I, L) /
+                        std::pow(DLI, DFAK_r2);  // r^2 terms
           } else if (power == 0) {
-            XI(L, N) +=
-                f_even_r0 * pref_ecp(I, L) / pow(DLI, DFAK_r0);  // r^0 terms
+            XI(L, N) += f_even_r0 * pref_ecp(I, L) /
+                        std::pow(DLI, DFAK_r0);  // r^0 terms
           } else if (power == 1) {
-            XI(L, N) +=
-                f_even_r1 * pref_ecp(I, L) / pow(DLI, DFAK_r1);  // r^1 terms
+            XI(L, N) += f_even_r1 * pref_ecp(I, L) /
+                        std::pow(DLI, DFAK_r1);  // r^1 terms
           }
         }
       }
@@ -296,7 +236,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   int NMAX1 = 0;
   if (AVS2 > 0.01) {
 
-    G1 = exp(-alpha * AVS2);
+    G1 = std::exp(-alpha * AVS2);
     AVSSQ = sqrt(AVS2);
     double AMAX = 0.0;
     double fak = 2.0 * alpha * AVSSQ;
@@ -344,7 +284,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
   int NMAX2 = 0;
   if (BVS2 > 0.01) {
 
-    G2 = exp(-beta * BVS2);
+    G2 = std::exp(-beta * BVS2);
     BVSSQ = sqrt(BVS2);
     double BMAX = 0.0;
     double fak = 2.0 * beta * BVSSQ;
@@ -407,9 +347,9 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       lmin_dft_ecp = std::min(lmax_col, lmax_ecp);
       lmax_dft_ecp = std::max(lmax_col, lmax_ecp);
     } else if (INULL == 3) {
-      int _lmax_dft = std::max(lmax_row, lmax_col);
-      lmin_dft_ecp = std::min(_lmax_dft, lmax_ecp);
-      lmax_dft_ecp = std::max(_lmax_dft, lmax_ecp);
+      int lmax_dft = std::max(lmax_row, lmax_col);
+      lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
+      lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
     }
 
     for (index4d i4 = 0; i4 <= NMAX; i4++) {
@@ -631,11 +571,9 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
         }
 
         if (lmin_dft_ecp > 3) {
-
-          std::cerr << "Sorry, not yet supported: Combination of G functions "
-                       "in DFT basis and ECPs with l = 4."
-                    << std::endl;
-          exit(1);
+          throw std::runtime_error(
+              "Sorry, not yet supported: Combination of G functions in DFT "
+              "basis and ECPs with l = 4.");
         }
       }
 
@@ -779,12 +717,12 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
       tensor3d CC;
       CC.resize(extents3D[range(0, 5)][range(0, 9)][range(0, 9)]);
+      std::fill_n(CC.data(), CC.num_elements(), 0.0);
       for (index3d L = 0; L <= lmax_ecp; L++) {
         int range_M1 = std::min(lmax_row, int(L));
         int range_M2 = std::min(lmax_col, int(L));
         for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
           for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
-            CC[L][M1][M2] = 0.0;
             for (index3d M = 4 - L; M <= 4 + L; M++) {
               CC[L][M1][M2] += CA[L][M][M1] * CB[L][M][M2];
             }
@@ -797,6 +735,8 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       type_5D SUMCI;
       SUMCI.resize(extents5D[range(0, 5)][range(0, 5)][range(0, 5)][range(0, 9)]
                             [range(0, 9)]);
+      std::fill_n(SUMCI.data(), SUMCI.num_elements(), 0.0);
+
       for (index3d L = 0; L <= lmax_ecp; L++) {
         for (index3d L1 = 0; L1 <= lmax_row; L1++) {
           int range_M1 = std::min(L1, L);
@@ -804,8 +744,6 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
             int range_M2 = std::min(L2, L);
             for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
               for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
-
-                SUMCI[L][L1][L2][M1][M2] = 0.0;
 
                 double fak1 = 2.0 * alpha * AVSSQ;
                 double pow1 = 1;
@@ -868,8 +806,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     }
 
     default:
-      std::cerr << "Wrong ECP summation mode";
-      exit(1);
+      throw std::runtime_error("AOECP::Wrong ECP summation mode");
   }  // switch
 
   // GET TRAFO HERE ALREADY
@@ -878,15 +815,13 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
   for (int i = 0; i < nsph_row; i++) {
     for (int j = 0; j < nsph_col; j++) {
-
       matrix(i, j) = matrix(i, j) * GAUSS * NormA(i) * NormB(j);
     }
   }
-
   return matrix;
 }
 
-Eigen::VectorXd AOECP::CalcNorms(double decay, int size) {
+Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
   Eigen::VectorXd Norms = Eigen::VectorXd(size);
   const double PI = boost::math::constants::pi<double>();
   double SQ2, SQ3, SQ5;
@@ -948,8 +883,8 @@ Eigen::VectorXd AOECP::CalcNorms(double decay, int size) {
   return Norms;
 }
 
-void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos,
-                      tensor3d& BLC, tensor3d& C) {
+void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
+                      tensor3d& BLC, tensor3d& C) const {
 
   tensor3d::extent_gen extents;
 
@@ -958,11 +893,12 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos,
   int lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
 
   BLC.resize(extents[range(0, nsph)][range(0, 5)][range(0, 9)]);
+  std::fill_n(BLC.data(), BLC.num_elements(), 0.0);
   C.resize(extents[range(0, 5)][range(0, 9)][range(0, 9)]);
-
+  std::fill_n(C.data(), C.num_elements(), 0.0);
   tensor3d BLM;
   BLM.resize(extents[range(0, nsph)][range(0, 5)][range(0, 9)]);
-
+  std::fill_n(BLM.data(), BLM.num_elements(), 0.0);
   const double PI = boost::math::constants::pi<double>();
   double SQPI = sqrt(PI);
   double SQ2 = sqrt(2.);
@@ -975,17 +911,9 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos,
   double XP, XD, XD_0, XD_p2;
   double XF_0, XF_1, XF_m2, XF_p2, XF_3;
 
-  for (index3d I = 0; I < nsph; I++) {
-    for (index3d L = 0; L <= lmax_dft; L++) {
-      for (index3d M = 4 - L; M <= 4 + L; M++) {
-        BLM[I][L][M] = 0.0;
-      }
-    }
-  }
-
-  double BVS_X = pos.getX();
-  double BVS_Y = pos.getY();
-  double BVS_Z = pos.getZ();
+  double BVS_X = pos(0);
+  double BVS_Y = pos(1);
+  double BVS_Z = pos(2);
   double BVS_XX = BVS_X * BVS_X;
   double BVS_YY = BVS_Y * BVS_Y;
   double BVS_ZZ = BVS_Z * BVS_Z;
@@ -1247,13 +1175,6 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos,
     BLM[24][4][8] = XG_p4;
   }
 
-  for (index3d L = 0; L <= lmax_dft_ecp; L++) {
-    for (index3d M = 4 - L; M <= 4 + L; M++) {
-      for (index3d MM = 4 - L; MM <= 4 + L; MM++) {
-        C[L][M][MM] = 0.0;
-      }
-    }
-  }
   double SXY = sqrt(BVS_XX + BVS_YY);  // SXY = r * sin(theta)
   double SXYZ = sqrt(BVS_RR);          // SXYZ = r
 
@@ -1755,7 +1676,6 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const tools::vec& pos,
     for (index3d I = 0; I < nsph; I++) {
       for (index3d L = 0; L <= lmax_dft; L++) {
         for (index3d M = 4 - L; M <= 4 + L; M++) {
-          BLC[I][L][M] = 0.0;
           for (index3d M1 = 4 - L; M1 <= 4 + L; M1++) {
             BLC[I][L][M] += BLM[I][L][M1] * C[L][M1][M];
           }

@@ -18,9 +18,12 @@
  */
 
 #include <boost/format.hpp>
-#include <votca/xtp/forces.h>
+
+#include <votca/tools/elements.h>
 
 #include "votca/xtp/statefilter.h"
+#include <votca/xtp/atom.h>
+#include <votca/xtp/forces.h>
 
 namespace votca {
 namespace xtp {
@@ -53,13 +56,13 @@ void Forces::Calculate(const Orbitals& orbitals) {
   int natoms = orbitals.QMAtoms().size();
   _forces = Eigen::MatrixX3d::Zero(natoms, 3);
 
-  ctp::TLogLevel ReportLevel = _pLog->getReportLevel();  // backup report level
+  TLogLevel ReportLevel = _pLog->getReportLevel();  // backup report level
   if (!tools::globals::verbose) {
-    _pLog->setReportLevel(ctp::logERROR);  // go silent for force calculations
+    _pLog->setReportLevel(logERROR);  // go silent for force calculations
   }
   for (int atom_index = 0; atom_index < natoms; atom_index++) {
     if (tools::globals::verbose) {
-      CTP_LOG(ctp::logINFO, *_pLog)
+      XTP_LOG(logINFO, *_pLog)
           << "FORCES--DEBUG working on atom " << atom_index << flush;
     }
     Eigen::Vector3d atom_force = Eigen::Vector3d::Zero();
@@ -77,21 +80,21 @@ void Forces::Calculate(const Orbitals& orbitals) {
 
 void Forces::Report() const {
 
-  CTP_LOG(ctp::logINFO, *_pLog)
+  XTP_LOG(logINFO, *_pLog)
       << (boost::format(" ---- FORCES (Hartree/Bohr)   ")).str() << flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
+  XTP_LOG(logINFO, *_pLog)
       << (boost::format("      %1$s differences   ") % _force_method).str()
       << flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format("      displacement %1$1.4f Angstrom   ") %
-          (_displacement * tools::conv::bohr2ang))
-             .str()
-      << flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format(" Atom\t x\t  y\t  z ")).str() << flush;
+  XTP_LOG(logINFO, *_pLog) << (boost::format(
+                                   "      displacement %1$1.4f Angstrom   ") %
+                               (_displacement * tools::conv::bohr2ang))
+                                  .str()
+                           << flush;
+  XTP_LOG(logINFO, *_pLog) << (boost::format(" Atom\t x\t  y\t  z ")).str()
+                           << flush;
 
   for (unsigned i = 0; i < _forces.rows(); i++) {
-    CTP_LOG(ctp::logINFO, *_pLog)
+    XTP_LOG(logINFO, *_pLog)
         << (boost::format("%1$4d    %2$+1.4f  %3$+1.4f  %4$+1.4f") % i %
             _forces(i, 0) % _forces(i, 1) % _forces(i, 2))
                .str()
@@ -105,50 +108,48 @@ Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, int atom_index) {
   // get this atoms's current coordinates
   double energy_center =
       orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
-  const tools::vec current_pos = orbitals.QMAtoms()[atom_index]->getPos();
-
-  for (unsigned i_cart = 0; i_cart < 3; i_cart++) {
-    tools::vec displacement_vec(0, 0, 0);
+  const Eigen::Vector3d current_pos = orbitals.QMAtoms()[atom_index].getPos();
+  for (int i_cart = 0; i_cart < 3; i_cart++) {
+    Eigen::Vector3d displacement_vec = Eigen::Vector3d::Zero();
     displacement_vec[i_cart] = _displacement;
     // update the coordinate
-    tools::vec pos_displaced = current_pos + displacement_vec;
-    orbitals.QMAtoms()[atom_index]->setPos(pos_displaced);
+    Eigen::Vector3d pos_displaced = current_pos + displacement_vec;
+    orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
     _gwbse_engine.ExcitationEnergies(orbitals);
     double energy_displaced =
         orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
     force(i_cart) = (energy_center - energy_displaced) / _displacement;
-    orbitals.QMAtoms()[atom_index]->setPos(
+    orbitals.QMAtoms()[atom_index].setPos(
         current_pos);  // restore original coordinate into segment
   }                    // Cartesian directions
   return force;
 }
 
 Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, int atom_index) {
-
-  const tools::vec current_pos = orbitals.QMAtoms()[atom_index]->getPos();
   Eigen::Vector3d force = Eigen::Vector3d::Zero();
+  const Eigen::Vector3d current_pos = orbitals.QMAtoms()[atom_index].getPos();
   for (unsigned i_cart = 0; i_cart < 3; i_cart++) {
     if (tools::globals::verbose) {
-      CTP_LOG(ctp::logINFO, *_pLog)
+      XTP_LOG(logINFO, *_pLog)
           << "FORCES--DEBUG           Cartesian component " << i_cart << flush;
     }
-    tools::vec displacement_vec(0, 0, 0);
+    Eigen::Vector3d displacement_vec = Eigen::Vector3d::Zero();
     displacement_vec[i_cart] = _displacement;
     // update the coordinate
-    tools::vec pos_displaced = current_pos + displacement_vec;
-    orbitals.QMAtoms()[atom_index]->setPos(pos_displaced);
+    Eigen::Vector3d pos_displaced = current_pos + displacement_vec;
+    orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
     _gwbse_engine.ExcitationEnergies(orbitals);
     double energy_displaced_plus =
         orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
     // update the coordinate
     pos_displaced = current_pos - displacement_vec;
-    orbitals.QMAtoms()[atom_index]->setPos(pos_displaced);
+    orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
     _gwbse_engine.ExcitationEnergies(orbitals);
     double energy_displaced_minus =
         orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
     force(i_cart) =
         0.5 * (energy_displaced_minus - energy_displaced_plus) / _displacement;
-    orbitals.QMAtoms()[atom_index]->setPos(
+    orbitals.QMAtoms()[atom_index].setPos(
         current_pos);  // restore original coordinate into orbital
   }
   return force;

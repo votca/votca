@@ -17,11 +17,14 @@
  *
  */
 
-#ifndef _VOTCA_XTP_STATEFILTER_H
-#define _VOTCA_XTP_STATEFILTER_H
+#pragma once
+#ifndef VOTCA_XTP_STATEFILTER_H
+#define VOTCA_XTP_STATEFILTER_H
 
-#include <votca/ctp/logger.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
+#include <votca/xtp/populationanalysis.h>
+#include <votca/xtp/qmfragment.h>
 #include <votca/xtp/qmstate.h>
 
 namespace votca {
@@ -36,59 +39,54 @@ namespace xtp {
 class Statefilter {
 
  public:
-  Statefilter()
-      : _use_oscfilter(false),
-        _use_overlapfilter(false),
-        _use_localisationfilter(false),
-        _use_dQfilter(false) {
-    ;
-  }
   void Initialize(tools::Property& options);
-  void setLogger(ctp::Logger* log) { _log = log; }
+  void setLogger(Logger* log) { _log = log; }
   void setInitialState(const QMState& state) { _statehist.push_back(state); }
   void PrintInfo() const;
-  QMState CalcStateAndUpdate(Orbitals& orbitals);
-  QMState CalcState(Orbitals& orbitals) const;
+  QMState InitialState() const { return _statehist[0]; }
+  QMState CalcStateAndUpdate(const Orbitals& orbitals);
+  QMState CalcState(const Orbitals& orbitals) const;
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
 
  private:
   std::vector<int> OscFilter(const Orbitals& orbitals) const;
   std::vector<int> LocFilter(const Orbitals& orbitals) const;
   std::vector<int> DeltaQFilter(const Orbitals& orbitals) const;
-  std::vector<int> OverlapFilter(Orbitals& orbitals) const;
+  std::vector<int> OverlapFilter(const Orbitals& orbitals) const;
 
-  Eigen::VectorXd CalculateOverlap(Orbitals& orbitals) const;
+  Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
 
-  void UpdateLastCoeff(Orbitals& orbitals);
-  Eigen::MatrixXd CalcOrthoCoeffs(Orbitals& orbitals) const;
+  void UpdateLastCoeff(const Orbitals& orbitals);
+  Eigen::MatrixXd CalcOrthoCoeffs(const Orbitals& orbitals) const;
 
   std::vector<int> CollapseResults(
       std::vector<std::vector<int> >& results) const;
   std::vector<int> ComparePairofVectors(std::vector<int>& vec1,
                                         std::vector<int>& vec2) const;
 
-  ctp::Logger* _log;
+  Logger* _log;
 
   std::vector<QMState> _statehist;
 
+  bool _use_oscfilter = false;
+  double _oscthreshold = 0.0;
+
+  bool _use_overlapfilter = false;
   Eigen::VectorXd _laststatecoeff;
-  mutable Eigen::MatrixXd _S_onehalf;  // only used in one iteration, do not
-                                       // want to introduce more function
-                                       // arguments
+  double _overlapthreshold = 0.0;
 
-  bool _use_oscfilter;
-  double _oscthreshold;
+  bool _use_localisationfilter = false;
+  std::vector<QMFragment<BSE_Population> > _fragment_loc;
+  double _loc_threshold = 0.0;
 
-  bool _use_overlapfilter;
-  double _overlapthreshold;
-
-  bool _use_localisationfilter;
-  bool _localiseonA;
-  double _loc_threshold;
-
-  bool _use_dQfilter;
-  double _dQ_threshold;
+  bool _use_dQfilter = false;
+  std::vector<QMFragment<BSE_Population> > _fragment_dQ;
+  double _dQ_threshold = 0.0;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_STATEFILTER_H */
+#endif  // VOTCA_XTP_STATEFILTER_H

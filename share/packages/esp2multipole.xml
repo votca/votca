@@ -1,9 +1,8 @@
 <esp2multipole>
 
-<state help="ground-,excited or transitionstate (ground,excited,transition)">n2S1</state>
-        <integrationmethod help="How to integrate potential, etiher numeric or analytic for CHELPG" >numeric</integrationmethod>
-	<method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
-	<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine">fine</gridsize>
+<state help="ground-,excited or transitionstate (groundstate,singlet,n2s1)">n2S1</state>
+<method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
+<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine">fine</gridsize>
 
 <constraints>
 	<regions>
@@ -16,7 +15,6 @@
 		<pair>0 1</pair>
 	</pairs>
 </constraints>
-	<openmp>4</openmp>
 
 </esp2multipole>
 

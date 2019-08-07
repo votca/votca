@@ -17,6 +17,7 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_BSE_OPERATOR_H
 #define _VOTCA_XTP_BSE_OPERATOR_H
 
@@ -39,11 +40,9 @@ template <int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR : public MatrixFreeOperator {
 
  public:
-  BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, TCMatrix_gwbse& Mmn,
+  BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
                const Eigen::MatrixXd& Hqp)
       : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp){};
-
-  ~BSE_OPERATOR() {}
 
   void configure(BSEOperator_Options opt) {
     _opt = opt;
@@ -54,10 +53,8 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     _bse_size = _bse_vtotal * _bse_ctotal;
     this->set_size(_bse_size);
 
-    int threads = 1;
-#ifdef _OPENMP
-    threads = omp_get_max_threads();
-#endif
+    int threads = OPENMP::getMaxThreads();
+
     if (cx != 0) {
       _Hx_cache = std::vector<cache_block>(threads);
     }

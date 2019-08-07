@@ -17,15 +17,15 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_CONVERGENCEACC__H
 #define _VOTCA_XTP_CONVERGENCEACC__H
 
-#include <memory>
-#include <votca/ctp/logger.h>
+#include <votca/tools/linalg.h>
 #include <votca/xtp/adiis.h>
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/diis.h>
+#include <votca/xtp/logger.h>
 namespace votca {
 namespace xtp {
 
@@ -60,7 +60,7 @@ class ConvergenceAcc {
     }
     _diis.setHistLength(_opt.histlength);
   }
-  void setLogger(ctp::Logger* log) { _log = log; }
+  void setLogger(Logger* log) { _log = log; }
 
   void PrintConfigOptions() const;
 
@@ -87,14 +87,11 @@ class ConvergenceAcc {
   bool getUseMixing() const { return _usedmixing; }
 
   Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat, Eigen::MatrixXd& H,
-                          Eigen::VectorXd& MOenergies, Eigen::MatrixXd& MOs,
-                          double totE);
-  void SolveFockmatrix(Eigen::VectorXd& MOenergies, Eigen::MatrixXd& MOs,
-                       const Eigen::MatrixXd& H);
+                          tools::EigenSystem& MOs, double totE);
+  tools::EigenSystem SolveFockmatrix(const Eigen::MatrixXd& H);
   void Levelshift(Eigen::MatrixXd& H) const;
 
-  Eigen::MatrixXd DensityMatrix(const Eigen::MatrixXd& MOs,
-                                const Eigen::VectorXd& MOEnergies) const;
+  Eigen::MatrixXd DensityMatrix(const tools::EigenSystem& MOs) const;
 
  private:
   options _opt;
@@ -103,11 +100,11 @@ class ConvergenceAcc {
   Eigen::MatrixXd DensityMatrixGroundState_unres(
       const Eigen::MatrixXd& MOs) const;
   Eigen::MatrixXd DensityMatrixGroundState_frac(
-      const Eigen::MatrixXd& MOs, const Eigen::VectorXd& MOEnergies) const;
+      const tools::EigenSystem& MOs) const;
 
   bool _usedmixing = true;
   double _diiserror = std::numeric_limits<double>::max();
-  ctp::Logger* _log;
+  Logger* _log;
   const AOOverlap* _S;
 
   Eigen::MatrixXd Sminusahalf;
