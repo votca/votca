@@ -214,7 +214,7 @@ std::vector<Mat<T>> EigenCuda<T>::triple_tensor_product(
               T *h_mtx = mtx.data();
 
               // move temporal matrix to the preallocated space
-              std::size_t size_mtx = mtx.rows() * mtx.cols() * sizeof(T);
+              std::size_t size_mtx = mtx.size() * sizeof(T);
               cudaMemcpy(d_matrix, h_mtx, size_mtx, cudaMemcpyHostToDevice);
 
               // Compute first matrix multiplication
