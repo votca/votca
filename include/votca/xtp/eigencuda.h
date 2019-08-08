@@ -27,6 +27,22 @@
 #include <unordered_map>
 #include <vector>
 
+/**
+ * \brief Perform matrix-matrix multiplication in a GPU
+ *
+ * The `EigenCuda` class handles the allocation and deallocation of arrays on the GPU.
+ * Firstly, to perform a matrix multiplication, memory must be allocated in the device
+ * to contain the involved matrices. The `initialize_matrix` method firstly allocates
+ * memory by calling the `gpu_alloc` method that allocates either pinned or pageable
+ * memory, see: https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/
+ * Then the array could be optionally copy to the device.
+ * The `initialize_matrix` method internally store the pointer in the device to the
+ * allocated array and returns and identifier that represents such pointer.
+ * This identifier/pointer (key/value) mechanism allows to reuse already allocated
+ * space in the device by bookkeeping the identifiers representing the memory.
+ *
+ */
+
 namespace votca {
 namespace xtp {
 
@@ -80,13 +96,13 @@ class EigenCuda {
   // Deallocate memory from the device
   void fun_free(T *x) const;
 
-  // Copy matrices to the device
+  // Allocate memory in the device, optionally copying the array to the GPU
   int initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
 
   // Invoke the ?gemm function of cublas
   void gemm(Shapes shapes, std::tuple<int, int, int> ids);
 
-  // Deallocate certain matrix from the device
+  // Deallocate Matrix identifier `id` from the device
   void free_matrix(int id);
 
   // Cuda variables

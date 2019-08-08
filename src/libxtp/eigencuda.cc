@@ -22,24 +22,37 @@
 namespace votca {
 namespace xtp {
 
+/*
+ * Removed all the allocated arrays from the device
+ */
 template <typename T>
 EigenCuda<T>::~EigenCuda() {
   cublasDestroy(_handle);
   for (auto &p : _allocated) this->gpu_free(p.second);
 }
-
+  
+/*
+ * Allocate memory in the device using either pinned or pageable (default)
+ * memory
+ */ 
 template <typename T>
 void EigenCuda<T>::gpu_alloc(T **x, std::size_t n) const {
-  // Allocate memory in the device
   (_pinned) ? cudaMallocHost(x, n) : cudaMalloc(x, n);
 }
 
+/*
+ * Deallocate memory from the device
+ */
 template <typename T>
 void EigenCuda<T>::gpu_free(T *x) const {
   // Deallocate memory from the device
   (_pinned) ? cudaFreeHost(x) : cudaFree(x);
 };
 
+/*
+ * Release the memory associated with the pointer `id` and removed the pointer
+ * from the tracked pointers collection
+ */
 template <typename T>
 void EigenCuda<T>::free_matrix(int id) {
   // Free Array with id from the device
@@ -47,9 +60,14 @@ void EigenCuda<T>::free_matrix(int id) {
   _allocated.erase(id);
 }
 
+/*
+ * Allocate memory in the device for matrix A, then if if `copy_to_device`
+ * copy the array to the device. Sometimes it only neccesary to allocate
+ * space in the device without copying the array because the initial
+ * values may not be important like a temporal matrix.
+ */
 template <typename T>
 int EigenCuda<T>::initialize_Matrix(Mat<T> &A, bool copy_to_device) {
-  // Copy two matrices to the device
 
   // size of the Matrices
   std::size_t size_A = A.size() * sizeof(T);
@@ -75,6 +93,11 @@ int EigenCuda<T>::initialize_Matrix(Mat<T> &A, bool copy_to_device) {
   return id;
 }
 
+/*
+ * Call the gemm function from cublas, resulting in the multiplication of the
+ * two matrices with identifiers id_A and id_B. The result is stored in
+ * a Matrix (pointer) with identifier id_C.
+ */
 template <typename T>
 void EigenCuda<T>::gemm(Shapes sh, std::tuple<int, int, int> ids) {
   // Invoke the gemm subroutine from cublas
@@ -105,10 +128,14 @@ void EigenCuda<T>::gemm(Shapes sh, std::tuple<int, int, int> ids) {
   }
 }
 
+/*
+ * Allocate memory in the device for matrix A, then if if `copy_to_device`
+ * copy the array to the device. Sometimes it only neccesary to allocate
+ * space in the device without copying the array because the initial
+ * values may not be important like a temporal matrix.
+ */
 template <typename T>
 Mat<T> EigenCuda<T>::dot(Mat<T> &A, Mat<T> &B) {
-  // Matrix multiplication
-
   // Matrix to store the result
   Mat<T> C = Mat<T>::Zero(A.rows(), B.cols());
   std::size_t size_C = C.size() * sizeof(T);
@@ -136,6 +163,22 @@ Mat<T> EigenCuda<T>::dot(Mat<T> &A, Mat<T> &B) {
   return C;
 }
 
+/*
+ * Initially, it allocates memory for matrices A, C and 3 temporal matrices:
+ * matrix, X and Y. The last three matrices are not copy into the device
+ * because is initial value is not relevant.
+ * Subsequently, the method iterates over `tensor` and copy each submatrix
+ * into the allocated `matrix` pointer then the following two operations are
+ * perform:
+ *     X = matrix * C
+ *     Y = A * X
+ * then the final Y is copy back to main memory.
+ * Notice that matrices X, Y are never set to zero after each iteration because
+ * the gemm function perform the matrix multiplication:
+ *  R = alpha M * N + beta R
+ *  where alpha and beta are two scalar constants set to 1 and 0 respectively.
+ * Therefore, X and Y are ALWAYS SET TO ZERO BEFORE THE MATRIX MULTIPLICATION.
+ */
 template <typename T>
 std::vector<Mat<T>> EigenCuda<T>::triple_tensor_product(
     Mat<T> &A, Mat<T> &C, std::vector<Mat<T>> &tensor) {
