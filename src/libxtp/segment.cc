@@ -29,11 +29,10 @@ double Segment::getApproxSize() const {
   return (minmax.first - minmax.second).norm();
 }
 
-const Atom* Segment::getAtom(const MD_atom_id& id) const {
-  int resnum = id.first;
-  std::string atomname = id.second;
+const Atom* Segment::getAtom(int id) const {
+
   for (const Atom& atom : *this) {
-    if (atom.getResnr() == resnum && atom.getName() == atomname) {
+    if (atom.getId() == id) {
       return &atom;
     }
   }

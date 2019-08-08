@@ -31,13 +31,6 @@
 
 namespace votca {
 namespace xtp {
-typedef std::pair<int, std::string> MD_atom_id;
-/**
-    \brief information about an atom
-
-    The Atom class stores atom id, name, type,residue number
-
-*/
 class Atom {
  public:
   struct data {

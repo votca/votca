@@ -27,21 +27,30 @@ namespace xtp {
 
 void Spectrum::Initialize(tools::Property& options) {
 
-  // update options with the VOTCASHARE defaults
-  UpdateWithDefaults(options, "xtp");
   std::string key = "options." + Identify();
 
   // orbitals file or pure DFT output
-  _orbfile = options.get(key + ".input").as<std::string>();
-  _output_file = options.get(key + ".output").as<std::string>();
-  _n_pt = options.get(key + ".points").as<int>();
+  _orbfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".orbitals");
+  _output_file = options.ifExistsReturnElseReturnDefault<std::string>(
+      key + ".output", _output_file);
+  _n_pt = options.ifExistsReturnElseReturnDefault<int>(key + ".points", _n_pt);
   _lower = options.get(key + ".lower").as<double>();
-  _upper = options.get(key + ".upper").as<double>();
-  _fwhm = options.get(key + ".fwhm").as<double>();
-  _spectrum_type = options.get(key + ".type").as<std::string>();
-  _minexc = options.get(key + ".minexc").as<int>();
-  exc_lambda = options.get(key + ".maxexc").as<int>();
-  _shiftby = options.get(key + ".shift").as<double>();
+  _upper = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".upper");
+  _fwhm = options.ifExistsReturnElseThrowRuntimeError<double>(key + ".fwhm");
+
+  if (options.exists(key + ".type")) {
+    std::vector<std::string> choices = {"energy", "wavelength"};
+    _spectrum_type =
+        options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
+            key + ".type", choices);
+  }
+  _minexc =
+      options.ifExistsReturnElseReturnDefault<int>(key + ".minexc", _minexc);
+  _maxexc =
+      options.ifExistsReturnElseReturnDefault<int>(key + ".maxexc", _maxexc);
+  _shiftby =
+      options.ifExistsReturnElseReturnDefault<double>(key + ".shift", _shiftby);
 
   return;
 }
@@ -81,20 +90,16 @@ bool Spectrum::Evaluate() {
       orbitals.TransitionDipoles();
   Eigen::VectorXd osc = orbitals.Oscillatorstrengths();
 
-  int n_exc = exc_lambda - _minexc + 1;
-
-  if (exc_lambda > int(TransitionDipoles.size())) {
-    XTP_LOG(logDEBUG, _log)
-        << " Transition dipoles for some excitations missing! " << std::flush;
-    exc_lambda = int(TransitionDipoles.size());
+  if (_maxexc > int(TransitionDipoles.size())) {
+    _maxexc = int(TransitionDipoles.size()) - 1;
   }
 
+  int n_exc = _maxexc - _minexc + 1;
   XTP_LOG(logDEBUG, _log) << " Considering " << n_exc
                           << " excitation with max energy "
-                          << BSESingletEnergies(exc_lambda) *
-                                 tools::conv::hrt2ev
+                          << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev
                           << " eV / min wave length "
-                          << evtonm(BSESingletEnergies[exc_lambda - 1] *
+                          << evtonm(BSESingletEnergies[_maxexc - 1] *
                                     tools::conv::hrt2ev)
                           << " nm" << std::flush;
 
@@ -148,7 +153,7 @@ bool Spectrum::Evaluate() {
       double eps_TruncLorentzian = 0.0;
       double imeps_TruncLorentzian = 0.0;
 
-      for (int i_exc = _minexc; i_exc <= exc_lambda; i_exc++) {
+      for (int i_exc = _minexc; i_exc <= _maxexc; i_exc++) {
         eps_Gaussian +=
             osc[i_exc] *
             Gaussian(e,
@@ -194,7 +199,7 @@ bool Spectrum::Evaluate() {
       double eps_TruncLorentzian = 0.0;
       double imeps_TruncLorentzian = 0.0;
 
-      for (int i_exc = _minexc; i_exc <= exc_lambda; i_exc++) {
+      for (int i_exc = _minexc; i_exc <= _maxexc; i_exc++) {
         double exc_lambda =
             nmtoev(BSESingletEnergies(i_exc) * tools::conv::hrt2ev + _shiftby);
         eps_Gaussian += osc[i_exc] * Gaussian(lambda, exc_lambda, _fwhm);

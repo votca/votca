@@ -1,14 +1,18 @@
 <options>
 
 <!-- xtp_tools -e coupling options.xml -->
-<spectrum help="Convolutes spectrum with gaussian or lorentzian function">
+<spectrum help="Convolutes singlet spectrum with gaussian or lorentzian function">
 
-    <input>system.orb</input>
-    <output>spectrum.dat</output>
-    <fwhm>0.2</fwhm>
-    <lower>0.0</lower>
-    <upper>3.5</upper>
-    <points>100</points>
+    <orbitals help="orbitals file to read from">system.orb</orbitals>
+    <output help="outputfile file">spectrum.dat</output>
+    <fwhm help="peak width in eV">0.2</fwhm>
+    <lower help="lower bound of spectrum in eV, default 0 eV">0.0</lower>
+    <upper  help="upper bound of spectrum in eV">3.5</upper>
+    <points help="datapoints between upper and lower to calculate">100</points>
+    <type help="print put energy/wavelength (eV/nm)">energy</type>
+    <minexc help="lowest exciton to include in spectrum, default 0">0</minexc>
+    <maxexc help="highest exciton to include in spectrum, default maximium">10000</maxexc>
+    <shift help="shift spectrum by amount of eV">0.0</shift>
 </spectrum>
 
 </options>

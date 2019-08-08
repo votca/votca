@@ -36,18 +36,12 @@ void Forces::Initialize(tools::Property& options) {
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           ".method", choices);
 
-  if ((_force_method == "forward") || (_force_method == "central")) {
-    _displacement = options.ifExistsReturnElseReturnDefault<double>(
-        ".displacement", 0.001);  // Angstrom
-  }
+  _displacement = options.ifExistsReturnElseReturnDefault<double>(
+      ".displacement", 0.001);  // Angstrom
   _displacement *= tools::conv::ang2bohr;
 
-  // check for force removal options
-  choices = {"total", "none"};
-  std::string _force_removal =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          ".removal", choices);
-  if (_force_removal == "total") _remove_total_force = true;
+  _remove_total_force = options.ifExistsReturnElseReturnDefault<bool>(
+      ".CoMforce_removal", _remove_total_force);
   return;
 }
 
