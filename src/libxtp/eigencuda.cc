@@ -30,11 +30,11 @@ EigenCuda<T>::~EigenCuda() {
   cublasDestroy(_handle);
   for (auto &p : _allocated) this->gpu_free(p.second);
 }
-  
+
 /*
  * Allocate memory in the device using either pinned or pageable (default)
  * memory
- */ 
+ */
 template <typename T>
 void EigenCuda<T>::gpu_alloc(T **x, std::size_t n) const {
   (_pinned) ? cudaMallocHost(x, n) : cudaMalloc(x, n);
@@ -97,6 +97,7 @@ int EigenCuda<T>::initialize_Matrix(Mat<T> &A, bool copy_to_device) {
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices with identifiers id_A and id_B. The result is stored in
  * a Matrix (pointer) with identifier id_C.
+ * see: https://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-gemm
  */
 template <typename T>
 void EigenCuda<T>::gemm(Shapes sh, std::tuple<int, int, int> ids) {
@@ -129,10 +130,11 @@ void EigenCuda<T>::gemm(Shapes sh, std::tuple<int, int, int> ids) {
 }
 
 /*
- * Allocate memory in the device for matrix A, then if if `copy_to_device`
- * copy the array to the device. Sometimes it only neccesary to allocate
- * space in the device without copying the array because the initial
- * values may not be important like a temporal matrix.
+ * Perform the matrix-matrix multiplication between A and B. First,
+ * memory is allocated in the device for both matrices then a third temporal
+ * array is allocated in the device that will contain the results. Finally, the
+ * memory contains in the temporal result is copy back to the main memory and
+ * the resources are free
  */
 template <typename T>
 Mat<T> EigenCuda<T>::dot(Mat<T> &A, Mat<T> &B) {
