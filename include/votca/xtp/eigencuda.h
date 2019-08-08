@@ -81,21 +81,21 @@ class EigenCuda {
   void fun_free(T *x) const;
 
   // Copy matrices to the device
-  unsigned initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
+  int initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
 
   // Invoke the ?gemm function of cublas
-  void gemm(Shapes shapes, std::tuple<unsigned, unsigned, unsigned> ids);
+  void gemm(Shapes shapes, std::tuple<int, int, int> ids);
 
   // Deallocate certain matrix from the device
-  void free_matrix(unsigned id);
+  void free_matrix(int id);
 
   // Cuda variables
   cublasHandle_t _handle;
   bool _pinned = false;
 
   // Allocation booking
-  unsigned _counter = 0;
-  std::unordered_map<unsigned, T *> _allocated;
+  int _counter = 0;
+  std::unordered_map<int, T *> _allocated;
 
   // Scalar constanst for calling blas
   T _alpha = 1.;
