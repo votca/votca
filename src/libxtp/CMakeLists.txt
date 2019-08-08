@@ -19,6 +19,10 @@ if(MKL_FOUND)
   target_link_libraries(votca_xtp PRIVATE MKL::MKL)
 endif()
 
+if(USE_GPU)
+  target_link_libraries(votca_xtp PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+endif()
+
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
 #PROJECT_BINARY_DIR/include for votca_config.h
 target_include_directories(votca_xtp PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
