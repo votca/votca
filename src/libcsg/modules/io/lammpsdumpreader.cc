@@ -19,6 +19,7 @@
 #include <boost/lexical_cast.hpp>
 #include <memory>
 #include <vector>
+#include <votca/tools/constants.h>
 #include <votca/tools/getline.h>
 
 namespace votca {
@@ -109,7 +110,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
     if (v.size() != 2) throw std::ios_base::failure("invalid box format");
     m(i, i) = v[1] - v[0];
   }
-  top.setBox(m);
+  top.setBox(m * tools::conv::ang2nm);
 }
 
 void LAMMPSDumpReader::ReadNumAtoms(Topology &top, string itemline) {
@@ -193,17 +194,17 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
         throw std::runtime_error(
             "error, wrong number of columns in atoms section");
       else if (fields[j] == "x")
-        b->Pos().x() = stod(*itok);
+        b->Pos().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "y")
-        b->Pos().y() = stod(*itok);
+        b->Pos().y() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "z")
-        b->Pos().z() = stod(*itok);
+        b->Pos().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "xu")
-        b->Pos().x() = stod(*itok);
+        b->Pos().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "yu")
-        b->Pos().y() = stod(*itok);
+        b->Pos().y() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "zu")
-        b->Pos().z() = stod(*itok);
+        b->Pos().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "xs")
         b->Pos().x() = stod(*itok) * m(0, 0);
       else if (fields[j] == "ys")

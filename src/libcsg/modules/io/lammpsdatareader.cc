@@ -279,29 +279,15 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
   auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);
 
-  // If there is more than one atom type of the same element append a number
-  // to the atom type name
-  map<string, int> baseNameIndices;
   int index = 0;
 
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = stod(mass.at(1));
-
-    auto baseName =
+    int typeindex = stoi(mass.at(0));
+    std::string baseName =
         getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesMasses, 0.01);
-    string label = baseName;
-    if (baseNamesCount[baseName] > 1) {
-      if (baseNameIndices.count(baseName) == 0) {
-        label += "1";
-        baseNameIndices[baseName] = 1;
-      } else {
-        baseNameIndices[baseName]++;
-        label += "" + to_string(baseNameIndices[baseName]);
-      }
-    }
-    atomtypes_[index][0] = baseName;
-    atomtypes_[index][1] = label;
+    atomtypes_[index] = baseName + std::to_string(typeindex);
     ++index;
   }
 }
@@ -360,7 +346,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
 
     m(i, i) = stod(fields.at(1)) - stod(fields.at(0));
   }
-  top.setBox(m);
+  top.setBox(m * tools::conv::ang2nm);
 }
 
 void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
@@ -542,14 +528,13 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
         throw runtime_error(err);
       }
 
-      string bead_type_name = atomtypes_[atomTypeId].at(1);
-      string bead_type = atomtypes_[atomTypeId].at(0);
+      string bead_type_name = atomtypes_[atomTypeId];
       if (!top.BeadTypeExist(bead_type_name)) {
         top.RegisterBeadType(bead_type_name);
       }
 
-      b = top.CreateBead(symmetry, bead_type_name, bead_type, residue_index,
-                         mass, charge);
+      b = top.CreateBead(symmetry, bead_type_name, bead_type_name,
+                         residue_index, mass, charge);
 
       mol->AddBead(b, bead_type_name);
       b->setMolecule(mol);
