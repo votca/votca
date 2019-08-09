@@ -157,9 +157,10 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   }
   // initialize class to handle GPU memory
   EigenCuda<double> gpu_handle;
-  std::vector<Eigen::MatrixXd> threec_inMo =
+  std::vector<Eigen::MatrixXd> results =
       gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
   for (int k = 0; k < auxshell.getNumFunc(); ++k) {
+    Eigen::MatrixXd threec_inMo = results[k];
     for (int i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }
