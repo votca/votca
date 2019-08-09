@@ -39,10 +39,6 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   // vector has mtotal elements
   _matrix = std::vector<Eigen::MatrixXd>(
       _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
-
-#if defined(USE_GPU)
-  EigenCuda<double> _gpu_handle;
-#endif
 }
 
 /*
@@ -159,8 +155,10 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   for (const Eigen::MatrixXd& mtx : symmstorage) {
     tensor.push_back(mtx.selfadjointView<Eigen::Lower>());
   }
+  // initialize class to handle GPU memory
+  EigenCuda<double> gpu_handle;
   std::vector<Eigen::MatrixXd> threec_inMo =
-      _gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
+      gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
   for (int k = 0; k < auxshell.getNumFunc(); ++k) {
     for (int i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
