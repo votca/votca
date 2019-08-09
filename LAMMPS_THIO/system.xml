@@ -1,0 +1,28 @@
+<topology>
+	<molecules>
+		<molecule>
+			<mdname>C4H4S1</mdname>
+			<segments>
+				<segment>
+					<name>UPTOYOU_BUTUNIQUE</name>
+					<qm_coords_n>XYZFILE_GROUNDSTATE</qm_coords_n>
+					<multipoles_n>MPSFILE_GROUNDSTATE</multipoles_n>
+					<map2md>WANTTOMAPTOMDGEOMETRY</map2md>
+					<U_xX_nN_h>REORG1_hole</U_xX_nN_h>
+					<U_nX_nN_h>REORG2_hole</U_nX_nN_h>
+					<U_xN_xX_h>REORG3_hole</U_xN_xX_h>
+					<fragments>
+						<fragment>
+							<name>UPTOYOU_BUTUNIQUE</name>
+							<mdatoms> 0:C63:0 0:C63:1 0:S23:2 0:C63:3 0:C63:4 0:H20:5 0:H20:6 0:H20:7 0:H20:8</mdatoms>
+							<qmatoms>IDS of QMATOMS i.e 0:C 1:H 2:C</qmatoms>
+							<mpoles>IDS of MPOLES i.e 0:C 1:H 2:C</mpoles>
+							<weights>weights for mapping(often atomic mass) i.e. 12  1 12</weights>
+							<localframe>IDs of up to 3 qmatoms or mpoles i.e. 0 1 2</localframe>
+						</fragment>
+					</fragments>
+				</segment>
+			</segments>
+		</molecule>
+	</molecules>
+</topology>
