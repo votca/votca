@@ -10,7 +10,7 @@
                     <qmcoords_h>QC_FILES/thiophene_h.xyz</qmcoords_h>
 					<multipoles_n>MP_FILES/thiophene_n.mps</multipoles_n>
                     <multipoles_e>MP_FILES/thiophene_e.mps</multipoles_e>
-                    <multipoles_h>MP_FILES/thiophene_hUnN.mps</multipoles_h>
+                    <multipoles_h>MP_FILES/thiophene_h.mps</multipoles_h>
 					<map2md>0</map2md>
 					<U_xX_nN_h>8.7140</U_xX_nN_h>
 					<U_nX_nN_h>0.1908</U_nX_nN_h>

@@ -18,8 +18,6 @@ xtp_map -v -t MD_FILES/newfile.data -c MD_FILES/traj.dump -s system.xml -f state
 
 # you can explore the created .hdf5 file with e.g. hdfview or HDFCompass
 
-mkdir OPTIONFILES
-
 # output MD and QM mappings into extract.trajectory_md.pdb and extract.trajectory_qm.pdb files
 cp $VOTCASHARE/xtp/xml/mapchecker.xml OPTIONFILES/
 xtp_run -e mapchecker -o OPTIONFILES/mapchecker.xml -f state.hdf5
@@ -35,7 +33,6 @@ changeoption constant 0.6 OPTIONFILES/neighborlist.xml
 
 xtp_run -e neighborlist -o OPTIONFILES/neighborlist.xml -f state.hdf5 -t 4
 
-exit
 # read in reorganisation energies stored in system.xml to state.hdf5
 
 cp $VOTCASHARE/xtp/xml/einternal.xml OPTIONFILES/
