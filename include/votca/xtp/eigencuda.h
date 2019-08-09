@@ -20,26 +20,27 @@
 #ifndef __XTP_EIGEN_CUDA__H
 #define __XTP_EIGEN_CUDA__H
 
-#include <votca/xtp/eigen.h>
 #include <cublas_v2.h>
 #include <curand.h>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <votca/xtp/eigen.h>
 
 /**
  * \brief Perform matrix-matrix multiplication in a GPU
  *
- * The `EigenCuda` class handles the allocation and deallocation of arrays on the GPU.
- * Firstly, to perform a matrix multiplication, memory must be allocated in the device
- * to contain the involved matrices. The `initialize_matrix` method firstly allocates
- * memory by calling the `gpu_alloc` method that allocates either pinned or pageable
- * memory, see: https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/
- * Then the array could be optionally copy to the device.
- * The `initialize_matrix` method internally store the pointer in the device to the
- * allocated array and returns and identifier that represents such pointer.
- * This identifier/pointer (key/value) mechanism allows to reuse already allocated
- * space in the device by bookkeeping the identifiers representing the memory.
+ * The `EigenCuda` class handles the allocation and deallocation of arrays on
+ * the GPU. Firstly, to perform a matrix multiplication, memory must be
+ * allocated in the device to contain the involved matrices. The
+ * `initialize_matrix` method firstly allocates memory by calling the
+ * `gpu_alloc` method that allocates either pinned or pageable memory, see:
+ * https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/ Then the
+ * array could be optionally copy to the device. The `initialize_matrix` method
+ * internally store the pointer in the device to the allocated array and returns
+ * and identifier that represents such pointer. This identifier/pointer
+ * (key/value) mechanism allows to reuse already allocated space in the device
+ * by bookkeeping the identifiers representing the memory.
  *
  */
 

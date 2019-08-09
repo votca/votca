@@ -157,7 +157,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
 #if defined(USE_GPU)
   std::vector<Eigen::MatrixXd> tensor;
   for (const Eigen::MatrixXd& mtx : symmstorage) {
-    tensor.push_back(matrix.selfadjointView<Eigen::Lower>());
+    tensor.push_back(mtx.selfadjointView<Eigen::Lower>());
   }
   std::vector<Eigen::MatrixXd> threec_inMo =
       _gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
