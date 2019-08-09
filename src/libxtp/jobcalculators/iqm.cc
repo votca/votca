@@ -100,7 +100,7 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
     load_property_from_xml(_bsecoupling_options, _coupling_xml);
   }
 
-  // options for parsing data into sql file
+  // options for parsing data into state file
   std::string key_read = "options." + Identify() + ".readjobfile";
   if (opt.exists(key_read + ".singlet")) {
     std::string parse_string_s =
