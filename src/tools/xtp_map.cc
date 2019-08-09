@@ -166,7 +166,7 @@ void XtpMap::Run() {
       TOOLS::Property& segments = molecule.add("segments", "");
       TOOLS::Property& segment = segments.add("segment", "");
       segment.add("name", "UPTOYOU_BUTUNIQUE");
-      segment.add("qm_coords_n", "XYZFILE_GROUNDSTATE");
+      segment.add("qmcoords_n", "XYZFILE_GROUNDSTATE");
       segment.add("multipoles_n", "MPSFILE_GROUNDSTATE");
       segment.add("map2md", "WANTTOMAPTOMDGEOMETRY");
       segment.add("U_xX_nN_h", "REORG1_hole");

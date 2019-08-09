@@ -95,12 +95,7 @@ class SegmentMapper {
 
   int getRank(const mapAtom& atom) const { return atom.getRank(); }
 
-  std::string getWeights(const tools::Property& frag) const {
-    if (frag.exists(_mapatom_xml.at("weights"))) {
-      return frag.get(_mapatom_xml.at("weights")).template as<std::string>();
-    }
-    return frag.get("weights").template as<std::string>();
-  }
+  std::vector<double> getWeights(const tools::Property& frag) const;
 
   std::string getFrame(const tools::Property& frag) const {
     if (frag.exists(_mapatom_xml.at("frame"))) {

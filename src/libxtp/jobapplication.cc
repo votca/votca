@@ -114,8 +114,8 @@ void JobApplication::Run() {
   }
 
   for (int i = fframe; i < nframes; i++) {
-    std::cout << "Evaluating frame " << i << std::endl;
-    Topology top = statsav.ReadFrame(i);
+    std::cout << "Evaluating frame " << frames[i] << std::endl;
+    Topology top = statsav.ReadFrame(frames[i]);
     EvaluateFrame(top);
     if (save && _import) {
       statsav.WriteFrame(top);

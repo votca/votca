@@ -27,7 +27,8 @@ namespace xtp {
 void EInternal::Initialize(tools::Property &options) {
   std::string key = "options." + Identify();
 
-  _energiesXML = options.get(key + ".energiesXML").as<std::string>();
+  _energiesXML = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".energiesXML");
 }
 
 void EInternal::ParseEnergies() {
@@ -38,37 +39,6 @@ void EInternal::ParseEnergies() {
 
   tools::Property alloc;
   tools::load_property_from_xml(alloc, _energiesXML);
-
-  /* --- ENERGIES.XML Structure ---
-   *
-   * <topology>
-   *
-   *     <molecules>
-   *          <molecule>
-   *          <name></name>
-   *
-   *          <segments>
-   *
-   *              <segment>
-   *              <name></name>
-   *
-   *              <!-- U_sG_sG, s->state, G->geometry !-->
-   *
-   *              <U_cC_nN_e></U_cC_nN_e>
-   *              <U_cC_nN_h></U_cC_nN_h>
-   *
-   *              <U_nC_nN_e></U_nC_nN_e>
-   *              <U_nC_nN_h></U_nC_nN_h>
-   *
-   *              <U_cN_cC_e></U_cN_cC_e>
-   *              <U_cN_cC_h></U_cN_cC_h>
-   *
-   *              </segment>
-   *
-   *              <segment>
-   *                  ...
-   *
-   */
 
   std::string key = "topology.molecules.molecule";
   std::vector<tools::Property *> mols = alloc.Select(key);

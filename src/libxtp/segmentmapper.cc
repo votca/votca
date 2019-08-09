@@ -57,6 +57,47 @@ Eigen::Vector3d SegmentMapper<AtomContainer>::CalcWeightedPos(
 }
 
 template <class AtomContainer>
+std::vector<double> SegmentMapper<AtomContainer>::getWeights(
+    const tools::Property& frag) const {
+
+  std::vector<double> weights;
+  if (frag.exists(_mapatom_xml.at("weights"))) {
+    std::string weights_string =
+        frag.get(_mapatom_xml.at("weights")).template as<std::string>();
+    tools::Tokenizer tok_weights(weights_string, " \t\n");
+    tok_weights.ConvertToVector(weights);
+  } else if (frag.exists("weights")) {
+    std::string weights_string = frag.get("weights").template as<std::string>();
+    tools::Tokenizer tok_weights(weights_string, " \t\n");
+    tok_weights.ConvertToVector(weights);
+  } else {
+    std::cout << " Did not find weights for fragment "
+              << frag.get("name").as<std::string>() << " Using atomic masses"
+              << std::endl;
+    std::string frags =
+        frag.get(_mapatom_xml.at("atoms")).template as<std::string>();
+    tools::Tokenizer tok_atoms(frags, " \t\n");
+    std::vector<std::string> atom_strings = tok_atoms.ToVector();
+    tools::Elements e;
+    for (auto a_string : atom_strings) {
+      tools::Tokenizer tok_atom(a_string, ":");
+      std::vector<std::string> entries = tok_atom.ToVector();
+      if (entries.size() != 2) {
+        throw std::runtime_error("Cannot get weight from Element for " +
+                                 a_string);
+      }
+
+      double weight = e.getMass(entries[1]);
+      std::cout << entries[1] << ":" << weight << " ";
+      weights.push_back(weight);
+    }
+    std::cout << std::endl;
+  }
+
+  return weights;
+}
+
+template <class AtomContainer>
 void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
                                                  const tools::Property& frag) {
   tools::Tokenizer tok_map_atoms(
@@ -74,9 +115,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
         "If you want to leave a qmatom out, place a ':' instead");
   }
 
-  tools::Tokenizer tok_weights(getWeights(frag), " \t\n");
-  std::vector<double> weights;
-  tok_weights.ConvertToVector(weights);
+  std::vector<double> weights = getWeights(frag);
 
   if (md_atoms.size() != weights.size()) {
     throw std::runtime_error("Mapping for segment " + seginfo.segname +
@@ -359,8 +398,9 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
       _mapatom_xml.at("coords") + "_" + state.Type().ToString();
   if (seginfo.coordfiles.count(coordsfiletag) == 0) {
     throw std::runtime_error("Could not find a coordinate file for " +
-                             seg.getName() + std::to_string(seg.getId()) +
-                             "segment/state: " + coordsfiletag);
+                             seg.getName() +
+                             " id:" + std::to_string(seg.getId()) +
+                             " segment/state: " + coordsfiletag);
   }
   std::string coordsfilename = seginfo.coordfiles.at(coordsfiletag);
   return map(seg, coordsfilename);
