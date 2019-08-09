@@ -91,10 +91,10 @@ class EigenCuda {
 
  private:
   // Allocate memory in the device
-  void fun_alloc(T **x, std::size_t n) const;
+  void gpu_alloc(T **x, std::size_t n) const;
 
   // Deallocate memory from the device
-  void fun_free(T *x) const;
+  void gpu_free(T *x) const;
 
   // Allocate memory in the device, optionally copying the array to the GPU
   int initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
