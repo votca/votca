@@ -436,6 +436,51 @@ StaticSegment Orca::GetCharges() const {
   return result;
 }
 
+Eigen::Matrix3d Orca::GetPolarizability() const {
+  std::string line;
+  ifstream input_file((_run_dir + "/" + _log_file_name));
+  bool has_pol = false;
+
+  Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+
+    std::string::size_type pol_pos = line.find("THE POLARIZABILITY TENSOR");
+    if (pol_pos != std::string::npos) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting polarizability" << flush;
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+
+      if (line.find("The raw cartesian tensor (atomic units)") ==
+          std::string::npos) {
+        throw std::runtime_error(
+            "Could not find cartesian polarisation tensor");
+      }
+
+      for (int i = 0; i < 3; i++) {
+        getline(input_file, line);
+        tools::Tokenizer tok2(line, " ");
+        std::vector<std::string> values = tok2.ToVector();
+        if (values.size() != 3) {
+          throw std::runtime_error("Polarisation line " + line +
+                                   " cannot be parsed");
+        }
+        Eigen::Vector3d row;
+        row << std::stod(values[0]), std::stod(values[1]), std::stod(values[2]);
+        pol.row(i) = row;
+      }
+
+      has_pol = true;
+    }
+  }
+  if (!has_pol) {
+    throw std::runtime_error("Could not find polarisation in logfile");
+  }
+  return pol;
+}
+
 bool Orca::ParseLogFile(Orbitals& orbitals) {
   bool found_success = false;
   orbitals.setQMpackage(getPackageName());

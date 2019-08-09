@@ -59,6 +59,11 @@ class XTPDFT : public QMPackage {
         "If you want partial charges just run the 'partialcharges' calculator");
   }
 
+  Eigen::Matrix3d GetPolarizability() const {
+    throw std::runtime_error(
+        "GetPolarizability() is not implemented for xtpdft");
+  }
+
  private:
   void WriteChargeOption() { return; }
   tools::Property _xtpdft_options;

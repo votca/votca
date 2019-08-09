@@ -51,6 +51,8 @@ class NWChem : public QMPackage {
 
   StaticSegment GetCharges() const;
 
+  Eigen::Matrix3d GetPolarizability() const;
+
  private:
   std::string ascii_mo_file_name;
   bool CheckLogFile() const;

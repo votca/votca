@@ -24,6 +24,293 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(nwchem_test)
 
+BOOST_AUTO_TEST_CASE(polar) {
+  std::ofstream polar("polar_nwchem.log");
+  polar << " argument  1 = system.nw" << std::endl;
+  polar << "                                         " << std::endl;
+  polar << "                                         " << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar
+      << "              Northwest Computational Chemistry Package (NWChem) 6.8"
+      << std::endl;
+  polar
+      << "              ------------------------------------------------------"
+      << std::endl;
+  polar << "                             -------------------------"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Output coordinates in angstroms (scale by  1.889725989 to convert "
+           "to a.u.)"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "  No.       Tag          Charge          X              Y          "
+           "    Z"
+        << std::endl;
+  polar << " ---- ---------------- ---------- -------------- -------------- "
+           "--------------"
+        << std::endl;
+  polar << "    1 H                    1.0000     0.52881000     0.16101000    "
+           " 0.93592000"
+        << std::endl;
+  polar << "    2 C                    6.0000     0.00001000     0.00001000    "
+           " 0.00002000"
+        << std::endl;
+  polar << "    3 H                    1.0000     0.20511000     0.82401000    "
+           "-0.67858000"
+        << std::endl;
+  polar << "    4 H                    1.0000     0.33451000    -0.93139000    "
+           "-0.44958000"
+        << std::endl;
+  polar << "    5 H                    1.0000    -1.06849000    -0.05369000    "
+           " 0.19212000"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "      Atomic Mass " << std::endl;
+  polar << "      ----------- " << std::endl;
+  polar << "" << std::endl;
+  polar << "      H                  1.007825" << std::endl;
+  polar << "      C                 12.000000" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " Effective nuclear repulsion energy (a.u.)      13.4728439460"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "            Nuclear Dipole moment (a.u.) " << std::endl;
+  polar << "            ----------------------------" << std::endl;
+  polar << "        X                 Y               Z" << std::endl;
+  polar << " ---------------- ---------------- ----------------" << std::endl;
+  polar << "     0.0000000000    -0.0000000000     0.0000000000" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "            XYZ format geometry" << std::endl;
+  polar << "            -------------------" << std::endl;
+  polar << "     5" << std::endl;
+  polar << " geometry" << std::endl;
+  polar << " H                     0.52881000     0.16101000     0.93592000"
+        << std::endl;
+  polar << " C                     0.00001000     0.00001000     0.00002000"
+        << std::endl;
+  polar << " H                     0.20511000     0.82401000    -0.67858000"
+        << std::endl;
+  polar << " H                     0.33451000    -0.93139000    -0.44958000"
+        << std::endl;
+  polar << " H                    -1.06849000    -0.05369000     0.19212000"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "   convergence    iter        energy       DeltaE   RMS-Dens  "
+           "Diis-err    time"
+        << std::endl;
+  polar << " ---------------- ----- ----------------- --------- --------- "
+           "---------  ------"
+        << std::endl;
+  polar << " d= 0,ls=0.0,diis     1    -40.2408052356 -5.37D+01  9.16D-09  "
+           "2.20D-14     0.2"
+        << std::endl;
+  polar << " d= 0,ls=0.0,diis     2    -40.2408052356 -3.55D-14  4.75D-09  "
+           "1.88D-14     0.3"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "         Total DFT energy =      -40.240805235609" << std::endl;
+  polar << "      One electron energy =      -79.605213751416" << std::endl;
+  polar << "           Coulomb energy =       32.718690448038" << std::endl;
+  polar << "    Exchange-Corr. energy =       -6.827125878236" << std::endl;
+  polar << " Nuclear repulsion energy =       13.472843946005" << std::endl;
+  polar << "" << std::endl;
+  polar << " Numeric. integr. density =       10.000000095313" << std::endl;
+  polar << "" << std::endl;
+  polar << "     Total iterative time =      0.3s" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " Parallel integral file used       1 records with       0 large "
+           "values"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " *** CALLING NEW AORESP DRIVER FOR CLOSED AND OPEN SHELLS ***"
+        << std::endl;
+  polar << " Entering AOResponse driver routine" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "-------------------------------------------------------------------"
+           "-------------"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "          ****************" << std::endl;
+  polar << "          *** RESPONSE ***" << std::endl;
+  polar << "          ****************" << std::endl;
+  polar << "" << std::endl;
+  polar << " Response module for NWChem and dynamic CPKS solver" << std::endl;
+  polar << " developed by J. Autschbach and coworkers, SUNY Buffalo"
+        << std::endl;
+  polar << " The methodology used in this program is described in "
+        << std::endl;
+  polar << " ChemPhysChem 12 (2011), 3224-3235 (main reference)" << std::endl;
+  polar << " J. Chem. Phys. 123 (2005), 114103" << std::endl;
+  polar << " J. Chem. Phys. 122 (2005), 224115" << std::endl;
+  polar << " J. Chem. Phys. 122 (2005), 074105" << std::endl;
+  polar << " Comp. Lett. 3 (2007), 131-150 (contact JA for a copy)"
+        << std::endl;
+  polar << " Please cite this work in publications based on results"
+        << std::endl;
+  polar << " obtained with this code. Thank you!" << std::endl;
+  polar << "" << std::endl;
+  polar << " For extension of response module to open shell" << std::endl;
+  polar << " calculations please acknowledge:" << std::endl;
+  polar << " F. Aquino, Northwestern University, Schatz Rsrch Group"
+        << std::endl;
+  polar << " The update to the methodology is described in" << std::endl;
+  polar << " J. Phys. Chem. A 118 (2014) 517-525" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "          -----------------------------------------------"
+        << std::endl;
+  polar << "          Solving response equations for perturbing field"
+        << std::endl;
+  polar << "          -----------------------------------------------"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " number of frequencies:     1" << std::endl;
+  polar << " frequency in a.u.:  0.0000000E+00" << std::endl;
+  polar << " Perturbing field: electric" << std::endl;
+  polar << " Using El. Dipole Length Gauge" << std::endl;
+  polar << "" << std::endl;
+  polar << " Setting up CPKS with frequency omega =      0.00000000 a.u."
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " STATIC response" << std::endl;
+  polar << "" << std::endl;
+  polar << "                                NWChem CPHF Module" << std::endl;
+  polar << "                                ------------------" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "  scftype          =     RHF " << std::endl;
+  polar << "  nclosed          =        5" << std::endl;
+  polar << "  nopen            =        0" << std::endl;
+  polar << "  variables        =       60" << std::endl;
+  polar << "  # of vectors     =        3" << std::endl;
+  polar << "  tolerance        = 0.10D-03" << std::endl;
+  polar << "  level shift      = 0.00D+00" << std::endl;
+  polar << "  max iterations   =       50" << std::endl;
+  polar << "  max subspace     =       30" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " #quartets = 4.186D+03 #integrals = 1.171D+04 #direct =  0.0% "
+           "#cached =100.0%"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " Integral file          = ./system.aoints.0" << std::endl;
+  polar << " Record size in doubles =  65536        No. of integs per rec  =  "
+           "43688"
+        << std::endl;
+  polar << " Max. records in memory =      2        Max. records in file   = "
+           "826900"
+        << std::endl;
+  polar << " No. of bits per label  =      8        No. of bits per value  =   "
+           "  64"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " SCF residual:    1.0605013831017603E-008" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "Iterative solution of linear equations" << std::endl;
+  polar << "  No. of variables       60" << std::endl;
+  polar << "  No. of equations        3" << std::endl;
+  polar << "  Maximum subspace       30" << std::endl;
+  polar << "        Iterations       50" << std::endl;
+  polar << "       Convergence  1.0D-04" << std::endl;
+  polar << "        Start time      0.5" << std::endl;
+  polar << "" << std::endl;
+  polar << "  IO offset    32.000000000000000     " << std::endl;
+  polar << "  IO error message >End of File" << std::endl;
+  polar << "  file_read_ga: failing reading from ./system.cphf_sol"
+        << std::endl;
+  polar << " Error in restart solution: ./system.cphf_sol                      "
+           "                                                                   "
+           "                                                                   "
+           "                                                                   "
+           "               "
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "   iter   nsub   residual    time" << std::endl;
+  polar << "   ----  ------  --------  ---------" << std::endl;
+  polar << "     1      3    6.75D-01       0.7" << std::endl;
+  polar << "     2      6    7.75D-02       1.0" << std::endl;
+  polar << "     3      9    1.66D-03       1.3" << std::endl;
+  polar << "     4     12    1.77D-04       1.6" << std::endl;
+  polar << "     5     15    9.21D-05       1.8" << std::endl;
+  polar << "" << std::endl;
+  polar << " Parallel integral file used       1 records with       0 large "
+           "values"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " Electric Dipole Response Matrix (nonzero elements):" << std::endl;
+  polar << "" << std::endl;
+  polar << "              1        2        3      " << std::endl;
+  polar << "    1   11.4169  -0.0003   0.0001" << std::endl;
+  polar << "    2   -0.0003  11.4172  -0.0002" << std::endl;
+  polar << "    3    0.0001  -0.0002  11.4174" << std::endl;
+  polar << "" << std::endl;
+  polar << " ------------------------------------------" << std::endl;
+  polar << " average:        11.41717 + I       0.00000" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " DFT Linear Response polarizability / au " << std::endl;
+  polar << " Frequency  =       0.0000000 / au" << std::endl;
+  polar << " Wavelength = -999999.0000000 / nm" << std::endl;
+  polar << "              X              Y              Z" << std::endl;
+  polar << " -----------------------------------------------" << std::endl;
+  polar << " X      11.4168971     -0.0002704      0.0000932" << std::endl;
+  polar << " Y      -0.0002704     11.4171575     -0.0002280" << std::endl;
+  polar << " Z       0.0000932     -0.0002280     11.4174457" << std::endl;
+  polar << " -----------------------------------------------" << std::endl;
+  polar << " Eigenvalues =      11.4167244     11.4171385     11.4176375"
+        << std::endl;
+  polar << " Isotropic   =      11.4171668" << std::endl;
+  polar << " Anisotropic =       0.0006466" << std::endl;
+  polar << " -----------------------------------------------" << std::endl;
+  polar << "" << std::endl;
+  polar << " Magnetic Dipole Response Matrix (nonzero elements):" << std::endl;
+  polar << " Optical rotation tensor Beta" << std::endl;
+  polar << "" << std::endl;
+  polar << " *** static G'=0. Use GPRIME input with finite omega" << std::endl;
+  polar << " *** or better ORBETA without GPRIME for small or zero freq."
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " zero matrix" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << " Total times  cpu:        2.2s     wall:        1.8s" << std::endl;
+
+  polar.close();
+  QMPackageFactory::RegisterAll();
+  std::unique_ptr<QMPackage> nwchem =
+      std::unique_ptr<QMPackage>(QMPackages().Create("nwchem"));
+  Logger log;
+  nwchem->setLog(&log);
+  nwchem->setRunDir(".");
+  nwchem->setLogFileName("polar_nwchem.log");
+  Eigen::Matrix3d polar_mat = nwchem->GetPolarizability();
+
+  Eigen::Matrix3d polar_ref = Eigen::Matrix3d::Zero();
+  polar_ref << 11.4168971, -0.0002704, 0.0000932, -0.0002704, 11.4171575,
+      -0.0002280, 0.0000932, -0.0002280, 11.4174457;
+
+  bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
+  if (!polar_check) {
+    std::cout << "res" << std::endl;
+    std::cout << polar_mat << std::endl;
+    std::cout << "ref " << std::endl;
+    std::cout << polar_ref << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_CASE(ext_charges) {
   std::ofstream ext_charge("extcharges_nwchem.log");
 

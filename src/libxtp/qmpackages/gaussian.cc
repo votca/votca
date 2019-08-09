@@ -694,6 +694,11 @@ StaticSegment Gaussian::GetCharges() const {
   return result;
 }
 
+Eigen::Matrix3d Gaussian::GetPolarizability() const {
+
+  return Eigen::Matrix3d::Zero();
+}
+
 void Gaussian::GetArchive(std::vector<std::string>& archive, std::string& line,
                           std::ifstream& input_file) const {
   std::string::size_type endseg_pos = line.find("\\");

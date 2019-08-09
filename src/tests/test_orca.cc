@@ -24,6 +24,293 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(orca_test)
 
+BOOST_AUTO_TEST_CASE(polar) {
+  std::ofstream polar("polar_orca.log");
+  polar << "" << std::endl;
+  polar << "                                 *****************" << std::endl;
+  polar << "                                 * O   R   C   A *" << std::endl;
+  polar << "                                 *****************" << std::endl;
+  polar << "" << std::endl;
+  polar << "           --- An Ab Initio, DFT and Semiempirical electronic "
+           "structure package ---"
+        << std::endl;
+
+  polar << "                         Program Version 4.0.1 -  RELEASE  -"
+        << std::endl;
+
+  polar << "                                       INPUT FILE" << std::endl;
+  polar << "==================================================================="
+           "============="
+        << std::endl;
+  polar << "NAME = system.inp" << std::endl;
+  polar << "|  1> * xyz  0 1" << std::endl;
+  polar << "|  2>   H      0.5288      0.1610      0.9359" << std::endl;
+  polar << "|  3>   C      0.0000      0.0000      0.0000" << std::endl;
+  polar << "|  4>   H      0.2051      0.8240     -0.6786" << std::endl;
+  polar << "|  5>   H      0.3345     -0.9314     -0.4496" << std::endl;
+  polar << "|  6>   H     -1.0685     -0.0537      0.1921" << std::endl;
+  polar << "|  7> * " << std::endl;
+  polar << "|  8> " << std::endl;
+  polar << "|  9> %elprop" << std::endl;
+  polar << "| 10> Polar 1" << std::endl;
+  polar << "| 11> end" << std::endl;
+  polar << "| 12> " << std::endl;
+  polar << "| 13> ! DFT  PBE0 DIRECT 3-21G" << std::endl;
+  polar << "| 14> " << std::endl;
+  polar << "| 15> " << std::endl;
+  polar << "| 16>                          ****END OF INPUT****" << std::endl;
+  polar << "==================================================================="
+           "============="
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "                       ****************************" << std::endl;
+  polar << "                       * Single Point Calculation *" << std::endl;
+  polar << "                       ****************************" << std::endl;
+  polar << "" << std::endl;
+  polar << "---------------------------------" << std::endl;
+  polar << "CARTESIAN COORDINATES (ANGSTROEM)" << std::endl;
+  polar << "---------------------------------" << std::endl;
+  polar << "  H      0.528800    0.161000    0.935900" << std::endl;
+  polar << "  C      0.000000    0.000000    0.000000" << std::endl;
+  polar << "  H      0.205100    0.824000   -0.678600" << std::endl;
+  polar << "  H      0.334500   -0.931400   -0.449600" << std::endl;
+  polar << "  H     -1.068500   -0.053700    0.192100" << std::endl;
+  polar << "" << std::endl;
+  polar << "----------------------------" << std::endl;
+  polar << "CARTESIAN COORDINATES (A.U.)" << std::endl;
+  polar << "----------------------------" << std::endl;
+  polar << "  NO LB      ZA    FRAG     MASS         X           Y           Z"
+        << std::endl;
+  polar
+      << "   0 H     1.0000    0     1.008    0.999287    0.304246    1.768595"
+      << std::endl;
+  polar
+      << "   1 C     6.0000    0    12.011    0.000000    0.000000    0.000000"
+      << std::endl;
+  polar
+      << "   2 H     1.0000    0     1.008    0.387583    1.557134   -1.282368"
+      << std::endl;
+  polar
+      << "   3 H     1.0000    0     1.008    0.632113   -1.760091   -0.849621"
+      << std::endl;
+  polar
+      << "   4 H     1.0000    0     1.008   -2.019172   -0.101478    0.363016"
+      << std::endl;
+  polar << "" << std::endl;
+  polar << "--------------------------------" << std::endl;
+  polar << "INTERNAL COORDINATES (ANGSTROEM)" << std::endl;
+  polar << "--------------------------------" << std::endl;
+  polar << " H      0   0   0     0.000000000000     0.00000000     0.00000000"
+        << std::endl;
+  polar << " C      1   0   0     1.086949515847     0.00000000     0.00000000"
+        << std::endl;
+  polar << " H      2   1   0     1.086986646652   109.47881566     0.00000000"
+        << std::endl;
+  polar << " H      2   1   3     1.086984990697   109.47224096   120.00042779"
+        << std::endl;
+  polar << " H      2   1   3     1.086958301868   109.47426454   239.99847195"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "---------------------------" << std::endl;
+  polar << "INTERNAL COORDINATES (A.U.)" << std::endl;
+  polar << "---------------------------" << std::endl;
+  polar << " H      0   0   0     0.000000000000     0.00000000     0.00000000"
+        << std::endl;
+  polar << " C      1   0   0     2.054036906349     0.00000000     0.00000000"
+        << std::endl;
+  polar << " H      2   1   0     2.054107073402   109.47881566     0.00000000"
+        << std::endl;
+  polar << " H      2   1   3     2.054103944100   109.47224096   120.00042779"
+        << std::endl;
+  polar << " H      2   1   3     2.054053509523   109.47426454   239.99847195"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "--------------" << std::endl;
+  polar << "SCF ITERATIONS" << std::endl;
+  polar << "--------------" << std::endl;
+  polar << "ITER       Energy         Delta-E        Max-DP      RMS-DP      "
+           "[F,P]     Damp"
+        << std::endl;
+  polar << "               ***  Starting incremental Fock matrix formation  ***"
+        << std::endl;
+  polar << "  0    -40.1837355351   0.000000000000 0.05608035  0.00815748  "
+           "0.1902884 0.7000"
+        << std::endl;
+  polar << "  1    -40.2097076139  -0.025972078840 0.04863991  0.00639782  "
+           "0.1011419 0.7000"
+        << std::endl;
+  polar << "                               ***Turning on DIIS***" << std::endl;
+  polar << "  2    -40.2210178010  -0.011310187117 0.08720142  0.01139762  "
+           "0.0412892 0.0000"
+        << std::endl;
+  polar << "  3    -40.2363206548  -0.015302853728 0.02991000  0.00398732  "
+           "0.0512358 0.0000"
+        << std::endl;
+  polar << "  4    -40.2406497632  -0.004329108457 0.01093372  0.00128308  "
+           "0.0110634 0.0000"
+        << std::endl;
+  polar << "                      *** Initiating the SOSCF procedure ***"
+        << std::endl;
+  polar << "                           *** Shutting down DIIS ***" << std::endl;
+  polar << "                      *** Re-Reading the Fockian *** " << std::endl;
+  polar << "                      *** Removing any level shift *** "
+        << std::endl;
+  polar << "ITER      Energy       Delta-E        Grad      Rot      Max-DP    "
+           "RMS-DP"
+        << std::endl;
+  polar << "  5    -40.24088185  -0.0002320879  0.000787  0.000787  0.002891  "
+           "0.000379"
+        << std::endl;
+  polar << "               *** Restarting incremental Fock matrix formation ***"
+        << std::endl;
+  polar << "  6    -40.24089298  -0.0000111325  0.000283  0.000464  0.000987  "
+           "0.000180"
+        << std::endl;
+  polar << "  7    -40.24089331  -0.0000003233  0.000205  0.000123  0.000298  "
+           "0.000040"
+        << std::endl;
+  polar << "                 **** Energy Check signals convergence ****"
+        << std::endl;
+  polar << "              ***Rediagonalizing the Fockian in SOSCF/NRSCF***"
+        << std::endl;
+  polar << "" << std::endl;
+  polar
+      << "               *****************************************************"
+      << std::endl;
+  polar
+      << "               *                     SUCCESS                       *"
+      << std::endl;
+  polar
+      << "               *           SCF CONVERGED AFTER   8 CYCLES          *"
+      << std::endl;
+  polar
+      << "               *****************************************************"
+      << std::endl;
+
+  polar << "" << std::endl;
+  polar << "-------------------------   --------------------" << std::endl;
+  polar << "FINAL SINGLE POINT ENERGY       -40.240792344368" << std::endl;
+  polar << "-------------------------   --------------------" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "                            ***************************************"
+        << std::endl;
+  polar << "                            *     ORCA property calculations      *"
+        << std::endl;
+  polar << "                            ***************************************"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "                                    ---------------------"
+        << std::endl;
+  polar << "                                    Active property flags"
+        << std::endl;
+  polar << "                                    ---------------------"
+        << std::endl;
+  polar << "Solving CP-SCF equations                       ... " << std::endl;
+  polar << "-------------------------------------------------------------------"
+           "-----------"
+        << std::endl;
+  polar << "                           ORCA CP-SCF CALCULATION" << std::endl;
+  polar << "-------------------------------------------------------------------"
+           "-----------"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "Input orbitals are from        ... system.gbw" << std::endl;
+  polar << "Input Perturbation             ... system.cpv.tmp" << std::endl;
+  polar << "Wavefunction output            ... system.cpu.tmp" << std::endl;
+  polar << "Perturbation mode              ... Real perturbation" << std::endl;
+  polar << "Solver                         ... POPLE" << std::endl;
+  polar << "Max. number of iterations      ... 64" << std::endl;
+  polar << "Convergence tolerance          ... 1.000e-06" << std::endl;
+  polar << "Integral handling              ... Direct" << std::endl;
+  polar << "Number of perturbations        ... 3" << std::endl;
+  polar << "Number of operators            ... 1" << std::endl;
+  polar << "Orbital ranges used for CP-SCF:" << std::endl;
+  polar << " Operator 0:  Orbitals   0...  4  to   5... 16" << std::endl;
+  polar << "DFT calculation                         ... on" << std::endl;
+  polar << "Exchange functional (SCF)               ... PBE" << std::endl;
+  polar << "Exchange functional (CP-SCF)            ... PBE" << std::endl;
+  polar << "   PBE kappa parameter  XKappa (SCF)    ...  0.804000" << std::endl;
+  polar << "   PBE kappa parameter  XKappa (CP-SCF) ...  0.804000" << std::endl;
+  polar << "   PBE mue parameter   XMuePBE (SCF)    ...  0.219520" << std::endl;
+  polar << "   PBE mue parameter   XMuePBE (CP-SCF) ...  0.219520" << std::endl;
+  polar << "Correlation functional (SCF)            ... PBE" << std::endl;
+  polar << "Correlation functional (CP-SCF)         ... PBE" << std::endl;
+  polar << "   PBE beta parameter CBetaPBE (SCF)    ...  0.066725" << std::endl;
+  polar << "   PBE beta parameter CBetaPBE (CP-SCF) ...  0.066725" << std::endl;
+  polar << " LDA part of GGA corr.  LDAOpt (SCF)    ... PW91-LDA" << std::endl;
+  polar << " LDA part of GGA corr.  LDAOpt (CP-SCF) ... PW91-LDA" << std::endl;
+  polar << "Hybrid DFT                              ... on" << std::endl;
+  polar << "   Exchange mixing (SCF)                ...  0.250" << std::endl;
+  polar << "   Exchange mixing (CP-SCF)             ...  0.250" << std::endl;
+  polar << "   GGA exch. scaling(SCF)               ...  0.750" << std::endl;
+  polar << "   GGA exch. scaling (CP-SCF)           ...  0.750" << std::endl;
+  polar << "   GGA corr. scaling (SCF)              ...  1.000" << std::endl;
+  polar << "   GGA corr. scaling (CP-SCF)           ...  1.000" << std::endl;
+  polar << "Variables per vector in CP-SCF ... 60" << std::endl;
+  polar << "Number of vectors sought       ... 3" << std::endl;
+  polar << "Recalculating density on grid  ... done" << std::endl;
+  polar << "Calculating the xc-kernel      ... done" << std::endl;
+  polar << "     CP-SCF ITERATION   0: " << std::endl;
+  polar << "     CP-SCF ITERATION   1:      0.000113908648" << std::endl;
+  polar << "     CP-SCF ITERATION   2:      0.000002896451" << std::endl;
+  polar << "     CP-SCF ITERATION   3:      0.000000121393" << std::endl;
+  polar << "done" << std::endl;
+  polar << "Reading CP-SCF coefficients                    ... done"
+        << std::endl;
+  polar << "Doing the polarizability tensor   ... done" << std::endl;
+  polar << "Cleaning up                                    ... done"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "-------------------------" << std::endl;
+  polar << "THE POLARIZABILITY TENSOR" << std::endl;
+  polar << "-------------------------" << std::endl;
+  polar << "" << std::endl;
+  polar << "The raw cartesian tensor (atomic units):" << std::endl;
+  polar << "   11.40196     -0.00423      0.00097  " << std::endl;
+  polar << "   -0.00423     11.42894      0.01163  " << std::endl;
+  polar << "    0.00097      0.01163     11.41930  " << std::endl;
+  polar << "diagonalized tensor: " << std::endl;
+  polar << "   11.40078     11.41245     11.43696  " << std::endl;
+  polar << "" << std::endl;
+  polar << "    0.95653      0.27871      0.08579  " << std::endl;
+  polar << "    0.22185     -0.50454     -0.83440  " << std::endl;
+  polar << "   -0.18927      0.81717     -0.54444  " << std::endl;
+  polar << "" << std::endl;
+  polar << "Isotropic polarizability :  11.41673" << std::endl;
+  polar << "" << std::endl;
+  polar << "" << std::endl;
+  polar << "Timings for individual modules:" << std::endl;
+  polar << "Solution of CP-SCF eqns.        ...        0.831 sec (=   0.014 "
+           "min)  27.6 %"
+        << std::endl;
+  polar << "                             ****ORCA TERMINATED NORMALLY****"
+        << std::endl;
+  polar << "TOTAL RUN TIME: 0 days 0 hours 0 minutes 3 seconds 406 msec"
+        << std::endl;
+
+  polar.close();
+  QMPackageFactory::RegisterAll();
+  std::unique_ptr<QMPackage> orca =
+      std::unique_ptr<QMPackage>(QMPackages().Create("orca"));
+  Logger log;
+  orca->setLog(&log);
+  orca->setRunDir(".");
+  orca->setLogFileName("polar_orca.log");
+  Eigen::Matrix3d polar_mat = orca->GetPolarizability();
+
+  Eigen::Matrix3d polar_ref = Eigen::Matrix3d::Zero();
+  polar_ref << 11.40196, -0.00423, 0.00097, -0.00423, 11.42894, 0.01163,
+      0.00097, 0.01163, 11.41930;
+  bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
+  if (!polar_check) {
+    std::cout << "res" << std::endl;
+    std::cout << polar_mat << std::endl;
+    std::cout << "ref " << std::endl;
+    std::cout << polar_ref << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_CASE(ext_charges_test) {
   std::ofstream ext("orca_ext_charges.log");
   ext << "" << std::endl;

@@ -55,6 +55,8 @@ class Orca : public QMPackage {
 
   StaticSegment GetCharges() const;
 
+  Eigen::Matrix3d GetPolarizability() const;
+
  private:
   std::string indent(const double& number);
   std::string getLName(int lnum);
