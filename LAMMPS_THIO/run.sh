@@ -103,10 +103,10 @@ changeoption energy 1e-2 OPTIONFILES/xtpdft_pair.xml
 
 changeoption ranges full OPTIONFILES/gwbse_pair.xml
 
-changeoption singlet "Methane:s1" OPTIONFILES/iqm.xml
-changeoption triplet "Methane:t1" OPTIONFILES/iqm.xml
-changeoption electron "Methane:e1" OPTIONFILES/iqm.xml
-changeoption hole "Methane:h1" OPTIONFILES/iqm.xml
+changeoption singlet "thiophene:s1" OPTIONFILES/iqm.xml
+changeoption triplet "thiophene:t1" OPTIONFILES/iqm.xml
+changeoption electron "thiophene:e1" OPTIONFILES/iqm.xml
+changeoption hole "thiophene:h1" OPTIONFILES/iqm.xml
 
 changeoption tasks "GW" OPTIONFILES/gwbse_pair.xml
 
