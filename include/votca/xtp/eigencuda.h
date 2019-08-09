@@ -113,12 +113,6 @@ class EigenCuda {
   // Allocation booking
   int _counter = 0;
   std::unordered_map<int, T *> _allocated;
-
-  // Scalar constanst for calling blas
-  T _alpha = 1.;
-  T _beta = 0.;
-  const T *_pa = &_alpha;
-  const T *_pb = &_beta;
 };
 
 }  // namespace xtp
