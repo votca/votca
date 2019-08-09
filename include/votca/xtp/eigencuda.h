@@ -83,12 +83,12 @@ class EigenCuda {
   EigenCuda &operator=(const EigenCuda &) = delete;
 
   // Matrix matrix multiplication
-  Mat<T> dot(Mat<T> &A, Mat<T> &B);
+  Mat<T> dot(const Mat<T> &A, const Mat<T> &B);
 
   // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
-  std::vector<Mat<T>> triple_tensor_product(Mat<T> &A, Mat<T> &C,
-                                            std::vector<Mat<T>> &tensor);
+  std::vector<Mat<T>> triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
+                                            const std::vector<Mat<T>> &tensor);
 
  private:
   // Allocate memory in the device
@@ -98,7 +98,7 @@ class EigenCuda {
   void gpu_free(T *x) const;
 
   // Allocate memory in the device, optionally copying the array to the GPU
-  int initialize_Matrix(Mat<T> &A, bool copy_to_device = true);
+  int initialize_Matrix(const Mat<T> &A, bool copy_to_device = true);
 
   // Invoke the ?gemm function of cublas
   void gemm(Shapes shapes, std::tuple<int, int, int> ids);
