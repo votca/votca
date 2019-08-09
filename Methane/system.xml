@@ -7,20 +7,20 @@
 				<segment>
 					<name>Methane</name>
 					<qmcoords_n>QC_FILES/methane.xyz</qmcoords_n>
-                    <qmcoords_s1>QC_FILES/methane.xyz</qmcoords_s1>
-					<U_cC_nN_h>1.0000</U_cC_nN_h>
-					<U_nC_nN_h>0.1000</U_nC_nN_h>
-					<U_cN_cC_h>0.2000</U_cN_cC_h>
-					<U_cC_nN_e>1.0000</U_cC_nN_e>
-					<U_nC_nN_e>0.3000</U_nC_nN_e>
-					<U_cN_cC_e>0.4000</U_cN_cC_e>
+                    <qmcoords_s>QC_FILES/methane.xyz</qmcoords_s>
+					<U_xX_nN_h>1.0000</U_xX_nN_h>
+					<U_nX_nN_h>0.1000</U_nX_nN_h>
+					<U_xN_xX_h>0.2000</U_xN_xX_h>
+					<U_xX_nN_e>1.0000</U_xX_nN_e>
+					<U_nX_nN_e>0.3000</U_nX_nN_e>
+					<U_xN_xX_e>0.4000</U_xN_xX_e>
                     <U_xX_nN_s>1.0000</U_xX_nN_s>
 					<U_nX_nN_s>0.1000</U_nX_nN_s>
 					<U_xN_xX_s>0.2000</U_xN_xX_s>
 					<U_xX_nN_t>1.0000</U_xX_nN_t>
 					<U_nX_nN_t>0.3000</U_nX_nN_t>
 					<U_xN_xX_t>0.4000</U_xN_xX_t>
-                    <multipoles_s1>MP_FILES/Methane_s1.mps</multipoles_s1>
+                    <multipoles_s>MP_FILES/Methane_s1.mps</multipoles_s>
 					<multipoles_n>MP_FILES/Methane_n.mps</multipoles_n>
 					<multipoles_h>MP_FILES/Methane_h.mps</multipoles_h>
 					<multipoles_e>MP_FILES/Methane_e.mps</multipoles_e>
@@ -28,7 +28,7 @@
 					<fragments>
 						<fragment>
 							<name>ALAB_1</name>
-							<mdatoms>  1:ALAB:CB    1:ALAB:HB1   1:ALAB:HB2     </mdatoms>
+							<mdatoms>  1:CB:1    1:HB1:2   1:HB2:3    </mdatoms>
 							<qmatoms>     0:C          1:H          2:H              </qmatoms>
 							<mpoles>      0:C          1:H          2:H             </mpoles>
 							<weights>      12           1            1           </weights>
@@ -36,7 +36,7 @@
 						</fragment>
 <fragment>
 							<name>ALAB_2</name>
-							<mdatoms>  1:ALAB:HB3   </mdatoms>
+							<mdatoms>  1:HB3:4  </mdatoms>
 							<qmatoms>     3:H          </qmatoms>
 							<mpoles>      3:H          </mpoles>
 							<weights>        1          </weights>
@@ -44,7 +44,7 @@
 						</fragment>
 <fragment>
 							<name>ALAB_3</name>
-							<mdatoms>   1:ALAB:HB4 </mdatoms>
+							<mdatoms>   1:HB4:5 </mdatoms>
 							<qmatoms>           4:H     </qmatoms>
 							<mpoles>           4:H     </mpoles>
 							<weights>            1      </weights>
