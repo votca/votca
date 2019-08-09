@@ -5,16 +5,19 @@
 			<segments>
 				<segment>
 					<name>thiophene</name>
-					<qm_coords_n>QC_FILES/thiophene_n.xyz</qm_coords_n>
-                    <qm_coords_e>QC_FILES/thiophene_e.xyz</qm_coords_e>
-                    <qm_coords_h>QC_FILES/thiophene_h.xyz</qm_coords_h>
+					<qmcoords_n>QC_FILES/thiophene_n.xyz</qmcoords_n>
+                    <qmcoords_e>QC_FILES/thiophene_e.xyz</qmcoords_e>
+                    <qmcoords_h>QC_FILES/thiophene_h.xyz</qmcoords_h>
 					<multipoles_n>MP_FILES/thiophene_n.mps</multipoles_n>
-                    <multipoles_n>MP_FILES/thiophene_n.mps</multipoles_n>
-                    <multipoles_n>MP_FILES/thiophene_n.mps</multipoles_n>
+                    <multipoles_e>MP_FILES/thiophene_e.mps</multipoles_e>
+                    <multipoles_h>MP_FILES/thiophene_hUnN.mps</multipoles_h>
 					<map2md>0</map2md>
-					<U_xX_nN_h>REORG1_hole</U_xX_nN_h>
-					<U_nX_nN_h>REORG2_hole</U_nX_nN_h>
-					<U_xN_xX_h>REORG3_hole</U_xN_xX_h>
+					<U_xX_nN_h>8.7140</U_xX_nN_h>
+					<U_nX_nN_h>0.1908</U_nX_nN_h>
+					<U_xN_xX_h>0.5711</U_xN_xX_h>
+                    <U_xX_nN_e>1.5972</U_xX_nN_e>
+					<U_nX_nN_e>0.1940</U_nX_nN_e>
+					<U_xN_xX_e>0.1879</U_xN_xX_e>
 					<fragments>
 						<fragment>
 							<name>thiophene</name>
