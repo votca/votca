@@ -21,6 +21,7 @@ endif()
 
 if(USE_GPU)
   target_link_libraries(votca_xtp PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+  target_include_directories(votca_xtp PUBLIC ${CUDA_INCLUDE_DIRS})
 endif()
 
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
