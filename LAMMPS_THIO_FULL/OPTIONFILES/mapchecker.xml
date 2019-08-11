@@ -1,0 +1,9 @@
+<options>
+
+<mapchecker help="Outputs .pdb files for segments, qmmolecules and classical segments to check the mapping" section="sec:mapchecker">
+    <qm_states>n</qm_states>
+    <mp_states>e h</mp_states>
+    <map_file>system.xml</map_file>
+</mapchecker>
+
+</options>

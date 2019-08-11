@@ -1,0 +1,20 @@
+<esp2multipole>
+
+<state help="ground-,excited or transitionstate (groundstate,singlet,n2s1)">n2S1</state>
+<method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
+<gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine">fine</gridsize>
+
+<constraints>
+	<regions>
+		<region>
+		<indices>0 1 2 3</indices>
+		<charge>0.5</charge>
+		</region>
+	</regions>
+	<pairs>
+		<pair>0 1</pair>
+	</pairs>
+</constraints>
+
+</esp2multipole>
+
