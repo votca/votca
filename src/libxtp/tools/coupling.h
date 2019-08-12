@@ -43,7 +43,6 @@ class Coupling : public QMTool {
  private:
   std::string _MOsA, _MOsB, _MOsAB;
   std::string _logA, _logB, _logAB;
-  double _degeneracy;
 
   std::string _package;
   tools::Property _package_options;
@@ -56,8 +55,6 @@ class Coupling : public QMTool {
 
 void Coupling::Initialize(tools::Property &options) {
   std::string key = "options." + Identify();
-
-  _degeneracy = options.get(key + ".degeneracy").as<double>();
 
   _MOsA = options.get(key + ".moleculeA.orbitals").as<std::string>();
   _MOsB = options.get(key + ".moleculeB.orbitals").as<std::string>();

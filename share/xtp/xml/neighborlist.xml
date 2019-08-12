@@ -2,11 +2,11 @@
 
 
 <neighborlist help="Determines neighbouring pairs for exciton transport" section="sec:neighborlist">
-        <segments>
-                <type>DCV5T_ME3 DCV5T_ME3</type>
-                <cutoff>3</cutoff>
+        <segments help="cutoff distances for certain segments identified by name">
+                <type help="segment name1 segment_name2">DCV5T_ME3 DCV5T_ME3</type>
+                <cutoff unit="nm">3</cutoff>
         </segments>
-        <constant>1.5</constant>
-        <exciton_cutoff>0.5</exciton_cutoff>
+        <constant  help="cutoff for all other types of pairs" unit="nm">1.5</constant>
+        <exciton_cutoff help="cutoff beyond which pairs are only treated as singlet transition charges" unit="nm">0.5</exciton_cutoff>
 </neighborlist>
 </options>

@@ -1,9 +1,9 @@
 <options>
 
 <mapchecker help="Outputs .pdb files for segments, qmmolecules and classical segments to check the mapping" section="sec:mapchecker">
-    <qm_states>n</qm_states>
-    <mp_states>e h</mp_states>
-    <map_file>system.xml</map_file>
+    <qm_states help="qmstates states to check">n</qm_states>
+    <mp_states help="multipole states to check">e h</mp_states>
+    <map_file help="xml file with segment definition">system.xml</map_file>
 </mapchecker>
 
 </options>
