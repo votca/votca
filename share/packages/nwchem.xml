@@ -1,15 +1,14 @@
 <package>
-  <name>nwchem</name>
-  <executable>nwchem</executable>
-  <checkpoint></checkpoint>
-  <scratch>/tmp/nwchem</scratch>
-  <charge>0</charge>
-  <spin>1</spin>
-  <memory></memory>
-  <basisset>cc-pVTZ</basisset>
-  <auxbasisset>aux-cc-pVTZ</auxbasisset>
-  <ecp>ecp</ecp>
-  <options>
+  <name help="name of dft package">nwchem</name>
+  <executable help="executable command for package">nwchem</executable>
+  <scratch help="directory to use for temp files of package">/tmp/nwchem</scratch>
+  <charge help="charge of system">0</charge>
+  <spin help="multiplicity of qm configuration">1</spin>
+  <memory help="maximum memory code should use"></memory>
+  <basisset  help="basiset to use">> cc-pVTZ</basisset>
+  <auxbasisset help="auxiliary to use, Delete if you do not want to use RI approximation">aux-cc-pVTZ</auxbasisset>
+  <ecp help="Pseudo potential to use, Delete if you do not want to use ecps">ecp</ecp>
+  <options help="additional options that should be written to input file">
 dft
 xc pbe0
 direct
@@ -17,5 +16,5 @@ end
 
 task dft
 </options>
-  <cleanup></cleanup>
+  <cleanup help="files to delete identified by fileending"></cleanup>
 </package>

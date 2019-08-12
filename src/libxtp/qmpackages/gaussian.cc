@@ -284,7 +284,6 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
  * relevant keywords, charge, and spin information.
  */
 void Gaussian::WriteHeader(std::ofstream& com_file) {
-  if (_chk_file_name.size()) com_file << "%chk=" << _chk_file_name << endl;
   if (_memory.size()) com_file << "%mem=" << _memory << endl;
 
   int threads = OPENMP::getMaxThreads();
@@ -461,11 +460,6 @@ void Gaussian::CleanUp() {
 
       if (substring == "log") {
         std::string file_name = _run_dir + "/" + _log_file_name;
-        remove(file_name.c_str());
-      }
-
-      if (substring == "chk") {
-        std::string file_name = _run_dir + "/" + _chk_file_name;
         remove(file_name.c_str());
       }
 
