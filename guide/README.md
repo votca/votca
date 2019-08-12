@@ -23,10 +23,15 @@ the folder 'Methane' contains GROMACS molecular dynamics data and a mapping file
 using the 'run.sh' script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
-You find exactly the same system in "KMC_Methane" with all data calculated. Here you can run kmc simulations. 
+You find exactly the same system in 'KMC_Methane' with all data calculated. Here you can run kmc simulations. 
 You find a 'run.sh' in this folder as well to run kmc simulation.
 
+the folder 'Thiophene' contains LAMMPS molecular dynamics data and a mapping file system.xml
+using the 'run.sh' script you can calculate all data necessary to run kmc simulations.
+For some more expensive parts the parameters are calculated only for one pair.
 
+You find exactly the same system in 'KMC_Thiophene' with all data calculated. Here you can run kmc simulations. 
+You find a 'run.sh' in this folder as well to run kmc simulation.
 
 
 In the folder 'tools' are calculators which are independent of state files:
