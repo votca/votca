@@ -1,0 +1,24 @@
+<package>
+<spin>1</spin>
+<name>xtp</name>
+<charge>0</charge>
+<convergence>
+    <energy>1e-7</energy>
+    <method>DIIS</method>
+    <DIIS_start>0.002</DIIS_start>
+    <ADIIS_start>0.8</ADIIS_start>
+    <DIIS_length>20</DIIS_length>
+    <levelshift>0.0</levelshift>
+    <levelshift_end>0.2</levelshift_end>
+</convergence>
+<initial_guess>atom</initial_guess>
+<basisset>ubecppol</basisset>
+<ecp>ecp</ecp>
+<auxbasisset>aux-ubecppol</auxbasisset>  
+<integration_grid>medium</integration_grid>
+<integration_grid_small>0</integration_grid_small>
+<xc_functional>XC_HYB_GGA_XC_PBEH</xc_functional>
+<max_iterations>200</max_iterations>
+<read_guess>0</read_guess>
+<cleanup></cleanup>
+</package>
