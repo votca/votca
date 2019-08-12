@@ -62,10 +62,9 @@ void EInternal::ParseEnergies() {
                                         QMStateType::Hole, QMStateType::Singlet,
                                         QMStateType::Triplet};
       for (QMStateType type : types) {
-
         std::string u_xX_nN = "U_xX_nN_" + type.ToString();
         std::string u_nX_nN = "U_nX_nN_" + type.ToString();
-        std::string u_xN_xX = "U_xN_xX" + type.ToString();
+        std::string u_xN_xX = "U_xN_xX_" + type.ToString();
         if (segprop->exists(u_xX_nN) && segprop->exists(u_nX_nN) &&
             segprop->exists(u_xN_xX)) {
           U_xX_nN.setValue(segprop->get(u_xX_nN).as<double>() * eV2hrt, type);
