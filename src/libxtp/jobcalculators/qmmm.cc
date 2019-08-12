@@ -310,7 +310,7 @@ void QMMM::ReadJobFile(Topology& top) {
       message << e.what() << " for job " << jobid;
       throw std::runtime_error(message.str());
     }
-    double energy = job->get("output.E_tot").as<double>();
+    double energy = job->get("output.E_tot").as<double>() * tools::conv::ev2hrt;
     if (found(segid, state.Type().Type()) != 0) {
       throw std::runtime_error("There are two entries in jobfile for segment " +
                                std::to_string(segid) +

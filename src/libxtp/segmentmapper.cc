@@ -57,6 +57,47 @@ Eigen::Vector3d SegmentMapper<AtomContainer>::CalcWeightedPos(
 }
 
 template <class AtomContainer>
+std::vector<double> SegmentMapper<AtomContainer>::getWeights(
+    const tools::Property& frag) const {
+
+  std::vector<double> weights;
+  if (frag.exists(_mapatom_xml.at("weights"))) {
+    std::string weights_string =
+        frag.get(_mapatom_xml.at("weights")).template as<std::string>();
+    tools::Tokenizer tok_weights(weights_string, " \t\n");
+    tok_weights.ConvertToVector(weights);
+  } else if (frag.exists("weights")) {
+    std::string weights_string = frag.get("weights").template as<std::string>();
+    tools::Tokenizer tok_weights(weights_string, " \t\n");
+    tok_weights.ConvertToVector(weights);
+  } else {
+    std::cout << " Did not find weights for fragment "
+              << frag.get("name").as<std::string>() << " Using atomic masses"
+              << std::endl;
+    std::string frags =
+        frag.get(_mapatom_xml.at("atoms")).template as<std::string>();
+    tools::Tokenizer tok_atoms(frags, " \t\n");
+    std::vector<std::string> atom_strings = tok_atoms.ToVector();
+    tools::Elements e;
+    for (auto a_string : atom_strings) {
+      tools::Tokenizer tok_atom(a_string, ":");
+      std::vector<std::string> entries = tok_atom.ToVector();
+      if (entries.size() != 2) {
+        throw std::runtime_error("Cannot get weight from Element for " +
+                                 a_string);
+      }
+
+      double weight = e.getMass(entries[1]);
+      std::cout << entries[1] << ":" << weight << " ";
+      weights.push_back(weight);
+    }
+    std::cout << std::endl;
+  }
+
+  return weights;
+}
+
+template <class AtomContainer>
 void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
                                                  const tools::Property& frag) {
   tools::Tokenizer tok_map_atoms(
@@ -74,9 +115,7 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
         "If you want to leave a qmatom out, place a ':' instead");
   }
 
-  tools::Tokenizer tok_weights(getWeights(frag), " \t\n");
-  std::vector<double> weights;
-  tok_weights.ConvertToVector(weights);
+  std::vector<double> weights = getWeights(frag);
 
   if (md_atoms.size() != weights.size()) {
     throw std::runtime_error("Mapping for segment " + seginfo.segname +
@@ -94,13 +133,13 @@ void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
     const std::string& map_string = map_atoms[i];
     const std::string& md_string = md_atoms[i];
     const double& weight = weights[i];
-    MD_atom_id md_result = StringToMDIndex(md_string);
-    seginfo.mdatoms.push_back(md_result);
+    atom_id md_result = StringToMDIndex(md_string);
+    seginfo.mdatoms.push_back(md_result.first);
 
     if (map_string == ":") {
       continue;
     }
-    mapsite_id map_result = StringToMapIndex(map_string);
+    atom_id map_result = StringToMapIndex(map_string);
     mapatom_ids.push_back(map_result.first);
     seginfo.mapatoms.push_back(map_result);
     if (Atom::GetElementFromString(md_result.second) != map_result.second) {
@@ -171,7 +210,7 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
 
       int map_atom_min_id =
           std::min_element(seginfo.mapatoms.begin(), seginfo.mapatoms.end(),
-                           [](const mapsite_id& a, const mapsite_id& b) {
+                           [](const atom_id& a, const atom_id& b) {
                              return a.first < b.first;
                            })
               ->first;
@@ -183,7 +222,7 @@ void SegmentMapper<AtomContainer>::LoadMappingFile(const std::string& mapfile) {
             "mapping file run 'xtp_update_mapfile' on it.");
       }
 
-      seginfo.minmax = CalcResidueRange(seginfo.mdatoms);
+      seginfo.minmax = CalcAtomIdRange(seginfo.mdatoms);
       _segment_info[segname] = seginfo;
     }
   }
@@ -201,7 +240,7 @@ std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMapIndex(
   return std::pair<int, std::string>(std::stoi(result[0]), result[1]);
 }
 template <class AtomContainer>
-MD_atom_id SegmentMapper<AtomContainer>::StringToMDIndex(
+std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
     const std::string& md_string) const {
   tools::Tokenizer tok(md_string, ":");
   std::vector<std::string> result = tok.ToVector();
@@ -209,40 +248,37 @@ MD_atom_id SegmentMapper<AtomContainer>::StringToMDIndex(
     throw std::runtime_error("Entry " + md_string +
                              " is not properly formatted.");
   }
-  return MD_atom_id(std::stoi(result[0]), result[2]);
+  int atomid = 0;
+  try {
+    atomid = std::stoi(result[2]);
+  } catch (std::invalid_argument& e) {
+    throw std::runtime_error("Atom entry " + md_string +
+                             " is not well formatted");
+  }
+  return std::pair<int, std::string>(atomid, result[1]);
 }
 
 template <class AtomContainer>
-std::pair<int, int> SegmentMapper<AtomContainer>::CalcResidueRange(
-    const std::vector<MD_atom_id>& seg) const {
-  int max_res_id =
-      std::min_element(seg.begin(), seg.end(),
-                       [](const MD_atom_id& a, const MD_atom_id& b) {
-                         return a.first < b.first;
-                       })
-          ->first;
-  int min_res_id =
-      std::min_element(seg.begin(), seg.end(),
-                       [](const MD_atom_id& a, const MD_atom_id& b) {
-                         return a.first < b.first;
-                       })
-          ->first;
+std::pair<int, int> SegmentMapper<AtomContainer>::CalcAtomIdRange(
+    const std::vector<int>& seg) const {
+  int max_res_id = *std::max_element(seg.begin(), seg.end());
+  int min_res_id = *std::min_element(seg.begin(), seg.end());
   return std::pair<int, int>(min_res_id, max_res_id);
 }
 template <class AtomContainer>
-std::pair<int, int> SegmentMapper<AtomContainer>::CalcResidueRange(
+std::pair<int, int> SegmentMapper<AtomContainer>::CalcAtomIdRange(
     const Segment& seg) const {
-  int max_res_id = std::min_element(seg.begin(), seg.end(),
+  int max_res_id = std::max_element(seg.begin(), seg.end(),
                                     [](const Atom& a, const Atom& b) {
-                                      return a.getResnr() < b.getResnr();
+                                      return a.getId() < b.getId();
                                     })
-                       ->getResnr();
+                       ->getId();
 
   int min_res_id = std::min_element(seg.begin(), seg.end(),
                                     [](const Atom& a, const Atom& b) {
-                                      return a.getResnr() < b.getResnr();
+                                      return a.getId() < b.getId();
                                     })
-                       ->getResnr();
+                       ->getId();
   return std::pair<int, int>(min_res_id, max_res_id);
 }
 
@@ -359,11 +395,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(const Segment& seg,
   }
   Seginfo seginfo = _segment_info.at(seg.getName());
   std::string coordsfiletag =
-      _mapatom_xml.at("coords") + "_" + state.ToString();
+      _mapatom_xml.at("coords") + "_" + state.Type().ToString();
   if (seginfo.coordfiles.count(coordsfiletag) == 0) {
     throw std::runtime_error("Could not find a coordinate file for " +
-                             seg.getName() + std::to_string(seg.getId()) +
-                             "segment/state: " + coordsfiletag);
+                             seg.getName() +
+                             " id:" + std::to_string(seg.getId()) +
+                             " segment/state: " + coordsfiletag);
   }
   std::string coordsfilename = seginfo.coordfiles.at(coordsfiletag);
   return map(seg, coordsfilename);
@@ -387,12 +424,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   }
 
   std::pair<int, int> minmax_map = seginfo.minmax;
-  std::pair<int, int> minmax = CalcResidueRange(seg);
+  std::pair<int, int> minmax = CalcAtomIdRange(seg);
 
   if ((minmax_map.first - minmax_map.second) !=
       (minmax.first - minmax.second)) {
-    throw std::runtime_error("Residue range for segment " + seg.getName() +
-                             ":" + std::to_string(seg.getId()) +
+    throw std::runtime_error("AtomId range for segment " + seg.getName() + ":" +
+                             std::to_string(seg.getId()) +
                              " and the mapping do not agree: Segment[" +
                              std::to_string(minmax.first) + "," +
                              std::to_string(minmax.second) + "] Map[" +
@@ -400,7 +437,7 @@ AtomContainer SegmentMapper<AtomContainer>::map(
                              std::to_string(minmax_map.second) + "]");
   }
 
-  int residueoffset = minmax.first - minmax_map.first;
+  int atomidoffset = minmax.first - minmax_map.first;
 
   AtomContainer Result(seg.getName(), seg.getId());
   Result.LoadFromFile(coordfilename);
@@ -414,12 +451,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(
   }
 
   for (FragInfo& frag : seginfo.fragments) {
-    for (MD_atom_id& id : frag._mdatom_ids) {
-      id.first += residueoffset;
+    for (atom_id& id : frag._mdatom_ids) {
+      id.first += atomidoffset;
     }
 
     std::vector<mapAtom*> fragment_mapatoms;
-    for (const mapsite_id& id : frag._mapatom_ids) {
+    for (const atom_id& id : frag._mapatom_ids) {
       if (id.second != Result[id.first].getElement()) {
         throw std::runtime_error("Element of mapping atom " +
                                  std::to_string(id.first) + ":" + id.second +
@@ -429,12 +466,12 @@ AtomContainer SegmentMapper<AtomContainer>::map(
       fragment_mapatoms.push_back(&Result[id.first]);
     }
     std::vector<const Atom*> fragment_mdatoms;
-    for (const MD_atom_id& id : frag._mdatom_ids) {
-      const Atom* atom = seg.getAtom(id);
+    for (const atom_id& id : frag._mdatom_ids) {
+      const Atom* atom = seg.getAtom(id.first);
       if (atom == nullptr) {
-        throw std::runtime_error("Could not find an atom with name " +
-                                 std::to_string(id.first) + ":" + id.second +
-                                 " in segment " + seg.getName());
+        throw std::runtime_error(
+            "Could not find an atom with name:" + id.second + "id" +
+            std::to_string(id.first) + " in segment " + seg.getName());
       }
       fragment_mdatoms.push_back(atom);
     }

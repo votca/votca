@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
              "<name>ALAB_1</name>"
           << std::endl;
   mapfile << "							<mdatoms>  "
-             "1:ALAB:CB    1:ALAB:HB1   1:ALAB:HB2     </mdatoms>"
+             "1:CB:0    1:HB1:1   1:HB2:2     </mdatoms>"
           << std::endl;
   mapfile << "							<qmatoms>     "
              "0:C          1:H          2:H              </qmatoms>"
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
              "<name>ALAB_2</name>"
           << std::endl;
   mapfile << "							<mdatoms>  "
-             "1:ALAB:HB3   </mdatoms>"
+             "1:HB3:3   </mdatoms>"
           << std::endl;
   mapfile << "							<qmatoms>     "
              "3:H          </qmatoms>"
@@ -100,7 +100,7 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
              "<name>ALAB_3</name>"
           << std::endl;
   mapfile << "							<mdatoms>   "
-             "1:ALAB:HB4 </mdatoms>"
+             "1:HB4:4 </mdatoms>"
           << std::endl;
   mapfile << "							<qmatoms>      "
              "     4:H     </qmatoms>"
@@ -128,11 +128,11 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
   QMMapper mapper = QMMapper(log);
   mapper.LoadMappingFile("ch4.xml");
   Segment seg("Methane", 1);
-  Atom atm1(1, "CB", 1, Eigen::Vector3d::Zero(), "C");
-  Atom atm2(1, "HB1", 2, Eigen::Vector3d::UnitX(), "H");
-  Atom atm3(1, "HB2", 3, Eigen::Vector3d::UnitY(), "H");
-  Atom atm4(1, "HB3", 4, -Eigen::Vector3d::UnitX(), "H");
-  Atom atm5(1, "HB4", 5, -Eigen::Vector3d::UnitY(), "H");
+  Atom atm1(1, "CB", 5, Eigen::Vector3d::Zero(), "C");
+  Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX(), "H");
+  Atom atm3(1, "HB2", 7, Eigen::Vector3d::UnitY(), "H");
+  Atom atm4(1, "HB3", 8, -Eigen::Vector3d::UnitX(), "H");
+  Atom atm5(1, "HB4", 9, -Eigen::Vector3d::UnitY(), "H");
   seg.push_back(atm1);
   seg.push_back(atm2);
   seg.push_back(atm3);
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(mapping_test) {
 
   QMMolecule qmmol = mapper.map(seg, "molecule.xyz");
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
-  std::vector<int> id_ref = {0, 1, 2, 3, 4, 5};
+  std::vector<int> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
   Eigen::Vector3d pos1 = {-0.026627, -0.0672429, 8.10559e-19};
   pos_ref.push_back(pos1);

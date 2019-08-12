@@ -19,6 +19,8 @@
 
 #include "molpol.h"
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/qmpackage.h"
+#include <votca/xtp/qmpackagefactory.h>
 
 namespace votca {
 namespace xtp {
@@ -34,24 +36,62 @@ void MolPol::Initialize(tools::Property& options) {
       key + ".mpsoutput");
   _polar_options = options.get(key);
 
-  Eigen::VectorXd target_vec =
-      options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(key +
-                                                                   ".target");
-  if (target_vec.size() != 6) {
+  bool target_exists = options.exists(key + ".target");
+  bool qmpackage_exists = options.exists(key + ".qmpackage");
+  if (target_exists && qmpackage_exists) {
     throw std::runtime_error(
-        "ERROR <options.molpol.target> "
-        " should have this format: pxx pxy pxz pyy pyz pzz");
+        "Can only read either from target or qmpackage logfile");
   }
-  target_vec *= std::pow(tools::conv::ang2bohr, 3);
-  _polarisation_target(0, 0) = target_vec(0);
-  _polarisation_target(1, 0) = target_vec(1);
-  _polarisation_target(0, 1) = target_vec(1);
-  _polarisation_target(2, 0) = target_vec(2);
-  _polarisation_target(0, 2) = target_vec(2);
-  _polarisation_target(1, 1) = target_vec(3);
-  _polarisation_target(2, 1) = target_vec(4);
-  _polarisation_target(1, 2) = target_vec(4);
-  _polarisation_target(2, 2) = target_vec(5);
+
+  if (!target_exists && !qmpackage_exists) {
+    throw std::runtime_error(
+        "You have to define a polar targer <target> or a or qmpackage logfile");
+  }
+
+  if (target_exists) {
+
+    Eigen::VectorXd target_vec =
+        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(key +
+                                                                     ".target");
+    if (target_vec.size() != 6) {
+      throw std::runtime_error(
+          "ERROR <options.molpol.target> "
+          " should have this format: pxx pxy pxz pyy pyz pzz");
+    }
+    target_vec *= std::pow(tools::conv::ang2bohr, 3);
+    _polarisation_target(0, 0) = target_vec(0);
+    _polarisation_target(1, 0) = target_vec(1);
+    _polarisation_target(0, 1) = target_vec(1);
+    _polarisation_target(2, 0) = target_vec(2);
+    _polarisation_target(0, 2) = target_vec(2);
+    _polarisation_target(1, 1) = target_vec(3);
+    _polarisation_target(2, 1) = target_vec(4);
+    _polarisation_target(1, 2) = target_vec(4);
+    _polarisation_target(2, 2) = target_vec(5);
+  } else {
+    std::string qm_package =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
+                                                                 ".qmpackage");
+    std::string log_file =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
+                                                                 ".logfile");
+    Logger log;
+    log.setPreface(logINFO, "\n... ...");
+    log.setPreface(logDEBUG, "\n... ...");
+    log.setReportLevel(logDEBUG);
+    log.setMultithreading(true);
+
+    // Set-up QM package
+    XTP_LOG_SAVE(logINFO, log)
+        << "Using package <" << qm_package << ">" << std::flush;
+    QMPackageFactory::RegisterAll();
+    std::unique_ptr<QMPackage> qmpack =
+        std::unique_ptr<QMPackage>(QMPackages().Create(qm_package));
+    qmpack->setLog(&log);
+    qmpack->setRunDir(".");
+    qmpack->setLogFileName(log_file);
+    _polarisation_target = qmpack->GetPolarizability();
+  }
 
   Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(_input.size());
   _weights = options.ifExistsReturnElseReturnDefault<Eigen::VectorXd>(

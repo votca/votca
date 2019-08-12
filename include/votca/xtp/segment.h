@@ -59,7 +59,7 @@ class Segment : public AtomContainer<Atom> {
     _U_xN_xX.setValue(dU, state);
   }
 
-  const Atom* getAtom(const MD_atom_id& id) const;
+  const Atom* getAtom(int id) const;
 
   double getU_xX_nN(QMStateType state) const {
     return _U_xX_nN.getValue(state);

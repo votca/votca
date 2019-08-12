@@ -69,6 +69,9 @@ void StateApplication::Run() {
   std::string statefile = OptionsMap()["file"].as<std::string>();
   StateSaver statsav(statefile);
   std::vector<int> frames = statsav.getFrames();
+  if (frames.empty()) {
+    throw std::runtime_error("Statefile " + statefile + " not found.");
+  }
   // INITIALIZE & RUN CALCULATORS
   std::cout << "Initializing calculator" << std::endl;
   BeginEvaluate(nThreads);
@@ -91,8 +94,8 @@ void StateApplication::Run() {
   }
 
   for (int i = fframe; i < nframes; i++) {
-    std::cout << "Evaluating frame " << i << std::endl;
-    Topology top = statsav.ReadFrame(i);
+    std::cout << "Evaluating frame " << frames[i] << std::endl;
+    Topology top = statsav.ReadFrame(frames[i]);
     EvaluateFrame(top);
     if (save && _calculator->WriteToStateFile()) {
       statsav.WriteFrame(top);

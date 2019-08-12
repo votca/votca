@@ -79,6 +79,18 @@ void StaticSite::Translate(const Eigen::VectorXd& shift) {
   return;
 }
 
+std::string StaticSite::writePolarisation() const {
+  tools::Elements e;
+  double default_pol = std::pow(tools::conv::ang2bohr, 3);
+  try {
+    default_pol =
+        e.getPolarizability(_element) * std::pow(tools::conv::nm2bohr, 3);
+  } catch (const std::invalid_argument&) {
+    ;
+  }
+  return (boost::format("     P %1$+1.7f\n") % default_pol).str();
+};
+
 std::string StaticSite::WriteMpsLine(string unit) const {
   double conv_pos = 1.;
   if (unit == "angstrom") {

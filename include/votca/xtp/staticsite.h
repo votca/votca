@@ -124,7 +124,7 @@ class StaticSite {
   }
 
  protected:
-  virtual std::string writePolarisation() const { return "P 0.0\n"; };
+  virtual std::string writePolarisation() const;
 
   int _id = -1;
   std::string _element = "";

@@ -25,6 +25,30 @@ using namespace std;
 
 BOOST_AUTO_TEST_SUITE(gaussian_test)
 
+BOOST_AUTO_TEST_CASE(polar) {
+  std::ofstream polar("polar_gaussian.log");
+
+  polar.close();
+  QMPackageFactory::RegisterAll();
+  std::unique_ptr<QMPackage> gaussian =
+      std::unique_ptr<QMPackage>(QMPackages().Create("gaussian"));
+  Logger log;
+  gaussian->setLog(&log);
+  gaussian->setRunDir(".");
+  gaussian->setLogFileName("polar_gaussian.log");
+  Eigen::Matrix3d polar_mat = gaussian->GetPolarizability();
+
+  Eigen::Matrix3d polar_ref = Eigen::Matrix3d::Zero();
+
+  bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
+  if (!polar_check) {
+    std::cout << "res" << std::endl;
+    std::cout << polar_mat << std::endl;
+    std::cout << "ref " << std::endl;
+    std::cout << polar_ref << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_CASE(read_withexternal) {
 
   std::ofstream ext("gaussian_ext.log");

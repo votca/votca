@@ -52,6 +52,8 @@ class Gaussian : public QMPackage {
 
   StaticSegment GetCharges() const;
 
+  Eigen::Matrix3d GetPolarizability() const;
+
  private:
   bool WriteShellScript();
 

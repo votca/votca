@@ -562,6 +562,57 @@ StaticSegment NWChem::GetCharges() const {
   return result;
 }
 
+Eigen::Matrix3d NWChem::GetPolarizability() const {
+  if (!CheckLogFile()) {
+    throw std::runtime_error("logfile not correctly formatted");
+  }
+  std::string line;
+  ifstream input_file((_run_dir + "/" + _log_file_name));
+  bool has_pol = false;
+
+  Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+
+    std::string::size_type pol_pos =
+        line.find("DFT Linear Response polarizability / au");
+    if (pol_pos != std::string::npos) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting polarizability" << flush;
+      getline(input_file, line);
+      tools::Tokenizer tok(line, " ");
+      std::vector<std::string> line_split = tok.ToVector();
+      double frequency = std::stod(line_split[2]);
+      if (std::abs(frequency) > 1e-9) {
+        XTP_LOG(logDEBUG, *_pLog)
+            << "Warning: Polarizability was calculated for frequency "
+            << frequency << " normally f=0 for static polarizability" << flush;
+      }
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      for (int i = 0; i < 3; i++) {
+        getline(input_file, line);
+        tools::Tokenizer tok2(line, " ");
+        std::vector<std::string> values = tok2.ToVector();
+        if (values.size() != 4) {
+          throw std::runtime_error("Polarisation line " + line +
+                                   " cannot be parsed");
+        }
+        Eigen::Vector3d row;
+        row << std::stod(values[1]), std::stod(values[2]), std::stod(values[3]);
+        pol.row(i) = row;
+      }
+
+      has_pol = true;
+    }
+  }
+  if (!has_pol) {
+    throw std::runtime_error("Could not find polarisation in logfile");
+  }
+  return pol;
+}
+
 bool NWChem::CheckLogFile() const {
 
   // check if the log file exists
