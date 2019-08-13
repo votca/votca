@@ -58,6 +58,7 @@
       <itemPath>../../src/libtools/crosscorrelate.cc</itemPath>
       <itemPath>../../src/libtools/cubicspline.cc</itemPath>
       <itemPath>../../src/libtools/datacollection.cc</itemPath>
+      <itemPath>../../src/libtools/edge.cc</itemPath>
       <itemPath>../../src/libtools/elements.cc</itemPath>
       <itemPath>../../src/libtools/filesystem.cc</itemPath>
       <itemPath>../../src/libtools/globals.cc</itemPath>
@@ -72,6 +73,7 @@
       <itemPath>../../src/libtools/property.cc</itemPath>
       <itemPath>../../src/libtools/random2.cc</itemPath>
       <itemPath>../../src/libtools/rangeparser.cc</itemPath>
+      <itemPath>../../src/libtools/reducededge.cc</itemPath>
       <itemPath>../../src/libtools/spline.cc</itemPath>
       <itemPath>../../src/libtools/table.cc</itemPath>
       <itemPath>../../src/libtools/thread.cc</itemPath>
@@ -319,6 +321,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/edge.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/filesystem.cc" ex="false" tool="1" flavor2="0">
@@ -346,6 +350,8 @@
       <item path="../../src/libtools/random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/reducededge.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -659,6 +665,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/edge.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/filesystem.cc" ex="false" tool="1" flavor2="0">
@@ -686,6 +694,8 @@
       <item path="../../src/libtools/random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/reducededge.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -999,6 +1009,8 @@
             tool="1"
             flavor2="0">
       </item>
+      <item path="../../src/libtools/edge.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/libtools/elements.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/filesystem.cc" ex="false" tool="1" flavor2="0">
@@ -1026,6 +1038,8 @@
       <item path="../../src/libtools/random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/rangeparser.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libtools/reducededge.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libtools/spline.cc" ex="false" tool="1" flavor2="0">
       </item>
