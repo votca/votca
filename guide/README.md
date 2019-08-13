@@ -1,3 +1,5 @@
+## VOTCA-XTP tutorial
+
 This is the first iteration of the VOTCA-XTP tutorial. 
 
 If you find bugs, weird behaviour or just incomprehensible instructions, please open an issue [here](https://github.com/votca/xtp-tutorials/issues)
@@ -17,16 +19,16 @@ At the moment we are also working on a manual:
 [Manual](http://doc.votca.org/xtp-manual.pdf)
 
 
-## The tutorial is organised as follows:
+### The tutorial is organised as follows:
 
-the folder **Methane** contains **GROMACS** molecular dynamics data and a mapping file `system.xml`
+The folder **Methane** contains **GROMACS** molecular dynamics data and a mapping file `system.xml`
 using the `run.sh` script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
 You find exactly the same system in **KMC_Methane** with all data calculated. Here you can run kmc simulations. 
 You find a `run.sh` in this folder as well to run kmc simulation.
 
-the folder **Thiophene** contains **LAMMPS** molecular dynamics data and a mapping file `system.xml`
+The folder **Thiophene** contains **LAMMPS** molecular dynamics data and a mapping file `system.xml`
 using the `run.sh` script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
