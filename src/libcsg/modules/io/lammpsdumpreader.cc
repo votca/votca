@@ -16,6 +16,7 @@
  */
 
 #include "lammpsdumpreader.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <memory>
 #include <vector>
@@ -62,6 +63,7 @@ bool LAMMPSDumpReader::FirstFrame(Topology &top) {
 bool LAMMPSDumpReader::NextFrame(Topology &top) {
   string line;
   getline(_fl, line);
+  boost::algorithm::trim(line);
   while (!_fl.eof()) {
     if (line.substr(0, 5) != "ITEM:")
       throw std::ios_base::failure("unexpected line in lammps file:\n" + line);
@@ -81,6 +83,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
                                    line.substr(6));
     }
     getline(_fl, line);
+    boost::algorithm::trim(line);
   }
   if (_topology) {
     cout << "WARNING: topology created from .dump file, masses, charges, "
@@ -93,6 +96,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
 void LAMMPSDumpReader::ReadTimestep(Topology &top, string itemline) {
   string s;
   getline(_fl, s);
+  boost::algorithm::trim(s);
   top.setStep(boost::lexical_cast<int>(s));
   cout << "Reading frame, timestep " << top.getStep() << endl;
 }
@@ -104,6 +108,8 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
 
   for (int i = 0; i < 3; ++i) {
     getline(_fl, s);
+    boost::algorithm::trim(s);
+
     Tokenizer tok(s, " ");
     vector<double> v;
     tok.ConvertToVector(v);
@@ -116,6 +122,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
 void LAMMPSDumpReader::ReadNumAtoms(Topology &top, string itemline) {
   string s;
   getline(_fl, s);
+  boost::algorithm::trim(s);
   _natoms = boost::lexical_cast<int>(s);
   if (!_topology && _natoms != top.BeadCount())
     std::runtime_error("number of beads in topology and trajectory differ");
@@ -166,6 +173,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
   for (int i = 0; i < _natoms; ++i) {
     string s;
     getline(_fl, s);
+    boost::algorithm::trim(s);
     if (_fl.eof())
       throw std::runtime_error("Error: unexpected end of lammps file '" +
                                _fname + "' only " +

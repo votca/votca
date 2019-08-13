@@ -282,6 +282,7 @@ void CsgApplication::Run(void) {
 
       // this will be changed to CopyTopologyData
       // read in the topology
+
       reader->ReadTopology(_op_vm["top"].as<string>(), myWorker->_top);
       myWorker->_top.CheckMoleculeNaming();
 
