@@ -17,16 +17,17 @@
  *
  */
 
+#include "edgecontainer.h"
+#include "graphnode.h"
 #include <iostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <votca/tools/edgecontainer.h>
-#include <votca/tools/graphnode.h>
 
-#ifndef _VOTCA_TOOLS_GRAPH_H
-#define _VOTCA_TOOLS_GRAPH_H
+#pragma once
+#ifndef VOTCA_TOOLS_GRAPH_H
+#define VOTCA_TOOLS_GRAPH_H
 
 namespace votca {
 namespace tools {
@@ -36,8 +37,6 @@ namespace tools {
  * the bonds between nodes.
  *
  */
-class GraphNode;
-
 class Graph {
  protected:
   EdgeContainer edge_container_;
@@ -162,4 +161,4 @@ bool cmpVertNodePair(const std::pair<int, GraphNode>& id_and_node1,
                      const std::pair<int, GraphNode>& id_and_node2);
 }  // namespace tools
 }  // namespace votca
-#endif  // _VOTCA_TOOLS_GRAPH_H
+#endif  // VOTCA_TOOLS_GRAPH_H

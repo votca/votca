@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _AKIMASPLINE_H
 #define _AKIMASPLINE_H
 

@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_TOOLS_PROPERTY_H
 #define _VOTCA_TOOLS_PROPERTY_H
 

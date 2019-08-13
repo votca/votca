@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_TOOLS_LEXICAL_CAST_H
 #define __VOTCA_TOOLS_LEXICAL_CAST_H
 

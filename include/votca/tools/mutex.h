@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef __VOTCA_TOOLS_MUTEX__H
 #define __VOTCA_TOOLS_MUTEX__H
 #include <pthread.h>
@@ -45,4 +46,4 @@ class Mutex {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_MUTEX__H */
+#endif // __VOTCA_TOOLS_MUTEX__H

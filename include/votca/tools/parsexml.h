@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _PARSEXML_H
 #define _PARSEXML_H
 

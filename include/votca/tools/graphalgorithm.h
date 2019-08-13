@@ -17,14 +17,13 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
-#define __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#pragma once
+#ifndef VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#define VOTCA_TOOLS_GRAPH_ALGORITHMS_H
 
 #include <iostream>
 #include <memory>
 #include <string>
-#include <votca/tools/graphnode.h>
-#include <votca/tools/reducedgraph.h>
 
 /**
  * \brief This file is a compilation of graph related algorithms.
@@ -37,6 +36,7 @@ namespace votca {
 namespace tools {
 
 class Graph;
+class ReducedGraph;
 class GraphVisitor;
 
 /**
@@ -224,4 +224,4 @@ std::string findStructureId(Graph& graph) {
 }  // namespace tools
 }  // namespace votca
 
-#endif  // __VOTCA_TOOLS_GRAPH_ALGORITHMS_H
+#endif  // VOTCA_TOOLS_GRAPH_ALGORITHMS_H

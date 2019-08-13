@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_TOOLS_HISTOGRAMNEW_H
 #define _VOTCA_TOOLS_HISTOGRAMNEW_H
 

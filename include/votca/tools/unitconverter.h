@@ -30,14 +30,39 @@ enum MassUnit {
   picograms,
   femtograms,
   atomic_mass_units,
+  grams_per_mole,  // the same as atomic mass units
   kilograms,
   grams
 };
 
 enum TimeUnit { seconds, microseconds, nanoseconds, femtoseconds, picoseconds };
 
-enum EnergyUnit { electron_volts, kilocalories, hartrees, joules };
+enum EnergyUnit {
+  electron_volts,
+  kilocalories,
+  hartrees,
+  joules,
+  kilojoules,
+  kilojoules_per_mole,
+  joules_per_mole,
+  kilocalories_per_mole
+};
 
+enum ChargeUnit { e, coulombs };
+
+enum VelocityUnit {
+  angstroms_per_femtosecond,
+  angstroms_per_picosecond,
+  nanometers_per_picosecond
+};
+
+enum ForceUnit {
+  kilocalories_per_mole_angstrom,
+  newtons,
+  kilojoules_per_mole_nanometer,
+  kilojoules_per_mole_angstrom,
+  hatree_per_bohr
+};
 /**
  * @brief Class converts between different unit types
  */
@@ -56,7 +81,7 @@ class UnitConverter {
       case DistanceUnit::angstroms:
         return 1.0;
       case DistanceUnit::bohr:
-        return 0.529177;
+        return 0.52917721092;
     }
     return 0.0;
   }
@@ -82,16 +107,18 @@ class UnitConverter {
   constexpr double getMassValue_(const MassUnit& enum_type) const noexcept {
     switch (enum_type) {
       case MassUnit::kilograms:
-        return 6.02214E26;
+        return 6.0221366517E26;
       case MassUnit::grams:
-        return 6.02214E23;
+        return 6.0221366517E23;
       case MassUnit::picograms:
-        return 6.02214E14;
+        return 6.0221366517E14;
       case MassUnit::femtograms:
-        return 6.02214E11;
+        return 6.0221366517E11;
       case MassUnit::attograms:
-        return 602214;
+        return 602213.66517;
       case MassUnit::atomic_mass_units:
+        return 1.0;
+      case MassUnit::grams_per_mole:
         return 1.0;
     }
     return 0.0;
@@ -100,14 +127,69 @@ class UnitConverter {
   /// All energies in terms of electron volts
   constexpr double getEnergyValue_(const EnergyUnit& enum_type) const noexcept {
     switch (enum_type) {
+      case EnergyUnit::kilojoules_per_mole:
+        return 96.4853074993;
+      case EnergyUnit::joules_per_mole:
+        return 96.4853074993E3;
+      case EnergyUnit::kilocalories_per_mole:
+        return 23.061;
       case EnergyUnit::kilocalories:
         return 2.613195131836172E22;
       case EnergyUnit::joules:
-        return 6.242E18;
+        return 6.2415097E18;
+      case EnergyUnit::kilojoules:
+        return 6.2415097E21;
       case EnergyUnit::hartrees:
-        return 27.2114;
+        return 27.21138602;
       case EnergyUnit::electron_volts:
         return 1.0;
+    }
+    return 0.0;
+  }
+
+  /// All charge in terms of elementary charge e
+  constexpr double getChargeValue_(const ChargeUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case ChargeUnit::e:
+        return 1.0;
+      case ChargeUnit::coulombs:
+        return 1.602176565E-19;
+    }
+    return 0.0;
+  }
+
+  /// All velocities in terms of nanometers per picosecond
+  constexpr double getVelocityValue_(const VelocityUnit& enum_type) const
+      noexcept {
+    switch (enum_type) {
+      case VelocityUnit::nanometers_per_picosecond:
+        return 1.0;
+      case VelocityUnit::angstroms_per_picosecond:
+        return convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+      case VelocityUnit::angstroms_per_femtosecond:
+        return convert(DistanceUnit::nanometers, DistanceUnit::angstroms) /
+               convert(TimeUnit::picoseconds, TimeUnit::femtoseconds);
+    }
+    return 0.0;
+  }
+
+  /// Default force unit is the kilojoules per mole nanometer
+  constexpr double getForceValue_(const ForceUnit& enum_type) const noexcept {
+    switch (enum_type) {
+      case ForceUnit::kilocalories_per_mole_angstrom:
+        return convert(EnergyUnit::kilojoules_per_mole,
+                       EnergyUnit::kilocalories_per_mole) /
+               convert(DistanceUnit::nanometers, DistanceUnit::angstroms);
+      case ForceUnit::newtons:
+        return convert(EnergyUnit::kilojoules, EnergyUnit::joules) /
+               convert(DistanceUnit::nanometers, DistanceUnit::meters);
+      case ForceUnit::kilojoules_per_mole_nanometer:
+        return 1.0;
+      case ForceUnit::kilojoules_per_mole_angstrom:
+        return 10.0;
+      case ForceUnit::hatree_per_bohr:
+        return convert(EnergyUnit::kilojoules_per_mole, EnergyUnit::hartrees) /
+               convert(DistanceUnit::nanometers, DistanceUnit::bohr);
     }
     return 0.0;
   }
@@ -129,7 +211,19 @@ class UnitConverter {
       noexcept {
     return getEnergyValue_(from) / getEnergyValue_(to);
   }
-};
+  constexpr double convert(const ChargeUnit& from, const ChargeUnit& to) const
+      noexcept {
+    return getChargeValue_(from) / getChargeValue_(to);
+  }
+  constexpr double convert(const VelocityUnit& from,
+                           const VelocityUnit& to) const noexcept {
+    return getVelocityValue_(from) / getVelocityValue_(to);
+  }
+  constexpr double convert(const ForceUnit& from, const ForceUnit& to) const
+      noexcept {
+    return getForceValue_(from) / getForceValue_(to);
+  }
+};  // namespace tools
 }  // namespace tools
 }  // namespace votca
 

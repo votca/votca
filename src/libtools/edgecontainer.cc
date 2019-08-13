@@ -17,13 +17,15 @@
  *
  */
 
-#include <algorithm>
 #include <cassert>
-#include <exception>
-#include <set>
+#include <ostream>        // for ostream, endl
+#include <stdexcept>      // for invalid_argument
+#include <unordered_map>  // for unordered_map, unordered_map<...
+#include <utility>        // for pair
 #include <vector>
-#include <votca/tools/edge.h>
-#include <votca/tools/edgecontainer.h>
+
+#include "../../include/votca/tools/edge.h"
+#include "../../include/votca/tools/edgecontainer.h"
 
 namespace votca {
 namespace tools {

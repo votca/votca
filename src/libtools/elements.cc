@@ -17,8 +17,19 @@
  *
  */
 
-#include <boost/algorithm/string.hpp>
-#include <votca/tools/elements.h>
+#include <bits/std_abs.h>  // for abs
+#include <map>             // for map, map<>::mapped_type
+#include <math.h>          // for abs
+#include <stdexcept>       // for runtime_error, inval...
+#include <stdlib.h>        // for abs
+#include <string>          // for string, operator+
+#include <utility>         // for pair
+
+#include "../../include/votca/tools/elements.h"
+#include "../../include/votca/tools/unitconverter.h"  // for DistanceUnit, ...
+
+#include <boost/algorithm/string/case_conv.hpp>  // for to_upper_copy
+#include <boost/iterator/iterator_facade.hpp>    // for operator!=
 
 using namespace votca::tools;
 using namespace std;
@@ -99,18 +110,20 @@ double Elements::getPolarizability(string name) {
   return _ElPolarizability.at(name);
 }
 
-double Elements::getCovRad(string name, string unit) {
+double Elements::getCovRad(const string& name,
+                           const DistanceUnit& new_distance_unit) {
   // TODO - This should be replaced with an object, an object that should
   //       auto recognise the units and return it in a standard type
   if (!this->_filled_CovRad) {
     this->FillCovRad();
     _filled_CovRad = true;
   }
-  if (!unit.compare("bohr")) return conv::ang2bohr * _CovRad.find(name)->second;
-  if (!unit.compare("nm")) return conv::ang2nm * _CovRad.find(name)->second;
-  if (!unit.compare("ang")) return _CovRad.find(name)->second;
-  throw invalid_argument("Must specify appropriate units " + unit +
-                         " is not known");
+  string shortname = name;
+  if (isEleFull(name)) {
+    shortname = getEleShort(name);
+  }
+  return converter_.convert(distance_unit, new_distance_unit) *
+         _CovRad.find(shortname)->second;
 }
 
 string Elements::getEleName(int elenum) {
@@ -134,6 +147,8 @@ string Elements::getEleShort(string elefull) {
     this->FillEleShort();
     _filled_EleShort = true;
   }
+  // Means the full name is actully the short name
+  if (_EleFull.count(elefull)) return elefull;
   return _EleShort.at(elefull);
 }
 

@@ -17,15 +17,17 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_ELEMENTS_H
-#define __VOTCA_TOOLS_ELEMENTS_H
+#pragma once
+#ifndef VOTCA_TOOLS_ELEMENTS_H
+#define VOTCA_TOOLS_ELEMENTS_H
 
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <stdexcept>
 #include <string>
-#include <votca/tools/constants.h>
+
+#include "unitconverter.h"
 
 namespace votca {
 namespace tools {
@@ -89,7 +91,8 @@ class Elements {
   double getPolarizability(std::string name);
 
   /// Returns the covalent Radii of the atom
-  double getCovRad(std::string name, std::string unit);
+  double getCovRad(const std::string& name,
+                   const DistanceUnit& new_distance_unit);
 
   /// Provided the element number returns the symbol for the element name
   /// (1) = "H", (2) = "He", ...
@@ -116,7 +119,12 @@ class Elements {
   /// "Pb" = "LEAD", "Na" = "SODIUM", ....
   std::string getEleFull(std::string eleshort);
 
+  const MassUnit mass_unit = MassUnit::atomic_mass_units;
+  const ChargeUnit charge_unit = ChargeUnit::e;
+  const DistanceUnit distance_unit = DistanceUnit::angstroms;
+
  private:
+  UnitConverter converter_;
   // cache variables
   bool _filled_VdWChelpG = false;
   bool _filled_VdWMK = false;
@@ -161,4 +169,4 @@ class Elements {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_TOOLS_ELEMENTS_H */
+#endif  // VOTCA_TOOLS_ELEMENTS_H

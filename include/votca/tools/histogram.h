@@ -15,6 +15,7 @@
  *
  */
 
+#pragma once
 #ifndef _histogram_H
 #define _histogram_H
 

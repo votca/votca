@@ -17,10 +17,10 @@
  *
  */
 
+#include "../../include/votca/tools/edge.h"
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include <votca/tools/edge.h>
 
 namespace votca {
 namespace tools {
