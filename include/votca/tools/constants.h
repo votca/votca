@@ -61,6 +61,9 @@ const double int2V =
 // 1 eV = 96.485 Kj/mol
 const double ev2kj_per_mol = 96.485;
 
+const double kcal2kj = 4.184;
+const double kj2kcal = 1 / kcal2kj;
+
 }  // namespace conv
 
 namespace topology_constants {
