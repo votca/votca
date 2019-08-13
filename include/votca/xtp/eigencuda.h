@@ -90,6 +90,10 @@ class EigenCuda {
   std::vector<Mat<T>> triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
                                             const std::vector<Mat<T>> &tensor);
 
+  // Perform a multiplication between a matrix and a tensor
+  std::vector<Mat<T>> right_matrix_tensor(const Mat<T> &A,
+                                          const std::vector<Mat<T>> &tensor);
+
  private:
   // Allocate memory in the device
   void gpu_alloc(T **x, std::size_t n) const;
