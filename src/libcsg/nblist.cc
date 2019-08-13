@@ -48,6 +48,7 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     } else
       iter2 = list2.begin();
 
+    if (iter2 == list2.end()) continue;
     if (*iter1 == *iter2) continue;
 
     for (; iter2 != list2.end(); ++iter2) {
