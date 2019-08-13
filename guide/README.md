@@ -17,29 +17,29 @@ At the moment we are also working on a manual:
 [Manual](http://doc.votca.org/xtp-manual.pdf)
 
 
-The tutorial is organised as follows:
+## The tutorial is organised as follows:
 
-the folder 'Methane' contains GROMACS molecular dynamics data and a mapping file system.xml
-using the 'run.sh' script you can calculate all data necessary to run kmc simulations.
+the folder **Methane** contains **GROMACS** molecular dynamics data and a mapping file `system.xml`
+using the `run.sh` script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
-You find exactly the same system in 'KMC_Methane' with all data calculated. Here you can run kmc simulations. 
-You find a 'run.sh' in this folder as well to run kmc simulation.
+You find exactly the same system in **KMC_Methane** with all data calculated. Here you can run kmc simulations. 
+You find a `run.sh` in this folder as well to run kmc simulation.
 
-the folder 'Thiophene' contains LAMMPS molecular dynamics data and a mapping file system.xml
-using the 'run.sh' script you can calculate all data necessary to run kmc simulations.
+the folder **Thiophene** contains **LAMMPS** molecular dynamics data and a mapping file `system.xml`
+using the `run.sh` script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
-You find exactly the same system in 'KMC_Thiophene' with all data calculated. Here you can run kmc simulations. 
-You find a 'run.sh' in this folder as well to run kmc simulation.
+You find exactly the same system in **KMC_Thiophene** with all data calculated. Here you can run kmc simulations. 
+You find a `run.sh` in this folder as well to run kmc simulation.
 
 
-In the folder 'tools' are calculators which are independent of state files:
+In the folder **tools** are programs which are independent of state files:
 
-'dftgwbse_CH4' runs a DFT and GWBSE on CH4 and then performs an espfit on it, outputting a '.mps' file
-additionally a '.cube' file is produced for visualisation. It uses the internal DFT engine. 
+**dftgwbse_CH4** runs a DFT and GWBSE on CH4 and then performs an espfit on it, outputting a `.mps` file
+additionally a `.cube` file is produced for visualisation. It uses the internal DFT engine. 
 
-'dftgwbse_CO_geoopt'  performs an excited state geometry optimisation using numerical derivatives, it is a bit more expensive
+**dftgwbse_CO_geoopt**  performs an excited state geometry optimisation using numerical derivatives, it is a bit more expensive
 
 
 
