@@ -50,7 +50,7 @@ const double ev2hrt = 1.0 / 27.21138602;
 // 1 eV = 96.485 Kj/mol
 const double ev2kj_per_mol = 96.485;
 
-const double kcal2kj = 4.184;
+const double kcal2kj = 4.18679994;
 const double kj2kcal = 1 / kcal2kj;
 
 }  // namespace conv
