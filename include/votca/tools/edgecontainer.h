@@ -17,7 +17,6 @@
  *
  */
 
-#pragma once
 #ifndef _VOTCA_TOOLS_EDGECONTAINER_H
 #define _VOTCA_TOOLS_EDGECONTAINER_H
 

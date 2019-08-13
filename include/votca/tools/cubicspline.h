@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef _CUBICSPLINE_H
 #define _CUBICSPLINE_H
 

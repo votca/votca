@@ -18,7 +18,9 @@ foreach(PROG
     test_graphnode
     test_graphvisitor
     test_histogramnew
+    test_identity
     test_linalg
+    test_name
     test_property
     test_reducededge
     test_reducedgraph

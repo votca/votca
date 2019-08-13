@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define __VOTCA_TOOLS_LINALG_H
 #include <votca/tools/eigen.h>

@@ -34,9 +34,7 @@ int Spline::GenerateGrid(double min, double max, double h) {
   }
   _r[i] = max;
   _f.resize(_r.size());
-  _f.setZero(_r.size());
   _f2.resize(_r.size());
-  _f2.setZero(_r.size());
   return _r.size();
 }
 

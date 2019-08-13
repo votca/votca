@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef _VOTCA_TOOLS_DATACOLLECTION_H
 #define _VOTCA_TOOLS_DATACOLLECTION_H
 

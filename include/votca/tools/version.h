@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef _tools_version_H
 #define _tools_version_H
 

@@ -22,7 +22,6 @@
 #include <unordered_map>
 #include <utility>
 
-#pragma once
 #ifndef _VOTCA_TOOLS_GRAPHNODE_H
 #define _VOTCA_TOOLS_GRAPHNODE_H
 

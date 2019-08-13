@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_SPLINE_H
 #define __VOTCA_SPLINE_H
 

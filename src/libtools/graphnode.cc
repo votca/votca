@@ -16,18 +16,16 @@
  * limitations under the License.
  *
  */
+
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
 #include <iomanip>
 #include <iostream>
-#include <stdexcept>  // for invalid_argument
+#include <sstream>
 #include <string>
 #include <unordered_map>
-#include <utility>  // for pair
 #include <vector>
-
-#include "../../include/votca/tools/graphnode.h"
-
-#include <boost/lexical_cast.hpp>
+#include <votca/tools/graphnode.h>
 
 namespace votca {
 namespace tools {

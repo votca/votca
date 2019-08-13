@@ -15,28 +15,30 @@
  *
  */
 
-#ifndef VOTCA_TOOLS_FILESYSTEM_H
-#define VOTCA_TOOLS_FILESYSTEM_H
+#define BOOST_TEST_MAIN
 
+#define BOOST_TEST_MODULE name_test
+#include <boost/test/unit_test.hpp>
+#include <exception>
 #include <string>
+#include <votca/tools/name.h>
 
-namespace votca {
-namespace tools {
+using namespace std;
+using namespace votca::tools;
 
-namespace filesystem {
+BOOST_AUTO_TEST_SUITE(name_test)
 
-// return the file ending like .jpg .gro etc.., returns an empty string
-// otherwise
-std::string GetFileExtension(const std::string& filename);
+BOOST_AUTO_TEST_CASE(constructors_test) {
+  Name nm;
+  Name nm2("S");
+}
 
-// return the filename without the file extension
-std::string GetFileBase(const std::string& filename);
+BOOST_AUTO_TEST_CASE(accessors_test) {
+  Name nm;
+  nm.setName("New Name");
+  BOOST_CHECK_EQUAL(nm.getName(), "New Name");
+  Name nm2("Name2");
+  BOOST_CHECK_EQUAL(nm2.getName(), "Name2");
+}
 
-// returns true if file exists otherwise false
-bool FileExists(const std::string& filename);
-
-}  // namespace filesystem
-}  // namespace tools
-}  // namespace votca
-
-#endif  // VOTCA_TOOLS_FILESYSTEM_H
+BOOST_AUTO_TEST_SUITE_END()

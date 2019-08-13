@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_TOOLS_COLORS_H
 #define __VOTCA_TOOLS_COLORS_H
 

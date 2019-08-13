@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_APPLICATION_H
 #define __VOTCA_APPLICATION_H
 

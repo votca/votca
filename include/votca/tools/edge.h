@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 
-#pragma once
 #ifndef _VOTCA_TOOLS_EDGE_H
 #define _VOTCA_TOOLS_EDGE_H
 

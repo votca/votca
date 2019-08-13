@@ -31,14 +31,14 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <votca/tools/edge.h>
+#include <votca/tools/graph.h>
+#include <votca/tools/graph_bf_visitor.h>
+#include <votca/tools/graphalgorithm.h>
+#include <votca/tools/graphdistvisitor.h>
+#include <votca/tools/graphnode.h>
+#include <votca/tools/reducedgraph.h>
 
-#include "../../include/votca/tools/edge.h"
-#include "../../include/votca/tools/graph.h"
-#include "../../include/votca/tools/graph_bf_visitor.h"
-#include "../../include/votca/tools/graphalgorithm.h"
-#include "../../include/votca/tools/graphdistvisitor.h"
-#include "../../include/votca/tools/graphnode.h"
-#include "../../include/votca/tools/reducedgraph.h"
 using namespace std;
 using namespace votca::tools;
 

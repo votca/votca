@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(set_test) {
   StructureParameters parameters;
 
   double mass = 2.0;
-  parameters.set(StructureParameter::CSG_Mass, mass);
+  parameters.set(StructureParameter::Mass, mass);
   string element_type = "C";
   parameters.set(StructureParameter::Element, element_type);
 }
@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_CASE(get_test) {
   StructureParameters parameters;
 
   double mass = 2.0;
-  parameters.set(StructureParameter::CSG_Mass, mass);
-  double mass_check = parameters.get<double>(StructureParameter::CSG_Mass);
+  parameters.set(StructureParameter::Mass, mass);
+  double mass_check = parameters.get<double>(StructureParameter::Mass);
   BOOST_CHECK_EQUAL(mass, mass_check);
 
   string element_type = "C";

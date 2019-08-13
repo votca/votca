@@ -17,7 +17,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_TOOLS_EIGEN__H
 #define __VOTCA_TOOLS_EIGEN__H
 

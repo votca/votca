@@ -17,40 +17,41 @@
  *
  */
 
-#ifndef __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
+#ifndef _VOTCA_TOOLS_NAME_H
+#define _VOTCA_TOOLS_NAME_H
 
-#include <deque>
-#include <queue>
-#include <votca/tools/graphvisitor.h>
+#include <cassert>
+#include <string>
 
-/**
- * \brief A breadth first (BF) graph visitor
- *
- * This graph visitor will explore the vertices closest to the starting node
- * first and proceed outwards.
- *
- */
 namespace votca {
 namespace tools {
 
-class Graph;
-class Edge;
-class GraphNode;
-
-class Graph_BF_Visitor : public GraphVisitor {
+/**
+ * \brief Name object
+ *
+ * This object is meant to be used a derived type for larger objects. In this
+ * way the same methods for setting and getting the name of an object will be
+ * uniformly defined.
+ *
+ */
+class Name {
  private:
-  std::deque<std::queue<Edge>> edge_que_;
-
-  /// The core of the breadth first visitor is in how the edges are added
-  /// to the queue in this function
-  void addEdges_(const Graph& graph, int vertex);
-  Edge getEdge_(const Graph& graph);
+  std::string name_;
+  bool name_set_{false};
 
  public:
-  Graph_BF_Visitor(){};
-  bool queEmpty() const;
+  Name(){};
+  Name(const std::string name) : name_(name), name_set_(true){};
+  void setName(const std::string &name) {
+    name_ = name;
+    name_set_ = true;
+  }
+  const std::string &getName() const {
+    assert(name_set_ && "No name has been set, cannot get name.");
+    return name_;
+  }
 };
 }  // namespace tools
 }  // namespace votca
-#endif  // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
+
+#endif  // _VOTCA_TOOLS_NAME_H

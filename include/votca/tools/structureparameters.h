@@ -14,12 +14,10 @@
  * limitations under the License.
  *
  */
-#pragma once
+
 #ifndef VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 #define VOTCA_TOOLS_STRUCTUREPARAMETERS_H
 
-#include "unitconverter.h"
-#include <Eigen/Dense>
 #include <boost/any.hpp>
 #include <cassert>
 #include <unordered_map>
@@ -31,22 +29,17 @@ namespace tools {
  * \breif Supported and Standardized parameter types
  **/
 enum StructureParameter {
-  CSG_Mass,
-  XTP_Mass,
-  CSG_Position,
-  XTP_Position,
+  Mass,
+  Position,
   MoleculeId,
   ResidueId,
-  CSG_Charge,
-  XTP_Charge,
+  Charge,
   Element,
   Symmetry,
   ResidueType,
   BeadId,
   BeadType,
-  MoleculeType,
-  AtomContainerId,
-  AtomContainerType
+  MoleculeType
 };
 
 /**
@@ -106,29 +99,29 @@ enum StructureParameter {
 class StructureParameters {
 
  public:
-  void set(const StructureParameter parameter, boost::any value) noexcept {
-    assert(parameters_.count(parameter) == 0 &&
-           "Cannot set parameter it has already been set.");
-    parameters_[parameter] = value;
-  }
-
-  bool ParameterExist(StructureParameter parameter) const noexcept {
-    return parameters_.count(parameter);
-  }
+  void set(const StructureParameter parameter, boost::any value) noexcept;
 
   template <class T>
-  T get(const StructureParameter parameter) const {
-    assert(parameters_.count(parameter) &&
-           "StructureParameter is not stored in StructureParameters class");
-    assert(typeid(T) == parameters_.at(parameter).type() &&
-           "Cannot return boost any value from parameters class because it is "
-           "not being cast to the correct type");
-    return boost::any_cast<T>(parameters_.at(parameter));
-  }
+  T get(const StructureParameter parameter) const;
 
  private:
-  std::unordered_map<StructureParameter, boost::any> parameters_;
+  std::unordered_map<StructureParameter, boost::any> parameters;
 };
+
+void StructureParameters::set(const StructureParameter parameter,
+                              boost::any value) noexcept {
+  parameters[parameter] = value;
+}
+
+template <class T>
+T StructureParameters::get(const StructureParameter parameter) const {
+  assert(parameters.count(parameter) &&
+         "StructureParameter is not stored in StructureParameters class");
+  assert(typeid(T) == parameters.at(parameter).type() &&
+         "Cannot return boost any value from parameters class because it is "
+         "not being cast to the correct type");
+  return boost::any_cast<T>(parameters.at(parameter));
+}
 
 }  // namespace tools
 }  // namespace votca
