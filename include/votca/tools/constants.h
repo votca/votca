@@ -30,15 +30,11 @@ namespace conv {
 // mathematical constants
 const double Pi = boost::math::constants::pi<double>();
 
-const double rSqrtPi = 1.0 / sqrt(Pi);
-
 // natural constants
 // Boltzmann Factor eV/K
 const double kB = 8.617332478E-5;
 // Planck's Constant eV*s
 const double hbar = 6.5821192815E-16;
-// Permittivity of free space e**2/eV/m = 8.85418781762E-12 As/Vm
-const double eps0 = 8.85418781762E-12 / 1.602176565E-19;
 
 // length conversions
 // votca xtp-uses for any conversions the following scheme unitA2unitB
@@ -51,13 +47,6 @@ const double ang2nm = 0.1;
 
 const double hrt2ev = 27.21138602;
 const double ev2hrt = 1.0 / 27.21138602;
-// ewald internal to eV conversion
-const double int2eV =
-    1 / (4 * Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-const double int2V_m =
-    1 / (4 * Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-18;
-const double int2V =
-    1 / (4 * Pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
 
 // 1 eV = 96.485 Kj/mol
 const double ev2kj_per_mol = 96.485;

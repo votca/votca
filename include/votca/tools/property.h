@@ -86,6 +86,17 @@ class Property {
   const Property &get(const std::string &key) const;
 
   /**
+   * \brief adds new or gets existing property
+   * @param key identifier
+   * @return Reference to property object
+   *
+   * This function tries to find a property specified by key separated
+   * by "." to step down hierarchy. If the property is not
+   * found a property with that name is added and returned.
+   */
+  Property &getOradd(const std::string &key);
+
+  /**
    * \brief check whether property exists
    * @param key identifier
    * @return true or false
@@ -147,7 +158,7 @@ class Property {
    * \brief does the property has childs?
    * \return true or false
    */
-  bool HasChilds() const { return !_map.empty(); }
+  bool HasChildren() const { return !_map.empty(); }
 
   /// iterator to iterate over properties
   typedef std::vector<Property>::iterator iterator;
@@ -224,8 +235,8 @@ class Property {
   std::map<std::string, std::string> _attributes;
   std::vector<Property> _properties;
 
-  std::string _name;
-  std::string _value;
+  std::string _name = "";
+  std::string _value = "";
   std::string _path = "";
 
   static const int IOindex;

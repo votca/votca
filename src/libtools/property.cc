@@ -51,7 +51,8 @@ const Property &Property::get(const string &key) const {
     p = this;
   } else {
     iter = _map.find(*n);
-    if (iter == _map.end()) throw runtime_error("property not found: " + key);
+    if (iter == _map.end())
+      throw std::runtime_error("property not found: " + key);
     p = &_properties[((*iter).second)];
   }
   ++n;
@@ -59,8 +60,9 @@ const Property &Property::get(const string &key) const {
     for (; n != tok.end(); ++n) {
       p = &p->get(*n);
     }
-  } catch (string err) {  // catch here to get full key in exception
-    throw runtime_error("property not found: " + key);
+  } catch (std::runtime_error &err) {  // catch here to get full key in
+                                       // exception
+    throw std::runtime_error("property not found: " + key);
   }
 
   return *p;
@@ -68,6 +70,14 @@ const Property &Property::get(const string &key) const {
 
 Property &Property::get(const string &key) {
   return const_cast<Property &>(static_cast<const Property &>(*this).get(key));
+}
+
+Property &Property::getOradd(const std::string &key) {
+  if (exists(key)) {
+    return get(key);
+  } else {
+    return add(key, "");
+  }
 }
 
 std::vector<const Property *> Property::Select(const string &filter) const {
@@ -169,7 +179,7 @@ bool load_property_from_xml(Property &p, string filename) {
 
 void PrintNodeTXT(std::ostream &out, const Property &p, const int start_level,
                   int level = 0, string prefix = "", string offset = "") {
-  if ((p.value() != "") || p.HasChilds()) {
+  if ((p.value() != "") || p.HasChildren()) {
     if (level >= start_level) {
       if ((p.value()).find_first_not_of("\t\n ") != std::string::npos)
         out << offset << prefix << " = " << p.value() << endl;
@@ -227,7 +237,7 @@ void PrintNodeXML(std::ostream &out, const Property &p,
     }
     // print node value if it is not empty
     has_value = ((p.value()).find_first_not_of("\t\n ") != std::string::npos);
-    if (has_value || p.HasChilds()) {
+    if (has_value || p.HasChildren()) {
       out << ">";
     } else {
       out << "/>" << std::endl;
@@ -238,8 +248,8 @@ void PrintNodeXML(std::ostream &out, const Property &p,
     }
 
     // check if we need the end of the line or not
-    if (!has_value && p.HasChilds()) out << std::endl;
-    if (!has_value && !p.HasChilds()) linebreak = false;
+    if (!has_value && p.HasChildren()) out << std::endl;
+    if (!has_value && !p.HasChildren()) linebreak = false;
   }
 
   // continue iteratively through the rest of the nodes
@@ -305,7 +315,7 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
   if (level > start_level) {
     // if this node has children or a value or is not the first, start recursive
     // printing
-    if ((p.value() != "" || p.HasChilds()) && level > -1) {
+    if ((p.value() != "" || p.HasChildren()) && level > -1) {
       string _tex_name = boost::replace_all_copy(p.name(), "_", "\\_");
 
       if (p.hasAttribute("default"))
