@@ -206,23 +206,23 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
       else if (fields[j] == "zu")
         b->Pos().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "xs")
-        b->Pos().x() = stod(*itok) * m(0, 0);
+        b->Pos().x() = stod(*itok) * tools::conv::ang2nm * m(0, 0);
       else if (fields[j] == "ys")
-        b->Pos().y() = stod(*itok) * m(1, 1);
+        b->Pos().y() = stod(*itok) * tools::conv::ang2nm * m(1, 1);
       else if (fields[j] == "zs")
-        b->Pos().z() = stod(*itok) * m(2, 2);
+        b->Pos().z() = stod(*itok) * tools::conv::ang2nm * m(2, 2);
       else if (fields[j] == "vx")
-        b->Vel().x() = stod(*itok);
+        b->Vel().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "vy")
-        b->Vel().y() = stod(*itok);
+        b->Vel().y() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "vz")
-        b->Vel().z() = stod(*itok);
+        b->Vel().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "fx")
-        b->F().x() = stod(*itok);
+        b->F().x() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       else if (fields[j] == "fy")
-        b->F().y() = stod(*itok);
+        b->F().y() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       else if (fields[j] == "fz")
-        b->F().z() = stod(*itok);
+        b->F().z() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       else if ((fields[j] == "type") && _topology) {
         if (!top.BeadTypeExist(*itok)) {
           top.RegisterBeadType(*itok);
