@@ -322,6 +322,7 @@ void QMMM::ReadJobFile(Topology& top) {
   }
 
   Eigen::Matrix<int, 1, 5> found_states = found.colwise().sum();
+  std::cout << std::endl;
   for (int i = 0; i < 5; i++) {
     if (found_states(i) > 0) {
       QMStateType type(static_cast<QMStateType::statetype>(i));

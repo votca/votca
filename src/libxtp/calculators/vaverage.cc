@@ -84,8 +84,9 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
     if (!split.size() || split[0] == "#" || split[0].substr(0, 1) == "#") {
       continue;
     }
-    if (split.size() != 3) {
-      throw std::runtime_error("Row should only contain pairid, rate12,rate21");
+    if (split.size() != 5) {
+      throw std::runtime_error(
+          "Row should only contain pairid,segid1,segid2 ,rate12,rate21");
     }
 
     int id_readin = std::stoi(split[0]);
@@ -94,8 +95,8 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
     }
     id++;
     Rate_Engine::PairRates pair;
-    pair.rate12 = std::stod(split[1]);
-    pair.rate21 = std::stod(split[2]);
+    pair.rate12 = std::stod(split[3]);
+    pair.rate21 = std::stod(split[4]);
     result.push_back(pair);
   }
   return result;

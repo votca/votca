@@ -260,15 +260,16 @@ void KMCCalculator::WriteRatestoFile(std::string filename,
   cout << "Rates are written to " << filename << std::endl;
   fstream ratefs;
   ratefs.open(filename, fstream::out);
-  ratefs << "#SiteID1,SiteID2, ,rate12[1/s],rate21[1/s] at "
+  ratefs << "#PairID,SiteID1,SiteID2, ,rate12[1/s],rate21[1/s] at "
          << _temperature * tools::conv::hrt2ev / tools::conv::kB
          << "K for carrier:" << _carriertype.ToString() << endl;
 
   Rate_Engine rate_engine(_temperature, _field);
   for (const QMPair* pair : nblist) {
     Rate_Engine::PairRates rates = rate_engine.Rate(*pair, _carriertype);
-    ratefs << pair->getId() << " " << rates.rate12 << " " << rates.rate21
-           << "\n";
+    ratefs << pair->getId() << " " << pair->Seg1()->getId() << " "
+           << pair->Seg2()->getId() << " " << rates.rate12 << " "
+           << rates.rate21 << "\n";
   }
   ratefs << std::flush;
   ratefs.close();
