@@ -51,7 +51,7 @@ void Table::Load(string filename) {
 
 void Table::Save(string filename) const {
   ofstream out;
-  out.open(filename.c_str());
+  out.open(filename);
   if (!out) throw runtime_error(string("error, cannot open file ") + filename);
 
   if (_has_comment) {
