@@ -302,10 +302,10 @@ map<string, double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
     if (elements.isMassAssociatedWithElement(mass_atom_bead, 0.01)) {
       beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
     } else {
-      beadElementName = "Bead" + to_string(bead_index_type);
+      beadElementName = "Bead";
       cout << "Unable to associate mass " << mass.at(1)
            << " with element assuming pseudo atom, assigning name "
-           << beadElementName << "." << endl;
+           << "Bead" << to_string(bead_index_type) << " ." << endl;
       ++bead_index_type;
     }
     baseNamesAndMasses[beadElementName] = mass_atom_bead;
