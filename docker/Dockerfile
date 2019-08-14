@@ -81,4 +81,4 @@ RUN if [[ ${CLANG_FORMAT} && ${TRAVIS_BRANCH} != next ]]; then \
       git -C ${PWD}/../$([ ${TRAVIS_REPO_SLUG#*/}  = votca ] || echo ${TRAVIS_REPO_SLUG#*/}) diff --submodule=diff --exit-code; \
     fi
 RUN sudo make install
-WORKDIR ../csg-tutorials
+WORKDIR ../xtp-tutorials
