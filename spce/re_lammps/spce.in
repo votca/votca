@@ -3,7 +3,7 @@
 units		real
 atom_style	atomic
 
-read_data       spce.data
+read_data spce.data
 
 velocity	all create 2.49435 87287
 
