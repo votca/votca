@@ -85,8 +85,8 @@ bool Spectrum::Evaluate() {
         "BSE transition dipoles not stored in QM data file!");
   }
 
-  const Eigen::VectorXd& BSESingletEnergies =
-      orbitals.BSESinglets().eigenvalues();
+  const Eigen::VectorXd BSESingletEnergies =
+      orbitals.BSESinglets().eigenvalues() * tools::conv::hrt2ev;
   const std::vector<Eigen::Vector3d>& TransitionDipoles =
       orbitals.TransitionDipoles();
   Eigen::VectorXd osc = orbitals.Oscillatorstrengths();
@@ -98,10 +98,8 @@ bool Spectrum::Evaluate() {
   int n_exc = _maxexc - _minexc + 1;
   XTP_LOG_SAVE(logDEBUG, _log)
       << " Considering " << n_exc << " excitation with max energy "
-      << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev
-      << " eV / min wave length "
-      << evtonm(BSESingletEnergies[_maxexc - 1] * tools::conv::hrt2ev) << " nm"
-      << std::flush;
+      << BSESingletEnergies(_maxexc) << " eV / min wave length "
+      << evtonm(BSESingletEnergies[_maxexc - 1]) << " nm" << std::flush;
 
   /*
    *
@@ -138,50 +136,36 @@ bool Spectrum::Evaluate() {
   std::ofstream ofs(_output_file, std::ofstream::out);
 
   if (_spectrum_type == "energy") {
-    _fwhm /= tools::conv::hrt2ev;
     ofs << "# E(eV)    epsGaussian    IM(eps)Gaussian   epsLorentz    "
            "Im(esp)Lorentz\n";
     for (int i_pt = 0; i_pt <= _n_pt; i_pt++) {
 
-      double e =
-          (_lower + i_pt * (_upper - _lower) / _n_pt) / tools::conv::hrt2ev;
+      double e = (_lower + i_pt * (_upper - _lower) / _n_pt);
 
       double eps_Gaussian = 0.0;
       double imeps_Gaussian = 0.0;
       double eps_Lorentzian = 0.0;
       double imeps_Lorentzian = 0.0;
-      double eps_TruncLorentzian = 0.0;
-      double imeps_TruncLorentzian = 0.0;
 
       for (int i_exc = _minexc; i_exc <= _maxexc; i_exc++) {
         eps_Gaussian +=
             osc[i_exc] *
-            Gaussian(e,
-                     BSESingletEnergies(i_exc) + _shiftby / tools::conv::hrt2ev,
-                     _fwhm);
+            Gaussian(e, BSESingletEnergies(i_exc) + _shiftby, _fwhm);
         imeps_Gaussian += osc[i_exc] * BSESingletEnergies(i_exc) *
                           Gaussian(e, BSESingletEnergies(i_exc), _fwhm);
         eps_Lorentzian +=
             osc[i_exc] * Lorentzian(e, BSESingletEnergies(i_exc), _fwhm);
         imeps_Lorentzian += osc[i_exc] * BSESingletEnergies(i_exc) *
                             Lorentzian(e, BSESingletEnergies(i_exc), _fwhm);
-        eps_TruncLorentzian +=
-            osc[i_exc] *
-            TruncatedLorentzian(e, BSESingletEnergies(i_exc), _fwhm);
-        imeps_TruncLorentzian +=
-            osc[i_exc] * BSESingletEnergies(i_exc) *
-            TruncatedLorentzian(e, BSESingletEnergies(i_exc), _fwhm);
       }
 
-      ofs << e * tools::conv::hrt2ev << "    " << eps_Gaussian << "   "
-          << imeps_Gaussian << "   " << eps_Lorentzian << "   "
-          << imeps_Lorentzian << "  " << eps_TruncLorentzian << "   "
-          << imeps_TruncLorentzian << std::endl;
+      ofs << e << "    " << eps_Gaussian << "   " << imeps_Gaussian << "   "
+          << eps_Lorentzian << "   " << imeps_Lorentzian << std::endl;
     }
 
     XTP_LOG_SAVE(logDEBUG, _log)
         << " Spectrum in energy range from  " << _lower << " to " << _upper
-        << " eV and with broadening of FWHM " << _fwhm * tools::conv::hrt2ev
+        << " eV and with broadening of FWHM " << _fwhm
         << " eV written to file  " << _output_file << std::flush;
   }
 
@@ -196,27 +180,19 @@ bool Spectrum::Evaluate() {
       double imeps_Gaussian = 0.0;
       double eps_Lorentzian = 0.0;
       double imeps_Lorentzian = 0.0;
-      double eps_TruncLorentzian = 0.0;
-      double imeps_TruncLorentzian = 0.0;
 
       for (int i_exc = _minexc; i_exc <= _maxexc; i_exc++) {
-        double exc_lambda =
-            nmtoev(BSESingletEnergies(i_exc) * tools::conv::hrt2ev + _shiftby);
+        double exc_lambda = nmtoev(BSESingletEnergies(i_exc) + _shiftby);
         eps_Gaussian += osc[i_exc] * Gaussian(lambda, exc_lambda, _fwhm);
         imeps_Gaussian +=
             osc[i_exc] * exc_lambda * Gaussian(lambda, exc_lambda, _fwhm);
         eps_Lorentzian += osc[i_exc] * Lorentzian(lambda, exc_lambda, _fwhm);
         imeps_Lorentzian +=
             osc[i_exc] * exc_lambda * Lorentzian(lambda, exc_lambda, _fwhm);
-        eps_TruncLorentzian +=
-            osc[i_exc] * TruncatedLorentzian(lambda, exc_lambda, _fwhm);
-        imeps_TruncLorentzian += osc[i_exc] * BSESingletEnergies(i_exc) *
-                                 TruncatedLorentzian(lambda, exc_lambda, _fwhm);
       }
 
       ofs << lambda << "    " << eps_Gaussian << "   " << imeps_Gaussian
-          << "   " << eps_Lorentzian << "   " << imeps_Lorentzian << "   "
-          << eps_TruncLorentzian << "   " << imeps_TruncLorentzian << std::endl;
+          << "   " << eps_Lorentzian << "   " << imeps_Lorentzian << std::endl;
     }
     XTP_LOG_SAVE(logDEBUG, _log)
         << " Spectrum in wavelength range from  " << _lower << " to " << _upper
@@ -226,21 +202,6 @@ bool Spectrum::Evaluate() {
 
   ofs.close();
   return true;
-}
-
-double Spectrum::TruncatedLorentzian(double x, double center, double fwhm) {
-
-  double result;
-  double abs_diff = std::abs(x - center);
-  if (abs_diff > 0.5 * fwhm && abs_diff < fwhm) {
-    result = 1.0 / (0.25 * fwhm * fwhm) -
-             1.0 / (pow(abs_diff - fwhm, 2) + 0.25 * fwhm * fwhm);
-  } else if (abs_diff < 0.5 * fwhm) {
-    result = 1.0 / (std::pow(x - center, 2) + 0.25 * fwhm * fwhm);
-  } else {
-    result = 0.0;
-  }
-  return 0.5 * fwhm * result / boost::math::constants::pi<double>();
 }
 
 double Spectrum::Lorentzian(double x, double center, double fwhm) {

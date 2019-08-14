@@ -70,7 +70,6 @@ class Spectrum : public QMTool {
   // lineshape functions
   double Gaussian(double x, double center, double fwhm);
   double Lorentzian(double x, double center, double fwhm);
-  double TruncatedLorentzian(double x, double center, double fwhm);
 };
 
 }  // namespace xtp
