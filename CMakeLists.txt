@@ -93,6 +93,8 @@ endif()
 if(BUILD_XTP)
   add_subdirectory(xtp)
   list(APPEND ENABLED_VOTCA_PACKAGES xtp)
+  add_subdirectory(xtp-tutorials)
+  list(APPEND ENABLED_VOTCA_PACKAGES xtp-tutorials)
 endif()
 
 find_package(Doxygen)
