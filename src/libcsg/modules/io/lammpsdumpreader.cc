@@ -214,11 +214,11 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
       else if (fields[j] == "zu")
         b->Pos().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "xs")
-        b->Pos().x() = stod(*itok) * tools::conv::ang2nm * m(0, 0);
+        b->Pos().x() = stod(*itok) * m(0, 0);  // box is already in nm
       else if (fields[j] == "ys")
-        b->Pos().y() = stod(*itok) * tools::conv::ang2nm * m(1, 1);
+        b->Pos().y() = stod(*itok) * m(1, 1);  // box is already in nm
       else if (fields[j] == "zs")
-        b->Pos().z() = stod(*itok) * tools::conv::ang2nm * m(2, 2);
+        b->Pos().z() = stod(*itok) * m(2, 2);  // box is already in nm
       else if (fields[j] == "vx")
         b->Vel().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "vy")
