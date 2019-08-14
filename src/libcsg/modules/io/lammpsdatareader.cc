@@ -505,7 +505,7 @@ void LAMMPSDataReader::ReadAtoms_(Topology &top) {
 
       double mass = stod(data_["Masses"].at(atomTypeId).at(1));
 
-      if (data_.at("Masses").size() <= atomTypeId) {
+      if (int(data_.at("Masses").size()) <= atomTypeId) {
         string err =
             "The atom block contains an atom of type " + to_string(atomTypeId) +
             " however, the masses are only specified for atoms up to type " +
