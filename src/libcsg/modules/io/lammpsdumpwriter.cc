@@ -38,7 +38,8 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
   fprintf(_out, "ITEM: TIMESTEP\n%i\n", top->getStep());
   fprintf(_out, "ITEM: NUMBER OF ATOMS\n%i\n", (int)top->Beads().size());
   fprintf(_out, "ITEM: BOX BOUNDS pp pp pp\n");
-  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0), box(1, 1), box(2, 2));
+  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0) * conv::nm2ang,
+          box(1, 1) * conv::nm2ang, box(2, 2) * conv::nm2ang);
 
   fprintf(_out, "ITEM: ATOMS id type x y z");
   bool v = top->HasVel();
