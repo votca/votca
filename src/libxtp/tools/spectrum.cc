@@ -65,12 +65,13 @@ bool Spectrum::Evaluate() {
   _log.setPreface(logWARNING, "\n... ...");
   _log.setPreface(logDEBUG, "\n... ...");
 
-  XTP_LOG(logDEBUG, _log) << "Calculating absorption spectrum plot " << _orbfile
-                          << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Calculating absorption spectrum plot " << _orbfile << std::flush;
 
   Orbitals orbitals;
   // load the QM data from serialized orbitals object
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
   // check if orbitals contains singlet energies and transition dipoles
@@ -95,13 +96,12 @@ bool Spectrum::Evaluate() {
   }
 
   int n_exc = _maxexc - _minexc + 1;
-  XTP_LOG(logDEBUG, _log) << " Considering " << n_exc
-                          << " excitation with max energy "
-                          << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev
-                          << " eV / min wave length "
-                          << evtonm(BSESingletEnergies[_maxexc - 1] *
-                                    tools::conv::hrt2ev)
-                          << " nm" << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Considering " << n_exc << " excitation with max energy "
+      << BSESingletEnergies(_maxexc) * tools::conv::hrt2ev
+      << " eV / min wave length "
+      << evtonm(BSESingletEnergies[_maxexc - 1] * tools::conv::hrt2ev) << " nm"
+      << std::flush;
 
   /*
    *
@@ -179,7 +179,7 @@ bool Spectrum::Evaluate() {
           << imeps_TruncLorentzian << std::endl;
     }
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Spectrum in energy range from  " << _lower << " to " << _upper
         << " eV and with broadening of FWHM " << _fwhm * tools::conv::hrt2ev
         << " eV written to file  " << _output_file << std::flush;
@@ -218,7 +218,7 @@ bool Spectrum::Evaluate() {
           << "   " << eps_Lorentzian << "   " << imeps_Lorentzian << "   "
           << eps_TruncLorentzian << "   " << imeps_TruncLorentzian << std::endl;
     }
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Spectrum in wavelength range from  " << _lower << " to " << _upper
         << " nm and with broadening of FWHM " << _fwhm
         << " nm written to file  " << _output_file << std::flush;

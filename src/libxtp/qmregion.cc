@@ -247,8 +247,8 @@ void QMRegion::ApplyQMFieldToPolarSegments(
   overlap.Fill(basis);
   double N_comp = dmat.cwiseProduct(overlap.Matrix()).sum();
   if (std::abs(Ngrid - N_comp) > 0.001) {
-    XTP_LOG(logDEBUG, _log) << "=======================" << std::flush;
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log) << "=======================" << std::flush;
+    XTP_LOG_SAVE(logDEBUG, _log)
         << "WARNING: Calculated Densities at Numerical Grid, Number of "
            "electrons "
         << Ngrid << " is far away from the the real value " << N_comp

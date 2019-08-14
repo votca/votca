@@ -67,11 +67,11 @@ void GenCube::Initialize(tools::Property& options) {
 
 void GenCube::calculateCube() {
 
-  XTP_LOG(logDEBUG, _log) << "Reading serialized QM data from " << _orbfile
-                          << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Reading serialized QM data from " << _orbfile << flush;
 
   Orbitals orbitals;
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
   orbitals.ReadFromCpt(_orbfile);
 
   const QMMolecule& atoms = orbitals.QMAtoms();
@@ -149,8 +149,8 @@ void GenCube::calculateCube() {
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
   dftbs.Load(orbitals.getDFTbasisName());
-  XTP_LOG(logDEBUG, _log) << " Loaded DFT Basis Set "
-                          << orbitals.getDFTbasisName() << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loaded DFT Basis Set " << orbitals.getDFTbasisName() << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
@@ -178,7 +178,7 @@ void GenCube::calculateCube() {
     }
   }
 
-  XTP_LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
   _log.setPreface(logDEBUG, "... ...");
 
   boost::progress_display progress(_xsteps);
@@ -211,7 +211,8 @@ void GenCube::calculateCube() {
   }  // x-component
 
   out.close();
-  XTP_LOG(logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Wrote cube data to " << _output_file << flush;
   return;
 }
 
@@ -239,10 +240,12 @@ void GenCube::subtractCubes() {
 
   // open infiles for reading
   ifstream in1;
-  XTP_LOG(logDEBUG, _log) << " Reading first cube from " << _infile1 << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Reading first cube from " << _infile1 << flush;
   in1.open(_infile1, ios::in);
   ifstream in2;
-  XTP_LOG(logDEBUG, _log) << " Reading second cube from " << _infile2 << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Reading second cube from " << _infile2 << flush;
   in2.open(_infile2, ios::in);
   string s;
 
@@ -423,8 +426,8 @@ void GenCube::subtractCubes() {
   }
 
   out.close();
-  XTP_LOG(logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file
-                          << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Wrote subtracted cube data to " << _output_file << flush;
 }
 
 bool GenCube::Evaluate() {

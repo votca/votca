@@ -102,15 +102,15 @@ bool ExcitonCoupling::Evaluate() {
     Orbitals orbitalsA, orbitalsB, orbitalsAB;
     // load the QM data from serialized orbitals objects
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Loading QM data for molecule A from " << _orbA << std::flush;
     orbitalsA.ReadFromCpt(_orbA);
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Loading QM data for molecule B from " << _orbB << std::flush;
     orbitalsB.ReadFromCpt(_orbB);
 
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << " Loading QM data for dimer AB from " << _orbAB << std::flush;
     orbitalsAB.ReadFromCpt(_orbAB);
 
@@ -128,7 +128,7 @@ bool ExcitonCoupling::Evaluate() {
   }
 
   else if (_classical) {
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << "Calculating electronic coupling using classical transition charges."
         << _orbB << std::flush;
     PolarSegment seg1 = PolarSegment("A", 0);
