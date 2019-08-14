@@ -52,7 +52,6 @@ elif [[ $ENV -eq 4 ]]; then
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON
-  [[ ${TRAVIS_BUILD_STAGE_NAME} != "Deploy" ]] && add_to_docker_opts DOXYGEN_COVERAGE=yes
   add_to_docker_opts CMAKE_BUILD_TYPE=None
   add_to_docker_opts COVERAGE=yes
 elif [[ $ENV -eq 5 ]]; then
