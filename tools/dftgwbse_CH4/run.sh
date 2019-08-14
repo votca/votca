@@ -37,3 +37,8 @@ changeoption output methane.cube gencube.xml
 
 xtp_tools -e gencube -o gencube.xml
 
+cp $VOTCASHARE/xtp/xml/spectrum.xml .
+changeoption upper 25 spectrum.xml
+changeoption lower 9 spectrum.xml
+changeoption points 1000 spectrum.xml
+xtp_tools -e spectrum -o spectrum.xml
