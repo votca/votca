@@ -26,6 +26,7 @@ FIND_PROGRAM(LMP_EXECUTABLE
   NAMES 
   lmp
   lmp_mpi
+  lammps
   PATHS
   ${CYGWIN_INSTALL_PATH}/bin
 )
