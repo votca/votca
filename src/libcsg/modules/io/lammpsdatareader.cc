@@ -279,11 +279,8 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   }
 
   auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
-  // auto baseNamesCount =
-  // determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);
 
   int index = 0;
-
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = stod(mass.at(1));
