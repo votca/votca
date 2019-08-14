@@ -5,8 +5,8 @@
     <!-- name of the interaction -->
     <name>CG-CG</name>
     <!-- specify type of CG pair -->
-    <type1>1</type1>
-    <type2>1</type2>
+    <type1>Bead1</type1>
+    <type2>Bead1</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
     <min>0.00</min>
     <max>0.9</max>
