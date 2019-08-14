@@ -20,6 +20,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
@@ -153,9 +154,8 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
    * element and the atom name is the same.
    **/
   void InitializeAtomAndBeadTypes_();
-  std::map<std::string, double> determineBaseNameAssociatedWithMass_();
-  std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
-      std::map<std::string, double> baseNamesAndMasses);
+  std::map<std::string, std::set<double>>
+      determineBaseNameAssociatedWithMass_();
 };
 }  // namespace csg
 }  // namespace votca

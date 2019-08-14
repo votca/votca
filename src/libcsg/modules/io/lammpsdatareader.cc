@@ -39,13 +39,15 @@ vector<string> TrimCommentsFrom_(vector<string> fields) {
   return tempFields;
 }
 
-string getStringGivenDoubleAndMap_(double value, map<string, double> nameValue,
+string getStringGivenDoubleAndMap_(double value,
+                                   map<string, set<double>> nameValue,
                                    double tolerance) {
 
   for (auto string_value_pair : nameValue) {
-    if (tools::isApproximatelyEqual<double>(value, string_value_pair.second,
-                                            tolerance)) {
-      return string_value_pair.first;
+    for (const double &val : string_value_pair.second) {
+      if (tools::isApproximatelyEqual<double>(value, val, tolerance)) {
+        return string_value_pair.first;
+      }
     }
   }
   throw runtime_error(
@@ -277,7 +279,8 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   }
 
   auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
-  auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);
+  // auto baseNamesCount =
+  // determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);
 
   int index = 0;
 
@@ -292,9 +295,10 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   }
 }
 
-map<string, double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
+map<string, set<double>>
+    LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
   Elements elements;
-  map<string, double> baseNamesAndMasses;
+  map<string, set<double>> baseNamesAndMasses;
   int bead_index_type = 1;
   for (auto mass : data_["Masses"]) {
     double mass_atom_bead = stod(mass.at(1));
@@ -308,27 +312,9 @@ map<string, double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
            << "Bead" << to_string(bead_index_type) << " ." << endl;
       ++bead_index_type;
     }
-    baseNamesAndMasses[beadElementName] = mass_atom_bead;
+    baseNamesAndMasses[beadElementName].insert(mass_atom_bead);
   }
   return baseNamesAndMasses;
-}
-
-map<string, int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
-    map<string, double> baseNamesAndMasses) {
-
-  map<std::string, int> countSameElementOrBead;
-  for (auto mass : data_["Masses"]) {
-    double mass_atom_bead = stod(mass.at(1));
-    auto baseName =
-        getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesAndMasses, 0.01);
-
-    if (countSameElementOrBead.count(baseName) == 0) {
-      countSameElementOrBead[baseName] = 1;
-    } else {
-      countSameElementOrBead[baseName]++;
-    }
-  }
-  return countSameElementOrBead;
 }
 
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
