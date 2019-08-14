@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configurationDescriptor version="100">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
-    <logicalFolder name="f4"
-                   displayName="boltzmann"
-                   projectFiles="true"
-                   kind="ROOT">
+    <logicalFolder name="f4" displayName="boltzmann" projectFiles="true">
       <itemPath>../../src/csg_boltzmann/analysistool.h</itemPath>
       <itemPath>../../src/csg_boltzmann/bondedstatistics.cc</itemPath>
       <itemPath>../../src/csg_boltzmann/bondedstatistics.h</itemPath>
