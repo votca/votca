@@ -59,8 +59,8 @@ void Esp2multipole::Initialize(tools::Property& options) {
         QMFragment<double> reg = QMFragment<double>("Constraint", 0, indices);
         reg.value() = prop->get("charge").as<double>();
         _regionconstraint.push_back(reg);
-        XTP_LOG(logDEBUG, _log) << "Fit constrained by Region" << flush;
-        XTP_LOG(logDEBUG, _log) << reg;
+        XTP_LOG_SAVE(logDEBUG, _log) << "Fit constrained by Region" << flush;
+        XTP_LOG_SAVE(logDEBUG, _log) << reg;
       }
     }
     if (options.exists(key + ".constraints.pairs")) {
@@ -75,7 +75,7 @@ void Esp2multipole::Initialize(tools::Property& options) {
         pair.first = pairvec[0];
         pair.second = pairvec[1];
         _pairconstraint.push_back(pair);
-        XTP_LOG(logDEBUG, _log)
+        XTP_LOG_SAVE(logDEBUG, _log)
             << "Charges " << pair.first << " " << pair.second
             << " constrained to be equal." << flush;
       }
@@ -97,7 +97,7 @@ void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
                                  const StaticSegment& seg) const {
   Eigen::Vector3d classical_dip = seg.CalcDipole();
 
-  XTP_LOG(logDEBUG, _log)
+  XTP_LOG_SAVE(logDEBUG, _log)
       << "El Dipole from fitted charges [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
@@ -105,7 +105,7 @@ void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
              classical_dip.squaredNorm()
       << flush;
   Eigen::Vector3d qm_dip = orbitals.CalcElDipole(_state);
-  XTP_LOG(logDEBUG, _log)
+  XTP_LOG_SAVE(logDEBUG, _log)
       << "El Dipole from exact qm density [e*bohr]:\n\t\t"
       << boost::format(
              " dx = %1$+1.4f dy = %2$+1.4f dz = %3$+1.4f |d|^2 = %4$+1.4f") %
@@ -114,8 +114,8 @@ void Esp2multipole::PrintDipoles(const Orbitals& orbitals,
 }
 
 StaticSegment Esp2multipole::Extractingcharges(const Orbitals& orbitals) const {
-  XTP_LOG(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
-                          << " threads ===== " << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
+                               << " threads ===== " << flush;
   StaticSegment result("result", 0);
   if (_use_mulliken) {
     Mulliken mulliken;

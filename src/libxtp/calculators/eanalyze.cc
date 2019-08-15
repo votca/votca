@@ -277,16 +277,13 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
 
       double C =
           (segi.getSiteEnergy(state) - AVG) * (segj.getSiteEnergy(state) - AVG);
-      tabcorr.set(index, R, C);
+      tabcorr.set(index, R * tools::conv::bohr2nm, C);
       index++;
     }
   }
 
   double MIN = tabcorr.x().minCoeff();
   double MAX = tabcorr.x().maxCoeff();
-  std::string corrfile =
-      "eanalyze.sitecorr.atomic_" + state.ToString() + ".out";
-  tabcorr.Save(corrfile);
 
   // Prepare bins
   int BIN = int((MAX - MIN) / _resolution_space + 0.5) + 1;
@@ -321,7 +318,8 @@ void EAnalyze::SiteCorr(const Topology &top, QMStateType state) const {
 
   std::string filename = "eanalyze.sitecorr_" + state.ToString() + ".out";
   std::string comment =
-      (boost::format("EANALYZE:  SPATIAL SITE-ENERGY CORRELATION[eV] \n # AVG "
+      (boost::format("EANALYZE: DISTANCE[nm] SPATIAL SITE-ENERGY "
+                     "CORRELATION[eV] \n # AVG "
                      "%1$4.7f STD %2$4.7f MIN %3$4.7f MAX %4$4.7f") %
        AVG % STD % MIN % MAX)
           .str();

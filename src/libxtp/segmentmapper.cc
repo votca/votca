@@ -101,7 +101,7 @@ template <class AtomContainer>
 void SegmentMapper<AtomContainer>::ParseFragment(Seginfo& seginfo,
                                                  const tools::Property& frag) {
   tools::Tokenizer tok_map_atoms(
-      frag.get(_mapatom_xml["atoms"]).as<std::string>(), " \t\n");
+      frag.get(_mapatom_xml["atoms"]).template as<std::string>(), " \t\n");
   std::vector<std::string> map_atoms = tok_map_atoms.ToVector();
   tools::Tokenizer tok_md_atoms(frag.get("mdatoms").as<std::string>(), " \t\n");
   std::vector<std::string> md_atoms = tok_md_atoms.ToVector();

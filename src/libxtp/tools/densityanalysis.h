@@ -64,7 +64,8 @@ bool DensityAnalysis::Evaluate() {
   _log.setPreface(logDEBUG, "\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
   Density2Gyration density2gyration(_log);
