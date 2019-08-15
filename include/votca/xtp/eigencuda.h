@@ -110,6 +110,10 @@ class EigenCuda {
   // Deallocate Matrix identifier `id` from the device
   void free_matrix(int id);
 
+  // Shift the pointers of the allocated tensors in the device
+  void shift_pointers_by(const std::vector<int> &pointers,
+                         const std::vector<long int> &shifts);
+
   // Cuda variables
   cublasHandle_t _handle;
   bool _pinned = false;
