@@ -39,22 +39,6 @@ vector<string> TrimCommentsFrom_(vector<string> fields) {
   return tempFields;
 }
 
-string getStringGivenDoubleAndMap_(double value, map<string, double> nameValue,
-                                   double tolerance) {
-
-  for (auto string_value_pair : nameValue) {
-    if (tools::isApproximatelyEqual<double>(value, string_value_pair.second,
-                                            tolerance)) {
-      return string_value_pair.first;
-    }
-  }
-  throw runtime_error(
-      "getStringGivenDoubleAndMap_ function fails. This method "
-      "is meant to be passed a double that is to be matched within a tolerance"
-      " with a double in a map<string,double> and then return the string. It is"
-      " likely that none of the doubles were a close enough match.");
-}
-
 /*****************************************************************************
  * Public Facing Methods                                                     *
  *****************************************************************************/
@@ -276,59 +260,23 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
     throw runtime_error(err);
   }
 
-  auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
-  auto baseNamesCount = determineAtomAndBeadCountBasedOnMass_(baseNamesMasses);
-
   int index = 0;
-
+  Elements elements;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = stod(mass.at(1));
-    int typeindex = stoi(mass.at(0));
-    std::string baseName =
-        getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesMasses, 0.01);
-    atomtypes_[index] = baseName + std::to_string(typeindex);
-    ++index;
-  }
-}
-
-map<string, double> LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
-  Elements elements;
-  map<string, double> baseNamesAndMasses;
-  int bead_index_type = 1;
-  for (auto mass : data_["Masses"]) {
-    double mass_atom_bead = stod(mass.at(1));
-    string beadElementName;
+    string baseName;
     if (elements.isMassAssociatedWithElement(mass_atom_bead, 0.01)) {
-      beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
+      baseName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
     } else {
-      beadElementName = "Bead" + to_string(bead_index_type);
+      baseName = "Bead";
       cout << "Unable to associate mass " << mass.at(1)
            << " with element assuming pseudo atom, assigning name "
-           << beadElementName << "." << endl;
-      ++bead_index_type;
+           << "Bead" << mass.at(0) << " ." << endl;
     }
-    baseNamesAndMasses[beadElementName] = mass_atom_bead;
+    atomtypes_[index] = baseName + mass.at(0);
+    ++index;
   }
-  return baseNamesAndMasses;
-}
-
-map<string, int> LAMMPSDataReader::determineAtomAndBeadCountBasedOnMass_(
-    map<string, double> baseNamesAndMasses) {
-
-  map<std::string, int> countSameElementOrBead;
-  for (auto mass : data_["Masses"]) {
-    double mass_atom_bead = stod(mass.at(1));
-    auto baseName =
-        getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesAndMasses, 0.01);
-
-    if (countSameElementOrBead.count(baseName) == 0) {
-      countSameElementOrBead[baseName] = 1;
-    } else {
-      countSameElementOrBead[baseName]++;
-    }
-  }
-  return countSameElementOrBead;
 }
 
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
