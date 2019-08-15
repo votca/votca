@@ -13,7 +13,6 @@
         </moleculeA>
 
         <moleculeB help="Properties of molecule B">
-
                 <states help="Number of excitons considered" default="5">1</states>
                 <occLevels help="occupied levels for CTstates" default="5">15</occLevels>
                 <unoccLevels help="unoccupied levels for CTstates" default="5">15</unoccLevels>

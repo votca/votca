@@ -34,7 +34,7 @@ void KMCCalculator::ParseCommonOptions(tools::Property& options) {
   std::string key = "options." + Identify();
   _seed = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".seed");
   _numberofcarriers = options.ifExistsReturnElseThrowRuntimeError<int>(
-      key + ".numberofcharges");
+      key + ".numberofcarriers");
   _injection_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
       key + ".injectionpattern");
   _maxrealtime = options.ifExistsReturnElseReturnDefault<double>(

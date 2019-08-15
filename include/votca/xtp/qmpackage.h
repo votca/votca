@@ -134,7 +134,6 @@ class QMPackage {
   std::string _ecp_name;
 
   std::string _shell_file_name;
-  std::string _chk_file_name;
   std::string _scratch_dir;
   bool _is_optimization = false;
 

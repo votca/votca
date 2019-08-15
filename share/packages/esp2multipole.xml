@@ -4,15 +4,15 @@
 <method help="Method to use derive partial charges, CHELPG and Mulliken implented">CHELPG</method>
 <gridsize help="Grid accuracy for numerical integration within CHELPG and GDMA coarse,medium,fine">fine</gridsize>
 
-<constraints>
-	<regions>
+<constraints help="add constrains to fit">
+	<regions help="constrain a region to a certain charge">
 		<region>
-		<indices>0 1 2 3</indices>
-		<charge>0.5</charge>
+		<indices help="atom ids">0 1 2 3</indices>
+		<charge help="value of charge">0.5</charge>
 		</region>
 	</regions>
-	<pairs>
-		<pair>0 1</pair>
+	<pairs help="constrain two charges to same value">
+		<pair help="atom ids">0 1</pair>
 	</pairs>
 </constraints>
 

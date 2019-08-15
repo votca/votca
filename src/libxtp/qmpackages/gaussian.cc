@@ -284,7 +284,6 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
  * relevant keywords, charge, and spin information.
  */
 void Gaussian::WriteHeader(std::ofstream& com_file) {
-  if (_chk_file_name.size()) com_file << "%chk=" << _chk_file_name << endl;
   if (_memory.size()) com_file << "%mem=" << _memory << endl;
 
   int threads = OPENMP::getMaxThreads();
@@ -461,11 +460,6 @@ void Gaussian::CleanUp() {
 
       if (substring == "log") {
         std::string file_name = _run_dir + "/" + _log_file_name;
-        remove(file_name.c_str());
-      }
-
-      if (substring == "chk") {
-        std::string file_name = _run_dir + "/" + _chk_file_name;
         remove(file_name.c_str());
       }
 
@@ -696,7 +690,52 @@ StaticSegment Gaussian::GetCharges() const {
 
 Eigen::Matrix3d Gaussian::GetPolarizability() const {
 
-  return Eigen::Matrix3d::Zero();
+  if (!CheckLogFile()) {
+    throw std::runtime_error("logfile not correctly formatted");
+  }
+  std::string line;
+  ifstream input_file((_run_dir + "/" + _log_file_name));
+  bool has_pol = false;
+
+  std::vector<double> polar_coeff;
+
+  Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+
+    std::string::size_type pol_pos =
+        line.find("Dipole polarizability, Alpha (input orientation)");
+    if (pol_pos != std::string::npos) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting polarizability" << flush;
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      for (int i = 0; i < 6; i++) {
+        getline(input_file, line);
+        tools::Tokenizer tok2(line, " ");
+        std::vector<std::string> values = tok2.ToVector();
+        if (values.size() != 4) {
+          throw std::runtime_error("Polarisation line " + line +
+                                   " cannot be parsed");
+        }
+        std::string value = values[1];
+        boost::replace_first(value, "D", "e");
+        polar_coeff.push_back(std::stod(value));  // xx xy yy zx zy zz
+      }
+      pol << polar_coeff[0], polar_coeff[1], polar_coeff[3], polar_coeff[1],
+          polar_coeff[2], polar_coeff[4], polar_coeff[3], polar_coeff[4],
+          polar_coeff[5];
+
+      has_pol = true;
+    }
+  }
+  if (!has_pol) {
+    throw std::runtime_error("Could not find polarisation in logfile");
+  }
+  return pol;
 }
 
 void Gaussian::GetArchive(std::vector<std::string>& archive, std::string& line,

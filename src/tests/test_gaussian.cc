@@ -27,8 +27,391 @@ BOOST_AUTO_TEST_SUITE(gaussian_test)
 
 BOOST_AUTO_TEST_CASE(polar) {
   std::ofstream polar("polar_gaussian.log");
-
+  polar << " Set GAUSS_MDEF to \"2gb\"." << std::endl;
+  polar << "          MDV=     134217728 using IRadAn=       1." << std::endl;
+  polar << "          Solving linear equations simultaneously, MaxMat=       0."
+        << std::endl;
+  polar << "          There are     3 degrees of freedom in the 1st order "
+           "CPHF.  IDoFFX=0 NUNeed=     3."
+        << std::endl;
+  polar << "      3 vectors produced by pass  0 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 5.14D+00 1.22D+00."
+        << std::endl;
+  polar << " AX will form     3 AO Fock derivatives at one time." << std::endl;
+  polar << "      3 vectors produced by pass  1 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 7.21D-02 1.18D-01."
+        << std::endl;
+  polar << "      3 vectors produced by pass  2 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 7.97D-05 6.02D-03."
+        << std::endl;
+  polar << "      3 vectors produced by pass  3 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 9.00D-08 2.03D-04."
+        << std::endl;
+  polar << "      3 vectors produced by pass  4 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 2.65D-09 2.03D-05."
+        << std::endl;
+  polar << "      3 vectors produced by pass  5 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 1.35D-11 1.46D-06."
+        << std::endl;
+  polar << "      1 vectors produced by pass  6 Test12= 2.00D-15 3.33D-08 "
+           "XBig12= 1.71D-14 4.77D-08."
+        << std::endl;
+  polar << " InvSVY:  IOpt=1 It=  1 EMax= 4.44D-16" << std::endl;
+  polar << " Solved reduced A of dimension    19 with     3 vectors."
+        << std::endl;
+  polar << " FullF1:  Do perturbations      1 to       3." << std::endl;
+  polar << " SCF Polarizability for W=    0.000000:" << std::endl;
+  polar << "                1             2             3 " << std::endl;
+  polar << "      1  0.114169D+02" << std::endl;
+  polar << "      2 -0.270043D-03  0.114172D+02" << std::endl;
+  polar << "      3  0.830290D-04 -0.221681D-03  0.114175D+02" << std::endl;
+  polar << " Isotropic polarizability for W=    0.000000       11.42 Bohr**3."
+        << std::endl;
+  polar << " SCF Static Hyperpolarizability:" << std::endl;
+  polar << " K=  1 block:" << std::endl;
+  polar << "                1 " << std::endl;
+  polar << "      1 -0.285540D+02" << std::endl;
+  polar << " K=  2 block:" << std::endl;
+  polar << "                1             2 " << std::endl;
+  polar << "      1 -0.238877D+01" << std::endl;
+  polar << "      2  0.122480D+02 -0.680382D+01" << std::endl;
+  polar << " K=  3 block:" << std::endl;
+  polar << "                1             2             3 " << std::endl;
+  polar << "      1  0.111937D+02" << std::endl;
+  polar << "      2  0.323093D+01 -0.229864D+02" << std::endl;
+  polar << "      3  0.163031D+02  0.919020D+01  0.117877D+02" << std::endl;
+  polar << " End of Minotr F.D. properties file   721 does not exist."
+        << std::endl;
+  polar << " End of Minotr F.D. properties file   722 does not exist."
+        << std::endl;
+  polar << " End of Minotr F.D. properties file   788 does not exist."
+        << std::endl;
+  polar << " Leave Link 1002 at Fri Aug  9 23:54:14 2019, MaxMem=   134217728 "
+           "cpu:               0.7 elap:               0.8"
+        << std::endl;
+  polar << " (Enter /curc/sw/gaussian/16/g16/l601.exe)" << std::endl;
+  polar
+      << " Copying SCF densities to generalized density rwf, IOpCl= 0 IROHF=0."
+      << std::endl;
+  polar << "" << std::endl;
+  polar << " ******************************************************************"
+           "****"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << "            Population analysis using the SCF density."
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " ******************************************************************"
+           "****"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Alpha  occ. eigenvalues --  -10.14484  -0.71198  -0.40074  "
+           "-0.40071  -0.40071"
+        << std::endl;
+  polar << " Alpha virt. eigenvalues --    0.16282   0.20865   0.20866   "
+           "0.20867   0.72527"
+        << std::endl;
+  polar << " Alpha virt. eigenvalues --    0.72528   0.72529   1.06018   "
+           "1.09140   1.09142"
+        << std::endl;
+  polar << " Alpha virt. eigenvalues --    1.09144   1.71498" << std::endl;
+  polar << "          Condensed to atoms (all electrons):" << std::endl;
+  polar << "               1          2          3          4          5"
+        << std::endl;
+  polar << "     1  H    0.491489   0.365636  -0.024611  -0.024619  -0.024618"
+        << std::endl;
+  polar << "     2  C    0.365636   5.404352   0.365627   0.365623   0.365625"
+        << std::endl;
+  polar << "     3  H   -0.024611   0.365627   0.491522  -0.024623  -0.024625"
+        << std::endl;
+  polar << "     4  H   -0.024619   0.365623  -0.024623   0.491532  -0.024623"
+        << std::endl;
+  polar << "     5  H   -0.024618   0.365625  -0.024625  -0.024623   0.491522"
+        << std::endl;
+  polar << " Mulliken charges with hydrogens summed into heavy atoms:"
+        << std::endl;
+  polar << "               1" << std::endl;
+  polar << "     2  C   -0.000000" << std::endl;
+  polar << " Electronic spatial extent (au):  <R**2>=             35.2117"
+        << std::endl;
+  polar << " Charge=             -0.0000 electrons" << std::endl;
+  polar << " Dipole moment (field-independent basis, Debye):" << std::endl;
+  polar << "    X=             -0.0001    Y=             -0.0000    Z=         "
+           "    -0.0001  Tot=              0.0001"
+        << std::endl;
+  polar << " Quadrupole moment (field-independent basis, Debye-Ang):"
+        << std::endl;
+  polar << "   XX=             -8.2204   YY=             -8.2204   ZZ=         "
+           "    -8.2201"
+        << std::endl;
+  polar << "   XY=             -0.0000   XZ=              0.0002   YZ=         "
+           "    -0.0001"
+        << std::endl;
+  polar << " Traceless Quadrupole moment (field-independent basis, Debye-Ang):"
+        << std::endl;
+  polar << "   XX=             -0.0001   YY=             -0.0001   ZZ=         "
+           "     0.0002"
+        << std::endl;
+  polar << "   XY=             -0.0000   XZ=              0.0002   YZ=         "
+           "    -0.0001"
+        << std::endl;
+  polar << " Octapole moment (field-independent basis, Debye-Ang**2):"
+        << std::endl;
+  polar << "  XXX=             -0.8568  YYY=             -0.2040  ZZZ=         "
+           "     0.3544  XYY=              0.3676"
+        << std::endl;
+  polar << "  XXY=             -0.0716  XXZ=              0.3361  XZZ=         "
+           "     0.4895  YZZ=              0.2759"
+        << std::endl;
+  polar << "  YYZ=             -0.6898  XYZ=              0.0970" << std::endl;
+  polar << " Hexadecapole moment (field-independent basis, Debye-Ang**3):"
+        << std::endl;
+  polar << " XXXX=            -14.1430 YYYY=            -14.3584 ZZZZ=         "
+           "   -14.5865 XXXY=              0.0729"
+        << std::endl;
+  polar << " XXXZ=             -0.1404 YYYX=             -0.1812 YYYZ=         "
+           "    -0.0147 ZZZX=              0.3923"
+        << std::endl;
+  polar << " ZZZY=             -0.0487 XXYY=             -5.1040 XXZZ=         "
+           "    -4.8757 YYZZ=             -4.6606"
+        << std::endl;
+  polar << " XXYZ=              0.0636 YYXZ=             -0.2518 ZZXY=         "
+           "     0.1084"
+        << std::endl;
+  polar << " N-N= 1.347284297650D+01 E-N=-1.194830087342D+02  KE= "
+           "3.987780184382D+01"
+        << std::endl;
+  polar << "  Exact polarizability:  11.417  -0.000  11.417   0.000  -0.000  "
+           "11.417"
+        << std::endl;
+  polar << " Approx polarizability:  12.844  -0.000  12.844   0.000  -0.000  "
+           "12.845"
+        << std::endl;
+  polar << " No NMR shielding tensors so no spin-rotation constants."
+        << std::endl;
+  polar << " Leave Link  601 at Fri Aug  9 23:54:14 2019, MaxMem=   134217728 "
+           "cpu:               0.1 elap:               0.1"
+        << std::endl;
+  polar << " (Enter /curc/sw/gaussian/16/g16/l9999.exe)" << std::endl;
+  polar << "" << std::endl;
+  polar << " ------------------------------------------------------------------"
+           "----"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Electric dipole moment (input orientation):" << std::endl;
+  polar << " (Debye = 10**-18 statcoulomb cm , SI units = C m)" << std::endl;
+  polar << "                  (au)            (Debye)         (10**-30 SI)"
+        << std::endl;
+  polar << "   Tot        0.390098D-04      0.991531D-04      0.330739D-03"
+        << std::endl;
+  polar << "   x         -0.241725D-04     -0.614403D-04     -0.204943D-03"
+        << std::endl;
+  polar << "   y         -0.187198D-04     -0.475810D-04     -0.158713D-03"
+        << std::endl;
+  polar << "   z         -0.242286D-04     -0.615830D-04     -0.205419D-03"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Dipole polarizability, Alpha (input orientation)." << std::endl;
+  polar << " (esu units = cm**3 , SI units = C**2 m**2 J**-1)" << std::endl;
+  polar << " Alpha(0;0):" << std::endl;
+  polar << "               (au)            (10**-24 esu)      (10**-40 SI)"
+        << std::endl;
+  polar << "   iso        0.114172D+02      0.169185D+01      0.188244D+01"
+        << std::endl;
+  polar << "   aniso      0.770584D-03      0.114189D-03      0.127052D-03"
+        << std::endl;
+  polar << "   xx         0.114169D+02      0.169182D+01      0.188240D+01"
+        << std::endl;
+  polar << "   yx        -0.270043D-03     -0.400162D-04     -0.445241D-04"
+        << std::endl;
+  polar << "   yy         0.114172D+02      0.169185D+01      0.188244D+01"
+        << std::endl;
+  polar << "   zx         0.830290D-04      0.123036D-04      0.136896D-04"
+        << std::endl;
+  polar << "   zy        -0.221681D-03     -0.328498D-04     -0.365503D-04"
+        << std::endl;
+  polar << "   zz         0.114175D+02      0.169189D+01      0.188249D+01"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " First dipole hyperpolarizability, Beta (input orientation)."
+        << std::endl;
+  polar << " ||, _|_  parallel and perpendicular components, (z) with respect "
+           "to z axis,"
+        << std::endl;
+  polar << " vector components x,y,z.  Values do not include the 1/n! factor "
+           "of 1/2."
+        << std::endl;
+  polar << " (esu units = statvolt**-1 cm**4 , SI units = C**3 m**3 J**-2)"
+        << std::endl;
+  polar << " Beta(0;0,0):" << std::endl;
+  polar << "               (au)            (10**-30 esu)      (10**-50 SI)"
+        << std::endl;
+  polar << "   || (z)    -0.300405D-02     -0.259527D-04     -0.963209D-05"
+        << std::endl;
+  polar << "   _|_(z)    -0.100135D-02     -0.865090D-05     -0.321070D-05"
+        << std::endl;
+  polar << "   x         -0.861972D-02     -0.744677D-04     -0.276379D-04"
+        << std::endl;
+  polar << "   y         -0.716324D-02     -0.618848D-04     -0.229679D-04"
+        << std::endl;
+  polar << "   z         -0.150203D-01     -0.129763D-03     -0.481604D-04"
+        << std::endl;
+  polar << "   ||         0.374817D-02      0.323813D-04      0.120180D-04"
+        << std::endl;
+  polar << "   xxx       -0.285540D+02     -0.246684D+00     -0.915545D-01"
+        << std::endl;
+  polar << "   xxy       -0.238877D+01     -0.206371D-01     -0.765925D-02"
+        << std::endl;
+  polar << "   yxy        0.122480D+02      0.105813D+00      0.392716D-01"
+        << std::endl;
+  polar << "   yyy       -0.680382D+01     -0.587797D-01     -0.218155D-01"
+        << std::endl;
+  polar << "   xxz        0.111937D+02      0.967050D-01      0.358911D-01"
+        << std::endl;
+  polar << "   yxz        0.323093D+01      0.279128D-01      0.103595D-01"
+        << std::endl;
+  polar << "   yyz       -0.229864D+02     -0.198585D+00     -0.737028D-01"
+        << std::endl;
+  polar << "   zxz        0.163031D+02      0.140846D+00      0.522736D-01"
+        << std::endl;
+  polar << "   zyz        0.919020D+01      0.793961D-01      0.294671D-01"
+        << std::endl;
+  polar << "   zzz        0.117877D+02      0.101837D+00      0.377956D-01"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " ------------------------------------------------------------------"
+           "----"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Dipole orientation:" << std::endl;
+  polar << "     1         -0.38912045          0.77097464         -1.86366599"
+        << std::endl;
+  polar << "     6          0.00000000          0.00000000         -0.00000000"
+        << std::endl;
+  polar << "     1          0.80477824         -1.88022178         -0.19092896"
+        << std::endl;
+  polar << "     1          1.33171252          1.21830236          0.98062434"
+        << std::endl;
+  polar << "     1         -1.74724566         -0.10910912          1.07441313"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Electric dipole moment (dipole orientation):" << std::endl;
+  polar << " (Debye = 10**-18 statcoulomb cm , SI units = C m)" << std::endl;
+  polar << "                  (au)            (Debye)         (10**-30 SI)"
+        << std::endl;
+  polar << "   Tot        0.390098D-04      0.991531D-04      0.330739D-03"
+        << std::endl;
+  polar << "   x          0.000000D+00      0.000000D+00      0.000000D+00"
+        << std::endl;
+  polar << "   y          0.000000D+00      0.000000D+00      0.000000D+00"
+        << std::endl;
+  polar << "   z          0.390098D-04      0.991531D-04      0.330739D-03"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Dipole polarizability, Alpha (dipole orientation)." << std::endl;
+  polar << " (esu units = cm**3 , SI units = C**2 m**2 J**-1)" << std::endl;
+  polar << " Alpha(0;0):" << std::endl;
+  polar << "               (au)            (10**-24 esu)      (10**-40 SI)"
+        << std::endl;
+  polar << "   iso        0.114172D+02      0.169185D+01      0.188244D+01"
+        << std::endl;
+  polar << "   aniso      0.770584D-03      0.114189D-03      0.127052D-03"
+        << std::endl;
+  polar << "   xx         0.114171D+02      0.169184D+01      0.188243D+01"
+        << std::endl;
+  polar << "   yx        -0.108358D-04     -0.160570D-05     -0.178658D-05"
+        << std::endl;
+  polar << "   yy         0.114175D+02      0.169190D+01      0.188249D+01"
+        << std::endl;
+  polar << "   zx         0.191662D-03      0.284014D-04      0.316009D-04"
+        << std::endl;
+  polar << "   zy        -0.281776D-03     -0.417548D-04     -0.464585D-04"
+        << std::endl;
+  polar << "   zz         0.114170D+02      0.169182D+01      0.188240D+01"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " First dipole hyperpolarizability, Beta (dipole orientation)."
+        << std::endl;
+  polar << " ||, _|_  parallel and perpendicular components, (z) with respect "
+           "to z axis,"
+        << std::endl;
+  polar << " vector components x,y,z.  Values do not include the 1/n! factor "
+           "of 1/2."
+        << std::endl;
+  polar << " (esu units = statvolt**-1 cm**4 , SI units = C**3 m**3 J**-2)"
+        << std::endl;
+  polar << " Beta(0;0,0):" << std::endl;
+  polar << "               (au)            (10**-30 esu)      (10**-50 SI)"
+        << std::endl;
+  polar << "   || (z)     0.362152D-02      0.312872D-04      0.116119D-04"
+        << std::endl;
+  polar << "   _|_(z)     0.120717D-02      0.104291D-04      0.387064D-05"
+        << std::endl;
+  polar << "   x          0.404320D-02      0.349301D-04      0.129639D-04"
+        << std::endl;
+  polar << "   y         -0.264327D-02     -0.228358D-04     -0.847526D-05"
+        << std::endl;
+  polar << "   z          0.181076D-01      0.156436D-03      0.580596D-04"
+        << std::endl;
+  polar << "   ||         0.374817D-02      0.323813D-04      0.120180D-04"
+        << std::endl;
+  polar << "   xxx       -0.103540D+02     -0.894502D-01     -0.331986D-01"
+        << std::endl;
+  polar << "   xxy        0.299662D+01      0.258885D-01      0.960826D-02"
+        << std::endl;
+  polar << "   yxy        0.188452D+02      0.162808D+00      0.604244D-01"
+        << std::endl;
+  polar << "   yyy       -0.180699D+02     -0.156110D+00     -0.579386D-01"
+        << std::endl;
+  polar << "   xxz        0.190252D+02      0.164363D+00      0.610018D-01"
+        << std::endl;
+  polar << "   yxz        0.109034D+02      0.941973D-01      0.349604D-01"
+        << std::endl;
+  polar << "   yyz       -0.129760D+01     -0.112102D-01     -0.416056D-02"
+        << std::endl;
+  polar << "   zxz       -0.848985D+01     -0.733457D-01     -0.272215D-01"
+        << std::endl;
+  polar << "   zyz        0.150724D+02      0.130214D+00      0.483276D-01"
+        << std::endl;
+  polar << "   zzz       -0.177216D+02     -0.153101D+00     -0.568218D-01"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " ------------------------------------------------------------------"
+           "----"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Test job not archived." << std::endl;
+  polar << " 1\\1\\GINC-SHAS0345\\SP\\RPBE1PBE\\3-21G\\C1H4\\JOBR9774\\09-Aug-"
+           "2019\\0\\\\#p po"
+        << std::endl;
+  polar << " lar PBE1PBE/3-21g punch=mo nosymm test\\\\CH4_chelpg "
+           "PBE0\\\\0,1\\H,0,0.528"
+        << std::endl;
+  polar << " 8,0.161,0.9359\\C,0,0.,0.,0.\\H,0,0.2051,0.824,-0.6786\\H,0,0."
+           "3345,-0.931"
+        << std::endl;
+  polar << " 4,-0.4496\\H,0,-1.0685,-0.0537,0.1921\\\\Version=ES64L-G16RevA."
+           "03\\HF=-40."
+        << std::endl;
+  polar << " 2407948\\RMSD=2.129e-09\\Dipole=-0.0000242,-0.0000187,-0."
+           "0000242\\Polar=1"
+        << std::endl;
+  polar << " 1.416942,-0.00027,11.4171738,0.000083,-0.0002217,11."
+           "4174661\\HyperPolar"
+        << std::endl;
+  polar << " =-28.5540132,-2.3887674,12.2480366,-6.8038165,11.1937143,3."
+           "2309343,-22"
+        << std::endl;
+  polar << " .9864197,16.3031034,9.1901961,11.7876986\\Quadrupole=-0.0000506,-"
+           "0.0001"
+        << std::endl;
+  polar << " 1,0.0001606,-0.0000309,0.000121,-0.0000456\\PG=C01 [X(C1H4)]\\\\@"
+        << std::endl;
+  polar << "" << std::endl;
+  polar << " Normal termination of Gaussian 16 at Fri Aug  9 23:54:15 2019."
+        << std::endl;
   polar.close();
+
   QMPackageFactory::RegisterAll();
   std::unique_ptr<QMPackage> gaussian =
       std::unique_ptr<QMPackage>(QMPackages().Create("gaussian"));
@@ -39,6 +422,22 @@ BOOST_AUTO_TEST_CASE(polar) {
   Eigen::Matrix3d polar_mat = gaussian->GetPolarizability();
 
   Eigen::Matrix3d polar_ref = Eigen::Matrix3d::Zero();
+
+  polar << "   xx         0.114169D+02      0.169182D+01      0.188240D+01"
+        << std::endl;
+  polar << "   yx        -0.270043D-03     -0.400162D-04     -0.445241D-04"
+        << std::endl;
+  polar << "   yy         0.114172D+02      0.169185D+01      0.188244D+01"
+        << std::endl;
+  polar << "   zx         0.830290D-04      0.123036D-04      0.136896D-04"
+        << std::endl;
+  polar << "   zy        -0.221681D-03     -0.328498D-04     -0.365503D-04"
+        << std::endl;
+  polar << "   zz         0.114175D+02      0.169189D+01      0.188249D+01"
+        << std::endl;
+
+  polar_ref << 0.114169e+02, -0.270043e-03, 0.830290e-04, -0.270043e-03,
+      0.114172e+02, -0.221681e-03, 0.830290e-04, -0.221681e-03, 0.114175e+02;
 
   bool polar_check = polar_ref.isApprox(polar_mat, 1e-5);
   if (!polar_check) {
