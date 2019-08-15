@@ -35,7 +35,7 @@ For some more expensive parts the parameters are calculated only for one pair.
 You find exactly the same system in **KMC_Thiophene** with all data calculated. Here you can run kmc simulations. 
 You find a `run.sh` in this folder as well to run kmc simulation.
 
-In the **LAMMPS** folders you will find a folder **plotting_scripts" you can run `.gp` files using `gnuplot`.
+In the **LAMMPS** folders you will find a folder **plotting_scripts** you can run `.gp` files using `gnuplot`.
 The `.py` scripts have a `-h` option, which tells you what they do.
 
 
