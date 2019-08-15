@@ -53,7 +53,7 @@ elif [[ $ENV -eq 4 ]]; then
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON
-  add_to_docker_opts CMAKE_BUILD_TYPE=None
+  add_to_docker_opts CMAKE_BUILD_TYPE=Release
   add_to_docker_opts COVERAGE=yes
 elif [[ $ENV -eq 5 ]]; then
   # Coverage build on Ubuntu, Fedora has issues, see #67
