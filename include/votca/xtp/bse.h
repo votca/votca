@@ -28,7 +28,7 @@
 
 namespace votca {
 namespace xtp {
-class BSE_Population;
+struct BSE_Population;
 template <int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR;
 typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
