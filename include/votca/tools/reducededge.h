@@ -128,8 +128,7 @@ class ReducedEdge : public Edge {
    * Edge ed6(vector<int>{ 1, 2, 5, 4});
    * assert(ed5<ed6); // will return true;
    **/
-  
-  
+
   bool operator<(const ReducedEdge& edge) const;
   bool operator>(const ReducedEdge& edge) const;
   bool operator<=(const ReducedEdge& edge) const;
