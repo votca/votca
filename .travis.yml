@@ -19,8 +19,8 @@ stages:
 
 jobs:
   include:
-    - stage: canary
-      env: ENV=3
+#    - stage: canary
+#      env: ENV=3
     - stage: deploy
       if: repo = votca/votca AND type != pull_request
       env: ENV=4
@@ -76,9 +76,8 @@ before_script:
    fi
 
 script:
- - export TESTING=OFF
  - if [[ ! ${SKIP} ]]; then
-     travis_retry docker build "${docker_opts[@]}"
+     travis_retry docker build "${docker_opts[@]}" --build-arg TESTING=OFF
                  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
                  -t votca/votca:latest -t votca/votca:${TRAVIS_BRANCH} ${HOME}/docker/ &&
      rm -rf $HOME/.ccache &&
