@@ -125,11 +125,10 @@ class DavidsonSolver {
         int nvec = new_dim - old_dim;
         AV.conservativeResize(Eigen::NoChange, new_dim);
         AV.block(0, old_dim, size, nvec) = A * V.block(0, old_dim, size, nvec);
+        Eigen::MatrixXd VAV = V.transpose() * AV.block(0, old_dim, size, nvec);
         T.conservativeResize(new_dim, new_dim);
-        T.block(0, old_dim, new_dim, nvec) =
-            V.transpose() * AV.block(0, old_dim, size, nvec);
-        T.block(old_dim, 0, nvec, old_dim) =
-            T.block(0, old_dim, old_dim, nvec).transpose();
+        T.block(0, old_dim, new_dim, nvec) = VAV;
+        T.block(old_dim, 0, nvec, old_dim) = VAV.topRows(old_dim).transpose();
       }
 
       // diagonalize the small subspace
