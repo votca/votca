@@ -278,40 +278,25 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
     throw runtime_error(err);
   }
 
-  auto baseNamesMasses = determineBaseNameAssociatedWithMass_();
-
   int index = 0;
+  int bead_index_type = 1;
+  Elements elements;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = stod(mass.at(1));
-    int typeindex = stoi(mass.at(0));
-    std::string baseName =
-        getStringGivenDoubleAndMap_(mass_atom_bead, baseNamesMasses, 0.01);
-    atomtypes_[index] = baseName + std::to_string(typeindex);
-    ++index;
-  }
-}
-
-map<string, set<double>>
-    LAMMPSDataReader::determineBaseNameAssociatedWithMass_() {
-  Elements elements;
-  map<string, set<double>> baseNamesAndMasses;
-  int bead_index_type = 1;
-  for (auto mass : data_["Masses"]) {
-    double mass_atom_bead = stod(mass.at(1));
-    string beadElementName;
+    string baseName;
     if (elements.isMassAssociatedWithElement(mass_atom_bead, 0.01)) {
-      beadElementName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
+      baseName = elements.getEleShortClosestInMass(mass_atom_bead, 0.01);
     } else {
-      beadElementName = "Bead";
+      baseName = "Bead";
       cout << "Unable to associate mass " << mass.at(1)
            << " with element assuming pseudo atom, assigning name "
            << "Bead" << to_string(bead_index_type) << " ." << endl;
-      ++bead_index_type;
     }
-    baseNamesAndMasses[beadElementName].insert(mass_atom_bead);
+    atomtypes_[index] = baseName + std::to_string(bead_index_type);
+    ++index;
+    ++bead_index_type;
   }
-  return baseNamesAndMasses;
 }
 
 void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {

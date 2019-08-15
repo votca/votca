@@ -154,8 +154,6 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
    * element and the atom name is the same.
    **/
   void InitializeAtomAndBeadTypes_();
-  std::map<std::string, std::set<double>>
-      determineBaseNameAssociatedWithMass_();
 };
 }  // namespace csg
 }  // namespace votca
