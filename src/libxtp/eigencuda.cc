@@ -23,32 +23,18 @@ namespace votca {
 namespace xtp {
 
 /*
- * \return Vector of matrices extract from the columns of the tensor
- */
-template <typename T>
-std::vector<Mat<T>> to_vector(Mat<T> &&tensor, int rows, int cols) {
-  std::vector<Mat<T>> rs;
-  for (unsigned i; i < tensor.cols(); i++) {
-    rs.push_back(Eigen::Map<Mat<T>>(tensor.col(i).data(), rows, cols));
-  }
-  return rs;
-}
-
-/*
- * Stack a vector of matrices as a single matrix, where each column corresponds
+ * Stack a vector of matrices as a single matrix, where each row corresponds
  * to a matrix.
  */
-template <typename T>
-Mat<T> stack(const std::vector<Mat<T>> &tensor) {
+template <typename T> Mat<T> stack(const std::vector<Mat<T>> &tensor) {
 
-  int rows = tensor[0].size();  // size of each matrix
-  int cols = tensor.size();     // number of matrices in tensor
+  int rows = tensor.size();
+  int cols = tensor[0].size(); // size of each matrix
 
-  // row major to save the tensor
   Mat<T> rs = Mat<T>::Zero(rows, cols);
 
-  for (auto i = 0; i < cols; i++) {
-    rs.col(i) = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
+  for (unsigned i = 0; i < tensor.size(); i++) {
+    rs.row(i) = Eigen::Map<const Eigen::Matrix<T, Eigen::Dynamic, 1>>(
         tensor[i].data(), tensor[i].size());
   }
   return rs;
@@ -57,27 +43,24 @@ Mat<T> stack(const std::vector<Mat<T>> &tensor) {
 /*
  * Removed all the allocated arrays from the device
  */
-template <typename T>
-EigenCuda<T>::~EigenCuda() {
+template <typename T> EigenCuda<T>::~EigenCuda() {
   cublasDestroy(_handle);
-  for (auto &p : _allocated) this->gpu_free(p.second);
+  for (auto &p : _allocated)
+    this->gpu_free(p.second);
 }
 
 /*
  * Allocate memory in the device using either pinned or pageable (default)
  * memory
  */
-template <typename T>
-void EigenCuda<T>::gpu_alloc(T **x, std::size_t n) const {
+template <typename T> void EigenCuda<T>::gpu_alloc(T **x, std::size_t n) const {
   (_pinned) ? cudaMallocHost(x, n) : cudaMalloc(x, n);
 }
 
 /*
  * Deallocate memory from the device
  */
-template <typename T>
-void EigenCuda<T>::gpu_free(T *x) const {
-  // Deallocate memory from the device
+template <typename T> void EigenCuda<T>::gpu_free(T *x) const {
   (_pinned) ? cudaFreeHost(x) : cudaFree(x);
 };
 
@@ -85,24 +68,10 @@ void EigenCuda<T>::gpu_free(T *x) const {
  * Release the memory associated with the pointer `id` and removed the pointer
  * from the tracked pointers collection
  */
-template <typename T>
-void EigenCuda<T>::free_matrix(int id) {
+template <typename T> void EigenCuda<T>::free_matrix(int id) {
   // Free Array with id from the device
   gpu_free(_allocated.at(id));
   _allocated.erase(id);
-}
-
-/*
- * Method to shift pointers of the allocated tensor in the device. When
- * iterating the tensor this method is invoked to get the next submatrix from a
- * given tensor
- */
-template <typename T>
-void EigenCuda<T>::shift_pointers_by(const std::vector<int> &pointers,
-                                     const std::vector<long int> &shifts) {
-  for (unsigned i = 0; i < pointers.size(); i++) {
-    _allocated.at(pointers[i]) += static_cast<int>(shifts[i]);
-  }
 }
 
 /*
@@ -137,12 +106,10 @@ int EigenCuda<T>::initialize_Matrix(const Mat<T> &A, bool copy_to_device) {
 
   return id;
 }
-
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices with identifiers id_A and id_B. The result is stored in
  * a Matrix (pointer) with identifier id_C.
- * see: https://docs.nvidia.com/cuda/cublas/index.html#cublas-lt-t-gt-gemm
  */
 template <typename T>
 void EigenCuda<T>::gemm(Shapes sh, std::tuple<int, int, int> ids) {
@@ -179,7 +146,7 @@ void EigenCuda<T>::gemm(Shapes sh, std::tuple<int, int, int> ids) {
  * memory is allocated in the device for both matrices then a third temporal
  * array is allocated in the device that will contain the results. Finally, the
  * memory contains in the temporal result is copy back to the main memory and
- * the resources are free
+ * Free the resources
  */
 template <typename T>
 Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) {
@@ -201,9 +168,9 @@ Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) {
   cudaMemcpy(hC, dC, size_C, cudaMemcpyDeviceToHost);
 
   // Free the result from the device
-  free_matrix(std::get<0>(ids));  // Free A
-  free_matrix(std::get<1>(ids));  // Free B
-  free_matrix(std::get<2>(ids));  // Free C
+  free_matrix(std::get<0>(ids)); // Free A
+  free_matrix(std::get<1>(ids)); // Free B
+  free_matrix(std::get<2>(ids)); // Free C
 
   // create an eigen matrix
   C = Eigen::Map<Mat<T>>(hC, A.rows(), B.cols());
@@ -211,140 +178,130 @@ Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) {
   return C;
 }
 
-/*
- * \brief performs a matrix_1 * tensor * matrix_2 multiplication
- * \return matrix where each column is the result of the matrices
- * multiplication.
- *
- * Initially, it allocates memory and copy the matrices A and C together with
- * the tensor to the device. Also, the function allocates the result tensor Y
- * and a temporal matrix X.
- * This last matrix is not copy into the device because is initial value is not
- * relevant. Subsequently, the method iterates over each submatrix in `tensor`
- * and perform the following operations: X = tensor(i) * C Y(i) = A * X then the
- * final Y is copy back to main memory. This final matrix Y contains in each
- * column the result of the tensor operation. Also, notice that the matrix X is
- * never set to zero after each iteration because the gemm function perform the
- * matrix multiplication: R = alpha M * N + beta R where alpha and beta are two
- * scalar constants set to 1 and 0 respectively. Therefore, X is ALWAYS SET TO
- * ZERO BEFORE THE MATRIX MULTIPLICATION.
- */
-
 template <typename T>
-Mat<T> EigenCuda<T>::triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
-                                           const std::vector<Mat<T>> &tensor) {
+std::vector<Mat<T>>
+EigenCuda<T>::triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
+                                    const std::vector<Mat<T>> &tensor) {
+  // Perform the triple matrix multiplication A * matrix * C, for the vector
+  // of matrices given by tensor
+  std::vector<Mat<T>> rs(tensor.size());
+
   // Copy Matrix A and B to the device
   int id_A = initialize_Matrix(A);
   int id_C = initialize_Matrix(C);
 
-  // Stack tensor into a single matrix
-  Mat<T> super_matrix = eigencuda::stack(tensor);
-
-  // Move tensor to the device
-  int id_super = initialize_Matrix(super_matrix);
-
-  // rows and cols of matrices store in the tensor
-  int mtx_rows = tensor[0].rows();
-  int mtx_cols = tensor[0].cols();
-
-  // Allocate space fo the result Tensor
-  Mat<T> Y = Mat<T>::Zero(mtx_rows * C.cols(), super_matrix.cols());
-  int id_Y = initialize_Matrix(Y, false);
-  T *init_Y = _allocated.at(id_Y);  // pointer to initial location
-
   // allocate space in device for the temporal matrices
+  int size_Y = A.rows() * C.cols() * sizeof(T);
   Mat<T> X = Mat<T>::Zero(A.cols(), C.cols());
+  Mat<T> Y = Mat<T>::Zero(A.rows(), C.cols());
+  Mat<T> matrix = Mat<T>::Zero(A.cols(), C.rows());
+
   int id_X = initialize_Matrix(X, false);
+  int id_Y = initialize_Matrix(Y, false);
+  int id_matrix = initialize_Matrix(matrix, false);
 
   // Iterate over the tensor Using the previous allocated space in the device
-  for (unsigned i = 0; i < tensor.size(); i++) {
+  transform(tensor.begin(), tensor.end(), rs.begin(),
+            [this, id_A, id_C, id_X, id_Y, id_matrix, size_Y, &A, &C, &X,
+             &Y](const Mat<T> &mtx) {
+              assert(A.cols() == mtx.rows());
+              assert(mtx.cols() == C.rows());
 
-    // Compute first matrix multiplication
-    Shapes sh1{mtx_rows, mtx_cols, C.rows(), C.cols(), X.rows()};
-    std::tuple<int, int, int> ids = std::make_tuple(id_super, id_C, id_X);
-    gemm(sh1, ids);
+              // Copy matrix to the device
+              T *d_matrix = _allocated.at(id_matrix);
+              const T *h_mtx = mtx.data();
 
-    // compute the second matrix multiplication
-    Shapes sh2{A.rows(), A.cols(), X.rows(), X.cols(), C.cols()};
-    ids = std::make_tuple(id_A, id_X, id_Y);
-    gemm(sh2, ids);
+              // move temporal matrix to the preallocated space
+              std::size_t size_mtx = mtx.size() * sizeof(T);
+              cudaMemcpy(d_matrix, h_mtx, size_mtx, cudaMemcpyHostToDevice);
 
-    // shift the pointer containing the super_matrix and the result tensor
-    std::vector<int> pointers{id_super, id_Y};
-    std::vector<long int> shifts{mtx_rows * mtx_cols, mtx_rows * C.cols()};
-    shift_pointers_by(pointers, shifts);
-  }
+              // Compute first matrix multiplication
+              Shapes sh1{mtx.rows(), mtx.cols(), C.rows(), C.cols(), X.rows()};
+              std::tuple<int, int, int> ids =
+                  std::make_tuple(id_matrix, id_C, id_X);
+              gemm(sh1, ids);
 
-  // send data back to CPU
-  T *hY = Y.data();
-  size_t size_Y = Y.size() * sizeof(T);
-  cudaMemcpy(hY, init_Y, size_Y, cudaMemcpyDeviceToHost);
-  Y = Eigen::Map<Mat<T>>(hY, Y.rows(), Y.cols());
+              // compute the second matrix multiplication
+              Shapes sh2{A.rows(), A.cols(), X.rows(), X.cols(), Y.rows()};
+              ids = std::make_tuple(id_A, id_X, id_Y);
+              gemm(sh2, ids);
+
+              // send data back to CPU
+              T *hY = Y.data();
+              T *dY = this->_allocated[id_Y];
+              cudaMemcpy(hY, dY, size_Y, cudaMemcpyDeviceToHost);
+              Y = Eigen::Map<Mat<T>>(hY, A.rows(), C.cols());
+
+              return Y;
+            });
 
   // Free all the allocated arrays from the device
-  for (int x : {id_A, id_C, id_X, id_Y, id_super}) {
+  for (int x : {id_A, id_C, id_X, id_Y, id_matrix}) {
     free_matrix(x);
   }
 
-  return Y;  // each column contains the resulting product
+  return rs;
 }
 
 /*
- * \brief Multiply a matrix A by a 3D tensor represented as a vector of
- * matrices. \return a matrix where each column represent the result product.
- * Initially, it allocates memory and copy the matrices A and C together with
- * the tensor to the device. Also, the function allocates the result tensor Y.
- * The method iterates over each submatrix of the tensor computing:
- * Y(i) = tensor(i) * A.
- * Finally, the tensor Y is copy back to the main memory.
+ * Multiply a matrix A by a 3D tensor represented as a vector of matrices.
+ * Each iteration perform the operation mtx * A,  where mtx is the ith component
+ * of the tensor
  */
 template <typename T>
-Mat<T> EigenCuda<T>::right_matrix_tensor(const Mat<T> &A,
-                                         const std::vector<Mat<T>> &tensor) {
+std::vector<Mat<T>>
+EigenCuda<T>::right_matrix_tensor(const Mat<T> &A,
+                                  const std::vector<Mat<T>> &tensor) {
+  // result vector
+  std::vector<Mat<T>> rs(tensor.size());
+
   // Copy Matrix A to the device
   int id_A = initialize_Matrix(A);
 
-  // Stack tensor into a single matrix
-  Mat<T> super_matrix = eigencuda::stack(tensor);
+  // allocate space in device for the temporal matrices
+  int rows = tensor[0].rows(); // rows of the submatrices
+  int size_Y = rows * A.cols() * sizeof(T);
+  Mat<T> Y = Mat<T>::Zero(rows, A.cols());
+  Mat<T> matrix = Mat<T>::Zero(rows, A.rows());
 
-  // Move tensor to the device
-  int id_super = initialize_Matrix(super_matrix);
-
-  // rows and cols of matrices store in the tensor
-  int mtx_rows = tensor[0].rows();
-  int mtx_cols = tensor[0].cols();
-
-  // Allocate space fo the result Tensor
-  Mat<T> Y = Mat<T>::Zero(mtx_rows * A.cols(), super_matrix.cols());
   int id_Y = initialize_Matrix(Y, false);
-  T *init_Y = _allocated.at(id_Y);  // pointer to initial location
+  int id_matrix = initialize_Matrix(matrix, false);
 
   // Iterate over the tensor Using the previous allocated space in the device
-  for (unsigned i = 0; i < tensor.size(); i++) {
+  transform(tensor.begin(), tensor.end(), rs.begin(),
+            [this, id_A, id_Y, id_matrix, size_Y, &A, &Y](const Mat<T> &mtx) {
+              // Check that the matrix has the right dimension
+              assert(mtx.cols() == A.rows());
 
-    // Compute the matrix multiplication
-    Shapes sh1{mtx_rows, mtx_cols, A.rows(), A.cols(), mtx_rows};
-    std::tuple<int, int, int> ids = std::make_tuple(id_super, id_A, id_Y);
-    gemm(sh1, ids);
+              // Copy matrix to the device
+              T *d_matrix = _allocated.at(id_matrix);
+              const T *h_mtx = mtx.data();
 
-    // shift the pointer containing the super_matrix and the result tensor
-    std::vector<int> pointers{id_super, id_Y};
-    std::vector<long int> shifts{mtx_rows * mtx_cols, mtx_rows * A.cols()};
-    shift_pointers_by(pointers, shifts);
-  }
+              // move temporal matrix to the preallocated space
+              std::size_t size_mtx = mtx.size() * sizeof(T);
+              cudaMemcpy(d_matrix, h_mtx, size_mtx, cudaMemcpyHostToDevice);
 
-  // send data back to CPU
-  T *hY = Y.data();
-  size_t size_Y = Y.size() * sizeof(T);
-  cudaMemcpy(hY, init_Y, size_Y, cudaMemcpyDeviceToHost);
-  Y = Eigen::Map<Mat<T>>(hY, Y.rows(), Y.cols());
+              // Compute the matrix multiplication
+              Shapes sh1{mtx.rows(), mtx.cols(), A.rows(), A.cols(), Y.rows()};
+              std::tuple<int, int, int> ids =
+                  std::make_tuple(id_matrix, id_A, id_Y);
+              gemm(sh1, ids);
+
+              // send data back to CPU
+              T *hY = Y.data();
+              T *dY = this->_allocated[id_Y];
+              cudaMemcpy(hY, dY, size_Y, cudaMemcpyDeviceToHost);
+              Y = Eigen::Map<Mat<T>>(hY, mtx.rows(), A.cols());
+
+              return Y;
+            });
 
   // Free all the allocated arrays from the device
-  for (int x : {id_A, id_Y, id_super}) {
+  for (int x : {id_A, id_Y, id_matrix}) {
     free_matrix(x);
   }
 
-  return Y;
+  return rs;
 }
 
 // explicit instantiations
@@ -352,7 +309,5 @@ template class EigenCuda<float>;
 template class EigenCuda<double>;
 template Mat<float> stack<float>(const std::vector<Mat<float>> &);
 template Mat<double> stack<double>(const std::vector<Mat<double>> &);
-template std::vector<Mat<double>> to_vector(Mat<double> &&, int, int);
-template std::vector<Mat<float>> to_vector(Mat<float> &&, int, int);
 }  // namespace xtp
 }  // namespace votca
