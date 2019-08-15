@@ -39,24 +39,6 @@ vector<string> TrimCommentsFrom_(vector<string> fields) {
   return tempFields;
 }
 
-string getStringGivenDoubleAndMap_(double value,
-                                   map<string, set<double>> nameValue,
-                                   double tolerance) {
-
-  for (auto string_value_pair : nameValue) {
-    for (const double &val : string_value_pair.second) {
-      if (tools::isApproximatelyEqual<double>(value, val, tolerance)) {
-        return string_value_pair.first;
-      }
-    }
-  }
-  throw runtime_error(
-      "getStringGivenDoubleAndMap_ function fails. This method "
-      "is meant to be passed a double that is to be matched within a tolerance"
-      " with a double in a map<string,double> and then return the string. It is"
-      " likely that none of the doubles were a close enough match.");
-}
-
 /*****************************************************************************
  * Public Facing Methods                                                     *
  *****************************************************************************/
