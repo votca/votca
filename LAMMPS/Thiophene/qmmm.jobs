@@ -1,0 +1,32 @@
+<jobs>
+	<job>
+		<id>0</id>
+		<tag>vacuum</tag>
+		<input>
+			<regions>
+				<region>
+					<id>1</id>
+					<cutoff>
+						<radius>0.0</radius>
+					</cutoff>
+				</region>
+			</regions>
+		</input>
+		<status>AVAILABLE</status>
+	</job>
+	<job>
+		<id>1</id>
+		<tag>static</tag>
+		<input>
+			<regions>
+				<region>
+					<id>1</id>
+					<cutoff>
+						<radius>2.2</radius>
+					</cutoff>
+				</region>
+			</regions>
+		</input>
+		<status>AVAILABLE</status>
+	</job>
+</jobs>

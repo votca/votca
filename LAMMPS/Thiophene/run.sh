@@ -137,16 +137,9 @@ xtp_run -e ianalyze -o OPTIONFILES/ianalyze.xml -f state.hdf5
 
 #running qmmm 
 
-cp $VOTCASHARE/xtp/xml/qmmm.xml OPTIONFILES/
 cp $VOTCASHARE/xtp/packages/gwbse.xml OPTIONFILES/gwbse_qmmm.xml
 cp $VOTCASHARE/xtp/packages/xtpdft.xml OPTIONFILES/xtpdft_qmmm.xml
-changeoption options_dft OPTIONFILES/xtpdft_qmmm.xml OPTIONFILES/qmmm.xml
-changeoption options_gwbse OPTIONFILES/gwbse_qmmm.xml OPTIONFILES/qmmm.xml
-changeoption options_polar OPTIONFILES/polar.xml OPTIONFILES/qmmm.xml
-xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j "write"
-sed -i "s/AVAILABLE/COMPLETE/g" qmmm_jobs.xml
-sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
-sed -i '0,/COMPLETE/s/COMPLETE/AVAILABLE/' qmmm_jobs.xml
+
 xtp_parallel -e qmmm -o OPTIONFILES/qmmm.xml -f state.hdf5 -j run
 
 # We are not going to read it in
