@@ -20,7 +20,6 @@ def getOscillators(orb):
     energies=getEnergies(orb)
     transdip=[]
     for k in sorted(orb['region_0']['orbitals']['transition_dipoles'].keys(),key=trans_sort):
-        print(k)
         transdip.append(np.array(orb['region_0']['orbitals']['transition_dipoles'][k].value)) 
     d2=[]
     for b in transdip:
