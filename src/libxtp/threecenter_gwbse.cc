@@ -47,11 +47,16 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
+#if defined(USE_GPU)
+  EigenCuda<double> gpu_handle;
+  _matrix = gpu_handle.right_matrix_tensor(matrix, _matrix);
+#else
 #pragma omp parallel for
   for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
     Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
     _matrix[i_occ] = temp;
   }
+#endif
   return;
 }
 
