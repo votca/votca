@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE(constructor) {
             << std::endl;
   jobstream << "			<regions>" << std::endl;
   jobstream << "				<region>" << std::endl;
-  jobstream << "					<id>0</id>" << std::endl;
+  jobstream << "					<id>0</id>"
+            << std::endl;
   jobstream
       << "					<segments>0:n</segments>"
       << std::endl;
