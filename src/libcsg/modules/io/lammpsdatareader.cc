@@ -261,7 +261,6 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   }
 
   int index = 0;
-  int bead_index_type = 1;
   Elements elements;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
@@ -273,11 +272,10 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
       baseName = "Bead";
       cout << "Unable to associate mass " << mass.at(1)
            << " with element assuming pseudo atom, assigning name "
-           << "Bead" << to_string(bead_index_type) << " ." << endl;
+           << "Bead" << mass.at(0) << " ." << endl;
     }
-    atomtypes_[index] = baseName + std::to_string(bead_index_type);
+    atomtypes_[index] = baseName + mass.at(0);
     ++index;
-    ++bead_index_type;
   }
 }
 
