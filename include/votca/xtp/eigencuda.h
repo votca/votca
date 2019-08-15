@@ -123,6 +123,10 @@ class EigenCuda {
 template <typename T>
 Mat<T> stack(const std::vector<Mat<T>> &tensor);
 
+// return Vector of matrices extract from the columns of the tensor
+template <typename T>
+std::vector<Mat<T>> to_vector(Mat<T> &&tensor, int rows, int cols);
+
 }  // namespace xtp
 }  // namespace votca
 
