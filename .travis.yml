@@ -13,8 +13,8 @@ git:
   quiet: true
 
 stages:
-  - canary
-  - test
+  #- canary
+  #- test
   - deploy
 
 jobs:
@@ -25,28 +25,28 @@ jobs:
       if: repo = votca/votca AND type != pull_request
       env: ENV=4
 
-env:
-  matrix:
-    - ENV=1
-    - ENV=2
-    - ENV=3
-    - ENV=4
-    - ENV=5
-    - ENV=6
-    - ENV=7
-    - ENV=8
-    - ENV=9
-    - ENV=10
-    - ENV=11
-    - ENV=12
-    - ENV=13
-    - ENV=14
-    - ENV=15
-    - ENV=16
-    - ENV=17
-    - ENV=18
-    - ENV=19
-    - ENV=20
+#env:
+#  matrix:
+#    - ENV=1
+#    - ENV=2
+#    - ENV=3
+#    - ENV=4
+#    - ENV=5
+#    - ENV=6
+#    - ENV=7
+#    - ENV=8
+#    - ENV=9
+#    - ENV=10
+#    - ENV=11
+#    - ENV=12
+#    - ENV=13
+#    - ENV=14
+#    - ENV=15
+#    - ENV=16
+#    - ENV=17
+#    - ENV=18
+#    - ENV=19
+#    - ENV=20
 
 before_script:
  - git checkout -b current_commit
@@ -76,6 +76,7 @@ before_script:
    fi
 
 script:
+ - export TESTING=OFF
  - if [[ ! ${SKIP} ]]; then
      travis_retry docker build "${docker_opts[@]}"
                  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
