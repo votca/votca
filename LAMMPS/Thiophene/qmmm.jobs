@@ -12,22 +12,7 @@
 				</region>
 			</regions>
 		</input>
-		<status>COMPLETE</status>
-		<host>nbwin1568:6525</host>
-		<time>06:00:29</time>
-		<output>
-			<regions>
-				<region Tot_charge="0.000000e+00" id="0" size="1" type="qm">
-					<E_total>-954.231777</E_total>
-					<Initial_State>s1</Initial_State>
-					<Final_State>s1</Final_State>
-				</region>
-				<region Tot_charge="0.000000e+00" id="1" size="0" type="static"/>
-			</regions>
-			<E_tot>-954.231777</E_tot>
-			<Compute_Time>13</Compute_Time>
-			<Total_Charge>0.000000</Total_Charge>
-		</output>
+		<status>AVAILABLE</status>
 	</job>
 	<job>
 		<id>1</id>
@@ -42,21 +27,6 @@
 				</region>
 			</regions>
 		</input>
-		<status>COMPLETE</status>
-		<host>nbwin1568:6525</host>
-		<time>06:00:45</time>
-		<output>
-			<regions>
-				<region Tot_charge="0.000000e+00" id="0" size="1" type="qm">
-					<E_total>-953.910542</E_total>
-					<Initial_State>s1</Initial_State>
-					<Final_State>s1</Final_State>
-				</region>
-				<region Tot_charge="-7.266410e-14" id="1" size="328" type="static"/>
-			</regions>
-			<E_tot>-953.910542</E_tot>
-			<Compute_Time>15</Compute_Time>
-			<Total_Charge>-0.000000</Total_Charge>
-		</output>
+		<status>AVAILABLE</status>
 	</job>
 </jobs>
