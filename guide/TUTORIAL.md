@@ -21,19 +21,22 @@ At the moment we are also working on a manual:
 
 ### The tutorial is organised as follows:
 
-The folder **Methane** contains **GROMACS** molecular dynamics data and a mapping file `system.xml`
+The folder **GROMACS** contains **Methane** molecular dynamics data and a mapping file `system.xml`
 using the `run.sh` script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
 You find exactly the same system in **KMC_Methane** with all data calculated. Here you can run kmc simulations. 
 You find a `run.sh` in this folder as well to run kmc simulation.
 
-The folder **Thiophene** contains **LAMMPS** molecular dynamics data and a mapping file `system.xml`
+The folder **LAMMPS** contains **Thiophene** molecular dynamics data and a mapping file `system.xml`
 using the `run.sh` script you can calculate all data necessary to run kmc simulations.
 For some more expensive parts the parameters are calculated only for one pair.
 
 You find exactly the same system in **KMC_Thiophene** with all data calculated. Here you can run kmc simulations. 
 You find a `run.sh` in this folder as well to run kmc simulation.
+
+In the **LAMMPS** folders you will find a folder **plotting_scripts" you can run `.gp` files using `gnuplot`.
+The `.py` scripts have a `-h` option, which tells you what they do.
 
 
 In the folder **tools** are programs which are independent of state files:

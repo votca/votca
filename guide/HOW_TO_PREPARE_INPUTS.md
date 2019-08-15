@@ -17,16 +17,16 @@ For molecules with long side chains it may be better to cut these off. Just remo
 Choose either **ORCA**, **GAUSSIAN** or **NWCHEM** as your qmpackage.
 
 Optimise this geometry for groundstate electron/hole/singlet/triplet depending on what you want to do later.
-You can find input files for **ORCA** in the subfolders of [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/Thiophene/QC_FILES).
-You can find input files for **GAUSSIAN** in [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/Methane/QC_FILES).
+You can find input files for **ORCA** in the subfolders of [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/LAMMPS/Thiophene/QC_FILES).
+You can find input files for **GAUSSIAN** in [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/GROMACS/Methane/QC_FILES).
 
 Add the filepaths of the `.xyz` files to the mapping file.
 
 ## MPS FILES
 
 Use the optimised geometries to calculate CHELPG charges and polarizabilities for groundstate electron/hole/singlet/triplet states.
-You can find input files for **ORCA** in [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/Thiophene/MP_FILES).
-You can find input files for **GAUSSIAN** in [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/Methane/QC_FILES).
+You can find input files for **ORCA** in [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/LAMMPS/Thiophene/MP_FILES).
+You can find input files for **GAUSSIAN** in [here](https://github.com/votca/xtp-tutorials/tree/electrostatics/GROMACS/Methane/QC_FILES).
 
 Use `xtp_tools -e log2mps` to create `.mps` files from the chelpg qmpackage output for each state.
 
