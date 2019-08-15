@@ -26,10 +26,11 @@ namespace xtp {
  * Stack a vector of matrices as a single matrix, where each row corresponds
  * to a matrix.
  */
-template <typename T> Mat<T> stack(const std::vector<Mat<T>> &tensor) {
+template <typename T>
+Mat<T> stack(const std::vector<Mat<T>> &tensor) {
 
   int rows = tensor.size();
-  int cols = tensor[0].size(); // size of each matrix
+  int cols = tensor[0].size();  // size of each matrix
 
   Mat<T> rs = Mat<T>::Zero(rows, cols);
 
@@ -43,24 +44,26 @@ template <typename T> Mat<T> stack(const std::vector<Mat<T>> &tensor) {
 /*
  * Removed all the allocated arrays from the device
  */
-template <typename T> EigenCuda<T>::~EigenCuda() {
+template <typename T>
+EigenCuda<T>::~EigenCuda() {
   cublasDestroy(_handle);
-  for (auto &p : _allocated)
-    this->gpu_free(p.second);
+  for (auto &p : _allocated) this->gpu_free(p.second);
 }
 
 /*
  * Allocate memory in the device using either pinned or pageable (default)
  * memory
  */
-template <typename T> void EigenCuda<T>::gpu_alloc(T **x, std::size_t n) const {
+template <typename T>
+void EigenCuda<T>::gpu_alloc(T **x, std::size_t n) const {
   (_pinned) ? cudaMallocHost(x, n) : cudaMalloc(x, n);
 }
 
 /*
  * Deallocate memory from the device
  */
-template <typename T> void EigenCuda<T>::gpu_free(T *x) const {
+template <typename T>
+void EigenCuda<T>::gpu_free(T *x) const {
   (_pinned) ? cudaFreeHost(x) : cudaFree(x);
 };
 
@@ -68,7 +71,8 @@ template <typename T> void EigenCuda<T>::gpu_free(T *x) const {
  * Release the memory associated with the pointer `id` and removed the pointer
  * from the tracked pointers collection
  */
-template <typename T> void EigenCuda<T>::free_matrix(int id) {
+template <typename T>
+void EigenCuda<T>::free_matrix(int id) {
   // Free Array with id from the device
   gpu_free(_allocated.at(id));
   _allocated.erase(id);
@@ -168,9 +172,9 @@ Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) {
   cudaMemcpy(hC, dC, size_C, cudaMemcpyDeviceToHost);
 
   // Free the result from the device
-  free_matrix(std::get<0>(ids)); // Free A
-  free_matrix(std::get<1>(ids)); // Free B
-  free_matrix(std::get<2>(ids)); // Free C
+  free_matrix(std::get<0>(ids));  // Free A
+  free_matrix(std::get<1>(ids));  // Free B
+  free_matrix(std::get<2>(ids));  // Free C
 
   // create an eigen matrix
   C = Eigen::Map<Mat<T>>(hC, A.rows(), B.cols());
@@ -179,9 +183,8 @@ Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) {
 }
 
 template <typename T>
-std::vector<Mat<T>>
-EigenCuda<T>::triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
-                                    const std::vector<Mat<T>> &tensor) {
+std::vector<Mat<T>> EigenCuda<T>::triple_tensor_product(
+    const Mat<T> &A, const Mat<T> &C, const std::vector<Mat<T>> &tensor) {
   // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
   std::vector<Mat<T>> rs(tensor.size());
@@ -249,9 +252,8 @@ EigenCuda<T>::triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
  * of the tensor
  */
 template <typename T>
-std::vector<Mat<T>>
-EigenCuda<T>::right_matrix_tensor(const Mat<T> &A,
-                                  const std::vector<Mat<T>> &tensor) {
+std::vector<Mat<T>> EigenCuda<T>::right_matrix_tensor(
+    const Mat<T> &A, const std::vector<Mat<T>> &tensor) {
   // result vector
   std::vector<Mat<T>> rs(tensor.size());
 
@@ -259,7 +261,7 @@ EigenCuda<T>::right_matrix_tensor(const Mat<T> &A,
   int id_A = initialize_Matrix(A);
 
   // allocate space in device for the temporal matrices
-  int rows = tensor[0].rows(); // rows of the submatrices
+  int rows = tensor[0].rows();  // rows of the submatrices
   int size_Y = rows * A.cols() * sizeof(T);
   Mat<T> Y = Mat<T>::Zero(rows, A.cols());
   Mat<T> matrix = Mat<T>::Zero(rows, A.rows());
