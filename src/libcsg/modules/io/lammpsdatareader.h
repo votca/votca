@@ -20,7 +20,6 @@
 
 #include <fstream>
 #include <iostream>
-#include <set>
 #include <string>
 #include <votca/csg/topologyreader.h>
 #include <votca/csg/trajectoryreader.h>
