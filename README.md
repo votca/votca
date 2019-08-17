@@ -26,4 +26,5 @@ For further details see:
 1. [Installation](share/doc/INSTALL.md)
 2. [Further Information](http://www.votca.org)
 3. [Developers Guide](share/doc/DEVELOPERS_GUIDE.md)
-4. [Code of Conduct](share/doc/CODE_OF_CONDUCT.md)
+4. [VOTCA_LANGUAGE_GUIDE](share/doc/VOTCA_LANGUAGE_GUIDE.md)
+5. [Code of Conduct](share/doc/CODE_OF_CONDUCT.md)
