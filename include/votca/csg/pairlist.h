@@ -30,6 +30,7 @@ class PairList {
   PairList() {}
   virtual ~PairList() { Cleanup(); }
 
+  // this method takes ownership of p
   void AddPair(pair_type *p);
 
   typedef typename std::vector<pair_type *>::iterator iterator;
@@ -64,6 +65,7 @@ class PairList {
   std::map<element_type, std::map<element_type, pair_type *>> _pair_map;
 };
 
+// this method takes ownership of p
 template <typename element_type, typename pair_type>
 inline void PairList<element_type, pair_type>::AddPair(pair_type *p) {
   /// \todo be careful, same pair object is used, some values might change (e.g.
@@ -88,12 +90,11 @@ inline pair_type *PairList<element_type, pair_type>::FindPair(element_type e1,
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter1;
   iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end()) return NULL;
+  if (iter1 == _pair_map.end()) return nullptr;
 
-  // typename map<element_type, pair_type *>::iterator iter2;
   typename partners::iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end()) return NULL;
+  if (iter2 == iter1->second.end()) return nullptr;
 
   return iter2->second;
 }
@@ -104,11 +105,11 @@ inline const pair_type *PairList<element_type, pair_type>::FindPair(
   typename std::map<element_type,
                     std::map<element_type, pair_type *>>::const_iterator iter1;
   iter1 = _pair_map.find(e1);
-  if (iter1 == _pair_map.end()) return NULL;
+  if (iter1 == _pair_map.end()) return nullptr;
 
   typename partners::const_iterator iter2;
   iter2 = iter1->second.find(e2);
-  if (iter2 == iter1->second.end()) return NULL;
+  if (iter2 == iter1->second.end()) return nullptr;
 
   return iter2->second;
 }
@@ -118,7 +119,7 @@ typename PairList<element_type, pair_type>::partners *
     PairList<element_type, pair_type>::FindPartners(element_type e1) {
   typename std::map<element_type, std::map<element_type, pair_type *>>::iterator
       iter;
-  if ((iter = _pair_map.find(e1)) == _pair_map.end()) return NULL;
+  if ((iter = _pair_map.find(e1)) == _pair_map.end()) return nullptr;
   return &(iter->second);
 }
 

@@ -52,7 +52,7 @@ class PDBWriter : public TrajectoryWriter {
 
   template <class T, class Atom>
   std::string getResname(T &container, Atom &atom) {
-    return container.getName();
+    return container.getType();
   }
   std::string getResname(Topology &conf, Bead *bead);
 
