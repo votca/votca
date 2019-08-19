@@ -156,7 +156,7 @@ void IQM::addLinkers(std::vector<const Segment*>& segments,
   for (const Segment* segment : segmentsInMolecule) {
     int idIterator = segment->getId();
     if (idIterator != seg1->getId() && idIterator != seg2->getId() &&
-        isLinker(segment->getName())) {
+        isLinker(segment->getType())) {
       segments.push_back(segment);
     }
   }
@@ -282,7 +282,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     orbitalsAB.QMAtoms().AddContainer(mapper.map(*(segments[1]), stateB));
 
     for (unsigned i = 2; i < segments.size(); i++) {
-      QMState linker_state = _linkers.at(segments[i]->getName());
+      QMState linker_state = _linkers.at(segments[i]->getType());
       orbitalsAB.QMAtoms().AddContainer(
           mapper.map(*(segments[i]), linker_state));
     }
@@ -595,9 +595,9 @@ void IQM::WriteJobFile(const Topology& top) {
       continue;
     }
     int id1 = pair->Seg1()->getId();
-    std::string name1 = pair->Seg1()->getName();
+    std::string name1 = pair->Seg1()->getType();
     int id2 = pair->Seg2()->getId();
-    std::string name2 = pair->Seg2()->getName();
+    std::string name2 = pair->Seg2()->getType();
     int id = jobCount;
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
@@ -772,8 +772,8 @@ void IQM::ReadJobFile(Topology& top) {
       QMStateType hole = QMStateType(QMStateType::Hole);
       if (dftprop.exists(hole.ToLongString())) {
         tools::Property& holes = dftprop.get(hole.ToLongString());
-        QMState stateA = GetElementFromMap(_hole_levels, segmentA->getName());
-        QMState stateB = GetElementFromMap(_hole_levels, segmentB->getName());
+        QMState stateA = GetElementFromMap(_hole_levels, segmentA->getType());
+        QMState stateB = GetElementFromMap(_hole_levels, segmentB->getType());
         int levelA = homoA - stateA.Index();  // h1 is is homo;
         int levelB = homoB - stateB.Index();
         double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
@@ -786,9 +786,9 @@ void IQM::ReadJobFile(Topology& top) {
       if (dftprop.exists(electron.ToLongString())) {
         tools::Property& electrons = dftprop.get(electron.ToLongString());
         QMState stateA =
-            GetElementFromMap(_electron_levels, segmentA->getName());
+            GetElementFromMap(_electron_levels, segmentA->getType());
         QMState stateB =
-            GetElementFromMap(_electron_levels, segmentB->getName());
+            GetElementFromMap(_electron_levels, segmentB->getType());
         int levelA = homoA + 1 + stateA.Index();  // e1 is lumo;
         int levelB = homoB + 1 + stateB.Index();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
@@ -804,9 +804,9 @@ void IQM::ReadJobFile(Topology& top) {
       if (bseprop.exists(singlet.ToLongString())) {
         tools::Property& singlets = bseprop.get(singlet.ToLongString());
         QMState stateA =
-            GetElementFromMap(_singlet_levels, segmentA->getName());
+            GetElementFromMap(_singlet_levels, segmentA->getType());
         QMState stateB =
-            GetElementFromMap(_singlet_levels, segmentB->getName());
+            GetElementFromMap(_singlet_levels, segmentB->getType());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
         if (J2 >= 0) {
           pair->setJeff2(J2, singlet);
@@ -817,9 +817,9 @@ void IQM::ReadJobFile(Topology& top) {
       if (bseprop.exists(triplet.ToLongString())) {
         tools::Property& triplets = bseprop.get(triplet.ToLongString());
         QMState stateA =
-            GetElementFromMap(_triplet_levels, segmentA->getName());
+            GetElementFromMap(_triplet_levels, segmentA->getType());
         QMState stateB =
-            GetElementFromMap(_triplet_levels, segmentB->getName());
+            GetElementFromMap(_triplet_levels, segmentB->getType());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
         if (J2 >= 0) {
           pair->setJeff2(J2, triplet);

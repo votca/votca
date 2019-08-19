@@ -93,7 +93,7 @@ void EQM::WriteJobFile(const Topology& top) {
     tools::Property& pInput = Input.add("input", "");
     tools::Property& pSegment =
         pInput.add("segment", (format("%1$s") % segment.getId()).str());
-    pSegment.setAttribute<std::string>("type", segment.getName());
+    pSegment.setAttribute<std::string>("type", segment.getType());
     pSegment.setAttribute<int>("id", segment.getId());
     Job job(id, tag, Input, Job::AVAILABLE);
     job.ToStream(ofs);
@@ -162,7 +162,7 @@ Job::JobResult EQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   tools::Property job_summary;
   tools::Property& output_summary = job_summary.add("output", "");
   tools::Property& segment_summary = output_summary.add("segment", "");
-  std::string segName = seg.getName();
+  std::string segName = seg.getType();
   segId = seg.getId();
   segment_summary.setAttribute("id", segId);
   segment_summary.setAttribute("type", segName);

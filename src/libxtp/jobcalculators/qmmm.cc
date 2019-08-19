@@ -237,7 +237,7 @@ void QMMM::WriteJobFile(const Topology& top) {
     for (const QMState& state : _states) {
 
       std::string marker = std::to_string(seg.getId()) + ":" + state.ToString();
-      std::string tag = seg.getName() + "_" + marker;
+      std::string tag = seg.getType() + "_" + marker;
 
       tools::Property Input;
       tools::Property& pInput = Input.add("input", "");

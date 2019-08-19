@@ -102,7 +102,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
   for (Segment& seg : top.Segments()) {
     if (_useConstantCutoff ||
         std::find(_included_segments.begin(), _included_segments.end(),
-                  seg.getName()) != _included_segments.end()) {
+                  seg.getType()) != _included_segments.end()) {
       segs.push_back(&seg);
       seg.getApproxSize();
     }
@@ -146,9 +146,9 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       Segment* seg2 = segs[j];
       if (!_useConstantCutoff) {
         try {
-          cutoff = _cutoffs.at(seg1->getName()).at(seg2->getName());
+          cutoff = _cutoffs.at(seg1->getType()).at(seg2->getType());
         } catch (const std::exception& out_of_range) {
-          std::string pairstring = seg1->getName() + "/" + seg2->getName();
+          std::string pairstring = seg1->getType() + "/" + seg2->getType();
           if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
               skippedpairs.end()) {
 #pragma omp critical
@@ -173,7 +173,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
 
       if (segdistance2 < cutoff2) {
 #pragma omp critical
-        { top.NBList().Add(seg1, seg2, segdistance); }
+        { top.NBList().Add(*seg1, *seg2, segdistance); }
 
       } else if (segdistance2 > (outside * outside)) {
         continue;
@@ -181,7 +181,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
         double R = top.GetShortestDist(*seg1, *seg2);
         if ((R * R) < cutoff2) {
 #pragma omp critical
-          { top.NBList().Add(seg1, seg2, segdistance); }
+          { top.NBList().Add(*seg1, *seg2, segdistance); }
         }
       }
     } /* exit loop seg2 */

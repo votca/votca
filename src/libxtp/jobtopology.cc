@@ -165,7 +165,7 @@ void JobTopology::CreateRegions(
       for (const SegId& seg_index : seg_ids) {
         const Segment& segment = top.getSegment(seg_index.Id());
         QMMolecule mol = qmmapper.map(segment, seg_index);
-        mol.setName("qm" + std::to_string(id));
+        mol.setType("qm" + std::to_string(id));
         ShiftPBC(top, center, mol);
         qmregion->push_back(mol);
       }
@@ -181,7 +181,7 @@ void JobTopology::CreateRegions(
         PolarSegment mol = polmap.map(segment, seg_index);
 
         ShiftPBC(top, center, mol);
-        mol.setName("mm" + std::to_string(id));
+        mol.setType("mm" + std::to_string(id));
         polarregion->push_back(mol);
       }
       region = std::move(polarregion);
@@ -193,7 +193,7 @@ void JobTopology::CreateRegions(
       for (const SegId& seg_index : seg_ids) {
         const Segment& segment = top.getSegment(seg_index.Id());
         StaticSegment mol = staticmap.map(segment, seg_index);
-        mol.setName("mm" + std::to_string(id));
+        mol.setType("mm" + std::to_string(id));
         ShiftPBC(top, center, mol);
         staticregion->push_back(mol);
       }

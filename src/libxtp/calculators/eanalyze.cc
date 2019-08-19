@@ -81,7 +81,7 @@ bool EAnalyze::EvaluateFrame(Topology &top) {
 
   // Short-list segments according to pattern
   for (Segment &seg : top.Segments()) {
-    std::string seg_name = seg.getName();
+    std::string seg_name = seg.getType();
     if (votca::tools::wildcmp(_seg_pattern.c_str(), seg_name.c_str())) {
       _seg_shortlist.push_back(&seg);
     }
@@ -193,7 +193,7 @@ void EAnalyze::SiteHist(QMStateType state) const {
       double E = seg->getSiteEnergy(state);
       for (Atom &atm : *seg) {
         out << boost::format("%1$3s %2$4.7f %3$4.7f %4$4.7f %5$4.7f\n") %
-                   seg->getName() % atm.getPos().x() % atm.getPos().y() %
+                   seg->getType() % atm.getPos().x() % atm.getPos().y() %
                    atm.getPos().z() % E;
       }
     }

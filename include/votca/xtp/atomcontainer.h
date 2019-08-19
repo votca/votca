@@ -39,16 +39,16 @@ namespace xtp {
 template <class T>
 class AtomContainer {
  public:
-  AtomContainer(std::string name, int id) : _name(name), _id(id){};
+  AtomContainer(std::string type, int id) : _type(type), _id(id){};
 
   AtomContainer(CheckpointReader& r) { this->ReadFromCpt(r); }
   virtual ~AtomContainer(){};
 
   typedef typename std::vector<T>::iterator iterator;
 
-  const std::string& getName() const { return _name; }
+  const std::string& getType() const { return _type; }
 
-  void setName(std::string name) { _name = name; }
+  void setType(std::string type) { _type = type; }
 
   int getId() const { return _id; }
 
@@ -64,7 +64,7 @@ class AtomContainer {
   }
 
   void AddContainer(const AtomContainer<T>& container) {
-    _name += "_" + container._name;
+    _type += "_" + container._type;
     _atomlist.insert(_atomlist.end(), container._atomlist.begin(),
                      container._atomlist.end());
     calcPos();
@@ -136,7 +136,7 @@ class AtomContainer {
   }
 
   virtual void WriteToCpt(CheckpointWriter& w) const {
-    w(_name, "name");
+    w(_type, "type");
     w(_id, "id");
     w(int(_atomlist.size()), "size");
     T element(0, "H", Eigen::Vector3d::Zero());
@@ -150,7 +150,7 @@ class AtomContainer {
     table.write(dataVec);
   }
   virtual void ReadFromCpt(CheckpointReader& r) {
-    r(_name, "name");
+    r(_type, "type");
     r(_id, "id");
     int size = 0;
     r(size, "size");
@@ -184,7 +184,7 @@ class AtomContainer {
 
  protected:
   std::vector<T> _atomlist;
-  std::string _name;
+  std::string _type;
   int _id;
 
  private:

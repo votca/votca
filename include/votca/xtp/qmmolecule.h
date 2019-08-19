@@ -38,7 +38,7 @@ class QMMolecule : public AtomContainer<QMAtom> {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMMolecule& container) {
-    out << container.getId() << " " << container.getName() << "\n";
+    out << container.getId() << " " << container.getType() << "\n";
     for (const QMAtom& atom : container) {
       out << atom;
     }

@@ -96,7 +96,7 @@ class Segment : public AtomContainer<Atom> {
   void ReadFromCpt(CheckpointReader& r);
 
   friend std::ostream& operator<<(std::ostream& out, const Segment& container) {
-    out << container.getId() << " " << container.getName() << "\n";
+    out << container.getId() << " " << container.getType() << "\n";
     for (const Atom& atom : container) {
       out << atom;
     }
