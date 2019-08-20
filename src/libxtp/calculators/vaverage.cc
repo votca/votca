@@ -150,7 +150,7 @@ bool VAverage::EvaluateFrame(Topology& top) {
     const Eigen::Vector3d v = velocities[seg.getId()] * tools::conv::bohr2nm;
     ofs << (boost::format("%1$4d %2$-10s %3$+1.7e %4$+1.7e "
                           "%5$+1.7e %6$+1.7e %7$+1.7e %8$+1.7e") %
-            seg.getId() % seg.getName() % r.x() % r.y() % r.z() % v.x() %
+            seg.getId() % seg.getType() % r.x() % r.y() % r.z() % v.x() %
             v.y() % v.z())
         << std::endl;
   }

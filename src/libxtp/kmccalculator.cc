@@ -70,7 +70,7 @@ void KMCCalculator::LoadGraph(Topology& top) {
   _nodes.reserve(segs.size());
   for (Segment& seg : segs) {
     bool injectable = false;
-    if (tools::wildcmp(_injection_name.c_str(), seg.getName().c_str())) {
+    if (tools::wildcmp(_injection_name.c_str(), seg.getType().c_str())) {
       injectable = true;
     }
     _nodes.push_back(GNode(seg, _carriertype, injectable));

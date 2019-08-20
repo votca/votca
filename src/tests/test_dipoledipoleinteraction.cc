@@ -51,7 +51,8 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   Eigen::MatrixXd elementwise = Eigen::MatrixXd::Zero(6, 6);
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 6; j++) {
-      elementwise(i, j) = dipdip(i, j);
+      double value = dipdip(i, j);  // do not remove gcc debug needs this
+      elementwise(i, j) = value;
     }
   }
   bool op_check = elementwise.isApprox(ref, 1e-6);

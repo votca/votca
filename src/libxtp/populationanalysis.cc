@@ -36,7 +36,7 @@ StaticSegment Populationanalysis<T>::CalcChargeperAtom(
   }
 
   StaticSegment seg =
-      StaticSegment(orbitals.QMAtoms().getName(), orbitals.QMAtoms().getId());
+      StaticSegment(orbitals.QMAtoms().getType(), orbitals.QMAtoms().getId());
   for (int i = 0; i < orbitals.QMAtoms().size(); ++i) {
     seg.push_back(StaticSite(orbitals.QMAtoms()[i], charges(i)));
   }

@@ -47,7 +47,7 @@ class ClassicalSegment : public AtomContainer<T> {
   friend std::ostream& operator<<(std::ostream& out,
                                   const ClassicalSegment<T>& container) {
     out << container.getId() << " " << container.identify() << " "
-        << container.getName() << "\n";
+        << container.getType() << "\n";
     for (const T& atom : container) {
       out << atom;
     }

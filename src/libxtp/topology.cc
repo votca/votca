@@ -26,9 +26,6 @@
 #include <votca/csg/pdbwriter.h>
 #include <votca/tools/globals.h>
 
-using namespace std;
-using namespace votca::tools;
-
 namespace votca {
 namespace xtp {
 
@@ -38,8 +35,8 @@ Topology::Topology(const Topology &top) {
   _step = top._step;
   this->setBox(top.getBox());
   for (const QMPair *pair : top._nblist) {
-    const Segment *seg1 = &_segments[pair->Seg1()->getId()];
-    const Segment *seg2 = &_segments[pair->Seg2()->getId()];
+    const Segment &seg1 = _segments[pair->Seg1()->getId()];
+    const Segment &seg2 = _segments[pair->Seg2()->getId()];
     _nblist.Add(seg1, seg2, pair->R());
   }
 }
@@ -52,15 +49,15 @@ Topology &Topology::operator=(const Topology &top) {
     this->setBox(top.getBox());
     _nblist.Cleanup();
     for (const QMPair *pair : top._nblist) {
-      const Segment *seg1 = &_segments[pair->Seg1()->getId()];
-      const Segment *seg2 = &_segments[pair->Seg2()->getId()];
+      const Segment &seg1 = _segments[pair->Seg1()->getId()];
+      const Segment &seg2 = _segments[pair->Seg2()->getId()];
       _nblist.Add(seg1, seg2, pair->R());
     }
   }
   return *this;
 }
 
-Segment &Topology::AddSegment(string segment_name) {
+Segment &Topology::AddSegment(std::string segment_name) {
   int segment_id = _segments.size();
   _segments.push_back(Segment(segment_name, segment_id));
   return _segments.back();
@@ -79,7 +76,7 @@ void Topology::setBox(const Eigen::Matrix3d &box,
 
   if (_bc != nullptr) {
     if (votca::tools::globals::verbose) {
-      cout << "Removing periodic box. Creating new... " << endl;
+      std::cout << "Removing periodic box. Creating new... " << std::endl;
     }
   }
   _bc.reset(nullptr);
@@ -106,9 +103,9 @@ csg::BoundaryCondition::eBoxtype Topology::AutoDetectBoxType(
   // or to TriclinicBox otherwise
 
   if (box.isApproxToConstant(0)) {
-    cout << "WARNING: No box vectors specified in trajectory."
-            "Using open-box boundary conditions. "
-         << endl;
+    std::cout << "WARNING: No box vectors specified in trajectory."
+                 "Using open-box boundary conditions. "
+              << std::endl;
     return csg::BoundaryCondition::typeOpen;
   }
 

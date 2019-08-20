@@ -210,7 +210,7 @@ StaticSegment Espfit::FitPartialCharges(const Orbitals& orbitals,
   // remove constraints from charges
   charges.conservativeResize(atomlist.size());
   StaticSegment seg =
-      StaticSegment(orbitals.QMAtoms().getName(), orbitals.QMAtoms().getId());
+      StaticSegment(orbitals.QMAtoms().getType(), orbitals.QMAtoms().getId());
 
   XTP_LOG_SAVE(logDEBUG, _log)
       << " Sum of fitted charges: " << charges.sum() << flush;

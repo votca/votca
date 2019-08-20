@@ -90,7 +90,7 @@ bool EInternal::EvaluateFrame(Topology &top) {
   int count = 0;
   for (Segment &seg : top.Segments()) {
 
-    std::string segName = seg.getName();
+    std::string segName = seg.getType();
 
     if (!_has_seg.count(segName)) {
       std::cout << std::endl

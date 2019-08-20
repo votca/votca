@@ -34,7 +34,7 @@ class QMNBList : public csg::PairList<const Segment*, QMPair> {
   QMNBList(){};
   ~QMNBList() { csg::PairList<const Segment*, QMPair>::Cleanup(); }
 
-  QMPair& Add(const Segment* seg1, const Segment* seg2,
+  QMPair& Add(const Segment& seg1, const Segment& seg2,
               const Eigen::Vector3d& r);
 
   template <class Compare>

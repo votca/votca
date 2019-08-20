@@ -263,7 +263,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
     }
   }
 
-  StaticSegment seg(_orb.QMAtoms().getName(), _orb.QMAtoms().getId());
+  StaticSegment seg(_orb.QMAtoms().getType(), _orb.QMAtoms().getId());
   for (const QMAtom& atom : _orb.QMAtoms()) {
     seg.push_back(StaticSite(atom, atom.getNuccharge()));
   }
