@@ -222,9 +222,9 @@ std::vector<Mat<T>> EigenCuda<T>::right_matrix_tensor(
   cudaMalloc(&dC, size_batch);
 
   // Copy the arrays of pointers from host to the device
-  cudaMemcpy(dA, hA, size_batch, cudaMemcpyHostToDevice);
-  cudaMemcpy(dB, hB, size_batch, cudaMemcpyHostToDevice);
-  cudaMemcpy(dC, hC, size_batch, cudaMemcpyHostToDevice);
+  cudaMemcpyAsync(dA, hA, size_batch, cudaMemcpyHostToDevice, _stream);
+  cudaMemcpyAsync(dB, hB, size_batch, cudaMemcpyHostToDevice, _stream);
+  cudaMemcpyAsync(dC, hC, size_batch, cudaMemcpyHostToDevice, _stream);
 
   // Call tensor matrix multiplication
   Shapes sh{matrix.rows(), matrix.cols(), B.rows(), B.cols(), matrix.rows()};
@@ -236,7 +236,7 @@ std::vector<Mat<T>> EigenCuda<T>::right_matrix_tensor(
   std::size_t size_out = output.size() * sizeof(T);
 
   // Copy Array of pointers on the device to the host
-  cudaMemcpy(hC, dC, size_batch, cudaMemcpyDeviceToHost);
+  cudaMemcpyAsync(hC, dC, size_batch, cudaMemcpyDeviceToHost, _stream);
 
   // Copy each array back to the device
   for (auto i = 0; i < batchCount; i++) {
