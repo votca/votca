@@ -141,13 +141,7 @@ void EigenCuda<T>::gemmBatched(Shapes sh, const T **dA, const T **dB, T **dC,
 }
 
 /*
- * \brief Multiply a matrix A by a 3D tensor represented as a vector of
- * matrices. \return a matrix where each column represent the result product.
- * Initially, it allocates memory and copy the matrices A and C together with
- * the tensor to the device. Also, the function allocates the result tensor Y.
- * The method iterates over each submatrix of the tensor computing:
- * Y(i) = tensor(i) * A.
- * Finally, the tensor Y is copy back to the main memory.
+ * \brief Matrix-Matrix multiplication in GPU
  */
 template <typename T>
 Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) {
