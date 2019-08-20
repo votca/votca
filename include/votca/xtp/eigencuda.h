@@ -27,25 +27,30 @@
 #include <vector>
 #include <votca/xtp/eigen.h>
 
-/**
+/*
  * \brief Perform matrix-matrix multiplication in a GPU
  *
  * The `EigenCuda` class handles the allocation and deallocation of arrays on
  * the GPU. Firstly, to perform a matrix multiplication, memory must be
  * allocated in the device to contain the involved matrices. The
- * `initialize_matrix` method firstly allocates memory by calling the
+ * `initialize_matrix_mem` method firstly allocates memory by calling the
  * `gpu_alloc` method that allocates either pinned or pageable memory, see:
  * https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/ Then the
- * array could be optionally copy to the device. The `initialize_matrix` method
- * internally store the pointer in the device to the allocated array and returns
- * and identifier that represents such pointer. This identifier/pointer
- * (key/value) mechanism allows to reuse already allocated space in the device
- * by bookkeeping the identifiers representing the memory.
- *
+ * array could be optionally copy to the device.
  */
 
 namespace votca {
 namespace xtp {
+
+inline cudaError_t checkCuda(cudaError_t result) {
+// Check Cuda error
+#if defined(DEBUG) || defined(_DEBUG)
+  if (result != cudaSuccess) {
+    std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << "\n";
+  }
+#endif
+  return result;
+}
 
 // Structure with the sizes to call ?GEMM
 struct Shapes {
@@ -63,17 +68,23 @@ struct Shapes {
         B_cols{static_cast<int>(_b_cols)},
         C_rows{static_cast<int>(_c_rows)} {}
 };
+
 // col Major for CUDA
 template <typename T>
 using Mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
-// Class to manage the GPU resourcess to perform matrix-matrix multiplications
 template <typename T>
 class EigenCuda {
 
  public:
-  EigenCuda() { cublasCreate(&_handle); }
-  EigenCuda(bool pinned) : _pinned{pinned} { cublasCreate(&_handle); }
+  EigenCuda() {
+    cublasCreate(&_handle);
+    _err_stream = cudaStreamCreate(&_stream);
+  }
+  EigenCuda(bool pinned) : _pinned{pinned} {
+    cublasCreate(&_handle);
+    _err_stream = cudaStreamCreate(&_stream);
+  }
 
   // Deallocate both the handler and allocated arrays
   ~EigenCuda();
@@ -102,30 +113,23 @@ class EigenCuda {
   void gpu_free(T *x) const;
 
   // Allocate memory in the device, optionally copying the array to the GPU
-  int initialize_Matrix(const Mat<T> &A, bool copy_to_device = true);
+  T *initialize_matrix_mem(const Mat<T> &A, bool copy_to_device = true);
 
   // Invoke the ?gemm function of cublas
-  void gemm(Shapes shapes, std::tuple<int, int, int> ids);
+  void gemm(Shapes shapes, const T *dA, const T *dB, T *dC);
 
-  // Deallocate Matrix identifier `id` from the device
-  void free_matrix(int id);
-
-  // Shift the pointers of the allocated tensors in the device
-  void shift_pointers_by(const std::vector<int> &pointers,
-                         const std::vector<long int> &shifts);
+  // Invoke the ?gemmStidedBatched function of CuBlas.
+  void gemmBatched(Shapes sh, const T **dA, const T **dB, T **dC,
+                   int batchCount);
 
   // Cuda variables
   cublasHandle_t _handle;
   bool _pinned = false;
 
-  // Allocation booking
-  int _counter = 0;
-  std::unordered_map<int, T *> _allocated;
+  // Asynchronous stream
+  cudaStream_t _stream;
+  cudaError_t _err_stream;
 };
-
-// Stack a vector of matrices as a matrix where is row contains a matrix
-template <typename T>
-Mat<T> stack(const std::vector<Mat<T>> &tensor);
 
 }  // namespace xtp
 }  // namespace votca
