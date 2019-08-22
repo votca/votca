@@ -19,7 +19,7 @@ include(GNUInstallDirs)
 option(BUILD_CSGAPPS "Build csgapps" OFF)
 option(BUILD_XTP "Build xtp" OFF)
 option(BUILD_CSG_MANUAL "Build csg-manual" OFF)
-set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG VOTCA_CTP)
+set(VOTCA_SKIP_FIND_PACKAGE VOTCA_TOOLS VOTCA_CSG)
 
 option(ENABLE_TESTING "Build and copy testing stuff" OFF)
 if(ENABLE_TESTING)

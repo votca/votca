@@ -7,9 +7,6 @@
 [submodule "csgapps"]
 	path = csgapps
 	url = ../../votca/csgapps.git
-[submodule "ctp"]
-	path = ctp
-	url = ../../votca/ctp.git
 [submodule "xtp"]
 	path = xtp
 	url = ../../votca/xtp.git

@@ -101,7 +101,6 @@ after_success:
       docker cp ${CON}:/home/votca/votca/build/share/doc/html . ;
       mv html/* .; rmdir html;
       docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
-      docker cp ${CON}:/home/votca/votca/build/ctp/manual/ctp-manual.pdf . ;
       docker cp ${CON}:/home/votca/votca/build/xtp/manual/xtp-manual.pdf . ;
       git add --all .;
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_7abbb71c3ba6_key} && ${encrypted_7abbb71c3ba6_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then
