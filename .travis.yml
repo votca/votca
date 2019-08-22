@@ -23,7 +23,7 @@ jobs:
       env: ENV=3
     - stage: deploy
       if: repo = votca/votca AND type != pull_request
-      env: ENV=4
+      env: ENV=1
 
 env:
   matrix:
