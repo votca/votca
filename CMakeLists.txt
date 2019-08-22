@@ -67,6 +67,8 @@ set(MKL_THREAD_LAYER "Intel OpenMP")
 find_package(MKL)
 if (MKL_FOUND)
   set (MKL TRUE )
+else()
+  set (MKL FALSE )
 endif()
 
 find_package(Eigen3 3.3.0 NO_MODULE REQUIRED)

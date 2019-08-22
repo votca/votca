@@ -4,3 +4,26 @@ find_dependency(Boost 1.53.0 REQUIRED COMPONENTS program_options)
 include("${CMAKE_CURRENT_LIST_DIR}/VOTCA_TOOLS_Targets.cmake")
 add_executable(VOTCA::votca_compare IMPORTED)
 set_property(TARGET VOTCA::votca_compare PROPERTY IMPORTED_LOCATION "@CMAKE_INSTALL_FULL_BINDIR@/votca_compare")
+if(@MKL@)
+  if(NOT TARGET MKL::MKL)
+    add_library(MKL::MKL UNKNOWN IMPORTED)
+    set_target_properties(MKL::MKL
+      PROPERTIES
+        IMPORTED_LOCATION "@MKL_IMPORTED_LOCATION@"
+        INTERFACE_LINK_LIBRARIES "@MKL_INTERFACE_LINK_LIBRARIES@"
+        INTERFACE_INCLUDE_DIRECTORIES "@MKL_INTERFACE_INCLUDE_DIRECTORIES@"
+        IMPORTED_NO_SONAME @MKL_IMPORTED_NO_SONAME@)
+  endif()
+  if(NOT TARGET MKL::Interface)
+    add_library(MKL::Interface UNKNOWN IMPORTED)
+    set_target_properties(MKL::Interface
+      PROPERTIES
+        IMPORTED_LOCATION "@MKL_Interface_IMPORTED_LOCATION@")
+  endif()
+  if(NOT TARGET MKL::ThreadLayer)
+    add_library(MKL::ThreadLayer UNKNOWN IMPORTED)
+    set_target_properties(MKL::ThreadLayer
+      PROPERTIES
+        IMPORTED_LOCATION "@MKL_ThreadLayer_IMPORTED_LOCATION@")
+  endif()
+endif()
