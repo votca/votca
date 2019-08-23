@@ -47,9 +47,9 @@
    </inverse>
   </non-bonded>
   <inverse>
-    <!-- System T = 300*0.00831451 kBT units [kJ/mol] -->
-    <kBT>2.4942</kBT>
-    <!-- use gromacs as simulation program -->
+    <!-- 300*0.00831451/4.184 lammps units -->
+    <kBT>0.596164</kBT>
+    <!-- use lammps as simulation program -->
     <program>lammps</program>
     <!-- lammps specific options -->
     <lammps>

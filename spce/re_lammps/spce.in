@@ -6,7 +6,7 @@ atom_style	atomic
 read_data spce.data
 
 # Temp units kcal
-velocity	all create 0.59616123 87287
+velocity	all create 300 87287
 
 pair_style	table linear 1000
 pair_coeff	1 1 CG_CG.pot VOTCA 9
@@ -14,7 +14,7 @@ pair_coeff	1 1 CG_CG.pot VOTCA 9
 timestep	2.00
 fix		1 all nve
 # Temp units kcal
-fix		2 all langevin 0.59616123 0.59616123 200 545454
+fix		2 all langevin 300 300 200 545454
 
 thermo		100
 run		10000

@@ -25,8 +25,8 @@
   
   <!-- general options for inverse script -->
   <inverse>
-    <!-- 300*0.00831451 lammps units -->
-    <kBT>2.49435</kBT>
+    <!-- 300*0.00831451/4.184 lammps units -->
+    <kBT>0.596164</kBT>
     <!-- use lammps as simulation program -->
     <program>lammps</program>
     <!-- lammps specific options -->
