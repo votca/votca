@@ -442,7 +442,7 @@ void GWBSE::addoutput(tools::Property& summary) {
  */
 
 Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
-  if (!_orbitals.getXCFunctionalName().empty()) {
+  if (_orbitals.getXCFunctionalName().empty()) {
     _orbitals.setXCFunctionalName(_functional);
   } else {
     if (!(_functional == _orbitals.getXCFunctionalName())) {
