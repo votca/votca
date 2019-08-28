@@ -22,8 +22,6 @@
 
 #include <cublas_v2.h>
 #include <curand.h>
-#include <tuple>
-#include <unordered_map>
 #include <vector>
 #include <votca/xtp/eigen.h>
 
