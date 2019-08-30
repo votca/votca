@@ -276,7 +276,6 @@ std::vector<Mat<T>> EigenCuda<T>::right_matrix_tensor(
     T *dout = hC[i];
     checkCuda(
         cudaMemcpyAsync(hout, dout, size_out, cudaMemcpyDeviceToHost, _stream));
-    rs[i] = Eigen::Map<Mat<T>>(hout, matrix.rows(), B.cols());
   }
   // Deallocate all the memory from the device
   gpu_free(mtxB);
