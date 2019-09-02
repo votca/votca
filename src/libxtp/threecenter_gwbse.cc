@@ -155,6 +155,23 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       }
     }  // gamma-loop
   }    // alpha-loop
+
+#if defined(USE_GPU)
+  // create tensor
+  std::vector<Eigen::MatrixXd> tensor;
+  for (const Eigen::MatrixXd& mtx : symmstorage) {
+    tensor.push_back(mtx.selfadjointView<Eigen::Lower>());
+  }
+  // Performn the tensor multiplication in the GPU
+  std::vector<Eigen::MatrixXd> results =
+      _gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
+  for (int k = 0; k < auxshell.getNumFunc(); ++k) {
+    Eigen::MatrixXd threec_inMo = results[k];
+    for (int i = 0; i < threec_inMo.cols(); ++i) {
+      block[i].col(k) = threec_inMo.col(i);
+    }
+  }
+#else
   for (int k = 0; k < auxshell.getNumFunc(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
@@ -163,6 +180,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       block[i].col(k) = threec_inMo.col(i);
     }
   }
+#endif
 
   return;
 }

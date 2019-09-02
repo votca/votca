@@ -92,11 +92,16 @@ class EigenCuda {
   EigenCuda &operator=(const EigenCuda &) = delete;
 
   // Matrix matrix multiplication
-  Mat<T> dot(const Mat<T> &A, const Mat<T> &B);
+  Mat<T> dot(const Mat<T> &A, const Mat<T> &B) const;
 
   // Perform a multiplication between a matrix and a tensor
   std::vector<Mat<T>> right_matrix_tensor(
       const Mat<T> &A, const std::vector<Mat<T>> &tensor) const;
+
+  // Perform the triple matrix multiplication A * matrix * C, for the vector
+  // of matrices given by tensor
+  std::vector<Mat<T>> triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
+                                            const std::vector<Mat<T>> &tensor);
 
  private:
   // Allocate memory in the device
@@ -121,8 +126,7 @@ class EigenCuda {
   void gemm(Shapes shapes, const T *dA, const T *dB, T *dC) const;
 
   // Invoke the ?gemmBatched function of CuBlas.
-  void gemmBatched(Shapes sh, const T **dA, const T **dB, T **dC,
-                   int batchCount) const;
+  void gemmBatched(Shapes sh, T **dA, T **dB, T **dC, int batchCount) const;
 
   // Cuda variables
   cublasHandle_t _handle;
