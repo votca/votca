@@ -95,17 +95,13 @@ void GenCube::calculateCube() {
   if (!out.is_open()) {
     throw std::runtime_error("Bad file handle: " + _output_file);
   }
+  bool do_amplitude = (_state.Type().isSingleParticleState());
 
   // write cube header
   if (_state.isTransition()) {
     out << boost::format("Transition state: %1$s \n") % _state.ToString();
-  }
-
-  bool do_amplitude = (_state.Type().isSingleParticleState());
-
-  if (do_amplitude) {
-    out << boost::format("%1$s with energy %2$f eV \n") %
-               _state.ToLongString() %
+  } else if (do_amplitude) {
+    out << boost::format("%1$s with energy %2$f eV \n") % _state.ToString() %
                (orbitals.getExcitedStateEnergy(_state) * tools::conv::hrt2ev);
   } else {
     if (_dostateonly) {
@@ -114,7 +110,7 @@ void GenCube::calculateCube() {
                  _state.ToString();
     } else {
       out << boost::format("Total electron density of %1$s state\n") %
-                 _state.ToLongString();
+                 _state.ToString();
     }
   }
 
