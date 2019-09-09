@@ -20,9 +20,9 @@
 
         <geometry_optimization help="geometry optimization options">
             <state help="initial state to optimize for">s1</state>
-            <filter help="tries to identify state without looking at the energy">
+            <statetracker help="tries to identify state without looking at the energy">
                 <oscillator_strength>0.001</oscillator_strength>
-            </filter>
+            </statetracker>
             <convergence help="Convergence criteria for geometry optimization">
                     <energy help="default: 1.e-6 Hartree">0.01</energy>
                     <RMSForce help="default: 3.e-5 Hartree/Bohr">0.01</RMSForce>

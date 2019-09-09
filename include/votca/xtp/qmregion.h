@@ -24,7 +24,7 @@
 #include <votca/xtp/region.h>
 
 #include "orbitals.h"
-#include "statefilter.h"
+#include "statetracker.h"
 #include <votca/xtp/hist.h>
 #include <votca/xtp/qmpackagefactory.h>
 /**
@@ -104,7 +104,7 @@ class QMRegion : public Region {
   tools::Property _dftoptions;
   tools::Property _gwbseoptions;
 
-  Statefilter _filter;
+  StateTracker _statetracker;
 };
 
 }  // namespace xtp
