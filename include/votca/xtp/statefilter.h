@@ -78,7 +78,7 @@ class Statefilter {
   Eigen::VectorXd _laststatecoeff;
   double _overlapthreshold = 0.0;
 
-  bool _use_localisationfilter = false;
+  bool _use_localizationfilter = false;
   QMFragment<BSE_Population> _fragment_loc;
   double _loc_threshold = 0.0;
 
