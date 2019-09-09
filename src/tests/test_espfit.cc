@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_CASE(esp_charges) {
   std::vector<QMFragment<double> > regionconstraint;
 
   std::string indeces = "1...3";
-  QMFragment<double> reg = QMFragment<double>("constraint", 0, indeces);
+  QMFragment<double> reg = QMFragment<double>(0, indeces);
   reg.value() = 1.0;
   regionconstraint.push_back(reg);
   Espfit esp3 = Espfit(log);

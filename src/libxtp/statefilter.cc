@@ -41,11 +41,9 @@ void Statefilter::Initialize(tools::Property& options) {
     std::string indices =
         options.ifExistsReturnElseThrowRuntimeError<std::string>(
             "localisation.fragment");
-    QMFragment<BSE_Population> reg =
-        QMFragment<BSE_Population>("Fragment", 0, indices);
+    _fragment_loc = QMFragment<BSE_Population>(0, indices);
     _loc_threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
         "localisation.threshold");
-    _fragment_loc.push_back(reg);
   }
 
   if (options.exists("charge_transfer")) {
@@ -53,11 +51,9 @@ void Statefilter::Initialize(tools::Property& options) {
     std::string indices =
         options.ifExistsReturnElseThrowRuntimeError<std::string>(
             "charge_transfer.fragment");
-    QMFragment<BSE_Population> reg =
-        QMFragment<BSE_Population>("Fragment", 0, indices);
+    _fragment_dQ = QMFragment<BSE_Population>(0, indices);
     _dQ_threshold = options.ifExistsReturnElseThrowRuntimeError<double>(
         "charge_transfer.threshold");
-    _fragment_dQ.push_back(reg);
   }
   if (_use_dQfilter && _use_localisationfilter) {
     throw std::runtime_error(
@@ -87,12 +83,12 @@ void Statefilter::PrintInfo() const {
   }
   if (_use_localisationfilter) {
     XTP_LOG(logDEBUG, *_log)
-        << "Using localisation filter for fragment" << _fragment_loc[0].name()
-        << " with cutoff " << _loc_threshold << flush;
+        << "Using localisation filter for " << _fragment_loc << " with cutoff "
+        << _loc_threshold << flush;
   }
   if (_use_dQfilter) {
     XTP_LOG(logDEBUG, *_log)
-        << "Using Delta Q filter for fragment" << _fragment_dQ[0].name()
+        << "Using Delta Q filter for fragment " << _fragment_dQ
         << "with cutoff  " << _dQ_threshold << flush;
   }
   if (_use_oscfilter && _use_dQfilter) {
@@ -189,7 +185,7 @@ std::vector<int> Statefilter::OscFilter(const Orbitals& orbitals) const {
 std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
   Lowdin low;
-  std::vector<QMFragment<BSE_Population> > loc = _fragment_loc;
+  std::vector<QMFragment<BSE_Population> > loc = {_fragment_loc};
   low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
   const Eigen::VectorXd& popE = loc[0].value().E;
   const Eigen::VectorXd& popH = loc[0].value().H;
@@ -204,7 +200,7 @@ std::vector<int> Statefilter::LocFilter(const Orbitals& orbitals) const {
 std::vector<int> Statefilter::DeltaQFilter(const Orbitals& orbitals) const {
   std::vector<int> indexes;
   Lowdin low;
-  std::vector<QMFragment<BSE_Population> > loc = _fragment_dQ;
+  std::vector<QMFragment<BSE_Population> > loc = {_fragment_dQ};
   low.CalcChargeperFragment(loc, orbitals, _statehist[0].Type());
   Eigen::VectorXd dq = (loc[0].value().H - loc[0].value().E).cwiseAbs();
 
@@ -297,19 +293,13 @@ void Statefilter::WriteToCpt(CheckpointWriter& w) const {
 
   w(_use_localisationfilter, "localisationfilter");
   w(_loc_threshold, "locthreshold");
-  w(int(_fragment_loc.size()), "loc_fragments");
-  for (unsigned i = 0; i < _fragment_loc.size(); i++) {
-    CheckpointWriter ww = w.openChild("fragment_loc_" + std::to_string(i));
-    _fragment_loc[i].WriteToCpt(ww);
-  }
+  CheckpointWriter ww = w.openChild("fragment_loc");
+  _fragment_loc.WriteToCpt(ww);
 
   w(_use_dQfilter, "dQfilter");
   w(_dQ_threshold, "dQthreshold");
-  w(int(_fragment_dQ.size()), "dQ_fragments");
-  for (unsigned i = 0; i < _fragment_dQ.size(); i++) {
-    CheckpointWriter ww = w.openChild("fragment_dQ_" + std::to_string(i));
-    _fragment_dQ[i].WriteToCpt(ww);
-  }
+  CheckpointWriter ww2 = w.openChild("fragment_dQ");
+  _fragment_dQ.WriteToCpt(ww2);
 }
 
 void Statefilter::ReadFromCpt(CheckpointReader& r) {
@@ -329,25 +319,14 @@ void Statefilter::ReadFromCpt(CheckpointReader& r) {
 
   r(_use_localisationfilter, "localisationfilter");
   r(_loc_threshold, "locthreshold");
-  _fragment_loc.clear();
-  int loc_size = 0;
-  r(loc_size, "loc_fragments");
-  _fragment_loc.resize(loc_size);
-  for (unsigned i = 0; i < _fragment_loc.size(); i++) {
-    CheckpointReader rr = r.openChild("fragment_loc_" + std::to_string(i));
-    _fragment_loc[i].ReadFromCpt(rr);
-  }
+
+  CheckpointReader rr = r.openChild("fragment_loc");
+  _fragment_loc.ReadFromCpt(rr);
 
   r(_use_dQfilter, "dQfilter");
   r(_dQ_threshold, "dQthreshold");
-  _fragment_dQ.clear();
-  int dQ_size = 0;
-  r(dQ_size, "dQ_fragments");
-  _fragment_dQ.resize(dQ_size);
-  for (unsigned i = 0; i < _fragment_dQ.size(); i++) {
-    CheckpointReader rr = r.openChild("fragment_dQ_" + std::to_string(i));
-    _fragment_dQ[i].ReadFromCpt(rr);
-  }
+  CheckpointReader rr2 = r.openChild("fragment_dQ");
+  _fragment_dQ.ReadFromCpt(rr2);
 }
 
 }  // namespace xtp
