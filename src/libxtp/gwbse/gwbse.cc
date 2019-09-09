@@ -346,14 +346,7 @@ void GWBSE::Initialize(tools::Property& options) {
     for (tools::Property* prop : prop_region) {
       std::string indices =
           prop->ifExistsReturnElseThrowRuntimeError<std::string>("indices");
-      QMFragment<BSE_Population> reg =
-          QMFragment<BSE_Population>("Fragment", index, indices);
-      if (_do_bse_singlets) {
-        _singlets.push_back(reg);
-      }
-      if (_do_bse_triplets) {
-        _triplets.push_back(reg);
-      }
+      _fragments.push_back(QMFragment<BSE_Population>(index, indices));
       index++;
     }
   }
@@ -442,7 +435,7 @@ void GWBSE::addoutput(tools::Property& summary) {
  */
 
 Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
-  if (!_orbitals.getXCFunctionalName().empty()) {
+  if (_orbitals.getXCFunctionalName().empty()) {
     _orbitals.setXCFunctionalName(_functional);
   } else {
     if (!(_functional == _orbitals.getXCFunctionalName())) {
@@ -550,15 +543,9 @@ bool GWBSE::Evaluate() {
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
                             << auxbasis.AOBasisSize() << flush;
 
-  if (_do_bse_singlets && _singlets.size() > 0) {
-    for (const auto& frag : _singlets) {
-      XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.name()
-                                << " size:" << frag.size() << flush;
-    }
-  }
-  if (_do_bse_triplets && _triplets.size() > 0) {
-    for (const auto& frag : _triplets) {
-      XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.name()
+  if ((_do_bse_singlets || _do_bse_triplets) && _fragments.size() > 0) {
+    for (const auto& frag : _fragments) {
+      XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.getId()
                                 << " size:" << frag.size() << flush;
     }
   }
@@ -627,14 +614,14 @@ bool GWBSE::Evaluate() {
       bse.Solve_triplets(_orbitals);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Solved BSE for triplets " << flush;
-      bse.Analyze_triplets(_triplets, _orbitals);
+      bse.Analyze_triplets(_fragments, _orbitals);
     }
 
     if (_do_bse_singlets) {
       bse.Solve_singlets(_orbitals);
       XTP_LOG(logDEBUG, *_pLog)
           << TimeStamp() << " Solved BSE for singlets " << flush;
-      bse.Analyze_singlets(_singlets, _orbitals);
+      bse.Analyze_singlets(_fragments, _orbitals);
     }
   }
   XTP_LOG(logDEBUG, *_pLog)

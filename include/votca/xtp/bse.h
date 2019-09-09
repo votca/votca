@@ -70,9 +70,9 @@ class BSE {
   SingletOperator_TDA getSingletOperator_TDA() const;
   TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                         const Orbitals& orb) const;
 
  private:

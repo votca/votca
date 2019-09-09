@@ -328,6 +328,14 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
       orb.MOs() = MOs;
       CalcElDipole(orb);
       break;
+    } else if (this_iter == _max_iter - 1) {
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << " DFT calculation has not converged after "
+          << _max_iter
+          << " iterations. Use more iterations or another convergence "
+             "acceleration scheme."
+          << std::flush;
+      return false;
     }
   }
   return true;

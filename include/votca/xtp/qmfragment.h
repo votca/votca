@@ -40,25 +40,19 @@ namespace xtp {
 template <class T>
 class QMFragment {
  public:
-  QMFragment(std::string name, int id, std::string atoms)
-      : _name(name), _id(id) {
-    FillAtomIndices(atoms);
-  }
+  QMFragment(int id, std::string atoms) : _id(id) { FillAtomIndices(atoms); }
 
   QMFragment(){};
 
   QMFragment(CheckpointReader& r) { ReadFromCpt(r); }
 
-  void setName(std::string name) { _name = name; }
   void setId(int id) { _id = id; }
-  const std::string& getName() const { return _name; }
   int getId() const { return _id; }
   void FillFromString(std::string atoms) { FillAtomIndices(atoms); }
 
   const T& value() const { return _value; }
 
   T& value() { return _value; }
-  const std::string& name() const { return _name; }
 
   int size() const { return _atomindices.size(); }
 
@@ -81,7 +75,7 @@ class QMFragment {
 
   friend std::ostream& operator<<(std::ostream& out,
                                   const QMFragment& fragment) {
-    out << "Fragment name:" << fragment._name << " id:" << fragment._id << "\n";
+    out << "Fragment id:" << fragment._id << "\n";
     out << "AtomIndices[" << fragment.size() << "]:";
     for (int id : fragment._atomindices) {
       out << id << " ";
@@ -93,14 +87,12 @@ class QMFragment {
 
   void WriteToCpt(CheckpointWriter& w) const {
     w(_atomindices, "indices");
-    w(_name, "name");
     w(_id, "id");
     WriteValue(w);
   }
 
   void ReadFromCpt(CheckpointReader& r) {
     r(_atomindices, "indices");
-    r(_name, "name");
     r(_id, "id");
     ReadValue(r);
   }
@@ -129,7 +121,6 @@ class QMFragment {
   }
 
   std::vector<int> _atomindices;
-  std::string _name = "";
   int _id = -1;
   T _value;
 };

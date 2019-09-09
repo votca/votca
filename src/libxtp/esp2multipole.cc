@@ -54,9 +54,11 @@ void Esp2multipole::Initialize(tools::Property& options) {
     if (options.exists(key + ".constraints.regions")) {
       std::vector<tools::Property*> prop_region =
           options.Select(key + ".constraints.regions.region");
+      int index = 0;
       for (tools::Property* prop : prop_region) {
         std::string indices = prop->get("indices").as<std::string>();
-        QMFragment<double> reg = QMFragment<double>("Constraint", 0, indices);
+        QMFragment<double> reg = QMFragment<double>(index, indices);
+        index++;
         reg.value() = prop->get("charge").as<double>();
         _regionconstraint.push_back(reg);
         XTP_LOG_SAVE(logDEBUG, _log) << "Fit constrained by Region" << flush;

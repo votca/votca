@@ -5,16 +5,10 @@
   <charge help="charge of system">0</charge>
   <spin help="multiplicity of qm configuration">1</spin>  
   <memory help="maximum memory code should use"></memory>
-  <basisset  help="basiset to use">>ubecppol</basisset>
+  <basisset  help="basiset to use">ubecppol</basisset>
 <ecp help="Pseudo potential to use, Delete if you do not want to use ecps">ecp</ecp>
   <options help="additional options that should be written to input file">
-! DFT  B3LYP Grid7 DIRECT  TightSCF PAL4 
-! D3BJ 
-
-!SmallPrint
-%output
-Print[ P_MOs ] 1
-end
+! DFT  B3LYP TightSCF 
   </options >
   <cleanup help="files to delete identified by fileending"></cleanup>
   </package>

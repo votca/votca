@@ -78,12 +78,12 @@ class Statefilter {
   Eigen::VectorXd _laststatecoeff;
   double _overlapthreshold = 0.0;
 
-  bool _use_localisationfilter = false;
-  std::vector<QMFragment<BSE_Population> > _fragment_loc;
+  bool _use_localizationfilter = false;
+  QMFragment<BSE_Population> _fragment_loc;
   double _loc_threshold = 0.0;
 
   bool _use_dQfilter = false;
-  std::vector<QMFragment<BSE_Population> > _fragment_dQ;
+  QMFragment<BSE_Population> _fragment_dQ;
   double _dQ_threshold = 0.0;
 };
 }  // namespace xtp

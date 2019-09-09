@@ -330,9 +330,9 @@ void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
     double qeff = dq + frag.value().Gs;
     XTP_LOG_SAVE(logINFO, _log)
         << format(
-               "           Fragment %1$8s%% -- hole: %2$5.1f%%  electron: "
+               "           Fragment %1$4d%% -- hole: %2$5.1f%%  electron: "
                "%3$5.1f%%  dQ: %4$+5.2f  Qeff: %5$+5.2f") %
-               frag.name() % (100.0 * frag.value().H[state]) %
+               frag.getId() % (100.0 * frag.value().H[state]) %
                (100.0 * frag.value().E[state]) % dq % qeff
         << flush;
   }
@@ -354,7 +354,7 @@ void BSE::PrintWeights(const Eigen::VectorXd& weights) const {
   return;
 }
 
-void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
+void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
   Interaction act;
@@ -364,9 +364,9 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
   if (tools::globals::verbose) {
     act = Analyze_eh_interaction(singlet, orb);
   }
-  if (singlets.size() > 0) {
+  if (fragments.size() > 0) {
     Lowdin low;
-    low.CalcChargeperFragment(singlets, orb, singlet);
+    low.CalcChargeperFragment(fragments, orb, singlet);
   }
 
   const Eigen::VectorXd& energies = orb.BSESinglets().eigenvalues();
@@ -409,8 +409,8 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
         << flush;
 
     PrintWeights(weights);
-    if (singlets.size() > 0) {
-      printFragInfo(singlets, i);
+    if (fragments.size() > 0) {
+      printFragInfo(fragments, i);
     }
 
     XTP_LOG_SAVE(logINFO, _log) << flush;
@@ -418,7 +418,7 @@ void BSE::Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets,
   return;
 }
 
-void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
+void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
                            const Orbitals& orb) const {
 
   Interaction act;
@@ -426,9 +426,9 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
   if (tools::globals::verbose) {
     act = Analyze_eh_interaction(triplet, orb);
   }
-  if (triplets.size() > 0) {
+  if (fragments.size() > 0) {
     Lowdin low;
-    low.CalcChargeperFragment(triplets, orb, triplet);
+    low.CalcChargeperFragment(fragments, orb, triplet);
   }
 
   const Eigen::VectorXd& energies = orb.BSETriplets().eigenvalues();
@@ -459,12 +459,11 @@ void BSE::Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets,
     }
 
     PrintWeights(weights);
-    if (triplets.size() > 0) {
-      printFragInfo(triplets, i);
+    if (fragments.size() > 0) {
+      printFragInfo(fragments, i);
     }
     XTP_LOG_SAVE(logINFO, _log) << format("   ") << flush;
   }
-  // storage to orbitals object
 
   return;
 }

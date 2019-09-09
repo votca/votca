@@ -369,8 +369,8 @@ BOOST_AUTO_TEST_CASE(fragment_pop) {
   orb.setTDAApprox(true);
 
   std::vector<QMFragment<BSE_Population> > frags;
-  QMFragment<BSE_Population> f1("one", 0, "0 1");
-  QMFragment<BSE_Population> f2("two", 1, "2 3 4");
+  QMFragment<BSE_Population> f1(0, "0 1");
+  QMFragment<BSE_Population> f2(1, "2 3 4");
   frags.push_back(f1);
   frags.push_back(f2);
 
