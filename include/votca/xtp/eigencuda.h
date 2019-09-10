@@ -77,12 +77,9 @@ class EigenCuda {
  public:
   EigenCuda() {
     cublasCreate(&_handle);
-    _err_stream = cudaStreamCreate(&_stream);
+    cudaStreamCreate(&_stream);
   }
-  EigenCuda(bool pinned) : _pinned{pinned} {
-    cublasCreate(&_handle);
-    _err_stream = cudaStreamCreate(&_stream);
-  }
+  EigenCuda(bool pinned) : _pinned{pinned} { EigenCuda{}; }
 
   // Deallocate both the handler and allocated arrays
   ~EigenCuda();
@@ -134,7 +131,6 @@ class EigenCuda {
 
   // Asynchronous stream
   cudaStream_t _stream;
-  cudaError_t _err_stream;
 
   // Scalar constanst for calling blas
   T _alpha = 1.;
