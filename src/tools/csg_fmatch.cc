@@ -817,7 +817,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     gradient2 = ((rik / distik) * (-1.0 * gamma_sigma / (denomik * denomik))) *
                 expij * expik;
 
-    // add jatom
+    // add katom
     SP.AddToFitMatrix(_A, var,
                       _least_sq_offset + 3 * _nbeads * _frame_counter + katom,
                       mpos, -gradient1.x(), -gradient2.x());
