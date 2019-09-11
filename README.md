@@ -30,8 +30,6 @@ For further details see:
 
 If you want to install CTP 
 
-Usage:
-
     prefix=WHERE/TO/INSTALL/VOTCA
     git clone -b ctp --recursive https://github.com/votca/votca.git
     cd votca
