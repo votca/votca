@@ -7,7 +7,7 @@ This is VOTCA's next generation build system.
 Usage:
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable' or 'v1.4.1'
+    version=master # or 'stable', 'ctp' or 'v1.4.1'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
     cd votca
     mkdir build
