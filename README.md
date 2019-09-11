@@ -33,12 +33,11 @@ If you want to install CTP
 Usage:
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=ctp
-    git clone -b ${version} --recursive https://github.com/votca/votca.git
+    git clone -b ctp --recursive https://github.com/votca/votca.git
     cd votca
     mkdir build
     cd build
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    cmake -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j<number of cores>
     make install
 
