@@ -7,7 +7,7 @@ This is VOTCA's next generation build system.
 Usage:
 
     prefix=WHERE/TO/INSTALL/VOTCA
-    version=master # or 'stable', 'ctp' or 'v1.4.1'
+    version=master # or 'stable' or 'v1.4.1'
     git clone -b ${version} --recursive https://github.com/votca/votca.git
     cd votca
     mkdir build
@@ -27,3 +27,18 @@ For further details see:
 2. [Further Information](http://www.votca.org)
 3. [Developers Guide](share/doc/DEVELOPERS_GUIDE.md)
 4. [Code of Conduct](share/doc/CODE_OF_CONDUCT.md)
+
+If you want to install CTP 
+
+Usage:
+
+    prefix=WHERE/TO/INSTALL/VOTCA
+    version=ctp
+    git clone -b ${version} --recursive https://github.com/votca/votca.git
+    cd votca
+    mkdir build
+    cd build
+    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    make -j<number of cores>
+    make install
+
