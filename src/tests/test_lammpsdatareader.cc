@@ -86,8 +86,6 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   BOOST_CHECK_EQUAL(mol->getName(), "N100");
   BOOST_CHECK_EQUAL(mol->BeadCount(), 100);
 
-  BOOST_CHECK_EQUAL(top.getStep(), 961);
-
   auto interaction_cont = top.BondedInteractions();
   int numBondInter = 99;
   int numAngleInter = 98;
@@ -155,8 +153,6 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   auto mol = top.getMolecule(0);
   BOOST_CHECK_EQUAL(mol->BeadCount(), 100);
-
-  BOOST_CHECK_EQUAL(top.getStep(), 1010);
 
   auto interaction_cont = top.BondedInteractions();
   int numBondInter = 99;
