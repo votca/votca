@@ -84,7 +84,7 @@ bool CsgREupdate::EvaluateOptions() {
 // load user provided .xml option file
 void CsgREupdate::LoadOptions(const string &file) {
 
-  load_property_from_xml(_options, file);
+  _options.LoadFromXML(file);
   _nonbonded = _options.Select("cg.non-bonded");
 }
 

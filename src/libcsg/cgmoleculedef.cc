@@ -49,7 +49,7 @@ CGMoleculeDef::~CGMoleculeDef() {
 }
 
 void CGMoleculeDef::Load(string filename) {
-  load_property_from_xml(_options, filename);
+  _options.LoadFromXML(filename);
   // parse xml tree
   _name = _options.get("cg_molecule.name").as<string>();
   _ident = _options.get("cg_molecule.ident").as<string>();
