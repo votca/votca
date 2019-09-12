@@ -156,7 +156,7 @@ void RDFCalculator::EndEvaluate() {
 
 // load options from xml file
 void RDFCalculator::LoadOptions(const string &file) {
-  load_property_from_xml(_options, file);
+  _options.LoadFromXML(file);
   _bonded = _options.Select("cg.bonded");
   _nonbonded = _options.Select("cg.non-bonded");
 }
