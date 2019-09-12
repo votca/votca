@@ -736,6 +736,10 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   infile.seekg(24, ios::beg);
   std::array<char, 8> buffer;
   infile.read(buffer.data(), 8);
+  if (!infile) {
+    infile.close();
+    return false;
+  }
   long int offset = *((long int*)buffer.data());
 
   infile.seekg(offset, ios::beg);
@@ -750,6 +754,10 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
   int n = op_read * dim_read * dim_read;
   for (int i = 0; i < n; i++) {
     infile.read(buffer.data(), 8);
+    if (!infile) {
+      infile.close();
+      return false;
+    }
     double mocoeff = *((double*)buffer.data());
     coefficients.push_back(mocoeff);
   }

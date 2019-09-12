@@ -221,7 +221,14 @@ class CheckpointReader {
     dp.getSimpleExtentDims(dims, NULL);
 
     std::vector<char*> temp(dims[0]);
-    dataset.read(temp.data(), *dataType);
+    try {
+      dataset.read(temp.data(), *dataType);
+    } catch (H5::Exception& error) {
+      std::stringstream message;
+      message << "Could not read " << name << " from " << _loc.getFileName()
+              << ":" << _path << std::endl;
+      throw std::runtime_error(message.str());
+    }
     v.reserve(dims[0]);
     for (char* s : temp) {
       v.push_back(std::string(s));

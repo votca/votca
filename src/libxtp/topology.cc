@@ -34,7 +34,7 @@ Topology::Topology(const Topology &top) {
   _time = top._time;
   _step = top._step;
   this->setBox(top.getBox());
-  for (const QMPair *pair : top._nblist) {
+  for (const QMPair *pair : top.NBList()) {
     const Segment &seg1 = _segments[pair->Seg1()->getId()];
     const Segment &seg2 = _segments[pair->Seg2()->getId()];
     _nblist.Add(seg1, seg2, pair->R());
@@ -48,7 +48,7 @@ Topology &Topology::operator=(const Topology &top) {
     _step = top._step;
     this->setBox(top.getBox());
     _nblist.Cleanup();
-    for (const QMPair *pair : top._nblist) {
+    for (const QMPair *pair : top.NBList()) {
       const Segment &seg1 = _segments[pair->Seg1()->getId()];
       const Segment &seg2 = _segments[pair->Seg2()->getId()];
       _nblist.Add(seg1, seg2, pair->R());

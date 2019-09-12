@@ -268,7 +268,7 @@ std::vector<int> StateTracker::OverlapTracker(const Orbitals& orbitals) const {
   });
 
   int offset = 0;
-  if (_statehist[0].Type() == QMStateType::DQPstate) {
+  if (_statehist[0].Type().isGWState()) {
     offset = orbitals.getGWAmin();
   }
 
