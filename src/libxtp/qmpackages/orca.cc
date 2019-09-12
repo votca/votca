@@ -744,9 +744,17 @@ bool Orca::ParseMOsFile(Orbitals& orbitals) {
 
   infile.seekg(offset, ios::beg);
   infile.read(buffer.data(), 4);
+  if (!infile) {
+    infile.close();
+    return false;
+  }
   int op_read = *((int*)buffer.data());
   infile.seekg(offset + 4, ios::beg);
   infile.read(buffer.data(), 4);
+  if (!infile) {
+    infile.close();
+    return false;
+  }
   int dim_read = *((int*)buffer.data());
   infile.seekg(offset + 8, ios::beg);
   XTP_LOG(logDEBUG, *_pLog) << "Number of operators: " << op_read
