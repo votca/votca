@@ -1,0 +1,34 @@
+<options>
+    <qmmm help="Executes qmmm calculations for individual molecules and clusters" section="sec:qmmm">
+        <print_regions_pdb help="print the geometry of the regions to a pdb file">true</print_regions_pdb>
+        <max_iterations help="max iterations for qmmm scf loop">50</max_iterations>
+        <openmp_threads help="internal parallelization for each job">4</openmp_threads>
+        <map_file help="xml file with segment definition">system.xml</map_file>
+        <job_file help="name of jobfile to which jobs are written">qmmm.jobs</job_file>
+        
+        <regions  help="definition of regions in qmmm setup. First region can be a QM region. In each region all options can be also read from a jobfile by the keyword 'jobfile'">
+            <region help="definition of a region">
+                <id help="id of a region has to start from 0">0</id>
+                <type help="type of region qm/static/polar">qm</type>
+                <options_dft>OPTIONFILES/xtpdft_qmmm.xml</options_dft>
+                <options_gwbse>OPTIONFILES/gwbse_qmmm.xml</options_gwbse>
+                <filter help="filter to identify excited states from some characteristic and not the energy">
+                    <oscillator_strength>0.5</oscillator_strength>
+                </filter>
+                <state help="qmstate to calculate i.e. n or s1">s1</state>
+                <segments help="which segments to include in this region and which geometry they have">0:n</segments>
+            </region>
+            <region>
+                <id>1</id>
+                <type>static</type>
+                <cutoff>
+                    <relative_to_explicit_segs>true</relative_to_explicit_segs>
+                    <geometry>n</geometry>
+                    <radius>jobfile</radius>
+                    <region>0</region>
+                </cutoff>
+            </region>
+        </regions>
+    </qmmm>
+
+</options>

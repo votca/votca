@@ -12,22 +12,20 @@ deleteoption(){
 
 cp $VOTCASHARE/xtp/xml/dftgwbse.xml .
 cp $VOTCASHARE/xtp/packages/xtpdft.xml .
-cp $VOTCASHARE/xtp/packages/mbgft.xml .
+cp $VOTCASHARE/xtp/packages/gwbse.xml .
 
+changeoption gwbse_options gwbse.xml dftgwbse.xml
 changeoption dftpackage xtpdft.xml dftgwbse.xml
 changeoption molecule methane.xyz dftgwbse.xml
 changeoption dftlog system_dft.orb dftgwbse.xml
-changeoption openmp 1 mbgft.xml
-changeoption threads 1 xtpdft.xml
-changeoption shift_type fixed mbgft.xml
+changeoption mode G0W0 gwbse.xml
 echo "Running dft + gwbse, output can be found in dftgwbse.log"
-xtp_tools -e dftgwbse -o dftgwbse.xml > dftgwbse.log
+xtp_tools -e dftgwbse -o dftgwbse.xml> dftgwbse.log
 
 
 cp $VOTCASHARE/xtp/xml/partialcharges.xml .
 cp $VOTCASHARE/xtp/packages/esp2multipole.xml .
 
-changeoption openmp 1 esp2multipole.xml
 changeoption output methane.mps partialcharges.xml
 
 echo "Running CHELPG fit" 
@@ -39,3 +37,8 @@ changeoption output methane.cube gencube.xml
 
 xtp_tools -e gencube -o gencube.xml
 
+cp $VOTCASHARE/xtp/xml/spectrum.xml .
+changeoption upper 25 spectrum.xml
+changeoption lower 9 spectrum.xml
+changeoption points 1000 spectrum.xml
+xtp_tools -e spectrum -o spectrum.xml
