@@ -100,7 +100,7 @@ void KMCLifetime::WriteDecayProbability(string filename) {
 
 void KMCLifetime::ReadLifetimeFile(std::string filename) {
   tools::Property xml;
-  load_property_from_xml(xml, filename);
+  xml.LoadFromXML(filename);
   std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
   if (jobProps.size() != _nodes.size()) {
     throw runtime_error(

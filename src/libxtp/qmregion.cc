@@ -48,7 +48,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
     _do_gwbse = true;
     std::string gwbsexml =
         prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_gwbse");
-    tools::load_property_from_xml(_gwbseoptions, gwbsexml);
+    _gwbseoptions.LoadFromXML(gwbsexml);
     if (prop.exists("statetracker")) {
       tools::Property filter = prop.get("statetracker");
       _statetracker.setLogger(&_log);
@@ -67,7 +67,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
 
   std::string dftxml =
       prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_dft");
-  tools::load_property_from_xml(_dftoptions, dftxml);
+  _dftoptions.LoadFromXML(dftxml);
 }
 
 bool QMRegion::Converged() const {

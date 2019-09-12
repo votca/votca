@@ -141,7 +141,7 @@ bool XtpTools::EvaluateOptions() {
 void XtpTools::Run() {
 
   string optionsFile = _op_vm["options"].as<string>();
-  tools::load_property_from_xml(_options, optionsFile);
+  _options.LoadFromXML(optionsFile);
 
   int nThreads = OptionsMap()["nthreads"].as<int>();
   std::string name = ProgramName();

@@ -229,7 +229,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
   log.setReportLevel(logINFO);
 
   // load the QC results in a vector indexed by the pair ID
-  load_property_from_xml(xml, _jobfile);
+  xml.LoadFromXML(_jobfile);
   vector<Property*> jobProps = xml.Select("jobs.job");
   records.resize(number_of_pairs + 1);
 

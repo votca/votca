@@ -116,7 +116,7 @@ bool XtpRun::EvaluateOptions() {
     cout << "Calculator " << calc_string[0] << " does not exist\n";
     StopExecution();
   } else {
-    load_property_from_xml(_options, _op_vm["options"].as<string>());
+    _options.LoadFromXML(_op_vm["options"].as<string>());
   }
   return true;
 }

@@ -67,7 +67,7 @@ void Coupling::Initialize(tools::Property &options) {
   _output_file = options.get(key + ".output").as<std::string>();
 
   std::string _package_xml = options.get(key + ".dftpackage").as<std::string>();
-  load_property_from_xml(_package_options, _package_xml);
+  _package_options.LoadFromXML(_package_xml);
   _package = _package_options.get("package.name").as<std::string>();
 
   _dftcoupling_options = options.get(key + ".dftcoupling_options");

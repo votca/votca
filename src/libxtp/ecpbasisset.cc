@@ -39,11 +39,7 @@ void ECPBasisSet::Load(const std::string& name) {
     xmlFile = std::string(getenv("VOTCASHARE")) + std::string("/xtp/ecps/") +
               name + std::string(".xml");
   }
-  bool success = load_property_from_xml(basis_property, xmlFile);
-
-  if (!success) {
-    throw std::runtime_error("ECP could not be loaded!");
-  }
+  basis_property.LoadFromXML(xmlFile);
 
   std::vector<tools::Property*> elementProps =
       basis_property.Select("pseudopotential.element");

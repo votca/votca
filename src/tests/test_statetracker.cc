@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(osc) {
     options << "</statetracker>" << std::endl;
     options.close();
     votca::tools::Property prop;
-    votca::tools::load_property_from_xml(prop, "statetracker.xml");
+    prop.LoadFromXML("statetracker.xml");
     StateTracker tracker;
     tracker.setLogger(&log);
     QMState s("s1");
@@ -226,7 +226,7 @@ BOOST_AUTO_TEST_CASE(osc) {
     options << "</statetracker>" << std::endl;
     options.close();
     votca::tools::Property prop;
-    votca::tools::load_property_from_xml(prop, "statetracker.xml");
+    prop.LoadFromXML("statetracker.xml");
     StateTracker tracker;
     tracker.setLogger(&log);
     QMState s("s1");
@@ -248,7 +248,7 @@ BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
   options << "</statetracker>" << std::endl;
   options.close();
   votca::tools::Property prop;
-  votca::tools::load_property_from_xml(prop, "statetracker.xml");
+  prop.LoadFromXML("statetracker.xml");
   StateTracker tracker;
   QMState s("s1");
   tracker.setInitialState(s);

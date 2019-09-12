@@ -56,21 +56,21 @@ void EQM::ParseOptionsXML(tools::Property& options) {
   if (_do_gwbse) {
     std::string gwbse_xml =
         options.get(key + ".gwbse_options").as<std::string>();
-    load_property_from_xml(_gwbse_options, gwbse_xml);
+    _gwbse_options.LoadFromXML(gwbse_xml);
   }
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     // options for dft package
     std::string package_xml =
         options.get(key + ".dftpackage").as<std::string>();
-    load_property_from_xml(_package_options, package_xml);
+    _package_options.LoadFromXML(package_xml);
   }
 
   // options for esp/partialcharges
   if (_do_esp) {
     key = "options." + Identify();
     std::string _esp_xml = options.get(key + ".esp_options").as<std::string>();
-    load_property_from_xml(_esp_options, _esp_xml);
+    _esp_options.LoadFromXML(_esp_xml);
   }
 }
 
