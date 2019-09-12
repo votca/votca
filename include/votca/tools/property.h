@@ -226,6 +226,8 @@ class Property {
 
   template <typename T>
   T getAttribute(const_AttributeIterator it) const;
+  
+  void LoadFromXML(std::string filename);
 
   static int getIOindex() { return IOindex; };
 
@@ -265,8 +267,6 @@ inline bool Property::exists(const std::string &key) const {
   }
   return true;
 }
-
-bool load_property_from_xml(Property &p, std::string file);
 
 // TO DO: write a better function for this!!!!
 template <>

@@ -215,7 +215,7 @@ void Application::PrintDescription(std::ostream &out,
 
   try {
 
-    load_property_from_xml(options, xmlFile);
+    options.LoadFromXML(xmlFile);
     Property &calculator_options = options.get("options." + calculator_name);
     Property::AttributeIterator atr_it =
         calculator_options.findAttribute("help");

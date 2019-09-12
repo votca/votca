@@ -20,7 +20,7 @@
 #define BOOST_TEST_MODULE property_test
 #include <boost/test/unit_test.hpp>
 #include <votca/tools/property.h>
-
+#include <fstream>
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(property_test)
@@ -42,6 +42,40 @@ BOOST_AUTO_TEST_CASE(eigen_test) {
   Eigen::Vector3d result2 = prop.get("vec").as<Eigen::Vector3d>();
   Eigen::Vector3d ref2{1, 2, 3};
   BOOST_CHECK_EQUAL(ref2.isApprox(result2, 0.0001), true);
+}
+
+
+BOOST_AUTO_TEST_CASE(readin){
+  std::ofstream xmlfile("notnormalized.xml");
+  xmlfile << "<basis name=\"def2-TZVP\">" << std::endl;
+  xmlfile << "  <element name=\"Al\">" << std::endl;
+  xmlfile << "    <shell scale=\"1.0\" type=\"D\">" << std::endl;
+  xmlfile << "      <constant decay=\"1.570000e+00\">" << std::endl;
+  xmlfile << "        <contractions factor=\"2.000000e-01\" type=\"D\"/>"
+            << std::endl;
+  xmlfile << "      </constant>" << std::endl;
+  xmlfile << "      <constant decay=\"3.330000e-01\">" << std::endl;
+  xmlfile << "        <contractions factor=\"1.000000e+00\" type=\"D\"/>"
+            << std::endl;
+  xmlfile << "      </constant>" << std::endl;
+  xmlfile << "    </shell> " << std::endl;
+  xmlfile << "  </element> " << std::endl;
+  xmlfile << "</basis> " << std::endl;
+  xmlfile.close();
+  
+  Property prop;
+  prop.LoadFromXML("notnormalized.xml");
+  
+  Property& e=prop.get("basis.element");
+  BOOST_CHECK_EQUAL(e.getAttribute<std::string>("name"),"Al");
+  
+  BOOST_REQUIRE_THROW(prop.get("basis.blabla"),std::runtime_error);
+    
+  Property& c=prop.get("basis.element.shell.constant.contractions");
+  BOOST_CHECK_EQUAL(c.getAttribute<std::string>("type"),"D");
+  
+  BOOST_REQUIRE_THROW(c.getAttribute<std::string>("bla"),std::runtime_error);
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()
