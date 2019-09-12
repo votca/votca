@@ -33,7 +33,6 @@ Issues can be directed created on the appropriate github repo:
 * [csgapps](https://github.com/votca/csgapps/issues)
 * [csg-manual](https://github.com/votca/csg-manual/issues)
 * [csg-tutorials](https://github.com/votca/csg-tutorials/issues)
-* [ctp](https://github.com/votca/ctp/issues)
 * [xtp](https://github.com/votca/xtp/issues)
 * [votca](https://github.com/votca/votca/issues)
 
@@ -74,7 +73,7 @@ Here are a few general tips that should be followed:
 
 * One class, one header.
 * When creating header guards use the following form, where "VOTCA-REPO-NAME"
-  is replaced by whichever repo the header is in tools/csg/ctp/xtp, and where
+  is replaced by whichever repo the header is in tools/csg/xtp, and where
   "CLASS-NAME" is replaced by the name of the class described in the header
   file:
 
