@@ -14,14 +14,13 @@ def readgrofile(filename):
     box=[]
     atomnumber=0
     with open(filename,"r") as f:
-        comment=f.readline()
+        f.readline()
         atomnumber=int(f.readline())
-        for i in range(atomnumber):
+        for _ in range(atomnumber):
             line=f.readline()
             atompos.append(line.split()[3:])
         box=(f.readline().split())
     return atomnumber,np.array(box,dtype=float),np.array(atompos,dtype=float)
-    
 
 def write_data(file_name, time, energy, n_part):
     with open(file_name, 'a') as f:
