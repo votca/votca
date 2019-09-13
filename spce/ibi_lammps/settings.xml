@@ -4,8 +4,8 @@
     <!-- name of the interaction -->
     <name>CG-CG</name>
     <!-- types involved in this interaction -->
-    <type1>1</type1>
-    <type2>1</type2>
+    <type1>Bead1</type1>
+    <type2>Bead1</type2>
     <!-- dimension + grid spacing of tables for calculations -->
     <min>0.0</min>
     <max>0.9</max>
@@ -15,17 +15,18 @@
       <target>CG-CG.dist.tgt</target>
       <lammps>
         <!-- name of the table for lammps run -->
-	<table>CG_CG.pot</table>
-	<table_begin>0.20</table_begin>
-	<table_bins>0.002</table_bins>
+        <table>CG_CG.pot</table>
+        <scale>10</scale>
+        <table_begin>0.20</table_begin>
+        <table_bins>0.002</table_bins>
       </lammps>
     </inverse>
   </non-bonded>
   
   <!-- general options for inverse script -->
   <inverse>
-    <!-- 300*0.00831451 lammps units -->
-    <kBT>2.49435</kBT>
+    <!-- 300*0.00831451/4.184 lammps units -->
+    <kBT>0.596164</kBT>
     <!-- use lammps as simulation program -->
     <program>lammps</program>
     <!-- lammps specific options -->

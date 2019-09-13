@@ -3,13 +3,24 @@
 # DON'T RUN THIS MANUALLY
 # RUN "csg_inverse --options settings.xml" instead
 
-from __future__ import print_function
 import time
 import numpy as np
 
 import espressomd
 from espressomd.io.writer import h5md
-import MDAnalysis as mda
+
+def readgrofile(filename):
+    atompos=[]
+    box=[]
+    atomnumber=0
+    with open(filename,"r") as f:
+        f.readline()
+        atomnumber=int(f.readline())
+        for _ in range(atomnumber):
+            line=f.readline()
+            atompos.append(line.split()[3:])
+        box=(f.readline().split())
+    return atomnumber,np.array(box,dtype=float),np.array(atompos,dtype=float)
 
 def write_data(file_name, time, energy, n_part):
     with open(file_name, 'a') as f:
@@ -39,10 +50,12 @@ int_steps = 900
 eq_steps = 100
 steps_per_int = 100
 
-in_atoms = mda.Universe('spce.gro')
-box_length = in_atoms.dimensions[0:3].astype(float)
-positions = in_atoms.atoms.positions.astype(float)
-masses = in_atoms.atoms.masses.astype(float)
+atomnumber,box,atompos=readgrofile('spce.gro')
+nm2Angstroem=10
+box_length = box*nm2Angstroem
+positions = atompos*nm2Angstroem
+mass=18
+masses=mass*np.ones(atomnumber)
 
 # Setup Espresso with particle from spce.gro
 system = espressomd.System(box_l=box_length, time_step=time_step)

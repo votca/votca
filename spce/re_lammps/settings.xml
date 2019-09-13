@@ -5,8 +5,8 @@
     <!-- name of the interaction -->
     <name>CG-CG</name>
     <!-- specify type of CG pair -->
-    <type1>1</type1>
-    <type2>1</type2>
+    <type1>Bead1</type1>
+    <type2>Bead1</type2>
     <!-- min, max and step size distance for pot (max=cutoff) -->
     <min>0.00</min>
     <max>0.9</max>
@@ -25,6 +25,7 @@
       <lammps>
         <!-- name of the table for lammps run -->
 	<table>CG_CG.pot</table>
+	<scale>10</scale>
 	<table_begin>0.05</table_begin>
 	<table_bins>0.002</table_bins>
       </lammps>
@@ -46,9 +47,9 @@
    </inverse>
   </non-bonded>
   <inverse>
-    <!-- System T = 300*0.00831451 kBT units -->
-    <kBT>2.4942</kBT>
-    <!-- use gromacs as simulation program -->
+    <!-- 300*0.00831451/4.184 lammps units -->
+    <kBT>0.596164</kBT>
+    <!-- use lammps as simulation program -->
     <program>lammps</program>
     <!-- lammps specific options -->
     <lammps>
