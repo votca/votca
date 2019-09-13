@@ -386,7 +386,6 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
 
   for (const Property pp : p) {
     level++;
-    leveloffset++;
     if (prefix == "") {
       PrintNodeHLP(out, pp, start_level, level, pp.name(), offset);
     } else {
