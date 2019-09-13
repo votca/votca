@@ -49,7 +49,7 @@ class AOMomentum : public AOMatrix3D {
 };
 
 /* derived class for atomic orbital electrical dipole matrices, required for
- * electical transition dipoles
+ * electrical transition dipoles
  */
 class AODipole : public AOMatrix3D {
  public:

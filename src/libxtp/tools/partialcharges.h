@@ -54,7 +54,7 @@ void Partialcharges::Initialize(tools::Property& options) {
   _output_file = options.get(key + ".output").as<std::string>();
   std::string _esp2multipole_xml =
       options.get(key + ".esp_options").as<std::string>();
-  load_property_from_xml(_esp_options, _esp2multipole_xml);
+  _esp_options.LoadFromXML(_esp2multipole_xml);
 }
 
 bool Partialcharges::Evaluate() {

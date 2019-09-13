@@ -127,7 +127,7 @@ BOOST_AUTO_TEST_CASE(dft_full) {
   xml << "</package>" << std::endl;
   xml.close();
   votca::tools::Property prop;
-  votca::tools::load_property_from_xml(prop, "dftengine.xml");
+  prop.LoadFromXML("dftengine.xml");
 
   Logger log;
   dft.setLogger(&log);

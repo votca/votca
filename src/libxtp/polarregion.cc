@@ -32,7 +32,7 @@ void PolarRegion::Initialize(const tools::Property& prop) {
   std::string filename =
       prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_polar");
   tools::Property polar_xml;
-  tools::load_property_from_xml(polar_xml, filename);
+  polar_xml.LoadFromXML(filename);
   _max_iter =
       polar_xml.ifExistsReturnElseReturnDefault(key + ".max_iter", _max_iter);
   _deltaD = polar_xml.ifExistsReturnElseReturnDefault(key + ".tolerance_dipole",

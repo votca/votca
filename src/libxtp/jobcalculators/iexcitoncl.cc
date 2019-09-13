@@ -94,7 +94,17 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
 
   const Segment& seg_A = top.getSegment(ID_A);
+  if (type_A != seg_A.getType()) {
+    throw runtime_error("SegmentA: type " + seg_A.getType() +
+                        " and type in jobfile " + type_A +
+                        " do not agree for ID:" + std::to_string(ID_A));
+  }
   const Segment& seg_B = top.getSegment(ID_B);
+  if (type_B != seg_B.getType()) {
+    throw runtime_error("SegmentB: type " + seg_B.getType() +
+                        " and type in jobfile " + type_B +
+                        " do not agree for ID:" + std::to_string(ID_B));
+  }
   const QMNBList& nblist = top.NBList();
   const QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
   if (pair == nullptr) {
@@ -219,7 +229,7 @@ void IEXCITON::ReadJobFile(Topology& top) {
   log.setReportLevel(logINFO);
 
   // load the QC results in a vector indexed by the pair ID
-  load_property_from_xml(xml, _jobfile);
+  xml.LoadFromXML(_jobfile);
   vector<Property*> jobProps = xml.Select("jobs.job");
   records.resize(number_of_pairs + 1);
 

@@ -68,7 +68,7 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     std::string package_xml = opt.get(key + ".dftpackage").as<std::string>();
-    load_property_from_xml(_dftpackage_options, package_xml);
+    _dftpackage_options.LoadFromXML(package_xml);
   }
 
   // read linker groups
@@ -92,12 +92,13 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
 
   if (_do_gwbse) {
     std::string _gwbse_xml = opt.get(key + ".gwbse_options").as<std::string>();
-    load_property_from_xml(_gwbse_options, _gwbse_xml);
+
+    _gwbse_options.LoadFromXML(_gwbse_xml);
   }
   if (_do_bsecoupling) {
     std::string _coupling_xml =
         opt.get(key + ".bsecoupling_options").as<std::string>();
-    load_property_from_xml(_bsecoupling_options, _coupling_xml);
+    _bsecoupling_options.LoadFromXML(_coupling_xml);
   }
 
   // options for parsing data into state file
@@ -696,7 +697,7 @@ void IQM::ReadJobFile(Topology& top) {
 
   tools::Property xml;
   // load the QC results in a vector indexed by the pair ID
-  load_property_from_xml(xml, _jobfile);
+  xml.LoadFromXML(_jobfile);
   std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
   std::vector<tools::Property*> records =
       std::vector<tools::Property*>(nblist.size() + 1, NULL);

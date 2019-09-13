@@ -241,7 +241,7 @@ int OffsetFuncShell_cartesian(const std::string& shell_type) {
 }
 
 void BasisSet::Load(const std::string& name) {
-  tools::Property basis_property;
+
   _name = name;
   // if name contains .xml, assume a basisset .xml file is located in the
   // working directory
@@ -257,11 +257,8 @@ void BasisSet::Load(const std::string& name) {
     xmlFile = std::string(getenv("VOTCASHARE")) +
               std::string("/xtp/basis_sets/") + name + std::string(".xml");
   }
-  bool success = load_property_from_xml(basis_property, xmlFile);
-
-  if (!success) {
-    ;
-  }
+  tools::Property basis_property;
+  basis_property.LoadFromXML(xmlFile);
   std::vector<tools::Property*> elementProps =
       basis_property.Select("basis.element");
 

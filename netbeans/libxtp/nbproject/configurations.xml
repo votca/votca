@@ -152,8 +152,8 @@
       <itemPath>../../include/votca/xtp/segmentmapper.h</itemPath>
       <itemPath>../../include/votca/xtp/sphere_lebedev_rule.h</itemPath>
       <itemPath>../../include/votca/xtp/stateapplication.h</itemPath>
-      <itemPath>../../include/votca/xtp/statefilter.h</itemPath>
       <itemPath>../../include/votca/xtp/statesaver.h</itemPath>
+      <itemPath>../../include/votca/xtp/statetracker.h</itemPath>
       <itemPath>../../include/votca/xtp/staticregion.h</itemPath>
       <itemPath>../../include/votca/xtp/staticsite.h</itemPath>
       <itemPath>../../include/votca/xtp/symmetric_matrix.h</itemPath>
@@ -293,8 +293,8 @@
       <itemPath>../../src/libxtp/rate_engine.cc</itemPath>
       <itemPath>../../src/libxtp/segment.cc</itemPath>
       <itemPath>../../src/libxtp/segmentmapper.cc</itemPath>
-      <itemPath>../../src/libxtp/statefilter.cc</itemPath>
       <itemPath>../../src/libxtp/statesaver.cc</itemPath>
+      <itemPath>../../src/libxtp/statetracker.cc</itemPath>
       <itemPath>../../src/libxtp/staticsite.cc</itemPath>
       <itemPath>../../src/libxtp/symmetric_matrix.cc</itemPath>
       <itemPath>../../src/libxtp/topology.cc</itemPath>
@@ -355,7 +355,7 @@
       <itemPath>../../src/tests/test_segmentmapper.cc</itemPath>
       <itemPath>../../src/tests/test_sigma_ppm.cc</itemPath>
       <itemPath>../../src/tests/test_sphere_lebedev_rule.cc</itemPath>
-      <itemPath>../../src/tests/test_statefilter.cc</itemPath>
+      <itemPath>../../src/tests/test_statetracker.cc</itemPath>
       <itemPath>../../src/tests/test_symmetric_matrix.cc</itemPath>
       <itemPath>../../src/tests/test_threecenter.cc</itemPath>
       <itemPath>../../src/tests/test_topology.cc</itemPath>
@@ -4252,12 +4252,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/statefilter.h"
+      <item path="../../include/votca/xtp/statesaver.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/statesaver.h"
+      <item path="../../include/votca/xtp/statetracker.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -4828,9 +4828,9 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/statetracker.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -5055,7 +5055,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_statefilter.cc"
+      <item path="../../src/tests/test_statetracker.cc"
             ex="false"
             tool="1"
             flavor2="0">
@@ -5474,12 +5474,12 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/statefilter.h"
+      <item path="../../include/votca/xtp/statesaver.h"
             ex="false"
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/xtp/statesaver.h"
+      <item path="../../include/votca/xtp/statetracker.h"
             ex="false"
             tool="3"
             flavor2="0">
@@ -6050,9 +6050,9 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/libxtp/statefilter.cc" ex="false" tool="1" flavor2="0">
-      </item>
       <item path="../../src/libxtp/statesaver.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/libxtp/statetracker.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/libxtp/staticsite.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -6277,7 +6277,7 @@
             tool="1"
             flavor2="0">
       </item>
-      <item path="../../src/tests/test_statefilter.cc"
+      <item path="../../src/tests/test_statetracker.cc"
             ex="false"
             tool="1"
             flavor2="0">

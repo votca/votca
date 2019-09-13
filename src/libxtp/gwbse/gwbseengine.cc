@@ -51,7 +51,7 @@ void GWBSEEngine::Initialize(tools::Property& options,
   // XML option file for GWBSE
   if (_do_gwbse) {
     std::string _gwbse_xml = options.get(".gwbse_options").as<std::string>();
-    load_property_from_xml(_gwbse_options, _gwbse_xml);
+    _gwbse_options.LoadFromXML(_gwbse_xml);
   }
   // DFT log and MO file names
   _MO_file = options.get(".mofile").as<std::string>();

@@ -120,7 +120,7 @@ Eigen::MatrixXd Orbitals::CalculateQParticleAORepresentation() const {
 
 Eigen::MatrixXd Orbitals::DensityMatrixQuasiParticle(
     const QMState& state) const {
-  if (state.Type() != QMStateType::PQPstate) {
+  if (state.Type() != QMStateType::DQPstate) {
     throw std::runtime_error("State:" + state.ToString() +
                              " is not a quasiparticle state");
   }

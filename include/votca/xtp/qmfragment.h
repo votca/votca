@@ -46,6 +46,12 @@ class QMFragment {
 
   QMFragment(CheckpointReader& r) { ReadFromCpt(r); }
 
+  template <class T2>
+  void copy_withoutvalue(const QMFragment<T2>& frag) {
+    _id = frag.getId();
+    _atomindices = frag.getIndices();
+  }
+
   void setId(int id) { _id = id; }
   int getId() const { return _id; }
   void FillFromString(std::string atoms) { FillAtomIndices(atoms); }
