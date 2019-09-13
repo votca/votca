@@ -226,7 +226,7 @@ class Property {
 
   template <typename T>
   T getAttribute(const_AttributeIterator it) const;
-  
+
   void LoadFromXML(std::string filename);
 
   static int getIOindex() { return IOindex; };
@@ -315,13 +315,13 @@ inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
   if (std::find(possibleReturns.begin(), possibleReturns.end(), result) ==
       possibleReturns.end()) {
     std::stringstream s;
-    s<< "Allowed options are: ";
+    s << "Allowed options are: ";
     for (unsigned i = 0; i < possibleReturns.size(); ++i) {
       s << possibleReturns[i] << " ";
     }
     s << std::endl;
-    throw std::runtime_error(s.str()+
-        (boost::format("Error: %s is not allowed") % key).str());
+    throw std::runtime_error(
+        s.str() + (boost::format("Error: %s is not allowed") % key).str());
   }
   return result;
 }
@@ -400,8 +400,9 @@ inline T Property::getAttribute(
     return lexical_cast<T>((*it).second);
   } else {
     std::stringstream s;
-    s<< *this << std::endl;
-    throw std::runtime_error(s.str()+"attribute " + (*it).first + " not found\n");
+    s << *this << std::endl;
+    throw std::runtime_error(s.str() + "attribute " + (*it).first +
+                             " not found\n");
   }
 }
 
@@ -417,8 +418,9 @@ inline T Property::getAttribute(const std::string &attribute) const {
                                " of element " + _path + "." + _name + "\n");
   } else {
     std::stringstream s;
-    s<< *this << std::endl;
-    throw std::runtime_error(s.str()+"attribute " + attribute + " not found\n");
+    s << *this << std::endl;
+    throw std::runtime_error(s.str() + "attribute " + attribute +
+                             " not found\n");
   }
 }
 template <typename T>
