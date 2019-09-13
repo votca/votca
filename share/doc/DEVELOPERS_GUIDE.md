@@ -434,7 +434,6 @@ requirements from the package managers. Some of the architectures that the
 package managers support can be quite varied. In the case that a failure occurs
 on an architecture that is not available to you there are different approaches
 to debugging the problem. As an example fedora dnf has extended support to the
-
 **pcc64le** architecture. Assuming you have access to fedora you can run the
 following commands to simulate the build process on the **pcc64le**
 architecture:
