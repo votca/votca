@@ -241,7 +241,7 @@ void Application::PrintDescription(std::ostream &out,
         break;
     }
 
-  } catch (std::exception &error) {
+  } catch (std::exception &) {
     if (tools::globals::verbose)
       out << _format % calculator_name % "Undocumented";
   }

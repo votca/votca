@@ -60,8 +60,8 @@ const Property &Property::get(const string &key) const {
     for (; n != tok.end(); ++n) {
       p = &p->get(*n);
     }
-  } catch (std::runtime_error &err) {  // catch here to get full key in
-                                       // exception
+  } catch (std::runtime_error &) {  // catch here to get full key in
+                                    // exception
     throw std::runtime_error("property not found: " + key);
   }
 
