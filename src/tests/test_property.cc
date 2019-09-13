@@ -21,6 +21,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 #include <sstream>
+#include <votca/tools/property.h>
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(property_test)
@@ -80,8 +81,8 @@ BOOST_AUTO_TEST_CASE(printtostream) {
 
   Property prop;
   Property& p = prop.add("hello", "");
-  Property& pp = p.add("hi", "5");
-  Property& pd = p.add("ho", "bumm");
+  p.add("hi", "5");
+  p.add("ho", "bumm");
 
   std::stringstream dudu;
   dudu << prop;
