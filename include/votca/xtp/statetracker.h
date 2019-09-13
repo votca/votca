@@ -18,8 +18,8 @@
  */
 
 #pragma once
-#ifndef VOTCA_XTP_STATEFILTER_H
-#define VOTCA_XTP_STATEFILTER_H
+#ifndef VOTCA_XTP_STATETRACKER_H
+#define VOTCA_XTP_STATETRACKER_H
 
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
@@ -30,13 +30,13 @@
 namespace votca {
 namespace xtp {
 /**
- *  \brief  Filters from a spectrum of states the state, which fullfills certain
+ *  \brief  Tracks from a spectrum of states the state, which fullfills certain
  * criteria
  *
  *
  */
 
-class Statefilter {
+class StateTracker {
 
  public:
   void Initialize(tools::Property& options);
@@ -52,10 +52,10 @@ class Statefilter {
   void ReadFromCpt(CheckpointReader& r);
 
  private:
-  std::vector<int> OscFilter(const Orbitals& orbitals) const;
-  std::vector<int> LocFilter(const Orbitals& orbitals) const;
-  std::vector<int> DeltaQFilter(const Orbitals& orbitals) const;
-  std::vector<int> OverlapFilter(const Orbitals& orbitals) const;
+  std::vector<int> OscTracker(const Orbitals& orbitals) const;
+  std::vector<int> LocTracker(const Orbitals& orbitals) const;
+  std::vector<int> DeltaQTracker(const Orbitals& orbitals) const;
+  std::vector<int> OverlapTracker(const Orbitals& orbitals) const;
 
   Eigen::VectorXd CalculateOverlap(const Orbitals& orbitals) const;
 
@@ -71,22 +71,20 @@ class Statefilter {
 
   std::vector<QMState> _statehist;
 
-  bool _use_oscfilter = false;
+  bool _use_osctracker = false;
   double _oscthreshold = 0.0;
 
-  bool _use_overlapfilter = false;
+  bool _use_overlaptracker = false;
   Eigen::VectorXd _laststatecoeff;
   double _overlapthreshold = 0.0;
 
-  bool _use_localizationfilter = false;
-  QMFragment<BSE_Population> _fragment_loc;
-  double _loc_threshold = 0.0;
+  bool _use_localizationtracker = false;
+  QMFragment<double> _fragment_loc;
 
-  bool _use_dQfilter = false;
-  QMFragment<BSE_Population> _fragment_dQ;
-  double _dQ_threshold = 0.0;
+  bool _use_dQtracker = false;
+  QMFragment<double> _fragment_dQ;
 };
 }  // namespace xtp
 }  // namespace votca
 
-#endif  // VOTCA_XTP_STATEFILTER_H
+#endif  // VOTCA_XTP_STATETRACKER_H

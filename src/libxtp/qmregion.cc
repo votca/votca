@@ -48,13 +48,13 @@ void QMRegion::Initialize(const tools::Property& prop) {
     _do_gwbse = true;
     std::string gwbsexml =
         prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_gwbse");
-    tools::load_property_from_xml(_gwbseoptions, gwbsexml);
-    if (prop.exists("filter")) {
-      tools::Property filter = prop.get("filter");
-      _filter.setLogger(&_log);
-      _filter.Initialize(filter);
-      _filter.setInitialState(_initstate);
-      _filter.PrintInfo();
+    _gwbseoptions.LoadFromXML(gwbsexml);
+    if (prop.exists("statetracker")) {
+      tools::Property filter = prop.get("statetracker");
+      _statetracker.setLogger(&_log);
+      _statetracker.Initialize(filter);
+      _statetracker.setInitialState(_initstate);
+      _statetracker.PrintInfo();
     } else {
       throw std::runtime_error("No filter for excited states specified");
     }
@@ -67,7 +67,7 @@ void QMRegion::Initialize(const tools::Property& prop) {
 
   std::string dftxml =
       prop.ifExistsReturnElseThrowRuntimeError<std::string>("options_dft");
-  tools::load_property_from_xml(_dftoptions, dftxml);
+  _dftoptions.LoadFromXML(dftxml);
 }
 
 bool QMRegion::Converged() const {
@@ -131,7 +131,7 @@ void QMRegion::Evaluate(std::vector<std::unique_ptr<Region> >& regions) {
     gwbse.setLogger(&_log);
     gwbse.Initialize(_gwbseoptions);
     gwbse.Evaluate();
-    state = _filter.CalcStateAndUpdate(_orb);
+    state = _statetracker.CalcStateAndUpdate(_orb);
     if (state.Type().isExciton()) {
       energy += _orb.getExcitedStateEnergy(state);
     } else {
@@ -163,7 +163,7 @@ double QMRegion::charge() const {
     double electrons = _orb.getNumberOfAlphaElectrons() * 2;
     charge = nuccharge - electrons;
   } else {
-    QMState state = _filter.InitialState();
+    QMState state = _statetracker.InitialState();
     if (state.Type().isExciton()) {
       charge = 0.0;
     } else if (state.Type().isSingleParticleState()) {
@@ -180,8 +180,8 @@ double QMRegion::charge() const {
 void QMRegion::AppendResult(tools::Property& prop) const {
   prop.add("E_total", std::to_string(_E_hist.back() * tools::conv::hrt2ev));
   if (_do_gwbse) {
-    prop.add("Initial_State", _filter.InitialState().ToString());
-    prop.add("Final_State", _filter.CalcState(_orb).ToString());
+    prop.add("Initial_State", _statetracker.InitialState().ToString());
+    prop.add("Final_State", _statetracker.CalcState(_orb).ToString());
   }
 }
 
@@ -239,7 +239,7 @@ void QMRegion::ApplyQMFieldToPolarSegments(
 
   QMState state = QMState("groundstate");
   if (_do_gwbse) {
-    state = _filter.CalcState(_orb);
+    state = _statetracker.CalcState(_orb);
   }
   Eigen::MatrixXd dmat = _orb.DensityMatrixFull(state);
   double Ngrid = numint.IntegrateDensity(dmat);
@@ -287,7 +287,7 @@ void QMRegion::WriteToCpt(CheckpointWriter& w) const {
   _Dmat_hist.WriteToCpt(v3);
   if (_do_gwbse) {
     CheckpointWriter v4 = w.openChild("statefilter");
-    _filter.WriteToCpt(v4);
+    _statetracker.WriteToCpt(v4);
   }
 }
 
@@ -309,7 +309,7 @@ void QMRegion::ReadFromCpt(CheckpointReader& r) {
   _Dmat_hist.ReadFromCpt(rr3);
   if (_do_gwbse) {
     CheckpointReader rr4 = r.openChild("statefilter");
-    _filter.ReadFromCpt(rr4);
+    _statetracker.ReadFromCpt(rr4);
   }
 }
 

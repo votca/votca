@@ -326,14 +326,14 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
 void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                         int state) const {
   for (const QMFragment<BSE_Population>& frag : frags) {
-    double dq = frag.value().H[state] - frag.value().E[state];
+    double dq = frag.value().H[state] + frag.value().E[state];
     double qeff = dq + frag.value().Gs;
     XTP_LOG_SAVE(logINFO, _log)
         << format(
                "           Fragment %1$4d%% -- hole: %2$5.1f%%  electron: "
                "%3$5.1f%%  dQ: %4$+5.2f  Qeff: %5$+5.2f") %
                frag.getId() % (100.0 * frag.value().H[state]) %
-               (100.0 * frag.value().E[state]) % dq % qeff
+               (-100.0 * frag.value().E[state]) % dq % qeff
         << flush;
   }
   return;

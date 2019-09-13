@@ -48,73 +48,45 @@ void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
 Eigen::VectorXd DIIS::CalcCoeff() {
   success = true;
-  const bool _useold = false;
   const int size = _errormatrixhist.size();
-  // old Pulat DIIs
 
-  Eigen::VectorXd coeffs;
-  if (_useold) {
+  // C2-DIIS
+  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size, size);
 
-    Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size + 1, size + 1);
-    Eigen::VectorXd a = Eigen::VectorXd::Zero(size + 1);
-    a(size) = -1;
-    for (int i = 0; i < B.rows() - 1; i++) {
-      B(i, size) = -1;
-      B(size, i) = -1;
-    }
-
-    for (int i = 0; i < B.rows() - 1; i++) {
-      for (int j = 0; j <= i; j++) {
-        B(i, j) = _Diis_Bs[i][j];
-        if (i != j) {
-          B(j, i) = B(i, j);
-        }
+  for (int i = 0; i < B.rows(); i++) {
+    for (int j = 0; j <= i; j++) {
+      B(i, j) = _Diis_Bs[i][j];
+      if (i != j) {
+        B(j, i) = B(i, j);
       }
     }
-
-    Eigen::VectorXd result = B.colPivHouseholderQr().solve(a);
-    coeffs = result.head(size);
-  } else {
-
-    // C2-DIIS
-
-    Eigen::MatrixXd B = Eigen::MatrixXd::Zero(size, size);
-
-    for (int i = 0; i < B.rows(); i++) {
-      for (int j = 0; j <= i; j++) {
-        B(i, j) = _Diis_Bs[i][j];
-        if (i != j) {
-          B(j, i) = B(i, j);
-        }
-      }
-    }
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
-    Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(size, size);
-
-    for (int i = 0; i < es.eigenvectors().cols(); i++) {
-      double norm = es.eigenvectors().col(i).sum();
-      eigenvectors.col(i) = es.eigenvectors().col(i) / norm;
-    }
-
-    // Choose solution by picking out solution with smallest absolute error
-    Eigen::VectorXd errors =
-        (eigenvectors.transpose() * B * eigenvectors).diagonal().cwiseAbs();
-
-    double MaxWeight = 10.0;
-    int mincoeff = 0;
-    success = false;
-    for (int i = 0; i < errors.size(); i++) {
-      errors.minCoeff(&mincoeff);
-      if (std::abs(eigenvectors.col(mincoeff).maxCoeff()) > MaxWeight) {
-        errors[mincoeff] = std::numeric_limits<double>::max();
-      } else {
-        success = true;
-        break;
-      }
-    }
-
-    coeffs = eigenvectors.col(mincoeff);
   }
+  Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(B);
+  Eigen::MatrixXd eigenvectors = Eigen::MatrixXd::Zero(size, size);
+
+  for (int i = 0; i < es.eigenvectors().cols(); i++) {
+    double norm = es.eigenvectors().col(i).sum();
+    eigenvectors.col(i) = es.eigenvectors().col(i) / norm;
+  }
+
+  // Choose solution by picking out solution with smallest absolute error
+  Eigen::VectorXd errors =
+      (eigenvectors.transpose() * B * eigenvectors).diagonal().cwiseAbs();
+
+  double MaxWeight = 10.0;
+  int mincoeff = 0;
+  success = false;
+  for (int i = 0; i < errors.size(); i++) {
+    errors.minCoeff(&mincoeff);
+    if (std::abs(eigenvectors.col(mincoeff).maxCoeff()) > MaxWeight) {
+      errors[mincoeff] = std::numeric_limits<double>::max();
+    } else {
+      success = true;
+      break;
+    }
+  }
+
+  Eigen::VectorXd coeffs = eigenvectors.col(mincoeff);
 
   if (std::abs(coeffs[coeffs.size() - 1]) < 0.001) {
     success = false;

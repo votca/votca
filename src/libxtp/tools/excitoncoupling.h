@@ -68,7 +68,7 @@ void ExcitonCoupling::Initialize(tools::Property& options) {
 
     std::string coupling_xml =
         options.get(key + ".bsecoupling_options").as<std::string>();
-    load_property_from_xml(_coupling_options, coupling_xml);
+    _coupling_options.LoadFromXML(coupling_xml);
 
     _orbA = options.get(key + ".orbitalsA").as<std::string>();
     _orbB = options.get(key + ".orbitalsB").as<std::string>();

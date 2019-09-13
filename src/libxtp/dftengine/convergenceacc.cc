@@ -236,9 +236,8 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
     return Eigen::MatrixXd::Zero(MOs.eigenvectors().rows(),
                                  MOs.eigenvectors().rows());
   }
-  int numofelec = _opt.numberofelectrons;
-  Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOs.eigenvalues().size());
 
+  Eigen::VectorXd occupation = Eigen::VectorXd::Zero(MOs.eigenvalues().size());
   std::vector<std::vector<int> > degeneracies;
   double buffer = 1e-4;
   degeneracies.push_back(std::vector<int>{0});
@@ -250,16 +249,17 @@ Eigen::MatrixXd ConvergenceAcc::DensityMatrixGroundState_frac(
       degeneracies.push_back(std::vector<int>{i});
     }
   }
+  int numofelec = _opt.numberofelectrons;
   for (const std::vector<int>& deglevel : degeneracies) {
     int numofpossibleelectrons = 2 * deglevel.size();
     if (numofpossibleelectrons <= numofelec) {
-      for (const int& i : deglevel) {
+      for (int i : deglevel) {
         occupation(i) = 2;
       }
       numofelec -= numofpossibleelectrons;
     } else if (numofpossibleelectrons > numofelec) {
       double occ = double(numofelec) / double(deglevel.size());
-      for (const int& i : deglevel) {
+      for (int i : deglevel) {
         occupation(i) = occ;
       }
       break;

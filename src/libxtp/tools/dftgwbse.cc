@@ -64,7 +64,7 @@ void DftGwBse::Initialize(tools::Property& options) {
 
   // options for dft package
   string _package_xml = options.get(key + ".dftpackage").as<string>();
-  load_property_from_xml(_package_options, _package_xml);
+  _package_options.LoadFromXML(_package_xml);
   _package = _package_options.get("package.name").as<string>();
 
   // MOLECULE properties

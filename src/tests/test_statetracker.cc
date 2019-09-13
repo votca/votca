@@ -15,14 +15,14 @@
  */
 #define BOOST_TEST_MAIN
 
-#define BOOST_TEST_MODULE statefilter_test
+#define BOOST_TEST_MODULE statetracker_test
 #include <boost/test/unit_test.hpp>
 #include <fstream>
-#include <votca/xtp/statefilter.h>
+#include <votca/xtp/statetracker.h>
 
 using namespace votca::xtp;
 using namespace std;
-BOOST_AUTO_TEST_SUITE(statefilter_test)
+BOOST_AUTO_TEST_SUITE(statetracker_test)
 BOOST_AUTO_TEST_CASE(osc) {
 
   ofstream xyzfile("molecule.xyz");
@@ -198,74 +198,74 @@ BOOST_AUTO_TEST_CASE(osc) {
   orb.CalcCoupledTransition_Dipoles();
 
   {
-    std::ofstream options("filter.xml");
-    options << "<filter>" << std::endl;
+    std::ofstream options("statetracker.xml");
+    options << "<statetracker>" << std::endl;
     options << "  <oscillator_strength>0.0019</oscillator_strength>"
             << std::endl;
-    options << "</filter>" << std::endl;
+    options << "</statetracker>" << std::endl;
     options.close();
     votca::tools::Property prop;
-    votca::tools::load_property_from_xml(prop, "filter.xml");
-    Statefilter filter;
-    filter.setLogger(&log);
+    prop.LoadFromXML("statetracker.xml");
+    StateTracker tracker;
+    tracker.setLogger(&log);
     QMState s("s1");
-    filter.setInitialState(s);
-    filter.Initialize(prop.get("filter"));
-    QMState newstate = filter.CalcState(orb);
+    tracker.setInitialState(s);
+    tracker.Initialize(prop.get("statetracker"));
+    QMState newstate = tracker.CalcState(orb);
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
     BOOST_CHECK_EQUAL(newstate.Index(), 1);
   }
 
   {
-    std::ofstream options("filter.xml");
-    options << "<filter>" << std::endl;
+    std::ofstream options("statetracker.xml");
+    options << "<statetracker>" << std::endl;
     options << "  <localisation>" << std::endl;
     options << "  <fragment>0 1</fragment>" << std::endl;
     options << "  <threshold>0.5</threshold>" << std::endl;
     options << "  </localisation>" << std::endl;
-    options << "</filter>" << std::endl;
+    options << "</statetracker>" << std::endl;
     options.close();
     votca::tools::Property prop;
-    votca::tools::load_property_from_xml(prop, "filter.xml");
-    Statefilter filter;
-    filter.setLogger(&log);
+    prop.LoadFromXML("statetracker.xml");
+    StateTracker tracker;
+    tracker.setLogger(&log);
     QMState s("s1");
-    filter.setInitialState(s);
-    filter.Initialize(prop.get("filter"));
-    QMState newstate = filter.CalcState(orb);
+    tracker.setInitialState(s);
+    tracker.Initialize(prop.get("statetracker"));
+    QMState newstate = tracker.CalcState(orb);
     BOOST_CHECK_EQUAL(newstate.Type().ToString(), "s");
     BOOST_CHECK_EQUAL(newstate.Index(), 0);
   }
 }
 
 BOOST_AUTO_TEST_CASE(readwrite_hdf5) {
-  std::ofstream options("filter.xml");
-  options << "<filter>" << std::endl;
+  std::ofstream options("statetracker.xml");
+  options << "<statetracker>" << std::endl;
   options << "  <localisation>" << std::endl;
   options << "  <fragment>0 1</fragment>" << std::endl;
   options << "  <threshold>0.1</threshold>" << std::endl;
   options << "  </localisation>" << std::endl;
-  options << "</filter>" << std::endl;
+  options << "</statetracker>" << std::endl;
   options.close();
   votca::tools::Property prop;
-  votca::tools::load_property_from_xml(prop, "filter.xml");
-  Statefilter filter;
+  prop.LoadFromXML("statetracker.xml");
+  StateTracker tracker;
   QMState s("s1");
-  filter.setInitialState(s);
-  filter.Initialize(prop.get("filter"));
+  tracker.setInitialState(s);
+  tracker.Initialize(prop.get("statetracker"));
 
   {
-    CheckpointFile f("statefilter.hdf5");
+    CheckpointFile f("statetracker_test.hdf5");
     CheckpointWriter w = f.getWriter();
-    filter.WriteToCpt(w);
+    tracker.WriteToCpt(w);
   }
-  Statefilter filter2;
-  CheckpointFile f("statefilter.hdf5");
+  StateTracker tracker2;
+  CheckpointFile f("statetracker_test.hdf5");
   CheckpointReader r = f.getReader();
-  filter2.ReadFromCpt(r);
+  tracker2.ReadFromCpt(r);
 
-  BOOST_CHECK_EQUAL(filter.InitialState().ToString(),
-                    filter2.InitialState().ToString());
+  BOOST_CHECK_EQUAL(tracker.InitialState().ToString(),
+                    tracker2.InitialState().ToString());
 }
 
 BOOST_AUTO_TEST_SUITE_END()

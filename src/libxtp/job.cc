@@ -172,7 +172,7 @@ void Job::UpdateFromResult(const JobResult &res) {
 std::vector<Job> LOAD_JOBS(const std::string &job_file) {
 
   tools::Property xml;
-  load_property_from_xml(xml, job_file);
+  xml.LoadFromXML(job_file);
 
   std::vector<tools::Property *> jobProps = xml.Select("jobs.job");
   std::vector<Job> jobs;

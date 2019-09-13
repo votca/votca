@@ -277,7 +277,7 @@ void QMMM::ReadJobFile(Topology& top) {
       Eigen::Matrix<int, Eigen::Dynamic, 5>::Zero(top.Segments().size(), 5);
 
   tools::Property xml;
-  load_property_from_xml(xml, _jobfile);
+  xml.LoadFromXML(_jobfile);
   std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
   for (tools::Property* job : jobProps) {
 

@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE(constructor) {
   jobstream << "	</job>" << std::endl;
 
   votca::tools::Property prop;
-  votca::tools::load_property_from_xml(prop, "job.xml");
+  prop.LoadFromXML("job.xml");
   std::string workdir = ".";
   Logger log;
   Job job(prop.get("job"));

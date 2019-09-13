@@ -19,6 +19,7 @@
 
 #include <votca/xtp/energy_costfunction.h>
 #include <votca/xtp/qmatom.h>
+#include <votca/xtp/statetracker.h>
 
 namespace votca {
 namespace xtp {
@@ -39,7 +40,7 @@ double Energy_costfunction::EvaluateCost(const Eigen::VectorXd& parameters) {
   _gwbse_engine.ExcitationEnergies(_orbitals);
   _gwbse_engine.setRedirectLogger(false);
   _energy = _orbitals.getTotalStateEnergy(
-      _filter.CalcStateAndUpdate(_orbitals));  // in Hartree
+      _tracker.CalcStateAndUpdate(_orbitals));  // in Hartree
   return _energy;
 }
 
