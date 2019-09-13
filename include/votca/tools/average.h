@@ -15,41 +15,31 @@
  *
  */
 
-#ifndef _AVERAGE_H
-#define _AVERAGE_H
+#ifndef __VOTCA_TOOLS_AVERAGE_H
+#define __VOTCA_TOOLS_AVERAGE_H
 
 namespace votca {
 namespace tools {
 
-// do not use this calss yet!
 template <typename T>
 class Average {
  public:
-  Average();
-  ~Average() {}
-
   void Process(const T &v);
   void Clear();
   template <typename iterator_type>
   void ProcessRange(const iterator_type &begin, const iterator_type &end);
 
-  T CalcDev();
-  T CalcSig2();
-  const T &getAvg();
-  const T getM2();
-  size_t getN();
+  T CalcDev() const;
+  T CalcSig2() const;
+  const T &getAvg() const;
+  const T getM2() const;
+  size_t getN() const;
 
  private:
-  size_t _n;
-  T _av;  // average
-  T _m2;  // second moment
+  size_t _n = 0;
+  T _av = 0;  // average
+  T _m2 = 0;  // second moment
 };
-
-template <typename T>
-Average<T>::Average() : _n(0) {}
-
-template <>
-inline Average<double>::Average() : _n(0), _av(0), _m2(0) {}
 
 template <typename T>
 inline void Average<T>::Process(const T &value) {
@@ -65,15 +55,6 @@ inline void Average<T>::Clear() {
   _m2 = 0;
 }
 
-/*
-template<>
-inline void Average<double>::Process(const double &value)
-{
-    _av = _av*(double)_n/(double)(_n+1) + value / (double)(_n+1);
-    _n++;
-    _m2 += value*value;
-}
-*/
 template <typename T>
 template <typename iterator_type>
 void Average<T>::ProcessRange(const iterator_type &begin,
@@ -84,37 +65,37 @@ void Average<T>::ProcessRange(const iterator_type &begin,
 }
 
 template <typename T>
-T Average<T>::CalcDev() {
+T Average<T>::CalcDev() const {
   double dev = 0.0;
-  dev = sqrt((_m2 - _n * _av * _av) / (_n - 1));
+  dev = std::sqrt((_m2 - _n * _av * _av) / (_n - 1));
   return dev;
 }
 
 template <typename T>
-T Average<T>::CalcSig2() {
+T Average<T>::CalcSig2() const {
   double dev = 0.0;
   dev = _m2 / _n - _av * _av;
   return dev;
 }
 
 template <typename T>
-const T &Average<T>::getAvg() {
+const T &Average<T>::getAvg() const {
   return _av;
 }
 
 template <typename T>
-const T Average<T>::getM2() {
+const T Average<T>::getM2() const {
   double m2 = 0.0;
   m2 = _m2 / _n;
   return m2;
 }
 
 template <typename T>
-size_t Average<T>::getN() {
+size_t Average<T>::getN() const {
   return _n;
 }
 
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _AVERAGE_H */
+#endif /* __VOTCA_TOOLS_AVERAGE_H */

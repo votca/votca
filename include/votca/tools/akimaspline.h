@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _AKIMASPLINE_H
-#define _AKIMASPLINE_H
+#ifndef __VOTCA_TOOLS_AKIMASPLINE_H
+#define __VOTCA_TOOLS_AKIMASPLINE_H
 
 #include "spline.h"
 #include <iostream>
@@ -114,4 +114,4 @@ inline double AkimaSpline::getSlope(double m1, double m2, double m3,
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _AKIMASPLINE_H */
+#endif /* __VOTCA_TOOLS_AKIMASPLINE_H */
