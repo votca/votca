@@ -21,6 +21,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/tools/property.h>
 #include <fstream>
+#include <sstream>
 using namespace votca::tools;
 
 BOOST_AUTO_TEST_SUITE(property_test)
@@ -76,6 +77,30 @@ BOOST_AUTO_TEST_CASE(readin){
   
   BOOST_REQUIRE_THROW(c.getAttribute<std::string>("bla"),std::runtime_error);
     
+}
+
+
+
+BOOST_AUTO_TEST_CASE(printtostream){
+    
+   Property prop;
+   Property& p=prop.add("hello","");
+   Property& pp=p.add("hi","5");
+   Property& pd=p.add("ho","bumm");
+   
+   std::stringstream dudu;
+   dudu<<prop;
+   std::string printout=dudu.str();
+   
+   std::string ref="<>\n"
+"	<hello>\n"
+"		<hi>5</hi>\n"
+"		<ho>bumm</ho>\n"
+"	</hello>\n"
+"</>\n";
+   
+   BOOST_CHECK_EQUAL(printout,ref);
+   
 }
 
 BOOST_AUTO_TEST_SUITE_END()

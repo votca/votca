@@ -314,12 +314,13 @@ inline T Property::ifExistsAndinListReturnElseThrowRuntimeError(
   result = ifExistsReturnElseThrowRuntimeError<T>(key);
   if (std::find(possibleReturns.begin(), possibleReturns.end(), result) ==
       possibleReturns.end()) {
-    std::cerr << "Allowed options are: ";
+    std::stringstream s;
+    s<< "Allowed options are: ";
     for (unsigned i = 0; i < possibleReturns.size(); ++i) {
-      std::cerr << possibleReturns[i] << " ";
+      s << possibleReturns[i] << " ";
     }
-    std::cerr << std::endl;
-    throw std::runtime_error(
+    s << std::endl;
+    throw std::runtime_error(s.str()+
         (boost::format("Error: %s is not allowed") % key).str());
   }
   return result;
@@ -398,8 +399,9 @@ inline T Property::getAttribute(
   if (it != _attributes.end()) {
     return lexical_cast<T>((*it).second);
   } else {
-    std::cerr << *this << std::endl;
-    throw std::runtime_error("attribute " + (*it).first + " not found\n");
+    std::stringstream s;
+    s<< *this << std::endl;
+    throw std::runtime_error(s.str()+"attribute " + (*it).first + " not found\n");
   }
 }
 
@@ -414,8 +416,9 @@ inline T Property::getAttribute(const std::string &attribute) const {
                            "wrong type in attribute " + attribute +
                                " of element " + _path + "." + _name + "\n");
   } else {
-    std::cerr << *this << std::endl;
-    throw std::runtime_error("attribute " + attribute + " not found\n");
+    std::stringstream s;
+    s<< *this << std::endl;
+    throw std::runtime_error(s.str()+"attribute " + attribute + " not found\n");
   }
 }
 template <typename T>

@@ -189,16 +189,14 @@ void PrintNodeTXT(std::ostream &out, const Property &p, const int start_level,
   }
 
   for (const Property &prop : p) {
-    if (prefix == "") {
       level++;
+    if (prefix == "") {  
       PrintNodeTXT(out, prop, start_level, level, prefix + prop.name(), offset);
-      level--;
     } else {
-      level++;
       PrintNodeTXT(out, prop, start_level, level, prefix + "." + prop.name(),
-                   offset);
-      level--;
+                   offset);  
     }
+      level--;
   }
 }
 
@@ -324,15 +322,13 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
 
   // continue iteratively through the rest of the nodes
   for (const Property &pp : p) {
+      level++;
     if (prefix == "") {
-      level++;
+      PrintNodeTEX(out, pp, piom, level, prefix); 
+    } else {  
       PrintNodeTEX(out, pp, piom, level, prefix);
-      level--;
-    } else {
-      level++;
-      PrintNodeTEX(out, pp, piom, level, prefix);
-      level--;
     }
+      level--;
   }
 
   // if this is the head node, print the footer
@@ -388,20 +384,15 @@ void PrintNodeHLP(std::ostream &out, const Property &p,
   }
 
   for (const Property pp : p) {
+      level++;
+      leveloffset++;
     if (prefix == "") {
-      leveloffset = level + 2;
-      level++;
       PrintNodeHLP(out, pp, start_level, level, pp.name(), offset);
-      leveloffset = level - 2;
-      level--;
     } else {
-      leveloffset = level + 2;
-      level++;
       PrintNodeHLP(out, pp, start_level, level, prefix + "." + pp.name(),
                    offset);
-      leveloffset = level - 2;
-      level--;
     }
+      level--;
   }
 }
 
