@@ -166,7 +166,7 @@ void Property::LoadFromXML(string filename) {
     string line;
     getline(fl, line);
     line = line + "\n";
-    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof())){
+    if (!XML_Parse(parser, line.c_str(), line.length(), fl.eof())) {
       throw std::ios_base::failure(
           filename + ": Parse error at line " +
           boost::lexical_cast<string>(XML_GetCurrentLineNumber(parser)) + "\n" +
@@ -275,27 +275,28 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
                   PropertyIOManipulator *piom, int level = 0,
                   string prefix = "") {
 
-  int start_level=0;
+  int start_level = 0;
   if (piom) {
     start_level = piom->getLevel();
   }
 
   string head_name;
   string section("");  // reference of the description section in the manual
-   string help("");
+  string help("");
   // if this is the head node, print the header
   if (level == start_level) {
-      
-     string header_format(
-      "\\subsection{%1%}\n"
-      "\\label{%2%}\n%3%\n"
-      "\\rowcolors{1}{invisiblegray}{white}\n"
-      "{\\small\n "
-      "\\begin{longtable}{m{3cm}|m{2cm}|m{1cm}|m{8cm}}\n"
-      " option & default & unit & description\\\\\n\\hline\n");  
-      
+
+    string header_format(
+        "\\subsection{%1%}\n"
+        "\\label{%2%}\n%3%\n"
+        "\\rowcolors{1}{invisiblegray}{white}\n"
+        "{\\small\n "
+        "\\begin{longtable}{m{3cm}|m{2cm}|m{1cm}|m{8cm}}\n"
+        " option & default & unit & description\\\\\n\\hline\n");
+
     head_name = p.name();
-    string label = "calc:" + head_name;// reference of the xml file in the manual
+    string label =
+        "calc:" + head_name;  // reference of the xml file in the manual
     if (p.hasAttribute("section")) section = p.getAttribute<string>("section");
     if (p.hasAttribute("help")) help = p.getAttribute<string>("help");
     out << boost::format(header_format) % head_name % label % help;
@@ -310,13 +311,13 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
       string defaults("");  // default value if supplied
       if (p.hasAttribute("default"))
         defaults = p.getAttribute<string>("default");
-      string unit("");     // unit, if supplied
+      string unit("");  // unit, if supplied
       if (p.hasAttribute("unit")) unit = p.getAttribute<string>("unit");
       if (p.hasAttribute("help")) help = p.getAttribute<string>("help");
 
       string body_format(
-      " \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
-      
+          " \\hspace{%1%pt}\\hypertarget{%2%}{%3%} & %4% & %5% & %6% \\\\\n");
+
       out << boost::format(body_format) % int((level - start_level - 1) * 10) %
                  prefix % tex_name % defaults % unit % help;
     }
@@ -336,20 +337,20 @@ void PrintNodeTEX(std::ostream &out, const Property &p,
   }
 
   // if this is the head node, print the footer
-  if (level == start_level){
+  if (level == start_level) {
     string footer_format(
-    "\\end{longtable}\n}\n"
-    "\\noindent Return to the description of \\slink{%1%}{\\texttt{%2%}}.\n");
-      
+        "\\end{longtable}\n}\n"
+        "\\noindent Return to the description of "
+        "\\slink{%1%}{\\texttt{%2%}}.\n");
+
     out << boost::format(footer_format) % section % head_name;
   }
 }
 
 void PrintNodeHLP(std::ostream &out, const Property &p,
-                  const int start_level = 0, int level = 0, const string& prefix = "",
-                  const string& offset = "") {
-  
-  
+                  const int start_level = 0, int level = 0,
+                  const string &prefix = "", const string &offset = "") {
+
   typedef Color<csRGB> ColorRGB;  // use the RGB palette
   ColorRGB RGB;                   // Instance of an RGB palette
   string fmt = "t|%1%%|15t|" + string(RGB.Blue()) + "%2%" +

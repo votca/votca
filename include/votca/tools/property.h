@@ -226,7 +226,7 @@ class Property {
 
   template <typename T>
   T getAttribute(const_AttributeIterator it) const;
-  
+
   void LoadFromXML(std::string filename);
 
   static int getIOindex() { return IOindex; };
