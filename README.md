@@ -12,7 +12,7 @@ Usage:
     cd votca
     mkdir build
     cd build
-    cmake -DBUILD_CSGAPPS=ON -DBUILD_CTP=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    cmake -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
     make -j<number of cores>
     make install
 
@@ -28,3 +28,14 @@ For further details see:
 3. [Developers Guide](share/doc/DEVELOPERS_GUIDE.md)
 4. [VOTCA_LANGUAGE_GUIDE](share/doc/VOTCA_LANGUAGE_GUIDE.md)
 5. [Code of Conduct](share/doc/CODE_OF_CONDUCT.md)
+
+If you want to install CTP 
+
+    prefix=WHERE/TO/INSTALL/VOTCA
+    git clone -b ctp --recursive https://github.com/votca/votca.git
+    cd votca
+    mkdir build
+    cd build
+    cmake -DBUILD_CTP=ON -DCMAKE_INSTALL_PREFIX=${prefix} ..
+    make -j<number of cores>
+    make install

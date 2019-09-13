@@ -13,8 +13,8 @@ git:
   quiet: true
 
 stages:
-  #- canary
-  #- test
+  - canary
+  - test
   - deploy
 
 jobs:
@@ -23,30 +23,30 @@ jobs:
       env: ENV=3
     - stage: deploy
       if: repo = votca/votca AND type != pull_request
-      env: ENV=4
+      env: ENV=1
 
-#env:
-#  matrix:
-#    - ENV=1
-#    - ENV=2
-#    - ENV=3
-#    - ENV=4
-#    - ENV=5
-#    - ENV=6
-#    - ENV=7
-#    - ENV=8
-#    - ENV=9
-#    - ENV=10
-#    - ENV=11
-#    - ENV=12
-#    - ENV=13
-#    - ENV=14
-#    - ENV=15
-#    - ENV=16
-#    - ENV=17
-#    - ENV=18
-#    - ENV=19
-#    - ENV=20
+env:
+  matrix:
+    - ENV=1
+    - ENV=2
+    - ENV=3
+    - ENV=4
+    - ENV=5
+    - ENV=6
+    - ENV=7
+    - ENV=8
+    - ENV=9
+    - ENV=10
+    - ENV=11
+    - ENV=12
+    - ENV=13
+    - ENV=14
+    - ENV=15
+    - ENV=16
+    - ENV=17
+    - ENV=18
+    - ENV=19
+    - ENV=20
 
 before_script:
  - git checkout -b current_commit
@@ -76,7 +76,6 @@ before_script:
    fi
 
 script:
- - export TESTING=OFF
  - if [[ ! ${SKIP} ]]; then
      travis_retry docker build "${docker_opts[@]}"
                  ${TRAVIS_TAG:+-t votca/votca:${TRAVIS_TAG}}
@@ -102,7 +101,6 @@ after_success:
       docker cp ${CON}:/home/votca/votca/build/share/doc/html . ;
       mv html/* .; rmdir html;
       docker cp ${CON}:/home/votca/votca/build/csg-manual/manual.pdf . ;
-      docker cp ${CON}:/home/votca/votca/build/ctp/manual/ctp-manual.pdf . ;
       docker cp ${CON}:/home/votca/votca/build/xtp/manual/xtp-manual.pdf . ;
       git add --all .;
       if [[ ${TRAVIS_BRANCH} = master && ${encrypted_7abbb71c3ba6_key} && ${encrypted_7abbb71c3ba6_iv} && ${TRAVIS_PULL_REQUEST} == false ]]; then

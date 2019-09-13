@@ -34,12 +34,12 @@ stages:
       fi
     - mkdir -p build
     - pushd build
-    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CTP=OFF -DBUILD_CTP_MANUAL=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_CSGAPPS=ON -DBUILD_XTP=ON -DBUILD_CSG_MANUAL=ON -DBUILD_XTP_MANUAL=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DBUILD_OWN_GROMACS=${BUILD_GROMACS} -DENABLE_REGRESSION_TESTING=${REGRESSION_TESTING:-ON}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       ${MINIMAL:+-DCMAKE_DISABLE_FIND_PACKAGE_HDF5=ON -DWITH_FFTW=OFF -DWITH_GSL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_GSL=ON
       -DWITH_MKL=OFF -DCMAKE_DISABLE_FIND_PACKAGE_MKL=ON -DBUILD_MANPAGES=OFF -DWITH_GMX=OFF -DWITH_SQLITE3=OFF
-      -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DBUILD_CTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
+      -DCMAKE_DISABLE_FIND_PACKAGE_SQLITE3=ON -DBUILD_XTP=OFF -DENABLE_REGRESSION_TESTING=OFF}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
@@ -289,6 +289,7 @@ Release GCC GMX9999:
     DISTRO: "fedora_gmx9999"
     REGRESSION_TESTING: "OFF"
   extends: .build
+  allow_failure: true
 
 Release Clang GMX9999:
   variables:
@@ -298,6 +299,7 @@ Release Clang GMX9999:
     DISTRO: "fedora_gmx9999"
     REGRESSION_TESTING: "OFF"
   extends: .build
+  allow_failure: true
 
 Release GCC GMX9999D:
   variables:
@@ -307,6 +309,7 @@ Release GCC GMX9999D:
     DISTRO: "fedora_gmx9999_d"
     REGRESSION_TESTING: "OFF"
   extends: .build
+  allow_failure: true
 
 Release Clang GMX9999D:
   variables:
@@ -316,6 +319,7 @@ Release Clang GMX9999D:
     DISTRO: "fedora_gmx9999_d"
     REGRESSION_TESTING: "OFF"
   extends: .build
+  allow_failure: true
 
 Release GCC OWN GMX:
   variables:
