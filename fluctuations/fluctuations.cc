@@ -124,11 +124,10 @@ class CsgFluctuations : public CsgApplication {
     }
 
     if (_refmol == "" && _do_spherical) {
-      matrix box;
-      box = top->getBox();
-      vec a = box.getCol(0);
-      vec b = box.getCol(1);
-      vec c = box.getCol(2);
+      Eigen::Matrix3d box = top->getBox();
+      Eigen::Vector3d a = box.col(0);
+      Eigen::Vector3d b = box.col(1);
+      Eigen::Vector3d c = box.col(2);
       _ref = (a + b + c) / 2;
 
       cout << "Refernce is center of box " << _ref << endl;
@@ -154,7 +153,7 @@ class CsgFluctuations : public CsgApplication {
   string _refmol;
   double _rmax;
   double _rmin;
-  vec _ref;
+  Eigen::Vector3d _ref;
   int _nframes;
   string _outfilename;
   ofstream _outfile;
@@ -171,7 +170,7 @@ int main(int argc, char **argv) {
 
 void CsgFluctuations::EvalConfiguration(Topology *conf,
                                         Topology *conf_atom = 0) {
-  vec eR;
+  Eigen::Vector3d eR;
   double r = 0;
   int rbin;
 
@@ -198,15 +197,15 @@ void CsgFluctuations::EvalConfiguration(Topology *conf,
 
     if (_do_spherical) {
       eR = bead->getPos() - _ref;
-      r = abs(eR);
+      r = eR.norm();
     } else {
       eR = bead->getPos();
       if (_dim == 0)
-        r = eR.getX();
+        r = eR.x();
       else if (_dim == 1)
-        r = eR.getY();
+        r = eR.y();
       else if (_dim == 2)
-        r = eR.getZ();
+        r = eR.z();
     }
     if (r > _rmin && r < _rmax) {
       rbin = (int)_nbins * (double)((r - _rmin) / (_rmax - _rmin));
