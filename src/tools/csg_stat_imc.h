@@ -35,9 +35,6 @@ namespace csg {
  */
 class Imc {
  public:
-  Imc();
-  ~Imc();
-
   void Initialize(void);
 
   /// load cg definitions file
@@ -85,7 +82,7 @@ class Imc {
 
   /// struct to store collected information for groups (e.g. crosscorrelations)
   struct group_t {
-    std::list<interaction_t *> _interactions;
+    std::vector<interaction_t *> _interactions;
     group_matrix _corr;
     std::vector<pair_t> _pairs;
   };
@@ -93,9 +90,9 @@ class Imc {
   /// the options parsed from cg definition file
   Property _options;
   // length of the block to write out and averages are clear after every write
-  int _block_length;
+  int _block_length = 0;
   // calculate the inverse monte carlos parameters (cross correlations)
-  bool _do_imc;
+  bool _do_imc = false;
 
   // file extension for the distributions
   std::string _extension;
@@ -109,10 +106,10 @@ class Imc {
   /// list of non-bonded interactions
   std::vector<Property *> _nonbonded;
 
-  /// map ineteractionm-name to interaction
-  std::map<std::string, interaction_t *> _interactions;
+  /// map interaction-name to interaction
+  std::map<std::string, std::unique_ptr<interaction_t> > _interactions;
   /// map group-name to group
-  std::map<std::string, group_t *> _groups;
+  std::map<std::string, std::unique_ptr<group_t> > _groups;
 
   /// create a new interaction entry based on given options
   interaction_t *AddInteraction(Property *p);
@@ -149,7 +146,7 @@ class Imc {
   /// update the correlations after interations were processed
   void DoCorrelations(Imc::Worker *worker);
 
-  bool _processed_some_frames;
+  bool _processed_some_frames = false;
 
  public:
   CsgApplication::Worker *ForkWorker();
