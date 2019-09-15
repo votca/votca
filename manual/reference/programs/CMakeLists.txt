@@ -36,7 +36,7 @@ foreach(PROG ${XTP_SCRIPTS})
       > ${CURRENT_DIR}/${prog}.t2t
     COMMAND ${TXT2TAGS_EXECUTABLE} -t tex --no-header --infile ${CURRENT_DIR}/${prog}.t2t
       --outfile ${CURRENT_DIR}/${prog}.tex
-      DEPENDS ${PROG} ${CURRENT_DIR}/config.t2t)
+      DEPENDS ${prog}_build ${CURRENT_DIR}/config.t2t)
   list(APPEND PROG_TEXS ${CURRENT_DIR}/${prog}.tex)
   file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake "\\input{${CURRENT_DIR}/${prog}}\n")
 endforeach()

@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
   double eps = 0.01;
   Eigen::MatrixXd A = init_matrix(size, eps);
 
-  votca::ctp::Logger log;
+  Logger log;
   DavidsonSolver DS(log);
   DS.solve(A, neigen);
   Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(A);
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(davidson_full_matrix_fail) {
   double eps = 0.01;
   Eigen::MatrixXd A = init_matrix(size, eps);
 
-  votca::ctp::Logger log;
+  Logger log;
   DavidsonSolver DS(log);
   DS.set_iter_max(1);
   DS.solve(A, neigen);
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
   Aop.set_size(size);
   Aop.set_diag();
 
-  votca::ctp::Logger log;
+  Logger log;
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_size_update("safe");

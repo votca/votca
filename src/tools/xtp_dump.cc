@@ -20,14 +20,13 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
-#include <votca/ctp/extractorfactory.h>
 #include <votca/xtp/extractorfactory.h>
-#include <votca/xtp/sqlapplication.h>
+#include <votca/xtp/stateapplication.h>
 
 using namespace std;
 using namespace votca;
 
-class XtpDump : public xtp::SqlApplication {
+class XtpDump : public xtp::StateApplication {
  public:
   string ProgramName() { return "xtp_dump"; }
 
@@ -47,8 +46,7 @@ namespace propt = boost::program_options;
 
 void XtpDump::Initialize() {
   xtp::ExtractorFactory::RegisterAll();
-  ctp::ExtractorFactory::RegisterAll();
-  xtp::SqlApplication::Initialize();
+  xtp::StateApplication::Initialize();
 
   AddProgramOptions("Extractors")("extract,e", propt::value<string>(),
                                   "List of extractors separated by ',' or ' '");
@@ -66,22 +64,6 @@ bool XtpDump::EvaluateOptions() {
       PrintDescription(std::cout, extract.first, "xtp/xml",
                        Application::HelpShort);
     }
-    cout << "Available (wrapped) CTP calculators: \n";
-    for (const auto& extract : ctp::Extractors().getObjects()) {
-      bool printctp = true;
-      std::string ctpcalc = extract.first.c_str();
-      for (const auto& xtpextract : xtp::Extractors().getObjects()) {
-        if (ctpcalc.compare(xtpextract.first.c_str()) == 0) {
-          printctp = false;
-          break;
-        }
-      }
-
-      if (printctp) {
-        PrintDescription(std::cout, extract.first, "ctp/xml",
-                         Application::HelpShort);
-      }
-    }
     StopExecution();
 
     return true;
@@ -94,63 +76,38 @@ bool XtpDump::EvaluateOptions() {
     for (const string& n : tok) {
       // loop over calculators
       bool printerror = true;
+
       for (const auto& extract : xtp::Extractors().getObjects()) {
-        if (n.compare(extract.first.c_str()) == 0) {
+        if (n.compare(extract.first) == 0) {
           PrintDescription(std::cout, extract.first, "xtp/xml",
                            Application::HelpLong);
           printerror = false;
           break;
         }
       }
-      for (const auto& extract : ctp::Extractors().getObjects()) {
-        if (n.compare(extract.first.c_str()) == 0) {
-          bool printctp = true;
-          std::string ctpcalc = extract.first.c_str();
-          for (const auto& xtpextract : xtp::Extractors().getObjects()) {
-            if (ctpcalc.compare(xtpextract.first.c_str()) == 0) {
-              printctp = false;
-              break;
-            }
-            if (printctp) {
-              PrintDescription(std::cout, extract.first, "ctp/xml",
-                               Application::HelpLong);
-              printerror = false;
-              break;
-            }
-          }
-        }
-      }
+
       if (printerror) cout << "Extractor " << n << " does not exist\n";
     }
     StopExecution();
     return true;
   }
 
-  xtp::SqlApplication::EvaluateOptions();
+  xtp::StateApplication::EvaluateOptions();
   CheckRequired("extract", "Nothing to do here: Abort.");
 
   tools::Tokenizer calcs(OptionsMap()["extract"].as<string>(), " ,\n\t");
   for (const string& n : calcs) {
 
-    bool _found_calc = false;
+    bool found_calc = false;
     for (const auto& extract : xtp::Extractors().getObjects()) {
-      if (n.compare(extract.first.c_str()) == 0) {
+      if (n.compare(extract.first) == 0) {
         cout << " This is a XTP app" << endl;
-        xtp::SqlApplication::AddCalculator(xtp::Extractors().Create(n.c_str()));
-        _found_calc = true;
+        xtp::StateApplication::SetCalculator(xtp::Extractors().Create(n));
+        found_calc = true;
       }
     }
-    if (!_found_calc) {
-      for (const auto& extract : ctp::Extractors().getObjects()) {
-        if (n.compare(extract.first.c_str()) == 0) {
-          _found_calc = true;
-          cout << " This is a CTP app" << endl;
-          xtp::SqlApplication::AddCalculator(
-              ctp::Extractors().Create(n.c_str()));
-        }
-      }
-    }
-    if (!_found_calc) {
+
+    if (!found_calc) {
       cout << "Extractor " << n << " does not exist\n";
       StopExecution();
     }

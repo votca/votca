@@ -1,0 +1,13 @@
+<mbgft>
+        <basisset help="basiset to use">ubecppol</basisset>
+        <auxbasisset help="auxilliary basiset to use">aux-ubecppol</auxbasisset>
+        <ranges help="default: all levels in RPA, 1:2*HOMO in QP and BSE; other options: factor,explicit"></ranges>
+        <rpamax></rpamax>
+        <qpmin></qpmin>
+        <qpmax></qpmax>
+        <bsemin></bsemin>
+        <bsemax></bsemax>
+	<scissor_shift help="preshift unoccupied MOs by a constant for GW calculation" unit="hartree"> 0.3</scissor_shift>
+	<tasks help="tasks to do gw,singlets,triplets or all">gw</tasks>
+        <exctotal help="maximum number of BSE states to calculate">1</exctotal>
+</mbgft>

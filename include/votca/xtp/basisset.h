@@ -17,9 +17,11 @@
  *
  */
 
-#ifndef __XTP_BASISSET__H
-#define __XTP_BASISSET__H
+#pragma once
+#ifndef VOTCA_XTP_BASISSET_H
+#define VOTCA_XTP_BASISSET_H
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
@@ -29,9 +31,9 @@ namespace votca {
 namespace xtp {
 // shell type (S, P, D))
 
-int FindLmax(const std::string& _type);
+int FindLmax(const std::string& type);
 
-int FindLmin(const std::string& _type);
+int FindLmin(const std::string& type);
 
 int OffsetFuncShell(const std::string& shell_type);
 
@@ -51,7 +53,6 @@ class GaussianPrimitive {
   friend class Shell;
 
  public:
-  int _power;  // used in pseudopotenials only
   double _decay;
   std::vector<double> _contraction;
 
@@ -59,11 +60,6 @@ class GaussianPrimitive {
   // private constructor, only a shell can create a primitive
   GaussianPrimitive(double decay, std::vector<double> contraction)
       : _decay(decay), _contraction(contraction) {
-    ;
-  }
-
-  GaussianPrimitive(int power, double decay, std::vector<double> contraction)
-      : _power(power), _decay(decay), _contraction(contraction) {
     ;
   }
 };
@@ -77,6 +73,8 @@ class Shell {
   bool isCombined() const { return (_type.length() > 1); }
 
   int getLmax() const { return FindLmax(_type); }
+
+  int getLmin() const { return FindLmin(_type); }
 
   int getnumofFunc() const { return NumFuncShell(_type); };
 
@@ -95,11 +93,6 @@ class Shell {
 
   // adds a Gaussian
   GaussianPrimitive& addGaussian(double decay, std::vector<double> contraction);
-
-  // adds a Gaussian of a pseudopotential
-  GaussianPrimitive& addGaussian(int power, double decay,
-                                 std::vector<double> contraction);
-
   friend std::ostream& operator<<(std::ostream& out, const Shell& shell);
 
  private:
@@ -127,14 +120,12 @@ class Element {
 
   const std::string& getType() const { return _type; }
 
-  int getLmax() const { return _lmax; }
-
-  int getNcore() const { return _ncore; }
-
   Shell& addShell(const std::string& shellType, double shellScale) {
     _shells.push_back(Shell(shellType, shellScale));
     return _shells.back();
   }
+
+  int NumOfShells() const { return _shells.size(); }
 
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 
@@ -142,21 +133,8 @@ class Element {
   // only class BasisSet can create Elements
   Element(std::string type) : _type(type) { ; }
 
-  // used for the pseudopotential
-  Element(std::string type, int lmax, int ncore)
-      : _type(type), _lmax(lmax), _ncore(ncore) {
-    ;
-  }
-
   // only class BasisSet can destruct Elements
-
   std::string _type;
-  // lmax is used in the pseudopotentials only (applies to the highest angular
-  // momentum lmax)
-  int _lmax;
-  // ncore is used in the pseudopotentials only (replaces ncore electrons))
-  int _ncore;
-
   std::vector<Shell> _shells;
 };
 
@@ -165,14 +143,9 @@ class Element {
  */
 class BasisSet {
  public:
-  void LoadBasisSet(const std::string& name);
-
-  void LoadPseudopotentialSet(const std::string& name);
+  void Load(const std::string& name);
 
   Element& addElement(std::string elementType);
-
-  // used for pseudopotentials only
-  Element& addElement(std::string elementType, int lmax, int ncore);
 
   const Element& getElement(std::string element_type) const;
 
@@ -201,4 +174,4 @@ class BasisSet {
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* BASISSET_H */
+#endif  // VOTCA_XTP_BASISSET_H

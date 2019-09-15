@@ -6,7 +6,7 @@
 
 Objects related to charge transport are encapsulated in the votca::xtp namespace. 
 
-The main container is votca::xtp::Topology. 
+The main container is votca::Topology. 
 
 
 This is the code documentation of the VOTCA-XTP package (http://www.votca.org). 

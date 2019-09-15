@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __VOTCA_XTP_VXCFUNCTIONALS_H
-#define __VOTCA_XTP_VXCFUNCTIONALS_H
+#pragma once
+#ifndef VOTCA_XTP_VXCFUNCTIONALS_H
+#define VOTCA_XTP_VXCFUNCTIONALS_H
 
 #include <map>
 #include <string>
@@ -35,7 +36,6 @@ namespace xtp {
 class Vxc_Functionals {
  public:
   Vxc_Functionals() { FillMaps(); };
-  ~Vxc_Functionals(){};
 
   const int &getID(std::string name) const {
     if (_stringtoID.count(name) == 0) {
@@ -299,80 +299,10 @@ class Vxc_Functionals {
     _stringtoID["XC_HYB_GGA_XC_REVB3LYP"] = 454;
     _stringtoID["XC_HYB_GGA_XC_CAMY_BLYP"] = 455;
     _stringtoID["XC_HYB_GGA_XC_PBE0_13"] = 456;
-    _stringtoID["XC_MGGA_XC_OTPSS_D"] = 64;
-    _stringtoID["XC_MGGA_C_CS"] = 72;
-    _stringtoID["XC_MGGA_C_MN12_SX"] = 73;
-    _stringtoID["XC_MGGA_C_MN12_L"] = 74;
-    _stringtoID["XC_MGGA_C_M11_L"] = 75;
-    _stringtoID["XC_MGGA_C_M11"] = 76;
-    _stringtoID["XC_MGGA_C_M08_SO"] = 77;
-    _stringtoID["XC_MGGA_C_M08_HX"] = 78;
-    _stringtoID["XC_MGGA_X_LTA"] = 201;
-    _stringtoID["XC_MGGA_X_TPSS"] = 202;
-    _stringtoID["XC_MGGA_X_M06_L"] = 203;
-    _stringtoID["XC_MGGA_X_GVT4"] = 204;
-    _stringtoID["XC_MGGA_X_TAU_HCTH"] = 205;
-    _stringtoID["XC_MGGA_X_BR89"] = 206;
-    _stringtoID["XC_MGGA_X_BJ06"] = 207;
-    _stringtoID["XC_MGGA_X_TB09"] = 208;
-    _stringtoID["XC_MGGA_X_RPP09"] = 209;
-    _stringtoID["XC_MGGA_X_2D_PRHG07"] = 210;
-    _stringtoID["XC_MGGA_X_2D_PRHG07_PRP10"] = 211;
-    _stringtoID["XC_MGGA_X_REVTPSS"] = 212;
-    _stringtoID["XC_MGGA_X_PKZB"] = 213;
-    _stringtoID["XC_MGGA_X_M05"] = 214;
-    _stringtoID["XC_MGGA_X_M05_2X"] = 215;
-    _stringtoID["XC_MGGA_X_M06_HF"] = 216;
-    _stringtoID["XC_MGGA_X_M06"] = 217;
-    _stringtoID["XC_MGGA_X_M06_2X"] = 218;
-    _stringtoID["XC_MGGA_X_M08_HX"] = 219;
-    _stringtoID["XC_MGGA_X_M08_SO"] = 220;
-    _stringtoID["XC_MGGA_X_MS0"] = 221;
-    _stringtoID["XC_MGGA_X_MS1"] = 222;
-    _stringtoID["XC_MGGA_X_MS2"] = 223;
-    _stringtoID["XC_MGGA_X_MS2H"] = 224;
-    _stringtoID["XC_MGGA_X_M11_L"] = 226;
-    _stringtoID["XC_MGGA_X_MN12_L"] = 227;
-    _stringtoID["XC_MGGA_X_MN12_SX"] = 228;
-    _stringtoID["XC_MGGA_C_CC06"] = 229;
-    _stringtoID["XC_MGGA_X_MK00"] = 230;
-    _stringtoID["XC_MGGA_C_TPSS"] = 231;
-    _stringtoID["XC_MGGA_C_VSXC"] = 232;
-    _stringtoID["XC_MGGA_C_M06_L"] = 233;
-    _stringtoID["XC_MGGA_C_M06_HF"] = 234;
-    _stringtoID["XC_MGGA_C_M06"] = 235;
-    _stringtoID["XC_MGGA_C_M06_2X"] = 236;
-    _stringtoID["XC_MGGA_C_M05"] = 237;
-    _stringtoID["XC_MGGA_C_M05_2X"] = 238;
-    _stringtoID["XC_MGGA_C_PKZB"] = 239;
-    _stringtoID["XC_MGGA_C_BC95"] = 240;
-    _stringtoID["XC_MGGA_C_REVTPSS"] = 241;
-    _stringtoID["XC_MGGA_XC_TPSSLYP1W"] = 242;
-    _stringtoID["XC_MGGA_X_MK00B"] = 243;
-    _stringtoID["XC_MGGA_X_BLOC"] = 244;
-    _stringtoID["XC_MGGA_X_MODTPSS"] = 245;
-    _stringtoID["XC_HYB_MGGA_X_M11"] = 225;
-    _stringtoID["XC_HYB_MGGA_XC_M05"] = 438;
-    _stringtoID["XC_HYB_MGGA_XC_M05_2X"] = 439;
-    _stringtoID["XC_HYB_MGGA_XC_B88B95"] = 440;
-    _stringtoID["XC_HYB_MGGA_XC_B86B95"] = 441;
-    _stringtoID["XC_HYB_MGGA_XC_PW86B95"] = 442;
-    _stringtoID["XC_HYB_MGGA_XC_BB1K"] = 443;
-    _stringtoID["XC_HYB_MGGA_XC_M06_HF"] = 444;
-    _stringtoID["XC_HYB_MGGA_XC_MPW1B95"] = 445;
-    _stringtoID["XC_HYB_MGGA_XC_MPWB1K"] = 446;
-    _stringtoID["XC_HYB_MGGA_XC_X1B95"] = 447;
-    _stringtoID["XC_HYB_MGGA_XC_XB1K"] = 448;
-    _stringtoID["XC_HYB_MGGA_XC_M06"] = 449;
-    _stringtoID["XC_HYB_MGGA_XC_M06_2X"] = 450;
-    _stringtoID["XC_HYB_MGGA_XC_PW6B95"] = 451;
-    _stringtoID["XC_HYB_MGGA_XC_PWB6K"] = 452;
-    _stringtoID["XC_HYB_MGGA_XC_TPSSH"] = 457;
-    _stringtoID["XC_HYB_MGGA_XC_REVTPSSH"] = 458;
   }
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_ATOM_H */
+#endif  // VOTCA_XTP_VXCFUNCTIONALS_H

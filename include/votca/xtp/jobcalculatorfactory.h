@@ -17,18 +17,19 @@
  *
  */
 
+#pragma once
 #ifndef VOTCA_XTP_JOBCALCULATORFACTORY_H
 #define VOTCA_XTP_JOBCALCULATORFACTORY_H
 
 #include <map>
-#include <votca/ctp/jobcalculator.h>
 #include <votca/tools/objectfactory.h>
+#include <votca/xtp/jobcalculator.h>
 
 namespace votca {
 namespace xtp {
 
 class JobCalculatorfactory
-    : public tools::ObjectFactory<std::string, ctp::JobCalculator> {
+    : public tools::ObjectFactory<std::string, JobCalculator> {
  private:
   JobCalculatorfactory() {}
 
@@ -39,7 +40,7 @@ class JobCalculatorfactory
      Create an instance of the object identified by key.
   *  Overwritten to load calculator defaults
   */
-  ctp::JobCalculator *Create(const std::string &key);
+  JobCalculator *Create(const std::string &key);
 
   friend JobCalculatorfactory &JobCalculators();
 };
@@ -49,11 +50,10 @@ inline JobCalculatorfactory &JobCalculators() {
   return _instance;
 }
 
-inline ctp::JobCalculator *JobCalculatorfactory::Create(
-    const std::string &key) {
+inline JobCalculator *JobCalculatorfactory::Create(const std::string &key) {
   assoc_map::const_iterator it(getObjects().find(key));
   if (it != getObjects().end()) {
-    ctp::JobCalculator *calc = (it->second)();
+    JobCalculator *calc = (it->second)();
     calc->LoadDefaults();
     return calc;
   } else
@@ -63,4 +63,4 @@ inline ctp::JobCalculator *JobCalculatorfactory::Create(
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _Calculatorfactory_H */
+#endif  // VOTCA_XTP_JOBCALCULATORFACTORY_H

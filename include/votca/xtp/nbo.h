@@ -17,13 +17,9 @@
  *
  */
 
-#ifndef __VOTCA_XTP_NBO__H
-#define __VOTCA_XTP_NBO__H
-
-#include <votca/ctp/logger.h>
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/qmatom.h>
+#pragma once
+#ifndef VOTCA_XTP_NBO_H
+#define VOTCA_XTP_NBO_H
 
 /**
  * \brief Takes a list of atoms, and the corresponding density and overlap
@@ -36,25 +32,8 @@
 namespace votca {
 namespace xtp {
 
-class NBO {
- public:
-  NBO(ctp::Logger *log) { _log = log; }
-  ~NBO(){};
-
-  void EvaluateNBO(std::vector<QMAtom *> &_atomlist,
-                   const Eigen::MatrixXd &_dmat, const AOBasis &_basis,
-                   BasisSet &bs);
-
- private:
-  ctp::Logger *_log;
-  votca::tools::Elements _elements;
-
-  Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd &P,
-                                               Eigen::MatrixXd &Overlap,
-                                               std::vector<QMAtom *> &_atomlist,
-                                               BasisSet &bs);
-};
+class NBO {};
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* __VOTCA_XTP_NBO_H */
+#endif  // VOTCA_XTP_NBO_H

@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(votca-xtp-manual NONE)
-
-set(PROJECT_VERSION "1.5-dev")
+#project(votca-xtp-manual NONE)
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules)
@@ -26,7 +24,8 @@ endif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 
 find_package(TXT2TAGS REQUIRED)
 
-foreach(prog csg_property dvipdf inkscape votca_property)
+find_package(INKSCAPE)
+foreach(prog csg_property dvipdf votca_property)
   string(TOUPPER "${prog}" PROG)
   if(TARGET ${prog})
     set(${PROG} $<TARGET_FILE:${prog}>)

@@ -99,15 +99,15 @@ BOOST_AUTO_TEST_CASE(gw_full) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   orbitals.setDFTbasisName("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
   orbitals.setBasisSetSize(17);
   orbitals.setNumberOfOccupiedLevels(4);
-  Eigen::MatrixXd& MOs = orbitals.MOCoefficients();
+  Eigen::MatrixXd& MOs = orbitals.MOs().eigenvectors();
   MOs = Eigen::MatrixXd::Zero(17, 17);
   MOs << -0.00761992, -4.69664e-13, 8.35009e-15, -1.15214e-14, -0.0156169,
       -2.23157e-12, 1.52916e-14, 2.10997e-15, 8.21478e-15, 3.18517e-15,
@@ -215,7 +215,7 @@ BOOST_AUTO_TEST_CASE(gw_full) {
   TCMatrix_gwbse Mmn;
   Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
   Mmn.Fill(aobasis, aobasis, MOs);
-  votca::ctp::Logger log;
+  Logger log;
 
   GW::options opt;
   opt.ScaHFX = 0;

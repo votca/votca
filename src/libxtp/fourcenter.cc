@@ -17,7 +17,9 @@
  *
  */
 
+#include <votca/xtp/aobasis.h>
 #include <votca/xtp/fourcenter.h>
+#include <votca/xtp/multiarray.h>
 
 namespace votca {
 namespace xtp {
@@ -37,38 +39,30 @@ void FCMatrix::Fill_4c_small_molecule(const AOBasis& dftbasis) {
 #pragma omp parallel for schedule(dynamic)
   for (int i = 0; i < shellsize; ++i) {
 
-    const AOShell* _shell_3 = dftbasis.getShell(i);
-    int start_3 = _shell_3->getStartIndex();
-    int NumFunc_3 = _shell_3->getNumFunc();
+    const AOShell& shell_3 = dftbasis.getShell(i);
+    int start_3 = shell_3.getStartIndex();
+    int NumFunc_3 = shell_3.getNumFunc();
 
     for (int j = i; j < shellsize; ++j) {
-      const AOShell* _shell_4 = dftbasis.getShell(j);
-      int start_4 = _shell_4->getStartIndex();
-      int NumFunc_4 = _shell_4->getNumFunc();
+      const AOShell& shell_4 = dftbasis.getShell(j);
+      int start_4 = shell_4.getStartIndex();
+      int NumFunc_4 = shell_4.getNumFunc();
 
       for (int k = i; k < shellsize; ++k) {
-        const AOShell* _shell_1 = dftbasis.getShell(k);
-        int start_1 = _shell_1->getStartIndex();
-        int NumFunc_1 = _shell_1->getNumFunc();
+        const AOShell& shell_1 = dftbasis.getShell(k);
+        int start_1 = shell_1.getStartIndex();
+        int NumFunc_1 = shell_1.getNumFunc();
 
         for (int l = k; l < shellsize; ++l) {
-          const AOShell* _shell_2 = dftbasis.getShell(l);
-          int start_2 = _shell_2->getStartIndex();
-          int NumFunc_2 = _shell_2->getNumFunc();
+          const AOShell& shell_2 = dftbasis.getShell(l);
+          int start_2 = shell_2.getStartIndex();
+          int NumFunc_2 = shell_2.getNumFunc();
 
           tensor4d block(extents[range(0, NumFunc_1)][range(0, NumFunc_2)]
                                 [range(0, NumFunc_3)][range(0, NumFunc_4)]);
-          for (int i = 0; i < _shell_1->getNumFunc(); ++i) {
-            for (int j = 0; j < _shell_2->getNumFunc(); ++j) {
-              for (int k = 0; k < _shell_3->getNumFunc(); ++k) {
-                for (int l = 0; l < _shell_4->getNumFunc(); ++l) {
-                  block[i][j][k][l] = 0.0;
-                }
-              }
-            }
-          }
-          bool nonzero = FillFourCenterRepBlock(block, _shell_1, _shell_2,
-                                                _shell_3, _shell_4);
+          std::fill_n(block.data(), block.num_elements(), 0.0);
+          bool nonzero =
+              FillFourCenterRepBlock(block, shell_1, shell_2, shell_3, shell_4);
 
           if (nonzero) {
 

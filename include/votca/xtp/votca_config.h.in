@@ -17,8 +17,8 @@
  *
  */
 
-#ifndef _VOTCA_XTP_CONFIG_H
-#define _VOTCA_XTP_CONFIG_H
+#ifndef VOTCA_XTP_CONFIG_H
+#define VOTCA_XTP_CONFIG_H
 
 /* OpenMP */
 

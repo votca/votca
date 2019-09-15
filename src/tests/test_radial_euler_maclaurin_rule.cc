@@ -100,11 +100,11 @@ BOOST_AUTO_TEST_CASE(setup_test) {
   basisfile.close();
 
   Orbitals orbitals;
-  orbitals.LoadFromXYZ("molecule.xyz");
+  orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   EulerMaclaurinGrid radialgrid;
   auto grid = radialgrid.CalculateAtomicRadialGrids(aobasis, orbitals.QMAtoms(),

@@ -16,152 +16,62 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit
-/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <iostream>
-#include <votca/tools/globals.h>
 #include <votca/xtp/qmnblist.h>
-#include <votca/xtp/topology.h>
 
-using namespace std;
+#include "votca/xtp/checkpointwriter.h"
 
 namespace votca {
 namespace xtp {
 
-QMPair *QMNBList::Add(Segment *seg1, Segment *seg2, bool safe) {
-
-  if (safe) {
-    if (this->FindPair(seg1, seg2) != NULL) {
-      throw std::runtime_error("Critical bug: pair already exists");
-    }
-  }
-  // POTENTIAL BUGS : +1 added to start from 1;
-  int id = this->size() + 1;
-
-  QMPair *pair = new QMPair(id, seg1, seg2);
-
+QMPair& QMNBList::Add(const Segment& seg1, const Segment& seg2,
+                      const Eigen::Vector3d& r) {
+  assert(this->FindPair(&seg1, &seg2) == nullptr &&
+         "Critical bug: pair already exists");
+  int id = this->size();
+  QMPair* pair = new QMPair(id, &seg1, &seg2, r);
   this->AddPair(pair);
-
-  return pair;
+  return *pair;
 }
 
-void QMNBList::PrintInfo(FILE *out) {
+void QMNBList::WriteToCpt(CheckpointWriter& w) const {
+  int size = this->size();
+  w(size, "size");
+  if (size == 0) {
+    return;
+  }
+  Segment seg1("test1", 0);
+  Segment seg2("test2", 1);
+  QMPair pair(1, &seg1, &seg2, Eigen::Vector3d::Zero());
+  std::vector<QMPair::data> dataVec(size);
 
-  QMNBList::iterator nit;
-
-  for (nit = this->begin(); nit != this->end(); nit++) {
-
-    QMPair *pair = *nit;
-
-    int ghost;
-    if (pair->HasGhost()) {
-      ghost = 1;
-    } else {
-      ghost = 0;
-    }
-
-    fprintf(out,
-            "PairID %5d  | Seg1 %4d Seg2 %4d dR %2.4f Ghost? %1d | lOuter "
-            "%1.4f J %2.4f r12 %2.4f r21 %2.4f \n",
-            pair->getId(), pair->first->getId(), pair->second->getId(),
-            pair->Dist(), ghost,
-            0.0,   // pair->getLambdaO(),
-            0.0,   // pair->calcJeff2(),
-            0.0,   // pair->getRate12(),
-            0.0);  // pair->getRate21() );
+  CptTable table = w.openTable("pairs", pair, size);
+  for (int i = 0; i < size; i++) {
+    (_pairs[i]->WriteData(dataVec[i]));
+  }
+  table.write(dataVec);
+  for (QMPair::data data : dataVec) {
+    delete[] data.pair_type;
   }
 }
 
-void QMNBList::GenerateSuperExchange() {
-
-  // QMNBList bridged_nblist;
-
-  // loop over all donor/acceptor pair types
-  for (std::list<SuperExchangeType *>::iterator itDA = _superexchange.begin();
-       itDA != _superexchange.end(); itDA++) {
-
-    cout << endl
-         << " ... ... Processing superexchange pairs of type "
-         << (*itDA)->asString() << "\n"
-         << flush;
-    int _bridged_pairs = 0;
-    int _bridged_and_direct_pairs = 0;
-    // int bridged_molecules = 0;
-
-    // vector of neighboring segments of the donor/acceptor type
-    map<int, Segment *> _ns;
-
-    // loop over all segments in the topology
-    for (std::vector<Segment *>::iterator segit = _top->Segments().begin();
-         segit != _top->Segments().end(); segit++) {
-
-      // check if this is a bridge
-      Segment *segment = *segit;
-      string name = segment->getName();
-
-      if ((*itDA)->isOfBridge(name)) {
-        QMNBList::partners *_partners = FindPartners(segment);
-
-        // loop over all partners of a segment
-        QMNBList::partners::iterator itp;
-        if (_partners != NULL) {
-          map<int, Segment *> _neighbors;
-          for (itp = _partners->begin(); itp != _partners->end(); itp++) {
-            Segment *nb = itp->first;
-            // QMPair *pair = itp->second;
-            // check if the neighbor is of a donor or acceptor type
-            if ((*itDA)->isOfDonorAcceptor(nb->getName()))
-              _neighbors[nb->getId()] = nb;
-          }  // end of the loop of all partners of a segment
-
-          // create new pairs if there are more than one neighbors of DA type
-          if (_neighbors.size() > 1) {
-            for (map<int, Segment *>::iterator it1 = _neighbors.begin();
-                 it1 != _neighbors.end(); it1++) {
-              map<int, Segment *>::iterator it_diag = it1;
-              for (map<int, Segment *>::iterator it2 = ++it_diag;
-                   it2 != _neighbors.end(); it2++) {
-
-                QMPair *pair = FindPair(it1->second, it2->second);
-
-                if (pair == NULL) {  // no connection between donor and acceptor
-                  QMPair *_pair = Add(it1->second, it2->second);
-                  _pair->setType(QMPair::SuperExchange);
-                  _pair->AddBridgingSegment(segment);
-                  _bridged_pairs++;
-                } else {  // pair type is already there
-                  if (pair->getType() == QMPair::Hopping) {
-                    _bridged_and_direct_pairs++;
-                    pair->setType(QMPair::SuperExchangeAndHopping);
-                  }
-                  pair->AddBridgingSegment(segment);
-                }
-              }
-            }
-          }  //
-        }    // end of the check of zero partners
-      }      // end of if this is a bridged pair
-    }        // end of the loop of all segments
-
-    cout << "Added " << _bridged_pairs + _bridged_and_direct_pairs
-         << " superexchange with " << _bridged_and_direct_pairs
-         << " mixed pairs" << endl;
-
-  }  // end of the loop over donor/acceptor types
-
-  map<int, int> npairs;
-  for (QMNBList::iterator pit = this->begin(); pit != this->end(); pit++) {
-    QMPair *pair = (*pit);
-    npairs[pair->getType()] += 1;
+void QMNBList::ReadFromCpt(CheckpointReader& r,
+                           const std::vector<Segment>& segments) {
+  Cleanup();
+  int size = 0;
+  r(size, "size");
+  if (size == 0) {
+    return;
   }
+  QMPair pair(1, &segments[0], &segments[1], Eigen::Vector3d::Zero());
+  CptTable table = r.openTable("pairs", pair);
+  std::vector<QMPair::data> dataVec(table.numRows());
+  table.read(dataVec);
 
-  cout << "Hopping only pairs: " << npairs[QMPair::Hopping] << endl;
-  cout << "Superexchange pairs: " << npairs[QMPair::SuperExchange] << endl;
-  cout << "Superexchange and hopping pairs: "
-       << npairs[QMPair::SuperExchangeAndHopping] << endl;
-
-  return;
+  for (std::size_t i = 0; i < dataVec.size(); ++i) {
+    this->AddPair(new QMPair(dataVec[i], segments));
+  }
 }
 
 }  // namespace xtp

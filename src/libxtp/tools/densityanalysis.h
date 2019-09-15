@@ -16,63 +16,59 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_DENSITYANALYSIS_H
 #define _VOTCA_XTP_DENSITYANALYSIS_H
 
 #include <boost/filesystem.hpp>
 #include <stdio.h>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/gyration.h>
+#include <votca/xtp/logger.h>
 
 namespace votca {
 namespace xtp {
-using namespace std;
 
-class DensityAnalysis : public ctp::QMTool {
+class DensityAnalysis : public QMTool {
  public:
-  string Identify() { return "densityanalysis"; }
+  std::string Identify() { return "densityanalysis"; }
 
-  void Initialize(tools::Property *options);
+  void Initialize(tools::Property& options);
   bool Evaluate();
 
  private:
-  string _orbfile;
-  string _output_file;
+  std::string _orbfile;
+  std::string _output_file;
   tools::Property _gyration_options;
 
-  ctp::Logger _log;
+  Logger _log;
 };
 
-void DensityAnalysis::Initialize(tools::Property *options) {
+void DensityAnalysis::Initialize(tools::Property& options) {
 
   std::string key = "options." + Identify();
-  _orbfile = options->get(key + ".input").as<std::string>();
+  _orbfile = options.get(key + ".input").as<std::string>();
 
-  std::string _gyration_xml =
-      options->get(key + ".gyration_options").as<std::string>();
-  load_property_from_xml(_gyration_options, _gyration_xml.c_str());
-
-  // get the path to the shared folders with xml files
-  char *votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
+  std::string gyration_xml =
+      options.get(key + ".gyration_options").as<std::string>();
+  _gyration_options.LoadFromXML(gyration_xml);
 }
 
 bool DensityAnalysis::Evaluate() {
-
-  _log.setReportLevel(ctp::logDEBUG);
+  OPENMP::setMaxThreads(_nThreads);
+  _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 
-  _log.setPreface(ctp::logINFO, "\n... ...");
-  _log.setPreface(ctp::logERROR, "\n... ...");
-  _log.setPreface(ctp::logWARNING, "\n... ...");
-  _log.setPreface(ctp::logDEBUG, "\n... ...");
+  _log.setPreface(logINFO, "\n... ...");
+  _log.setPreface(logERROR, "\n... ...");
+  _log.setPreface(logWARNING, "\n... ...");
+  _log.setPreface(logDEBUG, "\n... ...");
 
   Orbitals orbitals;
-  CTP_LOG(ctp::logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
-  Density2Gyration density2gyration = Density2Gyration(&_log);
+  Density2Gyration density2gyration(_log);
   density2gyration.Initialize(_gyration_options);
   density2gyration.AnalyzeDensity(orbitals);
 

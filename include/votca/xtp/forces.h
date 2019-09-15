@@ -17,31 +17,30 @@
  *
  */
 
-#ifndef __XTP_FORCES__H
-#define __XTP_FORCES__H
+#pragma once
+#ifndef VOTCA_XTP_FORCES_H
+#define VOTCA_XTP_FORCES_H
 
 #include <stdio.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/segment.h>
 #include <votca/xtp/gwbseengine.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmatom.h>
-#include <votca/xtp/qminterface.h>
-#include <votca/xtp/statefilter.h>
+#include <votca/xtp/segment.h>
 
 namespace votca {
 namespace xtp {
 
+class StateTracker;
+
 class Forces {
  public:
-  Forces(GWBSEEngine& gwbse_engine, const Statefilter& filter)
-      : _gwbse_engine(gwbse_engine),
-        _filter(filter),
-        _remove_total_force(false){};
+  Forces(GWBSEEngine& gwbse_engine, const StateTracker& tracker)
+      : _gwbse_engine(gwbse_engine), _tracker(tracker){};
 
   void Initialize(tools::Property& options);
   void Calculate(const Orbitals& orbitals);
 
-  void setLog(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
   const Eigen::MatrixX3d& GetForces() const { return _forces; };
   void Report() const;
@@ -55,13 +54,13 @@ class Forces {
   std::string _force_method;
 
   GWBSEEngine& _gwbse_engine;
-  const Statefilter& _filter;
-  bool _remove_total_force;
+  const StateTracker& _tracker;
+  bool _remove_total_force = true;
 
   Eigen::MatrixX3d _forces;
-  ctp::Logger* _pLog;
+  Logger* _pLog;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* FORCES_H */
+#endif  // VOTCA_XTP_FORCES_H

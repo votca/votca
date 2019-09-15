@@ -28,24 +28,6 @@
 namespace votca {
 namespace xtp {
 
-int QMStateType::ToCTPIndex() const {
-  if (_type == QMStateType::Singlet) {
-    return 2;
-  } else if (_type == QMStateType::Triplet) {
-    return 3;
-  } else if (_type == QMStateType::Hole) {
-    return 1;
-  } else if (_type == QMStateType::Electron) {
-    return -1;
-  } else if (_type == QMStateType::Gstate) {
-    return 0;
-  } else {
-    throw std::runtime_error("For state " + this->ToString() +
-                             " no conversion to ctp exists");
-  }
-  return 0;
-}
-
 std::string QMStateType::ToString() const {
   std::string identifier = "";
   switch (_type) {
@@ -159,7 +141,7 @@ std::string QMState::ToString() const {
   }
   std::string result = _type.ToString() + (boost::format("%i") % index).str();
   if (_transition) {
-    result = "N2" + result;
+    result = "n2" + result;
   }
   return result;
 }
@@ -171,6 +153,11 @@ int QMState::DetermineIndex(const std::string& statestring) {
 
   bool found_integer = std::regex_search(statestring, search, reg);
   if (!found_integer) {
+
+    if (_type == QMStateType::Hole || _type == QMStateType::Electron) {
+      return 0;
+    }
+
     throw std::runtime_error("Found no index in string: " + statestring);
   }
   if (search.size() > 1) {
@@ -224,11 +211,10 @@ void QMState::FromString(const std::string& statestring) {
   if (_type != QMStateType::Singlet && _transition == true) {
     throw std::runtime_error("Transition states only exist for singlets.");
   }
-  if (_type != QMStateType::Gstate && _type != QMStateType::Electron &&
-      _type != QMStateType::Hole) {
-    _index = DetermineIndex(rest);
-  } else {
+  if (_type == QMStateType::Gstate) {
     _index = -1;
+  } else {
+    _index = DetermineIndex(rest);
   }
 }
 

@@ -20,14 +20,13 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
-#include <votca/ctp/calculatorfactory.h>
 #include <votca/xtp/calculatorfactory.h>
-#include <votca/xtp/sqlapplication.h>
+#include <votca/xtp/stateapplication.h>
 
 using namespace std;
 using namespace votca;
 
-class XtpRun : public xtp::SqlApplication {
+class XtpRun : public xtp::StateApplication {
  public:
   string ProgramName() { return "xtp_run"; }
 
@@ -48,40 +47,22 @@ namespace propt = boost::program_options;
 
 void XtpRun::Initialize() {
   xtp::Calculatorfactory::RegisterAll();
-  ctp::Calculatorfactory::RegisterAll();
-  xtp::SqlApplication::Initialize();
+  xtp::StateApplication::Initialize();
 
-  AddProgramOptions("Calculators")(
-      "execute,e", propt::value<string>(),
-      "List of calculators separated by ',' or ' '");
-  AddProgramOptions("Calculators")("list,l", "Lists all available calculators");
-  AddProgramOptions("Calculators")("description,d", propt::value<string>(),
-                                   "Short description of a calculator");
+  AddProgramOptions("Calculator")("execute,e", propt::value<string>(),
+                                  "Name of calculator to run");
+  AddProgramOptions("Calculator")("list,l", "Lists all available calculators");
+  AddProgramOptions("Calculator")("description,d", propt::value<string>(),
+                                  "Short description of a calculator");
 }
 
 bool XtpRun::EvaluateOptions() {
 
   string helpdir = "xtp/xml";
-  string ctphelpdir = "ctp/xml";
   if (OptionsMap().count("list")) {
     cout << "Available XTP calculators: \n";
     for (const auto& calc : xtp::Calculators().getObjects()) {
       PrintDescription(std::cout, calc.first, helpdir, Application::HelpShort);
-    }
-    cout << "Available (wrapped) CTP calculators: \n";
-    for (const auto& calc : ctp::Calculators().getObjects()) {
-      bool printctp = true;
-      std::string ctpcalc = calc.first.c_str();
-      for (const auto& xtpcalc : xtp::Calculators().getObjects()) {
-        if (ctpcalc.compare(xtpcalc.first.c_str()) == 0) {
-          printctp = false;
-          break;
-        }
-      }
-      if (printctp) {
-        PrintDescription(std::cout, calc.first, ctphelpdir,
-                         Application::HelpShort);
-      }
     }
     StopExecution();
     return true;
@@ -89,37 +70,18 @@ bool XtpRun::EvaluateOptions() {
 
   if (OptionsMap().count("description")) {
     CheckRequired("description", "no calculator is given");
-    Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
+    tools::Tokenizer tok(OptionsMap()["description"].as<string>(), " ,\n\t");
     // loop over the names in the description string
     for (const std::string& n : tok) {
       // loop over calculators
       bool printerror = true;
       for (const auto& calc : xtp::Calculators().getObjects()) {
 
-        if (n.compare(calc.first.c_str()) == 0) {
+        if (n.compare(calc.first) == 0) {
           PrintDescription(std::cout, calc.first, helpdir,
                            Application::HelpLong);
           printerror = false;
           break;
-        }
-      }
-      for (const auto& calc : ctp::Calculators().getObjects()) {
-
-        if (n.compare(calc.first.c_str()) == 0) {
-          bool printctp = true;
-          std::string ctpcalc = calc.first.c_str();
-          for (const auto& xtpcalc : xtp::Calculators().getObjects()) {
-            if (ctpcalc.compare(xtpcalc.first.c_str()) == 0) {
-              printctp = false;
-              break;
-            }
-          }
-          if (printctp) {
-            PrintDescription(std::cout, calc.first, "ctp/xml",
-                             Application::HelpLong);
-            printerror = false;
-            break;
-          }
         }
       }
       if (printerror) cout << "Calculator " << n << " does not exist\n";
@@ -128,41 +90,33 @@ bool XtpRun::EvaluateOptions() {
     return true;
   }
 
-  xtp::SqlApplication::EvaluateOptions();
+  xtp::StateApplication::EvaluateOptions();
   CheckRequired("options",
                 "Please provide an xml file with calculator options");
   CheckRequired("execute", "Nothing to do here: Abort.");
 
-  Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
-  for (const std::string& n : calcs) {
-    bool _found_calc = false;
-    for (const auto& calc : xtp::Calculators().getObjects()) {
+  tools::Tokenizer calcs(OptionsMap()["execute"].as<string>(), " ,\n\t");
+  std::vector<std::string> calc_string = calcs.ToVector();
+  if (calc_string.size() != 1) {
+    throw std::runtime_error(
+        "You can only run one calculator at the same time.");
+  }
+  bool found_calc = false;
+  for (const auto& calc : xtp::Calculators().getObjects()) {
 
-      if (n.compare(calc.first.c_str()) == 0) {
-        cout << " This is a XTP app" << endl;
-        xtp::SqlApplication::AddCalculator(
-            xtp::Calculators().Create(n.c_str()));
-        _found_calc = true;
-      }
+    if (calc_string[0].compare(calc.first) == 0) {
+      cout << " This is a XTP app" << endl;
+      xtp::StateApplication::SetCalculator(
+          xtp::Calculators().Create(calc_string[0]));
+      found_calc = true;
+      break;
     }
-
-    if (!_found_calc) {
-      for (const auto& calc : ctp::Calculators().getObjects()) {
-
-        if (n.compare(calc.first.c_str()) == 0) {
-          _found_calc = true;
-          cout << " This is a CTP app" << endl;
-          xtp::SqlApplication::AddCalculator(
-              ctp::Calculators().Create(n.c_str()));
-        }
-      }
-    }
-    if (!_found_calc) {
-      cout << "Calculator " << n << " does not exist\n";
-      StopExecution();
-    } else {
-      load_property_from_xml(_options, _op_vm["options"].as<string>());
-    }
+  }
+  if (!found_calc) {
+    cout << "Calculator " << calc_string[0] << " does not exist\n";
+    StopExecution();
+  } else {
+    _options.LoadFromXML(_op_vm["options"].as<string>());
   }
   return true;
 }

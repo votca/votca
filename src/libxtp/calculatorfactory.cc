@@ -22,12 +22,11 @@
 #include "calculators/eanalyze.h"
 #include "calculators/einternal.h"
 #include "calculators/ianalyze.h"
-#include "calculators/jobwriter.h"
 #include "calculators/kmclifetime.h"
 #include "calculators/kmcmultiple.h"
+#include "calculators/mapchecker.h"
 #include "calculators/neighborlist.h"
-#include "calculators/profile.h"
-#include "calculators/rates.h"
+#include "calculators/vaverage.h"
 
 namespace votca {
 namespace xtp {
@@ -35,14 +34,13 @@ namespace xtp {
 void Calculatorfactory::RegisterAll(void) {
 
   Calculators().Register<Neighborlist>("neighborlist");
-  Calculators().Register<Rates>("rates");
+  Calculators().Register<MapChecker>("mapchecker");
   Calculators().Register<IAnalyze>("ianalyze");
   Calculators().Register<EAnalyze>("eanalyze");
-  Calculators().Register<JobWriter>("jobwriter");
   Calculators().Register<EInternal>("einternal");
   Calculators().Register<KMCLifetime>("kmclifetime");
   Calculators().Register<KMCMultiple>("kmcmultiple");
-  Calculators().Register<Profile>("profile");
+  Calculators().Register<VAverage>("vaverage");
 }
 }  // namespace xtp
 }  // namespace votca

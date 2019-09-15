@@ -17,24 +17,18 @@
  *
  */
 
+#pragma once
 #ifndef _VOTCA_XTP_DFTGWBSE_H
 #define _VOTCA_XTP_DFTGWBSE_H
 
 #include <stdio.h>
-
-#include <votca/ctp/atom.h>
-#include <votca/ctp/logger.h>
-#include <votca/ctp/qmtool.h>
-#include <votca/ctp/segment.h>
-#include <votca/tools/constants.h>
-#include <votca/xtp/geometry_optimization.h>
-#include <votca/xtp/gwbse.h>
-#include <votca/xtp/qmpackagefactory.h>
+#include <votca/xtp/logger.h>
+#include <votca/xtp/qmtool.h>
 
 namespace votca {
 namespace xtp {
 
-class DftGwBse : public ctp::QMTool {
+class DftGwBse : public QMTool {
  public:
   DftGwBse(){};
 
@@ -42,7 +36,7 @@ class DftGwBse : public ctp::QMTool {
 
   std::string Identify() { return "dftgwbse"; }
 
-  void Initialize(tools::Property *options);
+  void Initialize(tools::Property &options);
   bool Evaluate();
 
  private:
@@ -51,7 +45,6 @@ class DftGwBse : public ctp::QMTool {
 
   std::string _mpsfile;
   bool _do_external;
-  double _dipole_spacing;
 
   std::string _xyzfile;
   std::string _xml_output;  // .xml output
@@ -65,7 +58,7 @@ class DftGwBse : public ctp::QMTool {
   tools::Property _gwbseengine_options;
   tools::Property _geoopt_options;
 
-  ctp::Logger _log;
+  Logger _log;
 
   bool _do_optimize;
 };

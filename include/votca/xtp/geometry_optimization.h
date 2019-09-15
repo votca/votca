@@ -17,14 +17,15 @@
  *
  */
 
-#ifndef __XTP_GEOMETRY_OPTIMIZATION__H
-#define __XTP_GEOMETRY_OPTIMIZATION__H
+#pragma once
+#ifndef XTP_GEOMETRY_OPTIMIZATION_H
+#define XTP_GEOMETRY_OPTIMIZATION_H
 
 #include <stdio.h>
-#include <votca/ctp/logger.h>
 #include <votca/xtp/bfgs-trm.h>
 #include <votca/xtp/energy_costfunction.h>
 #include <votca/xtp/gwbseengine.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/qmatom.h>
 #include <votca/xtp/qmstate.h>
 
@@ -41,15 +42,14 @@ class GeometryOptimization {
 
   void Initialize(tools::Property& options);
 
-  void setLog(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
   void Evaluate();
 
  private:
   static void Report(const BFGSTRM& bfgstrm, const Forces& forces,
-                     ctp::Logger* pLog);
-  static void WriteTrajectory(const std::string& filename,
-                              std::vector<QMAtom*>& atoms,
+                     Logger& pLog);
+  static void WriteTrajectory(const std::string& filename, QMMolecule& atoms,
                               const BFGSTRM& bfgstrm);
 
   QMState _opt_state;
@@ -62,12 +62,12 @@ class GeometryOptimization {
   int _max_iteration;
   double _trust_radius;
 
-  tools::Property _filter_options;
+  tools::Property _statetracker_options;
   tools::Property _force_options;
 
-  ctp::Logger* _pLog;
+  Logger* _pLog;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* GEOMETRY_OPTIMIZATION_H */
+#endif  // VOTCA_XTP_GEOMETRY_OPTIMIZATION_H

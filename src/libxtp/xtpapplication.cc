@@ -37,20 +37,16 @@ XtpApplication::XtpApplication() { ; }
  *
  */
 void XtpApplication::Initialize(void) {
-
   AddProgramOptions()("options,o", boost::program_options::value<std::string>(),
                       "  calculator options");
 }
 
-bool XtpApplication::EvaluateOptions(void) { return true; }
-
 void XtpApplication::ShowHelpText(std::ostream &out) {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
-  votca::xtp::HelpTextHeader(name);
+  xtp::HelpTextHeader(name);
   HelpText(out);
   out << "\n\n" << VisibleOptions() << std::endl;
-  // out << "\n\n" << OptionsDesc() << endl;
 }
 
 }  // namespace xtp

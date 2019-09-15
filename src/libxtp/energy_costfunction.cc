@@ -19,6 +19,7 @@
 
 #include <votca/xtp/energy_costfunction.h>
 #include <votca/xtp/qmatom.h>
+#include <votca/xtp/statetracker.h>
 
 namespace votca {
 namespace xtp {
@@ -39,7 +40,7 @@ double Energy_costfunction::EvaluateCost(const Eigen::VectorXd& parameters) {
   _gwbse_engine.ExcitationEnergies(_orbitals);
   _gwbse_engine.setRedirectLogger(false);
   _energy = _orbitals.getTotalStateEnergy(
-      _filter.CalcStateAndUpdate(_orbitals));  // in Hartree
+      _tracker.CalcStateAndUpdate(_orbitals));  // in Hartree
   return _energy;
 }
 
@@ -83,39 +84,37 @@ bool Energy_costfunction::Converged(const Eigen::VectorXd& delta_parameters,
 
 void Energy_costfunction::Report(const Energy_costfunction::conv_paras& val) {
   const Energy_costfunction::conv_paras& paras = getConvParas();
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format(" energy change:    %1$-2.8f Hartree      %2$s") %
+  XTP_LOG(logINFO, *_pLog)
+      << (boost::format("   energy change:    %1$12.8f Hartree      %2$s") %
           val.deltaE % Converged(val.deltaE, paras.deltaE))
              .str()
       << std::flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format(" RMS force:         %1$2.8f Hartree/Bohr %2$s") %
+  XTP_LOG(logINFO, *_pLog)
+      << (boost::format("   RMS force:        %1$12.8f Hartree/Bohr %2$s") %
           val.RMSForce % Converged(val.RMSForce, paras.RMSForce))
              .str()
       << std::flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format(" Max force(atom%1$3i):%2$2.8f Hartree/Bohr %3$s") %
-          val.maxforceindex % val.MaxForce %
-          Converged(val.MaxForce, paras.MaxForce))
+  XTP_LOG(logINFO, *_pLog)
+      << (boost::format("   Max force:        %1$12.8f Hartree/Bohr %2$s") %
+          val.MaxForce % Converged(val.MaxForce, paras.MaxForce))
              .str()
       << std::flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format(" RMS step:          %1$2.8f Bohr         %2$s") %
+  XTP_LOG(logINFO, *_pLog)
+      << (boost::format("   RMS step:         %1$12.8f Bohr         %2$s") %
           val.RMSStep % Converged(val.RMSStep, paras.RMSStep))
              .str()
       << std::flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format(" Max step(atom%1$3i): %2$2.8f Bohr         %3$s") %
-          val.maxstepindex % val.MaxStep %
-          Converged(val.MaxStep, paras.MaxStep))
+  XTP_LOG(logINFO, *_pLog)
+      << (boost::format("   Max step:         %1$12.8f Bohr         %2$s") %
+          val.MaxStep % Converged(val.MaxStep, paras.MaxStep))
              .str()
       << std::flush;
-  CTP_LOG(ctp::logINFO, *_pLog)
-      << (boost::format("++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-                        "++++++++++++ "))
-             .str()
-      << std::flush;
-  CTP_LOG(ctp::logINFO, *_pLog) << std::flush;
+  XTP_LOG(logINFO, *_pLog) << (boost::format(
+                                   " ++++++++++++++++++++++++++++++++++++++++++"
+                                   "++++++++++++++++++++++++ "))
+                                  .str()
+                           << std::flush;
+  XTP_LOG(logINFO, *_pLog) << std::flush;
 }
 
 std::string Energy_costfunction::Converged(double val, double limit) {
@@ -127,21 +126,21 @@ std::string Energy_costfunction::Converged(double val, double limit) {
 }
 
 void Energy_costfunction::Vector2QMAtoms(const Eigen::VectorXd& pos,
-                                         std::vector<QMAtom*>& atoms) {
-  for (unsigned i = 0; i < atoms.size(); i++) {
-    tools::vec pos_displaced(pos(3 * i), pos(3 * i + 1), pos(3 * i + 2));
-    atoms[i]->setPos(pos_displaced);
+                                         QMMolecule& atoms) {
+  for (int i = 0; i < atoms.size(); i++) {
+    Eigen::Vector3d pos_displaced;
+    pos_displaced << pos(3 * i), pos(3 * i + 1), pos(3 * i + 2);
+    atoms[i].setPos(pos_displaced);
   }
 }
 
-Eigen::VectorXd Energy_costfunction::QMAtoms2Vector(
-    std::vector<QMAtom*>& atoms) {
+Eigen::VectorXd Energy_costfunction::QMAtoms2Vector(QMMolecule& atoms) {
   Eigen::VectorXd result = Eigen::VectorXd::Zero(3 * atoms.size());
 
-  for (unsigned i = 0; i < atoms.size(); i++) {
-    result(3 * i) = atoms[i]->getPos().getX();
-    result(3 * i + 1) = atoms[i]->getPos().getY();
-    result(3 * i + 2) = atoms[i]->getPos().getZ();
+  for (int i = 0; i < atoms.size(); i++) {
+    result(3 * i) = atoms[i].getPos().x();
+    result(3 * i + 1) = atoms[i].getPos().y();
+    result(3 * i + 2) = atoms[i].getPos().z();
   }
   return result;
 }

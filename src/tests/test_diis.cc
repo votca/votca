@@ -17,6 +17,7 @@
 
 #define BOOST_TEST_MODULE diis_test
 #include <boost/test/unit_test.hpp>
+#include <iostream>
 #include <votca/xtp/diis.h>
 
 using namespace votca::xtp;
@@ -195,7 +196,12 @@ BOOST_AUTO_TEST_CASE(coeffs_test) {
   Ref << -2.18111, 4.98827, -1.80716;
 
   bool check_diis = Coeffs.isApprox(Ref, 0.00001);
-
+  if (!check_diis) {
+    std::cout << "Ref" << std::endl;
+    std::cout << Ref << std::endl;
+    std::cout << "Coeffs" << std::endl;
+    std::cout << Coeffs << std::endl;
+  }
   BOOST_CHECK_EQUAL(check_diis, 1);
 }
 

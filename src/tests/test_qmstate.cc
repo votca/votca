@@ -76,6 +76,19 @@ BOOST_AUTO_TEST_CASE(QMState_test) {
 
   QMState state6 = QMState(QMStateType::Singlet, 15, true);
   BOOST_CHECK_EQUAL(state6 == state5, true);
+
+  QMState hole;
+  hole.FromString("h1");
+  BOOST_CHECK_EQUAL(hole.Index(), 0);
+  QMState hole2;
+  hole2.FromString("h");
+  BOOST_CHECK_EQUAL(hole2.Index(), 0);
+  QMState electron;
+  electron.FromString("e1");
+  BOOST_CHECK_EQUAL(electron.Index(), 0);
+  QMState electron2;
+  electron2.FromString("e");
+  BOOST_CHECK_EQUAL(electron2.Index(), 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

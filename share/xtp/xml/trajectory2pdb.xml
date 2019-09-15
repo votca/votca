@@ -1,3 +1,0 @@
-<options>
-	<trajectory2pdb help="Generate PDB files for the mapped MD/QM topology"></trajectory2pdb>
-</options>

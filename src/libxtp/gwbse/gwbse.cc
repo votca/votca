@@ -17,18 +17,16 @@
  *
  */
 
-// Overload of uBLAS prod function with MKL/GSL implementations
-
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/format.hpp>
-#include <votca/ctp/logger.h>
 #include <votca/tools/constants.h>
 #include <votca/xtp/bse.h>
-#include <votca/xtp/gw.h>
+#include <votca/xtp/ecpbasisset.h>
 #include <votca/xtp/gwbse.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/numerical_integrations.h>
 #include <votca/xtp/orbitals.h>
-
 using boost::format;
 using namespace boost::filesystem;
 using std::flush;
@@ -38,11 +36,11 @@ namespace xtp {
 int GWBSE::CountCoreLevels() {
   int ignored_corelevels = 0;
   if (!_orbitals.hasECPName()) {
-    BasisSet basis;
-    basis.LoadPseudopotentialSet("corelevels");
+    ECPBasisSet basis;
+    basis.Load("corelevels");
     int coreElectrons = 0;
     for (const auto& atom : _orbitals.QMAtoms()) {
-      coreElectrons += basis.getElement(atom->getType()).getNcore();
+      coreElectrons += basis.getElement(atom.getElement()).getNcore();
     }
     ignored_corelevels = coreElectrons / 2;
   }
@@ -100,9 +98,9 @@ void GWBSE::Initialize(tools::Property& options) {
   } else if (ranges == "default") {
     rpamax = num_of_levels - 1;
     qpmin = 0;
-    qpmax = 2 * homo + 1;
+    qpmax = 3 * homo + 1;
     bse_vmin = 0;
-    bse_cmax = 2 * homo + 1;
+    bse_cmax = 3 * homo + 1;
   } else if (ranges == "full") {
     rpamax = num_of_levels - 1;
     qpmin = 0;
@@ -132,8 +130,8 @@ void GWBSE::Initialize(tools::Property& options) {
       }
     }
 
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Ignoring " << ignored_corelevels
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Ignoring " << ignored_corelevels
         << " core levels for " << ignore_corelevels << " and beyond." << flush;
   }
 
@@ -171,16 +169,15 @@ void GWBSE::Initialize(tools::Property& options) {
   int bse_ctotal = bse_cmax - bse_cmin + 1;
   int bse_size = bse_vtotal * bse_ctotal;
 
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set RPA level range ["
-                                 << rpamin << ":" << rpamax << "]" << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Set GW  level range ["
-                                 << qpmin << ":" << qpmax << "]" << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Set BSE level range occ[" << bse_vmin << ":"
-      << bse_vmax << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " BSE Hamiltonian has size " << bse_size << "x"
-      << bse_size << flush;
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " RPA level range [" << rpamin
+                            << ":" << rpamax << "]" << flush;
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " GW  level range [" << qpmin
+                            << ":" << qpmax << "]" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " BSE level range occ[" << bse_vmin << ":" << bse_vmax
+      << "]  virt[" << bse_cmin << ":" << bse_cmax << "]" << flush;
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " BSE Hamiltonian has size "
+                            << bse_size << "x" << bse_size << flush;
 
   _gwopt.reset_3c = options.ifExistsReturnElseReturnDefault<int>(
       key + ".rebuild_threecenter_freq", _gwopt.reset_3c);
@@ -238,8 +235,8 @@ void GWBSE::Initialize(tools::Property& options) {
 
       // check size
       if (_bseopt.nmax > bse_size / 4) {
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp()
+        XTP_LOG(logDEBUG, *_pLog)
+            << TimeStamp()
             << " Warning : Too many eigenvalues required for Davidson. Default "
                "to Lapack diagonalization"
             << flush;
@@ -248,53 +245,26 @@ void GWBSE::Initialize(tools::Property& options) {
     }
   }
 
-  _fragA = options.ifExistsReturnElseReturnDefault<int>(key + ".fragment", -1);
-
   _bseopt.useTDA = options.ifExistsReturnElseReturnDefault<bool>(
       key + ".useTDA", _bseopt.useTDA);
   _orbitals.setTDAApprox(_bseopt.useTDA);
   if (!_bseopt.useTDA) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " BSE type: full" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << " BSE type: full" << flush;
   } else {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " BSE type: TDA" << flush;
+    XTP_LOG(logDEBUG, *_pLog) << " BSE type: TDA" << flush;
   }
-
-  _openmp_threads =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 0);
 
   if (options.exists(key + ".vxc")) {
-    _doVxc =
-        options.ifExistsReturnElseThrowRuntimeError<bool>(key + ".vxc.dovxc");
-    if (_doVxc) {
-      _functional = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-          key + ".vxc.functional");
-      _grid = options.ifExistsReturnElseReturnDefault<std::string>(
-          key + ".vxc.grid", "medium");
-    }
+    _functional = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+        key + ".vxc.functional");
+    _grid = options.ifExistsReturnElseReturnDefault<std::string>(
+        key + ".vxc.grid", "medium");
   }
 
-  if (options.exists(key + ".gwbasis")) {
-    _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".gwbasis");
-    if (options.exists(key + ".auxbasis")) {
-      throw std::runtime_error(
-          std::string() +
-          "Cannot use the options \"gwbasis\" and \"auxbasis\" "
-          "simultaneously. " +
-          " Use option \"auxbasis\" to specify the auxiliary basis instead.");
-    } else {
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << " Warning: The option \"gwbasis\" is outdated."
-          << " Use option \"auxbasis\" to specify the auxiliary basis instead. "
-          << flush;
-    }
-  } else {
-    _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-        key + ".auxbasis");
-  }
-
+  _auxbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".auxbasisset");
   _dftbasis_name = options.ifExistsReturnElseThrowRuntimeError<std::string>(
-      key + ".dftbasis");
+      key + ".basisset");
   if (_dftbasis_name != _orbitals.getDFTbasisName()) {
     throw std::runtime_error(
         "Name of the Basisset from .orb file: " + _orbitals.getDFTbasisName() +
@@ -308,11 +278,11 @@ void GWBSE::Initialize(tools::Property& options) {
   if (mode == "G0W0") {
     _gwopt.gw_sc_max_iterations = 1;
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog) << " Running GW as: " << mode << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Running GW as: " << mode << flush;
   _gwopt.ScaHFX = _orbitals.getScaHFX();
 
-  _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(key + ".shift",
-                                                                 _gwopt.shift);
+  _gwopt.shift = options.ifExistsReturnElseReturnDefault<double>(
+      key + ".scissor_shift", _gwopt.shift);
   _gwopt.g_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".g_sc_limit",
       _gwopt.g_sc_limit);  // convergence criteria for qp iteration [Hartree]]
@@ -329,10 +299,10 @@ void GWBSE::Initialize(tools::Property& options) {
   _gwopt.gw_sc_limit = options.ifExistsReturnElseReturnDefault<double>(
       key + ".gw_sc_limit",
       _gwopt.gw_sc_limit);  // convergence criteria for shift it
-  CTP_LOG(ctp::logDEBUG, *_pLog)
+  XTP_LOG(logDEBUG, *_pLog)
       << " g_sc_limit [Hartree]: " << _gwopt.g_sc_limit << flush;
   if (_gwopt.gw_sc_max_iterations > 1) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
+    XTP_LOG(logDEBUG, *_pLog)
         << " gw_sc_limit [Hartree]: " << _gwopt.gw_sc_limit << flush;
   }
   _bseopt.min_print_weight = options.ifExistsReturnElseReturnDefault<double>(
@@ -342,6 +312,7 @@ void GWBSE::Initialize(tools::Property& options) {
   // possible tasks
   std::string tasks_string =
       options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".tasks");
+  boost::algorithm::to_lower(tasks_string);
   if (tasks_string.find("all") != std::string::npos) {
     _do_gw = true;
     _do_bse_singlets = true;
@@ -352,42 +323,33 @@ void GWBSE::Initialize(tools::Property& options) {
     _do_bse_singlets = true;
   if (tasks_string.find("triplets") != std::string::npos)
     _do_bse_triplets = true;
-  // special construction for ibse mode
 
-  std::string store_string =
-      options.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".store");
-  if ((store_string.find("all") != std::string::npos) ||
-      (store_string.find("") != std::string::npos)) {
-    // store according to tasks choice
-    if (_do_bse_singlets) _store_bse_singlets = true;
-    if (_do_bse_triplets) _store_bse_triplets = true;
-  }
-  if (store_string.find("singlets") != std::string::npos)
-    _store_bse_singlets = true;
-  if (store_string.find("triplets") != std::string::npos)
-    _store_bse_triplets = true;
-
-  CTP_LOG(ctp::logDEBUG, *_pLog) << " Tasks: " << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Tasks: " << flush;
   if (_do_gw) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " GW " << flush;
+    XTP_LOG(logDEBUG, *_pLog) << " GW " << flush;
   }
   if (_do_bse_singlets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " singlets " << flush;
+    XTP_LOG(logDEBUG, *_pLog) << " singlets " << flush;
   }
   if (_do_bse_triplets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " triplets " << flush;
+    XTP_LOG(logDEBUG, *_pLog) << " triplets " << flush;
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog) << " Store: " << flush;
+  XTP_LOG(logDEBUG, *_pLog) << " Store: " << flush;
   if (_do_gw) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " GW " << flush;
-  }
-  if (_store_bse_singlets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " singlets " << flush;
-  }
-  if (_store_bse_triplets) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << " triplets " << flush;
+    XTP_LOG(logDEBUG, *_pLog) << " GW " << flush;
   }
 
+  if (options.exists(key + ".fragments")) {
+    std::vector<tools::Property*> prop_region =
+        options.Select(key + ".fragments.fragment");
+    int index = 0;
+    for (tools::Property* prop : prop_region) {
+      std::string indices =
+          prop->ifExistsReturnElseThrowRuntimeError<std::string>("indices");
+      _fragments.push_back(QMFragment<BSE_Population>(index, indices));
+      index++;
+    }
+  }
   return;
 }
 
@@ -399,7 +361,7 @@ void GWBSE::addoutput(tools::Property& summary) {
     gwbse_summary.setAttribute("units", "eV");
     gwbse_summary.setAttribute(
         "DFTEnergy",
-        (format("%1$+1.6f ") % (_orbitals.getQMEnergy() * hrt2ev)).str());
+        (format("%1$+1.6f ") % (_orbitals.getDFTTotalEnergy() * hrt2ev)).str());
 
     tools::Property& dft_summary = gwbse_summary.add("dft", "");
     dft_summary.setAttribute("HOMO", _gwopt.homo);
@@ -417,10 +379,10 @@ void GWBSE::addoutput(tools::Property& summary) {
                          (_orbitals.QPpertEnergies().col(4)(state) * hrt2ev))
                             .str());
 
-      level_summary.add(
-          "qp_energy",
-          (format("%1$+1.6f ") % (_orbitals.QPdiagEnergies()(state) * hrt2ev))
-              .str());
+      level_summary.add("qp_energy",
+                        (format("%1$+1.6f ") %
+                         (_orbitals.QPdiag().eigenvalues()(state) * hrt2ev))
+                            .str());
     }
   }
   if (_do_bse_singlets) {
@@ -428,20 +390,20 @@ void GWBSE::addoutput(tools::Property& summary) {
     for (int state = 0; state < _bseopt.nmax; ++state) {
       tools::Property& level_summary = singlet_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
-      level_summary.add("omega",
-                        (format("%1$+1.6f ") %
-                         (_orbitals.BSESingletEnergies()(state) * hrt2ev))
-                            .str());
+      level_summary.add(
+          "omega", (format("%1$+1.6f ") %
+                    (_orbitals.BSESinglets().eigenvalues()(state) * hrt2ev))
+                       .str());
       if (_orbitals.hasTransitionDipoles()) {
 
-        const tools::vec& dipoles = (_orbitals.TransitionDipoles())[state];
-        double f =
-            2 * dipoles * dipoles * _orbitals.BSESingletEnergies()(state) / 3.0;
+        const Eigen::Vector3d& dipoles = (_orbitals.TransitionDipoles())[state];
+        double f = 2 * dipoles.squaredNorm() *
+                   _orbitals.BSESinglets().eigenvalues()(state) / 3.0;
 
         level_summary.add("f", (format("%1$+1.6f ") % f).str());
         tools::Property& dipol_summary = level_summary.add(
-            "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.getX() %
-                         dipoles.getY() % dipoles.getZ())
+            "Trdipole", (format("%1$+1.4f %2$+1.4f %3$+1.4f") % dipoles.x() %
+                         dipoles.y() % dipoles.z())
                             .str());
         dipol_summary.setAttribute("unit", "e*bohr");
         dipol_summary.setAttribute("gauge", "length");
@@ -453,10 +415,10 @@ void GWBSE::addoutput(tools::Property& summary) {
     for (int state = 0; state < _bseopt.nmax; ++state) {
       tools::Property& level_summary = triplet_summary.add("level", "");
       level_summary.setAttribute("number", state + 1);
-      level_summary.add("omega",
-                        (format("%1$+1.6f ") %
-                         (_orbitals.BSETripletEnergies()(state) * hrt2ev))
-                            .str());
+      level_summary.add(
+          "omega", (format("%1$+1.6f ") %
+                    (_orbitals.BSETriplets().eigenvalues()(state) * hrt2ev))
+                       .str());
     }
   }
   return;
@@ -473,170 +435,147 @@ void GWBSE::addoutput(tools::Property& summary) {
  */
 
 Eigen::MatrixXd GWBSE::CalculateVXC(const AOBasis& dftbasis) {
-
-  Eigen::MatrixXd vxc_ao;
-  if (_orbitals.hasAOVxc()) {
-    if (_doVxc) {
-      if (_orbitals.getQMpackage() == "xtp") {
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp() << " Taking VXC from xtp DFT run." << flush;
-      } else {
-        CTP_LOG(ctp::logDEBUG, *_pLog)
-            << ctp::TimeStamp()
-            << " There is already a Vxc matrix loaded from DFT, did you maybe "
-               "run a DFT code with outputVxc?\n I will take the external "
-               "implementation"
-            << flush;
-      }
-      _doVxc = false;
-    }
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Loaded external Vxc matrix" << flush;
-    vxc_ao = _orbitals.AOVxc();
-  } else if (_doVxc) {
-
-    NumericalIntegration numint;
-    numint.setXCfunctional(_functional);
-    double ScaHFX_temp = numint.getExactExchange(_functional);
-    if (ScaHFX_temp != _orbitals.getScaHFX()) {
-      throw std::runtime_error(
-          (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
-                         "exact exchange a=%s, probably your functionals are "
-                         "inconsistent") %
-           ScaHFX_temp % _orbitals.getScaHFX())
-              .str());
-    }
-    numint.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
-        << " Setup grid for integration with gridsize: " << _grid << " with "
-        << numint.getGridSize() << " points, divided into "
-        << numint.getBoxesSize() << " boxes" << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Integrating Vxc in VOTCA with functional "
-        << _functional << flush;
-    Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
-
-    vxc_ao = numint.IntegrateVXC(DMAT);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Calculated Vxc in VOTCA" << flush;
-
+  if (_orbitals.getXCFunctionalName().empty()) {
+    _orbitals.setXCFunctionalName(_functional);
   } else {
-    throw std::runtime_error(
-        "So your DFT data contains no Vxc, if you want to proceed use the "
-        "dovxc option.");
+    if (!(_functional == _orbitals.getXCFunctionalName())) {
+      throw std::runtime_error("Functionals from DFT " +
+                               _orbitals.getXCFunctionalName() + " GWBSE " +
+                               _functional + " differ!");
+    }
   }
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp()
-      << " Set hybrid exchange factor: " << _orbitals.getScaHFX() << flush;
-  int qptotal = _gwopt.qpmax - _gwopt.qpmin + 1;
-  int basissize = _orbitals.MOCoefficients().rows();
-  Eigen::MatrixXd mos =
-      _orbitals.MOCoefficients().block(0, _gwopt.qpmin, basissize, qptotal);
+  NumericalIntegration numint;
+  numint.setXCfunctional(_functional);
+  double ScaHFX_temp = numint.getExactExchange(_functional);
+  if (ScaHFX_temp != _orbitals.getScaHFX()) {
+    throw std::runtime_error(
+        (boost::format("GWBSE exact exchange a=%s differs from qmpackage "
+                       "exact exchange a=%s, probably your functionals are "
+                       "inconsistent") %
+         ScaHFX_temp % _orbitals.getScaHFX())
+            .str());
+  }
 
-  Eigen::MatrixXd vxc = mos.transpose() * vxc_ao * mos;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp()
-      << " Calculated exchange-correlation expectation values " << flush;
+  numint.GridSetup(_grid, _orbitals.QMAtoms(), dftbasis);
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Setup grid for integration with gridsize: " << _grid
+      << " with " << numint.getGridSize() << " points, divided into "
+      << numint.getBoxesSize() << " boxes" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Integrating Vxc in VOTCA with functional "
+      << _functional << flush;
+  Eigen::MatrixXd DMAT = _orbitals.DensityMatrixGroundState();
+  Mat_p_Energy e_vxc_ao = numint.IntegrateVXC(DMAT);
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Calculated Vxc in VOTCA" << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Set hybrid exchange factor: " << _orbitals.getScaHFX()
+      << flush;
+  int qptotal = _gwopt.qpmax - _gwopt.qpmin + 1;
+  int basissize = _orbitals.MOs().eigenvectors().rows();
+  Eigen::MatrixXd mos =
+      _orbitals.MOs().eigenvectors().block(0, _gwopt.qpmin, basissize, qptotal);
+
+  Eigen::MatrixXd vxc = mos.transpose() * e_vxc_ao.matrix() * mos;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Calculated exchange-correlation expectation values "
+      << flush;
 
   return vxc;
 }
 
 bool GWBSE::Evaluate() {
 
-// set the parallelization
-#ifdef _OPENMP
-  if (_openmp_threads > 0) {
-    omp_set_num_threads(_openmp_threads);
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Using " << omp_get_max_threads() << " threads"
-        << flush;
-  }
-#endif
+  // set the parallelization
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Using "
+                            << OPENMP::getMaxThreads() << " threads" << flush;
 
   if (tools::globals::VOTCA_MKL) {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Using MKL overload for Eigen " << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Using MKL overload for Eigen " << flush;
   } else {
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp()
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp()
         << " Using native Eigen implementation, no BLAS overload " << flush;
   }
 
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Molecule Coordinates [A] " << flush;
-  for (QMAtom* atom : _orbitals.QMAtoms()) {
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Molecule Coordinates [A] " << flush;
+  for (QMAtom& atom : _orbitals.QMAtoms()) {
     std::string output =
         (boost::format("  %1$s"
                        "   %2$+1.4f %3$+1.4f %4$+1.4f") %
-         atom->getType() % (atom->getPos().getX() * tools::conv::bohr2ang) %
-         (atom->getPos().getY() * tools::conv::bohr2ang) %
-         (atom->getPos().getZ() * tools::conv::bohr2ang))
+         atom.getElement() % (atom.getPos().x() * tools::conv::bohr2ang) %
+         (atom.getPos().y() * tools::conv::bohr2ang) %
+         (atom.getPos().z() * tools::conv::bohr2ang))
             .str();
 
-    CTP_LOG(ctp::logDEBUG, *_pLog) << output << flush;
+    XTP_LOG(logDEBUG, *_pLog) << output << flush;
   }
 
   std::string dft_package = _orbitals.getQMpackage();
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " DFT data was created by " << dft_package
-      << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " DFT data was created by " << dft_package << flush;
 
   BasisSet dftbs;
-  dftbs.LoadBasisSet(_dftbasis_name);
+  dftbs.Load(_dftbasis_name);
 
-  CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " Loaded DFT Basis Set "
-                                 << _dftbasis_name << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Loaded DFT Basis Set " << _dftbasis_name << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, _orbitals.QMAtoms(), _fragA);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Filled DFT Basis of size "
-      << dftbasis.AOBasisSize() << flush;
-  if (dftbasis.getAOBasisFragB() > 0 && dftbasis.getAOBasisFragA() > 0) {
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentA size "
-                                   << dftbasis.getAOBasisFragA() << flush;
-    CTP_LOG(ctp::logDEBUG, *_pLog) << ctp::TimeStamp() << " FragmentB size "
-                                   << dftbasis.getAOBasisFragB() << flush;
-  }
+  dftbasis.Fill(dftbs, _orbitals.QMAtoms());
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled DFT Basis of size "
+                            << dftbasis.AOBasisSize() << flush;
 
   // load auxiliary basis set (element-wise information) from xml file
   BasisSet auxbs;
-  auxbs.LoadBasisSet(_auxbasis_name);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Loaded Auxbasis Set " << _auxbasis_name << flush;
+  auxbs.Load(_auxbasis_name);
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Loaded Auxbasis Set " << _auxbasis_name << flush;
 
   // fill auxiliary AO basis by going through all atoms
   AOBasis auxbasis;
-  auxbasis.AOBasisFill(auxbs, _orbitals.QMAtoms());
+  auxbasis.Fill(auxbs, _orbitals.QMAtoms());
   _orbitals.setAuxbasisName(_auxbasis_name);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Filled Auxbasis of size "
-      << auxbasis.AOBasisSize() << flush;
+  XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Filled Auxbasis of size "
+                            << auxbasis.AOBasisSize() << flush;
 
+  if ((_do_bse_singlets || _do_bse_triplets) && _fragments.size() > 0) {
+    for (const auto& frag : _fragments) {
+      XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " Fragment " << frag.getId()
+                                << " size:" << frag.size() << flush;
+    }
+  }
+
+  if (!_do_gw && !_orbitals.hasQPdiag()) {
+    throw std::runtime_error(
+        "You want no GW calculation but the orb file has no QPcoefficients for "
+        "BSE");
+  }
   TCMatrix_gwbse Mmn;
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
                  _gwopt.rpamin, _gwopt.rpamax);
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp()
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
-  Mmn.Fill(auxbasis, dftbasis, _orbitals.MOCoefficients());
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " Removed " << Mmn.Removedfunctions()
+  Mmn.Fill(auxbasis, dftbasis, _orbitals.MOs().eigenvectors());
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Removed " << Mmn.Removedfunctions()
       << " functions from Aux Coulomb matrix to avoid near linear dependencies"
       << flush;
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp()
-      << " Calculated Mmn_beta (3-center-repulsion x orbitals)  " << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Calculated Mmn_beta (3-center-repulsion x orbitals)  "
+      << flush;
 
   Eigen::MatrixXd Hqp;
 
   if (_do_gw) {
     Eigen::MatrixXd vxc = CalculateVXC(dftbasis);
-    GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOEnergies());
+    GW gw = GW(*_pLog, Mmn, vxc, _orbitals.MOs().eigenvalues());
     gw.configure(_gwopt);
     gw.CalculateGWPerturbation();
 
@@ -644,61 +583,49 @@ bool GWBSE::Evaluate() {
     // E_qp)
     _orbitals.QPpertEnergies() = gw.getGWAResults();
 
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Calculating offdiagonal part of Sigma  "
-        << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Calculating offdiagonal part of Sigma  " << flush;
     gw.CalculateHQP();
-    CTP_LOG(ctp::logDEBUG, *_pLog)
-        << ctp::TimeStamp() << " Calculated offdiagonal part of Sigma  "
-        << flush;
+    XTP_LOG(logDEBUG, *_pLog)
+        << TimeStamp() << " Calculated offdiagonal part of Sigma  " << flush;
     Hqp = gw.getHQP();
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es =
         gw.DiagonalizeQPHamiltonian();
     if (es.info() == Eigen::ComputationInfo::Success) {
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << " Diagonalized QP Hamiltonian  " << flush;
     }
 
-    _orbitals.QPdiagCoefficients() = es.eigenvectors();
-    _orbitals.QPdiagEnergies() = es.eigenvalues();
+    _orbitals.QPdiag().eigenvectors() = es.eigenvectors();
+    _orbitals.QPdiag().eigenvalues() = es.eigenvalues();
   } else {
-    if (_orbitals.hasQPdiag()) {
-      const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiagCoefficients();
-      Hqp = qpcoeff * _orbitals.QPdiagEnergies().asDiagonal() *
-            qpcoeff.transpose();
-    } else {
-      throw std::runtime_error("orb file has no QPcoefficients");
-    }
+    const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiag().eigenvectors();
+    Hqp = qpcoeff * _orbitals.QPdiag().eigenvalues().asDiagonal() *
+          qpcoeff.transpose();
   }
 
   // proceed only if BSE requested
   if (_do_bse_singlets || _do_bse_triplets) {
-    BSE bse = BSE(_orbitals, *_pLog, Mmn, Hqp);
-    bse.configure(_bseopt);
+    BSE bse = BSE(*_pLog, Mmn, Hqp);
+    bse.configure(_bseopt, _orbitals.MOs().eigenvalues());
 
     if (_do_bse_triplets) {
-      bse.Solve_triplets();
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " Solved BSE for triplets " << flush;
-      bse.Analyze_triplets(dftbasis);
-      if (!_store_bse_triplets) {
-        bse.FreeTriplets();
-      }
+      bse.Solve_triplets(_orbitals);
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << " Solved BSE for triplets " << flush;
+      bse.Analyze_triplets(_fragments, _orbitals);
     }
 
     if (_do_bse_singlets) {
-      bse.Solve_singlets();
-      CTP_LOG(ctp::logDEBUG, *_pLog)
-          << ctp::TimeStamp() << " Solved BSE for singlets " << flush;
-      bse.Analyze_singlets(dftbasis);
-      if (!_store_bse_singlets) {
-        bse.FreeSinglets();
-      }
+      bse.Solve_singlets(_orbitals);
+      XTP_LOG(logDEBUG, *_pLog)
+          << TimeStamp() << " Solved BSE for singlets " << flush;
+      bse.Analyze_singlets(_fragments, _orbitals);
     }
   }
-  CTP_LOG(ctp::logDEBUG, *_pLog)
-      << ctp::TimeStamp() << " GWBSE calculation finished " << flush;
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " GWBSE calculation finished " << flush;
   return true;
 }
 }  // namespace xtp

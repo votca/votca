@@ -17,102 +17,74 @@
  *
  */
 
-#ifndef __XTP_AOBASIS__H
-#define __XTP_AOBASIS__H
+#pragma once
+#ifndef VOTCA_XTP_AOBASIS_H
+#define VOTCA_XTP_AOBASIS_H
 
-#include <boost/math/constants/constants.hpp>
-#include <votca/tools/vec.h>
-#include <votca/xtp/basisset.h>
+#include <votca/xtp/aoshell.h>
 #include <votca/xtp/eigen.h>
 
 namespace votca {
 namespace xtp {
-
-class AOShell;
-class QMAtom;
+class QMMolecule;
+class BasisSet;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
  *
- * It is constructed from a vector of QMAtoms and a BasisSet.
+ * It is constructed from a QMMolecule and a BasisSet.
  */
 class AOBasis {
  public:
-  ~AOBasis();  // has to be declared, deletes std::vector<*Shell>_aoshells
   void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                  const std::string& target);
+                  const std::string& target) const;
 
-  void ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
-                     const std::string& target);
-
-  void AOBasisFill(const BasisSet& bs, std::vector<QMAtom*>& atoms,
-                   int fragbreak = -1);
-  void ECPFill(const BasisSet& bs, std::vector<QMAtom*>& atoms);
+  void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
   int AOBasisSize() const { return _AOBasisSize; }
 
-  typedef std::vector<AOShell*>::const_iterator AOShellIterator;
+  typedef std::vector<AOShell>::const_iterator AOShellIterator;
   AOShellIterator begin() const { return _aoshells.begin(); }
   AOShellIterator end() const { return _aoshells.end(); }
 
-  Eigen::MatrixXd getTransformationCartToSpherical(const std::string& package);
-
-  const AOShell* getShell(int idx) const { return _aoshells[idx]; }
-
-  const std::vector<AOShell*>& getShells() const { return _aoshells; }
+  const AOShell& getShell(int idx) const { return _aoshells[idx]; }
 
   const std::vector<const AOShell*> getShellsofAtom(int AtomId) const;
 
-  unsigned getNumofShells() const { return _aoshells.size(); }
-
-  int getAOBasisFragA() const { return _AOBasisFragA; }
-
-  int getAtomNumberFragbreak() const { return _fragA; }
-
-  int getAOBasisFragB() const { return _AOBasisFragB; }
-
-  int getFuncOfAtom(int AtomIndex) const { return _FuncperAtom[AtomIndex]; }
+  int getNumofShells() const { return _aoshells.size(); }
 
   const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
 
  private:
-  AOShell* addShell(const Shell& shell, const QMAtom& atom, int startIndex);
+  AOShell& addShell(const Shell& shell, const QMAtom& atom, int startIndex);
 
-  AOShell* addECPShell(const Shell& shell, const QMAtom& atom, int startIndex,
-                       bool nonlocal);
+  void MultiplyMOs(Eigen::MatrixXd& v,
+                   const std::vector<int>& multiplier) const;
 
-  void MultiplyMOs(Eigen::MatrixXd& v, std::vector<int> const& multiplier);
-
-  std::vector<AOShell*> _aoshells;
-
-  std::vector<int> invertOrder(const std::vector<int>& order);
+  std::vector<int> invertOrder(const std::vector<int>& order) const;
 
   std::vector<int> getReorderVector(const std::string& start,
-                                    const std::string& target);
+                                    const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
-                       const std::string& shell, std::vector<int>& neworder);
+                       const std::string& shell,
+                       std::vector<int>& neworder) const;
 
   std::vector<int> getMultiplierVector(const std::string& start,
-                                       const std::string& target);
+                                       const std::string& target) const;
 
   void addMultiplierShell(const std::string& start, const std::string& target,
                           const std::string& shell,
-                          std::vector<int>& multiplier);
+                          std::vector<int>& multiplier) const;
 
-  void addTrafoCartShell(const AOShell* shell,
-                         Eigen::Block<Eigen::MatrixXd>& _submatrix);
+  std::vector<AOShell> _aoshells;
 
   std::vector<int> _FuncperAtom;
 
-  int _fragA;
-
-  int _AOBasisFragA;
-  int _AOBasisFragB;
-  unsigned int _AOBasisSize;
+  int _AOBasisSize;
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* AOBASIS_H */
+#endif  // VOTCA_XTP_AOBASIS_H

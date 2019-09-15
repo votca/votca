@@ -17,8 +17,9 @@
  *
  */
 
-#ifndef __XTP_ENERGY_COSTFUNCTION__H
-#define __XTP_ENERGY_COSTFUNCTION__H
+#pragma once
+#ifndef VOTCA_XTP_ENERGY_COSTFUNCTION_H
+#define VOTCA_XTP_ENERGY_COSTFUNCTION_H
 
 #include <votca/xtp/optimiser_costfunction.h>
 
@@ -40,10 +41,10 @@ class Energy_costfunction : public Optimiser_costfunction {
     int maxstepindex = 0;
   };
 
-  Energy_costfunction(GWBSEEngine& gwbse_engine, Statefilter& filter,
+  Energy_costfunction(GWBSEEngine& gwbse_engine, StateTracker& tracker,
                       Orbitals& orbitals, Forces& force_engine)
       : _gwbse_engine(gwbse_engine),
-        _filter(filter),
+        _tracker(tracker),
         _orbitals(orbitals),
         _force_engine(force_engine){};
 
@@ -64,18 +65,17 @@ class Energy_costfunction : public Optimiser_costfunction {
     _convpara = convergence;
   }
 
-  void setLog(ctp::Logger* pLog) { _pLog = pLog; }
+  void setLog(Logger* pLog) { _pLog = pLog; }
 
   void Report(const conv_paras& val);
-  static void Vector2QMAtoms(const Eigen::VectorXd& pos,
-                             std::vector<QMAtom*>& atoms);
-  static Eigen::VectorXd QMAtoms2Vector(std::vector<QMAtom*>& atoms);
+  static void Vector2QMAtoms(const Eigen::VectorXd& pos, QMMolecule& atoms);
+  static Eigen::VectorXd QMAtoms2Vector(QMMolecule& atoms);
   static Eigen::VectorXd Write3XMatrixToVector(const Eigen::MatrixX3d& matrix);
 
  private:
   static std::string Converged(double val, double limit);
   GWBSEEngine& _gwbse_engine;
-  Statefilter& _filter;
+  StateTracker& _tracker;
   Orbitals& _orbitals;
   Forces& _force_engine;
   int _iteration = 0;
@@ -83,9 +83,9 @@ class Energy_costfunction : public Optimiser_costfunction {
 
   conv_paras _convpara;
 
-  ctp::Logger* _pLog;
+  Logger* _pLog;
 };
 
 }  // namespace xtp
 }  // namespace votca
-#endif /* FORCES_H */
+#endif  // VOTCA_XTP_ENERGY_COSTFUNCTION_H

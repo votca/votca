@@ -1,0 +1,13 @@
+<package>
+  <name help="name of dft package">gaussian</name>
+  <executable help="executable command for package">g03</executable>
+  <scratch help="directory to use for temp files of package">/tmp/gaussian</scratch>
+  <basisset  help="basiset to use">ubecppol</basisset>
+<ecp help="Pseudo potential to use, Delete if you do not want to use ecps">ecp</ecp>
+  <charge help="charge of system">0</charge>
+  <spin help="multiplicity of qm configuration">1</spin>  
+  <options help="additional options that should be written to input file"># pop=minimal pbepbe/gen pseudo=read punch=mo nosymm test</options>
+  <memory  help="maximum memory code should use">1Gb</memory>
+ 
+  <cleanup help="files to delete identified by fileending"></cleanup>
+</package>
