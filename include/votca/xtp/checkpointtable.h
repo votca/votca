@@ -98,7 +98,7 @@ class CptTable {
 
     try {
       _dataset = _loc.createDataSet(_name.c_str(), _rowStructure, _dp, _props);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not write " << _name << " from " << _loc.getFileName();
       throw std::runtime_error(message.str());
@@ -134,7 +134,7 @@ class CptTable {
     mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
     try {
       _dataset.write(buffer, _rowStructure, mspace, _dp);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not write " << _name << " from " << _loc.getFileName();
       throw std::runtime_error(message.str());
@@ -177,7 +177,7 @@ class CptTable {
     mspace.selectHyperslab(H5S_SELECT_SET, mCount, mStart);
     try {
       _dataset.read(buffer, _rowStructure, mspace, _dp);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not read " << _name << " from " << _loc.getFileName();
       throw std::runtime_error(message.str());
