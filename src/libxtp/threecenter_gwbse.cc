@@ -43,23 +43,37 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
 
 /*
  * Modify 3-center matrix elements consistent with use of symmetrized
- * Coulomb interaction.
+ * Coulomb interaction using either CUDA or Openmp
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
+  // Try to run the operation in a GPU, otherwise is the default Openmp
+  // implementation
 #if defined(USE_GPU)
-  _matrix = _gpu_handle.right_matrix_tensor(matrix, _matrix);
+  try {
+    _matrix = _gpu_handle.right_matrix_tensor(matrix, _matrix);
+  } catch (const std::runtime_error& error) {
+    this->MultiplyRightWithAuxMatrixOpenMP(matrix);
+  }
 #else
+  this->MultiplyRightWithAuxMatrixOpenMP(matrix);
+#endif
+  return;
+}
 
+/*
+ * Modify 3-center matrix elements consistent with use of symmetrized
+ * Coulomb interaction using OPENMP parallelization
+ */
+void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
+    const Eigen::MatrixXd& matrix) {
 #pragma omp parallel for
   for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
     Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
     _matrix[i_occ] = temp;
   }
-#endif
   return;
 }
-
 /*
  * Fill the 3-center object by looping over shells of GW basis set and
  * calling FillBlock, which calculates all 3-center overlap integrals
@@ -163,16 +177,33 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
     tensor.push_back(mtx.selfadjointView<Eigen::Lower>());
   }
   // Performn the tensor multiplication in the GPU
-  std::vector<Eigen::MatrixXd> results =
-      _gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
-  for (int k = 0; k < auxshell.getNumFunc(); ++k) {
-    Eigen::MatrixXd threec_inMo = results[k];
-    for (int i = 0; i < threec_inMo.cols(); ++i) {
-      block[i].col(k) = threec_inMo.col(i);
+  try {
+    std::vector<Eigen::MatrixXd> results =
+        _gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
+    for (int k = 0; k < auxshell.getNumFunc(); ++k) {
+      Eigen::MatrixXd threec_inMo = results[k];
+      for (int i = 0; i < threec_inMo.cols(); ++i) {
+        block[i].col(k) = threec_inMo.col(i);
+      }
     }
+  } catch (const std::runtime_error& error) {
+    this->TripleProduct(block, symmstorage, dftn, dftm, auxshell.getNumFunc());
   }
 #else
-  for (int k = 0; k < auxshell.getNumFunc(); ++k) {
+  this->TripleProduct(block, symmstorage, dftn, dftm, auxshell.getNumFunc());
+#endif
+  return;
+}
+
+/*
+ * Perform a Matrix Tensor Matrix multiplication
+ */
+void TCMatrix_gwbse::TripleProduct(
+    std::vector<Eigen::MatrixXd>& block,
+    const std::vector<Eigen::MatrixXd>& symmstorage,
+    const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm,
+    int numFunc) const {
+  for (int k = 0; k < numFunc; ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
@@ -180,9 +211,6 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       block[i].col(k) = threec_inMo.col(i);
     }
   }
-#endif
-
-  return;
 }
 
 }  // namespace xtp

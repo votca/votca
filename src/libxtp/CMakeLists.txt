@@ -8,7 +8,7 @@ file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc )
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
 if(NOT USE_GPU)
-  list(FILTER VOTCA_SOURCES EXCLUDE REGEX ".*eigencuda.cc")
+  list(FILTER VOTCA_SOURCES EXCLUDE REGEX "eigencuda.cc")
 endif()
 
 add_library(votca_xtp  ${VOTCA_SOURCES})

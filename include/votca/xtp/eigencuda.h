@@ -89,9 +89,6 @@ class EigenCuda {
   EigenCuda(const EigenCuda &) = delete;
   EigenCuda &operator=(const EigenCuda &) = delete;
 
-  // Matrix matrix multiplication
-  Mat<T> dot(const Mat<T> &A, const Mat<T> &B) const;
-
   // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
   std::vector<Mat<T>> triple_tensor_product(const Mat<T> &A, const Mat<T> &C,

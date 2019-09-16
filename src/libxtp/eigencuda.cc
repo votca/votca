@@ -137,36 +137,6 @@ void EigenCuda<T>::gemm(Shapes sh, const T *dA, const T *dB, T *dC) const {
 }
 
 /*
- * \brief Matrix-Matrix multiplication in GPU
- */
-template <typename T>
-Mat<T> EigenCuda<T>::dot(const Mat<T> &A, const Mat<T> &B) const {
-  // Matrix to store the result
-  Mat<T> C = Mat<T>::Zero(A.rows(), B.cols());
-  std::size_t size_C = C.size() * sizeof(T);
-
-  // Indices of the matrices on the device
-  T *dA = initialize_and_copy(A);
-  T *dB = initialize_and_copy(B);
-  T *dC = initialize_matrix_mem(size_C);
-
-  // process on GPU
-  Shapes sh{A.rows(), A.cols(), B.rows(), B.cols(), C.rows()};
-  gemm(sh, dA, dB, dC);
-
-  // send data back to CPU
-  T *hC = C.data();
-  cudaMemcpy(hC, dC, size_C, cudaMemcpyDeviceToHost);
-
-  // Free the result from the device
-  gpu_free(dA);
-  gpu_free(dB);
-  gpu_free(dC);
-
-  return C;
-}
-
-/*
  * \brief Multiply a matrix B by a 3D tensor represented as a vector of
  * matrices.
  * \return vector of matrices representing the result
