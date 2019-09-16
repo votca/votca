@@ -251,7 +251,7 @@ std::pair<int, std::string> SegmentMapper<AtomContainer>::StringToMDIndex(
   int atomid = 0;
   try {
     atomid = std::stoi(result[2]);
-  } catch (std::invalid_argument& e) {
+  } catch (std::invalid_argument&) {
     throw std::runtime_error("Atom entry " + md_string +
                              " is not well formatted");
   }

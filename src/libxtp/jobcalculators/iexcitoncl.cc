@@ -145,7 +145,7 @@ QMState IEXCITON::GetElementFromMap(const std::string& elementname) const {
   QMState state;
   try {
     state = _statemap.at(elementname);
-  } catch (std::out_of_range& error) {
+  } catch (std::out_of_range&) {
     std::string errormessage =
         "Map does not have segment of type: " + elementname;
     errormessage += "\n segments in map are:";
