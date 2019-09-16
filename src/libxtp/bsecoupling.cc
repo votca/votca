@@ -403,7 +403,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
 
   AOBasis dftbasis = orbitalsAB.SetupDftBasis();
   AOBasis auxbasis = orbitalsAB.SetupAuxBasis();
-  TCMatrix_gwbse Mmn;
+  TCMatrix_gwbse Mmn{*_pLog};
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), orbitalsAB.getRPAmin(),
                  orbitalsAB.getGWAmax(), orbitalsAB.getRPAmin(),

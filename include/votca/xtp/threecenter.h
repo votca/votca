@@ -22,6 +22,7 @@
 #define __XTP_THREECENTER__H
 
 #include <votca/xtp/eigen.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 
@@ -77,6 +78,8 @@ class TCMatrix_dft : public TCMatrix {
 
 class TCMatrix_gwbse : public TCMatrix {
  public:
+  TCMatrix_gwbse(Logger& log) : _log(log){};
+
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](int i) const { return _matrix[i]; }
 
@@ -109,14 +112,17 @@ class TCMatrix_gwbse : public TCMatrix {
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
 
-  void TripleProduct(std::vector<Eigen::MatrixXd>& block,
-                     const std::vector<Eigen::MatrixXd>& symmstorage,
-                     const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm,
-                     int numFunc) const;
+  void TripleTensorProduct(std::vector<Eigen::MatrixXd>& block,
+                           const std::vector<Eigen::MatrixXd>& symmstorage,
+                           const Eigen::MatrixXd& dftn,
+                           const Eigen::MatrixXd& dftm, int numFunc) const;
 
  private:
   // store vector of matrices
   std::vector<Eigen::MatrixXd> _matrix;
+
+  // Logger
+  Logger& _log;
 
   // Use GPU if available
 #if defined(USE_GPU)

@@ -18,8 +18,11 @@
  */
 
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/multiarray.h>
 #include <votca/xtp/threecenter.h>
+
+using std::flush;
 
 namespace votca {
 namespace xtp {
@@ -53,6 +56,10 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   try {
     _matrix = _gpu_handle.right_matrix_tensor(matrix, _matrix);
   } catch (const std::runtime_error& error) {
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp()
+        << " GPU Multiplyrightwithauxmatrix failed due to: " << error.what()
+        << " Using default OpenMP implementation!" << flush;
     this->MultiplyRightWithAuxMatrixOpenMP(matrix);
   }
 #else
@@ -187,10 +194,17 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       }
     }
   } catch (const std::runtime_error& error) {
-    this->TripleProduct(block, symmstorage, dftn, dftm, auxshell.getNumFunc());
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp()
+        << " GPU tripe_tensor_product failed due to: " << error.what()
+        << " Using default CPU TripleTensorProduct!" << flush;
+
+    this->TripleTensorProduct(block, symmstorage, dftn, dftm,
+                              auxshell.getNumFunc());
   }
 #else
-  this->TripleProduct(block, symmstorage, dftn, dftm, auxshell.getNumFunc());
+  this->TripleTensorProduct(block, symmstorage, dftn, dftm,
+                            auxshell.getNumFunc());
 #endif
   return;
 }
@@ -198,7 +212,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
 /*
  * Perform a Matrix Tensor Matrix multiplication
  */
-void TCMatrix_gwbse::TripleProduct(
+void TCMatrix_gwbse::TripleTensorProduct(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
     const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm,
