@@ -62,7 +62,12 @@ include(CheckTypeSize)
 check_type_size("int" INT_SIZE
   BUILTIN_TYPES_ONLY LANGUAGE C)
 
-set(MKL_THREAD_LAYER "Sequential" CACHE STRING "The thread layer to choose for MKL")
+
+if(NOT MKL_THREAD_LAYER)
+    set(MKL_THREAD_LAYER "TBB")
+endif()
+
+set(MKL_THREAD_LAYER ${MKL_THREAD_LAYER} CACHE STRING "The thread layer to choose for MKL")
 set_property(CACHE MKL_THREAD_LAYER PROPERTY STRINGS "TBB" "GNU OpenMP" "Intel OpenMP" "Sequential")
 
 if(NOT MKL_THREAD_LAYER STREQUAL MKL_THREAD_LAYER_LAST)
@@ -278,3 +283,5 @@ if(MKL_FOUND)
         IMPORTED_IMPLIB "${MKL_Core_LINK_LIBRARY}")
   endif()
 endif()
+
+message("-- " ${MKL_THREAD_LAYER} " used for MKL parallelisation")
