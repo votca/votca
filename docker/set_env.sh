@@ -53,8 +53,10 @@ elif [[ $ENV -eq 4 ]]; then
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -E _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON
-  add_to_docker_opts CMAKE_BUILD_TYPE=None
+  add_to_docker_opts CMAKE_BUILD_TYPE=
+  CXXFLAGS="-O2" # gcc's default would be -O0 (slow!) otherwise
   add_to_docker_opts COVERAGE=yes
+  [[ $CXX = clang++ ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
 elif [[ $ENV -eq 5 ]]; then
   # Coverage build on Ubuntu, Fedora has issues, see #67
   # Build with no cmake_build_type and coverage on, second half of the tests (for tools and csg)
@@ -64,8 +66,10 @@ elif [[ $ENV -eq 5 ]]; then
   add_to_docker_opts TESTOPTS="-L ${TRAVIS_REPO_SLUG#*/} -R _re -LE memory"
   # only run csg-tutorials regressions tests for csg, tools - csg-tutorials and votca have no coverable code
   [[ ${TRAVIS_REPO_SLUG#*/} = @(csg|tools) ]] && add_to_docker_opts REGRESSION_TESTING=ON || export SKIP=yes
-  add_to_docker_opts CMAKE_BUILD_TYPE=None
+  add_to_docker_opts CMAKE_BUILD_TYPE=
+  CXXFLAGS="-O2" # gcc's default would be -O0 (slow!) otherwise
   add_to_docker_opts COVERAGE=yes
+  [[ $CXX = clang++ ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
 elif [[ $ENV -eq 6 ]]; then
   export SKIP=yes
 elif [[ $ENV -eq 7 ]]; then
@@ -100,7 +104,7 @@ else
   die "Unknown environment"
 fi
 
-add_to_docker_opts CXXFLAGS="-Wall ${WERROR:+-Werror}"
+add_to_docker_opts CXXFLAGS="${CXXFLAGS} -Wall ${WERROR:+-Werror}"
 add_to_docker_opts TRAVIS_OS_NAME="${DISTRO:-fedora}"
 
 export docker_opts
