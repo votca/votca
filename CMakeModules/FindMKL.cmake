@@ -13,7 +13,7 @@
 # MKLROOT environment variable which will be used to find the libraries on your system.
 #
 # Example:
-# set(MKL_THREAD_LAYER "TBB")
+# set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 # find_package(MKL)
 #
 # add_executable(myapp main.cpp)
@@ -63,11 +63,7 @@ check_type_size("int" INT_SIZE
   BUILTIN_TYPES_ONLY LANGUAGE C)
 
 
-if(NOT MKL_THREAD_LAYER)
-    set(MKL_THREAD_LAYER "TBB")
-endif()
-
-set(MKL_THREAD_LAYER ${MKL_THREAD_LAYER} CACHE STRING "The thread layer to choose for MKL")
+set(MKL_THREAD_LAYER "TBB" CACHE STRING "The thread layer to choose for MKL")
 set_property(CACHE MKL_THREAD_LAYER PROPERTY STRINGS "TBB" "GNU OpenMP" "Intel OpenMP" "Sequential")
 
 if(NOT MKL_THREAD_LAYER STREQUAL MKL_THREAD_LAYER_LAST)
@@ -284,4 +280,4 @@ if(MKL_FOUND)
   endif()
 endif()
 
-message("-- " ${MKL_THREAD_LAYER} " used for MKL parallelisation")
+message(STATUS "'${MKL_THREAD_LAYER}' used for MKL parallelisation")
