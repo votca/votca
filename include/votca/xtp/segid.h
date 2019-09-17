@@ -66,7 +66,7 @@ class SegId {
       try {
         _state = QMState(result);
         _hasfilename = false;
-      } catch (std::runtime_error& e) {
+      } catch (std::runtime_error&) {
         throw std::runtime_error("'" + result +
                                  "' is neither a QMState nor a filename. Did "
                                  "you maybe forget the fileending");
