@@ -33,13 +33,13 @@ Atom::Atom(int resnr, std::string md_atom_name, int atom_id,
   bool found_element_type = true;
   try {
     ele.getMass(elename);
-  } catch (std::runtime_error& e) {
+  } catch (std::runtime_error&) {
     found_element_name = false;
   }
 
   try {
     ele.getMass(eletype);
-  } catch (std::runtime_error& e) {
+  } catch (std::runtime_error&) {
     found_element_type = false;
   }
 

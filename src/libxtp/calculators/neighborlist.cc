@@ -147,7 +147,7 @@ bool Neighborlist::EvaluateFrame(Topology& top) {
       if (!_useConstantCutoff) {
         try {
           cutoff = _cutoffs.at(seg1->getType()).at(seg2->getType());
-        } catch (const std::exception& out_of_range) {
+        } catch (const std::exception&) {
           std::string pairstring = seg1->getType() + "/" + seg2->getType();
           if (std::find(skippedpairs.begin(), skippedpairs.end(), pairstring) ==
               skippedpairs.end()) {
