@@ -1,5 +1,5 @@
 /*
- *
+ *            E
  *            Copyright 2009-2019 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
@@ -18,10 +18,9 @@
  *
  */
 
-#include "graph.h"
-#include "reducededge.h"
+#include <votca/tools/graph.h>
+#include <votca/tools/reducededge.h>
 
-#pragma once
 #ifndef _VOTCA_TOOLS_REDUCEDGRAPH_H
 #define _VOTCA_TOOLS_REDUCEDGRAPH_H
 

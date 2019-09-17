@@ -19,10 +19,9 @@
 
 #define BOOST_TEST_MODULE elements_test
 #include <boost/test/unit_test.hpp>
-#include <stdexcept>
-
-#include "../../include/votca/tools/elements.h"
-#include "../../include/votca/tools/unitconverter.h"
+#include <cmath>
+#include <exception>
+#include <votca/tools/elements.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -46,8 +45,9 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getEleFull("Ge"), "GERMANIUM");
   BOOST_CHECK_EQUAL(ele.getVdWMK("F"), 1.35);
   BOOST_CHECK_THROW(ele.getVdWMK("Pb"), invalid_argument);
-  BOOST_CHECK_CLOSE(ele.getCovRad("Cl", angstroms), 1.02, 1e-3);
-  BOOST_CHECK_CLOSE(ele.getCovRad("Cl", nanometers), 0.102, 1e-3);
+  BOOST_CHECK_CLOSE(ele.getCovRad("Cl", "ang"), 1.02, 1e-3);
+  BOOST_CHECK_CLOSE(ele.getCovRad("Cl", "nm"), 0.102, 1e-3);
+  BOOST_CHECK_THROW(ele.getCovRad("Cl", "Blah"), invalid_argument);
 
   BOOST_CHECK_EQUAL(ele.getPolarizability("F"), 0.440e-3);
   BOOST_CHECK_THROW(ele.getPolarizability("Pb"), invalid_argument);

@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_TOOLS_LEXICAL_CAST_H
 #define __VOTCA_TOOLS_LEXICAL_CAST_H
 
@@ -36,7 +35,7 @@ template <typename Target, typename Source>
 inline Target lexical_cast(const Source &arg, const std::string &error) {
   try {
     return boost::lexical_cast<Target, Source>(arg);
-  } catch (std::exception &err) {
+  } catch (std::exception &) {
     throw std::runtime_error("invaid type: " + error);
   }
 }

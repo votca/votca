@@ -19,7 +19,6 @@
 
 #include <votca/tools/edge.h>
 
-#pragma once
 #ifndef _VOTCA_TOOLS_REDUCEDEDGE_H
 #define _VOTCA_TOOLS_REDUCEDEDGE_H
 
@@ -97,9 +96,9 @@ class ReducedEdge : public Edge {
   std::vector<Edge> expand() const;
 
   /// Checks if Edges are equivalent
-  bool operator==(const ReducedEdge edge) const;
+  bool operator==(const ReducedEdge& edge) const;
   /// Checks if Edges are not equivalent
-  bool operator!=(const ReducedEdge edge) const;
+  bool operator!=(const ReducedEdge& edge) const;
 
   /**
    * The Reduced Edge follows the same rules as the more basic edge when
@@ -129,10 +128,11 @@ class ReducedEdge : public Edge {
    * Edge ed6(vector<int>{ 1, 2, 5, 4});
    * assert(ed5<ed6); // will return true;
    **/
-  bool operator<(const ReducedEdge edge) const;
-  bool operator>(const ReducedEdge edge) const;
-  bool operator<=(const ReducedEdge edge) const;
-  bool operator>=(const ReducedEdge edge) const;
+
+  bool operator<(const ReducedEdge& edge) const;
+  bool operator>(const ReducedEdge& edge) const;
+  bool operator<=(const ReducedEdge& edge) const;
+  bool operator>=(const ReducedEdge& edge) const;
 
   /// Print the contents of the edge
   friend std::ostream& operator<<(std::ostream& os, const ReducedEdge& edge);

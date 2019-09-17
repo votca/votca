@@ -215,7 +215,7 @@ void Application::PrintDescription(std::ostream &out,
 
   try {
 
-    load_property_from_xml(options, xmlFile);
+    options.LoadFromXML(xmlFile);
     Property &calculator_options = options.get("options." + calculator_name);
     Property::AttributeIterator atr_it =
         calculator_options.findAttribute("help");
@@ -241,7 +241,7 @@ void Application::PrintDescription(std::ostream &out,
         break;
     }
 
-  } catch (std::exception &error) {
+  } catch (std::exception &) {
     if (tools::globals::verbose)
       out << _format % calculator_name % "Undocumented";
   }

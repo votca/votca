@@ -15,9 +15,8 @@
  *
  */
 
-#pragma once
-#ifndef __VOTCA_APPLICATION_H
-#define __VOTCA_APPLICATION_H
+#ifndef __VOTCA_TOOLS_APPLICATION_H
+#define __VOTCA_TOOLS_APPLICATION_H
 
 #include "property.h"
 #include <boost/program_options.hpp>
@@ -174,4 +173,4 @@ class Application {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_APPLICATION_H */
+#endif /* __VOTCA_TOOLS_APPLICATION_H */

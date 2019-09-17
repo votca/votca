@@ -17,7 +17,6 @@
  *
  */
 
-#pragma once
 #ifndef __VOTCA_TOOLS_GRAPH_VISITOR_H
 #define __VOTCA_TOOLS_GRAPH_VISITOR_H
 

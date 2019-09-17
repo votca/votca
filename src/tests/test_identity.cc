@@ -14,29 +14,29 @@
  * limitations under the License.
  *
  */
+#define BOOST_TEST_MAIN
 
-#ifndef VOTCA_TOOLS_FILESYSTEM_H
-#define VOTCA_TOOLS_FILESYSTEM_H
+#define BOOST_TEST_MODULE identity_test
+#include <boost/test/unit_test.hpp>
+#include <exception>
+#include <votca/tools/identity.h>
 
-#include <string>
+using namespace std;
+using namespace votca::tools;
 
-namespace votca {
-namespace tools {
+BOOST_AUTO_TEST_SUITE(identity_test)
 
-namespace filesystem {
+BOOST_AUTO_TEST_CASE(constructors_test) {
+  Identity<int> id;
+  Identity<long int> id2(232);
+}
 
-// return the file ending like .jpg .gro etc.., returns an empty string
-// otherwise
-std::string GetFileExtension(const std::string& filename);
+BOOST_AUTO_TEST_CASE(simple_test) {
+  Identity<int> id;
+  Identity<int> id2(32);
+  BOOST_CHECK_EQUAL(id2.getId(), 32);
+  id2.setId(34);
+  BOOST_CHECK_EQUAL(id2.getId(), 34);
+}
 
-// return the filename without the file extension
-std::string GetFileBase(const std::string& filename);
-
-// returns true if file exists otherwise false
-bool FileExists(const std::string& filename);
-
-}  // namespace filesystem
-}  // namespace tools
-}  // namespace votca
-
-#endif  // VOTCA_TOOLS_FILESYSTEM_H
+BOOST_AUTO_TEST_SUITE_END()

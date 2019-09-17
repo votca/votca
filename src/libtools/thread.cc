@@ -25,11 +25,10 @@ namespace votca {
 namespace tools {
 
 void *runwrapper(void *arg) {
-  assert(arg != nullptr && "Cannot run arg function as it is a nullptr");
   Thread *thread = (Thread *)(arg);
   thread->Run();
-  pthread_exit(nullptr);
-  return nullptr;
+  pthread_exit(NULL);
+  return NULL;
 }
 
 Thread::Thread() {}

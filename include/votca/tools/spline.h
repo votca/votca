@@ -15,9 +15,8 @@
  *
  */
 
-#pragma once
-#ifndef __VOTCA_SPLINE_H
-#define __VOTCA_SPLINE_H
+#ifndef __VOTCA_TOOLS_SPLINE_H
+#define __VOTCA_TOOLS_SPLINE_H
 
 #include <votca/tools/eigen.h>
 
@@ -206,4 +205,4 @@ inline double Spline::getGridPoint(const int &i) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_SPLINE_H */
+#endif /* __VOTCA_TOOLS_SPLINE_H */

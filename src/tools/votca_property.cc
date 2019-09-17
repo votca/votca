@@ -75,7 +75,7 @@ class VotcaProperty : public Application {
       _mformat["TEX"] = &TEX;
       _mformat["HLP"] = &HLP;
 
-      load_property_from_xml(p, file);
+      p.LoadFromXML(file);
 
       it = _mformat.find(format);
       if (it != _mformat.end()) {

@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef VOTCA_TOOLS_CONSTANTS_H
 #define VOTCA_TOOLS_CONSTANTS_H
 
@@ -51,6 +50,9 @@ const double ev2hrt = 1.0 / 27.21138602;
 // 1 eV = 96.485 Kj/mol
 const double ev2kj_per_mol = 96.485;
 
+const double kcal2kj = 4.18679994;
+const double kj2kcal = 1 / kcal2kj;
+
 }  // namespace conv
 
 namespace topology_constants {
@@ -67,23 +69,12 @@ const std::string unassigned_residue_type = "unassigned";
 /// Used to indicate that a valid molecule type variable has not been assigned
 const std::string unassigned_molecule_type = "unassigned";
 
-/// Used to indicate that a valid segment type variable has not been assigned
-const std::string unassigned_segment_type = "unassigned";
-
-const std::string unassigned_atom_container_type = "unassigned";
-
-const int unassigned_atom_container_id = -1;
 /// Used to indicate a valid residue id has not been assigned
 const int unassigned_residue_id = -1;
 
 /// Used to indicate a valid molecule id has not been assigned
 const int unassigned_molecule_id = -1;
 
-/// Used to indicate a valid molecule id has not been assigned
-const int unassigned_bead_id = -1;
-
-/// Used to indicate a valid segment id has not been assigned
-const int unassigned_segment_id = -1;
 }  // namespace topology_constants
 }  // namespace tools
 }  // namespace votca

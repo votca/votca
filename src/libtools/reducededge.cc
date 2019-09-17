@@ -1,5 +1,5 @@
 /*
- *            Copyright 2009-2019 The VOTCA Development Team
+ *            Copyright 2009-2018 The VOTCA Development Team
  *                       (http://www.votca.org)
  *
  *      Licensed under the Apache License, Version 2.0 (the "License")
@@ -16,11 +16,6 @@
  * limitations under the License.
  *
  */
-#include <iterator>            // for next
-#include <ostream>             // for operator<<, ostream, endl, basi...
-#include <stddef.h>            // for size_t
-#include <vector>              // for vector, vector<>::const_iterator
-#include <votca/tools/edge.h>  // for Edge
 
 #include <algorithm>
 #include <cassert>
@@ -130,7 +125,7 @@ bool ReducedEdge::vertexExistInChain(const int& vertex) const {
   return vertex_iterator != vertices_.end();
 }
 
-bool ReducedEdge::operator==(const ReducedEdge edge) const {
+bool ReducedEdge::operator==(const ReducedEdge& edge) const {
   if (edge.vertices_.size() != vertices_.size()) return false;
   for (size_t index = 0; index < vertices_.size(); ++index) {
     if (vertices_.at(index) != edge.vertices_.at(index)) return false;
@@ -138,11 +133,11 @@ bool ReducedEdge::operator==(const ReducedEdge edge) const {
   return true;
 }
 
-bool ReducedEdge::operator!=(const ReducedEdge edge) const {
+bool ReducedEdge::operator!=(const ReducedEdge& edge) const {
   return !(*this == edge);
 }
 
-bool ReducedEdge::operator<(const ReducedEdge edge) const {
+bool ReducedEdge::operator<(const ReducedEdge& edge) const {
   if (this->vertices_.front() < edge.vertices_.front()) return true;
   if (this->vertices_.front() > edge.vertices_.front()) return false;
   if (this->vertices_.back() < edge.vertices_.back()) return true;
@@ -154,15 +149,15 @@ bool ReducedEdge::operator<(const ReducedEdge edge) const {
   return true;
 }
 
-bool ReducedEdge::operator<=(const ReducedEdge edge) const {
+bool ReducedEdge::operator<=(const ReducedEdge& edge) const {
   return (*this < edge || *this == edge);
 }
 
-bool ReducedEdge::operator>(const ReducedEdge edge) const {
+bool ReducedEdge::operator>(const ReducedEdge& edge) const {
   return !(*this <= edge);
 }
 
-bool ReducedEdge::operator>=(const ReducedEdge edge) const {
+bool ReducedEdge::operator>=(const ReducedEdge& edge) const {
   return !(*this < edge);
 }
 

@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 
-#pragma once
 #ifndef _VOTCA_TOOLS_EDGE_H
 #define _VOTCA_TOOLS_EDGE_H
 
@@ -65,9 +64,9 @@ class Edge {
   /// Determine if the edge contains the int ID
   bool contains(int ID) const;
   /// Checks if Edges are equivalent
-  virtual bool operator==(const Edge ed) const;
+  virtual bool operator==(const Edge& ed) const;
   /// Checks if Edges are not equivalent
-  virtual bool operator!=(const Edge ed) const;
+  virtual bool operator!=(const Edge& ed) const;
 
   /// If the vertices are smaller in value
   /// Edge ed1(2,3);
@@ -77,13 +76,13 @@ class Edge {
   /// assert(ed2<ed1); // will return true
   /// assert(ed3<ed1); // will return true
   /// assert(ed3<ed1); // will return true
-  virtual bool operator<(const Edge ed) const;
-  virtual bool operator>(const Edge ed) const;
-  virtual bool operator<=(const Edge ed) const;
-  virtual bool operator>=(const Edge ed) const;
+  virtual bool operator<(const Edge& ed) const;
+  virtual bool operator>(const Edge& ed) const;
+  virtual bool operator<=(const Edge& ed) const;
+  virtual bool operator>=(const Edge& ed) const;
 
   /// Print the contents of the edge
-  friend std::ostream& operator<<(std::ostream& os, const Edge ed);
+  friend std::ostream& operator<<(std::ostream& os, const Edge& ed);
 };
 
 // Value used as a dummy object

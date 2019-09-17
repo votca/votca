@@ -17,15 +17,10 @@
  *
  */
 
-#include <deque>   // for deque
-#include <memory>  // for allocator_traits<>::value_...
-#include <queue>   // for queue
-#include <set>     // for set
-#include <vector>  // for vector
-
-#include "../../include/votca/tools/edge.h"
-#include "../../include/votca/tools/graph.h"
-#include "../../include/votca/tools/graph_bf_visitor.h"
+#include <votca/tools/edge.h>
+#include <votca/tools/graph.h>
+#include <votca/tools/graph_bf_visitor.h>
+#include <votca/tools/graphnode.h>
 
 using namespace std;
 

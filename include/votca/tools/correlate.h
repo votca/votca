@@ -15,7 +15,6 @@
  *
  */
 
-#pragma once
 #ifndef _correlate_H
 #define _correlate_H
 

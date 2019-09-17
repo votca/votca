@@ -16,23 +16,13 @@
  * limitations under the License.
  *
  */
-#include <set>            // for _Rb_tree_const_iterator, set
-#include <stddef.h>       // for size_t
-#include <stdexcept>      // for invalid_argument, runtime_...
-#include <string>         // for allocator, operator+, to_s...
-#include <unordered_map>  // for unordered_map, _Map_base<>...
-#include <utility>        // for pair
-#include <vector>         // for vector, vector<>::reference
+#include <list>
 
-#include "../../include/votca/tools/edge.h"  // for Edge
-#include "../../include/votca/tools/graph.h"
-#include "../../include/votca/tools/graph_bf_visitor.h"
-#include "../../include/votca/tools/graph_df_visitor.h"
-#include "../../include/votca/tools/graphalgorithm.h"
-#include "../../include/votca/tools/graphnode.h"  // for GraphNode
-#include "../../include/votca/tools/graphvisitor.h"
-#include "../../include/votca/tools/reducededge.h"   // for ReducedEdge
-#include "../../include/votca/tools/reducedgraph.h"  // for ReducedGraph
+#include <votca/tools/graph.h>
+#include <votca/tools/graph_bf_visitor.h>
+#include <votca/tools/graph_df_visitor.h>
+#include <votca/tools/graphalgorithm.h>
+#include <votca/tools/graphvisitor.h>
 
 using namespace std;
 

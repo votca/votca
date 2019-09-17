@@ -16,41 +16,42 @@
  * limitations under the License.
  *
  */
-
-#ifndef __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
-#define __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
-
-#include <deque>
-#include <queue>
-#include <votca/tools/graphvisitor.h>
-
-/**
- * \brief A breadth first (BF) graph visitor
- *
- * This graph visitor will explore the vertices closest to the starting node
- * first and proceed outwards.
- *
- */
+#ifndef __VOTCA_TOOLS_IDENTITY_H
+#define __VOTCA_TOOLS_IDENTITY_H
+#include <cassert>
 namespace votca {
 namespace tools {
 
-class Graph;
-class Edge;
-class GraphNode;
+/**
+    \brief Information about Identity
 
-class Graph_BF_Visitor : public GraphVisitor {
+    The identity object is meant to provide functionality for storing the id of
+    an object it primariy meant to be used in child classes and provides a more
+    safety than other implementations.
+*/
+template <typename T>
+class Identity {
  private:
-  std::deque<std::queue<Edge>> edge_que_;
-
-  /// The core of the breadth first visitor is in how the edges are added
-  /// to the queue in this function
-  void addEdges_(const Graph& graph, int vertex);
-  Edge getEdge_(const Graph& graph);
+  T id_;
+  bool id_set_;
 
  public:
-  Graph_BF_Visitor(){};
-  bool queEmpty() const;
+  /// Constructor
+  Identity() : id_set_(false) {}
+  /// Constructor that takes initial id
+  Identity(const T &id) : id_(id), id_set_(true){};
+  /// Gets the id returns error of the id has not been set
+  const T &getId() const {
+    assert(id_set_ && "No id has been set, cannot get id");
+    return id_;
+  }
+  /// Set the id
+  void setId(const T &id) {
+    id_set_ = true;
+    id_ = id;
+  }
 };
 }  // namespace tools
 }  // namespace votca
-#endif  // __VOTCA_TOOLS_GRAPH_BF_VISITOR_H
+
+#endif

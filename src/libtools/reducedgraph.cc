@@ -18,25 +18,16 @@
  */
 
 #include <algorithm>
-#include <ostream>        // for endl, ostream, operator<<
-#include <set>            // for set
-#include <stddef.h>       // for size_t
-#include <stdexcept>      // for invalid_argument
-#include <unordered_map>  // for unordered_map, unordered_map<...
-#include <utility>        // for pair
-#include <vector>         // for vector
-
-#include "../../include/votca/tools/edge.h"
-#include "../../include/votca/tools/edgecontainer.h"  // for EdgeContainer, operator<<
-#include "../../include/votca/tools/graph.h"          // for Graph
-#include "../../include/votca/tools/graphnode.h"    // for GraphNode, operator<<
-#include "../../include/votca/tools/reducededge.h"  // for ReducedEdge
-#include "../../include/votca/tools/reducedgraph.h"
+#include <cassert>
+#include <votca/tools/edge.h>
+#include <votca/tools/reducedgraph.h>
 
 using namespace std;
 
 namespace votca {
 namespace tools {
+
+class GraphNode;
 
 /******************************************************************************
  * Internal Private Functions

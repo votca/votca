@@ -17,7 +17,6 @@
  *
  */
 
-#pragma once
 #ifndef VOTCA_TOOLS_CALCULATOR_H
 #define VOTCA_TOOLS_CALCULATOR_H
 
@@ -121,7 +120,7 @@ inline void Calculator::UpdateWithDefaults(Property &options,
                         std::string(".xml");
 
   Property defaults, defaults_all;
-  load_property_from_xml(defaults_all, xmlFile);
+  defaults_all.LoadFromXML(xmlFile);
   defaults = defaults_all.get("options." + id);
 
   // if a value not given or a tag not present, provide default values
