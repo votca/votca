@@ -27,7 +27,6 @@
 #include <votca/csg/beadtype.h>
 #include <votca/csg/nblist_3body.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -44,15 +43,11 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
 
   Topology top;
 
-  matrix m;
-  m.ZeroMatrix();
-  m[0][0] = 5.0;
-  m[1][1] = 5.0;
-  m[2][2] = 5.0;
+  Eigen::Matrix3d m = 5 * Eigen::Matrix3d::Identity();
 
   top.setBox(m);
 
-  vec pos;
+  Eigen::Vector3d pos = Eigen::Vector3d::Zero();
 
   Molecule *mol;
   mol = top.CreateMolecule("UNKNOWN");
@@ -67,9 +62,6 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   double charge = -1.0;
   Bead *b;
   b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
-  pos[0] = 0.0;
-  pos[1] = 0.0;
-  pos[2] = 0.0;
   b->setPos(pos);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
@@ -82,9 +74,7 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
   b = top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
   mol->AddBead(b, bead_type_name);
   b->setMolecule(mol);
-  pos[0] = 1.0;
-  pos[1] = 0.0;
-  pos[2] = 0.0;
+  pos = Eigen::Vector3d::UnitX();
   b->setPos(pos);
 
   symmetry = 1;

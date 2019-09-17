@@ -40,6 +40,8 @@ class PDBWriter : public TrajectoryWriter {
 
   void WriteHeader(std::string header);
 
+  void WriteBox(const Eigen::Matrix3d &box);
+
  private:
   template <class Atom>
   std::string getName(Atom &atom) {
@@ -50,7 +52,7 @@ class PDBWriter : public TrajectoryWriter {
 
   template <class T, class Atom>
   std::string getResname(T &container, Atom &atom) {
-    return container.getName();
+    return container.getType();
   }
   std::string getResname(Topology &conf, Bead *bead);
 
@@ -78,7 +80,7 @@ class PDBWriter : public TrajectoryWriter {
   }
 
   Eigen::Vector3d getPos(Bead *bead) {
-    return bead->Pos().toEigen() * tools::conv::nm2ang;
+    return bead->Pos() * tools::conv::nm2ang;
   }
 
   template <class T>

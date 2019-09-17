@@ -129,12 +129,12 @@ bool GROReader::NextFrame(Topology &top) {
       b = top.getBead(i);
     }
 
-    b->setPos(vec(stod(x), stod(y), stod(z)));
+    b->setPos(Eigen::Vector3d(stod(x), stod(y), stod(z)));
     if (hasVel) {
       boost::algorithm::trim(vx);
       boost::algorithm::trim(vy);
       boost::algorithm::trim(vz);
-      b->setVel(vec(stod(vx), stod(vy), stod(vz)));
+      b->setVel(Eigen::Vector3d(stod(vx), stod(vy), stod(vz)));
     }
   }
 
@@ -145,20 +145,20 @@ bool GROReader::NextFrame(Topology &top) {
   Tokenizer tok(tmp, " ");
   vector<double> fields;
   tok.ConvertToVector<double>(fields);
-  matrix box;
+  Eigen::Matrix3d box;
   if (fields.size() == 3) {
-    box.ZeroMatrix();
-    for (int i = 0; i < 3; i++) box[i][i] = fields[i];
+    box = Eigen::Matrix3d::Zero();
+    for (int i = 0; i < 3; i++) box(i, i) = fields[i];
   } else if (fields.size() == 9) {
-    box[0][0] = fields[0];
-    box[1][1] = fields[1];
-    box[2][2] = fields[2];
-    box[1][0] = fields[3];
-    box[2][0] = fields[4];
-    box[0][1] = fields[5];
-    box[2][1] = fields[6];
-    box[0][2] = fields[7];
-    box[1][2] = fields[8];
+    box(0, 0) = fields[0];
+    box(1, 1) = fields[1];
+    box(2, 2) = fields[2];
+    box(1, 0) = fields[3];
+    box(2, 0) = fields[4];
+    box(0, 1) = fields[5];
+    box(2, 1) = fields[6];
+    box(0, 2) = fields[7];
+    box(1, 2) = fields[8];
   } else {
     throw std::runtime_error("Error while reading box (last) line");
   }

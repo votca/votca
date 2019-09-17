@@ -26,7 +26,6 @@
 #include <votca/csg/beadtriple.h>
 #include <votca/csg/beadtype.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -63,9 +62,9 @@ BOOST_AUTO_TEST_CASE(test_beadtriple_constructor) {
 
   top.CreateBead(symmetry, name, bead_type_name, resnr, mass, charge);
 
-  vec dist12(0.1, 0.2, 0.3);
-  vec dist13(0.2, 0.4, 0.3);
-  vec dist23(0.1, 0.2, 0.0);
+  Eigen::Vector3d dist12(0.1, 0.2, 0.3);
+  Eigen::Vector3d dist13(0.2, 0.4, 0.3);
+  Eigen::Vector3d dist23(0.1, 0.2, 0.0);
 
   BeadTriple testtriple(top.getBead(0), top.getBead(1), top.getBead(2), dist12,
                         dist13, dist23);

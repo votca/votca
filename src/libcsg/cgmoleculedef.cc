@@ -42,15 +42,14 @@ using namespace std;
 using boost::lexical_cast;
 
 CGMoleculeDef::~CGMoleculeDef() {
-  {
-    vector<beaddef_t *>::iterator i;
-    for (i = _beads.begin(); i != _beads.end(); ++i) delete *i;
-    _beads.clear();
+  for (beaddef_t *def : _beads) {
+    delete def;
   }
+  _beads.clear();
 }
 
 void CGMoleculeDef::Load(string filename) {
-  load_property_from_xml(_options, filename);
+  _options.LoadFromXML(filename);
   // parse xml tree
   _name = _options.get("cg_molecule.name").as<string>();
   _ident = _options.get("cg_molecule.ident").as<string>();
@@ -65,11 +64,8 @@ void CGMoleculeDef::ParseTopology(Property &options) {
 }
 
 void CGMoleculeDef::ParseBeads(Property &options) {
-  list<Property *> beads = options.Select("cg_bead");
 
-  for (list<Property *>::iterator iter = beads.begin(); iter != beads.end();
-       ++iter) {
-    Property *p = *iter;
+  for (Property *p : options.Select("cg_bead")) {
     beaddef_t *beaddef = new beaddef_t;
     beaddef->_options = p;
 
@@ -94,13 +90,11 @@ void CGMoleculeDef::ParseBonded(Property &options) {
 }
 
 void CGMoleculeDef::ParseMapping(Property &options) {
-  list<Property *> maps = options.Select("map");
 
-  for (list<Property *>::iterator iter = maps.begin(); iter != maps.end();
-       ++iter)
-    _maps[(*iter)->get("name").as<string>()] = *iter;
+  for (Property *p : options.Select("map")) {
+    _maps[p->get("name").as<string>()] = p;
+  }
 }
-
 Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   // add the residue names
   Residue *res = top.CreateResidue(_name);
@@ -121,19 +115,18 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   }
 
   // create the bonds
-  list<Property *>::iterator ibnd;
   map<string, string> had_iagroup;
 
-  for (ibnd = _bonded.begin(); ibnd != _bonded.end(); ++ibnd) {
+  for (Property *prop : _bonded) {
     list<int> atoms;
-    string iagroup = (*ibnd)->get("name").as<string>();
+    string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes")
       throw runtime_error(
           string("double occurence of interactions with name ") + iagroup);
     had_iagroup[iagroup] = "yes";
 
-    Tokenizer tok((*ibnd)->get("beads").value(), " \n\t");
+    Tokenizer tok(prop->get("beads").value(), " \n\t");
     for (Tokenizer::iterator atom = tok.begin(); atom != tok.end(); ++atom) {
       int i = minfo->getBeadIdByName(*atom);
       if (i < 0)
@@ -146,16 +139,16 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     }
 
     int NrBeads = 1;
-    if ((*ibnd)->name() == "bond")
+    if (prop->name() == "bond")
       NrBeads = 2;
-    else if ((*ibnd)->name() == "angle")
+    else if (prop->name() == "angle")
       NrBeads = 3;
-    else if ((*ibnd)->name() == "dihedral")
+    else if (prop->name() == "dihedral")
       NrBeads = 4;
 
     if ((atoms.size() % NrBeads) != 0)
       throw runtime_error("Number of atoms in interaction '" +
-                          (*ibnd)->get("name").as<string>() +
+                          prop->get("name").as<string>() +
                           "' is not a multiple of " +
                           lexical_cast<string>(NrBeads) + "! Missing beads?");
 
@@ -163,14 +156,14 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
     while (!atoms.empty()) {
       Interaction *ic;
 
-      if ((*ibnd)->name() == "bond")
+      if (prop->name() == "bond")
         ic = new IBond(atoms);
-      else if ((*ibnd)->name() == "angle")
+      else if (prop->name() == "angle")
         ic = new IAngle(atoms);
-      else if ((*ibnd)->name() == "dihedral")
+      else if (prop->name() == "dihedral")
         ic = new IDihedral(atoms);
       else
-        throw runtime_error("unknown bonded type in map: " + (*ibnd)->name());
+        throw runtime_error("unknown bonded type in map: " + prop->name());
 
       ic->setGroup(iagroup);
       ic->setIndex(index);

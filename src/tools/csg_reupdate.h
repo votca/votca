@@ -82,7 +82,7 @@ class CsgREupdate : public CsgApplication {
  private:
  protected:
   Property _options;
-  std::list<Property *> _nonbonded;
+  std::vector<Property *> _nonbonded;
 
   typedef std::vector<PotentialInfo *> PotentialContainer;
   PotentialContainer _potentials;
@@ -132,7 +132,7 @@ class CsgREupdateWorker : public CsgApplication::Worker {
   ~CsgREupdateWorker(){};
 
   Property _options;
-  std::list<Property *> _nonbonded;
+  std::vector<Property *> _nonbonded;
 
   typedef std::vector<PotentialInfo *> PotentialContainer;
   PotentialContainer _potentials;

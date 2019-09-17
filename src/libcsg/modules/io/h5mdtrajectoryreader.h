@@ -173,7 +173,7 @@ class H5MDTrajectoryReader : public TrajectoryReader {
   int vec_components_;
 
   // Box matrix.
-  matrix m;
+  Eigen::Matrix3d m;
 };
 
 }  // namespace csg

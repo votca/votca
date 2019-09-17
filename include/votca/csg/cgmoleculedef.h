@@ -79,7 +79,7 @@ class CGMoleculeDef {
   // mapping schemes
   std::map<std::string, Property *> _maps;
 
-  std::list<Property *> _bonded;
+  std::vector<Property *> _bonded;
 
   void ParseTopology(Property &options);
   void ParseBeads(Property &options);

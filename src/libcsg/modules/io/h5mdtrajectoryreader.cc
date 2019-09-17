@@ -138,10 +138,10 @@ void H5MDTrajectoryReader::Initialize(Topology &top) {
     cout << "H5MD: Found box " << box[0] << " x " << box[1] << " x " << box[2]
          << endl;
     // Sets box size.
-    m.ZeroMatrix();
-    m[0][0] = box[0];
-    m[1][1] = box[1];
-    m[2][2] = box[2];
+    m = Eigen::Matrix3d::Zero();
+    m(0, 0) = box[0];
+    m(1, 1) = box[1];
+    m(2, 2) = box[2];
     top.setBox(m);
     has_box_ = H5MDTrajectoryReader::STATIC;
   }
@@ -227,10 +227,10 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
   if (has_box_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
     unique_ptr<double[]> box = unique_ptr<double[]>{new double[3]};
     ReadBox(ds_edges_group_, H5T_NATIVE_DOUBLE, idx_frame_, box);
-    m.ZeroMatrix();
-    m[0][0] = box.get()[0];
-    m[1][1] = box.get()[1];
-    m[2][2] = box.get()[2];
+    m = Eigen::Matrix3d::Zero();
+    m(0, 0) = box.get()[0];
+    m(1, 1) = box.get()[1];
+    m(2, 2) = box.get()[2];
     cout << "Time dependent box:" << endl;
     cout << m << endl;
   }
@@ -284,13 +284,13 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
       throw runtime_error("Bead not found: " +
                           boost::lexical_cast<string>(atom_id));
 
-    b->setPos(vec(x, y, z));
+    b->setPos(Eigen::Vector3d(x, y, z));
     if (has_velocity_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
       double vx, vy, vz;
       vx = velocities[array_index];
       vy = velocities[array_index + 1];
       vz = velocities[array_index + 2];
-      b->setVel(vec(vx, vy, vz));
+      b->setVel(Eigen::Vector3d(vx, vy, vz));
     }
 
     if (has_force_ == H5MDTrajectoryReader::TIMEDEPENDENT) {
@@ -298,7 +298,7 @@ bool H5MDTrajectoryReader::NextFrame(Topology &top) {  // NOLINT const reference
       fx = forces[array_index];
       fy = forces[array_index + 1];
       fz = forces[array_index + 2];
-      b->setF(vec(fx, fy, fz));
+      b->setF(Eigen::Vector3d(fx, fy, fz));
     }
   }
 

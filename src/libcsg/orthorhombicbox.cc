@@ -20,17 +20,11 @@
 namespace votca {
 namespace csg {
 
-vec OrthorhombicBox::BCShortestConnection(const vec &r_i,
-                                          const vec &r_j) const {
-  vec r_ij;
-  double a = _box.get(0, 0);
-  double b = _box.get(1, 1);
-  double c = _box.get(2, 2);
-  r_ij = r_j - r_i;
-  r_ij.setZ(r_ij.getZ() - c * round(r_ij.getZ() / c));
-  r_ij.setY(r_ij.getY() - b * round(r_ij.getY() / b));
-  r_ij.setX(r_ij.getX() - a * round(r_ij.getX() / a));
-  return r_ij;
+Eigen::Vector3d OrthorhombicBox::BCShortestConnection(
+    const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
+  Eigen::Array3d box = _box.diagonal();
+  Eigen::Array3d r_ij = r_j - r_i;
+  return (r_ij - box * (r_ij / box).round()).matrix();
 }
 
 }  // namespace csg

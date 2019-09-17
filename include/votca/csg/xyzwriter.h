@@ -57,7 +57,7 @@ class XYZWriter : public TrajectoryWriter {
   }
 
   Eigen::Vector3d getPos(Bead *bead) {
-    return bead->Pos().toEigen() * tools::conv::nm2ang;
+    return bead->Pos() * tools::conv::nm2ang;
   }
 
   template <class T>

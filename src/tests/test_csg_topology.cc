@@ -32,24 +32,7 @@ BOOST_AUTO_TEST_CASE(constructors_test) { Topology top; }
 
 BOOST_AUTO_TEST_CASE(box_test) {
 
-  // Box takes a vector
-  double x1 = 2.0;
-  double y1 = 0.0;
-  double z1 = 0.0;
-
-  double x2 = 0.0;
-  double y2 = 2.0;
-  double z2 = 0.0;
-
-  double x3 = 0.0;
-  double y3 = 0.0;
-  double z3 = 2.0;
-
-  vec v1(x1, y1, z1);
-  vec v2(x2, y2, z2);
-  vec v3(x3, y3, z3);
-
-  matrix box(v1, v2, v3);
+  Eigen::Matrix3d box = 2 * Eigen::Matrix3d::Identity();
 
   Topology top;
   top.setBox(box);
@@ -59,7 +42,7 @@ BOOST_AUTO_TEST_CASE(box_test) {
   BOOST_CHECK_CLOSE(vol, 8, 1e-5);
   auto box2 = top.getBox();
 
-  BOOST_CHECK_EQUAL(box2.isClose(box, 1e-5), true);
+  BOOST_CHECK_EQUAL(box2.isApprox(box, 1e-5), true);
 }
 
 BOOST_AUTO_TEST_CASE(simple_test) {

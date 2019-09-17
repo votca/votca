@@ -304,58 +304,55 @@ void Topology::RegisterBeadType(string type) {
   beadtypes_[type] = id;
 }
 
-vec Topology::BCShortestConnection(const vec &r_i, const vec &r_j) const {
+Eigen::Vector3d Topology::BCShortestConnection(
+    const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
   return _bc->BCShortestConnection(r_i, r_j);
 }
 
-vec Topology::getDist(int bead1, int bead2) const {
+Eigen::Vector3d Topology::getDist(int bead1, int bead2) const {
   return BCShortestConnection(getBead(bead1)->getPos(),
                               getBead(bead2)->getPos());
 }
 
-double Topology::BoxVolume() { return _bc->BoxVolume(); }
+double Topology::BoxVolume() const { return _bc->BoxVolume(); }
 
 void Topology::RebuildExclusions() { _exclusions.CreateExclusions(this); }
 
-BoundaryCondition::eBoxtype Topology::autoDetectBoxType(const matrix &box) {
+BoundaryCondition::eBoxtype Topology::autoDetectBoxType(
+    const Eigen::Matrix3d &box) const {
   // set the box type to OpenBox in case "box" is the zero matrix,
   // to OrthorhombicBox in case "box" is a diagonal matrix,
   // or to TriclinicBox otherwise
-  if (box.get(0, 0) == 0 && box.get(0, 1) == 0 && box.get(0, 2) == 0 &&
-      box.get(1, 0) == 0 && box.get(1, 1) == 0 && box.get(1, 2) == 0 &&
-      box.get(2, 0) == 0 && box.get(2, 1) == 0 && box.get(2, 2) == 0) {
-    // cout << "box open\n";
+  if (box.isApproxToConstant(0)) {
     return BoundaryCondition::typeOpen;
-  } else if (box.get(0, 1) == 0 && box.get(0, 2) == 0 && box.get(1, 0) == 0 &&
-             box.get(1, 2) == 0 && box.get(2, 0) == 0 && box.get(2, 1) == 0) {
-    // cout << "box orth\n";
+  } else if ((box - Eigen::Matrix3d(box.diagonal().asDiagonal()))
+                 .isApproxToConstant(0)) {
     return BoundaryCondition::typeOrthorhombic;
   } else {
-    // cout << "box tric\n";
     return BoundaryCondition::typeTriclinic;
   }
   return BoundaryCondition::typeOpen;
 }
 
-double Topology::ShortestBoxSize() {
-  vec _box_a = getBox().getCol(0);
-  vec _box_b = getBox().getCol(1);
-  vec _box_c = getBox().getCol(2);
+double Topology::ShortestBoxSize() const {
+  Eigen::Vector3d box_a = getBox().col(0);
+  Eigen::Vector3d box_b = getBox().col(1);
+  Eigen::Vector3d box_c = getBox().col(2);
 
   // create plane normals
-  vec _norm_a = _box_b ^ _box_c;
-  vec _norm_b = _box_c ^ _box_a;
-  vec _norm_c = _box_a ^ _box_b;
+  Eigen::Vector3d norm_a = box_b.cross(box_c);
+  Eigen::Vector3d norm_b = box_c.cross(box_a);
+  Eigen::Vector3d norm_c = box_a.cross(box_b);
 
-  _norm_a.normalize();
-  _norm_b.normalize();
-  _norm_c.normalize();
+  norm_a.normalize();
+  norm_b.normalize();
+  norm_c.normalize();
 
-  double la = _box_a * _norm_a;
-  double lb = _box_b * _norm_b;
-  double lc = _box_c * _norm_c;
+  double la = box_a.dot(norm_a);
+  double lb = box_b.dot(norm_b);
+  double lc = box_c.dot(norm_c);
 
-  return min(la, min(lb, lc));
+  return std::min(la, std::min(lb, lc));
 }
 
 }  // namespace csg

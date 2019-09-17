@@ -59,35 +59,33 @@ void NBListGrid::Generate(BeadList &list, bool do_exclusions) {
     getCell((*iter)->getPos())._beads.push_back(*iter);
   }
 }
-void NBListGrid::InitializeGrid(const matrix &box) {
-  _box_a = box.getCol(0);
-  _box_b = box.getCol(1);
-  _box_c = box.getCol(2);
+void NBListGrid::InitializeGrid(const Eigen::Matrix3d &box) {
+  _box_a = box.col(0);
+  _box_b = box.col(1);
+  _box_c = box.col(2);
 
   // create plane normals
-  _norm_a = _box_b ^ _box_c;
-  _norm_b = _box_c ^ _box_a;
-  _norm_c = _box_a ^ _box_b;
+  _norm_a = _box_b.cross(_box_c);
+  _norm_b = _box_c.cross(_box_a);
+  _norm_c = _box_a.cross(_box_b);
 
   _norm_a.normalize();
   _norm_b.normalize();
   _norm_c.normalize();
 
-  double la = _box_a * _norm_a;
-  double lb = _box_b * _norm_b;
-  double lc = _box_c * _norm_c;
+  double la = _box_a.dot(_norm_a);
+  double lb = _box_b.dot(_norm_b);
+  double lc = _box_c.dot(_norm_c);
 
   // calculate grid size, each grid has to be at least size of cut-off
   _box_Na = max((int)(fabs(la / _cutoff)), 1);
   _box_Nb = max((int)(fabs(lb / _cutoff)), 1);
   _box_Nc = max((int)(fabs(lc / _cutoff)), 1);
 
-  _norm_a = _norm_a / (_box_a * _norm_a) * (double)_box_Na;
-  _norm_b = _norm_b / (_box_b * _norm_b) * (double)_box_Nb;
-  _norm_c = _norm_c / (_box_c * _norm_c) * (double)_box_Nc;
+  _norm_a = _norm_a / _box_a.dot(_norm_a) * (double)_box_Na;
+  _norm_b = _norm_b / _box_b.dot(_norm_b) * (double)_box_Nb;
+  _norm_c = _norm_c / _box_c.dot(_norm_c) * (double)_box_Nc;
 
-  // cout << "grid size: " << _box_Na << "x" << _box_Nb << "x" << _box_Nc <<
-  // endl;
   _grid.resize(_box_Na * _box_Nb * _box_Nc);
 
   int a1, a2, b1, b2, c1, c2;
@@ -120,10 +118,10 @@ void NBListGrid::InitializeGrid(const matrix &box) {
       }
 }
 
-NBListGrid::cell_t &NBListGrid::getCell(const vec &r) {
-  int a = (int)floor(r * _norm_a);
-  int b = (int)floor(r * _norm_b);
-  int c = (int)floor(r * _norm_c);
+NBListGrid::cell_t &NBListGrid::getCell(const Eigen::Vector3d &r) {
+  int a = (int)floor(r.dot(_norm_a));
+  int b = (int)floor(r.dot(_norm_b));
+  int c = (int)floor(r.dot(_norm_c));
 
   if (a < 0) a = _box_Na + a % _box_Na;
   a %= _box_Na;
@@ -147,13 +145,13 @@ void NBListGrid::TestBead(NBListGrid::cell_t &cell, Bead *bead) {
 
 void NBListGrid::TestCell(NBListGrid::cell_t &cell, Bead *bead) {
   BeadList::iterator iter;
-  vec u = bead->getPos();
+  Eigen::Vector3d u = bead->getPos();
 
   for (iter = cell._beads.begin(); iter != cell._beads.end(); ++iter) {
 
-    vec v = (*iter)->getPos();
-    vec r = _top->BCShortestConnection(v, u);
-    double d = abs(r);
+    Eigen::Vector3d v = (*iter)->getPos();
+    Eigen::Vector3d r = _top->BCShortestConnection(v, u);
+    double d = r.norm();
     if (d < _cutoff) {
       if (_do_exclusions)
         if (_top->getExclusions().IsExcluded((*iter), bead)) {

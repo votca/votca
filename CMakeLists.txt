@@ -74,7 +74,7 @@ if (WITH_GMX)
 endif(WITH_GMX) 
 
 if(ENABLE_TESTING)
-  set(REGRESSIONTEST_TOLERANCE "1e-5" CACHE STRING "Tolerance for the regression tests")
+  set(REGRESSIONTEST_TOLERANCE "5e-5" CACHE STRING "Tolerance for the regression tests")
   mark_as_advanced(REGRESSIONTEST_TOLERANCE)
   find_package(UnixCommands)
 endif(ENABLE_TESTING)

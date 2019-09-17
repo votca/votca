@@ -64,7 +64,7 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   // .at(0) - element symbol or bead
   // .at(1) - atom name may be the same as the element symbol or bead depending
   //          on if there is more than one atom type for a given element
-  std::map<int, std::vector<std::string>> atomtypes_;
+  std::map<int, std::string> atomtypes_;
 
   // String is the type .e.g. "atom","bond" etc
   // int is the number of different types
@@ -103,7 +103,9 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
   void ReadBonds_(Topology &top);
   void ReadAngles_(Topology &top);
   void ReadDihedrals_(Topology &top);
-  void ReadImpropers_(Topology &top);
+  void SkipImpropers_();
+
+  void RenameMolecule(Molecule &mol) const;
 
   enum lammps_format {
     style_angle_bond_molecule = 0,
@@ -118,11 +120,11 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
    * The purpose of this function is to take lammps output where there are more
    * than a single atom type of the same element. For instance there may be 4
    * atom types with mass of 12.01. Well this means that they are all carbon but
-   * are treated differently in lammps. It makes since to keep track of this. If
+   * are treated differently in lammps. It makes sense to keep track of this. If
    * a mass cannot be associated with an element we will assume it is pseudo
-   * atom or course grained watom which we will represent with as a bead. So
-   * when creating the atom names we will take into account so say we have the
-   * following masses in the lammps .data file:
+   * atom or course grained watom which we will represent as a bead. So
+   * when creating the atom names we will take this into account. So say we have
+   *the following masses in the lammps .data file:
    *
    * Masses
    *
@@ -149,9 +151,6 @@ class LAMMPSDataReader : public TrajectoryReader, public TopologyReader {
    * element and the atom name is the same.
    **/
   void InitializeAtomAndBeadTypes_();
-  std::map<std::string, double> determineBaseNameAssociatedWithMass_();
-  std::map<std::string, int> determineAtomAndBeadCountBasedOnMass_(
-      std::map<std::string, double> baseNamesAndMasses);
 };
 }  // namespace csg
 }  // namespace votca

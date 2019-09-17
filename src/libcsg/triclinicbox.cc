@@ -30,15 +30,16 @@ namespace csg {
  If a simple search algorithm is used to determine if a particle
  is a within cutoff r_c, make sure that r_c < 0.5 min(a_x, b_y, c_z)
  */
-vec TriclinicBox::BCShortestConnection(const vec &r_i, const vec &r_j) const {
-  vec r_tp, r_dp, r_sp, r_ij;
-  vec a = _box.getCol(0);
-  vec b = _box.getCol(1);
-  vec c = _box.getCol(2);
+Eigen::Vector3d TriclinicBox::BCShortestConnection(
+    const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
+  Eigen::Vector3d r_tp, r_dp, r_sp, r_ij;
+  Eigen::Vector3d a = _box.col(0);
+  Eigen::Vector3d b = _box.col(1);
+  Eigen::Vector3d c = _box.col(2);
   r_tp = r_j - r_i;
-  r_dp = r_tp - c * round(r_tp.getZ() / c.getZ());
-  r_sp = r_dp - b * round(r_dp.getY() / b.getY());
-  r_ij = r_sp - a * round(r_sp.getX() / a.getX());
+  r_dp = r_tp - c * round(r_tp.z() / c.z());
+  r_sp = r_dp - b * round(r_dp.y() / b.y());
+  r_ij = r_sp - a * round(r_sp.x() / a.x());
   return r_ij;
 }
 

@@ -31,7 +31,7 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top) {
   _top = &top;
 
   Property options;
-  load_property_from_xml(options, filename);
+  options.LoadFromXML(filename);
   ParseRoot(options.get("topology"));
 
   _top->RebuildExclusions();
@@ -77,10 +77,10 @@ void XMLTopologyReader::ParseRoot(Property &property) {
 }
 
 void XMLTopologyReader::ParseBox(Property &p) {
-  matrix m(0.0);
-  m[0][0] = p.getAttribute<double>("xx");
-  m[1][1] = p.getAttribute<double>("yy");
-  m[2][2] = p.getAttribute<double>("zz");
+  Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
+  m(0, 0) = p.getAttribute<double>("xx");
+  m(1, 1) = p.getAttribute<double>("yy");
+  m(2, 2) = p.getAttribute<double>("zz");
   _top->setBox(m);
 }
 

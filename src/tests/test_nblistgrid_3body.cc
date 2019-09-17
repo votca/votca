@@ -27,7 +27,6 @@
 #include <votca/csg/beadtype.h>
 #include <votca/csg/nblistgrid_3body.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -44,15 +43,11 @@ BOOST_AUTO_TEST_CASE(test_nblist_3body_generate_list) {
 
   Topology top;
 
-  matrix m;
-  m.ZeroMatrix();
-  m[0][0] = 5.0;
-  m[1][1] = 5.0;
-  m[2][2] = 5.0;
+  Eigen::Matrix3d m = 5 * Eigen::Matrix3d::Identity();
 
   top.setBox(m);
 
-  vec pos;
+  Eigen::Vector3d pos;
 
   Molecule *mol;
   mol = top.CreateMolecule("UNKNOWN");

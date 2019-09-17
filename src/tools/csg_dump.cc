@@ -60,10 +60,10 @@ bool CsgDumpApp::EvaluateTopology(Topology *top, Topology *top_ref) {
     cout << endl;
     if (top->getBoxType() != BoundaryCondition::typeOpen) {
       cout << " Box matix:";
-      matrix box = top->getBox();
+      Eigen::Matrix3d box = top->getBox();
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          cout << " " << box[i][j];
+          cout << " " << box(i, j);
         }
         cout << endl << "           ";
       }

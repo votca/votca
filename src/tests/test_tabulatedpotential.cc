@@ -78,24 +78,7 @@ BOOST_AUTO_TEST_CASE(test_command) {
   // Setup BondedStatistics Object
   {
 
-    // Set the system size
-    double x1 = 20.0;
-    double y1 = 0.0;
-    double z1 = 0.0;
-
-    double x2 = 0.0;
-    double y2 = 20.0;
-    double z2 = 0.0;
-
-    double x3 = 0.0;
-    double y3 = 0.0;
-    double z3 = 20.0;
-
-    vec v1(x1, y1, z1);
-    vec v2(x2, y2, z2);
-    vec v3(x3, y3, z3);
-
-    matrix box(v1, v2, v3);
+    Eigen::Matrix3d box = 20 * Eigen::Matrix3d::Identity();
     top.setBox(box);
 
     // Create three beads
@@ -113,13 +96,13 @@ BOOST_AUTO_TEST_CASE(test_command) {
 
     int number_of_H2 = 0;
     int residue_number = 0;
-    for (double x = 2.0; x < (x1 - 2.0); x += 4.0) {
-      for (double y = 2.0; y < (y2 - 2.0); y += 3.0) {
-        for (double z = 2.0; z < (z3 - 2.0); z += 4.0) {
+    for (double x = 2.0; x < (box(0, 0) - 2.0); x += 4.0) {
+      for (double y = 2.0; y < (box(1, 1) - 2.0); y += 3.0) {
+        for (double z = 2.0; z < (box(2, 2) - 2.0); z += 4.0) {
           residue_number++;
 
           string bead_name = to_string(number_of_H2) + "_H2";
-          vec bead_pos(x, y, z);
+          Eigen::Vector3d bead_pos(x, y, z);
           auto bead_ptr = top.CreateBead(symmetry, bead_name, bead_type_name,
                                          residue_number, mass, charge);
           bead_ptr->setId(number_of_H2);

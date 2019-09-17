@@ -51,16 +51,14 @@ void Imc::Initialize() {
         "No interactions defined in options xml-file - nothing to be done");
 
   // initialize non-bonded structures
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    interaction_t *i = AddInteraction(*iter);
+  for (Property *prop : _nonbonded) {
+    interaction_t *i = AddInteraction(prop);
     i->_is_bonded = false;
   }
 
   // initialize bonded structures
-  for (list<Property *>::iterator iter = _bonded.begin(); iter != _bonded.end();
-       ++iter) {
-    interaction_t *i = AddInteraction(*iter);
+  for (Property *prop : _bonded) {
+    interaction_t *i = AddInteraction(prop);
     i->_is_bonded = true;
   }
 
@@ -75,9 +73,8 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
   _processed_some_frames = false;
 
   // initialize non-bonded structures
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _nonbonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_interactions[name];
 
@@ -87,28 +84,28 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
       // generate the bead lists
       BeadList beads1, beads2, beads3;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
-      beads3.Generate(*top, (*iter)->get("type3").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
+      beads3.Generate(*top, prop->get("type3").value());
 
       if (beads1.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type1").value() +
+            prop->get("type1").value() +
             "\"\n"
             "This was specified in type1 of interaction \"" +
             name + "\"");
       if (beads2.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type2").value() +
+            prop->get("type2").value() +
             "\"\n"
             "This was specified in type2 of interaction \"" +
             name + "\"");
       if (beads3.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type3").value() +
+            prop->get("type3").value() +
             "\"\n"
             "This was specified in type3 of interaction \"" +
             name + "\"");
@@ -119,35 +116,34 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
       // generate the bead lists
       BeadList beads1, beads2;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
 
       if (beads1.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type1").value() +
+            prop->get("type1").value() +
             "\"\n"
             "This was specified in type1 of interaction \"" +
             name + "\"");
       if (beads2.size() == 0)
         throw std::runtime_error(
             "Topology does not have beads of type \"" +
-            (*iter)->get("type2").value() +
+            prop->get("type2").value() +
             "\"\n"
             "This was specified in type2 of interaction \"" +
             name + "\"");
 
       // calculate normalization factor for rdf
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+      if (prop->get("type1").value() == prop->get("type2").value())
         i._norm = 1. / (beads1.size() * (beads2.size()) / 2.);
       else
         i._norm = 1. / (beads1.size() * beads2.size());
     }
   }
 
-  for (list<Property *>::iterator iter = _bonded.begin(); iter != _bonded.end();
-       ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _bonded) {
+    string name = prop->get("name").value();
 
     std::list<Interaction *> list = top->InteractionsInGroup(name);
     if (list.empty())
@@ -217,7 +213,7 @@ void Imc::EndEvaluate() {
 
 // load options from xml file
 void Imc::LoadOptions(const string &file) {
-  load_property_from_xml(_options, file);
+  _options.LoadFromXML(file);
   _bonded = _options.Select("cg.bonded");
   _nonbonded = _options.Select("cg.non-bonded");
 }
@@ -257,7 +253,8 @@ class IMCNBSearchHandler {
 
   HistogramNew *_hist;
 
-  bool FoundPair(Bead *b1, Bead *b2, const vec &r, const double dist) {
+  bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
+                 const double dist) {
     _hist->Process(dist);
     return false;
   }
@@ -265,9 +262,8 @@ class IMCNBSearchHandler {
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoNonbonded(Topology *top) {
-  for (list<Property *>::iterator iter = _imc->_nonbonded.begin();
-       iter != _imc->_nonbonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _imc->_nonbonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_imc->_interactions[name];
 
@@ -292,9 +288,9 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // generate the bead lists
       BeadList beads1, beads2, beads3;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
-      beads3.Generate(*top, (*iter)->get("type3").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
+      beads3.Generate(*top, prop->get("type3").value());
 
       // generate the neighbour list
       NBList_3Body *nb;
@@ -310,32 +306,32 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // interaction is zero
 
       // check if type1 and type2 are the same
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value()) {
+      if (prop->get("type1").value() == prop->get("type2").value()) {
         // if all three types are the same
-        if ((*iter)->get("type2").value() == (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() == prop->get("type3").value()) {
           nb->Generate(beads1, true);
         }
         // if type2 and type3 are different, use the Generate function for 2
         // bead types
-        if ((*iter)->get("type2").value() != (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() != prop->get("type3").value()) {
           nb->Generate(beads1, beads3, true);
         }
       }
       // if type1 != type2
-      if ((*iter)->get("type1").value() != (*iter)->get("type2").value()) {
+      if (prop->get("type1").value() != prop->get("type2").value()) {
         // if the last two types are the same, use Generate function with them
         // as the first two bead types Neighborlist_3body is constructed in a
         // way that the two equal bead types have two be the first 2 types
-        if ((*iter)->get("type2").value() == (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() == prop->get("type3").value()) {
           nb->Generate(beads1, beads2, true);
         }
-        if ((*iter)->get("type2").value() != (*iter)->get("type3").value()) {
+        if (prop->get("type2").value() != prop->get("type3").value()) {
           // type1 = type3 !=type2
-          if ((*iter)->get("type1").value() == (*iter)->get("type3").value()) {
+          if (prop->get("type1").value() == prop->get("type3").value()) {
             nb->Generate(beads2, beads1, true);
           }
           // type1 != type2 != type3
-          if ((*iter)->get("type1").value() != (*iter)->get("type3").value()) {
+          if (prop->get("type1").value() != prop->get("type3").value()) {
             nb->Generate(beads1, beads2, beads3, true);
           }
         }
@@ -344,9 +340,10 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       NBList_3Body::iterator triple_iter;
       // iterate over all triples
       for (triple_iter = nb->begin(); triple_iter != nb->end(); ++triple_iter) {
-        vec rij = (*triple_iter)->r12();
-        vec rik = (*triple_iter)->r13();
-        double var = acos(rij * rik / sqrt((rij * rij) * (rik * rik)));
+        Eigen::Vector3d rij = (*triple_iter)->r12();
+        Eigen::Vector3d rik = (*triple_iter)->r13();
+        double var = std::acos(rij.dot(rik) /
+                               sqrt(rij.squaredNorm() * rik.squaredNorm()));
         _current_hists[i._index].Process(var);
       }
 
@@ -358,8 +355,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       // generate the bead lists
       BeadList beads1, beads2;
 
-      beads1.Generate(*top, (*iter)->get("type1").value());
-      beads2.Generate(*top, (*iter)->get("type2").value());
+      beads1.Generate(*top, prop->get("type1").value());
+      beads2.Generate(*top, prop->get("type2").value());
 
       // generate the neighbour list
       NBList *nb;
@@ -376,7 +373,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
       nb->SetMatchFunction(&h, &IMCNBSearchHandler::FoundPair);
 
       // is it same types or different types?
-      if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+      if (prop->get("type1").value() == prop->get("type2").value())
         nb->Generate(beads1);
       else
         nb->Generate(beads1, beads2);
@@ -393,7 +390,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         nb->setCutoff(i._max + i._step);
 
         // is it same types or different types?
-        if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+        if (prop->get("type1").value() == prop->get("type2").value())
           nb->Generate(beads1);
         else
           nb->Generate(beads1, beads2);
@@ -402,12 +399,12 @@ void Imc::Worker::DoNonbonded(Topology *top) {
         // mean force on bead 1 on the pair distance: F1 * r12
         NBList::iterator pair_iter;
         for (pair_iter = nb->begin(); pair_iter != nb->end(); ++pair_iter) {
-          vec F2 = (*pair_iter)->second->getF();
-          vec F1 = (*pair_iter)->first->getF();
-          vec r12 = (*pair_iter)->r();
+          Eigen::Vector3d F2 = (*pair_iter)->second()->getF();
+          Eigen::Vector3d F1 = (*pair_iter)->first()->getF();
+          Eigen::Vector3d r12 = (*pair_iter)->r();
           r12.normalize();
           double var = (*pair_iter)->dist();
-          double scale = 0.5 * (F2 - F1) * r12;
+          double scale = 0.5 * (F2 - F1).dot(r12);
           _current_hists_force[i._index].Process(var, scale);
         }
         delete nb;
@@ -418,9 +415,8 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoBonded(Topology *top) {
-  for (list<Property *>::iterator iter = _imc->_bonded.begin();
-       iter != _imc->_bonded.end(); ++iter) {
-    string name = (*iter)->get("name").value();
+  for (Property *prop : _imc->_bonded) {
+    string name = prop->get("name").value();
 
     interaction_t &i = *_imc->_interactions[name];
 

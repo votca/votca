@@ -23,7 +23,6 @@
 #include <string>
 #include <votca/tools/property.h>
 #include <votca/tools/types.h>
-#include <votca/tools/vec.h>
 
 #include "basebead.h"
 
@@ -105,13 +104,13 @@ class Bead : public BaseBead {
    * set the velocity of the bead
    * @param r bead velocity
    */
-  void setVel(const vec &r);
+  void setVel(const Eigen::Vector3d &r);
 
   /**
    * get the velocity of the bead
    * \return bead velocity
    */
-  const vec &getVel() const;
+  const Eigen::Vector3d &getVel() const;
 
   /**
    * \brief set first orientation (normal vector) vector of bead
@@ -120,7 +119,7 @@ class Bead : public BaseBead {
    *
    * @param u bead orientation u
    */
-  void setU(const vec &u);
+  void setU(const Eigen::Vector3d &u);
 
   /**
    * \brief get first orientation (normal vector) vector of bead
@@ -137,7 +136,7 @@ class Bead : public BaseBead {
    *
    * \return bead orientation u
    */
-  const vec &getU() const;
+  const Eigen::Vector3d &getU() const;
 
   /**
    * \brief set second orientation vector of bead
@@ -146,7 +145,7 @@ class Bead : public BaseBead {
    *
    * @param v bead orientation v
    */
-  void setV(const vec &v);
+  void setV(const Eigen::Vector3d &v);
 
   /**
    * \brief get second orientation vector of bead
@@ -159,7 +158,7 @@ class Bead : public BaseBead {
    *
    * \return bead orientation u
    */
-  const vec &getV() const;
+  const Eigen::Vector3d &getV() const;
 
   /**
    * \brief set third orientation vector of bead
@@ -168,7 +167,7 @@ class Bead : public BaseBead {
    *
    * @param w bead orientation w
    */
-  void setW(const vec &w);
+  void setW(const Eigen::Vector3d &w);
 
   /**
    * \brief get third orientation vector of bead
@@ -180,13 +179,13 @@ class Bead : public BaseBead {
    *
    * \return bead orientation w
    */
-  const vec &getW() const;
+  const Eigen::Vector3d &getW() const;
 
   /**
    * direct access (read/write) to the velocity of the bead
    * \return reference to velocity
    */
-  vec &Vel() {
+  Eigen::Vector3d &Vel() {
     assert(bead_velocity_set_ &&
            "Cannot access velocity, it has not been set.");
     return velocity_;
@@ -196,7 +195,7 @@ class Bead : public BaseBead {
    * direct access (read/write) to orientation u of the bead
    * \return reference to u
    */
-  vec &U() {
+  Eigen::Vector3d &U() {
     assert(bU_ && "Cannot access bead orientation u, has not been set.");
     return u_;
   }
@@ -205,7 +204,7 @@ class Bead : public BaseBead {
    * direct access (read/write) to the orientation v of the bead
    * \return reference to v
    */
-  vec &V() {
+  Eigen::Vector3d &V() {
     assert(bV_ && "Cannot access bead orientation v, has not been set.");
     return v_;
   }
@@ -214,7 +213,7 @@ class Bead : public BaseBead {
    * direct access (read/write) to the orientation w of the bead
    * \return reference to w
    */
-  vec &W() {
+  Eigen::Vector3d &W() {
     assert(bW_ && "Cannot access bead orientation w, has not been set.");
     return w_;
   }
@@ -223,7 +222,7 @@ class Bead : public BaseBead {
    * direct access (read/write) to the force of the bead
    * \return reference to force
    */
-  vec &F() {
+  Eigen::Vector3d &F() {
     assert(bead_force_set_ && "Cannot access bead force, has not been set.");
     return bead_force_;
   }
@@ -232,7 +231,7 @@ class Bead : public BaseBead {
    * set force acting on bead
    * @param bead_force force
    */
-  void setF(const vec &bead_force);
+  void setF(const Eigen::Vector3d &bead_force);
 
   /**
    * \brief get the force acting on the bead
@@ -242,7 +241,7 @@ class Bead : public BaseBead {
    *
    * \return force on bead
    */
-  const vec &getF() const;
+  const Eigen::Vector3d &getF() const;
 
   /** does this configuration store velocities? */
   bool HasVel() { return bead_velocity_set_; }
@@ -304,7 +303,7 @@ class Bead : public BaseBead {
 
   int residue_number_;
 
-  vec velocity_, bead_force_, u_, v_, w_;
+  Eigen::Vector3d velocity_, bead_force_, u_, v_, w_;
 
   bool bead_velocity_set_;
   bool bU_;
@@ -335,53 +334,53 @@ class Bead : public BaseBead {
   friend class Molecule;
 };
 
-inline void Bead::setVel(const vec &r) {
+inline void Bead::setVel(const Eigen::Vector3d &r) {
   bead_velocity_set_ = true;
   velocity_ = r;
 }
 
-inline const vec &Bead::getVel() const {
+inline const Eigen::Vector3d &Bead::getVel() const {
   assert(bead_velocity_set_ &&
          "Cannot access bead velocity, has not been set.");
   return velocity_;
 }
 
-inline void Bead::setU(const vec &u) {
+inline void Bead::setU(const Eigen::Vector3d &u) {
   bU_ = true;
   u_ = u;
 }
 
-inline const vec &Bead::getU() const {
+inline const Eigen::Vector3d &Bead::getU() const {
   assert(bU_ && "Cannot access bead orientation u, has not been set.");
   return u_;
 }
 
-inline void Bead::setV(const vec &v) {
+inline void Bead::setV(const Eigen::Vector3d &v) {
   bV_ = true;
   v_ = v;
 }
 
-inline const vec &Bead::getV() const {
+inline const Eigen::Vector3d &Bead::getV() const {
   assert(bV_);
   return v_;
 }
 
-inline void Bead::setW(const vec &w) {
+inline void Bead::setW(const Eigen::Vector3d &w) {
   bW_ = true;
   w_ = w;
 }
 
-inline const vec &Bead::getW() const {
+inline const Eigen::Vector3d &Bead::getW() const {
   assert(bW_ && "Cannot access bead orientation w, has not been set.");
   return w_;
 }
 
-inline void Bead::setF(const vec &bead_force) {
+inline void Bead::setF(const Eigen::Vector3d &bead_force) {
   bead_force_set_ = true;
   bead_force_ = bead_force;
 }
 
-inline const vec &Bead::getF() const {
+inline const Eigen::Vector3d &Bead::getF() const {
   assert(bead_force_set_ && "Cannot access bead force, has not been set.");
   return bead_force_;
 }

@@ -54,7 +54,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   template <class T>
   void ReadFile(T &container) {
     if (!ReadFrame<true, T>(container)) {
-      throw std::runtime_error("Reading xyz file failed");
+      throw std::runtime_error("Reading xyz file '" + _file + "' failed");
     }
   }
 
@@ -69,20 +69,21 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   int getContainerSize(Topology &container) { return container.BeadCount(); }
 
   template <bool topology, class T>
-  void AddAtom(T &container, std::string name, int id, const tools::vec &pos) {
+  void AddAtom(T &container, std::string name, int id,
+               const Eigen::Vector3d &pos) {
     // the typedef returns the type of the objects the container holds
     typedef
         typename std::iterator_traits<decltype(container.begin())>::value_type
             atom;
-    Eigen::Vector3d pos2 = pos.toEigen() * tools::conv::ang2bohr;
+    Eigen::Vector3d pos2 = pos * tools::conv::ang2bohr;
     container.push_back(atom(id, name, pos2));
   }
 
   template <bool topology, class T>
   void AddAtom(Topology &container, std::string name, int id,
-               const tools::vec &pos) {
+               const Eigen::Vector3d &pos) {
     Bead *b;
-    tools::vec posnm = pos * tools::conv::ang2nm;
+    Eigen::Vector3d posnm = pos * tools::conv::ang2nm;
     if (topology) {
       b = container.CreateBead(1, name + boost::lexical_cast<string>(id), name,
                                0, 0, 0);
@@ -96,7 +97,7 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
   bool ReadFrame(T &container);
 
   std::ifstream _fl;
-
+  std::string _file;
   int _line;
 };
 
@@ -138,9 +139,10 @@ inline bool XYZReader::ReadFrame(T &container) {
                                  boost::lexical_cast<string>(_line) +
                                  " in xyz file\n" + line);
       }
-      tools::vec pos = vec(boost::lexical_cast<double>(fields[1]),
-                           boost::lexical_cast<double>(fields[2]),
-                           boost::lexical_cast<double>(fields[3]));
+      Eigen::Vector3d pos =
+          Eigen::Vector3d(boost::lexical_cast<double>(fields[1]),
+                          boost::lexical_cast<double>(fields[2]),
+                          boost::lexical_cast<double>(fields[3]));
 
       AddAtom<topology, T>(container, fields[0], i, pos);
     }

@@ -62,6 +62,8 @@ class Molecule : public TopologyItem {
   /// get the number of beads in the molecule
   int BeadCount() const { return _beads.size(); }
 
+  const std::vector<Bead *> &Beads() const { return _beads; }
+  std::vector<Bead *> &Beads() { return _beads; }
   /// find a bead by it's name
   int getBeadByName(const std::string &name);
   std::string getBeadName(int bead) { return _bead_names[bead]; }

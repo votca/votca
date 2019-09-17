@@ -34,9 +34,7 @@
 #include "topologyreader.h"
 #include "trajectoryreader.h"
 #include "trajectorywriter.h"
-#include <votca/tools/matrix.h>
 #include <votca/tools/tokenizer.h>
-#include <votca/tools/vec.h>
 
 namespace votca {
 namespace csg {

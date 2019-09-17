@@ -28,12 +28,11 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
-class CsgApplication : public Application {
+class CsgApplication : public tools::Application {
  public:
-  CsgApplication();
-  ~CsgApplication();
+  CsgApplication(){};
+  virtual ~CsgApplication(){};
 
   void Initialize();
   bool EvaluateOptions();
@@ -98,9 +97,9 @@ class CsgApplication : public Application {
    * the correct order of frames for in/output.
    *
    */
-  class Worker : public Thread {
+  class Worker : public tools::Thread {
    public:
-    Worker();
+    Worker(){};
     ~Worker();
 
     /// \brief overload with the actual computation
@@ -110,10 +109,10 @@ class CsgApplication : public Application {
     int getId() { return _id; }
 
    protected:
-    CsgApplication *_app;
+    CsgApplication *_app = nullptr;
     Topology _top, _top_cg;
-    TopologyMap *_map;
-    int _id;
+    TopologyMap *_map = nullptr;
+    int _id = -1;
 
     void Run(void);
 
@@ -153,21 +152,19 @@ class CsgApplication : public Application {
   int _nframes;
   bool _is_first_frame;
   int _nthreads;
-  Mutex _nframesMutex;
-  Mutex _traj_readerMutex;
+  tools::Mutex _nframesMutex;
+  tools::Mutex _traj_readerMutex;
 
   /// \brief stores Mutexes used to impose order for input
-  std::vector<Mutex *> _threadsMutexesIn;
+  std::vector<tools::Mutex *> _threadsMutexesIn;
   /// \brief stores Mutexes used to impose order for output
-  std::vector<Mutex *> _threadsMutexesOut;
+  std::vector<tools::Mutex *> _threadsMutexesOut;
   TrajectoryReader *_traj_reader;
 };
 
 inline void CsgApplication::AddObserver(CGObserver *observer) {
   _observers.push_back(observer);
 }
-
-inline CsgApplication::Worker::Worker() : _app(NULL), _map(NULL), _id(-1) {}
 
 }  // namespace csg
 }  // namespace votca

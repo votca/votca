@@ -22,6 +22,7 @@
 #include <iostream>
 #include <votca/csg/boundarycondition.h>
 #include <votca/csg/topology.h>
+#include <votca/tools/constants.h>
 #include <votca/tools/getline.h>
 
 namespace votca {
@@ -88,9 +89,9 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
   static bool hasFs = false;
   static int mavecs =
       0;  // number of 3d vectors per atom = keytrj in DL_POLY manuals
-  static int mpbct = 0;      // cell PBC type = imcon in DL_POLY manuals
-  static int matoms = 0;     // number of atoms/beads in a frame
-  const double scale = 0.1;  // A -> nm factor
+  static int mpbct = 0;   // cell PBC type = imcon in DL_POLY manuals
+  static int matoms = 0;  // number of atoms/beads in a frame
+  const double scale = tools::conv::ang2nm;
 
   static int nerrt = 0;
 
@@ -277,7 +278,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       }
     }
 
-    vec box_vectors[3]{0.0, 0.0, 0.0};
+    Eigen::Matrix3d box = Eigen::Matrix3d::Zero();
     for (int i = 0; i < 3; i++) {  // read 3 box/cell lines
 
       getline(_fl, line);
@@ -296,10 +297,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       vector<double> fields;
       tok.ConvertToVector<double>(fields);
       // Angs -> nm
-      box_vectors[i] =
-          vec(fields[0] * scale, fields[1] * scale, fields[2] * scale);
+      box.col(i) = scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
     }
-    matrix box(box_vectors[0], box_vectors[1], box_vectors[2]);
 
     conf.setBox(box, pbc_type);
 
@@ -330,7 +329,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
       }
 
       Bead *b = conf.getBead(i);
-      vec atom_vec[3]{0.0, 0.0, 0.0};
+      Eigen::Matrix3d atom_vecs = Eigen::Matrix3d::Zero();
       for (int j = 0; j < min(navecs, 2) + 1; j++) {
 
         getline(_fl, line);  // read atom positions
@@ -351,26 +350,26 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
         Tokenizer tok(line, " \t");
         tok.ConvertToVector<double>(fields);
         // Angs -> nm
-        atom_vec[j] =
-            vec(fields[0] * scale, fields[1] * scale, fields[2] * scale);
+        atom_vecs.col(j) =
+            scale * Eigen::Vector3d(fields[0], fields[1], fields[2]);
       }
 
-      b->setPos(atom_vec[0]);
+      b->setPos(atom_vecs.col(0));
 #ifdef DEBUG
-      cout << "Crds from dlpoly file '" << _fname << "' : " << atom_vec[0]
+      cout << "Crds from dlpoly file '" << _fname << "' : " << atom_vecs.col(0)
            << endl;
 #endif
       if (navecs > 0) {
-        b->setVel(atom_vec[1]);
+        b->setVel(atom_vecs.col(1));
 #ifdef DEBUG
-        cout << "Vels from dlpoly file '" << _fname << "' : " << atom_vec[1]
-             << endl;
+        cout << "Vels from dlpoly file '" << _fname
+             << "' : " << atom_vecs.col(1) << endl;
 #endif
         if (navecs > 1) {
-          b->setF(atom_vec[2]);
+          b->setF(atom_vecs.col(2));
 #ifdef DEBUG
-          cout << "Frcs from dlpoly file '" << _fname << "' : " << atom_vec[2]
-               << endl;
+          cout << "Frcs from dlpoly file '" << _fname
+               << "' : " << atom_vecs.col(2) << endl;
 #endif
         }
       }

@@ -25,7 +25,6 @@
 #include <votca/csg/beadtype.h>
 #include <votca/csg/molecule.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -88,10 +87,10 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   b->setM(newMass);
   b->setQ(newCharge);
 
-  vec xyz(0.1, 0.2, 0.3);
+  Eigen::Vector3d xyz(0.1, 0.2, 0.3);
   b->setPos(xyz);
 
-  vec xyz_vel(-2.0, 0.32, 32.0);
+  Eigen::Vector3d xyz_vel(-2.0, 0.32, 32.0);
   b->setVel(xyz_vel);
 
   string molecule_name = "TestMol";
@@ -103,9 +102,9 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   BOOST_CHECK_CLOSE(b->getQ(), newCharge, 1e-5);
 
   auto new_xyz = b->getPos();
-  BOOST_CHECK(new_xyz.isClose(xyz, 3));
+  BOOST_CHECK(new_xyz.isApprox(xyz, 1e-7));
   auto new_xyz_vel = b->getVel();
-  BOOST_CHECK(new_xyz_vel.isClose(xyz_vel, 3));
+  BOOST_CHECK(new_xyz_vel.isApprox(xyz_vel, 1e-7));
 
   auto mol_new = b->getMolecule();
   bool same = !(molecule_name.compare(mol_new->getName()));

@@ -69,7 +69,8 @@ bool PDBReader::NextFrame(Topology &top) {
   // 2 - id of second atom
   vector<vector<int>> bond_pairs;
   // Store pointers to every bead
-  // WARNING we are assuming in the bead_vec that the indices of the beads
+  // WARNING we are assuming in the bead_Eigen::Vector3d that the indices of the
+  // beads
   //         correspond to the order in which they are read in. As in the first
   //         bead read in will be at index 0, etc...
   vector<Bead *> bead_vec;
@@ -114,7 +115,9 @@ bool PDBReader::NextFrame(Topology &top) {
       double aa = stod(a) / 10.0;
       double bb = stod(b) / 10.0;
       double cc = stod(c) / 10.0;
-      top.setBox(matrix(vec(aa, 0, 0), vec(0, bb, 0), vec(0, 0, cc)));
+      Eigen::Matrix3d box = Eigen::Matrix3d::Zero();
+      box.diagonal() = Eigen::Vector3d(aa, bb, cc);
+      top.setBox(box);
     }
     // Only read the CONECT keyword if the topology is set too true
     if (_topology && wildcmp("CONECT*", line.c_str())) {
@@ -286,7 +289,8 @@ bool PDBReader::NextFrame(Topology &top) {
         b = top.getBead(bead_count - 1);
       }
       // convert to nm from A
-      b->setPos(vec(stod(x) / 10.0, stod(y) / 10.0, stod(z) / 10.0));
+      b->setPos(
+          Eigen::Vector3d(stod(x) / 10.0, stod(y) / 10.0, stod(z) / 10.0));
 
       bead_vec.push_back(b);
     }

@@ -63,34 +63,33 @@ void GROWriter::Write(Topology *conf) {
     fprintf(_out, "%5d%-5.5s%5.5s%5d", (resnr + 1) % 100000, resname.c_str(),
             atomname.c_str(), (i + 1) % 100000);
     /* next fprintf uses built format string */
-    vec r = conf->getBead(i)->getPos();
+    Eigen::Vector3d r = conf->getBead(i)->getPos();
 
     if (v) {
-      vec vv = conf->getBead(i)->getVel();
-      fprintf(_out, format, r.getX(), r.getY(), r.getZ(), vv.getX(), vv.getY(),
-              vv.getZ());
+      Eigen::Vector3d vv = conf->getBead(i)->getVel();
+      fprintf(_out, format, r.x(), r.y(), r.z(), vv.x(), vv.y(), vv.z());
     } else {
-      fprintf(_out, format, r.getX(), r.getY(), r.getZ());
+      fprintf(_out, format, r.x(), r.y(), r.z());
     }
   }
 
   // write the boy
-  matrix box = conf->getBox();
+  Eigen::Matrix3d box = conf->getBox();
 
   if (pr < 5) pr = 5;
   l = pr + 5;
 
-  if (box[0][1] || box[0][2] || box[1][0] || box[1][2] || box[2][0] ||
-      box[2][1]) {
+  if (box(0, 1) || box(0, 2) || box(1, 0) || box(1, 2) || box(2, 0) ||
+      box(2, 1)) {
     sprintf(format,
             "%%%d.%df%%%d.%df%%%d.%df"
             "%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df%%%d.%df\n",
             l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr, l, pr);
-    fprintf(_out, format, box[0][0], box[1][1], box[2][2], box[1][0], box[2][0],
-            box[0][1], box[2][1], box[0][2], box[1][2]);
+    fprintf(_out, format, box(0, 0), box(1, 1), box(2, 2), box(1, 0), box(2, 0),
+            box(0, 1), box(2, 1), box(0, 2), box(1, 2));
   } else {
     sprintf(format, "%%%d.%df%%%d.%df%%%d.%df\n", l, pr, l, pr, l, pr);
-    fprintf(_out, format, box[0][0], box[1][1], box[2][2]);
+    fprintf(_out, format, box(0, 0), box(1, 1), box(2, 2));
   }
   fflush(_out);
 }

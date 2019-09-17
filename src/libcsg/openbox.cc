@@ -20,11 +20,9 @@
 namespace votca {
 namespace csg {
 
-vec OpenBox::BCShortestConnection(const vec &r_i, const vec &r_j) const {
-  vec r_ij;
-  r_ij = r_j - r_i;
-  // cout << abs(r_ij) << endl;
-  return r_ij;
+Eigen::Vector3d OpenBox::BCShortestConnection(
+    const Eigen::Vector3d &r_i, const Eigen::Vector3d &r_j) const {
+  return r_j - r_i;
 }
 
 }  // namespace csg
