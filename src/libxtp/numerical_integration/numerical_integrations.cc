@@ -346,7 +346,7 @@ Eigen::VectorXd NumericalIntegration::CalcAOValue_and_Grad(
 }
 
 Mat_p_Energy NumericalIntegration::IntegrateVXC(
-    const Eigen::MatrixXd& density_matrix) {
+    const Eigen::MatrixXd& density_matrix) const {
 
   int nthreads = OPENMP::getMaxThreads();
 

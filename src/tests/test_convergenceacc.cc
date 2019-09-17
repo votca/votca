@@ -140,6 +140,7 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
     std::cout << "ref energies" << std::endl;
     std::cout << mo_eng_ref << std::endl;
   }
+
   Eigen::MatrixXd mo_ref = Eigen::MatrixXd::Zero(17, 17);
   mo_ref << -0.996559, -0.223082, 4.81443e-15, 2.21045e-15, -6.16146e-17,
       -3.16966e-16, 5.46703e-18, -1.09681e-15, -0.0301914, 6.45993e-16,
@@ -189,19 +190,28 @@ BOOST_AUTO_TEST_CASE(levelshift_test) {
       -0.00928842, -0.0414346, -0.0475955, -0.0734994, 0.0269257, 0.000682583,
       -0.00239176, -0.00129742, -0.0301047, 0.0287103, 0.643346, 0.617962,
       0.0095153, -0.656011, -2.00774, -0.0012306, -1.24406;
-  bool mo_comp = mo_ref.isApprox(orb.MOs().eigenvectors(), 1e-5);
+
+  Eigen::MatrixXd proj =
+      mo_ref.transpose() * overlap.Matrix() * orb.MOs().eigenvectors();
+  Eigen::VectorXd norms = proj.colwise().norm();
+  bool mo_comp = norms.isApproxToConstant(1, 1e-5);
+
   if (!mo_comp) {
     std::cout << "result mos" << std::endl;
     std::cout << orb.MOs().eigenvectors() << std::endl;
     std::cout << "ref mos" << std::endl;
     std::cout << mo_ref << std::endl;
+    std::cout << "norms" << std::endl;
+    std::cout << norms << std::endl;
+    std::cout << "proj" << std::endl;
+    std::cout << proj << std::endl;
   }
 
   for (unsigned i = occlevels; i < 17; i++) {
     orb.MOs().eigenvalues()(i) += opt.levelshift;
   }
 
-  d.Levelshift(H);
+  d.Levelshift(H, orb.MOs().eigenvectors());
   votca::tools::EigenSystem result = d.SolveFockmatrix(H);
 
   bool check_level =

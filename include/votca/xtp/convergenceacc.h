@@ -88,8 +88,8 @@ class ConvergenceAcc {
 
   Eigen::MatrixXd Iterate(const Eigen::MatrixXd& dmat, Eigen::MatrixXd& H,
                           tools::EigenSystem& MOs, double totE);
-  tools::EigenSystem SolveFockmatrix(const Eigen::MatrixXd& H);
-  void Levelshift(Eigen::MatrixXd& H) const;
+  tools::EigenSystem SolveFockmatrix(const Eigen::MatrixXd& H) const;
+  void Levelshift(Eigen::MatrixXd& H, const Eigen::MatrixXd& MOs_old) const;
 
   Eigen::MatrixXd DensityMatrix(const tools::EigenSystem& MOs) const;
 
@@ -108,8 +108,6 @@ class ConvergenceAcc {
   const AOOverlap* _S;
 
   Eigen::MatrixXd Sminusahalf;
-  Eigen::MatrixXd Sonehalf;
-  Eigen::MatrixXd MOsinv;
   std::vector<Eigen::MatrixXd> _mathist;
   std::vector<Eigen::MatrixXd> _dmatHist;
   std::vector<double> _totE;
