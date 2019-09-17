@@ -63,7 +63,7 @@ add_custom_target(manpages ALL)
 ########################################################################
 # Checks what linear algebra packages are installed                    #
 ########################################################################
-set(MKL_THREAD_LAYER "Intel OpenMP")
+set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
 find_package(MKL)
 if (MKL_FOUND)
   set (MKL TRUE )
