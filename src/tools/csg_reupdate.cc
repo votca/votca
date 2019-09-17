@@ -84,7 +84,7 @@ bool CsgREupdate::EvaluateOptions() {
 // load user provided .xml option file
 void CsgREupdate::LoadOptions(const string &file) {
 
-  load_property_from_xml(_options, file);
+  _options.LoadFromXML(file);
   _nonbonded = _options.Select("cg.non-bonded");
 }
 
@@ -686,7 +686,7 @@ PotentialInfo::PotentialInfo(int index, bool bonded_, int vec_pos_,
         // an unphysical non-zero RDF value may occur,
         // so it would be better to estimate Rmin loop
         // through RDF values from Rcut to zero instead of zero to Rcut.
-        for (int i = dist.size() - 1; i > 0; i--) {
+        for (int i = dist.size() - 2; i > 0; i--) {
           if (dist.y(i) < 1.0e-4) {
             new_min = dist.x(i + 1);
             break;

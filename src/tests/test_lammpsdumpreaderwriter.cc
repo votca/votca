@@ -28,6 +28,7 @@
 #include <votca/csg/orthorhombicbox.h>
 #include <votca/csg/trajectoryreader.h>
 #include <votca/csg/trajectorywriter.h>
+#include <votca/tools/constants.h>
 #include <votca/tools/elements.h>
 #include <votca/tools/types.h>
 
@@ -138,7 +139,7 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
   Topology top;
 
   // Make square box
-  Eigen::Matrix3d box = 10 * Eigen::Matrix3d::Identity();
+  Eigen::Matrix3d box = conv::ang2nm * Eigen::Matrix3d::Identity();
 
   top.setBox(box);
   auto boxType = top.getBoxType();
@@ -198,17 +199,20 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
         top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
                        elements.getMass(atom_types.at(ind)), charge);
 
-    Eigen::Vector3d xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
-                        atom_xyz.at(ind).at(2));
+    Eigen::Vector3d xyz(atom_xyz.at(ind).at(0) * conv::ang2nm,
+                        atom_xyz.at(ind).at(1) * conv::ang2nm,
+                        atom_xyz.at(ind).at(2) * conv::ang2nm);
     b->setPos(xyz);
 
-    Eigen::Vector3d xyz_vel(atom_vel.at(ind).at(0), atom_vel.at(ind).at(1),
-                            atom_vel.at(ind).at(2));
+    Eigen::Vector3d xyz_vel(atom_vel.at(ind).at(0) * conv::ang2nm,
+                            atom_vel.at(ind).at(1) * conv::ang2nm,
+                            atom_vel.at(ind).at(2) * conv::ang2nm);
     b->setVel(xyz_vel);
 
-    Eigen::Vector3d xyz_forces(atom_forces.at(ind).at(0),
-                               atom_forces.at(ind).at(1),
-                               atom_forces.at(ind).at(2));
+    Eigen::Vector3d xyz_forces(
+        atom_forces.at(ind).at(0) * conv::kcal2kj / conv::ang2nm,
+        atom_forces.at(ind).at(1) * conv::kcal2kj / conv::ang2nm,
+        atom_forces.at(ind).at(2) * conv::kcal2kj / conv::ang2nm);
     b->setF(xyz_forces);
   }
 
@@ -221,12 +225,21 @@ BOOST_AUTO_TEST_CASE(test_trajectoryreader) {
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
     Bead *b = top.getBead(ind);
-    BOOST_CHECK_CLOSE(b->Pos().x(), atom_xyz_file.at(ind).at(0), 0.01);
-    BOOST_CHECK_CLOSE(b->Pos().y(), atom_xyz_file.at(ind).at(1), 0.01);
-    BOOST_CHECK_CLOSE(b->Pos().z(), atom_xyz_file.at(ind).at(2), 0.01);
-    BOOST_CHECK_CLOSE(b->F().x(), atom_forces_file.at(ind).at(0), 0.01);
-    BOOST_CHECK_CLOSE(b->F().y(), atom_forces_file.at(ind).at(1), 0.01);
-    BOOST_CHECK_CLOSE(b->F().z(), atom_forces_file.at(ind).at(2), 0.01);
+    BOOST_CHECK_CLOSE(b->Pos().x(), atom_xyz_file.at(ind).at(0) * conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->Pos().y(), atom_xyz_file.at(ind).at(1) * conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->Pos().z(), atom_xyz_file.at(ind).at(2) * conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(
+        b->F().x(),
+        atom_forces_file.at(ind).at(0) * conv::kcal2kj / conv::ang2nm, 0.01);
+    BOOST_CHECK_CLOSE(
+        b->F().y(),
+        atom_forces_file.at(ind).at(1) * conv::kcal2kj / conv::ang2nm, 0.01);
+    BOOST_CHECK_CLOSE(
+        b->F().z(),
+        atom_forces_file.at(ind).at(2) * conv::kcal2kj / conv::ang2nm, 0.01);
   }
 }
 
@@ -244,7 +257,7 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
   Topology top;
 
   // Make square box
-  Eigen::Matrix3d box = 10 * Eigen::Matrix3d::Identity();
+  Eigen::Matrix3d box = conv::nm2ang * Eigen::Matrix3d::Identity();
 
   top.setBox(box);
   auto boxType = top.getBoxType();
@@ -306,17 +319,20 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
         top.CreateBead(symmetry, atom_types.at(ind), atom_type, residue_num,
                        elements.getMass(atom_types.at(ind)), charge);
 
-    Eigen::Vector3d xyz(atom_xyz.at(ind).at(0), atom_xyz.at(ind).at(1),
-                        atom_xyz.at(ind).at(2));
+    Eigen::Vector3d xyz(atom_xyz.at(ind).at(0) * conv::ang2nm,
+                        atom_xyz.at(ind).at(1) * conv::ang2nm,
+                        atom_xyz.at(ind).at(2) * conv::ang2nm);
     b->setPos(xyz);
 
-    Eigen::Vector3d xyz_vel(atom_vel.at(ind).at(0), atom_vel.at(ind).at(1),
-                            atom_vel.at(ind).at(2));
+    Eigen::Vector3d xyz_vel(atom_vel.at(ind).at(0) * conv::ang2nm,
+                            atom_vel.at(ind).at(1) * conv::ang2nm,
+                            atom_vel.at(ind).at(2) * conv::ang2nm);
     b->setVel(xyz_vel);
 
-    Eigen::Vector3d xyz_forces(atom_forces.at(ind).at(0),
-                               atom_forces.at(ind).at(1),
-                               atom_forces.at(ind).at(2));
+    Eigen::Vector3d xyz_forces(
+        atom_forces.at(ind).at(0) * conv::kcal2kj / conv::ang2nm,
+        atom_forces.at(ind).at(1) * conv::kcal2kj / conv::ang2nm,
+        atom_forces.at(ind).at(2) * conv::kcal2kj / conv::ang2nm);
     b->setF(xyz_forces);
   }
   top.SetHasForce(true);
@@ -345,12 +361,21 @@ BOOST_AUTO_TEST_CASE(test_trajectorywriter) {
 
   for (size_t ind = 0; ind < atom_types.size(); ++ind) {
     Bead *b = top.getBead(ind);
-    BOOST_CHECK_CLOSE(b->Pos().x(), atom_xyz.at(ind).at(0), 0.01);
-    BOOST_CHECK_CLOSE(b->Pos().y(), atom_xyz.at(ind).at(1), 0.01);
-    BOOST_CHECK_CLOSE(b->Pos().z(), atom_xyz.at(ind).at(2), 0.01);
-    BOOST_CHECK_CLOSE(b->F().x(), atom_forces.at(ind).at(0), 0.01);
-    BOOST_CHECK_CLOSE(b->F().y(), atom_forces.at(ind).at(1), 0.01);
-    BOOST_CHECK_CLOSE(b->F().z(), atom_forces.at(ind).at(2), 0.01);
+    BOOST_CHECK_CLOSE(b->Pos().x(), atom_xyz.at(ind).at(0) * conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->Pos().y(), atom_xyz.at(ind).at(1) * conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->Pos().z(), atom_xyz.at(ind).at(2) * conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->F().x(),
+                      atom_forces.at(ind).at(0) * conv::kcal2kj / conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->F().y(),
+                      atom_forces.at(ind).at(1) * conv::kcal2kj / conv::ang2nm,
+                      0.01);
+    BOOST_CHECK_CLOSE(b->F().z(),
+                      atom_forces.at(ind).at(2) * conv::kcal2kj / conv::ang2nm,
+                      0.01);
   }
 }
 

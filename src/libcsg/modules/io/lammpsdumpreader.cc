@@ -16,9 +16,11 @@
  */
 
 #include "lammpsdumpreader.h"
+#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <memory>
 #include <vector>
+#include <votca/tools/constants.h>
 #include <votca/tools/getline.h>
 
 namespace votca {
@@ -61,6 +63,7 @@ bool LAMMPSDumpReader::FirstFrame(Topology &top) {
 bool LAMMPSDumpReader::NextFrame(Topology &top) {
   string line;
   getline(_fl, line);
+  boost::algorithm::trim(line);
   while (!_fl.eof()) {
     if (line.substr(0, 5) != "ITEM:")
       throw std::ios_base::failure("unexpected line in lammps file:\n" + line);
@@ -80,6 +83,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
                                    line.substr(6));
     }
     getline(_fl, line);
+    boost::algorithm::trim(line);
   }
   if (_topology) {
     cout << "WARNING: topology created from .dump file, masses, charges, "
@@ -92,6 +96,7 @@ bool LAMMPSDumpReader::NextFrame(Topology &top) {
 void LAMMPSDumpReader::ReadTimestep(Topology &top, string itemline) {
   string s;
   getline(_fl, s);
+  boost::algorithm::trim(s);
   top.setStep(boost::lexical_cast<int>(s));
   cout << "Reading frame, timestep " << top.getStep() << endl;
 }
@@ -103,18 +108,21 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
 
   for (int i = 0; i < 3; ++i) {
     getline(_fl, s);
+    boost::algorithm::trim(s);
+
     Tokenizer tok(s, " ");
     vector<double> v;
     tok.ConvertToVector(v);
     if (v.size() != 2) throw std::ios_base::failure("invalid box format");
     m(i, i) = v[1] - v[0];
   }
-  top.setBox(m);
+  top.setBox(m * tools::conv::ang2nm);
 }
 
 void LAMMPSDumpReader::ReadNumAtoms(Topology &top, string itemline) {
   string s;
   getline(_fl, s);
+  boost::algorithm::trim(s);
   _natoms = boost::lexical_cast<int>(s);
   if (!_topology && _natoms != top.BeadCount())
     std::runtime_error("number of beads in topology and trajectory differ");
@@ -165,6 +173,7 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
   for (int i = 0; i < _natoms; ++i) {
     string s;
     getline(_fl, s);
+    boost::algorithm::trim(s);
     if (_fl.eof())
       throw std::runtime_error("Error: unexpected end of lammps file '" +
                                _fname + "' only " +
@@ -193,35 +202,35 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
         throw std::runtime_error(
             "error, wrong number of columns in atoms section");
       else if (fields[j] == "x")
-        b->Pos().x() = stod(*itok);
+        b->Pos().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "y")
-        b->Pos().y() = stod(*itok);
+        b->Pos().y() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "z")
-        b->Pos().z() = stod(*itok);
+        b->Pos().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "xu")
-        b->Pos().x() = stod(*itok);
+        b->Pos().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "yu")
-        b->Pos().y() = stod(*itok);
+        b->Pos().y() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "zu")
-        b->Pos().z() = stod(*itok);
+        b->Pos().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "xs")
-        b->Pos().x() = stod(*itok) * m(0, 0);
+        b->Pos().x() = stod(*itok) * m(0, 0);  // box is already in nm
       else if (fields[j] == "ys")
-        b->Pos().y() = stod(*itok) * m(1, 1);
+        b->Pos().y() = stod(*itok) * m(1, 1);  // box is already in nm
       else if (fields[j] == "zs")
-        b->Pos().z() = stod(*itok) * m(2, 2);
+        b->Pos().z() = stod(*itok) * m(2, 2);  // box is already in nm
       else if (fields[j] == "vx")
-        b->Vel().x() = stod(*itok);
+        b->Vel().x() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "vy")
-        b->Vel().y() = stod(*itok);
+        b->Vel().y() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "vz")
-        b->Vel().z() = stod(*itok);
+        b->Vel().z() = stod(*itok) * tools::conv::ang2nm;
       else if (fields[j] == "fx")
-        b->F().x() = stod(*itok);
+        b->F().x() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       else if (fields[j] == "fy")
-        b->F().y() = stod(*itok);
+        b->F().y() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       else if (fields[j] == "fz")
-        b->F().z() = stod(*itok);
+        b->F().z() = stod(*itok) * tools::conv::kcal2kj / tools::conv::ang2nm;
       else if ((fields[j] == "type") && _topology) {
         if (!top.BeadTypeExist(*itok)) {
           top.RegisterBeadType(*itok);

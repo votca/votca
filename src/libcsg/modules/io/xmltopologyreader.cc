@@ -31,7 +31,7 @@ bool XMLTopologyReader::ReadTopology(string filename, Topology &top) {
   _top = &top;
 
   Property options;
-  load_property_from_xml(options, filename);
+  options.LoadFromXML(filename);
   ParseRoot(options.get("topology"));
 
   _top->RebuildExclusions();

@@ -18,11 +18,13 @@
 #include "lammpsdumpwriter.h"
 #include <stdio.h>
 #include <string>
+#include <votca/tools/constants.h>
 
 namespace votca {
 namespace csg {
 
 using namespace std;
+using namespace votca::tools;
 
 void LAMMPSDumpWriter::Open(std::string file, bool bAppend) {
   _out = fopen(file.c_str(), bAppend ? "at" : "wt");
@@ -36,7 +38,8 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
   fprintf(_out, "ITEM: TIMESTEP\n%i\n", top->getStep());
   fprintf(_out, "ITEM: NUMBER OF ATOMS\n%i\n", (int)top->Beads().size());
   fprintf(_out, "ITEM: BOX BOUNDS pp pp pp\n");
-  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0), box(1, 1), box(2, 2));
+  fprintf(_out, "0 %f\n0 %f\n0 %f\n", box(0, 0) * conv::nm2ang,
+          box(1, 1) * conv::nm2ang, box(2, 2) * conv::nm2ang);
 
   fprintf(_out, "ITEM: ATOMS id type x y z");
   bool v = top->HasVel();
@@ -56,15 +59,16 @@ void LAMMPSDumpWriter::Write(Topology *conf) {
     int type_id = conf->getBeadTypeId(bi->getType());
 
     fprintf(_out, "%i %i", bi->getId() + 1, type_id);
-    fprintf(_out, " %f %f %f", bi->getPos().x(), bi->getPos().y(),
-            bi->getPos().z());
+    fprintf(_out, " %f %f %f", bi->getPos().x() * conv::nm2ang,
+            bi->getPos().y() * conv::nm2ang, bi->getPos().z() * conv::nm2ang);
     if (v) {
-      fprintf(_out, " %f %f %f", bi->getVel().x(), bi->getVel().y(),
-              bi->getVel().z());
+      fprintf(_out, " %f %f %f", bi->getVel().x() * conv::nm2ang,
+              bi->getVel().y() * conv::nm2ang, bi->getVel().z() * conv::nm2ang);
     }
     if (f) {
-      fprintf(_out, " %f %f %f", bi->getF().x(), bi->getF().y(),
-              bi->getF().z());
+      fprintf(_out, " %f %f %f", bi->getF().x() * conv::kj2kcal / conv::nm2ang,
+              bi->getF().y() * conv::kj2kcal / conv::nm2ang,
+              bi->getF().z() * conv::kj2kcal / conv::nm2ang);
     }
     fprintf(_out, "\n");
   }
