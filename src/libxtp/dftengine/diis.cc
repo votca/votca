@@ -48,7 +48,6 @@ void DIIS::Update(int maxerrorindex, const Eigen::MatrixXd& errormatrix) {
 
 Eigen::VectorXd DIIS::CalcCoeff() {
   success = true;
-  const bool _useold = false;
   const int size = _errormatrixhist.size();
 
   // C2-DIIS
