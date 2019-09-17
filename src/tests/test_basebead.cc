@@ -25,7 +25,6 @@
 #include <votca/csg/beadtype.h>
 #include <votca/csg/molecule.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -56,15 +55,15 @@ BOOST_AUTO_TEST_CASE(test_basebead_getters_setters) {
   basebead.setMass(1.0);
   BOOST_CHECK_CLOSE(basebead.getMass(), 1.0, 1e-5);
 
-  vec xyz(-1.3, 2.9, 9.2);
+  Eigen::Vector3d xyz(-1.3, 2.9, 9.2);
   basebead.setPos(xyz);
   BOOST_CHECK(basebead.HasPos());
-  Eigen::Vector3d xyz2 = basebead.getPos().toEigen();
-  Eigen::Vector3d xyz_ref = xyz.toEigen();
+  Eigen::Vector3d xyz2 = basebead.getPos();
+  Eigen::Vector3d xyz_ref = xyz;
 
   BOOST_CHECK_EQUAL(xyz2.isApprox(xyz_ref, 1e-5), true);
 
-  Eigen::Vector3d xyz3 = basebead.Pos().toEigen();
+  Eigen::Vector3d xyz3 = basebead.Pos();
 
   BOOST_CHECK_EQUAL(xyz3.isApprox(xyz_ref, 1e-5), true);
 

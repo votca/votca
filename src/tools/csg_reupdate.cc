@@ -84,7 +84,7 @@ bool CsgREupdate::EvaluateOptions() {
 // load user provided .xml option file
 void CsgREupdate::LoadOptions(const string &file) {
 
-  load_property_from_xml(_options, file);
+  _options.LoadFromXML(file);
   _nonbonded = _options.Select("cg.non-bonded");
 }
 
@@ -92,14 +92,13 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
 
   // initializing non-bonded interactions
   _nlamda = 0;
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
+  for (Property *prop : _nonbonded) {
 
-    string name = (*iter)->get("name").value();
+    string name = prop->get("name").value();
     int id = _potentials.size();
 
     PotentialInfo *i =
-        new PotentialInfo(id, false, _nlamda, _param_in_ext, *iter, _gentable);
+        new PotentialInfo(id, false, _nlamda, _param_in_ext, prop, _gentable);
 
     Table *aardf = new Table();
     aardf->Load(name + ".dist.tgt");
@@ -107,18 +106,18 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
 
     // generate the bead lists
     BeadList beads1, beads2;
-    beads1.Generate(*top, (*iter)->get("type1").value());
-    beads2.Generate(*top, (*iter)->get("type2").value());
+    beads1.Generate(*top, prop->get("type1").value());
+    beads2.Generate(*top, prop->get("type2").value());
 
     if (beads1.size() == 0)
       throw std::runtime_error("Topology does not have beads of type \"" +
-                               (*iter)->get("type1").value() +
+                               prop->get("type1").value() +
                                "\"\n"
                                "This was specified in type1 of interaction \"" +
                                name + "\"");
     if (beads2.size() == 0)
       throw std::runtime_error("Topology does not have beads of type \"" +
-                               (*iter)->get("type2").value() +
+                               prop->get("type2").value() +
                                "\"\n"
                                "This was specified in type2 of interaction \"" +
                                name + "\"");
@@ -126,7 +125,7 @@ void CsgREupdate::BeginEvaluate(Topology *top, Topology *top_atom) {
     // calculate normalization factor for rdf
     double *rdfnorm = new double();
 
-    if ((*iter)->get("type1").value() == (*iter)->get("type2").value())
+    if (prop->get("type1").value() == prop->get("type2").value())
       *rdfnorm = (beads1.size() * (beads2.size()) / 2.) / top->BoxVolume();
     else
       *rdfnorm = (beads1.size() * beads2.size()) / top->BoxVolume();
@@ -197,10 +196,9 @@ void CsgREupdate::Run() {
 
     // only write potential tables for given parameters
     _nlamda = 0;
-    for (list<Property *>::iterator iter = _nonbonded.begin();
-         iter != _nonbonded.end(); ++iter) {
+    for (Property *prop : _nonbonded) {
 
-      string name = (*iter)->get("name").value();
+      string name = prop->get("name").value();
 
       if (OptionsMap().count("interaction")) {
 
@@ -213,7 +211,7 @@ void CsgREupdate::Run() {
       }
 
       PotentialInfo *i = new PotentialInfo(_potentials.size(), false, _nlamda,
-                                           _param_in_ext, *iter, _gentable);
+                                           _param_in_ext, prop, _gentable);
 
       // update parameter counter
       _nlamda += i->ucg->getOptParamSize();
@@ -464,11 +462,10 @@ CsgApplication::Worker *CsgREupdate::ForkWorker() {
   worker->_nonbonded = _nonbonded;
   worker->_nlamda = 0;
 
-  for (list<Property *>::iterator iter = _nonbonded.begin();
-       iter != _nonbonded.end(); ++iter) {
+  for (Property *prop : _nonbonded) {
 
     PotentialInfo *i = new PotentialInfo(worker->_potentials.size(), false,
-                                         worker->_nlamda, _param_in_ext, *iter);
+                                         worker->_nlamda, _param_in_ext, prop);
     // update parameter counter
     worker->_nlamda += i->ucg->getOptParamSize();
 

@@ -19,11 +19,10 @@
 #define _VOTCA_CSG_NEMATICORDER_H
 
 #include "topology.h"
-#include <votca/tools/matrix.h>
+#include <votca/tools/eigen.h>
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 class NematicOrder {
  public:
@@ -32,13 +31,19 @@ class NematicOrder {
 
   void Process(Topology &top, const std::string &filter = "*");
 
-  matrix::eigensystem_t &NematicU() { return _nemat_u; }
-  matrix::eigensystem_t &NematicV() { return _nemat_v; }
-  matrix::eigensystem_t &NematicW() { return _nemat_w; }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> &NematicU() {
+    return _nemat_u;
+  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> &NematicV() {
+    return _nemat_v;
+  }
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> &NematicW() {
+    return _nemat_w;
+  }
 
  private:
-  matrix _mu, _mv, _mw;
-  matrix::eigensystem_t _nemat_u, _nemat_v, _nemat_w;
+  Eigen::Matrix3d _mu, _mv, _mw;
+  Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> _nemat_u, _nemat_v, _nemat_w;
 };
 
 }  // namespace csg

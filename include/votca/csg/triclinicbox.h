@@ -23,13 +23,11 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
-
 class TriclinicBox : public BoundaryCondition {
 
  public:
-  TOOLS::vec BCShortestConnection(const TOOLS::vec &r_i,
-                                  const TOOLS::vec &r_j) const;
+  Eigen::Vector3d BCShortestConnection(const Eigen::Vector3d &r_i,
+                                       const Eigen::Vector3d &r_j) const;
 
   eBoxtype getBoxType() { return typeTriclinic; }
 

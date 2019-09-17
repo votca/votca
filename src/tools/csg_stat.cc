@@ -56,7 +56,8 @@ class CsgStatApp : public CsgApplication {
 void CsgStatApp::HelpText(ostream &out) {
   out << "Calculate all distributions (bonded and non-bonded) specified in "
          "options file.\n"
-         "Optionally calculates update matrix for invere Monte Carlo. This "
+         "Optionally calculates update Eigen::Matrix3d for invere Monte Carlo. "
+         "This "
          "program\n"
          "is called inside the inverse scripts. Unlike csg_boltzmann, big "
          "systems\n"

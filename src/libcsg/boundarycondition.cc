@@ -21,12 +21,7 @@
 namespace votca {
 namespace csg {
 
-double BoundaryCondition::BoxVolume() {
-  vec a = _box.getCol(0);
-  vec b = _box.getCol(1);
-  vec c = _box.getCol(2);
-  return (a ^ b) * c;
-}
+double BoundaryCondition::BoxVolume() { return std::abs(_box.determinant()); }
 
 }  // namespace csg
 }  // namespace votca

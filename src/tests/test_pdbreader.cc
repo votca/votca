@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   vector<double> z = {-0.000, -0.0141, 0.0255, -0.0904, 0.079,
                       -0.000, 0.0051,  0.0467, -0.1024, 0.0507};
   Bead *bd;
-  vec v;
+  Eigen::Vector3d v;
   for (int i = 0; i < 10; i++) {
     bd = top.getBead(i);
     BOOST_CHECK_EQUAL(bd->getId(), i);
@@ -116,9 +116,9 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
     // BOOST_CHECK_EQUAL(bd->getMass(),ele.getMass(bd->getName()));
     v = bd->getPos();
     BOOST_CHECK_CLOSE(bd->getQ(), 0, 1e-5);
-    BOOST_CHECK_CLOSE(v.getX(), x.at(i), 1e-5);
-    BOOST_CHECK_CLOSE(v.getY(), y.at(i), 1e-5);
-    BOOST_CHECK_CLOSE(v.getZ(), z.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.x(), x.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.y(), y.at(i), 1e-5);
+    BOOST_CHECK_CLOSE(v.z(), z.at(i), 1e-5);
   }
 }
 

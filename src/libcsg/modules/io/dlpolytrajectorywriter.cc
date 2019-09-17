@@ -96,10 +96,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     _fl << "From VOTCA with love" << endl;
     _fl << setw(10) << mavecs << setw(10) << mpbct << setw(10)
         << conf->BeadCount() << setw(20) << energy << endl;
-    matrix m = conf->getBox();
+    Eigen::Matrix3d m = conf->getBox();
     for (int i = 0; i < 3; i++)
-      _fl << fixed << setprecision(10) << setw(20) << m[i][0] * scale
-          << setw(20) << m[i][1] * scale << setw(20) << m[i][2] * scale << endl;
+      _fl << fixed << setprecision(10) << setw(20) << m(i, 0) * scale
+          << setw(20) << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
 
   } else {
 
@@ -116,10 +116,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
     _fl << setprecision(9) << setw(12) << dstep << setw(12) << conf->getTime()
         << endl;
 
-    matrix m = conf->getBox();
+    Eigen::Matrix3d m = conf->getBox();
     for (int i = 0; i < 3; i++)
-      _fl << setprecision(12) << setw(20) << m[i][0] * scale << setw(20)
-          << m[i][1] * scale << setw(20) << m[i][2] * scale << endl;
+      _fl << setprecision(12) << setw(20) << m(i, 0) * scale << setw(20)
+          << m(i, 1) * scale << setw(20) << m(i, 2) * scale << endl;
   }
 
   for (int i = 0; i < conf->BeadCount(); i++) {
@@ -144,9 +144,9 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
 
     // nm -> Angs
     _fl << resetiosflags(std::ios::fixed) << setprecision(12) << setw(20)
-        << bead->getPos().getX() * scale;
-    _fl << setw(20) << bead->getPos().getY() * scale << setw(20)
-        << bead->getPos().getZ() * scale << endl;
+        << bead->getPos().x() * scale;
+    _fl << setw(20) << bead->getPos().y() * scale << setw(20)
+        << bead->getPos().z() * scale << endl;
 
     if (mavecs > 0) {
       if (!bead->HasVel())
@@ -155,10 +155,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
             "does not have v-data");
 
       // nm -> Angs
-      _fl << setprecision(12) << setw(20) << bead->getVel().getX() * scale
+      _fl << setprecision(12) << setw(20) << bead->getVel().x() * scale
           << setw(20);
-      _fl << bead->getVel().getY() * scale << setw(20)
-          << bead->getVel().getZ() * scale << endl;
+      _fl << bead->getVel().y() * scale << setw(20)
+          << bead->getVel().z() * scale << endl;
 
       if (mavecs > 1) {
         if (!bead->HasF())
@@ -167,10 +167,10 @@ void DLPOLYTrajectoryWriter::Write(Topology *conf) {
               "does not have f-data");
 
         // nm -> Angs
-        _fl << setprecision(12) << setw(20) << bead->getF().getX() * scale
+        _fl << setprecision(12) << setw(20) << bead->getF().x() * scale
             << setw(20);
-        _fl << bead->getF().getY() * scale << setw(20)
-            << bead->getF().getZ() * scale << endl;
+        _fl << bead->getF().y() * scale << setw(20) << bead->getF().z() * scale
+            << endl;
       }
     }
   }

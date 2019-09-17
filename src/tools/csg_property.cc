@@ -79,11 +79,9 @@ int main(int argc, char **argv) {
 
   try {
     Property p;
-    load_property_from_xml(p, file);
+    p.LoadFromXML(file);
 
-    list<Property *> sel = p.Select(path);
-    for (list<Property *>::iterator iter = sel.begin(); iter != sel.end();
-         ++iter) {
+    for (Property *prop : p.Select(path)) {
       if (filter != "") {
         Tokenizer tokenizer(filter, "=");
         Tokenizer::iterator tok;
@@ -97,11 +95,10 @@ int main(int argc, char **argv) {
           throw std::invalid_argument("error, specified invalid filter");
 
         string value = *tok;
-        if (!wildcmp(value.c_str(), (*iter)->get(field).value().c_str()))
-          continue;
+        if (!wildcmp(value.c_str(), prop->get(field).value().c_str())) continue;
       }
 
-      Property *p = &((*iter)->get(print));
+      Property *p = &(prop->get(print));
 
       if (!short_output && with_path) cout << p->path() << ".";
       if (!short_output) cout << p->name() << " = ";

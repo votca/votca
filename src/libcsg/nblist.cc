@@ -48,14 +48,15 @@ void NBList::Generate(BeadList &list1, BeadList &list2, bool do_exclusions) {
     } else
       iter2 = list2.begin();
 
+    if (iter2 == list2.end()) continue;
     if (*iter1 == *iter2) continue;
 
     for (; iter2 != list2.end(); ++iter2) {
-      vec u = (*iter1)->getPos();
-      vec v = (*iter2)->getPos();
+      Eigen::Vector3d u = (*iter1)->getPos();
+      Eigen::Vector3d v = (*iter2)->getPos();
 
-      vec r = top->BCShortestConnection(u, v);
-      double d = abs(r);
+      Eigen::Vector3d r = top->BCShortestConnection(u, v);
+      double d = r.norm();
       if (d < _cutoff) {
         if (_do_exclusions)
           if (top->getExclusions().IsExcluded(*iter1, *iter2)) {

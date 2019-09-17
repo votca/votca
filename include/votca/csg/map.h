@@ -20,12 +20,11 @@
 
 #include "molecule.h"
 #include <vector>
+#include <votca/tools/eigen.h>
 #include <votca/tools/property.h>
-#include <votca/tools/vec.h>
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 class BeadMap;
 /*******************************************************
@@ -52,18 +51,19 @@ class BeadMap {
  public:
   virtual ~BeadMap(){};
   virtual void Apply() = 0;
-  virtual void Initialize(Molecule *in, Bead *out, Property *opts_map,
-                          Property *opts_bead);
+  virtual void Initialize(Molecule *in, Bead *out, tools::Property *opts_map,
+                          tools::Property *opts_bead);
 
  protected:
   Molecule *_in;
   Bead *_out;
-  Property *_opts_map;
-  Property *_opts_bead;
+  tools::Property *_opts_map;
+  tools::Property *_opts_bead;
 };
 
-inline void BeadMap::Initialize(Molecule *in, Bead *out, Property *opts_bead,
-                                Property *opts_map) {
+inline void BeadMap::Initialize(Molecule *in, Bead *out,
+                                tools::Property *opts_bead,
+                                tools::Property *opts_map) {
   _in = in;
   _out = out;
   _opts_map = opts_map;
@@ -78,8 +78,8 @@ class Map_Sphere : public BeadMap {
   Map_Sphere() {}
   void Apply();
 
-  void Initialize(Molecule *in, Bead *out, Property *opts_bead,
-                  Property *opts_map);
+  void Initialize(Molecule *in, Bead *out, tools::Property *opts_bead,
+                  tools::Property *opts_map);
 
  protected:
   void AddElem(Bead *in, double weight, double force_weight);

@@ -27,11 +27,7 @@
 namespace votca {
 namespace csg {
 
-CsgApplication::CsgApplication(void) {}
-
-CsgApplication::~CsgApplication(void) {}
-
-void CsgApplication::Initialize(void) {
+void CsgApplication::Initialize() {
   // register all io plugins
   TrajectoryWriter::RegisterPlugins();
   TrajectoryReader::RegisterPlugins();
@@ -80,7 +76,7 @@ void CsgApplication::Initialize(void) {
         "  number of threads");
 }
 
-bool CsgApplication::EvaluateOptions(void) {
+bool CsgApplication::EvaluateOptions() {
   _do_mapping = false;
   if (NeedsTopology()) {
     CheckRequired("top", "no topology file specified");
@@ -127,7 +123,7 @@ void CsgApplication::ShowHelpText(std::ostream &out) {
   out << "\n\n" << VisibleOptions() << endl;
 }
 
-void CsgApplication::Worker::Run(void) {
+void CsgApplication::Worker::Run() {
   while (_app->ProcessData(this)) {
     if (_app->SynchronizeThreads()) {
       int id = getId();
@@ -286,6 +282,7 @@ void CsgApplication::Run(void) {
 
       // this will be changed to CopyTopologyData
       // read in the topology
+
       reader->ReadTopology(_op_vm["top"].as<string>(), myWorker->_top);
       myWorker->_top.CheckMoleculeNaming();
 

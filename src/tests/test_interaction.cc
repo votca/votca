@@ -26,7 +26,6 @@
 #include <votca/csg/interaction.h>
 #include <votca/csg/molecule.h>
 #include <votca/csg/topology.h>
-#include <votca/tools/vec.h>
 
 using namespace std;
 using namespace votca::csg;
@@ -111,19 +110,19 @@ BOOST_AUTO_TEST_CASE(bond_test) {
   double charge = 1.0;
   int resid = 1;
   Bead* bead1 = top.CreateBead(0, "a1", "C", resid, mass, charge);
-  votca::tools::vec pos1 = votca::tools::vec(1, 0, 0);
+  Eigen::Vector3d pos1(1, 0, 0);
   bead1->setPos(pos1);
   Bead* bead2 = top.CreateBead(0, "a2", "C", resid, mass, charge);
-  votca::tools::vec pos2 = votca::tools::vec(0, 0, 0);
+  Eigen::Vector3d pos2(0, 0, 0);
   bead2->setPos(pos2);
   IBond bond1(0, 1);
   double length = bond1.EvaluateVar(top);
-  votca::tools::vec grad0 = bond1.Grad(top, 0);
-  votca::tools::vec grad1 = bond1.Grad(top, 1);
-  votca::tools::vec grad0_ref(1, 0, 0);
-  votca::tools::vec grad1_ref(-1, 0, 0);
+  Eigen::Vector3d grad0 = bond1.Grad(top, 0);
+  Eigen::Vector3d grad1 = bond1.Grad(top, 1);
+  Eigen::Vector3d grad0_ref(1, 0, 0);
+  Eigen::Vector3d grad1_ref(-1, 0, 0);
   BOOST_CHECK_CLOSE(length, 1.0, 1e-5);
-  bool grad0_check = grad0.isClose(grad0_ref, 1e-5);
+  bool grad0_check = grad0.isApprox(grad0_ref, 1e-5);
   BOOST_CHECK(grad0_check);
   if (!grad0_check) {
     std::cout << "ref" << std::endl;
@@ -131,7 +130,7 @@ BOOST_AUTO_TEST_CASE(bond_test) {
     std::cout << "result" << std::endl;
     std::cout << grad0 << std::endl;
   }
-  bool grad1_check = grad1.isClose(grad1_ref, 1e-5);
+  bool grad1_check = grad1.isApprox(grad1_ref, 1e-5);
   BOOST_CHECK(grad1_check);
   if (!grad1_check) {
     std::cout << "ref" << std::endl;
@@ -148,26 +147,26 @@ BOOST_AUTO_TEST_CASE(angle_test) {
   double charge = 1.0;
   int resid = 1;
   Bead* bead1 = top.CreateBead(0, "a1", "C", resid, mass, charge);
-  votca::tools::vec pos1 = votca::tools::vec(1, 0, 0);
+  Eigen::Vector3d pos1(1, 0, 0);
   bead1->setPos(pos1);
   Bead* bead2 = top.CreateBead(0, "a2", "C", resid, mass, charge);
-  votca::tools::vec pos2 = votca::tools::vec(0, 0, 0);
+  Eigen::Vector3d pos2(0, 0, 0);
   bead2->setPos(pos2);
 
   Bead* bead3 = top.CreateBead(0, "a3", "C", resid, mass, charge);
-  votca::tools::vec pos3 = votca::tools::vec(0, 1, 0);
+  Eigen::Vector3d pos3(0, 1, 0);
   bead3->setPos(pos3);
 
   IAngle angle(0, 1, 2);
   double angle1 = angle.EvaluateVar(top);
-  votca::tools::vec grad0 = angle.Grad(top, 0);
-  votca::tools::vec grad1 = angle.Grad(top, 1);
-  votca::tools::vec grad2 = angle.Grad(top, 2);
-  votca::tools::vec grad0_ref(0, -1, 0);
-  votca::tools::vec grad1_ref(1, 1, 0);
-  votca::tools::vec grad2_ref(-1, 0, 0);
+  Eigen::Vector3d grad0 = angle.Grad(top, 0);
+  Eigen::Vector3d grad1 = angle.Grad(top, 1);
+  Eigen::Vector3d grad2 = angle.Grad(top, 2);
+  Eigen::Vector3d grad0_ref(0, -1, 0);
+  Eigen::Vector3d grad1_ref(1, 1, 0);
+  Eigen::Vector3d grad2_ref(-1, 0, 0);
   BOOST_CHECK_CLOSE(angle1, 1.5707963267948966, 1e-5);
-  bool grad0_check = grad0.isClose(grad0_ref, 1e-5);
+  bool grad0_check = grad0.isApprox(grad0_ref, 1e-5);
   BOOST_CHECK(grad0_check);
   if (!grad0_check) {
     std::cout << "ref" << std::endl;
@@ -175,7 +174,7 @@ BOOST_AUTO_TEST_CASE(angle_test) {
     std::cout << "result" << std::endl;
     std::cout << grad0 << std::endl;
   }
-  bool grad1_check = grad1.isClose(grad1_ref, 1e-5);
+  bool grad1_check = grad1.isApprox(grad1_ref, 1e-5);
   BOOST_CHECK(grad1_check);
   if (!grad1_check) {
     std::cout << "ref" << std::endl;
@@ -183,7 +182,7 @@ BOOST_AUTO_TEST_CASE(angle_test) {
     std::cout << "result" << std::endl;
     std::cout << grad1 << std::endl;
   }
-  bool grad2_check = grad2.isClose(grad2_ref, 1e-5);
+  bool grad2_check = grad2.isApprox(grad2_ref, 1e-5);
   BOOST_CHECK(grad2_check);
   if (!grad2_check) {
     std::cout << "ref" << std::endl;
@@ -200,32 +199,32 @@ BOOST_AUTO_TEST_CASE(dihedral_test) {
   double charge = 1.0;
   int resid = 1;
   Bead* bead1 = top.CreateBead(0, "a1", "C", resid, mass, charge);
-  votca::tools::vec pos1 = votca::tools::vec(1, 0, 0);
+  Eigen::Vector3d pos1(1, 0, 0);
   bead1->setPos(pos1);
   Bead* bead2 = top.CreateBead(0, "a2", "C", resid, mass, charge);
-  votca::tools::vec pos2 = votca::tools::vec(0, 0, 0);
+  Eigen::Vector3d pos2(0, 0, 0);
   bead2->setPos(pos2);
 
   Bead* bead3 = top.CreateBead(0, "a3", "C", resid, mass, charge);
-  votca::tools::vec pos3 = votca::tools::vec(0, 1, 0);
+  Eigen::Vector3d pos3(0, 1, 0);
   bead3->setPos(pos3);
 
   Bead* bead4 = top.CreateBead(0, "a4", "C", resid, mass, charge);
-  votca::tools::vec pos4 = votca::tools::vec(-1, 1, 1);
+  Eigen::Vector3d pos4(-1, 1, 1);
   bead4->setPos(pos4);
 
   IDihedral dihedral(0, 1, 2, 3);
   double dihedral1 = dihedral.EvaluateVar(top);
-  votca::tools::vec grad0 = dihedral.Grad(top, 0);
-  votca::tools::vec grad1 = dihedral.Grad(top, 1);
-  votca::tools::vec grad2 = dihedral.Grad(top, 2);
-  votca::tools::vec grad3 = dihedral.Grad(top, 3);
-  votca::tools::vec grad0_ref(0, 0, 1);
-  votca::tools::vec grad1_ref(0, 0, -1);
-  votca::tools::vec grad2_ref(-0.5, 0, -0.5);
-  votca::tools::vec grad3_ref(0.5, 0, 0.5);
+  Eigen::Vector3d grad0 = dihedral.Grad(top, 0);
+  Eigen::Vector3d grad1 = dihedral.Grad(top, 1);
+  Eigen::Vector3d grad2 = dihedral.Grad(top, 2);
+  Eigen::Vector3d grad3 = dihedral.Grad(top, 3);
+  Eigen::Vector3d grad0_ref(0, 0, 1);
+  Eigen::Vector3d grad1_ref(0, 0, -1);
+  Eigen::Vector3d grad2_ref(-0.5, 0, -0.5);
+  Eigen::Vector3d grad3_ref(0.5, 0, 0.5);
   BOOST_CHECK_CLOSE(dihedral1, -2.3561944901923448, 1e-5);
-  bool grad0_check = grad0.isClose(grad0_ref, 1e-5);
+  bool grad0_check = grad0.isApprox(grad0_ref, 1e-5);
   BOOST_CHECK(grad0_check);
   if (!grad0_check) {
     std::cout << "ref" << std::endl;
@@ -233,7 +232,7 @@ BOOST_AUTO_TEST_CASE(dihedral_test) {
     std::cout << "result" << std::endl;
     std::cout << grad0 << std::endl;
   }
-  bool grad1_check = grad1.isClose(grad1_ref, 1e-5);
+  bool grad1_check = grad1.isApprox(grad1_ref, 1e-5);
   BOOST_CHECK(grad1_check);
   if (!grad1_check) {
     std::cout << "ref" << std::endl;
@@ -241,7 +240,7 @@ BOOST_AUTO_TEST_CASE(dihedral_test) {
     std::cout << "result" << std::endl;
     std::cout << grad1 << std::endl;
   }
-  bool grad2_check = grad2.isClose(grad2_ref, 1e-5);
+  bool grad2_check = grad2.isApprox(grad2_ref, 1e-5);
   BOOST_CHECK(grad2_check);
   if (!grad2_check) {
     std::cout << "ref" << std::endl;
@@ -249,7 +248,7 @@ BOOST_AUTO_TEST_CASE(dihedral_test) {
     std::cout << "result" << std::endl;
     std::cout << grad2 << std::endl;
   }
-  bool grad3_check = grad3.isClose(grad3_ref, 1e-5);
+  bool grad3_check = grad3.isApprox(grad3_ref, 1e-5);
   BOOST_CHECK(grad3_check);
   if (!grad3_check) {
     std::cout << "ref" << std::endl;

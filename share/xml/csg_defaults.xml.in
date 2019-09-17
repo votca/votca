@@ -276,7 +276,7 @@
     </imc>
     <lammps>
       <DESC> general lammps specific options </DESC>
-      <command>lmp
+      <command>@LMP_EXECUTABLE@
         <DESC> command to run lammps  (name or absolute path or mpirun lammps..) </DESC>
       </command>
       <script>

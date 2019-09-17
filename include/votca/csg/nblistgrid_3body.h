@@ -20,8 +20,6 @@
 
 #include "nblist_3body.h"
 #include <vector>
-#include <votca/tools/matrix.h>
-#include <votca/tools/vec.h>
 
 namespace votca {
 namespace csg {
@@ -41,16 +39,16 @@ class NBListGrid_3Body : public NBList_3Body {
     std::vector<cell_t *> _neighbours;
   };
 
-  vec _box_a, _box_b, _box_c;
-  vec _norm_a, _norm_b, _norm_c;
+  Eigen::Vector3d _box_a, _box_b, _box_c;
+  Eigen::Vector3d _norm_a, _norm_b, _norm_c;
   int _box_Na, _box_Nb, _box_Nc;
 
   std::vector<cell_t> _grid;
   Topology *_top;
 
-  void InitializeGrid(const matrix &box);
+  void InitializeGrid(const Eigen::Matrix3d &box);
 
-  cell_t &getCell(const vec &r);
+  cell_t &getCell(const Eigen::Vector3d &r);
   cell_t &getCell(const int &a, const int &b, const int &c);
 
   void TestBead(cell_t &cell, Bead *bead);

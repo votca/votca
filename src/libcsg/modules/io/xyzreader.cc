@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ using namespace std;
 
 bool XYZReader::ReadTopology(string file, Topology &top) {
   top.Cleanup();
-
-  _fl.open(file.c_str());
+  _file = file;
+  _fl.open(file);
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open topology file: " + file);
 
@@ -41,7 +41,8 @@ bool XYZReader::ReadTopology(string file, Topology &top) {
 }
 
 bool XYZReader::Open(const string &file) {
-  _fl.open(file.c_str());
+  _file = file;
+  _fl.open(file);
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   _line = 0;

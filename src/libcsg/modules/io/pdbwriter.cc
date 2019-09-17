@@ -52,12 +52,26 @@ void PDBWriter::Write(Topology *conf) {
   _out << "ENDMDL" << std::endl;
 }
 
+void PDBWriter::WriteBox(const Eigen::Matrix3d &box) {
+  boost::format boxfrmt("CRYST1%1$9.3f%2$9.3f%3$9.3f%4$7.2f%5$7.2f%6$7.2f\n");
+  double a = box.col(0).norm();
+  double b = box.col(1).norm();
+  double c = box.col(2).norm();
+  double alpha =
+      180 / tools::conv::Pi * std::acos(box.col(1).dot(box.col(2)) / (b * c));
+  double beta =
+      180 / tools::conv::Pi * std::acos(box.col(0).dot(box.col(2)) / (a * c));
+  double gamma =
+      180 / tools::conv::Pi * std::acos(box.col(0).dot(box.col(1)) / (a * b));
+  _out << boxfrmt % a % b % c % alpha % beta % gamma;
+}
+
 void PDBWriter::writeSymmetry(Bead *bead) {
   if (bead->getSymmetry() > 1) {
-    tools::vec r = 10 * bead->getPos();
+    Eigen::Vector3d r = 10 * bead->getPos();
     boost::format beadfrmt(
         "HETATM%1$5d %2$4s %3$3s %4$1s%5$4d    %6$8.3f%7$8.3f%8$8.3f\n");
-    tools::vec ru = 0.1 * bead->getU() + r;
+    Eigen::Vector3d ru = 0.1 * bead->getU() + r;
 
     _out << beadfrmt % (bead->getId() + 1) % 100000  // atom serial number
                 % bead->getName()                    // atom name
@@ -67,7 +81,7 @@ void PDBWriter::writeSymmetry(Bead *bead) {
                 % ru.x() % ru.y() % ru.z();          // we skip the charge
 
     if (bead->getSymmetry() > 2) {
-      tools::vec rv = 0.1 * bead->getV() + r;
+      Eigen::Vector3d rv = 0.1 * bead->getV() + r;
       _out << beadfrmt % (bead->getId() + 1) % 100000  // atom serial number
                   % bead->getName()                    // atom name
                   % "REV"                              // residue name

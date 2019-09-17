@@ -105,9 +105,9 @@ class Imc {
   int _nblock;
 
   /// list of bonded interactions
-  std::list<Property *> _bonded;
+  std::vector<Property *> _bonded;
   /// list of non-bonded interactions
-  std::list<Property *> _nonbonded;
+  std::vector<Property *> _nonbonded;
 
   /// map ineteractionm-name to interaction
   std::map<std::string, interaction_t *> _interactions;
