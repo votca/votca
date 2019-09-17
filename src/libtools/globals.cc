@@ -80,19 +80,5 @@ std::string globals::tex::option("\n\\item[ ] \\texttt{%1%} %2%");
 std::string globals::tex::options(
     "\n\\begin{compactitem}%1%\n\\end{compactitem}\n");
 
-// constants
-const double globals::constants::pi = 3.1415926535897;
-const double globals::constants::kB = 8.617332478E-5;      // eV/K
-const double globals::constants::hbar = 6.5821192815E-16;  // eV*s
-
-// conversion factors
-const double globals::conversion::Bohr2nm = 0.052917721092;
-const double globals::conversion::nm2Bohr = 18.897259886;
-const double globals::conversion::Ang2Bohr = 1.8897259886;
-const double globals::conversion::Ryd2eV = 13.6058;
-const double globals::conversion::Hrt2eV = 27.21138386;
-const double globals::conversion::int2eV =
-    1 / (4 * constants::pi * 8.854187817e-12) * 1.602176487e-19 / 1.000e-9;
-
 }  // namespace tools
 }  // namespace votca

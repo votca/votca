@@ -33,8 +33,6 @@ Application::Application()
 
 Application::~Application() {}
 
-string Application::VersionString() { return ""; }
-
 void Application::ShowHelpText(std::ostream &out) {
   out << "==================================================\n";
   out << "========   VOTCA (http://www.votca.org)   ========\n";
@@ -49,8 +47,6 @@ void Application::ShowHelpText(std::ostream &out) {
 
   // remove Hidden group from the option list and print
   out << "\n\n" << VisibleOptions() << endl;
-
-  // out << "\n\n" << OptionsDesc() << endl;
 }
 
 void Application::ShowManPage(std::ostream &out) {
@@ -131,7 +127,6 @@ int Application::Exec(int argc, char **argv) {
       ShowTEXPage(cout);
       return 0;
     }
-
     if (_op_vm.count("help")) {
       ShowHelpText(cout);
       return 0;
@@ -220,7 +215,7 @@ void Application::PrintDescription(std::ostream &out,
 
   try {
 
-    load_property_from_xml(options, xmlFile);
+    options.LoadFromXML(xmlFile);
     Property &calculator_options = options.get("options." + calculator_name);
     Property::AttributeIterator atr_it =
         calculator_options.findAttribute("help");
@@ -246,7 +241,7 @@ void Application::PrintDescription(std::ostream &out,
         break;
     }
 
-  } catch (std::exception &error) {
+  } catch (std::exception &) {
     if (tools::globals::verbose)
       out << _format % calculator_name % "Undocumented";
   }

@@ -15,37 +15,28 @@
  *
  */
 
-#define BOOST_TEST_MAIN
+#ifndef VOTCA_TOOLS_FILESYSTEM_H
+#define VOTCA_TOOLS_FILESYSTEM_H
 
-#define BOOST_TEST_MODULE vec_test
-#include <boost/test/unit_test.hpp>
-#include <votca/tools/vec.h>
+#include <string>
 
-using namespace votca::tools;
+namespace votca {
+namespace tools {
 
-BOOST_AUTO_TEST_SUITE(vec_test)
+namespace filesystem {
 
-BOOST_AUTO_TEST_CASE(overloadoperator_test) {
+// return the file ending like .jpg .gro etc.., returns an empty string
+// otherwise
+std::string GetFileExtension(const std::string& filename);
 
-  vec v1(1, 1, 1);
-  vec v2(1.0);
-  vec v3(1.1);
+// return the filename without the file extension
+std::string GetFileBase(const std::string& filename);
 
-  BOOST_CHECK(v1.isClose(v2, 0.001));
+// returns true if file exists otherwise false
+bool FileExists(const std::string& filename);
 
-  BOOST_CHECK(!v1.isClose(v3, 0.001));
-}
+}  // namespace filesystem
+}  // namespace tools
+}  // namespace votca
 
-BOOST_AUTO_TEST_CASE(Eigenconv_test) {
-
-  vec v1(1, 0, 0);
-  Eigen::Vector3d unit = Eigen::Vector3d::UnitX();
-
-  Eigen::Vector3d conv = vec(unit).toEigen();
-
-  BOOST_CHECK(v1.toEigen().isApprox(unit, 0.001));
-
-  BOOST_CHECK(conv.isApprox(unit, 0.0001));
-}
-
-BOOST_AUTO_TEST_SUITE_END()
+#endif  // VOTCA_TOOLS_FILESYSTEM_H

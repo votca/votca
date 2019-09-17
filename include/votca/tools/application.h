@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __VOTCA_APPLICATION_H
-#define __VOTCA_APPLICATION_H
+#ifndef __VOTCA_TOOLS_APPLICATION_H
+#define __VOTCA_TOOLS_APPLICATION_H
 
 #include "property.h"
 #include <boost/program_options.hpp>
@@ -36,7 +36,6 @@ class Application {
    * \return return code
    */
   int Exec(int argc, char **argv);
-  int ExecThreaded(int argc, char **argv);
 
   /**
    * \brief program name
@@ -50,7 +49,7 @@ class Application {
    * \brief version string of application
    * \return version string
    */
-  virtual std::string VersionString();
+  virtual std::string VersionString() { return ""; }
 
   /**
    * \brief help text of application without version information
@@ -62,18 +61,18 @@ class Application {
    * \brief Initialize application data
    *
    * Initialize is called by run before parsing the command line.
-   * All necesassary command line arguments can be added here
+   * All necessary command line arguments can be added here
    */
-  virtual void Initialize() {}
+  virtual void Initialize() = 0;
 
   /**
    * \brief Process command line options
-   * \return true to contine, false to stop
+   * \return true to continue, false to stop
    *
    * EvaluateOptions is called by Run after parsing the command line.
    * return true if everything is ok, false to stop and show help text.
    */
-  virtual bool EvaluateOptions() { return false; }
+  virtual bool EvaluateOptions() = 0;
 
   /**
    * \brief Check weather required option is set
@@ -82,7 +81,7 @@ class Application {
    *
    * CheckRequired is called from EvaluateOptions if a required options is set.
    * If not, the list of possible options is shown and an exception with
-   * the error messig given in error_msg is thrown
+   * the error message given in error_msg is thrown
    */
   void CheckRequired(const std::string &option_name,
                      const std::string &error_msg = "");
@@ -93,8 +92,7 @@ class Application {
    * Run is called after command line was parsed + evaluated. All
    * the work should be done in here.
    */
-  virtual void Run() {}
-  virtual void RunThreaded() {}
+  virtual void Run() = 0;
 
   /**
    * \brief add option for command line
@@ -175,4 +173,4 @@ class Application {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* __VOTCA_APPLICATION_H */
+#endif /* __VOTCA_TOOLS_APPLICATION_H */

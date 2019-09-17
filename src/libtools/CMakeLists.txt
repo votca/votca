@@ -7,14 +7,6 @@ list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES} ${VOTCA_SQL_SOURCES})
 
 add_library(votca_tools ${VOTCA_SOURCES} ${VOTCA_LINALG_SOURCES})
 
-option(WITH_SQLITE3 "Use SQLite3, at this point only needed for charge transport parts!" ON)
-if (WITH_SQLITE3)
-  find_package(SQLITE3 REQUIRED)
-  target_sources(votca_tools PRIVATE ${VOTCA_SQL_SOURCES})
-  target_link_libraries(votca_tools PRIVATE SQLite::SQLite3)
-endif(WITH_SQLITE3)
-
-
 #CMAKE_CURRENT_BINARY_DIR for gitversion.h
 #PROJECT_BINARY_DIR/include for votca_config.h
 target_include_directories(votca_tools PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
@@ -36,6 +28,12 @@ target_link_libraries(votca_tools PUBLIC Boost::boost Boost::program_options Eig
 	Boost::filesystem Boost::system EXPAT::EXPAT Threads::Threads ${MATH_LIBRARIES})
 if(TARGET MKL::MKL)
   target_link_libraries(votca_tools PUBLIC MKL::MKL)
+  foreach(_PROP IMPORTED_LOCATION INTERFACE_LINK_LIBRARIES INTERFACE_INCLUDE_DIRECTORIES IMPORTED_NO_SONAME)
+    get_target_property(MKL_${_PROP} MKL::MKL ${_PROP})
+  endforeach()
+  foreach(_TGT Interface ThreadLayer)
+    get_target_property(MKL_${_TGT}_IMPORTED_LOCATION MKL::${_TGT} IMPORTED_LOCATION)
+  endforeach()
 endif()
 if(FFTW3_FOUND)
   target_link_libraries(votca_tools PRIVATE FFTW3::FFTW3)
@@ -52,4 +50,3 @@ write_basic_package_version_file("VOTCA_TOOLSConfigVersion.cmake" VERSION ${PROJ
 configure_file(VOTCA_TOOLSConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfig.cmake @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_TOOLSConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_TOOLS)
 add_library(VOTCA::votca_tools ALIAS votca_tools)
-

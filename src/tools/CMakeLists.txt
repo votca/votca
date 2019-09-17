@@ -17,6 +17,6 @@ foreach(PROG votca_property)
 
   if(ENABLE_TESTING)
     add_test(integration_${PROG}Help ${PROG} --help)
-    set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "tools;votca")
+    set_tests_properties(integration_${PROG}Help PROPERTIES LABELS "tools;votca;integration")
   endif(ENABLE_TESTING)
 endforeach(PROG)
