@@ -56,7 +56,7 @@ elif [[ $ENV -eq 4 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=
   CXXFLAGS="-O2" # gcc's default would be -O0 (slow!) otherwise
   add_to_docker_opts COVERAGE=yes
-  [[ $CXX = clang ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
+  [[ $CXX = clang++ ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
 elif [[ $ENV -eq 5 ]]; then
   # Coverage build on Ubuntu, Fedora has issues, see #67
   # Build with no cmake_build_type and coverage on, second half of the tests (for tools and csg)
@@ -69,7 +69,7 @@ elif [[ $ENV -eq 5 ]]; then
   add_to_docker_opts CMAKE_BUILD_TYPE=
   CXXFLAGS="-O2" # gcc's default would be -O0 (slow!) otherwise
   add_to_docker_opts COVERAGE=yes
-  [[ $CXX = clang ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
+  [[ $CXX = clang++ ]] && export SKIP=yes #clang coverage is too slow for travis, plus we have gcc's coverage, so not much more insights
 elif [[ $ENV -eq 6 ]]; then
   export SKIP=yes
 elif [[ $ENV -eq 7 ]]; then
