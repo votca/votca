@@ -364,7 +364,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
             XTP_LOG_SAVE(logINFO, pLog)
                 << "Reading MoleculeA from " << orbFileA << std::flush;
             orbitalsA.ReadFromCpt(orbFileA);
-          } catch (std::runtime_error& error) {
+          } catch (std::runtime_error&) {
             SetJobToFailed(
                 jres, pLog,
                 "Do input: failed loading orbitals from " + orbFileA);
@@ -375,7 +375,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
             XTP_LOG_SAVE(logINFO, pLog)
                 << "Reading MoleculeB from " << orbFileB << std::flush;
             orbitalsB.ReadFromCpt(orbFileB);
-          } catch (std::runtime_error& error) {
+          } catch (std::runtime_error&) {
             SetJobToFailed(
                 jres, pLog,
                 "Do input: failed loading orbitals from " + orbFileB);
@@ -422,7 +422,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
   } else {
     try {
       orbitalsAB.ReadFromCpt(orbFileAB);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileAB);
       return jres;
@@ -439,7 +439,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsA.ReadFromCpt(orbFileA);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileA);
       return jres;
@@ -447,7 +447,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsB.ReadFromCpt(orbFileB);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileB);
       return jres;
@@ -494,7 +494,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
     if (!_do_gwbse) {
       try {
         orbitalsAB.ReadFromCpt(orbFileAB);
-      } catch (std::runtime_error& error) {
+      } catch (std::runtime_error&) {
         SetJobToFailed(jres, pLog,
                        "Do input: failed loading orbitals from " + orbFileAB);
         return jres;
@@ -506,7 +506,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsA.ReadFromCpt(orbFileA);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileA);
       return jres;
@@ -514,7 +514,7 @@ Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsB.ReadFromCpt(orbFileB);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileB);
       return jres;
@@ -671,7 +671,7 @@ QMState IQM::GetElementFromMap(const std::map<std::string, QMState>& elementmap,
   QMState state;
   try {
     state = elementmap.at(elementname);
-  } catch (std::out_of_range& error) {
+  } catch (std::out_of_range&) {
     std::string errormessage =
         "Map does not have segment of type: " + elementname;
     errormessage += "\n segments in map are:";
