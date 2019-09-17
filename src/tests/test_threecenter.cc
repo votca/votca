@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/aomatrix.h>
+#include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
 #include <votca/xtp/threecenter.h>
 
@@ -106,6 +107,7 @@ BOOST_AUTO_TEST_CASE(threecenter_dft) {
   basis.Load("3-21G.xml");
   AOBasis aobasis;
   aobasis.Fill(basis, orbitals.QMAtoms());
+  Logger log;
   TCMatrix_dft threec;
   threec.Fill(aobasis, aobasis);
 
@@ -371,7 +373,8 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
       -1.58119, 0.117387, 0.0916104, 0.0440574, -0.0354087, -0.362701,
       -0.512321, 1.39726, 0.374248, -0.793844, -0.035336;
 
-  TCMatrix_gwbse tc;
+  Logger log;
+  TCMatrix_gwbse tc{log};
   tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
   tc.Fill(aobasis, aobasis, MOs);
 

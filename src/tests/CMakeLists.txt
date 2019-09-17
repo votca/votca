@@ -62,7 +62,13 @@ list(APPEND test_cases test_rate_engine)
 
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)
-    target_link_libraries(unit_${PROG} votca_xtp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    if(USE_GPU)
+      target_link_libraries(unit_${PROG} votca_xtp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+	${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+      target_include_directories(unit_${PROG} PUBLIC ${CUDA_INCLUDE_DIRS})
+    else()
+      target_link_libraries(unit_${PROG} votca_xtp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    endif()
     target_compile_definitions(unit_${PROG} PRIVATE BOOST_TEST_DYN_LINK)
     add_test(unit_${PROG} unit_${PROG})
     # run tests for xtp (for coverage) as well
