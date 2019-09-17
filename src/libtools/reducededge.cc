@@ -125,7 +125,7 @@ bool ReducedEdge::vertexExistInChain(const int& vertex) const {
   return vertex_iterator != vertices_.end();
 }
 
-bool ReducedEdge::operator==(const ReducedEdge edge) const {
+bool ReducedEdge::operator==(const ReducedEdge& edge) const {
   if (edge.vertices_.size() != vertices_.size()) return false;
   for (size_t index = 0; index < vertices_.size(); ++index) {
     if (vertices_.at(index) != edge.vertices_.at(index)) return false;
@@ -133,11 +133,11 @@ bool ReducedEdge::operator==(const ReducedEdge edge) const {
   return true;
 }
 
-bool ReducedEdge::operator!=(const ReducedEdge edge) const {
+bool ReducedEdge::operator!=(const ReducedEdge& edge) const {
   return !(*this == edge);
 }
 
-bool ReducedEdge::operator<(const ReducedEdge edge) const {
+bool ReducedEdge::operator<(const ReducedEdge& edge) const {
   if (this->vertices_.front() < edge.vertices_.front()) return true;
   if (this->vertices_.front() > edge.vertices_.front()) return false;
   if (this->vertices_.back() < edge.vertices_.back()) return true;
@@ -149,15 +149,15 @@ bool ReducedEdge::operator<(const ReducedEdge edge) const {
   return true;
 }
 
-bool ReducedEdge::operator<=(const ReducedEdge edge) const {
+bool ReducedEdge::operator<=(const ReducedEdge& edge) const {
   return (*this < edge || *this == edge);
 }
 
-bool ReducedEdge::operator>(const ReducedEdge edge) const {
+bool ReducedEdge::operator>(const ReducedEdge& edge) const {
   return !(*this <= edge);
 }
 
-bool ReducedEdge::operator>=(const ReducedEdge edge) const {
+bool ReducedEdge::operator>=(const ReducedEdge& edge) const {
   return !(*this < edge);
 }
 

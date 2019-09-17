@@ -66,7 +66,7 @@ class Calculator {
    *
    * @param options Property object passed by the application to a calculator
    */
-  virtual void Initialize(votca::tools::Property *options) = 0;
+  virtual void Initialize(Property &options) = 0;
   /**
    * \brief Sets number of threads to use
    *
@@ -92,24 +92,23 @@ class Calculator {
    * a default value exists in the corresponding XML file in VOTCASHARE
    * a tag is created and/or a default value is assigned to it
    */
-  void UpdateWithDefaults(votca::tools::Property *options,
-                          std::string package = "tools");
+  void UpdateWithDefaults(Property &options, std::string package = "tools");
 
  protected:
   unsigned int _nThreads;
   bool _maverick;
 
-  void AddDefaults(votca::tools::Property &p, votca::tools::Property &defaults);
+  void AddDefaults(Property &p, const Property &defaults);
 };
 
 inline void Calculator::LoadDefaults() {}
 
-inline void Calculator::UpdateWithDefaults(votca::tools::Property *options,
+inline void Calculator::UpdateWithDefaults(Property &options,
                                            std::string package) {
 
   // copy options from the object supplied by the Application
   std::string id = Identify();
-  votca::tools::Property _options = options->get("options." + id);
+  Property options_id = options.get("options." + id);
 
   // add default values if specified in VOTCASHARE
   char *votca_share = getenv("VOTCASHARE");
@@ -120,46 +119,39 @@ inline void Calculator::UpdateWithDefaults(votca::tools::Property *options,
                         package + std::string("/xml/") + id +
                         std::string(".xml");
 
-  votca::tools::Property defaults, _defaults;
-  votca::tools::load_property_from_xml(_defaults, xmlFile);
-  defaults = _defaults.get("options." + id);
-
-  // std::cout << _options;
-  // std::cout << defaults;
+  Property defaults, defaults_all;
+  defaults_all.LoadFromXML(xmlFile);
+  defaults = defaults_all.get("options." + id);
 
   // if a value not given or a tag not present, provide default values
-  AddDefaults(_options, defaults);
+  AddDefaults(options_id, defaults);
 
   // output calculator options
   std::string indent("          ");
   int level = 1;
-  votca::tools::PropertyIOManipulator IndentedText(
-      votca::tools::PropertyIOManipulator::TXT, level, indent);
+  votca::tools::PropertyIOManipulator IndentedText(PropertyIOManipulator::TXT,
+                                                   level, indent);
   if (tools::globals::verbose) {
     std::cout << "\n... ... options\n"
-              << IndentedText << _options << "... ... options\n"
+              << IndentedText << options_id << "... ... options\n"
               << std::flush;
   }
 }
 
-inline void Calculator::AddDefaults(votca::tools::Property &p,
-                                    votca::tools::Property &defaults) {
+inline void Calculator::AddDefaults(Property &p, const Property &defaults) {
 
-  for (std::list<votca::tools::Property>::iterator iter = defaults.begin();
-       iter != defaults.end(); ++iter) {
-    std::string name = (*iter).path() + "." + (*iter).name();
+  for (const Property &prop : defaults) {
+    std::string name = prop.path() + "." + prop.name();
 
-    votca::tools::Property rootp = *p.begin();
-    if ((*iter).hasAttribute("default")) {
+    Property rootp = *p.begin();
+    if (prop.hasAttribute("default")) {
       if (rootp.exists(name)) {
-        // std::cout << "E " << rootp.value() << std::endl;
-        if (rootp.HasChilds()) rootp.value() = (*iter).value();
+        if (rootp.HasChildren()) rootp.value() = prop.value();
       } else {
-        // std::cout << "N " << (*iter).name() << std::endl;
-        rootp.add((*iter).name(), (*iter).value());
+        rootp.add(prop.name(), prop.value());
       }
     }
-    AddDefaults(p, (*iter));
+    AddDefaults(p, prop);
   }
 }
 

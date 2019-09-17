@@ -26,14 +26,6 @@
 using namespace std;
 using namespace votca::tools;
 
-// used for rounding doubles so we can compare them
-double round_(double v, int p) {
-  v *= pow(10, p);
-  v = round(v);
-  v /= pow(10, p);
-  return v;
-}
-
 BOOST_AUTO_TEST_SUITE(elements_test)
 
 BOOST_AUTO_TEST_CASE(constructors_test) { Elements ele; }
@@ -53,9 +45,9 @@ BOOST_AUTO_TEST_CASE(accessors_test) {
   BOOST_CHECK_EQUAL(ele.getEleFull("Ge"), "GERMANIUM");
   BOOST_CHECK_EQUAL(ele.getVdWMK("F"), 1.35);
   BOOST_CHECK_THROW(ele.getVdWMK("Pb"), invalid_argument);
-  BOOST_CHECK_EQUAL(round_(ele.getCovRad("Cl", "ang"), 3), 1.02);
-  BOOST_CHECK_EQUAL(round_(ele.getCovRad("Cl", "nm"), 3), 0.102);
-  BOOST_CHECK_THROW(round_(ele.getCovRad("Cl", "Blah"), 3), invalid_argument);
+  BOOST_CHECK_CLOSE(ele.getCovRad("Cl", "ang"), 1.02, 1e-3);
+  BOOST_CHECK_CLOSE(ele.getCovRad("Cl", "nm"), 0.102, 1e-3);
+  BOOST_CHECK_THROW(ele.getCovRad("Cl", "Blah"), invalid_argument);
 
   BOOST_CHECK_EQUAL(ele.getPolarizability("F"), 0.440e-3);
   BOOST_CHECK_THROW(ele.getPolarizability("Pb"), invalid_argument);

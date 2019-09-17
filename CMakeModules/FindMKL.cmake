@@ -1,339 +1,283 @@
-# CMake script to detect Intel(R) Math Kernel Library (MKL)
+# Copyright (c) 2018, ArrayFire
+# All rights reserved.
 #
-# This will try to find Intel MKL libraries, and include path by automatic
-# search through typical install locations and if failed it will
-# examine MKLROOT environment variable.
-# Note, MKLROOT is not set by IPP installer, it should be set manually.
+# This file is distributed under 3-clause BSD license. The complete license
+# agreement can be obtained at: http://arrayfire.com/licenses/BSD-3-Clause
 #
-# Usage example:
-#   set(MKL_USE_STATIC_LIBS ON)
-#   find_package(MKL)
-#   if (MKL_FOUND)
-#      include_directories(${MKL_INCLUDE_DIRS})
-#      add_executable(foo foo.cc)
-#      target_link_libraries(foo ${MKL_LIBRARIES})
-#   endif()
+# A FindMKL script based on the recommendations by the Intel's Link Line
+# Advisor. It currently only tested on the 2018 version of MKL on Windows,
+# Linux, and OSX but it should work on older versions.
 #
-# Variables used by this module, they can change the default behaviour and
-# need to be set before calling find_package:
+# To use this module call the mklvars.(sh,bat) script before you call cmake. This
+# script is located in the bin folder of your mkl installation. This will set the
+# MKLROOT environment variable which will be used to find the libraries on your system.
 #
-#   MKL_ADDITIONAL_VERSIONS      A list of version numbers to use for searching
-#                                the MKL include directory.
+# Example:
+# set(MKL_THREAD_LAYER "Intel OpenMP" CACHE STRING "The thread layer to choose for MKL")
+# find_package(MKL)
 #
-#   MKL_USE_STATIC_LIBS          Can be set to ON to force the use of the static
-#                                boost libraries. Defaults to OFF.
+# add_executable(myapp main.cpp)
+# target_link_libraries(myapp PRIVATE MKL::MKL)
 #
-#   MKL_FIND_DEBUG               Set this to TRUE to enable debugging output
-#                                of FindMKL.cmake if you are having problems.
+# This module bases its behavior based on the following variables:
 #
-# On return this will define:
-#   MKL_FOUND                   Indicates whether MKL was found (True/False)
-#   MKL_INCLUDE_DIRS            MKL include folder
-#   MKL_LIBRARY_DIRS            MKL libraries folder
-#   MKL_LIBRARIES               MKL libraries names
+# ``MKL_THREAD_LAYER``
+#   The threading layer that needs to be used by the MKL library. This
+#   Defines which library will be used to parallelize the MKL kernels. Possible
+#   options are TBB(Default), GNU OpenMP, Intel OpenMP, Sequential
 #
-# NOTE: this script has only been tested with Intel(R) Parallel Studio XE 2011
-# and may need changes for compatibility with older versions.
+# This module provides the following :prop_tgt:'IMPORTED' targets:
 #
-# Adapted from OpenCV IPP detection script
-#   https://code.ros.org/trac/opencv/browser/trunk/opencv/OpenCVFindIPP.cmake
-# Many portions taken from FindBoost.cmake
+# ``MKL::MKL``
+#   Target used to define and link all MKL libraries required by Intel's Link
+#   Line Advisor. This usually the only thing you need to link against unless
+#   you want to link against the single dynamic library version of MKL
+#   (libmkl_rt.so)
+#
+#  Optional:
+#
+# ``MKL::ThreadLayer{_STATIC}``
+#   Target used to define the threading layer(TBB, OpenMP, etc.) based on
+#   MKL_THREAD_LAYER variable.
+#
+# ``MKL::ThreadingLibrary``
+#   Target used to define the threading library(libtbb, libomp, etc) that the
+#   application will need to link against.
+#
+# ``MKL::Interface``
+#   Target used to determine which interface library to use(32bit int or 64bit
+#   int).
+#
+# ``MKL::Core``
+#   Target for the dynamic library dispatcher
+#
+# ``MKL::RT``
+#   Target for the single dynamic library
+#
+# ``MKL::{mkl_def;mkl_mc;mkl_mc3;mkl_avx;mkl_avx2;mkl_avx512}{_STATIC}``
+#   Targets for MKL kernel libraries.
 
-# TODO:
-# - caller needs to link with libiomp5md.lib or /Qopenmp...
-# - runtime DLLs:
-#   <Composer XE directory> -> C:\Program Files\Intel\ComposerXE-2011
-#     redist\ia32\mkl
-#     redist\intel64\mkl
+include(CheckTypeSize)
 
-set(_MKL_IA32 FALSE)
-set(_MKL_INTEL64 FALSE)
-if (CMAKE_SIZEOF_VOID_P EQUAL 4)
-    set(_MKL_IA32 TRUE)
-elseif (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(_MKL_INTEL64 TRUE)
-else()
-    message(FATAL_ERROR "Unsupported 'void *' size (${SIZEOF_VOID_P})")
-endif()
+check_type_size("int" INT_SIZE
+  BUILTIN_TYPES_ONLY LANGUAGE C)
 
-# Versions should be listed is decreasing order of preference
-set(_MKL_TEST_VERSIONS ${MKL_ADDITIONAL_VERSIONS}
-    "2011"
-    # alternative form: "2011.xxx.y"
-    # (y is the release-update number and xxx is the package number)
-)
 
-if (MKL_FIND_VERSION AND NOT MKL_FIND_QUIETLY)
-    message(WARNING "Requesting a specific version of Intel(R) MKL is not supported")
-endif()
+set(MKL_THREAD_LAYER "TBB" CACHE STRING "The thread layer to choose for MKL")
+set_property(CACHE MKL_THREAD_LAYER PROPERTY STRINGS "TBB" "GNU OpenMP" "Intel OpenMP" "Sequential")
 
-# Use environment variables from Intel build scripts, if available
-if (NOT MKL_ROOT AND NOT $ENV{MKLROOT} STREQUAL "")
-  set(MKL_ROOT $ENV{MKLROOT})
-endif()
-
-if (MKL_ROOT)
-  file(TO_CMAKE_PATH ${MKL_ROOT} MKL_ROOT)
-endif()
-
-if (NOT INTEL_ROOT AND NOT $ENV{INTELROOT} STREQUAL "")
-  set(INTEL_ROOT $ENV{INTELROOT})
-endif()
-
-if (INTEL_ROOT)
-  file(TO_CMAKE_PATH ${INTEL_ROOT} INTEL_ROOT)
-endif()
-
-if (MKL_FIND_DEBUG)
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "_MKL_TEST_VERSIONS = ${_MKL_TEST_VERSIONS}")
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "MKL_ADDITIONAL_VERSIONS = ${MKL_ADDITIONAL_VERSIONS}")
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "MKL_USE_STATIC_LIBS = ${MKL_USE_STATIC_LIBS}")
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "MKL_ROOT = ${MKL_ROOT}")
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "INTEL_ROOT = ${INTEL_ROOT}")
-endif()
-
-# Find MKL include directory
-
-set(_MKL_ROOT_SEARCH_DIRS
-  ${MKL_ROOT}
-)
-
-foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
-    if (WIN32)
-        list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/Intel/Composer XE/mkl")
-    else()
-        list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl")
-    endif()
-endforeach()
-
-if (MKL_FIND_DEBUG)
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "_MKL_ROOT_SEARCH_DIRS = ${_MKL_ROOT_SEARCH_DIRS}")
+if(NOT MKL_THREAD_LAYER STREQUAL MKL_THREAD_LAYER_LAST)
+  unset(MKL::ThreadLayer CACHE)
+  unset(MKL::ThreadingLibrary CACHE)
+  unset(MKL_ThreadLayer_LINK_LIBRARY CACHE)
+  unset(MKL_ThreadLayer_STATIC_LINK_LIBRARY CACHE)
+  unset(MKL_ThreadLayer_DLL_LIBRARY CACHE)
+  unset(MKL_ThreadingLibrary_LINK_LIBRARY CACHE)
+  unset(MKL_ThreadingLibrary_STATIC_LINK_LIBRARY CACHE)
+  unset(MKL_ThreadingLibrary_DLL_LIBRARY CACHE)
+  set(MKL_THREAD_LAYER_LAST ${MKL_THREAD_LAYER} CACHE INTERNAL "" FORCE)
 endif()
 
 find_path(MKL_INCLUDE_DIR
-    NAMES mkl.h
-    PATHS ${_MKL_ROOT_SEARCH_DIRS}
-    PATH_SUFFIXES include
-    DOC "The path to Intel(R) MKL header files"
-)
-
-if (MKL_INCLUDE_DIR)
-    if (MKL_FIND_DEBUG)
-        message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                       "location of mkl.h: ${MKL_INCLUDE_DIR}/mkl.h")
-    endif()
-else()
-    if (MKL_FIND_DEBUG)
-        message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                       "unable to find Intel(R) MKL header files. Please set MKLROOT"
-                       " to the root directory containing MKL.")
-    endif()
-endif()
-
-# Find MKL library directory
-
-set(_INTEL_LIBRARY_DIR_SUFFIXES "lib")
-if (_MKL_IA32)
-    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/ia32")
-elseif (_MKL_INTEL64)
-    list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/intel64")
-else()
-    message(FATAL_ERROR "unreachable")
-endif()
-
-set(_MKL_LIBRARY_SEARCH_DIRS ${_MKL_ROOT_SEARCH_DIRS})
-if (MKL_INCLUDE_DIR)
-    list(APPEND _MKL_LIBRARY_SEARCH_DIRS "${MKL_INCLUDE_DIR}/..")
-endif()
-
-if (MKL_FIND_DEBUG)
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "_INTEL_LIBRARY_DIR_SUFFIXES = ${_INTEL_LIBRARY_DIR_SUFFIXES}")
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "_MKL_LIBRARY_SEARCH_DIRS = ${_MKL_LIBRARY_SEARCH_DIRS}")
-endif()
-
-set(MKL_LIB_PREFIX "mkl_")
-if (MKL_USE_STATIC_LIBS)
-    if (_MKL_IA32)
-        if (WIN32)
-            set(_MKL_LIBRARIES intel_c)
-        else()
-            set(_MKL_LIBRARIES intel)
-        endif()
-    elseif (_MKL_INTEL64)
-        set(_MKL_LIBRARIES intel_lp64)
-    else()
-        message(FATAL_ERROR "unreachable")
-    endif()
-
-    list(APPEND _MKL_LIBRARIES intel_thread)
-    list(APPEND _MKL_LIBRARIES core)
-else()
-    set(_MKL_LIBRARIES rt)
-endif()
-
-set(_MKL_MISSING_LIBRARIES "")
-set(MKL_LIBRARIES "")
-set(MKL_LIBRARY_DIRS "")
-# Find MKL libraries
-foreach (_MKL_LIB_RAW ${_MKL_LIBRARIES})
-    set(_MKL_LIB ${MKL_LIB_PREFIX}${_MKL_LIB_RAW})
-    string(TOUPPER ${_MKL_LIB} _MKL_LIB_UPPER)
-
-    find_library(${_MKL_LIB_UPPER}_LIBRARY
-        NAMES ${_MKL_LIB}
-        PATHS ${_MKL_LIBRARY_SEARCH_DIRS}
-        PATH_SUFFIXES ${_INTEL_LIBRARY_DIR_SUFFIXES}
-        DOC "The path to Intel(R) MKL ${_MKL_LIB_RAW} library"
+  NAMES
+    mkl.h
+    mkl_blas.h
+    mkl_cblas.h
+  PATHS
+    /opt/intel
+    /opt/intel/mkl
+    $ENV{MKLROOT}
+    /opt/intel/compilers_and_libraries/linux/mkl
+  PATH_SUFFIXES
+    include
+    IntelSWTools/compilers_and_libraries/windows/mkl/include
     )
-    mark_as_advanced(${_MKL_LIB_UPPER}_LIBRARY)
+mark_as_advanced(MKL_INCLUDE_DIR)
 
-    if (NOT ${_MKL_LIB_UPPER}_LIBRARY)
-        list(APPEND _MKL_MISSING_LIBRARIES ${_MKL_LIB})
-    else()
-        list(APPEND MKL_LIBRARIES ${${_MKL_LIB_UPPER}_LIBRARY})
-        if (MKL_FIND_DEBUG)
-            message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                           "Found ${_MKL_LIB}: ${${_MKL_LIB_UPPER}_LIBRARY}")
-        endif()
+find_path(MKL_FFTW_INCLUDE_DIR
+  NAMES
+    fftw3_mkl.h
+  HINTS
+    ${MKL_INCLUDE_DIR}/fftw)
+mark_as_advanced(MKL_FFTW_INCLUDE_DIR)
 
-        get_filename_component(_MKL_LIB_PATH "${${_MKL_LIB_UPPER}_LIBRARY}" PATH)
-        list(APPEND MKL_LIBRARY_DIRS ${_MKL_LIB_PATH})
-    endif()
-endforeach()
 
-## Find OpenMP, pthread and math libraries
-
-set(_INTEL_LIBRARY_SEARCH_DIRS
-  ${INTEL_ROOT}
-  ${INTEL_ROOT}/compiler
-)
-
-foreach(_MKL_DIR ${_MKL_ROOT_SEARCH_DIRS})
-    list(APPEND _INTEL_LIBRARY_SEARCH_DIRS "${_MKL_DIR}/..")
-    list(APPEND _INTEL_LIBRARY_SEARCH_DIRS "${_MKL_DIR}/../compiler")
-endforeach()
-
-if (MKL_FIND_DEBUG)
-    message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                   "_INTEL_LIBRARY_SEARCH_DIRS = ${_INTEL_LIBRARY_SEARCH_DIRS}")
-endif()
-
-if (NOT WIN32)
-    find_library(PTHREAD_LIBRARY pthread DOC "Path to POSIX threads library")
-endif()
-
-set(_IOMP5_LIB iomp5)
-if (WIN32)
-  if (MKL_USE_STATIC_LIBS)
-      list(APPEND _IOMP5_LIB libiomp5mt.lib)
+if(WIN32)
+  if(${MSVC_VERSION} GREATER_EQUAL 1900)
+    set(msvc_dir "vc_mt")
+    set(shared_suffix "_dll")
+    set(md_suffix "md")
   else()
-      list(APPEND _IOMP5_LIB libiomp5md.lib)
+    message(WARNING "MKL: MS Version not supported for MKL")
   endif()
 endif()
 
-find_library(IOMP5_LIBRARY
-    NAMES ${_IOMP5_LIB}
-    PATHS ${_INTEL_LIBRARY_SEARCH_DIRS}
-    PATH_SUFFIXES ${_INTEL_LIBRARY_DIR_SUFFIXES}
-    DOC "Path to OpenMP runtime library"
-)
+# Finds and creates libraries for MKL with the MKL:: prefix
+#
+# Parameters:
+#    NAME:         A variable name describing the library
+#    LIBRARY_NAME: The library that needs to be searched
+#
+# Output Libraries:
+#    MKL::${NAME}
+#    MKL::${NAME}_STATIC
+#
+# Output Variables
+#    MKL_INCLUDE_DIR:                Include directory for MKL
+#    MKL_FFTW_INCLUDE_DIR:           Include directory for the MKL FFTW interface
+#    MKL_${NAME}_LINK_LIBRARY:        on Unix: *.so on Windows *.lib
+#    MKL_${NAME}_STATIC_LINK_LIBRARY: on Unix: *.a  on Windows *.lib
+#    MKL_${NAME}_DLL_LIBRARY:         on Unix: ""   on Windows *.dll
+function(find_mkl_library)
+  set(options "")
+  set(single_args NAME LIBRARY_NAME)
+  set(multi_args "")
 
-if (NOT IOMP5_LIBRARY)
-    # we could instead fallback to default library (via FindOpenMP.cmake)
-    list(APPEND _MKL_MISSING_LIBRARIES IOMP5)
-else()
-    list(APPEND MKL_LIBRARIES ${IOMP5_LIBRARY})
-    if (MKL_FIND_DEBUG)
-        message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                       "Found IOMP5_LIBRARY: ${IOMP5_LIBRARY}")
-    endif()
+  cmake_parse_arguments(mkl_args "${options}" "${single_args}" "${multi_args}" ${ARGN})
 
-    get_filename_component(_MKL_LIB_PATH "${IOMP5_LIBRARY}" PATH)
-    list(APPEND MKL_LIBRARY_DIRS ${_MKL_LIB_PATH})
-endif()
+  add_library(MKL::${mkl_args_NAME}        SHARED IMPORTED)
+  add_library(MKL::${mkl_args_NAME}_STATIC SHARED IMPORTED)
+  find_library(MKL_${mkl_args_NAME}_LINK_LIBRARY
+    NAMES
+      ${mkl_args_LIBRARY_NAME}${shared_suffix}
+      ${mkl_args_LIBRARY_NAME}${md_suffix}
+      lib${mkl_args_LIBRARY_NAME}${md_suffix}
+      ${mkl_args_LIBRARY_NAME}
+    PATHS
+      /opt/intel/mkl/lib
+      /opt/intel/tbb/lib
+      /opt/intel/lib
+      $ENV{MKLROOT}/lib
+      /opt/intel/compilers_and_libraries/linux/mkl/lib
+    PATH_SUFFIXES
+      IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64
+      IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64
+      IntelSWTools/compilers_and_libraries/windows/tbb/lib/intel64/${msvc_dir}
+      ""
+      intel64
+      intel64/gcc4.7)
+  mark_as_advanced(MKL_${mkl_args_NAME}_LINK_LIBRARY)
 
-# Optimized math library (optional)
-set(_MATH_LIB imf)  # linked by default with Intel compiler
-if (WIN32)
-  if (MKL_USE_STATIC_LIBS)
-    list(APPEND _MATH_LIB libmmds.lib)  # assumes (/MD) otherwise libmmt.lib (for /MT)
-  else()
-      list(APPEND _MATH_LIB libmmd.lib)
-  endif()
-endif()
+  #message(STATUS "NAME: ${mkl_args_NAME} LIBNAME: ${mkl_args_LIBRARY_NAME} MKL_${mkl_args_NAME}_LINK_LIBRARY  ${MKL_${mkl_args_NAME}_LINK_LIBRARY}")
 
-find_library(MATH_LIBRARY
-    NAMES ${_MATH_LIB}
-    PATHS ${_INTEL_LIBRARY_SEARCH_DIRS}
-    PATH_SUFFIXES ${_INTEL_LIBRARY_DIR_SUFFIXES}
-    DOC "Path to optimized math library"
-)
-
-if (NOT MATH_LIBRARY)
-    # we could instead fallback to default library (via FindOpenMP.cmake)
-    list(APPEND _MKL_MISSING_LIBRARIES MATH)
-else()
-    list(APPEND MKL_LIBRARIES ${MATH_LIBRARY})
-    if (MKL_FIND_DEBUG)
-        message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                       "Found MATH_LIBRARY: ${MATH_LIBRARY}")
-    endif()
-
-    get_filename_component(_MKL_LIB_PATH "${MATH_LIBRARY}" PATH)
-    list(APPEND MKL_LIBRARY_DIRS ${_MKL_LIB_PATH})
-endif()
-
-# Check all required libraries are available
-list(REMOVE_DUPLICATES MKL_LIBRARY_DIRS)
-
-set(MKL_INCLUDE_DIRS
-    ${MKL_INCLUDE_DIR}
-)
-
-set(MKL_FOUND TRUE)
-if (NOT MKL_INCLUDE_DIR)
-    set(MKL_FOUND FALSE)
-    if (MKL_FIND_DEBUG)
-        message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                       "MKL not found - MKL_INCLUDE_DIR was empty")
-    endif()
-elseif (_MKL_MISSING_LIBRARIES)
-    set(MKL_FOUND FALSE)
-    if (MKL_FIND_DEBUG)
-        message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
-                       "MKL not found - the following libraries are missing: "
-                       "${_MKL_MISSING_LIBRARIES}")
-    endif()
-endif()
-
-if (MKL_FOUND)
-    if (NOT MKL_FIND_QUIETLY OR MKL_FIND_DEBUG)
-        message(STATUS
-            "Intel(R) MKL was found:\n"
-            "  MKL_INCLUDE_DIRS: ${MKL_INCLUDE_DIRS}\n"
-            "  MKL_LIBRARY_DIRS: ${MKL_LIBRARY_DIRS}\n"
-            "  MKL_LIBRARIES: ${MKL_LIBRARIES}"
+  # The rt library does not have a static library
+  if(NOT ${mkl_args_NAME} STREQUAL "rt")
+    find_library(MKL_${mkl_args_NAME}_STATIC_LINK_LIBRARY
+      NAMES
+        ${CMAKE_STATIC_LIBRARY_PREFIX}${mkl_args_LIBRARY_NAME}${CMAKE_STATIC_LIBRARY_SUFFIX}
+      PATHS
+        /opt/intel/mkl/lib
+        /opt/intel/tbb/lib
+        /opt/intel/lib
+        $ENV{MKLROOT}/lib
+        /opt/intel/compilers_and_libraries/linux/mkl/lib
+      PATH_SUFFIXES
+        ""
+        intel64
+        intel64/gcc4.7
+        IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64
+        IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64
+        IntelSWTools/compilers_and_libraries/windows/tbb/lib/intel64/${msvc_dir}
         )
+      mark_as_advanced(MKL_${mkl_args_NAME}_STATIC_LINK_LIBRARY)
     endif()
-else()
-    if (MKL_FIND_REQUIRED)
-        message(SEND_ERROR "Intel(R) MKL could not be found.")
-    else()
-        message(STATUS "Intel(R) MKL could not be found.")
+
+    set_target_properties(MKL::${mkl_args_NAME}
+      PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${MKL_INCLUDE_DIR}"
+        IMPORTED_LOCATION "${MKL_${mkl_args_NAME}_LINK_LIBRARY}"
+        IMPORTED_NO_SONAME TRUE)
+    if(WIN32)
+      find_file(MKL_${mkl_args_NAME}_DLL_LIBRARY
+        NAMES
+          ${CMAKE_SHARED_LIBRARY_PREFIX}${mkl_args_LIBRARY_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX}
+          ${CMAKE_SHARED_LIBRARY_PREFIX}${mkl_args_LIBRARY_NAME}${md_suffix}${CMAKE_SHARED_LIBRARY_SUFFIX}
+          lib${mkl_args_LIBRARY_NAME}${md_suffix}${CMAKE_SHARED_LIBRARY_SUFFIX}
+        PATH_SUFFIXES
+          IntelSWTools/compilers_and_libraries/windows/redist/intel64/mkl
+          IntelSWTools/compilers_and_libraries/windows/redist/intel64/compiler
+          IntelSWTools/compilers_and_libraries/windows/redist/intel64/tbb/${msvc_dir}
+        NO_SYSTEM_ENVIRONMENT_PATH)
+
+      set_target_properties(MKL::${mkl_args_NAME}
+        PROPERTIES
+          IMPORTED_LOCATION "${MKL_${mkl_args_NAME}_DLL_LIBRARY}"
+          IMPORTED_IMPLIB "${MKL_${mkl_args_NAME}_LINK_LIBRARY}")
+
+      mark_as_advanced(MKL_${mkl_args_NAME}_DLL_LIBRARY)
     endif()
+endfunction()
+
+
+find_mkl_library(NAME Core LIBRARY_NAME mkl_core)
+find_mkl_library(NAME RT LIBRARY_NAME mkl_rt)
+
+# MKL can link against Intel OpenMP, GNU OpenMP, TBB, and Sequential
+if(MKL_THREAD_LAYER STREQUAL "Intel OpenMP")
+  find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_intel_thread)
+  find_mkl_library(NAME ThreadingLibrary LIBRARY_NAME iomp5)
+elseif(MKL_THREAD_LAYER STREQUAL "GNU OpenMP")
+  find_package(OpenMP REQUIRED)
+  find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_gnu_thread)
+  add_library(MKL::ThreadingLibrary SHARED IMPORTED)
+  set_target_properties(MKL::ThreadingLibrary
+    PROPERTIES
+      IMPORTED_LOCATION "${OpenMP_gomp_LIBRARY}"
+      INTERFACE_LINK_LIBRARIES OpenMP::OpenMP_CXX)
+elseif(MKL_THREAD_LAYER STREQUAL "TBB")
+  find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_tbb_thread)
+  find_mkl_library(NAME ThreadingLibrary LIBRARY_NAME tbb)
+elseif(MKL_THREAD_LAYER STREQUAL "Sequential")
+  find_mkl_library(NAME ThreadLayer LIBRARY_NAME mkl_sequential)
 endif()
 
-mark_as_advanced(
-    MKL_INCLUDE_DIR
-    MKL_INCLUDE_DIRS
-    MKL_LIBRARY_DIRS
-)
+if("${INT_SIZE}" EQUAL 4)
+  find_mkl_library(NAME Interface LIBRARY_NAME mkl_intel_lp64)
+else()
+  find_mkl_library(NAME Interface LIBRARY_NAME mkl_intel_ilp64)
+endif()
 
+set(MKL_RUNTIME_KERNEL_LIBRARIES "" CACHE FILEPATH "MKL kernel libraries targeting different CPU architectures")
+set(MKL_KernelLibraries "mkl_def;mkl_mc;mkl_mc3;mkl_avx;mkl_avx2;mkl_avx512")
+
+foreach(lib ${MKL_KernelLibraries})
+  find_mkl_library(NAME ${lib} LIBRARY_NAME ${lib})
+  if(MKL_${lib}_LINK_LIBRARY OR MKL_${lib}_DLL_LIBRARY)
+    list(APPEND MKL_RUNTIME_KERNEL_LIBRARIES $<TARGET_FILE:MKL::${lib}>)
+  endif()
+endforeach()
+mark_as_advanced(MKL_RUNTIME_KERNEL_LIBRARIES)
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(MKL
+  REQUIRED_VARS MKL_INCLUDE_DIR MKL_Core_LINK_LIBRARY)
+if(NOT WIN32)
+  find_library(M_LIB m)
+  mark_as_advanced(M_LIB)
+endif()
+if(MKL_FOUND)
+  add_library(MKL::MKL SHARED IMPORTED)
+  if(MKL_THREAD_LAYER STREQUAL "Sequential")
+    set_target_properties(MKL::MKL
+      PROPERTIES
+        IMPORTED_LOCATION "${MKL_Core_LINK_LIBRARY}"
+        INTERFACE_LINK_LIBRARIES "MKL::Interface;MKL::ThreadLayer;${CMAKE_DL_LIBS};${M_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${MKL_INCLUDE_DIR};${MKL_FFTW_INCLUDE_DIR}"
+        IMPORTED_NO_SONAME TRUE)
+  else()
+    set_target_properties(MKL::MKL
+      PROPERTIES
+        IMPORTED_LOCATION "${MKL_Core_LINK_LIBRARY}"
+        INTERFACE_LINK_LIBRARIES "MKL::Interface;MKL::ThreadLayer;MKL::ThreadingLibrary;${CMAKE_DL_LIBS};${M_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${MKL_INCLUDE_DIR};${MKL_FFTW_INCLUDE_DIR}"
+        IMPORTED_NO_SONAME TRUE)
+  endif()
+  if(WIN32)
+    set_target_properties(MKL::MKL
+      PROPERTIES
+        IMPORTED_LOCATION "${MKL_Core_DLL_LIBRARY}"
+        IMPORTED_IMPLIB "${MKL_Core_LINK_LIBRARY}")
+  endif()
+endif()
+
+message(STATUS "'${MKL_THREAD_LAYER}' used for MKL parallelisation")

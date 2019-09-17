@@ -43,7 +43,7 @@ bool Edge::contains(int ID) const {
   return (vertices_.front() == ID || vertices_.back() == ID);
 }
 
-bool Edge::operator==(const Edge ed) const {
+bool Edge::operator==(const Edge& ed) const {
   if (this->vertices_.front() == ed.vertices_.front() &&
       this->vertices_.back() == ed.vertices_.back())
     return true;
@@ -53,24 +53,24 @@ bool Edge::operator==(const Edge ed) const {
   return false;
 }
 
-bool Edge::operator!=(const Edge ed) const { return !(*this == ed); }
+bool Edge::operator!=(const Edge& ed) const { return !(*this == ed); }
 
-bool Edge::operator<(const Edge ed) const {
+bool Edge::operator<(const Edge& ed) const {
   if (this->vertices_.front() < ed.vertices_.front()) return true;
   if (this->vertices_.front() > ed.vertices_.front()) return false;
   if (this->vertices_.back() < ed.vertices_.back()) return true;
   return false;
 }
 
-bool Edge::operator<=(const Edge ed) const {
+bool Edge::operator<=(const Edge& ed) const {
   return (*this < ed || *this == ed);
 }
 
-bool Edge::operator>(const Edge ed) const { return !(*this <= ed); }
+bool Edge::operator>(const Edge& ed) const { return !(*this <= ed); }
 
-bool Edge::operator>=(const Edge ed) const { return !(*this < ed); }
+bool Edge::operator>=(const Edge& ed) const { return !(*this < ed); }
 
-ostream& operator<<(ostream& os, const Edge ed) {
+ostream& operator<<(ostream& os, const Edge& ed) {
   os << "Vertices" << endl;
   os << ed.vertices_.front() << " " << ed.vertices_.back() << endl;
   return os;

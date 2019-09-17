@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _tools_H
-#define _tools_H
+#ifndef _VOTCA_TOOLS_TOKENIZER_H
+#define _VOTCA_TOOLS_TOKENIZER_H
 
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
@@ -34,7 +34,7 @@ namespace tools {
  */
 class Tokenizer {
  public:
-  typedef boost::tokenizer<boost::char_separator<char> >::iterator iterator;
+  typedef boost::tokenizer<boost::char_separator<char>>::iterator iterator;
 
   /**
    * \brief startup tokenization
@@ -44,16 +44,14 @@ class Tokenizer {
    * After initialization,the words can be accessed using the iterator
    * interface or directly transferred to a vector ToVector of ConvertToVector.
    */
-  Tokenizer(const std::string &str, const char *separators) {
-    _str = str;
-    boost::char_separator<char> sep(separators);
-    tok = new boost::tokenizer<boost::char_separator<char> >(_str, sep);
-    // boost::escaped_list_separator<char> sep(" ", separators, "\"");
-    // tok = new boost::tokenizer<boost::escaped_list_separator<char> >(str,
-    // sep);
-  }
 
-  ~Tokenizer() { delete tok; }
+  Tokenizer(const std::string &str, const char *separators) : _str(str) {
+    boost::char_separator<char> sep(separators);
+    tok = std::make_unique<boost::tokenizer<boost::char_separator<char>>>(_str,
+                                                                          sep);
+  }
+  Tokenizer(const std::string &str, const std::string &separators)
+      : Tokenizer(str, separators.c_str()){};
 
   /**
    * \brief iterator to first element
@@ -76,6 +74,13 @@ class Tokenizer {
     for (iterator iter = begin(); iter != end(); ++iter) v.push_back(*iter);
   }
 
+  std::vector<std::string> ToVector() {
+    std::vector<std::string> result;
+    for (iterator iter = begin(); iter != end(); ++iter)
+      result.push_back(*iter);
+    return result;
+  }
+
   /**
    * \brief store all words in a vector with type conversion.
    * @param v storage vector
@@ -95,7 +100,7 @@ class Tokenizer {
   }
 
  private:
-  boost::tokenizer<boost::char_separator<char> > *tok;
+  std::unique_ptr<boost::tokenizer<boost::char_separator<char>>> tok;
   std::string _str;
 };
 

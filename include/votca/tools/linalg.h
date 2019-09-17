@@ -18,6 +18,7 @@
 #ifndef __VOTCA_TOOLS_LINALG_H
 #define __VOTCA_TOOLS_LINALG_H
 #include <votca/tools/eigen.h>
+#include <votca/tools/eigensystem.h>
 
 namespace votca {
 namespace tools {
@@ -31,24 +32,19 @@ namespace tools {
  *
  * This function implements the qrsolver under constraints
  */
-void linalg_constrained_qrsolve(Eigen::VectorXd &x, Eigen::MatrixXd &A,
-                                const Eigen::VectorXd &b,
-                                const Eigen::MatrixXd &constr);
+void linalg_constrained_qrsolve(Eigen::VectorXd& x, Eigen::MatrixXd& A,
+                                const Eigen::VectorXd& b,
+                                const Eigen::MatrixXd& constr);
 
 /**
  * \brief solves A*V=E*V for the first n eigenvalues
  * @param A symmetric matrix to diagonalize, is destroyed during iteration
- * @param E, eigenvalues
- * @param V, eigenvectors, each column is one eigenvector
  * @param nmax number of eigenvalues to return
  *
  * This function is only useful if MKL is used, wraps
- * LAPACKE_ssyevx/LAPACKE_dsyevx
+ * LAPACKE_dsyevx
  */
-bool linalg_eigenvalues(Eigen::MatrixXd &A, Eigen::VectorXd &E,
-                        Eigen::MatrixXd &V, int nmax);
-bool linalg_eigenvalues(Eigen::MatrixXf &A, Eigen::VectorXf &E,
-                        Eigen::MatrixXf &V, int nmax);
+EigenSystem linalg_eigenvalues(Eigen::MatrixXd& A, int nmax);
 
 }  // namespace tools
 }  // namespace votca

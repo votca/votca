@@ -18,12 +18,6 @@
 #include <votca/tools/version.h>
 #include <votca/tools/votca_config.h>
 
-extern "C" {
-void VotcaToolsFromC() {
-  // do nothing - this just that we have a c function for autotools
-}
-}
-
 namespace votca {
 namespace tools {
 
