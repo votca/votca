@@ -12,7 +12,7 @@ BOOST_AUTO_TEST_SUITE(eigecuda_test)
 
 BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   // Call the class to handle GPU resources
-  EigenCuda<double> EC;
+  EigenCuda EC;
 
   // Call matrix multiplication GPU
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 2);
@@ -43,7 +43,7 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
 
 BOOST_AUTO_TEST_CASE(triple_tensor_product) {
   // Call the class to handle GPU resources
-  EigenCuda<double> EC;
+  EigenCuda EC;
 
   // Define matrices
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 3);

@@ -126,7 +126,7 @@ class TCMatrix_gwbse : public TCMatrix {
 
   // Use GPU if available
 #if defined(USE_GPU)
-  EigenCuda<double> _gpu_handle;
+  EigenCuda _gpu_handle;
 #endif
 
   // band summation indices

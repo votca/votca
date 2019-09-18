@@ -59,20 +59,19 @@ struct Shapes {
   int B_cols;
   int C_rows;
 
-  Shapes(long int _a_rows, long int _a_cols, long int _b_rows, long int _b_cols,
-         long int _c_rows)
-      : A_rows{static_cast<int>(_a_rows)},
-        A_cols{static_cast<int>(_a_cols)},
-        B_rows{static_cast<int>(_b_rows)},
-        B_cols{static_cast<int>(_b_cols)},
-        C_rows{static_cast<int>(_c_rows)} {}
+  Shapes(long int a_rows, long int a_cols, long int b_rows, long int b_cols,
+         long int crows)
+      : A_rows{static_cast<int>(a_rows)},
+        A_cols{static_cast<int>(a_cols)},
+        B_rows{static_cast<int>(b_rows)},
+        B_cols{static_cast<int>(b_cols)},
+        C_rows{static_cast<int>(crows)} {}
 };
 
 // col Major for CUDA
-template <typename T>
-using Mat = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+using Mat =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
-template <typename T>
 class EigenCuda {
 
  public:
@@ -91,31 +90,32 @@ class EigenCuda {
 
   // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
-  std::vector<Mat<T>> triple_tensor_product(const Mat<T> &A, const Mat<T> &C,
-                                            const std::vector<Mat<T>> &tensor);
+  std::vector<Mat> triple_tensor_product(const Mat &A, const Mat &C,
+                                         const std::vector<Mat> &tensor);
 
   // Perform a multiplication between a matrix and a tensor
-  std::vector<Mat<T>> right_matrix_tensor(
-      const Mat<T> &A, const std::vector<Mat<T>> &tensor) const;
+  std::vector<Mat> right_matrix_tensor(const Mat &A,
+                                       const std::vector<Mat> &tensor) const;
 
  private:
   // Check available memory
   void check_available_memory(size_t required) const;
 
   // Allocate memory in the device
-  void gpu_alloc(T **x, std::size_t n) const;
+  void gpu_alloc(double **x, std::size_t n) const;
 
   // Deallocate memory from the device
-  void gpu_free(T *x) const;
+  void gpu_free(double *x) const;
 
   // Allocate matrix in the device
-  T *initialize_matrix_mem(size_t size_A) const;
+  double *initialize_matrix_mem(size_t size_A) const;
 
   // Allocate memory for a matrix and copy it to the device
-  T *initialize_and_copy(const Mat<T> &A) const;
+  double *initialize_and_copy(const Mat &A) const;
 
   // Invoke the ?gemm function of cublas
-  void gemm(Shapes shapes, const T *dA, const T *dB, T *dC) const;
+  void gemm(Shapes shapes, const double *dA, const double *dB,
+            double *dC) const;
 
   // Cuda variables
   cublasHandle_t _handle;
