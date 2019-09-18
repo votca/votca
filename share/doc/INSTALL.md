@@ -94,7 +94,6 @@ option and a couple of other rpath related tweaks when setting
 ### Other CMake Flags
 
 * `BUILD_CSG_MANUAL` - Build csg pdf manual
-* `BUILD_XTP_MANUAL` - Build xtp pdf manual
 * `WITH_GMX` - Build with Gromacs support (ON/OFF, Default ON)
 * `CMAKE_DISABLE_FIND_PACKAGE_<name>` - Disable using an optional package called
   `<name>` (ON/OFF)
