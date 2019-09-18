@@ -59,15 +59,15 @@ public:
               << " estimated error: " << cg_solver.error() << std::endl; 
   }
 
-  Eigen::Index rows() {return _Aop.rows();}
-  Eigen::Index cols() {return _Aop.cols();}
+  Eigen::Index rows() const {return this->_Aop.rows();}
+  Eigen::Index cols() const {return this->_Aop.cols();}
 
 private:
 
   MatrixReplacement _Aop;
   double _lambda;
 
-  Eigen::ConjugateGradient<MatrixReplacement, 
+  Eigen::ConjugateGradient<SINV_OPERATOR<MatrixReplacement>, 
     Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg_solver;
 
 

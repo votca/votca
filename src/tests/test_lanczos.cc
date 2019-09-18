@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   Eigen::MatrixXd H = Hop.get_full_matrix();
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
 
-  auto lambda = LS.eigenvalues();
+  auto lambda = LS.eigenvalues().real();
   auto lambda_ref = es.eigenvalues().head(neigen);
   bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
 

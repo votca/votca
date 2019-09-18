@@ -30,6 +30,7 @@
 #include <votca/xtp/matrixfreeoperator.h>
 
 #include <Spectra/GenEigsRealShiftSolver.h>
+#include <Spectra/GenEigsSolver.h>
 
 using boost::format;
 using std::flush;
@@ -69,16 +70,20 @@ class LanczosSolver {
     double sigma = 0.;
 
     // solver
-    Spectra::GenEigsRealShiftSolver<double, Spectra::SMALLEST_REAL, 
-      SINV_OPERATOR<MatrixReplacement> > eigs(&sinv_op, nev, ncv, sigma);
+    // Spectra::GenEigsRealShiftSolver<double, Spectra::SMALLEST_REAL, 
+    //   SINV_OPERATOR<MatrixReplacement> > eigs(&sinv_op, nev, ncv, sigma);
+
+
+    Spectra::GenEigsSolver<double, Spectra::SMALLEST_REAL, 
+      SINV_OPERATOR<MatrixReplacement> > eigs(&sinv_op, nev, ncv);
 
     eigs.init();
     int nconv = eigs.compute();
 
     if (eigs.info() == Spectra::SUCCESSFUL)
     {
-      this->_eigenvalues = eigs.eigenvalues();
-      this->_eigenvectors = eigs.eigenvectors();
+      this->_eigenvalues = eigs.eigenvalues().real();
+      this->_eigenvectors = eigs.eigenvectors().real();
     }
 
     PrintTiming(start);
