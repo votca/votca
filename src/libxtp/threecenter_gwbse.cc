@@ -54,7 +54,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   // implementation
 #if defined(USE_GPU)
   try {
-    _matrix = _gpu_handle.right_matrix_tensor(matrix, _matrix);
+    _matrix = _gpu_handle.right_matrix_tensor(_matrix, matrix);
   } catch (const std::runtime_error& error) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp()
@@ -186,7 +186,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   // Performn the tensor multiplication in the GPU
   try {
     std::vector<Eigen::MatrixXd> results =
-        _gpu_handle.triple_tensor_product(dftn.transpose(), dftm, tensor);
+        _gpu_handle.triple_tensor_product(dftn.transpose(), tensor, dftm);
     for (int k = 0; k < auxshell.getNumFunc(); ++k) {
       Eigen::MatrixXd threec_inMo = results[k];
       for (int i = 0; i < threec_inMo.cols(); ++i) {

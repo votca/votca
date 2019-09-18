@@ -139,8 +139,8 @@ void EigenCuda::gemm(Shapes sh, const double *dA, const double *dB,
  * over each submatrix of the tensor computing: C = tensor(i) * A.
  */
 
-std::vector<Mat> EigenCuda::right_matrix_tensor(
-    const Mat &B, const std::vector<Mat> &tensor) const {
+std::vector<Mat> EigenCuda::right_matrix_tensor(const std::vector<Mat> &tensor,
+                                                const Mat &B) const {
   // Number of submatrices in the input tensor
   int batchCount = tensor.size();
 
@@ -198,7 +198,7 @@ std::vector<Mat> EigenCuda::right_matrix_tensor(
  * \return vector containging the matrix-matrix multiplications
  */
 std::vector<Mat> EigenCuda::triple_tensor_product(
-    const Mat &A, const Mat &C, const std::vector<Mat> &tensor) {
+    const Mat &A, const std::vector<Mat> &tensor, const Mat &C) {
   // Number of submatrices in the input tensor
   int batchCount = tensor.size();
 

@@ -80,22 +80,19 @@ class EigenCuda {
     cudaStreamCreate(&_stream);
   }
   EigenCuda(bool pinned) : _pinned{pinned} { EigenCuda{}; }
-
-  // Deallocate both the handler and allocated arrays
   ~EigenCuda();
 
-  // Remove the copy operations
   EigenCuda(const EigenCuda &) = delete;
   EigenCuda &operator=(const EigenCuda &) = delete;
 
   // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
-  std::vector<Mat> triple_tensor_product(const Mat &A, const Mat &C,
-                                         const std::vector<Mat> &tensor);
+  std::vector<Mat> triple_tensor_product(const Mat &A,
+                                         const std::vector<Mat> &tensor,
+                                         const Mat &C);
 
   // Perform a multiplication between a matrix and a tensor
-  std::vector<Mat> right_matrix_tensor(const Mat &A,
-                                       const std::vector<Mat> &tensor) const;
+  std::vector<Mat> right_matrix_tensor(const std::vector<Mat> &tensor, const Mat &A) const;
 
  private:
   // Check available memory
