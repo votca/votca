@@ -108,9 +108,8 @@ inline bool XYZReader::ReadFrame(T &container) {
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
-    Tokenizer tok1(line, " \t");
-    std::vector<std::string> line1;
-    tok1.ToVector(line1);
+    tools::Tokenizer tok1(line, " \t");
+    std::vector<std::string> line1 = tok1.ToVector();
     if (line1.size() != 1) {
       throw std::runtime_error(
           "First line of xyz file should contain number "
@@ -131,7 +130,7 @@ inline bool XYZReader::ReadFrame(T &container) {
       if (_fl.eof()) {
         throw std::runtime_error("unexpected end of file in xyz file");
       }
-      Tokenizer tok(line, " ");
+      tools::Tokenizer tok(line, " ");
       std::vector<std::string> fields = tok.ToVector();
       if (fields.size() != 4) {
         throw std::runtime_error("invalide line " +

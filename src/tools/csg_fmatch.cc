@@ -75,7 +75,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   _constr_least_sq = _options.get("cg.fmatch.constrainedLS").as<bool>();
 
   // initializing bonded interactions
-  for (Property *prop : _bonded) {
+  for (votca::tools::Property *prop : _bonded) {
     SplineInfo *i = new SplineInfo(_splines.size(), true, _col_cntr, prop);
     // adjust initial Eigen::Matrix3d dimensions:
     _line_cntr += i->num_gridpoints;
@@ -90,7 +90,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
   }
 
   // initializing non-bonded interactions
-  for (Property *prop : _nonbonded) {
+  for (votca::tools::Property *prop : _nonbonded) {
     SplineInfo *i = new SplineInfo(_splines.size(), false, _col_cntr, prop);
     // adjust initial Eigen::Matrix3d dimensions:
     // number of constraints/restraints
@@ -162,7 +162,7 @@ void CGForceMatching::BeginEvaluate(Topology *top, Topology *top_atom) {
 }
 
 CGForceMatching::SplineInfo::SplineInfo(int index, bool bonded_, int matr_pos_,
-                                        Property *options) {
+                                        votca::tools::Property *options) {
   // initialize standard data
   splineIndex = index;
   _options = options;
@@ -277,8 +277,8 @@ void CGForceMatching::WriteOutFiles() {
   string file_extension_pot = ".pot";
   string file_name;
   string file_nameDer;
-  Table force_tab;
-  Table force_tabDer;
+  votca::tools::Table force_tab;
+  votca::tools::Table force_tabDer;
 
   // table with error column
   force_tab.SetHasYErr(true);
@@ -573,7 +573,7 @@ void CGForceMatching::EvalBonded(Topology *conf, SplineInfo *sinfo) {
         (*interListIter)->BeadCount();  // 2 for bonds, 3 for angles, 4 for
                                         // dihedrals
 
-    CubicSpline &SP = sinfo->Spline;
+    votca::tools::CubicSpline &SP = sinfo->Spline;
 
     int &mpos = sinfo->matr_pos;
 
@@ -645,7 +645,7 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
     Eigen::Vector3d gradient = (*pair_iter)->r();
     gradient.normalize();
 
-    CubicSpline &SP = sinfo->Spline;
+    votca::tools::CubicSpline &SP = sinfo->Spline;
 
     int &mpos = sinfo->matr_pos;
 
@@ -762,7 +762,7 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
 
     Eigen::Vector3d gradient1, gradient2;
 
-    CubicSpline &SP = sinfo->Spline;
+    votca::tools::CubicSpline &SP = sinfo->Spline;
 
     int &mpos = sinfo->matr_pos;
 

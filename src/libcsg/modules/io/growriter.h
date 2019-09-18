@@ -27,7 +27,7 @@ namespace csg {
 
 class GROWriter : public TrajectoryWriter {
  public:
-  void Open(string file, bool bAppend = false);
+  void Open(std::string file, bool bAppend = false);
   void Close();
 
   void Write(Topology *conf);

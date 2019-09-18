@@ -22,8 +22,6 @@
 #include "bondedstatistics.h"
 #include <map>
 
-namespace TOOLS = votca::tools;
-
 namespace votca {
 namespace csg {
 

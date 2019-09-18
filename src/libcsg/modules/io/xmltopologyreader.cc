@@ -30,7 +30,7 @@ using namespace std;
 bool XMLTopologyReader::ReadTopology(string filename, Topology &top) {
   _top = &top;
 
-  Property options;
+  tools::Property options;
   options.LoadFromXML(filename);
   ParseRoot(options.get("topology"));
 
@@ -49,7 +49,7 @@ void XMLTopologyReader::ReadTopolFile(string file) {
   // Clean XML molecules and beads.
 }
 
-void XMLTopologyReader::ParseRoot(Property &property) {
+void XMLTopologyReader::ParseRoot(tools::Property &property) {
   _has_base_topology = false;
   if (property.hasAttribute("base")) {
     ReadTopolFile(property.getAttribute<string>("base"));
@@ -57,7 +57,8 @@ void XMLTopologyReader::ParseRoot(Property &property) {
   }
 
   // Iterate over keys at first level.
-  for (Property::iterator it = property.begin(); it != property.end(); ++it) {
+  for (tools::Property::iterator it = property.begin(); it != property.end();
+       ++it) {
     if (it->name() == "h5md_particle_group") {
       _top->setParticleGroup(it->getAttribute<string>("name"));
     } else if (it->name() == "molecules") {
@@ -76,7 +77,7 @@ void XMLTopologyReader::ParseRoot(Property &property) {
   }
 }
 
-void XMLTopologyReader::ParseBox(Property &p) {
+void XMLTopologyReader::ParseBox(tools::Property &p) {
   Eigen::Matrix3d m = Eigen::Matrix3d::Zero();
   m(0, 0) = p.getAttribute<double>("xx");
   m(1, 1) = p.getAttribute<double>("yy");
@@ -84,8 +85,8 @@ void XMLTopologyReader::ParseBox(Property &p) {
   _top->setBox(m);
 }
 
-void XMLTopologyReader::ParseMolecules(Property &p) {
-  for (Property::iterator it = p.begin(); it != p.end(); ++it) {
+void XMLTopologyReader::ParseMolecules(tools::Property &p) {
+  for (tools::Property::iterator it = p.begin(); it != p.end(); ++it) {
     if (it->name() == "clear") {
       _top->ClearMoleculeList();
     } else if (it->name() == "rename") {
@@ -123,11 +124,11 @@ void XMLTopologyReader::ParseMolecules(Property &p) {
   }
 }
 
-void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads,
-                                      int nmols) {
+void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
+                                      int nbeads, int nmols) {
   vector<XMLBead *> xmlBeads;
   vector<int> xmlResidues;
-  for (Property::iterator it = p.begin(); it != p.end(); ++it) {
+  for (tools::Property::iterator it = p.begin(); it != p.end(); ++it) {
     if (it->name() == "bead") {
       string atname = it->getAttribute<string>("name");
       string attype = it->getAttribute<string>("type");
@@ -233,8 +234,8 @@ void XMLTopologyReader::ParseMolecule(Property &p, string molname, int nbeads,
   }
 }
 
-void XMLTopologyReader::ParseBeadTypes(Property &el) {
-  for (Property::iterator it = el.begin(); it != el.end(); ++it) {
+void XMLTopologyReader::ParseBeadTypes(tools::Property &el) {
+  for (tools::Property::iterator it = el.begin(); it != el.end(); ++it) {
     if (it->name() == "rename") {
       string name = it->getAttribute<string>("name");
       string newname = it->getAttribute<string>("newname");
@@ -251,8 +252,8 @@ void XMLTopologyReader::ParseBeadTypes(Property &el) {
   }
 }
 
-void XMLTopologyReader::ParseBonded(Property &el) {
-  for (Property::iterator it = el.begin(); it != el.end(); ++it) {
+void XMLTopologyReader::ParseBonded(tools::Property &el) {
+  for (tools::Property::iterator it = el.begin(); it != el.end(); ++it) {
     if (it->name() == "bond") {
       ParseBond(*it);
     } else if (it->name() == "angle") {
@@ -265,12 +266,11 @@ void XMLTopologyReader::ParseBonded(Property &el) {
   }
 }
 
-void XMLTopologyReader::ParseBond(Property &p) {
+void XMLTopologyReader::ParseBond(tools::Property &p) {
   string name = p.get("name").as<string>();
   string beads = p.get("beads").as<string>();
-  Tokenizer tok(beads, " \n\t");
-  vector<string> bead_list;
-  tok.ToVector(bead_list);
+  tools::Tokenizer tok(beads, " \n\t");
+  vector<string> bead_list = tok.ToVector();
   if (bead_list.size() % 2 == 1)
     throw runtime_error("Wrong number of beads in bond: " + name);
   Interaction *ic = NULL;
@@ -303,12 +303,11 @@ void XMLTopologyReader::ParseBond(Property &p) {
   }
 }
 
-void XMLTopologyReader::ParseAngle(Property &p) {
+void XMLTopologyReader::ParseAngle(tools::Property &p) {
   string name = p.get("name").as<string>();
   string beads = p.get("beads").as<string>();
-  Tokenizer tok(beads, " \n\t");
-  vector<string> bead_list;
-  tok.ToVector(bead_list);
+  tools::Tokenizer tok(beads, " \n\t");
+  vector<string> bead_list = tok.ToVector();
   if (bead_list.size() % 3 == 1)
     throw runtime_error("Wrong number of beads in angle: " + name);
   Interaction *ic = NULL;
@@ -342,12 +341,11 @@ void XMLTopologyReader::ParseAngle(Property &p) {
     }
   }
 }
-void XMLTopologyReader::ParseDihedral(Property &p) {
+void XMLTopologyReader::ParseDihedral(tools::Property &p) {
   string name = p.get("name").as<string>();
   string beads = p.get("beads").as<string>();
-  Tokenizer tok(beads, " \n\t");
-  vector<string> bead_list;
-  tok.ToVector(bead_list);
+  tools::Tokenizer tok(beads, " \n\t");
+  vector<string> bead_list = tok.ToVector();
   if (bead_list.size() % 4 == 1)
     throw runtime_error("Wrong number of beads in dihedral: " + name);
   Interaction *ic = NULL;

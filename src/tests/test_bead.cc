@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(test_bead_setters) {
   double newMass = 9.4;
   double newCharge = 2.6;
 
-  b->setM(newMass);
+  b->setMass(newMass);
   b->setQ(newCharge);
 
   Eigen::Vector3d xyz(0.1, 0.2, 0.3);

@@ -110,7 +110,7 @@ void LAMMPSDumpReader::ReadBox(Topology &top, string itemline) {
     getline(_fl, s);
     boost::algorithm::trim(s);
 
-    Tokenizer tok(s, " ");
+    tools::Tokenizer tok(s, " ");
     vector<double> v;
     tok.ConvertToVector(v);
     if (v.size() != 2) throw std::ios_base::failure("invalid box format");
@@ -147,10 +147,10 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
   vector<string> fields;
 
   {
-    Tokenizer tok(itemline.substr(12), " ");
+    tools::Tokenizer tok(itemline.substr(12), " ");
     tok.ToVector(fields);
     int j = 0;
-    for (Tokenizer::iterator i = tok.begin(); i != tok.end(); ++i, ++j) {
+    for (tools::Tokenizer::iterator i = tok.begin(); i != tok.end(); ++i, ++j) {
       if (*i == "x" || *i == "y" || *i == "z")
         pos = true;
       else if (*i == "xu" || *i == "yu" || *i == "zu")
@@ -180,10 +180,9 @@ void LAMMPSDumpReader::ReadAtoms(Topology &top, string itemline) {
                                boost::lexical_cast<string>(i) + " atoms of " +
                                boost::lexical_cast<string>(_natoms) + " read.");
 
-    Tokenizer tok(s, " ");
-    Tokenizer::iterator itok = tok.begin();
-    vector<string> fields2;
-    tok.ToVector(fields2);
+    tools::Tokenizer tok(s, " ");
+    tools::Tokenizer::iterator itok = tok.begin();
+    vector<string> fields2 = tok.ToVector();
     // internal numbering begins with 0
     int atom_id = boost::lexical_cast<int>(fields2[id]);
     if (atom_id > _natoms)

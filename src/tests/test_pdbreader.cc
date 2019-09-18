@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(test_topologyreader) {
   outfile.close();
   //////////////////////////////////////////////////////////////////////////
 
-  Elements ele;
+  votca::tools::Elements ele;
 
   Topology top;
   TopologyReader::RegisterPlugins();

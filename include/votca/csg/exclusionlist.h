@@ -25,7 +25,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 /// \todo fill _excl_by_bead
 /// \todo no ids but pointers, use PairList
@@ -77,7 +76,7 @@ class ExclusionList {
 
 inline ExclusionList::exclusion_t *ExclusionList::GetExclusions(Bead *bead) {
   std::map<Bead *, exclusion_t *>::iterator iter = _excl_by_bead.find(bead);
-  if (iter == _excl_by_bead.end()) return NULL;
+  if (iter == _excl_by_bead.end()) return nullptr;
   return (*iter).second;
 }
 
@@ -113,7 +112,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1_, iteratable &l) {
     if (bead1 == bead2) continue;
     if (IsExcluded(bead1, bead2)) continue;
     exclusion_t *e;
-    if ((e = GetExclusions(bead1)) == NULL) {
+    if ((e = GetExclusions(bead1)) == nullptr) {
       e = new exclusion_t;
       e->_atom = bead1;
       _exclusions.push_back(e);
@@ -130,7 +129,7 @@ inline void ExclusionList::InsertExclusion(Bead *bead1, Bead *bead2) {
   if (IsExcluded(bead1, bead2)) return;
 
   exclusion_t *e;
-  if ((e = GetExclusions(bead1)) == NULL) {
+  if ((e = GetExclusions(bead1)) == nullptr) {
     e = new exclusion_t;
     e->_atom = bead1;
     _exclusions.push_back(e);
@@ -149,10 +148,10 @@ inline void ExclusionList::RemoveExclusion(Bead *bead1, Bead *bead2) {
   if (ex == _exclusions.end()) return;
   (*ex)->_exclude.remove(bead2);
   if ((*ex)->_exclude.empty()) {
-    (*ex) = NULL;
+    (*ex) = nullptr;
     _exclusions.erase(ex);
   }
-  _exclusions.remove(NULL);
+  _exclusions.remove(nullptr);
 }
 
 std::ostream &operator<<(std::ostream &out, ExclusionList &ex);

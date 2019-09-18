@@ -32,8 +32,6 @@ namespace csg {
 class Topology;
 class Molecule;
 
-using namespace votca::tools;
-
 /**
  * \brief information about a bead
  *
@@ -59,24 +57,6 @@ class Bead : public BaseBead {
   const int &getResnr() const { return residue_number_; }
 
   /**
-   * get the mass of the bead
-   * \return bead mass
-   */
-  const double &getM() const {
-    std::cerr << "WARNING getM is depricated use getMass" << std::endl;
-    return getMass();
-  }
-
-  /**
-   * set the mass of the bead
-   * \param m bead mass
-   */
-  void setM(const double &m) {
-    std::cerr << "WARNING setM is depricated use setMass" << std::endl;
-    setMass(m);
-  }
-
-  /**
    * get the charge of the bead
    * \return - base bead charge
    */
@@ -98,7 +78,7 @@ class Bead : public BaseBead {
    *
    * \return bead symmetry
    */
-  byte_t getSymmetry() const { return symmetry_; }
+  tools::byte_t getSymmetry() const { return symmetry_; }
 
   /**
    * set the velocity of the bead
@@ -298,7 +278,7 @@ class Bead : public BaseBead {
   // own options.
   // Property *options_;
 
-  byte_t symmetry_;
+  tools::byte_t symmetry_;
   double charge_;
 
   int residue_number_;
@@ -312,7 +292,7 @@ class Bead : public BaseBead {
   bool bead_force_set_;
 
   /// constructur
-  Bead(Topology *owner, int id, std::string type, byte_t symmetry,
+  Bead(Topology *owner, int id, std::string type, tools::byte_t symmetry,
        std::string name, int resnr, double m, double q)
       : symmetry_(symmetry), charge_(q), residue_number_(resnr) {
     topology_item_._parent = owner;

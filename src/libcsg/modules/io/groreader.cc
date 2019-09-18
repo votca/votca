@@ -142,7 +142,7 @@ bool GROReader::NextFrame(Topology &top) {
   if (_fl.eof())
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");
-  Tokenizer tok(tmp, " ");
+  tools::Tokenizer tok(tmp, " ");
   vector<double> fields;
   tok.ConvertToVector<double>(fields);
   Eigen::Matrix3d box;
