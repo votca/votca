@@ -6,6 +6,7 @@
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/eigencuda.h>
 
+namespace utf = boost::unit_test;
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(eigecuda_test)
@@ -68,4 +69,12 @@ BOOST_AUTO_TEST_CASE(triple_tensor_product) {
   BOOST_TEST(Y.isApprox(rs[1]));
 }
 
+BOOST_AUTO_TEST_CASE(Wrong_shape, *utf::expected_failures(1)) {
+  Eigen::MatrixXd A = Eigen::MatrixXd::Random(2, 2);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Random(5, 5);
+
+  EigenCuda EC;
+  std::vector<Eigen::MatrixXd> tensor{B};
+  std::vector<Eigen::MatrixXd> xs = EC.right_matrix_tensor_mult(tensor, A);
+}
 BOOST_AUTO_TEST_SUITE_END()
