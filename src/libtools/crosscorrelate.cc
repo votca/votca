@@ -54,26 +54,15 @@ void CrossCorrelate::AutoCorrelate(DataCollection<double>::selection* data,
   }
   fftw_execute(ifft);
 
-  /*double m=0;
-  for(int i=0; i<N; i++) {
-      _corrfunc[i] = 0;
-      m+=(*data)[0][i];
-  }
-  m=m/(double)N;
-  for(int i=0;i<N; i++)
-      for(int j=0; j<N-i-1; j++)
-          _corrfunc[i]+=((*data)[0][j]-m)*((*data)[0][(i+j)]-m);
-  */
   double d = _corrfunc[0];
   for (size_t i = 0; i < N; i++) _corrfunc[i] = _corrfunc[i] / d;
-  // cout << *data << endl;
   fftw_destroy_plan(fft);
   fftw_destroy_plan(ifft);
   fftw_free(tmp);
 #endif
 }
 
-void CrossCorrelate::AutoFourier(vector<double>& ivec) {
+void CrossCorrelate::AutoFourier(std::vector<double>& ivec) {
 #ifdef NOFFTW
   throw std::runtime_error(
       "CrossCorrelate::AutoFourier is not compiled-in due to disabling of FFTW "
@@ -106,7 +95,7 @@ void CrossCorrelate::AutoFourier(vector<double>& ivec) {
 #endif
 }
 
-void CrossCorrelate::FFTOnly(vector<double>& ivec) {
+void CrossCorrelate::FFTOnly(std::vector<double>& ivec) {
 #ifdef NOFFTW
   throw std::runtime_error(
       "CrossCorrelate::FFTOnly is not compiled-in due to disabling of FFTW "
@@ -133,7 +122,7 @@ void CrossCorrelate::FFTOnly(vector<double>& ivec) {
 #endif
 }
 
-void CrossCorrelate::DCTOnly(vector<double>& ivec) {
+void CrossCorrelate::DCTOnly(std::vector<double>& ivec) {
 #ifdef NOFFTW
   throw std::runtime_error(
       "CrossCorrelate::DCTOnly is not compiled-in due to disabling of FFTW "
@@ -142,24 +131,20 @@ void CrossCorrelate::DCTOnly(vector<double>& ivec) {
   size_t N = ivec.size();
   _corrfunc.resize(N);
 
-  vector<double> tmp;
-  tmp.resize(N);
+  std::vector<double> tmp(N);
+
   fftw_plan fft;
 
   // do real to real discrete cosine trafo
   fft = fftw_plan_r2r_1d(N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
   fftw_execute(fft);
-
-  // store results
-  for (size_t i = 0; i < N; i++) {
-    _corrfunc[i] = tmp[i];
-  }
-
   fftw_destroy_plan(fft);
+  _corrfunc = tmp;
+
 #endif
 }
 
-void CrossCorrelate::AutoCosine(vector<double>& ivec) {
+void CrossCorrelate::AutoCosine(std::vector<double>& ivec) {
 #ifdef NOFFTW
   throw std::runtime_error(
       "CrossCorrelate::AutoCosine is not compiled-in due to disabling of FFTW "
@@ -168,30 +153,25 @@ void CrossCorrelate::AutoCosine(vector<double>& ivec) {
   size_t N = ivec.size();
   _corrfunc.resize(N);
 
-  vector<double> tmp;
-  tmp.resize(N);
+  std::vector<double> tmp(N);
   fftw_plan fft;
 
   // do real to real discrete cosine trafo
   fft = fftw_plan_r2r_1d(N, &ivec[0], &tmp[0], FFTW_REDFT10, FFTW_ESTIMATE);
   fftw_execute(fft);
-
+  fftw_destroy_plan(fft);
   // compute autocorrelation
   tmp[0] = 0;
   for (size_t i = 1; i < N; i++) {
     tmp[i] = tmp[i] * tmp[i];
   }
 
-  // store results
-  for (size_t i = 0; i < N; i++) {
-    _corrfunc[i] = tmp[i];
-  }
+  _corrfunc = tmp;
 
-  fftw_destroy_plan(fft);
 #endif
 }
 
-void CrossCorrelate::AutoCorr(vector<double>& ivec) {
+void CrossCorrelate::AutoCorr(std::vector<double>& ivec) {
 #ifdef NOFFTW
   throw std::runtime_error(
       "CrossCorrelate::AutoCorr is not compiled-in due to disabling of FFTW "

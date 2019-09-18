@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _correlate_H
-#define _correlate_H
+#ifndef VOTCA_TOOLS_CORRELATE_H
+#define VOTCA_TOOLS_CORRELATE_H
 
 #include "datacollection.h"
 #include <iostream>
@@ -24,8 +24,6 @@
 
 namespace votca {
 namespace tools {
-
-using namespace std;
 
 /**
     \brief class to calculate correlations of values
@@ -44,16 +42,16 @@ class Correlate {
    */
   void CalcCorrelations(DataCollection<double>::selection *data);
 
-  vector<pair<string, double> > &getData() { return _corr; }
+  std::vector<std::pair<std::string, double> > &getData() { return _corr; }
 
  private:
-  vector<pair<string, double> > _corr;
+  std::vector<std::pair<std::string, double> > _corr;
 };
 
-inline ostream &operator<<(ostream &out, Correlate &c) {
-  vector<pair<string, double> > &data = c.getData();
+inline std::ostream &operator<<(std::ostream &out, Correlate &c) {
+  std::vector<std::pair<std::string, double> > &data = c.getData();
   for (size_t i = 0; i < data.size(); i++) {
-    out << data[i].second << endl;
+    out << data[i].second << std::endl;
   }
   return out;
 }
@@ -61,4 +59,4 @@ inline ostream &operator<<(ostream &out, Correlate &c) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _correlate_H */
+#endif /* VOTCA_TOOLS_CORRELATE_H */

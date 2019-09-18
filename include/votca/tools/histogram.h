@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _histogram_H
-#define _histogram_H
+#ifndef VOTCA_TOOLS_HISTOGRAM_H
+#define VOTCA_TOOLS_HISTOGRAM_H
 
 #include "datacollection.h"
 #include <cmath>
@@ -26,8 +26,6 @@
 
 namespace votca {
 namespace tools {
-
-using namespace std;
 
 /**
     \brief class to generate histograms
@@ -56,7 +54,7 @@ class Histogram {
   double getMax() const { return _max; }
   /// return the number of grid points
   double getN() const { return _options._n; }
-  vector<double> &getPdf() { return _pdf; }
+  std::vector<double> &getPdf() { return _pdf; }
   double getInterval() const { return _interval; }
 
   void Normalize(void);
@@ -68,7 +66,7 @@ class Histogram {
     double _min, _max;
     bool _periodic;
     bool _normalize;
-    string _scale;
+    std::string _scale;
 
     options_t() {
       _n = 101;
@@ -83,17 +81,17 @@ class Histogram {
   };
 
  private:
-  vector<double> _pdf;
+  std::vector<double> _pdf;
   double _min, _max;
   double _interval;
 
   options_t _options;
 };
 
-inline ostream &operator<<(ostream &out, Histogram &h) {
+inline std::ostream &operator<<(std::ostream &out, Histogram &h) {
   for (int i = 0; i < h.getN(); i++) {
     out << h.getMin() + h.getInterval() * ((double)i + 0.0) << " "
-        << h.getPdf()[i] << endl;
+        << h.getPdf()[i] << std::endl;
   }
   return out;
 }
