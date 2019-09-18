@@ -20,6 +20,7 @@
 
 #include <votca/xtp/davidsonsolver.h>
 #include <votca/xtp/eigen.h>
+#include <Spectra/SymEigsSolver.h>
 
 using boost::format;
 using std::flush;
