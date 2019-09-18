@@ -76,9 +76,9 @@ class DFTEngine {
   Mat_p_Energy IntegrateExternalDensity(const QMMolecule& mol,
                                         const Orbitals& extdensity) const;
 
-  Eigen::MatrixXd IndependentElectronGuess(const Mat_p_Energy& H0);
-  Eigen::MatrixXd ModelPotentialGuess(const Mat_p_Energy& H0,
-                                      const QMMolecule& mol);
+  tools::EigenSystem IndependentElectronGuess(const Mat_p_Energy& H0) const;
+  tools::EigenSystem ModelPotentialGuess(const Mat_p_Energy& H0,
+                                         const QMMolecule& mol) const;
 
   Eigen::MatrixXd AtomicGuess(const QMMolecule& mol) const;
   std::string ReturnSmallGrid(const std::string& largegrid);
