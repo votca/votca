@@ -186,14 +186,13 @@ Mat_p_Energy DFTEngine::CalcEXXs(const Eigen::MatrixXd& MOCoeff,
   }
 }
 
-Eigen::MatrixXd DFTEngine::IndependentElectronGuess(const Mat_p_Energy& H0) {
-
-  tools::EigenSystem MOs = _conv_accelerator.SolveFockmatrix(H0.matrix());
-  return _conv_accelerator.DensityMatrix(MOs);
+tools::EigenSystem DFTEngine::IndependentElectronGuess(
+    const Mat_p_Energy& H0) const {
+  return _conv_accelerator.SolveFockmatrix(H0.matrix());
 }
 
-Eigen::MatrixXd DFTEngine::ModelPotentialGuess(const Mat_p_Energy& H0,
-                                               const QMMolecule& mol) {
+tools::EigenSystem DFTEngine::ModelPotentialGuess(const Mat_p_Energy& H0,
+                                                  const QMMolecule& mol) const {
   Eigen::MatrixXd Dmat = AtomicGuess(mol);
   Mat_p_Energy ERIs = CalculateERIs(Dmat);
   Mat_p_Energy e_vxc(Dmat.rows(), Dmat.cols());
@@ -211,16 +210,7 @@ Eigen::MatrixXd DFTEngine::ModelPotentialGuess(const Mat_p_Energy& H0,
     Mat_p_Energy EXXs = CalcEXXs(Eigen::MatrixXd::Zero(0, 0), Dmat);
     H -= 0.5 * _ScaHFX * EXXs.matrix();
   }
-
-  tools::EigenSystem MOs = _conv_accelerator.SolveFockmatrix(H);
-  Dmat = _conv_accelerator.DensityMatrix(MOs);
-
-  XTP_LOG(logDEBUG, *_pLog)
-      << TimeStamp()
-      << " Full atomic density Matrix gives N=" << std::setprecision(9)
-      << Dmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons."
-      << flush;
-  return Dmat;
+  return _conv_accelerator.SolveFockmatrix(H);
 }
 
 bool DFTEngine::Evaluate(Orbitals& orb) {
@@ -233,25 +223,30 @@ bool DFTEngine::Evaluate(Orbitals& orb) {
 
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp() << " Nuclear Repulsion Energy is " << H0.energy() << flush;
-  Eigen::MatrixXd Dmat;
+
   if (_with_guess) {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Reading guess from orbitals object/file" << flush;
     MOs = orb.MOs();
     MOs.eigenvectors() = OrthogonalizeGuess(MOs.eigenvectors());
-    Dmat = _conv_accelerator.DensityMatrix(MOs);
   } else {
     XTP_LOG(logDEBUG, *_pLog)
         << TimeStamp() << " Setup Initial Guess using: " << _initial_guess
         << flush;
     if (_initial_guess == "independent") {
-      Dmat = IndependentElectronGuess(H0);
+      MOs = IndependentElectronGuess(H0);
     } else if (_initial_guess == "atom") {
-      Dmat = ModelPotentialGuess(H0, orb.QMAtoms());
+      MOs = ModelPotentialGuess(H0, orb.QMAtoms());
     } else {
       throw std::runtime_error("Initial guess method not known/implemented");
     }
   }
+
+  Eigen::MatrixXd Dmat = _conv_accelerator.DensityMatrix(MOs);
+  XTP_LOG(logDEBUG, *_pLog)
+      << TimeStamp() << " Guess Matrix gives N=" << std::setprecision(9)
+      << Dmat.cwiseProduct(_dftAOoverlap.Matrix()).sum() << " electrons."
+      << flush;
 
   XTP_LOG(logDEBUG, *_pLog) << TimeStamp() << " STARTING SCF cycle" << flush;
   XTP_LOG(logDEBUG, *_pLog) << " ----------------------------------------------"
