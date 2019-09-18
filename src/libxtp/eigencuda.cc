@@ -30,20 +30,14 @@ EigenCuda::~EigenCuda() {
   cudaStreamDestroy(_stream);
 }
 
-/*
- * Allocate memory in the gpu using either pinned or pageable (default)
- * memory
- */
 void EigenCuda::alloc_mem_in_gpu(double **x, std::size_t n) const {
-  (_pinned) ? checkCuda(cudaMallocHost(x, n)) : checkCuda(cudaMalloc(x, n));
+  checkCuda(cudaMalloc(x, n));
 }
 
 /*
  * Deallocate memory from the device
  */
-void EigenCuda::free_mem_in_gpu(double *x) const {
-  (_pinned) ? checkCuda(cudaFreeHost(x)) : checkCuda(cudaFree(x));
-};
+void EigenCuda::free_mem_in_gpu(double *x) const { checkCuda(cudaFree(x)); };
 
 /*
  * Check if the available memory is enough to compute the system
@@ -79,8 +73,6 @@ double *EigenCuda::alloc_matrix_in_gpu(size_t size_matrix) const {
 
   // Pointer in the device
   double *dmatrix;
-
-  // Allocate either pageable or pinned memory
   alloc_mem_in_gpu(&dmatrix, size_matrix);
 
   return dmatrix;

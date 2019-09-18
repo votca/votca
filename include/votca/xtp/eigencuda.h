@@ -27,23 +27,10 @@
 #include <votca/xtp/eigen.h>
 
 /*
- * \brief Perform matrix-matrix multiplication in a GPU
+ * \brief Perform Tensor-matrix multiplications in a GPU
  *
  * The `EigenCuda` class handles the allocation and deallocation of arrays on
- * the GPU. Firstly, to perform a matrix multiplication, memory must be
- * allocated in the device to contain the involved matrices. The
- * `copy_matrix_to_gpu` method firstly allocates memory by calling the
- * `alloc_mem_in_gpu` method that allocates either pinned or pageable memory,
- * see: https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/ Then
- * the array could be optionally copy to the device.
- *
- * Pinned Memory:
- * "Host (CPU) data allocations are pageable by default. The GPU cannot access
- * data directly from pageable host memory, so when a data transfer from
- * pageable host memory to device memory is invoked, the CUDA driver must first
- * allocate a temporary page-locked, or “pinned”, host array, copy the host data
- * to the pinned array, and then transfer the data from the pinned array to
- * device memory.
+ * the GPU.
  */
 
 namespace votca {
@@ -81,13 +68,11 @@ using Mat =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
 class EigenCuda {
-
  public:
   EigenCuda() {
     cublasCreate(&_handle);
     cudaStreamCreate(&_stream);
   }
-  EigenCuda(bool pinned) : _pinned{pinned} { EigenCuda{}; }
   ~EigenCuda();
 
   EigenCuda(const EigenCuda &) = delete;
@@ -118,7 +103,6 @@ class EigenCuda {
 
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
-  bool _pinned = false;
 
   // Asynchronous stream
   cudaStream_t _stream;
