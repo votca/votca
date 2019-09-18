@@ -65,10 +65,10 @@ class OrientCorrApp : public CsgApplication {
   static NBList *CreateNBSearch();
 
  protected:
-  HistogramNew _cor;
-  HistogramNew _count;
-  HistogramNew _cor_excl;
-  HistogramNew _count_excl;
+  votca::tools::HistogramNew _cor;
+  votca::tools::HistogramNew _count;
+  votca::tools::HistogramNew _cor_excl;
+  votca::tools::HistogramNew _count_excl;
   static string _nbmethod;
   double _cut_off;
   int _nbins;
@@ -89,13 +89,13 @@ class MyWorker : public CsgApplication::Worker {
                  const double dist);
 
   // accumulator of the 3/2*u(0)u(r) - 1/2
-  HistogramNew _cor;
+  votca::tools::HistogramNew _cor;
   // number of hits for each bin
-  HistogramNew _count;
+  votca::tools::HistogramNew _count;
   // accumulator of the 3/2*u(0)u(r) - 1/2, only inter-molecular
-  HistogramNew _cor_excl;
+  votca::tools::HistogramNew _cor_excl;
   // number of hits for each bin, only inter-molecular
-  HistogramNew _count_excl;
+  votca::tools::HistogramNew _count_excl;
   double _cut_off;
 };
 
