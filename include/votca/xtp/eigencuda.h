@@ -22,6 +22,7 @@
 
 #include <cublas_v2.h>
 #include <curand.h>
+#include <memory>
 #include <sstream>
 #include <vector>
 #include <votca/xtp/eigen.h>
@@ -67,6 +68,9 @@ struct ShapesOfMatrices {
 using Mat =
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
+// Delete allocated memory in the GPU
+void free_mem_in_gpu(double *x);
+
 class EigenCuda {
  public:
   EigenCuda() {
@@ -88,14 +92,14 @@ class EigenCuda {
   std::vector<Mat> right_matrix_tensor_mult(const std::vector<Mat> &tensor,
                                             const Mat &A) const;
 
+  using uniq_double = std::unique_ptr<double, void (*)(double *)>;
+
  private:
   void check_available_memory_in_gpu(size_t required) const;
-  void alloc_mem_in_gpu(double **x, std::size_t n) const;
-  void free_mem_in_gpu(double *x) const;
-  double *alloc_matrix_in_gpu(size_t size_matrix) const;
+  uniq_double alloc_matrix_in_gpu(size_t size_matrix) const;
 
   // Allocate memory for a matrix and copy it to the device
-  double *copy_matrix_to_gpu(const Mat &matrix) const;
+  uniq_double copy_matrix_to_gpu(const Mat &matrix) const;
 
   // Invoke the ?gemm function of cublas
   void gemm(ShapesOfMatrices shapes, const double *dA, const double *dB,

@@ -22,6 +22,11 @@
 namespace votca {
 namespace xtp {
 
+/*
+ * Deallocate memory from the device
+ */
+void free_mem_in_gpu(double *x) { checkCuda(cudaFree(x)); };
+
 EigenCuda::~EigenCuda() {
 
   // destroy handle
@@ -29,15 +34,6 @@ EigenCuda::~EigenCuda() {
   // destroy stream
   cudaStreamDestroy(_stream);
 }
-
-void EigenCuda::alloc_mem_in_gpu(double **x, std::size_t n) const {
-  checkCuda(cudaMalloc(x, n));
-}
-
-/*
- * Deallocate memory from the device
- */
-void EigenCuda::free_mem_in_gpu(double *x) const { checkCuda(cudaFree(x)); };
 
 /*
  * Check if the available memory is enough to compute the system
@@ -69,28 +65,29 @@ void EigenCuda::check_available_memory_in_gpu(size_t requested_memory) const {
 /*
  * Allocate memory in the device for matrix A.
  */
-double *EigenCuda::alloc_matrix_in_gpu(size_t size_matrix) const {
+EigenCuda::uniq_double EigenCuda::alloc_matrix_in_gpu(
+    size_t size_matrix) const {
 
   // Pointer in the device
   double *dmatrix;
-  alloc_mem_in_gpu(&dmatrix, size_matrix);
-
-  return dmatrix;
+  checkCuda(cudaMalloc(&dmatrix, size_matrix));
+  uniq_double dev_ptr(dmatrix, free_mem_in_gpu);
+  return dev_ptr;
 }
 
-double *EigenCuda::copy_matrix_to_gpu(const Mat &matrix) const {
+EigenCuda::uniq_double EigenCuda::copy_matrix_to_gpu(const Mat &matrix) const {
   // allocate memory in the device
   size_t size_matrix = matrix.size() * sizeof(double);
-  double *dmatrix = alloc_matrix_in_gpu(size_matrix);
+  uniq_double dev_ptr = alloc_matrix_in_gpu(size_matrix);
 
   // Transfer data to the GPU
   const double *hmatrix = matrix.data();  // Pointers at the host
-  cudaError_t err = cudaMemcpyAsync(dmatrix, hmatrix, size_matrix,
+  cudaError_t err = cudaMemcpyAsync(dev_ptr.get(), hmatrix, size_matrix,
                                     cudaMemcpyHostToDevice, _stream);
   if (err != 0) {
     throw std::runtime_error("Error copy arrays to device");
   }
-  return dmatrix;
+  return dev_ptr;
 }
 
 /*
@@ -129,9 +126,9 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
   // Check if there is enough available memory
   check_available_memory_in_gpu(size_A + size_B + size_C);
 
-  double *dA = alloc_matrix_in_gpu(size_A);
-  double *dC = alloc_matrix_in_gpu(size_C);
-  double *dB = copy_matrix_to_gpu(B);
+  uniq_double dA = alloc_matrix_in_gpu(size_A);
+  uniq_double dC = alloc_matrix_in_gpu(size_C);
+  uniq_double dB = copy_matrix_to_gpu(B);
 
   ShapesOfMatrices sh{matrix.rows(), matrix.cols(), B.rows(), B.cols(),
                       matrix.rows()};
@@ -141,22 +138,17 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
   // Call tensor matrix multiplication
   for (auto i = 0; i < batchCount; i++) {
     // Copy tensor component to the device
-    checkCuda(cudaMemcpyAsync(dA, tensor[i].data(), size_C,
+    checkCuda(cudaMemcpyAsync(dA.get(), tensor[i].data(), size_C,
                               cudaMemcpyHostToDevice, _stream));
 
     // matrix multiplication
-    gemm(sh, dA, dB, dC);
+    gemm(sh, dA.get(), dB.get(), dC.get());
 
     // Copy the result to the host
     double *hout = result[i].data();
-    checkCuda(
-        cudaMemcpyAsync(hout, dC, size_C, cudaMemcpyDeviceToHost, _stream));
+    checkCuda(cudaMemcpyAsync(hout, dC.get(), size_C, cudaMemcpyDeviceToHost,
+                              _stream));
   }
-
-  // Deallocate all the memory from the device
-  free_mem_in_gpu(dA);
-  free_mem_in_gpu(dB);
-  free_mem_in_gpu(dC);
 
   return result;
 }
@@ -181,15 +173,15 @@ std::vector<Mat> EigenCuda::matrix_tensor_matrix_mult(
   // Check if there is enough available memory
   check_available_memory_in_gpu(size_A + size_B + size_C + size_X + size_Y);
 
-  double *dA = copy_matrix_to_gpu(A);
-  double *dC = copy_matrix_to_gpu(C);
-  double *dB = alloc_matrix_in_gpu(size_B);
+  uniq_double dA = copy_matrix_to_gpu(A);
+  uniq_double dC = copy_matrix_to_gpu(C);
+  uniq_double dB = alloc_matrix_in_gpu(size_B);
 
   // Intermediate result X
-  double *dX = alloc_matrix_in_gpu(size_X);
+  uniq_double dX = alloc_matrix_in_gpu(size_X);
 
   // Final result array Y
-  double *dY = alloc_matrix_in_gpu(size_Y);
+  uniq_double dY = alloc_matrix_in_gpu(size_Y);
 
   ShapesOfMatrices sh1{A.rows(), A.cols(), matrix.rows(), matrix.cols(),
                        A.rows()};
@@ -198,27 +190,20 @@ std::vector<Mat> EigenCuda::matrix_tensor_matrix_mult(
   std::vector<Mat> result(batchCount, Mat::Zero(A.rows(), C.cols()));
   for (auto i = 0; i < batchCount; i++) {
     // tensor component
-    checkCuda(cudaMemcpyAsync(dB, tensor[i].data(), size_B,
+    checkCuda(cudaMemcpyAsync(dB.get(), tensor[i].data(), size_B,
                               cudaMemcpyHostToDevice, _stream));
 
     // Call the first tensor matrix multiplication
-    gemm(sh1, dA, dB, dX);
+    gemm(sh1, dA.get(), dB.get(), dX.get());
 
     // Call the second tensor matrix multiplication
-    gemm(sh2, dX, dC, dY);
+    gemm(sh2, dX.get(), dC.get(), dY.get());
 
     // Copy the result Array back to the device
     double *hout = result[i].data();
-    checkCuda(
-        cudaMemcpyAsync(hout, dY, size_Y, cudaMemcpyDeviceToHost, _stream));
+    checkCuda(cudaMemcpyAsync(hout, dY.get(), size_Y, cudaMemcpyDeviceToHost,
+                              _stream));
   }
-
-  // Deallocate all the memory from the device
-  free_mem_in_gpu(dA);
-  free_mem_in_gpu(dB);
-  free_mem_in_gpu(dC);
-  free_mem_in_gpu(dX);
-  free_mem_in_gpu(dY);
 
   return result;
 }
