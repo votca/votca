@@ -32,10 +32,18 @@
  * The `EigenCuda` class handles the allocation and deallocation of arrays on
  * the GPU. Firstly, to perform a matrix multiplication, memory must be
  * allocated in the device to contain the involved matrices. The
- * `initialize_matrix_mem` method firstly allocates memory by calling the
- * `alloc_mem_in_gpu` method that allocates either pinned or pageable memory, see:
- * https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/ Then the
- * array could be optionally copy to the device.
+ * `copy_matrix_to_gpu` method firstly allocates memory by calling the
+ * `alloc_mem_in_gpu` method that allocates either pinned or pageable memory,
+ * see: https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/ Then
+ * the array could be optionally copy to the device.
+ *
+ * Pinned Memory:
+ * "Host (CPU) data allocations are pageable by default. The GPU cannot access
+ * data directly from pageable host memory, so when a data transfer from
+ * pageable host memory to device memory is invoked, the CUDA driver must first
+ * allocate a temporary page-locked, or “pinned”, host array, copy the host data
+ * to the pinned array, and then transfer the data from the pinned array to
+ * device memory.
  */
 
 namespace votca {
@@ -52,15 +60,15 @@ inline cudaError_t checkCuda(cudaError_t result) {
 }
 
 // Structure with the sizes to call ?GEMM
-struct Shapes {
+struct ShapesOfMatrices {
   int A_rows;
   int A_cols;
   int B_rows;
   int B_cols;
   int C_rows;
 
-  Shapes(long int a_rows, long int a_cols, long int b_rows, long int b_cols,
-         long int crows)
+  ShapesOfMatrices(long int a_rows, long int a_cols, long int b_rows,
+                   long int b_cols, long int crows)
       : A_rows{static_cast<int>(a_rows)},
         A_cols{static_cast<int>(a_cols)},
         B_rows{static_cast<int>(b_rows)},
@@ -87,30 +95,28 @@ class EigenCuda {
 
   // Perform the triple matrix multiplication A * matrix * C, for the vector
   // of matrices given by tensor
-  std::vector<Mat> triple_tensor_product(const Mat &A,
-                                         const std::vector<Mat> &tensor,
-                                         const Mat &C);
+  std::vector<Mat> matrix_tensor_matrix_mult(const Mat &A,
+                                             const std::vector<Mat> &tensor,
+                                             const Mat &C);
 
   // Perform a multiplication between a matrix and a tensor
-  std::vector<Mat> right_matrix_tensor(const std::vector<Mat> &tensor, const Mat &A) const;
+  std::vector<Mat> right_matrix_tensor_mult(const std::vector<Mat> &tensor,
+                                            const Mat &A) const;
 
  private:
-  void check_available_memory(size_t required) const;
-
+  void check_available_memory_in_gpu(size_t required) const;
   void alloc_mem_in_gpu(double **x, std::size_t n) const;
   void free_mem_in_gpu(double *x) const;
-
-  // Allocate matrix in the device
-  double *initialize_matrix_mem(size_t size_A) const;
+  double *alloc_matrix_in_gpu(size_t size_matrix) const;
 
   // Allocate memory for a matrix and copy it to the device
-  double *initialize_and_copy(const Mat &A) const;
+  double *copy_matrix_to_gpu(const Mat &matrix) const;
 
   // Invoke the ?gemm function of cublas
-  void gemm(Shapes shapes, const double *dA, const double *dB,
+  void gemm(ShapesOfMatrices shapes, const double *dA, const double *dB,
             double *dC) const;
 
-  // Cuda variables
+  // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
   bool _pinned = false;
 

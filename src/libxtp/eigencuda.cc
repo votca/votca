@@ -31,10 +31,9 @@ EigenCuda::~EigenCuda() {
 }
 
 /*
- * Allocate memory in the device using either pinned or pageable (default)
+ * Allocate memory in the gpu using either pinned or pageable (default)
  * memory
  */
-
 void EigenCuda::alloc_mem_in_gpu(double **x, std::size_t n) const {
   (_pinned) ? checkCuda(cudaMallocHost(x, n)) : checkCuda(cudaMalloc(x, n));
 }
@@ -42,7 +41,6 @@ void EigenCuda::alloc_mem_in_gpu(double **x, std::size_t n) const {
 /*
  * Deallocate memory from the device
  */
-
 void EigenCuda::free_mem_in_gpu(double *x) const {
   (_pinned) ? checkCuda(cudaFreeHost(x)) : checkCuda(cudaFree(x));
 };
@@ -50,22 +48,21 @@ void EigenCuda::free_mem_in_gpu(double *x) const {
 /*
  * Check if the available memory is enough to compute the system
  */
-
-void EigenCuda::check_available_memory(size_t requested) const {
-  size_t *free, *total;
-
+void EigenCuda::check_available_memory_in_gpu(size_t requested_memory) const {
   // Use Unified memory
+  size_t *free, *total;
   cudaMallocManaged(&free, sizeof(size_t));
   cudaMallocManaged(&total, sizeof(size_t));
   checkCuda(cudaMemGetInfo(free, total));
 
   std::ostringstream oss;
-  oss << "There were requested : " << requested << "bytes int the device\n";
+  oss << "There were requested : " << requested_memory
+      << "bytes int the device\n";
   oss << "Device Free memory (bytes): " << *free
       << "\nDevice total Memory (bytes): " << *total << "\n";
 
   // Raise an error if there is not enough total or free memory in the device
-  if (requested > *free) {
+  if (requested_memory > *free) {
     oss << "There is not enough memory in the Device!\n";
     throw std::runtime_error(oss.str());
   }
@@ -78,44 +75,37 @@ void EigenCuda::check_available_memory(size_t requested) const {
 /*
  * Allocate memory in the device for matrix A.
  */
-
-double *EigenCuda::initialize_matrix_mem(size_t size_A) const {
+double *EigenCuda::alloc_matrix_in_gpu(size_t size_matrix) const {
 
   // Pointer in the device
-  double *dA;
+  double *dmatrix;
 
   // Allocate either pageable or pinned memory
-  alloc_mem_in_gpu(&dA, size_A);
+  alloc_mem_in_gpu(&dmatrix, size_matrix);
 
-  return dA;
+  return dmatrix;
 }
 
-/*
- * Allocate memory for the matrix and copy it to the device
- */
-
-double *EigenCuda::initialize_and_copy(const Mat &A) const {
-
+double *EigenCuda::copy_matrix_to_gpu(const Mat &matrix) const {
   // allocate memory in the device
-  size_t size_A = A.size() * sizeof(double);
-  double *dA = initialize_matrix_mem(size_A);
+  size_t size_matrix = matrix.size() * sizeof(double);
+  double *dmatrix = alloc_matrix_in_gpu(size_matrix);
 
   // Transfer data to the GPU
-  const double *hA = A.data();  // Pointers at the host
-  cudaError_t err =
-      cudaMemcpyAsync(dA, hA, size_A, cudaMemcpyHostToDevice, _stream);
+  const double *hmatrix = matrix.data();  // Pointers at the host
+  cudaError_t err = cudaMemcpyAsync(dmatrix, hmatrix, size_matrix,
+                                    cudaMemcpyHostToDevice, _stream);
   if (err != 0) {
     throw std::runtime_error("Error copy arrays to device");
   }
-  return dA;
+  return dmatrix;
 }
 
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices.
  */
-
-void EigenCuda::gemm(Shapes sh, const double *dA, const double *dB,
+void EigenCuda::gemm(ShapesOfMatrices sh, const double *dA, const double *dB,
                      double *dC) const {
 
   // Scalar constanst for calling blas
@@ -130,22 +120,14 @@ void EigenCuda::gemm(Shapes sh, const double *dA, const double *dB,
 }
 
 /*
- * \brief Multiply a matrix B by a 3D tensor represented as a vector of
- * matrices.
- * \return vector of matrices representing the result
- * Initially, it allocates memory and copy the matrix B and each submatrix
- * from tensor to the device. Also, the function allocates the result matrix
- * C into the device. The method iterates
- * over each submatrix of the tensor computing: C = tensor(i) * A.
+ * \brief Perform a Tensor3D matrix multiplication
  */
-
-std::vector<Mat> EigenCuda::right_matrix_tensor(const std::vector<Mat> &tensor,
-                                                const Mat &B) const {
-  // Number of submatrices in the input tensor
+std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
+    const std::vector<Mat> &tensor, const Mat &B) const {
   int batchCount = tensor.size();
 
   // First submatrix from the tensor
-  Mat matrix = tensor[0];
+  const Mat &matrix = tensor[0];
 
   // sizes of the matrices to allocated in the device
   size_t size_A = matrix.size() * sizeof(double);
@@ -153,22 +135,16 @@ std::vector<Mat> EigenCuda::right_matrix_tensor(const std::vector<Mat> &tensor,
   size_t size_C = matrix.rows() * B.cols() * sizeof(double);
 
   // Check if there is enough available memory
-  check_available_memory(size_A + size_B + size_C);
+  check_available_memory_in_gpu(size_A + size_B + size_C);
 
-  // Initialize memory for tensor components
-  double *dA = initialize_matrix_mem(size_A);
+  double *dA = alloc_matrix_in_gpu(size_A);
+  double *dC = alloc_matrix_in_gpu(size_C);
+  double *dB = copy_matrix_to_gpu(B);
 
-  // Allocate memory for the final result array C
-  double *dC = initialize_matrix_mem(size_C);
+  ShapesOfMatrices sh{matrix.rows(), matrix.cols(), B.rows(), B.cols(),
+                      matrix.rows()};
 
-  // Copy Matrix B to the device
-  double *dB = initialize_and_copy(B);
-
-  // Shapes of the resulting matrices
-  Shapes sh{matrix.rows(), matrix.cols(), B.rows(), B.cols(), matrix.rows()};
-
-  // Vector containing the results
-  std::vector<Mat> rs(batchCount, Mat::Zero(matrix.rows(), B.cols()));
+  std::vector<Mat> result(batchCount, Mat::Zero(matrix.rows(), B.cols()));
 
   // Call tensor matrix multiplication
   for (auto i = 0; i < batchCount; i++) {
@@ -180,7 +156,7 @@ std::vector<Mat> EigenCuda::right_matrix_tensor(const std::vector<Mat> &tensor,
     gemm(sh, dA, dB, dC);
 
     // Copy the result to the host
-    double *hout = rs[i].data();
+    double *hout = result[i].data();
     checkCuda(
         cudaMemcpyAsync(hout, dC, size_C, cudaMemcpyDeviceToHost, _stream));
   }
@@ -190,20 +166,18 @@ std::vector<Mat> EigenCuda::right_matrix_tensor(const std::vector<Mat> &tensor,
   free_mem_in_gpu(dB);
   free_mem_in_gpu(dC);
 
-  return rs;
+  return result;
 }
 
 /*
  * \brief performs a matrix_1 * tensor * matrix_2 multiplication
- * \return vector containging the matrix-matrix multiplications
  */
-std::vector<Mat> EigenCuda::triple_tensor_product(
+std::vector<Mat> EigenCuda::matrix_tensor_matrix_mult(
     const Mat &A, const std::vector<Mat> &tensor, const Mat &C) {
-  // Number of submatrices in the input tensor
   int batchCount = tensor.size();
 
   // First submatrix from the tensor
-  Mat matrix = tensor[0];
+  const Mat &matrix = tensor[0];
 
   // sizes of the matrices to allocated in the device
   size_t size_A = A.size() * sizeof(double);
@@ -213,26 +187,23 @@ std::vector<Mat> EigenCuda::triple_tensor_product(
   std::size_t size_Y = A.rows() * C.cols() * sizeof(double);
 
   // Check if there is enough available memory
-  check_available_memory(size_A + size_B + size_C + size_X + size_Y);
+  check_available_memory_in_gpu(size_A + size_B + size_C + size_X + size_Y);
 
-  // Copy Matrix B to the device
-  double *dA = initialize_and_copy(A);
-  double *dC = initialize_and_copy(C);
-  double *dB = initialize_matrix_mem(size_B);
+  double *dA = copy_matrix_to_gpu(A);
+  double *dC = copy_matrix_to_gpu(C);
+  double *dB = alloc_matrix_in_gpu(size_B);
 
   // Intermediate result X
-  double *dX = initialize_matrix_mem(size_X);
+  double *dX = alloc_matrix_in_gpu(size_X);
 
   // Final result array Y
-  double *dY = initialize_matrix_mem(size_Y);
+  double *dY = alloc_matrix_in_gpu(size_Y);
 
-  // Shapes of the matrices
-  Shapes sh1{A.rows(), A.cols(), matrix.rows(), matrix.cols(), A.rows()};
-  Shapes sh2{A.rows(), matrix.cols(), C.rows(), C.cols(), A.rows()};
+  ShapesOfMatrices sh1{A.rows(), A.cols(), matrix.rows(), matrix.cols(),
+                       A.rows()};
+  ShapesOfMatrices sh2{A.rows(), matrix.cols(), C.rows(), C.cols(), A.rows()};
 
-  // Vector containing the results
-  std::vector<Mat> rs(batchCount, Mat::Zero(A.rows(), C.cols()));
-
+  std::vector<Mat> result(batchCount, Mat::Zero(A.rows(), C.cols()));
   for (auto i = 0; i < batchCount; i++) {
     // tensor component
     checkCuda(cudaMemcpyAsync(dB, tensor[i].data(), size_B,
@@ -245,7 +216,7 @@ std::vector<Mat> EigenCuda::triple_tensor_product(
     gemm(sh2, dX, dC, dY);
 
     // Copy the result Array back to the device
-    double *hout = rs[i].data();
+    double *hout = result[i].data();
     checkCuda(
         cudaMemcpyAsync(hout, dY, size_Y, cudaMemcpyDeviceToHost, _stream));
   }
@@ -257,7 +228,7 @@ std::vector<Mat> EigenCuda::triple_tensor_product(
   free_mem_in_gpu(dX);
   free_mem_in_gpu(dY);
 
-  return rs;
+  return result;
 }
 }  // namespace xtp
 }  // namespace votca

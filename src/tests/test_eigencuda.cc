@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   Z << 55., 82., 63., 94., 71., 106.;
 
   std::vector<Eigen::MatrixXd> tensor{B, C, D};
-  std::vector<Eigen::MatrixXd> rs = EC.right_matrix_tensor(tensor, A);
+  std::vector<Eigen::MatrixXd> rs = EC.right_matrix_tensor_mult(tensor, A);
 
   // Expected results
   BOOST_TEST(X.isApprox(rs[0]));
@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE(triple_tensor_product) {
   Y << 2292., 2616., 5541., 6324.;
 
   std::vector<Eigen::MatrixXd> tensor{C, D};
-  std::vector<Eigen::MatrixXd> rs = EC.triple_tensor_product(A, tensor, B);
+  std::vector<Eigen::MatrixXd> rs = EC.matrix_tensor_matrix_mult(A, tensor, B);
 
   // Expected results
   BOOST_TEST(X.isApprox(rs[0]));
