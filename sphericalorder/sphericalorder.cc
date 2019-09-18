@@ -179,21 +179,18 @@ class CGOrderParam : public CsgApplication {
     Eigen::Vector3d u, v, w;
 
     if (_refmol != "") {
-      for (BeadContainer::iterator iter = conf->Beads().begin();
-           iter != conf->Beads().end(); ++iter) {
-        Bead *bead = *iter;
-        if (wildcmp(_refmol.c_str(), bead->getName().c_str())) {
+      for (Bead *bead : conf->Beads()) {
+        if (votca::tools::wildcmp(_refmol.c_str(), bead->getName().c_str())) {
           _ref = bead->getPos();
-          // cout << " Solute pos " << _ref << endl;
         }
       }
     }
 
-    for (BeadContainer::iterator iter = conf->Beads().begin();
-         iter != conf->Beads().end(); ++iter) {
-      Bead *bead = *iter;
-      if (!wildcmp(_filter.c_str(), bead->getName().c_str())) continue;
-      if (wildcmp(_refmol.c_str(), bead->getName().c_str())) continue;
+    for (Bead *bead : conf->Beads()) {
+      if (!votca::tools::wildcmp(_filter.c_str(), bead->getName().c_str()))
+        continue;
+      if (votca::tools::wildcmp(_refmol.c_str(), bead->getName().c_str()))
+        continue;
 
       eR = bead->getPos() - _ref;
       if ((eR.norm() < _radialcutoff && eR.norm() > _minrad) || _rbins != 1) {
@@ -203,7 +200,6 @@ class CGOrderParam : public CsgApplication {
           rb = (int)((eR.norm()) / boxl * (double)_rbins);
         }
         if (rb >= _rbins) continue;
-        // cout << "rb " << rb << endl;
 
         eR.normalize();
         u = bead->getU();
@@ -217,7 +213,6 @@ class CGOrderParam : public CsgApplication {
         nv = (int)(((eR.dot(v) + 1) / 2) * _nbin);
         nw = (int)(((eR.dot(w) + 1) / 2) * _nbin);
 
-        // cout << "nu" << nu << "nv" << nv << "nw" << nw << endl;
         _hist_u[rb][nu] += 1;
         _hist_v[rb][nv] += 1;
         _hist_w[rb][nw] += 1;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2018 The VOTCA Development Team (http://www.votca.org)
+ * Copyright 2009-2019 The VOTCA Development Team (http://www.votca.org)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ class RDFCalculator {
   void Initialize(void);
 
   /// load cg definitions file
-  void LoadOptions(const string &file);
+  void LoadOptions(const std::string &file);
 
   /// begin coarse graining a trajectory
   void BeginEvaluate(Topology *top, Topology *top_atom);
@@ -64,9 +64,10 @@ class RDFCalculator {
   void SetSubvolRadius(double r) { _subvol_rad = r; }
   double AnalyticVolumeCorrection(double t) {
 
-    cout << "DBG " << t << " "
-         << 1.0 / 24.0 * (16.0 * t * t - 12.0 * t * t * t + t * t * t * t * t)
-         << endl;
+    std::cout << "DBG " << t << " "
+              << 1.0 / 24.0 *
+                     (16.0 * t * t - 12.0 * t * t * t + t * t * t * t * t)
+              << std::endl;
     return 1.0 / 24.0 * (16.0 * t * t - 12.0 * t * t * t + t * t * t * t * t);
   }
 
@@ -100,9 +101,9 @@ class RDFCalculator {
 
   /// struct to store collected information for groups (e.g. crosscorrelations)
   struct group_t {
-    list<interaction_t *> _interactions;
+    std::list<interaction_t *> _interactions;
     group_matrix _corr;
-    vector<pair_t> _pairs;
+    std::vector<pair_t> _pairs;
   };
 
   /// the options parsed from cg definition file
@@ -120,28 +121,28 @@ class RDFCalculator {
   bool _do_vol_corr;
 
   /// list of bonded interactions
-  vector<Property *> _bonded;
+  std::vector<Property *> _bonded;
   /// list of non-bonded interactions
-  vector<Property *> _nonbonded;
+  std::vector<Property *> _nonbonded;
 
-  /// map ineteractionm-name to interaction
-  map<string, interaction_t *> _interactions;
-  /// map group-name to group
-  map<string, group_t *> _groups;
+  /// std::map ineteractionm-name to interaction
+  std::map<std::string, interaction_t *> _interactions;
+  /// std::map group-name to group
+  std::map<std::string, group_t *> _groups;
 
   /// create a new interaction entry based on given options
   interaction_t *AddInteraction(Property *p);
 
   /// get group by name, creates one if it doesn't exist
-  group_t *getGroup(const string &name);
+  group_t *getGroup(const std::string &name);
 
-  void WriteDist(const string &suffix = "");
+  void WriteDist(const std::string &suffix = "");
 
   void ClearAverages();
 
   class Worker : public CsgApplication::Worker {
    public:
-    vector<HistogramNew> _current_hists;
+    std::vector<HistogramNew> _current_hists;
     RDFCalculator *_rdfcalculator;
     double _cur_vol;
     double _cur_beadlist_1_count;  // need to normalize to avg density for
