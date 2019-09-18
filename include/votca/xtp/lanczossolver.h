@@ -60,7 +60,7 @@ class LanczosSolver {
         std::chrono::system_clock::now();
 
     // declare the shift invert op
-    SINV_OPERATOR<MatrixReplacement> sinv_op(A);
+    ShiftInvertOperator<MatrixReplacement> sinv_op(A);
 
     // convergence criteria
     Eigen::Index ncv = 2*neigen+1;
@@ -70,12 +70,8 @@ class LanczosSolver {
     double sigma = 0.;
 
     // solver
-    // Spectra::GenEigsRealShiftSolver<double, Spectra::SMALLEST_REAL, 
-    //   SINV_OPERATOR<MatrixReplacement> > eigs(&sinv_op, nev, ncv, sigma);
-
-
-    Spectra::GenEigsSolver<double, Spectra::SMALLEST_REAL, 
-      SINV_OPERATOR<MatrixReplacement> > eigs(&sinv_op, nev, ncv);
+    Spectra::GenEigsRealShiftSolver<double, Spectra::SMALLEST_REAL, 
+      ShiftInvertOperator<MatrixReplacement>> eigs(&sinv_op, nev, ncv, sigma);
 
     eigs.init();
     int nconv = eigs.compute();

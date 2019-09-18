@@ -18,57 +18,64 @@
  */
 
 #pragma once
-#ifndef _VOTCA_XTP_SINV_OPERATOR_H
-#define _VOTCA_XTP_SINV_OPERATOR_H
+#ifndef _VOTCA_XTP_SHIFTINVERT_OPERATOR_H
+#define _VOTCA_XTP_SHIFTINVERT_OPERATOR_H
 
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/matrixfreeoperator.h>
 #include <votca/xtp/threecenter.h>
-#include <Eigen/Core>
 #include <Eigen/IterativeLinearSolvers>
 
+
 namespace votca {
-namespace xtp {
+  namespace xtp {
 
 
 template <typename MatrixReplacement>
-class SINV_OPERATOR : public MatrixFreeOperator {
+class ShiftInvertOperator : public MatrixFreeOperator {
 
 public:
 
-  SINV_OPERATOR(const MatrixReplacement &A) :
-    _Aop(A) {};
+  // constructor
+  ShiftInvertOperator(const MatrixReplacement &A) :
+    _Aop(A), _size(A.cols()) {};
 
-  void set_shift(double sigma)
-  {
-    // sigma is always 0 for us ...
-    cg_solver.compute(_Aop);
-  }
+  // get size 
+  Eigen::Index rows() const {return this->_size;}
+  Eigen::Index cols() const {return this->_size;}
 
-  //  get a col of the operator
+  //  get a row of the operator
   Eigen::RowVectorXd row(int index) const {
     return this->_Aop.row(index);
   }
 
-  void perform_op(const double *x_in, double *y_out)
+  // set the shift that is alwyas null in our case ..
+  void set_shift(double sigma)
   {
-    Eigen::Map<const Eigen::VectorXd> x(x_in,_Aop.size());
-    Eigen::Map<Eigen::VectorXd> y(y_out,_Aop.size());
-    y = cg_solver.solve(x);
-    std::cout << "CG #iterations:" << cg_solver.iterations() 
-              << " estimated error: " << cg_solver.error() << std::endl; 
+    bicg_solver.compute(_Aop);
   }
 
-  Eigen::Index rows() const {return this->_Aop.rows();}
-  Eigen::Index cols() const {return this->_Aop.cols();}
+
+  // shift invert operation
+  void perform_op(const double *x_in, double *y_out)
+  {
+    Eigen::Map<const Eigen::VectorXd> x(x_in,_size);
+    Eigen::Map<Eigen::VectorXd> y(y_out,_size);
+    y.noalias() = bicg_solver.solve(x);
+  }
+
 
 private:
 
   MatrixReplacement _Aop;
   double _lambda;
+  int _size;
 
-  Eigen::ConjugateGradient<SINV_OPERATOR<MatrixReplacement>, 
+  Eigen::ConjugateGradient<ShiftInvertOperator<MatrixReplacement>, 
     Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg_solver;
+
+  Eigen::BiCGSTAB<ShiftInvertOperator<MatrixReplacement>,Eigen::IdentityPreconditioner> bicg_solver;
+
 
 
 };

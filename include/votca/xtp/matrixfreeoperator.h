@@ -38,6 +38,7 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 
   Index rows() const { return this->_size; }
   Index cols() const { return this->_size; }
+  Index outerSize() const { return this->_size; }
 
   template <typename Vtype>
   Eigen::Product<MatrixFreeOperator, Vtype, Eigen::AliasFreeProduct> operator*(
