@@ -143,8 +143,7 @@ class TCMatrix_gwbse : public TCMatrix {
   void MatrixTensorMatrixProduct(
       std::vector<Eigen::MatrixXd>& block,
       const std::vector<Eigen::MatrixXd>& symmstorage,
-      const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm,
-      int numFunc) const;
+      const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm) const;
 };
 
 }  // namespace xtp

@@ -186,12 +186,10 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
         << " GPU tripe_tensor_product failed due to: " << error.what()
         << " Using default CPU MatrixTensorMatrixProduct!" << flush;
 
-    this->MatrixTensorMatrixProduct(block, symmstorage, dftn, dftm,
-                                    auxshell.getNumFunc());
+    this->MatrixTensorMatrixProduct(block, symmstorage, dftn, dftm);
   }
 #else
-  this->MatrixTensorMatrixProduct(block, symmstorage, dftn, dftm,
-                                  auxshell.getNumFunc());
+  this->MatrixTensorMatrixProduct(block, symmstorage, dftn, dftm);
 #endif
   return;
 }
@@ -202,9 +200,8 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
 void TCMatrix_gwbse::MatrixTensorMatrixProduct(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
-    const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm,
-    int numFunc) const {
-  for (int k = 0; k < numFunc; ++k) {
+    const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm) const {
+  for (int k = 0; k < symmstorage.size(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
