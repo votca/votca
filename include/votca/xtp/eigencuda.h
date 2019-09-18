@@ -33,7 +33,7 @@
  * the GPU. Firstly, to perform a matrix multiplication, memory must be
  * allocated in the device to contain the involved matrices. The
  * `initialize_matrix_mem` method firstly allocates memory by calling the
- * `gpu_alloc` method that allocates either pinned or pageable memory, see:
+ * `alloc_mem_in_gpu` method that allocates either pinned or pageable memory, see:
  * https://devblogs.nvidia.com/how-optimize-data-transfers-cuda-cc/ Then the
  * array could be optionally copy to the device.
  */
@@ -95,14 +95,10 @@ class EigenCuda {
   std::vector<Mat> right_matrix_tensor(const std::vector<Mat> &tensor, const Mat &A) const;
 
  private:
-  // Check available memory
   void check_available_memory(size_t required) const;
 
-  // Allocate memory in the device
-  void gpu_alloc(double **x, std::size_t n) const;
-
-  // Deallocate memory from the device
-  void gpu_free(double *x) const;
+  void alloc_mem_in_gpu(double **x, std::size_t n) const;
+  void free_mem_in_gpu(double *x) const;
 
   // Allocate matrix in the device
   double *initialize_matrix_mem(size_t size_A) const;

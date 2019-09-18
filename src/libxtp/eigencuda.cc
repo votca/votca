@@ -35,7 +35,7 @@ EigenCuda::~EigenCuda() {
  * memory
  */
 
-void EigenCuda::gpu_alloc(double **x, std::size_t n) const {
+void EigenCuda::alloc_mem_in_gpu(double **x, std::size_t n) const {
   (_pinned) ? checkCuda(cudaMallocHost(x, n)) : checkCuda(cudaMalloc(x, n));
 }
 
@@ -43,7 +43,7 @@ void EigenCuda::gpu_alloc(double **x, std::size_t n) const {
  * Deallocate memory from the device
  */
 
-void EigenCuda::gpu_free(double *x) const {
+void EigenCuda::free_mem_in_gpu(double *x) const {
   (_pinned) ? checkCuda(cudaFreeHost(x)) : checkCuda(cudaFree(x));
 };
 
@@ -85,7 +85,7 @@ double *EigenCuda::initialize_matrix_mem(size_t size_A) const {
   double *dA;
 
   // Allocate either pageable or pinned memory
-  gpu_alloc(&dA, size_A);
+  alloc_mem_in_gpu(&dA, size_A);
 
   return dA;
 }
@@ -119,13 +119,13 @@ void EigenCuda::gemm(Shapes sh, const double *dA, const double *dB,
                      double *dC) const {
 
   // Scalar constanst for calling blas
-  double _alpha = 1.;
-  double _beta = 0.;
-  const double *_palpha = &_alpha;
-  const double *_pbeta = &_beta;
+  double alpha = 1.;
+  double beta = 0.;
+  const double *palpha = &alpha;
+  const double *pbeta = &beta;
 
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, sh.A_rows, sh.B_cols,
-              sh.A_cols, _palpha, dA, sh.A_rows, dB, sh.B_rows, _pbeta, dC,
+              sh.A_cols, palpha, dA, sh.A_rows, dB, sh.B_rows, pbeta, dC,
               sh.C_rows);
 }
 
@@ -186,9 +186,9 @@ std::vector<Mat> EigenCuda::right_matrix_tensor(const std::vector<Mat> &tensor,
   }
 
   // Deallocate all the memory from the device
-  checkCuda(cudaFree(dA));
-  checkCuda(cudaFree(dB));
-  checkCuda(cudaFree(dC));
+  free_mem_in_gpu(dA);
+  free_mem_in_gpu(dB);
+  free_mem_in_gpu(dC);
 
   return rs;
 }
@@ -251,11 +251,11 @@ std::vector<Mat> EigenCuda::triple_tensor_product(
   }
 
   // Deallocate all the memory from the device
-  checkCuda(cudaFree(dA));
-  checkCuda(cudaFree(dB));
-  checkCuda(cudaFree(dC));
-  checkCuda(cudaFree(dX));
-  checkCuda(cudaFree(dY));
+  free_mem_in_gpu(dA);
+  free_mem_in_gpu(dB);
+  free_mem_in_gpu(dC);
+  free_mem_in_gpu(dX);
+  free_mem_in_gpu(dY);
 
   return rs;
 }

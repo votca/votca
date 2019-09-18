@@ -110,13 +110,6 @@ class TCMatrix_gwbse : public TCMatrix {
 
   void MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& AuxMatrix);
 
-  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
-
-  void TripleTensorProduct(std::vector<Eigen::MatrixXd>& block,
-                           const std::vector<Eigen::MatrixXd>& symmstorage,
-                           const Eigen::MatrixXd& dftn,
-                           const Eigen::MatrixXd& dftm, int numFunc) const;
-
  private:
   // store vector of matrices
   std::vector<Eigen::MatrixXd> _matrix;
@@ -144,6 +137,13 @@ class TCMatrix_gwbse : public TCMatrix {
 
   void FillBlock(std::vector<Eigen::MatrixXd>& matrix, const AOShell& auxshell,
                  const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
+
+  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
+
+  void TripleTensorProduct(std::vector<Eigen::MatrixXd>& block,
+                           const std::vector<Eigen::MatrixXd>& symmstorage,
+                           const Eigen::MatrixXd& dftn,
+                           const Eigen::MatrixXd& dftm, int numFunc) const;
 };
 
 }  // namespace xtp

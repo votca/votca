@@ -69,19 +69,6 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 }
 
 /*
- * Modify 3-center matrix elements consistent with use of symmetrized
- * Coulomb interaction using OPENMP parallelization
- */
-void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
-    const Eigen::MatrixXd& matrix) {
-#pragma omp parallel for
-  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
-    Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
-    _matrix[i_occ] = temp;
-  }
-  return;
-}
-/*
  * Fill the 3-center object by looping over shells of GW basis set and
  * calling FillBlock, which calculates all 3-center overlap integrals
  * associated to a particular shell, convoluted with the DFT orbital
@@ -225,6 +212,20 @@ void TCMatrix_gwbse::TripleTensorProduct(
       block[i].col(k) = threec_inMo.col(i);
     }
   }
+}
+
+/*
+ * Modify 3-center matrix elements consistent with use of symmetrized
+ * Coulomb interaction using OPENMP parallelization
+ */
+void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
+    const Eigen::MatrixXd& matrix) {
+#pragma omp parallel for
+  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+    Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
+    _matrix[i_occ] = temp;
+  }
+  return;
 }
 
 }  // namespace xtp
