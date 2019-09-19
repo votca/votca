@@ -243,7 +243,8 @@ void Imc::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  IMCNBSearchHandler(votca::tools::HistogramNew *hist) : _hist(*hist) {}
+  explicit IMCNBSearchHandler(votca::tools::HistogramNew *hist)
+      : _hist(*hist) {}
 
   votca::tools::HistogramNew &_hist;
 
@@ -500,7 +501,6 @@ void Imc::WriteDist(const string &suffix) {
     // calculate the rdf
     auto &interaction = pair.second;
     votca::tools::Table &t = interaction->_average.data();
-    
 
     // if no average force calculation, dummy table
     votca::tools::Table force;
