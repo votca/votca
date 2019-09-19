@@ -52,7 +52,7 @@ public:
   // set the shift that is alwyas null in our case ..
   void set_shift(double sigma)
   {
-    cg_solver.compute(_Aop);
+    bicg_solver.compute(_Aop);
   }
 
 
@@ -61,7 +61,7 @@ public:
   {
     Eigen::Map<const Eigen::VectorXd> x(x_in,_size);
     Eigen::Map<Eigen::VectorXd> y(y_out,_size);
-    y.noalias() = cg_solver.solve(x);
+    y.noalias() = bicg_solver.solve(x);
   }
 
 

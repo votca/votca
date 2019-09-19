@@ -74,8 +74,15 @@ class LanczosSolver {
       ShiftInvertOperator<MatrixReplacement>> eigs(&sinv_op, nev, ncv, sigma);
 
     eigs.init();
-    int nconv = eigs.compute();
 
+    Eigen::Index maxit = 1000;
+    double tol = 1E-12;
+
+    int nconv = eigs.compute(maxit, tol);
+
+
+    std::cout << "\nnumber of conv eigenvalues : " << nconv << std::endl;
+    std::cout << "\nnumber of  iterations : " << eigs.num_iterations() << std::endl;
     if (eigs.info() == Spectra::SUCCESSFUL)
     {
       this->_eigenvalues = eigs.eigenvalues().real();
