@@ -145,10 +145,6 @@ class HamiltonianOperator
 namespace Eigen {
 namespace internal {
 
-// template <typename MatrixReplacement>
-// struct traits<votca::xtp::HamiltonianOperator<MatrixReplacement>>
-//     : public Eigen::internal::traits<Eigen::MatrixXd> {};
-
 // replacement of the mat*vect operation
 template <typename Vtype, typename MatrixReplacement>
 struct generic_product_impl<votca::xtp::HamiltonianOperator<MatrixReplacement>, Vtype, DenseShape,
