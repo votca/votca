@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
   
   auto lambda = LS.eigenvalues().real();
-  auto lambda_ref = es.eigenvalues().head(neigen).real();
+  auto lambda_ref = es.eigenvalues().real();
   
   std::cout << "lanczos : \n" << lambda << std::endl;
   std::cout << "eigen : \n" << lambda_ref << std::endl;
