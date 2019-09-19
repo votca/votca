@@ -50,19 +50,12 @@ stages:
 
 Debug GCC:
   stage: canary
-  before_script:
-    - source /opt/gromacs-2019/bin/GMXRC.bash
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
     CLANG_FORMAT: "yes"
-    USE_GPU: "yes"
-    WITH_MKL: "no"
-    DISABLE_MKL: "yes"
   extends: .build
-  tags:
-    - gpu
 
 None GCC:
   variables:
@@ -176,11 +169,12 @@ Release GCC Module:
   extends: .build
 
 Debug GPU Ubuntu:
+  before_script:
+    - source /opt/gromacs-2019/bin/GMXRC.bash
   variables:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "ubuntu"
     USE_GPU: "yes"
     WITH_MKL: "no"
     DISABLE_MKL: "yes"
