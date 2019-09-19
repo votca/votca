@@ -22,7 +22,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 /**
    \brief Observer class for analysis hook

@@ -31,7 +31,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 /**
     \brief definition of a coarse grained molecule
@@ -56,15 +55,15 @@ class CGMoleculeDef {
   const std::string &getIdent() { return _ident; }
 
  private:
-  Property _options;
+  tools::Property _options;
 
   struct beaddef_t {
     std::string _name;
     std::string _type;
-    byte_t _symmetry;
+    tools::byte_t _symmetry;
     std::string _mapping;
     std::vector<std::string> _subbeads;
-    Property *_options;
+    tools::Property *_options;
   };
 
   // name of the coarse grained molecule
@@ -77,17 +76,17 @@ class CGMoleculeDef {
   std::map<std::string, beaddef_t *> _beads_by_name;
 
   // mapping schemes
-  std::map<std::string, Property *> _maps;
+  std::map<std::string, tools::Property *> _maps;
 
-  std::vector<Property *> _bonded;
+  std::vector<tools::Property *> _bonded;
 
-  void ParseTopology(Property &options);
-  void ParseBeads(Property &options);
-  void ParseBonded(Property &options);
-  void ParseMapping(Property &options);
+  void ParseTopology(tools::Property &options);
+  void ParseBeads(tools::Property &options);
+  void ParseBonded(tools::Property &options);
+  void ParseMapping(tools::Property &options);
 
   beaddef_t *getBeadByName(const std::string &name);
-  Property *getMapByName(const std::string &name);
+  tools::Property *getMapByName(const std::string &name);
 };
 
 }  // namespace csg

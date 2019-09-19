@@ -51,7 +51,7 @@ class Imc {
   void Extension(std::string ext) { _extension = ext; }
 
  protected:
-  Average<double> _avg_vol;
+  tools::Average<double> _avg_vol;
 
   typedef Eigen::MatrixXd group_matrix;
   typedef Eigen::Block<group_matrix> pair_matrix;
@@ -59,9 +59,9 @@ class Imc {
   /// struct to store collected information for interactions
   struct interaction_t {
     int _index;
-    Property *_p;
-    HistogramNew _average;
-    HistogramNew _average_force;
+    tools::Property *_p;
+    tools::HistogramNew _average;
+    tools::HistogramNew _average_force;
     double _min, _max, _step;
     double _norm;
     double _cut;
@@ -88,7 +88,7 @@ class Imc {
   };
 
   /// the options parsed from cg definition file
-  Property _options;
+  tools::Property _options;
   // length of the block to write out and averages are clear after every write
   int _block_length = 0;
   // calculate the inverse monte carlos parameters (cross correlations)
@@ -102,9 +102,9 @@ class Imc {
   int _nblock;
 
   /// list of bonded interactions
-  std::vector<Property *> _bonded;
+  std::vector<tools::Property *> _bonded;
   /// list of non-bonded interactions
-  std::vector<Property *> _nonbonded;
+  std::vector<tools::Property *> _nonbonded;
 
   /// map interaction-name to interaction
   std::map<std::string, std::unique_ptr<interaction_t> > _interactions;
@@ -112,7 +112,7 @@ class Imc {
   std::map<std::string, std::unique_ptr<group_t> > _groups;
 
   /// create a new interaction entry based on given options
-  interaction_t *AddInteraction(Property *p);
+  interaction_t *AddInteraction(tools::Property *p);
 
   /// get group by name, creates one if it doesn't exist
   group_t *getGroup(const std::string &name);
@@ -131,8 +131,8 @@ class Imc {
 
   class Worker : public CsgApplication::Worker {
    public:
-    std::vector<HistogramNew> _current_hists;
-    std::vector<HistogramNew> _current_hists_force;
+    std::vector<tools::HistogramNew> _current_hists;
+    std::vector<tools::HistogramNew> _current_hists_force;
     Imc *_imc;
     double _cur_vol;
 

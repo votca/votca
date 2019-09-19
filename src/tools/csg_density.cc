@@ -15,14 +15,13 @@
  *
  */
 
-#include <math.h>
 #include <votca/csg/csgapplication.h>
+#include <votca/tools/constants.h>
 #include <votca/tools/histogramnew.h>
 #include <votca/tools/tokenizer.h>
 
 using namespace std;
 using namespace votca::csg;
-using namespace votca::tools;
 
 class CsgDensityApp : public CsgApplication {
   string ProgramName() { return "csg_density"; }
@@ -53,7 +52,7 @@ class CsgDensityApp : public CsgApplication {
 
  protected:
   string _filter, _out;
-  HistogramNew _dist;
+  votca::tools::HistogramNew _dist;
   string _dens_type;
   double _rmax;
   int _nbin;
@@ -135,11 +134,13 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
   for (MoleculeContainer::iterator imol = top->Molecules().begin();
        imol != top->Molecules().end(); ++imol) {
     Molecule *mol = *imol;
-    if (!wildcmp(_molname.c_str(), mol->getName().c_str())) continue;
+    if (!votca::tools::wildcmp(_molname.c_str(), mol->getName().c_str()))
+      continue;
     int N = mol->BeadCount();
     for (int i = 0; i < N; i++) {
       Bead *b = mol->getBead(i);
-      if (!wildcmp(_filter.c_str(), b->getName().c_str())) continue;
+      if (!votca::tools::wildcmp(_filter.c_str(), b->getName().c_str()))
+        continue;
       double r;
       if (_axisname == "r") {
         r = (top->BCShortestConnection(_ref, b->getPos()).norm());
@@ -170,7 +171,8 @@ void CsgDensityApp::EvalConfiguration(Topology *top, Topology *top_ref) {
 void CsgDensityApp::WriteDensity(int nframes, const string &suffix) {
   if (_axisname == "r") {
     _dist.data().y() =
-        _scale / (nframes * _rmax / (double)_nbin * 4 * M_PI) *
+        _scale /
+        (nframes * _rmax / (double)_nbin * 4 * votca::tools::conv::Pi) *
         _dist.data().y().cwiseQuotient(_dist.data().x().cwiseAbs2());
 
   } else {
@@ -193,7 +195,7 @@ std::istream &operator>>(std::istream &in, Vector3d &v) {
   while (in.good()) {
     in.get(c);
     if (c == ']') {  // found end of vector
-      Tokenizer tok(str, ",");
+      votca::tools::Tokenizer tok(str, ",");
       std::vector<double> d;
       tok.ConvertToVector(d);
       if (d.size() != 3)

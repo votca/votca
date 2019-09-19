@@ -77,7 +77,7 @@ bool PDBReader::NextFrame(Topology &top) {
   ////////////////////////////////////////////////////////////////////////////////
   int bead_count = 0;
   while (std::getline(_fl, line)) {
-    if (wildcmp("CRYST1*", line.c_str())) {
+    if (tools::wildcmp("CRYST1*", line.c_str())) {
       string a, b, c, alpha, beta, gamma;
       try {
         // 1 -  6       Record name    "CRYST1"
@@ -104,9 +104,9 @@ bool PDBReader::NextFrame(Topology &top) {
       boost::algorithm::trim(alpha);
       boost::algorithm::trim(beta);
       boost::algorithm::trim(gamma);
-      if ((!wildcmp("90*", alpha.c_str())) ||
-          (!wildcmp("90*", alpha.c_str())) ||
-          (!wildcmp("90*", alpha.c_str()))) {
+      if ((!tools::wildcmp("90*", alpha.c_str())) ||
+          (!tools::wildcmp("90*", beta.c_str())) ||
+          (!tools::wildcmp("90*", gamma.c_str()))) {
         throw std::runtime_error(
             "Non cubical box in pdb file not implemented, yet!");
       }
@@ -118,7 +118,7 @@ bool PDBReader::NextFrame(Topology &top) {
       top.setBox(box);
     }
     // Only read the CONECT keyword if the topology is set too true
-    if (_topology && wildcmp("CONECT*", line.c_str())) {
+    if (_topology && tools::wildcmp("CONECT*", line.c_str())) {
       vector<string> bonded_atms;
       string atm1;
       // Keep track of the number of bonds
@@ -168,7 +168,8 @@ bool PDBReader::NextFrame(Topology &top) {
       }
     }
 
-    if (wildcmp("ATOM*", line.c_str()) || wildcmp("HETATM*", line.c_str())) {
+    if (tools::wildcmp("ATOM*", line.c_str()) ||
+        tools::wildcmp("HETATM*", line.c_str())) {
 
       // according to PDB format
       string x, y, z, resNum, resName, atName;
