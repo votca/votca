@@ -23,7 +23,6 @@
 
 namespace votca {
 namespace csg {
-using namespace votca::tools;
 
 /**
     \brief Bead Type informaton

@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
   try {
     Property p;
-    load_property_from_xml(p, file);
+    p.LoadFromXML(file);
 
     for (Property *prop : p.Select(path)) {
       if (filter != "") {

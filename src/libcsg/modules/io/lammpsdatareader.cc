@@ -43,6 +43,8 @@ vector<string> TrimCommentsFrom_(vector<string> fields) {
  * Public Facing Methods                                                     *
  *****************************************************************************/
 
+// Data file should follow this format:
+// https://lammps.sandia.gov/doc/2001/data_format.html
 bool LAMMPSDataReader::ReadTopology(string file, Topology &top) {
 
   cout << endl;
@@ -99,33 +101,28 @@ bool LAMMPSDataReader::FirstFrame(Topology &top) {
 
 bool LAMMPSDataReader::NextFrame(Topology &top) {
 
+  string header;
+  getline(fl_, header);
   string line;
   getline(fl_, line);
   while (!fl_.eof()) {
 
-    bool labelMatched = false;
-    Tokenizer tok(line, " ");
+    tools::Tokenizer tok(line, " ");
     vector<string> fields = tok.ToVector();
     fields = TrimCommentsFrom_(fields);
     // If not check the size of the vector and parse according
     // to the number of fields
     if (fields.size() == 1) {
-      labelMatched = MatchOneFieldLabel_(fields, top);
+      MatchOneFieldLabel_(fields, top);
     } else if (fields.size() == 2) {
-      labelMatched = MatchTwoFieldLabels_(fields, top);
+      MatchTwoFieldLabels_(fields, top);
     } else if (fields.size() == 3) {
-      labelMatched = MatchThreeFieldLabels_(fields, top);
+      MatchThreeFieldLabels_(fields, top);
     } else if (fields.size() == 4) {
-      labelMatched = MatchFourFieldLabels_(fields, top);
+      MatchFourFieldLabels_(fields, top);
     } else if (fields.size() != 0) {
-
-      // See if the line is the lammps .data header/info line
-      labelMatched = MatchFieldsTimeStepLabel_(fields, top);
-
-      if (!labelMatched) {
-        string err = "Unrecognized line in lammps .data file:\n" + line;
-        throw runtime_error(err);
-      }
+      string err = "Unrecognized line in lammps .data file:\n" + line;
+      throw runtime_error(err);
     }
     getline(fl_, line);
   }
@@ -241,19 +238,6 @@ bool LAMMPSDataReader::MatchFourFieldLabels_(vector<string> fields,
   return true;
 }
 
-bool LAMMPSDataReader::MatchFieldsTimeStepLabel_(vector<string> fields,
-                                                 Topology &top) {
-  size_t index = 0;
-  for (auto field : fields) {
-    if (field == "timestep" && (index + 2) < fields.size()) {
-      top.setStep(stoi(fields.at(index + 2)));
-      return true;
-    }
-    ++index;
-  }
-  return false;
-}
-
 void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   if (!data_.count("Masses")) {
     string err = "Masses must first be parsed before the atoms can be read.";
@@ -261,7 +245,7 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   }
 
   int index = 0;
-  Elements elements;
+  tools::Elements elements;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = stod(mass.at(1));
@@ -286,7 +270,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
   for (int i = 1; i < 3; ++i) {
     string line;
     getline(fl_, line);
-    Tokenizer tok(line, " ");
+    tools::Tokenizer tok(line, " ");
     tok.ConvertToVector(fields);
     if (fields.size() != 4) {
       throw runtime_error("invalid box format in the lammps data file");
@@ -305,7 +289,7 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   vector<vector<string>> group;
   string data_elem;
   while (!line.empty()) {
-    Tokenizer tok(line, " ");
+    tools::Tokenizer tok(line, " ");
     vector<string> fields = tok.ToVector();
     group.push_back(fields);
     getline(fl_, line);
@@ -343,7 +327,7 @@ void LAMMPSDataReader::ReadNumOfImpropers_(vector<string> fields) {
 LAMMPSDataReader::lammps_format LAMMPSDataReader::determineDataFileFormat_(
     string line) {
 
-  Tokenizer tok(line, " ");
+  tools::Tokenizer tok(line, " ");
   vector<string> fields = tok.ToVector();
   lammps_format format;
   if (fields.size() == 5 || fields.size() == 8) {

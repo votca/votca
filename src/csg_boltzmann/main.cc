@@ -87,7 +87,7 @@ bool CsgBoltzmann::EvaluateTopology(Topology *top, Topology *top_ref) {
 
     ex = CreateExclusionList(*top_ref->MoleculeByIndex(0),
                              *top->MoleculeByIndex(0));
-    ofstream fl;
+    std::ofstream fl;
     fl.open(OptionsMap()["excl"].as<string>().c_str());
     fl << "# atomistic: " << top_ref->MoleculeByIndex(0)->getName()
        << " cg: " << top_ref->MoleculeByIndex(0)->getName()
@@ -179,9 +179,9 @@ void CsgBoltzmann::InteractiveMode() {
     getline(cin, line);
 
     boost::trim(line);
-    vector<string> args;
-    Tokenizer tok(line, " \t");
-    tok.ToVector(args);
+
+    votca::tools::Tokenizer tok(line, " \t");
+    vector<string> args = tok.ToVector();
 
     if (args.size() == 0) continue;
 

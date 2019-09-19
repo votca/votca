@@ -75,7 +75,7 @@ class CsgTestApp : public CsgApplication {
 
  protected:
   // data belonging to the main class CsgTestApp
-  HistogramNew _rdf;
+  votca::tools::HistogramNew _rdf;
   double _cut_off;
 };
 
@@ -86,7 +86,7 @@ class RDFWorker : public CsgApplication::Worker {
   // override EvalConfiguration with your analysis routine
   void EvalConfiguration(Topology *top, Topology *top_ref);
   // data belonging to this particular worker
-  HistogramNew _rdf;
+  votca::tools::HistogramNew _rdf;
   double _cut_off;
 };
 

@@ -22,7 +22,6 @@
 #include <stack>
 #include <string>
 #include <votca/csg/topologyreader.h>
-#include <votca/tools/parsexml.h>
 
 namespace votca {
 namespace csg {
@@ -33,8 +32,7 @@ class BondBead {
  public:
   BondBead(std::string &line) {
     TOOLS::Tokenizer tok(line, ":");
-    std::vector<std::string> tmp_vec;
-    tok.ToVector(tmp_vec);
+    std::vector<std::string> tmp_vec = tok.ToVector();
     if (tmp_vec.size() != 2)
       throw std::runtime_error("Wrong number of elements in bead: " + line);
     molname = tmp_vec[0];
@@ -90,19 +88,18 @@ class XMLTopologyReader : public TopologyReader {
 
   void ReadTopolFile(std::string file);
 
-  void ParseRoot(Property &el);
-  void ParseMolecules(Property &el);
-  void ParseBeadTypes(Property &el);
-  void ParseBonded(Property &el);
-  void ParseBox(Property &p);
-  void ParseMolecule(Property &p, std::string molname, int nbeads, int nmols);
-  void ParseBond(Property &p);
-  void ParseAngle(Property &p);
-  void ParseDihedral(Property &p);
+  void ParseRoot(tools::Property &el);
+  void ParseMolecules(tools::Property &el);
+  void ParseBeadTypes(tools::Property &el);
+  void ParseBonded(tools::Property &el);
+  void ParseBox(tools::Property &p);
+  void ParseMolecule(tools::Property &p, std::string molname, int nbeads,
+                     int nmols);
+  void ParseBond(tools::Property &p);
+  void ParseAngle(tools::Property &p);
+  void ParseDihedral(tools::Property &p);
 
  private:
-  ParseXML _parser;
-
   Topology *_top;
   MoleculesMap _molecules;
   int _mol_index;
