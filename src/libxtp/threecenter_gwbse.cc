@@ -174,7 +174,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   }
   return;
 }
-
+  
 /*
  * Modify 3-center matrix elements consistent with use of symmetrized
  * Coulomb interaction using OPENMP parallelization
