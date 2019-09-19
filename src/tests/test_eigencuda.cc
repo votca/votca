@@ -3,10 +3,10 @@
 #define BOOST_TEST_MODULE eigencuda_test
 
 #include <boost/test/unit_test.hpp>
+#include <string>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/eigencuda.h>
 
-namespace utf = boost::unit_test;
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(eigecuda_test)
@@ -69,12 +69,20 @@ BOOST_AUTO_TEST_CASE(triple_tensor_product) {
   BOOST_TEST(Y.isApprox(rs[1]));
 }
 
-BOOST_AUTO_TEST_CASE(Wrong_shape, *utf::expected_failures(1)) {
+BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(2, 2);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(5, 5);
 
   EigenCuda EC;
   std::vector<Eigen::MatrixXd> tensor{B};
-  std::vector<Eigen::MatrixXd> xs = EC.right_matrix_tensor_mult(tensor, A);
+  try {
+    std::vector<Eigen::MatrixXd> xs = EC.right_matrix_tensor_mult(tensor, A);
+  } catch (const std::runtime_error& error) {
+    std::string error_msg = error.what();
+    std::string reason = "an illegal value";
+    if (error_msg.find(reason) != std::string::npos) {
+      throw error;
+    }
+  }
 }
 BOOST_AUTO_TEST_SUITE_END()
