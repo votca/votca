@@ -107,7 +107,7 @@ bool LAMMPSDataReader::NextFrame(Topology &top) {
   getline(fl_, line);
   while (!fl_.eof()) {
 
-    Tokenizer tok(line, " ");
+    tools::Tokenizer tok(line, " ");
     vector<string> fields = tok.ToVector();
     fields = TrimCommentsFrom_(fields);
     // If not check the size of the vector and parse according
@@ -245,7 +245,7 @@ void LAMMPSDataReader::InitializeAtomAndBeadTypes_() {
   }
 
   int index = 0;
-  Elements elements;
+  tools::Elements elements;
   for (auto mass : data_["Masses"]) {
     // Determine the mass associated with the atom
     double mass_atom_bead = stod(mass.at(1));
@@ -270,7 +270,7 @@ void LAMMPSDataReader::ReadBox_(vector<string> fields, Topology &top) {
   for (int i = 1; i < 3; ++i) {
     string line;
     getline(fl_, line);
-    Tokenizer tok(line, " ");
+    tools::Tokenizer tok(line, " ");
     tok.ConvertToVector(fields);
     if (fields.size() != 4) {
       throw runtime_error("invalid box format in the lammps data file");
@@ -289,7 +289,7 @@ void LAMMPSDataReader::SortIntoDataGroup_(string tag) {
   vector<vector<string>> group;
   string data_elem;
   while (!line.empty()) {
-    Tokenizer tok(line, " ");
+    tools::Tokenizer tok(line, " ");
     vector<string> fields = tok.ToVector();
     group.push_back(fields);
     getline(fl_, line);
@@ -327,7 +327,7 @@ void LAMMPSDataReader::ReadNumOfImpropers_(vector<string> fields) {
 LAMMPSDataReader::lammps_format LAMMPSDataReader::determineDataFileFormat_(
     string line) {
 
-  Tokenizer tok(line, " ");
+  tools::Tokenizer tok(line, " ");
   vector<string> fields = tok.ToVector();
   lammps_format format;
   if (fields.size() == 5 || fields.size() == 8) {

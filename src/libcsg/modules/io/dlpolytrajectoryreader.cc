@@ -115,9 +115,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
          << "' - directives line" << endl;
 #endif
 
-    Tokenizer tok(line, " \t");
-    vector<string> fields;
-    tok.ToVector(fields);
+    tools::Tokenizer tok(line, " \t");
+    vector<string> fields = tok.ToVector();
 
     if (fields.size() < 3)
       throw std::runtime_error("Error: too few directive switches (<3) in '" +
@@ -210,9 +209,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
 
     } else {
 
-      Tokenizer tok(line, " \t");
-      vector<string> fields;
-      tok.ToVector(fields);
+      tools::Tokenizer tok(line, " \t");
+      vector<string> fields = tok.ToVector();
 
       if (fields.size() < 6)
         throw std::runtime_error(
@@ -293,7 +291,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                  _fname + "', when reading box vector" +
                                  boost::lexical_cast<string>(i));
 
-      Tokenizer tok(line, " \t");
+      tools::Tokenizer tok(line, " \t");
       vector<double> fields;
       tok.ConvertToVector<double>(fields);
       // Angs -> nm
@@ -317,9 +315,8 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
                                    _fname + "', when reading atom/bead # " +
                                    boost::lexical_cast<string>(i + 1));
 
-        vector<string> fields;
-        Tokenizer tok(line, " \t");
-        tok.ToVector(fields);
+        tools::Tokenizer tok(line, " \t");
+        vector<string> fields = tok.ToVector();
         int id = boost::lexical_cast<int>(fields[1]);
         if (i + 1 != id)
           throw std::runtime_error(
@@ -347,7 +344,7 @@ bool DLPOLYTrajectoryReader::NextFrame(Topology &conf) {
               boost::lexical_cast<string>(i + 1));
 
         vector<double> fields;
-        Tokenizer tok(line, " \t");
+        tools::Tokenizer tok(line, " \t");
         tok.ConvertToVector<double>(fields);
         // Angs -> nm
         atom_vecs.col(j) =

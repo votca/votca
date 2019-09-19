@@ -31,7 +31,8 @@ class PDBWriter : public TrajectoryWriter {
   void Open(std::string file, bool bAppend = false);
   void Close();
 
-  void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}
+  void RegisteredAt(
+      tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
 
   void Write(Topology *conf);
 
@@ -100,8 +101,8 @@ inline void PDBWriter::WriteContainer(T &container) {
 
   for (auto &atom : getIterable(container)) {
     Eigen::Vector3d r = getPos(atom);
-    string resname = getResname(container, atom);
-    string atomname = getName(atom);
+    std::string resname = getResname(container, atom);
+    std::string atomname = getName(atom);
     if (resname.size() > 3) {
       resname = resname.substr(0, 3);
     }

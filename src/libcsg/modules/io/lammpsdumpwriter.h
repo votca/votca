@@ -30,7 +30,8 @@ class LAMMPSDumpWriter : public TrajectoryWriter {
   void Open(std::string file, bool bAppend = false);
   void Close();
 
-  void RegisteredAt(ObjectFactory<std::string, TrajectoryWriter> &factory) {}
+  void RegisteredAt(
+      tools::ObjectFactory<std::string, TrajectoryWriter> &factory) {}
 
   void Write(Topology *conf);
 

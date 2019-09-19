@@ -58,14 +58,14 @@ void CGMoleculeDef::Load(string filename) {
   ParseMapping(_options.get("cg_molecule.maps"));
 }
 
-void CGMoleculeDef::ParseTopology(Property &options) {
+void CGMoleculeDef::ParseTopology(tools::Property &options) {
   ParseBeads(options.get("cg_beads"));
   if (options.exists("cg_bonded")) ParseBonded(options.get("cg_bonded"));
 }
 
-void CGMoleculeDef::ParseBeads(Property &options) {
+void CGMoleculeDef::ParseBeads(tools::Property &options) {
 
-  for (Property *p : options.Select("cg_bead")) {
+  for (tools::Property *p : options.Select("cg_bead")) {
     beaddef_t *beaddef = new beaddef_t;
     beaddef->_options = p;
 
@@ -85,13 +85,13 @@ void CGMoleculeDef::ParseBeads(Property &options) {
   }
 }
 
-void CGMoleculeDef::ParseBonded(Property &options) {
+void CGMoleculeDef::ParseBonded(tools::Property &options) {
   _bonded = options.Select("*");
 }
 
-void CGMoleculeDef::ParseMapping(Property &options) {
+void CGMoleculeDef::ParseMapping(tools::Property &options) {
 
-  for (Property *p : options.Select("map")) {
+  for (tools::Property *p : options.Select("map")) {
     _maps[p->get("name").as<string>()] = p;
   }
 }
@@ -117,8 +117,8 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
   // create the bonds
   map<string, string> had_iagroup;
 
-  for (Property *prop : _bonded) {
-    list<int> atoms;
+  for (tools::Property *prop : _bonded) {
+    std::list<int> atoms;
     string iagroup = prop->get("name").as<string>();
 
     if (had_iagroup[iagroup] == "yes")
@@ -126,8 +126,9 @@ Molecule *CGMoleculeDef::CreateMolecule(Topology &top) {
           string("double occurence of interactions with name ") + iagroup);
     had_iagroup[iagroup] = "yes";
 
-    Tokenizer tok(prop->get("beads").value(), " \n\t");
-    for (Tokenizer::iterator atom = tok.begin(); atom != tok.end(); ++atom) {
+    tools::Tokenizer tok(prop->get("beads").value(), " \n\t");
+    for (tools::Tokenizer::iterator atom = tok.begin(); atom != tok.end();
+         ++atom) {
       int i = minfo->getBeadIdByName(*atom);
       if (i < 0)
         throw runtime_error(
@@ -192,7 +193,7 @@ Map *CGMoleculeDef::CreateMap(Molecule &in, Molecule &out) {
       throw runtime_error(string("mapping error: reference molecule " +
                                  (*def)->_name + " does not exist"));
 
-    Property *mdef = getMapByName((*def)->_mapping);
+    tools::Property *mdef = getMapByName((*def)->_mapping);
     if (!mdef)
       throw runtime_error(string("mapping " + (*def)->_mapping + " not found"));
 
@@ -227,8 +228,8 @@ CGMoleculeDef::beaddef_t *CGMoleculeDef::getBeadByName(const string &name) {
   return (*iter).second;
 }
 
-Property *CGMoleculeDef::getMapByName(const string &name) {
-  map<string, Property *>::iterator iter = _maps.find(name);
+tools::Property *CGMoleculeDef::getMapByName(const string &name) {
+  map<string, tools::Property *>::iterator iter = _maps.find(name);
   if (iter == _maps.end()) {
     std::cout << "cannot find map " << name << "\n";
     return NULL;

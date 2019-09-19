@@ -85,8 +85,8 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
     Bead *b;
     Eigen::Vector3d posnm = pos * tools::conv::ang2nm;
     if (topology) {
-      b = container.CreateBead(1, name + boost::lexical_cast<string>(id), name,
-                               0, 0, 0);
+      b = container.CreateBead(1, name + boost::lexical_cast<std::string>(id),
+                               name, 0, 0, 0);
     } else {
       b = container.getBead(id);
     }
@@ -103,14 +103,13 @@ class XYZReader : public TrajectoryReader, public TopologyReader {
 
 template <bool topology, class T>
 inline bool XYZReader::ReadFrame(T &container) {
-  string line;
-  getline(_fl, line);
+  std::string line;
+  std::getline(_fl, line);
   ++_line;
   if (!_fl.eof()) {
     // read the number of atoms
-    Tokenizer tok1(line, " \t");
-    std::vector<std::string> line1;
-    tok1.ToVector(line1);
+    tools::Tokenizer tok1(line, " \t");
+    std::vector<std::string> line1 = tok1.ToVector();
     if (line1.size() != 1) {
       throw std::runtime_error(
           "First line of xyz file should contain number "
@@ -131,12 +130,11 @@ inline bool XYZReader::ReadFrame(T &container) {
       if (_fl.eof()) {
         throw std::runtime_error("unexpected end of file in xyz file");
       }
-      vector<string> fields;
-      Tokenizer tok(line, " ");
-      tok.ToVector(fields);
+      tools::Tokenizer tok(line, " ");
+      std::vector<std::string> fields = tok.ToVector();
       if (fields.size() != 4) {
         throw std::runtime_error("invalide line " +
-                                 boost::lexical_cast<string>(_line) +
+                                 boost::lexical_cast<std::string>(_line) +
                                  " in xyz file\n" + line);
       }
       Eigen::Vector3d pos =
