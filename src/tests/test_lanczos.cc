@@ -15,7 +15,30 @@
 using namespace votca::xtp;
 using namespace std;
 
+Eigen::VectorXd sort_ev(Eigen::VectorXd ev)
+{
 
+  int nev = ev.rows();
+  int npos = nev/2;
+
+  Eigen::VectorXd ev_pos = Eigen::VectorXd::Zero(npos);
+  int nstored = 0;
+
+  // get only positives
+  for (int i=0; i<nev; i++) {
+    if (ev(i) > 0) {
+      ev_pos(nstored) = ev(i);
+      nstored ++;
+    }
+  }
+  
+  // sort the epos eigenvalues
+  std::sort(ev_pos.data(), ev_pos.data() + ev_pos.size());
+
+
+  
+  return ev_pos;
+}
 
 class BlockOperator: public MatrixFreeOperator {
  public:
@@ -88,12 +111,15 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
   
   auto lambda = LS.eigenvalues().real();
-  auto lambda_ref = es.eigenvalues().real();
-  
-  std::cout << "lanczos : \n" << lambda << std::endl;
-  std::cout << "eigen : \n" << lambda_ref << std::endl;
+  std::sort(lambda.data(), lambda.data() + lambda.size());
 
-  bool check_eigenvalues = lambda.isApprox(lambda_ref, 1E-6);
+  
+  auto lambda_ref = sort_ev(es.eigenvalues().real());
+  
+  std::cout << "\nlanczos : \n" << lambda << std::endl;
+  std::cout << "\neigen : \n" << lambda_ref << std::endl;
+
+  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
 
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 } 

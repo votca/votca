@@ -63,14 +63,14 @@ class LanczosSolver {
     ShiftInvertOperator<MatrixReplacement> sinv_op(A);
 
     // convergence criteria
-    Eigen::Index ncv = 2*neigen+1;
+    Eigen::Index ncv = 2*neigen+2;
     Eigen::Index nev = neigen;
 
     // simga
     double sigma = 0.;
 
     // solver
-    Spectra::GenEigsRealShiftSolver<double, Spectra::SMALLEST_REAL, 
+    Spectra::GenEigsRealShiftSolver<double, Spectra::LARGEST_REAL, 
       ShiftInvertOperator<MatrixReplacement>> eigs(&sinv_op, nev, ncv, sigma);
 
     eigs.init();
