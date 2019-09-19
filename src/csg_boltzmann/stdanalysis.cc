@@ -34,7 +34,7 @@ void StdAnalysis::Register(std::map<std::string, AnalysisTool *> &lib) {
   lib["autocor"] = this;
 }
 
-void StdAnalysis::Command(BondedStatistics &bs, std::string cmd,
+void StdAnalysis::Command(BondedStatistics &bs, const std::string& cmd,
                           std::vector<std::string> &args) {
   if (cmd == "vals") WriteValues(bs, args);
   if (cmd == "cor") WriteCorrelations(bs, args);
@@ -50,7 +50,7 @@ void StdAnalysis::Command(BondedStatistics &bs, std::string cmd,
   }
 }
 
-void StdAnalysis::Help(std::string cmd, std::vector<std::string> &args) {
+void StdAnalysis::Help(const std::string& cmd, std::vector<std::string> &args) {
   if (cmd == "vals") {
     std::cout
         << "vals <file> <selection>\n"

@@ -105,8 +105,8 @@ bool PDBReader::NextFrame(Topology &top) {
       boost::algorithm::trim(beta);
       boost::algorithm::trim(gamma);
       if ((!tools::wildcmp("90*", alpha.c_str())) ||
-          (!tools::wildcmp("90*", alpha.c_str())) ||
-          (!tools::wildcmp("90*", alpha.c_str()))) {
+          (!tools::wildcmp("90*", beta.c_str())) ||
+          (!tools::wildcmp("90*", gamma.c_str()))) {
         throw std::runtime_error(
             "Non cubical box in pdb file not implemented, yet!");
       }
