@@ -59,7 +59,7 @@ Eigen::MatrixXd CG_IMC_solve::LoadMatrix(const std::string& filename) const {
   std::string line;
   std::vector<double> result;
   int numrows = 0;
-  int numcols = 0;
+  unsigned numcols = 0;
   while (getline(intt, line)) {
     if (line[0] == '#') {
       continue;
@@ -73,7 +73,7 @@ Eigen::MatrixXd CG_IMC_solve::LoadMatrix(const std::string& filename) const {
           "Matrix has not the same number of entries in each row.");
     }
     for (const std::string& s : tokens) {
-      result.push_back(std::stod(tokens[0]));
+      result.push_back(std::stod(s));
     }
     numrows++;
   }
