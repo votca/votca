@@ -24,9 +24,9 @@
 #include <votca/csg/cgengine.h>
 
 /**
-    \brief base class for all analasys tools
+    \brief base class for all analysis tools
 
-    This is the base class for all analasys tool.
+    This is the base class for all analysis tool.
     \todo do option functions!!!
 */
 namespace votca {
@@ -38,9 +38,9 @@ class AnalysisTool {
   virtual ~AnalysisTool() {}
 
   virtual void Register(std::map<std::string, AnalysisTool *> &lib) {}
-  virtual void Command(BondedStatistics &bs, std::string cmd,
+  virtual void Command(BondedStatistics &bs, const std::string &cmd,
                        std::vector<std::string> &args){};
-  virtual void Help(std::string cmd, std::vector<std::string> &args){};
+  virtual void Help(const std::string &cmd, std::vector<std::string> &args){};
 };
 
 }  // namespace csg
