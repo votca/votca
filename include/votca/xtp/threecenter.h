@@ -134,11 +134,6 @@ class TCMatrix_gwbse : public TCMatrix {
                  const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
-
-  void MatrixTensorMatrixProduct(
-      std::vector<Eigen::MatrixXd>& block,
-      const std::vector<Eigen::MatrixXd>& symmstorage,
-      const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm) const;
 };
 
 }  // namespace xtp

@@ -164,54 +164,15 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       }
     }  // gamma-loop
   }    // alpha-loop
-
-#if defined(USE_GPU)
-  EigenCuda gpu_handle;
-
-  // create tensor
-  std::vector<Eigen::MatrixXd> tensor;
-  for (const Eigen::MatrixXd& mtx : symmstorage) {
-    tensor.emplace_back(mtx.selfadjointView<Eigen::Lower>());
-  }
-  // Performn the tensor multiplication in the GPU
-  try {
-    std::vector<Eigen::MatrixXd> results =
-        gpu_handle.matrix_tensor_matrix_mult(dftn.transpose(), tensor, dftm);
-    for (int k = 0; k < auxshell.getNumFunc(); ++k) {
-      Eigen::MatrixXd threec_inMo = results[k];
-      for (int i = 0; i < threec_inMo.cols(); ++i) {
-        block[i].col(k) = threec_inMo.col(i);
-      }
-    }
-  } catch (const std::runtime_error& error) {
-    XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp()
-        << " GPU tripe_tensor_product failed due to: " << error.what()
-        << " Using default CPU MatrixTensorMatrixProduct!" << flush;
-
-    this->MatrixTensorMatrixProduct(block, symmstorage, dftn, dftm);
-  }
-#else
-  this->MatrixTensorMatrixProduct(block, symmstorage, dftn, dftm);
-#endif
-  return;
-}
-
-/*
- * Perform a Matrix Tensor Matrix multiplication
- */
-void TCMatrix_gwbse::MatrixTensorMatrixProduct(
-    std::vector<Eigen::MatrixXd>& block,
-    const std::vector<Eigen::MatrixXd>& symmstorage,
-    const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm) const {
-  for (long int k = 0; k < symmstorage.size(); ++k) {
+  for (int k = 0; k < auxshell.getNumFunc(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
-    for (long int i = 0; i < threec_inMo.cols(); ++i) {
+    for (int i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }
   }
+  return;
 }
 
 /*

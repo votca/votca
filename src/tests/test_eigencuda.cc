@@ -42,33 +42,6 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   BOOST_TEST(Z.isApprox(rs[2]));
 }
 
-BOOST_AUTO_TEST_CASE(triple_tensor_product) {
-  // Call the class to handle GPU resources
-  EigenCuda EC;
-
-  // Define matrices
-  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 3);
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(3, 2);
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(3, 3);
-  Eigen::MatrixXd D = Eigen::MatrixXd::Zero(3, 3);
-  Eigen::MatrixXd X = Eigen::MatrixXd::Zero(2, 2);
-  Eigen::MatrixXd Y = Eigen::MatrixXd::Zero(2, 2);
-
-  A << 1., 2., 3., 4., 5., 6.;
-  B << 5., 6., 7., 8., 9., 10.;
-  C << 9., 10., 11., 12., 13., 14., 15., 16., 17.;
-  D << 13., 14., 15., 16., 17., 18., 19., 20., 21.;
-  X << 1788., 2040., 4281., 4884.;
-  Y << 2292., 2616., 5541., 6324.;
-
-  std::vector<Eigen::MatrixXd> tensor{C, D};
-  std::vector<Eigen::MatrixXd> rs = EC.matrix_tensor_matrix_mult(A, tensor, B);
-
-  // Expected results
-  BOOST_TEST(X.isApprox(rs[0]));
-  BOOST_TEST(Y.isApprox(rs[1]));
-}
-
 BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(2, 2);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(5, 5);

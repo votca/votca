@@ -151,59 +151,5 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
   return result;
 }
 
-/*
- * \brief performs a matrix_1 * tensor * matrix_2 multiplication
- */
-std::vector<Mat> EigenCuda::matrix_tensor_matrix_mult(
-    const Mat &A, const std::vector<Mat> &tensor, const Mat &C) {
-  int batchCount = tensor.size();
-
-  // First submatrix from the tensor
-  const Mat &matrix = tensor[0];
-
-  // sizes of the matrices to allocated in the device
-  size_t size_A = A.size() * sizeof(double);
-  size_t size_B = matrix.size() * sizeof(double);
-  size_t size_C = C.size() * sizeof(double);
-  std::size_t size_X = A.rows() * matrix.cols() * sizeof(double);
-  std::size_t size_Y = A.rows() * C.cols() * sizeof(double);
-
-  // Check if there is enough available memory
-  check_available_memory_in_gpu(size_A + size_B + size_C + size_X + size_Y);
-
-  uniq_double dA = copy_matrix_to_gpu(A);
-  uniq_double dC = copy_matrix_to_gpu(C);
-  uniq_double dB = alloc_matrix_in_gpu(size_B);
-
-  // Intermediate result X
-  uniq_double dX = alloc_matrix_in_gpu(size_X);
-
-  // Final result array Y
-  uniq_double dY = alloc_matrix_in_gpu(size_Y);
-
-  ShapesOfMatrices sh1{A.rows(), A.cols(), matrix.rows(), matrix.cols(),
-                       A.rows()};
-  ShapesOfMatrices sh2{A.rows(), matrix.cols(), C.rows(), C.cols(), A.rows()};
-
-  std::vector<Mat> result(batchCount, Mat::Zero(A.rows(), C.cols()));
-  for (auto i = 0; i < batchCount; i++) {
-    // tensor component
-    checkCuda(cudaMemcpyAsync(dB.get(), tensor[i].data(), size_B,
-                              cudaMemcpyHostToDevice, _stream));
-
-    // Call the first tensor matrix multiplication
-    gemm(sh1, dA.get(), dB.get(), dX.get());
-
-    // Call the second tensor matrix multiplication
-    gemm(sh2, dX.get(), dC.get(), dY.get());
-
-    // Copy the result Array back to the device
-    double *hout = result[i].data();
-    checkCuda(cudaMemcpyAsync(hout, dY.get(), size_Y, cudaMemcpyDeviceToHost,
-                              _stream));
-  }
-
-  return result;
-}
 }  // namespace xtp
 }  // namespace votca
