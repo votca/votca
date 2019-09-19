@@ -122,8 +122,6 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
   size_t size_A = matrix.size() * sizeof(double);
   size_t size_B = B.size() * sizeof(double);
   size_t size_C = matrix.rows() * B.cols() * sizeof(double);
-
-  // Check if there is enough available memory
   check_available_memory_in_gpu(size_A + size_B + size_C);
 
   uniq_double dA = alloc_matrix_in_gpu(size_A);

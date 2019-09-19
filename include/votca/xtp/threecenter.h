@@ -117,11 +117,6 @@ class TCMatrix_gwbse : public TCMatrix {
   // Logger
   Logger& _log;
 
-  // Use GPU if available
-#if defined(USE_GPU)
-  EigenCuda _gpu_handle;
-#endif
-
   // band summation indices
   int _mmin;
   int _mmax;

@@ -53,8 +53,9 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   // Try to run the operation in a GPU, otherwise is the default Openmp
   // implementation
 #if defined(USE_GPU)
+  EigenCuda gpu_handle;
   try {
-    _matrix = _gpu_handle.right_matrix_tensor_mult(_matrix, matrix);
+    _matrix = gpu_handle.right_matrix_tensor_mult(_matrix, matrix);
   } catch (const std::runtime_error& error) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp()
@@ -165,6 +166,8 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   }    // alpha-loop
 
 #if defined(USE_GPU)
+  EigenCuda gpu_handle;
+
   // create tensor
   std::vector<Eigen::MatrixXd> tensor;
   for (const Eigen::MatrixXd& mtx : symmstorage) {
@@ -173,7 +176,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   // Performn the tensor multiplication in the GPU
   try {
     std::vector<Eigen::MatrixXd> results =
-        _gpu_handle.matrix_tensor_matrix_mult(dftn.transpose(), tensor, dftm);
+        gpu_handle.matrix_tensor_matrix_mult(dftn.transpose(), tensor, dftm);
     for (int k = 0; k < auxshell.getNumFunc(); ++k) {
       Eigen::MatrixXd threec_inMo = results[k];
       for (int i = 0; i < threec_inMo.cols(); ++i) {
@@ -201,11 +204,11 @@ void TCMatrix_gwbse::MatrixTensorMatrixProduct(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
     const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm) const {
-  for (auto k = 0; k < symmstorage.size(); ++k) {
+  for (long int k = 0; k < symmstorage.size(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
-    for (auto i = 0; i < threec_inMo.cols(); ++i) {
+    for (long int i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }
   }
