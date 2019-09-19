@@ -201,11 +201,11 @@ void TCMatrix_gwbse::MatrixTensorMatrixProduct(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
     const Eigen::MatrixXd& dftn, const Eigen::MatrixXd& dftm) const {
-  for (int k = 0; k < symmstorage.size(); ++k) {
+  for (auto k = 0; k < symmstorage.size(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
-    for (int i = 0; i < threec_inMo.cols(); ++i) {
+    for (auto i = 0; i < threec_inMo.cols(); ++i) {
       block[i].col(k) = threec_inMo.col(i);
     }
   }
