@@ -628,8 +628,6 @@ void CGForceMatching::EvalNonbonded(Topology *conf, SplineInfo *sinfo) {
   else
     nb->Generate(beads1, beads2, true);
 
-  NBList::iterator pair_iter;
-  // iterate over all pairs
   for (BeadPair *pair : *nb) {
     int iatom = pair->first()->getId();
     int jatom = pair->second()->getId();
@@ -734,8 +732,6 @@ void CGForceMatching::EvalNonbonded_Threebody(Topology *conf,
     }
   }
 
-  NBList_3Body::iterator triple_iter;
-  // iterate over all triples
   for (BeadTriple *triple : *nb) {
     int iatom = triple->bead1()->getId();
     int jatom = triple->bead2()->getId();
