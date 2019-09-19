@@ -22,6 +22,7 @@
 
 #include <cublas_v2.h>
 #include <curand.h>
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <vector>
