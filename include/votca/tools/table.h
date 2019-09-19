@@ -130,22 +130,23 @@ inline std::ostream &operator<<(std::ostream &out, const Table &t) {
   if (t._has_yerr) {
     for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i] << " " << t._yerr[i];
-      if (t._flags[i] != ' ') {
-        out << " " << t._flags[i] << std::endl;
+      if (t._flags[i] == '\0' || t._flags[i] == ' ') {
+        out << "\n";
       } else {
-        out << std::endl;
+        out << " " << t._flags[i] << "\n";
       }
     }
   } else {
     for (int i = 0; i < t._x.size(); ++i) {
       out << t._x[i] << " " << t._y[i];
-      if (t._flags[i] != ' ') {
-        out << " " << t._flags[i] << std::endl;
+      if (t._flags[i] == '\0' || t._flags[i] == ' ') {
+        out << "\n";
       } else {
-        out << std::endl;
+        out << " " << t._flags[i] << "\n";
       }
     }
   }
+  out << std::flush;
   return out;
 }
 // TODO: modify this function to be able to treat _has_yerr == true
