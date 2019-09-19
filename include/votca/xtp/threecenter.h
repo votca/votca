@@ -26,7 +26,7 @@
 #include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 
-#ifdef USE_GPU
+#ifdef USE_CUDA
 #include "eigencuda.h"
 #endif
 

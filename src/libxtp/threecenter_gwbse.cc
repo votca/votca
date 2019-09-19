@@ -50,16 +50,16 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
  */
 void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 
-  // Try to run the operation in a GPU, otherwise is the default Openmp
+  // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
-#if defined(USE_GPU)
-  EigenCuda gpu_handle;
+#if defined(USE_CUDA)
+  EigenCuda cuda_handle;
   try {
-    _matrix = gpu_handle.right_matrix_tensor_mult(_matrix, matrix);
+    _matrix = cuda_handle.right_matrix_tensor_mult(_matrix, matrix);
   } catch (const std::runtime_error& error) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp()
-        << " GPU Multiplyrightwithauxmatrix failed due to: " << error.what()
+        << " CUDA Multiplyrightwithauxmatrix failed due to: " << error.what()
         << " Using default OpenMP implementation!" << flush;
     this->MultiplyRightWithAuxMatrixOpenMP(matrix);
   }
@@ -174,7 +174,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   }
   return;
 }
-  
+
 /*
  * Modify 3-center matrix elements consistent with use of symmetrized
  * Coulomb interaction using OPENMP parallelization

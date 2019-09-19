@@ -59,7 +59,7 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 include(GNUInstallDirs)
 
-option(USE_GPU "Use a GPU to speed up computations" OFF)
+option(USE_CUDA "Use a Nvidia GPU to speed up computations" OFF)
 
 option(ENABLE_TESTING "Build and enable testing stuff" OFF)
 if(ENABLE_TESTING)
@@ -88,10 +88,9 @@ message(STATUS "Found VOTCA_TOOLS: ${VOTCA_TOOLS_DIR}")
 find_package(VOTCA_CSG REQUIRED NO_MODULE)
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
-# Find Cuda libraries if USE_GPU is true
-if(USE_GPU)
-  find_package(CUDA REQUIRED)
-endif(USE_GPU)
+if(USE_CUDA)
+  enable_language(CUDA)
+endif(USE_CUDA)
 
 ########################################################################
 # Checks what linear algebra packages are installed                    #

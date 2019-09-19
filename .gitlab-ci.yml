@@ -1,4 +1,4 @@
-stages:
+<stages:
   - canary
   - build
 
@@ -40,7 +40,7 @@ stages:
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
       -DWITH_MKL=${WITH_MKL} -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
-      -DUSE_GPU=${USE_GPU}
+      -DUSE_CUDA=${USE_CUDA}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
@@ -175,7 +175,8 @@ Debug GPU Ubuntu:
     CC: "gcc"
     CXX: "g++"
     CMAKE_BUILD_TYPE: "Debug"
-    USE_GPU: "yes"
+    DISTRO: "ubuntu"
+    USE_CUDA: "yes"
     WITH_MKL: "no"
     DISABLE_MKL: "yes"
   extends: .build

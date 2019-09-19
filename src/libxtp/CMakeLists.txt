@@ -7,7 +7,7 @@ file(GLOB_RECURSE VOTCA_SOURCES *.cc *.cpp)
 file(GLOB_RECURSE NOT_VOTCA_SOURCES version_nb.cc )
 list(REMOVE_ITEM VOTCA_SOURCES ${NOT_VOTCA_SOURCES})
 
-if(NOT USE_GPU)
+if(NOT USE_CUDA)
   list(FILTER VOTCA_SOURCES EXCLUDE REGEX "eigencuda.cc")
 endif()
 
@@ -19,7 +19,7 @@ if(MKL_FOUND)
   target_link_libraries(votca_xtp PRIVATE MKL::MKL)
 endif()
 
-if(USE_GPU)
+if(USE_CUDA)
   target_link_libraries(votca_xtp PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
   target_include_directories(votca_xtp PUBLIC ${CUDA_INCLUDE_DIRS})
 endif()
