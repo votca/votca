@@ -39,6 +39,7 @@ stages:
     - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
+      -DWITH_MKL=${WITH_MKL} -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
       -DUSE_GPU=${USE_GPU}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
@@ -57,6 +58,8 @@ Debug GCC:
     CMAKE_BUILD_TYPE: "Debug"
     CLANG_FORMAT: "yes"
     USE_GPU: "yes"
+    WITH_MKL: "no"
+    DISABLE_MKL: "yes"
   extends: .build
   tags:
     - gpu
@@ -179,6 +182,8 @@ Debug GPU Ubuntu:
     CMAKE_BUILD_TYPE: "Debug"
     DISTRO: "ubuntu"
     USE_GPU: "yes"
+    WITH_MKL: "no"
+    DISABLE_MKL: "yes"
   extends: .build
   tags:
     - gpu
