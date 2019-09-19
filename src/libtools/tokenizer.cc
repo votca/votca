@@ -21,7 +21,7 @@ namespace votca {
 namespace tools {
 
 int wildcmp(const std::string &wild, const std::string &string) {
-  wildcmp(wild.c_str(), string.c_str());
+  return wildcmp(wild.c_str(), string.c_str());
 }
 
 int wildcmp(const char *wild, const char *string) {
