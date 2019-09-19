@@ -8,9 +8,7 @@
 #include <votca/xtp/lanczossolver.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/matrixfreeoperator.h>
-#include <votca/xtp/hamiltonianoperator.h>
-
-#include <Eigen/IterativeLinearSolvers>
+#include <votca/xtp/bseoperator_btda.h>
 
 using namespace votca::xtp;
 using namespace std;
@@ -34,9 +32,6 @@ Eigen::VectorXd sort_ev(Eigen::VectorXd ev)
   
   // sort the epos eigenvalues
   std::sort(ev_pos.data(), ev_pos.data() + ev_pos.size());
-
-
-  
   return ev_pos;
 }
 
@@ -83,11 +78,10 @@ Eigen::RowVectorXd BlockOperator::row(int index) const {
 
 BOOST_AUTO_TEST_SUITE(lanczos_test)
 
-
 BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
 
-  int size = 10;
-  int neigen = 2;
+  int size = 50;
+  int neigen = 5;
   Logger log;
 
   // Create Operator
@@ -100,24 +94,20 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   Cop.set_diag(0);
 
   // create Hamiltonian operator
-  HamiltonianOperator<BlockOperator> Hop(Rop,Cop);
+  HamiltonianOperator<BlockOperator,BlockOperator> Hop(Rop,Cop);
   
   // Lanczos solver
   LanczosSolver LS(log);
   LS.solve(Hop, neigen);
-  
+  auto lambda = LS.eigenvalues().real();
+  std::sort(lambda.data(), lambda.data() + lambda.size());  
 
   Eigen::MatrixXd H = Hop.get_full_matrix();
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
-  
-  auto lambda = LS.eigenvalues().real();
-  std::sort(lambda.data(), lambda.data() + lambda.size());
-
-  
   auto lambda_ref = sort_ev(es.eigenvalues().real());
   
-  std::cout << "\nlanczos : \n" << lambda << std::endl;
-  std::cout << "\neigen : \n" << lambda_ref << std::endl;
+  //std::cout << "\nlanczos : \n" << lambda << std::endl;
+  //std::cout << "\neigen : \n" << lambda_ref.head(neigen) << std::endl;
 
   bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
 

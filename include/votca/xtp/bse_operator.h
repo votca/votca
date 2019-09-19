@@ -118,6 +118,9 @@ typedef BSE_OPERATOR<1, 4, 1, 1> SingletOperator_BTDA_ApB;
 typedef BSE_OPERATOR<1, 0, 1, 1> TripletOperator_BTDA_ApB;
 typedef BSE_OPERATOR<1, 0, 1, -1> Operator_BTDA_AmB;
 
+typedef BSE_OPERATOR<0, 2, 0, 1> SingletOperator_BTDA_B;
+//typedef BSE_OPERATOR<0, 0, 0, 1> TripletOperator_BTDA_B;
+
 typedef BSE_OPERATOR<1, 0, 0, 0> HqpOperator;
 typedef BSE_OPERATOR<0, 1, 0, 0> HxOperator;
 typedef BSE_OPERATOR<0, 0, 1, 0> HdOperator;

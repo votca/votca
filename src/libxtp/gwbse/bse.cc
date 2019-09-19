@@ -22,7 +22,9 @@
 #include <votca/tools/linalg.h>
 #include <votca/xtp/bse.h>
 #include <votca/xtp/bse_operator.h>
+#include <votca/xtp/bseoperator_btda.h>
 #include <votca/xtp/davidsonsolver.h>
+#include <votca/xtp/lanczossolver.h>
 #include <votca/xtp/populationanalysis.h>
 #include <votca/xtp/qmfragment.h>
 #include <votca/xtp/rpa.h>
@@ -212,6 +214,7 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
   return result;
 }
 
+
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
   SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
   configureBSEOperator(Hs_ApB);
@@ -321,6 +324,49 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
          eigensys.eigenvectors().col(level));
   }
   return result;
+}
+
+tools::EigenSystem BSE::Solve_singlets_BTDA_Lanczos() const {
+  SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(A);
+  SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(B);
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+  return Solve_nonhermitian_Lanczos(A, B); 
+}
+
+tools::EigenSystem BSE::Solve_triplets_BTDA_Lanczos() const {
+  TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(A);
+  Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
+  configureBSEOperator(B);
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+  return Solve_nonhermitian_Lanczos(A, B); 
+}
+
+template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
+tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
+                                           BSE_OPERATOR_B& Bop) const {
+
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
+  std::chrono::duration<double> elapsed_time;
+  start = std::chrono::system_clock::now();
+
+  tools::EigenSystem result;
+  HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
+
+  // Lanczos solver
+  LanczosSolver LS(_log);
+  LS.solve(Hop, _opt.nmax);
+
+  result.eigenvalues() = LS.eigenvalues().real();
+  result.eigenvectors() = LS.eigenvectors().real();
+
+  return result;
+
 }
 
 void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,

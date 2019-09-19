@@ -102,6 +102,9 @@ class BSE {
   tools::EigenSystem Solve_triplets_TDA() const;
   tools::EigenSystem Solve_triplets_BTDA() const;
 
+  tools::EigenSystem Solve_singlets_BTDA_Lanczos() const;
+  tools::EigenSystem Solve_triplets_BTDA_Lanczos() const;
+
   void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
@@ -113,6 +116,10 @@ class BSE {
   template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
   tools::EigenSystem Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
                                         BSE_OPERATOR_AmB&) const;
+
+  template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
+  tools::EigenSystem Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
+                                           BSE_OPERATOR_B& Bop) const;
 
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;

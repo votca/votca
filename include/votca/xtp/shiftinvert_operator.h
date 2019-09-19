@@ -30,7 +30,6 @@
 namespace votca {
   namespace xtp {
 
-
 template <typename MatrixReplacement>
 class ShiftInvertOperator : public MatrixFreeOperator {
 
@@ -55,7 +54,6 @@ public:
     bicg_solver.compute(_Aop);
   }
 
-
   // shift invert operation
   void perform_op(const double *x_in, double *y_out)
   {
@@ -63,7 +61,6 @@ public:
     Eigen::Map<Eigen::VectorXd> y(y_out,_size);
     y.noalias() = bicg_solver.solve(x);
   }
-
 
 private:
 
@@ -76,11 +73,9 @@ private:
 
   Eigen::BiCGSTAB<MatrixReplacement,Eigen::IdentityPreconditioner> bicg_solver;
 
-
-
 };
 
 }  // namespace xtp
 }  // namespace votca
 
-#endif /* _VOTCA_XTP_SINV_OP_H */
+#endif /* _VOTCA_XTP_SSHIFTINVERT_OPERATOR_H */
