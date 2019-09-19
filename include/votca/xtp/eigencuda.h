@@ -40,7 +40,7 @@ namespace xtp {
 
 inline cudaError_t checkCuda(cudaError_t result) {
 // Check Cuda error
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
   if (result != cudaSuccess) {
     std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << "\n";
   }
