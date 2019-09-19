@@ -48,6 +48,8 @@ stages:
 
 Debug GCC:
   stage: canary
+  before_script:
+    - source /opt/gromacs-2019/bin/GMXRC.bash
   variables:
     CC: "gcc"
     CXX: "g++"
