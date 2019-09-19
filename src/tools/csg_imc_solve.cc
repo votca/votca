@@ -90,7 +90,6 @@ void CG_IMC_solve::Run() {
   double reg = _op_vm["regularization"].as<double>();
 
   Eigen::MatrixXd A = LoadMatrix(gmcfile);
-
   votca::tools::Table B;
   B.Load(imcfile);
 
@@ -134,7 +133,7 @@ void CG_IMC_solve::Run() {
   Eigen::MatrixXd inverse =
       es.eigenvectors() * inv_diag.asDiagonal() * es.eigenvectors().transpose();
 
-  x.y() = inverse * A.transpose() * B.y();
+  x.y() = -inverse * A.transpose() * B.y();
 
   x.Save(outputfile);
 }
