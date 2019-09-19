@@ -39,7 +39,7 @@ class CsgTestApp : public CsgApplication {
   void EndEvaluate();
 
  protected:
-  HistogramNew _rdf;
+  votca::tools::HistogramNew _rdf;
   double _cut_off;
 };
 

@@ -39,7 +39,6 @@
 namespace votca {
 namespace csg {
 
-namespace TOOLS = votca::tools;
 /**
     \brief coarse graining engine
 
@@ -101,7 +100,7 @@ inline CGMoleculeDef *CGEngine::getMoleculeDef(std::string name) {
 inline bool CGEngine::IsIgnored(std::string ident) {
   for (std::list<std::string>::iterator iter = _ignores.begin();
        iter != _ignores.end(); ++iter) {
-    if (wildcmp(iter->c_str(), ident.c_str())) return true;
+    if (tools::wildcmp(iter->c_str(), ident.c_str())) return true;
   }
   return false;
 }

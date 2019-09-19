@@ -51,13 +51,13 @@ void Imc::Initialize() {
         "No interactions defined in options xml-file - nothing to be done");
 
   // initialize non-bonded structures
-  for (Property *prop : _nonbonded) {
+  for (tools::Property *prop : _nonbonded) {
     interaction_t *i = AddInteraction(prop);
     i->_is_bonded = false;
   }
 
   // initialize bonded structures
-  for (Property *prop : _bonded) {
+  for (tools::Property *prop : _bonded) {
     interaction_t *i = AddInteraction(prop);
     i->_is_bonded = true;
   }
@@ -73,7 +73,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
   _processed_some_frames = false;
 
   // initialize non-bonded structures
-  for (Property *prop : _nonbonded) {
+  for (tools::Property *prop : _nonbonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_interactions[name];
@@ -142,7 +142,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
     }
   }
 
-  for (Property *prop : _bonded) {
+  for (tools::Property *prop : _bonded) {
     string name = prop->get("name").value();
 
     std::list<Interaction *> list = top->InteractionsInGroup(name);
@@ -155,7 +155,7 @@ void Imc::BeginEvaluate(Topology *top, Topology *top_atom) {
 }
 
 // create an entry for interactions
-Imc::interaction_t *Imc::AddInteraction(Property *p) {
+Imc::interaction_t *Imc::AddInteraction(tools::Property *p) {
   string name = p->get("name").value();
   string group;
   if (_do_imc)
@@ -249,9 +249,9 @@ void Imc::ClearAverages() {
 
 class IMCNBSearchHandler {
  public:
-  IMCNBSearchHandler(HistogramNew *hist) : _hist(hist) {}
+  IMCNBSearchHandler(votca::tools::HistogramNew *hist) : _hist(hist) {}
 
-  HistogramNew *_hist;
+  votca::tools::HistogramNew *_hist;
 
   bool FoundPair(Bead *b1, Bead *b2, const Eigen::Vector3d &r,
                  const double dist) {
@@ -262,7 +262,7 @@ class IMCNBSearchHandler {
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoNonbonded(Topology *top) {
-  for (Property *prop : _imc->_nonbonded) {
+  for (tools::Property *prop : _imc->_nonbonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_imc->_interactions[name];
@@ -415,7 +415,7 @@ void Imc::Worker::DoNonbonded(Topology *top) {
 
 // process non-bonded interactions for current frame
 void Imc::Worker::DoBonded(Topology *top) {
-  for (Property *prop : _imc->_bonded) {
+  for (tools::Property *prop : _imc->_bonded) {
     string name = prop->get("name").value();
 
     interaction_t &i = *_imc->_interactions[name];
@@ -524,14 +524,14 @@ void Imc::WriteDist(const string &suffix) {
   // for all interactions
   for (iter = _interactions.begin(); iter != _interactions.end(); ++iter) {
     // calculate the rdf
-    Table &t = iter->second->_average.data();
-    Table dist(t);
+    votca::tools::Table &t = iter->second->_average.data();
+    votca::tools::Table dist(t);
 
     // if no average force calculation, dummy table
-    Table force;
+    votca::tools::Table force;
     // if average force calculation, table force contains force data
     if (iter->second->_force) {
-      Table &f = iter->second->_average_force.data();
+      votca::tools::Table &f = iter->second->_average_force.data();
       force = f;
     }
 
@@ -626,8 +626,9 @@ void Imc::WriteIMCData(const string &suffix) {
     Eigen::VectorXd r(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<RangeParser> ranges;  // sizes of the individual interactions
-    vector<string> names;        // names of the interactions
+    vector<votca::tools::RangeParser> ranges;  // sizes of the individual
+                                               // interactions
+    vector<string> names;                      // names of the interactions
 
     // copy all averages+r of group to one vector
     n = 0;
@@ -651,7 +652,7 @@ void Imc::WriteIMCData(const string &suffix) {
       sub_r = ic->_average.data().x();
 
       // save size
-      RangeParser rp;
+      votca::tools::RangeParser rp;
       int end = begin + ic->_average.getNBins() - 1;
       rp.Add(begin, end);
       ranges.push_back(rp);
@@ -697,7 +698,7 @@ void Imc::CalcDeltaS(interaction_t *interaction,
                      Eigen::VectorBlock<Eigen::VectorXd> &dS) {
   const string &name = interaction->_p->get("name").as<string>();
 
-  Table target;
+  tools::Table target;
   target.Load(name + ".dist.tgt");
 
   if (!interaction->_is_bonded) {

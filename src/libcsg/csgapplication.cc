@@ -34,31 +34,31 @@ void CsgApplication::Initialize() {
   TopologyReader::RegisterPlugins();
 
   if (NeedsTopology()) {
-    AddProgramOptions()("top", boost::program_options::value<string>(),
+    AddProgramOptions()("top", boost::program_options::value<std::string>(),
                         "  atomistic topology file");
   }
   if (DoMapping()) {
     if (DoMappingDefault()) {
       AddProgramOptions("Mapping options")(
-          "cg", boost::program_options::value<string>(),
+          "cg", boost::program_options::value<std::string>(),
           "  coarse graining mapping and bond definitions (xml-file)")(
-          "map-ignore", boost::program_options::value<string>(),
+          "map-ignore", boost::program_options::value<std::string>(),
           "  list of molecules to ignore separated by ;")(
           "no-map", "  disable mapping and act on original trajectory");
     } else {
       AddProgramOptions("Mapping options")(
-          "cg", boost::program_options::value<string>(),
+          "cg", boost::program_options::value<std::string>(),
           "  [OPTIONAL] coarse graining mapping and bond definitions\n"
           "  (xml-file). If no file is given, program acts on original "
           "trajectory")(
-          "map-ignore", boost::program_options::value<string>(),
+          "map-ignore", boost::program_options::value<std::string>(),
           "  list of molecules to ignore if mapping is done separated by ;");
     }
   }
 
   if (DoTrajectory())
     AddProgramOptions("Trajectory options")(
-        "trj", boost::program_options::value<string>(),
+        "trj", boost::program_options::value<std::string>(),
         "  atomistic trajectory file")(
         "begin", boost::program_options::value<double>()->default_value(0.0),
         "  skip frames before this time (only works for Gromacs files)")(
@@ -92,8 +92,9 @@ bool CsgApplication::EvaluateOptions() {
         _do_mapping = true;
       }
       if (OptionsMap().count("no-map") && OptionsMap().count("cg")) {
-        ShowHelpText(cout);
-        throw runtime_error("no-map and cg options are mutually exclusive!");
+        ShowHelpText(std::cout);
+        throw std::runtime_error(
+            "no-map and cg options are mutually exclusive!");
       }
     }  // default mapping is off, if user gives cg, then do mapping
     else if (OptionsMap().count("cg")) {
@@ -114,13 +115,13 @@ bool CsgApplication::EvaluateOptions() {
 }
 
 void CsgApplication::ShowHelpText(std::ostream &out) {
-  string name = ProgramName();
+  std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
 
   HelpTextHeader(name);
   HelpText(out);
 
-  out << "\n\n" << VisibleOptions() << endl;
+  out << "\n\n" << VisibleOptions() << std::endl;
 }
 
 void CsgApplication::Worker::Run() {
@@ -185,10 +186,10 @@ bool CsgApplication::ProcessData(Worker *worker) {
 void CsgApplication::Run(void) {
   TopologyReader *reader;
   // create reader for atomistic topology
-  reader = TopReaderFactory().Create(_op_vm["top"].as<string>());
+  reader = TopReaderFactory().Create(_op_vm["top"].as<std::string>());
   if (reader == NULL)
-    throw runtime_error(string("input format not supported: ") +
-                        _op_vm["top"].as<string>());
+    throw std::runtime_error(std::string("input format not supported: ") +
+                             _op_vm["top"].as<std::string>());
 
   class DummyWorker : public Worker {
    public:
@@ -213,21 +214,19 @@ void CsgApplication::Run(void) {
   //////////////////////////////////////////////////
   // read in the topology for master
   //////////////////////////////////////////////////
-  reader->ReadTopology(_op_vm["top"].as<string>(), master->_top);
-  cout << "I have " << master->_top.BeadCount() << " beads in "
-       << master->_top.MoleculeCount() << " molecules" << endl;
+  reader->ReadTopology(_op_vm["top"].as<std::string>(), master->_top);
+  std::cout << "I have " << master->_top.BeadCount() << " beads in "
+            << master->_top.MoleculeCount() << " molecules" << std::endl;
   master->_top.CheckMoleculeNaming();
 
   if (_do_mapping) {
     // read in the coarse graining definitions (xml files)
-    cg.LoadMoleculeType(_op_vm["cg"].as<string>());
+    cg.LoadMoleculeType(_op_vm["cg"].as<std::string>());
     // create the mapping + cg topology
 
     if (_op_vm.count("map-ignore") != 0) {
-      Tokenizer tok(_op_vm["map-ignore"].as<string>(), ";");
-      Tokenizer::iterator iter;
-      for (iter = tok.begin(); iter != tok.end(); ++iter) {
-        string str = *iter;
+      tools::Tokenizer tok(_op_vm["map-ignore"].as<std::string>(), ";");
+      for (std::string str : tok) {
         boost::trim(str);
         if (str.length() > 0) cg.AddIgnore(str);
       }
@@ -235,9 +234,9 @@ void CsgApplication::Run(void) {
 
     master->_map = cg.CreateCGTopology(master->_top, master->_top_cg);
 
-    cout << "I have " << master->_top_cg.BeadCount() << " beads in "
-         << master->_top_cg.MoleculeCount()
-         << " molecules for the coarsegraining" << endl;
+    std::cout << "I have " << master->_top_cg.BeadCount() << " beads in "
+              << master->_top_cg.MoleculeCount()
+              << " molecules for the coarsegraining" << std::endl;
     master->_map->Apply();
     if (!EvaluateTopology(&master->_top_cg, &master->_top)) return;
   } else if (!EvaluateTopology(&master->_top))
@@ -264,12 +263,12 @@ void CsgApplication::Run(void) {
     first_frame = _op_vm["first-frame"].as<int>();
 
     // create reader for trajectory
-    _traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<string>());
+    _traj_reader = TrjReaderFactory().Create(_op_vm["trj"].as<std::string>());
     if (_traj_reader == NULL)
-      throw runtime_error(string("input format not supported: ") +
-                          _op_vm["trj"].as<string>());
+      throw std::runtime_error(std::string("input format not supported: ") +
+                               _op_vm["trj"].as<std::string>());
     // open the trajectory
-    _traj_reader->Open(_op_vm["trj"].as<string>());
+    _traj_reader->Open(_op_vm["trj"].as<std::string>());
 
     //////////////////////////////////////////////////
     // Create all the workers
@@ -283,7 +282,7 @@ void CsgApplication::Run(void) {
       // this will be changed to CopyTopologyData
       // read in the topology
 
-      reader->ReadTopology(_op_vm["top"].as<string>(), myWorker->_top);
+      reader->ReadTopology(_op_vm["top"].as<std::string>(), myWorker->_top);
       myWorker->_top.CheckMoleculeNaming();
 
       if (_do_mapping) {
@@ -298,9 +297,10 @@ void CsgApplication::Run(void) {
 
     _traj_reader->FirstFrame(master->_top);
     if (master->_top.getBoxType() == BoundaryCondition::typeOpen) {
-      cout << "NOTE: You are using OpenBox boundary conditions. Check if this "
-              "is intended.\n"
-           << endl;
+      std::cout
+          << "NOTE: You are using OpenBox boundary conditions. Check if this "
+             "is intended.\n"
+          << std::endl;
     }
     // seek first frame, let thread0 do that
     bool bok;
@@ -334,12 +334,12 @@ void CsgApplication::Run(void) {
       for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
 
         if (SynchronizeThreads()) {
-          Mutex *myMutexIn = new Mutex;
+          tools::Mutex *myMutexIn = new tools::Mutex;
           _threadsMutexesIn.push_back(myMutexIn);
           // lock each worker for input
           myMutexIn->Lock();
 
-          Mutex *myMutexOut = new Mutex;
+          tools::Mutex *myMutexOut = new tools::Mutex;
           _threadsMutexesOut.push_back(myMutexOut);
           // lock each worker for output
           myMutexOut->Lock();
@@ -354,7 +354,7 @@ void CsgApplication::Run(void) {
         _threadsMutexesOut[0]->Unlock();
       }
       // mutex needed for merging if SynchronizeThreads()==False
-      Mutex mergeMutex;
+      tools::Mutex mergeMutex;
       for (size_t thread = 0; thread < _myWorkers.size(); thread++) {
         _myWorkers[thread]->WaitDone();
         if (!SynchronizeThreads()) {
@@ -393,21 +393,21 @@ CsgApplication::Worker::~Worker() {
 }
 
 void CsgApplication::BeginEvaluate(Topology *top, Topology *top_ref) {
-  list<CGObserver *>::iterator iter;
-  for (iter = _observers.begin(); iter != _observers.end(); ++iter)
-    (*iter)->BeginCG(top, top_ref);
+  for (CGObserver *ob : _observers) {
+    ob->BeginCG(top, top_ref);
+  }
 }
 
 void CsgApplication::EndEvaluate() {
-  list<CGObserver *>::iterator iter;
-  for (iter = _observers.begin(); iter != _observers.end(); ++iter)
-    (*iter)->EndCG();
+  for (CGObserver *ob : _observers) {
+    ob->EndCG();
+  }
 }
 
 void CsgApplication::EvalConfiguration(Topology *top, Topology *top_ref) {
-  list<CGObserver *>::iterator iter;
-  for (iter = _observers.begin(); iter != _observers.end(); ++iter)
-    (*iter)->EvalConfiguration(top, top_ref);
+  for (CGObserver *ob : _observers) {
+    ob->EvalConfiguration(top, top_ref);
+  }
 }
 
 CsgApplication::Worker *CsgApplication::ForkWorker(void) {

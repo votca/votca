@@ -68,8 +68,8 @@ TopologyMap *CGEngine::CreateCGTopology(Topology &in, Topology &out) {
 }
 
 void CGEngine::LoadMoleculeType(string filename) {
-  Tokenizer tok(filename, ";");
-  Tokenizer::iterator iter;
+  tools::Tokenizer tok(filename, ";");
+  tools::Tokenizer::iterator iter;
 
   for (iter = tok.begin(); iter != tok.end(); ++iter) {
     CGMoleculeDef *def = new CGMoleculeDef();
