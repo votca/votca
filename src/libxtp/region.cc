@@ -25,36 +25,48 @@
 namespace votca {
 namespace xtp {
 
-void Region::ApplyInfluenceOfOtherRegions(
+std::vector<double> Region::ApplyInfluenceOfOtherRegions(
     std::vector<std::unique_ptr<Region> >& regions) {
+  std::vector<double> energies = std::vector<double>(regions.size(), 0.0);
   for (std::unique_ptr<Region>& reg : regions) {
-    if (reg->getId() == this->getId()) {
+    int id = reg->getId();
+    if (id == this->getId()) {
       continue;
     }
 
-    QMRegion QMdummy(0, _log);
+    QMRegion QMdummy(0, _log, "");
     StaticRegion Staticdummy(0, _log);
     PolarRegion Polardummy(0, _log);
     XTP_LOG_SAVE(logINFO, _log)
-        << "Evaluating interaction between:" << this->identify() << " "
-        << this->getId() << " and " << reg->identify() << " " << reg->getId()
-        << std::flush;
+        << TimeStamp() << " Evaluating interaction between " << this->identify()
+        << " " << this->getId() << " and " << reg->identify() << " "
+        << reg->getId() << std::flush;
     if (reg->identify() == QMdummy.identify()) {
       QMRegion* qmregion = dynamic_cast<QMRegion*>(reg.get());
-      InteractwithQMRegion(*qmregion);
+      energies[id] = InteractwithQMRegion(*qmregion);
     } else if (reg->identify() == Staticdummy.identify()) {
       StaticRegion* staticregion = dynamic_cast<StaticRegion*>(reg.get());
-      InteractwithStaticRegion(*staticregion);
+      energies[id] = InteractwithStaticRegion(*staticregion);
     } else if (reg->identify() == Polardummy.identify()) {
       PolarRegion* polarregion = dynamic_cast<PolarRegion*>(reg.get());
-      InteractwithPolarRegion(*polarregion);
+      energies[id] = InteractwithPolarRegion(*polarregion);
     } else {
       throw std::runtime_error(
           "Interaction of regions with types:" + this->identify() + " and " +
           reg->identify() + " not implemented");
     }
   }
-  return;
+
+  return energies;
+}
+
+void Region::AddResults(tools::Property& prop) const {
+  tools::Property& region = prop.add("region", "");
+  region.setAttribute("type", identify());
+  region.setAttribute("id", getId());
+  region.setAttribute("size", size());
+  region.setAttribute("Tot_charge", (boost::format("%1$1.6e") % charge()));
+  AppendResult(region);
 }
 
 }  // namespace xtp

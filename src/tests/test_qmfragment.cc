@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_SUITE(qmfragment_test)
 
 BOOST_AUTO_TEST_CASE(stringprocessing) {
   std::string index = "1 2 3 5...9";
-  QMFragment<double> frag("check", 0, index);
+  QMFragment<double> frag(0, index);
   std::vector<int> ref = {1, 2, 3, 5, 6, 7, 8, 9};
 
   bool checked = (frag.getIndices() == ref);
@@ -42,4 +42,27 @@ BOOST_AUTO_TEST_CASE(stringprocessing) {
     }
   }
 }
+
+BOOST_AUTO_TEST_CASE(readinandwritinghdf5) {
+  std::string index = "1 2 3 5...9";
+  QMFragment<double> frag(0, index);
+
+  frag.value() = -0.5;
+
+  {
+    CheckpointFile f("QMFragment_test.hdf5");
+    CheckpointWriter w = f.getWriter();
+    frag.WriteToCpt(w);
+  }
+
+  CheckpointFile f("QMFragment_test.hdf5");
+  CheckpointReader r = f.getReader();
+  QMFragment<double> frag2(r);
+  BOOST_CHECK_EQUAL(frag2.getId(), frag.getId());
+  BOOST_CHECK_CLOSE(frag.value(), frag2.value(), 1e-5);
+  for (int i = 0; i < frag.size(); i++) {
+    BOOST_CHECK_EQUAL(frag.getIndices()[i], frag2.getIndices()[i]);
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()

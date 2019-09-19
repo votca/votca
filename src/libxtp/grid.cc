@@ -28,7 +28,7 @@ namespace xtp {
 void Grid::printGridtoxyzfile(std::string filename) {
   // unit is Angstrom in xyz file
   std::ofstream points;
-  points.open(filename.c_str(), std::ofstream::out);
+  points.open(filename, std::ofstream::out);
   points << _gridpoints.size() << std::endl;
   points << std::endl;
   for (const auto& point : _gridpoints) {

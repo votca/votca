@@ -41,12 +41,10 @@ void XtpApplication::Initialize(void) {
                       "  calculator options");
 }
 
-bool XtpApplication::EvaluateOptions(void) { return true; }
-
 void XtpApplication::ShowHelpText(std::ostream &out) {
   std::string name = ProgramName();
   if (VersionString() != "") name = name + ", version " + VersionString();
-  HelpTextHeader(name);
+  xtp::HelpTextHeader(name);
   HelpText(out);
   out << "\n\n" << VisibleOptions() << std::endl;
 }

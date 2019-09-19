@@ -112,20 +112,22 @@ class DipoleDipoleInteraction
     } else {
       const PolarSite& site1 = *_sites[seg1id];
       const PolarSite& site2 = *_sites[seg2id];
-      return _interactor.FillTholeInteraction_diponly(site1, site2)(xyz1, xyz2);
+      return _interactor.FillTholeInteraction(site1, site2)(xyz1, xyz2);
     }
   };
 
-  Eigen::Matrix3Xd ThreeRows(int index) const {
-    const PolarSite& site1 = *_sites[index];
-    Eigen::Matrix3Xd result = Eigen::Matrix3Xd(3, _size);
-    for (int i = 0; i < _size / 3; i++) {
-      if (i == index) {
-        result.block<3, 3>(0, 3 * i) = site1.getPInv();
+  Eigen::Vector3d Block(int i, const Eigen::VectorXd& v) const {
+    Eigen::Vector3d result = Eigen::Vector3d::Zero();
+    const PolarSite& site1 = *_sites[i];
+    const int segment_size = _sites.size();
+    for (int j = 0; j < segment_size; j++) {
+      const Eigen::Vector3d v_small = v.segment<3>(3 * j);
+
+      if (i == j) {
+        result += site1.getPInv() * v_small;
       } else {
-        const PolarSite& site2 = *_sites[i];
-        result.block<3, 3>(0, 3 * i) =
-            _interactor.FillTholeInteraction_diponly(site1, site2);
+        const PolarSite& site2 = *_sites[j];
+        result += _interactor.VThole(site1, site2, v_small);
       }
     }
     return result;
@@ -162,14 +164,12 @@ struct generic_product_impl<votca::xtp::DipoleDipoleInteraction, Vtype,
     // alpha must be 1 here
     assert(alpha == Scalar(1) && "scaling is not implemented");
     EIGEN_ONLY_USED_FOR_DEBUG(alpha);
-    int iterations = op.rows() / 3;
+    int sites = op.rows() / 3;
 // make the mat vect product
 #pragma omp parallel for
-    for (int i = 0; i < iterations; i++) {
-      const Eigen::Vector3d result = op.ThreeRows(i) * v;
-      dst(3 * i) = result.x();
-      dst(3 * i + 1) = result.y();
-      dst(3 * i + 2) = result.z();
+    for (int i = 0; i < sites; i++) {
+      const Eigen::Vector3d result = op.Block(i, v);
+      dst.segment(3 * i, 3) = result;
     }
   }
 };

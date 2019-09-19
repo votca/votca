@@ -18,8 +18,9 @@
  */
 
 #include "votca/xtp/qmpackage.h"
-
 #include <boost/algorithm/string.hpp>
+#include <votca/xtp/ecpaobasis.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
@@ -48,7 +49,6 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
 
   _charge = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".charge");
   _spin = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".spin");
-  _threads = options.ifExistsReturnElseThrowRuntimeError<int>(key + ".threads");
   _cleanup =
       options.ifExistsReturnElseReturnDefault(key + ".cleanup", _cleanup);
   _dpl_spacing = options.ifExistsReturnElseReturnDefault(
@@ -72,25 +72,22 @@ void QMPackage::ParseCommonOptions(tools::Property& options) {
   }
 }
 
-void QMPackage::ReorderOutput(Orbitals& orbitals) {
-  BasisSet dftbasisset;
-  dftbasisset.LoadBasisSet(_basisset_name);
+void QMPackage::ReorderOutput(Orbitals& orbitals) const {
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
 
-  AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
+  AOBasis dftbasis = orbitals.SetupDftBasis();
   // necessary to update nuclear charges on qmatoms
-  if (_write_pseudopotentials) {
-    BasisSet ecps;
-    ecps.LoadPseudopotentialSet(_ecp_name);
-    AOBasis ecpbasis;
-    ecpbasis.ECPFill(ecps, orbitals.QMAtoms());
+  if (orbitals.hasECPName()) {
+    ECPBasisSet ecps;
+    ecps.Load(orbitals.getECPName());
+    ECPAOBasis ecpbasis;
+    ecpbasis.Fill(ecps, orbitals.QMAtoms());
   }
 
-  if (orbitals.hasMOCoefficients()) {
-    dftbasis.ReorderMOs(orbitals.MOCoefficients(), getPackageName(), "xtp");
+  if (orbitals.hasMOs()) {
+    dftbasis.ReorderMOs(orbitals.MOs().eigenvectors(), getPackageName(), "xtp");
     XTP_LOG(logDEBUG, *_pLog) << "Reordered MOs" << flush;
   }
 
@@ -99,19 +96,19 @@ void QMPackage::ReorderOutput(Orbitals& orbitals) {
 
 Eigen::MatrixXd QMPackage::ReorderMOsBack(const Orbitals& orbitals) const {
   BasisSet dftbasisset;
-  dftbasisset.LoadBasisSet(_basisset_name);
+  dftbasisset.Load(_basisset_name);
   if (!orbitals.hasQMAtoms()) {
     throw std::runtime_error("Orbitals object has no QMAtoms");
   }
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbasisset, orbitals.QMAtoms());
-  Eigen::MatrixXd result = orbitals.MOCoefficients();
+  dftbasis.Fill(dftbasisset, orbitals.QMAtoms());
+  Eigen::MatrixXd result = orbitals.MOs().eigenvectors();
   dftbasis.ReorderMOs(result, "xtp", getPackageName());
   return result;
 }
 
 std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
-    const StaticSite& aps) {
+    const StaticSite& aps) const {
 
   std::vector<QMPackage::MinimalMMCharge> multipoles_split;
   // Calculate virtual charge positions
@@ -146,14 +143,12 @@ std::vector<QMPackage::MinimalMMCharge> QMPackage::SplitMultipoles(
 }
 
 std::vector<std::string> QMPackage::GetLineAndSplit(
-    std::ifstream& input_file, const std::string separators) {
+    std::ifstream& input_file, const std::string separators) const {
   std::string line;
   getline(input_file, line);
   boost::trim(line);
-  std::vector<std::string> row;
-  boost::algorithm::split(row, line, boost::is_any_of(separators),
-                          boost::algorithm::token_compress_on);
-  return row;
+  tools::Tokenizer tok(line, separators.c_str());
+  return tok.ToVector();
 }
 
 }  // namespace xtp

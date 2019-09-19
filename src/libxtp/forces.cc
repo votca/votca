@@ -21,7 +21,7 @@
 
 #include <votca/tools/elements.h>
 
-#include "votca/xtp/statefilter.h"
+#include "votca/xtp/statetracker.h"
 #include <votca/xtp/atom.h>
 #include <votca/xtp/forces.h>
 
@@ -36,18 +36,12 @@ void Forces::Initialize(tools::Property& options) {
       options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
           ".method", choices);
 
-  if ((_force_method == "forward") || (_force_method == "central")) {
-    _displacement = options.ifExistsReturnElseReturnDefault<double>(
-        ".displacement", 0.001);  // Angstrom
-  }
+  _displacement = options.ifExistsReturnElseReturnDefault<double>(
+      ".displacement", 0.001);  // Angstrom
   _displacement *= tools::conv::ang2bohr;
 
-  // check for force removal options
-  choices = {"total", "none"};
-  std::string _force_removal =
-      options.ifExistsAndinListReturnElseThrowRuntimeError<std::string>(
-          ".removal", choices);
-  if (_force_removal == "total") _remove_total_force = true;
+  _remove_total_force = options.ifExistsReturnElseReturnDefault<bool>(
+      ".CoMforce_removal", _remove_total_force);
   return;
 }
 
@@ -107,7 +101,7 @@ Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, int atom_index) {
   Eigen::Vector3d force = Eigen::Vector3d::Zero();
   // get this atoms's current coordinates
   double energy_center =
-      orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
+      orbitals.getTotalStateEnergy(_tracker.CalcState(orbitals));
   const Eigen::Vector3d current_pos = orbitals.QMAtoms()[atom_index].getPos();
   for (int i_cart = 0; i_cart < 3; i_cart++) {
     Eigen::Vector3d displacement_vec = Eigen::Vector3d::Zero();
@@ -117,7 +111,7 @@ Eigen::Vector3d Forces::NumForceForward(Orbitals orbitals, int atom_index) {
     orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
     _gwbse_engine.ExcitationEnergies(orbitals);
     double energy_displaced =
-        orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
+        orbitals.getTotalStateEnergy(_tracker.CalcState(orbitals));
     force(i_cart) = (energy_center - energy_displaced) / _displacement;
     orbitals.QMAtoms()[atom_index].setPos(
         current_pos);  // restore original coordinate into segment
@@ -140,13 +134,13 @@ Eigen::Vector3d Forces::NumForceCentral(Orbitals orbitals, int atom_index) {
     orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
     _gwbse_engine.ExcitationEnergies(orbitals);
     double energy_displaced_plus =
-        orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
+        orbitals.getTotalStateEnergy(_tracker.CalcState(orbitals));
     // update the coordinate
     pos_displaced = current_pos - displacement_vec;
     orbitals.QMAtoms()[atom_index].setPos(pos_displaced);
     _gwbse_engine.ExcitationEnergies(orbitals);
     double energy_displaced_minus =
-        orbitals.getTotalStateEnergy(_filter.CalcState(orbitals));
+        orbitals.getTotalStateEnergy(_tracker.CalcState(orbitals));
     force(i_cart) =
         0.5 * (energy_displaced_minus - energy_displaced_plus) / _displacement;
     orbitals.QMAtoms()[atom_index].setPos(

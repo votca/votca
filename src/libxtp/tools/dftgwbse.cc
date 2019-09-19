@@ -64,7 +64,7 @@ void DftGwBse::Initialize(tools::Property& options) {
 
   // options for dft package
   string _package_xml = options.get(key + ".dftpackage").as<string>();
-  load_property_from_xml(_package_options, _package_xml);
+  _package_options.LoadFromXML(_package_xml);
   _package = _package_options.get("package.name").as<string>();
 
   // MOLECULE properties
@@ -84,7 +84,7 @@ void DftGwBse::Initialize(tools::Property& options) {
 }
 
 bool DftGwBse::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   if (_reporting == "silent")
     _log.setReportLevel(logERROR);  // only output ERRORS, GEOOPT info, and
                                     // excited state info for trial geometry
@@ -102,10 +102,12 @@ bool DftGwBse::Evaluate() {
   Orbitals orbitals;
 
   if (_do_guess) {
-    XTP_LOG(logDEBUG, _log) << "Reading guess from " << _guess_file << flush;
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << "Reading guess from " << _guess_file << flush;
     orbitals.ReadFromCpt(_guess_file);
   } else {
-    XTP_LOG(logDEBUG, _log) << "Reading structure from " << _xyzfile << flush;
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << "Reading structure from " << _xyzfile << flush;
     orbitals.QMAtoms().LoadFromFile(_xyzfile);
   }
 
@@ -137,7 +139,7 @@ bool DftGwBse::Evaluate() {
     gwbse_engine.ExcitationEnergies(orbitals);
   }
 
-  XTP_LOG(logDEBUG, _log) << "Saving data to " << _archive_file << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << "Saving data to " << _archive_file << flush;
   orbitals.WriteToCpt(_archive_file);
 
   tools::Property summary = gwbse_engine.ReportSummary();
@@ -145,8 +147,9 @@ bool DftGwBse::Evaluate() {
                                    // actually did gwbse
     tools::PropertyIOManipulator iomXML(tools::PropertyIOManipulator::XML, 1,
                                         "");
-    XTP_LOG(logDEBUG, _log) << "Writing output to " << _xml_output << flush;
-    std::ofstream ofout(_xml_output.c_str(), std::ofstream::out);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << "Writing output to " << _xml_output << flush;
+    std::ofstream ofout(_xml_output, std::ofstream::out);
     ofout << (summary.get("output"));
     ofout.close();
   }

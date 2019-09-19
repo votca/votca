@@ -36,7 +36,7 @@ Eigen::Matrix3d StaticSite::CalculateCartesianMultipole() const {
   if (_rank > 1) {
     double sqr3 = std::sqrt(3);
     theta(0, 0) = 0.5 * (-MP(4) + sqr3 * MP(7));     // theta_xx
-    theta(1, 1) = 0.5 * (-MP(4) + sqr3 * (-MP(7)));  // theta_yy
+    theta(1, 1) = 0.5 * (-MP(4) - sqr3 * MP(7));     // theta_yy
     theta(2, 2) = MP(4);                             // theta_zz
     theta(0, 1) = theta(1, 0) = 0.5 * sqr3 * MP(8);  // theta_xy = theta_yx
     theta(0, 2) = theta(2, 0) = 0.5 * sqr3 * MP(5);  // theta_xz = theta_zx
@@ -63,7 +63,8 @@ void StaticSite::Rotate(const Eigen::Matrix3d& R,
   dir = R * dir;
   _pos = refPos + dir;  // Rotated Position
   if (_rank > 0) {
-    _Q.segment<3>(1) = R * _Q.segment<3>(1);
+    const Eigen::Vector3d temp = R * _Q.segment<3>(1);
+    _Q.segment<3>(1) = temp;
   }
   if (_rank > 1) {
     Eigen::Matrix3d cartesianquad = CalculateCartesianMultipole();
@@ -77,6 +78,18 @@ void StaticSite::Translate(const Eigen::VectorXd& shift) {
   _pos += shift;
   return;
 }
+
+std::string StaticSite::writePolarisation() const {
+  tools::Elements e;
+  double default_pol = std::pow(tools::conv::ang2bohr, 3);
+  try {
+    default_pol =
+        e.getPolarizability(_element) * std::pow(tools::conv::nm2bohr, 3);
+  } catch (const std::invalid_argument&) {
+    ;
+  }
+  return (boost::format("     P %1$+1.7f\n") % default_pol).str();
+};
 
 std::string StaticSite::WriteMpsLine(string unit) const {
   double conv_pos = 1.;
@@ -96,8 +109,8 @@ std::string StaticSite::WriteMpsLine(string unit) const {
   output += (boost::format("    %1$+1.7f\n") % getCharge()).str();
   if (_rank > 0) {
     // Dipole z x y
-    output += (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") % _Q(1) %
-               _Q(2) % _Q(3))
+    output += (boost::format("    %1$+1.7f %2$+1.7f %3$+1.7f\n") % _Q(3) %
+               _Q(1) % _Q(2))
                   .str();
     if (_rank > 1) {
       // Quadrupole 20 21c 21s 22c 22s
@@ -131,16 +144,6 @@ void StaticSite::SetupCptTable(CptTable& table) const {
   table.addCol(_Q[6], "Q21s", HOFFSET(data, Q21s));
   table.addCol(_Q[7], "Q22c", HOFFSET(data, Q22c));
   table.addCol(_Q[8], "Q22s", HOFFSET(data, Q22s));
-
-  table.addCol(_V[0], "V00", HOFFSET(data, V00));
-  table.addCol(_V[1], "V11c", HOFFSET(data, V11c));
-  table.addCol(_V[2], "V11s", HOFFSET(data, V11s));
-  table.addCol(_V[3], "V10", HOFFSET(data, V10));
-  table.addCol(_V[4], "V20", HOFFSET(data, V20));
-  table.addCol(_V[5], "V21c", HOFFSET(data, V21c));
-  table.addCol(_V[6], "V21s", HOFFSET(data, V21s));
-  table.addCol(_V[7], "V22c", HOFFSET(data, V22c));
-  table.addCol(_V[8], "V22s", HOFFSET(data, V22s));
 }
 
 void StaticSite::WriteData(data& d) const {
@@ -161,16 +164,6 @@ void StaticSite::WriteData(data& d) const {
   d.Q21s = _Q[6];
   d.Q22c = _Q[7];
   d.Q22s = _Q[8];
-
-  d.V00 = _V[0];
-  d.V11c = _V[1];
-  d.V11s = _V[2];
-  d.V10 = _V[3];
-  d.V20 = _V[4];
-  d.V21c = _V[5];
-  d.V21s = _V[6];
-  d.V22c = _V[7];
-  d.V22s = _V[8];
 }
 
 void StaticSite::ReadData(data& d) {
@@ -192,16 +185,6 @@ void StaticSite::ReadData(data& d) {
   _Q[6] = d.Q21s;
   _Q[7] = d.Q22c;
   _Q[8] = d.Q22s;
-
-  _V[0] = d.V00;
-  _V[1] = d.V11c;
-  _V[2] = d.V11s;
-  _V[3] = d.V10;
-  _V[4] = d.V20;
-  _V[5] = d.V21c;
-  _V[6] = d.V21s;
-  _V[7] = d.V22c;
-  _V[8] = d.V22s;
 }
 
 }  // namespace xtp

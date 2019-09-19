@@ -16,8 +16,6 @@
  * limitations under the License.
  *
  */
-/// For an earlier history see ctp repo commit
-/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #pragma once
 #ifndef VOTCA_XTP_JOB_H
@@ -37,8 +35,8 @@ class Job {
   enum JobStatus { AVAILABLE, ASSIGNED, FAILED, COMPLETE };
 
   Job(const tools::Property &prop);
-  Job(int id, std::string &tag, std::string &input, std::string stat);
-  Job(int id, std::string &tag, tools::Property &input, JobStatus stat);
+  Job(int id, const std::string &tag, const tools::Property &input,
+      JobStatus stat);
 
   std::string ConvertStatus(JobStatus) const;
   JobStatus ConvertStatus(std::string) const;
@@ -58,6 +56,8 @@ class Job {
     JobStatus getStatus() const { return _status; }
     bool hasOutput() const { return _has_output; }
     const tools::Property &getOutput() const { return _output; }
+
+    tools::Property &getOutput() { return _output; }
     bool hasError() const { return _has_error; }
     const std::string &getError() const { return _error; }
 
@@ -75,7 +75,7 @@ class Job {
   };
 
   void Reset();
-  void ToStream(std::ofstream &ofs, std::string fileformat) const;
+  void ToStream(std::ofstream &ofs) const;
   void UpdateFrom(const Job &ext);
   void UpdateFromResult(const JobResult &res);
 
@@ -149,8 +149,7 @@ class Job {
 };  // namespace xtp
 
 std::vector<Job> LOAD_JOBS(const std::string &xml_file);
-void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file,
-                std::string fileformat);
+void WRITE_JOBS(const std::vector<Job> &jobs, const std::string &job_file);
 void UPDATE_JOBS(const std::vector<Job> &from, std::vector<Job> &to,
                  const std::string &thisHost);
 }  // namespace xtp

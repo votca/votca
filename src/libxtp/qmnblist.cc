@@ -16,25 +16,21 @@
  * limitations under the License.
  *
  */
-/// For earlier commit history see ctp commit
-/// 77795ea591b29e664153f9404c8655ba28dc14e9
 
 #include <iostream>
 #include <votca/xtp/qmnblist.h>
 
 #include "votca/xtp/checkpointwriter.h"
 
-using namespace std;
-
 namespace votca {
 namespace xtp {
 
-QMPair& QMNBList::Add(const Segment* seg1, const Segment* seg2,
+QMPair& QMNBList::Add(const Segment& seg1, const Segment& seg2,
                       const Eigen::Vector3d& r) {
-  assert(this->FindPair(seg1, seg2) != NULL &&
+  assert(this->FindPair(&seg1, &seg2) == nullptr &&
          "Critical bug: pair already exists");
   int id = this->size();
-  QMPair* pair = new QMPair(id, seg1, seg2, r);
+  QMPair* pair = new QMPair(id, &seg1, &seg2, r);
   this->AddPair(pair);
   return *pair;
 }

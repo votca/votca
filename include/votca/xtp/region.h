@@ -63,53 +63,33 @@ class Region {
 
   virtual void Reset() = 0;
 
+  virtual double charge() const = 0;
+
+  bool Successful() const { return _info; }
+
+  std::string ErrorMsg() const { return _errormsg; }
+
+  void AddResults(tools::Property& prop) const;
+
   int getId() const { return _id; }
+
+  virtual double Etotal() const = 0;
 
   friend std::ostream& operator<<(std::ostream& out, const Region& region) {
     out << "Id: " << region.getId() << " type: " << region.identify()
-        << " size: " << region.size();
+        << " size: " << region.size() << " charge[e]= " << region.charge();
     return out;
   }
 
  protected:
-  template <class T>
-  class hist {
-   public:
-    T getDiff() const {
-      if (_filled > 1) {
-        return _metric - _metric_old;
-      } else if (_filled == 1) {
-        return _metric;
-      } else {
-        throw std::runtime_error("hist is not filled yet");
-      }
-    }
-
-    void push_back(const T& metric) {
-      _metric_old = std::move(_metric);
-      _metric = metric;
-      _filled++;
-    }
-    void push_back(T&& metric) {
-      _metric_old = std::move(_metric);
-      _metric = std::move(metric);
-      _filled++;
-    }
-
-    bool filled() const { return _filled > 0; }
-
-   private:
-    int _filled = 0;
-    T _metric;
-    T _metric_old;
-  };
-
-  void ApplyInfluenceOfOtherRegions(
+  bool _info = true;
+  std::string _errormsg = "";
+  std::vector<double> ApplyInfluenceOfOtherRegions(
       std::vector<std::unique_ptr<Region> >& regions);
-
-  virtual void InteractwithQMRegion(const QMRegion& region) = 0;
-  virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
-  virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;
+  virtual void AppendResult(tools::Property& prop) const = 0;
+  virtual double InteractwithQMRegion(const QMRegion& region) = 0;
+  virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
+  virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
   int _id = -1;
   Logger& _log;

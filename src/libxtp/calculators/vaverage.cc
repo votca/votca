@@ -84,8 +84,9 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
     if (!split.size() || split[0] == "#" || split[0].substr(0, 1) == "#") {
       continue;
     }
-    if (split.size() != 3) {
-      throw std::runtime_error("Row should only contain pairid, rate12,rate21");
+    if (split.size() != 5) {
+      throw std::runtime_error(
+          "Row should only contain pairid,segid1,segid2 ,rate12,rate21");
     }
 
     int id_readin = std::stoi(split[0]);
@@ -94,8 +95,8 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
     }
     id++;
     Rate_Engine::PairRates pair;
-    pair.rate12 = std::stod(split[2]);
-    pair.rate21 = std::stod(split[3]);
+    pair.rate12 = std::stod(split[3]);
+    pair.rate21 = std::stod(split[4]);
     result.push_back(pair);
   }
   return result;
@@ -104,14 +105,14 @@ std::vector<Rate_Engine::PairRates> VAverage::ReadRatefile(
 bool VAverage::EvaluateFrame(Topology& top) {
   std::cout << std::endl
             << "... ... Computing velocity average for all sites\n";
-  std::cout << "Reading in site occupations from " << _occfile << std::flush;
+  std::cout << "Reading in site occupations from " << _occfile << std::endl;
   std::vector<double> occ = ReadOccfile(_occfile);
   if (top.Segments().size() != occ.size()) {
     throw std::runtime_error(
         "Number of occupations is" + std::to_string(occ.size()) +
         " Topology has size:" + std::to_string(top.Segments().size()));
   }
-  std::cout << "Reading in rates from " << _ratefile << std::flush;
+  std::cout << "Reading in rates from " << _ratefile << std::endl;
   std::vector<Rate_Engine::PairRates> rates = ReadRatefile(_ratefile);
   if (top.NBList().size() != int(rates.size())) {
     throw std::runtime_error(
@@ -149,10 +150,11 @@ bool VAverage::EvaluateFrame(Topology& top) {
     const Eigen::Vector3d v = velocities[seg.getId()] * tools::conv::bohr2nm;
     ofs << (boost::format("%1$4d %2$-10s %3$+1.7e %4$+1.7e "
                           "%5$+1.7e %6$+1.7e %7$+1.7e %8$+1.7e") %
-            seg.getId() % seg.getName() % r.x() % r.y() % r.z() % v.x() %
+            seg.getId() % seg.getType() % r.x() % r.y() % r.z() % v.x() %
             v.y() % v.z())
         << std::endl;
   }
+  std::cout << "Writing velocities to " << _outputfile << std::endl;
   return true;
 }
 

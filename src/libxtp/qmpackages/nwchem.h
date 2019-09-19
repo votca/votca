@@ -23,8 +23,6 @@
 
 #include <votca/xtp/qmpackage.h>
 
-#include <string>
-
 namespace votca {
 namespace xtp {
 /**
@@ -34,6 +32,7 @@ namespace xtp {
     and extracts information from its log and io files
 
 */
+class Orbitals;
 class NWChem : public QMPackage {
  public:
   std::string getPackageName() const { return "nwchem"; }
@@ -50,8 +49,13 @@ class NWChem : public QMPackage {
 
   bool ParseMOsFile(Orbitals& orbitals);
 
+  StaticSegment GetCharges() const;
+
+  Eigen::Matrix3d GetPolarizability() const;
+
  private:
-  bool CheckLogFile();
+  std::string ascii_mo_file_name;
+  bool CheckLogFile() const;
   bool WriteShellScript();
   bool WriteGuess(const Orbitals& orbitals);
 

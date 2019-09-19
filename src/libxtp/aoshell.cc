@@ -55,7 +55,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
   for (const AOGaussianPrimitive& gaussian : _gaussians) {
 
     const double alpha = gaussian.getDecay();
-    const std::vector<double>& contractions = gaussian.getContraction();
+    const Eigen::VectorXd& contractions = gaussian.getContraction();
 
     const double expofactor =
         gaussian.getPowfactor() * std::exp(-alpha * distsq);
@@ -322,7 +322,7 @@ void AOShell::EvalAOspace(Eigen::VectorBlock<Eigen::VectorXd>& AOvalues,
   for (const AOGaussianPrimitive& gaussian : _gaussians) {
 
     const double alpha = gaussian.getDecay();
-    const std::vector<double>& contractions = gaussian.getContraction();
+    const Eigen::VectorXd& contractions = gaussian.getContraction();
 
     double expofactor = gaussian.getPowfactor() * exp(-alpha * distsq);
 
@@ -433,8 +433,8 @@ std::ostream& operator<<(std::ostream& out, const AOShell& shell) {
   for (const auto& gaussian : shell) {
     out << " Gaussian Decay: " << gaussian.getDecay();
     out << " Contractions:";
-    for (const double& contraction : gaussian.getContraction()) {
-      out << " " << contraction;
+    for (int i = 0; i < gaussian.getContraction().size(); i++) {
+      out << " " << gaussian.getContraction()[i];
     }
     out << "\n";
   }

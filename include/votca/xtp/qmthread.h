@@ -39,13 +39,13 @@ namespace xtp {
 
 class QMThread : public tools::Thread {
  public:
-  QMThread() { _maverick = false; }
-  QMThread(bool maverick) { _maverick = maverick; };
-  ~QMThread(){};
+  QMThread() {}
+  QMThread(bool maverick) : _maverick(maverick) { ; }
+  virtual ~QMThread(){};
 
-  int getId() { return _id; }
+  int getId() const { return _id; }
   void setId(int id) { _id = id; }
-  bool isMaverick() { return _maverick; }
+  bool isMaverick() const { return _maverick; }
 
   Logger& getLogger() { return _logger; }
   virtual void Run(void) { ; }
@@ -53,7 +53,7 @@ class QMThread : public tools::Thread {
  protected:
   int _id;
   std::stringstream _ss;
-  bool _maverick;
+  bool _maverick = false;
   Logger _logger;
 };
 

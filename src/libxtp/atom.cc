@@ -17,23 +17,55 @@
  *
  */
 #include "votca/xtp/atom.h"
+#include <votca/tools/elements.h>
 
 namespace votca {
 namespace xtp {
 
 Atom::Atom(int resnr, std::string md_atom_name, int atom_id,
-           Eigen::Vector3d pos)
+           Eigen::Vector3d pos, std::string type)
     : _id(atom_id), _name(md_atom_name), _resnr(resnr), _pos(pos) {
-  _element = GetElementFromMDName(md_atom_name);
+
+  std::string elename = GetElementFromString(md_atom_name);
+  std::string eletype = GetElementFromString(type);
+  tools::Elements ele;
+  bool found_element_name = true;
+  bool found_element_type = true;
+  try {
+    ele.getMass(elename);
+  } catch (std::runtime_error&) {
+    found_element_name = false;
+  }
+
+  try {
+    ele.getMass(eletype);
+  } catch (std::runtime_error&) {
+    found_element_type = false;
+  }
+
+  if (found_element_name && found_element_type) {
+    if (elename != eletype) {
+      throw std::runtime_error("Elements " + elename + " and" + eletype +
+                               " from atom name: " + md_atom_name +
+                               " and atom type:" + type + " do not match.");
+    }
+    _element = elename;
+  } else if (found_element_name) {
+    _element = elename;
+  } else if (found_element_type) {
+    _element = elename;
+  } else {
+    throw std::runtime_error("Could not get Element from atom name:" +
+                             md_atom_name + " or atom type:" + type);
+  }
 }
 
-Atom::Atom(int atom_id, std::string md_atom_name, Eigen::Vector3d pos)
-    : Atom(-1, md_atom_name, atom_id, pos) {
-  _element = GetElementFromMDName(md_atom_name);
-}
+Atom::Atom(int atom_id, std::string element, Eigen::Vector3d pos)
+    : Atom(-1, element, atom_id, pos, element) {}
 
-std::string Atom::GetElementFromMDName(const std::string& MDName) {
+std::string Atom::GetElementFromString(const std::string& MDName) {
   std::string element = MDName.substr(0, 1);
+
   if (MDName.size() > 1) {
     if (std::islower(MDName[1])) {
       element += MDName[1];

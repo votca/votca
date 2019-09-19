@@ -23,37 +23,24 @@
 
 #include <votca/xtp/logger.h>
 #include <votca/xtp/orbitals.h>
-#include <votca/xtp/populationanalysis.h>
-#include <votca/xtp/qmfragment.h>
 #include <votca/xtp/qmstate.h>
-#include <votca/xtp/rpa.h>
 #include <votca/xtp/threecenter.h>
-
-#include <votca/xtp/bse_operator.h>
 
 namespace votca {
 namespace xtp {
-
+struct BSE_Population;
 template <int cqp, int cx, int cd, int cd2>
 class BSE_OPERATOR;
 typedef BSE_OPERATOR<1, 2, 1, 0> SingletOperator_TDA;
 typedef BSE_OPERATOR<1, 0, 1, 0> TripletOperator_TDA;
+template <class T>
+class QMFragment;
 
 class BSE {
 
  public:
-  BSE(Orbitals& orbitals, Logger& log, TCMatrix_gwbse& Mmn,
-      const Eigen::MatrixXd& Hqp)
-      : _log(log),
-        _orbitals(orbitals),
-        _bse_singlet_energies(orbitals.BSESingletEnergies()),
-        _bse_singlet_coefficients(orbitals.BSESingletCoefficients()),
-        _bse_singlet_coefficients_AR(orbitals.BSESingletCoefficientsAR()),
-        _bse_triplet_energies(orbitals.BSETripletEnergies()),
-        _bse_triplet_coefficients(orbitals.BSETripletCoefficients()),
-        _bse_triplet_coefficients_AR(orbitals.BSETripletCoefficientsAR()),
-        _Mmn(Mmn),
-        _Hqp(Hqp){};
+  BSE(Logger& log, TCMatrix_gwbse& Mmn, const Eigen::MatrixXd& Hqp)
+      : _log(log), _Mmn(Mmn), _Hqp(Hqp){};
 
   struct options {
     bool useTDA = true;
@@ -75,26 +62,18 @@ class BSE {
         0.5;  // minimium contribution for state to print it
   };
 
-  void configure(const options& opt);
+  void configure(const options& opt, const Eigen::VectorXd& DFTenergies);
 
-  void Solve_singlets();
-  void Solve_triplets();
+  void Solve_singlets(Orbitals& orb) const;
+  void Solve_triplets(Orbitals& orb) const;
 
-  SingletOperator_TDA getSingletOperator_TDA();
-  TripletOperator_TDA getTripletOperator_TDA();
+  SingletOperator_TDA getSingletOperator_TDA() const;
+  TripletOperator_TDA getTripletOperator_TDA() const;
 
-  void Analyze_singlets(std::vector<QMFragment<BSE_Population> >& singlets);
-  void Analyze_triplets(std::vector<QMFragment<BSE_Population> >& triplets);
-
-  void FreeTriplets() {
-    _bse_triplet_coefficients.resize(0, 0);
-    _bse_triplet_coefficients_AR.resize(0, 0);
-  }
-
-  void FreeSinglets() {
-    _bse_singlet_coefficients.resize(0, 0);
-    _bse_singlet_coefficients_AR.resize(0, 0);
-  }
+  void Analyze_singlets(std::vector<QMFragment<BSE_Population> > fragments,
+                        const Orbitals& orb) const;
+  void Analyze_triplets(std::vector<QMFragment<BSE_Population> > fragments,
+                        const Orbitals& orb) const;
 
  private:
   options _opt;
@@ -112,49 +91,40 @@ class BSE {
   int _bse_vtotal;
   int _bse_ctotal;
 
-  Orbitals& _orbitals;
   Eigen::VectorXd _epsilon_0_inv;
 
-  // references are stored in orbitals object
-  Eigen::VectorXd& _bse_singlet_energies;
-  Eigen::MatrixXd& _bse_singlet_coefficients;
-  Eigen::MatrixXd& _bse_singlet_coefficients_AR;
-  Eigen::VectorXd& _bse_triplet_energies;
-  Eigen::MatrixXd& _bse_triplet_coefficients;
-  Eigen::MatrixXd& _bse_triplet_coefficients_AR;
   TCMatrix_gwbse& _Mmn;
   const Eigen::MatrixXd& _Hqp;
 
-  void Solve_singlets_TDA();
-  void Solve_singlets_BTDA();
+  tools::EigenSystem Solve_singlets_TDA() const;
+  tools::EigenSystem Solve_singlets_BTDA() const;
 
-  void Solve_triplets_TDA();
-  void Solve_triplets_BTDA();
+  tools::EigenSystem Solve_triplets_TDA() const;
+  tools::EigenSystem Solve_triplets_BTDA() const;
 
-  void PrintWeight(int i, int i_bse, QMStateType type);
-
-  template <typename BSE_OPERATOR>
-  void configureBSEOperator(BSE_OPERATOR& H);
+  void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
-  void solve_hermitian(BSE_OPERATOR& H, Eigen::VectorXd& eigenvalues,
-                       Eigen::MatrixXd& coefficients);
+  void configureBSEOperator(BSE_OPERATOR& H) const;
+
+  template <typename BSE_OPERATOR>
+  tools::EigenSystem solve_hermitian(BSE_OPERATOR& H) const;
 
   template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
-  void Solve_antihermitian(BSE_OPERATOR_ApB& apb, BSE_OPERATOR_AmB& amb,
-                           Eigen::VectorXd& energies,
-                           Eigen::MatrixXd& coefficients,
-                           Eigen::MatrixXd& coefficients_AR);
+  tools::EigenSystem Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
+                                        BSE_OPERATOR_AmB&) const;
 
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;
   void printWeights(int i_bse, double weight) const;
-  void SetupDirectInteractionOperator();
+  void SetupDirectInteractionOperator(const Eigen::VectorXd& DFTenergies);
 
-  Interaction Analyze_eh_interaction(const QMStateType& type);
+  Interaction Analyze_eh_interaction(const QMStateType& type,
+                                     const Orbitals& orb) const;
   template <typename BSE_OPERATOR>
   Eigen::VectorXd Analyze_IndividualContribution(const QMStateType& type,
-                                                 const BSE_OPERATOR& H);
+                                                 const Orbitals& orb,
+                                                 const BSE_OPERATOR& H) const;
 };
 }  // namespace xtp
 }  // namespace votca

@@ -24,6 +24,8 @@
 #include <iomanip>
 #include <stdio.h>
 #include <votca/tools/constants.h>
+#include <votca/xtp/ecpaobasis.h>
+#include <votca/xtp/orbitals.h>
 
 namespace votca {
 namespace xtp {
@@ -61,21 +63,11 @@ void Gaussian::Initialize(tools::Property& options) {
   std::string::size_type iop_pos;
   // check if the guess keyword is present, if yes, append the guess later
   if (_write_guess) {
-    ;
     iop_pos = _options.find("cards");
     if (iop_pos != std::string::npos) {
       _options = _options + " cards ";
     }
   }
-
-  // check if the pop keyword is present, if yes, get the charges and save them
-  iop_pos = _options.find("pop");
-  if (iop_pos != std::string::npos) {
-    _get_charges = true;
-  }
-
-  // check if the charge keyword is present, if yes, get the self energy and
-  // save it
 
   // check if the basis set is available ("/gen")
   iop_pos = _options.find("gen");
@@ -115,7 +107,7 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
 
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
   BasisSet bs;
-  bs.LoadBasisSet(_basisset_name);
+  bs.Load(_basisset_name);
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Basis Set " << _basisset_name << flush;
 
   for (const std::string& element_name : UniqueElements) {
@@ -127,7 +119,7 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
     std::ofstream el_file;
     std::string el_file_name = _run_dir + "/" + element_name + ".gbs";
 
-    el_file.open(el_file_name.c_str());
+    el_file.open(el_file_name);
     // element name, [possibly indeces of centers], zero to indicate the end
     com_file << "@" << element_name << ".gbs" << endl;
     el_file << element_name << " 0" << endl;
@@ -177,8 +169,8 @@ void Gaussian::WriteBasisset(std::ofstream& com_file,
 void Gaussian::WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms) {
   std::vector<std::string> UniqueElements = qmatoms.FindUniqueElements();
 
-  BasisSet ecp;
-  ecp.LoadPseudopotentialSet(_ecp_name);
+  ECPBasisSet ecp;
+  ecp.Load(_ecp_name);
 
   XTP_LOG(logDEBUG, *_pLog) << "Loaded Pseudopotentials " << _ecp_name << flush;
 
@@ -190,20 +182,20 @@ void Gaussian::WriteECP(std::ofstream& com_file, const QMMolecule& qmatoms) {
           << "No pseudopotential for " << element_name << " available" << flush;
       continue;
     }
-    const Element& element = ecp.getElement(element_name);
+    const ECPElement& element = ecp.getElement(element_name);
     // element name, [possibly indeces of centers], zero to indicate the end
     com_file << element_name << " 0\n"
              << _ecp_name << " " << element.getLmax() << " "
              << element.getNcore() << endl;
 
-    for (const Shell& shell : element) {
+    for (const ECPShell& shell : element) {
       // shell type, number primitives, scale factor
       com_file << shell.getType() << endl;
       com_file << shell.getSize() << endl;
 
-      for (const GaussianPrimitive& gaussian : shell) {
+      for (const ECPGaussianPrimitive& gaussian : shell) {
         com_file << gaussian._power << " " << FortranFormat(gaussian._decay)
-                 << " " << FortranFormat(gaussian._contraction[0]) << endl;
+                 << " " << FortranFormat(gaussian._contraction) << endl;
       }
     }
   }
@@ -277,7 +269,7 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
                                 const QMMolecule& qmatoms) {
   for (const QMAtom& atom : qmatoms) {
     Eigen::Vector3d pos = atom.getPos() * tools::conv::bohr2ang;
-    com_file << setw(3) << atom.getElement().c_str() << setw(12)
+    com_file << setw(3) << atom.getElement() << setw(12)
              << setiosflags(ios::fixed) << setprecision(5) << pos.x()
              << setw(12) << setiosflags(ios::fixed) << setprecision(5)
              << pos.y() << setw(12) << setiosflags(ios::fixed)
@@ -292,9 +284,10 @@ void Gaussian::WriteCoordinates(std::ofstream& com_file,
  * relevant keywords, charge, and spin information.
  */
 void Gaussian::WriteHeader(std::ofstream& com_file) {
-  if (_chk_file_name.size()) com_file << "%chk=" << _chk_file_name << endl;
   if (_memory.size()) com_file << "%mem=" << _memory << endl;
-  if (_threads > 0) com_file << "%nprocshared=" << _threads << endl;
+
+  int threads = OPENMP::getMaxThreads();
+  if (threads > 0) com_file << "%nprocshared=" << threads << endl;
   if (_options.size()) com_file << _options << endl;
 
   com_file << endl;
@@ -316,7 +309,7 @@ bool Gaussian::WriteInputFile(const Orbitals& orbitals) {
 
   std::ofstream com_file;
   std::string com_file_name_full = _run_dir + "/" + _input_file_name;
-  com_file.open(com_file_name_full.c_str());
+  com_file.open(com_file_name_full);
 
   // header
   WriteHeader(com_file);
@@ -470,11 +463,6 @@ void Gaussian::CleanUp() {
         remove(file_name.c_str());
       }
 
-      if (substring == "chk") {
-        std::string file_name = _run_dir + "/" + _chk_file_name;
-        remove(file_name.c_str());
-      }
-
       if (substring == "fort.7") {
         std::string file_name = _run_dir + "/" + substring;
         remove(file_name.c_str());
@@ -514,7 +502,7 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
 
   std::string orb_file_name_full = _mo_file_name;
   if (_run_dir != "") orb_file_name_full = _run_dir + "/" + _mo_file_name;
-  std::ifstream input_file(orb_file_name_full.c_str());
+  std::ifstream input_file(orb_file_name_full);
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog)
@@ -539,10 +527,9 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
 
     if (energy_pos != std::string::npos) {
 
-      std::vector<std::string> results;
       boost::trim(line);
-      boost::algorithm::split(results, line, boost::is_any_of("\t ="),
-                              boost::algorithm::token_compress_on);
+      tools::Tokenizer tok(line, "\t =");
+      std::vector<std::string> results = tok.ToVector();
       level = boost::lexical_cast<int>(results.front());
       boost::replace_first(results.back(), "D", "e");
       energies[level] = boost::lexical_cast<double>(results.back());
@@ -582,12 +569,12 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   orbitals.setBasisSetSize(basis_size);  // = _basis_size;
 
   // copying energies to the orbitals object
-  Eigen::VectorXd& mo_energies = orbitals.MOEnergies();
+  Eigen::VectorXd& mo_energies = orbitals.MOs().eigenvalues();
   mo_energies.resize(levels);
   for (int i = 0; i < mo_energies.size(); i++) mo_energies[i] = energies[i + 1];
 
   // copying mo coefficients to the orbitals object
-  Eigen::MatrixXd& mo_coefficients = orbitals.MOCoefficients();
+  Eigen::MatrixXd& mo_coefficients = orbitals.MOs().eigenvectors();
   mo_coefficients.resize(levels, basis_size);
   for (int i = 0; i < mo_coefficients.rows(); i++) {
     for (int j = 0; j < mo_coefficients.cols(); j++) {
@@ -601,14 +588,14 @@ bool Gaussian::ParseMOsFile(Orbitals& orbitals) {
   return true;
 }
 
-bool Gaussian::CheckLogFile() {
+bool Gaussian::CheckLogFile() const {
 
   // check if the log file exists
   boost::filesystem::path arg_path;
   char ch;
 
   std::string full_name = (arg_path / _run_dir / _log_file_name).c_str();
-  ifstream input_file(full_name.c_str());
+  ifstream input_file(full_name);
 
   if (input_file.fail()) {
     XTP_LOG(logERROR, *_pLog)
@@ -635,9 +622,8 @@ bool Gaussian::CheckLogFile() {
   getline(input_file, line);
   input_file.close();
 
-  std::string::size_type self_energy_pos =
-      line.find("Normal termination of Gaussian");
-  if (self_energy_pos == std::string::npos) {
+  std::string::size_type success = line.find("Normal termination of Gaussian");
+  if (success == std::string::npos) {
     XTP_LOG(logERROR, *_pLog)
         << "GAUSSIAN: " << full_name << " is incomplete" << flush;
     return false;
@@ -646,39 +632,175 @@ bool Gaussian::CheckLogFile() {
   }
 }
 
-bool Gaussian::ReadESPCharges(Orbitals& orbitals, std::string& line,
-                              ifstream& input_file) {
-  std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
+StaticSegment Gaussian::GetCharges() const {
+  XTP_LOG(logDEBUG, *_pLog) << "GAUSSIAN: parsing " << _log_file_name << flush;
+
+  StaticSegment result("charges", 0);
+  std::string log_file_name_full = _log_file_name;
+  if (_run_dir != "") log_file_name_full = _run_dir + "/" + _log_file_name;
+
+  // check if LOG file is complete
+  if (!CheckLogFile()) throw std::runtime_error("logfile is not complete");
+  std::string line;
+  ifstream input_file(log_file_name_full);
   bool has_charges = false;
-  if (charge_pos != std::string::npos && _get_charges) {
-    XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
-    has_charges = true;
+  std::vector<std::string> archive;
+  while (input_file) {
+
     getline(input_file, line);
-    getline(input_file, line);
+    boost::trim(line);
+    GetArchive(archive, line, input_file);
 
-    bool has_atoms = orbitals.hasQMAtoms();
+    std::string::size_type charge_pos = line.find("Charges from ESP fit, RMS");
+    if (charge_pos != std::string::npos) {
+      has_charges = true;
+      XTP_LOG(logDEBUG, *_pLog) << "Getting charges" << flush;
+      getline(input_file, line);
+      getline(input_file, line);
 
-    std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
-    int nfields = row.size();
+      std::vector<std::string> row = GetLineAndSplit(input_file, "\t ");
+      int nfields = row.size();
 
-    while (nfields == 3) {
-      int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
-      std::string atom_type = row.at(1);
-      double atom_charge = boost::lexical_cast<double>(row.at(2));
-      row = GetLineAndSplit(input_file, "\t ");
-      nfields = row.size();
-      if (!has_atoms) {
+      while (nfields == 3) {
+        int atom_id = boost::lexical_cast<int>(row.at(0)) - 1;
+        std::string atom_type = row.at(1);
+        double atom_charge = boost::lexical_cast<double>(row.at(2));
+        row = GetLineAndSplit(input_file, "\t ");
+        nfields = row.size();
+
         StaticSite temp =
-            PolarSite(atom_id, atom_type, Eigen::Vector3d::Zero());
+            StaticSite(atom_id, atom_type, Eigen::Vector3d::Zero());
         temp.setCharge(atom_charge);
-        orbitals.Multipoles().push_back(temp);
-      } else {
-        orbitals.Multipoles().push_back(
-            StaticSite(orbitals.QMAtoms().at(atom_id), atom_charge));
+        result.push_back(temp);
       }
     }
   }
-  return has_charges;
+  if (archive.empty()) {
+    throw std::runtime_error(
+        "Gaussian log file is missing the archive at the end.");
+  }
+
+  GetCoordinates(result, archive);
+
+  if (!has_charges) {
+    throw std::runtime_error("Charges not found in logfile.");
+  }
+  return result;
+}
+
+Eigen::Matrix3d Gaussian::GetPolarizability() const {
+
+  if (!CheckLogFile()) {
+    throw std::runtime_error("logfile not correctly formatted");
+  }
+  std::string line;
+  ifstream input_file((_run_dir + "/" + _log_file_name));
+  bool has_pol = false;
+
+  std::vector<double> polar_coeff;
+
+  Eigen::Matrix3d pol = Eigen::Matrix3d::Zero();
+  while (input_file) {
+    getline(input_file, line);
+    boost::trim(line);
+
+    std::string::size_type pol_pos =
+        line.find("Dipole polarizability, Alpha (input orientation)");
+    if (pol_pos != std::string::npos) {
+      XTP_LOG(logDEBUG, *_pLog) << "Getting polarizability" << flush;
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      getline(input_file, line);
+      for (int i = 0; i < 6; i++) {
+        getline(input_file, line);
+        tools::Tokenizer tok2(line, " ");
+        std::vector<std::string> values = tok2.ToVector();
+        if (values.size() != 4) {
+          throw std::runtime_error("Polarisation line " + line +
+                                   " cannot be parsed");
+        }
+        std::string value = values[1];
+        boost::replace_first(value, "D", "e");
+        polar_coeff.push_back(std::stod(value));  // xx xy yy zx zy zz
+      }
+      pol << polar_coeff[0], polar_coeff[1], polar_coeff[3], polar_coeff[1],
+          polar_coeff[2], polar_coeff[4], polar_coeff[3], polar_coeff[4],
+          polar_coeff[5];
+
+      has_pol = true;
+    }
+  }
+  if (!has_pol) {
+    throw std::runtime_error("Could not find polarisation in logfile");
+  }
+  return pol;
+}
+
+void Gaussian::GetArchive(std::vector<std::string>& archive, std::string& line,
+                          std::ifstream& input_file) const {
+  std::string::size_type endseg_pos = line.find("\\");
+  if (endseg_pos != std::string::npos) {
+    boost::trim(line);
+    std::string sum = line;
+    while (line.size() != 0) {
+      getline(input_file, line);
+      boost::trim(line);
+      sum += line;
+    }
+    std::vector<std::string> strings;
+    boost::iter_split(strings, sum, boost::first_finder("\\\\"));
+    archive = strings;
+  }
+}
+
+double Gaussian::GetQMEnergy(const std::vector<std::string>& archive) const {
+  double qm_energy = 0.0;
+  tools::Tokenizer tok3(archive[4], "\\");
+  std::vector<std::string> blocks = tok3.ToVector();
+  map<std::string, std::string> properties;
+  for (const std::string& block : blocks) {
+    tools::Tokenizer tok4(block, "=");
+    std::vector<std::string> property = tok4.ToVector();
+    properties[property[0]] = property[1];
+  }
+  if (properties.count("HF") > 0) {
+    qm_energy = boost::lexical_cast<double>(properties["HF"]);
+
+    XTP_LOG(logDEBUG, *_pLog)
+        << (boost::format("QM energy[Hrt]: %4.6f ") % qm_energy).str() << flush;
+  } else {
+    throw std::runtime_error("ERROR No energy in archive");
+  }
+  return qm_energy;
+}
+
+template <class T>
+void Gaussian::GetCoordinates(T& mol,
+                              const std::vector<std::string>& archive) const {
+  typedef typename std::iterator_traits<typename T::iterator>::value_type Atom;
+  XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
+  bool has_atoms = mol.size() > 0;
+  tools::Tokenizer tok(archive[3], "\\");
+  std::vector<std::string> atom_block = tok.ToVector();
+  for (unsigned i = 0; i < atom_block.size() - 1; i++) {
+    tools::Tokenizer tok2(atom_block[i + 1], ",");
+    std::vector<std::string> atom = tok2.ToVector();
+    std::string atom_type = atom[0];
+    int endindex = atom.size() - 1;
+    double x = boost::lexical_cast<double>(atom[endindex - 2]);
+    double y = boost::lexical_cast<double>(atom[endindex - 1]);
+    double z = boost::lexical_cast<double>(atom[endindex]);
+    Eigen::Vector3d pos(x, y, z);
+    pos *= tools::conv::ang2bohr;
+    if (has_atoms == false) {
+      mol.push_back(Atom(i, atom_type, pos));
+    } else {
+      Atom& pAtom = mol.at(i);
+      pAtom.setPos(pos);
+    }
+  }
 }
 
 /**
@@ -689,10 +811,6 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
   std::vector<std::string> results;
   bool has_occupied_levels = false;
   bool has_unoccupied_levels = false;
-  bool has_number_of_electrons = false;
-  bool has_basis_set_size = false;
-  bool has_charges = false;
-  bool has_self_energy = false;
 
   int occupied_levels = 0;
   int unoccupied_levels = 0;
@@ -715,9 +833,12 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     orbitals.setECPName(_ecp_name);
   }
 
+  double self_energy = 0.0;
   bool ScaHFX_found = false;
   // Start parsing the file line by line
-  ifstream input_file(log_file_name_full.c_str());
+  ifstream input_file(log_file_name_full);
+  std::vector<std::string> archive;
+
   while (input_file) {
 
     getline(input_file, line);
@@ -726,9 +847,9 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     /* Check for ScaHFX = factor of HF exchange included in functional */
     std::string::size_type HFX_pos = line.find("ScaHFX=");
     if (HFX_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of("\t "),
-                              boost::algorithm::token_compress_on);
-      double ScaHFX = boost::lexical_cast<double>(results.back());
+      tools::Tokenizer tok(line, "\t ");
+      std::vector<std::string> line_split = tok.ToVector();
+      double ScaHFX = boost::lexical_cast<double>(line_split.back());
       orbitals.setScaHFX(ScaHFX);
       ScaHFX_found = true;
       XTP_LOG(logDEBUG, *_pLog)
@@ -741,10 +862,9 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
      */
     std::string::size_type electrons_pos = line.find("alpha electrons");
     if (electrons_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of("\t "),
-                              boost::algorithm::token_compress_on);
-      has_number_of_electrons = true;
-      number_of_electrons = boost::lexical_cast<int>(results.front());
+      tools::Tokenizer tok(line, "\t ");
+      std::vector<std::string> line_split = tok.ToVector();
+      number_of_electrons = boost::lexical_cast<int>(line_split.front());
       orbitals.setNumberOfAlphaElectrons(number_of_electrons);
       XTP_LOG(logDEBUG, *_pLog)
           << "Alpha electrons: " << number_of_electrons << flush;
@@ -756,10 +876,9 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
      */
     std::string::size_type basis_pos = line.find("basis functions,");
     if (basis_pos != std::string::npos) {
-      boost::algorithm::split(results, line, boost::is_any_of("\t "),
-                              boost::algorithm::token_compress_on);
-      has_basis_set_size = true;
-      basis_set_size = boost::lexical_cast<int>(results.front());
+      tools::Tokenizer tok(line, "\t ");
+      std::vector<std::string> line_split = tok.ToVector();
+      basis_set_size = boost::lexical_cast<int>(line_split.front());
       orbitals.setBasisSetSize(basis_set_size);
       XTP_LOG(logDEBUG, *_pLog)
           << "Basis functions: " << basis_set_size << flush;
@@ -776,11 +895,9 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
              !has_unoccupied_levels) {
 
         boost::iter_split(stringList, line, boost::first_finder("--"));
-        std::vector<std::string> energies;
         boost::trim(stringList.back());
-        boost::algorithm::split(energies, stringList.back(),
-                                boost::is_any_of("\t "),
-                                boost::algorithm::token_compress_on);
+        tools::Tokenizer tok(stringList.back(), "\t ");
+        std::vector<std::string> energies = tok.ToVector();
 
         if (stringList.front().find("virt.") != std::string::npos) {
           unoccupied_levels += energies.size();
@@ -807,112 +924,35 @@ bool Gaussian::ParseLogFile(Orbitals& orbitals) {
     }    // end of the eigenvalue parsing
 
     /*
-     *  Partial charges from the input file
-     */
-    has_charges = ReadESPCharges(orbitals, line, input_file);
-
-    /*
      * Coordinates of the final configuration
      * stored in the archive at the end of the file
      */
-    int cpn = 0;  // marker appearence marker
-    std::string::size_type coordinates_pos = line.find("\\");
-
-    if (coordinates_pos != std::string::npos && cpn == 0) {
-      ++cpn;  // updates but ignores
-      XTP_LOG(logDEBUG, *_pLog) << "Getting the coordinates" << flush;
-      boost::trim(line);
-      std::string archive = line;
-      while (line.size() != 0) {
-        getline(input_file, line);
-        boost::trim(line);
-        archive += line;
-      }
-
-      bool has_atoms = orbitals.hasQMAtoms();
-      std::list<std::string> stringList;
-      std::vector<std::string> results;
-      boost::iter_split(stringList, archive, boost::first_finder("\\\\"));
-
-      std::list<std::string>::iterator coord_block = stringList.begin();
-      std::advance(coord_block, 3);
-
-      std::vector<std::string> atom_block;
-      boost::algorithm::split(atom_block, *coord_block, boost::is_any_of("\\"),
-                              boost::algorithm::token_compress_on);
-
-      std::vector<std::string>::iterator atom_block_it;
-      int aindex = 0;
-      for (atom_block_it = ++atom_block.begin();
-           atom_block_it != atom_block.end(); ++atom_block_it) {
-        std::vector<std::string> atom;
-        boost::algorithm::split(atom, *atom_block_it, boost::is_any_of(","),
-                                boost::algorithm::token_compress_on);
-        std::string atom_type = atom.front();
-        std::vector<std::string>::iterator it_atom;
-        it_atom = atom.end();
-        double z = boost::lexical_cast<double>(*(--it_atom));
-        double y = boost::lexical_cast<double>(*(--it_atom));
-        double x = boost::lexical_cast<double>(*(--it_atom));
-        Eigen::Vector3d pos(x, y, z);
-        pos *= tools::conv::ang2bohr;
-        if (has_atoms == false) {
-          orbitals.QMAtoms().push_back(QMAtom(aindex, atom_type, pos));
-        } else {
-          QMAtom& pAtom = orbitals.QMAtoms().at(aindex);
-          pAtom.setPos(pos);
-        }
-        aindex++;
-      }
-      // get the QM energy out
-      std::advance(coord_block, 1);
-      std::vector<std::string> block;
-      std::vector<std::string> energy;
-      boost::algorithm::split(block, *coord_block, boost::is_any_of("\\"),
-                              boost::algorithm::token_compress_on);
-      map<std::string, std::string> properties;
-      std::vector<std::string>::iterator block_it;
-      for (block_it = block.begin(); block_it != block.end(); ++block_it) {
-        std::vector<std::string> property;
-        boost::algorithm::split(property, *block_it, boost::is_any_of("="),
-                                boost::algorithm::token_compress_on);
-        properties[property[0]] = property[1];
-      }
-      if (properties.count("HF") > 0) {
-        double energy_hartree = boost::lexical_cast<double>(properties["HF"]);
-        orbitals.setQMEnergy(energy_hartree);
-        XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.6f ") %
-                                      orbitals.getQMEnergy())
-                                         .str()
-                                  << flush;
-      } else {
-        cout << endl;
-        throw std::runtime_error("ERROR No energy in archive");
-      }
-    }
+    GetArchive(archive, line, input_file);
 
     std::string::size_type self_energy_pos =
         line.find("Self energy of the charges");
 
     if (self_energy_pos != std::string::npos) {
       XTP_LOG(logDEBUG, *_pLog) << "Getting the self energy\n";
-      std::vector<std::string> block;
-      std::vector<std::string> energy;
-      boost::algorithm::split(block, line, boost::is_any_of("="),
-                              boost::algorithm::token_compress_on);
-      boost::algorithm::split(energy, block[1], boost::is_any_of("\t "),
-                              boost::algorithm::token_compress_on);
-      orbitals.setSelfEnergy(boost::lexical_cast<double>(energy[1]));
-      XTP_LOG(logDEBUG, *_pLog)
-          << "Self energy " << orbitals.getSelfEnergy() << flush;
+      tools::Tokenizer tok(line, "=");
+      std::vector<std::string> block = tok.ToVector();
+      tools::Tokenizer tok2(block[1], "\t ");
+      std::vector<std::string> energy = tok2.ToVector();
+      self_energy = boost::lexical_cast<double>(energy[0]);
+      XTP_LOG(logDEBUG, *_pLog) << "Self energy " << self_energy << flush;
     }
-    // check if all information has been accumulated and quit
-    if (has_number_of_electrons && has_basis_set_size && has_occupied_levels &&
-        has_unoccupied_levels && has_charges && has_self_energy)
-      break;
 
   }  // end of reading the file line-by-line
 
+  if (archive.empty()) {
+    throw std::runtime_error(
+        "Gaussian log file is missing the archive at the end.");
+  }
+
+  QMMolecule& mol = orbitals.QMAtoms();
+  GetCoordinates(mol, archive);
+  double qm_energy = GetQMEnergy(archive);
+  orbitals.setQMEnergy(qm_energy - self_energy);
   XTP_LOG(logDEBUG, *_pLog) << "Done parsing" << flush;
   input_file.close();
 

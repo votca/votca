@@ -39,8 +39,7 @@ BOOST_AUTO_TEST_CASE(multipole_test) {
   bool check_mpoles = multipole.isApprox(ps.Q(), 0.0001);
   BOOST_CHECK_EQUAL(check_mpoles, true);
 
-  bool check_rank = (ps.getRank() == 2);
-  BOOST_CHECK_EQUAL(check_rank, true);
+  BOOST_CHECK_EQUAL(ps.getRank(), 2);
 }
 
 BOOST_AUTO_TEST_CASE(translate_test) {

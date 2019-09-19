@@ -29,12 +29,12 @@ namespace votca {
 namespace xtp {
 
 template <typename JobContainer>
-bool ParallelXJobCalc<JobContainer>::EvaluateFrame(Topology &top) {
+bool ParallelXJobCalc<JobContainer>::EvaluateFrame(const Topology &top) {
 
   // INITIALIZE PROGRESS OBSERVER
   std::string progFile = _jobfile;
-  std::unique_ptr<JobOperator> master =
-      std::unique_ptr<JobOperator>(new JobOperator(-1, &top, this));
+  std::unique_ptr<JobOperator> master = std::unique_ptr<JobOperator>(
+      new JobOperator(-1, top, *this, _openmp_threads));
   master->getLogger().setReportLevel(logDEBUG);
   master->getLogger().setMultithreading(true);
   master->getLogger().setPreface(logINFO, "\nMST INF");
@@ -47,16 +47,12 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(Topology &top) {
   std::vector<std::unique_ptr<JobOperator>> jobOps;
 
   for (unsigned int id = 0; id < _nThreads; id++) {
-    jobOps.push_back(
-        std::unique_ptr<JobOperator>(new JobOperator(id, &top, this)));
+    jobOps.push_back(std::unique_ptr<JobOperator>(
+        new JobOperator(id, top, *this, _openmp_threads)));
   }
 
   for (unsigned int id = 0; id < _nThreads; ++id) {
     CustomizeLogger(*jobOps[id]);
-  }
-
-  for (unsigned int id = 0; id < _nThreads; id++) {
-    jobOps[id]->InitData(top);
   }
 
   if (!_maverick)
@@ -85,17 +81,40 @@ bool ParallelXJobCalc<JobContainer>::EvaluateFrame(Topology &top) {
 
 template <typename JobContainer>
 void ParallelXJobCalc<JobContainer>::JobOperator::Run() {
-
+  OPENMP::setMaxThreads(_openmp_threads);
   while (true) {
-    _job = _master->_progObs->RequestNextJob(*this);
+    Job *job = _master._progObs->RequestNextJob(*this);
 
-    if (_job == nullptr) {
+    if (job == nullptr) {
       break;
     } else {
-      Result res = this->_master->EvalJob(*_top, *_job, *this);
-      this->_master->_progObs->ReportJobDone(*_job, res, *this);
+      Result res = this->_master.EvalJob(_top, *job, *this);
+      this->_master._progObs->ReportJobDone(*job, res, *this);
     }
   }
+}
+
+template <typename JobContainer>
+void ParallelXJobCalc<JobContainer>::ParseCommonOptions(
+    const tools::Property &options) {
+  std::cout << std::endl
+            << "... ... Initialized with " << _nThreads << " threads. "
+            << std::flush;
+
+  _maverick = (_nThreads == 1) ? true : false;
+
+  std::string key = "options." + Identify();
+  _openmp_threads = options.ifExistsReturnElseReturnDefault<int>(
+      key + ".openmp_threads", _openmp_threads);
+  std::cout << std::endl
+            << "... ... Using " << _openmp_threads << " openmp threads for "
+            << _nThreads << "x" << _openmp_threads << "="
+            << _nThreads * _openmp_threads << " total threads." << std::flush;
+  OPENMP::setMaxThreads(_openmp_threads);
+  _jobfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".job_file");
+  _mapfile = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".map_file");
 }
 
 template <typename JobContainer>

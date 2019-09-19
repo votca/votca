@@ -38,7 +38,7 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
 
   int readinmultipoles = 0;
   int numberofmultipoles = 0;
-  Vector9d multipoles;
+  Vector9d multipoles = Vector9d::Zero();
   int rank = 0;
 
   if (!intt.is_open()) {
@@ -93,10 +93,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
     // 'P', dipole polarizability
     else if (split[0] == "P") {
       Eigen::Matrix3d p1;
-      // Angstroem to bohr
-      double pxx = 0.0;
       if (split.size() == 7) {
-        pxx = boost::lexical_cast<double>(split[1]);
+        double pxx = boost::lexical_cast<double>(split[1]);
         double pxy = boost::lexical_cast<double>(split[2]);
         double pxz = boost::lexical_cast<double>(split[3]);
         double pyy = boost::lexical_cast<double>(split[4]);
@@ -104,9 +102,8 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
         double pzz = boost::lexical_cast<double>(split[6]);
         p1 << pxx, pxy, pxz, pxy, pyy, pyz, pxz, pyz, pzz;
       } else if (split.size() == 2) {
-        pxx = boost::lexical_cast<double>(split[1]);
+        double pxx = boost::lexical_cast<double>(split[1]);
         p1 = pxx * Eigen::Matrix3d::Identity();
-        ;
       } else {
         throw std::runtime_error("Invalid line in " + filename + ": " + line);
       }
@@ -127,11 +124,18 @@ void ClassicalSegment<T>::LoadFromFile(std::string filename) {
         readinmultipoles++;
       }
       if (readinmultipoles == numberofmultipoles) {
+        Eigen::Vector3d temp_dipoles = multipoles.segment<3>(1);
+        // mps format for dipoles is z x y
+        // we need x y z
+        multipoles(1) = temp_dipoles(1);
+        multipoles(2) = temp_dipoles(2);
+        multipoles(3) = temp_dipoles(0);
         this->_atomlist.back().setMultipole(multipoles, rank);
         readinmultipoles = 0;
       }
     }
   }
+  this->calcPos();
 }
 
 template <class T>
@@ -156,20 +160,11 @@ Eigen::Vector3d ClassicalSegment<T>::CalcDipole() const {
 }
 
 template <class T>
-double ClassicalSegment<T>::Energy() const {
-  double e = 0.0;
-  for (const T& site : this->_atomlist) {
-    e += site.Energy();
-  }
-  return e;
-}
-
-template <class T>
 void ClassicalSegment<T>::WriteMPS(std::string filename,
                                    std::string header) const {
 
   std::ofstream ofs;
-  ofs.open(filename.c_str(), std::ofstream::out);
+  ofs.open(filename, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + filename);
   }

@@ -128,10 +128,10 @@ BOOST_AUTO_TEST_CASE(rpa_full) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Eigen::VectorXd eigenvals = Eigen::VectorXd::Zero(17);
   eigenvals << 0.0468207, 0.0907801, 0.0907801, 0.104563, 0.592491, 0.663355,

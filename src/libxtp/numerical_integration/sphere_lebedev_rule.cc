@@ -19,8 +19,8 @@
 
 #include "votca/xtp/sphere_lebedev_rule.h"
 #include "votca/xtp/grid_containers.h"
+#include "votca/xtp/qmmolecule.h"
 #include "votca/xtp/qmpackage.h"
-#include <cmath>
 
 namespace votca {
 namespace xtp {

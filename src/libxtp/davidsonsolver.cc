@@ -49,44 +49,47 @@ Eigen::VectorXd DavidsonSolver::ComputeCorrectionVector(
 
 void DavidsonSolver::PrintTiming(
     const std::chrono::time_point<std::chrono::system_clock> &start) const {
-  XTP_LOG(logDEBUG, _log) << TimeStamp()
-                          << "-----------------------------------" << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << "-----------------------------------" << flush;
   std::chrono::time_point<std::chrono::system_clock> end =
       std::chrono::system_clock::now();
   std::chrono::duration<double> elapsed_time = end - start;
-  XTP_LOG(logDEBUG, _log) << TimeStamp() << "- Davidson ran for "
-                          << elapsed_time.count() << "secs." << flush;
-  XTP_LOG(logDEBUG, _log) << TimeStamp()
-                          << "-----------------------------------" << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << "- Davidson ran for "
+                               << elapsed_time.count() << "secs." << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << "-----------------------------------" << flush;
 }
 
 void DavidsonSolver::PrintOptions(int op_size) const {
 
-  XTP_LOG(logDEBUG, _log) << TimeStamp() << " Davidson Solver using "
-                          << OPENMP::getMaxThreads() << " threads." << flush;
-  XTP_LOG(logDEBUG, _log) << TimeStamp() << " Tolerance : " << _tol << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Davidson Solver using " << OPENMP::getMaxThreads()
+      << " threads." << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Tolerance : " << _tol << flush;
 
   switch (this->_davidson_correction) {
     case CORR::DPR:
-      XTP_LOG(logDEBUG, _log) << TimeStamp() << " DPR Correction" << flush;
+      XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " DPR Correction" << flush;
       break;
     case CORR::OLSEN:
-      XTP_LOG(logDEBUG, _log) << TimeStamp() << " Olsen Correction" << flush;
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Olsen Correction" << flush;
       break;
   }
 
   switch (this->_davidson_ortho) {
     case ORTHO::GS:
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Gram-Schmidt Orthogonalization" << flush;
       break;
     case ORTHO::QR:
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " QR Orthogonalization" << flush;
       break;
   }
-  XTP_LOG(logDEBUG, _log) << TimeStamp() << " Matrix size : " << op_size << 'x'
-                          << op_size << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp() << " Matrix size : " << op_size << 'x' << op_size << flush;
 }
 
 void DavidsonSolver::set_ortho(std::string method) {
@@ -212,17 +215,18 @@ Eigen::MatrixXd DavidsonSolver::QR_ortho(const Eigen::MatrixXd &A) const {
   ncols = std::min(nrows, ncols);
 
   Eigen::HouseholderQR<Eigen::MatrixXd> qr(A);
-  Eigen::MatrixXd result =
-      qr.householderQ() * Eigen::MatrixXd::Identity(nrows, ncols);
+  Eigen::MatrixXd result = qr.householderQ();
+  result.conservativeResize(nrows, ncols);
   return result;
 }
 
 Eigen::MatrixXd DavidsonSolver::gramschmidt_ortho(const Eigen::MatrixXd &A,
-                                                  int nstart) const {
+                                                  int nstart) {
   Eigen::MatrixXd Q = A;
   for (int j = nstart; j < A.cols(); ++j) {
     Q.col(j) -= Q.leftCols(j) * (Q.leftCols(j).transpose() * A.col(j));
     if (Q.col(j).norm() <= 1E-12 * A.col(j).norm()) {
+      _info = Eigen::ComputationInfo::NumericalIssue;
       throw std::runtime_error(
           "Linear dependencies in Gram-Schmidt. Switch to QR");
     }

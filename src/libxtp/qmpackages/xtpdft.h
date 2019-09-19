@@ -21,11 +21,11 @@
 #ifndef __VOTCA_XTP_XTPDFT_H
 #define __VOTCA_XTP_XTPDFT_H
 
+#include <string>
 #include <votca/xtp/dftengine.h>
+#include <votca/xtp/orbitals.h>
 #include <votca/xtp/polarsite.h>
 #include <votca/xtp/qmpackage.h>
-
-#include <string>
 
 namespace votca {
 namespace xtp {
@@ -35,6 +35,7 @@ namespace xtp {
 
 
  */
+
 class XTPDFT : public QMPackage {
  public:
   std::string getPackageName() const { return "xtp"; }
@@ -52,6 +53,16 @@ class XTPDFT : public QMPackage {
   bool ParseLogFile(Orbitals& orbitals);
 
   bool ParseMOsFile(Orbitals& orbitals);
+
+  StaticSegment GetCharges() const {
+    throw std::runtime_error(
+        "If you want partial charges just run the 'partialcharges' calculator");
+  }
+
+  Eigen::Matrix3d GetPolarizability() const {
+    throw std::runtime_error(
+        "GetPolarizability() is not implemented for xtpdft");
+  }
 
  private:
   void WriteChargeOption() { return; }

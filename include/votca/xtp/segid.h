@@ -50,6 +50,7 @@ class SegId {
   SegId(int id, std::string geometry) : _id(id) {
     TestStringForQMState(geometry);
   }
+
   int Id() const { return _id; }
   bool hasFile() const { return _hasfilename; }
   std::string FileName() const { return _filename; }
@@ -65,7 +66,7 @@ class SegId {
       try {
         _state = QMState(result);
         _hasfilename = false;
-      } catch (std::runtime_error& e) {
+      } catch (std::runtime_error&) {
         throw std::runtime_error("'" + result +
                                  "' is neither a QMState nor a filename. Did "
                                  "you maybe forget the fileending");

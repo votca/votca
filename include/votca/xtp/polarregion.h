@@ -21,8 +21,10 @@
 #ifndef VOTCA_XTP_POLARREGION_H
 #define VOTCA_XTP_POLARREGION_H
 
+#include <votca/xtp/eeinteractor.h>
+#include <votca/xtp/energy_terms.h>
+#include <votca/xtp/hist.h>
 #include <votca/xtp/mmregion.h>
-
 /**
  * \brief defines a polar region and of interacting electrostatic and induction
  * segments
@@ -39,9 +41,9 @@ class StaticRegion;
 
 class PolarRegion : public MMRegion<PolarSegment> {
  public:
-  PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log){};
+  PolarRegion(int id, Logger& log) : MMRegion<PolarSegment>(id, log) {}
 
-  std::string identify() const { return "polarregion"; }
+  std::string identify() const { return "polar"; }
 
   void Initialize(const tools::Property& prop);
 
@@ -51,24 +53,31 @@ class PolarRegion : public MMRegion<PolarSegment> {
 
   void Reset();
 
+  double Etotal() const { return _E_hist.back().Etotal(); }
+
+  void WriteToCpt(CheckpointWriter& w) const;
+
+  void ReadFromCpt(CheckpointReader& r);
+
  protected:
-  void InteractwithQMRegion(const QMRegion& region);
-  void InteractwithPolarRegion(const PolarRegion& region);
-  void InteractwithStaticRegion(const StaticRegion& region);
+  void AppendResult(tools::Property& prop) const;
+  double InteractwithQMRegion(const QMRegion& region);
+  double InteractwithPolarRegion(const PolarRegion& region);
+  double InteractwithStaticRegion(const StaticRegion& region);
 
  private:
   void CalcInducedDipoles();
   double StaticInteraction();
   void PolarInteraction_scf();
-  double PolarInteraction_energy();
 
-  hist<double> _E_hist;
+  double PolarEnergy_extern() const;
+  eeInteractor::E_terms PolarEnergy() const;
+
+  hist<Energy_terms> _E_hist;
   double _deltaE = 1e-5;
   double _deltaD = 1e-5;
   int _max_iter = 100;
   double _exp_damp = 0.39;
-
-  int _openmp_threads = 1;
 };
 
 }  // namespace xtp

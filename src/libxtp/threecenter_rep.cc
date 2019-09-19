@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aotransform.h>
 #include <votca/xtp/threecenter.h>
 using namespace std;
 
@@ -86,9 +86,9 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
   int lmax_beta = shell_beta->getLmax();
   int lmax_gamma = shell_gamma->getLmax();
 
-  int ngamma = AOSuperMatrix::getBlockSize(lmax_gamma);
-  int nbeta = AOSuperMatrix::getBlockSize(lmax_beta);
-  int ncombined = AOSuperMatrix::getBlockSize(lmax_alpha + lmax_beta);
+  int ngamma = AOTransform::getBlockSize(lmax_gamma);
+  int nbeta = AOTransform::getBlockSize(lmax_beta);
+  int ncombined = AOTransform::getBlockSize(lmax_alpha + lmax_beta);
 
   // int n_orb = ((lmax_gamma + 1)*(lmax_gamma + 2)*(lmax_gamma + 3))/6;
   int n_orbitals[] = {1, 4, 10, 20, 35, 56, 84, 120, 165};
@@ -248,8 +248,7 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
             extents[range(0, ncombined)][range(0, nbeta)][range(0, ngamma)]);
         std::fill_n(R.data(), R.num_elements(), 0.0);
 
-        const std::vector<double> FmT =
-            AOMatrix<double>::XIntegrate(mmax + 1, U);
+        const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
 
         // ss integrals
 
@@ -1447,7 +1446,7 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
 
         }  // end if (lmax_gamma > 5)
 
-        const std::vector<double>& contractions_gamma =
+        const Eigen::VectorXd& contractions_gamma =
             gaussian_gamma.getContraction();
 
         // s-functions
@@ -1872,10 +1871,9 @@ bool TCMatrix::FillThreeCenterRepBlock(tensor3d& threec_block,
         int offset_alpha = shell_alpha->getOffset();
         int offset_gamma = shell_gamma->getOffset();
 
-        const Eigen::MatrixXd trafo_beta =
-            AOSuperMatrix::getTrafo(gaussian_beta);
+        const Eigen::MatrixXd trafo_beta = AOTransform::getTrafo(gaussian_beta);
         const Eigen::MatrixXd trafo_alpha =
-            AOSuperMatrix::getTrafo(gaussian_alpha);
+            AOTransform::getTrafo(gaussian_alpha);
 
         if (alphabetaswitch == true) {
 

@@ -42,7 +42,7 @@ void KMCMultiple::Initialize(tools::Property& options) {
   _outputtime =
       options.ifExistsReturnElseReturnDefault<double>(key + ".outputtime", 0);
   _timefile = options.ifExistsReturnElseReturnDefault<std::string>(
-      key + ".timefile", "timedependence.csv");
+      key + ".timefile", _timefile);
 
   std::string carriertype =
       options.ifExistsReturnElseReturnDefault<std::string>(key + ".carriertype",
@@ -63,7 +63,7 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
   if (absolute_field == 0) {
     unsigned long diffusionsteps = step / _diffusionresolution;
     Eigen::Matrix3d result =
-        avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcharges);
+        avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcarriers);
     cout << endl
          << "Step: " << step
          << " Diffusion tensor averaged over all carriers (nm^2/s):" << endl
@@ -73,16 +73,16 @@ void KMCMultiple::PrintDiffandMu(const Eigen::Matrix3d& avgdiffusiontensor,
     double bohr2Hrts_to_nm2Vs =
         tools::conv::bohr2nm * tools::conv::bohr2nm / tools::conv::hrt2ev;
     cout << endl << "Mobilities (nm^2/Vs): " << endl;
-    for (int i = 0; i < _numberofcharges; i++) {
+    for (int i = 0; i < _numberofcarriers; i++) {
       Eigen::Vector3d velocity = _carriers[i].get_dRtravelled() / simtime;
       double mobility =
           velocity.dot(_field) / (absolute_field * absolute_field);
-      cout << std::scientific << "    charge " << i + 1
+      cout << std::scientific << "    carrier " << i + 1
            << ": mu=" << mobility * bohr2Hrts_to_nm2Vs << endl;
       average_mobility +=
           velocity.dot(_field) / (absolute_field * absolute_field);
     }
-    average_mobility /= _numberofcharges;
+    average_mobility /= _numberofcarriers;
     cout << std::scientific
          << "  Overall average mobility in field direction <mu>="
          << average_mobility * bohr2Hrts_to_nm2Vs << " nm^2/Vs  " << endl;
@@ -94,12 +94,12 @@ void KMCMultiple::WriteToTrajectory(std::fstream& traj,
                                     double simtime, unsigned long step) const {
   traj << simtime << "\t";
   traj << step << "\t";
-  for (int i = 0; i < _numberofcharges; i++) {
+  for (int i = 0; i < _numberofcarriers; i++) {
     Eigen::Vector3d pos = startposition[i] + _carriers[i].get_dRtravelled();
     traj << pos.x() * tools::conv::bohr2nm << "\t";
     traj << pos.y() * tools::conv::bohr2nm << "\t";
     traj << pos.z() * tools::conv::bohr2nm;
-    if (i < _numberofcharges - 1) {
+    if (i < _numberofcarriers - 1) {
       traj << "\t";
     } else {
       traj << endl;
@@ -120,8 +120,8 @@ void KMCMultiple::WriteToEnergyFile(std::fstream& tfile, double simtime,
       dr_travelled_current += carrier.get_dRtravelled();
       currentenergy += carrier.getCurrentEnergy();
     }
-    dr_travelled_current /= _numberofcharges;
-    currentenergy /= _numberofcharges;
+    dr_travelled_current /= _numberofcarriers;
+    currentenergy /= _numberofcarriers;
     avgvelocity_current = dr_travelled_current / simtime;
     currentmobility =
         avgvelocity_current.dot(_field) / (absolute_field * absolute_field);
@@ -140,7 +140,7 @@ void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
                                   double simtime, unsigned long step) const {
   unsigned long diffusionsteps = step / _diffusionresolution;
   Eigen::Matrix3d result =
-      avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcharges);
+      avgdiffusiontensor / (diffusionsteps * 2 * simtime * _numberofcarriers);
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;
   es.computeDirect(result);
@@ -169,24 +169,25 @@ void KMCMultiple::PrintDiagDandMu(const Eigen::Matrix3d& avgdiffusiontensor,
 
 void KMCMultiple::PrintChargeVelocity(double simtime) const {
   Eigen::Vector3d avg_dr_travelled = Eigen::Vector3d::Zero();
-  for (int i = 0; i < _numberofcharges; i++) {
-    cout << std::scientific << "    charge " << i + 1 << ": "
-         << _carriers[i].get_dRtravelled() / simtime * tools::conv::bohr2nm
+  for (int i = 0; i < _numberofcarriers; i++) {
+    cout << std::scientific << "    carrier " << i + 1 << ": "
+         << _carriers[i].get_dRtravelled().transpose() / simtime *
+                tools::conv::bohr2nm
          << endl;
     avg_dr_travelled += _carriers[i].get_dRtravelled();
   }
-  avg_dr_travelled /= _numberofcharges;
+  avg_dr_travelled /= _numberofcarriers;
 
   Eigen::Vector3d avgvelocity = avg_dr_travelled / simtime;
   cout << std::scientific << "  Overall average velocity (nm/s): "
-       << avgvelocity * tools::conv::bohr2nm << endl;
+       << avgvelocity.transpose() * tools::conv::bohr2nm << endl;
 }
 
 void KMCMultiple::RunVSSM() {
 
   int realtime_start = time(NULL);
   cout << endl << "Algorithm: VSSM for Multiple Charges" << endl;
-  cout << "number of charges: " << _numberofcharges << endl;
+  cout << "number of carriers: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
 
   bool checkifoutput = (_outputtime != 0);
@@ -223,9 +224,10 @@ void KMCMultiple::RunVSSM() {
         "both input parameters.");
   }
 
-  if (_numberofcharges > int(_nodes.size())) {
+  if (_numberofcarriers > int(_nodes.size())) {
     throw runtime_error(
-        "ERROR in kmcmultiple: specified number of charges is greater than the "
+        "ERROR in kmcmultiple: specified number of carriers is greater than "
+        "the "
         "number of nodes. This conflicts with single occupation.");
   }
 
@@ -237,40 +239,40 @@ void KMCMultiple::RunVSSM() {
     cout << "Writing trajectory to " << _trajectoryfile << "." << endl;
     traj.open(_trajectoryfile, std::fstream::out);
 
-    traj << "'time[s]'\t";
-    traj << "'steps'\t";
-    for (int i = 0; i < _numberofcharges; i++) {
-      traj << "'carrier" << i + 1 << "_x'\t";
-      traj << "'carrier" << i + 1 << "_y'\t";
-      traj << "'carrier" << i + 1 << "_z";
-      if (i < _numberofcharges - 1) {
+    traj << "time[s]\tsteps\t";
+    for (int i = 0; i < _numberofcarriers; i++) {
+      traj << "carrier" << i + 1 << "_x\t";
+      traj << "carrier" << i + 1 << "_y\t";
+      traj << "carrier" << i + 1 << "_z";
+      if (i < _numberofcarriers - 1) {
         traj << "'\t";
       }
     }
     traj << endl;
-
-    cout << "Writing time dependence of energy and mobility to " << _timefile
-         << "." << endl;
-    tfile.open(_timefile, std::fstream::out);
-    tfile << "time[s]\t "
-             "steps\tenergy_per_carrier[eV]\tmobility[nm**2/"
-             "Vs]\tdistance_fielddirection[nm]\tdistance_absolute[nm]"
-          << endl;
+    if (!_timefile.empty()) {
+      cout << "Writing time dependence of energy and mobility to " << _timefile
+           << "." << endl;
+      tfile.open(_timefile, std::fstream::out);
+      tfile << "time[s]\t "
+               "steps\tenergy_per_carrier[eV]\tmobility[nm**2/"
+               "Vs]\tdistance_fielddirection[nm]\tdistance_absolute[nm]"
+            << endl;
+    }
   }
   RandomlyCreateCharges();
-  vector<Eigen::Vector3d> startposition(_numberofcharges,
+  vector<Eigen::Vector3d> startposition(_numberofcarriers,
                                         Eigen::Vector3d::Zero());
-  for (int i = 0; i < _numberofcharges; i++) {
+  for (int i = 0; i < _numberofcarriers; i++) {
     startposition[i] = _carriers[i].getCurrentPosition();
   }
 
   traj << 0 << "\t";
   traj << 0 << "\t";
-  for (int i = 0; i < _numberofcharges; i++) {
+  for (int i = 0; i < _numberofcarriers; i++) {
     traj << startposition[i].x() * tools::conv::bohr2nm << "\t";
     traj << startposition[i].y() * tools::conv::bohr2nm << "\t";
     traj << startposition[i].z() * tools::conv::bohr2nm;
-    if (i < _numberofcharges - 1) {
+    if (i < _numberofcarriers - 1) {
       traj << "\t";
     } else {
       traj << endl;
@@ -365,15 +367,10 @@ void KMCMultiple::RunVSSM() {
           break;  // this ends LEVEL 2 , so that the time is updated and the
                   // next MC step started
         }
-        if (tools::globals::verbose) {
-          cout << "." << endl;
-        }
         // END LEVEL 2
       }
       // END LEVEL 1
     }
-
-    // outputstuff
 
     if (step % _diffusionresolution == 0) {
       for (const auto& carrier : _carriers) {
@@ -393,14 +390,18 @@ void KMCMultiple::RunVSSM() {
         // write to trajectory file
         nexttrajoutput = simtime + _outputtime;
         WriteToTrajectory(traj, startposition, simtime, step);
-        WriteToEnergyFile(tfile, simtime, step);
+        if (!_timefile.empty()) {
+          WriteToEnergyFile(tfile, simtime, step);
+        }
       }
     }
   }  // KMC
 
   if (checkifoutput) {
     traj.close();
-    tfile.close();
+    if (!_timefile.empty()) {
+      tfile.close();
+    }
   }
 
   WriteOccupationtoFile(simtime, _occfile);
@@ -413,16 +414,13 @@ void KMCMultiple::RunVSSM() {
   PrintChargeVelocity(simtime);
 
   cout << endl << "Distances travelled (nm): " << endl;
-  for (int i = 0; i < _numberofcharges; i++) {
-    cout << std::scientific << "    charge " << i + 1 << ": "
-         << _carriers[i].get_dRtravelled() * tools::conv::bohr2nm << endl;
+  for (int i = 0; i < _numberofcarriers; i++) {
+    cout << std::scientific << "    carrier " << i + 1 << ": "
+         << _carriers[i].get_dRtravelled().transpose() * tools::conv::bohr2nm
+         << endl;
   }
 
-  // calculate mobilities
-
   PrintDiffandMu(avgdiffusiontensor, simtime, step);
-
-  // calculate diffusion tensor
   PrintDiagDandMu(avgdiffusiontensor, simtime, step);
 
   return;

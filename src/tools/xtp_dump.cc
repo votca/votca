@@ -78,7 +78,7 @@ bool XtpDump::EvaluateOptions() {
       bool printerror = true;
 
       for (const auto& extract : xtp::Extractors().getObjects()) {
-        if (n.compare(extract.first.c_str()) == 0) {
+        if (n.compare(extract.first) == 0) {
           PrintDescription(std::cout, extract.first, "xtp/xml",
                            Application::HelpLong);
           printerror = false;
@@ -100,10 +100,9 @@ bool XtpDump::EvaluateOptions() {
 
     bool found_calc = false;
     for (const auto& extract : xtp::Extractors().getObjects()) {
-      if (n.compare(extract.first.c_str()) == 0) {
+      if (n.compare(extract.first) == 0) {
         cout << " This is a XTP app" << endl;
-        xtp::StateApplication::AddCalculator(
-            xtp::Extractors().Create(n.c_str()));
+        xtp::StateApplication::SetCalculator(xtp::Extractors().Create(n));
         found_calc = true;
       }
     }

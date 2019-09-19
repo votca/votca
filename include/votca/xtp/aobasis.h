@@ -21,32 +21,25 @@
 #ifndef VOTCA_XTP_AOBASIS_H
 #define VOTCA_XTP_AOBASIS_H
 
-#include <boost/math/constants/constants.hpp>
 #include <votca/xtp/aoshell.h>
-#include <votca/xtp/basisset.h>
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/qmmolecule.h>
 
 namespace votca {
 namespace xtp {
+class QMMolecule;
+class BasisSet;
 
 /**
  * \brief Container to hold Basisfunctions for all atoms
  *
- * It is constructed from a vector of QMAtoms and a BasisSet.
+ * It is constructed from a QMMolecule and a BasisSet.
  */
 class AOBasis {
  public:
   void ReorderMOs(Eigen::MatrixXd& v, const std::string& start,
-                  const std::string& target);
+                  const std::string& target) const;
 
-  void ReorderMatrix(Eigen::MatrixXd& v, const std::string& start,
-                     const std::string& target);
-
-  void AOBasisFill(const BasisSet& bs, const QMMolecule& atoms);
-
-  // returns element names for which no ecp was found
-  std::vector<std::string> ECPFill(const BasisSet& bs, QMMolecule& atoms);
+  void Fill(const BasisSet& bs, const QMMolecule& atoms);
 
   int AOBasisSize() const { return _AOBasisSize; }
 
@@ -60,34 +53,29 @@ class AOBasis {
 
   int getNumofShells() const { return _aoshells.size(); }
 
-  int getFuncOfAtom(int AtomIndex) const { return _FuncperAtom[AtomIndex]; }
-
   const std::vector<int>& getFuncPerAtom() const { return _FuncperAtom; }
-
-  const AOShell& back() const { return _aoshells.back(); }
 
  private:
   AOShell& addShell(const Shell& shell, const QMAtom& atom, int startIndex);
 
-  AOShell& addECPShell(const Shell& shell, const QMAtom& atom, int startIndex,
-                       bool nonlocal);
+  void MultiplyMOs(Eigen::MatrixXd& v,
+                   const std::vector<int>& multiplier) const;
 
-  void MultiplyMOs(Eigen::MatrixXd& v, std::vector<int> const& multiplier);
-
-  std::vector<int> invertOrder(const std::vector<int>& order);
+  std::vector<int> invertOrder(const std::vector<int>& order) const;
 
   std::vector<int> getReorderVector(const std::string& start,
-                                    const std::string& target);
+                                    const std::string& target) const;
 
   void addReorderShell(const std::string& start, const std::string& target,
-                       const std::string& shell, std::vector<int>& neworder);
+                       const std::string& shell,
+                       std::vector<int>& neworder) const;
 
   std::vector<int> getMultiplierVector(const std::string& start,
-                                       const std::string& target);
+                                       const std::string& target) const;
 
   void addMultiplierShell(const std::string& start, const std::string& target,
                           const std::string& shell,
-                          std::vector<int>& multiplier);
+                          std::vector<int>& multiplier) const;
 
   std::vector<AOShell> _aoshells;
 

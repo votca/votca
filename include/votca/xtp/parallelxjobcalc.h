@@ -58,9 +58,9 @@ class ParallelXJobCalc : public JobCalculator {
 
   std::string Identify() = 0;
 
-  bool EvaluateFrame(Topology &top);
+  bool EvaluateFrame(const Topology &top);
   virtual void CustomizeLogger(QMThread &thread);
-  virtual Result EvalJob(Topology &top, Job &job, QMThread &thread) = 0;
+  virtual Result EvalJob(const Topology &top, Job &job, QMThread &thread) = 0;
 
   void LockCout() { _coutMutex.Lock(); }
   void UnlockCout() { _coutMutex.Unlock(); }
@@ -73,26 +73,30 @@ class ParallelXJobCalc : public JobCalculator {
 
   class JobOperator : public QMThread {
    public:
-    JobOperator(int id, Topology *top, ParallelXJobCalc<JobContainer> *master)
-        : _top(top), _master(master) {
-      _id = id;
-    };
+    JobOperator(int id, const Topology &top,
+                ParallelXJobCalc<JobContainer> &master, int openmp_threads)
+        : _top(top), _master(master), _openmp_threads(openmp_threads) {
+      setId(id);
+    }  // comes from baseclass so Id cannot be in initializer list
     ~JobOperator(){};
 
-    void InitData(Topology &top) { ; }
     void Run();
 
-   public:
-    Topology *_top;
-    ParallelXJobCalc<JobContainer> *_master;
-    Job *_job;
+   private:
+    const Topology &_top;
+    ParallelXJobCalc<JobContainer> &_master;
+    int _openmp_threads = 1;
   };
 
  protected:
+  void ParseCommonOptions(const tools::Property &options);
+
   JobContainer _XJobs;
   tools::Mutex _coutMutex;
   tools::Mutex _logMutex;
+  std::string _mapfile = "";
   std::string _jobfile = "";
+  int _openmp_threads = 1;
 };
 
 }  // namespace xtp

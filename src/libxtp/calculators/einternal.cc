@@ -27,7 +27,8 @@ namespace xtp {
 void EInternal::Initialize(tools::Property &options) {
   std::string key = "options." + Identify();
 
-  _energiesXML = options.get(key + ".energiesXML").as<std::string>();
+  _energiesXML = options.ifExistsReturnElseThrowRuntimeError<std::string>(
+      key + ".energiesXML");
 }
 
 void EInternal::ParseEnergies() {
@@ -37,38 +38,7 @@ void EInternal::ParseEnergies() {
             << std::flush;
 
   tools::Property alloc;
-  tools::load_property_from_xml(alloc, _energiesXML);
-
-  /* --- ENERGIES.XML Structure ---
-   *
-   * <topology>
-   *
-   *     <molecules>
-   *          <molecule>
-   *          <name></name>
-   *
-   *          <segments>
-   *
-   *              <segment>
-   *              <name></name>
-   *
-   *              <!-- U_sG_sG, s->state, G->geometry !-->
-   *
-   *              <U_cC_nN_e></U_cC_nN_e>
-   *              <U_cC_nN_h></U_cC_nN_h>
-   *
-   *              <U_nC_nN_e></U_nC_nN_e>
-   *              <U_nC_nN_h></U_nC_nN_h>
-   *
-   *              <U_cN_cC_e></U_cN_cC_e>
-   *              <U_cN_cC_h></U_cN_cC_h>
-   *
-   *              </segment>
-   *
-   *              <segment>
-   *                  ...
-   *
-   */
+  alloc.LoadFromXML(_energiesXML);
 
   std::string key = "topology.molecules.molecule";
   std::vector<tools::Property *> mols = alloc.Select(key);
@@ -87,41 +57,21 @@ void EInternal::ParseEnergies() {
       QMStateCarrierStorage<double> U_xN_xX;
       QMStateCarrierStorage<bool> has_state;
       double eV2hrt = tools::conv::ev2hrt;
-      if (segprop->exists("U_cC_nN_e") && segprop->exists("U_nC_nN_e") &&
-          segprop->exists("U_cN_cC_e")) {
-        QMStateType e(QMStateType::Electron);
 
-        U_xX_nN.setValue(segprop->get("U_cC_nN_e").as<double>() * eV2hrt, e);
-        U_nX_nN.setValue(segprop->get("U_nC_nN_e").as<double>() * eV2hrt, e);
-        U_xN_xX.setValue(segprop->get("U_cN_cC_e").as<double>() * eV2hrt, e);
-        has_state.setValue(true, e);
-      }
-
-      if (segprop->exists("U_cC_nN_h") && segprop->exists("U_nC_nN_h") &&
-          segprop->exists("U_cN_cC_h")) {
-
-        QMStateType h(QMStateType::Hole);
-        U_xX_nN.setValue(segprop->get("U_cC_nN_h").as<double>() * eV2hrt, h);
-        U_nX_nN.setValue(segprop->get("U_nC_nN_h").as<double>() * eV2hrt, h);
-        U_xN_xX.setValue(segprop->get("U_cN_cC_h").as<double>() * eV2hrt, h);
-        has_state.setValue(true, h);
-      }
-
-      if (segprop->exists("U_xX_nN_s") && segprop->exists("U_nX_nN_s") &&
-          segprop->exists("U_xN_xX_s")) {
-        QMStateType s(QMStateType::Singlet);
-        U_xX_nN.setValue(segprop->get("U_xX_nN_s").as<double>() * eV2hrt, s);
-        U_nX_nN.setValue(segprop->get("U_nX_nN_s").as<double>() * eV2hrt, s);
-        U_xN_xX.setValue(segprop->get("U_xN_xX_s").as<double>() * eV2hrt, s);
-        has_state.setValue(true, s);
-      }
-      if (segprop->exists("U_xX_nN_t") && segprop->exists("U_nX_nN_t") &&
-          segprop->exists("U_xN_xX_t")) {
-        QMStateType t(QMStateType::Triplet);
-        U_xX_nN.setValue(segprop->get("U_xX_nN_t").as<double>() * eV2hrt, t);
-        U_nX_nN.setValue(segprop->get("U_nX_nN_t").as<double>() * eV2hrt, t);
-        U_xN_xX.setValue(segprop->get("U_xN_xX_t").as<double>() * eV2hrt, t);
-        has_state.setValue(true, t);
+      std::vector<QMStateType> types = {QMStateType::Electron,
+                                        QMStateType::Hole, QMStateType::Singlet,
+                                        QMStateType::Triplet};
+      for (QMStateType type : types) {
+        std::string u_xX_nN = "U_xX_nN_" + type.ToString();
+        std::string u_nX_nN = "U_nX_nN_" + type.ToString();
+        std::string u_xN_xX = "U_xN_xX_" + type.ToString();
+        if (segprop->exists(u_xX_nN) && segprop->exists(u_nX_nN) &&
+            segprop->exists(u_xN_xX)) {
+          U_xX_nN.setValue(segprop->get(u_xX_nN).as<double>() * eV2hrt, type);
+          U_nX_nN.setValue(segprop->get(u_nX_nN).as<double>() * eV2hrt, type);
+          U_xN_xX.setValue(segprop->get(u_xN_xX).as<double>() * eV2hrt, type);
+          has_state.setValue(true, type);
+        }
       }
       _seg_has_state[segName] = has_state;
       _seg_U_xX_nN[segName] = U_xX_nN;
@@ -140,11 +90,9 @@ bool EInternal::EvaluateFrame(Topology &top) {
   int count = 0;
   for (Segment &seg : top.Segments()) {
 
-    std::string segName = seg.getName();
+    std::string segName = seg.getType();
 
-    try {
-      _has_seg.at(segName);
-    } catch (const std::exception &out_of_range) {
+    if (!_has_seg.count(segName)) {
       std::cout << std::endl
                 << "... ... WARNING: No energy information for seg [" << segName
                 << "]. Skipping... ";
@@ -153,40 +101,19 @@ bool EInternal::EvaluateFrame(Topology &top) {
 
     ++count;
 
-    if (_seg_has_state[segName].getValue(QMStateType::Electron)) {
-      seg.setU_xX_nN(_seg_U_xX_nN[segName].getValue(QMStateType::Electron),
-                     QMStateType::Electron);
-      seg.setU_nX_nN(_seg_U_nX_nN[segName].getValue(QMStateType::Electron),
-                     QMStateType::Electron);
-      seg.setU_xN_xX(_seg_U_xN_xX[segName].getValue(QMStateType::Electron),
-                     QMStateType::Electron);
-    }
+    std::vector<QMStateType> types = {QMStateType::Electron, QMStateType::Hole,
+                                      QMStateType::Singlet,
+                                      QMStateType::Triplet};
+    for (QMStateType type : types) {
 
-    if (_seg_has_state[segName].getValue(QMStateType::Hole)) {
-      seg.setU_xX_nN(_seg_U_xX_nN[segName].getValue(QMStateType::Hole),
-                     QMStateType::Hole);
-      seg.setU_nX_nN(_seg_U_nX_nN[segName].getValue(QMStateType::Hole),
-                     QMStateType::Hole);
-      seg.setU_xN_xX(_seg_U_xN_xX[segName].getValue(QMStateType::Hole),
-                     QMStateType::Hole);
-    }
-
-    if (_seg_has_state[segName].getValue(QMStateType::Singlet)) {
-      seg.setU_xX_nN(_seg_U_xX_nN[segName].getValue(QMStateType::Singlet),
-                     QMStateType::Singlet);
-      seg.setU_nX_nN(_seg_U_nX_nN[segName].getValue(QMStateType::Singlet),
-                     QMStateType::Singlet);
-      seg.setU_xN_xX(_seg_U_xN_xX[segName].getValue(QMStateType::Singlet),
-                     QMStateType::Singlet);
-    }
-
-    if (_seg_has_state[segName].getValue(QMStateType::Triplet)) {
-      seg.setU_xX_nN(_seg_U_xX_nN[segName].getValue(QMStateType::Triplet),
-                     QMStateType::Triplet);
-      seg.setU_nX_nN(_seg_U_nX_nN[segName].getValue(QMStateType::Triplet),
-                     QMStateType::Triplet);
-      seg.setU_xN_xX(_seg_U_xN_xX[segName].getValue(QMStateType::Triplet),
-                     QMStateType::Triplet);
+      if (_seg_has_state[segName].getValue(type.Type())) {
+        seg.setU_xX_nN(_seg_U_xX_nN[segName].getValue(type.Type()),
+                       type.Type());
+        seg.setU_nX_nN(_seg_U_nX_nN[segName].getValue(type.Type()),
+                       type.Type());
+        seg.setU_xN_xX(_seg_U_xN_xX[segName].getValue(type.Type()),
+                       type.Type());
+      }
     }
   }
 

@@ -35,9 +35,9 @@ template <class T>
 class MMRegion : public Region {
  public:
   MMRegion(int id, Logger& log) : Region(id, log){};
-  void WriteToCpt(CheckpointWriter& w) const;
+  virtual void WriteToCpt(CheckpointWriter& w) const;
 
-  void ReadFromCpt(CheckpointReader& r);
+  virtual void ReadFromCpt(CheckpointReader& r);
 
   int size() const { return _segments.size(); }
 
@@ -64,16 +64,21 @@ class MMRegion : public Region {
     return _segments.end();
   }
 
-  void Reset();
+  virtual double Etotal() const = 0;
+
+  virtual void Reset() = 0;
+
+  double charge() const;
 
   void WritePDB(csg::PDBWriter& writer) const;
 
   void push_back(const T& seg) { _segments.push_back(seg); }
 
  protected:
-  virtual void InteractwithQMRegion(const QMRegion& region) = 0;
-  virtual void InteractwithPolarRegion(const PolarRegion& region) = 0;
-  virtual void InteractwithStaticRegion(const StaticRegion& region) = 0;
+  virtual void AppendResult(tools::Property& prop) const = 0;
+  virtual double InteractwithQMRegion(const QMRegion& region) = 0;
+  virtual double InteractwithPolarRegion(const PolarRegion& region) = 0;
+  virtual double InteractwithStaticRegion(const StaticRegion& region) = 0;
 
   std::vector<T> _segments;
 };

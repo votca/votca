@@ -33,7 +33,7 @@ namespace xtp {
  *    Stores atom type, coordinates, charge
  */
 class QMAtom {
-  friend class AOBasis;
+  friend class ECPAOBasis;
 
  public:
   struct data {

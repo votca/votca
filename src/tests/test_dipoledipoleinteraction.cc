@@ -38,9 +38,9 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   for (int i = 1; i < seg_ref.size(); i++) {
     for (int j = 0; j < i; j++) {
       ref.block<3, 3>(3 * i, 3 * j) =
-          interactor.FillTholeInteraction_diponly(seg_ref[i], seg_ref[j]);
+          interactor.FillTholeInteraction(seg_ref[i], seg_ref[j]);
       ref.block<3, 3>(3 * j, 3 * i) =
-          interactor.FillTholeInteraction_diponly(seg_ref[j], seg_ref[i]);
+          interactor.FillTholeInteraction(seg_ref[j], seg_ref[i]);
     }
   }
 
@@ -51,10 +51,12 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
   Eigen::MatrixXd elementwise = Eigen::MatrixXd::Zero(6, 6);
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 6; j++) {
-      elementwise(i, j) = dipdip(i, j);
+      double value = dipdip(i, j);  // do not remove gcc debug needs this
+      elementwise(i, j) = value;
     }
   }
   bool op_check = elementwise.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(op_check, 1);
   if (!op_check) {
     std::cout << "ref" << std::endl;
     std::cout << ref << std::endl;
@@ -69,6 +71,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
     gemv.col(i) = dipdip * ident.col(i);
   }
   bool gemv_check = gemv.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(gemv_check, 1);
   if (!gemv_check) {
     std::cout << "ref" << std::endl;
     std::cout << ref << std::endl;
@@ -83,6 +86,7 @@ BOOST_AUTO_TEST_CASE(dipoledipoleinteraction_test) {
     }
   }
   bool iterator_check = iterator.isApprox(ref, 1e-6);
+  BOOST_CHECK_EQUAL(iterator_check, 1);
   if (!iterator_check) {
     std::cout << "ref" << std::endl;
     std::cout << ref << std::endl;

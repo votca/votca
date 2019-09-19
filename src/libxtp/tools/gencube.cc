@@ -67,11 +67,11 @@ void GenCube::Initialize(tools::Property& options) {
 
 void GenCube::calculateCube() {
 
-  XTP_LOG(logDEBUG, _log) << "Reading serialized QM data from " << _orbfile
-                          << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Reading serialized QM data from " << _orbfile << flush;
 
   Orbitals orbitals;
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << " Loading QM data from " << _orbfile << flush;
   orbitals.ReadFromCpt(_orbfile);
 
   const QMMolecule& atoms = orbitals.QMAtoms();
@@ -95,17 +95,13 @@ void GenCube::calculateCube() {
   if (!out.is_open()) {
     throw std::runtime_error("Bad file handle: " + _output_file);
   }
+  bool do_amplitude = (_state.Type().isSingleParticleState());
 
   // write cube header
   if (_state.isTransition()) {
     out << boost::format("Transition state: %1$s \n") % _state.ToString();
-  }
-
-  bool do_amplitude = (_state.Type().isSingleParticleState());
-
-  if (do_amplitude) {
-    out << boost::format("%1$s with energy %2$f eV \n") %
-               _state.ToLongString() %
+  } else if (do_amplitude) {
+    out << boost::format("%1$s with energy %2$f eV \n") % _state.ToString() %
                (orbitals.getExcitedStateEnergy(_state) * tools::conv::hrt2ev);
   } else {
     if (_dostateonly) {
@@ -114,7 +110,7 @@ void GenCube::calculateCube() {
                  _state.ToString();
     } else {
       out << boost::format("Total electron density of %1$s state\n") %
-                 _state.ToLongString();
+                 _state.ToString();
     }
   }
 
@@ -148,19 +144,19 @@ void GenCube::calculateCube() {
 
   // load DFT basis set (element-wise information) from xml file
   BasisSet dftbs;
-  dftbs.LoadBasisSet(orbitals.getDFTbasisName());
-  XTP_LOG(logDEBUG, _log) << " Loaded DFT Basis Set "
-                          << orbitals.getDFTbasisName() << flush;
+  dftbs.Load(orbitals.getDFTbasisName());
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loaded DFT Basis Set " << orbitals.getDFTbasisName() << flush;
 
   // fill DFT AO basis by going through all atoms
   AOBasis dftbasis;
-  dftbasis.AOBasisFill(dftbs, orbitals.QMAtoms());
+  dftbasis.Fill(dftbs, orbitals.QMAtoms());
 
   Eigen::MatrixXd mat =
       Eigen::MatrixXd::Zero(dftbasis.AOBasisSize(), dftbasis.AOBasisSize());
   if (_dostateonly) {
     if (_state.Type().isExciton()) {
-      std::vector<Eigen::MatrixXd> DMAT =
+      std::array<Eigen::MatrixXd, 2> DMAT =
           orbitals.DensityMatrixExcitedState(_state);
       mat = DMAT[1] - DMAT[0];
     }
@@ -173,12 +169,12 @@ void GenCube::calculateCube() {
       mat = orbitals.CalculateQParticleAORepresentation();
       amplitudeindex = _state.Index() - orbitals.getGWAmin();
     } else {
-      mat = orbitals.MOCoefficients();
+      mat = orbitals.MOs().eigenvectors();
       amplitudeindex = _state.Index();
     }
   }
 
-  XTP_LOG(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
+  XTP_LOG_SAVE(logDEBUG, _log) << " Calculating cube data ... \n" << flush;
   _log.setPreface(logDEBUG, "... ...");
 
   boost::progress_display progress(_xsteps);
@@ -211,7 +207,8 @@ void GenCube::calculateCube() {
   }  // x-component
 
   out.close();
-  XTP_LOG(logDEBUG, _log) << "Wrote cube data to " << _output_file << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Wrote cube data to " << _output_file << flush;
   return;
 }
 
@@ -239,10 +236,12 @@ void GenCube::subtractCubes() {
 
   // open infiles for reading
   ifstream in1;
-  XTP_LOG(logDEBUG, _log) << " Reading first cube from " << _infile1 << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Reading first cube from " << _infile1 << flush;
   in1.open(_infile1, ios::in);
   ifstream in2;
-  XTP_LOG(logDEBUG, _log) << " Reading second cube from " << _infile2 << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Reading second cube from " << _infile2 << flush;
   in2.open(_infile2, ios::in);
   string s;
 
@@ -423,12 +422,12 @@ void GenCube::subtractCubes() {
   }
 
   out.close();
-  XTP_LOG(logDEBUG, _log) << "Wrote subtracted cube data to " << _output_file
-                          << flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Wrote subtracted cube data to " << _output_file << flush;
 }
 
 bool GenCube::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 

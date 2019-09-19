@@ -100,10 +100,10 @@ BOOST_AUTO_TEST_CASE(fourcenter_cache) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Eigen::MatrixXd dmat = Eigen::MatrixXd::Zero(17, 17);
   dmat << 0.00157507, 0.0337454, 4.48905e-16, -5.93152e-16, 7.87133e-17,
@@ -335,10 +335,10 @@ BOOST_AUTO_TEST_CASE(threecenter) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Eigen::MatrixXd dmat = Eigen::MatrixXd::Zero(17, 17);
   dmat << 0.00157539, 0.0337504, -3.73717e-16, -2.65681e-16, 9.65234e-18,
@@ -636,10 +636,10 @@ BOOST_AUTO_TEST_CASE(fourcenter_direct) {
   Orbitals orbitals;
   orbitals.QMAtoms().LoadFromFile("molecule.xyz");
   BasisSet basis;
-  basis.LoadBasisSet("3-21G.xml");
+  basis.Load("3-21G.xml");
 
   AOBasis aobasis;
-  aobasis.AOBasisFill(basis, orbitals.QMAtoms());
+  aobasis.Fill(basis, orbitals.QMAtoms());
 
   Eigen::MatrixXd dmat = Eigen::MatrixXd::Zero(17, 17);
   dmat << 0.00157507, 0.0337454, 4.48905e-16, -5.93152e-16, 7.87133e-17,

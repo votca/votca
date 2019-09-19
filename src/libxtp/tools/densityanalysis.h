@@ -50,11 +50,11 @@ void DensityAnalysis::Initialize(tools::Property& options) {
 
   std::string gyration_xml =
       options.get(key + ".gyration_options").as<std::string>();
-  load_property_from_xml(_gyration_options, gyration_xml.c_str());
+  _gyration_options.LoadFromXML(gyration_xml);
 }
 
 bool DensityAnalysis::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 
@@ -64,7 +64,8 @@ bool DensityAnalysis::Evaluate() {
   _log.setPreface(logDEBUG, "\n... ...");
 
   Orbitals orbitals;
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
 
   Density2Gyration density2gyration(_log);

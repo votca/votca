@@ -22,10 +22,10 @@
 #include <type_traits>
 #include <typeinfo>
 #include <vector>
-#include <votca/xtp/eigen.h>
-
+#include <votca/tools/linalg.h>
 #include <votca/xtp/checkpoint_utils.h>
 #include <votca/xtp/checkpointtable.h>
+#include <votca/xtp/eigen.h>
 
 namespace votca {
 namespace xtp {
@@ -43,7 +43,7 @@ class CheckpointReader {
       T& var, const std::string& name) const {
     try {
       ReadData(_loc, var, name);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
 
       message << "Could not read " << name << " from " << _loc.getFileName()
@@ -59,7 +59,7 @@ class CheckpointReader {
       operator()(T& var, const std::string& name) const {
     try {
       ReadScalar(_loc, var, name);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not read " << name << " from " << _loc.getFileName()
               << ":" << _path << "/" << std::endl;
@@ -72,7 +72,7 @@ class CheckpointReader {
     int temp = int(v);
     try {
       ReadScalar(_loc, temp, name);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not read " << name << " from " << _loc.getFileName()
               << ":" << _path << std::endl;
@@ -85,7 +85,7 @@ class CheckpointReader {
   void operator()(std::string& var, const std::string& name) const {
     try {
       ReadScalar(_loc, var, name);
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not read " << name << " from " << _loc.getFileName()
               << ":" << _path << std::endl;
@@ -98,7 +98,7 @@ class CheckpointReader {
     try {
       return CheckpointReader(_loc.openGroup(childName),
                               _path + "/" + childName);
-    } catch (H5::Exception& e) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not open " << _loc.getFileName() << ":/" << _path << "/"
               << childName << std::endl;
@@ -117,7 +117,7 @@ class CheckpointReader {
       CptTable table = CptTable(name, sizeof(typename T::data), _loc);
       obj.SetupCptTable(table);
       return table;
-    } catch (H5::Exception& error) {
+    } catch (H5::Exception&) {
       std::stringstream message;
       message << "Could not open table " << name << " in " << _loc.getFileName()
               << ":" << _path << std::endl;
@@ -205,8 +205,53 @@ class CheckpointReader {
     dp.getSimpleExtentDims(dims, NULL);
 
     v.resize(dims[0]);
+    try {
+      dataset.read(&(v[0]), *dataType);
+    } catch (H5::Exception&) {
+      std::stringstream message;
+      message << "Could not read " << name << " from " << _loc.getFileName()
+              << ":" << _path << std::endl;
+      throw std::runtime_error(message.str());
+    }
+  }
 
-    dataset.read(&(v[0]), *dataType);
+  void ReadData(const CptLoc& loc, std::vector<std::string>& v,
+                const std::string& name) const {
+
+    H5::DataSet dataset = loc.openDataSet(name);
+    H5::DataSpace dp = dataset.getSpace();
+
+    const H5::DataType* dataType = InferDataType<std::string>::get();
+
+    hsize_t dims[2];
+    dp.getSimpleExtentDims(dims, NULL);
+
+    std::vector<char*> temp(dims[0]);
+    try {
+      dataset.read(temp.data(), *dataType);
+    } catch (H5::Exception&) {
+      std::stringstream message;
+      message << "Could not read " << name << " from " << _loc.getFileName()
+              << ":" << _path << std::endl;
+      throw std::runtime_error(message.str());
+    }
+    v.reserve(dims[0]);
+    for (char* s : temp) {
+      v.push_back(std::string(s));
+      free(s);
+    }
+  }
+
+  void ReadData(const CptLoc& loc, tools::EigenSystem& sys,
+                const std::string& name) const {
+
+    CptLoc parent = loc.openGroup(name);
+    ReadData(parent, sys.eigenvalues(), "eigenvalues");
+    ReadData(parent, sys.eigenvectors(), "eigenvectors");
+    ReadData(parent, sys.eigenvectors2(), "eigenvectors2");
+    int info;
+    ReadScalar(parent, info, "info");
+    sys.info() = static_cast<Eigen::ComputationInfo>(info);
   }
 
   void ReadData(const CptLoc& loc, std::vector<Eigen::Vector3d>& v,

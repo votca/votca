@@ -51,7 +51,6 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   double qmEnergy = -2.1025e-3;
 
   std::string qmPackage = "NOPE";
-  double selfEnergy = 3.14159e23;
 
   std::string dftBasis = "AWESOME basis*,, 2/.8";
   std::string auxBasis = "cos(theta) = pretty okay basis";
@@ -88,14 +87,12 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.setBasisSetSize(basisSetSize);
     orbWrite.setNumberOfOccupiedLevels(occupiedLevels);
     orbWrite.setNumberOfAlphaElectrons(numElectrons);
-    orbWrite.MOEnergies() = moeTest;
-    orbWrite.MOCoefficients() = mocTest;
+    orbWrite.MOs().eigenvalues() = moeTest;
+    orbWrite.MOs().eigenvectors() = mocTest;
 
     orbWrite.QMAtoms() = atoms;
-
     orbWrite.setQMEnergy(qmEnergy);
     orbWrite.setQMpackage(qmPackage);
-    orbWrite.setSelfEnergy(selfEnergy);
     orbWrite.setDFTbasisName(dftBasis);
     orbWrite.setAuxbasisName(auxBasis);
     orbWrite.setRPAindices(rpaMin, rpaMax);
@@ -105,13 +102,13 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
     orbWrite.setTDAApprox(useTDA);
     orbWrite.setECPName(someECP);
     orbWrite.QPpertEnergies() = QPpertEnergiesTest;
-    orbWrite.QPdiagEnergies() = QPdiagEnergiesTest;
-    orbWrite.QPdiagCoefficients() = QPdiagCoefficientsTest;
-    orbWrite.BSESingletEnergies() = BSESingletEnergiesTest;
-    orbWrite.BSESingletCoefficients() = BSESingletCoefficientsTest;
-    orbWrite.BSESingletCoefficientsAR() = BSESingletCoefficientsARTest;
-    orbWrite.BSETripletEnergies() = BSETripletEnergiesTest;
-    orbWrite.BSETripletCoefficients() = BSETripletCoefficientsTest;
+    orbWrite.QPdiag().eigenvalues() = QPdiagEnergiesTest;
+    orbWrite.QPdiag().eigenvectors() = QPdiagCoefficientsTest;
+    orbWrite.BSESinglets().eigenvalues() = BSESingletEnergiesTest;
+    orbWrite.BSESinglets().eigenvectors() = BSESingletCoefficientsTest;
+    orbWrite.BSESinglets().eigenvectors2() = BSESingletCoefficientsARTest;
+    orbWrite.BSETriplets().eigenvalues() = BSETripletEnergiesTest;
+    orbWrite.BSETriplets().eigenvectors() = BSETripletCoefficientsTest;
 
     orbWrite.WriteToCpt("xtp_testing.hdf5");
   }
@@ -126,12 +123,11 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK_EQUAL(orbRead.getBasisSetSize(),
                     occupiedLevels + unoccupiedLevels);
   BOOST_CHECK_EQUAL(orbRead.getNumberOfAlphaElectrons(), numElectrons);
-  BOOST_CHECK(orbRead.MOEnergies().isApprox(moeTest, tol));
+  BOOST_CHECK(orbRead.MOs().eigenvalues().isApprox(moeTest, tol));
 
-  BOOST_CHECK(orbRead.MOCoefficients().isApprox(mocTest, tol));
-  BOOST_CHECK_CLOSE(orbRead.getQMEnergy(), qmEnergy, tol);
+  BOOST_CHECK(orbRead.MOs().eigenvectors().isApprox(mocTest, tol));
+  BOOST_CHECK_CLOSE(orbRead.getDFTTotalEnergy(), qmEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getQMpackage(), qmPackage);
-  BOOST_CHECK_CLOSE(orbRead.getSelfEnergy(), selfEnergy, tol);
   BOOST_CHECK_EQUAL(orbRead.getDFTbasisName(), dftBasis);
   BOOST_CHECK_EQUAL(orbRead.getAuxbasisName(), auxBasis);
   BOOST_CHECK_EQUAL(orbRead.getRPAmin(), rpaMin);
@@ -144,17 +140,17 @@ BOOST_AUTO_TEST_CASE(checkpoint_file_test) {
   BOOST_CHECK_EQUAL(orbRead.getTDAApprox(), useTDA);
   BOOST_CHECK_EQUAL(orbRead.getECPName(), someECP);
   BOOST_CHECK(orbRead.QPpertEnergies().isApprox(QPpertEnergiesTest, tol));
-  BOOST_CHECK(orbRead.QPdiagEnergies().isApprox(QPdiagEnergiesTest, tol));
-  BOOST_CHECK(orbRead.QPdiagCoefficients().isApprox(QPdiagCoefficientsTest));
-  BOOST_CHECK(
-      orbRead.BSESingletEnergies().isApprox(BSESingletEnergiesTest, tol));
-  BOOST_CHECK(orbRead.BSESingletCoefficients().isApprox(
+  BOOST_CHECK(orbRead.QPdiag().eigenvalues().isApprox(QPdiagEnergiesTest, tol));
+  BOOST_CHECK(orbRead.QPdiag().eigenvectors().isApprox(QPdiagCoefficientsTest));
+  BOOST_CHECK(orbRead.BSESinglets().eigenvalues().isApprox(
+      BSESingletEnergiesTest, tol));
+  BOOST_CHECK(orbRead.BSESinglets().eigenvectors().isApprox(
       BSESingletCoefficientsTest, tol));
-  BOOST_CHECK(orbRead.BSESingletCoefficientsAR().isApprox(
+  BOOST_CHECK(orbRead.BSESinglets().eigenvectors2().isApprox(
       BSESingletCoefficientsARTest, tol));
-  BOOST_CHECK(
-      orbRead.BSETripletEnergies().isApprox(BSETripletEnergiesTest, tol));
-  BOOST_CHECK(orbRead.BSETripletCoefficients().isApprox(
+  BOOST_CHECK(orbRead.BSETriplets().eigenvalues().isApprox(
+      BSETripletEnergiesTest, tol));
+  BOOST_CHECK(orbRead.BSETriplets().eigenvectors().isApprox(
       BSETripletCoefficientsTest, tol));
 
   BOOST_REQUIRE_EQUAL(orbRead.QMAtoms().size(), atoms.size());
@@ -198,6 +194,54 @@ BOOST_AUTO_TEST_CASE(read_non_existing_scalar) {
 
   float someThing = 0;
   BOOST_REQUIRE_THROW(r(someThing, "someThing"), std::runtime_error);
+}
+
+BOOST_AUTO_TEST_CASE(read_vector_strings) {
+  CheckpointFile cpf("xtp_vector_string.hdf5");
+  CheckpointWriter w = cpf.getWriter();
+
+  std::vector<std::string> test_vec = {
+      "a", "b", "advhsbsavc", "dumuunnadnjdsahjads", "DASASDFAFNADDH blasndd"};
+  w(test_vec, "vec");
+
+  std::vector<std::string> test_vec2;
+  CheckpointReader r = cpf.getReader();
+  r(test_vec2, "vec");
+
+  BOOST_CHECK_EQUAL(test_vec.size(), test_vec2.size());
+
+  for (unsigned i = 0; i > test_vec.size(); i++) {
+    BOOST_CHECK_EQUAL(test_vec[i], test_vec2[i]);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(staticsegment) {
+
+  CheckpointFile cpf("xtp_staticsegment.hdf5");
+  CheckpointWriter w = cpf.getWriter();
+  StaticSegment seg = StaticSegment("test", 0);
+  for (int i = 0; i < 10; ++i) {
+    seg.push_back(StaticSite(0, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(25, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(32, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(100, "O", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(2, "Si", Eigen::Vector3d::Random()));
+    seg.push_back(StaticSite(3145, "N", Eigen::Vector3d::Random()));
+  }
+
+  seg.WriteToCpt(w);
+  CheckpointReader r = cpf.getReader();
+  StaticSegment seg2 = StaticSegment(r);
+
+  BOOST_REQUIRE_EQUAL(seg2.size(), seg.size());
+  for (int i = 0; i < seg.size(); ++i) {
+    const auto& atomRead = seg2[i];
+    const auto& atomTest = seg[i];
+    BOOST_CHECK_EQUAL(atomRead.getId(), atomTest.getId());
+    BOOST_CHECK(atomRead.getPos().isApprox(atomTest.getPos(), 1e-7));
+    BOOST_CHECK_EQUAL(atomRead.getCharge(), atomTest.getCharge());
+    BOOST_CHECK_EQUAL(atomRead.getElement(), atomTest.getElement());
+  }
 }
 
 BOOST_AUTO_TEST_SUITE_END()

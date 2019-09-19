@@ -41,10 +41,10 @@ class Energy_costfunction : public Optimiser_costfunction {
     int maxstepindex = 0;
   };
 
-  Energy_costfunction(GWBSEEngine& gwbse_engine, Statefilter& filter,
+  Energy_costfunction(GWBSEEngine& gwbse_engine, StateTracker& tracker,
                       Orbitals& orbitals, Forces& force_engine)
       : _gwbse_engine(gwbse_engine),
-        _filter(filter),
+        _tracker(tracker),
         _orbitals(orbitals),
         _force_engine(force_engine){};
 
@@ -75,7 +75,7 @@ class Energy_costfunction : public Optimiser_costfunction {
  private:
   static std::string Converged(double val, double limit);
   GWBSEEngine& _gwbse_engine;
-  Statefilter& _filter;
+  StateTracker& _tracker;
   Orbitals& _orbitals;
   Forces& _force_engine;
   int _iteration = 0;

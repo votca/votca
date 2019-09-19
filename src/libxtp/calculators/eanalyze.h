@@ -38,16 +38,17 @@ class EAnalyze : public QMCalculator {
   EAnalyze(){};
 
   ~EAnalyze(){};
-
+  bool WriteToStateFile() const { return false; }
   std::string Identify() { return "eanalyze"; }
 
   void Initialize(tools::Property &opt);
   bool EvaluateFrame(Topology &top);
-  void SiteHist(Topology &top, QMStateType state);
-  void PairHist(Topology &top, QMStateType state);
-  void SiteCorr(Topology &top, QMStateType state);
 
  private:
+  void SiteHist(QMStateType state) const;
+  void PairHist(const Topology &top, QMStateType state) const;
+  void SiteCorr(const Topology &top, QMStateType state) const;
+
   double _resolution_pairs;
   double _resolution_sites;
   double _resolution_space;

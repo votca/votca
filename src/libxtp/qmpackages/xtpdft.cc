@@ -36,8 +36,8 @@ void XTPDFT::Initialize(tools::Property& options) {
 }
 
 bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
-  _orbitals.setQMpackage(getPackageName());
   _orbitals = orbitals;
+  _orbitals.setQMpackage(getPackageName());
   return true;
 }
 
@@ -45,15 +45,14 @@ bool XTPDFT::WriteInputFile(const Orbitals& orbitals) {
  * Run calls DFTENGINE
  */
 bool XTPDFT::Run() {
-  DFTEngine xtpdft = DFTEngine(_orbitals);
+  DFTEngine xtpdft;
   xtpdft.Initialize(_xtpdft_options);
   xtpdft.setLogger(_pLog);
 
   if (_write_charges) {
     xtpdft.setExternalcharges(&_externalsites);
   }
-  xtpdft.Prepare();
-  bool success = xtpdft.Evaluate();
+  bool success = xtpdft.Evaluate(_orbitals);
   _basisset_name = xtpdft.getDFTBasisName();
   std::string file_name = _run_dir + "/" + _log_file_name;
   XTP_LOG(logDEBUG, *_pLog) << "Writing result to " << _log_file_name << flush;
@@ -87,10 +86,10 @@ bool XTPDFT::ParseLogFile(Orbitals& orbitals) {
   try {
     std::string file_name = _run_dir + "/" + _log_file_name;
     orbitals.ReadFromCpt(file_name);
-    XTP_LOG(logDEBUG, *_pLog)
-        << (boost::format("QM energy[Hrt]: %4.8f ") % orbitals.getQMEnergy())
-               .str()
-        << flush;
+    XTP_LOG(logDEBUG, *_pLog) << (boost::format("QM energy[Hrt]: %4.8f ") %
+                                  orbitals.getDFTTotalEnergy())
+                                     .str()
+                              << flush;
   } catch (std::runtime_error& error) {
     XTP_LOG(logDEBUG, *_pLog)
         << "Reading" << _log_file_name << " failed" << flush;

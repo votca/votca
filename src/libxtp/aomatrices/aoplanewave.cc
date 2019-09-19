@@ -17,7 +17,8 @@
  *
  */
 
-#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/aopotential.h>
+#include <votca/xtp/aotransform.h>
 
 namespace votca {
 namespace xtp {
@@ -30,8 +31,8 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
   int lmax_row = shell_row.getLmax();
   int lmax_col = shell_col.getLmax();
   // set size of internal block for recursion
-  int nrows = this->getBlockSize(lmax_row);
-  int ncols = this->getBlockSize(lmax_col);
+  int nrows = AOTransform::getBlockSize(lmax_row);
+  int ncols = AOTransform::getBlockSize(lmax_col);
   if (lmax_col > 6 || lmax_row > 6) {
     throw std::runtime_error(
         "Orbitals higher than i are not yet implemented. This should not have "
@@ -697,19 +698,15 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
       }  // end if (lmax_col > 5)
 
-      Eigen::MatrixXd trafo_row = getTrafo(gaussian_row);
-      Eigen::MatrixXd trafo_col = getTrafo(gaussian_col);
+      Eigen::MatrixXd trafo_row = AOTransform::getTrafo(gaussian_row);
+      Eigen::MatrixXd trafo_col = AOTransform::getTrafo(gaussian_col);
 
       // cartesian -> spherical
       Eigen::MatrixXcd olk_sph = trafo_row.transpose() * olk * trafo_col;
 
       // save to matrix
-      for (int i = 0; i < matrix.rows(); i++) {
-        for (int j = 0; j < matrix.cols(); j++) {
-          matrix(i, j) +=
-              olk_sph(i + shell_row.getOffset(), j + shell_col.getOffset());
-        }
-      }
+      matrix += olk_sph.block(shell_row.getOffset(), shell_col.getOffset(),
+                              matrix.rows(), matrix.cols());
 
     }  // close Gaussian shell_col
 
@@ -717,18 +714,15 @@ void AOPlanewave::FillBlock(Eigen::Block<Eigen::MatrixXcd>& matrix,
 
 }  // End AOPlanewave
 
-void AOPlanewave::Fillextpotential(
-    const AOBasis& aobasis, const std::vector<Eigen::Vector3d>& kpoints) {
+void AOPlanewave::FillPotential(const AOBasis& aobasis,
+                                const std::vector<Eigen::Vector3d>& kpoints) {
 
-  _externalpotential =
+  _aopotential =
       Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
 
   for (const auto& kpoint : kpoints) {
-    _aomatrix =
-        Eigen::MatrixXcd::Zero(aobasis.AOBasisSize(), aobasis.AOBasisSize());
     setkVector(kpoint);
-    Fill(aobasis);
-    _externalpotential += _aomatrix;
+    _aopotential += Fill(aobasis);
   }
 
   return;

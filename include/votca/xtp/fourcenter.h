@@ -20,8 +20,6 @@
 #pragma once
 #ifndef VOTCA_XTP_FOURCENTER_H
 #define VOTCA_XTP_FOURCENTER_H
-
-#include <votca/xtp/aobasis.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/multiarray.h>
 
@@ -35,6 +33,8 @@
 namespace votca {
 namespace xtp {
 
+class AOBasis;
+class AOShell;
 class FCMatrix {
 
  public:

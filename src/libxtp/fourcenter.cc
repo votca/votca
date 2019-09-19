@@ -17,7 +17,9 @@
  *
  */
 
+#include <votca/xtp/aobasis.h>
 #include <votca/xtp/fourcenter.h>
+#include <votca/xtp/multiarray.h>
 
 namespace votca {
 namespace xtp {

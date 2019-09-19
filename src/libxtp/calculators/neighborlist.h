@@ -35,7 +35,7 @@ namespace xtp {
 class Neighborlist : public QMCalculator {
  public:
   std::string Identify() { return "neighborlist"; }
-
+  bool WriteToStateFile() const { return true; }
   void Initialize(tools::Property& options);
   bool EvaluateFrame(Topology& top);
 

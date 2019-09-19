@@ -45,6 +45,7 @@ void IQM::Initialize(tools::Property& options) {
 
 void IQM::ParseOptionsXML(tools::Property& opt) {
 
+  ParseCommonOptions(opt);
   // parsing general ibse options
   std::string key = "options." + Identify();
   // _energy_difference = opt.get( key + ".degeneracy" ).as< double > ();
@@ -63,17 +64,11 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
   // storage options
   std::string store_string = opt.get(key + ".store").as<std::string>();
   if (store_string.find("dft") != std::string::npos) _store_dft = true;
-  if (store_string.find("singlets") != std::string::npos)
-    _store_singlets = true;
-  if (store_string.find("triplets") != std::string::npos)
-    _store_triplets = true;
   if (store_string.find("gw") != std::string::npos) _store_gw = true;
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
-    std::string _package_xml = opt.get(key + ".dftpackage").as<std::string>();
-    load_property_from_xml(_dftpackage_options, _package_xml.c_str());
-    std::string dftname = "package.name";
-    _package = _dftpackage_options.get(dftname).as<std::string>();
+    std::string package_xml = opt.get(key + ".dftpackage").as<std::string>();
+    _dftpackage_options.LoadFromXML(package_xml);
   }
 
   // read linker groups
@@ -97,41 +92,37 @@ void IQM::ParseOptionsXML(tools::Property& opt) {
 
   if (_do_gwbse) {
     std::string _gwbse_xml = opt.get(key + ".gwbse_options").as<std::string>();
-    load_property_from_xml(_gwbse_options, _gwbse_xml.c_str());
+
+    _gwbse_options.LoadFromXML(_gwbse_xml);
   }
   if (_do_bsecoupling) {
     std::string _coupling_xml =
         opt.get(key + ".bsecoupling_options").as<std::string>();
-    load_property_from_xml(_bsecoupling_options, _coupling_xml.c_str());
+    _bsecoupling_options.LoadFromXML(_coupling_xml);
   }
 
-  // options for parsing data into sql file
-  key = "options." + Identify() + ".readjobfile";
-  if (opt.exists(key + ".singlet")) {
-    std::string parse_string_s = opt.get(key + ".singlet").as<std::string>();
+  // options for parsing data into state file
+  std::string key_read = "options." + Identify() + ".readjobfile";
+  if (opt.exists(key_read + ".singlet")) {
+    std::string parse_string_s =
+        opt.get(key_read + ".singlet").as<std::string>();
     _singlet_levels = FillParseMaps(parse_string_s);
   }
-  if (opt.exists(key + ".triplet")) {
-    std::string parse_string_t = opt.get(key + ".triplet").as<std::string>();
+  if (opt.exists(key_read + ".triplet")) {
+    std::string parse_string_t =
+        opt.get(key_read + ".triplet").as<std::string>();
     _triplet_levels = FillParseMaps(parse_string_t);
   }
 
-  if (opt.exists(key + ".hole")) {
-    std::string parse_string_h = opt.get(key + ".hole").as<std::string>();
+  if (opt.exists(key_read + ".hole")) {
+    std::string parse_string_h = opt.get(key_read + ".hole").as<std::string>();
     _hole_levels = FillParseMaps(parse_string_h);
   }
-  if (opt.exists(key + ".electron")) {
-    std::string parse_string_e = opt.get(key + ".electron").as<std::string>();
+  if (opt.exists(key_read + ".electron")) {
+    std::string parse_string_e =
+        opt.get(key_read + ".electron").as<std::string>();
     _electron_levels = FillParseMaps(parse_string_e);
   }
-
-  // job file specification
-  key = "options." + Identify();
-
-  _jobfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".job_file");
-  _mapfile =
-      opt.ifExistsReturnElseThrowRuntimeError<std::string>(key + ".map_file");
 
   return;
 }
@@ -155,7 +146,8 @@ std::map<std::string, QMState> IQM::FillParseMaps(
   return type2level;
 }
 
-void IQM::addLinkers(std::vector<const Segment*>& segments, Topology& top) {
+void IQM::addLinkers(std::vector<const Segment*>& segments,
+                     const Topology& top) {
   std::vector<QMState> result;
   const Segment* seg1 = segments[0];
   const Segment* seg2 = segments[1];
@@ -165,7 +157,7 @@ void IQM::addLinkers(std::vector<const Segment*>& segments, Topology& top) {
   for (const Segment* segment : segmentsInMolecule) {
     int idIterator = segment->getId();
     if (idIterator != seg1->getId() && idIterator != seg2->getId() &&
-        isLinker(segment->getName())) {
+        isLinker(segment->getType())) {
       segments.push_back(segment);
     }
   }
@@ -186,7 +178,7 @@ void IQM::SetJobToFailed(Job::JobResult& jres, Logger& pLog,
 
 void IQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   std::ofstream ofs;
-  ofs.open(logfile.c_str(), std::ofstream::out);
+  ofs.open(logfile, std::ofstream::out);
   if (!ofs.is_open()) {
     throw std::runtime_error("Bad file handle: " + logfile);
   }
@@ -194,7 +186,7 @@ void IQM::WriteLoggerToFile(const std::string& logfile, Logger& logger) {
   ofs.close();
 }
 
-Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
+Job::JobResult IQM::EvalJob(const Topology& top, Job& job, QMThread& opThread) {
 
   // report back to the progress observer
   Job::JobResult jres = Job::JobResult();
@@ -241,33 +233,38 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   std::string orbFileA =
       (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
        (format("%1%_%2%%3%") % "molecule" % ID_A % ".orb").str())
-          .c_str();
+          .generic_string();
+  ;
   std::string orbFileB =
       (arg_pathB / eqm_work_dir / "molecules" / frame_dir /
        (format("%1%_%2%%3%") % "molecule" % ID_B % ".orb").str())
-          .c_str();
+          .generic_string();
+  ;
   std::string orbFileAB =
       (arg_pathAB / iqm_work_dir / "pairs_iqm" / frame_dir /
        (format("%1%%2%%3%%4%%5%") % "pair_" % ID_A % "_" % ID_B % ".orb").str())
-          .c_str();
+          .generic_string();
+  ;
   std::string orb_dir =
-      (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).c_str();
+      (arg_path / iqm_work_dir / "pairs_iqm" / frame_dir).generic_string();
+  ;
 
-  Segment& seg_A = top.getSegment(ID_A);
-  Segment& seg_B = top.getSegment(ID_B);
-  QMNBList& nblist = top.NBList();
-  QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
+  const Segment& seg_A = top.getSegment(ID_A);
+  const Segment& seg_B = top.getSegment(ID_B);
+  const QMNBList& nblist = top.NBList();
+  const QMPair* pair = nblist.FindPair(&seg_A, &seg_B);
 
   XTP_LOG_SAVE(logINFO, pLog)
       << TimeStamp() << " Evaluating pair " << job_ID << " [" << ID_A << ":"
       << ID_B << "] out of " << (top.NBList()).size() << std::flush;
 
-  std::string package_append = _package + "_" + Identify();
+  std::string package_append = "workdir_" + Identify();
   std::vector<const Segment*> segments;
   segments.push_back(&seg_A);
   segments.push_back(&seg_B);
   std::string work_dir =
-      (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir).c_str();
+      (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
+          .generic_string();
 
   if (_linkers.size() > 0) {
     addLinkers(segments, top);
@@ -286,22 +283,23 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
     orbitalsAB.QMAtoms().AddContainer(mapper.map(*(segments[1]), stateB));
 
     for (unsigned i = 2; i < segments.size(); i++) {
-      QMState linker_state = _linkers.at(segments[i]->getName());
+      QMState linker_state = _linkers.at(segments[i]->getType());
       orbitalsAB.QMAtoms().AddContainer(
           mapper.map(*(segments[i]), linker_state));
     }
 
   } else {
     const Segment* seg1 = pair->Seg1();
-    const Segment* seg2 = pair->Seg2PbCopy();
     orbitalsAB.QMAtoms() = mapper.map(*seg1, stateA);
-    orbitalsAB.QMAtoms().AddContainer(mapper.map(*seg2, stateB));
+    Segment seg2 = pair->Seg2PbCopy();
+    orbitalsAB.QMAtoms().AddContainer(mapper.map(seg2, stateB));
   }
 
   if (_do_dft_input || _do_dft_run || _do_dft_parse) {
     std::string qmpackage_work_dir =
         (arg_path / iqm_work_dir / package_append / frame_dir / pair_dir)
-            .c_str();
+            .generic_string();
+    ;
 
     Logger dft_logger(logDEBUG);
     dft_logger.setMultithreading(false);
@@ -309,9 +307,10 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
     dft_logger.setPreface(logERROR, (format("\nDFT ERR ...")).str());
     dft_logger.setPreface(logWARNING, (format("\nDFT WAR ...")).str());
     dft_logger.setPreface(logDEBUG, (format("\nDFT DBG ...")).str());
-
+    std::string dftname = "package.name";
+    std::string package = _dftpackage_options.get(dftname).as<std::string>();
     std::unique_ptr<QMPackage> qmpackage =
-        std::unique_ptr<QMPackage>(QMPackages().Create(_package));
+        std::unique_ptr<QMPackage>(QMPackages().Create(package));
     qmpackage->setLog(&dft_logger);
     qmpackage->setRunDir(qmpackage_work_dir);
     qmpackage->Initialize(_dftpackage_options);
@@ -336,17 +335,21 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
           std::string gbwFileA =
               (arg_pathA / eqm_work_dir / "molecules" / frame_dir /
                (format("%1%_%2%%3%") % "molecule" % ID_A % ".gbw").str())
-                  .c_str();
+                  .generic_string();
+          ;
           std::string gbwFileB =
               (arg_pathB / eqm_work_dir / "molecules" / frame_dir /
                (format("%1%_%2%%3%") % "molecule" % ID_B % ".gbw").str())
-                  .c_str();
+                  .generic_string();
+          ;
           std::string gbwFileA_workdir =
               (boost::filesystem::path(qmpackage_work_dir) / "molA.gbw")
-                  .c_str();
+                  .generic_string();
+          ;
           std::string gbwFileB_workdir =
               (boost::filesystem::path(qmpackage_work_dir) / "molB.gbw")
-                  .c_str();
+                  .generic_string();
+          ;
           boost::filesystem::copy_file(
               gbwFileA, gbwFileA_workdir,
               boost::filesystem::copy_option::overwrite_if_exists);
@@ -358,8 +361,10 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
           Orbitals orbitalsA;
 
           try {
+            XTP_LOG_SAVE(logINFO, pLog)
+                << "Reading MoleculeA from " << orbFileA << std::flush;
             orbitalsA.ReadFromCpt(orbFileA);
-          } catch (std::runtime_error& error) {
+          } catch (std::runtime_error&) {
             SetJobToFailed(
                 jres, pLog,
                 "Do input: failed loading orbitals from " + orbFileA);
@@ -367,8 +372,10 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
           }
 
           try {
+            XTP_LOG_SAVE(logINFO, pLog)
+                << "Reading MoleculeB from " << orbFileB << std::flush;
             orbitalsB.ReadFromCpt(orbFileB);
-          } catch (std::runtime_error& error) {
+          } catch (std::runtime_error&) {
             SetJobToFailed(
                 jres, pLog,
                 "Do input: failed loading orbitals from " + orbFileB);
@@ -415,7 +422,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   } else {
     try {
       orbitalsAB.ReadFromCpt(orbFileAB);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileAB);
       return jres;
@@ -432,7 +439,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsA.ReadFromCpt(orbFileA);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileA);
       return jres;
@@ -440,7 +447,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsB.ReadFromCpt(orbFileB);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileB);
       return jres;
@@ -487,7 +494,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
     if (!_do_gwbse) {
       try {
         orbitalsAB.ReadFromCpt(orbFileAB);
-      } catch (std::runtime_error& error) {
+      } catch (std::runtime_error&) {
         SetJobToFailed(jres, pLog,
                        "Do input: failed loading orbitals from " + orbFileAB);
         return jres;
@@ -499,7 +506,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsA.ReadFromCpt(orbFileA);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileA);
       return jres;
@@ -507,7 +514,7 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
 
     try {
       orbitalsB.ReadFromCpt(orbFileB);
-    } catch (std::runtime_error& error) {
+    } catch (std::runtime_error&) {
       SetJobToFailed(jres, pLog,
                      "Do input: failed loading orbitals from " + orbFileB);
       return jres;
@@ -540,25 +547,16 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   sout << iomXML << job_summary;
   XTP_LOG_SAVE(logINFO, pLog) << TimeStamp() << " Finished evaluating pair "
                               << ID_A << ":" << ID_B << std::flush;
-  if (_store_dft || _store_gw || _store_singlets || _store_triplets) {
+  if (_store_dft || _store_gw) {
     boost::filesystem::create_directories(orb_dir);
     XTP_LOG_SAVE(logDEBUG, pLog)
         << "Saving orbitals to " << orbFileAB << std::flush;
     if (!_store_dft) {
-      orbitalsAB.MOCoefficients().resize(0, 0);
+      orbitalsAB.MOs().clear();
     }
     if (!_store_gw) {
-      orbitalsAB.QPdiagCoefficients().resize(0, 0);
-      orbitalsAB.QPdiagEnergies().resize(0);
+      orbitalsAB.QPdiag().clear();
       orbitalsAB.QPpertEnergies().resize(0, 0);
-    }
-    if (!_store_singlets) {
-      orbitalsAB.BSESingletCoefficients().resize(0, 0);
-      orbitalsAB.BSESingletEnergies().resize(0, 0);
-    }
-    if (!_store_triplets) {
-      orbitalsAB.BSETripletCoefficients().resize(0, 0);
-      orbitalsAB.BSETripletEnergies().resize(0, 0);
     }
     orbitalsAB.WriteToCpt(orbFileAB);
   } else {
@@ -572,15 +570,16 @@ Job::JobResult IQM::EvalJob(Topology& top, Job& job, QMThread& opThread) {
   return jres;
 }
 
-void IQM::WriteJobFile(Topology& top) {
+void IQM::WriteJobFile(const Topology& top) {
 
-  std::cout << std::endl << "... ... Writing job file " << std::flush;
+  std::cout << std::endl
+            << "... ... Writing job file " << _jobfile << std::flush;
   std::ofstream ofs;
   ofs.open(_jobfile, std::ofstream::out);
   if (!ofs.is_open())
     throw std::runtime_error("\nERROR: bad file handle: " + _jobfile);
 
-  QMNBList& nblist = top.NBList();
+  const QMNBList& nblist = top.NBList();
 
   int jobCount = 0;
   if (nblist.size() == 0) {
@@ -592,15 +591,15 @@ void IQM::WriteJobFile(Topology& top) {
   ofs << "<jobs>" << std::endl;
   std::string tag = "";
 
-  for (QMPair* pair : nblist) {
+  for (const QMPair* pair : nblist) {
     if (pair->getType() == QMPair::Excitoncl) {
       continue;
     }
     int id1 = pair->Seg1()->getId();
-    std::string name1 = pair->Seg1()->getName();
+    std::string name1 = pair->Seg1()->getType();
     int id2 = pair->Seg2()->getId();
-    std::string name2 = pair->Seg2()->getName();
-    int id = pair->getId();
+    std::string name2 = pair->Seg2()->getType();
+    int id = jobCount;
     tools::Property Input;
     tools::Property& pInput = Input.add("input", "");
     tools::Property& pSegmentA =
@@ -612,7 +611,8 @@ void IQM::WriteJobFile(Topology& top) {
     pSegmentB.setAttribute<std::string>("type", name2);
     pSegmentB.setAttribute<int>("id", id2);
     Job job(id, tag, Input, Job::AVAILABLE);
-    job.ToStream(ofs, "xml");
+    job.ToStream(ofs);
+    jobCount++;
   }
   // CLOSE STREAM
   ofs << "</jobs>" << std::endl;
@@ -671,7 +671,7 @@ QMState IQM::GetElementFromMap(const std::map<std::string, QMState>& elementmap,
   QMState state;
   try {
     state = elementmap.at(elementname);
-  } catch (std::out_of_range& error) {
+  } catch (std::out_of_range&) {
     std::string errormessage =
         "Map does not have segment of type: " + elementname;
     errormessage += "\n segments in map are:";
@@ -697,19 +697,21 @@ void IQM::ReadJobFile(Topology& top) {
 
   tools::Property xml;
   // load the QC results in a vector indexed by the pair ID
-  load_property_from_xml(xml, _jobfile);
+  xml.LoadFromXML(_jobfile);
   std::vector<tools::Property*> jobProps = xml.Select("jobs.job");
   std::vector<tools::Property*> records =
       std::vector<tools::Property*>(nblist.size() + 1, NULL);
 
   // loop over all jobs = pair records in the job file
   for (tools::Property* job : jobProps) {
-    if (job->exists("status")) {
-      if (job->get("status").as<std::string>() != "COMPLETE" ||
-          !job->exists("output")) {
-        incomplete_jobs++;
-        continue;
-      }
+    if (!job->exists("status")) {
+      throw std::runtime_error(
+          "Jobfile is malformed. <status> tag missing on job.");
+    }
+    if (job->get("status").as<std::string>() != "COMPLETE" ||
+        !job->exists("output")) {
+      incomplete_jobs++;
+      continue;
     }
 
     // get the output records
@@ -771,12 +773,12 @@ void IQM::ReadJobFile(Topology& top) {
       QMStateType hole = QMStateType(QMStateType::Hole);
       if (dftprop.exists(hole.ToLongString())) {
         tools::Property& holes = dftprop.get(hole.ToLongString());
-        QMState stateA = GetElementFromMap(_hole_levels, segmentA->getName());
-        QMState stateB = GetElementFromMap(_hole_levels, segmentB->getName());
+        QMState stateA = GetElementFromMap(_hole_levels, segmentA->getType());
+        QMState stateB = GetElementFromMap(_hole_levels, segmentB->getType());
         int levelA = homoA - stateA.Index();  // h1 is is homo;
         int levelB = homoB - stateB.Index();
         double J2 = GetDFTCouplingFromProp(holes, levelA, levelB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, hole);
           dft_h++;
         }
@@ -785,13 +787,13 @@ void IQM::ReadJobFile(Topology& top) {
       if (dftprop.exists(electron.ToLongString())) {
         tools::Property& electrons = dftprop.get(electron.ToLongString());
         QMState stateA =
-            GetElementFromMap(_electron_levels, segmentA->getName());
+            GetElementFromMap(_electron_levels, segmentA->getType());
         QMState stateB =
-            GetElementFromMap(_electron_levels, segmentB->getName());
+            GetElementFromMap(_electron_levels, segmentB->getType());
         int levelA = homoA + 1 + stateA.Index();  // e1 is lumo;
         int levelB = homoB + 1 + stateB.Index();
         double J2 = GetDFTCouplingFromProp(electrons, levelA, levelB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, electron);
           dft_e++;
         }
@@ -803,11 +805,11 @@ void IQM::ReadJobFile(Topology& top) {
       if (bseprop.exists(singlet.ToLongString())) {
         tools::Property& singlets = bseprop.get(singlet.ToLongString());
         QMState stateA =
-            GetElementFromMap(_singlet_levels, segmentA->getName());
+            GetElementFromMap(_singlet_levels, segmentA->getType());
         QMState stateB =
-            GetElementFromMap(_singlet_levels, segmentB->getName());
+            GetElementFromMap(_singlet_levels, segmentB->getType());
         double J2 = GetBSECouplingFromProp(singlets, stateA, stateB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, singlet);
           bse_s++;
         }
@@ -816,11 +818,11 @@ void IQM::ReadJobFile(Topology& top) {
       if (bseprop.exists(triplet.ToLongString())) {
         tools::Property& triplets = bseprop.get(triplet.ToLongString());
         QMState stateA =
-            GetElementFromMap(_triplet_levels, segmentA->getName());
+            GetElementFromMap(_triplet_levels, segmentA->getType());
         QMState stateB =
-            GetElementFromMap(_triplet_levels, segmentB->getName());
+            GetElementFromMap(_triplet_levels, segmentB->getType());
         double J2 = GetBSECouplingFromProp(triplets, stateA, stateB);
-        if (J2 > 0) {
+        if (J2 >= 0) {
           pair->setJeff2(J2, triplet);
           bse_t++;
         }

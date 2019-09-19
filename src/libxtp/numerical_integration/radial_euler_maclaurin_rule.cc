@@ -19,7 +19,7 @@
 
 #include "votca/xtp/radial_euler_maclaurin_rule.h"
 #include "votca/xtp/aobasis.h"
-#include "votca/xtp/qmatom.h"
+#include "votca/xtp/qmmolecule.h"
 #include <boost/math/constants/constants.hpp>
 #include <votca/xtp/aomatrix.h>
 

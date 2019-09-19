@@ -36,26 +36,18 @@ void Density2Gyration::Initialize(tools::Property& options) {
       key + ".difference_to_groundstate", false);
   _gridsize = options.ifExistsReturnElseReturnDefault<string>(key + ".gridsize",
                                                               "medium");
-  _openmp_threads =
-      options.ifExistsReturnElseReturnDefault<int>(key + ".openmp", 1);
-
-  // get the path to the shared folders with xml files
-  char* votca_share = getenv("VOTCASHARE");
-  if (votca_share == NULL)
-    throw std::runtime_error("VOTCASHARE not set, cannot open help files.");
 }
 
 void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
-  OPENMP::setMaxThreads(_openmp_threads);
   XTP_LOG_SAVE(logDEBUG, _log) << "===== Running on " << OPENMP::getMaxThreads()
                                << " threads ===== " << flush;
 
   const QMMolecule& Atomlist = orbitals.QMAtoms();
   Eigen::MatrixXd DMAT_tot;
   BasisSet bs;
-  bs.LoadBasisSet(orbitals.getDFTbasisName());
+  bs.Load(orbitals.getDFTbasisName());
   AOBasis basis;
-  basis.AOBasisFill(bs, Atomlist);
+  basis.Fill(bs, Atomlist);
   AnalyzeGeometry(Atomlist);
   std::vector<Eigen::MatrixXd> DMAT;
 
@@ -75,7 +67,7 @@ void Density2Gyration::AnalyzeDensity(const Orbitals& orbitals) {
 
   } else {
     // hole density first
-    std::vector<Eigen::MatrixXd> DMAT =
+    std::array<Eigen::MatrixXd, 2> DMAT =
         orbitals.DensityMatrixExcitedState(_state);
     Gyrationtensor gyro_hole = numway.IntegrateGyrationTensor(DMAT[0]);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es_h;

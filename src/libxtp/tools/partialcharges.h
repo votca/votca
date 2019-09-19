@@ -54,11 +54,11 @@ void Partialcharges::Initialize(tools::Property& options) {
   _output_file = options.get(key + ".output").as<std::string>();
   std::string _esp2multipole_xml =
       options.get(key + ".esp_options").as<std::string>();
-  load_property_from_xml(_esp_options, _esp2multipole_xml.c_str());
+  _esp_options.LoadFromXML(_esp2multipole_xml);
 }
 
 bool Partialcharges::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   _log.setReportLevel(logDEBUG);
   _log.setMultithreading(true);
 
@@ -67,16 +67,18 @@ bool Partialcharges::Evaluate() {
   _log.setPreface(logWARNING, "\n... ...");
   _log.setPreface(logDEBUG, "\n... ...");
   Orbitals orbitals;
-  XTP_LOG(logDEBUG, _log) << " Loading QM data from " << _orbfile << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << " Loading QM data from " << _orbfile << std::flush;
   orbitals.ReadFromCpt(_orbfile);
-  XTP_LOG(logDEBUG, _log) << "Loaded QM data from " << _orbfile << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Loaded QM data from " << _orbfile << std::flush;
   Esp2multipole esp2multipole = Esp2multipole(_log);
   esp2multipole.Initialize(_esp_options);
-  esp2multipole.Extractingcharges(orbitals);
-  esp2multipole.WritetoFile(_output_file, orbitals);
+  StaticSegment seg = esp2multipole.Extractingcharges(orbitals);
+  seg.WriteMPS(_output_file, esp2multipole.GetStateString());
 
-  XTP_LOG(logDEBUG, _log) << "Written charges to " << _output_file
-                          << std::flush;
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << "Written charges to " << _output_file << std::flush;
 
   return true;
 }

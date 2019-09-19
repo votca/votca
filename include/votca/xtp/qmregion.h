@@ -24,10 +24,9 @@
 #include <votca/xtp/region.h>
 
 #include "orbitals.h"
-#include "statefilter.h"
-#include <votca/xtp/qmpackage.h>
+#include "statetracker.h"
+#include <votca/xtp/hist.h>
 #include <votca/xtp/qmpackagefactory.h>
-
 /**
  * \brief defines a qm region and runs dft and gwbse calculations
  *
@@ -43,7 +42,8 @@ class StaticRegion;
 class QMRegion : public Region {
 
  public:
-  QMRegion(int id, Logger& log) : Region(id, log) {
+  QMRegion(int id, Logger& log, std::string workdir)
+      : Region(id, log), _workdir(workdir) {
     QMPackageFactory::RegisterAll();
   };
   ~QMRegion(){};
@@ -58,32 +58,36 @@ class QMRegion : public Region {
 
   void ReadFromCpt(CheckpointReader& r);
 
-  template <class T>
-  void ApplyQMFieldToClassicSegments(std::vector<T>& segments) const;
+  void ApplyQMFieldToPolarSegments(std::vector<PolarSegment>& segments) const;
 
   int size() const { return _size; }
 
   void WritePDB(csg::PDBWriter& writer) const;
 
-  std::string identify() const { return "qmregion"; }
+  std::string identify() const { return "qm"; }
 
   void push_back(const QMMolecule& mol);
 
   void Reset();
 
+  double charge() const;
+  double Etotal() const { return _E_hist.back(); }
+
  protected:
-  void InteractwithQMRegion(const QMRegion& region);
-  void InteractwithPolarRegion(const PolarRegion& region);
-  void InteractwithStaticRegion(const StaticRegion& region);
+  void AppendResult(tools::Property& prop) const;
+  double InteractwithQMRegion(const QMRegion& region);
+  double InteractwithPolarRegion(const PolarRegion& region);
+  double InteractwithStaticRegion(const StaticRegion& region);
 
  private:
-  template <class T>
-  void AddNucleiFields(std::vector<T>& segments,
+  void AddNucleiFields(std::vector<PolarSegment>& segments,
                        const StaticSegment& seg) const;
 
   int _size = 0;
   Orbitals _orb;
 
+  QMState _initstate;
+  std::string _workdir = "";
   std::unique_ptr<QMPackage> _qmpackage = nullptr;
 
   std::string _grid_accuracy_for_ext_interaction = "medium";
@@ -92,15 +96,15 @@ class QMRegion : public Region {
   hist<Eigen::MatrixXd> _Dmat_hist;
 
   // convergence options
-  double _DeltaD = 1e-5;
-  double _DeltaE = 1e-5;
+  double _DeltaD = 5e-5;
+  double _DeltaE = 5e-5;
 
   bool _do_gwbse = false;
 
   tools::Property _dftoptions;
   tools::Property _gwbseoptions;
 
-  Statefilter _filter;
+  StateTracker _statetracker;
 };
 
 }  // namespace xtp

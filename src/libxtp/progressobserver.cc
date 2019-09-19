@@ -80,7 +80,7 @@ typename ProgObserver<JobContainer>::Job *
     int rounded = int(double(_jobs.size()) / frac) * frac;
     int tenth = rounded / frac;
     if (idx % tenth == 0) {
-      double percent = double(idx - 1) / rounded * 100 + 0.5;
+      double percent = double(idx) / rounded * 100 + 0.5;
       std::cout << (format("=> [%1$2.0f%%] ") % percent).str() << std::flush;
     }
   }
@@ -129,10 +129,6 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
 
   std::string progFile = _progFile;
   std::string progBackFile = _progFile + "~";
-  std::string tabFile = progFile;
-  boost::algorithm::replace_last(tabFile, ".xml", ".tab");
-  if (tabFile == progFile) tabFile += ".tab";
-  std::string tabBackFile = tabFile + "~";
 
   // LOAD EXTERNAL JOBS FROM SHARED XML & UPDATE INTERNAL JOBS
   XTP_LOG(logDEBUG, thread.getLogger())
@@ -143,8 +139,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   // GENERATE BACK-UP FOR SHARED XML
   XTP_LOG(logDEBUG, thread.getLogger())
       << "Create job-file back-up" << std::flush;
-  WRITE_JOBS(_jobs, progBackFile, "xml");
-  WRITE_JOBS(_jobs, tabBackFile, "tab");
+  WRITE_JOBS(_jobs, progBackFile);
 
   // ASSIGN NEW JOBS IF AVAILABLE
   XTP_LOG(logDEBUG, thread.getLogger())
@@ -176,8 +171,7 @@ void ProgObserver<JobContainer>::SyncWithProgFile(QMThread &thread) {
   }
 
   // UPDATE PROGRESS STATUS FILE
-  WRITE_JOBS(_jobs, progFile, "xml");
-  WRITE_JOBS(_jobs, tabFile, "tab");
+  WRITE_JOBS(_jobs, progFile);
 
   // RELEASE PROGRESS STATUS FILE
   this->ReleaseProgFile(thread);
@@ -272,7 +266,7 @@ void ProgObserver<JobContainer>::InitFromProgFile(std::string progFile,
   // ... Load new, set availability bool
   _jobs = LOAD_JOBS(progFile);
   _metajit = _jobs.begin();
-  WRITE_JOBS(_jobs, progFile + "~", "xml");
+  WRITE_JOBS(_jobs, progFile + "~");
   XTP_LOG(logINFO, thread.getLogger())
       << "Registered " << _jobs.size() << " jobs." << std::flush;
   if (_jobs.size() > 0)

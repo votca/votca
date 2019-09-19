@@ -31,21 +31,25 @@ class StaticRegion;
 
 class StaticRegion : public MMRegion<StaticSegment> {
  public:
-  StaticRegion(int id, Logger& log) : MMRegion<StaticSegment>(id, log){};
+  StaticRegion(int id, Logger& log) : MMRegion<StaticSegment>(id, log) {}
 
-  std::string identify() const { return "staticregion"; }
+  std::string identify() const { return "static"; }
 
   void Initialize(const tools::Property& prop) { return; }
 
   bool Converged() const { return true; }
 
+  double Etotal() const { return 0.0; }
+
   void Evaluate(std::vector<std::unique_ptr<Region> >& regions) { return; }
+  void Reset() { return; };
 
  protected:
   void ResetRegion() { return; }
-  void InteractwithQMRegion(const QMRegion& region) { return; }
-  void InteractwithPolarRegion(const PolarRegion& region) { return; }
-  void InteractwithStaticRegion(const StaticRegion& region) { return; }
+  void AppendResult(tools::Property& prop) const { return; }
+  double InteractwithQMRegion(const QMRegion& region) { return 0.0; }
+  double InteractwithPolarRegion(const PolarRegion& region) { return 0.0; }
+  double InteractwithStaticRegion(const StaticRegion& region) { return 0.0; }
 
  private:
 };

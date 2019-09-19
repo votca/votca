@@ -44,7 +44,7 @@ class Spectrum : public QMTool {
 
  private:
   std::string _orbfile;
-  std::string _output_file;
+  std::string _output_file = "spectrum.dat";
 
   Logger _log;
 
@@ -56,21 +56,20 @@ class Spectrum : public QMTool {
   double invcmtonm(double invcm);
   double nmtoev(double nm);
 
-  double _lower;  // in eV
-  double _upper;  // in eV
-  int _n_pt;
+  double _lower = 0.0;  // in eV
+  double _upper;        // in eV
+  int _n_pt = 100;
 
-  int _minexc;     // in eV
-  int exc_lambda;  // in eV
+  int _minexc = 0;
+  int _maxexc = std::numeric_limits<int>::max();
 
   double _fwhm;  // in eV
-  double _shiftby;
+  double _shiftby = 0.0;
 
-  std::string _spectrum_type;
+  std::string _spectrum_type = "energy";
   // lineshape functions
   double Gaussian(double x, double center, double fwhm);
   double Lorentzian(double x, double center, double fwhm);
-  double TruncatedLorentzian(double x, double center, double fwhm);
 };
 
 }  // namespace xtp

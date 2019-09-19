@@ -21,11 +21,6 @@
 #ifndef VOTCA_XTP_NBO_H
 #define VOTCA_XTP_NBO_H
 
-#include <votca/tools/elements.h>
-#include <votca/xtp/aobasis.h>
-#include <votca/xtp/logger.h>
-#include <votca/xtp/qmatom.h>
-
 /**
  * \brief Takes a list of atoms, and the corresponding density and overlap
  * matrices and puts out a table of partial charges
@@ -37,24 +32,7 @@
 namespace votca {
 namespace xtp {
 
-class NBO {
- public:
-  NBO(Logger *log) { _log = log; }
-  ~NBO(){};
-
-  void EvaluateNBO(std::vector<QMAtom *> &_atomlist,
-                   const Eigen::MatrixXd &_dmat, const AOBasis &_basis,
-                   BasisSet &bs);
-
- private:
-  Logger *_log;
-  votca::tools::Elements _elements;
-
-  Eigen::MatrixXd IntercenterOrthogonalisation(Eigen::MatrixXd &P,
-                                               Eigen::MatrixXd &Overlap,
-                                               std::vector<QMAtom *> &_atomlist,
-                                               BasisSet &bs);
-};
+class NBO {};
 }  // namespace xtp
 }  // namespace votca
 

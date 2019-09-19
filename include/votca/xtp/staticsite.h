@@ -53,16 +53,6 @@ class StaticSite {
     double Q21s;
     double Q22c;
     double Q22s;
-
-    double V00;
-    double V11c;
-    double V11s;
-    double V10;
-    double V20;
-    double V21c;
-    double V21s;
-    double V22c;
-    double V22s;
   };
   StaticSite(int id, std::string element, Eigen::Vector3d pos)
       : _id(id), _element(element), _pos(pos){};
@@ -91,12 +81,11 @@ class StaticSite {
     _Q = multipole;
     _rank = rank;
   }
-
-  virtual double FieldEnergy() const { return _V.dot(_Q); }
-
-  virtual double Energy() const { return FieldEnergy(); }
-
-  void setCharge(double q) { _Q(0) = q; }
+  // sets rank to 0 as well
+  void setCharge(double q) {
+    _Q(0) = q;
+    _rank = 0;
+  }
 
   void setPos(const Eigen::Vector3d& position) { _pos = position; }
 
@@ -105,7 +94,6 @@ class StaticSite {
   virtual void Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& ref_pos);
 
   // MULTIPOLES DEFINITION
-
   double getCharge() const { return _Q(0); }
   const Vector9d& Q() const {
     return _Q;
@@ -119,30 +107,24 @@ class StaticSite {
   static Eigen::VectorXd CalculateSphericalMultipole(
       const Eigen::Matrix3d& quadrupole_cartesian);
 
-  const Vector9d& V() const { return _V; }
-  Vector9d& V() { return _V; }
-
-  void Reset() { _V.setZero(); }
-
   std::string WriteMpsLine(std::string unit = "bohr") const;
 
   virtual void SetupCptTable(CptTable& table) const;
 
   void WriteData(data& d) const;
   void ReadData(data& d);
-  virtual void setPolarisation(const Eigen::Matrix3d pol) { return; }
+  virtual void setPolarisation(const Eigen::Matrix3d& pol) { return; }
 
   virtual std::string identify() const { return "staticsite"; }
 
   friend std::ostream& operator<<(std::ostream& out, const StaticSite& site) {
     out << site.getId() << " " << site.getElement() << " " << site.getRank();
-    out << " " << site.getPos().x() << "," << site.getPos().y() << ","
-        << site.getPos().z() << "\n";
+    out << " " << site.getPos().transpose() << "\n";
     return out;
   }
 
  protected:
-  virtual std::string writePolarisation() const { return "P 0.0 0.0 0.0"; };
+  virtual std::string writePolarisation() const;
 
   int _id = -1;
   std::string _element = "";
@@ -150,8 +132,6 @@ class StaticSite {
   int _rank = 0;
 
   Vector9d _Q = Vector9d::Zero();  // Q00,Q11c,Q11s,Q10,Q20,Q21c,Q21s,Q22c,Q22s
-
-  Vector9d _V = Vector9d::Zero();  // V00,V11c,V11s,V10,V20,V21c,V21s,V22c,V22s
 };
 }  // namespace xtp
 }  // namespace votca

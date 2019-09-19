@@ -39,9 +39,9 @@ void QMAtom::Rotate(const Eigen::Matrix3d& R, const Eigen::Vector3d& refPos) {
 void QMAtom::SetupCptTable(CptTable& table) const {
   table.addCol(_index, "index", HOFFSET(data, index));
   table.addCol(_element, "element", HOFFSET(data, element));
-  table.addCol(_pos[0], "pos.x", HOFFSET(data, x));
-  table.addCol(_pos[1], "pos.y", HOFFSET(data, y));
-  table.addCol(_pos[2], "pos.z", HOFFSET(data, z));
+  table.addCol(_pos[0], "posX", HOFFSET(data, x));
+  table.addCol(_pos[1], "posY", HOFFSET(data, y));
+  table.addCol(_pos[2], "posZ", HOFFSET(data, z));
   table.addCol(_nuccharge, "nuccharge", HOFFSET(data, nuccharge));
   table.addCol(_ecpcharge, "ecpcharge", HOFFSET(data, ecpcharge));
 }

@@ -51,7 +51,8 @@ class DavidsonSolver {
   void set_correction(std::string method);
   void set_ortho(std::string method);
   void set_size_update(std::string method);
-  int get_size_update(int neigen) const;
+
+  Eigen::ComputationInfo info() const { return _info; }
 
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
@@ -66,11 +67,11 @@ class DavidsonSolver {
     PrintOptions(op_size);
     //. search space exceeding the system size
     if (_max_search_space > op_size) {
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Warning Max search space (" << _max_search_space
           << ") larger than system size (" << op_size << ")" << flush;
       _max_search_space = op_size;
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Max search space set to " << op_size << flush;
     }
 
@@ -93,7 +94,7 @@ class DavidsonSolver {
     Eigen::MatrixXd q;
     Eigen::MatrixXd U;
     Eigen::MatrixXd AV;
-    XTP_LOG(logDEBUG, _log)
+    XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
 
     // Start of the main iteration loop
@@ -124,11 +125,10 @@ class DavidsonSolver {
         int nvec = new_dim - old_dim;
         AV.conservativeResize(Eigen::NoChange, new_dim);
         AV.block(0, old_dim, size, nvec) = A * V.block(0, old_dim, size, nvec);
+        Eigen::MatrixXd VAV = V.transpose() * AV.block(0, old_dim, size, nvec);
         T.conservativeResize(new_dim, new_dim);
-        T.block(0, old_dim, new_dim, nvec) =
-            V.transpose() * AV.block(0, old_dim, size, nvec);
-        T.block(old_dim, 0, nvec, old_dim) =
-            T.block(0, old_dim, old_dim, nvec).transpose();
+        T.block(0, old_dim, new_dim, nvec) = VAV;
+        T.block(old_dim, 0, nvec, old_dim) = VAV.topRows(old_dim).transpose();
       }
 
       // diagonalize the small subspace
@@ -164,7 +164,7 @@ class DavidsonSolver {
         converged_roots += root_converged[i];
       }
       double percent_converged = 100 * double(converged_roots) / double(neigen);
-      XTP_LOG(logDEBUG, _log)
+      XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp()
           << format(" %1$4d %2$12d \t %3$4.2e \t %4$5.2f%% converged") % iiter %
                  search_space % res_norm.head(neigen).maxCoeff() %
@@ -174,6 +174,9 @@ class DavidsonSolver {
       // update
       search_space = V.cols();
       bool converged = (res_norm.head(neigen) < _tol).all();
+      if (converged) {
+        _info = Eigen::ComputationInfo::Success;
+      }
       bool last_iter = iiter == (_iter_max - 1);
       // break if converged
       if (converged || last_iter) {
@@ -183,10 +186,10 @@ class DavidsonSolver {
         this->_eigenvectors = q.leftCols(neigen);
         this->_eigenvectors.colwise().normalize();
         if (last_iter && !converged) {
-          XTP_LOG(logDEBUG, _log)
+          XTP_LOG_SAVE(logDEBUG, _log)
               << TimeStamp() << "- Warning : Davidson " << percent_converged
               << "% converged after " << _iter_max << " iterations." << flush;
-
+          _info = Eigen::ComputationInfo::NoConvergence;
           for (int i = 0; i < neigen; i++) {
             if (!root_converged[i]) {
               _eigenvalues(i) = 0;
@@ -227,6 +230,8 @@ class DavidsonSolver {
 
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
+  Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
+  int get_size_update(int neigen) const;
 
   void PrintOptions(int op_size) const;
   void PrintTiming(
@@ -240,7 +245,7 @@ class DavidsonSolver {
   Eigen::MatrixXd SetupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
 
   Eigen::MatrixXd QR_ortho(const Eigen::MatrixXd &A) const;
-  Eigen::MatrixXd gramschmidt_ortho(const Eigen::MatrixXd &A, int nstart) const;
+  Eigen::MatrixXd gramschmidt_ortho(const Eigen::MatrixXd &A, int nstart);
   Eigen::VectorXd dpr_correction(const Eigen::VectorXd &w,
                                  const Eigen::VectorXd &A0,
                                  double lambda) const;

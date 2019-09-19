@@ -23,9 +23,9 @@
 #ifndef VOTCA_XTP_LOG_H
 #define VOTCA_XTP_LOG_H
 
+#include <chrono>
 #include <iostream>
 #include <sstream>
-
 namespace votca {
 namespace xtp {
 
@@ -52,13 +52,7 @@ enum TLogLevel { logERROR, logWARNING, logINFO, logDEBUG };
 class LogBuffer : public std::stringbuf {
 
  public:
-  LogBuffer()
-      : std::stringbuf(),
-        _errorPreface(" ERROR   "),
-        _warnPreface(" WARNING "),
-        _infoPreface("         "),
-        _dbgPreface(" DEBUG   "),
-        _writePreface(true) {}
+  LogBuffer() : std::stringbuf() {}
 
   // sets the log level (needed for output)
   void setLogLevel(TLogLevel LogLevel) { _LogLevel = LogLevel; }
@@ -112,12 +106,11 @@ class LogBuffer : public std::stringbuf {
   // Multithreading
   bool _maverick;
 
-  std::string _errorPreface;
-  std::string _warnPreface;
-  std::string _infoPreface;
-  std::string _dbgPreface;
-  std::string _timePreface;
-  bool _writePreface;
+  std::string _errorPreface = " ERROR   ";
+  std::string _warnPreface = " WARNING ";
+  std::string _infoPreface = "         ";
+  std::string _dbgPreface = " DEBUG   ";
+  bool _writePreface = true;
 
  protected:
   virtual int sync() {
@@ -180,10 +173,9 @@ class Logger : public std::ostream {
   }
 
  public:
-  Logger(TLogLevel ReportLevel = logWARNING) : std::ostream(new LogBuffer()) {
-    _ReportLevel = ReportLevel;
-    _maverick = false;
-  }
+  Logger() : std::ostream(new LogBuffer()){};
+  Logger(TLogLevel ReportLevel)
+      : std::ostream(new LogBuffer()), _ReportLevel(ReportLevel) {}
 
   ~Logger() {
     // dynamic_cast<LogBuffer *>( rdbuf())->FlushBuffer();
@@ -218,10 +210,10 @@ class Logger : public std::ostream {
 
  private:
   // at what level of detail output messages
-  TLogLevel _ReportLevel = TLogLevel::logDEBUG;
+  TLogLevel _ReportLevel = TLogLevel::logERROR;
 
   // if true, only a single processor job is executed
-  bool _maverick;
+  bool _maverick = false;
 
   std::string Messages() {
     return dynamic_cast<LogBuffer *>(rdbuf())->Messages();
@@ -235,11 +227,10 @@ class Logger : public std::ostream {
 class TimeStamp {
  public:
   friend std::ostream &operator<<(std::ostream &os, const TimeStamp &ts) {
-    time_t rawtime;
-    tm *timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    os << (timeinfo->tm_year) + 1900 << "-" << timeinfo->tm_mon + 1 << "-"
+    std::time_t now_time =
+        std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::tm *timeinfo = std::localtime(&now_time);
+    os << timeinfo->tm_year + 1900 << "-" << timeinfo->tm_mon + 1 << "-"
        << timeinfo->tm_mday << " " << timeinfo->tm_hour << ":"
        << timeinfo->tm_min << ":" << timeinfo->tm_sec;
     return os;

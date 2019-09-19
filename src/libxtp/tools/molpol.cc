@@ -19,6 +19,8 @@
 
 #include "molpol.h"
 #include "votca/xtp/polarregion.h"
+#include "votca/xtp/qmpackage.h"
+#include <votca/xtp/qmpackagefactory.h>
 
 namespace votca {
 namespace xtp {
@@ -34,24 +36,62 @@ void MolPol::Initialize(tools::Property& options) {
       key + ".mpsoutput");
   _polar_options = options.get(key);
 
-  Eigen::VectorXd target_vec =
-      options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(key +
-                                                                   ".target");
-  if (target_vec.size() != 6) {
+  bool target_exists = options.exists(key + ".target");
+  bool qmpackage_exists = options.exists(key + ".qmpackage");
+  if (target_exists && qmpackage_exists) {
     throw std::runtime_error(
-        "ERROR <options.molpol.target> "
-        " should have this format: pxx pxy pxz pyy pyz pzz");
+        "Can only read either from target or qmpackage logfile");
   }
-  target_vec *= std::pow(tools::conv::ang2bohr, 3);
-  _polarisation_target(0, 0) = target_vec(0);
-  _polarisation_target(1, 0) = target_vec(1);
-  _polarisation_target(0, 1) = target_vec(1);
-  _polarisation_target(2, 0) = target_vec(2);
-  _polarisation_target(0, 2) = target_vec(2);
-  _polarisation_target(1, 1) = target_vec(3);
-  _polarisation_target(2, 1) = target_vec(4);
-  _polarisation_target(1, 2) = target_vec(4);
-  _polarisation_target(2, 2) = target_vec(5);
+
+  if (!target_exists && !qmpackage_exists) {
+    throw std::runtime_error(
+        "You have to define a polar targer <target> or a or qmpackage logfile");
+  }
+
+  if (target_exists) {
+
+    Eigen::VectorXd target_vec =
+        options.ifExistsReturnElseThrowRuntimeError<Eigen::VectorXd>(key +
+                                                                     ".target");
+    if (target_vec.size() != 6) {
+      throw std::runtime_error(
+          "ERROR <options.molpol.target> "
+          " should have this format: pxx pxy pxz pyy pyz pzz");
+    }
+    target_vec *= std::pow(tools::conv::ang2bohr, 3);
+    _polarisation_target(0, 0) = target_vec(0);
+    _polarisation_target(1, 0) = target_vec(1);
+    _polarisation_target(0, 1) = target_vec(1);
+    _polarisation_target(2, 0) = target_vec(2);
+    _polarisation_target(0, 2) = target_vec(2);
+    _polarisation_target(1, 1) = target_vec(3);
+    _polarisation_target(2, 1) = target_vec(4);
+    _polarisation_target(1, 2) = target_vec(4);
+    _polarisation_target(2, 2) = target_vec(5);
+  } else {
+    std::string qm_package =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
+                                                                 ".qmpackage");
+    std::string log_file =
+        options.ifExistsReturnElseThrowRuntimeError<std::string>(key +
+                                                                 ".logfile");
+    Logger log;
+    log.setPreface(logINFO, "\n... ...");
+    log.setPreface(logDEBUG, "\n... ...");
+    log.setReportLevel(logDEBUG);
+    log.setMultithreading(true);
+
+    // Set-up QM package
+    XTP_LOG_SAVE(logINFO, log)
+        << "Using package <" << qm_package << ">" << std::flush;
+    QMPackageFactory::RegisterAll();
+    std::unique_ptr<QMPackage> qmpack =
+        std::unique_ptr<QMPackage>(QMPackages().Create(qm_package));
+    qmpack->setLog(&log);
+    qmpack->setRunDir(".");
+    qmpack->setLogFileName(log_file);
+    _polarisation_target = qmpack->GetPolarizability();
+  }
 
   Eigen::VectorXd default_weights = Eigen::VectorXd::Ones(_input.size());
   _weights = options.ifExistsReturnElseReturnDefault<Eigen::VectorXd>(
@@ -82,7 +122,7 @@ Eigen::Vector3d MolPol::Polarize(const PolarSegment& input,
   std::vector<std::unique_ptr<Region>> empty;
   PolarSegment& workmol = pol[0];
   for (PolarSite& site : workmol) {
-    site.V().segment<3>(1) = ext_field;
+    site.V() = ext_field;
   }
   pol.Evaluate(empty);
   Eigen::Vector3d induced_dipole = Eigen::Vector3d::Zero();
@@ -98,15 +138,21 @@ Eigen::Matrix3d MolPol::CalcClassicalPol(const PolarSegment& input) const {
   double eVnm_2_hrtbohr = tools::conv::ev2hrt / tools::conv::nm2bohr;
   double fieldstrength = (0.1 * eVnm_2_hrtbohr);
   Eigen::Matrix3d polarisation = Eigen::Matrix3d::Zero();
-  Eigen::Vector3d zero = Polarize(input, Eigen::Vector3d::Zero());
   Eigen::Vector3d ext_field = fieldstrength * Eigen::Vector3d::UnitX();
-  polarisation.col(0) = Polarize(input, ext_field);
+  // central differences scheme
+  Eigen::Vector3d xplus = Polarize(input, ext_field);
+  Eigen::Vector3d xminus = Polarize(input, -ext_field);
+  polarisation.col(0) = xplus - xminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitY();
-  polarisation.col(1) = Polarize(input, ext_field);
+  Eigen::Vector3d yplus = Polarize(input, ext_field);
+  Eigen::Vector3d yminus = Polarize(input, -ext_field);
+  polarisation.col(1) = yplus - yminus;
   ext_field = fieldstrength * Eigen::Vector3d::UnitZ();
-  polarisation.col(2) = Polarize(input, ext_field);
-  polarisation.colwise() -= zero;
-  return -polarisation / fieldstrength;
+  Eigen::Vector3d zplus = Polarize(input, ext_field);
+  Eigen::Vector3d zminus = Polarize(input, -ext_field);
+  polarisation.col(2) = zplus - zminus;
+
+  return -polarisation / (2 * fieldstrength);
 }
 
 void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
@@ -124,7 +170,7 @@ void MolPol::PrintPolarisation(const Eigen::Matrix3d& result) const {
 }
 
 bool MolPol::Evaluate() {
-
+  OPENMP::setMaxThreads(_nThreads);
   PolarSegment polar = _input;
 
   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> es;

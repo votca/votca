@@ -100,7 +100,7 @@ void KMCLifetime::WriteDecayProbability(string filename) {
 
 void KMCLifetime::ReadLifetimeFile(std::string filename) {
   tools::Property xml;
-  load_property_from_xml(xml, filename);
+  xml.LoadFromXML(filename);
   std::vector<tools::Property*> jobProps = xml.Select("lifetimes.site");
   if (jobProps.size() != _nodes.size()) {
     throw runtime_error(
@@ -111,7 +111,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   }
 
   for (tools::Property* prop : jobProps) {
-    int site_id = prop->getAttribute<int>("id") - 1;
+    int site_id = prop->getAttribute<int>("id");
     double lifetime = boost::lexical_cast<double>(prop->value());
     bool check = false;
     for (auto& node : _nodes) {
@@ -127,7 +127,7 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
     }
     if (!check) {
       throw runtime_error(
-          (boost::format("Site from file with id: %i not found in sql") %
+          (boost::format("Site from file with id: %i not found in state file") %
            site_id)
               .str());
     }
@@ -139,15 +139,28 @@ void KMCLifetime::ReadLifetimeFile(std::string filename) {
   return;
 }
 
+void KMCLifetime::WriteToTraj(fstream& traj, unsigned insertioncount,
+                              double simtime,
+                              const Chargecarrier& affectedcarrier) const {
+  const Eigen::Vector3d& dr_travelled = affectedcarrier.get_dRtravelled();
+  traj << simtime << "\t" << insertioncount << "\t" << affectedcarrier.getId()
+       << "\t" << affectedcarrier.getLifetime() << "\t"
+       << affectedcarrier.getSteps() << "\t"
+       << affectedcarrier.getCurrentNodeId() + 1 << "\t"
+       << dr_travelled.x() * tools::conv::bohr2nm << "\t"
+       << dr_travelled.y() * tools::conv::bohr2nm << "\t"
+       << dr_travelled.z() * tools::conv::bohr2nm << endl;
+}
+
 void KMCLifetime::RunVSSM() {
 
   int realtime_start = time(NULL);
   cout << endl
        << "Algorithm: VSSM for Multiple Charges with finite Lifetime" << endl;
-  cout << "number of charges: " << _numberofcharges << endl;
+  cout << "number of charges: " << _numberofcarriers << endl;
   cout << "number of nodes: " << _nodes.size() << endl;
 
-  if (_numberofcharges > int(_nodes.size())) {
+  if (_numberofcarriers > int(_nodes.size())) {
     throw runtime_error(
         "ERROR in kmclifetime: specified number of charges is greater than the "
         "number of nodes. This conflicts with single occupation.");
@@ -272,14 +285,7 @@ void KMCLifetime::RunVSSM() {
           avlifetime += affectedcarrier->getLifetime();
           meanfreepath += dr_travelled.norm();
           difflength_squared += dr_travelled.cwiseAbs2();
-          traj << simtime << "\t" << insertioncount << "\t"
-               << affectedcarrier->getId() << "\t"
-               << affectedcarrier->getLifetime() << "\t"
-               << affectedcarrier->getSteps() << "\t"
-               << affectedcarrier->getCurrentNodeId() + 1 << "\t"
-               << dr_travelled.x() * tools::conv::bohr2nm << "\t"
-               << dr_travelled.y() * tools::conv::bohr2nm << "\t"
-               << dr_travelled.z() * tools::conv::bohr2nm << endl;
+          WriteToTraj(traj, insertioncount, simtime, *affectedcarrier);
           if (tools::globals::verbose &&
               (_insertions < 1500 ||
                insertioncount % (_insertions / 1000) == 0 ||
@@ -291,7 +297,7 @@ void KMCLifetime::RunVSSM() {
           RandomlyAssignCarriertoSite(*affectedcarrier);
           affectedcarrier->resetCarrier();
           insertioncount++;
-          affectedcarrier->setId(_numberofcharges - 1 + insertioncount);
+          affectedcarrier->setId(_numberofcarriers - 1 + insertioncount);
           secondlevel = false;
           break;
         } else {
@@ -366,7 +372,7 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   LoadGraph(top);
   ReadLifetimeFile(_lifetimefile);
 
-  if (_probfile != "") {
+  if (!_probfile.empty()) {
     WriteDecayProbability(_probfile);
   }
   RunVSSM();

@@ -17,7 +17,9 @@
  *
  */
 
-#include <votca/xtp/eigen.h>
+#include <votca/xtp/aobasis.h>
+#include <votca/xtp/aomatrix.h>
+#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 #include <votca/xtp/threecenter.h>
 
@@ -34,7 +36,7 @@ void TCMatrix_dft::Fill(const AOBasis& auxbasis, const AOBasis& dftbasis) {
   for (int i = 0; i < auxbasis.AOBasisSize(); i++) {
     try {
       _matrix.push_back(Symmetric_Matrix(dftbasis.AOBasisSize()));
-    } catch (std::bad_alloc& ba) {
+    } catch (std::bad_alloc&) {
       throw std::runtime_error(
           "Basisset/aux basis too large for 3c calculation. Not enough RAM.");
     }

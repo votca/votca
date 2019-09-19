@@ -28,6 +28,15 @@
 /**
  * \brief Class to set up the topology, e.g division of molecules into different
  * regions for a specific job.
+ *
+ * How energies are evaluated depends critically on the id of the region.
+ * a) Lower ids means being evaluated later. So expensive regions should have
+ * low ids, as they can then already incorporate partially converged results
+ * from higher id regions b) The energy of a region, includes all interactions
+ * with regions of higher ids. i.e. E(region0)=E0+E01+E02, whereas
+ * E(region1)=E1+E12 and not E10 The reason is that DFT codes only return E0+
+ * all interaction energies and not the individual terms, this has to be changed
+ * once we want to have multiple QM regions.
  */
 
 namespace votca {
@@ -35,8 +44,9 @@ namespace xtp {
 class SegId;
 class JobTopology {
  public:
-  JobTopology(Job& job, Logger& log) : _job(job), _log(log){};
-  void BuildRegions(const Topology& top, const tools::Property& options);
+  JobTopology(Job& job, Logger& log, std::string workdir)
+      : _job(job), _log(log), _workdir(workdir){};
+  void BuildRegions(const Topology& top, tools::Property options);
 
   void WriteToHdf5(std::string filename) const;
 
@@ -66,28 +76,34 @@ class JobTopology {
 
  private:
   std::vector<std::vector<SegId> > PartitionRegions(
-      const std::vector<const tools::Property*>& regions_def,
+      const std::vector<tools::Property*>& regions_def,
       const Topology& top) const;
 
   void CreateRegions(const tools::Property& options, const Topology& top,
                      const std::vector<std::vector<SegId> >& region_seg_ids);
 
-  template <class T>
-  T GetInputFromXMLorJob(const tools::Property* region_def,
-                         std::string keyword) const;
+  void UpdateFromJobfile(tools::Property& options,
+                         const tools::Property& job_opt,
+                         const std::vector<std::string>& paths) const;
+  std::vector<std::string> FindReplacePathsInOptions(
+      const tools::Property& options, std::string tag) const;
+  void ModifyOptionsByJobFile(std::vector<tools::Property*>& regions_def) const;
+  void UpdateFromJobfile(tools::Property& options,
+                         const tools::Property& job_opt,
+                         const std::string& tag) const;
 
   template <class T>
   void ShiftPBC(const Topology& top, const Eigen::Vector3d& center,
                 T& mol) const;
 
   void CheckEnumerationOfRegions(
-      const std::vector<const tools::Property*>& regions_def) const;
-  void SortRegionsDefbyId(
-      std::vector<const tools::Property*>& regions_def) const;
+      const std::vector<tools::Property*>& regions_def) const;
+  void SortRegionsDefbyId(std::vector<tools::Property*>& regions_def) const;
 
   Job& _job;
   Logger& _log;
   std::vector<std::unique_ptr<Region> > _regions;
+  std::string _workdir = "";
 };
 }  // namespace xtp
 }  // namespace votca

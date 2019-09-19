@@ -21,13 +21,9 @@
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
-#include <cstddef>
-#include <votca/xtp/aomatrix.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/multiarray.h>
-#include <votca/xtp/orbitals.h>
 #include <votca/xtp/symmetric_matrix.h>
-
 /**
  * \brief Calculates three electron overlap integrals for GW and DFT.
  *
@@ -37,6 +33,9 @@
 
 namespace votca {
 namespace xtp {
+
+class AOShell;
+class AOBasis;
 
 // due to different requirements for the data format for DFT and GW we have two
 // different classes TCMatrix_gwbse and TCMatrix_dft which inherit from TCMatrix
