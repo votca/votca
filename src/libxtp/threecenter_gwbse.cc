@@ -168,7 +168,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   // create tensor
   std::vector<Eigen::MatrixXd> tensor;
   for (const Eigen::MatrixXd& mtx : symmstorage) {
-    tensor.push_back(mtx.selfadjointView<Eigen::Lower>());
+    tensor.emplace_back(mtx.selfadjointView<Eigen::Lower>());
   }
   // Performn the tensor multiplication in the GPU
   try {
