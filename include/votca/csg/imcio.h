@@ -21,24 +21,23 @@
 #include <list>
 #include <string>
 #include <vector>
-#include <votca/tools/eigen.h>
 #include <votca/tools/rangeparser.h>
+#include <votca/tools/table.h>
 
 namespace votca {
 namespace csg {
 
-void imcio_write_dS(const std::string &file, Eigen::VectorXd &r,
-                    Eigen::VectorXd &dS, std::list<int> *list = nullptr);
-void imcio_write_matrix(const std::string &file, Eigen::MatrixXd &gmc,
-                        std::list<int> *list = NULL);
-void imcio_write_index(const std::string &file, std::vector<std::string> &names,
-                       std::vector<tools::RangeParser> &ranges);
+void imcio_write_dS(const std::string &file, const tools::Table &dS,
+                    const std::list<int> *list = nullptr);
+void imcio_write_matrix(const std::string &file, const Eigen::MatrixXd &gmc,
+                        const std::list<int> *list = nullptr);
+void imcio_write_index(
+    const std::string &file,
+    const std::vector<std::pair<std::string, tools::RangeParser> > &ranges);
 
-void imcio_read_dS(const std::string &file, Eigen::VectorXd &r,
-                   Eigen::VectorXd &dS);
-void imcio_read_matrix(const std::string &file, Eigen::MatrixXd &gmc);
-void imcio_read_index(const std::string &file, std::vector<std::string> &names,
-                      std::vector<tools::RangeParser> &ranges);
+Eigen::MatrixXd imcio_read_matrix(const std::string &filename);
+std::vector<std::pair<std::string, tools::RangeParser> > imcio_read_index(
+    const std::string &filename);
 
 }  // namespace csg
 }  // namespace votca

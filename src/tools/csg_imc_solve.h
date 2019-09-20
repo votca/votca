@@ -47,9 +47,6 @@ class CG_IMC_solve : public votca::tools::Application {
   bool EvaluateOptions();
   void Initialize();
   void Run();
-
- private:
-  Eigen::MatrixXd LoadMatrix(const std::string &filename) const;
 };
 
 #endif /* _VOTCA_CSG_IMC_SOLVE_H */
