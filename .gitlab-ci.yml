@@ -39,8 +39,6 @@ stages:
     - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON
       -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       -DMODULE_BUILD=${MODULE_BUILD} ${MODULE_BUILD:+-DCMAKE_INSTALL_PREFIX=/home/votca/votca.install}
-      -DWITH_MKL=${WITH_MKL} -DCMAKE_DISABLE_FIND_PACKAGE_MKL=${DISABLE_MKL}
-      -DUSE_CUDA=${USE_CUDA}
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
@@ -169,17 +167,48 @@ Release GCC Module:
   extends: .build
 
 Debug GPU Ubuntu:
-  before_script:
-    - source /opt/gromacs-2019/bin/GMXRC.bash
+  retry:
+    max: 2
   variables:
     CC: "gcc"
     CXX: "g++"
-    CMAKE_BUILD_TYPE: "Debug"
-    DISTRO: "ubuntu"
-    USE_CUDA: "yes"
-    WITH_MKL: "no"
-    DISABLE_MKL: "yes"
-    NO_INSTALL: "yes"
-  extends: .build
+    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
+    CXXFLAGS: "-Wall -Werror"
+  stage: build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/votca
+    when: always
+  dependencies: []
+  cache:
+    paths:
+      - ccache/
+  before_script:
+    - source /opt/gromacs-2019/bin/GMXRC.bash
+  script:
+    - ccache -z
+    - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
+    - git branch commit_of_build_${CI_BUILD_ID} ${CI_COMMIT_SHA}
+    - git clone https://github.com/votca/votca
+    - pushd votca
+    - if [[ ${CI_COMMIT_TAG} = v[12].[0-9]* ]]; then
+        git checkout -b ${CI_COMMIT_TAG} ${CI_COMMIT_TAG};
+      elif [[ ( ${CI_COMMIT_REF_NAME} =~ ^for/([^/]*)/.* || ${CI_COMMIT_REF_NAME} =~ ^(stable)$ ) && ${BASH_REMATCH[1]} != master ]]; then
+        git checkout -b ${BASH_REMATCH[1]} origin/${BASH_REMATCH[1]};
+      fi
+    - git submodule update --recursive --init
+    - git -C ${CI_PROJECT_NAME} fetch ${CI_PROJECT_DIR} commit_of_build_${CI_BUILD_ID}
+    - git -C ${CI_PROJECT_DIR} branch -d commit_of_build_${CI_BUILD_ID}
+    - git -C ${CI_PROJECT_NAME} checkout -f ${CI_COMMIT_SHA}
+    - mkdir -p build
+    - pushd build
+    - cmake .. -DENABLE_TESTING=ON -DBUILD_XTP=ON
+      -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE="Debug"
+      -DWITH_MKL="no" -DCMAKE_DISABLE_FIND_PACKAGE_MKL="yes"
+      -DUSE_CUDA="yes"
+    - make -O -k -j${j} -l${j} VERBOSE=1
+    - make test CTEST_OUTPUT_ON_FAILURE=1
+    - ccache -s
+  allow_failure: true
   tags:
     - gpu
