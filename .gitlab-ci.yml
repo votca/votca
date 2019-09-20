@@ -3,6 +3,20 @@ stages:
   - build
 
 .build_script:
+  retry:
+    max: 2
+  variables:
+    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
+    CXXFLAGS: "-Wall -Werror"
+  stage: build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/votca
+    when: always
+  dependencies: []
+  cache:
+    paths:
+      - ccache/
   script:
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
@@ -33,22 +47,9 @@ stages:
     - ccache -s
 
 .build:
-  retry:
-    max: 2
   variables:
-    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
     DISTRO: "latest"
   image: votca/buildenv:${DISTRO}
-  stage: build
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/votca
-    when: always 
-  dependencies: []
-  cache:
-    paths:
-      - ccache/
   extends: .build_script
     
 Debug GCC:
@@ -172,27 +173,14 @@ Release GCC Module:
   extends: .build
 
 Debug GPU Ubuntu:
-  retry:
-    max: 2
   variables:
     CC: "gcc"
     CXX: "g++"
-    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
     CMAKE_BUILD_TYPE: "Debug"
     USE_CUDA: "yes"
     WITH_MKL: "no"
     DISABLE_MKL: "yes"
     NO_INSTALL: "yes"
-  stage: build
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/votca
-    when: always
-  dependencies: []
-  cache:
-    paths:
-      - ccache/
   before_script:
     - source /opt/gromacs-2019/bin/GMXRC.bash
   extends: .build_script
