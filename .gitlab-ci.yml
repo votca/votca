@@ -2,23 +2,7 @@ stages:
   - canary
   - build
 
-.build:
-  retry:
-    max: 2
-  variables:
-    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
-    CXXFLAGS: "-Wall -Werror"
-    DISTRO: "latest"
-  image: votca/buildenv:${DISTRO}
-  stage: build
-  artifacts:
-    paths:
-      - ${CI_PROJECT_DIR}/votca
-    when: always 
-  dependencies: []
-  cache:
-    paths:
-      - ccache/
+.build_script:
   script:
     - ccache -z
     - j="$(grep -c processor /proc/cpuinfo 2>/dev/null)" || j=0; ((j++))
@@ -46,6 +30,25 @@ stages:
     - if [[ ${CLANG_FORMAT} ]]; then make format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
+.build:
+  retry:
+    max: 2
+  variables:
+    CCACHE_DIR: "${CI_PROJECT_DIR}/ccache"
+    CXXFLAGS: "-Wall -Werror"
+    DISTRO: "latest"
+  image: votca/buildenv:${DISTRO}
+  stage: build
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/votca
+    when: always 
+  dependencies: []
+  cache:
+    paths:
+      - ccache/
+  extends: .build_script
+    
 Debug GCC:
   stage: canary
   variables:
