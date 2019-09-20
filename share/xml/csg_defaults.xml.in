@@ -260,19 +260,6 @@
     </hoomd-blue>
     <imc>
       <DESC> general imc specific options </DESC>
-      <matlab>
-        <bin>matlab
-          <DESC> Name (or absolute path) of the matlab binary </DESC>
-        </bin>
-      </matlab>
-      <octave>
-        <bin>octave
-          <DESC> Name (or absolute path) of the octave binary </DESC>
-        </bin>
-      </octave>
-      <solver>
-        <DESC> solver for solving a linear equation system: octave/numpy/matlab </DESC>
-      </solver>
     </imc>
     <lammps>
       <DESC> general lammps specific options </DESC>
