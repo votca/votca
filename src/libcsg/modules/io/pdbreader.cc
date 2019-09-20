@@ -95,7 +95,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // 48 - 54       Real(7.2)     gamma (degrees)
         // 56 - 66       LString       Space group
         // 67 - 70       Integer       Z value
-      } catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         throw std::runtime_error("Misformated pdb file in CRYST1 line");
       }
       boost::algorithm::trim(a);
@@ -145,7 +145,7 @@ bool PDBReader::NextFrame(Topology &top) {
           num_bonds++;
           ss >> temp_atm;
         }
-      } catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         throw std::runtime_error("Misformated pdb file in CONECT line\n" +
                                  line);
       }
@@ -211,7 +211,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // elem_sym =  string(line,(77-1),2);
         // str       , Charge on the atom
         charge = string(line, (79 - 1), 2);
-      } catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         string err_msg = "Misformated pdb file in atom line # " +
                          boost::lexical_cast<string>(bead_count) +
                          "\n the correct pdb file format requires 80 "
