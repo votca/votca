@@ -15,7 +15,6 @@
  *
  */
 
-#include <boost/lexical_cast.hpp>
 #include <functional>
 #include <iostream>
 #include <stdexcept>
@@ -35,17 +34,8 @@ void RangeParser::Parse(std::string str) {
       str.begin(), str.end(), std::bind2nd(std::equal_to<char>(), ' '));
   str = std::string(str.begin(), it);
 
-  // tokenize string
   Tokenizer tok(str, ",");
-  Tokenizer::iterator bl;
-
-  for (bl = tok.begin(); bl != tok.end(); ++bl) ParseBlock(*bl);
-
-  //    list<block_t>::iterator iter;
-  //    for(iter=_blocks.begin();iter!=_blocks.end();++iter) {
-  //        cout << (*iter)._begin << ":" << (*iter)._stride << ":" <<
-  //        (*iter)._end << endl;
-  //    }
+  for (std::string bl : tok) ParseBlock(bl);
 }
 
 void RangeParser::ParseBlock(std::string str) {
@@ -60,13 +50,13 @@ void RangeParser::ParseBlock(std::string str) {
     throw std::runtime_error("invalid range");
   }
 
-  block._begin = block._end = ToNumber(toks[0]);
+  block._begin = block._end = std::stoi(toks[0]);
 
-  if (toks.size() == 2) block._end = ToNumber(toks[1]);
+  if (toks.size() == 2) block._end = std::stoi(toks[1]);
 
   if (toks.size() == 3) {
-    block._stride = ToNumber(toks[1]);
-    block._end = ToNumber(toks[2]);
+    block._stride = std::stoi(toks[1]);
+    block._end = std::stoi(toks[2]);
   }
 
   if (block._begin * block._stride > block._end * block._stride) {
@@ -76,10 +66,6 @@ void RangeParser::ParseBlock(std::string str) {
   }
 
   _blocks.push_back(block);
-}
-
-int RangeParser::ToNumber(std::string str) {
-  return boost::lexical_cast<int>(str);
 }
 
 RangeParser::iterator& RangeParser::iterator::operator++() {
