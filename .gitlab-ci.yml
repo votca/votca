@@ -42,7 +42,7 @@ stages:
     - make -O -k -j${j} -l${j} VERBOSE=1
     - make test CTEST_OUTPUT_ON_FAILURE=1
     - test -z "${MODULE_BUILD}" && make install DESTDIR=${PWD}/install && rm -rf ${PWD}/install/usr && rmdir ${PWD}/install
-    - if [[ -z ${NO_INSTALL} ]]; then sudo make install; fi
+    - sudo make install
     - if [[ ${CLANG_FORMAT} ]]; then make format && git -C ${CI_PROJECT_DIR}/votca/${CI_PROJECT_NAME} diff --exit-code; fi
     - ccache -s
 
