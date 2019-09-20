@@ -266,8 +266,8 @@ void Topology::AddBondedInteraction(Interaction *ic) {
 }
 
 std::list<Interaction *> Topology::InteractionsInGroup(const string &group) {
-  map<string, list<Interaction *>>::iterator iter;
-  iter = _interactions_by_group.find(group);
+  map<string, list<Interaction *>>::iterator iter =
+      _interactions_by_group.find(group);
   if (iter == _interactions_by_group.end()) return list<Interaction *>();
   return iter->second;
 }

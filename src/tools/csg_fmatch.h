@@ -125,10 +125,10 @@ class CGForceMatching : public CsgApplication {
     /// used if threebody interaction)
     string type1, type2, type3;  //
 
-    /// \brief pointer to Property object to hande input options
+    /// \brief pointer to Property object to handle input options
     votca::tools::Property *_options;
   };
-  /// \brief Property object to hande input options
+  /// \brief Property object to handle input options
   votca::tools::Property _options;
   /// \brief list of bonded interactions
   std::vector<votca::tools::Property *> _bonded;
@@ -171,7 +171,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief Current number of blocks
   int _nblocks;
 
-  /// \brief Counters for lines and coloumns in _B_constr
+  /// \brief Counters for lines and columns in _B_constr
   int _line_cntr, _col_cntr;
 
   bool _has_existing_forces;
