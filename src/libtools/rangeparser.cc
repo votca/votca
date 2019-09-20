@@ -29,11 +29,11 @@ RangeParser::RangeParser()
 //: _has_begin(false) , _has_end(false)
 {}
 
-void RangeParser::Parse(string str) {
+void RangeParser::Parse(std::string str) {
   // remove all spaces in string
-  string::iterator it =
-      remove_if(str.begin(), str.end(), bind2nd(equal_to<char>(), ' '));
-  str = string(str.begin(), it);
+  std::string::iterator it = std::remove_if(
+      str.begin(), str.end(), std::bind2nd(std::equal_to<char>(), ' '));
+  str = std::string(str.begin(), it);
 
   // tokenize string
   Tokenizer tok(str, ",");
@@ -48,16 +48,16 @@ void RangeParser::Parse(string str) {
   //    }
 }
 
-void RangeParser::ParseBlock(string str) {
+void RangeParser::ParseBlock(std::string str) {
   Tokenizer tokenizer(str, ":");
-  vector<string> toks;
+  std::vector<std::string> toks;
 
   block_t block;
   block._stride = 1;
 
   tokenizer.ToVector(toks);
   if (toks.size() > 3 || toks.size() < 1) {
-    throw runtime_error("invalid range");
+    throw std::runtime_error("invalid range");
   }
 
   block._begin = block._end = ToNumber(toks[0]);
@@ -70,15 +70,17 @@ void RangeParser::ParseBlock(string str) {
   }
 
   if (block._begin * block._stride > block._end * block._stride) {
-    throw runtime_error(
-        string("invalid range " + str +
-               ": begin, end and stride do not form a closed interval"));
+    throw std::runtime_error(
+        std::string("invalid range " + str +
+                    ": begin, end and stride do not form a closed interval"));
   }
 
   _blocks.push_back(block);
 }
 
-int RangeParser::ToNumber(string str) { return boost::lexical_cast<int>(str); }
+int RangeParser::ToNumber(std::string str) {
+  return boost::lexical_cast<int>(str);
+}
 
 RangeParser::iterator& RangeParser::iterator::operator++() {
   _current += (*_block)._stride;

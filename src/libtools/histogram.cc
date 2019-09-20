@@ -38,8 +38,8 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
   _pdf.assign(_options._n, 0);
 
   if (_options._auto_interval) {
-    _min = numeric_limits<double>::max();
-    _max = numeric_limits<double>::min();
+    _min = std::numeric_limits<double>::max();
+    _max = std::numeric_limits<double>::min();
     _options._extend_interval = true;
   } else {
     _min = _options._min;
@@ -50,8 +50,8 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
     ndata += (*array)->size();
     if (_options._extend_interval || _options._auto_interval) {
       for (iter = (*array)->begin(); iter != (*array)->end(); ++iter) {
-        _min = min(*iter, _min);
-        _max = max(*iter, _max);
+        _min = std::min(*iter, _min);
+        _max = std::max(*iter, _max);
       }
     }
   }
@@ -116,8 +116,8 @@ void Histogram::ProcessData(DataCollection<double>::selection *data) {
 
 void Histogram::Normalize(void) {
   double norm = 1. / (_interval * accumulate(_pdf.begin(), _pdf.end(), 0.0));
-  transform(_pdf.begin(), _pdf.end(), _pdf.begin(),
-            bind2nd(multiplies<double>(), norm));
+  std::transform(_pdf.begin(), _pdf.end(), _pdf.begin(),
+                 std::bind2nd(std::multiplies<double>(), norm));
 }
 
 }  // namespace tools

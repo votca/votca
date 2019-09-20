@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _RANGEPARSER_H
-#define _RANGEPARSER_H
+#ifndef VOTCA_TOOLS_RANGEPARSER_H
+#define VOTCA_TOOLS_RANGEPARSER_H
 
 #include <list>
 #include <ostream>
@@ -24,8 +24,6 @@
 
 namespace votca {
 namespace tools {
-
-using namespace std;
 
 /**
  * \brief RangeParser
@@ -36,7 +34,7 @@ class RangeParser {
  public:
   RangeParser();
 
-  void Parse(string range);
+  void Parse(std::string range);
 
   void Add(int begin, int end, int stride = 1);
 
@@ -63,8 +61,8 @@ class RangeParser {
    private:
     RangeParser *_parent;
 
-    iterator(RangeParser *, list<block_t>::iterator);
-    list<block_t>::iterator _block;
+    iterator(RangeParser *, std::list<block_t>::iterator);
+    std::list<block_t>::iterator _block;
     int _current;
 
     friend class RangeParser;
@@ -74,10 +72,10 @@ class RangeParser {
   RangeParser::iterator end();
 
  private:
-  void ParseBlock(string block);
-  int ToNumber(string str);
+  void ParseBlock(std::string block);
+  int ToNumber(std::string str);
 
-  list<block_t> _blocks;
+  std::list<block_t> _blocks;
 
   // bool _has_begin, _has_end;
   // int _begin, _end;
@@ -98,7 +96,7 @@ inline RangeParser::iterator RangeParser::end() {
 }
 
 inline RangeParser::iterator::iterator(RangeParser *parent,
-                                       list<block_t>::iterator block)
+                                       std::list<block_t>::iterator block)
     : _parent(parent), _block(block) {
   if (block != parent->_blocks.end())
     _current = (*block)._begin;
@@ -131,4 +129,4 @@ inline std::ostream &operator<<(std::ostream &out, const RangeParser &rp) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _RANGEPARSER_H */
+#endif /* VOTCA_TOOLS_RANGEPARSER_H */
