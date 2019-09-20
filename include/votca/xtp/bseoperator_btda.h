@@ -92,6 +92,13 @@ class HamiltonianOperator
                           Eigen::AliasFreeProduct>(*this, x.derived());
   }
 
+  // this is not a fast method
+  const double& operator()(const size_t i, const size_t j) const {
+    std::cout << "row " << i << " col " << j << " size " << this->_size << std::endl;
+    Eigen::RowVectorXd row_out = row(i);
+    return  row_out(j);
+  };
+
   //  get a row of the operator
   Eigen::RowVectorXd row(int index) const {
     int lsize = this->_size;

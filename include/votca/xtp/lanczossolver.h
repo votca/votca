@@ -63,30 +63,32 @@ class LanczosSolver {
     ShiftInvertOperator<MatrixReplacement> sinv_op(A);
 
     // convergence criteria
-    Eigen::Index ncv = 2*neigen+2;
+    Eigen::Index ncv = 3*neigen;
     Eigen::Index nev = neigen;
 
     // simga
     double sigma = 0.;
 
     // solver
+    std::cout << "declare" << std::endl;
     Spectra::GenEigsRealShiftSolver<double, Spectra::LARGEST_REAL, 
       ShiftInvertOperator<MatrixReplacement>> eigs(&sinv_op, nev, ncv, sigma);
 
+    std::cout << "init" << std::endl;
     eigs.init();
 
     Eigen::Index maxit = 1000;
     double tol = 1E-12;
-
     int nconv = eigs.compute(maxit, tol);
 
-
-    std::cout << "\nnumber of conv eigenvalues : " << nconv << std::endl;
-    std::cout << "\nnumber of  iterations : " << eigs.num_iterations() << std::endl;
     if (eigs.info() == Spectra::SUCCESSFUL)
     {
       this->_eigenvalues = eigs.eigenvalues().real();
       this->_eigenvectors = eigs.eigenvectors().real();
+    } else {
+      std::cout << "\nLanczos diagonalization failed :" << std::endl;
+      std::cout << "Number of converged root : " << nconv << std::endl;
+      std::cout << "Number of iterations : " << eigs.num_iterations() << std::endl;
     }
 
     PrintTiming(start);

@@ -51,7 +51,9 @@ public:
   // set the shift that is alwyas null in our case ..
   void set_shift(double sigma)
   {
-    bicg_solver.compute(_Aop);
+    std::cout << "Set shift " ;
+    linear_solver.compute(_Aop);
+    std::cout << "done" << std::endl;
   }
 
   // shift invert operation
@@ -59,7 +61,7 @@ public:
   {
     Eigen::Map<const Eigen::VectorXd> x(x_in,_size);
     Eigen::Map<Eigen::VectorXd> y(y_out,_size);
-    y.noalias() = bicg_solver.solve(x);
+    y.noalias() = linear_solver.solve(x);
   }
 
 private:
@@ -68,10 +70,13 @@ private:
   double _lambda;
   int _size;
 
-  Eigen::ConjugateGradient<MatrixReplacement, 
-    Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> cg_solver;
+  // Eigen::ConjugateGradient<MatrixReplacement, 
+  //   Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> linear_solver;
+  //Eigen::BiCGSTAB<MatrixReplacement,Eigen::IdentityPreconditioner> linear_solver;
 
-  Eigen::BiCGSTAB<MatrixReplacement,Eigen::IdentityPreconditioner> bicg_solver;
+  //Eigen::ConjugateGradient<MatrixReplacement, 
+  //  Eigen::Lower|Eigen::Upper> linear_solver;
+  Eigen::BiCGSTAB<MatrixReplacement> linear_solver;
 
 };
 

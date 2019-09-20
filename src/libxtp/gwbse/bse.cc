@@ -86,12 +86,6 @@ void BSE::Solve_singlets(Orbitals& orb) const {
   if (_opt.useTDA) {
     orb.BSESinglets() = Solve_singlets_TDA();
   } else {
-    if (_opt.davidson) {
-      XTP_LOG_SAVE(logDEBUG, _log)
-          << TimeStamp()
-          << " Davidson solver not implemented for BTDA. Using LAPACK."
-          << flush;
-    }
     orb.BSESinglets() = Solve_singlets_BTDA();
   }
   orb.CalcCoupledTransition_Dipoles();
@@ -216,24 +210,45 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Hs_ApB);
-  Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Hs_AmB);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-  return Solve_nonhermitian(Hs_ApB, Hs_AmB);
+  if(_opt.matrixfree) {
+    SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(A);
+
+    SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(B);
+
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+    return Solve_nonhermitian_Lanczos(A, B); 
+  } else {
+    SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Hs_ApB);
+    Operator_BTDA_AmB Hs_AmB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Hs_AmB);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
+    return Solve_nonhermitian(Hs_ApB, Hs_AmB);
+  }
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Ht_ApB);
-  Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(Ht_AmB);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-
-  return Solve_nonhermitian(Ht_ApB, Ht_AmB);
+  if (_opt.matrixfree){
+    TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(A);
+    Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(B);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+    return Solve_nonhermitian_Lanczos(A, B); 
+  } else {
+    TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Ht_ApB);
+    Operator_BTDA_AmB Ht_AmB(_epsilon_0_inv, _Mmn, _Hqp);
+    configureBSEOperator(Ht_AmB);
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
+    return Solve_nonhermitian(Ht_ApB, Ht_AmB);
+  }
 }
 
 template <typename BSE_OPERATOR_ApB, typename BSE_OPERATOR_AmB>
@@ -326,26 +341,6 @@ tools::EigenSystem BSE::Solve_nonhermitian(BSE_OPERATOR_ApB& apb,
   return result;
 }
 
-tools::EigenSystem BSE::Solve_singlets_BTDA_Lanczos() const {
-  SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(A);
-  SingletOperator_BTDA_B B(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(B);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-  return Solve_nonhermitian_Lanczos(A, B); 
-}
-
-tools::EigenSystem BSE::Solve_triplets_BTDA_Lanczos() const {
-  TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(A);
-  Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
-  configureBSEOperator(B);
-  XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-  return Solve_nonhermitian_Lanczos(A, B); 
-}
-
 template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
 tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
                                            BSE_OPERATOR_B& Bop) const {
@@ -357,11 +352,16 @@ tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
 
   tools::EigenSystem result;
   HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
+  //Eigen::MatrixXd H = Hop.get_full_matrix();
+  std::cout << "H :\n" << Hop.cols() << std::endl;
+  std::cout << "A :\n" << Aop.cols() << std::endl;
+  std::cout << "B :\n" << Bop.cols() << std::endl;
 
   // Lanczos solver
+  
   LanczosSolver LS(_log);
   LS.solve(Hop, _opt.nmax);
-
+  std::cout << "assign" << std::endl;
   result.eigenvalues() = LS.eigenvalues().real();
   result.eigenvectors() = LS.eigenvectors().real();
 

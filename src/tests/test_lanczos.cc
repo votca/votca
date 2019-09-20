@@ -37,13 +37,14 @@ Eigen::VectorXd sort_ev(Eigen::VectorXd ev)
 
 class BlockOperator: public MatrixFreeOperator {
  public:
-  BlockOperator() {};
+  BlockOperator(double alpha) : _alpha(alpha) {};
   Eigen::RowVectorXd row(int index) const;
   void set_diag(int diag);
   Eigen::VectorXd diag_el;
 
  private:
   int _diag;
+  int _alpha;
 };
 
 // constructors
@@ -52,12 +53,15 @@ void BlockOperator::set_diag(int diag) {
   diag_el = Eigen::VectorXd::Zero(lsize);
   if (diag == 1) {
     for (int i = 0; i < lsize; i++) {
-      diag_el(i) = static_cast<double>(1. + (std::rand() % 1000) / 10.);
+      diag_el(i) = static_cast<double>(1. + (std::rand() % 1000) / 10. );
     }
   }
 
   if (diag == 0) {
     diag_el = Eigen::VectorXd::Random(lsize);
+    // for (int i = 0; i < lsize; i++) {
+    //   diag_el(i) = static_cast<double>( 1. + (std::rand() % 1000) / 10. ) * 0.1;
+    // }
   }
 }
 
@@ -69,7 +73,7 @@ Eigen::RowVectorXd BlockOperator::row(int index) const {
     if (j == index) {
       row_out(j) = diag_el(j);
     } else {
-      row_out(j) = 0.01 / std::pow(static_cast<double>(j - index), 2);
+      row_out(j) = _alpha / std::pow(static_cast<double>(j - index), 2);
     }
   }
   return row_out;
@@ -80,16 +84,16 @@ BOOST_AUTO_TEST_SUITE(lanczos_test)
 
 BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
 
-  int size = 50;
+  int size = 60;
   int neigen = 5;
   Logger log;
 
   // Create Operator
-  BlockOperator Rop;
+  BlockOperator Rop(0.01);
   Rop.set_size(size);
   Rop.set_diag(1);
 
-  BlockOperator Cop;
+  BlockOperator Cop(0.005);
   Cop.set_size(size);
   Cop.set_diag(0);
 
@@ -110,6 +114,13 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   //std::cout << "\neigen : \n" << lambda_ref.head(neigen) << std::endl;
 
   bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
+
+  if (!check_eigenvalues) {
+    cout << "Reference eigenvalues" << endl;
+    cout << lambda_ref << endl;
+    cout << "Lanczos eigenvalues" << endl;
+    cout << lambda << endl;
+  }
 
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 } 

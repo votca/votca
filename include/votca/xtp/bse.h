@@ -102,9 +102,6 @@ class BSE {
   tools::EigenSystem Solve_triplets_TDA() const;
   tools::EigenSystem Solve_triplets_BTDA() const;
 
-  tools::EigenSystem Solve_singlets_BTDA_Lanczos() const;
-  tools::EigenSystem Solve_triplets_BTDA_Lanczos() const;
-
   void PrintWeights(const Eigen::VectorXd& weights) const;
 
   template <typename BSE_OPERATOR>
