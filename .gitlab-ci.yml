@@ -195,7 +195,7 @@ Debug GPU Ubuntu:
       - ccache/
   before_script:
     - source /opt/gromacs-2019/bin/GMXRC.bash
-  extends: .buid_script
+  extends: .build_script
   allow_failure: true
   tags:
     - gpu
