@@ -89,7 +89,7 @@ find_package(VOTCA_CSG REQUIRED NO_MODULE)
 message(STATUS "Found VOTCA_CSG: ${VOTCA_CSG_DIR}")
 
 if(USE_CUDA)
-  find_package(CUDA)
+  find_package(CUDA REQUIRED)
 endif(USE_CUDA)
 
 ########################################################################
