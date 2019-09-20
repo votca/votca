@@ -16,7 +16,7 @@ if(MKL_FOUND)
 endif()
 
 if(USE_CUDA)
-  target_link_libraries(votca_xtp PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+  target_link_libraries(votca_xtp PUBLIC ${CUDA_LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
   target_include_directories(votca_xtp PRIVATE ${CUDA_INCLUDE_DIRS})
   target_sources(votca_xtp PRIVATE eigencuda.cc)
 endif()
