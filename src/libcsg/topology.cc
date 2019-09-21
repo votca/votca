@@ -204,34 +204,31 @@ int Topology::getBeadTypeId(string type) const {
 }
 
 void Topology::RenameMolecules(string range, string name) {
-  RangeParser rp;
-  RangeParser::iterator i;
-
+  tools::RangeParser rp;
   rp.Parse(range);
-  for (i = rp.begin(); i != rp.end(); ++i) {
-    if ((unsigned int)*i > _molecules.size())
+  for (unsigned i : rp) {
+    if (i > _molecules.size())
       throw runtime_error(
           string("RenameMolecules: num molecules smaller than"));
-    getMolecule(*i - 1)->setName(name);
+    getMolecule(i - 1)->setName(name);
   }
 }
 
 void Topology::RenameBeadType(string name, string newname) {
-  BeadContainer::iterator bead;
-  for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
-    string type = (*bead)->getType();
-    if (wildcmp(name.c_str(), type.c_str())) {
-      (*bead)->setType(newname);
+
+  for (Bead *bead : _beads) {
+    string type = bead->getType();
+    if (tools::wildcmp(name.c_str(), type.c_str())) {
+      bead->setType(newname);
     }
   }
 }
 
 void Topology::SetBeadTypeMass(string name, double value) {
-  BeadContainer::iterator bead;
-  for (bead = _beads.begin(); bead != _beads.end(); ++bead) {
-    string type = (*bead)->getType();
-    if (wildcmp(name.c_str(), type.c_str())) {
-      (*bead)->setMass(value);
+  for (Bead *bead : _beads) {
+    string type = bead->getType();
+    if (tools::wildcmp(name.c_str(), type.c_str())) {
+      bead->setMass(value);
     }
   }
 }
@@ -239,11 +236,10 @@ void Topology::SetBeadTypeMass(string name, double value) {
 void Topology::CheckMoleculeNaming(void) {
   map<string, int> nbeads;
 
-  for (MoleculeContainer::iterator iter = _molecules.begin();
-       iter != _molecules.end(); ++iter) {
-    map<string, int>::iterator entry = nbeads.find((*iter)->getName());
+  for (Molecule *mol : _molecules) {
+    map<string, int>::iterator entry = nbeads.find(mol->getName());
     if (entry != nbeads.end()) {
-      if (entry->second != (*iter)->BeadCount())
+      if (entry->second != mol->BeadCount())
         throw runtime_error(
             "There are molecules which have the same name but different number "
             "of bead "
@@ -251,7 +247,7 @@ void Topology::CheckMoleculeNaming(void) {
             "manual");
       continue;
     }
-    nbeads[(*iter)->getName()] = (*iter)->BeadCount();
+    nbeads[mol->getName()] = mol->BeadCount();
   }
 }
 
@@ -270,8 +266,8 @@ void Topology::AddBondedInteraction(Interaction *ic) {
 }
 
 std::list<Interaction *> Topology::InteractionsInGroup(const string &group) {
-  map<string, list<Interaction *>>::iterator iter;
-  iter = _interactions_by_group.find(group);
+  map<string, list<Interaction *>>::iterator iter =
+      _interactions_by_group.find(group);
   if (iter == _interactions_by_group.end()) return list<Interaction *>();
   return iter->second;
 }

@@ -33,7 +33,7 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
   _topology = true;
   top.Cleanup();
 
-  _fl.open(file.c_str());
+  _fl.open(file);
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open topology file: " + file);
 
@@ -45,9 +45,7 @@ bool PDBReader::ReadTopology(string file, Topology &top) {
 
 bool PDBReader::Open(const string &file) {
 
-  boost::filesystem::path filepath(file.c_str());
-
-  _fl.open(file.c_str());
+  _fl.open(file);
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open trajectory file: " + file);
 
@@ -79,7 +77,7 @@ bool PDBReader::NextFrame(Topology &top) {
   ////////////////////////////////////////////////////////////////////////////////
   int bead_count = 0;
   while (std::getline(_fl, line)) {
-    if (wildcmp("CRYST1*", line.c_str())) {
+    if (tools::wildcmp("CRYST1*", line.c_str())) {
       string a, b, c, alpha, beta, gamma;
       try {
         // 1 -  6       Record name    "CRYST1"
@@ -97,7 +95,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // 48 - 54       Real(7.2)     gamma (degrees)
         // 56 - 66       LString       Space group
         // 67 - 70       Integer       Z value
-      } catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         throw std::runtime_error("Misformated pdb file in CRYST1 line");
       }
       boost::algorithm::trim(a);
@@ -106,9 +104,9 @@ bool PDBReader::NextFrame(Topology &top) {
       boost::algorithm::trim(alpha);
       boost::algorithm::trim(beta);
       boost::algorithm::trim(gamma);
-      if ((!wildcmp("90*", alpha.c_str())) ||
-          (!wildcmp("90*", alpha.c_str())) ||
-          (!wildcmp("90*", alpha.c_str()))) {
+      if ((!tools::wildcmp("90*", alpha.c_str())) ||
+          (!tools::wildcmp("90*", beta.c_str())) ||
+          (!tools::wildcmp("90*", gamma.c_str()))) {
         throw std::runtime_error(
             "Non cubical box in pdb file not implemented, yet!");
       }
@@ -120,7 +118,7 @@ bool PDBReader::NextFrame(Topology &top) {
       top.setBox(box);
     }
     // Only read the CONECT keyword if the topology is set too true
-    if (_topology && wildcmp("CONECT*", line.c_str())) {
+    if (_topology && tools::wildcmp("CONECT*", line.c_str())) {
       vector<string> bonded_atms;
       string atm1;
       // Keep track of the number of bonds
@@ -147,7 +145,7 @@ bool PDBReader::NextFrame(Topology &top) {
           num_bonds++;
           ss >> temp_atm;
         }
-      } catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         throw std::runtime_error("Misformated pdb file in CONECT line\n" +
                                  line);
       }
@@ -170,7 +168,8 @@ bool PDBReader::NextFrame(Topology &top) {
       }
     }
 
-    if (wildcmp("ATOM*", line.c_str()) || wildcmp("HETATM*", line.c_str())) {
+    if (tools::wildcmp("ATOM*", line.c_str()) ||
+        tools::wildcmp("HETATM*", line.c_str())) {
 
       // according to PDB format
       string x, y, z, resNum, resName, atName;
@@ -212,7 +211,7 @@ bool PDBReader::NextFrame(Topology &top) {
         // elem_sym =  string(line,(77-1),2);
         // str       , Charge on the atom
         charge = string(line, (79 - 1), 2);
-      } catch (std::out_of_range &err) {
+      } catch (std::out_of_range &) {
         string err_msg = "Misformated pdb file in atom line # " +
                          boost::lexical_cast<string>(bead_count) +
                          "\n the correct pdb file format requires 80 "

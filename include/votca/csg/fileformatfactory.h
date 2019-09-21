@@ -40,7 +40,7 @@ T *FileFormatFactory<T>::Create(const std::string &file) {
   std::string filetype = tools::filesystem::GetFileExtension(file);
   try {
     return TOOLS::ObjectFactory<std::string, T>::Create(filetype);
-  } catch (std::exception &error) {
+  } catch (std::exception &) {
     throw std::runtime_error("Error '" + filetype +
                              "' file format of file "
                              "'" +

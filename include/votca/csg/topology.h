@@ -78,8 +78,8 @@ class Topology {
    *
    * The function creates a new bead and adds it to the list of beads.
    */
-  virtual Bead *CreateBead(byte_t symmetry, std::string name, std::string type,
-                           int resnr, double m, double q);
+  virtual Bead *CreateBead(tools::byte_t symmetry, std::string name,
+                           std::string type, int resnr, double m, double q);
 
   /**
    * \brief Creates a new molecule
@@ -424,7 +424,7 @@ class Topology {
   std::string _particle_group = "unassigned";
 };
 
-inline Bead *Topology::CreateBead(byte_t symmetry, std::string name,
+inline Bead *Topology::CreateBead(tools::byte_t symmetry, std::string name,
                                   std::string type, int resnr, double m,
                                   double q) {
 

@@ -64,7 +64,8 @@ class CGForceMatching : public CsgApplication {
   /// parameters
   struct SplineInfo {
     /// \brief constructor
-    SplineInfo(int index, bool bonded_, int matr_pos_, Property *options);
+    SplineInfo(int index, bool bonded_, int matr_pos_,
+               votca::tools::Property *options);
     /// \brief number of spline functions
     int num_splinefun;
     /// \brief number of spline grid points
@@ -85,7 +86,7 @@ class CGForceMatching : public CsgApplication {
     double sigma;
     double gamma;
     /// \brief CubicSpline object
-    CubicSpline Spline;
+    votca::tools::CubicSpline Spline;
     /// \brief position in the _A matrix (first coloumn which is occupied with
     /// this particular spline)
     int matr_pos;
@@ -124,15 +125,15 @@ class CGForceMatching : public CsgApplication {
     /// used if threebody interaction)
     string type1, type2, type3;  //
 
-    /// \brief pointer to Property object to hande input options
-    Property *_options;
+    /// \brief pointer to Property object to handle input options
+    votca::tools::Property *_options;
   };
-  /// \brief Property object to hande input options
-  Property _options;
+  /// \brief Property object to handle input options
+  votca::tools::Property _options;
   /// \brief list of bonded interactions
-  std::vector<Property *> _bonded;
+  std::vector<votca::tools::Property *> _bonded;
   /// \brief list of non-bonded interactions
-  std::vector<Property *> _nonbonded;
+  std::vector<votca::tools::Property *> _nonbonded;
 
   typedef vector<SplineInfo *> SplineContainer;
   /// \brief vector of SplineInfo * for all interactions
@@ -170,7 +171,7 @@ class CGForceMatching : public CsgApplication {
   /// \brief Current number of blocks
   int _nblocks;
 
-  /// \brief Counters for lines and coloumns in _B_constr
+  /// \brief Counters for lines and columns in _B_constr
   int _line_cntr, _col_cntr;
 
   bool _has_existing_forces;

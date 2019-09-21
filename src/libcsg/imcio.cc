@@ -36,7 +36,7 @@ void imcio_write_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS,
                     std::list<int> *list) {
   // write the dS
   ofstream out_dS;
-  out_dS.open(file.c_str());
+  out_dS.open(file);
   out_dS << setprecision(8);
   if (!out_dS) throw runtime_error(string("error, cannot open file ") + file);
 
@@ -57,7 +57,7 @@ void imcio_write_dS(const string &file, Eigen::VectorXd &r, Eigen::VectorXd &dS,
 void imcio_write_matrix(const string &file, Eigen::MatrixXd &gmc,
                         std::list<int> *list) {
   ofstream out_A;
-  out_A.open(file.c_str());
+  out_A.open(file);
   out_A << setprecision(8);
 
   if (!out_A) throw runtime_error(string("error, cannot open file ") + file);
@@ -82,7 +82,7 @@ void imcio_write_matrix(const string &file, Eigen::MatrixXd &gmc,
 }
 
 void imcio_write_index(const string &file, vector<string> &names,
-                       vector<RangeParser> &ranges) {
+                       vector<tools::RangeParser> &ranges) {
   // write the index
 
   ofstream out_idx;
@@ -99,7 +99,7 @@ void imcio_write_index(const string &file, vector<string> &names,
 
 void imcio_read_dS(const string &filename, Eigen::VectorXd &r,
                    Eigen::VectorXd &dS) {
-  Table tbl;
+  tools::Table tbl;
   tbl.Load(filename);
 
   r.resize(tbl.size());
@@ -113,7 +113,7 @@ void imcio_read_dS(const string &filename, Eigen::VectorXd &r,
 
 void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
   ifstream in;
-  in.open(filename.c_str());
+  in.open(filename);
 
   bool is_initialized = false;
   if (!in) throw runtime_error(string("error, cannot open file ") + filename);
@@ -127,9 +127,8 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
     line = line.substr(0, line.find("@"));
 
     // tokenize string and put it to vector
-    Tokenizer tok(line, " \t");
-    vector<string> tokens;
-    tok.ToVector(tokens);
+    tools::Tokenizer tok(line, " \t");
+    vector<string> tokens = tok.ToVector();
 
     // skip empty lines
     if (tokens.size() == 0) continue;
@@ -150,9 +149,9 @@ void imcio_read_matrix(const string &filename, Eigen::MatrixXd &gmc) {
 }
 
 void imcio_read_index(const string &filename, vector<string> &names,
-                      vector<RangeParser> &ranges) {
+                      vector<tools::RangeParser> &ranges) {
   ifstream in;
-  in.open(filename.c_str());
+  in.open(filename);
   if (!in) throw runtime_error(string("error, cannot open file ") + filename);
 
   names.clear();
@@ -176,7 +175,7 @@ void imcio_read_index(const string &filename, vector<string> &names,
 
     string range = line.substr(found);
 
-    RangeParser rp;
+    tools::RangeParser rp;
     rp.Parse(range);
     names.push_back(name);
     ranges.push_back(rp);

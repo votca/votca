@@ -35,7 +35,7 @@ void NematicOrder::Process(Topology &top, const string &filter) {
 
     Bead *bead = *iter;
 
-    if (!wildcmp(filter.c_str(), bead->getName().c_str())) continue;
+    if (!tools::wildcmp(filter.c_str(), bead->getName().c_str())) continue;
 
     if (bead->getSymmetry() == 1) continue;
 

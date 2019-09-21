@@ -31,7 +31,7 @@ bool GROReader::ReadTopology(string file, Topology &top) {
   _topology = true;
   top.Cleanup();
 
-  _fl.open(file.c_str());
+  _fl.open(file);
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open topology file: " + file);
 
@@ -43,7 +43,7 @@ bool GROReader::ReadTopology(string file, Topology &top) {
 }
 
 bool GROReader::Open(const string &file) {
-  _fl.open(file.c_str());
+  _fl.open(file);
   if (!_fl.is_open())
     throw std::ios_base::failure("Error on open trajectory file: " + file);
   return true;
@@ -64,7 +64,7 @@ bool GROReader::NextFrame(Topology &top) {
     return !_fl.eof();
   }
   getline(_fl, tmp);  // number atoms
-  int natoms = atoi(tmp.c_str());
+  int natoms = std::stoi(tmp);
   if (!_topology && natoms != top.BeadCount())
     throw std::runtime_error(
         "number of beads in topology and trajectory differ");
@@ -81,7 +81,7 @@ bool GROReader::NextFrame(Topology &top) {
       x = string(line, 20, 8);  // %8.3f
       y = string(line, 28, 8);  // %8.3f
       z = string(line, 36, 8);  // %8.3f
-    } catch (std::out_of_range &err) {
+    } catch (std::out_of_range &) {
       throw std::runtime_error("Misformated gro file");
     }
     boost::algorithm::trim(atName);
@@ -96,7 +96,7 @@ bool GROReader::NextFrame(Topology &top) {
       vx = string(line, 44, 8);  // %8.4f
       vy = string(line, 52, 8);  // %8.4f
       vz = string(line, 60, 8);  // %8.4f
-    } catch (std::out_of_range &err) {
+    } catch (std::out_of_range &) {
       hasVel = false;
     }
 
@@ -142,7 +142,7 @@ bool GROReader::NextFrame(Topology &top) {
   if (_fl.eof())
     throw std::runtime_error(
         "unexpected end of file in poly file, when boxline");
-  Tokenizer tok(tmp, " ");
+  tools::Tokenizer tok(tmp, " ");
   vector<double> fields;
   tok.ConvertToVector<double>(fields);
   Eigen::Matrix3d box;
