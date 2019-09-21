@@ -225,7 +225,6 @@ void XMLTopologyReader::ParseMolecule(tools::Property &p, string molname,
     }
     resnr++;
   }
-  _mol_index++;
 
   // clean up
   for (std::vector<XMLBead *>::iterator itb = xmlBeads.begin();
