@@ -73,12 +73,8 @@ class RangeParser {
 
  private:
   void ParseBlock(std::string block);
-  int ToNumber(std::string str);
 
   std::list<block_t> _blocks;
-
-  // bool _has_begin, _has_end;
-  // int _begin, _end;
 
   friend std::ostream &operator<<(std::ostream &out, const RangeParser &rp);
 };

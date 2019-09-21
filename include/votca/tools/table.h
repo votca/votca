@@ -42,6 +42,9 @@ class Table {
 
   double &x(int i) { return _x[i]; }
   double &y(int i) { return _y[i]; }
+
+  const double &x(int i) const { return _x[i]; }
+  const double &y(int i) const { return _y[i]; }
   char &flags(int i) { return _flags[i]; }
   double &yerr(int i) { return _yerr[i]; }
 
