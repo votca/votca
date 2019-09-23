@@ -17,6 +17,7 @@
 
 #include "csg_imc_solve.h"
 #include <fstream>
+#include <votca/csg/imcio.h>
 #include <votca/tools/table.h>
 
 int main(int argc, char** argv) {
@@ -49,39 +50,6 @@ bool CG_IMC_solve::EvaluateOptions() {
   return true;
 }
 
-Eigen::MatrixXd CG_IMC_solve::LoadMatrix(const std::string& filename) const {
-  std::ifstream intt;
-  intt.open(filename);
-  if (!intt)
-    throw std::runtime_error(std::string("error, cannot open file ") +
-                             filename);
-
-  std::string line;
-  std::vector<double> result;
-  int numrows = 0;
-  unsigned numcols = 0;
-  while (getline(intt, line)) {
-    if (line[0] == '#') {
-      continue;
-    }
-    votca::tools::Tokenizer tok(line, " \t");
-    std::vector<std::string> tokens = tok.ToVector();
-    if (numrows == 0) {
-      numcols = tokens.size();
-    } else if (numcols != tokens.size()) {
-      throw std::runtime_error(
-          "Matrix has not the same number of entries in each row.");
-    }
-    for (const std::string& s : tokens) {
-      result.push_back(std::stod(s));
-    }
-    numrows++;
-  }
-  intt.close();
-
-  return Eigen::Map<Eigen::MatrixXd>(result.data(), numrows, numcols);
-}
-
 void CG_IMC_solve::Run() {
   std::string imcfile = _op_vm["imcfile"].as<std::string>();
   std::string gmcfile = _op_vm["gmcfile"].as<std::string>();
@@ -89,7 +57,7 @@ void CG_IMC_solve::Run() {
 
   double reg = _op_vm["regularization"].as<double>();
 
-  Eigen::MatrixXd A = LoadMatrix(gmcfile);
+  Eigen::MatrixXd A = votca::csg::imcio_read_matrix(gmcfile);
   votca::tools::Table B;
   B.Load(imcfile);
 
