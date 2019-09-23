@@ -151,44 +151,44 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
   return result;
 }
 
-// /*
-//  * \brief performs a matrix_1 * matrix2 * matrix_2 multiplication
-//  */
-// Mat EigenCuda::triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
-//                                   const CudaMatrix &C) const {
+/*
+ * \brief performs a matrix_1 * matrix2 * matrix_2 multiplication
+ */
+Mat EigenCuda::triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
+                                  const CudaMatrix &C) const {
 
-//   // sizes of the matrices to allocated in the device
-//   size_t size_A = A.size() * sizeof(double);
-//   size_t size_B = matrix.size() * sizeof(double);
-//   size_t size_C = C.size() * sizeof(double);
-//   std::size_t size_W = A.rows() * matrix.cols() * sizeof(double);
-//   std::size_t size_Z = A.rows() * C.cols() * sizeof(double);
+  // sizes of the matrices to allocated in the device
+  size_t size_A = A.size() * sizeof(double);
+  size_t size_B = matrix.size() * sizeof(double);
+  size_t size_C = C.size() * sizeof(double);
+  std::size_t size_W = A.rows() * matrix.cols() * sizeof(double);
+  std::size_t size_Z = A.rows() * C.cols() * sizeof(double);
 
-//   // Check if there is enough available memory
-//   check_available_memory_in_gpu(size_A + size_B + size_C + size_W + size_Z);
+  // Check if there is enough available memory
+  check_available_memory_in_gpu(size_A + size_B + size_C + size_W + size_Z);
 
-//   // Intermediate Matrices
-//   CudaMatrix B{alloc_matrix_in_gpu(size_B), B.rows(), B.cols()};
-//   CudaMatrix W{alloc_matrix_in_gpu(size_W), A.rows(), matrix.cols()};
-//   CudaMatrix Z{alloc_matrix_in_gpu(size_Z), A.rows(), C.cols()};
+  // Intermediate Matrices
+  CudaMatrix B{alloc_matrix_in_gpu(size_B), B.rows(), B.cols()};
+  CudaMatrix W{alloc_matrix_in_gpu(size_W), A.rows(), matrix.cols()};
+  CudaMatrix Z{alloc_matrix_in_gpu(size_Z), A.rows(), C.cols()};
 
-//   Mat result = Mat::Zero(A.rows(), C.cols());
-//   // transfer matrix to GPU
-//   checkCuda(cudaMemcpyAsync(B.ptr(), matrix.data(), size_B,
-//                             cudaMemcpyHostToDevice, _stream));
+  Mat result = Mat::Zero(A.rows(), C.cols());
+  // transfer matrix to GPU
+  checkCuda(cudaMemcpyAsync(B.ptr(), matrix.data(), size_B,
+                            cudaMemcpyHostToDevice, _stream));
 
-//   // Call the first tensor matrix multiplication
-//   gemm(A, B, W);
+  // Call the first tensor matrix multiplication
+  gemm(A, B, W);
 
-//   // Call the second tensor matrix multiplication
-//   gemm(W, C, Z);
+  // Call the second tensor matrix multiplication
+  gemm(W, C, Z);
 
-//   // Copy the result Array back to the device
-//   checkCuda(cudaMemcpyAsync(result.data(), Z.ptr(), size_Z,
-//                             cudaMemcpyDeviceToHost, _stream));
+  // Copy the result Array back to the device
+  checkCuda(cudaMemcpyAsync(result.data(), Z.ptr(), size_Z,
+                            cudaMemcpyDeviceToHost, _stream));
 
-//   return result;
-// }
+  return result;
+}
 
 }  // namespace xtp
 }  // namespace votca

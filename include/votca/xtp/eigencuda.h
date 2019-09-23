@@ -93,9 +93,9 @@ class EigenCuda {
   std::vector<Mat> right_matrix_tensor_mult(const std::vector<Mat> &tensor,
                                             const Mat &A) const;
 
-  /* // Perform matrix1 * matrix2 * matrix3 multiplication */
-  /* Mat triple_matrix_mult(const CudaMatrix &A, const Mat &matrix, */
-  /*                        const CudaMatrix &C) const; */
+  // Perform matrix1 * matrix2 * matrix3 multiplication
+  Mat triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
+                         const CudaMatrix &C) const;
 
  private:
   void check_available_memory_in_gpu(size_t required) const;

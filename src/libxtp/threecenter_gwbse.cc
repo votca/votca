@@ -94,7 +94,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     }
     // Fill block for this shell (3-center overlap with _dft_basis +
     // multiplication with _dft_orbitals )
-    FillBlock(block, shell, dftbasis, dft_orbitals);
+    std::vector<Eigen::MatrixXd> symmstorage =
+        ComputeSymmStorage(shell, dftbasis, dft_orbitals);
+    FillBlock(block, symmstorage, shell, dft_orbitals);
 
     // put into correct position
     for (int m_level = 0; m_level < _mtotal; m_level++) {
@@ -113,16 +115,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   return;
 }
 
-/*
- * Determines the 3-center integrals for a given shell in the GW basis
- * by calculating the 3-center overlap integral of the functions in the
- * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock),
- * followed by a convolution of those with the DFT orbital coefficients
- */
-
-void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
-                               const AOShell& auxshell, const AOBasis& dftbasis,
-                               const Eigen::MatrixXd& dft_orbitals) {
+std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
+    const AOShell& auxshell, const AOBasis& dftbasis,
+    const Eigen::MatrixXd& dft_orbitals) const {
   tensor3d::extent_gen extents;
   std::vector<Eigen::MatrixXd> symmstorage;
   for (int i = 0; i < auxshell.getNumFunc(); ++i) {
@@ -166,6 +161,20 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       }
     }  // gamma-loop
   }    // alpha-loop
+
+  return symmstorage;
+}
+
+void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
+                               const std::vector<Eigen::MatrixXd>& symmstorage,
+                               const AOShell& auxshell,
+                               const Eigen::MatrixXd& dft_orbitals) {
+
+  const Eigen::MatrixXd dftm =
+      dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
+  const Eigen::MatrixXd dftn =
+      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
+
   for (int k = 0; k < auxshell.getNumFunc(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
