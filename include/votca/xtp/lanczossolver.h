@@ -71,14 +71,26 @@ class LanczosSolver {
     return outvec;
   }
 
+  void set_iter_max(int N) { this->_iter_max = N; }
+  
+  void set_tolerance(std::string tol) {
+    if (tol == "loose")
+      this->_tol = 1E-4;
+    else if (tol == "normal")
+      this->_tol = 1E-6;
+    else if (tol == "strict")
+      this->_tol = 1E-8;
+    else
+      throw std::runtime_error(tol + " is not a valid Lanczos tolerance");
+  }
+
   template <typename MatrixReplacement>
   void solve(const MatrixReplacement &A, int neigen) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
-
-    Eigen::ArrayXi _tmp_idx = Eigen::ArrayXi::Zero(neigen);
-    Eigen::MatrixXd _tmp_evec = Eigen::MatrixXd::Zero(A.size(),neigen);
+    int op_size = A.rows();
+    PrintOptions(op_size);
 
     // declare the shift invert op
     ShiftInvertOperator<MatrixReplacement> sinv_op(A);
@@ -93,26 +105,24 @@ class LanczosSolver {
     // solver
     Spectra::GenEigsRealShiftSolver<double, Spectra::LARGEST_REAL, 
       ShiftInvertOperator<MatrixReplacement>> eigs(&sinv_op, nev, ncv, sigma);
+
+    //solve
     eigs.init();
-
-    Eigen::Index maxit = 1000;
-    double tol = 1E-12;
-    int nconv = eigs.compute(maxit, tol);
-
+    int nconv = eigs.compute(_iter_max, _tol);
+    
     if (eigs.info() == Spectra::SUCCESSFUL)
     {
       this->_eigenvalues = eigs.eigenvalues().real();
       std::sort(_eigenvalues.data(),_eigenvalues.data()+_eigenvalues.size());
-      
-
-      _tmp_idx = LanczosSolver::argsort(_eigenvalues);
-      _tmp_evec = eigs.eigenvectors().real();
+    
+      Eigen::ArrayXi _tmp_idx = LanczosSolver::argsort(_eigenvalues);
+      Eigen::MatrixXd _tmp_evec = eigs.eigenvectors().real();
       this->_eigenvectors = LanczosSolver::sort_eigenvectors(_tmp_evec,_tmp_idx);
-
+       XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() <<"\nLanczos diagonalization converged" << flush;
     } else {
-      std::cout << "\nLanczos diagonalization failed :" << std::endl;
-      std::cout << "Number of converged root : " << nconv << std::endl;
-      std::cout << "Number of iterations : " << eigs.num_iterations() << std::endl;
+      XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() <<"\nLanczos diagonalization failed" << flush;
     }
 
     PrintTiming(start);
@@ -123,6 +133,9 @@ class LanczosSolver {
   
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
+  double _tol = 1E-6;
+  int _iter_max = 1000;
+
   Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
   
   void PrintOptions(int op_size) const;

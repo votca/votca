@@ -350,20 +350,25 @@ tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
   std::chrono::duration<double> elapsed_time;
   start = std::chrono::system_clock::now();
 
-  tools::EigenSystem result;
+  // operator
   HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
-
-
+  
   // Lanczos solver  
   LanczosSolver LS(_log);
+  LS.set_tolerance(_opt.davidson_tolerance);
+  LS.set_iter_max(_opt.davidson_maxiter);
   LS.solve(Hop, _opt.nmax);
-  result.eigenvalues() = LS.eigenvalues().real();
-  result.eigenvectors() = LS.eigenvectors().real();
-  result.eigenvectors2() = LS.eigenvectors().real();
-  
+
+  // results
+  tools::EigenSystem result;
+  result.eigenvalues() = LS.eigenvalues();
+  result.eigenvectors() = LS.eigenvectors();
+
+  Eigen::VectorXd _tmp_left = LS.eigenvectors();
+  _tmp_left.bottomRows(Bop.rows()) = -_tmp_left.bottomRows(Bop.rows());
+  result.eigenvectors2() = _tmp_left;
 
   return result;
-
 }
 
 void BSE::printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,

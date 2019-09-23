@@ -59,9 +59,6 @@ void BlockOperator::set_diag(int diag) {
 
   if (diag == 0) {
     diag_el = Eigen::VectorXd::Random(lsize);
-    // for (int i = 0; i < lsize; i++) {
-    //   diag_el(i) = static_cast<double>( 1. + (std::rand() % 1000) / 10. ) * 0.1;
-    // }
   }
 }
 

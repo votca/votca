@@ -67,13 +67,6 @@ private:
   MatrixReplacement _Aop;
   double _lambda;
   int _size;
-
-  // Eigen::ConjugateGradient<MatrixReplacement, 
-  //   Eigen::Lower|Eigen::Upper, Eigen::IdentityPreconditioner> linear_solver;
-  //Eigen::BiCGSTAB<MatrixReplacement,Eigen::IdentityPreconditioner> linear_solver;
-
-  //Eigen::ConjugateGradient<MatrixReplacement, 
-  //  Eigen::Lower|Eigen::Upper> linear_solver;
   Eigen::BiCGSTAB<MatrixReplacement> linear_solver;
 
 };
