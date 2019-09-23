@@ -78,7 +78,7 @@ class TCMatrix_dft : public TCMatrix {
 
 class TCMatrix_gwbse : public TCMatrix {
  public:
-  TCMatrix_gwbse(Logger& log) : _log(log){};
+  TCMatrix_gwbse(Logger& log) : _log{log} {};
 
   // returns one level as a constant reference
   const Eigen::MatrixXd& operator[](int i) const { return _matrix[i]; }
