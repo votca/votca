@@ -65,8 +65,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   }
 #else
   XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << "Call MultiplyRightWithAuxMatrixOpenMP method"
-      << flush;
+      << TimeStamp() << "Call MultiplyRightWithAuxMatrixOpenMP method" << flush;
   this->MultiplyRightWithAuxMatrixOpenMP(matrix);
 #endif
   return;
