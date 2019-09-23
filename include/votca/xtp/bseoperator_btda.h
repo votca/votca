@@ -54,8 +54,12 @@ class HamiltonianOperator
   };
 
   HamiltonianOperator(const MatrixReplacementA &A,
-                      const MatrixReplacementB &B)
-      : _A(A), _B(B),_size(2*A.cols()) {}; 
+                      const MatrixReplacementB &B) 
+  : _A(A), _B(B), _size(2*A.cols())
+  { 
+    _diag = this->get_diagonal();
+  };
+      
     
   class InnerIterator {
    public:
@@ -94,9 +98,12 @@ class HamiltonianOperator
 
   // this is not a fast method
   const double& operator()(const size_t i, const size_t j) const {
-    std::cout << "row " << i << " col " << j << " size " << this->_size << std::endl;
-    Eigen::RowVectorXd row_out = row(i);
-    return  row_out(j);
+    if (i==j) {
+      return _diag(i);
+    } else {
+      Eigen::RowVectorXd row_out = row(i);
+      return  row_out(j);
+    }
   };
 
   //  get a row of the operator
@@ -129,6 +136,17 @@ class HamiltonianOperator
     return row_out;
   }
 
+  Eigen::VectorXd get_diagonal() const {
+    Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
+    Eigen::RowVectorXd r;
+#pragma omp parallel for
+    for (int i=0; i < _size; i++) {
+      r = this->row(i);
+      diag(i) = r(i);
+    }
+    return diag;
+  }
+
   // get the full matrix if we have to
   Eigen::MatrixXd get_full_matrix() const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
@@ -144,6 +162,7 @@ class HamiltonianOperator
   const MatrixReplacementA & _A;
   const MatrixReplacementB & _B;
   int _size;
+  Eigen::VectorXd _diag; 
 
 };
 }  // namespace xtp
@@ -179,6 +198,33 @@ struct generic_product_impl<votca::xtp::HamiltonianOperator<MatrixReplacementA,M
   }
 };
 
+// replacement of the mat*mat operation
+template <typename Mtype, typename MatrixReplacementA, typename MatrixReplacementB>
+struct generic_product_impl<votca::xtp::HamiltonianOperator<MatrixReplacementA,MatrixReplacementB>, 
+                            Mtype, DenseShape, DenseShape, GemmProduct>
+    : generic_product_impl_base<
+          votca::xtp::HamiltonianOperator<MatrixReplacementA,MatrixReplacementB>, Mtype,
+          generic_product_impl<votca::xtp::HamiltonianOperator<MatrixReplacementA,MatrixReplacementB>, Mtype>> {
+
+  typedef
+      typename Product<votca::xtp::HamiltonianOperator<MatrixReplacementA,MatrixReplacementB>, Mtype>::Scalar Scalar;
+
+  template <typename Dest>
+  static void scaleAndAddTo(Dest& dst, const votca::xtp::HamiltonianOperator<MatrixReplacementA,MatrixReplacementB>& op,
+                            const Mtype& m, const Scalar& alpha) {
+    // returns dst = alpha * op * v
+    // alpha must be 1 here
+    assert(alpha == Scalar(1) && "scaling is not implemented");
+    EIGEN_ONLY_USED_FOR_DEBUG(alpha);
+
+// make the mat mat product
+#pragma omp parallel for
+    for (int i = 0; i < op.rows(); i++) {
+      const Eigen::RowVectorXd row = op.row(i) * m;
+      dst.row(i) = row;
+    }
+  }
+};
 }
 }
 

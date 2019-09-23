@@ -352,18 +352,15 @@ tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
 
   tools::EigenSystem result;
   HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
-  //Eigen::MatrixXd H = Hop.get_full_matrix();
-  std::cout << "H :\n" << Hop.cols() << std::endl;
-  std::cout << "A :\n" << Aop.cols() << std::endl;
-  std::cout << "B :\n" << Bop.cols() << std::endl;
 
-  // Lanczos solver
-  
+
+  // Lanczos solver  
   LanczosSolver LS(_log);
   LS.solve(Hop, _opt.nmax);
-  std::cout << "assign" << std::endl;
   result.eigenvalues() = LS.eigenvalues().real();
   result.eigenvectors() = LS.eigenvectors().real();
+  result.eigenvectors2() = LS.eigenvectors().real();
+  
 
   return result;
 

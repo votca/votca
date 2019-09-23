@@ -422,7 +422,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << "Singlets energy BTDA ref" << endl;
     cout << se_ref_btda << endl;
   }
-  cout << orbitals.BSESinglets().eigenvalues() << endl;
   BOOST_CHECK_EQUAL(check_se_btda, true);
 
   //bool check_spsi_btda = spsi_ref_btda.cwiseAbs2().isApprox(
@@ -453,20 +452,21 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   // lanczos matrix free
   opt.matrixfree = 1;
-  opt.nmax = 5;
+  opt.nmax = 5; // <- unstable if only 1 root is asked
 
   bse.configure(opt, orbitals.MOs().eigenvalues());
   bse.Solve_singlets(orbitals);
 
-  // bool check_se_btda_mf =
-  //     se_ref_btda.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
-  // if (!check_se_btda_mf) {
-  //   cout << "Singlets energy BTDA" << endl;
-  //   cout << orbitals.BSESinglets().eigenvalues() << endl;
-  //   cout << "Singlets energy BTDA ref" << endl;
-  //   cout << se_ref_btda << endl;
-  // }
-  // BOOST_CHECK_EQUAL(check_se_btda_mf, true);
+  opt.nmax=1;
+  bool check_se_btda_mf =
+      se_ref_btda.isApprox(orbitals.BSESinglets().eigenvalues().head(opt.nmax), 0.001);
+  if (!check_se_btda_mf) {
+    cout << "Singlets energy BTDA" << endl;
+    cout << orbitals.BSESinglets().eigenvalues().head(opt.nmax) << endl;
+    cout << "Singlets energy BTDA ref" << endl;
+    cout << se_ref_btda << endl;
+  }
+  BOOST_CHECK_EQUAL(check_se_btda_mf, true);
 
   // bool check_spsi_btda_mf = spsi_ref_btda.cwiseAbs2().isApprox(
   //     orbitals.BSESinglets().eigenvectors().cwiseAbs2(), 0.1);

@@ -53,11 +53,32 @@ class LanczosSolver {
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
 
+
+  Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const {
+    /* \brief return the index of the sorted vector */
+    Eigen::ArrayXi idx = Eigen::ArrayXi::LinSpaced(V.rows(), 0, V.rows() - 1);
+    std::sort(idx.data(), idx.data() + idx.size(),
+              [&](int i1, int i2) { return V[i1] < V[i2]; });
+    return idx;
+  }
+
+  Eigen::MatrixXd sort_eigenvectors(const Eigen::MatrixXd &evec, Eigen::ArrayXi &idx)
+  {
+    Eigen::MatrixXd outvec = Eigen::MatrixXd::Zero(evec.rows(),evec.cols());
+    for (int i=i;i<evec.cols();i++){
+      outvec.col(i) = evec.col(idx(i));
+    }
+    return outvec;
+  }
+
   template <typename MatrixReplacement>
   void solve(const MatrixReplacement &A, int neigen) {
 
     std::chrono::time_point<std::chrono::system_clock> start =
         std::chrono::system_clock::now();
+
+    Eigen::ArrayXi _tmp_idx = Eigen::ArrayXi::Zero(neigen);
+    Eigen::MatrixXd _tmp_evec = Eigen::MatrixXd::Zero(A.size(),neigen);
 
     // declare the shift invert op
     ShiftInvertOperator<MatrixReplacement> sinv_op(A);
@@ -70,11 +91,8 @@ class LanczosSolver {
     double sigma = 0.;
 
     // solver
-    std::cout << "declare" << std::endl;
     Spectra::GenEigsRealShiftSolver<double, Spectra::LARGEST_REAL, 
       ShiftInvertOperator<MatrixReplacement>> eigs(&sinv_op, nev, ncv, sigma);
-
-    std::cout << "init" << std::endl;
     eigs.init();
 
     Eigen::Index maxit = 1000;
@@ -84,7 +102,13 @@ class LanczosSolver {
     if (eigs.info() == Spectra::SUCCESSFUL)
     {
       this->_eigenvalues = eigs.eigenvalues().real();
-      this->_eigenvectors = eigs.eigenvectors().real();
+      std::sort(_eigenvalues.data(),_eigenvalues.data()+_eigenvalues.size());
+      
+
+      _tmp_idx = LanczosSolver::argsort(_eigenvalues);
+      _tmp_evec = eigs.eigenvectors().real();
+      this->_eigenvectors = LanczosSolver::sort_eigenvectors(_tmp_evec,_tmp_idx);
+
     } else {
       std::cout << "\nLanczos diagonalization failed :" << std::endl;
       std::cout << "Number of converged root : " << nconv << std::endl;

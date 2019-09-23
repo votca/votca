@@ -54,7 +54,7 @@ class BSE_OPERATOR : public MatrixFreeOperator {
     this->set_size(_bse_size);
 
     int threads = OPENMP::getMaxThreads();
-
+    
     if (cx != 0) {
       _Hx_cache = std::vector<cache_block>(threads);
     }

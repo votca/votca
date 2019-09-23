@@ -51,9 +51,7 @@ public:
   // set the shift that is alwyas null in our case ..
   void set_shift(double sigma)
   {
-    std::cout << "Set shift " ;
     linear_solver.compute(_Aop);
-    std::cout << "done" << std::endl;
   }
 
   // shift invert operation
