@@ -36,6 +36,8 @@ Performs force matching (also called //multiscale coarse-graining//).
 Create skeleton for gromacs topology based on atomistic topology and a mapping file.
 : **csg_imcrepack**
 Is internally called by inversion scripts to kick out zero entries in the matrix for inverse Monte Carlo (imc).
+: **csg_imc_solver**
+Is internally called by inversion scripts to solve matrix equation for inverse Monte Carlo (imc).
 : **csg_inverse**
 Starts the script to run iterative Boltzmann inverse (ibi) or inverse Monte Carlo (imc), etc.
 : **csg_map**
@@ -45,7 +47,7 @@ Helper program called by inverse scripts to parse xml file.
 : **csg_resample**
 Changes grid + interval and interpolated any sort of table files.
 : **csg_reupdate**
-Reform the relative entropy update in iterative method
+Reform the relative entropy update in inverse scripts.
 : **csg_stat**
 Calculates  all kind of distribuions  (bonded + non-bonded).
 
