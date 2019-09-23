@@ -21,6 +21,7 @@
 #ifndef __XTP_THREECENTER__H
 #define __XTP_THREECENTER__H
 
+#include <utility>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
 #include <votca/xtp/multiarray.h>
@@ -134,6 +135,11 @@ class TCMatrix_gwbse : public TCMatrix {
                  const AOBasis& dftbasis, const Eigen::MatrixXd& dft_orbitals);
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
+
+#if defined(USE_CUDA)
+  std::pair<CudaMatrix, CudaMatrix> SendDFTMatricesToGPU(
+      const Eigen::MatrixXd& dft_orbitals);
+#endif
 };
 
 }  // namespace xtp

@@ -191,5 +191,25 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
   return;
 }
 
+#if defined(USE_CUDA)
+std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
+    const Eigen::MatrixXd& dft_orbitals) {
+  EigenCuda cuda_handle;
+  const Eigen::MatrixXd dftm =
+      dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
+  const Eigen::MatrixXd dftn =
+      dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
+
+  // Pointers to the cuda arrays
+  uniq_double dev_dftnT = cuda_handle.copy_matrix_to_gpu(dftn.transpose());
+  uniq_double dev_dftm = cuda_handle.copy_matrix_to_gpu(dftm);
+
+  CudaMatrix matrixA{std::move(dev_dftnT), dftn.cols(), dftn.rows()};
+  CudaMatrix matrixB{std::move(dev_dftm), dftm.rows(), dftm.cols()};
+
+  return std::make_pair(std::move(matrixA), std::move(matrixB));
+}
+#endif
+
 }  // namespace xtp
 }  // namespace votca

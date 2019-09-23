@@ -49,12 +49,13 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   EigenCuda EC;
   std::vector<Eigen::MatrixXd> tensor{B};
   try {
-    std::vector<Eigen::MatrixXd> xs = EC.right_matrix_tensor_mult(tensor, A);
+    EC.right_matrix_tensor_mult(tensor, A);
   } catch (const std::runtime_error& error) {
     std::string error_msg = error.what();
     std::string reason = "an illegal value";
     if (error_msg.find(reason) != std::string::npos) {
-      throw error;
+      auto eptr = std::current_exception();
+      std::rethrow_exception(eptr);
     }
   }
 }

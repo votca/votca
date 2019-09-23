@@ -38,6 +38,13 @@
 namespace votca {
 namespace xtp {
 
+// col Major for CUDA
+using Mat =
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
+
+// Unique pointer with custom delete function
+using uniq_double = std::unique_ptr<double, void (*)(double *)>;
+
 inline cudaError_t checkCuda(cudaError_t result) {
 // Check Cuda error
 #if defined(DEBUG)
@@ -48,26 +55,22 @@ inline cudaError_t checkCuda(cudaError_t result) {
   return result;
 }
 
-// Structure with the sizes to call ?GEMM
-struct ShapesOfMatrices {
-  int A_rows;
-  int A_cols;
-  int B_rows;
-  int B_cols;
-  int C_rows;
+// Data of the matrix stored in the GPU
+class CudaMatrix {
+ public:
+  int size() const { return _rows * _cols; };
+  int rows() const { return _rows; };
+  int cols() const { return _cols; };
+  double *ptr() const { return _ptr.get(); };
 
-  ShapesOfMatrices(long int a_rows, long int a_cols, long int b_rows,
-                   long int b_cols, long int crows)
-      : A_rows{static_cast<int>(a_rows)},
-        A_cols{static_cast<int>(a_cols)},
-        B_rows{static_cast<int>(b_rows)},
-        B_cols{static_cast<int>(b_cols)},
-        C_rows{static_cast<int>(crows)} {}
+  CudaMatrix(uniq_double &&ptr, int nrows, int ncols)
+      : _ptr{std::move(ptr)}, _rows{nrows}, _cols{ncols} {}
+
+ private:
+  uniq_double _ptr;
+  int _rows;
+  int _cols;
 };
-
-// col Major for CUDA
-using Mat =
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
 // Delete allocated memory in the GPU
 void free_mem_in_gpu(double *x);
@@ -83,22 +86,23 @@ class EigenCuda {
   EigenCuda(const EigenCuda &) = delete;
   EigenCuda &operator=(const EigenCuda &) = delete;
 
+  // Allocate memory for a matrix and copy it to the device
+  uniq_double copy_matrix_to_gpu(const Mat &matrix) const;
+
   // Perform a multiplication between a matrix and a tensor
   std::vector<Mat> right_matrix_tensor_mult(const std::vector<Mat> &tensor,
                                             const Mat &A) const;
 
-  using uniq_double = std::unique_ptr<double, void (*)(double *)>;
+  /* // Perform matrix1 * matrix2 * matrix3 multiplication */
+  /* Mat triple_matrix_mult(const CudaMatrix &A, const Mat &matrix, */
+  /*                        const CudaMatrix &C) const; */
 
  private:
   void check_available_memory_in_gpu(size_t required) const;
   uniq_double alloc_matrix_in_gpu(size_t size_matrix) const;
 
-  // Allocate memory for a matrix and copy it to the device
-  uniq_double copy_matrix_to_gpu(const Mat &matrix) const;
-
   // Invoke the ?gemm function of cublas
-  void gemm(ShapesOfMatrices shapes, const double *dA, const double *dB,
-            double *dC) const;
+  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;
 
   // The cublas handles allocates hardware resources on the host and device.
   cublasHandle_t _handle;
