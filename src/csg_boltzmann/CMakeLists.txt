@@ -5,8 +5,9 @@ list(REMOVE_ITEM CSG_BO_LIB_SOURCES ${CSG_BO_MAIN_SOURCES})
 add_library(votca_csg_boltzmann OBJECT ${CSG_BO_LIB_SOURCES})
 target_link_libraries(votca_csg_boltzmann votca_csg)
 
-add_executable(csg_boltzmann ${CSG_BO_MAIN_SOURCES})
-target_link_libraries(csg_boltzmann votca_csg_boltzmann votca_csg)
+add_executable(csg_boltzmann ${CSG_BO_MAIN_SOURCES} $<TARGET_OBJECTS:votca_csg_boltzmann>)
+# for >=cmake-3.12: target_link_libraries(csg_boltzmann votca_csg_boltzmann) instead of TARGET_OBJECTS
+target_link_libraries(csg_boltzmann votca_csg)
 install(TARGETS csg_boltzmann EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 add_executable(VOTCA::csg_boltzmann ALIAS csg_boltzmann)
 
