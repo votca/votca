@@ -113,10 +113,14 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
 
   if (!check_eigenvalues) {
+    cout << "Lanczos not converged" << endl;
     cout << "Reference eigenvalues" << endl;
     cout << lambda_ref << endl;
     cout << "Lanczos eigenvalues" << endl;
     cout << lambda << endl;
+  }
+  else {
+    cout << "Lanczos converged in " << LS.num_iterations() << endl;
   }
 
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);

@@ -65,14 +65,14 @@ class LanczosSolver {
   Eigen::MatrixXd sort_eigenvectors(const Eigen::MatrixXd &evec, Eigen::ArrayXi &idx)
   {
     Eigen::MatrixXd outvec = Eigen::MatrixXd::Zero(evec.rows(),evec.cols());
-    for (int i=i;i<evec.cols();i++){
+    for (int i=0; i<evec.cols(); i++){
       outvec.col(i) = evec.col(idx(i));
     }
     return outvec;
   }
 
   void set_iter_max(int N) { this->_iter_max = N; }
-  
+    
   void set_tolerance(std::string tol) {
     if (tol == "loose")
       this->_tol = 1E-4;
@@ -119,14 +119,17 @@ class LanczosSolver {
       Eigen::MatrixXd _tmp_evec = eigs.eigenvectors().real();
       this->_eigenvectors = LanczosSolver::sort_eigenvectors(_tmp_evec,_tmp_idx);
        XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp() <<"\nLanczos diagonalization converged" << flush;
+        << TimeStamp() <<"\nLanczos diagonalization converged in " << eigs.num_iterations()
+         << flush;
     } else {
       XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() <<"\nLanczos diagonalization failed" << flush;
     }
-
+    _num_iterations = eigs.num_iterations();
     PrintTiming(start);
   }
+
+  int num_iterations() {return _num_iterations;}
 
  private:
   Logger &_log;
@@ -135,6 +138,7 @@ class LanczosSolver {
   Eigen::MatrixXd _eigenvectors;
   double _tol = 1E-6;
   int _iter_max = 1000;
+  int _num_iterations=0;
 
   Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
   

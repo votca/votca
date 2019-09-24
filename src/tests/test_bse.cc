@@ -467,7 +467,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
     cout << se_ref_btda << endl;
   }
   BOOST_CHECK_EQUAL(check_se_btda_mf, true);
-
+  
   // bool check_spsi_btda_mf = spsi_ref_btda.cwiseAbs2().isApprox(
   //     orbitals.BSESinglets().eigenvectors().cwiseAbs2(), 0.1);
   // if (!check_spsi_btda_mf) {

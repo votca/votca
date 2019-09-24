@@ -55,10 +55,11 @@ class HamiltonianOperator
 
   HamiltonianOperator(const MatrixReplacementA &A,
                       const MatrixReplacementB &B) 
-  : _A(A), _B(B), _size(2*A.cols())
+  : _A(A), _B(B) 
   { 
-    _diag = this->get_diagonal();
-  };
+    _size = 2*A.cols() ;
+    _diag = get_diagonal();
+   };
       
     
   class InnerIterator {
@@ -108,6 +109,10 @@ class HamiltonianOperator
 
   //  get a row of the operator
   Eigen::RowVectorXd row(int index) const {
+    /* Returna row of the operator 
+    H = [ A   B
+         -B* -A* ]
+    */
     int lsize = this->_size;
     int halfsize = lsize/2;
    
@@ -138,10 +143,9 @@ class HamiltonianOperator
 
   Eigen::VectorXd get_diagonal() const {
     Eigen::VectorXd diag = Eigen::VectorXd::Zero(_size);
-    Eigen::RowVectorXd r;
 #pragma omp parallel for
     for (int i=0; i < _size; i++) {
-      r = this->row(i);
+      Eigen::RowVectorXd r = row(i);
       diag(i) = r(i);
     }
     return diag;
@@ -152,7 +156,7 @@ class HamiltonianOperator
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
   
     for (int i = 0; i < _size; i++) {
-      matrix.row(i) = this->row(i);
+      matrix.row(i) = row(i);
     }
     return matrix;
   }
