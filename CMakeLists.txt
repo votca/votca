@@ -130,7 +130,3 @@ add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(share)
 
-option(BUILD_XTP_MANUAL "Build xtp-manual" OFF)
-if(BUILD_XTP_MANUAL)
-  add_subdirectory(manual)
-endif()
