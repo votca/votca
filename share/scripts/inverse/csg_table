@@ -110,13 +110,6 @@ update ibi_pot update_ibi_pot.pl
 
 # imc specific stuff
 update imc update_imc.sh
-imcsolver matlab solve_matlab.sh
-solve matlab linsolve.m
-imcsolver octave solve_octave.sh
-solve octave linsolve.octave
-imcsolver numpy solve_numpy.sh
-solve numpy linsolve.py
-
 imc purify imc_purify.sh
 
 # optimzer(generic) stuff

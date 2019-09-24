@@ -1,4 +1,4 @@
-foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_dlptopol csg_density)
+foreach(PROG csg_reupdate csg_map csg_dump csg_property csg_resample csg_stat csg_fmatch csg_imcrepack csg_gmxtopol csg_dlptopol csg_density csg_imc_solve)
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)
   add_executable(${PROG} ${${PROG}_SOURCES})
   target_link_libraries(${PROG} votca_csg)
@@ -111,7 +111,19 @@ if(ENABLE_TESTING)
   add_test(NAME integration_Compare_csg_stat-imc_output_2 COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 CG-CG.dist.new -f2 ${REFPATH}/CG-CG.dist.imc WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Compare_csg_stat-imc_output_2 PROPERTIES DEPENDS integration_Run_csg_stat-imc)
   set_tests_properties(integration_Compare_csg_stat-imc_output_2 PROPERTIES LABELS "csg;tools;votca;integration")
-  
+
+set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_imc_solve)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_imc_solve)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME integration_Run_csg_imc_solve
+    COMMAND csg_imc_solve -i ${REFPATH}/CG-CG.packed.imc -g ${REFPATH}/CG-CG.packed.gmc -o table_csg_imc_solve.dat
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_csg_imc_solve PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_imc_solve_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 table_csg_imc_solve.dat -f2 ${REFPATH}/CG-CG.packed.sol
+ WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_imc_solve_output PROPERTIES DEPENDS integration_Run_csg_imc_solve)
+  set_tests_properties(integration_Compare_csg_imc_solve_output PROPERTIES LABELS "csg;tools;votca;integration")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_resample)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_resample)
   file(MAKE_DIRECTORY ${RUNPATH})

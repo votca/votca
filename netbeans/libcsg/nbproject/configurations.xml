@@ -18,6 +18,8 @@
       <itemPath>../../src/tools/csg_fmatch.cc</itemPath>
       <itemPath>../../src/tools/csg_fmatch.h</itemPath>
       <itemPath>../../src/tools/csg_gmxtopol.cc</itemPath>
+      <itemPath>../../src/tools/csg_imc_solve.cc</itemPath>
+      <itemPath>../../src/tools/csg_imc_solve.h</itemPath>
       <itemPath>../../src/tools/csg_imcrepack.cc</itemPath>
       <itemPath>../../src/tools/csg_map.cc</itemPath>
       <itemPath>../../src/tools/csg_property.cc</itemPath>
@@ -744,6 +746,10 @@
       </item>
       <item path="../../src/tools/csg_gmxtopol.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tools/csg_imc_solve.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imc_solve.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../src/tools/csg_imcrepack.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/csg_map.cc" ex="false" tool="1" flavor2="0">
@@ -1328,6 +1334,10 @@
       <item path="../../src/tools/csg_fmatch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/tools/csg_gmxtopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imc_solve.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imc_solve.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/tools/csg_imcrepack.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -1914,6 +1924,10 @@
       <item path="../../src/tools/csg_fmatch.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/tools/csg_gmxtopol.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imc_solve.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tools/csg_imc_solve.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../src/tools/csg_imcrepack.cc" ex="false" tool="1" flavor2="0">
       </item>

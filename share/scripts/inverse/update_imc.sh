@@ -26,7 +26,6 @@ EOF
    exit 0
 fi
 
-solver=$(csg_get_property cg.inverse.imc.solver)
 sim_prog="$(csg_get_property cg.inverse.program)"
 do_external imc_stat $sim_prog
 
@@ -38,7 +37,7 @@ for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   msg "solving linear equations for imc group '$group'"
   critical csg_imcrepack --in ${group} --out ${group}.packed
-  do_external imcsolver $solver  ${group}.packed ${group}.packed.sol $reg
+  critical csg_imc_solve --imcfile "${group}.packed.imc" --gmcfile "${group}.packed.gmc" --regularization "${reg}" --outputfile "${group}.packed.sol"
   critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
 done
 

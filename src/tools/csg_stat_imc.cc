@@ -593,13 +593,13 @@ void Imc::WriteIMCData(const string &suffix) {
     // build full set of equations + copy some data to make
     // code better to read
     group_matrix gmc(grp->_corr);
-    Eigen::VectorXd dS(n);
-    Eigen::VectorXd r(n);
+    tools::Table dS;
+    dS.resize(n);
     // the next two variables are to later extract the individual parts
     // from the whole data after solving equations
-    vector<votca::tools::RangeParser> ranges;  // sizes of the individual
-                                               // interactions
-    vector<string> names;                      // names of the interactions
+    vector<std::pair<std::string, votca::tools::RangeParser> >
+        ranges;  // names of the interactions & sizes of the individual
+                 // interactions
 
     // copy all averages+r of group to one vector
     n = 0;
@@ -608,11 +608,11 @@ void Imc::WriteIMCData(const string &suffix) {
 
       // sub vector for dS
       Eigen::VectorBlock<Eigen::VectorXd> sub_dS =
-          dS.segment(n, ic->_average.getNBins());
+          dS.y().segment(n, ic->_average.getNBins());
 
       // sub vector for r
       Eigen::VectorBlock<Eigen::VectorXd> sub_r =
-          r.segment(n, ic->_average.getNBins());
+          dS.x().segment(n, ic->_average.getNBins());
 
       // read in target and calculate dS
       CalcDeltaS(ic, sub_dS);
@@ -624,10 +624,10 @@ void Imc::WriteIMCData(const string &suffix) {
       votca::tools::RangeParser rp;
       int end = begin + ic->_average.getNBins() - 1;
       rp.Add(begin, end);
-      ranges.push_back(rp);
+      ranges.push_back(std::pair<std::string, votca::tools::RangeParser>(
+          ic->_p->get("name").as<string>(), rp));
       begin = end + 1;
       // save name
-      names.push_back(ic->_p->get("name").as<string>());
 
       // shift subrange by size of current
       n += ic->_average.getNBins();
@@ -655,9 +655,9 @@ void Imc::WriteIMCData(const string &suffix) {
       gmc.block(j, i, n2, n1) = M.transpose().eval();
     }
 
-    imcio_write_dS(grp_name + suffix + ".imc", r, dS);
+    imcio_write_dS(grp_name + suffix + ".imc", dS);
     imcio_write_matrix(grp_name + suffix + ".gmc", gmc);
-    imcio_write_index(grp_name + suffix + ".idx", names, ranges);
+    imcio_write_index(grp_name + suffix + ".idx", ranges);
   }
 }
 
