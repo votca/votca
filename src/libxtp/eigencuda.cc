@@ -168,14 +168,11 @@ Mat EigenCuda::triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
   check_available_memory_in_gpu(size_A + size_B + size_C + size_W + size_Z);
 
   // Intermediate Matrices
-  CudaMatrix B{alloc_matrix_in_gpu(size_B), B.rows(), B.cols()};
+  CudaMatrix B{copy_matrix_to_gpu(matrix), matrix.rows(), matrix.cols()};
   CudaMatrix W{alloc_matrix_in_gpu(size_W), A.rows(), matrix.cols()};
   CudaMatrix Z{alloc_matrix_in_gpu(size_Z), A.rows(), C.cols()};
 
   Mat result = Mat::Zero(A.rows(), C.cols());
-  // transfer matrix to GPU
-  checkCuda(cudaMemcpyAsync(B.ptr(), matrix.data(), size_B,
-                            cudaMemcpyHostToDevice, _stream));
 
   // Call the first tensor matrix multiplication
   gemm(A, B, W);

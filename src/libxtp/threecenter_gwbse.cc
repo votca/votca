@@ -84,6 +84,10 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   _dftbasis = &dftbasis;
   _dft_orbitals = &dft_orbitals;
 
+  #if defined(USE_CUDA)
+    auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
+  #endif
+
   // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)  // private(_block)
   for (int is = 0; is < gwbasis.getNumofShells(); is++) {
@@ -96,8 +100,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // multiplication with _dft_orbitals )
     std::vector<Eigen::MatrixXd> symmstorage =
         ComputeSymmStorage(shell, dftbasis, dft_orbitals);
-    FillBlock(block, symmstorage, shell, dft_orbitals);
-
+    #if defined(USE_CUDA)
+        FillBlockCUDA(block, symmstorage, cuda_matrices);
+    #else
+        FillBlock(block, symmstorage, shell, dft_orbitals);
+    #endif
     // put into correct position
     for (int m_level = 0; m_level < _mtotal; m_level++) {
       _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
@@ -115,6 +122,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   return;
 }
 
+/*
+ * Determines the 3-center integrals for a given shell in the GW basis
+ * by calculating the 3-center overlap integral of the functions in the
+ * GW shell with ALL functions in the DFT basis set (FillThreeCenterOLBlock)
+ */
 std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
     const AOShell& auxshell, const AOBasis& dftbasis,
     const Eigen::MatrixXd& dft_orbitals) const {
@@ -165,6 +177,10 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
   return symmstorage;
 }
 
+/*
+ *  Convolution of the GW shell with ALL functions with the DFT orbital
+ * coefficients
+ */
 void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
                                const std::vector<Eigen::MatrixXd>& symmstorage,
                                const AOShell& auxshell,
@@ -201,6 +217,29 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
 }
 
 #if defined(USE_CUDA)
+/*
+ *  Convolution of the GW shell with ALL functions with the DFT orbital
+ * coefficients using an Nvidia GPU
+ */
+void TCMatrix_gwbse::FillBlockCUDA(
+    std::vector<Eigen::MatrixXd>& block,
+    const std::vector<Eigen::MatrixXd>& symmstorage,
+    const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices) {
+
+  EigenCuda cuda_handle;
+
+  for (long int k = 0; k < symmstorage.size(); ++k) {
+    const Eigen::MatrixXd& matrix = symmstorage[k];
+    Eigen::MatrixXd threec_inMo = cuda_handle.triple_matrix_mult(
+        cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
+        cuda_matrices.second);
+    for (int i = 0; i < threec_inMo.cols(); ++i) {
+      block[i].col(k) = threec_inMo.col(i);
+    }
+  }
+  return;
+}
+
 std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
     const Eigen::MatrixXd& dft_orbitals) {
   EigenCuda cuda_handle;
