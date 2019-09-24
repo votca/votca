@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef _CUBICSPLINE_H
-#define _CUBICSPLINE_H
+#ifndef VOTCA_TOOLS_CUBICSPLINE_H
+#define VOTCA_TOOLS_CUBICSPLINE_H
 
 #include "spline.h"
 #include <iostream>
@@ -369,4 +369,4 @@ inline double CubicSpline::D_prime_r(int i) {
 }  // namespace tools
 }  // namespace votca
 
-#endif /* _CUBICSPLINE_H */
+#endif /* VOTCA_TOOLS_CUBICSPLINE_H */

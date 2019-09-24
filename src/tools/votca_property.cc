@@ -88,13 +88,6 @@ class VotcaProperty : public Application {
         cout << "format " << format << " not supported \n";
       }
 
-      // PropertyIOManipulator XML(PropertyIOManipulator::XML,0,"---");
-      // cout << XML << p;
-      // cout << TXT << p;
-      // cout << T2T << p;
-      // cout << LOG << p;
-      // cout << TEX << p;
-
     } catch (std::exception& error) {
       cerr << "an error occurred:\n" << error.what() << endl;
     }

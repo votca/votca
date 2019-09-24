@@ -21,19 +21,19 @@
 namespace votca {
 namespace tools {
 
-ostream& operator<<(ostream& out, DataCollection<double>::selection& sel) {
+std::ostream& operator<<(std::ostream& out,
+                         DataCollection<double>::selection& sel) {
   if (sel.empty()) {
-    out << "-- empty selection --" << endl;
+    out << "-- empty selection --" << std::endl;
     return out;
   }
 
-  stringstream s;
-  int written;
+  std::stringstream s;
   for (size_t i = 0;; ++i) {
     s.clear();
     s.str("");
-    s.setf(ios::scientific);
-    written = 0;
+    s.setf(std::ios::scientific);
+    int written = 0;
     for (size_t j = 0; j < sel.size(); j++) {
       if (i >= sel[j].size()) {
         s << " -";
@@ -43,7 +43,7 @@ ostream& operator<<(ostream& out, DataCollection<double>::selection& sel) {
       s << " " << (double)sel[j][i];
     }
     if (written == 0) return out;
-    out << i << s.str() << endl;
+    out << i << s.str() << std::endl;
   }
   return out;
 }
