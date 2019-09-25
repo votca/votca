@@ -109,19 +109,23 @@ class LanczosSolver {
     //solve
     eigs.init();
     int nconv = eigs.compute(_iter_max, _tol);
-    
+
     if (eigs.info() == Spectra::SUCCESSFUL)
     {
       this->_eigenvalues = eigs.eigenvalues().real();
-      std::sort(_eigenvalues.data(),_eigenvalues.data()+_eigenvalues.size());
-    
-      Eigen::ArrayXi _tmp_idx = LanczosSolver::argsort(_eigenvalues);
-      Eigen::MatrixXd _tmp_evec = eigs.eigenvectors().real();
-      this->_eigenvectors = LanczosSolver::sort_eigenvectors(_tmp_evec,_tmp_idx);
+
+      if (nev > 1) {
+        std::sort(_eigenvalues.data(),_eigenvalues.data()+_eigenvalues.size());
+        Eigen::ArrayXi _tmp_idx = LanczosSolver::argsort(_eigenvalues);
+        Eigen::MatrixXd _tmp_evec = eigs.eigenvectors().real();
+        this->_eigenvectors = LanczosSolver::sort_eigenvectors(_tmp_evec,_tmp_idx);
+      }
        XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() <<"\nLanczos diagonalization converged in " << eigs.num_iterations()
          << flush;
     } else {
+      this->_eigenvalues = Eigen::VectorXd::Zero(neigen);
+      this->_eigenvectors = Eigen::MatrixXd::Zero(op_size,neigen);
       XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() <<"\nLanczos diagonalization failed" << flush;
     }

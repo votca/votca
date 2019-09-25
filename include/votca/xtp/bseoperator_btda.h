@@ -122,21 +122,16 @@ class HamiltonianOperator
     {
 
       Eigen::RowVectorXd a = this->_A.row(index);
-      Eigen::RowVectorXd b = this->_B.row(index);
+      Eigen::RowVectorXd b = this->_B.row(index);    
+      row_out.head(halfsize) = a;
+      row_out.tail(halfsize) = b;
 
-      for (int j = 0; j < halfsize; j++) {
-          row_out(j) = a(j);
-          row_out(j+halfsize) = b(j);
-      }
     } else {
 
       Eigen::RowVectorXd a = this->_A.row(index-halfsize);
-      Eigen::RowVectorXd b = this->_B.row(index-halfsize);
-
-      for (int j = 0; j < halfsize; j++) {
-          row_out(j) = -b(j);
-          row_out(j+halfsize) = -a(j);
-      }
+      Eigen::RowVectorXd b = this->_B.row(index-halfsize);    
+      row_out.head(halfsize) = -b;
+      row_out.tail(halfsize) = -a;
     }
     return row_out;
   }
