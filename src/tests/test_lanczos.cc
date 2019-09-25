@@ -115,7 +115,7 @@ BOOST_AUTO_TEST_CASE(lanczos_matrix_free) {
   if (!check_eigenvalues) {
     cout << "Lanczos not converged" << endl;
     cout << "Reference eigenvalues" << endl;
-    cout << lambda_ref << endl;
+    cout << lambda_ref.head(neigen) << endl;
     cout << "Lanczos eigenvalues" << endl;
     cout << lambda << endl;
   }

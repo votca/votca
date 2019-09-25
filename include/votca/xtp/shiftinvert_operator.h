@@ -57,9 +57,25 @@ public:
   // shift invert operation
   void perform_op(const double *x_in, double *y_out)
   {
+    std::cout << " __ __ perform_op"  << std::endl;
     Eigen::Map<const Eigen::VectorXd> x(x_in,_size);
     Eigen::Map<Eigen::VectorXd> y(y_out,_size);
+
     y.noalias() = linear_solver.solve(x);
+    
+    //Eigen::VectorXd guess = Eigen::VectorXd::Zero(_size);
+    //guess = x.array() / _Aop.diagonal().array();
+    //y.noalias() = linear_solver.solveWithGuess(x,guess);
+    
+    if (linear_solver.info() == Eigen::Success) {
+      std::cout << " __ __ done in " << linear_solver.iterations() 
+        << " iterations" << std::endl;
+    } else {
+      std::cout << " __ __ not converged after" << linear_solver.iterations() 
+        << " iterations" << std::endl;
+      std::runtime_error("shift invert linear system did not converge");
+    }
+
   }
 
 private:
@@ -68,6 +84,7 @@ private:
   double _lambda;
   int _size;
   Eigen::BiCGSTAB<MatrixReplacement> linear_solver;
+  //Eigen::ConjugateGradient<MatrixReplacement, Eigen::Lower|Eigen::Upper> linear_solver;
 
 };
 

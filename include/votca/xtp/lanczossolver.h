@@ -96,7 +96,7 @@ class LanczosSolver {
     ShiftInvertOperator<MatrixReplacement> sinv_op(A);
 
     // convergence criteria
-    Eigen::Index ncv = 3*neigen;
+    Eigen::Index ncv = 20;
     Eigen::Index nev = neigen;
 
     // simga

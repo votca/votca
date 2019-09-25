@@ -115,7 +115,6 @@ class HamiltonianOperator
     */
     int lsize = this->_size;
     int halfsize = lsize/2;
-   
     Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);
 
     if (index < halfsize)
@@ -133,6 +132,7 @@ class HamiltonianOperator
       row_out.head(halfsize) = -b;
       row_out.tail(halfsize) = -a;
     }
+
     return row_out;
   }
 
@@ -146,6 +146,8 @@ class HamiltonianOperator
     return diag;
   }
 
+  Eigen::VectorXd diagonal() const {return _diag;}
+  
   // get the full matrix if we have to
   Eigen::MatrixXd get_full_matrix() const {
     Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(_size, _size);
