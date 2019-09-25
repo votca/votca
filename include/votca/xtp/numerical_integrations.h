@@ -59,7 +59,7 @@ class NumericalIntegration {
 
   Gyrationtensor IntegrateGyrationTensor(const Eigen::MatrixXd& density_matrix);
 
-  Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix);
+  Mat_p_Energy IntegrateVXC(const Eigen::MatrixXd& density_matrix) const;
 
  private:
   struct XC_entry {
