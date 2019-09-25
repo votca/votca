@@ -74,7 +74,7 @@ uniq_double EigenCuda::alloc_matrix_in_gpu(size_t size_matrix) const {
   return dev_ptr;
 }
 
-uniq_double EigenCuda::copy_matrix_to_gpu(const Mat &matrix) const {
+uniq_double EigenCuda::copy_matrix_to_gpu(const Eigen::MatrixXd &matrix) const {
   // allocate memory in the device
   size_t size_matrix = matrix.size() * sizeof(double);
   uniq_double dev_ptr = alloc_matrix_in_gpu(size_matrix);
@@ -110,12 +110,12 @@ void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
 /*
  * \brief Perform a Tensor3D matrix multiplication
  */
-std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
-    const std::vector<Mat> &tensor, const Mat &B) const {
+void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &&tensor,
+                                         const Eigen::MatrixXd &B) const {
   int batchCount = tensor.size();
 
   // First submatrix from the tensor
-  const Mat &submatrix = tensor[0];
+  const Eigen::MatrixXd &submatrix = tensor[0];
 
   // sizes of the matrices to allocated in the device
   size_t size_A = submatrix.size() * sizeof(double);
@@ -131,7 +131,8 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
   CudaMatrix matrixB{std::move(dB), B.rows(), B.cols()};
   CudaMatrix matrixC{std::move(dC), submatrix.rows(), B.cols()};
 
-  std::vector<Mat> result(batchCount, Mat::Zero(submatrix.rows(), B.cols()));
+  std::vector<Eigen::MatrixXd> result(
+      batchCount, Eigen::MatrixXd::Zero(submatrix.rows(), B.cols()));
 
   // Call tensor matrix multiplication
   for (auto i = 0; i < batchCount; i++) {
@@ -143,19 +144,21 @@ std::vector<Mat> EigenCuda::right_matrix_tensor_mult(
     gemm(matrixA, matrixB, matrixC);
 
     // Copy the result to the host
-    double *hout = result[i].data();
+    // double *hout = result[i].data();
+    double *hout = tensor[i].data();
     checkCuda(cudaMemcpyAsync(hout, matrixC.ptr(), size_C,
                               cudaMemcpyDeviceToHost, _stream));
   }
 
-  return result;
+  // return std::move(result);
 }
 
 /*
  * \brief performs a matrix_1 * matrix2 * matrix_2 multiplication
  */
-Mat EigenCuda::triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
-                                  const CudaMatrix &C) const {
+Eigen::MatrixXd EigenCuda::triple_matrix_mult(const CudaMatrix &A,
+                                              const Eigen::MatrixXd &matrix,
+                                              const CudaMatrix &C) const {
 
   // sizes of the matrices to allocated in the device
   size_t size_A = A.size() * sizeof(double);
@@ -172,7 +175,7 @@ Mat EigenCuda::triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
   CudaMatrix W{alloc_matrix_in_gpu(size_W), A.rows(), matrix.cols()};
   CudaMatrix Z{alloc_matrix_in_gpu(size_Z), A.rows(), C.cols()};
 
-  Mat result = Mat::Zero(A.rows(), C.cols());
+  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(A.rows(), C.cols());
 
   // Call the first tensor matrix multiplication
   gemm(A, B, W);

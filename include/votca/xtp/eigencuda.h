@@ -38,10 +38,6 @@
 namespace votca {
 namespace xtp {
 
-// col Major for CUDA
-using Mat =
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
-
 // Unique pointer with custom delete function
 using uniq_double = std::unique_ptr<double, void (*)(double *)>;
 
@@ -89,15 +85,16 @@ class EigenCuda {
   EigenCuda &operator=(const EigenCuda &) = delete;
 
   // Allocate memory for a matrix and copy it to the device
-  uniq_double copy_matrix_to_gpu(const Mat &matrix) const;
+  uniq_double copy_matrix_to_gpu(const Eigen::MatrixXd &matrix) const;
 
   // Perform a multiplication between a matrix and a tensor
-  std::vector<Mat> right_matrix_tensor_mult(const std::vector<Mat> &tensor,
-                                            const Mat &A) const;
+  void right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &&tensor,
+                                const Eigen::MatrixXd &A) const;
 
   // Perform matrix1 * matrix2 * matrix3 multiplication
-  Mat triple_matrix_mult(const CudaMatrix &A, const Mat &matrix,
-                         const CudaMatrix &C) const;
+  Eigen::MatrixXd triple_matrix_mult(const CudaMatrix &A,
+                                     const Eigen::MatrixXd &matrix,
+                                     const CudaMatrix &C) const;
 
  private:
   void check_available_memory_in_gpu(size_t required) const;

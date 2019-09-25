@@ -34,12 +34,12 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   Z << 55., 82., 63., 94., 71., 106.;
 
   std::vector<Eigen::MatrixXd> tensor{B, C, D};
-  std::vector<Eigen::MatrixXd> rs = EC.right_matrix_tensor_mult(tensor, A);
+  EC.right_matrix_tensor_mult(std::move(tensor), A);
 
   // Expected results
-  BOOST_TEST(X.isApprox(rs[0]));
-  BOOST_TEST(Y.isApprox(rs[1]));
-  BOOST_TEST(Z.isApprox(rs[2]));
+  BOOST_TEST(X.isApprox(tensor[0]));
+  BOOST_TEST(Y.isApprox(tensor[1]));
+  BOOST_TEST(Z.isApprox(tensor[2]));
 }
 
 BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   EigenCuda EC;
   std::vector<Eigen::MatrixXd> tensor{B};
   try {
-    EC.right_matrix_tensor_mult(tensor, A);
+    EC.right_matrix_tensor_mult(std::move(tensor), A);
   } catch (const std::runtime_error& error) {
     std::string error_msg = error.what();
     std::string reason = "an illegal value";
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(triple_matrix_multiplication) {
   CudaMatrix matrixA{std::move(dev_A), 2, 2};
   CudaMatrix matrixC{std::move(dev_C), 3, 2};
 
-  Mat result = cuda_handle.triple_matrix_mult(matrixA, B, matrixC);
+  Eigen::MatrixXd result = cuda_handle.triple_matrix_mult(matrixA, B, matrixC);
   BOOST_TEST(X.isApprox(result));
 }
 
