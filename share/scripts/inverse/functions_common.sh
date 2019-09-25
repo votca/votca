@@ -885,6 +885,7 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
     cg.non-bonded.inverse.espresso.index1 cg.non-bonded.inverse.espresso.index2 cg.inverse.espresso.success \
     cg.inverse.espresso.scriptdir cg.non-bonded.inverse.post_update_options.kbibi.type \
     cg.inverse.imc.numpy.bin cg.inverse.imc.octave.bin cg.inverse.imc.matlab.bin cg.inverse.imc.solver \
+    cg.non-bonded.inverse.imc.reg \
     ; do
     [[ -z "$(csg_get_property --allow-empty $i)" ]] && continue #filter me away
     new=""
@@ -909,6 +910,8 @@ check_for_obsolete_xml_options() { #check xml file for obsolete options
 	new="${i}.type";;
       cg.inverse.convergence_check_options.limit)
         new="cg.inverse.convergence_check.limit";;
+      cg.non-bonded.inverse.imc.reg)
+        new="cg.inverse.imc.<group>.reg";;
     esac
     [[ -n $new ]] && new="has been renamed to $new" || new="has been removed"
     die "${FUNCNAME[0]}: The xml option $i $new\nPlease remove the obsolete options from the xmlfile"
