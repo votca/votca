@@ -84,9 +84,9 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   _dftbasis = &dftbasis;
   _dft_orbitals = &dft_orbitals;
 
-  #if defined(USE_CUDA)
-    auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
-  #endif
+#if defined(USE_CUDA)
+  auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
+#endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
 #pragma omp parallel for schedule(guided)  // private(_block)
@@ -100,11 +100,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // multiplication with _dft_orbitals )
     std::vector<Eigen::MatrixXd> symmstorage =
         ComputeSymmStorage(shell, dftbasis, dft_orbitals);
-    #if defined(USE_CUDA)
-        FillBlockCUDA(block, symmstorage, cuda_matrices);
-    #else
-        FillBlock(block, symmstorage, shell, dft_orbitals);
-    #endif
+#if defined(USE_CUDA)
+    FillBlockCUDA(block, symmstorage, cuda_matrices);
+#else
+    FillBlock(block, symmstorage, dft_orbitals);
+#endif
     // put into correct position
     for (int m_level = 0; m_level < _mtotal; m_level++) {
       _matrix[m_level].block(0, shell.getStartIndex(), _ntotal,
@@ -183,7 +183,6 @@ std::vector<Eigen::MatrixXd> TCMatrix_gwbse::ComputeSymmStorage(
  */
 void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
                                const std::vector<Eigen::MatrixXd>& symmstorage,
-                               const AOShell& auxshell,
                                const Eigen::MatrixXd& dft_orbitals) {
 
   const Eigen::MatrixXd dftm =
@@ -191,7 +190,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
-  for (int k = 0; k < auxshell.getNumFunc(); ++k) {
+  for (long int k = 0; k < symmstorage.size(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;

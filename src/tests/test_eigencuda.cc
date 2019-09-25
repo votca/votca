@@ -59,4 +59,26 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
     }
   }
 }
+
+BOOST_AUTO_TEST_CASE(triple_matrix_multiplication) {
+  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 2);
+  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(2, 3);
+  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(3, 2);
+  Eigen::MatrixXd X = Eigen::MatrixXd::Zero(2, 2);
+  A << 1., 2., 3., 4.;
+  B << 5., 6., 7., 8., 9., 10.;
+  C << 9., 10., 11., 12., 13., 14.;
+  X << 804., 876., 1810., 1972.;
+
+  EigenCuda cuda_handle;
+  uniq_double dev_A = cuda_handle.copy_matrix_to_gpu(A);
+  uniq_double dev_C = cuda_handle.copy_matrix_to_gpu(C);
+
+  CudaMatrix matrixA{std::move(dev_A), 2, 2};
+  CudaMatrix matrixC{std::move(dev_C), 3, 2};
+
+  Mat result = cuda_handle.triple_matrix_mult(matrixA, B, matrixC);
+  BOOST_TEST(X.isApprox(result));
+}
+
 BOOST_AUTO_TEST_SUITE_END()

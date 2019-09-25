@@ -133,7 +133,7 @@ class TCMatrix_gwbse : public TCMatrix {
 
   void FillBlock(std::vector<Eigen::MatrixXd>& matrix,
                  const std::vector<Eigen::MatrixXd>& symmstorage,
-                 const AOShell& auxshell, const Eigen::MatrixXd& dft_orbitals);
+                 const Eigen::MatrixXd& dft_orbitals);
 
   void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
 
