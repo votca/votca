@@ -35,7 +35,6 @@ is_num "${default_reg}" || die "${0##*/}: value of cg.inverse.imc.default_reg sh
 imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
-reg="$(csg_get_interaction_property --all inverse.imc.reg)"
 for group in $imc_groups; do
   # currently this is a hack! need to create combined array
   reg="$(csg_get_property cg.inverse.imc.${group}.reg ${default_reg})" #filter me away
