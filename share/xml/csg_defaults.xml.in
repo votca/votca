@@ -260,6 +260,9 @@
     </hoomd-blue>
     <imc>
       <DESC> general imc specific options </DESC>
+      <default_reg>0
+        <DESC> default magnitude for regularization parameter if not given for the group explicitly, default =0</DESC>
+      </default_reg>
     </imc>
     <lammps>
       <DESC> general lammps specific options </DESC>
@@ -538,9 +541,6 @@
         <group>
           <DESC>Group of interaction. Cross-correlations of all members of a group are taken into account for calculating the update. If no cross correlations should be calculated, interactions have to be put into different groups.</DESC>
         </group>
-        <reg>0
-          <DESC> magnitude for regularization parameter, default =0</DESC>
-        </reg>
       </imc>
       <lammps>
         <DESC>lammps specific options for this interations</DESC>
