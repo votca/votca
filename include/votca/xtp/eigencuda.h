@@ -63,8 +63,10 @@ class CudaMatrix {
   int cols() const { return _cols; };
   double *ptr() const { return _ptr.get(); };
 
-  CudaMatrix(uniq_double &&ptr, int nrows, int ncols)
-      : _ptr{std::move(ptr)}, _rows{nrows}, _cols{ncols} {}
+  CudaMatrix(uniq_double &&ptr, long int nrows, long int ncols)
+      : _ptr{std::move(ptr)},
+        _rows{static_cast<int>(nrows)},
+        _cols{static_cast<int>(ncols)} {}
 
  private:
   uniq_double _ptr;
