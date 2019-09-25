@@ -190,7 +190,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
-  for (long unsigned k = 0; k < symmstorage.size(); ++k) {
+  for (auto k = 0; k < symmstorage.size(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo =
         dftn.transpose() * matrix.selfadjointView<Eigen::Lower>() * dftm;
@@ -227,7 +227,7 @@ void TCMatrix_gwbse::FillBlockCUDA(
 
   EigenCuda cuda_handle;
 
-  for (long unsigned k = 0; k < symmstorage.size(); ++k) {
+  for (auto k = 0; k < symmstorage.size(); ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
     Eigen::MatrixXd threec_inMo = cuda_handle.triple_matrix_mult(
         cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
