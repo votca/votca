@@ -132,8 +132,5 @@
     <iterations_max>20</iterations_max>
     <!-- ibi: inverse biltzmann imc: inverse monte carlo -->
     <method>imc</method>
-    <imc>		   
-      <solver>numpy</solver>
-    </imc>
   </inverse>
 </cg>
