@@ -149,8 +149,6 @@ void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &&tensor,
     checkCuda(cudaMemcpyAsync(hout, matrixC.ptr(), size_C,
                               cudaMemcpyDeviceToHost, _stream));
   }
-
-  // return std::move(result);
 }
 
 /*
