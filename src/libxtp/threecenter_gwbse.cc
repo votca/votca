@@ -84,6 +84,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   _dftbasis = &dftbasis;
   _dft_orbitals = &dft_orbitals;
 
+  // If cuda is enabled the dft basis is sent first to the cuda device
 #if defined(USE_CUDA)
   auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
 #endif
@@ -100,9 +101,12 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // multiplication with _dft_orbitals )
     std::vector<Eigen::MatrixXd> symmstorage =
         ComputeSymmStorage(shell, dftbasis, dft_orbitals);
+
+    // If cuda is enable each OpenMP Perform the convolution in the cuda device
 #if defined(USE_CUDA)
     FillBlockCUDA(block, symmstorage, cuda_matrices);
 #else
+    // Otherwise the convolution is performed by Eigen
     FillBlock(block, symmstorage, dft_orbitals);
 #endif
     // put into correct position
