@@ -39,27 +39,20 @@ EigenCuda::~EigenCuda() {
  * Check if the available memory is enough to compute the system
  */
 void EigenCuda::check_available_memory_in_gpu(size_t requested_memory) const {
-  // Use Unified memory
-  size_t *free, *total;
-  cudaMallocManaged(&free, sizeof(size_t));
-  cudaMallocManaged(&total, sizeof(size_t));
-  checkCuda(cudaMemGetInfo(free, total));
+  size_t free, total;
+  checkCuda(cudaMemGetInfo(&free, &total));
 
   std::ostringstream oss;
   oss << "There were requested : " << requested_memory
       << "bytes int the device\n";
-  oss << "Device Free memory (bytes): " << *free
-      << "\nDevice total Memory (bytes): " << *total << "\n";
+  oss << "Device Free memory (bytes): " << free
+      << "\nDevice total Memory (bytes): " << total << "\n";
 
   // Raise an error if there is not enough total or free memory in the device
-  if (requested_memory > *free) {
+  if (requested_memory > free) {
     oss << "There is not enough memory in the Device!\n";
     throw std::runtime_error(oss.str());
   }
-
-  // Release memory
-  cudaFree(free);
-  cudaFree(total);
 }
 
 /*
