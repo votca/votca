@@ -8,9 +8,19 @@
 #include <votca/xtp/davidsonsolver.h>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/matrixfreeoperator.h>
+#include <votca/xtp/bseoperator_btda.h>
 
 using namespace votca::xtp;
 using namespace std;
+
+
+Eigen::MatrixXd symm_matrix(int N, double eps) {
+  Eigen::MatrixXd matrix;
+  matrix = eps * Eigen::MatrixXd::Random(N, N);
+  Eigen::MatrixXd tmat = matrix.transpose();
+  matrix = matrix + tmat;
+  return matrix;
+}
 
 Eigen::MatrixXd init_matrix(int N, double eps) {
   Eigen::MatrixXd matrix;
@@ -23,6 +33,7 @@ Eigen::MatrixXd init_matrix(int N, double eps) {
   }
   return matrix;
 }
+
 
 BOOST_AUTO_TEST_SUITE(davidson_test)
 
@@ -123,5 +134,138 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
 
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 }
+
+
+Eigen::VectorXd sort_ev(Eigen::VectorXd ev)
+{
+
+  int nev = ev.rows();
+  int npos = nev/2;
+
+  Eigen::VectorXd ev_pos = Eigen::VectorXd::Zero(npos);
+  int nstored = 0;
+
+  // get only positives
+  for (int i=0; i<nev; i++) {
+    if (ev(i) > 0) {
+      ev_pos(nstored) = ev(i);
+      nstored ++;
+    }
+  }
+  
+  // sort the epos eigenvalues
+  std::sort(ev_pos.data(), ev_pos.data() + ev_pos.size());
+  return ev_pos;
+}
+
+class BlockOperator: public MatrixFreeOperator {
+ public:
+  BlockOperator(double alpha) : _alpha(alpha) {};
+
+  void attach_matrix(const Eigen::MatrixXd &mat);
+  Eigen::RowVectorXd row(int index) const;
+  void set_diag(int diag);
+  Eigen::VectorXd diag_el;
+
+ private:
+  int _diag;
+  int _alpha;
+  Eigen::MatrixXd _mat;
+};
+
+void BlockOperator::attach_matrix(const Eigen::MatrixXd &mat) {
+  _mat = mat;
+}
+
+//  get a col of the operator
+Eigen::RowVectorXd BlockOperator::row(int index) const {
+  return _mat.row(index);
+}
+
+
+// void BlockOperator::set_diag(int diag) {
+//   int lsize = this->size();
+//   diag_el = Eigen::VectorXd::Zero(lsize);
+//   if (diag == 1) {
+//     for (int i = 0; i < lsize; i++) {
+//       diag_el(i) = static_cast<double>(1. + (std::rand() % 1000) / 10. );
+//     }
+//   }
+
+//   if (diag == 0) {
+//     diag_el = Eigen::VectorXd::Random(lsize);
+//   }
+// }
+
+// //  get a col of the operator
+// Eigen::RowVectorXd BlockOperator::row(int index) const {
+//   int lsize = this->size();
+//   Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);
+//   for (int j = 0; j < lsize; j++) {
+//     if (j == index) {
+//       row_out(j) = diag_el(j);
+//     } else {
+//       row_out(j) = _alpha / std::pow(static_cast<double>(j - index), 2);
+//     }
+//   }
+//   return row_out;
+// }
+
+
+BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
+
+  std::cout <<  "\n Start Hamiltonian case" << std::endl;
+
+  int size = 60;
+  int neigen = 5;
+  Logger log;
+
+  // Create Operator
+  BlockOperator Rop(0.01);
+  Rop.set_size(size);
+  Eigen::MatrixXd rmat = init_matrix(size,0.01);
+  Rop.attach_matrix(rmat);
+  
+
+  BlockOperator Cop(0.005);
+  Cop.set_size(size);
+  Eigen::MatrixXd cmat = symm_matrix(size,0.01);
+  Cop.attach_matrix(cmat);
+
+// create Hamiltonian operator
+  HamiltonianOperator<BlockOperator,BlockOperator> Hop(Rop,Cop);
+
+  DavidsonSolver DS(log);
+  DS.set_tolerance("normal");
+  DS.set_size_update("max");
+  //DS.set_ortho("QR");
+  DS.set_iter_max(5);
+  DS.set_matrix_type("HAM");
+  DS.solve(Hop, neigen);
+  auto lambda = DS.eigenvalues().real();
+  std::sort(lambda.data(), lambda.data() + lambda.size());  
+
+  Eigen::MatrixXd H = Hop.get_full_matrix();
+  Eigen::EigenSolver<Eigen::MatrixXd> es(H);
+  auto lambda_ref = sort_ev(es.eigenvalues().real());
+
+  
+  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
+
+  if (!check_eigenvalues) {
+    cout << "Davidson not converged" << endl;
+    cout << "Reference eigenvalues" << endl;
+    cout << lambda_ref.head(neigen) << endl;
+    cout << "Davidson eigenvalues" << endl;
+    cout << lambda << endl;
+  }
+  else {
+    cout << "Davidson converged in " << endl;
+  }
+
+  BOOST_CHECK_EQUAL(check_eigenvalues, 1);
+
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

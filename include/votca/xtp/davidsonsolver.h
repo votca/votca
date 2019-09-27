@@ -51,6 +51,7 @@ class DavidsonSolver {
   void set_correction(std::string method);
   void set_ortho(std::string method);
   void set_size_update(std::string method);
+  void set_matrix_type(std::string mt);
 
   Eigen::ComputationInfo info() const { return _info; }
 
@@ -93,6 +94,7 @@ class DavidsonSolver {
     Eigen::MatrixXd V = SetupInitialEigenvectors(Adiag, size_initial_guess);
     Eigen::MatrixXd q;
     Eigen::MatrixXd U;
+    Eigen::VectorXd lambda;
     Eigen::MatrixXd AV;
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " iter\tSearch Space\tNorm" << flush;
@@ -132,9 +134,29 @@ class DavidsonSolver {
       }
 
       // diagonalize the small subspace
-      Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
-      const Eigen::VectorXd &lambda = es.eigenvalues();
-      U = es.eigenvectors();
+      switch (this->_matrix_type) {
+        case TYPE::SYMM: {
+          Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> es(T);
+          lambda = es.eigenvalues();
+          U = es.eigenvectors();
+          break;
+        }
+        case TYPE::HAM: {
+
+          Eigen::EigenSolver<Eigen::MatrixXd> es(T);
+          lambda = es.eigenvalues().real();
+          U = es.eigenvectors().real();
+
+          Eigen::ArrayXi reorder_idx = 
+            index_window(lambda,size_update,0.0,0.25);
+          lambda = reorder_idx.unaryExpr(lambda);
+          U = extract_eigenvectors(U, reorder_idx);  
+          U.colwise().normalize();
+          break;  
+        }
+      }
+      
+    
       q = V * U;  // Ritz vectors
       Eigen::MatrixXd r =
           AV * U - q * lambda.asDiagonal();  // compute residual=A*Q - lambda Q
@@ -147,13 +169,18 @@ class DavidsonSolver {
           continue;
         }
         nupdate++;
+
         res_norm[j] = r.col(j).norm();
+        
+      
         // residue vector
         Eigen::VectorXd w =
             ComputeCorrectionVector(Adiag, q.col(j), lambda(j), r.col(j));
+
         // append the correction vector to the search space
         V.conservativeResize(Eigen::NoChange, V.cols() + 1);
         V.rightCols<1>() = w.normalized();
+
         // track converged root
         root_converged[j] = (res_norm[j] < _tol);
       }
@@ -182,8 +209,10 @@ class DavidsonSolver {
       if (converged || last_iter) {
 
         // store the eigenvalues/eigenvectors
-        this->_eigenvalues = lambda.head(neigen);
-        this->_eigenvectors = q.leftCols(neigen);
+        Eigen::ArrayXi idx = index_window(lambda,neigen,0,0);
+        this->_eigenvalues = idx.unaryExpr(lambda);
+        this->_eigenvectors = extract_eigenvectors(q, idx);
+
         this->_eigenvectors.colwise().normalize();
         if (last_iter && !converged) {
           XTP_LOG_SAVE(logDEBUG, _log)
@@ -228,6 +257,9 @@ class DavidsonSolver {
   enum ORTHO { GS, QR };
   ORTHO _davidson_ortho = ORTHO::GS;
 
+  enum TYPE { SYMM, HAM };  
+  TYPE _matrix_type = TYPE::SYMM;
+
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
   Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
@@ -243,6 +275,12 @@ class DavidsonSolver {
 
   Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
   Eigen::MatrixXd SetupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
+
+  Eigen::ArrayXi index_window(const Eigen::VectorXd &V, 
+    int size_update, double target_min_val, double perc_below) const;
+
+  Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V, 
+    const Eigen::ArrayXi &idx) const;
 
   Eigen::MatrixXd QR_ortho(const Eigen::MatrixXd &A) const;
   Eigen::MatrixXd gramschmidt_ortho(const Eigen::MatrixXd &A, int nstart);

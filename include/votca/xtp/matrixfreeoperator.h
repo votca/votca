@@ -36,9 +36,11 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
     IsRowMajor = false
   };
 
+
   Index rows() const { return this->_size; }
   Index cols() const { return this->_size; }
   Index outerSize() const { return this->_size; }
+  
 
   template <typename Vtype>
   Eigen::Product<MatrixFreeOperator, Vtype, Eigen::AliasFreeProduct> operator*(
@@ -55,9 +57,10 @@ class MatrixFreeOperator : public Eigen::EigenBase<Eigen::MatrixXd> {
 
   // extract row/col of the operator
   virtual Eigen::RowVectorXd row(int index) const = 0;
-
+  
  private:
-  int _size;
+  int _size;  
+
 };
 }  // namespace xtp
 }  // namespace votca

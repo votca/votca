@@ -93,6 +93,16 @@ void DavidsonSolver::PrintOptions(int op_size) const {
       << TimeStamp() << " Matrix size : " << op_size << 'x' << op_size << flush;
 }
 
+void DavidsonSolver::set_matrix_type(std::string mt) {
+  if (mt == "HAM")
+    this->_matrix_type = TYPE::HAM;
+  else if (mt == "SYMM")
+    this->_matrix_type = TYPE::SYMM;
+  else
+    throw std::runtime_error(
+        mt + " is not a valid Davidson matrix type");
+}
+
 void DavidsonSolver::set_ortho(std::string method) {
   if (method == "GS")
     this->_davidson_ortho = ORTHO::GS;
@@ -169,15 +179,73 @@ Eigen::ArrayXi DavidsonSolver::argsort(const Eigen::VectorXd &V) const {
 Eigen::MatrixXd DavidsonSolver::SetupInitialEigenvectors(
     Eigen::VectorXd &d, int size_initial_guess) const {
 
-  /* \brief Initialize the guess eigenvector so that they 'target' the lowest
-   * diagonal elements */
   Eigen::MatrixXd guess = Eigen::MatrixXd::Zero(d.size(), size_initial_guess);
   Eigen::ArrayXi idx = DavidsonSolver::argsort(d);
 
-  for (int j = 0; j < size_initial_guess; j++) {
-    guess(idx(j), j) = 1.0;
-  }
+  switch (this->_matrix_type) {
+    case TYPE::SYMM:
+      /* \brief Initialize the guess eigenvector so that they 'target' the lowest
+       * diagonal elements */
+      for (int j = 0; j < size_initial_guess; j++) {
+        guess(idx(j), j) = 1.0;
+      }
+      break;
+
+    case TYPE::HAM:
+      /* Initialize the guess eigenvector so that they 'target' the lowest
+       * positive diagonal elements */
+        int ind0 = d.size()/2;
+        int shift = size_initial_guess/4;
+      for (int j = 0; j < size_initial_guess; j++) {
+        guess(idx(ind0-shift+j), j) = 1.0;
+      }
+      break;
+    }
   return guess;
+}
+
+Eigen::ArrayXi DavidsonSolver::index_window(const Eigen::VectorXd &V, 
+    int size_update, double target_min_val, double perc_below) const {
+
+  //std::cout << "__ index window : vector \n" << V << std::endl;
+
+  double min_val = 1E12;
+  int index_min = -1;
+  int n = V.size();
+  Eigen::ArrayXi idx = Eigen::ArrayXi::Zero(size_update);
+
+
+  // reorder
+  Eigen::ArrayXi isort = argsort(V);
+  //std::cout << "__ index window : isort \n" << isort << std::endl;  
+
+  // index of lowest element closed to 0
+  for (int i=0; i < n; i++) {
+    if ( (V(isort(i)) > target_min_val) && ( V(isort(i)) < min_val) ) {
+      min_val = V(isort(i));
+      index_min = i;
+    }
+  }
+
+  // index of the element we want in size update
+  int shift = size_update*perc_below;
+  int index_start = index_min - shift;
+  if (index_start < 0)
+    index_start = 0;
+  for (int i=0; i<size_update; i++) {
+    idx(i) = isort(index_start+i);
+  }
+
+  return idx;
+}
+
+Eigen::MatrixXd DavidsonSolver::extract_eigenvectors(const Eigen::MatrixXd &V, 
+    const Eigen::ArrayXi &idx) const {
+  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(),idx.size());
+  for (int i=0; i < idx.size(); i++) {
+    W.col(i) = V.col(idx(i));
+  }
+  return W;
 }
 
 Eigen::VectorXd DavidsonSolver::dpr_correction(const Eigen::VectorXd &r,

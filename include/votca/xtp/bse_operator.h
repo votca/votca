@@ -42,7 +42,7 @@ class BSE_OPERATOR : public MatrixFreeOperator {
  public:
   BSE_OPERATOR(const Eigen::VectorXd& Hd_operator, const TCMatrix_gwbse& Mmn,
                const Eigen::MatrixXd& Hqp)
-      : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp){};
+      : _epsilon_0_inv(Hd_operator), _Mmn(Mmn), _Hqp(Hqp) {};
 
   void configure(BSEOperator_Options opt) {
     _opt = opt;
