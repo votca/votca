@@ -26,7 +26,6 @@
 #include <votca/xtp/threecenter.h>
 #include <Eigen/IterativeLinearSolvers>
 
-
 namespace votca {
   namespace xtp {
 
@@ -84,8 +83,7 @@ private:
   double _lambda;
   int _size;
   Eigen::BiCGSTAB<MatrixReplacement> linear_solver;
-  //Eigen::ConjugateGradient<MatrixReplacement, Eigen::Lower|Eigen::Upper> linear_solver;
-
+  
 };
 
 }  // namespace xtp

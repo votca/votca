@@ -73,8 +73,8 @@ class HamiltonianOperator
     }
     operator bool() const {
       return _row < _xpr._size;
-    }  // DO not use the size method, it returns linear dimension*linear
-       // dimension i.e _size^2
+    }  
+    
     double value() const { return _xpr(_row, _id); }
     Eigen::Index row() const { return _row; }
     Eigen::Index col() const { return _id; }
