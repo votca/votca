@@ -58,7 +58,8 @@ class DavidsonSolver {
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
   Eigen::MatrixXd residues() const { return this->_res; }
-
+  int num_iterations() const { return this->_num_iter; }
+  
   template <typename MatrixReplacement>
   void solve(const MatrixReplacement &A, int neigen,
              int size_initial_guess = 0) {
@@ -227,9 +228,11 @@ class DavidsonSolver {
         Eigen::ArrayXi idx = index_window(lambda,neigen,0,0);
         this->_eigenvalues = idx.unaryExpr(lambda);
         this->_eigenvectors = extract_eigenvectors(q, idx);
+        this->_eigenvectors.colwise().normalize();
         this->_res = idx.unaryExpr(res_norm);
 
-        this->_eigenvectors.colwise().normalize();
+        this->_num_iter = iiter;
+
         if (last_iter && !converged) {
           XTP_LOG_SAVE(logDEBUG, _log)
               << TimeStamp() << "- Warning : Davidson " << percent_converged
@@ -261,6 +264,7 @@ class DavidsonSolver {
  private:
   Logger &_log;
   int _iter_max = 50;
+  int _num_iter = 0;
   double _tol = 1E-4;
   int _max_search_space = 1000;
 

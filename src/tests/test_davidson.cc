@@ -244,23 +244,22 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   Eigen::MatrixXd H = Hop.get_full_matrix();
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
-  auto lambda_ref = es.eigenvalues().real();
-  auto lambda_ref_so = sort_ev(es.eigenvalues().real());
-
-  
-  bool check_eigenvalues = lambda.isApprox(lambda_ref_so.head(neigen), 1E-6);
+  auto lambda_ref = sort_ev(es.eigenvalues().real());
+  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
 
   if (!check_eigenvalues) {
-    cout << "Davidson not converged" << endl;
+    cout << "Davidson not converged after " << DS.num_iterations() 
+      << " iterations" << endl;
     cout << "Reference eigenvalues" << endl;
-    cout << lambda_ref_so.head(neigen) << endl;
+    cout << lambda_ref.head(neigen) << endl;
     cout << "Davidson eigenvalues" << endl;
     cout << lambda << endl;
     cout << "Residue norms" << endl;
     cout << DS.residues() << endl;
   }
   else {
-    cout << "Davidson converged" << endl;
+    cout << "Davidson converged in "  << DS.num_iterations() 
+      << " iterations" << endl;
   }
 
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
