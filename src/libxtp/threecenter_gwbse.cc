@@ -84,7 +84,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
   _dftbasis = &dftbasis;
   _dft_orbitals = &dft_orbitals;
 
-  // If cuda is enabled the dft basis is sent first to the cuda device
+  // If cuda is enabled the dft orbitals are sent first to the cuda device
 #if defined(USE_CUDA)
   auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
 #endif
