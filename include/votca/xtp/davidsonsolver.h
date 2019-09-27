@@ -163,6 +163,7 @@ class DavidsonSolver {
 
       Eigen::ArrayXd res_norm = Eigen::ArrayXd::Zero(size_update);
       int nupdate = 0;
+
       for (int j = 0; j < size_update; j++) {
         // skip the root that have already converged
         if (root_converged[j]) {
@@ -172,7 +173,6 @@ class DavidsonSolver {
 
         res_norm[j] = r.col(j).norm();
         
-      
         // residue vector
         Eigen::VectorXd w =
             ComputeCorrectionVector(Adiag, q.col(j), lambda(j), r.col(j));
@@ -200,12 +200,26 @@ class DavidsonSolver {
 
       // update
       search_space = V.cols();
-      bool converged = (res_norm.head(neigen) < _tol).all();
+
+      // coverged
+      bool converged;
+      switch (this->_matrix_type){
+        case TYPE::SYMM: {
+           converged = (res_norm.head(neigen) < _tol).all();
+        }
+        case TYPE::HAM: {
+          Eigen::ArrayXi idx = index_window(lambda,neigen,0,0);
+          converged = (idx.unaryExpr(res_norm) < _tol).all();
+        }
+      }
+
       if (converged) {
         _info = Eigen::ComputationInfo::Success;
       }
+
       bool last_iter = iiter == (_iter_max - 1);
-      // break if converged
+
+      // break if converged or last
       if (converged || last_iter) {
 
         // store the eigenvalues/eigenvectors

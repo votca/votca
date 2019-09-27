@@ -214,8 +214,6 @@ Eigen::RowVectorXd BlockOperator::row(int index) const {
 
 BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
-  std::cout <<  "\n Start Hamiltonian case" << std::endl;
-
   int size = 60;
   int neigen = 5;
   Logger log;
@@ -229,7 +227,7 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   BlockOperator Cop(0.005);
   Cop.set_size(size);
-  Eigen::MatrixXd cmat = symm_matrix(size,0.01);
+  Eigen::MatrixXd cmat = symm_matrix(size,0.005);
   Cop.attach_matrix(cmat);
 
 // create Hamiltonian operator
@@ -239,7 +237,6 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DS.set_tolerance("normal");
   DS.set_size_update("max");
   //DS.set_ortho("QR");
-  DS.set_iter_max(5);
   DS.set_matrix_type("HAM");
   DS.solve(Hop, neigen);
   auto lambda = DS.eigenvalues().real();
@@ -260,7 +257,7 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
     cout << lambda << endl;
   }
   else {
-    cout << "Davidson converged in " << endl;
+    cout << "Davidson converged" << endl;
   }
 
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
