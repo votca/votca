@@ -88,7 +88,7 @@ class EigenCuda {
   uniq_double copy_matrix_to_gpu(const Eigen::MatrixXd &matrix) const;
 
   // Perform a multiplication between a matrix and a tensor
-  void right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &&tensor,
+  void right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
                                 const Eigen::MatrixXd &A) const;
 
   // Perform matrix1 * matrix2 * matrix3 multiplication

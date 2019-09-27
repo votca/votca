@@ -103,7 +103,7 @@ void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
 /*
  * \brief Perform a Tensor3D matrix multiplication
  */
-void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &&tensor,
+void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
                                          const Eigen::MatrixXd &B) const {
   int batchCount = tensor.size();
 

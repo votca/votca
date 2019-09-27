@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   Z << 55., 82., 63., 94., 71., 106.;
 
   std::vector<Eigen::MatrixXd> tensor{B, C, D};
-  EC.right_matrix_tensor_mult(std::move(tensor), A);
+  EC.right_matrix_tensor_mult(tensor, A);
 
   // Expected results
   BOOST_TEST(X.isApprox(tensor[0]));
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   EigenCuda EC;
   std::vector<Eigen::MatrixXd> tensor{B};
   try {
-    EC.right_matrix_tensor_mult(std::move(tensor), A);
+    EC.right_matrix_tensor_mult(tensor, A);
   } catch (const std::runtime_error& error) {
     std::string error_msg = error.what();
     std::string reason = "an illegal value";

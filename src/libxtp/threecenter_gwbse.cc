@@ -55,7 +55,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 #if defined(USE_CUDA)
   EigenCuda cuda_handle;
   try {
-    cuda_handle.right_matrix_tensor_mult(std::move(_matrix), matrix);
+    cuda_handle.right_matrix_tensor_mult(_matrix, matrix);
   } catch (const std::runtime_error& error) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp()
