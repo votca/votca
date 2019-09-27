@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   Rop.attach_matrix(rmat);
   
 
-  BlockOperator Cop(0.005);
+  BlockOperator Cop(0.01);
   Cop.set_size(size);
   Eigen::MatrixXd cmat = symm_matrix(size,0.005);
   Cop.attach_matrix(cmat);
@@ -236,7 +236,7 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   DavidsonSolver DS(log);
   DS.set_tolerance("normal");
   DS.set_size_update("max");
-  //DS.set_ortho("QR");
+  DS.set_ortho("QR");
   DS.set_matrix_type("HAM");
   DS.solve(Hop, neigen);
   auto lambda = DS.eigenvalues().real();
@@ -244,17 +244,20 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   Eigen::MatrixXd H = Hop.get_full_matrix();
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
-  auto lambda_ref = sort_ev(es.eigenvalues().real());
+  auto lambda_ref = es.eigenvalues().real();
+  auto lambda_ref_so = sort_ev(es.eigenvalues().real());
 
   
-  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
+  bool check_eigenvalues = lambda.isApprox(lambda_ref_so.head(neigen), 1E-6);
 
   if (!check_eigenvalues) {
     cout << "Davidson not converged" << endl;
     cout << "Reference eigenvalues" << endl;
-    cout << lambda_ref.head(neigen) << endl;
+    cout << lambda_ref_so.head(neigen) << endl;
     cout << "Davidson eigenvalues" << endl;
     cout << lambda << endl;
+    cout << "Residue norms" << endl;
+    cout << DS.residues() << endl;
   }
   else {
     cout << "Davidson converged" << endl;

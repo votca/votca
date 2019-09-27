@@ -57,6 +57,7 @@ class DavidsonSolver {
 
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
+  Eigen::MatrixXd residues() const { return this->_res; }
 
   template <typename MatrixReplacement>
   void solve(const MatrixReplacement &A, int neigen,
@@ -226,6 +227,7 @@ class DavidsonSolver {
         Eigen::ArrayXi idx = index_window(lambda,neigen,0,0);
         this->_eigenvalues = idx.unaryExpr(lambda);
         this->_eigenvectors = extract_eigenvectors(q, idx);
+        this->_res = idx.unaryExpr(res_norm);
 
         this->_eigenvectors.colwise().normalize();
         if (last_iter && !converged) {
@@ -276,6 +278,8 @@ class DavidsonSolver {
 
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
+  Eigen::VectorXd _res;
+
   Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
   int get_size_update(int neigen) const;
 
