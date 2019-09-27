@@ -130,6 +130,19 @@ if(ENABLE_TESTING)
   set_tests_properties(integration_Compare_csg_imc_solve_output PROPERTIES DEPENDS integration_Run_csg_imc_solve)
   set_tests_properties(integration_Compare_csg_imc_solve_output PROPERTIES LABELS "csg;tools;votca;integration")
 
+  set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_imc_solve_reg)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/LJ1-LJ2)
+  file(MAKE_DIRECTORY ${RUNPATH})
+  add_test(NAME integration_Run_csg_imc_solve_reg
+    COMMAND csg_imc_solve -r 1000 -i ${REFPATH}/group_1.packed.imc -g ${REFPATH}/group_1.packed.gmc -o group_1.packed.sol
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Run_csg_imc_solve_reg PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_imc_solve_reg_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> 
+    --etol ${REGRESSIONTEST_TOLERANCE} -f1 group_1.packed.sol -f2 ${REFPATH}/group_1.packed.sol
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output PROPERTIES LABELS "csg;tools;votca;integration")
+
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_repack)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/LJ1-LJ2)
   file(MAKE_DIRECTORY ${RUNPATH})
