@@ -3,9 +3,6 @@
 #  SPECTRA_FOUND         - System has SPECTRA
 #  SPECTRA_INCLUDE_DIRS  - The SPECTRA include directories
 
-set(SPECTRA_INCLUDE_DIR "/home/nicolas/Document/spectra/include/")
-
-
 if (SPECTRA_INCLUDE_DIR)
   # in cache already
   set(SPECTRA_FOUND TRUE)

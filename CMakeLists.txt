@@ -40,15 +40,11 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-
-
-
 ########################################################################
 # User input options                                                   #
 ########################################################################
 
 find_package(LIBXC REQUIRED)
-find_package(SPECTRA REQUIRED)
 find_package(HDF5 1.8 REQUIRED COMPONENTS CXX)
 
 if (${HDF5_VERSION} GREATER 1.8)
@@ -65,6 +61,22 @@ if(ENABLE_TESTING)
   enable_testing()
 endif(ENABLE_TESTING)
 
+########################################################################
+#Include External projects
+########################################################################
+include(ExternalProject)
+
+set(EXTERNAL_INSTALL_LOCATION )
+
+ExternalProject_Add(spectra
+  URL https://github.com/yixuan/spectra/archive/v0.8.1.tar.gz
+  PREFIX  ${CMAKE_BINARY_DIR}/spectra
+  CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
+  )
+
+ExternalProject_Get_Property(spectra source_dir)
+set(SPECTRA_INCLUDE_DIR ${source_dir}/include)
+find_package(SPECTRA REQUIRED)
 ########################################################################
 #Find external packages
 ########################################################################
