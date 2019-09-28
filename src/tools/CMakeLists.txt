@@ -119,13 +119,13 @@ if(ENABLE_TESTING)
   set_tests_properties(integration_Compare_csg_stat-imc_output_4 PROPERTIES LABELS "csg;tools;votca;integration")
 
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_imc_solve)
-  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/csg_imc_solve)
+  set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/spce/imc)
   file(MAKE_DIRECTORY ${RUNPATH})
   add_test(NAME integration_Run_csg_imc_solve
-    COMMAND csg_imc_solve -i ${REFPATH}/CG-CG.packed.imc -g ${REFPATH}/CG-CG.packed.gmc -o table_csg_imc_solve.dat
+    COMMAND csg_imc_solve -i ${REFPATH}/CG-CG.imc -g ${REFPATH}/CG-CG.gmc -o table_csg_imc_solve.dat
     WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_csg_imc_solve PROPERTIES LABELS "csg;tools;votca;integration")
-  add_test(NAME integration_Compare_csg_imc_solve_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 table_csg_imc_solve.dat -f2 ${REFPATH}/CG-CG.packed.sol
+  add_test(NAME integration_Compare_csg_imc_solve_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> --etol ${REGRESSIONTEST_TOLERANCE} -f1 table_csg_imc_solve.dat -f2 ${REFPATH}/CG-CG.sol
  WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Compare_csg_imc_solve_output PROPERTIES DEPENDS integration_Run_csg_imc_solve)
   set_tests_properties(integration_Compare_csg_imc_solve_output PROPERTIES LABELS "csg;tools;votca;integration")
