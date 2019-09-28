@@ -114,10 +114,14 @@ endforeach(FUNC)
 if(NOT TARGET manpages)
   add_custom_target(manpages ALL)
 endif()
-add_subdirectory(scripts)
 add_subdirectory(src)
+add_subdirectory(scripts)
 add_subdirectory(include/votca/csg)
 add_subdirectory(share)
+
+# needs to happen after src and scripts subdir
+get_property(VOTCA_BINARIES TARGET votca_csg PROPERTY BINARIES)
+configure_file(src/libcsg/VOTCA_CSGConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/src/libcsg/VOTCA_CSGConfig.cmake" @ONLY)
 
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall-csg COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)

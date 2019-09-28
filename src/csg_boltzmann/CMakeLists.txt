@@ -9,6 +9,7 @@ target_link_libraries(votca_csg_boltzmann votca_csg)
 add_executable(csg_boltzmann ${CSG_BO_MAIN_SOURCES})
 target_link_libraries(csg_boltzmann votca_csg_boltzmann votca_csg)
 install(TARGETS csg_boltzmann EXPORT VOTCA_CSG_Targets RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+set_property(TARGET votca_csg APPEND PROPERTY BINARIES "csg_boltzmann")
 add_executable(VOTCA::csg_boltzmann ALIAS csg_boltzmann)
 
 if (TXT2TAGS_FOUND AND BASH)
