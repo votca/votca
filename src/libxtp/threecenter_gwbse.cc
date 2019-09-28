@@ -53,9 +53,9 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
 #if defined(USE_CUDA)
-  EigenCuda cuda_handle;
+  EigenCuda cudaHandle;
   try {
-    cuda_handle.right_matrix_tensor_mult(_matrix, matrix);
+    cudaHandle.right_matrix_tensor_mult(_matrix, matrix);
   } catch (const std::runtime_error& error) {
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp()
@@ -86,8 +86,8 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
   // If cuda is enabled the dft orbitals are sent first to the cuda device
 #if defined(USE_CUDA)
-  EigenCuda cuda_handle;
-  auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals, cuda_handle);
+  EigenCuda cudaHandle;
+  auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals, cudaHandle);
 #endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
@@ -105,7 +105,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
     // If cuda is enable each OpenMP Perform the convolution in the cuda device
 #if defined(USE_CUDA)
-    FillBlockCUDA(block, symmstorage, cuda_matrices);
+    FillBlockCUDA(block, symmstorage, cuda_matrices, cudaHandle);
 #else
     // Otherwise the convolution is performed by Eigen
     FillBlock(block, symmstorage, dft_orbitals);
@@ -229,14 +229,13 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
 void TCMatrix_gwbse::FillBlockCUDA(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
-    const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices) {
-
-  EigenCuda cuda_handle;
+    const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices,
+    const EigenCuda& cudaHandle) {
 
   int dim = static_cast<int>(symmstorage.size());
   for (int k = 0; k < dim; ++k) {
     const Eigen::MatrixXd& matrix = symmstorage[k];
-    Eigen::MatrixXd threec_inMo = cuda_handle.triple_matrix_mult(
+    Eigen::MatrixXd threec_inMo = cudaHandle.triple_matrix_mult(
         cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
         cuda_matrices.second);
     for (int i = 0; i < threec_inMo.cols(); ++i) {
@@ -247,15 +246,15 @@ void TCMatrix_gwbse::FillBlockCUDA(
 }
 
 std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
-    const Eigen::MatrixXd& dft_orbitals, const EigenCuda& cuda_handle) const {
+    const Eigen::MatrixXd& dft_orbitals, const EigenCuda& cudaHandle) const {
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
   // Pointers to the cuda arrays
-  uniq_double dev_dftnT = cuda_handle.copy_matrix_to_gpu(dftn.transpose());
-  uniq_double dev_dftm = cuda_handle.copy_matrix_to_gpu(dftm);
+  uniq_double dev_dftnT = cudaHandle.copy_matrix_to_gpu(dftn.transpose());
+  uniq_double dev_dftm = cudaHandle.copy_matrix_to_gpu(dftm);
 
   CudaMatrix matrixA{std::move(dev_dftnT), dftn.cols(), dftn.rows()};
   CudaMatrix matrixB{std::move(dev_dftm), dftm.rows(), dftm.cols()};

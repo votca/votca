@@ -143,11 +143,12 @@ class TCMatrix_gwbse : public TCMatrix {
 
 #if defined(USE_CUDA)
   std::pair<CudaMatrix, CudaMatrix> SendDFTMatricesToGPU(
-      const Eigen::MatrixXd& dft_orbitals, const EigenCuda& cuda_handle) const;
+      const Eigen::MatrixXd& dft_orbitals, const EigenCuda& cudaHandle) const;
 
   void FillBlockCUDA(std::vector<Eigen::MatrixXd>& block,
                      const std::vector<Eigen::MatrixXd>& symmstorage,
-                     const std::pair<CudaMatrix, CudaMatrix>& cudaMatrices);
+                     const std::pair<CudaMatrix, CudaMatrix>& cudaMatrices,
+                     const EigenCuda& cudaHandle);
 
 #endif
 };
