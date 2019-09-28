@@ -28,6 +28,6 @@ _votca_csg_common_opts()
 
 complete -F _votca_csg_common_opts -f \
 csg_boltzmann  csg_dump     csg_gmxtopol   csg_inverse  csg_resample \
-csg_call       csg_fmatch   csg_imcrepack  csg_map      csg_property   csg_stat \
+csg_call       csg_fmatch   csg_imc_solve  csg_map      csg_property   csg_stat \
 csg_density    csg_reupdate csg_dlptopol
 
