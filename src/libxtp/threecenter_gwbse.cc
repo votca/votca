@@ -86,7 +86,8 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
   // If cuda is enabled the dft orbitals are sent first to the cuda device
 #if defined(USE_CUDA)
-  auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
+  EigenCuda cuda_handle;
+  auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals, cuda_handle);
 #endif
 
   // loop over all shells in the GW basis and get _Mmn for that shell
@@ -246,8 +247,7 @@ void TCMatrix_gwbse::FillBlockCUDA(
 }
 
 std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
-    const Eigen::MatrixXd& dft_orbitals) {
-  EigenCuda cuda_handle;
+    const Eigen::MatrixXd& dft_orbitals, const EigenCuda& cuda_handle) const {
   const Eigen::MatrixXd dftm =
       dft_orbitals.block(0, _mmin, dft_orbitals.rows(), _mtotal);
   const Eigen::MatrixXd dftn =
