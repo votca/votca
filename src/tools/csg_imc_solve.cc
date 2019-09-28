@@ -38,6 +38,9 @@ void CG_IMC_solve::Initialize(void) {
   AddProgramOptions()("gmcfile,g", boost::program_options::value<std::string>(),
                       "gmc statefile");
 
+  AddProgramOptions()("idxfile,n", boost::program_options::value<std::string>(),
+                      "[OPTIONAL] idx statefile");
+
   AddProgramOptions()("outputfile,o",
                       boost::program_options::value<std::string>(),
                       "outputfile");
@@ -104,4 +107,19 @@ void CG_IMC_solve::Run() {
   x.y() = -inverse * A.transpose() * B.y();
 
   x.Save(outputfile);
+
+  if (OptionsMap().count("idxfile")) {
+    std::string idxfile = _op_vm["idxfile"].as<std::string>();
+    std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
+        votca::csg::imcio_read_index(idxfile);
+    votca::tools::Table tbl_in;
+    tbl_in.Load(outputfile);
+    for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {
+      votca::tools::Table tbl;
+      for (int r : range.second) {
+        tbl.push_back(tbl_in.x(r - 1), tbl_in.y(r - 1), 'i');
+      }
+      tbl.Save(range.first + ".dpot.imc");
+    }
+  }
 }

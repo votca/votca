@@ -134,7 +134,8 @@ if(ENABLE_TESTING)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/LJ1-LJ2)
   file(MAKE_DIRECTORY ${RUNPATH})
   add_test(NAME integration_Run_csg_imc_solve_reg
-    COMMAND csg_imc_solve -r 1000 -i ${REFPATH}/group_1.packed.imc -g ${REFPATH}/group_1.packed.gmc -o group_1.packed.sol
+    COMMAND csg_imc_solve -r 1000 -i ${REFPATH}/group_1.packed.imc -g ${REFPATH}/group_1.packed.gmc
+                          -n ${REFPATH}/group_1.packed.idx -o group_1.packed.sol
     WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Run_csg_imc_solve_reg PROPERTIES LABELS "csg;tools;votca;integration")
   add_test(NAME integration_Compare_csg_imc_solve_reg_output COMMAND $<TARGET_FILE:VOTCA::votca_compare> 
@@ -142,6 +143,21 @@ if(ENABLE_TESTING)
     WORKING_DIRECTORY ${RUNPATH})
   set_tests_properties(integration_Compare_csg_imc_solve_reg_output PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
   set_tests_properties(integration_Compare_csg_imc_solve_reg_output PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_imc_solve_reg_output_2 COMMAND $<TARGET_FILE:VOTCA::votca_compare> 
+    --etol ${REGRESSIONTEST_TOLERANCE} -f1 LJ1-LJ1.dpot.imc -f2 ${REFPATH}/LJ1-LJ1.dpot.imc
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output_2 PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output_2 PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_imc_solve_reg_output_3 COMMAND $<TARGET_FILE:VOTCA::votca_compare> 
+    --etol ${REGRESSIONTEST_TOLERANCE} -f1 LJ1-LJ2.dpot.imc -f2 ${REFPATH}/LJ1-LJ2.dpot.imc
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output_3 PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output_3 PROPERTIES LABELS "csg;tools;votca;integration")
+  add_test(NAME integration_Compare_csg_imc_solve_reg_output_4 COMMAND $<TARGET_FILE:VOTCA::votca_compare> 
+    --etol ${REGRESSIONTEST_TOLERANCE} -f1 LJ2-LJ2.dpot.imc -f2 ${REFPATH}/LJ2-LJ2.dpot.imc
+    WORKING_DIRECTORY ${RUNPATH})
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output_4 PROPERTIES DEPENDS integration_Run_csg_imc_solve_reg)
+  set_tests_properties(integration_Compare_csg_imc_solve_reg_output_4 PROPERTIES LABELS "csg;tools;votca;integration")
 
   set(RUNPATH ${CMAKE_CURRENT_BINARY_DIR}/Run_csg_repack)
   set(REFPATH ${CMAKE_CURRENT_SOURCE_DIR}/references/LJ1-LJ2)
