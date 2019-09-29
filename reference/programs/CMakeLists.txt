@@ -5,8 +5,9 @@ add_custom_command(OUTPUT ${CURRENT_DIR}/config.t2t
 
 set(PROG_TEXS)
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${CURRENT_DIR}/all.tex.cmake)
-foreach(prog csg_boltzmann csg_call csg_density csg_dlptopol csg_dump csg_fmatch csg_gmxtopol csg_imc_solve csg_inverse
-  csg_map csg_property csg_resample csg_reupdate csg_stat)
+get_property(VOTCA_BINARIES TARGET VOTCA::votca_csg PROPERTY BINARIES)
+list(SORT VOTCA_BINARIES)
+foreach(prog ${VOTCA_BINARIES})
   add_custom_command(OUTPUT ${CURRENT_DIR}/${prog}.tex
     COMMAND VOTCASHARE=${CSG_SHARE} $<TARGET_FILE:VOTCA::${prog}> --help > ${CURRENT_DIR}/${prog}.help
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/${CURRENT_DIR}/help2t2t.sh ${prog} ${CURRENT_DIR}/${prog}.help
