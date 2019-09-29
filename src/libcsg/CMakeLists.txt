@@ -56,7 +56,6 @@ install(EXPORT VOTCA_CSG_Targets FILE VOTCA_CSG_Targets.cmake NAMESPACE VOTCA:: 
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file("VOTCA_CSGConfigVersion.cmake" VERSION ${PROJECT_VERSION} COMPATIBILITY ExactVersion)
-configure_file(VOTCA_CSGConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_CSGConfig.cmake" @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_CSGConfig.cmake" "${CMAKE_CURRENT_BINARY_DIR}/VOTCA_CSGConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/VOTCA_CSG)
 add_library(VOTCA::votca_csg ALIAS votca_csg)
 
