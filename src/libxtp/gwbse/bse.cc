@@ -219,7 +219,8 @@ tools::EigenSystem BSE::Solve_singlets_BTDA() const {
 
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    return Solve_nonhermitian_Lanczos(A, B); 
+    return Solve_nonhermitian_Davidson(A, B);     
+    //return Solve_nonhermitian_Lanczos(A, B); 
   } else {
     SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Hs_ApB);
@@ -365,6 +366,42 @@ tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
   result.eigenvectors() = LS.eigenvectors();
 
   Eigen::VectorXd _tmp_left = LS.eigenvectors();
+  _tmp_left.bottomRows(Bop.rows()) = -_tmp_left.bottomRows(Bop.rows());
+  result.eigenvectors2() = _tmp_left;
+
+  return result;
+}
+
+template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
+tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
+                                           BSE_OPERATOR_B& Bop) const {
+
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  std::chrono::time_point<std::chrono::system_clock> hstart, hend;
+  std::chrono::duration<double> elapsed_time;
+  start = std::chrono::system_clock::now();
+
+  // operator
+  HamiltonianOperator<BSE_OPERATOR_A,BSE_OPERATOR_B> Hop(Aop,Bop);
+  
+  // Davidson solver  
+  DavidsonSolver DS(_log);
+  DS.set_correction(_opt.davidson_correction);
+  DS.set_tolerance(_opt.davidson_tolerance);
+  DS.set_ortho("QR");
+  DS.set_size_update(_opt.davidson_update);
+  DS.set_iter_max(_opt.davidson_maxiter);
+  DS.set_max_search_space(10 * _opt.nmax);
+  DS.set_matrix_type("HAM");
+
+  DS.solve(Hop, _opt.nmax);
+
+  // results
+  tools::EigenSystem result;
+  result.eigenvalues() = DS.eigenvalues();
+  result.eigenvectors() = DS.eigenvectors();
+
+  Eigen::VectorXd _tmp_left = DS.eigenvectors();
   _tmp_left.bottomRows(Bop.rows()) = -_tmp_left.bottomRows(Bop.rows());
   result.eigenvectors2() = _tmp_left;
 

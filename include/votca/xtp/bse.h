@@ -118,6 +118,10 @@ class BSE {
   tools::EigenSystem Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
                                            BSE_OPERATOR_B& Bop) const;
 
+  template <typename BSE_OPERATOR_A, typename BSE_OPERATOR_B>
+  tools::EigenSystem Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
+                                           BSE_OPERATOR_B& Bop) const;
+
   void printFragInfo(const std::vector<QMFragment<BSE_Population> >& frags,
                      int state) const;
   void printWeights(int i_bse, double weight) const;

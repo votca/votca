@@ -105,7 +105,7 @@ class DavidsonSolver {
     for (int iiter = 0; iiter < _iter_max; iiter++) {
 
       Eigen::MatrixXd T;
-
+      
       // check if we need to restart
       bool restart_required =
           search_space > _max_search_space || search_space > op_size;
