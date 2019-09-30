@@ -225,7 +225,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
 #if defined(USE_CUDA)
 /*
  * Convolution of the GW shell with the DFT orbital coefficients using an Nvidia
- * GPU. The Cuda device behaves likes a server that is receiving matrix
+ * GPU. The Cuda device behaves like a server that is receiving matrix-matrix
  * multiplications from a single stream (an Nvidia queue) and handle them
  * in an asynchronous way. It performs the following operations when recieving a
  * request:
