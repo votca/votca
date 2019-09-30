@@ -16,7 +16,7 @@
 %latex is picky about $ and \_ in name of the label (1st bracket)
 
 %latex does not allow $ in label name, remove it 3 times
-%!preproc(tex): '(label|ref|target|l:ink)(\([^)]*)\$' '\1\2'
+%!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
 %!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
 %!preproc(tex): '(label|ref|target|link)(\([^)]*)\$' '\1\2'
 
