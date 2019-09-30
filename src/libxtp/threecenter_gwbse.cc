@@ -86,6 +86,7 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
   // If cuda is enabled the dft orbitals are sent first to the cuda device
 #if defined(USE_CUDA)
+  constexpr int MAXIMUM_GPU_STREAMS = 32;
   auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
 #endif
 
@@ -106,7 +107,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     // each thread matrix multiplication is sent to a single stream that behaves
     // as a queue
 #if defined(USE_CUDA)
-    FillBlockCUDA(block, symmstorage, cuda_matrices);
+    if (omp_get_thread_num() < MAXIMUM_GPU_STREAMS) {
+      FillBlockCUDA(block, symmstorage, cuda_matrices);
+    } else {
+      FillBlock(block, symmstorage, dft_orbitals);
+    }
 #else
     // Otherwise the convolution is performed by Eigen
     FillBlock(block, symmstorage, dft_orbitals);
@@ -235,6 +240,11 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
  *  4. return the result matrix
  * The Cuda device knows to which memory address it needs to copy back the
  * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
+ * The amount of memory allocated in the device for this operations is roughly:
+ *  `3 * number_of_threads * (basisfunction ^ 2) + 2 * (basisfunction ^ 2)`
+ *  Meaning that if 3500 basis occupied around 0.1GB then 32 threads will
+ * allocate almost 10GB in the worst case scenario. Typical Nvidia devices
+ * have memory in the range between 10 to 48 GBs.
  */
 void TCMatrix_gwbse::FillBlockCUDA(
     std::vector<Eigen::MatrixXd>& block,
@@ -242,14 +252,23 @@ void TCMatrix_gwbse::FillBlockCUDA(
     const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices) {
   EigenCuda cudaHandle;
   int dim = static_cast<int>(symmstorage.size());
-  for (int k = 0; k < dim; ++k) {
-    const Eigen::MatrixXd& matrix = symmstorage[k];
-    Eigen::MatrixXd threec_inMo = cudaHandle.triple_matrix_mult(
-        cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
-        cuda_matrices.second);
-    for (int i = 0; i < threec_inMo.cols(); ++i) {
-      block[i].col(k) = threec_inMo.col(i);
+  try {
+    for (int k = 0; k < dim; ++k) {
+      const Eigen::MatrixXd& matrix = symmstorage[k];
+      Eigen::MatrixXd threec_inMo = cudaHandle.triple_matrix_mult(
+          cuda_matrices.first, matrix.selfadjointView<Eigen::Lower>(),
+          cuda_matrices.second);
+      for (int i = 0; i < threec_inMo.cols(); ++i) {
+        block[i].col(k) = threec_inMo.col(i);
+      }
     }
+  } catch (const std::runtime_error& error) {
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " FillBlockCUDA failed due to: " << error.what()
+        << " If there is not enough memory in the Nvidia GPU, try decreasing "
+           "the number of OpenMP threads"
+        << flush;
+    throw;
   }
   return;
 }
