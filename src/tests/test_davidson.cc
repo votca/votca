@@ -160,7 +160,7 @@ Eigen::VectorXd sort_ev(Eigen::VectorXd ev)
 
 class BlockOperator: public MatrixFreeOperator {
  public:
-  BlockOperator(double alpha) : _alpha(alpha) {};
+  BlockOperator() {};
 
   void attach_matrix(const Eigen::MatrixXd &mat);
   Eigen::RowVectorXd row(int index) const;
@@ -183,35 +183,6 @@ Eigen::RowVectorXd BlockOperator::row(int index) const {
 }
 
 
-// void BlockOperator::set_diag(int diag) {
-//   int lsize = this->size();
-//   diag_el = Eigen::VectorXd::Zero(lsize);
-//   if (diag == 1) {
-//     for (int i = 0; i < lsize; i++) {
-//       diag_el(i) = static_cast<double>(1. + (std::rand() % 1000) / 10. );
-//     }
-//   }
-
-//   if (diag == 0) {
-//     diag_el = Eigen::VectorXd::Random(lsize);
-//   }
-// }
-
-// //  get a col of the operator
-// Eigen::RowVectorXd BlockOperator::row(int index) const {
-//   int lsize = this->size();
-//   Eigen::RowVectorXd row_out = Eigen::RowVectorXd::Zero(lsize);
-//   for (int j = 0; j < lsize; j++) {
-//     if (j == index) {
-//       row_out(j) = diag_el(j);
-//     } else {
-//       row_out(j) = _alpha / std::pow(static_cast<double>(j - index), 2);
-//     }
-//   }
-//   return row_out;
-// }
-
-
 BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   int size = 60;
@@ -219,15 +190,15 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
   Logger log;
 
   // Create Operator
-  BlockOperator Rop(0.01);
+  BlockOperator Rop;
   Rop.set_size(size);
   Eigen::MatrixXd rmat = init_matrix(size,0.01);
   Rop.attach_matrix(rmat);
   
 
-  BlockOperator Cop(0.01);
+  BlockOperator Cop;
   Cop.set_size(size);
-  Eigen::MatrixXd cmat = symm_matrix(size,0.005);
+  Eigen::MatrixXd cmat = symm_matrix(size,0.01);
   Cop.attach_matrix(cmat);
 
 // create Hamiltonian operator

@@ -151,7 +151,9 @@ class DavidsonSolver {
 
           Eigen::ArrayXi reorder_idx = 
             index_window(lambda,size_update,0.0,0.25);
+
           lambda = reorder_idx.unaryExpr(lambda);
+
           U = extract_eigenvectors(U, reorder_idx);  
           U.colwise().normalize();
           break;  
@@ -168,8 +170,10 @@ class DavidsonSolver {
 
       for (int j = 0; j < size_update; j++) {
         // skip the root that have already converged
-        if (root_converged[j]) {
-          continue;
+        if (this->_matrix_type == TYPE::SYMM) {
+          if (root_converged[j]) {
+            continue;
+          }
         }
         nupdate++;
 

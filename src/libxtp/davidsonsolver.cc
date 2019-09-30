@@ -207,17 +207,13 @@ Eigen::MatrixXd DavidsonSolver::SetupInitialEigenvectors(
 Eigen::ArrayXi DavidsonSolver::index_window(const Eigen::VectorXd &V, 
     int size_update, double target_min_val, double perc_below) const {
 
-  //std::cout << "__ index window : vector \n" << V << std::endl;
-
   double min_val = 1E12;
   int index_min = -1;
   int n = V.size();
   Eigen::ArrayXi idx = Eigen::ArrayXi::Zero(size_update);
 
-
-  // reorder
+  // reorder values in ascending order
   Eigen::ArrayXi isort = argsort(V);
-  //std::cout << "__ index window : isort \n" << isort << std::endl;  
 
   // index of lowest element closed to 0
   for (int i=0; i < n; i++) {
@@ -228,10 +224,12 @@ Eigen::ArrayXi DavidsonSolver::index_window(const Eigen::VectorXd &V,
   }
 
   // index of the element we want in size update
-  int shift = size_update*perc_below;
+  int shift = size_update * perc_below;
   int index_start = index_min - shift;
+
   if (index_start < 0)
     index_start = 0;
+
   for (int i=0; i<size_update; i++) {
     idx(i) = isort(index_start+i);
   }
