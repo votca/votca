@@ -103,7 +103,7 @@ class DavidsonSolver {
 
     // Start of the main iteration loop
     for (int iiter = 0; iiter < _iter_max; iiter++) {
-
+      
       Eigen::MatrixXd T;
       
       // check if we need to restart
@@ -227,14 +227,13 @@ class DavidsonSolver {
 
       // break if converged or last
       if (converged || last_iter) {
-
+        
         // store the eigenvalues/eigenvectors
         Eigen::ArrayXi idx = index_window(lambda,neigen,0,0);
         this->_eigenvalues = idx.unaryExpr(lambda);
         this->_eigenvectors = extract_eigenvectors(q, idx);
         this->_eigenvectors.colwise().normalize();
         this->_res = idx.unaryExpr(res_norm);
-
         this->_num_iter = iiter;
 
         if (last_iter && !converged) {

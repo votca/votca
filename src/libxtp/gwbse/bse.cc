@@ -364,11 +364,10 @@ tools::EigenSystem BSE::Solve_nonhermitian_Lanczos(BSE_OPERATOR_A& Aop,
   // results
   tools::EigenSystem result;
   result.eigenvalues() = LS.eigenvalues();
-  result.eigenvectors() = LS.eigenvectors();
+  Eigen::MatrixXd _tmp = LS.eigenvectors();
 
-  Eigen::VectorXd _tmp_left = LS.eigenvectors();
-  _tmp_left.bottomRows(Bop.rows()) = -_tmp_left.bottomRows(Bop.rows());
-  result.eigenvectors2() = _tmp_left;
+  result.eigenvectors() = _tmp.topRows(Aop.size());
+  result.eigenvectors2() = _tmp.bottomRows(Aop.size());
 
   return result;
 }
@@ -399,6 +398,7 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Using matrix free method" << flush;
     DS.solve(Hop, _opt.nmax);
+
   } else {
       XTP_LOG_SAVE(logDEBUG, _log)
           << TimeStamp() << " Using full matrix method" << flush;
@@ -426,11 +426,8 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   // results
   tools::EigenSystem result;
   result.eigenvalues() = DS.eigenvalues();
-  result.eigenvectors() = DS.eigenvectors();
-
-  Eigen::VectorXd _tmp_left = DS.eigenvectors();
-  _tmp_left.bottomRows(Bop.rows()) = -_tmp_left.bottomRows(Bop.rows());
-  result.eigenvectors2() = _tmp_left;
+  result.eigenvectors() = DS.eigenvectors().topRows(Aop.size());
+  result.eigenvectors2() = DS.eigenvectors().bottomRows(Aop.size());
 
   return result;
 }
