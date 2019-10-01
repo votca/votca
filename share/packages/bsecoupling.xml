@@ -17,6 +17,7 @@
                 <occLevels help="occupied levels for CTstates" default="5">15</occLevels>
                 <unoccLevels help="unoccupied levels for CTstates" default="5">15</unoccLevels>
          </moleculeB>
+	<max_gpu_streams help="maximum number of GPU streams to compute concurrently in the GPU device">32</max_gpu_streams>
 
 </bsecoupling>
 

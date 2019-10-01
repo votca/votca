@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE(ppm_full) {
 
   Logger log;
   TCMatrix_gwbse Mmn{log};
-  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16, 32);
   Mmn.Fill(aobasis, aobasis, es.eigenvectors());
 
   RPA rpa = RPA(Mmn);

@@ -350,6 +350,10 @@ void GWBSE::Initialize(tools::Property& options) {
       index++;
     }
   }
+
+  // Read maximum number of concurrent job in the GPU
+  _gwopt.max_gpu_streams = options.get(key + ".max_gpu_streams").as<int>();
+
   return;
 }
 
@@ -558,7 +562,7 @@ bool GWBSE::Evaluate() {
   TCMatrix_gwbse Mmn(*_pLog);
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
-                 _gwopt.rpamin, _gwopt.rpamax);
+                 _gwopt.rpamin, _gwopt.rpamax, _gwopt.max_gpu_streams);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;

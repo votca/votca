@@ -52,8 +52,9 @@ class GW {
     double shift = 0;
     double ScaHFX = 0.0;
     std::string sigma_integration = "ppm";
-    int reset_3c = 5;  // how often the 3c integrals in iterate should be
-                       // rebuild
+    int reset_3c = 5;     // how often the 3c integrals in iterate should be
+                          // rebuild
+    int max_gpu_streams;  // Number of concurrent job running in the GPU
   };
 
   void configure(const options& opt);

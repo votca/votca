@@ -225,7 +225,7 @@ BOOST_AUTO_TEST_CASE(bse_operator) {
       1.01205, 1.01205, 1.64823, 19.4429;
   Logger log;
   TCMatrix_gwbse Mmn{log};
-  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16);
+  Mmn.Initialize(aobasis.AOBasisSize(), 0, 16, 0, 16, 32);
   Mmn.Fill(aobasis, aobasis, MOs);
 
   Eigen::MatrixXd rpa_op =

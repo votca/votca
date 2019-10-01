@@ -101,7 +101,8 @@ class TCMatrix_gwbse : public TCMatrix {
 
   int nsize() const { return _ntotal; }
 
-  void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
+  void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax,
+                  int max_gpu_streams);
 
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);
@@ -126,6 +127,9 @@ class TCMatrix_gwbse : public TCMatrix {
   int _ntotal;
   int _mtotal;
   int _basissize;
+
+  // Nvidia GPU control parameters
+  int _max_gpu_streams;
 
   const AOBasis* _auxbasis = nullptr;
   const AOBasis* _dftbasis = nullptr;

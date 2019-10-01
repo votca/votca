@@ -67,6 +67,8 @@ void BSECoupling::Initialize(Property& options) {
       key + ".moleculeA.unoccLevels", _unoccA);
   _unoccB = options.ifExistsReturnElseReturnDefault(
       key + ".moleculeB.unoccLevels", _unoccB);
+
+  _max_gpu_streams = options.get(key + ".max_gpu_streams").as<int>();
 }
 
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,
@@ -407,7 +409,7 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), orbitalsAB.getRPAmin(),
                  orbitalsAB.getGWAmax(), orbitalsAB.getRPAmin(),
-                 orbitalsAB.getRPAmax());
+                 orbitalsAB.getRPAmax(), _max_gpu_streams);
   Mmn.Fill(auxbasis, dftbasis, orbitalsAB.MOs().eigenvectors());
 
   const Eigen::MatrixXd& qpcoeff = orbitalsAB.QPdiag().eigenvectors();

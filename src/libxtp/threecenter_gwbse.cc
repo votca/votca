@@ -28,7 +28,7 @@ namespace votca {
 namespace xtp {
 
 void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
-                                int nmax) {
+                                int nmax, int max_gpu_streams) {
 
   // here as storage indices starting from zero
   _nmin = nmin;
@@ -38,6 +38,9 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   _mmax = mmax;
   _mtotal = mmax - mmin + 1;
   _basissize = basissize;
+
+  // Maximum number of simultaneous queues running in the GPU
+  _max_gpu_streams = max_gpu_streams;
 
   // vector has mtotal elements
   _matrix = std::vector<Eigen::MatrixXd>(
@@ -86,7 +89,6 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 
   // If cuda is enabled the dft orbitals are sent first to the cuda device
 #if defined(USE_CUDA)
-  constexpr int MAXIMUM_GPU_STREAMS = 32;
   auto cuda_matrices = SendDFTMatricesToGPU(dft_orbitals);
 #endif
 
@@ -103,11 +105,13 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     std::vector<Eigen::MatrixXd> symmstorage =
         ComputeSymmStorage(shell, dftbasis, dft_orbitals);
 
-    // If cuda is enable each OpenMP Perform the convolution in the cuda device
-    // each thread matrix multiplication is sent to a single stream that behaves
-    // as a queue
+    // If cuda is enable each OpenMP Perform the convolution in the cuda device.
+    // Each thread has its own stream that behaves like a queue containing the
+    // matrix multiplication requests. If there are more threads than
+    // MAXIMUM_GPU_STREAMS, the remaining threads will perform the perform the
+    // convolution using the default method.
 #if defined(USE_CUDA)
-    if (omp_get_thread_num() < MAXIMUM_GPU_STREAMS) {
+    if (OPENMP::getThreadId() < _max_gpu_streams) {
       FillBlockCUDA(block, symmstorage, cuda_matrices);
     } else {
       FillBlock(block, symmstorage, dft_orbitals);

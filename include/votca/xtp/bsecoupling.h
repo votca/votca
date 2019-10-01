@@ -108,6 +108,9 @@ class BSECoupling : public CouplingBase {
   int _unoccA = 5;
   int _occB = 5;
   int _unoccB = 5;
+
+  // Concurrent jobs in the GPU
+  int _max_gpu_streams;
 };
 
 }  // namespace xtp
