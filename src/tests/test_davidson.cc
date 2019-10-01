@@ -136,27 +136,39 @@ BOOST_AUTO_TEST_CASE(davidson_matrix_free) {
 }
 
 
-Eigen::VectorXd sort_ev(Eigen::VectorXd ev)
-{
 
+Eigen::ArrayXi index_eval(Eigen::VectorXd ev, int neigen) {
+  
   int nev = ev.rows();
   int npos = nev/2;
 
-  Eigen::VectorXd ev_pos = Eigen::VectorXd::Zero(npos);
+  Eigen::ArrayXi idx = Eigen::ArrayXi::Zero(npos);
   int nstored = 0;
 
   // get only positives
   for (int i=0; i<nev; i++) {
     if (ev(i) > 0) {
-      ev_pos(nstored) = ev(i);
+      idx(nstored) = i;
       nstored ++;
     }
   }
   
   // sort the epos eigenvalues
-  std::sort(ev_pos.data(), ev_pos.data() + ev_pos.size());
-  return ev_pos;
+  std::sort(idx.data(), idx.data() + idx.size(),
+    [&](int i1, int i2) { return ev[i1] < ev[i2]; });
+  return idx.head(neigen);
 }
+
+
+Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V, 
+    const Eigen::ArrayXi &idx) {
+  Eigen::MatrixXd W = Eigen::MatrixXd::Zero(V.rows(),idx.size());
+  for (int i=0; i < idx.size(); i++) {
+    W.col(i) = V.col(idx(i));
+  }
+  return W;
+}
+
 
 class BlockOperator: public MatrixFreeOperator {
  public:
@@ -215,9 +227,12 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
 
   Eigen::MatrixXd H = Hop.get_full_matrix();
   Eigen::EigenSolver<Eigen::MatrixXd> es(H);
-  auto lambda_ref = sort_ev(es.eigenvalues().real());
-  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
+  
+  Eigen::ArrayXi idx = index_eval(es.eigenvalues().real(),neigen);
+  Eigen::VectorXd lambda_ref = idx.unaryExpr(es.eigenvalues().real());
+  
 
+  bool check_eigenvalues = lambda.isApprox(lambda_ref.head(neigen), 1E-6);
   if (!check_eigenvalues) {
     cout << "Davidson not converged after " << DS.num_iterations() 
       << " iterations" << endl;
@@ -228,14 +243,15 @@ BOOST_AUTO_TEST_CASE(davidson_hamiltonian_matrix_free) {
     cout << "Residue norms" << endl;
     cout << DS.residues() << endl;
   }
-  else {
-    cout << "Davidson converged in "  << DS.num_iterations() 
-      << " iterations" << endl;
-  }
-
   BOOST_CHECK_EQUAL(check_eigenvalues, 1);
 
-}
+  Eigen::MatrixXd evect_dav = DS.eigenvectors().real();
+  Eigen::MatrixXd evect = es.eigenvectors().real();
+  Eigen::MatrixXd evect_ref = extract_eigenvectors(evect,idx);
 
+  bool check_eigenvectors = evect_ref.cwiseAbs2().isApprox(evect_dav.cwiseAbs2(),0.001);
+  BOOST_CHECK_EQUAL(check_eigenvectors, 1);
+  
+}
 
 BOOST_AUTO_TEST_SUITE_END()

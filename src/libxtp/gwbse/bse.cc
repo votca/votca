@@ -210,7 +210,7 @@ tools::EigenSystem BSE::solve_hermitian(BSE_OPERATOR& h) const {
 
 
 tools::EigenSystem BSE::Solve_singlets_BTDA() const {
-  if(_opt.matrixfree) {
+  if(_opt.davidson) {
     SingletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(A);
 
@@ -233,14 +233,15 @@ tools::EigenSystem BSE::Solve_singlets_BTDA() const {
 }
 
 tools::EigenSystem BSE::Solve_triplets_BTDA() const {
-  if (_opt.matrixfree){
+  if (_opt.davidson){
     TripletOperator_TDA A(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(A);
     Hd2Operator B(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(B);
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-    return Solve_nonhermitian_Lanczos(A, B); 
+    return Solve_nonhermitian_Davidson(A, B);
+    //return Solve_nonhermitian_Lanczos(A, B); 
   } else {
     TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Ht_ApB);
@@ -394,7 +395,33 @@ tools::EigenSystem BSE::Solve_nonhermitian_Davidson(BSE_OPERATOR_A& Aop,
   DS.set_max_search_space(10 * _opt.nmax);
   DS.set_matrix_type("HAM");
 
-  DS.solve(Hop, _opt.nmax);
+  if (_opt.matrixfree) {
+    XTP_LOG_SAVE(logDEBUG, _log)
+        << TimeStamp() << " Using matrix free method" << flush;
+    DS.solve(Hop, _opt.nmax);
+  } else {
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Using full matrix method" << flush;
+      // get the full matrix
+      hstart = std::chrono::system_clock::now();
+      Eigen::MatrixXd hfull = Hop.get_full_matrix();
+      hend = std::chrono::system_clock::now();
+
+      elapsed_time = hend - hstart;
+
+      XTP_LOG_SAVE(logDEBUG, _log)
+          << TimeStamp() << " Full matrix assembled in " << elapsed_time.count()
+          << " secs" << flush;
+
+      // solve theeigenalue problem
+      hstart = std::chrono::system_clock::now();
+      DS.solve(hfull, _opt.nmax);
+      hend = std::chrono::system_clock::now();
+
+      elapsed_time = hend - hstart;
+      XTP_LOG_SAVE(logDEBUG, _log) << TimeStamp() << " Davidson solve done in "
+                                   << elapsed_time.count() << " secs" << flush;
+  }
 
   // results
   tools::EigenSystem result;

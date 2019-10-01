@@ -453,7 +453,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   // lanczos matrix free
   opt.matrixfree = 1;
   opt.davidson = 1;
-  opt.nmax = 5; // <- unstable if only 1 root is asked
+  opt.nmax = 1; 
 
   bse.configure(opt, orbitals.MOs().eigenvalues());
   bse.Solve_singlets(orbitals);
