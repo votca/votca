@@ -41,7 +41,7 @@ void Table::resize(int N) {
 
 void Table::Load(string filename) {
   ifstream in;
-  in.open(filename.c_str());
+  in.open(filename);
   if (!in) throw runtime_error(string("error, cannot open file ") + filename);
 
   setErrorDetails("file " + filename);
@@ -101,8 +101,8 @@ istream &operator>>(istream &in, Table &t) {
 
     // tokenize string and put it to vector
     Tokenizer tok(line, " \t");
-    vector<string> tokens;
-    tok.ToVector(tokens);
+
+    vector<string> tokens = tok.ToVector();
 
     // skip empty lines
     if (tokens.size() == 0) continue;

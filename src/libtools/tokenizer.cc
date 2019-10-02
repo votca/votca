@@ -20,6 +20,10 @@
 namespace votca {
 namespace tools {
 
+int wildcmp(const std::string &wild, const std::string &string) {
+  return wildcmp(wild.c_str(), string.c_str());
+}
+
 int wildcmp(const char *wild, const char *string) {
   // Written by Jack Handy - jakkhandy@hotmail.com
   const char *cp = NULL, *mp = NULL;
