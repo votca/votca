@@ -34,8 +34,6 @@ Prints atoms that are read from a topology file to help debug atom naming.
 Performs force matching (also called //multiscale coarse-graining//).
 : **csg_gmxtopol**
 Create skeleton for gromacs topology based on atomistic topology and a mapping file.
-: **csg_imcrepack**
-Is internally called by inversion scripts to kick out zero entries in the matrix for inverse Monte Carlo (imc).
 : **csg_imc_solver**
 Is internally called by inversion scripts to solve matrix equation for inverse Monte Carlo (imc).
 : **csg_inverse**

@@ -36,13 +36,10 @@ imc_groups=$(csg_get_interaction_property --all inverse.imc.group)
 imc_groups=$(remove_duplicate $imc_groups)
 [[ -z ${imc_groups} ]] && die "${0##*/}: No imc groups defined"
 for group in $imc_groups; do
-  # currently this is a hack! need to create combined array
   reg="$(csg_get_property cg.inverse.imc.${group}.reg ${default_reg})" #filter me away
   is_num "${reg}" || die "${0##*/}: value of cg.inverse.imc.${group}.reg should be a number"
   msg "solving linear equations for imc group '$group' (regularization ${reg})"
-  critical csg_imcrepack --in ${group} --out ${group}.packed
-  critical csg_imc_solve --imcfile "${group}.packed.imc" --gmcfile "${group}.packed.gmc" --regularization "${reg}" --outputfile "${group}.packed.sol"
-  critical csg_imcrepack --in ${group}.packed --unpack ${group}.packed.sol
+  critical csg_imc_solve --imcfile "${group}.imc" --gmcfile "${group}.gmc" --idxfile "${group}.idx" --regularization "${reg}" --outputfile "${group}.sol"
 done
 
 for_all "non-bonded bonded" do_external imc purify
