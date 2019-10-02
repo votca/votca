@@ -511,6 +511,13 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   bse.configure(opt, orbitals.MOs().eigenvalues());
   orbitals.setTDAApprox(false);
   bse.Solve_singlets(orbitals);
+  orbitals.BSESinglets().eigenvectors().colwise().normalize();
+  orbitals.BSESinglets().eigenvectors2().colwise().normalize();
+
+  Eigen::MatrixXd spsi_ref_btda_normalized = spsi_ref_btda;
+  Eigen::MatrixXd spsi_ref_btda_AR_normalized = spsi_ref_btda_AR;  
+  spsi_ref_btda_normalized.colwise().normalize();
+  spsi_ref_btda_AR_normalized.colwise().normalize();
 
   bool check_se_btda =
       se_ref_btda.isApprox(orbitals.BSESinglets().eigenvalues(), 0.001);
@@ -522,7 +529,8 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_btda, true);
 
-  projection = spsi_ref_btda.transpose() * orbitals.BSESinglets().eigenvectors();
+  
+  projection = spsi_ref_btda_normalized.transpose() * orbitals.BSESinglets().eigenvectors();
   norms = projection.colwise().norm();
   bool check_spsi_btda = norms.isApproxToConstant(1, 1e-5);
 
@@ -536,7 +544,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_spsi_btda, true);
 
-  projection = spsi_ref_btda_AR.transpose() * orbitals.BSESinglets().eigenvectors2();
+  
+  orbitals.BSESinglets().eigenvectors2().colwise().normalize();
+  projection = spsi_ref_btda_AR_normalized.transpose() * orbitals.BSESinglets().eigenvectors2();
   norms = projection.colwise().norm();
   bool check_spsi_btda_AR = norms.isApproxToConstant(1, 1e-5);
   
@@ -551,7 +561,6 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   BOOST_CHECK_EQUAL(check_spsi_btda_AR, true);
 
 
-
   // Davidson matrix free
   opt.matrixfree = 1;
   opt.davidson = 1;
@@ -559,7 +568,9 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
 
   bse.configure(opt, orbitals.MOs().eigenvalues());
   bse.Solve_singlets(orbitals);
-  
+  orbitals.BSESinglets().eigenvectors().colwise().normalize();
+  orbitals.BSESinglets().eigenvectors2().colwise().normalize();
+
   bool check_se_btda_mf =
       se_ref_btda.isApprox(orbitals.BSESinglets().eigenvalues().head(opt.nmax), 0.001);
   if (!check_se_btda_mf) {
@@ -570,7 +581,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_se_btda_mf, true);
   
-  projection = spsi_ref_btda.transpose() * orbitals.BSESinglets().eigenvectors();
+  projection = spsi_ref_btda_normalized.transpose() * orbitals.BSESinglets().eigenvectors();
   norms = projection.colwise().norm();
   bool check_spsi_btda_mf = norms.isApproxToConstant(1, 1e-5);
 
@@ -583,7 +594,7 @@ BOOST_AUTO_TEST_CASE(bse_hamiltonian) {
   }
   BOOST_CHECK_EQUAL(check_spsi_btda_mf, true);
 
-  projection = spsi_ref_btda_AR.transpose() * orbitals.BSESinglets().eigenvectors2();
+  projection = spsi_ref_btda_AR_normalized.transpose() * orbitals.BSESinglets().eigenvectors2();
   norms = projection.colwise().norm();
   bool check_spsi_btda_AR_mf = norms.isApproxToConstant(1, 1e-5);
   if (!check_spsi_btda_AR_mf) {
