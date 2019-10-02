@@ -39,24 +39,19 @@ void CG_IMC_solve::Initialize(void) {
                       "gmc statefile");
 
   AddProgramOptions()("idxfile,n", boost::program_options::value<std::string>(),
-                      "[OPTIONAL] idx statefile");
-
-  AddProgramOptions()("outputfile,o",
-                      boost::program_options::value<std::string>(),
-                      "outputfile");
+                      "idx statefile");
 }
 
 bool CG_IMC_solve::EvaluateOptions() {
   CheckRequired("imcfile", "Missing imcfile");
   CheckRequired("gmcfile", "Missing gmcfile");
-  CheckRequired("outputfile", "Missing outputfile");
+  CheckRequired("idxfile", "Missing idxfile");
   return true;
 }
 
 void CG_IMC_solve::Run() {
   std::string imcfile = _op_vm["imcfile"].as<std::string>();
   std::string gmcfile = _op_vm["gmcfile"].as<std::string>();
-  std::string outputfile = _op_vm["outputfile"].as<std::string>();
 
   double reg = _op_vm["regularization"].as<double>();
 
@@ -106,16 +101,14 @@ void CG_IMC_solve::Run() {
 
   x.y() = -inverse * A.transpose() * B.y();
 
-  if (OptionsMap().count("idxfile")) {
-    std::string idxfile = _op_vm["idxfile"].as<std::string>();
-    std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
-        votca::csg::imcio_read_index(idxfile);
-    for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {
-      votca::tools::Table tbl;
-      for (int r : range.second) {
-        tbl.push_back(x.x(r - 1), x.y(r - 1), 'i');
-      }
-      tbl.Save(range.first + ".dpot.imc");
+  std::string idxfile = _op_vm["idxfile"].as<std::string>();
+  std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
+      votca::csg::imcio_read_index(idxfile);
+  for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {
+    votca::tools::Table tbl;
+    for (int r : range.second) {
+      tbl.push_back(x.x(r - 1), x.y(r - 1), 'i');
     }
+    tbl.Save(range.first + ".dpot.imc");
   }
 }
