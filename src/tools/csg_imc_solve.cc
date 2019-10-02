@@ -106,8 +106,6 @@ void CG_IMC_solve::Run() {
 
   x.y() = -inverse * A.transpose() * B.y();
 
-  x.Save(outputfile);
-
   if (OptionsMap().count("idxfile")) {
     std::string idxfile = _op_vm["idxfile"].as<std::string>();
     std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
