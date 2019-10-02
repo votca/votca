@@ -112,12 +112,10 @@ void CG_IMC_solve::Run() {
     std::string idxfile = _op_vm["idxfile"].as<std::string>();
     std::vector<std::pair<std::string, votca::tools::RangeParser> > ranges =
         votca::csg::imcio_read_index(idxfile);
-    votca::tools::Table tbl_in;
-    tbl_in.Load(outputfile);
     for (std::pair<std::string, votca::tools::RangeParser>& range : ranges) {
       votca::tools::Table tbl;
       for (int r : range.second) {
-        tbl.push_back(tbl_in.x(r - 1), tbl_in.y(r - 1), 'i');
+        tbl.push_back(x.x(r - 1), x.y(r - 1), 'i');
       }
       tbl.Save(range.first + ".dpot.imc");
     }
