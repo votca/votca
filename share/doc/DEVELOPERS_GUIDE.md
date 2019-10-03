@@ -481,11 +481,10 @@ it up are provided in the script.
 
 ## Units in VOTCA
 
-VOTCA tried as much as possible to standarize units across both CSG and XTP. Externally we use parse in the units of the respectie file format, e.g. `.xyz` `Angstroem`, `.gro` `nm`. Internally we convert all parsed units to:
+VOTCA tried as much as possible to standarize units across both CSG and XTP. Externally we parse in the units of the respective file format, e.g. `.xyz` `Angstroem`, `.gro` `nm`. Internally we convert all parsed units to:
 
-- `nm` for molecular dynamics and coarse grained positions. `Bohr` is used for quantum mechanical and electrostatic coordinates in XTP
-- energies are `kJ/mol` in CSG and `Hartree` in XTP
-- time is in `ps`
+- CSG: length `nm`, energy `kJ/mol` and time `ps`
+- XTP: length `bohr`, energy `Hartree` and time `ps`
 
 ## Indexing in VOTCA
 
