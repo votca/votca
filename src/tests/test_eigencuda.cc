@@ -71,11 +71,11 @@ BOOST_AUTO_TEST_CASE(triple_matrix_multiplication) {
   X << 804., 876., 1810., 1972.;
 
   EigenCuda cuda_handle;
-  uniq_double dev_A = cuda_handle.copy_matrix_to_gpu(A);
-  uniq_double dev_C = cuda_handle.copy_matrix_to_gpu(C);
-
-  CudaMatrix matrixA{std::move(dev_A), 2, 2};
-  CudaMatrix matrixC{std::move(dev_C), 3, 2};
+  const cudaStream_t stream = cuda_handle.get_stream();
+  CudaMatrix matrixA{2, 2};
+  CudaMatrix matrixC{3, 2};
+  matrixA.copy_matrix_to_gpu(A, stream);
+  matrixC.copy_matrix_to_gpu(C, stream);
 
   Eigen::MatrixXd result = cuda_handle.triple_matrix_mult(matrixA, B, matrixC);
   BOOST_TEST(X.isApprox(result));

@@ -284,13 +284,13 @@ std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
   const Eigen::MatrixXd dftn =
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
-  // Pointers to the cuda arrays
+  // Smart Pointers to the cuda arrays
   EigenCuda cudaHandle;
-  uniq_double dev_dftnT = cudaHandle.copy_matrix_to_gpu(dftn.transpose());
-  uniq_double dev_dftm = cudaHandle.copy_matrix_to_gpu(dftm);
-
-  CudaMatrix matrixA{std::move(dev_dftnT), dftn.cols(), dftn.rows()};
-  CudaMatrix matrixB{std::move(dev_dftm), dftm.rows(), dftm.cols()};
+  const cudaStream_t& stream = cudaHandle.get_stream();
+  CudaMatrix matrixA{dftn.cols(), dftn.rows()};
+  CudaMatrix matrixB{dftm.rows(), dftm.cols()};
+  matrixA.copy_matrix_to_gpu(dftn.transpose(), stream);
+  matrixB.copy_matrix_to_gpu(dftm, stream);
 
   return std::make_pair(std::move(matrixA), std::move(matrixB));
 }

@@ -22,11 +22,6 @@
 namespace votca {
 namespace xtp {
 
-/*
- * Deallocate memory from the device
- */
-void free_mem_in_gpu(double *x) { checkCuda(cudaFree(x)); };
-
 EigenCuda::~EigenCuda() {
 
   // destroy handle
@@ -58,28 +53,26 @@ void EigenCuda::check_available_memory_in_gpu(size_t requested_memory) const {
 /*
  * Allocate memory in the device for matrix A.
  */
-uniq_double EigenCuda::alloc_matrix_in_gpu(size_t size_matrix) const {
+CudaMatrix::double_unique_ptr CudaMatrix::alloc_matrix_in_gpu(
+    size_t size_matrix) const {
 
   // Pointer in the device
   double *dmatrix;
   checkCuda(cudaMalloc(&dmatrix, size_matrix));
-  uniq_double dev_ptr(dmatrix, free_mem_in_gpu);
+  double_unique_ptr dev_ptr(dmatrix, [](double *x) { checkCuda(cudaFree(x)); });
   return dev_ptr;
 }
 
-uniq_double EigenCuda::copy_matrix_to_gpu(const Eigen::MatrixXd &matrix) const {
-  // allocate memory in the device
-  size_t size_matrix = matrix.size() * sizeof(double);
-  uniq_double dev_ptr = alloc_matrix_in_gpu(size_matrix);
-
+void CudaMatrix::copy_matrix_to_gpu(const Eigen::MatrixXd &matrix,
+                                    const cudaStream_t &stream) const {
   // Transfer data to the GPU
+  size_t size_matrix = matrix.size() * sizeof(double);
   const double *hmatrix = matrix.data();  // Pointers at the host
-  cudaError_t err = cudaMemcpyAsync(dev_ptr.get(), hmatrix, size_matrix,
-                                    cudaMemcpyHostToDevice, _stream);
+  cudaError_t err = cudaMemcpyAsync(_pointer.get(), hmatrix, size_matrix,
+                                    cudaMemcpyHostToDevice, stream);
   if (err != 0) {
     throw std::runtime_error("Error copy arrays to device");
   }
-  return dev_ptr;
 }
 
 /*
@@ -96,8 +89,8 @@ void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
   const double *pbeta = &beta;
 
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, A.rows(), B.cols(), A.cols(),
-              palpha, A.ptr(), A.rows(), B.ptr(), B.rows(), pbeta, C.ptr(),
-              C.rows());
+              palpha, A.pointer(), A.rows(), B.pointer(), B.rows(), pbeta,
+              C.pointer(), C.rows());
 }
 
 /*
@@ -105,8 +98,6 @@ void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
  */
 void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
                                          const Eigen::MatrixXd &B) const {
-  int batchCount = tensor.size();
-
   // First submatrix from the tensor
   const Eigen::MatrixXd &submatrix = tensor[0];
 
@@ -117,29 +108,24 @@ void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
   check_available_memory_in_gpu(size_A + size_B + size_C);
 
   // Matrix in the Cuda device
-  uniq_double dA = alloc_matrix_in_gpu(size_A);
-  uniq_double dC = alloc_matrix_in_gpu(size_C);
-  uniq_double dB = copy_matrix_to_gpu(B);
-  CudaMatrix matrixA{std::move(dA), submatrix.rows(), submatrix.cols()};
-  CudaMatrix matrixB{std::move(dB), B.rows(), B.cols()};
-  CudaMatrix matrixC{std::move(dC), submatrix.rows(), B.cols()};
 
-  std::vector<Eigen::MatrixXd> result(
-      batchCount, Eigen::MatrixXd::Zero(submatrix.rows(), B.cols()));
+  CudaMatrix matrixA{submatrix.rows(), submatrix.cols()};
+  CudaMatrix matrixB{B.rows(), B.cols()};
+  CudaMatrix matrixC{submatrix.rows(), B.cols()};
+  matrixB.copy_matrix_to_gpu(B, _stream);
 
   // Call tensor matrix multiplication
-  for (auto i = 0; i < batchCount; i++) {
+  for (auto i = 0; i < static_cast<int>(tensor.size()); i++) {
     // Copy tensor component to the device
-    checkCuda(cudaMemcpyAsync(matrixA.ptr(), tensor[i].data(), size_C,
+    checkCuda(cudaMemcpyAsync(matrixA.pointer(), tensor[i].data(), size_C,
                               cudaMemcpyHostToDevice, _stream));
 
     // matrix multiplication
     gemm(matrixA, matrixB, matrixC);
 
     // Copy the result to the host
-    // double *hout = result[i].data();
     double *hout = tensor[i].data();
-    checkCuda(cudaMemcpyAsync(hout, matrixC.ptr(), size_C,
+    checkCuda(cudaMemcpyAsync(hout, matrixC.pointer(), size_C,
                               cudaMemcpyDeviceToHost, _stream));
   }
 }
@@ -160,9 +146,10 @@ Eigen::MatrixXd EigenCuda::triple_matrix_mult(const CudaMatrix &A,
   check_available_memory_in_gpu(size_B + size_W + size_Z);
 
   // Intermediate Matrices
-  CudaMatrix B{copy_matrix_to_gpu(matrix), matrix.rows(), matrix.cols()};
-  CudaMatrix W{alloc_matrix_in_gpu(size_W), A.rows(), matrix.cols()};
-  CudaMatrix Z{alloc_matrix_in_gpu(size_Z), A.rows(), C.cols()};
+  CudaMatrix B{matrix.rows(), matrix.cols()};
+  CudaMatrix W{A.rows(), matrix.cols()};
+  CudaMatrix Z{A.rows(), C.cols()};
+  B.copy_matrix_to_gpu(matrix, _stream);
 
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(A.rows(), C.cols());
 
@@ -173,7 +160,7 @@ Eigen::MatrixXd EigenCuda::triple_matrix_mult(const CudaMatrix &A,
   gemm(W, C, Z);
 
   // Copy the result Array back to the device
-  checkCuda(cudaMemcpyAsync(result.data(), Z.ptr(), size_Z,
+  checkCuda(cudaMemcpyAsync(result.data(), Z.pointer(), size_Z,
                             cudaMemcpyDeviceToHost, _stream));
 
   return result;
