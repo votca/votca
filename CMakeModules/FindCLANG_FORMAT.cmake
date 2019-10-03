@@ -21,6 +21,7 @@
 
 find_program(CLANG_FORMAT_EXECUTABLE
              NAMES clang-format
+                   clang-format-8
                    clang-format-7
                    clang-format-6.0
                    clang-format-5.0

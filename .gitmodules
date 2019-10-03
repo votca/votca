@@ -18,4 +18,4 @@
 	url = ../../votca/csg-manual.git
 [submodule "xtp-tutorials"]
 	path = xtp-tutorials
-	url = https://github.com/votca/xtp-tutorials
+	url = ../../votca/xtp-tutorials
