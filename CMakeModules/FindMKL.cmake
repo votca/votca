@@ -278,6 +278,5 @@ if(MKL_FOUND)
         IMPORTED_LOCATION "${MKL_Core_DLL_LIBRARY}"
         IMPORTED_IMPLIB "${MKL_Core_LINK_LIBRARY}")
   endif()
+  message(STATUS "'${MKL_THREAD_LAYER}' used for MKL parallelisation")
 endif()
-
-message(STATUS "'${MKL_THREAD_LAYER}' used for MKL parallelisation")
