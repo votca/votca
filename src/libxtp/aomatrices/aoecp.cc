@@ -17,7 +17,6 @@
  *
  */
 
-#include <eigen3/unsupported/Eigen/CXX11/src/Tensor/TensorBase.h>
 #include <votca/xtp/aopotential.h>
 #include <votca/xtp/aotransform.h>
 

@@ -1740,8 +1740,8 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         Eigen::Tensor<double, 3> R(ncombined, nbeta, ngamma);
         R.setZero();
 
-        for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
-          for (int k = 0; k < (lmax_gamma + 1) * (lmax_gamma + 1); ++k) {
+        for (int k = 0; k < (lmax_gamma + 1) * (lmax_gamma + 1); ++k) {
+          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
             R(i, 0, k) = R_temp(i, k, 1);
           }
         }
@@ -1865,46 +1865,24 @@ bool TCMatrix::FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
         const Eigen::MatrixXd trafo_alpha =
             AOTransform::getTrafo(gaussian_alpha);
 
-        if (alphabetaswitch == true) {
-
-          for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc();
-               i_alpha++) {
-            int i_alpha_off = i_alpha + offset_alpha;
-            for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
-              int i_beta_off = i_beta + offset_beta;
-              for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
-                   i_gamma++) {
-                int i_gamma_off = i_gamma + offset_gamma;
-                for (int i_beta_t = istart[i_beta_off];
-                     i_beta_t <= istop[i_beta_off]; i_beta_t++) {
-                  for (int i_alpha_t = istart[i_alpha_off];
-                       i_alpha_t <= istop[i_alpha_off]; i_alpha_t++) {
-                    threec_block(i_gamma, i_beta, i_alpha) +=
-                        R(i_alpha_t, i_beta_t, i_gamma_off) *
-                        trafo_alpha(i_alpha_t, i_alpha_off) *
-                        trafo_beta(i_beta_t, i_beta_off);
-                  }
-                }
-              }
-            }
-          }
-        } else {
-          for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc();
-               i_alpha++) {
-            int i_alpha_off = i_alpha + offset_alpha;
-            for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
-              int i_beta_off = i_beta + offset_beta;
-              for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
-                   i_gamma++) {
-                int i_gamma_off = i_gamma + offset_gamma;
-                for (int i_beta_t = istart[i_beta_off];
-                     i_beta_t <= istop[i_beta_off]; i_beta_t++) {
-                  for (int i_alpha_t = istart[i_alpha_off];
-                       i_alpha_t <= istop[i_alpha_off]; i_alpha_t++) {
-                    threec_block(i_gamma, i_alpha, i_beta) +=
-                        R(i_alpha_t, i_beta_t, i_gamma_off) *
-                        trafo_alpha(i_alpha_t, i_alpha_off) *
-                        trafo_beta(i_beta_t, i_beta_off);
+        for (int i_alpha = 0; i_alpha < shell_alpha->getNumFunc(); i_alpha++) {
+          int i_alpha_off = i_alpha + offset_alpha;
+          for (int i_beta = 0; i_beta < shell_beta->getNumFunc(); i_beta++) {
+            int i_beta_off = i_beta + offset_beta;
+            for (int i_gamma = 0; i_gamma < shell_gamma->getNumFunc();
+                 i_gamma++) {
+              int i_gamma_off = i_gamma + offset_gamma;
+              for (int i_beta_t = istart[i_beta_off];
+                   i_beta_t <= istop[i_beta_off]; i_beta_t++) {
+                for (int i_alpha_t = istart[i_alpha_off];
+                     i_alpha_t <= istop[i_alpha_off]; i_alpha_t++) {
+                  double coeff = R(i_alpha_t, i_beta_t, i_gamma_off) *
+                                 trafo_alpha(i_alpha_t, i_alpha_off) *
+                                 trafo_beta(i_beta_t, i_beta_off);
+                  if (alphabetaswitch) {
+                    threec_block(i_gamma, i_beta, i_alpha) += coeff;
+                  } else {
+                    threec_block(i_gamma, i_alpha, i_beta) += coeff;
                   }
                 }
               }

@@ -17,6 +17,7 @@
  *
  */
 
+#include <eigen3/unsupported/Eigen/CXX11/src/Tensor/TensorBase.h>
 #include <votca/xtp/aotransform.h>
 #include <votca/xtp/fourcenter.h>
 
@@ -276,9 +277,6 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
 
           Eigen::Tensor<double, 3> R_temp(ncombined_ab, ncombined_cd, mmax + 1);
           R_temp.setZero();
-
-          Eigen::Tensor<double, 3> R(ncombined_ab, nbeta, ncombined_cd);
-          R.setZero();
 
           const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
 
@@ -787,7 +785,8 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
           //------------------------------------------------------
 
           // copy into new array for 3D use.
-
+          Eigen::Tensor<double, 3> R(ncombined_ab, nbeta, ncombined_cd);
+          R.setZero();
           for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
             for (int k = 0; k < n_orbitals[lmax_gamma_delta]; ++k) {
               R(i, 0, k) = R_temp(i, k, 0);
@@ -921,9 +920,9 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
           const Eigen::MatrixXd trafo_beta =
               AOTransform::getTrafo(gaussian_beta);
 
-          Eigen::Tensor<double, 3> R3_ab_sph(ntrafo_alpha, ntrafo_beta,
-                                             ncombined_cd);
-          R3_ab_sph.setZero();
+          Eigen::Tensor<double, 4> R4_ab_sph(ntrafo_alpha, ntrafo_beta,
+                                             ncombined_cd, ndelta);
+          R4_ab_sph.setZero();
 
           for (int i_beta = 0; i_beta < ntrafo_beta; i_beta++) {
             for (int i_alpha = 0; i_alpha < ntrafo_alpha; i_alpha++) {
@@ -933,26 +932,12 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
                   for (int i_alpha_t = istart[i_alpha];
                        i_alpha_t <= istop[i_alpha]; i_alpha_t++) {
 
-                    R3_ab_sph(i_alpha, i_beta, j) +=
+                    R4_ab_sph(i_alpha, i_beta, j, 0) +=
                         R(i_alpha_t, i_beta_t, j) *
                         trafo_alpha(i_alpha_t, i_alpha) *
                         trafo_beta(i_beta_t, i_beta);
                   }
                 }
-              }
-            }
-          }
-
-          // copy into new 4D array.
-
-          Eigen::Tensor<double, 4> R4_ab_sph(ntrafo_alpha, ntrafo_beta,
-                                             ncombined_cd, ndelta);
-
-          for (int j = 0; j < ntrafo_alpha; ++j) {
-            for (int k = 0; k < ntrafo_beta; ++k) {
-              for (int i = 0; i < ncombined_cd; ++i) {
-
-                R4_ab_sph(j, k, i, 0) = R3_ab_sph(j, k, i);
               }
             }
           }
@@ -1108,13 +1093,12 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
 
           Eigen::Tensor<double, 4> R4_sph(ntrafo_alpha, ntrafo_beta,
                                           ntrafo_gamma, ntrafo_delta);
+          R4_sph.setZero();
 
           for (int j = 0; j < ntrafo_alpha; j++) {
             for (int k = 0; k < ntrafo_beta; k++) {
               for (int i_gamma = 0; i_gamma < ntrafo_gamma; i_gamma++) {
                 for (int i_delta = 0; i_delta < ntrafo_delta; i_delta++) {
-
-                  R4_sph(j, k, i_gamma, i_delta) = 0.0;
 
                   for (int i_delta_t = istart[i_delta];
                        i_delta_t <= istop[i_delta]; i_delta_t++) {
@@ -1167,12 +1151,10 @@ bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
               }
             }
           }
-
-        }  // GaussianIterator itdelta
-      }    // GaussianIterator itgamma
-    }      // GaussianIterator itbeta
-  }        // GaussianIterator italpha
-
+        }
+      }
+    }
+  }
   return does_contribute;
 }  // TCrawMatrix::FillFourCenterRepBlock
 
