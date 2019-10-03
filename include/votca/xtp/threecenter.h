@@ -22,7 +22,6 @@
 #define __XTP_THREECENTER__H
 
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 /**
  * \brief Calculates three electron overlap integrals for GW and DFT.
@@ -48,8 +47,8 @@ class TCMatrix {
   int _removedfunctions = 0;
   Eigen::MatrixXd _inv_sqrt;
 
-  bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell,
-                               const AOShell& shell_row,
+  bool FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
+                               const AOShell& shell, const AOShell& shell_row,
                                const AOShell& shell_col) const;
 };
 

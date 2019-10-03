@@ -37,7 +37,8 @@ namespace xtp {
  *
  */
 
-bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
+bool FCMatrix::FillFourCenterRepBlock(Eigen::Tensor<double, 4>& block,
+                                      const AOShell& shell_1,
                                       const AOShell& shell_2,
                                       const AOShell& shell_3,
                                       const AOShell& shell_4) const {
@@ -233,9 +234,6 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
   int ncombined_ab = AOTransform::getBlockSize(lmax_alpha + lmax_beta);
   int ncombined_cd = AOTransform::getBlockSize(lmax_gamma + lmax_delta);
 
-  tensor3d::extent_gen extents;
-  tensor4d::extent_gen extents4;
-
   double dist_AB = (pos_alpha - pos_beta).squaredNorm();
   double dist_CD = (pos_gamma - pos_delta).squaredNorm();
 
@@ -276,29 +274,11 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           Eigen::Vector3d wmp = W - P;
           Eigen::Vector3d wmq = W - Q;
 
-          tensor3d R_temp;
-          R_temp.resize(extents[range(0, ncombined_ab)][range(0, ncombined_cd)]
-                               [range(0, mmax + 1)]);
-          // initialize to zero
-          for (index3d i = 0; i != ncombined_ab; ++i) {
-            for (index3d j = 0; j != ncombined_cd; ++j) {
-              for (index3d k = 0; k != mmax + 1; ++k) {
-                R_temp[i][j][k] = 0.0;
-              }
-            }
-          }
+          Eigen::Tensor<double, 3> R_temp(ncombined_ab, ncombined_cd, mmax + 1);
+          R_temp.setZero();
 
-          tensor3d R;
-          R.resize(extents[range(0, ncombined_ab)][range(0, nbeta)]
-                          [range(0, ncombined_cd)]);
-          // initialize to zero
-          for (index3d i = 0; i != ncombined_ab; ++i) {
-            for (index3d j = 0; j != nbeta; ++j) {
-              for (index3d k = 0; k != ncombined_cd; ++k) {
-                R[i][j][k] = 0.0;
-              }
-            }
-          }
+          Eigen::Tensor<double, 3> R(ncombined_ab, nbeta, ncombined_cd);
+          R.setZero();
 
           const Eigen::VectorXd FmT = AOTransform::XIntegrate(mmax + 1, U);
 
@@ -312,7 +292,7 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
 
           // ss integrals
           for (int i = 0; i < mmax + 1; i++) {
-            R_temp[0][0][i] = ssss * FmT[i];
+            R_temp(0, 0, i) = ssss * FmT[i];
           }
 
           int lmax_alpha_beta = lmax_alpha + lmax_beta;
@@ -321,12 +301,12 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           // Integrals     p-s - s-s
           if (lmax_alpha_beta > 0) {
             for (int m = 0; m < mmax; m++) {
-              R_temp[Cart::x][0][m] =
-                  pma(0) * R_temp[0][0][m] + wmp(0) * R_temp[0][0][m + 1];
-              R_temp[Cart::y][0][m] =
-                  pma(1) * R_temp[0][0][m] + wmp(1) * R_temp[0][0][m + 1];
-              R_temp[Cart::z][0][m] =
-                  pma(2) * R_temp[0][0][m] + wmp(2) * R_temp[0][0][m + 1];
+              R_temp(Cart::x, 0, m) =
+                  pma(0) * R_temp(0, 0, m) + wmp(0) * R_temp(0, 0, m + 1);
+              R_temp(Cart::y, 0, m) =
+                  pma(1) * R_temp(0, 0, m) + wmp(1) * R_temp(0, 0, m + 1);
+              R_temp(Cart::z, 0, m) =
+                  pma(2) * R_temp(0, 0, m) + wmp(2) * R_temp(0, 0, m + 1);
             }
           }
           //------------------------------------------------------
@@ -335,21 +315,21 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           if (lmax_alpha_beta > 1) {
             for (int m = 0; m < mmax - 1; m++) {
               double term =
-                  rzeta * (R_temp[0][0][m] - gfak * R_temp[0][0][m + 1]);
-              R_temp[Cart::xx][0][m] = pma(0) * R_temp[Cart::x][0][m] +
-                                       wmp(0) * R_temp[Cart::x][0][m + 1] +
+                  rzeta * (R_temp(0, 0, m) - gfak * R_temp(0, 0, m + 1));
+              R_temp(Cart::xx, 0, m) = pma(0) * R_temp(Cart::x, 0, m) +
+                                       wmp(0) * R_temp(Cart::x, 0, m + 1) +
                                        term;
-              R_temp[Cart::xy][0][m] = pma(0) * R_temp[Cart::y][0][m] +
-                                       wmp(0) * R_temp[Cart::y][0][m + 1];
-              R_temp[Cart::xz][0][m] = pma(0) * R_temp[Cart::z][0][m] +
-                                       wmp(0) * R_temp[Cart::z][0][m + 1];
-              R_temp[Cart::yy][0][m] = pma(1) * R_temp[Cart::y][0][m] +
-                                       wmp(1) * R_temp[Cart::y][0][m + 1] +
+              R_temp(Cart::xy, 0, m) = pma(0) * R_temp(Cart::y, 0, m) +
+                                       wmp(0) * R_temp(Cart::y, 0, m + 1);
+              R_temp(Cart::xz, 0, m) = pma(0) * R_temp(Cart::z, 0, m) +
+                                       wmp(0) * R_temp(Cart::z, 0, m + 1);
+              R_temp(Cart::yy, 0, m) = pma(1) * R_temp(Cart::y, 0, m) +
+                                       wmp(1) * R_temp(Cart::y, 0, m + 1) +
                                        term;
-              R_temp[Cart::yz][0][m] = pma(1) * R_temp[Cart::z][0][m] +
-                                       wmp(1) * R_temp[Cart::z][0][m + 1];
-              R_temp[Cart::zz][0][m] = pma(2) * R_temp[Cart::z][0][m] +
-                                       wmp(2) * R_temp[Cart::z][0][m + 1] +
+              R_temp(Cart::yz, 0, m) = pma(1) * R_temp(Cart::z, 0, m) +
+                                       wmp(1) * R_temp(Cart::z, 0, m + 1);
+              R_temp(Cart::zz, 0, m) = pma(2) * R_temp(Cart::z, 0, m) +
+                                       wmp(2) * R_temp(Cart::z, 0, m + 1) +
                                        term;
             }
           }
@@ -358,35 +338,35 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           // Integrals     f-s - s-s
           if (lmax_alpha_beta > 2) {
             for (int m = 0; m < mmax - 2; m++) {
-              R_temp[Cart::xxx][0][m] = pma(0) * R_temp[Cart::xx][0][m] +
-                                        wmp(0) * R_temp[Cart::xx][0][m + 1] +
+              R_temp(Cart::xxx, 0, m) = pma(0) * R_temp(Cart::xx, 0, m) +
+                                        wmp(0) * R_temp(Cart::xx, 0, m + 1) +
                                         2 * rzeta *
-                                            (R_temp[Cart::x][0][m] -
-                                             gfak * R_temp[Cart::x][0][m + 1]);
-              R_temp[Cart::xxy][0][m] = pma(1) * R_temp[Cart::xx][0][m] +
-                                        wmp(1) * R_temp[Cart::xx][0][m + 1];
-              R_temp[Cart::xxz][0][m] = pma(2) * R_temp[Cart::xx][0][m] +
-                                        wmp(2) * R_temp[Cart::xx][0][m + 1];
-              R_temp[Cart::xyy][0][m] = pma(0) * R_temp[Cart::yy][0][m] +
-                                        wmp(0) * R_temp[Cart::yy][0][m + 1];
-              R_temp[Cart::xyz][0][m] = pma(0) * R_temp[Cart::yz][0][m] +
-                                        wmp(0) * R_temp[Cart::yz][0][m + 1];
-              R_temp[Cart::xzz][0][m] = pma(0) * R_temp[Cart::zz][0][m] +
-                                        wmp(0) * R_temp[Cart::zz][0][m + 1];
-              R_temp[Cart::yyy][0][m] = pma(1) * R_temp[Cart::yy][0][m] +
-                                        wmp(1) * R_temp[Cart::yy][0][m + 1] +
+                                            (R_temp(Cart::x, 0, m) -
+                                             gfak * R_temp(Cart::x, 0, m + 1));
+              R_temp(Cart::xxy, 0, m) = pma(1) * R_temp(Cart::xx, 0, m) +
+                                        wmp(1) * R_temp(Cart::xx, 0, m + 1);
+              R_temp(Cart::xxz, 0, m) = pma(2) * R_temp(Cart::xx, 0, m) +
+                                        wmp(2) * R_temp(Cart::xx, 0, m + 1);
+              R_temp(Cart::xyy, 0, m) = pma(0) * R_temp(Cart::yy, 0, m) +
+                                        wmp(0) * R_temp(Cart::yy, 0, m + 1);
+              R_temp(Cart::xyz, 0, m) = pma(0) * R_temp(Cart::yz, 0, m) +
+                                        wmp(0) * R_temp(Cart::yz, 0, m + 1);
+              R_temp(Cart::xzz, 0, m) = pma(0) * R_temp(Cart::zz, 0, m) +
+                                        wmp(0) * R_temp(Cart::zz, 0, m + 1);
+              R_temp(Cart::yyy, 0, m) = pma(1) * R_temp(Cart::yy, 0, m) +
+                                        wmp(1) * R_temp(Cart::yy, 0, m + 1) +
                                         2 * rzeta *
-                                            (R_temp[Cart::y][0][m] -
-                                             gfak * R_temp[Cart::y][0][m + 1]);
-              R_temp[Cart::yyz][0][m] = pma(2) * R_temp[Cart::yy][0][m] +
-                                        wmp(2) * R_temp[Cart::yy][0][m + 1];
-              R_temp[Cart::yzz][0][m] = pma(1) * R_temp[Cart::zz][0][m] +
-                                        wmp(1) * R_temp[Cart::zz][0][m + 1];
-              R_temp[Cart::zzz][0][m] = pma(2) * R_temp[Cart::zz][0][m] +
-                                        wmp(2) * R_temp[Cart::zz][0][m + 1] +
+                                            (R_temp(Cart::y, 0, m) -
+                                             gfak * R_temp(Cart::y, 0, m + 1));
+              R_temp(Cart::yyz, 0, m) = pma(2) * R_temp(Cart::yy, 0, m) +
+                                        wmp(2) * R_temp(Cart::yy, 0, m + 1);
+              R_temp(Cart::yzz, 0, m) = pma(1) * R_temp(Cart::zz, 0, m) +
+                                        wmp(1) * R_temp(Cart::zz, 0, m + 1);
+              R_temp(Cart::zzz, 0, m) = pma(2) * R_temp(Cart::zz, 0, m) +
+                                        wmp(2) * R_temp(Cart::zz, 0, m + 1) +
                                         2 * rzeta *
-                                            (R_temp[Cart::z][0][m] -
-                                             gfak * R_temp[Cart::z][0][m + 1]);
+                                            (R_temp(Cart::z, 0, m) -
+                                             gfak * R_temp(Cart::z, 0, m + 1));
             }
           }
           //------------------------------------------------------
@@ -402,24 +382,24 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             int ncart_2 = ncart_1 - l;
             int ncart_3 = ncart_2 + 1 - l;
             for (int m = 0; m < mmax + 1 - l; m++) {
-              R_temp[norb_1][0][m] =
-                  pma(0) * R_temp[norb_2][0][m] +
-                  wmp(0) * R_temp[norb_2][0][m + 1] +
+              R_temp(norb_1, 0, m) =
+                  pma(0) * R_temp(norb_2, 0, m) +
+                  wmp(0) * R_temp(norb_2, 0, m + 1) +
                   (l - 1) * rzeta *
-                      (R_temp[norb_3][0][m] - gfak * R_temp[norb_3][0][m + 1]);
-              R_temp[norb_1 + 1][0][m] = pma(1) * R_temp[norb_2][0][m] +
-                                         wmp(1) * R_temp[norb_2][0][m + 1];
-              R_temp[norb_1 + 2][0][m] = pma(2) * R_temp[norb_2][0][m] +
-                                         wmp(2) * R_temp[norb_2][0][m + 1];
+                      (R_temp(norb_3, 0, m) - gfak * R_temp(norb_3, 0, m + 1));
+              R_temp(norb_1 + 1, 0, m) = pma(1) * R_temp(norb_2, 0, m) +
+                                         wmp(1) * R_temp(norb_2, 0, m + 1);
+              R_temp(norb_1 + 2, 0, m) = pma(2) * R_temp(norb_2, 0, m) +
+                                         wmp(2) * R_temp(norb_2, 0, m + 1);
               int ntimes = 3;
               int itimes = 3;
               for (int k = 3; k < ncart_2; k++) {
-                R_temp[norb_1 + k][0][m] =
-                    pma(0) * R_temp[norb_2 + k][0][m] +
-                    wmp(0) * R_temp[norb_2 + k][0][m + 1] +
+                R_temp(norb_1 + k, 0, m) =
+                    pma(0) * R_temp(norb_2 + k, 0, m) +
+                    wmp(0) * R_temp(norb_2 + k, 0, m + 1) +
                     (l - ntimes) * rzeta *
-                        (R_temp[norb_3 + k][0][m] -
-                         gfak * R_temp[norb_3 + k][0][m + 1]);
+                        (R_temp(norb_3 + k, 0, m) -
+                         gfak * R_temp(norb_3 + k, 0, m + 1));
                 itimes--;
                 if (itimes == 0) {
                   ntimes++;
@@ -428,25 +408,25 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               }
               for (int k = 0; k < l - 1; k++) {
                 int k2 = norb_2 + ncart_2 + k;
-                R_temp[norb_1 + ncart_2 + k][0][m] =
-                    pma(0) * R_temp[k2][0][m] + wmp(0) * R_temp[k2][0][m + 1];
-                R_temp[norb_1 + ncart_1 + k][0][m] =
-                    pma(1) * R_temp[k2][0][m] + wmp(1) * R_temp[k2][0][m + 1] +
+                R_temp(norb_1 + ncart_2 + k, 0, m) =
+                    pma(0) * R_temp(k2, 0, m) + wmp(0) * R_temp(k2, 0, m + 1);
+                R_temp(norb_1 + ncart_1 + k, 0, m) =
+                    pma(1) * R_temp(k2, 0, m) + wmp(1) * R_temp(k2, 0, m + 1) +
                     (l - 1 - k) * rzeta *
-                        (R_temp[norb_3 + ncart_3 + k][0][m] -
-                         gfak * R_temp[norb_3 + ncart_3 + k][0][m + 1]);
+                        (R_temp(norb_3 + ncart_3 + k, 0, m) -
+                         gfak * R_temp(norb_3 + ncart_3 + k, 0, m + 1));
               }
-              R_temp[norb_1 + ncart_2 + l - 1][0][m] =
-                  pma(0) * R_temp[norb_2 + ncart_2 + l - 1][0][m] +
-                  wmp(0) * R_temp[norb_2 + ncart_2 + l - 1][0][m + 1];
-              R_temp[norb - 2][0][m] = pma(1) * R_temp[norb_1 - 1][0][m] +
-                                       wmp(1) * R_temp[norb_1 - 1][0][m + 1];
-              R_temp[norb - 1][0][m] =
-                  pma(2) * R_temp[norb_1 - 1][0][m] +
-                  wmp(2) * R_temp[norb_1 - 1][0][m + 1] +
+              R_temp(norb_1 + ncart_2 + l - 1, 0, m) =
+                  pma(0) * R_temp(norb_2 + ncart_2 + l - 1, 0, m) +
+                  wmp(0) * R_temp(norb_2 + ncart_2 + l - 1, 0, m + 1);
+              R_temp(norb - 2, 0, m) = pma(1) * R_temp(norb_1 - 1, 0, m) +
+                                       wmp(1) * R_temp(norb_1 - 1, 0, m + 1);
+              R_temp(norb - 1, 0, m) =
+                  pma(2) * R_temp(norb_1 - 1, 0, m) +
+                  wmp(2) * R_temp(norb_1 - 1, 0, m + 1) +
                   (l - 1) * rzeta *
-                      (R_temp[norb_2 - 1][0][m] -
-                       gfak * R_temp[norb_2 - 1][0][m + 1]);
+                      (R_temp(norb_2 - 1, 0, m) -
+                       gfak * R_temp(norb_2 - 1, 0, m + 1));
             }
           }
           //------------------------------------------------------
@@ -455,28 +435,28 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
 
             // Integrals     s-s - p-s
             for (int m = 0; m < lmax_gamma_delta; m++) {
-              R_temp[0][Cart::x][m] =
-                  qmc(0) * R_temp[0][0][m] + wmq(0) * R_temp[0][0][m + 1];
-              R_temp[0][Cart::y][m] =
-                  qmc(1) * R_temp[0][0][m] + wmq(1) * R_temp[0][0][m + 1];
-              R_temp[0][Cart::z][m] =
-                  qmc(2) * R_temp[0][0][m] + wmq(2) * R_temp[0][0][m + 1];
+              R_temp(0, Cart::x, m) =
+                  qmc(0) * R_temp(0, 0, m) + wmq(0) * R_temp(0, 0, m + 1);
+              R_temp(0, Cart::y, m) =
+                  qmc(1) * R_temp(0, 0, m) + wmq(1) * R_temp(0, 0, m + 1);
+              R_temp(0, Cart::z, m) =
+                  qmc(2) * R_temp(0, 0, m) + wmq(2) * R_temp(0, 0, m + 1);
             }
             //------------------------------------------------------
 
             // Integrals     p-s - p-s
             if (lmax_alpha_beta > 0) {
               for (int m = 0; m < lmax_gamma_delta; m++) {
-                double term = rdecay * R_temp[0][0][m + 1];
+                double term = rdecay * R_temp(0, 0, m + 1);
                 for (int i = 1; i < 4; i++) {
-                  R_temp[i][Cart::x][m] = qmc(0) * R_temp[i][0][m] +
-                                          wmq(0) * R_temp[i][0][m + 1] +
+                  R_temp(i, Cart::x, m) = qmc(0) * R_temp(i, 0, m) +
+                                          wmq(0) * R_temp(i, 0, m + 1) +
                                           nx[i] * term;
-                  R_temp[i][Cart::y][m] = qmc(1) * R_temp[i][0][m] +
-                                          wmq(1) * R_temp[i][0][m + 1] +
+                  R_temp(i, Cart::y, m) = qmc(1) * R_temp(i, 0, m) +
+                                          wmq(1) * R_temp(i, 0, m + 1) +
                                           ny[i] * term;
-                  R_temp[i][Cart::z][m] = qmc(2) * R_temp[i][0][m] +
-                                          wmq(2) * R_temp[i][0][m + 1] +
+                  R_temp(i, Cart::z, m) = qmc(2) * R_temp(i, 0, m) +
+                                          wmq(2) * R_temp(i, 0, m + 1) +
                                           nz[i] * term;
                 }
               }
@@ -487,15 +467,15 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             // i-s - p-s     j-s - p-s     k-s - p-s     . . .
             for (int m = 0; m < lmax_gamma_delta; m++) {
               for (int i = 4; i < n_orbitals[lmax_alpha_beta]; i++) {
-                R_temp[i][Cart::x][m] =
-                    qmc(0) * R_temp[i][0][m] + wmq(0) * R_temp[i][0][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][0][m + 1];
-                R_temp[i][Cart::y][m] =
-                    qmc(1) * R_temp[i][0][m] + wmq(1) * R_temp[i][0][m + 1] +
-                    ny[i] * rdecay * R_temp[i_less_y[i]][0][m + 1];
-                R_temp[i][Cart::z][m] =
-                    qmc(2) * R_temp[i][0][m] + wmq(2) * R_temp[i][0][m + 1] +
-                    nz[i] * rdecay * R_temp[i_less_z[i]][0][m + 1];
+                R_temp(i, Cart::x, m) =
+                    qmc(0) * R_temp(i, 0, m) + wmq(0) * R_temp(i, 0, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], 0, m + 1);
+                R_temp(i, Cart::y, m) =
+                    qmc(1) * R_temp(i, 0, m) + wmq(1) * R_temp(i, 0, m + 1) +
+                    ny[i] * rdecay * R_temp(i_less_y[i], 0, m + 1);
+                R_temp(i, Cart::z, m) =
+                    qmc(2) * R_temp(i, 0, m) + wmq(2) * R_temp(i, 0, m + 1) +
+                    nz[i] * rdecay * R_temp(i_less_z[i], 0, m + 1);
               }
             }
             //------------------------------------------------------
@@ -507,21 +487,21 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             // Integrals     s-s - d-s
             for (int m = 0; m < lmax_gamma_delta - 1; m++) {
               double term =
-                  reta * (R_temp[0][0][m] - cfak * R_temp[0][0][m + 1]);
-              R_temp[0][Cart::xx][m] = qmc(0) * R_temp[0][Cart::x][m] +
-                                       wmq(0) * R_temp[0][Cart::x][m + 1] +
+                  reta * (R_temp(0, 0, m) - cfak * R_temp(0, 0, m + 1));
+              R_temp(0, Cart::xx, m) = qmc(0) * R_temp(0, Cart::x, m) +
+                                       wmq(0) * R_temp(0, Cart::x, m + 1) +
                                        term;
-              R_temp[0][Cart::xy][m] = qmc(0) * R_temp[0][Cart::y][m] +
-                                       wmq(0) * R_temp[0][Cart::y][m + 1];
-              R_temp[0][Cart::xz][m] = qmc(0) * R_temp[0][Cart::z][m] +
-                                       wmq(0) * R_temp[0][Cart::z][m + 1];
-              R_temp[0][Cart::yy][m] = qmc(1) * R_temp[0][Cart::y][m] +
-                                       wmq(1) * R_temp[0][Cart::y][m + 1] +
+              R_temp(0, Cart::xy, m) = qmc(0) * R_temp(0, Cart::y, m) +
+                                       wmq(0) * R_temp(0, Cart::y, m + 1);
+              R_temp(0, Cart::xz, m) = qmc(0) * R_temp(0, Cart::z, m) +
+                                       wmq(0) * R_temp(0, Cart::z, m + 1);
+              R_temp(0, Cart::yy, m) = qmc(1) * R_temp(0, Cart::y, m) +
+                                       wmq(1) * R_temp(0, Cart::y, m + 1) +
                                        term;
-              R_temp[0][Cart::yz][m] = qmc(1) * R_temp[0][Cart::z][m] +
-                                       wmq(1) * R_temp[0][Cart::z][m + 1];
-              R_temp[0][Cart::zz][m] = qmc(2) * R_temp[0][Cart::z][m] +
-                                       wmq(2) * R_temp[0][Cart::z][m + 1] +
+              R_temp(0, Cart::yz, m) = qmc(1) * R_temp(0, Cart::z, m) +
+                                       wmq(1) * R_temp(0, Cart::z, m + 1);
+              R_temp(0, Cart::zz, m) = qmc(2) * R_temp(0, Cart::z, m) +
+                                       wmq(2) * R_temp(0, Cart::z, m + 1) +
                                        term;
             }
             //------------------------------------------------------
@@ -531,31 +511,31 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             for (int m = 0; m < lmax_gamma_delta - 1; m++) {
               for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
                 double term =
-                    reta * (R_temp[i][0][m] - cfak * R_temp[i][0][m + 1]);
-                R_temp[i][Cart::xx][m] =
-                    qmc(0) * R_temp[i][Cart::x][m] +
-                    wmq(0) * R_temp[i][Cart::x][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::x][m + 1] + term;
-                R_temp[i][Cart::xy][m] =
-                    qmc(0) * R_temp[i][Cart::y][m] +
-                    wmq(0) * R_temp[i][Cart::y][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::y][m + 1];
-                R_temp[i][Cart::xz][m] =
-                    qmc(0) * R_temp[i][Cart::z][m] +
-                    wmq(0) * R_temp[i][Cart::z][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::z][m + 1];
-                R_temp[i][Cart::yy][m] =
-                    qmc(1) * R_temp[i][Cart::y][m] +
-                    wmq(1) * R_temp[i][Cart::y][m + 1] +
-                    ny[i] * rdecay * R_temp[i_less_y[i]][Cart::y][m + 1] + term;
-                R_temp[i][Cart::yz][m] =
-                    qmc(1) * R_temp[i][Cart::z][m] +
-                    wmq(1) * R_temp[i][Cart::z][m + 1] +
-                    ny[i] * rdecay * R_temp[i_less_y[i]][Cart::z][m + 1];
-                R_temp[i][Cart::zz][m] =
-                    qmc(2) * R_temp[i][Cart::z][m] +
-                    wmq(2) * R_temp[i][Cart::z][m + 1] +
-                    nz[i] * rdecay * R_temp[i_less_z[i]][Cart::z][m + 1] + term;
+                    reta * (R_temp(i, 0, m) - cfak * R_temp(i, 0, m + 1));
+                R_temp(i, Cart::xx, m) =
+                    qmc(0) * R_temp(i, Cart::x, m) +
+                    wmq(0) * R_temp(i, Cart::x, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::x, m + 1) + term;
+                R_temp(i, Cart::xy, m) =
+                    qmc(0) * R_temp(i, Cart::y, m) +
+                    wmq(0) * R_temp(i, Cart::y, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::y, m + 1);
+                R_temp(i, Cart::xz, m) =
+                    qmc(0) * R_temp(i, Cart::z, m) +
+                    wmq(0) * R_temp(i, Cart::z, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::z, m + 1);
+                R_temp(i, Cart::yy, m) =
+                    qmc(1) * R_temp(i, Cart::y, m) +
+                    wmq(1) * R_temp(i, Cart::y, m + 1) +
+                    ny[i] * rdecay * R_temp(i_less_y[i], Cart::y, m + 1) + term;
+                R_temp(i, Cart::yz, m) =
+                    qmc(1) * R_temp(i, Cart::z, m) +
+                    wmq(1) * R_temp(i, Cart::z, m + 1) +
+                    ny[i] * rdecay * R_temp(i_less_y[i], Cart::z, m + 1);
+                R_temp(i, Cart::zz, m) =
+                    qmc(2) * R_temp(i, Cart::z, m) +
+                    wmq(2) * R_temp(i, Cart::z, m + 1) +
+                    nz[i] * rdecay * R_temp(i_less_z[i], Cart::z, m + 1) + term;
               }
             }
             //------------------------------------------------------
@@ -565,35 +545,35 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
 
             // Integrals     s-s - f-s
             for (int m = 0; m < lmax_gamma_delta - 2; m++) {
-              R_temp[0][Cart::xxx][m] = qmc(0) * R_temp[0][Cart::xx][m] +
-                                        wmq(0) * R_temp[0][Cart::xx][m + 1] +
+              R_temp(0, Cart::xxx, m) = qmc(0) * R_temp(0, Cart::xx, m) +
+                                        wmq(0) * R_temp(0, Cart::xx, m + 1) +
                                         2 * reta *
-                                            (R_temp[0][Cart::x][m] -
-                                             cfak * R_temp[0][Cart::x][m + 1]);
-              R_temp[0][Cart::xxy][m] = qmc(1) * R_temp[0][Cart::xx][m] +
-                                        wmq(1) * R_temp[0][Cart::xx][m + 1];
-              R_temp[0][Cart::xxz][m] = qmc(2) * R_temp[0][Cart::xx][m] +
-                                        wmq(2) * R_temp[0][Cart::xx][m + 1];
-              R_temp[0][Cart::xyy][m] = qmc(0) * R_temp[0][Cart::yy][m] +
-                                        wmq(0) * R_temp[0][Cart::yy][m + 1];
-              R_temp[0][Cart::xyz][m] = qmc(0) * R_temp[0][Cart::yz][m] +
-                                        wmq(0) * R_temp[0][Cart::yz][m + 1];
-              R_temp[0][Cart::xzz][m] = qmc(0) * R_temp[0][Cart::zz][m] +
-                                        wmq(0) * R_temp[0][Cart::zz][m + 1];
-              R_temp[0][Cart::yyy][m] = qmc(1) * R_temp[0][Cart::yy][m] +
-                                        wmq(1) * R_temp[0][Cart::yy][m + 1] +
+                                            (R_temp(0, Cart::x, m) -
+                                             cfak * R_temp(0, Cart::x, m + 1));
+              R_temp(0, Cart::xxy, m) = qmc(1) * R_temp(0, Cart::xx, m) +
+                                        wmq(1) * R_temp(0, Cart::xx, m + 1);
+              R_temp(0, Cart::xxz, m) = qmc(2) * R_temp(0, Cart::xx, m) +
+                                        wmq(2) * R_temp(0, Cart::xx, m + 1);
+              R_temp(0, Cart::xyy, m) = qmc(0) * R_temp(0, Cart::yy, m) +
+                                        wmq(0) * R_temp(0, Cart::yy, m + 1);
+              R_temp(0, Cart::xyz, m) = qmc(0) * R_temp(0, Cart::yz, m) +
+                                        wmq(0) * R_temp(0, Cart::yz, m + 1);
+              R_temp(0, Cart::xzz, m) = qmc(0) * R_temp(0, Cart::zz, m) +
+                                        wmq(0) * R_temp(0, Cart::zz, m + 1);
+              R_temp(0, Cart::yyy, m) = qmc(1) * R_temp(0, Cart::yy, m) +
+                                        wmq(1) * R_temp(0, Cart::yy, m + 1) +
                                         2 * reta *
-                                            (R_temp[0][Cart::y][m] -
-                                             cfak * R_temp[0][Cart::y][m + 1]);
-              R_temp[0][Cart::yyz][m] = qmc(2) * R_temp[0][Cart::yy][m] +
-                                        wmq(2) * R_temp[0][Cart::yy][m + 1];
-              R_temp[0][Cart::yzz][m] = qmc(1) * R_temp[0][Cart::zz][m] +
-                                        wmq(1) * R_temp[0][Cart::zz][m + 1];
-              R_temp[0][Cart::zzz][m] = qmc(2) * R_temp[0][Cart::zz][m] +
-                                        wmq(2) * R_temp[0][Cart::zz][m + 1] +
+                                            (R_temp(0, Cart::y, m) -
+                                             cfak * R_temp(0, Cart::y, m + 1));
+              R_temp(0, Cart::yyz, m) = qmc(2) * R_temp(0, Cart::yy, m) +
+                                        wmq(2) * R_temp(0, Cart::yy, m + 1);
+              R_temp(0, Cart::yzz, m) = qmc(1) * R_temp(0, Cart::zz, m) +
+                                        wmq(1) * R_temp(0, Cart::zz, m + 1);
+              R_temp(0, Cart::zzz, m) = qmc(2) * R_temp(0, Cart::zz, m) +
+                                        wmq(2) * R_temp(0, Cart::zz, m + 1) +
                                         2 * reta *
-                                            (R_temp[0][Cart::z][m] -
-                                             cfak * R_temp[0][Cart::z][m + 1]);
+                                            (R_temp(0, Cart::z, m) -
+                                             cfak * R_temp(0, Cart::z, m + 1));
             }
             //------------------------------------------------------
 
@@ -603,55 +583,55 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               for (int i = 1; i < n_orbitals[lmax_alpha_beta]; i++) {
                 double term_x =
                     2 * reta *
-                    (R_temp[i][Cart::x][m] - cfak * R_temp[i][Cart::x][m + 1]);
+                    (R_temp(i, Cart::x, m) - cfak * R_temp(i, Cart::x, m + 1));
                 double term_y =
                     2 * reta *
-                    (R_temp[i][Cart::y][m] - cfak * R_temp[i][Cart::y][m + 1]);
+                    (R_temp(i, Cart::y, m) - cfak * R_temp(i, Cart::y, m + 1));
                 double term_z =
                     2 * reta *
-                    (R_temp[i][Cart::z][m] - cfak * R_temp[i][Cart::z][m + 1]);
-                R_temp[i][Cart::xxx][m] =
-                    qmc(0) * R_temp[i][Cart::xx][m] +
-                    wmq(0) * R_temp[i][Cart::xx][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::xx][m + 1] +
+                    (R_temp(i, Cart::z, m) - cfak * R_temp(i, Cart::z, m + 1));
+                R_temp(i, Cart::xxx, m) =
+                    qmc(0) * R_temp(i, Cart::xx, m) +
+                    wmq(0) * R_temp(i, Cart::xx, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::xx, m + 1) +
                     term_x;
-                R_temp[i][Cart::xxy][m] =
-                    qmc(1) * R_temp[i][Cart::xx][m] +
-                    wmq(1) * R_temp[i][Cart::xx][m + 1] +
-                    ny[i] * rdecay * R_temp[i_less_y[i]][Cart::xx][m + 1];
-                R_temp[i][Cart::xxz][m] =
-                    qmc(2) * R_temp[i][Cart::xx][m] +
-                    wmq(2) * R_temp[i][Cart::xx][m + 1] +
-                    nz[i] * rdecay * R_temp[i_less_z[i]][Cart::xx][m + 1];
-                R_temp[i][Cart::xyy][m] =
-                    qmc(0) * R_temp[i][Cart::yy][m] +
-                    wmq(0) * R_temp[i][Cart::yy][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::yy][m + 1];
-                R_temp[i][Cart::xyz][m] =
-                    qmc(0) * R_temp[i][Cart::yz][m] +
-                    wmq(0) * R_temp[i][Cart::yz][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::yz][m + 1];
-                R_temp[i][Cart::xzz][m] =
-                    qmc(0) * R_temp[i][Cart::zz][m] +
-                    wmq(0) * R_temp[i][Cart::zz][m + 1] +
-                    nx[i] * rdecay * R_temp[i_less_x[i]][Cart::zz][m + 1];
-                R_temp[i][Cart::yyy][m] =
-                    qmc(1) * R_temp[i][Cart::yy][m] +
-                    wmq(1) * R_temp[i][Cart::yy][m + 1] +
-                    ny[i] * rdecay * R_temp[i_less_y[i]][Cart::yy][m + 1] +
+                R_temp(i, Cart::xxy, m) =
+                    qmc(1) * R_temp(i, Cart::xx, m) +
+                    wmq(1) * R_temp(i, Cart::xx, m + 1) +
+                    ny[i] * rdecay * R_temp(i_less_y[i], Cart::xx, m + 1);
+                R_temp(i, Cart::xxz, m) =
+                    qmc(2) * R_temp(i, Cart::xx, m) +
+                    wmq(2) * R_temp(i, Cart::xx, m + 1) +
+                    nz[i] * rdecay * R_temp(i_less_z[i], Cart::xx, m + 1);
+                R_temp(i, Cart::xyy, m) =
+                    qmc(0) * R_temp(i, Cart::yy, m) +
+                    wmq(0) * R_temp(i, Cart::yy, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::yy, m + 1);
+                R_temp(i, Cart::xyz, m) =
+                    qmc(0) * R_temp(i, Cart::yz, m) +
+                    wmq(0) * R_temp(i, Cart::yz, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::yz, m + 1);
+                R_temp(i, Cart::xzz, m) =
+                    qmc(0) * R_temp(i, Cart::zz, m) +
+                    wmq(0) * R_temp(i, Cart::zz, m + 1) +
+                    nx[i] * rdecay * R_temp(i_less_x[i], Cart::zz, m + 1);
+                R_temp(i, Cart::yyy, m) =
+                    qmc(1) * R_temp(i, Cart::yy, m) +
+                    wmq(1) * R_temp(i, Cart::yy, m + 1) +
+                    ny[i] * rdecay * R_temp(i_less_y[i], Cart::yy, m + 1) +
                     term_y;
-                R_temp[i][Cart::yyz][m] =
-                    qmc(2) * R_temp[i][Cart::yy][m] +
-                    wmq(2) * R_temp[i][Cart::yy][m + 1] +
-                    nz[i] * rdecay * R_temp[i_less_z[i]][Cart::yy][m + 1];
-                R_temp[i][Cart::yzz][m] =
-                    qmc(1) * R_temp[i][Cart::zz][m] +
-                    wmq(1) * R_temp[i][Cart::zz][m + 1] +
-                    ny[i] * rdecay * R_temp[i_less_y[i]][Cart::zz][m + 1];
-                R_temp[i][Cart::zzz][m] =
-                    qmc(2) * R_temp[i][Cart::zz][m] +
-                    wmq(2) * R_temp[i][Cart::zz][m + 1] +
-                    nz[i] * rdecay * R_temp[i_less_z[i]][Cart::zz][m + 1] +
+                R_temp(i, Cart::yyz, m) =
+                    qmc(2) * R_temp(i, Cart::yy, m) +
+                    wmq(2) * R_temp(i, Cart::yy, m + 1) +
+                    nz[i] * rdecay * R_temp(i_less_z[i], Cart::yy, m + 1);
+                R_temp(i, Cart::yzz, m) =
+                    qmc(1) * R_temp(i, Cart::zz, m) +
+                    wmq(1) * R_temp(i, Cart::zz, m + 1) +
+                    ny[i] * rdecay * R_temp(i_less_y[i], Cart::zz, m + 1);
+                R_temp(i, Cart::zzz, m) =
+                    qmc(2) * R_temp(i, Cart::zz, m) +
+                    wmq(2) * R_temp(i, Cart::zz, m + 1) +
+                    nz[i] * rdecay * R_temp(i_less_z[i], Cart::zz, m + 1) +
                     term_z;
               }
             }
@@ -681,24 +661,24 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
             int ncart_3 = ncart_2 + 1 - l;
 
             for (int m = 0; m < lmax_gamma_delta + 1 - l; m++) {
-              R_temp[0][norb_1][m] =
-                  qmc(0) * R_temp[0][norb_2][m] +
-                  wmq(0) * R_temp[0][norb_2][m + 1] +
+              R_temp(0, norb_1, m) =
+                  qmc(0) * R_temp(0, norb_2, m) +
+                  wmq(0) * R_temp(0, norb_2, m + 1) +
                   (l - 1) * reta *
-                      (R_temp[0][norb_3][m] - cfak * R_temp[0][norb_3][m + 1]);
-              R_temp[0][norb_1 + 1][m] = qmc(1) * R_temp[0][norb_2][m] +
-                                         wmq(1) * R_temp[0][norb_2][m + 1];
-              R_temp[0][norb_1 + 2][m] = qmc(2) * R_temp[0][norb_2][m] +
-                                         wmq(2) * R_temp[0][norb_2][m + 1];
+                      (R_temp(0, norb_3, m) - cfak * R_temp(0, norb_3, m + 1));
+              R_temp(0, norb_1 + 1, m) = qmc(1) * R_temp(0, norb_2, m) +
+                                         wmq(1) * R_temp(0, norb_2, m + 1);
+              R_temp(0, norb_1 + 2, m) = qmc(2) * R_temp(0, norb_2, m) +
+                                         wmq(2) * R_temp(0, norb_2, m + 1);
               int ntimes = 3;
               int itimes = 3;
               for (int k = 3; k < ncart_2; k++) {
-                R_temp[0][norb_1 + k][m] =
-                    qmc(0) * R_temp[0][norb_2 + k][m] +
-                    wmq(0) * R_temp[0][norb_2 + k][m + 1] +
+                R_temp(0, norb_1 + k, m) =
+                    qmc(0) * R_temp(0, norb_2 + k, m) +
+                    wmq(0) * R_temp(0, norb_2 + k, m + 1) +
                     (l - ntimes) * reta *
-                        (R_temp[0][norb_3 + k][m] -
-                         cfak * R_temp[0][norb_3 + k][m + 1]);
+                        (R_temp(0, norb_3 + k, m) -
+                         cfak * R_temp(0, norb_3 + k, m + 1));
                 itimes--;
                 if (itimes == 0) {
                   ntimes++;
@@ -706,27 +686,27 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                 }
               }
               for (int k = 0; k < l - 1; k++) {
-                R_temp[0][norb_1 + ncart_2 + k][m] =
-                    qmc(0) * R_temp[0][norb_2 + ncart_2 + k][m] +
-                    wmq(0) * R_temp[0][norb_2 + ncart_2 + k][m + 1];
-                R_temp[0][norb_1 + ncart_1 + k][m] =
-                    qmc(1) * R_temp[0][norb_2 + ncart_2 + k][m] +
-                    wmq(1) * R_temp[0][norb_2 + ncart_2 + k][m + 1] +
+                R_temp(0, norb_1 + ncart_2 + k, m) =
+                    qmc(0) * R_temp(0, norb_2 + ncart_2 + k, m) +
+                    wmq(0) * R_temp(0, norb_2 + ncart_2 + k, m + 1);
+                R_temp(0, norb_1 + ncart_1 + k, m) =
+                    qmc(1) * R_temp(0, norb_2 + ncart_2 + k, m) +
+                    wmq(1) * R_temp(0, norb_2 + ncart_2 + k, m + 1) +
                     (l - 1 - k) * reta *
-                        (R_temp[0][norb_3 + ncart_3 + k][m] -
-                         cfak * R_temp[0][norb_3 + ncart_3 + k][m + 1]);
+                        (R_temp(0, norb_3 + ncart_3 + k, m) -
+                         cfak * R_temp(0, norb_3 + ncart_3 + k, m + 1));
               }
-              R_temp[0][norb_1 + ncart_2 + l - 1][m] =
-                  qmc(0) * R_temp[0][norb_2 + ncart_2 + l - 1][m] +
-                  wmq(0) * R_temp[0][norb_2 + ncart_2 + l - 1][m + 1];
-              R_temp[0][norb - 2][m] = qmc(1) * R_temp[0][norb_1 - 1][m] +
-                                       wmq(1) * R_temp[0][norb_1 - 1][m + 1];
-              R_temp[0][norb - 1][m] =
-                  qmc(2) * R_temp[0][norb_1 - 1][m] +
-                  wmq(2) * R_temp[0][norb_1 - 1][m + 1] +
+              R_temp(0, norb_1 + ncart_2 + l - 1, m) =
+                  qmc(0) * R_temp(0, norb_2 + ncart_2 + l - 1, m) +
+                  wmq(0) * R_temp(0, norb_2 + ncart_2 + l - 1, m + 1);
+              R_temp(0, norb - 2, m) = qmc(1) * R_temp(0, norb_1 - 1, m) +
+                                       wmq(1) * R_temp(0, norb_1 - 1, m + 1);
+              R_temp(0, norb - 1, m) =
+                  qmc(2) * R_temp(0, norb_1 - 1, m) +
+                  wmq(2) * R_temp(0, norb_1 - 1, m + 1) +
                   (l - 1) * reta *
-                      (R_temp[0][norb_2 - 1][m] -
-                       cfak * R_temp[0][norb_2 - 1][m + 1]);
+                      (R_temp(0, norb_2 - 1, m) -
+                       cfak * R_temp(0, norb_2 - 1, m + 1));
             }
 
             for (int m = 0; m < lmax_gamma_delta + 1 - l; m++) {
@@ -738,31 +718,31 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                 int ily_i = i_less_y[i];
                 int ilz_i = i_less_z[i];
 
-                R_temp[i][norb_1][m] =
-                    qmc(0) * R_temp[i][norb_2][m] +
-                    wmq(0) * R_temp[i][norb_2][m + 1] +
-                    nx_i * rdecay * R_temp[ilx_i][norb_2][m + 1] +
+                R_temp(i, norb_1, m) =
+                    qmc(0) * R_temp(i, norb_2, m) +
+                    wmq(0) * R_temp(i, norb_2, m + 1) +
+                    nx_i * rdecay * R_temp(ilx_i, norb_2, m + 1) +
                     (l - 1) * reta *
-                        (R_temp[i][norb_3][m] -
-                         cfak * R_temp[i][norb_3][m + 1]);
-                R_temp[i][norb_1 + 1][m] =
-                    qmc(1) * R_temp[i][norb_2][m] +
-                    wmq(1) * R_temp[i][norb_2][m + 1] +
-                    ny_i * rdecay * R_temp[ily_i][norb_2][m + 1];
-                R_temp[i][norb_1 + 2][m] =
-                    qmc(2) * R_temp[i][norb_2][m] +
-                    wmq(2) * R_temp[i][norb_2][m + 1] +
-                    nz_i * rdecay * R_temp[ilz_i][norb_2][m + 1];
+                        (R_temp(i, norb_3, m) -
+                         cfak * R_temp(i, norb_3, m + 1));
+                R_temp(i, norb_1 + 1, m) =
+                    qmc(1) * R_temp(i, norb_2, m) +
+                    wmq(1) * R_temp(i, norb_2, m + 1) +
+                    ny_i * rdecay * R_temp(ily_i, norb_2, m + 1);
+                R_temp(i, norb_1 + 2, m) =
+                    qmc(2) * R_temp(i, norb_2, m) +
+                    wmq(2) * R_temp(i, norb_2, m + 1) +
+                    nz_i * rdecay * R_temp(ilz_i, norb_2, m + 1);
                 int ntimes = 3;
                 int itimes = 3;
                 for (int k = 3; k < ncart_2; k++) {
-                  R_temp[i][norb_1 + k][m] =
-                      qmc(0) * R_temp[i][norb_2 + k][m] +
-                      wmq(0) * R_temp[i][norb_2 + k][m + 1] +
-                      nx_i * rdecay * R_temp[ilx_i][norb_2 + k][m + 1] +
+                  R_temp(i, norb_1 + k, m) =
+                      qmc(0) * R_temp(i, norb_2 + k, m) +
+                      wmq(0) * R_temp(i, norb_2 + k, m + 1) +
+                      nx_i * rdecay * R_temp(ilx_i, norb_2 + k, m + 1) +
                       (l - ntimes) * reta *
-                          (R_temp[i][norb_3 + k][m] -
-                           cfak * R_temp[i][norb_3 + k][m + 1]);
+                          (R_temp(i, norb_3 + k, m) -
+                           cfak * R_temp(i, norb_3 + k, m + 1));
                   itimes--;
                   if (itimes == 0) {
                     ntimes++;
@@ -771,36 +751,36 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                 }
                 for (int k = 0; k < l - 1; k++) {
                   int k2 = norb_2 + ncart_2 + k;
-                  R_temp[i][norb_1 + ncart_2 + k][m] =
-                      qmc(0) * R_temp[i][k2][m] +
-                      wmq(0) * R_temp[i][k2][m + 1] +
+                  R_temp(i, norb_1 + ncart_2 + k, m) =
+                      qmc(0) * R_temp(i, k2, m) +
+                      wmq(0) * R_temp(i, k2, m + 1) +
                       nx_i * rdecay *
-                          R_temp[ilx_i][norb_2 + ncart_2 + k][m + 1];
-                  R_temp[i][norb_1 + ncart_1 + k][m] =
-                      qmc(1) * R_temp[i][k2][m] +
-                      wmq(1) * R_temp[i][k2][m + 1] +
+                          R_temp(ilx_i, norb_2 + ncart_2 + k, m + 1);
+                  R_temp(i, norb_1 + ncart_1 + k, m) =
+                      qmc(1) * R_temp(i, k2, m) +
+                      wmq(1) * R_temp(i, k2, m + 1) +
                       ny_i * rdecay *
-                          R_temp[ily_i][norb_2 + ncart_2 + k][m + 1] +
+                          R_temp(ily_i, norb_2 + ncart_2 + k, m + 1) +
                       (l - 1 - k) * reta *
-                          (R_temp[i][norb_3 + ncart_3 + k][m] -
-                           cfak * R_temp[i][norb_3 + ncart_3 + k][m + 1]);
+                          (R_temp(i, norb_3 + ncart_3 + k, m) -
+                           cfak * R_temp(i, norb_3 + ncart_3 + k, m + 1));
                 }
-                R_temp[i][norb_1 + ncart_2 + l - 1][m] =
-                    qmc(0) * R_temp[i][norb_2 + ncart_2 + l - 1][m] +
-                    wmq(0) * R_temp[i][norb_2 + ncart_2 + l - 1][m + 1] +
+                R_temp(i, norb_1 + ncart_2 + l - 1, m) =
+                    qmc(0) * R_temp(i, norb_2 + ncart_2 + l - 1, m) +
+                    wmq(0) * R_temp(i, norb_2 + ncart_2 + l - 1, m + 1) +
                     nx_i * rdecay *
-                        R_temp[ilx_i][norb_2 + ncart_2 + l - 1][m + 1];
-                R_temp[i][norb - 2][m] =
-                    qmc(1) * R_temp[i][norb_1 - 1][m] +
-                    wmq(1) * R_temp[i][norb_1 - 1][m + 1] +
-                    ny_i * rdecay * R_temp[ily_i][norb_1 - 1][m + 1];
-                R_temp[i][norb - 1][m] =
-                    qmc(2) * R_temp[i][norb_1 - 1][m] +
-                    wmq(2) * R_temp[i][norb_1 - 1][m + 1] +
-                    nz_i * rdecay * R_temp[ilz_i][norb_1 - 1][m + 1] +
+                        R_temp(ilx_i, norb_2 + ncart_2 + l - 1, m + 1);
+                R_temp(i, norb - 2, m) =
+                    qmc(1) * R_temp(i, norb_1 - 1, m) +
+                    wmq(1) * R_temp(i, norb_1 - 1, m + 1) +
+                    ny_i * rdecay * R_temp(ily_i, norb_1 - 1, m + 1);
+                R_temp(i, norb - 1, m) =
+                    qmc(2) * R_temp(i, norb_1 - 1, m) +
+                    wmq(2) * R_temp(i, norb_1 - 1, m + 1) +
+                    nz_i * rdecay * R_temp(ilz_i, norb_1 - 1, m + 1) +
                     (l - 1) * reta *
-                        (R_temp[i][norb_2 - 1][m] -
-                         cfak * R_temp[i][norb_2 - 1][m + 1]);
+                        (R_temp(i, norb_2 - 1, m) -
+                         cfak * R_temp(i, norb_2 - 1, m + 1));
               }
             }
           }
@@ -808,9 +788,9 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
 
           // copy into new array for 3D use.
 
-          for (index3d i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
-            for (index3d k = 0; k < n_orbitals[lmax_gamma_delta]; ++k) {
-              R[i][0][k] = R_temp[i][k][0];
+          for (int i = 0; i < n_orbitals[lmax_alpha_beta]; ++i) {
+            for (int k = 0; k < n_orbitals[lmax_gamma_delta]; ++k) {
+              R(i, 0, k) = R_temp(i, k, 0);
             }
           }
 
@@ -822,9 +802,9 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
               for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
-                R[i][Cart::x][j] = R[imx_i][0][j] + amb(0) * R[i][0][j];
-                R[i][Cart::y][j] = R[imy_i][0][j] + amb(1) * R[i][0][j];
-                R[i][Cart::z][j] = R[imz_i][0][j] + amb(2) * R[i][0][j];
+                R(i, Cart::x, j) = R(imx_i, 0, j) + amb(0) * R(i, 0, j);
+                R(i, Cart::y, j) = R(imy_i, 0, j) + amb(1) * R(i, 0, j);
+                R(i, Cart::z, j) = R(imz_i, 0, j) + amb(2) * R(i, 0, j);
               }
             }
             //------------------------------------------------------
@@ -838,18 +818,18 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
               for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
-                R[i][Cart::xx][j] =
-                    R[imx_i][Cart::x][j] + amb(0) * R[i][Cart::x][j];
-                R[i][Cart::xy][j] =
-                    R[imx_i][Cart::y][j] + amb(0) * R[i][Cart::y][j];
-                R[i][Cart::xz][j] =
-                    R[imx_i][Cart::z][j] + amb(0) * R[i][Cart::z][j];
-                R[i][Cart::yy][j] =
-                    R[imy_i][Cart::y][j] + amb(1) * R[i][Cart::y][j];
-                R[i][Cart::yz][j] =
-                    R[imy_i][Cart::z][j] + amb(1) * R[i][Cart::z][j];
-                R[i][Cart::zz][j] =
-                    R[imz_i][Cart::z][j] + amb(2) * R[i][Cart::z][j];
+                R(i, Cart::xx, j) =
+                    R(imx_i, Cart::x, j) + amb(0) * R(i, Cart::x, j);
+                R(i, Cart::xy, j) =
+                    R(imx_i, Cart::y, j) + amb(0) * R(i, Cart::y, j);
+                R(i, Cart::xz, j) =
+                    R(imx_i, Cart::z, j) + amb(0) * R(i, Cart::z, j);
+                R(i, Cart::yy, j) =
+                    R(imy_i, Cart::y, j) + amb(1) * R(i, Cart::y, j);
+                R(i, Cart::yz, j) =
+                    R(imy_i, Cart::z, j) + amb(1) * R(i, Cart::z, j);
+                R(i, Cart::zz, j) =
+                    R(imz_i, Cart::z, j) + amb(2) * R(i, Cart::z, j);
               }
             }
             //------------------------------------------------------
@@ -863,26 +843,26 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imy_i = i_more_y[i];
               int imz_i = i_more_z[i];
               for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
-                R[i][Cart::xxx][j] =
-                    R[imx_i][Cart::xx][j] + amb(0) * R[i][Cart::xx][j];
-                R[i][Cart::xxy][j] =
-                    R[imx_i][Cart::xy][j] + amb(0) * R[i][Cart::xy][j];
-                R[i][Cart::xxz][j] =
-                    R[imx_i][Cart::xz][j] + amb(0) * R[i][Cart::xz][j];
-                R[i][Cart::xyy][j] =
-                    R[imx_i][Cart::yy][j] + amb(0) * R[i][Cart::yy][j];
-                R[i][Cart::xyz][j] =
-                    R[imx_i][Cart::yz][j] + amb(0) * R[i][Cart::yz][j];
-                R[i][Cart::xzz][j] =
-                    R[imx_i][Cart::zz][j] + amb(0) * R[i][Cart::zz][j];
-                R[i][Cart::yyy][j] =
-                    R[imy_i][Cart::yy][j] + amb(1) * R[i][Cart::yy][j];
-                R[i][Cart::yyz][j] =
-                    R[imy_i][Cart::yz][j] + amb(1) * R[i][Cart::yz][j];
-                R[i][Cart::yzz][j] =
-                    R[imy_i][Cart::zz][j] + amb(1) * R[i][Cart::zz][j];
-                R[i][Cart::zzz][j] =
-                    R[imz_i][Cart::zz][j] + amb(2) * R[i][Cart::zz][j];
+                R(i, Cart::xxx, j) =
+                    R(imx_i, Cart::xx, j) + amb(0) * R(i, Cart::xx, j);
+                R(i, Cart::xxy, j) =
+                    R(imx_i, Cart::xy, j) + amb(0) * R(i, Cart::xy, j);
+                R(i, Cart::xxz, j) =
+                    R(imx_i, Cart::xz, j) + amb(0) * R(i, Cart::xz, j);
+                R(i, Cart::xyy, j) =
+                    R(imx_i, Cart::yy, j) + amb(0) * R(i, Cart::yy, j);
+                R(i, Cart::xyz, j) =
+                    R(imx_i, Cart::yz, j) + amb(0) * R(i, Cart::yz, j);
+                R(i, Cart::xzz, j) =
+                    R(imx_i, Cart::zz, j) + amb(0) * R(i, Cart::zz, j);
+                R(i, Cart::yyy, j) =
+                    R(imy_i, Cart::yy, j) + amb(1) * R(i, Cart::yy, j);
+                R(i, Cart::yyz, j) =
+                    R(imy_i, Cart::yz, j) + amb(1) * R(i, Cart::yz, j);
+                R(i, Cart::yzz, j) =
+                    R(imy_i, Cart::zz, j) + amb(1) * R(i, Cart::zz, j);
+                R(i, Cart::zzz, j) =
+                    R(imz_i, Cart::zz, j) + amb(2) * R(i, Cart::zz, j);
               }
             }
             //------------------------------------------------------
@@ -904,18 +884,18 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imz_i = i_more_z[i];
               for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
                 for (int k = 0; k < ncart_2; k++) {
-                  R[i][norb_1 + k][j] =
-                      R[imx_i][norb_2 + k][j] + amb(0) * R[i][norb_2 + k][j];
+                  R(i, norb_1 + k, j) =
+                      R(imx_i, norb_2 + k, j) + amb(0) * R(i, norb_2 + k, j);
                 }
                 for (int k = 0; k < l; k++) {
                   int k2 = norb_2 + ncart_2 + k;
-                  R[i][norb_1 + ncart_2 + k][j] =
-                      R[imx_i][k2][j] + amb(0) * R[i][k2][j];
-                  R[i][norb_1 + ncart_1 + k][j] =
-                      R[imy_i][k2][j] + amb(1) * R[i][k2][j];
+                  R(i, norb_1 + ncart_2 + k, j) =
+                      R(imx_i, k2, j) + amb(0) * R(i, k2, j);
+                  R(i, norb_1 + ncart_1 + k, j) =
+                      R(imy_i, k2, j) + amb(1) * R(i, k2, j);
                 }
-                R[i][norb - 1][j] =
-                    R[imz_i][norb_1 - 1][j] + amb(2) * R[i][norb_1 - 1][j];
+                R(i, norb - 1, j) =
+                    R(imz_i, norb_1 - 1, j) + amb(2) * R(i, norb_1 - 1, j);
               }
             }
           }
@@ -941,23 +921,20 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           const Eigen::MatrixXd trafo_beta =
               AOTransform::getTrafo(gaussian_beta);
 
-          tensor3d R3_ab_sph;
-          R3_ab_sph.resize(extents[ntrafo_alpha][ntrafo_beta][ncombined_cd]);
+          Eigen::Tensor<double, 3> R3_ab_sph(ntrafo_alpha, ntrafo_beta,
+                                             ncombined_cd);
+          R3_ab_sph.setZero();
 
           for (int i_beta = 0; i_beta < ntrafo_beta; i_beta++) {
             for (int i_alpha = 0; i_alpha < ntrafo_alpha; i_alpha++) {
-
               for (int j = 0; j < n_orbitals[lmax_gamma_delta]; j++) {
-
-                R3_ab_sph[i_alpha][i_beta][j] = 0.0;
-
                 for (int i_beta_t = istart[i_beta]; i_beta_t <= istop[i_beta];
                      i_beta_t++) {
                   for (int i_alpha_t = istart[i_alpha];
                        i_alpha_t <= istop[i_alpha]; i_alpha_t++) {
 
-                    R3_ab_sph[i_alpha][i_beta][j] +=
-                        R[i_alpha_t][i_beta_t][j] *
+                    R3_ab_sph(i_alpha, i_beta, j) +=
+                        R(i_alpha_t, i_beta_t, j) *
                         trafo_alpha(i_alpha_t, i_alpha) *
                         trafo_beta(i_beta_t, i_beta);
                   }
@@ -967,17 +944,15 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           }
 
           // copy into new 4D array.
-          tensor4d R4_ab_sph;
-          R4_ab_sph.resize(
-              extents4[ntrafo_alpha][ntrafo_beta][ncombined_cd][ndelta]);
-          // ma4_type R4_ab_sph(boost::extents[ _ntrafo_alpha ][ _ntrafo_beta ][
-          // _ncombined_cd ][ _ndelta ]);
 
-          for (index3d j = 0; j < ntrafo_alpha; ++j) {
-            for (index3d k = 0; k < ntrafo_beta; ++k) {
-              for (index3d i = 0; i < ncombined_cd; ++i) {
+          Eigen::Tensor<double, 4> R4_ab_sph(ntrafo_alpha, ntrafo_beta,
+                                             ncombined_cd, ndelta);
 
-                R4_ab_sph[j][k][i][0] = R3_ab_sph[j][k][i];
+          for (int j = 0; j < ntrafo_alpha; ++j) {
+            for (int k = 0; k < ntrafo_beta; ++k) {
+              for (int i = 0; i < ncombined_cd; ++i) {
+
+                R4_ab_sph(j, k, i, 0) = R3_ab_sph(j, k, i);
               }
             }
           }
@@ -991,12 +966,12 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imz_i = i_more_z[i];
               for (int j = 0; j < ntrafo_alpha; j++) {
                 for (int k = 0; k < ntrafo_beta; k++) {
-                  R4_ab_sph[j][k][i][Cart::x] = R4_ab_sph[j][k][imx_i][0] +
-                                                cmd(0) * R4_ab_sph[j][k][i][0];
-                  R4_ab_sph[j][k][i][Cart::y] = R4_ab_sph[j][k][imy_i][0] +
-                                                cmd(1) * R4_ab_sph[j][k][i][0];
-                  R4_ab_sph[j][k][i][Cart::z] = R4_ab_sph[j][k][imz_i][0] +
-                                                cmd(2) * R4_ab_sph[j][k][i][0];
+                  R4_ab_sph(j, k, i, Cart::x) = R4_ab_sph(j, k, imx_i, 0) +
+                                                cmd(0) * R4_ab_sph(j, k, i, 0);
+                  R4_ab_sph(j, k, i, Cart::y) = R4_ab_sph(j, k, imy_i, 0) +
+                                                cmd(1) * R4_ab_sph(j, k, i, 0);
+                  R4_ab_sph(j, k, i, Cart::z) = R4_ab_sph(j, k, imz_i, 0) +
+                                                cmd(2) * R4_ab_sph(j, k, i, 0);
                 }
               }
             }
@@ -1011,24 +986,24 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imz_i = i_more_z[i];
               for (int j = 0; j < ntrafo_alpha; j++) {
                 for (int k = 0; k < ntrafo_beta; k++) {
-                  R4_ab_sph[j][k][i][Cart::xx] =
-                      R4_ab_sph[j][k][imx_i][Cart::x] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::x];
-                  R4_ab_sph[j][k][i][Cart::xy] =
-                      R4_ab_sph[j][k][imx_i][Cart::y] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::y];
-                  R4_ab_sph[j][k][i][Cart::xz] =
-                      R4_ab_sph[j][k][imx_i][Cart::z] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::z];
-                  R4_ab_sph[j][k][i][Cart::yy] =
-                      R4_ab_sph[j][k][imy_i][Cart::y] +
-                      cmd(1) * R4_ab_sph[j][k][i][Cart::y];
-                  R4_ab_sph[j][k][i][Cart::yz] =
-                      R4_ab_sph[j][k][imy_i][Cart::z] +
-                      cmd(1) * R4_ab_sph[j][k][i][Cart::z];
-                  R4_ab_sph[j][k][i][Cart::zz] =
-                      R4_ab_sph[j][k][imz_i][Cart::z] +
-                      cmd(2) * R4_ab_sph[j][k][i][Cart::z];
+                  R4_ab_sph(j, k, i, Cart::xx) =
+                      R4_ab_sph(j, k, imx_i, Cart::x) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::x);
+                  R4_ab_sph(j, k, i, Cart::xy) =
+                      R4_ab_sph(j, k, imx_i, Cart::y) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::y);
+                  R4_ab_sph(j, k, i, Cart::xz) =
+                      R4_ab_sph(j, k, imx_i, Cart::z) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::z);
+                  R4_ab_sph(j, k, i, Cart::yy) =
+                      R4_ab_sph(j, k, imy_i, Cart::y) +
+                      cmd(1) * R4_ab_sph(j, k, i, Cart::y);
+                  R4_ab_sph(j, k, i, Cart::yz) =
+                      R4_ab_sph(j, k, imy_i, Cart::z) +
+                      cmd(1) * R4_ab_sph(j, k, i, Cart::z);
+                  R4_ab_sph(j, k, i, Cart::zz) =
+                      R4_ab_sph(j, k, imz_i, Cart::z) +
+                      cmd(2) * R4_ab_sph(j, k, i, Cart::z);
                 }
               }
             }
@@ -1043,36 +1018,36 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               int imz_i = i_more_z[i];
               for (int j = 0; j < ntrafo_alpha; j++) {
                 for (int k = 0; k < ntrafo_beta; k++) {
-                  R4_ab_sph[j][k][i][Cart::xxx] =
-                      R4_ab_sph[j][k][imx_i][Cart::xx] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::xx];
-                  R4_ab_sph[j][k][i][Cart::xxy] =
-                      R4_ab_sph[j][k][imx_i][Cart::xy] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::xy];
-                  R4_ab_sph[j][k][i][Cart::xxz] =
-                      R4_ab_sph[j][k][imx_i][Cart::xz] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::xz];
-                  R4_ab_sph[j][k][i][Cart::xyy] =
-                      R4_ab_sph[j][k][imx_i][Cart::yy] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::yy];
-                  R4_ab_sph[j][k][i][Cart::xyz] =
-                      R4_ab_sph[j][k][imx_i][Cart::yz] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::yz];
-                  R4_ab_sph[j][k][i][Cart::xzz] =
-                      R4_ab_sph[j][k][imx_i][Cart::zz] +
-                      cmd(0) * R4_ab_sph[j][k][i][Cart::zz];
-                  R4_ab_sph[j][k][i][Cart::yyy] =
-                      R4_ab_sph[j][k][imy_i][Cart::yy] +
-                      cmd(1) * R4_ab_sph[j][k][i][Cart::yy];
-                  R4_ab_sph[j][k][i][Cart::yyz] =
-                      R4_ab_sph[j][k][imy_i][Cart::yz] +
-                      cmd(1) * R4_ab_sph[j][k][i][Cart::yz];
-                  R4_ab_sph[j][k][i][Cart::yzz] =
-                      R4_ab_sph[j][k][imy_i][Cart::zz] +
-                      cmd(1) * R4_ab_sph[j][k][i][Cart::zz];
-                  R4_ab_sph[j][k][i][Cart::zzz] =
-                      R4_ab_sph[j][k][imz_i][Cart::zz] +
-                      cmd(2) * R4_ab_sph[j][k][i][Cart::zz];
+                  R4_ab_sph(j, k, i, Cart::xxx) =
+                      R4_ab_sph(j, k, imx_i, Cart::xx) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::xx);
+                  R4_ab_sph(j, k, i, Cart::xxy) =
+                      R4_ab_sph(j, k, imx_i, Cart::xy) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::xy);
+                  R4_ab_sph(j, k, i, Cart::xxz) =
+                      R4_ab_sph(j, k, imx_i, Cart::xz) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::xz);
+                  R4_ab_sph(j, k, i, Cart::xyy) =
+                      R4_ab_sph(j, k, imx_i, Cart::yy) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::yy);
+                  R4_ab_sph(j, k, i, Cart::xyz) =
+                      R4_ab_sph(j, k, imx_i, Cart::yz) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::yz);
+                  R4_ab_sph(j, k, i, Cart::xzz) =
+                      R4_ab_sph(j, k, imx_i, Cart::zz) +
+                      cmd(0) * R4_ab_sph(j, k, i, Cart::zz);
+                  R4_ab_sph(j, k, i, Cart::yyy) =
+                      R4_ab_sph(j, k, imy_i, Cart::yy) +
+                      cmd(1) * R4_ab_sph(j, k, i, Cart::yy);
+                  R4_ab_sph(j, k, i, Cart::yyz) =
+                      R4_ab_sph(j, k, imy_i, Cart::yz) +
+                      cmd(1) * R4_ab_sph(j, k, i, Cart::yz);
+                  R4_ab_sph(j, k, i, Cart::yzz) =
+                      R4_ab_sph(j, k, imy_i, Cart::zz) +
+                      cmd(1) * R4_ab_sph(j, k, i, Cart::zz);
+                  R4_ab_sph(j, k, i, Cart::zzz) =
+                      R4_ab_sph(j, k, imz_i, Cart::zz) +
+                      cmd(2) * R4_ab_sph(j, k, i, Cart::zz);
                 }
               }
             }
@@ -1096,22 +1071,22 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
               for (int j = 0; j < ntrafo_alpha; j++) {
                 for (int k = 0; k < ntrafo_beta; k++) {
                   for (int m = 0; m < ncart_2; m++) {
-                    R4_ab_sph[j][k][i][norb_1 + m] =
-                        R4_ab_sph[j][k][imx_i][norb_2 + m] +
-                        cmd(0) * R4_ab_sph[j][k][i][norb_2 + m];
+                    R4_ab_sph(j, k, i, norb_1 + m) =
+                        R4_ab_sph(j, k, imx_i, norb_2 + m) +
+                        cmd(0) * R4_ab_sph(j, k, i, norb_2 + m);
                   }
                   for (int m = 0; m < l; m++) {
                     int n = norb_2 + ncart_2 + m;
-                    R4_ab_sph[j][k][i][norb_1 + ncart_2 + m] =
-                        R4_ab_sph[j][k][imx_i][n] +
-                        cmd(0) * R4_ab_sph[j][k][i][n];
-                    R4_ab_sph[j][k][i][norb_1 + ncart_1 + m] =
-                        R4_ab_sph[j][k][imy_i][n] +
-                        cmd(1) * R4_ab_sph[j][k][i][n];
+                    R4_ab_sph(j, k, i, norb_1 + ncart_2 + m) =
+                        R4_ab_sph(j, k, imx_i, n) +
+                        cmd(0) * R4_ab_sph(j, k, i, n);
+                    R4_ab_sph(j, k, i, norb_1 + ncart_1 + m) =
+                        R4_ab_sph(j, k, imy_i, n) +
+                        cmd(1) * R4_ab_sph(j, k, i, n);
                   }
-                  R4_ab_sph[j][k][i][norb - 1] =
-                      R4_ab_sph[j][k][imz_i][norb_1 - 1] +
-                      cmd(2) * R4_ab_sph[j][k][i][norb_1 - 1];
+                  R4_ab_sph(j, k, i, norb - 1) =
+                      R4_ab_sph(j, k, imz_i, norb_1 - 1) +
+                      cmd(2) * R4_ab_sph(j, k, i, norb_1 - 1);
                 }
               }
             }
@@ -1131,24 +1106,23 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
           const Eigen::MatrixXd trafo_delta =
               AOTransform::getTrafo(gaussian_delta);
 
-          tensor4d R4_sph;
-          R4_sph.resize(
-              extents4[ntrafo_alpha][ntrafo_beta][ntrafo_gamma][ntrafo_delta]);
+          Eigen::Tensor<double, 4> R4_sph(ntrafo_alpha, ntrafo_beta,
+                                          ntrafo_gamma, ntrafo_delta);
 
           for (int j = 0; j < ntrafo_alpha; j++) {
             for (int k = 0; k < ntrafo_beta; k++) {
               for (int i_gamma = 0; i_gamma < ntrafo_gamma; i_gamma++) {
                 for (int i_delta = 0; i_delta < ntrafo_delta; i_delta++) {
 
-                  R4_sph[j][k][i_gamma][i_delta] = 0.0;
+                  R4_sph(j, k, i_gamma, i_delta) = 0.0;
 
                   for (int i_delta_t = istart[i_delta];
                        i_delta_t <= istop[i_delta]; i_delta_t++) {
                     for (int i_gamma_t = istart[i_gamma];
                          i_gamma_t <= istop[i_gamma]; i_gamma_t++) {
 
-                      R4_sph[j][k][i_gamma][i_delta] +=
-                          R4_ab_sph[j][k][i_gamma_t][i_delta_t] *
+                      R4_sph(j, k, i_gamma, i_delta) +=
+                          R4_ab_sph(j, k, i_gamma_t, i_delta_t) *
                           trafo_gamma(i_gamma_t, i_gamma) *
                           trafo_delta(i_delta_t, i_delta);
                     }
@@ -1181,13 +1155,13 @@ bool FCMatrix::FillFourCenterRepBlock(tensor4d& block, const AOShell& shell_1,
                     d = i_gamma;
                   }
                   if (ab_cd_switch) {
-                    block[c][d][a][b] +=
-                        R4_sph[offset_alpha + i_alpha][offset_beta + i_beta]
-                              [offset_gamma + i_gamma][offset_delta + i_delta];
+                    block(c, d, a, b) +=
+                        R4_sph(offset_alpha + i_alpha, offset_beta + i_beta,
+                               offset_gamma + i_gamma, offset_delta + i_delta);
                   } else {
-                    block[a][b][c][d] +=
-                        R4_sph[offset_alpha + i_alpha][offset_beta + i_beta]
-                              [offset_gamma + i_gamma][offset_delta + i_delta];
+                    block(a, b, c, d) +=
+                        R4_sph(offset_alpha + i_alpha, offset_beta + i_beta,
+                               offset_gamma + i_gamma, offset_delta + i_delta);
                   }
                 }
               }

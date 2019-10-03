@@ -18,7 +18,6 @@
  */
 
 #include <votca/xtp/aomatrix.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/threecenter.h>
 
 namespace votca {
@@ -107,7 +106,6 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
 void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
                                const AOShell& auxshell, const AOBasis& dftbasis,
                                const Eigen::MatrixXd& dft_orbitals) {
-  tensor3d::extent_gen extents;
   std::vector<Eigen::MatrixXd> symmstorage;
   for (int i = 0; i < auxshell.getNumFunc(); ++i) {
     symmstorage.push_back(
@@ -128,9 +126,10 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
       const AOShell& shell_col = dftbasis.getShell(col);
       const int col_start = shell_col.getStartIndex();
 
-      tensor3d threec_block(extents[range(0, auxshell.getNumFunc())][range(
-          0, shell_row.getNumFunc())][range(0, shell_col.getNumFunc())]);
-      std::fill_n(threec_block.data(), threec_block.num_elements(), 0.0);
+      Eigen::Tensor<double, 3> threec_block(auxshell.getNumFunc(),
+                                            shell_row.getNumFunc(),
+                                            shell_col.getNumFunc());
+      threec_block.setZero();
 
       bool nonzero =
           FillThreeCenterRepBlock(threec_block, auxshell, shell_row, shell_col);
@@ -143,7 +142,7 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
                 break;
               }
               symmstorage[aux_c](row_start + row_c, col_start + col_c) =
-                  threec_block[aux_c][row_c][col_c];
+                  threec_block(aux_c, row_c, col_c);
             }  // ROW copy
           }    // COL copy
         }      // AUX copy

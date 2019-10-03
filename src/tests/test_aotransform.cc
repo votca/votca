@@ -260,6 +260,7 @@ BOOST_AUTO_TEST_CASE(transform) {
   Eigen::MatrixXd ref = Eigen::MatrixXd::Zero(rows, cols);
   ref.topRows<35>() = ref1;
   ref.bottomRows(rows - 35) = ref2;
+  std::cout << ref << std::endl;
   bool check_transform = transform.isApprox(ref, 1e-5);
   BOOST_CHECK_EQUAL(check_transform, 1);
   if (!check_transform) {

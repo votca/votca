@@ -149,18 +149,18 @@ class BasisSet {
 
   const Element& getElement(std::string element_type) const;
 
-  std::map<std::string, std::shared_ptr<Element> >::iterator begin() {
+  std::map<std::string, std::unique_ptr<Element> >::iterator begin() {
     return _elements.begin();
   }
-  std::map<std::string, std::shared_ptr<Element> >::iterator end() {
+  std::map<std::string, std::unique_ptr<Element> >::iterator end() {
     return _elements.end();
   }
 
-  std::map<std::string, std::shared_ptr<Element> >::const_iterator begin()
+  std::map<std::string, std::unique_ptr<Element> >::const_iterator begin()
       const {
     return _elements.begin();
   }
-  std::map<std::string, std::shared_ptr<Element> >::const_iterator end() const {
+  std::map<std::string, std::unique_ptr<Element> >::const_iterator end() const {
     return _elements.end();
   }
 
@@ -168,7 +168,7 @@ class BasisSet {
 
  private:
   std::string _name;
-  std::map<std::string, std::shared_ptr<Element> > _elements;
+  std::map<std::string, std::unique_ptr<Element> > _elements;
 };
 
 }  // namespace xtp
