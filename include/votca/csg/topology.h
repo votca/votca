@@ -446,7 +446,7 @@ inline Residue *Topology::CreateResidue(std::string name, int id) {
 }
 
 inline Residue *Topology::CreateResidue(std::string name) {
-  Residue *res = new Residue(this, _molecules.size(), name);
+  Residue *res = new Residue(this, _residues.size(), name);
   _residues.push_back(res);
   return res;
 }
