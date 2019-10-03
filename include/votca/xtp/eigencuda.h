@@ -72,7 +72,8 @@ class CudaMatrix {
  private:
   double_unique_ptr alloc_matrix_in_gpu(size_t size_matrix) const;
 
-  double_unique_ptr _pointer{nullptr, [](double *x) { checkCuda(cudaFree(x)); }};
+  double_unique_ptr _pointer{nullptr,
+                             [](double *x) { checkCuda(cudaFree(x)); }};
   int _rows;
   int _cols;
 };
