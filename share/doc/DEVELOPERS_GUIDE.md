@@ -14,6 +14,8 @@ code consistent with the VOTCA and cpp style and standard.
 * [Merging With Stable](#merging-with-stable)
 * [Failed Release Builds](#failed-release-builds)
 * [Setting Up A GitLab Runner Server](#gitlab-server)
+* [Units in VOTCA](#units-in-votca)
+* [Indexing in VOTCA](#indexing-in-votca)
 
 ## Reporting Bugs
 
@@ -476,3 +478,14 @@ volumes which can use a substantial amount of space if not cleaned. A docker
 cleanup script has been added in the
 [dev-tools](https://github.com/votca/dev-tools) repo, instructions on how to set
 it up are provided in the script.
+
+## Units in VOTCA
+
+VOTCA tried as much as possible to standarize units across both CSG and XTP. Externally we parse in the units of the respective file format, e.g. `.xyz` `Angstroem`, `.gro` `nm`. Internally we convert all parsed units to:
+
+- CSG: length `nm`, energy `kJ/mol` and time `ps`
+- XTP: length `bohr`, energy `Hartree` and time `ps`
+
+## Indexing in VOTCA
+
+All indeces in VOTCA start at `0`. This is useful, because C++ arrays start at index 0.
