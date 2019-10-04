@@ -375,7 +375,7 @@
       <DESC>do the given number of iterations (0=inf)</DESC>
     </iterations_max>
     <kBT>
-      <DESC> kBT in simulation progam units (XXX K *0.00831451 for gromacs)</DESC>
+      <DESC> kBT in KJ/mol (i.e. XXX K *0.00831451)</DESC>
     </kBT>
     <log_file>inverse.log
       <DESC>name of the log file</DESC>
@@ -545,11 +545,14 @@
       <lammps>
         <DESC>lammps specific options for this interations</DESC>
         <scale>1
-          <DESC>scaling factor for the potential output, can be used to convert VOTCA units, nm, to other units, e.g. angstroms</DESC>
+          <DESC>x-axis scaling factor for the potential output, can be used to convert VOTCA units, nm, to other units, e.g. angstroms</DESC>
         </scale>
         <table>
           <DESC>Name of file for tabulated potential of this interaction. This fill will be created from the internal tabulated potential format in every step. Note, though, that the lammps script needs to contain the name of that table as the tabulated interaction and the interaction is stored in the VOTCA section of the file..</DESC>
         </table>
+        <y_scale>1
+          <DESC>y-axis scaling factor for the potential output, can be used to convert VOTCA units, kJ/mol, to other units, e.g. kcal/mol</DESC>
+        </y_scale>
       </lammps>
       <post_add>
         <DESC>Additional post processing of U after dU added to potential. This is a list of scripts separated by spaces which are called. See section on iterative framework for details.</DESC>
