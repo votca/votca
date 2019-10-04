@@ -1,11 +1,15 @@
 if(ENABLE_TESTING)  
   # Please place additional tests in alphabetical order
-find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
+  find_package(Boost 1.57.0 REQUIRED COMPONENTS unit_test_framework)
   list(APPEND test_cases test_adiis)
   list(APPEND test_cases test_aobasis)
   list(APPEND test_cases test_aomatrix)
   list(APPEND test_cases test_aomatrix3d)
-  list(APPEND test_cases test_aotransform)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION GREATER_EQUAL 9)
+  else()
+    #test triggers a segfault on clang-9
+    list(APPEND test_cases test_aotransform)
+  endif()
   list(APPEND test_cases test_aopotential)
   list(APPEND test_cases test_atom)
   list(APPEND test_cases test_qmatom)
