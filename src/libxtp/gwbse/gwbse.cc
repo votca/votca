@@ -600,6 +600,14 @@ bool GWBSE::Evaluate() {
     _orbitals.QPdiag().eigenvectors() = es.eigenvectors();
     _orbitals.QPdiag().eigenvalues() = es.eigenvalues();
   } else {
+    if (_orbitals.getGWAmax() != _gwopt.qpmax ||
+        _orbitals.getGWAmin() != _gwopt.qpmin ||
+        _orbitals.getRPAmax() != _gwopt.rpamax ||
+        _orbitals.getRPAmin() != _gwopt.rpamin) {
+      throw std::runtime_error(
+          "The ranges for GW and RPA do not agree with the ranges from the "
+          ".orb file, rerun your GW calculation");
+    }
     const Eigen::MatrixXd& qpcoeff = _orbitals.QPdiag().eigenvectors();
     Hqp = qpcoeff * _orbitals.QPdiag().eigenvalues().asDiagonal() *
           qpcoeff.transpose();
