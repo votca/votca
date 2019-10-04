@@ -22,7 +22,7 @@
 namespace votca {
 namespace xtp {
 
-EigenCuda::~EigenCuda() {
+CudaPipeline::~CudaPipeline() {
 
   // destroy handle
   cublasDestroy(_handle);
@@ -30,7 +30,7 @@ EigenCuda::~EigenCuda() {
   cudaStreamDestroy(_stream);
 }
 
-void EigenCuda::throw_if_not_enough_memory_in_gpu(
+void CudaPipeline::throw_if_not_enough_memory_in_gpu(
     size_t requested_memory) const {
   size_t free, total;
   checkCuda(cudaMemGetInfo(&free, &total));
@@ -61,24 +61,12 @@ CudaMatrix::double_unique_ptr CudaMatrix::alloc_matrix_in_gpu(
   return dev_ptr;
 }
 
-void CudaMatrix::copy_matrix_to_gpu(const Eigen::MatrixXd &matrix,
-                                    const cudaStream_t &stream) const {
-  // Transfer data to the GPU
-  size_t size_matrix = matrix.size() * sizeof(double);
-  const double *hmatrix = matrix.data();  // Pointers at the host
-  cudaError_t err = cudaMemcpyAsync(_pointer.get(), hmatrix, size_matrix,
-                                    cudaMemcpyHostToDevice, stream);
-  if (err != 0) {
-    throw std::runtime_error("Error copy arrays to device");
-  }
-}
-
 /*
  * Call the gemm function from cublas, resulting in the multiplication of the
  * two matrices.
  */
-void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
-                     CudaMatrix &C) const {
+void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
+                        CudaMatrix &C) const {
 
   // Scalar constanst for calling blas
   double alpha = 1.;
@@ -98,8 +86,8 @@ void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
 /*
  * \brief Perform a Tensor3D matrix multiplication
  */
-void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
-                                         const Eigen::MatrixXd &B) const {
+void CudaPipeline::right_matrix_tensor_mult(
+    std::vector<Eigen::MatrixXd> &tensor, const Eigen::MatrixXd &B) const {
   // First submatrix from the tensor
   const Eigen::MatrixXd &submatrix = tensor[0];
 
@@ -111,10 +99,9 @@ void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
 
   // Matrix in the Cuda device
 
-  CudaMatrix matrixA{submatrix.rows(), submatrix.cols()};
-  CudaMatrix matrixB{B.rows(), B.cols()};
-  CudaMatrix matrixC{submatrix.rows(), B.cols()};
-  matrixB.copy_matrix_to_gpu(B, _stream);
+  CudaMatrix matrixA(submatrix.rows(), submatrix.cols());
+  CudaMatrix matrixB{B, _stream};
+  CudaMatrix matrixC(submatrix.rows(), B.cols());
 
   // Call tensor matrix multiplication
   for (auto i = 0; i < static_cast<int>(tensor.size()); i++) {
@@ -135,9 +122,9 @@ void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
 /*
  * \brief performs a matrix_1 * matrix2 * matrix_2 multiplication
  */
-Eigen::MatrixXd EigenCuda::triple_matrix_mult(const CudaMatrix &A,
-                                              const Eigen::MatrixXd &matrix,
-                                              const CudaMatrix &C) const {
+Eigen::MatrixXd CudaPipeline::triple_matrix_mult(const CudaMatrix &A,
+                                                 const Eigen::MatrixXd &matrix,
+                                                 const CudaMatrix &C) const {
 
   // sizes of the matrices to allocated in the device
   size_t size_B = matrix.size() * sizeof(double);
@@ -146,10 +133,9 @@ Eigen::MatrixXd EigenCuda::triple_matrix_mult(const CudaMatrix &A,
   throw_if_not_enough_memory_in_gpu(size_B + size_W + size_Z);
 
   // Intermediate Matrices
-  CudaMatrix B{matrix.rows(), matrix.cols()};
+  CudaMatrix B{matrix, _stream};
   CudaMatrix W{A.rows(), matrix.cols()};
   CudaMatrix Z{A.rows(), C.cols()};
-  B.copy_matrix_to_gpu(matrix, _stream);
 
   Eigen::MatrixXd result = Eigen::MatrixXd::Zero(A.rows(), C.cols());
 

@@ -31,7 +31,7 @@
 /*
  * \brief Perform Tensor-matrix multiplications in a GPU
  *
- * The `EigenCuda` class handles the allocation and deallocation of arrays on
+ * The `CudaPipeline` class handles the allocation and deallocation of arrays on
  * the GPU.
  */
 
@@ -56,20 +56,31 @@ class CudaMatrix {
   int cols() const { return _cols; };
   double *pointer() const { return _pointer.get(); };
 
-  CudaMatrix(long int nrows, long int ncols)
-      : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
-    size_t size_matrix = _rows * _cols * sizeof(double);
+  CudaMatrix(const Eigen::MatrixXd &matrix, const cudaStream_t &stream)
+      : _rows{static_cast<int>(matrix.rows())},
+        _cols{static_cast<int>(matrix.cols())} {
+    size_t size_matrix = this->size() * sizeof(double);
     _pointer = std::move(alloc_matrix_in_gpu(size_matrix));
+    cudaError_t err =
+        cudaMemcpyAsync(_pointer.get(), matrix.data(), size_matrix,
+                        cudaMemcpyHostToDevice, stream);
+    if (err != 0) {
+      throw std::runtime_error("Error copy arrays to device");
+    }
   }
-
-  // Allocate memory for a matrix and copy it to the device
-  void copy_matrix_to_gpu(const Eigen::MatrixXd &matrix,
-                          const cudaStream_t &_stream) const;
 
   // Unique pointer with custom delete function
   using double_unique_ptr = std::unique_ptr<double, void (*)(double *)>;
 
  private:
+  friend class CudaPipeline;
+
+  CudaMatrix(long int nrows, long int ncols)
+      : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
+    size_t size_matrix = this->size() * sizeof(double);
+    _pointer = std::move(alloc_matrix_in_gpu(size_matrix));
+  }
+
   double_unique_ptr alloc_matrix_in_gpu(size_t size_matrix) const;
 
   double_unique_ptr _pointer{nullptr,
@@ -80,22 +91,21 @@ class CudaMatrix {
 
 void free_mem_in_gpu(double *x);
 
-/* \brief The EigenCuda class offload Eigen operations to an *Nvidia* GPU using
- * the CUDA language.
- * The Cublas handle is the context manager for all the resources needed by
- * Cublas. While a stream is a queue of sequential operations executed in the
- * Nvidia device.
+/* \brief The CudaPipeline class offload Eigen operations to an *Nvidia* GPU
+ * using the CUDA language. The Cublas handle is the context manager for all the
+ * resources needed by Cublas. While a stream is a queue of sequential
+ * operations executed in the Nvidia device.
  */
-class EigenCuda {
+class CudaPipeline {
  public:
-  EigenCuda() {
+  CudaPipeline() {
     cublasCreate(&_handle);
     cudaStreamCreate(&_stream);
   }
-  ~EigenCuda();
+  ~CudaPipeline();
 
-  EigenCuda(const EigenCuda &) = delete;
-  EigenCuda &operator=(const EigenCuda &) = delete;
+  CudaPipeline(const CudaPipeline &) = delete;
+  CudaPipeline &operator=(const CudaPipeline &) = delete;
 
   // Perform a multiplication between a matrix and a tensor
   void right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,

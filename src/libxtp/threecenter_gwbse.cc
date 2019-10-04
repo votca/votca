@@ -56,7 +56,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
 #if defined(USE_CUDA)
-  EigenCuda cudaHandle;
+  CudaPipeline cudaHandle;
   try {
     cudaHandle.right_matrix_tensor_mult(_matrix, matrix);
   } catch (const std::runtime_error& error) {
@@ -254,7 +254,7 @@ void TCMatrix_gwbse::FillBlockCUDA(
     std::vector<Eigen::MatrixXd>& block,
     const std::vector<Eigen::MatrixXd>& symmstorage,
     const std::pair<CudaMatrix, CudaMatrix>& cuda_matrices) {
-  EigenCuda cudaHandle;
+  CudaPipeline cudaHandle;
   int dim = static_cast<int>(symmstorage.size());
   try {
     for (int k = 0; k < dim; ++k) {
@@ -285,12 +285,10 @@ std::pair<CudaMatrix, CudaMatrix> TCMatrix_gwbse::SendDFTMatricesToGPU(
       dft_orbitals.block(0, _nmin, dft_orbitals.rows(), _ntotal);
 
   // Smart Pointers to the cuda arrays
-  EigenCuda cudaHandle;
+  CudaPipeline cudaHandle;
   const cudaStream_t& stream = cudaHandle.get_stream();
-  CudaMatrix matrixA{dftn.cols(), dftn.rows()};
-  CudaMatrix matrixB{dftm.rows(), dftm.cols()};
-  matrixA.copy_matrix_to_gpu(dftn.transpose(), stream);
-  matrixB.copy_matrix_to_gpu(dftm, stream);
+  CudaMatrix matrixA{dftn.transpose(), stream};
+  CudaMatrix matrixB{dftm, stream};
 
   return std::make_pair(std::move(matrixA), std::move(matrixB));
 }
