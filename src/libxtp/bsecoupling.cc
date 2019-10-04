@@ -410,7 +410,8 @@ void BSECoupling::CalculateCouplings(const Orbitals& orbitalsA,
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), orbitalsAB.getRPAmin(),
                  orbitalsAB.getGWAmax(), orbitalsAB.getRPAmin(),
-                 orbitalsAB.getRPAmax(), _max_gpu_streams);
+                 orbitalsAB.getRPAmax());
+  Mmn.SetGPUStreams(_max_gpu_streams);
   Mmn.Fill(auxbasis, dftbasis, orbitalsAB.MOs().eigenvectors());
 
   const Eigen::MatrixXd& qpcoeff = orbitalsAB.QPdiag().eigenvectors();

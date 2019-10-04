@@ -28,7 +28,7 @@ namespace votca {
 namespace xtp {
 
 void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
-                                int nmax, int max_gpu_streams) {
+                                int nmax) {
 
   // here as storage indices starting from zero
   _nmin = nmin;
@@ -39,13 +39,13 @@ void TCMatrix_gwbse::Initialize(int basissize, int mmin, int mmax, int nmin,
   _mtotal = mmax - mmin + 1;
   _basissize = basissize;
 
-  // Maximum number of simultaneous queues running in the GPU
-  _max_gpu_streams = max_gpu_streams;
-
   // vector has mtotal elements
   _matrix = std::vector<Eigen::MatrixXd>(
       _mtotal, Eigen::MatrixXd::Zero(_ntotal, _basissize));
 }
+
+// Maximum number of simultaneous streams running in the GPU
+void TCMatrix_gwbse::SetGPUStreams(int streams) { _max_gpu_streams = streams; }
 
 /*
  * Modify 3-center matrix elements consistent with use of symmetrized

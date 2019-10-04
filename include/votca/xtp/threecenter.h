@@ -101,8 +101,9 @@ class TCMatrix_gwbse : public TCMatrix {
 
   int nsize() const { return _ntotal; }
 
-  void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax,
-                  int max_gpu_streams);
+  void Initialize(int basissize, int mmin, int mmax, int nmin, int nmax);
+
+  void SetGPUStreams(int streams);
 
   void Fill(const AOBasis& auxbasis, const AOBasis& dftbasis,
             const Eigen::MatrixXd& dft_orbitals);

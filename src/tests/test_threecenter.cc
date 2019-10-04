@@ -375,7 +375,7 @@ BOOST_AUTO_TEST_CASE(threecenter_gwbse) {
 
   Logger log;
   TCMatrix_gwbse tc{log};
-  tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7, 32);
+  tc.Initialize(aobasis.AOBasisSize(), 0, 5, 0, 7);
   tc.Fill(aobasis, aobasis, MOs);
 
   Eigen::MatrixXd ref0b = Eigen::MatrixXd::Zero(8, 17);

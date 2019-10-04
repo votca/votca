@@ -563,7 +563,8 @@ bool GWBSE::Evaluate() {
   TCMatrix_gwbse Mmn(*_pLog);
   // rpamin here, because RPA needs till rpamin
   Mmn.Initialize(auxbasis.AOBasisSize(), _gwopt.rpamin, _gwopt.qpmax,
-                 _gwopt.rpamin, _gwopt.rpamax, _max_gpu_streams);
+                 _gwopt.rpamin, _gwopt.rpamax);
+  Mmn.SetGPUStreams(_max_gpu_streams);
   XTP_LOG(logDEBUG, *_pLog)
       << TimeStamp()
       << " Calculating Mmn_beta (3-center-repulsion x orbitals)  " << flush;
