@@ -80,9 +80,12 @@ class CudaMatrix {
 
 void free_mem_in_gpu(double *x);
 
-// The Cublas handle is the context manager for all the resources needed by
-// Cublas. While a stream is a queue of sequential operations executed in the
-// Nvidia device.
+/* \brief The EigenCuda class offload Eigen operations to an *Nvidia* GPU using
+ * the CUDA language.
+ * The Cublas handle is the context manager for all the resources needed by
+ * Cublas. While a stream is a queue of sequential operations executed in the
+ * Nvidia device.
+ */
 class EigenCuda {
  public:
   EigenCuda() {
@@ -106,7 +109,7 @@ class EigenCuda {
   const cudaStream_t &get_stream() const { return _stream; };
 
  private:
-  void check_available_memory_in_gpu(size_t required) const;
+  void throw_if_not_enough_memory_in_gpu(size_t required) const;
 
   // Invoke the ?gemm function of cublas
   void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;

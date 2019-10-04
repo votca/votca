@@ -68,7 +68,8 @@ void BSECoupling::Initialize(Property& options) {
   _unoccB = options.ifExistsReturnElseReturnDefault(
       key + ".moleculeB.unoccLevels", _unoccB);
 
-  _max_gpu_streams = options.get(key + ".max_gpu_streams").as<int>();
+  _max_gpu_streams = options.ifExistsReturnElseReturnDefault<int>(
+      key + ".max_gpu_streams", _max_gpu_streams);
 }
 
 void BSECoupling::WriteToProperty(Property& summary, const QMState& stateA,

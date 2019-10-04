@@ -86,6 +86,9 @@ class GWBSE {
   std::string _dftbasis_name;
 
   std::vector<QMFragment<BSE_Population> > _fragments;
+
+  // GPU options
+  int _max_gpu_streams = 32;
 };
 }  // namespace xtp
 }  // namespace votca

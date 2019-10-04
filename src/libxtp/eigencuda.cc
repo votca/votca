@@ -30,10 +30,8 @@ EigenCuda::~EigenCuda() {
   cudaStreamDestroy(_stream);
 }
 
-/*
- * Check if the available memory is enough to compute the system
- */
-void EigenCuda::check_available_memory_in_gpu(size_t requested_memory) const {
+void EigenCuda::throw_if_not_enough_memory_in_gpu(
+    size_t requested_memory) const {
   size_t free, total;
   checkCuda(cudaMemGetInfo(&free, &total));
 
@@ -88,6 +86,10 @@ void EigenCuda::gemm(const CudaMatrix &A, const CudaMatrix &B,
   const double *palpha = &alpha;
   const double *pbeta = &beta;
 
+  if ((A.cols() != B.rows())) {
+    throw std::runtime_error("Shape mismatch in Cublas gemm");
+  }
+
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, A.rows(), B.cols(), A.cols(),
               palpha, A.pointer(), A.rows(), B.pointer(), B.rows(), pbeta,
               C.pointer(), C.rows());
@@ -105,7 +107,7 @@ void EigenCuda::right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
   size_t size_A = submatrix.size() * sizeof(double);
   size_t size_B = B.size() * sizeof(double);
   size_t size_C = submatrix.rows() * B.cols() * sizeof(double);
-  check_available_memory_in_gpu(size_A + size_B + size_C);
+  throw_if_not_enough_memory_in_gpu(size_A + size_B + size_C);
 
   // Matrix in the Cuda device
 
@@ -141,9 +143,7 @@ Eigen::MatrixXd EigenCuda::triple_matrix_mult(const CudaMatrix &A,
   size_t size_B = matrix.size() * sizeof(double);
   std::size_t size_W = A.rows() * matrix.cols() * sizeof(double);
   std::size_t size_Z = A.rows() * C.cols() * sizeof(double);
-
-  // Check if there is enough available memory
-  check_available_memory_in_gpu(size_B + size_W + size_Z);
+  throw_if_not_enough_memory_in_gpu(size_B + size_W + size_Z);
 
   // Intermediate Matrices
   CudaMatrix B{matrix.rows(), matrix.cols()};
