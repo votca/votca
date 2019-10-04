@@ -3149,7 +3149,7 @@ class CMAEvolutionStrategy(OOOptimizer):
                     pass
 
         if self.countiter == 0:
-            self.tic = time.clock()  # backward compatible
+            self.tic = time.process_time()  # backward compatible
             self.elapsed_time = ElapsedTime()
 
         sigma = sigma_fac * self.sigma
@@ -7334,15 +7334,15 @@ class ElapsedTime(object):
 
     """
     def __init__(self):
-        self.tic0 = time.clock()
+        self.tic0 = time.process_time()
         self.tic = self.tic0
-        self.lasttoc = time.clock()
-        self.lastdiff = time.clock() - self.lasttoc
+        self.lasttoc = time.process_time()
+        self.lastdiff = time.process_time() - self.lasttoc
         self.time_to_add = 0
         self.messages = 0
     reset = __init__
     def __call__(self):
-        toc = time.clock()
+        toc = time.process_time()
         if toc - self.tic >= self.lasttoc - self.tic:
             self.lastdiff = toc - self.lasttoc
             self.lasttoc = toc

@@ -39,7 +39,7 @@ for group in $imc_groups; do
   reg="$(csg_get_property cg.inverse.imc.${group}.reg ${default_reg})" #filter me away
   is_num "${reg}" || die "${0##*/}: value of cg.inverse.imc.${group}.reg should be a number"
   msg "solving linear equations for imc group '$group' (regularization ${reg})"
-  critical csg_imc_solve --imcfile "${group}.imc" --gmcfile "${group}.gmc" --idxfile "${group}.idx" --regularization "${reg}" --outputfile "${group}.sol"
+  critical csg_imc_solve --imcfile "${group}.imc" --gmcfile "${group}.gmc" --idxfile "${group}.idx" --regularization "${reg}"
 done
 
 for_all "non-bonded bonded" do_external imc purify

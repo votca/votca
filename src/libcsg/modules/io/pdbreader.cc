@@ -60,6 +60,24 @@ bool PDBReader::FirstFrame(Topology &top) {
 }
 
 bool PDBReader::NextFrame(Topology &top) {
+
+  cout << "The VOTCA pdb reader attempts to follow the official format: "
+       << endl;
+  cout << "http://www.wwpdb.org/documentation/file-format" << endl;
+  cout << endl;
+  cout << "NOTE the element symbol is important for associating a mass with "
+       << endl;
+  cout << "each atom, if no element symbol is specified the atom name will be"
+       << endl;
+  cout << "used and assumed to be an element symbol." << endl;
+  cout << "The pdb file format does not support pseudo atoms such as a CH3 "
+       << endl;
+  cout << "and thus VOTCA cannot read such atoms in when using a .pdb file."
+       << endl;
+  cout << "If you need to use pseudo atoms consider using a different file "
+       << endl;
+  cout << "format such as the lammps data format." << endl;
+
   string line;
   tools::Elements elements;
   // Two column vector for storing all bonds
@@ -173,7 +191,7 @@ bool PDBReader::NextFrame(Topology &top) {
 
       // according to PDB format
       string x, y, z, resNum, resName, atName;
-      string charge;
+      string charge, elem_sym;
       // string atNum;
       try {
         /* Some pdb don't include all this, read only what we really need*/
@@ -208,19 +226,20 @@ bool PDBReader::NextFrame(Topology &top) {
         // str       , Segment identifier
         // string segID      (line,(73-1),4);
         // str       , Element symbol
-        // elem_sym =  string(line,(77-1),2);
+        elem_sym = string(line, (77 - 1), 2);
         // str       , Charge on the atom
         charge = string(line, (79 - 1), 2);
       } catch (std::out_of_range &) {
         string err_msg = "Misformated pdb file in atom line # " +
                          boost::lexical_cast<string>(bead_count) +
                          "\n the correct pdb file format requires 80 "
-                         "characters in width. Furthermore, " +
+                         "characters in width (spaces matter). Furthermore, " +
                          "\n to read the topology in from a .pdb file the "
                          "following attributes must be " +
                          "\n specified:                                        "
                          "                        " +
                          "\n Atom Name, Residue Name, Residue Number, x, y, z, "
+                         "element symbol"
                          "charge (optional)     \n";
         throw std::runtime_error(err_msg);
       }
@@ -230,6 +249,7 @@ bool PDBReader::NextFrame(Topology &top) {
       boost::algorithm::trim(x);
       boost::algorithm::trim(y);
       boost::algorithm::trim(z);
+      boost::algorithm::trim(elem_sym);
       boost::algorithm::trim(charge);
 
       bead_count++;
@@ -245,6 +265,13 @@ bool PDBReader::NextFrame(Topology &top) {
               "Cannot convert resNum='" + resNum +
               "' to int, that usallly means: misformated pdb file");
         }
+
+        if (resName == "") {
+          cout << "WARNING no resname specified, assigning name to: UNK"
+               << endl;
+          resName = "UNK";
+        }
+
         if (resnr < 1)
           throw std::runtime_error("Misformated pdb file, resnr has to be > 0");
         // TODO: fix the case that resnr is not in ascending order
@@ -254,9 +281,10 @@ bool PDBReader::NextFrame(Topology &top) {
                                                       // sloppy files
 
             // create dummy residue, hopefully it will never show
-            top.CreateResidue("DUMMY");
-            cout << "Warning: residue numbers not continous, create DUMMY "
-                    "residue with nr "
+
+            top.CreateResidue(resName);
+            cout << "Warning: residue numbers not continuous, create dummy "
+                    "residue with residue number "
                  << top.ResidueCount() << endl;
           }
           top.CreateResidue(resName);
@@ -271,7 +299,25 @@ bool PDBReader::NextFrame(Topology &top) {
         double ch = 0;
         if (charge != "") {
           ch = stod(charge);
+        } else {
+          cout << "WARNING no charge was specified for " << endl;
+          cout << line << endl;
+          cout << "Assuming a charge of 0" << endl;
         }
+
+        if (elem_sym == "") {
+          cout << "WARNING no element was specified, assuming atom name is "
+               << endl;
+          cout << "an element symbol: " << atName << endl;
+          if (elements.isElement(atName)) {
+            elem_sym = atName;
+          } else {
+            throw std::runtime_error(
+                "Atom name is not an element symbol, so substitution fails, "
+                "the element is needed in order to resolve the mass.");
+          }
+        }
+
         // CreateBead takes 6 parameters in the following order
         // 1 - symmetry of the bead (1-indicates sphere, 3-indicates
         // ellipsoidal)
@@ -283,7 +329,7 @@ bool PDBReader::NextFrame(Topology &top) {
         //
         // res -1 as internal number starts with 0
         b = top.CreateBead(1, atName, atName, resnr - 1,
-                           elements.getMass(atName), ch);
+                           elements.getMass(elem_sym), ch);
       } else {
         b = top.getBead(bead_count - 1);
       }
