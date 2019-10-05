@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(random_double_test) {
     results.push_back(random.rand_uniform());
   }
 
-  // average should be close to 25
+  // average should be close to 0.5
   double average = std::accumulate(results.begin(), results.end(), 0.0);
   average /= number;
 
