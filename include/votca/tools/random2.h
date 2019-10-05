@@ -15,45 +15,29 @@
  *
  */
 
-/*************************************************
-     MARSAGLIA pseudo random number generator
-     See: G. Marsaglia and A. Zaman. Toward a universal random number generator,
-          Statistics & Probability Letters, 9(1):35–39, 1990.
-     This function returns a double precision floating point number
-     uniformly distributed in the range [0,1)
-*************************************************/
-
 #ifndef _VOTCA_TOOLS_RANDOM2_H_
 #define _VOTCA_TOOLS_RANDOM2_H_
 
-#include <vector>
-
+#include <random>
 namespace votca {
 namespace tools {
 
-/**
-  \brief MARSAGLIA pseudo random number generator
-
-  This class generates double precision floating point numbers
-  uniformly distributed in the range [0,1)
-*/
-
 class Random2 {
  public:
-  Random2(){};
-  ~Random2(){};
-
-  void init(int nA1, int nA2, int nA3, int nB1);
-
-  double rand_uniform(void);
-  int rand_uniform_int(int max_int);
-  double rand_gaussian(double sigma);
+  void init(int seed) { _mt = std::mt19937(seed); }
+  // draws a random double from [0,1)
+  double rand_uniform() { return _distribution(_mt); }
+  // sets maxint for a uniform integer distribution [0,maxint]
+  void setMaxInt(int maxint) {
+    _int_distribution = std::uniform_int_distribution<int>{0, maxint};
+  }
+  // draws from a uniform integer distribution [0,maxint]
+  int rand_uniform_int() { return _int_distribution(_mt); }
 
  private:
-  static const int MARS_FIELD_SIZE = 98;
-  std::vector<double> MARSarray;
-  double MARSc, MARScd, MARScm;
-  int MARSi, MARSj;
+  std::mt19937 _mt;
+  std::uniform_real_distribution<double> _distribution{0.0, 1.0};
+  std::uniform_int_distribution<int> _int_distribution;
 };
 
 }  // namespace tools

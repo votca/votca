@@ -89,6 +89,7 @@
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
       <itemPath>../../src/tests/test_property.cc</itemPath>
+      <itemPath>../../src/tests/test_random2.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -365,6 +366,8 @@
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_random2.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -626,6 +629,8 @@
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_random2.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
@@ -886,6 +891,8 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_random2.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
