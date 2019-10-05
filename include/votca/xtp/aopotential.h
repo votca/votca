@@ -23,7 +23,6 @@
 
 #include <votca/xtp/aobasis.h>
 #include <votca/xtp/ecpaobasis.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/staticsite.h>
 
 namespace votca {
@@ -71,7 +70,8 @@ class AOECP : public AOPotential<double> {
       const Eigen::Matrix<double, 4, 5>& pref_ecp) const;
 
   void getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
-                 tensor3d& BLC, tensor3d& C) const;
+                 Eigen::Tensor<double, 3>& BLC,
+                 Eigen::Tensor<double, 3>& C) const;
   Eigen::VectorXd CalcNorms(double decay, int size) const;
   Eigen::VectorXd CalcInt_r_exp(int nmax, double decay) const;
 };
