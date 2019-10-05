@@ -266,6 +266,7 @@ BOOST_AUTO_TEST_CASE(transform) {
       101.457, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0;
 
   Eigen::MatrixXd ref = Eigen::MatrixXd::Zero(rows, cols);
+
   ref.topRows<10>() = ref1;
   ref.block(10, 0, 10, cols) = ref2;
   ref.block(20, 0, 10, cols) = ref3;
@@ -275,7 +276,6 @@ BOOST_AUTO_TEST_CASE(transform) {
   ref.block(60, 0, 10, cols) = ref7;
   ref.block(70, 0, 10, cols) = ref8;
   ref.bottomRows<4>() = ref9;
-
   bool check_transform = transform.isApprox(ref, 1e-5);
   BOOST_CHECK_EQUAL(check_transform, 1);
   if (!check_transform) {
