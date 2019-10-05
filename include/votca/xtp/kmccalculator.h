@@ -65,8 +65,8 @@ class KMCCalculator : public QMCalculator {
   void RandomlyAssignCarriertoSite(Chargecarrier& Charge);
   std::vector<GNode> _nodes;
   std::vector<Chargecarrier> _carriers;
-  tools::Random2 _RandomVariable;
 
+  tools::Random2 _RandomVariable;
   std::string _injection_name;
   std::string _injectionmethod;
   int _seed;
