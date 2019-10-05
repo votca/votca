@@ -19,7 +19,6 @@
 
 #include <votca/xtp/ERIs.h>
 #include <votca/xtp/aobasis.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 
 namespace votca {
@@ -212,8 +211,6 @@ Mat_p_Energy ERIs::CalculateEXX_4c_small_molecule(
 Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
                                            const Eigen::MatrixXd& DMAT) const {
 
-  tensor4d::extent_gen extents;
-
   // Number of shells
   int numShells = dftbasis.getNumofShells();
 
@@ -246,9 +243,9 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
               continue;
 
             // Get the current 4c block
-            tensor4d block(extents[range(0, numFunc_1)][range(0, numFunc_2)]
-                                  [range(0, numFunc_3)][range(0, numFunc_4)]);
-            std::fill_n(block.data(), block.num_elements(), 0.0);
+            Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_3,
+                                           numFunc_4);
+            block.setZero();
             bool nonzero = _fourcenter.FillFourCenterRepBlock(
                 block, shell_1, shell_2, shell_3, shell_4);
 
@@ -317,9 +314,9 @@ Mat_p_Energy ERIs::CalculateERIs_4c_direct(const AOBasis& dftbasis,
 
 template <bool transposed_block>
 void ERIs::FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
-                         const tensor4d& block, const AOShell& shell_1,
-                         const AOShell& shell_2, const AOShell& shell_3,
-                         const AOShell& shell_4) const {
+                         const Eigen::Tensor<double, 4>& block,
+                         const AOShell& shell_1, const AOShell& shell_2,
+                         const AOShell& shell_3, const AOShell& shell_4) const {
 
   for (int iFunc_3 = 0; iFunc_3 < shell_3.getNumFunc(); iFunc_3++) {
     int ind_3 = shell_3.getStartIndex() + iFunc_3;
@@ -346,10 +343,10 @@ void ERIs::FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
           // Fill ERIs matrix
           if (!transposed_block) {
             ERIsCur(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) *
-                                     block[iFunc_1][iFunc_2][iFunc_3][iFunc_4];
+                                     block(iFunc_1, iFunc_2, iFunc_3, iFunc_4);
           } else {
             ERIsCur(ind_3, ind_4) += multiplier * DMAT(ind_1, ind_2) *
-                                     block[iFunc_3][iFunc_4][iFunc_1][iFunc_2];
+                                     block(iFunc_3, iFunc_4, iFunc_1, iFunc_2);
           }
 
         }  // End loop over functions in shell 2
@@ -361,9 +358,6 @@ void ERIs::FillERIsBlock(Eigen::MatrixXd& ERIsCur, const Eigen::MatrixXd& DMAT,
 }
 
 void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
-
-  tensor4d::extent_gen extents;
-
   // Number of shells
   int numShells = dftbasis.getNumofShells();
   // Total number of functions
@@ -379,9 +373,9 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
       int numFunc_2 = shell_2.getNumFunc();
 
       // Get the current 4c block
-      tensor4d block(extents[range(0, numFunc_1)][range(0, numFunc_2)]
-                            [range(0, numFunc_1)][range(0, numFunc_2)]);
-      std::fill_n(block.data(), block.num_elements(), 0.0);
+      Eigen::Tensor<double, 4> block(numFunc_1, numFunc_2, numFunc_1,
+                                     numFunc_2);
+      block.setZero();
       bool nonzero = _fourcenter.FillFourCenterRepBlock(block, shell_1, shell_2,
                                                         shell_1, shell_2);
 
@@ -399,7 +393,7 @@ void ERIs::CalculateERIsDiagonals(const AOBasis& dftbasis) {
             continue;
           }
 
-          _diagonals(ind_1, ind_2) = block[iFunc_1][iFunc_2][iFunc_1][iFunc_2];
+          _diagonals(ind_1, ind_2) = block(iFunc_1, iFunc_2, iFunc_1, iFunc_2);
 
           // Symmetry
           if (ind_1 != ind_2) {
