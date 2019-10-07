@@ -170,6 +170,13 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
   NumericalIntegration num;
   num.GridSetup("medium", mol, aobasis);
   num.setXCfunctional("XC_GGA_X_PBE XC_GGA_C_PBE");
+
+  BOOST_CHECK_EQUAL(num.getGridSize(), num.getGridpoints().size());
+  BOOST_CHECK_EQUAL(num.getBoxesSize(), 51);
+
+  BOOST_CHECK_CLOSE(num.getExactExchange("XC_GGA_X_PBE XC_GGA_C_PBE"), 0.0,
+                    1e-5);
+  BOOST_CHECK_CLOSE(num.getExactExchange("XC_HYB_GGA_XC_PBEH"), 0.25, 1e-5);
   Mat_p_Energy e_vxc = num.IntegrateVXC(dmat);
   Eigen::MatrixXd vxc_ref = Eigen::MatrixXd::Zero(17, 17);
   vxc_ref << -0.604846, -0.193724, 1.4208e-12, 1.24779e-12, 1.33915e-12,
