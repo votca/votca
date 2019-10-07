@@ -330,13 +330,9 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
   /****** ORIGINAL CKO SUBROUTINE **********/
 
-  tensor4d::extent_gen extent;
-  tensor4d COEF;
+  Eigen::Tensor<double, 4> COEF(5, 5, 9, NMAX + 1);
 
   if (INULL != 0) {
-
-    COEF.resize(
-        extent[range(0, 5)][range(0, 5)][range(0, 9)][range(0, NMAX + 1)]);
 
     int lmin_dft_ecp = 0;
     int lmax_dft_ecp = 0;
@@ -352,7 +348,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
     }
 
-    for (index4d i4 = 0; i4 <= NMAX; i4++) {
+    for (int i4 = 0; i4 <= NMAX; i4++) {
       /********** ORIGINAL CKOEF SUBROUTINE *************************/
       int NU = i4 % 2;
       int NG = (i4 + 1) % 2;
@@ -365,80 +361,80 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       double FN7 = double(i4 + 7);
       double FN8 = double(i4 + 8);
 
-      COEF[0][0][4][i4] =
+      COEF(0, 0, 4, i4) =
           NG / FN1;  //  M0                      Mn is a modified spherical
                      //  Bessel function of the first kind
 
       if (lmax_dft_ecp > 0) {
 
         double COEFF = NU / FN2 * SQ3;  //  SQ(3) * M1
-        COEF[0][1][4][i4] = COEFF;
-        COEF[1][0][4][i4] = COEFF;
+        COEF(0, 1, 4, i4) = COEFF;
+        COEF(1, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
-          COEF[1][1][4][i4] = NG * 3.0 / FN3;                //  M0 + 2 * M2
+          COEF(1, 1, 4, i4) = NG * 3.0 / FN3;                //  M0 + 2 * M2
           COEFF = 3.0 / 2.0 * NG * (1.0 / FN1 - 1.0 / FN3);  //  M0 - M2
-          COEF[1][1][3][i4] = COEFF;
-          COEF[1][1][5][i4] = COEFF;
+          COEF(1, 1, 3, i4) = COEFF;
+          COEF(1, 1, 5, i4) = COEFF;
         }
       }
 
       if (lmax_dft_ecp > 1) {
 
         double COEFF = NG / 2.0 * SQ5 * (3.0 / FN3 - 1.0 / FN1);  //  SQ(5) * M2
-        COEF[0][2][4][i4] = COEFF;
-        COEF[2][0][4][i4] = COEFF;
+        COEF(0, 2, 4, i4) = COEFF;
+        COEF(2, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
           COEFF =
               SQ3 * SQ5 / 2.0 * NU *
               (3.0 / FN4 - 1.0 / FN2);  //  ( SQ(15)/5 ) * ( 2 * M1 + 3 * M3 )
-          COEF[1][2][4][i4] = COEFF;
-          COEF[2][1][4][i4] = COEFF;
+          COEF(1, 2, 4, i4) = COEFF;
+          COEF(2, 1, 4, i4) = COEFF;
           COEFF = 3. * SQ5 / 2.0 * NU *
                   (1.0 / FN2 - 1.0 / FN4);  //  ( (3*SQ(5))/5 ) * ( M1 - M3 )
-          COEF[1][2][3][i4] = COEFF;
-          COEF[1][2][5][i4] = COEFF;
-          COEF[2][1][3][i4] = COEFF;
-          COEF[2][1][5][i4] = COEFF;
+          COEF(1, 2, 3, i4) = COEFF;
+          COEF(1, 2, 5, i4) = COEFF;
+          COEF(2, 1, 3, i4) = COEFF;
+          COEF(2, 1, 5, i4) = COEFF;
         }
 
         if (lmin_dft_ecp > 1) {
-          COEF[2][2][4][i4] =
+          COEF(2, 2, 4, i4) =
               5.0 / 4.0 * NG *
               (9.0 / FN5 - 6.0 / FN3 + 1.0 / FN1);  //  (1/7) * ( 7 * M0 + 10 *
                                                     //  M2 + 18 * M4 )
           COEFF =
               NG * 15.0 / 2.0 * (1.0 / FN3 - 1.0 / FN5);  //  (1/7) * ( 7 * M0 +
                                                           //  5 * M2 - 12 * M4 )
-          COEF[2][2][3][i4] = COEFF;
-          COEF[2][2][5][i4] = COEFF;
+          COEF(2, 2, 3, i4) = COEFF;
+          COEF(2, 2, 5, i4) = COEFF;
           COEFF = 15.0 / 8.0 * NG *
                   (1.0 / FN1 - 2.0 / FN3 + 1.0 / FN5);  //  (1/7) * ( 7 * M0 -
                                                         //  10 * M2 + 3 * M4 )
-          COEF[2][2][2][i4] = COEFF;
-          COEF[2][2][6][i4] = COEFF;
+          COEF(2, 2, 2, i4) = COEFF;
+          COEF(2, 2, 6, i4) = COEFF;
         }
       }
 
       if (lmax_dft_ecp > 2) {
 
         double COEFF = NU * .5 * SQ7 * (5. / FN4 - 3. / FN2);  //  SQ(7) * M3
-        COEF[0][3][4][i4] = COEFF;
-        COEF[3][0][4][i4] = COEFF;
+        COEF(0, 3, 4, i4) = COEFF;
+        COEF(3, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
           COEFF = NG * .5 * SQ3 * SQ7 *
                   (5. / FN5 - 3. / FN3);  //  ( SQ(21)/7 ) * ( 3 * M2 + 4 * M4 )
-          COEF[1][3][4][i4] = COEFF;
-          COEF[3][1][4][i4] = COEFF;
+          COEF(1, 3, 4, i4) = COEFF;
+          COEF(3, 1, 4, i4) = COEFF;
           COEFF = NG * .375 * SQ2 * SQ7 *
                   (-5. / FN5 + 6. / FN3 - 1. / FN1);  //  ( (3*SQ(14))/7 ) * (
                                                       //  M2 - M4 )
-          COEF[1][3][3][i4] = COEFF;
-          COEF[1][3][5][i4] = COEFF;
-          COEF[3][1][3][i4] = COEFF;
-          COEF[3][1][5][i4] = COEFF;
+          COEF(1, 3, 3, i4) = COEFF;
+          COEF(1, 3, 5, i4) = COEFF;
+          COEF(3, 1, 3, i4) = COEFF;
+          COEF(3, 1, 5, i4) = COEFF;
         }
 
         if (lmin_dft_ecp > 1) {
@@ -446,27 +442,27 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
               NU * .25 * SQ5 * SQ7 *
               (15. / FN6 - 14. / FN4 + 3. / FN2);  //  ( SQ(35)/105 ) * ( 27 *
                                                    //  M1 + 28 * M3 + 50 * M5 )
-          COEF[2][3][4][i4] = COEFF;
-          COEF[3][2][4][i4] = COEFF;
+          COEF(2, 3, 4, i4) = COEFF;
+          COEF(3, 2, 4, i4) = COEFF;
           COEFF =
               NU * .375 * SQ2 * SQ5 * SQ7 *
               (-5. / FN6 + 6. / FN4 - 1. / FN2);  //  ( SQ(70)/105 ) * ( 18 * M1
                                                   //  + 7 * M3 - 25 * M5 )
-          COEF[2][3][3][i4] = COEFF;
-          COEF[2][3][5][i4] = COEFF;
-          COEF[3][2][3][i4] = COEFF;
-          COEF[3][2][5][i4] = COEFF;
+          COEF(2, 3, 3, i4) = COEFF;
+          COEF(2, 3, 5, i4) = COEFF;
+          COEF(3, 2, 3, i4) = COEFF;
+          COEF(3, 2, 5, i4) = COEFF;
           COEFF = NU * 1.875 * SQ7 *
                   (1. / FN6 - 2. / FN4 + 1. / FN2);  //  ( SQ(7)/21 ) * ( 9 * M1
                                                      //  - 14 * M3 + 5 * M5 )
-          COEF[2][3][2][i4] = COEFF;
-          COEF[2][3][6][i4] = COEFF;
-          COEF[3][2][2][i4] = COEFF;
-          COEF[3][2][6][i4] = COEFF;
+          COEF(2, 3, 2, i4) = COEFF;
+          COEF(2, 3, 6, i4) = COEFF;
+          COEF(3, 2, 2, i4) = COEFF;
+          COEF(3, 2, 6, i4) = COEFF;
         }
 
         if (lmin_dft_ecp > 2) {
-          COEF[3][3][4][i4] =
+          COEF(3, 3, 4, i4) =
               NG * 1.75 *
               (50. / FN7 - 30. / FN5 + 9. / FN3);  //  (1/33) * ( 33 * M0 + 44 *
                                                    //  M2 + 54 * M4 + 100 * M6 )
@@ -474,19 +470,19 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
               NG * 1.3125 *
               (-25. / FN7 + 35. / FN5 - 11. / FN3 +
                1. / FN1);  //  (1/11) * ( 11 * M0 + 11 * M2 + 3 * M4 - 25 * M6 )
-          COEF[3][3][3][i4] = COEFF;
-          COEF[3][3][5][i4] = COEFF;
+          COEF(3, 3, 3, i4) = COEFF;
+          COEF(3, 3, 5, i4) = COEFF;
           COEFF = NG * 105 * .125 *
                   (1. / FN7 - 2. / FN5 + 1. / FN3);  //  (1/11) * ( 11 * M0 - 21
                                                      //  * M4 + 10 * M6 )
-          COEF[3][3][2][i4] = COEFF;
-          COEF[3][3][6][i4] = COEFF;
+          COEF(3, 3, 2, i4) = COEFF;
+          COEF(3, 3, 6, i4) = COEFF;
           COEFF =
               NG * 35 * .0625 *
               (-1. / FN7 + 3. / FN5 - 3. / FN3 +
                1. / FN1);  //  (1/33) * ( 33 * M0 - 55 * M2 + 27 * M4 - 5 * M6 )
-          COEF[3][3][1][i4] = COEFF;
-          COEF[3][3][7][i4] = COEFF;
+          COEF(3, 3, 1, i4) = COEFF;
+          COEF(3, 3, 7, i4) = COEFF;
         }
       }
 
@@ -494,22 +490,22 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
         double COEFF =
             NG * .375 * (35. / FN5 - 30. / FN3 + 3. / FN1);  //  3 * M4
-        COEF[0][4][4][i4] = COEFF;
-        COEF[4][0][4][i4] = COEFF;
+        COEF(0, 4, 4, i4) = COEFF;
+        COEF(4, 0, 4, i4) = COEFF;
 
         if (lmin_dft_ecp > 0) {
           COEFF = NU * .375 * SQ3 *
                   (35. / FN6 - 30. / FN4 + 3. / FN2);  //  ( SQ(3)/3 ) * ( 4 *
                                                        //  M3 + 5 * M5 )
-          COEF[1][4][4][i4] = COEFF;
-          COEF[4][1][4][i4] = COEFF;
+          COEF(1, 4, 4, i4) = COEFF;
+          COEF(4, 1, 4, i4) = COEFF;
           COEFF = NU * .375 * SQ2 * SQ3 * SQ5 *
                   (-7. / FN6 + 10. / FN4 - 3. / FN2);  //  ( SQ(30)/3 ) * ( M3 -
                                                        //  M5 )
-          COEF[1][4][3][i4] = COEFF;
-          COEF[1][4][5][i4] = COEFF;
-          COEF[4][1][3][i4] = COEFF;
-          COEF[4][1][5][i4] = COEFF;
+          COEF(1, 4, 3, i4) = COEFF;
+          COEF(1, 4, 5, i4) = COEFF;
+          COEF(4, 1, 3, i4) = COEFF;
+          COEF(4, 1, 5, i4) = COEFF;
         }
 
         if (lmin_dft_ecp > 1) {
@@ -517,24 +513,24 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                   (105. / FN7 - 125. / FN5 + 39. / FN3 -
                    3. / FN1);  //  ( (3*SQ(5))/77 ) * ( 22 * M2 + 20 * M4 + 35 *
                                //  M6 )
-          COEF[2][4][4][i4] = COEFF;
-          COEF[4][2][4][i4] = COEFF;
+          COEF(2, 4, 4, i4) = COEFF;
+          COEF(4, 2, 4, i4) = COEFF;
           COEFF =
               NG * 1.875 * SQ2 * SQ3 *
               (-7. / FN7 + 10. / FN5 - 3. / FN3);  //  ( (5*SQ(6))/77 ) * ( 11 *
                                                    //  M2 + 3 * M4 - 14 * M6 )
-          COEF[2][4][3][i4] = COEFF;
-          COEF[2][4][5][i4] = COEFF;
-          COEF[4][2][3][i4] = COEFF;
-          COEF[4][2][5][i4] = COEFF;
+          COEF(2, 4, 3, i4) = COEFF;
+          COEF(2, 4, 5, i4) = COEFF;
+          COEF(4, 2, 3, i4) = COEFF;
+          COEF(4, 2, 5, i4) = COEFF;
           COEFF =
               NG * .9375 * SQ3 *
               (7. / FN7 - 15. / FN5 + 9. / FN3 -
                1. / FN1);  //  ( (5*SQ(3))/77 ) * ( 11 * M2 - 18 * M4 + 7 * M6 )
-          COEF[2][4][2][i4] = COEFF;
-          COEF[2][4][6][i4] = COEFF;
-          COEF[4][2][2][i4] = COEFF;
-          COEF[4][2][6][i4] = COEFF;
+          COEF(2, 4, 2, i4) = COEFF;
+          COEF(2, 4, 6, i4) = COEFF;
+          COEF(4, 2, 2, i4) = COEFF;
+          COEF(4, 2, 6, i4) = COEFF;
         }
 
         if (lmin_dft_ecp > 2) {
@@ -542,32 +538,32 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                   (175. / FN8 - 255. / FN6 + 105. / FN4 -
                    9. / FN2);  //  ( SQ(7)/1001 ) * ( 572 * M1 + 546 * M3 + 660
                                //  * M5 + 1225 * M7)
-          COEF[3][4][4][i4] = COEFF;
-          COEF[4][3][4][i4] = COEFF;
+          COEF(3, 4, 4, i4) = COEFF;
+          COEF(4, 3, 4, i4) = COEFF;
           COEFF = NU * 1.875 * SQ3 * SQ5 * SQ7 *
                   (-35. / FN8 + 57. / FN6 - 25. / FN4 +
                    3. / FN2);  //  ( SQ(105))/1001 ) * ( 143 * M1 + 91 * M3 + 11
                                //  * M5 - 245 * M7)
-          COEF[3][4][3][i4] = COEFF;
-          COEF[3][4][5][i4] = COEFF;
-          COEF[4][3][3][i4] = COEFF;
-          COEF[4][3][5][i4] = COEFF;
+          COEF(3, 4, 3, i4) = COEFF;
+          COEF(3, 4, 5, i4) = COEFF;
+          COEF(4, 3, 3, i4) = COEFF;
+          COEF(4, 3, 5, i4) = COEFF;
           COEFF = NU * .9375 * SQ3 * SQ7 *
                   (7. / FN8 - 15. / FN6 + 9. / FN4 -
                    1. / FN2);  //  ( SQ(21))/1001 ) * ( 286 * M1 - 91 * M3 - 440
                                //  * M5 + 245 * M7)
-          COEF[3][4][2][i4] = COEFF;
-          COEF[3][4][6][i4] = COEFF;
-          COEF[4][3][2][i4] = COEFF;
-          COEF[4][3][6][i4] = COEFF;
+          COEF(3, 4, 2, i4) = COEFF;
+          COEF(3, 4, 6, i4) = COEFF;
+          COEF(4, 3, 2, i4) = COEFF;
+          COEF(4, 3, 6, i4) = COEFF;
           COEFF = NU * 6.5625 *
                   (-1. / FN8 + 3. / FN6 - 3. / FN4 +
                    1. / FN2);  //  ( 1/143 ) * ( 143 * M1 - 273 * M3 + 165 * M5
                                //  - 35 * M7)
-          COEF[3][4][1][i4] = COEFF;
-          COEF[3][4][7][i4] = COEFF;
-          COEF[4][3][1][i4] = COEFF;
-          COEF[4][3][7][i4] = COEFF;
+          COEF(3, 4, 1, i4) = COEFF;
+          COEF(3, 4, 7, i4) = COEFF;
+          COEF(4, 3, 1, i4) = COEFF;
+          COEF(4, 3, 7, i4) = COEFF;
         }
 
         if (lmin_dft_ecp > 3) {
@@ -581,13 +577,12 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
   }  // end if (INULL != 0)
 
-  tensor3d BLMA;
-  tensor3d CA;
+  Eigen::Tensor<double, 3> BLMA;
+  Eigen::Tensor<double, 3> CA;
   getBLMCOF(lmax_ecp, lmax_row, AVS, BLMA, CA);
-  tensor3d BLMB;
-  tensor3d CB;
+  Eigen::Tensor<double, 3> BLMB;
+  Eigen::Tensor<double, 3> CB;
   getBLMCOF(lmax_ecp, lmax_col, BVS, BLMB, CB);
-  tensor3d::extent_gen extents3D;
 
   switch (INULL) {
 
@@ -596,10 +591,10 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
 
       for (int i = 0; i < nsph_row; i++) {
         for (int j = 0; j < nsph_col; j++) {
-          for (index3d L = 0; L <= lmin; L++) {
+          for (int L = 0; L <= lmin; L++) {
             double XI_L = XI(L, L + L);
-            for (index3d M = 4 - L; M <= 4 + L; M++) {
-              matrix(i, j) += BLMA[i][L][M] * BLMB[j][L][M] * XI_L;
+            for (int M = 4 - L; M <= 4 + L; M++) {
+              matrix(i, j) += BLMA(i, L, M) * BLMB(j, L, M) * XI_L;
             }
           }
         }
@@ -610,12 +605,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     case 1:  //  AVSSQ <= 0.1
     {
 
-      tensor3d SUMCI3;
-      SUMCI3.resize(extents3D[range(0, 5)][range(0, 5)][range(0, 9)]);
-      for (index3d L = 0; L <= lmax_ecp; L++) {
-        for (index3d L2 = 0; L2 <= lmax_col; L2++) {
+      Eigen::TensorFixedSize<double, Eigen::Sizes<5, 5, 9>> SUMCI3;
+      for (int L = 0; L <= lmax_ecp; L++) {
+        for (int L2 = 0; L2 <= lmax_col; L2++) {
           int range_M2 = std::min(L2, L);
-          for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+          for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
             double VAR2 = 0.0;
             double fak = 2.0 * beta * BVSSQ;
@@ -629,11 +623,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                 factorialNN = factorialNN * NN;
               }
 
-              double XDUM = COEF[L][L2][M2][NN] * pow / factorialNN;
+              double XDUM = COEF(L, L2, M2, NN) * pow / factorialNN;
               VAR2 += XDUM * XI(L, NN + L + L2);
             }
 
-            SUMCI3[L][L2][M2] = VAR2;
+            SUMCI3(L, L2, M2) = VAR2;
 
           }  // end M2
         }    // end L2
@@ -642,14 +636,14 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       for (int i = 0; i < nsph_row; i++) {
         for (int j = 0; j < nsph_col; j++) {
 
-          for (index3d L = 0; L <= std::min(lmax_row, lmax_ecp); L++) {
-            for (index3d L2 = 0; L2 <= lmax_col; L2++) {
+          for (int L = 0; L <= std::min(lmax_row, lmax_ecp); L++) {
+            for (int L2 = 0; L2 <= lmax_col; L2++) {
               int range_M2 = std::min(L2, L);
-              for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+              for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
-                for (index3d M1 = 4 - L; M1 <= 4 + L; M1++) {
-                  matrix(i, j) += BLMA[i][L][M1] * BLMB[j][L2][M2] *
-                                  SUMCI3[L][L2][M2] * CB[L][M1][M2];
+                for (int M1 = 4 - L; M1 <= 4 + L; M1++) {
+                  matrix(i, j) += BLMA(i, L, M1) * BLMB(j, L2, M2) *
+                                  SUMCI3(L, L2, M2) * CB(L, M1, M2);
                 }
               }
             }
@@ -663,12 +657,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     case 2:  //  BVSSQ <= 0.1
     {
 
-      tensor3d SUMCI3;
-      SUMCI3.resize(extents3D[range(0, 5)][range(0, 5)][range(0, 9)]);
-      for (index3d L = 0; L <= lmax_ecp; L++) {
-        for (index3d L1 = 0; L1 <= lmax_row; L1++) {
+      Eigen::TensorFixedSize<double, Eigen::Sizes<5, 5, 9>> SUMCI3;
+      for (int L = 0; L <= lmax_ecp; L++) {
+        for (int L1 = 0; L1 <= lmax_row; L1++) {
           int range_M1 = std::min(L1, L);
-          for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+          for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
             double VAR1 = 0.0;
             double fak = 2.0 * alpha * AVSSQ;
@@ -682,11 +675,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                 factorialN = factorialN * N;
               }
 
-              double XDUM = COEF[L][L1][M1][N] * pow / factorialN;
+              double XDUM = COEF(L, L1, M1, N) * pow / factorialN;
               VAR1 += XDUM * XI(L, N + L1 + L);
             }
 
-            SUMCI3[L][L1][M1] = VAR1;
+            SUMCI3(L, L1, M1) = VAR1;
 
           }  // end M1
         }    // end L1
@@ -695,14 +688,14 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       for (int i = 0; i < nsph_row; i++) {
         for (int j = 0; j < nsph_col; j++) {
 
-          for (index3d L = 0; L <= std::min(lmax_col, lmax_ecp); L++) {
-            for (index3d L1 = 0; L1 <= lmax_row; L1++) {
+          for (int L = 0; L <= std::min(lmax_col, lmax_ecp); L++) {
+            for (int L1 = 0; L1 <= lmax_row; L1++) {
               int range_M1 = std::min(L1, L);
-              for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+              for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
 
-                for (index3d M2 = 4 - L; M2 <= 4 + L; M2++) {
-                  matrix(i, j) += BLMA[i][L1][M1] * BLMB[j][L][M2] *
-                                  SUMCI3[L][L1][M1] * CA[L][M2][M1];
+                for (int M2 = 4 - L; M2 <= 4 + L; M2++) {
+                  matrix(i, j) += BLMA(i, L1, M1) * BLMB(j, L, M2) *
+                                  SUMCI3(L, L1, M1) * CA(L, M2, M1);
                 }
               }
             }
@@ -714,36 +707,30 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
     }
 
     case 3: {
-
-      tensor3d CC;
-      CC.resize(extents3D[range(0, 5)][range(0, 9)][range(0, 9)]);
-      std::fill_n(CC.data(), CC.num_elements(), 0.0);
-      for (index3d L = 0; L <= lmax_ecp; L++) {
+      Eigen::TensorFixedSize<double, Eigen::Sizes<5, 9, 9>> CC;
+      CC.setZero();
+      for (int L = 0; L <= lmax_ecp; L++) {
         int range_M1 = std::min(lmax_row, int(L));
         int range_M2 = std::min(lmax_col, int(L));
-        for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-          for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
-            for (index3d M = 4 - L; M <= 4 + L; M++) {
-              CC[L][M1][M2] += CA[L][M][M1] * CB[L][M][M2];
+        for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+          for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+            for (int M = 4 - L; M <= 4 + L; M++) {
+              CC(L, M1, M2) += CA(L, M, M1) * CB(L, M, M2);
             }
           }
         }
       }
 
-      typedef boost::multi_array<double, 5> type_5D;
-      type_5D::extent_gen extents5D;
-      type_5D SUMCI;
-      SUMCI.resize(extents5D[range(0, 5)][range(0, 5)][range(0, 5)][range(0, 9)]
-                            [range(0, 9)]);
-      std::fill_n(SUMCI.data(), SUMCI.num_elements(), 0.0);
+      Eigen::TensorFixedSize<double, Eigen::Sizes<5, 5, 5, 9, 9>> SUMCI;
+      SUMCI.setZero();
 
-      for (index3d L = 0; L <= lmax_ecp; L++) {
-        for (index3d L1 = 0; L1 <= lmax_row; L1++) {
+      for (int L = 0; L <= lmax_ecp; L++) {
+        for (int L1 = 0; L1 <= lmax_row; L1++) {
           int range_M1 = std::min(L1, L);
-          for (index3d L2 = 0; L2 <= lmax_col; L2++) {
+          for (int L2 = 0; L2 <= lmax_col; L2++) {
             int range_M2 = std::min(L2, L);
-            for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-              for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+            for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+              for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
                 double fak1 = 2.0 * alpha * AVSSQ;
                 double pow1 = 1;
@@ -756,7 +743,7 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                     factorialN = factorialN * N;
                   }
 
-                  double VAR1 = COEF[L][L1][M1][N] * pow1 / factorialN;
+                  double VAR1 = COEF(L, L1, M1, N) * pow1 / factorialN;
                   double VAR2 = 0.0;
                   double fak2 = 2.0 * beta * BVSSQ;
                   double pow2 = 1;
@@ -768,11 +755,11 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
                       pow2 = pow2 * fak2;
                       factorialNN = factorialNN * NN;
                     }
-                    double XDUM = COEF[L][L2][M2][NN] * pow2 / factorialNN;
+                    double XDUM = COEF(L, L2, M2, NN) * pow2 / factorialNN;
                     VAR2 += XDUM * XI(L, N + NN + L1 + L2);
                   }
 
-                  SUMCI[L][L1][L2][M1][M2] += VAR1 * VAR2;
+                  SUMCI(L, L1, L2, M1, M2) += VAR1 * VAR2;
                 }
 
               }  // end M2
@@ -784,16 +771,16 @@ Eigen::MatrixXd AOECP::calcVNLmatrix(
       for (int i = 0; i < nsph_row; i++) {
         for (int j = 0; j < nsph_col; j++) {
 
-          for (index3d L = 0; L <= lmax_ecp; L++) {
-            for (index3d L1 = 0; L1 <= lmax_row; L1++) {
+          for (int L = 0; L <= lmax_ecp; L++) {
+            for (int L1 = 0; L1 <= lmax_row; L1++) {
               int range_M1 = std::min(L1, L);
-              for (index3d L2 = 0; L2 <= lmax_col; L2++) {
+              for (int L2 = 0; L2 <= lmax_col; L2++) {
                 int range_M2 = std::min(L2, L);
-                for (index3d M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
-                  for (index3d M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
+                for (int M1 = 4 - range_M1; M1 <= 4 + range_M1; M1++) {
+                  for (int M2 = 4 - range_M2; M2 <= 4 + range_M2; M2++) {
 
-                    matrix(i, j) += BLMA[i][L1][M1] * BLMB[j][L2][M2] *
-                                    SUMCI[L][L1][L2][M1][M2] * CC[L][M1][M2];
+                    matrix(i, j) += BLMA(i, L1, M1) * BLMB(j, L2, M2) *
+                                    SUMCI(L, L1, L2, M1, M2) * CC(L, M1, M2);
                   }
                 }
               }
@@ -884,21 +871,20 @@ Eigen::VectorXd AOECP::CalcNorms(double decay, int size) const {
 }
 
 void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
-                      tensor3d& BLC, tensor3d& C) const {
-
-  tensor3d::extent_gen extents;
+                      Eigen::Tensor<double, 3>& BLC,
+                      Eigen::Tensor<double, 3>& C) const {
 
   int nsph = (lmax_dft + 1) * (lmax_dft + 1);
   int lmax_dft_ecp = std::max(lmax_dft, lmax_ecp);
   int lmin_dft_ecp = std::min(lmax_dft, lmax_ecp);
 
-  BLC.resize(extents[range(0, nsph)][range(0, 5)][range(0, 9)]);
-  std::fill_n(BLC.data(), BLC.num_elements(), 0.0);
-  C.resize(extents[range(0, 5)][range(0, 9)][range(0, 9)]);
-  std::fill_n(C.data(), C.num_elements(), 0.0);
-  tensor3d BLM;
-  BLM.resize(extents[range(0, nsph)][range(0, 5)][range(0, 9)]);
-  std::fill_n(BLM.data(), BLM.num_elements(), 0.0);
+  BLC = Eigen::Tensor<double, 3>(nsph, 5, 9);
+  BLC.setZero();
+  C = Eigen::Tensor<double, 3>(5, 9, 9);
+  C.setZero();
+  Eigen::Tensor<double, 3> BLM(nsph, 5, 9);
+  BLM.setZero();
+
   const double PI = boost::math::constants::pi<double>();
   double SQPI = sqrt(PI);
   double SQ2 = sqrt(2.);
@@ -920,20 +906,20 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
   double BVS_RR = BVS_XX + BVS_YY + BVS_ZZ;
   double BVS_XY, BVS_XZ, BVS_YZ;
 
-  BLM[0][0][4] = XS;  //  Y 00
+  BLM(0, 0, 4) = XS;  //  Y 00
 
   if (lmax_dft > 0) {
 
     XP = XS / SQ3;
 
-    BLM[1][0][4] = -BVS_Z * XS;  //  Y 10
-    BLM[1][1][4] = XP;
+    BLM(1, 0, 4) = -BVS_Z * XS;  //  Y 10
+    BLM(1, 1, 4) = XP;
 
-    BLM[2][0][4] = -BVS_Y * XS;  //  Y 1 -1
-    BLM[2][1][3] = XP;
+    BLM(2, 0, 4) = -BVS_Y * XS;  //  Y 1 -1
+    BLM(2, 1, 3) = XP;
 
-    BLM[3][0][4] = -BVS_X * XS;  //  Y 11
-    BLM[3][1][5] = XP;
+    BLM(3, 0, 4) = -BVS_X * XS;  //  Y 11
+    BLM(3, 1, 5) = XP;
   }
 
   if (lmax_dft > 1) {
@@ -946,31 +932,31 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
     XD_0 = 4.0 * SQPI / SQ5;
     XD_p2 = 2. * XD;
 
-    BLM[4][0][4] = (3.0 * BVS_ZZ - BVS_RR) * XS;  //  Y 20
-    BLM[4][1][5] = 2.0 * BVS_X * XP;
-    BLM[4][1][3] = 2.0 * BVS_Y * XP;
-    BLM[4][1][4] = -4.0 * BVS_Z * XP;
-    BLM[4][2][4] = XD_0;
+    BLM(4, 0, 4) = (3.0 * BVS_ZZ - BVS_RR) * XS;  //  Y 20
+    BLM(4, 1, 5) = 2.0 * BVS_X * XP;
+    BLM(4, 1, 3) = 2.0 * BVS_Y * XP;
+    BLM(4, 1, 4) = -4.0 * BVS_Z * XP;
+    BLM(4, 2, 4) = XD_0;
 
-    BLM[5][0][4] = BVS_YZ * XS;  //  Y 2 -1
-    BLM[5][1][3] = -BVS_Z * XP;
-    BLM[5][1][4] = -BVS_Y * XP;
-    BLM[5][2][3] = XD;
+    BLM(5, 0, 4) = BVS_YZ * XS;  //  Y 2 -1
+    BLM(5, 1, 3) = -BVS_Z * XP;
+    BLM(5, 1, 4) = -BVS_Y * XP;
+    BLM(5, 2, 3) = XD;
 
-    BLM[6][0][4] = BVS_XZ * XS;  //  Y 21
-    BLM[6][1][5] = -BVS_Z * XP;
-    BLM[6][1][4] = -BVS_X * XP;
-    BLM[6][2][5] = XD;
+    BLM(6, 0, 4) = BVS_XZ * XS;  //  Y 21
+    BLM(6, 1, 5) = -BVS_Z * XP;
+    BLM(6, 1, 4) = -BVS_X * XP;
+    BLM(6, 2, 5) = XD;
 
-    BLM[7][0][4] = BVS_XY * XS;  //  Y 2 -2
-    BLM[7][1][5] = -BVS_Y * XP;
-    BLM[7][1][3] = -BVS_X * XP;
-    BLM[7][2][2] = XD;
+    BLM(7, 0, 4) = BVS_XY * XS;  //  Y 2 -2
+    BLM(7, 1, 5) = -BVS_Y * XP;
+    BLM(7, 1, 3) = -BVS_X * XP;
+    BLM(7, 2, 2) = XD;
 
-    BLM[8][0][4] = (BVS_XX - BVS_YY) * XS;  //  Y 22
-    BLM[8][1][5] = -2.0 * BVS_X * XP;
-    BLM[8][1][3] = 2.0 * BVS_Y * XP;
-    BLM[8][2][6] = XD_p2;
+    BLM(8, 0, 4) = (BVS_XX - BVS_YY) * XS;  //  Y 22
+    BLM(8, 1, 5) = -2.0 * BVS_X * XP;
+    BLM(8, 1, 3) = 2.0 * BVS_Y * XP;
+    BLM(8, 2, 6) = XD_p2;
   }
 
   if (lmax_dft > 2) {
@@ -981,66 +967,66 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
     XF_p2 = 2. * XF_m2;
     XF_3 = 4. * SQ2PI / (SQ5 * SQ7);
 
-    BLM[9][0][4] = (3. * BVS_RR - 5. * BVS_ZZ) * BVS_Z * XS;  //  Y 30
-    BLM[9][1][3] = -6. * BVS_YZ * XP;
-    BLM[9][1][4] = 3. * (3. * BVS_ZZ - BVS_RR) * XP;
-    BLM[9][1][5] = -6. * BVS_XZ * XP;
-    BLM[9][2][3] = 6. * BVS_Y * XD;
-    BLM[9][2][4] = -3. * BVS_Z * XD_0;
-    BLM[9][2][5] = 6. * BVS_X * XD;
-    BLM[9][3][4] = XF_0;
+    BLM(9, 0, 4) = (3. * BVS_RR - 5. * BVS_ZZ) * BVS_Z * XS;  //  Y 30
+    BLM(9, 1, 3) = -6. * BVS_YZ * XP;
+    BLM(9, 1, 4) = 3. * (3. * BVS_ZZ - BVS_RR) * XP;
+    BLM(9, 1, 5) = -6. * BVS_XZ * XP;
+    BLM(9, 2, 3) = 6. * BVS_Y * XD;
+    BLM(9, 2, 4) = -3. * BVS_Z * XD_0;
+    BLM(9, 2, 5) = 6. * BVS_X * XD;
+    BLM(9, 3, 4) = XF_0;
 
-    BLM[10][0][4] = (BVS_RR - 5. * BVS_ZZ) * BVS_Y * XS;  //  Y 3 -1
-    BLM[10][1][3] = (4. * BVS_ZZ - BVS_XX - 3. * BVS_YY) * XP;
-    BLM[10][1][4] = 8. * BVS_YZ * XP;
-    BLM[10][1][5] = -2. * BVS_XY * XP;
-    BLM[10][2][2] = 2. * BVS_X * XD;
-    BLM[10][2][3] = -8. * BVS_Z * XD;
-    BLM[10][2][4] = -2. * BVS_Y * XD_0;
-    BLM[10][2][6] = -BVS_Y * XD_p2;
-    BLM[10][3][3] = XF_1;
+    BLM(10, 0, 4) = (BVS_RR - 5. * BVS_ZZ) * BVS_Y * XS;  //  Y 3 -1
+    BLM(10, 1, 3) = (4. * BVS_ZZ - BVS_XX - 3. * BVS_YY) * XP;
+    BLM(10, 1, 4) = 8. * BVS_YZ * XP;
+    BLM(10, 1, 5) = -2. * BVS_XY * XP;
+    BLM(10, 2, 2) = 2. * BVS_X * XD;
+    BLM(10, 2, 3) = -8. * BVS_Z * XD;
+    BLM(10, 2, 4) = -2. * BVS_Y * XD_0;
+    BLM(10, 2, 6) = -BVS_Y * XD_p2;
+    BLM(10, 3, 3) = XF_1;
 
-    BLM[11][0][4] = (BVS_RR - 5. * BVS_ZZ) * BVS_X * XS;  //  Y 31
-    BLM[11][1][3] = -2. * BVS_XY * XP;
-    BLM[11][1][4] = 8. * BVS_XZ * XP;
-    BLM[11][1][5] = (4. * BVS_ZZ - 3. * BVS_XX - BVS_YY) * XP;
-    BLM[11][2][2] = 2. * BVS_Y * XD;
-    BLM[11][2][4] = -2. * BVS_X * XD_0;
-    BLM[11][2][5] = -8. * BVS_Z * XD;
-    BLM[11][2][6] = BVS_X * XD_p2;
-    BLM[11][3][5] = XF_1;
+    BLM(11, 0, 4) = (BVS_RR - 5. * BVS_ZZ) * BVS_X * XS;  //  Y 31
+    BLM(11, 1, 3) = -2. * BVS_XY * XP;
+    BLM(11, 1, 4) = 8. * BVS_XZ * XP;
+    BLM(11, 1, 5) = (4. * BVS_ZZ - 3. * BVS_XX - BVS_YY) * XP;
+    BLM(11, 2, 2) = 2. * BVS_Y * XD;
+    BLM(11, 2, 4) = -2. * BVS_X * XD_0;
+    BLM(11, 2, 5) = -8. * BVS_Z * XD;
+    BLM(11, 2, 6) = BVS_X * XD_p2;
+    BLM(11, 3, 5) = XF_1;
 
-    BLM[12][0][4] = -BVS_XY * BVS_Z * XS;  //  Y 3 -2
-    BLM[12][1][3] = BVS_XZ * XP;
-    BLM[12][1][4] = BVS_XY * XP;
-    BLM[12][1][5] = BVS_YZ * XP;
-    BLM[12][2][2] = -BVS_Z * XD;
-    BLM[12][2][3] = -BVS_X * XD;
-    BLM[12][2][5] = -BVS_Y * XD;
-    BLM[12][3][2] = XF_m2;
+    BLM(12, 0, 4) = -BVS_XY * BVS_Z * XS;  //  Y 3 -2
+    BLM(12, 1, 3) = BVS_XZ * XP;
+    BLM(12, 1, 4) = BVS_XY * XP;
+    BLM(12, 1, 5) = BVS_YZ * XP;
+    BLM(12, 2, 2) = -BVS_Z * XD;
+    BLM(12, 2, 3) = -BVS_X * XD;
+    BLM(12, 2, 5) = -BVS_Y * XD;
+    BLM(12, 3, 2) = XF_m2;
 
-    BLM[13][0][4] = (BVS_YY - BVS_XX) * BVS_Z * XS;  //  Y 32
-    BLM[13][1][3] = -2. * BVS_YZ * XP;
-    BLM[13][1][4] = (BVS_XX - BVS_YY) * XP;
-    BLM[13][1][5] = 2. * BVS_XZ * XP;
-    BLM[13][2][3] = 2. * BVS_Y * XD;
-    BLM[13][2][5] = -2. * BVS_X * XD;
-    BLM[13][2][6] = -BVS_Z * XD_p2;
-    BLM[13][3][6] = XF_p2;
+    BLM(13, 0, 4) = (BVS_YY - BVS_XX) * BVS_Z * XS;  //  Y 32
+    BLM(13, 1, 3) = -2. * BVS_YZ * XP;
+    BLM(13, 1, 4) = (BVS_XX - BVS_YY) * XP;
+    BLM(13, 1, 5) = 2. * BVS_XZ * XP;
+    BLM(13, 2, 3) = 2. * BVS_Y * XD;
+    BLM(13, 2, 5) = -2. * BVS_X * XD;
+    BLM(13, 2, 6) = -BVS_Z * XD_p2;
+    BLM(13, 3, 6) = XF_p2;
 
-    BLM[14][0][4] = (BVS_YY - 3. * BVS_XX) * BVS_Y * XS;  //  Y 3 -3
-    BLM[14][1][3] = 3. * (BVS_XX - BVS_YY) * XP;
-    BLM[14][1][5] = 6. * BVS_XY * XP;
-    BLM[14][2][2] = -6. * BVS_X * XD;
-    BLM[14][2][6] = -3. * BVS_Y * XD_p2;
-    BLM[14][3][1] = XF_3;
+    BLM(14, 0, 4) = (BVS_YY - 3. * BVS_XX) * BVS_Y * XS;  //  Y 3 -3
+    BLM(14, 1, 3) = 3. * (BVS_XX - BVS_YY) * XP;
+    BLM(14, 1, 5) = 6. * BVS_XY * XP;
+    BLM(14, 2, 2) = -6. * BVS_X * XD;
+    BLM(14, 2, 6) = -3. * BVS_Y * XD_p2;
+    BLM(14, 3, 1) = XF_3;
 
-    BLM[15][0][4] = (3. * BVS_YY - BVS_XX) * BVS_X * XS;  //  Y 33
-    BLM[15][1][3] = -6. * BVS_XY * XP;
-    BLM[15][1][5] = 3. * (BVS_XX - BVS_YY) * XP;
-    BLM[15][2][2] = 6. * BVS_Y * XD;
-    BLM[15][2][6] = -3. * BVS_X * XD_p2;
-    BLM[15][3][7] = XF_3;
+    BLM(15, 0, 4) = (3. * BVS_YY - BVS_XX) * BVS_X * XS;  //  Y 33
+    BLM(15, 1, 3) = -6. * BVS_XY * XP;
+    BLM(15, 1, 5) = 3. * (BVS_XX - BVS_YY) * XP;
+    BLM(15, 2, 2) = 6. * BVS_Y * XD;
+    BLM(15, 2, 6) = -3. * BVS_X * XD_p2;
+    BLM(15, 3, 7) = XF_3;
   }
 
   if (lmax_dft > 3) {
@@ -1053,126 +1039,126 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
     double XG_m4 = 4. * SQPI / (3. * SQ5 * SQ7);
     double XG_p4 = 4. * XG_m4;
 
-    BLM[16][0][4] =
+    BLM(16, 0, 4) =
         (35. * BVS_ZZ - 30. * BVS_ZZ * BVS_RR + 3. * BVS_RR * BVS_RR) *
         XS;  //  Y 40
-    BLM[16][1][3] = 12. * (5. * BVS_ZZ - BVS_RR) * BVS_Y * XP;
-    BLM[16][1][4] = 16. * (3. * BVS_RR - 5. * BVS_ZZ) * BVS_Z * XP;
-    BLM[16][1][5] = 12. * (5. * BVS_ZZ - BVS_RR) * BVS_X * XP;
-    BLM[16][2][2] = -24. * BVS_XY * XD;
-    BLM[16][2][3] = -96. * BVS_YZ * XD;
-    BLM[16][2][4] = 12. * (3. * BVS_ZZ - BVS_RR) * XD_0;
-    BLM[16][2][5] = -96. * BVS_XZ * XD;
-    BLM[16][2][6] = 6. * (BVS_XX - BVS_YY) * XD_p2;
-    BLM[16][3][3] = 12. * BVS_Y * XF_1;
-    BLM[16][3][4] = -16. * BVS_Z * XF_0;
-    BLM[16][3][5] = 12. * BVS_X * XF_1;
-    BLM[16][4][4] = XG_0;
+    BLM(16, 1, 3) = 12. * (5. * BVS_ZZ - BVS_RR) * BVS_Y * XP;
+    BLM(16, 1, 4) = 16. * (3. * BVS_RR - 5. * BVS_ZZ) * BVS_Z * XP;
+    BLM(16, 1, 5) = 12. * (5. * BVS_ZZ - BVS_RR) * BVS_X * XP;
+    BLM(16, 2, 2) = -24. * BVS_XY * XD;
+    BLM(16, 2, 3) = -96. * BVS_YZ * XD;
+    BLM(16, 2, 4) = 12. * (3. * BVS_ZZ - BVS_RR) * XD_0;
+    BLM(16, 2, 5) = -96. * BVS_XZ * XD;
+    BLM(16, 2, 6) = 6. * (BVS_XX - BVS_YY) * XD_p2;
+    BLM(16, 3, 3) = 12. * BVS_Y * XF_1;
+    BLM(16, 3, 4) = -16. * BVS_Z * XF_0;
+    BLM(16, 3, 5) = 12. * BVS_X * XF_1;
+    BLM(16, 4, 4) = XG_0;
 
-    BLM[17][0][4] = (7. * BVS_ZZ - 3. * BVS_RR) * BVS_YZ * XS;  //  Y  4 -1
-    BLM[17][1][3] = (3. * BVS_XX + 9. * BVS_YY - 4. * BVS_ZZ) * BVS_Z * XP;
-    BLM[17][1][4] = 3. * (BVS_RR - 5. * BVS_ZZ) * BVS_Y * XP;
-    BLM[17][1][5] = 6. * BVS_XY * BVS_Z * XP;
-    BLM[17][2][2] = -6. * BVS_XZ * XD;
-    BLM[17][2][3] = 3. * (4. * BVS_ZZ - BVS_XX - 3. * BVS_YY) * XD;
-    BLM[17][2][4] = 6. * BVS_YZ * XD_0;
-    BLM[17][2][5] = -6. * BVS_XY * XD;
-    BLM[17][2][6] = 3. * BVS_YZ * XD_p2;
-    BLM[17][3][2] = 6. * BVS_X * XF_m2;
-    BLM[17][3][3] = -3. * BVS_Z * XF_1;
-    BLM[17][3][4] = -2. * BVS_Y * XF_0;
-    BLM[17][3][6] = -3. * BVS_Y * XF_p2;
-    BLM[17][4][3] = XG_1;
+    BLM(17, 0, 4) = (7. * BVS_ZZ - 3. * BVS_RR) * BVS_YZ * XS;  //  Y  4 -1
+    BLM(17, 1, 3) = (3. * BVS_XX + 9. * BVS_YY - 4. * BVS_ZZ) * BVS_Z * XP;
+    BLM(17, 1, 4) = 3. * (BVS_RR - 5. * BVS_ZZ) * BVS_Y * XP;
+    BLM(17, 1, 5) = 6. * BVS_XY * BVS_Z * XP;
+    BLM(17, 2, 2) = -6. * BVS_XZ * XD;
+    BLM(17, 2, 3) = 3. * (4. * BVS_ZZ - BVS_XX - 3. * BVS_YY) * XD;
+    BLM(17, 2, 4) = 6. * BVS_YZ * XD_0;
+    BLM(17, 2, 5) = -6. * BVS_XY * XD;
+    BLM(17, 2, 6) = 3. * BVS_YZ * XD_p2;
+    BLM(17, 3, 2) = 6. * BVS_X * XF_m2;
+    BLM(17, 3, 3) = -3. * BVS_Z * XF_1;
+    BLM(17, 3, 4) = -2. * BVS_Y * XF_0;
+    BLM(17, 3, 6) = -3. * BVS_Y * XF_p2;
+    BLM(17, 4, 3) = XG_1;
 
-    BLM[18][0][4] = (7. * BVS_ZZ - 3. * BVS_RR) * BVS_XZ * XS;  //  Y 41
-    BLM[18][1][3] = 6. * BVS_XY * BVS_Z * XP;
-    BLM[18][1][4] = 3. * (BVS_RR - 5. * BVS_ZZ) * BVS_Y * XP;
-    BLM[18][1][5] = (9. * BVS_XX + 3. * BVS_YY - 4. * BVS_ZZ) * BVS_Z * XP;
-    BLM[18][2][2] = -6. * BVS_YZ * XD;
-    BLM[18][2][3] = -6. * BVS_XY * XD;
-    BLM[18][2][4] = 6. * BVS_XZ * XD_0;
-    BLM[18][2][5] = 3. * (4. * BVS_ZZ - 3. * BVS_XX - BVS_YY) * XD;
-    BLM[18][2][6] = -3. * BVS_XZ * XD_p2;
-    BLM[18][3][2] = 6. * BVS_Y * XF_m2;
-    BLM[18][3][4] = -2. * BVS_X * XF_0;
-    BLM[18][3][5] = -3. * BVS_Z * XF_1;
-    BLM[18][3][6] = 3. * BVS_X * XF_p2;
-    BLM[18][4][5] = XG_1;
+    BLM(18, 0, 4) = (7. * BVS_ZZ - 3. * BVS_RR) * BVS_XZ * XS;  //  Y 41
+    BLM(18, 1, 3) = 6. * BVS_XY * BVS_Z * XP;
+    BLM(18, 1, 4) = 3. * (BVS_RR - 5. * BVS_ZZ) * BVS_Y * XP;
+    BLM(18, 1, 5) = (9. * BVS_XX + 3. * BVS_YY - 4. * BVS_ZZ) * BVS_Z * XP;
+    BLM(18, 2, 2) = -6. * BVS_YZ * XD;
+    BLM(18, 2, 3) = -6. * BVS_XY * XD;
+    BLM(18, 2, 4) = 6. * BVS_XZ * XD_0;
+    BLM(18, 2, 5) = 3. * (4. * BVS_ZZ - 3. * BVS_XX - BVS_YY) * XD;
+    BLM(18, 2, 6) = -3. * BVS_XZ * XD_p2;
+    BLM(18, 3, 2) = 6. * BVS_Y * XF_m2;
+    BLM(18, 3, 4) = -2. * BVS_X * XF_0;
+    BLM(18, 3, 5) = -3. * BVS_Z * XF_1;
+    BLM(18, 3, 6) = 3. * BVS_X * XF_p2;
+    BLM(18, 4, 5) = XG_1;
 
-    BLM[19][0][4] = (7. * BVS_ZZ - BVS_RR) * BVS_XY * XS;  //  Y 4 -2
-    BLM[19][1][3] = (BVS_XX + 3. * BVS_YY - 6. * BVS_ZZ) * BVS_X * XP;
-    BLM[19][1][4] = -12. * BVS_XY * BVS_Z * XP;
-    BLM[19][1][5] = (3. * BVS_XX + BVS_YY - 6. * BVS_ZZ) * BVS_Y * XP;
-    BLM[19][2][2] = 3. * (3. * BVS_ZZ - BVS_RR) * XD;
-    BLM[19][2][3] = 12. * BVS_XZ * XD;
-    BLM[19][2][4] = 3. * BVS_XY * XD_0;
-    BLM[19][2][5] = 12. * BVS_YZ * XD;
-    BLM[19][3][1] = .5 * BVS_X * XF_3;
-    BLM[19][3][2] = -12. * BVS_Z * XF_m2;
-    BLM[19][3][3] = -1.5 * BVS_X * XF_1;
-    BLM[19][3][5] = -1.5 * BVS_Y * XF_1;
-    BLM[19][3][7] = -.5 * BVS_Y * XF_3;
-    BLM[19][4][2] = XG_m2;
+    BLM(19, 0, 4) = (7. * BVS_ZZ - BVS_RR) * BVS_XY * XS;  //  Y 4 -2
+    BLM(19, 1, 3) = (BVS_XX + 3. * BVS_YY - 6. * BVS_ZZ) * BVS_X * XP;
+    BLM(19, 1, 4) = -12. * BVS_XY * BVS_Z * XP;
+    BLM(19, 1, 5) = (3. * BVS_XX + BVS_YY - 6. * BVS_ZZ) * BVS_Y * XP;
+    BLM(19, 2, 2) = 3. * (3. * BVS_ZZ - BVS_RR) * XD;
+    BLM(19, 2, 3) = 12. * BVS_XZ * XD;
+    BLM(19, 2, 4) = 3. * BVS_XY * XD_0;
+    BLM(19, 2, 5) = 12. * BVS_YZ * XD;
+    BLM(19, 3, 1) = .5 * BVS_X * XF_3;
+    BLM(19, 3, 2) = -12. * BVS_Z * XF_m2;
+    BLM(19, 3, 3) = -1.5 * BVS_X * XF_1;
+    BLM(19, 3, 5) = -1.5 * BVS_Y * XF_1;
+    BLM(19, 3, 7) = -.5 * BVS_Y * XF_3;
+    BLM(19, 4, 2) = XG_m2;
 
-    BLM[20][0][4] = (7. * BVS_ZZ - BVS_RR) * (BVS_XX - BVS_YY) * XS;  //  Y 42
-    BLM[20][1][3] = 4. * (3. * BVS_ZZ - BVS_YY) * BVS_Y * XP;
-    BLM[20][1][4] = 12. * (BVS_YY - BVS_XX) * BVS_Z * XP;
-    BLM[20][1][5] = 4. * (BVS_XX - 3. * BVS_ZZ) * BVS_X * XP;
-    BLM[20][2][3] = -24. * BVS_YZ * XD;
-    BLM[20][2][4] = 3. * (BVS_XX - BVS_YY) * XD_0;
-    BLM[20][2][5] = 24. * BVS_XZ * XD;
-    BLM[20][2][6] = 3. * (3. * BVS_ZZ - BVS_RR) * XD_p2;
-    BLM[20][3][1] = BVS_Y * XF_3;
-    BLM[20][3][3] = 3. * BVS_Y * XF_1;
-    BLM[20][3][5] = -3. * BVS_X * XF_1;
-    BLM[20][3][6] = -12. * BVS_Z * XF_m2;
-    BLM[20][3][7] = BVS_X * XF_3;
-    BLM[20][4][6] = XG_p2;
+    BLM(20, 0, 4) = (7. * BVS_ZZ - BVS_RR) * (BVS_XX - BVS_YY) * XS;  //  Y 42
+    BLM(20, 1, 3) = 4. * (3. * BVS_ZZ - BVS_YY) * BVS_Y * XP;
+    BLM(20, 1, 4) = 12. * (BVS_YY - BVS_XX) * BVS_Z * XP;
+    BLM(20, 1, 5) = 4. * (BVS_XX - 3. * BVS_ZZ) * BVS_X * XP;
+    BLM(20, 2, 3) = -24. * BVS_YZ * XD;
+    BLM(20, 2, 4) = 3. * (BVS_XX - BVS_YY) * XD_0;
+    BLM(20, 2, 5) = 24. * BVS_XZ * XD;
+    BLM(20, 2, 6) = 3. * (3. * BVS_ZZ - BVS_RR) * XD_p2;
+    BLM(20, 3, 1) = BVS_Y * XF_3;
+    BLM(20, 3, 3) = 3. * BVS_Y * XF_1;
+    BLM(20, 3, 5) = -3. * BVS_X * XF_1;
+    BLM(20, 3, 6) = -12. * BVS_Z * XF_m2;
+    BLM(20, 3, 7) = BVS_X * XF_3;
+    BLM(20, 4, 6) = XG_p2;
 
-    BLM[21][0][4] = (3. * BVS_XX - BVS_YY) * BVS_YZ * XS;  //  Y 4 -3
-    BLM[21][1][3] = 3. * (BVS_YY - BVS_XX) * BVS_Z * XP;
-    BLM[21][1][4] = (BVS_YY - 3. * BVS_XX) * BVS_Y * XP;
-    BLM[21][1][5] = -6. * BVS_XY * BVS_Z * XP;
-    BLM[21][2][2] = 6. * BVS_XZ * XD;
-    BLM[21][2][3] = 3. * (BVS_XX - BVS_YY) * XD;
-    BLM[21][2][5] = 6. * BVS_XY * XD;
-    BLM[21][2][6] = 3. * BVS_YZ * XD_p2;
-    BLM[21][3][1] = -BVS_Z * XF_3;
-    BLM[21][3][2] = -6. * BVS_X * XF_m2;
-    BLM[21][3][6] = -3. * BVS_Y * XF_p2;
-    BLM[21][4][1] = XG_3;
+    BLM(21, 0, 4) = (3. * BVS_XX - BVS_YY) * BVS_YZ * XS;  //  Y 4 -3
+    BLM(21, 1, 3) = 3. * (BVS_YY - BVS_XX) * BVS_Z * XP;
+    BLM(21, 1, 4) = (BVS_YY - 3. * BVS_XX) * BVS_Y * XP;
+    BLM(21, 1, 5) = -6. * BVS_XY * BVS_Z * XP;
+    BLM(21, 2, 2) = 6. * BVS_XZ * XD;
+    BLM(21, 2, 3) = 3. * (BVS_XX - BVS_YY) * XD;
+    BLM(21, 2, 5) = 6. * BVS_XY * XD;
+    BLM(21, 2, 6) = 3. * BVS_YZ * XD_p2;
+    BLM(21, 3, 1) = -BVS_Z * XF_3;
+    BLM(21, 3, 2) = -6. * BVS_X * XF_m2;
+    BLM(21, 3, 6) = -3. * BVS_Y * XF_p2;
+    BLM(21, 4, 1) = XG_3;
 
-    BLM[22][0][4] = (BVS_XX - 3. * BVS_YY) * BVS_XZ * XS;  //  Y 43
-    BLM[22][1][3] = 6. * BVS_XY * BVS_Z * XP;
-    BLM[22][1][4] = (3. * BVS_YY - BVS_XX) * BVS_X * XP;
-    BLM[22][1][5] = 3. * (BVS_YY - BVS_XX) * BVS_Z * XP;
-    BLM[22][2][2] = -6. * BVS_YZ * XD;
-    BLM[22][2][3] = -6. * BVS_XY * XD;
-    BLM[22][2][5] = 3. * (BVS_XX - BVS_YY) * XD;
-    BLM[22][2][6] = 3. * BVS_XZ * XD_p2;
-    BLM[22][3][2] = 6. * BVS_Y * XF_m2;
-    BLM[22][3][6] = -3. * BVS_X * XF_p2;
-    BLM[22][3][7] = -BVS_Z * XF_3;
-    BLM[22][4][7] = XG_3;
+    BLM(22, 0, 4) = (BVS_XX - 3. * BVS_YY) * BVS_XZ * XS;  //  Y 43
+    BLM(22, 1, 3) = 6. * BVS_XY * BVS_Z * XP;
+    BLM(22, 1, 4) = (3. * BVS_YY - BVS_XX) * BVS_X * XP;
+    BLM(22, 1, 5) = 3. * (BVS_YY - BVS_XX) * BVS_Z * XP;
+    BLM(22, 2, 2) = -6. * BVS_YZ * XD;
+    BLM(22, 2, 3) = -6. * BVS_XY * XD;
+    BLM(22, 2, 5) = 3. * (BVS_XX - BVS_YY) * XD;
+    BLM(22, 2, 6) = 3. * BVS_XZ * XD_p2;
+    BLM(22, 3, 2) = 6. * BVS_Y * XF_m2;
+    BLM(22, 3, 6) = -3. * BVS_X * XF_p2;
+    BLM(22, 3, 7) = -BVS_Z * XF_3;
+    BLM(22, 4, 7) = XG_3;
 
-    BLM[23][0][4] = (BVS_XX - BVS_YY) * BVS_XY * XS;  //  Y 4 -4
-    BLM[23][1][3] = (3. * BVS_YY - BVS_XX) * BVS_X * XP;
-    BLM[23][1][5] = (BVS_YY - 3. * BVS_XX) * BVS_Y * XP;
-    BLM[23][2][2] = 3. * (BVS_XX - BVS_YY) * XD;
-    BLM[23][2][6] = 3. * BVS_XY * XD_p2;
-    BLM[23][3][1] = -BVS_X * XF_3;
-    BLM[23][3][7] = -BVS_Y * XF_3;
-    BLM[23][4][0] = XG_m4;
+    BLM(23, 0, 4) = (BVS_XX - BVS_YY) * BVS_XY * XS;  //  Y 4 -4
+    BLM(23, 1, 3) = (3. * BVS_YY - BVS_XX) * BVS_X * XP;
+    BLM(23, 1, 5) = (BVS_YY - 3. * BVS_XX) * BVS_Y * XP;
+    BLM(23, 2, 2) = 3. * (BVS_XX - BVS_YY) * XD;
+    BLM(23, 2, 6) = 3. * BVS_XY * XD_p2;
+    BLM(23, 3, 1) = -BVS_X * XF_3;
+    BLM(23, 3, 7) = -BVS_Y * XF_3;
+    BLM(23, 4, 0) = XG_m4;
 
-    BLM[24][0][4] = (BVS_XX * BVS_XX + BVS_YY * BVS_YY - 6. * BVS_XX * BVS_YY) *
+    BLM(24, 0, 4) = (BVS_XX * BVS_XX + BVS_YY * BVS_YY - 6. * BVS_XX * BVS_YY) *
                     XS;  //  Y 4 4
-    BLM[24][1][3] = 4. * (3. * BVS_XX - BVS_YY) * BVS_Y * XP;
-    BLM[24][1][5] = 4. * (3. * BVS_YY - BVS_XX) * BVS_X * XP;
-    BLM[24][2][2] = -24. * BVS_XY * XD;
-    BLM[24][2][6] = 6. * (BVS_XX - BVS_YY) * XD_p2;
-    BLM[24][3][1] = 4. * BVS_Y * XF_3;
-    BLM[24][3][7] = -4. * BVS_X * XF_3;
-    BLM[24][4][8] = XG_p4;
+    BLM(24, 1, 3) = 4. * (3. * BVS_XX - BVS_YY) * BVS_Y * XP;
+    BLM(24, 1, 5) = 4. * (3. * BVS_YY - BVS_XX) * BVS_X * XP;
+    BLM(24, 2, 2) = -24. * BVS_XY * XD;
+    BLM(24, 2, 6) = 6. * (BVS_XX - BVS_YY) * XD_p2;
+    BLM(24, 3, 1) = 4. * BVS_Y * XF_3;
+    BLM(24, 3, 7) = -4. * BVS_X * XF_3;
+    BLM(24, 4, 8) = XG_p4;
   }
 
   double SXY = sqrt(BVS_XX + BVS_YY);  // SXY = r * sin(theta)
@@ -1190,59 +1176,59 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
     double CT = BVS_Z / SXYZ;  // CT = cos(theta)
     double ST = SXY / SXYZ;    // ST = sin(theta)
 
-    C[0][4][4] = 1.0;  // 2*SQ(pi) * (Y 00)
+    C(0, 4, 4) = 1.0;  // 2*SQ(pi) * (Y 00)
 
     if (lmax_dft_ecp > 0) {
 
-      C[1][3][4] = ST * SP;  // 2*SQ(pi/3) * (Y 1-1)
-      C[1][4][4] = CT;       // 2*SQ(pi/3) * (Y 10)
-      C[1][5][4] = ST * CP;  // 2*SQ(pi/3) * (Y 11)                  Definition
+      C(1, 3, 4) = ST * SP;  // 2*SQ(pi/3) * (Y 1-1)
+      C(1, 4, 4) = CT;       // 2*SQ(pi/3) * (Y 10)
+      C(1, 5, 4) = ST * CP;  // 2*SQ(pi/3) * (Y 11)                  Definition
                              // of (Z lm) :
       if (lmin_dft_ecp > 0) {
-        C[1][3][3] = CP;  // 2*SQ(pi/3) * (Z 1-1)                 (Z lm)  :=  (
+        C(1, 3, 3) = CP;  // 2*SQ(pi/3) * (Z 1-1)                 (Z lm)  :=  (
                           // 1 / sin(theta) ) * ( d (Y lm) / d phi )
-        C[1][3][5] = CT * SP;  // 2*SQ(pi/3) * (Y 1-1)'
-        C[1][4][3] = 0.0;
-        C[1][4][5] = -ST;  // 2*SQ(pi/3) * (Y 10)' Differentiation with respect
+        C(1, 3, 5) = CT * SP;  // 2*SQ(pi/3) * (Y 1-1)'
+        C(1, 4, 3) = 0.0;
+        C(1, 4, 5) = -ST;  // 2*SQ(pi/3) * (Y 10)' Differentiation with respect
                            // to theta is denoted by an apostrophe:
-        C[1][5][3] = -SP;  // 2*SQ(pi/3) * (Z 11)
-        C[1][5][5] = CT * CP;  // 2*SQ(pi/3) * (Y 11)'                 f'  :=  d
+        C(1, 5, 3) = -SP;  // 2*SQ(pi/3) * (Z 11)
+        C(1, 5, 5) = CT * CP;  // 2*SQ(pi/3) * (Y 11)'                 f'  :=  d
                                // f / d theta
       }
     }
 
     if (lmax_dft_ecp > 1) {
 
-      C[2][2][4] = SQ3 * ST * ST * CP * SP;         // 2*SQ(pi/5) * (Y 2-2)
-      C[2][3][4] = SQ3 * CT * ST * SP;              // 2*SQ(pi/5) * (Y 2-1)
-      C[2][4][4] = 1.5 * CT * CT - 0.5;             // 2*SQ(pi/5) * (Y 20)
-      C[2][5][4] = SQ3 * CT * ST * CP;              // 2*SQ(pi/5) * (Y 21)
-      C[2][6][4] = SQ3 * ST * ST * (CP * CP - .5);  // 2*SQ(pi/5) * (Y 22)
+      C(2, 2, 4) = SQ3 * ST * ST * CP * SP;         // 2*SQ(pi/5) * (Y 2-2)
+      C(2, 3, 4) = SQ3 * CT * ST * SP;              // 2*SQ(pi/5) * (Y 2-1)
+      C(2, 4, 4) = 1.5 * CT * CT - 0.5;             // 2*SQ(pi/5) * (Y 20)
+      C(2, 5, 4) = SQ3 * CT * ST * CP;              // 2*SQ(pi/5) * (Y 21)
+      C(2, 6, 4) = SQ3 * ST * ST * (CP * CP - .5);  // 2*SQ(pi/5) * (Y 22)
       if (lmin_dft_ecp > 0) {
-        C[2][2][3] = ST * (2.0 * CP * CP - 1.0);  // 2*SQ(pi/15) * (Z 2-2)
-        C[2][2][5] = 2.0 * CT * ST * CP * SP;     // 2*SQ(pi/15) * (Y 2-2)'
-        C[2][3][3] = CT * CP;                     // 2*SQ(pi/15) * (Z 2-1)
-        C[2][3][5] = (2.0 * CT * CT - 1.0) * SP;  // 2*SQ(pi/15) * (Y 2-1)'
-        C[2][4][3] = 0.0;
-        C[2][4][5] = -SQ3 * CT * ST;                  // 2*SQ(pi/15) * (Y 20)'
-        C[2][5][3] = -CT * SP;                        // 2*SQ(pi/15) * (Z 21)
-        C[2][5][5] = (2.0 * CT * CT - 1.0) * CP;      // 2*SQ(pi/15) * (Y 21)'
-        C[2][6][3] = -2.0 * ST * CP * SP;             // 2*SQ(pi/15) * (Z 22)
-        C[2][6][5] = CT * ST * (2.0 * CP * CP - 1.);  // 2*SQ(pi/15) * (Y 22)'
+        C(2, 2, 3) = ST * (2.0 * CP * CP - 1.0);  // 2*SQ(pi/15) * (Z 2-2)
+        C(2, 2, 5) = 2.0 * CT * ST * CP * SP;     // 2*SQ(pi/15) * (Y 2-2)'
+        C(2, 3, 3) = CT * CP;                     // 2*SQ(pi/15) * (Z 2-1)
+        C(2, 3, 5) = (2.0 * CT * CT - 1.0) * SP;  // 2*SQ(pi/15) * (Y 2-1)'
+        C(2, 4, 3) = 0.0;
+        C(2, 4, 5) = -SQ3 * CT * ST;                  // 2*SQ(pi/15) * (Y 20)'
+        C(2, 5, 3) = -CT * SP;                        // 2*SQ(pi/15) * (Z 21)
+        C(2, 5, 5) = (2.0 * CT * CT - 1.0) * CP;      // 2*SQ(pi/15) * (Y 21)'
+        C(2, 6, 3) = -2.0 * ST * CP * SP;             // 2*SQ(pi/15) * (Z 22)
+        C(2, 6, 5) = CT * ST * (2.0 * CP * CP - 1.);  // 2*SQ(pi/15) * (Y 22)'
       }
       if (lmin_dft_ecp > 1) {
-        C[2][2][2] = CT * (2.0 * CP * CP - 1.0);  // 2*SQ(pi/15) * (Z 2-2)'
-        C[2][2][6] = (1.0 + CT * CT) * CP *
+        C(2, 2, 2) = CT * (2.0 * CP * CP - 1.0);  // 2*SQ(pi/15) * (Z 2-2)'
+        C(2, 2, 6) = (1.0 + CT * CT) * CP *
                      SP;             // 2*SQ(pi/15) * ( (Y 2-2)'' + 3*(Y 2-2) )
-        C[2][3][2] = -ST * CP;       // 2*SQ(pi/15) * (Z 2-1)'
-        C[2][3][6] = -CT * ST * SP;  // 2*SQ(pi/15) * ( (Y 2-1)'' + 3*(Y 2-1) )
-        C[2][4][2] = 0.0;
-        C[2][4][6] =
+        C(2, 3, 2) = -ST * CP;       // 2*SQ(pi/15) * (Z 2-1)'
+        C(2, 3, 6) = -CT * ST * SP;  // 2*SQ(pi/15) * ( (Y 2-1)'' + 3*(Y 2-1) )
+        C(2, 4, 2) = 0.0;
+        C(2, 4, 6) =
             .5 * SQ3 * ST * ST;      // 2*SQ(pi/15) * ( (Y 20)'' + 3*(Y 20) )
-        C[2][5][2] = ST * SP;        // 2*SQ(pi/15) * (Z 21)'
-        C[2][5][6] = -CT * ST * CP;  // 2*SQ(pi/15) * ( (Y 21)'' + 3*(Y 21) )
-        C[2][6][2] = -2.0 * CT * CP * SP;  // 2*SQ(pi/15) * (Z 22)'
-        C[2][6][6] = (1. + CT * CT) *
+        C(2, 5, 2) = ST * SP;        // 2*SQ(pi/15) * (Z 21)'
+        C(2, 5, 6) = -CT * ST * CP;  // 2*SQ(pi/15) * ( (Y 21)'' + 3*(Y 21) )
+        C(2, 6, 2) = -2.0 * CT * CP * SP;  // 2*SQ(pi/15) * (Z 22)'
+        C(2, 6, 6) = (1. + CT * CT) *
                      (CP * CP - .5);  // 2*SQ(pi/15) * ( (Y 22)'' + 3*(Y 22) )
       }
     }
@@ -1252,167 +1238,167 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
       double f_phi, df_dphi;
 
       f_phi = (4. * CP * CP - 1.) * SP;  // sin(3*phi)
-      C[3][1][4] =
+      C(3, 1, 4) =
           (.5 * SQ5 / SQ2) * ST * ST * ST * f_phi;  // 2*SQ(pi/7) * (Y 3-3)
       if (lmin_dft_ecp > 0) {
         df_dphi = 3. * (1. - 4. * SP * SP) * CP;
-        C[3][1][3] =
+        C(3, 1, 3) =
             (.25 * SQ5 / SQ3) * ST * ST * df_dphi;  // SQ((2*pi)/21) * (Z 3-3)
-        C[3][1][5] = (.25 * SQ5 / SQ3) * 3. * ST * ST * CT *
+        C(3, 1, 5) = (.25 * SQ5 / SQ3) * 3. * ST * ST * CT *
                      f_phi;  // SQ((2*pi)/21) * (Y 3-3)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][1][2] = (.5 / (SQ2 * SQ3)) * 2. * ST * CT *
+        C(3, 1, 2) = (.5 / (SQ2 * SQ3)) * 2. * ST * CT *
                      df_dphi;  // 2*SQ(pi/105) * (Z 3-3)'
-        C[3][1][6] = (.5 / (SQ2 * SQ3)) * 3. * (1. + CT * CT) * ST *
+        C(3, 1, 6) = (.5 / (SQ2 * SQ3)) * 3. * (1. + CT * CT) * ST *
                      f_phi;  // 2*SQ(pi/105) * ( (Y 3-3)'' + 6*(Y 3-3) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][1][1] =
+        C(3, 1, 1) =
             (1. / 6.) * (.5 + 1.5 * CT * CT) *
             df_dphi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 3-3) + (Z 3-3)'' )
-        C[3][1][7] = (1. / 6.) * 1.5 * (3. + CT * CT) * CT *
+        C(3, 1, 7) = (1. / 6.) * 1.5 * (3. + CT * CT) * CT *
                      f_phi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 3-3)' + ( (Y
                              // 3-3)'' + 6*(Y 3-3) )' )
       }
 
       f_phi = CP * SP;                                  // (1/2)*sin(2*phi)
-      C[3][2][4] = (SQ3 * SQ5) * ST * ST * CT * f_phi;  // 2*SQ(pi/7) * (Y 3-2)
+      C(3, 2, 4) = (SQ3 * SQ5) * ST * ST * CT * f_phi;  // 2*SQ(pi/7) * (Y 3-2)
       if (lmin_dft_ecp > 0) {
         df_dphi = 1. - 2. * SP * SP;
-        C[3][2][3] =
+        C(3, 2, 3) =
             (SQ5 / SQ2) * ST * CT * df_dphi;  // SQ((2*pi)/21) * (Z 3-2)
-        C[3][2][5] = (SQ5 / SQ2) * (3. * CT * CT - 1.) * ST *
+        C(3, 2, 5) = (SQ5 / SQ2) * (3. * CT * CT - 1.) * ST *
                      f_phi;  // SQ((2*pi)/21) * (Y 3-2)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][2][2] = (1. - 2. * ST * ST) * df_dphi;  // 2*SQ(pi/105) * (Z 3-2)'
-        C[3][2][6] = (3. * CT * CT - 1.) * CT *
+        C(3, 2, 2) = (1. - 2. * ST * ST) * df_dphi;  // 2*SQ(pi/105) * (Z 3-2)'
+        C(3, 2, 6) = (3. * CT * CT - 1.) * CT *
                      f_phi;  // 2*SQ(pi/105) * ( (Y 3-2)'' + 6*(Y 3-2) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][2][1] =
+        C(3, 2, 1) =
             (SQ2 / SQ3) * (-1.5) * ST * CT *
             df_dphi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 3-2) + (Z 3-2)'' )
-        C[3][2][7] = (SQ2 / SQ3) * (-1.5) * (1. + CT * CT) * ST *
+        C(3, 2, 7) = (SQ2 / SQ3) * (-1.5) * (1. + CT * CT) * ST *
                      f_phi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 3-2)' + ( (Y
                              // 3-2)'' + 6*(Y 3-2) )' )
       }
 
       f_phi = SP;
-      C[3][3][4] = (.5 * SQ3 / SQ2) * (5. * CT * CT - 1.) * ST *
+      C(3, 3, 4) = (.5 * SQ3 / SQ2) * (5. * CT * CT - 1.) * ST *
                    f_phi;  // 2*SQ(pi/7) * (Y 3-1)
       if (lmin_dft_ecp > 0) {
         df_dphi = CP;
-        C[3][3][3] =
+        C(3, 3, 3) =
             .25 * (5. * CT * CT - 1.) * df_dphi;  // SQ((2*pi)/21) * (Z 3-1)
-        C[3][3][5] = .25 * (4. - 15. * ST * ST) * CT *
+        C(3, 3, 5) = .25 * (4. - 15. * ST * ST) * CT *
                      f_phi;  // SQ((2*pi)/21) * (Y 3-1)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][3][2] = (.5 / (SQ2 * SQ5)) * (-10.) * ST * CT *
+        C(3, 3, 2) = (.5 / (SQ2 * SQ5)) * (-10.) * ST * CT *
                      df_dphi;  // 2*SQ(pi/105) * (Z 3-1)'
-        C[3][3][6] = (.5 / (SQ2 * SQ5)) * (5. - 15. * CT * CT) * ST *
+        C(3, 3, 6) = (.5 / (SQ2 * SQ5)) * (5. - 15. * CT * CT) * ST *
                      f_phi;  // 2*SQ(pi/105) * ( (Y 3-1)'' + 6*(Y 3-1) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][3][1] =
+        C(3, 3, 1) =
             (.5 / (SQ3 * SQ5)) * 7.5 * ST * ST *
             df_dphi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 3-1) + (Z 3-1)'' )
-        C[3][3][7] = (.5 / (SQ3 * SQ5)) * 7.5 * ST * ST * CT *
+        C(3, 3, 7) = (.5 / (SQ3 * SQ5)) * 7.5 * ST * ST * CT *
                      f_phi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 3-1)' + ( (Y
                              // 3-1)'' + 6*(Y 3-1) )' )
       }
 
-      C[3][4][4] = .5 * (5. * CT * CT - 3.) * CT;  // 2*SQ(pi/7) * (Y 30)
+      C(3, 4, 4) = .5 * (5. * CT * CT - 3.) * CT;  // 2*SQ(pi/7) * (Y 30)
       if (lmin_dft_ecp > 0) {
-        C[3][4][3] = 0.;
-        C[3][4][5] = (.5 / (SQ2 * SQ3)) * (3. - 15. * CT * CT) *
+        C(3, 4, 3) = 0.;
+        C(3, 4, 5) = (.5 / (SQ2 * SQ3)) * (3. - 15. * CT * CT) *
                      ST;  // SQ((2*pi)/21) * (Y 30)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][4][2] = 0.;
-        C[3][4][6] = (.5 / (SQ3 * SQ5)) * 15. * ST * ST *
+        C(3, 4, 2) = 0.;
+        C(3, 4, 6) = (.5 / (SQ3 * SQ5)) * 15. * ST * ST *
                      CT;  // 2*SQ(pi/105) * ( (Y 30)'' + 6*(Y 30) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][4][1] = 0.;
-        C[3][4][7] = (SQ2 / (6. * SQ5)) * (-7.5) * ST * ST *
+        C(3, 4, 1) = 0.;
+        C(3, 4, 7) = (SQ2 / (6. * SQ5)) * (-7.5) * ST * ST *
                      ST;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 30)' + ( (Y 30)''
                           // + 6*(Y 30) )' )
       }
 
       f_phi = CP;
-      C[3][5][4] = (.5 * SQ3 / SQ2) * (5. * CT * CT - 1.) * ST *
+      C(3, 5, 4) = (.5 * SQ3 / SQ2) * (5. * CT * CT - 1.) * ST *
                    f_phi;  // 2*SQ(pi/7) * (Y 31)
       if (lmin_dft_ecp > 0) {
         df_dphi = -SP;
-        C[3][5][3] =
+        C(3, 5, 3) =
             .25 * (5. * CT * CT - 1.) * df_dphi;  // SQ((2*pi)/21) * (Z 31)
-        C[3][5][5] =
+        C(3, 5, 5) =
             .25 * (4. - 15. * ST * ST) * CT * f_phi;  // SQ((2*pi)/21) * (Y 31)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][5][2] = (.5 / (SQ2 * SQ5)) * (-10.) * ST * CT *
+        C(3, 5, 2) = (.5 / (SQ2 * SQ5)) * (-10.) * ST * CT *
                      df_dphi;  // 2*SQ(pi/105) * (Z 31)'
-        C[3][5][6] = (.5 / (SQ2 * SQ5)) * (5. - 15. * CT * CT) * ST *
+        C(3, 5, 6) = (.5 / (SQ2 * SQ5)) * (5. - 15. * CT * CT) * ST *
                      f_phi;  // 2*SQ(pi/105) * ( (Y 31)'' + 6*(Y 31) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][5][1] =
+        C(3, 5, 1) =
             (.5 / (SQ3 * SQ5)) * 7.5 * ST * ST *
             df_dphi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 31) + (Z 31)'' )
-        C[3][5][7] = (.5 / (SQ3 * SQ5)) * 7.5 * ST * ST * CT *
+        C(3, 5, 7) = (.5 / (SQ3 * SQ5)) * 7.5 * ST * ST * CT *
                      f_phi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 31)' + ( (Y
                              // 31)'' + 6*(Y 31) )' )
       }
 
       f_phi = 1. - 2. * SP * SP;  // cos(2*phi)
-      C[3][6][4] =
+      C(3, 6, 4) =
           (.5 * SQ3 * SQ5) * ST * ST * CT * f_phi;  // 2*SQ(pi/7) * (Y 32)
       if (lmin_dft_ecp > 0) {
         df_dphi = -4. * CP * SP;
-        C[3][6][3] =
+        C(3, 6, 3) =
             (.5 * SQ5 / SQ2) * ST * CT * df_dphi;  // SQ((2*pi)/21) * (Z 32)
-        C[3][6][5] = (.5 * SQ5 / SQ2) * (3. * CT * CT - 1.) * ST *
+        C(3, 6, 5) = (.5 * SQ5 / SQ2) * (3. * CT * CT - 1.) * ST *
                      f_phi;  // SQ((2*pi)/21) * (Y 32)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][6][2] =
+        C(3, 6, 2) =
             .5 * (1. - 2. * ST * ST) * df_dphi;  // 2*SQ(pi/105) * (Z 32)'
-        C[3][6][6] = .5 * (3. * CT * CT - 1.) * CT *
+        C(3, 6, 6) = .5 * (3. * CT * CT - 1.) * CT *
                      f_phi;  // 2*SQ(pi/105) * ( (Y 32)'' + 6*(Y 32) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][6][1] =
+        C(3, 6, 1) =
             (1. / (SQ2 * SQ3)) * (-1.5) * ST * CT *
             df_dphi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 32) + (Z 32)'' )
-        C[3][6][7] = (1. / (SQ2 * SQ3)) * (-1.5) * (1. + CT * CT) * ST *
+        C(3, 6, 7) = (1. / (SQ2 * SQ3)) * (-1.5) * (1. + CT * CT) * ST *
                      f_phi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 32)' + ( (Y
                              // 32)'' + 6*(Y 32) )' )
       }
 
       f_phi = (1. - 4. * SP * SP) * CP;  // cos(3*phi)
-      C[3][7][4] =
+      C(3, 7, 4) =
           (.5 * SQ5 / SQ2) * ST * ST * ST * f_phi;  // 2*SQ(pi/7) * (Y 33)
       if (lmin_dft_ecp > 0) {
         df_dphi = 3. * (1. - 4. * CP * CP) * SP;
-        C[3][7][3] =
+        C(3, 7, 3) =
             (.25 * SQ5 / SQ3) * ST * ST * df_dphi;  // SQ((2*pi)/21) * (Z 33)
-        C[3][7][5] = (.25 * SQ5 / SQ3) * 3. * ST * ST * CT *
+        C(3, 7, 5) = (.25 * SQ5 / SQ3) * 3. * ST * ST * CT *
                      f_phi;  // SQ((2*pi)/21) * (Y 33)'
       }
       if (lmin_dft_ecp > 1) {
-        C[3][7][2] = (.5 / (SQ2 * SQ3)) * 2. * ST * CT *
+        C(3, 7, 2) = (.5 / (SQ2 * SQ3)) * 2. * ST * CT *
                      df_dphi;  // 2*SQ(pi/105) * (Z 33)'
-        C[3][7][6] = (.5 / (SQ2 * SQ3)) * 3. * (1. + CT * CT) * ST *
+        C(3, 7, 6) = (.5 / (SQ2 * SQ3)) * 3. * (1. + CT * CT) * ST *
                      f_phi;  // 2*SQ(pi/105) * ( (Y 33)'' + 6*(Y 33) )
       }
       if (lmin_dft_ecp > 2) {
-        C[3][7][1] =
+        C(3, 7, 1) =
             (1. / 6.) * (.5 + 1.5 * CT * CT) *
             df_dphi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Z 33) + (Z 33)'' )
-        C[3][7][7] = (1. / 6.) * 1.5 * (3. + CT * CT) * CT *
+        C(3, 7, 7) = (1. / 6.) * 1.5 * (3. + CT * CT) * CT *
                      f_phi;  // (2/3)*SQ((2*pi)/35) * ( (5/2)*(Y 33)' + ( (Y
                              // 33)'' + 6*(Y 33) )' )
       }
@@ -1427,257 +1413,257 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
       double f_phi, df_dphi;
 
       f_phi = CP * SP * (C2P - S2P);  // (1/4)*sin(4*phi)
-      C[4][0][4] =
+      C(4, 0, 4) =
           (.5 * SQ5 * SQ7) * S2T * S2T * f_phi;  // (2/3)*SQ(pi) * (Y 4-4)
       if (lmin_dft_ecp > 0) {
         df_dphi = (C2P - S2P) * (C2P - S2P) - 4. * C2P * S2P;
-        C[4][0][3] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7) * S2T * ST *
+        C(4, 0, 3) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7) * S2T * ST *
                      df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 4-4)
-        C[4][0][5] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7) * 4. * S2T * ST *
+        C(4, 0, 5) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7) * 4. * S2T * ST *
                      CT * f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 4-4)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][0][2] = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7) * 3. * S2T * CT *
+        C(4, 0, 2) = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7) * 3. * S2T * CT *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 4-4)'
-        C[4][0][6] = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7) * 6. * (C2T + 1.) *
+        C(4, 0, 6) = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7) * 6. * (C2T + 1.) *
                      S2T *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 4-4)'' + 10*(Y 4-4) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][0][1] =
+        C(4, 0, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7) * (4.5 * C2T + 1.5) *
             ST *
             df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-4) + (Z 4-4)'' )
-        C[4][0][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7) * 6. *
+        C(4, 0, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7) * 6. *
                      (C2T + 3.) * ST * CT *
                      f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-4)' + ( (Y
                              // 4-4)'' + 10*(Y 4-4) )' )
       }
 
       f_phi = (4. * C2P - 1.) * SP;  // sin(3*phi)
-      C[4][1][4] = (.5 * SQ5 * SQ7 / SQ2) * S2T * ST * CT *
+      C(4, 1, 4) = (.5 * SQ5 * SQ7 / SQ2) * S2T * ST * CT *
                    f_phi;  // (2/3)*SQ(pi) * (Y 4-3)
       if (lmin_dft_ecp > 0) {
         df_dphi = 3. * (1. - 4. * SP * SP) * CP;
-        C[4][1][3] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * S2T * CT *
+        C(4, 1, 3) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * S2T * CT *
                      df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 4-3)
-        C[4][1][5] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
+        C(4, 1, 5) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
                      (4. * C2T - 1.) * S2T *
                      f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 4-3)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][1][2] = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
+        C(4, 1, 2) = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
                      (3. * C2T - 1.) * ST *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 4-3)'
-        C[4][1][6] = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * 6. * C2T *
+        C(4, 1, 6) = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * 6. * C2T *
                      CT * ST *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 4-3)'' + 10*(Y 4-3) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][1][1] =
+        C(4, 1, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7 / SQ2) *
             (2. - 4.5 * S2T) * CT *
             df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-3) + (Z 4-3)'' )
-        C[4][1][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7 / SQ2) *
+        C(4, 1, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7 / SQ2) *
                      (6. * C2T * C2T - 4.5 * S2T) *
                      f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-3)' + ( (Y
                              // 4-3)'' + 10*(Y 4-3) )' )
       }
 
       f_phi = CP * SP;  // (1/2)*sin(2*phi)
-      C[4][2][4] =
+      C(4, 2, 4) =
           (.5 * SQ5) * (7. * C2T - 1.) * S2T * f_phi;  // (2/3)*SQ(pi) * (Y 4-2)
       if (lmin_dft_ecp > 0) {
         df_dphi = 1. - 2. * SP * SP;
-        C[4][2][3] = (1. / (SQ2 * SQ5)) * (.5 * SQ5) * (7. * C2T - 1.) * ST *
+        C(4, 2, 3) = (1. / (SQ2 * SQ5)) * (.5 * SQ5) * (7. * C2T - 1.) * ST *
                      df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 4-2)
-        C[4][2][5] = (1. / (SQ2 * SQ5)) * (.5 * SQ5) *
+        C(4, 2, 5) = (1. / (SQ2 * SQ5)) * (.5 * SQ5) *
                      (14. * (C2T - S2T) - 2.) * ST * CT *
                      f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 4-2)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][2][2] = (1. / (3. * SQ5)) * (.5 * SQ5) * (6. - 21. * S2T) * CT *
+        C(4, 2, 2) = (1. / (3. * SQ5)) * (.5 * SQ5) * (6. - 21. * S2T) * CT *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 4-2)'
-        C[4][2][6] = (1. / (3. * SQ5)) * (.5 * SQ5) * 6. *
+        C(4, 2, 6) = (1. / (3. * SQ5)) * (.5 * SQ5) * 6. *
                      (1. + C2T - 7. * S2T * C2T) *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 4-2)'' + 10*(Y 4-2) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][2][1] =
+        C(4, 2, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5) * 10.5 * (1. - 3. * C2T) *
             ST *
             df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-2) + (Z 4-2)'' )
-        C[4][2][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5) * (-42.) * C2T * CT *
+        C(4, 2, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5) * (-42.) * C2T * CT *
                      ST * f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-2)' + (
                                   // (Y 4-2)'' + 10*(Y 4-2) )' )
       }
 
       f_phi = SP;
-      C[4][3][4] = (.5 * SQ5 / SQ2) * (7. * C2T - 3.) * ST * CT *
+      C(4, 3, 4) = (.5 * SQ5 / SQ2) * (7. * C2T - 3.) * ST * CT *
                    f_phi;  // (2/3)*SQ(pi) * (Y 4-1)
       if (lmin_dft_ecp > 0) {
         df_dphi = CP;
-        C[4][3][3] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) * (7. * C2T - 3.) *
+        C(4, 3, 3) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) * (7. * C2T - 3.) *
                      CT * df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 4-1)
-        C[4][3][5] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) *
+        C(4, 3, 5) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) *
                      (3. + (1. - 28. * S2T) * C2T) *
                      f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 4-1)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][3][2] = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 3. *
+        C(4, 3, 2) = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 3. *
                      (1. - 7. * C2T) * ST *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 4-1)'
-        C[4][3][6] = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 6. *
+        C(4, 3, 6) = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 6. *
                      (7. * S2T - 3.) * ST * CT *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 4-1)'' + 10*(Y 4-1) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][3][1] =
+        C(4, 3, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 / SQ2) * .5 * 63. * S2T * CT *
             df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 4-1) + (Z 4-1)'' )
-        C[4][3][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 / SQ2) * 21. *
+        C(4, 3, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 / SQ2) * 21. *
                      (1.5 - 2. * S2T) * S2T *
                      f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 4-1)' + ( (Y
                              // 4-1)'' + 10*(Y 4-1) )' )
       }
 
-      C[4][4][4] =
+      C(4, 4, 4) =
           .125 * ((35. * C2T - 30.) * C2T + 3.);  // (2/3)*SQ(pi) * (Y 40)
       if (lmin_dft_ecp > 0) {
-        C[4][4][3] = 0.;
-        C[4][4][5] = (1. / (SQ2 * SQ5)) * .125 * 20. * (3. - 7. * C2T) * CT *
+        C(4, 4, 3) = 0.;
+        C(4, 4, 5) = (1. / (SQ2 * SQ5)) * .125 * 20. * (3. - 7. * C2T) * CT *
                      ST;  // (1/3)*SQ((2*pi)/5) * (Y 40)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][4][2] = 0.;
-        C[4][4][6] = (1. / (3. * SQ5)) * .125 * 30. * (7. * C2T - 1.) *
+        C(4, 4, 2) = 0.;
+        C(4, 4, 6) = (1. / (3. * SQ5)) * .125 * 30. * (7. * C2T - 1.) *
                      S2T;  // (2/9)*SQ(pi/5) * ( (Y 40)'' + 10*(Y 40) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][4][1] = 0.;
-        C[4][4][7] = (SQ2 / (3. * SQ5 * SQ7)) * .125 * (-210.) * S2T * ST *
+        C(4, 4, 1) = 0.;
+        C(4, 4, 7) = (SQ2 / (3. * SQ5 * SQ7)) * .125 * (-210.) * S2T * ST *
                      CT;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 40)' + ( (Y 40)''
                           // + 10*(Y 40) )' )
       }
 
       f_phi = CP;
-      C[4][5][4] = (.5 * SQ5 / SQ2) * (7. * C2T - 3.) * ST * CT *
+      C(4, 5, 4) = (.5 * SQ5 / SQ2) * (7. * C2T - 3.) * ST * CT *
                    f_phi;  // (2/3)*SQ(pi) * (Y 41)
       if (lmin_dft_ecp > 0) {
         df_dphi = -SP;
-        C[4][5][3] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) * (7. * C2T - 3.) *
+        C(4, 5, 3) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) * (7. * C2T - 3.) *
                      CT * df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 41)
-        C[4][5][5] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) *
+        C(4, 5, 5) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 / SQ2) *
                      (3. + (1. - 28. * S2T) * C2T) *
                      f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 41)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][5][2] = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 3. *
+        C(4, 5, 2) = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 3. *
                      (1. - 7. * C2T) * ST *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 41)'
-        C[4][5][6] = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 6. *
+        C(4, 5, 6) = (1. / (3. * SQ5)) * (.5 * SQ5 / SQ2) * 6. *
                      (7. * S2T - 3.) * ST * CT *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 41)'' + 10*(Y 41) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][5][1] =
+        C(4, 5, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 / SQ2) * .5 * 63. * S2T * CT *
             df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 41) + (Z 41)'' )
-        C[4][5][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 / SQ2) * 21. *
+        C(4, 5, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 / SQ2) * 21. *
                      (1.5 - 2. * S2T) * S2T *
                      f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 41)' + ( (Y
                              // 41)'' + 10*(Y 41) )' )
       }
 
       f_phi = C2P - S2P;  // cos(2*phi)
-      C[4][6][4] =
+      C(4, 6, 4) =
           (.25 * SQ5) * (7. * C2T - 1.) * S2T * f_phi;  // (2/3)*SQ(pi) * (Y 42)
       if (lmin_dft_ecp > 0) {
         df_dphi = -4. * CP * SP;
-        C[4][6][3] = (1. / (SQ2 * SQ5)) * (.25 * SQ5) * (7. * C2T - 1.) * ST *
+        C(4, 6, 3) = (1. / (SQ2 * SQ5)) * (.25 * SQ5) * (7. * C2T - 1.) * ST *
                      df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 42)
-        C[4][6][5] = (1. / (SQ2 * SQ5)) * (.25 * SQ5) *
+        C(4, 6, 5) = (1. / (SQ2 * SQ5)) * (.25 * SQ5) *
                      (14. * (C2T - S2T) - 2.) * ST * CT *
                      f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 42)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][6][2] = (1. / (3. * SQ5)) * (.25 * SQ5) * (6. - 21. * S2T) * CT *
+        C(4, 6, 2) = (1. / (3. * SQ5)) * (.25 * SQ5) * (6. - 21. * S2T) * CT *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 42)'
-        C[4][6][6] = (1. / (3. * SQ5)) * (.25 * SQ5) * 6. *
+        C(4, 6, 6) = (1. / (3. * SQ5)) * (.25 * SQ5) * 6. *
                      (1. + C2T - 7. * S2T * C2T) *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 42)'' + 10*(Y 42) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][6][1] =
+        C(4, 6, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.25 * SQ5) * 10.5 * (1. - 3. * C2T) *
             ST * df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 42) + (Z 42)'' )
-        C[4][6][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.25 * SQ5) * (-42.) * C2T *
+        C(4, 6, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.25 * SQ5) * (-42.) * C2T *
                      CT * ST * f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 42)'
                                        // + ( (Y 42)'' + 10*(Y 42) )' )
       }
 
       f_phi = (1. - 4. * S2P) * CP;  // cos(3*phi)
-      C[4][7][4] = (.5 * SQ5 * SQ7 / SQ2) * S2T * ST * CT *
+      C(4, 7, 4) = (.5 * SQ5 * SQ7 / SQ2) * S2T * ST * CT *
                    f_phi;  // (2/3)*SQ(pi) * (Y 43)
       if (lmin_dft_ecp > 0) {
         df_dphi = 3. * (1. - 4. * CP * CP) * SP;
-        C[4][7][3] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * S2T * CT *
+        C(4, 7, 3) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * S2T * CT *
                      df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 43)
-        C[4][7][5] = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
+        C(4, 7, 5) = (1. / (SQ2 * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
                      (4. * C2T - 1.) * S2T *
                      f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 43)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][7][2] = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
+        C(4, 7, 2) = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) *
                      (3. * C2T - 1.) * ST *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 43)'
-        C[4][7][6] = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * 6. * C2T *
+        C(4, 7, 6) = (1. / (3. * SQ5)) * (.5 * SQ5 * SQ7 / SQ2) * 6. * C2T *
                      CT * ST *
                      f_phi;  // (2/9)*SQ(pi/5) * ( (Y 43)'' + 10*(Y 43) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][7][1] =
+        C(4, 7, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7 / SQ2) *
             (2. - 4.5 * S2T) * CT *
             df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 43) + (Z 43)'' )
-        C[4][7][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7 / SQ2) *
+        C(4, 7, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.5 * SQ5 * SQ7 / SQ2) *
                      (6. * C2T * C2T - 4.5 * S2T) *
                      f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 43)' + ( (Y
                              // 43)'' + 10*(Y 43) )' )
       }
 
       f_phi = (C2P - S2P) * (C2P - S2P) - 4. * C2P * S2P;  // cos(4*phi)
-      C[4][8][4] =
+      C(4, 8, 4) =
           (.125 * SQ5 * SQ7) * S2T * S2T * f_phi;  // (2/3)*SQ(pi) * (Y 44)
       if (lmin_dft_ecp > 0) {
         df_dphi = 16. * CP * SP * (S2P - C2P);
-        C[4][8][3] = (1. / (SQ2 * SQ5)) * (.125 * SQ5 * SQ7) * S2T * ST *
+        C(4, 8, 3) = (1. / (SQ2 * SQ5)) * (.125 * SQ5 * SQ7) * S2T * ST *
                      df_dphi;  // (1/3)*SQ((2*pi)/5) * (Z 44)
-        C[4][8][5] = (1. / (SQ2 * SQ5)) * (.125 * SQ5 * SQ7) * 4. * S2T * ST *
+        C(4, 8, 5) = (1. / (SQ2 * SQ5)) * (.125 * SQ5 * SQ7) * 4. * S2T * ST *
                      CT * f_phi;  // (1/3)*SQ((2*pi)/5) * (Y 44)'
       }
       if (lmin_dft_ecp > 1) {
-        C[4][8][2] = (1. / (3. * SQ5)) * (.125 * SQ5 * SQ7) * 3. * S2T * CT *
+        C(4, 8, 2) = (1. / (3. * SQ5)) * (.125 * SQ5 * SQ7) * 3. * S2T * CT *
                      df_dphi;  // (2/9)*SQ(pi/5) * (Z 44)'
-        C[4][8][6] = (1. / (3. * SQ5)) * (.125 * SQ5 * SQ7) * 6. * (C2T + 1.) *
+        C(4, 8, 6) = (1. / (3. * SQ5)) * (.125 * SQ5 * SQ7) * 6. * (C2T + 1.) *
                      S2T * f_phi;  // (2/9)*SQ(pi/5) * ( (Y 44)'' + 10*(Y 44) )
       }
       if (lmin_dft_ecp > 2) {
-        C[4][8][1] =
+        C(4, 8, 1) =
             (SQ2 / (3. * SQ5 * SQ7)) * (.125 * SQ5 * SQ7) * (4.5 * C2T + 1.5) *
             ST * df_dphi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Z 44) + (Z 44)'' )
-        C[4][8][7] = (SQ2 / (3. * SQ5 * SQ7)) * (.125 * SQ5 * SQ7) * 6. *
+        C(4, 8, 7) = (SQ2 / (3. * SQ5 * SQ7)) * (.125 * SQ5 * SQ7) * 6. *
                      (C2T + 3.) * ST * CT *
                      f_phi;  // (2/9)*SQ((2*pi)/35) * ( (9/2)*(Y 44)' + ( (Y
                              // 44)'' + 10*(Y 44) )' )
       }
     }
 
-    for (index3d I = 0; I < nsph; I++) {
-      for (index3d L = 0; L <= lmax_dft; L++) {
-        for (index3d M = 4 - L; M <= 4 + L; M++) {
-          for (index3d M1 = 4 - L; M1 <= 4 + L; M1++) {
-            BLC[I][L][M] += BLM[I][L][M1] * C[L][M1][M];
+    for (int I = 0; I < nsph; I++) {
+      for (int L = 0; L <= lmax_dft; L++) {
+        for (int M = 4 - L; M <= 4 + L; M++) {
+          for (int M1 = 4 - L; M1 <= 4 + L; M1++) {
+            BLC(I, L, M) += BLM(I, L, M1) * C(L, M1, M);
           }
         }
       }
@@ -1685,16 +1671,16 @@ void AOECP::getBLMCOF(int lmax_ecp, int lmax_dft, const Eigen::Vector3d& pos,
 
   } else {
 
-    for (index3d L = 0; L <= lmax_dft_ecp; L++) {
-      for (index3d M = 4 - L; M <= 4 + L; M++) {
-        C[L][M][M] = 1.;
+    for (int L = 0; L <= lmax_dft_ecp; L++) {
+      for (int M = 4 - L; M <= 4 + L; M++) {
+        C(L, M, M) = 1.;
       }
     }
 
-    for (index3d I = 0; I < nsph; I++) {
-      for (index3d L = 0; L <= lmax_dft; L++) {
-        for (index3d M = 4 - L; M <= 4 + L; M++) {
-          BLC[I][L][M] = BLM[I][L][M];
+    for (int I = 0; I < nsph; I++) {
+      for (int L = 0; L <= lmax_dft; L++) {
+        for (int M = 4 - L; M <= 4 + L; M++) {
+          BLC(I, L, M) = BLM(I, L, M);
         }
       }
     }

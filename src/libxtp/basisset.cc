@@ -308,13 +308,16 @@ void BasisSet::Load(const std::string& name) {
 
 // adding an Element to a Basis Set
 Element& BasisSet::addElement(std::string elementType) {
-  std::shared_ptr<Element> element(new Element(elementType));
-  _elements[elementType] = element;
-  return *element;
+  auto e = _elements.insert(
+      {elementType, std::unique_ptr<Element>(new Element(elementType))});
+  if (!e.second) {
+    throw std::runtime_error("Inserting element into basisset failed!");
+  }
+  return *(e.first->second.get());
 };
 
 const Element& BasisSet::getElement(std::string element_type) const {
-  std::map<std::string, std::shared_ptr<Element> >::const_iterator itm =
+  std::map<std::string, std::unique_ptr<Element> >::const_iterator itm =
       _elements.find(element_type);
   if (itm == _elements.end()) {
     throw std::runtime_error("Basis set " + _name +

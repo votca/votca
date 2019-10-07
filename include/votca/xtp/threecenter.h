@@ -24,7 +24,6 @@
 #include <utility>
 #include <votca/xtp/eigen.h>
 #include <votca/xtp/logger.h>
-#include <votca/xtp/multiarray.h>
 #include <votca/xtp/symmetric_matrix.h>
 
 #ifdef USE_CUDA
@@ -55,8 +54,8 @@ class TCMatrix {
   int _removedfunctions = 0;
   Eigen::MatrixXd _inv_sqrt;
 
-  bool FillThreeCenterRepBlock(tensor3d& threec_block, const AOShell& shell,
-                               const AOShell& shell_row,
+  bool FillThreeCenterRepBlock(Eigen::Tensor<double, 3>& threec_block,
+                               const AOShell& shell, const AOShell& shell_row,
                                const AOShell& shell_col) const;
 };
 
