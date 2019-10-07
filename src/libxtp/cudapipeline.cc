@@ -17,7 +17,7 @@
  *
  */
 
-#include <votca/xtp/eigencuda.h>
+#include <votca/xtp/cudapipeline.h>
 
 namespace votca {
 namespace xtp {
@@ -46,19 +46,6 @@ void CudaPipeline::throw_if_not_enough_memory_in_gpu(
     oss << "There is not enough memory in the Device!\n";
     throw std::runtime_error(oss.str());
   }
-}
-
-/*
- * Allocate memory in the device for matrix A.
- */
-CudaMatrix::double_unique_ptr CudaMatrix::alloc_matrix_in_gpu(
-    size_t size_matrix) const {
-
-  // Pointer in the device
-  double *dmatrix;
-  checkCuda(cudaMalloc(&dmatrix, size_matrix));
-  double_unique_ptr dev_ptr(dmatrix, [](double *x) { checkCuda(cudaFree(x)); });
-  return dev_ptr;
 }
 
 /*

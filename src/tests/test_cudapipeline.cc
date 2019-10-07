@@ -4,8 +4,8 @@
 
 #include <boost/test/unit_test.hpp>
 #include <string>
+#include <votca/xtp/cudapipeline.h>
 #include <votca/xtp/eigen.h>
-#include <votca/xtp/eigencuda.h>
 
 using namespace votca::xtp;
 

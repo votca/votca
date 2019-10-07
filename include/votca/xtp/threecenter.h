@@ -27,7 +27,7 @@
 #include <votca/xtp/symmetric_matrix.h>
 
 #ifdef USE_CUDA
-#include "eigencuda.h"
+#include "cudapipeline.h"
 #endif
 
 /**

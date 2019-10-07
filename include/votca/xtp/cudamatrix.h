@@ -17,24 +17,17 @@
  *
  */
 
-#ifndef __XTP_EIGEN_CUDA__H
-#define __XTP_EIGEN_CUDA__H
+#ifndef __XTP_CUDA_MATRIX__H
+#define __XTP_CUDA_MATRIX__H
 
 #include <cublas_v2.h>
 #include <curand.h>
-#include <iostream>
 #include <memory>
-#include <sstream>
-#include <vector>
 #include <votca/xtp/eigen.h>
 
 /*
- * \brief Perform Tensor-matrix multiplications in a GPU
- *
- * The `CudaPipeline` class handles the allocation and deallocation of arrays on
- * the GPU.
+ * \brief Matrix Representation inside an Nvidia GPU
  */
-
 namespace votca {
 namespace xtp {
 
@@ -48,7 +41,6 @@ inline cudaError_t checkCuda(cudaError_t result) {
   return result;
 }
 
-// Data of the matrix stored in the GPU
 class CudaMatrix {
  public:
   int size() const { return _rows * _cols; };
@@ -75,13 +67,20 @@ class CudaMatrix {
  private:
   friend class CudaPipeline;
 
+  // Allocate memory in the GPU for a matrix
   CudaMatrix(long int nrows, long int ncols)
       : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
     size_t size_matrix = this->size() * sizeof(double);
     _pointer = std::move(alloc_matrix_in_gpu(size_matrix));
   }
 
-  double_unique_ptr alloc_matrix_in_gpu(size_t size_matrix) const;
+  double_unique_ptr alloc_matrix_in_gpu(size_t size_matrix) const {
+    double *dmatrix;
+    checkCuda(cudaMalloc(&dmatrix, size_matrix));
+    double_unique_ptr dev_ptr(dmatrix,
+                              [](double *x) { checkCuda(cudaFree(x)); });
+    return dev_ptr;
+  }
 
   double_unique_ptr _pointer{nullptr,
                              [](double *x) { checkCuda(cudaFree(x)); }};
@@ -89,49 +88,7 @@ class CudaMatrix {
   int _cols;
 };
 
-void free_mem_in_gpu(double *x);
-
-/* \brief The CudaPipeline class offload Eigen operations to an *Nvidia* GPU
- * using the CUDA language. The Cublas handle is the context manager for all the
- * resources needed by Cublas. While a stream is a queue of sequential
- * operations executed in the Nvidia device.
- */
-class CudaPipeline {
- public:
-  CudaPipeline() {
-    cublasCreate(&_handle);
-    cudaStreamCreate(&_stream);
-  }
-  ~CudaPipeline();
-
-  CudaPipeline(const CudaPipeline &) = delete;
-  CudaPipeline &operator=(const CudaPipeline &) = delete;
-
-  // Perform a multiplication between a matrix and a tensor
-  void right_matrix_tensor_mult(std::vector<Eigen::MatrixXd> &tensor,
-                                const Eigen::MatrixXd &A) const;
-
-  // Perform matrix1 * matrix2 * matrix3 multiplication
-  Eigen::MatrixXd triple_matrix_mult(const CudaMatrix &A,
-                                     const Eigen::MatrixXd &matrix,
-                                     const CudaMatrix &C) const;
-
-  const cudaStream_t &get_stream() const { return _stream; };
-
- private:
-  void throw_if_not_enough_memory_in_gpu(size_t required) const;
-
-  // Invoke the ?gemm function of cublas
-  void gemm(const CudaMatrix &A, const CudaMatrix &B, CudaMatrix &C) const;
-
-  // The cublas handles allocates hardware resources on the host and device.
-  cublasHandle_t _handle;
-
-  // Asynchronous stream
-  cudaStream_t _stream;
-};
-
 }  // namespace xtp
 }  // namespace votca
 
-#endif /*XTP_EIGEN_CUDA__H */
+#endif
