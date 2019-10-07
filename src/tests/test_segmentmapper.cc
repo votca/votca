@@ -335,11 +335,11 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
   std::ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << std::endl;
   xyzfile << " methane" << std::endl;
-  xyzfile << " C            .000000     .000000     .000000" << std::endl;
-  xyzfile << " H            .629118     .629118     .629118" << std::endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << std::endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << std::endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << std::endl;
+  xyzfile << " C            .100000     .000000     .000000" << std::endl;
+  xyzfile << " H            .729118     .629118     .629118" << std::endl;
+  xyzfile << " H           -.529118    -.629118     .629118" << std::endl;
+  xyzfile << " H            .729118    -.629118    -.629118" << std::endl;
+  xyzfile << " H           -.529118     .629118    -.629118" << std::endl;
   xyzfile.close();
 
   std::ofstream mapfile("ch4.xml");
@@ -425,11 +425,15 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
   QMMapper mapper = QMMapper(log);
   mapper.LoadMappingFile("ch4.xml");
   Segment seg("Methane", 1);
-  Atom atm1(1, "CB", 5, Eigen::Vector3d::Zero(), "C");
-  Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX(), "H");
-  Atom atm3(1, "HB2", 7, Eigen::Vector3d::UnitY(), "H");
-  Atom atm4(1, "HB3", 8, -Eigen::Vector3d::UnitX(), "H");
-  Atom atm5(1, "HB4", 9, -Eigen::Vector3d::UnitY(), "H");
+  Atom atm1(1, "CB", 5, Eigen::Vector3d::Ones(), "C");
+  Atom atm2(1, "HB1", 6, Eigen::Vector3d::UnitX() + Eigen::Vector3d::Ones(),
+            "H");
+  Atom atm3(1, "HB2", 7, Eigen::Vector3d::UnitY() + Eigen::Vector3d::Ones(),
+            "H");
+  Atom atm4(1, "HB3", 8, -Eigen::Vector3d::UnitX() + Eigen::Vector3d::Ones(),
+            "H");
+  Atom atm5(1, "HB4", 9, -Eigen::Vector3d::UnitY() + Eigen::Vector3d::Ones(),
+            "H");
   seg.push_back(atm1);
   seg.push_back(atm2);
   seg.push_back(atm3);
@@ -440,19 +444,19 @@ BOOST_AUTO_TEST_CASE(mapping_test_no_weights) {
   std::vector<std::string> name_ref = {"C", "H", "H", "H", "H"};
   std::vector<int> id_ref = {0, 1, 2, 3, 4};
   std::vector<Eigen::Vector3d> pos_ref;
-  Eigen::Vector3d pos1 = {-0.0267876, -0.0676484, 8.10559e-19};
+  Eigen::Vector3d pos1 = {1.0 - 0.0267876, 1.0 - 0.0676484, 1};
   pos_ref.push_back(pos1);
-  Eigen::Vector3d pos2 = {2.03238, -0.0676484, 0};
+  Eigen::Vector3d pos2 = {1 + 2.03238, 1.0 - 0.0676484, 1};
   pos_ref.push_back(pos2);
-  Eigen::Vector3d pos3 = {-0.713177, 1.87375, 0};
+  Eigen::Vector3d pos3 = {1 + -0.713177, 1 + 1.87375, 1};
   pos_ref.push_back(pos3);
-  Eigen::Vector3d pos4 = {-1, 0, 0};
+  Eigen::Vector3d pos4 = {0, 1, 1};
   pos_ref.push_back(pos4);
-  Eigen::Vector3d pos5 = {0, -1, 0};
+  Eigen::Vector3d pos5 = {1, 0, 1};
   pos_ref.push_back(pos5);
   BOOST_CHECK_EQUAL(qmmol.getId(), 1);
   BOOST_CHECK_EQUAL(qmmol.getType(), "Methane");
-  Eigen::Vector3d ref = {-2.21599431e-08, -1.61519867e-07, 0};
+  Eigen::Vector3d ref = {1, 1, 1};
   BOOST_CHECK_EQUAL(qmmol.getPos().isApprox(ref, 1e-5), true);
   if (!qmmol.getPos().isApprox(ref, 1e-5)) {
     std::cout << "qmmolpos" << std::endl;

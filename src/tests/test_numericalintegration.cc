@@ -263,11 +263,11 @@ BOOST_AUTO_TEST_CASE(gyration_test) {
   ofstream xyzfile("molecule.xyz");
   xyzfile << " 5" << endl;
   xyzfile << " methane" << endl;
-  xyzfile << " C            .000000     .000000     .000000" << endl;
-  xyzfile << " H            .629118     .629118     .629118" << endl;
-  xyzfile << " H           -.629118    -.629118     .629118" << endl;
-  xyzfile << " H            .629118    -.629118    -.629118" << endl;
-  xyzfile << " H           -.629118     .629118    -.629118" << endl;
+  xyzfile << " C            1.000000     1.000000     1.000000" << endl;
+  xyzfile << " H            1.629118     1.629118     1.629118" << endl;
+  xyzfile << " H           0.370882    0.370882     1.629118" << endl;
+  xyzfile << " H            1.629118    0.370882    0.370882" << endl;
+  xyzfile << " H           0.370882     1.629118   0.370882" << endl;
   xyzfile.close();
 
   QMMolecule mol("none", 0);
@@ -284,7 +284,7 @@ BOOST_AUTO_TEST_CASE(gyration_test) {
   BOOST_CHECK_CLOSE(tensor.mass, 8.0000005, 1e-5);
 
   Eigen::Vector3d dip_ref = Eigen::Vector3d::Zero();
-  dip_ref << 1.91708e-12, 2.02769e-12, 1.83942e-12;
+  dip_ref << 1.88973, 1.88973, 1.88973;
   bool centroid_check = dip_ref.isApprox(tensor.centroid, 1e-5);
   BOOST_CHECK_EQUAL(centroid_check, true);
   if (!centroid_check) {
