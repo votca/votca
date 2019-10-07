@@ -172,6 +172,7 @@ BOOST_AUTO_TEST_CASE(vxc_test) {
   num.setXCfunctional("XC_GGA_X_PBE XC_GGA_C_PBE");
 
   BOOST_CHECK_EQUAL(num.getGridSize(), num.getGridpoints().size());
+  BOOST_CHECK_EQUAL(num.getGridSize(), 53404);
   BOOST_CHECK_EQUAL(num.getBoxesSize(), 51);
 
   BOOST_CHECK_CLOSE(num.getExactExchange("XC_GGA_X_PBE XC_GGA_C_PBE"), 0.0,
@@ -263,6 +264,20 @@ BOOST_AUTO_TEST_CASE(density_test) {
 
   double ntot = num.IntegrateDensity(dmat);
   BOOST_CHECK_CLOSE(ntot, 8.000000, 1e-5);
+
+  Eigen::Vector3d pos = {3, 3, 3};
+
+  BOOST_CHECK_CLOSE(num.IntegratePotential(pos), -1.543242, 1e-4);
+
+  Eigen::Vector3d field = num.IntegrateField(pos);
+  Eigen::Vector3d field_ref = {0.172802, 0.172802, 0.172802};
+  bool field_check = field.isApprox(field_ref, 1e-5);
+  if (!field_check) {
+    std::cout << "field" << std::endl;
+    std::cout << field.transpose() << std::endl;
+    std::cout << "ref" << std::endl;
+    std::cout << field_ref.transpose() << std::endl;
+  }
 }
 
 BOOST_AUTO_TEST_CASE(gyration_test) {
