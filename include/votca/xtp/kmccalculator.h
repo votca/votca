@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * author: Kordt
  */
 
 #pragma once
@@ -21,7 +20,7 @@
 #define VOTCA_XTP_CALCULATOR_H
 
 #include <votca/tools/globals.h>
-#include <votca/tools/random2.h>
+#include <votca/tools/random.h>
 #include <votca/tools/tokenizer.h>
 #include <votca/xtp/chargecarrier.h>
 #include <votca/xtp/qmstate.h>
