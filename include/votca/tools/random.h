@@ -15,14 +15,14 @@
  *
  */
 
-#ifndef _VOTCA_TOOLS_RANDOM2_H_
-#define _VOTCA_TOOLS_RANDOM2_H_
+#ifndef _VOTCA_TOOLS_RANDOM_H_
+#define _VOTCA_TOOLS_RANDOM_H_
 
 #include <random>
 namespace votca {
 namespace tools {
 
-class Random2 {
+class Random {
  public:
   void init(int seed) { _mt = std::mt19937(seed); }
   // draws a random double from [0,1)

@@ -22,7 +22,7 @@
 #include <boost/test/unit_test.hpp>
 #include <iostream>
 #include <string>
-#include <votca/tools/random2.h>
+#include <votca/tools/random.h>
 
 using namespace std;
 using namespace votca::tools;
@@ -30,7 +30,7 @@ using namespace votca::tools;
 BOOST_AUTO_TEST_SUITE(random2_test)
 
 BOOST_AUTO_TEST_CASE(random_int_test) {
-  Random2 random;
+  Random random;
   int seed = 1;
   random.init(seed);
   random.setMaxInt(50);
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE(random_int_test) {
 }
 
 BOOST_AUTO_TEST_CASE(random_double_test) {
-  Random2 random;
+  Random random;
   int seed = 1;
   random.init(seed);
   std::vector<double> results;
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(random_double_test) {
     results.push_back(random.rand_uniform());
   }
 
-  // average should be close to 25
+  // average should be close to 0.5
   double average = std::accumulate(results.begin(), results.end(), 0.0);
   average /= number;
 
