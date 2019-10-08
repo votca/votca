@@ -38,7 +38,7 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
   do_external table linearop "${name}.dpot.imc" "${name}.dpot.imc.kBT" "$kBT" 0
 
   bondtype="$(csg_get_interaction_property bondtype)"
-  do_external potential shift --type "${bondtype}" "${name}.dpot.kBT" "${name}.dpot.new"
+  do_external potential shift --type "${bondtype}" "${name}.dpot.imc.kBT" "${name}.dpot.new"
 else
   echo "Update potential ${name} : no"
   min=$(csg_get_interaction_property min)
