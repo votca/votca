@@ -35,15 +35,15 @@ if [ "${scheme[$scheme_nr]}" = 1 ]; then
   echo "Update potential ${name} : yes"
   kBT=$(csg_get_property cg.inverse.kBT)
   is_num "${kBT}" || die "${0##*/}: cg.inverse.kBT should be a number, but found '$kBT'"
-  do_external table linearop ${name}.dpot.imc ${name}.dpot.imc.kBT $kBT 0
+  do_external table linearop "${name}.dpot.imc" "${name}.dpot.imc.kBT" "$kBT" 0
 
   bondtype="$(csg_get_interaction_property bondtype)"
-  do_external potential shift --type "${bondtype}" ${name}.dpot.kBT ${name}.dpot.new
+  do_external potential shift --type "${bondtype}" "${name}.dpot.kBT" "${name}.dpot.new"
 else
   echo "Update potential ${name} : no"
   min=$(csg_get_interaction_property min)
   max=$(csg_get_interaction_property max)
   step=$(csg_get_interaction_property step)
-  do_external table dummy ${min}:${step}:${max} ${name}.dpot.new
+  do_external table dummy "${min}:${step}:${max}" "${name}.dpot.new"
 fi
 
