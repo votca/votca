@@ -59,7 +59,7 @@ if(ENABLE_TESTING)
   list(APPEND test_cases test_dftengine)
   list(APPEND test_cases test_bsecoupling)
   list(APPEND test_cases test_rate_engine)
-
+  list(APPEND test_cases test_fourcenter)
   foreach(PROG ${test_cases} )
     add_executable(unit_${PROG} ${PROG}.cc)
     target_link_libraries(unit_${PROG} votca_xtp ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})

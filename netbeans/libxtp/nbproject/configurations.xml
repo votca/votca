@@ -325,6 +325,7 @@
       <itemPath>../../src/tests/test_eigen.cc</itemPath>
       <itemPath>../../src/tests/test_eris.cc</itemPath>
       <itemPath>../../src/tests/test_espfit.cc</itemPath>
+      <itemPath>../../src/tests/test_fourcenter.cc</itemPath>
       <itemPath>../../src/tests/test_gaussian.cc</itemPath>
       <itemPath>../../src/tests/test_glink.cc</itemPath>
       <itemPath>../../src/tests/test_gnode.cc</itemPath>
@@ -4967,6 +4968,8 @@
       </item>
       <item path="../../src/tests/test_espfit.cc" ex="false" tool="1" flavor2="0">
       </item>
+      <item path="../../src/tests/test_fourcenter.cc" ex="false" tool="1" flavor2="0">
+      </item>
       <item path="../../src/tests/test_gaussian.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_glink.cc" ex="false" tool="1" flavor2="0">
@@ -6183,6 +6186,8 @@
       <item path="../../src/tests/test_eris.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_espfit.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_fourcenter.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_gaussian.cc" ex="false" tool="1" flavor2="0">
       </item>
