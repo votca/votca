@@ -28,6 +28,7 @@ foreach(PROG
     test_table
     test_thread
     test_tokenizer
+    test_random
     test_unitconverter)
 
   file(GLOB ${PROG}_SOURCES ${PROG}*.cc)

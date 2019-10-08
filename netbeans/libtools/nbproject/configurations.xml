@@ -32,7 +32,7 @@
       <itemPath>../../include/votca/tools/objectfactory.h</itemPath>
       <itemPath>../../include/votca/tools/parsexml.h</itemPath>
       <itemPath>../../include/votca/tools/property.h</itemPath>
-      <itemPath>../../include/votca/tools/random2.h</itemPath>
+      <itemPath>../../include/votca/tools/random.h</itemPath>
       <itemPath>../../include/votca/tools/rangeparser.h</itemPath>
       <itemPath>../../include/votca/tools/reducededge.h</itemPath>
       <itemPath>../../include/votca/tools/spline.h</itemPath>
@@ -89,6 +89,7 @@
       <itemPath>../../src/tests/test_linalg.cc</itemPath>
       <itemPath>../../src/tests/test_name.cc</itemPath>
       <itemPath>../../src/tests/test_property.cc</itemPath>
+      <itemPath>../../src/tests/test_random.cc</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -244,10 +245,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/random2.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
             ex="false"
@@ -364,6 +362,8 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_random.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -505,10 +505,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/random2.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
             ex="false"
@@ -625,6 +622,8 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_random.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
@@ -766,10 +765,7 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../include/votca/tools/random2.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
+      <item path="../../include/votca/tools/random.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../include/votca/tools/rangeparser.h"
             ex="false"
@@ -886,6 +882,8 @@
       <item path="../../src/tests/test_name.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tests/test_property.cc" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../src/tests/test_random.cc" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../src/tools/votca_property.cc" ex="false" tool="1" flavor2="0">
       </item>
