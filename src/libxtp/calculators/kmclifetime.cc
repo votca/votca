@@ -367,8 +367,7 @@ bool KMCLifetime::EvaluateFrame(Topology& top) {
   }
   std::srand(_seed);  // srand expects any integer in order to initialise the
                       // random number generator
-  _RandomVariable = tools::Random2();
-  _RandomVariable.init(rand(), rand(), rand(), rand());
+  _RandomVariable.init(rand());
   LoadGraph(top);
   ReadLifetimeFile(_lifetimefile);
 
