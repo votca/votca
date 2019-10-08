@@ -36,7 +36,7 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(
 
   Eigen::VectorXd RPAEnergies = _rpa.getRPAInputEnergies();
   Eigen::VectorXd result = Eigen::VectorXd::Zero(_qptotal);
-  const int levelsum = _Mmn.nsize();  // total number of bands
+  const int levelsum = _Mmn.nsize();   // total number of bands
   const int auxsize = _Mmn.auxsize();  // size of the GW basis
   const int lumo = _opt.homo + 1;
   const int qpmin_offset = _opt.qpmin - _opt.rpamin;
@@ -61,10 +61,9 @@ Eigen::VectorXd Sigma_PPM::CalcCorrelationDiag(
       denom.segment(lumo, levelsum - lumo) -= ppm_freq;
       Stabilize(denom);
       sigma_c += fac * (denom.inverse() * Mmn2.array()).sum();
-
-    } 
+    }
     result(gw_level) = sigma_c;
-  } 
+  }
   return result;
 }
 
@@ -85,7 +84,7 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
 #pragma omp parallel
   {
     const int lumo = _opt.homo + 1;
-    const int levelsum = _Mmn.nsize();  // total number of bands
+    const int levelsum = _Mmn.nsize();   // total number of bands
     const int auxsize = _Mmn.auxsize();  // size of the GW basis
     const Eigen::VectorXd ppm_weight = _ppm.getPpm_weight();
     const Eigen::VectorXd ppm_freqs = _ppm.getPpm_freq();
@@ -105,8 +104,8 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
           if (ppm_weight(i_aux) < 1.e-9) {
             continue;
           }
-          const double ppm_freq=ppm_freqs(i_aux);
-          const double fac=0.25*ppm_weight(i_aux)*ppm_freq;
+          const double ppm_freq = ppm_freqs(i_aux);
+          const double fac = 0.25 * ppm_weight(i_aux) * ppm_freq;
           const Eigen::VectorXd Mmn1xMmn2 =
               Mmn1.col(i_aux).cwiseProduct(Mmn2.col(i_aux));
           Eigen::ArrayXd denom1 = rpaenergies_thread;
@@ -116,7 +115,8 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
           Stabilize(denom2);
           denom1 = (qpmin1 - denom1);
           Stabilize(denom1);
-          sigma_c += fac *
+          sigma_c +=
+              fac *
               ((denom1.inverse() + denom2.inverse()) * Mmn1xMmn2.array()).sum();
         }
         result(gw_level1, gw_level2) = sigma_c;
