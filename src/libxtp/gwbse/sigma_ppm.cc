@@ -89,7 +89,6 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
     const int auxsize = _Mmn.auxsize();  // size of the GW basis
     const Eigen::VectorXd ppm_weight = _ppm.getPpm_weight();
     const Eigen::VectorXd ppm_freqs = _ppm.getPpm_freq();
-    const Eigen::VectorXd fac = 0.25 * ppm_weight.cwiseProduct(ppm_freqs);
     const int qpmin_offset = _opt.qpmin - _opt.rpamin;
     const Eigen::VectorXd rpaenergies_thread = _rpa.getRPAInputEnergies();
 #pragma omp for schedule(dynamic)
@@ -106,18 +105,18 @@ Eigen::MatrixXd Sigma_PPM::CalcCorrelationOffDiag(
           if (ppm_weight(i_aux) < 1.e-9) {
             continue;
           }
-
+          const double ppm_freq=ppm_freqs(i_aux);
+          const double fac=0.25*ppm_weight(i_aux)*ppm_freq;
           const Eigen::VectorXd Mmn1xMmn2 =
               Mmn1.col(i_aux).cwiseProduct(Mmn2.col(i_aux));
           Eigen::ArrayXd denom1 = rpaenergies_thread;
-          denom1.segment(0, lumo) -= ppm_freqs(i_aux);
-          denom1.segment(lumo, levelsum - lumo) += ppm_freqs(i_aux);
+          denom1.segment(0, lumo) -= ppm_freq;
+          denom1.segment(lumo, levelsum - lumo) += ppm_freq;
           Eigen::ArrayXd denom2 = (qpmin2 - denom1);
           Stabilize(denom2);
           denom1 = (qpmin1 - denom1);
           Stabilize(denom1);
-          sigma_c +=
-              fac(i_aux) *
+          sigma_c += fac *
               ((denom1.inverse() + denom2.inverse()) * Mmn1xMmn2.array()).sum();
         }
         result(gw_level1, gw_level2) = sigma_c;
