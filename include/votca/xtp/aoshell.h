@@ -50,9 +50,9 @@ class AOGaussianPrimitive {
   double _powfactor;  // used in evalspace to speed up DFT
   // private constructor, only a shell can create a primitive
   AOGaussianPrimitive(const GaussianPrimitive& gaussian, const AOShell& aoshell)
-      : _decay(gaussian._decay), _aoshell(aoshell) {
-    _contraction = Eigen::VectorXd::Map(gaussian._contraction.data(),
-                                        gaussian._contraction.size());
+      : _decay(gaussian.decay()), _aoshell(aoshell) {
+    _contraction = Eigen::VectorXd::Map(gaussian.Contractions().data(),
+                                        gaussian.Contractions().size());
     _powfactor =
         std::pow(2.0 * _decay / boost::math::constants::pi<double>(), 0.75);
   }

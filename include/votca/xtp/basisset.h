@@ -44,30 +44,24 @@ int OffsetFuncShell_cartesian(const std::string& shell_type);
 
 std::vector<int> NumFuncSubShell(const std::string& shell_type);
 
-class Shell;
-class Element;
-class BasisSet;
-
 // Gaussian function: contraction*exp(-decay*r^2)
 class GaussianPrimitive {
-  friend class Shell;
-
  public:
-  double _decay;
-  std::vector<double> _contraction;
+  GaussianPrimitive(double decay, std::vector<double> contraction)
+      : _decay(decay), _contraction(contraction) {}
+  const std::vector<double>& Contractions() const { return _contraction; }
+
+  double decay() const { return _decay; }
 
  private:
-  // private constructor, only a shell can create a primitive
-  GaussianPrimitive(double decay, std::vector<double> contraction)
-      : _decay(decay), _contraction(contraction) {
-    ;
-  }
+  double _decay;
+  std::vector<double> _contraction;
 };
 
 class Shell {
-  friend class Element;
 
  public:
+  Shell(std::string type, double scale) : _type(type), _scale(scale) { ; }
   const std::string& getType() const { return _type; }
 
   bool isCombined() const { return (_type.length() > 1); }
@@ -96,9 +90,6 @@ class Shell {
   friend std::ostream& operator<<(std::ostream& out, const Shell& shell);
 
  private:
-  // only class Element can construct shells
-  Shell(std::string type, double scale) : _type(type), _scale(scale) { ; }
-
   std::string _type;
   // scaling factor
   double _scale;
@@ -111,9 +102,9 @@ class Shell {
  * A collection of shells associated with a specific element
  */
 class Element {
-  friend class BasisSet;
 
  public:
+  Element(std::string type) : _type(type) { ; }
   typedef std::vector<Shell>::const_iterator ShellIterator;
   ShellIterator begin() const { return _shells.begin(); }
   ShellIterator end() const { return _shells.end(); }
@@ -130,10 +121,6 @@ class Element {
   friend std::ostream& operator<<(std::ostream& out, const Element& element);
 
  private:
-  // only class BasisSet can create Elements
-  Element(std::string type) : _type(type) { ; }
-
-  // only class BasisSet can destruct Elements
   std::string _type;
   std::vector<Shell> _shells;
 };
@@ -145,30 +132,24 @@ class BasisSet {
  public:
   void Load(const std::string& name);
 
-  Element& addElement(std::string elementType);
-
   const Element& getElement(std::string element_type) const;
 
-  std::map<std::string, std::unique_ptr<Element> >::iterator begin() {
-    return _elements.begin();
-  }
-  std::map<std::string, std::unique_ptr<Element> >::iterator end() {
-    return _elements.end();
-  }
+  std::map<std::string, Element>::iterator begin() { return _elements.begin(); }
+  std::map<std::string, Element>::iterator end() { return _elements.end(); }
 
-  std::map<std::string, std::unique_ptr<Element> >::const_iterator begin()
-      const {
+  std::map<std::string, Element>::const_iterator begin() const {
     return _elements.begin();
   }
-  std::map<std::string, std::unique_ptr<Element> >::const_iterator end() const {
+  std::map<std::string, Element>::const_iterator end() const {
     return _elements.end();
   }
 
   friend std::ostream& operator<<(std::ostream& out, const BasisSet& basis);
 
  private:
+  Element& addElement(std::string elementType);
   std::string _name;
-  std::map<std::string, std::unique_ptr<Element> > _elements;
+  std::map<std::string, Element> _elements;
 };
 
 }  // namespace xtp
