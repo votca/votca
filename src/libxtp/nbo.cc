@@ -20,5 +20,6 @@
 #include <votca/xtp/nbo.h>
 
 namespace votca {
+
 namespace xtp {}  // namespace xtp
 }  // namespace votca
