@@ -23,6 +23,6 @@ using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(dftcoupling_test)
 
-BOOST_AUTO_TEST_CASE(covertest) {}
+BOOST_AUTO_TEST_CASE(constructor_test) { DFTcoupling dftcoup; }
 
 BOOST_AUTO_TEST_SUITE_END()

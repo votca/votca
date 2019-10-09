@@ -22,5 +22,5 @@
 using namespace votca::xtp;
 
 BOOST_AUTO_TEST_SUITE(bsecoupling_test)
-BOOST_AUTO_TEST_CASE(nothing) {}
+BOOST_AUTO_TEST_CASE(constructor_test) { BSECoupling bsecoup; }
 BOOST_AUTO_TEST_SUITE_END()
