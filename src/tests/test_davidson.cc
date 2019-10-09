@@ -34,7 +34,6 @@ Eigen::MatrixXd init_matrix(int N, double eps) {
   return matrix;
 }
 
-
 BOOST_AUTO_TEST_SUITE(davidson_test)
 
 BOOST_AUTO_TEST_CASE(davidson_full_matrix) {
