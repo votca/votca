@@ -93,7 +93,15 @@ class DavidsonSolver {
       }
       
       // get the ritz vectors
-      rep = computeRitzEigenPairs(proj,size_update);
+      switch (this->_matrix_type) {
+        case TYPE::SYMM: {
+          rep = getRitz(proj,size_update);
+          break;
+        }
+        case TYPE::HAM: {
+          rep = getHarmonicRitz(A,proj,size_update);
+        }
+      }
       
       // etend the subspace
       int nupdate = extendProjection(Adiag,rep,proj,root_converged,size_update);
@@ -102,7 +110,7 @@ class DavidsonSolver {
       printIterationData(root_converged, rep.res_norm, neigen, proj.search_space, iiter);
 
       // converged
-      bool converged = checkConvergence(rep,neigen);
+      bool converged = (rep.res_norm.head(neigen) < _tol).all();
       bool last_iter = iiter == (_iter_max - 1);
 
       // break if converged or last
@@ -168,6 +176,7 @@ class DavidsonSolver {
       since QR will modify original subspace*/
       proj.AV = A * proj.V;
       proj.T = proj.V.transpose() * proj.AV;
+
     } else if (_davidson_ortho == ORTHO::GS) {  
       /* if we use a GS ortho we do not have to recompute 
       the entire projection as GS doesn't change the original subspace*/
@@ -185,6 +194,34 @@ class DavidsonSolver {
     }
   }
 
+  template <typename MatrixReplacement>
+  RitzEigenPair getHarmonicRitz(const MatrixReplacement &A, const ProjectedSpace &proj,
+                                int size_update) const {
+
+    RitzEigenPair rep;
+    Eigen::MatrixXd B = A * proj.AV;
+    B = proj.V.transpose() * B;
+
+    Eigen::GeneralizedEigenSolver<Eigen::MatrixXd> ges(proj.T,B,true);
+    rep.lambda = ges.eigenvalues().real();
+    rep.U = ges.eigenvectors().real();
+
+    Eigen::ArrayXi idx = DavidsonSolver::argsort(rep.lambda);
+    idx = idx.reverse();
+    
+    rep.U = DavidsonSolver::extract_eigenvectors(rep.U,idx);  
+    rep.U.colwise().normalize();
+    rep.lambda = (rep.U.transpose() * proj.T * rep.U).diagonal();
+
+    rep.q = proj.V * rep.U;  // Ritz vectors 
+    rep.res = proj.AV * rep.U - rep.q * rep.lambda.asDiagonal();  // residues
+    rep.res_norm = rep.res.colwise().norm(); // reisdues norms
+
+    return rep;
+  }
+
+  RitzEigenPair getRitz(const ProjectedSpace &proj, int size_update) const;
+
   int getSizeUpdate(int neigen) const;
 
   void checkOptions(int op_size);
@@ -200,11 +237,6 @@ class DavidsonSolver {
   Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
 
   Eigen::MatrixXd setupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
-  
-  RitzEigenPair computeRitzEigenPairs ( const ProjectedSpace &proj, int size_update);
-
-  Eigen::ArrayXi index_window(const Eigen::VectorXd &V, 
-    int size_update, double target_min_val, double perc_below) const;
 
   Eigen::MatrixXd extract_eigenvectors(const Eigen::MatrixXd &V, 
     const Eigen::ArrayXi &idx) const;
@@ -233,7 +265,7 @@ class DavidsonSolver {
 
   void restart (const RitzEigenPair &rep, ProjectedSpace &proj, int size_restart) const;
 
-  bool checkConvergence(const RitzEigenPair &rep, int neigen);
+  // bool checkConvergence(const RitzEigenPair &rep, int neigen);
 
   void storeConvergedData(const RitzEigenPair &rep, int neigen, int iiter);
 

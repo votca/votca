@@ -219,8 +219,8 @@ tools::EigenSystem BSE::Solve_singlets_BTDA() const {
 
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full singlet hamiltonian " << flush;
-    //return Solve_nonhermitian_Davidson(A, B);     
-    return Solve_nonhermitian_Lanczos(A, B); 
+    return Solve_nonhermitian_Davidson(A, B);     
+    //return Solve_nonhermitian_Lanczos(A, B); 
   } else {
     SingletOperator_BTDA_ApB Hs_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Hs_ApB);
@@ -240,8 +240,8 @@ tools::EigenSystem BSE::Solve_triplets_BTDA() const {
     configureBSEOperator(B);
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " Setup Full triplet hamiltonian " << flush;
-    //return Solve_nonhermitian_Davidson(A, B);
-    return Solve_nonhermitian_Lanczos(A, B); 
+    return Solve_nonhermitian_Davidson(A, B);
+    //return Solve_nonhermitian_Lanczos(A, B); 
   } else {
     TripletOperator_BTDA_ApB Ht_ApB(_epsilon_0_inv, _Mmn, _Hqp);
     configureBSEOperator(Ht_ApB);
