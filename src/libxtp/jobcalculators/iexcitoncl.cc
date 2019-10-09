@@ -87,8 +87,10 @@ Job::JobResult IEXCITON::EvalJob(const Topology& top, Job& job,
   Property job_input = job.getInput();
   vector<Property*> segment_list = job_input.Select("segment");
   int ID_A = segment_list.front()->getAttribute<int>("id");
+  string type_A = segment_list.front()->getAttribute<string>("type");
   string mps_fileA = segment_list.front()->getAttribute<string>("mps_file");
   int ID_B = segment_list.back()->getAttribute<int>("id");
+  string type_B = segment_list.back()->getAttribute<string>("type");
   string mps_fileB = segment_list.back()->getAttribute<string>("mps_file");
 
   const Segment& seg_A = top.getSegment(ID_A);
