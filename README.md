@@ -1,4 +1,4 @@
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/61fbe7164ec2418b9a7de20bd0453d8b)](https://app.codacy.com/app/JoshuaSBrown/xtp?utm_source=github.com&utm_medium=referral&utm_content=votca/xtp&utm_campaign=Badge_Grade_Dashboard)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6e930e3c0f5a4a9b83aa3362cfdd21e1)](https://www.codacy.com/manual/votca-package/xtp?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=votca/xtp&amp;utm_campaign=Badge_Grade)
 [![codecov](https://codecov.io/gh/votca/xtp/branch/master/graph/badge.svg)](https://codecov.io/gh/votca/xtp)
 [![Build Status](https://travis-ci.org/votca/xtp.svg?branch=master)](https://travis-ci.org/votca/xtp)
 [![pipeline status](https://gitlab.com/votca/xtp/badges/master/pipeline.svg)](https://gitlab.com/votca/xtp/commits/master)
