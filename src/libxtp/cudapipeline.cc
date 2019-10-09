@@ -73,29 +73,16 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
 /*
  * \brief Perform a Tensor3D matrix multiplication
  */
-void CudaPipeline::right_matrix_tensor_mult(
-    std::vector<Eigen::MatrixXd> &tensor, const Eigen::MatrixXd &B) const {
-  // First submatrix from the tensor
-  const Eigen::MatrixXd &submatrix = tensor[0];
+Eigen::MatrixXd CudaPipeline::dgemm(const Eigen::MatrixXd &A,
+                                    const CudaMatrix &matrixB) const {
+  CudaMatrix matrixA{A, _stream};
+  CudaMatrix matrixC(A.rows(), matrixB.cols());
+  gemm(matrixA, matrixB, matrixC);
 
-  // sizes of the matrices to allocated in the device
-  size_t size_A = submatrix.size() * sizeof(double);
-  size_t size_B = B.size() * sizeof(double);
-  size_t size_C = submatrix.rows() * B.cols() * sizeof(double);
-  throw_if_not_enough_memory_in_gpu(size_A + size_B + size_C);
+  // Copy the result Array back to the device
+  Eigen::MatrixXd result = matrixC;
 
-  // Matrix in the Cuda device
-  CudaMatrix matrixA(submatrix.rows(), submatrix.cols());
-  CudaMatrix matrixB{B, _stream};
-  CudaMatrix matrixC(submatrix.rows(), B.cols());
-
-  // Call tensor matrix multiplication
-  for (auto i = 0; i < static_cast<int>(tensor.size()); i++) {
-    matrixA.copy_to_gpu(tensor[i]);
-    gemm(matrixA, matrixB, matrixC);
-    // Copy the result to the host
-    tensor[i] = matrixC;
-  }
+  return result;
 }
 
 /*

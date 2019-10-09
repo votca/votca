@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_SUITE(eigecuda_test)
 
 BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   // Call the class to handle GPU resources
-  CudaPipeline EC;
+  CudaPipeline cudaHandle;
 
   // Call matrix multiplication GPU
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2, 2);
@@ -33,8 +33,11 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   Y << 39., 58., 47., 70., 55., 82.;
   Z << 55., 82., 63., 94., 71., 106.;
 
+  CudaMatrix cuda_matrix{A, cudaHandle.get_stream()};
   std::vector<Eigen::MatrixXd> tensor{B, C, D};
-  EC.right_matrix_tensor_mult(tensor, A);
+  for (auto i = 0; i < 3; i++) {
+    tensor[i] = cudaHandle.dgemm(tensor[i], cuda_matrix);
+  }
 
   // Expected results
   BOOST_TEST(X.isApprox(tensor[0]));
@@ -46,11 +49,10 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   Eigen::MatrixXd A = Eigen::MatrixXd::Random(2, 2);
   Eigen::MatrixXd B = Eigen::MatrixXd::Random(5, 5);
 
-  CudaPipeline EC;
-  std::vector<Eigen::MatrixXd> tensor{B};
+  CudaPipeline cudaHandle;
+  CudaMatrix cuda_matrix{A, cudaHandle.get_stream()};
 
-  BOOST_REQUIRE_THROW(EC.right_matrix_tensor_mult(tensor, A),
-                      std::runtime_error);
+  BOOST_REQUIRE_THROW(cudaHandle.dgemm(B, cuda_matrix), std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(triple_matrix_multiplication) {

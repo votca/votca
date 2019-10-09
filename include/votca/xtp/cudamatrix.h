@@ -56,17 +56,16 @@ class CudaMatrix {
     cudaError_t err =
         cudaMemcpyAsync(_pointer.get(), matrix.data(), size_matrix(),
                         cudaMemcpyHostToDevice, stream);
-    if (err != 0) {
-      throw std::runtime_error("Error copy arrays to device");
-    }
+    throw_if_copy_error(err);
   }
 
   // Convert A Cudamatrix to an EigenMatrix
   operator Eigen::MatrixXd() const {
     Eigen::MatrixXd result = Eigen::MatrixXd::Zero(this->rows(), this->cols());
-    checkCuda(cudaMemcpyAsync(result.data(), this->pointer(),
-                              this->size_matrix(), cudaMemcpyDeviceToHost,
-                              this->_stream));
+    cudaError_t err =
+        cudaMemcpyAsync(result.data(), this->pointer(), this->size_matrix(),
+                        cudaMemcpyDeviceToHost, this->_stream);
+    throw_if_copy_error(err);
     return result;
   };
 
@@ -82,10 +81,17 @@ class CudaMatrix {
     _pointer = std::move(alloc_matrix_in_gpu(size_matrix()));
   }
 
-  void copy_to_gpu(const Eigen::MatrixXd &A) {
-    size_t size_A = static_cast<int>(A.size()) * sizeof(double);
-    checkCuda(cudaMemcpyAsync(this->pointer(), A.data(), size_A,
-                              cudaMemcpyHostToDevice, _stream));
+  /* void copy_to_gpu(const Eigen::MatrixXd &A) { */
+  /*   size_t size_A = static_cast<int>(A.size()) * sizeof(double); */
+  /*   cudaError_t err = cudaMemcpyAsync(this->pointer(), A.data(), size_A, */
+  /*                                     cudaMemcpyHostToDevice, _stream); */
+  /*   throw_if_copy_error(err); */
+  /* } */
+
+  void throw_if_copy_error(const cudaError_t &err) const {
+    if (err != 0) {
+      throw std::runtime_error("Error copy arrays to/from device");
+    }
   }
 
   double_unique_ptr alloc_matrix_in_gpu(size_t size_arr) const {

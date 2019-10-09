@@ -55,20 +55,29 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
   // Try to run the operation in a Nvidia GPU, otherwise is the default Openmp
   // implementation
 #if defined(USE_CUDA)
+  XTP_LOG_SAVE(logDEBUG, _log)
+      << TimeStamp()
+      << " Using CUDA/OpenMP for tensor matrix multiplication: " << flush;
   CudaPipeline cudaHandle;
-  try {
-    cudaHandle.right_matrix_tensor_mult(_matrix, matrix);
-  } catch (const std::runtime_error& error) {
-    XTP_LOG_SAVE(logDEBUG, _log)
-        << TimeStamp()
-        << " CUDA Multiplyrightwithauxmatrix failed due to: " << error.what()
-        << " Using default OpenMP implementation!" << flush;
-    this->MultiplyRightWithAuxMatrixOpenMP(matrix);
+  CudaMatrix cuda_matrix{matrix, cudaHandle.get_stream()};
+#pragma omp parallel for
+  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+    if (OPENMP::getThreadId() < _max_gpu_streams) {
+      _matrix[i_occ] = cudaHandle.dgemm(_matrix[i_occ], cuda_matrix);
+    } else {
+      Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
+      _matrix[i_occ] = temp;
+    }
   }
 #else
   XTP_LOG_SAVE(logDEBUG, _log)
-      << TimeStamp() << "Call MultiplyRightWithAuxMatrixOpenMP method" << flush;
-  this->MultiplyRightWithAuxMatrixOpenMP(matrix);
+      << TimeStamp()
+      << " Using Default OpenMP for tensor matrix multiplication: " << flush;
+#pragma omp parallel for
+  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
+    Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
+    _matrix[i_occ] = temp;
+  }
 #endif
   return;
 }
@@ -104,11 +113,11 @@ void TCMatrix_gwbse::Fill(const AOBasis& gwbasis, const AOBasis& dftbasis,
     std::vector<Eigen::MatrixXd> symmstorage =
         ComputeSymmStorage(shell, dftbasis, dft_orbitals);
 
-    // If cuda is enable each OpenMP Perform the convolution in the cuda device.
-    // Each thread has its own stream that behaves like a queue containing the
-    // matrix multiplication requests. If there are more threads than
-    // MAXIMUM_GPU_STREAMS, the remaining threads will perform the perform the
-    // convolution using the default method.
+    // If cuda is enable each OpenMP Perform the convolution in the cuda
+    // device. Each thread has its own stream that behaves like a queue
+    // containing the matrix multiplication requests. If there are more
+    // threads than MAXIMUM_GPU_STREAMS, the remaining threads will perform
+    // the perform the convolution using the default method.
 #if defined(USE_CUDA)
     if (OPENMP::getThreadId() < _max_gpu_streams) {
       FillBlockCUDA(block, symmstorage, cuda_matrices);
@@ -216,36 +225,22 @@ void TCMatrix_gwbse::FillBlock(std::vector<Eigen::MatrixXd>& block,
   return;
 }
 
-/*
- * Modify 3-center matrix elements consistent with use of symmetrized
- * Coulomb interaction using OPENMP parallelization
- */
-void TCMatrix_gwbse::MultiplyRightWithAuxMatrixOpenMP(
-    const Eigen::MatrixXd& matrix) {
-#pragma omp parallel for
-  for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
-    Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
-    _matrix[i_occ] = temp;
-  }
-  return;
-}
-
 #if defined(USE_CUDA)
 /*
- * Convolution of the GW shell with the DFT orbital coefficients using an Nvidia
- * GPU. The Cuda device behaves like a server that is receiving matrix-matrix
- * multiplications from a single stream (an Nvidia queue) and handle them
- * in an asynchronous way. It performs the following operations when recieving a
- * request:
+ * Convolution of the GW shell with the DFT orbital coefficients using an
+ * Nvidia GPU. The Cuda device behaves like a server that is receiving
+ * matrix-matrix multiplications from a single stream (an Nvidia queue) and
+ * handle them in an asynchronous way. It performs the following operations
+ * when recieving a request:
  *  1. Check that there is enough space for the arrays
  *  2. Allocate memory for each submatrix
  *  3. copy the submatrix to the allocated space
  *  4. return the result matrix
  * The Cuda device knows to which memory address it needs to copy back the
  * result. see: https://docs.nvidia.com/cuda/cublas/index.html#thread-safety2
- * The amount of memory allocated in the device for this operations is roughly:
- *  `3 * number_of_threads * (basisfunction ^ 2) + 2 * (basisfunction ^ 2)`
- *  Meaning that if 3500 basis occupied around 0.1GB then 32 threads will
+ * The amount of memory allocated in the device for this operations is
+ * roughly: `3 * number_of_threads * (basisfunction ^ 2) + 2 * (basisfunction
+ * ^ 2)` Meaning that if 3500 basis occupied around 0.1GB then 32 threads will
  * allocate almost 10GB in the worst case scenario. Typical Nvidia devices
  * have memory in the range between 10 to 48 GBs.
  */
