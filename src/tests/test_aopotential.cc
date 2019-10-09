@@ -780,52 +780,12 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
       -1.65932e-06, 2.12047e-06, -8.47033e-22, -0.00288238;
 
   bool check_esp = esp.Matrix().isApprox(esp_ref, 0.00001);
-
   BOOST_CHECK_EQUAL(check_esp, 1);
   if (!check_esp) {
     cout << "esp ref" << endl;
     cout << esp_ref << endl;
     cout << "esp result" << endl;
     cout << esp.Matrix() << endl;
-  }
-
-  ofstream ecpfile("ecp.xml");
-  ecpfile << "<pseudopotential name=\"ECP_STUTTGART\">" << endl;
-  ecpfile << "  <element name=\"C\" lmax=\"3\" ncore=\"2\">" << endl;
-  ecpfile << "    <shell type=\"F\"><constant power=\"2\" decay=\"1.0\" "
-             "contraction=\"0.0\"></constant></shell>"
-          << endl;
-  ecpfile << "    <shell type=\"S\"><constant power=\"2\" decay=\"6.40105200\" "
-             "contraction=\"33.12163800\"></constant></shell>"
-          << endl;
-  ecpfile << "    <shell type=\"P\"><constant power=\"2\" decay=\"7.30774700\" "
-             "contraction=\"-1.98625700\"></constant></shell>"
-          << endl;
-  ecpfile << "    <shell type=\"D\"><constant power=\"1\" decay=\"5.96179600\" "
-             "contraction=\"-9.45431800\"></constant></shell>"
-          << endl;
-  ecpfile << "  </element>" << endl;
-  ecpfile << "</pseudopotential>" << endl;
-  ecpfile.close();
-  ECPBasisSet ecps;
-  ecps.Load("ecp.xml");
-  ECPAOBasis ecpbasis;
-  ecpbasis.Fill(ecps, mol);
-
-  AOECP ecp;
-  ecp.FillPotential(dftbasis, ecpbasis);
-
-  Eigen::MatrixXd ecp_ref = Eigen::MatrixXd::Zero(dftbasissize, dftbasissize);
-  // apparently ecps are zero, sounds weird
-
-  bool check_ecp = ecp.Matrix().isApprox(ecp_ref, 0.00001);
-
-  BOOST_CHECK_EQUAL(check_ecp, 1);
-  if (!check_ecp) {
-    cout << "ref" << endl;
-    cout << ecp_ref << endl;
-    cout << "ecp result" << endl;
-    cout << ecp.Matrix() << endl;
   }
 
   AOPlanewave planewave;
