@@ -533,7 +533,6 @@ BOOST_AUTO_TEST_CASE(large_l_test) {
 
   TCMatrix_dft threec;
   threec.Fill(auxbasis, dftbasis);
-  int auxbasissize = 26;
   int dftbasissize = 18;
   // we only test half of it because it gets a bit big
   std::array<Eigen::MatrixXd, 13> ref;
