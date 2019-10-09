@@ -370,14 +370,15 @@ void GWBSE::addoutput(tools::Property& summary) {
     for (int state = 0; state < _gwopt.qpmax + 1 - _gwopt.qpmin; state++) {
       tools::Property& level_summary = dft_summary.add("level", "");
       level_summary.setAttribute("number", state + _gwopt.qpmin);
-      level_summary.add("dft_energy",
-                        (format("%1$+1.6f ") %
-                         (_orbitals.QPpertEnergies().col(0)(state) * hrt2ev))
-                            .str());
-      level_summary.add("gw_energy",
-                        (format("%1$+1.6f ") %
-                         (_orbitals.QPpertEnergies().col(4)(state) * hrt2ev))
-                            .str());
+      level_summary.add(
+          "dft_energy",
+          (format("%1$+1.6f ") %
+           (_orbitals.MOs().eigenvalues()(state + _gwopt.qpmin) * hrt2ev))
+              .str());
+      level_summary.add(
+          "gw_energy",
+          (format("%1$+1.6f ") % (_orbitals.QPpertEnergies()(state) * hrt2ev))
+              .str());
 
       level_summary.add("qp_energy",
                         (format("%1$+1.6f ") %

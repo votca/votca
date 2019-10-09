@@ -232,9 +232,9 @@ class Orbitals {
     return (_QPpert_energies.size() > 0) ? true : false;
   }
 
-  const Eigen::MatrixXd &QPpertEnergies() const { return _QPpert_energies; }
+  const Eigen::VectorXd &QPpertEnergies() const { return _QPpert_energies; }
 
-  Eigen::MatrixXd &QPpertEnergies() { return _QPpert_energies; }
+  Eigen::VectorXd &QPpertEnergies() { return _QPpert_energies; }
 
   // access to diagonalized QP energies and wavefunctions
 
@@ -369,10 +369,9 @@ class Orbitals {
   std::string _qm_package = "";
 
   // perturbative quasiparticle energies
-  Eigen::MatrixXd _QPpert_energies;
+  Eigen::VectorXd _QPpert_energies;
 
   // quasiparticle energies and coefficients after diagonalization
-
   tools::EigenSystem _QPdiag;
 
   tools::EigenSystem _BSE_singlet;
