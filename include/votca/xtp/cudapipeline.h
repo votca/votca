@@ -54,7 +54,8 @@ class CudaPipeline {
   CudaPipeline &operator=(const CudaPipeline &) = delete;
 
   // Perform a multiplication between a matrix and a tensor
-  Eigen::MatrixXd dgemm(const Eigen::MatrixXd &A, const CudaMatrix &B) const;
+  Eigen::MatrixXd matrix_mult(const Eigen::MatrixXd &A,
+                              const CudaMatrix &B) const;
 
   // Perform matrix1 * matrix2 * matrix3 multiplication
   Eigen::MatrixXd triple_matrix_mult(const CudaMatrix &A,

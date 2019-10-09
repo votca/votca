@@ -36,7 +36,7 @@ BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   CudaMatrix cuda_matrix{A, cudaHandle.get_stream()};
   std::vector<Eigen::MatrixXd> tensor{B, C, D};
   for (auto i = 0; i < 3; i++) {
-    tensor[i] = cudaHandle.dgemm(tensor[i], cuda_matrix);
+    tensor[i] = cudaHandle.matrix_mult(tensor[i], cuda_matrix);
   }
 
   // Expected results
@@ -52,7 +52,8 @@ BOOST_AUTO_TEST_CASE(wrong_shape_cublas) {
   CudaPipeline cudaHandle;
   CudaMatrix cuda_matrix{A, cudaHandle.get_stream()};
 
-  BOOST_REQUIRE_THROW(cudaHandle.dgemm(B, cuda_matrix), std::runtime_error);
+  BOOST_REQUIRE_THROW(cudaHandle.matrix_mult(B, cuda_matrix),
+                      std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(triple_matrix_multiplication) {

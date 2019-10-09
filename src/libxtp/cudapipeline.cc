@@ -73,8 +73,8 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
 /*
  * \brief Perform a Tensor3D matrix multiplication
  */
-Eigen::MatrixXd CudaPipeline::dgemm(const Eigen::MatrixXd &A,
-                                    const CudaMatrix &matrixB) const {
+Eigen::MatrixXd CudaPipeline::matrix_mult(const Eigen::MatrixXd &A,
+                                          const CudaMatrix &matrixB) const {
   CudaMatrix matrixA{A, _stream};
   CudaMatrix matrixC(A.rows(), matrixB.cols());
   gemm(matrixA, matrixB, matrixC);
@@ -83,8 +83,7 @@ Eigen::MatrixXd CudaPipeline::dgemm(const Eigen::MatrixXd &A,
   Eigen::MatrixXd result = matrixC;
 
   return result;
-}
-
+};
 /*
  * \brief performs a matrix_1 * matrix2 * matrix_2 multiplication
  */

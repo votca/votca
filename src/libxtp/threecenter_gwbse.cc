@@ -63,7 +63,7 @@ void TCMatrix_gwbse::MultiplyRightWithAuxMatrix(const Eigen::MatrixXd& matrix) {
 #pragma omp parallel for
   for (int i_occ = 0; i_occ < _mtotal; i_occ++) {
     if (OPENMP::getThreadId() < _max_gpu_streams) {
-      _matrix[i_occ] = cudaHandle.dgemm(_matrix[i_occ], cuda_matrix);
+      _matrix[i_occ] = cudaHandle.matrix_mult(_matrix[i_occ], cuda_matrix);
     } else {
       Eigen::MatrixXd temp = _matrix[i_occ] * matrix;
       _matrix[i_occ] = temp;
