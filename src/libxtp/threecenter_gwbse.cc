@@ -269,7 +269,7 @@ void TCMatrix_gwbse::FillBlockCUDA(
     XTP_LOG_SAVE(logDEBUG, _log)
         << TimeStamp() << " FillBlockCUDA failed due to: " << error.what()
         << " If there is not enough memory in the Nvidia GPU, try decreasing "
-           "the number of OpenMP threads"
+           "the max_gpu_streams variable"
         << flush;
     throw;
   }

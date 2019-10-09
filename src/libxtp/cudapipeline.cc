@@ -99,7 +99,7 @@ void CudaPipeline::right_matrix_tensor_mult(
 }
 
 /*
- * \brief performs a matrix_1 * matrix2 * matrix_2 multiplication
+ * \brief performs a CudaMatrix * EigenMatrix * CudaMatrix multiplication
  */
 Eigen::MatrixXd CudaPipeline::triple_matrix_mult(const CudaMatrix &A,
                                                  const Eigen::MatrixXd &matrix,
