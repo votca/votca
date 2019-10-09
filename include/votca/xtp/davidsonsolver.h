@@ -44,9 +44,7 @@ class DavidsonSolver {
   DavidsonSolver(Logger &log);
 
   void set_iter_max(int N) { this->_iter_max = N; }
-
   void set_max_search_space(int N) { this->_max_search_space = N; }
-
   void set_tolerance(std::string tol);
   void set_correction(std::string method);
   void set_ortho(std::string method);
@@ -54,7 +52,6 @@ class DavidsonSolver {
   void set_matrix_type(std::string mt);
 
   Eigen::ComputationInfo info() const { return _info; }
-
   Eigen::VectorXd eigenvalues() const { return this->_eigenvalues; }
   Eigen::MatrixXd eigenvectors() const { return this->_eigenvectors; }
   Eigen::MatrixXd residues() const { return this->_res; }
@@ -83,36 +80,23 @@ class DavidsonSolver {
     Eigen::VectorXd Adiag = A.diagonal();
 
     // target the lowest diagonal element
-    ProjectedSpace proj;
-    proj.V = setupInitialEigenvectors(Adiag, size_initial_guess);
-    proj.search_space = proj.V.cols();
-
-    // ritz eigenpair
+    ProjectedSpace proj = initProjectedSpace(Adiag, size_initial_guess);
     RitzEigenPair rep;
 
-    // Start of the main iteration loop
-    int nupdate;
     for (int iiter = 0; iiter < _iter_max; iiter++) {
       
-      // check if we need to restart
-      bool restart_required = proj.search_space > _max_search_space;
-
-      if (iiter == 0 || _davidson_ortho == ORTHO::QR) {
-        proj.AV = A * proj.V;
-        proj.T = proj.V.transpose() * proj.AV;
-      } 
-      else if (restart_required) {
-        restart(rep,proj,size_initial_guess);
-
-      } else if (_davidson_ortho == ORTHO::GS) {  
-        updateProjection(A, proj);
+      // restart or update the projection
+      if (proj.search_space > _max_search_space) {
+        restart(rep, proj, size_initial_guess);
+      } else {
+        updateProjection(A, proj, iiter);
       }
-
+      
       // get the ritz vectors
       rep = computeRitzEigenPairs(proj,size_update);
       
       // etend the subspace
-      nupdate = extendProjection(Adiag,rep,proj,root_converged,size_update);
+      int nupdate = extendProjection(Adiag,rep,proj,root_converged,size_update);
 
       // Print iteration data
       printIterationData(root_converged, rep.res_norm, neigen, proj.search_space, iiter);
@@ -159,7 +143,6 @@ class DavidsonSolver {
   Eigen::VectorXd _eigenvalues;
   Eigen::MatrixXd _eigenvectors;
   Eigen::VectorXd _res;
-
   Eigen::ComputationInfo _info = Eigen::ComputationInfo::NoConvergence;
 
   struct RitzEigenPair {
@@ -178,7 +161,14 @@ class DavidsonSolver {
   };
 
   template <typename MatrixReplacement>
-  void updateProjection(const MatrixReplacement &A, ProjectedSpace &proj) const {
+  void updateProjection(const MatrixReplacement &A, ProjectedSpace &proj, int iiter) const {
+
+    if (iiter == 0 || _davidson_ortho == ORTHO::QR) {
+      /* if we use QR we ned to recompute the entire projection
+      since QR will modify original subspace*/
+      proj.AV = A * proj.V;
+      proj.T = proj.V.transpose() * proj.AV;
+    } else if (_davidson_ortho == ORTHO::GS) {  
       /* if we use a GS ortho we do not have to recompute 
       the entire projection as GS doesn't change the original subspace*/
       int size = proj.V.rows();
@@ -191,6 +181,8 @@ class DavidsonSolver {
       proj.T.conservativeResize(new_dim, new_dim);
       proj.T.block(0, old_dim, new_dim, nvec) = VAV;
       proj.T.block(old_dim, 0, nvec, old_dim) = VAV.topRows(old_dim).transpose();
+
+    }
   }
 
   int getSizeUpdate(int neigen) const;
@@ -205,9 +197,10 @@ class DavidsonSolver {
   void printIterationData(std::vector<bool> const &root_converged,
     Eigen::ArrayXd const &res, int neigen, int search_space, int iiter) const;
 
-
   Eigen::ArrayXi argsort(const Eigen::VectorXd &V) const;
+
   Eigen::MatrixXd setupInitialEigenvectors(Eigen::VectorXd &D, int size) const;
+  
   RitzEigenPair computeRitzEigenPairs ( const ProjectedSpace &proj, int size_update);
 
   Eigen::ArrayXi index_window(const Eigen::VectorXd &V, 
@@ -231,6 +224,9 @@ class DavidsonSolver {
                                    const Eigen::VectorXd &x,
                                    const Eigen::VectorXd &D,
                                    double lambda) const;
+
+  ProjectedSpace initProjectedSpace(Eigen::VectorXd &Adiag, 
+                                    int size_initial_guess) const;
 
   int extendProjection(Eigen::VectorXd &Adiag, RitzEigenPair &rep, ProjectedSpace &proj, 
     std::vector<bool> &root_converged, int size_update);

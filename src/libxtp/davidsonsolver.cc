@@ -257,6 +257,14 @@ DavidsonSolver::RitzEigenPair DavidsonSolver::computeRitzEigenPairs (
   return rep;
 }
 
+DavidsonSolver::ProjectedSpace DavidsonSolver::initProjectedSpace(Eigen::VectorXd &Adiag, 
+                                                  int size_initial_guess) const {
+  DavidsonSolver::ProjectedSpace proj; 
+  proj.V = DavidsonSolver::setupInitialEigenvectors(Adiag, size_initial_guess);
+  proj.search_space = proj.V.cols();
+  return proj;
+}
+
 int DavidsonSolver::extendProjection(Eigen::VectorXd &Adiag, 
     DavidsonSolver::RitzEigenPair &rep,  DavidsonSolver::ProjectedSpace &proj, 
     std::vector<bool> &root_converged, int size_update) {
