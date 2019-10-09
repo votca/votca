@@ -105,14 +105,12 @@ Here are a few general tips that should be followed:
 ### Classes
 
 * normally begin in upper case
-* exceptions: classes which define "small" types (e.g. `vec`, `matrix`)
 * order in class definition:
   * first `public` all functions
   * then `private`/`protected` all member variables
   * then `private`/`protected` member functions
   * no rule where to define a `public typedef` in the class
-* all member variables are `private`/`public` (again exception e.g. `vec`,
-  `matrix`)
+* all member variables are `private`/`public`
 * maximum one-line-function implementation in class declaration, everything else
   moves to separate file or inline at end of header.
 
@@ -155,8 +153,7 @@ Here are a few general tips that should be followed:
 * Variables should have clear and explicit names.
 * Do not duplicate code.
 * Functions should have no more than 3 arguments. Otherwise create a class.
-* XYZ positions should be described using tools::vec, 3x3 matrices
-  tools::matrix, or classes and or functions in the eigen library.
+* XYZ positions should be `Eigen::Vector3d` from the eigen library.
 * Readability is more important the elegant design.
 * Leave the code better than you found it.
 * Use pointers sparingly and especially try not to pass them around objects.
