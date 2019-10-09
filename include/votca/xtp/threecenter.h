@@ -139,6 +139,8 @@ class TCMatrix_gwbse : public TCMatrix {
                  const std::vector<Eigen::MatrixXd>& symmstorage,
                  const Eigen::MatrixXd& dft_orbitals);
 
+  void MultiplyRightWithAuxMatrixOpenMP(const Eigen::MatrixXd& AuxMatrix);
+
   std::vector<Eigen::MatrixXd> ComputeSymmStorage(
       const AOShell& auxshell, const AOBasis& dftbasis,
       const Eigen::MatrixXd& dft_orbitals) const;
