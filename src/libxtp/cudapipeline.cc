@@ -85,24 +85,16 @@ void CudaPipeline::right_matrix_tensor_mult(
   throw_if_not_enough_memory_in_gpu(size_A + size_B + size_C);
 
   // Matrix in the Cuda device
-
   CudaMatrix matrixA(submatrix.rows(), submatrix.cols());
   CudaMatrix matrixB{B, _stream};
   CudaMatrix matrixC(submatrix.rows(), B.cols());
 
   // Call tensor matrix multiplication
   for (auto i = 0; i < static_cast<int>(tensor.size()); i++) {
-    // Copy tensor component to the device
-    checkCuda(cudaMemcpyAsync(matrixA.pointer(), tensor[i].data(), size_C,
-                              cudaMemcpyHostToDevice, _stream));
-
-    // matrix multiplication
+    matrixA.copy_to_gpu(tensor[i]);
     gemm(matrixA, matrixB, matrixC);
-
     // Copy the result to the host
-    double *hout = tensor[i].data();
-    checkCuda(cudaMemcpyAsync(hout, matrixC.pointer(), size_C,
-                              cudaMemcpyDeviceToHost, _stream));
+    tensor[i] = matrixC;
   }
 }
 
@@ -112,7 +104,6 @@ void CudaPipeline::right_matrix_tensor_mult(
 Eigen::MatrixXd CudaPipeline::triple_matrix_mult(const CudaMatrix &A,
                                                  const Eigen::MatrixXd &matrix,
                                                  const CudaMatrix &C) const {
-
   // sizes of the matrices to allocated in the device
   size_t size_B = matrix.size() * sizeof(double);
   std::size_t size_W = A.rows() * matrix.cols() * sizeof(double);
@@ -123,18 +114,11 @@ Eigen::MatrixXd CudaPipeline::triple_matrix_mult(const CudaMatrix &A,
   CudaMatrix B{matrix, _stream};
   CudaMatrix W{A.rows(), matrix.cols()};
   CudaMatrix Z{A.rows(), C.cols()};
-
-  Eigen::MatrixXd result = Eigen::MatrixXd::Zero(A.rows(), C.cols());
-
-  // Call the first tensor matrix multiplication
   gemm(A, B, W);
-
-  // Call the second tensor matrix multiplication
   gemm(W, C, Z);
 
   // Copy the result Array back to the device
-  checkCuda(cudaMemcpyAsync(result.data(), Z.pointer(), size_Z,
-                            cudaMemcpyDeviceToHost, _stream));
+  Eigen::MatrixXd result = Z;
 
   return result;
 }

@@ -51,15 +51,24 @@ class CudaMatrix {
   CudaMatrix(const Eigen::MatrixXd &matrix, const cudaStream_t &stream)
       : _rows{static_cast<int>(matrix.rows())},
         _cols{static_cast<int>(matrix.cols())} {
-    size_t size_matrix = this->size() * sizeof(double);
-    _pointer = std::move(alloc_matrix_in_gpu(size_matrix));
+    _pointer = std::move(alloc_matrix_in_gpu(size_matrix()));
+    _stream = stream;
     cudaError_t err =
-        cudaMemcpyAsync(_pointer.get(), matrix.data(), size_matrix,
+        cudaMemcpyAsync(_pointer.get(), matrix.data(), size_matrix(),
                         cudaMemcpyHostToDevice, stream);
     if (err != 0) {
       throw std::runtime_error("Error copy arrays to device");
     }
   }
+
+  // Convert A Cudamatrix to an EigenMatrix
+  operator Eigen::MatrixXd() const {
+    Eigen::MatrixXd result = Eigen::MatrixXd::Zero(this->rows(), this->cols());
+    checkCuda(cudaMemcpyAsync(result.data(), this->pointer(),
+                              this->size_matrix(), cudaMemcpyDeviceToHost,
+                              this->_stream));
+    return result;
+  };
 
   // Unique pointer with custom delete function
   using double_unique_ptr = std::unique_ptr<double, void (*)(double *)>;
@@ -70,20 +79,29 @@ class CudaMatrix {
   // Allocate memory in the GPU for a matrix
   CudaMatrix(long int nrows, long int ncols)
       : _rows{static_cast<int>(nrows)}, _cols{static_cast<int>(ncols)} {
-    size_t size_matrix = this->size() * sizeof(double);
-    _pointer = std::move(alloc_matrix_in_gpu(size_matrix));
+    _pointer = std::move(alloc_matrix_in_gpu(size_matrix()));
   }
 
-  double_unique_ptr alloc_matrix_in_gpu(size_t size_matrix) const {
+  void copy_to_gpu(const Eigen::MatrixXd &A) {
+    size_t size_A = static_cast<int>(A.size()) * sizeof(double);
+    checkCuda(cudaMemcpyAsync(this->pointer(), A.data(), size_A,
+                              cudaMemcpyHostToDevice, _stream));
+  }
+
+  double_unique_ptr alloc_matrix_in_gpu(size_t size_arr) const {
     double *dmatrix;
-    checkCuda(cudaMalloc(&dmatrix, size_matrix));
+    checkCuda(cudaMalloc(&dmatrix, size_arr));
     double_unique_ptr dev_ptr(dmatrix,
                               [](double *x) { checkCuda(cudaFree(x)); });
     return dev_ptr;
   }
 
+  size_t size_matrix() const { return this->size() * sizeof(double); }
+
+  // Attributes of the matrix in the device
   double_unique_ptr _pointer{nullptr,
                              [](double *x) { checkCuda(cudaFree(x)); }};
+  cudaStream_t _stream = nullptr;
   int _rows;
   int _cols;
 };
