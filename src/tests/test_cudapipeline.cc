@@ -1,6 +1,6 @@
 
 #define BOOST_TEST_MAIN
-#define BOOST_TEST_MODULE eigencuda_test
+#define BOOST_TEST_MODULE CudaPipeline_test
 
 #include <boost/test/unit_test.hpp>
 #include <string>
@@ -9,7 +9,7 @@
 
 using namespace votca::xtp;
 
-BOOST_AUTO_TEST_SUITE(eigecuda_test)
+BOOST_AUTO_TEST_SUITE(CudaPipeline_test)
 
 BOOST_AUTO_TEST_CASE(right_matrix_multiplication) {
   // Call the class to handle GPU resources

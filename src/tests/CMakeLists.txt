@@ -60,7 +60,7 @@ if(ENABLE_TESTING)
   list(APPEND test_cases test_bsecoupling)
   list(APPEND test_cases test_rate_engine)
   if(USE_CUDA)
-    list(APPEND test_cases test_cudapipeline)
+    list(APPEND test_cases test_cudapipeline test_cudamatrix)
   endif()
 
   foreach(PROG ${test_cases} )

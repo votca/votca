@@ -66,8 +66,8 @@ void CudaPipeline::gemm(const CudaMatrix &A, const CudaMatrix &B,
   }
 
   cublasDgemm(_handle, CUBLAS_OP_N, CUBLAS_OP_N, A.rows(), B.cols(), A.cols(),
-              palpha, A.pointer(), A.rows(), B.pointer(), B.rows(), pbeta,
-              C.pointer(), C.rows());
+              palpha, A.data(), A.rows(), B.data(), B.rows(), pbeta, C.data(),
+              C.rows());
 }
 
 /*
